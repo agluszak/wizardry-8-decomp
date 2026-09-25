@@ -97,8 +97,7 @@ struct W8MonsterRep : public W8EmitterHost {
                                               signed char lod) override;  /* 0x004BF8C0 */
     virtual unsigned int ApplyEmitterSetting(signed char cycle) override; /* 0x004BF970 */
     virtual W8AniMesh* GetEmitterAniMesh(signed char cycle) override;     /* 0x004BF920 */
-    virtual void CopyCycle004BF0F0(signed char cycle, const W8MonsterRep* other,
-                                   signed char other_cycle);
+    virtual void CopyCycle(signed char cycle, const W8MonsterRep* other, signed char other_cycle);
     unsigned char ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monster* monster, int cycle_index,
                                         int value);
 
@@ -193,7 +192,7 @@ public:
     virtual W8AniMesh* GetCurrentAniMesh() override;
     virtual void Update();
     virtual void SetCurrentAnimationScale(float scale);
-    virtual void GetMappedPosition004C72A0(srVector3T<float>* position);
+    virtual void GetMappedPosition(srVector3T<float>* position);
     virtual unsigned char GetAnimationCenter(srVector3T<float>* center);
     virtual void SetPosition(const srVector3T<float>* position) override;
 
@@ -204,54 +203,54 @@ public:
     unsigned char IsCycleInterruptable(signed char cycle);
     void ApplyRemovalStateEffects();
     void CollectModelInstances004C6350(W8GrowableVector<stModelInstance*>* instances);
-    void SetDamageStage004C6990(int stage);
-    int GetDamageStageCount004C6A50();
-    unsigned char ReplaceSkinTexture004C6700(int stage, const char* old_name, const char* new_name);
+    void SetDamageStage(int stage);
+    int GetDamageStageCount();
+    unsigned char ReplaceSkinTexture(int stage, const char* old_name, const char* new_name);
     int AddDamageStage004C6880(const char* base_name, int stage);
-    void RemoveCycleSkinTables004C6B10();
-    void RandomizeAppearanceAndMotion004C1D20();
-    unsigned char IsRenderable004C7C00(char alternate);
-    void InitializeAnimatedTexture004C51D0();
-    void HandleAnimationThreshold004C75C0();
-    void HandleAnimationFrame004C74D0(unsigned char frame);
-    void UpdateShakeEvents004C3380(unsigned char frame);
-    void SetShakeEventVisibility004BF9E0(signed char cycle);
+    void RemoveCycleSkinTables();
+    void RandomizeAppearanceAndMotion();
+    unsigned char IsRenderable(char alternate);
+    void InitializeAnimatedTexture();
+    void HandleAnimationThreshold();
+    void HandleAnimationFrame(unsigned char frame);
+    void UpdateShakeEvents(unsigned char frame);
+    void SetShakeEventVisibility(signed char cycle);
     void UpdateAttachedObjects004C3F70();
-    void BeginFadeIn004C4F80(float duration);
-    void BeginDelayedRemoval004C5000();
-    void BeginFadeOutAndRemove004C5040(signed char state);
-    void BeginFadeOut004C5150(float duration);
+    void BeginFadeIn(float duration);
+    void BeginDelayedRemoval();
+    void BeginFadeOutAndRemove(signed char state);
+    void BeginFadeOut(float duration);
     void StartTalking004C73F0(unsigned char animate_mouth);
     void StopTalking004C7470();
-    void SetCycleCallback004CA340(int cycle, CycleCallback callback);
-    unsigned char GetPatrolPoint004CA360(srVector3T<float>* point);
-    void TrackSoundHandle004CA6E0(int handle);
+    void SetCycleCallback(int cycle, CycleCallback callback);
+    unsigned char GetPatrolPoint(srVector3T<float>* point);
+    void TrackSoundHandle(int handle);
     float GetDistanceToPlayer004C7CB0();
-    float GetPointDistanceToPlayer004C7D50(srVector3T<float> point);
-    float GetDistanceToMonster004C7DD0(W8Monster* monster);
-    float GetPointDistanceToMonster004C7E80(W8Monster* monster, srVector3T<float> point);
-    unsigned char SetScript004C7F10(const char* script_name, unsigned char reset_orders);
-    void ProcessScript004C80E0();
-    unsigned char GetProjectilePosition004C77F0(srVector3T<float>* position);
-    unsigned char GetSpellPosition004C78E0(srVector3T<float>* position);
+    float GetPointDistanceToPlayer(srVector3T<float> point);
+    float GetDistanceToMonster(W8Monster* monster);
+    float GetPointDistanceToMonster(W8Monster* monster, srVector3T<float> point);
+    unsigned char SetScript(const char* script_name, unsigned char reset_orders);
+    void ProcessScript();
+    unsigned char GetProjectilePosition(srVector3T<float>* position);
+    unsigned char GetSpellPosition(srVector3T<float>* position);
     unsigned char GetCycleMappedPosition004C7960(signed char cycle, int mapped_index,
                                                  srVector3T<float>* position);
-    unsigned char EvaluateScriptCondition004C9DC0(const char* expression);
-    bool CanContinueScript004CA0F0();
-    unsigned char SetScriptLabel004CA260(const char* label);
-    bool IsPendingFinalize004CA290() const;
-    bool IsWithinWorldRange004CA2A0();
-    unsigned char CheckLineOfSightToPlayer004C4810();
-    void GetPlayerSightFlags004C4870(unsigned char* primary, unsigned char* secondary);
+    unsigned char EvaluateScriptCondition(const char* expression);
+    bool CanContinueScript();
+    unsigned char SetScriptLabel(const char* label);
+    bool IsPendingFinalize() const;
+    bool IsWithinWorldRange();
+    unsigned char CheckLineOfSightToPlayer();
+    void GetPlayerSightFlags(unsigned char* primary, unsigned char* secondary);
     unsigned char IsVisibleToPlayer004C4920(unsigned char use_bounds);
     void GetPlayerToMonsterSightFlags004C4A20(unsigned char* primary, unsigned char* secondary,
                                               const srVector3T<float>* source);
-    unsigned char HasLineOfSightToMonster004C4AF0(W8Monster* monster);
+    unsigned char HasLineOfSightToMonster(W8Monster* monster);
     void GetMonsterSightFlags004C4B70(W8Monster* monster, unsigned char* primary,
                                       unsigned char* secondary);
-    unsigned char HasLineOfSightFromPoint004C4C40(srVector3T<float> point);
-    int IsFacingMonster004C4CA0(W8Monster* monster);
-    int IsFacingPlayer004C4D40();
+    unsigned char HasLineOfSightFromPoint(srVector3T<float> point);
+    int IsFacingMonster(W8Monster* monster);
+    int IsFacingPlayer();
     void ApplyRepresentationScale();
     void RefreshStandingHeight();
 
@@ -377,53 +376,52 @@ public:
     W8GrowableVector<int> values_338;
 };
 
-int ParseMonsterCycleName004C2010(const char* name, signed char* subcycle = 0);
+int ParseMonsterCycleName(const char* name, signed char* subcycle = 0);
 unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                                            const char* monster_name, W8Monster** monster,
                                            int load_value, int location_id);
 unsigned char MonsterReadAllCycles004C58E0(const W8GrCycleLoadContext* context,
                                            const char* monster_name, W8Monster** monster,
                                            int load_value, int location_id);
-unsigned short ChooseDifferentMonsterDirection004C2E00(unsigned short previous_direction);
+unsigned short ChooseDifferentMonsterDirection(unsigned short previous_direction);
 
-unsigned char MonsterGetWorldAnimationBounds004CA4F0(W8Monster* monster, srVector3T<float>* minimum,
-                                                     srVector3T<float>* maximum);
-unsigned char LoadMonsterCycle004C5910(const W8GrCycleLoadContext* context, const char* mon_name,
-                                       W8Monster** monster, int cycle, int value);
+unsigned char MonsterGetWorldAnimationBounds(W8Monster* monster, srVector3T<float>* minimum,
+                                             srVector3T<float>* maximum);
+unsigned char LoadMonsterCycle(const W8GrCycleLoadContext* context, const char* mon_name,
+                               W8Monster** monster, int cycle, int value);
 
 bool MonsterUsesCurrentModelInstance(W8GrCycle* cycle);
 void MonsterGetLocation(W8Monster* monster, srVector3T<float>* location);
 /* Expose the first Navigator angle through the enclosing Monster. */
-float MonsterGetAngleD4004C5770(W8Monster* monster); /* 0x004C5770 */
+float MonsterGetAngleD4(W8Monster* monster); /* 0x004C5770 */
 void MonsterGetLocalLocation(W8Monster* monster, srVector3T<float>* location);
 void UpdateMonster(W8Monster* monster);
 bool MonsterIsCycleSupported(W8Monster* monster, signed char cycle);
 unsigned char MonsterReplacePath(W8Monster* monster, W8PathAI* path);
 unsigned char MonsterGetAnimationRadius(W8Monster* monster, float* radius);
-void MonsterSetFacing004C5B60(W8Monster* monster, float angle);
+void MonsterSetFacing(W8Monster* monster, float angle);
 unsigned char MonsterGetMirrorX(W8Monster* monster);
 void MonsterSetMirrorX(W8Monster* monster, unsigned char state);
 float MonsterGetScale(W8Monster* monster);
 void MonsterSetScale(W8Monster* monster, float scale);
 void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum);
-void MonsterSetAdjustedPosition004C5F00(W8Monster* monster, const srVector3T<float>* position);
-unsigned short MonsterApproachStartupNavigator004C5FF0(W8Monster* monster, double separation);
-unsigned char MonsterLinkToStartupNavigator004C6030(W8Monster* monster);
-unsigned short MonsterConfigureMovementToPlayer004C6070(W8Monster* monster, float separation,
-                                                        float maximum_distance,
-                                                        srVector3T<float> position, int trace_mode,
-                                                        unsigned char* probe_result);
-unsigned short MonsterConfigureMovementToMonster004C60D0(W8Monster* monster, W8Monster* target,
-                                                         float separation, float maximum_distance,
-                                                         srVector3T<float> position, int trace_mode,
-                                                         unsigned char* probe_result);
-void MonsterAimAtMonster004C62C0(W8Monster* monster, W8Monster* target, char alternate);
+void MonsterSetAdjustedPosition(W8Monster* monster, const srVector3T<float>* position);
+unsigned short MonsterApproachStartupNavigator(W8Monster* monster, double separation);
+unsigned char MonsterLinkToStartupNavigator(W8Monster* monster);
+unsigned short MonsterConfigureMovementToPlayer(W8Monster* monster, float separation,
+                                                float maximum_distance, srVector3T<float> position,
+                                                int trace_mode, unsigned char* probe_result);
+unsigned short MonsterConfigureMovementToMonster(W8Monster* monster, W8Monster* target,
+                                                 float separation, float maximum_distance,
+                                                 srVector3T<float> position, int trace_mode,
+                                                 unsigned char* probe_result);
+void MonsterAimAtMonster(W8Monster* monster, W8Monster* target, char alternate);
 void MonsterSetCycle(W8Monster* monster, signed char cycle);
 void MonsterSetStateA0(W8Monster* monster, unsigned char state); /* 0x004C6160 */
 void MonsterSetCycleBehaviour(W8GrCycle* cycle, signed char behaviour);
 void MonsterSetCycleSubCycle(W8GrCycle* cycle, unsigned char subcycle);
 void SetCombatInactiveFlag(unsigned char value);
-void UpdateNearestMonsterGroupMembers004CA570();
+void UpdateNearestMonsterGroupMembers();
 void ApplyMonsterRepresentationScale(W8Monster* monster);
 
 static_assert(sizeof(W8Monster) == 0x348, "W8Monster_size_must_be_0x348");
@@ -473,14 +471,14 @@ void MonsterForward4537E0(W8Monster* monster);
 void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
 void MonsterForward4A84A0(W8Monster* monster);
 void DetachMonsterRepresentation(W8Monster* monster, W8World* world);
-void DeleteMonster004C5860(W8Monster* monster);
+void DeleteMonster(W8Monster* monster);
 void RefreshMonsterStandingHeight(W8Monster* monster);
 void MonsterSetLocationId004C5870(W8Monster* monster, int value);
 void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position);
 /* The shared forwarder four call sites use to advance a cycle's
    representation; it stays free because its callers pass the object on the
    stack. */
-void UpdateCycleRepresentation004C59B0(W8GrCycle* cycle, W8World* world);
+void UpdateCycleRepresentation(W8GrCycle* cycle, W8World* world);
 void MonsterSetNavigatorFlag25(W8Monster* monster, char value);
 W8AIRecord* MonsterGetObject0C(W8Monster* monster);                /* 0x004C5B30 */
 void MonsterSetNavigatorValue120(W8Monster* monster, float value); /* 0x004C5F50 */
@@ -493,11 +491,11 @@ void MonsterForward4531A0(void);
 
 void SetMonsterHighlightColour(W8Monster* monster, float r, float g, float b, float a);
 
-void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on);
+void SetMonsterPartySlotMarker(int party_slot, int location_id, char on);
 void MonsterForwardReferencePosition(W8Monster* monster, char alternate); /* 0x004C6240 */
 void NotifyMonsterHighlight(int party_slot, int location_id, int on);
 
-W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag);
+W8Item* CreateMonsterIconItem(W8World* world, const char* path, int flag);
 /* One eight-byte row per animation cycle at 0x0060EA08. The parser at
    0x004C2010 reads prefix_length as a signed byte. Its optional atoi offset
    comes from the search index, which can differ from the returned cycle. */

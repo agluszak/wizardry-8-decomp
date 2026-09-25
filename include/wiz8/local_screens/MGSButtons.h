@@ -88,10 +88,10 @@ void RedrawCombatStanceButtons(void); /* 0x00597D30 */
 void UpdateCombatStanceButtons(void); /* 0x00597D70 */
 /* Per-frame button refresh from DrawMainGameScreen: bank buttons, scroll
    arrows, panel/options/stance/roof buttons and the layout-arrow pair. */
-void UpdateMainGameButtons005989B0(void); /* 0x005989B0 */
+void UpdateMainGameButtons(void); /* 0x005989B0 */
 /* While the combat-end submenu is up and the cursor has left its row band,
    run a 500 ms countdown, then tear the panel and rows down. */
-void UpdateSubMenuAutoClose00598FA0(void); /* 0x00598FA0 */
+void UpdateSubMenuAutoClose(void); /* 0x00598FA0 */
 
 /* The scroll-arrow callbacks are one-argument thunks over the shared handler:
    up steps toward lower slots, down toward higher, both wrapping and skipping
@@ -124,8 +124,8 @@ void SetSubMenuButtonTooltips(int enabled); /* 0x005990F0 */
 /* Region callback for the sub-menu background: right-up tears the panel down. */
 /* 0x00598C10 / 0x00598C70: enable/disable the scroll, roof and layout button
    banks around the surprise/camp sequence. */
-void EnableMenuButtonBanks00598C10(void);
-void DisableMenuButtonBanks00598C70(void);
+void EnableMenuButtonBanks(void);
+void DisableMenuButtonBanks(void);
 unsigned char SubMenuBackgroundRegionEvent(const InputAtom* event,
                                            W8Region* region); /* 0x00598CD0 */
 /* Region callback the five sub-menu rows share. */

@@ -20,13 +20,13 @@
 
    Attribution evidence: 0x004D9AD0 and 0x004D9B40 carry this file's path in
    their assertion calls. The level-4 block in
-   InitializeLevelMasterFunctions004D6C50 registers CC_TRIGGERPLANE1HEDRA and
+   InitializeLevelMasterFunctions registers CC_TRIGGERPLANE1HEDRA and
    calls the setup. The leading always-false callback is installed on Arnika's
    "ARN11" trigger; it sits at the head of this unit between
    MasterFunctionList.cpp's template emissions and the CC callback. */
 
 // FUNCTION: WIZ8 0x004D9AC0
-bool CosmicCircleReturnFalse004D9AC0(Trigger* pTrigger)
+bool CosmicCircleReturnFalse(Trigger* pTrigger)
 {
     return false;
 }
@@ -34,12 +34,12 @@ bool CosmicCircleReturnFalse004D9AC0(Trigger* pTrigger)
 /* "CC_TRIGGERPLANE1HEDRA": stepping onto the arena trigger plane ends any
    running combat, posts the savant's script notice and starts CameraPath1. */
 // FUNCTION: WIZ8 0x004D9AD0
-bool CosmicCircleTriggerPlane1Hedra004D9AD0(Trigger* pTrigger)
+bool CosmicCircleTriggerPlane1Hedra(Trigger* pTrigger)
 {
     W8NpcState* pNPC;
 
     if (gXStatus.fCombatMode != 0) {
-        EndCombat004EA310(1);
+        EndCombat(1);
     }
     BeginScriptedWorldAction();
     pNPC = GetNpcStateByKind(0x85);
@@ -56,7 +56,7 @@ bool CosmicCircleTriggerPlane1Hedra004D9AD0(Trigger* pTrigger)
    positions, Bela and Phoonzang as hostile adds, the two principals aimed at
    each other's start points and the remaining trigger planes switched off. */
 // FUNCTION: WIZ8 0x004D9B40
-void CosmicCircleSetup004D9B40(void)
+void CosmicCircleSetup(void)
 {
     /* Retail dereferenced both monster infos unconditionally, leaving the
        pointer uninitialised on a missing named entity or failed id; null

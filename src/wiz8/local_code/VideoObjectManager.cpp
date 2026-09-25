@@ -1024,7 +1024,7 @@ void GetCatalogImageSize(int object, int frame, int image, short* width, short* 
 /* The image's own offset inside its frame, read from the video object's ETRLE
    table; only uncompressed frames carry one. */
 // FUNCTION: WIZ8 0x00549700
-void GetCatalogImagePosition00549700(int object, int frame, int image, short* x, short* y)
+void GetCatalogImagePosition(int object, int frame, int image, short* x, short* y)
 {
     W8VideoObjectSlot* slot;
     W8VideoFrame* record;

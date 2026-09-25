@@ -23,7 +23,7 @@ unsigned long g_oct_build_count_00659a38;
 // GLOBAL: WIZ8 0x00659a44
 void* g_oct_build_out_00659a44;
 
-char CollectSurfacePredicate004474C0(W8GDSurface* surface, short kind);
+char CollectSurfacePredicate(W8GDSurface* surface, short kind);
 
 W8OctBuildLinkLists::W8OctBuildLinkLists() : m_usCurrent(0), padding_02(0)
 {
@@ -60,7 +60,7 @@ W8OctBuildLink* W8OctBuildLinkLists::GetNewLink(void* surface)
 }
 
 // FUNCTION: WIZ8 0x00446330
-W8OctBuildNode00446330::W8OctBuildNode00446330()
+W8OctBuildNode::W8OctBuildNode()
 {
     memset(this, 0, 10 * sizeof(unsigned long));
     region_28 = 0;
@@ -69,7 +69,7 @@ W8OctBuildNode00446330::W8OctBuildNode00446330()
 }
 
 // FUNCTION: WIZ8 0x00446350
-W8OctBuildNode00446330::~W8OctBuildNode00446330()
+W8OctBuildNode::~W8OctBuildNode()
 {
     if (leaf_kind_2a != 0) {
         memset(this, 0, 10 * sizeof(unsigned long));
@@ -104,7 +104,7 @@ W8OctBuildTree00446390::W8OctBuildTree00446390(float leaf_size, srVector3T<float
     deepest_link_list_b8 = 0;
 
     if (leaf_size < g_float_005ebc64) {
-        ReportBuildStatus00497690(7, "Leaf Size too small--try a larger leaf size!");
+        ReportBuildStatus(7, "Leaf Size too small--try a larger leaf size!");
     }
     spatial_00.flags_00 = 0;
     spatial_00.item_limit_48 = item_limit;
@@ -151,7 +151,7 @@ W8OctBuildTree00446390::W8OctBuildTree00446390(float leaf_size, srVector3T<float
                 ++spatial_00.depth_44;
             }
             if (spatial_00.depth_44 > 6) {
-                ReportBuildStatus00497690(7, "Leaf Size too small--try a larger leaf size!");
+                ReportBuildStatus(7, "Leaf Size too small--try a larger leaf size!");
             }
             spatial_00.extent_04 = spatial_00.cell_size_08;
         } else {
@@ -210,7 +210,7 @@ W8OctBuildTree00446390::~W8OctBuildTree00446390()
 /* Recursive node teardown: internal nodes delete the eight children, leaf
    nodes (leaf_kind_2a != 0) clear the ten link/array slots. */
 // SYNTHETIC: WIZ8 0x004467d0
-// W8OctBuildNode00446330::`scalar deleting destructor'
+// W8OctBuildNode::`scalar deleting destructor'
 
 /* Reject triangles outside the build domain, lazily create the root node, and
    then hand the complete typed working record to the recursive inserter. */
@@ -224,7 +224,7 @@ unsigned char W8OctBuildTree00446390::InsertSurface00446820(W8GDSurface* surface
     srVector3T<float>* plane = &plane_point;
 
     if ((short)mode == 3) {
-        if (LoadSurfaceVertices004214D0(vertices, surface->vertex_indices_18) == 0) {
+        if (LoadSurfaceVertices(vertices, surface->vertex_indices_18) == 0) {
             plane = 0;
         } else {
             plane_point.x = surface->plane_24.normal.x;
@@ -232,15 +232,15 @@ unsigned char W8OctBuildTree00446390::InsertSurface00446820(W8GDSurface* surface
             plane_point.z = surface->plane_24.normal.z;
         }
     }
-    if (TestSpatialTriangle0046CE60(&spatial_00.minimum_0c, vertices, plane) == 0) {
+    if (TestSpatialTriangle(&spatial_00.minimum_0c, vertices, plane) == 0) {
         return 0;
     }
 
     if (spatial_00.root_90 == 0) {
         if (use_owned_nodes_b4 == 0) {
-            spatial_00.root_90 = new W8OctBuildNode00446330;
+            spatial_00.root_90 = new W8OctBuildNode;
         } else {
-            spatial_00.root_90 = new W8CountedOctBuildNode004AF760;
+            spatial_00.root_90 = new W8CountedOctBuildNode;
         }
     }
     working.root_90 = spatial_00.root_90;
@@ -270,7 +270,7 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatia
     }
 
     if (working->extent_04 <= working->cell_size_08) {
-        W8OctBuildNode00446330* node = working->root_90;
+        W8OctBuildNode* node = working->root_90;
         ++node->leaf_kind_2a;
         if (deepest_link_list_b8 < node->leaf_kind_2a) {
             deepest_link_list_b8 = node->leaf_kind_2a;
@@ -303,14 +303,14 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatia
                     child.minimum_0c.z = working->minimum_0c.z + z * half_extent;
                     child.maximum_18.z = child.minimum_0c.z + half_extent;
 
-                    if (TestSpatialTriangle0046CE60(&child.minimum_0c, working->owned_98,
-                                                    plane_point) != 0) {
-                        W8OctBuildNode00446330* node = working->root_90;
+                    if (TestSpatialTriangle(&child.minimum_0c, working->owned_98, plane_point) !=
+                        0) {
+                        W8OctBuildNode* node = working->root_90;
                         if (node->children_00[octant] == 0) {
                             if (use_owned_nodes_b4 == 0) {
-                                node->children_00[octant] = new W8OctBuildNode00446330;
+                                node->children_00[octant] = new W8OctBuildNode;
                             } else {
-                                node->children_00[octant] = new W8CountedOctBuildNode004AF760;
+                                node->children_00[octant] = new W8CountedOctBuildNode;
                             }
                         }
                         child.root_90 = node->children_00[octant];
@@ -331,8 +331,7 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatia
    the tree watermark, then either extend the tail or seed the head. The same
    body is inlined inside InsertSurfaceRecursive's leaf path. */
 // FUNCTION: WIZ8 0x00446d00
-void W8OctBuildTree00446390::AppendLink00446D00(W8OctBuildNode00446330* node, void* payload,
-                                                short kind)
+void W8OctBuildTree00446390::AppendLink(W8OctBuildNode* node, void* payload, short kind)
 {
     ++node->leaf_kind_2a;
     if (deepest_link_list_b8 < node->leaf_kind_2a) {
@@ -390,7 +389,7 @@ int W8OctBuildTree00446390::CollectObjectsAlongSegment00446D80(int** results,
     }
     state.depth_44 = 0;
     state.level_kind_6c = 1;
-    CollectRecursive00446F20(&state, bounds, static_cast<short>(kind));
+    CollectRecursive(&state, bounds, static_cast<short>(kind));
 
     int count;
     if (saved != 0) {
@@ -415,8 +414,8 @@ int W8OctBuildTree00446390::CollectObjectsAlongSegment00446D80(int** results,
    collect the whole leaf subtree (2), walk the eight octants (1), or skip
    (0). A state already at the bottom level collects as a leaf either way. */
 // FUNCTION: WIZ8 0x00446f20
-int W8OctBuildTree00446390::CollectRecursive00446F20(W8OctSpatialState* state, const float* bounds,
-                                                     short kind)
+int W8OctBuildTree00446390::CollectRecursive(W8OctSpatialState* state, const float* bounds,
+                                             short kind)
 {
     W8OctSpatialState child(state);
     int collected = 0;
@@ -431,9 +430,9 @@ int W8OctBuildTree00446390::CollectRecursive00446F20(W8OctSpatialState* state, c
         box[axis] = (&state->minimum_0c.x)[axis];
         box[axis + 3] = (&state->maximum_18.x)[axis];
     }
-    int verdict = ClassifyBoxBounds00447310(box, bounds, leaf);
+    int verdict = ClassifyBoxBounds(box, bounds, leaf);
     if (verdict == 2 || (verdict == 1 && leaf != 0)) {
-        collected = CollectLeaf00447110(state->root_90, state->depth_44, kind);
+        collected = CollectLeaf(state->root_90, state->depth_44, kind);
     } else if (verdict == 1) {
         short octant = 0;
         int x = 0;
@@ -444,7 +443,7 @@ int W8OctBuildTree00446390::CollectRecursive00446F20(W8OctSpatialState* state, c
                 int z = 0;
                 int z_count = 2;
                 do {
-                    W8OctBuildNode00446330* node = state->root_90;
+                    W8OctBuildNode* node = state->root_90;
                     if (node->children_00[octant] != 0) {
                         child.minimum_0c.x = x * child.extent_04 + state->minimum_0c.x;
                         child.maximum_18.x = child.minimum_0c.x + child.extent_04;
@@ -453,7 +452,7 @@ int W8OctBuildTree00446390::CollectRecursive00446F20(W8OctSpatialState* state, c
                         child.minimum_0c.z = z * child.extent_04 + state->minimum_0c.z;
                         child.maximum_18.z = child.minimum_0c.z + child.extent_04;
                         child.root_90 = node->children_00[octant];
-                        collected += CollectRecursive00446F20(&child, bounds, kind);
+                        collected += CollectRecursive(&child, bounds, kind);
                     }
                     ++octant;
                     ++z;
@@ -474,8 +473,7 @@ int W8OctBuildTree00446390::CollectRecursive00446F20(W8OctSpatialState* state, c
    0x2000 flag and dedup-scans list 4; kind 10 dedup-scans list 7 and runs the
    predicate on the 0xb list; other kinds run the predicate on list `kind`. */
 // FUNCTION: WIZ8 0x00447110
-int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, short depth,
-                                                short kind)
+int W8OctBuildTree00446390::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
 {
     W8OctBuildLink* link;
     W8GDSurface* surface;
@@ -553,8 +551,8 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
             // reinterpret-ok: dead kind-10 path reads the proven ushort region-index pair at +0x2c as a link head
             for (link = *reinterpret_cast<W8OctBuildLink**>(&node->provisional_region_2c);
                  link != 0; link = link->next_04) {
-                if (CollectSurfacePredicate004474C0(static_cast<W8GDSurface*>(link->surface_00),
-                                                    0xb) != 0) {
+                if (CollectSurfacePredicate(static_cast<W8GDSurface*>(link->surface_00), 0xb) !=
+                    0) {
                     static_cast<W8GDSurface**>(
                         g_oct_build_scratch_00659a48)[g_oct_build_count_00659a38] =
                         static_cast<W8GDSurface*>(link->surface_00);
@@ -565,8 +563,7 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
             return second + collected;
         }
         for (link = node->links_00[kind]; link != 0; link = link->next_04) {
-            if (CollectSurfacePredicate004474C0(static_cast<W8GDSurface*>(link->surface_00),
-                                                kind) != 0) {
+            if (CollectSurfacePredicate(static_cast<W8GDSurface*>(link->surface_00), kind) != 0) {
                 static_cast<W8GDSurface**>(
                     g_oct_build_scratch_00659a48)[g_oct_build_count_00659a38] =
                     static_cast<W8GDSurface*>(link->surface_00);
@@ -578,7 +575,7 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
     }
     for (int child = 0; child != 8; ++child) {
         if (node->children_00[child] != 0) {
-            collected += CollectLeaf00447110(node->children_00[child], depth + 1, kind);
+            collected += CollectLeaf(node->children_00[child], depth + 1, kind);
         }
     }
     return collected;
@@ -589,8 +586,7 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
    corner is inside, a bounds corner inside the box), 0 when disjoint. `leaf`
    stops the scan on the first inside corner at the bottom octree level. */
 // FUNCTION: WIZ8 0x00447310
-int W8OctBuildTree00446390::ClassifyBoxBounds00447310(const float* box, const float* bounds,
-                                                      char leaf)
+int W8OctBuildTree00446390::ClassifyBoxBounds(const float* box, const float* bounds, char leaf)
 {
     short x;
     short y;
@@ -645,7 +641,7 @@ int W8OctBuildTree00446390::ClassifyBoxBounds00447310(const float* box, const fl
    0x2000 visit flag; other kinds dedup-scan the scratch buffer. Returns
    nonzero when the surface should be appended. */
 // FUNCTION: WIZ8 0x004474c0
-char CollectSurfacePredicate004474C0(W8GDSurface* surface, short kind)
+char CollectSurfacePredicate(W8GDSurface* surface, short kind)
 {
     char result = 0;
     if (kind != 3) {

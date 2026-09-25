@@ -370,7 +370,7 @@ void EndPartyMovementPhase(void)
     if (!GetLevelDataFlag6()) {
         ShowNotice(8, gppStringList[0x870 / 4], -1, -1, 0);
     }
-    ResetLevelDataVectors0041F0D0();
+    ResetLevelDataVectors();
     DisableFreeTurnButton();
     InvalidatePartyMovementPanel();
     RefreshOutwardSightForAllMonsters();
@@ -382,7 +382,7 @@ void EndPartyMovementPhase(void)
 // FUNCTION: WIZ8 0x004f0630
 void BeginFreeTurnPhase(void)
 {
-    ResetLevelDataVectors0041F0D0();
+    ResetLevelDataVectors();
     g_combat_state->uiCurrentPartyActionStatus = W8_ACTION_STATUS_FINISHED;
     gXStatus.fPartyMovementMode = false;
     CheckMonsterGroupsEnterCombat();
@@ -464,7 +464,7 @@ void InterruptActivePartyMovement(void)
 }
 
 // FUNCTION: WIZ8 0x004efda0
-void FinishPartyMovementAction004EFDA0(void)
+void FinishPartyMovementAction(void)
 {
     if (g_combat_state->uiCurrentPartyAction != 1 && g_combat_state->uiCurrentPartyAction != 2) {
         g_combat_state->uiCurrentPartyActionStatus = 1;
@@ -516,7 +516,7 @@ void StartPartyMovementAction004EFC00(void)
 }
 
 // FUNCTION: WIZ8 0x004f00c0
-char PartyMovementReachedPhaseLimit004F00C0(void)
+char PartyMovementReachedPhaseLimit(void)
 {
     if (g_combat_state->uiCurrentPartyActionStatus != 1) {
         srAssertFail("gpCombat->uiCurrentPartyActionStatus == ACTION_STATUS_IN_PROGRESS",

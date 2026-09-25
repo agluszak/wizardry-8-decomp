@@ -77,7 +77,7 @@ unsigned char g_table_650434[15][8] = {
 /* Record mode appends the current camera position, orientation, level
    location code and the typed line to data\notes.txt. */
 // FUNCTION: WIZ8 0x005E3280
-void WriteRecordModeEntry005E3280(void)
+void WriteRecordModeEntry(void)
 {
     W8WorldCameraState state;
     char location_code[32];
@@ -113,25 +113,25 @@ void WriteRecordModeEntry005E3280(void)
         FileWrite(file, g_record_mode_line_0069ca68, length + 1, 0);
         FileClose(file);
     }
-    ResetEditorStatusLine0058AA20(-1);
+    ResetEditorStatusLine(-1);
 }
 
 /* The ENTER-key apply callback: an ordinary line is appended to the log, while
    "DELETE LOG" removes the file and leaves record mode. */
 // FUNCTION: WIZ8 0x005E34B0
-void ApplyRecordModeLine005E34B0(void)
+void ApplyRecordModeLine(void)
 {
     char message[1024];
 
     if (_stricmp(g_record_mode_line_0069ca68, s_delete_log_00650428) != 0) {
-        WriteRecordModeEntry005E3280();
+        WriteRecordModeEntry();
         return;
     }
     if (FileDelete(s_data_notes_txt_006503d0) == 0) {
-        ResetEditorStatusLine0058AA20(-1);
+        ResetEditorStatusLine(-1);
         strcpy(message, s_error_deleting_log_file_006503f8);
     } else {
-        ResetEditorStatusLine0058AA20(-1);
+        ResetEditorStatusLine(-1);
         strcpy(message, s_log_file_deleted_00650414);
     }
     ShowNoticef(6, ConvertStringToWide(message));
@@ -145,11 +145,11 @@ void ApplyRecordModeLine005E34B0(void)
 /* The per-key prompt callback: clears the status line and shows the record
    mode prompt while each character is being composed. */
 // FUNCTION: WIZ8 0x005E35A0
-void PromptRecordModeEntry005E35A0(void)
+void PromptRecordModeEntry(void)
 {
     char message[96];
 
-    ResetEditorStatusLine0058AA20(-1);
+    ResetEditorStatusLine(-1);
     strcpy(message, s_record_mode_prompt_00650384);
     ShowNoticef(6, ConvertStringToWide(message));
 }
@@ -172,7 +172,7 @@ unsigned char GetFlag69DA6C(void)
    g_record_mode_line_0069ca68. Returns 1 on ENTER (the caller then runs the
    apply callback), -1 on ESC, 0 otherwise. */
 // FUNCTION: WIZ8 0x005E3610
-char HandleRecordModeKey005E3610(const InputAtom* input, void (*prompt)(void))
+char HandleRecordModeKey(const InputAtom* input, void (*prompt)(void))
 {
     wchar_t character;
     char* text;
@@ -199,7 +199,7 @@ char HandleRecordModeKey005E3610(const InputAtom* input, void (*prompt)(void))
         g_record_mode_line_0069ca68[g_record_mode_length_0069da70] = 0;
         g_record_mode_length_0069da70 = 0;
         g_flag_69da6c = false;
-        ResetEditorStatusLine0058AA20(-1);
+        ResetEditorStatusLine(-1);
         return -1;
     } else {
         text = ConvertWideStringToString(&character);
@@ -234,7 +234,7 @@ int g_trap_difficulty_6504ac[W8_TRAP_TYPE_COUNT] = {1, 1, 2, 2, 3, 3, 3, 4, 5, 5
    sample the fifteen-row trap table until a type whose per-type difficulty
    lands within four of the trigger's grade (difficulty, floored at one). */
 // FUNCTION: WIZ8 0x005E3740
-void SelectTrapType005E3740(Trigger* trigger)
+void SelectTrapType(Trigger* trigger)
 {
     W8LockState* lock_state;
     int budget;
@@ -255,16 +255,16 @@ void SelectTrapType005E3740(Trigger* trigger)
              g_trap_difficulty_6504ac[type] + 4 < budget);
 }
 
-void DischargeTrapSpell005E3800(float x, float y, float z, int spell_id, unsigned int power_level,
-                                int num_targets); /* 0x005E3800 */
+void DischargeTrapSpell(float x, float y, float z, int spell_id, unsigned int power_level,
+                        int num_targets); /* 0x005E3800 */
 
 // FUNCTION: WIZ8 0x005E3780
-void CompleteTrapDisarm005E3780(Trigger* trigger)
+void CompleteTrapDisarm(Trigger* trigger)
 {
     int type;
     wchar_t* text;
 
-    trigger->CompleteItemInteraction004447F0();
+    trigger->CompleteItemInteraction();
     type = trigger->lock_state.device_id;
     if (Random(100) < 40) {
         ApplyItemEffectToRandomCharacter(g_learn_sound_0068c510, -1, 0, g_effect_argument_005ed8c8);
@@ -276,8 +276,8 @@ void CompleteTrapDisarm005E3780(Trigger* trigger)
 }
 
 // FUNCTION: WIZ8 0x005E3800
-void DischargeTrapSpell005E3800(float x, float y, float z, int spell_id, unsigned int power_level,
-                                int num_targets)
+void DischargeTrapSpell(float x, float y, float z, int spell_id, unsigned int power_level,
+                        int num_targets)
 {
     int index;
     int eligible;
@@ -324,7 +324,7 @@ void DischargeTrapSpell005E3800(float x, float y, float z, int spell_id, unsigne
 }
 
 // FUNCTION: WIZ8 0x005E3AB0
-void ResolveSprungTrap005E3AB0(Trigger* trigger)
+void ResolveSprungTrap(Trigger* trigger)
 {
     int devices;
     int type;
@@ -345,7 +345,7 @@ void ResolveSprungTrap005E3AB0(Trigger* trigger)
     }
     type = trigger->lock_state.device_id;
     if (Random(2) == 0) {
-        trigger->CompleteItemInteraction004447F0();
+        trigger->CompleteItemInteraction();
         result = gppStringList[0x7b3];
     } else {
         result = gppStringList[0x7b4];
@@ -377,5 +377,5 @@ void ResolveSprungTrap005E3AB0(Trigger* trigger)
     }
     GetCameraPosition(&camera);
     g_octree_6598a4->TraceLineOfSight(&camera, &point, 1, -3, -3, 1, 0);
-    DischargeTrapSpell005E3800(point.x, point.y, point.z, g_table_6504e8[type + 11], power, count);
+    DischargeTrapSpell(point.x, point.y, point.z, g_table_6504e8[type + 11], power, count);
 }

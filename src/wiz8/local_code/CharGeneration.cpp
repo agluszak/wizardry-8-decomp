@@ -513,7 +513,7 @@ void AdjustAllocatedAttribute(W8Character* character, W8CharacterCreationState* 
 complete:
     RecalculateCharacterHitPoints(character);
     RecalculateCharacterStamina(character);
-    RecalculateCarryingCapacity004EDC10(character);
+    RecalculateCarryingCapacity(character);
     RecalculateCarriedWeight(character);
     RecalculateRealmSpellPoints(character);
     CalcArmorClasses(character);
@@ -522,7 +522,7 @@ complete:
         RebuildSkillAllocations(character, creation_state);
     }
     CountRemainingSpellPoints(character, creation_state);
-    RefreshCharacterSkillAvailability00553CD0(character);
+    RefreshCharacterSkillAvailability(character);
     RecomputeSkillLimits(character, creation_state);
 }
 
@@ -531,7 +531,7 @@ complete:
 // FUNCTION: WIZ8 0x00557b20
 void RecomputeSkillLimits(W8Character* character, W8CharacterCreationState* creation_state)
 {
-    InitializeSkillBaseLevels00553C90(character);
+    InitializeSkillBaseLevels(character);
     int step = (creation_state->skill_points_total + 2) / 3;
     creation_state->skill_step_limit = step;
 
@@ -740,7 +740,7 @@ void RebuildSkillAllocations(W8Character* character, W8CharacterCreationState* c
         character->skills[index].points_02 = 0;
         character->skills[index].level = 0;
     }
-    InitializeSkillBaseLevels00553C90(character);
+    InitializeSkillBaseLevels(character);
 
     int profession = character->iProfession;
     int count = 1;
@@ -770,7 +770,7 @@ void RebuildSkillAllocations(W8Character* character, W8CharacterCreationState* c
         character->skills[index].points_02 += creation_state->skill_points_spent[index];
         character->skills[index].level = character->skills[index].points_02;
     }
-    character->skills[bonus_skill].level += GetSkillQuarterValue00553EE0(character, bonus_skill);
+    character->skills[bonus_skill].level += GetSkillQuarterValue(character, bonus_skill);
 }
 
 /* Compute how many spell points the level-up summary can award from the
@@ -880,7 +880,7 @@ void DeselectCreationSpell(W8Character* character, W8CharacterCreationState* cre
    tentative selection (state two) returns to unlearned, the point pool is
    topped back up and the page is marked incomplete. */
 // FUNCTION: WIZ8 0x005585D0
-void ResetSpellSelections005585D0(W8Character* character, W8CharacterCreationState* creation_state)
+void ResetSpellSelections(W8Character* character, W8CharacterCreationState* creation_state)
 {
     for (int index = 0; index < 0x72; ++index) {
         if (character->spell_learned[index] == 2) {
@@ -1080,11 +1080,11 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
             } else {
                 ApplyProfessionMinimumAttributes(character, creation_state);
             }
-            RefreshCharacterSkillAvailability00553CD0(character);
+            RefreshCharacterSkillAvailability(character);
             FinalizeSpellPointPool(character, creation_state);
             RecountLearnedSpellsByRealm004F96A0(character);
             CountRemainingSpellPoints(character, creation_state);
-            RefreshCharacterSkillAvailability00553CD0(character);
+            RefreshCharacterSkillAvailability(character);
             RecomputeSkillLimits(character, creation_state);
         }
         if (character->uiExpLevel == 1) {
@@ -1094,7 +1094,7 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
         }
         RecalculateCharacterHitPoints(character);
         RecalculateCharacterStamina(character);
-        RecalculateCarryingCapacity004EDC10(character);
+        RecalculateCarryingCapacity(character);
         RecalculateCarriedWeight(character);
         RecalculateRealmSpellPoints(character);
         CalcArmorClasses(character);
@@ -1147,7 +1147,7 @@ void InitializeLevelUpAttributePool(W8Character* character,
     creation_state->skills_complete = 1;
 complete:
     CountRemainingSpellPoints(character, creation_state);
-    RefreshCharacterSkillAvailability00553CD0(character);
+    RefreshCharacterSkillAvailability(character);
     RecomputeSkillLimits(character, creation_state);
     RecalculateCharacterResistances(character);
 }
@@ -1235,7 +1235,7 @@ void FinalizeCreatedCharacter(W8Character* character, W8CharacterCreationState* 
         }
     }
 
-    RebuildRealmSpellPointCeilings0052A540(character);
+    RebuildRealmSpellPointCeilings(character);
     character->experience_previous_goal = character->experience_goal;
     CalcXPGoal(character);
     CalcCharacterLevelBand(character);

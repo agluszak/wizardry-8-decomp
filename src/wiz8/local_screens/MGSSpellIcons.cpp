@@ -342,7 +342,7 @@ unsigned char PartyEffectIconRegionEvent(const InputAtom* event, W8Region* regio
     int slot_index = 0;
     W8EffectSlot* slot;
 
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     slot = g_status_685170.effect_slots_17af;
     do {
         if (slot->active != 0) {
@@ -445,7 +445,7 @@ unsigned char CombatLeftEffectIconRegionEvent(const InputAtom* event, W8Region* 
     W8EffectSlot* slot;
 
     if (gXStatus.fCombatMode != 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         match = 0;
         slot_index = 0;
         slot = g_combat_state->effect_slots;
@@ -488,7 +488,7 @@ unsigned char CombatRightEffectIconRegionEvent(const InputAtom* event, W8Region*
     W8EffectSlot* slot;
 
     if (gXStatus.fCombatMode != 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         match = 0;
         slot_index = 0;
         slot = g_combat_state->effect_slots_85a;

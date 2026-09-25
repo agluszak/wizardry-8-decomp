@@ -836,7 +836,7 @@ W8TextControl::W8TextControl(Controls* panel, unsigned int region, int left, int
 /* Refresh the cached extent from the preferred text handle, falling back to
    the alternate handle. */
 // FUNCTION: WIZ8 0x004F4800
-unsigned char W8TextControl::MeasureText004F4800()
+unsigned char W8TextControl::MeasureText()
 {
     int handle;
 
@@ -1127,12 +1127,12 @@ void W8TextControl::OnMouseEnter(int event)
         return;
     }
     if (!m_enabled) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         SetAlternateTextEnabled(1);
         return;
     }
     if ((m_flags_38 & 0x60) != 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
 
     if ((m_stateFlags & 1) == 0) {
@@ -1154,7 +1154,7 @@ void W8TextControl::OnMouseLeave(int event)
         return;
     }
     if (!m_enabled) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         if ((m_flags_38 & 1) == 0) {
             m_stateFlags &= ~g_W8TextControlMask005ED56C;
         }
@@ -1162,10 +1162,10 @@ void W8TextControl::OnMouseLeave(int event)
         return;
     }
     if ((m_flags_38 & 0x60) != 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
     if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         m_stateFlags &= ~4u;
     }
 
@@ -1197,15 +1197,15 @@ void W8TextControl::OnLeftButtonDown(int event)
         if (m_enabled) {
             return;
         }
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         return;
     }
     if (!m_enabled) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         return;
     }
     if ((m_flags_38 & 0x20) != 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
 
     if ((m_flags_38 & 1) == 0) {
@@ -1231,7 +1231,7 @@ void W8TextControl::OnRightButtonDown(int)
 {
     if ((m_active && m_enabled)) {
         if ((m_flags_38 & 0x20) != 0) {
-            PushButtonSoundScheme005587C0(0, 1);
+            PushButtonSoundScheme(0, 1);
         }
         if (m_rightButtonDownCallback != 0) {
             m_rightButtonDownCallback();
@@ -1241,7 +1241,7 @@ void W8TextControl::OnRightButtonDown(int)
     if (!m_active && m_enabled) {
         return;
     }
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
 }
 
 // FUNCTION: WIZ8 0x004f50c0
@@ -1251,7 +1251,7 @@ void W8TextControl::OnLeftButtonUp(int event)
         return;
     }
     if (!m_enabled) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         if ((m_flags_38 & 1) == 0) {
             m_stateFlags &= ~g_W8TextControlMask005ED56C;
         }
@@ -1261,7 +1261,7 @@ void W8TextControl::OnLeftButtonUp(int event)
         return;
     }
     if ((m_flags_38 & 0x20) != 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
 
     if ((m_flags_38 & 1) == 0) {
@@ -1282,7 +1282,7 @@ void W8TextControl::OnLeftButtonUp(int event)
     m_textBuffer.SetGeometryDirty();
     if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
         m_stateFlags &= ~4u;
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         return;
     }
     if (m_listener != 0) {
@@ -1300,19 +1300,19 @@ void W8TextControl::OnRightButtonUp(int)
         if (m_enabled) {
             return;
         }
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         return;
     }
     if (!m_enabled) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         return;
     }
     if ((m_flags_38 & 0x20) != 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
     if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
         m_stateFlags &= ~4u;
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         return;
     }
     if (m_listener != 0) {
@@ -1345,7 +1345,7 @@ void W8TextControl::OnLeftButtonDoubleClick(int)
 {
     if (m_active && m_enabled) {
         if ((m_flags_38 & 0x20) != 0) {
-            PushButtonSoundScheme005587C0(0, 1);
+            PushButtonSoundScheme(0, 1);
         }
         if ((m_flags_38 & 1) != 0 && (m_stateFlags & 2) == 0) {
             return;
@@ -1358,7 +1358,7 @@ void W8TextControl::OnLeftButtonDoubleClick(int)
     if (!m_active && m_enabled) {
         return;
     }
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
 }
 
 // FUNCTION: WIZ8 0x004f5360
@@ -1668,7 +1668,7 @@ W8VerticalRangeThumb::W8VerticalRangeThumb(W8RangeControl* range, int left, int 
 // FUNCTION: WIZ8 0x004f5c00
 void W8VerticalRangeThumb::OnLeftButtonDown(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     if (m_enabled) {
         POINT cursor;
         SGPMouseGetPos(&cursor);
@@ -1690,7 +1690,7 @@ void W8VerticalRangeThumb::OnLeftButtonDown(int event)
 // FUNCTION: WIZ8 0x004f5d30
 void W8VerticalRangeThumb::OnLeftButtonUp(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     if (m_enabled && m_dragging) {
         m_dragging = false;
         ClearActiveRegionIfMatches(m_region);
@@ -1832,7 +1832,7 @@ void W8HelpTextControl::SetRegionHelp(const wchar_t* text)
 // FUNCTION: WIZ8 0x004f66b0
 void W8HelpTextControl::OnMouseEnter(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     W8TextControl::OnMouseEnter(event);
     if (wcslen(m_regionHelp) > 1 && m_region != -1) {
         ::SetRegionHelpText(m_regionHelp);
@@ -1847,7 +1847,7 @@ void W8HelpTextControl::OnMouseEnter(int event)
 // FUNCTION: WIZ8 0x005b7cb0
 void W8HelpTextControl::OnLeftButtonDown(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     W8TextControl::OnLeftButtonDown(event);
 }
 
@@ -1855,7 +1855,7 @@ void W8HelpTextControl::OnLeftButtonDown(int event)
 void W8HelpTextControl::OnRightButtonDown(int event)
 {
     if (m_secondaryActivationCallback == 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
     W8TextControl::OnRightButtonDown(event);
 }
@@ -1863,7 +1863,7 @@ void W8HelpTextControl::OnRightButtonDown(int event)
 // FUNCTION: WIZ8 0x005b7cd0
 void W8HelpTextControl::OnLeftButtonUp(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     W8TextControl::OnLeftButtonUp(event);
 }
 
@@ -1871,15 +1871,15 @@ void W8HelpTextControl::OnLeftButtonUp(int event)
 void W8HelpTextControl::OnRightButtonUp(int)
 {
     if (m_secondaryActivationCallback == 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
     if (m_active && m_enabled) {
         if ((m_flags_38 & 0x20) != 0) {
-            PushButtonSoundScheme005587C0(0, 1);
+            PushButtonSoundScheme(0, 1);
         }
         if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
             m_stateFlags &= ~4u;
-            PushButtonSoundScheme005587C0(0, 1);
+            PushButtonSoundScheme(0, 1);
             return;
         }
         if (m_listener != 0) {
@@ -1893,13 +1893,13 @@ void W8HelpTextControl::OnRightButtonUp(int)
     if (!m_active && m_enabled) {
         return;
     }
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
 }
 
 // FUNCTION: WIZ8 0x004f6810
 void W8HelpTextControl::OnLeftButtonDoubleClick(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     W8TextControl::OnLeftButtonDoubleClick(event);
 }
 
@@ -1973,7 +1973,7 @@ void W8HorizontalRangeThumb::UpdatePixelPosition()
 // FUNCTION: WIZ8 0x004f5780
 void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     if (m_enabled) {
         POINT cursor;
         SGPMouseGetPos(&cursor);
@@ -1997,7 +1997,7 @@ void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
 // FUNCTION: WIZ8 0x004f5880
 void W8HorizontalRangeThumb::OnLeftButtonUp(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     if (m_enabled && m_dragging) {
         m_dragging = false;
         ClearActiveRegionIfMatches(m_region);
@@ -2010,19 +2010,19 @@ void W8HorizontalRangeThumb::OnLeftButtonUp(int event)
 // FUNCTION: WIZ8 0x004f58c0
 void W8HorizontalRangeThumb::OnMouseEnter(int)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
 }
 
 /* Retail ICF-folds these two hover hooks onto the horizontal thumb methods
    at 0x004f58c0 / 0x004f58d0. */
 void W8VerticalRangeThumb::OnMouseEnter(int)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
 }
 
 void W8VerticalRangeThumb::OnMouseLeave(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     if (m_hovered && !m_dragging) {
         m_hovered = false;
         if (m_pPanel != 0) {
@@ -2042,7 +2042,7 @@ void W8VerticalRangeThumb::OnMouseLeave(int event)
 // FUNCTION: WIZ8 0x004f58d0
 void W8HorizontalRangeThumb::OnMouseLeave(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     if (m_hovered && !m_dragging) {
         m_hovered = false;
         if (m_pPanel != 0) {

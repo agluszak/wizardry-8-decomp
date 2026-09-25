@@ -159,15 +159,15 @@ void EndScriptedPortraitPick00529C40(int party_slot);
 void BeginSedexusCapture(void); /* 0x00529EF0 */
 /* ApplyAttributeChange / ApplySkillChange: character_skills.h (0x00553AD0 / 0x00553C10) */
 /* in GameData.h: CameraLookAt (0x00420F90) */
-/* in ReviewCharacterScreen.h: BeginEndgameSequence005A6580 (0x005A6580) */
+/* in ReviewCharacterScreen.h: BeginEndgameSequence (0x005A6580) */
 void CancelNpcDialogue(void); /* 0x00529560 */
 /* 0x00529570: show the NPC quote bubble for the formatted line; a nonzero
    second argument also plays the startup jingle. */
-void DisplayNpcQuote00529570(const wchar_t* text, char play_sound);
+void DisplayNpcQuote(const wchar_t* text, char play_sound);
 /* 0x00576DA0: advance the dialogue NPC's refusal state - each stage queues a
    different quote until the third, which stays queued. */
-void QueueDialogueNpcRefusal00576DA0(void);
-void AuditNpcScriptQuotes00529660(void);
+void QueueDialogueNpcRefusal(void);
+void AuditNpcScriptQuotes(void);
 /* 0x00524CA0: the NPC-side rebinding pass; reloads the NPC's .nsf script
    file and rebuilds its runtime bindings. */
 void ReloadNpcScriptResources(W8NpcState* npc);

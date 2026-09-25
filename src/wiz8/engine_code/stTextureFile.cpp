@@ -372,7 +372,7 @@ void stTextureFile::invalidate()
 stTextureFile::~stTextureFile()
 {
     if (IsTextureInReadMeshScratch(this) != 0) {
-        ReleaseReadMeshScratch004881D0();
+        ReleaseReadMeshScratch();
     }
     invalidate();
     setFileName(0);

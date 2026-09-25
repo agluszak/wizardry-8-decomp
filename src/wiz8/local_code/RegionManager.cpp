@@ -392,63 +392,63 @@ W8Region g_regions[1500] = {
     {0x00000001, 106, 96, 302, 109, CampOpenCharacterScreenRegionEvent, 0, 1, 0, 2362, 0},
 
     {0x00000001, 106, 124, 302, 133, CampNameEditRegionEvent, 0, 1, 0, 2363, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 1, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 4, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 5, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 7, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 6, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 7, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 1, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 2, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 4, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 5, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 7, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 8, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 6, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 7, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 8, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 9, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 10, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 11, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 9, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 10, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 11, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 1, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 2, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 4, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 5, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 7, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 0, 1, 0, 2378, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 6, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 7, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 0, 1, 0, 2378, 0},
 
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 1, 1, 0, 2379, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 2, 1, 0, 2380, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 3, 1, 0, 2381, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 1, 1, 0, 2379, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 2, 1, 0, 2380, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 3, 1, 0, 2381, 0},
 
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 4, 1, 0, 2382, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 5, 1, 0, 2383, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 6, 1, 0, 2384, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 4, 1, 0, 2382, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 5, 1, 0, 2383, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 6, 1, 0, 2384, 0},
 
-    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler005BBC70, 0, 1, 0, 2385, 0},
-    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler005BBC70, 1, 1, 0, 2386, 0},
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler, 0, 1, 0, 2385, 0},
+    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler, 1, 1, 0, 2386, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 0, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 2, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 3, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 1, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 2, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 3, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 5, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 4, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 5, 0, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 0, 1, 0, 2364, 0},
 
     {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 1, 1, 0, 2367, 0},
@@ -508,19 +508,19 @@ void SetRegionHelpDelay(int delay_ms)
 }
 
 // FUNCTION: WIZ8 0x004F27C0
-void SetRegionHelpForceEnabled004F27C0(unsigned char enabled)
+void SetRegionHelpForceEnabled(unsigned char enabled)
 {
     g_region_help_force_enabled = enabled;
 }
 
 // FUNCTION: WIZ8 0x004F27D0
-void EnableRegionHelpFlag004F27D0(W8Region* region)
+void EnableRegionHelpFlag(W8Region* region)
 {
     region->help_enabled = 1;
 }
 
 // FUNCTION: WIZ8 0x004F27E0
-void DisableRegionHelpFlag004F27E0(W8Region* region)
+void DisableRegionHelpFlag(W8Region* region)
 {
     region->help_enabled = 0;
 }
@@ -1150,7 +1150,7 @@ void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_te
 /* Send the current hot region a mouse-leave transition at the live cursor
    position, then relinquish its help and hover state. */
 // FUNCTION: WIZ8 0x004f2a80
-void ClearHotRegion004F2A80(void)
+void ClearHotRegion(void)
 {
     POINT mouse;
     InputAtom event;

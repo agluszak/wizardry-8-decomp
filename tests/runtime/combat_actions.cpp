@@ -184,7 +184,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                     nav.y = SettlePositionToGround00420BD0(&nav, 0);
                     float cam[3] = {nav.x, nav.y + g_default_world_height_00603ac8, nav.z};
                     WorldSetCameraLocation(GetWorld659AB8(), cam);
-                    g_startup_world_659c0c->SetPositionInternal00453590(&nav);
+                    g_startup_world_659c0c->SetPositionInternal(&nav);
                     RefreshAllSight();
                     party_position = nav;
                     teleported = 1;
@@ -703,7 +703,7 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
             }
             float cam[3] = {nav.x, nav.y + g_default_world_height_00603ac8, nav.z};
             WorldSetCameraLocation(GetWorld659AB8(), cam);
-            g_startup_world_659c0c->SetPositionInternal00453590(&nav);
+            g_startup_world_659c0c->SetPositionInternal(&nav);
             *moved = true;
         }
     }
@@ -1170,7 +1170,7 @@ bool CombatAttackCase(RuntimeCase& test)
         RT_REQUIRE(test, WaitRoundActive(test, query, 15000, "combat-round-start"));
 
         /* combat-round-resolve: attack_report is transient scratch state and
-           ReportCharacterAttackResult0053FB00 clears it before returning.
+           ReportCharacterAttackResult clears it before returning.
            Observe the durable consequence instead. */
         AttackRoundObserve observe = {&test, &damaged, aim_id, baseline_hp, &last_trace};
         if (!WaitRoundFinished(test, query, 90000, "combat-round-resolve", ObserveTargetDamage,
@@ -1213,7 +1213,7 @@ bool CombatAttackCase(RuntimeCase& test)
 static void EndSpellFixtureCombatOnGameThread(void*)
 {
     if (g_combat_state != 0 && gXStatus.fCombatMode != 0) {
-        EndCombat004EA310(0);
+        EndCombat(0);
     }
     gfProgramIsRunning = 0;
 }

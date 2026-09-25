@@ -63,12 +63,12 @@ struct W8GDSurface {
     /* 0x0041CF90: segment-vs-surface test used by env motion. On a hit `from`
        advances to the contact point and `hit_distance` gets the travelled
        length; distance_34 takes the surface's updated limit. */
-    unsigned char TestSegment0041CF90(srVector3T<float>* from, const srVector3T<float>* direction,
-                                      float* hit_distance, srVector3T<float>* vertices);
+    unsigned char TestSegment(srVector3T<float>* from, const srVector3T<float>* direction,
+                              float* hit_distance, srVector3T<float>* vertices);
     /* 0x0041D9D0: shrink `limit` to the remaining in-plane distance against
        the nearest triangle edge; fails when no edge improves it. */
-    unsigned char ClampHitToEdge0041D9D0(const srVector3T<float>* point,
-                                         const srVector3T<float>* vertices, float* limit);
+    unsigned char ClampHitToEdge(const srVector3T<float>* point, const srVector3T<float>* vertices,
+                                 float* limit);
     /* 0x0041DC10: collision response for a hit surface; `origin` is advanced
        to `hit_point` and `direction` is bent along the contact plane. */
     unsigned char ResolveCollision0041DC10(srVector3T<float>* origin,
@@ -76,8 +76,8 @@ struct W8GDSurface {
                                            srVector3T<float>* direction, int collision_index);
     /* 0x0041E8E0: whether moving `from` to `to` pushes this surface's
        centroid away from surface `surface_index`'s centroid. */
-    unsigned char CentroidsDiverging0041E8E0(int surface_index, const srVector3T<float>* from,
-                                             const srVector3T<float>* to);
+    unsigned char CentroidsDiverging(int surface_index, const srVector3T<float>* from,
+                                     const srVector3T<float>* to);
     /* 0x0041EA90: environment response for a walkable contact surface;
        adjusts `direction` and the active environ record. */
     unsigned char ApplyEnvironContact0041EA90(srVector3T<float>* direction);
@@ -230,7 +230,7 @@ inline void W8Quaternion::InterpolateRotation(const srMatrix3T<float>& from,
     rotation->vectors[2].z = static_cast<float>(g_double_005ebc30 - (xx + yy));
 }
 
-void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface* surface);
+void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surface);
 void BuildTrianglePlane00449A40(W8Plane* plane, const srVector3T<float>* first,
                                 const srVector3T<float>* second, const srVector3T<float>* third);
 #endif

@@ -19,7 +19,7 @@ extern unsigned char g_portrait_frame_flags_0061cbc0[0x50];
 /* Refresh one party-selection list portrait after a slot change. */
 void RefreshPartySelectionPortrait(unsigned int party_slot); /* 0x005C33C0 */
 /* 0x005C3470: nonzero while the selector is reviewing an existing character. */
-bool PartySelectionInReviewMode005C3470(void);
+bool PartySelectionInReviewMode(void);
 unsigned char PartySelectionScreenEnter(void);
 void PartySelectionScreenFrame(void);
 unsigned char PartySelectionScreenLeave(int leaving);

@@ -33,12 +33,12 @@ unsigned long g_ground_shadow_shader_006834c8;
    triangle indices for the active mesh. No source name survives, so the
    mapper keeps a descriptive name anchored at its constructor. */
 // VTABLE: WIZ8 0x005ED3B8
-// class W8GroundShadowMapper004D6180
-class W8GroundShadowMapper004D6180 : public srVertexProcessor {
+// class W8GroundShadowMapper
+class W8GroundShadowMapper : public srVertexProcessor {
 public:
-    W8GroundShadowMapper004D6180();
-    virtual ~W8GroundShadowMapper004D6180() override {}
-    /* Retail ICF folds this onto W8NormalTexcoordMapper004B89A0::isActive at
+    W8GroundShadowMapper();
+    virtual ~W8GroundShadowMapper() override {}
+    /* Retail ICF folds this onto W8NormalTexcoordMapper::isActive at
        0x004D6190. */
     virtual int isActive(srVertexPipe&) override
     {
@@ -53,20 +53,19 @@ public:
     unsigned long polygons_20[0x1e];
 };
 
-static_assert(sizeof(W8GroundShadowMapper004D6180) == 0x98,
-              "W8GroundShadowMapper004D6180_must_be_0x98");
+static_assert(sizeof(W8GroundShadowMapper) == 0x98, "W8GroundShadowMapper004D6180_must_be_0x98");
 
 // GLOBAL: WIZ8 0x00683430
-W8GroundShadowMapper004D6180 g_ground_shadow_material_parameters_00683430;
+W8GroundShadowMapper g_ground_shadow_material_parameters_00683430;
 
 // FUNCTION: WIZ8 0x004D6180
-W8GroundShadowMapper004D6180::W8GroundShadowMapper004D6180() {}
+W8GroundShadowMapper::W8GroundShadowMapper() {}
 
 /* Retail ICF folds this class's scalar deleting destructor onto
-   W8NormalTexcoordMapper004B89A0's at 0x004B8A50. */
+   W8NormalTexcoordMapper's at 0x004B8A50. */
 
 // FUNCTION: WIZ8 0x004D6090
-void W8GroundShadowMapper004D6180::process(srVertexPipe& pipe)
+void W8GroundShadowMapper::process(srVertexPipe& pipe)
 {
     srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations_34 +=
         pipe.vertex_count_88;
@@ -243,7 +242,7 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
         mesh.shaders_b0[0].value = g_ground_shadow_shader_006834c8;
         mesh.poly_uv_110[0] = 0;
         g_ground_shadow_material_parameters_00683430.vertices_1c = model->getVertexLoc();
-        model->RenderTriMeshWithEquations00470380(*renderer, mesh, 0);
+        model->RenderTriMeshWithEquations(*renderer, mesh, 0);
     }
     renderer->setPolygonOffset(saved_offset);
 }

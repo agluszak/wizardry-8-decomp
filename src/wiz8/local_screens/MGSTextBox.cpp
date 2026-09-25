@@ -188,7 +188,7 @@ void ResetMessageStorage(void)
 }
 
 // FUNCTION: WIZ8 0x0058AA20
-void ResetEditorStatusLine0058AA20(short line)
+void ResetEditorStatusLine(short line)
 {
     if (line == -1) {
         line = g_status_685170.text_line_cursor_1795;
@@ -485,7 +485,7 @@ int GetTextBoxScrollRange(void)
    wide string. The record's first word is the string count including its
    terminator; its +0x18 word retains the live list-pointer bits. */
 // FUNCTION: WIZ8 0x0058FB50
-unsigned char SaveMessageStorage0058FB50(int file)
+unsigned char SaveMessageStorage(int file)
 {
     W8MessageStorageDiskRecord disk_record;
     W8MessageStorageRecord* live_record;
@@ -528,7 +528,7 @@ unsigned char SaveMessageStorage0058FB50(int file)
    link-height constant never wrote a fourth region, so its count is forced to
    zero without consuming a count slot. */
 // FUNCTION: WIZ8 0x0058FC30
-unsigned char LoadMessageStorage0058FC30(int file)
+unsigned char LoadMessageStorage(int file)
 {
     W8MessageStorageDiskRecord disk_record;
     W8MessageStorageRecord* live_record;
@@ -676,7 +676,7 @@ void ScrollTextBoxToCursor(void)
    optional second argument is the box, -1 for the one the current game mode
    posts to. */
 // FUNCTION: WIZ8 0x0058B300
-void AppendTextBoxLine0058B300(const wchar_t* text, ...)
+void AppendTextBoxLine(const wchar_t* text, ...)
 {
     va_list arguments;
     va_start(arguments, text);
@@ -714,7 +714,7 @@ void AppendTextBoxLine0058B300(const wchar_t* text, ...)
    dormant dialogue input owns that box its line count shifts the target; the
    margin is one line in quiet modes and seven under an overlay. */
 // FUNCTION: WIZ8 0x0058BA60
-void ScrollDialogueTextBoxToLine0058BA60(void)
+void ScrollDialogueTextBoxToLine(void)
 {
     W8DialogueTextState* input;
     int offset;
@@ -974,7 +974,7 @@ void PostCharacterNotice(int party_slot, const wchar_t* format, ...)
 /* PostCharacterNotice with an explicit context instead of the automatic -1
    box; the weapon-set swap paths post it under the dialogue context. */
 // FUNCTION: WIZ8 0x00590A40
-void PostCharacterNoticeInContext00590A40(int party_slot, int context, const wchar_t* format, ...)
+void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* format, ...)
 {
     wchar_t separator[2];
     wchar_t text[4096];
@@ -1166,7 +1166,7 @@ void ScrollTextBoxDown(int lines)
    holding the insertion point, offset by the first-line prefix and the
    pixel length of the text before the cursor. */
 // FUNCTION: WIZ8 0x0058C8E0
-static void DrawDialogueTextCursor0058C8E0(int x, int y)
+static void DrawDialogueTextCursor(int x, int y)
 {
     unsigned int pitch = 0;
     W8DialogueTextState* input = g_level_block->dialogue_text_input;
@@ -1218,7 +1218,7 @@ static void DrawDialogueTextCursor0058C8E0(int x, int y)
    first_line, temporarily terminating each row at the next line's start
    offset; tracks the widest row and invalidates the printed rectangle. */
 // FUNCTION: WIZ8 0x0058CA30
-static void DrawDialogueTextInputLines0058CA30(int x, int y, unsigned int first_line)
+static void DrawDialogueTextInputLines(int x, int y, unsigned int first_line)
 {
     W8DialogueTextState* input = g_level_block->dialogue_text_input;
     wchar_t* string = input->text + input->line_offsets[first_line];
@@ -1269,7 +1269,7 @@ static void DrawDialogueTextInputLines0058CA30(int x, int y, unsigned int first_
 /* Repaint the dormant typed-dialogue editor over the text box: the wrapped
    lines when the input is dirty, then the cursor. */
 // FUNCTION: WIZ8 0x0058C790
-void RedrawDialogueTextInput0058C790(void)
+void RedrawDialogueTextInput(void)
 {
     W8DialogueTextState* input = g_level_block->dialogue_text_input;
     if ((input->dirty != 0 || input->cursor_dirty_2c != 0)) {
@@ -1289,7 +1289,7 @@ void RedrawDialogueTextInput0058C790(void)
             }
             if (input->dirty == 0) {
                 if (input->cursor_dirty_2c != 0) {
-                    DrawDialogueTextCursor0058C8E0(g_level_block->text_box_left, y);
+                    DrawDialogueTextCursor(g_level_block->text_box_left, y);
                 }
             } else {
                 unsigned int first_line = 0;
@@ -1297,9 +1297,9 @@ void RedrawDialogueTextInput0058C790(void)
                     first_line = g_level_block->text_lines[text_box] -
                                  g_status_685170.text_box_lines_shown_49a7[text_box];
                 }
-                DrawDialogueTextInputLines0058CA30(g_level_block->text_box_left, y, first_line);
+                DrawDialogueTextInputLines(g_level_block->text_box_left, y, first_line);
                 input->dirty = 0;
-                DrawDialogueTextCursor0058C8E0(g_level_block->text_box_left, y);
+                DrawDialogueTextCursor(g_level_block->text_box_left, y);
             }
 
             SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
@@ -1570,7 +1570,7 @@ static void DeleteDialogueTextCharacter(unsigned int key)
 // FUNCTION: WIZ8 0x0058E9F0
 unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Region* region)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     if (input_event->usEvent != MOUSE_POS) {
         return 0;
     }
@@ -1593,7 +1593,7 @@ unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Regi
     }
 
     ActivateDialogRegion(0x54);
-    int position = GetAtomCursorY004285A0(input_event) - region->y1 - 1;
+    int position = GetAtomCursorY(input_event) - region->y1 - 1;
     if (position < 0) {
         position = 0;
     } else {
@@ -1620,7 +1620,7 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
 {
     short text_box = g_status_685170.text_line_cursor_1795;
     if (g_level_block->text_lines[text_box] == 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
 
     unsigned short us_event = event->usEvent;
@@ -1710,7 +1710,7 @@ unsigned char TextBoxScrollDownRegionEvent(const InputAtom* event, W8Region* reg
     unsigned int visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
     unsigned int count = GetTextBoxLineCount(text_box);
     if (g_level_block->text_lines[text_box] + visible >= count) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
 
     unsigned short us_event = event->usEvent;
@@ -1761,7 +1761,7 @@ unsigned char TextBoxScrollDownRegionEvent(const InputAtom* event, W8Region* reg
 // FUNCTION: WIZ8 0x0058ED90
 unsigned char TextBoxBodyRegionEvent(const InputAtom* event, W8Region* region)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     if (event->usEvent == MOUSE_WHEEL) {
         short delta = GetMouseWheelDeltaValue(event->usParam);
         if (delta < 0) {
@@ -1817,7 +1817,7 @@ unsigned char TextBoxChannelTabRegionEvent(const InputAtom* event, W8Region* reg
 {
     POINT mouse_pos;
 
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     SGPMouseGetPos(&mouse_pos);
     if (event->usEvent != LEFT_BUTTON_UP) {
         return 0;
@@ -1860,7 +1860,7 @@ unsigned char TextBoxChannelTabRegionEvent(const InputAtom* event, W8Region* reg
 // FUNCTION: WIZ8 0x0058F240
 unsigned char TextBoxMuteRegionEvent(const InputAtom*, W8Region*)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     return 0;
 }
 
@@ -2326,14 +2326,14 @@ char TextBoxHandleKey(const InputAtom* event)
 /* Record what the Knock Knock spell is aimed at. Casting it anywhere the
    overlay is not up says so and records nothing - the message is the
    function's own name in the player's words. Its caller passes the same
-   (level, flag, backfire) triple CastSpellAtLockInteraction00587C80 takes;
+   (level, flag, backfire) triple CastSpellAtLockInteraction takes;
    only the target is read here. */
-/* The trap-mode half of CastSpellAtLockInteraction00587C80: without a
+/* The trap-mode half of CastSpellAtLockInteraction: without a
    backfire the disarm chance is `level * 5 + 0x32 - m_difficulty_038 * 6`, a
    success parks the screen in state 7 (8 on a miss), and either way the text
    and action panels go quiet for a 1.5 second timer. */
 // FUNCTION: WIZ8 0x0058A930
-void AttemptTrapDisarm0058A930(int level, int /*flag*/, char backfire)
+void AttemptTrapDisarm(int level, int /*flag*/, char backfire)
 {
     W8MainGameScreen* screen = g_main_game_screen;
     int chance;
@@ -2430,7 +2430,7 @@ void SelectTextSlot1D8(int line, int index)
 }
 
 // FUNCTION: WIZ8 0x00590D90
-void ClearTextLineEntry00590D90(int index)
+void ClearTextLineEntry(int index)
 {
     g_level_block->text_lines[index] = 0;
 }
@@ -2660,7 +2660,7 @@ void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...)
    (but returning) srAssertFail left it uninitialized at ShowNoticeLine; the
    deterministic empty string models that defect path. */
 // FUNCTION: WIZ8 0x00590BD0
-void RefreshTextBoxMode00590BD0(unsigned short mode)
+void RefreshTextBoxMode(unsigned short mode)
 {
     wchar_t merged[500] = {0};
     W8MessageStorageRecord* line;

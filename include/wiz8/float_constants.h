@@ -178,7 +178,7 @@ extern float g_float_005ed8b8;
    record's turn budget. */
 extern const double g_double_005ece50;
 /* 0x005ECE58/0x005ECE5C: the character launch height base and the per-slot
-   vertical step GetCharacterProjectilePosition004A57B0 applies. */
+   vertical step GetCharacterProjectilePosition applies. */
 extern const float g_float_005ece58;
 extern const float g_float_005ece5c;
 extern const float g_camera_half_pi_005ec3fc;

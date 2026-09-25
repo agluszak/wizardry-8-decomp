@@ -4,10 +4,10 @@
 
 /* Address-qualified W8GameTimer specialization constructed beside the
    canonical GDCamera owner in GameData.cpp. */
-class W8GameTimeAccumulator0043A910 : public W8GameTimer {
+class W8GameTimeAccumulator : public W8GameTimer {
 public:
-    W8GameTimeAccumulator0043A910(); /* 0x0043A910 */
-    virtual ~W8GameTimeAccumulator0043A910() override;
+    W8GameTimeAccumulator(); /* 0x0043A910 */
+    virtual ~W8GameTimeAccumulator() override;
     void SetDurationScale(float scale);
     void ResetDurationScale();
     float Update();
@@ -29,9 +29,8 @@ private:
     float m_elapsed_30;
 };
 
-static_assert(sizeof(W8GameTimeAccumulator0043A910) == 0x34,
-              "W8GameTimeAccumulator0043A910_must_be_0x34");
+static_assert(sizeof(W8GameTimeAccumulator) == 0x34, "W8GameTimeAccumulator0043A910_must_be_0x34");
 
-extern W8GameTimeAccumulator0043A910* g_game_time_accumulator_6598bc;
+extern W8GameTimeAccumulator* g_game_time_accumulator_6598bc;
 
 extern float g_rate_006068EC;

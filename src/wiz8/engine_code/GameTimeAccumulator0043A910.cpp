@@ -13,16 +13,16 @@
 float g_rate_006068EC = 0.1f;
 
 // GLOBAL: WIZ8 0x006598bc
-W8GameTimeAccumulator0043A910* g_game_time_accumulator_6598bc;
+W8GameTimeAccumulator* g_game_time_accumulator_6598bc;
 
 // VTABLE: WIZ8 0x005ec0ac
-// class W8GameTimeAccumulator0043A910
+// class W8GameTimeAccumulator
 
 // SYNTHETIC: WIZ8 0x0043ac40
-// W8GameTimeAccumulator0043A910::`scalar deleting destructor'
+// W8GameTimeAccumulator::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x0043a910
-W8GameTimeAccumulator0043A910::W8GameTimeAccumulator0043A910()
+W8GameTimeAccumulator::W8GameTimeAccumulator()
 {
     m_duration_seconds = g_rate_006068EC;
     m_scale_24 = 2.0f;
@@ -35,7 +35,7 @@ W8GameTimeAccumulator0043A910::W8GameTimeAccumulator0043A910()
 }
 
 // FUNCTION: WIZ8 0x0043a960
-void W8GameTimeAccumulator0043A910::SetDurationScale(float scale)
+void W8GameTimeAccumulator::SetDurationScale(float scale)
 {
     m_duration_scale = scale;
     if (scale < 0.5f) {
@@ -49,7 +49,7 @@ void W8GameTimeAccumulator0043A910::SetDurationScale(float scale)
 }
 
 // FUNCTION: WIZ8 0x0043aa20
-void W8GameTimeAccumulator0043A910::ResetDurationScale()
+void W8GameTimeAccumulator::ResetDurationScale()
 {
     m_flags &= ~0x10;
     m_scale_24 = 2.0f;
@@ -61,7 +61,7 @@ void W8GameTimeAccumulator0043A910::ResetDurationScale()
 }
 
 // FUNCTION: WIZ8 0x0043aad0
-float W8GameTimeAccumulator0043A910::Update()
+float W8GameTimeAccumulator::Update()
 {
     if ((m_flags & 8) != 0 || (g_shared_timer_paused != 0 && (m_flags & 1) == 0) ||
         g_shared_timer_flag_d1 != 0) {
@@ -86,4 +86,4 @@ float W8GameTimeAccumulator0043A910::Update()
 }
 
 // FUNCTION: WIZ8 0x0043ac60
-W8GameTimeAccumulator0043A910::~W8GameTimeAccumulator0043A910() {}
+W8GameTimeAccumulator::~W8GameTimeAccumulator() {}

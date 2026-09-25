@@ -297,7 +297,7 @@ enum W8MonsterScriptCommand {
 };
 
 /* Highlight triangle bitmaps indexed by the slot's marching-order position:
-   the marker SetMonsterPartySlotMarker004C4DE0 hangs on a monster. */
+   the marker SetMonsterPartySlotMarker hangs on a monster. */
 // GLOBAL: WIZ8 0x0060e938
 const char* g_party_target_marker_bitmaps_0060e938[8] = {
     "TriRed.tga",    "TriGreen.tga",  "TriPurple.tga", "TriBlue.tga",
@@ -382,12 +382,12 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
         if (*monster == 0) {
             srAssertFail("*ppMonster", MONSTER_CPP, 0x4d3, 0);
         }
-        (*monster)->RandomizeAppearanceAndMotion004C1D20();
+        (*monster)->RandomizeAppearanceAndMotion();
         RegisterGrCycle(monster_name, *monster);
         return 1;
     }
 
-    PauseSharedGameTimers00439BC0();
+    PauseSharedGameTimers();
 
     unsigned char more = 1;
     bool success = true;
@@ -446,8 +446,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
 
     if (handle == 0) {
         W8GrCycle* loaded = 0;
-        success = LoadGrCycle004A67E0(context, monster_name, &loaded, -1, load_value,
-                                      "data\\monsters", 0);
+        success = LoadGrCycle(context, monster_name, &loaded, -1, load_value, "data\\monsters", 0);
         *monster = static_cast<W8Monster*>(loaded);
         if ((*monster)->m_plsParticles != 0) {
             for (int index = 0; index < (*monster)->m_plsParticles->GetCount(); ++index) {
@@ -460,9 +459,9 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
     } else {
         char line[250];
         while (more != 0) {
-            ReadTextLine004CEE40(handle, line, sizeof(line), &more);
+            ReadTextLine(handle, line, sizeof(line), &more);
             while (line[0] == '\0' && more != 0) {
-                ReadTextLine004CEE40(handle, line, sizeof(line), &more);
+                ReadTextLine(handle, line, sizeof(line), &more);
             }
             if (line[0] == '\0' || line[0] == '#') {
                 continue;
@@ -552,7 +551,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
             } else if (_stricmp(command, "animscript") == 0) {
             } else if (_stricmp(command, "script") == 0) {
                 sscanf(line, "%s %s", command, argument);
-                (*monster)->SetScript004C7F10(argument, 1);
+                (*monster)->SetScript(argument, 1);
             } else if (_stricmp(command, "opacity") == 0) {
                 sscanf(line, "%s %f", command, &opacity);
             } else if (_stricmp(command, "glow") == 0) {
@@ -591,7 +590,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                 char new_name[64];
                 sscanf(line, "%s %s %s", command, old_name, new_name);
                 if (damage_stage != -1 &&
-                    (*monster)->ReplaceSkinTexture004C6700(damage_stage, old_name, new_name) == 0) {
+                    (*monster)->ReplaceSkinTexture(damage_stage, old_name, new_name) == 0) {
                     ShutdownWithErrorBox(reinterpret_cast<const char*>(
                         String( // reinterpret-ok: String returns a logging buffer
                             "The skin texture %s not found in monster %s!", old_name,
@@ -602,7 +601,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                     continue;
                 }
                 signed char subcycle;
-                int cycle = ParseMonsterCycleName004C2010(command, &subcycle);
+                int cycle = ParseMonsterCycleName(command, &subcycle);
                 if (cycle != -1) {
                     if (_strnicmp(argument, "gib", 3) != 0 || g_monster_gib_option_0060e614 != 0) {
                         if (GetRenderOptionState(0xe) == 0) {
@@ -614,8 +613,8 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                             float animation_scale = -1.0f;
                             sscanf(line, "%s %s %f", command, argument, &animation_scale);
                             W8GrCycle* loaded = *monster;
-                            success = LoadGrCycle004A67E0(context, argument, &loaded, cycle,
-                                                          load_value, "data\\monsters", 0);
+                            success = LoadGrCycle(context, argument, &loaded, cycle, load_value,
+                                                  "data\\monsters", 0);
                             *monster = static_cast<W8Monster*>(loaded);
                             if ((*monster)->m_plsParticles != 0) {
                                 for (int index = 0; index < (*monster)->m_plsParticles->GetCount();
@@ -658,7 +657,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                             sscanf(line, "%s %s %d %s %s", command, cycle_name, &frame, wave_name,
                                    loop_name);
                         }
-                        int sound_cycle = ParseMonsterCycleName004C2010(cycle_name, &subcycle);
+                        int sound_cycle = ParseMonsterCycleName(cycle_name, &subcycle);
                         char wave_path[256];
                         wave_path[0] = '\0';
                         if (sound_type != W8_SOUND_EVENT_FOOTSTEP) {
@@ -688,14 +687,14 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                         float value = 10.0f;
                         sscanf(line, "%s %s %d %f %f %f", command, cycle_name, &frame, &duration,
                                &intensity, &value);
-                        int shake_cycle = ParseMonsterCycleName004C2010(cycle_name, &subcycle);
+                        int shake_cycle = ParseMonsterCycleName(cycle_name, &subcycle);
                         W8CameraShakeEffect* effect = new W8CameraShakeEffect(
                             duration, 1, intensity, value * g_world_scale_005ebc40, 0);
                         if (effect != 0) {
                             effect->frame_40 = frame;
                             effect->cycle_3c = shake_cycle;
                             effect->subcycle_44 = subcycle - 1;
-                            (*monster)->AddShakeEffect004A8530(effect);
+                            (*monster)->AddShakeEffect(effect);
                         }
                     } else {
                         srAssertFail("FALSE", MONSTER_CPP, 0x636,
@@ -837,10 +836,10 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
         (*monster)->movement_0c0.pitch_enabled_074 = 0;
     }
 
-    (*monster)->RandomizeAppearanceAndMotion004C1D20();
+    (*monster)->RandomizeAppearanceAndMotion();
     RegisterGrCycle(monster_name, *monster);
-    ResumeSharedGameTimers00439CA0();
-    ReleaseReadMeshScratch004881D0();
+    ResumeSharedGameTimers();
+    ReleaseReadMeshScratch();
     return success;
 }
 
@@ -848,7 +847,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
    caller's current state. Random values four and five fold back to zero in the
    original table. */
 // FUNCTION: WIZ8 0x004c2e00
-unsigned short ChooseDifferentMonsterDirection004C2E00(unsigned short previous_direction)
+unsigned short ChooseDifferentMonsterDirection(unsigned short previous_direction)
 {
     unsigned short direction;
 
@@ -890,7 +889,7 @@ unsigned short ChooseDifferentMonsterDirection004C2E00(unsigned short previous_d
    updated together so the representation and its cached scalar values remain
    synchronized. */
 // FUNCTION: WIZ8 0x004c1d20
-void W8Monster::RandomizeAppearanceAndMotion004C1D20()
+void W8Monster::RandomizeAppearanceAndMotion()
 {
     unsigned int random_value;
 
@@ -965,7 +964,7 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
 }
 
 // FUNCTION: WIZ8 0x004C2010
-int ParseMonsterCycleName004C2010(const char* name, signed char* subcycle)
+int ParseMonsterCycleName(const char* name, signed char* subcycle)
 {
     int cycle;
     int index;
@@ -1038,7 +1037,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
                      "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp", 0x22d, 0);
     }
 
-    animation = CreateAnimObj004A01A0();
+    animation = CreateAnimObj();
     success = AnimObjReadFromFile004A05C0(info, animation, value, lights, 0);
     if (cycle_index == -1) {
         cycle_index = static_cast<signed char>(animation->cycle);
@@ -1077,14 +1076,14 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
 
         for (list = 0; list < 3; ++list) {
             signed char entry;
-            signed char count = static_cast<signed char>(AnimObjListCount004A1620(animation, list));
+            signed char count = static_cast<signed char>(AnimObjListCount(animation, list));
 
             for (entry = 0; entry < count; ++entry) {
-                W8PathAI* path = AnimObjListEntry004A16C0(animation, list, entry);
+                W8PathAI* path = AnimObjListEntry(animation, list, entry);
                 if (path != 0) {
-                    PathAISetLooping004AA9D0(path, 1);
-                    PathAISetDiscreteMode004AAA10(path, 1);
-                    PathAISetScale004AA9C0(path, animation->playback_scale_08);
+                    PathAISetLooping(path, 1);
+                    PathAISetDiscreteMode(path, 1);
+                    PathAISetScale(path, animation->playback_scale_08);
                 }
             }
         }
@@ -1120,7 +1119,7 @@ W8MonsterRep::W8MonsterRep(const W8MonsterRep& other)
         objects_5c8[index] = 0;
     }
     for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
-        CopyCycle004BF0F0(cycle, &other, cycle);
+        CopyCycle(cycle, &other, cycle);
     }
     if (other.monster_light_624 != 0) {
         monster_light_624 = new MonsterLight(*other.monster_light_624);
@@ -1145,7 +1144,7 @@ W8MonsterRep::~W8MonsterRep()
         for (index = 0; index < count; ++index) {
             W8AnimObj* animation = *animations[cycle].GetAt(index);
             if (animation != 0) {
-                DestroyAnimObj004A01E0(animation);
+                DestroyAnimObj(animation);
             }
         }
     }
@@ -1171,8 +1170,7 @@ W8MonsterRep::~W8MonsterRep()
    they are registered with the world's light list and detached until the
    owning GrCycle selects this cycle. */
 // FUNCTION: WIZ8 0x004bf0f0
-void W8MonsterRep::CopyCycle004BF0F0(signed char cycle, const W8MonsterRep* other,
-                                     signed char other_cycle)
+void W8MonsterRep::CopyCycle(signed char cycle, const W8MonsterRep* other, signed char other_cycle)
 {
     int index;
 
@@ -1335,9 +1333,9 @@ W8Monster::~W8Monster()
         ClearMonsterSpellIcons(this);
         PLDestroy(m_pRep->spell_icons_5e8);
     }
-    if (IsSoleRegisteredCycleForName004A8700()) {
+    if (IsSoleRegisteredCycleForName()) {
         g_monster_cycle_registry_weight_0065ba4c -= registry_weight_27c;
-        RemoveCycleSkinTables004C6B10();
+        RemoveCycleSkinTables();
     }
     UnregisterGrCycle(this);
     delete m_pRep;
@@ -1361,7 +1359,7 @@ void W8Monster::SetPosition(const srVector3T<float>* position)
 {
     GetRepresentation()->SetLocation004B8850(position);
     m_pRep->SetLocation004B8850(position);
-    SetPositionInternal00453590(position);
+    SetPositionInternal(position);
     position_dirty_09c = 1;
 }
 
@@ -1407,7 +1405,7 @@ void W8Monster::Update()
     }
 
     if (g_monster_shadow_updates_enabled_0065970c != 0 &&
-        (position_dirty_2d4 != 0 || UpdateTrackedPosition00454950() != 0)) {
+        (position_dirty_2d4 != 0 || UpdateTrackedPosition() != 0)) {
         position_dirty_2d4 = false;
         if (distance < WorldGetRenderRange(g_world)) {
             srNode* sun = static_cast<srNode*>(
@@ -1417,7 +1415,7 @@ void W8Monster::Update()
                 srVector3T<double> sun_location = sun->getLocation();
                 srVector3T<float> sun_position;
 
-                GetMappedPosition004C72A0(&mapped_position);
+                GetMappedPosition(&mapped_position);
                 sun_position = sun_location;
                 if (g_octree_6598a4->HasLineOfSight(&mapped_position, &sun_position, 1)) {
                     if (sunlit_state_2d0 == 0) {
@@ -1518,7 +1516,7 @@ void W8Monster::Update()
         }
 
         if (cycle != 0x15 && script_238 != 0 && gXStatus.fCombatMode == 0) {
-            ProcessScript004C80E0();
+            ProcessScript();
             cycle = Query(6);
         }
 
@@ -1659,7 +1657,7 @@ void W8Monster::Update()
     } else {
         TickAnimation(Query(6) == 4 ? movement_0c0.movement_speed_064 : 1.0f);
     }
-    InitializeAnimatedTexture004C51D0();
+    InitializeAnimatedTexture();
 
     if (sound_334 != 0) {
         srVector3T<float> position = GetPosition();
@@ -1673,7 +1671,7 @@ void W8Monster::Update()
    optional comma-separated float list. The retail interpreter supports the
    two predicates below and treats every other name as false. */
 // FUNCTION: WIZ8 0x004C9DC0
-unsigned char W8Monster::EvaluateScriptCondition004C9DC0(const char* expression)
+unsigned char W8Monster::EvaluateScriptCondition(const char* expression)
 {
     W8GrowableVector<float> parameters;
     char buffer[512] = {0};
@@ -1736,7 +1734,7 @@ unsigned char W8Monster::EvaluateScriptCondition004C9DC0(const char* expression)
    is balanced the same way on both paths: a newly loaded script is marked for
    automatic release, then the Monster takes its own reference. */
 // FUNCTION: WIZ8 0x004C7F10
-unsigned char W8Monster::SetScript004C7F10(const char* script_name, unsigned char reset_orders)
+unsigned char W8Monster::SetScript(const char* script_name, unsigned char reset_orders)
 {
     srRegistry* registry;
     char path[256] = "Data\\Monsters\\Scripts\\";
@@ -1779,7 +1777,7 @@ unsigned char W8Monster::SetScript004C7F10(const char* script_name, unsigned cha
 }
 
 // FUNCTION: WIZ8 0x004C77F0
-unsigned char W8Monster::GetProjectilePosition004C77F0(srVector3T<float>* position)
+unsigned char W8Monster::GetProjectilePosition(srVector3T<float>* position)
 {
     signed char cycle;
     unsigned char result;
@@ -1818,7 +1816,7 @@ unsigned char W8Monster::GetProjectilePosition004C77F0(srVector3T<float>* positi
 /* Cycle 25 mapping six is the spell launch vertex. Missing mappings warn at
    most once per Monster, while the returned byte remains the mapping result. */
 // FUNCTION: WIZ8 0x004c78e0
-unsigned char W8Monster::GetSpellPosition004C78E0(srVector3T<float>* position)
+unsigned char W8Monster::GetSpellPosition(srVector3T<float>* position)
 {
     unsigned char found;
 
@@ -1842,7 +1840,7 @@ unsigned char W8Monster::GetSpellPosition004C78E0(srVector3T<float>* position)
 unsigned char W8Monster::GetCycleMappedPosition004C7960(signed char cycle, int mapped_index,
                                                         srVector3T<float>* position)
 {
-    srModelInstance* current_model = GetCurrentModelInstance004A8250();
+    srModelInstance* current_model = GetCurrentModelInstance();
     W8GrowableVector<W8AnimObj*>* animations;
     W8AnimObj* animation;
     int subcycle;
@@ -1875,7 +1873,7 @@ unsigned char W8Monster::GetCycleMappedPosition004C7960(signed char cycle, int m
         return GetAnimationCenter(position);
     }
 
-    srModelInstance* model = AnimObjDispatch004A14D0(animation, 2, dispatch_value);
+    srModelInstance* model = AnimObjDispatch(animation, 2, dispatch_value);
     if (model != 0) {
         stMeshModel* mesh = static_cast<stMeshModel*>(model->model());
         int vertex = FindMappedIndexInMeshChain(&mesh, mapped_index);
@@ -1902,7 +1900,7 @@ unsigned char W8Monster::GetCycleMappedPosition004C7960(signed char cycle, int m
    the original table: normal mode performs actions, while BEGINORDERS records
    the persistent movement policy that the Navigator update consumes. */
 // FUNCTION: WIZ8 0x004C80E0
-void W8Monster::ProcessScript004C80E0()
+void W8Monster::ProcessScript()
 {
     W8MonsterInfo* monster_info;
     unsigned int monster_index;
@@ -1929,10 +1927,10 @@ void W8Monster::ProcessScript004C80E0()
             if (script_line_23c > 0) {
                 --script_line_23c;
             }
-        } else if (CanContinueScript004CA0F0() == 0) {
+        } else if (CanContinueScript() == 0) {
             return;
         }
-    } else if (CanContinueScript004CA0F0() == 0) {
+    } else if (CanContinueScript() == 0) {
         return;
     }
 
@@ -1979,7 +1977,7 @@ void W8Monster::ProcessScript004C80E0()
             case MONSCR_GOTO: {
                 token = strtok(0, " \t");
                 if (token != 0) {
-                    int line_number = script_238->FindLabelLine004CF730(token);
+                    int line_number = script_238->FindLabelLine(token);
                     if (line_number != -1) {
                         script_conditions_244.Clear();
                         script_line_23c = line_number;
@@ -2002,9 +2000,9 @@ void W8Monster::ProcessScript004C80E0()
                     break;
                 }
                 if (_stricmp(token, "PARTY") == 0) {
-                    SetMovementTargetToNavigator004526C0(g_startup_world_659c0c, 5.0);
+                    SetMovementTargetToNavigator(g_startup_world_659c0c, 5.0);
                 } else {
-                    ConfigureMovementToPosition00452630(&position);
+                    ConfigureMovementToPosition(&position);
                 }
                 token = strtok(0, " \t");
                 if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
@@ -2065,7 +2063,7 @@ void W8Monster::ProcessScript004C80E0()
                 signed char subcycle;
                 token = strtok(0, " \t");
                 if (token != 0) {
-                    int cycle = ParseMonsterCycleName004C2010(token, &subcycle);
+                    int cycle = ParseMonsterCycleName(token, &subcycle);
                     if (cycle != -1) {
                         m_pRep->pending_cycle = (signed char)cycle;
                         m_pRep->active = 1;
@@ -2108,10 +2106,10 @@ void W8Monster::ProcessScript004C80E0()
                 } else if (FindEntityByName(token, &target, 0, 0) == 0) {
                     break;
                 }
-                if (GetProjectilePosition004C77F0(&source) == 0) {
-                    GetMappedPosition004C72A0(&source);
+                if (GetProjectilePosition(&source) == 0) {
+                    GetMappedPosition(&source);
                 }
-                FireMissile004A2D30(owner, &source, &target, 0, 0, 1, 50000.0f);
+                FireMissile(owner, &source, &target, 0, 0, 1, 50000.0f);
                 break;
             }
             case MONSCR_GIVE:
@@ -2134,7 +2132,7 @@ void W8Monster::ProcessScript004C80E0()
                     } else if (FindEntityByName(token, &position, 0, 0) == 0) {
                         break;
                     }
-                    SetPositionInternal00453590(&position);
+                    SetPositionInternal(&position);
                 }
                 break;
             }
@@ -2157,7 +2155,7 @@ void W8Monster::ProcessScript004C80E0()
                     invert = 1;
                     token = strtok(0, " \t");
                 }
-                value = EvaluateScriptCondition004C9DC0(token);
+                value = EvaluateScriptCondition(token);
                 script_conditions_244.InsertAt(0, invert != 0 ? value == 0 : value != 0);
                 break;
             }
@@ -2282,11 +2280,11 @@ void W8Monster::ProcessScript004C80E0()
                         ClearMainGameTargetState();
                     } else if (_stricmp(token, "ENDHOGARWALK") == 0) {
                         ClearMainGameTargetState();
-                        SetScript004C7F10("ClosePatrol.msf", 1);
+                        SetScript("ClosePatrol.msf", 1);
                     } else if (_stricmp(token, "ENDHOGARWALKANDPUTTOSLEEP") == 0) {
                         W8TargetSource source;
                         ClearMainGameTargetState();
-                        SetScript004C7F10("ClosePatrol.msf", 1);
+                        SetScript("ClosePatrol.msf", 1);
                         monster_info = MonsterGetScriptPartByLocationIndex(
                             MonsterGetIndexByLocationID(0x1c3a, MONSTER_CPP, location_id_1e4, 1));
                         ResetTargetSource(&source);
@@ -2484,7 +2482,7 @@ void W8Monster::ProcessScript004C80E0()
    Each command family has one concrete completion condition; commands without
    a condition are immediately ready. */
 // FUNCTION: WIZ8 0x004CA0F0
-bool W8Monster::CanContinueScript004CA0F0()
+bool W8Monster::CanContinueScript()
 {
     switch (script_wait_240) {
     case 1:
@@ -2537,12 +2535,12 @@ bool W8Monster::CanContinueScript004CA0F0()
 }
 
 // FUNCTION: WIZ8 0x004CA260
-unsigned char W8Monster::SetScriptLabel004CA260(const char* label)
+unsigned char W8Monster::SetScriptLabel(const char* label)
 {
     int line;
 
     if (script_238 != 0) {
-        line = script_238->FindLabelLine004CF730(label);
+        line = script_238->FindLabelLine(label);
         if (line >= 0) {
             script_line_23c = line;
             return 1;
@@ -2552,13 +2550,13 @@ unsigned char W8Monster::SetScriptLabel004CA260(const char* label)
 }
 
 // FUNCTION: WIZ8 0x004CA290
-bool W8Monster::IsPendingFinalize004CA290() const
+bool W8Monster::IsPendingFinalize() const
 {
     return pending_finalize_216;
 }
 
 // FUNCTION: WIZ8 0x004CA2A0
-bool W8Monster::IsWithinWorldRange004CA2A0()
+bool W8Monster::IsWithinWorldRange()
 {
     if (node_308 != 0) {
         return node_308->testFlag(srNode::FLAG_DISABLE) == 0;
@@ -2575,7 +2573,7 @@ bool W8Monster::IsWithinWorldRange004CA2A0()
 /* Exercise the inexpensive elevated-origin sight query from this Monster to
    the player, and answer with the trace's own result. */
 // FUNCTION: WIZ8 0x004c4810
-unsigned char W8Monster::CheckLineOfSightToPlayer004C4810()
+unsigned char W8Monster::CheckLineOfSightToPlayer()
 {
     srVector3T<float> monster_position;
     srVector3T<float> player_position;
@@ -2590,7 +2588,7 @@ unsigned char W8Monster::CheckLineOfSightToPlayer004C4810()
    flags. A clear trace sets both false, the special -1 result sets only the
    secondary flag, and every other obstructed result sets both. */
 // FUNCTION: WIZ8 0x004c4870
-void W8Monster::GetPlayerSightFlags004C4870(unsigned char* primary, unsigned char* secondary)
+void W8Monster::GetPlayerSightFlags(unsigned char* primary, unsigned char* secondary)
 {
     srVector3T<float> monster_position;
     srVector3T<float> player_position;
@@ -2678,7 +2676,7 @@ void W8Monster::GetPlayerToMonsterSightFlags004C4A20(unsigned char* primary,
 }
 
 // FUNCTION: WIZ8 0x004c4af0
-unsigned char W8Monster::HasLineOfSightToMonster004C4AF0(W8Monster* monster)
+unsigned char W8Monster::HasLineOfSightToMonster(W8Monster* monster)
 {
     srVector3T<float> from;
     srVector3T<float> to;
@@ -2717,7 +2715,7 @@ void W8Monster::GetMonsterSightFlags004C4B70(W8Monster* monster, unsigned char* 
 }
 
 // FUNCTION: WIZ8 0x004c4c40
-unsigned char W8Monster::HasLineOfSightFromPoint004C4C40(srVector3T<float> point)
+unsigned char W8Monster::HasLineOfSightFromPoint(srVector3T<float> point)
 {
     srVector3T<float> monster_position;
 
@@ -2727,7 +2725,7 @@ unsigned char W8Monster::HasLineOfSightFromPoint004C4C40(srVector3T<float> point
 }
 
 // FUNCTION: WIZ8 0x004c4ca0
-int W8Monster::IsFacingMonster004C4CA0(W8Monster* monster)
+int W8Monster::IsFacingMonster(W8Monster* monster)
 {
     float bearing;
     float facing;
@@ -2745,7 +2743,7 @@ int W8Monster::IsFacingMonster004C4CA0(W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x004c4d40
-int W8Monster::IsFacingPlayer004C4D40()
+int W8Monster::IsFacingPlayer()
 {
     float bearing;
     float facing;
@@ -2767,7 +2765,7 @@ int W8Monster::IsFacingPlayer004C4D40()
    attachment index `party_slot`, on clear it detaches and deletes it. The
    rep's object count tracks the live markers. */
 // FUNCTION: WIZ8 0x004c4de0
-void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on)
+void SetMonsterPartySlotMarker(int party_slot, int location_id, char on)
 {
     W8MonsterRep* rep;
     W8MonsterInfo* info;
@@ -2780,7 +2778,7 @@ void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on)
     if (on == 0) {
         item = rep->objects_5c8[party_slot];
         if (item != 0) {
-            item->DetachMesh0049FA30(g_world);
+            item->DetachMesh(g_world);
             PListRemove(g_world->plsItems, item);
             delete item;
             rep->objects_5c8[party_slot] = 0;
@@ -2791,7 +2789,7 @@ void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on)
             sprintf(path, g_monster_bitmap_path_format_0060f510,
                     g_party_target_marker_bitmaps_0060e938[g_status_685170.buffers.XChar[party_slot]
                                                                .party_order_index]);
-            rep->objects_5c8[party_slot] = CreateMonsterIconItem004C5500(g_world, path, 1);
+            rep->objects_5c8[party_slot] = CreateMonsterIconItem(g_world, path, 1);
             rep->icon_count_5c4 = rep->icon_count_5c4 + 1;
         }
     }
@@ -2802,7 +2800,7 @@ void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on)
    preserves its current scale by seeding the opposite timer at that progress;
    an idle monster starts from zero instead. */
 // FUNCTION: WIZ8 0x004c4f80
-void W8Monster::BeginFadeIn004C4F80(float duration)
+void W8Monster::BeginFadeIn(float duration)
 {
     if (fade_state_330 <= 0) {
         timer_30c.SetDuration(duration);
@@ -2821,7 +2819,7 @@ void W8Monster::BeginFadeIn004C4F80(float duration)
 }
 
 // FUNCTION: WIZ8 0x004c5000
-void W8Monster::BeginDelayedRemoval004C5000()
+void W8Monster::BeginDelayedRemoval()
 {
     flags_1dc |= W8_MONSTER_REMOVE_AFTER_FADE;
     fade_state_330 = -2;
@@ -2833,7 +2831,7 @@ void W8Monster::BeginDelayedRemoval004C5000()
    from the manager without destroying it, and retain the requested terminal
    state for the transition's completion. */
 // FUNCTION: WIZ8 0x004c5040
-void W8Monster::BeginFadeOutAndRemove004C5040(signed char state)
+void W8Monster::BeginFadeOutAndRemove(signed char state)
 {
     flags_1dc |= W8_MONSTER_REMOVE_AFTER_FADE;
     if (fade_state_330 >= 0) {
@@ -2853,7 +2851,7 @@ void W8Monster::BeginFadeOutAndRemove004C5040(signed char state)
 }
 
 // FUNCTION: WIZ8 0x004c5150
-void W8Monster::BeginFadeOut004C5150(float duration)
+void W8Monster::BeginFadeOut(float duration)
 {
     if (fade_state_330 < 0) {
         return;
@@ -2896,12 +2894,12 @@ void W8Monster::StopTalking004C7470()
         stTextureAnim* mouth;
 
         talking = false;
-        model = GetCurrentModelInstance004A8250();
+        model = GetCurrentModelInstance();
         if (model != 0) {
-            mouth = static_cast<stModelInstance*>(model)->FindMouthTexture00481080();
+            mouth = static_cast<stModelInstance*>(model)->FindMouthTexture();
             if (mouth != 0) {
                 mouth->animation_mode_60 = 3;
-                mouth->SetFrame00485400(0);
+                mouth->SetFrame(0);
             }
         }
         if (m_pRep->current_cycle != 0x15) {
@@ -2912,14 +2910,14 @@ void W8Monster::StopTalking004C7470()
 }
 
 // FUNCTION: WIZ8 0x004ca340
-void W8Monster::SetCycleCallback004CA340(int cycle, CycleCallback callback)
+void W8Monster::SetCycleCallback(int cycle, CycleCallback callback)
 {
     cycle_callback_230 = callback;
     callback_cycle_234 = cycle;
 }
 
 // FUNCTION: WIZ8 0x004ca360
-unsigned char W8Monster::GetPatrolPoint004CA360(srVector3T<float>* point)
+unsigned char W8Monster::GetPatrolPoint(srVector3T<float>* point)
 {
     srVector3T<float>* patrol_point;
 
@@ -2951,8 +2949,8 @@ unsigned char W8Monster::GetPatrolPoint004CA360(srVector3T<float>* point)
 }
 
 // FUNCTION: WIZ8 0x004ca4f0
-unsigned char MonsterGetWorldAnimationBounds004CA4F0(W8Monster* monster, srVector3T<float>* minimum,
-                                                     srVector3T<float>* maximum)
+unsigned char MonsterGetWorldAnimationBounds(W8Monster* monster, srVector3T<float>* minimum,
+                                             srVector3T<float>* maximum)
 {
     if (monster != 0) {
         srVector3T<float> position;
@@ -2971,7 +2969,7 @@ unsigned char MonsterGetWorldAnimationBounds004CA4F0(W8Monster* monster, srVecto
    vector's normal Add/GetAt/RemoveAt methods reproduce the original inline
    template operations; no address-shaped container wrapper is involved. */
 // FUNCTION: WIZ8 0x004ca6e0
-void W8Monster::TrackSoundHandle004CA6E0(int handle)
+void W8Monster::TrackSoundHandle(int handle)
 {
     int count;
     int index;
@@ -2999,7 +2997,7 @@ void W8Monster::TrackSoundHandle004CA6E0(int handle)
 /* Mark the closest live member of each loaded group inside the selection
    range. Members that do not improve the current candidate are unmarked. */
 // FUNCTION: WIZ8 0x004ca570
-void UpdateNearestMonsterGroupMembers004CA570()
+void UpdateNearestMonsterGroupMembers()
 {
     srVector3T<float> player_position;
     unsigned int group_index;
@@ -3056,7 +3054,7 @@ float W8Monster::GetDistanceToPlayer004C7CB0()
 }
 
 // FUNCTION: WIZ8 0x004c7d50
-float W8Monster::GetPointDistanceToPlayer004C7D50(srVector3T<float> point)
+float W8Monster::GetPointDistanceToPlayer(srVector3T<float> point)
 {
     srVector3T<float> player_position;
     float distance;
@@ -3072,7 +3070,7 @@ float W8Monster::GetPointDistanceToPlayer004C7D50(srVector3T<float> point)
 }
 
 // FUNCTION: WIZ8 0x004c7dd0
-float W8Monster::GetDistanceToMonster004C7DD0(W8Monster* monster)
+float W8Monster::GetDistanceToMonster(W8Monster* monster)
 {
     srVector3T<float> position = GetPosition();
     srVector3T<float> other_position = monster->GetPosition();
@@ -3086,7 +3084,7 @@ float W8Monster::GetDistanceToMonster004C7DD0(W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x004c7e80
-float W8Monster::GetPointDistanceToMonster004C7E80(W8Monster* monster, srVector3T<float> point)
+float W8Monster::GetPointDistanceToMonster(W8Monster* monster, srVector3T<float> point)
 {
     srVector3T<float> position = monster->GetPosition();
     float delta_x = point.x - position.x;
@@ -3111,7 +3109,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
         MonsterGetIndexByLocationID(0x969, MONSTER_CPP, location_id_1e4, 1);
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
 
-    if (gXStatus.fCombatMode != 0 && IsCameraTransitionActive00420E10() != 0) {
+    if (gXStatus.fCombatMode != 0 && IsCameraTransitionActive() != 0) {
         return 0;
     }
     if (m_pRep->animation_playing_06d == 0) {
@@ -3201,7 +3199,7 @@ void W8Monster::ApplyRemovalStateEffects()
         }
         break;
     case 3:
-        SetTriggerVariableByName00444030("ScregActive", 0);
+        SetTriggerVariableByName("ScregActive", 0);
         break;
     }
 }
@@ -3242,9 +3240,9 @@ srModelInstance* W8MonsterRep::SetCycleFrameLod(signed char cycle, signed char f
     }
     animation = *animation_slot;
     if (animation->path_lists_05 == 0) {
-        return AnimObjDispatch004A14D0(animation, lod, frame);
+        return AnimObjDispatch(animation, lod, frame);
     }
-    return AnimObjDispatchList004A1560(animation, lod, 0);
+    return AnimObjDispatchList(animation, lod, 0);
 }
 
 /* The selected subcycle's AniMesh for one animation cycle. */
@@ -3256,7 +3254,7 @@ W8AniMesh* W8MonsterRep::GetEmitterAniMesh(signed char cycle)
     if (animation == 0) {
         return 0;
     }
-    return AnimObjEntry004A1660(animation, m_bLOD, 0);
+    return AnimObjEntry(animation, m_bLOD, 0);
 }
 
 /* Synchronize the live world representation with the Navigator state, update
@@ -3297,7 +3295,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
     m_pRep->SetRotation004B88D0(&rotation);
 
     if ((flags_1dc & W8_MONSTER_SCALING_Y) != 0) {
-        model = GetCurrentModelInstance004A8250();
+        model = GetCurrentModelInstance();
         srVector3T<double> source_scale = model->getScale();
         float scale_y = static_cast<float>(source_scale.y) * scale_y_1ec;
         float scale_z = static_cast<float>(source_scale.z);
@@ -3311,11 +3309,11 @@ void W8Monster::UpdateRepresentation(W8World* world)
 
     if (talking != 0 && animate_mouth != 0) {
         if (mouth_open != 0) {
-            model = GetCurrentModelInstance004A8250();
+            model = GetCurrentModelInstance();
             if (model != 0 &&
-                (mouth = static_cast<stModelInstance*>(model)->FindMouthTexture00481080()) != 0) {
+                (mouth = static_cast<stModelInstance*>(model)->FindMouthTexture()) != 0) {
                 mouth->animation_mode_60 = 3;
-                mouth->SetFrame00485400(0);
+                mouth->SetFrame(0);
             }
         } else if (GetTickCount() - mouth_frame_clock > 120) {
             unsigned short frame;
@@ -3327,11 +3325,11 @@ void W8Monster::UpdateRepresentation(W8World* world)
                 }
             } while (frame == static_cast<unsigned short>(mouth_frame));
             mouth_frame = frame;
-            model = GetCurrentModelInstance004A8250();
+            model = GetCurrentModelInstance();
             if (model != 0 &&
-                (mouth = static_cast<stModelInstance*>(model)->FindMouthTexture00481080()) != 0) {
+                (mouth = static_cast<stModelInstance*>(model)->FindMouthTexture()) != 0) {
                 mouth->animation_mode_60 = 3;
-                mouth->SetFrame00485400(frame);
+                mouth->SetFrame(frame);
             }
         }
     }
@@ -3341,10 +3339,9 @@ void W8Monster::UpdateRepresentation(W8World* world)
                                                &position);
     }
 
-    if ((node_308 == 0 || node_308->testFlag(srNode::FLAG_DISABLE) == 0) &&
-        IsRenderable004C7C00(0) != 0) {
+    if ((node_308 == 0 || node_308->testFlag(srNode::FLAG_DISABLE) == 0) && IsRenderable(0) != 0) {
         W8GrCycle::UpdateRepresentation(world);
-        model = GetCurrentModelInstance004A8250();
+        model = GetCurrentModelInstance();
         if (model != 0) {
             static_cast<stModelInstance*>(model)->frame_interpolation_1ac =
                 g_settings_6850c8.smooth_monster_animations != 0 ? frame_fraction_1d4 : 0.0f;
@@ -3355,7 +3352,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         }
         if (enabled_1bd == 0) {
             enabled_1bd = true;
-            SetShakeEventVisibility004BF9E0(m_pRep->current_cycle);
+            SetShakeEventVisibility(m_pRep->current_cycle);
             lights = *m_pRep->light_lists[m_pRep->current_cycle].GetAt(m_pRep->current_subcycle);
             if (lights != 0 && (count = lights->GetCount()) != 0) {
                 for (index = 0; index < count; ++index) {
@@ -3368,7 +3365,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         }
     } else if (enabled_1bd != 0) {
         enabled_1bd = false;
-        SetShakeEventVisibility004BF9E0(m_pRep->current_cycle);
+        SetShakeEventVisibility(m_pRep->current_cycle);
         lights = *m_pRep->light_lists[m_pRep->current_cycle].GetAt(m_pRep->current_subcycle);
         if (lights != 0 && (count = lights->GetCount()) != 0) {
             for (index = 0; index < count; ++index) {
@@ -3385,7 +3382,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
    currently selected subcycle. A ranged particle is left to the frame-driven
    update path; this method only toggles particles without a distinct range. */
 // FUNCTION: WIZ8 0x004bf9e0
-void W8Monster::SetShakeEventVisibility004BF9E0(signed char cycle)
+void W8Monster::SetShakeEventVisibility(signed char cycle)
 {
     int index;
     int count;
@@ -3437,7 +3434,7 @@ unsigned int W8MonsterRep::ApplyEmitterSetting(signed char cycle)
     if (animation == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp", 0x2de, 0);
     }
-    return AnimObjValue004A15D0(animation, m_bLOD);
+    return AnimObjValue(animation, m_bLOD);
 }
 
 // FUNCTION: WIZ8 0x004caa40
@@ -3453,7 +3450,7 @@ signed char W8Monster::GetNumSubCycles()
         slot += subcycle;
     }
 
-    return (signed char)AnimObjValue004A15D0(*slot, representation->m_bLOD);
+    return (signed char)AnimObjValue(*slot, representation->m_bLOD);
 }
 
 /* W8Monster stores its animation object immediately after the shared
@@ -3502,7 +3499,7 @@ void W8Monster::SetCycle(signed char cycle)
             MonsterGetIndexByLocationID(0xb1d, MONSTER_CPP, location_id_1e4, 1));
         FormatDebugMessage(0, "WARNING: Monster %ls is missing anim cycle %s",
                            GetMonsterName(monster_info, 0, 0), g_cycle_names[cycle].name);
-        m_pRep->CopyCycle004BF0F0(cycle, m_pRep, 1);
+        m_pRep->CopyCycle(cycle, m_pRep, 1);
         count = animations->GetCount();
         if (count == 0) {
             return;
@@ -3562,7 +3559,7 @@ void W8Monster::SetCycle(signed char cycle)
         srVector3T<double> camera_location = g_world->camera->getLocation();
         srVector3T<float> listener;
         listener = camera_location;
-        SelectLOD004A7BE0(&listener);
+        SelectLOD(&listener);
     }
 
     GetAnimationRadius(&m_pRep->animation_radius_0a8);
@@ -3590,7 +3587,7 @@ void W8Monster::SetCycle(signed char cycle)
     flags_1dc &= ~W8_MONSTER_TEXTURE_CHECKED;
     m_pRep->first_frame_094 = 0;
     m_pRep->last_frame_095 = GetNumSubCycles() - 1;
-    SetShakeEventVisibility004BF9E0(cycle);
+    SetShakeEventVisibility(cycle);
 
     if (lights != 0) {
         count = lights->GetCount();
@@ -3618,14 +3615,14 @@ void W8Monster::SetCycle(signed char cycle)
         srModelInstance* instance;
 
         m_pRep->render_state_04c = empty;
-        instance = SelectCycleFrameLod004A8360(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
+        instance = SelectCycleFrameLod(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
         if (instance != 0 && instance->model() != 0 &&
             strstr(instance->model()->getName(), "gib") != 0) {
-            SetAngles004538F0(
+            SetAngles(
                 (float)(g_monster_death_rotation_pi_005ed1f0 * g_float_005ebcf8 * Random(0x168)));
         }
         if (m_pRep->monster_light_624 != 0) {
-            m_pRep->monster_light_624->StartFadeOut0049DAF0();
+            m_pRep->monster_light_624->StartFadeOut();
         }
     }
 }
@@ -3766,7 +3763,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 } else {
                     mesh->setFlag(srNode::FLAG_DISABLE);
                 }
-                item->ApplyRepTransform0049FAA0();
+                item->ApplyRepTransform();
             }
         }
     }
@@ -3827,7 +3824,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
         float vertical_offset = elapsed * g_monster_poster_vertical_rate_005ed298;
         int poster_index = 0;
 
-        GetMappedPosition004C72A0(&mapped_position);
+        GetMappedPosition(&mapped_position);
         while (poster_index < poster_count) {
             stModelInstance* poster =
                 *representation->linked_runtime_objects_614.GetAt(poster_index);
@@ -3924,11 +3921,11 @@ void W8Monster::AdvanceAnimationFrame(int value, int)
         ((missile_frame_1f4 > 0 && previous_frame < missile_frame_1f4 &&
           missile_frame_1f4 <= m_pRep->subcycle_064) ||
          (missile_frame_1f4 == 0 && m_pRep->subcycle_064 == 1))) {
-        HandleAnimationThreshold004C75C0();
+        HandleAnimationThreshold();
     }
-    HandleAnimationFrame004C74D0(previous_frame);
+    HandleAnimationFrame(previous_frame);
     if (m_plsParticles != 0 && m_plsParticles->GetCount() != 0) {
-        UpdateShakeEvents004C3380(previous_frame);
+        UpdateShakeEvents(previous_frame);
     }
 }
 
@@ -3957,7 +3954,7 @@ W8MonsterShakeCallback::~W8MonsterShakeCallback() {}
    return is the stamina charge passed directly to FatigueMonster, establishing
    MonsterCastsSpell's non-void return. */
 // FUNCTION: WIZ8 0x004c74d0
-void W8Monster::HandleAnimationFrame004C74D0(unsigned char previous_frame)
+void W8Monster::HandleAnimationFrame(unsigned char previous_frame)
 {
     W8MonsterInfo* monster_info;
     int action_kind;
@@ -3992,7 +3989,7 @@ void W8Monster::HandleAnimationFrame004C74D0(unsigned char previous_frame)
    combat an already-selected attack is reused; otherwise the monster picks a
    live character and the first database attack that permits a missile mode. */
 // FUNCTION: WIZ8 0x004c75c0
-void W8Monster::HandleAnimationThreshold004C75C0()
+void W8Monster::HandleAnimationThreshold()
 {
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
@@ -4104,7 +4101,7 @@ void W8MonsterShakeCallback::RestoreAnimation()
    no distinct frame range fires when the animation crosses its own start
    frame; a ranged particle is switched on and off at its explicit bounds. */
 // FUNCTION: WIZ8 0x004c3380
-void W8Monster::UpdateShakeEvents004C3380(unsigned char previous_frame)
+void W8Monster::UpdateShakeEvents(unsigned char previous_frame)
 {
     W8AnimObj* animation;
     W8GrCycleParticleAttachment* event;
@@ -4203,7 +4200,7 @@ W8AniMesh* W8Monster::GetCurrentAniMesh()
     if (animation == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp", 0xc4e, 0);
     }
-    return AnimObjEntry004A1660(animation, m_pRep->m_bLOD, 0);
+    return AnimObjEntry(animation, m_pRep->m_bLOD, 0);
 }
 
 /* Store one value in the two cycle records used as its compact mirrors, then
@@ -4245,8 +4242,8 @@ bool MonsterHasPendingCycle(W8Monster* monster)
 // FUNCTION: WIZ8 0x004c56f0
 bool MonsterUsesCurrentModelInstance(W8GrCycle* cycle)
 {
-    srModelInstance* current = cycle->GetCurrentModelInstance004A8250();
-    return current == GetPickedModelInstance00427810();
+    srModelInstance* current = cycle->GetCurrentModelInstance();
+    return current == GetPickedModelInstance();
 }
 
 // FUNCTION: WIZ8 0x004c5730
@@ -4258,7 +4255,7 @@ void MonsterGetLocation(W8Monster* monster, srVector3T<float>* location)
 // FUNCTION: WIZ8 0x004c5750
 void MonsterGetLocalLocation(W8Monster* monster, srVector3T<float>* location)
 {
-    monster->m_pRep->GetLocalLocation004B88B0(location);
+    monster->m_pRep->GetLocalLocation(location);
 }
 
 /* The wrapper is intentionally unguarded: every retail caller supplies a live
@@ -4282,7 +4279,7 @@ bool MonsterIsCycleSupported(W8Monster* monster, signed char cycle)
 unsigned char MonsterReplacePath(W8Monster* monster, W8PathAI* path)
 {
     if (monster != 0) {
-        return monster->ReplacePath004A8400(path);
+        return monster->ReplacePath(path);
     }
     return 0;
 }
@@ -4290,7 +4287,7 @@ unsigned char MonsterReplacePath(W8Monster* monster, W8PathAI* path)
 /* Reset pitch, update the Navigator's facing, and rebuild the representation's
    complete yaw/pitch/roll matrix. */
 // FUNCTION: WIZ8 0x004c5b60
-void MonsterSetFacing004C5B60(W8Monster* monster, float angle)
+void MonsterSetFacing(W8Monster* monster, float angle)
 {
     srMatrix3T<float> rotation;
 
@@ -4298,7 +4295,7 @@ void MonsterSetFacing004C5B60(W8Monster* monster, float angle)
         return;
     }
 
-    monster->SetAngles004538F0(NormalizeAngle(angle));
+    monster->SetAngles(NormalizeAngle(angle));
     monster->SetPitch(0.0f);
 
     rotation.SetIdentity();
@@ -4479,9 +4476,9 @@ bool W8Monster::IsDying()
    space. Models without that mapping use the Navigator position plus the
    Monster's vertical offset. */
 // FUNCTION: WIZ8 0x004c72a0
-void W8Monster::GetMappedPosition004C72A0(srVector3T<float>* position)
+void W8Monster::GetMappedPosition(srVector3T<float>* position)
 {
-    srModelInstance* instance = GetCurrentModelInstance004A8250();
+    srModelInstance* instance = GetCurrentModelInstance();
 
     if (instance != 0) {
         stMeshModel* mesh = static_cast<stMeshModel*>(instance->model());
@@ -4561,7 +4558,7 @@ void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position)
 
     if (monster != 0) {
         local = *position;
-        monster->SelectLOD004A7BE0(&local);
+        monster->SelectLOD(&local);
     }
 }
 
@@ -4617,7 +4614,7 @@ W8AIRecord* MonsterGetObject0C(W8Monster* monster)
 
 /* Expose the first Navigator angle through the enclosing Monster. */
 // FUNCTION: WIZ8 0x004c5770
-float MonsterGetAngleD4004C5770(W8Monster* monster)
+float MonsterGetAngleD4(W8Monster* monster)
 {
     return monster->GetYaw();
 }
@@ -4628,7 +4625,7 @@ float MonsterGetAngleD4004C5770(W8Monster* monster)
 void MonsterForward4A84A0(W8Monster* monster)
 {
     if (monster != 0) {
-        monster->SubmitTargetValue004A84A0();
+        monster->SubmitTargetValue();
     }
 }
 
@@ -4666,7 +4663,7 @@ void MonsterSetCycleSubCycle(W8GrCycle* cycle, unsigned char subcycle)
 // FUNCTION: WIZ8 0x004c5eb0
 void NotifyMonsterHighlight(int party_slot, int location_id, int on)
 {
-    SetMonsterPartySlotMarker004C4DE0(party_slot, location_id, on);
+    SetMonsterPartySlotMarker(party_slot, location_id, on);
 }
 
 /* The public forwarding boundary preserves the loader's AL result. Both
@@ -4684,12 +4681,11 @@ unsigned char MonsterReadAllCycles004C58E0(const W8GrCycleLoadContext* context,
    at the -1 sentinel.  The factory accepts the base-class output slot; object
    type zero is what proves the resulting object is a W8Monster here. */
 // FUNCTION: WIZ8 0x004C5910
-unsigned char LoadMonsterCycle004C5910(const W8GrCycleLoadContext* context, const char* mon_name,
-                                       W8Monster** monster, int cycle, int value)
+unsigned char LoadMonsterCycle(const W8GrCycleLoadContext* context, const char* mon_name,
+                               W8Monster** monster, int cycle, int value)
 {
     W8GrCycle* loaded = *monster;
-    bool success =
-        LoadGrCycle004A67E0(context, mon_name, &loaded, cycle, value, "data\\monsters", 0);
+    bool success = LoadGrCycle(context, mon_name, &loaded, cycle, value, "data\\monsters", 0);
     *monster = static_cast<W8Monster*>(loaded);
 
     if ((*monster)->m_plsParticles != 0) {
@@ -4753,7 +4749,7 @@ float MonsterGetNavigatorValue120(W8Monster* monster)
 unsigned char MonsterForward452630(W8Monster* monster, const srVector3T<float>* position)
 {
     if (monster != 0) {
-        return monster->ConfigureMovementToPosition00452630(position);
+        return monster->ConfigureMovementToPosition(position);
     }
     return 0;
 }
@@ -4777,7 +4773,7 @@ void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value)
 /* Pass a copied position through Navigator's collision adjustment and install
    the adjusted result on the Monster's ordinary Navigator base. */
 // FUNCTION: WIZ8 0x004c5f00
-void MonsterSetAdjustedPosition004C5F00(W8Monster* monster, const srVector3T<float>* position)
+void MonsterSetAdjustedPosition(W8Monster* monster, const srVector3T<float>* position)
 {
     srVector3T<float> current;
     srVector3T<float> adjusted;
@@ -4787,16 +4783,16 @@ void MonsterSetAdjustedPosition004C5F00(W8Monster* monster, const srVector3T<flo
     current = *position;
     adjusted_position = monster->AdjustPosition00454440(&adjusted, &current, &current);
     result = *adjusted_position;
-    monster->SetPositionInternal00453590(&result);
+    monster->SetPositionInternal(&result);
 }
 
 // FUNCTION: WIZ8 0x004c5ff0
-unsigned short MonsterApproachStartupNavigator004C5FF0(W8Monster* monster, double separation)
+unsigned short MonsterApproachStartupNavigator(W8Monster* monster, double separation)
 {
     unsigned short result;
 
     if (monster != 0) {
-        result = monster->SetMovementTargetToNavigator004526C0(g_startup_world_659c0c, separation);
+        result = monster->SetMovementTargetToNavigator(g_startup_world_659c0c, separation);
         if (result != 0) {
             monster->movement_0c0.boundary_enabled_076 = 0;
         }
@@ -4806,42 +4802,39 @@ unsigned short MonsterApproachStartupNavigator004C5FF0(W8Monster* monster, doubl
 }
 
 // FUNCTION: WIZ8 0x004c6030
-unsigned char MonsterLinkToStartupNavigator004C6030(W8Monster* monster)
+unsigned char MonsterLinkToStartupNavigator(W8Monster* monster)
 {
     if (monster != 0) {
         W8Navigator* target = g_startup_world_659c0c;
 
-        return monster->LinkToNavigator004527A0(target, WorldGetFarClip(GetWorld()) * 2.0);
+        return monster->LinkToNavigator(target, WorldGetFarClip(GetWorld()) * 2.0);
     }
     return 0;
 }
 
 // FUNCTION: WIZ8 0x004c6070
-unsigned short MonsterConfigureMovementToPlayer004C6070(W8Monster* monster, float separation,
-                                                        float maximum_distance,
-                                                        srVector3T<float> position, int trace_mode,
-                                                        unsigned char* probe_result)
+unsigned short MonsterConfigureMovementToPlayer(W8Monster* monster, float separation,
+                                                float maximum_distance, srVector3T<float> position,
+                                                int trace_mode, unsigned char* probe_result)
 {
     if (monster != 0) {
         W8Navigator* target = g_startup_world_659c0c;
 
-        return monster->ConfigureMovementToNavigator004529A0(target, separation, maximum_distance,
-                                                             position, trace_mode,
-                                                             monster->GetYaw(), probe_result);
+        return monster->ConfigureMovementToNavigator(target, separation, maximum_distance, position,
+                                                     trace_mode, monster->GetYaw(), probe_result);
     }
     return 0;
 }
 
 // FUNCTION: WIZ8 0x004c60d0
-unsigned short MonsterConfigureMovementToMonster004C60D0(W8Monster* monster, W8Monster* target,
-                                                         float separation, float maximum_distance,
-                                                         srVector3T<float> position, int trace_mode,
-                                                         unsigned char* probe_result)
+unsigned short MonsterConfigureMovementToMonster(W8Monster* monster, W8Monster* target,
+                                                 float separation, float maximum_distance,
+                                                 srVector3T<float> position, int trace_mode,
+                                                 unsigned char* probe_result)
 {
     if (monster != 0 && target != 0) {
-        return monster->ConfigureMovementToNavigator004529A0(target, separation, maximum_distance,
-                                                             position, trace_mode,
-                                                             monster->GetYaw(), probe_result);
+        return monster->ConfigureMovementToNavigator(target, separation, maximum_distance, position,
+                                                     trace_mode, monster->GetYaw(), probe_result);
     }
     return 0;
 }
@@ -4888,7 +4881,7 @@ void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
    The alternate path uses Navigator's second position sink, matching the
    corresponding player-position helper above. */
 // FUNCTION: WIZ8 0x004c62c0
-void MonsterAimAtMonster004C62C0(W8Monster* monster, W8Monster* target, char alternate)
+void MonsterAimAtMonster(W8Monster* monster, W8Monster* target, char alternate)
 {
     W8MonsterInfo* monster_info;
     srVector3T<float> target_position;
@@ -4942,15 +4935,15 @@ void W8Monster::CollectModelInstances004C6350(W8GrowableVector<stModelInstance*>
                 for (list_index = 0; list_index < 3; ++list_index) {
                     W8AniMesh* mesh = animation->entries_18[list_index];
                     if (mesh != 0) {
-                        int frame_count = AniMeshValue004B64F0(mesh);
+                        int frame_count = AniMeshValue(mesh);
 
                         if ((mesh->flags_00 & 0x20) != 0) {
-                            instances->Add(GetAniMeshFrame004B6550(mesh, 0));
+                            instances->Add(GetAniMeshFrame(mesh, 0));
                         } else {
                             int frame;
 
                             for (frame = 0; frame < frame_count; ++frame) {
-                                instances->Add(GetAniMeshFrame004B6550(mesh, frame));
+                                instances->Add(GetAniMeshFrame(mesh, frame));
                             }
                         }
                     }
@@ -4968,10 +4961,10 @@ void W8Monster::CollectModelInstances004C6350(W8GrowableVector<stModelInstance*>
                             W8AniMesh* mesh = static_cast<W8AniMesh*>(PLGet(list, mesh_index));
                             if (mesh != 0) {
                                 int frame;
-                                int frame_count = AniMeshValue004B64F0(mesh);
+                                int frame_count = AniMeshValue(mesh);
 
                                 for (frame = 0; frame < frame_count; ++frame) {
-                                    instances->Add(GetAniMeshFrame004B6550(mesh, frame));
+                                    instances->Add(GetAniMeshFrame(mesh, frame));
                                 }
                             }
                         }
@@ -4985,8 +4978,7 @@ void W8Monster::CollectModelInstances004C6350(W8GrowableVector<stModelInstance*>
 /* Replace one named texture in a damage stage. Model instances own the normal
    skin tables; shake particles are the fallback when no model uses the name. */
 // FUNCTION: WIZ8 0x004c6700
-unsigned char W8Monster::ReplaceSkinTexture004C6700(int stage, const char* old_name,
-                                                    const char* new_name)
+unsigned char W8Monster::ReplaceSkinTexture(int stage, const char* old_name, const char* new_name)
 {
     char path[200];
     unsigned char replaced = 0;
@@ -5001,8 +4993,7 @@ unsigned char W8Monster::ReplaceSkinTexture004C6700(int stage, const char* old_n
     W8GrowableVector<stModelInstance*> instances;
     CollectModelInstances004C6350(&instances);
     for (int index = 0; index < instances.GetCount(); ++index) {
-        if ((*instances.GetAt(index))
-                ->ReplaceDamageStageTexture004807B0(stage, old_name, texture) != 0) {
+        if ((*instances.GetAt(index))->ReplaceDamageStageTexture(stage, old_name, texture) != 0) {
             replaced = 1;
         }
     }
@@ -5010,7 +5001,7 @@ unsigned char W8Monster::ReplaceSkinTexture004C6700(int stage, const char* old_n
     if (replaced == 0 && m_plsParticles != 0) {
         for (int index = 0; index < m_plsParticles->GetCount(); ++index) {
             W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
-            if (event->m_pstParticles->ReplaceTexture0049AC30(old_name, texture) != 0) {
+            if (event->m_pstParticles->ReplaceTexture(old_name, texture) != 0) {
                 replaced = 1;
             }
         }
@@ -5031,10 +5022,10 @@ int W8Monster::AddDamageStage004C6880(const char* base_name, int stage)
     CollectModelInstances004C6350(&instances);
     for (int index = 0; index < instances.GetCount(); ++index) {
         stModelInstance* instance = *instances.GetAt(index);
-        if (instance->FindDamageStage00480790(name) == -1) {
+        if (instance->FindDamageStage(name) == -1) {
             result = instance->AddDamageStage00480560(name);
         } else {
-            result = instance->AddExistingDamageStage00480670(name);
+            result = instance->AddExistingDamageStage(name);
         }
     }
     return result;
@@ -5043,9 +5034,9 @@ int W8Monster::AddDamageStage004C6880(const char* base_name, int stage)
 /* The final registered Monster for a cycle name owns removal of that name's
    per-mesh skin tables. */
 // FUNCTION: WIZ8 0x004c6b10
-void W8Monster::RemoveCycleSkinTables004C6B10()
+void W8Monster::RemoveCycleSkinTables()
 {
-    const char* cycle_name = GetRegisteredName004A8650();
+    const char* cycle_name = GetRegisteredName();
     W8GrowableVector<stModelInstance*> instances;
 
     if (cycle_name != 0) {
@@ -5053,7 +5044,7 @@ void W8Monster::RemoveCycleSkinTables004C6B10()
         for (int index = 0; index < instances.GetCount(); ++index) {
             stMeshModel* mesh = static_cast<stMeshModel*>((*instances.GetAt(index))->model());
             for (; mesh != 0; mesh = mesh->next) {
-                mesh->RemoveSkinTablesForCycle00473780(cycle_name);
+                mesh->RemoveSkinTablesForCycle(cycle_name);
             }
         }
     }
@@ -5062,7 +5053,7 @@ void W8Monster::RemoveCycleSkinTables004C6B10()
 /* Select the damage-stage model on every frame instance owned by this
    Monster. UpdateMonsterDamageAppearance supplies the HP-derived stage. */
 // FUNCTION: WIZ8 0x004c6990
-void W8Monster::SetDamageStage004C6990(int stage)
+void W8Monster::SetDamageStage(int stage)
 {
     W8GrowableVector<stModelInstance*> instances;
     int index;
@@ -5076,7 +5067,7 @@ void W8Monster::SetDamageStage004C6990(int stage)
 /* Every frame instance in one Monster carries the same number of available
    damage stages, so the first instance supplies the count. */
 // FUNCTION: WIZ8 0x004c6a50
-int W8Monster::GetDamageStageCount004C6A50()
+int W8Monster::GetDamageStageCount()
 {
     W8GrowableVector<stModelInstance*> instances;
 
@@ -5130,12 +5121,12 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
                        0x80 - GetFontHeight(g_monster_damage_font_683608) / 2, text);
         RestoreFontSettings();
 
-        GetMappedPosition004C72A0(&position);
+        GetMappedPosition(&position);
         facing = GetPosition();
         pitch = ElevationToTargetCPP(&facing);
         facing = GetPosition();
         yaw = HeadingToTargetCPP(&facing);
-        OffsetPositionByYawPitch00421170(500.0f, &position, yaw, pitch);
+        OffsetPositionByYawPitch(500.0f, &position, yaw, pitch);
         GetCameraPosition(&camera_position);
         distance = (position - camera_position).Length();
         if (distance > g_float_005ec260) {
@@ -5155,11 +5146,11 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
             colour.Set(0.0f, 0.0f, 0.0f, 1.0f);
             material->setEmissive(colour);
             material->setDiffuse(colour);
-            particle->SetRetainedObject0049ACA0(material);
-            particle->SetTexture0049AB00(
+            particle->SetRetainedObject(material);
+            particle->SetTexture(
                 LoadTexture004B95D0("Data\\Monsters\\Bitmaps\\", "BloodParticle.tga", 1));
             shader.value = 0x100c4b3;
-            particle->SetRenderFlags004925A0(shader);
+            particle->SetRenderFlags(shader);
             particle->particle_size_140 = 20.0;
             particle->expiry_mode_1ac = 0;
             particle->bounds_origin_234.Set(0.0f, 0.0f, 0.0f);
@@ -5179,7 +5170,7 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
             particle->bounds_radius_240 = 1000.0f;
             location.SetFromFloat(&position);
             particle->setLocation(location);
-            GetCurrentModelInstance004A8250()->getRotation(rotation);
+            GetCurrentModelInstance()->getRotation(rotation);
             rotation.RotateAboutY(sin(g_camera_pi_005ec2a0), cos(g_camera_pi_005ec2a0));
             world.vectors[0].SetFromFloat(&rotation.vectors[0]);
             world.vectors[1].SetFromFloat(&rotation.vectors[1]);
@@ -5193,7 +5184,7 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
    runtime overrides. The alternate argument selects the secondary live-info
    flag used by the world-update path. */
 // FUNCTION: WIZ8 0x004c7c00
-unsigned char W8Monster::IsRenderable004C7C00(char alternate)
+unsigned char W8Monster::IsRenderable(char alternate)
 {
     bool disabled = disabled_217;
     int location_id = location_id_1e4;
@@ -5231,7 +5222,7 @@ unsigned char W8Monster::IsRenderable004C7C00(char alternate)
 /* Discover animated material state once, cache it in the monster flags, and restart
    the selected model's animated texture on frame zero when present. */
 // FUNCTION: WIZ8 0x004c51d0
-void W8Monster::InitializeAnimatedTexture004C51D0()
+void W8Monster::InitializeAnimatedTexture()
 {
     srModelInstance* instance = 0;
 
@@ -5239,9 +5230,9 @@ void W8Monster::InitializeAnimatedTexture004C51D0()
         if ((flags_1dc & W8_MONSTER_TEXTURE_CHECKED) == 0) {
             srMeshModel* model;
 
-            instance = SelectCycleFrameLod004A8360(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
+            instance = SelectCycleFrameLod(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
             model = static_cast<srMeshModel*>(instance->model());
-            if (MeshHasAnimatedTexture004B9AA0(model) == 0) {
+            if (MeshHasAnimatedTexture(model) == 0) {
                 flags_1dc &= ~W8_MONSTER_ANIMATED_TEXTURE;
             } else {
                 flags_1dc |= W8_MONSTER_ANIMATED_TEXTURE;
@@ -5250,16 +5241,16 @@ void W8Monster::InitializeAnimatedTexture004C51D0()
         }
         if ((flags_1dc & W8_MONSTER_ANIMATED_TEXTURE) != 0) {
             if (instance == 0) {
-                instance = SelectCycleFrameLod004A8360(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
+                instance = SelectCycleFrameLod(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
             }
-            SetModelAnimatedTextureFrame004B9B00(instance, 0);
+            SetModelAnimatedTextureFrame(instance, 0);
         }
     }
 }
 
 /* Advance a cycle's representation through its own virtual layout. */
 // FUNCTION: WIZ8 0x004c59b0
-void UpdateCycleRepresentation004C59B0(W8GrCycle* cycle, W8World* world)
+void UpdateCycleRepresentation(W8GrCycle* cycle, W8World* world)
 {
     cycle->UpdateRepresentation(world);
 }
@@ -5273,7 +5264,7 @@ void W8Monster::RefreshStandingHeight()
     SetSubCycle(0);
     srVector3T<float> camera_location;
     camera_location = g_world->camera->getLocation();
-    SelectLOD004A7BE0(&camera_location);
+    SelectLOD(&camera_location);
     srVector3T<float> minimum;
     srVector3T<float> maximum;
     GetAnimationBounds(&minimum, &maximum);
@@ -5301,11 +5292,11 @@ void W8Monster::ApplyRepresentationScale()
         for (int index = 0; index < animation_count; ++index) {
             W8AnimObj* animation = *m_pRep->animations[cycle].GetAt(index);
             // The retail query precedes the null check.
-            int frame_count = AnimObjValue004A15D0(animation, 2);
+            int frame_count = AnimObjValue(animation, 2);
             if (animation != 0 && frame_count != 0) {
                 for (int frame = 0; frame < frame_count; ++frame) {
                     srModelInstance* instance =
-                        AnimObjDispatch004A14D0(animation, 2, static_cast<unsigned char>(frame));
+                        AnimObjDispatch(animation, 2, static_cast<unsigned char>(frame));
                     instance->setScale(srVector3T<double>(x_scale, scale, scale));
                 }
             }
@@ -5337,7 +5328,7 @@ void W8Monster::ApplyRepresentationScale()
    enabled, wrapped in a W8Item whose mesh attachment and bounds are refreshed
    for the world. Returns 0 when the texture or quad could not be made. */
 // FUNCTION: WIZ8 0x004C5500
-W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag)
+W8Item* CreateMonsterIconItem(W8World* world, const char* path, int flag)
 {
     stTextureFile* texture = new stTextureFile(path, 0);
     texture->setWrapS(srTextureIFace::WRAP_CLAMP);
@@ -5357,7 +5348,7 @@ W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag
                 rep->flags |= 0x40;
                 rep->m_psrMesh = instance;
                 rep->RefreshBounds();
-                item->AttachMesh0049F900(world);
+                item->AttachMesh(world);
                 instance->light_scale_194.SetZero();
                 return item;
             }
@@ -5372,7 +5363,7 @@ void ApplyMonsterRepresentationScale(W8Monster* target)
     target->ApplyRepresentationScale();
 }
 // FUNCTION: WIZ8 0x004C5860
-void DeleteMonster004C5860(W8Monster* monster)
+void DeleteMonster(W8Monster* monster)
 {
     if (monster != NULL) {
         delete monster;
@@ -5382,7 +5373,7 @@ void DeleteMonster004C5860(W8Monster* monster)
 void DetachMonsterRepresentation(W8Monster* monster, W8World* world)
 {
     if (monster != 0 && world != 0) {
-        monster->DetachRepresentation004A7A70(world);
+        monster->DetachRepresentation(world);
     }
 }
 // FUNCTION: WIZ8 0x004C5ED0

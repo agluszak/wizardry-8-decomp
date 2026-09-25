@@ -1,11 +1,11 @@
 #pragma once
 
 /* Level Specific Code\MtGigasOuter.cpp helpers, run by
-   InitializeLevelMasterFunctions004D6C50 under case 0x0e. */
+   InitializeLevelMasterFunctions under case 0x0e. */
 
 class Trigger;
 
-void ProcessFlagPosition004DBE70(void);           /* 0x004DBE70 */
+void ProcessFlagPosition(void);                   /* 0x004DBE70 */
 bool OnCrankTriggerActivated(Trigger* trigger);   /* 0x004DBEC0 */
 void ControlLiftGate(int command);                /* 0x004DC080 */
 bool OnSecurityButtonActivated(Trigger* trigger); /* 0x004DC390 */

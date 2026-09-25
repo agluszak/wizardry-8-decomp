@@ -45,7 +45,7 @@ void LoadGameConfiguration(void)
             } else if (id == 0x4d59454b) {
                 g_mgs_keyboard->Load(file.m_hFile, 0);
             } else if (id == 0x59544c51) {
-                LoadRenderOptions0047B890(file.m_hFile);
+                LoadRenderOptions(file.m_hFile);
             }
             file.SkipCurrentChunk();
             file.ReleaseCurrentChunk();
@@ -67,7 +67,7 @@ void LoadGameConfiguration(void)
         ResetGameplaySettings();
         SaveGameConfiguration();
     }
-    SetSoundEffectsVolume0047AD00(g_settings_6850c8.sound_effects_volume);
+    SetSoundEffectsVolume(g_settings_6850c8.sound_effects_volume);
     SetMusicVolume(g_settings_6850c8.music_volume);
     if (g_settings_6850c8.gamma < 0.1f || g_settings_6850c8.gamma > 2.0f) {
         g_settings_6850c8.gamma = 1.0f;
@@ -89,7 +89,7 @@ unsigned char SaveGameConfiguration(void)
     file.Write(&g_settings_6850c8, sizeof(g_settings_6850c8), 0);
     file.ReleaseCurrentChunk();
     file.OpenChunk(0x59544c51, 0);
-    SaveRenderOptions0047B920(file.m_hFile);
+    SaveRenderOptions(file.m_hFile);
     file.ReleaseCurrentChunk();
     file.OpenChunk(0x4d59454b, 0);
     g_mgs_keyboard->Save(file.m_hFile);

@@ -168,7 +168,7 @@ signed char W8SpellVisual::GetNumSubCycles()
 {
     W8AnimObj* animation = GetCurrentAnimation();
 
-    return static_cast<signed char>(AnimObjValue004A15D0(animation, host->m_bLOD));
+    return static_cast<signed char>(AnimObjValue(animation, host->m_bLOD));
 }
 
 // FUNCTION: WIZ8 0x004ac4e0
@@ -295,7 +295,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         W8Monster* monster = GetMonsterByLocationID(location_id_1ec);
 
         if (monster != 0) {
-            srModelInstance* instance = GetCurrentModelInstance004A8250();
+            srModelInstance* instance = GetCurrentModelInstance();
 
             while (instance != 0) {
                 srVector3T<double> scale(scale_1e8, scale_1e8, scale_1e8);
@@ -314,7 +314,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
             SetPosition004A6DF0(&position);
         }
     } else if (mode_1d8 == W8_SPELL_VISUAL_CONE) {
-        GetCurrentModelInstance004A8250();
+        GetCurrentModelInstance();
         if (fixed_transform == 0) {
             GetCameraPosition(&camera_position);
             if (location_id_1ec == 0) {
@@ -325,8 +325,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
                 W8Monster* monster = GetMonsterByLocationID(location_id_1ec);
 
                 if (monster != 0) {
-                    if (monster->Query(6) == 0x19 &&
-                        monster->GetSpellPosition004C78E0(&position) != 0) {
+                    if (monster->Query(6) == 0x19 && monster->GetSpellPosition(&position) != 0) {
                         SetPosition004A6DF0(&position);
                     }
 
@@ -363,7 +362,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         host->SetRotation004B88D0(&billboard);
     }
 
-    srModelInstance* instance = GetCurrentModelInstance004A8250();
+    srModelInstance* instance = GetCurrentModelInstance();
     if (instance != 0) {
         static_cast<stModelInstance*>(instance)->render_flags_178 |= 0x10;
     }
@@ -388,7 +387,7 @@ void UpdateWorldSpellVisuals004AAB80(W8World* world)
     while (index < count) {
         W8SpellVisual* visual = *world->spell_visuals->GetAt(index);
         if (visual != 0) {
-            visual->DetachRepresentation004A7A70(world);
+            visual->DetachRepresentation(world);
             if (visual->finished == 0 || visual->auto_release == 0) {
                 visual->StartIfHostActive();
                 visual->UpdateRepresentation(world);
@@ -507,7 +506,7 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(W8ReadLevelInfo* info,
         srAssertFail("pInfo && pInfo->hFile && pSpell",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x25a, 0);
     }
-    animation = CreateAnimObj004A01A0();
+    animation = CreateAnimObj();
     success = AnimObjReadFromFile004A05C0(info, animation, 1, lights, 1);
     emitter = static_cast<signed char>(animation->cycle);
 
@@ -550,8 +549,8 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(W8ReadLevelInfo* info,
    requested group loads its bitmaps, SOUND_FRAME/SOUND_CYCLE rows attach timed
    sound events, and SHAKE_FRAME rows attach camera-shake effects. */
 // FUNCTION: WIZ8 0x004ab580
-bool LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const char* name,
-                                     W8SpellVisualMode group, W8SpellVisual** visual, int unused)
+bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* name,
+                             W8SpellVisualMode group, W8SpellVisual** visual, int unused)
 {
     W8SpellVisual* shared = static_cast<W8SpellVisual*>(FindFirstGrCycleByName(name));
     if (shared != 0 && shared->mode_1d8 == group) {
@@ -567,7 +566,7 @@ bool LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const 
         return 1;
     }
 
-    PauseSharedGameTimers00439BC0();
+    PauseSharedGameTimers();
 
     unsigned char more = 1;
     bool success = true;
@@ -595,7 +594,7 @@ bool LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const 
         W8CameraShakeEffect* effect;
 
         while (more != 0 && success != 0) {
-            ReadTextLine004CEE40(handle, line, sizeof(line), &more);
+            ReadTextLine(handle, line, sizeof(line), &more);
             sscanf(line, "%s %s", pac_name, pac_value);
             if (strlen(line) <= 2) {
                 continue;
@@ -619,8 +618,8 @@ bool LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const 
             if (index != -1) {
                 if (index / SPELL_CYCLES_PER_GROUP == group) {
                     W8GrCycle* loaded = *visual;
-                    if (LoadGrCycle004A67E0(context, pac_value, &loaded, index, 1, "Data\\Spells",
-                                            2, 0) != 0) {
+                    if (LoadGrCycle(context, pac_value, &loaded, index, 1, "Data\\Spells", 2, 0) !=
+                        0) {
                         *visual = static_cast<W8SpellVisual*>(loaded);
                         RegisterGrCycle(pac_value, *visual);
                         success = 1;
@@ -664,7 +663,7 @@ bool LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const 
                         effect->cycle_3c = index;
                         effect->frame_40 = frame;
                         effect->subcycle_44 = 0;
-                        (*visual)->AddShakeEffect004A8530(effect);
+                        (*visual)->AddShakeEffect(effect);
                     }
                 }
                 continue;
@@ -707,7 +706,7 @@ bool LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const 
         (*visual)->host->pending_behaviour_071 = 1;
     }
 
-    ResumeSharedGameTimers00439CA0();
+    ResumeSharedGameTimers();
     return success;
 }
 
@@ -774,7 +773,7 @@ void W8SpellVisual::StartIfHostActive()
     if (this->host->active == 0) {
         return;
     }
-    if (QueryHostStateByKind004AC8F0(7) != 0) {
+    if (QueryHostStateByKind(7) != 0) {
         this->finished = 1;
         return;
     }
@@ -784,7 +783,7 @@ void W8SpellVisual::StartIfHostActive()
 /* Search backward from a subcycle for the first cycle this visual supports,
    seven cycles per group; -1 when none does. */
 // FUNCTION: WIZ8 0x004ac530
-int W8SpellVisual::FindSupportedCycle004AC530(signed char group, signed char subcycle)
+int W8SpellVisual::FindSupportedCycle(signed char group, signed char subcycle)
 {
     for (signed char index = subcycle; index >= 0; --index) {
         signed char cycle = static_cast<signed char>(group * SPELL_CYCLES_PER_GROUP + index);
@@ -799,7 +798,7 @@ int W8SpellVisual::FindSupportedCycle004AC530(signed char group, signed char sub
 /* Kind-indexed query over the host's emitter state; the only call site asks
    kind 7. */
 // FUNCTION: WIZ8 0x004ac8f0
-int W8SpellVisual::QueryHostStateByKind004AC8F0(int kind)
+int W8SpellVisual::QueryHostStateByKind(int kind)
 {
     W8SpellEmitterHost* host = this->host;
 
@@ -845,29 +844,29 @@ W8SpellVisual* SpawnSpellEffect(const srVector3T<float>* position, const char* r
     int cycle = -1;
 
     if (resource_name != 0) {
-        loaded = LoadSpellVisualResource004AB580(&context, resource_name, W8_SPELL_VISUAL_EXPLOSION,
-                                                 &visual, 1);
+        loaded =
+            LoadSpellVisualResource(&context, resource_name, W8_SPELL_VISUAL_EXPLOSION, &visual, 1);
     }
     if (loaded) {
         visual->SetNavigationMode(4);
         visual->active_088 = 0;
-        visual->SetPitchRollEnabled00453CA0(1, 1);
+        visual->SetPitchRollEnabled(1, 1);
         g_world->spell_visuals->Add(visual);
-        cycle = visual->FindSupportedCycle004AC530(W8_SPELL_VISUAL_EXPLOSION, power_level - 1);
+        cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_EXPLOSION, power_level - 1);
         if (cycle == -1) {
             delete visual;
             loaded = 0;
         }
     }
     if (!loaded) {
-        loaded = LoadSpellVisualResource004AB580(&context, "Generic", W8_SPELL_VISUAL_EXPLOSION,
-                                                 &visual, 1);
+        loaded =
+            LoadSpellVisualResource(&context, "Generic", W8_SPELL_VISUAL_EXPLOSION, &visual, 1);
         if (loaded) {
             visual->SetNavigationMode(4);
             visual->active_088 = 0;
-            visual->SetPitchRollEnabled00453CA0(1, 1);
+            visual->SetPitchRollEnabled(1, 1);
             g_world->spell_visuals->Add(visual);
-            cycle = visual->FindSupportedCycle004AC530(W8_SPELL_VISUAL_EXPLOSION, power_level - 1);
+            cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_EXPLOSION, power_level - 1);
         }
     }
     if (visual != 0) {
@@ -876,7 +875,7 @@ W8SpellVisual* SpawnSpellEffect(const srVector3T<float>* position, const char* r
         visual->host->billboard_378 = 1;
         visual->effect_value_1f0 = value;
         visual->flags_1f4 = flags;
-        visual->SetPositionInternal00453590(position);
+        visual->SetPositionInternal(position);
     }
     return visual;
 }
@@ -900,33 +899,31 @@ W8SpellVisual* SpawnCameraSpellEffect(const char* name, int power_level, int val
     int cycle = -1;
 
     if (name != 0) {
-        if (LoadSpellVisualResource004AB580(&context, name, W8_SPELL_VISUAL_FLASH, &visual, 1) !=
-            0) {
+        if (LoadSpellVisualResource(&context, name, W8_SPELL_VISUAL_FLASH, &visual, 1) != 0) {
             visual->SetNavigationMode(4);
             visual->active_088 = 0;
-            visual->SetPitchRollEnabled00453CA0(1, 1);
+            visual->SetPitchRollEnabled(1, 1);
             g_world->spell_visuals->Add(visual);
         }
     }
     if (visual != 0) {
-        cycle = visual->FindSupportedCycle004AC530(W8_SPELL_VISUAL_FLASH, power_level - 1);
+        cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_FLASH, power_level - 1);
         if (cycle != -1) {
             goto placed;
         }
         delete visual;
     }
     generic = 0;
-    if (LoadSpellVisualResource004AB580(&context, "Generic", W8_SPELL_VISUAL_FLASH, &generic, 1) !=
-        0) {
+    if (LoadSpellVisualResource(&context, "Generic", W8_SPELL_VISUAL_FLASH, &generic, 1) != 0) {
         generic->SetNavigationMode(4);
         generic->active_088 = 0;
-        generic->SetPitchRollEnabled00453CA0(1, 1);
+        generic->SetPitchRollEnabled(1, 1);
         g_world->spell_visuals->Add(generic);
         visual = generic;
     } else {
         visual = 0;
     }
-    cycle = visual->FindSupportedCycle004AC530(W8_SPELL_VISUAL_FLASH, power_level - 1);
+    cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_FLASH, power_level - 1);
 placed:
     if (visual != 0) {
         srVector3T<float> position;
@@ -977,33 +974,31 @@ W8SpellVisual* CreateMonsterSpellEffect(const char* mls_name, int power_level, W
     int cycle = -1;
 
     if (mls_name != 0) {
-        if (LoadSpellVisualResource004AB580(&context, mls_name, W8_SPELL_VISUAL_TARGET, &visual,
-                                            1) != 0) {
+        if (LoadSpellVisualResource(&context, mls_name, W8_SPELL_VISUAL_TARGET, &visual, 1) != 0) {
             visual->SetNavigationMode(4);
             visual->active_088 = 0;
-            visual->SetPitchRollEnabled00453CA0(1, 1);
+            visual->SetPitchRollEnabled(1, 1);
             g_world->spell_visuals->Add(visual);
         }
     }
     if (visual != 0) {
-        cycle = visual->FindSupportedCycle004AC530(W8_SPELL_VISUAL_TARGET, power_level - 1);
+        cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_TARGET, power_level - 1);
         if (cycle != -1) {
             goto placed;
         }
         delete visual;
     }
     generic = 0;
-    if (LoadSpellVisualResource004AB580(&context, "Generic", W8_SPELL_VISUAL_TARGET, &generic, 1) !=
-        0) {
+    if (LoadSpellVisualResource(&context, "Generic", W8_SPELL_VISUAL_TARGET, &generic, 1) != 0) {
         generic->SetNavigationMode(4);
         generic->active_088 = 0;
-        generic->SetPitchRollEnabled00453CA0(1, 1);
+        generic->SetPitchRollEnabled(1, 1);
         g_world->spell_visuals->Add(generic);
         visual = generic;
     } else {
         visual = 0;
     }
-    cycle = visual->FindSupportedCycle004AC530(W8_SPELL_VISUAL_TARGET, power_level - 1);
+    cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_TARGET, power_level - 1);
 placed:
     if (visual != 0) {
         srVector3T<float> minimum;
@@ -1053,33 +1048,31 @@ W8SpellVisual* CreateAttachedSpellEffect(const char* mls_name, int power_level, 
     int cycle = -1;
 
     if (mls_name != 0) {
-        if (LoadSpellVisualResource004AB580(&context, mls_name, W8_SPELL_VISUAL_CONE, &visual, 1) !=
-            0) {
+        if (LoadSpellVisualResource(&context, mls_name, W8_SPELL_VISUAL_CONE, &visual, 1) != 0) {
             visual->SetNavigationMode(4);
             visual->active_088 = 0;
-            visual->SetPitchRollEnabled00453CA0(1, 1);
+            visual->SetPitchRollEnabled(1, 1);
             g_world->spell_visuals->Add(visual);
         }
     }
     if (visual != 0) {
-        cycle = visual->FindSupportedCycle004AC530(W8_SPELL_VISUAL_CONE, power_level - 1);
+        cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_CONE, power_level - 1);
         if (cycle != -1) {
             goto placed;
         }
         delete visual;
     }
     generic = 0;
-    if (LoadSpellVisualResource004AB580(&context, "Generic", W8_SPELL_VISUAL_CONE, &generic, 1) !=
-        0) {
+    if (LoadSpellVisualResource(&context, "Generic", W8_SPELL_VISUAL_CONE, &generic, 1) != 0) {
         generic->SetNavigationMode(4);
         generic->active_088 = 0;
-        generic->SetPitchRollEnabled00453CA0(1, 1);
+        generic->SetPitchRollEnabled(1, 1);
         g_world->spell_visuals->Add(generic);
         visual = generic;
     } else {
         visual = 0;
     }
-    cycle = visual->FindSupportedCycle004AC530(W8_SPELL_VISUAL_CONE, power_level - 1);
+    cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_CONE, power_level - 1);
 placed:
     if (visual != 0) {
         srVector3T<float> position;
@@ -1102,8 +1095,8 @@ placed:
                 height = width;
             }
             visual->scale_1e8 = height * g_float_005ec128;
-            if (parent->GetSpellPosition004C78E0(&position) == 0) {
-                parent->GetMappedPosition004C72A0(&position);
+            if (parent->GetSpellPosition(&position) == 0) {
+                parent->GetMappedPosition(&position);
             }
             visual->SetPosition004A6DF0(&position);
         } else {
@@ -1139,33 +1132,31 @@ W8SpellVisual* CreateAimedSpellEffect(const char* mls_name, int power_level,
     int cycle = -1;
 
     if (mls_name != 0) {
-        if (LoadSpellVisualResource004AB580(&context, mls_name, W8_SPELL_VISUAL_CONE, &visual, 1) !=
-            0) {
+        if (LoadSpellVisualResource(&context, mls_name, W8_SPELL_VISUAL_CONE, &visual, 1) != 0) {
             visual->SetNavigationMode(4);
             visual->active_088 = 0;
-            visual->SetPitchRollEnabled00453CA0(1, 1);
+            visual->SetPitchRollEnabled(1, 1);
             g_world->spell_visuals->Add(visual);
         }
     }
     if (visual != 0) {
-        cycle = visual->FindSupportedCycle004AC530(W8_SPELL_VISUAL_CONE, power_level - 1);
+        cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_CONE, power_level - 1);
         if (cycle != -1) {
             goto placed;
         }
         delete visual;
     }
     generic = 0;
-    if (LoadSpellVisualResource004AB580(&context, "Generic", W8_SPELL_VISUAL_CONE, &generic, 1) !=
-        0) {
+    if (LoadSpellVisualResource(&context, "Generic", W8_SPELL_VISUAL_CONE, &generic, 1) != 0) {
         generic->SetNavigationMode(4);
         generic->active_088 = 0;
-        generic->SetPitchRollEnabled00453CA0(1, 1);
+        generic->SetPitchRollEnabled(1, 1);
         g_world->spell_visuals->Add(generic);
         visual = generic;
     } else {
         visual = 0;
     }
-    cycle = visual->FindSupportedCycle004AC530(W8_SPELL_VISUAL_CONE, power_level - 1);
+    cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_CONE, power_level - 1);
 placed:
     if (visual != 0) {
         visual->mode_1d8 = W8_SPELL_VISUAL_CONE;
@@ -1183,7 +1174,7 @@ placed:
    is enabled, deleted when it is disabled, and kept in representation mode 3
    while it lives. */
 // FUNCTION: WIZ8 0x004add30
-void SetTargetConeEnabled004ADD30(char enabled)
+void SetTargetConeEnabled(char enabled)
 {
     if (enabled != 0) {
         if (g_target_cone_visual_65be20 == 0) {
@@ -1206,7 +1197,7 @@ void SetTargetConeEnabled004ADD30(char enabled)
 srModelInstance* W8SpellEmitterHost::SetCycleFrameLod(signed char emitter, signed char frame,
                                                       signed char lod)
 {
-    return AnimObjDispatch004A14D0(this->emitters[emitter], lod, frame);
+    return AnimObjDispatch(this->emitters[emitter], lod, frame);
 }
 
 /* Apply the host setting to one required emitter.  The source assertion names
@@ -1219,7 +1210,7 @@ unsigned int W8SpellEmitterHost::ApplyEmitterSetting(signed char emitter)
     if (target == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x200, 0);
     }
-    return AnimObjValue004A15D0(target, this->m_bLOD);
+    return AnimObjValue(target, this->m_bLOD);
 }
 
 /* One named emitter's AniMesh, looked up with the host's own setting; an
@@ -1232,7 +1223,7 @@ W8AniMesh* W8SpellEmitterHost::GetEmitterAniMesh(signed char emitter)
     if (target == 0) {
         return 0;
     }
-    return AnimObjEntry004A1660(target, this->m_bLOD, 0);
+    return AnimObjEntry(target, this->m_bLOD, 0);
 }
 
 /* The clone slot owns both the 0x37c allocation and the copy-construction
@@ -1256,7 +1247,7 @@ W8SpellEmitterHost::~W8SpellEmitterHost()
 
     for (emitter = 0; emitter < SPELL_NUM_CYCLES; ++emitter) {
         if (emitters[emitter] != 0) {
-            DestroyAnimObj004A01E0(emitters[emitter]);
+            DestroyAnimObj(emitters[emitter]);
             emitters[emitter] = 0;
         }
     }
@@ -1361,7 +1352,7 @@ void SetMonsterSpellIcon(W8Monster* pMonster, int iIcon, char add)
                                  0x81b, 0);
                 }
                 if (pSpellMI->psrBMO != 0) {
-                    pSpellMI->psrBMO->DetachMesh0049FA30(g_world);
+                    pSpellMI->psrBMO->DetachMesh(g_world);
                     PListRemove(g_world->plsItems, pSpellMI->psrBMO);
                     if (pSpellMI->psrBMO != 0) {
                         delete pSpellMI->psrBMO;
@@ -1383,7 +1374,7 @@ void SetMonsterSpellIcon(W8Monster* pMonster, int iIcon, char add)
         sprintf(path, "%s\\%s_A.TGA", "Data\\Icons\\MonsterSpells",
                 g_monster_spell_icon_names_0060d50c[iIcon]);
         pSpellMI->icon = iIcon;
-        pSpellMI->psrBMO = CreateMonsterIconItem004C5500(g_world, path, 1);
+        pSpellMI->psrBMO = CreateMonsterIconItem(g_world, path, 1);
         if (pSpellMI->psrBMO == 0) {
             srAssertFail("pSpellMI->psrBMO", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
                          0x814, 0);
@@ -1643,7 +1634,7 @@ void ClearMonsterSpellIcons(W8Monster* monster)
                              0);
             }
             if (entry->psrBMO != 0) {
-                entry->psrBMO->DetachMesh0049FA30(g_world);
+                entry->psrBMO->DetachMesh(g_world);
                 PListRemove(g_world->plsItems, entry->psrBMO);
                 delete entry->psrBMO;
             }

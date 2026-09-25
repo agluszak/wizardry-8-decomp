@@ -224,7 +224,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
 
     if (game_data_path[0] != '\0' && world->m_owned_04c == 0) {
         world->m_owned_04c = ReadGameData00447570(game_data_path, false);
-        if (world->m_owned_04c != 0 && InitializeGameData004497C0(world->m_owned_04c) == 0) {
+        if (world->m_owned_04c != 0 && InitializeGameData(world->m_owned_04c) == 0) {
             return 0;
         }
     }
@@ -237,7 +237,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     world->camera_light->specular_1b0.SetZero();
     world->camera_light->intensity_1d0 = 1.0f;
     world->camera_light->setGroupMask(2);
-    ConfigureWorldLight0046E300(world->camera_light, 4000.0f);
+    ConfigureWorldLight(world->camera_light, 4000.0f);
 
     if (world->octree == 0 || world->octree->GetMeshCount() == 0) {
         world->psrMeshes = 0;
@@ -274,10 +274,10 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
 
     world->m_padding_0d4[0] = 0;
     if (world->octree != 0) {
-        UpdateWorldOctree004BAF50(world);
+        UpdateWorldOctree(world);
     } else if (world->m_owned_06c != 0) {
         world->m_owned_06c->dirty = 1;
-        UpdateWorldMeshFromQuads004BAD40(world);
+        UpdateWorldMeshFromQuads(world);
     }
     return 1;
 }
@@ -324,7 +324,7 @@ W8World* CreateWorld()
 }
 
 // FUNCTION: WIZ8 0x0044F400
-void UpdateWorlds0044F400(void)
+void UpdateWorlds(void)
 {
     g_navigator_vertical_enabled_006081f8 =
         !(gfKeyState[0x11] != 0 && g_combat_state != 0 &&
@@ -333,48 +333,48 @@ void UpdateWorlds0044F400(void)
     {
         int count = g_worlds_00659a80.GetCount();
         for (int index = 0; index < count; ++index) {
-            UpdateWorld0044F4E0(*g_worlds_00659a80.GetAt(index));
+            UpdateWorld(*g_worlds_00659a80.GetAt(index));
         }
     }
 
     if (g_renderer_ready_00607d7c != 0 && g_world_mesh_update_enabled_00607d7d != 0) {
         if (g_world->octree != 0) {
-            UpdateWorldOctree004BAF50(g_world);
+            UpdateWorldOctree(g_world);
         } else if (g_world->m_owned_06c != 0) {
             ++g_world->m_owned_06c->dirty;
-            UpdateWorldMeshFromQuads004BAD40(g_world);
+            UpdateWorldMeshFromQuads(g_world);
         }
-        RepositionAmbientSounds0047A600(g_world);
+        RepositionAmbientSounds(g_world);
         RequestRefreshPartyState();
         g_renderer_ready_00607d7c = false;
     }
 
-    UpdateTimedTriggerEvents00443D30();
-    UpdateShakeEffects004AE310();
-    UpdateEnvironment482770();
+    UpdateTimedTriggerEvents();
+    UpdateShakeEffects();
+    UpdateEnvironment();
     UpdateNpcEvents0050D530();
 }
 
 // FUNCTION: WIZ8 0x0044F4E0
-void UpdateWorld0044F4E0(W8World* world)
+void UpdateWorld(W8World* world)
 {
     if (world == 0) {
         srAssertFail("pWorld", THREE_D_API_CPP, 0x106, 0);
-        CreateTriggerShakeEvent00444F70(0x6a4, 70.0f, 5000.0f, 1);
+        CreateTriggerShakeEvent(0x6a4, 70.0f, 5000.0f, 1);
     }
 
     if (world != g_world_659ab8) {
-        UpdateWorldMonsters0046DD70(world);
-        UpdateWorldMissiles004A27C0(world);
+        UpdateWorldMonsters(world);
+        UpdateWorldMissiles(world);
         UpdateWorldSpellVisuals004AAB80(world);
-        UpdateAmbientSounds0047A3E0(world);
+        UpdateAmbientSounds(world);
         WorldUpdateLights(world);
         RunMonsterGenerators();
-        UpdateWorldTriggers00443AE0(world);
+        UpdateWorldTriggers(world);
         if (world->octree != 0) {
-            RunMasterFunctions004D8E40();
+            RunMasterFunctions();
         }
-        UpdateSpellEffects00500930();
+        UpdateSpellEffects();
     }
 
     W8PList* nodes = &world->m_list_09c;
@@ -406,7 +406,7 @@ void DetachAllWorldItems(void)
     int count = g_worlds_00659a80.GetCount();
 
     for (int index = 0; index < count; ++index) {
-        DetachWorldItemMeshes0046DE40(*g_worlds_00659a80.GetAt(index));
+        DetachWorldItemMeshes(*g_worlds_00659a80.GetAt(index));
     }
 }
 
@@ -442,13 +442,13 @@ void SetCameraSwayMode(srCamera* camera, int mode)
             if (!g_camera_sway_active_652da4) {
                 g_camera_sway_horizontal_phase_659abc = 0.0f;
                 g_camera_sway_vertical_phase_659ac0 = 0.0f;
-                BeginCameraSway0041A960();
+                BeginCameraSway();
             }
         } else {
             double radians = g_double_005ec1f8 * g_float_005ebcf8;
             camera->setViewPlane(radians * g_camera_base_horizontal_fov_607d84,
                                  radians * g_camera_base_vertical_fov_607d88);
-            EndCameraSway0041A9A0();
+            EndCameraSway();
             return;
         }
     }
@@ -528,7 +528,7 @@ void DestroyWorldCollections(W8World* world)
             W8WorldCameraEntry* entry =
                 static_cast<W8WorldCameraEntry*>(PLGet(world->plsCameras, 0));
             PLRemoveAt(world->plsCameras, 0);
-            DestroyPathAI004A9810(entry->path);
+            DestroyPathAI(entry->path);
             free(entry);
         }
         PLDestroy(world->plsCameras);
@@ -540,7 +540,7 @@ void DestroyWorldCollections(W8World* world)
         while (PLLength(world->plsAmbientSounds) != 0) {
             void* ambient_sound = PLGet(world->plsAmbientSounds, 0);
             PLRemoveAt(world->plsAmbientSounds, 0);
-            DestroyAmbientSound0047A700((W8AmbientSound*)ambient_sound);
+            DestroyAmbientSound((W8AmbientSound*)ambient_sound);
         }
         PLDestroy(world->plsAmbientSounds);
         world->plsAmbientSounds = 0;
@@ -561,7 +561,7 @@ void DestroyWorldCollections(W8World* world)
 
     DestroyAllMissiles(world);
     DestroyAllSpellVisuals(world);
-    DestroyWorldLights0046E4A0(world);
+    DestroyWorldLights(world);
     PListFreeData(&world->m_lights_0a8);
     PListFreeData(&world->m_list_09c);
 
@@ -598,7 +598,7 @@ void DestroyWorld(W8World* world)
         world->octree = 0;
     }
     if (world->m_owned_06c != 0) {
-        DestroyWorldQuad004BE0A0(world->m_owned_06c);
+        DestroyWorldQuad(world->m_owned_06c);
         world->m_owned_06c = 0;
     }
     if (g_world_cleanup_flag_00659757 != 0)
@@ -607,7 +607,7 @@ void DestroyWorld(W8World* world)
     if (g_world_cleanup_flag_00659757 != 0)
         RenderFrame();
     if (IsWorldCursorVisible() != 0)
-        HideWorldCursor00490B90();
+        HideWorldCursor();
 
     index = g_worlds_00659a80.IndexOf(world);
     if (index >= 0) {
@@ -648,10 +648,10 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
     float dy;
     float dz;
 
-    RefreshDirtyAutomap00580760();
+    RefreshDirtyAutomap();
     GetCameraPosition(&camera_position);
     if (g_game_data_runtime_pending_00607d80 != 0 && world->m_owned_04c != 0) {
-        UpdateGameDataRuntime0041F260();
+        UpdateGameDataRuntime();
         g_game_data_runtime_pending_00607d80 = 0;
     }
     if (world->m_owned_04c != 0) {
@@ -660,12 +660,12 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
         }
         if (world->m_owned_04c != 0 && (flags & 0x40) == 0) {
             world->camera->getRotation(rotation);
-            world->m_owned_04c->ApplyCameraMotionFlags0041F330(flags, &rotation, &motion_saved);
+            world->m_owned_04c->ApplyCameraMotionFlags(flags, &rotation, &motion_saved);
             world->camera->setRotation(rotation);
             s_saved_camera_rotation = rotation;
             yaw = GetCameraYawInDegrees();
             pitch = GetCameraPitchInDegrees();
-            g_startup_world_659c0c->SetAngles004538F0(yaw);
+            g_startup_world_659c0c->SetAngles(yaw);
             g_startup_world_659c0c->SetPitch(pitch);
             if (world->m_owned_04c->ApplyCameraMotion0041F5F0(flags, &camera_position, &delta,
                                                               &motion_saved) != 0) {
@@ -685,21 +685,21 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
                 render_position.y = camera_position.y;
                 render_position.z = camera_position.z;
                 static_cast<srNode*>(world->camera)->setLocation(render_position);
-                g_startup_world_659c0c->SetPositionInternal00453590(&navigator_position);
+                g_startup_world_659c0c->SetPositionInternal(&navigator_position);
                 dx = camera_position.x - s_last_automap_refresh_position.x;
                 dy = camera_position.y - s_last_automap_refresh_position.y;
                 dz = camera_position.z - s_last_automap_refresh_position.z;
                 if (dx * dx + dy * dy + dz * dz > g_double_005ec240) {
                     s_last_automap_refresh_position = camera_position;
                     camera_position.y = camera_position.y - g_default_world_height_00603ac8;
-                    if (AutomapHasCellAt00581B30(&camera_position) != 0) {
-                        SetWorldMeshVertexLightTable0046F760(g_world, 1);
+                    if (AutomapHasCellAt(&camera_position) != 0) {
+                        SetWorldMeshVertexLightTable(g_world, 1);
                         UpdateAutomapBounds00580380();
-                        SetWorldMeshVertexLightTable0046F760(g_world, 0);
+                        SetWorldMeshVertexLightTable(g_world, 0);
                     }
                 }
                 DispatchWorldCursorNodeCommand004D9080(0, 0, 0);
-                GetLevelSoundEnvironment0041FCE0(&sound_environment, &sound_environment_secondary);
+                GetLevelSoundEnvironment(&sound_environment, &sound_environment_secondary);
                 if (sound_environment >= 0) {
                     Sound3DSetEnvironment(sound_environment);
                 }
@@ -717,7 +717,7 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
             camera_path = static_cast<W8CameraPath*>(PLGet(world->plsCameras, index));
             if (camera_path != 0 && camera_path->active_14 != 0) {
                 path = camera_path->path_18;
-                PathAITick004AA1F0(path, 1);
+                PathAITick(path, 1);
                 PathAIApply004AA520(path, world->camera);
                 {
                     srVector3T<double> location = world->camera->getLocation();
@@ -734,10 +734,10 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
                 ApplyCameraRotation(&path_rotation);
                 if (path->discrete_mode_1c != 0) {
                     if (path->position >= path->nodes_0c->GetCount() - g_float_005ebb38) {
-                        UpdateCameraPathState0048F2F0(world, camera_path, 0);
+                        UpdateCameraPathState(world, camera_path, 0);
                     }
                 } else if (path->position >= g_double_005ebc30) {
-                    UpdateCameraPathState0048F2F0(world, camera_path, 0);
+                    UpdateCameraPathState(world, camera_path, 0);
                 }
             }
         }
@@ -804,7 +804,7 @@ void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location)
    follows the camera, while only the camera move publishes the new game-space
    position. */
 // FUNCTION: WIZ8 0x004511D0
-void SetWorldScenePosition004511D0(W8World* world, const srVector3T<float>* location)
+void SetWorldScenePosition(W8World* world, const srVector3T<float>* location)
 {
     srVector3T<float> position;
     srVector3T<double> render_position;
@@ -828,16 +828,16 @@ void SetWorldScenePosition004511D0(W8World* world, const srVector3T<float>* loca
 }
 
 // FUNCTION: WIZ8 0x00451020
-void UpdateWorldMeshAfterLoad00451020(void)
+void UpdateWorldMeshAfterLoad(void)
 {
     if (g_renderer_ready_00607d7c != 0 && g_world_mesh_update_enabled_00607d7d != 0) {
         if (g_world->octree != 0) {
-            UpdateWorldOctree004BAF50(g_world);
+            UpdateWorldOctree(g_world);
         } else if (g_world->m_owned_06c != 0) {
             ++g_world->m_owned_06c->dirty;
-            UpdateWorldMeshFromQuads004BAD40(g_world);
+            UpdateWorldMeshFromQuads(g_world);
         }
-        RepositionAmbientSounds0047A600(g_world);
+        RepositionAmbientSounds(g_world);
         RequestRefreshPartyState();
         g_renderer_ready_00607d7c = false;
     }
@@ -961,10 +961,10 @@ void RestoreWorldCameraState(W8World* world, W8World* source_world, W8WorldCamer
     navigator_position.x = (float)camera_location.x;
     navigator_position.y = (float)camera_location.y;
     navigator_position.z = (float)camera_location.z;
-    g_startup_world_659c0c->SetAngles004538F0(GetCameraYawInDegrees());
+    g_startup_world_659c0c->SetAngles(GetCameraYawInDegrees());
     g_startup_world_659c0c->SetPitch(GetCameraPitchInDegrees());
     navigator_position.y = navigator_position.y - g_default_world_height_00603ac8;
-    g_startup_world_659c0c->SetPositionInternal00453590(&navigator_position);
+    g_startup_world_659c0c->SetPositionInternal(&navigator_position);
 }
 
 /* Snapshot the world's camera location and the live yaw/pitch into a CamPos
@@ -1047,27 +1047,27 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         world->m_loaded = world->m_loaded == 0;
     }
     if ((flags & 0x100) != 0) {
-        SetWorldEnvironmentValue00483AE0(g_world, GetWorldValue24(g_world) + 0.02f);
+        SetWorldEnvironmentValue(g_world, GetWorldValue24(g_world) + 0.02f);
     }
     if ((flags & 0x200) != 0) {
-        SetWorldEnvironmentValue00483AE0(g_world, GetWorldValue24(g_world) - 0.02f);
+        SetWorldEnvironmentValue(g_world, GetWorldValue24(g_world) - 0.02f);
     }
 }
 
 // FUNCTION: WIZ8 0x004503B0
-int ForwardSelectedPropIndex004503B0(W8World*, int, int)
+int ForwardSelectedPropIndex(W8World*, int, int)
 {
-    return GetSelectedPropIndex0044DA60();
+    return GetSelectedPropIndex();
 }
 
 // FUNCTION: WIZ8 0x00451150
-bool ForwardActivateSelectedProp00451150(W8World*, int, int, int)
+bool ForwardActivateSelectedProp(W8World*, int, int, int)
 {
-    return ActivateSelectedProp0044DA20();
+    return ActivateSelectedProp();
 }
 
 // FUNCTION: WIZ8 0x00451100
-W8World* ForwardCreateWorld00451100(void)
+W8World* ForwardCreateWorld(void)
 {
     return CreateWorld();
 }
@@ -1107,9 +1107,8 @@ bool FindEntityByName(const char* name, srVector3T<float>* position, float* angl
 /* Push a candidate position clear of static geometry, then reject it when it
    overlaps another world item or monster. */
 // FUNCTION: WIZ8 0x00451390
-unsigned char AdjustWorldCollisionPosition00451390(float radius, srVector3T<float>* position,
-                                                   unsigned char check_items,
-                                                   unsigned char check_monsters)
+unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* position,
+                                           unsigned char check_items, unsigned char check_monsters)
 {
     float threshold = radius * g_path_endpoint_scale_005ec1a4;
     float angle = 0.0f;
@@ -1186,12 +1185,11 @@ unsigned char AdjustWorldCollisionPosition00451390(float radius, srVector3T<floa
 /* Try the requested point first, then the two retail half-turn probe points
    around it; only an unobstructed probe is handed to the overlap resolver. */
 // FUNCTION: WIZ8 0x00451800
-unsigned char FindNearbyFreePosition00451800(float radius, srVector3T<float>* position,
-                                             unsigned char check_items,
-                                             unsigned char check_monsters)
+unsigned char FindNearbyFreePosition(float radius, srVector3T<float>* position,
+                                     unsigned char check_items, unsigned char check_monsters)
 {
     srVector3T<float> candidate = *position;
-    if (AdjustWorldCollisionPosition00451390(radius, &candidate, check_items, check_monsters)) {
+    if (AdjustWorldCollisionPosition(radius, &candidate, check_items, check_monsters)) {
         *position = candidate;
         return 1;
     }
@@ -1206,7 +1204,7 @@ unsigned char FindNearbyFreePosition00451800(float radius, srVector3T<float>* po
 
         g_octree_6598a4->TraceLineOfSight(position, &candidate, 1, -3, -3, 1, 0);
         if (candidate == unblocked &&
-            AdjustWorldCollisionPosition00451390(radius, &candidate, check_items, check_monsters)) {
+            AdjustWorldCollisionPosition(radius, &candidate, check_items, check_monsters)) {
             *position = candidate;
             return 1;
         }

@@ -60,7 +60,7 @@
    camp region table registers for the backpack, equipment, item-pool,
    realm-tab and panel-tab areas. */
 
-static void DrawCampItemLabel005BBF40(W8ItemInstance* item, int left, int top, char flag);
+static void DrawCampItemLabel(W8ItemInstance* item, int left, int top, char flag);
 
 // GLOBAL: WIZ8 0x0069C0EC
 int giCasterCharSlot;
@@ -93,7 +93,7 @@ const unsigned short g_equip_slot_label_ids_61e7c4[12] = {
 };
 
 /* The two page-tab primary callbacks: the Items and Character info buttons
-   created by CreateCampSecondaryPanel005B9900. */
+   created by CreateCampSecondaryPanel. */
 // FUNCTION: WIZ8 0x005B9FB0
 void SetItemPageMode005B9FB0(void)
 {
@@ -148,7 +148,7 @@ void SetItemPageMode005B9FD0(char mode)
 }
 
 // FUNCTION: WIZ8 0x005BA110
-void OpenItemInfoDialog005BA110(W8ItemInstance* item, W8DialogDestroyCallback destroy_callback)
+void OpenItemInfoDialog(W8ItemInstance* item, W8DialogDestroyCallback destroy_callback)
 {
     W8DialogBase* dialog;
 
@@ -247,23 +247,23 @@ void OpenSecondaryStatInfoDialog005BA310(unsigned int uiIndex)
 }
 
 // FUNCTION: WIZ8 0x005BA370
-void IdentifyAndOpenItemInfo005BA370(W8ItemInstance* item)
+void IdentifyAndOpenItemInfo(W8ItemInstance* item)
 {
     if (CanItemLeaveItsSlot(item) != 0) {
         if (PartyAttemptsToIdentifyItem(item, 0) != 0 &&
             g_camp_screen_0069c0f4->realm_flags[1] != 0) {
-            RebuildCampItemList005A4A00();
+            RebuildCampItemList();
             g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
         }
     }
-    OpenItemInfoDialog005BA110(item, 0);
+    OpenItemInfoDialog(item, 0);
     SetCampItemActionMode005B59B0(0);
 }
 
 // FUNCTION: WIZ8 0x005BA3D0
 void DropHeldItem005BA3D0(void)
 {
-    if (ResolvePendingCampCharacter005A5F30(1) != 0) {
+    if (ResolvePendingCampCharacter(1) != 0) {
         if (DropItemInHand(0) != 0) {
             SetCampItemActionMode005B59B0(0);
         }
@@ -271,7 +271,7 @@ void DropHeldItem005BA3D0(void)
 }
 
 // FUNCTION: WIZ8 0x005BA400
-void OpenSplitStackDialog005BA400(W8ItemInstance* item)
+void OpenSplitStackDialog(W8ItemInstance* item)
 {
     W8DialogBase* dialog;
 
@@ -283,7 +283,7 @@ void OpenSplitStackDialog005BA400(W8ItemInstance* item)
         dialog = new W8SplitItemDialog(g_split_dialog_kind_005efb64, item, -1);
         dialog->SetText(&g_wchar_00689b34);
         dialog->SetOrigin(g_split_dialog_x_005efb4c, g_split_dialog_y_005efb50);
-        dialog->m_destroy_callback = SplitStackDialogResult005BAA80;
+        dialog->m_destroy_callback = SplitStackDialogResult;
         DisplayCampDialog(dialog);
         SetCampItemActionMode005B59B0(0);
     }
@@ -301,31 +301,31 @@ void UseItem005BA4F0(W8ItemInstance* item)
     if (CanCastFromItem(g_review_character_0069c0f8, item) != 0) {
         LearnSpellFromItem(g_review_character_0069c0f8, item);
     } else {
-        if (IsUsableItemClass00522A00(item) == 0 || IsSpecialItemId004DA0F0(item) != 0) {
+        if (IsUsableItemClass(item) == 0 || IsSpecialItemId(item) != 0) {
             gXStatus.item_drag_active = 1;
             gXStatus.dragged_item = item;
             gXStatus.dragged_character_slot = static_cast<char>(giReviewCharSlot);
             GetOriginOfCharacterItem(giReviewCharSlot, item, &gXStatus.dragged_item_origin, &slot);
         } else {
             if (g_status_685170.item_in_cursor == 0) {
-                MarkCampCharacterPending005A6020(item);
+                MarkCampCharacterPending(item);
                 CopyItemInstance(&g_status_685170.item_in_hand_235b, item,
                                  g_review_character_0069c0f8, 1);
             }
         }
         DismissSelectedPartyCharacter();
     }
-    RebuildCampItemList005A4A00();
+    RebuildCampItemList();
     g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
     SetCampItemActionMode005B59B0(0);
 }
 
 // FUNCTION: WIZ8 0x005BA5D0
-void MergeItemStacksWithHeld005BA5D0(W8ItemInstance* item)
+void MergeItemStacksWithHeld(W8ItemInstance* item)
 {
     if (item->iItemNo != -1) {
         if (MergeItems(g_review_character_0069c0f8, item) != 0) {
-            RebuildCampItemList005A4A00();
+            RebuildCampItemList();
             g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
             SetCampItemActionMode005B59B0(0);
         }
@@ -333,14 +333,14 @@ void MergeItemStacksWithHeld005BA5D0(W8ItemInstance* item)
 }
 
 // FUNCTION: WIZ8 0x005BA620
-void ReportCastResult005BA620(int party_slot)
+void ReportCastResult(int party_slot)
 {
     wchar_t* text;
     W8Character* character;
     int result;
 
     StartBreathCycle(giReviewCharSlot, 0);
-    result = RevealCharacterItemBindingsByProfession00548E20(giReviewCharSlot, party_slot);
+    result = RevealCharacterItemBindingsByProfession(giReviewCharSlot, party_slot);
     character = g_status_685170.buffers.Char + party_slot;
     if (result == 0) {
         SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);
@@ -360,7 +360,7 @@ void ReportCastResult005BA620(int party_slot)
 }
 
 // FUNCTION: WIZ8 0x005BA740
-void UseHeldItemOnItem005BA740(W8ItemInstance* item)
+void UseHeldItemOnItem(W8ItemInstance* item)
 {
     W8CombatSlot target;
 
@@ -380,15 +380,15 @@ void UseHeldItemOnItem005BA740(W8ItemInstance* item)
         if (CanItemLeaveItsSlot(item) != 0) {
             ResetCombatSlot(&target);
             target.iType = W8_TARGET_KIND_ITEM;
-            if (CommitPartySlotSpell005A6340(giCasterCharSlot, 0x17, 8, &target) == 1) {
-                OpenItemInfoDialog005BA110(item, 0);
+            if (CommitPartySlotSpell(giCasterCharSlot, 0x17, 8, &target) == 1) {
+                OpenItemInfoDialog(item, 0);
                 if (item->identified == 0) {
                     QueueCharacterEvent(g_status_685170.buffers.Char + giCasterCharSlot,
                                         g_character_event_kind_005ee65c, 0,
                                         g_effect_argument_005ed8c8, g_effect_argument_005ed914);
                 }
             }
-            RebuildCampItemList005A4A00();
+            RebuildCampItemList();
             g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
             SetCampItemActionMode005B59B0(0);
             giCasterCharSlot = -1;
@@ -401,7 +401,7 @@ void UseHeldItemOnItem005BA740(W8ItemInstance* item)
 }
 
 // FUNCTION: WIZ8 0x005BA8E0
-void TargetCharacterWithHeldItem005BA8E0(unsigned int uiTargetChar)
+void TargetCharacterWithHeldItem(unsigned int uiTargetChar)
 {
     W8CombatSlot target;
 
@@ -428,19 +428,19 @@ void TargetCharacterWithHeldItem005BA8E0(unsigned int uiTargetChar)
     ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_CHARACTER;
     target.iChar = uiTargetChar;
-    CommitPartySlotSpell005A6340(giCasterCharSlot, 0x3a, 8, &target);
-    RebuildCampItemList005A4A00();
+    CommitPartySlotSpell(giCasterCharSlot, 0x3a, 8, &target);
+    RebuildCampItemList();
     g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
     SetCampItemActionMode005B59B0(0);
     giCasterCharSlot = -1;
 }
 
 // FUNCTION: WIZ8 0x005BAA10
-bool CanCharacterUseItemEntry005BAA10(W8Character* character, W8ItemInstance* item)
+bool CanCharacterUseItemEntry(W8Character* character, W8ItemInstance* item)
 {
     if (CanCharacterActivateItem(character, item) == 0) {
         if (CanCastFromItem(character, item) == 0) {
-            if (IsUsableItemClass00522A00(item) == 0) {
+            if (IsUsableItemClass(item) == 0) {
                 return 0;
             }
         }
@@ -449,7 +449,7 @@ bool CanCharacterUseItemEntry005BAA10(W8Character* character, W8ItemInstance* it
 }
 
 // FUNCTION: WIZ8 0x005BAA50
-bool CanSplitItemStack005BAA50(const W8ItemInstance* item)
+bool CanSplitItemStack(const W8ItemInstance* item)
 {
     const W8ItemDatabaseRecord* record = g_item_records + item->iItemNo;
     if ((record->flags_041 & 2) != 0) {
@@ -459,7 +459,7 @@ bool CanSplitItemStack005BAA50(const W8ItemInstance* item)
 }
 
 // FUNCTION: WIZ8 0x005BAA80
-void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
+void SplitStackDialogResult(W8DialogBase* dialog)
 {
     W8ItemInstance split;
     W8ItemInstance* destination;
@@ -512,7 +512,7 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
             AddItemToParty(&split, 0, 0) == 0) {
             ShowCampNoticeLine(gppStringList[0x2454 / 4], 0, 1, 0);
             g_status_685170.item_in_hand_235b.stack_count = remaining;
-            if (ResolvePendingCampCharacter005A5F30(1) != 0 && DropItemInHand(0) != 0) {
+            if (ResolvePendingCampCharacter(1) != 0 && DropItemInHand(0) != 0) {
                 SetCampItemActionMode005B59B0(0);
             }
             destination = &g_status_685170.item_in_hand_235b;
@@ -538,7 +538,7 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
     }
     g_status_685170.item_in_hand_235b.stack_count = carried;
     RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
-    RebuildCampItemList005A4A00();
+    RebuildCampItemList();
     RecalculateCharacterDerivedStats(g_status_685170.buffers.Char + giReviewCharSlot);
     RecalculateCarriedWeight(g_review_character_0069c0f8);
     RedistributePartyEncumbrance();
@@ -550,7 +550,7 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
    selects which use paths are live, and iTargetingMode selects what the item
    cursor is allowed to target. */
 // FUNCTION: WIZ8 0x005BAD20
-void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
+void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
 {
     if (g_camp_screen_0069c0f4->entry_mode == 0) {
         return;
@@ -589,7 +589,7 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
             if ((record->flags_041 & 2) != 0 || record->quantity_kind != 1) {
                 return;
             }
-            if (gXStatus.fCombatMode != 0 && IsEquippableItemClass005A6310(item) == 0 &&
+            if (gXStatus.fCombatMode != 0 && IsEquippableItemClass(item) == 0 &&
                 (g_combat_state->equip_phase_a50 == 0 ||
                  g_status_685170.buffers.XChar[giReviewCharSlot].pending_action != 9)) {
                 return;
@@ -600,7 +600,7 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
         if (g_camp_screen_0069c0f4->entry_mode == 5) {
             if (CanCharacterActivateItem(g_review_character_0069c0f8, item) != 0 ||
                 CanCastFromItem(g_review_character_0069c0f8, item) != 0 ||
-                IsUsableItemClass00522A00(item) != 0) {
+                IsUsableItemClass(item) != 0) {
                 SetTargetCursor(GetTargetingCursorForState(flag));
             }
             return;
@@ -635,7 +635,7 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
 }
 
 // FUNCTION: WIZ8 0x005BAFC0
-void SetHandCursors005BAFC0(char mode)
+void SetHandCursors(char mode)
 {
     if (mode == 0) {
         if (g_status_685170.item_in_cursor != 0) {
@@ -658,7 +658,7 @@ void SetHandCursors005BAFC0(char mode)
    combat and while the party is moving, and per-slot when a bound item will
    not come off. */
 // FUNCTION: WIZ8 0x005BB010
-void UnequipBothHands005BB010(void)
+void UnequipBothHands(void)
 {
     W8Character* character;
 
@@ -667,7 +667,7 @@ void UnequipBothHands005BB010(void)
         ShowCampNoticeLine(gppStringList[0x240c / 4], 0, 1, 0);
         return;
     }
-    if (IsPartySlotEligible00524A10(giReviewCharSlot) == 0) {
+    if (IsPartySlotEligible(giReviewCharSlot) == 0) {
         ShowCampNoticeLine(gppStringList[0x245c / 4], 0, 1, 0);
         return;
     }
@@ -685,7 +685,7 @@ void UnequipBothHands005BB010(void)
 }
 
 // FUNCTION: WIZ8 0x005BB140
-void TogglePartyRowFlag005BB140(void)
+void TogglePartyRowFlag(void)
 {
     if ((g_camp_action_buttons_0069c468[1]->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
         g_status_685170.buffers.XChar[giReviewCharSlot].item_action_pending_0f5 = 1;
@@ -739,7 +739,7 @@ void SortPartyItemPool005BB220(void)
 {
     SortPartyItemPool();
     g_camp_screen_0069c0f4->item_scroll = 0;
-    RebuildCampItemList005A4A00();
+    RebuildCampItemList();
     g_camp_screen_0069c0f4->item_redraw_flags |= 0x7fc00000;
 }
 
@@ -777,7 +777,7 @@ void SelectItemsRealmTab005BB250(int tab)
     } else {
         g_camp_screen_0069c0f4->realm_flags[realm] = 1;
         if (realm != 0 && realm != 1) {
-            ClearOtherRealmFilters005A49D0(realm);
+            ClearOtherRealmFilters(realm);
             index = 0;
             do {
                 if (index != tab && (g_camp_realm_tabs_0069c470[index]->m_stateFlags &
@@ -789,7 +789,7 @@ void SelectItemsRealmTab005BB250(int tab)
         }
     }
     g_camp_screen_0069c0f4->item_scroll = 0;
-    RebuildCampItemList005A4A00();
+    RebuildCampItemList();
     if (gfKeyState[0x11] == 0) {
         g_camp_screen_0069c0f4->item_redraw_flags |= 0x7fc00000;
         return;
@@ -801,7 +801,7 @@ void SelectItemsRealmTab005BB250(int tab)
    release, 0x10 left down, 0x40 right press, 0x80 right release, 0x100
    double-click/activate, 0x400 enter/leave transition, 0x800 mouse wheel. */
 // FUNCTION: WIZ8 0x005BB350
-unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* region)
+unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
 {
     int slot;
     W8ItemInstance* item;
@@ -809,7 +809,7 @@ unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* re
     slot = region->callback_id;
     item = g_review_character_0069c0f8->backpack + slot;
     if (item->iItemNo == -1 && g_status_685170.item_in_cursor == 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
     if (event->usEvent < 0x81) {
         if (event->usEvent == 0x80) {
@@ -825,14 +825,14 @@ unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* re
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
                 return 1;
             }
-            HandleCampItemClick005A4C70(item, slot, 0);
+            HandleCampItemClick(item, slot, 0);
             if (item->iItemNo != -1) {
-                SetItemTooltip005BBD30(item, region);
-                SetRegionHelpForceEnabled004F27C0(1);
+                SetItemTooltip(item, region);
+                SetRegionHelpForceEnabled(1);
                 return 1;
             }
         }
-        DisableRegionHelpFlag004F27E0(region);
+        DisableRegionHelpFlag(region);
         return 1;
     }
     if (event->usEvent == 0x100) {
@@ -841,10 +841,10 @@ unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* re
             g_camp_entry_parameter_0069c0fc = g_review_character_0069c0f8;
             if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
                 g_camp_screen_0069c0f4->realm_flags[1] != 0) {
-                RebuildCampItemList005A4A00();
+                RebuildCampItemList();
                 g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
             }
-            OpenItemInfoDialog005BA110(item, 0);
+            OpenItemInfoDialog(item, 0);
             SetCampItemActionMode005B59B0(0);
         }
         return 1;
@@ -854,17 +854,17 @@ unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* re
             if (item->iItemNo != -1 || g_status_685170.item_in_cursor != 0) {
                 g_camp_screen_0069c0f4->item_redraw_flags |= 2 << (slot & 0x1f);
             }
-            UpdateItemCursorForState005BAD20((region->flags & W8_REGION_MOUSE_ENTER) != 0, item, 0);
+            UpdateItemCursorForState((region->flags & W8_REGION_MOUSE_ENTER) != 0, item, 0);
             if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
                 if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
                     return 0;
                 }
             } else if (item->iItemNo != -1) {
-                SetItemTooltip005BBD30(item, region);
-                SetRegionHelpForceEnabled004F27C0(1);
+                SetItemTooltip(item, region);
+                SetRegionHelpForceEnabled(1);
                 return 0;
             }
-            DisableRegionHelpFlag004F27E0(region);
+            DisableRegionHelpFlag(region);
         }
         return 0;
     }
@@ -872,7 +872,7 @@ unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* re
 }
 
 // FUNCTION: WIZ8 0x005BB560
-unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* region)
+unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
 {
     int slot;
     int delay;
@@ -887,7 +887,7 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
                             (unsigned char)slot, 1) == 0 ||
          CanCharacterUseItem(g_review_character_0069c0f8,
                              g_status_685170.item_in_hand_235b.iItemNo) == 0)) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
     if (event->usEvent < 0x81) {
         if (event->usEvent == 0x80) {
@@ -896,21 +896,21 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
         }
         if (event->usEvent == 8) {
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-            DisableRegionHelpFlag004F27E0(region);
+            DisableRegionHelpFlag(region);
             return 1;
         }
         if (event->usEvent != 0x10) {
             return 0;
         }
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            HandleCampItemClick005A4C70(item, slot, 1);
+            HandleCampItemClick(item, slot, 1);
             delay = g_settings_6850c8.tooltip_delay_ms;
             if ((unsigned int)delay > 300) {
                 delay = 300;
             }
             SetRegionHelpDelay(delay);
-            SetRegionHelpForceEnabled004F27C0(1);
-            EnableRegionHelpFlag004F27D0(region);
+            SetRegionHelpForceEnabled(1);
+            EnableRegionHelpFlag(region);
             if (item->iItemNo != -1) {
                 name = FormatItemDisplayName(item, 0);
                 swprintf(g_camp_screen_0069c0f4->caption, L"%s (%s)", name,
@@ -932,14 +932,14 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
                 if (item->iItemNo != -1 || g_status_685170.item_in_cursor != 0) {
                     g_camp_screen_0069c0f4->item_redraw_flags |= 0x400 << (slot & 0x1f);
                 }
-                UpdateItemCursorForState005BAD20(1, item, 0);
-                EnableRegionHelpFlag004F27D0(region);
+                UpdateItemCursorForState(1, item, 0);
+                EnableRegionHelpFlag(region);
                 delay = g_settings_6850c8.tooltip_delay_ms;
                 if ((unsigned int)delay > 300) {
                     delay = 300;
                 }
                 SetRegionHelpDelay(delay);
-                SetRegionHelpForceEnabled004F27C0(1);
+                SetRegionHelpForceEnabled(1);
                 if (item->iItemNo == -1) {
                     swprintf(g_camp_screen_0069c0f4->caption, g_format_s_006068e4,
                              gppStringList[g_equip_slot_label_ids_61e7c4[slot]]);
@@ -954,8 +954,8 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
                 if (item->iItemNo != -1 || g_status_685170.item_in_cursor != 0) {
                     g_camp_screen_0069c0f4->item_redraw_flags |= 0x400 << (slot & 0x1f);
                 }
-                UpdateItemCursorForState005BAD20(0, item, 0);
-                DisableRegionHelpFlag004F27E0(region);
+                UpdateItemCursorForState(0, item, 0);
+                DisableRegionHelpFlag(region);
             }
             return 0;
         }
@@ -964,10 +964,10 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
             g_camp_entry_parameter_0069c0fc = g_review_character_0069c0f8;
             if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
                 g_camp_screen_0069c0f4->realm_flags[1] != 0) {
-                RebuildCampItemList005A4A00();
+                RebuildCampItemList();
                 g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
             }
-            OpenItemInfoDialog005BA110(item, 0);
+            OpenItemInfoDialog(item, 0);
             SetCampItemActionMode005B59B0(0);
         }
     }
@@ -975,7 +975,7 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
 }
 
 // FUNCTION: WIZ8 0x005BB900
-unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* region)
+unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
 {
     unsigned int slot;
     unsigned int pool_index;
@@ -994,7 +994,7 @@ unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* re
     }
     item = g_status_685170.party_item_pool_0021 + pool_index;
     if (item->iItemNo == -1 && g_status_685170.item_in_cursor == 0) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
     if (event->usEvent < 0x101) {
         if (event->usEvent == 0x100) {
@@ -1004,17 +1004,17 @@ unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* re
                 g_camp_entry_parameter_0069c0fc = g_review_character_0069c0f8;
                 if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
                     g_camp_screen_0069c0f4->realm_flags[1] != 0) {
-                    RebuildCampItemList005A4A00();
+                    RebuildCampItemList();
                     g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
                 }
-                OpenItemInfoDialog005BA110(item, 0);
+                OpenItemInfoDialog(item, 0);
                 SetCampItemActionMode005B59B0(0);
             }
             return 1;
         }
         if (event->usEvent == 8) {
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-            DisableRegionHelpFlag004F27E0(region);
+            DisableRegionHelpFlag(region);
             return 1;
         }
         if (event->usEvent != 0x10) {
@@ -1027,9 +1027,9 @@ unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* re
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
             return 1;
         }
-        HandleCampItemClick005A4C70(item, pool_index, 2);
+        HandleCampItemClick(item, pool_index, 2);
         if (item->iItemNo != -1) {
-            SetItemTooltip005BBD30(item, region);
+            SetItemTooltip(item, region);
             return 1;
         }
     } else {
@@ -1038,17 +1038,16 @@ unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* re
                 if (item->iItemNo != -1 || g_status_685170.item_in_cursor != 0) {
                     g_camp_screen_0069c0f4->item_redraw_flags |= 0x800000 << (slot & 0x1f);
                 }
-                UpdateItemCursorForState005BAD20((region->flags & W8_REGION_MOUSE_ENTER) != 0, item,
-                                                 0);
+                UpdateItemCursorForState((region->flags & W8_REGION_MOUSE_ENTER) != 0, item, 0);
                 if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
                     if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
                         return 0;
                     }
                 } else if (item->iItemNo != -1) {
-                    SetItemTooltip005BBD30(item, region);
+                    SetItemTooltip(item, region);
                     return 0;
                 }
-                DisableRegionHelpFlag004F27E0(region);
+                DisableRegionHelpFlag(region);
             }
             return 0;
         }
@@ -1078,18 +1077,18 @@ unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* re
             pool_index = g_camp_screen_0069c0f4->item_list_4ec[pool_index];
         }
         if (g_status_685170.party_item_pool_0021[pool_index].iItemNo != -1) {
-            SetItemTooltip005BBD30(g_status_685170.party_item_pool_0021 + pool_index, region);
+            SetItemTooltip(g_status_685170.party_item_pool_0021 + pool_index, region);
             return 1;
         }
     }
-    DisableRegionHelpFlag004F27E0(region);
+    DisableRegionHelpFlag(region);
     return 1;
 }
 
 /* Reason 0x40/0x8 press the tab control, 0x10 releases it, and the 0x400
    enter/leave transition forwards the matching mouse events. */
 // FUNCTION: WIZ8 0x005BBBB0
-unsigned char RealmTabRegionHandler005BBBB0(const InputAtom* event, W8Region* region)
+unsigned char RealmTabRegionHandler(const InputAtom* event, W8Region* region)
 {
     if (event->usEvent < 0x41) {
         if (event->usEvent == 0x40 || event->usEvent == 8) {
@@ -1118,7 +1117,7 @@ unsigned char RealmTabRegionHandler005BBBB0(const InputAtom* event, W8Region* re
 }
 
 // FUNCTION: WIZ8 0x005BBC70
-unsigned char PanelTabRegionHandler005BBC70(const InputAtom* event, W8Region* region)
+unsigned char PanelTabRegionHandler(const InputAtom* event, W8Region* region)
 {
     if (event->usEvent < 0x41) {
         if (event->usEvent == 0x40 || event->usEvent == 8) {
@@ -1147,7 +1146,7 @@ unsigned char PanelTabRegionHandler005BBC70(const InputAtom* event, W8Region* re
 }
 
 // FUNCTION: WIZ8 0x005BBD30
-void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region)
+void SetItemTooltip(W8ItemInstance* item, W8Region* region)
 {
     int delay;
     wchar_t* name;
@@ -1158,8 +1157,8 @@ void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region)
         delay = 300;
     }
     SetRegionHelpDelay(delay);
-    SetRegionHelpForceEnabled004F27C0(1);
-    EnableRegionHelpFlag004F27D0(region);
+    SetRegionHelpForceEnabled(1);
+    EnableRegionHelpFlag(region);
     name = FormatItemDisplayName(item, 0);
     wcscpy(g_camp_screen_0069c0f4->caption, name);
     record = g_item_records + item->iItemNo;
@@ -1181,9 +1180,9 @@ void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region)
 /* The items page's per-row label boxes: the backpack grid (two columns of
    four at 0x0d/0xc2), the visible pool rows (0x22c/0xc2), and the twelve
    equipment icons laid out by g_camp_screen_regions_64cbf0. Each occupied
-   slot gets a hover label drawn by DrawCampItemLabel005BBF40. */
+   slot gets a hover label drawn by DrawCampItemLabel. */
 // FUNCTION: WIZ8 0x005bbe30
-void DrawCampItemIcons005BBE30(void)
+void DrawCampItemIcons(void)
 {
     unsigned int index;
     unsigned int count;
@@ -1197,8 +1196,8 @@ void DrawCampItemIcons005BBE30(void)
     for (index = 0; index < 8; ++index) {
         item = &character->backpack[index];
         if (item->iItemNo != -1) {
-            DrawCampItemLabel005BBF40(item, (index & 1) * 0x31 + 0xd,
-                                      (index >> 1) * 0x39 + 0xc2 + (index & 1) * 0x10, 0);
+            DrawCampItemLabel(item, (index & 1) * 0x31 + 0xd,
+                              (index >> 1) * 0x39 + 0xc2 + (index & 1) * 0x10, 0);
         }
     }
     index = 0;
@@ -1214,7 +1213,7 @@ void DrawCampItemIcons005BBE30(void)
         if ((index & 1) == 0) {
             y = (index >> 1) * 0x39 + 0xd2;
         }
-        DrawCampItemLabel005BBF40(
+        DrawCampItemLabel(
             &g_status_685170.party_item_pool_0021[state->item_list_4ec[state->item_scroll + index]],
             (index & 1) * 0x31 + 0x22c, y, 1);
         ++index;
@@ -1223,8 +1222,8 @@ void DrawCampItemIcons005BBE30(void)
     for (index = 0; index < 12; ++index) {
         item = &character->EquippedItem[index];
         if (item->iItemNo != -1) {
-            DrawCampItemLabel005BBF40(item, region->label_x_18, region->label_y_1c,
-                                      static_cast<char>(region->label_flag_20));
+            DrawCampItemLabel(item, region->label_x_18, region->label_y_1c,
+                              static_cast<char>(region->label_flag_20));
         }
         ++region;
     }
@@ -1236,7 +1235,7 @@ void DrawCampItemIcons005BBE30(void)
    background, the text and a one-pixel outline are painted straight into the
    locked primary surface. */
 // FUNCTION: WIZ8 0x005bbf40
-static void DrawCampItemLabel005BBF40(W8ItemInstance* item, int left, int top, char flag)
+static void DrawCampItemLabel(W8ItemInstance* item, int left, int top, char flag)
 {
     wchar_t* name;
     W8ControlsRect bounds;

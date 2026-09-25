@@ -69,7 +69,7 @@ srHeapArray<srVector3T<float> >* g_vertex_scratch_0065a148;
    with "mouth". Damage-stage instances use the stage-specific texture table;
    ordinary instances use the mesh's active polygon texture table. */
 // FUNCTION: WIZ8 0x00481080
-stTextureAnim* stModelInstance::FindMouthTexture00481080()
+stTextureAnim* stModelInstance::FindMouthTexture()
 {
     stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
 
@@ -92,7 +92,7 @@ stTextureAnim* stModelInstance::FindMouthTexture00481080()
     } else {
         while (mesh != 0) {
             srPtr<srTextureIFace>* textures =
-                mesh->GetTextureTable00473720(damage_stage_tables_188.data[damage_stage_184]);
+                mesh->GetTextureTable(damage_stage_tables_188.data[damage_stage_184]);
 
             if (textures != 0) {
                 for (int polygon = 0; polygon < mesh->polygon_count_230; ++polygon) {
@@ -111,10 +111,10 @@ stTextureAnim* stModelInstance::FindMouthTexture00481080()
 }
 
 // FUNCTION: WIZ8 0x00480790
-int stModelInstance::FindDamageStage00480790(const char* name)
+int stModelInstance::FindDamageStage(const char* name)
 {
     stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
-    return mesh->FindSkinTable004736D0(name);
+    return mesh->FindSkinTable(name);
 }
 
 /* Add a stage by cloning the first stage's table across the complete linked
@@ -124,7 +124,7 @@ int stModelInstance::AddDamageStage00480560(const char* name)
 {
     stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
 
-    if (mesh->FindSkinTable004736D0(name) != -1) {
+    if (mesh->FindSkinTable(name) != -1) {
         return -1;
     }
 
@@ -132,18 +132,18 @@ int stModelInstance::AddDamageStage00480560(const char* name)
     damage_stage_tables_188.setCapacity(stage + 1);
 
     int base_table = stage > 0 ? damage_stage_tables_188.data[0] : -1;
-    damage_stage_tables_188.data[stage] = mesh->CreateSkinTable00473260(name, base_table);
+    damage_stage_tables_188.data[stage] = mesh->CreateSkinTable(name, base_table);
     for (mesh = mesh->next; mesh != 0; mesh = mesh->next) {
-        mesh->CreateSkinTable00473260(name, base_table);
+        mesh->CreateSkinTable(name, base_table);
     }
     return stage;
 }
 
 // FUNCTION: WIZ8 0x00480670
-int stModelInstance::AddExistingDamageStage00480670(const char* name)
+int stModelInstance::AddExistingDamageStage(const char* name)
 {
     stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
-    int table = mesh->FindSkinTable004736D0(name);
+    int table = mesh->FindSkinTable(name);
 
     if (table == -1) {
         return -1;
@@ -156,8 +156,8 @@ int stModelInstance::AddExistingDamageStage00480670(const char* name)
 }
 
 // FUNCTION: WIZ8 0x004807b0
-unsigned char stModelInstance::ReplaceDamageStageTexture004807B0(int stage, const char* old_name,
-                                                                 srTextureIFace* replacement)
+unsigned char stModelInstance::ReplaceDamageStageTexture(int stage, const char* old_name,
+                                                         srTextureIFace* replacement)
 {
     stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
     unsigned char replaced = 0;
@@ -171,7 +171,7 @@ unsigned char stModelInstance::ReplaceDamageStageTexture004807B0(int stage, cons
 
     for (; mesh != 0; mesh = mesh->next) {
         srPtr<srTextureIFace>* textures =
-            mesh->GetTextureTable00473720(damage_stage_tables_188.data[stage]);
+            mesh->GetTextureTable(damage_stage_tables_188.data[stage]);
         if (textures == 0) {
             continue;
         }
@@ -280,7 +280,7 @@ stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
 }
 
 // FUNCTION: WIZ8 0x0047F3A0
-void stModelInstance2D::SetModel0047F3A0(srModel* model)
+void stModelInstance2D::SetModel(srModel* model)
 {
     assignModel(model);
     if (model != 0) {
@@ -395,7 +395,7 @@ render_mesh:
 /* Disabling the glow releases the retained glow material; the render-state
    byte at 0x0d is the glow pass's enable flag. */
 // FUNCTION: WIZ8 0x00480EB0
-void stModelInstance2D::SetGlowEnabled00480EB0(unsigned char enable)
+void stModelInstance2D::SetGlowEnabled(unsigned char enable)
 {
     if (enable == 0 && m_pGlowMaterial != 0) {
         m_pGlowMaterial->release();
@@ -430,7 +430,7 @@ int stModelInstance2D::GetHeight00480F70()
 /* Lazily allocate the two glow-color vectors and copy the supplied pair; the
    process pass blends between them into the material's emissive term. */
 // FUNCTION: WIZ8 0x00480FF0
-void stModelInstance2D::SetGlowColors00480FF0(srVector4T<float>* first, srVector4T<float>* second)
+void stModelInstance2D::SetGlowColors(srVector4T<float>* first, srVector4T<float>* second)
 {
     if (vector_174 == 0) {
         vector_174 = static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
@@ -598,12 +598,12 @@ void stModelInstance::process(const ProcessInfo& info, e_processType)
     if (exclusion_mask_15c != 0) {
         unsigned long previous_mask = renderer->getExclusionMask();
         renderer->setExclusionMask(exclusion_mask_15c | previous_mask);
-        RenderMeshes0047F930(*renderer);
+        RenderMeshes(*renderer);
         renderer->setExclusionMask(previous_mask);
         renderer->popMatrix();
         return;
     }
-    RenderMeshes0047F930(*renderer);
+    RenderMeshes(*renderer);
     renderer->popMatrix();
 }
 
@@ -611,11 +611,11 @@ void stModelInstance::process(const ProcessInfo& info, e_processType)
    per model — animated vertex buffers when the model requests them, the
    damage-stage texture/active-polygon tables, the lazily built highlight
    material or the global material overrides — and pushes each mesh through
-   RenderTriMeshWithEquations00470380. When the highlight RGBA is configured
+   RenderTriMeshWithEquations. When the highlight RGBA is configured
    the chain is submitted again inflated along its normals into a shared
    scratch buffer with reversed winding, skipping the linked "blank" skin. */
 // FUNCTION: WIZ8 0x0047F930
-void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
+void stModelInstance::RenderMeshes(srGERD& renderer)
 {
     srMeshModel::TriMesh mesh;
     mesh.control_flags_0c = 0;
@@ -640,7 +640,7 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
     }
 
     // c-style-cast-ok: the pick key is an opaque void* token
-    SetPickKey004277F0(((render_flags_178 >> 4) & 1) != 0 ? (void*)0 : (void*)this);
+    SetPickKey(((render_flags_178 >> 4) & 1) != 0 ? (void*)0 : (void*)this);
 
     srVector4T<float> ambient;
     renderer.getAmbientLight(ambient);
@@ -689,18 +689,18 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
        uninitialised read, which faults under this build's layout. */
     srNode* child = 0;
     while (model != 0) {
-        model->SetAmbientColor00472990(ambient_color);
+        model->SetAmbientColor(ambient_color);
         model->getTriMesh(mesh);
         if (((render_flags_178 >> 3) & 1) != 0 && first_pass != 0) {
-            RenderShadow004811D0(renderer, mesh);
+            RenderShadow(renderer, mesh);
         }
 
         srVector3T<float>* poly_normals;
         if ((model->flags_3a0 >> 2) & 1) {
             mesh.positions_38 =
                 model->GetVertexLocations00471AD0(frame_index_180, 1, frame_interpolation_1ac);
-            mesh.normals_3c = model->GetVertexNormals00471CA0(frame_index_180, 1);
-            poly_normals = model->GetPolygonNormals00471D00(frame_index_180, 1);
+            mesh.normals_3c = model->GetVertexNormals(frame_index_180, 1);
+            poly_normals = model->GetPolygonNormals(frame_index_180, 1);
         } else {
             poly_normals = 0;
         }
@@ -721,11 +721,11 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
             unsigned long* active;
             if (damage_stage_184 >= 0) {
                 mesh.poly_textures_e0[0][0] =
-                    model->GetTextureTable00473720(damage_stage_tables_188.data[damage_stage_184]);
-                active = model->GetActivePolygons00473CD0(
+                    model->GetTextureTable(damage_stage_tables_188.data[damage_stage_184]);
+                active = model->GetActivePolygons(
                     &active_count, damage_stage_tables_188.data[damage_stage_184], 1);
             } else {
-                active = model->GetActivePolygons00473CD0(&active_count, -1, 1);
+                active = model->GetActivePolygons(&active_count, -1, 1);
             }
             if (active != 0) {
                 mesh.active_polygons_14c = active;
@@ -756,10 +756,10 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
         if (((render_flags_178 >> 4) & 1) != 0 && !renderer.isPickStackEmpty()) {
             srGERD::Pick pick;
             renderer.popPick(pick);
-            model->RenderTriMeshWithEquations00470380(renderer, mesh, poly_normals);
+            model->RenderTriMeshWithEquations(renderer, mesh, poly_normals);
             renderer.pushPick(pick);
         } else {
-            model->RenderTriMeshWithEquations00470380(renderer, mesh, poly_normals);
+            model->RenderTriMeshWithEquations(renderer, mesh, poly_normals);
         }
 
         first_pass = 0;
@@ -817,18 +817,18 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
                     if ((model->flags_3a0 >> 2) & 1) {
                         mesh.dig_40[0] = model->GetVertexLocations00471AD0(frame_index_180, 1,
                                                                            frame_interpolation_1ac);
-                        mesh.dig_40[1] = model->GetVertexNormals00471CA0(frame_index_180, 1);
-                        poly_normals = model->GetPolygonNormals00471D00(frame_index_180, 1);
+                        mesh.dig_40[1] = model->GetVertexNormals(frame_index_180, 1);
+                        poly_normals = model->GetPolygonNormals(frame_index_180, 1);
                     }
                     srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures_e0;
                     if (poly_textures != 0 && mesh.active_polygons_14c == 0) {
                         long active_count;
                         unsigned long* active;
                         if (damage_stage_184 >= 0) {
-                            active = model->GetActivePolygons00473CD0(
+                            active = model->GetActivePolygons(
                                 &active_count, damage_stage_tables_188.data[damage_stage_184], 1);
                         } else {
-                            active = model->GetActivePolygons00473CD0(&active_count, -1, 1);
+                            active = model->GetActivePolygons(&active_count, -1, 1);
                         }
                         if (active != 0) {
                             mesh.active_polygons_14c = active;
@@ -880,10 +880,10 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
                     if (((render_flags_178 >> 4) & 1) != 0 && !renderer.isPickStackEmpty()) {
                         srGERD::Pick pick;
                         renderer.popPick(pick);
-                        model->RenderTriMeshWithEquations00470380(renderer, mesh, poly_normals);
+                        model->RenderTriMeshWithEquations(renderer, mesh, poly_normals);
                         renderer.pushPick(pick);
                     } else {
-                        model->RenderTriMeshWithEquations00470380(renderer, mesh, poly_normals);
+                        model->RenderTriMeshWithEquations(renderer, mesh, poly_normals);
                     }
                 }
             }
@@ -914,7 +914,7 @@ const float g_float_005ec8e0 = 1.0f / 1500.0f;
 srMeshModel::TriMesh* g_shadow_mesh_0065a14c;
 
 // FUNCTION: WIZ8 0x004813F0
-void BuildShadowMesh004813F0()
+void BuildShadowMesh()
 {
     stMaterial* material = SR_NEW(stMaterial)();
     srShader shader;
@@ -996,10 +996,10 @@ void BuildShadowMesh004813F0()
    front-cull the pass, translate to the mesh's mid-height, scale the unit
    quad by a clamped pitch factor, then feed the pipeline slots directly. */
 // FUNCTION: WIZ8 0x004811D0
-void stModelInstance::RenderShadow004811D0(srGERD& renderer, srMeshModel::TriMesh& mesh)
+void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
 {
     if (g_shadow_mesh_0065a14c == 0) {
-        BuildShadowMesh004813F0();
+        BuildShadowMesh();
         if (g_shadow_mesh_0065a14c == 0) {
             return;
         }

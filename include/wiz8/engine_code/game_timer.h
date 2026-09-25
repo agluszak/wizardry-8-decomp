@@ -11,8 +11,8 @@ extern bool g_shared_timer_flag_d1;
 extern bool g_shared_timer_flag_d2;
 extern srTimer* g_shared_timer_base;
 
-void PauseSharedGameTimers00439BC0(void);
-void ResumeSharedGameTimers00439CA0(void);
+void PauseSharedGameTimers(void);
+void ResumeSharedGameTimers(void);
 
 class W8GameTimer {
 public:
@@ -33,7 +33,7 @@ public:
         }
         return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT);
     }
-    int GetTime00439A60();
+    int GetTime();
     void SetMode(int mode);
     void SetDuration(float duration);
     void Restart();

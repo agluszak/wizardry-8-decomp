@@ -121,10 +121,10 @@ enum W8Trait {
 
 /* 0x00547A50: the cheat-death trait's revival - notice, unconsciousness, and
    hit points rolled back up from a profession-level-scaled share. */
-void CheatDeathRevive00547A50(int party_slot);
+void CheatDeathRevive(int party_slot);
 /* 0x00548E60: the alchemist's brew - rolls a level-banded item for a character
    with the MAKE_POTIONS trait, then re-arms the brew cooldown. */
-void BrewAlchemistPotion00548E60(W8Character* character);
+void BrewAlchemistPotion(W8Character* character);
 /* 0x00547BF0: whether the slot has the priest/bishop turn-undead trait, its
    combat-state use flag is clear, and a live hostile undead monster (record
    kind 0x14) is in play. */
@@ -132,26 +132,26 @@ unsigned char CanPartySlotTurnUndead(int party_slot);
 /* 0x00547F40: whether the slot has the priest's pray trait, its combat-state
    use flag is clear, and a live hostile monster is in play. */
 unsigned char CanPartySlotPray(int party_slot);
-float ScaleValueByProfessionLevel005479B0(W8Character* character, int trait, float base);
-float ScaleValueByMonsterLevel00547A00(W8MonsterRecord* record, int trait, float base);
+float ScaleValueByProfessionLevel(W8Character* character, int trait, float base);
+float ScaleValueByMonsterLevel(W8MonsterRecord* record, int trait, float base);
 /* 0x005539E0: rebuild the effective attributes from the modifier block's
    seven adjustment bytes and every skill's base level from the attribute
    pair g_skill_attributes names. */
-void ResetCharacterAttributes005539E0(W8Character* character);
+void ResetCharacterAttributes(W8Character* character);
 /* 0x00553A60: rebuild every skill level from its base, the profession bonus
    and the race and profession skill adjustments. */
-void ResetCharacterSkills00553A60(W8Character* character);
+void ResetCharacterSkills(W8Character* character);
 bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
                                const unsigned char* expert_realm_flags);
-void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character);
-bool CharacterHasTrait00547940(const W8Character* character, int trait);
-int RevealCharacterItemBindingsByProfession00548E20(int party_slot, unsigned int target_slot);
+void InvalidateAndRecalculateCharacterClassData(W8Character* character);
+bool CharacterHasTrait(const W8Character* character, int trait);
+int RevealCharacterItemBindingsByProfession(int party_slot, unsigned int target_slot);
 /* 0x00553AD0: propagate a changed attribute base value - the at-maximum
    pseudo-skill flag, the effective value, equipment and derived state. */
 void ApplyAttributeChange(W8Character* character, int attribute);
 /* 0x00553C10: propagate a changed skill investment - availability rescan,
    the level rebuild, equipment and derived state. */
 void ApplySkillChange(W8Character* character, int skill_id);
-void InitializeSkillBaseLevels00553C90(W8Character* character);
-void RefreshCharacterSkillAvailability00553CD0(W8Character* character);
-unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id);
+void InitializeSkillBaseLevels(W8Character* character);
+void RefreshCharacterSkillAvailability(W8Character* character);
+unsigned int GetSkillQuarterValue(W8Character* character, int skill_id);

@@ -43,7 +43,7 @@
    Attribution evidence: the spawn lookups at 0x004DCC5F and 0x004DDE4F pass
    this file's path string to MonsterGetIndexByLocationID, and the
    Trigger::m_bRepType assertions quote it. The level-6 block of
-   InitializeLevelMasterFunctions004D6C50 registers the surrounding cluster
+   InitializeLevelMasterFunctions registers the surrounding cluster
    (Arrowtraptrigger, Spikeballtrigger, DoorBolt, DummyLever, Dummy,
    PerfumeBox, StoneIdol, BlueFlowers, SquisherControls, DoorControls). */
 
@@ -80,7 +80,7 @@ W8IntervalGate* g_idol_gas_gate_683554;
    at state 2, re-arms the side-gate text while the bolt is open and restores
    the spikeball/crusher master functions from their saved counts. */
 // FUNCTION: WIZ8 0x004DCB50
-void MartensBluff2Setup004DCB50(void)
+void MartensBluff2Setup(void)
 {
     Trigger* pTrigger;
     W8MonsterGroup* group;
@@ -116,8 +116,8 @@ void MartensBluff2Setup004DCB50(void)
                         info = MonsterGetScriptPartByLocationIndex(
                             MonsterGetIndexByLocationID(0x1d2, MARTENSBLUFF2_CPP, location_id, 1));
                         if (info != 0 && info->p3D != 0) {
-                            info->p3D->SetScript004C7F10("MB_MoveRapax.msf", 1);
-                            SetTriggerVariableByName00444030("RavenQuest", 3);
+                            info->p3D->SetScript("MB_MoveRapax.msf", 1);
+                            SetTriggerVariableByName("RavenQuest", 3);
                         }
                     }
                 }
@@ -134,13 +134,13 @@ void MartensBluff2Setup004DCB50(void)
     if (GetLocationVarIDByName("SpikedBallLauncher") != -1) {
         value = GetLocationVarValueByName("SpikedBallLauncher");
         if (value != 0) {
-            MartensBluff2Spikeball004DD3F0(value);
+            MartensBluff2Spikeball(value);
         }
     }
     if (GetLocationVarIDByName("MonsterCrusher") != -1) {
         value = GetLocationVarValueByName("MonsterCrusher");
         if (value != 0) {
-            MartensBluff2MonsterCrusher004DDF40(value);
+            MartensBluff2MonsterCrusher(value);
         }
     }
 }
@@ -175,7 +175,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
             rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
         }
         offset = position + rotation.Transform(offset);
-        missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
+        missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
         missile->SetEffectDefinition(&effect);
         CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
                                15000.0f, 0);
@@ -192,7 +192,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
             rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
         }
         offset = position + rotation.Transform(offset);
-        missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
+        missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
         missile->SetEffectDefinition(&effect);
         CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
                                15000.0f, 0);
@@ -209,7 +209,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
             rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
         }
         offset = position + rotation.Transform(offset);
-        missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
+        missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
         missile->SetEffectDefinition(&effect);
         CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
                                15000.0f, 0);
@@ -219,7 +219,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
         rotation.SetIdentity();
         rotation.RotateAroundAxis(angle, direction);
         offset = rotation.Transform(offset) + position;
-        missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
+        missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
         missile->SetEffectDefinition(&effect);
         CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
                                15000.0f, 0);
@@ -230,9 +230,9 @@ bool TriggerArrowTrap(Trigger* pTrigger)
 /* "Spikeballtrigger": toggles the spikeball master function's launcher
    sequence through its toggle command. */
 // FUNCTION: WIZ8 0x004DD3E0
-bool MartensBluff2Spikeballtrigger004DD3E0(Trigger* pTrigger)
+bool MartensBluff2Spikeballtrigger(Trigger* pTrigger)
 {
-    MartensBluff2Spikeball004DD3F0(static_cast<int>(0xEFFFFFFF));
+    MartensBluff2Spikeball(static_cast<int>(0xEFFFFFFF));
     return true;
 }
 
@@ -242,7 +242,7 @@ bool MartensBluff2Spikeballtrigger004DD3E0(Trigger* pTrigger)
    run; it fires the four Spikeball-launcher entities every two seconds until
    the count reaches sixteen, then unregisters and saves the reset. */
 // FUNCTION: WIZ8 0x004DD3F0
-void MartensBluff2Spikeball004DD3F0(int command)
+void MartensBluff2Spikeball(int command)
 {
     W8SpellEffectDefinition effect;
     srVector3T<float> position;
@@ -261,7 +261,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
             if (GetLocationVarIDByName("SpikedBallLauncher") == -1) {
                 CreateLocationVar("SpikedBallLauncher", g_spikeball_count_683534);
             } else {
-                SetTriggerVariableByName00444030("SpikedBallLauncher", g_spikeball_count_683534);
+                SetTriggerVariableByName("SpikedBallLauncher", g_spikeball_count_683534);
             }
             return;
         }
@@ -276,7 +276,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
         }
         if (g_spikeball_gate_683530 == 0) {
             g_spikeball_gate_683530 = new W8IntervalGate(2.0f, 0, 1);
-            g_master_functions_006834d8->Add(MartensBluff2Spikeball004DD3F0);
+            g_master_functions_006834d8->Add(MartensBluff2Spikeball);
         }
     }
     g_flag_006834dc = false;
@@ -302,7 +302,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
                     rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
                 }
                 offset = position + rotation.Transform(offset);
-                missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
+                missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
                 missile->SetEffectDefinition(&effect);
                 CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position,
                                        1.0f, 15000.0f, 0);
@@ -319,7 +319,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
                     rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
                 }
                 offset = position + rotation.Transform(offset);
-                missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
+                missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
                 missile->SetEffectDefinition(&effect);
                 CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position,
                                        1.0f, 15000.0f, 0);
@@ -336,7 +336,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
                     rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
                 }
                 offset = position + rotation.Transform(offset);
-                missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
+                missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
                 missile->SetEffectDefinition(&effect);
                 CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position,
                                        1.0f, 15000.0f, 0);
@@ -353,7 +353,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
                     rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
                 }
                 offset = rotation.Transform(offset) + position;
-                missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
+                missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
                 missile->SetEffectDefinition(&effect);
                 CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position,
                                        1.0f, 15000.0f, 0);
@@ -369,14 +369,14 @@ void MartensBluff2Spikeball004DD3F0(int command)
     if (GetLocationVarIDByName("SpikedBallLauncher") == -1) {
         CreateLocationVar("SpikedBallLauncher", g_spikeball_count_683534);
     } else {
-        SetTriggerVariableByName00444030("SpikedBallLauncher", g_spikeball_count_683534);
+        SetTriggerVariableByName("SpikedBallLauncher", g_spikeball_count_683534);
     }
     g_flag_006834dc = true;
 }
 
 /* "DoorBolt": re-arms the side-gate text trigger when the bolt opens. */
 // FUNCTION: WIZ8 0x004DDD30
-bool MartensBluff2DoorBolt004DDD30(Trigger* pTrigger)
+bool MartensBluff2DoorBolt(Trigger* pTrigger)
 {
     Trigger* pText = FindTriggerByName("SideGateText");
     if (pText != 0) {
@@ -388,7 +388,7 @@ bool MartensBluff2DoorBolt004DDD30(Trigger* pTrigger)
 /* "DummyLever": re-arms itself and reports whether the RavenQuest location
    variable is still zero. */
 // FUNCTION: WIZ8 0x004DDD50
-bool MartensBluff2DummyLever004DDD50(Trigger* pTrigger)
+bool MartensBluff2DummyLever(Trigger* pTrigger)
 {
     pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
     return !GetLocationVarValueByName("RavenQuest");
@@ -398,13 +398,13 @@ bool MartensBluff2DummyLever004DDD50(Trigger* pTrigger)
    shared callback flag suppresses this while the quest state is being driven
    programmatically. */
 // FUNCTION: WIZ8 0x004DDD80
-bool MartensBluff2Dummy004DDD80(Trigger* pTrigger)
+bool MartensBluff2Dummy(Trigger* pTrigger)
 {
     if (g_flag_006834dd == 0) {
         Trigger* pPerfumeBox = FindTriggerByName("PerfumeBox");
         if (pPerfumeBox != 0) {
             pPerfumeBox->flags_0a0 |= W8_TRIGGER_ENABLED;
-            SetTriggerVariableByName00444030("RavenQuest", 1);
+            SetTriggerVariableByName("RavenQuest", 1);
         }
     }
     return true;
@@ -414,7 +414,7 @@ bool MartensBluff2Dummy004DDD80(Trigger* pTrigger)
    spawn the rapax on Ravenz with its move script and post the result string.
    Always returns 0. */
 // FUNCTION: WIZ8 0x004DDDC0
-bool MartensBluff2PerfumeBox004DDDC0(Trigger* pTrigger)
+bool MartensBluff2PerfumeBox(Trigger* pTrigger)
 {
     srVector3T<float> position;
     W8MonsterGroup* group;
@@ -440,12 +440,12 @@ bool MartensBluff2PerfumeBox004DDDC0(Trigger* pTrigger)
             info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x1d2, MARTENSBLUFF2_CPP, location_id, 1));
             if (info != 0 && info->p3D != 0) {
-                info->p3D->SetScript004C7F10("MB_MoveRapax.msf", 1);
+                info->p3D->SetScript("MB_MoveRapax.msf", 1);
                 quest_state = 3;
             }
         }
     }
-    SetTriggerVariableByName00444030("RavenQuest", quest_state);
+    SetTriggerVariableByName("RavenQuest", quest_state);
     ShowString(gppStringList[0x1c70 / 4]);
     return false;
 }
@@ -454,7 +454,7 @@ bool MartensBluff2PerfumeBox004DDDC0(Trigger* pTrigger)
    doors whose type-10 action data has flag 1 set. The action-data pointers
    are dereferenced unconditionally - the retail null path is preserved. */
 // FUNCTION: WIZ8 0x004DDEB0
-bool MartensBluff2DoorControls004DDEB0(Trigger* pTrigger)
+bool MartensBluff2DoorControls(Trigger* pTrigger)
 {
     if (pTrigger->state_index == 0) {
         Trigger* pDoor = FindTriggerByName("SquisherDoor");
@@ -479,10 +479,10 @@ bool MartensBluff2DoorControls004DDEB0(Trigger* pTrigger)
 
 /* "SquisherControls": toggles the monster crusher while it is idle. */
 // FUNCTION: WIZ8 0x004DDF20
-bool MartensBluff2SquisherControls004DDF20(Trigger* pTrigger)
+bool MartensBluff2SquisherControls(Trigger* pTrigger)
 {
     if (g_crusher_active_68352e == 0) {
-        MartensBluff2MonsterCrusher004DDF40(static_cast<int>(0xEFFFFFFF));
+        MartensBluff2MonsterCrusher(static_cast<int>(0xEFFFFFFF));
         return true;
     }
     return false;
@@ -494,10 +494,10 @@ bool MartensBluff2SquisherControls004DDF20(Trigger* pTrigger)
    command-0 run tracks the animation: while the squisher plays it sweeps the
    kill box between the two props' facing planes for monsters, shoving those
    with room aside and crushing the rest (species 0x183 pays out through
-   AwardPartyExperience004EEF10); once the squisher finishes it runs the Dummy and DummyRope
+   AwardPartyExperience); once the squisher finishes it runs the Dummy and DummyRope
    triggers, and once those props finish it unregisters. */
 // FUNCTION: WIZ8 0x004DDF40
-void MartensBluff2MonsterCrusher004DDF40(int command)
+void MartensBluff2MonsterCrusher(int command)
 {
     /* The bounds box the octree query below sweeps; function-local statics,
        with the compiler's atexit destructor thunks at 0x004DE500/0x004DE510. */
@@ -525,7 +525,7 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
             if (GetLocationVarIDByName("MonsterCrusher") == -1) {
                 CreateLocationVar("MonsterCrusher", g_crusher_state_683550);
             } else {
-                SetTriggerVariableByName00444030("MonsterCrusher", g_crusher_state_683550);
+                SetTriggerVariableByName("MonsterCrusher", g_crusher_state_683550);
             }
             return;
         }
@@ -568,7 +568,7 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
             }
             g_crusher_active_68352e = true;
             g_crusher_state_683550 = 1;
-            g_master_functions_006834d8->Add(MartensBluff2MonsterCrusher004DDF40);
+            g_master_functions_006834d8->Add(MartensBluff2MonsterCrusher);
         }
         if (command != 1 && GetLocationVarValueByName("RavenQuest") != 0) {
             g_flag_006834dd = true;
@@ -627,9 +627,9 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
         g_crusher_state_683550 = 2;
         return;
     }
-    g_squisher3_prop_68353c->m_gd_prop->ComputeBounds004B7500(&bounds_min, &bounds_max);
+    g_squisher3_prop_68353c->m_gd_prop->ComputeBounds(&bounds_min, &bounds_max);
     left = bounds_max.x;
-    g_squisher4_prop_683540->m_gd_prop->ComputeBounds004B7500(&bounds_min, &bounds_max);
+    g_squisher4_prop_683540->m_gd_prop->ComputeBounds(&bounds_min, &bounds_max);
     right = bounds_min.x;
     location_ids = 0;
     count = g_octree_6598a4->QueryLocationsInBox(&location_ids, &crusher_lower, &crusher_upper, 0);
@@ -648,15 +648,15 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
             if (left <= position.x - radius) {
                 if (right < position.x + radius) {
                     position.x = right - radius;
-                    monster->SetPositionInternal00453590(&position);
+                    monster->SetPositionInternal(&position);
                 }
             } else if (position.x + radius <= right || Random(100) < 0x24) {
                 position.x = left + radius;
-                monster->SetPositionInternal00453590(&position);
+                monster->SetPositionInternal(&position);
             } else {
                 MonsterStartsDying(info, 1);
                 if (info->monster_species == 0x183) {
-                    AwardPartyExperience004EEF10(10000, 0);
+                    AwardPartyExperience(10000, 0);
                 }
             }
         }
@@ -671,7 +671,7 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
 /* "StoneIdol": while the cursor is free, puts item 0x291 in hand, posts the
    text, activates the IdolGas particle and arms the IdolGas master function. */
 // FUNCTION: WIZ8 0x004DE520
-bool MartensBluff2StoneIdol004DE520(Trigger* pTrigger)
+bool MartensBluff2StoneIdol(Trigger* pTrigger)
 {
     stParticle* particle;
 
@@ -681,13 +681,13 @@ bool MartensBluff2StoneIdol004DE520(Trigger* pTrigger)
     ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x291, 0, 0, 0);
     SetItemCursor(0);
     ShowString(gppStringList[0x1c74 / 4]);
-    particle = FindRegisteredParticle0049ADB0("IdolGas");
+    particle = FindRegisteredParticle("IdolGas");
     if (particle != 0) {
         particle->SetActive(1);
     }
-    BeginSurprise005025F0();
-    MartensBluff2IdolGas004DE660(1);
-    g_master_functions_006834d8->Add(MartensBluff2IdolGas004DE660);
+    BeginSurprise();
+    MartensBluff2IdolGas(1);
+    g_master_functions_006834d8->Add(MartensBluff2IdolGas);
     pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
     g_flag_006834dd = true;
     SetFact(0x323, 1, 0);
@@ -697,7 +697,7 @@ bool MartensBluff2StoneIdol004DE520(Trigger* pTrigger)
 /* "BlueFlowers": while the cursor is free, puts item 0x2eb in hand. The
    shared callback flag is cleared on every run. */
 // FUNCTION: WIZ8 0x004DE620
-bool MartensBluff2BlueFlowers004DE620(Trigger* pTrigger)
+bool MartensBluff2BlueFlowers(Trigger* pTrigger)
 {
     if (g_flag_006834dd == 0) {
         if (g_status_685170.item_in_cursor != 0) {
@@ -716,7 +716,7 @@ bool MartensBluff2BlueFlowers004DE620(Trigger* pTrigger)
    no kind-0x1e NPC is around and stops the particle; the following run
    unregisters. */
 // FUNCTION: WIZ8 0x004DE660
-void MartensBluff2IdolGas004DE660(int command)
+void MartensBluff2IdolGas(int command)
 {
     stParticle* particle;
 
@@ -738,7 +738,7 @@ void MartensBluff2IdolGas004DE660(int command)
         }
         g_idol_gas_gate_683554 = 0;
         g_idol_gas_armed_613828 = true;
-        ResolveSurpriseWake005029E0();
+        ResolveSurpriseWake();
         return;
     }
     if (!g_idol_gas_gate_683554->IsFinished()) {
@@ -750,10 +750,10 @@ void MartensBluff2IdolGas004DE660(int command)
     g_idol_gas_gate_683554->Arm();
     g_idol_gas_armed_613828 = false;
     if (FindNpcOfKind(0x1e) == 0) {
-        MartensBluff2IdolGasVictim004DE7D0();
+        MartensBluff2IdolGasVictim();
     }
     BeginWorldLightingFade(3000.0f);
-    particle = FindRegisteredParticle0049ADB0("IdolGas");
+    particle = FindRegisteredParticle("IdolGas");
     if (particle != 0) {
         particle->SetActive(0);
     }
@@ -766,7 +766,7 @@ void MartensBluff2IdolGas004DE660(int command)
    unreachable path, since a nonzero lowest score implies a candidate. The
    winner gets condition 0x13 indefinitely and fact 0x33 records the event. */
 // FUNCTION: WIZ8 0x004DE7D0
-void MartensBluff2IdolGasVictim004DE7D0(void)
+void MartensBluff2IdolGasVictim(void)
 {
     unsigned int severities[8];
     unsigned int lowest;

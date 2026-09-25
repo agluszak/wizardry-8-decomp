@@ -404,7 +404,7 @@ public:
     /* Knock-knock resolution: rolls the per-level chance over a shuffled pin
        order, raising (or on backfire dropping) them, then re-derives the
        control enables and enters state 7. The flag parameter is unused. */
-    void ApplyKnockKnock005871A0(int level, int flag, char backfire); /* 0x005871A0 */
+    void ApplyKnockKnock(int level, int flag, char backfire); /* 0x005871A0 */
 
     Trigger* m_trigger_08;  /* 0x08 */
     int m_tumbler_count_0c; /* 0x0c: trigger->lock_state.difficulty clamped to [2,8] */
@@ -501,11 +501,11 @@ extern W8DialogBase* g_pending_main_game_dialog_0068edd4;
 /* Open the assay (item info) dialog for an item, evaluated against the party
    slot's character; -1 means no character. The current modal owner, if any,
    moves to the pending slot. */
-void OpenMonsterInfoDialog0056AD60(int location_id);                    /* 0x0056AD60 */
-void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot); /* 0x0056AE20 */
+void OpenMonsterInfoDialog(int location_id);                    /* 0x0056AD60 */
+void OpenAssayDialog(W8ItemInstance* item, int character_slot); /* 0x0056AE20 */
 
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
-void OnLeaveGameConfirmClosed00560A70(W8DialogBase* dialog); /* 0x00560A70 */
+void OnLeaveGameConfirmClosed(W8DialogBase* dialog); /* 0x00560A70 */
 
 void PauseMainGameWorld(void);
 void ResumeMainGameWorld(void);
@@ -523,10 +523,10 @@ ClearNpcDialogueTextBackground(W8NpcDialogueTextController* controller);        
 bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controller); /* 0x0055E2B0 */
 /* Which party portrait the pointer is over, if any. */
 unsigned char HitTestPartyPortrait(const InputAtom* event);
-void ClearCombatSelection(void);                                               /* 0x0056A5A0 */
-void UpdateWorldViewCursor0056A5D0(const InputAtom* event, int target_needed); /* 0x0056A5D0 */
+void ClearCombatSelection(void);                                       /* 0x0056A5A0 */
+void UpdateWorldViewCursor(const InputAtom* event, int target_needed); /* 0x0056A5D0 */
 void RequestRefreshPartyState(void);
-void RefreshFlaggedMainGameState00593330(void);
+void RefreshFlaggedMainGameState(void);
 bool IsScreenIdle(void);
 bool IsModalOpen(void);
 
@@ -615,7 +615,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event,
 /* Help 36: combat monster-list hit rows beside the radar map. */
 unsigned char MonsterListRegionEvent(const InputAtom* event,
                                      struct W8Region* region); /* 0x00568100 */
-void SetMainGameMode00568390(int mode);                        /* 0x00568390 */
+void SetMainGameMode(int mode);                                /* 0x00568390 */
 void SetFormationBoardVisible(unsigned char visible);          /* 0x00569390 */
 void ToggleMainGamePause(void);                                /* 0x0056ABE0 */
 /* The numbered action-key space IsMGSActionKeyEnabled, RunMGSActionKey and
@@ -653,31 +653,31 @@ void CloseMainGameOverlays(void);                                        /* 0x00
 void SetRadarMapVisible(unsigned char visible);                          /* 0x00568EB0 */
 void SetActionPanelVisible(unsigned char visible);                       /* 0x00569120 */
 void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag); /* 0x00560E10 */
-void RebuildNpcTradeItemList005ADB10(bool scroll_to_top);
+void RebuildNpcTradeItemList(bool scroll_to_top);
 /* 0x005ADAA0: the trade-stock index behind a visible NPC item row. */
-int ResolveNpcTradeStockIndex005ADAA0(int index);
+int ResolveNpcTradeStockIndex(int index);
 /* 0x005AD950: append one NPC stock item's name and price lines to the trade
    text box. */
-void ShowNpcTradeItemNotice005AD950(W8ItemInstance* item);
+void ShowNpcTradeItemNotice(W8ItemInstance* item);
 /* 0x005ADBE0: refill the trade text box from the pending item pool or the NPC
    stock, then re-enable the filter buttons. */
-void PopulateNpcTradeList005ADBE0(void);
+void PopulateNpcTradeList(void);
 /* 0x005AE1F0: validate the pending trade selection; queues a refusal quote and
    fails when the NPC declines the item or the party cannot pay. */
-bool ValidateNpcTradeSelection005AE1F0(void);
+bool ValidateNpcTradeSelection(void);
 /* 0x005AE2A0: run one NPC trade offer; the result selects the accepted,
    refused or offended script path. */
-bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, int index);
+bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index);
 /* 0x005AE1A0: destroy callback on the NPC trade split dialog; commits the
    chosen count to the editor slot and refreshes the trade selection. */
-void NpcTradeSplitDialogResult005AE1A0(W8DialogBase* dialog);
-void RefreshFormationPanel005B2980(unsigned char show_portraits); /* 0x005B2980 */
-void EndLockInteractMode(char suspend);                           /* 0x005879A0 */
-void UpdateMainGameScreen(void);                                  /* 0x0058A750 */
-void EndTrapInteractMode(char suspend);                           /* 0x0058A790 */
+void NpcTradeSplitDialogResult(W8DialogBase* dialog);
+void RefreshFormationPanel(unsigned char show_portraits); /* 0x005B2980 */
+void EndLockInteractMode(char suspend);                   /* 0x005879A0 */
+void UpdateMainGameScreen(void);                          /* 0x0058A750 */
+void EndTrapInteractMode(char suspend);                   /* 0x0058A790 */
 int GetPartySlotSkill10Level(int slot);
-int OpenLockInteraction00587510(Trigger* trigger);
-int OpenTrapInteraction0058A470(Trigger* trigger);
+int OpenLockInteraction(Trigger* trigger);
+int OpenTrapInteraction(Trigger* trigger);
 /* 0x0056A770: when a slot's committed action cannot execute, re-choose a
    fallback hand, breath or character attack, or reroute spell/item aiming. */
 void FallbackFromUnreachableAction(int party_slot);
@@ -685,17 +685,17 @@ void SetCombatAction(int value);    /* 0x0056A480 */
 void SetCombatSelection(int value); /* 0x00569F70 */
 void SetCombatTarget(int value);    /* 0x0056A2D0 */
 
-void RequestRedrawCombatBar(void);              /* 0x005699B0 */
-void UpdateScreenOverlays(int frame);           /* 0x0056AF20 */
-bool LoadCurrentLevelData(void);                /* 0x00560A20 */
-void ResetMainGameMode00560C60(void);           /* 0x00560C60 */
-void CreateSurpriseFade0056B4E0(void);          /* 0x0056B4E0 */
-void ReverseSurpriseFade0056B5F0(void);         /* 0x0056B5F0 */
-void DestroySurpriseFade0056B690(void);         /* 0x0056B690 */
-unsigned char UpdateSurpriseFade0056B6F0(void); /* 0x0056B6F0 */
-void DisableMainRegionSet(void);                /* 0x00561FB0 */
-void EnableMainRegionSet(void);                 /* 0x00561FA0 */
-unsigned char OpenUseItemSelectView(int slot);  /* 0x0059C930 */
+void RequestRedrawCombatBar(void);             /* 0x005699B0 */
+void UpdateScreenOverlays(int frame);          /* 0x0056AF20 */
+bool LoadCurrentLevelData(void);               /* 0x00560A20 */
+void ResetMainGameMode(void);                  /* 0x00560C60 */
+void CreateSurpriseFade(void);                 /* 0x0056B4E0 */
+void ReverseSurpriseFade(void);                /* 0x0056B5F0 */
+void DestroySurpriseFade(void);                /* 0x0056B690 */
+unsigned char UpdateSurpriseFade(void);        /* 0x0056B6F0 */
+void DisableMainRegionSet(void);               /* 0x00561FB0 */
+void EnableMainRegionSet(void);                /* 0x00561FA0 */
+unsigned char OpenUseItemSelectView(int slot); /* 0x0059C930 */
 
 unsigned char MainGameScreenInitialize(void);
 unsigned char MainGameScreenEnter(void);
@@ -707,6 +707,6 @@ void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int
 unsigned char CombatBarRegionEvent(const InputAtom* event, struct W8Region* region);
 unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, struct W8Region* region);
 void SetNpcDialogueSubMode4(void);
-void ConfirmNpcTradeItem005AD290(void);
+void ConfirmNpcTradeItem(void);
 void RestockNpcTradeStock(void);
 void OpenNpcTradeSplitDialog005AE040(void);

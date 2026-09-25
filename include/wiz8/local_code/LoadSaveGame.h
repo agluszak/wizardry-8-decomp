@@ -61,8 +61,8 @@ struct W8GlobalStatus;
 unsigned char SaveSlotFileExists(const char* slot_name);
 unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
                             char report_failure);
-void BuildCharacterFilePath00514FA0(char* destination, const char* filename, int slot);
-void BuildCharacterPath00514EC0(char* destination, const wchar_t* name, int slot);
+void BuildCharacterFilePath(char* destination, const char* filename, int slot);
+void BuildCharacterPath(char* destination, const wchar_t* name, int slot);
 bool SaveGameExists(void);
 void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);
 /* 0x00512920: load a save slot by name; the Please Wait screen drives it. */
@@ -77,8 +77,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks);
    save scan behind SaveLevelStatus. Both keep their address names until a
    reviewed body supplies a semantic one. */
 unsigned char LoadItemStatus(W8Chunk* chunk, int level);
-unsigned char MeasureLevelStatusChunks00514DF0(W8Chunk* chunk, int level,
-                                               unsigned int* empty_percent);
+unsigned char MeasureLevelStatusChunks(W8Chunk* chunk, int level, unsigned int* empty_percent);
 
 extern bool g_save_pending_00689f98;
 
@@ -89,10 +88,10 @@ char SaveCharacterToCurrentGame(const char* path, int slot,
                                 W8Character* character);                     /* 0x005155B0 */
 char LoadCharacterFromCurrentGame(const char* path, W8Character* character); /* 0x005156C0 */
 /* Deferred main-game autosave: notice first, then SaveGame on the next tick. */
-void ProcessMainGameAutoSave(void);                          /* 0x00515B00 */
-unsigned char SaveMonsterStatus(W8Chunk* chunks);            /* 0x005145A0 */
-void SaveMonsterControlSpellEffect00516580(W8Chunk* chunks); /* 0x00516580 */
-void LoadMonsterControlSpellEffect00516310(W8Chunk* chunks); /* 0x00516310 */
+void ProcessMainGameAutoSave(void);                  /* 0x00515B00 */
+unsigned char SaveMonsterStatus(W8Chunk* chunks);    /* 0x005145A0 */
+void SaveMonsterControlSpellEffect(W8Chunk* chunks); /* 0x00516580 */
+void LoadMonsterControlSpellEffect(W8Chunk* chunks); /* 0x00516310 */
 
 unsigned char LoadMonsterGroup(W8Chunk* chunk); /* 0x00513C20 */
 unsigned char LoadMonster(W8Chunk* chunk);      /* 0x00513D80 */
@@ -103,7 +102,7 @@ unsigned char LoadDefaultLevelStatus(unsigned int level);
 void ResetLiveSessionForLoad(void); /* 0x00512C40 */
 
 unsigned char SelectQuickSaveSlotForWrite(char* slot_name); /* 0x00516670 */
-unsigned char FindFreeEndingSaveName00516890(char* name);   /* 0x00516890 */
+unsigned char FindFreeEndingSaveName(char* name);           /* 0x00516890 */
 
 extern char g_save_extension[]; /* 0x0061A144: initialized "SAV" */
 

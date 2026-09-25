@@ -48,16 +48,16 @@ static unsigned char CheckFootstepPaths()
 {
     char path[260];
 
-    BuildFootstepPath0047A540(path, W8_FOOTSTEP_SURFACE_OUTDOORS_FLAT, W8_FOOTSTEP_MATERIAL_STONE,
-                              W8_FOOTSTEP_KIND_STEP, 2);
+    BuildFootstepPath(path, W8_FOOTSTEP_SURFACE_OUTDOORS_FLAT, W8_FOOTSTEP_MATERIAL_STONE,
+                      W8_FOOTSTEP_KIND_STEP, 2);
     int step = strcmp(path, "Data\\Sound\\Footsteps\\Stone\\Step_OutdoorsFlat_Stone_02.WAV") == 0;
 
-    BuildFootstepPath0047A540(path, W8_FOOTSTEP_SURFACE_OUTDOORS_FLAT, W8_FOOTSTEP_MATERIAL_STONE,
-                              W8_FOOTSTEP_KIND_JUMP, 7);
+    BuildFootstepPath(path, W8_FOOTSTEP_SURFACE_OUTDOORS_FLAT, W8_FOOTSTEP_MATERIAL_STONE,
+                      W8_FOOTSTEP_KIND_JUMP, 7);
     int jump = strcmp(path, "Data\\Sound\\Footsteps\\Stone\\Step_OutdoorsFlat_Stone_Jump.WAV") == 0;
 
-    BuildFootstepPath0047A540(path, W8_FOOTSTEP_SURFACE_SMALL_CAVE, W8_FOOTSTEP_MATERIAL_GRASS,
-                              W8_FOOTSTEP_KIND_SCUFF, 3);
+    BuildFootstepPath(path, W8_FOOTSTEP_SURFACE_SMALL_CAVE, W8_FOOTSTEP_MATERIAL_GRASS,
+                      W8_FOOTSTEP_KIND_SCUFF, 3);
     int scuff =
         strcmp(path, "Data\\Sound\\Footsteps\\Grass\\Step_SmallCave_Grass_Scuff_03.WAV") == 0;
 
@@ -142,10 +142,10 @@ static unsigned char CheckAmbientSerializeRoundtrip()
 
     /* Radius one with a far emitter keeps UpdatePosition on the out-of-range
        path, so the load applies names and stopped flags without touching SGP. */
-    AddAmbientSound0047A790(g_world, "cavewind", &config, &far_position, &zero, &zero, 0x40, 0x7f,
-                            5000, 20000, 0x40, 0x40, 1.0f, 1, 0, &zero, 0.0f, &zero, &zero, 0);
-    AddAmbientSound0047A790(g_world, "sewerdrip", &config, &far_position, &zero, &zero, 0x40, 0x7f,
-                            5000, 20000, 0x40, 0x40, 1.0f, 1, 0, &zero, 0.0f, &zero, &zero, 0);
+    AddAmbientSound(g_world, "cavewind", &config, &far_position, &zero, &zero, 0x40, 0x7f, 5000,
+                    20000, 0x40, 0x40, 1.0f, 1, 0, &zero, 0.0f, &zero, &zero, 0);
+    AddAmbientSound(g_world, "sewerdrip", &config, &far_position, &zero, &zero, 0x40, 0x7f, 5000,
+                    20000, 0x40, 0x40, 1.0f, 1, 0, &zero, 0.0f, &zero, &zero, 0);
 
     W8AmbientSound* wind = static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, 0));
     W8AmbientSound* drip = static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, 1));
@@ -159,7 +159,7 @@ static unsigned char CheckAmbientSerializeRoundtrip()
     if (file == 0) {
         return 0;
     }
-    SaveAmbientSoundList0047B140(file);
+    SaveAmbientSoundList(file);
     FileClose(file);
 
     /* Flip the live state; the load must restore each record by name. */

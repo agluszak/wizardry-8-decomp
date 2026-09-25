@@ -148,7 +148,7 @@ void MonsterLight::Update0049D990(const srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x0049DAF0
-void MonsterLight::StartFadeOut0049DAF0()
+void MonsterLight::StartFadeOut()
 {
     m_fade_out_249 = 1;
     m_start_time_244 = g_game_time_accumulator_6598bc->GetElapsed();

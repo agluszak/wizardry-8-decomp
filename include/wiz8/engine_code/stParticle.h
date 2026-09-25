@@ -18,23 +18,22 @@ public:
     stParticle(srNode* parent, unsigned int count); /* 0x00497AF0 */
     stParticle(const stParticle& other);            /* 0x00498180 */
     void SetActive(unsigned char active);
-    void SetTraversalEnabled00498D90(unsigned char enabled);
-    void DeactivateParticle00499F70(unsigned int index);
-    unsigned char ActivateParticle00499A50(unsigned int* out_index,
-                                           unsigned char replace_when_full);
-    void InitializeParticlePosition0049A990(srVector3T<float>* output);
-    void SetTexture0049AB00(srTextureIFace* texture);
-    void SetRetainedObject0049ACA0(srMaterialIFace* material);
-    void SetRenderFlags004925A0(srShader flags);
-    void SetFlutter0049AD10(int enabled);
+    void SetTraversalEnabled(unsigned char enabled);
+    void DeactivateParticle(unsigned int index);
+    unsigned char ActivateParticle(unsigned int* out_index, unsigned char replace_when_full);
+    void InitializeParticlePosition(srVector3T<float>* output);
+    void SetTexture(srTextureIFace* texture);
+    void SetRetainedObject(srMaterialIFace* material);
+    void SetRenderFlags(srShader flags);
+    void SetFlutter(int enabled);
     void SetParticleScale(float scale);
     void SubmitToRenderer(srGERD* renderer);
     /* The per-particle age/cull/move step and billboard-corner expansion used
        by the submitted batch. Their retail names remain unavailable. */
     void Update00499FA0();                                 /* 0x00499FA0 */
     void PrepareRenderer00498DD0(srMatrix4T<float>& view); /* 0x00498DD0 */
-    srShader GetRenderFlags00498A10() const;
-    unsigned char ReplaceTexture0049AC30(const char* old_name, srTextureIFace* replacement);
+    srShader GetRenderFlags() const;
+    unsigned char ReplaceTexture(const char* old_name, srTextureIFace* replacement);
     virtual srClass* vInstance() override;                      /* 0x004980E0 */
     virtual void traverse(srNode::TraverseInfo& info) override; /* 0x00498C40 */
     virtual void process(const srNode::ProcessInfo& info,
@@ -144,6 +143,6 @@ public:
 
 static_assert(sizeof(stParticle) == 0x280, "stParticle_size_must_be_0x280");
 
-stParticle* FindRegisteredParticle0049ADB0(const char* name);
-void SaveParticleStates0049B150(unsigned int handle);
-void LoadParticleStates0049B3B0(int handle);
+stParticle* FindRegisteredParticle(const char* name);
+void SaveParticleStates(unsigned int handle);
+void LoadParticleStates(int handle);

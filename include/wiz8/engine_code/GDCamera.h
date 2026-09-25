@@ -13,7 +13,7 @@ static_assert(sizeof(srMatrix3T<float>) == 0x24, "srMatrix3T_float_must_be_0x24"
 /* Reconstructed owner with unproven TU identity. The cluster 0x476140-
    0x478EB0 sits in the gap between stMeshModel.cpp and AmbientSound.cpp and
    is NOT Engine Code\Camera.cpp - that TU's only anchor is
-   UpdateCameraPathState0048F2F0 at 0x0048F2F0. GameData.cpp's original
+   UpdateCameraPathState at 0x0048F2F0. GameData.cpp's original
    `gpGDCamera` assertion identifies the owner allocated at 0x0065A0F8; its
    constructor allocation proves the complete 0xC0-byte extent. Positional
    members remain named by offset until consumers establish their original
@@ -79,8 +79,7 @@ void GetCameraForwardPoint00421100(float distance, srVector3T<float>* output);
 void GetCameraForwardPoint00421150(float distance, srVector3T<float>* output);
 /* 0x00421170: accumulate `distance` along +Z, rotated by yaw and pitch, into
    `position`. */
-void OffsetPositionByYawPitch00421170(float distance, srVector3T<float>* position, float yaw,
-                                      float pitch);
+void OffsetPositionByYawPitch(float distance, srVector3T<float>* position, float yaw, float pitch);
 /* Elevation/heading of the direction from `position` to the camera, in
    radians; the homing missile tick faces its representation with them. */
 /* ElevationToTargetCPP and HeadingToTargetCPP are declared in
@@ -95,4 +94,4 @@ extern float g_camera_forward_scale_603ab4;
 
 static_assert(sizeof(GDCamera) == 0xc0, "GDCamera_must_be_0xc0");
 
-bool IsCameraTransitionActive00420E10(void);
+bool IsCameraTransitionActive(void);

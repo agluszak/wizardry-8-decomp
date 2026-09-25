@@ -565,7 +565,7 @@ void StartCharacterBreathAttack(int party_slot)
    that owns it. The owning effect is the one whose missile list still names
    the missile; nothing happens if it has already been detached. */
 // FUNCTION: WIZ8 0x00500460
-void AbsorbMissileDamage00500460(W8Missile* missile)
+void AbsorbMissileDamage(W8Missile* missile)
 {
     for (int effect_index = 0; effect_index < g_spell_effects.GetCount(); ++effect_index) {
         W8SpellEffectEntry* effect = *g_spell_effects.GetAt(effect_index);
@@ -599,7 +599,7 @@ void AddSpellEffect(W8SpellEffectEntry* effect)
     g_spell_effects.Add(effect);
 }
 
-void FinishSpellEffect00500F70(W8SpellEffectEntry* effect); /* 0x00500F70 */
+void FinishSpellEffect(W8SpellEffectEntry* effect); /* 0x00500F70 */
 
 /* Advance every queued spell effect one frame. An effect first checks that
    everything it owns is still live: its visuals have started, its missiles
@@ -611,7 +611,7 @@ void FinishSpellEffect00500F70(W8SpellEffectEntry* effect); /* 0x00500F70 */
    out set reports itself, its visuals and missiles are released, and the entry
    is removed from the queue and deleted. */
 // FUNCTION: WIZ8 0x00500930
-void UpdateSpellEffects00500930(void)
+void UpdateSpellEffects(void)
 {
     bool handled = false;
     int index;
@@ -712,13 +712,13 @@ void UpdateSpellEffects00500930(void)
             W8SpellTargetType target_type = GetSpellTargetType(effect->kind, 0);
             if (target_type != W8_TARGET_TYPE_RADIUS && target_type != W8_TARGET_TYPE_PARTY) {
                 if (g_settings_6850c8.verbose_combat_messages == 0) {
-                    ReportSpellResult005005C0(effect);
+                    ReportSpellResult(effect);
                 }
                 FinishSpellEffectTargets(effect);
             }
         }
         if (effect->kind == 0x4f) {
-            FinishSpellEffect00500F70(effect);
+            FinishSpellEffect(effect);
         }
         for (int release_visual = 0; release_visual < effect->spell_visuals.GetCount();
              ++release_visual) {
@@ -744,7 +744,7 @@ void UpdateSpellEffects00500930(void)
 /* Take one missile back off the spell effect that owns it. The first effect
    whose missile list contains it drops the entry and stops the walk. */
 // FUNCTION: WIZ8 0x005019a0
-void DetachMissileReferences005019A0(W8Missile* missile)
+void DetachMissileReferences(W8Missile* missile)
 {
     for (int index = 0; index < g_spell_effects.GetCount(); ++index) {
         W8SpellEffectEntry* effect = *g_spell_effects.GetAt(index);
@@ -809,7 +809,7 @@ int MissileSpellId(int missile_type)
 /* The 0x49 teleport lands on the character's saved anchor, so without an
    anchor set it cannot run. Every other spell id clears this block. */
 // FUNCTION: WIZ8 0x00501D00
-bool IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id)
+bool IsTeleportCastMissingAnchor(W8Character* character, int spell_id)
 {
     if (spell_id != 0x49) {
         return false;
@@ -823,7 +823,7 @@ bool IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id)
    opened when the detailed combat messages are off, matching the ordinary
    damage path. */
 // FUNCTION: WIZ8 0x00500F70
-void FinishSpellEffect00500F70(W8SpellEffectEntry* effect)
+void FinishSpellEffect(W8SpellEffectEntry* effect)
 {
     W8MonsterInfo* monster_info = 0;
     W8CombatSlot target;
@@ -1124,7 +1124,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
     if ((g_profession_spellbooks[character->iProfession] & book) == W8_SPELLBOOK_NONE) {
         return 0;
     }
-    if (CharacterHasTrait00547940(character, W8_TRAIT_CANNOT_LEARN)) {
+    if (CharacterHasTrait(character, W8_TRAIT_CANNOT_LEARN)) {
         return 0;
     }
 
@@ -1195,8 +1195,7 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
     character->spell_learned[spell_id] = 1;
     realm = g_spell_records[spell_id].realm;
     ++character->skill_unlocks[W8_SKILL_FIRST_REALM + realm];
-    character->skill_unlocks[W8_RESISTANCE_BONUS_SKILL] =
-        RebuildRealmSpellPointCeilings0052A540(character);
+    character->skill_unlocks[W8_RESISTANCE_BONUS_SKILL] = RebuildRealmSpellPointCeilings(character);
 
     if (announce == 0) {
         return;
@@ -2165,7 +2164,7 @@ static const unsigned short* const g_spell_condition_text_0061e57a =
    is reset around each. With nothing reported at all the effect reports that
    its target took no damage. */
 // FUNCTION: WIZ8 0x005005c0
-void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
+void ReportSpellResult(W8SpellEffectEntry* effect)
 {
     const unsigned short* condition_text = g_spell_condition_text_0061e57a;
 
@@ -2250,8 +2249,8 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
 }
 
 // FUNCTION: WIZ8 0x004fac40
-bool ValidateSpellTarget004FAC40(int party_slot, int spell_id, unsigned int power, bool item_cast,
-                                 bool skip_world_cursor)
+bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool item_cast,
+                         bool skip_world_cursor)
 {
     W8GrowableVector<int> monsters;
     W8GrowableVector<int> party;
@@ -2303,8 +2302,8 @@ const int g_cooldown_gated_spells_00616e34[14] = {30, 38, 75, 73, 32, 33, 17,
 /* Whether the spell's current target would actually be affected by it - the
    per-spell rules the cast path checks before it spends the points. */
 // FUNCTION: WIZ8 0x004F9AE0
-unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, W8CombatSlot* aim,
-                                          unsigned int power)
+unsigned char SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim,
+                                  unsigned int power)
 {
     unsigned int duration;
     unsigned int index;
@@ -2700,7 +2699,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
         PostCharacterNotice(party_slot, gppStringList[0x18a], record->display_name);
         return 0;
     }
-    if (ValidateSpellTarget004FAC40(party_slot, spell_id, power_level, false, false) == '\0') {
+    if (ValidateSpellTarget(party_slot, spell_id, power_level, false, false) == '\0') {
         return 0;
     }
     if (character->uiCondition[8] != 0 &&
@@ -2810,7 +2809,7 @@ LAB_004faa0f:
         ++index;
     } while (index < 0x72);
     ++g_status_685170.spell_usage_40ce[spell_id - 1].cast_count;
-    affected = SpellAffectedTarget004F9AE0(character, spell_id, aim, power_level);
+    affected = SpellAffectedTarget(character, spell_id, aim, power_level);
     if (continue_cast == '\0') {
         if (Random(2) != 0) {
             index = g_special_event_0068c528;
@@ -2939,7 +2938,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         CombatLog("Chance of BACKFIRE: %d (roll %d)", backfire_chance, roll);
         CombatLog("");
         if (roll < backfire_chance) {
-            PrepareSpellTarget004FEA50(spell_id, source, target);
+            PrepareSpellTarget(spell_id, source, target);
             source->fBackfire = '\x01';
             recast = false;
             SoundPlay("Data\\Sound\\Misc\\Spell Backfire.wav", 0);
@@ -2957,7 +2956,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         if (source->fBackfire == '\0' && source->auto_cast_18 == '\0' &&
             source->fReflection == '\0' && g_spell_records[spell_id].realm != 4 &&
             spell_id != 0x83) {
-            CheckSpellBackfire004FF220(spell_id, source, target);
+            CheckSpellBackfire(spell_id, source, target);
         }
         if (party_targets == 0) {
             if (monster_targets == 0) {
@@ -3214,9 +3213,9 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                             } else {
                                 icon_flag = source->fBackfire == '\0';
                             }
-                            StageMonsterCastIcon0059AF40(*party_markers.GetAt(index),
-                                                         g_spell_records[spell_id].realm, icon_flag,
-                                                         spell_id);
+                            StageMonsterCastIcon(*party_markers.GetAt(index),
+                                                 g_spell_records[spell_id].realm, icon_flag,
+                                                 spell_id);
                         }
                     }
                 } else {
@@ -3491,7 +3490,7 @@ void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* 
    RedirectBackfiredSpellTarget; the point kinds trace the aim to where the
    spell actually lands and turn the source into a point. */
 // FUNCTION: WIZ8 0x004FEA50
-void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSlot* target)
+void PrepareSpellTarget(int spell_id, W8TargetSource* source, W8CombatSlot* target)
 {
     srVector3T<float> from;
     srVector3T<float> trace;
@@ -3535,8 +3534,8 @@ void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSl
         if (TargetSourceIsCharacter(source, 0)) {
             GetCameraPosition(&from);
         } else if (TargetSourceIsMonster(source, 0)) {
-            if (monster_info->p3D->GetSpellPosition004C78E0(&from) == '\0') {
-                monster_info->p3D->GetMappedPosition004C72A0(&from);
+            if (monster_info->p3D->GetSpellPosition(&from) == '\0') {
+                monster_info->p3D->GetMappedPosition(&from);
             }
         } else {
             from = source->point;
@@ -3590,7 +3589,7 @@ void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSl
    the backfired spell's new target. A single-target spell keeps it a single
    slot; a group spell takes the whole monster group or the party instead. */
 // FUNCTION: WIZ8 0x004FEDC0
-int PickBackfireTarget004FEDC0(int spell_id, W8TargetSource* source, W8CombatSlot* target)
+int PickBackfireTarget(int spell_id, W8TargetSource* source, W8CombatSlot* target)
 {
     W8MonsterInfo* monster_info;
     unsigned int candidates;
@@ -3659,7 +3658,7 @@ int PickBackfireTarget004FEDC0(int spell_id, W8TargetSource* source, W8CombatSlo
    line of sight traced, the result settled onto the ground and clamped back
    inside range. */
 // FUNCTION: WIZ8 0x004FEF90
-void ScatterSpellPointTarget004FEF90(int spell_id, W8TargetSource* source, W8CombatSlot* target)
+void ScatterSpellPointTarget(int spell_id, W8TargetSource* source, W8CombatSlot* target)
 {
     srVector3T<float> origin;
     srVector3T<float> point;
@@ -3719,7 +3718,7 @@ void ScatterSpellPointTarget004FEF90(int spell_id, W8TargetSource* source, W8Com
    five has its target re-picked at random or scattered to a random point,
    with a notice to whoever the source is. */
 // FUNCTION: WIZ8 0x004FF220
-void CheckSpellBackfire004FF220(int spell_id, W8TargetSource* source, W8CombatSlot* target)
+void CheckSpellBackfire(int spell_id, W8TargetSource* source, W8CombatSlot* target)
 {
     W8Character* character;
     W8MonsterInfo* monster_info;
@@ -3734,9 +3733,9 @@ void CheckSpellBackfire004FF220(int spell_id, W8TargetSource* source, W8CombatSl
         if (target->iType == W8_TARGET_KIND_CHARACTER && target->iChar == source->iChar) {
             return;
         }
-        if (CharacterHasTrait00547940(character, 7)) {
+        if (CharacterHasTrait(character, 7)) {
             if (Random(100) < static_cast<unsigned int>(static_cast<int>(
-                                  ScaleValueByProfessionLevel005479B0(character, 7, 50.0)))) {
+                                  ScaleValueByProfessionLevel(character, 7, 50.0)))) {
                 return;
             }
         }
@@ -3760,14 +3759,14 @@ void CheckSpellBackfire004FF220(int spell_id, W8TargetSource* source, W8CombatSl
     case 1:
     case 3:
     case 4:
-        if (PickBackfireTarget004FEDC0(spell_id, source, target) == '\0') {
+        if (PickBackfireTarget(spell_id, source, target) == '\0') {
             return;
         }
         break;
     case 5:
     case 6:
     case 8:
-        ScatterSpellPointTarget004FEF90(spell_id, source, target);
+        ScatterSpellPointTarget(spell_id, source, target);
         break;
     default:
         return;
@@ -3846,7 +3845,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         fVertextAvail = 0;
         if (source->point_source_1d == '\0' && spell_id != 0x77 &&
             monster_info->has_spell_37c != '\0') {
-            fVertextAvail = monster->GetSpellPosition004C78E0(&eye);
+            fVertextAvail = monster->GetSpellPosition(&eye);
             if (fVertextAvail == 0) {
                 srAssertFail("fVertextAvail", MAGIC_CPP, 0x951, 0);
             }
@@ -3984,8 +3983,8 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                 side = 1;
             } else if (monster_info->ubDisposition == '\x01') {
                 side = 2;
-                if (TargetInRangeAndArcs00539B70(&camera, g_startup_world_659c0c->radius_084, &eye,
-                                                 monster->radius_084, heading, elevation) != 0 &&
+                if (TargetInRangeAndArcs(&camera, g_startup_world_659c0c->radius_084, &eye,
+                                         monster->radius_084, heading, elevation) != 0 &&
                     monster_info->player_visibility.los_flags_05[sight_flag] != '\0') {
                     marked = true;
                 }
@@ -4014,19 +4013,19 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
             }
         }
         if (!marked &&
-            TargetInRangeAndArcs00539B70(&camera, g_startup_world_659c0c->radius_084, &eye, 0,
-                                         heading, elevation) != 0 &&
+            TargetInRangeAndArcs(&camera, g_startup_world_659c0c->radius_084, &eye, 0, heading,
+                                 elevation) != 0 &&
             g_octree_6598a4->TraceLineOfSight(&eye, &camera, '\x01', -3, -3, '\x01', 0) == 0) {
             marked = true;
         }
-        CollectConeMonsterTargets00539CA0(source, &eye, heading, elevation, monster_markers,
-                                          static_cast<unsigned char>(side), sight_flag);
+        CollectConeMonsterTargets(source, &eye, heading, elevation, monster_markers,
+                                  static_cast<unsigned char>(side), sight_flag);
         if (monster_markers->count == 0 &&
             (g_combat_state == 0 || g_combat_state->enemies_engaged_a54 == '\0') &&
             TargetSourceIsCharacter(source, 0) && static_cast<char>(side) == '\x01' &&
             !AnyMonsterEngaged()) {
-            CollectConeMonsterTargets00539CA0(source, &eye, heading, elevation, monster_markers, 3,
-                                              sight_flag);
+            CollectConeMonsterTargets(source, &eye, heading, elevation, monster_markers, 3,
+                                      sight_flag);
         }
         break;
     case 6:
@@ -4114,13 +4113,13 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
             }
         }
     }
-    PruneSpellTargetMarkers00501B70(spell_id, monster_markers);
+    PruneSpellTargetMarkers(spell_id, monster_markers);
 }
 
 /* Drop every marker that no longer names a live, targetable monster. Spells
    0x16, 0x4d and 0x81 also drop markers whose monster kind they do not affect. */
 // FUNCTION: WIZ8 0x00501B70
-void PruneSpellTargetMarkers00501B70(int spell_id, W8GrowableVector<int>* monster_markers)
+void PruneSpellTargetMarkers(int spell_id, W8GrowableVector<int>* monster_markers)
 {
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
@@ -4157,7 +4156,7 @@ void PruneSpellTargetMarkers00501B70(int spell_id, W8GrowableVector<int>* monste
 }
 
 // FUNCTION: WIZ8 0x00501D20
-void TrackItemSpellSource00501D20(W8Character* character, int spell_id)
+void TrackItemSpellSource(W8Character* character, int spell_id)
 {
     unsigned char has_spell_storage[0x96] = {0};
     unsigned char* has_spell = has_spell_storage + 1;

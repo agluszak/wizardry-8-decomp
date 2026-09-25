@@ -67,10 +67,9 @@ unsigned char MonsterSpecialAttackHonorsCastingBlock(int special_attack_kind)
    monster source off its missile value and current runtime stat - and a kind
    five table doubles it. Kind six delegates to the summon. */
 // FUNCTION: WIZ8 0x005560A0
-void ResolveMonsterGroupAttack005560A0(int special_attack_kind, W8TargetSource* pSource,
-                                       W8CombatSlot* pAttackerSlot,
-                                       W8GrowableVector<int> char_targets,
-                                       W8GrowableVector<int> monster_targets)
+void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
+                               W8CombatSlot* pAttackerSlot, W8GrowableVector<int> char_targets,
+                               W8GrowableVector<int> monster_targets)
 {
     char announce;
     int iTarget;
@@ -149,7 +148,7 @@ void ResolveMonsterGroupAttack005560A0(int special_attack_kind, W8TargetSource* 
     }
 
     if (g_special_attack_table[special_attack_kind][0] == 6) {
-        SpawnSummonedMonsterGroup00556B10(special_attack_kind, pSource, pAttackerSlot);
+        SpawnSummonedMonsterGroup(special_attack_kind, pSource, pAttackerSlot);
     } else {
         uiHits[0] = 0;
         uiTotals[0] = 0;
@@ -180,7 +179,7 @@ void ResolveMonsterGroupAttack005560A0(int special_attack_kind, W8TargetSource* 
                     } else {
                         extra = 0;
                     }
-                    resolved = ResolveAttackOnTarget00551BA0(
+                    resolved = ResolveAttackOnTarget(
                         pSource, &target,
                         g_special_attack_condition_table_61effc[special_attack_kind][i],
                         g_special_attack_realm_table_61f0fc[special_attack_kind], uiMinRoll, extra,
@@ -302,7 +301,7 @@ void ResolveMonsterGroupAttack005560A0(int special_attack_kind, W8TargetSource* 
                     } else {
                         extra = 0;
                     }
-                    resolved = ResolveAttackOnTarget00551BA0(
+                    resolved = ResolveAttackOnTarget(
                         pSource, &target,
                         g_special_attack_condition_table_61effc[special_attack_kind][i],
                         g_special_attack_realm_table_61f0fc[special_attack_kind], uiMinRoll, extra,
@@ -450,8 +449,8 @@ void ResolveMonsterGroupAttack005560A0(int special_attack_kind, W8TargetSource* 
    Kinds 0x18..0x1d and 0x1f map to fixed species; anything else keeps the
    kind id. */
 // FUNCTION: WIZ8 0x00556B10
-void SpawnSummonedMonsterGroup00556B10(int special_attack_kind, W8TargetSource* pSource,
-                                       W8CombatSlot* pAttackerSlot)
+void SpawnSummonedMonsterGroup(int special_attack_kind, W8TargetSource* pSource,
+                               W8CombatSlot* pAttackerSlot)
 {
     W8MonsterRecord* record;
     int count;
@@ -512,7 +511,7 @@ void SpawnSummonedMonsterGroup00556B10(int special_attack_kind, W8TargetSource* 
             placed = PositionMonsterGroupNearCamera00511050(group, 3000.0f, 0.0f, 1);
         }
     } else {
-        yaw = GetCameraFacingYaw004BE5C0(position);
+        yaw = GetCameraFacingYaw(position);
         placed = MoveMonsterGroupToPosition(group, position, yaw, 1, 0, 0, 0);
     }
     if (placed == 0) {

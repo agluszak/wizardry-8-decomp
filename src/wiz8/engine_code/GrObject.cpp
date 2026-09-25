@@ -31,7 +31,7 @@ W8GrObject::W8GrObject(const W8GrObject& other)
     kind_004 = other.kind_004;
     id_008 = other.id_008;
     if (other.m_pAI != 0) {
-        m_pAI = CloneAIRecord004A91C0(other.m_pAI);
+        m_pAI = CloneAIRecord(other.m_pAI);
     } else {
         m_pAI = 0;
     }

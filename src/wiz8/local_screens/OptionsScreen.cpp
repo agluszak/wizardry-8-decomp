@@ -645,7 +645,7 @@ void W8OptionsSaveRow::Redraw(int full_redraw)
     } else {
         srColorSurface* portrait = new srColorSurface(srPixelConvert::SURFACE_ARGB1555,
                                                       m_save->screenshot.pixels, 0x50, 0x3c, 0xa0);
-        DrawColorSurface00425590(portrait, x + 6, y + 6);
+        DrawColorSurface(portrait, x + 6, y + 6);
         portrait->release();
     }
 
@@ -1207,7 +1207,7 @@ void W8OptionsAudioPanel::OnDrag(W8HorizontalRangeThumb* thumb)
         SetMusicVolume(static_cast<unsigned char>(thumb->m_position));
         return;
     case 1:
-        SetSoundEffectsVolume0047AD00(static_cast<unsigned char>(thumb->m_position));
+        SetSoundEffectsVolume(static_cast<unsigned char>(thumb->m_position));
         return;
     case 2:
         g_settings_6850c8.footstep_volume = static_cast<unsigned char>(thumb->m_position);
@@ -2159,9 +2159,9 @@ void OptionsScreenFrame()
     if (g_dev_mode_689b32) {
         RequestExitScreen();
     }
-    RepositionAmbientSounds0047A600(g_world);
-    UpdateAmbientSounds0047A3E0(g_world);
-    ServiceMusicPlaylist0048F9E0();
+    RepositionAmbientSounds(g_world);
+    UpdateAmbientSounds(g_world);
+    ServiceMusicPlaylist();
     SGPMouseGetPos(&point);
 
     W8OptionsScreen* screen = g_options_screen_0069c254;

@@ -86,7 +86,7 @@ unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* so
                                     int source_pitch, float* scale_x, float* scale_y,
                                     float* mapping_x, float* mapping_y);
 void SaveJpegScreenshot(void);
-void FlushDirtyTiles00425B40(void);
+void FlushDirtyTiles(void);
 
 /*
  * The renderer window and extension loading gate InitializeStandardGamingPlatform calls after the
@@ -312,7 +312,7 @@ PTR LockPrimarySurface(UINT32* pitch)
    bring-up; keeping the reset here avoids reproducing SurRender's node ABI at
    the menu call site. */
 // FUNCTION: WIZ8 0x00422b10
-void ResetVideoFrameState00422B10(void)
+void ResetVideoFrameState(void)
 {
     DDSURFACEDESC description;
     unsigned int active;
@@ -406,7 +406,7 @@ done:
         srExtension::load("INSPECTOR", 0);
         _chdir(".");
     }
-    if (!InitializeStartupNavigation0044F060()) {
+    if (!InitializeStartupNavigation()) {
         return 0;
     }
     EnableAllRenderOptions();
@@ -421,8 +421,8 @@ void ShutdownVideoManager(void)
         g_cursor_node_659694 = 0;
     }
     FreeMouseCursor();
-    ShutdownVideoScenes00423F30();
-    ShutdownStartupNavigation0044F190();
+    ShutdownVideoScenes();
+    ShutdownStartupNavigation();
     if (g_video_active_659710) {
         PauseMainGameWorld();
         g_video_active_659710 = 0;
@@ -479,7 +479,7 @@ void ShutdownVideoManager(void)
    startup sequence; runs from ShutdownVideoManager before the DirectDraw
    teardown. */
 // FUNCTION: WIZ8 0x00423f30
-void ShutdownVideoScenes00423F30(void)
+void ShutdownVideoScenes(void)
 {
     if (g_modeler_65963c) {
         delete g_modeler_65963c;
@@ -902,7 +902,7 @@ void ResetTransientRenderScenes(void)
 /* Same dirty-block / transient-scene reset as ResetTransientRenderScenes, but
    the full-screen invalidate uses flag 1 (the all-bits redraw path). */
 // FUNCTION: WIZ8 0x00423150
-void ClearVideoDirtyBlocks00423150(void)
+void ClearVideoDirtyBlocks(void)
 {
     memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
     unsigned int active = g_active_page_6596e4;
@@ -1005,12 +1005,12 @@ unsigned char ClearPrimarySurface(void)
     return 1;
 }
 
-void UpdateRenderElapsedTime00482140(void);
+void UpdateRenderElapsedTime(void);
 
 /* Saturate the three components of a renderer colour in place and return it.
    The reviewed body performs these three scalar saturations in order. */
 // FUNCTION: WIZ8 0x004299b0
-srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color)
+srVector3T<float>* __fastcall SaturateColor(srVector3T<float>* color)
 {
     if (color->x <= 0.0f)
         color->x = 0.0f;
@@ -1067,7 +1067,7 @@ void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char pre
             fog.SetZero();
         } else {
             g_world->static_scene->getFogColor(fog);
-            SaturateColor004299B0(&fog);
+            SaturateColor(&fog);
         }
         scene->setFogColor(fog);
     }
@@ -1132,7 +1132,7 @@ void RenderFrame(void)
     srScene* retire_overlay;
 
     clear_color.SetZero();
-    SaturateColor004299B0(&clear_color);
+    SaturateColor(&clear_color);
     if (!g_video_active_659710) {
         return;
     }
@@ -1145,7 +1145,7 @@ void RenderFrame(void)
             saved_world_position.y + g_trigger_action_scene_offset_006599ac.y;
         shifted_world_position.z =
             saved_world_position.z + g_trigger_action_scene_offset_006599ac.z;
-        SetWorldScenePosition004511D0(GetWorld(), &shifted_world_position);
+        SetWorldScenePosition(GetWorld(), &shifted_world_position);
     }
     if (g_world != 0) {
         if (!IsSkyEnabled()) {
@@ -1163,7 +1163,7 @@ void RenderFrame(void)
     SyncSystemCursor();
     RenderFastHelp();
     UpdateRegionHelp();
-    FlushDirtyTiles00425B40();
+    FlushDirtyTiles();
     if (g_gerd_659634 != 0) {
         g_gerd_659634->resetStatistics();
     }
@@ -1173,7 +1173,7 @@ void RenderFrame(void)
     RuntimeObserve(RUNTIME_FRAME_BEGIN, g_fps_frame_count_6596fc, g_current_screen_state.id,
                    g_video_active_659710);
 #endif
-    UpdateRenderElapsedTime00482140();
+    UpdateRenderElapsedTime();
 
     if (!g_monster_shadow_updates_enabled_0065970c) {
         if (g_world_blacked_out_65970e) {
@@ -1300,7 +1300,7 @@ void RenderFrame(void)
     g_frames_per_second_659704 = frames_per_second;
 
     if (g_trigger_action_active_006599c8 && GetWorld() != 0) {
-        SetWorldScenePosition004511D0(GetWorld(), &saved_world_position);
+        SetWorldScenePosition(GetWorld(), &saved_world_position);
     }
 }
 
@@ -1410,7 +1410,7 @@ void SetRendererOption4Enabled(char enabled)
 /* The static scene's fog colour clamped into 0..1 for the caller; an empty
    world reports black. */
 // FUNCTION: WIZ8 0x00427290
-void GetWorldColour00427290(EnvironmentColour* colour)
+void GetWorldColour(EnvironmentColour* colour)
 {
     if (g_world != 0) {
         const srVector3T<float> fog = g_world->static_scene->getFogColor();
@@ -1524,7 +1524,7 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
 
     instance = new stModelInstance2D(parent);
     instance->setName("Video2DMakePolygonBrush");
-    instance->SetModel0047F3A0(model);
+    instance->SetModel(model);
     instance->configure2D(static_cast<short>(width * 640.0), static_cast<short>(height * 480.0));
     return instance;
 }
@@ -1572,7 +1572,7 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
         instance->render_state_164.left = static_cast<short>(w);
         instance->render_state_164.top = static_cast<short>(h);
         instance->setName("Video2DMakePolygonBrush");
-        instance->SetModel0047F3A0(model);
+        instance->SetModel(model);
         if (a5) {
             instance->overlay_scene_flag_160 |= 1;
         }
@@ -1848,7 +1848,7 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
 /* The tracked cursor tip (hotspot + size) in pixel-scale units. DropHeldItem
    turns it into the toss direction. */
 // FUNCTION: WIZ8 0x004282F0
-void GetCursorScaledPosition004282F0(srVector3T<float>* position)
+void GetCursorScaledPosition(srVector3T<float>* position)
 {
     position->x = (g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0) * g_scale_x_5ebb1c;
     position->z = 0.0f;
@@ -1945,13 +1945,13 @@ bool IsCursorInRectangle(int left, int top, int right, int bottom)
 /* The atom's packed mouse position plus the cursor hotspot, split into the
    screen-space x and y region input works in. */
 // FUNCTION: WIZ8 0x00428580
-int GetAtomCursorX00428580(const InputAtom* atom)
+int GetAtomCursorX(const InputAtom* atom)
 {
     return static_cast<unsigned short>(atom->uiParam) + g_cursor_hotspot_x_6596bc;
 }
 
 // FUNCTION: WIZ8 0x004285a0
-int GetAtomCursorY004285A0(const InputAtom* atom)
+int GetAtomCursorY(const InputAtom* atom)
 {
     return static_cast<int>(atom->uiParam >> 16) + g_cursor_hotspot_y_6596c0;
 }
@@ -1995,10 +1995,10 @@ unsigned char InitializeMouseCursorScene(void)
  *
  * The screen is tracked as an 80x60 grid of eight-pixel cells - 0x50 cells per
  * row, which is 640/8 - and this walks the cells a rectangle covers, handing
- * each to InvalidateDirtyTile004259B0. A page already marked whole is skipped outright, and a
+ * each to InvalidateDirtyTile. A page already marked whole is skipped outright, and a
  * rectangle that turns out to cover the whole 640x480 marks it whole.
  *
- * InvalidateDirtyTile004259B0 performs the per-cell write; the flag bits the caller passes
+ * InvalidateDirtyTile performs the per-cell write; the flag bits the caller passes
  * are only known by which bits they set.
  */
 
@@ -2013,7 +2013,7 @@ bool g_viewport_tiles_dirty_6596ea;
 /* Retire a 2D node: clear every tile-table slot that references it, invalidate
    the texture its model still exposes, and release the node itself. */
 // FUNCTION: WIZ8 0x00425950
-void ReleaseSurfaceNode00425950(srNode* node)
+void ReleaseSurfaceNode(srNode* node)
 {
     if (node == 0) {
         return;
@@ -2037,7 +2037,7 @@ void ReleaseSurfaceNode00425950(srNode* node)
 }
 
 // FUNCTION: WIZ8 0x004259b0
-static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
+static void InvalidateDirtyTile(int cell, unsigned int flags)
 {
     stModelInstance2D* node = static_cast<stModelInstance2D*>(g_surface_nodes_654adc[cell]);
 
@@ -2065,7 +2065,7 @@ static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
         for (int row = rows; row != 0; --row) {
             int row_cell = start;
             for (int column = columns; column != 0; --column) {
-                InvalidateDirtyTile004259B0(row_cell, 0);
+                InvalidateDirtyTile(row_cell, 0);
                 ++row_cell;
             }
             start += 0x50;
@@ -2138,7 +2138,7 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
                 if ((int)clipped_left < (int)clipped_right) {
                     x = clipped_left;
                     do {
-                        InvalidateDirtyTile004259B0((int)x / 8 + (top / 8) * 0x50, cell_flags);
+                        InvalidateDirtyTile((int)x / 8 + (top / 8) * 0x50, cell_flags);
                         x = x + 8;
                     } while ((int)x < (int)clipped_right);
                 }
@@ -2166,7 +2166,7 @@ void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags)
    software surface locked for the complete batch and clears only the uploaded
    bit, preserving the lower per-cell state for the page lifecycle. */
 // FUNCTION: WIZ8 0x00425b40
-void FlushDirtyTiles00425B40(void)
+void FlushDirtyTiles(void)
 {
     DDSURFACEDESC description;
 
@@ -2298,7 +2298,7 @@ void PrintScreen(void)
    the frame-rate line always, the object/poly/vertex counters, texture and
    pagefile memory in mode 2, or the scaled camera position in mode 3. */
 // FUNCTION: WIZ8 0x00427460
-void DrawVideoInspector00427460(int left, unsigned int top)
+void DrawVideoInspector(int left, unsigned int top)
 {
     DDSURFACEDESC description;
     srGERD::Statistics statistics;
@@ -2350,7 +2350,7 @@ void DrawVideoInspector00427460(int left, unsigned int top)
             gprintfDirty(left, top + 0x5a, L"RM: %dK",
                          g_gerd_659634->getResidentTextureMemUsed() >> 10);
             gprintfDirty(left, top + 0x64, L"TM: %dK", g_gerd_659634->getTextureCacheUsed());
-            gprintfDirty(left, top + 0x6e, L"DR: %3d", GetCameraYawAndRotation00420F40(0));
+            gprintfDirty(left, top + 0x6e, L"DR: %3d", GetCameraYawAndRotation(0));
             memset(&memory_status, 0, sizeof(memory_status));
             memory_status.dwLength = sizeof(memory_status);
             GlobalMemoryStatus(&memory_status);
@@ -2443,7 +2443,7 @@ void PresentMenuOverlayFrame(void)
 {
     srNode::ProcessInfo process;
 
-    FlushDirtyTiles00425B40();
+    FlushDirtyTiles();
     g_gerd_659634->beginFrame();
     process.renderer = g_gerd_659634;
     g_surface_node_659664->process(process, (srNode::e_processType)0);
@@ -2683,26 +2683,26 @@ void ClearNodeFlag(srNode* node)
 }
 
 // FUNCTION: WIZ8 0x00427810
-srModelInstance* GetPickedModelInstance00427810(void)
+srModelInstance* GetPickedModelInstance(void)
 {
     return g_current_model_instance_65962c;
 }
 
 // FUNCTION: WIZ8 0x00427820
-void SetPickedModelInstance00427820(srModelInstance* value)
+void SetPickedModelInstance(srModelInstance* value)
 {
     g_current_model_instance_65962c = value;
 }
 
 // FUNCTION: WIZ8 0x00428010
-unsigned char DisableCursorScene00428010(void)
+unsigned char DisableCursorScene(void)
 {
     g_cursor_scene_enabled_603c60 = 0;
     return 1;
 }
 
 // FUNCTION: WIZ8 0x00428020
-unsigned char EnableCursorScene00428020(void)
+unsigned char EnableCursorScene(void)
 {
     g_cursor_scene_enabled_603c60 = 1;
     return 1;
@@ -2712,7 +2712,7 @@ unsigned char EnableCursorScene00428020(void)
    mode when overlay_scene_flag_160 bit 0 says otherwise. Recovered callers pass
    stModelInstance2D sprites (highlight / formation board). */
 // FUNCTION: WIZ8 0x004257F0
-void ReleaseObject004257F0(srClass* object)
+void ReleaseObject(srClass* object)
 {
     if ((static_cast<stModelInstance2D*>(object)->overlay_scene_flag_160 & 1) != 0) {
         g_overlay_render_mode_6596ec = 2;
@@ -2726,7 +2726,7 @@ void ReleaseObject004257F0(srClass* object)
 /* Rotate a 2D sprite node by `degrees` about z and dirty the renderer mode
    word its overlay_scene_flag_160 bit 0 selects. */
 // FUNCTION: WIZ8 0x00425840
-void RotateNodeInDegrees00425840(srNode* node, int degrees)
+void RotateNodeInDegrees(srNode* node, int degrees)
 {
     node->setRotation(0.0, 0.0, 3.141592653589793 * g_float_005ebcf8 * degrees);
     if ((static_cast<stModelInstance2D*>(node)->overlay_scene_flag_160 & 1) != 0) {
@@ -2738,7 +2738,7 @@ void RotateNodeInDegrees00425840(srNode* node, int degrees)
 }
 
 // FUNCTION: WIZ8 0x00428A90
-void SetOverlayRenderMode00428A90(void)
+void SetOverlayRenderMode(void)
 {
     g_overlay_render_mode_6596ec = 2;
 }
@@ -2773,7 +2773,7 @@ unsigned char GetRendererModeByte(void)
 }
 
 // FUNCTION: WIZ8 0x00429200
-void SetOverlayViewport00429200(const int* value)
+void SetOverlayViewport(const int* value)
 {
     g_overlay_viewport_659668 = value;
 }
@@ -2785,14 +2785,14 @@ bool HasScreenTransitionObjects(void)
 }
 
 // FUNCTION: WIZ8 0x004297e0
-void SetSurfaceScale004297E0(float scale)
+void SetSurfaceScale(float scale)
 {
     g_surface_node_659664->setScale(scale);
     g_surface_scale_659680 = scale;
 }
 
 // FUNCTION: WIZ8 0x004298E0
-void SetFullscreenSceneLast004298E0(unsigned char value)
+void SetFullscreenSceneLast(unsigned char value)
 {
     g_fullscreen_scene_last_603c4c = value;
 }
@@ -2828,7 +2828,7 @@ bool HasEnoughFreeDiskSpace(void)
 }
 
 // FUNCTION: WIZ8 0x00429AF0
-void __fastcall ReleaseOwnedClass00429AF0(srClass** owner)
+void __fastcall ReleaseOwnedClass(srClass** owner)
 {
     if (*owner) {
         (*owner)->release();
@@ -2939,9 +2939,9 @@ void SaveJpegScreenshot(void)
             surface_io_manager->exportSurface(filename, *surface, options);
         } else {
             options.option_string = "QUALITY=0.35";
-            PauseSharedGameTimers00439BC0();
+            PauseSharedGameTimers();
             surface_io_manager->exportSurface(filename, *surface, options);
-            ResumeSharedGameTimers00439CA0();
+            ResumeSharedGameTimers();
         }
         g_gerd_659634->unlockBuffer();
     }
@@ -3189,7 +3189,7 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
 
     stModelInstance2D* instance = new stModelInstance2D(g_scene_user_659640);
     instance->setName("Video2DPolyColored");
-    instance->SetModel0047F3A0(model);
+    instance->SetModel(model);
     instance->setRotation(0.0, 0.0, 0.0);
 
     srShader shader;
@@ -3213,13 +3213,13 @@ stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsR
 }
 
 // FUNCTION: WIZ8 0x004257D0
-void Position2DNodeUnsnapped004257D0(srNode* node, int x, int y)
+void Position2DNodeUnsnapped(srNode* node, int x, int y)
 {
     PositionToolTipNode(node, x, y, 0);
 }
 
 // FUNCTION: WIZ8 0x004264F0
-void SetModelInstance2DDisplayState004264F0(stModelInstance2D* object, unsigned char state)
+void SetModelInstance2DDisplayState(stModelInstance2D* object, unsigned char state)
 {
     object->render_state_164.display_state = state;
 }
@@ -3470,14 +3470,14 @@ void SetResidentTexturePolicy(int policy)
 unsigned char g_swap_interval_enabled_659718;
 
 // FUNCTION: WIZ8 0x00426710
-void SetSwapInterval00426710(unsigned char enabled)
+void SetSwapInterval(unsigned char enabled)
 {
     g_swap_interval_enabled_659718 = enabled;
     g_gerd_659634->setSwapInterval(enabled ? 1 : 0);
 }
 
 // FUNCTION: WIZ8 0x00426740
-void SetTextureCacheSize00426740(unsigned long bytes)
+void SetTextureCacheSize(unsigned long bytes)
 {
     if (bytes > 0x7fffff && bytes != g_gerd_659634->getTextureCacheSize()) {
         g_gerd_659634->invalidateResidentTextures();
@@ -3568,7 +3568,7 @@ stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_f
                 texture->setMipmap(srTextureIFace::MIPMAP_NONE);
                 texture->enableHint(use_argb1555 ? srTextureIFace::HINT_POSITIONAL_2
                                                  : srTextureIFace::HINT_POSITIONAL_1);
-                animation->AddTexture00485420(texture);
+                animation->AddTexture(texture);
             }
         }
         ++frame;
@@ -3636,7 +3636,7 @@ unsigned int MeasureNodeRender00428830(srNode* node)
 /* Open the render-probe pass: force renderer option 4 off, reset the frame
    to a solid blue clear and prime the scissor before the measured draw. */
 // FUNCTION: WIZ8 0x00428910
-void BeginRenderProbe00428910(void)
+void BeginRenderProbe(void)
 {
     if (g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
         g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
@@ -3674,7 +3674,7 @@ unsigned int MeasureNodeRender004289E0(srNode* node)
 
 /* Close the render-probe pass: restore renderer option 4 and present. */
 // FUNCTION: WIZ8 0x004289c0
-void EndRenderProbe004289C0(void)
+void EndRenderProbe(void)
 {
     if (!g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
         g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
@@ -3910,7 +3910,7 @@ struct Video2PosterQuadInfo {
 };
 
 // FUNCTION: WIZ8 0x00424EA0
-void __fastcall ReleaseOwnedMember00424EA0(Video2PosterQuadInfo* object)
+void __fastcall ReleaseOwnedMember(Video2PosterQuadInfo* object)
 {
     if (object->pointer_08 != 0) {
         object->pointer_08->release();
@@ -3918,7 +3918,7 @@ void __fastcall ReleaseOwnedMember00424EA0(Video2PosterQuadInfo* object)
 }
 
 // FUNCTION: WIZ8 0x00425590
-void DrawColorSurface00425590(srColorSurface* surface, int x, int y)
+void DrawColorSurface(srColorSurface* surface, int x, int y)
 {
     g_primary_color_surface_659660->blit(x, y, *surface, 0, 0, surface->getWidth(),
                                          surface->getHeight());
@@ -3949,7 +3949,7 @@ store:
 }
 
 // FUNCTION: WIZ8 0x00426490
-void DrawBufferLine00426490(long x0, long y0, long x1, long y1, unsigned long* pixel)
+void DrawBufferLine(long x0, long y0, long x1, long y1, unsigned long* pixel)
 {
     if (x0 != 0 && y0 != 0 && x1 != 0 && y1 != 0) {
         srColorSurfaceIFace* surface = g_gerd_659634->lockBuffer();
@@ -3961,7 +3961,7 @@ void DrawBufferLine00426490(long x0, long y0, long x1, long y1, unsigned long* p
 }
 
 // FUNCTION: WIZ8 0x004273F0
-void GetScaledViewportBounds004273F0(float* left_top, float* right_bottom)
+void GetScaledViewportBounds(float* left_top, float* right_bottom)
 {
     left_top[0] = g_viewport_6595e8.left * g_scale_x_5ebb1c;
     left_top[1] = g_viewport_6595e8.top * g_scale_y_5ebb20;
@@ -3970,7 +3970,7 @@ void GetScaledViewportBounds004273F0(float* left_top, float* right_bottom)
 }
 
 // FUNCTION: WIZ8 0x004277F0
-void SetPickKey004277F0(void* key)
+void SetPickKey(void* key)
 {
     if (g_gerd_659634) {
         g_gerd_659634->setPickKey(

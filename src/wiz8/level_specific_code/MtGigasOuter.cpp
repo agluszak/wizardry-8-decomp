@@ -24,7 +24,7 @@
 /* Level Specific Code\MtGigasOuter.cpp (level 0x0e).
 
    Attribution evidence: 0x004DC080 is this TU's hard lower bound and
-   InitializeLevelMasterFunctions004D6C50 runs 0x004DBE70 under case 0x0e,
+   InitializeLevelMasterFunctions runs 0x004DBE70 under case 0x0e,
    alongside the _VOC_EWAXXLIFT1 trigger wiring. The assert file string at
    0x00613640 names this TU for 0x004DBEC0 and 0x004DC080. */
 
@@ -50,7 +50,7 @@ const float LIFT_PARKED_Y = -5000.0f;
    gate; values at or above 1000 stop there. Otherwise the "flag" trigger
    runs. */
 // FUNCTION: WIZ8 0x004DBE70
-void ProcessFlagPosition004DBE70(void)
+void ProcessFlagPosition(void)
 {
     if (GetLocationVarIDByName("FlagPosition") != -1) {
         int value = GetLocationVarValueByName("FlagPosition");
@@ -109,7 +109,7 @@ bool OnCrankTriggerActivated(Trigger* trigger)
         prop->GetPosition0044E2C0(&position);
         position.y = LIFT_PARKED_Y;
         prop->SetPosition0044E310(&position);
-        SetTriggerVariableByName00444030("FlagPosition", 1000);
+        SetTriggerVariableByName("FlagPosition", 1000);
         ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x290, 0, 0, 0);
         SetItemCursor(0);
         npc = GetNpcStateByKind(0x2a);
@@ -147,7 +147,7 @@ void ControlLiftGate(int command)
             if (GetLocationVarIDByName("FlagPosition") == -1) {
                 CreateLocationVar("FlagPosition", value);
             } else {
-                SetTriggerVariableByName00444030("FlagPosition", value);
+                SetTriggerVariableByName("FlagPosition", value);
             }
             return;
         }
@@ -196,7 +196,7 @@ void ControlLiftGate(int command)
             progress = g_lift_gate_6834fc->GetProgress();
         } else {
             progress = 1.0f;
-            SetTriggerVariableByName00444030("FlagPosition", 100);
+            SetTriggerVariableByName("FlagPosition", 100);
             g_flag_006834dc = true;
         }
         g_lift_prop_683500->GetPosition0044E2C0(&position);
@@ -239,9 +239,9 @@ void ControlCampAlarm(int command)
         }
         if (command == -1) {
             if (g_alarm_gate_683508 == 0) {
-                SetTriggerVariableByName00444030("UmpaniCampAlarm", 0);
+                SetTriggerVariableByName("UmpaniCampAlarm", 0);
             } else {
-                SetTriggerVariableByName00444030(
+                SetTriggerVariableByName(
                     "UmpaniCampAlarm", static_cast<int>(g_alarm_gate_683508->GetElapsedSeconds()));
             }
             return;
@@ -281,7 +281,7 @@ void ControlCampAlarm(int command)
         delete g_alarm_gate_683508;
     }
     g_alarm_gate_683508 = 0;
-    SetTriggerVariableByName00444030("UmpaniCampAlarm", 0);
+    SetTriggerVariableByName("UmpaniCampAlarm", 0);
 }
 
 /* Activation callback on VOC_EWAXXSENTRYtrig: hands the sentry NPC (kind

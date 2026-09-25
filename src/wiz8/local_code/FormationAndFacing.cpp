@@ -742,7 +742,7 @@ void SwapFormationSlots(W8PartyFormationState* formation, int slot_a, int slot_b
    live load restores party_rows first and the formation record second, so a
    slot the save marked vacant still carries its old seat. */
 // FUNCTION: WIZ8 0x00555FA0
-void RebuildPartyStatus00555FA0(W8PartyFormationState* status)
+void RebuildPartyStatus(W8PartyFormationState* status)
 {
     unsigned int slot;
     for (slot = 0; slot < 8; ++slot) {

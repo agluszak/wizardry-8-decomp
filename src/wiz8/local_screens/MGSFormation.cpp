@@ -120,15 +120,15 @@ void RefreshFormationBoard(void)
         return;
     }
     if (g_level_block->formation_board_sprite != 0) {
-        ReleaseObject004257F0(g_level_block->formation_board_sprite);
+        ReleaseObject(g_level_block->formation_board_sprite);
         g_level_block->formation_board_sprite = 0;
     }
     if (g_level_block->formation_compass_sprite != 0) {
-        ReleaseObject004257F0(g_level_block->formation_compass_sprite);
+        ReleaseObject(g_level_block->formation_compass_sprite);
         g_level_block->formation_compass_sprite = 0;
     }
     if (g_level_block->formation_overlay_sprite != 0) {
-        ReleaseObject004257F0(g_level_block->formation_overlay_sprite);
+        ReleaseObject(g_level_block->formation_overlay_sprite);
         g_level_block->formation_overlay_sprite = 0;
     }
     if (g_level_block->formation_board_alternate == 0) {
@@ -153,9 +153,8 @@ void RefreshFormationBoard(void)
     PositionToolTipNode(g_level_block->formation_board_sprite, 0x207, 0x167, 0);
     g_level_block->formation_board_sprite->render_state_164.display_state = 4;
     if (g_level_block->formation_compass_sprite != 0) {
-        RotateNodeInDegrees00425840(g_level_block->formation_compass_sprite,
-                                    g_status_685170.party_facing - g_status_685170.party_heading +
-                                        0x168);
+        RotateNodeInDegrees(g_level_block->formation_compass_sprite,
+                            g_status_685170.party_facing - g_status_685170.party_heading + 0x168);
     }
     SetRendererModePair();
 }
@@ -165,9 +164,8 @@ void RefreshFormationBoard(void)
 void UpdateFormationCompass(void)
 {
     if (g_level_block->formation_compass_sprite != 0) {
-        RotateNodeInDegrees00425840(g_level_block->formation_compass_sprite,
-                                    g_status_685170.party_facing - g_status_685170.party_heading +
-                                        0x168);
+        RotateNodeInDegrees(g_level_block->formation_compass_sprite,
+                            g_status_685170.party_facing - g_status_685170.party_heading + 0x168);
     }
     SetRendererModePair();
 }
@@ -185,8 +183,8 @@ void CreateFormationBoardOverlay(void)
         bounds.right = 0x269;
         bounds.bottom = 0x1c2;
         g_level_block->formation_overlay_sprite = CreateSpriteFromSurface(-14, &bounds, 0, 0, 1);
-        Position2DNodeUnsnapped004257D0(g_level_block->formation_overlay_sprite, 0x200, 0x166);
-        SetModelInstance2DDisplayState004264F0(g_level_block->formation_overlay_sprite, 4);
+        Position2DNodeUnsnapped(g_level_block->formation_overlay_sprite, 0x200, 0x166);
+        SetModelInstance2DDisplayState(g_level_block->formation_overlay_sprite, 4);
     }
 }
 
@@ -257,7 +255,7 @@ unsigned char FormationBoardRegionEvent(const InputAtom* event, W8Region* region
    enter/leave. Retail emits it as a separate function right after the full
    handler. */
 // FUNCTION: WIZ8 0x005B207F
-unsigned char FormationBoardHoverRegionEvent005B207F(const InputAtom*, W8Region* region)
+unsigned char FormationBoardHoverRegionEvent(const InputAtom*, W8Region* region)
 {
     int slot;
     int hit;
@@ -535,7 +533,7 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
         return 0;
     }
     if (g_formation_cell_slots_0069c304[region->callback_id] == -1) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         if (event->usEvent != LEFT_BUTTON_UP) {
             return 1;
         }
@@ -651,7 +649,7 @@ unsigned char FormationBackgroundRegionEvent(const InputAtom* event, W8Region*)
     if (gXStatus.fReviewCharacterMode == 0) {
         return 0;
     }
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     SGPMouseGetPos(&point);
     switch (event->usEvent) {
     case LEFT_BUTTON_UP:

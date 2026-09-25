@@ -85,12 +85,11 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
                                    srMaterialIFace** material, srTextureIFace** texture,
                                    unsigned long* render_flags, int positional_unused);
 srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned char required);
-stTextureAnim* LoadAnimatedTexture004B98F0(const char* folder, const char* name,
-                                           const W8MaterialRecord004B8A70* source,
-                                           unsigned char required);
-bool MeshHasAnimatedTexture004B9AA0(srMeshModel* model);
-void SetModelAnimatedTextureFrame004B9B00(srModelInstance* instance, int frame);
-stTextureAnim* GetModelAnimatedTexture004B9B50(srModelInstance* instance);
+stTextureAnim* LoadAnimatedTexture(const char* folder, const char* name,
+                                   const W8MaterialRecord004B8A70* source, unsigned char required);
+bool MeshHasAnimatedTexture(srMeshModel* model);
+void SetModelAnimatedTextureFrame(srModelInstance* instance, int frame);
+stTextureAnim* GetModelAnimatedTexture(srModelInstance* instance);
 
 unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace** texture,
                                     unsigned long* render_flags);
@@ -103,9 +102,9 @@ struct W8OctRegionPolygon;
 extern W8OctPreTreeVertex* g_gd_vertices_0065bd34;
 extern W8OctRegionPolygon* g_gd_polygons_0065bd38;
 
-char BuildPreprocessedFiles00492E60(const char* level_path);
-void ReportBuildStatus00497690(int channel, const char* message);
-void ReportStartupMessage004969D0(const char* message);
+char BuildPreprocessedFiles(const char* level_path);
+void ReportBuildStatus(int channel, const char* message);
+void ReportStartupMessage(const char* message);
 char* TrimAndLowercaseString(char* text);
 struct W8OctPreTreeVertex;
 struct W8OctRegionPolygon;

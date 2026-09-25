@@ -232,20 +232,20 @@ unsigned char HandleMainGameInputEvent(const InputAtom* input)
     }
     if ((input->usEvent == KEY_DOWN || input->usEvent == KEY_REPEAT) &&
         gXStatus.fNpcDialogueMode != 0) {
-        HandleNpcDialogueKeyEvent00574BB0(input);
+        HandleNpcDialogueKeyEvent(input);
         return 1;
     }
     if ((input->usEvent == KEY_DOWN || input->usEvent == KEY_REPEAT) &&
         gXStatus.fTrapInteractMode != 0 && TextBoxHandleKey(input) != 0) {
         return 1;
     }
-    if (GetFlag68F105() != 0 && HandleMipeKey0057C230(input) != 0) {
+    if (GetFlag68F105() != 0 && HandleMipeKey(input) != 0) {
         return 1;
     }
     if (GetFlag69DA6C() != 0) {
         if (g_monster_combat_timer_enabled_006f0531 == 0 &&
-            HandleRecordModeKey005E3610(input, PromptRecordModeEntry005E35A0) == 1) {
-            ApplyRecordModeLine005E34B0();
+            HandleRecordModeKey(input, PromptRecordModeEntry) == 1) {
+            ApplyRecordModeLine();
             return 1;
         }
     } else {
@@ -262,13 +262,13 @@ void DispatchMGSCommand(int command)
         if (IsWorldCursorVisible() != 0) {
             ToggleWorldCursor();
         } else if (gXStatus.fSurprisePossible != 0) {
-            AcknowledgeSurprise00502790();
+            AcknowledgeSurprise();
         } else if (gXStatus.fSpellCastMode != 0) {
-            ResetSpellCastingSelection005A0B90();
+            ResetSpellCastingSelection();
         } else if (gXStatus.fLockInteractMode != 0) {
             EndLockInteractMode(0);
         } else if (gXStatus.fItemSelectMode != 0) {
-            CloseUseItemSelection0059D950();
+            CloseUseItemSelection();
         } else if (gXStatus.iTargetingMode != 0) {
             SetTargetingMode(0);
         } else if (gXStatus.fReviewCharacterMode != 0) {
@@ -286,8 +286,7 @@ void DispatchMGSCommand(int command)
                 }
             }
             ClearValue69DA68();
-            ShowMainGameNoticeLine(gppStringList[0x1de4 / 4], OnLeaveGameConfirmClosed00560A70, 1,
-                                   1);
+            ShowMainGameNoticeLine(gppStringList[0x1de4 / 4], OnLeaveGameConfirmClosed, 1, 1);
         }
         InvalidateRegion(0xa8, 0x16e, 0x1c4, 0x1ba, 0);
         break;
@@ -296,7 +295,7 @@ void DispatchMGSCommand(int command)
         break;
     case W8_MGS_COMMAND_TOGGLE_FULLSCREEN:
         ResetTransientRenderScenes();
-        SetOverlayRenderMode00428A90();
+        SetOverlayRenderMode();
         SetRendererModePair();
         VideoFullScreen(VideoIsFullScreen() == 0);
         break;
@@ -374,13 +373,13 @@ void DispatchMGSCommand(int command)
     }
     case W8_MGS_COMMAND_SHOW_VERSION: {
         char version_text[0x40];
-        FormatVersionBanner004E3620(version_text, 1, 1, 1);
+        FormatVersionBanner(version_text, 1, 1, 1);
         ShowNotice(0xc, ConvertStringToWide(version_text), -1, -1, 0);
         break;
     }
     case W8_MGS_COMMAND_LOOK_LEVEL:
         if (IsWorldCursorVisible() != 0) {
-            UpdateWorldCursorPlacement00491EC0();
+            UpdateWorldCursorPlacement();
         } else {
             LevelCamera();
         }
@@ -450,7 +449,7 @@ void DispatchMGSCommand(int command)
         TryMGSActionKey(W8_MGS_ACTION_CAST_RECORDED_SPELL);
         break;
     case W8_MGS_COMMAND_CAMP:
-        RequestCamp00502460();
+        RequestCamp();
         break;
     case W8_MGS_COMMAND_TOGGLE_SEARCH:
         if (IsScreenInputBlocked() == 0) {
@@ -473,7 +472,7 @@ void DispatchMGSCommand(int command)
         }
         if (gXStatus.fCombatMode != 0) {
             if (g_dev_mode_689b32 != 0) {
-                EndCombat004EA310(0);
+                EndCombat(0);
             } else {
                 ShowNotice(0xc, gppStringList[0x1dd0 / 4], -1, -1, 0);
                 break;
@@ -504,7 +503,7 @@ void DispatchMGSCommand(int command)
             strcpy(g_pending_screen_state.name, slot_name);
             g_pending_screen_state.parameter = GetSaveGameLevel(g_pending_screen_state.name);
             CloseMainGameOverlays();
-            SetMainGameMode00568390(0);
+            SetMainGameMode(0);
             SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
         } else {
             ShowNotice(0xc, gppStringList[0x1e18 / 4], -1, -1, 0);
@@ -566,11 +565,11 @@ void DispatchMGSCommand(int command)
         ScrollTextBoxTo(0);
         break;
     case W8_MGS_COMMAND_TEXTBOX_BOTTOM:
-        ScrollDialogueTextBoxToLine0058BA60();
+        ScrollDialogueTextBoxToLine();
         break;
     case W8_MGS_COMMAND_TEXTBOX_CLEAR:
         if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) {
-            ResetEditorStatusLine0058AA20(-1);
+            ResetEditorStatusLine(-1);
         }
         break;
     case W8_MGS_COMMAND_START_COMBAT_ROUND:
@@ -579,7 +578,7 @@ void DispatchMGSCommand(int command)
             break;
         }
         if (g_combat_state->combat_over_000 == 0) {
-            BeginCombatExecution004E8370();
+            BeginCombatExecution();
         } else if (gXStatus.fPartyMovementUi != 0 && CanPartyMove() == 0 &&
                    GetLevelDataFlag6() == 0) {
             BeginFreeTurnPhase();
@@ -629,7 +628,7 @@ void DispatchMGSCommand(int command)
         TryMGSActionKey(W8_MGS_ACTION_REPEAT);
         break;
     case W8_MGS_COMMAND_DEBUG_AUDIT_QUOTES:
-        AuditNpcScriptQuotes00529660();
+        AuditNpcScriptQuotes();
         break;
     case W8_MGS_COMMAND_DEBUG_NUMERIC_HP:
         ToggleNumericHitPoints();
@@ -1175,7 +1174,7 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
         row_id = region->callback_id;
         if (g_keyboard_menu_pages_69b808[row_id] == W8_SUBMENU_SPELLS &&
             g_keyboard_menu_items_69b7ec[row_id] == 1) {
-            SetRegionHelpForceEnabled004F27C0(1);
+            SetRegionHelpForceEnabled(1);
             if (g_keyboard_menu_rows_69b820[region->callback_id]->m_enabled == 0) {
                 SetRegionHelpText(gppStringList[0x168 / 4]);
                 return 1;
@@ -1194,7 +1193,7 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
         if (g_keyboard_menu_items_69b7ec[row_id] != 2) {
             return 1;
         }
-        SetRegionHelpForceEnabled004F27C0(1);
+        SetRegionHelpForceEnabled(1);
         if (g_keyboard_menu_rows_69b820[region->callback_id]->m_enabled == 0) {
             SetRegionHelpText(gppStringList[0x174 / 4]);
             return 1;

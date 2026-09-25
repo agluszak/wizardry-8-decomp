@@ -36,7 +36,7 @@ int g_saved_environment_flag_60aa64 = 1;
 
 /* Find the named camera path in the world's list and toggle it. Retail
    callers push the flag as a plain int and the body forwards it raw to
-   UpdateCameraPathState0048F2F0. */
+   UpdateCameraPathState. */
 // FUNCTION: WIZ8 0x0048F280
 void UpdateCameraPathStateByName(W8World* world, const char* name, int active)
 {
@@ -50,7 +50,7 @@ void UpdateCameraPathStateByName(W8World* world, const char* name, int active)
         for (int index = 0; index < static_cast<int>(count); ++index) {
             W8CameraPath* path = static_cast<W8CameraPath*>(PLGet(world->plsCameras, index));
             if (_stricmp(path->name_00, name) == 0) {
-                UpdateCameraPathState0048F2F0(world, path, active);
+                UpdateCameraPathState(world, path, active);
                 return;
             }
         }
@@ -58,7 +58,7 @@ void UpdateCameraPathStateByName(W8World* world, const char* name, int active)
 }
 
 // FUNCTION: WIZ8 0x0048F2F0
-void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int active)
+void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
 {
     W8NpcState* npc;
     W8MonsterGroup* group;
@@ -73,7 +73,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
     if (path->active_14 == 0 && active != 0) {
         g_camera_path_active_0065ba70 = 1;
         path->active_14 = 1;
-        PathAISetValue004A9F60(path->path_18, 0.0f);
+        PathAISetValue(path->path_18, 0.0f);
         path->path_18->last_update_tick = GetTickCount();
         path->path_18->distance_travelled = 0.0f;
         path->path_18->upright_3b = 1;
@@ -147,7 +147,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
                 return;
             }
         } else if (_stricmp(path->name_00, "CameraPath4") == 0) {
-            ResetLevelDataVectors0041F0D0();
+            ResetLevelDataVectors();
             return;
         }
     }
@@ -184,7 +184,7 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, unsigned char force, unsi
         }
     }
     monster = monster_info->p3D;
-    if (monster->IsRenderable004C7C00(1) == 0) {
+    if (monster->IsRenderable(1) == 0) {
         return;
     }
     if (monster->movement_0c0.height_offset_0b8 -

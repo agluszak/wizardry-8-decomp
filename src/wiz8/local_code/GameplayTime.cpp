@@ -75,7 +75,7 @@
    the 2500ms camping-fatigue and 1400ms stamina ticks, and runs the surprise
    sequence entry/transition while the party is eligible. */
 // FUNCTION: WIZ8 0x00502010
-void UpdateGameClock00502010(int elapsed)
+void UpdateGameClock(int elapsed)
 {
     g_status_685170.world_clock +=
         static_cast<int>((g_status_685170.world_clock_ms_18dc + elapsed) / 1000);
@@ -87,7 +87,7 @@ void UpdateGameClock00502010(int elapsed)
         aging_ticks = g_status_685170.aging_accumulator_238b / 120000;
         if (aging_ticks != 0) {
             g_status_685170.aging_accumulator_238b %= 120000;
-            AdvanceTimedEffects00502D00(aging_ticks);
+            AdvanceTimedEffects(aging_ticks);
         }
     }
 
@@ -132,13 +132,13 @@ void UpdateGameClock00502010(int elapsed)
                 srAssertFail("uiTurnsElapsed > 0", GAMEPLAYTIME_CPP, 0x6d, 0);
             }
             g_status_685170.camp_tick_ms_2436 -= 4 * 0x9c4;
-            UpdateCampFatigue005044D0(4);
+            UpdateCampFatigue(4);
         } else {
             g_status_685170.camp_tick_ms_2436 += elapsed;
             unsigned int camp_ticks = g_status_685170.camp_tick_ms_2436 / 0x9c4;
             if (camp_ticks != 0) {
                 g_status_685170.camp_tick_ms_2436 -= camp_ticks * 0x9c4;
-                UpdateCampFatigue005044D0(static_cast<int>(camp_ticks));
+                UpdateCampFatigue(static_cast<int>(camp_ticks));
             }
         }
     } else {
@@ -154,7 +154,7 @@ void UpdateGameClock00502010(int elapsed)
         unsigned int stamina_ticks = g_status_685170.stamina_tick_ms_2483 / 0x578;
         if (stamina_ticks != 0) {
             g_status_685170.stamina_tick_ms_2483 %= 0x578;
-            UpdatePartyStamina00504670(static_cast<int>(stamina_ticks));
+            UpdatePartyStamina(static_cast<int>(stamina_ticks));
         }
 
         if (gXStatus.fSurprisePossible == 0 && AnyCharacterEngaged() == false &&
@@ -178,15 +178,15 @@ void UpdateGameClock00502010(int elapsed)
                     SetPortraitTargetPose(&gXStatus.monster_manager_entries[slot], 2);
                 }
             }
-            DisableMenuButtonBanks00598C70();
+            DisableMenuButtonBanks();
             RequestRedraw(0xff);
             gXStatus.fSurprisePossible = true;
             EnableRegionInput(0x137);
             ActivateDialogRegion(0x137);
             gXStatus.surprise_deadline_turns = 0;
-            CreateSurpriseFade0056B4E0();
+            CreateSurpriseFade();
             gXStatus.surprise_phase = 0;
-            StartMusicResource0048FC10("Camping.MPL", 0, 1);
+            StartMusicResource("Camping.MPL", 0, 1);
             gXStatus.combat_countdown = 0;
         }
     }
@@ -198,10 +198,10 @@ void UpdateGameClock00502010(int elapsed)
         SetViewDistance(12.0f);
         SetNavigatorLinkMode00452F50(0);
         g_game_time_accumulator_6598bc->ResetDurationScale();
-        ResetMonsterGeneratorTimers0048CBE0();
-        ReverseSurpriseFade0056B5F0();
+        ResetMonsterGeneratorTimers();
+        ReverseSurpriseFade();
         gXStatus.surprise_phase = 2;
-        ReleaseMarkedNpcBindings0050DA00();
+        ReleaseMarkedNpcBindings();
         StartLevelMusic(1, 1);
     }
 }
@@ -210,7 +210,7 @@ void UpdateGameClock00502010(int elapsed)
    refused outright in combat and while a level vector or a level flag blocks
    it; a blocking world-cursor node or a busy screen declines silently. */
 // FUNCTION: WIZ8 0x00502460
-void RequestCamp00502460(void)
+void RequestCamp(void)
 {
     if (gXStatus.fSurprisePossible != 0) {
         return;
@@ -243,15 +243,15 @@ void RequestCamp00502460(void)
                 SetPortraitTargetPose(&gXStatus.monster_manager_entries[slot], 2);
             }
         }
-        DisableMenuButtonBanks00598C70();
+        DisableMenuButtonBanks();
         RequestRedraw(0xff);
         gXStatus.fSurprisePossible = true;
         EnableRegionInput(0x137);
         ActivateDialogRegion(0x137);
         gXStatus.surprise_deadline_turns = 0;
-        CreateSurpriseFade0056B4E0();
+        CreateSurpriseFade();
         gXStatus.surprise_phase = 0;
-        StartMusicResource0048FC10("Camping.MPL", 0, 1);
+        StartMusicResource("Camping.MPL", 0, 1);
         gXStatus.combat_countdown = 0;
         return;
     }
@@ -263,7 +263,7 @@ void RequestCamp00502460(void)
    full redraw. The scripted ambush triggers call this to open the surprise
    sequence. */
 // FUNCTION: WIZ8 0x005025F0
-void BeginSurprise005025F0(void)
+void BeginSurprise(void)
 {
     unsigned int i;
 
@@ -273,7 +273,7 @@ void BeginSurprise005025F0(void)
             SetPortraitTargetPose(&gXStatus.monster_manager_entries[i], 2);
         }
     }
-    DisableMenuButtonBanks00598C70();
+    DisableMenuButtonBanks();
     RequestRedraw(0xff);
 }
 
@@ -294,7 +294,7 @@ void UpdateSurpriseMode(void)
     }
     switch (gXStatus.surprise_phase) {
     case 0:
-        if (UpdateSurpriseFade0056B6F0() != 0) {
+        if (UpdateSurpriseFade() != 0) {
             gXStatus.surprise_deadline_turns = g_status_685170.world_clock + 0x7080;
             DestroyUngroupedMonsters();
             SetViewDistance(2880.0f);
@@ -313,18 +313,18 @@ void UpdateSurpriseMode(void)
             SetViewDistance(12.0f);
             SetNavigatorLinkMode00452F50(0);
             g_game_time_accumulator_6598bc->ResetDurationScale();
-            ResetMonsterGeneratorTimers0048CBE0();
-            UpdateEnvironmentLight004834B0();
-            RefreshEnvironment00483560();
-            ReverseSurpriseFade0056B5F0();
+            ResetMonsterGeneratorTimers();
+            UpdateEnvironmentLight();
+            RefreshEnvironment();
+            ReverseSurpriseFade();
             gXStatus.surprise_phase = 2;
-            ReleaseMarkedNpcBindings0050DA00();
+            ReleaseMarkedNpcBindings();
             StartLevelMusic(1, 1);
         }
         break;
     case 2:
-        if (UpdateSurpriseFade0056B6F0() != 0) {
-            EndSurprise00502860();
+        if (UpdateSurpriseFade() != 0) {
+            EndSurprise();
             if (gXStatus.fCombatMode != 0) {
                 MonsterForward453160();
             }
@@ -339,7 +339,7 @@ void UpdateSurpriseMode(void)
    deadline path - without the environment-light refresh - and moves the
    sequence to phase 2. */
 // FUNCTION: WIZ8 0x00502790
-void AcknowledgeSurprise00502790(void)
+void AcknowledgeSurprise(void)
 {
     if (gXStatus.surprise_unengaged != 0 && gXStatus.fCombatMode == 0) {
         ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
@@ -349,10 +349,10 @@ void AcknowledgeSurprise00502790(void)
         SetViewDistance(12.0f);
         SetNavigatorLinkMode00452F50(0);
         g_game_time_accumulator_6598bc->ResetDurationScale();
-        ResetMonsterGeneratorTimers0048CBE0();
-        ReverseSurpriseFade0056B5F0();
+        ResetMonsterGeneratorTimers();
+        ReverseSurpriseFade();
         gXStatus.surprise_phase = 2;
-        ReleaseMarkedNpcBindings0050DA00();
+        ReleaseMarkedNpcBindings();
         StartLevelMusic(1, 1);
     }
 }
@@ -361,16 +361,16 @@ void AcknowledgeSurprise00502790(void)
    navigator and time-scale overrides, reverse the fade and restart the level
    music. */
 // FUNCTION: WIZ8 0x00502810
-void ResolveSurpriseHold00502810(void)
+void ResolveSurpriseHold(void)
 {
     if (gXStatus.surprise_phase == 1) {
         SetViewDistance(12.0f);
         SetNavigatorLinkMode00452F50(0);
         g_game_time_accumulator_6598bc->ResetDurationScale();
-        ResetMonsterGeneratorTimers0048CBE0();
-        ReverseSurpriseFade0056B5F0();
+        ResetMonsterGeneratorTimers();
+        ReverseSurpriseFade();
         gXStatus.surprise_phase = 2;
-        ReleaseMarkedNpcBindings0050DA00();
+        ReleaseMarkedNpcBindings();
         StartLevelMusic(1, 1);
     }
 }
@@ -379,10 +379,10 @@ void ResolveSurpriseHold00502810(void)
    rest event armed condition13_clock_2487 more than a world-clock day ago, clear the
    condition and queue the rest-benefit event for that character. */
 // FUNCTION: WIZ8 0x00502860
-void EndSurprise00502860(void)
+void EndSurprise(void)
 {
     gXStatus.fSurprisePossible = false;
-    ResolveSurpriseWake005029E0();
+    ResolveSurpriseWake();
     ClearActiveRegionIfMatches(0x137);
     DisableRegionInput(0x137);
 
@@ -419,15 +419,15 @@ void EndSurprise00502860(void)
    restore default view distance and navigator link mode, reset the time
    scale, restart the monster generator timers and release the fade overlay. */
 // FUNCTION: WIZ8 0x005029a0
-void RestoreSurpriseView005029A0(void)
+void RestoreSurpriseView(void)
 {
     gXStatus.fSurprisePossible = false;
     gXStatus.surprise_unengaged = 0;
     SetViewDistance(12.0f);
     SetNavigatorLinkMode00452F50(0);
     g_game_time_accumulator_6598bc->ResetDurationScale();
-    ResetMonsterGeneratorTimers0048CBE0();
-    DestroySurpriseFade0056B690();
+    ResetMonsterGeneratorTimers();
+    DestroySurpriseFade();
 }
 
 /* The camp-wake resolution inside the surprise teardown: each surviving
@@ -435,7 +435,7 @@ void RestoreSurpriseView005029A0(void)
    groggy condition, success posts a notice. Then every occupied portrait is
    posed awake with a randomized idle clock and the button banks re-enable. */
 // FUNCTION: WIZ8 0x005029e0
-void ResolveSurpriseWake005029E0(void)
+void ResolveSurpriseWake(void)
 {
     if (g_combat_state != 0 && g_combat_state->party_surprised_a52 != 0) {
         for (unsigned int slot = 0; slot < 8; ++slot) {
@@ -467,7 +467,7 @@ void ResolveSurpriseWake005029E0(void)
         entry->portrait_pose_dirty = 1;
         RequestRedraw(1 << slot);
     }
-    EnableMenuButtonBanks00598C10();
+    EnableMenuButtonBanks();
 }
 
 /* 0x00502B50: the hit-point, stamina and per-realm spell regeneration rates
@@ -475,7 +475,7 @@ void ResolveSurpriseWake005029E0(void)
    twelveth of a minute each; the modifier block's three regeneration-boost flags
    raise their rate by half. */
 // FUNCTION: WIZ8 0x00502b50
-void RebuildCharacterRegenRates00502B50(W8Character* character)
+void RebuildCharacterRegenRates(W8Character* character)
 {
     float rate;
     int realm;
@@ -509,7 +509,7 @@ void RebuildCharacterRegenRates00502B50(W8Character* character)
    rates plus the modifier block's two regen channels, raised by half while the corresponding
    regeneration-boost flags are set. */
 // FUNCTION: WIZ8 0x00502c50
-void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info)
+void RebuildMonsterRegenRates(W8MonsterInfo* monster_info)
 {
     float rate;
 
@@ -537,7 +537,7 @@ void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info)
    and monster, expires party and combat effect slots with expiry notices,
    ticks queued spell effects once per minute and runs the NPC-side passes. */
 // FUNCTION: WIZ8 0x00502d00
-void AdvanceTimedEffects00502D00(unsigned int minutes)
+void AdvanceTimedEffects(unsigned int minutes)
 {
     if (g_status_685170.real_elapsed_2391 + g_status_685170.frame_elapsed_2395 ==
         g_float_005ebb34) {
@@ -652,10 +652,10 @@ void AdvanceTimedEffects00502D00(unsigned int minutes)
         SoundPlay("Data\\Sound\\Misc\\GeneralMagic.wav", 0);
     }
     if (gXStatus.fSurprisePossible == 0) {
-        DetectMonsterGroups004E4AB0();
+        DetectMonsterGroups();
     }
-    AdvanceNpcTimers0050C7D0(minutes * 10);
-    ProcessNpcPendingEvents0050CA80();
+    AdvanceNpcTimers(minutes * 10);
+    ProcessNpcPendingEvents();
 }
 
 /* Advance one character's whole aging cycle by the elapsed minutes: the timed
@@ -863,26 +863,25 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
     }
     float stamina_scale = 0.0f;
 
-    if (CharacterHasTrait00547940(character, W8_TRAIT_HEALTH_REGENERATION) != 0) {
+    if (CharacterHasTrait(character, W8_TRAIT_HEALTH_REGENERATION) != 0) {
         if (health_scale == g_float_005ebb34) {
-            health_scale = ScaleValueByProfessionLevel005479B0(
-                               character, W8_TRAIT_HEALTH_REGENERATION, 16.67f) *
-                           g_float_005ebc7c;
+            health_scale =
+                ScaleValueByProfessionLevel(character, W8_TRAIT_HEALTH_REGENERATION, 16.67f) *
+                g_float_005ebc7c;
         } else {
-            health_scale = ScaleValueByProfessionLevel005479B0(
-                               character, W8_TRAIT_HEALTH_REGENERATION, 16.67f) *
-                           health_scale;
+            health_scale =
+                ScaleValueByProfessionLevel(character, W8_TRAIT_HEALTH_REGENERATION, 16.67f) *
+                health_scale;
         }
     }
-    if (CharacterHasTrait00547940(character, W8_TRAIT_STAMINA_REGENERATION) != 0 &&
+    if (CharacterHasTrait(character, W8_TRAIT_STAMINA_REGENERATION) != 0 &&
         gXStatus.fCombatMode != 0) {
-        stamina_scale =
-            ScaleValueByProfessionLevel005479B0(character, W8_TRAIT_STAMINA_REGENERATION, 3.3f);
+        stamina_scale = ScaleValueByProfessionLevel(character, W8_TRAIT_STAMINA_REGENERATION, 3.3f);
     }
-    if (CharacterHasTrait00547940(character, 0x1a) != 0 && spell_scale > g_float_005ebb34) {
+    if (CharacterHasTrait(character, 0x1a) != 0 && spell_scale > g_float_005ebb34) {
         spell_scale = spell_scale * g_float_005ec340;
     }
-    if (CharacterHasTrait00547940(character, W8_TRAIT_LIZARDMAN_SLOW_MAGIC_RECOVERY) != 0 &&
+    if (CharacterHasTrait(character, W8_TRAIT_LIZARDMAN_SLOW_MAGIC_RECOVERY) != 0 &&
         spell_scale > g_float_005ebb34) {
         spell_scale = spell_scale * g_float_005ebccc;
     }
@@ -952,10 +951,10 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
         }
     }
 
-    if (CharacterHasTrait00547940(character, W8_TRAIT_MAKE_POTIONS) != 0) {
+    if (CharacterHasTrait(character, W8_TRAIT_MAKE_POTIONS) != 0) {
         if (gXStatus.fSurprisePossible != 0) {
             if (character->potion_brew_cooldown_0b65 == 0) {
-                BrewAlchemistPotion00548E60(character);
+                BrewAlchemistPotion(character);
             }
         } else if (character->potion_brew_cooldown_0b65 != 0) {
             if (minutes >= character->potion_brew_cooldown_0b65) {
@@ -1006,7 +1005,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
 
             probe.y += g_float_005ebc64;
             GetCameraPosition(&camera);
-            if (ProjectPointThroughCamera004BE940(&probe) == 0 &&
+            if (ProjectPointThroughCamera(&probe) == 0 &&
                 g_octree_6598a4->HasLineOfSight(&camera, &probe, 1) == 0) {
                 srVector3T<float> notify_position = last_seen;
                 unsigned int group_index = GetMonsterGroupIndexByID(
@@ -1062,8 +1061,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                         monster_info->party_threat.visible_to_player_25 == 0) {
                         srVector3T<float> next_position;
 
-                        monster->movement_0c0.attachment_0ac->GetNextPosition00456660(
-                            &next_position);
+                        monster->movement_0c0.attachment_0ac->GetNextPosition(&next_position);
                         if (next_position.Length() == static_cast<float>(g_zero_005ebb40)) {
                             next_position = monster->GetPosition();
                         }
@@ -1072,7 +1070,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                             srVector3T<float> probe = next_position;
 
                             GetCameraPosition(&camera);
-                            if (ProjectPointThroughCamera004BE940(&probe) == 0 &&
+                            if (ProjectPointThroughCamera(&probe) == 0 &&
                                 g_octree_6598a4->HasLineOfSight(&camera, &probe, 1) == 0) {
                                 srVector3T<float> notify_position = next_position;
                                 unsigned int group_index = GetMonsterGroupIndexByID(
@@ -1107,7 +1105,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                 location2 = monster->GetPosition();
                 probe = location2;
                 probe.y += g_float_005ebc64;
-                if (ProjectPointThroughCamera004BE940(&location2) == 0 &&
+                if (ProjectPointThroughCamera(&location2) == 0 &&
                     g_octree_6598a4->HasLineOfSight(&camera, &probe, 1) == 0) {
                     if (monster->formation.x == g_float_005ebb34 &&
                         monster->formation.y == g_float_005ebb34 &&
@@ -1116,7 +1114,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                     }
                     probe = monster->formation;
                     probe.y += g_float_005ebc64;
-                    if (ProjectPointThroughCamera004BE940(&location2) == 0 &&
+                    if (ProjectPointThroughCamera(&location2) == 0 &&
                         g_octree_6598a4->HasLineOfSight(&camera, &probe, 1) == 0) {
                         if (monster->formation.x == g_float_005ebb34 &&
                             monster->formation.y == g_float_005ebb34 &&
@@ -1320,7 +1318,7 @@ after_early: {
    stamina absorbs the roll first, overflow becomes damage. The first roll
    raises the fatigued flag and posts the notice once. */
 // FUNCTION: WIZ8 0x005044d0
-void UpdateCampFatigue005044D0(int ticks)
+void UpdateCampFatigue(int ticks)
 {
     if (g_status_685170.world_suspended_2390 != 0) {
         return;
@@ -1376,7 +1374,7 @@ void UpdateCampFatigue005044D0(int ticks)
    rest flags, then ticks each eligible character. While the party is
    fatigued, characters lacking the rest item are skipped. */
 // FUNCTION: WIZ8 0x00504670
-void UpdatePartyStamina00504670(int ticks)
+void UpdatePartyStamina(int ticks)
 {
     if (static_cast<char>(GetLevelDataFlag8()) != 0) {
         g_status_685170.wait_state_2399 = 1;
@@ -1398,7 +1396,7 @@ void UpdatePartyStamina00504670(int ticks)
                                 static_cast<W8ItemInstance*>(0)) == 0) {
             continue;
         }
-        RegenCharacterStamina00504730(slot, static_cast<unsigned int>(ticks));
+        RegenCharacterStamina(slot, static_cast<unsigned int>(ticks));
     }
 }
 
@@ -1407,7 +1405,7 @@ void UpdatePartyStamina00504670(int ticks)
    wait state (camp halved, resting states reduced, surprise full), frost
    quarters it and the trait rerolls it through the profession level. */
 // FUNCTION: WIZ8 0x00504730
-void RegenCharacterStamina00504730(int party_slot, unsigned int elapsed)
+void RegenCharacterStamina(int party_slot, unsigned int elapsed)
 {
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
     unsigned int frost = character->uiCondition[2];
@@ -1434,10 +1432,10 @@ void RegenCharacterStamina00504730(int party_slot, unsigned int elapsed)
     if (frost != 0) {
         scale *= g_navigator_vertical_phase_step_005ebcc8;
     }
-    if (CharacterHasTrait00547940(character, 0)) {
+    if (CharacterHasTrait(character, 0)) {
         if (scale == g_float_005ebb34) {
             if (gXStatus.fCombatMode != 0) {
-                scale = ScaleValueByProfessionLevel005479B0(character, 0, 3.3f);
+                scale = ScaleValueByProfessionLevel(character, 0, 3.3f);
             }
         } else {
             scale *= g_float_005ec3b8;

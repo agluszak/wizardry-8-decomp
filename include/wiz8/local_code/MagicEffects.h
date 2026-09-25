@@ -33,10 +33,9 @@ void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, int real
 /* 0x00551BA0 sits before the unit's assertion hull rather than inside it;
    its own assertion names Magic Effects.cpp, which attributes it to this
    unit. GroupAttacks.cpp's call sites need the declaration. */
-bool ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* target,
-                                   int condition_id, int realm, unsigned int power_level,
-                                   int argument, int magnitude, char announce_resistance,
-                                   char announce_condition, int duration);
+bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target, int condition_id,
+                           int realm, unsigned int power_level, int argument, int magnitude,
+                           char announce_resistance, char announce_condition, int duration);
 /* 0x005520D0: the saving throw against a condition. A dead target is beyond
    reach and counts as resisting. */
 char TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_level,
@@ -66,8 +65,8 @@ void DrainTargetsLife(W8SpellEffectEntry* effect);                       /* 0x00
 char HealTargets(W8SpellEffectEntry* effect);                            /* 0x0054F190 */
 char RestoreTargetsStamina(W8SpellEffectEntry* effect);                  /* 0x0054F520 */
 void FatigueTargets(W8SpellEffectEntry* effect);                         /* 0x0054F8C0 */
-void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, int chance,
-                                    int argument); /* 0x0054D5C0 */
+void InflictConditionAttack(W8SpellEffectEntry* effect, int condition, int chance,
+                            int argument); /* 0x0054D5C0 */
 /* 0x00553910: the target's own turns left on a condition; condition seven
    also hands its argument back through `argument`. */
 unsigned int GetTargetConditionTurns(W8SpellEffectEntry* effect, int condition, int* argument);
@@ -93,10 +92,8 @@ void RecalculateCharacterResistances(W8Character* character);
    path: each rolls or takes its amount, runs it through the target's damage
    reduction, applies it, and feeds the running combat totals and the pending
    damage-report queue inside g_combat_state. */
-void ApplyDiceDamageToCharacter00553350(int party_slot, W8TargetSource* source,
-                                        W8Enchantment* enchantment);
-void ApplyDiceDamageToMonster00553540(W8MonsterInfo* monster_info, W8TargetSource* source,
-                                      W8Enchantment* enchantment);
-void ApplyDirectDamageToCharacter005535D0(int party_slot, W8TargetSource* source, int damage);
-void ApplyDirectDamageToMonster00553770(W8MonsterInfo* monster_info, W8TargetSource* source,
-                                        int damage);
+void ApplyDiceDamageToCharacter(int party_slot, W8TargetSource* source, W8Enchantment* enchantment);
+void ApplyDiceDamageToMonster(W8MonsterInfo* monster_info, W8TargetSource* source,
+                              W8Enchantment* enchantment);
+void ApplyDirectDamageToCharacter(int party_slot, W8TargetSource* source, int damage);
+void ApplyDirectDamageToMonster(W8MonsterInfo* monster_info, W8TargetSource* source, int damage);

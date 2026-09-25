@@ -211,7 +211,7 @@ void UpdateMonsterGroups(char staggered)
             continue;
         }
         monster_group = GetMonsterGroupByListIndex(group_list_index);
-        if (MonsterGroupAllMembersDying00511850(monster_group) != 0) {
+        if (MonsterGroupAllMembersDying(monster_group) != 0) {
             continue;
         }
         monster_info = MonsterInfoFromID(113, MONSTER_AI_CPP, monster_group->leader_location_id, 1);
@@ -232,7 +232,7 @@ void UpdateMonsterGroups(char staggered)
         if (monster_group->members_active != 0 && monster_group->fInCombat == 0) {
             double far_clip;
             if (monster_group->leader_group_id == 0) {
-                RefreshMonsterGroupHostility005113A0(monster_group);
+                RefreshMonsterGroupHostility(monster_group);
             }
             far_clip = WorldGetFarClip(GetWorld());
             if (nearest_distance <= far_clip + far_clip) {
@@ -335,9 +335,9 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
                 best_range = record->attacks[attack].range_category;
             }
         }
-        if (MonsterApproachStartupNavigator004C5FF0(monster_info->p3D,
-                                                    CalcRangeDistance((W8RangeCategory)best_range) *
-                                                        g_float_005ec390) == 0) {
+        if (MonsterApproachStartupNavigator(monster_info->p3D,
+                                            CalcRangeDistance((W8RangeCategory)best_range) *
+                                                g_float_005ec390) == 0) {
             return;
         }
         monster_group = GetMonsterGroupByListIndex(
@@ -470,7 +470,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
             srVector3T<float> delta;
             srVector3T<float> patrol;
 
-            monster->GetPatrolPoint004CA360(&patrol);
+            monster->GetPatrolPoint(&patrol);
             delta = patrol - monster->GetPosition();
             if (delta.Length() >= g_double_005ee768) {
                 *decision = monster_info->ai_mode_255;
@@ -519,10 +519,10 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 }
                 range = (float)radius;
                 position = monster->GetPosition();
-                if (g_octree_6598a4->TestNoiseLineOfSight00434220(&position, &noise_position,
-                                                                  &range, &hops) != 0 &&
-                    NoiseHearingMargin004F0E50(monster_info->heard_noise_radius_43,
-                                               static_cast<int>(range), hops) > 0) {
+                if (g_octree_6598a4->TestNoiseLineOfSight(&position, &noise_position, &range,
+                                                          &hops) != 0 &&
+                    NoiseHearingMargin(monster_info->heard_noise_radius_43, static_cast<int>(range),
+                                       hops) > 0) {
                     mode = 4;
                     changed = true;
                 } else {
@@ -547,7 +547,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 srVector3T<float> delta;
                 srVector3T<float> patrol;
 
-                monster->GetPatrolPoint004CA360(&patrol);
+                monster->GetPatrolPoint(&patrol);
                 delta = patrol - monster->GetPosition();
                 if (delta.Length() < g_double_005ee768) {
                     mode = 0;
@@ -570,7 +570,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 int next;
 
                 mode = 7;
-                monster->GetPatrolPoint004CA360(&patrol);
+                monster->GetPatrolPoint(&patrol);
                 delta = patrol - monster->GetPosition();
                 if (delta.Length() >= g_double_005ee768) {
                     break;
@@ -645,7 +645,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
                 best_range = record->attacks[attack].range_category;
             }
         }
-        if (MonsterApproachStartupNavigator004C5FF0(
+        if (MonsterApproachStartupNavigator(
                 monster, CalcRangeDistance((W8RangeCategory)best_range) * g_float_005ec390) == 1) {
             if (IsSightRangeOverridden()) {
                 monster_group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
@@ -659,13 +659,13 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         ClearMonsterPathAndResume(monster_info);
         break;
     case 2:
-        MonsterLinkToStartupNavigator004C6030(monster);
+        MonsterLinkToStartupNavigator(monster);
         break;
     case 3:
         if (monster_info->ubDisposition == DISP_HOSTILE) {
             srAssertFail("pMonsterInfo->ubDisposition != DISP_HOSTILE", MONSTER_AI_CPP, 810, 0);
         }
-        MonsterApproachStartupNavigator004C5FF0(monster, 3000.0);
+        MonsterApproachStartupNavigator(monster, 3000.0);
         break;
     case 4:
         position = monster_info->heard_noise_position_37;
@@ -709,14 +709,14 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         decision = 0;
         break;
     case 7:
-        if (monster->GetPatrolPoint004CA360(&patrol_point) == 0) {
+        if (monster->GetPatrolPoint(&patrol_point) == 0) {
             decision = 0;
             break;
         }
         if (MonsterForward452630(monster, &patrol_point) != 0) {
             break;
         }
-        if (monster->IsWithinWorldRange004CA2A0() == 0 &&
+        if (monster->IsWithinWorldRange() == 0 &&
             monster_info->party_threat.sight_state_04 == W8_SIGHT_SEEN) {
             monster_group = GetMonsterGroupByListIndex(
                 GetMonsterGroupIndexByID(0x350, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
@@ -767,7 +767,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         if (effect == 0 || (visual = effect->spell_visuals.data[0]) == 0) {
             break;
         }
-        if (monster->SetMovementTargetToNavigator004526C0(visual, 2500.0) == 0) {
+        if (monster->SetMovementTargetToNavigator(visual, 2500.0) == 0) {
             position = visual->GetPosition();
             monster->AimAtPosition(&position);
         }
@@ -1019,7 +1019,7 @@ members:
                     if (leader != 0 && leader->fActive != 0) {
                         destination = g_startup_world_659c0c->GetPosition();
                         source = leader->p3D->GetPosition();
-                        waypoint_result = g_octree_6598a4->pathing_180->TestWaypointSpan0045A1B0(
+                        waypoint_result = g_octree_6598a4->pathing_180->TestWaypointSpan(
                             &source, &destination, 0, 0);
                     }
                     waypoint_checked = true;
@@ -1221,7 +1221,7 @@ targets_chosen:
                 other = MonsterGetScriptPartByLocationIndex(index);
                 if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
                     GetMonsterDataForInfo(other)->untargetable_24a == 0 && other->fInCombat != 0 &&
-                    MonsterHostility00546F80(monster_info, other) == disposition_needed &&
+                    MonsterHostility(monster_info, other) == disposition_needed &&
                     MonsterAttackReachesMonster(monster_info, record, attack, other) != 0) {
                     for (mode_bit = 0; mode_bit < 9; ++mode_bit) {
                         if ((record->attacks[attack].attack_modes & (1 << mode_bit)) != 0) {
@@ -1897,7 +1897,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             member = MonsterGetScriptPartByLocationIndex(index);
             if (member->fActive != 0 && member->hp_current != 0 &&
                 member->highest_condition < 0x12 && member->fInCombat != 0 &&
-                MonsterHostility00546F80(monster_info, member) == 2 &&
+                MonsterHostility(monster_info, member) == 2 &&
                 MonsterAttackReachesMonster(monster_info, record, 0, member) != 0) {
                 ResetCombatSlot(&slot);
                 slot.iType = W8_TARGET_KIND_MONSTER;
@@ -1930,7 +1930,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             member = MonsterGetScriptPartByLocationIndex(index);
             if (member != monster_info && member->fActive != 0 && member->hp_current != 0 &&
                 member->highest_condition < 0x12 && member->fInCombat != 0 &&
-                MonsterHostility00546F80(monster_info, member) == 1 &&
+                MonsterHostility(monster_info, member) == 1 &&
                 MonsterAttackReachesMonster(monster_info, record, 0, member) != 0) {
                 ResetCombatSlot(&slot);
                 slot.iType = W8_TARGET_KIND_MONSTER;
@@ -1963,7 +1963,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             monster_group = GetMonsterGroupByListIndex(index);
             if (monster_group->group_id != monster_info->monster_group_id &&
                 monster_group->members_active != 0 && monster_group->fInCombat != 0 &&
-                MonsterGroupAllMembersDying00511850(monster_group) == 0 &&
+                MonsterGroupAllMembersDying(monster_group) == 0 &&
                 MonsterGroupHalfSpellTargetsValid(monster_info, spell_id, monster_group) != 0) {
                 ResetCombatSlot(&slot);
                 slot.iType = W8_TARGET_KIND_GROUP;
@@ -1989,7 +1989,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             member = MonsterGetScriptPartByLocationIndex(index);
             if (member != monster_info && member->fActive != 0 && member->hp_current != 0 &&
                 member->highest_condition < 0x12 && member->fInCombat != 0 &&
-                MonsterHostility00546F80(monster_info, member) == 1 &&
+                MonsterHostility(monster_info, member) == 1 &&
                 MonsterAttackReachesMonster(monster_info, record, 0, member) != 0) {
                 ResetCombatSlot(&slot);
                 slot.iType = W8_TARGET_KIND_MONSTER;
@@ -2091,7 +2091,7 @@ void CheckMonsterGroupsLeaveCombat(void)
     for (group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
         group = GetMonsterGroupByListIndex(group_index);
         if (group->members_active == 0 || group->fInCombat == 0 ||
-            MonsterGroupAllMembersDying00511850(group) != 0) {
+            MonsterGroupAllMembersDying(group) != 0) {
             continue;
         }
         if (group->ubDisposition == DISP_NEUTRAL) {
@@ -2152,7 +2152,7 @@ void CheckMonsterGroupsLeaveCombat(void)
     for (group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
         group = GetMonsterGroupByListIndex(group_index);
         if (group->members_active != 0 && group->fInCombat != 0 &&
-            MonsterGroupAllMembersDying00511850(group) == 0) {
+            MonsterGroupAllMembersDying(group) == 0) {
             MonsterGroupLeaveCombat(group);
         }
     }
@@ -2186,7 +2186,7 @@ bool MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_only)
             other = MonsterGetScriptPartByLocationIndex(index);
             if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
                 other->highest_condition < 0x12 && other->fInCombat != 0 &&
-                MonsterHostility00546F80(monster_info, other) == 1 &&
+                MonsterHostility(monster_info, other) == 1 &&
                 (record = FindMonToMonVisibility(monster_info, other)) != 0 &&
                 record->sight_state_04 != W8_SIGHT_UNSEEN) {
                 return 0;
@@ -2265,14 +2265,14 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int ho
             other = MonsterGetScriptPartByLocationIndex(index);
             if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
                 other->highest_condition < 0x12 && other->fInCombat != 0) {
-                disposition = MonsterHostility00546F80(monster_info, other);
+                disposition = MonsterHostility(monster_info, other);
                 if (hostility == 3 || disposition == hostility ||
                     (hostility == 4 && disposition != 0)) {
                     record = FindMonToMonVisibility(monster_info, other);
                     if (record != 0 && record->sight_state_04 == W8_SIGHT_SEEN &&
                         record->los_flags_05[2] != 0) {
                         if (within_reach == 0 ||
-                            monster_info->p3D->GetDistanceToMonster004C7DD0(other->p3D) <= reach) {
+                            monster_info->p3D->GetDistanceToMonster(other->p3D) <= reach) {
                             return 1;
                         }
                     }
@@ -2445,7 +2445,7 @@ short IsMonsterControlPointInRange(W8MonsterInfo* monster_info)
         return 0;
     }
     anchor_navigator = visual;
-    in_range = monster_info->p3D->SetMovementTargetToNavigator004526C0(anchor_navigator, 2500.0);
+    in_range = monster_info->p3D->SetMovementTargetToNavigator(anchor_navigator, 2500.0);
     if (in_range == 0) {
         party = anchor_navigator->GetPosition();
         monster_info->p3D->AimAtPosition(&party);
@@ -2474,7 +2474,7 @@ bool MonsterGroupHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id
         member = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0xdc9, MONSTER_AI_CPP, location_id, 1));
         if (member->fActive != 0 && member->hp_current != 0 && member->highest_condition < 0x12 &&
-            member->fInCombat != 0 && MonsterHostility00546F80(monster_info, member) == 1) {
+            member->fInCombat != 0 && MonsterHostility(monster_info, member) == 1) {
             ++eligible;
             ResetCombatSlot(&slot);
             slot.iType = W8_TARGET_KIND_MONSTER;
@@ -2550,7 +2550,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
                 other->fActive != 0 && other->fInCombat != 0 && other->hp_current != 0 &&
                 other->ubDisposition == DISP_HOSTILE) {
                 other_distance = other->p3D->GetDistanceToPlayer004C7CB0();
-                monster_distance = member->p3D->GetDistanceToMonster004C7DD0(other->p3D);
+                monster_distance = member->p3D->GetDistanceToMonster(other->p3D);
                 if (monster_distance + member_distance < other_distance * g_float_005ee780 &&
                     (member_distance < other_distance || monster_distance < other_distance)) {
                     return 1;
@@ -2696,8 +2696,7 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
     float path_distance;
     srVector3T<float> party;
 
-    if (MonsterGroupAllMembersDying00511850(monster_group) != 0 ||
-        monster_group->members_active == 0) {
+    if (MonsterGroupAllMembersDying(monster_group) != 0 || monster_group->members_active == 0) {
         return 0;
     }
     if (monster_group->leader_location_id == -0x32323233 ||

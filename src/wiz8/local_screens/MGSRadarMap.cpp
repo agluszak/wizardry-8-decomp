@@ -151,13 +151,13 @@ static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit)
         icon->setParent(g_scene_square_65965c, 1);
         icon->overlay_scene_flag_160 |= 1;
         if (lit == 0) {
-            icon->SetGlowEnabled00480EB0(0);
+            icon->SetGlowEnabled(0);
         } else {
             srVector4T<float> first;
             srVector4T<float> second;
             int group = sector - sector % 3;
 
-            icon->SetGlowEnabled00480EB0(1);
+            icon->SetGlowEnabled(1);
             second.w = 1.0f;
             first.w = 1.0f;
             second.x = g_radar_blip_colors_0064ca90[group + 2][0];
@@ -166,7 +166,7 @@ static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit)
             first.x = g_radar_blip_colors_0064ca90[group][0];
             first.y = g_radar_blip_colors_0064ca90[group][1];
             first.z = g_radar_blip_colors_0064ca90[group][2];
-            icon->SetGlowColors00480FF0(&first, &second);
+            icon->SetGlowColors(&first, &second);
             icon->render_state_164.render_depth = 1000;
         }
     }
@@ -177,15 +177,15 @@ static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit)
 void ReleaseRadarMap(void)
 {
     if (g_radar_map_0069c0dc != 0) {
-        ReleaseObject004257F0(g_radar_map_0069c0dc);
+        ReleaseObject(g_radar_map_0069c0dc);
         g_radar_map_0069c0dc = 0;
     }
     if (g_radar_frame_0069c088 != 0) {
-        ReleaseObject004257F0(g_radar_frame_0069c088);
+        ReleaseObject(g_radar_frame_0069c088);
         g_radar_frame_0069c088 = 0;
     }
     if (g_radar_compass_0069bf60 != 0) {
-        ReleaseObject004257F0(g_radar_compass_0069bf60);
+        ReleaseObject(g_radar_compass_0069bf60);
         g_radar_compass_0069bf60 = 0;
     }
     for (int sector = 0; sector < 18; ++sector) {
@@ -213,15 +213,15 @@ void RefreshRadarMap(void)
         return;
     }
     if (g_radar_map_0069c0dc != 0) {
-        ReleaseObject004257F0(g_radar_map_0069c0dc);
+        ReleaseObject(g_radar_map_0069c0dc);
         g_radar_map_0069c0dc = 0;
     }
     if (g_radar_frame_0069c088 != 0) {
-        ReleaseObject004257F0(g_radar_frame_0069c088);
+        ReleaseObject(g_radar_frame_0069c088);
         g_radar_frame_0069c088 = 0;
     }
     if (g_radar_compass_0069bf60 != 0) {
-        ReleaseObject004257F0(g_radar_compass_0069bf60);
+        ReleaseObject(g_radar_compass_0069bf60);
         g_radar_compass_0069bf60 = 0;
     }
     for (sector = 0; sector < 18; ++sector) {
@@ -334,12 +334,12 @@ void UpdateRadarBlips(void)
         return;
     }
     if (g_radar_compass_0069bf60 != 0) {
-        RotateNodeInDegrees00425840(g_radar_compass_0069bf60,
-                                    g_status_685170.party_facing -
-                                        static_cast<int>(g_status_685170.party_heading) + 0x168);
+        RotateNodeInDegrees(g_radar_compass_0069bf60,
+                            g_status_685170.party_facing -
+                                static_cast<int>(g_status_685170.party_heading) + 0x168);
     }
     if (g_radar_frame_0069c088 != 0) {
-        RotateNodeInDegrees00425840(g_radar_frame_0069c088, g_status_685170.party_facing);
+        RotateNodeInDegrees(g_radar_frame_0069c088, g_status_685170.party_facing);
     }
     GetCameraPosition(&camera);
     detect_all = PartyHasCondition(0x40);
@@ -387,7 +387,7 @@ void UpdateRadarBlips(void)
                  MonsterGetHighlightMask(monster)) != 0) {
                 hostile = 1;
             }
-            if (monster->IsRenderable004C7C00(1) == 0 && detect_all == 0) {
+            if (monster->IsRenderable(1) == 0 && detect_all == 0) {
                 if (info->party_threat.sight_state_04 == W8_SIGHT_RECENT) {
                     monster->GetAnimationBounds(&bounds_min, &bounds_max);
                     center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
@@ -451,7 +451,7 @@ void UpdateRadarBlips(void)
         info = GetNextMonsterInfo(0);
     }
 
-    W8Missile* missile = NextMissile004A2760(1);
+    W8Missile* missile = NextMissile(1);
     while (missile != 0) {
         if (missile->impacting_1e1 == 0) {
             missile->GetAnimationBounds(&bounds_min, &bounds_max);
@@ -468,7 +468,7 @@ void UpdateRadarBlips(void)
                 PlaceRadarBlip(&delta, 5, 0);
             }
         }
-        missile = NextMissile004A2760(0);
+        missile = NextMissile(0);
     }
     SetRendererModePair();
 }

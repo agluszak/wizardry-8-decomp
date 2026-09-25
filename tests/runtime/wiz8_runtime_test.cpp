@@ -647,7 +647,7 @@ static void PrepareMainGameFixtureOnGameThread(void* opaque)
         request->failure = "character-allocation-incomplete";
         return;
     }
-    DeriveCharacterPersonality004EFA30(&character);
+    DeriveCharacterPersonality(&character);
     CalcCharacterTableValue(&character);
     if (character.portrait_index < 0 || character.portrait_index >= 0x50) {
         request->failure = "character-portrait-invalid";

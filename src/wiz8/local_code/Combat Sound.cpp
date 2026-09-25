@@ -209,7 +209,7 @@ static inline char* LookupMaterialImpactSound(int weapon_class, int target_mater
 }
 
 // FUNCTION: WIZ8 0x00549EB0
-char* GetMaterialImpactSound00549EB0(int weapon_class, int target_material)
+char* GetMaterialImpactSound(int weapon_class, int target_material)
 {
     return LookupMaterialImpactSound(weapon_class, target_material);
 }
@@ -279,8 +279,8 @@ void MakePCAttackSound00549EF0(W8CombatCharacterRow* row, const W8HandAttack* ha
 }
 
 // FUNCTION: WIZ8 0x00549F50
-void MakePCMeleeHitSound00549F50(int iChar, const W8HandAttack* hand_attack, W8CombatSlot* target,
-                                 int hit_location, int volume)
+void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlot* target,
+                         int hit_location, int volume)
 {
     int weapon_class;
     int target_material = -1;
@@ -327,8 +327,8 @@ void MakePCHitSound(W8Missile* missile, W8CombatSlot* target, int hit_location, 
 }
 
 // FUNCTION: WIZ8 0x0054A270
-void MakeMonsterHitSound0054A270(const W8MonsterAttack* attack, W8CombatSlot* target,
-                                 int hit_location, int volume)
+void MakeMonsterHitSound(const W8MonsterAttack* attack, W8CombatSlot* target, int hit_location,
+                         int volume)
 {
     int weapon_class;
     /* Defined so the assert-failure path still reaches the material lookup;

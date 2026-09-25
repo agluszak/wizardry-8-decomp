@@ -244,22 +244,22 @@ W8AutomapNote* g_automap_editing_note;
 // GLOBAL: WIZ8 0x0068f298
 W8AutomapNote* g_automap_hovered_note;
 
-unsigned char HandleAutomapKey00584690(const InputAtom* input);
-unsigned char HandleAutomapNoteInput00584250(const InputAtom* input);
-unsigned char ShowAutomapNoteTooltip00581460(W8AutomapNote* note);
-unsigned char ZoomAutomapIn0057FFC0(const srVector3T<float>* point);
-void SetAutomapCameraPoint0057FC70(srVector3T<float>* position);
+unsigned char HandleAutomapKey(const InputAtom* input);
+unsigned char HandleAutomapNoteInput(const InputAtom* input);
+unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note);
+unsigned char ZoomAutomapIn(const srVector3T<float>* point);
+void SetAutomapCameraPoint(srVector3T<float>* position);
 void SetAutomapButtonMode(int update);
-void RenderAutomapFrame00581030(void);
-void UpdateAutomapPageButtons00581200(void);
+void RenderAutomapFrame(void);
+void UpdateAutomapPageButtons(void);
 void ResetAutomapLighting(void);
 void LightAutomapCell(const srVector3T<float>* position);
-unsigned int LightPendingAutomapCells005807B0(unsigned int max_count);
+unsigned int LightPendingAutomapCells(unsigned int max_count);
 int RestoreAutomapRect(W8ScreenRect* rect);
-void SetAutomapLayer00580F20(int layer);
-stModelInstance2D* CreateAutomapItemMarker005833E0(int item_id);
-stModelInstance2D* CreateAutomapMonsterMarker00583710(int type);
-stModelInstance2D* CreateAutomapTextMarker005839D0(void);
+void SetAutomapLayer(int layer);
+stModelInstance2D* CreateAutomapItemMarker(int item_id);
+stModelInstance2D* CreateAutomapMonsterMarker(int type);
+stModelInstance2D* CreateAutomapTextMarker(void);
 
 // FUNCTION: WIZ8 0x00581000
 bool HasAutomapLayer(int layer)
@@ -338,8 +338,8 @@ void ResetAutomapView005817D0(void)
         g_automap_grid_max_0068f1c8.y = 250000.0f;
         g_automap_grid_max_0068f1c8.z = 250000.0f;
     } else {
-        g_octree_6598a4->spatial_000.GetClippedBounds0046CE30(&g_automap_grid_min_0068f1d8,
-                                                              &g_automap_grid_max_0068f1c8);
+        g_octree_6598a4->spatial_000.GetClippedBounds(&g_automap_grid_min_0068f1d8,
+                                                      &g_automap_grid_max_0068f1c8);
     }
     g_automap_grid_origin_0068f240 = g_automap_grid_min_0068f1d8;
     g_automap_grid_center_0068f1f8.x =
@@ -382,7 +382,7 @@ void ResetAutomapView005817D0(void)
    record table knows the cell, mark it visited and return 1 only if that bit
    was newly raised — used by the world camera update to gate automap lighting. */
 // FUNCTION: WIZ8 0x00581B30
-bool AutomapHasCellAt00581B30(const srVector3T<float>* position)
+bool AutomapHasCellAt(const srVector3T<float>* position)
 {
     srVector3T<float> relative(position->x - g_automap_grid_origin_0068f240.x,
                                position->y - g_automap_grid_origin_0068f240.y,
@@ -428,13 +428,13 @@ void RestoreAutomapCameraPosition(void)
 {
     g_automap_position.x = g_automap_saved_camera.position.x;
     g_automap_position.z = g_automap_saved_camera.position.z;
-    SetAutomapCameraPoint0057FC70(&g_automap_position);
+    SetAutomapCameraPoint(&g_automap_position);
 }
 
 /* Build the sixteen chrome buttons from the adjacent catalog / callback /
    tooltip / position tables. */
 // FUNCTION: WIZ8 0x00583BC0
-void CreateAutomapButtons00583BC0(void)
+void CreateAutomapButtons(void)
 {
     int index;
     int base_frame;
@@ -472,7 +472,7 @@ void AutomapZoomInButton(void)
     center.x = 0.5f;
     center.y = 0.5f;
     center.z = 0.0f;
-    ZoomAutomapIn0057FFC0(&center);
+    ZoomAutomapIn(&center);
 }
 
 /* Mirror of the right-click zoom-out path: one step when the camera is below
@@ -489,7 +489,7 @@ void AutomapZoomOutButton(void)
                                        g_automap_bounds_min.z + g_automap_bounds_max.z);
             position = position * 0.5;
             position.y = g_automap_top_y;
-            SetAutomapCameraPoint0057FC70(&position);
+            SetAutomapCameraPoint(&position);
             SetAutomapToolCursor(g_automap_tool);
             SetAutomapButtonMode(0);
         } else {
@@ -507,7 +507,7 @@ void AutomapZoomOutButton(void)
                 }
                 g_automap_zoom = g_automap_position.y - ground_y;
                 g_automap_zoom_mode = 1;
-                SetAutomapCameraPoint0057FC70(&g_automap_position);
+                SetAutomapCameraPoint(&g_automap_position);
                 int tool = g_automap_tool;
                 if (g_automap_tool == 0 && g_automap_cursor_inside != 0) {
                     if (g_automap_zoom <= g_float_005ec360) {
@@ -530,7 +530,7 @@ void AutomapZoomOutButton(void)
                                            g_automap_bounds_min.z + g_automap_bounds_max.z);
                 position = position * 0.5;
                 position.y = g_automap_top_y;
-                SetAutomapCameraPoint0057FC70(&position);
+                SetAutomapCameraPoint(&position);
                 SetAutomapToolCursor(g_automap_tool);
                 SetAutomapButtonMode(0);
             }
@@ -584,7 +584,7 @@ void AutomapCyclePageButton(void)
 void AutomapLayerDownButton(void)
 {
     if (g_automap_layer > 0) {
-        SetAutomapLayer00580F20(g_automap_layer - 1);
+        SetAutomapLayer(g_automap_layer - 1);
     }
 }
 
@@ -592,7 +592,7 @@ void AutomapLayerDownButton(void)
 void AutomapLayerUpButton(void)
 {
     if (g_automap_layer < g_automap_layers.count) {
-        SetAutomapLayer00580F20(g_automap_layer + 1);
+        SetAutomapLayer(g_automap_layer + 1);
     }
 }
 
@@ -600,28 +600,28 @@ void AutomapLayerUpButton(void)
 void AutomapPanNorthButton(void)
 {
     g_automap_position.z += g_automap_zoom * g_float_005ebcd8;
-    SetAutomapCameraPoint0057FC70(&g_automap_position);
+    SetAutomapCameraPoint(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x00584180
 void AutomapPanSouthButton(void)
 {
     g_automap_position.z -= g_automap_zoom * g_float_005ebcd8;
-    SetAutomapCameraPoint0057FC70(&g_automap_position);
+    SetAutomapCameraPoint(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x005841B0
 void AutomapPanWestButton(void)
 {
     g_automap_position.x -= g_automap_zoom * g_float_005ebcd8;
-    SetAutomapCameraPoint0057FC70(&g_automap_position);
+    SetAutomapCameraPoint(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x005841E0
 void AutomapPanEastButton(void)
 {
     g_automap_position.x += g_automap_zoom * g_float_005ebcd8;
-    SetAutomapCameraPoint0057FC70(&g_automap_position);
+    SetAutomapCameraPoint(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x00584240
@@ -651,7 +651,7 @@ unsigned char AutomapScreenEnter(void)
     EnvironmentColour direction;
     direction = 0.0;
     SetLightDirection(&direction);
-    SetWorldEnvironmentColour00483A60(g_world, EnvironmentColour(0.0, 0.0, 0.0));
+    SetWorldEnvironmentColour(g_world, EnvironmentColour(0.0, 0.0, 0.0));
     DisableSky();
     DisableRenderOption(10);
     g_monster_shadow_updates_enabled_0065970c = 1;
@@ -663,8 +663,8 @@ unsigned char AutomapScreenEnter(void)
     int layer_number = 1;
     g_world->camera->setProjectionType(static_cast<srCamera::e_project>(1));
     RestoreAutomapCameraPosition();
-    UpdateWorldMesh004BAF60(g_world);
-    SetWorldMeshVertexLightTable0046F760(g_world, 1);
+    UpdateWorldMesh(g_world);
+    SetWorldMeshVertexLightTable(g_world, 1);
     g_light_update_flags_0060bfdc &= ~1u;
     SetWorldModelPickingEnabled(0);
     if (!g_automap_state) {
@@ -696,18 +696,18 @@ unsigned char AutomapScreenEnter(void)
     for (unsigned int index = 0; index < monster_count; ++index) {
         W8MonsterInfo* monster = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
         if (monster->p3D)
-            monster->p3D->DetachRepresentation004A7A70(g_world);
+            monster->p3D->DetachRepresentation(g_world);
     }
     for (W8WorldItem* item = GetNextWorldItem(1); item; item = GetNextWorldItem(0)) {
         if (item->p3D)
-            item->p3D->DetachMesh0049FA30(g_world);
+            item->p3D->DetachMesh(g_world);
     }
     gfTrackMousePos = 1;
     g_automap_cursor_inside = IsCursorInsideViewport();
     g_automap_tool = 0;
     SetAutomapToolCursor(0);
     CreateAutomapMarkerSprites005822C0();
-    CreateAutomapButtons00583BC0();
+    CreateAutomapButtons();
     g_class_68f29c->setParent(0, 1);
     g_automap_surface_mode = RendererBufferIsLockable();
     if (g_automap_surface_mode) {
@@ -725,9 +725,9 @@ unsigned char AutomapScreenEnter(void)
     g_automap_overlay_redraw = true;
     SetPrimarySurfaceTextureHint2Enabled(0);
     ClearSurfaceRect(0, 0, 640, 480);
-    DisableCursorScene00428010();
+    DisableCursorScene();
     DrawCatalogImageAndInvalidate(-14, 0x14a, 0, 0, 0, 0, 2, 0);
-    UpdateAutomapPageButtons00581200();
+    UpdateAutomapPageButtons();
     for (int button = 0; button < 16; ++button) {
         if (g_automap_buttons[button]) {
             g_automap_buttons[button]->m_dirty = true;
@@ -737,7 +737,7 @@ unsigned char AutomapScreenEnter(void)
     ResetTransientRenderScenes();
     RenderFrame();
     RenderFrame();
-    EnableCursorScene00428020();
+    EnableCursorScene();
     SetScaledViewport00425C90(12, 32, 467, 467);
     UpdateAutomapBounds00580380();
     if (script.Load004CF3B0("Data\\Automap\\MapFilters.txt")) {
@@ -790,13 +790,13 @@ unsigned char AutomapScreenEnter(void)
         g_automap_position_initialized = true;
         srVector3T<float> position = (g_automap_bounds_min + g_automap_bounds_max) / 2.0;
         position.y = g_automap_top_y;
-        SetAutomapCameraPoint0057FC70(&position);
+        SetAutomapCameraPoint(&position);
         SetAutomapToolCursor(g_automap_tool);
         SetAutomapButtonMode(0);
     } else {
         g_automap_position.x = g_automap_saved_camera.position.x;
         g_automap_position.z = g_automap_saved_camera.position.z;
-        SetAutomapCameraPoint0057FC70(&g_automap_position);
+        SetAutomapCameraPoint(&g_automap_position);
     }
     return 1;
 }
@@ -877,10 +877,10 @@ void AutomapScreenFrame(void)
     InputAtom input;
     while (DequeueEvent(&input) == 1) {
         if (g_automap_editing_note) {
-            HandleAutomapNoteInput00584250(&input);
+            HandleAutomapNoteInput(&input);
             continue;
         }
-        if (HandleAutomapKey00584690(&input))
+        if (HandleAutomapKey(&input))
             continue;
         if (!IsCursorInsideViewport()) {
             if (g_automap_cursor_inside) {
@@ -945,7 +945,7 @@ void AutomapScreenFrame(void)
                     g_automap_editing_note = CreateAutomapNote(&location, g_automap_layer, L"_");
                 }
             } else if (g_automap_tool == 3) {
-                W8AutomapNote* note = FindAutomapNoteUnderCursor00582180();
+                W8AutomapNote* note = FindAutomapNoteUnderCursor();
                 if (note) {
                     int index = g_automap_notes->IndexOf(note);
                     if (index >= 0)
@@ -959,7 +959,7 @@ void AutomapScreenFrame(void)
                     g_automap_redraw = true;
                 }
             } else if (GetCursorPositionInViewport(&point)) {
-                ZoomAutomapIn0057FFC0(&point);
+                ZoomAutomapIn(&point);
             }
         } else if (input.usEvent == RIGHT_BUTTON_UP) {
             if (g_automap_tool == 0) {
@@ -969,7 +969,7 @@ void AutomapScreenFrame(void)
                         srVector3T<float> position =
                             (g_automap_bounds_max + g_automap_bounds_min) / 2.0;
                         position.y = g_automap_top_y;
-                        SetAutomapCameraPoint0057FC70(&position);
+                        SetAutomapCameraPoint(&position);
                         SetAutomapToolCursor(g_automap_tool);
                         SetAutomapButtonMode(0);
                     } else {
@@ -979,7 +979,7 @@ void AutomapScreenFrame(void)
                             g_automap_position.y = height;
                             SetAutomapButtonMode(1);
                             g_automap_zoom = g_automap_position.y - ground_y;
-                            SetAutomapCameraPoint0057FC70(&g_automap_position);
+                            SetAutomapCameraPoint(&g_automap_position);
                             SetAutomapToolCursor(g_automap_tool);
                         } else {
                             ResetAutomapZoom0057FE40();
@@ -992,20 +992,20 @@ void AutomapScreenFrame(void)
             }
         } else if (input.usEvent == MOUSE_POS) {
             W8AutomapNote* previous = g_automap_hovered_note;
-            g_automap_hovered_note = FindAutomapNoteUnderCursor00582180();
+            g_automap_hovered_note = FindAutomapNoteUnderCursor();
             if (previous != g_automap_hovered_note) {
                 if (previous)
-                    ShowAutomapNoteTooltip00581460(previous);
+                    ShowAutomapNoteTooltip(previous);
                 RenderAutomapMarkers00582930();
             }
             srVector3T<float> point;
-            if (GetAutomapPositionUnderCursor00582050(&point)) {
+            if (GetAutomapPositionUnderCursor(&point)) {
                 point.y = 0.0f;
                 srVector3T<float> distance(point.x - g_automap_saved_camera.position.x, 0.0f,
                                            point.z - g_automap_saved_camera.position.z);
                 if (distance.Length() < g_automap_zoom * 0.05f && g_automap_tool == 0 &&
                     g_automap_zoom_mode != 2) {
-                    DisableCursorScene00428010();
+                    DisableCursorScene();
                     srVector3T<double> scale(0.44f, 0.44f, 0.44f);
                     g_class_68f29c->setScale(scale);
                     continue;
@@ -1014,7 +1014,7 @@ void AutomapScreenFrame(void)
             float factor = (1.0f / (g_automap_zoom * 0.00004f)) * 0.44f;
             srVector3T<double> scale(factor, factor, factor);
             g_class_68f29c->setScale(scale);
-            EnableCursorScene00428020();
+            EnableCursorScene();
         }
     }
     bool moved = false;
@@ -1035,19 +1035,19 @@ void AutomapScreenFrame(void)
         moved = true;
     }
     if (moved)
-        SetAutomapCameraPoint0057FC70(&g_automap_position);
+        SetAutomapCameraPoint(&g_automap_position);
     if (GetTickCount() - g_automap_state->blink_time > 500) {
         if (g_automap_state->blink_enabled)
-            DrawVideoInspector00427460(0xdc, 0x32);
+            DrawVideoInspector(0xdc, 0x32);
         g_automap_state->blink_time = GetTickCount();
     }
-    RenderAutomapFrame00581030();
+    RenderAutomapFrame();
 }
 
 // FUNCTION: WIZ8 0x0057fb40
 void RestoreAutomapWorldSettings(void)
 {
-    SetWorldEnvironmentColour00483A60(g_world, g_automap_saved_ambient_light);
+    SetWorldEnvironmentColour(g_world, g_automap_saved_ambient_light);
     SetLightDirection(&g_automap_saved_light_direction);
     RestoreWorldCameraState(GetWorld(), 0, &g_automap_saved_camera);
     WorldSetFarClip(g_world, g_automap_saved_far_clip);
@@ -1060,7 +1060,7 @@ void RestoreAutomapWorldSettings(void)
     g_world_render_enabled_65970d = g_automap_saved_render_flags[3];
     g_world->camera->setRotation(0.0, 0.0, 0.0);
     g_world->camera->flags_138.value &= ~1ul;
-    SetWorldMeshVertexLightTable0046F760(g_world, 0);
+    SetWorldMeshVertexLightTable(g_world, 0);
     g_light_update_flags_0060bfdc |= 1u;
     SetResidentTexturePolicy(g_resident_texture_policy_659714);
     SetWorldModelPickingEnabled(1);
@@ -1073,7 +1073,7 @@ unsigned char AutomapScreenLeave(int)
     free(g_automap_state);
     g_automap_state = 0;
     MarkRendererReady();
-    SetOverlayViewport00429200(0);
+    SetOverlayViewport(0);
     ResumeMainGameWorld();
     srClass* clipping_plane = static_cast<srClass*>(srCore.getRegistry()->find(
         srClipPlane::ClientType::sGetClassNode(), "Clipping Plane 1", 0));
@@ -1102,7 +1102,7 @@ unsigned char AutomapScreenLeave(int)
     g_automap_buttons = 0;
     MSYS_Shutdown();
     UpdateHeldItemCursor();
-    EnableCursorScene00428020();
+    EnableCursorScene();
     for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
         for (stMeshModel* model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->model());
              model; model = model->next) {
@@ -1247,7 +1247,7 @@ void SetValue68F2C4(int value)
 /* Park the automap camera over the requested point with its xz clamped into
    the explored bounds, reselect the layer underneath and refresh the mesh. */
 // FUNCTION: WIZ8 0x0057FC70
-void SetAutomapCameraPoint0057FC70(srVector3T<float>* position)
+void SetAutomapCameraPoint(srVector3T<float>* position)
 {
     srVector3T<float> clamped;
     clamped.x = g_automap_bounds_min.x <= position->x ? position->x : g_automap_bounds_min.x;
@@ -1261,19 +1261,19 @@ void SetAutomapCameraPoint0057FC70(srVector3T<float>* position)
                     : g_automap_bounds_max.z;
     g_world->camera->setLocation(srVector3T<double>(clamped.x, clamped.y, clamped.z));
     g_automap_position = clamped;
-    SetAutomapLayer00580F20(g_automap_layer);
+    SetAutomapLayer(g_automap_layer);
     g_automap_redraw = true;
     g_automap_overlay_redraw = true;
     if (g_world->octree != 0) {
         MarkRendererReady();
-        UpdateWorldMeshAfterLoad00451020();
+        UpdateWorldMeshAfterLoad();
     }
 }
 
 /* Select the automap layer, remember how far above it the camera floats and
    refresh the layer-up/layer-down buttons. */
 // FUNCTION: WIZ8 0x00580F20
-void SetAutomapLayer00580F20(int layer)
+void SetAutomapLayer(int layer)
 {
     if (layer < 0 || g_automap_layers.count == 0 || g_automap_layers.count <= layer ||
         *g_automap_layers.GetAt(layer) == 0) {
@@ -1311,7 +1311,7 @@ void ResetAutomapZoom0057FE40(void)
     position.y = (g_automap_bounds_min.y + g_automap_bounds_max.y) * 0.5;
     position.z = (g_automap_bounds_min.z + g_automap_bounds_max.z) * 0.5;
     position.y = g_automap_top_y;
-    SetAutomapCameraPoint0057FC70(&position);
+    SetAutomapCameraPoint(&position);
     int tool = g_automap_tool;
     if (g_automap_tool == 0 && g_automap_cursor_inside != 0) {
         tool = g_float_005ec360 < g_automap_zoom ? 1 : 4;
@@ -1335,7 +1335,7 @@ void ResetAutomapZoom0057FE40(void)
 /* Left-click zoom: drop a sight line onto the clicked point, halve the
    remaining height above ground and move the camera there. */
 // FUNCTION: WIZ8 0x0057FFC0
-unsigned char ZoomAutomapIn0057FFC0(const srVector3T<float>* point)
+unsigned char ZoomAutomapIn(const srVector3T<float>* point)
 {
     srVector3T<float> position;
     position.x = (point->x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x;
@@ -1389,7 +1389,7 @@ unsigned char ZoomAutomapIn0057FFC0(const srVector3T<float>* point)
     }
     g_automap_zoom = height - ground;
     position.y = height;
-    SetAutomapCameraPoint0057FC70(&position);
+    SetAutomapCameraPoint(&position);
     int tool = g_automap_tool;
     if (g_automap_tool == 0 && g_automap_cursor_inside != 0) {
         tool = g_float_005ec360 < g_automap_zoom ? 1 : 4;
@@ -1445,7 +1445,7 @@ void ResetAutomapLighting(void)
    vertex lights. Returns how many cells were lit; a zero answer means the
    pending set is empty. */
 // FUNCTION: WIZ8 0x005807B0
-unsigned int LightPendingAutomapCells005807B0(unsigned int max_count)
+unsigned int LightPendingAutomapCells(unsigned int max_count)
 {
     unsigned int lit = 0;
     unsigned int bit = 0;
@@ -1493,15 +1493,15 @@ unsigned int LightPendingAutomapCells005807B0(unsigned int max_count)
    a short batch of pending visited cells, clear the flag once nothing remains,
    then restore table 0. */
 // FUNCTION: WIZ8 0x00580760
-void RefreshDirtyAutomap00580760(void)
+void RefreshDirtyAutomap(void)
 {
     if (g_automap_state != 0 && g_automap_state->flags_0f9[0] != 0) {
-        SetWorldMeshVertexLightTable0046F760(g_world, 1);
-        unsigned int lit = LightPendingAutomapCells005807B0(10);
+        SetWorldMeshVertexLightTable(g_world, 1);
+        unsigned int lit = LightPendingAutomapCells(10);
         if (lit == 0) {
             g_automap_state->flags_0f9[0] = 0;
         }
-        SetWorldMeshVertexLightTable0046F760(g_world, 0);
+        SetWorldMeshVertexLightTable(g_world, 0);
     }
 }
 
@@ -1627,11 +1627,11 @@ void LightAutomapCell(const srVector3T<float>* position)
                         vertices.setCapacity(count);
                     }
                     srVector3T<float>* transformed = &vertices[0];
-                    if (IsZeroVector0046FFA0(position) != 0) {
-                        CopyDwordBuffer00470180(transformed, source, count * 3);
+                    if (IsZeroVector(position) != 0) {
+                        CopyDwordBuffer(transformed, source, count * 3);
                     } else {
                         srVector3T<float> offset = -*position;
-                        OffsetVertices00470040(transformed, source, &offset, count);
+                        OffsetVertices(transformed, source, &offset, count);
                     }
                     if (count != 0) {
                         srVectorProcessor::length(&distances[0], &vertices[0],
@@ -1682,7 +1682,7 @@ void LightAutomapCell(const srVector3T<float>* position)
 /* Per-frame automap refresh: re-render the world into the automap surface
    when it is dirty, blit it into the primary surface and redraw buttons. */
 // FUNCTION: WIZ8 0x00581030
-void RenderAutomapFrame00581030(void)
+void RenderAutomapFrame(void)
 {
     if (g_automap_redraw != 0) {
         if (g_automap_surface_mode == 0) {
@@ -1728,7 +1728,7 @@ void RenderAutomapFrame00581030(void)
 
 /* Show the single page button for the active automap page and redraw it. */
 // FUNCTION: WIZ8 0x00581200
-void UpdateAutomapPageButtons00581200(void)
+void UpdateAutomapPageButtons(void)
 {
     g_automap_buttons[5]->SetVisible(g_automap_page_0068f260 == 0);
     g_automap_buttons[6]->SetVisible(g_automap_page_0068f260 == 1);
@@ -1759,7 +1759,7 @@ int RestoreAutomapRect(W8ScreenRect* rect)
 /* When the cursor leaves a hovered note, erase its tooltip rectangle and
    invalidate it for redraw. Returns nonzero when a tooltip was dismissed. */
 // FUNCTION: WIZ8 0x00581460
-unsigned char ShowAutomapNoteTooltip00581460(W8AutomapNote* note)
+unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
 {
     if (note == 0) {
         return 0;
@@ -1933,7 +1933,7 @@ bool LoadAutomapNotes(int handle)
    below the current one, defaulting the height to the grid minimum when no
    clip plane exists there. */
 // FUNCTION: WIZ8 0x00582050
-unsigned char GetAutomapPositionUnderCursor00582050(srVector3T<float>* position)
+unsigned char GetAutomapPositionUnderCursor(srVector3T<float>* position)
 {
     srVector3T<float> point;
 
@@ -1957,7 +1957,7 @@ unsigned char GetAutomapPositionUnderCursor00582050(srVector3T<float>* position)
 /* Find the note on the current layer nearest the cursor, limited to a
    zoom-scaled pick radius. */
 // FUNCTION: WIZ8 0x00582180
-W8AutomapNote* FindAutomapNoteUnderCursor00582180(void)
+W8AutomapNote* FindAutomapNoteUnderCursor(void)
 {
     W8AutomapNote* result = 0;
     double best = 99999999999.9;
@@ -2014,12 +2014,12 @@ void CreateAutomapMarkerSprites005822C0(void)
             g_class_68f29c->setParent(g_scene_square_65965c, 1);
             static_cast<srMeshModel*>(g_class_68f29c->model())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
-            g_class_68f29c->SetGlowEnabled00480EB0(1);
+            g_class_68f29c->SetGlowEnabled(1);
             srVector4T<float> first;
             srVector4T<float> second;
             first.Set(0.0f, 0.25f, 0.0f, 1.0f);
             second.Set(0.0f, 0.75f, 0.0f, 1.0f);
-            g_class_68f29c->SetGlowColors00480FF0(&first, &second);
+            g_class_68f29c->SetGlowColors(&first, &second);
             g_class_68f29c->render_state_164.render_depth = 2000;
         }
     }
@@ -2170,13 +2170,13 @@ void RenderAutomapMarkers00582930(void)
             stModelInstance2D* marker;
             switch (info->ubDisposition) {
             case W8_DISPOSITION_NEUTRAL:
-                marker = CreateAutomapMonsterMarker00583710(1);
+                marker = CreateAutomapMonsterMarker(1);
                 break;
             case W8_DISPOSITION_HOSTILE:
-                marker = CreateAutomapMonsterMarker00583710(2);
+                marker = CreateAutomapMonsterMarker(2);
                 break;
             case W8_DISPOSITION_FRIENDLY:
-                marker = CreateAutomapMonsterMarker00583710(0);
+                marker = CreateAutomapMonsterMarker(0);
                 break;
             }
             unsigned int width = marker->GetWidth00480EF0();
@@ -2215,7 +2215,7 @@ void RenderAutomapMarkers00582930(void)
             }
             int x = 0xc - static_cast<int>((location.x - left) / g_automap_zoom * -455.0f);
             int y = 0x20 - static_cast<int>((1.0f - (location.z - top) / g_automap_zoom) * -435.0f);
-            stModelInstance2D* marker = CreateAutomapItemMarker005833E0(world_item->item.iItemNo);
+            stModelInstance2D* marker = CreateAutomapItemMarker(world_item->item.iItemNo);
             if (marker != 0) {
                 unsigned int width = marker->GetWidth00480EF0();
                 unsigned int height = marker->GetHeight00480F70();
@@ -2251,7 +2251,7 @@ void RenderAutomapMarkers00582930(void)
             int x = 0xc - static_cast<int>((note->position.x - left) / g_automap_zoom * -455.0f);
             int y = 0x20 -
                     static_cast<int>((1.0f - (note->position.y - top) / g_automap_zoom) * -435.0f);
-            stModelInstance2D* marker = CreateAutomapTextMarker005839D0();
+            stModelInstance2D* marker = CreateAutomapTextMarker();
             if (note == g_automap_editing_note)
                 marker->setScale(srVector3T<double>(0.22f, 0.22f, 0.22f));
             if (marker != 0) {
@@ -2293,7 +2293,7 @@ void RenderAutomapMarkers00582930(void)
 /* Create a scaled automap blip for a world item by blitting its inventory icon
    into a scratch surface and wrapping it in a 2D brush. */
 // FUNCTION: WIZ8 0x005833E0
-stModelInstance2D* CreateAutomapItemMarker005833E0(int item_id)
+stModelInstance2D* CreateAutomapItemMarker(int item_id)
 {
     int object = g_item_video_objects_68ec68.GetOrCreateVideoObject(item_id);
     ETRLEObject properties;
@@ -2319,12 +2319,12 @@ stModelInstance2D* CreateAutomapItemMarker005833E0(int item_id)
     }
     static_cast<srMeshModel*>(marker->model())->setControlMask(0x40);
     g_releasable_68f1f4->Add(marker);
-    marker->SetGlowEnabled00480EB0(1);
+    marker->SetGlowEnabled(1);
     srVector4T<float> first;
     srVector4T<float> second;
     second.Set(0.0f, 0.0f, 1.0f, 1.0f);
     first.Set(0.0f, 0.0f, 0.25f, 1.0f);
-    marker->SetGlowColors00480FF0(&first, &second);
+    marker->SetGlowColors(&first, &second);
     marker->setRenderDepth(2000);
     if ((marker->GetHeight00480F70() & 0xffff) * factor < g_float_005ebb38) {
         marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
@@ -2339,7 +2339,7 @@ stModelInstance2D* CreateAutomapItemMarker005833E0(int item_id)
 /* Clone the friendly, neutral or hostile blip sprite for one monster entry and
    register the clone for release after the pass. */
 // FUNCTION: WIZ8 0x00583710
-stModelInstance2D* CreateAutomapMonsterMarker00583710(int type)
+stModelInstance2D* CreateAutomapMonsterMarker(int type)
 {
     stModelInstance2D* marker = new stModelInstance2D(0);
     if (marker == 0) {
@@ -2352,7 +2352,7 @@ stModelInstance2D* CreateAutomapMonsterMarker00583710(int type)
         *marker = *g_class_68f2a0;
         second.Set(0.0f, 0.5f, 0.0f, 1.0f);
         first.Set(0.0f, 0.0f, 0.0f, 1.0f);
-        marker->SetGlowColors00480FF0(&first, &second);
+        marker->SetGlowColors(&first, &second);
         break;
     }
     case 1: {
@@ -2361,7 +2361,7 @@ stModelInstance2D* CreateAutomapMonsterMarker00583710(int type)
         *marker = *g_class_68f2a4;
         second.Set(0.25f, 0.25f, 0.0f, 1.0f);
         first.Set(0.0f, 0.0f, 0.0f, 1.0f);
-        marker->SetGlowColors00480FF0(&first, &second);
+        marker->SetGlowColors(&first, &second);
         break;
     }
     case 2: {
@@ -2370,12 +2370,12 @@ stModelInstance2D* CreateAutomapMonsterMarker00583710(int type)
         *marker = *g_class_68f2a8;
         second.Set(0.5f, 0.0f, 0.0f, 1.0f);
         first.Set(0.0f, 0.0f, 0.0f, 1.0f);
-        marker->SetGlowColors00480FF0(&first, &second);
+        marker->SetGlowColors(&first, &second);
         break;
     }
     }
     g_releasable_68f1f4->Add(marker);
-    marker->SetGlowEnabled00480EB0(1);
+    marker->SetGlowEnabled(1);
     marker->setRenderDepth(2000);
     float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f * 0.85f;
     if ((marker->GetHeight00480F70() & 0xffff) * factor < g_float_005ebb38) {
@@ -2391,7 +2391,7 @@ stModelInstance2D* CreateAutomapMonsterMarker00583710(int type)
 /* Clone the text blip sprite and register the clone for release after the
    pass. */
 // FUNCTION: WIZ8 0x005839D0
-stModelInstance2D* CreateAutomapTextMarker005839D0(void)
+stModelInstance2D* CreateAutomapTextMarker(void)
 {
     stModelInstance2D* marker = new stModelInstance2D(0);
     if (marker == 0) {
@@ -2407,19 +2407,19 @@ stModelInstance2D* CreateAutomapTextMarker005839D0(void)
     } else {
         marker->setScale(srVector3T<double>(factor, factor, factor));
     }
-    marker->SetGlowEnabled00480EB0(1);
+    marker->SetGlowEnabled(1);
     srVector4T<float> first;
     srVector4T<float> second;
     second.Set(1.0f, 0.4f, 0.0f, 1.0f);
     first.Set(0.0f, 0.0f, 0.0f, 1.0f);
-    marker->SetGlowColors00480FF0(&first, &second);
+    marker->SetGlowColors(&first, &second);
     marker->setRenderDepth(2000);
     return marker;
 }
 /* While a note is being edited, forward key events into its text buffer and
    let left-button-up drop the note at the cursor. */
 // FUNCTION: WIZ8 0x00584250
-unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
+unsigned char HandleAutomapNoteInput(const InputAtom* input)
 {
     if (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) {
         if (input->usEvent == LEFT_BUTTON_UP && IsCursorInsideViewport() != 0) {
@@ -2440,7 +2440,7 @@ unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
         return 0;
     }
     unsigned short key = TranslateKeyToCharacter(input->usParam, input->usKeyState);
-    ShowAutomapNoteTooltip00581460(g_automap_editing_note);
+    ShowAutomapNoteTooltip(g_automap_editing_note);
     unsigned int last = wcslen(g_automap_editing_note->text) - 1;
     if (isprint(key) != 0 && last <= 0x26) {
         g_automap_editing_note->text[last] = key;
@@ -2519,7 +2519,7 @@ unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
 /* Automap key handling: screen exit, zoom keys, page cycling and the
    per-tool and cheat-gated bindings. */
 // FUNCTION: WIZ8 0x00584690
-unsigned char HandleAutomapKey00584690(const InputAtom* input)
+unsigned char HandleAutomapKey(const InputAtom* input)
 {
     if (input->usEvent != KEY_DOWN) {
         return 0;
@@ -2536,7 +2536,7 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
         {
             srVector3T<float> position = (g_automap_bounds_max + g_automap_bounds_min) / 2.0;
             position.y = g_automap_top_y;
-            SetAutomapCameraPoint0057FC70(&position);
+            SetAutomapCameraPoint(&position);
         }
         SetAutomapToolCursor(g_automap_tool);
         SetAutomapButtonMode(0);
@@ -2546,7 +2546,7 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
         center.x = 0.5f;
         center.y = 0.5f;
         center.z = 0.0f;
-        ZoomAutomapIn0057FFC0(&center);
+        ZoomAutomapIn(&center);
         return 1;
     }
     case 0x20:
@@ -2561,7 +2561,7 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
     case 0x23:
         g_automap_position.x = g_automap_saved_camera.position.x;
         g_automap_position.z = g_automap_saved_camera.position.z;
-        SetAutomapCameraPoint0057FC70(&g_automap_position);
+        SetAutomapCameraPoint(&g_automap_position);
         break;
     case 0x24: {
         srVector3T<float> center;
@@ -2570,7 +2570,7 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
                    g_automap_bounds_min.z + g_automap_bounds_max.z);
         srVector3T<float> position = center / 2.0;
         position.y = g_automap_top_y;
-        SetAutomapCameraPoint0057FC70(&position);
+        SetAutomapCameraPoint(&position);
         SetAutomapToolCursor(g_automap_tool);
         SetAutomapButtonMode(0);
         return 1;
@@ -2600,7 +2600,7 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
     case 0x32:
     case 0x33:
     case 0x34:
-        SetAutomapLayer00580F20(input->usParam - 0x31);
+        SetAutomapLayer(input->usParam - 0x31);
         return 1;
     case 0x41:
         if (g_dev_mode_689b32 != 0) {
@@ -2612,7 +2612,7 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
             g_automap_position = center / 2.0;
             g_automap_top_y = g_automap_position.y + g_automap_position.x - g_automap_bounds_min.x;
             g_automap_position.y = g_automap_top_y;
-            SetAutomapCameraPoint0057FC70(&g_automap_position);
+            SetAutomapCameraPoint(&g_automap_position);
         }
         return 1;
     case 0x43:
@@ -2637,8 +2637,8 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
     case 0x70:
         if (g_dev_mode_689b32 != 0) {
             g_automap_saved_camera.position = g_automap_position;
-            ResetCurrentEnvironment0041AA40();
-            ResetCurrentEnvironment0041AA40();
+            ResetCurrentEnvironment();
+            ResetCurrentEnvironment();
             goto exit_screen;
         }
         break;
@@ -2672,7 +2672,7 @@ exit_screen:
    visited-bit arrays and record table stay valid; otherwise the key list is
    read whole and every cell key is inserted with its one-based index. */
 // FUNCTION: WIZ8 0x00584DD0
-unsigned char ReadAutomapNodes00584DD0(int hFile)
+unsigned char ReadAutomapNodes(int hFile)
 {
     if (g_bits_68f288 != 0) {
         delete g_bits_68f288;

@@ -73,7 +73,7 @@ stLight::~stLight()
 {
     delete m_definition_234;
     if (m_owned_244 != 0) {
-        DestroyOwnedPathAI004A9110(m_owned_244);
+        DestroyOwnedPathAI(m_owned_244);
     }
 }
 
@@ -96,7 +96,7 @@ stLight& stLight::operator=(const stLight& other)
     m_padding_238 = other.m_padding_238;
     m_direction_239 = other.m_direction_239;
     if (other.m_owned_244 != 0) {
-        m_owned_244 = ClonePathAI004A98C0(other.m_owned_244);
+        m_owned_244 = ClonePathAI(other.m_owned_244);
     } else {
         m_owned_244 = 0;
     }
@@ -167,7 +167,7 @@ void stLight::process(const srNode::ProcessInfo& info, srNode::e_processType typ
 }
 
 // FUNCTION: WIZ8 0x0049C940
-void stLight::SetDefinitionTime0049C940(float time)
+void stLight::SetDefinitionTime(float time)
 {
     if (m_definition_234 != 0 && m_definition_234->type_04 == 2) {
         static_cast<stLightDefinition005ECDA0*>(m_definition_234)->time_4c = time;
@@ -349,7 +349,7 @@ void stLight::Update0049C960()
         if (prop != 0) {
             instance = prop->ToggleRepAnimationDefault();
             srMeshModel* model = static_cast<srMeshModel*>(instance->model());
-            if (MeshHasAnimatedTexture004B9AA0(model) == 0) {
+            if (MeshHasAnimatedTexture(model) == 0) {
                 m_prop_254 = 0;
                 instance = 0;
             }
@@ -360,7 +360,7 @@ void stLight::Update0049C960()
         if (testFlag(FLAG_DISABLE) == 0) {
             setFlag(FLAG_DISABLE);
             if (instance != 0) {
-                SetModelAnimatedTextureFrame004B9B00(instance, 1);
+                SetModelAnimatedTextureFrame(instance, 1);
             }
         } else {
             int roll = rand();
@@ -368,35 +368,35 @@ void stLight::Update0049C960()
                 if (testFlag(FLAG_DISABLE) == 0) {
                     setFlag(FLAG_DISABLE);
                     if (instance != 0) {
-                        SetModelAnimatedTextureFrame004B9B00(instance, 1);
+                        SetModelAnimatedTextureFrame(instance, 1);
                     }
                 } else {
                     clearFlag(FLAG_DISABLE);
                     if (instance != 0) {
-                        SetModelAnimatedTextureFrame004B9B00(instance, 0);
+                        SetModelAnimatedTextureFrame(instance, 0);
                     }
                 }
             }
         }
     }
-    if ((path == 0) || (PathAIEntryCount004A9F20(path) == 0) ||
+    if ((path == 0) || (PathAIEntryCount(path) == 0) ||
         ((seconds - m_path_time_24c) * definition->path_speed_38 < g_float_005ebb38)) {
         return;
     }
     int index = static_cast<int>((seconds - m_path_time_24c) * definition->path_speed_38);
     index = index * m_path_direction_250 + m_path_index_248;
-    if (index < static_cast<int>(PathAIEntryCount004A9F20(path))) {
+    if (index < static_cast<int>(PathAIEntryCount(path))) {
         if (index < 0) {
             m_path_direction_250 = 1;
             index = 0;
         }
     } else if ((definition->flags_08 & 0x20) != 0) {
         m_path_direction_250 = -1;
-        index = static_cast<int>(PathAIEntryCount004A9F20(path)) - 2;
+        index = static_cast<int>(PathAIEntryCount(path)) - 2;
     } else {
         index = 0;
     }
-    PathAISetValue004A9F60(path, static_cast<float>(index));
+    PathAISetValue(path, static_cast<float>(index));
     PathAIApply004AA520(path, this);
     m_path_index_248 = index;
     m_path_time_24c = seconds;
@@ -435,7 +435,7 @@ void stLight::Reset0049D070()
 /* Serialize the registered positional lights: a version byte and count
    followed by each light's 0x80-byte name and its disable flag. */
 // FUNCTION: WIZ8 0x0049D120
-void SaveLightStates0049D120(int handle)
+void SaveLightStates(int handle)
 {
     unsigned short name[0x40] = {g_empty_ambient_name_65a110};
     unsigned char version = 1;
@@ -474,7 +474,7 @@ void SaveLightStates0049D120(int handle)
    followed by each light's 0x80-byte name and its enable flag, applied to the
    light found by name in the registry. */
 // FUNCTION: WIZ8 0x0049D390
-void LoadLightStates0049D390(int handle)
+void LoadLightStates(int handle)
 {
     unsigned short name[0x40] = {g_empty_ambient_name_65a110};
     unsigned char version;

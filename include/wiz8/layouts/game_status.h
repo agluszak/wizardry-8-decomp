@@ -101,7 +101,7 @@ struct W8GlobalStatus {
        skip work while it is set, and encounter culling treats it as the
        force-despawn gate. */
     bool world_suspended_2390;
-    /* 0x2391/0x2395: session accumulators ConsumeLevelElapsedTime0041F170
+    /* 0x2391/0x2395: session accumulators ConsumeLevelElapsedTime
        folds the level's pending elapsed times into; the 0x00502D00 wait
        pass sums them against zero. */
     float real_elapsed_2391;
@@ -167,7 +167,7 @@ struct W8GlobalStatus {
     unsigned int camp_fatigue_count_2498;
     /* 0x249c: party slot fact 0x39 hands to RemoveCharacterCondition. */
     int party_slot_249c;
-    /* 0x24a0: per-spell 0x10-byte stat records; TrackItemSpellSource00501D20
+    /* 0x24a0: per-spell 0x10-byte stat records; TrackItemSpellSource
        walks records[0..149] bumping usable_cast_count for spells the character
        carries and cast_count for the selected source spell. */
     W8ItemSpellUsageRecord item_spell_usage_24a0[200];
@@ -195,7 +195,7 @@ struct W8GlobalStatus {
     int savant_hack_tick;
     int bela_cycle_tick;
     unsigned char unknown_497b[4];
-    /* 0x497f: combat difficulty band counters, indexed by EvaluateCombatDifficulty004E6CE0. */
+    /* 0x497f: combat difficulty band counters, indexed by EvaluateCombatDifficulty. */
     unsigned int combat_difficulty_counts[3];
     /* 0x498b: NPC group event counter, cleared once the group event runs. */
     int vi_event_stage_498b;

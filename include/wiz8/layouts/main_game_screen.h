@@ -154,7 +154,7 @@ struct W8LevelRuntimeBlock {
     /* The dialogue highlight sprite. DrawHighlightOverlay lazily creates it
        from catalog object 0x72 through CreateSpriteFromSurface - the retail
        assertion spells it gpMGSV->pHighlightGraphic - and it is released
-       through ReleaseObject004257F0 whenever mode 6 ends or the tracked party
+       through ReleaseObject whenever mode 6 ends or the tracked party
        slots change. */
     stModelInstance2D* highlight_graphic; /* 0x240 */
     unsigned int world_update_flags;      /* 0x244 */
@@ -194,7 +194,7 @@ struct W8LevelRuntimeBlock {
        sprites - the board art with slot markers baked in, the rotating compass
        needle tracking party_facing against party_heading, and a lazily
        created overlay.  All are produced by CreateSpriteFromSurface in MGSFormation.cpp
-       and released through ReleaseObject004257F0. */
+       and released through ReleaseObject. */
     stModelInstance2D* formation_board_sprite;
     stModelInstance2D* formation_compass_sprite;
     stModelInstance2D* formation_overlay_sprite;

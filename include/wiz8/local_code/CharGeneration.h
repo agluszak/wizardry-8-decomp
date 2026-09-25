@@ -66,7 +66,7 @@ int CountRemainingSpellPoints(W8Character*, W8CharacterCreationState*);
 int ComputeLevelUpSpellPointAward(W8Character*, W8CharacterCreationState*);
 void SelectCreationSpell(W8Character*, W8CharacterCreationState*, unsigned int spell);
 void DeselectCreationSpell(W8Character*, W8CharacterCreationState*, unsigned int spell);
-void ResetSpellSelections005585D0(W8Character*, W8CharacterCreationState*);
+void ResetSpellSelections(W8Character*, W8CharacterCreationState*);
 int ComputeRealmSkillDebt(W8Character* original, W8Character* edited);
 int ComputeStartingEquipmentCost(W8Character*);
 bool CanAffordStartingEquipment(W8Character*);

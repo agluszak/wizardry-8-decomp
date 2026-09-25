@@ -38,7 +38,7 @@ unsigned char ExitScreenEnter(void)
 {
     unsigned short colour;
 
-    ResetVideoFrameState00422B10();
+    ResetVideoFrameState();
     UpdateHeldItemCursor();
     colour = Get16BPPColor(0x10101);
     ColorFillVideoSurfaceArea(-14, 0, 0, 0x280, 0x1e0, colour);
@@ -74,7 +74,7 @@ void ExitScreenFrame(void)
     } else {
         gfProgramIsRunning = 0;
     }
-    DisableCursorScene00428010();
+    DisableCursorScene();
     ClearPrimarySurface();
     ResetTransientRenderScenes();
     RenderFrame();

@@ -147,12 +147,12 @@ void FlushDeferredSkillNotices(void)
 }
 
 // FUNCTION: WIZ8 0x00558610
-void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character)
+void InvalidateAndRecalculateCharacterClassData(W8Character* character)
 {
     character->portrait_index = -1;
     character->unknown_007d = -1;
     character->personality_0081 = -1;
-    DeriveCharacterPersonality004EFA30(character);
+    DeriveCharacterPersonality(character);
     CalcCharacterTableValue(character);
 }
 
@@ -199,7 +199,7 @@ W8RaceResistanceProfile g_race_resistance_profiles[16] = {
    -1 both mean absent and skip their tables. Read-only, so callers agree
    on a const character. */
 // FUNCTION: WIZ8 0x00547940
-bool CharacterHasTrait00547940(const W8Character* character, int trait)
+bool CharacterHasTrait(const W8Character* character, int trait)
 {
     unsigned int index;
 
@@ -233,7 +233,7 @@ bool CharacterHasTrait00547940(const W8Character* character, int trait)
    percent per level in between. The trait id is carried by the call but the
    body never reads it. */
 // FUNCTION: WIZ8 0x005479b0
-float ScaleValueByProfessionLevel005479B0(W8Character* character, int, float base)
+float ScaleValueByProfessionLevel(W8Character* character, int, float base)
 {
     unsigned int level = character->profession_levels[character->iProfession];
 
@@ -247,7 +247,7 @@ float ScaleValueByProfessionLevel005479B0(W8Character* character, int, float bas
 /* The monster-record counterpart: the flat value scaled by the record's
    effective level with the same full-value-above-twenty curve. */
 // FUNCTION: WIZ8 0x00547a00
-float ScaleValueByMonsterLevel00547A00(W8MonsterRecord* record, int, float base)
+float ScaleValueByMonsterLevel(W8MonsterRecord* record, int, float base)
 {
     unsigned int level = record->effective_level_24f;
 
@@ -264,36 +264,35 @@ float ScaleValueByMonsterLevel00547A00(W8MonsterRecord* record, int, float base)
    from a scaled share of the maximum once per combat, a scaled share of the
    current pool every other time. */
 // FUNCTION: WIZ8 0x00547A50
-void CheatDeathRevive00547A50(int party_slot)
+void CheatDeathRevive(int party_slot)
 {
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
     PostCharacterNotice(party_slot, gppStringList[0x173]);
     SetCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS,
                           character->uiCondition[W8_CONDITION_UNCONSCIOUS] -
-                              static_cast<int>(ScaleValueByProfessionLevel005479B0(
+                              static_cast<int>(ScaleValueByProfessionLevel(
                                   character, W8_TRAIT_CHEAT_DEATH, g_float_005ebc28)) +
                               7,
                           0, 0, 1);
     if (g_combat_state != 0 && g_combat_state->characters[party_slot].cheat_death_used == 0) {
         character->hp_current =
-            (Random(static_cast<unsigned int>(ScaleValueByProfessionLevel005479B0(
+            (Random(static_cast<unsigned int>(ScaleValueByProfessionLevel(
                  character, W8_TRAIT_CHEAT_DEATH, character->uiHPMax * g_float_005ebc7c))) +
              0x32) *
             character->uiHPMax / 100;
         g_combat_state->characters[party_slot].cheat_death_used = true;
     } else {
-        character->hp_current =
-            Random(static_cast<unsigned int>(ScaleValueByProfessionLevel005479B0(
-                character, W8_TRAIT_CHEAT_DEATH, character->hp_current))) +
-            1;
+        character->hp_current = Random(static_cast<unsigned int>(ScaleValueByProfessionLevel(
+                                    character, W8_TRAIT_CHEAT_DEATH, character->hp_current))) +
+                                1;
     }
 }
 
 /* Reveal the target's item bindings with a strength banded by the party
    slot's level in its current profession: level/4 + 1, zero percent. */
 // FUNCTION: WIZ8 0x00548E20
-int RevealCharacterItemBindingsByProfession00548E20(int party_slot, unsigned int target_slot)
+int RevealCharacterItemBindingsByProfession(int party_slot, unsigned int target_slot)
 {
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
     return RevealCharacterItemBindings(
@@ -319,7 +318,7 @@ int g_alchemist_brew_recipes[][3] = {
    end); a random in-band entry is created, announced and stowed, then the
    cooldown is re-armed. */
 // FUNCTION: WIZ8 0x00548E60
-void BrewAlchemistPotion00548E60(W8Character* character)
+void BrewAlchemistPotion(W8Character* character)
 {
     W8ItemInstance item;
     unsigned int slot = CharacterPointerToPartySlot(character);
@@ -330,7 +329,7 @@ void BrewAlchemistPotion00548E60(W8Character* character)
     unsigned int pick;
 
     if (g_status_685170.buffers.XChar[slot].fOccupied != 0 && character->highest_condition < 0x11 &&
-        CharacterHasTrait00547940(character, W8_TRAIT_MAKE_POTIONS) != 0) {
+        CharacterHasTrait(character, W8_TRAIT_MAKE_POTIONS) != 0) {
         alchemy = character->profession_levels[W8_PROFESSION_ALCHEMIST];
         recipes = 0;
         for (recipe = &g_alchemist_brew_recipes[0][2]; recipe[-2] != -1; recipe += 3) {
@@ -372,7 +371,7 @@ bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
     if (g_profession_skill_availability[skill_id][character->iProfession] == 0) {
         return false;
     }
-    if (CharacterHasTrait00547940(character, 0x1f)) {
+    if (CharacterHasTrait(character, 0x1f)) {
         if (skill_id >= 0x18 && skill_id <= 0x1b) {
             return false;
         }
@@ -452,7 +451,7 @@ bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
    equipment refresh runs after each attribute so its use checks see the new
    value. */
 // FUNCTION: WIZ8 0x005539e0
-void ResetCharacterAttributes005539E0(W8Character* character)
+void ResetCharacterAttributes(W8Character* character)
 {
     unsigned int index;
 
@@ -480,7 +479,7 @@ void ResetCharacterAttributes005539E0(W8Character* character)
    modifier block carries, clamped to zero through 125. The equipment refresh
    runs after each skill for the same reason. */
 // FUNCTION: WIZ8 0x00553a60
-void ResetCharacterSkills00553A60(W8Character* character)
+void ResetCharacterSkills(W8Character* character)
 {
     unsigned int index;
 
@@ -509,7 +508,7 @@ void ResetCharacterSkills00553A60(W8Character* character)
    refunding its row while the character screen is up and announcing the cap
    in the main game, rebuild the effective value from the modifier block's
    adjustment clamped to 1..125, and refresh the equipment and derived state.
-   Retail inlines InitializeSkillBaseLevels00553C90 at the tail. */
+   Retail inlines InitializeSkillBaseLevels at the tail. */
 // FUNCTION: WIZ8 0x00553AD0
 void ApplyAttributeChange(W8Character* character, int attribute)
 {
@@ -549,18 +548,18 @@ void ApplyAttributeChange(W8Character* character, int attribute)
     character->attributes[attribute].effective = effective;
     UnequipUnusableItems(character);
     RecalculateCharacterDerivedStats(character);
-    InitializeSkillBaseLevels00553C90(character);
+    InitializeSkillBaseLevels(character);
 }
 
 /* A skill's invested value changed: re-scan the availability flags, rebuild
    the skill's level from it - with the profession-primary bonus and the
    modifier block's per-skill adjustment, clamped to 0..125 - and refresh the
    equipment and derived state. The single-skill half of
-   ResetCharacterSkills00553A60. */
+   ResetCharacterSkills. */
 // FUNCTION: WIZ8 0x00553C10
 void ApplySkillChange(W8Character* character, int skill_id)
 {
-    RefreshCharacterSkillAvailability00553CD0(character);
+    RefreshCharacterSkillAvailability(character);
 
     int level = character->skills[skill_id].points_02;
     if (skill_id == g_profession_bonus_skills[character->iProfession]) {
@@ -585,7 +584,7 @@ void ApplySkillChange(W8Character* character, int skill_id)
    into the skill's 0x0a base level. 0x00557D80 and 0x00557B20 seed the
    profession skill levels from these. */
 // FUNCTION: WIZ8 0x00553c90
-void InitializeSkillBaseLevels00553C90(W8Character* character)
+void InitializeSkillBaseLevels(W8Character* character)
 {
     for (int index = 0; index < 0x29; ++index) {
         int first = g_skill_attributes[index].attribute_1_04;
@@ -599,7 +598,7 @@ void InitializeSkillBaseLevels00553C90(W8Character* character)
    open character screen's page 2. The realm flags array marks which expert
    skills gained a spell since the last scan. */
 // FUNCTION: WIZ8 0x00553cd0
-void RefreshCharacterSkillAvailability00553CD0(W8Character* character)
+void RefreshCharacterSkillAvailability(W8Character* character)
 {
     unsigned char expert_realm_flags[8];
     int index;
@@ -633,7 +632,7 @@ void RefreshCharacterSkillAvailability00553CD0(W8Character* character)
 /* A quarter of the skill's current value, never below one. The bonus skill's
    level gets this added after the profession assignment. */
 // FUNCTION: WIZ8 0x00553ee0
-unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id)
+unsigned int GetSkillQuarterValue(W8Character* character, int skill_id)
 {
     unsigned int value = (character->skills[skill_id].points_02 * 0x19) / 100;
     if (value == 0) {
@@ -693,7 +692,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                 }
             } while (--usage_points != 0);
             if (improved) {
-                RefreshCharacterSkillAvailability00553CD0(character);
+                RefreshCharacterSkillAvailability(character);
                 int level = skill->points_02;
                 if (skill_id == g_profession_bonus_skills[character->iProfession]) {
                     unsigned int bonus = static_cast<unsigned int>(level * 0x19) / 100;

@@ -7,17 +7,17 @@
 struct Controls;
 class W8TextControl;
 
-void DrawCampHeader005B4000(void);
-void DrawCampVitals005B4790(void);
-void DrawCampHands005B4BD0(void);
-int CreateCampButtonPanel005B4EB0(void);
-void DestroyCampButtonPanel005B55F0(void);
-void RefreshCampItemActions005B5670(unsigned char invalidate);
+void DrawCampHeader(void);
+void DrawCampVitals(void);
+void DrawCampHands(void);
+int CreateCampButtonPanel(void);
+void DestroyCampButtonPanel(void);
+void RefreshCampItemActions(unsigned char invalidate);
 void SetCampItemActionMode005B59B0(char mode);
-void SelectCampCharacter005B6B30(int slot);
+void SelectCampCharacter(int slot);
 /* Right-click on a camp portrait while holding an item: refuse with a notice
    for dead/insane/stoned, else try AddItemToCharacter. */
-void TryGiveHeldItemToCampPortrait005B6C10(int slot);
+void TryGiveHeldItemToCampPortrait(int slot);
 
 void RedrawRcsLevelUpPanel(void); /* 0x005B6590 */
 void RedrawRcsDismissPanel(void); /* 0x005B68D0 */
@@ -27,10 +27,10 @@ extern Controls* g_dismiss_panel_0069c3c8;
 extern W8TextControl* g_level_up_button_0069c3c0;
 extern W8TextControl* g_dismiss_button_0069c400;
 /* Five bottom page buttons created with the item-action strip by
-   CreateCampButtonPanel005B4EB0 (Items/Skills/...). */
+   CreateCampButtonPanel (Items/Skills/...). */
 extern W8TextControl* g_camp_page_buttons_0069c3ec[5];
 extern W8TextControl* g_item_action_controls_69c3cc[8];
-/* 0x0069C404: the bottom Controls panel CreateCampButtonPanel005B4EB0 parents
+/* 0x0069C404: the bottom Controls panel CreateCampButtonPanel parents
    the page and item-action strips to. */
 extern Controls* g_item_actions_panel_0069c404;
 

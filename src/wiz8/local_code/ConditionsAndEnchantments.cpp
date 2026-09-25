@@ -255,7 +255,7 @@ void NormalizeItemQuantityKind(W8ItemInstance* item)
    normalize the quantity byte on every worn and packed item and on the shared
    party pool. */
 // FUNCTION: WIZ8 0x00522ef0
-void SanitizeLoadedItems00522EF0(void)
+void SanitizeLoadedItems(void)
 {
     unsigned int slot;
     unsigned int index;
@@ -353,8 +353,8 @@ done:
    replaces the stored one, slot two rolls its bonus dice, and the top scan,
    redraw and stats rebuild follow. */
 // FUNCTION: WIZ8 0x00523940
-void ApplyCharacterCondition00523940(int party_slot, int condition, int argument,
-                                     unsigned int duration, unsigned int percent)
+void ApplyCharacterCondition(int party_slot, int condition, int argument, unsigned int duration,
+                             unsigned int percent)
 {
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
     W8Enchantment* enchantment = &character->enchantments[condition];
@@ -688,9 +688,9 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     if (condition == W8_CONDITION_POISONED && argument == 0) {
         return 0;
     }
-    if (condition == 0x12 && CharacterHasTrait00547940(character, 2) != 0 &&
+    if (condition == 0x12 && CharacterHasTrait(character, 2) != 0 &&
         character->uiCondition[17] < 7) {
-        CheatDeathRevive00547A50(party_slot);
+        CheatDeathRevive(party_slot);
         return 0;
     }
     switch (condition) {
@@ -713,7 +713,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     }
     switch (condition) {
     case 6:
-        if (CharacterHasTrait00547940(character, 3) != 0) {
+        if (CharacterHasTrait(character, 3) != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x600 / 4]);
             return 0;
         }
@@ -723,7 +723,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     case 4:
     case 7:
     case 0xf:
-        if (CharacterHasTrait00547940(character, 0x1e) != 0) {
+        if (CharacterHasTrait(character, 0x1e) != 0) {
             return 0;
         }
         break;
@@ -733,7 +733,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         }
         /* fall through */
     case 0xd:
-        if (CharacterHasTrait00547940(character, 0xe) != 0) {
+        if (CharacterHasTrait(character, 0xe) != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x604 / 4]);
             return 0;
         }
@@ -900,13 +900,13 @@ void TickCharacterEnchantmentSlot(int party_slot, int slot, unsigned int turns)
     }
 }
 
-/* The monster-side counterpart of ApplyCharacterCondition00523940: a bigger
+/* The monster-side counterpart of ApplyCharacterCondition: a bigger
    argument replaces the stored one, slot two rolls its bonus dice, a freshly
    applied slot adds the spell icon, and the stats rebuild and special-slot
    sight refresh follow. */
 // FUNCTION: WIZ8 0x005242b0
-void ApplyMonsterCondition005242B0(int location_id, int condition, int argument,
-                                   unsigned int duration, unsigned int percent)
+void ApplyMonsterCondition(int location_id, int condition, int argument, unsigned int duration,
+                           unsigned int percent)
 {
     unsigned int monster_list_index =
         MonsterGetIndexByLocationID(0x38b, CONDITIONS_CPP, location_id, 1);

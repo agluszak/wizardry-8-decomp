@@ -36,7 +36,7 @@ double g_double_005ec428 = 0.9980430528375734;
 double g_double_005ec430 = 0.0019569471624266144;
 
 // FUNCTION: WIZ8 0x0046DD70
-void UpdateWorldMonsters0046DD70(W8World* world)
+void UpdateWorldMonsters(W8World* world)
 {
     if (world == 0) {
         srAssertFail("pWorld", THREE_D_CPP, 0x10d, 0);
@@ -50,12 +50,12 @@ void UpdateWorldMonsters0046DD70(W8World* world)
     position = camera_location;
 
     unsigned int count = PLLength(world->plsMonsters);
-    UpdateNearestMonsterGroupMembers004CA570();
+    UpdateNearestMonsterGroupMembers();
     for (int index = 0; index < static_cast<int>(count); ++index) {
         W8Monster* monster = static_cast<W8Monster*>(PLGet(world->plsMonsters, index));
         if (monster != 0) {
-            monster->DetachRepresentation004A7A70(world);
-            monster->SelectLOD004A7BE0(&position);
+            monster->DetachRepresentation(world);
+            monster->SelectLOD(&position);
             monster->Update();
             monster->UpdateRepresentation(world);
         }
@@ -65,7 +65,7 @@ void UpdateWorldMonsters0046DD70(W8World* world)
 /* Detach every item mesh in one world, refresh its animation, and reattach it
    to the world's dynamic scene before the renderer transition. */
 // FUNCTION: WIZ8 0x0046de40
-void DetachWorldItemMeshes0046DE40(W8World* world)
+void DetachWorldItemMeshes(W8World* world)
 {
     if (world == 0) {
         srAssertFail("pWorld", THREE_D_CPP, 0x135, 0);
@@ -77,9 +77,9 @@ void DetachWorldItemMeshes0046DE40(W8World* world)
     for (int index = 0; index < static_cast<int>(count); ++index) {
         W8Item* item = static_cast<W8Item*>(PLGet(world->plsItems, index));
         if (item != 0) {
-            item->DetachMesh0049FA30(world);
-            item->UpdateAnimation0049F730();
-            item->AttachMesh0049F900(world);
+            item->DetachMesh(world);
+            item->UpdateAnimation();
+            item->AttachMesh(world);
         }
     }
 }
@@ -91,7 +91,7 @@ void DetachWorldItemMeshes0046DE40(W8World* world)
 /* Remove every light held in one world's list, drop it from the render update
    set, and release it. */
 // FUNCTION: WIZ8 0x0046e4a0
-void DestroyWorldLights0046E4A0(W8World* world)
+void DestroyWorldLights(W8World* world)
 {
     W8PList* lights = &world->m_lights_0a8;
 
@@ -114,7 +114,7 @@ void DestroyWorldLights0046E4A0(W8World* world)
 /* Put static-scene illuminators in group one and the world's camera light in
    group two.  The scene graph access is the ordinary srNode hierarchy API. */
 // FUNCTION: WIZ8 0x0046F3A0
-void FinalizeStaticScene0046F3A0(srScene* scene)
+void FinalizeStaticScene(srScene* scene)
 {
     srNode* node;
 
@@ -170,7 +170,7 @@ unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNo
         srVector3T<float>* normals;
         if ((mesh->flags_3a0 & 4) != 0) {
             vertices = mesh->GetVertexLocations00471AD0(0, 1, 0.0f);
-            normals = mesh->GetVertexNormals00471CA0(0, 1);
+            normals = mesh->GetVertexNormals(0, 1);
         } else {
             vertices = mesh->getVertexLoc();
             normals = mesh->getVertexNormal();
@@ -272,11 +272,11 @@ unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNo
                     if (light_position.x == g_float_005ebb34 &&
                         light_position.y == g_float_005ebb34 &&
                         light_position.z == g_float_005ebb34) {
-                        CopyDwordBuffer00470180(directions, world_vertices, count * 3);
+                        CopyDwordBuffer(directions, world_vertices, count * 3);
                     } else {
                         srVector3T<float> offset(-light_position.x, -light_position.y,
                                                  -light_position.z);
-                        OffsetVertices00470040(directions, world_vertices, &offset, count);
+                        OffsetVertices(directions, world_vertices, &offset, count);
                     }
                     srVector3T<float> light_color = light->diffuse_1a4;
                     float intensity = light->intensity_1d0;
@@ -354,11 +354,11 @@ unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNo
    own lit marker; the first-child chain store is the same typed walk
    SetModelInstanceChainExclusionMask performs. */
 // FUNCTION: WIZ8 0x0046F410
-unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene)
+unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
 {
     for (; node != 0; node = node->nextSibling()) {
         if (node->firstChild() != 0) {
-            FinalizeWorldScenes0046F410(node->firstChild(), dynamic_scene);
+            FinalizeWorldScenes(node->firstChild(), dynamic_scene);
         }
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
@@ -379,8 +379,7 @@ unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene)
 /* Bake dynamic-scene lights into one not-yet-lit model instance. render_flags_178
    bit 1 is the lit marker; the first-child walk matches SetModelInstanceChainExclusionMask. */
 // FUNCTION: WIZ8 0x0046F4A0
-unsigned char BakeInstanceVertexLightingIfNeeded0046F4A0(stModelInstance* instance,
-                                                         srNode* dynamic_scene)
+unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance, srNode* dynamic_scene)
 {
     srNode* lights = dynamic_scene->firstChild();
 
@@ -399,7 +398,7 @@ unsigned char BakeInstanceVertexLightingIfNeeded0046F4A0(stModelInstance* instan
    there is no octree) and point its vertex-light table index at `table`, then
    raise flags_3a0 bit 1 so the next bake uses that table. */
 // FUNCTION: WIZ8 0x0046F760
-void SetWorldMeshVertexLightTable0046F760(W8World* world, int table)
+void SetWorldMeshVertexLightTable(W8World* world, int table)
 {
     if (world->octree == 0) {
         for (stMeshModel* model = static_cast<stMeshModel*>(world->update_mesh_source->model());
@@ -430,55 +429,55 @@ unsigned char ShowTargetMarker(const srVector3T<float>* eye, const srVector3T<fl
     srVector3T<float> point;
 
     point = (*lower + *upper) * g_double_005ebe80;
-    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+    if (ProjectPointThroughCamera(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point = *upper;
-    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+    if (ProjectPointThroughCamera(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point = *lower;
-    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+    if (ProjectPointThroughCamera(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point.Set(lower->x, upper->y, upper->z);
-    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+    if (ProjectPointThroughCamera(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point.Set(lower->x, upper->y, lower->z);
-    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+    if (ProjectPointThroughCamera(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point.Set(upper->x, upper->y, lower->z);
-    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+    if (ProjectPointThroughCamera(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point.Set(upper->x, lower->y, upper->z);
-    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+    if (ProjectPointThroughCamera(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point.Set(lower->x, lower->y, upper->z);
-    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+    if (ProjectPointThroughCamera(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point.Set(upper->x, lower->y, lower->z);
-    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+    if (ProjectPointThroughCamera(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
@@ -490,8 +489,8 @@ unsigned char ShowTargetMarker(const srVector3T<float>* eye, const srVector3T<fl
    eight-corner probe, but through TraceLineOfSight, which reports a clear
    trace as zero. */
 // FUNCTION: WIZ8 0x0046FAF0
-char TraceLineOfSightToBounds0046FAF0(const srVector3T<float>* origin, srVector3T<float>* minimum,
-                                      srVector3T<float>* maximum)
+char TraceLineOfSightToBounds(const srVector3T<float>* origin, srVector3T<float>* minimum,
+                              srVector3T<float>* maximum)
 {
     srVector3T<float> point;
 
@@ -576,9 +575,9 @@ bool HasLineOfSightToBounds0046FD70(const srVector3T<float>* origin, srVector3T<
 }
 
 // FUNCTION: WIZ8 0x0046F510
-void ExpandBounds0046F510(srVector3T<float>* minimum, srVector3T<float>* maximum,
-                          const srVector3T<float>* candidate_minimum,
-                          const srVector3T<float>* candidate_maximum)
+void ExpandBounds(srVector3T<float>* minimum, srVector3T<float>* maximum,
+                  const srVector3T<float>* candidate_minimum,
+                  const srVector3T<float>* candidate_maximum)
 {
     minimum->x = minimum->x < candidate_minimum->x ? minimum->x : candidate_minimum->x;
     minimum->y = minimum->y < candidate_minimum->y ? minimum->y : candidate_minimum->y;
@@ -592,7 +591,7 @@ void ExpandBounds0046F510(srVector3T<float>* minimum, srVector3T<float>* maximum
    Its model assignment goes through srModel::Client, exactly as the ordinary
    SurRender ownership interface requires. */
 // FUNCTION: WIZ8 0x0046F5C0
-stModelInstance* CreateModelInstance0046F5C0(stMeshModel* model)
+stModelInstance* CreateModelInstance(stMeshModel* model)
 {
     stModelInstance* instance;
 
@@ -609,7 +608,7 @@ stModelInstance* CreateModelInstance0046F5C0(stMeshModel* model)
 }
 
 // FUNCTION: WIZ8 0x0046F680
-stModelInstance* DuplicateModelInstance0046F680(stModelInstance* instance)
+stModelInstance* DuplicateModelInstance(stModelInstance* instance)
 {
     stModelInstance* copy;
 
@@ -627,7 +626,7 @@ stModelInstance* DuplicateModelInstance0046F680(stModelInstance* instance)
 }
 
 // FUNCTION: WIZ8 0x0046DF90
-stLight* CreateLight0046DF90(srNode* parent, const char* name)
+stLight* CreateLight(srNode* parent, const char* name)
 {
     stLight* light = new stLight(parent);
 
@@ -681,7 +680,7 @@ stLight* CreateWorldLight0046E140(W8World* world, const char* name)
         srAssertFail("pWorld", THREE_D_CPP, 604, 0);
     }
 
-    light = CreateLight0046DF90(world->dynamic_scene, name);
+    light = CreateLight(world->dynamic_scene, name);
     if (light == 0) {
         srAssertFail("pLight", THREE_D_CPP, 608, 0);
     }
@@ -719,7 +718,7 @@ void WorldRemoveLight(W8World* world, stLight* light)
 }
 
 // FUNCTION: WIZ8 0x0046E300
-void ConfigureWorldLight0046E300(srLight* light, float range)
+void ConfigureWorldLight(srLight* light, float range)
 {
     light->far_end_170 = (double)range;
     light->near_start_158 = 0.0;
@@ -746,9 +745,9 @@ void WorldUpdateProps(W8World* world)
     for (index = 0; index < count; index++) {
         prop = (W8Prop*)PLGet(world->plsProps, index);
         if (prop) {
-            prop->DetachAnimationInstances0044D360(world);
-            prop->UpdatePropAnimation0044C030();
-            prop->AttachAnimationInstances0044C830(world);
+            prop->DetachAnimationInstances(world);
+            prop->UpdatePropAnimation();
+            prop->AttachAnimationInstances(world);
         }
     }
 }
@@ -779,13 +778,13 @@ void AddMonsterToWorld0046E580(W8World* unused, W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x0046e5c0
-void AddItemToWorld0046E5C0(W8World* unused, W8Item* item)
+void AddItemToWorld(W8World* unused, W8Item* item)
 {
     PLAdoptAppend(g_world->plsItems, item);
 }
 
 // FUNCTION: WIZ8 0x0046e5e0
-void RemoveItemFromWorld0046E5E0(W8World* unused, W8Item* item)
+void RemoveItemFromWorld(W8World* unused, W8Item* item)
 {
     PListRemove(g_world->plsItems, item);
 }
@@ -809,20 +808,20 @@ W8Prop* WorldGetPropAt(W8World* unused, int index)
 // FUNCTION: WIZ8 0x0046e860
 void ForwardThroughMember3C_46E750(W8World* owner, int argument)
 {
-    SetSceneMeshShaderLowBits0046E750(owner->static_scene, argument);
+    SetSceneMeshShaderLowBits(owner->static_scene, argument);
 }
 
 // FUNCTION: WIZ8 0x0046e880
 void ForwardThroughMember3C_46E640(W8World* owner, int argument)
 {
-    SetSceneMeshShaderBit3_0046E640(owner->static_scene, argument);
+    SetSceneMeshShaderBit3(owner->static_scene, argument);
 }
 
 /* Walk one scene subtree and toggle shader DEPTH_WRITE on every mesh model of
    every model instance; the instance's flags_3a0 bit zero selects the off
    state. */
 // FUNCTION: WIZ8 0x0046e640
-void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
+void SetSceneMeshShaderBit3(srNode* node, int argument)
 {
     srShader shader;
     for (; node != 0; node = node->nextSibling()) {
@@ -853,7 +852,7 @@ void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
             }
         }
         if (node->firstChild() != 0) {
-            SetSceneMeshShaderBit3_0046E640(node->firstChild(), argument);
+            SetSceneMeshShaderBit3(node->firstChild(), argument);
         }
     }
 }
@@ -861,7 +860,7 @@ void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
 /* The sibling walker that leaves PASS bit 2 clear and writes the low three
    bits: PASS_ALWAYS when the argument is zero, otherwise PASS_LEQUAL. */
 // FUNCTION: WIZ8 0x0046e750
-void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument)
+void SetSceneMeshShaderLowBits(srNode* node, int argument)
 {
     srShader shader;
     for (; node != 0; node = node->nextSibling()) {
@@ -894,7 +893,7 @@ void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument)
             }
         }
         if (node->firstChild() != 0) {
-            SetSceneMeshShaderLowBits0046E750(node->firstChild(), argument);
+            SetSceneMeshShaderLowBits(node->firstChild(), argument);
         }
     }
 }
@@ -955,7 +954,7 @@ void WorldSetFarClip(W8World* world, float distance)
     }
     if (distance > 5.9604644775390625e-008) {
         world->camera->setClipRange(62.5, distance);
-        RefreshFogRanges004836A0();
+        RefreshFogRanges();
         MarkRendererReady();
     }
 }
@@ -996,7 +995,7 @@ W8GameData* g_octree_game_data_00652db0;
 /* The octree builds read the level data through this slot; the recovered
    caller passes the W8GameData object it just read. */
 // FUNCTION: WIZ8 0x0046D7D0
-void __stdcall SetOctreeGameData0046D7D0(W8GameData* value)
+void __stdcall SetOctreeGameData(W8GameData* value)
 {
     g_octree_game_data_00652db0 = value;
 }
@@ -1031,8 +1030,8 @@ void BuildPlaneFromPoints0046D660(W8Plane* plane, const srVector3T<float>* first
    coordinate toggles the inside flag when its interpolation crosses the
    first. */
 // FUNCTION: WIZ8 0x0046d530
-bool PointInsideTriangle0046D530(const srVector3T<float>* vertices, short axis,
-                                 const srVector3T<float>* point)
+bool PointInsideTriangle(const srVector3T<float>* vertices, short axis,
+                         const srVector3T<float>* point)
 {
     const float* p = &point->x;
     short u = static_cast<short>(axis + 1) % 3;
@@ -1128,8 +1127,7 @@ void SortFrustumCorners0046DA20(srVector3T<float>* points)
 /* Sphere test generalised to a bounds box: accept when any box corner is
    inside every frustum plane or any volume corner sits inside the box. */
 // FUNCTION: WIZ8 0x0046d8d0
-bool SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float radius,
-                                 const W8Plane* planes)
+bool SphereInsideFrustum(const srVector3T<float>* point, float radius, const W8Plane* planes)
 {
     bool inside = true;
 
@@ -1144,7 +1142,7 @@ bool SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float radius,
 }
 
 // FUNCTION: WIZ8 0x0046d920
-bool BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const W8BoundingBox* bounds)
+bool BoundsInsideFrustum(const W8OctRegionVolume* volume, const W8BoundingBox* bounds)
 {
     for (short x = 0; x < 2; ++x) {
         for (short y = 0; y < 2; ++y) {

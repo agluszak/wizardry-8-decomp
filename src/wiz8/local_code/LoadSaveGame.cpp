@@ -135,7 +135,7 @@ static_assert(sizeof(W8StatusHeader) == 0x314, "W8StatusHeader_must_be_0x314");
 void ReadSaveChunks(W8Chunk* source, W8Chunk* destination);
 void SaveGlobalStatus(W8Chunk* chunks, W8GlobalStatus* status);
 
-unsigned char SaveMonsterRecord005147A0(W8Chunk* chunks, unsigned int index);
+unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index);
 
 /* 0x0061A134/0x0061A138: the two XOR masks SaveGame applies to the file's
    creation-time pair before it lands in the status block. */
@@ -159,7 +159,7 @@ unsigned int g_save_filetime_xor_high_0061a138 = 0xe77c28c1;
    characters are being supplied by an archive, a flagged slot or the external
    character sentinel keeps the caller's name unqualified. */
 // FUNCTION: WIZ8 0x00514fa0
-void BuildCharacterFilePath00514FA0(char* destination, const char* filename, int slot)
+void BuildCharacterFilePath(char* destination, const char* filename, int slot)
 {
     char directory[260];
 
@@ -176,7 +176,7 @@ void BuildCharacterFilePath00514FA0(char* destination, const char* filename, int
 }
 
 // FUNCTION: WIZ8 0x00514ec0
-void BuildCharacterPath00514EC0(char* destination, const wchar_t* name, int slot)
+void BuildCharacterPath(char* destination, const wchar_t* name, int slot)
 {
     char filename[16];
     char directory[260];
@@ -427,7 +427,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     }
     gXStatus.gameplay_timer->Restart();
     DestroyUngroupedMonsters();
-    SaveMasterFunctions004D8EC0();
+    SaveMasterFunctions();
     g_status_685170.buffers.save_version = 1.1f;
     g_status_685170.difficulty = g_settings_6850c8.difficulty;
     if (g_status_685170.iron_man != 0) {
@@ -477,34 +477,34 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
         delete screenshot;
     }
     chunks.OpenChunk(0x54584554, 0); /* TEXT */
-    SaveMessageStorage0058FB50(chunks.m_hFile);
+    SaveMessageStorage(chunks.m_hFile);
     chunks.ReleaseCurrentChunk();
     if (g_location_variable_values_00659990.count != 0) {
         chunks.OpenChunk(0x52415654, 0); /* TVAR */
-        SaveLocationVariables004441E0(chunks.m_hFile);
+        SaveLocationVariables(chunks.m_hFile);
         chunks.ReleaseCurrentChunk();
     }
     chunks.OpenChunk(0x4943504e, 0); /* NPCI */
-    if (SaveNpcDialogueTranscript00575290(chunks.m_hFile) == 0) {
+    if (SaveNpcDialogueTranscript(chunks.m_hFile) == 0) {
         chunks.ReleaseCurrentChunk();
         return 0;
     }
     chunks.ReleaseCurrentChunk();
     chunks.OpenChunk(0x5443504e, 0); /* NPCT */
-    SaveNpcStates00509F00(&chunks);
+    SaveNpcStates(&chunks);
     chunks.ReleaseCurrentChunk();
     chunks.OpenChunk(0x4643504e, 0); /* NPCF */
     SaveFactState(chunks.m_hFile);
     chunks.ReleaseCurrentChunk();
     chunks.OpenChunk(0x41544146, 0); /* FATA */
-    SaveFactionState00536030(chunks.m_hFile);
+    SaveFactionState(chunks.m_hFile);
     chunks.ReleaseCurrentChunk();
     chunks.OpenChunk(0x4c4e524a, 0); /* JRNL */
-    SaveFactJournal00558A90(chunks.m_hFile);
+    SaveFactJournal(chunks.m_hFile);
     chunks.ReleaseCurrentChunk();
     if (FindMonsterControlSpellEffect() != 0) {
         chunks.OpenChunk(0x4e505948, 0); /* HYPN */
-        SaveMonsterControlSpellEffect00516580(&chunks);
+        SaveMonsterControlSpellEffect(&chunks);
         chunks.ReleaseCurrentChunk();
     }
     if (SaveStatusHeader(&chunks) == 0) {
@@ -603,7 +603,7 @@ unsigned char SaveLevelStatus(const char* path)
     } else {
         unsigned int empty_percent;
 
-        MeasureLevelStatusChunks00514DF0(&chunk, g_status_685170.current_level, &empty_percent);
+        MeasureLevelStatusChunks(&chunk, g_status_685170.current_level, &empty_percent);
         chunk.Close();
         if (empty_percent > 0x32 && _stricmp(path, "Saves\\CurrentGame.SAV") == 0) {
             SaveGame("CleanUp", 0);
@@ -668,8 +668,8 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
 
     if (g_level_status_loading_00659756) {
         chunks->OpenChunk(0x45425543, 0); /* CUBE */
-        SaveWorldCursorNodes0048EAD0(chunks->m_hFile);
-        SaveWorldCursorNodeStates0048E6D0(chunks->m_hFile);
+        SaveWorldCursorNodes(chunks->m_hFile);
+        SaveWorldCursorNodeStates(chunks->m_hFile);
         chunks->ReleaseCurrentChunk();
 
         chunks->OpenChunk(0x474e4f4d, 0); /* MONG */
@@ -677,11 +677,11 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
         chunks->ReleaseCurrentChunk();
 
         chunks->OpenChunk(0x4b434f4c, 0); /* LOCK */
-        SaveTriggerRuntimeStates0043CB30(g_world, chunks->m_hFile, g_level_status_loading_00659756);
+        SaveTriggerRuntimeStates(g_world, chunks->m_hFile, g_level_status_loading_00659756);
         chunks->ReleaseCurrentChunk();
 
         chunks->OpenChunk(0x53455254, 0); /* TRES */
-        SaveTriggerActionData0043D120(g_world, chunks->m_hFile);
+        SaveTriggerActionData(g_world, chunks->m_hFile);
         chunks->ReleaseCurrentChunk();
         if (g_level_status_loading_00659756) {
             chunks->ReleaseGroup();
@@ -696,16 +696,16 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
 
     if (g_world->triggers->count != 0) {
         chunks->OpenChunk(0x47495254, 0); /* TRIG */
-        SaveWorldTriggers0043C810(g_world, chunks->m_hFile);
+        SaveWorldTriggers(g_world, chunks->m_hFile);
         chunks->ReleaseCurrentChunk();
     }
 
     chunks->OpenChunk(0x54535041, 0); /* APST */
-    SaveWorldProps0044E830(g_world, chunks->m_hFile);
+    SaveWorldProps(g_world, chunks->m_hFile);
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x53425543, 0); /* CUBS */
-    SaveWorldCursorNodeStates0048E6D0(chunks->m_hFile);
+    SaveWorldCursorNodeStates(chunks->m_hFile);
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x534e474d, 0); /* MGNS */
@@ -713,19 +713,19 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x534b434c, 0); /* LCKS */
-    SaveTriggerRuntimeStates0043CB30(g_world, chunks->m_hFile, g_level_status_loading_00659756);
+    SaveTriggerRuntimeStates(g_world, chunks->m_hFile, g_level_status_loading_00659756);
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x53424d41, 0); /* AMBS */
-    SaveAmbientSoundList0047B140(chunks->m_hFile);
+    SaveAmbientSoundList(chunks->m_hFile);
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x54524150, 0); /* PART */
-    SaveParticleStates0049B150(chunks->m_hFile);
+    SaveParticleStates(chunks->m_hFile);
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x5448474c, 0); /* LGHT */
-    SaveLightStates0049D120(chunks->m_hFile);
+    SaveLightStates(chunks->m_hFile);
     chunks->ReleaseCurrentChunk();
 
     chunks->ReleaseGroup();
@@ -783,12 +783,12 @@ unsigned char SaveMonsterStatus(W8Chunk* chunks)
     }
     for (index = 0; index < monster_count; ++index) {
         if (index < PLLength(gXStatus.plsMonsterList)) {
-            if (SaveMonsterRecord005147A0(chunks, index) == 0) {
+            if (SaveMonsterRecord(chunks, index) == 0) {
                 goto fail;
             }
         } else {
-            if (SaveMonsterRecord005147A0(chunks, index - PLLength(gXStatus.plsMonsterList) +
-                                                      0x2710) == 0) {
+            if (SaveMonsterRecord(chunks, index - PLLength(gXStatus.plsMonsterList) + 0x2710) ==
+                0) {
                 goto fail;
             }
         }
@@ -806,7 +806,7 @@ fail:
    state and the order/patrol fields the loader reads back in record-version
    order. */
 // FUNCTION: WIZ8 0x005147a0
-unsigned char SaveMonsterRecord005147A0(W8Chunk* chunks, unsigned int index)
+unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
 {
     unsigned short script_name[0x20] = {g_empty_ambient_name_65a110};
     int script_wait = -1;
@@ -834,7 +834,7 @@ unsigned char SaveMonsterRecord005147A0(W8Chunk* chunks, unsigned int index)
         info->position_17.x = location.x;
         info->position_17.y = location.y;
         info->position_17.z = location.z;
-        info->derived_23 = MonsterGetAngleD4004C5770(info->p3D);
+        info->derived_23 = MonsterGetAngleD4(info->p3D);
     }
     record_size = sizeof(*info);
     chunks->Write(&record_size, 4, 0);
@@ -863,7 +863,7 @@ unsigned char SaveMonsterRecord005147A0(W8Chunk* chunks, unsigned int index)
     unborn = PListIndexOf(gXStatus.plsUnbornMonsterList, info) != -1;
     chunks->Write(&unborn, 1, 0);
     monster = info->p3D;
-    monster->SaveMovementState004549D0(chunks->m_hFile);
+    monster->SaveMovementState(chunks->m_hFile);
     value = monster->defining_orders_28c;
     chunks->Write(&value, 1, 0);
     value = monster->order_mode_28e;
@@ -986,9 +986,9 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                                 if (g_level_status_loading_00659756 == 0) {
                                     ReleaseWorldCursorNodes0048DB30();
                                 }
-                                LoadWorldCursorNodes0048E7B0(stream->m_hFile);
+                                LoadWorldCursorNodes(stream->m_hFile);
                                 if (g_level_status_loading_00659756 != 0) {
-                                    LoadWorldCursorNodeStates0048E470(stream->m_hFile);
+                                    LoadWorldCursorNodeStates(stream->m_hFile);
                                 }
                             } else if (chunk_id == 0x474e4f4d) { /* MONG */
                                 if (g_level_status_loading_00659756 == 0) {
@@ -997,25 +997,25 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                                 MonGen::LoadAll(stream->m_hFile);
                             } else if (chunk_id == 0x4b434f4c || /* LOCK */
                                        chunk_id == 0x534b434c) { /* LCKS */
-                                LoadTriggerRuntimeStates0043CCF0(stream->m_hFile);
+                                LoadTriggerRuntimeStates(stream->m_hFile);
                             } else if (chunk_id == 0x53455254) { /* TRES */
                                 LoadTriggerActionData0043D1F0(stream->m_hFile);
                             } else if (chunk_id == 0x4f545541) { /* AUTO */
                                 LoadAutomapNotes(stream->m_hFile);
                             } else if (chunk_id == 0x47495254) { /* TRIG */
-                                LoadWorldTriggers0043C860(g_world, stream->m_hFile);
+                                LoadWorldTriggers(g_world, stream->m_hFile);
                             } else if (chunk_id == 0x54535041) { /* APST */
-                                LoadWorldProps0044E9A0(g_world, stream->m_hFile);
+                                LoadWorldProps(g_world, stream->m_hFile);
                             } else if (chunk_id == 0x53425543) { /* CUBS */
-                                LoadWorldCursorNodeStates0048E470(stream->m_hFile);
+                                LoadWorldCursorNodeStates(stream->m_hFile);
                             } else if (chunk_id == 0x534e474d) { /* MGNS */
                                 LoadMonsterGenerators(stream->m_hFile);
                             } else if (chunk_id == 0x53424d41) { /* AMBS */
                                 LoadAmbientSoundList0047B270(stream->m_hFile);
                             } else if (chunk_id == 0x54524150) { /* PART */
-                                LoadParticleStates0049B3B0(stream->m_hFile);
+                                LoadParticleStates(stream->m_hFile);
                             } else if (chunk_id == 0x5448474c) { /* LGHT */
-                                LoadLightStates0049D390(stream->m_hFile);
+                                LoadLightStates(stream->m_hFile);
                             }
                         }
                     chunk_done:
@@ -1073,9 +1073,9 @@ unsigned char LoadDefaultLevelStatus(unsigned int level)
                 unsigned long chunk_id = chunk.CurrentChunkId();
 
                 if (chunk_id == 0x4b434f4c) { /* LOCK */
-                    LoadTriggerRuntimeStates0043CCF0(chunk.m_hFile);
+                    LoadTriggerRuntimeStates(chunk.m_hFile);
                 } else if (chunk_id == 0x45425543) { /* CUBE */
-                    LoadWorldCursorNodes0048E7B0(chunk.m_hFile);
+                    LoadWorldCursorNodes(chunk.m_hFile);
                 } else if (chunk_id == 0x474e4f4d) { /* MONG */
                     MonGen::LoadAll(chunk.m_hFile);
                 } else if (chunk_id == 0x53455254) { /* TRES */
@@ -1285,7 +1285,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
         SetMonsterSpellIcon(monster, SPELL_ICON_SUMMONED, 1);
     }
     if (record_version >= 2) {
-        monster->LoadMovementState00454AD0(chunk->m_hFile);
+        monster->LoadMovementState(chunk->m_hFile);
     }
     if (record_version >= 3) {
         chunk->Read(&value, 1, 0);
@@ -1331,7 +1331,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
     }
     if (script_name[0] != '\0') {
         monster_info->ai_mode_255 |= 0x10;
-        monster->SetScript004C7F10(script_name, 0);
+        monster->SetScript(script_name, 0);
         monster->script_wait_240 = script_wait;
         monster->script_line_23c = script_line;
         while (script_conditions.GetCount() != 0) {
@@ -1496,7 +1496,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
         item->fActive = 0;
         item->p3D = 0;
         if (ItemHasFlags(item, 1)) {
-            RegisterSearchableWorldItem00516E20(item);
+            RegisterSearchableWorldItem(item);
         }
         if (previous != 0) {
             previous->next = item;
@@ -1926,7 +1926,7 @@ void ProcessMainGameAutoSave(void)
    loader rebuilds them. The assertion names the local pLure and belongs to
    this unit at source line 3507. */
 // FUNCTION: WIZ8 0x00516580
-void SaveMonsterControlSpellEffect00516580(W8Chunk* chunks)
+void SaveMonsterControlSpellEffect(W8Chunk* chunks)
 {
     W8SpellEffectEntry* lure = FindMonsterControlSpellEffect();
 
@@ -2065,8 +2065,7 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
    is rolled into CleanUp. Retail wraps the percentage in an unguarded DIV, so
    a zero total would trap there as well. */
 // FUNCTION: WIZ8 0x00514df0
-unsigned char MeasureLevelStatusChunks00514DF0(W8Chunk* chunk, int level,
-                                               unsigned int* empty_percent)
+unsigned char MeasureLevelStatusChunks(W8Chunk* chunk, int level, unsigned int* empty_percent)
 {
     bool found = false;
     unsigned int total = 0;
@@ -2183,7 +2182,7 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
             party_row->target_context_5.pPCItem = 0;
         }
     }
-    RebuildPartyStatus00555FA0(&status->formation);
+    RebuildPartyStatus(&status->formation);
 }
 
 /* Write the global status as one GSTA chunk. The two pointed-to collections
@@ -2279,7 +2278,7 @@ unsigned char LoadSavedLevelItems00516070(int level, W8GrowableVector<W8WorldIte
    Writes the chosen bare name into `name`; returns 0 when all twenty-one
    slots are taken. */
 // FUNCTION: WIZ8 0x00516890
-unsigned char FindFreeEndingSaveName00516890(char* name)
+unsigned char FindFreeEndingSaveName(char* name)
 {
     char path[260];
     int index;
@@ -2358,28 +2357,28 @@ unsigned char LoadGame(const char* slot_name)
                 LoadGameStatus(&chunks, &g_status_685170);
                 break;
             case 0x54584554: /* TEXT */
-                LoadMessageStorage0058FC30(chunks.m_hFile);
+                LoadMessageStorage(chunks.m_hFile);
                 break;
             case 0x52415654: /* TVAR */
-                LoadLocationVariables00444310(chunks.m_hFile);
+                LoadLocationVariables(chunks.m_hFile);
                 break;
             case 0x4943504e: /* NPCI */
-                LoadNpcDialogueTranscript005750D0(chunks.m_hFile);
+                LoadNpcDialogueTranscript(chunks.m_hFile);
                 break;
             case 0x5443504e: /* NPCT */
-                LoadNpcStates00509FC0(&chunks);
+                LoadNpcStates(&chunks);
                 break;
             case 0x4643504e: /* NPCF */
                 LoadFactState(chunks.m_hFile);
                 break;
             case 0x41544146: /* FATA */
-                LoadFactionState00536070(chunks.m_hFile);
+                LoadFactionState(chunks.m_hFile);
                 break;
             case 0x4c4e524a: /* JRNL */
-                LoadJournalEntries00558B20(chunks.m_hFile);
+                LoadJournalEntries(chunks.m_hFile);
                 break;
             case 0x4e505948: /* HYPN */
-                LoadMonsterControlSpellEffect00516310(&chunks);
+                LoadMonsterControlSpellEffect(&chunks);
                 break;
             }
         }
@@ -2401,7 +2400,7 @@ unsigned char LoadGame(const char* slot_name)
     } else {
         SetItemCursor(0);
     }
-    SanitizeLoadedItems00522EF0();
+    SanitizeLoadedItems();
     return 1;
 }
 
@@ -2414,7 +2413,7 @@ unsigned char LoadGame(const char* slot_name)
    effect, rebuilt through the entry constructor and pushed onto
    g_spell_effects. */
 // FUNCTION: WIZ8 0x00516310
-void LoadMonsterControlSpellEffect00516310(W8Chunk* chunks)
+void LoadMonsterControlSpellEffect(W8Chunk* chunks)
 {
     W8SpellEffectEntry* effect = new W8SpellEffectEntry;
 

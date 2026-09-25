@@ -986,14 +986,14 @@ unsigned char W8CharacterEvent::Dispatch()
             }
             if ((flags & W8_EVENT_NPC_SCRIPT) != 0) {
                 SetNpcScriptEventActive(1);
-                ReleaseNpcScriptFile0055A0A0(npc->script_file);
+                ReleaseNpcScriptFile(npc->script_file);
                 ReloadNpcScriptResources(npc);
             }
             BeginNpcScriptDialogue(npc, 1);
             RunNpcScriptLine(event_type, (flags & W8_EVENT_NPC_SCRIPT) != 0);
             if ((flags & W8_EVENT_NPC_SCRIPT) != 0) {
                 SetNpcScriptEventActive(0);
-                ReleaseNpcScriptFile0055A0A0(npc->script_file);
+                ReleaseNpcScriptFile(npc->script_file);
                 ReloadNpcScriptResources(npc);
             }
             slot->active_character_event = this;
@@ -2051,9 +2051,9 @@ int UpdateCharacterEventState(void)
                             record->portrait_frame_dirty = 1;
                             record->voice_time_remaining_ms = 0;
                         } else {
-                            int direction = ChooseDifferentMonsterDirection004C2E00(
-                                                (short)record->portrait_frame - 6) +
-                                            6;
+                            int direction =
+                                ChooseDifferentMonsterDirection((short)record->portrait_frame - 6) +
+                                6;
                             if (g_event_range_min_0068c57c <= record->pending_event_type_114 &&
                                 record->pending_event_type_114 <= g_event_range_max_0068c554) {
                                 direction = 8;
@@ -2181,7 +2181,7 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
     if (state->portrait_pose_dirty != 0 || state->portrait_pose != state->previous_portrait_pose ||
         (animate != 0 && state->portrait_pose != 1)) {
         GetCatalogImageSize(0x12, portrait, state->portrait_pose, &width, &height);
-        GetCatalogImagePosition00549700(0x12, portrait, state->portrait_pose, &image_x, &image_y);
+        GetCatalogImagePosition(0x12, portrait, state->portrait_pose, &image_x, &image_y);
         rect.left = image_x + left;
         rect.top = image_y + top;
         rect.right = width + rect.left;
@@ -2198,8 +2198,8 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         drawn = true;
         if (state->previous_portrait_pose != -1) {
             GetCatalogImageSize(0x12, portrait, state->previous_portrait_pose, &width, &height);
-            GetCatalogImagePosition00549700(0x12, portrait, state->previous_portrait_pose, &image_x,
-                                            &image_y);
+            GetCatalogImagePosition(0x12, portrait, state->previous_portrait_pose, &image_x,
+                                    &image_y);
             other.left = image_x + left;
             other.top = image_y + top;
             other.right = width + other.left;
@@ -2218,7 +2218,7 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         }
     } else {
         GetCatalogImageSize(0x12, portrait, state->portrait_frame, &width, &height);
-        GetCatalogImagePosition00549700(0x12, portrait, state->portrait_frame, &image_x, &image_y);
+        GetCatalogImagePosition(0x12, portrait, state->portrait_frame, &image_x, &image_y);
         if (animate == 0 && drawn == 0 && gXStatus.fCombatMode != 0 &&
             g_combat_state->characters[party_slot].dead_34 != 0) {
             RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
@@ -2234,8 +2234,8 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         drawn = true;
         if (state->previous_portrait_frame != -1) {
             GetCatalogImageSize(0x12, portrait, state->previous_portrait_frame, &width, &height);
-            GetCatalogImagePosition00549700(0x12, portrait, state->previous_portrait_frame,
-                                            &image_x, &image_y);
+            GetCatalogImagePosition(0x12, portrait, state->previous_portrait_frame, &image_x,
+                                    &image_y);
             other.left = image_x + left;
             other.top = image_y + top;
             other.right = width + other.left;

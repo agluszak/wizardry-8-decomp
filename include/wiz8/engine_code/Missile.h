@@ -15,9 +15,9 @@ class stLight;
 class W8Missile;
 
 /* The kind-3 record of the tagged AI family W8GrObject holds at +0x0c (the
-   path record is kind 0). UpdateMissileAI004A4CF0 ticks it: +0x04 is the
+   path record is kind 0). UpdateMissileAI ticks it: +0x04 is the
    per-step distance scale, +0x08 the remaining turn budget, +0x0c the missile
-   it steers (CopyAIMissile004A53A0 deliberately leaves it unset), +0x10 the
+   it steers (CopyAIMissile deliberately leaves it unset), +0x10 the
    half-tick baseline, +0x14 the elapsed flight clock, +0x18 the early-impact
    limit and +0x1c a trailing flag. */
 struct W8AIMissile : W8AIRecord {
@@ -40,8 +40,8 @@ struct W8AIMissile : W8AIRecord {
     unsigned char padding_1d[3];
 };
 
-W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source);
-unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record);
+W8AIMissile* CopyAIMissile(const W8AIMissile* source);
+unsigned char UpdateMissileAI(W8AIMissile* record);
 float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out, unsigned int steps);
 
 /* The missile constructor allocates this complete 0x108-byte representation,
@@ -97,7 +97,7 @@ public:
     virtual bool OnCollision(W8Navigator* other) override; /* 0x004A4720 */
 
     unsigned long GetAnimationState004A4640(int mode);
-    void DetonateMissileSpell004A49E0();
+    void DetonateMissileSpell();
     void AnnounceCollisionTarget(); /* 0x004A4AC0 */
     /* Switch the representation to its impact cycle, or end the flight when the
        missile has no such cycle. */
@@ -151,15 +151,13 @@ static_assert(sizeof(W8Missile) == 0x328, "W8Missile_size_must_be_0x328");
 /* Secondary vftable 0x005ecdf4 keeps the W8Navigator subobject at +0x18. */
 W8_ASSERT_BASE_OFFSET(W8Missile, W8Navigator, padding_004, 0x18);
 
-W8Missile* FireMissile004A2D30(unsigned int missile_table_index, srVector3T<float>* source,
-                               srVector3T<float>* target, float flight_speed,
-                               unsigned int trace_mask, unsigned int block_released,
-                               float duration);
+W8Missile* FireMissile(unsigned int missile_table_index, srVector3T<float>* source,
+                       srVector3T<float>* target, float flight_speed, unsigned int trace_mask,
+                       unsigned int block_released, float duration);
 void DestroyMissile(W8Missile* missile); /* 0x004A4180 */
 /* The world position `character_index`'s current hand fires a missile from:
    the camera's launch point swung to the wielding side. */
-void GetCharacterProjectilePosition004A57B0(unsigned int character_index,
-                                            srVector3T<float>* position);
+void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<float>* position);
 void DestroyAllMissiles(W8World* world); /* 0x004A4210 */
 
 extern unsigned int g_missile_table_count_65bddc;
@@ -194,14 +192,13 @@ static_assert(sizeof(W8MissileTableRecord) == 0x1e5, "W8MissileTableRecord_must_
 
 extern W8MissileTableRecord* g_missile_table_65bde0;
 
-W8Missile* NextMissile004A2760(char restart);
+W8Missile* NextMissile(char restart);
 
-W8Missile* AllocateMissile004A5450(int missile_table_index);
-unsigned char LoadMissileCycle004A3550(W8GrCycleLoadContext* context, const char* name,
-                                       W8Missile** ppMissile, int unused);
+W8Missile* AllocateMissile(int missile_table_index);
+unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
+                               W8Missile** ppMissile, int unused);
 
-W8Missile* CreateMissile004A28D0(unsigned int missile_table_index, srVector3T<float>* source,
-                                 float heading, float pitch, float flight_speed,
-                                 unsigned int trace_mask, unsigned char block_released,
-                                 float duration);
-void UpdateWorldMissiles004A27C0(W8World* world);
+W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* source, float heading,
+                         float pitch, float flight_speed, unsigned int trace_mask,
+                         unsigned char block_released, float duration);
+void UpdateWorldMissiles(W8World* world);

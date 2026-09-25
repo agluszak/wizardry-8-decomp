@@ -139,9 +139,9 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
 
     applied = character->hp_current;
     if (applied <= amount) {
-        if (CharacterHasTrait00547940(character, 2) != 0 &&
+        if (CharacterHasTrait(character, 2) != 0 &&
             character->uiCondition[W8_CONDITION_EXHAUSTED] < 7) {
-            CheatDeathRevive00547A50(party_slot);
+            CheatDeathRevive(party_slot);
             RecordCharacterDamage(party_slot, amount);
             return applied;
         }
@@ -730,7 +730,7 @@ struct W8SpellPointDeficit {
 };
 
 // FUNCTION: WIZ8 0x0052B8E0
-int __cdecl CompareSpellPointDeficits0052B8E0(const void* first, const void* second)
+int __cdecl CompareSpellPointDeficits(const void* first, const void* second)
 {
     const W8SpellPointDeficit* a = static_cast<const W8SpellPointDeficit*>(first);
     const W8SpellPointDeficit* b = static_cast<const W8SpellPointDeficit*>(second);
@@ -752,7 +752,7 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
         order[index].realm = index;
         order[index].deficit = character->sp_max[index] - character->iSPLeft[index];
     }
-    qsort(order, W8_SPELL_REALM_COUNT, sizeof(order[0]), CompareSpellPointDeficits0052B8E0);
+    qsort(order, W8_SPELL_REALM_COUNT, sizeof(order[0]), CompareSpellPointDeficits);
 
     for (;;) {
         if (amount == 0) {
@@ -925,7 +925,7 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
             if (MonsterVsCharDisposition(attacker->iChar, monster_info) == 2) {
                 TickMonsterCondition(monster_info->location_id, 0xd, 1);
             }
-        } else if (MonsterHostility00546F80(
+        } else if (MonsterHostility(
                        MonsterInfoFromID(1570, HEALTH_STAMINA_MANA_CPP, attacker->iMonsterID, 1),
                        monster_info) == 2) {
             TickMonsterCondition(monster_info->location_id, 0xd, 1);
@@ -1274,7 +1274,7 @@ void RecalculateRealmSpellPoints(W8Character* character)
 {
     int profession = character->iProfession;
     if (profession != 0 && (profession < 7 || profession > 9)) {
-        character->skill_unlocks[0x24] = RebuildRealmSpellPointCeilings0052A540(character);
+        character->skill_unlocks[0x24] = RebuildRealmSpellPointCeilings(character);
         return;
     }
     character->skill_unlocks[0x24] = 0;
@@ -1286,7 +1286,7 @@ void RecalculateRealmSpellPoints(W8Character* character)
    attribute; the sum scales with the realm's learned-spell count, level and
    one. */
 // FUNCTION: WIZ8 0x0052a540
-int RebuildRealmSpellPointCeilings0052A540(W8Character* character)
+int RebuildRealmSpellPointCeilings(W8Character* character)
 {
     int max_spell_levels[6];
     int realm_skills[4];

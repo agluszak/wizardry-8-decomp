@@ -12,10 +12,10 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
                         W8ActionDetailBlock** out_detail); /* 0x004E77B0 */
 void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail,
                               const W8ActionDetailBlock* data, int notify); /* 0x004E8000 */
-void EndCombat004EA310(int mode);                                           /* 0x004EA310 */
-void BeginCombatExecution004E8370(void);
-void AssignCombatPhases004E89D0(void);
-void UpdateCombat004E8EA0(void);                    /* 0x004E8EA0 */
+void EndCombat(int mode);                                                   /* 0x004EA310 */
+void BeginCombatExecution(void);
+void AssignCombatPhases(void);
+void UpdateCombat(void);                            /* 0x004E8EA0 */
 void SwitchCharacterTo(int party_slot, int action); /* 0x004ED390 */
 void ApplyCombatEndEffects(void);                   /* 0x004EA1F0 */
 bool CombatHasContinuingEffects(void);              /* 0x004ED550 */
@@ -27,10 +27,10 @@ bool QueueNpcCombatScript(void); /* 0x004ED710 */
    monster whose action phase arrived, starts party-movement phases, arms the
    action pacing clock, and rolls the round counter forward until someone
    can act or the round ends. */
-void ScheduleCombatActor004E9490(void);
-int CheckCombatEnd004E9F90(unsigned int arg_1); /* 0x004E9F90 */
-void AdvanceCombatRound004E9B20(void);          /* 0x004E9B20 */
-void RollCombatSurprise004ECF50(char arg_1);    /* 0x004ECF50 */
+void ScheduleCombatActor(void);
+int CheckCombatEnd(unsigned int arg_1); /* 0x004E9F90 */
+void AdvanceCombatRound(void);          /* 0x004E9B20 */
+void RollCombatSurprise(char arg_1);    /* 0x004ECF50 */
 /* 0x004E7090: enter combat mode; queues a friendly NPC's combat-entry script
    notice when one is still owed and declines while dialogue or a script event
    defers it. */
@@ -52,18 +52,18 @@ void PointCameraAtCombatTarget(W8TargetSource* source, W8CombatSlot* target); /*
 /* 0x004EA5C0: run one party slot's committed combat action - commit the
    chosen block, check conditions that can redirect or cancel it, dispatch on
    the action kind, and charge the fatigue. */
-void ExecuteCharacterAction004EA5C0(int party_slot);
+void ExecuteCharacterAction(int party_slot);
 /* 0x004EAE20: run one monster's committed combat action - the monster-side
-   counterpart of ExecuteCharacterAction004EA5C0. */
-void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* record);
+   counterpart of ExecuteCharacterAction. */
+void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record);
 /* 0x004EAC90: pick the hand the slot's attack lands with this round and
    derive the row's next action phase from the stored attack values. */
-void ComputeCharacterActionPhase004EAC90(int party_slot);
+void ComputeCharacterActionPhase(int party_slot);
 /* 0x004EB8C0: set one monster's turn up, once - phase and speed by action. */
 void SetUpMonsterTurn(W8MonsterInfo* monster_info);
 /* 0x004EC1E0: the condition interrupt that fires before the actor's action;
    returns the interrupt kind, or -1 when none fires. */
-int GetConditionInterrupt004EC1E0(W8TargetSource* source);
+int GetConditionInterrupt(W8TargetSource* source);
 /* 0x004EB980: the monster's breathe/special-attack action step. */
 char MonsterFleeAction(W8MonsterInfo* monster_info, W8MonsterRecord* record);
 /* 0x004EBA70: run the monster's committed special attack against its marker
@@ -96,4 +96,4 @@ void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info);
 void SetSlotAction(int party_slot, int action_kind, int action_detail);
 bool CanCharReBreathe(int party_slot);
 unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target); /* 0x004ECE00 */
-short GetCombatActionProgress004EC610(int* out_total);              /* 0x004EC610 */
+short GetCombatActionProgress(int* out_total);                      /* 0x004EC610 */

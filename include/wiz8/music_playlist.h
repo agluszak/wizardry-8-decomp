@@ -12,9 +12,9 @@ extern int g_music_state_60aaec;
 extern int g_music_state_60aaf0;
 
 unsigned char InitializeMusicPlaylist(void);
-unsigned char StartMusicResource0048FC10(const char* resource, int immediate, int replace_current);
+unsigned char StartMusicResource(const char* resource, int immediate, int replace_current);
 
-void ServiceMusicPlaylist0048F9E0(void);
+void ServiceMusicPlaylist(void);
 void StopMusicPlaylist(unsigned char fade);
 
 bool IsCurrentMusicPlaylist(const char* playlist);

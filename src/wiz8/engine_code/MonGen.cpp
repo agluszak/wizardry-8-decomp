@@ -390,13 +390,12 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
 
     /* Retail computes this total even though the surviving release path never
        reads it afterwards; the external calls can still populate cycle data. */
-    encounter_weight = GetMonsterCycleFallbackValue004E5B50(species);
+    encounter_weight = GetMonsterCycleFallbackValue(species);
     for (index = 0; index < 2; ++index) {
         companion_records[index] = record->companions_0c5[index];
         if (companion_records[index].species > 0 && Chance(companion_records[index].chance)) {
             companion_active[index] = 1;
-            encounter_weight +=
-                GetMonsterCycleFallbackValue004E5B50(companion_records[index].species);
+            encounter_weight += GetMonsterCycleFallbackValue(companion_records[index].species);
         }
     }
     static_cast<void>(encounter_weight);
@@ -423,7 +422,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
 
     W8Monster* monster = GetMonsterByLocationID(group->leader_location_id);
     if (monster != 0) {
-        monster->SetScript004C7F10(script != 0 && script[0] != '\0' ? script : "Default.MSF", 1);
+        monster->SetScript(script != 0 && script[0] != '\0' ? script : "Default.MSF", 1);
     }
 
     for (index = 0; index < 2; ++index) {
@@ -573,7 +572,7 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
 }
 
 // FUNCTION: WIZ8 0x0048c9f0
-void DespawnAllActiveMonsterGroups0048C9F0(void)
+void DespawnAllActiveMonsterGroups(void)
 {
     while (g_active_groups.count > 0) {
         DespawnMonsterGroup(*g_active_groups.GetAt(g_active_groups.count - 1));
@@ -583,7 +582,7 @@ void DespawnAllActiveMonsterGroups0048C9F0(void)
 /* Put the encounter-culling scale back to its fast default and rearm every
    loaded generator's interval timer. */
 // FUNCTION: WIZ8 0x0048cbe0
-void ResetMonsterGeneratorTimers0048CBE0(void)
+void ResetMonsterGeneratorTimers(void)
 {
     g_encounter_culling_scale_fast = 1.0f;
     W8GrowableVector<MonGen*>* generators = g_world->monster_generators;
@@ -1025,7 +1024,7 @@ static __inline void LoadMonsterGeneratorMarkerInline(MonGen* generator)
     generator->marker_item = marker;
     if (marker != 0) {
         marker->SetLocation0049F720(&generator->spawn_position_0c);
-        marker->ApplyRepTransform0049FAA0();
+        marker->ApplyRepTransform();
     }
 }
 
@@ -1043,7 +1042,7 @@ void MonGen::SetActive(unsigned char active, W8Item* node)
     if (active == 0) {
         flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
         if (marker_item != 0) {
-            marker_item->DetachMesh0049FA30(g_world);
+            marker_item->DetachMesh(g_world);
         }
         return;
     }
@@ -1051,7 +1050,7 @@ void MonGen::SetActive(unsigned char active, W8Item* node)
     if (marker_item == 0) {
         LoadMonsterGeneratorMarkerInline(this);
     }
-    marker_item->AttachMesh0049F900(g_world);
+    marker_item->AttachMesh(g_world);
 }
 
 /* Writes the encounter subsystem's own state to a save, ahead of the generator
@@ -1136,7 +1135,7 @@ MonGen::~MonGen()
     if (marker_item != 0) {
         if ((flags >> 2 & 1) != 0) {
             flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
-            marker_item->DetachMesh0049FA30(g_world);
+            marker_item->DetachMesh(g_world);
         }
         delete marker_item;
     }
@@ -1150,7 +1149,7 @@ void MonGen::SetState(const srVector3T<float>* state)
     spawn_position_0c = *state;
     if (marker_item != 0) {
         marker_item->SetLocation0049F720(state);
-        marker_item->ApplyRepTransform0049FAA0();
+        marker_item->ApplyRepTransform();
     }
 }
 
@@ -1170,7 +1169,7 @@ void MonGen::Reload(int unused, unsigned char active)
     if (active == 0) {
         flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
         if (marker_item != 0) {
-            marker_item->DetachMesh0049FA30(g_world);
+            marker_item->DetachMesh(g_world);
         }
         return;
     }
@@ -1178,7 +1177,7 @@ void MonGen::Reload(int unused, unsigned char active)
     if (marker_item == 0) {
         LoadMonsterGeneratorMarkerInline(this);
     }
-    marker_item->AttachMesh0049F900(g_world);
+    marker_item->AttachMesh(g_world);
 }
 
 // FUNCTION: WIZ8 0x0048cc30

@@ -493,7 +493,7 @@ void W8CharacterScreen::SyncCharacterForPage(int index)
         CountRemainingSpellPoints(&m_character_018, &m_creation_state_187c);
     } else if (index == 3) {
         if (m_character_018.personality_0081 < 0)
-            DeriveCharacterPersonality004EFA30(&m_character_018);
+            DeriveCharacterPersonality(&m_character_018);
         if (m_character_018.portrait_index < 0)
             CalcCharacterTableValue(&m_character_018);
     }
@@ -575,7 +575,7 @@ bool W8CharacterScreen::CommitCharacter()
     if (!g_status_685170.game_started && !g_status_685170.skip_loose_character_check_2444) {
         if (m_original_014 != 0) {
             char path[260];
-            BuildCharacterPath00514EC0(path, m_original_014->name, -1);
+            BuildCharacterPath(path, m_original_014->name, -1);
             DeleteFileA(path);
         }
         m_character_018.fInParty = false;
@@ -592,13 +592,13 @@ bool W8CharacterScreen::CommitCharacter()
         if (was_in_party)
             m_original_014->fInParty = true;
         if (m_original_014->iProfession == W8_PROFESSION_GADGETEER)
-            UpgradeProfessionClassItem005218C0(m_original_014);
+            UpgradeProfessionClassItem(m_original_014);
         UnequipUnusableItems(m_original_014);
     }
     return true;
 }
 
-/* Skill-availability hooks raised by RefreshCharacterSkillAvailability00553CD0 while this screen is
+/* Skill-availability hooks raised by RefreshCharacterSkillAvailability while this screen is
    current. They adjust the named skill through the page-2 helpers and then
    refresh page 2, the skills list. */
 // FUNCTION: WIZ8 0x005b1af0
@@ -670,18 +670,18 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
         }
         case 6:
             FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
-            RecruitCharacterIntoParty004EF7E0(m_original_014, &m_character_018, 1);
+            RecruitCharacterIntoParty(m_original_014, &m_character_018, 1);
             RequestScreenTransition();
             break;
         case 7:
             FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
-            RecruitCharacterIntoParty004EF7E0(m_original_014, &m_character_018, 0);
+            RecruitCharacterIntoParty(m_original_014, &m_character_018, 0);
             RequestScreenTransition();
             break;
         }
     } else if (response == 6) {
         FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
-        RecruitCharacterIntoParty004EF7E0(m_original_014, &m_character_018, 0);
+        RecruitCharacterIntoParty(m_original_014, &m_character_018, 0);
         RequestScreenTransition();
     }
 }
@@ -694,7 +694,7 @@ bool W8CharacterScreen::ValidateName()
     }
     if (!g_status_685170.game_started && !g_status_685170.skip_loose_character_check_2444) {
         char path[260];
-        BuildCharacterPath00514EC0(path, m_character_018.name, -1);
+        BuildCharacterPath(path, m_character_018.name, -1);
         if (FileExists(path)) {
             ShowMessage(gppStringList[0x354 / 4], 0, 0);
             return false;
@@ -744,7 +744,7 @@ unsigned char CharacterScreenEnter(void)
     g_character_screen_0069c2e8->BuildControls();
     if (!g_status_685170.game_started &&
         (g_current_screen_state.mode == 0 || g_current_screen_state.mode == 2)) {
-        StartMusicResource0048FC10("Menus.MPL", 1, 1);
+        StartMusicResource("Menus.MPL", 1, 1);
     }
     return 1;
 }

@@ -142,7 +142,7 @@ void W8CharacterSpellList::Redraw(int force)
 /* Shared with other widget classes at 0x004F58C0. */
 void W8CharacterSpellList::OnMouseEnter(int)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
 }
 
 // FUNCTION: WIZ8 0x005c8100
@@ -173,7 +173,7 @@ void W8CharacterSpellList::OnLeftButtonDown(int)
     SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
 }
 
@@ -184,7 +184,7 @@ void W8CharacterSpellList::OnRightButtonDown(int)
     SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
     }
 }
 
@@ -195,7 +195,7 @@ void W8CharacterSpellList::OnLeftButtonUp(int event)
     SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         return;
     }
     if (m_entries[entry].fSelectable) {
@@ -212,7 +212,7 @@ void W8CharacterSpellList::OnRightButtonUp(int)
     SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
-        PushButtonSoundScheme005587C0(0, 1);
+        PushButtonSoundScheme(0, 1);
         return;
     }
     if (m_listener)
@@ -285,7 +285,7 @@ void W8CharacterPage005EF664::Accept()
     for (int index = 0; index < 0x72; ++index) {
         m_SpellData[index].selected = 0;
     }
-    ResetSpellSelections005585D0(m_character_060, m_creation_state_064);
+    ResetSpellSelections(m_character_060, m_creation_state_064);
     Invalidate(0);
     m_dirty_06d = 1;
     m_screen_05c->UpdateNavigation(this);

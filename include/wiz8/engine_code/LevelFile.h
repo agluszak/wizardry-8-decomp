@@ -99,7 +99,7 @@ struct W8LevelFileLightExtra { /* 0x3c */
 };
 
 /* Serialized world-item record: the .pvl item section
-   (ReadWorldItems004BC380) stores the same fields plus an optional inline
+   (ReadWorldItems) stores the same fields plus an optional inline
    trigger behind has_trigger_30, which the .lvl keeps in its own table. */
 struct W8LevelFileItemRecord {     /* 0x44 */
     char item_name_00[0x14];       /* item script name */
@@ -171,7 +171,7 @@ struct W8LevelFileTriggerHotSpot { /* 0x85: has_hotspot_858 != 0 payload */
 };
 
 /* Serialized camera waypoint: the .pvl camera section
-   (ReadWorldCameras004BC850) reads the same head before its PathAI; the
+   (ReadWorldCameras) reads the same head before its PathAI; the
    leading ints and the 0x14-byte span feed W8WorldCameraEntry's positional
    fields and stay unresolved there too. */
 struct W8LevelFileCamera {
@@ -287,7 +287,7 @@ struct W8LevelFileInvisible { /* 0x241 */
 
 /* The 0x170-byte type-3 (ambient sound) trigger record. The .pvl type-3
    stream (Trigger.cpp case 3) reads the same fields and hands them to
-   AddAmbientSound0047A790. */
+   AddAmbientSound. */
 struct W8LevelFileSound { /* 0x170 */
     char version_00;
     int volume_min_01;
@@ -526,7 +526,7 @@ struct W8LevelFileNamedPosition { /* 0x9d */
 
 /* The serialized environment block gated by has_block_48, between the
    camera table and the trigger table. The .pvl environment section
-   (ReadWorldEnvironment004BC9D0) serializes the same fields: fog gate,
+   (ReadWorldEnvironment) serializes the same fields: fog gate,
    environment colour/intensity/view distance, camera mode plus optional
    position/angle/axis, and the two 0x300-byte 256-entry RGB colour ramps
    consumed by ReadLightColourTable/ReadEnvironmentColourTable. */
@@ -673,27 +673,27 @@ static_assert(offsetof(W8LevelFile, pClippingPlanes) == 0x691, "W8LevelFile_pCli
 
 W8LevelFile* ReadLevelFile004CFDC0(int hFile);
 BOOLEAN WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel);
-BOOLEAN ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh);
-BOOLEAN WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh);
-BOOLEAN ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight);
-BOOLEAN WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight);
-BOOLEAN ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight);
-BOOLEAN WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight);
-BOOLEAN ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger);
-BOOLEAN WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger);
-BOOLEAN ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger);
-BOOLEAN WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger);
+BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh);
+BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh);
+BOOLEAN ReadLightFile(int hFile, W8LevelFileLight* pLight);
+BOOLEAN WriteLightFile(int hFile, W8LevelFileLight* pLight);
+BOOLEAN ReadAnimLightFile(int hFile, W8LevelFileAnimLight* pLight);
+BOOLEAN WriteAnimLightFile(int hFile, W8LevelFileAnimLight* pLight);
+BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger);
+BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger);
+BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger);
+BOOLEAN WriteSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger);
 BOOLEAN ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor);
-BOOLEAN WriteDoorTriggerFile004D3660(int hFile, W8LevelFileDoorRef* pDoor);
-BOOLEAN ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI);
-BOOLEAN WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI);
-BOOLEAN ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj);
-BOOLEAN WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj);
-W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count);
-BOOLEAN WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps);
-BOOLEAN ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSystem);
-BOOLEAN WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSystem);
-BOOLEAN ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock);
-BOOLEAN WriteLevelFileBlock004D5580(int hFile, W8LevelFileBlock* pBlock);
+BOOLEAN WriteDoorTriggerFile(int hFile, W8LevelFileDoorRef* pDoor);
+BOOLEAN ReadPathAIFile(int hFile, W8LevelFilePathAI* pPathAI);
+BOOLEAN WritePathAIFile(int hFile, W8LevelFilePathAI* pPathAI);
+BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj);
+BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj);
+W8LevelFileProp* ReadPropsFile(int hFile, int count);
+BOOLEAN WritePropsFile(int hFile, int count, W8LevelFileProp* pProps);
+BOOLEAN ReadParticleSystemFile(int hFile, W8LevelFileParticleSystem* pSystem);
+BOOLEAN WriteParticleSystemFile(int hFile, W8LevelFileParticleSystem* pSystem);
+BOOLEAN ReadLevelFileBlock(int hFile, W8LevelFileBlock* pBlock);
+BOOLEAN WriteLevelFileBlock(int hFile, W8LevelFileBlock* pBlock);
 
 #endif

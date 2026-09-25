@@ -10,7 +10,7 @@
    connector map).
 
    Attribution evidence: the case-0x1b block of
-   InitializeLevelMasterFunctions004D6C50 registers the "Liche" trigger
+   InitializeLevelMasterFunctions registers the "Liche" trigger
    against this callback, and the retail string pool gives its
    UNDEAD01-06/LicheDead names a contiguous contribution between the
    SavantTower and Arnika translation units. Level 0x1b is the
@@ -21,19 +21,19 @@
    it answers with message 7, marks the lich dead (1000 experience the first
    time) and enables the six UNDEAD spawn generators. */
 // FUNCTION: WIZ8 0x004E05F0
-bool ConnectiveTissueLiche004E05F0(Trigger* pTrigger)
+bool ConnectiveTissueLiche(Trigger* pTrigger)
 {
     MonGen* generator;
 
     if (GetItemInHand() != 0x15d && pTrigger->action_230 == 0) {
-        ShowLevelMessage004D9960(6);
+        ShowLevelMessage(6);
         g_trigger_feedback_00606994 = 1;
         return false;
     }
-    ShowLevelMessage004D9960(7);
+    ShowLevelMessage(7);
     if (GetLocationVarIDByName("LicheDead") == -1) {
         CreateLocationVar("LicheDead", 1);
-        AwardPartyExperience004EEF10(0x3e8, 0);
+        AwardPartyExperience(0x3e8, 0);
     }
     generator = FindMonGenByName("UNDEAD01");
     if (generator != 0) {

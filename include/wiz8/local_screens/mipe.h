@@ -85,25 +85,25 @@ extern int g_mipe_table_base_0068f120;
 
 /* mipeEdit.cpp: prop field-editor key handler, fed MSG wParam key values by
    mipe.cpp's mode-0xd dispatcher. */
-void HandleMipeEditPropKey005C3880(unsigned short key);
+void HandleMipeEditPropKey(unsigned short key);
 
-void ShowMonsterSpeedStatus00577F10(void);
-void ShowCubeParameters005780F0(void);
-void ShowMonsterGeneratorStatus005781F0(void);
+void ShowMonsterSpeedStatus(void);
+void ShowCubeParameters(void);
+void ShowMonsterGeneratorStatus(void);
 
 /* The MIPE input dispatcher fed from the main game input loop: routes key
    events through the mode state machine and returns nonzero when the event
    was consumed. */
-unsigned char HandleMipeKey0057C230(const InputAtom* event);
-void ShowMonsterGeneratorEditor005782D0(void);
+unsigned char HandleMipeKey(const InputAtom* event);
+void ShowMonsterGeneratorEditor(void);
 
-void ToggleMipePanel0057D740(void);
+void ToggleMipePanel(void);
 /* Per-tick world-view pick while selecting: generator markers in mode 0x15,
    otherwise monster hover with single/group select semantics. */
-void UpdateMipeSelection0057DC20(void);
-void DragSelectionWithCursor0057DF80(void);
+void UpdateMipeSelection(void);
+void DragSelectionWithCursor(void);
 /* MIPE's world-view input dispatch: cube drag, cube pick, action menu. */
-unsigned char MipeWorldViewEvent0057E0E0(int event, const POINT* point);
+unsigned char MipeWorldViewEvent(int event, const POINT* point);
 
 /* Any armed monster-generator marker within reach of the camera; sticky
    index resumes the scan at the last hit. Used with AnyWorldItemVisible to

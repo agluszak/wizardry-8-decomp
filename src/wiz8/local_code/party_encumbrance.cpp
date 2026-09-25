@@ -53,21 +53,21 @@ void RecalculateCharacterDerivedStats(W8Character* character)
         }
     }
 
-    ResetCharacterAttributes005539E0(character);
-    ResetCharacterSkills00553A60(character);
+    ResetCharacterAttributes(character);
+    ResetCharacterSkills(character);
     RecalculateCharacterHitPoints(character);
     RecalculateCharacterStamina(character);
     RecalculateRealmSpellPoints(character);
     CalcArmorClasses(character);
-    RebuildCharacterRegenRates00502B50(character);
+    RebuildCharacterRegenRates(character);
 
     character->damage_reduction = 0;
-    if (CharacterHasTrait00547940(character, W8_TRAIT_DWARF_DAMAGE_RESISTANCE)) {
+    if (CharacterHasTrait(character, W8_TRAIT_DWARF_DAMAGE_RESISTANCE)) {
         character->damage_reduction += character->attributes[W8_ATTRIBUTE_VITALITY].effective / 10;
     }
-    if (CharacterHasTrait00547940(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE)) {
+    if (CharacterHasTrait(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE)) {
         character->damage_reduction += static_cast<int>(
-            ScaleValueByProfessionLevel005479B0(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE, 30.0f));
+            ScaleValueByProfessionLevel(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE, 30.0f));
     }
     if (character->skills[W8_SKILL_IRON_SKIN].active_00 != 0) {
         character->damage_reduction += (character->skills[W8_SKILL_IRON_SKIN].level >> 2) + 5;
@@ -79,7 +79,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
                character->attributes[W8_ATTRIBUTE_STRENGTH].effective * 2;
     unsigned int previous_capacity = character->carrying_capacity;
     unsigned int capacity = base * 0xc;
-    if (CharacterHasTrait00547940(character, W8_TRAIT_FAERIE_REDUCED_CARRY_CAPACITY)) {
+    if (CharacterHasTrait(character, W8_TRAIT_FAERIE_REDUCED_CARRY_CAPACITY)) {
         capacity = capacity * 2 / 3;
     }
     bool changed = previous_capacity != capacity;
@@ -118,13 +118,13 @@ void RecalculateCharacterDerivedStats(W8Character* character)
    are the third and first effective values, the same pair the stamina
    recomputation reads. */
 // FUNCTION: WIZ8 0x004edc10
-bool RecalculateCarryingCapacity004EDC10(W8Character* character)
+bool RecalculateCarryingCapacity(W8Character* character)
 {
     unsigned int previous = character->carrying_capacity;
     int base = character->attributes[W8_ATTRIBUTE_VITALITY].effective +
                character->attributes[W8_ATTRIBUTE_STRENGTH].effective * 2;
     unsigned int capacity = base * 0xc;
-    if (CharacterHasTrait00547940(character, W8_TRAIT_FAERIE_REDUCED_CARRY_CAPACITY)) {
+    if (CharacterHasTrait(character, W8_TRAIT_FAERIE_REDUCED_CARRY_CAPACITY)) {
         capacity = (unsigned int)(base * 0x18) / 3;
     }
     character->carrying_capacity = capacity;

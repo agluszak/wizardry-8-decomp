@@ -351,7 +351,7 @@ struct W8MonsterInfo {
        ubDisposition when the entry is created. */
     W8Disposition ubDisposition;
     /* 0x17: the spawn position, unaligned. 0x004e3930 copies the caller's three
-       floats here and hands the same triple to GetCameraFacingYaw004BE5C0,
+       floats here and hands the same triple to GetCameraFacingYaw,
        whose result it stores next, and to 0x0042e620 with the new entry's id. */
     srVector3T<float> position_17;
     float derived_23; /* 0x23: camera-facing yaw over position_17 */
@@ -493,7 +493,7 @@ float GetMonsterCombatMoveRange(W8MonsterInfo* monster_info);
 void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int GetMonsterQuadrant(W8MonsterInfo* monster_info);
-int GetMonsterCycleFallbackValue004E5B50(unsigned int monster_species);
+int GetMonsterCycleFallbackValue(unsigned int monster_species);
 void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup);
 void ConvertMonsterAttributes(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
@@ -526,8 +526,8 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
 void DeactivateMonster(W8MonsterInfo* monster_info);
 void ToggleCombatMode(void); /* 0x004E6A80 */
 void TogglePartyCombatStance(void);
-void DetectMonsterGroups004E4AB0(void);      /* 0x004E4AB0 */
-void EvaluateCombatDifficulty004E6CE0(void); /* 0x004E6CE0 */
+void DetectMonsterGroups(void);      /* 0x004E4AB0 */
+void EvaluateCombatDifficulty(void); /* 0x004E6CE0 */
 /* The kill bookkeeping a monster's death runs: credit the killer, post the
    "%s %s!" notice, clear conditions the dead monster sourced, apply the
    faction fallout, and bank the kill count and experience when it fought. */

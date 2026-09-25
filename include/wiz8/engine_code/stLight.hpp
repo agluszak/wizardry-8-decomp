@@ -187,7 +187,7 @@ public:
     virtual void process(const srNode::ProcessInfo& info,
                          srNode::e_processType type) override; /* 0x0049C8D0 */
     void Reset0049D070();                                      /* 0x0049D070 */
-    void SetDefinitionTime0049C940(float time);                /* 0x0049C940 */
+    void SetDefinitionTime(float time);                        /* 0x0049C940 */
     void Update0049C960();                                     /* 0x0049C960 */
 
     float positionalX() const
@@ -242,5 +242,5 @@ public:
 
 static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");
 
-void SaveLightStates0049D120(int handle);
-void LoadLightStates0049D390(int handle);
+void SaveLightStates(int handle);
+void LoadLightStates(int handle);

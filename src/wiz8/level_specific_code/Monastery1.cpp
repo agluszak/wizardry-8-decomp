@@ -10,13 +10,13 @@
 
 /* Level Specific Code\Monastery1.cpp (level 8).
 
-   Attribution evidence: InitializeLevelMasterFunctions004D6C50 registers
+   Attribution evidence: InitializeLevelMasterFunctions registers
    0x004DC8D0 under case 8, the Monastery1 block that also wires the
    roach_trigger, spider_trigger, Bartrigger and Coffinlide callbacks. The
    function itself is bar-trigger housekeeping for that same set. */
 
 // FUNCTION: WIZ8 0x004DC8D0
-void ClearTextForBarTrigger004DC8D0(void)
+void ClearTextForBarTrigger(void)
 {
     Trigger* trigger = FindTriggerByName("Bartrigger");
     if (trigger != 0 && trigger->state_index == 1) {
@@ -116,10 +116,10 @@ bool OnCoffinlidgActivated(Trigger* trigger)
 bool OnWheelStarActivated(Trigger* trigger)
 {
     if (GetItemInHand() != 0x24c) {
-        ShowLevelMessage004D9960(0x22);
+        ShowLevelMessage(0x22);
         g_trigger_feedback_00606994 = 1;
         return false;
     }
-    RemovePartyItemByID005215D0(GetItemInHand(), 0);
+    RemovePartyItemByID(GetItemInHand(), 0);
     return true;
 }

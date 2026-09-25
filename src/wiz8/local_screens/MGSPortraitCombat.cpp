@@ -228,14 +228,14 @@ void UpdateSubMenuButton(int index)
         break;
     case 3:
         g_submenu_buttons_69b8b0[3]->SetEnabled(
-            IsPartySlotEligible00524A10(g_status_685170.selected_character) != 0);
+            IsPartySlotEligible(g_status_685170.selected_character) != 0);
         if (g_submenu_buttons_69b8b0[3]->IsPressed() != (gXStatus.fItemSelectMode != 0)) {
             g_submenu_buttons_69b8b0[3]->SetPressed(gXStatus.fItemSelectMode != 0);
         }
         break;
     case 4:
         g_submenu_buttons_69b8b0[4]->SetEnabled(
-            IsPartySlotEligible00524A10(g_status_685170.selected_character) != 0 &&
+            IsPartySlotEligible(g_status_685170.selected_character) != 0 &&
             CharacterHasCastableSpell(
                 &g_status_685170.buffers.Char[g_status_685170.selected_character]) != 0);
         if (g_submenu_buttons_69b8b0[4]->IsPressed() != (gXStatus.fSpellCastMode != 0)) {
@@ -245,7 +245,7 @@ void UpdateSubMenuButton(int index)
     case 5:
     case 6:
         g_submenu_buttons_69b8b0[index]->SetEnabled(gXStatus.fCombatMode != 0);
-        if (IsPartySlotEligible00524A10(g_status_685170.selected_character) == 0) {
+        if (IsPartySlotEligible(g_status_685170.selected_character) == 0) {
             g_submenu_buttons_69b8b0[index]->SetEnabled(0);
         }
         break;
@@ -272,7 +272,7 @@ void SubMenuButtonPendingScreen(W8DialogButton* button)
 // FUNCTION: WIZ8 0x005950C0
 void SubMenuButtonSurprise(W8DialogButton* button)
 {
-    RequestCamp00502460();
+    RequestCamp();
     RequestRedraw(0x200);
     DrawSubMenuCharacterAction();
 }
@@ -847,12 +847,12 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
             state = CheckSubMenuActionUsable(party_slot);
             break;
         case 1:
-            if (CharacterHasTrait00547940(character, W8_TRAIT_BERSERK) != 0) {
+            if (CharacterHasTrait(character, W8_TRAIT_BERSERK) != 0) {
                 state = CheckSubMenuActionUsable(party_slot);
             }
             break;
         case 2:
-            if (CharacterHasTrait00547940(character, W8_TRAIT_BREATHE) != 0) {
+            if (CharacterHasTrait(character, W8_TRAIT_BREATHE) != 0) {
                 state = CheckSubMenuActionUsable(party_slot);
             }
             break;

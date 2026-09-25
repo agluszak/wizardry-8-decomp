@@ -50,7 +50,7 @@ struct W8WorldCursorState {
     unsigned char padding_49[3];
     /* 0x4c: the selected monster group id - passed to
        GetMonsterGroupIndexByID, assigned from monster_group->group_id,
-       written by SetWorldCursorGroupId004916A0 and seeded from/restored to
+       written by SetWorldCursorGroupId and seeded from/restored to
        g_cursor_saved_group_id_60ab44. */
     int monster_group_id_4c;
     /* 0x50: when set the cursor is detached from the camera - input moves
@@ -87,24 +87,24 @@ static_assert(sizeof(W8WorldCursorState) == 0xe0, "W8WorldCursorState_size");
 /* 0x65ba8c: authored name gp3DCursor - the cursor update asserts it. */
 extern W8WorldCursorState* gp3DCursor;
 /* Build the 3D cursor, light, particle and initial camera-relative bounds. */
-void InitializeWorldCursor00490210(void);
+void InitializeWorldCursor(void);
 bool IsWorldCursorVisible(void);
-void GetWorldCursorPosition00490BF0(srVector3T<float>* position);
-void SetWorldCursorNodesVisible0048ED70(unsigned char visible);
-bool SelectWorldCursorNode0048EFC0(void);
-int GetWorldCursorNodeCount0048ED00(void);
-void HideWorldCursor00490B90(void);
-void ShowWorldCursor00490B10(void);
+void GetWorldCursorPosition(srVector3T<float>* position);
+void SetWorldCursorNodesVisible(unsigned char visible);
+bool SelectWorldCursorNode(void);
+int GetWorldCursorNodeCount(void);
+void HideWorldCursor(void);
+void ShowWorldCursor(void);
 /* Clamp and install an action-range distance into the live world cursor, then
    invalidate last_published_34 so the next update republishes. */
-void SetWorldCursorRange00491650(float distance); /* 0x00491650 */
-void SetWorldCursorGroupId004916A0(int group_id); /* 0x004916A0 */
+void SetWorldCursorRange(float distance); /* 0x00491650 */
+void SetWorldCursorGroupId(int group_id); /* 0x004916A0 */
 /* Arm footprint placement: the target resolver ground-probes the two fixed
    offsets instead of the probe box. */
-void SetWorldCursorExtents00492190(const srVector3T<float>* minimum,
-                                   const srVector3T<float>* maximum); /* 0x00492190 */
+void SetWorldCursorExtents(const srVector3T<float>* minimum,
+                           const srVector3T<float>* maximum); /* 0x00492190 */
 /* 0x00490C20: copies the cursor state vector at +0x28, or zero when there is
    no cursor. */
-void GetWorldCursorAnchor00490C20(srVector3T<float>* position);
-void ReleaseWorldCursor004909C0(void);
+void GetWorldCursorAnchor(srVector3T<float>* position);
+void ReleaseWorldCursor(void);
 void ReleaseWorldCursorNodes0048DB30(void);

@@ -105,7 +105,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
             if (in_range != 0) {
                 in_range = 0;
                 if (shared != 0) {
-                    W8AmbientSound* match = FindNextMatching0047A260(config_004.wave_name, 0);
+                    W8AmbientSound* match = FindNextMatching(config_004.wave_name, 0);
                     while (match != 0) {
                         if (handed_off != 0) {
                             return;
@@ -127,13 +127,13 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                                 match->fade_timer.Restart();
                                 match->fade_timer.m_flags &= ~8;
                                 match->fade_timer.m_start =
-                                    match->fade_timer.GetTime00439A60() - match->fade_timer.m_start;
+                                    match->fade_timer.GetTime() - match->fade_timer.m_start;
                                 match->fade_timer.SetDuration(-1.0f);
                                 sound_handle = -1;
                                 handed_off = 1;
                             }
                         }
-                        match = FindNextMatching0047A260(config_004.wave_name, match);
+                        match = FindNextMatching(config_004.wave_name, match);
                     }
                     if (handed_off != 0) {
                         return;
@@ -145,7 +145,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                         fade_timer.SetDuration(g_float_005ec3b8 / full_volume);
                         fade_timer.Restart();
                         fade_timer.m_flags &= ~8;
-                        fade_timer.m_start = fade_timer.GetTime00439A60() - fade_timer.m_start;
+                        fade_timer.m_start = fade_timer.GetTime() - fade_timer.m_start;
                         fade_timer.SetDuration(-1.0f);
                     }
                     return;
@@ -196,7 +196,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                 fade_timer.SetDuration(g_float_005ec3b8 / full_volume);
                 fade_timer.Restart();
                 fade_timer.m_flags &= ~8;
-                fade_timer.m_start = fade_timer.GetTime00439A60() - fade_timer.m_start;
+                fade_timer.m_start = fade_timer.GetTime() - fade_timer.m_start;
                 fade_timer.SetDuration(-1.0f);
             }
         }
@@ -353,7 +353,7 @@ void W8AmbientSound::Service(unsigned char entered)
         fade_timer.SetDuration(g_float_005ec3b8 / target_volume);
         fade_timer.Restart();
         fade_timer.m_flags &= ~8;
-        fade_timer.m_start = fade_timer.GetTime00439A60() - fade_timer.m_start;
+        fade_timer.m_start = fade_timer.GetTime() - fade_timer.m_start;
         fade_timer.SetDuration(-1.0f);
     }
 }
@@ -361,8 +361,7 @@ void W8AmbientSound::Service(unsigned char entered)
 /* The contiguous class lifecycle and shared world-list accesses identify these
    pre-assertion bodies as the same AmbientSound.cpp unit. */
 // FUNCTION: WIZ8 0x0047a260
-W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(const char* match_name,
-                                                         W8AmbientSound* previous)
+W8AmbientSound* W8AmbientSound::FindNextMatching(const char* match_name, W8AmbientSound* previous)
 {
     int count;
     int index;
@@ -408,7 +407,7 @@ void W8AmbientSound::UpdateFade()
                     --current_volume;
                 } else if ((timer->m_flags & 8) == 0) {
                     timer->m_flags |= 8;
-                    timer->m_start = timer->GetTime00439A60() - timer->m_start;
+                    timer->m_start = timer->GetTime() - timer->m_start;
                 }
                 SoundSetVolume(sound_handle, current_volume);
             }
@@ -421,7 +420,7 @@ void W8AmbientSound::UpdateFade()
 }
 
 // FUNCTION: WIZ8 0x0047a3e0
-void UpdateAmbientSounds0047A3E0(W8World* world)
+void UpdateAmbientSounds(W8World* world)
 {
     if (world != 0) {
         int count;
@@ -506,7 +505,7 @@ int PlayFootstep0047A440(signed char surface, signed char material, int kind)
             variant = Random(4) + 1;
             ++attempts;
         } while (variant == g_previous_footstep_variant_65a10c && attempts < 100);
-        BuildFootstepPath0047A540(path, selected_surface, selected_material, kind, variant);
+        BuildFootstepPath(path, selected_surface, selected_material, kind, variant);
         g_previous_footstep_variant_65a10c = variant;
     }
     memset(&options, -1, sizeof(options));
@@ -516,8 +515,8 @@ int PlayFootstep0047A440(signed char surface, signed char material, int kind)
 }
 
 // FUNCTION: WIZ8 0x0047a540
-void BuildFootstepPath0047A540(char* path, signed char surface, signed char material, char kind,
-                               int variant)
+void BuildFootstepPath(char* path, signed char surface, signed char material, char kind,
+                       int variant)
 {
     if (kind == W8_FOOTSTEP_KIND_STEP) {
         sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%.2d.WAV",
@@ -539,7 +538,7 @@ void BuildFootstepPath0047A540(char* path, signed char surface, signed char mate
 }
 
 // FUNCTION: WIZ8 0x0047a600
-void RepositionAmbientSounds0047A600(W8World* world)
+void RepositionAmbientSounds(W8World* world)
 {
     if (world != 0) {
         int count;
@@ -560,7 +559,7 @@ void RepositionAmbientSounds0047A600(W8World* world)
 }
 
 // FUNCTION: WIZ8 0x0047a670
-W8AmbientSound* CreateAmbientSound0047A670()
+W8AmbientSound* CreateAmbientSound()
 {
     W8AmbientSound* sound = new W8AmbientSound;
 
@@ -572,7 +571,7 @@ W8AmbientSound* CreateAmbientSound0047A670()
 }
 
 // FUNCTION: WIZ8 0x0047a700
-void DestroyAmbientSound0047A700(W8AmbientSound* ambient)
+void DestroyAmbientSound(W8AmbientSound* ambient)
 {
     if (ambient == 0) {
         srAssertFail("pAmbient", "C:\\Projects\\Wizardry 8\\Engine Code\\AmbientSound.cpp", 0x2fd,
@@ -596,18 +595,17 @@ W8AmbientSound::~W8AmbientSound() {}
 /* Build a complete ambient-sound row and attach it to the world's list. The
    twenty parameters and their widths come directly from the stack reads. */
 // FUNCTION: WIZ8 0x0047a790
-unsigned char AddAmbientSound0047A790(W8World* world, const char* name,
-                                      const W8AmbientSoundConfig* config,
-                                      const srVector3T<float>* position,
-                                      const srVector3T<float>* region_min,
-                                      const srVector3T<float>* region_max, int volume_min,
-                                      int volume_max, int time_min, int time_max, int speed_min,
-                                      int speed_max, float radius, unsigned char looping,
-                                      unsigned char bounded, const srVector3T<float>* region_center,
-                                      float region_angle, const srVector3T<float>* region_axis,
-                                      const srVector3T<float>* region_scale, unsigned char shared)
+unsigned char AddAmbientSound(W8World* world, const char* name, const W8AmbientSoundConfig* config,
+                              const srVector3T<float>* position,
+                              const srVector3T<float>* region_min,
+                              const srVector3T<float>* region_max, int volume_min, int volume_max,
+                              int time_min, int time_max, int speed_min, int speed_max,
+                              float radius, unsigned char looping, unsigned char bounded,
+                              const srVector3T<float>* region_center, float region_angle,
+                              const srVector3T<float>* region_axis,
+                              const srVector3T<float>* region_scale, unsigned char shared)
 {
-    W8AmbientSound* sound = CreateAmbientSound0047A670();
+    W8AmbientSound* sound = CreateAmbientSound();
 
     if (name != 0) {
         sound->pacSoundName = new char[strlen(name) + 1];
@@ -641,7 +639,7 @@ unsigned char AddAmbientSound0047A790(W8World* world, const char* name,
 }
 
 // FUNCTION: WIZ8 0x0047a950
-void PositionAmbientSoundByName0047A950(W8World* /* unused */, const char* name)
+void PositionAmbientSoundByName(W8World* /* unused */, const char* name)
 {
     int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;
@@ -660,7 +658,7 @@ void PositionAmbientSoundByName0047A950(W8World* /* unused */, const char* name)
 }
 
 // FUNCTION: WIZ8 0x0047a9e0
-void StopAmbientSoundByName0047A9E0(W8World* /* unused */, const char* name)
+void StopAmbientSoundByName(W8World* /* unused */, const char* name)
 {
     int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;
@@ -679,7 +677,7 @@ void StopAmbientSoundByName0047A9E0(W8World* /* unused */, const char* name)
 }
 
 // FUNCTION: WIZ8 0x0047aa70
-void ToggleAmbientSoundByName0047AA70(W8World* /* unused */, const char* name)
+void ToggleAmbientSoundByName(W8World* /* unused */, const char* name)
 {
     int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;
@@ -724,7 +722,7 @@ unsigned char LoadAmbientSoundList0047AB40(char* filename)
     if (handle == 0) {
         return 0;
     }
-    ReadTextLine004CEE40(handle, directory, 100, &more);
+    ReadTextLine(handle, directory, 100, &more);
     while (more != 0) {
         int index;
         for (index = 0; index < 10; ++index) {
@@ -732,7 +730,7 @@ unsigned char LoadAmbientSoundList0047AB40(char* filename)
         }
         memset(&direct, -1, sizeof(direct));
         memset(line, 0, sizeof(line));
-        ReadTextLine004CEE40(handle, line, sizeof(line), &more);
+        ReadTextLine(handle, line, sizeof(line), &more);
         if (strlen(line) != 0) {
             sscanf(line, "%s %d %d %d %d %d %d %d", name, &configured[2], &configured[3],
                    &configured[4], &configured[5], &configured[0], &configured[1],
@@ -759,7 +757,7 @@ unsigned char LoadAmbientSoundList0047AB40(char* filename)
    default, then re-drives every live ambient voice and 3D instance so the new
    level is heard immediately. */
 // FUNCTION: WIZ8 0x0047ad00
-void SetSoundEffectsVolume0047AD00(unsigned char volume)
+void SetSoundEffectsVolume(unsigned char volume)
 {
     W8World* world;
     int count;
@@ -868,7 +866,7 @@ void SetSoundEffectsMuted(unsigned char muted)
                         sound->UpdatePosition(&position);
                     }
                 }
-                UpdateAmbientSounds0047A3E0(world);
+                UpdateAmbientSounds(world);
                 return;
             }
         }
@@ -924,7 +922,7 @@ void SetSoundEffectsMuted(unsigned char muted)
 }
 
 // FUNCTION: WIZ8 0x0047b140
-void SaveAmbientSoundList0047B140(HWFILE handle)
+void SaveAmbientSoundList(HWFILE handle)
 {
     unsigned char version = 1;
     unsigned int count;
@@ -997,9 +995,9 @@ void LoadAmbientSoundList0047B270(HWFILE handle)
             if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
                 if (sound != 0) {
                     if (stopped_flag == 0) {
-                        PositionAmbientSoundByName0047A950(0, name);
+                        PositionAmbientSoundByName(0, name);
                     } else {
-                        StopAmbientSoundByName0047A9E0(0, name);
+                        StopAmbientSoundByName(0, name);
                     }
                 }
                 break;

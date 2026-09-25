@@ -73,7 +73,7 @@ void RecountCombatMonsters(void)
    only matching non-zero factions fall through to the condition-thirteen
    presence test. */
 // FUNCTION: WIZ8 0x00546F80
-char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second)
+char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second)
 {
     W8MonsterRecord* first_record;
     W8MonsterRecord* second_record;
@@ -383,7 +383,7 @@ void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, char rec
 // FUNCTION: WIZ8 0x00547570
 void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, char recurse)
 {
-    if (MonsterGroupAllMembersDying00511850(group)) {
+    if (MonsterGroupAllMembersDying(group)) {
         return;
     }
     W8MonsterInfo* leader =
@@ -478,7 +478,7 @@ void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
 // FUNCTION: WIZ8 0x00547bf0
 unsigned char CanPartySlotTurnUndead(int party_slot)
 {
-    if (!CharacterHasTrait00547940(&g_status_685170.buffers.Char[party_slot], 0x11) ||
+    if (!CharacterHasTrait(&g_status_685170.buffers.Char[party_slot], 0x11) ||
         g_combat_state == 0 || g_combat_state->characters[party_slot].turn_undead_used) {
         return 0;
     }
@@ -545,8 +545,8 @@ int TurnUndead(int party_slot, int* out_cost, char check)
 // FUNCTION: WIZ8 0x00547f40
 unsigned char CanPartySlotPray(int party_slot)
 {
-    if (!CharacterHasTrait00547940(&g_status_685170.buffers.Char[party_slot], 0xb) ||
-        g_combat_state == 0 || g_combat_state->characters[party_slot].pray_used) {
+    if (!CharacterHasTrait(&g_status_685170.buffers.Char[party_slot], 0xb) || g_combat_state == 0 ||
+        g_combat_state->characters[party_slot].pray_used) {
         return 0;
     }
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
@@ -577,7 +577,7 @@ const wchar_t g_pray_dash_00619788[] = L" -- ";
    how long the fight has run and by the combat difficulty. The selected tier
    retries downward through the table until an action lands. */
 // FUNCTION: WIZ8 0x00547FE0
-int CharacterPrayAction00547FE0(int party_slot)
+int CharacterPrayAction(int party_slot)
 {
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
     W8GrowableVector<int> monster_targets;

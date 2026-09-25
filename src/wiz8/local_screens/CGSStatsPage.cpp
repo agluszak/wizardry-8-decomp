@@ -814,7 +814,7 @@ void W8CharacterPage005EF778::OnRowExpanded(W8CharacterStatsRow005EF750* row)
         m_gender_row_084->m_increment_020->SetActive(0);
     }
     for (int entry_index = 0; entry_index < m_entries_04c.count; ++entry_index) {
-        m_entries_04c.data[entry_index]->SetHelpActive005AFAE0(0);
+        m_entries_04c.data[entry_index]->SetHelpActive(0);
     }
     for (int control_index = 0; control_index < 5; ++control_index) {
         m_attribute_controls_08c[control_index]->SetActive(0);
@@ -836,7 +836,7 @@ void W8CharacterPage005EF778::OnRowCollapsed(W8CharacterStatsRow005EF750* row)
         m_gender_row_084->m_increment_020->SetActive(1);
     }
     for (int entry_index = 0; entry_index < m_entries_04c.count; ++entry_index) {
-        m_entries_04c.data[entry_index]->SetHelpActive005AFAE0(1);
+        m_entries_04c.data[entry_index]->SetHelpActive(1);
     }
     for (int control_index = 0; control_index < 5; ++control_index) {
         m_attribute_controls_08c[control_index]->SetActive(1);
@@ -1071,7 +1071,7 @@ void W8CharacterPage005EF778::Redraw()
             unsigned char available[0x20];
             unsigned int available_count = 0;
             for (int trait = 0; trait < 0x20; ++trait) {
-                if (CharacterHasTrait00547940(m_character_060, trait)) {
+                if (CharacterHasTrait(m_character_060, trait)) {
                     available[trait] = 1;
                     ++available_count;
                 } else {

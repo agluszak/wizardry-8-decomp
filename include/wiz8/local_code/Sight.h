@@ -13,7 +13,7 @@ void ResetSight(void);
 void RefreshOutwardSightForAllMonsters(void);
 void RefreshInwardSightForAllMonsters(void);
 void RefreshMonsterSight(W8MonsterInfo* monster_info);
-void ResetAndRefreshAllSight005060C0(void);
+void ResetAndRefreshAllSight(void);
 unsigned int AgeAllMonsterSight(void);
 void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_bounds);
 

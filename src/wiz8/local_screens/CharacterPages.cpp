@@ -144,7 +144,7 @@ void W8CharacterPageEntry::SetEnabled(bool enabled)
 }
 
 // FUNCTION: WIZ8 0x005afae0
-void W8CharacterPageEntry::SetHelpActive005AFAE0(bool active)
+void W8CharacterPageEntry::SetHelpActive(bool active)
 {
     m_help_010->SetActive(active);
 }

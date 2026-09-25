@@ -531,7 +531,7 @@ class W8Navigator;
 // W8GrowableVector<W8WorldCursorNode*>::~W8GrowableVector<W8WorldCursorNode*>
 
 /* The W8MasterFunction (void (*)(int)) pointer-vector specialization emitted
-   by MasterFunctionList.cpp. InitializeLevelMasterFunctions004D6C50's
+   by MasterFunctionList.cpp. InitializeLevelMasterFunctions's
    five-element construction calls the base ctor 0x004D9A70 and then installs
    the derived vtable 0x005ED438 itself, so the retail new-expression is
    `new W8Vector<W8MasterFunction>(5)` and g_master_functions_006834d8 is the
@@ -925,7 +925,6 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x004AAAC0
 // W8GrowableVector<srVector3T<float>*>::`scalar deleting destructor' (PathAI.CPP emission)
 
-
 /* Spells.cpp span. */
 // SYNTHETIC: WIZ8 0x004AF710
 // W8GrowableVector<stSound3D*>::`scalar deleting destructor' (Spells.cpp emission)
@@ -936,8 +935,6 @@ struct W8AutomapNote;
 
 // SYNTHETIC: WIZ8 0x004A20C0
 // W8GrowableVector<float>::`scalar deleting destructor' (AnimObj.cpp emission)
-
-
 
 /* Monster.cpp span. */
 // TEMPLATE: WIZ8 0x004CACE0
@@ -987,8 +984,6 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x00501F30
 // W8GrowableVector<W8SpellEffectEntry*>::`scalar deleting destructor' (Magic.cpp emission)
 
-
-
 /* NPC Manager.cpp span. */
 
 /* LoadSaveGame.cpp span: removes the indexed element, shift-fills the slot
@@ -1024,19 +1019,16 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x005853F0
 // W8GrowableVector<W8AutomapNote*>::`scalar deleting destructor' (second emission)
 
-
 // TEMPLATE: WIZ8 0x0047D290
 // intrusive-list head init emission
 
 /* Cursor3d.cpp -> stParticle.cpp gap. */
-
 
 /* AnimObj.cpp -> Missile.cpp gap. */
 
 /* ReadLevel.cpp -> quad.cpp gap. */
 // SYNTHETIC: WIZ8 0x004BE000
 // W8GrowableVector<W8VectorElement005ED1B8*>::`scalar deleting destructor'
-
 
 /* Monster.cpp -> OctPrePath.cpp gap. */
 

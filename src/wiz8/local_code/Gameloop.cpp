@@ -94,7 +94,7 @@ void GameLoop(void)
     int state;
 
     SoundServiceStreams();
-    ServiceMusicPlaylist0048F9E0();
+    ServiceMusicPlaylist();
     state = g_current_screen_state.id;
     if (g_screen_return_requested) {
         g_previous_screen_id = state;

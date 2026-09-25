@@ -155,7 +155,7 @@ void InitializeFactState(void)
    transcript keywords from string-table entries 0x7e7/0x7e8 and
    seeds the starting fact set, all with notifications suppressed. */
 // FUNCTION: WIZ8 0x005063e0
-void PostNewGameLoad005063E0(void)
+void PostNewGameLoad(void)
 {
     SetFactNotificationsSuppressed(1);
     AddDialogueTranscriptKeyword(gppStringList[0x7e7], 3);
@@ -205,7 +205,7 @@ void LoadFactState(int save_handle)
     if (CheckFactLogged(0x44)) {
         npc = GetNpcStateByKind(0x20);
         if (npc && npc->has_monster) {
-            ReleaseNpcScriptFile0055A0A0(npc->script_file);
+            ReleaseNpcScriptFile(npc->script_file);
             ReloadNpcScriptResources(npc);
         }
     }

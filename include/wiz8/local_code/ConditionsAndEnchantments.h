@@ -65,10 +65,10 @@ void TickMonsterCondition(int location_id, int condition, unsigned int minutes);
 void TickCharacterCondition(unsigned int party_slot, unsigned int condition, unsigned int minutes);
 /* 0x00523940/0x005242B0: settle a condition on a character or monster with
    its argument, rolled duration and definition percentage. */
-void ApplyCharacterCondition00523940(int party_slot, int condition, int argument,
-                                     unsigned int duration, unsigned int percent);
-void ApplyMonsterCondition005242B0(int location_id, int condition, int argument,
-                                   unsigned int duration, unsigned int percent);
+void ApplyCharacterCondition(int party_slot, int condition, int argument, unsigned int duration,
+                             unsigned int percent);
+void ApplyMonsterCondition(int location_id, int condition, int argument, unsigned int duration,
+                           unsigned int percent);
 unsigned char GetConditionRecordFlag(int party_slot, int condition);
 /* 0x00524780: record a bound monster in a party member's condition record -
    the level the binding was made on and the monster's location id, with the
@@ -99,4 +99,4 @@ void RemoveAllEnchantments(void);                /* 0x00524540 */
 void NormalizeItemQuantityKind(W8ItemInstance* item);
 /* 0x00522EF0: the post-load repair LoadGame runs - unequip unusable items on
    every character and normalize quantity kinds on carried and pooled items. */
-void SanitizeLoadedItems00522EF0(void);
+void SanitizeLoadedItems(void);

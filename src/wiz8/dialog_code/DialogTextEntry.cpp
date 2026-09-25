@@ -61,7 +61,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
     wchar_t* copy = new wchar_t[wcslen(m_buffer) + 5];
     wcscpy(copy, m_buffer);
     if (m_shorten) {
-        ShortenTextToWidth00577410(copy, m_buffer, width - 5, m_font);
+        ShortenTextToWidth(copy, m_buffer, width - 5, m_font);
     }
     SetFont(m_font);
     unsigned short* palette = g_font_state_palettes_68ee1c[5];

@@ -456,7 +456,7 @@ void ReloadKeywordLists(void)
    Element one holds the translated file when two loaded, falling back to the
    English list through GetAt's clamped read. */
 // FUNCTION: WIZ8 0x0056c440
-void TranslateDialogueKeyword0056C440(const wchar_t* source, wchar_t* destination)
+void TranslateDialogueKeyword(const wchar_t* source, wchar_t* destination)
 {
     W8GrowableVector<W8GrowableVector<wchar_t*>*>* file;
     W8GrowableVector<wchar_t*>* entry;
@@ -819,7 +819,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
     RequestRedraw(0x100);
     RequestRedraw(0x1000);
     if (g_mouselook_active_0068edd8 != 0) {
-        EnableCursorScene00428020();
+        EnableCursorScene();
         g_mouselook_active_0068edd8 = 0;
         gfTrackMousePos = 0;
     }
@@ -1075,7 +1075,7 @@ void CreateNpcDialogueControls(void)
     state->dialogue_text_19c->SetEnabled(0);
     state->dialogue_text_1a0 =
         new W8TextControl(panel, 0x81, 0x38, 0x22, 0x88, 0x34, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_128->m_primaryActivationCallback = BackOutNpcDialogue00570000;
+    state->dialogue_text_128->m_primaryActivationCallback = BackOutNpcDialogue;
     state->dialogue_text_128->EnableRegionHelp(0x7c8);
 }
 
@@ -1084,12 +1084,12 @@ void CreateNpcDialogueControls(void)
    enabled state to the field text and selection, and clears the 500ms trade
    highlight flash once it lapses. */
 // FUNCTION: WIZ8 0x0056E510
-void ServiceNpcDialogue0056E510(void)
+void ServiceNpcDialogue(void)
 {
     wchar_t field_text[200];
     W8MonsterInfo* monster_info = GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc);
     if (monster_info != 0) {
-        monster_info->p3D->UpdateAngles00453990();
+        monster_info->p3D->UpdateAngles();
     }
     if (g_screen_state_00649f1c->scripted_dialogue != 0) {
         return;
@@ -1112,7 +1112,7 @@ void ServiceNpcDialogue0056E510(void)
             CloseNpcDialogueMode1Layout();
             break;
         case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
-            CloseNpcDialogueLayout00570A20();
+            CloseNpcDialogueLayout();
             break;
         case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
             CloseNpcDialogueTranscriptLayout();
@@ -1188,7 +1188,7 @@ void ServiceNpcDialogue0056E510(void)
    text controls, restore the held item or target cursor, queue the parting
    character event and hand control back to the world. */
 // FUNCTION: WIZ8 0x0056E800
-void EndNpcDialogueSession0056E800(int param_1)
+void EndNpcDialogueSession(int param_1)
 {
     if (gXStatus.fNpcDialogueMode == 0) {
         return;
@@ -1310,7 +1310,7 @@ void EndNpcDialogueSession0056E800(int param_1)
             }
         }
     }
-    FlushPendingNoticeLines005766B0();
+    FlushPendingNoticeLines();
     if (g_screen_state_00649f1c->camera_redirected != 0) {
         g_gd_camera_65a0f8->SetPitch(g_screen_state_00649f1c->saved_camera_pitch_240);
     }
@@ -1349,7 +1349,7 @@ void InvalidateMainGameActionPanelRect(const W8ControlsRect* rect)
    The panel_1ac dirty check snapshots its state before Redraw consumes it and
    repaints the shared text-box scroll chrome alongside. */
 // FUNCTION: WIZ8 0x0056ECF0
-void ActivateNpcDialoguePanels0056ECF0(unsigned char active)
+void ActivateNpcDialoguePanels(unsigned char active)
 {
     bool redraw_scroll = false;
     if (g_screen_state_00649f1c->scripted_dialogue == 0) {
@@ -1378,7 +1378,7 @@ void ActivateNpcDialoguePanels0056ECF0(unsigned char active)
 /* Whether any of the seven dialogue panels is enabled with a redraw or
    layout pass still pending. */
 // FUNCTION: WIZ8 0x0056ED80
-bool HasNpcDialogueDirtyPanels0056ED80(void)
+bool HasNpcDialogueDirtyPanels(void)
 {
     if (g_screen_state_00649f1c->scripted_dialogue == 0) {
         Controls** panel = reinterpret_cast<
@@ -1419,7 +1419,7 @@ void SetNpcDialogueLayoutMode(int value)
    from what the character can actually use; mode 4 resets the editor and
    re-arms the trade prompt. */
 // FUNCTION: WIZ8 0x0056EE20
-void SyncNpcServiceButtons0056EE20(int party_slot)
+void SyncNpcServiceButtons(int party_slot)
 {
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
     if (gXStatus.fNpcDialogueMode != 0) {
@@ -1441,7 +1441,7 @@ void SyncNpcServiceButtons0056EE20(int party_slot)
             g_screen_state_00649f1c->dialogue_text_120->EnableSecondaryState(1);
             g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_fontStateIndex = 3;
             g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_geometryDirty = 1;
-            RebuildNpcTradeItemList005ADB10(1);
+            RebuildNpcTradeItemList(1);
             g_screen_state_00649f1c->trade_pc_items = 1;
             UpdateNpcDialogueSubMode();
         }
@@ -1469,11 +1469,11 @@ bool IsNpcDialogueTextBoxActive(void)
 }
 
 // FUNCTION: WIZ8 0x0056EFF0
-void TryNpcDialoguePickpocket0056EFF0(int party_slot)
+void TryNpcDialoguePickpocket(int party_slot)
 {
     if (gXStatus.fNpcDialogueMode != 0 && g_screen_state_00649f1c->dialogue_hidden != 0) {
         SetNpcDialogueHidden(0);
-        ResolveNpcPickpocket00576BA0(party_slot);
+        ResolveNpcPickpocket(party_slot);
     }
 }
 
@@ -1574,14 +1574,14 @@ unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* re
 
     switch (event->usEvent) {
     case LEFT_BUTTON_DBL_CLK:
-        NpcDialogueTextBoxDoubleClick0056F840(static_cast<short>(event->uiParam),
-                                              static_cast<short>(event->uiParam >> 16));
+        NpcDialogueTextBoxDoubleClick(static_cast<short>(event->uiParam),
+                                      static_cast<short>(event->uiParam >> 16));
         return 1;
     case LEFT_BUTTON_UP:
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
             region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-            NpcDialogueTextBoxLeftUp0056F530(static_cast<short>(event->uiParam),
-                                             static_cast<short>(event->uiParam >> 16));
+            NpcDialogueTextBoxLeftUp(static_cast<short>(event->uiParam),
+                                     static_cast<short>(event->uiParam >> 16));
         }
     case RIGHT_BUTTON_DOWN:
         region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
@@ -1594,8 +1594,8 @@ unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* re
     case RIGHT_BUTTON_UP:
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
             region->flags &= ~W8_REGION_RIGHT_BUTTON_HELD;
-            NpcDialogueTextBoxRightUp0056F6B0(static_cast<short>(event->uiParam),
-                                              static_cast<short>(event->uiParam >> 16));
+            NpcDialogueTextBoxRightUp(static_cast<short>(event->uiParam),
+                                      static_cast<short>(event->uiParam >> 16));
         }
         return 1;
     default:
@@ -1682,7 +1682,7 @@ void NpcDialogueTextBoxWheelAt(short x, unsigned short y, char flag)
    notice word becomes the selected keyword and is appended to the input field;
    in the item layouts the hovered slot is selected. */
 // FUNCTION: WIZ8 0x0056F530
-void NpcDialogueTextBoxLeftUp0056F530(int x, int y)
+void NpcDialogueTextBoxLeftUp(int x, int y)
 {
     wchar_t word_text[200];
     wchar_t field_text[200];
@@ -1720,7 +1720,7 @@ void NpcDialogueTextBoxLeftUp0056F530(int x, int y)
         if (slot == -1) {
             return;
         }
-        UpdateNpcTradeSelection0056FAC0(slot, g_shift_held_006f0530 != 0 ? 1 : 0, 1);
+        UpdateNpcTradeSelection(slot, g_shift_held_006f0530 != 0 ? 1 : 0, 1);
         return;
     }
 }
@@ -1729,7 +1729,7 @@ void NpcDialogueTextBoxLeftUp0056F530(int x, int y)
    keyword to the dialogue transcript; the item layouts select the slot and
    open the item assay dialog. */
 // FUNCTION: WIZ8 0x0056F6B0
-void NpcDialogueTextBoxRightUp0056F6B0(int x, int y)
+void NpcDialogueTextBoxRightUp(int x, int y)
 {
     wchar_t word_text[200];
     int line;
@@ -1744,8 +1744,8 @@ void NpcDialogueTextBoxRightUp0056F6B0(int x, int y)
         if (slot == -1) {
             return;
         }
-        UpdateNpcTradeSelection0056FAC0(slot, g_shift_held_006f0530 != 0 ? 1 : 0, 1);
-        item = ResolveNpcTradeRow005729C0(slot, 0, 0, 1);
+        UpdateNpcTradeSelection(slot, g_shift_held_006f0530 != 0 ? 1 : 0, 1);
+        item = ResolveNpcTradeRow(slot, 0, 0, 1);
         if (item == 0) {
             return;
         }
@@ -1771,7 +1771,7 @@ void NpcDialogueTextBoxRightUp0056F6B0(int x, int y)
    keyword and submits the input line; the item layout picks the hovered line's
    slot and uses the selected item. */
 // FUNCTION: WIZ8 0x0056F840
-void NpcDialogueTextBoxDoubleClick0056F840(int x, int y)
+void NpcDialogueTextBoxDoubleClick(int x, int y)
 {
     wchar_t word_text[200];
     wchar_t field_text[200];
@@ -1827,9 +1827,9 @@ void NpcDialogueTextBoxDoubleClick0056F840(int x, int y)
     slot = GetTextSlot1D8(2);
     if (slot != -1) {
         g_screen_state_00649f1c->selected_trade_row = -1;
-        UpdateNpcTradeSelection0056FAC0(slot, 0, 1);
+        UpdateNpcTradeSelection(slot, 0, 1);
         if (g_screen_state_00649f1c->trade_item != 0) {
-            ConfirmNpcTradeItem005AD290();
+            ConfirmNpcTradeItem();
         }
     }
     if (g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX &&
@@ -1848,7 +1848,7 @@ void NpcDialogueTextBoxDoubleClick0056F840(int x, int y)
    controls: layout 1 pulls from the equipment/backpack picker, layout 4 from
    the trade lists; the mode-2 row zero additionally fills in the purse readout. */
 // FUNCTION: WIZ8 0x0056FAC0
-void UpdateNpcTradeSelection0056FAC0(int index, int increment, int commit)
+void UpdateNpcTradeSelection(int index, int increment, int commit)
 {
     W8ItemInstance* item;
     wchar_t text[204];
@@ -1860,7 +1860,7 @@ void UpdateNpcTradeSelection0056FAC0(int index, int increment, int commit)
     case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
         break;
     case W8_DIALOGUE_LAYOUT_SERVICES:
-        item = GetNpcTradeSlotItem00573F80(index);
+        item = GetNpcTradeSlotItem(index);
         g_screen_state_00649f1c->trade_item = item;
         if (g_screen_state_00649f1c->trade_item != 0) {
             g_screen_state_00649f1c->dialogue_text_1a0->SetEnabled(1);
@@ -1869,7 +1869,7 @@ void UpdateNpcTradeSelection0056FAC0(int index, int increment, int commit)
     default:
         return;
     }
-    item = ResolveNpcTradeRow005729C0(index, 1, increment, commit);
+    item = ResolveNpcTradeRow(index, 1, increment, commit);
     g_screen_state_00649f1c->trade_item = item;
     if (g_screen_state_00649f1c->trade_item != 0) {
         g_screen_state_00649f1c->dialogue_text_1a0->SetEnabled(1);
@@ -1878,9 +1878,8 @@ void UpdateNpcTradeSelection0056FAC0(int index, int increment, int commit)
         if (g_item_records[g_screen_state_00649f1c->trade_item->iItemNo].equip_class == 4) {
             g_screen_state_00649f1c->dialogue_text_188->SetEnabled(0);
         }
-        ShortenTextToWidth00577410(text,
-                                   FormatItemDisplayName(g_screen_state_00649f1c->trade_item, 0),
-                                   0x7d, g_font_683660);
+        ShortenTextToWidth(text, FormatItemDisplayName(g_screen_state_00649f1c->trade_item, 0),
+                           0x7d, g_font_683660);
         g_screen_state_00649f1c->dialogue_text_19c->m_textBuffer.SetText(text, g_font_683660);
         g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_fontStateIndex = 1;
         g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
@@ -1975,7 +1974,7 @@ void ResetNpcDialogueItemEditor(void)
    topic menu or the transcript by reopen_topics, and mode 5 always lands on the
    transcript. */
 // FUNCTION: WIZ8 0x00570000
-void BackOutNpcDialogue00570000(void)
+void BackOutNpcDialogue(void)
 {
     switch (g_screen_state_00649f1c->dialogue_layout) {
     case W8_DIALOGUE_LAYOUT_SERVICES:
@@ -2152,7 +2151,7 @@ void LeaveNpcDialogueLayout(void)
             break;
         }
     }
-    EndNpcDialogueSession0056E800(0);
+    EndNpcDialogueSession(0);
 }
 
 // FUNCTION: WIZ8 0x00570530
@@ -2254,15 +2253,13 @@ void ShowNpcDialogueTopicMenu(void)
     g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1c9c / 4],
                                                                      g_font_683660);
     g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback =
-        SelectNpcDialogueService00570AD0;
+        SelectNpcDialogueService;
     g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1ca0 / 4],
                                                                      g_font_683660);
-    g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback =
-        SelectNpcDialogueTalk00570B80;
+    g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback = SelectNpcDialogueTalk;
     g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x1ca4 / 4],
                                                                      g_font_683660);
-    g_screen_state_00649f1c->dialogue_text_118->m_primaryActivationCallback =
-        SelectNpcDialogueExit00570C20;
+    g_screen_state_00649f1c->dialogue_text_118->m_primaryActivationCallback = SelectNpcDialogueExit;
     g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1c8c / 4],
                                                                      g_font_683660);
     g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback =
@@ -2294,7 +2291,7 @@ void ShowNpcDialogueTopicMenu(void)
 /* Fold the mode-2 menu panels away: clear the option row, drop the caption
    text, remember the layout being left and unhide the dialogue window. */
 // FUNCTION: WIZ8 0x00570A20
-void CloseNpcDialogueLayout00570A20(void)
+void CloseNpcDialogueLayout(void)
 {
     RegionSetDisable(0x18);
     g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
@@ -2310,17 +2307,17 @@ void CloseNpcDialogueLayout00570A20(void)
     }
 }
 
-/* The "Trade" option button: hand the NPC's trade answer to ApplyNpcInteraction0050A570,
+/* The "Trade" option button: hand the NPC's trade answer to ApplyNpcInteraction,
    then react to the disposition band - friendly queues the trade quote and
    returns to the transcript, neutral queues the neutral answer, hostile sets
    the hostile band and queues the refusal. */
 // FUNCTION: WIZ8 0x00570AD0
-void SelectNpcDialogueService00570AD0(void)
+void SelectNpcDialogueService(void)
 {
     unsigned char band;
 
-    ApplyNpcInteraction0050A570(g_screen_state_00649f1c->dialogue_npc, 1,
-                                g_screen_state_00649f1c->dialogue_speaker, 0, 0);
+    ApplyNpcInteraction(g_screen_state_00649f1c->dialogue_npc, 1,
+                        g_screen_state_00649f1c->dialogue_speaker, 0, 0);
     g_screen_state_00649f1c->dialogue_text_110->SetEnabled(0);
     band = GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc);
     if (band == 0) {
@@ -2341,12 +2338,12 @@ void SelectNpcDialogueService00570AD0(void)
    neutral ones queue the talk quote, hostile ones set the hostile band and
    queue the refusal. */
 // FUNCTION: WIZ8 0x00570B80
-void SelectNpcDialogueTalk00570B80(void)
+void SelectNpcDialogueTalk(void)
 {
     unsigned char band;
 
-    ApplyNpcInteraction0050A570(g_screen_state_00649f1c->dialogue_npc, 0,
-                                g_screen_state_00649f1c->dialogue_speaker, 0, 0);
+    ApplyNpcInteraction(g_screen_state_00649f1c->dialogue_npc, 0,
+                        g_screen_state_00649f1c->dialogue_speaker, 0, 0);
     g_screen_state_00649f1c->dialogue_text_114->SetEnabled(0);
     band = GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc);
     if (band == 0) {
@@ -2366,7 +2363,7 @@ void SelectNpcDialogueTalk00570B80(void)
 /* The "Exit" option button: close the option row, mark the dialogue as leaving
    through the transcript and open the option layout for the farewell. */
 // FUNCTION: WIZ8 0x00570C20
-void SelectNpcDialogueExit00570C20(void)
+void SelectNpcDialogueExit(void)
 {
     RegionSetDisable(0x18);
     g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
@@ -2833,8 +2830,7 @@ void OpenNpcDialogueOptionLayout(void)
     swprintf(buffer, L"%dg", g_status_685170.party_gold);
     g_screen_state_00649f1c->dialogue_text_190->m_textBuffer.SetText(buffer, g_font_683660);
     g_screen_state_00649f1c->dialogue_text_1a0->SetEnabled(0);
-    g_screen_state_00649f1c->dialogue_text_1a0->m_primaryActivationCallback =
-        ConfirmNpcTradeItem005AD290;
+    g_screen_state_00649f1c->dialogue_text_1a0->m_primaryActivationCallback = ConfirmNpcTradeItem;
     g_screen_state_00649f1c->dialogue_text_120->AddLayoutFlags(g_W8TextControlMask005ED578);
     g_screen_state_00649f1c->dialogue_text_124->AddLayoutFlags(g_W8TextControlMask005ED578);
     g_screen_state_00649f1c->dialogue_text_120->DisableSecondaryState(1);
@@ -2862,13 +2858,13 @@ void OpenNpcDialogueOptionLayout(void)
     g_screen_state_00649f1c->dialogue_text_118->SetEnabled(1);
     SelectTextBox(2);
     if (gXStatus.fCampMode == 0) {
-        ResetEditorStatusLine0058AA20(2);
+        ResetEditorStatusLine(2);
     }
     g_screen_state_00649f1c->trade_filter = 0;
     for (index = 0; index < 6; ++index) {
         g_screen_state_00649f1c->option_buttons_170[index]->SetEnabled(0);
     }
-    RebuildNpcTradeItemList005ADB10(1);
+    RebuildNpcTradeItemList(1);
     RequestRedraw(0x200);
 }
 
@@ -2945,7 +2941,7 @@ void UpdateNpcDialogueSubMode(void)
         }
         g_screen_state_00649f1c->pending_trade_toggle = 0;
     }
-    RebuildNpcTradeItemList005ADB10(1);
+    RebuildNpcTradeItemList(1);
 }
 
 /* Tear down the mode-4 option layout: the six option controls lose their
@@ -2996,7 +2992,7 @@ void CloseNpcDialogueOptionLayout(void)
     }
     g_screen_state_00649f1c->reopen_topics = 0;
     SelectTextBox(3);
-    ScrollDialogueTextBoxToLine0058BA60();
+    ScrollDialogueTextBoxToLine();
 }
 
 // FUNCTION: WIZ8 0x00572590
@@ -3033,7 +3029,7 @@ void SelectNpcTradeMode1(void)
     g_screen_state_00649f1c->dialogue_text_120->EnableSecondaryState(1);
     g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_fontStateIndex = 3;
     g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_geometryDirty = 1;
-    RebuildNpcTradeItemList005ADB10(1);
+    RebuildNpcTradeItemList(1);
     g_screen_state_00649f1c->trade_pc_items = 1;
 }
 
@@ -3047,7 +3043,7 @@ void SelectNpcTradeMode0(void)
     g_screen_state_00649f1c->dialogue_text_124->EnableSecondaryState(1);
     g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_fontStateIndex = 3;
     g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_geometryDirty = 1;
-    RebuildNpcTradeItemList005ADB10(1);
+    RebuildNpcTradeItemList(1);
     g_screen_state_00649f1c->trade_pc_items = 0;
 }
 
@@ -3059,7 +3055,7 @@ void ConfirmNpcTradeSlot(void)
     if (g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
         slot = GetTextSlot1E8(2);
         if (slot != -1) {
-            UpdateNpcTradeSelection0056FAC0(slot, 0, 0);
+            UpdateNpcTradeSelection(slot, 0, 0);
             if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE && slot == 0) {
                 OpenNpcTradeSplitDialog00572780();
             } else if (g_screen_state_00649f1c->trade_item->stack_count > 1) {
@@ -3074,7 +3070,7 @@ void ConfirmNpcTradeSlot(void)
    mode-4-only controls are parked. */
 /* The "Gold" split-amount entry: reset the item editor, dim the six option
    buttons and open the W8SplitAmountDialog seeded with the party purse. The
-   result lands back through OnNpcTradeSplitDialogDestroy00572870. */
+   result lands back through OnNpcTradeSplitDialogDestroy. */
 // FUNCTION: WIZ8 0x00572780
 void OpenNpcTradeSplitDialog00572780(void)
 {
@@ -3090,14 +3086,14 @@ void OpenNpcTradeSplitDialog00572780(void)
     dialog = new W8SplitAmountDialog(g_status_685170.party_gold);
     dialog->SetText(&g_wchar_00689b34);
     dialog->SetOrigin(g_split_dialog_origin_x_005ef9dc, g_split_dialog_origin_y_005ef9e0);
-    dialog->m_destroy_callback = OnNpcTradeSplitDialogDestroy00572870;
+    dialog->m_destroy_callback = OnNpcTradeSplitDialogDestroy;
     OpenModal(dialog);
 }
 
 /* Destroy callback for the trade split-amount dialog: on confirm it takes the
    entered share into trade_gold and refreshes the purse readout. */
 // FUNCTION: WIZ8 0x00572870
-void OnNpcTradeSplitDialogDestroy00572870(W8DialogBase* dialog)
+void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog)
 {
     wchar_t text[0x20];
 
@@ -3123,7 +3119,7 @@ void OnNpcTradeSplitDialogDestroy00572870(W8DialogBase* dialog)
    go through the NPC's own inventory. pick/commit drive quantity stepping,
    the click chime and the highlight tick. */
 // FUNCTION: WIZ8 0x005729C0
-W8ItemInstance* ResolveNpcTradeRow005729C0(int index, char pick, char decrement, char commit)
+W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char commit)
 {
     wchar_t count_text[32];
     wchar_t* text;
@@ -3163,8 +3159,7 @@ W8ItemInstance* ResolveNpcTradeRow005729C0(int index, char pick, char decrement,
                 i = 0;
                 do {
                     if (g_status_685170.party_item_pool_0021[i].iItemNo != -1 &&
-                        NpcTradeItemAllowed00573190(&g_status_685170.party_item_pool_0021[i]) ==
-                            0) {
+                        NpcTradeItemAllowed(&g_status_685170.party_item_pool_0021[i]) == 0) {
                         if (index == hit) {
                             if (pick == 0) {
                                 return &g_status_685170.party_item_pool_0021[i];
@@ -3236,7 +3231,7 @@ W8ItemInstance* ResolveNpcTradeRow005729C0(int index, char pick, char decrement,
             i = 0;
             do {
                 if (character->backpack[i].iItemNo != -1 &&
-                    NpcTradeItemAllowed00573190(&character->backpack[i]) == 0) {
+                    NpcTradeItemAllowed(&character->backpack[i]) == 0) {
                     if (index == hit) {
                         if (pick == 0) {
                             return &character->backpack[i];
@@ -3296,7 +3291,7 @@ W8ItemInstance* ResolveNpcTradeRow005729C0(int index, char pick, char decrement,
         }
         return 0;
     }
-    i = ResolveNpcTradeStockIndex005ADAA0(index);
+    i = ResolveNpcTradeStockIndex(index);
     if (i == -1) {
         return 0;
     }
@@ -3371,7 +3366,7 @@ W8ItemInstance* ResolveNpcTradeRow005729C0(int index, char pick, char decrement,
    0x290 until fact 0x3c, the trade_filter low bits gate character/party
    usability, and bits 0x3c select the accepted equipment slot group. */
 // FUNCTION: WIZ8 0x00573190
-unsigned char NpcTradeItemAllowed00573190(W8ItemInstance* item)
+unsigned char NpcTradeItemAllowed(W8ItemInstance* item)
 {
     int group;
 
@@ -3471,7 +3466,7 @@ void OpenNpcDialogueMode5Layout(void)
     RequestRedraw(0x200);
     SelectTextBox(2);
     if (gXStatus.fCampMode == 0) {
-        ResetEditorStatusLine0058AA20(2);
+        ResetEditorStatusLine(2);
     }
 }
 
@@ -3497,7 +3492,7 @@ void CloseNpcDialogueMode5Layout(void)
 /* Re-arm the six trade-filter option buttons after the list contents were
    rebuilt. */
 // FUNCTION: WIZ8 0x00573630
-void EnableNpcTradeFilterButtons00573630(void)
+void EnableNpcTradeFilterButtons(void)
 {
     for (unsigned int index = 0; index <= 5; ++index) {
         g_screen_state_00649f1c->option_buttons_170[index]->SetEnabled(1);
@@ -3507,7 +3502,7 @@ void EnableNpcTradeFilterButtons00573630(void)
 /* The six trade-filter option callbacks share one shape: when the button's
    secondary state is raised it becomes the exclusive slot-group bit in
    trade_filter (the previously active sibling is dimmed and cleared), and when it
-   is lowered the bit comes off again; RebuildNpcTradeItemList005ADB10(1) refreshes the list. */
+   is lowered the bit comes off again; RebuildNpcTradeItemList(1) refreshes the list. */
 // FUNCTION: WIZ8 0x00573660
 void ToggleNpcTradeFilter00573660(void)
 {
@@ -3528,11 +3523,11 @@ void ToggleNpcTradeFilter00573660(void)
             break;
         }
         g_screen_state_00649f1c->trade_filter |= 4;
-        RebuildNpcTradeItemList005ADB10(1);
+        RebuildNpcTradeItemList(1);
         return;
     }
     g_screen_state_00649f1c->trade_filter &= ~4;
-    RebuildNpcTradeItemList005ADB10(1);
+    RebuildNpcTradeItemList(1);
 }
 
 // FUNCTION: WIZ8 0x00573730
@@ -3555,11 +3550,11 @@ void ToggleNpcTradeFilter00573730(void)
             break;
         }
         g_screen_state_00649f1c->trade_filter |= 0x10;
-        RebuildNpcTradeItemList005ADB10(1);
+        RebuildNpcTradeItemList(1);
         return;
     }
     g_screen_state_00649f1c->trade_filter &= ~0x10;
-    RebuildNpcTradeItemList005ADB10(1);
+    RebuildNpcTradeItemList(1);
 }
 
 // FUNCTION: WIZ8 0x00573800
@@ -3582,11 +3577,11 @@ void ToggleNpcTradeFilter00573800(void)
             break;
         }
         g_screen_state_00649f1c->trade_filter |= 8;
-        RebuildNpcTradeItemList005ADB10(1);
+        RebuildNpcTradeItemList(1);
         return;
     }
     g_screen_state_00649f1c->trade_filter &= ~8;
-    RebuildNpcTradeItemList005ADB10(1);
+    RebuildNpcTradeItemList(1);
 }
 
 // FUNCTION: WIZ8 0x005738D0
@@ -3609,11 +3604,11 @@ void ToggleNpcTradeFilter005738D0(void)
             break;
         }
         g_screen_state_00649f1c->trade_filter |= 0x20;
-        RebuildNpcTradeItemList005ADB10(1);
+        RebuildNpcTradeItemList(1);
         return;
     }
     g_screen_state_00649f1c->trade_filter &= ~0x20;
-    RebuildNpcTradeItemList005ADB10(1);
+    RebuildNpcTradeItemList(1);
 }
 
 /* The "usable by the selected character" toggle is exclusive with the
@@ -3627,11 +3622,11 @@ void ToggleNpcTradeFilter005739A0(void)
         g_screen_state_00649f1c->option_buttons_170[5]->DisableSecondaryState(1);
         g_screen_state_00649f1c->trade_filter &= ~0x40;
         g_screen_state_00649f1c->trade_filter |= 1;
-        RebuildNpcTradeItemList005ADB10(1);
+        RebuildNpcTradeItemList(1);
         return;
     }
     g_screen_state_00649f1c->trade_filter &= ~1;
-    RebuildNpcTradeItemList005ADB10(1);
+    RebuildNpcTradeItemList(1);
 }
 
 // FUNCTION: WIZ8 0x00573A10
@@ -3642,11 +3637,11 @@ void ToggleNpcTradeFilter00573A10(void)
         g_screen_state_00649f1c->option_buttons_170[2]->DisableSecondaryState(1);
         g_screen_state_00649f1c->trade_filter &= ~1;
         g_screen_state_00649f1c->trade_filter |= 0x40;
-        RebuildNpcTradeItemList005ADB10(1);
+        RebuildNpcTradeItemList(1);
         return;
     }
     g_screen_state_00649f1c->trade_filter &= ~0x40;
-    RebuildNpcTradeItemList005ADB10(1);
+    RebuildNpcTradeItemList(1);
 }
 
 // FUNCTION: WIZ8 0x00573A80
@@ -3721,7 +3716,7 @@ void OpenNpcDialogueMode1Layout(void)
     RequestRedraw(0x200);
     SelectTextBox(2);
     if (gXStatus.fCampMode == 0) {
-        ResetEditorStatusLine0058AA20(2);
+        ResetEditorStatusLine(2);
     }
 }
 
@@ -3759,8 +3754,8 @@ void RequestNpcSpellService3(void)
 
     gXStatus.fCampMode = true;
     CloseNpcDialogueMode1Layout();
-    EndNpcDialogueSession0056E800(0);
-    BeginSpellCast005A0110(3, location, mode);
+    EndNpcDialogueSession(0);
+    BeginSpellCast(3, location, mode);
 }
 
 // FUNCTION: WIZ8 0x00573F10
@@ -3771,8 +3766,8 @@ void RequestNpcSpellService41(void)
 
     gXStatus.fCampMode = true;
     CloseNpcDialogueMode1Layout();
-    EndNpcDialogueSession0056E800(0);
-    BeginSpellCast005A0110(0x29, location, mode);
+    EndNpcDialogueSession(0);
+    BeginSpellCast(0x29, location, mode);
 }
 
 // FUNCTION: WIZ8 0x00573F50
@@ -3780,7 +3775,7 @@ void RequestNpcCharacterService(void)
 {
     gXStatus.fCampMode = true;
     CloseNpcDialogueMode1Layout();
-    EndNpcDialogueSession0056E800(0);
+    EndNpcDialogueSession(0);
     OpenUseItemSelectView(g_status_685170.selected_character);
 }
 
@@ -3795,7 +3790,7 @@ void RequestNpcCharacterService(void)
    equipment slots first, then the eight backpack slots. The hit refreshes the
    dialogue_text_16c preview image and its stack-count text. */
 // FUNCTION: WIZ8 0x00573F80
-W8ItemInstance* GetNpcTradeSlotItem00573F80(int index)
+W8ItemInstance* GetNpcTradeSlotItem(int index)
 {
     wchar_t count_text[32];
     wchar_t* text;
@@ -4143,7 +4138,7 @@ void HandleNpcDialogueInput(void)
 }
 
 // FUNCTION: WIZ8 0x00574BB0
-void HandleNpcDialogueKeyEvent00574BB0(const InputAtom* event)
+void HandleNpcDialogueKeyEvent(const InputAtom* event)
 {
     W8MainScreenState* state;
     int command;
@@ -4224,7 +4219,7 @@ void HandleNpcDialogueKeyEvent00574BB0(const InputAtom* event)
             QueueNpcScriptLine(0x5c, 0, 0, 0);
             return;
         case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
-            EndNpcDialogueSession0056E800(0);
+            EndNpcDialogueSession(0);
             return;
         case W8_DIALOGUE_LAYOUT_SERVICES: {
             int prev = g_screen_state_00649f1c->previous_dialogue_layout;
@@ -4334,7 +4329,7 @@ void ClearNpcDialogueTranscript(void)
 }
 
 // FUNCTION: WIZ8 0x005750D0
-unsigned char LoadNpcDialogueTranscript005750D0(unsigned int file)
+unsigned char LoadNpcDialogueTranscript(unsigned int file)
 {
     unsigned char version;
     unsigned int bytes_read;
@@ -4365,7 +4360,7 @@ unsigned char LoadNpcDialogueTranscript005750D0(unsigned int file)
 }
 
 // FUNCTION: WIZ8 0x00575290
-unsigned char SaveNpcDialogueTranscript00575290(unsigned int file)
+unsigned char SaveNpcDialogueTranscript(unsigned int file)
 {
     unsigned char version;
     unsigned int bytes_written;
@@ -4438,12 +4433,12 @@ void SyncDialogueCategoryButtons(void)
 /* A confirmed purchase returns the NPC dialogue to the layout appropriate
    for the NPC's disposition. A cancelled dialog leaves the layout alone. */
 // FUNCTION: WIZ8 0x00575520
-void OnNpcTradeDialogClosed00575520(W8DialogBase* dialog)
+void OnNpcTradeDialogClosed(W8DialogBase* dialog)
 {
     if (GetDialogResult(dialog) == 0) {
         return;
     }
-    ConfirmNpcTradePurchase00575710();
+    ConfirmNpcTradePurchase();
     switch (g_screen_state_00649f1c->dialogue_layout) {
     case W8_DIALOGUE_LAYOUT_SERVICES:
         CloseNpcDialogueMode1Layout();
@@ -4495,23 +4490,23 @@ void OnNpcTradeDialogClosed00575520(W8DialogBase* dialog)
 }
 
 // FUNCTION: WIZ8 0x00575710
-void ConfirmNpcTradePurchase00575710(void)
+void ConfirmNpcTradePurchase(void)
 {
     if (GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0) {
         SpendPartyGold(g_screen_state_00649f1c->trade_gold);
         g_screen_state_00649f1c->dialogue_text_16c->Invalidate(1);
         QueueNpcScriptLine(0x10, 0, 0, 0);
-        RebuildNpcTradeItemList005ADB10(0);
+        RebuildNpcTradeItemList(0);
         return;
     }
     if (NpcRecordHasValue002(g_screen_state_00649f1c->dialogue_npc) != 0) {
-        ApplyNpcInteraction0050A570(g_screen_state_00649f1c->dialogue_npc, 2,
-                                    g_screen_state_00649f1c->dialogue_speaker, 0,
-                                    g_screen_state_00649f1c->trade_gold);
+        ApplyNpcInteraction(g_screen_state_00649f1c->dialogue_npc, 2,
+                            g_screen_state_00649f1c->dialogue_speaker, 0,
+                            g_screen_state_00649f1c->trade_gold);
         g_screen_state_00649f1c->dialogue_text_16c->Invalidate(1);
         QueueNpcScriptLine(
             GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0 ? 0x10 : 7, 0, 0, 0);
-        RebuildNpcTradeItemList005ADB10(0);
+        RebuildNpcTradeItemList(0);
         return;
     }
     QueueNpcScriptLine(7, 0, 0, 0);
@@ -4529,14 +4524,14 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
     result = 1;
     if (g_screen_state_00649f1c->trade_gold != 0 && item == 0) {
         if (g_screen_state_00649f1c->trade_gold != static_cast<int>(g_status_685170.party_gold)) {
-            ConfirmNpcTradePurchase00575710();
+            ConfirmNpcTradePurchase();
             return 1;
         }
         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
         message = FormatWideString(gppStringList[0x1f58 / 4]);
         dialog->SetMessage(message, 1, 0x32, 1, 1, 1, 1, 0, 0x15e);
-        SetDialogDestroyCallback(dialog, OnNpcTradeDialogClosed00575520);
+        SetDialogDestroyCallback(dialog, OnNpcTradeDialogClosed);
         OpenModal(dialog);
         return 1;
     }
@@ -4583,8 +4578,8 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
             }
             fact_result = FindNpcScriptItemQuote(item->iItemNo, 0, &flag);
             if (fact_result == -1) {
-                ApplyNpcInteraction0050A570(g_screen_state_00649f1c->dialogue_npc, 3,
-                                            g_screen_state_00649f1c->dialogue_speaker, item, 0);
+                ApplyNpcInteraction(g_screen_state_00649f1c->dialogue_npc, 3,
+                                    g_screen_state_00649f1c->dialogue_speaker, item, 0);
                 QueueNpcScriptLine(
                     GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0 ? 0x10 : 7, 0,
                     0, 0);
@@ -4628,7 +4623,7 @@ void SubmitNpcDialogueInput00575B40(void)
 }
 
 // FUNCTION: WIZ8 0x00575B70
-void HandleNpcDialogueItemChoice00575B70(void)
+void HandleNpcDialogueItemChoice(void)
 {
     HandleNpcDialogueItem(g_screen_state_00649f1c->trade_item);
     if (g_screen_state_00649f1c->reopen_topics != 0 &&
@@ -4640,7 +4635,7 @@ void HandleNpcDialogueItemChoice00575B70(void)
 }
 
 // FUNCTION: WIZ8 0x00575BC0
-void RefreshNpcTradePartyGold00575BC0(void)
+void RefreshNpcTradePartyGold(void)
 {
     wchar_t text[32];
 
@@ -4649,7 +4644,7 @@ void RefreshNpcTradePartyGold00575BC0(void)
 }
 
 // FUNCTION: WIZ8 0x00575C00
-void RefreshNpcTradePrice00575C00(void)
+void RefreshNpcTradePrice(void)
 {
     wchar_t text[32];
 
@@ -4682,7 +4677,7 @@ void DrainNpcDialogueDeferralInput(void)
                         switch (g_screen_state_00649f1c->dialogue_layout) {
                         case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
                         case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
-                            EndNpcDialogueSession0056E800(0);
+                            EndNpcDialogueSession(0);
                             break;
                         case W8_DIALOGUE_LAYOUT_SERVICES:
                             prior_layout = g_screen_state_00649f1c->previous_dialogue_layout;
@@ -4801,7 +4796,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
         unsigned short height;
 
         if (g_mouselook_active_0068edd8) {
-            EnableCursorScene00428020();
+            EnableCursorScene();
             g_mouselook_active_0068edd8 = 0;
             gfTrackMousePos = 0;
         }
@@ -4896,7 +4891,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
         }
     }
     if (flush_notices) {
-        FlushPendingNoticeLines005766B0();
+        FlushPendingNoticeLines();
     }
     g_screen_state_00649f1c->quote_visible = false;
     if (g_screen_state_00649f1c->quote_bubble != -1) {
@@ -4946,7 +4941,7 @@ void DrawNpcQuoteBubble(void)
 }
 
 // FUNCTION: WIZ8 0x005766B0
-void FlushPendingNoticeLines005766B0(void)
+void FlushPendingNoticeLines(void)
 {
     wchar_t npc_name[100];
     int index;
@@ -5061,7 +5056,7 @@ void SetNpcDialogueHidden(char value)
 void CloseNpcDialogueIfActive(void)
 {
     if (gXStatus.fNpcDialogueMode != 0) {
-        EndNpcDialogueSession0056E800(0);
+        EndNpcDialogueSession(0);
     }
 }
 
@@ -5072,7 +5067,7 @@ void CloseNpcDialogueIfActive(void)
    injected into input field 0 and processed as if typed; otherwise it is
    submitted to the script line queue directly. */
 // FUNCTION: WIZ8 0x00576BA0
-void ResolveNpcPickpocket00576BA0(int party_slot)
+void ResolveNpcPickpocket(int party_slot)
 {
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
     unsigned int gold;
@@ -5080,28 +5075,27 @@ void ResolveNpcPickpocket00576BA0(int party_slot)
     wchar_t text[200];
     int slot;
 
-    switch (AttemptNpcPickpocket0050BC90(character, g_screen_state_00649f1c->dialogue_npc, &item,
-                                         &gold)) {
+    switch (AttemptNpcPickpocket(character, g_screen_state_00649f1c->dialogue_npc, &item, &gold)) {
     case 0:
         swprintf(text, gppStringList[0x74d], character->name, GetItemDisplayName(&item));
         for (slot = 0; slot < 8; ++slot) {
             if (character->backpack[slot].iItemNo == -1) {
                 AddItemToCharacter(character, &item, 0, 0, 0);
-                DisplayNpcQuote00529570(text, 1);
+                DisplayNpcQuote(text, 1);
                 return;
             }
         }
         AddItemToParty(&item, 0, 0);
-        DisplayNpcQuote00529570(text, 1);
+        DisplayNpcQuote(text, 1);
         return;
     case 1:
         swprintf(text, gppStringList[0x74e], character->name, gold);
         AddPartyGold(gold, 0);
-        DisplayNpcQuote00529570(text, 1);
+        DisplayNpcQuote(text, 1);
         return;
     case 2:
         swprintf(text, gppStringList[0x74f], character->name);
-        DisplayNpcQuote00529570(text, 0);
+        DisplayNpcQuote(text, 0);
         return;
     case 3:
         QueueNpcScriptLine(0x17, 0, 0, 0);
@@ -5111,7 +5105,7 @@ void ResolveNpcPickpocket00576BA0(int party_slot)
         ShowNpcDialogueTopicMenu();
         return;
     case 4:
-        DisplayNpcQuote00529570(gppStringList[0x750], 0);
+        DisplayNpcQuote(gppStringList[0x750], 0);
         return;
     default:
         return;
@@ -5119,7 +5113,7 @@ void ResolveNpcPickpocket00576BA0(int party_slot)
 }
 
 // FUNCTION: WIZ8 0x00576DA0
-void QueueDialogueNpcRefusal00576DA0(void)
+void QueueDialogueNpcRefusal(void)
 {
     unsigned int flags = g_screen_state_00649f1c->dialogue_npc->refusal_flags_85;
     if ((flags & 1) == 0) {
@@ -5257,7 +5251,7 @@ void CloseNpcDialogueForCamp(void)
         }
         break;
     }
-    EndNpcDialogueSession0056E800(0);
+    EndNpcDialogueSession(0);
     if (g_screen_state_00649f1c->held_item_pending != 0) {
         g_status_685170.item_in_hand_235b = g_screen_state_00649f1c->pending_item_1ed;
         SetItemCursor(0);
@@ -5267,7 +5261,7 @@ void CloseNpcDialogueForCamp(void)
 }
 
 // FUNCTION: WIZ8 0x00577220
-void SyncDialogueNpcStateAndMarkPending00577220(void)
+void SyncDialogueNpcStateAndMarkPending(void)
 {
     BeginNpcDialogueInternal(g_screen_state_00649f1c->dialogue_npc, 0, -1, 0, 1);
     g_screen_state_00649f1c->pending_layout = g_screen_state_00649f1c->previous_dialogue_layout;
@@ -5296,7 +5290,7 @@ void HandleNpcDialogueDeparture(int value)
 
     if (g_screen_state_00649f1c->dialogue_npc->name_style == 0x2a &&
         (info = GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc)) != 0) {
-        info->p3D->SetScript004C7F10("Guard.msf", 1);
+        info->p3D->SetScript("Guard.msf", 1);
     }
     if ((value == 0 || g_screen_state_00649f1c->dialogue_npc->dismissed_flag == 0 ||
          g_screen_state_00649f1c->dialogue_npc->record->unknown_2ef[1] != 0) &&
@@ -5335,7 +5329,7 @@ void HandleNpcDialogueDeparture(int value)
 /* Shared by the main-game screen and dialog text entries; it lives with the
    main-game text helpers, not with UtilityFunctions.cpp. */
 // FUNCTION: WIZ8 0x00577410
-void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned int width, int font)
+void ShortenTextToWidth(wchar_t* output, const wchar_t* text, unsigned int width, int font)
 {
     wchar_t buffer[200];
     wcscpy(buffer, text);
@@ -5363,7 +5357,7 @@ void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned i
 void BeginScriptedWorldAction(void)
 {
     g_status_685170.world_cursor_gate_2435 = 1;
-    ResetLevelDataVectors0041F0D0();
+    ResetLevelDataVectors();
     SetTargetCursor(W8_CURSOR_MAP_LOAD);
 }
 
@@ -5524,7 +5518,7 @@ unsigned char SetNpcDialoguePanelVisible(int value)
     return 0;
 }
 // FUNCTION: WIZ8 0x00577A20
-unsigned char FinishNpcVoiceIfSessionActive00577A20(void)
+unsigned char FinishNpcVoiceIfSessionActive(void)
 {
     if (!IsNpcScriptSessionActive()) {
         return 0;
@@ -5534,7 +5528,7 @@ unsigned char FinishNpcVoiceIfSessionActive00577A20(void)
 }
 
 // FUNCTION: WIZ8 0x00577A40
-bool ProcessPendingEvent00577A40(void)
+bool ProcessPendingEvent(void)
 {
     if (IsNpcScriptSessionActive()) {
         TryFinishNpcVoicePlayback(1);

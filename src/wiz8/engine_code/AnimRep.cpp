@@ -83,7 +83,7 @@ void W8AnimRepBase005EC1D8::GetLocation004B8890(srVector3T<float>* location) con
 }
 
 // FUNCTION: WIZ8 0x004b88b0
-void W8AnimRepBase005EC1D8::GetLocalLocation004B88B0(srVector3T<float>* location) const
+void W8AnimRepBase005EC1D8::GetLocalLocation(srVector3T<float>* location) const
 {
     location->x = local_location_010.x;
     location->y = local_location_010.y;
@@ -97,7 +97,7 @@ void W8AnimRepBase005EC1D8::SetRotation004B88D0(const srMatrix3T<float>* rotatio
 }
 
 // FUNCTION: WIZ8 0x004b88f0
-void W8AnimRepBase005EC1D8::GetRotation004B88F0(srMatrix3T<float>* rotation)
+void W8AnimRepBase005EC1D8::GetRotation(srMatrix3T<float>* rotation)
 {
     *rotation = rotation_028;
 }

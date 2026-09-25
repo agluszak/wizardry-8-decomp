@@ -1556,7 +1556,7 @@ void W8TriggerItemPickerDialog::ShowVisibleItemInfo0(W8DialogButton* button)
         if (dialog->m_first_item_0a8 < dialog->items_54.GetCount()) {
             W8ItemInstance* instance =
                 CopyWorldItemInstance(*dialog->items_54.GetAt(dialog->m_first_item_0a8));
-            OpenAssayDialog0056AE20(instance, -1);
+            OpenAssayDialog(instance, -1);
         }
     }
 }
@@ -1570,7 +1570,7 @@ void W8TriggerItemPickerDialog::ShowVisibleItemInfo1(W8DialogButton* button)
         if (dialog->m_first_item_0a8 < dialog->items_54.GetCount() + 1) {
             W8ItemInstance* instance =
                 CopyWorldItemInstance(*dialog->items_54.GetAt(dialog->m_first_item_0a8 + 1));
-            OpenAssayDialog0056AE20(instance, -1);
+            OpenAssayDialog(instance, -1);
         }
     }
 }
@@ -1584,7 +1584,7 @@ void W8TriggerItemPickerDialog::ShowVisibleItemInfo2(W8DialogButton* button)
         if (dialog->m_first_item_0a8 < dialog->items_54.GetCount() + 2) {
             W8ItemInstance* instance =
                 CopyWorldItemInstance(*dialog->items_54.GetAt(dialog->m_first_item_0a8 + 2));
-            OpenAssayDialog0056AE20(instance, -1);
+            OpenAssayDialog(instance, -1);
         }
     }
 }
@@ -1598,7 +1598,7 @@ void W8TriggerItemPickerDialog::ShowVisibleItemInfo3(W8DialogButton* button)
         if (dialog->m_first_item_0a8 < dialog->items_54.GetCount() + 3) {
             W8ItemInstance* instance =
                 CopyWorldItemInstance(*dialog->items_54.GetAt(dialog->m_first_item_0a8 + 3));
-            OpenAssayDialog0056AE20(instance, -1);
+            OpenAssayDialog(instance, -1);
         }
     }
 }
@@ -1828,7 +1828,7 @@ unsigned char W8TriggerItemPickerDialog::ProcessInput()
     MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input) == 1) {
         if ((input.usEvent == LEFT_BUTTON_DOWN || input.usEvent == RIGHT_BUTTON_DOWN) &&
-            ProcessPendingEvent00577A40() != 0) {
+            ProcessPendingEvent() != 0) {
             continue;
         }
         if (HitTestPartyPortrait(&input) != 0) {

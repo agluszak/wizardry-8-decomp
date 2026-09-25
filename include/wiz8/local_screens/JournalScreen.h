@@ -41,7 +41,7 @@ static_assert(sizeof(W8JournalEntry) == 0x0c, "W8JournalEntry_size");
 // SYNTHETIC: WIZ8 0x005bd7d0
 // W8JournalPanel005EF340::`scalar deleting destructor'
 
-void RefreshJournalPanel005BD860(void);
+void RefreshJournalPanel(void);
 
 /* 0x0068de40: the fact journal, created lazily by the initializer below and
    appended to whenever a fact changes. */
@@ -55,11 +55,11 @@ void InitializeFactJournal(void);
 void RecordFactChangeForJournal(int fact_id);
 /* 0x00558A90: write the entry count, a format dword and each journal entry
    into the open JRNL chunk. */
-void SaveFactJournal00558A90(int file);
+void SaveFactJournal(int file);
 unsigned char JournalScreenInitialize(void);
 unsigned char JournalScreenEnter(void);
 void JournalScreenFrame(void);
 unsigned char JournalScreenLeave(int leaving);
 unsigned char JournalScreenFinalize(void);
 /* 0x00558B20: load the fact journal vector from the JRNL section. */
-void LoadJournalEntries00558B20(unsigned int file);
+void LoadJournalEntries(unsigned int file);

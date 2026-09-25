@@ -24,7 +24,7 @@ struct W8PreProp;
 struct W8World;
 struct W8GameData;
 struct W8NavigatorMovementState;
-struct W8OctBuildNode00446330;
+struct W8OctBuildNode;
 struct W8OctPreTreeGeometry;
 struct W8BoundingBox;
 
@@ -72,23 +72,23 @@ static_assert(sizeof(W8OctreeTrace) == 0x30, "W8OctreeTrace_must_be_0x30");
    complete 12-byte record rather than raw storage, and the family is keyed
    on the float vector width (srVector2/3/4 are the float typedefs), so the
    float spelling is canonical and the integer triples are the reused case. */
-BOOLEAN WriteVector4Array004372E0(int file, const srVector4T<float>* values, int count);
-BOOLEAN WriteVector3Array00437390(int file, const srVector3T<float>* values, int count);
-BOOLEAN WriteVector2Array00437430(int file, const srVector2T<float>* values, int count);
-bool ReadVector4Array004374C0(int file, srVector4T<float>* values, int count);
-bool ReadVector3Array004374E0(int file, srVector3T<float>* values, int count);
-bool ReadVector2Array00437510(int file, srVector2T<float>* values, int count);
+BOOLEAN WriteVector4Array(int file, const srVector4T<float>* values, int count);
+BOOLEAN WriteVector3Array(int file, const srVector3T<float>* values, int count);
+BOOLEAN WriteVector2Array(int file, const srVector2T<float>* values, int count);
+bool ReadVector4Array(int file, srVector4T<float>* values, int count);
+bool ReadVector3Array(int file, srVector3T<float>* values, int count);
+bool ReadVector2Array(int file, srVector2T<float>* values, int count);
 /* Distance from `point` to the `from`-`to` segment, shared by the trace
    resolver and the GameData surface walk. When `clamp_point` is set the
    closest segment point is written back over `point`; `out_t` returns the
    clamped [0,1] projection fraction. */
-float PointToSegmentDistance00437540(srVector3T<float>* point, const srVector3T<float>* from,
-                                     const srVector3T<float>* to, char clamp_point, float* out_t);
+float PointToSegmentDistance(srVector3T<float>* point, const srVector3T<float>* from,
+                             const srVector3T<float>* to, char clamp_point, float* out_t);
 /* XY-plane sibling over two-component vectors; the pathfinding code measures
    edge distances in plan view. */
-float PointToSegmentDistance2D00437760(srVector2T<float>* point, const srVector2T<float>* from,
-                                       const srVector2T<float>* to, char clamp_point,
-                                       float* out_t); /* 0x00437760 */
+float PointToSegmentDistance2D(srVector2T<float>* point, const srVector2T<float>* from,
+                               const srVector2T<float>* to, char clamp_point,
+                               float* out_t); /* 0x00437760 */
 /* Grow `minimum`/`maximum` to include `point`, returning whether any bound
    moved. */
 char GrowBoundsByPoint(const srVector3T<float>* point, srVector3T<float>* minimum,
@@ -102,44 +102,44 @@ char SphereNearBounds(const srVector3T<float>* point, float radius,
    cast at the call-site boundary. */
 inline bool ReadVectorArray(int file, srVector3i* values, int count)
 {
-    return ReadVector3Array004374E0(
-        file, reinterpret_cast<srVector3T<float>*>(values), /* reinterpret-ok: the
+    return ReadVector3Array(file,
+                            reinterpret_cast<srVector3T<float>*>(values), /* reinterpret-ok: the
             float reader's raw 12-byte record is the index-triple record */
-        count);
+                            count);
 }
 inline bool ReadVectorArray(int file, srVector3T<float>* values, int count)
 {
-    return ReadVector3Array004374E0(file, values, count);
+    return ReadVector3Array(file, values, count);
 }
 inline bool ReadVectorArray(int file, srVector4T<float>* values, int count)
 {
-    return ReadVector4Array004374C0(file, values, count);
+    return ReadVector4Array(file, values, count);
 }
 inline bool ReadVectorArray(int file, srVector2T<float>* values, int count)
 {
-    return ReadVector2Array00437510(file, values, count);
+    return ReadVector2Array(file, values, count);
 }
 
 /* The polygon index triples serialize through the same canonical 12-byte
    float-vector writer. */
 inline BOOLEAN WriteVectorArray(int file, const srVector3i* values, int count)
 {
-    return WriteVector3Array00437390(
+    return WriteVector3Array(
         file, reinterpret_cast<const srVector3T<float>*>(values), /* reinterpret-ok: the
             float writer's raw 12-byte record is the index-triple record */
         count);
 }
 inline BOOLEAN WriteVectorArray(int file, const srVector3T<float>* values, int count)
 {
-    return WriteVector3Array00437390(file, values, count);
+    return WriteVector3Array(file, values, count);
 }
 inline BOOLEAN WriteVectorArray(int file, const srVector4T<float>* values, int count)
 {
-    return WriteVector4Array004372E0(file, values, count);
+    return WriteVector4Array(file, values, count);
 }
 inline BOOLEAN WriteVectorArray(int file, const srVector2T<float>* values, int count)
 {
-    return WriteVector2Array00437430(file, values, count);
+    return WriteVector2Array(file, values, count);
 }
 
 /* One 0x10-byte entry of the .oct file's submesh table. Field +4 is the index
@@ -295,11 +295,11 @@ public:
        negative offset checkpoints the shared index into the base. */
     int TestPropSunBit(int offset);
     void AddCollidablePropBounds(int index, const W8BoundingBox* bounds);
-    void VisitPointCopy0042E620(unsigned short location_id, srVector3T<float>* position);
+    void VisitPointCopy(unsigned short location_id, srVector3T<float>* position);
     /* Writes the cell coordinates and returns `point`, or null when the
        position is outside the octree bounds. */
     int* WorldPositionToCell(const srVector3T<float>* position, int* point); /* 0x00431440 */
-    unsigned long FindLeaf00433660(const int* point);
+    unsigned long FindLeaf(const int* point);
     void UpdateMonsterLocation(unsigned short location_id, const srVector3T<float>* position);
     /* Object-kind values the query machinery dispatches on: 3 = GD triangle,
        8 = collidable-prop polygon reference, 9 = path waypoint, 12 = location entry,
@@ -338,8 +338,8 @@ public:
     bool HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* to, char allow_fallback);
     /* Paths `from` toward `to`; on success `range` returns the path cost and
        `hops` the reached-waypoint count. */
-    unsigned char TestNoiseLineOfSight00434220(const srVector3T<float>* from, srVector3T<float>* to,
-                                               float* range, int* hops); /* 0x00434220 */
+    unsigned char TestNoiseLineOfSight(const srVector3T<float>* from, srVector3T<float>* to,
+                                       float* range, int* hops); /* 0x00434220 */
     short TraceLineOfSight(const srVector3T<float>* from, srVector3T<float>* to, char trace_world,
                            int from_location_id, int to_location_id, char visit_octree,
                            int trace_mode);
@@ -376,10 +376,9 @@ public:
     /* Sibling scatter query to FindNavigatorPosition: walks fixed lateral
        columns over ten rings instead of the mode-driven cell grid, and can
        flatten every accepted position back to the source height. */
-    unsigned int FindScatterPositions00437980(const srVector3T<float>* position, float yaw,
-                                              float spacing, unsigned int count,
-                                              srVector3T<float>* positions, char proximity_check,
-                                              char flatten_y);
+    unsigned int FindScatterPositions(const srVector3T<float>* position, float yaw, float spacing,
+                                      unsigned int count, srVector3T<float>* positions,
+                                      char proximity_check, char flatten_y);
     unsigned int FindNavigatorPosition(srVector3T<float>* source, float yaw, float radius,
                                        unsigned int count, srVector3T<float>* positions,
                                        char first_only, char settle_any_height, char avoid_triggers,
@@ -388,10 +387,10 @@ public:
                                   float separation);
     unsigned char PrepareNavigatorTarget00434250(W8NavigatorMovementState* movement, float radius,
                                                  float separation);
-    unsigned char PrepareNavigatorPatrol00434880(W8NavigatorMovementState* movement, float minimum,
-                                                 float maximum);
-    unsigned char LinkNavigatorTarget00434A00(W8NavigatorMovementState* movement,
-                                              const srVector3T<float>* target, float separation);
+    unsigned char PrepareNavigatorPatrol(W8NavigatorMovementState* movement, float minimum,
+                                         float maximum);
+    unsigned char LinkNavigatorTarget(W8NavigatorMovementState* movement,
+                                      const srVector3T<float>* target, float separation);
     void GetPathSurfaceNormal00433A70(const srVector3T<float>* position, srVector3T<float>* normal);
     float SettleToGround(srVector3T<float>* position, unsigned char* out_hit, char mode,
                          float limit); /* 0x00433820 */
@@ -399,7 +398,7 @@ public:
        world-scale unit lower and keep the settled height on a hit. */
     /* Returns the ground-hit flag in AL; pathing callers test it. */
     bool SnapToGround(srVector3T<float>* position, char mode); /* 0x00431D20 */
-    void QueueOctreeKind130042E810(int id, const srVector3T<float>* position);
+    void QueueOctreeKind13(int id, const srVector3T<float>* position);
     /* Box query over the shared query buffer: `*objects` carries the
        destination buffer in and out (null selects m_aulGDObjs), `excluded`
        is an object id pre-marked in the dedupe set (-1 = none). Returns the
@@ -411,13 +410,13 @@ public:
     /* Refresh the pathing service's debug preview from the world cursor,
        falling back to the camera eye when the cursor is unset. */
     void UpdatePathVisualization(); /* 0x00434170 */
-    void UpdateCameraVisibility0042F7E0();
-    void UpdateVisibility004304A0();
-    unsigned char UpdateWorldTrace00433EB0();
+    void UpdateCameraVisibility();
+    void UpdateVisibility();
+    unsigned char UpdateWorldTrace();
     /* Store `path` with its extension stripped into m_owned_0c0; the sibling
        data files are then derived from the stem. */
     bool SetPathStem(const char* path); /* 0x0042CF90 */
-    BOOLEAN SavePoints00432D60(char* path);
+    BOOLEAN SavePoints(char* path);
     bool LoadPointFiles(const char* level_name);
     bool ReadRegionLinkFile(const char* level_name);
     /* Region containing `point` (1-based index into the volume array), else
@@ -435,31 +434,31 @@ public:
        `rebuild_all` sweeps every cell and discards the saved point list, a
        zero value samples a sparse checkerboard plus the stored points. */
     void BuildRegionLinks(char rebuild_all); /* 0x004314C0 */
-    BOOLEAN SaveRegionLinks004331F0(char* path);
-    unsigned char ValidateRegionMeshLinks00433AB0();
+    BOOLEAN SaveRegionLinks(char* path);
+    unsigned char ValidateRegionMeshLinks();
     /* Collect the live (mesh<<16)|polygon keys whose triangles overlap the
        (x±radius, y-height..y, z±radius) box, sorted and zero-terminated in
        the shared query buffer. */
     unsigned long* CollectPolygonsNearPoint(srVector3T<float>* center, float radius,
                                             float height); /* 0x00438780 */
-    int CountBadRegionMeshLinks00433B90(W8OctSpatialState* spatial);
-    void ToggleUpdateSuspension00434020(W8World* world);
-    void MarkMeshLinksVisible00430A70(unsigned int mesh);
+    int CountBadRegionMeshLinks(W8OctSpatialState* spatial);
+    void ToggleUpdateSuspension(W8World* world);
+    void MarkMeshLinksVisible(unsigned int mesh);
     /* Collect the model instances whose bounds reach within `radius` of
        `point`, through the region cells and volumes the sphere touches. */
     int CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
                                const srVector3T<float>* point, float radius, unsigned int flags,
                                char only_accumulated); /* 0x0042F9A0 */
-    unsigned char CollectVisibleRegions00430D50(srVector3T<float>* location, int* cells,
-                                                float* depth, unsigned char mode);
-    void CollectVisibleCells0042FE90();
+    unsigned char CollectVisibleRegions(srVector3T<float>* location, int* cells, float* depth,
+                                        unsigned char mode);
+    void CollectVisibleCells();
     /* Project every candidate region volume against the frustum planes and
        mark the visible ones in the current region set. */
     void MarkVisibleRegions004301C0(); /* 0x004301C0 */
     /* Build the six frustum planes from the camera basis and far clip. */
     void BuildFrustumPlanes004302E0(); /* 0x004302E0 */
-    short ProjectLinkedRegionsForLocation00431050(srVector3T<float>* location,
-                                                  unsigned short* region_list); /* 0x00431050 */
+    short ProjectLinkedRegionsForLocation(srVector3T<float>* location,
+                                          unsigned short* region_list); /* 0x00431050 */
 
     bool HasLoadError() const
     {
@@ -655,7 +654,7 @@ public:
     /* Tests the collected region polygons' planes against the trace segment;
        a polygon blocks only when the ray pierces at least 5.0f past its plane
        (or starts within 1.0f in front) and the contact lands inside it. */
-    bool TestCollectedPolygons004681E0(W8OctreeTrace* trace);
+    bool TestCollectedPolygons(W8OctreeTrace* trace);
     /* Serializes the finished octree to NewLevel.oct. */
     unsigned char WriteOctFile004683F0(W8OctPreTreeGeometry* geometry, W8GameData* game_data);
     /* Partitions the geometry into submesh records, emits the OctMeshModel
@@ -665,7 +664,7 @@ public:
     unsigned long AllocateSubMesh0046A790(W8OctSubmeshBuild* records);
     unsigned long SplitUVMaps0046A4B0(W8OctSubmeshBuild* record, W8OctPreTreeGeometry* geometry);
     void VerifyPolygonRegions0046ABF0();
-    void VerifyAutoMeshes0046AD10(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
+    void VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
     unsigned char BuildPathLists0046B060(W8GameData* game_data, W8LevelFile* level,
                                          unsigned int min_component_percent);
     char PathNodeObstructed0046B700(const srVector3T<float>* node_position);
@@ -688,7 +687,7 @@ extern OctPreTree* g_oct_pre_tree_659c74;
 extern "C" void NoOct(void); // C-LINKAGE: src/sgp/sgp.c invokes the /NOOCT switch
 extern bool g_octree_disabled_6598a8;
 
-bool __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* movement);
+bool __stdcall IsNavigatorAtTarget(W8NavigatorMovementState* movement);
 
 static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
 

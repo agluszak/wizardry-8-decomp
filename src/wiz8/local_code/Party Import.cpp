@@ -103,7 +103,7 @@ W8Wiz7Character g_imported_characters_0068deb8[6];
    one's tag byte. On success the ending and difficulty nibbles decode from
    the shared tag and the flag bits unpack into g_import_flags_0068de58. */
 // FUNCTION: WIZ8 0x00558D00
-unsigned char LoadWizardry7ImportFile00558D00(char* path)
+unsigned char LoadWizardry7ImportFile(char* path)
 {
     unsigned int bytes_read;
     unsigned char header[0x34c];
@@ -208,12 +208,12 @@ fail:
    Reports 1 when the file does not load or a slot cannot take the character,
    2 when the ending selector holds the value three, 0 otherwise. */
 // FUNCTION: WIZ8 0x00558C40
-unsigned char ImportWizardry7Party00558C40(char* path)
+unsigned char ImportWizardry7Party(char* path)
 {
     W8Character scratch;
     int index;
 
-    if (LoadWizardry7ImportFile00558D00(path) == 0) {
+    if (LoadWizardry7ImportFile(path) == 0) {
         return 1;
     }
     ResetForNewGame();
@@ -221,7 +221,7 @@ unsigned char ImportWizardry7Party00558C40(char* path)
     g_status_685170.skip_loose_character_check_2444 = 1;
     if (g_import_character_count_0068de48 < 7) {
         for (index = 0; index < g_import_character_count_0068de48; ++index) {
-            ImportWizardry7Character005590B0(&scratch, &g_imported_characters_0068deb8[index]);
+            ImportWizardry7Character(&scratch, &g_imported_characters_0068deb8[index]);
             if (AddCharacterToParty(&scratch, -1) == -1) {
                 return 1;
             }
@@ -232,7 +232,7 @@ unsigned char ImportWizardry7Party00558C40(char* path)
 }
 
 // FUNCTION: WIZ8 0x005590B0
-void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* imported)
+void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
 {
     W8Profession profession;
     unsigned int level;
@@ -310,15 +310,15 @@ void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* i
     }
     character->enchantment_top = 0;
     ConvertAttribute(character, imported);
-    GrantStartingSpells005595D0(character, imported);
+    GrantStartingSpells(character, imported);
     for (skill_id = 0; skill_id < 0x29; ++skill_id) {
         character->skills[skill_id].active_00 = 0;
         character->skills[skill_id].points_02 = ConvertSkill(skill_id, character, imported);
     }
-    RefreshCharacterSkillAvailability00553CD0(character);
-    ImportEquipment00559650(character, imported);
-    DeriveCharacterPersonality004EFA30(character);
-    EnsureUniquePartyVoice004EFAD0(character);
+    RefreshCharacterSkillAvailability(character);
+    ImportEquipment(character, imported);
+    DeriveCharacterPersonality(character);
+    EnsureUniquePartyVoice(character);
     CalcCharacterLevelBand(character);
     RecalculateCharacterDerivedStats(character);
     character->stamina = character->uiStaminaMax;
@@ -472,7 +472,7 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
 }
 
 // FUNCTION: WIZ8 0x005595D0
-void GrantStartingSpells005595D0(W8Character* character, const W8Wiz7Character*)
+void GrantStartingSpells(W8Character* character, const W8Wiz7Character*)
 {
     W8LearnedSpellState scratch;
     char count;
@@ -500,11 +500,11 @@ void GrantStartingSpells005595D0(W8Character* character, const W8Wiz7Character*)
         }
         ++i;
     } while (i < 6);
-    BuildLearnedSpellState004F9600(&scratch, character);
+    BuildLearnedSpellState(&scratch, character);
 }
 
 // FUNCTION: WIZ8 0x00559650
-void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* imported)
+void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
 {
     W8ItemInstance item;
     /* The worthiest imported items: band 0 keeps the two most valuable finds

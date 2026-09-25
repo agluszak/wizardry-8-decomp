@@ -185,7 +185,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
             RedrawPartyPortraitOverlay(party_slot, highlighted, overlay_ready,
                                        g_level_block->portrait_refresh_pending[party_slot] == 0);
             gXStatus.monster_manager_entries[party_slot].combat_portrait_dirty = 1;
-            InvalidatePortraitControl0059BBD0(party_slot);
+            InvalidatePortraitControl(party_slot);
             return;
         }
         break;
@@ -286,7 +286,7 @@ void ApplyCurrentCursor(void)
         ResizeMouseCursorSurface(g_main_game_resource_slots[gXStatus.iCurrentCursor].size_x,
                                  g_main_game_resource_slots[gXStatus.iCurrentCursor].size_y);
         SetMouseCursorTexture(g_main_game_resource_slots[gXStatus.iCurrentCursor].object);
-        g_main_game_resource_slots[gXStatus.iCurrentCursor].object->SetFrame00485400(
+        g_main_game_resource_slots[gXStatus.iCurrentCursor].object->SetFrame(
             gXStatus.current_cursor_frame);
         SetMouseCursorHotspot(g_main_game_resource_slots[gXStatus.iCurrentCursor].hotspot_x,
                               g_main_game_resource_slots[gXStatus.iCurrentCursor].hotspot_y);

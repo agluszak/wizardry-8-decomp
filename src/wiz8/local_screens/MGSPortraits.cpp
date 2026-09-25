@@ -369,7 +369,7 @@ void ResetPartyPortraitFx(void)
    badge or the party-member target marker. The slot currently acting is drawn
    by the action panel instead. */
 // FUNCTION: WIZ8 0x0059B720
-void RedrawCombatPortraits0059B720(void)
+void RedrawCombatPortraits(void)
 {
     int portrait_x;
     int badge_x;
@@ -670,7 +670,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
 }
 
 // FUNCTION: WIZ8 0x0059AF40
-void StageMonsterCastIcon0059AF40(unsigned int party_slot, int realm, char alternate, int spell_id)
+void StageMonsterCastIcon(unsigned int party_slot, int realm, char alternate, int spell_id)
 {
     if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
         return;
@@ -1111,7 +1111,7 @@ portrait_fx:
 }
 
 // FUNCTION: WIZ8 0x0059A110
-void ShadeStatusBarGap0059A110(int length, int left, int top)
+void ShadeStatusBarGap(int length, int left, int top)
 {
     if (length != 0) {
         int rows = (g_settings_6850c8.numeric_hit_points != 0 ? 2 : 0) + 3;
@@ -1170,7 +1170,7 @@ void ReleaseConditionButtons(void)
 }
 
 // FUNCTION: WIZ8 0x0059BB40
-void DisablePortraitControls0059BB40(void)
+void DisablePortraitControls(void)
 {
     RegionSetDisable(5);
     W8TextControl** control = g_portrait_controls_0069b920;
@@ -1182,7 +1182,7 @@ void DisablePortraitControls0059BB40(void)
 
 /* Hide the condition-button region set and clear any open condition highlight. */
 // FUNCTION: WIZ8 0x0059C030
-void DisableConditionButtons0059C030(void)
+void DisableConditionButtons(void)
 {
     RegionSetDisable(6);
     g_condition_buttons_panel_0069b944->SetEnabled(false);
@@ -1196,7 +1196,7 @@ void DisableConditionButtons0059C030(void)
 
 /* Show the condition-button region set for a non-normal layout. */
 // FUNCTION: WIZ8 0x0059BFC0
-void EnableConditionButtons0059BFC0(void)
+void EnableConditionButtons(void)
 {
     W8ConditionButton** control;
 
@@ -1215,7 +1215,7 @@ void EnableConditionButtons0059BFC0(void)
 }
 
 // FUNCTION: WIZ8 0x0059BB70
-void EnablePortraitAdvanceRegions0059BB70(void)
+void EnablePortraitAdvanceRegions(void)
 {
     RegionSetEnable(5);
     unsigned int state_offset = 0;
@@ -1233,7 +1233,7 @@ void EnablePortraitAdvanceRegions0059BB70(void)
 }
 
 // FUNCTION: WIZ8 0x0059BBD0
-void InvalidatePortraitControl0059BBD0(unsigned int party_slot)
+void InvalidatePortraitControl(unsigned int party_slot)
 {
     if (party_slot < 8 && g_status_685170.buffers.XChar[party_slot].fOccupied) {
         g_portrait_controls_0069b920[party_slot]->Invalidate(0);
@@ -1250,7 +1250,7 @@ void RedrawPanel69B940(void)
    may advance, no NPC dialogue is up and the slot row still allows it;
    activating one invalidates the panel, and the panel redraws afterward. */
 // FUNCTION: WIZ8 0x0059BC10
-void UpdatePortraitAdvanceButtons0059BC10(void)
+void UpdatePortraitAdvanceButtons(void)
 {
     int slot;
     W8TextControl** control;
@@ -1502,7 +1502,7 @@ unsigned char PortraitControlRegionEvent(const InputAtom* event, W8Region* regio
    otherwise the icon tracks the slot's highest condition or top enchantment
    and the button stays live, then the panel redraws. */
 // FUNCTION: WIZ8 0x0059C080
-void UpdateConditionButtons0059C080(void)
+void UpdateConditionButtons(void)
 {
     int image;
     int slot;

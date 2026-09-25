@@ -68,9 +68,9 @@ int g_camp_skill_hover_row_0069c524;
 unsigned int g_camp_skill_regions_0069c528;
 
 static unsigned char CampStatsMouseWheel(const InputAtom* event, W8Region*);
-static void DrawCampEffectList005C53C0(void);
+static void DrawCampEffectList(void);
 struct W8CampEffectEntry;
-static void DrawCampEffectEntry005C54A0(W8CampEffectEntry* entry, int* line_out);
+static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out);
 
 /* The five skill-category blocks shared by the camp skills page: (x, y)
    origins, the row count that bounds each region, and the catalog frame each
@@ -222,7 +222,7 @@ void W8CampStatsControls::OnPrimary(W8TextControl* control)
             static_cast<unsigned char>(m_buttons[2]->m_stateFlags & g_W8TextControlMask005ED570) !=
             0;
     }
-    FilterCampEffectList005C5240();
+    FilterCampEffectList();
     g_camp_screen_0069c0f4->redraw_flags |= 0x20000;
 }
 
@@ -230,7 +230,7 @@ void W8CampStatsControls::OnPrimary(W8TextControl* control)
    delta bars, the profession's bonus skill, the trait grid, then the effect
    list region when its redraw flag is up. */
 // FUNCTION: WIZ8 0x005c48b0
-void DrawCampStatsPage005C48B0(void)
+void DrawCampStatsPage(void)
 {
     SetFont(g_font_683660);
     if (g_camp_screen_0069c0f4->redraw_flags == 0xfffffff) {
@@ -311,7 +311,7 @@ void DrawCampStatsPage005C48B0(void)
         int trait_count = 0;
         char traits[0x20];
         for (index = 0; index < 0x20; ++index) {
-            if (CharacterHasTrait00547940(g_review_character_0069c0f8, index)) {
+            if (CharacterHasTrait(g_review_character_0069c0f8, index)) {
                 traits[index] = 1;
                 ++trait_count;
             } else {
@@ -338,7 +338,7 @@ void DrawCampStatsPage005C48B0(void)
     if ((g_camp_screen_0069c0f4->redraw_flags & 0x20000) != 0) {
         InvalidateRegion(0x15d, 0xbe, 0x260, 0x1b5, 0);
         BlitCatalogSurfaceRectTo16BPP(-0xe, 0x15d, 0xbe, 0x260, 0x1b5, 0x1b6, 0, 0);
-        DrawCampEffectList005C53C0();
+        DrawCampEffectList();
     }
     g_camp_screen_0069c0f4->stats_range->m_range->Redraw();
 }
@@ -348,7 +348,7 @@ void DrawCampStatsPage005C48B0(void)
    counts only on slots that actually take armor (not the two weapon/shield
    rows, 0 and 4/5 and 10/11) and never on equip-class 5 items. */
 // FUNCTION: WIZ8 0x005c4d40
-unsigned int CountEquipItemBenefits005C4D40(int slot)
+unsigned int CountEquipItemBenefits(int slot)
 {
     W8ItemDatabaseRecord* record =
         &g_item_records[g_review_character_0069c0f8->EquippedItem[slot].iItemNo];
@@ -393,7 +393,7 @@ unsigned int CountEquipItemBenefits005C4D40(int slot)
 }
 
 // FUNCTION: WIZ8 0x005c4e20
-unsigned int CountEquipItemPenalties005C4E20(int slot)
+unsigned int CountEquipItemPenalties(int slot)
 {
     W8ItemDatabaseRecord* record =
         &g_item_records[g_review_character_0069c0f8->EquippedItem[slot].iItemNo];
@@ -436,7 +436,7 @@ unsigned int CountEquipItemPenalties005C4E20(int slot)
    Alternate-hand slots 8 and 9 are skipped, and unidentified items contribute
    nothing. */
 // FUNCTION: WIZ8 0x005c4ee0
-void RebuildCampEffectList005C4EE0(void)
+void RebuildCampEffectList(void)
 {
     W8CampScreenState0069C0F4* screen = g_camp_screen_0069c0f4;
     if (screen->effect_list != 0) {
@@ -505,8 +505,8 @@ void RebuildCampEffectList005C4EE0(void)
     for (int slot = 0; slot < 12; ++slot) {
         W8ItemInstance* item = &g_review_character_0069c0f8->EquippedItem[slot];
         if (slot != 8 && slot != 9 && item->identified != 0 && item->iItemNo != -1) {
-            int beneficial = CountEquipItemBenefits005C4D40(slot);
-            int detrimental = CountEquipItemPenalties005C4E20(slot);
+            int beneficial = CountEquipItemBenefits(slot);
+            int detrimental = CountEquipItemPenalties(slot);
             if (beneficial != 0 || detrimental != 0) {
                 W8CampEffectEntry entry;
                 memset(&entry, 0, sizeof(entry));
@@ -528,14 +528,14 @@ void RebuildCampEffectList005C4EE0(void)
             }
         }
     }
-    FilterCampEffectList005C5240();
+    FilterCampEffectList();
 }
 
 /* Remarks each list entry against the current tab and beneficial/detrimental
    filter, tracks the first/last visible rows, and reprograms the scrollbar to
    the visible line total. */
 // FUNCTION: WIZ8 0x005c5240
-void FilterCampEffectList005C5240(void)
+void FilterCampEffectList(void)
 {
     W8CampScreenState0069C0F4* screen = g_camp_screen_0069c0f4;
     screen->effect_visible_lines = 0;
@@ -582,7 +582,7 @@ void FilterCampEffectList005C5240(void)
 /* Draws the visible slice of the effect list into the page's clipping
    window, skipping entries that sit entirely above the scrolled view. */
 // FUNCTION: WIZ8 0x005c53c0
-static void DrawCampEffectList005C53C0(void)
+static void DrawCampEffectList(void)
 {
     W8CampScreenState0069C0F4* screen = g_camp_screen_0069c0f4;
     SetFontDestBuffer(0xfffffff2, 0, 0xbe, 0x280, 0x1ac, 0);
@@ -600,7 +600,7 @@ static void DrawCampEffectList005C53C0(void)
             if (line + entry.lines < 0) {
                 line += entry.lines + 1;
             } else {
-                DrawCampEffectEntry005C54A0(&entry, &line);
+                DrawCampEffectEntry(&entry, &line);
             }
         }
         count = StackSize(screen->effect_list);
@@ -612,7 +612,7 @@ static void DrawCampEffectList005C53C0(void)
    y 0xbf) and advances the counter past its height plus one row of spacing.
    Kind 0 is a condition, kind 1 an enchantment, kind 2 an equipped item. */
 // FUNCTION: WIZ8 0x005c54a0
-static void DrawCampEffectEntry005C54A0(W8CampEffectEntry* entry, int* line_out)
+static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
 {
     int index;
     int line = *line_out;
@@ -770,7 +770,7 @@ static void DrawCampEffectEntry005C54A0(W8CampEffectEntry* entry, int* line_out)
 // FUNCTION: WIZ8 0x005c5c60
 static unsigned char CampStatsMouseWheel(const InputAtom* event, W8Region*)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     if (event->usEvent != 0x800) {
         return 0;
     }
@@ -790,13 +790,13 @@ static unsigned char CampStatsMouseWheel(const InputAtom* event, W8Region*)
    them at the list handler. Category 4 is the overflow block under the right
    column. */
 // FUNCTION: WIZ8 0x005c5cd0
-void CreateCampSkillRegions005C5CD0(void)
+void CreateCampSkillRegions(void)
 {
     if (g_camp_skill_regions_0069c528 == 0) {
         g_camp_skill_regions_0069c528 = CreateRegionSet();
         for (unsigned int category = 0; category < 5; ++category) {
             unsigned int region = AddRegionToSet(g_camp_skill_regions_0069c528);
-            SetRegionCallback(region, CampSkillListRegionHandler005C6230,
+            SetRegionCallback(region, CampSkillListRegionHandler,
                               static_cast<unsigned short>(category));
             SetRegionHelp(region, 1, -1);
             unsigned short x =
@@ -816,7 +816,7 @@ void CreateCampSkillRegions005C5CD0(void)
 }
 
 // FUNCTION: WIZ8 0x005c5d70
-void DisableCampSkillRegions005C5D70(void)
+void DisableCampSkillRegions(void)
 {
     RegionSetDisable(g_camp_skill_regions_0069c528);
 }
@@ -825,7 +825,7 @@ void DisableCampSkillRegions005C5D70(void)
    headers, then every known skill's name and level with the base/current
    delta bar. */
 // FUNCTION: WIZ8 0x005c5d80
-void DrawCampSkillsPage005C5D80(void)
+void DrawCampSkillsPage(void)
 {
     SetFont(g_font_683660);
     if (g_camp_screen_0069c0f4->redraw_flags == 0xfffffff) {
@@ -962,9 +962,9 @@ void DrawCampSkillsPage005C5D80(void)
    dialog's second argument is raised when the character's level is the best
    among the occupied party slots. */
 // FUNCTION: WIZ8 0x005c6230
-unsigned char CampSkillListRegionHandler005C6230(const InputAtom* event, W8Region* region)
+unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* region)
 {
-    int row = (GetAtomCursorY004285A0(event) - region->y1 - 1) / 0xe;
+    int row = (GetAtomCursorY(event) - region->y1 - 1) / 0xe;
     int skill = -1;
     int occurrence = 0;
     for (int index = 0; index < 0x29; ++index) {
@@ -978,7 +978,7 @@ unsigned char CampSkillListRegionHandler005C6230(const InputAtom* event, W8Regio
             ++occurrence;
         }
     }
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     if (event->usEvent == RIGHT_BUTTON_DOWN) {
         region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
     } else if (event->usEvent != RIGHT_BUTTON_UP) {
@@ -1107,7 +1107,7 @@ void W8CharacterPage005EF57C::Deactivate()
 void W8CharacterPage005EF57C::Accept()
 {
     if (m_mode_068 == 0) {
-        InvalidateAndRecalculateCharacterClassData00558610(m_character_060);
+        InvalidateAndRecalculateCharacterClassData(m_character_060);
     } else {
         W8Character* original = m_screen_05c->GetOriginalCharacter();
         m_character_060->personality_0081 = original->personality_0081;

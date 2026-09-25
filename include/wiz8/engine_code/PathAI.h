@@ -56,49 +56,49 @@ static_assert(sizeof(W8PathAI) == 0x40, "W8PathAI_size_must_be_0x40");
 
 /* Tagged-record dispatchers: the body switches on kind_00 and hands the
    record to the path or missile implementation. */
-unsigned char PathAIUpdate004A9260(W8AIRecord* record, signed char direction);
-void PathAIResetRecord004A9720(W8PathAI* path);
-unsigned char PathAIRecordFlag004A9740(const W8AIRecord* record);
-void PathAIApplyToRep004A91F0(W8AIRecord* record, W8AnimRepBase005EC1D8* representation);
+unsigned char PathAIUpdate(W8AIRecord* record, signed char direction);
+void PathAIResetRecord(W8PathAI* path);
+unsigned char PathAIRecordFlag(const W8AIRecord* record);
+void PathAIApplyToRep(W8AIRecord* record, W8AnimRepBase005EC1D8* representation);
 /* Places one srNode (model instance, light, camera, …) through a path. The
    body only calls srNode child/location/rotation/scale APIs; retail callers
    pass those node kinds interchangeably. */
 void PathAIApply004AA520(W8PathAI* path, srNode* node); /* 0x004AA520 */
-float PathAIGetScale004AAA50(W8PathAI* path);           /* 0x004AAA50 */
-void DestroyPathAI004A9810(W8PathAI* path);
-void PathAIClearOwned004A9BB0(W8PathAI* path);
-void PathAISetAnimated004A9B90(W8PathAI* path, unsigned char value);
-void PathAIEnableTimedMode004A9BA0(W8PathAI* path);
-void PathAIResetTick004A9C20(W8PathAI* path);
-float PathAIGetValue004A9E70(W8PathAI* path);
-unsigned char PathAINextPoint004A9E90(W8PathAI* path, srVector3T<float>* point);
-bool PathAIIsComplete004A9EF0(W8PathAI* path);
-unsigned int PathAIEntryCount004A9F20(W8PathAI* path);
-void PathAISetValue004A9F60(W8PathAI* path, float value);
-void PathAIAdvanceNormalized004AA160(W8PathAI* path, float amount);
-int PathAITick004AA1F0(W8PathAI* path, signed char direction);
-void PathAIPosition004AA370(W8PathAI* path, srVector3T<float>* value);
-void PathAISetLooping004AA9D0(W8PathAI* path, unsigned char value);
-void PathAISetScale004AA9C0(W8PathAI* path, float value);
-void PathAISetDiscreteMode004AAA10(W8PathAI* path, unsigned char value);
-bool LoadPathAI004A92A0(W8PathAI** path, int handle);
-unsigned char PathAIAddPoint004A9C30(W8PathAI* path, const srVector3T<float>* point);
+float PathAIGetScale(W8PathAI* path);                   /* 0x004AAA50 */
+void DestroyPathAI(W8PathAI* path);
+void PathAIClearOwned(W8PathAI* path);
+void PathAISetAnimated(W8PathAI* path, unsigned char value);
+void PathAIEnableTimedMode(W8PathAI* path);
+void PathAIResetTick(W8PathAI* path);
+float PathAIGetValue(W8PathAI* path);
+unsigned char PathAINextPoint(W8PathAI* path, srVector3T<float>* point);
+bool PathAIIsComplete(W8PathAI* path);
+unsigned int PathAIEntryCount(W8PathAI* path);
+void PathAISetValue(W8PathAI* path, float value);
+void PathAIAdvanceNormalized(W8PathAI* path, float amount);
+int PathAITick(W8PathAI* path, signed char direction);
+void PathAIPosition(W8PathAI* path, srVector3T<float>* value);
+void PathAISetLooping(W8PathAI* path, unsigned char value);
+void PathAISetScale(W8PathAI* path, float value);
+void PathAISetDiscreteMode(W8PathAI* path, unsigned char value);
+bool LoadPathAI(W8PathAI** path, int handle);
+unsigned char PathAIAddPoint(W8PathAI* path, const srVector3T<float>* point);
 
 /* Build a zeroed 0x40-byte path and its position-pointer vector. Every caller
    pushes an argument the factory never reads. */
-W8PathAI* CreateRecord004A9750(int unused);
+W8PathAI* CreateRecord(int unused);
 
 /* The two operations stLight applies to the path it owns at +0x244. The
-   release is DestroyPathAI004A9810's body behind an extra `kind_00 == 0`
+   release is DestroyPathAI's body behind an extra `kind_00 == 0`
    guard; the clone allocates a fresh 0x40-byte record and deep-copies the
    node vector and both trailing arrays. */
-void DestroyOwnedPathAI004A9110(W8PathAI* path);
+void DestroyOwnedPathAI(W8PathAI* path);
 
 /* The dispatcher every AI-record copy goes through; the kind_00 tag, not the
    declaration, decides which concrete record it clones. */
-W8AIRecord* CloneAIRecord004A91C0(const W8AIRecord* record);
-W8PathAI* ClonePathAI004A98C0(const W8PathAI* path);
+W8AIRecord* CloneAIRecord(const W8AIRecord* record);
+W8PathAI* ClonePathAI(const W8PathAI* path);
 
-void PathAIAdvanceByDistance004A9FE0(W8PathAI* path, float value);
+void PathAIAdvanceByDistance(W8PathAI* path, float value);
 
 #endif

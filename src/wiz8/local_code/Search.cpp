@@ -124,7 +124,7 @@ W8SearchableView* CollectSearchablesInView(void)
    first slot, which is what distinguishes the item entries from the trigger
    entries registered by the sibling below. */
 // FUNCTION: WIZ8 0x00516e20
-void RegisterSearchableWorldItem00516E20(W8WorldItem* item)
+void RegisterSearchableWorldItem(W8WorldItem* item)
 {
     W8Searchable* searchable = new W8Searchable;
     if (searchable == 0) {
@@ -146,7 +146,7 @@ void RegisterSearchableTrigger00516F00(Trigger* trigger)
 }
 
 // FUNCTION: WIZ8 0x00516fe0
-void UnregisterSearchableTrigger00516FE0(Trigger* trigger)
+void UnregisterSearchableTrigger(Trigger* trigger)
 {
     for (int index = 0; index < g_searchables_00689fa8.count; ++index) {
         W8Searchable* searchable = *g_searchables_00689fa8.GetAt(index);
@@ -200,7 +200,7 @@ void W8Searchable::GetPosition(srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x005171b0
-void ClearSearchables005171B0()
+void ClearSearchables()
 {
     g_searchables_00689fa8.Clear();
 }
@@ -280,7 +280,7 @@ void RunSearchPulse(void)
                         }
                         srVector3T<float> position;
                         searchable->GetPosition(&position);
-                        ResetInactiveLevelDataVectors0041EF50();
+                        ResetInactiveLevelDataVectors();
                         PointCameraAtTarget(&position, 1, 1);
                         searchable->Reveal();
                     }
@@ -325,8 +325,7 @@ int W8Searchable::PickBestSearcher()
             character->highest_condition >= W8_CONDITION_TURNCOAT) {
             continue;
         }
-        if (CharacterHasTrait00547940(character, W8_TRAIT_SEARCH) ||
-            g_status_685170.search_mode != 0) {
+        if (CharacterHasTrait(character, W8_TRAIT_SEARCH) || g_status_685170.search_mode != 0) {
             unsigned int level = character->skills[W8_SKILL_SCOUTING].level;
             unsigned int base = level >> 1;
             if ((g_level_data_00652dac->flags & 0x100) != 0) {

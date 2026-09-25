@@ -21,7 +21,7 @@
    Trynnie2.cpp and Trynnie1.cpp intervals (0x004DA110..0x004DA2E0); its
    string block (NP_SlipItem, TMakeTreasure*, TDoor1, TdoorOpen at
    0x00613118..0x00613150) is emitted between the same TUs' literals. The
-   level-0x13 block in InitializeLevelMasterFunctions004D6C50 registers the
+   level-0x13 block in InitializeLevelMasterFunctions registers the
    AirBox and DoorDone triggers. The original file name is not anchored by an
    assertion path string. */
 
@@ -31,7 +31,7 @@
    already set the treasure is deferred through the TMakeTreasure/
    TMakeTreasureNumber location vars for DoorDone to deliver. */
 // FUNCTION: WIZ8 0x004DA110
-bool RapaxUpperFloorAirBox004DA110(Trigger* pTrigger)
+bool RapaxUpperFloorAirBox(Trigger* pTrigger)
 {
     srVector3T<float> entity_position;
     srVector3T<float> position;
@@ -77,14 +77,14 @@ bool RapaxUpperFloorAirBox004DA110(Trigger* pTrigger)
             if (var_id == -1) {
                 CreateLocationVar("TMakeTreasure", 1);
             } else {
-                SetTriggerVariableByName00444030("TMakeTreasure", 1);
+                SetTriggerVariableByName("TMakeTreasure", 1);
             }
             var_id = GetLocationVarIDByName("TMakeTreasureNumber");
             if (var_id == -1) {
                 CreateLocationVar("TMakeTreasureNumber", item_id);
                 return true;
             }
-            SetTriggerVariableByName00444030("TMakeTreasureNumber", item_id);
+            SetTriggerVariableByName("TMakeTreasureNumber", item_id);
             return true;
         }
         ShowString(gppStringList[0x25a8 / 4]);
@@ -97,7 +97,7 @@ bool RapaxUpperFloorAirBox004DA110(Trigger* pTrigger)
    deliver the stashed TMakeTreasureNumber item at NP_SlipItem and run TDoor1.
    Returns 0 once the treasure is delivered. */
 // FUNCTION: WIZ8 0x004DA2E0
-bool RapaxUpperFloorDoorDone004DA2E0(Trigger* pTrigger)
+bool RapaxUpperFloorDoorDone(Trigger* pTrigger)
 {
     srVector3T<float> entity_position;
     srVector3T<float> position;

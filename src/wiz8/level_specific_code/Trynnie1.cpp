@@ -33,7 +33,7 @@
 /* Item ids 0x1b3 and 0x1c3 route the use-item action down the origin/equip
    path instead of activating, the same as a non-usable equip class. */
 // FUNCTION: WIZ8 0x004DA0F0
-bool IsSpecialItemId004DA0F0(W8ItemInstance* item)
+bool IsSpecialItemId(W8ItemInstance* item)
 {
     return item->iItemNo == 0x1b3 || item->iItemNo == 0x1c3;
 }
@@ -42,7 +42,7 @@ bool IsSpecialItemId004DA0F0(W8ItemInstance* item)
    Trynnie1Killed location variable does not exist yet, swap the encounter
    tables and spawn the dead shaman (0xcd) at VOC_SHAMAN_DYING. */
 // FUNCTION: WIZ8 0x004DA670
-void EnsureTrynnie1KilledVar004DA670(void)
+void EnsureTrynnie1KilledVar(void)
 {
     srVector3T<float> vPos;
     srVector3T<float> vPos2;
@@ -50,7 +50,7 @@ void EnsureTrynnie1KilledVar004DA670(void)
 
     if (GetFact(0x229) == 1) {
         if (GetLocationVarIDByName("Trynnie1Killed") == -1) {
-            KillTrynnieGroups004DA850();
+            KillTrynnieGroups();
             if (FindEntityByName("VOC_SHAMAN_DYING", &vPos, 0, 0) == 0) {
                 srAssertFail("WorldGetNamedPosition(\"VOC_SHAMAN_DYING\", vPos)", TRYNNIE1_CPP,
                              0x12, 0);
@@ -70,7 +70,7 @@ void EnsureTrynnie1KilledVar004DA670(void)
    member with condition 9 (25%), restore the party's spell points (25%),
    heal everyone (25%) or restore everyone's stamina (25%). */
 // FUNCTION: WIZ8 0x004DA740
-bool Trynnie1FountRandomFX004DA740(Trigger* pTrigger)
+bool Trynnie1FountRandomFX(Trigger* pTrigger)
 {
     unsigned int roll;
     int slot;
@@ -110,7 +110,7 @@ bool Trynnie1FountRandomFX004DA740(Trigger* pTrigger)
 /* Replace every live faction-0xd (Trynnie) group with a dead-Trynnie (0x1be)
    group, then point each 'Trynnies' generator at the 'Dead Trynnies' table. */
 // FUNCTION: WIZ8 0x004DA850
-void KillTrynnieGroups004DA850(void)
+void KillTrynnieGroups(void)
 {
     W8MonsterGroup* group;
     W8MonsterRecord* record;
@@ -123,7 +123,7 @@ void KillTrynnieGroups004DA850(void)
         group = GetMonsterGroupByListIndex(index);
         if (group != 0 && group->members_active != 0 &&
             (record = MonsterGroupGetRecord(group), record->faction_id_25f == 0xd) &&
-            ReplaceMonsterGroupSpecies00511A40(group, 0x1be) != 0) {
+            ReplaceMonsterGroupSpecies(group, 0x1be) != 0) {
             RemoveAllGroupMembers(group);
         }
     }

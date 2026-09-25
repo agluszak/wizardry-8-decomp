@@ -41,7 +41,7 @@ W8Item::~W8Item()
 /* Detach the item's mesh from the world graph. The world parameter is asserted
    even though the body needs no field from it. */
 // FUNCTION: WIZ8 0x0049fa30
-void W8Item::DetachMesh0049FA30(W8World* world)
+void W8Item::DetachMesh(W8World* world)
 {
     srNode* mesh;
 
@@ -59,7 +59,7 @@ void W8Item::DetachMesh0049FA30(W8World* world)
 /* Copy the representation's float transform onto its SurRender node. The
    location is widened because the exported node setter takes doubles. */
 // FUNCTION: WIZ8 0x0049faa0
-void W8Item::ApplyRepTransform0049FAA0()
+void W8Item::ApplyRepTransform()
 {
     srVector3T<float> location;
     srVector3T<double> widened;
@@ -74,12 +74,12 @@ void W8Item::ApplyRepTransform0049FAA0()
     m_pRep->GetLocation004B8890(&location);
     widened.SetFromFloat(&location);
     mesh->setLocation(widened);
-    m_pRep->GetRotation004B88F0(&rotation);
+    m_pRep->GetRotation(&rotation);
     mesh->setRotation(rotation);
 }
 
 // FUNCTION: WIZ8 0x0049F900
-void W8Item::AttachMesh0049F900(W8World* world)
+void W8Item::AttachMesh(W8World* world)
 {
     srNode* mesh;
     srNode* child;
@@ -102,7 +102,7 @@ void W8Item::AttachMesh0049F900(W8World* world)
     }
     mesh->setParent(world->dynamic_scene, 0);
     m_pRep->GetLocation004B8890(&location);
-    m_pRep->GetRotation004B88F0(&rotation);
+    m_pRep->GetRotation(&rotation);
     child = mesh->firstChild();
     if (child == 0) {
         widened.SetFromFloat(&location);
@@ -184,8 +184,8 @@ bool W8ItemRep::ReadFromFile(W8ReadLevelInfo* info, W8Item* item, bool anonymous
     }
 
     info->bitmap_folder = "Data\\Items3D\\Bitmaps";
-    bool success = ReadSingleLevelMesh00485B20(info, &mesh, 0, 0,
-                                               anonymous_mesh ? 0 : info->mesh_filename, 1) != 0;
+    bool success =
+        ReadSingleLevelMesh(info, &mesh, 0, 0, anonymous_mesh ? 0 : info->mesh_filename, 1) != 0;
     if (!success || mesh == 0) {
         srAssertFail("fSuccess && psrMesh", ITEM_CPP, 0x8c, 0);
     }
@@ -273,7 +273,7 @@ bool ReadItemFromFile(W8ReadLevelInfo* info, W8Item** output, bool anonymous_mes
 }
 
 // FUNCTION: WIZ8 0x0049F730
-void W8Item::UpdateAnimation0049F730()
+void W8Item::UpdateAnimation()
 {
     if (m_pRep == 0) {
         srAssertFail("m_pRep", ITEM_CPP, 0x1ca, 0);
@@ -284,7 +284,7 @@ void W8Item::UpdateAnimation0049F730()
     }
     if ((rep->flags & 2) != 0 && g_monster_combat_timer_enabled_006f0531 == 0) {
         srMatrix3T<float> rotation;
-        m_pRep->GetRotation004B88F0(&rotation);
+        m_pRep->GetRotation(&rotation);
         double cosine = cos(-0.1963495375);
         double sine = sin(-0.1963495375);
         srVector3T<float> first;
@@ -421,7 +421,7 @@ void W8Item::SetHighlight(bool enabled)
 // FUNCTION: WIZ8 0x0049FF40
 bool W8Item::IsSelected()
 {
-    srModelInstance* selected = GetPickedModelInstance00427810();
+    srModelInstance* selected = GetPickedModelInstance();
     srVector3T<float> location;
     /* The selection-point helper is inlined here even though its result is
        not used by the final mesh-identity test. */
@@ -457,7 +457,7 @@ void W8Item::LightRadarBlip()
    1 and 4 propagate; a finished trigger, a missing trigger or a missing item
    collapse to 1/0. */
 // FUNCTION: WIZ8 0x004A0070
-unsigned char RunItemTrigger004A0070(W8Item* item)
+unsigned char RunItemTrigger(W8Item* item)
 {
     Trigger* trigger;
 

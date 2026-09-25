@@ -56,7 +56,7 @@ public:
     void UpdateButtons();                                      /* 0x005AFD10 */
     virtual void OnPrimary(W8TextControl* control) override;   /* 0x005AFC50 */
     virtual void OnSecondary(W8TextControl* control) override; /* 0x005AFCB0 */
-    void SetHelpActive005AFAE0(bool active);                   /* 0x005AFAE0 */
+    void SetHelpActive(bool active);                           /* 0x005AFAE0 */
 
     W8CharacterPageEntryListener* m_listener_004;
     W8TextControl* m_increment_008;
@@ -384,7 +384,7 @@ extern unsigned short g_personality_message_ids_61e674[10];
 /* Page and per-row region sets. */
 extern unsigned int g_character_stats_region_set_0069c550;
 
-/* Skill-availability bookkeeping raised by RefreshCharacterSkillAvailability00553CD0 while the character
+/* Skill-availability bookkeeping raised by RefreshCharacterSkillAvailability while the character
    screen is open: adjust the named page-2 entry and refresh that page. */
 void ResetCharacterScreenSkill(int skill_id);
 void RefundCharacterScreenSkill(int skill_id);

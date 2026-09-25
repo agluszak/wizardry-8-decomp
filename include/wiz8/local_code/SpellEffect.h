@@ -181,11 +181,11 @@ extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 W8SpellEffectEntry* FindMonsterControlSpellEffect(void);
 void AddSpellEffect(W8SpellEffectEntry* effect); /* 0x005008A0 */
 /* Advance every queued spell effect one frame. */
-void UpdateSpellEffects00500930(void);
+void UpdateSpellEffects(void);
 /* Fold one missile's accumulated damage and reports into the queued effect
    that owns it. */
-void AbsorbMissileDamage00500460(W8Missile* missile);
-void ReportSpellResult005005C0(W8SpellEffectEntry* effect);
+void AbsorbMissileDamage(W8Missile* missile);
+void ReportSpellResult(W8SpellEffectEntry* effect);
 void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, const W8CombatSlot* target);
 
 #endif

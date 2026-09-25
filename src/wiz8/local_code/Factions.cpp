@@ -350,7 +350,7 @@ void AdjustFactionDisposition(signed char faction, char delta)
 /* Write both faction tables into the open FATA chunk: the 21x21 relation
    matrix, then the 21 runtime disposition records. */
 // FUNCTION: WIZ8 0x00536030
-void SaveFactionState00536030(int file)
+void SaveFactionState(int file)
 {
     unsigned int written;
 
@@ -361,7 +361,7 @@ void SaveFactionState00536030(int file)
 /* Read the relation matrix and runtime disposition records back from the open
    FATA chunk, then re-arm the brotherhood's fixed score. */
 // FUNCTION: WIZ8 0x00536070
-void LoadFactionState00536070(int file)
+void LoadFactionState(int file)
 {
     unsigned int transferred;
 

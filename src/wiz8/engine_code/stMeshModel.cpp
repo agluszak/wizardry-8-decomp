@@ -36,7 +36,7 @@ W8GrowableVector<stMeshModel*> g_mesh_models;
 int g_decompressed_mesh_bytes;
 
 /* Active-polygon scratch for the optional software backface pass in
-   RenderTriMeshWithEquations00470380. Layout matches srHeapArray<ulong>. */
+   RenderTriMeshWithEquations. Layout matches srHeapArray<ulong>. */
 // GLOBAL: WIZ8 0x00659ce0
 srHeapArray<unsigned long> g_software_cull_active_polygons;
 
@@ -108,7 +108,7 @@ stMeshModel::~stMeshModel()
     }
     FreeFrameStorage();
     while (skin_table_names.count != 0) {
-        RemoveSkinTable00473830(0);
+        RemoveSkinTable(0);
     }
     if ((flags_3a0 & 4) != 0) {
         for (int index = 0; index < g_mesh_models.count; ++index) {
@@ -147,7 +147,7 @@ srClass* stMeshModel::vInstance()
 int stMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
 {
     if ((control_state_390 & 1) != 0) {
-        CalculateLinkedBounds00471E10();
+        CalculateLinkedBounds();
     }
     center = bounds_center_218;
     radius = bounds_radius_224;
@@ -158,7 +158,7 @@ int stMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
 int stMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& maximum)
 {
     if ((control_state_390 & 1) != 0) {
-        CalculateLinkedBounds00471E10();
+        CalculateLinkedBounds();
     }
     minimum = bounds_minimum_200;
     maximum = bounds_maximum_20c;
@@ -171,7 +171,7 @@ int stMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& m
    flags_3a0 bit 2 is clear answer from the base-class bounding box; the rest
    decompress each frame's vertex table. */
 // FUNCTION: WIZ8 0x00471E10
-void stMeshModel::CalculateLinkedBounds00471E10()
+void stMeshModel::CalculateLinkedBounds()
 {
     bounds_minimum_200.SetZero();
     bounds_maximum_20c.SetZero();
@@ -195,7 +195,7 @@ void stMeshModel::CalculateLinkedBounds00471E10()
             if ((model->flags_3a0 & 4) == 0) {
                 model->srMeshModel::getBoundingBox(frame_minimum, frame_maximum);
             } else {
-                model->GetFrameBounds00473190(frame, &frame_minimum, &frame_maximum);
+                model->GetFrameBounds(frame, &frame_minimum, &frame_maximum);
             }
             if (frame_minimum.x < minimum.x) {
                 minimum.x = frame_minimum.x;
@@ -242,8 +242,7 @@ void stMeshModel::CalculateLinkedBounds00471E10()
    not resident it is decompressed into a scratch array that is released
    afterward; empty tables produce the zero vector on both outputs. */
 // FUNCTION: WIZ8 0x00473190
-void stMeshModel::GetFrameBounds00473190(int frame, srVector3T<float>* minimum,
-                                         srVector3T<float>* maximum)
+void stMeshModel::GetFrameBounds(int frame, srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
     minimum->x = 0;
     minimum->y = 0;
@@ -301,13 +300,13 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                      ambient_color_3a4.y == g_float_005ebb34 &&
                      ambient_color_3a4.z == g_float_005ebb34) ||
                     vertex_light_table_3b0 == 1) {
-                    CopyDwordBuffer00470180(dig, lights, vertex_location_count_22c * 3);
+                    CopyDwordBuffer(dig, lights, vertex_location_count_22c * 3);
                     if ((g_environment_offset_00659cd0.x != g_float_005ebb34 ||
                          g_environment_offset_00659cd0.y != g_float_005ebb34 ||
                          g_environment_offset_00659cd0.z != g_float_005ebb34) &&
                         vertex_light_table_3b0 != 1 &&
                         (count = vertex_location_count_22c, count != 0) &&
-                        IsZeroVector0046FFA0(&g_environment_offset_00659cd0) == 0) {
+                        IsZeroVector(&g_environment_offset_00659cd0) == 0) {
                         srVectorProcessor::add(dig, g_environment_offset_00659cd0, dig,
                                                static_cast<SRDWORD>(count));
                     }
@@ -336,7 +335,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                         srVectorProcessor::mul(dig, dig, sunlight,
                                                static_cast<SRDWORD>(vertex_location_count_22c));
                     }
-                    AddFloatBuffer00474730(
+                    AddFloatBuffer(
                         reinterpret_cast<float*>(dig),    // reinterpret-ok: packed DIG as float*
                         reinterpret_cast<float*>(lights), // reinterpret-ok: packed lights as float*
                         vertex_location_count_22c * 3);
@@ -344,7 +343,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                          g_environment_offset_00659cd0.y != g_float_005ebb34 ||
                          g_environment_offset_00659cd0.z != g_float_005ebb34) &&
                         (count = vertex_location_count_22c, count != 0) &&
-                        IsZeroVector0046FFA0(&g_environment_offset_00659cd0) == 0) {
+                        IsZeroVector(&g_environment_offset_00659cd0) == 0) {
                         srVectorProcessor::add(dig, g_environment_offset_00659cd0, dig,
                                                static_cast<SRDWORD>(count));
                     }
@@ -397,7 +396,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                         scaled.y = material->parms.ambient.y;
                         scaled.z = material->parms.ambient.z;
                         if (run != 0) {
-                            if (IsZeroVector0046FFA0(&scaled) == 0) {
+                            if (IsZeroVector(&scaled) == 0) {
                                 srVectorProcessor::mul(dig + index, scaled, dig + index,
                                                        static_cast<SRDWORD>(run));
                             } else {
@@ -407,7 +406,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     }
                     index += run;
                 } while (index < vertex_location_count_22c);
-                AddFloatBuffer00474730(
+                AddFloatBuffer(
                     reinterpret_cast<float*>(dig),    // reinterpret-ok: packed DIG as float*
                     reinterpret_cast<float*>(lights), // reinterpret-ok: packed lights as float*
                     vertex_location_count_22c * 3);
@@ -416,7 +415,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                      g_environment_offset_00659cd0.z != g_float_005ebb34) &&
                     vertex_light_table_3b0 != 1 &&
                     (count = vertex_location_count_22c, count != 0) &&
-                    IsZeroVector0046FFA0(&g_environment_offset_00659cd0) == 0) {
+                    IsZeroVector(&g_environment_offset_00659cd0) == 0) {
                     srVectorProcessor::add(dig, g_environment_offset_00659cd0, dig,
                                            static_cast<SRDWORD>(count));
                 }
@@ -449,7 +448,7 @@ void stMeshModel::getTriMesh(TriMesh& mesh)
 // FUNCTION: WIZ8 0x00470360
 void stMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
 {
-    RenderTriMeshWithEquations00470380(renderer, mesh, 0);
+    RenderTriMeshWithEquations(renderer, mesh, 0);
 }
 
 /* Wizardry-extended srMeshModel::renderTriMesh. Optional polygon normals enable
@@ -457,8 +456,8 @@ void stMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
    forces CULL_FRONT; a null table leaves hardware cull at CULL_NONE unless
    g_render_cull_front_0065a0ed already requested front culling. */
 // FUNCTION: WIZ8 0x00470380
-void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const TriMesh& mesh,
-                                                     const srVector3T<float>* poly_equations)
+void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& mesh,
+                                             const srVector3T<float>* poly_equations)
 {
     unsigned long active_count = 0;
     srShader shader;
@@ -488,8 +487,8 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                         if (needed < copy_count) {
                             copy_count = needed;
                         }
-                        CopyUlongBuffer004747f0(replacement, g_software_cull_active_polygons.data,
-                                                static_cast<int>(copy_count));
+                        CopyUlongBuffer(replacement, g_software_cull_active_polygons.data,
+                                        static_cast<int>(copy_count));
                     }
                     g_software_cull_active_polygons.release();
                     g_software_cull_active_polygons.data = replacement;
@@ -681,10 +680,10 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
 }
 
 /* Copy `count` dwords with a plain pointer walk. Distinct from
-   CopyDwordBuffer00470180 (vp memcopy + self-copy guard). Retail lowers the
+   CopyDwordBuffer (vp memcopy + self-copy guard). Retail lowers the
    walk through a dest-relative displacement. */
 // FUNCTION: WIZ8 0x004747f0
-void CopyUlongBuffer004747f0(unsigned long* destination, const unsigned long* source, int count)
+void CopyUlongBuffer(unsigned long* destination, const unsigned long* source, int count)
 {
     if (count != 0) {
         int displacement =
@@ -702,7 +701,7 @@ void CopyUlongBuffer004747f0(unsigned long* destination, const unsigned long* so
 
 /* Copy `count` dwords between distinct buffers through the imported vp. */
 // FUNCTION: WIZ8 0x00470180
-void CopyDwordBuffer00470180(void* destination, const void* source, int count)
+void CopyDwordBuffer(void* destination, const void* source, int count)
 {
     if (count != 0 && destination != source) {
         srVectorProcessor::memcopy(destination, source, count << 2);
@@ -710,7 +709,7 @@ void CopyDwordBuffer00470180(void* destination, const void* source, int count)
 }
 
 // FUNCTION: WIZ8 0x0046ffa0
-int __fastcall IsZeroVector0046FFA0(const srVector3T<float>* vector)
+int __fastcall IsZeroVector(const srVector3T<float>* vector)
 {
     if (vector->x == g_float_005ebb34 && vector->y == g_float_005ebb34 &&
         vector->z == g_float_005ebb34) {
@@ -731,7 +730,7 @@ void FillDwordBuffer00474700(void* destination, unsigned int value, int count)
 
 /* dest[i] += source[i] through vp->_add(float*, dest, source, count). */
 // FUNCTION: WIZ8 0x00474730
-void AddFloatBuffer00474730(float* destination, const float* source, int count)
+void AddFloatBuffer(float* destination, const float* source, int count)
 {
     if (count != 0) {
         srVectorProcessor::add(destination, destination, source, static_cast<SRDWORD>(count));
@@ -741,13 +740,13 @@ void AddFloatBuffer00474730(float* destination, const float* source, int count)
 /* Copy or translate `count` vertices: a zero offset is a plain copy and a
    nonzero one goes through the vp constant-vector add. */
 // FUNCTION: WIZ8 0x00470040
-void OffsetVertices00470040(srVector3T<float>* destination, const srVector3T<float>* source,
-                            const srVector3T<float>* offset, int count)
+void OffsetVertices(srVector3T<float>* destination, const srVector3T<float>* source,
+                    const srVector3T<float>* offset, int count)
 {
     if (count != 0) {
         if (offset->x == g_float_005ebb34 && offset->y == g_float_005ebb34 &&
             offset->z == g_float_005ebb34) {
-            CopyDwordBuffer00470180(destination, source, count * 3);
+            CopyDwordBuffer(destination, source, count * 3);
         } else {
             srVectorProcessor::add(destination, *offset, source, static_cast<SRDWORD>(count));
         }
@@ -806,7 +805,7 @@ void stMeshModel::ClearAutomapPolygonFilter()
    "blank"; the -1 table is the automap filter built by
    ApplyAutomapPolygonFilter. */
 // FUNCTION: WIZ8 0x00473CD0
-unsigned long* stMeshModel::GetActivePolygons00473CD0(long* count_out, int table, bool flag)
+unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool flag)
 {
     int index = -1;
     for (int i = 0; i < skin_table_ids.GetCount(); ++i) {
@@ -896,7 +895,7 @@ unsigned long* stMeshModel::GetActivePolygons00473CD0(long* count_out, int table
 }
 
 // FUNCTION: WIZ8 0x00471160
-void stMeshModel::SetMappedVertex00471160(short vertex, short key)
+void stMeshModel::SetMappedVertex(short vertex, short key)
 {
     int index = mapped_keys.IndexOf(key);
     if (index != -1) {
@@ -1113,7 +1112,7 @@ int stMeshModel::ReleaseDecompressedFrames()
 /* Evict least-recently-used decompressed frames until `needed` bytes are
    available, or give up when every registered model has been drained. */
 // FUNCTION: WIZ8 0x00473BF0
-unsigned char ReclaimDecompressedBytes00473BF0(unsigned int needed)
+unsigned char ReclaimDecompressedBytes(unsigned int needed)
 {
     unsigned int released = 0;
     while (released < needed) {
@@ -1139,7 +1138,7 @@ unsigned char ReclaimDecompressedBytes00473BF0(unsigned int needed)
 }
 
 // FUNCTION: WIZ8 0x004736d0
-int stMeshModel::FindSkinTable004736D0(const char* name)
+int stMeshModel::FindSkinTable(const char* name)
 {
     for (int index = 0; index < skin_table_names.GetCount(); ++index) {
         if (_stricmp(name, *skin_table_names.GetAt(index)) == 0) {
@@ -1150,7 +1149,7 @@ int stMeshModel::FindSkinTable004736D0(const char* name)
 }
 
 // FUNCTION: WIZ8 0x00473720
-srPtr<srTextureIFace>* stMeshModel::GetTextureTable00473720(int table)
+srPtr<srTextureIFace>* stMeshModel::GetTextureTable(int table)
 {
     int index = skin_table_ids.IndexOf(table);
 
@@ -1164,11 +1163,11 @@ srPtr<srTextureIFace>* stMeshModel::GetTextureTable00473720(int table)
    skin-blanking state used by the renderer. Table ids are the lowest free
    non-negative integer and remain stable independently of vector position. */
 // FUNCTION: WIZ8 0x00473260
-int stMeshModel::CreateSkinTable00473260(const char* name, int base_table)
+int stMeshModel::CreateSkinTable(const char* name, int base_table)
 {
     int base_index = skin_table_ids.IndexOf(base_table);
 
-    if (FindSkinTable004736D0(name) != -1) {
+    if (FindSkinTable(name) != -1) {
         return -1;
     }
 
@@ -1228,7 +1227,7 @@ int stMeshModel::CreateSkinTable00473260(const char* name, int base_table)
 }
 
 // FUNCTION: WIZ8 0x00473830
-void stMeshModel::RemoveSkinTable00473830(int index)
+void stMeshModel::RemoveSkinTable(int index)
 {
     srPtr<srTextureIFace>* textures = *skin_texture_tables.GetAt(index);
     for (int polygon = 0; polygon < polygon_count_230; ++polygon) {
@@ -1253,7 +1252,7 @@ void stMeshModel::RemoveSkinTable00473830(int index)
 /* Skin tables are named with the owning cycle plus a one-character suffix.
    Final teardown removes every table whose name has that cycle prefix. */
 // FUNCTION: WIZ8 0x00473780
-void stMeshModel::RemoveSkinTablesForCycle00473780(const char* cycle_name)
+void stMeshModel::RemoveSkinTablesForCycle(const char* cycle_name)
 {
     if (cycle_name != 0) {
         for (int index = 0; index < skin_table_names.GetCount(); ++index) {
@@ -1263,7 +1262,7 @@ void stMeshModel::RemoveSkinTablesForCycle00473780(const char* cycle_name)
             name[199] = '\0';
             name[strlen(name) - 1] = '\0';
             if (strlen(name) != 0 && _stricmp(cycle_name, name) == 0) {
-                RemoveSkinTable00473830(index);
+                RemoveSkinTable(index);
                 --index;
             }
         }
@@ -1315,7 +1314,7 @@ unsigned char stMeshModel::AllocateFrameBuffers00471720(unsigned int uiFrame, un
     if ((flags & 1) != 0 && m_pVertexLoc[uiFrame] == 0) {
         int needed = vertex_location_count_22c * sizeof(srVector3T<float>);
         if (g_decompressed_mesh_byte_limit_00609d34 <= g_decompressed_mesh_bytes + needed) {
-            if (ReclaimDecompressedBytes00473BF0(needed) == 0) {
+            if (ReclaimDecompressedBytes(needed) == 0) {
                 return 0;
             }
         }
@@ -1330,7 +1329,7 @@ unsigned char stMeshModel::AllocateFrameBuffers00471720(unsigned int uiFrame, un
     if ((flags & 2) != 0 && m_pVertexNormal[uiFrame] == 0) {
         int needed = vertex_location_count_22c * sizeof(srVector3T<float>);
         if (g_decompressed_mesh_byte_limit_00609d34 <= g_decompressed_mesh_bytes + needed) {
-            if (ReclaimDecompressedBytes00473BF0(needed) == 0) {
+            if (ReclaimDecompressedBytes(needed) == 0) {
                 return 0;
             }
         }
@@ -1345,7 +1344,7 @@ unsigned char stMeshModel::AllocateFrameBuffers00471720(unsigned int uiFrame, un
     if ((flags & 4) != 0 && m_pPolyNormal[uiFrame] == 0) {
         int needed = polygon_count_230 * sizeof(srVector3T<float>);
         if (g_decompressed_mesh_byte_limit_00609d34 <= g_decompressed_mesh_bytes + needed) {
-            if (ReclaimDecompressedBytes00473BF0(needed) == 0) {
+            if (ReclaimDecompressedBytes(needed) == 0) {
                 return 0;
             }
         }
@@ -1393,7 +1392,7 @@ srVector3T<float>* stMeshModel::GetVertexLocations00471AD0(unsigned int frame, c
             srVector3T<float>* current = m_pVertexLoc[frame];
             if (next != 0 && current != 0 && vertex_location_count_22c != 0) {
                 if (interpolation == g_float_005ebb38) {
-                    CopyDwordBuffer00470180(lerp_buffer_448, next, vertex_location_count_22c * 3);
+                    CopyDwordBuffer(lerp_buffer_448, next, vertex_location_count_22c * 3);
                 } else {
                     srVectorProcessor::lerp(&lerp_buffer_448->x, &next->x, &current->x,
                                             interpolation, vertex_location_count_22c * 3);
@@ -1414,7 +1413,7 @@ srVector3T<float>* stMeshModel::GetVertexLocations00471AD0(unsigned int frame, c
 /* Return frame `frame`'s vertex normals, decompressing on demand when `load`
    is set. */
 // FUNCTION: WIZ8 0x00471CA0
-srVector3T<float>* stMeshModel::GetVertexNormals00471CA0(unsigned int frame, char load)
+srVector3T<float>* stMeshModel::GetVertexNormals(unsigned int frame, char load)
 {
     if (m_pVertexNormal == 0) {
         return 0;
@@ -1429,7 +1428,7 @@ srVector3T<float>* stMeshModel::GetVertexNormals00471CA0(unsigned int frame, cha
 }
 
 // FUNCTION: WIZ8 0x00471D00
-srVector3T<float>* stMeshModel::GetPolygonNormals00471D00(unsigned int frame, char load)
+srVector3T<float>* stMeshModel::GetPolygonNormals(unsigned int frame, char load)
 {
     if (m_pPolyNormal == 0) {
         return 0;
@@ -1444,7 +1443,7 @@ srVector3T<float>* stMeshModel::GetPolygonNormals00471D00(unsigned int frame, ch
 }
 
 // FUNCTION: WIZ8 0x00472990
-void stMeshModel::SetAmbientColor00472990(const srVector3T<float>& color)
+void stMeshModel::SetAmbientColor(const srVector3T<float>& color)
 {
     if (ambient_color_3a4.x != color.x || ambient_color_3a4.y != color.y ||
         ambient_color_3a4.z != color.z) {
@@ -1580,7 +1579,7 @@ float* stMeshModel::GetVertexSunlight(char initialize)
 }
 
 // FUNCTION: WIZ8 0x00473180
-void stMeshModel::FinalizeVertexFrame00473180(int frame)
+void stMeshModel::FinalizeVertexFrame(int frame)
 {
     ComputeFrameNormals(frame);
 }
@@ -1718,7 +1717,7 @@ void srTriMeshPipeline::Flush00475510()
 {
     flushing_8c = 1;
     if (slot_count_84 > 0) {
-        FlushSlots00475600();
+        FlushSlots();
     }
     flushing_8c = 0;
 }
@@ -1783,7 +1782,7 @@ srTriMeshPipeline::~srTriMeshPipeline()
 }
 
 // FUNCTION: WIZ8 0x00475600
-void srTriMeshPipeline::FlushSlots00475600()
+void srTriMeshPipeline::FlushSlots()
 {
     if (triangle_count_1c == 0 || (active_triangles_2c != 0 && active_triangle_count_24 == 0)) {
         return;

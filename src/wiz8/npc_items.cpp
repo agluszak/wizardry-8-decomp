@@ -656,8 +656,8 @@ unsigned int GetNpcItemCount(W8NpcState* npc)
 char g_sound_cash_transaction_62a80c[] = "Data\\Sound\\misc\\Cash Transaction.wav";
 
 // FUNCTION: WIZ8 0x0055B730
-unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
-                                    char suppress_payment)
+unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
+                            char suppress_payment)
 {
     W8ItemInstance stack;
     int amount;
@@ -885,8 +885,8 @@ int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode)
    accumulated stack then leaves the party purse and the stock entry shrinks.
    The trailing pass drops entries whose remaining count hit zero. */
 // FUNCTION: WIZ8 0x0055B7E0
-bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char quantity,
-                                     char no_payment, int* remaining_out)
+bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity, char no_payment,
+                             int* remaining_out)
 {
     unsigned char available;
     unsigned char moved;
@@ -923,7 +923,7 @@ bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char q
             }
         }
         if (AddItemToPartyOrDrop(&hand, 0) == 0 && g_status_685170.item_in_cursor == 0) {
-            DisplayNpcQuote00529570(gppStringList[0x1ac4 / 4], 0);
+            DisplayNpcQuote(gppStringList[0x1ac4 / 4], 0);
         }
         moved += unit;
         if (quantity <= moved) {
@@ -1054,7 +1054,7 @@ void DecayNpcInventory(W8NpcState* npc)
 }
 
 // FUNCTION: WIZ8 0x0055BB10
-void MatureNpcDelayedItems0055BB10(W8NpcState* npc)
+void MatureNpcDelayedItems(W8NpcState* npc)
 {
     if (npc->items == 0) {
         return;
@@ -1118,5 +1118,5 @@ void MatureNpcDelayedItems0055BB10(W8NpcState* npc)
 void RestockNpcInventory(W8NpcState* npc)
 {
     MaintainNpcStock(npc, 0);
-    MatureNpcDelayedItems0055BB10(npc);
+    MatureNpcDelayedItems(npc);
 }

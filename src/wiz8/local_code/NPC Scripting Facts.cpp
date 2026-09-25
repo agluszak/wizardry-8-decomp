@@ -73,8 +73,8 @@ static void ClearPotionExplosionSoundFlag(void*)
 // FUNCTION: WIZ8 0x005092d0
 static void ReplayEarthquakeShake(void)
 {
-    CreateCameraShakeEffect004AE080(3.0f, 0, 1.0f, 0, 0);
-    BeginEndgameSequence005A6580();
+    CreateCameraShakeEffect(3.0f, 0, 1.0f, 0, 0);
+    BeginEndgameSequence();
 }
 
 // FUNCTION: WIZ8 0x00506670
@@ -139,8 +139,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (npc == 0) {
             return;
         }
-        ReleaseNpcMonsterBinding0050C440(npc, 0);
-        RestoreNamedNpcAtLevel0050C1C0(npc->name_style, 0x11, "NP_MylesCell");
+        ReleaseNpcMonsterBinding(npc, 0);
+        RestoreNamedNpcAtLevel(npc->name_style, 0x11, "NP_MylesCell");
         return;
     case 0x22:
         if (value == 0) {
@@ -202,7 +202,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value != 0) {
             npc = GetNpcStateByKind(0x20);
             if (npc != 0) {
-                ReleaseNpcScriptFile0055A0A0(npc->script_file);
+                ReleaseNpcScriptFile(npc->script_file);
                 ReloadNpcScriptResources(npc);
                 if (!npc->is_grouped) {
                     CancelNpcDialogue();
@@ -397,7 +397,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (monster_info == 0) {
             return;
         }
-        monster_info->p3D->SetScript004C7F10("Guard.msf", 1);
+        monster_info->p3D->SetScript("Guard.msf", 1);
         return;
     case 0xe8:
         if (value != 0) {
@@ -776,8 +776,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         location_id = GetLocationVarIDByName("ObstacleDoors");
         if (location_id != -1) {
-            SetTriggerVariableByName00444030("ObstacleDoors",
-                                             GetLocationVarValueByName("ObstacleDoors") | 2);
+            SetTriggerVariableByName("ObstacleDoors",
+                                     GetLocationVarValueByName("ObstacleDoors") | 2);
             return;
         }
         CreateLocationVar("ObstacleDoors", 2);
@@ -800,8 +800,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         location_id = GetLocationVarIDByName("ObstacleDoors");
         if (location_id != -1) {
-            SetTriggerVariableByName00444030("ObstacleDoors",
-                                             GetLocationVarValueByName("ObstacleDoors") | 1);
+            SetTriggerVariableByName("ObstacleDoors",
+                                     GetLocationVarValueByName("ObstacleDoors") | 1);
             return;
         }
         CreateLocationVar("ObstacleDoors", 1);
@@ -828,7 +828,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             return;
         }
         MarkNpcOfKind(0x18);
-        EndNpcDialogueSession0056E800(0);
+        EndNpcDialogueSession(0);
         return;
     case 0x234:
     case 0x235:
@@ -843,7 +843,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             particle->start_frame_264 = 0;
             particle->emission_count_188 = 0;
             particle->SetActive(1);
-            particle->SetTraversalEnabled00498D90(1);
+            particle->SetTraversalEnabled(1);
         }
         npc = GetNpcStateByKind(0x49);
         if (npc == 0) {
@@ -935,16 +935,16 @@ void HandleFactChange(int fact_id, unsigned char value)
         QueueNpcMessageLine(W8_NPC_MSG_BEGIN_ENDGAME, 0);
         return;
     case 0x322:
-        EndNpcDialogueSession0056E800(0);
-        ResetLevelDataVectors0041F0D0();
+        EndNpcDialogueSession(0);
+        ResetLevelDataVectors();
         group = FindFirstMonsterByID(0xc2);
         if (group != 0) {
             monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                 0x4b4, NPC_SCRIPTING_FACTS_CPP, group->leader_location_id, 1));
-            monster_info->p3D->SetScript004C7F10("MoveSavantBoffo.msf", 1);
+            monster_info->p3D->SetScript("MoveSavantBoffo.msf", 1);
         }
         SoundPlayStreamedFile("Data\\Sound\\Misc\\Earthquake End.wav", 0);
-        shake = CreateCameraShakeEffect004AE080(6.0f, 0, 1.0f, 0, 0);
+        shake = CreateCameraShakeEffect(6.0f, 0, 1.0f, 0, 0);
         shake->flags_00 |= 0x20;
         shake->completion_callback_48 = ReplayEarthquakeShake;
         return;
@@ -1085,7 +1085,7 @@ void MonsterKilled(int record_id, int killer_party_slot)
             CreateLocationVar("NumberRattkinBreedersKilled", 1);
             return;
         }
-        SetTriggerVariableByName00444030("NumberRattkinBreedersKilled", 2);
+        SetTriggerVariableByName("NumberRattkinBreedersKilled", 2);
         SetFact(0x19b, 1, 0);
         SetFactionDispositionBand(7, 0);
     } else {

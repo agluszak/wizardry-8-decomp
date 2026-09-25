@@ -160,16 +160,16 @@ unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D
 /* MonsterGroup.cpp: respawns a same-sized group of a different monster id
    beside the source group, deactivating the old members as each replacement
    activates; NULL on failure. */
-W8MonsterGroup* ReplaceMonsterGroupSpecies00511A40(W8MonsterGroup* group,
-                                                   unsigned int monster_id); /* 0x00511A40 */
+W8MonsterGroup* ReplaceMonsterGroupSpecies(W8MonsterGroup* group,
+                                           unsigned int monster_id); /* 0x00511A40 */
 /* 0x00511CE0: mark every member's navigator position dirty (or clean). */
 void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag);
-bool MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group); /* 0x00511850 */
-void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);             /* 0x0050F630 */
+bool MonsterGroupAllMembersDying(W8MonsterGroup* monster_group); /* 0x00511850 */
+void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);     /* 0x0050F630 */
 /* Out-of-combat refresh: proximity hostility for unaligned neutrals, then
    default disposition on the intelligence-squared cooldown. */
-void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group); /* 0x005113A0 */
-void MonsterGroupEnterCombat(W8MonsterGroup* monster_group);              /* 0x0050F720 */
+void RefreshMonsterGroupHostility(W8MonsterGroup* monster_group); /* 0x005113A0 */
+void MonsterGroupEnterCombat(W8MonsterGroup* monster_group);      /* 0x0050F720 */
 /* Re-elect the group's leader member: the live member carrying the highest
    navigator leadership_rank_008 takes over leader_location_id, else the first member does, and
    the outgoing leader's script and heard-noise state move across. */

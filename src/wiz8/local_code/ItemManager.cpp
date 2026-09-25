@@ -710,8 +710,8 @@ void ActivateItem(W8WorldItem* item)
     item->p3D->SetYaw(
         static_cast<float>(Random(0x168) * 2 * g_camera_pi_005ec2a0 * g_double_005ed7b0));
     static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags |= item->entity_flags;
-    item->p3D->AttachMesh0049F900(GetWorld());
-    AddItemToWorld0046E5C0(GetWorld(), item->p3D);
+    item->p3D->AttachMesh(GetWorld());
+    AddItemToWorld(GetWorld(), item->p3D);
     item->fActive = 1;
     ++gXStatus.item_manager_pending;
 
@@ -761,8 +761,8 @@ void DeactivateWorldItem(W8WorldItem* item)
     item->position = position;
     item->entity_flags = static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags;
 
-    item->p3D->DetachMesh0049FA30(GetWorld());
-    RemoveItemFromWorld0046E5E0(GetWorld(), item->p3D);
+    item->p3D->DetachMesh(GetWorld());
+    RemoveItemFromWorld(GetWorld(), item->p3D);
     delete item->p3D;
     item->p3D = 0;
     item->fActive = 0;
@@ -793,7 +793,7 @@ void SetWorldItemHighlight(int runtime_id, char on)
    and whose screen distance stays inside `max_distance`, or -1. The cursor
    coordinates are carried but unused - the hover test is IsSelected. */
 // FUNCTION: WIZ8 0x004f7370
-int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y, float max_distance)
+int PickNearestItemUnderCursor(int cursor_x, int cursor_y, float max_distance)
 {
     int result;
     float best_distance;
@@ -814,7 +814,7 @@ int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y, float max_dis
         if (!item->p3D->IsSelected()) {
             continue;
         }
-        distance = ItemDistanceToCamera004BE7C0(GetWorld(), item->p3D);
+        distance = ItemDistanceToCamera(GetWorld(), item->p3D);
         if (distance < max_distance && distance < best_distance) {
             result = item->runtime_id;
             best_distance = distance;
@@ -846,7 +846,7 @@ void UpdateNearbyWorldItems(void)
             AdvanceFallingWorldItem(item);
         }
         if (item->fActive == 0) {
-            if (DistanceBetweenPoints004BE6D0(&item->position, &camera) < g_float_005ed7b8) {
+            if (DistanceBetweenPoints(&item->position, &camera) < g_float_005ed7b8) {
                 if (g_byte_0064a1cd != 0) {
                     if (item == 0) {
                         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x3e6, 0);
@@ -861,7 +861,7 @@ void UpdateNearbyWorldItems(void)
             srVector3T<float> location;
 
             item->p3D->m_pRep->GetLocation004B8890(&location);
-            if (DistanceBetweenPoints004BE6D0(&location, &camera) > g_float_005ec360) {
+            if (DistanceBetweenPoints(&location, &camera) > g_float_005ec360) {
                 DeactivateWorldItem(item);
             }
         }
@@ -879,7 +879,7 @@ void UpdateNearbyWorldItems(void)
 void DropHeldItem(int arg_1)
 {
     srVector3T<float> cursor;
-    GetCursorScaledPosition004282F0(&cursor);
+    GetCursorScaledPosition(&cursor);
     cursor.y = (cursor.y - g_float_005ebc7c) * g_float_005ec390;
     cursor.z = (cursor.z - g_float_005ebc7c) * g_float_005ec390;
 
@@ -915,7 +915,7 @@ void DropHeldItem(int arg_1)
 
     srVector3T<float> position = camera + delta;
     position.y = g_octree_6598a4->SettleToGround(&position, 0, 1, 250.0f) + g_float_005ec3f8;
-    if (FindNearbyFreePosition00451800(250.0f, &position, 1, 1) != 0) {
+    if (FindNearbyFreePosition(250.0f, &position, 1, 1) != 0) {
         W8WorldItem* item = CreateWorldItem(&g_status_685170.item_in_hand_235b, &position, 3, 1);
         if (item == 0) {
             // Retail passes the NULL item pointer as the assert message.
@@ -934,7 +934,7 @@ void DropHeldItem(int arg_1)
    Either way the group's own world entry is found by runtime id, pulled out
    of its sector, deactivated, freed and removed from the list. */
 // FUNCTION: WIZ8 0x004f7c50
-void OnItemPickerDialogDestroyed004F7C50(W8DialogBase* dialog)
+void OnItemPickerDialogDestroyed(W8DialogBase* dialog)
 {
     W8WorldItem* group;
     W8WorldItem* item;
@@ -972,7 +972,7 @@ void OnItemPickerDialogDestroyed004F7C50(W8DialogBase* dialog)
    runs, the instance copies into the cursor hand, and the world entry is
    stripped back out of its sector and the list. */
 // FUNCTION: WIZ8 0x004f7910
-unsigned char InteractWithWorldItem004F7910(int runtime_id)
+unsigned char InteractWithWorldItem(int runtime_id)
 {
     unsigned char result = 1;
     int index = ItemIndex(runtime_id);
@@ -985,13 +985,13 @@ unsigned char InteractWithWorldItem004F7910(int runtime_id)
         W8TriggerItemPickerDialog* dialog = new W8TriggerItemPickerDialog;
         if (dialog != 0) {
             dialog->SetItemGroup(item);
-            dialog->m_destroy_callback = OnItemPickerDialogDestroyed004F7C50;
+            dialog->m_destroy_callback = OnItemPickerDialogDestroyed;
         }
         g_modal_owner_0068edd0 = dialog;
         return 1;
     }
     if (item->p3D->trigger_018 != 0) {
-        result = RunItemTrigger004A0070(item->p3D);
+        result = RunItemTrigger(item->p3D);
         if (result == 0) {
             return result;
         }

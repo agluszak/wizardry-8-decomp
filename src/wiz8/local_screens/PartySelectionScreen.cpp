@@ -137,7 +137,7 @@ void W8PartySelectionCharacterCollection::DetachFromParty(int index)
     int slot = FindPartySlot(index);
     W8Character* replacement = new W8Character;
     char path[128];
-    BuildCharacterPath00514EC0(path, previous->name, -1);
+    BuildCharacterPath(path, previous->name, -1);
     if (!LoadCharacter(path, replacement, -1, 0)) {
         memcpy(replacement, previous, sizeof(W8Character));
     }
@@ -181,7 +181,7 @@ void W8PartySelectionCharacterCollection::LoadExternalCharacters()
     char search_path[128];
     GETFILESTRUCT find;
 
-    BuildCharacterFilePath00514FA0(search_path, FormatString("*.%s", "CHR", -1), -1);
+    BuildCharacterFilePath(search_path, FormatString("*.%s", "CHR", -1), -1);
     BOOLEAN found = GetFileFirst(search_path, &find);
     for (;;) {
         if (!found) {
@@ -212,8 +212,8 @@ void W8PartySelectionCharacterCollection::LoadExternalCharacters()
    time. Small partitions use insertion sort; larger partitions use the last
    time as the quicksort pivot, matching the retail split at ten elements. */
 // FUNCTION: WIZ8 0x005c3520
-static void SortPartySelectionCharactersByTime005C3520(W8Character** characters,
-                                                       SGP_FILETIME* times, int first, int last)
+static void SortPartySelectionCharactersByTime(W8Character** characters, SGP_FILETIME* times,
+                                               int first, int last)
 {
     if (last - first < 9) {
         for (int next = first + 1; next <= last; ++next) {
@@ -257,10 +257,10 @@ static void SortPartySelectionCharactersByTime005C3520(W8Character** characters,
     characters[left] = characters[last];
     characters[last] = character;
     if (first < left - 1) {
-        SortPartySelectionCharactersByTime005C3520(characters, times, first, left - 1);
+        SortPartySelectionCharactersByTime(characters, times, first, left - 1);
     }
     if (left + 1 < last) {
-        SortPartySelectionCharactersByTime005C3520(characters, times, left + 1, last);
+        SortPartySelectionCharactersByTime(characters, times, left + 1, last);
     }
 }
 
@@ -275,7 +275,7 @@ void W8PartySelectionCharacterCollection::SortCharactersByWriteTime()
     memset(times, 0, characters.count * sizeof(SGP_FILETIME));
     for (int index = 0; index < characters.count; ++index) {
         char path[128];
-        BuildCharacterPath00514EC0(path, characters.data[index]->name, -1);
+        BuildCharacterPath(path, characters.data[index]->name, -1);
         int handle = FileOpen(path, FILE_ACCESS_READ, 0);
         if (handle) {
             SGP_FILETIME creation;
@@ -284,7 +284,7 @@ void W8PartySelectionCharacterCollection::SortCharactersByWriteTime()
             FileClose(handle);
         }
     }
-    SortPartySelectionCharactersByTime005C3520(characters.data, times, 0, characters.count - 1);
+    SortPartySelectionCharactersByTime(characters.data, times, 0, characters.count - 1);
     delete[] times;
 }
 
@@ -669,7 +669,7 @@ void RefreshPartySelectionPortrait(unsigned int party_slot)
 /* Whether the party selector is in its review-existing-character mode; the
    camp screen consults it when deciding if the level-up panel applies. */
 // FUNCTION: WIZ8 0x005c3470
-bool PartySelectionInReviewMode005C3470(void)
+bool PartySelectionInReviewMode(void)
 {
     return g_party_selection_controller->m_mode == 1;
 }
@@ -1805,7 +1805,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
         int slot = collection->FindPartySlot(index);
         W8Character* replacement = new W8Character;
         char path[128];
-        BuildCharacterPath00514EC0(path, previous->name, -1);
+        BuildCharacterPath(path, previous->name, -1);
         if (!LoadCharacter(path, replacement, -1, 0)) {
             memcpy(replacement, previous, sizeof(W8Character));
         }
@@ -1962,7 +1962,7 @@ void W8PartySelectionController::ApplyPartySelectionConfirmation(int, unsigned c
             character = collection->GetCharacter(selected);
         }
         char path[128];
-        BuildCharacterPath00514EC0(path, character->name, -1);
+        BuildCharacterPath(path, character->name, -1);
         FileDelete(path);
         collection->DeleteAt(selected);
 
@@ -2005,7 +2005,7 @@ void W8PartySelectionController::ApplyPartySelectionConfirmation(int, unsigned c
             int slot = collection->FindPartySlot(index);
             W8Character* replacement = new W8Character;
             char path[128];
-            BuildCharacterPath00514EC0(path, previous->name, -1);
+            BuildCharacterPath(path, previous->name, -1);
             if (!LoadCharacter(path, replacement, -1, 0)) {
                 memcpy(replacement, previous, sizeof(W8Character));
             }
@@ -2033,7 +2033,7 @@ void W8PartySelectionController::LoadImportedPartyFile(int selection)
     if (selection >= 0 && selection < collection->names.count) {
         char path[128];
         sprintf(path, "%s\\%s", "Saves\\Import", *collection->names.GetAt(selection));
-        int result = ImportWizardry7Party00558C40(path);
+        int result = ImportWizardry7Party(path);
         if (result != 0) {
             ResetForNewGame();
             OpenNotification(gppStringList[(result == 2 ? 0x1b60 : 0x1b5c) / 4], 0, 0);
@@ -2176,7 +2176,7 @@ unsigned char PartySelectionScreenEnter(void)
         }
         g_party_selection_controller->SetMode(g_party_selection_controller->m_mode);
     }
-    StartMusicResource0048FC10("MainMenu.MPL", 1, 1);
+    StartMusicResource("MainMenu.MPL", 1, 1);
     return 1;
 }
 

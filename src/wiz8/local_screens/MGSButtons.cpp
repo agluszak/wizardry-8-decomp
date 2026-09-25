@@ -731,7 +731,7 @@ void MainGameCombatConfirmButton(W8DialogButton* button)
         TogglePartyCombatStance();
         return;
     }
-    BeginCombatExecution004E8370();
+    BeginCombatExecution();
     if (g_settings_6850c8.continuous_combat == 0) {
         return;
     }
@@ -1195,7 +1195,7 @@ void DestroyMainGameInterfaceButtons(void)
 /* Re-enable the button banks the surprise sequence took down: submenu scroll
    arrows, the options disk, roof buttons and the layout arrows. */
 // FUNCTION: WIZ8 0x00598c10
-void EnableMenuButtonBanks00598C10(void)
+void EnableMenuButtonBanks(void)
 {
     int i;
     for (i = 0; i < 2; ++i) {
@@ -1212,7 +1212,7 @@ void EnableMenuButtonBanks00598C10(void)
 
 /* Disable the same button banks while the surprise sequence runs. */
 // FUNCTION: WIZ8 0x00598c70
-void DisableMenuButtonBanks00598C70(void)
+void DisableMenuButtonBanks(void)
 {
     int i;
     for (i = 0; i < 2; ++i) {
@@ -1313,7 +1313,7 @@ unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region)
         }
         if (g_level_block->combat_end_notification == 3 &&
             g_submenu_entries_69b868[region->callback_id] == 2) {
-            SetRegionHelpForceEnabled004F27C0(1);
+            SetRegionHelpForceEnabled(1);
             slot = g_status_685170.selected_character;
             if (CanPartySlotUseRecordedItem(slot) == 0) {
                 SetRegionHelpText(gppStringList[0x174 / 4]);
@@ -1570,7 +1570,7 @@ void ScrollSubMenuCharacter(char direction)
     switch (direction) {
     case 1:
         for (slot = current + 1; slot < 8; ++slot) {
-            if (IsPartySlotEligible00524A10(slot) == 0) {
+            if (IsPartySlotEligible(slot) == 0) {
                 continue;
             }
             selected = slot;
@@ -1580,7 +1580,7 @@ void ScrollSubMenuCharacter(char direction)
             break;
         }
         for (slot = 0; slot <= current; ++slot) {
-            if (IsPartySlotEligible00524A10(slot) != 0) {
+            if (IsPartySlotEligible(slot) != 0) {
                 selected = slot;
                 goto done;
             }
@@ -1588,7 +1588,7 @@ void ScrollSubMenuCharacter(char direction)
         break;
     case 0:
         for (slot = current - 1; slot >= 0; --slot) {
-            if (IsPartySlotEligible00524A10(slot) == 0) {
+            if (IsPartySlotEligible(slot) == 0) {
                 continue;
             }
             selected = slot;
@@ -1598,7 +1598,7 @@ void ScrollSubMenuCharacter(char direction)
             break;
         }
         for (slot = 7; slot >= current; --slot) {
-            if (IsPartySlotEligible00524A10(slot) != 0) {
+            if (IsPartySlotEligible(slot) != 0) {
                 selected = slot;
                 goto done;
             }
@@ -1635,7 +1635,7 @@ void SetSubMenuButtonTooltips(int enabled)
    options/disk button outside modal modes, then refresh the panel, stance,
    roof and layout-arrow sets. */
 // FUNCTION: WIZ8 0x005989B0
-void UpdateMainGameButtons005989B0(void)
+void UpdateMainGameButtons(void)
 {
     W8DialogButton** button;
     int index;
@@ -1724,7 +1724,7 @@ void UpdateMainGameButtons005989B0(void)
    run a 500 ms countdown; once it lapses, tear the panel and rows down like
    the background right-click path. */
 // FUNCTION: WIZ8 0x00598FA0
-void UpdateSubMenuAutoClose00598FA0(void)
+void UpdateSubMenuAutoClose(void)
 {
     int left;
     int right;

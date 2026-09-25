@@ -100,7 +100,7 @@ unsigned char InitializeMusicPlaylist(void)
 /* Count playable rows, load the pause directives, and retain a nonzero weight
    total only when every playable row carries a parenthesized weight. */
 // FUNCTION: WIZ8 0x0048FF50
-int AnalyzeMusicPlaylist0048FF50(stScript* playlist, int* total_weight)
+int AnalyzeMusicPlaylist(stScript* playlist, int* total_weight)
 {
     int playable_count = 0;
     bool found_unweighted = false;
@@ -135,7 +135,7 @@ int AnalyzeMusicPlaylist0048FF50(stScript* playlist, int* total_weight)
 }
 
 // FUNCTION: WIZ8 0x0048F9E0
-void ServiceMusicPlaylist0048F9E0(void)
+void ServiceMusicPlaylist(void)
 {
     int failures = 0;
 
@@ -190,7 +190,7 @@ void ServiceMusicPlaylist0048F9E0(void)
             *weight = 0;
         }
 
-        if (StartMusicResource0048FC10(track, g_music_fade_60aae4, 1) == 0) {
+        if (StartMusicResource(track, g_music_fade_60aae4, 1) == 0) {
             ++failures;
         }
         if (failures > 4 || g_music_sample_handle_60aae0 != -1) {
@@ -201,7 +201,7 @@ void ServiceMusicPlaylist0048F9E0(void)
 }
 
 // FUNCTION: WIZ8 0x0048FC10
-unsigned char StartMusicResource0048FC10(const char* resource, int fade, int replace_current)
+unsigned char StartMusicResource(const char* resource, int fade, int replace_current)
 {
     char path[260];
 
@@ -268,8 +268,8 @@ unsigned char StartMusicResource0048FC10(const char* resource, int fade, int rep
         g_music_sample_handle_60aae0 = -1;
     }
 
-    g_music_playlist_track_count_65ba84 = AnalyzeMusicPlaylist0048FF50(
-        g_music_playlist_65ba74, &g_music_playlist_weight_total_65ba80);
+    g_music_playlist_track_count_65ba84 =
+        AnalyzeMusicPlaylist(g_music_playlist_65ba74, &g_music_playlist_weight_total_65ba80);
     if (g_music_playlist_track_count_65ba84 != 0) {
         g_music_playlist_65ba74->setName(resource);
         g_music_playlist_active_65ba7e = true;

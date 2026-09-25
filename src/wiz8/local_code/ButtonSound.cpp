@@ -5,7 +5,6 @@
 #include "wiz8/sr_api.h"
 #include "timer.h"
 
-
 // GLOBAL: WIZ8 0x0062A458
 const char* g_button_sound_paths_62a458[4][4] = {
     {0, 0, 0, 0},
@@ -66,7 +65,7 @@ void PlayButtonSound(int sound_id)
 }
 
 // FUNCTION: WIZ8 0x005587c0
-void PushButtonSoundScheme005587C0(int scheme, char replace_current)
+void PushButtonSoundScheme(int scheme, char replace_current)
 {
     if (replace_current != 0) {
         g_button_sound_override_62a518 = scheme;

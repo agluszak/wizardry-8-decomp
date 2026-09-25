@@ -19,13 +19,13 @@
 /* The remaining audibility of a noise after distance and the per-hop region
    penalty: positive means the monster group still hears it. */
 // FUNCTION: WIZ8 0x004F0E50
-int NoiseHearingMargin004F0E50(int radius, int range, int hops)
+int NoiseHearingMargin(int radius, int range, int hops)
 {
     return radius + hops * -25000 - range;
 }
 
 // FUNCTION: WIZ8 0x004F0E80
-void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int radius, int flag)
+void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, int flag)
 {
     if (g_status_685170.world_suspended_2390 != 0) {
         return;
@@ -68,8 +68,8 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
         if (flag == 1 && gXStatus.fCombatMode != 0) {
             float range = (float)radius;
             int hops;
-            if (g_octree_6598a4->TestNoiseLineOfSight00434220(&monster_position, &noise_position,
-                                                              &range, &hops) == 0) {
+            if (g_octree_6598a4->TestNoiseLineOfSight(&monster_position, &noise_position, &range,
+                                                      &hops) == 0) {
                 continue;
             }
             // Truncate the float move-range to int before scaling, matching retail.
@@ -90,18 +90,18 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
 }
 
 // FUNCTION: WIZ8 0x004F1100
-void AlertWorldNoise004F1100(void)
+void AlertWorldNoise(void)
 {
     srVector3T<float> position = g_startup_world_659c0c->GetPosition();
-    AlertMonsterGroupsToNoise004F0E80(&position, 50000, 1);
+    AlertMonsterGroupsToNoise(&position, 50000, 1);
 }
 
 // FUNCTION: WIZ8 0x004F1150
-void AlertCombatNoise004F1150(char large_radius)
+void AlertCombatNoise(char large_radius)
 {
     if (g_status_685170.world_suspended_2390 != 0) {
         return;
     }
     srVector3T<float> position = g_startup_world_659c0c->GetPosition();
-    AlertMonsterGroupsToNoise004F0E80(&position, large_radius != 0 ? 0x927c : 25000, 0);
+    AlertMonsterGroupsToNoise(&position, large_radius != 0 ? 0x927c : 25000, 0);
 }

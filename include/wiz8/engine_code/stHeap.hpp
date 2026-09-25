@@ -19,8 +19,8 @@ public:
     unsigned int size_0c;
 
     void Insert004675B0(const T* entry);
-    void SiftDown00467910(unsigned int index);
-    void SiftUp00467990(unsigned int index);
+    void SiftDown(unsigned int index);
+    void SiftUp(unsigned int index);
     T Delete();
 };
 
@@ -31,11 +31,11 @@ template <class T> void stHeap<T>::Insert004675B0(const T* entry)
                      "stHeap overflow");
     }
     entries_00[size_0c] = *entry;
-    SiftUp00467990(size_0c);
+    SiftUp(size_0c);
     ++size_0c;
 }
 
-template <class T> void stHeap<T>::SiftDown00467910(unsigned int index)
+template <class T> void stHeap<T>::SiftDown(unsigned int index)
 {
     T entry = entries_00[index];
     unsigned int child = index * 2 + 1;
@@ -53,7 +53,7 @@ template <class T> void stHeap<T>::SiftDown00467910(unsigned int index)
     entries_00[index] = entry;
 }
 
-template <class T> void stHeap<T>::SiftUp00467990(unsigned int index)
+template <class T> void stHeap<T>::SiftUp(unsigned int index)
 {
     T entry = entries_00[index];
     while (index != 0) {
@@ -76,6 +76,6 @@ template <class T> T stHeap<T>::Delete()
 
     T result = entries_00[0];
     entries_00[0] = entries_00[--size_0c];
-    SiftDown00467910(0);
+    SiftDown(0);
     return result;
 }

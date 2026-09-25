@@ -198,7 +198,7 @@ struct W8Character {
        DrawCatalogImage(-14, ...) and RenderPartyPortrait, and reassigned from
        g_portrait_groups_648950[].portraits[] when the portrait changes. */
     int portrait_index;
-    /* 0x007d: cleared by DeriveCharacterPersonality004EFA30 in both of its branches and set to -1
+    /* 0x007d: cleared by DeriveCharacterPersonality in both of its branches and set to -1
        by the character rebuild; all three accesses are four-byte stores. */
     int unknown_007d;
     int personality_0081; /* indexes the state-5 descriptor text */
@@ -401,7 +401,7 @@ extern int g_profession_skill_availability[0x29][W8_PROFESSION_COUNT];
 extern int g_profession_bonus_skills[W8_PROFESSION_COUNT];
 extern W8SkillAttributes g_skill_attributes[0x29];
 
-/* Profession and race trait sets consulted by CharacterHasTrait00547940. Each entry is
+/* Profession and race trait sets consulted by CharacterHasTrait. Each entry is
    only its id list: three profession abilities, five race abilities. */
 struct W8ProfessionAbilitySet {
     int ability_ids[3];

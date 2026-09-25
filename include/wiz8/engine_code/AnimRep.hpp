@@ -44,9 +44,9 @@ public:
 
     void SetLocation004B8850(const srVector3T<float>* location);
     void GetLocation004B8890(srVector3T<float>* location) const;
-    void GetLocalLocation004B88B0(srVector3T<float>* location) const;
+    void GetLocalLocation(srVector3T<float>* location) const;
     void SetRotation004B88D0(const srMatrix3T<float>* rotation);
-    void GetRotation004B88F0(srMatrix3T<float>* rotation);
+    void GetRotation(srMatrix3T<float>* rotation);
 
 public:
     srVector3T<float> location_004;

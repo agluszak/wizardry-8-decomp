@@ -26,7 +26,7 @@ extern const float g_startup_near_limit_005ec000 = 250.0f;
    and Engine Code\3dapi.cpp (0x0044F1C0); the two globals sit in the
    unbracketed .data tail. Unresolved fragment - no proven ownership. */
 // FUNCTION: WIZ8 0x0044f060
-unsigned char InitializeStartupNavigation0044F060(void)
+unsigned char InitializeStartupNavigation(void)
 {
     W8Navigator* navigator;
 
@@ -47,16 +47,16 @@ unsigned char InitializeStartupNavigation0044F060(void)
                                      g_default_world_height_00603ac8);
     return 1;
 }
-/* Tears down the startup navigation state InitializeStartupNavigation0044F060
+/* Tears down the startup navigation state InitializeStartupNavigation
    built: the ani-mesh cache, render quality, environment globals, and the
    startup navigator itself. */
 // FUNCTION: WIZ8 0x0044F190
-void ShutdownStartupNavigation0044F190(void)
+void ShutdownStartupNavigation(void)
 {
     NoOp();
-    FreeAniMeshCache004B57D0();
-    DestroyRenderQuality0047B570();
-    ClearEnvironmentObjects004823B0();
+    FreeAniMeshCache();
+    DestroyRenderQuality();
+    ClearEnvironmentObjects();
     if (g_startup_world_659c0c != 0) {
         delete g_startup_world_659c0c;
     }

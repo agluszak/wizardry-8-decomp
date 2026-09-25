@@ -96,7 +96,7 @@ void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
                        unsigned short callback_id);
 void SetRegionOwner(unsigned int region_index, Controls* owner);
 void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id);
-void ClearHotRegion004F2A80(void);
+void ClearHotRegion(void);
 void UpdateRegionHelp(void);
 void ShowRegionHelp(unsigned int region_index);
 void SetRegionHelpText(const wchar_t* text);
@@ -109,9 +109,9 @@ void ActivateDialogRegion(unsigned int region_index); /* 0x004F2040 */
 /* 0x004F1910 returns the byte produced by the selected region callback. */
 unsigned char DispatchRegionInput(const InputAtom* event);
 
-void SetRegionHelpForceEnabled004F27C0(unsigned char enabled);
-void EnableRegionHelpFlag004F27D0(W8Region* region);
-void DisableRegionHelpFlag004F27E0(W8Region* region);
+void SetRegionHelpForceEnabled(unsigned char enabled);
+void EnableRegionHelpFlag(W8Region* region);
+void DisableRegionHelpFlag(W8Region* region);
 
 unsigned int DispatchMainGameMouseButtons(const InputAtom* input);
 

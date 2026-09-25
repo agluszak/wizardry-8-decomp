@@ -39,7 +39,7 @@ bool g_render_flag_60a20c = true;
 bool g_render_flag_603c6c = true;
 
 // FUNCTION: WIZ8 0x0047b570
-void DestroyRenderQuality0047B570(void)
+void DestroyRenderQuality(void)
 {
     if (g_render_options_65a118 != 0) {
         free(g_render_options_65a118);
@@ -101,13 +101,13 @@ void SetRenderOption(int option, int enabled)
         SetResidentTexturePolicy(enabled ? 0 : 1);
         break;
     case W8_RENDER_OPTION_HIGH_TEXTURE_CACHE:
-        SetTextureCacheSize00426740(enabled ? 0x2000000 : 0x1000000);
+        SetTextureCacheSize(enabled ? 0x2000000 : 0x1000000);
         break;
     case W8_RENDER_OPTION_VIDEO_SYNC:
-        SetSwapInterval00426710(enabled != 0);
+        SetSwapInterval(enabled != 0);
         break;
     case W8_RENDER_OPTION_CORRECT_BLURRED_TEXT:
-        SetSurfaceScale004297E0(enabled ? 0.5f : 0.0f);
+        SetSurfaceScale(enabled ? 0.5f : 0.0f);
         break;
     }
     if (option < W8_RENDER_OPTION_COUNT) {
@@ -124,7 +124,7 @@ void DisableRenderOption(int option)
 }
 
 // FUNCTION: WIZ8 0x0047b5d0
-void DisableAllRenderOptions0047B5D0(void)
+void DisableAllRenderOptions(void)
 {
     int option = 0;
 
@@ -163,7 +163,7 @@ unsigned char GetRenderOptionState(int option)
 }
 
 // FUNCTION: WIZ8 0x0047b890
-unsigned char LoadRenderOptions0047B890(int handle)
+unsigned char LoadRenderOptions(int handle)
 {
     int version;
     unsigned int transferred;
@@ -185,7 +185,7 @@ unsigned char LoadRenderOptions0047B890(int handle)
 }
 
 // FUNCTION: WIZ8 0x0047b920
-bool SaveRenderOptions0047B920(int handle)
+bool SaveRenderOptions(int handle)
 {
     unsigned int transferred;
     int version = 1;

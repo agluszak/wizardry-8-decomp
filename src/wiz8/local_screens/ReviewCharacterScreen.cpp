@@ -132,18 +132,18 @@ int g_effect_005ee6ec = 109;
 // GLOBAL: WIZ8 0x005ed8cc
 int g_effect_argument_005ed8cc = 1;
 
-int CreateCampActionPanel005B9070(void);
-int CreateItemsTabPanel005B9350(void);
-int CreateCampSecondaryPanel005B9900(void);
-void DrawCampCharacterInfo005B7E00(void);
-void DrawCampBackpackItems005B8440(void);
-void DrawCampEquipmentItems005B8690(void);
-void DrawCampItemPool005B8B20(void);
-void DrawCampItemQuantity005B8EC0(W8ItemInstance* item, int left, int top, int width);
-void ActivateCampPage005A45B0(void);
-void DeactivateCampPage005A4770(void);
-void DrawCampScreen005A42A0(void);
-void DrawCampRegenStats005A4890(void);
+int CreateCampActionPanel(void);
+int CreateItemsTabPanel(void);
+int CreateCampSecondaryPanel(void);
+void DrawCampCharacterInfo(void);
+void DrawCampBackpackItems(void);
+void DrawCampEquipmentItems(void);
+void DrawCampItemPool(void);
+void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width);
+void ActivateCampPage(void);
+void DeactivateCampPage(void);
+void DrawCampScreen(void);
+void DrawCampRegenStats(void);
 // GLOBAL: WIZ8 0x0069c428
 Controls* g_camp_secondary_panel_0069c428;
 
@@ -194,7 +194,7 @@ int g_attribute_label_ids_64dd30[7] = {0x924, 0x925, 0x926, 0x927, 0x928, 0x92a,
 const wchar_t g_format_s_colon_d_s_colon_d_0064dd4c[] = L"%s: %d, %s: %d";
 
 // FUNCTION: WIZ8 0x005B9220
-void ReleaseCampActionPanel005B9220(void)
+void ReleaseCampActionPanel(void)
 {
     Controls* panel = g_camp_action_panel_0069c464;
     if (panel != 0) {
@@ -212,7 +212,7 @@ void ReleaseCampActionPanel005B9220(void)
 }
 
 // FUNCTION: WIZ8 0x005B9760
-void ReleaseItemsTabPanel005B9760(void)
+void ReleaseItemsTabPanel(void)
 {
     Controls* panel = g_camp_realm_tab_panel_0069c48c;
     if (panel != 0) {
@@ -248,7 +248,7 @@ void ReleaseCampSecondaryPanel(void)
 }
 
 // FUNCTION: WIZ8 0x005b9ef0
-void InvalidateCampPanel005B9EF0(void)
+void InvalidateCampPanel(void)
 {
     g_camp_secondary_panel_0069c428->Invalidate(0);
 }
@@ -296,7 +296,7 @@ public:
 // FUNCTION: WIZ8 0x005b7c90
 void W8CampInfoLabel005EF2B0::OnMouseEnter(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     W8TextControl::OnMouseEnter(event);
 }
 
@@ -304,7 +304,7 @@ void W8CampInfoLabel005EF2B0::OnMouseEnter(int event)
    0x005B7CB0. */
 void W8CampInfoLabel005EF2B0::OnLeftButtonDown(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     W8TextControl::OnLeftButtonDown(event);
 }
 
@@ -312,14 +312,14 @@ void W8CampInfoLabel005EF2B0::OnLeftButtonDown(int event)
    0x005B7CD0. */
 void W8CampInfoLabel005EF2B0::OnLeftButtonUp(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     W8TextControl::OnLeftButtonUp(event);
 }
 
 // FUNCTION: WIZ8 0x005b7cf0
 void W8CampInfoLabel005EF2B0::OnLeftButtonDoubleClick(int event)
 {
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     W8TextControl::OnLeftButtonDoubleClick(event);
 }
 
@@ -338,7 +338,7 @@ const wchar_t g_format_s_colon_00648164[] = L"%s: ";
 /* Enable or disable the six spell-realm scrollbars together. While enabling, a
    realm whose learned spells fit the eight visible rows keeps its bar off. */
 // FUNCTION: WIZ8 0x005B71C0
-void SetCampSpellRangesEnabled005B71C0(unsigned char enable)
+void SetCampSpellRangesEnabled(unsigned char enable)
 {
     W8CampSpellRange* spell_range;
     int realm;
@@ -362,7 +362,7 @@ void SetCampSpellRangesEnabled005B71C0(unsigned char enable)
 /* Re-enable all six spell-realm scrollbars after the learned-spell lists were
    rebuilt for a new character. */
 // FUNCTION: WIZ8 0x005B7290
-void RefreshCampSpellRanges005B7290(void)
+void RefreshCampSpellRanges(void)
 {
     W8CampSpellRange* spell_range;
     int realm;
@@ -386,7 +386,7 @@ void RefreshCampSpellRanges005B7290(void)
    row under the cursor gets the highlight palette and unaffordable or
    unusable spells dim. */
 // FUNCTION: WIZ8 0x005B7300
-void DrawCampSpellPages005B7300(void)
+void DrawCampSpellPages(void)
 {
     W8CampScreenState0069C0F4* state;
     W8Character* character = g_review_character_0069c0f8;
@@ -403,7 +403,7 @@ void DrawCampSpellPages005B7300(void)
 
     SetFont(g_font_683660);
     if ((g_camp_screen_0069c0f4->redraw_flags & 0x100000) != 0 && gXStatus.fSpellCastMode == 0) {
-        DrawCampResistances005B7790();
+        DrawCampResistances();
     }
     if (g_camp_screen_0069c0f4->redraw_flags == 0xfffffff) {
         DrawCatalogImageAndInvalidate(-14, 0x140, 0, 2, 0, 0xa5, 2, 0);
@@ -489,7 +489,7 @@ void DrawCampSpellPages005B7300(void)
    fill to the learned portion, the overflow to the bonus band or the shortfall
    to the gap, then right-aligns the value inside the bar. */
 // FUNCTION: WIZ8 0x005B7790
-void DrawCampResistances005B7790(void)
+void DrawCampResistances(void)
 {
     SGPRect saved_clip;
     SGPRect clip;
@@ -558,7 +558,7 @@ void DrawCampResistances005B7790(void)
    ones, wheel input scrolls the realm's range control, and activating a valid
    row opens its spell info dialog. */
 // FUNCTION: WIZ8 0x005B79F0
-unsigned char SpellListRegionHandler005B79F0(const InputAtom* event, W8Region* region)
+unsigned char SpellListRegionHandler(const InputAtom* event, W8Region* region)
 {
     unsigned short realm;
     int row;
@@ -566,9 +566,9 @@ unsigned char SpellListRegionHandler005B79F0(const InputAtom* event, W8Region* r
     int delta;
     int count;
 
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     realm = region->callback_id;
-    row = (GetAtomCursorY004285A0(event) - region->y1 - 1) / 0xd;
+    row = (GetAtomCursorY(event) - region->y1 - 1) / 0xd;
     visible = g_review_character_0069c0f8->skill_unlocks[0x1c + realm] -
               g_camp_screen_0069c0f4->learned_spells.scroll[realm];
     if (visible >= 8) {
@@ -607,7 +607,7 @@ unsigned char SpellListRegionHandler005B79F0(const InputAtom* event, W8Region* r
     }
     if (event->usEvent == 0x100) {
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && row != -1) {
-            OpenSpellInfoDialog005B7BB0(
+            OpenSpellInfoDialog(
                 g_camp_screen_0069c0f4->learned_spells.spell_ids_by_realm
                     [realm][g_camp_screen_0069c0f4->learned_spells.scroll[realm] + row]);
         }
@@ -625,7 +625,7 @@ unsigned char SpellListRegionHandler005B79F0(const InputAtom* event, W8Region* r
         return 1;
     }
     if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 && row != -1) {
-        OpenSpellInfoDialog005B7BB0(
+        OpenSpellInfoDialog(
             g_camp_screen_0069c0f4->learned_spells
                 .spell_ids_by_realm[realm]
                                    [g_camp_screen_0069c0f4->learned_spells.scroll[realm] + row]);
@@ -636,7 +636,7 @@ unsigned char SpellListRegionHandler005B79F0(const InputAtom* event, W8Region* r
 
 /* Open the spell info dialog for one spell id off the camp spell lists. */
 // FUNCTION: WIZ8 0x005B7BB0
-void OpenSpellInfoDialog005B7BB0(unsigned int spell_id)
+void OpenSpellInfoDialog(unsigned int spell_id)
 {
     W8SpellInfoDialog* dialog = new W8SpellInfoDialog(spell_id);
     dialog->SetText(&g_wchar_00689b34);
@@ -647,21 +647,21 @@ void OpenSpellInfoDialog005B7BB0(unsigned int spell_id)
    redraw flags is cleared by repainting that block, and the two bottom/right
    panels repaint when their own bits are raised. */
 // FUNCTION: WIZ8 0x005b7d10
-void RedrawCampItemsPage005B7D10(void)
+void RedrawCampItemsPage(void)
 {
     SetFont(g_font_683660);
     SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
     if ((g_camp_screen_0069c0f4->redraw_flags & 0x2000) != 0) {
-        DrawCampCharacterInfo005B7E00();
+        DrawCampCharacterInfo();
     }
     if ((g_camp_screen_0069c0f4->item_redraw_flags & 0x1ff) != 0) {
-        DrawCampBackpackItems005B8440();
+        DrawCampBackpackItems();
     }
     if ((g_camp_screen_0069c0f4->item_redraw_flags & 0x3ffe00) != 0) {
-        DrawCampEquipmentItems005B8690();
+        DrawCampEquipmentItems();
     }
     if ((g_camp_screen_0069c0f4->item_redraw_flags & 0x7fc00000) != 0) {
-        DrawCampItemPool005B8B20();
+        DrawCampItemPool();
         g_camp_screen_0069c0f4->item_range->UpdateRange(1);
     } else {
         g_camp_screen_0069c0f4->item_range->UpdateRange(0);
@@ -684,7 +684,7 @@ void RedrawCampItemsPage005B7D10(void)
    experience bar, the six realm icons with their point pools, the attribute
    rows and the armor summaries. */
 // FUNCTION: WIZ8 0x005b7e00
-void DrawCampCharacterInfo005B7E00(void)
+void DrawCampCharacterInfo(void)
 {
     W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
     W8Character* character = g_review_character_0069c0f8;
@@ -802,7 +802,7 @@ void DrawCampCharacterInfo005B7E00(void)
 /* The eight backpack cells under the character block, flag bits 1..8 of
    item_redraw_flags; bit 0 repaints the header strip and caption. */
 // FUNCTION: WIZ8 0x005b8440
-void DrawCampBackpackItems005B8440(void)
+void DrawCampBackpackItems(void)
 {
     W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
     W8Character* character = g_review_character_0069c0f8;
@@ -836,7 +836,7 @@ void DrawCampBackpackItems005B8440(void)
         if (item_id != -1) {
             DrawCatalogImage(-14, g_item_video_objects_68ec68.GetOrCreateVideoObject(item_id), 0, 0,
                              left + 1, top + 1, 2, 0);
-            DrawCampItemQuantity005B8EC0(&character->backpack[slot], left + 1, top + 0x28, 0x2c);
+            DrawCampItemQuantity(&character->backpack[slot], left + 1, top + 0x28, 0x2c);
             if (character->backpack[slot].identified == 0) {
                 DrawCatalogImage(-14, 0x11b, 0, 0, left, top, 2, 0);
             }
@@ -855,7 +855,7 @@ void DrawCampBackpackItems005B8440(void)
 /* The twelve equipment cells; bit 9 of item_redraw_flags repaints the paper
    doll backdrop and race/gender portrait, bits 10..21 the slots. */
 // FUNCTION: WIZ8 0x005b8690
-void DrawCampEquipmentItems005B8690(void)
+void DrawCampEquipmentItems(void)
 {
     W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
     W8Character* character = g_review_character_0069c0f8;
@@ -892,8 +892,8 @@ void DrawCampEquipmentItems005B8690(void)
             DrawCatalogImageAndInvalidate(
                 -14, g_item_video_objects_68ec68.GetOrCreateVideoObject(item_id), 0, 1, region->x,
                 region->y, 2, 0);
-            DrawCampItemQuantity005B8EC0(&character->EquippedItem[slot], region->x + 2,
-                                         region->y + region->height - 0xd, region->width - 4);
+            DrawCampItemQuantity(&character->EquippedItem[slot], region->x + 2,
+                                 region->y + region->height - 0xd, region->width - 4);
             if (character->EquippedItem[slot].identified == 0) {
                 DrawCatalogImage(-14, 0x11b, 0, static_cast<short>(region->unidentified_frame_14),
                                  region->x, region->y, 2, 0);
@@ -949,7 +949,7 @@ void DrawCampEquipmentItems005B8690(void)
             frame = region->frame_10;
         } else {
             if (g_status_685170.item_in_cursor == 0 || state->entry_mode == 1 ||
-                !IsPartySlotEligible00524A10(giReviewCharSlot) ||
+                !IsPartySlotEligible(giReviewCharSlot) ||
                 !CanEquipItemInSlot(character, g_status_685170.item_in_hand_235b.iItemNo,
                                     static_cast<unsigned char>(slot), 1) ||
                 !CanCharacterUseItem(character, g_status_685170.item_in_hand_235b.iItemNo)) {
@@ -964,7 +964,7 @@ void DrawCampEquipmentItems005B8690(void)
 /* The shared party item pool: the bottom-right grid of up to eight visible
    cells, plus the header strip and the gold counter when bit 22 is raised. */
 // FUNCTION: WIZ8 0x005b8b20
-void DrawCampItemPool005B8B20(void)
+void DrawCampItemPool(void)
 {
     W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
     W8Character* character = g_review_character_0069c0f8;
@@ -1016,7 +1016,7 @@ void DrawCampItemPool005B8B20(void)
         }
         DrawCatalogImage(-14, g_item_video_objects_68ec68.GetOrCreateVideoObject(item->iItemNo), 0,
                          0, left + 1, top + 1, 2, 0);
-        DrawCampItemQuantity005B8EC0(item, left + 1, top + 0x28, 0x2c);
+        DrawCampItemQuantity(item, left + 1, top + 0x28, 0x2c);
         if (item->identified == 0) {
             DrawCatalogImage(-14, 0x11b, 0, 0, left, top, 2, 0);
         }
@@ -1053,7 +1053,7 @@ void DrawCampItemPool005B8B20(void)
    the item record's quantity kind; charge figures ride the alternate font
    palettes and restore the default afterwards. */
 // FUNCTION: WIZ8 0x005b8ec0
-void DrawCampItemQuantity005B8EC0(W8ItemInstance* item, int left, int top, int width)
+void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
 {
     W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
     int height;
@@ -1092,7 +1092,7 @@ void DrawCampItemQuantity005B8EC0(W8ItemInstance* item, int left, int top, int w
 /* The bottom-left panel and its two buttons: drop the held equipment and
    toggle the character's party-row flag. */
 // FUNCTION: WIZ8 0x005b9070
-int CreateCampActionPanel005B9070(void)
+int CreateCampActionPanel(void)
 {
     int index;
 
@@ -1115,10 +1115,8 @@ int CreateCampActionPanel005B9070(void)
         ++index;
         if (index > 1) {
             g_camp_action_buttons_0069c468[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
-            g_camp_action_buttons_0069c468[0]->m_primaryActivationCallback =
-                UnequipBothHands005BB010;
-            g_camp_action_buttons_0069c468[1]->m_primaryActivationCallback =
-                TogglePartyRowFlag005BB140;
+            g_camp_action_buttons_0069c468[0]->m_primaryActivationCallback = UnequipBothHands;
+            g_camp_action_buttons_0069c468[1]->m_primaryActivationCallback = TogglePartyRowFlag;
             g_camp_action_panel_0069c464->SetEnabled(1);
             return 1;
         }
@@ -1127,7 +1125,7 @@ int CreateCampActionPanel005B9070(void)
 }
 
 // FUNCTION: WIZ8 0x005b9270
-void EnableCampActionButtons005B9270(void)
+void EnableCampActionButtons(void)
 {
     g_camp_action_buttons_0069c468[0]->SetActive(1);
     g_camp_action_buttons_0069c468[1]->SetActive(1);
@@ -1147,14 +1145,14 @@ void EnableCampActionButtons005B9270(void)
 }
 
 // FUNCTION: WIZ8 0x005b9310
-void DisableCampActionButtons005B9310(void)
+void DisableCampActionButtons(void)
 {
     g_camp_action_buttons_0069c468[0]->SetActive(0);
     g_camp_action_buttons_0069c468[1]->SetActive(0);
 }
 
 // FUNCTION: WIZ8 0x005b9330
-void RefreshCampActionPanel005B9330(char invalidate)
+void RefreshCampActionPanel(char invalidate)
 {
     if (invalidate != 0) {
         g_camp_action_panel_0069c464->Invalidate(0);
@@ -1165,7 +1163,7 @@ void RefreshCampActionPanel005B9330(char invalidate)
 /* The right-hand panel of seven tabs: the six realm filters and the pool sort
    button. */
 // FUNCTION: WIZ8 0x005b9350
-int CreateItemsTabPanel005B9350(void)
+int CreateItemsTabPanel(void)
 {
     int index;
 
@@ -1229,7 +1227,7 @@ int CreateItemsTabPanel005B9350(void)
    runs, and a realm with its flag set keeps the secondary (highlighted) state.
    The sort button has no realm flag of its own. */
 // FUNCTION: WIZ8 0x005b97b0
-void UpdateItemsRealmTabs005B97B0(void)
+void UpdateItemsRealmTabs(void)
 {
     int index;
     unsigned char flag;
@@ -1274,7 +1272,7 @@ void UpdateItemsRealmTabs005B97B0(void)
 }
 
 // FUNCTION: WIZ8 0x005b98c0
-void DisableItemsRealmTabs005B98C0(void)
+void DisableItemsRealmTabs(void)
 {
     int index;
 
@@ -1284,7 +1282,7 @@ void DisableItemsRealmTabs005B98C0(void)
 }
 
 // FUNCTION: WIZ8 0x005b98e0
-void RefreshItemsTabPanel005B98E0(char invalidate)
+void RefreshItemsTabPanel(char invalidate)
 {
     if (invalidate != 0) {
         g_camp_realm_tab_panel_0069c48c->Invalidate(0);
@@ -1297,7 +1295,7 @@ void RefreshItemsTabPanel005B98E0(char invalidate)
    are W8CampInfoLabel005EF2B0 controls created with absolute coordinates
    relative to the panel origin. */
 // FUNCTION: WIZ8 0x005b9900
-int CreateCampSecondaryPanel005B9900(void)
+int CreateCampSecondaryPanel(void)
 {
     Controls* panel;
     int index;
@@ -1391,7 +1389,7 @@ int CreateCampSecondaryPanel005B9900(void)
 }
 
 // FUNCTION: WIZ8 0x005b9f00
-void EnableCampSecondaryPanel005B9F00(void)
+void EnableCampSecondaryPanel(void)
 {
     int index;
 
@@ -1408,7 +1406,7 @@ void EnableCampSecondaryPanel005B9F00(void)
 }
 
 // FUNCTION: WIZ8 0x005b9f60
-void DisableCampSecondaryPanel005B9F60(void)
+void DisableCampSecondaryPanel(void)
 {
     int index;
 
@@ -1419,7 +1417,7 @@ void DisableCampSecondaryPanel005B9F60(void)
 }
 
 // FUNCTION: WIZ8 0x005b9f90
-void RefreshCampSecondaryPanel005B9F90(char invalidate)
+void RefreshCampSecondaryPanel(char invalidate)
 {
     if (invalidate != 0) {
         g_camp_secondary_panel_0069c428->Invalidate(0);
@@ -1495,7 +1493,7 @@ void W8CampCharacterInfo::Redraw()
     Controls::Redraw();
     if (!redraw)
         return;
-    InvalidateCampPanel005B9EF0();
+    InvalidateCampPanel();
     DrawRcsText(gppStringList[0x24d4 / 4], 0x15e, 0x84, 0x4e,
                 g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED548);
     swprintf(g_camp_screen_0069c0f4->caption, L"%d", g_review_character_0069c0f8->kill_count_09f9);
@@ -1799,10 +1797,10 @@ unsigned char CampScreenEnter(void)
     }
     g_camp_screen_0069c0f4->item_timer_active = false;
     g_camp_screen_0069c0f4->item_timer_expired = false;
-    CreateCampButtonPanel005B4EB0();
-    CreateCampActionPanel005B9070();
-    CreateItemsTabPanel005B9350();
-    CreateCampSecondaryPanel005B9900();
+    CreateCampButtonPanel();
+    CreateCampActionPanel();
+    CreateItemsTabPanel();
+    CreateCampSecondaryPanel();
     CreateRcsLevelUpPanel();
     CreateRcsDismissPanel();
     g_camp_screen_0069c0f4->page = 0;
@@ -1818,7 +1816,7 @@ unsigned char CampScreenEnter(void)
     g_camp_screen_0069c0f4->stats_controls = new W8CampStatsControls;
     g_camp_screen_0069c0f4->character_info = new W8CampCharacterInfo;
     g_camp_screen_0069c0f4->item_icons_drawn_d50 = false;
-    ActivateCampPage005A45B0();
+    ActivateCampPage();
     g_camp_screen_0069c0f4->animation_timer = SetCountdownClock(50);
     for (unsigned int animation = 0; animation < 6; ++animation) {
         g_camp_screen_0069c0f4->animation_frames[animation] =
@@ -1827,8 +1825,7 @@ unsigned char CampScreenEnter(void)
     if (gXStatus.fCombatMode && g_combat_state->equip_phase_a50) {
         if (g_combat_state->equip_pending_a51 == 1) {
             for (int slot = 0; slot < 8; ++slot) {
-                if (g_status_685170.buffers.XChar[slot].fOccupied &&
-                    IsPartySlotEligible00524A10(slot) &&
+                if (g_status_685170.buffers.XChar[slot].fOccupied && IsPartySlotEligible(slot) &&
                     g_status_685170.buffers.XChar[slot].pending_action == 9) {
                     swprintf(g_camp_screen_0069c0f4->caption, L"%s %s",
                              g_status_685170.buffers.Char[slot].name, gppStringList[0x2464 / 4]);
@@ -1838,8 +1835,7 @@ unsigned char CampScreenEnter(void)
         } else {
             unsigned char count = 0;
             for (int slot = 0; slot < 8; ++slot) {
-                if (g_status_685170.buffers.XChar[slot].fOccupied &&
-                    IsPartySlotEligible00524A10(slot) &&
+                if (g_status_685170.buffers.XChar[slot].fOccupied && IsPartySlotEligible(slot) &&
                     g_status_685170.buffers.XChar[slot].pending_action == 9) {
                     ++count;
                     if (count == 1) {
@@ -1875,7 +1871,7 @@ unsigned char CampScreenEnter(void)
     ResetTransientRenderScenes();
     SetPrimarySurfaceTextureHint2Enabled(0);
     if (!g_status_685170.game_started) {
-        StartMusicResource0048FC10("MainMenu.MPL", 1, 1);
+        StartMusicResource("MainMenu.MPL", 1, 1);
     }
     return 1;
 }
@@ -1889,7 +1885,7 @@ void CampScreenFrame(void)
     if (IsMessageBoxActive()) {
         ProcessMessageBoxInput();
     }
-    ServiceMusicPlaylist0048F9E0();
+    ServiceMusicPlaylist();
     if (g_camp_screen_0069c0f4->dialog && !ProcessDialogInput(g_camp_screen_0069c0f4->dialog)) {
         ClearActiveRegionIfMatches(0x138);
         delete g_camp_screen_0069c0f4->dialog;
@@ -1915,9 +1911,8 @@ void CampScreenFrame(void)
                         BeginCombatRound();
                         RequestScreenTransition();
                     } else {
-                        SelectCampCharacter005B6B30(
-                            CharacterPointerToPartySlot(g_camp_character_0069c100));
-                        if (!IsPartySlotEligible00524A10(giReviewCharSlot)) {
+                        SelectCampCharacter(CharacterPointerToPartySlot(g_camp_character_0069c100));
+                        if (!IsPartySlotEligible(giReviewCharSlot)) {
                             wchar_t* text = FormatWideString(gppStringList[0x24c4 / 4],
                                                              g_camp_character_0069c100->name);
                             W8MessageDialogBase* dialog =
@@ -1974,21 +1969,21 @@ void CampScreenFrame(void)
         gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
         UpdateCharacterEventState();
     }
-    DrawCampScreen005A42A0();
+    DrawCampScreen();
 }
 
 // FUNCTION: WIZ8 0x005a3ee0
 unsigned char CampScreenLeave(int)
 {
-    DeactivateCampPage005A4770();
+    DeactivateCampPage();
     SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
     SetFontObjectPalette16BPP(g_calligraphy_font_6835f8, g_font_palette_calligraphy_68edfc);
     SetFontObjectPalette16BPP(g_calligraphy_shadow_font_6835f4,
                               g_font_palette_calligraphy_shadow_68ee18);
     SetFontObjectPalette16BPP(g_wiz_text_font_683640, g_font_palette_wiz_text_68ee14);
-    DestroyCampButtonPanel005B55F0();
-    ReleaseCampActionPanel005B9220();
-    ReleaseItemsTabPanel005B9760();
+    DestroyCampButtonPanel();
+    ReleaseCampActionPanel();
+    ReleaseItemsTabPanel();
     ReleaseCampSecondaryPanel();
     DestroyRcsLevelUpPanel();
     DestroyRcsDismissPanel();
@@ -2021,8 +2016,8 @@ unsigned char CampScreenLeave(int)
 void DismissSelectedPartyCharacter(void)
 {
     if (g_camp_character_pending_0069c104 != 0) {
-        SelectCampCharacter005B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
-        if (IsPartySlotEligible00524A10(giReviewCharSlot) != 0) {
+        SelectCampCharacter(CharacterPointerToPartySlot(g_camp_character_0069c100));
+        if (IsPartySlotEligible(giReviewCharSlot) != 0) {
             QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
                                 g_effect_argument_005ed8cc, g_effect_argument_005ed914);
             return;
@@ -2049,7 +2044,7 @@ void DismissSelectedPartyCharacter(void)
    together with the message box, the level-up/dismissal panels and the dialog
    on top of the frame. */
 // FUNCTION: WIZ8 0x005a42a0
-void DrawCampScreen005A42A0(void)
+void DrawCampScreen(void)
 {
     W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
     unsigned int index;
@@ -2067,25 +2062,25 @@ void DrawCampScreen005A42A0(void)
                 state->dialog->m_dirty_flags |= 1;
             }
         }
-        DrawCampHeader005B4000();
+        DrawCampHeader();
         switch (state->page) {
         case 0:
-            RedrawCampItemsPage005B7D10();
+            RedrawCampItemsPage();
             break;
         case 1:
-            DrawCampStatsPage005C48B0();
+            DrawCampStatsPage();
             break;
         case 2:
-            DrawCampSkillsPage005C5D80();
+            DrawCampSkillsPage();
             break;
         case 3:
-            DrawCampSpellPages005B7300();
+            DrawCampSpellPages();
             break;
         case 4:
-            DrawCampRegenStats005A4890();
+            DrawCampRegenStats();
             break;
         }
-        RefreshCampItemActions005B5670((state->redraw_flags & 0x1000) != 0);
+        RefreshCampItemActions((state->redraw_flags & 0x1000) != 0);
         SetFont(g_calligraphy_font_6835f8);
         SetObjectShade(g_calligraphy_font_object_683628, 4);
         state->item_redraw_flags = 0;
@@ -2099,12 +2094,12 @@ void DrawCampScreen005A42A0(void)
     }
     state->character_info->Redraw();
     if (state->page == 0) {
-        RefreshCampActionPanel005B9330(0);
-        RefreshItemsTabPanel005B98E0(0);
-        RefreshCampSecondaryPanel005B9F90(0);
+        RefreshCampActionPanel(0);
+        RefreshItemsTabPanel(0);
+        RefreshCampSecondaryPanel(0);
         state->item_range->m_range->Redraw();
         if (g_monster_combat_timer_enabled_006f0531 && state->dialog == 0) {
-            DrawCampItemIcons005BBE30();
+            DrawCampItemIcons();
             state->item_icons_drawn_d50 = true;
         }
     } else if (state->page == 1) {
@@ -2115,11 +2110,11 @@ void DrawCampScreen005A42A0(void)
             state->spell_ranges[index]->UpdateRange(0);
         }
     }
-    RefreshCampItemActions005B5670(0);
+    RefreshCampItemActions(0);
     if (gXStatus.fCombatMode == 0) {
         if (giReviewCharSlot != -1) {
             if (g_status_685170.game_started != 0 ||
-                (g_previous_screen_id == 5 && PartySelectionInReviewMode005C3470() != 0)) {
+                (g_previous_screen_id == 5 && PartySelectionInReviewMode() != 0)) {
                 UpdateRcsLevelUpPanel();
             }
             if (gXStatus.fCombatMode != 0) {
@@ -2139,7 +2134,7 @@ done:
 }
 
 // FUNCTION: WIZ8 0x005A4570
-void SyncReviewCharInputRegion005A4570(void)
+void SyncReviewCharInputRegion(void)
 {
     if (giReviewCharSlot != -1 && g_status_685170.buffers.XChar[giReviewCharSlot].npc_index != -1) {
         DisableRegionInput(0xf2);
@@ -2151,11 +2146,11 @@ void SyncReviewCharInputRegion005A4570(void)
 /* Switch the active camp page: tear the old page down, record the new index,
    bring it up and repaint the whole character block. */
 // FUNCTION: WIZ8 0x005a4540
-void SwitchCampPage005A4540(int page)
+void SwitchCampPage(int page)
 {
-    DeactivateCampPage005A4770();
+    DeactivateCampPage();
     g_camp_screen_0069c0f4->page = page;
-    ActivateCampPage005A45B0();
+    ActivateCampPage();
     g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
 }
 
@@ -2163,7 +2158,7 @@ void SwitchCampPage005A4540(int page)
    items page, gates the party-portrait regions on whether a character is being
    reviewed, then enables the page's own region sets and controls. */
 // FUNCTION: WIZ8 0x005a45b0
-void ActivateCampPage005A45B0(void)
+void ActivateCampPage(void)
 {
     W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
     unsigned int index;
@@ -2186,31 +2181,31 @@ void ActivateCampPage005A45B0(void)
     switch (state->page) {
     case 0:
         RegionSetEnable(0x2a);
-        EnableCampActionButtons005B9270();
-        UpdateItemsRealmTabs005B97B0();
-        EnableCampSecondaryPanel005B9F00();
+        EnableCampActionButtons();
+        UpdateItemsRealmTabs();
+        EnableCampSecondaryPanel();
         SetItemPageMode005B9FD0(state->item_mode);
         state->item_range->m_range->EnableRegionSet(1);
         if (g_status_685170.game_started != 0) {
             RegionSetEnable(0x2b);
             state->item_scroll = 0;
-            RebuildCampItemList005A4A00();
+            RebuildCampItemList();
             return;
         }
         break;
     case 1:
-        RebuildCampEffectList005C4EE0();
+        RebuildCampEffectList();
         state->stats_range->m_range->EnableRegionSet(1);
         state->stats_controls->EnableRegionSet(1);
         state->character_info->SetEnabled(1);
         return;
     case 2:
-        CreateCampSkillRegions005C5CD0();
+        CreateCampSkillRegions();
         return;
     case 3:
         RegionSetEnable(0x2c);
-        BuildLearnedSpellState004F9600(&state->learned_spells, g_review_character_0069c0f8);
-        RefreshCampSpellRanges005B7290();
+        BuildLearnedSpellState(&state->learned_spells, g_review_character_0069c0f8);
+        RefreshCampSpellRanges();
         gXStatus.fSpellCastMode = false;
         state->selected_spell_row = -1;
         break;
@@ -2221,7 +2216,7 @@ void ActivateCampPage005A45B0(void)
    releases the page's rebuilt state - the effect list on the stats page, the
    skill-improvement flags on the skills page. */
 // FUNCTION: WIZ8 0x005a4770
-void DeactivateCampPage005A4770(void)
+void DeactivateCampPage(void)
 {
     W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
     unsigned int index;
@@ -2229,9 +2224,9 @@ void DeactivateCampPage005A4770(void)
     switch (state->page) {
     case 0:
         RegionSetDisable(0x2a);
-        DisableItemsRealmTabs005B98C0();
-        DisableCampActionButtons005B9310();
-        DisableCampSecondaryPanel005B9F60();
+        DisableItemsRealmTabs();
+        DisableCampActionButtons();
+        DisableCampSecondaryPanel();
         state->character_info->SetEnabled(0);
         state->item_range->m_range->EnableRegionSet(0);
         if (g_status_685170.game_started != 0) {
@@ -2250,14 +2245,14 @@ void DeactivateCampPage005A4770(void)
         }
         break;
     case 2:
-        DisableCampSkillRegions005C5D70();
+        DisableCampSkillRegions();
         for (index = 0; index < 0x29; ++index) {
             g_review_character_0069c0f8->skills[index].improved_12 = 0;
         }
         return;
     case 3:
         RegionSetDisable(0x2c);
-        SetCampSpellRangesEnabled005B71C0(0);
+        SetCampSpellRangesEnabled(0);
         break;
     }
 }
@@ -2265,7 +2260,7 @@ void DeactivateCampPage005A4770(void)
 /* Camp page 4: the reviewed character's health, stamina and per-realm spell
    point regeneration rates. */
 // FUNCTION: WIZ8 0x005a4890
-void DrawCampRegenStats005A4890(void)
+void DrawCampRegenStats(void)
 {
     unsigned int index;
 
@@ -2290,11 +2285,11 @@ void DrawCampRegenStats005A4890(void)
 
 /* Kicked off by the post-quake camera-shake callback: latches the endgame
    flags, resets input regions, then starts the fade whose completion runs
-   ShowEndingScreen005A6B90 - the ending sequence picker. Fact 0x1a2 forces the long
+   ShowEndingScreen - the ending sequence picker. Fact 0x1a2 forces the long
    fade, fact 0x2f4 swaps the timing and marks the variant. */
 /* Realm filters 2-5 are exclusive: selecting one clears the others. */
 // FUNCTION: WIZ8 0x005a49d0
-void ClearOtherRealmFilters005A49D0(unsigned int realm)
+void ClearOtherRealmFilters(unsigned int realm)
 {
     unsigned int index;
 
@@ -2311,7 +2306,7 @@ void ClearOtherRealmFilters005A49D0(unsigned int realm)
    scrollbar's range and value track the count; the scroll position snaps back
    inside an emptied or shrunken list. */
 // FUNCTION: WIZ8 0x005a4a00
-void RebuildCampItemList005A4A00(void)
+void RebuildCampItemList(void)
 {
     unsigned int index;
     unsigned char filter;
@@ -2358,7 +2353,7 @@ void RebuildCampItemList005A4A00(void)
 }
 
 // FUNCTION: WIZ8 0x005a4bc0
-void SetCampInputMode005A4BC0(int mode)
+void SetCampInputMode(int mode)
 {
     g_camp_screen_0069c0f4->input_mode = mode;
     g_camp_screen_0069c0f4->redraw_flags |= 0x7ff;
@@ -2390,7 +2385,7 @@ void ShowCampNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int con
    identify, stack split, use, use held item on item - and the held item can
    merge onto the clicked stack, swap with it, or drop into the pool. */
 // FUNCTION: WIZ8 0x005a4c70
-void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, unsigned int origin)
+void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned int origin)
 {
     W8CombatSlot target;
     short related_kind;
@@ -2426,7 +2421,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
     /* A held stackable whose name kind the clicked item merges with counts as
        the same item for the use-merge path below. */
     if (g_status_685170.item_in_cursor != 0 && item->iItemNo != -1 &&
-        GetItemMergeKind0051E980(item->iItemNo, &related_kind) != 0 &&
+        GetItemMergeKind(item->iItemNo, &related_kind) != 0 &&
         g_item_records[g_status_685170.item_in_hand_235b.iItemNo].unidentified_name_index ==
             related_kind) {
         same_kind = 1;
@@ -2512,18 +2507,18 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
             ((g_item_records[g_status_685170.item_in_hand_235b.iItemNo].equip_class == 2 ||
               g_item_records[g_status_685170.item_in_hand_235b.iItemNo].equip_class == 4) &&
              gXStatus.held_item_source == giReviewCharSlot &&
-             (origin != 1 || HeldItemFitsPairedSlot0051CDE0(giReviewCharSlot, slot_index) != 0))) {
+             (origin != 1 || HeldItemFitsPairedSlot(giReviewCharSlot, slot_index) != 0))) {
             if (item->iItemNo == -1 || g_item_records[item->iItemNo].equip_class == 2 ||
                 g_item_records[item->iItemNo].equip_class == 4 || same_kind != 0) {
                 gated = 0;
             }
         }
     }
-    if (gated != 0 && IsCampActionAllowed005A6090(giReviewCharSlot) == 0) {
+    if (gated != 0 && IsCampActionAllowed(giReviewCharSlot) == 0) {
         return;
     }
     if (gfKeyState[0x10] != 0) {
-        TakeItemUnitToHand005A5DA0(item, slot_index, origin);
+        TakeItemUnitToHand(item, slot_index, origin);
         return;
     }
     if (g_camp_screen_0069c0f4->entry_mode == 2) {
@@ -2550,23 +2545,23 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
             g_item_records[row->pending_action_detail_015.item_use.item->iItemNo].spell_id ==
                 0x17) {
             reidentify = 1;
-            result = CommitPartySlotItemUse005A6440(
-                party_slot, row->pending_action_detail_015.item_use.item, &target);
+            result = CommitPartySlotItemUse(party_slot,
+                                            row->pending_action_detail_015.item_use.item, &target);
         } else {
-            result = CommitPartySlotSpell005A6340(party_slot, 0x17, 8, &target);
+            result = CommitPartySlotSpell(party_slot, 0x17, 8, &target);
         }
         if (origin == 2 && reidentify != 0 &&
             old_pool_count != g_status_685170.party_item_count_1791) {
             item = &g_status_685170.party_item_pool_0021[g_status_685170.party_item_count_1791 -
                                                          old_pool_count + slot_index];
-            RebuildCampItemList005A4A00();
+            RebuildCampItemList();
             RecalculateCarriedWeight(g_review_character_0069c0f8);
             RedistributePartyEncumbrance();
             g_camp_screen_0069c0f4->redraw_flags |= 0x2000;
             g_camp_screen_0069c0f4->item_redraw_flags |= 0x7fc00000;
         }
         if (result == 1 && item->iItemNo != -1) {
-            OpenItemInfoDialog005BA110(item, 0);
+            OpenItemInfoDialog(item, 0);
             if (item->identified == 0) {
                 QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot],
                                     g_character_event_kind_005ee65c, 0, g_effect_argument_005ed8c8,
@@ -2577,20 +2572,20 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
         return;
     }
     if (g_camp_screen_0069c0f4->entry_mode == 8) {
-        UseHeldItemOnItem005BA740(item);
+        UseHeldItemOnItem(item);
         return;
     }
     if (g_camp_screen_0069c0f4->entry_mode == 3) {
-        IdentifyAndOpenItemInfo005BA370(item);
+        IdentifyAndOpenItemInfo(item);
         return;
     }
     if (g_camp_screen_0069c0f4->entry_mode == 4) {
         if (item->iItemNo != -1) {
-            OpenSplitStackDialog005BA400(item);
+            OpenSplitStackDialog(item);
             return;
         }
     } else if (g_camp_screen_0069c0f4->entry_mode == 5) {
-        if (CanCharacterUseItemEntry005BAA10(g_review_character_0069c0f8, item) != 0) {
+        if (CanCharacterUseItemEntry(g_review_character_0069c0f8, item) != 0) {
             UseItem005BA4F0(item);
         }
         return;
@@ -2601,8 +2596,8 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                 return;
             }
             if (g_camp_character_pending_0069c104 != 0) {
-                SelectCampCharacter005B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
-                if (IsPartySlotEligible00524A10(giReviewCharSlot) != 0) {
+                SelectCampCharacter(CharacterPointerToPartySlot(g_camp_character_0069c100));
+                if (IsPartySlotEligible(giReviewCharSlot) != 0) {
                     QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
                                         g_effect_argument_005ed8cc, g_effect_argument_005ed914);
                 } else {
@@ -2617,7 +2612,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                 }
                 return;
             }
-            MergeItemStacksWithHeld005BA5D0(item);
+            MergeItemStacksWithHeld(item);
             return;
         }
         if (item->iItemNo == -1) {
@@ -2656,11 +2651,11 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
             if (GetPairedEquipSlot(slot_index) != -1) {
                 g_status_685170.buffers.XChar[giReviewCharSlot].weapon_swap_pending_105 = 0;
             }
-            RebuildCampItemList005A4A00();
+            RebuildCampItemList();
         } else if (origin == 0) {
             RecalculateCharacterDerivedStats(&g_status_685170.buffers.Char[giReviewCharSlot]);
         } else {
-            RebuildCampItemList005A4A00();
+            RebuildCampItemList();
         }
     } else {
         /* Fold the held stack onto a matching stack; for the pool the scan
@@ -2689,9 +2684,8 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
             if (merged == 0) {
                 if (g_status_685170.item_in_cursor != 0) {
                     if (g_camp_character_pending_0069c104 != 0) {
-                        SelectCampCharacter005B6B30(
-                            CharacterPointerToPartySlot(g_camp_character_0069c100));
-                        if (IsPartySlotEligible00524A10(giReviewCharSlot) != 0) {
+                        SelectCampCharacter(CharacterPointerToPartySlot(g_camp_character_0069c100));
+                        if (IsPartySlotEligible(giReviewCharSlot) != 0) {
                             QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
                                                 g_effect_argument_005ed8cc,
                                                 g_effect_argument_005ed914);
@@ -2705,10 +2699,10 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                             g_camp_screen_0069c0f4->dialog = dialog;
                             ActivateDialogRegion(0x138);
                         }
-                    } else if (InsertItemIntoPartyPool00521E20(&g_status_685170.item_in_hand_235b,
-                                                               slot_index) != 0) {
+                    } else if (InsertItemIntoPartyPool(&g_status_685170.item_in_hand_235b,
+                                                       slot_index) != 0) {
                         changed = 1;
-                        RebuildCampItemList005A4A00();
+                        RebuildCampItemList();
                     } else {
                         text = gppStringList[0x2430 / 4];
                         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
@@ -2725,12 +2719,12 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                     changed = 1;
                     if (g_camp_screen_0069c0f4->entry_mode == 6) {
                         DropHeldItem005BA3D0();
-                        RebuildCampItemList005A4A00();
+                        RebuildCampItemList();
                     } else if (g_camp_screen_0069c0f4->entry_mode == 1) {
-                        SetHandCursors005BAFC0(0);
-                        RebuildCampItemList005A4A00();
+                        SetHandCursors(0);
+                        RebuildCampItemList();
                     } else {
-                        RebuildCampItemList005A4A00();
+                        RebuildCampItemList();
                     }
                 }
             }
@@ -2743,7 +2737,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                     if (item->iItemNo != -1 && (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
                         npc =
                             GetNpcState(g_status_685170.buffers.XChar[giReviewCharSlot].npc_index);
-                        if (npc != 0 && NpcWantsItem0050DC50(npc, item) != 0) {
+                        if (npc != 0 && NpcWantsItem(npc, item) != 0) {
                             g_camp_character_pending_0069c104 = 1;
                             g_camp_character_0069c100 = g_review_character_0069c0f8;
                         }
@@ -2755,7 +2749,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                                                        g_review_character_0069c0f8);
                     }
                     if (origin == 1 && g_status_685170.item_in_cursor != 0 &&
-                        HeldItemFitsPairedSlot0051CDE0(giReviewCharSlot, slot_index) == 0) {
+                        HeldItemFitsPairedSlot(giReviewCharSlot, slot_index) == 0) {
                         paired_slot = GetPairedEquipSlot(slot_index);
                         paired = &g_review_character_0069c0f8->EquippedItem[paired_slot];
                         if (CanUnequipSlotItem(g_review_character_0069c0f8, paired_slot) == 0) {
@@ -2781,7 +2775,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                                 (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
                                 npc = GetNpcState(
                                     g_status_685170.buffers.XChar[giReviewCharSlot].npc_index);
-                                if (npc != 0 && NpcWantsItem0050DC50(npc, paired) != 0) {
+                                if (npc != 0 && NpcWantsItem(npc, paired) != 0) {
                                     g_camp_character_pending_0069c104 = 1;
                                     g_camp_character_0069c100 = g_review_character_0069c0f8;
                                 }
@@ -2796,7 +2790,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                             changed = 1;
                         } else {
                             if (giReviewCharSlot == 0 || giReviewCharSlot == 1) {
-                                if (NpcWantsItem0050DC50(
+                                if (NpcWantsItem(
                                         GetNpcState(g_status_685170.buffers.XChar[giReviewCharSlot]
                                                         .npc_index),
                                         paired) != 0) {
@@ -2838,9 +2832,8 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                         }
                     }
                 } else {
-                    SelectCampCharacter005B6B30(
-                        CharacterPointerToPartySlot(g_camp_character_0069c100));
-                    if (IsPartySlotEligible00524A10(giReviewCharSlot) != 0) {
+                    SelectCampCharacter(CharacterPointerToPartySlot(g_camp_character_0069c100));
+                    if (IsPartySlotEligible(giReviewCharSlot) != 0) {
                         QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
                                             g_effect_argument_005ed8cc, g_effect_argument_005ed914);
                     } else {
@@ -2859,7 +2852,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                 DropHeldItem005BA3D0();
             } else if (g_camp_screen_0069c0f4->entry_mode == 1 &&
                        g_status_685170.item_in_cursor != 0) {
-                SetHandCursors005BAFC0(0);
+                SetHandCursors(0);
             }
             if (changed != 0) {
                 if (origin == 1) {
@@ -2867,12 +2860,12 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                     if (GetPairedEquipSlot(slot_index) != -1) {
                         g_status_685170.buffers.XChar[giReviewCharSlot].weapon_swap_pending_105 = 0;
                     }
-                    RebuildCampItemList005A4A00();
+                    RebuildCampItemList();
                 } else if (origin == 0) {
                     RecalculateCharacterDerivedStats(
                         &g_status_685170.buffers.Char[giReviewCharSlot]);
                 } else {
-                    RebuildCampItemList005A4A00();
+                    RebuildCampItemList();
                 }
             }
         }
@@ -2912,7 +2905,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
 }
 
 // FUNCTION: WIZ8 0x005a5da0
-void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsigned int origin)
+void TakeItemUnitToHand(W8ItemInstance* item, unsigned short slot, unsigned int origin)
 {
     W8ItemInstance single;
     bool moved = false;
@@ -2923,7 +2916,7 @@ void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsig
     if (item->iItemNo == -1) {
         return;
     }
-    if (CanSplitItemStack005BAA50(item) == 0) {
+    if (CanSplitItemStack(item) == 0) {
         return;
     }
     if (g_status_685170.item_in_cursor == 0) {
@@ -2952,19 +2945,19 @@ void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsig
         return;
     }
     RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
-    RebuildCampItemList005A4A00();
+    RebuildCampItemList();
     RecalculateCharacterDerivedStats(&g_status_685170.buffers.Char[giReviewCharSlot]);
     RecalculateCarriedWeight(g_review_character_0069c0f8);
     RedistributePartyEncumbrance();
     g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
 }
 
-/* Commits the pending companion swap left by MarkCampCharacterPending005A6020:
+/* Commits the pending companion swap left by MarkCampCharacterPending:
    selects the new character and either queues its join event or opens the
    refusal dialog. Returns zero when a swap was pending and consumed, one when
    the caller may proceed. force ignores the same-character early out. */
 // FUNCTION: WIZ8 0x005A5F30
-bool ResolvePendingCampCharacter005A5F30(bool force)
+bool ResolvePendingCampCharacter(bool force)
 {
     unsigned int slot;
     wchar_t* text;
@@ -2973,8 +2966,8 @@ bool ResolvePendingCampCharacter005A5F30(bool force)
     if (g_camp_character_pending_0069c104 != 0 &&
         (g_camp_character_0069c100 != g_review_character_0069c0f8 || force != 0)) {
         slot = CharacterPointerToPartySlot(g_camp_character_0069c100);
-        SelectCampCharacter005B6B30(slot);
-        if (IsPartySlotEligible00524A10(giReviewCharSlot) != 0) {
+        SelectCampCharacter(slot);
+        if (IsPartySlotEligible(giReviewCharSlot) != 0) {
             QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
                                 g_effect_argument_005ed8cc, g_effect_argument_005ed914);
             return 0;
@@ -2995,14 +2988,14 @@ bool ResolvePendingCampCharacter005A5F30(bool force)
    wants the item being used, the current character is remembered as pending a
    swap (cleared first so a failed attempt leaves none). */
 // FUNCTION: WIZ8 0x005A6020
-void MarkCampCharacterPending005A6020(W8ItemInstance* item)
+void MarkCampCharacterPending(W8ItemInstance* item)
 {
     W8NpcState* npc;
 
     g_camp_character_pending_0069c104 = 0;
     if (item->iItemNo != -1 && (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
         npc = GetNpcState(g_status_685170.buffers.XChar[giReviewCharSlot].npc_index);
-        if (npc != 0 && NpcWantsItem0050DC50(npc, item) != 0) {
+        if (npc != 0 && NpcWantsItem(npc, item) != 0) {
             g_camp_character_pending_0069c104 = 1;
             g_camp_character_0069c100 = g_review_character_0069c0f8;
         }
@@ -3013,7 +3006,7 @@ void MarkCampCharacterPending005A6020(W8ItemInstance* item)
    combat always; in combat the sleeping/paralyzed/unconscious/dead conditions
    and the equip-in-progress actions each carry their own refusal message. */
 // FUNCTION: WIZ8 0x005A6090
-bool IsCampActionAllowed005A6090(int party_slot)
+bool IsCampActionAllowed(int party_slot)
 {
     const wchar_t* message;
     W8MessageDialogBase* dialog;
@@ -3069,7 +3062,7 @@ bool IsCampActionAllowed005A6090(int party_slot)
 }
 
 // FUNCTION: WIZ8 0x005A6310
-bool IsEquippableItemClass005A6310(W8ItemInstance* item)
+bool IsEquippableItemClass(W8ItemInstance* item)
 {
     char equip_class = g_item_records[item->iItemNo].equip_class;
     if (equip_class != 2 && equip_class != 4) {
@@ -3082,8 +3075,7 @@ bool IsEquippableItemClass005A6310(W8ItemInstance* item)
    the spell id, power level and target, spends the spell points and fatigues
    the caster, then plays fizzle/learned/general-cast audio for the result. */
 // FUNCTION: WIZ8 0x005A6340
-int CommitPartySlotSpell005A6340(int party_slot, int spell_id, int power_level,
-                                 W8CombatSlot* target)
+int CommitPartySlotSpell(int party_slot, int spell_id, int power_level, W8CombatSlot* target)
 {
     int cost;
     int result;
@@ -3119,7 +3111,7 @@ int CommitPartySlotSpell005A6340(int party_slot, int spell_id, int power_level,
    mirror the spell path: fizzle, learned for a successful identify, general
    magic otherwise. */
 // FUNCTION: WIZ8 0x005A6440
-int CommitPartySlotItemUse005A6440(int party_slot, W8ItemInstance* item, W8CombatSlot* target)
+int CommitPartySlotItemUse(int party_slot, W8ItemInstance* item, W8CombatSlot* target)
 {
     int uses;
     int result;
@@ -3135,7 +3127,7 @@ int CommitPartySlotItemUse005A6440(int party_slot, W8ItemInstance* item, W8Comba
     row->pending_action_detail_015.item_use.item = item;
     row->target_out_of_combat = *target;
     result = UseItem(&g_status_685170.buffers.Char[party_slot], item, &uses);
-    StagePartySlotItemUse0051DC50(party_slot, item, target);
+    StagePartySlotItemUse(party_slot, item, target);
     if (uses == -1) {
         uses = CharacterActionFatigueCost(party_slot, W8_ACTION_USE_ITEM);
     }
@@ -3154,7 +3146,7 @@ int CommitPartySlotItemUse005A6440(int party_slot, W8ItemInstance* item, W8Comba
 }
 
 // FUNCTION: WIZ8 0x005A6580
-void BeginEndgameSequence005A6580(void)
+void BeginEndgameSequence(void)
 {
     int fade_to_black = 0;
     int fade_code = 0x5dc;
@@ -3174,12 +3166,12 @@ void BeginEndgameSequence005A6580(void)
     VideoRemoveToolTip();
     g_level_block->transition_pending = 1;
     g_level_block->review_transition_active = 1;
-    BeginScreenFade(fade_to_black, 0, fade_code, ShowEndingScreen005A6B90, 1, endgame_variant);
+    BeginScreenFade(fade_to_black, 0, fade_code, ShowEndingScreen, 1, endgame_variant);
 }
 
 /* Begin a timed full-screen fade: spawn a 640x480 colored quad over the UI,
    switch its blend shader for the requested ramp direction and seed the
-   fade state. `callback` runs from UpdateScreenFade005A6790 once the ramp
+   fade state. `callback` runs from UpdateScreenFade once the ramp
    finishes. `fade_to_black` selects the subtractive ramp (white quad
    darkening to black); `fade_out` selects the direction the opacity runs. */
 // FUNCTION: WIZ8 0x005A6620
@@ -3195,7 +3187,7 @@ void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callb
     g_fade_flag_0069c114 = arg_6;
     g_level_block->review_transition_done_328 = 1;
     if (flag != 0) {
-        SetFullscreenSceneLast004298E0(1);
+        SetFullscreenSceneLast(1);
     }
     if (fade_to_black != 0) {
         color.x = 1.0f;
@@ -3228,7 +3220,7 @@ void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callb
    fade-in snaps the quad opaque and renders twice, then the overlay is
    released and the stored callback runs. Returns g_fade_flag_0069c114. */
 // FUNCTION: WIZ8 0x005A6790
-unsigned char UpdateScreenFade005A6790(void)
+unsigned char UpdateScreenFade(void)
 {
     if (g_level_block->review_transition_done_328 == 0) {
         return 0;
@@ -3244,7 +3236,7 @@ unsigned char UpdateScreenFade005A6790(void)
             RenderFrame();
         }
         g_fade_overlay_0069c11c->release();
-        SetFullscreenSceneLast004298E0(0);
+        SetFullscreenSceneLast(0);
         if (g_fade_callback_0069c110 != 0) {
             g_fade_callback_0069c110();
         }
@@ -3268,9 +3260,9 @@ unsigned char UpdateScreenFade005A6790(void)
 /* Start the party-death transition: Iron Man runs delete the current saves
    first, then the death sting and CombatLose playlist start while the input
    regions collapse to the modal review region and the fade carries the
-   screen to DrawPartyDeathScreen005A6A70. */
+   screen to DrawPartyDeathScreen. */
 // FUNCTION: WIZ8 0x005A68C0
-void BeginPartyDeath005A68C0(void)
+void BeginPartyDeath(void)
 {
     if (g_level_block->review_transition_active) {
         return;
@@ -3279,24 +3271,24 @@ void BeginPartyDeath005A68C0(void)
         DeleteCurrentSaveFiles();
     }
     if (gXStatus.fSurprisePossible != 0) {
-        RestoreSurpriseView005029A0();
+        RestoreSurpriseView();
     }
     UpdateHeldItemCursor();
     SoundPlay("Data\\Sound\\Misc\\PartyDead.wav", 0);
-    StartMusicResource0048FC10("CombatLose.MPL", 0, 1);
+    StartMusicResource("CombatLose.MPL", 0, 1);
     MSYS_Init();
     ResetRegions();
     ActivateDialogRegion(0x138);
     VideoRemoveToolTip();
     g_level_block->transition_pending = 1;
-    BeginScreenFade(1, 0, 0x7d0, DrawPartyDeathScreen005A6A70, 1, 0);
+    BeginScreenFade(1, 0, 0x7d0, DrawPartyDeathScreen, 1, 0);
     g_level_block->review_transition_active = 1;
 }
 
 /* Pump the post-fade review/death state: on the first tick an armed ending
    autosave writes the next free Ending slot and reports it on the main-menu
    message line; a dirty level reloads; any queued key-down or button-up
-   schedules the closing fade back through EndReviewTransition005A6B20. */
+   schedules the closing fade back through EndReviewTransition. */
 // FUNCTION: WIZ8 0x005A6970
 void PumpReviewTransition005A6970(void)
 {
@@ -3309,7 +3301,7 @@ void PumpReviewTransition005A6970(void)
         return;
     }
     if (g_ending_autosave_0069c129 != 0) {
-        if (FindFreeEndingSaveName00516890(name) != 0) {
+        if (FindFreeEndingSaveName(name) != 0) {
             SaveGame(name, 0);
             SetMainMenuMessage(
                 FormatWideString(L"%s %S.%S", gppStringList[0x78b], name, g_save_extension));
@@ -3330,7 +3322,7 @@ void PumpReviewTransition005A6970(void)
         }
     }
     if (exit_review) {
-        BeginScreenFade(0, 0, 0x320, EndReviewTransition005A6B20, 1, 1);
+        BeginScreenFade(0, 0, 0x320, EndReviewTransition, 1, 1);
     }
     RenderFrame();
 }
@@ -3339,7 +3331,7 @@ void PumpReviewTransition005A6970(void)
    the centered party-death line over it, drop the radar/formation panels,
    then schedule the holding fade that waits for input. */
 // FUNCTION: WIZ8 0x005A6A70
-void DrawPartyDeathScreen005A6A70(void)
+void DrawPartyDeathScreen(void)
 {
     const wchar_t* text;
 
@@ -3364,7 +3356,7 @@ void DrawPartyDeathScreen005A6A70(void)
    leave the transition. The endgame path continues to the credits screen;
    party death just stops the playlist. */
 // FUNCTION: WIZ8 0x005A6B20
-void EndReviewTransition005A6B20(void)
+void EndReviewTransition(void)
 {
     ClearActiveRegionIfMatches(0x138);
     if (g_ending_sound_0069c124 != 0) {
@@ -3372,7 +3364,7 @@ void EndReviewTransition005A6B20(void)
         g_ending_sound_0069c124 = 0;
     }
     g_world_render_enabled_65970d = 1;
-    ResetMainGameMode00560C60();
+    ResetMainGameMode();
     g_level_block->review_transition_active = 0;
     if (g_ending_screen_0069c128 != 0) {
         SetPendingScreenState(9);
@@ -3388,7 +3380,7 @@ void EndReviewTransition005A6B20(void)
    the losing ending - it swaps in the CombatLose playlist and skips the
    credits-screen handoff and autosave arming. */
 // FUNCTION: WIZ8 0x005A6B90
-void ShowEndingScreen005A6B90(void)
+void ShowEndingScreen(void)
 {
     int fade_to_black;
     bool schedule_fade;
@@ -3445,7 +3437,7 @@ void ShowEndingScreen005A6B90(void)
     VideoRemoveToolTip();
     g_world_render_enabled_65970d = 0;
     if (*music != 0) {
-        StartMusicResource0048FC10(music, 0, 1);
+        StartMusicResource(music, 0, 1);
     }
     if (*sound != 0) {
         memset(&parms, 0xff, sizeof(SOUNDPARMS));

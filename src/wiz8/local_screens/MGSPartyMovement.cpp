@@ -348,7 +348,7 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
     float multiplier;
     unsigned int ticks;
 
-    if (ConsumeLevelElapsedTime0041F170(real_elapsed, frame_elapsed) == 0) {
+    if (ConsumeLevelElapsedTime(real_elapsed, frame_elapsed) == 0) {
         return 0;
     }
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {

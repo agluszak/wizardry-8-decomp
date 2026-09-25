@@ -167,13 +167,13 @@ void stSurface2D::traverse(TraverseInfo& info)
 // FUNCTION: WIZ8 0x0047E0F0
 void stSurface2D::process(const ProcessInfo& info, e_processType)
 {
-    DrawTiles0047E100(info.renderer);
+    DrawTiles(info.renderer);
 }
 
 /* The tile render pass, entered from process(): ortho projection, vertex
    array state, then one triangle strip per tile in row-major order. */
 // FUNCTION: WIZ8 0x0047E100
-void stSurface2D::DrawTiles0047E100(srGERD* renderer)
+void stSurface2D::DrawTiles(srGERD* renderer)
 {
     srVector3T<float> location;
     int row;

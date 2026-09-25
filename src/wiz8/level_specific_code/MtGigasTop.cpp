@@ -11,7 +11,7 @@
 
 /* Level Specific Code\MtGigasTop.cpp (level 0x0f).
 
-   Attribution evidence: InitializeLevelMasterFunctions004D6C50 registers all
+   Attribution evidence: InitializeLevelMasterFunctions registers all
    five callbacks under case 0x0f, the level the Levels.cpp table names
    "MtGigasTop"; the block sits between the MtGigasOuter (0x0e) callbacks and
    the Monastery2 (9) anchors. */

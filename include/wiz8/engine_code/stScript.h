@@ -26,8 +26,8 @@ public:
     virtual ~stScript() override;
     virtual srClass* vInstance() override;
 
-    int FindLabelLine004CF730(const char* label) const;
-    int GetSourceLine004CF790(int line) const;
+    int FindLabelLine(const char* label) const;
+    int GetSourceLine(int line) const;
     unsigned char Load004CF3B0(const char* path);
     void Clear004CF690();
 

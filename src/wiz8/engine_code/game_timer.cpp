@@ -34,7 +34,7 @@ bool g_shared_timer_flag_d2;
 const float g_float_005ec0a8 = 10000.0f;
 
 // FUNCTION: WIZ8 0x00439bc0
-void PauseSharedGameTimers00439BC0(void)
+void PauseSharedGameTimers(void)
 {
     g_shared_timer_paused = true;
     if (g_shared_timer == 0) {
@@ -71,7 +71,7 @@ void PauseSharedGameTimers00439BC0(void)
 }
 
 // FUNCTION: WIZ8 0x00439ca0
-void ResumeSharedGameTimers00439CA0(void)
+void ResumeSharedGameTimers(void)
 {
     g_shared_timer_paused = false;
     g_shared_timer_flag_d1 = false;
@@ -81,7 +81,7 @@ void ResumeSharedGameTimers00439CA0(void)
         g_shared_timer_pause_time = 0;
     }
 
-    W8GameTimeAccumulator0043A910* timer = g_game_time_accumulator_6598bc;
+    W8GameTimeAccumulator* timer = g_game_time_accumulator_6598bc;
     if (timer != 0) {
         timer->m_flags &= ~8;
         int sample = timer->ReadClock();
@@ -123,7 +123,7 @@ W8GameTimer::~W8GameTimer()
 }
 
 // FUNCTION: WIZ8 0x00439a60
-int W8GameTimer::GetTime00439A60()
+int W8GameTimer::GetTime()
 {
     return ReadClock();
 }

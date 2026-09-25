@@ -92,7 +92,7 @@ srCamera* g_game_camera_65a0fc;
 GDCamera* g_gd_camera_65a0f8;
 
 // FUNCTION: WIZ8 0x00420e10
-bool IsCameraTransitionActive00420E10(void)
+bool IsCameraTransitionActive(void)
 {
     return g_gd_camera_65a0f8->m_transition_active;
 }
@@ -119,8 +119,7 @@ void GetCameraForwardPoint00421150(float distance, srVector3T<float>* output)
    destination with it. Retail builds each axis rotation with explicit
    Set/SetRows/MultiplyBy calls rather than the RotateAbout helpers. */
 // FUNCTION: WIZ8 0x00421170
-void OffsetPositionByYawPitch00421170(float distance, srVector3T<float>* position, float yaw,
-                                      float pitch)
+void OffsetPositionByYawPitch(float distance, srVector3T<float>* position, float yaw, float pitch)
 {
     srVector3T<float> forward;
     srVector3T<float> first;

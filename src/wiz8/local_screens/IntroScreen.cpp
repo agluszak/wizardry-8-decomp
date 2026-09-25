@@ -35,9 +35,9 @@ static const char g_intro_video_names[7][40] = {
 };
 
 // FUNCTION: WIZ8 0x005AE770
-void ContinueAfterDarkEndingVideo005AE770(void)
+void ContinueAfterDarkEndingVideo(void)
 {
-    BeginEndgameSequence005A6580();
+    BeginEndgameSequence();
 }
 // GLOBAL: WIZ8 0x0069C258
 W8BinkVideo* gpVideo;
@@ -56,7 +56,7 @@ unsigned char IntroScreenEnter(void)
     }
     sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index]);
     if (!FileExists(path)) {
-        if (!FindGameDataPath0042B590(gzCdDirectory, 3)) {
+        if (!FindGameDataPath(gzCdDirectory, 3)) {
             return 1;
         }
         sprintf(path, "%sData\\Flics\\Intro\\%s", gzCdDirectory,
@@ -66,7 +66,7 @@ unsigned char IntroScreenEnter(void)
         }
     }
     StopMusicPlaylist(1);
-    DisableCursorScene00428010();
+    DisableCursorScene();
     gpVideo = new W8BinkVideo();
     if (gpVideo == 0) {
         srAssertFail("gpVideo", "C:\\Projects\\Wizardry 8\\Local Screens\\IntroScreen.cpp", 98, 0);
@@ -117,7 +117,7 @@ void AdvanceIntroScreen(void)
         g_intro_video_index = 0;
         sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index]);
         if (!FileExists(path)) {
-            if (!FindGameDataPath0042B590(gzCdDirectory, 3)) {
+            if (!FindGameDataPath(gzCdDirectory, 3)) {
                 goto ordinary_destroy;
             }
             sprintf(path, "%sData\\Flics\\Intro\\%s", gzCdDirectory,
@@ -166,10 +166,10 @@ cleared:
         }
         break;
     case 5:
-        BeginScreenFade(0, 0, 1, ContinueAfterDarkEndingVideo005AE770, 1, 1);
+        BeginScreenFade(0, 0, 1, ContinueAfterDarkEndingVideo, 1, 1);
         break;
     }
-    EnableCursorScene00428020();
+    EnableCursorScene();
 }
 
 // FUNCTION: WIZ8 0x005ae940

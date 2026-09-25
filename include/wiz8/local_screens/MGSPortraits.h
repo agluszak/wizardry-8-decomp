@@ -59,26 +59,25 @@ void RecordCharacterDamage(int party_slot, unsigned int amount); /* 0x0059AC40 *
 void TickPartyPortraitFx(void); /* 0x0059B1A0 */
 /* Clear each occupied slot's damage-splat/effect-icon portrait overlays and
    rearm the shared FX clock; run on the main-game screen leave. */
-void ResetPartyPortraitFx(void);                                 /* 0x0059B270 */
-void ToggleNumericHitPoints(void);                               /* 0x0059AA30 */
-void CreateConditionButtons(void);                               /* 0x0059BDB0 */
-void DisablePortraitControls0059BB40(void);                      /* 0x0059BB40 */
-void EnablePortraitAdvanceRegions0059BB70(void);                 /* 0x0059BB70 */
-void InvalidatePortraitControl0059BBD0(unsigned int party_slot); /* 0x0059BBD0 */
+void ResetPartyPortraitFx(void);                         /* 0x0059B270 */
+void ToggleNumericHitPoints(void);                       /* 0x0059AA30 */
+void CreateConditionButtons(void);                       /* 0x0059BDB0 */
+void DisablePortraitControls(void);                      /* 0x0059BB40 */
+void EnablePortraitAdvanceRegions(void);                 /* 0x0059BB70 */
+void InvalidatePortraitControl(unsigned int party_slot); /* 0x0059BBD0 */
 /* The DrawMainGameScreen portrait tick: combat slots redraw their strip,
    non-combat slots keep their level-advance buttons in sync, and the
    condition buttons track each slot's highest condition or enchantment. */
-void RedrawCombatPortraits0059B720(void);
-void UpdatePortraitAdvanceButtons0059BC10(void);
-void UpdateConditionButtons0059C080(void);
+void RedrawCombatPortraits(void);
+void UpdatePortraitAdvanceButtons(void);
+void UpdateConditionButtons(void);
 /* 0x0059AF40: stage the casting icon on a monster-manager entry; the spell's
    realm picks the icon catalog base and the flag picks the dim variant. */
-void StageMonsterCastIcon0059AF40(unsigned int monster_index, int spell_realm, char flag,
-                                  int spell_id);
+void StageMonsterCastIcon(unsigned int monster_index, int spell_realm, char flag, int spell_id);
 /* 0x0059C030 / 0x0059BFC0: hide or show the condition-button region set for
    the current layout. SyncMainGameModeRegions picks between them. */
-void DisableConditionButtons0059C030(void);
-void EnableConditionButtons0059BFC0(void);
+void DisableConditionButtons(void);
+void EnableConditionButtons(void);
 
 /* Region callbacks the eight portrait level-up buttons and condition buttons
    share. */
@@ -100,7 +99,7 @@ void TickPartyPortraitOverlayClocks(void);
 
 /* 0x0059A110: shade the depleted tail of a vitals bar - two scanlines tall
    under numeric hit points, three otherwise. */
-void ShadeStatusBarGap0059A110(int length, int left, int top);
+void ShadeStatusBarGap(int length, int left, int top);
 
 /* 0x006488D0: dead-character portrait catalog ids - the small party-strip
    image at [race][0] and the large header portrait at [race][1]. */

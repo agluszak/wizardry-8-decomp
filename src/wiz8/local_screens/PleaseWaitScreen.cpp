@@ -148,7 +148,7 @@ unsigned char PleaseWaitScreenEnter(void)
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
     SetPrimarySurfaceTextureHint2Enabled(0);
-    DisableCursorScene00428010();
+    DisableCursorScene();
     g_load_descriptor_69b7c8->caption_y = 0;
     g_load_descriptor_69b7c8->entered_tick = GetTickCount();
     g_value_69b7c4 = 0;
@@ -169,7 +169,7 @@ unsigned char PleaseWaitScreenEnter(void)
 unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
 {
     if (!FileExistsNoDB("Levels\\Levels.slf") && g_cd_marker_present_69b7d0) {
-        if (IsLevelCdMissing0042B6F0(level)) {
+        if (IsLevelCdMissing(level)) {
             g_load_descriptor_69b7c8->waiting = true;
             g_load_descriptor_69b7c8->parameter = level;
             g_load_descriptor_69b7c8->entered_tick = GetTickCount();
@@ -179,10 +179,10 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
                 g_swap_disc_dialog_69b7cc->SetOrigin(0xf0, 0xbe);
                 g_swap_disc_dialog_69b7cc->SetExtent(0xa0, 100);
             }
-            wchar_t* message = FormatWideString(L"%s%d", gppStringList[0x1bb8 / 4],
-                                                GetLevelCdNumber0042B720(level));
+            wchar_t* message =
+                FormatWideString(L"%s%d", gppStringList[0x1bb8 / 4], GetLevelCdNumber(level));
             g_swap_disc_dialog_69b7cc->SetMessage(message, 1, 0x32, 1, 1, 1, 0, 0, 0);
-            EnableCursorScene00428020();
+            EnableCursorScene();
             return 0;
         }
         ReopenCDLibraries();
@@ -232,7 +232,7 @@ void PleaseWaitScreenFrame(void)
                 return;
             }
         } else if (GetTickCount() - g_load_descriptor_69b7c8->entered_tick > 200) {
-            if (!IsLevelCdMissing0042B6F0(g_load_descriptor_69b7c8->parameter)) {
+            if (!IsLevelCdMissing(g_load_descriptor_69b7c8->parameter)) {
                 g_load_descriptor_69b7c8->waiting = false;
                 ReopenCDLibraries();
                 g_swap_disc_dialog_69b7cc->is_open = 0;
@@ -276,7 +276,7 @@ void PleaseWaitScreenFrame(void)
     PLEASE_WAIT_SCREEN_DRAW();
     RenderFrame();
     RenderFrame();
-    DisableCursorScene00428010();
+    DisableCursorScene();
 
     switch (g_load_descriptor_69b7c8->mode) {
     case 0:
@@ -288,7 +288,7 @@ void PleaseWaitScreenFrame(void)
             if (!LoadLevel(level, entrance, 0)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 279, 0);
             }
-            PostNewGameLoad005063E0();
+            PostNewGameLoad();
         }
         break;
     case 1:
@@ -314,8 +314,8 @@ void PleaseWaitScreenFrame(void)
     }
     case 3:
         if (PleaseWaitScreenEnsureLevelArchive(g_load_descriptor_69b7c8->parameter)) {
-            if (!ReloadLevelPreservingCamera0042AF60(g_load_descriptor_69b7c8->parameter,
-                                                     g_load_descriptor_69b7c8->parameter_2)) {
+            if (!ReloadLevelPreservingCamera(g_load_descriptor_69b7c8->parameter,
+                                             g_load_descriptor_69b7c8->parameter_2)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 320, 0);
             }
             AutoSaveIfAllowed(1);
@@ -354,7 +354,7 @@ unsigned char PleaseWaitScreenLeave(int leaving)
     NoOp();
     MSYS_Shutdown();
     ResetRegions();
-    EnableCursorScene00428020();
+    EnableCursorScene();
     return 1;
 }
 
@@ -362,12 +362,12 @@ unsigned char PleaseWaitScreenLeave(int leaving)
    animated please-wait glyph moving. The descriptor fields and the draw call
    are the same private state used by PleaseWaitScreenFrame above. */
 // FUNCTION: WIZ8 0x005915A0
-void UpdatePleaseWaitLoadFrame005915A0(void)
+void UpdatePleaseWaitLoadFrame(void)
 {
     unsigned long tick;
 
     SoundServiceStreams();
-    ServiceMusicPlaylist0048F9E0();
+    ServiceMusicPlaylist();
     tick = GetTickCount();
     if (tick - g_load_descriptor_69b7c8->entered_tick > 499) {
         g_load_descriptor_69b7c8->caption_y = (g_load_descriptor_69b7c8->caption_y + 1) % 0x18;

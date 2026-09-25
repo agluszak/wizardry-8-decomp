@@ -69,11 +69,10 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
 void HealPartyByDice(unsigned char count, unsigned char sides, short base);
 void RestorePartySpellPoints(int amount);
 void RecalculateCharacterHitPoints(W8Character* character);
-int __cdecl CompareSpellPointDeficits0052B8E0(const void* first,
-                                              const void* second); /* 0x0052B8E0 */
+int __cdecl CompareSpellPointDeficits(const void* first, const void* second); /* 0x0052B8E0 */
 int SumCharacterSpellPoints(const W8Character* character);
 int SumCharacterSpellPointsLeft(const W8Character* character);
 int GetCharacterRealmSpellPoints(const W8Character* character, int realm);
 void RecalculateCharacterStamina(W8Character* character);
 void RecalculateRealmSpellPoints(W8Character* character);
-int RebuildRealmSpellPointCeilings0052A540(W8Character* character);
+int RebuildRealmSpellPointCeilings(W8Character* character);

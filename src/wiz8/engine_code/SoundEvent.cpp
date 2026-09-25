@@ -239,8 +239,8 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
                 GetGroundSurfaceInfo(position, &surface, &material);
                 /* Retail hardcodes the surface to OutdoorsFlat here: the query
                    result that matters for the path is the material. */
-                BuildFootstepPath0047A540(path, W8_FOOTSTEP_SURFACE_OUTDOORS_FLAT, material,
-                                          W8_FOOTSTEP_KIND_STEP, variant);
+                BuildFootstepPath(path, W8_FOOTSTEP_SURFACE_OUTDOORS_FLAT, material,
+                                  W8_FOOTSTEP_KIND_STEP, variant);
                 delete[] m_pacWaveName;
                 m_pacWaveName = new char[strlen(path) + 1];
                 strcpy(m_pacWaveName, path);
@@ -257,7 +257,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
                 return 0;
             }
             if (track_sound && monster != 0) {
-                monster->TrackSoundHandle004CA6E0(sound_handle);
+                monster->TrackSoundHandle(sound_handle);
             }
         }
     }

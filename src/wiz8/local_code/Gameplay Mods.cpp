@@ -49,7 +49,7 @@
    their derived modifiers, then drive the sky node from the stored light
    byte. */
 // FUNCTION: WIZ8 0x0050E700
-void RebuildPartyEffectBlock0050E700(void)
+void RebuildPartyEffectBlock(void)
 {
     memset(&g_status_685170.party_modifiers_22e3, 0, sizeof(W8GameplayModifierBlock));
     ApplyPartyEffectSlots(g_status_685170.effect_slots_17af, &g_status_685170.party_modifiers_22e3);
@@ -71,7 +71,7 @@ void RebuildPartyEffectBlock0050E700(void)
     while (slot_byte <= 0x82f) {
         W8Character* character = &g_status_685170.buffers.Char[active];
         if (g_status_685170.buffers.XChar[active].fOccupied != 0 && character->hp_current != 0 &&
-            character->highest_condition == 0 && CharacterHasTrait00547940(character, 10) != 0) {
+            character->highest_condition == 0 && CharacterHasTrait(character, 10) != 0) {
             break;
         }
         slot_byte += 0x106;
@@ -100,8 +100,8 @@ void RebuildPartyEffectBlock0050E700(void)
         return;
     }
     SetSkyNodeVisible(1);
-    SetCameraLightIntensity00483E30(g_status_685170.party_modifiers_22e3.light_47 +
-                                    g_environment_near_scale_005ec0b0);
+    SetCameraLightIntensity(g_status_685170.party_modifiers_22e3.light_47 +
+                            g_environment_near_scale_005ec0b0);
 }
 
 /* Fold the worn items into one character's equipment bonus block: the twelve
@@ -363,7 +363,7 @@ void RebuildConditionsAndDerivedStats(int party_slot)
     ApplyConditionModifiers(character, character->uiCondition, character->condition_argument,
                             &character->condition_modifiers_16a2);
     ApplyEnchantmentModifiers(character->enchantments, &character->condition_modifiers_16a2);
-    ApplyBoundNpcPenalty0050DBF0(character, &character->condition_modifiers_16a2);
+    ApplyBoundNpcPenalty(character, &character->condition_modifiers_16a2);
 
     memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
@@ -400,7 +400,7 @@ void RebuildMonsterDerivedStats(int location_id)
         ApplyCombatEffectSlots(monster_info->pCombat->effect_slots_d7, modifiers);
     }
     ConvertMonsterAttributes(monster_info);
-    RebuildMonsterRegenRates00502C50(monster_info);
+    RebuildMonsterRegenRates(monster_info);
 }
 
 /* Fold the live conditions into the modifier block: each running condition id
@@ -452,13 +452,12 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
             target->attribute_adjustments[1] -= 0x32;
             break;
         case 0xc:
-            if (character == 0 || CharacterHasTrait00547940(character, 7) == 0) {
+            if (character == 0 || CharacterHasTrait(character, 7) == 0) {
                 target->attribute_adjustments[6] -= 0x32;
                 target->out_of_formation = 1;
             } else {
                 target->attribute_adjustments[6] +=
-                    static_cast<signed char>(
-                        ScaleValueByProfessionLevel005479B0(character, 7, 50.0f)) -
+                    static_cast<signed char>(ScaleValueByProfessionLevel(character, 7, 50.0f)) -
                     0x32;
             }
             break;

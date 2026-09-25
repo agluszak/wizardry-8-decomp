@@ -42,7 +42,7 @@ static wchar_t g_mipe_key_names_0064ea04[][0x80] = {
 };
 
 /* The door-prop field table: nine bit flags packed into flags_008/flags_009
-   plus the key id written to item_00a by CommitMipeEditFields005C4340. */
+   plus the key id written to item_00a by CommitMipeEditFields. */
 // GLOBAL: WIZ8 0x0064ed08
 static W8MipeEditField g_mipe_prop_fields_0064ed08[10] = {
     {5, 0, 0, 0, 0, 0.0f, 1}, {5, 1, 0, 0, 0, 0.0f, 1}, {5, 2, 0, 0, 0, 0.0f, 1},
@@ -64,8 +64,8 @@ static int g_mipe_prop_field_count_0064edfc = 10;
 // GLOBAL: WIZ8 0x0069c510
 static float g_mipe_edit_accum_0069c510;
 
-static void DrawMipeEditFieldRow005C41D0(W8MipeEditField* field, unsigned int palette, char row);
-static void CommitMipeEditFields005C4340(W8TriggerActionData* data, signed char bVarSet);
+static void DrawMipeEditFieldRow(W8MipeEditField* field, unsigned int palette, char row);
+static void CommitMipeEditFields(W8TriggerActionData* data, signed char bVarSet);
 
 /* Redraws the up-to-seven visible editor rows starting at
    g_mipe_table_base_0068f120; the selected row gets palette 6, the rest 15. */
@@ -78,11 +78,11 @@ static void CommitMipeEditFields005C4340(W8TriggerActionData* data, signed char 
         if (shown_ >= 8) {                                                                         \
             shown_ = 7;                                                                            \
         }                                                                                          \
-        ResetEditorStatusLine0058AA20(-1);                                                         \
+        ResetEditorStatusLine(-1);                                                                 \
         for (row_ = static_cast<char>(g_mipe_table_base_0068f120);                                 \
              row_ < g_mipe_table_base_0068f120 + shown_; ++row_) {                                 \
-            DrawMipeEditFieldRow005C41D0(&state_->edit_fields[static_cast<int>(row_)],             \
-                                         row_ != state_->edit_selection ? 15 : 6, row_);           \
+            DrawMipeEditFieldRow(&state_->edit_fields[static_cast<int>(row_)],                     \
+                                 row_ != state_->edit_selection ? 15 : 6, row_);                   \
         }                                                                                          \
     } while (0)
 
@@ -90,7 +90,7 @@ static void CommitMipeEditFields005C4340(W8TriggerActionData* data, signed char 
    scroll/adjust, Backspace and printable keys edit type-6 text, Enter commits
    to the prop's trigger action data and Escape cancels the selection. */
 // FUNCTION: WIZ8 0x005c3880
-void HandleMipeEditPropKey005C3880(unsigned short key)
+void HandleMipeEditPropKey(unsigned short key)
 {
     W8MipeState* state = g_mipe_state_0068f100;
     W8MipeEditField* fields = state->edit_fields;
@@ -132,7 +132,7 @@ void HandleMipeEditPropKey005C3880(unsigned short key)
     case 0xd:
         trigger = state->prop->GetValue18();
         if (trigger != 0) {
-            CommitMipeEditFields005C4340(trigger->m_pActionData, 0);
+            CommitMipeEditFields(trigger->m_pActionData, 0);
         }
         state->edit_selection = -1;
         MIPE_REDRAW_EDIT_FIELDS();
@@ -225,7 +225,7 @@ void HandleMipeEditPropKey005C3880(unsigned short key)
 /* Renders one editor row: "index) label: value" with the value format chosen
    by the field type. */
 // FUNCTION: WIZ8 0x005c41d0
-static void DrawMipeEditFieldRow005C41D0(W8MipeEditField* field, unsigned int palette, char row)
+static void DrawMipeEditFieldRow(W8MipeEditField* field, unsigned int palette, char row)
 {
     if (field->type == 1) {
         if (g_mipe_edit_decimal_0064e000 == 0) {
@@ -259,7 +259,7 @@ static void DrawMipeEditFieldRow005C41D0(W8MipeEditField* field, unsigned int pa
 /* Packs the edited fields of variable set bVarSet back into a trigger's action
    data: bits 0-7 of flags_008, bit 0 of flags_009 and the key id item_00a. */
 // FUNCTION: WIZ8 0x005c4340
-static void CommitMipeEditFields005C4340(W8TriggerActionData* data, signed char bVarSet)
+static void CommitMipeEditFields(W8TriggerActionData* data, signed char bVarSet)
 {
     W8MipeEditField* fields;
 

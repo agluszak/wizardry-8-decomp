@@ -35,8 +35,7 @@ int g_credit_line_0069c4a4;
    stream. Answers whether the line ended at a newline; trailing carriage
    returns are stripped. */
 // FUNCTION: WIZ8 0x004CEED0
-unsigned char ReadWideTextLine004CEED0(int handle, wchar_t* destination, int capacity,
-                                       unsigned char* more)
+unsigned char ReadWideTextLine(int handle, wchar_t* destination, int capacity, unsigned char* more)
 {
     wchar_t* write = destination;
     wchar_t current = 0;
@@ -83,7 +82,7 @@ unsigned char CreditsScreenEnter(void)
     SetViewport(0, 0, 0x280, 0x1e0);
     ResetRegions();
     RegionSetEnable(2);
-    DisableCursorScene00428010();
+    DisableCursorScene();
     g_credit_lines_0069c4a8 = new W8GrowableVector<W8CreditLine>();
 
     handle = FileOpen((char*)"Data\\Options\\Credits.txt", FILE_ACCESS_READ, 0);
@@ -91,7 +90,7 @@ unsigned char CreditsScreenEnter(void)
         unsigned char more;
         FileRead(handle, line, sizeof(wchar_t), 0);
         while (!FileCheckEndOfFile(handle)) {
-            if (ReadWideTextLine004CEED0(handle, line, 128, &more) && line[0] != L'*') {
+            if (ReadWideTextLine(handle, line, 128, &more) && line[0] != L'*') {
                 W8CreditLine entry = {0, 0, 0, 0, 0};
                 bool blank = false;
                 bool bold = false;
@@ -146,7 +145,7 @@ unsigned char CreditsScreenLeave(int)
     }
     delete g_credit_lines_0069c4a8;
     ResetRegions();
-    EnableCursorScene00428020();
+    EnableCursorScene();
     if (IsCurrentMusicPlaylist("EndCredit.MPL")) {
         StopMusicPlaylist(1);
     }

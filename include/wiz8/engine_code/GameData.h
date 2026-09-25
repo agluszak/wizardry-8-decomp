@@ -36,7 +36,7 @@ struct W8LevelDataRecord {
     float residual_contact_length_18; /* 0x18 */
     float contact_facing_1c;          /* 0x1c */
     float speed_20;                   /* 0x20 */
-    /* 0x24/0x28: pending elapsed times ConsumeLevelElapsedTime0041F170 hands
+    /* 0x24/0x28: pending elapsed times ConsumeLevelElapsedTime hands
        to the movement/fatigue pass, then clears. */
     float real_elapsed_24;
     float frame_elapsed_28;
@@ -68,20 +68,20 @@ struct W8LevelDataRecord {
     /* 0x0041FE20: when the camera sits outside the game-data AABB, push
        vector_a0 toward the box, clear environ vector_24, and optionally start
        party movement; returns non-zero when a clamp fired. */
-    unsigned char ClampCameraToBounds0041FE20(const srVector3T<float>* minimum,
-                                              const srVector3T<float>* maximum);
+    unsigned char ClampCameraToBounds(const srVector3T<float>* minimum,
+                                      const srVector3T<float>* maximum);
     /* 0x0041FF00: toggle setting-6e props referenced by primary_contact_prop_id/secondary_contact_prop_id. */
     unsigned char ToggleBoundProps0041FF00();
     /* 0x00420470: integrate camera_forward into vector_64/vector_70. */
-    unsigned char IntegrateCameraForward00420470();
+    unsigned char IntegrateCameraForward();
     /* 0x00420810: rotate vector_40 by the saved yaw matrix and refresh
        vector_a0; returns the updated fast-move latch. */
-    unsigned char ApplySavedMotionMatrix00420810(unsigned char prior_fast, unsigned char fast_move,
-                                                 const srMatrix3T<float>* saved);
+    unsigned char ApplySavedMotionMatrix(unsigned char prior_fast, unsigned char fast_move,
+                                         const srMatrix3T<float>* saved);
     /* 0x0041FF90: advance movement progress / footstep state for one tick. */
-    void UpdateMotionProgress0041FF90(unsigned char fast_move, unsigned char moved);
+    void UpdateMotionProgress(unsigned char fast_move, unsigned char moved);
     /* 0x00420A60: accumulate footstep distance and optionally play a step. */
-    unsigned char UpdateFootstepFromMotion00420A60();
+    unsigned char UpdateFootstepFromMotion();
 };
 
 struct W8OctBuildTree00446390;
@@ -120,9 +120,9 @@ struct W8EnvironRecord {
 
     unsigned char RescaleToReference(const W8EnvironRecord* reference);
     /* 0x00421800: store `motion` / scale_0c as the per-frame vector_24. */
-    void SetScaledMotion00421800(const srVector3T<float>* motion);
+    void SetScaledMotion(const srVector3T<float>* motion);
     /* 0x00421850: add vector_24 * scale_0c into `position`. */
-    void AddScaledMotion00421850(srVector3T<float>* position);
+    void AddScaledMotion(srVector3T<float>* position);
 };
 
 static_assert(sizeof(W8EnvironRecord) == 0x44, "W8EnvironRecord_must_be_0x44");
@@ -168,7 +168,7 @@ struct W8GameData {
     void CompileGDInterfaces00447FB0(const int* records, int count);
     /* Release the level-data record, game-time accumulator and companion
        level-data globals; runs first in ~W8GameData. */
-    void ReleaseLevelData0041A9E0();
+    void ReleaseLevelData();
     /* Selects a switch interface's state: the matching state group's
        conditional polygons clear surface flag 0x10 while every other state's
        polygons set it. */
@@ -184,18 +184,18 @@ struct W8GameData {
     /* 0x0041F330: apply world-render camera-motion flags into `rotation` and
        mirror the result into `saved`. Retail call sites pass the owning
        W8GameData in ECX even though the body reads only globals. */
-    void ApplyCameraMotionFlags0041F330(unsigned int flags, srMatrix3T<float>* rotation,
-                                        srMatrix3T<float>* saved);
+    void ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* rotation,
+                                srMatrix3T<float>* saved);
     /* 0x0041F5F0: advance the camera position under the same flag set; writes
        the delta into `delta` and answers whether the position changed. */
     unsigned char ApplyCameraMotion0041F5F0(unsigned int flags, srVector3T<float>* position,
                                             srVector3T<float>* delta, srMatrix3T<float>* saved);
     /* 0x0041AB40: advance camera under environment-load motion, tracing
        props/octree/geometry and applying crossed surfaces. */
-    unsigned char AdvanceEnvironmentMotion0041AB40();
+    unsigned char AdvanceEnvironmentMotion();
     /* 0x0041BD60: push the motion delta away from nearby active monsters. */
-    unsigned char ProbeMonstersAlongMotion0041BD60(srVector3T<float>* direction,
-                                                   srVector3T<float>* position, int mode);
+    unsigned char ProbeMonstersAlongMotion(srVector3T<float>* direction,
+                                           srVector3T<float>* position, int mode);
     /* 0x0041B770: probe active collidable props along the motion segment;
        returns the nearest hit surface and may adjust `direction`. */
     W8GDSurface* ProbePropsAlongMotion0041B770(srVector3T<float>* direction,
@@ -254,18 +254,18 @@ struct W8GameData {
     void CreateGDEnviron00448E60(const W8GDSurface* surface, float scale);
     /* Folds the trigger vertex/surface banks into the main arrays without
        rebuilding the spatial index; the CompileGameData00449D10 path. */
-    void IntegrateTriggerGeometry00448A60();
+    void IntegrateTriggerGeometry();
     /* 1-based ordinal of the m_ppNames entry whose name matches, else -1. */
-    int FindPointerByName004482A0(const char* name); /* 0x004482A0 */
+    int FindPointerByName(const char* name); /* 0x004482A0 */
     /* Registers one invisible-plane record; the OctBuild driver feeds it the
        level file's plane table. */
-    void AddLevelPlane004485F0(W8LevelFilePlane* plane); /* 0x004485F0 */
+    void AddLevelPlane(W8LevelFilePlane* plane); /* 0x004485F0 */
     /* Copies the linked record's 0x1b0-byte payload into a scratch entry and
        forwards to the 0x00448C60 helper. Retail call sites pass record + 1
        (the payload), the +0x1b3 float, the +0x1b7 scalar and a pointer to the
        +0x1b1 face byte. */
-    void AddLinkedRecord00448BF0(const srVector3T<float>* vertices, float value, float scalar,
-                                 const signed char* face); /* 0x00448BF0 */
+    void AddLinkedRecord(const srVector3T<float>* vertices, float value, float scalar,
+                         const signed char* face); /* 0x00448BF0 */
     /* Compiles the read game data into the shared build arrays. */
     void CompileGameData00449D10(); /* 0x00449D10 */
 
@@ -305,7 +305,7 @@ extern W8LevelDataRecord* g_level_data_00652dac;
 /* Companion pointer cleared alongside g_level_data_00652dac on level
    transitions; its target's +0 flags have 0x200 masked off at 0x0044FCD0. */
 extern unsigned int* g_level_flags_00652da8;
-/* Teardown flag tested and cleared by ReleaseLevelData0041A9E0. */
+/* Teardown flag tested and cleared by ReleaseLevelData. */
 extern bool g_flag_00652dcc;
 /* Read by the level-data reset and written by the GameData constructor in
    GDFileIO.cpp. */
@@ -313,13 +313,13 @@ extern W8EnvironRecord* g_environ_00652DB4;
 
 #include "wiz8/engine_code/GDFileIO.h"
 
-void ResetInactiveLevelDataVectors0041EF50(void);
-void UpdateSharedGameDataObject0041F1F0();
-void UpdateGameDataRuntime0041F260();
-unsigned char LoadSurfaceVertices004214D0(srVector3T<float>* output, const int* vertex_indices);
+void ResetInactiveLevelDataVectors(void);
+void UpdateSharedGameDataObject();
+void UpdateGameDataRuntime();
+unsigned char LoadSurfaceVertices(srVector3T<float>* output, const int* vertex_indices);
 
 void ClearLevelDataFlag6(void);
-void ResetLevelDataVectors0041F0D0(void);
+void ResetLevelDataVectors(void);
 int IsLevelDataFlag4EffectivelySet(void);
 unsigned char GetLevelDataFlag4(void); /* 0x0041F070 */
 unsigned char GetLevelDataFlag8(void); /* 0x0041EFB0 */
@@ -327,15 +327,15 @@ void ClearLevelDataFlag8(void);        /* 0x0041EFD0 */
 void SetLevelDataFlag8(void);          /* 0x0041EFE0 */
 unsigned char GetLevelDataFlag9(void); /* 0x0041EFF0 */
 bool HasLevelDataVector(void);         /* 0x0041F010 */
-void ResetCurrentEnvironment0041AA40(void);
+void ResetCurrentEnvironment(void);
 unsigned char SetEnvironmentLoadFlag(unsigned char flag); /* 0x0041AAE0 */
-void BeginCameraSway0041A960(void);
-void EndCameraSway0041A9A0(void);
+void BeginCameraSway(void);
+void EndCameraSway(void);
 
 unsigned char GetLevelDataFlag6(void);
-unsigned char ConsumeLevelElapsedTime0041F170(float* real_elapsed, float* frame_elapsed);
+unsigned char ConsumeLevelElapsedTime(float* real_elapsed, float* frame_elapsed);
 /* Retail tests level flag 0x008; when set both outputs are -1. */
-void GetLevelSoundEnvironment0041FCE0(char* environment, char* secondary);
+void GetLevelSoundEnvironment(char* environment, char* secondary);
 
 /* 0x00420BD0: settle a world point onto the octree ground through the
    GameData geometry index; the false branch reports the input height and
@@ -363,16 +363,15 @@ void SetCameraOrientation(W8CameraAngleRecord angle, W8CameraAngleRecord pitch,
                           srMatrix3T<float>* rotation);
 /* 0x00420F40: camera yaw in whole degrees plus an optional yaw-rotation
    matrix copy. */
-int GetCameraYawAndRotation00420F40(srMatrix3T<float>* rotation);
+int GetCameraYawAndRotation(srMatrix3T<float>* rotation);
 /* 0x00421440: project `vector` onto `onto` in place; fails on a degenerate
    target direction. */
-unsigned char ProjectVectorOntoVector00421440(srVector3T<float>* vector,
-                                              const srVector3T<float>* onto);
+unsigned char ProjectVectorOntoVector(srVector3T<float>* vector, const srVector3T<float>* onto);
 /* 0x00421570: restore a saved yaw/pitch into the game camera, reading the
    world camera node's current rotation first and fetching the updated matrix
    (both into the same dead local in retail). */
-void RestoreWorldCameraOrientation00421570(W8CameraAngleRecord angle, W8CameraAngleRecord pitch,
-                                           W8World* world);
+void RestoreWorldCameraOrientation(W8CameraAngleRecord angle, W8CameraAngleRecord pitch,
+                                   W8World* world);
 void GetCameraPosition(srVector3T<float>* position);
 int GetCameraYawDegrees(void);
 /* 0x004215E0: point-visibility query through the world octree; false with no
@@ -380,7 +379,7 @@ int GetCameraYawDegrees(void);
 bool HasCameraLineOfSight(const srVector3T<float>* position);
 void PlacePartyAtPoint(const srVector3T<float>* point);
 /* 0x00420E20: start/stop the sustained movement footstep loop. */
-void UpdateLevelMovementAudio00420E20(void);
+void UpdateLevelMovementAudio(void);
 /* 0x004EF9A0: fall-impact override handler owned by GameplayCode.cpp;
    declared in wiz8/local_code/GameplayCode.h. */
 

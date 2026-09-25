@@ -312,7 +312,7 @@ void RefreshLevelUpReadyNotices(void)
         }
 
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            EnablePortraitAdvanceRegions0059BB70();
+            EnablePortraitAdvanceRegions();
         }
     }
 }
@@ -402,7 +402,7 @@ char s_fall_impact_wav_00617894[] = "Data\\Sound\\Misc\\Fall Impact.wav";
    pow(8.0, fall + 0.7) six-sided dice of damage against the whole party,
    with a notice and the fall-impact sound. */
 // FUNCTION: WIZ8 0x004EF9A0
-void HandleLevelOverride004EF9A0(float fall)
+void HandleLevelOverride(float fall)
 {
     unsigned int count = static_cast<unsigned int>(pow(8.0, fall + 0.7));
     if (count > 0) {
@@ -818,7 +818,7 @@ void CalcArmorClasses(W8Character* character)
     }
 
     if (character->highest_condition <= 0x11) {
-        if (CharacterHasTrait00547940(character, 0x16)) {
+        if (CharacterHasTrait(character, 0x16)) {
             character->armor_class_components[0] += 2;
         }
         unsigned int speed = character->attributes[5].effective;
@@ -908,7 +908,7 @@ const int g_character_value_table_006164f4[34][2] = {
 /* Derive the character's personality and voice from sex and profession.
    Unaligned characters pick a class through the race shortcut first. */
 // FUNCTION: WIZ8 0x004EFA30
-void DeriveCharacterPersonality004EFA30(W8Character* character)
+void DeriveCharacterPersonality(W8Character* character)
 {
     int gender = character->gender;
     int value = character->iProfession;
@@ -944,7 +944,7 @@ void DeriveCharacterPersonality004EFA30(W8Character* character)
    same gender/personality/voice triple. The first clash only flips the voice;
    further clashes re-roll both personality and voice. */
 // FUNCTION: WIZ8 0x004EFAD0
-void EnsureUniquePartyVoice004EFAD0(W8Character* character)
+void EnsureUniquePartyVoice(W8Character* character)
 {
     W8Character* other;
     unsigned int slot;
@@ -1118,8 +1118,8 @@ unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
    as a regular member. When the caller pays for it, the starting equipment is
    bought out of the party gold the way a new recruit would bring it. */
 // FUNCTION: WIZ8 0x004ef7e0
-unsigned char RecruitCharacterIntoParty004EF7E0(W8Character* character, W8Character* record,
-                                                char buy_equipment)
+unsigned char RecruitCharacterIntoParty(W8Character* character, W8Character* record,
+                                        char buy_equipment)
 {
     unsigned int slot = CharacterPointerToPartySlot(character);
     int index;
@@ -1169,7 +1169,7 @@ unsigned char RecruitCharacterIntoParty004EF7E0(W8Character* character, W8Charac
 }
 
 // FUNCTION: WIZ8 0x004EEF10
-void AwardPartyExperience004EEF10(int amount, int alternate_message)
+void AwardPartyExperience(int amount, int alternate_message)
 {
     for (int slot = 0; slot < 8; ++slot) {
         W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];

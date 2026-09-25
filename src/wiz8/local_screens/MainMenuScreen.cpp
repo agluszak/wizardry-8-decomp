@@ -153,7 +153,7 @@ unsigned char MainMenuScreenEnter(void)
     wchar_t* pending;
     short measured;
 
-    ResetVideoFrameState00422B10();
+    ResetVideoFrameState();
     MSYS_Init();
     g_status_685170.game_started = 0;
     g_main_menu_has_save_games = SaveGameExists();
@@ -175,7 +175,7 @@ unsigned char MainMenuScreenEnter(void)
     DrawMainMenuItem(5, 0);
     DrawMainMenuItem(g_main_menu_selected_item, 1);
 
-    FormatVersionBanner004E3620(text, 0, 0, 0);
+    FormatVersionBanner(text, 0, 0, 0);
     wcscpy(wide, ConvertStringToWide(text));
     SetFont(g_font_683660);
     SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes_68ee1c[8]);
@@ -190,7 +190,7 @@ unsigned char MainMenuScreenEnter(void)
                      "C:\\Projects\\Wizardry 8\\Local Screens\\MainMenuScreen.cpp", 0x87, 0);
     }
     if (g_previous_screen_id != 10) {
-        StartMusicResource0048FC10("MainMenu.MPL", 0, 1);
+        StartMusicResource("MainMenu.MPL", 0, 1);
     }
     UpdateHeldItemCursor();
 

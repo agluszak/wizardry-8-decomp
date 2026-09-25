@@ -71,14 +71,14 @@ W8Character* GetNpcGroupCharacter(W8NpcState* npc);                     /* 0x005
 /* The NPC-side global frame operation: timed world events and the per-frame
    NPC state passes. */
 void UpdateNpcEvents0050D530(void);
-void AdvanceNpcTimers0050C7D0(unsigned int elapsed);
-void ProcessNpcPendingEvents0050CA80(void);
+void AdvanceNpcTimers(unsigned int elapsed);
+void ProcessNpcPendingEvents(void);
 
 /* 0x00509890 and 0x00509920: lazily create and then empty the shared NPC-state
    vector, recreating a runtime node for every database record still in use. */
 void InitializeNpcStates(void);
 void ResetNpcStates(void);
-void ReleaseNpcStates005099D0(void); /* 0x005099D0 */
+void ReleaseNpcStates(void); /* 0x005099D0 */
 /* 0x00509AA0: build one runtime state from its database record and return it,
    reusing the slot of a released node when one is free. */
 W8NpcState* CreateNpcRuntimeNode(int npc_id);
@@ -89,25 +89,25 @@ void InitializeNpcItemTable(W8NpcState* npc);
 
 /* The NPC-side consequence pass the sight code runs when a marked NPC's
    binding is released. */
-void HandleMarkedNpcEvent0050CF70(W8NpcState* npc, char mode);
+void HandleMarkedNpcEvent(W8NpcState* npc, char mode);
 /* 0x0050DBF0: the bound-NPC penalty the condition/enchantment rebuild folds
    into the character's modifier block while the slot's flag_fe is set. */
-void ApplyBoundNpcPenalty0050DBF0(W8Character* character, W8GameplayModifierBlock* target);
+void ApplyBoundNpcPenalty(W8Character* character, W8GameplayModifierBlock* target);
 /* 0x0050C560: place or move the NPC's monster at the named world entity. */
-unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, const char* entity_name);
+unsigned char RestoreNpcMonster(W8NpcState* npc, const char* entity_name);
 /* 0x0050ABF0: the activation callback the rebinding installs on the level's
    NPC triggers. */
-void ResetNpcBindingsForParty0050DB50(void);
-void ClearPendingNpcLevelFlags0050C270(void);
-void ReleaseNpcMonsterBindings0050C2E0(void);
-void ReleaseMarkedNpcBindings0050DA00(void);
-void RebindNpcLevelTriggers0050AC60(void);
+void ResetNpcBindingsForParty(void);
+void ClearPendingNpcLevelFlags(void);
+void ReleaseNpcMonsterBindings(void);
+void ReleaseMarkedNpcBindings(void);
+void RebindNpcLevelTriggers(void);
 W8NpcState* GetNpcState(int index);
 W8NpcState* GetNpcStateByKind(int kind);
 /* 0x0050DC50: whether the NPC wants the offered item - it matches one of the
    record's wanted entries by id or by the shared 0x83 name kind, and a grouped
    NPC whose member already carries more than one declines. */
-bool NpcWantsItem0050DC50(W8NpcState* npc, W8ItemInstance* item);
+bool NpcWantsItem(W8NpcState* npc, W8ItemInstance* item);
 bool NpcHasTopic(W8NpcState* npc, int topic); /* 0x0050C190 */
 bool NpcLeadHasNameStyle(unsigned int kind);
 /* 0x00509EA0: clear one NPC binding's monster link and hand the handle to the
@@ -118,8 +118,8 @@ W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);
 void SetNpcDispositionBand(W8NpcState* npc, char band);          /* 0x0050A520 */
 bool WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item); /* 0x0050A9C0 */
-void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemInstance* item,
-                                 unsigned int gold); /* 0x0050A570: every retail call pushes five */
+void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* item,
+                         unsigned int gold); /* 0x0050A570: every retail call pushes five */
 /* 0x0050AA00: whether the NPC's database entry carries the value at 0x002. */
 bool NpcRecordHasValue002(W8NpcState* npc);
 /* 0x0050C140: push a topic onto the NPC's five-slot topic list. */
@@ -127,8 +127,8 @@ void AddNpcTopic(W8NpcState* npc, int topic);
 /* 0x0050BC90: resolve one pickpocket attempt; the taken item goes to
    item_out and the taken gold to gold_out. Result codes feed the
    0x00576D80 dispatch. */
-int AttemptNpcPickpocket0050BC90(W8Character* character, W8NpcState* npc, W8ItemInstance* item_out,
-                                 unsigned int* gold_out);
+int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance* item_out,
+                         unsigned int* gold_out);
 /* 0x0050E4B0: clear the npc's item_ids_30 slots matching the item the quote
    entry just handed out. */
 void ClearNpcItemId(W8NpcState* npc, int item_id);
@@ -137,19 +137,19 @@ void ClearNpcItemId(W8NpcState* npc, int item_id);
 W8NpcState* FindNpcStateByName(const char* name);
 W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);
 const char* GetNpcDisplayName(W8NpcState* npc);
-void ReleaseNpcMonsterBinding0050C440(W8NpcState* npc, char level);                 /* 0x0050C440 */
-void RestoreNamedNpcAtLevel0050C1C0(int kind, char level, const char* entity_name); /* 0x0050C1C0 */
+void ReleaseNpcMonsterBinding(W8NpcState* npc, char level);                 /* 0x0050C440 */
+void RestoreNamedNpcAtLevel(int kind, char level, const char* entity_name); /* 0x0050C1C0 */
 unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id,
                                     W8ItemInstance* out); /* 0x0050BA80 */
 void ReleaseNpcMonsterByKind(int kind);                   /* 0x0050C680 */
 /* 0x0050DD50: record that the NPC has told the party the given fact. */
 void TellNpcFact(W8NpcState* npc, short fact);
 struct W8Chunk;
-unsigned char SaveNpcStates00509F00(W8Chunk* chunks);
-void LoadNpcStates00509FC0(W8Chunk* chunks);
-unsigned char SaveNpcItemLists0050AA10(int file);
-unsigned char LoadNpcItemLists0050AAF0(unsigned int file);
-char ScoreNpcTheft0050BAF0(W8Character* character, W8NpcState* npc, int item_id, int count);
-char AttemptNpcItemTheft0050C040(W8Character* character, W8NpcState* npc, int item_id, int count);
-void UpdateNpcPartyMember0050B3B0(int party_slot);
-char QueueNpcDepartureEvents0050DEC0(int destination_level);
+unsigned char SaveNpcStates(W8Chunk* chunks);
+void LoadNpcStates(W8Chunk* chunks);
+unsigned char SaveNpcItemLists(int file);
+unsigned char LoadNpcItemLists(unsigned int file);
+char ScoreNpcTheft(W8Character* character, W8NpcState* npc, int item_id, int count);
+char AttemptNpcItemTheft(W8Character* character, W8NpcState* npc, int item_id, int count);
+void UpdateNpcPartyMember(int party_slot);
+char QueueNpcDepartureEvents(int destination_level);

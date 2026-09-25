@@ -66,19 +66,19 @@ static const char ST_PARTICLE_CPP[] = "C:\\Projects\\Wizardry 8\\Engine Code\\st
 /* Return the renderer flags as a value. VC6 lowers the four-byte class return
    through its hidden result pointer. */
 // FUNCTION: WIZ8 0x00498A10
-srShader stParticle::GetRenderFlags00498A10() const
+srShader stParticle::GetRenderFlags() const
 {
     return render_flags_150;
 }
 
 // FUNCTION: WIZ8 0x004925A0
-void stParticle::SetRenderFlags004925A0(srShader flags)
+void stParticle::SetRenderFlags(srShader flags)
 {
     render_flags_150 = flags;
 }
 
 // FUNCTION: WIZ8 0x0049ADB0
-stParticle* FindRegisteredParticle0049ADB0(const char* name)
+stParticle* FindRegisteredParticle(const char* name)
 {
     stParticle* particle = 0;
     char* uppercase_name = static_cast<char*>(malloc(strlen(name) + 1));
@@ -107,7 +107,7 @@ void stParticle::SetParticleScale(float scale)
 }
 
 // FUNCTION: WIZ8 0x0049B150
-void SaveParticleStates0049B150(HWFILE handle)
+void SaveParticleStates(HWFILE handle)
 {
     unsigned char version = 1;
     char name[0x80] = "";
@@ -141,7 +141,7 @@ void SaveParticleStates0049B150(HWFILE handle)
 }
 
 // FUNCTION: WIZ8 0x0049B3B0
-void LoadParticleStates0049B3B0(int handle)
+void LoadParticleStates(int handle)
 {
     unsigned char version;
     int count = 0;
@@ -319,7 +319,7 @@ stParticle::stParticle(const stParticle& other)
     texture_frames_178 = 0;
     retained_14c = other.retained_14c;
     retained_14c->addReference();
-    SetRenderFlags004925A0(other.GetRenderFlags00498A10());
+    SetRenderFlags(other.GetRenderFlags());
 
     particle_positions_148 =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
@@ -333,7 +333,7 @@ stParticle::stParticle(const stParticle& other)
 
     vertex_count_158 = count * 4;
     texture_frame_count_15c = count * 2;
-    SetTexture0049AB00(other.texture_154);
+    SetTexture(other.texture_154);
     texcoords_164 = static_cast<srVector2T<float>*>(
         srHeap.allocate(vertex_count_158 * sizeof(srVector2T<float>)));
     if (texcoords_164 == 0) {
@@ -394,7 +394,7 @@ stParticle::stParticle(const stParticle& other)
     m_pflFlutterAngle = 0;
     flutter_amplitude_200 = other.flutter_amplitude_200;
     flutter_period_204 = other.flutter_period_204;
-    SetFlutter0049AD10(other.flutter_mode_1c0);
+    SetFlutter(other.flutter_mode_1c0);
     emission_interval_1c8 = other.emission_interval_1c8;
     lifetime_ms_1cc = other.lifetime_ms_1cc;
     minimum_1d0 = other.minimum_1d0;
@@ -434,8 +434,7 @@ stParticle::stParticle(const stParticle& other)
 }
 
 // FUNCTION: WIZ8 0x00499A50
-unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
-                                                   unsigned char replace_when_full)
+unsigned char stParticle::ActivateParticle(unsigned int* out_index, unsigned char replace_when_full)
 {
     if (emission_limit_184 != 0 && emission_count_188 >= emission_limit_184) {
         return 0;
@@ -461,7 +460,7 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
                 oldest = candidate;
             }
         }
-        DeactivateParticle00499F70(oldest);
+        DeactivateParticle(oldest);
         index = oldest;
     }
 
@@ -530,7 +529,7 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
         m_pflFlutterAngle[index] = (rand() & 0x7fff) * g_float_005ecc40;
     }
     if (texture_frames_178 != 0) {
-        texture_frames_178[index * 2]->SetFrame00485400(0);
+        texture_frames_178[index * 2]->SetFrame(0);
     }
 
     unsigned int vertex = index * 4;
@@ -546,7 +545,7 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
 }
 
 // FUNCTION: WIZ8 0x00499F70
-void stParticle::DeactivateParticle00499F70(unsigned int index)
+void stParticle::DeactivateParticle(unsigned int index)
 {
     unsigned char* active = particle_active_194 + index;
     if (*active != 0) {
@@ -696,7 +695,7 @@ void stParticle::Update00499FA0()
 
     if (emission_mode_1b0 == 1) {
         unsigned int particle_index;
-        ActivateParticle00499A50(&particle_index, replace_when_full_191);
+        ActivateParticle(&particle_index, replace_when_full_191);
         updated_at_25c = now;
         return;
     }
@@ -707,7 +706,7 @@ void stParticle::Update00499FA0()
     for (;;) {
         unsigned int lag = now - emission_interval_1c8 - updated_at_25c;
         unsigned int particle_index;
-        if (ActivateParticle00499A50(&particle_index, replace_when_full_191) == 0) {
+        if (ActivateParticle(&particle_index, replace_when_full_191) == 0) {
             updated_at_25c = now;
             return;
         }
@@ -720,7 +719,7 @@ void stParticle::Update00499FA0()
         srVector3T<float> displacement = velocities_198[particle_index];
         displacement *= (double)lag;
         displacement /= 1000.0;
-        InitializeParticlePosition0049A990(&particle_positions_148[particle_index]);
+        InitializeParticlePosition(&particle_positions_148[particle_index]);
         particle_positions_148[particle_index] += displacement;
 
         updated_at_25c += emission_interval_1c8;
@@ -731,7 +730,7 @@ void stParticle::Update00499FA0()
 }
 
 // FUNCTION: WIZ8 0x0049A990
-void stParticle::InitializeParticlePosition0049A990(srVector3T<float>* output)
+void stParticle::InitializeParticlePosition(srVector3T<float>* output)
 {
     output->x =
         (maximum_1dc.x - minimum_1d0.x) * (rand() & 0x7fff) * g_float_005ec438 + minimum_1d0.x;
@@ -782,7 +781,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
 /* Traversal is gated separately from particle activity.  Starting a new
    enabled interval resets the update timestamp; repeated enables do not. */
 // FUNCTION: WIZ8 0x00498D90
-void stParticle::SetTraversalEnabled00498D90(unsigned char enabled)
+void stParticle::SetTraversalEnabled(unsigned char enabled)
 {
     if (enabled != 0 && traversal_enabled_1a1 == 0) {
         updated_at_25c = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
@@ -1098,7 +1097,7 @@ stParticle::~stParticle()
 }
 
 // FUNCTION: WIZ8 0x0049AB00
-void stParticle::SetTexture0049AB00(srTextureIFace* texture)
+void stParticle::SetTexture(srTextureIFace* texture)
 {
     unsigned int i;
 
@@ -1138,19 +1137,19 @@ void stParticle::SetActive(unsigned char active)
 }
 
 // FUNCTION: WIZ8 0x0049ac30
-unsigned char stParticle::ReplaceTexture0049AC30(const char* old_name, srTextureIFace* replacement)
+unsigned char stParticle::ReplaceTexture(const char* old_name, srTextureIFace* replacement)
 {
     if (texture_154 != 0 &&
         (texture_154->getClassID() == 0x10001 || texture_154->getClassID() == 0x10000) &&
         _stricmp(texture_154->getName(), old_name) == 0) {
-        SetTexture0049AB00(replacement);
+        SetTexture(replacement);
         return 1;
     }
     return 0;
 }
 
 // FUNCTION: WIZ8 0x0049ACA0
-void stParticle::SetRetainedObject0049ACA0(srMaterialIFace* material)
+void stParticle::SetRetainedObject(srMaterialIFace* material)
 {
     if (retained_14c != 0) {
         retained_14c->release();
@@ -1162,7 +1161,7 @@ void stParticle::SetRetainedObject0049ACA0(srMaterialIFace* material)
 }
 
 // FUNCTION: WIZ8 0x0049AD10
-void stParticle::SetFlutter0049AD10(int enabled)
+void stParticle::SetFlutter(int enabled)
 {
     unsigned int i;
 

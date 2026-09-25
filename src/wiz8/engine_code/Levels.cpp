@@ -116,18 +116,18 @@ signed char g_loaded_sky_index_00604470 = -1;
 // GLOBAL: WIZ8 0x00604474
 int g_cd_index_00604474 = -1;
 // GLOBAL: WIZ8 0x00659738
-W8MaterialMapper00482010 g_material_mapper_00659738;
+W8MaterialMapper g_material_mapper_00659738;
 
 // FUNCTION: WIZ8 0x0042b720
-int GetLevelCdNumber0042B720(int level)
+int GetLevelCdNumber(int level)
 {
     return g_level_folders[level].cd_number;
 }
 
 // FUNCTION: WIZ8 0x0042b6f0
-bool IsLevelCdMissing0042B6F0(int level)
+bool IsLevelCdMissing(int level)
 {
-    return FindGameDataPath0042B590(gzCdDirectory, g_level_folders[level].cd_number) == 0;
+    return FindGameDataPath(gzCdDirectory, g_level_folders[level].cd_number) == 0;
 }
 
 /* Scan every logical drive for the CD whose volume label is WIZ8_<cd_number>,
@@ -135,7 +135,7 @@ bool IsLevelCdMissing0042B6F0(int level)
    found. Only a CD-ROM drive is considered, and the volume query temporarily
    suppresses the system's error dialog for a missing disc. */
 // FUNCTION: WIZ8 0x0042B590
-unsigned char FindGameDataPath0042B590(char* path, int cd_number)
+unsigned char FindGameDataPath(char* path, int cd_number)
 {
     char expected_label[32];
     char volume_name[32];
@@ -182,7 +182,7 @@ unsigned char FindGameDataPath0042B590(char* path, int cd_number)
 // FUNCTION: WIZ8 0x0042b740
 char GetLevelBand(int saved_level)
 {
-    int level = NormalizeMasterFunctionValue004D9700(saved_level);
+    int level = NormalizeMasterFunctionValue(saved_level);
     /* `<= 0x2f` is the retail bound: it admits the first test-level slot, one
        past the W8_LEVEL_COUNT-entry table. */
     if (level >= 0 && level <= 0x2f) {
@@ -202,11 +202,11 @@ void StartLevelMusic(int fade, int replace_current)
     sprintf(path, "Data\\Music\\%s.MPL", level_name);
     if (FileExists(path)) {
         sprintf(path, "%s.MPL", level_name);
-        StartMusicResource0048FC10(path, fade, replace_current);
+        StartMusicResource(path, fade, replace_current);
     } else {
-        StartMusicResource0048FC10("Adventure.MPL", fade, replace_current);
+        StartMusicResource("Adventure.MPL", fade, replace_current);
     }
-    ServiceMusicPlaylist0048F9E0();
+    ServiceMusicPlaylist();
 }
 
 // FUNCTION: WIZ8 0x0042b3e0
@@ -309,7 +309,7 @@ void NoOp(W8World* world, int first, int second)
    animated-cloud material: its cloud meshes are marked for the renderer's
    control bits and every CloudsN prop's mesh chain is rebound to it. */
 // FUNCTION: WIZ8 0x0042B020
-unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
+unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
 {
     signed char sky_index;
     W8LevelInfo local_info;
@@ -513,7 +513,7 @@ unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
 // FUNCTION: WIZ8 0x0042A6F0
 unsigned char LoadLevel(int requested_level, int entrance, unsigned char restoring_game)
 {
-    int level = NormalizeMasterFunctionValue004D9700(requested_level);
+    int level = NormalizeMasterFunctionValue(requested_level);
     W8LevelInfo level_info;
     int previous_level;
     unsigned char first_visit = 0;
@@ -533,7 +533,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
         Forward44FAF0(GetWorld());
         SetCurrentWorld(0);
     }
-    ReleaseRetainedMaterials00489920();
+    ReleaseRetainedMaterials();
     InvalidateRendererTextureCache();
     SetCurrentWorld(CreateWorld());
 
@@ -542,13 +542,13 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
     sprintf(music_path, "Data\\Music\\%s.MPL", g_level_folders[level].folder_name);
     if (FileExists(music_path)) {
         sprintf(music_path, "%s.MPL", g_level_folders[g_status_685170.current_level].folder_name);
-        StartMusicResource0048FC10(music_path, 1, 1);
+        StartMusicResource(music_path, 1, 1);
     } else {
-        StartMusicResource0048FC10("", 1, 1);
+        StartMusicResource("", 1, 1);
     }
-    ServiceMusicPlaylist0048F9E0();
+    ServiceMusicPlaylist();
 
-    if (!LoadSkyWorld0042B020(level, &level_info)) {
+    if (!LoadSkyWorld(level, &level_info)) {
         return 0;
     }
     InitializeMonsterManagerState();
@@ -590,7 +590,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             if (fabs(position.y - trigger_position.y) > g_position_height_epsilon_005ebfdc) {
                 position.y = trigger_position.y;
             }
-            SetWorldScenePosition004511D0(GetWorld(), &position);
+            SetWorldScenePosition(GetWorld(), &position);
 
             if (trigger->trigger_kind_018 == 2) {
                 srVector3T<float> axis;
@@ -610,7 +610,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             srVector3T<float> position;
 
             position.Set(0.0f, g_default_world_height_00603ac8, 0.0f);
-            SetWorldScenePosition004511D0(GetWorld(), &position);
+            SetWorldScenePosition(GetWorld(), &position);
         }
     } else {
         RestoreWorldCameraState(GetWorld(), GetWorld659AB8(),
@@ -628,30 +628,30 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             g_ambient_sound_filename_006059e0);
     LoadAmbientSoundList0047AB40(path);
     if (!g_environment_load_flag_00603ad0) {
-        ResetCurrentEnvironment0041AA40();
+        ResetCurrentEnvironment();
     }
     g_camera_path_active_0065ba70 = 0;
     InitializeLevelEnvironment00482410();
-    InitializeLevelMasterFunctions004D6C50(level);
-    RebindNpcLevelTriggers0050AC60();
-    SetWorldCursorNodesVisible0048ED70(g_mipe_trigger_display_0068f0fd);
-    RebuildPartyEffectBlock0050E700();
+    InitializeLevelMasterFunctions(level);
+    RebindNpcLevelTriggers();
+    SetWorldCursorNodesVisible(g_mipe_trigger_display_0068f0fd);
+    RebuildPartyEffectBlock();
 
     if (!restoring_game) {
         if (level < W8_LEVEL_COUNT) {
-            ResetNpcBindingsForParty0050DB50();
-            ClearPendingNpcLevelFlags0050C270();
-            ReleaseNpcMonsterBindings0050C2E0();
+            ResetNpcBindingsForParty();
+            ClearPendingNpcLevelFlags();
+            ReleaseNpcMonsterBindings();
             RecordLevelEntryDialogueState();
             gXStatus.combat_countdown = 0;
         }
         if (g_status_685170.greeting_pending_2497 && (GetFact(0x4c) || GetFact(0x4b))) {
-            DespawnAllActiveMonsterGroups0048C9F0();
+            DespawnAllActiveMonsterGroups();
         } else {
             UpdateRandomEncounterBudget(first_visit);
         }
         if (!first_visit) {
-            ResetAndRefreshAllSight005060C0();
+            ResetAndRefreshAllSight();
             AgeAllMonsterSight();
         }
         for (int index = g_spell_effects.GetCount() - 1; index >= 0; --index) {
@@ -670,8 +670,8 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
         RebuildAllWorldItemInstances();
     }
     MarkRendererReady();
-    UpdateWorldMeshAfterLoad00451020();
-    ReleaseReadMeshScratch004881D0();
+    UpdateWorldMeshAfterLoad();
+    ReleaseReadMeshScratch();
     return 1;
 }
 
@@ -679,7 +679,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
 unsigned char UnloadLevel(const char* save_directory)
 {
     if (gXStatus.fCombatMode != 0) {
-        EndCombat004EA310(1);
+        EndCombat(1);
     }
 
     if (g_status_685170.current_level < W8_LEVEL_COUNT) {
@@ -691,7 +691,7 @@ unsigned char UnloadLevel(const char* save_directory)
         RenderFrame();
     }
 
-    ReleaseMarkedNpcBindings0050DA00();
+    ReleaseMarkedNpcBindings();
     if (strcmp(save_directory, "") != 0) {
         SaveLevelStatus("Saves\\CurrentGame.SAV");
     }
@@ -722,19 +722,19 @@ unsigned char UnloadLevel(const char* save_directory)
     }
 
     ReleaseWorldCursorNodes0048DB30();
-    ClearSearchables005171B0();
+    ClearSearchables();
     if (g_world_cleanup_flag_00659757 != 0) {
         RenderFrame();
     }
 
-    ReleaseWorldCursor004909C0();
+    ReleaseWorldCursor();
     DisableSky();
     W8World* world = GetWorld();
     if (world != 0) {
         Forward44FAF0(world);
         SetCurrentWorld(0);
     }
-    ReleaseRetainedMaterials00489920();
+    ReleaseRetainedMaterials();
 
     if (g_world_cleanup_flag_00659757 != 0) {
         RenderFrame();
@@ -764,7 +764,7 @@ unsigned char UnloadLevel(const char* save_directory)
    saved yaw/pitch records and position are put back after the load; every
    other request is a plain unload+load. */
 // FUNCTION: WIZ8 0x0042AF60
-unsigned char ReloadLevelPreservingCamera0042AF60(int level, int entrance)
+unsigned char ReloadLevelPreservingCamera(int level, int entrance)
 {
     W8CameraAngleRecord saved_angle;
     W8CameraAngleRecord saved_pitch;
@@ -785,8 +785,8 @@ unsigned char ReloadLevelPreservingCamera0042AF60(int level, int entrance)
         return 0;
     }
     if (restore != 0) {
-        RestoreWorldCameraOrientation00421570(saved_angle, saved_pitch, GetWorld());
-        SetWorldScenePosition004511D0(GetWorld(), &saved_position);
+        RestoreWorldCameraOrientation(saved_angle, saved_pitch, GetWorld());
+        SetWorldScenePosition(GetWorld(), &saved_position);
     }
     return 1;
 }

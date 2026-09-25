@@ -17,7 +17,7 @@
 
 /* Level Specific Code\MtGigas1.cpp (level 0x0c).
 
-   Attribution evidence: InitializeLevelMasterFunctions004D6C50 runs
+   Attribution evidence: InitializeLevelMasterFunctions runs
    0x004DBAB0 and registers 0x004DBB50-0x004DBE30 under case 0x0c, and the
    range sits between the MtGigas2 TU and the MtGigasOuter TU which starts
    at 0x004DBE70. */
@@ -33,7 +33,7 @@ unsigned char g_plate_down_6834f9;
    global and mirrors the saved PPlateDown variable into the latch flag,
    creating the variable when the level never wrote one. */
 // FUNCTION: WIZ8 0x004DBAB0
-void MtGigas1Setup004DBAB0(void)
+void MtGigas1Setup(void)
 {
     Trigger* pTrigger;
     W8Prop* prop;
@@ -63,7 +63,7 @@ void MtGigas1Setup004DBAB0(void)
 /* Activation callback on _VOC_EWAXXLIFT1: queues the lift NPC notice with
    the held item, if any. */
 // FUNCTION: WIZ8 0x004DBB50
-bool MtGigas1Lift1004DBB50(Trigger* pTrigger)
+bool MtGigas1Lift1(Trigger* pTrigger)
 {
     if (gXStatus.fNpcDialogueMode != 0) {
         return false;
@@ -82,7 +82,7 @@ bool MtGigas1Lift1004DBB50(Trigger* pTrigger)
 /* Activation callback on _VOC_EWAXXLIFT2: queues the lift NPC notice with
    the held item, if any. */
 // FUNCTION: WIZ8 0x004DBB90
-bool MtGigas1Lift2004DBB90(Trigger* pTrigger)
+bool MtGigas1Lift2(Trigger* pTrigger)
 {
     if (gXStatus.fNpcDialogueMode != 0) {
         return false;
@@ -104,7 +104,7 @@ bool MtGigas1Lift2004DBB90(Trigger* pTrigger)
    drops the plate (setting 1, rumble + open sounds); on the release edge it
    reverses both (setting 3, close + rumble sounds) and clears PPlateDown. */
 // FUNCTION: WIZ8 0x004DBBD0
-bool MtGigas1PressurePlate004DBBD0(Trigger* pTrigger)
+bool MtGigas1PressurePlate(Trigger* pTrigger)
 {
     srVector3T<float> minimum;
     srVector3T<float> maximum;
@@ -117,11 +117,11 @@ bool MtGigas1PressurePlate004DBBD0(Trigger* pTrigger)
     srVector3T<double> camera_position = GetWorld()->camera->getLocation();
     position.x = static_cast<float>(camera_position.x);
     position.z = static_cast<float>(camera_position.z);
-    g_plate_prop_6834f4->ComputeBounds004B7500(&minimum, &maximum);
+    g_plate_prop_6834f4->ComputeBounds(&minimum, &maximum);
     g_plate_contact_6834f8 = 0;
     if ((position.x >= minimum.x && position.x <= maximum.x && position.z >= minimum.z &&
          position.z <= maximum.z) ||
-        g_plate_prop_6834f4->HasListEntries004B7BA0() != 0) {
+        g_plate_prop_6834f4->HasListEntries() != 0) {
         g_plate_contact_6834f8 = 1;
         if (g_plate_down_6834f9 != 0) {
             return false;
@@ -149,7 +149,7 @@ bool MtGigas1PressurePlate004DBBD0(Trigger* pTrigger)
             }
         }
         g_plate_down_6834f9 = 1;
-        SetTriggerVariableByName00444030("PPlateDown", 1);
+        SetTriggerVariableByName("PPlateDown", 1);
         SoundPlay("Data\\Sound\\Ambients\\Door Stone Open.wav", 0);
         SoundPlay("Data\\Sound\\Ambients\\Amb Rumble Very Low.wav", 0);
         return false;
@@ -180,7 +180,7 @@ bool MtGigas1PressurePlate004DBBD0(Trigger* pTrigger)
         }
     }
     g_plate_down_6834f9 = 0;
-    SetTriggerVariableByName00444030("PPlateDown", 0);
+    SetTriggerVariableByName("PPlateDown", 0);
     SoundPlay("Data\\Sound\\Ambients\\Door Stone Close 01.wav", 0);
     SoundPlay("Data\\Sound\\Ambients\\Amb Rumble Very Low.wav", 0);
     return false;
@@ -189,7 +189,7 @@ bool MtGigas1PressurePlate004DBBD0(Trigger* pTrigger)
 /* Activation callback on mudWallTrigger: spawns the badass monster at the
    NP_BadassMonster entity. */
 // FUNCTION: WIZ8 0x004DBE30
-bool MtGigas1MudWall004DBE30(Trigger* pTrigger)
+bool MtGigas1MudWall(Trigger* pTrigger)
 {
     srVector3T<float> position;
 

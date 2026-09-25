@@ -686,7 +686,7 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
         GetMonsterDataForInfo(other);
         if (other != monster_info && other->fActive != 0 && other->fInCombat != 0 &&
             other->hp_current != 0 && other->highest_condition < 0x12 &&
-            MonsterHostility00546F80(monster_info, other) == disposition_needed &&
+            MonsterHostility(monster_info, other) == disposition_needed &&
             MonsterAttackReachesMonster(monster_info, record, attack, other) != 0) {
             return 1;
         }
@@ -885,8 +885,7 @@ bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* r
         srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
                      "CalcRangeDistance: ERROR - Invalid range category");
     }
-    if (monster_info->p3D->GetDistanceToMonster004C7DD0(target->p3D) <=
-        steps * g_world_scale_005ebc40) {
+    if (monster_info->p3D->GetDistanceToMonster(target->p3D) <= steps * g_world_scale_005ebc40) {
         return 1;
     }
     return 0;
@@ -1078,7 +1077,7 @@ float CalcRangeDistance(int range_category, W8TargetSource* source)
 /* Party-relative action range for the world cursor: same band steps as
    CalcRangeDistance, then add the startup navigator's movement collision_radius_0b0. */
 // FUNCTION: WIZ8 0x0051AB50
-float CalcRangeDistanceFromParty0051AB50(W8RangeCategory range_category)
+float CalcRangeDistanceFromParty(W8RangeCategory range_category)
 {
     unsigned int steps = 0;
 
@@ -1355,16 +1354,15 @@ void InitializeMonsterRangeCapabilities(W8MonsterInfo* monster_info, const W8Mon
 
     srVector3T<float> position;
     monster_info->has_missile_37a =
-        best_range > W8_RANGE_SHORT &&
-        monster_info->p3D->GetProjectilePosition004C77F0(&position) == 1;
+        best_range > W8_RANGE_SHORT && monster_info->p3D->GetProjectilePosition(&position) == 1;
 
     monster_info->has_spell_37c = record->spell_chance_0e0 != 0 &&
                                   MonsterIsCycleSupported(monster_info->p3D, 0x19) &&
-                                  monster_info->p3D->GetSpellPosition004C78E0(&position) == 1;
+                                  monster_info->p3D->GetSpellPosition(&position) == 1;
 }
 
 // FUNCTION: WIZ8 0x0051b3f0
-unsigned char TraceModeRejectsNoHit0051B3F0(int mode)
+unsigned char TraceModeRejectsNoHit(int mode)
 {
     switch (mode) {
     case 0:
@@ -1399,10 +1397,10 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int ki
             W8MonsterInfo* other = MonsterGetScriptPartByLocationIndex(index);
 
             if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
-                other->fInCombat != 0 && MonsterHostility00546F80(monster_info, other) == 1) {
+                other->fInCombat != 0 && MonsterHostility(monster_info, other) == 1) {
                 W8VisibilityRecord* row = FindMonToMonVisibility(monster_info, other);
                 if (IsVisibleUnderConditions(monster_info, row, kind)) {
-                    float distance = monster_info->p3D->GetDistanceToMonster004C7DD0(other->p3D);
+                    float distance = monster_info->p3D->GetDistanceToMonster(other->p3D);
                     if (distance < best) {
                         out->iType = W8_TARGET_KIND_MONSTER;
                         out->iMonsterID = other->location_id;
@@ -1528,7 +1526,7 @@ int FindNearestVisibleGroupMonster(W8MonsterInfo* monster_info, int group_id, in
         if (target->fActive != 0 && target->hp_current != 0 && target->fInCombat != 0) {
             W8VisibilityRecord* row = FindMonToMonVisibility(monster_info, target);
             if (IsVisibleUnderConditions(monster_info, row, kind) != 0) {
-                float distance = monster_info->p3D->GetDistanceToMonster004C7DD0(target->p3D);
+                float distance = monster_info->p3D->GetDistanceToMonster(target->p3D);
                 if (distance < best) {
                     best_id = target->location_id;
                     best = distance;
@@ -1549,7 +1547,7 @@ void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float
     out->y = monster->movement_0c0.height_offset_0b8;
     out->z = 0.0f;
     if (kind == 1) {
-        if (monster->GetProjectilePosition004C77F0(out) != 0) {
+        if (monster->GetProjectilePosition(out) != 0) {
             srVector3T<float> position = monster->GetPosition();
             out->x = out->x - position.x;
             out->y = out->y - position.y;
@@ -1560,7 +1558,7 @@ void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float
         if (kind != 3) {
             return;
         }
-        if (monster->GetSpellPosition004C78E0(out) != 0) {
+        if (monster->GetSpellPosition(out) != 0) {
             srVector3T<float> position = monster->GetPosition();
             out->x = out->x - position.x;
             out->y = out->y - position.y;

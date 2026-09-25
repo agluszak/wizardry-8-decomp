@@ -32,7 +32,7 @@ extern HWND ghWindow;
 
 extern BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void* WindowProc);
 extern void ShutdownVideoManager(void);
-extern void ShutdownVideoScenes00423F30(void);
+extern void ShutdownVideoScenes(void);
 extern void SuspendVideoManager(void);
 extern BOOLEAN RestoreVideoManager(void);
 extern void GetCurrentVideoSettings(UINT16* usWidth, UINT16* usHeight, UINT8* ubBitDepth);
@@ -124,13 +124,13 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
    scissored viewport, then blit the locked frame buffer onto the target. */
 unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect* rect,
                                            char render_secondary);
-void SetPickKey004277F0(void* key);
+void SetPickKey(void* key);
 
 struct W8ControlsRect;
 /* 0x00424790: build a solid-color quad sprite; width/height are pixel counts
    and `color` becomes the material's emissive vector. MGSRadarMap's blip
    templates are its observed callers. */
-void SetFullscreenSceneLast004298E0(unsigned char value); /* 0x004298E0 */
+void SetFullscreenSceneLast(unsigned char value); /* 0x004298E0 */
 stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVector4T<float>* color,
                                               char a4);
 /* 0x004253F0: the render-target sprite factory CreateSpriteFromSurface wraps; the
@@ -142,17 +142,17 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
 stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsRect* rect, int mode,
                                            int arg_4, int arg_5);
 /* 0x004257D0: position a 2D node without pixel snapping. */
-void Position2DNodeUnsnapped004257D0(srNode* node, int x, int y);
+void Position2DNodeUnsnapped(srNode* node, int x, int y);
 /* 0x004264F0: write the display-state byte of a 2D model instance. */
-void SetModelInstance2DDisplayState004264F0(stModelInstance2D* object, unsigned char state);
+void SetModelInstance2DDisplayState(stModelInstance2D* object, unsigned char state);
 /* 0x00425820: set FLAG_DISABLE on a node; the overlay drawers call it to hide
    the highlight sprite before redrawing the panel contents. */
 void ClearNodeFlag(srNode* node);
 /* 0x00425840: rotate an srNode in degrees and invalidate the renderer mode. */
-void RotateNodeInDegrees00425840(srNode* node, int degrees);
+void RotateNodeInDegrees(srNode* node, int degrees);
 /* 0x00425950: drop a 2D node from the surface-tile table, invalidate its
    model's texture, and release the node. */
-void ReleaseSurfaceNode00425950(srNode* node);
+void ReleaseSurfaceNode(srNode* node);
 /* 0x00427E70: surface-lock helper used while installing a drag cursor. */
 bool ClearMouseSurface(void);
 /* 0x004255F0: place a 2D node at a screen position in normalized
@@ -160,7 +160,7 @@ bool ClearMouseSurface(void);
 void PositionToolTipNode(srNode* node, int x, int y, char positional);
 /* 0x00427460: the debug stats readout - frame rate always, the full counter
    block in inspector mode 2, or the scaled camera position in mode 3. */
-void DrawVideoInspector00427460(int left, unsigned int top);
+void DrawVideoInspector(int left, unsigned int top);
 /* 0x00428830: the option-4-suppressed render probe - draws the node between
    the dynamic scene's bracketing passes and returns the sampled statistic. */
 unsigned int MeasureNodeRender00428830(srNode* node);
@@ -180,15 +180,15 @@ class stTextureAnim;
 stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_frame,
                                          unsigned short frame_count, char use_argb1555);
 /* 0x00428A90: mark the primary renderer mode word dirty. */
-void SetOverlayRenderMode00428A90(void);
+void SetOverlayRenderMode(void);
 /* 0x00428AA0: mark both renderer mode words dirty. */
 void SetRendererModePair(void);
 /* 0x00428910 / 0x004289C0 / 0x004289E0: the render-probe bracket the region
    link builder uses to count a mesh's drawn faces — begin the probe pass,
    draw the node and return its covered-face count, then end the pass. */
-void BeginRenderProbe00428910(void);
+void BeginRenderProbe(void);
 unsigned int MeasureNodeRender004289E0(srNode* node);
-void EndRenderProbe004289C0(void);
+void EndRenderProbe(void);
 
 #endif
 
@@ -226,7 +226,7 @@ extern srScene* g_scene_overlay0_659654;
 extern srScene* g_scene_overlay1_659658;
 extern srScene* g_scene_square_65965c;
 extern srColorSurface* g_primary_color_surface_659660;
-void DrawColorSurface00425590(srColorSurface* surface, int x, int y);
+void DrawColorSurface(srColorSurface* surface, int x, int y);
 srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
                         unsigned char additive); /* 0x00424A90 */
 extern srCamera* g_overlay_camera_659670;
@@ -265,9 +265,9 @@ extern unsigned char g_world_render_enabled_65970d;
 extern unsigned char g_world_blacked_out_65970e;
 
 void SetResidentTexturePolicy(int policy);
-void SetSurfaceScale004297E0(float scale);
-void SetTextureCacheSize00426740(unsigned long bytes);
-void SetSwapInterval00426710(unsigned char enabled);
+void SetSurfaceScale(float scale);
+void SetTextureCacheSize(unsigned long bytes);
+void SetSwapInterval(unsigned char enabled);
 unsigned char GetRendererModeByte(void);
 void SetViewport(int left, int top, int right, int bottom);
 /* Scale a 640x480 design-space rect onto the GERD surface and remember it;
@@ -278,24 +278,24 @@ void SetScaledViewport00425DA0(int left, int top, int right, int bottom);
    through it. */
 void SetScaledViewport00425C90(int left, int top, int right, int bottom);
 /* Read the stored pixel viewport back out in normalized 0..1 scale. */
-void GetScaledViewportBounds004273F0(float* left_top, float* right_bottom);
+void GetScaledViewportBounds(float* left_top, float* right_bottom);
 /* Lock the primary GERD buffer and emit one debug wireframe line. */
-void DrawBufferLine00426490(long x0, long y0, long x1, long y1, unsigned long* pixel);
+void DrawBufferLine(long x0, long y0, long x1, long y1, unsigned long* pixel);
 unsigned char InitializeRendererSceneObjects(void);
 void PurgeInactiveSceneInstances(srScene* scene);
-void ResetVideoFrameState00422B10(void);
+void ResetVideoFrameState(void);
 void SetPrimarySurfaceTextureHint2Enabled(unsigned char enabled);
 unsigned char ClearPrimarySurface(void);
 void ResetTransientRenderScenes(void);
-void ClearVideoDirtyBlocks00423150(void); /* 0x00423150 */
+void ClearVideoDirtyBlocks(void); /* 0x00423150 */
 void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char preserve_fog);
 void RenderFrame(void);
 IDirectDrawSurface2* BeginVideoPresentation(void);
 unsigned char FinishVideoPresentation(void);
 void PublishLightDirection(const EnvironmentColour* direction);
-void GetWorldColour00427290(EnvironmentColour* colour); /* 0x00427290 */
-srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color);
-void ReleaseObject004257F0(srClass* object);
+void GetWorldColour(EnvironmentColour* colour); /* 0x00427290 */
+srVector3T<float>* __fastcall SaturateColor(srVector3T<float>* color);
+void ReleaseObject(srClass* object);
 void Initialize16BitPixelFormatMasks(void);
 unsigned char CreateWizardryWindow(void);
 unsigned char InitializePrimaryDirectDrawSurface(void);
@@ -303,16 +303,16 @@ unsigned char InitializeVideoDevice(void);
 unsigned char OpenRendererWindow(void);
 void InvalidateRendererTextureCache(void);
 void AssertFailureHandler(const char* expression, const char* file, long line, const char* message);
-unsigned char DisableCursorScene00428010(void);
-unsigned char EnableCursorScene00428020(void);
-void SetOverlayViewport00429200(const int* value);
+unsigned char DisableCursorScene(void);
+unsigned char EnableCursorScene(void);
+void SetOverlayViewport(const int* value);
 void SetWorldModelPickingEnabled(char enabled);
 bool RendererBufferIsLockable(void);
 void SetRendererOption4Enabled(char enabled);
 bool HasEnoughFreeDiskSpace(void);
 int GetUsedPageFileBytes(void);
-srModelInstance* GetPickedModelInstance00427810(void);
-void SetPickedModelInstance00427820(srModelInstance* value);
+srModelInstance* GetPickedModelInstance(void);
+void SetPickedModelInstance(srModelInstance* value);
 bool IsCursorInsideViewport(void);      /* 0x00428070 */
 bool IsCursorImageInsideViewport(void); /* 0x00428030 */
 

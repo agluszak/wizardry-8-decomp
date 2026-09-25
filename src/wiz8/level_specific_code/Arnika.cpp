@@ -33,7 +33,7 @@
    Attribution evidence: the missing-trigger assertions quote this file's
    path at lines 752-764, 1026-1038, 1469, 1512, 1520 and 1543, and the
    assert expressions name the gEl01/gEl02 members. The level-0 block of
-   InitializeLevelMasterFunctions004D6C50 registers the trigger cluster
+   InitializeLevelMasterFunctions registers the trigger cluster
    (ChaosMolori, Maddmook, CMbox, AstralDominae, Mookholo, MookFrontDoor,
    YellowButton, Vaultalarmdoor, Exitbutton, GenVault-2-door, ARN11,
    RedButton, El1-TopButtons, El1-BottomButtons, GreenButton, Elevator-02,
@@ -87,7 +87,7 @@ W8Monster* g_mookholo_monster_6835e8;
    Screg flag and the inside-the-inn NPC teleport from the persisted
    location variables and fact 0xc1. */
 // FUNCTION: WIZ8 0x004E06D0
-void ArnikaLevelSetup004E06D0(void)
+void ArnikaLevelSetup(void)
 {
     srVector3T<float> position;
     W8NpcState* npc;
@@ -97,8 +97,8 @@ void ArnikaLevelSetup004E06D0(void)
     g_lazer_prop_6835cc = 0;
     g_exit_door_prop_6835d0 = 0;
     g_exit_door_trigger_6835d4 = 0;
-    ArnikaElevator1Setup004E13B0();
-    ArnikaElevator2Setup004E1A10();
+    ArnikaElevator1Setup();
+    ArnikaElevator2Setup();
     g_flag_006834dd = false;
     if (GetLocationVarIDByName("LaserScanning") != -1 &&
         GetLocationVarValueByName("LaserScanning") != 0) {
@@ -111,20 +111,20 @@ void ArnikaLevelSetup004E06D0(void)
             g_lazer_prop_6835cc = pTrigger->m_pProp;
             g_laser_scanning_6835d8 = 1;
             BeginScriptedWorldAction();
-            g_master_functions_006834d8->Add(ArnikaLaserScanMaster004E0960);
+            g_master_functions_006834d8->Add(ArnikaLaserScanMaster);
         }
     }
     if (GetLocationVarIDByName("WarningSound") != -1) {
         int value = GetLocationVarValueByName("WarningSound");
         if (value != 0) {
-            ArnikaWarningSound004E0AC0(value);
+            ArnikaWarningSound(value);
         }
     }
     if (GetLocationVarIDByName("ScregActive") != -1 &&
         GetLocationVarValueByName("ScregActive") == 1) {
         npc = GetNpcStateByKind(0x17);
         if (npc == 0 || (monster_info = GetNpcMonsterInfo(npc)) == 0 || monster_info->p3D == 0) {
-            SetTriggerVariableByName00444030("ScregActive", 0);
+            SetTriggerVariableByName("ScregActive", 0);
         }
     }
     if (GetFact(0xc1) != 0) {
@@ -142,7 +142,7 @@ void ArnikaLevelSetup004E06D0(void)
 /* LazerScanner trigger: caches the scanner prop, refuses while its rep is
    still animating or the HLL door is already open, then arms the scan. */
 // FUNCTION: WIZ8 0x004E0880
-bool ArnikaLazerScanner004E0880(Trigger* pTrigger)
+bool ArnikaLazerScanner(Trigger* pTrigger)
 {
     if (pTrigger->m_bRepType != 2) {
         srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
@@ -157,7 +157,7 @@ bool ArnikaLazerScanner004E0880(Trigger* pTrigger)
     }
     g_laser_scanning_6835d8 = 1;
     BeginScriptedWorldAction();
-    g_master_functions_006834d8->Add(ArnikaLaserScanMaster004E0960);
+    g_master_functions_006834d8->Add(ArnikaLaserScanMaster);
     return 1;
 }
 
@@ -165,20 +165,20 @@ bool ArnikaLazerScanner004E0880(Trigger* pTrigger)
    state into LaserScanning, and a zero tick drops the scan once the prop's
    rep stops animating. */
 // FUNCTION: WIZ8 0x004E0960
-void ArnikaLaserScanMaster004E0960(int command)
+void ArnikaLaserScanMaster(int command)
 {
     if (command != 0) {
         if (command == -1) {
             if (GetLocationVarIDByName("LaserScanning") == -1) {
                 CreateLocationVar("LaserScanning", g_laser_scanning_6835d8);
             } else {
-                SetTriggerVariableByName00444030("LaserScanning", g_laser_scanning_6835d8);
+                SetTriggerVariableByName("LaserScanning", g_laser_scanning_6835d8);
             }
             return;
         }
         g_laser_scanning_6835d8 = 1;
         BeginScriptedWorldAction();
-        g_master_functions_006834d8->Add(ArnikaLaserScanMaster004E0960);
+        g_master_functions_006834d8->Add(ArnikaLaserScanMaster);
         return;
     }
     g_flag_006834dc = false;
@@ -196,7 +196,7 @@ void ArnikaLaserScanMaster004E0960(int command)
 
 /* ScannerDoor trigger: the 0x27b key item opens the HLL door once. */
 // FUNCTION: WIZ8 0x004E0A80
-bool ArnikaScannerDoor004E0A80(Trigger* pTrigger)
+bool ArnikaScannerDoor(Trigger* pTrigger)
 {
     if (FindItemOnParty(0x27b, 0, 0, 2, 0) == 0) {
         return 0;
@@ -212,7 +212,7 @@ bool ArnikaScannerDoor004E0A80(Trigger* pTrigger)
    remaining time into WarningSound, and a zero tick runs the countdown and
    stops the looped VOC when it expires. */
 // FUNCTION: WIZ8 0x004E0AC0
-void ArnikaWarningSound004E0AC0(int command)
+void ArnikaWarningSound(int command)
 {
     srVector3T<float> position;
 
@@ -223,10 +223,10 @@ void ArnikaWarningSound004E0AC0(int command)
         }
         if (command == -1) {
             if (g_warning_gate_6835e4 != 0) {
-                SetTriggerVariableByName00444030(
+                SetTriggerVariableByName(
                     "WarningSound", static_cast<int>(g_warning_gate_6835e4->GetElapsedSeconds()));
             } else {
-                SetTriggerVariableByName00444030("WarningSound", 0x3e8);
+                SetTriggerVariableByName("WarningSound", 0x3e8);
             }
             return;
         }
@@ -245,7 +245,7 @@ void ArnikaWarningSound004E0AC0(int command)
             CreateAndPlaySoundNode("Data\\Sound\\VOCs\\VOC_HLLIntruder\\VOC_HLLIntruder_003.wav",
                                    position, 1.0f, 75.0f, 1);
         if (g_warning_loop_6835dc != 0 || g_warning_oneshot_6835e0 != 0) {
-            g_master_functions_006834d8->Add(ArnikaWarningSound004E0AC0);
+            g_master_functions_006834d8->Add(ArnikaWarningSound);
         }
     }
     if (g_warning_oneshot_6835e0 != 0) {
@@ -268,14 +268,14 @@ void ArnikaWarningSound004E0AC0(int command)
     g_warning_loop_6835dc->Stop();
     delete g_warning_gate_6835e4;
     g_warning_gate_6835e4 = 0;
-    SetTriggerVariableByName00444030("WarningSound", 0);
+    SetTriggerVariableByName("WarningSound", 0);
 }
 
 /* Mookholo trigger: spawns the Screg ambush once while neither ScregActive
    nor MookDoorOpen is set, then hands the spawned monster to the fade-out
    watch and queues the NPC notice. */
 // FUNCTION: WIZ8 0x004E0DC0
-bool ArnikaMookholo004E0DC0(Trigger* pTrigger)
+bool ArnikaMookholo(Trigger* pTrigger)
 {
     srVector3T<float> position;
     W8MonsterGroup* group;
@@ -296,7 +296,7 @@ bool ArnikaMookholo004E0DC0(Trigger* pTrigger)
     if (FindEntityByName("Mookholo", &position, 0, 0) != 0) {
         group = SpawnMonsters(0xb, 1, &position, 0, 1, 0, 0);
         if (GetLocationVarIDByName("ScregActive") != -1) {
-            SetTriggerVariableByName00444030("ScregActive", 1);
+            SetTriggerVariableByName("ScregActive", 1);
         } else {
             CreateLocationVar("ScregActive", 1);
         }
@@ -307,7 +307,7 @@ bool ArnikaMookholo004E0DC0(Trigger* pTrigger)
             if (info != 0) {
                 g_mookholo_monster_6835e8 = info->p3D;
                 g_flag_6109f0 = false;
-                g_master_functions_006834d8->Add(ArnikaMookholoWatch004E0F70);
+                g_master_functions_006834d8->Add(ArnikaMookholoWatch);
             }
             QueueNpcScriptNotice(FindNpcBindingForMonster(MonsterGetIndexByLocationID(
                                      0x199, ARNIKA_CPP, location_id, 1)),
@@ -321,12 +321,12 @@ bool ArnikaMookholo004E0DC0(Trigger* pTrigger)
    fades the spawned monster out once g_flag_6109f0 signals the NPC notice
    finished. */
 // FUNCTION: WIZ8 0x004E0F70
-void ArnikaMookholoWatch004E0F70(int command)
+void ArnikaMookholoWatch(int command)
 {
     if (command != 0) {
         if (command == static_cast<int>(0xEFFFFFFF)) {
             g_flag_6109f0 = false;
-            g_master_functions_006834d8->Add(ArnikaMookholoWatch004E0F70);
+            g_master_functions_006834d8->Add(ArnikaMookholoWatch);
         }
         return;
     }
@@ -334,7 +334,7 @@ void ArnikaMookholoWatch004E0F70(int command)
     if (g_flag_6109f0 != 0) {
         g_flag_006834dc = true;
         if (g_mookholo_monster_6835e8 != 0) {
-            g_mookholo_monster_6835e8->BeginFadeOutAndRemove004C5040(3);
+            g_mookholo_monster_6835e8->BeginFadeOutAndRemove(3);
             g_mookholo_monster_6835e8 = 0;
         }
     }
@@ -343,7 +343,7 @@ void ArnikaMookholoWatch004E0F70(int command)
 /* MookFrontDoor trigger: asserts the Mookholo trigger exists and opens the
    Mook door by latching MookDoorOpen. */
 // FUNCTION: WIZ8 0x004E1040
-bool ArnikaMookFrontDoor004E1040(Trigger* pTrigger)
+bool ArnikaMookFrontDoor(Trigger* pTrigger)
 {
     Trigger* pMookHolo = FindTriggerByName("Mookholo");
 
@@ -352,7 +352,7 @@ bool ArnikaMookFrontDoor004E1040(Trigger* pTrigger)
                      "Missing trigger 'Mookholo'! It's not in the LVL file!");
     }
     if (GetLocationVarIDByName("MookDoorOpen") != -1) {
-        SetTriggerVariableByName00444030("MookDoorOpen", 1);
+        SetTriggerVariableByName("MookDoorOpen", 1);
     } else {
         CreateLocationVar("MookDoorOpen", 1);
     }
@@ -362,7 +362,7 @@ bool ArnikaMookFrontDoor004E1040(Trigger* pTrigger)
 /* YellowButton trigger: raises the "nothing happened" flag, spawns the
    bank guards at Bguards and puts the first on the guard script. */
 // FUNCTION: WIZ8 0x004E10A0
-bool ArnikaYellowButton004E10A0(Trigger* pTrigger)
+bool ArnikaYellowButton(Trigger* pTrigger)
 {
     srVector3T<float> position;
     W8MonsterGroup* group;
@@ -374,7 +374,7 @@ bool ArnikaYellowButton004E10A0(Trigger* pTrigger)
         if (group != 0) {
             info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x215, ARNIKA_CPP, group->leader_location_id, 1));
-            info->p3D->SetScript004C7F10("guard.msf", 1);
+            info->p3D->SetScript("guard.msf", 1);
         }
     }
     return 1;
@@ -383,7 +383,7 @@ bool ArnikaYellowButton004E10A0(Trigger* pTrigger)
 /* Vaultalarmdoor trigger: raises the "nothing happened" flag, plays the
    vault alarm, turns every guard group hostile and records fact 0xe0. */
 // FUNCTION: WIZ8 0x004E1120
-bool ArnikaVaultAlarmDoor004E1120(Trigger* pTrigger)
+bool ArnikaVaultAlarmDoor(Trigger* pTrigger)
 {
     W8MonsterGroup* group;
 
@@ -402,7 +402,7 @@ bool ArnikaVaultAlarmDoor004E1120(Trigger* pTrigger)
    Teleporting location variable, arms the teleport watch when a teleport
    starts and records facts 0xcd and 0xe0. */
 // FUNCTION: WIZ8 0x004E1180
-bool ArnikaExitButton004E1180(Trigger* pTrigger)
+bool ArnikaExitButton(Trigger* pTrigger)
 {
     g_exit_door_trigger_6835d4 = pTrigger;
     if (pTrigger->m_bRepType != 2) {
@@ -412,12 +412,12 @@ bool ArnikaExitButton004E1180(Trigger* pTrigger)
     g_exit_door_prop_6835d0 = pTrigger->m_pProp;
     if (GetLocationVarIDByName("Teleporting") == -1) {
         CreateLocationVar("Teleporting", 1);
-        g_master_functions_006834d8->Add(ArnikaTeleportWatch004E1300);
+        g_master_functions_006834d8->Add(ArnikaTeleportWatch);
     } else if (GetLocationVarValueByName("Teleporting") == 0) {
-        SetTriggerVariableByName00444030("Teleporting", 1);
-        g_master_functions_006834d8->Add(ArnikaTeleportWatch004E1300);
+        SetTriggerVariableByName("Teleporting", 1);
+        g_master_functions_006834d8->Add(ArnikaTeleportWatch);
     } else {
-        SetTriggerVariableByName00444030("Teleporting", 0);
+        SetTriggerVariableByName("Teleporting", 0);
     }
     g_trigger_feedback_00606994 = 1;
     SetFact(0xcd, 1, 0);
@@ -428,7 +428,7 @@ bool ArnikaExitButton004E1180(Trigger* pTrigger)
 /* Teleport watch: once the exit-door prop's rep finishes animating, runs
    the cached trigger and teleports the party to ARN11. */
 // FUNCTION: WIZ8 0x004E1300
-void ArnikaTeleportWatch004E1300(int command)
+void ArnikaTeleportWatch(int command)
 {
     g_flag_006834dc = false;
     if (g_exit_door_prop_6835d0->Rep()->animation_playing_06d != 0) {
@@ -442,7 +442,7 @@ void ArnikaTeleportWatch004E1300(int command)
 /* GenVault-2-door trigger: spawns the vault golem once at the Golem
    entity. */
 // FUNCTION: WIZ8 0x004E1340
-bool ArnikaGenVaultDoor004E1340(Trigger* pTrigger)
+bool ArnikaGenVaultDoor(Trigger* pTrigger)
 {
     srVector3T<float> position;
 
@@ -462,7 +462,7 @@ bool ArnikaGenVaultDoor004E1340(Trigger* pTrigger)
    moving master against the door or lift prop that was mid-flight and
    re-arms the button master when the red button was down. */
 // FUNCTION: WIZ8 0x004E13B0
-void ArnikaElevator1Setup004E13B0(void)
+void ArnikaElevator1Setup(void)
 {
     gEl01.pElevator = FindTriggerByName("Elevator-1");
     if (gEl01.pElevator == 0) {
@@ -512,7 +512,7 @@ void ArnikaElevator1Setup004E13B0(void)
     } else {
         gEl01.moving = GetLocationVarValueByName("El01Moving");
     }
-    SetTriggerVariableByName00444030("El01Moving", 0);
+    SetTriggerVariableByName("El01Moving", 0);
     if (GetLocationVarIDByName("RedButtonDown") == -1) {
         CreateLocationVar("RedButtonDown", gEl01.button_down);
     } else {
@@ -545,10 +545,10 @@ void ArnikaElevator1Setup004E13B0(void)
             gEl01.pProp = gEl01.pBottomDoor->m_pProp;
             break;
         }
-        g_master_functions_006834d8->Add(ArnikaEl1Moving004E19B0);
+        g_master_functions_006834d8->Add(ArnikaEl1Moving);
     }
     if (gEl01.button_down != 0) {
-        ArnikaEl1Button004E17C0(gEl01.button_down);
+        ArnikaEl1Button(gEl01.button_down);
     }
 }
 
@@ -556,7 +556,7 @@ void ArnikaElevator1Setup004E13B0(void)
    then either starts the lift (states 1/7) or just re-arms the button master
    and always reports handled. */
 // FUNCTION: WIZ8 0x004E1740
-bool ArnikaRedButton004E1740(Trigger* pTrigger)
+bool ArnikaRedButton(Trigger* pTrigger)
 {
     if (g_red_button_armed_613dcc == 0) {
         return false;
@@ -578,9 +578,9 @@ bool ArnikaRedButton004E1740(Trigger* pTrigger)
         if (gEl01.state != 1 && gEl01.state != 7) {
             return false;
         }
-        ArnikaElevatorAdvance004E2010(1);
+        ArnikaElevatorAdvance(1);
     }
-    ArnikaEl1Button004E17C0(static_cast<int>(0xEFFFFFFF));
+    ArnikaEl1Button(static_cast<int>(0xEFFFFFFF));
     return true;
 }
 
@@ -589,11 +589,11 @@ bool ArnikaRedButton004E1740(Trigger* pTrigger)
    value is the pending press. The command-0 run waits for the button prop's
    rep to finish, then runs the button trigger once and clears the press. */
 // FUNCTION: WIZ8 0x004E17C0
-void ArnikaEl1Button004E17C0(int command)
+void ArnikaEl1Button(int command)
 {
     if (command != 0) {
         if (command == -1) {
-            SetTriggerVariableByName00444030("RedButtonDown", gEl01.button_down);
+            SetTriggerVariableByName("RedButtonDown", gEl01.button_down);
             return;
         }
         if (gEl01.pButton->m_bRepType != 2) {
@@ -604,7 +604,7 @@ void ArnikaEl1Button004E17C0(int command)
         if (g_el01_button_prop_6835ec == 0) {
             return;
         }
-        g_master_functions_006834d8->Add(ArnikaEl1Button004E17C0);
+        g_master_functions_006834d8->Add(ArnikaEl1Button);
         if (command != static_cast<int>(0xEFFFFFFF)) {
             gEl01.button_down = command;
         } else {
@@ -627,29 +627,29 @@ void ArnikaEl1Button004E17C0(int command)
         return;
     }
     gEl01.button_down = 0;
-    SetTriggerVariableByName00444030("RedButtonDown", 0);
+    SetTriggerVariableByName("RedButtonDown", 0);
     g_flag_006834dc = true;
 }
 
 /* "El1-TopButtons": advances the lift while no button run is pending and the
    elevator is in a callable state; always reports handled. */
 // FUNCTION: WIZ8 0x004E1930
-bool ArnikaEl1TopButtons004E1930(Trigger* pTrigger)
+bool ArnikaEl1TopButtons(Trigger* pTrigger)
 {
     g_trigger_feedback_00606994 = 1;
     if (gEl01.button_down != 2 && (gEl01.state == 1 || gEl01.state == 3 || gEl01.state == 7)) {
-        ArnikaElevatorAdvance004E2010(1);
+        ArnikaElevatorAdvance(1);
     }
     return true;
 }
 
 /* "El1-BottomButtons": same advance as the top call buttons. */
 // FUNCTION: WIZ8 0x004E1970
-bool ArnikaEl1BottomButtons004E1970(Trigger* pTrigger)
+bool ArnikaEl1BottomButtons(Trigger* pTrigger)
 {
     g_trigger_feedback_00606994 = 1;
     if (gEl01.button_down != 2 && (gEl01.state == 1 || gEl01.state == 3 || gEl01.state == 7)) {
-        ArnikaElevatorAdvance004E2010(1);
+        ArnikaElevatorAdvance(1);
     }
     return true;
 }
@@ -658,11 +658,11 @@ bool ArnikaEl1BottomButtons004E1970(Trigger* pTrigger)
    command-0 run advances the elevator once the watched door or lift prop's
    rep has finished playing. */
 // FUNCTION: WIZ8 0x004E19B0
-void ArnikaEl1Moving004E19B0(int command)
+void ArnikaEl1Moving(int command)
 {
     if (command != 0) {
         if (command == -1) {
-            SetTriggerVariableByName00444030("El01Moving", 1);
+            SetTriggerVariableByName("El01Moving", 1);
             return;
         }
     }
@@ -675,14 +675,14 @@ void ArnikaEl1Moving004E19B0(int command)
         return;
     }
     g_flag_006834dc = true;
-    ArnikaElevatorAdvance004E2010(1);
+    ArnikaElevatorAdvance(1);
 }
 
 /* Elevator-02 setup: resolves its triggers, restores El02State, El02Moving
    and GreenButtonDown, opens the bottom doors on a fresh level and re-arms
    the moving and button masters. */
 // FUNCTION: WIZ8 0x004E1A10
-void ArnikaElevator2Setup004E1A10(void)
+void ArnikaElevator2Setup(void)
 {
     gEl02.pElevator = FindTriggerByName("Elevator-02");
     if (gEl02.pElevator == 0) {
@@ -735,7 +735,7 @@ void ArnikaElevator2Setup004E1A10(void)
     } else {
         gEl02.moving = GetLocationVarValueByName("El02Moving");
     }
-    SetTriggerVariableByName00444030("El02Moving", 0);
+    SetTriggerVariableByName("El02Moving", 0);
     if (GetLocationVarIDByName("GreenButtonDown") == -1) {
         CreateLocationVar("GreenButtonDown", gEl02.button_down);
     } else {
@@ -768,10 +768,10 @@ void ArnikaElevator2Setup004E1A10(void)
             gEl02.pProp = gEl02.pBottomDoor->m_pProp;
             break;
         }
-        g_master_functions_006834d8->Add(ArnikaEl2Moving004E1FB0);
+        g_master_functions_006834d8->Add(ArnikaEl2Moving);
     }
     if (gEl02.button_down != 0) {
-        ArnikaEl2Button004E1E10(gEl02.button_down);
+        ArnikaEl2Button(gEl02.button_down);
     }
 }
 
@@ -779,7 +779,7 @@ void ArnikaElevator2Setup004E1A10(void)
    runs the elevator unless it is already at the top, and re-arms the button
    master. */
 // FUNCTION: WIZ8 0x004E1DC0
-bool ArnikaGreenButton004E1DC0(Trigger* pTrigger)
+bool ArnikaGreenButton(Trigger* pTrigger)
 {
     if (gEl02.button_down == 2) {
         return true;
@@ -792,18 +792,18 @@ bool ArnikaGreenButton004E1DC0(Trigger* pTrigger)
     if (gEl02.state != 3) {
         gEl02.pElevator->Run(-1);
     }
-    ArnikaEl2Button004E1E10(static_cast<int>(0xEFFFFFFF));
+    ArnikaEl2Button(static_cast<int>(0xEFFFFFFF));
     return true;
 }
 
-/* The elevator-2 button master function, mirroring ArnikaEl1Button004E17C0
+/* The elevator-2 button master function, mirroring ArnikaEl1Button
    against GreenButtonDown. */
 // FUNCTION: WIZ8 0x004E1E10
-void ArnikaEl2Button004E1E10(int command)
+void ArnikaEl2Button(int command)
 {
     if (command != 0) {
         if (command == -1) {
-            SetTriggerVariableByName00444030("GreenButtonDown", gEl02.button_down);
+            SetTriggerVariableByName("GreenButtonDown", gEl02.button_down);
             return;
         }
         if (gEl02.pButton->m_bRepType != 2) {
@@ -814,7 +814,7 @@ void ArnikaEl2Button004E1E10(int command)
         if (g_el02_button_prop_6835f0 == 0) {
             return;
         }
-        g_master_functions_006834d8->Add(ArnikaEl2Button004E1E10);
+        g_master_functions_006834d8->Add(ArnikaEl2Button);
         if (command != static_cast<int>(0xEFFFFFFF)) {
             gEl02.button_down = command;
         } else {
@@ -837,14 +837,14 @@ void ArnikaEl2Button004E1E10(int command)
         return;
     }
     gEl02.button_down = 0;
-    SetTriggerVariableByName00444030("GreenButtonDown", 0);
+    SetTriggerVariableByName("GreenButtonDown", 0);
     g_flag_006834dc = true;
 }
 
 /* "Elevator-02": steps the lift while no button run is pending and the
    elevator is in a callable state; answers false otherwise. */
 // FUNCTION: WIZ8 0x004E1F80
-bool ArnikaElevator02Trigger004E1F80(Trigger* pTrigger)
+bool ArnikaElevator02Trigger(Trigger* pTrigger)
 {
     if (gEl02.button_down == 2) {
         return false;
@@ -852,17 +852,17 @@ bool ArnikaElevator02Trigger004E1F80(Trigger* pTrigger)
     if (gEl02.state != 1 && gEl02.state != 3 && gEl02.state != 7) {
         return false;
     }
-    ArnikaElevatorAdvance004E2010(2);
+    ArnikaElevatorAdvance(2);
     return true;
 }
 
-/* The El02Moving master function, mirroring ArnikaEl1Moving004E19B0. */
+/* The El02Moving master function, mirroring ArnikaEl1Moving. */
 // FUNCTION: WIZ8 0x004E1FB0
-void ArnikaEl2Moving004E1FB0(int command)
+void ArnikaEl2Moving(int command)
 {
     if (command != 0) {
         if (command == -1) {
-            SetTriggerVariableByName00444030("El02Moving", 1);
+            SetTriggerVariableByName("El02Moving", 1);
             return;
         }
     }
@@ -875,7 +875,7 @@ void ArnikaEl2Moving004E1FB0(int command)
         return;
     }
     g_flag_006834dc = true;
-    ArnikaElevatorAdvance004E2010(2);
+    ArnikaElevatorAdvance(2);
 }
 
 /* Shared elevator step: advances the selected elevator one state, running
@@ -883,7 +883,7 @@ void ArnikaEl2Moving004E1FB0(int command)
    moving master will wait on. States 3 and 7 are the door-closed pauses that
    produce no prop. */
 // FUNCTION: WIZ8 0x004E2010
-void ArnikaElevatorAdvance004E2010(int which)
+void ArnikaElevatorAdvance(int which)
 {
     W8Elevator* el;
     W8Prop* prop;
@@ -964,16 +964,16 @@ void ArnikaElevatorAdvance004E2010(int which)
         break;
     }
     if (which == 1) {
-        SetTriggerVariableByName00444030("El01State", el->state);
+        SetTriggerVariableByName("El01State", el->state);
         gEl01.pProp = prop;
         if (prop != 0) {
-            g_master_functions_006834d8->Add(ArnikaEl1Moving004E19B0);
+            g_master_functions_006834d8->Add(ArnikaEl1Moving);
         }
     } else {
-        SetTriggerVariableByName00444030("El02State", el->state);
+        SetTriggerVariableByName("El02State", el->state);
         gEl02.pProp = prop;
         if (prop != 0) {
-            g_master_functions_006834d8->Add(ArnikaEl2Moving004E1FB0);
+            g_master_functions_006834d8->Add(ArnikaEl2Moving);
         }
     }
 }
@@ -982,7 +982,7 @@ void ArnikaElevatorAdvance004E2010(int which)
    the shared callback flag is clear; accepts when the cursor is empty or the
    flag is raised. */
 // FUNCTION: WIZ8 0x004E2340
-bool ArnikaChaosMolori004E2340(Trigger* pTrigger)
+bool ArnikaChaosMolori(Trigger* pTrigger)
 {
     if (g_flag_006834dd == 0 && g_status_685170.item_in_cursor != 0) {
         return false;
@@ -993,7 +993,7 @@ bool ArnikaChaosMolori004E2340(Trigger* pTrigger)
 /* "Maddmook": the first time the party has been warned, posts the mook's
    script notice and drops the faction band. */
 // FUNCTION: WIZ8 0x004E2360
-bool ArnikaMaddmook004E2360(Trigger* pTrigger)
+bool ArnikaMaddmook(Trigger* pTrigger)
 {
     if (GetLocationVarIDByName("WarnedAboutEntry") != -1 &&
         GetLocationVarValueByName("WarnedAboutEntry") == 1 &&
@@ -1010,7 +1010,7 @@ bool ArnikaMaddmook004E2360(Trigger* pTrigger)
 /* "AstralDominae": same cursor/flag gate as ChaosMolori, then forwards the
    activation to the CMBox trigger. */
 // FUNCTION: WIZ8 0x004E23C0
-bool ArnikaAstralDominae004E23C0(Trigger* pTrigger)
+bool ArnikaAstralDominae(Trigger* pTrigger)
 {
     if (g_flag_006834dd == 0 && g_status_685170.item_in_cursor != 0) {
         return false;
@@ -1025,10 +1025,10 @@ bool ArnikaAstralDominae004E23C0(Trigger* pTrigger)
 }
 
 /* "CMbox": places the held relic on the pedestal through
-   ArnikaPedestalItem004E24E0, then runs the matching trigger inside the
+   ArnikaPedestalItem, then runs the matching trigger inside the
    shared callback flag so the pedestal callbacks stay quiet. */
 // FUNCTION: WIZ8 0x004E2420
-bool ArnikaCMbox004E2420(Trigger* pTrigger)
+bool ArnikaCMbox(Trigger* pTrigger)
 {
     int previous = -1;
     int item;
@@ -1036,7 +1036,7 @@ bool ArnikaCMbox004E2420(Trigger* pTrigger)
     if (g_flag_006834dd != 0) {
         return false;
     }
-    item = ArnikaPedestalItem004E24E0(&previous);
+    item = ArnikaPedestalItem(&previous);
     if (item < -1) {
         return false;
     }
@@ -1067,7 +1067,7 @@ bool ArnikaCMbox004E2420(Trigger* pTrigger)
    the mook and posts the entry notice. Answers the item placed, -1 when the
    pedestal already held one, or -2 when the cursor item was not a relic. */
 // FUNCTION: WIZ8 0x004E24E0
-int ArnikaPedestalItem004E24E0(int* previous_item)
+int ArnikaPedestalItem(int* previous_item)
 {
     Trigger* pTrigger;
     W8NpcState* npc;
@@ -1097,9 +1097,9 @@ int ArnikaPedestalItem004E24E0(int* previous_item)
         if (item == -1) {
             return previous | item;
         }
-        SetTriggerVariableByName00444030("PedestalItem", item);
+        SetTriggerVariableByName("PedestalItem", item);
         if (GetLocationVarIDByName("WarnedAboutEntry") != -1) {
-            SetTriggerVariableByName00444030("WarnedAboutEntry", 0);
+            SetTriggerVariableByName("WarnedAboutEntry", 0);
         }
         *previous_item = previous;
         return item;
@@ -1134,7 +1134,7 @@ int ArnikaPedestalItem004E24E0(int* previous_item)
     if (GetLocationVarIDByName("WarnedAboutEntry") == -1) {
         CreateLocationVar("WarnedAboutEntry", 1);
     } else {
-        SetTriggerVariableByName00444030("WarnedAboutEntry", 1);
+        SetTriggerVariableByName("WarnedAboutEntry", 1);
     }
     *previous_item = previous;
     return item;
@@ -1143,7 +1143,7 @@ int ArnikaPedestalItem004E24E0(int* previous_item)
 /* The "BallSlot" activation callback: on the first ball insert it creates
    item 0x240 and hands it to the kind-0x16 NPC's script notice queue. */
 // FUNCTION: WIZ8 0x004E26F0
-bool ArnikaBallSlot004E26F0(Trigger* pTrigger)
+bool ArnikaBallSlot(Trigger* pTrigger)
 {
     W8ItemInstance item;
     W8NpcState* npc;
@@ -1162,7 +1162,7 @@ bool ArnikaBallSlot004E26F0(Trigger* pTrigger)
    queues the kind-0x14 NPC's script notice, passing the held item when the
    cursor holds one. */
 // FUNCTION: WIZ8 0x004E2760
-bool ArnikaFlightRecorder004E2760(Trigger* pTrigger)
+bool ArnikaFlightRecorder(Trigger* pTrigger)
 {
     W8ItemInstance* item;
     W8NpcState* npc;

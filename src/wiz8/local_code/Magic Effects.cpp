@@ -239,7 +239,7 @@ void ResetCombatEffects(void)
             g_combat_state->effect_slots[i].effect_id = 0;
             g_combat_state->effect_slots[i].amount = 0;
             g_combat_state->effect_slots[i].duration_0d = 0;
-            RebuildPartyEffectBlock0050E700();
+            RebuildPartyEffectBlock();
             InvalidateMainGameEffectHud();
             RequestRedraw(0x800100);
         }
@@ -267,7 +267,7 @@ void ResetCombatEffects(void)
             g_combat_state->effect_slots_85a[i].effect_id = 0;
             g_combat_state->effect_slots_85a[i].amount = 0;
             g_combat_state->effect_slots_85a[i].duration_0d = 0;
-            RebuildPartyEffectBlock0050E700();
+            RebuildPartyEffectBlock();
             InvalidateMainGameEffectHud();
             RequestRedraw(0x800100);
         }
@@ -299,7 +299,7 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
     slot->effect_id = 0;
     slot->amount = 0;
     slot->duration_0d = 0;
-    RebuildPartyEffectBlock0050E700();
+    RebuildPartyEffectBlock();
     InvalidateMainGameEffectHud();
     RequestRedraw(0x800100);
 }
@@ -684,7 +684,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
         srAssertFail("pGroup", MAGIC_EFFECTS_CPP, 0xa0c, 0);
     }
     summon = MonsterInfoFromID(0xa0e, MAGIC_EFFECTS_CPP, group->leader_location_id, 1);
-    summon->p3D->SetAngles004538F0(
+    summon->p3D->SetAngles(
         HeadingTowardNearestMonster(effect->target.point, disposition, summon->location_id));
     SetMonsterGroupHostility(group, disposition, 0);
     if (disposition == W8_DISPOSITION_FRIENDLY) {
@@ -769,8 +769,8 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                 srAssertFail("FALSE", MAGIC_EFFECTS_CPP, 0xd0b, 0);
                 slot = 0;
             }
-            ApplyMonsterCondition005242B0(summon->location_id, slot, attack_block.duration_scale,
-                                          duration, 0);
+            ApplyMonsterCondition(summon->location_id, slot, attack_block.duration_scale, duration,
+                                  0);
             break;
         case 2:
         case 3:
@@ -926,10 +926,9 @@ void RecalculateCharacterResistances(W8Character* character)
 }
 
 // FUNCTION: WIZ8 0x00551BA0
-bool ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* target,
-                                   int condition_id, int realm, unsigned int power_level,
-                                   int argument, int magnitude, char announce_resistance,
-                                   char announce_condition, int duration)
+bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target, int condition_id,
+                           int realm, unsigned int power_level, int argument, int magnitude,
+                           char announce_resistance, char announce_condition, int duration)
 {
     W8Character* character;
     W8MonsterInfo* monster_info;
@@ -981,7 +980,7 @@ bool ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
         if (target->iType == W8_TARGET_KIND_CHARACTER) {
             switch (condition_id) {
             case 6:
-                if (CharacterHasTrait00547940(character, 3) != 0) {
+                if (CharacterHasTrait(character, 3) != 0) {
                     if (announce_resistance != 0) {
                         PostCharacterNotice(target->iChar, gppStringList[0x600 / 4]);
                     }
@@ -992,7 +991,7 @@ bool ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
             case 4:
             case 7:
             case W8_CONDITION_ASLEEP:
-                if (CharacterHasTrait00547940(character, 0x1e) != 0) {
+                if (CharacterHasTrait(character, 0x1e) != 0) {
                     return 1;
                 }
                 break;
@@ -1001,7 +1000,7 @@ bool ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
                     break;
                 }
             case 0xd:
-                if (CharacterHasTrait00547940(character, 0xe) != 0) {
+                if (CharacterHasTrait(character, 0xe) != 0) {
                     if (announce_resistance != 0) {
                         PostCharacterNotice(
                             target->iChar, gppStringList[0x604 / 4],
@@ -1059,14 +1058,12 @@ void ApplyConditionToTargets(W8SpellEffectEntry* effect, int condition)
             remaining = duration - g_status_685170.buffers.Char[character_index].uiCondition[5];
             TickCharacterCondition(character_index, 5, duration);
             if (remaining > 0) {
-                ApplyCharacterCondition00523940(character_index, 5,
-                                                effect->definition.duration_scale, remaining,
-                                                effect->definition.percent);
+                ApplyCharacterCondition(character_index, 5, effect->definition.duration_scale,
+                                        remaining, effect->definition.percent);
             }
         } else {
-            ApplyCharacterCondition00523940(character_index, condition,
-                                            effect->definition.duration_scale, duration,
-                                            effect->definition.percent);
+            ApplyCharacterCondition(character_index, condition, effect->definition.duration_scale,
+                                    duration, effect->definition.percent);
         }
     }
     for (index = 0; index < effect->monster_ids_0e0.GetCount(); ++index) {
@@ -1080,14 +1077,14 @@ void ApplyConditionToTargets(W8SpellEffectEntry* effect, int condition)
             remaining = duration - monster_info->uiCondition[5];
             TickMonsterCondition(monster_info->location_id, 5, duration);
             if (remaining > 0) {
-                ApplyMonsterCondition005242B0(monster_info->location_id, 5,
-                                              effect->definition.duration_scale, remaining,
-                                              effect->definition.percent);
+                ApplyMonsterCondition(monster_info->location_id, 5,
+                                      effect->definition.duration_scale, remaining,
+                                      effect->definition.percent);
             }
         } else {
-            ApplyMonsterCondition005242B0(monster_info->location_id, condition,
-                                          effect->definition.duration_scale, duration,
-                                          effect->definition.percent);
+            ApplyMonsterCondition(monster_info->location_id, condition,
+                                  effect->definition.duration_scale, duration,
+                                  effect->definition.percent);
         }
     }
 }
@@ -1121,7 +1118,7 @@ void ApplyRandomAfflictionToTarget(W8SpellEffectEntry* effect)
     }
     roll = Random(100);
     if (roll < 0x28) {
-        InflictConditionAttack0054D5C0(effect, 4, 100, 0);
+        InflictConditionAttack(effect, 4, 100, 0);
         return;
     }
     if (roll < 0x50) {
@@ -1129,11 +1126,11 @@ void ApplyRandomAfflictionToTarget(W8SpellEffectEntry* effect)
         return;
     }
     if (roll < 0x5a) {
-        InflictConditionAttack0054D5C0(effect, 9, 100, 0);
+        InflictConditionAttack(effect, 9, 100, 0);
         return;
     }
     if (roll < 0x5f) {
-        InflictConditionAttack0054D5C0(effect, 0xf, 100, 0);
+        InflictConditionAttack(effect, 0xf, 100, 0);
         return;
     }
     ApplyConditionToTargets(effect, 6);
@@ -1839,8 +1836,7 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition, char f
    a monster a second time at half strength. Quiet mode counts the targets the
    attack landed on and reports the tally. */
 // FUNCTION: WIZ8 0x0054d5c0
-void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, int chance,
-                                    int argument)
+void InflictConditionAttack(W8SpellEffectEntry* effect, int condition, int chance, int argument)
 {
     W8MonsterInfo* monster_info;
     W8CombatSlot target;
@@ -1872,26 +1868,25 @@ void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, i
                         static_cast<int>(
                             g_status_685170.buffers.Char[character_index].enchantments[5].turns_08);
             TickCharacterEnchantmentSlot(character_index, 5, duration);
-            if (remaining > 0 &&
-                ResolveAttackOnTarget00551BA0(&effect->Source, &target, condition,
-                                              g_spell_records[effect->kind].realm,
-                                              effect->definition.power_level, argument, remaining,
-                                              verbose, verbose, 0) == 0) {
+            if (remaining > 0 && ResolveAttackOnTarget(&effect->Source, &target, condition,
+                                                       g_spell_records[effect->kind].realm,
+                                                       effect->definition.power_level, argument,
+                                                       remaining, verbose, verbose, 0) == 0) {
                 if (verbose == 0) {
                     ++affected;
                 }
             }
         } else {
-            if (ResolveAttackOnTarget00551BA0(
+            if (ResolveAttackOnTarget(
                     &effect->Source, &target, condition, g_spell_records[effect->kind].realm,
                     effect->definition.power_level, argument, duration, verbose, verbose, 0) != 0) {
                 continue;
             }
             if (effect->kind == 0xe) {
-                ResolveAttackOnTarget00551BA0(
-                    &effect->Source, &target, 0x11, g_spell_records[0xe].realm,
-                    static_cast<unsigned int>(effect->definition.power_level) >> 1, argument,
-                    duration >> 1, 0, verbose, 0);
+                ResolveAttackOnTarget(&effect->Source, &target, 0x11, g_spell_records[0xe].realm,
+                                      static_cast<unsigned int>(effect->definition.power_level) >>
+                                          1,
+                                      argument, duration >> 1, 0, verbose, 0);
             }
             if (verbose == 0) {
                 ++affected;
@@ -1915,23 +1910,22 @@ void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, i
             remaining = static_cast<int>(duration) -
                         static_cast<int>(monster_info->enchantments[5].turns_08);
             TickMonsterEnchantmentSlot(monster_info->location_id, 5, duration);
-            if (remaining > 0 &&
-                ResolveAttackOnTarget00551BA0(&effect->Source, &target, condition,
-                                              g_spell_records[effect->kind].realm,
-                                              effect->definition.power_level, argument, remaining,
-                                              verbose, verbose, 0) == 0) {
+            if (remaining > 0 && ResolveAttackOnTarget(&effect->Source, &target, condition,
+                                                       g_spell_records[effect->kind].realm,
+                                                       effect->definition.power_level, argument,
+                                                       remaining, verbose, verbose, 0) == 0) {
                 if (verbose == 0) {
                     ++affected;
                 }
             }
         } else {
-            if (ResolveAttackOnTarget00551BA0(
+            if (ResolveAttackOnTarget(
                     &effect->Source, &target, condition, g_spell_records[effect->kind].realm,
                     effect->definition.power_level, argument, duration, verbose, verbose, 0) != 0) {
                 continue;
             }
             if (effect->kind == 0xe || effect->kind == 0x1e) {
-                ResolveAttackOnTarget00551BA0(
+                ResolveAttackOnTarget(
                     &effect->Source, &target, condition, g_spell_records[effect->kind].realm,
                     static_cast<unsigned int>(effect->definition.power_level) >> 1, argument,
                     duration >> 1, 0, verbose, 0);
@@ -2006,7 +2000,7 @@ void ApplyBeingEffectSlot(W8SpellEffectEntry* effect)
         slot->effect_id = effect->kind;
         slot->amount = effect->definition.duration_scale;
         slot->duration_0d = duration;
-        RebuildPartyEffectBlock0050E700();
+        RebuildPartyEffectBlock();
         RequestRedraw(0x800100);
         effect->applied_125 = true;
     }
@@ -2060,7 +2054,7 @@ void AttackThenInflictCondition(W8SpellEffectEntry* effect, int attack_condition
         }
         target.iType = W8_TARGET_KIND_CHARACTER;
         target.iChar = character_index;
-        if (ResolveAttackOnTarget00551BA0(
+        if (ResolveAttackOnTarget(
                 &effect->Source, &target, attack_condition, g_spell_records[effect->kind].realm,
                 effect->definition.power_level, attack_argument, duration, 0, 1, 0) != 0) {
             InflictConditionOnTarget(&target, condition, g_spell_records[effect->kind].realm,
@@ -2081,7 +2075,7 @@ void AttackThenInflictCondition(W8SpellEffectEntry* effect, int attack_condition
         }
         target.iType = W8_TARGET_KIND_MONSTER;
         target.iMonsterID = monster_info->location_id;
-        if (ResolveAttackOnTarget00551BA0(
+        if (ResolveAttackOnTarget(
                 &effect->Source, &target, attack_condition, g_spell_records[effect->kind].realm,
                 effect->definition.power_level, attack_argument, duration, 0, 1, 0) != 0) {
             InflictConditionOnTarget(&target, condition, g_spell_records[effect->kind].realm,
@@ -2147,7 +2141,7 @@ void ApplyCombatEffectSlot(W8SpellEffectEntry* effect)
             slot->effect_id = spell_id;
             slot->amount = effect->definition.duration_scale;
             slot->duration_0d = duration;
-            RebuildPartyEffectBlock0050E700();
+            RebuildPartyEffectBlock();
             RequestRedraw(0x800100);
             effect->applied_125 = true;
             effect->result_126.count += CountActiveCharacters();
@@ -2243,7 +2237,7 @@ void ApplyDefenseEffectSlot(W8SpellEffectEntry* effect)
         slot->effect_id = spell_id;
         slot->amount = effect->definition.duration_scale;
         slot->duration_0d = duration;
-        RebuildPartyEffectBlock0050E700();
+        RebuildPartyEffectBlock();
         RequestRedraw(0x800100);
         effect->applied_125 = true;
     }
@@ -2326,9 +2320,9 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
                 int weight = g_affliction_condition_weights_0061e208[weight_index];
                 if (weight != 0) {
                     if (roll < static_cast<unsigned int>(weight)) {
-                        landed = ResolveAttackOnTarget00551BA0(&effect->Source, &target,
-                                                               weight_index, realm, power_level, 0,
-                                                               duration, verbose, verbose, 0);
+                        landed =
+                            ResolveAttackOnTarget(&effect->Source, &target, weight_index, realm,
+                                                  power_level, 0, duration, verbose, verbose, 0);
                         if (landed == 0) {
                             ++effect->result_126.condition_counts[weight_index];
                         }
@@ -2395,9 +2389,9 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
                 int weight = g_affliction_condition_weights_0061e208[weight_index];
                 if (weight != 0) {
                     if (roll < static_cast<unsigned int>(weight)) {
-                        landed = ResolveAttackOnTarget00551BA0(&effect->Source, &target,
-                                                               weight_index, realm, power_level, 0,
-                                                               duration, verbose, verbose, 0);
+                        landed =
+                            ResolveAttackOnTarget(&effect->Source, &target, weight_index, realm,
+                                                  power_level, 0, duration, verbose, verbose, 0);
                         if (landed == 0) {
                             ++effect->result_126.condition_counts[weight_index];
                         }
@@ -2873,7 +2867,7 @@ void ApplyCharmToMonsterTarget(W8SpellEffectEntry* effect)
     notice = gppStringList[0x1ac];
     name = GetMonsterName(monster_info, 0, 0);
     formatted = FormatWideString(g_format_s_space_s_00617584, name, notice);
-    DisplayNpcQuote00529570(formatted, 0);
+    DisplayNpcQuote(formatted, 0);
 }
 
 /* The tame/refuse spell: a monster target that fails its resistance check
@@ -2900,7 +2894,7 @@ void ResolveCharmRefusal(W8SpellEffectEntry* effect)
             QueueNpcScriptLine(0x69, 0, 0, 0);
             return;
         }
-        QueueDialogueNpcRefusal00576DA0();
+        QueueDialogueNpcRefusal();
     } else {
         monster = GetMonsterDataForInfo(monster_info);
         if (Random(100) < (monster->attribute_values_d1[4] + monster->attribute_values_d1[1]) / 2) {
@@ -2964,7 +2958,7 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
                         slot->effect_id = 0;
                         slot->amount = 0;
                         slot->duration_0d = 0;
-                        RebuildPartyEffectBlock0050E700();
+                        RebuildPartyEffectBlock();
                         InvalidateMainGameEffectHud();
                         RequestRedraw(0x800100);
                     }
@@ -3058,7 +3052,7 @@ void FinishSpellEffectTargets(W8SpellEffectEntry* effect)
             source_copy = effect->Source;
             effect->definition.duration_scale = amount;
             target_copy = effect->target;
-            PrepareSpellTarget004FEA50(effect->kind, &source_copy, &target_copy);
+            PrepareSpellTarget(effect->kind, &source_copy, &target_copy);
             /* The bounced cast carries the reflection flag so it cannot
                reflect a second time. */
             source_copy.fReflection = true;
@@ -3511,7 +3505,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         }
         break;
     case 7:
-        InflictConditionAttack0054D5C0(effect, 3, 100, 0);
+        InflictConditionAttack(effect, 3, 100, 0);
         break;
     case 8:
     case 0x11:
@@ -3525,7 +3519,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         ApplyBeingEffectSlot(effect);
         break;
     case 0xc:
-        InflictConditionAttack0054D5C0(effect, 0xf, 100, 0);
+        InflictConditionAttack(effect, 0xf, 100, 0);
         break;
     case 0xd:
     case 0x2c:
@@ -3537,10 +3531,10 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         break;
     case 0xe:
     case 0x75:
-        InflictConditionAttack0054D5C0(effect, 6, 100, 0);
+        InflictConditionAttack(effect, 6, 100, 0);
         break;
     case 0xf:
-        InflictConditionAttack0054D5C0(effect, 0xc, 100, 0);
+        InflictConditionAttack(effect, 0xc, 100, 0);
         break;
     case 0x10:
         if (effect->Source.fBackfire == 0) {
@@ -3552,19 +3546,19 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         } else {
             switch (Random(5)) {
             case 0:
-                InflictConditionAttack0054D5C0(effect, 3, 100, 0);
+                InflictConditionAttack(effect, 3, 100, 0);
                 break;
             case 1:
-                InflictConditionAttack0054D5C0(effect, 4, 100, 0);
+                InflictConditionAttack(effect, 4, 100, 0);
                 break;
             case 2:
-                InflictConditionAttack0054D5C0(effect, 6, 100, 0);
+                InflictConditionAttack(effect, 6, 100, 0);
                 break;
             case 3:
-                InflictConditionAttack0054D5C0(effect, 0xf, 100, 0);
+                InflictConditionAttack(effect, 0xf, 100, 0);
                 break;
             default:
-                InflictConditionAttack0054D5C0(effect, 0xc, 100, 0);
+                InflictConditionAttack(effect, 0xc, 100, 0);
                 break;
             }
         }
@@ -3617,13 +3611,13 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             effect->applied_125 = true;
         } else {
             if (effect->kind == 0x13) {
-                InflictConditionAttack0054D5C0(effect, 4, 100, 0);
+                InflictConditionAttack(effect, 4, 100, 0);
             }
             if (effect->kind == 0x1b) {
                 ApplyDamageToTargets(effect);
             }
             if (effect->kind == 0x38) {
-                InflictConditionAttack0054D5C0(effect, 5, 100, 0);
+                InflictConditionAttack(effect, 5, 100, 0);
             }
         }
         break;
@@ -3639,29 +3633,29 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         }
         break;
     case 0x18:
-        InflictConditionAttack0054D5C0(effect, 0xb, 100, 0);
+        InflictConditionAttack(effect, 0xb, 100, 0);
         break;
     case 0x1d:
-        InflictConditionAttack0054D5C0(effect, 5, 100, 0);
+        InflictConditionAttack(effect, 5, 100, 0);
         break;
     case 0x1e:
     case 0x7b:
-        InflictConditionAttack0054D5C0(effect, 6, 100, 0);
-        AlertMonsterGroupsToNoise004F0E80(&effect->target.point,
-                                          effect->definition.duration_scale * 15000 + 25000, 0);
+        InflictConditionAttack(effect, 6, 100, 0);
+        AlertMonsterGroupsToNoise(&effect->target.point,
+                                  effect->definition.duration_scale * 15000 + 25000, 0);
         if (gXStatus.fCombatMode == 0) {
             effect->applied_125 = true;
         }
         break;
     case 0x1f:
-        InflictConditionAttack0054D5C0(effect, 0xe, 100, 0);
+        InflictConditionAttack(effect, 0xe, 100, 0);
         break;
     case 0x22:
         if (effect->Source.fBackfire == 0) {
             applied &= TryCureConditionOnTargets(effect, 0x10, 0) &
                        TryCureConditionOnTargets(effect, 0xe, 0);
         } else {
-            InflictConditionAttack0054D5C0(effect, 0x10, 100, 0);
+            InflictConditionAttack(effect, 0x10, 100, 0);
         }
         break;
     case 0x23:
@@ -3672,12 +3666,12 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             unsigned int roll = Random(effect->definition.duration_scale);
             effect->definition.duration_base = roll + 1 + turns;
             roll = Random(effect->definition.duration_scale / 3);
-            InflictConditionAttack0054D5C0(effect, 7, 100, roll + 1 + condition);
+            InflictConditionAttack(effect, 7, 100, roll + 1 + condition);
         }
         break;
     case 0x25:
     case 0x43:
-        InflictConditionAttack0054D5C0(effect, 0x10, 100, 0);
+        InflictConditionAttack(effect, 0x10, 100, 0);
         break;
     case 0x26:
         ApplyMonsterControlToNearbyMonsters(effect);
@@ -3688,8 +3682,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         if (6 < level) {
             level = 7;
         }
-        CastSpellAtLockInteraction00587C80(level, effect->Source.name_known_19,
-                                           effect->Source.fBackfire);
+        CastSpellAtLockInteraction(level, effect->Source.name_known_19, effect->Source.fBackfire);
         effect->reported_124 = true;
         break;
     case 0x29:
@@ -3698,11 +3691,11 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         break;
     case 0x2a:
         ApplyDamageToTargets(effect);
-        InflictConditionAttack0054D5C0(effect, 4, 0x5a, 0);
-        InflictConditionAttack0054D5C0(effect, 0x11, 0x19, 0);
+        InflictConditionAttack(effect, 4, 0x5a, 0);
+        InflictConditionAttack(effect, 0x11, 0x19, 0);
         break;
     case 0x2e:
-        InflictConditionAttack0054D5C0(effect, 8, 100, 0);
+        InflictConditionAttack(effect, 8, 100, 0);
         break;
     case 0x30:
     case 0x31:
@@ -3717,7 +3710,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         break;
     case 0x3a:
         if (effect->Source.fBackfire != 0) {
-            InflictConditionAttack0054D5C0(effect, 9, 100, 0);
+            InflictConditionAttack(effect, 9, 100, 0);
         } else {
             RevealItemBindingsToTarget(effect);
         }
@@ -3726,17 +3719,17 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         ApplyInsanityEffect(effect);
         break;
     case 0x45:
-        InflictConditionAttack0054D5C0(effect, 9, 100, 0);
+        InflictConditionAttack(effect, 9, 100, 0);
         break;
     case 0x46:
     case 0x57:
     case 0x5a:
     case 0x5e:
-        InflictConditionAttack0054D5C0(effect, 0x12, 100, 0);
+        InflictConditionAttack(effect, 0x12, 100, 0);
         break;
     case 0x47:
         ApplyDamageToTargets(effect);
-        InflictConditionAttack0054D5C0(effect, 0xb, 0x19, 0);
+        InflictConditionAttack(effect, 0xb, 0x19, 0);
         break;
     case 0x48:
         ReduceCombatEffectDurations(effect);
@@ -3751,7 +3744,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             applied &= TryCureConditionOnTargets(effect, 0xb, 0) &
                        TryCureConditionOnTargets(effect, 0xd, 0);
         } else {
-            InflictConditionAttack0054D5C0(effect, 0xb, 100, 0);
+            InflictConditionAttack(effect, 0xb, 100, 0);
         }
         break;
     case 0x4b:
@@ -3768,7 +3761,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         break;
     case 0x4e:
         ApplyDamageToTargets(effect);
-        InflictConditionAttack0054D5C0(effect, 0xc, 0x19, 0);
+        InflictConditionAttack(effect, 0xc, 0x19, 0);
         break;
     case 0x52:
     case 0x54:
@@ -3786,20 +3779,20 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         applied &= TryCureConditionOnTargets(effect, 0x12, 0);
         break;
     case 0x59:
-        InflictConditionAttack0054D5C0(effect, 0xd, 100, 0);
+        InflictConditionAttack(effect, 0xd, 100, 0);
         break;
     case 0x5b:
         ApplyDamageToTargets(effect);
-        InflictConditionAttack0054D5C0(effect, 0xb, 0x4b, 0);
+        InflictConditionAttack(effect, 0xb, 0x4b, 0);
         break;
     case 0x5c:
         ApplyDamageToTargets(effect);
-        InflictConditionAttack0054D5C0(effect, 0x11, 0x32, 0);
+        InflictConditionAttack(effect, 0x11, 0x32, 0);
         break;
     case 0x5f:
         point = effect->Source.point;
         level = effect->definition.duration_scale;
-        shake = CreateCameraShakeEffect004AE080(
+        shake = CreateCameraShakeEffect(
             level * g_navigator_vertical_phase_step_005ebcc8 + g_float_005ebc7c, 1,
             level * g_navigator_snap_angle_005ec2f0 + g_float_005ee838, 50000.0f, &point);
         shake->flags_00 = shake->flags_00 & 0xffffffe7;
@@ -3911,7 +3904,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
                     slot->effect_id = 0;
                     slot->amount = 0;
                     slot->duration_0d = 0;
-                    RebuildPartyEffectBlock0050E700();
+                    RebuildPartyEffectBlock();
                     InvalidateMainGameEffectHud();
                     RequestRedraw(0x800100);
                 }
@@ -3922,7 +3915,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         break;
     case 0x81:
         ApplyDamageToTargets(effect);
-        InflictConditionAttack0054D5C0(effect, 0x10, 0x32, 0);
+        InflictConditionAttack(effect, 0x10, 0x32, 0);
         break;
     case 0x82:
         ApplyRandomAfflictionToTarget(effect);
@@ -3966,7 +3959,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
     }
     FinishSpellEffectTargets(effect);
     if (queued_spell_id != 0x17 && g_current_screen_state.id == 6) {
-        RefreshTextBoxMode00590BD0(0xffff);
+        RefreshTextBoxMode(0xffff);
     }
 }
 
@@ -3975,8 +3968,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
    result's amount feeds the running combat total at +0xa1a, and the reports
    queue on the combat state for the message pass. */
 // FUNCTION: WIZ8 0x00553350
-void ApplyDiceDamageToCharacter00553350(int party_slot, W8TargetSource* source,
-                                        W8Enchantment* enchantment)
+void ApplyDiceDamageToCharacter(int party_slot, W8TargetSource* source, W8Enchantment* enchantment)
 {
     unsigned char verbose = g_settings_6850c8.verbose_combat_messages;
     W8SpellEffectResult result;
@@ -4006,8 +3998,8 @@ void ApplyDiceDamageToCharacter00553350(int party_slot, W8TargetSource* source,
 /* The monster-side counterpart: the same enchantment-scaled dice roll feeds
    ApplyDamageToMonster and the running total, with no report queueing. */
 // FUNCTION: WIZ8 0x00553540
-void ApplyDiceDamageToMonster00553540(W8MonsterInfo* monster_info, W8TargetSource* source,
-                                      W8Enchantment* enchantment)
+void ApplyDiceDamageToMonster(W8MonsterInfo* monster_info, W8TargetSource* source,
+                              W8Enchantment* enchantment)
 {
     unsigned char verbose = g_settings_6850c8.verbose_combat_messages;
     W8MonsterRecord* record;
@@ -4033,7 +4025,7 @@ void ApplyDiceDamageToMonster00553540(W8MonsterInfo* monster_info, W8TargetSourc
    amount feeds the running total at +0xa1e and the reports queue up; when it
    is verbose the damage is applied with the announced flags instead. */
 // FUNCTION: WIZ8 0x005535D0
-void ApplyDirectDamageToCharacter005535D0(int party_slot, W8TargetSource* source, int damage)
+void ApplyDirectDamageToCharacter(int party_slot, W8TargetSource* source, int damage)
 {
     unsigned char verbose = g_settings_6850c8.verbose_combat_messages;
     W8SpellEffectResult result;
@@ -4060,8 +4052,7 @@ void ApplyDirectDamageToCharacter005535D0(int party_slot, W8TargetSource* source
    reduction is applied, feeding the running total and report queue in quiet
    mode or the announced apply in verbose mode. */
 // FUNCTION: WIZ8 0x00553770
-void ApplyDirectDamageToMonster00553770(W8MonsterInfo* monster_info, W8TargetSource* source,
-                                        int damage)
+void ApplyDirectDamageToMonster(W8MonsterInfo* monster_info, W8TargetSource* source, int damage)
 {
     unsigned char verbose = g_settings_6850c8.verbose_combat_messages;
     W8SpellEffectResult result;

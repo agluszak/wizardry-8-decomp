@@ -42,8 +42,8 @@ extern int g_cursor_hotspot_y_6596c0;
 
 /* 0x00428580 and 0x004285A0: the packed atom mouse position projected into
    screen space by the current cursor hotspot. */
-int GetAtomCursorX00428580(const InputAtom* atom);
-int GetAtomCursorY004285A0(const InputAtom* atom);
+int GetAtomCursorX(const InputAtom* atom);
+int GetAtomCursorY(const InputAtom* atom);
 
 void PositionMouseCursor(int x, int y, unsigned char reset_tick);
 /* 0x00428220: milliseconds since PositionMouseCursor last stamped the move
@@ -55,7 +55,7 @@ bool IsCursorInRectangle(int left, int top, int right, int bottom);
 unsigned char GetCursorPositionInViewport(srVector3T<float>* position);
 /* 0x004282F0: the tracked cursor position in pixel-scale units
    (hotspot + size scaled by g_scale_x/g_scale_y), z left zero. */
-void GetCursorScaledPosition004282F0(srVector3T<float>* position);
+void GetCursorScaledPosition(srVector3T<float>* position);
 void UpdateHeldItemCursor(void);
 void ClearHeldItemDisplay(void);
 void SetItemCursor(int item_id); /* 0x0055F160 */

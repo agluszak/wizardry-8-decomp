@@ -3,7 +3,7 @@
    the game thread once the main menu is live so the item database is real.
 
    The destroy callback's accept path is not driven: its tail calls
-   (RebuildEquipmentAndDerivedStatsForSlot, RebuildCampItemList005A4A00,
+   (RebuildEquipmentAndDerivedStatsForSlot, RebuildCampItemList,
    SetCampItemActionMode005B59B0) are recovered, but they assume the camp
    state and the items-page action controls are live, which only holds while
    the review screen is open. The cancel path is exercised because it returns
@@ -111,7 +111,7 @@ static bool RunSplitStackBody(SplitStackSemanticResult* result, bool fail_early)
     cancel_dialog = new W8SplitItemDialog(0, &source, -1);
     if (cancel_dialog != 0) {
         cancel_dialog->split_result_0c8 = g_split_result_kind_005efb44 + 1;
-        SplitStackDialogResult005BAA80(cancel_dialog);
+        SplitStackDialogResult(cancel_dialog);
         result->cancel_leaves_stack =
             source.stack_count == 6 && g_status_685170.item_in_hand_235b.iItemNo == -1;
         delete cancel_dialog;

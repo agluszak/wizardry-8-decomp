@@ -356,7 +356,7 @@ int GetTargetNeededForItem(const W8ItemInstance* item)
    needed target kind decides between the single monster and its whole group:
    a group-needing action (needed 5) aims at the location's group instead. */
 // FUNCTION: WIZ8 0x00537950
-void AimAtMonsterLocation00537950(int party_slot, int location_id, int allow_single_target)
+void AimAtMonsterLocation(int party_slot, int location_id, int allow_single_target)
 {
     W8CombatSlot target;
     W8ActionDetailBlock* detail_block;
@@ -450,7 +450,7 @@ void AimAtPlace(int actor)
     target.iChar = BAD_INDEX;
     target.iGroupID = BAD_INDEX;
     target.iType = W8_TARGET_KIND_PLACE;
-    GetWorldCursorTargetPosition00492500(&position);
+    GetWorldCursorTargetPosition(&position);
     AimAtTarget(actor, &target, W8_TARGETING_CONTEXT_CURRENT);
     gXStatus.target_markers.Clear();
     RequestRefreshPartyState();
@@ -459,7 +459,7 @@ void AimAtPlace(int actor)
 /* Aim at the ground point the camera is looking at, the world-cursor-free
    twin of AimAtPlace used by click-to-move targeting. */
 // FUNCTION: WIZ8 0x00538770
-void AimAtGroundTarget00538770(int party_slot)
+void AimAtGroundTarget(int party_slot)
 {
     W8CombatSlot target;
     srVector3T<float> position;
@@ -599,7 +599,7 @@ bool ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
         srAssertFail("pMonsterInfo", TARGETING_CPP, 2040, 0);
     }
     GetCameraPosition(&eye);
-    MonsterGetWorldAnimationBounds004CA4F0(monster_info->p3D, &lower, &upper);
+    MonsterGetWorldAnimationBounds(monster_info->p3D, &lower, &upper);
     return ShowTargetMarker(&eye, &lower, &upper);
 }
 
@@ -663,7 +663,7 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
    actions answer a fixed kind; casting asks the spell and using an item asks
    the item's own spell, which is the same two-step the item path takes. */
 // FUNCTION: WIZ8 0x00536400
-void RepickInvalidCombatTargets00536400(void)
+void RepickInvalidCombatTargets(void)
 {
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
         W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
@@ -867,7 +867,7 @@ void SetMonsterHighlight(int party_slot, int location_id, char on)
    scan only while g_dev_mode_689b32 is set. The cursor coordinates are carried but
    unused - the hover test is MonsterUsesCurrentModelInstance. */
 // FUNCTION: WIZ8 0x005396d0
-int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y)
+int PickNearestMonsterUnderCursor(int cursor_x, int cursor_y)
 {
     int result;
     float best_distance;
@@ -894,10 +894,10 @@ int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y)
         if (monster_info->party_threat.use_bounds_24 == 0) {
             UpdateMonsterSight(monster_info, 1, 1);
         }
-        if (monster_info->p3D->IsRenderable004C7C00(1) == 0) {
+        if (monster_info->p3D->IsRenderable(1) == 0) {
             continue;
         }
-        distance = MonsterDistanceToCamera004BE710(GetWorld(), monster_info->p3D);
+        distance = MonsterDistanceToCamera(GetWorld(), monster_info->p3D);
         if (distance < best_distance) {
             result = monster_info->location_id;
             best_distance = distance;
@@ -924,10 +924,10 @@ int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y)
             if (monster_info->party_threat.use_bounds_24 == 0) {
                 UpdateMonsterSight(monster_info, 1, 1);
             }
-            if (monster_info->p3D->IsRenderable004C7C00(1) == 0) {
+            if (monster_info->p3D->IsRenderable(1) == 0) {
                 continue;
             }
-            distance = MonsterDistanceToCamera004BE710(GetWorld(), monster_info->p3D);
+            distance = MonsterDistanceToCamera(GetWorld(), monster_info->p3D);
             if (distance < best_distance) {
                 result = monster_info->location_id;
                 best_distance = distance;
@@ -1456,7 +1456,7 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
             }
             continue;
         }
-        if (highlighting != 0 || monster_info->p3D->HasLineOfSightFromPoint004C4C40(*eye)) {
+        if (highlighting != 0 || monster_info->p3D->HasLineOfSightFromPoint(*eye)) {
             found->Add(monster_info->location_id);
         }
     }
@@ -1646,7 +1646,7 @@ unsigned int GetActionSpellLikeId(int party_slot, W8TargetingContext context)
     return 0;
 }
 
-/* plsMonsterList index that last satisfied AnyMonsterVisible0053A1D0. */
+/* plsMonsterList index that last satisfied AnyMonsterVisible. */
 // GLOBAL: WIZ8 0x0061D14C
 static int g_last_visible_monster_0061d14c = -1;
 
@@ -1686,10 +1686,10 @@ void SetTargetingMode(int state)
     gXStatus.target_position.SetZero();
     RequestRefreshPartyState();
     if (state == 4) {
-        SetTargetConeEnabled004ADD30(1);
+        SetTargetConeEnabled(1);
         PauseMainGameWorld();
     } else {
-        SetTargetConeEnabled004ADD30(0);
+        SetTargetConeEnabled(0);
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
             ResumeMainGameWorld();
         }
@@ -1807,7 +1807,7 @@ bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* 
             if (source->iMonsterID == BAD_INDEX) {
                 srAssertFail("pSource->iMonsterID != BAD_INDEX", TARGETING_CPP, 0xcf8, 0);
             }
-            distance = member->GetDistanceToMonster004C7DD0(source_monster);
+            distance = member->GetDistanceToMonster(source_monster);
         }
         if (distance <= max_distance) {
             return true;
@@ -2103,7 +2103,7 @@ void RefreshTargetMarker(void)
 {
     srVector3T<float> position;
 
-    GetWorldCursorTargetPosition00492500(&position);
+    GetWorldCursorTargetPosition(&position);
     if (position.x != gXStatus.target_position.x || position.y != gXStatus.target_position.y ||
         position.z != gXStatus.target_position.z) {
         gXStatus.target_position = position;
@@ -2356,7 +2356,7 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
             }
             selected = ChooseMonsterTarget(party_slot, group_id, action_context);
             if (selected != -1 ||
-                (is_attack_kind != 0 && (selected = ChooseFallbackMonsterTarget0053C990(
+                (is_attack_kind != 0 && (selected = ChooseFallbackMonsterTarget(
                                              party_slot, group_id, action_context)) != -1)) {
                 memset(&new_target, 0, sizeof(new_target));
                 new_target.iChar = -1;
@@ -3021,7 +3021,7 @@ void RefreshAllPartyTargets(void)
                 }
             }
 
-            if (IsPartySlotEligible00524A10(party_slot) != 0 &&
+            if (IsPartySlotEligible(party_slot) != 0 &&
                 (row->action_03d == W8_ACTION_ATTACK || row->action_03d == W8_ACTION_BERSERK) &&
                 (row->weapon_swap_pending_105 != 0 ||
                  CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0)) {
@@ -3036,8 +3036,8 @@ void RefreshAllPartyTargets(void)
                             MonsterGetScriptPartByLocationIndex(monster_index)->monster_group_id;
                     }
                 }
-                int selected = ChooseFallbackMonsterTarget0053C990(party_slot, group_id,
-                                                                   W8_TARGETING_CONTEXT_IN_COMBAT);
+                int selected = ChooseFallbackMonsterTarget(party_slot, group_id,
+                                                           W8_TARGETING_CONTEXT_IN_COMBAT);
 
                 if (selected != -1) {
                     W8CombatSlot action;
@@ -3058,7 +3058,7 @@ void RefreshAllPartyTargets(void)
    members; when either count changed, ask for a party redraw and store the new
    pair in the group's scratch slot. */
 // FUNCTION: WIZ8 0x005398D0
-void RefreshMonsterTargetCounts005398D0(void)
+void RefreshMonsterTargetCounts(void)
 {
     srVector3T<float> camera;
     srVector3T<float> lower;
@@ -3081,14 +3081,14 @@ void RefreshMonsterTargetCounts005398D0(void)
                 MonsterGetIndexByLocationID(0x81a, TARGETING_CPP, location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
 
-            if (monster_info->p3D->IsWithinWorldRange004CA2A0() == 0) {
+            if (monster_info->p3D->IsWithinWorldRange() == 0) {
                 continue;
             }
             if (monster_info == 0) {
                 srAssertFail("pMonsterInfo", TARGETING_CPP, 0x7f8, 0);
             }
             GetCameraPosition(&camera);
-            MonsterGetWorldAnimationBounds004CA4F0(monster_info->p3D, &lower, &upper);
+            MonsterGetWorldAnimationBounds(monster_info->p3D, &lower, &upper);
             if (ShowTargetMarker(&camera, &lower, &upper) != 0) {
                 on_screen_count += 1;
             }
@@ -3112,8 +3112,8 @@ void RefreshMonsterTargetCounts005398D0(void)
    camera. Callers pass a camera `position`, but retail distance uses
    GetDistanceToPlayer. */
 // FUNCTION: WIZ8 0x0053A060
-bool IsMonsterVisibleWithinDistance0053A060(W8Monster* monster, const srVector3T<float>* position,
-                                            float max_distance)
+bool IsMonsterVisibleWithinDistance(W8Monster* monster, const srVector3T<float>* position,
+                                    float max_distance)
 {
     srVector3T<float> minimum;
     srVector3T<float> maximum;
@@ -3153,7 +3153,7 @@ bool IsMonsterVisibleWithinDistance0053A060(W8Monster* monster, const srVector3T
 /* Any live monster visible to the camera within the far-clip range, resuming
    the scan at the last match. */
 // FUNCTION: WIZ8 0x0053A1D0
-bool AnyMonsterVisible0053A1D0(void)
+bool AnyMonsterVisible(void)
 {
     srVector3T<float> camera;
     float limit;
@@ -3170,7 +3170,7 @@ bool AnyMonsterVisible0053A1D0(void)
         W8MonsterInfo* monster_info =
             (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, g_last_visible_monster_0061d14c);
         if (monster_info->p3D != 0 &&
-            IsMonsterVisibleWithinDistance0053A060(monster_info->p3D, &camera, limit) != 0) {
+            IsMonsterVisibleWithinDistance(monster_info->p3D, &camera, limit) != 0) {
             return 1;
         }
     }
@@ -3178,7 +3178,7 @@ bool AnyMonsterVisible0053A1D0(void)
         W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, index);
 
         if (monster_info->p3D != 0 &&
-            IsMonsterVisibleWithinDistance0053A060(monster_info->p3D, &camera, limit) != 0) {
+            IsMonsterVisibleWithinDistance(monster_info->p3D, &camera, limit) != 0) {
             g_last_visible_monster_0061d14c = index;
             return 1;
         }
@@ -3189,7 +3189,7 @@ bool AnyMonsterVisible0053A1D0(void)
 /* Mode-3 targeting tick: pop the front marker off the queue and tint the
    monster green when it has line of sight from the target point. */
 // FUNCTION: WIZ8 0x0053B1D0
-void UpdateTargetMarkerHighlight0053B1D0(void)
+void UpdateTargetMarkerHighlight(void)
 {
     W8MonsterRuntimeBlock4C block;
     srVector3T<float> point;
@@ -3201,7 +3201,7 @@ void UpdateTargetMarkerHighlight0053B1D0(void)
         W8Monster* monster;
         monster = GetMonsterByLocationID(location_id);
         point = gXStatus.target_position;
-        if (monster->HasLineOfSightFromPoint004C4C40(point) != 0) {
+        if (monster->HasLineOfSightFromPoint(point) != 0) {
             block.highlight_red = 0.0f;
             block.highlight_green = 1.0f;
             block.highlight_blue = 0.0f;
@@ -3218,7 +3218,7 @@ void UpdateTargetMarkerHighlight0053B1D0(void)
    slot's highlight color - clear for 0, green for 1, red for anything the
    callers pass as 2. */
 // FUNCTION: WIZ8 0x00538510
-void HighlightPickedGroupMember00538510(int party_slot, W8MonsterGroup* group, int color)
+void HighlightPickedGroupMember(int party_slot, W8MonsterGroup* group, int color)
 {
     W8ModelInstance3DRenderState block;
 
@@ -3376,9 +3376,8 @@ void ModifyGroupColor(int group_id, int color)
    sight flag for a character, the mon-to-mon visibility record for a monster
    source, and a point line-of-sight probe for an indirect source. */
 // FUNCTION: WIZ8 0x00539a30
-static unsigned char SourceCanSeeMonster00539A30(const W8TargetSource* source,
-                                                 W8MonsterInfo* monster_info,
-                                                 unsigned char flag_index, int sight_flag)
+static unsigned char SourceCanSeeMonster(const W8TargetSource* source, W8MonsterInfo* monster_info,
+                                         unsigned char flag_index, int sight_flag)
 {
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
         if (source->iChar == -1) {
@@ -3405,15 +3404,15 @@ static unsigned char SourceCanSeeMonster00539A30(const W8TargetSource* source,
     if (source->iType != W8_TARGET_SOURCE_INDIRECT) {
         srAssertFail("pSource->iType == SOURCE_TYPE_3D_POINT", TARGETING_CPP, 0x854, 0);
     }
-    return monster_info->p3D->HasLineOfSightFromPoint004C4C40(source->point);
+    return monster_info->p3D->HasLineOfSightFromPoint(source->point);
 }
 
 /* Whether `target` is inside the aim cone: within `bonus` + `eye_radius` of
    `eye`, and within the heading and elevation arc bounds. */
 // FUNCTION: WIZ8 0x00539b70
-bool TargetInRangeAndArcs00539B70(const srVector3T<float>* target, float bonus,
-                                  const srVector3T<float>* eye, float eye_radius, float heading,
-                                  float elevation)
+bool TargetInRangeAndArcs(const srVector3T<float>* target, float bonus,
+                          const srVector3T<float>* eye, float eye_radius, float heading,
+                          float elevation)
 {
     float dx = target->x - eye->x;
     float dy = target->y - eye->y;
@@ -3438,9 +3437,9 @@ bool TargetInRangeAndArcs00539B70(const srVector3T<float>* target, float bonus,
    `found`. `disposition` filters ubDisposition, with 3 admitting every
    disposition; `sight_flag` picks the visibility flag the source must have. */
 // FUNCTION: WIZ8 0x00539ca0
-int CollectConeMonsterTargets00539CA0(const W8TargetSource* source, const srVector3T<float>* eye,
-                                      float heading, float elevation, W8GrowableVector<int>* found,
-                                      unsigned char disposition, int sight_flag)
+int CollectConeMonsterTargets(const W8TargetSource* source, const srVector3T<float>* eye,
+                              float heading, float elevation, W8GrowableVector<int>* found,
+                              unsigned char disposition, int sight_flag)
 {
     int start_count = found->GetCount();
     float radius;
@@ -3465,9 +3464,9 @@ int CollectConeMonsterTargets00539CA0(const W8TargetSource* source, const srVect
                 point.y =
                     monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
                 point.z = monster->movement_0c0.position_040.z;
-                if (TargetInRangeAndArcs00539B70(&point, monster->radius_084, eye, radius, heading,
-                                                 elevation) != 0 &&
-                    SourceCanSeeMonster00539A30(source, monster_info, 1, sight_flag) != 0) {
+                if (TargetInRangeAndArcs(&point, monster->radius_084, eye, radius, heading,
+                                         elevation) != 0 &&
+                    SourceCanSeeMonster(source, monster_info, 1, sight_flag) != 0) {
                     found->Add(monster_info->location_id);
                 }
             }
@@ -3552,11 +3551,11 @@ aim_done:
     gXStatus.target_position.SetZero();
     RequestRefreshPartyState();
     if (needed_kind == 4) {
-        SetTargetConeEnabled004ADD30(1);
+        SetTargetConeEnabled(1);
         PauseMainGameWorld();
         return;
     }
-    SetTargetConeEnabled004ADD30(0);
+    SetTargetConeEnabled(0);
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         ResumeMainGameWorld();
     }
@@ -3565,7 +3564,7 @@ aim_done:
 /* Whether the pending item use needs a target picked: most spell target types
    need one, type 3 only when auto-targeting cannot pick it (never in camp). */
 // FUNCTION: WIZ8 0x0053a770
-bool ItemUseNeedsTarget0053A770(int party_slot)
+bool ItemUseNeedsTarget(int party_slot)
 {
     W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     W8ItemInstance* item = FindCharacterItemAt(party_slot, row->item_origin, row->item_slot);
@@ -3590,7 +3589,7 @@ bool ItemUseNeedsTarget0053A770(int party_slot)
    of targeting: cursor, target cone and world pause all return to normal, and
    in combat the character's own target highlights come back up. */
 // FUNCTION: WIZ8 0x0053b050
-void ClearSlotTargeting0053B050(int party_slot)
+void ClearSlotTargeting(int party_slot)
 {
     W8PList* monster_list = gXStatus.plsMonsterList;
     for (unsigned int index = 0; index < PLLength(monster_list); ++index) {
@@ -3610,7 +3609,7 @@ void ClearSlotTargeting0053B050(int party_slot)
     }
     gXStatus.target_position.SetZero();
     RequestRefreshPartyState();
-    SetTargetConeEnabled004ADD30(0);
+    SetTargetConeEnabled(0);
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         ResumeMainGameWorld();
     }
@@ -3624,7 +3623,7 @@ void ClearSlotTargeting0053B050(int party_slot)
 /* The targeting context the slot's combat action runs in: the live context
    resolved through the validating switch. */
 // FUNCTION: WIZ8 0x0053bc90
-W8TargetingContext GetCombatActionContext0053BC90(int party_slot)
+W8TargetingContext GetCombatActionContext(int party_slot)
 {
     return ResolveTargetingContext(party_slot, GetCurrentTargetingContext(party_slot));
 }
@@ -3632,7 +3631,7 @@ W8TargetingContext GetCombatActionContext0053BC90(int party_slot)
 /* Raise or clear the party slot's highlight bit on every active monster.
    Clearing while spell targeting is up repaints the spell's own marks. */
 // FUNCTION: WIZ8 0x0053c130
-void UpdateSlotMonsterHighlights0053C130(int party_slot, char enable)
+void UpdateSlotMonsterHighlights(int party_slot, char enable)
 {
     if ((party_slot != g_status_685170.selected_character) || (gXStatus.iTargetingMode == 0)) {
         W8PList* monster_list = gXStatus.plsMonsterList;
@@ -3667,7 +3666,7 @@ void UpdateSlotMonsterHighlights0053C130(int party_slot, char enable)
    the ordinary group selection has no usable monster. The swap is undone when
    it finds nothing, and the slot's own valid target is kept when it has one. */
 // FUNCTION: WIZ8 0x0053c990
-int ChooseFallbackMonsterTarget0053C990(int party_slot, int group_id, W8TargetingContext context)
+int ChooseFallbackMonsterTarget(int party_slot, int group_id, W8TargetingContext context)
 {
     int result = -1;
     W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
@@ -3715,7 +3714,7 @@ int ChooseFallbackMonsterTarget0053C990(int party_slot, int group_id, W8Targetin
    set back to its primary weapon set, provided auto-swap is on and nothing is
    already swapping. */
 // FUNCTION: WIZ8 0x0053cd60
-void ReconcilePartyEquipmentAfterCombat0053CD60(void)
+void ReconcilePartyEquipmentAfterCombat(void)
 {
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
         W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
