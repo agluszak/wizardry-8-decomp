@@ -3659,7 +3659,6 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
     int uiTerminator;
     unsigned char fSuccess;
     unsigned char fLoaded;
-    void* block;
     unsigned int index;
     unsigned int limit;
     unsigned int name_length;
@@ -3714,13 +3713,14 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 }
             }
 
-            block = malloc((header.branch_count_6a * 9 + 0x12) * 4);
-            m_owned_09c = static_cast<W8OctPreTreeBranch*>(block);
-            if (block == 0) {
+            m_owned_09c = static_cast<W8OctPreTreeBranch*>(
+                malloc((header.branch_count_6a + 2) * sizeof(W8OctPreTreeBranch)));
+            if (m_owned_09c == 0) {
                 fSuccess = 0;
                 strcpy(acMessage, "ReadOctFile: Couldn't allocate octree nodes.");
             } else {
-                fSuccess = FileRead(hOctFile, block, header.branch_count_6a * 0x24, &uiRead);
+                fSuccess = FileRead(hOctFile, m_owned_09c,
+                                    header.branch_count_6a * sizeof(W8OctPreTreeBranch), &uiRead);
                 if (fSuccess == 0) {
                     strcpy(acMessage, "ReadOctFile: Couldn't read octree nodes.");
                 }
@@ -3728,13 +3728,14 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
             g_octree_bytes_read += uiRead;
             fLoaded = 0;
             if (fSuccess != 0) {
-                block = malloc((header.leaf_count_6e * 5 + 10) * 8);
-                m_owned_0a0 = static_cast<W8OctPreTreeLeaf*>(block);
-                if (block == 0) {
+                m_owned_0a0 = static_cast<W8OctPreTreeLeaf*>(
+                    malloc((header.leaf_count_6e + 2) * sizeof(W8OctPreTreeLeaf)));
+                if (m_owned_0a0 == 0) {
                     fSuccess = 0;
                     strcpy(acMessage, "ReadOctFile: Couldn't allocate octree leaves.");
                 } else {
-                    fSuccess = FileRead(hOctFile, block, header.leaf_count_6e * 0x28, &uiRead);
+                    fSuccess = FileRead(hOctFile, m_owned_0a0,
+                                        header.leaf_count_6e * sizeof(W8OctPreTreeLeaf), &uiRead);
                     if (fSuccess == 0) {
                         strcpy(acMessage, "ReadOctFile: Couldn't read octree leaves.");
                     }
@@ -3742,15 +3743,15 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 g_octree_bytes_read += uiRead;
                 fLoaded = 0;
                 if (fSuccess != 0) {
-                    block = malloc(header.leaf_polygon_stream_len_82 * 4 + 8);
-                    m_owned_0d0 = static_cast<unsigned long*>(block);
-                    if (block == 0) {
+                    m_owned_0d0 = static_cast<unsigned long*>(
+                        malloc(header.leaf_polygon_stream_len_82 * 4 + 8));
+                    if (m_owned_0d0 == 0) {
                         fLoaded = 0;
                         strcpy(acMessage,
                                "ReadOctFile: Couldn't allocate polygon index list for leaves.");
                     } else {
-                        fLoaded = FileRead(hOctFile, block, header.leaf_polygon_stream_len_82 * 4,
-                                           &uiRead);
+                        fLoaded = FileRead(hOctFile, m_owned_0d0,
+                                           header.leaf_polygon_stream_len_82 * 4, &uiRead);
                         if (fLoaded == 0) {
                             strcpy(acMessage,
                                    "ReadOctFile: Couldn't read polygon index list for leaves.");
@@ -3764,14 +3765,13 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
 
     limit = m_leaf_grid_dim_x_0a4 * m_leaf_grid_dim_y_0a8 * m_leaf_grid_dim_z_0ac;
     if (fLoaded != 0 && limit < 250000) {
-        block = malloc(limit * 4);
-        m_owned_0b0 = static_cast<unsigned long*>(block);
-        if (block == 0) {
+        m_owned_0b0 = static_cast<unsigned long*>(malloc(limit * 4));
+        if (m_owned_0b0 == 0) {
             strcpy(acMessage, "ReadOctFile: Couldn't allocate polygon index list for regions.");
             goto finish;
         }
         fLoaded = FileRead(
-            hOctFile, block,
+            hOctFile, m_owned_0b0,
             m_leaf_grid_dim_x_0a4 * m_leaf_grid_dim_y_0a8 * m_leaf_grid_dim_z_0ac * 4, &uiRead);
         if (fLoaded == 0) {
             strcpy(acMessage, "ReadOctFile: Couldn't read octree nodes.");
@@ -3783,13 +3783,12 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
 
     fSuccess = 0;
     if (fLoaded != 0) {
-        block = malloc(header.polygon_count_72 * 4 + 8);
-        m_aulPolyLookup = static_cast<unsigned long*>(block);
-        if (block == 0) {
+        m_aulPolyLookup = static_cast<unsigned long*>(malloc(header.polygon_count_72 * 4 + 8));
+        if (m_aulPolyLookup == 0) {
             fSuccess = 0;
             strcpy(acMessage, "ReadOctFile: Couldn't allocate Poly Lookup table.");
         } else {
-            fLoaded = FileRead(hOctFile, block, header.polygon_count_72 * 4, &uiRead);
+            fLoaded = FileRead(hOctFile, m_aulPolyLookup, header.polygon_count_72 * 4, &uiRead);
             if (fLoaded == 0) {
                 strcpy(acMessage, "ReadOctFile: Couldn't read Poly Lookup table.");
             }
@@ -3797,14 +3796,15 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
             fSuccess = 0;
             if (fLoaded != 0) {
                 if (header.region_list_len_92 != 0) {
-                    block = malloc(header.region_list_len_92 * 2 + 4);
-                    m_owned_148 = static_cast<unsigned short*>(block);
-                    if (block == 0) {
+                    m_owned_148 =
+                        static_cast<unsigned short*>(malloc(header.region_list_len_92 * 2 + 4));
+                    if (m_owned_148 == 0) {
                         fSuccess = 0;
                         strcpy(acMessage, "ReadOctFile: Couldn't allocate region list.");
                         goto finish;
                     }
-                    fLoaded = FileRead(hOctFile, block, header.region_list_len_92 * 2, &uiRead);
+                    fLoaded =
+                        FileRead(hOctFile, m_owned_148, header.region_list_len_92 * 2, &uiRead);
                     if (fLoaded == 0) {
                         strcpy(acMessage, "ReadOctFile: Couldn't read region list.");
                     }
@@ -3813,15 +3813,15 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 fSuccess = 0;
                 if (fLoaded != 0) {
                     if (header.gd_surface_stream_len_86 != 0) {
-                        block = malloc(header.gd_surface_stream_len_86 * 4 + 8);
-                        m_owned_12c = static_cast<unsigned long*>(block);
-                        if (block == 0) {
+                        m_owned_12c = static_cast<unsigned long*>(
+                            malloc(header.gd_surface_stream_len_86 * 4 + 8));
+                        if (m_owned_12c == 0) {
                             fSuccess = 0;
                             strcpy(acMessage, "ReadOctFile: Couldn't allocate GD Poly list.");
                             goto finish;
                         }
-                        fLoaded =
-                            FileRead(hOctFile, block, header.gd_surface_stream_len_86 * 4, &uiRead);
+                        fLoaded = FileRead(hOctFile, m_owned_12c,
+                                           header.gd_surface_stream_len_86 * 4, &uiRead);
                         if (fLoaded == 0) {
                             strcpy(acMessage, "ReadOctFile: Couldn't read GD Poly list.");
                         }
@@ -3830,15 +3830,15 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                     fSuccess = 0;
                     if (fLoaded != 0) {
                         if (header.trigger_count_8a != 0) {
-                            block = malloc(header.trigger_count_8a * 2 + 4);
-                            m_owned_130 = static_cast<unsigned short*>(block);
-                            if (block == 0) {
+                            m_owned_130 = static_cast<unsigned short*>(
+                                malloc(header.trigger_count_8a * 2 + 4));
+                            if (m_owned_130 == 0) {
                                 fSuccess = 0;
                                 strcpy(acMessage, "ReadOctFile: Couldn't allocate Trigger list.");
                                 goto finish;
                             }
-                            fLoaded =
-                                FileRead(hOctFile, block, header.trigger_count_8a * 2, &uiRead);
+                            fLoaded = FileRead(hOctFile, m_owned_130, header.trigger_count_8a * 2,
+                                               &uiRead);
                             if (fLoaded == 0) {
                                 strcpy(acMessage, "ReadOctFile: Couldn't read Trigger list.");
                             }
@@ -3847,16 +3847,17 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                         fSuccess = 0;
                         if (fLoaded != 0) {
                             if (header.region_count_96 > 1) {
-                                block = malloc((header.region_count_96 + 2) * 0xe8);
-                                spatial_000.owned_5c = static_cast<W8OctRegionVolume*>(block);
-                                if (block == 0) {
+                                spatial_000.owned_5c = static_cast<W8OctRegionVolume*>(malloc(
+                                    (header.region_count_96 + 2) * sizeof(W8OctRegionVolume)));
+                                if (spatial_000.owned_5c == 0) {
                                     fSuccess = 0;
                                     strcpy(acMessage,
                                            "ReadOctFile: Couldn't allocate region array.");
                                     goto finish;
                                 }
-                                fLoaded = FileRead(hOctFile, block, header.region_count_96 * 0xe8,
-                                                   &uiRead);
+                                fLoaded = FileRead(
+                                    hOctFile, spatial_000.owned_5c,
+                                    header.region_count_96 * sizeof(W8OctRegionVolume), &uiRead);
                                 if (fLoaded == 0) {
                                     strcpy(acMessage, "ReadOctFile: Couldn't read region array.");
                                 }
@@ -3873,15 +3874,16 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                 fSuccess = 0;
                                 if (fLoaded != 0) {
                                     if (header.submesh_count_66 != 0) {
-                                        block = malloc((header.submesh_count_66 + 1) * 0x10);
-                                        m_pSubmeshes = static_cast<W8OctSubmesh*>(block);
-                                        if (block == 0) {
+                                        m_pSubmeshes = static_cast<W8OctSubmesh*>(malloc(
+                                            (header.submesh_count_66 + 1) * sizeof(W8OctSubmesh)));
+                                        if (m_pSubmeshes == 0) {
                                             fLoaded = 0;
                                             strcpy(acMessage,
                                                    "ReadOctFile: Couldn't allocate submesh array.");
                                         } else {
-                                            fLoaded = FileRead(hOctFile, block,
-                                                               (header.submesh_count_66 + 1) * 0x10,
+                                            fLoaded = FileRead(hOctFile, m_pSubmeshes,
+                                                               (header.submesh_count_66 + 1) *
+                                                                   sizeof(W8OctSubmesh),
                                                                &uiRead);
                                             if (fLoaded == 0) {
                                                 strcpy(acMessage,

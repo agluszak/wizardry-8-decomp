@@ -502,6 +502,7 @@ struct W8CycleNameRow {
     signed char prefix_length;
 };
 extern W8CycleNameRow g_cycle_names[];
+// bool-byte-ok: automap save/restore (0x0057E660/0x0057FB40) copies it through a byte array unnormalized
 extern unsigned char g_monster_shadow_updates_enabled;
 
 #endif
