@@ -28,9 +28,9 @@
 #define GROUP_ATTACKS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GroupAttacks.cpp"
 
 /* The per-special-attack condition each attack slot tries to inflict, indexing the same
-   rows as g_condition_notices_0061E570. */
+   rows as g_condition_notices. */
 // GLOBAL: WIZ8 0x0061EFFC
-const int g_special_attack_condition_table_61effc[32][2] = {
+const int g_special_attack_condition_table[32][2] = {
     {0, 0},   {12, 0}, {12, 0}, {0, 0}, {0, 0}, {6, 11}, {6, 13}, {6, 0},  {0, 0}, {0, 0}, {11, 0},
     {11, 13}, {11, 0}, {3, 0},  {3, 0}, {4, 0}, {4, 0},  {16, 0}, {16, 0}, {7, 3}, {7, 0}, {15, 0},
     {5, 16},  {5, 0},  {0, 0},  {0, 0}, {0, 0}, {0, 0},  {0, 0},  {0, 0},  {0, 0}, {0, 0},
@@ -39,7 +39,7 @@ const int g_special_attack_condition_table_61effc[32][2] = {
 /* The per-special-attack realm/effect id handed to ApplyEffectAndAnnounce and the
    realm drain. */
 // GLOBAL: WIZ8 0x0061F0FC
-const int g_special_attack_realm_table_61f0fc[32] = {
+const int g_special_attack_realm_table[32] = {
     0, 1, 1, 5, 1, 4, 5, 4, 0, 0, 4, 5, 4, 3, 2, 3, 2, 4, 3, 1, 1, 2, 1, 3, 0, 0, 0, 0, 0, 0, 1, 0,
 };
 
@@ -93,7 +93,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
     bool resolved;
     wchar_t* text;
 
-    announce = (char)g_settings_6850c8.verbose_combat_messages;
+    announce = static_cast<char>(g_settings.verbose_combat_messages);
     if (pSource->iType == W8_TARGET_SOURCE_CHARACTER) {
         unsigned int level;
         unsigned int bound;
@@ -101,13 +101,13 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
         unsigned int stamina_max;
 
         iChar = pSource->iChar;
-        level = g_status_685170.buffers.Char[iChar].uiExpLevel;
+        level = g_status.buffers.Char[iChar].uiExpLevel;
         bound = 0xf;
         if (level < 0x10) {
             bound = level;
         }
-        stamina = g_status_685170.buffers.Char[iChar].stamina;
-        stamina_max = g_status_685170.buffers.Char[iChar].uiStaminaMax;
+        stamina = g_status.buffers.Char[iChar].stamina;
+        stamina_max = g_status.buffers.Char[iChar].uiStaminaMax;
         uiMinRoll = (stamina * (level + bound)) / stamina_max;
         if (uiMinRoll == 0) {
             uiMinRoll = 1;
@@ -174,15 +174,14 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                 case 1:
                     uiBound = uiBounds[i];
                     uiDamage = Random(uiBound);
-                    if (g_special_attack_condition_table_61effc[special_attack_kind][i] == 7) {
+                    if (g_special_attack_condition_table[special_attack_kind][i] == 7) {
                         extra = Random(uiBound) + 1;
                     } else {
                         extra = 0;
                     }
                     resolved = ResolveAttackOnTarget(
-                        pSource, &target,
-                        g_special_attack_condition_table_61effc[special_attack_kind][i],
-                        g_special_attack_realm_table_61f0fc[special_attack_kind], uiMinRoll, extra,
+                        pSource, &target, g_special_attack_condition_table[special_attack_kind][i],
+                        g_special_attack_realm_table[special_attack_kind], uiMinRoll, extra,
                         uiDamage, announce, announce, 0);
                     if (resolved == 0 && announce == 0) {
                         uiHits[i] = uiHits[i] + 1;
@@ -195,7 +194,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     uiRollC = Random(uiBound);
                     uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
                     ApplyEffectAndAnnounce(&uiDamage, &target,
-                                           g_special_attack_realm_table_61f0fc[special_attack_kind],
+                                           g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
@@ -214,15 +213,15 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     uiRollC = Random(uiBound);
                     uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
                     ApplyEffectAndAnnounce(&uiDamage, &target,
-                                           g_special_attack_realm_table_61f0fc[special_attack_kind],
+                                           g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
                     } else {
                         for (drain = 6; drain != 0; --drain) {
                             DrainCharacterRealmSpellPoints(
-                                iChar, g_special_attack_realm_table_61f0fc[special_attack_kind],
-                                uiDamage, 1);
+                                iChar, g_special_attack_realm_table[special_attack_kind], uiDamage,
+                                1);
                         }
                         if (announce == 0) {
                             uiTotals[i] = uiTotals[i] + uiDamage;
@@ -237,7 +236,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     uiRollC = Random(uiBound);
                     uiDamage = uiRollA + uiRollB + 1 + uiRollC;
                     ApplyEffectAndAnnounce(&uiDamage, &target,
-                                           g_special_attack_realm_table_61f0fc[special_attack_kind],
+                                           g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
@@ -256,9 +255,9 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     uiRollC = Random(uiBound);
                     uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
                     if (special_attack_kind != 10) {
-                        ApplyEffectAndAnnounce(
-                            &uiDamage, &target,
-                            g_special_attack_realm_table_61f0fc[special_attack_kind], uiMinRoll);
+                        ApplyEffectAndAnnounce(&uiDamage, &target,
+                                               g_special_attack_realm_table[special_attack_kind],
+                                               uiMinRoll);
                     }
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
@@ -296,15 +295,14 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     if (uiBounds[i] / 3 != 0) {
                         uiBound = uiBounds[i] / 3;
                     }
-                    if (g_special_attack_condition_table_61effc[special_attack_kind][i] == 7) {
+                    if (g_special_attack_condition_table[special_attack_kind][i] == 7) {
                         extra = Random(2) + 1;
                     } else {
                         extra = 0;
                     }
                     resolved = ResolveAttackOnTarget(
-                        pSource, &target,
-                        g_special_attack_condition_table_61effc[special_attack_kind][i],
-                        g_special_attack_realm_table_61f0fc[special_attack_kind], uiMinRoll, extra,
+                        pSource, &target, g_special_attack_condition_table[special_attack_kind][i],
+                        g_special_attack_realm_table[special_attack_kind], uiMinRoll, extra,
                         uiBound, announce, announce, 0);
                     if (resolved == 0 && announce == 0) {
                         uiHits[i] = uiHits[i] + 1;
@@ -317,7 +315,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     uiRollC = Random(uiBound);
                     uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
                     ApplyEffectAndAnnounce(&uiDamage, &target,
-                                           g_special_attack_realm_table_61f0fc[special_attack_kind],
+                                           g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
@@ -336,7 +334,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     uiRollC = Random(uiBound);
                     uiDamage = (uiRollA + uiRollB + uiRollC) / 6 + 1;
                     ApplyEffectAndAnnounce(&uiDamage, &target,
-                                           g_special_attack_realm_table_61f0fc[special_attack_kind],
+                                           g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
                     if (uiDamage != 0) {
                         monster_info->spell_points_2f9 =
@@ -356,7 +354,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     uiRollC = Random(uiBound);
                     uiDamage = uiRollA + uiRollB + uiRollC;
                     ApplyEffectAndAnnounce(&uiDamage, &target,
-                                           g_special_attack_realm_table_61f0fc[special_attack_kind],
+                                           g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
@@ -375,9 +373,9 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     uiRollC = Random(uiBound);
                     uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
                     if (special_attack_kind != 10) {
-                        ApplyEffectAndAnnounce(
-                            &uiDamage, &target,
-                            g_special_attack_realm_table_61f0fc[special_attack_kind], uiMinRoll);
+                        ApplyEffectAndAnnounce(&uiDamage, &target,
+                                               g_special_attack_realm_table[special_attack_kind],
+                                               uiMinRoll);
                     }
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
@@ -407,11 +405,10 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     case 1:
                         text = FormatWideString(
                             L"%ld %s", uiHits[i],
-                            gppStringList[g_condition_notices_0061E570
-                                              [g_special_attack_condition_table_61effc
-                                                       [special_attack_kind][i] *
-                                                   4 +
-                                               2]],
+                            gppStringList
+                                [g_condition_notices
+                                     [g_special_attack_condition_table[special_attack_kind][i] * 4 +
+                                      2]],
                             -1);
                         break;
                     case 2:

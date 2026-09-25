@@ -69,16 +69,16 @@ public:
 static_assert(sizeof(W8NormalTexcoordMapper) == 4, "W8NormalTexcoordMapper004B89A0_must_be_4");
 
 // GLOBAL: WIZ8 0x0065BEA8
-W8NormalTexcoordMapper g_normal_texcoord_mapper_0065bea8;
+W8NormalTexcoordMapper g_normal_texcoord_mapper;
 
 // GLOBAL: WIZ8 0x0065BA9E
-bool g_material_diffuse_scale_enabled_0065ba9e;
+bool g_material_diffuse_scale_enabled;
 // GLOBAL: WIZ8 0x0065BAA0
-float g_material_diffuse_scale_0065baa0;
+float g_material_diffuse_scale;
 // GLOBAL: WIZ8 0x0065BAA4
-bool g_material_emissive_override_enabled_0065baa4;
+bool g_material_emissive_override_enabled;
 // GLOBAL: WIZ8 0x0065BAA8
-float g_material_emissive_override_0065baa8;
+float g_material_emissive_override;
 
 // FUNCTION: WIZ8 0x004B89A0
 W8NormalTexcoordMapper::W8NormalTexcoordMapper() {}
@@ -147,13 +147,12 @@ srClass* stMaterial::clone()
 void stMaterial::getMaterialInfo(srVertexProcessor::MaterialInfo& info)
 {
     srMaterial::getMaterialInfo(info);
-    if (g_material_diffuse_scale_enabled_0065ba9e) {
-        info.diffuse.w *= g_material_diffuse_scale_0065baa0;
+    if (g_material_diffuse_scale_enabled) {
+        info.diffuse.w *= g_material_diffuse_scale;
     }
-    if (g_material_emissive_override_enabled_0065baa4) {
-        info.emissive.Set(g_material_emissive_override_0065baa8,
-                          g_material_emissive_override_0065baa8,
-                          g_material_emissive_override_0065baa8, 1.0f);
+    if (g_material_emissive_override_enabled) {
+        info.emissive.Set(g_material_emissive_override, g_material_emissive_override,
+                          g_material_emissive_override, 1.0f);
     }
 }
 
@@ -185,74 +184,74 @@ stMaterial::~stMaterial()
    build state is TU-private .bss. */
 
 // GLOBAL: WIZ8 0x0060AC70
-unsigned char g_option_pathing_0060ac70 = 1;
+unsigned char g_option_pathing = 1;
 // GLOBAL: WIZ8 0x0060AC71
-unsigned char g_option_shadow_test_0060ac71 = 1;
+unsigned char g_option_shadow_test = 1;
 // GLOBAL: WIZ8 0x0060AC72
-unsigned char g_option_logging_0060ac72 = 1;
+unsigned char g_option_logging = 1;
 // GLOBAL: WIZ8 0x0060AC73
-unsigned char g_option_mesh_linking_0060ac73 = 1;
+unsigned char g_option_mesh_linking = 1;
 // GLOBAL: WIZ8 0x0060AC74
-float g_option_path_node_spacing_0060ac74 = 500.0f;
+float g_option_path_node_spacing = 500.0f;
 // GLOBAL: WIZ8 0x0060AC78
-float g_option_path_head_room_0060ac78 = 1000.0f;
+float g_option_path_head_room = 1000.0f;
 // GLOBAL: WIZ8 0x0060AC7C
-int g_option_delete_percentage_0060ac7c = 10;
+int g_option_delete_percentage = 10;
 // GLOBAL: WIZ8 0x0060AC80
-float g_option_min_leaf_size_0060ac80 = 1000.0f;
+float g_option_min_leaf_size = 1000.0f;
 // GLOBAL: WIZ8 0x0060AC84
-int g_option_max_path_nodes_0060ac84 = 64;
+int g_option_max_path_nodes = 64;
 // GLOBAL: WIZ8 0x0060AC88
-int g_option_max_leaf_count_0060ac88 = 20000;
+int g_option_max_leaf_count = 20000;
 // GLOBAL: WIZ8 0x0060AC8C
-unsigned char g_status_scroll_0060ac8c = 1;
+unsigned char g_status_scroll = 1;
 // GLOBAL: WIZ8 0x0060AC8D
-unsigned char g_status_buffers_freed_0060ac8d = 1;
+unsigned char g_status_buffers_freed = 1;
 
 // GLOBAL: WIZ8 0x0065BAB0
-srVector3T<float> g_weld_min_0065bab0;
+srVector3T<float> g_weld_min;
 // GLOBAL: WIZ8 0x0065BACC
-srVector3T<float> g_weld_max_0065bacc;
+srVector3T<float> g_weld_max;
 // GLOBAL: WIZ8 0x0065BADC
-char g_log_path_0065badc[0x200];
+char g_log_path[0x200];
 // GLOBAL: WIZ8 0x0065BCDC
-unsigned int g_weld_stride_x_0065bcdc;
+unsigned int g_weld_stride_x;
 // GLOBAL: WIZ8 0x0065BCE0
-unsigned int g_weld_stride_y_0065bce0;
+unsigned int g_weld_stride_y;
 // GLOBAL: WIZ8 0x0065BCE4
-unsigned int g_weld_stride_z_0065bce4;
+unsigned int g_weld_stride_z;
 // GLOBAL: WIZ8 0x0065BCE8
-unsigned short* g_status_lines_0065bce8[6];
+unsigned short* g_status_lines[6];
 // GLOBAL: WIZ8 0x0065BD0C
-int g_oct_node_count_0065bd0c;
+int g_oct_node_count;
 // GLOBAL: WIZ8 0x0065BD10
-int g_oct_max_objects_0065bd10;
+int g_oct_max_objects;
 // GLOBAL: WIZ8 0x0065BD14
-int g_lights_unblocked_0065bd14;
+int g_lights_unblocked;
 // GLOBAL: WIZ8 0x0065BD18
-int g_light_candidates_0065bd18;
+int g_light_candidates;
 // GLOBAL: WIZ8 0x0065BD1C
-int g_lights_facing_0065bd1c;
+int g_lights_facing;
 // GLOBAL: WIZ8 0x0065BD2D
-unsigned char g_option_rename_alphas_0065bd2d;
+unsigned char g_option_rename_alphas;
 // GLOBAL: WIZ8 0x0065BD30
-float g_option_auto_region_size_0065bd30;
+float g_option_auto_region_size;
 // GLOBAL: WIZ8 0x0065BD34
-W8OctPreTreeVertex* g_gd_vertices_0065bd34;
+W8OctPreTreeVertex* g_gd_vertices;
 // GLOBAL: WIZ8 0x0065BD38
-W8OctRegionPolygon* g_gd_polygons_0065bd38;
+W8OctRegionPolygon* g_gd_polygons;
 // GLOBAL: WIZ8 0x0065BD3C
-BitArray* g_prop_sun_bits_0065bd3c;
+BitArray* g_prop_sun_bits;
 // GLOBAL: WIZ8 0x0065BD44
-short g_status_cursor_0065bd44;
+short g_status_cursor;
 // GLOBAL: WIZ8 0x0065BD48
-int g_progress_total_0065bd48;
+int g_progress_total;
 // GLOBAL: WIZ8 0x0065BD4C
-int g_progress_done_0065bd4c;
+int g_progress_done;
 // GLOBAL: WIZ8 0x0065BD50
-int g_progress_mark_0065bd50;
+int g_progress_mark;
 // GLOBAL: WIZ8 0x0065BD54
-FILE* g_log_file_0065bd54;
+FILE* g_log_file;
 
 // GLOBAL: WIZ8 0x005ECBB0
 const float g_float_005ecbb0 = 268435456.0f;
@@ -420,9 +419,9 @@ unsigned char PreprocessLevel(int handle, char* stem)
             redundant = 0;
             for (i = 1; i < mesh->num_vertices_04; ++i) {
                 const float* source = mesh->pstVertices + (i - 1) * 3;
-                vertices[i].position_0c.x = source[0] * g_world_scale_005ebc40;
-                vertices[i].position_0c.y = source[1] * g_world_scale_005ebc40;
-                vertices[i].position_0c.z = source[2] * g_world_scale_005ebc40;
+                vertices[i].position_0c.x = source[0] * g_world_scale;
+                vertices[i].position_0c.y = source[1] * g_world_scale;
+                vertices[i].position_0c.z = source[2] * g_world_scale;
                 vertices[i].original_position_54.x = source[0];
                 vertices[i].original_position_54.y = source[1];
                 vertices[i].original_position_54.z = source[2];
@@ -432,22 +431,19 @@ unsigned char PreprocessLevel(int handle, char* stem)
                     if (v <= (&maximum.x)[j]) {
                         if (v < (&minimum.x)[j]) {
                             (&minimum.x)[j] = v;
-                            (&g_weld_min_0065bab0.x)[j] = v;
+                            (&g_weld_min.x)[j] = v;
                         }
                     } else {
                         (&maximum.x)[j] = v;
-                        (&g_weld_max_0065bacc.x)[j] = v;
+                        (&g_weld_max.x)[j] = v;
                     }
                 }
             }
             geometry.vertices_04 = vertices;
-            g_weld_stride_z_0065bce4 = static_cast<unsigned int>(
-                (g_float_005ecbb0 /
-                 ((g_weld_max_0065bacc.x - g_weld_min_0065bab0.x) * g_float_005ecbb4)));
-            g_weld_stride_y_0065bce0 =
-                static_cast<unsigned int>(sqrt(static_cast<double>(g_weld_stride_z_0065bce4)));
-            g_weld_stride_x_0065bcdc =
-                static_cast<unsigned int>(sqrt(static_cast<double>(g_weld_stride_y_0065bce0)));
+            g_weld_stride_z = static_cast<unsigned int>(
+                (g_float_005ecbb0 / ((g_weld_max.x - g_weld_min.x) * g_float_005ecbb4)));
+            g_weld_stride_y = static_cast<unsigned int>(sqrt(static_cast<double>(g_weld_stride_z)));
+            g_weld_stride_x = static_cast<unsigned int>(sqrt(static_cast<double>(g_weld_stride_y)));
             ReportStartupMessage("Welding vertices and discarding redundant vertices.\n");
             mark = 0;
             report = 1;
@@ -455,7 +451,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                 i = 1;
                 do {
                     percent = static_cast<unsigned int>(
-                        (i * g_octree_cell_scale_005ebcd0 / mesh->num_vertices_04));
+                        (i * g_octree_cell_scale / mesh->num_vertices_04));
                     if (mark + 10 < percent) {
                         report = 1;
                         mark = mark + 10;
@@ -494,15 +490,15 @@ unsigned char PreprocessLevel(int handle, char* stem)
                     }
                 }
                 ReportBuildStatus(6, "\nBuilding OctBuildPreTree ---------------------\n");
-                build_tree = new OctBuildPreTree(g_option_min_leaf_size_0060ac80, &minimum,
-                                                 &maximum, g_option_max_path_nodes_0060ac84,
-                                                 g_option_max_leaf_count_0060ac88, 0);
+                build_tree =
+                    new OctBuildPreTree(g_option_min_leaf_size, &minimum, &maximum,
+                                        g_option_max_path_nodes, g_option_max_leaf_count, 0);
                 if (build_tree != 0) {
                     build_tree->LoadRegionFile004B0C90(stem, &minimum, &maximum);
-                    if (g_option_mesh_linking_0060ac73 == 0) {
+                    if (g_option_mesh_linking == 0) {
                         build_tree->mesh_linking_f4 = 0;
                     }
-                    build_tree->spatial_00.region_grid_cell_54 = g_option_auto_region_size_0065bd30;
+                    build_tree->spatial_00.region_grid_cell_54 = g_option_auto_region_size;
                     int alpha_polys = BuildRegionPolygons(level, &geometry, classify);
                     build_tree->SortGeometry004AFEA0(&geometry);
                     short light_total = level->nLights;
@@ -515,14 +511,10 @@ unsigned char PreprocessLevel(int handle, char* stem)
                         sun_count = 1;
                         for (i = 0; i < static_cast<int>(light_total); ++i) {
                             src_light = lights + i;
-                            src_light->position_08.x =
-                                src_light->position_08.x * g_world_scale_005ebc40;
-                            src_light->position_08.y =
-                                src_light->position_08.y * g_world_scale_005ebc40;
-                            src_light->position_08.z =
-                                src_light->position_08.z * g_world_scale_005ebc40;
-                            src_light->colour_14.x =
-                                src_light->colour_14.x * g_world_scale_005ebc40;
+                            src_light->position_08.x = src_light->position_08.x * g_world_scale;
+                            src_light->position_08.y = src_light->position_08.y * g_world_scale;
+                            src_light->position_08.z = src_light->position_08.z * g_world_scale;
+                            src_light->colour_14.x = src_light->colour_14.x * g_world_scale;
                             strcpy(name, src_light->name_28);
                             name[19] = 0;
                             TrimAndLowercaseString(name);
@@ -560,8 +552,8 @@ unsigned char PreprocessLevel(int handle, char* stem)
                     ReportBuildStatus(6, message);
                     sprintf(message, "Width of auto-generated regions: %f metres\n",
                             (build_tree->spatial_00.region_grid_cell_54 * g_float_005ebc60));
-                    g_oct_node_count_0065bd0c = GetValue65BE60();
-                    g_oct_max_objects_0065bd10 = build_tree->deepest_link_list_b8;
+                    g_oct_node_count = GetValue65BE60();
+                    g_oct_max_objects = build_tree->deepest_link_list_b8;
                     ReportBuildStatus(3, message);
                     sprintf(message, "World Minimum Corner: \t%f  \t%f  \t%f\n",
                             build_tree->spatial_00.minimum_0c.x,
@@ -601,7 +593,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                     value->geometry_index_00 = build_tree;
                     value->CompileGameData00449D10();
                     for (i = 0; i < value->m_iNumSurfaces; ++i) {
-                        W8OctRegionPolygon* surface = g_gd_polygons_0065bd38 + i;
+                        W8OctRegionPolygon* surface = g_gd_polygons + i;
                         if (build_tree->InsertSurface004B02F0(surface, 3) == 0) {
                             sprintf(message,
                                     "Warning: GD Polygon %d cannot be inserted into tree\n", i);
@@ -645,7 +637,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                         return 0;
                     }
                     tree->SetPathStem(stem);
-                    tree->spatial_000.SetWorkingBounds(&g_weld_min_0065bab0, &g_weld_max_0065bacc);
+                    tree->spatial_000.SetWorkingBounds(&g_weld_min, &g_weld_max);
                     tree->m_alpha_polygon_count_1b0 = alpha_polys;
                     value->octree_04 = tree;
                     sprintf(message, "Poly List Len: %d\n",
@@ -660,7 +652,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                         lit_vertices = 0;
                         for (i = 1; i < static_cast<int>(geometry.vertex_count_00); ++i) {
                             percent = static_cast<unsigned int>(
-                                (i * g_octree_cell_scale_005ebcd0 / geometry.vertex_count_00));
+                                (i * g_octree_cell_scale / geometry.vertex_count_00));
                             if (mark + 10 < percent) {
                                 mark = mark + 10;
                                 sprintf(message, "  %d%% Complete:  %d Vertices Lit \r", mark, i);
@@ -692,29 +684,25 @@ unsigned char PreprocessLevel(int handle, char* stem)
                             sprintf(message,
                                     "%d (%d percent) combinations within lighting "
                                     "distance\n",
-                                    g_light_candidates_0065bd18,
-                                    g_light_candidates_0065bd18 * 100 / combinations);
+                                    g_light_candidates, g_light_candidates * 100 / combinations);
                             ReportBuildStatus(6, message);
                         }
-                        if (g_light_candidates_0065bd18 != 0) {
+                        if (g_light_candidates != 0) {
                             sprintf(message, "%d (%d percent) of these face light\n",
-                                    g_lights_facing_0065bd1c,
-                                    g_lights_facing_0065bd1c * 100 / g_light_candidates_0065bd18);
+                                    g_lights_facing, g_lights_facing * 100 / g_light_candidates);
                             ReportBuildStatus(6, message);
                         }
-                        if (g_lights_facing_0065bd1c != 0) {
+                        if (g_lights_facing != 0) {
                             sprintf(message,
                                     "%d (%d percent) of these were blocked by vertex "
                                     "shadowing\n",
-                                    g_lights_facing_0065bd1c - g_lights_unblocked_0065bd14,
-                                    100 - g_lights_unblocked_0065bd14 * 100 /
-                                              g_lights_facing_0065bd1c);
+                                    g_lights_facing - g_lights_unblocked,
+                                    100 - g_lights_unblocked * 100 / g_lights_facing);
                             ReportBuildStatus(6, message);
                             sprintf(message,
                                     "%d (%d percent) submitted were not blocked by "
                                     "shadowing\n",
-                                    g_lights_unblocked_0065bd14,
-                                    g_lights_unblocked_0065bd14 * 100 / g_lights_facing_0065bd1c);
+                                    g_lights_unblocked, g_lights_unblocked * 100 / g_lights_facing);
                             ReportBuildStatus(6, message);
                         }
                         if (geometry.vertex_count_00 != 0) {
@@ -787,15 +775,15 @@ unsigned char PreprocessLevel(int handle, char* stem)
                                     static_cast<int>(
                                         (tree->GetMeshCount() - tree->m_kind1_submesh_count_1ac)));
                             ReportBuildStatus(6, message);
-                            if (g_option_pathing_0060ac70 != 0) {
-                                tree->m_region_cell_178 = g_option_path_node_spacing_0060ac74;
+                            if (g_option_pathing != 0) {
+                                tree->m_region_cell_178 = g_option_path_node_spacing;
                                 /* Retail copies the head-room float's bits
                                    into the unsigned-long field. */
                                 tree->m_path_clearance_17c =
                                     (unsigned long&)/* c-style-cast-ok: float-bit copy */
-                                    g_option_path_head_room_0060ac78;
+                                    g_option_path_head_room;
                                 tree->BuildPathLists0046B060(value, level,
-                                                             g_option_delete_percentage_0060ac7c);
+                                                             g_option_delete_percentage);
                             }
                             if (submeshes == 0) {
                                 if (tree->GetMeshCount() == 0) {
@@ -873,19 +861,19 @@ unsigned char PreprocessLevel(int handle, char* stem)
                     }
                     ReportStartupMessage("Cleaning up preprocessing data...");
                     geometry.Release004CFC10();
-                    if (g_gd_polygons_0065bd38 != 0) {
-                        free(g_gd_polygons_0065bd38);
+                    if (g_gd_polygons != 0) {
+                        free(g_gd_polygons);
                     }
-                    if (g_gd_vertices_0065bd34 != 0) {
-                        free(g_gd_vertices_0065bd34);
+                    if (g_gd_vertices != 0) {
+                        free(g_gd_vertices);
                     }
                     if (classify != 0) {
                         free(classify);
                     }
                     delete tree;
                     delete value;
-                    delete g_prop_sun_bits_0065bd3c;
-                    g_prop_sun_bits_0065bd3c = 0;
+                    delete g_prop_sun_bits;
+                    g_prop_sun_bits = 0;
                     if (sun_pool != 0) {
                         free(sun_pool);
                     }
@@ -911,45 +899,44 @@ void ReportBuildStatus(int channel, const char* message)
 
     switch (channel) {
     case 0:
-        if (g_log_file_0065bd54 == 0) {
-            g_progress_total_0065bd48 = 0;
-            g_progress_done_0065bd4c = 0;
+        if (g_log_file == 0) {
+            g_progress_total = 0;
+            g_progress_done = 0;
             if (message == 0) {
-                g_log_file_0065bd54 = fopen(g_log_path_0065badc, "w");
+                g_log_file = fopen(g_log_path, "w");
                 return;
             }
             if (*message != '\0') {
-                strcpy(g_log_path_0065badc, message);
-                if (g_option_logging_0060ac72 != 0) {
-                    g_log_file_0065bd54 = fopen(message, "w");
+                strcpy(g_log_path, message);
+                if (g_option_logging != 0) {
+                    g_log_file = fopen(message, "w");
                     return;
                 }
             }
         }
         break;
     case 1:
-        g_progress_done_0065bd4c = g_progress_done_0065bd4c + 1;
-        if (g_progress_mark_0065bd50 + 10 <
-            static_cast<int>((g_progress_done_0065bd4c * 100.0f / g_progress_total_0065bd48))) {
-            g_progress_mark_0065bd50 = g_progress_mark_0065bd50 + 10;
-            sprintf(line, "  %d%% Complete \r", g_progress_mark_0065bd50);
+        g_progress_done = g_progress_done + 1;
+        if (g_progress_mark + 10 <
+            static_cast<int>((g_progress_done * 100.0f / g_progress_total))) {
+            g_progress_mark = g_progress_mark + 10;
+            sprintf(line, "  %d%% Complete \r", g_progress_mark);
             ReportStartupMessage(line);
             return;
         }
         break;
     case 2:
-        g_progress_total_0065bd48 = g_progress_total_0065bd48 + 1;
+        g_progress_total = g_progress_total + 1;
         return;
     case 3:
-        if (g_log_file_0065bd54 != 0) {
+        if (g_log_file != 0) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
-            fprintf(g_log_file_0065bd54, message);
+            fprintf(g_log_file, message);
 #pragma clang diagnostic pop
-            fprintf(g_log_file_0065bd54, "Number of Nodes: %d             Number of Leaves: %d\n",
-                    g_oct_node_count_0065bd0c, g_progress_total_0065bd48);
-            fprintf(g_log_file_0065bd54, "Most Objects in Any Node: %d\n\n",
-                    g_oct_max_objects_0065bd10);
+            fprintf(g_log_file, "Number of Nodes: %d             Number of Leaves: %d\n",
+                    g_oct_node_count, g_progress_total);
+            fprintf(g_log_file, "Most Objects in Any Node: %d\n\n", g_oct_max_objects);
             return;
         }
         break;
@@ -957,33 +944,33 @@ void ReportBuildStatus(int channel, const char* message)
         ReportStartupMessage(message);
         return;
     case 5:
-        if (g_log_file_0065bd54 != 0) {
-            fprintf(g_log_file_0065bd54, "%s", message);
+        if (g_log_file != 0) {
+            fprintf(g_log_file, "%s", message);
             return;
         }
         break;
     case 6:
         ReportStartupMessage(message);
-        if (g_log_file_0065bd54 != 0) {
+        if (g_log_file != 0) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
-            fprintf(g_log_file_0065bd54, message);
+            fprintf(g_log_file, message);
 #pragma clang diagnostic pop
             return;
         }
         break;
     case 7:
-        if (g_log_file_0065bd54 != 0) {
+        if (g_log_file != 0) {
             sprintf(line, "ERROR: %s", message);
-            fprintf(g_log_file_0065bd54, "\n\n%s", message);
-            fclose(g_log_file_0065bd54);
+            fprintf(g_log_file, "\n\n%s", message);
+            fclose(g_log_file);
         }
         ShutdownWithErrorBox(message);
         return;
     case 8:
-        if (g_log_file_0065bd54 != 0) {
-            fclose(g_log_file_0065bd54);
-            g_log_file_0065bd54 = 0;
+        if (g_log_file != 0) {
+            fclose(g_log_file);
+            g_log_file = 0;
         }
     }
 }
@@ -1002,19 +989,19 @@ void ReportStartupMessage(const char* message)
 
     scrolled = 0;
     if (message == 0) {
-        if (g_status_buffers_freed_0060ac8d == 0) {
+        if (g_status_buffers_freed == 0) {
             for (index = 0; index < 6; ++index) {
-                delete g_status_lines_0065bce8[index];
+                delete g_status_lines[index];
             }
-            g_status_buffers_freed_0060ac8d = 1;
+            g_status_buffers_freed = 1;
         }
         PublishLightDirection(&s_saved_colour_0065bac0);
         return;
     }
-    if (g_status_buffers_freed_0060ac8d != 0) {
+    if (g_status_buffers_freed != 0) {
         for (index = 0; index < 6; ++index) {
             unsigned short* buffer = new unsigned short[0x100];
-            g_status_lines_0065bce8[index] = buffer;
+            g_status_lines[index] = buffer;
             for (length = 0x80; length != 0; --length) {
                 *reinterpret_cast<unsigned long*>(buffer) =
                     0; /* reinterpret-ok: status cells cleared through the raw buffer */
@@ -1023,20 +1010,20 @@ void ReportStartupMessage(const char* message)
         }
         GetWorldColour(&s_saved_colour_0065bac0);
         PublishLightDirection(&s_black_0065bd00);
-        g_status_buffers_freed_0060ac8d = 0;
+        g_status_buffers_freed = 0;
     }
-    if (g_status_cursor_0065bd44 < 6) {
-        index = g_status_cursor_0065bd44;
-        g_status_cursor_0065bd44 = g_status_cursor_0065bd44 + 1;
-        line = g_status_lines_0065bce8[index];
+    if (g_status_cursor < 6) {
+        index = g_status_cursor;
+        g_status_cursor = g_status_cursor + 1;
+        line = g_status_lines[index];
     } else {
-        line = g_status_lines_0065bce8[5];
-        if (g_status_scroll_0060ac8c != 0) {
-            unsigned short* oldest = g_status_lines_0065bce8[0];
+        line = g_status_lines[5];
+        if (g_status_scroll != 0) {
+            unsigned short* oldest = g_status_lines[0];
             for (index = 0; index < 5; ++index) {
-                g_status_lines_0065bce8[index] = g_status_lines_0065bce8[index + 1];
+                g_status_lines[index] = g_status_lines[index + 1];
             }
-            g_status_lines_0065bce8[5] = oldest;
+            g_status_lines[5] = oldest;
             scrolled = 1;
             line = oldest;
         }
@@ -1054,25 +1041,25 @@ void ReportStartupMessage(const char* message)
         ++message;
     }
     line[length] = 0;
-    SetFont(g_smfnt_font_683694);
+    SetFont(g_smfnt_font);
     SetRGBFontShadow(0, 0, 0);
-    SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_state_palettes_68ee1c[5]);
+    SetFontObjectPalette16BPP(g_smfnt_font, g_font_state_palettes[5]);
     if (scrolled != 0) {
         ClearSurfaceRect(0, 400, 0x27f, 0x1df);
         index = 0x191;
         for (top = 0; top < 6; ++top) {
-            gprintfDirty(1, index, const_cast<UINT16*>(L"%s"), g_status_lines_0065bce8[top]);
+            gprintfDirty(1, index, const_cast<UINT16*>(L"%s"), g_status_lines[top]);
             index = index + 0xd;
         }
         InvalidateRegion(0, 400, 0x27f, 0x1df, 4);
     } else {
-        index = (g_status_cursor_0065bd44 - 1) * 0xd;
+        index = (g_status_cursor - 1) * 0xd;
         top = index + 400;
-        ClearSurfaceRect(0, top, 0x27f, g_status_cursor_0065bd44 * 0xd + 400);
+        ClearSurfaceRect(0, top, 0x27f, g_status_cursor * 0xd + 400);
         gprintfDirty(1, index + 0x191, const_cast<UINT16*>(L"%s"), line);
-        InvalidateRegion(0, top, 0x27f, g_status_cursor_0065bd44 * 0xd + 400, 4);
+        InvalidateRegion(0, top, 0x27f, g_status_cursor * 0xd + 400, 4);
     }
-    g_status_scroll_0060ac8c = scroll;
+    g_status_scroll = scroll;
     RenderFrame();
     RenderFrame();
 }
@@ -1111,14 +1098,13 @@ int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex* vertic
         vertex = index;
     }
     current = vertices + vertex;
-    cell_x = static_cast<unsigned int>(
-        ((current->position_0c.x - g_weld_min_0065bab0.x) * g_float_005ecbb4));
-    cell_y = static_cast<unsigned int>(
-        ((current->position_0c.y - g_weld_min_0065bab0.y) * g_float_005ecbb4));
-    cell_z = static_cast<unsigned int>(
-        ((current->position_0c.z - g_weld_min_0065bab0.z) * g_float_005ecbb4));
-    key = cell_z * g_weld_stride_z_0065bce4 + cell_y * g_weld_stride_y_0065bce0 +
-          cell_x * g_weld_stride_x_0065bcdc;
+    cell_x =
+        static_cast<unsigned int>(((current->position_0c.x - g_weld_min.x) * g_float_005ecbb4));
+    cell_y =
+        static_cast<unsigned int>(((current->position_0c.y - g_weld_min.y) * g_float_005ecbb4));
+    cell_z =
+        static_cast<unsigned int>(((current->position_0c.z - g_weld_min.z) * g_float_005ecbb4));
+    key = cell_z * g_weld_stride_z + cell_y * g_weld_stride_y + cell_x * g_weld_stride_x;
     start_x = cell_x;
     if (cell_x != 0) {
         start_x = cell_x - 1;
@@ -1134,8 +1120,8 @@ int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex* vertic
     for (scan_x = start_x; scan_x <= cell_x + 1; ++scan_x) {
         for (scan_y = start_y; scan_y <= cell_y + 1; ++scan_y) {
             for (scan_z = start_z; scan_z <= cell_z + 1; ++scan_z) {
-                scan_key = scan_z * g_weld_stride_z_0065bce4 + scan_y * g_weld_stride_y_0065bce0 +
-                           scan_x * g_weld_stride_x_0065bcdc;
+                scan_key =
+                    scan_z * g_weld_stride_z + scan_y * g_weld_stride_y + scan_x * g_weld_stride_x;
                 slot = table->bucket_heads[W8HashValue(scan_key) & (table->bucket_count - 1)];
                 while (slot != -1) {
                     if (table->entries[slot].key == scan_key) {
@@ -1395,10 +1381,10 @@ int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsi
                         back->vertices_34[0] = vertices + vertex_index[1];
                         back->vertices_34[1] = vertices + vertex_index[0];
                         back->vertices_34[2] = vertices + vertex_index[2];
-                        back->plane_08.normal.x = back->plane_08.normal.x * g_negative_one_005ebc38;
-                        back->plane_08.normal.y = back->plane_08.normal.y * g_negative_one_005ebc38;
-                        back->plane_08.normal.z = back->plane_08.normal.z * g_negative_one_005ebc38;
-                        back->plane_08.w = back->plane_08.w * g_negative_one_005ebc38;
+                        back->plane_08.normal.x = back->plane_08.normal.x * g_negative_one;
+                        back->plane_08.normal.y = back->plane_08.normal.y * g_negative_one;
+                        back->plane_08.normal.z = back->plane_08.normal.z * g_negative_one;
+                        back->plane_08.w = back->plane_08.w * g_negative_one;
                         back->face_48.vertices[0] = vertex_index[1];
                         back->face_48.vertices[1] = vertex_index[0];
                         back->face_48.vertices[2] = vertex_index[2];
@@ -1584,19 +1570,19 @@ int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short li
             delta_z = light->position_08.z - vertex->position_0c.z;
             distance = sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
             if ((distance < light->range_24) || ((sun_map != 0) && (*sun != 0))) {
-                g_light_candidates_0065bd18 = g_light_candidates_0065bd18 + 1;
+                g_light_candidates = g_light_candidates + 1;
                 dot = (delta_x / distance) * vertex->normal_24.x +
                       (delta_y / distance) * vertex->normal_24.y +
                       (delta_z / distance) * vertex->normal_24.z;
                 if (g_float_005ebb34 < dot) {
-                    g_lights_facing_0065bd1c = g_lights_facing_0065bd1c + 1;
-                    if (g_option_shadow_test_0060ac71 != 0) {
+                    g_lights_facing = g_lights_facing + 1;
+                    if (g_option_shadow_test != 0) {
                         if (!tree->SegmentClear00467BB0(&light->position_08,
                                                         &vertex->position_0c)) {
                             goto next_light;
                         }
                     }
-                    g_lights_unblocked_0065bd14 = g_lights_unblocked_0065bd14 + 1;
+                    g_lights_unblocked = g_lights_unblocked + 1;
                     lit = lit + 1;
                     if ((sun_map == 0) || (*sun == 0)) {
                         scale = dot * light->intensity_20 *
@@ -1634,9 +1620,9 @@ int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight*
     srVector3T<float> position;
     srVector3T<float> corner;
 
-    position.x = prop->position_03.x * g_world_scale_005ebc40;
-    position.y = prop->position_03.y * g_world_scale_005ebc40;
-    position.z = prop->position_03.z * g_world_scale_005ebc40;
+    position.x = prop->position_03.x * g_world_scale;
+    position.y = prop->position_03.y * g_world_scale;
+    position.z = prop->position_03.z * g_world_scale;
     if (tree->SegmentClear00467BB0(&light->position_08, &position)) {
         return 1;
     }
@@ -1646,11 +1632,11 @@ int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight*
         do {
             memcpy(bounds, boxes + bound, 0x18);
             for (corner_x = 0; corner_x < 2; ++corner_x) {
-                float x = bounds[corner_x * 3] * g_world_scale_005ebc40;
+                float x = bounds[corner_x * 3] * g_world_scale;
                 for (corner_y = 0; corner_y < 2; ++corner_y) {
-                    float y = bounds[corner_y * 3 + 1] * g_world_scale_005ebc40;
+                    float y = bounds[corner_y * 3 + 1] * g_world_scale;
                     for (corner_z = 0; corner_z < 2; ++corner_z) {
-                        corner.z = bounds[corner_z * 3 + 2] * g_world_scale_005ebc40;
+                        corner.z = bounds[corner_z * 3 + 2] * g_world_scale;
                         corner.x = x;
                         corner.y = y;
                         if (tree->SegmentClear00467BB0(&light->position_08, &corner)) {
@@ -1698,7 +1684,7 @@ unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* ste
         ReportBuildStatus(7, "Couldn't find bitmaps directory--cannot check texture types.\n\n");
         kinds = 0;
     } else {
-        g_prop_sun_bits_0065bd3c = new BitArray(count);
+        g_prop_sun_bits = new BitArray(count);
         for (index = 0; index < count; ++index) {
             W8MaterialRecord* record = textures + index;
             unsigned char opaque = 1.0f <= record->opacity_0fd;
@@ -1740,7 +1726,7 @@ unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* ste
                 sprintf(path, "%s%s", folder, texture);
                 file = FileOpen(path, FILE_ACCESS_READ, 0);
                 if (file == 0) {
-                    g_prop_sun_bits_0065bd3c->Set(index);
+                    g_prop_sun_bits->Set(index);
                     ++missing;
                     sprintf(message, "Could not find texture file %s.\n", path);
                     ReportBuildStatus(5, message);
@@ -1752,7 +1738,7 @@ unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* ste
                         file = FileOpen(path, FILE_ACCESS_READ, 0);
                     }
                     if (file == 0) {
-                        g_prop_sun_bits_0065bd3c->Set(index);
+                        g_prop_sun_bits->Set(index);
                         ++missing;
                         sprintf(message, "Could not find texture file %s.\n", path);
                         ReportBuildStatus(5, message);
@@ -1905,7 +1891,7 @@ int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textu
     if (1 < static_cast<int>(geometry->polygon_count_08)) {
         polygon = geometry->polygons_0c + 1;
         for (index = 1; index < static_cast<int>(geometry->polygon_count_08); ++index, ++polygon) {
-            if (g_prop_sun_bits_0065bd3c->Test(index) != 0) {
+            if (g_prop_sun_bits->Test(index) != 0) {
                 ++missing;
             }
             polygon->texture_28 = polygon->material_24;
@@ -1931,7 +1917,7 @@ int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textu
 // FUNCTION: WIZ8 0x00496CD0
 void OctBuildOptions(char* stem)
 {
-    bool done = g_build_level_links_0065bd2c;
+    bool done = g_build_level_links;
     EnvironmentColour colour_saved;
     EnvironmentColour colour_backup;
     char* lines[7];
@@ -1954,9 +1940,9 @@ void OctBuildOptions(char* stem)
     memset(&colour_backup, 0, sizeof(colour_backup));
     GetWorldColour(&colour_backup);
     PublishLightDirection(&colour_saved);
-    SetFont(g_smfnt_font_683694);
+    SetFont(g_smfnt_font);
     SetRGBFontShadow(0, 0, 0);
-    SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_state_palettes_68ee1c[5]);
+    SetFontObjectPalette16BPP(g_smfnt_font, g_font_state_palettes[5]);
     edit_char[0] = 0;
     edit_char[4] = 0;
     for (index = 0; index < 7; ++index) {
@@ -1966,7 +1952,7 @@ void OctBuildOptions(char* stem)
         memset(wide[index], 0, 0x200);
     }
     strcpy(log_state, "OFF");
-    if (g_option_pathing_0060ac70 == 0) {
+    if (g_option_pathing == 0) {
         strcpy(pathing_state, "OFF");
     } else {
         strcpy(pathing_state, "ON");
@@ -1981,23 +1967,21 @@ void OctBuildOptions(char* stem)
             const char* prompt;
             sprintf(lines[0], "OCTBUILD VERSION %d -- OPTIONS: ", 0x22);
             sprintf(lines[1], "(L)og %s               ", log_state);
-            if (g_option_pathing_0060ac70 == 0) {
+            if (g_option_pathing == 0) {
                 sprintf(lines[2], "(P)athing %s", pathing_state);
             } else {
                 sprintf(lines[2],
                         "(P)athing %s    (N)ode Spacing: %5.2fm    (H)ead Room:   %5.2fm"
                         "    (D)elete Percentage: %d",
-                        pathing_state, (g_option_path_node_spacing_0060ac74 * g_float_005ebc60),
-                        (g_option_path_head_room_0060ac78 * g_float_005ebc60),
-                        g_option_delete_percentage_0060ac7c);
+                        pathing_state, (g_option_path_node_spacing * g_float_005ebc60),
+                        (g_option_path_head_room * g_float_005ebc60), g_option_delete_percentage);
             }
             sprintf(lines[3], "(R)ename Alphas %s    (M)esh Linking %s", rename_state, mesh_state);
             sprintf(lines[4],
                     "Min. Leaf (S)ize %5.2fm    Max. Leaf (C)ount %d    (A)uto Region"
                     " Size %5.2fm",
-                    (g_option_min_leaf_size_0060ac80 * g_float_005ebc60),
-                    g_option_max_leaf_count_0060ac88,
-                    (g_option_auto_region_size_0065bd30 * g_float_005ebc60));
+                    (g_option_min_leaf_size * g_float_005ebc60), g_option_max_leaf_count,
+                    (g_option_auto_region_size * g_float_005ebc60));
             sprintf(lines[5], "Hit ENTER to accept,  ESC to cancel and exit");
             if (edit_mode == 0) {
                 sprintf(lines[6], " ");
@@ -2074,52 +2058,52 @@ void OctBuildOptions(char* stem)
                     edit_mode = 4;
                     break;
                 case 0x44:
-                    if (g_option_pathing_0060ac70 != 0) {
+                    if (g_option_pathing != 0) {
                         edit_mode = 6;
                     }
                     break;
                 case 0x48:
-                    if (g_option_pathing_0060ac70 != 0) {
+                    if (g_option_pathing != 0) {
                         edit_mode = 5;
                     }
                     break;
                 case 0x4c:
-                    if (g_option_logging_0060ac72 == 0) {
+                    if (g_option_logging == 0) {
                         strcpy(log_state, "ON ");
-                        g_option_logging_0060ac72 = 1;
+                        g_option_logging = 1;
                     } else {
                         strcpy(log_state, "OFF");
-                        g_option_logging_0060ac72 = 0;
+                        g_option_logging = 0;
                     }
                     break;
                 case 0x4d:
-                    if (g_option_mesh_linking_0060ac73 == 0) {
+                    if (g_option_mesh_linking == 0) {
                         strcpy(mesh_state, "ON ");
-                        g_option_mesh_linking_0060ac73 = 1;
+                        g_option_mesh_linking = 1;
                     } else {
                         strcpy(mesh_state, "OFF");
-                        g_option_mesh_linking_0060ac73 = 0;
+                        g_option_mesh_linking = 0;
                     }
                     break;
                 case 0x4e:
                     edit_mode = 1;
                     break;
                 case 0x50:
-                    if (g_option_pathing_0060ac70 == 0) {
+                    if (g_option_pathing == 0) {
                         strcpy(pathing_state, "ON ");
-                        g_option_pathing_0060ac70 = 1;
+                        g_option_pathing = 1;
                     } else {
                         strcpy(pathing_state, "OFF");
-                        g_option_pathing_0060ac70 = 0;
+                        g_option_pathing = 0;
                     }
                     break;
                 case 0x52:
-                    if (g_option_rename_alphas_0065bd2d == 0) {
+                    if (g_option_rename_alphas == 0) {
                         strcpy(rename_state, "ON ");
-                        g_option_rename_alphas_0065bd2d = 1;
+                        g_option_rename_alphas = 1;
                     } else {
                         strcpy(rename_state, "OFF");
-                        g_option_rename_alphas_0065bd2d = 0;
+                        g_option_rename_alphas = 0;
                     }
                     break;
                 case 0x53:
@@ -2141,21 +2125,17 @@ void OctBuildOptions(char* stem)
         if (edit_mode == 0) {
             done = 1;
         } else if (edit_mode == 1) {
-            g_option_path_node_spacing_0060ac74 =
-                static_cast<float>(atof(edit_buffer)) * g_world_scale_005ebc40;
+            g_option_path_node_spacing = static_cast<float>(atof(edit_buffer)) * g_world_scale;
         } else if (edit_mode == 2) {
-            g_option_min_leaf_size_0060ac80 =
-                static_cast<float>(atof(edit_buffer)) * g_world_scale_005ebc40;
+            g_option_min_leaf_size = static_cast<float>(atof(edit_buffer)) * g_world_scale;
         } else if (edit_mode == 3) {
-            g_option_auto_region_size_0065bd30 =
-                static_cast<float>(atof(edit_buffer)) * g_world_scale_005ebc40;
+            g_option_auto_region_size = static_cast<float>(atof(edit_buffer)) * g_world_scale;
         } else if (edit_mode == 4) {
-            g_option_max_leaf_count_0060ac88 = atoi(edit_buffer);
+            g_option_max_leaf_count = atoi(edit_buffer);
         } else if (edit_mode == 5) {
-            g_option_path_head_room_0060ac78 =
-                static_cast<float>(atof(edit_buffer)) * g_world_scale_005ebc40;
+            g_option_path_head_room = static_cast<float>(atof(edit_buffer)) * g_world_scale;
         } else if (edit_mode == 6) {
-            g_option_delete_percentage_0060ac7c = atoi(edit_buffer);
+            g_option_delete_percentage = atoi(edit_buffer);
         }
         edit_buffer[0] = '\0';
     }
@@ -2335,7 +2315,7 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder, const W8MaterialRe
             concrete->dirty_74 = 1;
             concrete->m_field_78 = source->shader_flags_116;
             if ((source->shader_flags_116 & 0x1fe) != 0) {
-                concrete->setMapper(&g_normal_texcoord_mapper_0065bea8);
+                concrete->setMapper(&g_normal_texcoord_mapper);
             }
         }
     }
@@ -2344,7 +2324,7 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder, const W8MaterialRe
 }
 
 // GLOBAL: WIZ8 0x0060e0f4
-const char g_default_material_name_0060e0f4[] = "Default Material";
+const char g_default_material_name[] = "Default Material";
 
 // FUNCTION: WIZ8 0x004B9280
 unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace** texture,
@@ -2357,7 +2337,7 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
     srVector4T<float> color;
 
     *render_flags = 0x0100251b;
-    sprintf(name, g_default_material_name_0060e0f4);
+    sprintf(name, g_default_material_name);
     *texture = 0;
 
     registry = srCore.getRegistry();
@@ -2445,21 +2425,21 @@ srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned ch
     if (texture == 0) {
         strcat(extension, "tga");
         if (required != 0) {
-            texture = new stTextureFile(path, g_texture_cache_enabled_65beaf);
+            texture = new stTextureFile(path, g_texture_cache_enabled);
             if (texture == 0) {
                 srAssertFail("psrTexture", MATERIALS_CPP, 0x191, 0);
             }
-            if (g_gerd_659634 != 0) {
-                g_gerd_659634->setTexture(texture, 0);
-                g_gerd_659634->setTexture(0, 0);
+            if (g_gerd != 0) {
+                g_gerd->setTexture(texture, 0);
+                g_gerd->setTexture(0, 0);
             }
             if (texture->getTextureFrameHandle() == 0) {
                 *extension = '\0';
                 strcat(extension, "jpg");
                 texture->setFileName(path);
-                if (g_gerd_659634 != 0) {
-                    g_gerd_659634->setTexture(texture, 0);
-                    g_gerd_659634->setTexture(0, 0);
+                if (g_gerd != 0) {
+                    g_gerd->setTexture(texture, 0);
+                    g_gerd->setTexture(0, 0);
                 }
                 if (texture->getTextureFrameHandle() == 0) {
                     ShutdownWithErrorBox(
@@ -2475,7 +2455,7 @@ srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned ch
                         reinterpret_cast<const char*>(String("Missing texture file: %s", path)));
                 }
             }
-            texture = new stTextureFile(path, g_texture_cache_enabled_65beaf);
+            texture = new stTextureFile(path, g_texture_cache_enabled);
             if (texture == 0) {
                 srAssertFail("psrTexture", MATERIALS_CPP, 0x1a7, 0);
             }

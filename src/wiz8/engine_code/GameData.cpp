@@ -52,18 +52,18 @@
 #include "wiz8/engine_code/3d.h"
 
 // GLOBAL: WIZ8 0x00652da8
-unsigned int* g_level_flags_00652da8;
+unsigned int* g_level_flags;
 // GLOBAL: WIZ8 0x00652dac
-W8LevelDataRecord* g_level_data_00652dac;
+W8LevelDataRecord* g_level_data;
 // GLOBAL: WIZ8 0x00652da7
-unsigned char g_mouselook_manual_00652da7;
+unsigned char g_mouselook_manual;
 
 // FUNCTION: WIZ8 0x00420bd0
 float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned char* hit)
 {
     srVector3T<float> candidate = *position;
-    if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->octree_04 != 0) {
-        return g_octree_game_data_00652db0->octree_04->SettleToGround(&candidate, hit, 1, 500.0f);
+    if (g_octree_game_data != 0 && g_octree_game_data->octree_04 != 0) {
+        return g_octree_game_data->octree_04->SettleToGround(&candidate, hit, 1, 500.0f);
     }
     float height = position->y;
     if (hit != 0) {
@@ -78,8 +78,8 @@ float SettlePositionToGround00420C30(srVector3T<float>* position, unsigned char*
     srVector3T<float> candidate = *position;
     srVector3T<float> ground;
     ground = candidate;
-    if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->octree_04 != 0) {
-        return g_octree_game_data_00652db0->octree_04->SettleToGround(&ground, hit, 1, 500.0f);
+    if (g_octree_game_data != 0 && g_octree_game_data->octree_04 != 0) {
+        return g_octree_game_data->octree_04->SettleToGround(&ground, hit, 1, 500.0f);
     }
     if (hit != 0) {
         *hit = 0;
@@ -96,17 +96,15 @@ float GetGroundSurfaceInfo(const srVector3T<float>* position, char* surface, cha
     srVector3T<float> candidate = *position;
     float height;
 
-    if (g_octree_game_data_00652db0 == 0 || g_octree_game_data_00652db0->octree_04 == 0) {
+    if (g_octree_game_data == 0 || g_octree_game_data->octree_04 == 0) {
         height = position->y;
     } else {
-        height = g_octree_game_data_00652db0->octree_04->SettleToGround(&candidate, 0, 1, 500.0f);
+        height = g_octree_game_data->octree_04->SettleToGround(&candidate, 0, 1, 500.0f);
     }
-    if (g_octree_game_data_00652db0->last_hit_surface_54 != 0) {
-        *surface = g_octree_game_data_00652db0
-                       ->m_pSurfaces[g_octree_game_data_00652db0->last_hit_surface_54]
+    if (g_octree_game_data->last_hit_surface_54 != 0) {
+        *surface = g_octree_game_data->m_pSurfaces[g_octree_game_data->last_hit_surface_54]
                        .footstep_surface_3c;
-        *material = g_octree_game_data_00652db0
-                        ->m_pSurfaces[g_octree_game_data_00652db0->last_hit_surface_54]
+        *material = g_octree_game_data->m_pSurfaces[g_octree_game_data->last_hit_surface_54]
                         .footstep_material_3d;
         return height;
     }
@@ -138,9 +136,9 @@ enum {
 };
 
 // GLOBAL: WIZ8 0x00652dba
-unsigned char g_level_override_00652dba;
+unsigned char g_level_override;
 // GLOBAL: WIZ8 0x00652dce
-bool g_shared_timers_paused_00652dce;
+bool g_shared_timers_paused;
 
 /* Resolve one surface's three vertex indices through the active processed
    GameData vertex table.  The retail comparison is signed and accepts an index
@@ -150,10 +148,10 @@ unsigned char LoadSurfaceVertices(srVector3T<float>* output, const int* vertex_i
 {
     short index = 0;
     do {
-        if (g_octree_game_data_00652db0->m_iNumVertices < vertex_indices[index]) {
+        if (g_octree_game_data->m_iNumVertices < vertex_indices[index]) {
             return 0;
         }
-        output[index] = g_octree_game_data_00652db0->m_pVertices[vertex_indices[index]];
+        output[index] = g_octree_game_data->m_pVertices[vertex_indices[index]];
         ++index;
     } while (index < 3);
     return 1;
@@ -163,37 +161,37 @@ unsigned char LoadSurfaceVertices(srVector3T<float>* output, const int* vertex_i
 // FUNCTION: WIZ8 0x0041F1F0
 void UpdateSharedGameDataObject()
 {
-    if (g_game_time_accumulator_6598bc == 0) {
-        g_game_time_accumulator_6598bc = new W8GameTimeAccumulator;
-        if (g_game_time_accumulator_6598bc == 0) {
+    if (g_game_time_accumulator == 0) {
+        g_game_time_accumulator = new W8GameTimeAccumulator;
+        if (g_game_time_accumulator == 0) {
             return;
         }
     }
-    g_game_time_accumulator_6598bc->Update();
+    g_game_time_accumulator->Update();
 }
 
 // FUNCTION: WIZ8 0x0041F260
 void UpdateGameDataRuntime()
 {
-    if (g_gd_camera_65a0f8 == 0) {
-        g_gd_camera_65a0f8 = new GDCamera;
-        if (g_gd_camera_65a0f8 == 0) {
+    if (g_gd_camera == 0) {
+        g_gd_camera = new GDCamera;
+        if (g_gd_camera == 0) {
             srAssertFail("gpGDCamera", "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", 2739,
                          0);
         }
     }
-    if (g_game_time_accumulator_6598bc == 0) {
-        g_game_time_accumulator_6598bc = new W8GameTimeAccumulator;
-        if (g_game_time_accumulator_6598bc == 0) {
-            g_game_time_accumulator_6598bc->Update();
+    if (g_game_time_accumulator == 0) {
+        g_game_time_accumulator = new W8GameTimeAccumulator;
+        if (g_game_time_accumulator == 0) {
+            g_game_time_accumulator->Update();
             return;
         }
     }
-    if (g_shared_timers_paused_00652dce != 0) {
+    if (g_shared_timers_paused != 0) {
         ResumeSharedGameTimers();
-        g_shared_timers_paused_00652dce = false;
+        g_shared_timers_paused = false;
     }
-    g_game_time_accumulator_6598bc->Update();
+    g_game_time_accumulator->Update();
 }
 
 /* Apply world-render camera-motion flags into `rotation` and mirror the yaw
@@ -216,21 +214,21 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
             environ_record->value_00 = 0;
             environ_record->ground_latch_04 = false;
             environ_record->value_08 = 0;
-            environ_record->gravity_y_14 = -g_navigator_gravity_00603acc;
+            environ_record->gravity_y_14 = -g_navigator_gravity;
             environ_record->gravity_x_10 = 0;
             environ_record->gravity_z_18 = 0;
             environ_record->motion_factor_20 = 1.0f;
             environ_record->vector_24.Set(0.0, 0.0, 0.0);
             environ_record->motion_step_1c = 0.05f;
-            environ_record->world_height_30 = g_default_world_height_00603ac8;
+            environ_record->world_height_30 = g_default_world_height;
             environ_record->value_40 = 1.0f;
             environ_record->forward_scale_34 =
-                g_camera_level_forward_scale_603aac * g_navigator_linked_radius_scale_005ebc98;
-            /* Retail stores g_default_motion_limit_603abc at +0x38 and g_default_momentum_scale_603ab8 at
+                g_camera_level_forward_scale * g_navigator_linked_radius_scale;
+            /* Retail stores g_default_motion_limit at +0x38 and g_default_momentum_scale at
                +0x3c (RescaleToReference's pairing); GDFileIO's default-bank
                init currently spells the reverse before FileRead overwrites. */
-            environ_record->momentum_scale_3c = g_default_momentum_scale_603ab8;
-            environ_record->motion_limit_38 = g_default_motion_limit_603abc;
+            environ_record->momentum_scale_3c = g_default_momentum_scale;
+            environ_record->motion_limit_38 = g_default_motion_limit;
         }
         g_environ_00652DB4 = environ_record;
         if (g_environ_00652DB4 == 0) {
@@ -238,7 +236,7 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
         }
     }
 
-    timer_flags = g_game_time_accumulator_6598bc->m_flags;
+    timer_flags = g_game_time_accumulator->m_flags;
     if ((timer_flags & 8) != 0) {
         return;
     }
@@ -252,14 +250,14 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
         return;
     }
 
-    if ((g_gd_camera_65a0f8->m_state_000 & 0x80) != 0) {
-        g_gd_camera_65a0f8->m_state_000 &= ~0x80u;
+    if ((g_gd_camera->m_state_000 & 0x80) != 0) {
+        g_gd_camera->m_state_000 &= ~0x80u;
         MarkRendererReady();
     }
 
-    if (g_level_data_00652dac != 0) {
-        g_level_data_00652dac->flags &= ~W8_LEVEL_FLAG_9;
-        level = g_level_data_00652dac;
+    if (g_level_data != 0) {
+        g_level_data->flags &= ~W8_LEVEL_FLAG_9;
+        level = g_level_data;
         if (AnyCharacterEngaged() == 0 || ((level_flags = level->flags) & 0xc0) != 0) {
             level_flags = level->flags;
             flags &= 0xff00;
@@ -292,44 +290,44 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
         yaw_input = 0.1745329350233078f;
     }
     if ((flags & 0x2000) != 0) {
-        g_camera_max_yaw_velocity_609ea4 = 0.116355285f;
+        g_camera_max_yaw_velocity = 0.116355285f;
         yaw_input = yaw_input * g_float_005ebc3c;
     } else {
-        g_camera_max_yaw_velocity_609ea4 = 0.3490658700466156f;
+        g_camera_max_yaw_velocity = 0.3490658700466156f;
     }
 
     if ((pitch_input != g_float_005ebb34 || yaw_input != g_float_005ebb34) &&
-        (g_level_data_00652dac->flags & W8_LEVEL_FLAG_6) == 0) {
-        g_navigator_position_changed_659c11 = 1;
+        (g_level_data->flags & W8_LEVEL_FLAG_6) == 0) {
+        g_navigator_position_changed = 1;
     }
-    if (g_mouselook_manual_00652da7 != 0) {
-        g_gd_camera_65a0f8->SetManualControlActive(1);
+    if (g_mouselook_manual != 0) {
+        g_gd_camera->SetManualControlActive(1);
     }
-    g_gd_camera_65a0f8->ApplyPitchInput(pitch_input);
-    g_gd_camera_65a0f8->ApplyYawInput(yaw_input);
-    g_gd_camera_65a0f8->Update(g_game_time_accumulator_6598bc->GetFrameDelta());
+    g_gd_camera->ApplyPitchInput(pitch_input);
+    g_gd_camera->ApplyYawInput(yaw_input);
+    g_gd_camera->Update(g_game_time_accumulator->GetFrameDelta());
     if ((flags & 0x1000) == 0) {
-        g_gd_camera_65a0f8->GetRotationMatrix(rotation);
+        g_gd_camera->GetRotationMatrix(rotation);
     }
-    *saved = g_gd_camera_65a0f8->m_yaw_rotation;
+    *saved = g_gd_camera->m_yaw_rotation;
 }
 
 // GLOBAL: WIZ8 0x00652dcd
-unsigned char g_level_motion_fast_00652dcd;
+unsigned char g_level_motion_fast;
 // GLOBAL: WIZ8 0x00652db9
-bool g_level_footstep_pending_00652db9;
+bool g_level_footstep_pending;
 // GLOBAL: WIZ8 0x00603ac0
-float g_camera_motion_clamp_00603ac0 = 1125.0f;
+float g_camera_motion_clamp = 1125.0f;
 // GLOBAL: WIZ8 0x00603ac4
-float g_camera_motion_divisor_00603ac4 = 3000.0f;
+float g_camera_motion_divisor = 3000.0f;
 // GLOBAL: WIZ8 0x00603ad4
-int g_level_footstep_sound_00603ad4 = -1;
+int g_level_footstep_sound = -1;
 // GLOBAL: WIZ8 0x00652dd0
-float g_level_footstep_time_00652dd0;
+float g_level_footstep_time;
 // GLOBAL: WIZ8 0x005ebc50
-const double g_motion_delta_epsilon_005ebc50 = 0.10000000149011612;
+const double g_motion_delta_epsilon = 0.10000000149011612;
 // GLOBAL: WIZ8 0x005ebcd4
-const float g_footstep_fall_threshold_005ebcd4 = -250.0f;
+const float g_footstep_fall_threshold = -250.0f;
 // GLOBAL: WIZ8 0x00652940
 srVector3T<float> g_origin_652940;
 
@@ -351,19 +349,19 @@ unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector
     srVector3T<float> new_position;
     srVector3T<float> from_origin;
 
-    if (g_level_data_00652dac == 0) {
+    if (g_level_data == 0) {
         level = new W8LevelDataRecord;
-        g_level_flags_00652da8 = &level->flags;
-        g_level_data_00652dac = level;
-        if (g_level_flags_00652da8 == 0) {
+        g_level_flags = &level->flags;
+        g_level_data = level;
+        if (g_level_flags == 0) {
             ShutdownWithErrorBox("TrackMovement: Could not allocate gpMovement.\n");
         }
         PauseSharedGameTimers();
         g_shared_timer_flag_d2 = true;
-        g_level_motion_fast_00652dcd = 0;
+        g_level_motion_fast = 0;
     }
 
-    timer_flags = g_game_time_accumulator_6598bc->m_flags;
+    timer_flags = g_game_time_accumulator->m_flags;
     if ((timer_flags & 8) != 0 || (g_shared_timer_paused != 0 && (timer_flags & 1) == 0) ||
         g_shared_timer_flag_d1 != 0) {
         if (g_shared_timer_flag_d2 == 0) {
@@ -378,11 +376,11 @@ unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector
         }
     }
 
-    level = g_level_data_00652dac;
+    level = g_level_data;
     level_flags = level->flags;
     if ((((level_flags & W8_LEVEL_FLAG_6) != 0 && (level_flags & W8_LEVEL_FLAG_4) != 0) &&
          ((level_flags & W8_LEVEL_FLAG_0) == 0 && g_byte_00659a64 == 0)) ||
-        (g_game_time_accumulator_6598bc->m_flags & 0x10) != 0) {
+        (g_game_time_accumulator->m_flags & 0x10) != 0) {
         return 0;
     }
 
@@ -405,10 +403,10 @@ unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector
         flags |= 0x80u;
     }
 
-    level = g_level_data_00652dac;
-    forward_scale = g_camera_level_forward_scale_603aac;
+    level = g_level_data;
+    forward_scale = g_camera_level_forward_scale;
     level->flags &= 0xffffffec;
-    level->camera_scale_14 = g_game_time_accumulator_6598bc->GetFrameDelta();
+    level->camera_scale_14 = g_game_time_accumulator->GetFrameDelta();
     level->camera_position_34 = *position;
     level->vector_64.SetZero();
     level->vector_a0.SetZero();
@@ -416,74 +414,74 @@ unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector
     level->sound_environment_0c = -1;
     level->sound_environment_alt_0d = -1;
 
-    if (g_level_data_00652dac->camera_scale_14 == g_float_005ebb34) {
+    if (g_level_data->camera_scale_14 == g_float_005ebb34) {
         return 0;
     }
 
     if (flags == 0) {
-        g_level_data_00652dac->vector_40.Set(0.0f, 0.0f, 0.0f);
+        g_level_data->vector_40.Set(0.0f, 0.0f, 0.0f);
         level->vector_70.SetZero();
     }
 
     delta->Set(0.0f, 0.0f, 0.0f);
-    level = g_level_data_00652dac;
+    level = g_level_data;
     if ((flags & 4) != 0) {
-        component = forward_scale + g_level_data_00652dac->vector_40.z;
-        g_level_data_00652dac->vector_40.z = component;
-        if (component > g_camera_motion_clamp_00603ac0) {
-            level->vector_40.z = g_camera_motion_clamp_00603ac0;
-        } else if (component < -g_camera_motion_clamp_00603ac0) {
-            level->vector_40.z = -g_camera_motion_clamp_00603ac0;
+        component = forward_scale + g_level_data->vector_40.z;
+        g_level_data->vector_40.z = component;
+        if (component > g_camera_motion_clamp) {
+            level->vector_40.z = g_camera_motion_clamp;
+        } else if (component < -g_camera_motion_clamp) {
+            level->vector_40.z = -g_camera_motion_clamp;
         }
     }
-    level = g_level_data_00652dac;
+    level = g_level_data;
     if ((flags & 8) != 0) {
-        component = g_level_data_00652dac->vector_40.z - forward_scale;
-        g_level_data_00652dac->vector_40.z = component;
-        if (component > g_camera_motion_clamp_00603ac0) {
-            level->vector_40.z = g_camera_motion_clamp_00603ac0;
-        } else if (component < -g_camera_motion_clamp_00603ac0) {
-            level->vector_40.z = -g_camera_motion_clamp_00603ac0;
+        component = g_level_data->vector_40.z - forward_scale;
+        g_level_data->vector_40.z = component;
+        if (component > g_camera_motion_clamp) {
+            level->vector_40.z = g_camera_motion_clamp;
+        } else if (component < -g_camera_motion_clamp) {
+            level->vector_40.z = -g_camera_motion_clamp;
         }
     }
-    level = g_level_data_00652dac;
+    level = g_level_data;
     if ((flags & 1) != 0) {
-        component = g_level_data_00652dac->vector_40.x - forward_scale;
-        g_level_data_00652dac->vector_40.x = component;
-        if (component > g_camera_motion_clamp_00603ac0) {
-            level->vector_40.x = g_camera_motion_clamp_00603ac0;
-        } else if (component < -g_camera_motion_clamp_00603ac0) {
-            level->vector_40.x = -g_camera_motion_clamp_00603ac0;
+        component = g_level_data->vector_40.x - forward_scale;
+        g_level_data->vector_40.x = component;
+        if (component > g_camera_motion_clamp) {
+            level->vector_40.x = g_camera_motion_clamp;
+        } else if (component < -g_camera_motion_clamp) {
+            level->vector_40.x = -g_camera_motion_clamp;
         }
     }
-    level = g_level_data_00652dac;
+    level = g_level_data;
     if ((flags & 2) != 0) {
-        component = forward_scale + g_level_data_00652dac->vector_40.x;
-        g_level_data_00652dac->vector_40.x = component;
-        if (component > g_camera_motion_clamp_00603ac0) {
-            level->vector_40.x = g_camera_motion_clamp_00603ac0;
-        } else if (component < -g_camera_motion_clamp_00603ac0) {
-            level->vector_40.x = -g_camera_motion_clamp_00603ac0;
+        component = forward_scale + g_level_data->vector_40.x;
+        g_level_data->vector_40.x = component;
+        if (component > g_camera_motion_clamp) {
+            level->vector_40.x = g_camera_motion_clamp;
+        } else if (component < -g_camera_motion_clamp) {
+            level->vector_40.x = -g_camera_motion_clamp;
         }
     }
-    level = g_level_data_00652dac;
-    if ((flags & 0x10) != 0 && (g_environment_load_flag_00603ad0 == 0 || g_environ_00652DB4 == 0)) {
-        component = forward_scale + g_level_data_00652dac->vector_40.y;
-        g_level_data_00652dac->vector_40.y = component;
-        if (component > g_camera_motion_clamp_00603ac0) {
-            level->vector_40.y = g_camera_motion_clamp_00603ac0;
-        } else if (component < -g_camera_motion_clamp_00603ac0) {
-            level->vector_40.y = -g_camera_motion_clamp_00603ac0;
+    level = g_level_data;
+    if ((flags & 0x10) != 0 && (g_environment_load_flag == 0 || g_environ_00652DB4 == 0)) {
+        component = forward_scale + g_level_data->vector_40.y;
+        g_level_data->vector_40.y = component;
+        if (component > g_camera_motion_clamp) {
+            level->vector_40.y = g_camera_motion_clamp;
+        } else if (component < -g_camera_motion_clamp) {
+            level->vector_40.y = -g_camera_motion_clamp;
         }
     }
-    level = g_level_data_00652dac;
-    if ((flags & 0x20) != 0 && g_environment_load_flag_00603ad0 == 0) {
-        component = g_level_data_00652dac->vector_40.y - forward_scale;
-        g_level_data_00652dac->vector_40.y = component;
-        if (component > g_camera_motion_clamp_00603ac0) {
-            level->vector_40.y = g_camera_motion_clamp_00603ac0;
-        } else if (component < -g_camera_motion_clamp_00603ac0) {
-            level->vector_40.y = -g_camera_motion_clamp_00603ac0;
+    level = g_level_data;
+    if ((flags & 0x20) != 0 && g_environment_load_flag == 0) {
+        component = g_level_data->vector_40.y - forward_scale;
+        g_level_data->vector_40.y = component;
+        if (component > g_camera_motion_clamp) {
+            level->vector_40.y = g_camera_motion_clamp;
+        } else if (component < -g_camera_motion_clamp) {
+            level->vector_40.y = -g_camera_motion_clamp;
         }
     }
 
@@ -491,24 +489,24 @@ unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector
     if ((flags & 0x80) != 0) {
         fast_move = 1;
     }
-    if (g_level_data_00652dac->vector_40.Length() > g_camera_motion_clamp_00603ac0) {
-        g_level_data_00652dac->vector_40.SetLength(g_camera_motion_clamp_00603ac0);
+    if (g_level_data->vector_40.Length() > g_camera_motion_clamp) {
+        g_level_data->vector_40.SetLength(g_camera_motion_clamp);
     }
-    g_level_motion_fast_00652dcd = g_level_data_00652dac->ApplySavedMotionMatrix(
-        g_level_motion_fast_00652dcd, fast_move, saved);
+    g_level_motion_fast =
+        g_level_data->ApplySavedMotionMatrix(g_level_motion_fast, fast_move, saved);
 
-    if (g_environment_load_flag_00603ad0 == 0) {
-        *delta = g_level_data_00652dac->vector_a0;
-        moved = static_cast<float>(g_motion_delta_epsilon_005ebc50) < delta->Length();
-        g_level_data_00652dac->UpdateMotionProgress(g_level_motion_fast_00652dcd, moved);
+    if (g_environment_load_flag == 0) {
+        *delta = g_level_data->vector_a0;
+        moved = static_cast<float>(g_motion_delta_epsilon) < delta->Length();
+        g_level_data->UpdateMotionProgress(g_level_motion_fast, moved);
         if (moved == 0) {
             goto after_move;
         }
     } else {
         moved = AdvanceEnvironmentMotion();
-        g_level_data_00652dac->UpdateMotionProgress(g_level_motion_fast_00652dcd, moved);
-        *delta = g_level_data_00652dac->vector_a0;
-        if (delta->Length() <= static_cast<float>(g_motion_delta_epsilon_005ebc50)) {
+        g_level_data->UpdateMotionProgress(g_level_motion_fast, moved);
+        *delta = g_level_data->vector_a0;
+        if (delta->Length() <= static_cast<float>(g_motion_delta_epsilon)) {
             if (moved == 0) {
                 goto after_move;
             }
@@ -521,35 +519,35 @@ unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector
     from_origin = new_position - g_origin_652940;
     if (sqrtf(DotProduct(from_origin, from_origin)) != static_cast<float>(g_zero_005ebb40)) {
         MarkRendererReady();
-        g_gd_camera_65a0f8->m_position_08c = new_position;
+        g_gd_camera->m_position_08c = new_position;
     }
 
 after_move:
     if (g_environ_00652DB4->airborne_05 == 0) {
-        g_level_footstep_pending_00652db9 = 1;
-    } else if (g_level_footstep_pending_00652db9 != 0) {
-        if (g_level_data_00652dac->vector_64.y <= g_footstep_fall_threshold_005ebcd4) {
-            PlayFootstep0047A440(g_level_data_00652dac->sound_environment_0c,
-                                 g_level_data_00652dac->sound_environment_alt_0d, 1);
-            g_level_data_00652dac->footstep_accumulator_10 = 0;
+        g_level_footstep_pending = 1;
+    } else if (g_level_footstep_pending != 0) {
+        if (g_level_data->vector_64.y <= g_footstep_fall_threshold) {
+            PlayFootstep0047A440(g_level_data->sound_environment_0c,
+                                 g_level_data->sound_environment_alt_0d, 1);
+            g_level_data->footstep_accumulator_10 = 0;
         }
-        g_level_footstep_pending_00652db9 = 0;
+        g_level_footstep_pending = 0;
     }
     UpdateLevelMovementAudio();
     if (moved == 0) {
-        g_level_data_00652dac->flags &= ~W8_LEVEL_FLAG_9;
+        g_level_data->flags &= ~W8_LEVEL_FLAG_9;
     } else {
-        g_level_data_00652dac->flags |= W8_LEVEL_FLAG_9;
+        g_level_data->flags |= W8_LEVEL_FLAG_9;
     }
     return moved;
 }
 
 // GLOBAL: WIZ8 0x005ebc48
-const double g_motion_vector_epsilon_005ebc48 = 5.0;
+const double g_motion_vector_epsilon = 5.0;
 // GLOBAL: WIZ8 0x00603ad1
-unsigned char g_environment_motion_active_00603ad1 = 1;
+unsigned char g_environment_motion_active = 1;
 // GLOBAL: WIZ8 0x00652db8
-bool g_environ_ground_latch_00652db8;
+bool g_environ_ground_latch;
 
 // FUNCTION: WIZ8 0x00421800
 void W8EnvironRecord::SetScaledMotion(const srVector3T<float>* motion)
@@ -576,7 +574,7 @@ unsigned char W8LevelDataRecord::ClampCameraToBounds(const srVector3T<float>* mi
     unsigned char below_min_y = 0;
 
     if (camera_position_34.y < minimum->y) {
-        if (g_status_685170.world_suspended_2390 != 0) {
+        if (g_status.world_suspended_2390 != 0) {
             vector_a0.y = maximum->y - minimum->y;
         }
         clamped = 1;
@@ -605,8 +603,8 @@ unsigned char W8LevelDataRecord::ClampCameraToBounds(const srVector3T<float>* mi
 
     g_environ_00652DB4->vector_24.SetZero();
     if (below_min_y != 0) {
-        if (g_status_685170.world_suspended_2390 != 0) {
-            g_level_override_00652dba = 0;
+        if (g_status.world_suspended_2390 != 0) {
+            g_level_override = 0;
             return clamped;
         }
         BeginPartyMovement();
@@ -615,7 +613,7 @@ unsigned char W8LevelDataRecord::ClampCameraToBounds(const srVector3T<float>* mi
 }
 
 // GLOBAL: WIZ8 0x005ebc5c
-const float g_monster_motion_push_005ebc5c = 1.05f;
+const float g_monster_motion_push = 1.05f;
 
 /* Probe active collidable props along the motion segment. On a hit, rewrites
    the caller's position into world space, may nudge `direction`, and latches
@@ -711,7 +709,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
                 }
             }
         }
-        level = g_level_data_00652dac;
+        level = g_level_data;
     }
     if (nearest_surface != 0) {
         s_prop_hit_plane_00652d90.normal.x = nearest_surface->plane_24.normal.x;
@@ -738,7 +736,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
                 along_length = -along_length;
             }
         }
-        level = g_level_data_00652dac;
+        level = g_level_data;
         if (level->primary_contact_prop_id == -1) {
             level->primary_contact_prop_id = hit_prop_id;
         } else if (level->primary_contact_prop_id != hit_prop_id &&
@@ -801,11 +799,11 @@ unsigned char W8GameData::ProbeMonstersAlongMotion(srVector3T<float>* direction,
 
     objects = 0;
     hit = 0;
-    extent = direction->Length() + g_runtime_world_scale_6081e8 + g_world_scale_005ebc40;
+    extent = direction->Length() + g_runtime_world_scale + g_world_scale;
     lower.Set(position->x - extent, position->y - extent, position->z - extent);
     upper.Set(position->x + extent, position->y + extent, position->z + extent);
     count = static_cast<unsigned int>(
-        g_octree_6598a4->QueryObjects(&objects, &lower, &upper, W8_OCTREE_KIND_LOCATION, -1));
+        g_octree->QueryObjects(&objects, &lower, &upper, W8_OCTREE_KIND_LOCATION, -1));
     if (count == 0) {
         return 0;
     }
@@ -818,7 +816,7 @@ unsigned char W8GameData::ProbeMonstersAlongMotion(srVector3T<float>* direction,
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         if (monster_info != 0 && monster_info->p3D != 0 && monster_info->p3D->active_088 != 0) {
             monster = monster_info->p3D;
-            time_scale = g_rate_006068EC * g_game_time_accumulator_6598bc->GetFrameDelta();
+            time_scale = g_rate_006068EC * g_game_time_accumulator->GetFrameDelta();
             monster->GetVelocity(&velocity);
             adjusted_x = direction->x - velocity.x * static_cast<float>(time_scale);
             adjusted_z = direction->z - velocity.z * static_cast<float>(time_scale);
@@ -830,15 +828,15 @@ unsigned char W8GameData::ProbeMonstersAlongMotion(srVector3T<float>* direction,
             planar = sqrtf(dz * dz + dx * dx);
             radius = monster->radius_084;
             if (monster_info->fInCombat != 0) {
-                radius = radius + g_world_scale_005ebc40;
+                radius = radius + g_world_scale;
             }
             float abs_dy = dy;
             // reinterpret-ok: retail clears the sign bit of the spilled dy float
             *reinterpret_cast<unsigned int*>(&abs_dy) &= 0x7fffffffu;
-            if (abs_dy < g_float_005ebc64 && planar < radius + g_world_scale_005ebc40) {
-                push = g_monster_motion_push_005ebc5c - (planar - radius) * g_float_005ebc60;
-                if (g_monster_motion_push_005ebc5c < push) {
-                    push = g_monster_motion_push_005ebc5c;
+            if (abs_dy < g_float_005ebc64 && planar < radius + g_world_scale) {
+                push = g_monster_motion_push - (planar - radius) * g_float_005ebc60;
+                if (g_monster_motion_push < push) {
+                    push = g_monster_motion_push;
                 }
                 length_squared = dz * dz + dx * dx;
                 adjustment.x = dx;
@@ -902,11 +900,11 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
     octree_hits = 0;
     geometry_hits = 0;
     prop_hit = 0;
-    if (g_level_data_00652dac->ClampCameraToBounds(&minimum_08, &maximum_14) != 0) {
+    if (g_level_data->ClampCameraToBounds(&minimum_08, &maximum_14) != 0) {
         return 0;
     }
 
-    level = g_level_data_00652dac;
+    level = g_level_data;
     level->flags &= ~3u;
     level->vector_64.x = level->vector_64.x + level->vector_58.x;
     level->vector_64.y = level->vector_64.y + level->vector_58.y;
@@ -918,19 +916,19 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
     level->residual_contact_length_18 = 0.0f;
     level->contact_facing_1c = 0.0f;
 
-    level = g_level_data_00652dac;
+    level = g_level_data;
     camera_position = level->camera_position_34;
     adjusted_position = camera_position;
     if (geometry_index_00 == 0 && octree_04 == 0) {
-        if (static_cast<float>(g_motion_delta_epsilon_005ebc50) < level->vector_a0.Length()) {
+        if (static_cast<float>(g_motion_delta_epsilon) < level->vector_a0.Length()) {
             return 1;
         }
         return 0;
     }
 
-    g_environ_ground_latch_00652db8 = g_environ_00652DB4->ground_latch_04;
-    g_environment_motion_active_00603ad1 = 1;
-    if (level->vector_64.Length() <= static_cast<float>(g_motion_vector_epsilon_005ebc48)) {
+    g_environ_ground_latch = g_environ_00652DB4->ground_latch_04;
+    g_environment_motion_active = 1;
+    if (level->vector_64.Length() <= static_cast<float>(g_motion_vector_epsilon)) {
         level->flags &= ~4u;
     } else {
         level->flags |= 4u;
@@ -944,8 +942,8 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                 environ_record->gravity_z_18);
     scaled = gravity * static_cast<double>(environ_record->scale_0c);
     environ_record->vector_24 += scaled;
-    if (g_camera_motion_divisor_00603ac4 < environ_record->vector_24.Length()) {
-        environ_record->vector_24.SetLength(g_camera_motion_divisor_00603ac4);
+    if (g_camera_motion_divisor < environ_record->vector_24.Length()) {
+        environ_record->vector_24.SetLength(g_camera_motion_divisor);
     }
     environ_record->AddScaledMotion(&level->vector_a0);
 
@@ -957,8 +955,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
 
     environ_delta = level->vector_a0;
     camera_position.x = adjusted_position.x;
-    camera_position.y =
-        (g_world_scale_005ebc40 - g_environ_00652DB4->world_height_30) + adjusted_position.y;
+    camera_position.y = (g_world_scale - g_environ_00652DB4->world_height_30) + adjusted_position.y;
     camera_position.z = adjusted_position.z;
     motion_delta = environ_delta;
     adjusted_position.y = camera_position.y;
@@ -971,7 +968,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
         }
     }
 
-    level = g_level_data_00652dac;
+    level = g_level_data;
     nearest_distance = 1.0e8f;
     hit_position.Set(0.0f, 0.0f, 0.0f);
     level->secondary_contact_prop_id = -1;
@@ -991,7 +988,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
     for (;;) {
         attempt = attempt + 1;
         if (attempt < 6) {
-            g_environment_motion_active_00603ad1 = 1;
+            g_environment_motion_active = 1;
             probe_position = camera_position;
             first_pass = 1;
             nearest_surface = 0;
@@ -1020,21 +1017,20 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                 hit_count = geometry_index_00->CollectObjectsAlongSegment00446D80(
                     &geometry_hits, &geometry_from, &geometry_to, 1.57079637f, 2000.0f, 3);
             }
-            if (((hit_count == 0 && prop_hit == 0) || g_environment_motion_active_00603ad1 == 0)) {
+            if (((hit_count == 0 && prop_hit == 0) || g_environment_motion_active == 0)) {
                 exhausted = 1;
             }
         } else {
-            g_environment_motion_active_00603ad1 = 0;
+            g_environment_motion_active = 0;
             exhausted = 1;
             forced_exit = 1;
             probe_position = camera_position;
-            if ((g_level_data_00652dac->flags & 2) != 0 &&
-                g_level_data_00652dac->ToggleBoundProps0041FF00() == 0) {
+            if ((g_level_data->flags & 2) != 0 && g_level_data->ToggleBoundProps0041FF00() == 0) {
                 environ_delta.Set(0.0f, 0.0f, 0.0f);
             }
         }
 
-        while ((hit_count != 0 || prop_hit != 0) && g_environment_motion_active_00603ad1 != 0) {
+        while ((hit_count != 0 || prop_hit != 0) && g_environment_motion_active != 0) {
             if (hit_count != 0) {
                 probe_position = camera_position;
                 for (index = 0; index < hit_count; ++index) {
@@ -1069,7 +1065,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                 hit_count = 0;
                 prop_hit = 0;
             } else {
-                g_environment_motion_active_00603ad1 = nearest_surface->ResolveCollision0041DC10(
+                g_environment_motion_active = nearest_surface->ResolveCollision0041DC10(
                     &camera_position, &hit_position, &motion_delta, collision_count);
                 probe_position.x = (camera_position.x + motion_delta.x) - adjusted_position.x;
                 probe_position.y = (camera_position.y + motion_delta.y) - adjusted_position.y;
@@ -1083,7 +1079,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                     srAssertFail("lCollisions < 100",
                                  "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", 0x253, 0);
                 }
-                if (g_environment_motion_active_00603ad1 == 0) {
+                if (g_environment_motion_active == 0) {
                     hit_count = 0;
                     prop_hit = 0;
                 } else {
@@ -1147,31 +1143,30 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                 }
             }
 
-            level = g_level_data_00652dac;
-            g_environment_motion_active_00603ad1 = 0;
+            level = g_level_data;
+            g_environment_motion_active = 0;
             motion_length = environ_delta.Length();
             if (motion_length <= g_float_005ebc3c ||
-                (fabsf(environ_delta.y + motion_length) / motion_length <=
-                     g_camera_snap_epsilon_005ebc2c &&
-                 g_negative_one_005ebc38 <= environ_delta.y)) {
+                (fabsf(environ_delta.y + motion_length) / motion_length <= g_camera_snap_epsilon &&
+                 g_negative_one <= environ_delta.y)) {
                 environ_delta.Set(0.0f, 0.0f, 0.0f);
             } else {
-                g_environment_motion_active_00603ad1 = 1;
+                g_environment_motion_active = 1;
             }
 
-            scale = static_cast<float>(g_double_005ebc30) / g_level_data_00652dac->camera_scale_14;
+            scale = static_cast<float>(g_double_005ebc30) / g_level_data->camera_scale_14;
             level->vector_64.x = environ_delta.x * scale;
             level->vector_64.y = environ_delta.y * scale;
             level->vector_64.z = environ_delta.z * scale;
             level->vector_a0 = environ_delta;
-            if (g_environment_motion_active_00603ad1 == 0) {
-                if ((g_level_data_00652dac->flags & 4) != 0 && forced_exit == 0) {
-                    g_environ_ground_latch_00652db8 = true;
+            if (g_environment_motion_active == 0) {
+                if ((g_level_data->flags & 4) != 0 && forced_exit == 0) {
+                    g_environ_ground_latch = true;
                 }
             } else {
-                g_environ_ground_latch_00652db8 = false;
+                g_environ_ground_latch = false;
             }
-            g_environ_00652DB4->ground_latch_04 = g_environ_ground_latch_00652db8;
+            g_environ_00652DB4->ground_latch_04 = g_environ_ground_latch;
 
             if (m_iNumTriggers != 0) {
                 index = bits_58->NextSetBit(1);
@@ -1186,7 +1181,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                     index = bits_58->NextSetBit(0);
                 }
             }
-            return g_environment_motion_active_00603ad1;
+            return g_environment_motion_active;
         }
 
         environ_delta.x = (camera_position.x + motion_delta.x) - adjusted_position.x;
@@ -1241,7 +1236,7 @@ unsigned char W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_
     GDProp* gd_prop;
     W8Prop* prop;
 
-    if (g_oct_pre_tree_659c74 == 0) {
+    if (g_oct_pre_tree == 0) {
         prop = *g_world->collidable_props->GetAt(prop_id);
         gd_prop = prop->m_gd_prop;
         prop->flags_1c |= 0x10;
@@ -1250,11 +1245,11 @@ unsigned char W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_
             gd_prop = prop->m_gd_prop;
         }
     } else {
-        gd_prop = static_cast<GDProp*>(*g_oct_pre_tree_659c74->props_3b8->GetAt(prop_id));
+        gd_prop = static_cast<GDProp*>(*g_oct_pre_tree->props_3b8->GetAt(prop_id));
     }
     m_pSurfaces = gd_prop->m_pGDSurfaces;
     m_pVertices = gd_prop->m_pVertices;
-    if (g_oct_pre_tree_659c74 == 0) {
+    if (g_oct_pre_tree == 0) {
         if (gate == 0 || (gd_prop->m_flags_00 & 4) == 0) {
             srVector3T<float> start = trace->start_00;
             srVector3T<float> end = trace->end_0c;
@@ -1516,7 +1511,7 @@ stModelInstance* W8GameData::CreateTraceModel0041C930()
     int vertex = 0;
     for (int index = 0; index < m_iNumSurfaces; ++index) {
         W8GDSurface* surface = m_pSurfaces + index;
-        poly_textures[index] = g_oct_mesh_default_texture_00652dc0;
+        poly_textures[index] = g_oct_mesh_default_texture;
         if ((surface->flags_00 & 4) != 0) {
             selected.Set(vertex);
             selected.Set(vertex + 1);
@@ -1524,26 +1519,26 @@ stModelInstance* W8GameData::CreateTraceModel0041C930()
         }
         texcoords[vertex].x = 0.0f;
         texcoords[vertex].y = 0.0f;
-        vertex_materials[vertex] = g_oct_mesh_default_material_00652dbc;
+        vertex_materials[vertex] = g_oct_mesh_default_material;
         poly_vertices[index].x = vertex;
         shade_indices[vertex] = vertex;
         vertex_locs[vertex] = m_pVertices[surface->vertex_indices_18[0]];
         texcoords[vertex + 1].x = 0.0f;
         texcoords[vertex + 1].y = 0.0f;
-        vertex_materials[vertex + 1] = g_oct_mesh_default_material_00652dbc;
+        vertex_materials[vertex + 1] = g_oct_mesh_default_material;
         poly_vertices[index].y = vertex + 1;
         shade_indices[vertex + 1] = vertex + 1;
         vertex_locs[vertex + 1] = m_pVertices[surface->vertex_indices_18[1]];
         texcoords[vertex + 2].x = 0.0f;
         texcoords[vertex + 2].y = 0.0f;
-        vertex_materials[vertex + 2] = g_oct_mesh_default_material_00652dbc;
+        vertex_materials[vertex + 2] = g_oct_mesh_default_material;
         poly_vertices[index].z = vertex + 2;
         shade_indices[vertex + 2] = vertex + 2;
         vertex_locs[vertex + 2] = m_pVertices[surface->vertex_indices_18[2]];
         vertex += 3;
     }
     srShader shader;
-    shader.CopyValue(&g_oct_mesh_default_shader_00652dc4->value);
+    shader.CopyValue(&g_oct_mesh_default_shader->value);
     mesh->setShader(shader, 0);
     if ((mesh->control_state_390 & 8) == 0) {
         mesh->control_state_390 |= 8;
@@ -1633,7 +1628,7 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
     srVector3T<float> point = *from;
     if ((flags & 0x1080) != 0) {
         special = 1;
-        if ((g_level_data_00652dac->flags & 8) != 0) {
+        if ((g_level_data->flags & 8) != 0) {
             point.y += g_float_005ebc94;
         }
     }
@@ -1646,7 +1641,7 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
     float segment_length = direction->Length();
     if (segment_length < g_float_005ebc90) {
         if (special == 0) {
-            g_environment_motion_active_00603ad1 = special;
+            g_environment_motion_active = special;
             return 0;
         }
     } else if (special == 0 &&
@@ -1667,7 +1662,7 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
     float dist_end = end.x * plane_24.normal.x + end.y * plane_24.normal.y +
                      end.z * plane_24.normal.z + plane_24.w;
     if (special != 0) {
-        if (dist_end * dist_start > g_camera_snap_epsilon_005ebc2c) {
+        if (dist_end * dist_start > g_camera_snap_epsilon) {
             if (contact_margin_40 < g_float_005ebb38 || dist_end < g_float_005ebb34) {
                 return 0;
             }
@@ -1679,7 +1674,7 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
         if (limit + g_float_005ebc88 <= dist_end) {
             return 0;
         }
-        if (dist_start - dist_end < g_camera_transition_epsilon_005ebc84) {
+        if (dist_start - dist_end < g_camera_transition_epsilon) {
             return 0;
         }
     }
@@ -1760,7 +1755,7 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
             fraction = g_float_005ebc80;
         }
         hit = fraction * segment_length;
-        if (segment_length - hit < g_camera_transition_epsilon_005ebc84) {
+        if (segment_length - hit < g_camera_transition_epsilon) {
             return 0;
         }
         *hit_distance = hit;
@@ -1904,10 +1899,10 @@ unsigned char W8GDSurface::ClampHitToEdge(const srVector3T<float>* point,
     }
     if ((flags_00 & 4) == 0) {
         if (plane_24.normal.y < g_float_005ebc9c) {
-            edge_dist = edge_dist * g_navigator_linked_radius_scale_005ebc98;
+            edge_dist = edge_dist * g_navigator_linked_radius_scale;
         }
     } else {
-        float scaled = *limit * g_navigator_mode3_scale_005ebca4;
+        float scaled = *limit * g_navigator_mode3_scale;
         if (scaled < edge_dist) {
             edge_dist = (edge_dist - scaled) * g_float_005ebca0 + scaled;
         }
@@ -1959,9 +1954,9 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
             g_environ_00652DB4->motion_factor_20 = slope_48;
         }
         g_environ_00652DB4->airborne_05 = 1;
-        g_level_data_00652dac->flags |= 0x10;
-        g_level_data_00652dac->sound_environment_0c = footstep_surface_3c;
-        g_level_data_00652dac->sound_environment_alt_0d = footstep_material_3d;
+        g_level_data->flags |= 0x10;
+        g_level_data->sound_environment_0c = footstep_surface_3c;
+        g_level_data->sound_environment_alt_0d = footstep_material_3d;
     }
     float direction_length = direction->Length();
     if (direction_length == g_float_005ebb34) {
@@ -1984,7 +1979,7 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
         plane_distance = override_plane->w;
     }
     float adjusted_d = plane_distance - distance_34;
-    W8LevelDataRecord* level = g_level_data_00652dac;
+    W8LevelDataRecord* level = g_level_data;
     if (level->primary_contact_prop_id > -1 && normal.x * level->contact_normal_ac.x +
                                                        normal.y * level->contact_normal_ac.y +
                                                        normal.z * level->contact_normal_ac.z <
@@ -2032,7 +2027,7 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
     srVector3T<float> slide_unit = slide;
     slide_unit.Normalize();
     float approach = DotProduct(slide_unit, s_entry_direction_00652d50);
-    if (fabsf(approach) < g_camera_snap_epsilon_005ebc2c) {
+    if (fabsf(approach) < g_camera_snap_epsilon) {
         direction->x = 0.0f;
         direction->y = 0.0f;
         direction->z = 0.0f;
@@ -2091,7 +2086,7 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
                 return 1;
             }
             if (DotProduct(s_second_normal_00652d68 + s_first_normal_00652d80, normal) <
-                g_camera_snap_epsilon_005ebc2c) {
+                g_camera_snap_epsilon) {
                 direction->x = 0.0f;
                 direction->y = 0.0f;
                 direction->z = 0.0f;
@@ -2099,13 +2094,12 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
             }
             if (crossed != 0) {
                 srVector3T<float> crease_b = CrossProduct(normal, s_second_normal_00652d68);
-                if (DotProduct(crease_b, unit) < g_camera_transition_epsilon_005ebc84) {
+                if (DotProduct(crease_b, unit) < g_camera_transition_epsilon) {
                     crease_b = -crease_b;
                 }
                 float ahead_a = DotProduct(crease_a, s_entry_direction_00652d50);
                 float ahead_b = DotProduct(crease_b, s_entry_direction_00652d50);
-                if (ahead_a < g_camera_snap_epsilon_005ebc2c &&
-                    ahead_b < g_camera_snap_epsilon_005ebc2c) {
+                if (ahead_a < g_camera_snap_epsilon && ahead_b < g_camera_snap_epsilon) {
                     direction->x = 0.0f;
                     direction->y = 0.0f;
                     direction->z = 0.0f;
@@ -2138,7 +2132,7 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
                 }
             }
         } else if (crossed != 0) {
-            if (DotProduct(crease_a, s_entry_direction_00652d50) < g_camera_snap_epsilon_005ebc2c) {
+            if (DotProduct(crease_a, s_entry_direction_00652d50) < g_camera_snap_epsilon) {
                 direction->x = 0.0f;
                 direction->y = 0.0f;
                 direction->z = 0.0f;
@@ -2179,8 +2173,8 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
 unsigned char W8GDSurface::CentroidsDiverging(int surface_index, const srVector3T<float>* from,
                                               const srVector3T<float>* to)
 {
-    const W8GDSurface* other = g_octree_game_data_00652db0->m_pSurfaces + surface_index;
-    const srVector3T<float>* vertices = g_octree_game_data_00652db0->m_pVertices;
+    const W8GDSurface* other = g_octree_game_data->m_pSurfaces + surface_index;
+    const srVector3T<float>* vertices = g_octree_game_data->m_pVertices;
     float this_x = g_float_005ebb34;
     float this_y = g_float_005ebb34;
     float this_z = g_float_005ebb34;
@@ -2219,7 +2213,7 @@ unsigned char W8GDSurface::CentroidsDiverging(int surface_index, const srVector3
 // FUNCTION: WIZ8 0x0041EA90
 unsigned char W8GDSurface::ApplyEnvironContact0041EA90(srVector3T<float>* direction)
 {
-    W8LevelDataRecord* level = g_level_data_00652dac;
+    W8LevelDataRecord* level = g_level_data;
     if ((flags_00 & 4) == 0) {
         level->vector_40 = 0.0f;
         level->vector_70.SetZero();
@@ -2250,7 +2244,7 @@ unsigned char W8GDSurface::ApplyEnvironContact0041EA90(srVector3T<float>* direct
             float attenuation = 0.25f;
             if (slide.y < g_float_005ebb34) {
                 attenuation = fabsf(slide.y) / slide.Length() * g_float_005ebccc +
-                              g_navigator_vertical_phase_step_005ebcc8;
+                              g_navigator_vertical_phase_step;
             }
             srVector3T<float> residual(slide.x - proj.x, slide.y - proj.y, slide.z - proj.z);
             residual.Set(residual.x * factor, residual.y * factor, residual.z * factor);
@@ -2280,7 +2274,7 @@ unsigned char W8GDSurface::ApplyEnvironContact0041EA90(srVector3T<float>* direct
 // FUNCTION: WIZ8 0x0041EEE0
 void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move)
 {
-    W8LevelDataRecord* level = g_level_data_00652dac;
+    W8LevelDataRecord* level = g_level_data;
     if (level != 0) {
         level->movement_limit_2c = movement_limit;
         level->real_elapsed_24 = 0.0f;
@@ -2305,7 +2299,7 @@ void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move
 // FUNCTION: WIZ8 0x0041ef50
 void ResetInactiveLevelDataVectors(void)
 {
-    W8LevelDataRecord* data = g_level_data_00652dac;
+    W8LevelDataRecord* data = g_level_data;
 
     if (data != 0 && (data->flags & W8_LEVEL_FLAG_0) == 0) {
         data->vector_40.SetZero();
@@ -2321,8 +2315,8 @@ void ResetInactiveLevelDataVectors(void)
 // FUNCTION: WIZ8 0x0041efb0
 unsigned char GetLevelDataFlag8(void)
 {
-    if (g_level_data_00652dac != 0) {
-        return (g_level_data_00652dac->flags >> 8) & 1;
+    if (g_level_data != 0) {
+        return (g_level_data->flags >> 8) & 1;
     }
     return 0;
 }
@@ -2330,24 +2324,24 @@ unsigned char GetLevelDataFlag8(void)
 // FUNCTION: WIZ8 0x0041efd0
 void ClearLevelDataFlag8(void)
 {
-    if (g_level_data_00652dac != 0) {
-        g_level_data_00652dac->flags &= ~W8_LEVEL_FLAG_8;
+    if (g_level_data != 0) {
+        g_level_data->flags &= ~W8_LEVEL_FLAG_8;
     }
 }
 
 // FUNCTION: WIZ8 0x0041efe0
 void SetLevelDataFlag8(void)
 {
-    if (g_level_data_00652dac != 0) {
-        g_level_data_00652dac->flags |= W8_LEVEL_FLAG_8;
+    if (g_level_data != 0) {
+        g_level_data->flags |= W8_LEVEL_FLAG_8;
     }
 }
 
 // FUNCTION: WIZ8 0x0041eff0
 unsigned char GetLevelDataFlag9(void)
 {
-    if (g_level_data_00652dac != 0) {
-        return (g_level_data_00652dac->flags >> 9) & 1;
+    if (g_level_data != 0) {
+        return (g_level_data->flags >> 9) & 1;
     }
     return 0;
 }
@@ -2356,8 +2350,8 @@ unsigned char GetLevelDataFlag9(void)
 // FUNCTION: WIZ8 0x0041f070
 unsigned char GetLevelDataFlag4(void)
 {
-    if (g_level_data_00652dac != 0) {
-        return ((unsigned char)g_level_data_00652dac->flags >> 4) & 1;
+    if (g_level_data != 0) {
+        return (static_cast<unsigned char>(g_level_data->flags) >> 4) & 1;
     }
     return 0;
 }
@@ -2366,16 +2360,16 @@ unsigned char GetLevelDataFlag4(void)
 // FUNCTION: WIZ8 0x0041f0c0
 void ClearLevelDataFlags5To7(void)
 {
-    if (g_level_data_00652dac != 0) {
-        g_level_data_00652dac->flags &= ~W8_LEVEL_FLAG_5_TO_7;
+    if (g_level_data != 0) {
+        g_level_data->flags &= ~W8_LEVEL_FLAG_5_TO_7;
     }
 }
 
 // FUNCTION: WIZ8 0x0041f140
 unsigned char GetLevelDataFlag6(void)
 {
-    if (g_level_data_00652dac != 0) {
-        return ((unsigned char)g_level_data_00652dac->flags >> 6) & 1;
+    if (g_level_data != 0) {
+        return (static_cast<unsigned char>(g_level_data->flags) >> 6) & 1;
     }
     return 0;
 }
@@ -2383,8 +2377,8 @@ unsigned char GetLevelDataFlag6(void)
 // FUNCTION: WIZ8 0x0041f160
 void ClearLevelDataFlag6(void)
 {
-    if (g_level_data_00652dac != 0) {
-        g_level_data_00652dac->flags &= ~W8_LEVEL_FLAG_6;
+    if (g_level_data != 0) {
+        g_level_data->flags &= ~W8_LEVEL_FLAG_6;
     }
 }
 
@@ -2394,17 +2388,17 @@ void ClearLevelDataFlag6(void)
 // FUNCTION: WIZ8 0x0041f170
 unsigned char ConsumeLevelElapsedTime(float* real_elapsed, float* frame_elapsed)
 {
-    W8LevelDataRecord* record = g_level_data_00652dac;
+    W8LevelDataRecord* record = g_level_data;
     unsigned char elapsed = 0;
     if (record != 0) {
         *real_elapsed = record->real_elapsed_24;
         *frame_elapsed = record->frame_elapsed_28;
-        elapsed = record->real_elapsed_24 > g_camera_transition_epsilon_005ebc84 ||
-                  record->frame_elapsed_28 > g_camera_transition_epsilon_005ebc84;
+        elapsed = record->real_elapsed_24 > g_camera_transition_epsilon ||
+                  record->frame_elapsed_28 > g_camera_transition_epsilon;
         record->frame_elapsed_28 = 0.0f;
         record->real_elapsed_24 = 0.0f;
-        g_status_685170.real_elapsed_2391 += *real_elapsed;
-        g_status_685170.frame_elapsed_2395 += *frame_elapsed;
+        g_status.real_elapsed_2391 += *real_elapsed;
+        g_status.frame_elapsed_2395 += *frame_elapsed;
     }
     return elapsed;
 }
@@ -2414,10 +2408,10 @@ unsigned char ConsumeLevelElapsedTime(float* real_elapsed, float* frame_elapsed)
 // FUNCTION: WIZ8 0x0041f090
 int IsLevelDataFlag4EffectivelySet(void)
 {
-    if (g_level_data_00652dac == 0) {
+    if (g_level_data == 0) {
         return 0;
     }
-    if ((g_level_data_00652dac->flags & W8_LEVEL_FLAG_4) == 0 && g_level_override_00652dba != 0) {
+    if ((g_level_data->flags & W8_LEVEL_FLAG_4) == 0 && g_level_override != 0) {
         return 0;
     }
     return 1;
@@ -2428,13 +2422,13 @@ int IsLevelDataFlag4EffectivelySet(void)
 // FUNCTION: WIZ8 0x0041f010
 bool HasLevelDataVector(void)
 {
-    if (g_level_data_00652dac == 0) {
+    if (g_level_data == 0) {
         return false;
     }
-    if ((g_level_data_00652dac->flags & W8_LEVEL_FLAG_0) != 0 &&
-        (g_level_data_00652dac->vector_88.x != g_float_005ebb34 ||
-         g_level_data_00652dac->vector_88.y != g_float_005ebb34 ||
-         g_level_data_00652dac->vector_88.z != g_float_005ebb34)) {
+    if ((g_level_data->flags & W8_LEVEL_FLAG_0) != 0 &&
+        (g_level_data->vector_88.x != g_float_005ebb34 ||
+         g_level_data->vector_88.y != g_float_005ebb34 ||
+         g_level_data->vector_88.z != g_float_005ebb34)) {
         return true;
     }
     return false;
@@ -2451,29 +2445,29 @@ bool g_flag_00652dcc;
 // FUNCTION: WIZ8 0x0041a960
 void BeginCameraSway(void)
 {
-    if (g_camera_sway_active_652da4) {
+    if (g_camera_sway_active) {
         return;
     }
-    g_camera_forward_scale_603ab4 = g_camera_level_forward_scale_603aac;
-    g_navigator_gravity_00603acc = 93.75f;
+    g_camera_forward_scale = g_camera_level_forward_scale;
+    g_navigator_gravity = 93.75f;
     if (g_environ_00652DB4 != 0) {
         g_environ_00652DB4->gravity_y_14 = -93.75f;
     }
-    g_camera_sway_active_652da4 = 1;
+    g_camera_sway_active = 1;
 }
 
 // FUNCTION: WIZ8 0x0041a9a0
 void EndCameraSway(void)
 {
-    if (!g_camera_sway_active_652da4) {
+    if (!g_camera_sway_active) {
         return;
     }
-    g_camera_forward_scale_603ab4 = g_camera_default_forward_scale_603ab0;
-    g_navigator_gravity_00603acc = 187.5f;
+    g_camera_forward_scale = g_camera_default_forward_scale;
+    g_navigator_gravity = 187.5f;
     if (g_environ_00652DB4 != 0) {
         g_environ_00652DB4->gravity_y_14 = -187.5f;
     }
-    g_camera_sway_active_652da4 = 0;
+    g_camera_sway_active = 0;
 }
 
 /* Release the level-data record and its companion globals: free the 0xf4-byte
@@ -2485,16 +2479,16 @@ void EndCameraSway(void)
 void W8GameData::ReleaseLevelData()
 {
     g_environ_00652DB4 = 0;
-    if (g_level_data_00652dac != 0) {
-        delete g_level_data_00652dac;
+    if (g_level_data != 0) {
+        delete g_level_data;
     }
-    g_level_data_00652dac = 0;
-    g_level_flags_00652da8 = 0;
-    if (g_game_time_accumulator_6598bc != 0) {
-        delete g_game_time_accumulator_6598bc;
+    g_level_data = 0;
+    g_level_flags = 0;
+    if (g_game_time_accumulator != 0) {
+        delete g_game_time_accumulator;
     }
-    g_game_time_accumulator_6598bc = 0;
-    g_octree_game_data_00652db0 = 0;
+    g_game_time_accumulator = 0;
+    g_octree_game_data = 0;
     if (g_flag_00652dcc != 0) {
         g_flag_00652dcc = false;
     }
@@ -2504,34 +2498,34 @@ void W8GameData::ReleaseLevelData()
 void ResetCurrentEnvironment(void)
 {
     if (g_environ_00652DB4 != 0) {
-        if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->m_ppEnvirons != 0) {
-            g_environ_00652DB4 = g_octree_game_data_00652db0->m_ppEnvirons[0];
+        if (g_octree_game_data != 0 && g_octree_game_data->m_ppEnvirons != 0) {
+            g_environ_00652DB4 = g_octree_game_data->m_ppEnvirons[0];
         }
         g_environ_00652DB4->vector_24.Set(0.0f, 0.0f, 0.0f);
-        if (g_environment_load_flag_00603ad0 != 0) {
+        if (g_environment_load_flag != 0) {
             g_environ_00652DB4->motion_factor_20 = 1.0f;
         }
-        g_environment_load_flag_00603ad0 = g_environment_load_flag_00603ad0 == 0;
-        if (g_environment_load_flag_00603ad0 == 0) {
-            g_level_override_00652dba = 0;
+        g_environment_load_flag = g_environment_load_flag == 0;
+        if (g_environment_load_flag == 0) {
+            g_level_override = 0;
         }
         return;
     }
-    g_environment_load_flag_00603ad0 = 0;
-    g_level_override_00652dba = 0;
+    g_environment_load_flag = 0;
+    g_level_override = 0;
 }
 
 // FUNCTION: WIZ8 0x0041AAE0
 unsigned char SetEnvironmentLoadFlag(unsigned char flag)
 {
     srVector3T<float> zero_vector(0.0f, 0.0f, 0.0f);
-    unsigned char previous = g_environment_load_flag_00603ad0;
+    unsigned char previous = g_environment_load_flag;
     if (g_environ_00652DB4 != 0) {
         g_environ_00652DB4->vector_24 = zero_vector;
         if (flag == 0) {
             g_environ_00652DB4->motion_factor_20 = 1.0f;
         }
-        g_environment_load_flag_00603ad0 = flag;
+        g_environment_load_flag = flag;
     }
     return previous;
 }
@@ -2539,17 +2533,17 @@ unsigned char SetEnvironmentLoadFlag(unsigned char flag)
 // FUNCTION: WIZ8 0x0041F0D0
 void ResetLevelDataVectors(void)
 {
-    if (g_level_data_00652dac != 0) {
-        g_level_data_00652dac->flags |= 0x40;
-        if ((g_level_data_00652dac->flags & 1) == 0) {
-            g_level_data_00652dac->vector_40.SetZero();
-            g_level_data_00652dac->camera_forward_4c.SetZero();
-            g_level_data_00652dac->vector_64.SetZero();
-            g_level_data_00652dac->vector_70.SetZero();
-            g_level_data_00652dac->scaled_camera_forward_7c.SetZero();
-            g_level_data_00652dac->vector_a0.SetZero();
+    if (g_level_data != 0) {
+        g_level_data->flags |= 0x40;
+        if ((g_level_data->flags & 1) == 0) {
+            g_level_data->vector_40.SetZero();
+            g_level_data->camera_forward_4c.SetZero();
+            g_level_data->vector_64.SetZero();
+            g_level_data->vector_70.SetZero();
+            g_level_data->scaled_camera_forward_7c.SetZero();
+            g_level_data->vector_a0.SetZero();
         }
-        g_level_data_00652dac->flags &= ~0x100U;
+        g_level_data->flags &= ~0x100U;
     }
 }
 
@@ -2565,7 +2559,7 @@ const float g_float_005ebca0 = 6.0f;
 // FUNCTION: WIZ8 0x0041FCE0
 void GetLevelSoundEnvironment(char* environment, char* secondary)
 {
-    W8LevelDataRecord* level = g_level_data_00652dac;
+    W8LevelDataRecord* level = g_level_data;
     if ((level->flags & W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT) != 0) {
         *secondary = -1;
         *environment = -1;
@@ -2578,64 +2572,64 @@ void GetLevelSoundEnvironment(char* environment, char* secondary)
 // FUNCTION: WIZ8 0x00420b40
 float MoveTimer(int value)
 {
-    if (g_game_time_accumulator_6598bc == 0) {
-        g_game_time_accumulator_6598bc = new W8GameTimeAccumulator;
-        if (g_game_time_accumulator_6598bc == 0) {
+    if (g_game_time_accumulator == 0) {
+        g_game_time_accumulator = new W8GameTimeAccumulator;
+        if (g_game_time_accumulator == 0) {
             return g_float_005ebb34;
         }
     }
-    if (g_shared_timers_paused_00652dce != 0) {
+    if (g_shared_timers_paused != 0) {
         if ((value == 8 && g_current_screen_state.id == 7) || value == 4) {
             ResumeSharedGameTimers();
-            g_shared_timers_paused_00652dce = false;
+            g_shared_timers_paused = false;
         } else {
             return g_float_005ebb34;
         }
     }
     if (value == 1) {
         PauseSharedGameTimers();
-        g_shared_timers_paused_00652dce = true;
+        g_shared_timers_paused = true;
     }
-    return g_game_time_accumulator_6598bc->GetFrameDelta();
+    return g_game_time_accumulator->GetFrameDelta();
 }
 
 // FUNCTION: WIZ8 0x00420D40
 srCamera* CreateOrSetGameCamera(srNode* parent, srCamera* camera)
 {
-    if (g_gd_camera_65a0f8 == 0) {
-        g_gd_camera_65a0f8 = new GDCamera();
+    if (g_gd_camera == 0) {
+        g_gd_camera = new GDCamera();
     }
-    return g_gd_camera_65a0f8->CreateOrAttachCamera(parent, camera);
+    return g_gd_camera->CreateOrAttachCamera(parent, camera);
 }
 
 // FUNCTION: WIZ8 0x00420DC0
 float GetCameraYawInDegrees()
 {
-    return g_gd_camera_65a0f8->m_yaw * g_float_005ebcf0;
+    return g_gd_camera->m_yaw * g_float_005ebcf0;
 }
 
 // FUNCTION: WIZ8 0x00420DD0
 float GetCameraYawRadians()
 {
-    return g_gd_camera_65a0f8->m_yaw;
+    return g_gd_camera->m_yaw;
 }
 
 // FUNCTION: WIZ8 0x00420DE0
 float GetCameraPitchInDegrees()
 {
-    return g_gd_camera_65a0f8->m_pitch * g_float_005ebcf0;
+    return g_gd_camera->m_pitch * g_float_005ebcf0;
 }
 
 // FUNCTION: WIZ8 0x00420DF0
 float GetCameraPitchRadians()
 {
-    return g_gd_camera_65a0f8->m_pitch;
+    return g_gd_camera->m_pitch;
 }
 
 // FUNCTION: WIZ8 0x00420E00
 void BeginManualCameraControl()
 {
-    g_gd_camera_65a0f8->SetManualControlActive(1);
+    g_gd_camera->SetManualControlActive(1);
 }
 
 /* 0x00420F40: camera yaw in whole degrees, plus an optional copy of the
@@ -2644,9 +2638,9 @@ void BeginManualCameraControl()
 // FUNCTION: WIZ8 0x00420F40
 int GetCameraYawAndRotation(srMatrix3T<float>* rotation)
 {
-    float degrees = g_gd_camera_65a0f8->m_yaw * g_float_005ebcf0;
+    float degrees = g_gd_camera->m_yaw * g_float_005ebcf0;
     if (rotation != 0) {
-        *rotation = g_gd_camera_65a0f8->m_yaw_rotation;
+        *rotation = g_gd_camera->m_yaw_rotation;
     }
     return static_cast<int>(degrees);
 }
@@ -2654,40 +2648,40 @@ int GetCameraYawAndRotation(srMatrix3T<float>* rotation)
 // FUNCTION: WIZ8 0x00420F70
 void LevelCamera()
 {
-    g_gd_camera_65a0f8->BeginLeveling();
-    g_mouselook_manual_00652da7 = 0;
+    g_gd_camera->BeginLeveling();
+    g_mouselook_manual = 0;
 }
 
 // FUNCTION: WIZ8 0x00420F90
 void CameraLookAt(const srVector3T<float>* position)
 {
-    g_gd_camera_65a0f8->LookAt(position, 0);
+    g_gd_camera->LookAt(position, 0);
 }
 
 // FUNCTION: WIZ8 0x00420FB0
 void CameraSnapToTarget(const srVector3T<float>* target)
 {
-    g_gd_camera_65a0f8->SnapToTarget(target);
+    g_gd_camera->SnapToTarget(target);
 }
 
 // FUNCTION: WIZ8 0x00420FD0
 void TurnCameraToDegrees(float degrees)
 {
     double scale = g_double_005ebc18 * g_float_005ebcf8;
-    g_gd_camera_65a0f8->BeginOrientationTransition(0.0f, (float)(scale * degrees), 0);
+    g_gd_camera->BeginOrientationTransition(0.0f, static_cast<float>(scale * degrees), 0);
 }
 
 // FUNCTION: WIZ8 0x00421000
 void SetCameraYawDegrees(float degrees)
 {
     double scale = g_double_005ebc18 * g_float_005ebcf8;
-    g_gd_camera_65a0f8->SetOrientationImmediate(0.0f, (float)(scale * degrees));
+    g_gd_camera->SetOrientationImmediate(0.0f, static_cast<float>(scale * degrees));
 }
 
 // FUNCTION: WIZ8 0x00421030
 void ApplyCameraRotation(srMatrix3T<float>* rotation)
 {
-    g_gd_camera_65a0f8->ApplyRotationMatrix(rotation, g_level_data_00652dac);
+    g_gd_camera->ApplyRotationMatrix(rotation, g_level_data);
 }
 
 /* Two whole-body reads through the pointer at 0x0065A0F8. The first hands back
@@ -2700,7 +2694,7 @@ void ApplyCameraRotation(srMatrix3T<float>* rotation)
 // FUNCTION: WIZ8 0x00421070
 void GetCameraPosition(srVector3T<float>* position)
 {
-    *position = g_gd_camera_65a0f8->m_position_08c;
+    *position = g_gd_camera->m_position_08c;
 }
 
 /* Zero the two six-float CamPos angle records, then store the live yaw in the
@@ -2717,20 +2711,20 @@ void GetCameraOrientation(W8CameraAngleRecord angle, W8CameraAngleRecord pitch)
     for (i = 0; i < 6; ++i) {
         pitch[i] = 0.0f;
     }
-    *angle = g_gd_camera_65a0f8->m_yaw;
-    *pitch = g_gd_camera_65a0f8->m_pitch;
+    *angle = g_gd_camera->m_yaw;
+    *pitch = g_gd_camera->m_pitch;
 }
 
 // FUNCTION: WIZ8 0x004213E0
 void SetCameraOrientation(W8CameraAngleRecord angle, W8CameraAngleRecord pitch,
                           srMatrix3T<float>* rotation)
 {
-    g_gd_camera_65a0f8->SetYaw(*angle);
-    g_gd_camera_65a0f8->SetPitch(*pitch);
-    *angle = g_gd_camera_65a0f8->m_yaw;
-    *pitch = g_gd_camera_65a0f8->m_pitch;
+    g_gd_camera->SetYaw(*angle);
+    g_gd_camera->SetPitch(*pitch);
+    *angle = g_gd_camera->m_yaw;
+    *pitch = g_gd_camera->m_pitch;
     if (rotation != 0) {
-        g_gd_camera_65a0f8->GetRotationMatrix(rotation);
+        g_gd_camera->GetRotationMatrix(rotation);
     }
 }
 
@@ -2763,7 +2757,7 @@ void RestoreWorldCameraOrientation(W8CameraAngleRecord angle, W8CameraAngleRecor
 // FUNCTION: WIZ8 0x00421550
 int GetCameraYawDegrees(void)
 {
-    return (int)(g_gd_camera_65a0f8->m_yaw * 57.295784f);
+    return static_cast<int>(g_gd_camera->m_yaw * 57.295784f);
 }
 
 /* Point-visibility query: returns whether the camera has line of sight to the
@@ -2776,7 +2770,7 @@ bool HasCameraLineOfSight(const srVector3T<float>* position)
     if (g_world == 0) {
         return false;
     }
-    srVector3T<float> from = g_gd_camera_65a0f8->m_position_08c;
+    srVector3T<float> from = g_gd_camera->m_position_08c;
     if (g_world->octree != 0) {
         return g_world->octree->HasLineOfSight(&from, &to, 1);
     }
@@ -2791,7 +2785,7 @@ void PlacePartyAtPoint(const srVector3T<float>* point)
     srVector3T<float> delta = *point - g_origin_652940;
     if (sqrtf(DotProduct(delta, delta)) != g_zero_005ebb40) {
         MarkRendererReady();
-        g_gd_camera_65a0f8->m_position_08c = *point;
+        g_gd_camera->m_position_08c = *point;
     }
 }
 
@@ -2829,7 +2823,7 @@ W8LevelDataRecord::W8LevelDataRecord() : interval_gate_c4()
     contact_normal_scale_b8 = 0.0f;
     memset(padding_bc, 0, sizeof(padding_bc));
     contact_normal_scale_b8 = 1.0f;
-    g_level_override_00652dba = 0;
+    g_level_override = 0;
 }
 
 // FUNCTION: WIZ8 0x00420470
@@ -2856,7 +2850,7 @@ unsigned char W8LevelDataRecord::IntegrateCameraForward()
         delta_length = adjustment.Length();
         limit = g_environ_00652DB4->motion_factor_20 * limit;
         if (delta_length <= limit) {
-            if (delta_length < limit * g_camera_snap_epsilon_005ebc2c) {
+            if (delta_length < limit * g_camera_snap_epsilon) {
                 adjustment.Set(0.0f, 0.0f, 0.0f);
             }
         } else {
@@ -2884,7 +2878,7 @@ unsigned char W8LevelDataRecord::IntegrateCameraForward()
     vector_64 = combined;
     vector_70 = combined;
     if (cleared_vector_70) {
-        if (DotProduct(vector_40, adjustment) > g_camera_transition_epsilon_005ebc84) {
+        if (DotProduct(vector_40, adjustment) > g_camera_transition_epsilon) {
             vector_64.SetZero();
             return 0;
         }
@@ -2915,14 +2909,14 @@ unsigned char W8LevelDataRecord::ApplySavedMotionMatrix(unsigned char prior_fast
 
     horizontal = sqrtf(vector_64.z * vector_64.z + vector_64.x * vector_64.x);
     if (fast_move == 0) {
-        clamp_scale = g_camera_level_forward_scale_603aac;
+        clamp_scale = g_camera_level_forward_scale;
         if (prior_fast == 0) {
             if (clamp_scale < horizontal) {
                 vector_64.x = (clamp_scale / horizontal) * vector_64.x;
                 vector_64.z = (clamp_scale / horizontal) * vector_64.z;
             }
-        } else if (g_camera_level_forward_scale_603aac < horizontal) {
-            clamp_scale = g_camera_default_forward_scale_603ab0;
+        } else if (g_camera_level_forward_scale < horizontal) {
+            clamp_scale = g_camera_default_forward_scale;
             if (clamp_scale < horizontal) {
                 vector_64.x = (clamp_scale / horizontal) * vector_64.x;
                 vector_64.z = (clamp_scale / horizontal) * vector_64.z;
@@ -2932,26 +2926,26 @@ unsigned char W8LevelDataRecord::ApplySavedMotionMatrix(unsigned char prior_fast
         }
     } else {
         prior_fast = 1;
-        clamp_scale = g_camera_default_forward_scale_603ab0;
+        clamp_scale = g_camera_default_forward_scale;
         if (clamp_scale < horizontal) {
             vector_64.x = (clamp_scale / horizontal) * vector_64.x;
             vector_64.z = (clamp_scale / horizontal) * vector_64.z;
         }
     }
 
-    if (g_environment_load_flag_00603ad0 == 0) {
+    if (g_environment_load_flag == 0) {
         vertical = vector_64.y;
-        if (vertical > g_camera_level_forward_scale_603aac) {
-            vertical = g_camera_level_forward_scale_603aac;
-        } else if (vertical < -g_camera_level_forward_scale_603aac) {
-            vertical = -g_camera_level_forward_scale_603aac;
+        if (vertical > g_camera_level_forward_scale) {
+            vertical = g_camera_level_forward_scale;
+        } else if (vertical < -g_camera_level_forward_scale) {
+            vertical = -g_camera_level_forward_scale;
         }
     } else {
         vertical = vector_64.y;
-        if (vertical > g_camera_forward_scale_603ab4) {
-            vertical = g_camera_forward_scale_603ab4;
-        } else if (vertical < -g_camera_forward_scale_603ab4) {
-            vertical = -g_camera_forward_scale_603ab4;
+        if (vertical > g_camera_forward_scale) {
+            vertical = g_camera_forward_scale;
+        } else if (vertical < -g_camera_forward_scale) {
+            vertical = -g_camera_forward_scale;
         }
     }
     vector_64.y = vertical;
@@ -2985,7 +2979,7 @@ unsigned char W8LevelDataRecord::UpdateFootstepFromMotion()
     distance = sqrtf(dx * dx + dy * dy + dz * dz) + footstep_accumulator_10;
     footstep_accumulator_10 = distance;
     if (g_float_005ebcdc < distance) {
-        if (g_status_685170.search_mode == 0 && (flags & W8_LEVEL_FLAG_8) == 0) {
+        if (g_status.search_mode == 0 && (flags & W8_LEVEL_FLAG_8) == 0) {
             large_radius = 0;
         } else {
             large_radius = 1;
@@ -3045,14 +3039,14 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
         if (g_float_005ebb34 < vector_64.y) {
             length = vector_64.Length();
             if (fast_move == 0) {
-                if (g_camera_level_forward_scale_603aac < length) {
-                    vector_64.SetLength(g_camera_level_forward_scale_603aac);
+                if (g_camera_level_forward_scale < length) {
+                    vector_64.SetLength(g_camera_level_forward_scale);
                     vector_a0.x = vector_64.x * camera_scale_14;
                     vector_a0.y = vector_64.y * camera_scale_14;
                     vector_a0.z = vector_64.z * camera_scale_14;
                 }
-            } else if (g_camera_default_forward_scale_603ab0 < length) {
-                vector_64.SetLength(g_camera_default_forward_scale_603ab0);
+            } else if (g_camera_default_forward_scale < length) {
+                vector_64.SetLength(g_camera_default_forward_scale);
                 vector_a0.x = vector_64.x * camera_scale_14;
                 vector_a0.y = vector_64.y * camera_scale_14;
                 vector_a0.z = vector_64.z * camera_scale_14;
@@ -3091,7 +3085,7 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
 
     vector_64 = vector_a0 * (static_cast<float>(g_double_005ebc30) / camera_scale_14);
     speed_20 = vector_a0.Length();
-    if (speed_20 < g_camera_transition_epsilon_005ebc84) {
+    if (speed_20 < g_camera_transition_epsilon) {
         speed_20 = 0;
         vector_a0.SetZero();
         vector_64.SetZero();
@@ -3121,15 +3115,15 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
         }
     }
 
-    if (g_camera_sway_active_652da4 == 0) {
-        if (g_level_override_00652dba == 0) {
+    if (g_camera_sway_active == 0) {
+        if (g_level_override == 0) {
             if (allow_override && vertical_motion_f0 < g_float_005ebc3c) {
-                g_level_override_00652dba = 1;
+                g_level_override = 1;
             }
         } else if (allow_override && g_float_005ebcd8 < vertical_motion_f0) {
             HandleLevelOverride(vertical_motion_f0);
         }
-        vertical_motion_f0 = -(vector_64.y / g_camera_motion_divisor_00603ac4);
+        vertical_motion_f0 = -(vector_64.y / g_camera_motion_divisor);
         return;
     }
     vertical_motion_f0 = 0;
@@ -3140,28 +3134,26 @@ void UpdateLevelMovementAudio(void)
 {
     float now;
 
-    if (g_level_data_00652dac == 0) {
+    if (g_level_data == 0) {
         return;
     }
-    if (((g_gd_camera_65a0f8->m_state_000 >> 6) & 1) == 0 ||
-        (g_level_data_00652dac->flags & W8_LEVEL_FLAG_4) == 0 ||
-        g_level_data_00652dac->vector_64.x != g_float_005ebb34 ||
-        g_level_data_00652dac->vector_64.y != g_float_005ebb34 ||
-        g_level_data_00652dac->vector_64.z != g_float_005ebb34) {
-        if (g_level_footstep_sound_00603ad4 != -1) {
-            SoundSetFadeVolume(g_level_footstep_sound_00603ad4, 0, 500, 1);
-            g_level_footstep_sound_00603ad4 = -1;
+    if (((g_gd_camera->m_state_000 >> 6) & 1) == 0 ||
+        (g_level_data->flags & W8_LEVEL_FLAG_4) == 0 ||
+        g_level_data->vector_64.x != g_float_005ebb34 ||
+        g_level_data->vector_64.y != g_float_005ebb34 ||
+        g_level_data->vector_64.z != g_float_005ebb34) {
+        if (g_level_footstep_sound != -1) {
+            SoundSetFadeVolume(g_level_footstep_sound, 0, 500, 1);
+            g_level_footstep_sound = -1;
         }
         return;
     }
-    now = g_game_time_accumulator_6598bc->GetElapsed();
-    if (g_facing_tolerance_005ebcf4 < now - g_level_footstep_time_00652dd0 &&
-        (g_level_footstep_time_00652dd0 = now,
-         g_level_footstep_sound_00603ad4 == -1 ||
-             SoundIsPlaying(g_level_footstep_sound_00603ad4) == 0)) {
-        g_level_footstep_sound_00603ad4 =
-            PlayFootstep0047A440(g_level_data_00652dac->sound_environment_0c,
-                                 g_level_data_00652dac->sound_environment_alt_0d, 2);
+    now = g_game_time_accumulator->GetElapsed();
+    if (g_facing_tolerance_005ebcf4 < now - g_level_footstep_time &&
+        (g_level_footstep_time = now,
+         g_level_footstep_sound == -1 || SoundIsPlaying(g_level_footstep_sound) == 0)) {
+        g_level_footstep_sound = PlayFootstep0047A440(g_level_data->sound_environment_0c,
+                                                      g_level_data->sound_environment_alt_0d, 2);
     }
 }
 

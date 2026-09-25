@@ -46,14 +46,14 @@
 /* The three bonus attributes each profession grants on top of the imported
    values. */
 // GLOBAL: WIZ8 0x00614FC8
-int g_profession_primary_attributes_614fc8[15][3] = {
+int g_profession_primary_attributes[15][3] = {
     {0, 4, 3}, {0, 4, 2}, {3, 0, 2}, {4, 1, 6}, {4, 5, 1}, {4, 5, 1}, {5, 4, 6}, {4, 5, 6},
     {4, 6, 1}, {4, 1, 6}, {2, 1, 3}, {1, 4, 2}, {1, 4, 2}, {1, 6, 2}, {1, 4, 2},
 };
 
 /* The starting spells LearnSpell grants each profession on import. */
 // GLOBAL: WIZ8 0x0062A5F8
-int g_profession_starting_spells_62a5f8[15][6] = {
+int g_profession_starting_spells[15][6] = {
     {0, 0, 0, 0, 0, 0},   {6, 2, 0, 0, 0, 0},     {6, 13, 0, 0, 0, 0},  {6, 1, 0, 0, 0, 0},
     {5, 12, 0, 0, 0, 0},  {1, 7, 0, 0, 0, 0},     {6, 10, 0, 0, 0, 0},  {0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0},   {0, 0, 0, 0, 0, 0},     {6, 2, 13, 11, 0, 0}, {6, 1, 7, 12, 0, 0},
@@ -78,22 +78,22 @@ static int FindItemByLegacyNumber(short item_number)
    count, whether the save carries an ending selector, that selector's two
    nibbles decoded, the ninety-six flag bits and the character records. */
 // GLOBAL: WIZ8 0x0068DE48
-int g_import_character_count_0068de48;
+int g_import_character_count;
 
 // GLOBAL: WIZ8 0x0068DE4C
-unsigned char g_import_ending_record_0068de4c;
+unsigned char g_import_ending_record;
 
 // GLOBAL: WIZ8 0x0068DE50
-int g_wiz7_ending_68de50;
+int g_wiz7_ending;
 
 // GLOBAL: WIZ8 0x0068DE54
-int g_import_difficulty_0068de54;
+int g_import_difficulty;
 
 // GLOBAL: WIZ8 0x0068DE58
-unsigned char g_import_flags_0068de58[0x60];
+unsigned char g_import_flags[0x60];
 
 // GLOBAL: WIZ8 0x0068DEB8
-W8Wiz7Character g_imported_characters_0068deb8[6];
+W8Wiz7Character g_imported_characters[6];
 
 /* Load a Wizardry 7 save for import: a 0x34c-byte header (two record-skip
    counts at 0x2cc/0x2ce, the flag bitmask at 0x200), thirty-two skipped
@@ -101,7 +101,7 @@ W8Wiz7Character g_imported_characters_0068deb8[6];
    character count and whose first marks the ending selector, five skipped
    sections, then the character records. Every record must carry the previous
    one's tag byte. On success the ending and difficulty nibbles decode from
-   the shared tag and the flag bits unpack into g_import_flags_0068de58. */
+   the shared tag and the flag bits unpack into g_import_flags. */
 // FUNCTION: WIZ8 0x00558D00
 unsigned char LoadWizardry7ImportFile(char* path)
 {
@@ -145,54 +145,52 @@ unsigned char LoadWizardry7ImportFile(char* path)
                 FileRead(file, skip_42, 0x42, &bytes_read) != 0 &&
                 FileSeek(file, 100, FILE_SEEK_FROM_CURRENT) != 0) {
                 for (index = 0; index < party_block[0x25]; ++index) {
-                    if (FileRead(file, &g_imported_characters_0068deb8[index], 0x248,
-                                 &bytes_read) == 0) {
+                    if (FileRead(file, &g_imported_characters[index], 0x248, &bytes_read) == 0) {
                         goto fail;
                     }
-                    if (index != 0 && g_imported_characters_0068deb8[index].party_tag_232 !=
-                                          g_imported_characters_0068deb8[index - 1].party_tag_232) {
+                    if (index != 0 && g_imported_characters[index].party_tag_232 !=
+                                          g_imported_characters[index - 1].party_tag_232) {
                         goto fail;
                     }
                 }
                 FileClose(file);
-                g_import_character_count_0068de48 = party_block[0x25];
-                g_import_ending_record_0068de4c = party_block[0] == -1;
-                if (g_import_ending_record_0068de4c != 0) {
-                    switch (g_imported_characters_0068deb8[0].party_tag_232 & 0xf0) {
+                g_import_character_count = party_block[0x25];
+                g_import_ending_record = party_block[0] == -1;
+                if (g_import_ending_record != 0) {
+                    switch (g_imported_characters[0].party_tag_232 & 0xf0) {
                     case 0x10:
-                        g_wiz7_ending_68de50 = 0;
+                        g_wiz7_ending = 0;
                         break;
                     case 0x20:
-                        g_wiz7_ending_68de50 = 1;
+                        g_wiz7_ending = 1;
                         break;
                     case 0x40:
-                        g_wiz7_ending_68de50 = 2;
+                        g_wiz7_ending = 2;
                         break;
                     case 0x80:
-                        g_wiz7_ending_68de50 = 3;
+                        g_wiz7_ending = 3;
                         break;
                     default:
                         return 0;
                     }
                 } else {
-                    g_wiz7_ending_68de50 = -1;
+                    g_wiz7_ending = -1;
                 }
-                switch (g_imported_characters_0068deb8[0].party_tag_232 & 0xf) {
+                switch (g_imported_characters[0].party_tag_232 & 0xf) {
                 case 1:
-                    g_import_difficulty_0068de54 = 0;
+                    g_import_difficulty = 0;
                     break;
                 case 2:
-                    g_import_difficulty_0068de54 = 1;
+                    g_import_difficulty = 1;
                     break;
                 case 4:
-                    g_import_difficulty_0068de54 = 2;
+                    g_import_difficulty = 2;
                     break;
                 default:
-                    g_import_difficulty_0068de54 = -1;
+                    g_import_difficulty = -1;
                 }
                 for (index = 0; index < 0x60; ++index) {
-                    g_import_flags_0068de58[index] =
-                        (header[0x200 + (index >> 3)] >> (index & 7)) & 1;
+                    g_import_flags[index] = (header[0x200 + (index >> 3)] >> (index & 7)) & 1;
                 }
                 return 1;
             }
@@ -217,16 +215,16 @@ unsigned char ImportWizardry7Party(char* path)
         return 1;
     }
     ResetForNewGame();
-    g_status_685170.party_gold = 2500;
-    g_status_685170.skip_loose_character_check_2444 = 1;
-    if (g_import_character_count_0068de48 < 7) {
-        for (index = 0; index < g_import_character_count_0068de48; ++index) {
-            ImportWizardry7Character(&scratch, &g_imported_characters_0068deb8[index]);
+    g_status.party_gold = 2500;
+    g_status.skip_loose_character_check_2444 = 1;
+    if (g_import_character_count < 7) {
+        for (index = 0; index < g_import_character_count; ++index) {
+            ImportWizardry7Character(&scratch, &g_imported_characters[index]);
             if (AddCharacterToParty(&scratch, -1) == -1) {
                 return 1;
             }
         }
-        return (g_wiz7_ending_68de50 != 3) - 1 & 2;
+        return (g_wiz7_ending != 3) - 1 & 2;
     }
     return 1;
 }
@@ -240,7 +238,7 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     int status;
 
     memset(character, 0, sizeof(W8Character));
-    swprintf(character->name, g_combat_log_format_00617664, TitleCaseString(imported->name_000));
+    swprintf(character->name, g_combat_log_format, TitleCaseString(imported->name_000));
     wcscpy(character->name_part_2, character->name);
     character->iRace = imported->race_237;
     character->gender = (W8Gender)imported->gender_238;
@@ -403,7 +401,7 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
         }
     }
     average = total / 6;
-    primary = g_profession_primary_attributes_614fc8[character->iProfession];
+    primary = g_profession_primary_attributes[character->iProfession];
     for (i = 3; i != 0; --i) {
         imported_values[*primary++] += 0x28;
     }
@@ -493,7 +491,7 @@ void GrantStartingSpells(W8Character* character, const W8Wiz7Character*)
     }
     i = 0;
     do {
-        LearnSpell(character, g_profession_starting_spells_62a5f8[character->iProfession][i], '\0');
+        LearnSpell(character, g_profession_starting_spells[character->iProfession][i], '\0');
         --count;
         if (count == '\0') {
             break;
@@ -611,7 +609,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
     if (character->iRace != 5) {
         profession = character->iProfession;
     }
-    starting = g_starting_equipment_61635c[profession];
+    starting = g_starting_equipment[profession];
     for (slot = 6; slot != 0; --slot) {
         item_id = *starting++;
         if (item_id != -1) {

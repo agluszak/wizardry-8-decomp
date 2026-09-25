@@ -76,9 +76,9 @@ void UpdateActivePartyMovement(void)
 
     if (HandlePartyMovement(&real_elapsed, &frame_elapsed) != 0) {
         gXStatus.party_move_distance += real_elapsed + frame_elapsed;
-    } else if (g_settings_6850c8.continuous_combat != 0 &&
+    } else if (g_settings.continuous_combat != 0 &&
                ClockIsTicking(g_combat_state->party_movement_clock) == 0) {
-        unsigned int step_count = g_settings_6850c8.combat_delay_ms / 200 + 10;
+        unsigned int step_count = g_settings.combat_delay_ms / 200 + 10;
         ClampUnsignedInteger(&step_count, 10, 60);
         gXStatus.party_move_distance += gXStatus.flPartyMoveDistLimit / step_count;
     } else {
@@ -95,8 +95,8 @@ void UpdateActivePartyMovement(void)
         InvalidatePartyMovementPanel();
         g_level_block->move_budget_2e0 = g_level_block->move_budget_2dc;
     }
-    if (g_settings_6850c8.continuous_combat != 0) {
-        g_combat_state->party_movement_clock = SetCountdownClock(g_settings_6850c8.combat_delay_ms);
+    if (g_settings.continuous_combat != 0) {
+        g_combat_state->party_movement_clock = SetCountdownClock(g_settings.combat_delay_ms);
     }
 
 check_completion:
@@ -137,8 +137,8 @@ void ClearPendingPartyMovement(int excluded_party_slot)
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         if (party_slot != excluded_party_slot &&
             CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
-            RefreshCombatTargetHighlights(
-                party_slot, &g_status_685170.buffers.XChar[party_slot].target_in_combat);
+            RefreshCombatTargetHighlights(party_slot,
+                                          &g_status.buffers.XChar[party_slot].target_in_combat);
         }
     }
     UpdatePartyMovementControl();
@@ -200,10 +200,10 @@ unsigned char GetPartyHasteSteps(unsigned int* out_steps)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         W8Character* character;
 
-        if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
+        if (g_status.buffers.XChar[party_slot].fOccupied == 0) {
             continue;
         }
-        character = &g_status_685170.buffers.Char[party_slot];
+        character = &g_status.buffers.Char[party_slot];
         if (character->uiCondition[19] != 0) {
             continue;
         }
@@ -233,7 +233,7 @@ float GetPartyMovementSpeed(void)
         speed = 1.5f;
     }
     if (GetPartyHasteSteps(&steps)) {
-        return (steps * g_movement_speed_step_005ed490 + speed) * g_float_005ec0a8;
+        return (steps * g_movement_speed_step + speed) * g_float_005ec0a8;
     }
     return speed * g_float_005ec0a8;
 }
@@ -258,8 +258,8 @@ void CompletePartyMovementTurns(void)
     remaining = remaining < 100 ? 100 - remaining : 0;
 
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* party_row = &g_status_685170.buffers.XChar[party_slot];
-        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        W8PartySlotRow* party_row = &g_status.buffers.XChar[party_slot];
+        W8Character* character = &g_status.buffers.Char[party_slot];
         if (party_row->fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= 0xf) {
             continue;
@@ -285,8 +285,8 @@ void InitializePartyMovementPhase(void)
     int minimum_initiative = 90;
 
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
-        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
+        W8Character* character = &g_status.buffers.Char[party_slot];
         if (row->fOccupied != 0 && character->hp_current != 0) {
             int initiative = character->initiative + Random(4);
             if (initiative < minimum_initiative) {
@@ -426,8 +426,8 @@ void CancelPartyMovement(void)
     g_combat_state->uiNextPartyAction = 0;
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0) != 0) {
-            RefreshCombatTargetHighlights(
-                party_slot, &g_status_685170.buffers.XChar[party_slot].target_in_combat);
+            RefreshCombatTargetHighlights(party_slot,
+                                          &g_status.buffers.XChar[party_slot].target_in_combat);
         }
     }
     UpdatePartyMovementControl();
@@ -444,7 +444,7 @@ void InterruptActivePartyMovement(void)
     }
     g_combat_state->uiCurrentPartyAction = 0;
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* party_row = &g_status_685170.buffers.XChar[party_slot];
+        W8PartySlotRow* party_row = &g_status.buffers.XChar[party_slot];
         if (party_row->fOccupied == 0) {
             continue;
         }
@@ -480,10 +480,10 @@ void FinishPartyMovementAction(void)
     }
     EnableFreeTurnButton();
     InvalidatePartyMovementPanel();
-    if (g_settings_6850c8.continuous_combat != 0) {
+    if (g_settings.continuous_combat != 0) {
         g_combat_state->party_movement_clock = SetCountdownClock(1000);
     }
-    TurnPartyTo(g_status_685170.party_heading);
+    TurnPartyTo(g_status.party_heading);
     g_combat_state->uiCurrentPartyActionStatus = 1;
 }
 
@@ -506,10 +506,10 @@ void StartPartyMovementAction004EFC00(void)
         }
         EnableFreeTurnButton();
         InvalidatePartyMovementPanel();
-        if (g_settings_6850c8.continuous_combat != 0) {
+        if (g_settings.continuous_combat != 0) {
             g_combat_state->party_movement_clock = SetCountdownClock(1000);
         }
-        TurnPartyTo(g_status_685170.party_heading);
+        TurnPartyTo(g_status.party_heading);
     }
     g_combat_state->uiCurrentPartyActionStatus = 1;
     g_combat_state->passive_round_a55 = 0;

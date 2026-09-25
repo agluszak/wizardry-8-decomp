@@ -282,7 +282,7 @@ void W8Item::UpdateAnimation()
     if ((rep->flags & 0x40) == 0) {
         return;
     }
-    if ((rep->flags & 2) != 0 && g_monster_combat_timer_enabled_006f0531 == 0) {
+    if ((rep->flags & 2) != 0 && g_monster_combat_timer_enabled == 0) {
         srMatrix3T<float> rotation;
         m_pRep->GetRotation(&rotation);
         double cosine = cos(-0.1963495375);
@@ -348,7 +348,7 @@ bool W8Item::GetBoundsRadius(float* radius)
 
 /* Raise the representation location by two thirds of the cached local height.
    Searchables, the automap, and the inlined selection test all use this point. */
-static const float g_item_bounds_vertical_factor_005ecd88 = 0.66f;
+static const float g_item_bounds_vertical_factor = 0.66f;
 
 // FUNCTION: WIZ8 0x0049FBA0
 unsigned char W8Item::GetSearchPosition(srVector3T<float>* location)
@@ -360,7 +360,7 @@ unsigned char W8Item::GetSearchPosition(srVector3T<float>* location)
         return 0;
     }
     m_pRep->GetLocation004B8890(location);
-    location->y += (upper.y - lower.y) * g_item_bounds_vertical_factor_005ecd88;
+    location->y += (upper.y - lower.y) * g_item_bounds_vertical_factor;
     return 1;
 }
 

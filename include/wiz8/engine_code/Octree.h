@@ -680,33 +680,33 @@ public:
 
 static_assert(sizeof(OctPreTree) == 0x3bc, "OctPreTree_must_be_0x3bc");
 
-extern W8Octree* g_octree_6598a4;
-extern OctPreTree* g_oct_pre_tree_659c74;
+extern W8Octree* g_octree;
+extern OctPreTree* g_oct_pre_tree;
 
 /* The SGP /NOOCT startup switch sets this flag; an Octree-unit body reads it. */
 extern "C" void NoOct(void); // C-LINKAGE: src/sgp/sgp.c invokes the /NOOCT switch
-extern bool g_octree_disabled_6598a8;
+extern bool g_octree_disabled;
 
 bool __stdcall IsNavigatorAtTarget(W8NavigatorMovementState* movement);
 
 static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
 
 extern unsigned int* g_octree_storage_00659770;
-extern unsigned long* g_octree_state_00659890;
-extern stModelInstance* g_octree_trace_node_00659894;
-extern float g_octree_cell_scale_005ebcd0;
-extern unsigned long g_octree_bytes_read_00659888;
-extern int g_prop_sun_index_006598ac;
-extern bool g_octree_update_suspended_00659898;
-extern bool g_octree_trace_enabled_00659899;
+extern unsigned long* g_octree_state;
+extern stModelInstance* g_octree_trace_node;
+extern float g_octree_cell_scale;
+extern unsigned long g_octree_bytes_read;
+extern int g_prop_sun_index;
+extern bool g_octree_update_suspended;
+extern bool g_octree_trace_enabled;
 /* Renderer switches the region-link build toggles: suppress baked vertex
    lighting, force front-face culling and strip textures while sampling. */
-extern unsigned char g_render_unlit_0065a0ec;
-extern unsigned char g_render_cull_front_0065a0ed;
+extern unsigned char g_render_unlit;
+extern unsigned char g_render_cull_front;
 /* Inverted-depth / alternate pass-compare mode; renderTriMesh forces GEQUAL
    and the frame clear path uses a zero clear-depth while this is set. */
-extern unsigned char g_inverted_depth_render_0065a0ee;
-extern unsigned char g_render_untextured_0065a146;
+extern unsigned char g_inverted_depth_render;
+extern unsigned char g_render_untextured;
 
 int CheckLevelAssetSet0042CCC0(const char* level_path);
 

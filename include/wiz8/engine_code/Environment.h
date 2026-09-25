@@ -1,6 +1,6 @@
 #pragma once
 
-/* Reads g_environment_lighting_mode_0060a3a8: 2 while the day/night cycle
+/* Reads g_environment_lighting_mode: 2 while the day/night cycle
    runs, 1 while a lighting transition is in progress, 0 once a transition has
    faded the world out. The only retail caller is in NPC Scripting, so the
    accessor keeps its address name until that owner can be renamed with it. */
@@ -41,7 +41,7 @@ static_assert(sizeof(W8MaterialMapper) == 0x1c, "W8MaterialMapper00482010_must_b
 /* ABS 0x0065AD78: the three light-direction words as one colour triple.
    Produced from the day-phase colour table and consumed as fog-vector
    floats; the word copies below move it without reinterpreting it. */
-extern EnvironmentColour g_light_direction_0065ad78;
+extern EnvironmentColour g_light_direction;
 
 extern EnvironmentColour g_environment_colours_65a178[256];
 extern EnvironmentColour g_environment_colours_65ad98[256];
@@ -69,7 +69,7 @@ bool IsSkyEnabled(void);
 void GetWorldLightValue(const W8World* world, EnvironmentColour* pLightValue);
 void SetLightDirection(const EnvironmentColour* direction);
 void GetLightDirection(EnvironmentColour* direction);
-extern bool g_sky_enabled_0065b9ae;
+extern bool g_sky_enabled;
 void ResetEnvironment(void);
 void InitializeLevelEnvironment00482410(void);
 /* Drop the sky gradients and celestial props, release both environment
@@ -103,54 +103,54 @@ void RefreshFogRanges(void);
 
 void SetViewDistance(float distance);
 unsigned char InitializeEnvironmentColours(void);
-extern unsigned int g_frame_tick_65a154;
-extern float g_frame_elapsed_65a158;
+extern unsigned int g_frame_tick;
+extern float g_frame_elapsed;
 
 /* The environment's lighting mode: 2 while the per-frame day/night cycle runs,
    1 while a colour transition is in progress and 0 once one has faded the world
    out. Retail writes it only from the transition bodies at 0x00483FD0 and
    0x00484300 and reads it from UpdateEnvironment; the exported accessor
    above still carries the address name. */
-extern int g_environment_lighting_mode_0060a3a8;
-extern bool g_fog_enabled_0065b9ad;
+extern int g_environment_lighting_mode;
+extern bool g_fog_enabled;
 /* 1/duration while the lighting transition body at 0x00484300 runs, zero when
    idle: UpdateEnvironment hands off to that body while it is not zero. */
-extern float g_environment_transition_rate_0065b9b8;
-extern unsigned long g_environment_transition_tick_0065b9bc;
+extern float g_environment_transition_rate;
+extern unsigned long g_environment_transition_tick;
 /* Last day phase the light direction was published from. */
-extern int g_last_light_phase_0060a3ac;
+extern int g_last_light_phase;
 /* Last day phase the world's environment colour was refreshed from. */
-extern int g_last_environment_colour_phase_0060a3b0;
+extern int g_last_environment_colour_phase;
 /* Gates the per-frame world-colour refresh. Retail writes it nowhere and
    initialises it to 1, so that refresh always runs; the only reference is the
    read inside UpdateEnvironment. */
-extern unsigned char g_environment_colour_refresh_0060a395;
+extern unsigned char g_environment_colour_refresh;
 /* The game clock's multiplier, not a distance: every environment clock advance
    scales the elapsed milliseconds by it (12.0 normally, 2880.0 while the party
    rests) and the environment update is skipped while it holds another value.
    Sight.cpp and GameplayTime.cpp consume it through SetViewDistance and
    GetViewDistance, so the rename waits for those owners. */
-extern float g_view_distance_0060a390;
-extern bool g_environment_time_enabled_60a394;
+extern float g_view_distance;
+extern bool g_environment_time_enabled;
 /* Half the Sun-to-Moon distance, which is the radius of the circle the active
    celestial prop travels; -1 until InitializeLevelEnvironment measures it. */
-extern float g_celestial_orbit_radius_0060a3a4;
+extern float g_celestial_orbit_radius;
 /* The level's "Moon" prop. */
-extern W8Prop* g_moon_prop_0065ad84;
+extern W8Prop* g_moon_prop;
 /* The level's "Sun" prop. */
-extern W8Prop* g_sun_prop_0065a160;
+extern W8Prop* g_sun_prop;
 /* The three day-phase sky gradients the level setup registers:
    SkyGrad0000.ifl, Skytop0000.ifl and Horizon0000.ifl. The registration loop
    and the per-frame animation both walk one contiguous base, so they are one
    array rather than three globals. */
-extern stTextureAnim* g_sky_gradient_animations_0065a168[3];
+extern stTextureAnim* g_sky_gradient_animations[3];
 /* Midpoint of the Sun and Moon, which the active prop orbits and the inactive
    one rests at. */
-extern srVector3T<float> g_celestial_origin_65ad88;
+extern srVector3T<float> g_celestial_origin;
 
 /* The registered environment lights, ambient-filled by ApplyEnvironmentColour.
    The vector count occupies 0x0065B99C. */
-extern W8GrowableVector<stLight*> g_environment_lights_0065b998;
+extern W8GrowableVector<stLight*> g_environment_lights;
 
 void SetGameTimeDays(int value);
 void AdvanceEnvironmentTime(int elapsed); /* 0x00482A20 */

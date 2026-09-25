@@ -13,20 +13,20 @@ extern int giCasterCharSlot;
 
 /* The stack being split while the split-stack dialog is open; set by
    OpenSplitStackDialog and consumed by SplitStackDialogResult. */
-extern W8ItemInstance* g_split_item_source_0069c424;
+extern W8ItemInstance* g_split_item_source;
 
 /* The result kind SplitStackDialogResult treats as acceptance. */
-extern int g_split_result_kind_005efb44;
+extern int g_split_result_kind;
 
 /* The origin and inventory-mode kind shared by every split-item dialog; the
    NPC trade path in MainGameScreen.cpp selects the trade-kind globals instead. */
-extern int g_split_dialog_x_005efb4c;
-extern int g_split_dialog_y_005efb50;
-extern int g_split_dialog_kind_005efb64;
+extern int g_split_dialog_x;
+extern int g_split_dialog_y;
+extern int g_split_dialog_kind;
 
 /* The x origin the item info dialogs open at; the main game screen keeps its
    own y. */
-extern int g_info_dialog_x_005ef958;
+extern int g_info_dialog_x;
 
 /* 0x005EE65C: the character-quote event kind queued when an item action fails
    or an identification finishes. */
@@ -86,4 +86,4 @@ bool IsSpecialItemId(W8ItemInstance* item);
 
 /* 0x0061E7C4: the twelve equip-slot label message ids indexed by region
    callback_id; gap-owned table, also read by the AssayDialog TU. */
-extern const unsigned short g_equip_slot_label_ids_61e7c4[12];
+extern const unsigned short g_equip_slot_label_ids[12];

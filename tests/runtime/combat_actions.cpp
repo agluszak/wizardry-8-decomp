@@ -47,7 +47,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
     float provoked_distance = 1e30f;
     GetCameraPosition(&party_position);
     {
-        W8PathingService* pathing = g_pathing_00659c60;
+        W8PathingService* pathing = g_pathing;
         fprintf(stderr,
                 "runtime-test pathing: svc=%p size=%d grid=%f bounds=(%.0f %.0f %.0f)-(%.0f %.0f "
                 "%.0f)\n",
@@ -153,8 +153,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
             }
         }
         fprintf(stderr, "runtime-test drop: group=%p placed=%d\n", (void*)provoked_group, placed);
-        if (placed == 0 && provoked_info != 0 && provoked_info->p3D != 0 &&
-            g_pathing_00659c60 != 0) {
+        if (placed == 0 && provoked_info != 0 && provoked_info->p3D != 0 && g_pathing != 0) {
             /* The Monastery start point sits off the pathing grid - the snap
                query finds no path cell under the party, so retail's own
                summon placement has nowhere to land the group. Move the party
@@ -177,14 +176,14 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                     srVector3T<float> nav = anchor;
                     nav.x += dirs[d][0] * radii[r];
                     nav.z += dirs[d][1] * radii[r];
-                    if (g_pathing_00659c60->SnapWaypointPosition00462E60(&nav, 0) == 0) {
+                    if (g_pathing->SnapWaypointPosition00462E60(&nav, 0) == 0) {
                         continue;
                     }
                     nav.y = anchor.y + 2000.0f;
                     nav.y = SettlePositionToGround00420BD0(&nav, 0);
-                    float cam[3] = {nav.x, nav.y + g_default_world_height_00603ac8, nav.z};
+                    float cam[3] = {nav.x, nav.y + g_default_world_height, nav.z};
                     WorldSetCameraLocation(GetWorld659AB8(), cam);
-                    g_startup_world_659c0c->SetPositionInternal(&nav);
+                    g_startup_world->SetPositionInternal(&nav);
                     RefreshAllSight();
                     party_position = nav;
                     teleported = 1;
@@ -252,8 +251,8 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
     GetCameraPosition(&party_position);
     /* The camera rides the environ's world_height above the party's feet;
        monster distances are ground distances, so measure from the feet. */
-    party_position.y -= g_environ_00652DB4 != 0 ? g_environ_00652DB4->world_height_30
-                                                : g_default_world_height_00603ac8;
+    party_position.y -=
+        g_environ_00652DB4 != 0 ? g_environ_00652DB4->world_height_30 : g_default_world_height;
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;
     s->combat_mode = gXStatus.fCombatMode != 0;
@@ -302,9 +301,9 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
             }
         }
     }
-    if (g_status_685170.buffers.Char != 0) {
+    if (g_status.buffers.Char != 0) {
         for (int slot = 0; slot < 8; ++slot) {
-            const W8Character* character = &g_status_685170.buffers.Char[slot];
+            const W8Character* character = &g_status.buffers.Char[slot];
             if (character->fInParty != 0) {
                 s->party_hp_total += character->hp_current;
                 if (character->hp_current == 0 ||
@@ -313,11 +312,11 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
             }
         }
     }
-    if (g_status_685170.buffers.XChar != 0) {
+    if (g_status.buffers.XChar != 0) {
         s->first_target_type = -1;
         s->first_target_monster = -1;
         for (int slot = 0; slot < 8; ++slot) {
-            const W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+            const W8PartySlotRow* row = &g_status.buffers.XChar[slot];
             if (row->fOccupied != 0 && row->action_03d == W8_ACTION_ATTACK) {
                 ++s->queued_attacks;
                 if (s->first_target_type < 0) {
@@ -351,7 +350,7 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
     query->eligible = 0;
     query->queued = 0;
     query->aimed = 0;
-    if (g_status_685170.buffers.XChar == 0) {
+    if (g_status.buffers.XChar == 0) {
         return;
     }
     /* Aim each slot at a live target: once the provoked monster dies the
@@ -398,8 +397,8 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
         }
     }
     for (int slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-        W8Character* character = &g_status_685170.buffers.Char[slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+        W8Character* character = &g_status.buffers.Char[slot];
         if (row->fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
@@ -463,7 +462,7 @@ static void QueuePartySpellsOnGameThread(void* opaque)
     CombatSpellQuery* query = static_cast<CombatSpellQuery*>(opaque);
     query->queued = 0;
     query->aimed = 0;
-    if (g_status_685170.buffers.XChar == 0 || g_spell_records == 0) {
+    if (g_status.buffers.XChar == 0 || g_spell_records == 0) {
         return;
     }
     if (query->spell_id <= 0) {
@@ -521,8 +520,8 @@ static void QueuePartySpellsOnGameThread(void* opaque)
         }
     }
     for (int slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-        W8Character* character = &g_status_685170.buffers.Char[slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+        W8Character* character = &g_status.buffers.Char[slot];
         if (row->fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
@@ -582,12 +581,12 @@ static void QueuePartyDefendOnGameThread(void* opaque)
     CombatFleeQuery* query = static_cast<CombatFleeQuery*>(opaque);
     query->eligible = 0;
     query->queued = 0;
-    if (g_status_685170.buffers.XChar == 0) {
+    if (g_status.buffers.XChar == 0) {
         return;
     }
     for (int slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-        W8Character* character = &g_status_685170.buffers.Char[slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+        W8Character* character = &g_status.buffers.Char[slot];
         if (row->fOccupied == 0 || character->fInParty == 0 || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
@@ -610,12 +609,12 @@ static void QueuePartyFleeOnGameThread(void* opaque)
     CombatFleeQuery* query = static_cast<CombatFleeQuery*>(opaque);
     query->eligible = 0;
     query->queued = 0;
-    if (g_status_685170.buffers.XChar == 0) {
+    if (g_status.buffers.XChar == 0) {
         return;
     }
     for (int slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-        W8Character* character = &g_status_685170.buffers.Char[slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+        W8Character* character = &g_status.buffers.Char[slot];
         if (row->fOccupied == 0 || character->fInParty == 0 || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
@@ -634,12 +633,12 @@ static void WeakenPartyOnGameThread(void* opaque)
 {
     int* weakened = static_cast<int*>(opaque);
     *weakened = 0;
-    if (g_status_685170.buffers.XChar == 0 || g_status_685170.buffers.Char == 0) {
+    if (g_status.buffers.XChar == 0 || g_status.buffers.Char == 0) {
         return;
     }
     for (int slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-        W8Character* character = &g_status_685170.buffers.Char[slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+        W8Character* character = &g_status.buffers.Char[slot];
         if (row->fOccupied == 0 || character->fInParty == 0 || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
@@ -665,7 +664,7 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
 
     *moved = false;
     GetCameraPosition(&camera);
-    if (gXStatus.plsMonsterList == 0 || g_pathing_00659c60 == 0) {
+    if (gXStatus.plsMonsterList == 0 || g_pathing == 0) {
         return;
     }
     for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
@@ -690,7 +689,7 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
             srVector3T<float> nav = anchor;
             nav.x += dirs[d][0] * radii[r];
             nav.z += dirs[d][1] * radii[r];
-            if (g_pathing_00659c60->SnapWaypointPosition00462E60(&nav, 0) == 0) {
+            if (g_pathing->SnapWaypointPosition00462E60(&nav, 0) == 0) {
                 continue;
             }
             nav.y = anchor.y + 2000.0f;
@@ -701,9 +700,9 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
             if (nav.y - anchor.y > 400.0f || anchor.y - nav.y > 400.0f) {
                 continue;
             }
-            float cam[3] = {nav.x, nav.y + g_default_world_height_00603ac8, nav.z};
+            float cam[3] = {nav.x, nav.y + g_default_world_height, nav.z};
             WorldSetCameraLocation(GetWorld659AB8(), cam);
-            g_startup_world_659c0c->SetPositionInternal(&nav);
+            g_startup_world->SetPositionInternal(&nav);
             *moved = true;
         }
     }

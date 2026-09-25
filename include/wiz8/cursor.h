@@ -10,7 +10,7 @@ class srModelInstance;
 class srScene;
 
 extern srModelInstance* g_cursor_node_659694;
-extern srScene* g_cursor_scene_659684;
+extern srScene* g_cursor_scene;
 unsigned char InitializeMouseCursorScene(void);
 
 class srTextureIFace;
@@ -35,10 +35,10 @@ enum {
     W8_CURSOR_MAP_LOAD = 9
 };
 
-extern int g_cursor_width_654ad0;
-extern int g_cursor_height_654ad4;
-extern int g_cursor_hotspot_x_6596bc;
-extern int g_cursor_hotspot_y_6596c0;
+extern int g_cursor_width;
+extern int g_cursor_height;
+extern int g_cursor_hotspot_x;
+extern int g_cursor_hotspot_y;
 
 /* 0x00428580 and 0x004285A0: the packed atom mouse position projected into
    screen space by the current cursor hotspot. */

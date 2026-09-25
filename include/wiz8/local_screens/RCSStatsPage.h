@@ -56,6 +56,6 @@ void CreateCampSkillRegions(void);
 void DisableCampSkillRegions(void);
 unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* region);
 
-extern unsigned int g_camp_stats_range_region_set_0069c51c;
-extern unsigned int g_camp_stats_controls_region_set_0069c520;
-extern unsigned int g_camp_skill_regions_0069c528;
+extern unsigned int g_camp_stats_range_region_set;
+extern unsigned int g_camp_stats_controls_region_set;
+extern unsigned int g_camp_skill_regions;

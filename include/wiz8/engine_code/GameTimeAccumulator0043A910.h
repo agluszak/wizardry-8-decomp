@@ -31,6 +31,6 @@ private:
 
 static_assert(sizeof(W8GameTimeAccumulator) == 0x34, "W8GameTimeAccumulator0043A910_must_be_0x34");
 
-extern W8GameTimeAccumulator* g_game_time_accumulator_6598bc;
+extern W8GameTimeAccumulator* g_game_time_accumulator;
 
 extern float g_rate_006068EC;

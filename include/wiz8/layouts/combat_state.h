@@ -54,7 +54,7 @@ struct W8PartySlotRow {
     unsigned char queued_action;
     W8CombatSlot target_context_5;
     /* 0x0f1: the slot's place in the marching order, the index of its entry
-       in g_status_685170.party_order_slots. */
+       in g_status.party_order_slots. */
     int party_order_index;
     /* 0x0f5: a camp-screen item action is pending on the slot; blocks
        weapon autoswap until resolved. */

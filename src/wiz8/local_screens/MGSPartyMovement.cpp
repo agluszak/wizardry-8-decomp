@@ -352,13 +352,13 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
         return 0;
     }
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
-        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
+        W8Character* character = &g_status.buffers.Char[party_slot];
         if (row->fOccupied == 0 || character->stamina <= 0 || character->highest_condition >= 0xf) {
             continue;
         }
         amount = *frame_elapsed;
-        if (g_status_685170.search_mode != 0 || gXStatus.fCombatMode != 0) {
+        if (g_status.search_mode != 0 || gXStatus.fCombatMode != 0) {
             amount = *real_elapsed * g_float_005ebc7c + amount;
         }
         switch (character->load_category) {
@@ -388,7 +388,7 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
             multiplier = multiplier * g_float_005ec3b8;
         }
         row->movement_fatigue = multiplier * amount + row->movement_fatigue;
-        if (row->movement_fatigue > g_position_height_epsilon_005ebfdc) {
+        if (row->movement_fatigue > g_position_height_epsilon) {
             ticks = static_cast<unsigned int>(row->movement_fatigue * g_float_005eecd0);
             FatigueCharacter(party_slot, ticks, 0, 0);
             row->movement_fatigue = row->movement_fatigue - (ticks * 0x9c4);

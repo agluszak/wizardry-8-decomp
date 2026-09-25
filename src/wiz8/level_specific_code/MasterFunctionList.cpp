@@ -62,10 +62,10 @@
 /* The world-cursor node the party is standing in, tracked across the
    command-0 sweep so enter/leave commands fire once per crossing. */
 // GLOBAL: WIZ8 0x006834d4
-W8WorldCursorNode* g_active_cursor_node_006834d4;
+W8WorldCursorNode* g_active_cursor_node;
 
 // GLOBAL: WIZ8 0x006834d8
-W8Vector<W8MasterFunction>* g_master_functions_006834d8;
+W8Vector<W8MasterFunction>* g_master_functions;
 // GLOBAL: WIZ8 0x006834dc
 bool g_flag_006834dc;
 
@@ -79,12 +79,12 @@ const float g_float_005ec510 = 127.0f;
 // FUNCTION: WIZ8 0x004D8E40
 void RunMasterFunctions(void)
 {
-    int count = g_master_functions_006834d8->GetCount();
+    int count = g_master_functions->GetCount();
 
     for (int index = 0; index < count; ++index) {
-        (*g_master_functions_006834d8->GetAt(index))(0);
+        (*g_master_functions->GetAt(index))(0);
         if (g_flag_006834dc != 0) {
-            g_master_functions_006834d8->RemoveAt(index);
+            g_master_functions->RemoveAt(index);
             --count;
             --index;
         }
@@ -97,10 +97,10 @@ void RunMasterFunctions(void)
 // FUNCTION: WIZ8 0x004D8EC0
 void SaveMasterFunctions(void)
 {
-    int count = g_master_functions_006834d8->GetCount();
+    int count = g_master_functions->GetCount();
 
     for (int index = 0; index < count; ++index) {
-        (*g_master_functions_006834d8->GetAt(index))(-1);
+        (*g_master_functions->GetAt(index))(-1);
     }
 }
 
@@ -146,7 +146,7 @@ stSound3D* CreateAndPlaySoundNode(char* sound_name, srVector3T<float> position, 
         sound_position.Set(position.x, position.y, position.z);
         sound->setLocation(sound_position);
         sound->volume = static_cast<int>(volume * g_float_005ec510);
-        sound->falloff = scale * g_world_scale_005ebc40;
+        sound->falloff = scale * g_world_scale;
         sound->Play(play_flag, 1);
     }
     return sound;
@@ -181,7 +181,7 @@ const int g_character_event_kind_005ee63c = 0x2d;
 const int g_character_event_kind_005ee688 = 0x40;
 
 // GLOBAL: WIZ8 0x006109F4
-static W8WorldCursorNodeHandler const g_world_cursor_node_handlers_006109f4[10] = {
+static W8WorldCursorNodeHandler const g_world_cursor_node_handlers[10] = {
     WorldCursorNodeShowMessageOnce,         /* type 0 */
     WorldCursorNodeShowMessageOnce,         /* type 1 */
     WorldCursorNodeShowContextMessage,      /* type 2 */
@@ -237,38 +237,36 @@ unsigned char DispatchWorldCursorNodeCommand004D9080(W8MonsterInfo* info, int co
         return handled;
     }
     do {
-        previous = g_active_cursor_node_006834d4;
+        previous = g_active_cursor_node;
         switch (command) {
         case 0:
             if (previous != 0 && previous != node) {
-                result =
-                    g_world_cursor_node_handlers_006109f4[GetWorldCursorNodeParameter(previous, 2)](
-                        2, previous, context);
+                result = g_world_cursor_node_handlers[GetWorldCursorNodeParameter(previous, 2)](
+                    2, previous, context);
             }
-            previous = g_active_cursor_node_006834d4;
+            previous = g_active_cursor_node;
             if (node != 0 && previous != node) {
-                result =
-                    g_world_cursor_node_handlers_006109f4[GetWorldCursorNodeParameter(node, 2)](
-                        1, node, context);
+                result = g_world_cursor_node_handlers[GetWorldCursorNodeParameter(node, 2)](
+                    1, node, context);
             }
-            g_active_cursor_node_006834d4 = node;
+            g_active_cursor_node = node;
             break;
         case 3:
             if (node != 0) {
                 int type = GetWorldCursorNodeParameter(node, 2);
                 if (type == 3) {
-                    result = g_world_cursor_node_handlers_006109f4[3](type, node, context);
+                    result = g_world_cursor_node_handlers[3](type, node, context);
                 }
             }
             break;
         case 4:
             if (node != 0 && GetWorldCursorNodeParameter(node, 2) == 2) {
-                result = g_world_cursor_node_handlers_006109f4[2](4, node, context);
+                result = g_world_cursor_node_handlers[2](4, node, context);
             }
             break;
         case 8:
             if (node != 0 && GetWorldCursorNodeParameter(node, 2) == 7) {
-                result = g_world_cursor_node_handlers_006109f4[7](8, node, context);
+                result = g_world_cursor_node_handlers[7](8, node, context);
             }
             break;
         default:
@@ -305,11 +303,11 @@ unsigned char WorldCursorNodeShowMessageOnce(int command, W8WorldCursorNode* nod
     folder = GetLevelFolderName(GetLoadedLevelID());
     type = GetWorldCursorNodeParameter(node, 2);
     enabled = static_cast<unsigned char>(GetWorldCursorNodeParameter(node, 1));
-    if (enabled != 0 && g_status_685170.search_mode == 0 &&
-        g_status_685170.party_modifiers_22e3.detect_secrets_46 == 0) {
+    if (enabled != 0 && g_status.search_mode == 0 &&
+        g_status.party_modifiers_22e3.detect_secrets_46 == 0) {
         for (slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-            if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
-                CharacterHasTrait(g_status_685170.buffers.Char + slot, 0xc)) {
+            if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+                CharacterHasTrait(g_status.buffers.Char + slot, 0xc)) {
                 goto command_check;
             }
         }
@@ -416,8 +414,8 @@ unsigned char WorldCursorNodeMaleCharacterEvent(int command, W8WorldCursorNode* 
 {
     W8Character* character;
 
-    if (command == 1 && g_status_685170.rpc_active_2489 != 0) {
-        character = g_status_685170.buffers.Char + g_status_685170.sedexus_party_slot_247f;
+    if (command == 1 && g_status.rpc_active_2489 != 0) {
+        character = g_status.buffers.Char + g_status.sedexus_party_slot_247f;
         if (character->gender == W8_GENDER_MALE) {
             QueueCharacterEvent(character, g_character_event_kind_005ee63c, 0,
                                 g_effect_argument_005ed8c8, g_effect_argument_005ed914);
@@ -476,7 +474,7 @@ unsigned char WorldCursorNodeApplyItemEffect004D96C0(int command, W8WorldCursorN
 // FUNCTION: WIZ8 0x004D96F0
 void ClearValue6834D4(void)
 {
-    g_active_cursor_node_006834d4 = 0;
+    g_active_cursor_node = 0;
 }
 
 /* Master-function values 0x10 and 0x26 select the same path once either of
@@ -569,7 +567,7 @@ unsigned char WorldCursorNodePartyVoice(int command, W8WorldCursorNode* node, in
             *shown = 1;
             slot = PickRandomPartySpeaker(event_type, -1);
             if (slot != -1) {
-                QueueCharacterEvent(g_status_685170.buffers.Char + slot, event_type, 0,
+                QueueCharacterEvent(g_status.buffers.Char + slot, event_type, 0,
                                     g_effect_argument_005ed8c8, g_effect_argument_005ed914);
             }
         }
@@ -629,21 +627,21 @@ void InitializeLevelMasterFunctions(int level)
 {
     Trigger* pTrigger;
 
-    if (g_master_functions_006834d8 == 0) {
-        g_master_functions_006834d8 = new W8Vector<W8MasterFunction>(5);
+    if (g_master_functions == 0) {
+        g_master_functions = new W8Vector<W8MasterFunction>(5);
     } else {
         /* Retail caches the count and removes one entry per iteration; the
            clearing loop leaves it at zero. */
-        int count = g_master_functions_006834d8->GetCount();
+        int count = g_master_functions->GetCount();
         for (int index = 0; index < count; ++index) {
-            g_master_functions_006834d8->RemoveAt(0);
+            g_master_functions->RemoveAt(0);
         }
     }
     /* Retail still walks the now-empty vector from the top and deletes each
        unlinked entry; the loop cannot run, but its instructions are present,
        so it is preserved rather than dropped. */
-    for (int index = g_master_functions_006834d8->GetCount() - 1; index >= 0; --index) {
-        void* entry = reinterpret_cast<void*>(g_master_functions_006834d8->RemoveAt(
+    for (int index = g_master_functions->GetCount() - 1; index >= 0; --index) {
+        void* entry = reinterpret_cast<void*>(g_master_functions->RemoveAt(
             index)); /* reinterpret-ok: function entry stored as data */
         operator delete(entry);
     }

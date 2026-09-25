@@ -3,10 +3,10 @@
 
 #include "wiz8/local_screens/Screens.h"
 
-extern int g_music_sample_handle_60aae0;
-extern bool g_music_playlist_active_65ba7e;
-extern int g_music_playlist_weight_total_65ba80;
-extern int g_music_playlist_track_count_65ba84;
+extern int g_music_sample_handle;
+extern bool g_music_playlist_active;
+extern int g_music_playlist_weight_total;
+extern int g_music_playlist_track_count;
 extern int g_music_state_60aae8;
 extern int g_music_state_60aaec;
 extern int g_music_state_60aaf0;

@@ -212,7 +212,7 @@ void InitTextInputModeWithScheme(int mode)
 void SetTextInputScheme(int mode)
 {
     if (mode == 0) {
-        pColors->usFont = (short)g_font12point1_683648;
+        pColors->usFont = static_cast<short>(g_font12point1);
         pColors->usTextFieldColor = Get16BPPColor(0x00c8c8);
         pColors->usInactiveTextFieldColor = Get16BPPColor(0xffffff);
         pColors->usDarkerColor = Get16BPPColor(0x513d18);
@@ -222,7 +222,7 @@ void SetTextInputScheme(int mode)
         pColors->ubShadowColor = 0;
         pColors->ubHiForeColor = 0xd0;
     } else if (mode == 1) {
-        pColors->usFont = (short)g_wiz_text_mono_font_683630;
+        pColors->usFont = static_cast<short>(g_wiz_text_mono_font);
         pColors->usTextFieldColor = Get16BPPColor(0x632a1e);
         pColors->usInactiveTextFieldColor = Get16BPPColor(0xffffff);
         pColors->usInactiveTextFieldColor = Get16BPPColor(0x0a0a0a);
@@ -237,7 +237,7 @@ void SetTextInputScheme(int mode)
         pColors->usCursorColor = Get16BPPColor(0xffffff);
         return;
     } else if (mode == 2) {
-        pColors->usFont = (short)g_wiz_text_mono_font_683630;
+        pColors->usFont = static_cast<short>(g_wiz_text_mono_font);
         pColors->usTextFieldColor = Get16BPPColor(0xffffff);
         pColors->usInactiveTextFieldColor = Get16BPPColor(0xffffff);
         pColors->usDarkerColor = Get16BPPColor(0);

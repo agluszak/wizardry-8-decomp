@@ -74,10 +74,10 @@ static_assert(sizeof(W8MaterialRecord) == 0x12a, "W8MaterialRecord_size_must_be_
 
 /* Per-draw material override switches consumed by stMaterial::getMaterialInfo;
    stModelInstance's mesh submit arms them around each chained model. */
-extern bool g_material_diffuse_scale_enabled_0065ba9e;
-extern float g_material_diffuse_scale_0065baa0;
-extern bool g_material_emissive_override_enabled_0065baa4;
-extern float g_material_emissive_override_0065baa8;
+extern bool g_material_diffuse_scale_enabled;
+extern float g_material_diffuse_scale;
+extern bool g_material_emissive_override_enabled;
+extern float g_material_emissive_override;
 
 unsigned char LoadMaterial004B8A70(const char* bitmap_folder, const W8MaterialRecord* source,
                                    srMaterialIFace** material, srTextureIFace** texture,
@@ -97,8 +97,8 @@ srTextureIFace* LoadTexture004B9460(const char* path, const W8MaterialRecord* so
 struct W8OctPreTreeVertex;
 struct W8OctRegionPolygon;
 
-extern W8OctPreTreeVertex* g_gd_vertices_0065bd34;
-extern W8OctRegionPolygon* g_gd_polygons_0065bd38;
+extern W8OctPreTreeVertex* g_gd_vertices;
+extern W8OctRegionPolygon* g_gd_polygons;
 
 char BuildPreprocessedFiles(const char* level_path);
 void ReportBuildStatus(int channel, const char* message);

@@ -70,9 +70,9 @@ float g_float_005ecf9c = 250.0f;
 // GLOBAL: WIZ8 0x0060da88
 bool g_flag_0060da88 = true;
 // GLOBAL: WIZ8 0x0065be2c
-W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
+W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects;
 // GLOBAL: WIZ8 0x0065be30
-W8GameTimer* g_shake_timer_0065be30;
+W8GameTimer* g_shake_timer;
 
 /* Everything except the timer's own pacing carries across, and bit zero of the
    flags is cleared so the copy is not treated as already started. The new timer
@@ -98,10 +98,10 @@ W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset, float inte
     : flags_00(0), intensity_04(intensity), distance_cap_08(distance_cap), timer_18(duration, 0),
       cycle_3c(0), frame_40(0), subcycle_44(0), completion_callback_48(0)
 {
-    if (g_shake_effects_0065be2c == 0) {
-        g_shake_effects_0065be2c = new W8GrowableVector<W8CameraShakeEffect*>(5);
-        g_shake_timer_0065be30 = new W8GameTimer(g_float_005ecf98, 0);
-        g_shake_timer_0065be30->Restart();
+    if (g_shake_effects == 0) {
+        g_shake_effects = new W8GrowableVector<W8CameraShakeEffect*>(5);
+        g_shake_timer = new W8GameTimer(g_float_005ecf98, 0);
+        g_shake_timer->Restart();
     }
     if (preset != 0) {
         flags_00 |= 0x1c;
@@ -123,7 +123,7 @@ W8CameraShakeEffect* CreateCameraShakeEffect(float duration, char preset, float 
 
     effect->flags_00 |= 3;
     effect->timer_18.Restart();
-    g_shake_effects_0065be2c->Add(effect);
+    g_shake_effects->Add(effect);
     return effect;
 }
 
@@ -141,7 +141,7 @@ void TriggerShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects, int cy
         if (effect->cycle_3c == cycle && effect->frame_40 == (int)frame &&
             effect->subcycle_44 == subcycle) {
             if ((effect->flags_00 & 1) == 0) {
-                g_shake_effects_0065be2c->Add(effect);
+                g_shake_effects->Add(effect);
             }
             effect->position_0c = *position;
             effect->flags_00 |= 1;
@@ -164,7 +164,7 @@ void StopShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects)
         if ((effect->flags_00 & 1) != 0) {
             unsigned int flags;
 
-            g_shake_effects_0065be2c->RemoveAt(g_shake_effects_0065be2c->IndexOf(effect));
+            g_shake_effects->RemoveAt(g_shake_effects->IndexOf(effect));
             flags = effect->flags_00;
             effect->flags_00 = flags & ~1u;
             if ((flags >> 1 & 1) != 0 && effect != 0) {
@@ -185,19 +185,19 @@ void StopShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects)
 // FUNCTION: WIZ8 0x004ae310
 void UpdateShakeEffects()
 {
-    if (g_flag_0060da88 == 0 || g_shake_effects_0065be2c == 0 ||
-        g_shake_timer_0065be30->GetProgress() < g_float_005ebb38) {
+    if (g_flag_0060da88 == 0 || g_shake_effects == 0 ||
+        g_shake_timer->GetProgress() < g_float_005ebb38) {
         return;
     }
-    if (g_shake_effects_0065be2c->GetCount() != 0) {
+    if (g_shake_effects->GetCount() != 0) {
         float intensity = 0.0f;
         srVector3T<float> camera;
         GetCameraPosition(&camera);
-        for (int index = 0; index < g_shake_effects_0065be2c->GetCount(); ++index) {
-            W8CameraShakeEffect* effect = *g_shake_effects_0065be2c->GetAt(index);
+        for (int index = 0; index < g_shake_effects->GetCount(); ++index) {
+            W8CameraShakeEffect* effect = *g_shake_effects->GetAt(index);
             float amount;
             if (effect->Evaluate004AE4E0(&camera, &amount) == 0) {
-                g_shake_effects_0065be2c->RemoveAt(index);
+                g_shake_effects->RemoveAt(index);
                 --index;
                 effect->flags_00 &= ~1u;
                 if (effect->completion_callback_48 != 0) {
@@ -214,14 +214,14 @@ void UpdateShakeEffects()
             float amplitude = intensity < g_float_005ebb38 ? intensity : g_float_005ebb38;
             amplitude *= g_float_005ecf9c;
             int span = static_cast<int>(amplitude) << 1;
-            g_trigger_action_scene_offset_006599ac.x = Random(span) - amplitude;
-            g_trigger_action_scene_offset_006599ac.y = Random(span) - amplitude;
-            g_trigger_action_scene_offset_006599ac.z = Random(span) - amplitude;
-            g_trigger_action_active_006599c8 = true;
+            g_trigger_action_scene_offset.x = Random(span) - amplitude;
+            g_trigger_action_scene_offset.y = Random(span) - amplitude;
+            g_trigger_action_scene_offset.z = Random(span) - amplitude;
+            g_trigger_action_active = true;
             return;
         }
     }
-    g_trigger_action_active_006599c8 = false;
+    g_trigger_action_active = false;
 }
 
 /* Bit 2 gates the distance test, bit 3 selects the quadratic falloff, bit 4
@@ -1180,7 +1180,7 @@ void W8GrCycle::SelectLOD(const srVector3T<float>* position)
     if (has_lod_2 == 0 && has_lod_1 == 0 && has_lod_0 == 0) {
         ShutdownWithErrorBox("Monster has no valid LODs!");
     }
-    if (g_render_brightness_60a210 * pRep->lod_range_09c > distance) {
+    if (g_render_brightness * pRep->lod_range_09c > distance) {
         if (has_lod_2 != 0) {
             pRep->m_bLOD = 2;
         } else if (has_lod_1 != 0) {
@@ -1188,7 +1188,7 @@ void W8GrCycle::SelectLOD(const srVector3T<float>* position)
         } else {
             pRep->m_bLOD = 0;
         }
-    } else if (g_render_brightness_60a210 * pRep->lod_range_0a0 > distance) {
+    } else if (g_render_brightness * pRep->lod_range_0a0 > distance) {
         if (has_lod_1 != 0) {
             pRep->m_bLOD = 1;
         } else if (has_lod_2 != 0) {
@@ -1205,20 +1205,20 @@ void W8GrCycle::SelectLOD(const srVector3T<float>* position)
             pRep->m_bLOD = 2;
         }
     }
-    if (g_render_fog_distance_60e610 <= g_float_005ebc3c && pRep->m_bLOD != 2) {
+    if (g_render_fog_distance <= g_float_005ebc3c && pRep->m_bLOD != 2) {
         if (has_lod_2 != 0) {
             pRep->m_bLOD = 2;
         }
         return;
     }
-    if ((g_render_fog_distance_60e610 <= g_float_005ec5c0 && pRep->m_bLOD == 0) ||
-        (g_render_fog_distance_60e610 >= g_float_005ec5c4 && pRep->m_bLOD == 2)) {
+    if ((g_render_fog_distance <= g_float_005ec5c0 && pRep->m_bLOD == 0) ||
+        (g_render_fog_distance >= g_float_005ec5c4 && pRep->m_bLOD == 2)) {
         if (has_lod_1 != 0) {
             pRep->m_bLOD = 1;
         }
         return;
     }
-    if (g_render_fog_distance_60e610 >= g_float_005ec390 && pRep->m_bLOD != 0 && has_lod_0 != 0) {
+    if (g_render_fog_distance >= g_float_005ec390 && pRep->m_bLOD != 0 && has_lod_0 != 0) {
         pRep->m_bLOD = 0;
     }
 }

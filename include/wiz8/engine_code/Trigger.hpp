@@ -212,7 +212,7 @@ public:
     bool SelectAction();
     void GenerateItemGroup();
     W8WorldItem* GetOrCreateItemGroup(char create);
-    /* After a selected-prop Run: while g_trigger_feedback_00606994 is clear, post either
+    /* After a selected-prop Run: while g_trigger_feedback is clear, post either
        the special-item notice (required_item_id != -1) or the nothing-happened notice. */
     void PrintNothingHappenedOrSpecialItemRequired(); /* 0x004456E0 */
     void RunDestination00440DD0(const char* destination);
@@ -296,20 +296,20 @@ bool LoadTriggerRuntimeStates(int handle);
 void SaveTriggerActionData(W8World* world, int handle);
 bool LoadTriggerActionData0043D1F0(int handle);
 
-extern unsigned char g_trigger_feedback_00606994;
+extern unsigned char g_trigger_feedback;
 extern unsigned char g_flag_0068506e;
 /* Camera position cached by the per-frame trigger walk. */
-extern srVector3T<float> g_trigger_camera_006599a0;
+extern srVector3T<float> g_trigger_camera;
 /* Trigger's action camera offset, added to the world scene position while an
    action is active, and the flag that says one is. */
-extern bool g_trigger_action_active_006599c8;
-extern srVector3T<float> g_trigger_action_scene_offset_006599ac;
-extern int g_container_event_alt_0068c520;
-extern int g_trap_notice_event_0068c53c;
-extern int g_lock_notice_event_0068c54c;
-extern int g_container_event_0068c548;
-extern int g_condition_reaction_005ee59c;
-extern int g_condition_reaction_alt_005ee5a0;
+extern bool g_trigger_action_active;
+extern srVector3T<float> g_trigger_action_scene_offset;
+extern int g_container_event_alt;
+extern int g_trap_notice_event;
+extern int g_lock_notice_event;
+extern int g_container_event;
+extern int g_condition_reaction;
+extern int g_condition_reaction_alt;
 
 bool CreateTriggerShakeEvent(int intensity, float duration, float countdown_duration, bool reverse);
 bool AnyPropTriggerInView(W8World* world);

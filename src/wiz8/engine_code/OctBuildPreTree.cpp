@@ -12,17 +12,17 @@
 #include <stdlib.h>
 #include <string.h>
 // GLOBAL: WIZ8 0x0065be60
-int g_build_node_instances_65be60;
+int g_build_node_instances;
 // GLOBAL: WIZ8 0x0065be58
-unsigned long g_poly_list_count_65be58;
+unsigned long g_poly_list_count;
 // GLOBAL: WIZ8 0x0065be64
-void** g_poly_list_65be64;
+void** g_poly_list;
 // GLOBAL: WIZ8 0x0065be68
-W8GDSurface** g_gd_surface_list_65be68;
+W8GDSurface** g_gd_surface_list;
 // GLOBAL: WIZ8 0x0065be5c
-unsigned short* g_region_id_list_65be5c;
+unsigned short* g_region_id_list;
 // GLOBAL: WIZ8 0x0065be6c
-unsigned short g_region_id_count_65be6c;
+unsigned short g_region_id_count;
 
 // GLOBAL: WIZ8 0x005ed034
 float g_float_005ed034 = -0.009999999776482582f;
@@ -40,7 +40,7 @@ float g_float_005ec52c = 3.0f;
 // FUNCTION: WIZ8 0x004af760
 W8CountedOctBuildNode::W8CountedOctBuildNode()
 {
-    ++g_build_node_instances_65be60;
+    ++g_build_node_instances;
 }
 
 // FUNCTION: WIZ8 0x004af780
@@ -49,8 +49,8 @@ W8CountedOctBuildNode::~W8CountedOctBuildNode()
     if (children_00[1] != 0) {
         free(children_00[1]);
     }
-    if (g_build_node_instances_65be60 != 0) {
-        --g_build_node_instances_65be60;
+    if (g_build_node_instances != 0) {
+        --g_build_node_instances;
     }
 }
 
@@ -62,17 +62,17 @@ unsigned char W8OctBuildNode::RearrangeNodePolys004AF7B0(short current_depth, sh
     if (current_depth == target_depth) {
         for (short mode = 2; mode < 4; ++mode) {
             if (leaf_kind_2a != 0 && links_00[mode] != 0) {
-                g_poly_list_count_65be58 = 0;
+                g_poly_list_count = 0;
                 CollectLinkedSurfaces(current_depth, target_depth, mode);
-                void** surfaces = static_cast<void**>(
-                    malloc(g_poly_list_count_65be58 * sizeof(void*) + sizeof(void*)));
+                void** surfaces =
+                    static_cast<void**>(malloc(g_poly_list_count * sizeof(void*) + sizeof(void*)));
                 if (surfaces == 0) {
                     ReportBuildStatus(7, "RearrangeNodePolys: Could not allocate poly list.\n");
                     return 0;
                 }
                 unsigned long index;
-                for (index = 0; index < g_poly_list_count_65be58; ++index) {
-                    surfaces[index] = g_poly_list_65be64[index];
+                for (index = 0; index < g_poly_list_count; ++index) {
+                    surfaces[index] = g_poly_list[index];
                 }
                 surfaces[index] = 0;
                 surface_arrays_00[mode] = surfaces;
@@ -96,8 +96,8 @@ int W8OctBuildNode::CollectLinkedSurfaces(short current_depth, short target_dept
         if (1 < mode && mode < 4 && links_00[mode] != 0) {
             W8OctBuildLink* link = links_00[mode];
             do {
-                g_poly_list_65be64[g_poly_list_count_65be58++] = link->surface_00;
-                if (10000 < g_poly_list_count_65be58) {
+                g_poly_list[g_poly_list_count++] = link->surface_00;
+                if (10000 < g_poly_list_count) {
                     ReportBuildStatus(7, "OctBuildPreTree::m_ppPolyList too long.");
                     return 0;
                 }
@@ -123,17 +123,17 @@ int W8OctBuildNode::CollectSurfaceArray(short mode)
         void** surfaces = surface_arrays_00[mode];
         if (surfaces != 0) {
             while (*surfaces != 0) {
-                g_poly_list_65be64[g_poly_list_count_65be58++] = *surfaces++;
+                g_poly_list[g_poly_list_count++] = *surfaces++;
             }
         }
-        return g_poly_list_count_65be58;
+        return g_poly_list_count;
     }
     for (int child = 0; child != 8; ++child) {
         if (children_00[child] != 0) {
             children_00[child]->CollectSurfaceArray(mode);
         }
     }
-    return g_poly_list_count_65be58;
+    return g_poly_list_count;
 }
 
 /* Consume the counted build nodes into the compact arrays owned by the
@@ -148,55 +148,55 @@ unsigned long W8OctBuildNode::ConvertToOctPreTree(unsigned short depth, OctPreTr
     if (depth == tree->spatial_000.depth_44) {
         node_index = tree->m_leaf_count_0b8++;
 
-        g_poly_list_count_65be58 = 0;
+        g_poly_list_count = 0;
         CollectSurfaceArray(2);
-        if (g_poly_list_count_65be58 != 0) {
+        if (g_poly_list_count != 0) {
             unsigned long unique_count = 0;
-            for (unsigned long source = 0; source < g_poly_list_count_65be58; ++source) {
+            for (unsigned long source = 0; source < g_poly_list_count; ++source) {
                 bool found = false;
                 for (unsigned long existing = 0; existing < source && !found; ++existing) {
-                    if (g_poly_list_65be64[source] == g_poly_list_65be64[existing]) {
+                    if (g_poly_list[source] == g_poly_list[existing]) {
                         found = true;
                     }
                 }
                 if (!found) {
-                    g_poly_list_65be64[unique_count++] = g_poly_list_65be64[source];
+                    g_poly_list[unique_count++] = g_poly_list[source];
                 }
             }
-            g_poly_list_count_65be58 = unique_count;
+            g_poly_list_count = unique_count;
             tree->m_owned_0d0[tree->polygon_cursor_3a0] = unique_count;
             tree->m_owned_0a0[node_index].polygon_offset_08 = tree->polygon_cursor_3a0;
             ++tree->polygon_cursor_3a0;
-            for (unsigned long surface = 0; surface < g_poly_list_count_65be58; ++surface) {
+            for (unsigned long surface = 0; surface < g_poly_list_count; ++surface) {
                 tree->m_owned_0d0[tree->polygon_cursor_3a0++] =
-                    static_cast<W8OctRegionPolygon*>(g_poly_list_65be64[surface])->ordinal_04;
+                    static_cast<W8OctRegionPolygon*>(g_poly_list[surface])->ordinal_04;
             }
             free(surface_arrays_00[2]);
             surface_arrays_00[2] = 0;
         }
 
-        g_poly_list_count_65be58 = 0;
+        g_poly_list_count = 0;
         CollectSurfaceArray(3);
-        if (g_poly_list_count_65be58 != 0) {
+        if (g_poly_list_count != 0) {
             unsigned long unique_count = 0;
-            for (unsigned long source = 0; source < g_poly_list_count_65be58; ++source) {
+            for (unsigned long source = 0; source < g_poly_list_count; ++source) {
                 bool found = false;
                 for (unsigned long existing = 0; existing < source && !found; ++existing) {
-                    if (g_poly_list_65be64[source] == g_poly_list_65be64[existing]) {
+                    if (g_poly_list[source] == g_poly_list[existing]) {
                         found = true;
                     }
                 }
                 if (!found) {
-                    g_poly_list_65be64[unique_count++] = g_poly_list_65be64[source];
+                    g_poly_list[unique_count++] = g_poly_list[source];
                 }
             }
-            g_poly_list_count_65be58 = unique_count;
+            g_poly_list_count = unique_count;
             tree->m_owned_12c[tree->m_gd_surface_stream_len_124] = unique_count;
             tree->m_owned_0a0[node_index].gd_polygon_offset_0c = tree->m_gd_surface_stream_len_124;
             ++tree->m_gd_surface_stream_len_124;
-            for (unsigned long surface = 0; surface < g_poly_list_count_65be58; ++surface) {
+            for (unsigned long surface = 0; surface < g_poly_list_count; ++surface) {
                 tree->m_owned_12c[tree->m_gd_surface_stream_len_124++] =
-                    static_cast<W8GDSurface*>(g_poly_list_65be64[surface])->index_04;
+                    static_cast<W8GDSurface*>(g_poly_list[surface])->index_04;
             }
             free(surface_arrays_00[3]);
             surface_arrays_00[3] = 0;
@@ -254,8 +254,8 @@ OctBuildPreTree::OctBuildPreTree(float leaf_size, srVector3T<float>* minimum,
     region_path_map_124 = 0;
     positional_128 = 0;
     region_remap_100 = 0;
-    g_poly_list_65be64 = static_cast<void**>(malloc(10000 * sizeof(void*)));
-    g_gd_surface_list_65be68 = static_cast<W8GDSurface**>(malloc(10000 * sizeof(W8GDSurface*)));
+    g_poly_list = static_cast<void**>(malloc(10000 * sizeof(void*)));
+    g_gd_surface_list = static_cast<W8GDSurface**>(malloc(10000 * sizeof(W8GDSurface*)));
     mesh_particle_lookup_104 = 0;
     mesh_particles_108 = 0;
     mesh_particle_count_10c = 0;
@@ -664,8 +664,8 @@ unsigned short OctBuildPreTree::LoadRegionFile004B0C90(const char* stem, srVecto
         volume->region_04 = region;
         volume->region_bit_0c = region;
         for (int corner = 0; corner != 8; ++corner) {
-            volume->points_1c[corner + 1] = record.corners_0a[corner] * g_world_scale_005ebc40;
-            volume->points_1c[0] += record.corners_0a[corner] * g_world_scale_005ebc40 * 0.125f;
+            volume->points_1c[corner + 1] = record.corners_0a[corner] * g_world_scale;
+            volume->points_1c[0] += record.corners_0a[corner] * g_world_scale * 0.125f;
         }
         for (int axis = 0; axis != 3 && !outside; ++axis) {
             outside = true;
@@ -1147,28 +1147,27 @@ void OctBuildPreTree::AssignInitialRegions(const W8OctSpatialState* spatial)
     }
 
     if (spatial->depth_44 == spatial_00.leaf_level_52) {
-        g_poly_list_count_65be58 = 0;
+        g_poly_list_count = 0;
         W8OctBuildNode* node = spatial->root_90;
         node->CollectLinkedSurfaces(spatial_00.leaf_level_52, spatial_00.depth_44, 2);
 
         unsigned long unique_count = 0;
-        for (unsigned long source = 0; source < g_poly_list_count_65be58; ++source) {
+        for (unsigned long source = 0; source < g_poly_list_count; ++source) {
             bool found = false;
             for (unsigned long existing = 0; existing < source && !found; ++existing) {
-                if (g_poly_list_65be64[source] == g_poly_list_65be64[existing]) {
+                if (g_poly_list[source] == g_poly_list[existing]) {
                     found = true;
                 }
             }
             if (!found) {
-                g_poly_list_65be64[unique_count++] = g_poly_list_65be64[source];
+                g_poly_list[unique_count++] = g_poly_list[source];
             }
         }
-        g_poly_list_count_65be58 = unique_count;
+        g_poly_list_count = unique_count;
 
         int contained_count = 0;
-        for (unsigned long index = 0; index < g_poly_list_count_65be58; ++index) {
-            W8OctRegionPolygon* polygon =
-                static_cast<W8OctRegionPolygon*>(g_poly_list_65be64[index]);
+        for (unsigned long index = 0; index < g_poly_list_count; ++index) {
+            W8OctRegionPolygon* polygon = static_cast<W8OctRegionPolygon*>(g_poly_list[index]);
             if (polygon->region_32 == 0 &&
                 polygon->ContainsPoint004CFB30(&spatial->minimum_0c) != 0) {
                 ++contained_count;
@@ -1182,9 +1181,8 @@ void OctBuildPreTree::AssignInitialRegions(const W8OctSpatialState* spatial)
 
             m_pulRegPaths[region_path_count_f0++] = spatial->node_index_94;
 
-            for (unsigned long index = 0; index < g_poly_list_count_65be58; ++index) {
-                W8OctRegionPolygon* polygon =
-                    static_cast<W8OctRegionPolygon*>(g_poly_list_65be64[index]);
+            for (unsigned long index = 0; index < g_poly_list_count; ++index) {
+                W8OctRegionPolygon* polygon = static_cast<W8OctRegionPolygon*>(g_poly_list[index]);
                 if (polygon->region_32 == spatial_00.region_id_bound_58) {
                     for (int vertex_index = 0; vertex_index != 3; ++vertex_index) {
                         const srVector3T<float>& position =
@@ -1495,19 +1493,19 @@ void OctBuildPreTree::AssignRegionFromSurfaces(const W8OctSpatialState* spatial)
         return;
     }
 
-    g_poly_list_count_65be58 = 0;
+    g_poly_list_count = 0;
     node->CollectLinkedSurfaces(spatial_00.leaf_level_52, spatial_00.depth_44, 2);
 
     unsigned long unique_count = 0;
-    for (unsigned long source = 0; source < g_poly_list_count_65be58; ++source) {
+    for (unsigned long source = 0; source < g_poly_list_count; ++source) {
         bool present = false;
         for (unsigned long previous = 0; previous < source && !present; ++previous) {
-            if (g_poly_list_65be64[source] == g_poly_list_65be64[previous]) {
+            if (g_poly_list[source] == g_poly_list[previous]) {
                 present = true;
             }
         }
         if (!present) {
-            g_poly_list_65be64[unique_count++] = g_poly_list_65be64[source];
+            g_poly_list[unique_count++] = g_poly_list[source];
         }
     }
 
@@ -1516,8 +1514,7 @@ void OctBuildPreTree::AssignRegionFromSurfaces(const W8OctSpatialState* spatial)
     unsigned short selected_region = 0;
     unsigned short selected_count = 0;
     for (unsigned long index = 0; index < unique_count; ++index) {
-        unsigned short region =
-            static_cast<W8OctRegionPolygon*>(g_poly_list_65be64[index])->region_32;
+        unsigned short region = static_cast<W8OctRegionPolygon*>(g_poly_list[index])->region_32;
         short slot = 0;
         while (regions[slot] != 0 && regions[slot] != region) {
             ++slot;
@@ -1532,7 +1529,7 @@ void OctBuildPreTree::AssignRegionFromSurfaces(const W8OctSpatialState* spatial)
         }
     }
 
-    g_poly_list_count_65be58 = unique_count;
+    g_poly_list_count = unique_count;
     node->region_28 = selected_region;
     node->leaf_kind_2a = selected_count;
 }
@@ -1669,7 +1666,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
         ++particle_number;
         short particle_value = (short)particle_number;
         srVector3T<float> position;
-        position = particle.location * g_world_scale_005ebc40;
+        position = particle.location * g_world_scale;
 
         bool mapped = false;
         for (unsigned short region_index = 1; region_index < spatial_00.region_count_46;
@@ -1699,10 +1696,10 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
             srVector3T<float> extent;
             bool has_bounds = false;
             if (particle.bounds_mode == 1) {
-                extent = particle.bounds_extent * g_startup_near_limit_005ec000;
+                extent = particle.bounds_extent * g_startup_near_limit;
                 has_bounds = true;
             } else if (particle.bounds_mode == 2 && particle.bounds_radius > g_float_005ebb34) {
-                extent = particle.bounds_origin * g_world_scale_005ebc40;
+                extent = particle.bounds_origin * g_world_scale;
                 has_bounds = true;
             }
 
@@ -1803,9 +1800,9 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
 {
     if (finalize == 0) {
         overlap_region_map_130 = new W8HashTable<unsigned short, short>;
-        g_region_id_list_65be5c = static_cast<unsigned short*>(malloc(10000));
-        g_region_id_list_65be5c[0] = 0;
-        g_region_id_count_65be6c = 0;
+        g_region_id_list = static_cast<unsigned short*>(malloc(10000));
+        g_region_id_list[0] = 0;
+        g_region_id_count = 0;
     }
 
     for (int record_index = 0; record_index < record_count; ++record_index) {
@@ -1824,9 +1821,9 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
                     for (int y = 0; y != 2; ++y) {
                         for (int z = 0; z != 2; ++z) {
                             srVector3T<float> corner;
-                            corner.x = bounds[x].x * g_world_scale_005ebc40;
-                            corner.y = bounds[y].y * g_world_scale_005ebc40;
-                            corner.z = bounds[z].z * g_world_scale_005ebc40;
+                            corner.x = bounds[x].x * g_world_scale;
+                            corner.y = bounds[y].y * g_world_scale;
+                            corner.z = bounds[z].z * g_world_scale;
                             if (volume->ContainsPoint0049E460(&corner) != 0) {
                                 unsigned short region = volume->region_04;
                                 bool present = false;
@@ -1862,7 +1859,7 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
                 &record.anim_obj_53.pBoundBox[bounds_index].minimum_00;
             for (int endpoint = 0; endpoint != 2; ++endpoint) {
                 srVector3T<float> point;
-                point = bounds[endpoint] * g_world_scale_005ebc40;
+                point = bounds[endpoint] * g_world_scale;
                 for (int axis = 0; axis != 3; ++axis) {
                     if ((&point.x)[axis] < (&aggregate[0].x)[axis]) {
                         (&aggregate[0].x)[axis] = (&point.x)[axis];
@@ -1875,15 +1872,15 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
         }
 
         if (UpdateRegionForGeometry004B06E0(aggregate, value, 5) == 0 && !mapped) {
-            g_region_id_list_65be5c[g_region_id_count_65be6c++] = value;
+            g_region_id_list[g_region_id_count++] = value;
         }
     }
 
     if (finalize != 0) {
-        if (g_region_id_count_65be6c == 0) {
-            g_region_id_count_65be6c = 1;
+        if (g_region_id_count == 0) {
+            g_region_id_count = 1;
         } else {
-            g_region_id_list_65be5c[g_region_id_count_65be6c++] = 0;
+            g_region_id_list[g_region_id_count++] = 0;
         }
 
         unsigned long region_count = spatial_00.submesh_count_74;
@@ -1896,27 +1893,26 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
             bool first = true;
             while ((entry = overlap_region_map_130->FindNextEntry(&region, entry)) != -1) {
                 if (first) {
-                    mesh_prop_lookup_110[region_value] = g_region_id_count_65be6c;
+                    mesh_prop_lookup_110[region_value] = g_region_id_count;
                     first = false;
                 }
-                g_region_id_list_65be5c[g_region_id_count_65be6c++] =
+                g_region_id_list[g_region_id_count++] =
                     overlap_region_map_130->entries[entry].value;
             }
             if (!first) {
-                g_region_id_list_65be5c[g_region_id_count_65be6c++] = 0;
+                g_region_id_list[g_region_id_count++] = 0;
             }
         }
 
         mesh_props_114 =
-            static_cast<unsigned short*>(malloc(g_region_id_count_65be6c * sizeof(unsigned short)));
+            static_cast<unsigned short*>(malloc(g_region_id_count * sizeof(unsigned short)));
         if (mesh_props_114 != 0) {
-            memcpy(mesh_props_114, g_region_id_list_65be5c,
-                   g_region_id_count_65be6c * sizeof(unsigned short));
+            memcpy(mesh_props_114, g_region_id_list, g_region_id_count * sizeof(unsigned short));
         }
-        mesh_prop_count_118 = g_region_id_count_65be6c;
+        mesh_prop_count_118 = g_region_id_count;
         prop_count_120 = record_count + base_index;
         delete overlap_region_map_130;
-        free(g_region_id_list_65be5c);
+        free(g_region_id_list);
     }
     return 1;
 }
@@ -1933,12 +1929,11 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree()
     }
 
     tree->m_owned_09c = static_cast<W8OctPreTreeBranch*>(
-        malloc((g_build_node_instances_65be60 * 9 + 0x12) * sizeof(unsigned long)));
+        malloc((g_build_node_instances * 9 + 0x12) * sizeof(unsigned long)));
     if (tree->m_owned_09c == 0) {
         return 0;
     }
-    memset(tree->m_owned_09c, 0,
-           (g_build_node_instances_65be60 * 9 + 0x12) * sizeof(unsigned long));
+    memset(tree->m_owned_09c, 0, (g_build_node_instances * 9 + 0x12) * sizeof(unsigned long));
 
     tree->m_owned_0a0 =
         static_cast<W8OctPreTreeLeaf*>(malloc((leaf_count_a8 + 2) * sizeof(W8OctPreTreeLeaf)));
@@ -2067,7 +2062,7 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree()
 // FUNCTION: WIZ8 0x004afe90
 int GetValue65BE60(void)
 {
-    return g_build_node_instances_65be60;
+    return g_build_node_instances;
 }
 
 /* Two value specializations of the same 16-bit-key open hash table are

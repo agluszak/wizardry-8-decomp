@@ -23,11 +23,11 @@ float g_float_005ed168 = 0.01745329424738884f;
    into W8Quad, filled by CollectViewQuadCells and consumed by
    UpdateWorldMeshFromQuads. */
 // GLOBAL: WIZ8 0x0065BEB8
-long g_visible_quad_rows_0065beb8[20000];
+long g_visible_quad_rows[20000];
 // GLOBAL: WIZ8 0x0066F738
-long g_visible_quad_columns_0066f738[20000];
+long g_visible_quad_columns[20000];
 // GLOBAL: WIZ8 0x00682FB8
-long g_visible_quad_count_00682fb8;
+long g_visible_quad_count;
 
 static int ScanQuadTriangleBase(W8World* world, long x1, long y1, long x2, long y2, long x3,
                                 long y3, long* x_list, long* y_list, long* count);
@@ -323,13 +323,12 @@ void UpdateWorldMeshFromQuads(W8World* world)
     }
     srMeshModel* mesh = static_cast<srMeshModel*>(world->update_mesh_source->model());
     W8Quad* quad = world->m_owned_06c;
-    g_visible_quad_count_00682fb8 = 0;
-    CollectViewQuadCells(world, g_visible_quad_rows_0065beb8, g_visible_quad_columns_0066f738,
-                         &g_visible_quad_count_00682fb8);
+    g_visible_quad_count = 0;
+    CollectViewQuadCells(world, g_visible_quad_rows, g_visible_quad_columns, &g_visible_quad_count);
     long index;
-    for (index = 0; index < g_visible_quad_count_00682fb8; ++index) {
-        W8QuadCell* cell = &quad->rows[g_visible_quad_rows_0065beb8[index]]
-                                .cells[g_visible_quad_columns_0066f738[index]];
+    for (index = 0; index < g_visible_quad_count; ++index) {
+        W8QuadCell* cell =
+            &quad->rows[g_visible_quad_rows[index]].cells[g_visible_quad_columns[index]];
         if (cell != 0 && cell->polygon_indices != 0) {
             polygon_count += ILLength(cell->polygon_indices);
         }
@@ -337,9 +336,9 @@ void UpdateWorldMeshFromQuads(W8World* world)
     mesh->setActivePolygonCount(polygon_count);
     unsigned long* table = mesh->getActivePolygonTable(1);
     long offset = 0;
-    for (index = 0; index < g_visible_quad_count_00682fb8; ++index) {
-        W8QuadCell* cell = &quad->rows[g_visible_quad_rows_0065beb8[index]]
-                                .cells[g_visible_quad_columns_0066f738[index]];
+    for (index = 0; index < g_visible_quad_count; ++index) {
+        W8QuadCell* cell =
+            &quad->rows[g_visible_quad_rows[index]].cells[g_visible_quad_columns[index]];
         if (cell != 0 && (cell->polygon_indices != 0 || cell->objects != 0)) {
             long j;
             if (cell->objects != 0 && cell->dirty_stamp_08 < quad->dirty) {

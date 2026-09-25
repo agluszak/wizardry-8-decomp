@@ -61,10 +61,10 @@ enum { W8_SKILL_FIRST_REALM = 0x1c };
 
 /* Realm-name string ids for the spell-casting realm-button tooltips. */
 // GLOBAL: WIZ8 0x0064C840
-int g_spell_realm_help_string_ids_0064c840[6] = {0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c};
+int g_spell_realm_help_string_ids[6] = {0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c};
 
 // GLOBAL: WIZ8 0x0064C934
-const wchar_t g_format_s_parens_s_colon_d_0064c934[] = L"%s (%s: %d)";
+const wchar_t g_format_s_parens_s_colon_d[] = L"%s (%s: %d)";
 
 // GLOBAL: WIZ8 0x0069BF3C
 W8SpellCastingView* gpSCSV;
@@ -153,30 +153,24 @@ static void CreateSpellCastingViewControls(void)
     gpSCSV->realm_buttons[4]->m_primaryActivationCallback = SelectSpellRealm005A0360;
     gpSCSV->realm_buttons[5]->m_primaryActivationCallback = SelectSpellRealm005A0370;
 
-    gpSCSV->realm_icons[0] =
-        new W8TextControl(panel, -1, 0x55, 0xf, 0x67, 0x21, 0x193, 0,
-                          g_spell_realm_animations_00648c90[0].initial_frame, -1, -1, -1,
-                          g_spell_realm_animations_00648c90[0].frame_count);
-    gpSCSV->realm_icons[1] =
-        new W8TextControl(panel, -1, 0x73, 0xf, 0x85, 0x21, 0x194, 0,
-                          g_spell_realm_animations_00648c90[1].initial_frame, -1, -1, -1,
-                          g_spell_realm_animations_00648c90[1].frame_count);
-    gpSCSV->realm_icons[2] =
-        new W8TextControl(panel, -1, 0x49, 0x25, 0x5b, 0x37, 0x195, 0,
-                          g_spell_realm_animations_00648c90[2].initial_frame, -1, -1, -1,
-                          g_spell_realm_animations_00648c90[2].frame_count);
-    gpSCSV->realm_icons[3] =
-        new W8TextControl(panel, -1, 0x7f, 0x25, 0x91, 0x37, 0x196, 0,
-                          g_spell_realm_animations_00648c90[3].initial_frame, -1, -1, -1,
-                          g_spell_realm_animations_00648c90[3].frame_count);
-    gpSCSV->realm_icons[4] =
-        new W8TextControl(panel, -1, 0x55, 0x3b, 0x67, 0x4d, 0x197, 0,
-                          g_spell_realm_animations_00648c90[4].initial_frame, -1, -1, -1,
-                          g_spell_realm_animations_00648c90[4].frame_count);
-    gpSCSV->realm_icons[5] =
-        new W8TextControl(panel, -1, 0x73, 0x3b, 0x85, 0x4d, 0x198, 0,
-                          g_spell_realm_animations_00648c90[5].initial_frame, -1, -1, -1,
-                          g_spell_realm_animations_00648c90[5].frame_count);
+    gpSCSV->realm_icons[0] = new W8TextControl(panel, -1, 0x55, 0xf, 0x67, 0x21, 0x193, 0,
+                                               g_spell_realm_animations[0].initial_frame, -1, -1,
+                                               -1, g_spell_realm_animations[0].frame_count);
+    gpSCSV->realm_icons[1] = new W8TextControl(panel, -1, 0x73, 0xf, 0x85, 0x21, 0x194, 0,
+                                               g_spell_realm_animations[1].initial_frame, -1, -1,
+                                               -1, g_spell_realm_animations[1].frame_count);
+    gpSCSV->realm_icons[2] = new W8TextControl(panel, -1, 0x49, 0x25, 0x5b, 0x37, 0x195, 0,
+                                               g_spell_realm_animations[2].initial_frame, -1, -1,
+                                               -1, g_spell_realm_animations[2].frame_count);
+    gpSCSV->realm_icons[3] = new W8TextControl(panel, -1, 0x7f, 0x25, 0x91, 0x37, 0x196, 0,
+                                               g_spell_realm_animations[3].initial_frame, -1, -1,
+                                               -1, g_spell_realm_animations[3].frame_count);
+    gpSCSV->realm_icons[4] = new W8TextControl(panel, -1, 0x55, 0x3b, 0x67, 0x4d, 0x197, 0,
+                                               g_spell_realm_animations[4].initial_frame, -1, -1,
+                                               -1, g_spell_realm_animations[4].frame_count);
+    gpSCSV->realm_icons[5] = new W8TextControl(panel, -1, 0x73, 0x3b, 0x85, 0x4d, 0x198, 0,
+                                               g_spell_realm_animations[5].initial_frame, -1, -1,
+                                               -1, g_spell_realm_animations[5].frame_count);
 
     panel = gpSCSV->panels[2];
     gpSCSV->power_pips[0] =
@@ -300,7 +294,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     gpSCSV->location_id = -1;
     gpSCSV->interact_id = -1;
     CloseMainGameOverlays();
-    mode = g_settings_6850c8.main_ui_mode;
+    mode = g_settings.main_ui_mode;
     if (mode == W8_MAIN_UI_MODE_RADAR) {
         ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 0);
     } else {
@@ -413,13 +407,13 @@ void SelectSpellCastingCharacter(int party_slot)
 {
     int realm;
 
-    if (CharacterHasCastableSpell(&g_status_685170.buffers.Char[party_slot]) == 0 ||
+    if (CharacterHasCastableSpell(&g_status.buffers.Char[party_slot]) == 0 ||
         IsPartySlotEligible(party_slot) == 0) {
         ResetEditorStatusLine(-1);
         CloseSpellCastingView();
         return;
     }
-    gpSCSV->caster = &g_status_685170.buffers.Char[party_slot];
+    gpSCSV->caster = &g_status.buffers.Char[party_slot];
     BuildLearnedSpellState(&gpSCSV->learned, gpSCSV->caster);
     UpdateSpellRealmPointDisplays();
     gpSCSV->uiSpellToCast = 0;
@@ -430,10 +424,10 @@ void SelectSpellCastingCharacter(int party_slot)
     SelectSpellPowerLevel005A06F0(-1);
     gpSCSV->dialog_confirmed = false;
     UpdateSpellPowerPips();
-    SelectSpellCastingPartySlot(g_status_685170.selected_character);
+    SelectSpellCastingPartySlot(g_status.selected_character);
     RequestRedraw(0x200);
     if (GetAffordableSpellPowerLevel(party_slot) != 0) {
-        int spell_id = g_status_685170.buffers.XChar[party_slot].spell_id;
+        int spell_id = g_status.buffers.XChar[party_slot].spell_id;
         SelectSpellCastingRealm(g_spell_records[spell_id].realm);
         if (spell_id == 0x17) {
             gpSCSV->uiSpellIndex = -1;
@@ -447,8 +441,7 @@ void SelectSpellCastingCharacter(int party_slot)
         return;
     }
     if (gpSCSV->caster->sp_max[realm] == 0) {
-        gpSCSV->realm_icons[realm]->m_normalSprite =
-            g_spell_realm_animations_00648c90[realm].initial_frame;
+        gpSCSV->realm_icons[realm]->m_normalSprite = g_spell_realm_animations[realm].initial_frame;
         gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(0);
         gpSCSV->iSpellRealm = -1;
         ResetEditorStatusLine(-1);
@@ -469,7 +462,7 @@ static void UpdateSpellRealmPointDisplays(void)
         gpSCSV->realm_buttons[realm]->SetEnabled(has_realm);
         gpSCSV->realm_icons[realm]->SetEnabled(has_realm);
         gpSCSV->realm_buttons[realm]->m_textBuffer.SetText(
-            FormatWideString(g_format_d_slash_d_00614b58,
+            FormatWideString(g_format_d_slash_d,
                              GetCharacterRealmSpellPoints(gpSCSV->caster, realm),
                              gpSCSV->caster->sp_max[realm]),
             g_font_683660);
@@ -629,10 +622,9 @@ static void RebuildSpellCastingList(int spell_id)
                             ++gpSCSV->uiSpellsInList;
                             gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
                             gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = 4;
-                            swprintf(
-                                line, g_format_s_space_s_00617584,
-                                g_spell_target_parentheticals_60d4e0[GetSpellTargetType(id, 0)],
-                                spell->display_name);
+                            swprintf(line, g_format_s_space_s,
+                                     g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
+                                     spell->display_name);
                             ShowNotice(0xf, line, 2, -1, 0);
                             AppendTextBoxLine(
                                 FormatWideString(g_format_d_0060aa20, spell->spell_point_cost), 2);
@@ -643,10 +635,9 @@ static void RebuildSpellCastingList(int spell_id)
                             ++gpSCSV->uiSpellsInList;
                             gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
                             gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = 0xf;
-                            swprintf(
-                                line, g_format_s_space_s_00617584,
-                                g_spell_target_parentheticals_60d4e0[GetSpellTargetType(id, 0)],
-                                spell->display_name);
+                            swprintf(line, g_format_s_space_s,
+                                     g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
+                                     spell->display_name);
                             ShowNotice(0xf, line, 2, -1, 0);
                             AppendTextBoxLine(
                                 FormatWideString(g_format_d_0060aa20, spell->spell_point_cost), 2);
@@ -663,8 +654,8 @@ static void RebuildSpellCastingList(int spell_id)
                     ++gpSCSV->uiSpellsInList;
                     gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
                     gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = 0;
-                    swprintf(line, g_format_s_space_s_00617584,
-                             g_spell_target_parentheticals_60d4e0[GetSpellTargetType(id, 0)],
+                    swprintf(line, g_format_s_space_s,
+                             g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
                              spell->display_name);
                     ShowNotice(0xf, line, 2, -1, 0);
                     AppendTextBoxLine(
@@ -707,7 +698,7 @@ static void SetSpellListLineColor(int index, char color)
             }
         }
     }
-    line = &g_message_storage_68f2d8[2][index];
+    line = &g_message_storage[2][index];
     line->highlight_start = 2;
     length = wcslen(line->wString);
     line->highlight_color = color;
@@ -763,12 +754,11 @@ void BeginSpellCast(int spell_id, int location_id, int interact_id)
         EndNpcDialogueSession(0);
     }
     if (gXStatus.fSpellCastMode == 0) {
-        OpenSpellCastingView(g_status_685170.selected_character);
+        OpenSpellCastingView(g_status.selected_character);
     }
     gpSCSV->interact_id = interact_id;
     gpSCSV->location_id = location_id;
-    if (CanCharacterCastSpell(&g_status_685170.buffers.Char[g_status_685170.selected_character],
-                              spell_id) == 0) {
+    if (CanCharacterCastSpell(&g_status.buffers.Char[g_status.selected_character], spell_id) == 0) {
         return;
     }
     realm = -1;
@@ -891,14 +881,13 @@ static void SelectSpellCastingRealm(int realm)
     if (previous != realm) {
         if (previous != -1) {
             gpSCSV->realm_icons[previous]->m_normalSprite =
-                g_spell_realm_animations_00648c90[previous].initial_frame;
+                g_spell_realm_animations[previous].initial_frame;
             gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(0);
             gpSCSV->realm_buttons[gpSCSV->iSpellRealm]->DisableSecondaryState(0);
             gpSCSV->realm_buttons[gpSCSV->iSpellRealm]->Invalidate(0);
         }
         gpSCSV->iSpellRealm = realm;
-        gpSCSV->realm_anim_frame =
-            g_spell_realm_animations_00648c90[gpSCSV->iSpellRealm].initial_frame;
+        gpSCSV->realm_anim_frame = g_spell_realm_animations[gpSCSV->iSpellRealm].initial_frame;
         gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(0);
         gpSCSV->realm_anim_timer = SetCountdownClock(0x32);
         RebuildSpellCastingList(0);
@@ -910,7 +899,7 @@ static void SelectSpellCastingRealm(int realm)
         SelectSpellPowerLevel005A06F0(-1);
         gpSCSV->dialog_confirmed = false;
         UpdateSpellPowerPips();
-        SelectSpellCastingPartySlot(g_status_685170.selected_character);
+        SelectSpellCastingPartySlot(g_status.selected_character);
         RequestRedraw(0x200);
     }
     if (realm != -1) {
@@ -1128,7 +1117,7 @@ void SpellCastingDialogResult(W8DialogBase* dialog)
     SelectSpellPowerLevel005A06F0(-1);
     gpSCSV->dialog_confirmed = false;
     UpdateSpellPowerPips();
-    SelectSpellCastingPartySlot(g_status_685170.selected_character);
+    SelectSpellCastingPartySlot(g_status.selected_character);
     RequestRedraw(0x200);
     SetSpellListLineColor(index, -1);
 }
@@ -1140,7 +1129,7 @@ void ResetSpellCastingSelection(void)
         ResetEditorStatusLine(-1);
     }
     CloseSpellCastingView();
-    ClearSlotTargeting(g_status_685170.selected_character);
+    ClearSlotTargeting(g_status.selected_character);
 }
 
 /* Per-frame spell-casting pump: advances the selected realm's icon animation
@@ -1152,7 +1141,7 @@ void CommitSpellCastingSelection(void)
         if (ClockIsTicking(gpSCSV->realm_anim_timer) == 0) {
             ++gpSCSV->realm_anim_frame;
             if (gpSCSV->realm_anim_frame ==
-                g_spell_realm_animations_00648c90[gpSCSV->iSpellRealm].frame_count) {
+                g_spell_realm_animations[gpSCSV->iSpellRealm].frame_count) {
                 gpSCSV->realm_anim_frame = 0;
             }
             gpSCSV->realm_icons[gpSCSV->iSpellRealm]->m_normalSprite = gpSCSV->realm_anim_frame;
@@ -1197,13 +1186,12 @@ unsigned char SpellRealmButtonRegionEvent(const InputAtom* event, W8Region* regi
             unsigned int realm = region->callback_id;
             gpSCSV->realm_buttons[realm]->OnMouseEnter(0);
             if (gpSCSV->realm_buttons[realm]->m_enabled == 0) {
-                SetRegionHelpText(gppStringList[g_spell_realm_help_string_ids_0064c840[realm]]);
+                SetRegionHelpText(gppStringList[g_spell_realm_help_string_ids[realm]]);
             } else {
                 SetRegionHelpText(FormatWideString(
-                    g_format_s_parens_s_colon_d_0064c934,
-                    gppStringList[g_spell_realm_help_string_ids_0064c840[realm]],
-                    gppStringList[0xb4 / 4],
-                    g_status_685170.buffers.Char[g_status_685170.selected_character]
+                    g_format_s_parens_s_colon_d,
+                    gppStringList[g_spell_realm_help_string_ids[realm]], gppStringList[0xb4 / 4],
+                    g_status.buffers.Char[g_status.selected_character]
                         .skills[W8_SKILL_FIRST_REALM + realm]
                         .level));
             }
@@ -1273,13 +1261,13 @@ unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event, W8Region* regi
     W8SpellInfoDialog* dialog;
     int line;
 
-    if (g_status_685170.selected_character == -1) {
+    if (g_status.selected_character == -1) {
         return 0;
     }
     if (gpSCSV->iSpellRealm == -1) {
         return 0;
     }
-    line = g_level_block->text_lines[g_status_685170.text_line_cursor_1795] +
+    line = g_level_block->text_lines[g_status.text_line_cursor_1795] +
            (GetAtomCursorY(event) - region->y1) / 0xb;
     if (line >= static_cast<int>(gpSCSV->uiSpellsInList) || line < -1) {
         line = -1;
@@ -1317,7 +1305,7 @@ unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event, W8Region* regi
         if (line == -1) {
             return 1;
         }
-        g_saved_target_cursor_0069bf30 = gXStatus.iCurrentCursor;
+        g_saved_target_cursor = gXStatus.iCurrentCursor;
         dialog = new W8SpellInfoDialog(gpSCSV->uiSpells[line]);
         dialog->SetText(&g_wchar_00689b34);
         dialog->m_destroy_callback = RestoreTargetCursor;
@@ -1363,10 +1351,9 @@ static void SelectSpellCastingListRow(int index)
         gpSCSV->uiSpellIndex = -1;
         ConfigureSpellTargetFilter(-1, 0);
         ShowSpellCastingError(spell_id);
-        QueueCharacterEvent(&g_status_685170.buffers.Char[g_status_685170.selected_character],
-                            g_character_event_kind_005ee65c, 0,
-                            g_character_event_flags_mask_005ed8e4 | g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+        QueueCharacterEvent(
+            &g_status.buffers.Char[g_status.selected_character], g_character_event_kind_005ee65c, 0,
+            g_character_event_flags_mask | g_effect_argument_005ed8c8, g_effect_argument_005ed914);
         return;
     }
     SetSpellListLineColor(gpSCSV->uiSpellIndex, 3);
@@ -1375,9 +1362,8 @@ static void SelectSpellCastingListRow(int index)
         srAssertFail("iSpellPowerClass != BAD_INDEX", SPELLCASTING_CPP, 0x834, 0);
     }
     cost = g_spell_records[spell_id].spell_point_cost;
-    levels = GetCharacterRealmSpellPoints(
-                 &g_status_685170.buffers.Char[g_status_685170.selected_character],
-                 g_spell_records[spell_id].realm) /
+    levels = GetCharacterRealmSpellPoints(&g_status.buffers.Char[g_status.selected_character],
+                                          g_spell_records[spell_id].realm) /
              cost;
     ClampUnsignedInteger(&levels, 0, 7);
     if (levels == 0) {
@@ -1423,12 +1409,11 @@ static void TryCommitSpellCast(void)
     ready = false;
     if (gpSCSV->uiSpellToCast != 0 &&
         (gpSCSV->iSpellPower != -1 || gpSCSV->iSpellPowerClass == 3)) {
-        ready = IsSpellTargetOfNeededKind(g_status_685170.selected_character,
-                                          gpSCSV->uiSpellToCast) != 0;
+        ready = IsSpellTargetOfNeededKind(g_status.selected_character, gpSCSV->uiSpellToCast) != 0;
     }
     if (gpSCSV->uiSpellToCast == 0x4b && gpSCSV->dialog_confirmed == 0) {
         if (IsModalOpen() == 0 &&
-            g_status_685170.buffers.Char[g_status_685170.selected_character].has_saved_location) {
+            g_status.buffers.Char[g_status.selected_character].has_saved_location) {
             ShowMainGameNoticeLine(gppStringList[0x7a4], SpellCastingDialogResult, 1, 1);
         }
     } else if (gpSCSV->uiSpellToCast == 0x49 && gpSCSV->dialog_confirmed == 0 &&

@@ -23,7 +23,7 @@ public:
     {
         switch (m_clock_mode) {
         case 1:
-            return (g_status_685170.game_time_days * 86400000 + g_status_685170.game_time_ms) * 10;
+            return (g_status.game_time_days * 86400000 + g_status.game_time_ms) * 10;
         }
         if ((m_flags & 1) == 0) {
             if (g_shared_timer_paused != 0) {

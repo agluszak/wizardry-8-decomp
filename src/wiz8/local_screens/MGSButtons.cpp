@@ -131,7 +131,7 @@ void SubMenuSelectAttack(void)
 {
     int index;
 
-    ChooseAction(g_status_685170.selected_character, W8_ACTION_ATTACK, -1, 0, 0, 1);
+    ChooseAction(g_status.selected_character, W8_ACTION_ATTACK, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
@@ -156,7 +156,7 @@ void SubMenuSelectBerserk(void)
 {
     int index;
 
-    ChooseAction(g_status_685170.selected_character, W8_ACTION_BERSERK, -1, 0, 0, 1);
+    ChooseAction(g_status.selected_character, W8_ACTION_BERSERK, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
@@ -181,7 +181,7 @@ void SubMenuSelectBreathe(void)
 {
     int index;
 
-    ChooseAction(g_status_685170.selected_character, W8_ACTION_BREATHE, -1, 0, 0, 1);
+    ChooseAction(g_status.selected_character, W8_ACTION_BREATHE, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
@@ -206,7 +206,7 @@ void SubMenuSelectTurnUndead(void)
 {
     int index;
 
-    ChooseAction(g_status_685170.selected_character, W8_ACTION_TURN_UNDEAD, -1, 0, 0, 1);
+    ChooseAction(g_status.selected_character, W8_ACTION_TURN_UNDEAD, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
@@ -231,7 +231,7 @@ void SubMenuSelectPray(void)
 {
     int index;
 
-    ChooseAction(g_status_685170.selected_character, W8_ACTION_PRAY, -1, 0, 0, 1);
+    ChooseAction(g_status.selected_character, W8_ACTION_PRAY, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
@@ -256,7 +256,7 @@ void SubMenuSelectDefend(void)
 {
     int index;
 
-    ChooseAction(g_status_685170.selected_character, W8_ACTION_DEFEND, -1, 0, 0, 1);
+    ChooseAction(g_status.selected_character, W8_ACTION_DEFEND, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
@@ -281,7 +281,7 @@ void SubMenuSelectProtect(void)
 {
     int index;
 
-    ChooseAction(g_status_685170.selected_character, W8_ACTION_PROTECT, -1, 0, 0, 1);
+    ChooseAction(g_status.selected_character, W8_ACTION_PROTECT, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
@@ -306,7 +306,7 @@ void SubMenuSelectEquip(void)
 {
     int index;
 
-    ChooseAction(g_status_685170.selected_character, W8_ACTION_EQUIP, -1, 0, 0, 1);
+    ChooseAction(g_status.selected_character, W8_ACTION_EQUIP, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
@@ -347,7 +347,7 @@ void SubMenuOpenUseItemView(void)
         }
     }
     RequestRedraw(0x200);
-    OpenUseItemSelectView(g_status_685170.selected_character);
+    OpenUseItemSelectView(g_status.selected_character);
 }
 
 // FUNCTION: WIZ8 0x005969D0
@@ -371,7 +371,7 @@ void SubMenuUseRecordedItem(void)
         }
     }
     RequestRedraw(0x200);
-    StartCharacterItemUse(g_status_685170.selected_character);
+    StartCharacterItemUse(g_status.selected_character);
 }
 
 // FUNCTION: WIZ8 0x00596A60
@@ -395,7 +395,7 @@ void SubMenuOpenSpellView(void)
         }
     }
     RequestRedraw(0x200);
-    OpenSpellCastingView(g_status_685170.selected_character);
+    OpenSpellCastingView(g_status.selected_character);
 }
 
 // FUNCTION: WIZ8 0x00596AF0
@@ -419,7 +419,7 @@ void SubMenuCastRecordedSpell(void)
         }
     }
     RequestRedraw(0x200);
-    StartCharacterSpellCast(g_status_685170.selected_character, 0);
+    StartCharacterSpellCast(g_status.selected_character, 0);
 }
 
 // FUNCTION: WIZ8 0x00596B90
@@ -430,7 +430,7 @@ void SubMenuSelectRun(void)
     if (AnyCharacterEngaged() == 0) {
         return;
     }
-    ChooseAction(g_status_685170.selected_character, W8_ACTION_RUN, -1, 0, 0, 1);
+    ChooseAction(g_status.selected_character, W8_ACTION_RUN, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
@@ -458,7 +458,7 @@ void SubMenuSelectWalk(void)
     if (AnyCharacterEngaged() == 0) {
         return;
     }
-    ChooseAction(g_status_685170.selected_character, W8_ACTION_WALK, -1, 0, 0, 1);
+    ChooseAction(g_status.selected_character, W8_ACTION_WALK, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
@@ -524,8 +524,8 @@ unsigned char CreateSubMenuScrollButtons(void)
                                                   4, 5, 6, 6, SubMenuScrollArrowDown, 0, 0, 0x7f,
                                                   0x4c, 0, 0);
     for (i = 0; i < 2; ++i) {
-        g_submenu_scroll_buttons_69b858[i]->SetPosition(g_scroll_button_positions_64c330[i][0],
-                                                        g_scroll_button_positions_64c330[i][1]);
+        g_submenu_scroll_buttons_69b858[i]->SetPosition(g_scroll_button_positions[i][0],
+                                                        g_scroll_button_positions[i][1]);
         g_submenu_scroll_buttons_69b858[i]->m_owner_040 = 0;
     }
     return 1;
@@ -606,16 +606,14 @@ unsigned char CreateSubMenuPanelButtons(void)
             return 0;
         }
     }
-    g_submenu_panel_buttons_69b860[0]->Configure(g_submenu_icons_path_64c238, 0x21, 0x1e, 0x1f,
-                                                 0x20, 0x22, SubMenuPanelCloseButton, 0, 0, 0x7f,
-                                                 0x4d, 0, 0);
-    g_submenu_panel_buttons_69b860[1]->Configure(g_submenu_icons_path_64c238, 0x26, 0x23, 0x24,
-                                                 0x25, 0x27, SubMenuPanelFormationButton, 0, 1,
-                                                 0x7f, 0x4e, 0, 0);
+    g_submenu_panel_buttons_69b860[0]->Configure(g_submenu_icons_path, 0x21, 0x1e, 0x1f, 0x20, 0x22,
+                                                 SubMenuPanelCloseButton, 0, 0, 0x7f, 0x4d, 0, 0);
+    g_submenu_panel_buttons_69b860[1]->Configure(g_submenu_icons_path, 0x26, 0x23, 0x24, 0x25, 0x27,
+                                                 SubMenuPanelFormationButton, 0, 1, 0x7f, 0x4e, 0,
+                                                 0);
     for (index = 0; index < 2; ++index) {
         g_submenu_panel_buttons_69b860[index]->SetPosition(
-            g_submenu_panel_button_positions_64c378[index][0],
-            g_submenu_panel_button_positions_64c378[index][1]);
+            g_submenu_panel_button_positions[index][0], g_submenu_panel_button_positions[index][1]);
         g_submenu_panel_buttons_69b860[index]->m_owner_040 = 0;
     }
     return 1;
@@ -637,10 +635,10 @@ unsigned char CreateOptionsDiskButton(void)
     if (g_options_disk_button_69b8e4 == 0) {
         return 0;
     }
-    g_options_disk_button_69b8e4->Configure(g_options_disk_path_64c388, 3, 0, 1, 2, 2,
+    g_options_disk_button_69b8e4->Configure(g_options_disk_path, 3, 0, 1, 2, 2,
                                             MainGameOptionsDiskButton, 0, 0, 0x7f, 0x41, 0, 0);
-    g_options_disk_button_69b8e4->SetPosition(g_options_disk_position_64c3b0[0],
-                                              g_options_disk_position_64c3b0[1]);
+    g_options_disk_button_69b8e4->SetPosition(g_options_disk_position[0],
+                                              g_options_disk_position[1]);
     g_options_disk_button_69b8e4->m_owner_040 = 0;
     return 1;
 }
@@ -683,7 +681,7 @@ void UpdateCombatStanceButtons(void)
         return;
     }
 
-    if (g_settings_6850c8.continuous_combat == 0) {
+    if (g_settings.continuous_combat == 0) {
         stance = g_combat_state->combat_over_000 != 0 ? 3U : 0U;
     } else if ((ClockIsTicking(g_combat_state->combat_ui_timer_7a8) == 0 &&
                 CombatMayAdvanceContinuously() != 0) ||
@@ -732,7 +730,7 @@ void MainGameCombatConfirmButton(W8DialogButton* button)
         return;
     }
     BeginCombatExecution();
-    if (g_settings_6850c8.continuous_combat == 0) {
+    if (g_settings.continuous_combat == 0) {
         return;
     }
     if (ClockIsTicking(g_combat_state->combat_ui_timer_7a8) == 0) {
@@ -766,24 +764,24 @@ unsigned char CreateCombatStanceButtons(void)
             return 0;
         }
     }
-    g_combat_stance_buttons_69b89c[0]->Configure(g_attack_confirm_path_64c3b8, 3, 0, 1, 2, 2,
+    g_combat_stance_buttons_69b89c[0]->Configure(g_attack_confirm_path, 3, 0, 1, 2, 2,
                                                  MainGameCombatConfirmButton, 0, 0, 0x7f, 0x4f,
                                                  MainGameCombatStanceSecondary, 0);
-    g_combat_stance_buttons_69b89c[1]->Configure(g_combat_stop_path_64c3e0, 3, 0, 1, 2, 2,
+    g_combat_stance_buttons_69b89c[1]->Configure(g_combat_stop_path, 3, 0, 1, 2, 2,
                                                  MainGameCombatConfirmButton, 0, 0, 0x7f, 0x50,
                                                  MainGameCombatStanceSecondary, 0);
-    g_combat_stance_buttons_69b89c[2]->Configure(g_cont_start_path_64c404, 3, 0, 1, 2, 2,
+    g_combat_stance_buttons_69b89c[2]->Configure(g_cont_start_path, 3, 0, 1, 2, 2,
                                                  MainGameCombatConfirmButton, 0, 0, 0x7f, 0x4f,
                                                  MainGameCombatStanceSecondary, 0);
-    g_combat_stance_buttons_69b89c[3]->Configure(g_cont_toggle_path_64c428, 3, 0, 1, 2, 2,
+    g_combat_stance_buttons_69b89c[3]->Configure(g_cont_toggle_path, 3, 0, 1, 2, 2,
                                                  MainGameCombatConfirmButton, 0, 0, 0x7f, 0x51,
                                                  MainGameCombatStanceSecondary, 0);
-    g_combat_stance_buttons_69b89c[4]->Configure(g_cont_pending_path_64c44c, 3, 0, 1, 2, 2,
+    g_combat_stance_buttons_69b89c[4]->Configure(g_cont_pending_path, 3, 0, 1, 2, 2,
                                                  MainGameCombatConfirmButton, 0, 0, 0x7f, 0x50,
                                                  MainGameCombatStanceSecondary, 0);
     for (index = 0; index < 5; ++index) {
-        g_combat_stance_buttons_69b89c[index]->SetPosition(
-            g_combat_stance_positions_64c478[index][0], g_combat_stance_positions_64c478[index][1]);
+        g_combat_stance_buttons_69b89c[index]->SetPosition(g_combat_stance_positions[index][0],
+                                                           g_combat_stance_positions[index][1]);
         g_combat_stance_buttons_69b89c[index]->m_owner_040 = 0;
     }
     return 1;
@@ -827,22 +825,22 @@ unsigned char CreateRoofButtons(void)
             return 0;
         }
     }
-    g_roof_buttons_69b8d8[0]->Configure(g_roof_buttons_path_64c4a0, 9, 0, 6, 3, 6,
-                                        MainGameRoofButton0, 0, 1, 0x7f, 0x38, 0, 0);
-    g_roof_buttons_69b8d8[1]->Configure(g_roof_buttons_path_64c4a0, 10, 1, 7, 4, 7,
-                                        MainGameRoofButton1, 0, 1, 0x7f, 0x39, 0, 0);
-    g_roof_buttons_69b8d8[2]->Configure(g_roof_buttons_path_64c4a0, 0xb, 2, 8, 5, 8,
-                                        MainGameRoofButton2, 0, 1, 0x7f, 0x3a, 0, 0);
-    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+    g_roof_buttons_69b8d8[0]->Configure(g_roof_buttons_path, 9, 0, 6, 3, 6, MainGameRoofButton0, 0,
+                                        1, 0x7f, 0x38, 0, 0);
+    g_roof_buttons_69b8d8[1]->Configure(g_roof_buttons_path, 10, 1, 7, 4, 7, MainGameRoofButton1, 0,
+                                        1, 0x7f, 0x39, 0, 0);
+    g_roof_buttons_69b8d8[2]->Configure(g_roof_buttons_path, 0xb, 2, 8, 5, 8, MainGameRoofButton2,
+                                        0, 1, 0x7f, 0x3a, 0, 0);
+    if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
         g_roof_buttons_69b8d8[0]->SetPressed(1);
-    } else if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
+    } else if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
         g_roof_buttons_69b8d8[1]->SetPressed(1);
-    } else if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+    } else if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
         g_roof_buttons_69b8d8[2]->SetPressed(1);
     }
     for (index = 0; index < 3; ++index) {
-        g_roof_buttons_69b8d8[index]->SetPosition(g_roof_button_positions_64c4d0[index][0],
-                                                  g_roof_button_positions_64c4d0[index][1]);
+        g_roof_buttons_69b8d8[index]->SetPosition(g_roof_button_positions[index][0],
+                                                  g_roof_button_positions[index][1]);
         g_roof_buttons_69b8d8[index]->m_owner_040 = 0;
     }
     return 1;
@@ -895,12 +893,12 @@ void UpdateRoofButtons(void)
     }
 }
 
-/* Mirror g_settings_6850c8.main_ui_mode onto the three roof buttons' pressed
+/* Mirror g_settings.main_ui_mode onto the three roof buttons' pressed
    state (portraits / formation / radar). */
 // FUNCTION: WIZ8 0x00598150
 void SyncRoofButtonPressedState(void)
 {
-    if (g_settings_6850c8.main_ui_mode == 0) {
+    if (g_settings.main_ui_mode == 0) {
         if (g_roof_buttons_69b8d8[0]->IsPressed() == 0) {
             g_roof_buttons_69b8d8[0]->SetPressed(1);
         }
@@ -910,7 +908,7 @@ void SyncRoofButtonPressedState(void)
         if (g_roof_buttons_69b8d8[2]->IsPressed() != 0) {
             g_roof_buttons_69b8d8[2]->SetPressed(0);
         }
-    } else if (g_settings_6850c8.main_ui_mode == 1) {
+    } else if (g_settings.main_ui_mode == 1) {
         if (g_roof_buttons_69b8d8[1]->IsPressed() == 0) {
             g_roof_buttons_69b8d8[1]->SetPressed(1);
         }
@@ -920,7 +918,7 @@ void SyncRoofButtonPressedState(void)
         if (g_roof_buttons_69b8d8[2]->IsPressed() != 0) {
             g_roof_buttons_69b8d8[2]->SetPressed(0);
         }
-    } else if (g_settings_6850c8.main_ui_mode == 2) {
+    } else if (g_settings.main_ui_mode == 2) {
         if (g_roof_buttons_69b8d8[2]->IsPressed() == 0) {
             g_roof_buttons_69b8d8[2]->SetPressed(1);
         }
@@ -942,14 +940,14 @@ void MainGameLayoutRadarButton(W8DialogButton* button)
             ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
             return;
         }
-        g_settings_6850c8.formation_radar_map_preference = 0;
+        g_settings.formation_radar_map_preference = 0;
         SetRadarMapVisible(0);
         return;
     }
-    g_settings_6850c8.formation_radar_map_preference = 1;
-    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
-        g_settings_6850c8.formation_action_panel_preference = 0;
-        g_settings_6850c8.formation_board_preference = 0;
+    g_settings.formation_radar_map_preference = 1;
+    if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+        g_settings.formation_action_panel_preference = 0;
+        g_settings.formation_board_preference = 0;
         ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
         return;
     }
@@ -960,34 +958,34 @@ void MainGameLayoutRadarButton(W8DialogButton* button)
 void MainGameLayoutActionPanelButton(W8DialogButton* button)
 {
     if (g_level_block->action_panel_visible != 0) {
-        if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
+        if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
             if (g_level_block->radar_map_visible == 0 &&
                 g_level_block->formation_board_visible == 0) {
                 ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
             }
-            g_settings_6850c8.formation_action_panel_preference = 0;
+            g_settings.formation_action_panel_preference = 0;
             SetActionPanelVisible(0);
             return;
         }
-        if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
-            g_settings_6850c8.portraits_action_panel_preference = 0;
+        if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+            g_settings.portraits_action_panel_preference = 0;
         }
         SetActionPanelVisible(0);
         return;
     }
-    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
-        g_settings_6850c8.formation_radar_map_preference = 0;
-        g_settings_6850c8.formation_action_panel_preference = 1;
-        g_settings_6850c8.formation_board_preference = 0;
+    if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+        g_settings.formation_radar_map_preference = 0;
+        g_settings.formation_action_panel_preference = 1;
+        g_settings.formation_board_preference = 0;
         ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
         return;
     }
-    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
-        g_settings_6850c8.portraits_action_panel_preference = 1;
+    if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+        g_settings.portraits_action_panel_preference = 1;
         SetActionPanelVisible(1);
         return;
     }
-    g_settings_6850c8.formation_action_panel_preference = 1;
+    g_settings.formation_action_panel_preference = 1;
     SetActionPanelVisible(1);
 }
 
@@ -999,14 +997,14 @@ void MainGameLayoutFormationButton(W8DialogButton* button)
             ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
             return;
         }
-        g_settings_6850c8.formation_board_preference = 0;
+        g_settings.formation_board_preference = 0;
         SetFormationBoardVisible(0);
         return;
     }
-    g_settings_6850c8.formation_board_preference = 1;
-    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
-        g_settings_6850c8.formation_radar_map_preference = 0;
-        g_settings_6850c8.formation_action_panel_preference = 0;
+    g_settings.formation_board_preference = 1;
+    if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+        g_settings.formation_radar_map_preference = 0;
+        g_settings.formation_action_panel_preference = 0;
         ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
         return;
     }
@@ -1038,7 +1036,7 @@ void RedrawLayoutArrowButtons(void)
         return;
     }
 
-    enabled = g_settings_6850c8.main_ui_mode != 0;
+    enabled = g_settings.main_ui_mode != 0;
     if (enabled) {
         g_layout_arrow_buttons_69b884[0]->SetEnabled(1);
     } else {
@@ -1096,25 +1094,25 @@ unsigned char CreateLayoutArrowButtons(void)
             return 0;
         }
     }
-    g_layout_arrow_buttons_69b884[0]->Configure(g_layout_arrows_path_64c4e8, 6, 0, 1, -1, 2,
+    g_layout_arrow_buttons_69b884[0]->Configure(g_layout_arrows_path, 6, 0, 1, -1, 2,
                                                 MainGameLayoutRadarButton, 0, 0, 0x7f, 0x3e, 0, 0);
-    g_layout_arrow_buttons_69b884[1]->Configure(g_layout_arrows_path_64c4e8, 0xe, 8, 9, -1, 10,
+    g_layout_arrow_buttons_69b884[1]->Configure(g_layout_arrows_path, 0xe, 8, 9, -1, 10,
                                                 MainGameLayoutActionPanelButton, 0, 0, 0x7f, 0x3f,
                                                 0, 0);
-    g_layout_arrow_buttons_69b884[2]->Configure(g_layout_arrows_path_64c4e8, 0x16, 0x10, 0x11, -1,
-                                                0x12, MainGameLayoutFormationButton, 0, 0, 0x7f,
-                                                0x40, 0, 0);
-    g_layout_arrow_buttons_69b884[3]->Configure(g_layout_arrows_path_64c4e8, 7, 3, 4, -1, 5,
+    g_layout_arrow_buttons_69b884[2]->Configure(g_layout_arrows_path, 0x16, 0x10, 0x11, -1, 0x12,
+                                                MainGameLayoutFormationButton, 0, 0, 0x7f, 0x40, 0,
+                                                0);
+    g_layout_arrow_buttons_69b884[3]->Configure(g_layout_arrows_path, 7, 3, 4, -1, 5,
                                                 MainGameLayoutRadarButton, 0, 0, 0x7f, 0x3b, 0, 0);
-    g_layout_arrow_buttons_69b884[4]->Configure(g_layout_arrows_path_64c4e8, 0xf, 0xb, 0xc, -1, 0xd,
+    g_layout_arrow_buttons_69b884[4]->Configure(g_layout_arrows_path, 0xf, 0xb, 0xc, -1, 0xd,
                                                 MainGameLayoutActionPanelButton, 0, 0, 0x7f, 0x3c,
                                                 0, 0);
-    g_layout_arrow_buttons_69b884[5]->Configure(g_layout_arrows_path_64c4e8, 0x17, 0x13, 0x14, -1,
-                                                0x15, MainGameLayoutFormationButton, 0, 0, 0x7f,
-                                                0x3d, 0, 0);
+    g_layout_arrow_buttons_69b884[5]->Configure(g_layout_arrows_path, 0x17, 0x13, 0x14, -1, 0x15,
+                                                MainGameLayoutFormationButton, 0, 0, 0x7f, 0x3d, 0,
+                                                0);
     for (index = 0; index < 6; ++index) {
-        g_layout_arrow_buttons_69b884[index]->SetPosition(
-            g_layout_arrow_positions_64c518[index][0], g_layout_arrow_positions_64c518[index][1]);
+        g_layout_arrow_buttons_69b884[index]->SetPosition(g_layout_arrow_positions[index][0],
+                                                          g_layout_arrow_positions[index][1]);
         g_layout_arrow_buttons_69b884[index]->m_owner_040 = 0;
     }
     return 1;
@@ -1314,15 +1312,15 @@ unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region)
         if (g_level_block->combat_end_notification == 3 &&
             g_submenu_entries_69b868[region->callback_id] == 2) {
             SetRegionHelpForceEnabled(1);
-            slot = g_status_685170.selected_character;
+            slot = g_status.selected_character;
             if (CanPartySlotUseRecordedItem(slot) == 0) {
                 SetRegionHelpText(gppStringList[0x174 / 4]);
             } else {
-                party_row = &g_status_685170.buffers.XChar[slot];
+                party_row = &g_status.buffers.XChar[slot];
                 item = FindCharacterItemAt(slot, party_row->item_origin, party_row->item_slot);
                 name = FormatItemDisplayName(item, 0);
                 SetRegionHelpText(
-                    FormatWideString(g_format_s_colon_s_0061c3e0, gppStringList[0x174 / 4], name));
+                    FormatWideString(g_format_s_colon_s, gppStringList[0x174 / 4], name));
             }
         }
         g_submenu_rows_69b8ec[region->callback_id]->OnMouseEnter(0);
@@ -1347,26 +1345,25 @@ void DrawSubMenuCharacterAction(void)
     INT16 separator;
     INT16 trailing;
 
-    slot = (unsigned short)g_status_685170.selected_character;
+    slot = static_cast<unsigned short>(g_status.selected_character);
     if (slot > 7) {
         return;
     }
-    SetFont(g_smfnt_font_683694);
-    row = &g_status_685170.buffers.XChar[slot];
-    SetFontObjectPalette16BPP(g_smfnt_font_683694,
-                              g_font_state_palettes_68ee1c[row->party_order_index]);
+    SetFont(g_smfnt_font);
+    row = &g_status.buffers.XChar[slot];
+    SetFontObjectPalette16BPP(g_smfnt_font, g_font_state_palettes[row->party_order_index]);
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 6, 0x157, 0x1c2, 2, 0);
-    character = &g_status_685170.buffers.Char[slot];
+    character = &g_status.buffers.Char[slot];
     swprintf(text, L"%s - %s", character->name,
-             gppStringList[g_profession_name_message_ids_61e3f0[character->iProfession]]);
-    gprintf((0xb9 - StringPixLength((UINT16*)text, g_smfnt_font_683694)) / 2 + 0x157, 0x1c6,
+             gppStringList[g_profession_name_message_ids[character->iProfession]]);
+    // c-style-cast-ok: SGP spells wide text UINT16*, the historical ABI boundary
+    gprintf((0xb9 - StringPixLength((UINT16*)text, g_smfnt_font)) / 2 + 0x157, 0x1c6,
             (UINT16*)g_format_s_006068e4, text);
     if (gXStatus.fCombatMode != 1) {
         if (character->highest_condition == 0) {
             return;
         }
-        swprintf(text, L"%s",
-                 gppStringList[g_condition_notices_0061E570[character->highest_condition * 4]]);
+        swprintf(text, L"%s", gppStringList[g_condition_notices[character->highest_condition * 4]]);
     } else {
         action = row->action_03d;
         switch (action) {
@@ -1396,9 +1393,12 @@ void DrawSubMenuCharacterAction(void)
                 if (character->Hand[0].in_play == 0) {
                     wcscat(text, second);
                 } else {
-                    width = StringPixLength((UINT16*)text, g_smfnt_font_683694);
-                    separator = StringPixLength((UINT16*)L"/)", g_smfnt_font_683694);
-                    trailing = StringPixLength((UINT16*)second, g_smfnt_font_683694);
+                    // c-style-cast-ok: SGP spells wide text UINT16*, the historical ABI boundary
+                    width = StringPixLength((UINT16*)text, g_smfnt_font);
+                    // c-style-cast-ok: SGP spells wide text UINT16*, the historical ABI boundary
+                    separator = StringPixLength((UINT16*)L"/)", g_smfnt_font);
+                    // c-style-cast-ok: SGP spells wide text UINT16*, the historical ABI boundary
+                    trailing = StringPixLength((UINT16*)second, g_smfnt_font);
                     if ((unsigned int)(trailing + width + separator) < 0xb9) {
                         wcscat(text, L"/");
                         wcscat(text, second);
@@ -1409,7 +1409,7 @@ void DrawSubMenuCharacterAction(void)
         case 5:
             if (row->target_in_combat.iType == W8_TARGET_KIND_CHARACTER) {
                 swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids_61e988[5]],
-                         g_status_685170.buffers.Char[row->target_in_combat.iChar].name);
+                         g_status.buffers.Char[row->target_in_combat.iChar].name);
             } else if (row->target_in_combat.iType == W8_TARGET_KIND_MONSTER) {
                 monster_index = MonsterGetIndexByLocationID(0x7ed, MGSBUTTONS_CPP,
                                                             row->target_in_combat.iMonsterID, 1);
@@ -1440,7 +1440,8 @@ void DrawSubMenuCharacterAction(void)
             break;
         }
     }
-    gprintf((0xb9 - StringPixLength((UINT16*)text, g_smfnt_font_683694)) / 2 + 0x157, 0x1d1,
+    // c-style-cast-ok: SGP spells wide text UINT16*, the historical ABI boundary
+    gprintf((0xb9 - StringPixLength((UINT16*)text, g_smfnt_font)) / 2 + 0x157, 0x1d1,
             (UINT16*)text);
 }
 
@@ -1516,7 +1517,7 @@ void RedrawSubMenuButtons(void)
 
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 5, 0x124, 0x1c2, 2, 0);
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 6, 0x157, 0x1c2, 2, 0);
-    if (g_status_685170.buffers.XChar[g_status_685170.selected_character].fOccupied) {
+    if (g_status.buffers.XChar[g_status.selected_character].fOccupied) {
         DrawSubMenuCharacterAction();
     }
 
@@ -1565,7 +1566,7 @@ void ScrollSubMenuCharacter(char direction)
     short selected;
     short slot;
 
-    current = static_cast<short>(g_status_685170.selected_character);
+    current = static_cast<short>(g_status.selected_character);
     selected = current;
     switch (direction) {
     case 1:
@@ -1608,7 +1609,7 @@ void ScrollSubMenuCharacter(char direction)
 done:
     SelectPartyCharacter(selected);
     RequestRedraw(1 << current);
-    RequestRedraw(1 << g_status_685170.selected_character);
+    RequestRedraw(1 << g_status.selected_character);
     RequestRedraw(0x200000);
 }
 
@@ -1676,7 +1677,7 @@ void UpdateMainGameButtons(void)
         W8DialogButton* draw;
         bool arrow_enabled;
 
-        arrow_enabled = g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS;
+        arrow_enabled = g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS;
         if (arrow_enabled) {
             g_layout_arrow_buttons_69b884[0]->SetEnabled(1);
         } else {

@@ -11,11 +11,11 @@ struct W8ItemInstance;
 
 /* 0x0069B994: the three use-item select panels; element 1 is the list panel
    iterated together with its siblings by the per-frame update. */
-extern Controls* g_use_item_select_panels_69b994[3];
+extern Controls* g_use_item_select_panels[3];
 
 /* 0x0069B950: up/down scroll buttons for the use-item select list plus the
    caption label at index 2; CloseUseItemSelectView deletes all three in one
-   pass ending at g_selected_use_item_line_0069b95c. */
+   pass ending at g_selected_use_item_line. */
 extern W8TextControl* g_use_item_select_scroll_buttons[3];
 /* 0x0069B960: action/icon controls indexed by region callback_id (0..8). */
 extern W8TextControl* g_use_item_select_controls[9];
@@ -28,7 +28,7 @@ extern W8ItemInstance* g_value_69b9a4;
 
 /* 0x0069BF30: gXStatus.iCurrentCursor saved while an item/spell info dialog
    is open; RestoreTargetCursor puts it back on dialog destroy. */
-extern int g_saved_target_cursor_0069bf30;
+extern int g_saved_target_cursor;
 
 void SetValue69B988(W8MainUiMode value);
 void RedrawPanel69B998(void);

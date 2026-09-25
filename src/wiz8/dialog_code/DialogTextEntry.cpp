@@ -12,7 +12,7 @@
 
 /* Retail initializer 0x005D1010 copies the Controls layout constant. */
 // GLOBAL: WIZ8 0x0069c5d0
-unsigned int g_dialog_text_layout_mask_69c5d0 = g_W8TextBufferLayoutMask005ED560;
+unsigned int g_dialog_text_layout_mask = g_W8TextBufferLayoutMask005ED560;
 
 // FUNCTION: WIZ8 0x005d1020
 W8DialogTextEntry::~W8DialogTextEntry() {}
@@ -64,20 +64,20 @@ void W8DialogTextEntry::Draw(unsigned char force)
         ShortenTextToWidth(copy, m_buffer, width - 5, m_font);
     }
     SetFont(m_font);
-    unsigned short* palette = g_font_state_palettes_68ee1c[5];
+    unsigned short* palette = g_font_state_palettes[5];
     if (!m_state_5d) {
         if (m_state_60) {
-            palette = g_font_state_palettes_68ee1c[1];
+            palette = g_font_state_palettes[1];
         } else if (m_selected) {
-            palette = g_font_state_palettes_68ee1c[8];
+            palette = g_font_state_palettes[8];
         } else {
             palette = g_colour_68ee08;
             if (m_prefix_length == 0) {
                 if (m_text_palette < 15) {
-                    palette = g_font_state_palettes_68ee1c[m_text_palette];
+                    palette = g_font_state_palettes[m_text_palette];
                 }
             } else if (m_prefix_palette < 15) {
-                palette = g_font_state_palettes_68ee1c[m_prefix_palette];
+                palette = g_font_state_palettes[m_prefix_palette];
             }
         }
     }
@@ -98,9 +98,9 @@ void W8DialogTextEntry::Draw(unsigned char force)
                 x += StringPixLength(line, m_font);
                 line[prefix_remaining] = saved;
                 if (!m_selected) {
-                    SetFontObjectPalette16BPP(
-                        m_font, m_text_palette < 15 ? g_font_state_palettes_68ee1c[m_text_palette]
-                                                    : g_colour_68ee08);
+                    SetFontObjectPalette16BPP(m_font, m_text_palette < 15
+                                                          ? g_font_state_palettes[m_text_palette]
+                                                          : g_colour_68ee08);
                 }
                 line += prefix_remaining;
                 span -= prefix_remaining;
@@ -126,7 +126,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
             line[prefix_remaining] = saved;
             if (!m_selected) {
                 SetFontObjectPalette16BPP(m_font, m_text_palette < 15
-                                                      ? g_font_state_palettes_68ee1c[m_text_palette]
+                                                      ? g_font_state_palettes[m_text_palette]
                                                       : g_colour_68ee08);
             }
             line += prefix_remaining;

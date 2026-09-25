@@ -12,8 +12,8 @@
 // FUNCTION: WIZ8 0x0055cc00
 void ScaleValueForCharacterDifficulty(int party_slot, int* value)
 {
-    if (g_status_685170.buffers.Char[party_slot].uiCondition[W8_CONDITION_TURNCOAT] > 0) {
-        switch (g_settings_6850c8.difficulty) {
+    if (g_status.buffers.Char[party_slot].uiCondition[W8_CONDITION_TURNCOAT] > 0) {
+        switch (g_settings.difficulty) {
         case 0:
             *value = (*value * 3 * 20) / 100;
             break;
@@ -22,7 +22,7 @@ void ScaleValueForCharacterDifficulty(int party_slot, int* value)
             break;
         }
     } else {
-        switch (g_settings_6850c8.difficulty) {
+        switch (g_settings.difficulty) {
         case 0:
             *value = (*value * 7 * 20) / 100;
             break;
@@ -39,7 +39,7 @@ void ScaleValueForCharacterDifficulty(int party_slot, int* value)
 void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value)
 {
     if (monster_info->ubDisposition == DISP_HOSTILE) {
-        switch (g_settings_6850c8.difficulty) {
+        switch (g_settings.difficulty) {
         case 0:
             *value = (*value * 3 * 20) / 100;
             break;
@@ -48,7 +48,7 @@ void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value)
             break;
         }
     } else if (monster_info->ubDisposition == DISP_FRIENDLY) {
-        switch (g_settings_6850c8.difficulty) {
+        switch (g_settings.difficulty) {
         case 0:
             *value = (*value * 7 * 20) / 100;
             break;

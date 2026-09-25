@@ -42,10 +42,10 @@ struct W8SearchableView {
 
 static_assert(sizeof(W8SearchableView) == 0x14, "W8SearchableView_must_be_0x14");
 
-extern W8GrowableVector<W8Searchable*> g_searchables_00689fa8;
-extern W8SearchableView g_search_view_00689fb8;
+extern W8GrowableVector<W8Searchable*> g_searchables;
+extern W8SearchableView g_search_view;
 /* 500ms pulse clock arming the search-mode sweep. */
-extern unsigned int g_search_pulse_clock_00689fcc;
+extern unsigned int g_search_pulse_clock;
 
 void RegisterSearchableWorldItem(W8WorldItem* item);
 void RegisterSearchableTrigger00516F00(Trigger* trigger);

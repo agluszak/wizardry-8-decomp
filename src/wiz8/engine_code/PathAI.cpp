@@ -563,7 +563,7 @@ int PathAITick(W8PathAI* path, signed char direction)
         if (path->step_by_node_39 == 0) {
             amount = (now - path->last_update_tick) * g_float_005ec128 * direction * path->speed;
         } else {
-            amount = g_negative_one_005ebc38;
+            amount = g_negative_one;
             if (direction > 0) {
                 amount = g_float_005ebb38;
             }

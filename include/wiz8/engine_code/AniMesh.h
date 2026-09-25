@@ -40,11 +40,11 @@ struct W8AniMesh {
 
 static_assert(sizeof(W8AniMesh) == 0x40, "W8AniMesh_minimum_size_must_be_0x40");
 
-extern int g_animesh_cache_stamp_65be80;
-extern int g_animesh_cache_bytes_65be84;
-extern int g_animesh_cache_limit_65be88;
-extern int g_animesh_cache_secondary_limit_65be8c;
-extern W8PList g_animesh_cache_list_65be90;
+extern int g_animesh_cache_stamp;
+extern int g_animesh_cache_bytes;
+extern int g_animesh_cache_limit;
+extern int g_animesh_cache_secondary_limit;
+extern W8PList g_animesh_cache_list;
 
 void InitializeAniMeshCache(int primary_limit, int secondary_limit);
 void FreeAniMeshCache(void);

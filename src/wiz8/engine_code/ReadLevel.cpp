@@ -133,7 +133,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
 
             srMeshModel::TriMesh mesh;
             model->getTriMesh(mesh);
-            if (g_render_untextured_0065a146 != 0) {
+            if (g_render_untextured != 0) {
                 mesh.shaders_b0[0].value &= 0xffff7fff;
                 mesh.poly_shaders_100[0] = 0;
             }
@@ -225,9 +225,9 @@ static_assert(sizeof(W8LevelLightRecord) == 0x28, "W8LevelLightRecord_size_must_
 } // namespace
 
 // GLOBAL: WIZ8 0x005ec0b0
-const float g_environment_near_scale_005ec0b0 = 2.0f;
+const float g_environment_near_scale = 2.0f;
 // GLOBAL: WIZ8 0x00659cd0
-srVector3T<float> g_environment_offset_00659cd0;
+srVector3T<float> g_environment_offset;
 
 // FUNCTION: WIZ8 0x004BC060
 void AssociateWorldLights(W8World* world)
@@ -364,11 +364,10 @@ unsigned char ReadWorldLights(W8World* world, int hFile)
             }
 
             light->specular_1b0.SetZero();
-            ConfigureWorldLight(light, record.range * g_world_scale_005ebc40);
+            ConfigureWorldLight(light, record.range * g_world_scale);
             light->intensity_1d0 = record.intensity;
-            light->setLocation(record.location.x * g_world_scale_005ebc40,
-                               record.location.y * g_world_scale_005ebc40,
-                               record.location.z * g_world_scale_005ebc40);
+            light->setLocation(record.location.x * g_world_scale, record.location.y * g_world_scale,
+                               record.location.z * g_world_scale);
         }
     }
 
@@ -409,7 +408,7 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
 
     if (camera_mode == 1) {
         success = success && FileRead(pInfo->hFile, &position, sizeof(position), 0);
-        position *= g_world_scale_005ebc40;
+        position *= g_world_scale;
         SetWorldScenePosition(pWorld, &position);
     } else if (camera_mode == 2) {
         success = success && FileRead(pInfo->hFile, &position, sizeof(position), 0) &&
@@ -417,7 +416,7 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
                   FileRead(pInfo->hFile, &axis.x, sizeof(axis.x), 0) &&
                   FileRead(pInfo->hFile, &axis.y, sizeof(axis.y), 0) &&
                   FileRead(pInfo->hFile, &axis.z, sizeof(axis.z), 0);
-        position *= g_world_scale_005ebc40;
+        position *= g_world_scale;
         SetWorldScenePosition(GetWorld(), &position);
 
         rotation.SetIdentity();
@@ -442,16 +441,15 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
         BuildEnvironmentColourRamp();
     }
 
-    g_environment_offset_00659cd0.SetZero();
-    pWorld->view_distance_020 = view_distance * g_world_scale_005ebc40;
+    g_environment_offset.SetZero();
+    pWorld->view_distance_020 = view_distance * g_world_scale;
     white.red = 1.0f;
     white.green = 1.0f;
     white.blue = 1.0f;
     ApplyEnvironmentColour00483BA0(pWorld, intensity, &white);
     WorldSetFarClip(pWorld, pWorld->view_distance_020);
-    distance_scale = view_distance < g_octree_cell_scale_005ebcd0
-                         ? g_environment_near_scale_005ec0b0
-                         : g_float_005ec3b8;
+    distance_scale =
+        view_distance < g_octree_cell_scale ? g_environment_near_scale : g_float_005ec3b8;
     WorldSetRenderRange(pWorld, distance_scale * pWorld->view_distance_020);
     pWorld->environment_range_start_014 = environment_colour.red;
     pWorld->environment_range_end_018 = environment_colour.green;
@@ -514,9 +512,8 @@ unsigned char ReadWorldClipPlanes004BCE20(W8ReadLevelInfo* pInfo, W8World* pWorl
         clip_plane->setName(name);
         clip_plane->setClipPlane(plane);
 
-        position.Set(serialized_position.x * g_world_scale_005ebc40,
-                     serialized_position.y * g_world_scale_005ebc40,
-                     serialized_position.z * g_world_scale_005ebc40);
+        position.Set(serialized_position.x * g_world_scale, serialized_position.y * g_world_scale,
+                     serialized_position.z * g_world_scale);
         clip_plane->setLocation(position);
         clip_plane->setFlag(srNode::FLAG_GLOBAL);
         clip_plane->setClipType(srClipPlane::CLIP_POSITIONAL_0);
@@ -558,11 +555,11 @@ unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
             success = 0;
         } else {
             success = 1;
-            if (g_octree_6598a4 != 0) {
-                if (!g_octree_6598a4->TestPropSunBit(index)) {
+            if (g_octree != 0) {
+                if (!g_octree->TestPropSunBit(index)) {
                     prop->flags_1c |= 0x40;
                 }
-                g_octree_6598a4->AddLoadedProp(prop);
+                g_octree->AddLoadedProp(prop);
             }
             PLAdoptAppend(pWorld->plsProps, prop);
             if ((prop->flags_1c & 1) != 0) {
@@ -585,8 +582,8 @@ unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
             }
         }
     }
-    if (g_octree_6598a4 != 0) {
-        g_octree_6598a4->TestPropSunBit(-1);
+    if (g_octree != 0) {
+        g_octree->TestPropSunBit(-1);
     }
     return success;
 }
@@ -623,7 +620,7 @@ unsigned char ReadWorldItems(W8ReadLevelInfo* pInfo, W8World* pWorld)
         success = FileRead(pInfo->hFile, record.item_name_1c, sizeof(record.item_name_1c), 0);
         if (success) {
             FileRead(pInfo->hFile, &record.position_04, sizeof(record.position_04), 0);
-            record.position_04 *= g_world_scale_005ebc40;
+            record.position_04 *= g_world_scale;
             FileRead(pInfo->hFile, &record.positional_00, sizeof(int), 0);
             FileRead(pInfo->hFile, &record.positional_10, sizeof(int), 0);
             FileRead(pInfo->hFile, &record.positional_14, sizeof(int), 0);
@@ -864,7 +861,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
         axis.SetFromFloat(&record.rotation_axis);
         particle->rotate(record.rotation_angle, axis);
         location.SetFromFloat(&record.location);
-        location *= g_world_scale_005ebc40;
+        location *= g_world_scale;
         particle->setLocation(location);
         particle->rotateX(1.5707963267948966);
 
@@ -876,15 +873,15 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             srVector3T<float> center;
             srVector3T<float> extent;
 
-            center = record.bounds_origin * g_world_scale_005ebc40;
+            center = record.bounds_origin * g_world_scale;
             extent = record.bounds_extent * 250.0f;
             particle->bounds_mode_1a4 = 1;
             particle->minimum_21c = center - extent;
             particle->maximum_228 = center + extent;
         } else if (record.bounds_mode == 2 && record.bounds_radius > 0.0f) {
             particle->bounds_mode_1a4 = 2;
-            particle->bounds_origin_234 = record.bounds_origin * g_world_scale_005ebc40;
-            particle->bounds_radius_240 = record.bounds_radius * g_world_scale_005ebc40;
+            particle->bounds_origin_234 = record.bounds_origin * g_world_scale;
+            particle->bounds_radius_240 = record.bounds_radius * g_world_scale;
         } else {
             particle->bounds_mode_1a4 = 0;
         }
@@ -903,7 +900,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
 
         if (record.has_acceleration != 0) {
             particle->has_acceleration_1a8 = 1;
-            particle->acceleration_1f4 = record.acceleration * g_world_scale_005ebc40;
+            particle->acceleration_1f4 = record.acceleration * g_world_scale;
         }
 
         if (record.velocity_mode == 0) {
@@ -917,7 +914,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->minimum_1d0.z = 0.0f;
             particle->maximum_1dc.x = record.spread_x_06c * 250.0f;
             particle->maximum_1dc.y = record.spread_y_070 * 250.0f;
-            particle->maximum_1dc.z = record.spread_z_074 * g_world_scale_005ebc40;
+            particle->maximum_1dc.z = record.spread_z_074 * g_world_scale;
         }
 
         if (record.direction_mode == 0) {
@@ -953,11 +950,11 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->placement_mode_1bc = 0;
         } else if (record.placement_mode == 1) {
             particle->placement_mode_1bc = 1;
-            particle->initial_speed_210 = record.placement_0c0 * g_world_scale_005ebc40;
+            particle->initial_speed_210 = record.placement_0c0 * g_world_scale;
         } else {
             particle->placement_mode_1bc = 2;
-            particle->speed_min_214 = record.placement_0c4 * g_world_scale_005ebc40;
-            particle->speed_max_218 = record.placement_0c8 * g_world_scale_005ebc40;
+            particle->speed_min_214 = record.placement_0c4 * g_world_scale;
+            particle->speed_max_218 = record.placement_0c8 * g_world_scale;
         }
 
         if (record.flutter_mode == 0) {
@@ -985,8 +982,8 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->camera_offset_244 = current;
             particle->camera_relative_1c4 = 1;
             particle->SetActive(1);
-        } else if (g_octree_6598a4 != 0) {
-            g_octree_6598a4->AddLoadedParticle(particle);
+        } else if (g_octree != 0) {
+            g_octree->AddLoadedParticle(particle);
         }
         pParticles->Add(particle);
     }
@@ -1189,7 +1186,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
     success = success && ReadAutomapNodes(handle);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after automap nodes.");
 
-    g_environment_offset_00659cd0 = environment_offset;
+    g_environment_offset = environment_offset;
     prop_count = PLLength(world->plsProps);
     for (index = 0; index < (int)prop_count; ++index) {
         W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
@@ -1218,9 +1215,9 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
                         copy->autoRelease();
                         copy->parms.ambient = 0.0f;
                         copy->dirty_74 = 1;
-                        copy->parms.emissive.x += g_environment_offset_00659cd0.x;
-                        copy->parms.emissive.y += g_environment_offset_00659cd0.y;
-                        copy->parms.emissive.z += g_environment_offset_00659cd0.z;
+                        copy->parms.emissive.x += g_environment_offset.x;
+                        copy->parms.emissive.y += g_environment_offset.y;
+                        copy->parms.emissive.z += g_environment_offset.z;
                         copy->dirty_74 = 1;
                         mesh->setMaterial(copy, 0, (srMeshModel::e_side)0);
                     }
@@ -1228,8 +1225,8 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
             }
         }
     }
-    if (g_octree_6598a4 != 0) {
-        g_octree_6598a4->m_fAccumulating = false;
+    if (g_octree != 0) {
+        g_octree->m_fAccumulating = false;
     }
     return success;
 }

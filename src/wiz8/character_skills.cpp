@@ -40,7 +40,7 @@
    ButtonSound.cpp and Formation & Facing.cpp hulls. No proven ownership. */
 
 // GLOBAL: WIZ8 0x0061ec94
-wchar_t g_format_s_possessive_0061ec94[] = L"%s's";
+wchar_t g_format_s_possessive[] = L"%s's";
 
 /* Append one skill-increase clause onto a notice line. */
 // FUNCTION: WIZ8 0x00554170
@@ -48,7 +48,7 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
                                    unsigned char continue_line, int skill_id)
 {
     unsigned int skill_level;
-    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8Character* character = &g_status.buffers.Char[party_slot];
 
     if (continue_line != 0) {
         text[*length] = L' ';
@@ -63,11 +63,11 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
     text[*length] = 0xb4; /* font glyph */
     *length += 1;
     text[*length] = GetTable647CCCEntry(
-        static_cast<signed char>(g_status_685170.buffers.XChar[party_slot].party_order_index));
+        static_cast<signed char>(g_status.buffers.XChar[party_slot].party_order_index));
     *length += 1;
     text[*length] = L' ';
     *length += 1;
-    swprintf(text + *length, g_format_s_possessive_0061ec94, character->name);
+    swprintf(text + *length, g_format_s_possessive, character->name);
     *length = static_cast<unsigned int>(wcslen(text));
     text[*length] = L' ';
     *length += 1;
@@ -80,7 +80,7 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
         skill_level = (skill_level * 0x7d) / 100;
     }
     swprintf(text + *length, gppStringList[0x76c / 4],
-             gppStringList[g_character_skill_name_ids_61e454[skill_id]], skill_level);
+             gppStringList[g_character_skill_name_ids[skill_id]], skill_level);
     *length = static_cast<unsigned int>(wcslen(text));
 }
 
@@ -106,8 +106,8 @@ void FlushDeferredSkillNotices(void)
     memset(text, 0, 0x400);
     extra = new W8SkillNoticePayload;
     for (slot = 0; slot < 8; ++slot) {
-        W8Character* character = &g_status_685170.buffers.Char[slot];
-        if (g_status_685170.buffers.XChar[slot].fOccupied == 0 || character->hp_current == 0 ||
+        W8Character* character = &g_status.buffers.Char[slot];
+        if (g_status.buffers.XChar[slot].fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= 0x12) {
             continue;
         }
@@ -241,7 +241,7 @@ float ScaleValueByProfessionLevel(W8Character* character, int, float base)
         return base;
     }
     float scaled = (level * 2.0f + 60.0f) * base;
-    return scaled * g_movement_speed_step_005ed490;
+    return scaled * g_movement_speed_step;
 }
 
 /* The monster-record counterpart: the flat value scaled by the record's
@@ -255,7 +255,7 @@ float ScaleValueByMonsterLevel(W8MonsterRecord* record, int, float base)
         return base;
     }
     float scaled = (level * 2.0f + 60.0f) * base;
-    return scaled * g_movement_speed_step_005ed490;
+    return scaled * g_movement_speed_step;
 }
 
 /* The Valkyrie cheat-death trait fires instead of death while the character
@@ -266,7 +266,7 @@ float ScaleValueByMonsterLevel(W8MonsterRecord* record, int, float base)
 // FUNCTION: WIZ8 0x00547A50
 void CheatDeathRevive(int party_slot)
 {
-    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8Character* character = &g_status.buffers.Char[party_slot];
 
     PostCharacterNotice(party_slot, gppStringList[0x173]);
     SetCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS,
@@ -294,7 +294,7 @@ void CheatDeathRevive(int party_slot)
 // FUNCTION: WIZ8 0x00548E20
 int RevealCharacterItemBindingsByProfession(int party_slot, unsigned int target_slot)
 {
-    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8Character* character = &g_status.buffers.Char[party_slot];
     return RevealCharacterItemBindings(
         target_slot, (character->profession_levels[character->iProfession] >> 2) + 1, 0);
 }
@@ -328,7 +328,7 @@ void BrewAlchemistPotion(W8Character* character)
     unsigned int recipes;
     unsigned int pick;
 
-    if (g_status_685170.buffers.XChar[slot].fOccupied != 0 && character->highest_condition < 0x11 &&
+    if (g_status.buffers.XChar[slot].fOccupied != 0 && character->highest_condition < 0x11 &&
         CharacterHasTrait(character, W8_TRAIT_MAKE_POTIONS) != 0) {
         alchemy = character->profession_levels[W8_PROFESSION_ALCHEMIST];
         recipes = 0;
@@ -522,11 +522,10 @@ void ApplyAttributeChange(W8Character* character, int attribute)
             }
             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
                 ShowMainGameNoticeLine(
-                    FormatWideString(
-                        gppStringList[0x1d6],
-                        gppStringList[g_character_description_first_ids_61e3a4[attribute]],
-                        character->name,
-                        gppStringList[g_character_skill_name_ids_61e454[skill_id]]),
+                    FormatWideString(gppStringList[0x1d6],
+                                     gppStringList[g_character_description_first_ids[attribute]],
+                                     character->name,
+                                     gppStringList[g_character_skill_name_ids[skill_id]]),
                     0, 1, 0);
             }
         }

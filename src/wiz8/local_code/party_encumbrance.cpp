@@ -85,7 +85,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
     bool changed = previous_capacity != capacity;
     character->carrying_capacity = capacity;
     bool recalculated = RecalculateCarriedWeight(character);
-    if (g_status_685170.game_started == 0) {
+    if (g_status.game_started == 0) {
         character->party_weight_share = 0;
     } else if (changed || recalculated) {
         RedistributePartyEncumbrance();
@@ -166,10 +166,10 @@ void RedistributePartyEncumbrance(void)
     int capacity[8];
     int unassigned[8];
     float load_ratio[8];
-    W8Character* characters = g_status_685170.buffers.Char;
-    W8PartySlotRow* active = g_status_685170.buffers.XChar;
+    W8Character* characters = g_status.buffers.Char;
+    W8PartySlotRow* active = g_status.buffers.XChar;
 
-    if (!g_status_685170.game_started) {
+    if (!g_status.game_started) {
         return;
     }
     if (gXStatus.fCombatMode) {
@@ -189,8 +189,8 @@ void RedistributePartyEncumbrance(void)
     }
 
     unsigned int party_weight = 0;
-    for (slot = 0; slot < (unsigned int)g_status_685170.party_item_count_1791; ++slot) {
-        party_weight += GetItemStackWeight(&g_status_685170.party_item_pool_0021[slot]);
+    for (slot = 0; slot < static_cast<unsigned int>(g_status.party_item_count_1791); ++slot) {
+        party_weight += GetItemStackWeight(&g_status.party_item_pool_0021[slot]);
     }
 
     for (party_weight >>= 1; party_weight != 0; --party_weight) {
@@ -245,8 +245,8 @@ void RedistributePartyEncumbrance(void)
             gXStatus.fEncumbranceDirty = false;
             return;
         }
-    } else if (g_current_screen_state.id == W8_SCREEN_CAMP && g_camp_screen_0069c0f4 != 0) {
-        g_camp_screen_0069c0f4->redraw_flags |= 0x2100;
+    } else if (g_current_screen_state.id == W8_SCREEN_CAMP && g_camp_screen != 0) {
+        g_camp_screen->redraw_flags |= 0x2100;
     }
     gXStatus.fEncumbranceDirty = false;
 }

@@ -298,9 +298,9 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
 }
 
 // GLOBAL: WIZ8 0x00659A60
-Trigger* g_selected_prop_trigger_00659a60;
+Trigger* g_selected_prop_trigger;
 // GLOBAL: WIZ8 0x00607B98
-int g_selected_prop_index_00607b98 = -1;
+int g_selected_prop_index = -1;
 
 /* Whether the renderer's currently selected model instance is one of the
    instances this prop's animation dispatches.  With a running animation every
@@ -349,8 +349,8 @@ char ResolvePickedProp(W8World* world)
     int prop_index;
     bool valid;
 
-    g_selected_prop_trigger_00659a60 = 0;
-    g_selected_prop_index_00607b98 = -1;
+    g_selected_prop_trigger = 0;
+    g_selected_prop_index = -1;
     selected = GetPickedModelInstance();
     if (selected == 0) {
         return 0;
@@ -368,7 +368,7 @@ char ResolvePickedProp(W8World* world)
         if (!valid) {
             return 0;
         }
-        if (g_selected_prop_trigger_00659a60 != 0) {
+        if (g_selected_prop_trigger != 0) {
             return valid;
         }
         prop = static_cast<W8Prop*>(PLGet(world->plsProps, prop_index));
@@ -399,11 +399,11 @@ char ResolvePickedProp(W8World* world)
 
         {
             Trigger* trigger = prop->trigger_18;
-            g_selected_prop_trigger_00659a60 = trigger;
+            g_selected_prop_trigger = trigger;
             if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
                 ((trigger->flags_0a0 & W8_TRIGGER_ONCE) == 0 ||
                  (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0) &&
-                (g_combat_inactive_006081e4 ||
+                (g_combat_inactive ||
                  (trigger->m_pActionData != 0 && trigger->m_pActionData->type_004 == 10 &&
                   (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->flags_008 & 1) ==
                       0)) &&
@@ -416,7 +416,7 @@ char ResolvePickedProp(W8World* world)
                                  &minimum, &maximum);
                 distance = ((minimum + maximum) * 0.5 - camera_position).Length();
                 if (trigger->range_minimum_0a4 <= distance) {
-                    g_selected_prop_index_00607b98 = prop_index;
+                    g_selected_prop_index = prop_index;
                     if (distance <= trigger->range_maximum_0a8) {
                         continue;
                     }
@@ -424,8 +424,8 @@ char ResolvePickedProp(W8World* world)
             }
             valid = 0;
             SetPickedModelInstance(0);
-            g_selected_prop_trigger_00659a60 = 0;
-            g_selected_prop_index_00607b98 = -1;
+            g_selected_prop_trigger = 0;
+            g_selected_prop_index = -1;
         }
     }
     return valid;
@@ -1056,7 +1056,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
             instance->clearFlag(srNode::FLAG_DISABLE);
             instance->setParent(world->dynamic_scene, 1);
             instance->light_scale_194 = zero;
-            if (g_settings_6850c8.smooth_world_animations != 0) {
+            if (g_settings.smooth_world_animations != 0) {
                 instance->frame_interpolation_1ac = anim_frame_fraction_024;
             } else {
                 instance->frame_interpolation_1ac = 0.0f;
@@ -1123,7 +1123,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
         instance->clearFlag(srNode::FLAG_DISABLE);
         instance->setParent(world->dynamic_scene, 1);
         instance->light_scale_194.SetZero();
-        if (g_settings_6850c8.smooth_world_animations != 0) {
+        if (g_settings.smooth_world_animations != 0) {
             instance->frame_interpolation_1ac = anim_frame_fraction_024;
         } else {
             instance->frame_interpolation_1ac = 0.0f;
@@ -1966,9 +1966,9 @@ void LoadWorldProps(W8World* world, int handle)
 int GetSelectedPropIndex(void)
 {
     if (GetPickedModelInstance() == 0) {
-        return g_selected_prop_index_00607b98 = -1;
+        return g_selected_prop_index = -1;
     }
-    return g_selected_prop_index_00607b98;
+    return g_selected_prop_index;
 }
 
 /* When the renderer still holds a pick and ResolvePickedProp latched a
@@ -1978,13 +1978,13 @@ int GetSelectedPropIndex(void)
 bool ActivateSelectedProp(void)
 {
     if (GetPickedModelInstance() == 0) {
-        g_selected_prop_trigger_00659a60 = 0;
+        g_selected_prop_trigger = 0;
         return 0;
     }
-    if (g_selected_prop_trigger_00659a60 != 0) {
-        g_trigger_feedback_00606994 = 0;
-        g_selected_prop_trigger_00659a60->Run(-1);
-        g_selected_prop_trigger_00659a60->PrintNothingHappenedOrSpecialItemRequired();
+    if (g_selected_prop_trigger != 0) {
+        g_trigger_feedback = 0;
+        g_selected_prop_trigger->Run(-1);
+        g_selected_prop_trigger->PrintNothingHappenedOrSpecialItemRequired();
         return 1;
     }
     return 0;

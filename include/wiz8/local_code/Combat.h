@@ -2,7 +2,7 @@
 
 #include "wiz8/layouts/targeting.h"
 
-extern const wchar_t g_combat_log_format_00617664[]; /* 0x00617664 */
+extern const wchar_t g_combat_log_format[]; /* 0x00617664 */
 /* 0x0068506C: a friendly NPC's combat-entry script notice is still owed. */
 
 void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data, int a,

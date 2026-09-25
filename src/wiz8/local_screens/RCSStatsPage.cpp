@@ -53,19 +53,19 @@
 /* 0x0069C514/0x0069C518: the stats page's text origin, initialized by the
    page renderer before every full redraw. */
 // GLOBAL: WIZ8 0x0069c514
-int g_camp_stats_origin_y_0069c514;
+int g_camp_stats_origin_y;
 // GLOBAL: WIZ8 0x0069c518
-int g_camp_stats_origin_x_0069c518;
+int g_camp_stats_origin_x;
 // GLOBAL: WIZ8 0x0069c51c
-unsigned int g_camp_stats_range_region_set_0069c51c;
+unsigned int g_camp_stats_range_region_set;
 // GLOBAL: WIZ8 0x0069c520
-unsigned int g_camp_stats_controls_region_set_0069c520;
+unsigned int g_camp_stats_controls_region_set;
 /* 0x0069C524: the skills page row the cursor last hovered, kept so the help
    text only resets on a real change. */
 // GLOBAL: WIZ8 0x0069c524
-int g_camp_skill_hover_row_0069c524;
+int g_camp_skill_hover_row;
 // GLOBAL: WIZ8 0x0069c528
-unsigned int g_camp_skill_regions_0069c528;
+unsigned int g_camp_skill_regions;
 
 static unsigned char CampStatsMouseWheel(const InputAtom* event, W8Region*);
 static void DrawCampEffectList(void);
@@ -77,24 +77,24 @@ static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out);
    header draws. Category 4 sits below the right-hand column; the others fill
    the left and right columns. */
 // GLOBAL: WIZ8 0x0064ef40
-int g_camp_skill_category_positions_64ef40[5][2] = {
+int g_camp_skill_category_positions[5][2] = {
     {0x160, 0x8}, {0x160, 0xcc}, {0x22, 0x9}, {0x22, 0x86}, {0x2a, 0x21},
 };
 // GLOBAL: WIZ8 0x0064ef68
-int g_camp_skill_category_rows_64ef68[5] = {0xb, 5, 8, 0xa, 7};
+int g_camp_skill_category_rows[5] = {0xb, 5, 8, 0xa, 7};
 // GLOBAL: WIZ8 0x0064ef7c
-int g_camp_skill_category_images_64ef7c[5] = {2, 3, 0, 1, 4};
+int g_camp_skill_category_images[5] = {2, 3, 0, 1, 4};
 
 // GLOBAL: WIZ8 0x0069c530
-unsigned int g_character_page2_region_set_0069c530;
+unsigned int g_character_page2_region_set;
 // GLOBAL: WIZ8 0x0069c52c
-unsigned int g_character_page4_region_set_0069c52c;
+unsigned int g_character_page4_region_set;
 // GLOBAL: WIZ8 0x0064ef90
-int g_character_page2_category_geometry_64ef90[5][2] = {
+int g_character_page2_category_geometry[5][2] = {
     {0xf9, 0x0a}, {0xf9, 0xcd}, {0x22, 0x0a}, {0x22, 0x87}, {0xf9, 0x120},
 };
 // GLOBAL: WIZ8 0x0064efb8
-int g_character_page2_category_frames_64efb8[5] = {2, 3, 0, 1, 4};
+int g_character_page2_category_frames[5] = {2, 3, 0, 1, 4};
 
 struct W8PortraitGroup {
     int count;
@@ -102,7 +102,7 @@ struct W8PortraitGroup {
 };
 static_assert(sizeof(W8PortraitGroup) == 0x3c, "W8PortraitGroup_size");
 // GLOBAL: WIZ8 0x00648950
-W8PortraitGroup g_portrait_groups_648950[12] = {
+W8PortraitGroup g_portrait_groups[12] = {
     {14, {0, 1, 2, 3, 76, 4, 5, 6, 7, 8, 9, 77, 10, 11}},
     {8, {12, 13, 14, 78, 15, 16, 17, 79}},
     {6, {18, 19, 20, 21, 22, 23}},
@@ -135,8 +135,7 @@ static_assert(sizeof(W8CampEffectEntry) == 0x18, "W8CampEffectEntry_size");
 // FUNCTION: WIZ8 0x005c4430
 W8CampStatsRange::W8CampStatsRange()
 {
-    m_range =
-        new W8RangeControl(0x264, 0xbe, 0x276, 0x1b5, &g_camp_stats_range_region_set_0069c51c);
+    m_range = new W8RangeControl(0x264, 0xbe, 0x276, 0x1b5, &g_camp_stats_range_region_set);
     m_range->m_listener = this;
     m_range->SetEnabled(1);
 }
@@ -150,8 +149,8 @@ W8CampStatsRange::~W8CampStatsRange()
 // FUNCTION: WIZ8 0x005c44e0
 void W8CampStatsRange::OnRangeChanged(W8RangeControl*)
 {
-    g_camp_screen_0069c0f4->effect_scroll = m_range->m_value;
-    g_camp_screen_0069c0f4->redraw_flags |= 0x20000;
+    g_camp_screen->effect_scroll = m_range->m_value;
+    g_camp_screen->redraw_flags |= 0x20000;
 }
 
 /* The shared camp-range refresh, emitted inside this unit in both retail and
@@ -169,7 +168,7 @@ void W8CampRangeListener::UpdateRange(unsigned char range_changed)
 // FUNCTION: WIZ8 0x005c4540
 W8CampStatsControls::W8CampStatsControls()
 {
-    AcquireRegionSet(&g_camp_stats_controls_region_set_0069c520);
+    AcquireRegionSet(&g_camp_stats_controls_region_set);
     m_buttons[0] = new W8TextControl(this, -1, 0x13c, 0xbe, 0, 0, 0x145, 0, 0, 1, 2, 4, 3);
     m_buttons[0]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
     m_buttons[0]->m_listener = this;
@@ -182,10 +181,10 @@ W8CampStatsControls::W8CampStatsControls()
     m_buttons[2]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
     m_buttons[2]->m_listener = this;
     m_buttons[2]->EnableRegionHelp(0x956);
-    if (g_camp_screen_0069c0f4->effect_items_only) {
+    if (g_camp_screen->effect_items_only) {
         m_buttons[2]->EnableSecondaryState(0);
     }
-    unsigned int region = AddRegionToSet(g_camp_stats_controls_region_set_0069c520);
+    unsigned int region = AddRegionToSet(g_camp_stats_controls_region_set);
     SetRegionCallback(region, CampStatsMouseWheel, 0);
     SetRegionBounds(region, 0x15d, 0xbe, 0x260, 0x1b5);
     Controls::SetEnabled(1);
@@ -206,24 +205,24 @@ void W8CampStatsControls::OnPrimary(W8TextControl* control)
     if (control == m_buttons[0]) {
         if (static_cast<unsigned char>(m_buttons[0]->m_stateFlags & g_W8TextControlMask005ED570)) {
             m_buttons[1]->DisableSecondaryState(0);
-            g_camp_screen_0069c0f4->effect_filter = 1;
+            g_camp_screen->effect_filter = 1;
         } else {
-            g_camp_screen_0069c0f4->effect_filter = 0;
+            g_camp_screen->effect_filter = 0;
         }
     } else if (control == m_buttons[1]) {
         if (static_cast<unsigned char>(m_buttons[1]->m_stateFlags & g_W8TextControlMask005ED570)) {
             m_buttons[0]->DisableSecondaryState(0);
-            g_camp_screen_0069c0f4->effect_filter = 2;
+            g_camp_screen->effect_filter = 2;
         } else {
-            g_camp_screen_0069c0f4->effect_filter = 0;
+            g_camp_screen->effect_filter = 0;
         }
     } else {
-        g_camp_screen_0069c0f4->effect_items_only =
+        g_camp_screen->effect_items_only =
             static_cast<unsigned char>(m_buttons[2]->m_stateFlags & g_W8TextControlMask005ED570) !=
             0;
     }
     FilterCampEffectList();
-    g_camp_screen_0069c0f4->redraw_flags |= 0x20000;
+    g_camp_screen->redraw_flags |= 0x20000;
 }
 
 /* The stats page's full redraw: attribute rows with their base/effective
@@ -233,25 +232,23 @@ void W8CampStatsControls::OnPrimary(W8TextControl* control)
 void DrawCampStatsPage(void)
 {
     SetFont(g_font_683660);
-    if (g_camp_screen_0069c0f4->redraw_flags == 0xfffffff) {
+    if (g_camp_screen->redraw_flags == 0xfffffff) {
         DrawCatalogImageAndInvalidate(-0xe, 0x142, 0, 1, 0, 0xa5, 2, 0);
-        g_camp_stats_origin_x_0069c518 = 0;
-        g_camp_stats_origin_y_0069c514 = 0xa5;
+        g_camp_stats_origin_x = 0;
+        g_camp_stats_origin_y = 0xa5;
         int index;
         wchar_t* text = gppStringList[0x937];
-        gprintf(g_camp_stats_origin_x_0069c518 + 10 +
-                    ((0x11f - StringPixLength(text, g_font_683660)) >> 1),
-                g_camp_stats_origin_y_0069c514 + 10, const_cast<wchar_t*>(g_format_s_006068e4),
-                text);
+        gprintf(g_camp_stats_origin_x + 10 + ((0x11f - StringPixLength(text, g_font_683660)) >> 1),
+                g_camp_stats_origin_y + 10, const_cast<wchar_t*>(g_format_s_006068e4), text);
         int row_y = 0xbf;
         for (index = 0; index < 7; ++index) {
-            wchar_t* label = gppStringList[g_attribute_label_ids_64dd30[index]];
-            gprintf(g_camp_stats_origin_x_0069c518 + 10 +
+            wchar_t* label = gppStringList[g_attribute_label_ids[index]];
+            gprintf(g_camp_stats_origin_x + 10 +
                         ((0x7b - StringPixLength(label, g_font_683660)) >> 1),
-                    row_y - 0xa6 + g_camp_stats_origin_y_0069c514,
-                    const_cast<wchar_t*>(g_format_s_006068e4), label);
-            unsigned int effective = g_review_character_0069c0f8->attributes[index].effective;
-            unsigned int base = g_review_character_0069c0f8->attributes[index].value;
+                    row_y - 0xa6 + g_camp_stats_origin_y, const_cast<wchar_t*>(g_format_s_006068e4),
+                    label);
+            unsigned int effective = g_review_character->attributes[index].effective;
+            unsigned int base = g_review_character->attributes[index].value;
             int gained;
             int lost;
             unsigned int shown;
@@ -287,31 +284,25 @@ void DrawCampStatsPage(void)
                 DrawCatalogImageAndInvalidate(-0xe, 0x143, 0, 2, 0x88, row_y, 2, 0);
             }
             SetClippingRect(&saved_clip);
-            swprintf(g_camp_screen_0069c0f4->caption, const_cast<wchar_t*>(g_format_d_0060aa20),
-                     effective);
-            gprintf(
-                g_camp_stats_origin_x_0069c518 + 0x108 +
-                    ((0x21 - StringPixLength(g_camp_screen_0069c0f4->caption, g_font_683660)) >> 1),
-                row_y - 0xa6 + g_camp_stats_origin_y_0069c514,
-                const_cast<wchar_t*>(g_format_s_006068e4), g_camp_screen_0069c0f4->caption);
+            swprintf(g_camp_screen->caption, const_cast<wchar_t*>(g_format_d_0060aa20), effective);
+            gprintf(g_camp_stats_origin_x + 0x108 +
+                        ((0x21 - StringPixLength(g_camp_screen->caption, g_font_683660)) >> 1),
+                    row_y - 0xa6 + g_camp_stats_origin_y, const_cast<wchar_t*>(g_format_s_006068e4),
+                    g_camp_screen->caption);
             row_y += 0xe;
         }
         text = gppStringList[0x938];
-        gprintf(g_camp_stats_origin_x_0069c518 + 10 +
-                    ((0x11f - StringPixLength(text, g_font_683660)) >> 1),
-                g_camp_stats_origin_y_0069c514 + 0x8d, const_cast<wchar_t*>(g_format_s_006068e4),
-                text);
-        swprintf(g_camp_screen_0069c0f4->caption, const_cast<wchar_t*>(g_format_s_space_s_00617584),
-                 gppStringList
-                     [g_character_skill_name_ids_61e454
-                          [g_profession_bonus_skills[g_review_character_0069c0f8->iProfession]]],
+        gprintf(g_camp_stats_origin_x + 10 + ((0x11f - StringPixLength(text, g_font_683660)) >> 1),
+                g_camp_stats_origin_y + 0x8d, const_cast<wchar_t*>(g_format_s_006068e4), text);
+        swprintf(g_camp_screen->caption, const_cast<wchar_t*>(g_format_s_space_s),
+                 gppStringList[g_character_skill_name_ids
+                                   [g_profession_bonus_skills[g_review_character->iProfession]]],
                  gppStringList[0x8c5]);
-        gprintf(0x10, 0x142, const_cast<wchar_t*>(g_format_s_006068e4),
-                g_camp_screen_0069c0f4->caption);
+        gprintf(0x10, 0x142, const_cast<wchar_t*>(g_format_s_006068e4), g_camp_screen->caption);
         int trait_count = 0;
         char traits[0x20];
         for (index = 0; index < 0x20; ++index) {
-            if (CharacterHasTrait(g_review_character_0069c0f8, index)) {
+            if (CharacterHasTrait(g_review_character, index)) {
                 traits[index] = 1;
                 ++trait_count;
             } else {
@@ -323,24 +314,23 @@ void DrawCampStatsPage(void)
         for (index = 0; index < 0x20; ++index) {
             if (traits[index] != 0) {
                 gprintf(0x10, trait_y, const_cast<wchar_t*>(g_format_s_006068e4),
-                        gppStringList[g_character_trait_name_ids_61e530[index]]);
+                        gppStringList[g_character_trait_name_ids[index]]);
                 trait_y += step + 0xc;
             }
         }
         text = gppStringList[0x939];
-        gprintf(g_camp_stats_origin_x_0069c518 + 0x13b +
+        gprintf(g_camp_stats_origin_x + 0x13b +
                     ((0x13b - StringPixLength(text, g_font_683660)) >> 1),
-                g_camp_stats_origin_y_0069c514 + 10, const_cast<wchar_t*>(g_format_s_006068e4),
-                text);
-        g_camp_screen_0069c0f4->stats_controls->Invalidate(0);
-        g_camp_screen_0069c0f4->stats_range->m_range->Invalidate(0);
+                g_camp_stats_origin_y + 10, const_cast<wchar_t*>(g_format_s_006068e4), text);
+        g_camp_screen->stats_controls->Invalidate(0);
+        g_camp_screen->stats_range->m_range->Invalidate(0);
     }
-    if ((g_camp_screen_0069c0f4->redraw_flags & 0x20000) != 0) {
+    if ((g_camp_screen->redraw_flags & 0x20000) != 0) {
         InvalidateRegion(0x15d, 0xbe, 0x260, 0x1b5, 0);
         BlitCatalogSurfaceRectTo16BPP(-0xe, 0x15d, 0xbe, 0x260, 0x1b5, 0x1b6, 0, 0);
         DrawCampEffectList();
     }
-    g_camp_screen_0069c0f4->stats_range->m_range->Redraw();
+    g_camp_screen->stats_range->m_range->Redraw();
 }
 
 /* 0x005C4D40/0x005C4E20: how many beneficial/detrimental lines the equipped
@@ -350,8 +340,7 @@ void DrawCampStatsPage(void)
 // FUNCTION: WIZ8 0x005c4d40
 unsigned int CountEquipItemBenefits(int slot)
 {
-    W8ItemDatabaseRecord* record =
-        &g_item_records[g_review_character_0069c0f8->EquippedItem[slot].iItemNo];
+    W8ItemDatabaseRecord* record = &g_item_records[g_review_character->EquippedItem[slot].iItemNo];
     unsigned int count = record->attack_damage_bonus > 0;
     int index;
     for (index = 0; index < 0x10; ++index) {
@@ -395,8 +384,7 @@ unsigned int CountEquipItemBenefits(int slot)
 // FUNCTION: WIZ8 0x005c4e20
 unsigned int CountEquipItemPenalties(int slot)
 {
-    W8ItemDatabaseRecord* record =
-        &g_item_records[g_review_character_0069c0f8->EquippedItem[slot].iItemNo];
+    W8ItemDatabaseRecord* record = &g_item_records[g_review_character->EquippedItem[slot].iItemNo];
     unsigned int count = record->attack_damage_bonus < 0;
     int index;
     if (record->attack_hit_bonus < 0) {
@@ -425,7 +413,7 @@ unsigned int CountEquipItemPenalties(int slot)
     if (record->modifier_0b1_index != -1 && record->modifier_0b1_value < 0) {
         ++count;
     }
-    if (record->binds_on_equip != 0 && g_review_character_0069c0f8->EquippedItem[slot].bound != 0) {
+    if (record->binds_on_equip != 0 && g_review_character->EquippedItem[slot].bound != 0) {
         ++count;
     }
     return count;
@@ -438,7 +426,7 @@ unsigned int CountEquipItemPenalties(int slot)
 // FUNCTION: WIZ8 0x005c4ee0
 void RebuildCampEffectList(void)
 {
-    W8CampScreenState* screen = g_camp_screen_0069c0f4;
+    W8CampScreenState* screen = g_camp_screen;
     if (screen->effect_list != 0) {
         DeleteStack(screen->effect_list);
         screen->effect_list = 0;
@@ -451,7 +439,7 @@ void RebuildCampEffectList(void)
     screen->effect_last_visible = 0;
     screen->effect_visible_lines = 0;
     screen->effect_scroll = 0;
-    W8Character* character = g_review_character_0069c0f8;
+    W8Character* character = g_review_character;
     for (int condition = 0x13; condition >= 0; --condition) {
         if (character->uiCondition[condition] != 0) {
             W8CampEffectEntry entry;
@@ -503,7 +491,7 @@ void RebuildCampEffectList(void)
         }
     }
     for (int slot = 0; slot < 12; ++slot) {
-        W8ItemInstance* item = &g_review_character_0069c0f8->EquippedItem[slot];
+        W8ItemInstance* item = &g_review_character->EquippedItem[slot];
         if (slot != 8 && slot != 9 && item->identified != 0 && item->iItemNo != -1) {
             int beneficial = CountEquipItemBenefits(slot);
             int detrimental = CountEquipItemPenalties(slot);
@@ -537,7 +525,7 @@ void RebuildCampEffectList(void)
 // FUNCTION: WIZ8 0x005c5240
 void FilterCampEffectList(void)
 {
-    W8CampScreenState* screen = g_camp_screen_0069c0f4;
+    W8CampScreenState* screen = g_camp_screen;
     screen->effect_visible_lines = 0;
     bool any_visible = false;
     unsigned int count = StackSize(screen->effect_list);
@@ -584,7 +572,7 @@ void FilterCampEffectList(void)
 // FUNCTION: WIZ8 0x005c53c0
 static void DrawCampEffectList(void)
 {
-    W8CampScreenState* screen = g_camp_screen_0069c0f4;
+    W8CampScreenState* screen = g_camp_screen;
     SetFontDestBuffer(0xfffffff2, 0, 0xbe, 0x280, 0x1ac, 0);
     int line = -screen->effect_scroll;
     unsigned int count = StackSize(screen->effect_list);
@@ -617,10 +605,9 @@ static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
     int index;
     int line = *line_out;
     if (entry->kind == 0) {
-        SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes_68ee1c[1]);
-        gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_space_s_00617584),
-                gppStringList[0x8d1],
-                gppStringList[g_condition_notices_0061E570[entry->index * 4]]);
+        SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[1]);
+        gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_space_s),
+                gppStringList[0x8d1], gppStringList[g_condition_notices[entry->index * 4]]);
         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
         int next = line + 1;
         if (entry->turns == 9999) {
@@ -629,33 +616,32 @@ static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
         }
         line = next;
         if (entry->index == 1) {
-            if (g_review_character_0069c0f8->hp_adjustment != 0) {
+            if (g_review_character->hp_adjustment != 0) {
                 gprintf(0x15e, line * 0xe + 0xbf, L"%s: %+d", gppStringList[0x8da],
-                        g_review_character_0069c0f8->hp_adjustment);
+                        g_review_character->hp_adjustment);
                 ++line;
             }
-            if (g_review_character_0069c0f8->fatigue_penalty_0b21 != 0) {
+            if (g_review_character->fatigue_penalty_0b21 != 0) {
                 gprintf(0x15e, line * 0xe + 0xbf, L"%s: %+d", gppStringList[0x8dc],
-                        -g_review_character_0069c0f8->fatigue_penalty_0b21);
+                        -g_review_character->fatigue_penalty_0b21);
                 ++line;
             }
         }
     } else if (entry->kind == 1) {
-        SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes_68ee1c[1]);
+        SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[1]);
         gprintf(0x15e, line * 0xe + 0xbf, L"%s %s (%d)", gppStringList[0x8d4],
-                gppStringList[g_condition_notices_0061E570[entry->index + 100]],
-                entry->enchantment);
+                gppStringList[g_condition_notices[entry->index + 100]], entry->enchantment);
         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
-        gprintf(0x15e, (line + 1) * 0xe + 0xbf, const_cast<wchar_t*>(g_format_d_s_0061a128),
-                entry->turns, gppStringList[0x8d3]);
+        gprintf(0x15e, (line + 1) * 0xe + 0xbf, const_cast<wchar_t*>(g_format_d_s), entry->turns,
+                gppStringList[0x8d3]);
         *line_out = line + 3;
         return;
     } else if (entry->kind == 2) {
         W8ItemDatabaseRecord* record =
-            &g_item_records[g_review_character_0069c0f8->EquippedItem[entry->index].iItemNo];
-        SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes_68ee1c[1]);
+            &g_item_records[g_review_character->EquippedItem[entry->index].iItemNo];
+        SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[1]);
         gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_006068e4),
-                GetItemDisplayName(&g_review_character_0069c0f8->EquippedItem[entry->index]));
+                GetItemDisplayName(&g_review_character->EquippedItem[entry->index]));
         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
         int next = line + 1;
         if (record->attack_damage_bonus != 0) {
@@ -667,21 +653,20 @@ static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
         wchar_t value_text[12];
         for (index = 0; index < 0x10; ++index) {
             if (record->missile_values_050[index] != 0) {
-                wcscpy(g_camp_screen_0069c0f4->caption, &g_wchar_00689b34);
-                wcscat(g_camp_screen_0069c0f4->caption,
-                       gppStringList[g_damage_type_name_ids_61e9cc[index]]);
-                wcscat(g_camp_screen_0069c0f4->caption, L" ");
-                swprintf(value_text, const_cast<wchar_t*>(g_format_d_percent_0064bab0),
+                wcscpy(g_camp_screen->caption, &g_wchar_00689b34);
+                wcscat(g_camp_screen->caption, gppStringList[g_damage_type_name_ids[index]]);
+                wcscat(g_camp_screen->caption, L" ");
+                swprintf(value_text, const_cast<wchar_t*>(g_format_d_percent),
                          record->missile_values_050[index]);
-                wcscat(g_camp_screen_0069c0f4->caption, value_text);
+                wcscat(g_camp_screen->caption, value_text);
                 if (index == 2) {
-                    wcscat(g_camp_screen_0069c0f4->caption, L" (");
-                    wcscat(g_camp_screen_0069c0f4->caption, gppStringList[0x8d5]);
+                    wcscat(g_camp_screen->caption, L" (");
+                    wcscat(g_camp_screen->caption, gppStringList[0x8d5]);
                     swprintf(value_text, L"%d)", record->missile_magnitude_060);
-                    wcscat(g_camp_screen_0069c0f4->caption, value_text);
+                    wcscat(g_camp_screen->caption, value_text);
                 }
-                gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_colon_s_0061c3e0),
-                        gppStringList[0x8d6], g_camp_screen_0069c0f4->caption);
+                gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_colon_s),
+                        gppStringList[0x8d6], g_camp_screen->caption);
                 ++line;
             }
         }
@@ -691,9 +676,9 @@ static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
             ++line;
         }
         if (record->slays_kind_061 != 0xff) {
-            gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_colon_s_0061c3e0),
+            gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_colon_s),
                     gppStringList[0x8d8],
-                    gppStringList[g_special_category_name_ids_61ea78[record->slays_kind_061]]);
+                    gppStringList[g_special_category_name_ids[record->slays_kind_061]]);
             ++line;
         }
         if (record->modifier_06c > 0) {
@@ -735,15 +720,14 @@ static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
             ++line;
         }
         if (record->modifier_0b3_index != -1) {
-            gprintf(
-                0x15e, line * 0xe + 0xbf, L"%s %+d",
-                gppStringList[g_character_description_first_ids_61e3a4[record->modifier_0b3_index]],
-                record->modifier_0b3_value);
+            gprintf(0x15e, line * 0xe + 0xbf, L"%s %+d",
+                    gppStringList[g_character_description_first_ids[record->modifier_0b3_index]],
+                    record->modifier_0b3_value);
             ++line;
         }
         if (record->modifier_0b1_index != -1) {
             gprintf(0x15e, line * 0xe + 0xbf, L"%s %+d",
-                    gppStringList[g_character_skill_name_ids_61e454[record->modifier_0b1_index]],
+                    gppStringList[g_character_skill_name_ids[record->modifier_0b1_index]],
                     record->modifier_0b1_value);
             ++line;
         }
@@ -756,7 +740,7 @@ static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
             }
         }
         if (record->binds_on_equip != 0 &&
-            g_review_character_0069c0f8->EquippedItem[entry->index].bound != 0) {
+            g_review_character->EquippedItem[entry->index].bound != 0) {
             gprintf(0x15e, line * 0xe + 0xbf, gppStringList[0x8e1]);
             *line_out = line + 2;
             return;
@@ -776,11 +760,11 @@ static unsigned char CampStatsMouseWheel(const InputAtom* event, W8Region*)
     }
     int delta = GetMouseWheelDeltaValue(event->usParam);
     while (delta > 0) {
-        g_camp_screen_0069c0f4->stats_range->m_range->Decrement();
+        g_camp_screen->stats_range->m_range->Decrement();
         --delta;
     }
     while (delta < 0) {
-        g_camp_screen_0069c0f4->stats_range->m_range->Increment();
+        g_camp_screen->stats_range->m_range->Increment();
         ++delta;
     }
     return 1;
@@ -792,33 +776,32 @@ static unsigned char CampStatsMouseWheel(const InputAtom* event, W8Region*)
 // FUNCTION: WIZ8 0x005c5cd0
 void CreateCampSkillRegions(void)
 {
-    if (g_camp_skill_regions_0069c528 == 0) {
-        g_camp_skill_regions_0069c528 = CreateRegionSet();
+    if (g_camp_skill_regions == 0) {
+        g_camp_skill_regions = CreateRegionSet();
         for (unsigned int category = 0; category < 5; ++category) {
-            unsigned int region = AddRegionToSet(g_camp_skill_regions_0069c528);
+            unsigned int region = AddRegionToSet(g_camp_skill_regions);
             SetRegionCallback(region, CampSkillListRegionHandler,
                               static_cast<unsigned short>(category));
             SetRegionHelp(region, 1, -1);
             unsigned short x =
-                static_cast<unsigned short>(g_camp_skill_category_positions_64ef40[category][0]);
+                static_cast<unsigned short>(g_camp_skill_category_positions[category][0]);
             unsigned short y =
-                static_cast<unsigned short>(g_camp_skill_category_positions_64ef40[category][1]);
+                static_cast<unsigned short>(g_camp_skill_category_positions[category][1]);
             if (category == 4) {
                 x += 0x136;
             } else {
                 y += 0xa5;
             }
-            SetRegionBounds(region, x, y, x + 0x6d,
-                            g_camp_skill_category_rows_64ef68[category] * 0xe + y);
+            SetRegionBounds(region, x, y, x + 0x6d, g_camp_skill_category_rows[category] * 0xe + y);
         }
     }
-    RegionSetEnable(g_camp_skill_regions_0069c528);
+    RegionSetEnable(g_camp_skill_regions);
 }
 
 // FUNCTION: WIZ8 0x005c5d70
 void DisableCampSkillRegions(void)
 {
-    RegionSetDisable(g_camp_skill_regions_0069c528);
+    RegionSetDisable(g_camp_skill_regions);
 }
 
 /* The skills page's full redraw: the two column panels, the five category
@@ -828,12 +811,12 @@ void DisableCampSkillRegions(void)
 void DrawCampSkillsPage(void)
 {
     SetFont(g_font_683660);
-    if (g_camp_screen_0069c0f4->redraw_flags == 0xfffffff) {
+    if (g_camp_screen->redraw_flags == 0xfffffff) {
         bool has_fifth = false;
         int skill;
         for (skill = 0; skill < 0x29; ++skill) {
-            if ((g_review_character_0069c0f8->skills[skill].active_00 != 0 ||
-                 g_review_character_0069c0f8->skills[skill].level != 0) &&
+            if ((g_review_character->skills[skill].active_00 != 0 ||
+                 g_review_character->skills[skill].level != 0) &&
                 g_skill_attributes[skill].category == 4) {
                 has_fifth = true;
                 break;
@@ -843,25 +826,25 @@ void DrawCampSkillsPage(void)
         DrawCatalogImageAndInvalidate(-0xe, 0x141, 0, 2, 0, 0xa5, 2, 0);
         for (int category = 0; category < 5; ++category) {
             if (category != 4 || has_fifth) {
-                int x = g_camp_skill_category_positions_64ef40[category][0];
-                int y = g_camp_skill_category_positions_64ef40[category][1];
+                int x = g_camp_skill_category_positions[category][0];
+                int y = g_camp_skill_category_positions[category][1];
                 if (category == 4) {
                     x += 0x136;
                 } else {
                     y += 0xa5;
                 }
                 DrawCatalogImage(-0xe, 0x144, 0,
-                                 static_cast<short>(g_camp_skill_category_images_64ef7c[category]),
+                                 static_cast<short>(g_camp_skill_category_images[category]),
                                  x - 0x16, y - 3, 2, 0);
             }
         }
         int category_count[5] = {0, 0, 0, 0, 0};
         for (skill = 0; skill < 0x29; ++skill) {
-            W8CharacterSkill* value = &g_review_character_0069c0f8->skills[skill];
+            W8CharacterSkill* value = &g_review_character->skills[skill];
             if (value->active_00 != 0 || value->points_02 != 0 || value->level != 0) {
                 int category = g_skill_attributes[skill].category;
-                int left = g_camp_skill_category_positions_64ef40[category][0];
-                int top = g_camp_skill_category_positions_64ef40[category][1];
+                int left = g_camp_skill_category_positions[category][0];
+                int top = g_camp_skill_category_positions[category][1];
                 if (category == 4) {
                     left += 0x136;
                 } else {
@@ -908,41 +891,41 @@ void DrawCampSkillsPage(void)
                 }
                 SetClippingRect(&saved_clip);
                 unsigned short* palette;
-                if (!g_status_685170.game_started || value->level == 0) {
-                    palette = g_font_state_palettes_68ee1c[11];
+                if (!g_status.game_started || value->level == 0) {
+                    palette = g_font_state_palettes[11];
                     if (value->active_00 != 0) {
                         palette = g_colour_68ee08;
                     }
                 } else {
                     bool best = true;
                     for (int slot = 0; slot < 8; ++slot) {
-                        if (g_status_685170.buffers.XChar[slot].fOccupied &&
-                            value->level < g_status_685170.buffers.Char[slot].skills[skill].level) {
+                        if (g_status.buffers.XChar[slot].fOccupied &&
+                            value->level < g_status.buffers.Char[slot].skills[skill].level) {
                             best = false;
                             break;
                         }
                     }
                     if (!best) {
-                        palette = g_font_state_palettes_68ee1c[11];
+                        palette = g_font_state_palettes[11];
                         if (value->active_00 != 0) {
                             palette = g_colour_68ee08;
                         }
                     } else {
-                        palette = g_font_state_palettes_68ee1c[12];
+                        palette = g_font_state_palettes[12];
                         if (value->active_00 != 0) {
-                            palette = g_font_state_palettes_68ee1c[5];
+                            palette = g_font_state_palettes[5];
                         }
                     }
                 }
                 SetFontObjectPalette16BPP(g_font_683660, palette);
-                short width = StringPixLength(
-                    gppStringList[g_character_skill_name_ids_61e454[skill]], g_font_683660);
+                short width = StringPixLength(gppStringList[g_character_skill_name_ids[skill]],
+                                              g_font_683660);
                 gprintf((0x6b - width) / 2 + 2 + left, top + 1,
                         const_cast<wchar_t*>(g_format_s_006068e4),
-                        gppStringList[g_character_skill_name_ids_61e454[skill]]);
+                        gppStringList[g_character_skill_name_ids[skill]]);
                 palette = g_colour_68ee08;
                 if (value->improved_12 != 0) {
-                    palette = g_font_state_palettes_68ee1c[1];
+                    palette = g_font_state_palettes[1];
                 }
                 SetFontObjectPalette16BPP(g_font_683660, palette);
                 short value_width = StringPixLengthArg(
@@ -950,7 +933,7 @@ void DrawCampSkillsPage(void)
                 gprintfDirty((0x24 - value_width) / 2 + 0xee + left, top + 1,
                              const_cast<wchar_t*>(g_format_d_0060aa20), value->level);
                 SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
-                SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
+                SetObjectShade(g_wiz_text_font_secondary_object, 4);
                 ++category_count[category];
             }
         }
@@ -969,8 +952,8 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
     int occurrence = 0;
     for (int index = 0; index < 0x29; ++index) {
         if (g_skill_attributes[index].category == static_cast<int>(region->callback_id) &&
-            (g_review_character_0069c0f8->skills[index].active_00 != 0 ||
-             g_review_character_0069c0f8->skills[index].level != 0)) {
+            (g_review_character->skills[index].active_00 != 0 ||
+             g_review_character->skills[index].level != 0)) {
             if (occurrence == row) {
                 skill = index;
                 break;
@@ -985,31 +968,30 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
         if (event->usEvent != MOUSE_POS) {
             return 0;
         }
-        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0 ||
-            row != g_camp_skill_hover_row_0069c524) {
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0 || row != g_camp_skill_hover_row) {
             wchar_t* text = skill == -1 ? 0 : gppStringList[0x958];
             SetRegionHelpText(text);
             ResetRegionHelp(1);
-            g_camp_skill_hover_row_0069c524 = row;
+            g_camp_skill_hover_row = row;
         }
         return 0;
     }
     if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && skill != -1) {
         unsigned char best = 0;
-        if (g_status_685170.game_started && g_review_character_0069c0f8->skills[skill].level != 0) {
+        if (g_status.game_started && g_review_character->skills[skill].level != 0) {
             best = 1;
             for (int slot = 0; slot < 8; ++slot) {
-                if (g_status_685170.buffers.XChar[slot].fOccupied &&
-                    g_review_character_0069c0f8->skills[skill].level <
-                        g_status_685170.buffers.Char[slot].skills[skill].level) {
+                if (g_status.buffers.XChar[slot].fOccupied &&
+                    g_review_character->skills[skill].level <
+                        g_status.buffers.Char[slot].skills[skill].level) {
                     best = 0;
                     break;
                 }
             }
         }
         W8SkillInfoDialog* dialog = new W8SkillInfoDialog(
-            skill, best, g_review_character_0069c0f8->skills[skill].active_00 == 0,
-            skill == g_profession_bonus_skills[g_review_character_0069c0f8->iProfession]);
+            skill, best, g_review_character->skills[skill].active_00 == 0,
+            skill == g_profession_bonus_skills[g_review_character->iProfession]);
         DisplayCampDialog(dialog);
     }
     return 1;
@@ -1030,7 +1012,7 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
 void W8CharacterPersonalityPage::SetCharacter(W8Character* character,
                                               W8CharacterCreationState* creation_state, int mode)
 {
-    AcquireRegionSet(&g_character_page4_region_set_0069c52c);
+    AcquireRegionSet(&g_character_page4_region_set);
     W8CharacterPage::SetCharacter(character, creation_state, mode);
     W8TextControl::Listener* action_listener = this;
 
@@ -1255,8 +1237,8 @@ void W8CharacterPersonalityPage::Redraw()
         text.RenderToTarget(0, 1, -14);
 
         int index = 0;
-        for (const unsigned short* message_id = g_personality_message_ids_61e674;
-             message_id < g_personality_message_ids_61e674 + 9; ++message_id, ++index) {
+        for (const unsigned short* message_id = g_personality_message_ids;
+             message_id < g_personality_message_ids + 9; ++message_id, ++index) {
             bounds.left = (index % 3) * 0x80 + 0x30 + origin_x;
             bounds.right = bounds.left + 0x80;
             bounds.top = origin_y + 0x106 + (index / 3) * 0xe;
@@ -1325,20 +1307,20 @@ void W8CharacterPersonalityPage::OnPrimary(W8TextControl* control)
 {
     int portrait = m_character_060->portrait_index;
     if (control == m_control_078) {
-        int group = g_portrait_descriptors_6483d0[portrait].group + 1;
+        int group = g_portrait_descriptors[portrait].group + 1;
         if (group > 11)
             group = 0;
-        m_character_060->portrait_index = g_portrait_groups_648950[group].portraits[0];
+        m_character_060->portrait_index = g_portrait_groups[group].portraits[0];
         m_portrait_dirty_0fe = true;
     } else if (control == m_control_07c) {
-        int group = g_portrait_descriptors_6483d0[portrait].group - 1;
+        int group = g_portrait_descriptors[portrait].group - 1;
         if (group < 0)
             group = 11;
-        m_character_060->portrait_index = g_portrait_groups_648950[group].portraits[0];
+        m_character_060->portrait_index = g_portrait_groups[group].portraits[0];
         m_portrait_dirty_0fe = true;
     } else if (control == m_control_080 || control == m_control_084) {
-        int group = g_portrait_descriptors_6483d0[portrait].group;
-        W8PortraitGroup* portraits = &g_portrait_groups_648950[group];
+        int group = g_portrait_descriptors[portrait].group;
+        W8PortraitGroup* portraits = &g_portrait_groups[group];
         int index = 0;
         while (index < portraits->count && portraits->portraits[index] != portrait) {
             ++index;
@@ -1400,16 +1382,14 @@ W8CharacterPersonalityPage::~W8CharacterPersonalityPage() {}
 void W8CharacterSkillsPage::SetCharacter(W8Character* character,
                                          W8CharacterCreationState* creation_state, int mode)
 {
-    AcquireRegionSet(&g_character_page2_region_set_0069c530);
+    AcquireRegionSet(&g_character_page2_region_set);
     W8CharacterPage::SetCharacter(character, creation_state, mode);
     int category_count[5] = {0, 0, 0, 0, 0};
     for (int skill = 0; skill < 0x29; ++skill) {
         int category = g_skill_attributes[skill].category;
-        W8CharacterPageEntry* entry =
-            new W8CharacterPageEntry(this, g_character_page2_category_geometry_64ef90[category][0],
-                                     g_character_page2_category_geometry_64ef90[category][1] +
-                                         category_count[category] * 0xe,
-                                     1);
+        W8CharacterPageEntry* entry = new W8CharacterPageEntry(
+            this, g_character_page2_category_geometry[category][0],
+            g_character_page2_category_geometry[category][1] + category_count[category] * 0xe, 1);
         AddEntry(entry);
         entry->m_listener_004 = this;
         ++category_count[category];
@@ -1488,10 +1468,9 @@ void W8CharacterSkillsPage::Redraw()
         for (int category = 0; category < 5; ++category) {
             if (category != 4 || m_show_fifth_category_075) {
                 DrawCatalogImage(
-                    -14, 0x144, 0,
-                    static_cast<short>(g_character_page2_category_frames_64efb8[category]),
-                    origin_x + g_character_page2_category_geometry_64ef90[category][0] - 0x16,
-                    origin_y + g_character_page2_category_geometry_64ef90[category][1] - 3, 2, 0);
+                    -14, 0x144, 0, static_cast<short>(g_character_page2_category_frames[category]),
+                    origin_x + g_character_page2_category_geometry[category][0] - 0x16,
+                    origin_y + g_character_page2_category_geometry[category][1] - 3, 2, 0);
             }
         }
         if (!m_show_fifth_category_075) {
@@ -1567,7 +1546,7 @@ void W8CharacterSkillsPage::UpdateEntries()
             ++category_count[category];
             if (category == 4)
                 m_show_fifth_category_075 = 1;
-            entry->SetContent(skill, gppStringList[g_character_skill_name_ids_61e454[skill]],
+            entry->SetContent(skill, gppStringList[g_character_skill_name_ids[skill]],
                               &value->points_02, &m_creation_state_064->skill_points_spent[skill],
                               &m_creation_state_064->skill_limits[skill], 0x101);
             entry->SetLabelFontState(

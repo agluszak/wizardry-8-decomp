@@ -22,17 +22,17 @@ void TryGiveHeldItemToCampPortrait(int slot);
 void RedrawRcsLevelUpPanel(void); /* 0x005B6590 */
 void RedrawRcsDismissPanel(void); /* 0x005B68D0 */
 
-extern Controls* g_level_up_panel_0069c3c4;
-extern Controls* g_dismiss_panel_0069c3c8;
-extern W8TextControl* g_level_up_button_0069c3c0;
-extern W8TextControl* g_dismiss_button_0069c400;
+extern Controls* g_level_up_panel;
+extern Controls* g_dismiss_panel;
+extern W8TextControl* g_level_up_button;
+extern W8TextControl* g_dismiss_button;
 /* Five bottom page buttons created with the item-action strip by
    CreateCampButtonPanel (Items/Skills/...). */
-extern W8TextControl* g_camp_page_buttons_0069c3ec[5];
-extern W8TextControl* g_item_action_controls_69c3cc[8];
+extern W8TextControl* g_camp_page_buttons[5];
+extern W8TextControl* g_item_action_controls[8];
 /* 0x0069C404: the bottom Controls panel CreateCampButtonPanel parents
    the page and item-action strips to. */
-extern Controls* g_item_actions_panel_0069c404;
+extern Controls* g_item_actions_panel;
 
 unsigned char CampDismissPortraitRegionEvent(const InputAtom* event,
                                              W8Region* region); /* 0x005B5E90 */

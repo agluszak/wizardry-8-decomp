@@ -111,12 +111,12 @@ bool MtGigas2Train(Trigger* pTrigger)
     npc = GetNpcStateByKind(0x5b);
     item = 0;
     item_id = 0;
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
         item_id = GetItemInHand();
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     value = GetLocationVarValueByName("WirePanel");
     if (value == 3) {
         return false;
@@ -141,7 +141,7 @@ bool MtGigas2RedWire(Trigger* pTrigger)
     if (value == 3) {
         return true;
     }
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     if (value != 0) {
         MtGigas2WireShock();
         return false;
@@ -159,7 +159,7 @@ bool MtGigas2BlueWire(Trigger* pTrigger)
     if (value == 3) {
         return true;
     }
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     if (value != 1) {
         MtGigas2WireShock();
         return false;
@@ -179,7 +179,7 @@ bool MtGigas2YellowWire(Trigger* pTrigger)
     if (value == 3) {
         return true;
     }
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     if (value != 2) {
         MtGigas2WireShock();
         return false;
@@ -259,11 +259,11 @@ bool MtGigas2Lift3(Trigger* pTrigger)
     W8NpcState* npc = GetNpcStateByKind(0x5c);
     W8ItemInstance* item = 0;
 
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return false;
 }
 
@@ -278,11 +278,11 @@ bool MtGigas2TopDoor1(Trigger* pTrigger)
     W8NpcState* npc = GetNpcStateByKind(0x5f);
     W8ItemInstance* item = 0;
 
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return false;
 }
 
@@ -312,11 +312,11 @@ bool MtGigas2Officer1(Trigger* pTrigger)
     }
     npc = GetNpcStateByKind(0x7c);
     item = 0;
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return false;
 }
 
@@ -346,11 +346,11 @@ bool MtGigas2Officer2(Trigger* pTrigger)
     }
     npc = GetNpcStateByKind(0x7d);
     item = 0;
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return false;
 }
 
@@ -360,7 +360,7 @@ bool MtGigas2Officer2(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DB810
 bool MtGigas2LaserAlarm(Trigger* pTrigger)
 {
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     if (GetFact(0xa5) != 0) {
         return false;
     }
@@ -408,7 +408,7 @@ void MtGigas2UmpaniAlarm(int command)
             CreateAndPlaySoundNode("Data\\Sound\\VOCs\\VOC_HLLIntruder\\VOC_HLLIntruder_003.wav",
                                    position, 1.0f, 75.0f, 1);
         if (g_alarm_sound_6834e8 != 0 && g_alarm_gate_6834ec != 0) {
-            g_master_functions_006834d8->Add(MtGigas2UmpaniAlarm);
+            g_master_functions->Add(MtGigas2UmpaniAlarm);
         }
     }
     if (!g_alarm_gate_6834ec->IsFinished()) {

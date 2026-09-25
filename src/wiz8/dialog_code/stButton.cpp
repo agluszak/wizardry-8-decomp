@@ -131,7 +131,7 @@ void W8DialogButton::SetVisible(bool visible)
 void W8DialogButton::SetTooltipEnabled(unsigned char enabled)
 {
     if (enabled) {
-        if (m_tooltip_index != -1 && g_settings_6850c8.tooltips_enabled != 0) {
+        if (m_tooltip_index != -1 && g_settings.tooltips_enabled != 0) {
             SetButtonFastHelpText(
                 m_button_01c,
                 reinterpret_cast<UINT16*>(
@@ -148,7 +148,7 @@ void W8DialogButton::SetTooltipIndex(int tooltip_index)
 {
     if (m_button_01c != -1) {
         m_tooltip_index = tooltip_index;
-        if (g_settings_6850c8.tooltips_enabled != 0) {
+        if (g_settings.tooltips_enabled != 0) {
             SetButtonFastHelpText(
                 m_button_01c,
                 reinterpret_cast<UINT16*>(
@@ -294,7 +294,7 @@ unsigned char W8DialogButton::Configure(const char* image_path, int gray_frame,
         m_double_click_callback = double_click_callback;
         m_left_toggles = left_toggles;
         m_tooltip_index = tooltip_index;
-        if (tooltip_index != -1 && g_settings_6850c8.tooltips_enabled != 0) {
+        if (tooltip_index != -1 && g_settings.tooltips_enabled != 0) {
             SetButtonFastHelpText(
                 m_button_01c,
                 reinterpret_cast<UINT16*>(

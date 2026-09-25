@@ -16,7 +16,7 @@
    Local Screens\MGSKeyboard.cpp (lower 0x00591960). */
 
 // GLOBAL: WIZ8 0x0064c1c8
-int g_selected_party_slot_64c1c8 = -1;
+int g_selected_party_slot = -1;
 
 // FUNCTION: WIZ8 0x00591780
 void RequestExitScreen(void)
@@ -27,7 +27,7 @@ void RequestExitScreen(void)
 // FUNCTION: WIZ8 0x00593320
 int GetValue64C1C8(void)
 {
-    return g_selected_party_slot_64c1c8;
+    return g_selected_party_slot;
 }
 
 /* Lifecycle record 12's entry handler. It paints the whole 640x480 frame in the

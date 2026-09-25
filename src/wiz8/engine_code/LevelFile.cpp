@@ -14,14 +14,14 @@
 #define LEVELFILE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\LevelFile.cpp"
 
 // GLOBAL: WIZ8 0x006833fc
-W8LevelFile* g_level_file_6833fc;
+W8LevelFile* g_level_file;
 
 /* Scratch message buffer for the mesh/anim-object load failures; original name
-   unknown. The next defined symbol is g_level_file_6833fc at 0x006833FC, so the
+   unknown. The next defined symbol is g_level_file at 0x006833FC, so the
    buffer is at most 0x404 bytes; 0x400 matches this file's other 0x400 sprintf
    buffers. */
 // GLOBAL: WIZ8 0x00682ff8
-char g_level_file_error_682ff8[0x400];
+char g_level_file_error[0x400];
 
 // FUNCTION: WIZ8 0x004CFDC0
 W8LevelFile* ReadLevelFile004CFDC0(int hFile)
@@ -39,7 +39,7 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
     memset(pLevel->invisible_planes_1669, 0, sizeof(pLevel->invisible_planes_1669));
     pLevel->num_linked_records_2609 = 0;
     memset(pLevel->linked_records_260d, 0, sizeof(pLevel->linked_records_260d));
-    g_level_file_6833fc = pLevel;
+    g_level_file = pLevel;
 
     pLevel->pMeshes = static_cast<W8LevelFileMesh*>(malloc(sizeof(W8LevelFileMesh)));
     if (pLevel->pMeshes == 0) {
@@ -516,15 +516,14 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
     }
     int count = pMesh->num_vertices_04;
     if (count >= 0x186a1 || count <= 0) {
-        sprintf(g_level_file_error_682ff8, "Invalid number of vertices in mesh (%d vertices).\n",
-                count);
-        ReportBuildStatus(7, g_level_file_error_682ff8);
+        sprintf(g_level_file_error, "Invalid number of vertices in mesh (%d vertices).\n", count);
+        ReportBuildStatus(7, g_level_file_error);
         return FALSE;
     }
     count = pMesh->num_faces_08;
     if (count >= 0x30d41 || count <= 0) {
-        sprintf(g_level_file_error_682ff8, "Invalid number of faces in mesh (%d faces).\n", count);
-        ReportBuildStatus(7, g_level_file_error_682ff8);
+        sprintf(g_level_file_error, "Invalid number of faces in mesh (%d faces).\n", count);
+        ReportBuildStatus(7, g_level_file_error);
         return FALSE;
     }
     if (pMesh->version_00 >= 3) {
@@ -888,9 +887,8 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
             ok &= FileRead(hFile, &pSwitch->action_value_26d, 4, 0);
         }
         pTrigger->pData_02 = pSwitch;
-        g_level_file_6833fc->switch_triggers_6c5[g_level_file_6833fc->num_switch_triggers_6c1] =
-            pSwitch;
-        ++g_level_file_6833fc->num_switch_triggers_6c1;
+        g_level_file->switch_triggers_6c5[g_level_file->num_switch_triggers_6c1] = pSwitch;
+        ++g_level_file->num_switch_triggers_6c1;
         return ok;
     }
     case 3: {
@@ -997,10 +995,9 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                     okRecord = FileRead(hFile, &pRecord->kind_00, 1, 0);
                     okRecord &= FileRead(hFile, pRecord->vertices_01, 0x1b0, 0);
                     okRecord &= FileRead(hFile, &pRecord->linked_face_1b1, 2, 0);
-                    g_level_file_6833fc
-                        ->linked_records_260d[g_level_file_6833fc->num_linked_records_2609] =
+                    g_level_file->linked_records_260d[g_level_file->num_linked_records_2609] =
                         pRecord;
-                    ++g_level_file_6833fc->num_linked_records_2609;
+                    ++g_level_file->num_linked_records_2609;
                     pInvis->pRecord_23d = pRecord;
                 }
                 if ((ok & okRecord) != 0) {
@@ -1013,9 +1010,9 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
             }
         }
     }
-    g_level_file_6833fc->invisible_planes_1669[g_level_file_6833fc->num_invisible_planes_1665] =
+    g_level_file->invisible_planes_1669[g_level_file->num_invisible_planes_1665] =
         pInvis->pPlane_19c;
-    ++g_level_file_6833fc->num_invisible_planes_1665;
+    ++g_level_file->num_invisible_planes_1665;
     pTrigger->pData_02 = pInvis;
     return ok;
 }
@@ -1259,10 +1256,9 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 return FALSE;
             }
             fSuccess &= FileRead(hFile, pSuper->pPlane_854, sizeof(W8LevelFilePlane), 0);
-            g_level_file_6833fc
-                ->invisible_planes_1669[g_level_file_6833fc->num_invisible_planes_1665] =
+            g_level_file->invisible_planes_1669[g_level_file->num_invisible_planes_1665] =
                 pSuper->pPlane_854;
-            ++g_level_file_6833fc->num_invisible_planes_1665;
+            ++g_level_file->num_invisible_planes_1665;
         }
         if (!fSuccess) {
             return FALSE;
@@ -1294,9 +1290,8 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 ok = FileRead(hFile, &pRecord->kind_00, 1, 0);
                 ok &= FileRead(hFile, pRecord->vertices_01, 0x1b0, 0);
                 ok &= FileRead(hFile, &pRecord->linked_face_1b1, 2, 0);
-                g_level_file_6833fc
-                    ->linked_records_260d[g_level_file_6833fc->num_linked_records_2609] = pRecord;
-                ++g_level_file_6833fc->num_linked_records_2609;
+                g_level_file->linked_records_260d[g_level_file->num_linked_records_2609] = pRecord;
+                ++g_level_file->num_linked_records_2609;
                 pSuper->pRecord_863 = pRecord;
             }
             fSuccess &= ok;
@@ -1701,10 +1696,10 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                         ReadMeshFile(hFile, &pFrame->mesh_01) &
                                         FileRead(hFile, &pFrame->num_textures_5d, 2, 0);
                             if ((pFrame->num_textures_5d < 0) || (pFrame->num_textures_5d > 500)) {
-                                sprintf(g_level_file_error_682ff8,
+                                sprintf(g_level_file_error,
                                         "Invalid number of materials in mesh: %d\n",
                                         (int)pFrame->num_textures_5d);
-                                ReportBuildStatus(7, g_level_file_error_682ff8);
+                                ReportBuildStatus(7, g_level_file_error);
                                 return FALSE;
                             }
                             if (pFrame->num_textures_5d != 0) {
@@ -2114,9 +2109,9 @@ BOOLEAN ReadParticleSystemFile(int hFile, W8LevelFileParticleSystem* pSystem)
         5,
         reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
             String("Particle System: %s, Position %f, %f, %f\n", pSystem->particle_01.name,
-                   pSystem->particle_01.location.x * g_world_scale_005ebc40,
-                   pSystem->particle_01.location.y * g_world_scale_005ebc40,
-                   pSystem->particle_01.location.z * g_world_scale_005ebc40)));
+                   pSystem->particle_01.location.x * g_world_scale,
+                   pSystem->particle_01.location.y * g_world_scale,
+                   pSystem->particle_01.location.z * g_world_scale)));
     return fSuccess;
 }
 

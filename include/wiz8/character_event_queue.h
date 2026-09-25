@@ -16,7 +16,7 @@ enum W8CharacterEventFlag {
        scripting is active. */
     W8_EVENT_NO_NPC_DEFER = 0x08,
     /* The portrait quote/subtitle is suppressed; the dispatch path tests it
-       through the g_character_event_flags_mask_005ed8e4 global. */
+       through the g_character_event_flags_mask global. */
     W8_EVENT_SUPPRESS_QUOTE = 0x10,
     /* Events above the ordinary range normally preempt the slot's active
        event and dispatch immediately; this bit queues them normally. */
@@ -28,7 +28,7 @@ enum W8CharacterEventFlag {
 
 /* 0x005ED8E4: mask gating the portrait quote/subtitle flag; dispatch tests
    W8_EVENT_SUPPRESS_QUOTE through it. */
-extern unsigned char g_character_event_flags_mask_005ed8e4;
+extern unsigned char g_character_event_flags_mask;
 
 /* One queued character-event entry. The ctor, quote formatter, and process
    method live with QueueCharacterEvent in Health Stamina Mana.cpp; the

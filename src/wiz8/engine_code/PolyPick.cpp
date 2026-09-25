@@ -33,7 +33,7 @@ float GetHeadingAngle(const srVector3T<float>* source, const srVector3T<float>* 
 
     if (z == g_float_005ebb34) {
         if (x > g_float_005ebb34) {
-            return g_camera_half_pi_005ec3fc;
+            return g_camera_half_pi;
         }
         return g_float_005ed1e8;
     }
@@ -97,7 +97,7 @@ float GetCameraFacingYaw(const srVector3T<float>* position)
     GetCameraPosition(&camera_position);
     if (camera_position.z - position_z == g_float_005ebb34) {
         if (g_float_005ebb34 < camera_position.x - position_x) {
-            return g_camera_half_pi_005ec3fc;
+            return g_camera_half_pi;
         }
         return g_float_005ed1e8;
     }
@@ -123,7 +123,7 @@ float HeadingToTargetCPP(const srVector3T<float>* target)
 
     if (z == g_float_005ebb34) {
         if (x > g_float_005ebb34) {
-            return g_camera_half_pi_005ec3fc;
+            return g_camera_half_pi;
         }
         return g_float_005ed1e8;
     }

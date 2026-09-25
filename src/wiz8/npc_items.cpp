@@ -158,9 +158,9 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
         } while (index < count);
     }
 
-    if (static_cast<unsigned int>(g_status_685170.world_clock - npc->restock_clock) > 0xa8c0 ||
+    if (static_cast<unsigned int>(g_status.world_clock - npc->restock_clock) > 0xa8c0 ||
         force != 0) {
-        npc->restock_clock = g_status_685170.world_clock;
+        npc->restock_clock = g_status.world_clock;
         count = PLLength(npc->record->item_stock_rules);
         rule_index = 0;
         if (count > 0) {
@@ -211,7 +211,7 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
         }
     }
 
-    if (static_cast<unsigned int>(g_status_685170.world_clock - npc->maintenance_clock) < 0x15180 &&
+    if (static_cast<unsigned int>(g_status.world_clock - npc->maintenance_clock) < 0x15180 &&
         force == 0) {
         return 0;
     }
@@ -232,8 +232,8 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
             ++index;
         } while (index < count);
     }
-    npc->maintenance_clock = g_status_685170.world_clock;
-    npc->restock_clock = g_status_685170.world_clock;
+    npc->maintenance_clock = g_status.world_clock;
+    npc->restock_clock = g_status.world_clock;
     return 1;
 }
 
@@ -324,8 +324,8 @@ unsigned char PopulateNpcStock(W8NpcState* npc)
         } while (rule_index < rule_count);
     }
     SortNpcItems(npc);
-    npc->maintenance_clock = g_status_685170.world_clock;
-    npc->restock_clock = g_status_685170.world_clock;
+    npc->maintenance_clock = g_status.world_clock;
+    npc->restock_clock = g_status.world_clock;
     return 1;
 }
 
@@ -636,7 +636,7 @@ int AddNpcItemWithDelay(W8NpcState* npc, int item_id, unsigned int quantity, int
         return -1;
     }
     entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-    entry->available_at = g_status_685170.world_clock + delay;
+    entry->available_at = g_status.world_clock + delay;
     return index;
 }
 
@@ -653,7 +653,7 @@ unsigned int GetNpcItemCount(W8NpcState* npc)
 }
 
 // GLOBAL: WIZ8 0x0062A80C
-char g_sound_cash_transaction_62a80c[] = "Data\\Sound\\misc\\Cash Transaction.wav";
+char g_sound_cash_transaction[] = "Data\\Sound\\misc\\Cash Transaction.wav";
 
 // FUNCTION: WIZ8 0x0055B730
 unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
@@ -670,7 +670,7 @@ unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char
             if (suppress_payment == 0) {
                 AddPartyGold(amount, 0);
             }
-            SoundPlay(g_sound_cash_transaction_62a80c, 0);
+            SoundPlay(g_sound_cash_transaction, 0);
             if (item->stack_count == 0) {
                 item->stack_count = 1;
             }
@@ -922,7 +922,7 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
                 hand.stack_count = unit;
             }
         }
-        if (AddItemToPartyOrDrop(&hand, 0) == 0 && g_status_685170.item_in_cursor == 0) {
+        if (AddItemToPartyOrDrop(&hand, 0) == 0 && g_status.item_in_cursor == 0) {
             DisplayNpcQuote(gppStringList[0x1ac4 / 4], 0);
         }
         moved += unit;
@@ -933,7 +933,7 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
             ReplaceOrCreateItem(&stack, entry->item.iItemNo, 0, 1, 0);
             stack.stack_count = moved;
             price = CalculateTradeStackPrice(npc, &stack, 1);
-            SoundPlay(g_sound_cash_transaction_62a80c, 0);
+            SoundPlay(g_sound_cash_transaction, 0);
             if (ConsumeNpcItemQuantity(npc, index, moved) == 0) {
                 return 0;
             }
@@ -1063,7 +1063,7 @@ void MatureNpcDelayedItems(W8NpcState* npc)
     for (unsigned int index = 0; index < count; ++index) {
         W8NpcItemEntry* entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
         if (entry->available_at == 0 ||
-            entry->available_at >= static_cast<unsigned int>(g_status_685170.world_clock)) {
+            entry->available_at >= static_cast<unsigned int>(g_status.world_clock)) {
             continue;
         }
         entry->available_at = 0;

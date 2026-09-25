@@ -6,7 +6,7 @@
 #include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/wiz8_windows.h"
 
-extern bool g_shared_timers_paused_00652dce;
+extern bool g_shared_timers_paused;
 
 void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move); /* 0x0041EEE0 */
 
@@ -301,10 +301,10 @@ static_assert(offsetof(W8LevelDataRecord, contact_normal_scale_b8) == 0xb8,
               "W8LevelDataRecord_contact_normal_scale_b8");
 static_assert(sizeof(W8LevelDataRecord) == 0xf4, "W8LevelDataRecord_must_be_0xf4");
 
-extern W8LevelDataRecord* g_level_data_00652dac;
-/* Companion pointer cleared alongside g_level_data_00652dac on level
+extern W8LevelDataRecord* g_level_data;
+/* Companion pointer cleared alongside g_level_data on level
    transitions; its target's +0 flags have 0x200 masked off at 0x0044FCD0. */
-extern unsigned int* g_level_flags_00652da8;
+extern unsigned int* g_level_flags;
 /* Teardown flag tested and cleared by ReleaseLevelData. */
 extern bool g_flag_00652dcc;
 /* Read by the level-data reset and written by the GameData constructor in
@@ -383,15 +383,15 @@ void UpdateLevelMovementAudio(void);
 /* 0x004EF9A0: fall-impact override handler owned by GameplayCode.cpp;
    declared in wiz8/local_code/GameplayCode.h. */
 
-extern unsigned char g_level_motion_fast_00652dcd;
-extern bool g_level_footstep_pending_00652db9;
-extern float g_camera_motion_clamp_00603ac0;
-extern float g_camera_motion_divisor_00603ac4;
-extern int g_level_footstep_sound_00603ad4;
-extern float g_level_footstep_time_00652dd0;
-extern const double g_motion_delta_epsilon_005ebc50;
-extern const double g_motion_vector_epsilon_005ebc48;
-extern const float g_footstep_fall_threshold_005ebcd4;
-extern unsigned char g_environment_motion_active_00603ad1;
-extern bool g_environ_ground_latch_00652db8;
+extern unsigned char g_level_motion_fast;
+extern bool g_level_footstep_pending;
+extern float g_camera_motion_clamp;
+extern float g_camera_motion_divisor;
+extern int g_level_footstep_sound;
+extern float g_level_footstep_time;
+extern const double g_motion_delta_epsilon;
+extern const double g_motion_vector_epsilon;
+extern const float g_footstep_fall_threshold;
+extern unsigned char g_environment_motion_active;
+extern bool g_environ_ground_latch;
 extern srVector3T<float> g_origin_652940;

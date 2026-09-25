@@ -632,7 +632,7 @@ void W8TextBuffer::RenderText(unsigned char* buffer, unsigned int pitch, int x_o
     SetObjectShade(font_object, m_renderMode);
     unsigned short* previous_state = GetFontObjectPalette16BPP(m_font);
     if (m_fontStateIndex != -1) {
-        SetFontObjectPalette16BPP(m_font, g_font_state_palettes_68ee1c[m_fontStateIndex]);
+        SetFontObjectPalette16BPP(m_font, g_font_state_palettes[m_fontStateIndex]);
     }
     SaveFontSettings();
     SetFontDestBuffer(FontDestBuffer, m_pendingBounds.left, m_pendingBounds.top,
@@ -693,10 +693,10 @@ void W8TextBuffer::RenderToTarget(int offset, unsigned char force, int target)
                       m_pendingBounds.bottom, 0);
     unsigned short* previous_state = GetFontObjectPalette16BPP(m_font);
     if (m_fontStateIndex != -1) {
-        SetFontObjectPalette16BPP(m_font, g_font_state_palettes_68ee1c[m_fontStateIndex]);
+        SetFontObjectPalette16BPP(m_font, g_font_state_palettes[m_fontStateIndex]);
     }
     if (m_flag_4c) {
-        SetFontObjectPalette16BPP(m_font, g_font_state_palettes_68ee1c[1]);
+        SetFontObjectPalette16BPP(m_font, g_font_state_palettes[1]);
     }
 
     int y = GetVerticalPosition();

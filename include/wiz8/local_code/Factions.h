@@ -40,7 +40,7 @@ struct W8FactionRuntimeRecord {
        increments it (cap 0xfa) and reads it for the penalty tiers. */
     int offense_count_01;
     unsigned char unknown_05;
-    /* 0x06: g_status_685170.world_clock at the last band change. */
+    /* 0x06: g_status.world_clock at the last band change. */
     int band_changed_clock_06;
     /* 0x0a: raised by the sight pass the first time the party sees one of
        this faction's monsters; the journal lists encountered factions. */

@@ -19,21 +19,21 @@
    path string proves a filename — leave unresolved-fragment. */
 
 // GLOBAL: WIZ8 0x0060aae0
-int g_music_sample_handle_60aae0 = -1;
+int g_music_sample_handle = -1;
 // GLOBAL: WIZ8 0x0065BA74
-stScript* g_music_playlist_65ba74;
+stScript* g_music_playlist;
 // GLOBAL: WIZ8 0x0065BA78
-unsigned int g_music_playlist_tick_65ba78;
+unsigned int g_music_playlist_tick;
 // GLOBAL: WIZ8 0x0065BA7E
-bool g_music_playlist_active_65ba7e;
+bool g_music_playlist_active;
 // GLOBAL: WIZ8 0x0065BA80
-int g_music_playlist_weight_total_65ba80;
+int g_music_playlist_weight_total;
 // GLOBAL: WIZ8 0x0065BA84
-int g_music_playlist_track_count_65ba84;
+int g_music_playlist_track_count;
 // GLOBAL: WIZ8 0x0060AAE4
-unsigned char g_music_fade_60aae4 = 1;
+unsigned char g_music_fade = 1;
 // GLOBAL: WIZ8 0x0060AAE5
-unsigned char g_music_force_next_60aae5 = 1;
+unsigned char g_music_force_next = 1;
 // GLOBAL: WIZ8 0x0060AAE8
 int g_music_state_60aae8 = 20;
 // GLOBAL: WIZ8 0x0060AAEC
@@ -44,57 +44,57 @@ int g_music_state_60aaf0 = 30;
 // FUNCTION: WIZ8 0x0048fe50
 void SetMusicVolume(unsigned char volume)
 {
-    g_settings_6850c8.music_volume = volume;
-    if (g_music_sample_handle_60aae0 != -1) {
-        SoundSetVolume(g_music_sample_handle_60aae0, volume);
+    g_settings.music_volume = volume;
+    if (g_music_sample_handle != -1) {
+        SoundSetVolume(g_music_sample_handle, volume);
     }
 }
 
 // FUNCTION: WIZ8 0x0048fe80
 bool IsMusicMuted(void)
 {
-    return g_settings_6850c8.muted_music_volume != 0xff;
+    return g_settings.muted_music_volume != 0xff;
 }
 
 // FUNCTION: WIZ8 0x0048fe90
 void SetMusicMuted(unsigned char muted)
 {
     if (muted != 0) {
-        if (g_settings_6850c8.muted_music_volume == 0xff) {
-            g_settings_6850c8.muted_music_volume = g_settings_6850c8.music_volume;
-            g_settings_6850c8.music_volume = 0;
-            if (g_music_sample_handle_60aae0 != -1) {
-                SoundSetVolume(g_music_sample_handle_60aae0, 0);
+        if (g_settings.muted_music_volume == 0xff) {
+            g_settings.muted_music_volume = g_settings.music_volume;
+            g_settings.music_volume = 0;
+            if (g_music_sample_handle != -1) {
+                SoundSetVolume(g_music_sample_handle, 0);
             }
         }
-    } else if (g_settings_6850c8.muted_music_volume != 0xff) {
-        g_settings_6850c8.music_volume = g_settings_6850c8.muted_music_volume;
-        if (g_music_sample_handle_60aae0 != -1) {
-            SoundSetVolume(g_music_sample_handle_60aae0, g_settings_6850c8.muted_music_volume);
+    } else if (g_settings.muted_music_volume != 0xff) {
+        g_settings.music_volume = g_settings.muted_music_volume;
+        if (g_music_sample_handle != -1) {
+            SoundSetVolume(g_music_sample_handle, g_settings.muted_music_volume);
         }
-        g_settings_6850c8.muted_music_volume = 0xff;
+        g_settings.muted_music_volume = 0xff;
     }
 }
 
 // FUNCTION: WIZ8 0x00490180
 bool IsCurrentMusicPlaylist(const char* playlist)
 {
-    return _stricmp(playlist, g_music_playlist_65ba74->getName()) == 0;
+    return _stricmp(playlist, g_music_playlist->getName()) == 0;
 }
 
 /* Builds the named playlist object before the screen loop begins. */
 // FUNCTION: WIZ8 0x0048f940
 unsigned char InitializeMusicPlaylist(void)
 {
-    g_music_playlist_65ba74 = new stScript();
-    if (g_music_playlist_65ba74) {
-        g_music_playlist_65ba74->setName("Music Playlist");
+    g_music_playlist = new stScript();
+    if (g_music_playlist) {
+        g_music_playlist->setName("Music Playlist");
     }
-    g_music_playlist_tick_65ba78 = GetTickCount();
+    g_music_playlist_tick = GetTickCount();
     g_music_state_60aae8 = 0;
     g_music_state_60aaec = 0;
     g_music_state_60aaf0 = 0;
-    return g_music_playlist_65ba74 != 0;
+    return g_music_playlist != 0;
 }
 
 /* Count playable rows, load the pause directives, and retain a nonzero weight
@@ -139,34 +139,33 @@ void ServiceMusicPlaylist(void)
 {
     int failures = 0;
 
-    if (g_music_playlist_active_65ba7e == 0) {
+    if (g_music_playlist_active == 0) {
         return;
     }
-    if (g_music_sample_handle_60aae0 != -1 && SoundIsPlaying(g_music_sample_handle_60aae0) != 0) {
+    if (g_music_sample_handle != -1 && SoundIsPlaying(g_music_sample_handle) != 0) {
         return;
     }
-    if (GetTickCount() <= g_music_playlist_tick_65ba78) {
+    if (GetTickCount() <= g_music_playlist_tick) {
         return;
     }
 
-    if (g_music_force_next_60aae5 == 0 && gXStatus.fCombatMode == 0 &&
+    if (g_music_force_next == 0 && gXStatus.fCombatMode == 0 &&
         Random(100) <= static_cast<unsigned int>(g_music_state_60aaf0)) {
-        g_music_playlist_tick_65ba78 =
-            GetTickCount() + g_music_state_60aae8 * 1000 +
-            Random(g_music_state_60aaec * 1000 - g_music_state_60aae8 * 1000);
+        g_music_playlist_tick = GetTickCount() + g_music_state_60aae8 * 1000 +
+                                Random(g_music_state_60aaec * 1000 - g_music_state_60aae8 * 1000);
         return;
     }
 
     for (;;) {
         int selected = -1;
 
-        if (g_music_playlist_weight_total_65ba80 == 0) {
-            selected = Random(g_music_playlist_track_count_65ba84);
+        if (g_music_playlist_weight_total == 0) {
+            selected = Random(g_music_playlist_track_count);
         } else {
-            unsigned int target = Random(g_music_playlist_weight_total_65ba80);
+            unsigned int target = Random(g_music_playlist_weight_total);
             unsigned int accumulated = 0;
-            for (int index = 0; index < g_music_playlist_65ba74->lines.GetCount(); ++index) {
-                const char* line = (*g_music_playlist_65ba74->lines.GetAt(index))->text;
+            for (int index = 0; index < g_music_playlist->lines.GetCount(); ++index) {
+                const char* line = (*g_music_playlist->lines.GetAt(index))->text;
                 if (line[0] == '#') {
                     continue;
                 }
@@ -179,22 +178,22 @@ void ServiceMusicPlaylist(void)
         }
 
         if (selected < 0) {
-            g_music_force_next_60aae5 = 0;
+            g_music_force_next = 0;
             return;
         }
 
         char track[260];
-        strcpy(track, (*g_music_playlist_65ba74->lines.GetAt(selected))->text);
+        strcpy(track, (*g_music_playlist->lines.GetAt(selected))->text);
         char* weight = strchr(track, '(');
         if (weight != 0) {
             *weight = 0;
         }
 
-        if (StartMusicResource(track, g_music_fade_60aae4, 1) == 0) {
+        if (StartMusicResource(track, g_music_fade, 1) == 0) {
             ++failures;
         }
-        if (failures > 4 || g_music_sample_handle_60aae0 != -1) {
-            g_music_force_next_60aae5 = 0;
+        if (failures > 4 || g_music_sample_handle != -1) {
+            g_music_force_next = 0;
             return;
         }
     }
@@ -208,17 +207,17 @@ unsigned char StartMusicResource(const char* resource, int fade, int replace_cur
     if (resource == 0) {
         return 0;
     }
-    if (g_dev_mode_689b32 != 0) {
+    if (g_dev_mode != 0) {
         RequestExitScreen();
     }
 
     sprintf(path, "Data\\Music\\%s", resource);
     _strupr(path);
-    g_music_fade_60aae4 = static_cast<unsigned char>(fade);
+    g_music_fade = static_cast<unsigned char>(fade);
 
     if (strstr(path, ".MPL") == 0) {
-        if (g_music_playlist_active_65ba7e == 0) {
-            g_music_playlist_65ba74->setName("");
+        if (g_music_playlist_active == 0) {
+            g_music_playlist->setName("");
         }
 
         int handle = static_cast<int>(SoundPlayStreamedFile(path, 0));
@@ -227,53 +226,53 @@ unsigned char StartMusicResource(const char* resource, int fade, int replace_cur
         }
         SoundSetMusic(handle);
 
-        if (g_music_fade_60aae4 != 0) {
-            if (g_music_sample_handle_60aae0 != -1) {
-                SoundSetFadeVolume(g_music_sample_handle_60aae0, 0, 2000, 1);
+        if (g_music_fade != 0) {
+            if (g_music_sample_handle != -1) {
+                SoundSetFadeVolume(g_music_sample_handle, 0, 2000, 1);
             }
             SoundSetVolume(handle, 0);
-            SoundSetFadeVolume(handle, g_settings_6850c8.music_volume, 5000, 0);
+            SoundSetFadeVolume(handle, g_settings.music_volume, 5000, 0);
         } else {
-            if (g_music_sample_handle_60aae0 != -1) {
-                SoundStop(g_music_sample_handle_60aae0);
+            if (g_music_sample_handle != -1) {
+                SoundStop(g_music_sample_handle);
             }
-            SoundSetVolume(handle, g_settings_6850c8.music_volume);
+            SoundSetVolume(handle, g_settings.music_volume);
         }
-        g_music_sample_handle_60aae0 = handle;
+        g_music_sample_handle = handle;
         return 1;
     }
 
-    if (_stricmp(resource, g_music_playlist_65ba74->getName()) == 0) {
+    if (_stricmp(resource, g_music_playlist->getName()) == 0) {
         return 1;
     }
 
-    g_music_playlist_tick_65ba78 = GetTickCount() - 1;
+    g_music_playlist_tick = GetTickCount() - 1;
     g_music_state_60aae8 = 0;
     g_music_state_60aaec = 0;
     g_music_state_60aaf0 = 0;
-    g_music_playlist_65ba74->Clear004CF690();
-    g_music_playlist_65ba74->Load004CF3B0(path);
+    g_music_playlist->Clear004CF690();
+    g_music_playlist->Load004CF3B0(path);
 
-    if (g_music_playlist_65ba74->lines.GetCount() == 0) {
+    if (g_music_playlist->lines.GetCount() == 0) {
         return 0;
     }
     if (replace_current != 0) {
-        if (g_music_sample_handle_60aae0 != -1) {
-            if (g_music_fade_60aae4 == 0) {
-                SoundStop(g_music_sample_handle_60aae0);
+        if (g_music_sample_handle != -1) {
+            if (g_music_fade == 0) {
+                SoundStop(g_music_sample_handle);
             } else {
-                SoundSetFadeVolume(g_music_sample_handle_60aae0, 0, 2000, 1);
+                SoundSetFadeVolume(g_music_sample_handle, 0, 2000, 1);
             }
         }
-        g_music_sample_handle_60aae0 = -1;
+        g_music_sample_handle = -1;
     }
 
-    g_music_playlist_track_count_65ba84 =
-        AnalyzeMusicPlaylist(g_music_playlist_65ba74, &g_music_playlist_weight_total_65ba80);
-    if (g_music_playlist_track_count_65ba84 != 0) {
-        g_music_playlist_65ba74->setName(resource);
-        g_music_playlist_active_65ba7e = true;
-        g_music_force_next_60aae5 = 1;
+    g_music_playlist_track_count =
+        AnalyzeMusicPlaylist(g_music_playlist, &g_music_playlist_weight_total);
+    if (g_music_playlist_track_count != 0) {
+        g_music_playlist->setName(resource);
+        g_music_playlist_active = true;
+        g_music_force_next = 1;
     }
     return 1;
 }
@@ -282,15 +281,15 @@ unsigned char StartMusicResource(const char* resource, int fade, int replace_cur
 void StopMusicPlaylist(unsigned char fade)
 {
     if (fade != 0) {
-        if (g_music_sample_handle_60aae0 != -1) {
-            SoundSetFadeVolume(g_music_sample_handle_60aae0, 0, 2000, 1);
-            g_music_sample_handle_60aae0 = -1;
-            g_music_playlist_active_65ba7e = false;
+        if (g_music_sample_handle != -1) {
+            SoundSetFadeVolume(g_music_sample_handle, 0, 2000, 1);
+            g_music_sample_handle = -1;
+            g_music_playlist_active = false;
             return;
         }
     } else {
         SoundStopMusic();
     }
-    g_music_sample_handle_60aae0 = -1;
-    g_music_playlist_active_65ba7e = false;
+    g_music_sample_handle = -1;
+    g_music_playlist_active = false;
 }

@@ -25,18 +25,18 @@ void ClearHighlightIfItIs(const int* item);
 /* MainGameScreen.cpp GLOBAL at 0x006068E4: the "%s" display format. */
 extern const wchar_t g_format_s_006068e4[];
 /* MainGameScreen.cpp GLOBAL at 0x0064BAB0: the "%d%%" display format. */
-extern const wchar_t g_format_d_percent_0064bab0[];
+extern const wchar_t g_format_d_percent[];
 /* MainGameScreen.cpp GLOBAL at 0x0061C3E0: the "%s: %s" display format. */
-extern const wchar_t g_format_s_colon_s_0061c3e0[];
+extern const wchar_t g_format_s_colon_s[];
 /* MainGameScreen.cpp GLOBAL at 0x006481B4: the "%s: %s (%d)" display format. */
-extern const wchar_t g_format_s_colon_s_paren_d_006481b4[];
+extern const wchar_t g_format_s_colon_s_paren_d[];
 /* MainGameScreen.cpp GLOBAL at 0x0064DA8C: the " %s : " display format. */
-extern const wchar_t g_format_s_spaced_colon_0064da8c[];
+extern const wchar_t g_format_s_spaced_colon[];
 /* MainGameScreen.cpp GLOBAL at 0x0061A700: the "%s (%d)" display format. */
-extern const wchar_t g_format_s_paren_d_0061a700[];
+extern const wchar_t g_format_s_paren_d[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
-extern W8ScreenRect g_viewport_modes_647d30[];
+extern W8ScreenRect g_viewport_modes[];
 /* String-list ids naming each trap row; Traps.cpp indexes it with the
    trigger's trap type for the disarm/spring notices. */
 extern unsigned short g_value_0061e9ec[];
@@ -335,7 +335,7 @@ public:
    primary table 0x005eeaac, W8LockTumblerListener secondary at +0x4c with
    table 0x005eeaa8). Owns the eight tumblers and the three animation timers:
    the phase timer steps the shared sway, the rise timer moves a pin toward
-   g_lock_pin_target_height_64ba80, the fall timer returns it to rest. */
+   g_lock_pin_target_height, the fall timer returns it to rest. */
 // VTABLE: WIZ8 0x005eeaac
 class W8LockTumblerPanel : public Controls, public W8LockTumblerListener {
 public:
@@ -351,10 +351,10 @@ public:
     W8LockTumbler* m_tumblers_54[8]; /* 0x54 */
     unsigned char m_animating_74;    /* 0x74: a pin is in flight; input is locked out */
     unsigned char unknown_75[3];
-    int m_phase_78;               /* 0x78: sway accumulator feeding g_lock_phase_68f2b4 */
-    W8GameTimer m_phase_timer_7c; /* 0x7c: 0.04s */
-    W8GameTimer m_rise_timer_a0;  /* 0xa0: 0.03s */
-    W8GameTimer m_fall_timer_c4;  /* 0xc4: 0.01s */
+    int m_phase_78;                            /* 0x78: sway accumulator feeding g_lock_phase */
+    W8GameTimer m_phase_timer_7c;              /* 0x7c: 0.04s */
+    W8GameTimer m_rise_timer_a0;               /* 0xa0: 0.03s */
+    W8GameTimer m_fall_timer_c4;               /* 0xc4: 0.01s */
     W8LockTumblerPanelListener* m_listener_e8; /* 0xe8 */
 };
 static_assert(sizeof(W8LockTumblerPanel) == 0xec, "W8LockTumblerPanel_size");
@@ -496,15 +496,15 @@ extern W8MainGameScreen* g_main_game_screen;
 /* Insanity (spell 0x3c) world-cursor extent rows and the per spell-power
    index into them; CastSpellFromSource scans the same extents when it
    places the insanity point. */
-extern double g_world_cursor_extent_table_00616eb0[18];
-extern signed char g_spell_power_extent_index_00616f41[8];
+extern double g_world_cursor_extent_table[18];
+extern signed char g_spell_power_extent_index[8];
 
 class W8DialogBase;
 struct W8ItemInstance;
 
-extern W8DialogBase* g_modal_owner_0068edd0;
+extern W8DialogBase* g_modal_owner;
 void OpenModal(W8DialogBase* owner);
-extern W8DialogBase* g_pending_main_game_dialog_0068edd4;
+extern W8DialogBase* g_pending_main_game_dialog;
 
 /* Open the assay (item info) dialog for an item, evaluated against the party
    slot's character; -1 means no character. The current modal owner, if any,
@@ -541,19 +541,19 @@ void DisableCombatRegions(void);
 
 void HandleManualCameraHotkeys(void);
 void ApplyWorldRenderHotkeys(void);
-extern unsigned char g_radar_panel_shown_0068edbc;
-extern unsigned char g_action_panel_shown_0068edc8;
-extern unsigned char g_formation_panel_shown_0068edc9;
-extern bool g_mouselook_active_0068edd8;
-extern bool g_mouselook_left_held_0068edd9;
-extern bool g_node_cull_pending_0068edda;
-extern int g_main_game_mode_0068eddc;
-extern int g_selected_party_slot_64c1c8;
+extern unsigned char g_radar_panel_shown;
+extern unsigned char g_action_panel_shown;
+extern unsigned char g_formation_panel_shown;
+extern bool g_mouselook_active;
+extern bool g_mouselook_left_held;
+extern bool g_node_cull_pending;
+extern int g_main_game_mode;
+extern int g_selected_party_slot;
 int GetValue64C1C8(void); /* 0x00593320 */
 void RequestLevelTransition005615F0(int level, int entry, unsigned char flag);
-extern bool g_build_level_links_0065bd2c;
-extern int g_next_link_level_0068ede8;
-extern bool g_navigator_position_changed_659c11;
+extern bool g_build_level_links;
+extern int g_next_link_level;
+extern bool g_navigator_position_changed;
 void BeginLevelTransition(void); /* 0x005611A0 */
 void SetViewportMode(int mode);  /* 0x005618F0 */
 /* Apply a main-game UI mode (0=portraits, 1=formation, 2=radar): drop raised

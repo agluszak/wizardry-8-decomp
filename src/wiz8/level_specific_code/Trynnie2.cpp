@@ -51,10 +51,10 @@ void EnsureTrynnie2KilledVar(void)
 // FUNCTION: WIZ8 0x004D9D70
 bool Trynnie2GoodaVineA(Trigger* pTrigger)
 {
-    if (g_status_685170.item_in_cursor != 0) {
+    if (g_status.item_in_cursor != 0) {
         return 0;
     }
-    ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x16d, 1, 1, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x16d, 1, 1, 0);
     SetItemCursor(0);
     return 1;
 }
@@ -64,10 +64,10 @@ bool Trynnie2GoodaVineA(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004D9DA0
 bool Trynnie2GoodaVineB(Trigger* pTrigger)
 {
-    if (g_status_685170.item_in_cursor != 0) {
+    if (g_status.item_in_cursor != 0) {
         return 0;
     }
-    ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x16e, 1, 1, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x16e, 1, 1, 0);
     SetItemCursor(0);
     return 1;
 }
@@ -77,10 +77,10 @@ bool Trynnie2GoodaVineB(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004D9DD0
 bool Trynnie2GiveZulu(Trigger* pTrigger)
 {
-    if (g_status_685170.item_in_cursor != 0) {
+    if (g_status.item_in_cursor != 0) {
         return 0;
     }
-    ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x1b3, 1, 1, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x1b3, 1, 1, 0);
     SetItemCursor(0);
     return 1;
 }
@@ -115,7 +115,7 @@ bool Trynnie2MeatBox(Trigger* pTrigger)
     int item_id;
 
     group = FindFirstMonsterByID(0x1d4);
-    if (group == 0 || g_status_685170.item_in_cursor == 0) {
+    if (group == 0 || g_status.item_in_cursor == 0) {
         ShowNotice(0xf, gppStringList[0x2590 / 4]);
         return 1;
     }
@@ -169,8 +169,8 @@ bool Trynnie2UseItem(W8ItemInstance* item)
     } else {
         ShowString(gppStringList[0x259c / 4]);
     }
-    if (g_status_685170.use_item_latch_2445 == 0) {
-        g_status_685170.use_item_latch_2445 = true;
+    if (g_status.use_item_latch_2445 == 0) {
+        g_status.use_item_latch_2445 = true;
     } else {
         ShowString(gppStringList[0x25a4 / 4]);
         if (FindEntityByName("NP_MysticalShaman", &position, 0, 0) != 0) {

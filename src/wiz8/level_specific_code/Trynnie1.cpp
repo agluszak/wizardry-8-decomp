@@ -90,7 +90,7 @@ bool Trynnie1FountRandomFX(Trigger* pTrigger)
         return 1;
     } else if (roll < 75) {
         for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
-            if (g_status_685170.buffers.XChar[i].fOccupied != 0) {
+            if (g_status.buffers.XChar[i].fOccupied != 0) {
                 HealCharacter(i, 100, 0);
             }
         }
@@ -98,7 +98,7 @@ bool Trynnie1FountRandomFX(Trigger* pTrigger)
         return 1;
     } else {
         for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
-            if (g_status_685170.buffers.XChar[i].fOccupied != 0) {
+            if (g_status.buffers.XChar[i].fOccupied != 0) {
                 RestoreCharacterStamina(i, 100, 0);
             }
         }

@@ -18,7 +18,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-extern srVector3T<float> g_environment_offset_00659cd0;
+extern srVector3T<float> g_environment_offset;
 extern float g_light_scale_0060bfe0;
 
 /*
@@ -43,7 +43,7 @@ srHeapArray<unsigned long> g_software_cull_active_polygons;
 /* Byte budget for the decompressed per-frame caches; AllocateFrameBuffers
    reclaims least-recently-used frames past it. */
 // GLOBAL: WIZ8 0x00609d34
-int g_decompressed_mesh_byte_limit_00609d34 = 0x800000;
+int g_decompressed_mesh_byte_limit = 0x800000;
 
 /* Signed-byte normal components back to floats, indexed by the raw byte. */
 // GLOBAL: WIZ8 0x00659ce8
@@ -289,7 +289,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
     srVector3T<float> scaled;
     srVector3T<float> ambient_rgb;
 
-    if ((flags_3a0 & 2) != 0 && g_render_unlit_0065a0ec == 0) {
+    if ((flags_3a0 & 2) != 0 && g_render_unlit == 0) {
         lights = vertex_lights_3b4[vertex_light_table_3b0].data;
         sunlight = vertex_sunlight_3c4.data;
         if (lights != 0 && sunlight != 0) {
@@ -301,13 +301,13 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                      ambient_color_3a4.z == g_float_005ebb34) ||
                     vertex_light_table_3b0 == 1) {
                     CopyDwordBuffer(dig, lights, vertex_location_count_22c * 3);
-                    if ((g_environment_offset_00659cd0.x != g_float_005ebb34 ||
-                         g_environment_offset_00659cd0.y != g_float_005ebb34 ||
-                         g_environment_offset_00659cd0.z != g_float_005ebb34) &&
+                    if ((g_environment_offset.x != g_float_005ebb34 ||
+                         g_environment_offset.y != g_float_005ebb34 ||
+                         g_environment_offset.z != g_float_005ebb34) &&
                         vertex_light_table_3b0 != 1 &&
                         (count = vertex_location_count_22c, count != 0) &&
-                        IsZeroVector(&g_environment_offset_00659cd0) == 0) {
-                        srVectorProcessor::add(dig, g_environment_offset_00659cd0, dig,
+                        IsZeroVector(&g_environment_offset) == 0) {
+                        srVectorProcessor::add(dig, g_environment_offset, dig,
                                                static_cast<SRDWORD>(count));
                     }
                 } else {
@@ -339,12 +339,12 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                         reinterpret_cast<float*>(dig),    // reinterpret-ok: packed DIG as float*
                         reinterpret_cast<float*>(lights), // reinterpret-ok: packed lights as float*
                         vertex_location_count_22c * 3);
-                    if ((g_environment_offset_00659cd0.x != g_float_005ebb34 ||
-                         g_environment_offset_00659cd0.y != g_float_005ebb34 ||
-                         g_environment_offset_00659cd0.z != g_float_005ebb34) &&
+                    if ((g_environment_offset.x != g_float_005ebb34 ||
+                         g_environment_offset.y != g_float_005ebb34 ||
+                         g_environment_offset.z != g_float_005ebb34) &&
                         (count = vertex_location_count_22c, count != 0) &&
-                        IsZeroVector(&g_environment_offset_00659cd0) == 0) {
-                        srVectorProcessor::add(dig, g_environment_offset_00659cd0, dig,
+                        IsZeroVector(&g_environment_offset) == 0) {
+                        srVectorProcessor::add(dig, g_environment_offset, dig,
                                                static_cast<SRDWORD>(count));
                     }
                 }
@@ -410,13 +410,13 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     reinterpret_cast<float*>(dig),    // reinterpret-ok: packed DIG as float*
                     reinterpret_cast<float*>(lights), // reinterpret-ok: packed lights as float*
                     vertex_location_count_22c * 3);
-                if ((g_environment_offset_00659cd0.x != g_float_005ebb34 ||
-                     g_environment_offset_00659cd0.y != g_float_005ebb34 ||
-                     g_environment_offset_00659cd0.z != g_float_005ebb34) &&
+                if ((g_environment_offset.x != g_float_005ebb34 ||
+                     g_environment_offset.y != g_float_005ebb34 ||
+                     g_environment_offset.z != g_float_005ebb34) &&
                     vertex_light_table_3b0 != 1 &&
                     (count = vertex_location_count_22c, count != 0) &&
-                    IsZeroVector(&g_environment_offset_00659cd0) == 0) {
-                    srVectorProcessor::add(dig, g_environment_offset_00659cd0, dig,
+                    IsZeroVector(&g_environment_offset) == 0) {
+                    srVectorProcessor::add(dig, g_environment_offset, dig,
                                            static_cast<SRDWORD>(count));
                 }
             }
@@ -454,7 +454,7 @@ void stMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
 /* Wizardry-extended srMeshModel::renderTriMesh. Optional polygon normals enable
    a software backface cull into g_software_cull_active_polygons and
    forces CULL_FRONT; a null table leaves hardware cull at CULL_NONE unless
-   g_render_cull_front_0065a0ed already requested front culling. */
+   g_render_cull_front already requested front culling. */
 // FUNCTION: WIZ8 0x00470380
 void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& mesh,
                                              const srVector3T<float>* poly_equations)
@@ -464,12 +464,12 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
 
     if (mesh.polygon_count_04 != 0 && mesh.vertex_count_00 != 0) {
         renderer.pushEnable();
-        if ((g_inverted_depth_render_0065a0ee != 0 || (mesh.control_flags_0c & 0x40) != 0) &&
+        if ((g_inverted_depth_render != 0 || (mesh.control_flags_0c & 0x40) != 0) &&
             !renderer.isEnabled(srGERD::ENABLE_POSITIONAL_1)) {
             renderer.toggle(srGERD::ENABLE_POSITIONAL_1);
         }
 
-        if (g_render_cull_front_0065a0ed != 0) {
+        if (g_render_cull_front != 0) {
             renderer.setCullMode(srGERD::CULL_FRONT);
         } else if (poly_equations != 0) {
             renderer.setCullMode(srGERD::CULL_FRONT);
@@ -638,7 +638,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
 
                     if (mesh.poly_shaders_100[pass] == 0) {
                         shader.value = mesh.shaders_b0[pass].value;
-                        if (g_inverted_depth_render_0065a0ee != 0) {
+                        if (g_inverted_depth_render != 0) {
                             shader.value = (shader.value & 0xfffffffeUL) | 6UL;
                         }
                         pipeline->SetFlags004752C0(shader);
@@ -1313,7 +1313,7 @@ unsigned char stMeshModel::AllocateFrameBuffers00471720(unsigned int uiFrame, un
 {
     if ((flags & 1) != 0 && m_pVertexLoc[uiFrame] == 0) {
         int needed = vertex_location_count_22c * sizeof(srVector3T<float>);
-        if (g_decompressed_mesh_byte_limit_00609d34 <= g_decompressed_mesh_bytes + needed) {
+        if (g_decompressed_mesh_byte_limit <= g_decompressed_mesh_bytes + needed) {
             if (ReclaimDecompressedBytes(needed) == 0) {
                 return 0;
             }
@@ -1328,7 +1328,7 @@ unsigned char stMeshModel::AllocateFrameBuffers00471720(unsigned int uiFrame, un
     }
     if ((flags & 2) != 0 && m_pVertexNormal[uiFrame] == 0) {
         int needed = vertex_location_count_22c * sizeof(srVector3T<float>);
-        if (g_decompressed_mesh_byte_limit_00609d34 <= g_decompressed_mesh_bytes + needed) {
+        if (g_decompressed_mesh_byte_limit <= g_decompressed_mesh_bytes + needed) {
             if (ReclaimDecompressedBytes(needed) == 0) {
                 return 0;
             }
@@ -1343,7 +1343,7 @@ unsigned char stMeshModel::AllocateFrameBuffers00471720(unsigned int uiFrame, un
     }
     if ((flags & 4) != 0 && m_pPolyNormal[uiFrame] == 0) {
         int needed = polygon_count_230 * sizeof(srVector3T<float>);
-        if (g_decompressed_mesh_byte_limit_00609d34 <= g_decompressed_mesh_bytes + needed) {
+        if (g_decompressed_mesh_byte_limit <= g_decompressed_mesh_bytes + needed) {
             if (ReclaimDecompressedBytes(needed) == 0) {
                 return 0;
             }

@@ -138,7 +138,7 @@ W8FactionDisposition GetFactionDisposition(signed char faction)
 /* 0x0061EACC: the gppStringList name id for each faction row; the two filler
    factions reuse the unaligned name. */
 // GLOBAL: WIZ8 0x0061EACC
-const unsigned short g_faction_name_ids_61eacc[W8_FACTION_COUNT] = {
+const unsigned short g_faction_name_ids[W8_FACTION_COUNT] = {
     0x5a1, 0x5a2, 0x5a3, 0x5a4, 0x5a5, 0x5a6, 0x5a7, 0x5a8, 0x5a9, 0x5aa, 0x5ab,
     0x5ac, 0x5ad, 0x5ae, 0x5af, 0x5b0, 0x5b1, 0x5b2, 0x5b3, 0x5a1, 0x5a1,
 };
@@ -178,7 +178,7 @@ void SetFactionDispositionBand(signed char faction, signed char band)
         break;
     }
     if (band != old_band) {
-        g_factions[faction].band_changed_clock_06 = g_status_685170.world_clock;
+        g_factions[faction].band_changed_clock_06 = g_status.world_clock;
         if (band < old_band) {
             swprintf(notice, gppStringList[0x245]);
             palette = 0;
@@ -186,8 +186,8 @@ void SetFactionDispositionBand(signed char faction, signed char band)
             swprintf(notice, gppStringList[0x246]);
             palette = 5;
         }
-        ShowNoticef(palette, gppStringList[0x247],
-                    gppStringList[g_faction_name_ids_61eacc[faction]], notice);
+        ShowNoticef(palette, gppStringList[0x247], gppStringList[g_faction_name_ids[faction]],
+                    notice);
     }
 }
 
@@ -332,7 +332,7 @@ void AdjustFactionDisposition(signed char faction, char delta)
         new_band = (g_factions[faction].disposition_score >= 67) + 1;
     }
     if (new_band != old_band) {
-        g_factions[faction].band_changed_clock_06 = g_status_685170.world_clock;
+        g_factions[faction].band_changed_clock_06 = g_status.world_clock;
     }
     if (g_factions[faction].disposition_score < old_score) {
         swprintf(notice, gppStringList[0x245]);
@@ -343,8 +343,7 @@ void AdjustFactionDisposition(signed char faction, char delta)
     } else {
         return;
     }
-    ShowNoticef(palette, gppStringList[0x247], gppStringList[g_faction_name_ids_61eacc[faction]],
-                notice);
+    ShowNoticef(palette, gppStringList[0x247], gppStringList[g_faction_name_ids[faction]], notice);
 }
 
 /* Write both faction tables into the open FATA chunk: the 21x21 relation

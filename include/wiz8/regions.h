@@ -7,7 +7,7 @@
 
 struct Controls;
 
-extern unsigned char g_dev_mode_689b32;
+extern unsigned char g_dev_mode;
 
 struct W8RegionSet {
     unsigned int enabled;

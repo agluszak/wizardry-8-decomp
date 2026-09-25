@@ -325,7 +325,7 @@ int W8DialogTextArea::AddEntry(const wchar_t* prefix, const wchar_t* text,
         entry = new W8DialogTextEntry(
             prefix, text, prefix_palette, text_palette, &m_bounds, m_font, category,
             g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED548 |
-                g_dialog_text_layout_mask_69c5d0,
+                g_dialog_text_layout_mask,
             m_behavior_flags & 4);
     } else {
         entry = new W8DialogTextEntry(

@@ -31,7 +31,7 @@
    established by its definitions. */
 
 // GLOBAL: WIZ8 0x0060bfdc
-unsigned int g_light_update_flags_0060bfdc = 1;
+unsigned int g_light_update_flags = 1;
 
 /* rand() normalization to a 0..1 flicker probability; only Update0049C960
    uses it. */
@@ -118,7 +118,7 @@ void stLight::traverse(srNode::TraverseInfo& info)
 
     if (!testFlag(FLAG_TERMINATE)) {
         if (testFlag(FLAG_DISABLE) || fabs(intensity_1d0) <= g_double_005ebc70 ||
-            (g_light_update_flags_0060bfdc & 1) == 0) {
+            (g_light_update_flags & 1) == 0) {
             if (firstChild() != 0) {
                 firstChild()->traverse(info);
             }
@@ -437,7 +437,7 @@ void stLight::Reset0049D070()
 // FUNCTION: WIZ8 0x0049D120
 void SaveLightStates(int handle)
 {
-    unsigned short name[0x40] = {g_empty_ambient_name_65a110};
+    unsigned short name[0x40] = {g_empty_ambient_name};
     unsigned char version = 1;
     int count = 0;
 
@@ -476,7 +476,7 @@ void SaveLightStates(int handle)
 // FUNCTION: WIZ8 0x0049D390
 void LoadLightStates(int handle)
 {
-    unsigned short name[0x40] = {g_empty_ambient_name_65a110};
+    unsigned short name[0x40] = {g_empty_ambient_name};
     unsigned char version;
     int count = 0;
 

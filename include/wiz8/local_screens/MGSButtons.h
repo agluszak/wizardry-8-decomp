@@ -60,7 +60,7 @@ unsigned char CreateRoofButtons(void); /* 0x00597EE0 */
 void RedrawRoofButtons(void); /* 0x00598060 */
 /* Sync roof-button visibility/enabled/pressed state and Draw each button. */
 void UpdateRoofButtons(void); /* 0x005980B0 */
-/* Press the roof button that matches g_settings_6850c8.main_ui_mode. */
+/* Press the roof button that matches g_settings.main_ui_mode. */
 void SyncRoofButtonPressedState(void); /* 0x00598150 */
 /* Draw layout-arrow chrome and sync the six raise/lower arrows against the
    live action-panel / formation-board / radar-map visibility flags. */

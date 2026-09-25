@@ -94,13 +94,13 @@ void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags);
 /* Renderer state and helpers with only product C++ consumers. The C block
    above is the SGP video-manager surface the SGP C translation units
    reference; these stay ordinary C++ linkage because no C unit names them. */
-extern unsigned char g_auto_capture_6596f4;
-extern int g_cursor_image_height_6596b8;
+extern unsigned char g_auto_capture;
+extern int g_cursor_image_height;
 /* 0x00652DA4: set while the swaying camera view is active; see
    SetCameraSwayMode in 3dapi.cpp. */
-extern bool g_camera_sway_active_652da4;
-extern int g_screenshot_index_659724;
-extern int g_screenshot_page_659728;
+extern bool g_camera_sway_active;
+extern int g_screenshot_index;
+extern int g_screenshot_page;
 void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom);
 #ifdef __cplusplus
 
@@ -209,46 +209,46 @@ class stSurface2D;
 struct EnvironmentColour;
 template <class T> class srVector3T;
 
-extern int g_pixel_format_603c48;
-extern unsigned char g_fullscreen_603c39;
-extern bool g_screenshot_pending_659711;
-extern bool g_video_inspector_enabled_65970f;
-extern bool g_cursor_scene_enabled_603c60;
-extern unsigned char g_fullscreen_scene_last_603c4c;
-extern const int* g_overlay_viewport_659668;
+extern int g_pixel_format;
+extern unsigned char g_fullscreen;
+extern bool g_screenshot_pending;
+extern bool g_video_inspector_enabled;
+extern bool g_cursor_scene_enabled;
+extern unsigned char g_fullscreen_scene_last;
+extern const int* g_overlay_viewport;
 extern srModeler* g_modeler_65963c;
-extern srScene* g_scene_user_659640;
-extern srScene* g_scene_fullscreen_659644;
-extern srScene* g_scene_permanent_659648;
-extern srScene* g_scene_prerender0_65964c;
-extern srScene* g_scene_prerender1_659650;
-extern srScene* g_scene_overlay0_659654;
-extern srScene* g_scene_overlay1_659658;
-extern srScene* g_scene_square_65965c;
-extern srColorSurface* g_primary_color_surface_659660;
+extern srScene* g_scene_user;
+extern srScene* g_scene_fullscreen;
+extern srScene* g_scene_permanent;
+extern srScene* g_scene_prerender0;
+extern srScene* g_scene_prerender1;
+extern srScene* g_scene_overlay0;
+extern srScene* g_scene_overlay1;
+extern srScene* g_scene_square;
+extern srColorSurface* g_primary_color_surface;
 void DrawColorSurface(srColorSurface* surface, int x, int y);
 srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
                         unsigned char additive); /* 0x00424A90 */
-extern srCamera* g_overlay_camera_659670;
-extern srCamera* g_square_camera_659674;
-extern bool g_texture_cache_enabled_65beaf;
-extern srGERD* g_gerd_659634;
+extern srCamera* g_overlay_camera;
+extern srCamera* g_square_camera;
+extern bool g_texture_cache_enabled;
+extern srGERD* g_gerd;
 /* Secondary renderer device preferred by the offscreen world-render path. */
-extern srGERD* g_secondary_gerd_65971c;
-extern LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
-extern stSurface2D* g_surface_node_659664;
-extern srMaterial* g_blit_material_65967c;
-extern srColorSurface* g_mouse_surface_659688;
-extern srNode* g_surface_nodes_654adc[0x12c0];
+extern srGERD* g_secondary_gerd;
+extern LPDIRECTDRAWSURFACE2 g_primary_surface;
+extern stSurface2D* g_surface_node;
+extern srMaterial* g_blit_material;
+extern srColorSurface* g_mouse_surface;
+extern srNode* g_surface_nodes[0x12c0];
 extern unsigned char g_block_652ddc[0x12c0];
-extern IDirectDraw2* g_direct_draw2_6596a0;
-extern IDirectDrawSurface* g_video_primary_surface1_6596ac;
-extern IDirectDrawSurface2* g_video_primary_surface2_6596b0;
-extern srModelInstance* g_current_model_instance_65962c;
-extern int g_renderer_mode_603d74;
-extern int g_overlay_render_mode_6596ec;
-extern int g_paired_render_mode_6596f0;
-extern float g_surface_scale_659680;
+extern IDirectDraw2* g_direct_draw2;
+extern IDirectDrawSurface* g_video_primary_surface1;
+extern IDirectDrawSurface2* g_video_primary_surface2;
+extern srModelInstance* g_current_model_instance;
+extern int g_renderer_mode;
+extern int g_overlay_render_mode;
+extern int g_paired_render_mode;
+extern float g_surface_scale;
 extern int g_surface_state_6595dc;
 extern int g_surface_state_654ad8;
 struct W8ViewportRect {
@@ -259,10 +259,10 @@ struct W8ViewportRect {
 };
 static_assert(sizeof(W8ViewportRect) == 16, "W8ViewportRect_size");
 extern W8ViewportRect g_viewport_6595e8;
-extern int g_dirty_tile_count_6596d8;
-extern int g_resident_texture_policy_659714;
-extern unsigned char g_world_render_enabled_65970d;
-extern unsigned char g_world_blacked_out_65970e;
+extern int g_dirty_tile_count;
+extern int g_resident_texture_policy;
+extern unsigned char g_world_render_enabled;
+extern unsigned char g_world_blacked_out;
 
 void SetResidentTexturePolicy(int policy);
 void SetSurfaceScale(float scale);

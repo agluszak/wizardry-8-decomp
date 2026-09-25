@@ -72,7 +72,7 @@ void CosmicCircleSetup(void)
     int uiMonsterID;
     unsigned int index;
 
-    if (g_status_685170.world_suspended_2390 == 0 && g_status_685170.cc_arena_spawned_4972 == 0) {
+    if (g_status.world_suspended_2390 == 0 && g_status.cc_arena_spawned_4972 == 0) {
         if (FindEntityByName("NP_ALTHEIDESARENA", &positionAltheides, 0, 0)) {
             group = SpawnMonsters(0x1b3, 1, &positionAltheides, 0, 1, 0, 0);
             uiMonsterID = IListGetAt(group->monsters, 0);
@@ -101,7 +101,7 @@ void CosmicCircleSetup(void)
         if (FindEntityByName("NP_PHOONZANG1", &positionPhoonzang, 0, 0)) {
             SpawnMonsters(0x197, 1, &positionPhoonzang, 2, 1, 0, 0);
         }
-        g_status_685170.cc_arena_spawned_4972 = true;
+        g_status.cc_arena_spawned_4972 = true;
         pMonsterInfoDs->p3D->AimAtPosition(&positionAltheides);
         pMonsterInfoAltheides->p3D->AimAtPosition(&positionDs);
         pTrigger = FindTriggerByName("CC_TRIGGERPLANE2");

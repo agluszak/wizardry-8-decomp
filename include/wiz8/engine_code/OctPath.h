@@ -74,7 +74,7 @@ public:
        heading, or uses directional clearance for oversized radii. */
     unsigned char HandleObstacleAhead(); /* 0x004CBB70 */
     /* Adds the seek force toward target_14 scaled by
-       g_path_acceleration_factor_0060f9e8 into force_38, clamped to
+       g_path_acceleration_factor into force_38, clamped to
        acceleration_0c; with a stopped movement it instead pushes along the
        2-D target direction and zeroes speed_limit_08. */
     void AccumulateSeekForce(); /* 0x004CC1A0 */
@@ -631,12 +631,12 @@ static_assert(offsetof(PrePathing, min_component_percent_1200) == 0x1200,
    eight-value range wrap once. */
 void __stdcall StepPathCell(int* x, int* z, int direction);
 
-extern W8PathingService* g_pathing_00659c60;
-extern unsigned short g_path_reserve_0060827a;
-extern float g_path_span_scale_005ec344;
+extern W8PathingService* g_pathing;
+extern unsigned short g_path_reserve;
+extern float g_path_span_scale;
 extern double g_double_005ec3b0;
 /* The -1.0 no-route sentinel MeasurePathDistance returns. */
 extern const double g_double_005ec2e8;
 /* 0x005ED300: OctPrePath.cpp's vertical-link slack; retail Combat.cpp reads
    it directly when sizing a monster's move. */
-extern float g_prepath_link_height_5ed300;
+extern float g_prepath_link_height;

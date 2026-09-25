@@ -130,29 +130,29 @@ static_assert(offsetof(W8CampScreenState, learned_spells) +
                   0x4d8,
               "W8CampScreenState_learned_total_offset");
 
-extern W8CampScreenState* g_camp_screen_0069c0f4;
+extern W8CampScreenState* g_camp_screen;
 extern int giReviewCharSlot;
-extern W8Character* g_review_character_0069c0f8;
-extern W8Character* g_camp_entry_parameter_0069c0fc; /* gpIdentifyingPC */
-extern W8Character* g_camp_character_0069c100;
-extern bool g_camp_character_pending_0069c104;
-extern unsigned int g_camp_item_region_set_0069c108;
-extern unsigned int g_camp_spell_region_sets_0069c40c[6];
+extern W8Character* g_review_character;
+extern W8Character* g_camp_entry_parameter; /* gpIdentifyingPC */
+extern W8Character* g_camp_character;
+extern bool g_camp_character_pending;
+extern unsigned int g_camp_item_region_set;
+extern unsigned int g_camp_spell_region_sets[6];
 
 /* Panel controls owned by the camp screen, created by
    CreateCampSecondaryPanel, CreateCampActionPanel and
    CreateItemsTabPanel and read here and in RCSItemsPage.cpp. The
    secondary panel owns the Items/Character info page tabs, the character-info
    help text, the seven attribute rows and the four secondary value labels. */
-extern W8Widget* g_camp_info_labels_0069c42c[4];
-extern W8TextControl* g_camp_page_tabs_0069c43c[2];
-extern W8HelpTextControl* g_camp_help_text_0069c444;
-extern W8Widget* g_camp_stat_labels_0069c448[7];
-extern W8TextControl* g_camp_action_buttons_0069c468[2];
-extern W8TextControl* g_camp_realm_tabs_0069c470[7];
+extern W8Widget* g_camp_info_labels[4];
+extern W8TextControl* g_camp_page_tabs[2];
+extern W8HelpTextControl* g_camp_help_text;
+extern W8Widget* g_camp_stat_labels[7];
+extern W8TextControl* g_camp_action_buttons[2];
+extern W8TextControl* g_camp_realm_tabs[7];
 /* One gppStringList id per primary attribute row; defined in
    ReviewCharacterScreen.cpp, drawn by RCSStatsPage.cpp's stats page. */
-extern int g_attribute_label_ids_64dd30[7];
+extern int g_attribute_label_ids[7];
 
 /* 0x0064CBF0: the twelve camp-screen regions the layout rules do not cover,
    given as explicit rectangles. The region initializer reads the first four
@@ -169,13 +169,13 @@ struct W8CampScreenRegion {
     int label_flag_20;         /* 0x20: label draw flag */
 };
 
-extern const W8CampScreenRegion g_camp_screen_regions_64cbf0[12];
+extern const W8CampScreenRegion g_camp_screen_regions[12];
 /* 0x00648C48: load-category font-palette selectors indexed by
    W8Character::load_category. */
-extern int g_load_category_palettes_648c48[5];
+extern int g_load_category_palettes[5];
 /* 0x0064CDA0: the three portrait catalog ids per race used by the camp
    party strip. */
-extern int g_race_portrait_images_64cda0[0x30];
+extern int g_race_portrait_images[0x30];
 
 void SwitchCampPage(int page);
 void ClearOtherRealmFilters(unsigned int realm);

@@ -13,15 +13,15 @@
 float g_float_005ec188 = 1.000100016593933f;
 
 // GLOBAL: WIZ8 0x00659a48
-void* g_oct_build_scratch_00659a48;
+void* g_oct_build_scratch;
 /* The running count of surfaces appended into the scratch buffer by the
    leaf collector. Saved and restored around nested collects. */
 // GLOBAL: WIZ8 0x00659a38
-unsigned long g_oct_build_count_00659a38;
+unsigned long g_oct_build_count;
 /* The caller's result slot during a segment collect; retail writes it but
    no recovered reader exists. */
 // GLOBAL: WIZ8 0x00659a44
-void* g_oct_build_out_00659a44;
+void* g_oct_build_out;
 
 char CollectSurfacePredicate(W8GDSurface* surface, short kind);
 
@@ -173,7 +173,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
         spatial_00.maximum_18.x = minimum->x + spatial_00.extent_04;
         spatial_00.maximum_18.y = minimum->y + spatial_00.extent_04;
         spatial_00.maximum_18.z = minimum->z + spatial_00.extent_04;
-        g_oct_build_scratch_00659a48 = malloc(40000);
+        g_oct_build_scratch = malloc(40000);
         spatial_00.polygon_count_3c = 1;
         spatial_00.item_count_40 = 0;
         spatial_00.root_90 = 0;
@@ -189,10 +189,10 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
 W8OctBuildTree::~W8OctBuildTree()
 {
     delete spatial_00.root_90;
-    if (g_oct_build_scratch_00659a48 != 0) {
-        free(g_oct_build_scratch_00659a48);
+    if (g_oct_build_scratch != 0) {
+        free(g_oct_build_scratch);
     }
-    g_oct_build_scratch_00659a48 = 0;
+    g_oct_build_scratch = 0;
 
     spatial_00.owned_98 = 0;
     if (link_lists_9c != 0) {
@@ -364,13 +364,13 @@ int W8OctBuildTree::CollectObjectsAlongSegment00446D80(int** results, const srVe
     unsigned int index;
 
     if (*results == 0) {
-        *results = static_cast<int*>(g_oct_build_scratch_00659a48);
-        g_oct_build_out_00659a44 = g_oct_build_scratch_00659a48;
+        *results = static_cast<int*>(g_oct_build_scratch);
+        g_oct_build_out = g_oct_build_scratch;
     } else {
-        saved = g_oct_build_count_00659a38;
-        g_oct_build_out_00659a44 = results;
+        saved = g_oct_build_count;
+        g_oct_build_out = results;
     }
-    g_oct_build_count_00659a38 = 0;
+    g_oct_build_count = 0;
 
     float length = to->Length();
     if (length > extent) {
@@ -391,10 +391,10 @@ int W8OctBuildTree::CollectObjectsAlongSegment00446D80(int** results, const srVe
 
     int count;
     if (saved != 0) {
-        count = g_oct_build_count_00659a38;
-        g_oct_build_count_00659a38 = saved;
+        count = g_oct_build_count;
+        g_oct_build_count = saved;
     } else {
-        count = g_oct_build_count_00659a38;
+        count = g_oct_build_count;
     }
     index = 0;
     if (count != 0) {
@@ -486,10 +486,9 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
                 surface = static_cast<W8GDSurface*>(link->surface_00);
                 if ((surface->flags_00 & 0x2000) == 0) {
                     surface->flags_00 |= 0x2000;
-                    static_cast<W8GDSurface**>(
-                        g_oct_build_scratch_00659a48)[g_oct_build_count_00659a38] =
+                    static_cast<W8GDSurface**>(g_oct_build_scratch)[g_oct_build_count] =
                         static_cast<W8GDSurface*>(link->surface_00);
-                    ++g_oct_build_count_00659a38;
+                    ++g_oct_build_count;
                     ++collected;
                 }
                 link = link->next_04;
@@ -499,17 +498,16 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
                 for (link = node->links_00[4]; link != 0; link = link->next_04) {
                     surface = static_cast<W8GDSurface*>(link->surface_00);
                     index = 0;
-                    scan = static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48);
-                    while (index < g_oct_build_count_00659a38) {
+                    scan = static_cast<W8GDSurface**>(g_oct_build_scratch);
+                    while (index < g_oct_build_count) {
                         if (*scan == surface) {
                             goto next_link_4;
                         }
                         ++index;
                         ++scan;
                     }
-                    static_cast<W8GDSurface**>(
-                        g_oct_build_scratch_00659a48)[g_oct_build_count_00659a38] = surface;
-                    ++g_oct_build_count_00659a38;
+                    static_cast<W8GDSurface**>(g_oct_build_scratch)[g_oct_build_count] = surface;
+                    ++g_oct_build_count;
                     ++second;
                 next_link_4:;
                 }
@@ -521,17 +519,16 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
                 for (link = node->links_00[7]; link != 0; link = link->next_04) {
                     surface = static_cast<W8GDSurface*>(link->surface_00);
                     index = 0;
-                    scan = static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48);
-                    while (index < g_oct_build_count_00659a38) {
+                    scan = static_cast<W8GDSurface**>(g_oct_build_scratch);
+                    while (index < g_oct_build_count) {
                         if (*scan == surface) {
                             goto next_link_7;
                         }
                         ++index;
                         ++scan;
                     }
-                    static_cast<W8GDSurface**>(
-                        g_oct_build_scratch_00659a48)[g_oct_build_count_00659a38] = surface;
-                    ++g_oct_build_count_00659a38;
+                    static_cast<W8GDSurface**>(g_oct_build_scratch)[g_oct_build_count] = surface;
+                    ++g_oct_build_count;
                     ++collected;
                 next_link_7:;
                 }
@@ -550,10 +547,9 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
                  link != 0; link = link->next_04) {
                 if (CollectSurfacePredicate(static_cast<W8GDSurface*>(link->surface_00), 0xb) !=
                     0) {
-                    static_cast<W8GDSurface**>(
-                        g_oct_build_scratch_00659a48)[g_oct_build_count_00659a38] =
+                    static_cast<W8GDSurface**>(g_oct_build_scratch)[g_oct_build_count] =
                         static_cast<W8GDSurface*>(link->surface_00);
-                    ++g_oct_build_count_00659a38;
+                    ++g_oct_build_count;
                     ++second;
                 }
             }
@@ -561,10 +557,9 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
         }
         for (link = node->links_00[kind]; link != 0; link = link->next_04) {
             if (CollectSurfacePredicate(static_cast<W8GDSurface*>(link->surface_00), kind) != 0) {
-                static_cast<W8GDSurface**>(
-                    g_oct_build_scratch_00659a48)[g_oct_build_count_00659a38] =
+                static_cast<W8GDSurface**>(g_oct_build_scratch)[g_oct_build_count] =
                     static_cast<W8GDSurface*>(link->surface_00);
-                ++g_oct_build_count_00659a38;
+                ++g_oct_build_count;
                 ++collected;
             }
         }
@@ -642,9 +637,9 @@ char CollectSurfacePredicate(W8GDSurface* surface, short kind)
 {
     char result = 0;
     if (kind != 3) {
-        if (g_oct_build_count_00659a38 != 0) {
-            for (unsigned long index = 0; index < g_oct_build_count_00659a38; ++index) {
-                if (surface == static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48)[index]) {
+        if (g_oct_build_count != 0) {
+            for (unsigned long index = 0; index < g_oct_build_count; ++index) {
+                if (surface == static_cast<W8GDSurface**>(g_oct_build_scratch)[index]) {
                     return 0;
                 }
             }

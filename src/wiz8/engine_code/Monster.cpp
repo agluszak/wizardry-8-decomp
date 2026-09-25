@@ -104,7 +104,7 @@ const float g_float_005ebcf8 = 0.0055555556900799274f;
 float g_light_scale_0060bfe0 = 1.0f;
 
 // GLOBAL: WIZ8 0x0065970C
-unsigned char g_monster_shadow_updates_enabled_0065970c;
+unsigned char g_monster_shadow_updates_enabled;
 /* Layout-compatible with srVector3T<float> but POD so VC6 emits static .data
    instead of a dynamic initializer into .bss. */
 struct W8AttachmentOffset {
@@ -114,98 +114,97 @@ struct W8AttachmentOffset {
 };
 
 // GLOBAL: WIZ8 0x0060e618
-W8AttachmentOffset g_monster_attachment_offsets_0060e618[8][8] = {{{0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f}},
-                                                                  {{-75.0f, 0.0f, 0.0f},
-                                                                   {75.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f}},
-                                                                  {{-75.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {75.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f}},
-                                                                  {{-112.5f, 0.0f, 0.0f},
-                                                                   {-37.5f, 0.0f, 0.0f},
-                                                                   {37.5f, 0.0f, 0.0f},
-                                                                   {112.5f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f}},
-                                                                  {{-112.5f, 0.0f, 0.0f},
-                                                                   {-37.5f, 0.0f, 0.0f},
-                                                                   {37.5f, 0.0f, 0.0f},
-                                                                   {112.5f, 0.0f, 0.0f},
-                                                                   {0.0f, 75.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f}},
-                                                                  {{-112.5f, 0.0f, 0.0f},
-                                                                   {-37.5f, 0.0f, 0.0f},
-                                                                   {37.5f, 0.0f, 0.0f},
-                                                                   {112.5f, 0.0f, 0.0f},
-                                                                   {-37.5f, 75.0f, 0.0f},
-                                                                   {37.5f, 75.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f}},
-                                                                  {{-112.5f, 0.0f, 0.0f},
-                                                                   {-37.5f, 0.0f, 0.0f},
-                                                                   {37.5f, 0.0f, 0.0f},
-                                                                   {112.5f, 0.0f, 0.0f},
-                                                                   {-75.0f, 75.0f, 0.0f},
-                                                                   {0.0f, 75.0f, 0.0f},
-                                                                   {75.0f, 75.0f, 0.0f},
-                                                                   {0.0f, 0.0f, 0.0f}},
-                                                                  {{-112.5f, 0.0f, 0.0f},
-                                                                   {-37.5f, 0.0f, 0.0f},
-                                                                   {37.5f, 0.0f, 0.0f},
-                                                                   {112.5f, 0.0f, 0.0f},
-                                                                   {-112.5f, 75.0f, 0.0f},
-                                                                   {-37.5f, 75.0f, 0.0f},
-                                                                   {37.5f, 75.0f, 0.0f},
-                                                                   {112.5f, 75.0f, 0.0f}}};
+W8AttachmentOffset g_monster_attachment_offsets[8][8] = {{{0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f}},
+                                                         {{-75.0f, 0.0f, 0.0f},
+                                                          {75.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f}},
+                                                         {{-75.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {75.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f}},
+                                                         {{-112.5f, 0.0f, 0.0f},
+                                                          {-37.5f, 0.0f, 0.0f},
+                                                          {37.5f, 0.0f, 0.0f},
+                                                          {112.5f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f}},
+                                                         {{-112.5f, 0.0f, 0.0f},
+                                                          {-37.5f, 0.0f, 0.0f},
+                                                          {37.5f, 0.0f, 0.0f},
+                                                          {112.5f, 0.0f, 0.0f},
+                                                          {0.0f, 75.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f}},
+                                                         {{-112.5f, 0.0f, 0.0f},
+                                                          {-37.5f, 0.0f, 0.0f},
+                                                          {37.5f, 0.0f, 0.0f},
+                                                          {112.5f, 0.0f, 0.0f},
+                                                          {-37.5f, 75.0f, 0.0f},
+                                                          {37.5f, 75.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f}},
+                                                         {{-112.5f, 0.0f, 0.0f},
+                                                          {-37.5f, 0.0f, 0.0f},
+                                                          {37.5f, 0.0f, 0.0f},
+                                                          {112.5f, 0.0f, 0.0f},
+                                                          {-75.0f, 75.0f, 0.0f},
+                                                          {0.0f, 75.0f, 0.0f},
+                                                          {75.0f, 75.0f, 0.0f},
+                                                          {0.0f, 0.0f, 0.0f}},
+                                                         {{-112.5f, 0.0f, 0.0f},
+                                                          {-37.5f, 0.0f, 0.0f},
+                                                          {37.5f, 0.0f, 0.0f},
+                                                          {112.5f, 0.0f, 0.0f},
+                                                          {-112.5f, 75.0f, 0.0f},
+                                                          {-37.5f, 75.0f, 0.0f},
+                                                          {37.5f, 75.0f, 0.0f},
+                                                          {112.5f, 75.0f, 0.0f}}};
 // GLOBAL: WIZ8 0x0060e918
-float g_monster_attachment_scales_0060e918[8] = {0.3f,  0.2f,  0.15f, 0.15f,
-                                                 0.15f, 0.15f, 0.15f, 0.15f};
+float g_monster_attachment_scales[8] = {0.3f, 0.2f, 0.15f, 0.15f, 0.15f, 0.15f, 0.15f, 0.15f};
 
 // GLOBAL: WIZ8 0x005ec04c
-const float g_monster_rotation_offset_005ec04c = 3.141592502593994f;
+const float g_monster_rotation_offset = 3.141592502593994f;
 // GLOBAL: WIZ8 0x005ed1f0
-const double g_monster_death_rotation_pi_005ed1f0 = 3.141592653589793;
+const double g_monster_death_rotation_pi = 3.141592653589793;
 // GLOBAL: WIZ8 0x005ed2a8
-const float g_monster_attachment_distance_scale_005ed2a8 = 0.00039999998989515007f;
+const float g_monster_attachment_distance_scale = 0.00039999998989515007f;
 // GLOBAL: WIZ8 0x005eca84
-const float g_monster_attachment_vertical_scale_005eca84 = 30.0f;
+const float g_monster_attachment_vertical_scale = 30.0f;
 // GLOBAL: WIZ8 0x005ed2a0
-const double g_monster_attachment_group_spacing_005ed2a0 = 15.0;
+const double g_monster_attachment_group_spacing = 15.0;
 // GLOBAL: WIZ8 0x005ed29c
-const float g_monster_linked_vertical_scale_005ed29c = 255.0f;
+const float g_monster_linked_vertical_scale = 255.0f;
 // GLOBAL: WIZ8 0x005ed298
-const float g_monster_poster_vertical_rate_005ed298 = 0.20000000298023224f;
+const float g_monster_poster_vertical_rate = 0.20000000298023224f;
 // GLOBAL: WIZ8 0x005ec3d8
-const double g_monster_poster_max_distance_005ec3d8 = 1000.0;
+const double g_monster_poster_max_distance = 1000.0;
 // GLOBAL: WIZ8 0x005ed2b8
-const double g_monster_script_direction_step_005ed2b8 = 0.8975978857142857;
+const double g_monster_script_direction_step = 0.8975978857142857;
 // GLOBAL: WIZ8 0x005ec2b0
-const double g_monster_facing_tolerance_005ec2b0 = 0.78539815;
+const double g_monster_facing_tolerance = 0.78539815;
 // GLOBAL: WIZ8 0x005ed2c0
-const double g_monster_group_nearest_range_005ed2c0 = 12500.0;
+const double g_monster_group_nearest_range = 12500.0;
 // GLOBAL: WIZ8 0x0060f684
-extern const char g_warning_missing_spell_vertex_0060f684[] =
+extern const char g_warning_missing_spell_vertex[] =
     "WARNING: %ls does not have a SPELL vertex marked! --> Lee";
 // GLOBAL: WIZ8 0x0060EA08
 W8CycleNameRow g_cycle_names[W8_MONSTER_CYCLE_COUNT] = {
@@ -239,12 +238,12 @@ W8CycleNameRow g_cycle_names[W8_MONSTER_CYCLE_COUNT] = {
 };
 
 // GLOBAL: WIZ8 0x0060e614
-unsigned char g_monster_gib_option_0060e614 = 1;
+unsigned char g_monster_gib_option = 1;
 // GLOBAL: WIZ8 0x005ed280
-extern const double g_monster_light_color_scale_005ed280 = 0.00392156862745098;
+extern const double g_monster_light_color_scale = 0.00392156862745098;
 
 // GLOBAL: WIZ8 0x00682FD0
-static W8GrowableVector<stModelInstance*> g_monster_model_instances_682fd0;
+static W8GrowableVector<stModelInstance*> g_monster_model_instances;
 
 #define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"
 
@@ -299,12 +298,12 @@ enum W8MonsterScriptCommand {
 /* Highlight triangle bitmaps indexed by the slot's marching-order position:
    the marker SetMonsterPartySlotMarker hangs on a monster. */
 // GLOBAL: WIZ8 0x0060e938
-const char* g_party_target_marker_bitmaps_0060e938[8] = {
-    "TriRed.tga",    "TriGreen.tga",  "TriPurple.tga", "TriBlue.tga",
-    "TriOrange.tga", "TriYellow.tga", "TriPink.tga",   "TriBrown.tga"};
+const char* g_party_target_marker_bitmaps[8] = {"TriRed.tga",  "TriGreen.tga",  "TriPurple.tga",
+                                                "TriBlue.tga", "TriOrange.tga", "TriYellow.tga",
+                                                "TriPink.tga", "TriBrown.tga"};
 
 // GLOBAL: WIZ8 0x0060f510
-const char g_monster_bitmap_path_format_0060f510[] = "Data\\Monsters\\Bitmaps\\%s";
+const char g_monster_bitmap_path_format[] = "Data\\Monsters\\Bitmaps\\%s";
 
 // GLOBAL: WIZ8 0x0060e958
 const char* g_monster_script_commands[MONSCR_COUNT] = {"GOTO",
@@ -567,8 +566,8 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                 sscanf(line, "%*s %s ( %f %f %f ) ( %f %f %f )", light_mode, &light_first.x,
                        &light_first.y, &light_first.z, &light_second.x, &light_second.y,
                        &light_second.z);
-                light_first *= (float)g_monster_light_color_scale_005ed280;
-                light_second *= (float)g_monster_light_color_scale_005ed280;
+                light_first *= static_cast<float>(g_monster_light_color_scale);
+                light_second *= static_cast<float>(g_monster_light_color_scale);
                 light_pulsing = _stricmp(light_mode, "pulsing") == 0;
                 has_light = true;
             } else if (_stricmp(command, "skin") == 0) {
@@ -603,7 +602,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                 signed char subcycle;
                 int cycle = ParseMonsterCycleName(command, &subcycle);
                 if (cycle != -1) {
-                    if (_strnicmp(argument, "gib", 3) != 0 || g_monster_gib_option_0060e614 != 0) {
+                    if (_strnicmp(argument, "gib", 3) != 0 || g_monster_gib_option != 0) {
                         if (GetRenderOptionState(0xe) == 0) {
                             cycle = NormalizeAttackMode(cycle);
                         }
@@ -672,7 +671,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                                 sound_type == W8_SOUND_EVENT_FOOTSTEP ? 0x23 : 0x7f;
                             last_sound->volume_max = last_sound->volume_min;
                             if (sound_falloff > 0.0f) {
-                                last_sound->falloff = sound_falloff * g_world_scale_005ebc40;
+                                last_sound->falloff = sound_falloff * g_world_scale;
                             }
                             if (footstep_volume != 0 || footstep_combat_volume != 0) {
                                 last_sound->footstep_volume = footstep_volume;
@@ -689,7 +688,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                                &intensity, &value);
                         int shake_cycle = ParseMonsterCycleName(cycle_name, &subcycle);
                         W8CameraShakeEffect* effect = new W8CameraShakeEffect(
-                            duration, 1, intensity, value * g_world_scale_005ebc40, 0);
+                            duration, 1, intensity, value * g_world_scale, 0);
                         if (effect != 0) {
                             effect->frame_40 = frame;
                             effect->cycle_3c = shake_cycle;
@@ -727,22 +726,21 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
     representation->death_scale_5fc = death_scale;
 
     if (walk_radius != 0.0f) {
-        walk_radius *= g_world_scale_005ebc40;
+        walk_radius *= g_world_scale;
         (*monster)->movement_0c0.collision_radius_0b0 = walk_radius;
     }
     if (fight_radius != 0.0f) {
-        fight_radius *= g_world_scale_005ebc40;
+        fight_radius *= g_world_scale;
         (*monster)->movement_0c0.alternate_radius_0b4 = fight_radius;
     }
     if (target_height != 0.0f) {
-        target_height *= g_world_scale_005ebc40;
+        target_height *= g_world_scale;
         if (target_height < 250.0f)
             target_height = 250.0f;
         (*monster)->movement_0c0.height_offset_0b8 = target_height;
     }
     if (camera_height != 0.0f) {
-        (*monster)->movement_0c0.secondary_height_offset_0bc =
-            camera_height * g_world_scale_005ebc40;
+        (*monster)->movement_0c0.secondary_height_offset_0bc = camera_height * g_world_scale;
     }
 
     if (random_idle_range == 0) {
@@ -767,8 +765,8 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
     if (spell_start > 0)
         (*monster)->spell_frame_1f8 = spell_start;
     if (has_lod_range != 0) {
-        representation->lod_range_09c = lod_range_start * g_world_scale_005ebc40;
-        representation->lod_range_0a0 = lod_range_end * g_world_scale_005ebc40;
+        representation->lod_range_09c = lod_range_start * g_world_scale;
+        representation->lod_range_0a0 = lod_range_end * g_world_scale;
     }
     if (opacity >= 0.0f && opacity < 1.0f) {
         (*monster)->scale_1cc = opacity;
@@ -793,8 +791,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
         }
         if (shadow_depth == 0.0f)
             shadow_depth = shadow_width;
-        (*monster)->CreateGroundShadow(shadow_width * g_world_scale_005ebc40,
-                                       shadow_depth * g_world_scale_005ebc40);
+        (*monster)->CreateGroundShadow(shadow_width * g_world_scale, shadow_depth * g_world_scale);
     }
     representation->left_handed_610 = left_handed;
     representation->special_movement_601 =
@@ -944,11 +941,11 @@ void W8Monster::RandomizeAppearanceAndMotion()
     movement_0c0.vertical_base_07c = ((hover_base_max_220 - hover_base_min_21c) *
                                           static_cast<float>(Random(1000)) * g_float_005ec128 +
                                       hover_base_min_21c) *
-                                     g_world_scale_005ebc40;
+                                     g_world_scale;
     movement_0c0.vertical_amplitude_080 = ((bob_amplitude_max_228 - bob_amplitude_min_224) *
                                                static_cast<float>(Random(1000)) * g_float_005ec128 +
                                            bob_amplitude_min_224) *
-                                          g_world_scale_005ebc40;
+                                          g_world_scale;
     movement_0c0.vertical_phase_084 = Random(1000) * g_float_005ec128;
     movement_0c0.vertical_offset_0c0 =
         static_cast<float>(sin(movement_0c0.vertical_phase_084 * g_double_005ec318)) *
@@ -1244,7 +1241,7 @@ W8AnimRepBase* W8MonsterRep::Clone()
 // W8Monster::`vector deleting destructor'`adjustor{24}'
 
 // GLOBAL: WIZ8 0x0065ba4c
-int g_monster_cycle_registry_weight_0065ba4c;
+int g_monster_cycle_registry_weight;
 
 // FUNCTION: WIZ8 0x004bfb00
 W8Monster::W8Monster()
@@ -1334,7 +1331,7 @@ W8Monster::~W8Monster()
         PLDestroy(m_pRep->spell_icons_5e8);
     }
     if (IsSoleRegisteredCycleForName()) {
-        g_monster_cycle_registry_weight_0065ba4c -= registry_weight_27c;
+        g_monster_cycle_registry_weight -= registry_weight_27c;
         RemoveCycleSkinTables();
     }
     UnregisterGrCycle(this);
@@ -1391,10 +1388,10 @@ void W8Monster::Update()
 
     if (sunlit_state_2d0 == -1 || g_light_scale_0060bfe0 < g_float_005ebb38) {
         current_scale_300 = 0.75f;
-        g_monster_model_instances_682fd0.Clear();
-        CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
-        for (index = 0; index < g_monster_model_instances_682fd0.GetCount(); ++index) {
-            stModelInstance* model = *g_monster_model_instances_682fd0.GetAt(index);
+        g_monster_model_instances.Clear();
+        CollectModelInstances004C6350(&g_monster_model_instances);
+        for (index = 0; index < g_monster_model_instances.GetCount(); ++index) {
+            stModelInstance* model = *g_monster_model_instances.GetAt(index);
             model->light_scale_194 = 0.75f;
         }
         target_scale_2fc = 0.75f;
@@ -1404,7 +1401,7 @@ void W8Monster::Update()
         position_dirty_2d4 = true;
     }
 
-    if (g_monster_shadow_updates_enabled_0065970c != 0 &&
+    if (g_monster_shadow_updates_enabled != 0 &&
         (position_dirty_2d4 != 0 || UpdateTrackedPosition() != 0)) {
         position_dirty_2d4 = false;
         if (distance < WorldGetRenderRange(g_world)) {
@@ -1417,7 +1414,7 @@ void W8Monster::Update()
 
                 GetMappedPosition(&mapped_position);
                 sun_position = sun_location;
-                if (g_octree_6598a4->HasLineOfSight(&mapped_position, &sun_position, 1)) {
+                if (g_octree->HasLineOfSight(&mapped_position, &sun_position, 1)) {
                     if (sunlit_state_2d0 == 0) {
                         target_scale_2fc = 0.75f;
                         timer_2d8.SetDuration(0.025f);
@@ -1446,10 +1443,10 @@ void W8Monster::Update()
                 current_scale_300 = target_scale_2fc;
             }
         }
-        g_monster_model_instances_682fd0.Clear();
-        CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
-        for (index = 0; index < g_monster_model_instances_682fd0.GetCount(); ++index) {
-            stModelInstance* model = *g_monster_model_instances_682fd0.GetAt(index);
+        g_monster_model_instances.Clear();
+        CollectModelInstances004C6350(&g_monster_model_instances);
+        for (index = 0; index < g_monster_model_instances.GetCount(); ++index) {
+            stModelInstance* model = *g_monster_model_instances.GetAt(index);
             model->light_scale_194 = current_scale_300;
         }
         timer_2d8.Restart();
@@ -1709,9 +1706,8 @@ unsigned char W8Monster::EvaluateScriptCondition(const char* expression)
 
         srVector3T<float> current_position = GetPosition();
         monster_position = current_position;
-        if (g_status_685170.world_suspended_2390 == 0 &&
-            (party_position - monster_position).Length() <
-                *parameters.GetAt(0) * g_world_scale_005ebc40 &&
+        if (g_status.world_suspended_2390 == 0 &&
+            (party_position - monster_position).Length() < *parameters.GetAt(0) * g_world_scale &&
             MonsterInfoFromID(7533, MONSTER_CPP, location_id_1e4, 1)
                     ->player_visibility.line_of_sight_28 != 0) {
             return 1;
@@ -1802,7 +1798,7 @@ unsigned char W8Monster::GetProjectilePosition(srVector3T<float>* position)
 
     result = GetCycleMappedPosition004C7960(cycle, 5, position);
     if (result == 0 && missile_point_warned_22d == 0) {
-        if (g_dev_mode_689b32 != 0) {
+        if (g_dev_mode != 0) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x18c3, MONSTER_CPP, location_id_1e4, 1));
             FormatDebugMessage(0, "WARNING: %ls does not have a MISSILE vertex marked --> Lee!",
@@ -1825,11 +1821,11 @@ unsigned char W8Monster::GetSpellPosition(srVector3T<float>* position)
     }
     found = GetCycleMappedPosition004C7960(0x19, 6, position);
     if (found == 0 && spell_vertex_warned_22c == 0) {
-        if (g_dev_mode_689b32 != 0) {
+        if (g_dev_mode != 0) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x18e4, MONSTER_CPP, location_id_1e4, 1));
             W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
-            FormatDebugMessage(0, g_warning_missing_spell_vertex_0060f684, record);
+            FormatDebugMessage(0, g_warning_missing_spell_vertex, record);
         }
         spell_vertex_warned_22c = true;
     }
@@ -2000,7 +1996,7 @@ void W8Monster::ProcessScript()
                     break;
                 }
                 if (_stricmp(token, "PARTY") == 0) {
-                    SetMovementTargetToNavigator(g_startup_world_659c0c, 5.0);
+                    SetMovementTargetToNavigator(g_startup_world, 5.0);
                 } else {
                     ConfigureMovementToPosition(&position);
                 }
@@ -2216,11 +2212,11 @@ void W8Monster::ProcessScript()
                 token = strtok(0, " \t");
                 if (token == 0)
                     break;
-                distance = (float)atof(token) * g_world_scale_005ebc40;
+                distance = static_cast<float>(atof(token)) * g_world_scale;
                 token = strtok(0, " \t");
                 if (token == 0)
                     break;
-                variation = (float)atof(token) * g_world_scale_005ebc40;
+                variation = static_cast<float>(atof(token)) * g_world_scale;
                 home = formation;
                 if (home.x == 0.0f && home.y == 0.0f && home.z == 0.0f) {
                     srVector3T<float> current = GetPosition();
@@ -2317,7 +2313,7 @@ void W8Monster::ProcessScript()
                     token = strtok(0, " \t");
                 if (token == 0)
                     break;
-                distance = (float)atof(token) * g_world_scale_005ebc40;
+                distance = static_cast<float>(atof(token)) * g_world_scale;
                 if (distance != 0.0f)
                     token = strtok(0, " \t");
                 if (token == 0)
@@ -2375,8 +2371,7 @@ void W8Monster::ProcessScript()
                         }
                     }
                     if (direction != -1) {
-                        double angle =
-                            (direction - MONSCR_EAST) * g_monster_script_direction_step_005ed2b8;
+                        double angle = (direction - MONSCR_EAST) * g_monster_script_direction_step;
                         order_mode_28e = 4;
                         direction_x_2b0 = (float)cos(angle) * g_double_005ec150;
                         direction_y_2b4 = 0.0f;
@@ -2387,10 +2382,10 @@ void W8Monster::ProcessScript()
             case MONSCR_PATROL:
                 token = strtok(0, " \t");
                 if (token != 0) {
-                    patrol_distance_294 = (float)atof(token) * g_world_scale_005ebc40;
+                    patrol_distance_294 = static_cast<float>(atof(token)) * g_world_scale;
                     token = strtok(0, " \t");
                     if (token != 0) {
-                        patrol_variation_298 = (float)atof(token) * g_world_scale_005ebc40;
+                        patrol_variation_298 = static_cast<float>(atof(token)) * g_world_scale;
                         order_mode_28e = 1;
                     }
                 }
@@ -2492,7 +2487,7 @@ bool W8Monster::CanContinueScript()
         break;
     case 2:
         if ((float)fabs(movement_0c0.target_yaw - movement_0c0.yaw) >=
-            g_camera_transition_epsilon_005ebc84) {
+            g_camera_transition_epsilon) {
             return 0;
         }
         break;
@@ -2563,7 +2558,7 @@ bool W8Monster::IsWithinWorldRange()
     } else {
         double far_clip = WorldGetFarClip(GetWorld());
         srVector3T<float> position = GetPosition();
-        srVector3T<float> reference = g_startup_world_659c0c->GetPosition();
+        srVector3T<float> reference = g_startup_world->GetPosition();
         srVector3T<float> delta = reference - position;
 
         return delta.LengthSquared() <= (float)far_clip * (float)far_clip;
@@ -2581,7 +2576,7 @@ unsigned char W8Monster::CheckLineOfSightToPlayer()
     monster_position = movement_0c0.position_040;
     monster_position.y += movement_0c0.height_offset_0b8;
     GetCameraPosition(&player_position);
-    return g_octree_6598a4->HasLineOfSight(&monster_position, &player_position, 1);
+    return g_octree->HasLineOfSight(&monster_position, &player_position, 1);
 }
 
 /* The sight code keeps the engine trace's three outcomes as two independent
@@ -2597,8 +2592,8 @@ void W8Monster::GetPlayerSightFlags(unsigned char* primary, unsigned char* secon
     monster_position = movement_0c0.position_040;
     monster_position.y += movement_0c0.height_offset_0b8;
     GetCameraPosition(&player_position);
-    result = g_octree_6598a4->TraceLineOfSight(&monster_position, &player_position, 1,
-                                               location_id_1e4, -1, 1, 0);
+    result = g_octree->TraceLineOfSight(&monster_position, &player_position, 1, location_id_1e4, -1,
+                                        1, 0);
     if (result == -1) {
         *secondary = 1;
         *primary = 0;
@@ -2642,7 +2637,7 @@ unsigned char W8Monster::IsVisibleToPlayer004C4920(unsigned char use_bounds)
 
     srVector3T<float> monster_position = movement_0c0.position_040;
     monster_position.y += movement_0c0.height_offset_0b8;
-    return g_octree_6598a4->HasLineOfSight(&player_position, &monster_position, 1);
+    return g_octree->HasLineOfSight(&player_position, &monster_position, 1);
 }
 
 // FUNCTION: WIZ8 0x004c4a20
@@ -2661,8 +2656,8 @@ void W8Monster::GetPlayerToMonsterSightFlags004C4A20(unsigned char* primary,
     } else {
         player_position = *source;
     }
-    result = g_octree_6598a4->TraceLineOfSight(&player_position, &monster_position, 1, -1,
-                                               location_id_1e4, 1, 0);
+    result = g_octree->TraceLineOfSight(&player_position, &monster_position, 1, -1, location_id_1e4,
+                                        1, 0);
     if (result == -1) {
         *secondary = 1;
         *primary = 0;
@@ -2685,7 +2680,7 @@ unsigned char W8Monster::HasLineOfSightToMonster(W8Monster* monster)
     from.y += movement_0c0.height_offset_0b8;
     to = monster->movement_0c0.position_040;
     to.y += monster->movement_0c0.height_offset_0b8;
-    return g_octree_6598a4->HasLineOfSight(&from, &to, 1);
+    return g_octree->HasLineOfSight(&from, &to, 1);
 }
 
 // FUNCTION: WIZ8 0x004c4b70
@@ -2700,8 +2695,8 @@ void W8Monster::GetMonsterSightFlags004C4B70(W8Monster* monster, unsigned char* 
     from.y += movement_0c0.height_offset_0b8;
     to = monster->movement_0c0.position_040;
     to.y += monster->movement_0c0.height_offset_0b8;
-    result = g_octree_6598a4->TraceLineOfSight(&from, &to, 1, location_id_1e4,
-                                               monster->location_id_1e4, 1, 0);
+    result =
+        g_octree->TraceLineOfSight(&from, &to, 1, location_id_1e4, monster->location_id_1e4, 1, 0);
     if (result == -1) {
         *secondary = 1;
         *primary = 0;
@@ -2721,7 +2716,7 @@ unsigned char W8Monster::HasLineOfSightFromPoint(srVector3T<float> point)
 
     monster_position = movement_0c0.position_040;
     monster_position.y += movement_0c0.height_offset_0b8;
-    return g_octree_6598a4->TraceLineOfSight(&point, &monster_position, 1, -3, -3, 1, 0) != 1;
+    return g_octree->TraceLineOfSight(&point, &monster_position, 1, -3, -3, 1, 0) != 1;
 }
 
 // FUNCTION: WIZ8 0x004c4ca0
@@ -2739,7 +2734,7 @@ int W8Monster::IsFacingMonster(W8Monster* monster)
     from = GetPosition();
     bearing = NormalizeAngle(GetHeadingAngle(&from, &to));
     facing = NormalizeAngle(GetYaw());
-    return fabs(bearing - facing) <= g_monster_facing_tolerance_005ec2b0;
+    return fabs(bearing - facing) <= g_monster_facing_tolerance;
 }
 
 // FUNCTION: WIZ8 0x004c4d40
@@ -2750,14 +2745,14 @@ int W8Monster::IsFacingPlayer()
     srVector3T<float> from;
     srVector3T<float> to;
 
-    if (g_startup_world_659c0c == 0) {
+    if (g_startup_world == 0) {
         srAssertFail("pPlayer", MONSTER_CPP, 3838, 0);
     }
-    to = g_startup_world_659c0c->GetPosition();
+    to = g_startup_world->GetPosition();
     from = GetPosition();
     bearing = NormalizeAngle(GetHeadingAngle(&from, &to));
     facing = NormalizeAngle(GetYaw());
-    return fabs(bearing - facing) <= g_monster_facing_tolerance_005ec2b0;
+    return fabs(bearing - facing) <= g_monster_facing_tolerance;
 }
 
 /* Attach or remove the party slot's target-marker triangle on a monster's
@@ -2786,9 +2781,9 @@ void SetMonsterPartySlotMarker(int party_slot, int location_id, char on)
         }
     } else {
         if (rep->objects_5c8[party_slot] == 0) {
-            sprintf(path, g_monster_bitmap_path_format_0060f510,
-                    g_party_target_marker_bitmaps_0060e938[g_status_685170.buffers.XChar[party_slot]
-                                                               .party_order_index]);
+            sprintf(path, g_monster_bitmap_path_format,
+                    g_party_target_marker_bitmaps[g_status.buffers.XChar[party_slot]
+                                                      .party_order_index]);
             rep->objects_5c8[party_slot] = CreateMonsterIconItem(g_world, path, 1);
             rep->icon_count_5c4 = rep->icon_count_5c4 + 1;
         }
@@ -3020,8 +3015,7 @@ void UpdateNearestMonsterGroupMembers()
                     srVector3T<float> position = member->p3D->GetPosition();
                     float distance = (position - player_position).Length();
 
-                    if (distance < g_monster_group_nearest_range_005ed2c0 &&
-                        distance < nearest_distance) {
+                    if (distance < g_monster_group_nearest_range && distance < nearest_distance) {
                         nearest_distance = distance;
                         nearest = member;
                     } else {
@@ -3044,9 +3038,9 @@ float W8Monster::GetDistanceToPlayer004C7CB0()
     float distance;
 
     GetCameraPosition(&player_position);
-    player_position.y -= g_default_world_height_00603ac8;
+    player_position.y -= g_default_world_height;
     distance = (position - player_position).Length() - movement_0c0.alternate_radius_0b4 -
-               g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
+               g_startup_world->movement_0c0.alternate_radius_0b4;
     if (distance < g_float_005ebb34) {
         distance = g_float_005ebb34;
     }
@@ -3060,9 +3054,9 @@ float W8Monster::GetPointDistanceToPlayer(srVector3T<float> point)
     float distance;
 
     GetCameraPosition(&player_position);
-    player_position.y -= g_default_world_height_00603ac8;
+    player_position.y -= g_default_world_height;
     distance = (point - player_position).Length() - movement_0c0.alternate_radius_0b4 -
-               g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
+               g_startup_world->movement_0c0.alternate_radius_0b4;
     if (distance < g_float_005ebb34) {
         distance = g_float_005ebb34;
     }
@@ -3114,7 +3108,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
     }
     if (m_pRep->animation_playing_06d == 0) {
         if (cycle != 0x14 && cycle != 0x15 && cycle != 0 && monster_info->fMotionless != 0) {
-            if (g_dev_mode_689b32 == 0) {
+            if (g_dev_mode == 0) {
                 return 0;
             }
             srAssertFail("FALSE", MONSTER_CPP, 0x97f, 0);
@@ -3278,7 +3272,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
 
     rotation.SetIdentity();
     {
-        float angle = NormalizeAngle(GetYaw() + g_monster_rotation_offset_005ec04c);
+        float angle = NormalizeAngle(GetYaw() + g_monster_rotation_offset);
         if (angle != 0.0f) {
             rotation.RotateAboutY(sin(angle), cos(angle));
         }
@@ -3335,8 +3329,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
     }
 
     if (position_dirty_09c != 0 || movement_0c0.position_adjusted_0c8 != 0) {
-        g_octree_6598a4->UpdateMonsterLocation(static_cast<unsigned short>(location_id_1e4),
-                                               &position);
+        g_octree->UpdateMonsterLocation(static_cast<unsigned short>(location_id_1e4), &position);
     }
 
     if ((node_308 == 0 || node_308->testFlag(srNode::FLAG_DISABLE) == 0) && IsRenderable(0) != 0) {
@@ -3344,7 +3337,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         model = GetCurrentModelInstance();
         if (model != 0) {
             static_cast<stModelInstance*>(model)->frame_interpolation_1ac =
-                g_settings_6850c8.smooth_monster_animations != 0 ? frame_fraction_1d4 : 0.0f;
+                g_settings.smooth_monster_animations != 0 ? frame_fraction_1d4 : 0.0f;
             SetModelInstanceChainExclusionMask(model, 4);
         }
         if (m_pRep->monster_light_624 != 0) {
@@ -3603,10 +3596,10 @@ void W8Monster::SetCycle(signed char cycle)
         m_pRep->monster_light_624->SetVisible0049D970(enabled_1bd);
     }
 
-    g_monster_model_instances_682fd0.Clear();
-    CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
-    for (index = 0; index < g_monster_model_instances_682fd0.GetCount(); ++index) {
-        stModelInstance* model = *g_monster_model_instances_682fd0.GetAt(index);
+    g_monster_model_instances.Clear();
+    CollectModelInstances004C6350(&g_monster_model_instances);
+    for (index = 0; index < g_monster_model_instances.GetCount(); ++index) {
+        stModelInstance* model = *g_monster_model_instances.GetAt(index);
         model->light_scale_194 = current_scale_300;
     }
 
@@ -3619,7 +3612,7 @@ void W8Monster::SetCycle(signed char cycle)
         if (instance != 0 && instance->model() != 0 &&
             strstr(instance->model()->getName(), "gib") != 0) {
             SetAngles(
-                (float)(g_monster_death_rotation_pi_005ed1f0 * g_float_005ebcf8 * Random(0x168)));
+                static_cast<float>(g_monster_death_rotation_pi * g_float_005ebcf8 * Random(0x168)));
         }
         if (m_pRep->monster_light_624 != 0) {
             m_pRep->monster_light_624->StartFadeOut();
@@ -3681,7 +3674,7 @@ unsigned char W8Monster::GetAnimationRadius(float* radius)
     return result;
 }
 
-static const float g_monster_bounds_vertical_factor_005ecd88 = 0.66f;
+static const float g_monster_bounds_vertical_factor = 0.66f;
 
 // FUNCTION: WIZ8 0x004c3e60
 unsigned char W8Monster::GetAnimationCenter(srVector3T<float>* center)
@@ -3693,7 +3686,7 @@ unsigned char W8Monster::GetAnimationCenter(srVector3T<float>* center)
         srVector3T<float> position = GetPosition();
 
         *center = position;
-        center->y += (maximum.y - minimum.y) * g_monster_bounds_vertical_factor_005ecd88;
+        center->y += (maximum.y - minimum.y) * g_monster_bounds_vertical_factor;
         return 1;
     }
     return 0;
@@ -3727,7 +3720,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
 
     GetCameraPosition(&party_position);
     party_position -= base_position;
-    distance_scale = party_position.Length() * g_monster_attachment_distance_scale_005ed2a8;
+    distance_scale = party_position.Length() * g_monster_attachment_distance_scale;
     if (target_highlighted_331 == 0 && distance_scale > g_float_005ebb38) {
         distance_scale = g_float_005ebb38;
     }
@@ -3738,7 +3731,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
 
             if (item != 0) {
                 const W8AttachmentOffset& raw =
-                    g_monster_attachment_offsets_0060e618[attachment_layout - 1][index];
+                    g_monster_attachment_offsets[attachment_layout - 1][index];
                 srVector3T<float> source(raw.x, raw.y, raw.z);
                 srVector3T<float> offset;
                 srVector3T<float> location;
@@ -3750,12 +3743,11 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 srVector3T<float> rotated = camera_rotation.Transform(offset);
                 location = base_position + rotated;
                 location.y += representation->standing_height_5ec +
-                              distance_scale * g_monster_attachment_vertical_scale_005eca84;
+                              distance_scale * g_monster_attachment_vertical_scale;
 
                 item->SetLocation0049F720(&location);
                 mesh = item->GetMesh();
-                mesh_scale =
-                    distance_scale * g_monster_attachment_scales_0060e918[attachment_layout - 1];
+                mesh_scale = distance_scale * g_monster_attachment_scales[attachment_layout - 1];
                 widened_scale = mesh_scale;
                 mesh->setScale(widened_scale);
                 if ((flags_1dc & W8_MONSTER_FADED_OUT) == 0) {
@@ -3780,14 +3772,14 @@ void W8Monster::UpdateAttachedObjects004C3F70()
             if (chunk_count > 4) {
                 chunk_count = 4;
             }
-            group_height = (float)(group * g_monster_attachment_group_spacing_005ed2a0);
+            group_height = static_cast<float>(group * g_monster_attachment_group_spacing);
 
             for (chunk_index = 0; chunk_index < chunk_count; ++chunk_index, ++index) {
                 W8MonsterSpellIcon* entry =
                     static_cast<W8MonsterSpellIcon*>(PLGet(representation->spell_icons_5e8, index));
                 W8Item* item = entry->psrBMO;
                 const W8AttachmentOffset& raw =
-                    g_monster_attachment_offsets_0060e618[chunk_count - 1][chunk_index];
+                    g_monster_attachment_offsets[chunk_count - 1][chunk_index];
                 srVector3T<float> source(raw.x, raw.y, raw.z);
                 srVector3T<float> offset;
                 srVector3T<float> location;
@@ -3800,11 +3792,11 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 srVector3T<float> rotated = camera_rotation.Transform(offset);
                 location = base_position + rotated;
                 location.y += representation->standing_height_5ec +
-                              distance_scale * g_monster_linked_vertical_scale_005ed29c;
+                              distance_scale * g_monster_linked_vertical_scale;
 
                 item->SetLocation0049F720(&location);
                 mesh = item->GetMesh();
-                mesh_scale = distance_scale * g_monster_attachment_scales_0060e918[chunk_count - 1];
+                mesh_scale = distance_scale * g_monster_attachment_scales[chunk_count - 1];
                 widened = mesh_scale;
                 mesh->setScale(widened);
                 widened.SetFromFloat(&location);
@@ -3821,7 +3813,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
 
     if (poster_count != 0) {
         srVector3T<float> mapped_position;
-        float vertical_offset = elapsed * g_monster_poster_vertical_rate_005ed298;
+        float vertical_offset = elapsed * g_monster_poster_vertical_rate;
         int poster_index = 0;
 
         GetMappedPosition(&mapped_position);
@@ -3833,7 +3825,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 (float)location.x, (float)location.y + vertical_offset, (float)location.z);
 
             if ((poster_position - mapped_position).Length() <=
-                (float)g_monster_poster_max_distance_005ec3d8) {
+                static_cast<float>(g_monster_poster_max_distance)) {
                 location.Set(poster_position.x, poster_position.y, poster_position.z);
                 poster->setLocation(location);
                 ++poster_index;
@@ -3930,9 +3922,9 @@ void W8Monster::AdvanceAnimationFrame(int value, int)
 }
 
 // GLOBAL: WIZ8 0x0064c158
-int g_spell_effect_frame_0064c158 = 1;
+int g_spell_effect_frame = 1;
 // GLOBAL: WIZ8 0x0069b7dc
-int g_spell_index_0069b7dc;
+int g_spell_index;
 
 // VTABLE: WIZ8 0x005ed288
 // class W8MonsterShakeCallback
@@ -3967,8 +3959,8 @@ void W8Monster::HandleAnimationFrame(unsigned char previous_frame)
                                         (spell_frame_1f8 == 0 && m_pRep->subcycle_064 == 1))) {
         if (spell_effect_armed_304 != 0) {
             spell_effect_armed_304 = false;
-            CreateAttachedSpellEffect(g_spell_records[g_spell_index_0069b7dc].resource_name,
-                                      g_spell_effect_frame_0064c158, this, 0, 0);
+            CreateAttachedSpellEffect(g_spell_records[g_spell_index].resource_name,
+                                      g_spell_effect_frame, this, 0, 0);
             return;
         }
 
@@ -4043,7 +4035,7 @@ prepare_attack:
     }
     attack = &record->attacks[attack_index];
     missile_type = attack->missile_type;
-    if ((unsigned int)missile_type >= g_missile_table_count_65bddc) {
+    if (static_cast<unsigned int>(missile_type) >= g_missile_table_count) {
         FormatDebugMessage(0, "WARNING: %ls has invalid missile type %d for attack %d", record,
                            missile_type, attack_index);
         missile_type = 0;
@@ -4300,7 +4292,7 @@ void MonsterSetFacing(W8Monster* monster, float angle)
 
     rotation.SetIdentity();
 
-    angle = NormalizeAngle(monster->GetYaw() + g_monster_rotation_offset_005ec04c);
+    angle = NormalizeAngle(monster->GetYaw() + g_monster_rotation_offset);
     if (angle != g_zero_005ebb40) {
         rotation.RotateAboutY(sin(angle), cos(angle));
     }
@@ -4792,7 +4784,7 @@ unsigned short MonsterApproachStartupNavigator(W8Monster* monster, double separa
     unsigned short result;
 
     if (monster != 0) {
-        result = monster->SetMovementTargetToNavigator(g_startup_world_659c0c, separation);
+        result = monster->SetMovementTargetToNavigator(g_startup_world, separation);
         if (result != 0) {
             monster->movement_0c0.boundary_enabled_076 = 0;
         }
@@ -4805,7 +4797,7 @@ unsigned short MonsterApproachStartupNavigator(W8Monster* monster, double separa
 unsigned char MonsterLinkToStartupNavigator(W8Monster* monster)
 {
     if (monster != 0) {
-        W8Navigator* target = g_startup_world_659c0c;
+        W8Navigator* target = g_startup_world;
 
         return monster->LinkToNavigator(target, WorldGetFarClip(GetWorld()) * 2.0);
     }
@@ -4818,7 +4810,7 @@ unsigned short MonsterConfigureMovementToPlayer(W8Monster* monster, float separa
                                                 int trace_mode, unsigned char* probe_result)
 {
     if (monster != 0) {
-        W8Navigator* target = g_startup_world_659c0c;
+        W8Navigator* target = g_startup_world;
 
         return monster->ConfigureMovementToNavigator(target, separation, maximum_distance, position,
                                                      trace_mode, monster->GetYaw(), probe_result);
@@ -5114,11 +5106,11 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
         SaveFontSettings();
         SetFontDestBuffer(FontDestBuffer, 0, 0, surface->getWidth(), surface->getHeight(),
                           static_cast<unsigned char>(FontDestWrap));
-        SetFont(g_monster_damage_font_683608);
+        SetFont(g_monster_damage_font);
         swprintf(text, g_format_d_0060aa20, amount);
-        gprintf_buffer(data, surface->getPitch(), g_monster_damage_font_683608,
-                       0x80 - StringPixLength(text, g_monster_damage_font_683608) / 2,
-                       0x80 - GetFontHeight(g_monster_damage_font_683608) / 2, text);
+        gprintf_buffer(data, surface->getPitch(), g_monster_damage_font,
+                       0x80 - StringPixLength(text, g_monster_damage_font) / 2,
+                       0x80 - GetFontHeight(g_monster_damage_font) / 2, text);
         RestoreFontSettings();
 
         GetMappedPosition(&position);
@@ -5171,7 +5163,7 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
             location.SetFromFloat(&position);
             particle->setLocation(location);
             GetCurrentModelInstance()->getRotation(rotation);
-            rotation.RotateAboutY(sin(g_camera_pi_005ec2a0), cos(g_camera_pi_005ec2a0));
+            rotation.RotateAboutY(sin(g_camera_pi), cos(g_camera_pi));
             world.vectors[0].SetFromFloat(&rotation.vectors[0]);
             world.vectors[1].SetFromFloat(&rotation.vectors[1]);
             world.vectors[2].SetFromFloat(&rotation.vectors[2]);
@@ -5386,6 +5378,6 @@ void RefreshMonsterStandingHeight(W8Monster* monster)
 // FUNCTION: WIZ8 0x004C6220
 void SetCombatInactiveFlag(unsigned char value)
 {
-    g_combat_inactive_006081e4 = value;
+    g_combat_inactive = value;
     g_value_659c14 = 0;
 }

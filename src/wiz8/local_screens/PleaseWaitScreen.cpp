@@ -62,15 +62,15 @@ struct W8LevelLoadDescriptor {
 };
 
 // GLOBAL: WIZ8 0x0069B7C0
-int g_level_load_font_69b7c0;
+int g_level_load_font;
 // GLOBAL: WIZ8 0x0069B7C4
 int g_value_69b7c4;
 // GLOBAL: WIZ8 0x0069B7C8
-W8LevelLoadDescriptor* g_load_descriptor_69b7c8;
+W8LevelLoadDescriptor* g_load_descriptor;
 // GLOBAL: WIZ8 0x0069B7CC
-W8MessageDialogBase* g_swap_disc_dialog_69b7cc;
+W8MessageDialogBase* g_swap_disc_dialog;
 // GLOBAL: WIZ8 0x0069B7D0
-bool g_cd_marker_present_69b7d0;
+bool g_cd_marker_present;
 
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
 
@@ -79,7 +79,7 @@ bool g_cd_marker_present_69b7d0;
    the string list. Both are bounded by 0x2F, with 0xE4 as the backdrop the
    frame handler falls back to. */
 // GLOBAL: WIZ8 0x0064bf8c
-int g_level_backdrops_64bf8c[W8_LEVEL_COUNT] = {
+int g_level_backdrops[W8_LEVEL_COUNT] = {
     0x1bc, 0x1bd, 0x1be, 0x1bf, 0x1c0, 0x1c2, 0x1c1, 0x1c3, 0x1c4, 0x1c5, 0x1c6, 0xe4,
     0x1c7, 0x1c8, 0x1c9, 0x1ca, 0x1cb, 0x1cc, 0x1cd, 0x1ce, 0x1cf, 0x1d0, 0x1d1, 0xe4,
     0x1d2, 0x1d3, 0x1d4, 0x1d5, 0xe4,  0x1d6, 0xe4,  0x1d7, 0x1d8, 0x1d9, 0xe4,  0xe4,
@@ -95,9 +95,9 @@ int g_level_backdrops_64bf8c[W8_LEVEL_COUNT] = {
 unsigned char PleaseWaitScreenInitialize(void)
 {
     if (FileExistsNoDB("CD.ROM")) {
-        g_cd_marker_present_69b7d0 = true;
+        g_cd_marker_present = true;
     }
-    g_level_load_font_69b7c0 =
+    g_level_load_font =
         LoadFontFile((UINT8*)const_cast<char*>("Data\\Level Load\\levelload_font.sti"));
     return 1;
 }
@@ -113,33 +113,34 @@ unsigned char PleaseWaitScreenInitialize(void)
 // FUNCTION: WIZ8 0x00590de0
 unsigned char PleaseWaitScreenEnter(void)
 {
-    if (!g_load_descriptor_69b7c8) {
-        g_load_descriptor_69b7c8 = (W8LevelLoadDescriptor*)malloc(sizeof(W8LevelLoadDescriptor));
-        if (!g_load_descriptor_69b7c8) {
+    if (!g_load_descriptor) {
+        g_load_descriptor =
+            static_cast<W8LevelLoadDescriptor*>(malloc(sizeof(W8LevelLoadDescriptor)));
+        if (!g_load_descriptor) {
             return 0;
         }
-        memset(g_load_descriptor_69b7c8, 0, sizeof(W8LevelLoadDescriptor));
-        g_load_descriptor_69b7c8->mode = g_current_screen_state.mode;
-        switch (g_load_descriptor_69b7c8->mode) {
+        memset(g_load_descriptor, 0, sizeof(W8LevelLoadDescriptor));
+        g_load_descriptor->mode = g_current_screen_state.mode;
+        switch (g_load_descriptor->mode) {
         case 0:
             InitializeFactState();
-            g_load_descriptor_69b7c8->parameter = SelectNewGameStartLevel();
+            g_load_descriptor->parameter = SelectNewGameStartLevel();
             ReleaseMessageStorage();
             DeleteFileA("Saves\\CurrentGame.SAV");
             break;
         case 1:
-            g_load_descriptor_69b7c8->parameter = g_current_screen_state.parameter;
-            strcpy(g_load_descriptor_69b7c8->name, g_current_screen_state.name);
+            g_load_descriptor->parameter = g_current_screen_state.parameter;
+            strcpy(g_load_descriptor->name, g_current_screen_state.name);
             break;
         case 2:
-            g_load_descriptor_69b7c8->parameter = g_status_685170.current_level;
-            strcpy(g_load_descriptor_69b7c8->name, g_current_screen_state.name);
-            g_load_descriptor_69b7c8->save_payload =
+            g_load_descriptor->parameter = g_status.current_level;
+            strcpy(g_load_descriptor->name, g_current_screen_state.name);
+            g_load_descriptor->save_payload =
                 static_cast<W8SaveScreenshot*>(g_current_screen_state.parameter_3);
             break;
         case 3:
-            g_load_descriptor_69b7c8->parameter = g_current_screen_state.parameter;
-            g_load_descriptor_69b7c8->parameter_2 = g_current_screen_state.parameter_2;
+            g_load_descriptor->parameter = g_current_screen_state.parameter;
+            g_load_descriptor->parameter_2 = g_current_screen_state.parameter_2;
             break;
         }
     }
@@ -149,8 +150,8 @@ unsigned char PleaseWaitScreenEnter(void)
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
     SetPrimarySurfaceTextureHint2Enabled(0);
     DisableCursorScene();
-    g_load_descriptor_69b7c8->caption_y = 0;
-    g_load_descriptor_69b7c8->entered_tick = GetTickCount();
+    g_load_descriptor->caption_y = 0;
+    g_load_descriptor->entered_tick = GetTickCount();
     g_value_69b7c4 = 0;
     return 1;
 }
@@ -168,20 +169,20 @@ unsigned char PleaseWaitScreenEnter(void)
 // FUNCTION: WIZ8 0x00591620
 unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
 {
-    if (!FileExistsNoDB("Levels\\Levels.slf") && g_cd_marker_present_69b7d0) {
+    if (!FileExistsNoDB("Levels\\Levels.slf") && g_cd_marker_present) {
         if (IsLevelCdMissing(level)) {
-            g_load_descriptor_69b7c8->waiting = true;
-            g_load_descriptor_69b7c8->parameter = level;
-            g_load_descriptor_69b7c8->entered_tick = GetTickCount();
-            if (!g_swap_disc_dialog_69b7cc) {
-                g_swap_disc_dialog_69b7cc = new W8MessageDialogBase;
-                g_swap_disc_dialog_69b7cc->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
-                g_swap_disc_dialog_69b7cc->SetOrigin(0xf0, 0xbe);
-                g_swap_disc_dialog_69b7cc->SetExtent(0xa0, 100);
+            g_load_descriptor->waiting = true;
+            g_load_descriptor->parameter = level;
+            g_load_descriptor->entered_tick = GetTickCount();
+            if (!g_swap_disc_dialog) {
+                g_swap_disc_dialog = new W8MessageDialogBase;
+                g_swap_disc_dialog->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
+                g_swap_disc_dialog->SetOrigin(0xf0, 0xbe);
+                g_swap_disc_dialog->SetExtent(0xa0, 100);
             }
             wchar_t* message =
                 FormatWideString(L"%s%d", gppStringList[0x1bb8 / 4], GetLevelCdNumber(level));
-            g_swap_disc_dialog_69b7cc->SetMessage(message, 1, 0x32, 1, 1, 1, 0, 0, 0);
+            g_swap_disc_dialog->SetMessage(message, 1, 0x32, 1, 1, 1, 0, 0, 0);
             EnableCursorScene();
             return 0;
         }
@@ -196,14 +197,15 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
    which is why it is written out at each site rather than factored here. */
 #define PLEASE_WAIT_SCREEN_DRAW()                                                                  \
     do {                                                                                           \
-        int backdrop = (unsigned int)g_load_descriptor_69b7c8->parameter < W8_LEVEL_COUNT          \
-                           ? g_level_backdrops_64bf8c[g_load_descriptor_69b7c8->parameter]         \
+        int backdrop = static_cast<unsigned int>(g_load_descriptor->parameter) < W8_LEVEL_COUNT    \
+                           ? g_level_backdrops[g_load_descriptor->parameter]                       \
                            : 0xe4;                                                                 \
         DrawCatalogImage(-14, backdrop, 0, 0, 0, 0, 2, 0);                                         \
         DrawCatalogImage(-14, 0x1de, 0, 0, 0, 0x1be, 2, 0);                                        \
-        SetFont(g_level_load_font_69b7c0);                                                         \
-        gprintf(0x6a, 0x1c7, (unsigned short*)"%", (const wchar_t*)g_load_descriptor_69b7c8);      \
-        DrawCatalogImage(-14, 0x1dd, 0, g_load_descriptor_69b7c8->caption_y, 0, 0x185, 2, 0);      \
+        SetFont(g_level_load_font);                                                                \
+        gprintf(0x6a, 0x1c7, (unsigned short*)"%", /* c-style-cast-ok: SGP UINT16* format */       \
+                g_load_descriptor->caption);                                                       \
+        DrawCatalogImage(-14, 0x1dd, 0, g_load_descriptor->caption_y, 0, 0x185, 2, 0);             \
         ResetTransientRenderScenes();                                                              \
     } while (0)
 
@@ -217,13 +219,13 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
 // FUNCTION: WIZ8 0x00590fa0
 void PleaseWaitScreenFrame(void)
 {
-    if (g_load_descriptor_69b7c8->waiting) {
-        if (g_swap_disc_dialog_69b7cc->is_open) {
-            g_swap_disc_dialog_69b7cc->Draw();
-            if (!g_swap_disc_dialog_69b7cc->ProcessInput()) {
-                if (!g_swap_disc_dialog_69b7cc->close_result) {
-                    delete g_swap_disc_dialog_69b7cc;
-                    g_swap_disc_dialog_69b7cc = 0;
+    if (g_load_descriptor->waiting) {
+        if (g_swap_disc_dialog->is_open) {
+            g_swap_disc_dialog->Draw();
+            if (!g_swap_disc_dialog->ProcessInput()) {
+                if (!g_swap_disc_dialog->close_result) {
+                    delete g_swap_disc_dialog;
+                    g_swap_disc_dialog = 0;
                     RequestScreenTransition();
                     return;
                 }
@@ -231,45 +233,44 @@ void PleaseWaitScreenFrame(void)
                 RenderFrame();
                 return;
             }
-        } else if (GetTickCount() - g_load_descriptor_69b7c8->entered_tick > 200) {
-            if (!IsLevelCdMissing(g_load_descriptor_69b7c8->parameter)) {
-                g_load_descriptor_69b7c8->waiting = false;
+        } else if (GetTickCount() - g_load_descriptor->entered_tick > 200) {
+            if (!IsLevelCdMissing(g_load_descriptor->parameter)) {
+                g_load_descriptor->waiting = false;
                 ReopenCDLibraries();
-                g_swap_disc_dialog_69b7cc->is_open = 0;
-            } else if (!g_swap_disc_dialog_69b7cc->is_open && ++g_value_69b7c4 > 4) {
-                g_swap_disc_dialog_69b7cc->is_open = 1;
+                g_swap_disc_dialog->is_open = 0;
+            } else if (!g_swap_disc_dialog->is_open && ++g_value_69b7c4 > 4) {
+                g_swap_disc_dialog->is_open = 1;
                 g_value_69b7c4 = 0;
             }
-            g_load_descriptor_69b7c8->entered_tick = GetTickCount();
+            g_load_descriptor->entered_tick = GetTickCount();
         }
         RenderFrame();
         return;
     }
 
-    switch (g_load_descriptor_69b7c8->mode) {
+    switch (g_load_descriptor->mode) {
     case 0:
-        wcscpy(g_load_descriptor_69b7c8->caption, gppStringList[0x1bbc / 4]);
+        wcscpy(g_load_descriptor->caption, gppStringList[0x1bbc / 4]);
         break;
     case 1: {
         wchar_t** strings = gppStringList;
-        wcscpy(g_load_descriptor_69b7c8->caption,
-               strncmp(g_load_descriptor_69b7c8->name, "Quick", strlen("Quick")) == 0
+        wcscpy(g_load_descriptor->caption,
+               strncmp(g_load_descriptor->name, "Quick", strlen("Quick")) == 0
                    ? strings[0x1bc4 / 4]
                    : strings[0x1bc0 / 4]);
     } break;
     case 2:
-        wcscpy(g_load_descriptor_69b7c8->caption, gppStringList[0x1bc8 / 4]);
+        wcscpy(g_load_descriptor->caption, gppStringList[0x1bc8 / 4]);
         break;
     case 3:
-        if ((unsigned int)g_load_descriptor_69b7c8->parameter < W8_LEVEL_COUNT) {
-            swprintf(
-                g_load_descriptor_69b7c8->caption, L"%s %s...", gppStringList[0x1bcc / 4],
-                gppStringList[g_level_name_indices_605820[g_load_descriptor_69b7c8->parameter]]);
-        } else if (g_load_descriptor_69b7c8->parameter == 0x38) {
-            wcscpy(g_load_descriptor_69b7c8->caption, L"Entering default level...");
+        if (static_cast<unsigned int>(g_load_descriptor->parameter) < W8_LEVEL_COUNT) {
+            swprintf(g_load_descriptor->caption, L"%s %s...", gppStringList[0x1bcc / 4],
+                     gppStringList[g_level_name_indices[g_load_descriptor->parameter]]);
+        } else if (g_load_descriptor->parameter == 0x38) {
+            wcscpy(g_load_descriptor->caption, L"Entering default level...");
         } else {
-            swprintf(g_load_descriptor_69b7c8->caption, L"Entering test level %c..",
-                     g_load_descriptor_69b7c8->parameter + 2);
+            swprintf(g_load_descriptor->caption, L"Entering test level %c..",
+                     g_load_descriptor->parameter + 2);
         }
     }
 
@@ -278,7 +279,7 @@ void PleaseWaitScreenFrame(void)
     RenderFrame();
     DisableCursorScene();
 
-    switch (g_load_descriptor_69b7c8->mode) {
+    switch (g_load_descriptor->mode) {
     case 0:
         if (PleaseWaitScreenEnsureLevelArchive(8)) {
             ResetLiveSessionForLoad();
@@ -293,43 +294,42 @@ void PleaseWaitScreenFrame(void)
         break;
     case 1:
         if (PleaseWaitScreenEnsureLevelArchive(g_current_screen_state.parameter)) {
-            if (!LoadGame(g_load_descriptor_69b7c8->name)) {
+            if (!LoadGame(g_load_descriptor->name)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 293, 0);
             }
-            if (!LoadLevel(g_status_685170.current_level, -1, 1)) {
+            if (!LoadLevel(g_status.current_level, -1, 1)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 296, 0);
             }
         }
         break;
     case 2: {
-        bool saved =
-            SaveGame(g_load_descriptor_69b7c8->name, g_load_descriptor_69b7c8->save_payload);
+        bool saved = SaveGame(g_load_descriptor->name, g_load_descriptor->save_payload);
         ShowNotice(0xc, saved ? gppStringList[0x1bd0 / 4] : gppStringList[0x1bd8 / 4], -1, -1, 0);
-        if (g_load_descriptor_69b7c8->save_payload) {
-            delete g_load_descriptor_69b7c8->save_payload;
+        if (g_load_descriptor->save_payload) {
+            delete g_load_descriptor->save_payload;
         }
-        while (GetTickCount() - g_load_descriptor_69b7c8->entered_tick < 500) {
+        while (GetTickCount() - g_load_descriptor->entered_tick < 500) {
         }
         break;
     }
     case 3:
-        if (PleaseWaitScreenEnsureLevelArchive(g_load_descriptor_69b7c8->parameter)) {
-            if (!ReloadLevelPreservingCamera(g_load_descriptor_69b7c8->parameter,
-                                             g_load_descriptor_69b7c8->parameter_2)) {
+        if (PleaseWaitScreenEnsureLevelArchive(g_load_descriptor->parameter)) {
+            if (!ReloadLevelPreservingCamera(g_load_descriptor->parameter,
+                                             g_load_descriptor->parameter_2)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 320, 0);
             }
             AutoSaveIfAllowed(1);
         }
     }
 
-    if (!g_load_descriptor_69b7c8->waiting) {
+    if (!g_load_descriptor->waiting) {
         if (!GetWorld()) {
             srAssertFail("GetWorld()", PLEASE_WAIT_SCREEN_CPP, 332, 0);
         }
-        delete g_swap_disc_dialog_69b7cc;
-        g_swap_disc_dialog_69b7cc = 0;
+        delete g_swap_disc_dialog;
+        g_swap_disc_dialog = 0;
         RequestScreenTransition();
-        if (g_load_descriptor_69b7c8->mode == 1 && g_status_685170.intro_shown_49bc) {
+        if (g_load_descriptor->mode == 1 && g_status.intro_shown_49bc) {
             SetValue64D8AC(4);
             SetPendingScreenState(W8_SCREEN_INTRO);
             return;
@@ -348,8 +348,8 @@ void PleaseWaitScreenFrame(void)
 unsigned char PleaseWaitScreenLeave(int leaving)
 {
     if (leaving) {
-        free(g_load_descriptor_69b7c8);
-        g_load_descriptor_69b7c8 = 0;
+        free(g_load_descriptor);
+        g_load_descriptor = 0;
     }
     NoOp();
     MSYS_Shutdown();
@@ -369,11 +369,10 @@ void UpdatePleaseWaitLoadFrame(void)
     SoundServiceStreams();
     ServiceMusicPlaylist();
     tick = GetTickCount();
-    if (tick - g_load_descriptor_69b7c8->entered_tick > 499) {
-        g_load_descriptor_69b7c8->caption_y = (g_load_descriptor_69b7c8->caption_y + 1) % 0x18;
-        g_load_descriptor_69b7c8->entered_tick = tick;
-        DrawCatalogImageAndInvalidate(-0xe, 0x1dd, 0, g_load_descriptor_69b7c8->caption_y, 0, 0x185,
-                                      2, 0);
+    if (tick - g_load_descriptor->entered_tick > 499) {
+        g_load_descriptor->caption_y = (g_load_descriptor->caption_y + 1) % 0x18;
+        g_load_descriptor->entered_tick = tick;
+        DrawCatalogImageAndInvalidate(-0xe, 0x1dd, 0, g_load_descriptor->caption_y, 0, 0x185, 2, 0);
         RenderFrame();
     }
 }

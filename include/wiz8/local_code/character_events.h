@@ -41,7 +41,7 @@ extern int g_effect_005ee61c;
 /* 0x005EE624: the character event an item use queues when the attempt ends
    without casting anything. */
 extern int g_effect_005ee624;
-extern unsigned int g_flee_hp_fraction_005ed8f8;
+extern unsigned int g_flee_hp_fraction;
 extern int g_item_message_005ee640;
 extern int g_item_message_005ee644;
 extern int g_item_message_005ee648;
@@ -65,7 +65,7 @@ bool FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
                               unsigned int* metadata);
 /* 0x005EE6F0: first entry of the -1-terminated .rdata event-id table read at
    0x00509560. */
-extern const int g_fact_check_event_005ee6f0;
+extern const int g_fact_check_event;
 
 /* True when no occupied party slot has an active portrait/voice record. */
 unsigned char PartyPortraitEventsIdle(void);                            /* 0x0052E590 */
@@ -120,25 +120,25 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
    formatters. Its middle argument is the context the notices are posted under -
    zero while the NPC dialogue owns the screens, -1 otherwise. */
 void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* format, ...);
-extern int g_special_event_0068c50c;            /* 0x0068C50C */
-extern unsigned int g_event_range_max_0068c554; /* 0x0068C554 */
-extern int g_special_event_0068c56c;            /* 0x0068C56C: one of the three melee
+extern int g_special_event_0068c50c;   /* 0x0068C50C */
+extern unsigned int g_event_range_max; /* 0x0068C554 */
+extern int g_special_event_0068c56c;   /* 0x0068C56C: one of the three melee
                                          swing event ids StartCharacterAttack
                                          rolls between */
-extern int g_special_event_0068c560;            /* 0x0068C560: one of the three blocked-hit
+extern int g_special_event_0068c560;   /* 0x0068C560: one of the three blocked-hit
                                         reaction ids ContinueMonsterAttack rolls
                                         between, with 0x68c570 and 0x68c574 */
-extern int g_special_event_0068c570;            /* 0x0068C570 */
-extern int g_special_event_0068c574;            /* 0x0068C574 */
-extern unsigned int g_event_range_min_0068c57c; /* 0x0068C57C */
-extern int g_special_event_0068c524;            /* 0x0068C524 */
-extern int g_special_event_0068c528;            /* 0x0068C528 */
-extern int g_special_event_0068c530;            /* 0x0068C530: emitted when a slot's action
+extern int g_special_event_0068c570;   /* 0x0068C570 */
+extern int g_special_event_0068c574;   /* 0x0068C574 */
+extern unsigned int g_event_range_min; /* 0x0068C57C */
+extern int g_special_event_0068c524;   /* 0x0068C524 */
+extern int g_special_event_0068c528;   /* 0x0068C528 */
+extern int g_special_event_0068c530;   /* 0x0068C530: emitted when a slot's action
                                         cannot reach a monster group */
-extern int g_special_event_0068c518;            /* 0x0068C518: emitted when the selected
+extern int g_special_event_0068c518;   /* 0x0068C518: emitted when the selected
                                         sight line is blocked */
-extern int g_special_event_0068c534;            /* 0x0068C534 */
-extern unsigned int g_first_remapped_event_005ee718;
+extern int g_special_event_0068c534;   /* 0x0068C534 */
+extern unsigned int g_first_remapped_event;
 extern int g_effect_argument_005ed8c8;
 extern int g_effect_argument_005ed8d8;
 extern unsigned int g_event_flag_005ed8e8; /* 0x005ED8E8 */

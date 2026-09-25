@@ -195,7 +195,7 @@ unsigned int InitializeEncounterTables(void)
             table->version_two_flags = flags;
         }
     }
-    g_encounter_tables_level = g_status_685170.current_level;
+    g_encounter_tables_level = g_status.current_level;
     FileClose(handle);
     return 1;
 }
@@ -243,7 +243,7 @@ int MonGen::SelectEncounterCandidates(W8EncounterTableRuntime* table,
     float party_level;
 
     candidates->Clear();
-    night = !(g_status_685170.game_time_ms > 18000000 && g_status_685170.game_time_ms <= 79200000);
+    night = !(g_status.game_time_ms > 18000000 && g_status.game_time_ms <= 79200000);
 
     rarity_roll = Random(100);
     if (rarity_roll <= 3) {
@@ -313,10 +313,10 @@ int MonGen::RollEncounterGroupSize(W8MonsterRecord* record)
     int rolled = RollDice(dice);
 
     if (relative_level >= 1.2f) {
-        if (g_settings_6850c8.difficulty == 0) {
+        if (g_settings.difficulty == 0) {
             return minimum;
         }
-        if (g_settings_6850c8.difficulty == 2) {
+        if (g_settings.difficulty == 2) {
             return rolled;
         }
         while (rolled > midpoint) {
@@ -329,10 +329,10 @@ int MonGen::RollEncounterGroupSize(W8MonsterRecord* record)
     if (midpoint > 0.8f) {
         return rolled;
     }
-    if (g_settings_6850c8.difficulty == 2) {
+    if (g_settings.difficulty == 2) {
         return maximum;
     }
-    if (g_settings_6850c8.difficulty == 0) {
+    if (g_settings.difficulty == 0) {
         return rolled;
     }
     while (rolled < midpoint) {
@@ -456,7 +456,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
         LinkMonsterGroupToLeader(group, companion_group);
     }
 
-    if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0 &&
+    if (g_dev_mode != 0 && gfCapturingVideo == 0 &&
         g_current_screen_state.id != W8_SCREEN_PLEASE_WAIT) {
         W8MonsterRecord* group_record = MonsterGroupGetRecord(group);
         const wchar_t* group_name =
@@ -489,12 +489,11 @@ unsigned char MonGen::CanGenerateEncounter(unsigned char force)
     srVector3T<float> delta = spawn_position_0c - camera;
     distance = delta.Length();
 
-    if (force == 0 && g_status_685170.world_suspended_2390 == 0) {
+    if (force == 0 && g_status.world_suspended_2390 == 0) {
         if (distance > 200000.0f || distance < 35000.0f) {
             return 0;
         }
-        if (g_octree_6598a4 != 0 &&
-            g_octree_6598a4->HasLineOfSight(&camera, &spawn_position_0c, 1) != 0) {
+        if (g_octree != 0 && g_octree->HasLineOfSight(&camera, &spawn_position_0c, 1) != 0) {
             return 0;
         }
     }
@@ -516,7 +515,7 @@ unsigned char MonGen::CanGenerateEncounter(unsigned char force)
         srVector3T<float> upper(spawn_position_0c.x + 5000.0f, spawn_position_0c.y + 5000.0f,
                                 spawn_position_0c.z + 5000.0f);
         unsigned long* locations = 0;
-        if (g_octree_6598a4->QueryLocationsInBox(&locations, &lower, &upper, 0) > 0) {
+        if (g_octree->QueryLocationsInBox(&locations, &lower, &upper, 0) > 0) {
             return 0;
         }
     }
@@ -545,16 +544,16 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
     int index;
 
     if (reset_budget == 0) {
-        elapsed = g_status_685170.world_clock -
-                  g_status_685170.level_progress[g_status_685170.current_level].sight_clock;
+        elapsed =
+            g_status.world_clock - g_status.level_progress[g_status.current_level].sight_clock;
         g_random_encounter_budget +=
-            elapsed / g_level_records[g_status_685170.current_level].encounter_budget_period;
+            elapsed / g_level_records[g_status.current_level].encounter_budget_period;
     } else {
         g_random_encounter_budget =
-            g_level_records[g_status_685170.current_level].maximum_encounter_budget;
+            g_level_records[g_status.current_level].maximum_encounter_budget;
         elapsed = W8_ENCOUNTER_STALE_SECONDS + 1;
     }
-    level = &g_level_records[g_status_685170.current_level];
+    level = &g_level_records[g_status.current_level];
     ClampInteger(&g_random_encounter_budget, level->minimum_encounter_budget,
                  level->maximum_encounter_budget);
     g_random_encounter_limit = g_random_encounter_budget;
@@ -624,23 +623,22 @@ void CullExpiredEncounters(void)
 
     GetCameraPosition(&party);
     if (IsSightRangeOverridden() == 0) {
-        span = g_level_records[g_status_685170.current_level].encounter_culling_seconds *
-               g_sight_default_005ec254;
+        span = g_level_records[g_status.current_level].encounter_culling_seconds * g_sight_default;
     } else {
-        span = g_level_records[g_status_685170.current_level].encounter_culling_seconds *
+        span = g_level_records[g_status.current_level].encounter_culling_seconds *
                g_encounter_culling_scale_fast * g_encounter_culling_rate;
     }
     for (index = 0; index < g_active_groups.count; ++index) {
         W8MonsterGroup* group = *g_active_groups.GetAt(index);
 
-        if (span < (static_cast<unsigned int>(g_status_685170.world_clock - group->spawn_time))) {
+        if (span < (static_cast<unsigned int>(g_status.world_clock - group->spawn_time))) {
             W8Monster* monster = GetMonsterByLocationID(group->leader_location_id);
 
             position = monster->GetPosition();
             srVector3T<float> delta = position - party;
 
             if (g_encounter_culling_distance < delta.Length() ||
-                g_status_685170.world_suspended_2390 != 0) {
+                g_status.world_suspended_2390 != 0) {
                 DespawnMonsterGroup(group);
             }
         }
@@ -749,7 +747,7 @@ unsigned char MonGen::LoadAll(int save_handle)
         g_world->monster_generators->Add(generator);
     }
 
-    level = &g_level_records[g_status_685170.current_level];
+    level = &g_level_records[g_status.current_level];
     ClampInteger(&g_random_encounter_budget, level->minimum_encounter_budget,
                  level->maximum_encounter_budget);
     g_random_encounter_limit = g_random_encounter_budget;
@@ -844,7 +842,7 @@ void UnregisterActiveEncounterGroup(W8MonsterGroup* group)
         return;
     }
 
-    W8LevelDatabaseRecord* level = &g_level_records[g_status_685170.current_level];
+    W8LevelDatabaseRecord* level = &g_level_records[g_status.current_level];
     --g_random_encounter_budget;
     ClampInteger(&g_random_encounter_budget, level->minimum_encounter_budget,
                  level->maximum_encounter_budget);

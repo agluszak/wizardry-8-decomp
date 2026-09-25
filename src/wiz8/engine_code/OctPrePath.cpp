@@ -18,7 +18,7 @@
 /* The vertical-link slack LinkPathNodes multiplies the cell size by. Retail
    Combat.cpp reads it directly, so it is not file-static. */
 // GLOBAL: WIZ8 0x005ED300
-float g_prepath_link_height_5ed300 = 1.1f;
+float g_prepath_link_height = 1.1f;
 
 /* OctPrePathLog is a build-time ASCII density map of the path grid: one row of
    space-padded characters per z cell, one column per x cell, plus a parallel
@@ -150,9 +150,9 @@ int PrePathing::SnapNamedPositions(W8LevelFileNamedPosition* positions, int coun
     if (count != 0) {
         named_positions_250 = new srVector3T<float>[count];
         for (int i = 0; i < named_position_count_24c; ++i) {
-            named_positions_250[i].x = positions[i].position_81.x * g_world_scale_005ebc40;
-            named_positions_250[i].y = positions[i].position_81.y * g_world_scale_005ebc40;
-            named_positions_250[i].z = positions[i].position_81.z * g_world_scale_005ebc40;
+            named_positions_250[i].x = positions[i].position_81.x * g_world_scale;
+            named_positions_250[i].y = positions[i].position_81.y * g_world_scale;
+            named_positions_250[i].z = positions[i].position_81.z * g_world_scale;
             octree->SnapToGround(&named_positions_250[i], 0);
         }
     }
@@ -207,7 +207,7 @@ unsigned char PrePathing::BuildPathList(W8PrePathNode* nodes,
 // FUNCTION: WIZ8 0x004CD390
 unsigned char PrePathing::LinkPathNodes004CD390()
 {
-    float link_height = grid_scale_01c * g_prepath_link_height_5ed300;
+    float link_height = grid_scale_01c * g_prepath_link_height;
     int links_found = 0;
     int last_percent = 0;
     char message[0x400];
@@ -297,7 +297,7 @@ void PrePathing::PropagatePathNodeClearance(W8PrePathNode* node, unsigned int de
         ++depth;
     }
     ++depth;
-    float link_height = grid_scale_01c * g_prepath_link_height_5ed300;
+    float link_height = grid_scale_01c * g_prepath_link_height;
     for (int direction = 0; direction < 4; ++direction) {
         int x = node->cell & 0xffff;
         int z = node->cell >> 0x10;
@@ -325,7 +325,7 @@ void PrePathing::PropagatePathNodeClearance(W8PrePathNode* node, unsigned int de
 // FUNCTION: WIZ8 0x004CD7C0
 unsigned int PrePathing::DeleteUnreachableAreas()
 {
-    float link_height = grid_scale_01c * g_prepath_link_height_5ed300;
+    float link_height = grid_scale_01c * g_prepath_link_height;
     int deleted = 0;
     int last_percent = 0;
     unsigned int minimum = 0;

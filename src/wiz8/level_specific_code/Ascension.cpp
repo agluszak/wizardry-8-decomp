@@ -36,7 +36,7 @@
 #define ASCENSION_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\Ascension.cpp"
 
 // GLOBAL: WIZ8 0x0068356C
-W8IntervalGate* g_avalanche_gate_68356c;
+W8IntervalGate* g_avalanche_gate;
 
 /* Count how many of the three Ascension Peak relic items (0x242, 0x243,
    0x244) are on the party; the world-cursor "seen bodies" handler requires
@@ -190,7 +190,7 @@ void AscensionAvalanche004DFBC0(unsigned char command)
                 SetFact(0x15e, 1, 0);
             }
         }
-        g_master_functions_006834d8->Add(AscensionLandShaker);
+        g_master_functions->Add(AscensionLandShaker);
     }
 }
 
@@ -206,18 +206,18 @@ void AscensionLandShaker(int command)
         return;
     }
     g_flag_006834dc = false;
-    if (g_avalanche_gate_68356c == 0) {
-        g_avalanche_gate_68356c = new W8IntervalGate(1.0f, 0, 1);
+    if (g_avalanche_gate == 0) {
+        g_avalanche_gate = new W8IntervalGate(1.0f, 0, 1);
         return;
     }
-    if (g_avalanche_gate_68356c->IsFinished() == 0) {
-        g_avalanche_gate_68356c->PollElapsedIntervals();
-        if (g_avalanche_gate_68356c->IsFinished() == 0) {
+    if (g_avalanche_gate->IsFinished() == 0) {
+        g_avalanche_gate->PollElapsedIntervals();
+        if (g_avalanche_gate->IsFinished() == 0) {
             return;
         }
     }
-    delete g_avalanche_gate_68356c;
-    g_avalanche_gate_68356c = 0;
+    delete g_avalanche_gate;
+    g_avalanche_gate = 0;
     shaker = FindTriggerByName("LandShaker");
     if (shaker != 0) {
         shaker->Run(-1);

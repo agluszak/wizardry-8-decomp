@@ -58,10 +58,10 @@ enum W8MonsterFlag {
     W8_MONSTER_FADED_OUT = 0x400,
 };
 
-extern const float g_monster_rotation_offset_005ec04c;
-extern const double g_monster_facing_tolerance_005ec2b0;
-extern const double g_monster_poster_max_distance_005ec3d8;
-extern int g_monster_cycle_registry_weight_0065ba4c;
+extern const float g_monster_rotation_offset;
+extern const double g_monster_facing_tolerance;
+extern const double g_monster_poster_max_distance;
+extern int g_monster_cycle_registry_weight;
 extern float g_light_scale_0060bfe0;
 
 /* Sixteen bytes the cycle runtime record carries at 0x04c, written as one block
@@ -307,7 +307,7 @@ public:
     unsigned char nearest_to_party_218;
     unsigned char padding_219[3];
     /* 0x21c/0x220: hover base-height random range (scaled by
-       g_world_scale_005ebc40 into movement_0c0.vertical_base_07c). */
+       g_world_scale into movement_0c0.vertical_base_07c). */
     int hover_base_min_21c;
     int hover_base_max_220;
     /* 0x224/0x228: bob-amplitude random range (scaled into
@@ -504,6 +504,6 @@ struct W8CycleNameRow {
     signed char prefix_length;
 };
 extern W8CycleNameRow g_cycle_names[];
-extern unsigned char g_monster_shadow_updates_enabled_0065970c;
+extern unsigned char g_monster_shadow_updates_enabled;
 
 #endif

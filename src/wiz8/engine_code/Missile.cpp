@@ -178,7 +178,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
         (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
         missile->DetonateMissileSpell();
     }
-    if (g_missile_table_65bde0[missile->missile_table_index_1d8].spell_missile_154 != 0) {
+    if (g_missile_table[missile->missile_table_index_1d8].spell_missile_154 != 0) {
         AbsorbMissileDamage(missile);
     }
     return 1;
@@ -267,12 +267,12 @@ const float g_float_005ece58 = 81.25f;
 const float g_float_005ece5c = 32.5f;
 
 // GLOBAL: WIZ8 0x0065bde0
-W8MissileTableRecord* g_missile_table_65bde0;
+W8MissileTableRecord* g_missile_table;
 
 // GLOBAL: WIZ8 0x0060c9c8
-const char* g_missile_cycle_names_0060c9c8[] = {"FLY", "EXPLODE"};
+const char* g_missile_cycle_names[] = {"FLY", "EXPLODE"};
 // GLOBAL: WIZ8 0x0065bddc
-unsigned int g_missile_table_count_65bddc;
+unsigned int g_missile_table_count;
 
 /* Engine Code\\Missile.cpp's startup database load.  Each disk row has a
    0x101-byte editor prefix followed by the 0x1e5-byte runtime record. */
@@ -285,10 +285,10 @@ unsigned char LoadMissileDatabase(void)
     unsigned int index;
     int handle;
 
-    if (g_missile_table_65bde0) {
-        delete[] g_missile_table_65bde0;
-        g_missile_table_65bde0 = 0;
-        g_missile_table_count_65bddc = 0;
+    if (g_missile_table) {
+        delete[] g_missile_table;
+        g_missile_table = 0;
+        g_missile_table_count = 0;
     }
     handle = FileOpen(path, 0x41, 0);
     if (!handle || !FileRead(handle, &allocated_count, 4, 0) ||
@@ -298,22 +298,22 @@ unsigned char LoadMissileDatabase(void)
         }
         return 0;
     }
-    g_missile_table_65bde0 = new W8MissileTableRecord[allocated_count];
-    if (!g_missile_table_65bde0) {
+    g_missile_table = new W8MissileTableRecord[allocated_count];
+    if (!g_missile_table) {
         FileClose(handle);
         return 0;
     }
     for (index = 0; index < static_cast<unsigned int>(allocated_count); ++index) {
         if (!FileSeek(handle, 0x101, 4) ||
-            !FileRead(handle, &g_missile_table_65bde0[index], sizeof(W8MissileTableRecord), 0)) {
-            delete[] g_missile_table_65bde0;
-            g_missile_table_65bde0 = 0;
-            g_missile_table_count_65bddc = 0;
+            !FileRead(handle, &g_missile_table[index], sizeof(W8MissileTableRecord), 0)) {
+            delete[] g_missile_table;
+            g_missile_table = 0;
+            g_missile_table_count = 0;
             FileClose(handle);
             return 0;
         }
     }
-    g_missile_table_count_65bddc = allocated_count;
+    g_missile_table_count = allocated_count;
     FileClose(handle);
     return 1;
 }
@@ -322,10 +322,10 @@ unsigned char LoadMissileDatabase(void)
 // FUNCTION: WIZ8 0x004a5760
 void ReleaseMissileDatabase(void)
 {
-    if (g_missile_table_65bde0) {
-        delete[] g_missile_table_65bde0;
-        g_missile_table_65bde0 = 0;
-        g_missile_table_count_65bddc = 0;
+    if (g_missile_table) {
+        delete[] g_missile_table;
+        g_missile_table = 0;
+        g_missile_table_count = 0;
     }
 }
 
@@ -367,7 +367,7 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
     }
     rotation.SetIdentity();
     position->y = g_float_005ece58 - character_index * g_float_005ebc7c * g_float_005ece5c;
-    angle = GetCameraYawRadians() - g_monster_rotation_offset_005ec04c;
+    angle = GetCameraYawRadians() - g_monster_rotation_offset;
     if (angle != 0.0) {
         cosine = cos(angle);
         sine = sin(angle);
@@ -405,7 +405,7 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
 // class W8Missile
 
 // GLOBAL: WIZ8 0x0065BDE4
-static int g_missile_iterator_0065bde4;
+static int g_missile_iterator;
 
 /* Iterate the world's missile vector. A nonzero argument restarts the shared
    cursor; a missing world or vector answers null. */
@@ -416,11 +416,11 @@ W8Missile* NextMissile(char restart)
 
     if (g_world != 0 && g_world->missiles != 0) {
         if (restart != 0) {
-            g_missile_iterator_0065bde4 = 0;
+            g_missile_iterator = 0;
         }
-        if (g_missile_iterator_0065bde4 < g_world->missiles->GetCount()) {
-            missile = *g_world->missiles->GetAt(g_missile_iterator_0065bde4);
-            ++g_missile_iterator_0065bde4;
+        if (g_missile_iterator < g_world->missiles->GetCount()) {
+            missile = *g_world->missiles->GetAt(g_missile_iterator);
+            ++g_missile_iterator;
         }
     }
     return missile;
@@ -485,8 +485,7 @@ W8Missile* AllocateMissile(int missile_table_index)
     context.world_00 = g_world;
     context.directory_08 = "Data\\Spells\\Bitmaps";
     missile = 0;
-    LoadMissileCycle(&context, g_missile_table_65bde0[missile_table_index].cycle_name_100, &missile,
-                     1);
+    LoadMissileCycle(&context, g_missile_table[missile_table_index].cycle_name_100, &missile, 1);
     if (missile == 0) {
         return 0;
     }
@@ -498,7 +497,7 @@ W8Missile* AllocateMissile(int missile_table_index)
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             missile->DetonateMissileSpell();
         }
-        if (g_missile_table_65bde0[missile->missile_table_index_1d8].spell_missile_154 != 0) {
+        if (g_missile_table[missile->missile_table_index_1d8].spell_missile_154 != 0) {
             AbsorbMissileDamage(missile);
         }
     }
@@ -608,8 +607,8 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
                             srAssertFail("pacName", MISSILE_CPP, 0x32f, 0);
                         }
                         for (index = 0; index < 2; ++index) {
-                            if (_strnicmp(pacName, g_missile_cycle_names_0060c9c8[index],
-                                          strlen(g_missile_cycle_names_0060c9c8[index])) == 0) {
+                            if (_strnicmp(pacName, g_missile_cycle_names[index],
+                                          strlen(g_missile_cycle_names[index])) == 0) {
                                 loaded_cycle = *ppMissile;
                                 loaded =
                                     LoadGrCycle(context, pacFileName, &loaded_cycle, index, 1,
@@ -641,16 +640,14 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
                                 }
                                 cycle = -1;
                                 for (index = 0; index < 2; ++index) {
-                                    if (_strnicmp(pacName, g_missile_cycle_names_0060c9c8[index],
-                                                  strlen(g_missile_cycle_names_0060c9c8[index])) ==
-                                        0) {
+                                    if (_strnicmp(pacName, g_missile_cycle_names[index],
+                                                  strlen(g_missile_cycle_names[index])) == 0) {
                                         cycle = index;
                                         break;
                                     }
                                 }
-                                effect =
-                                    new W8CameraShakeEffect(duration, '\x01', intensity,
-                                                            seconds * g_world_scale_005ebc40, 0);
+                                effect = new W8CameraShakeEffect(duration, '\x01', intensity,
+                                                                 seconds * g_world_scale, 0);
                                 if (effect != 0) {
                                     effect->cycle_3c = cycle;
                                     effect->frame_40 = frame;
@@ -662,7 +659,7 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
                         }
                         sound_kind = 2;
                     }
-                    pacLoop[0] = g_empty_ambient_name_65a110;
+                    pacLoop[0] = g_empty_ambient_name;
                     memset(pacLoop + 1, 0, 0x7e);
                     sscanf(line, "%s %s %d %s %s", pacToken, pacName, &frame, pacFileName,
                            // reinterpret-ok: word buffer is the "%s" sscanf target
@@ -676,8 +673,8 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
                     }
                     cycle = -1;
                     for (index = 0; index < 2; ++index) {
-                        if (_strnicmp(pacName, g_missile_cycle_names_0060c9c8[index],
-                                      strlen(g_missile_cycle_names_0060c9c8[index])) == 0) {
+                        if (_strnicmp(pacName, g_missile_cycle_names[index],
+                                      strlen(g_missile_cycle_names[index])) == 0) {
                             cycle = index;
                             break;
                         }
@@ -714,7 +711,7 @@ close_file:
         (*ppMissile)->align_camera_1e4 = align_camera;
         (*ppMissile)->explode_ground_1e5 = explode_ground;
         (*ppMissile)->align_explosion_1e6 = align_explosion;
-        (*ppMissile)->lifetime_1f0 = velocity * g_world_scale_005ebc40;
+        (*ppMissile)->lifetime_1f0 = velocity * g_world_scale;
     }
     if (loaded) {
         RegisterGrCycle(name, *ppMissile);
@@ -981,16 +978,16 @@ W8Missile::W8Missile()
 {
     W8GrObject::kind_004 = 1;
     radius_084 = 1.0f;
-    if (g_runtime_world_scale_6081e8 < 1.0f) {
-        g_runtime_world_scale_6081e8 = 1.0f;
+    if (g_runtime_world_scale < 1.0f) {
+        g_runtime_world_scale = 1.0f;
     }
     movement_0c0.collision_radius_0b0 = 1.0f;
-    if (g_runtime_world_scale_6081e8 < 1.0f) {
-        g_runtime_world_scale_6081e8 = 1.0f;
+    if (g_runtime_world_scale < 1.0f) {
+        g_runtime_world_scale = 1.0f;
     }
     movement_0c0.alternate_radius_0b4 = 1.0f;
-    if (g_runtime_world_scale_6081e8 < 1.0f) {
-        g_runtime_world_scale_6081e8 = 1.0f;
+    if (g_runtime_world_scale < 1.0f) {
+        g_runtime_world_scale = 1.0f;
     }
     id_008 = IncrementValue60DFAC();
 
@@ -1097,7 +1094,7 @@ void W8Missile::StartIfHostActive()
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             DetonateMissileSpell();
         }
-        if (g_missile_table_65bde0[missile_table_index_1d8].spell_missile_154 != 0) {
+        if (g_missile_table[missile_table_index_1d8].spell_missile_154 != 0) {
             AbsorbMissileDamage(this);
         }
     }
@@ -1172,7 +1169,7 @@ W8MissileRep::~W8MissileRep()
 void W8Missile::SetEffectDefinition(const W8SpellEffectDefinition* definition)
 {
     memcpy(&definition_1fc, definition, sizeof(definition_1fc));
-    definition_1fc.radius = g_missile_table_65bde0[missile_table_index_1d8].radius_140;
+    definition_1fc.radius = g_missile_table[missile_table_index_1d8].radius_140;
 }
 
 /* The representation a missile was fired from. */
@@ -1387,7 +1384,7 @@ void W8Missile::AnnounceCollisionTarget()
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         wcscat(text, GetMonsterName(monster_info, 0, 0));
     } else {
-        wcscat(text, g_status_685170.buffers.Char[combat_slot_260.iChar].name);
+        wcscat(text, g_status.buffers.Char[combat_slot_260.iChar].name);
     }
     target_stop = wcslen(text);
     source_color = GetSourceNoticeColor(&m_Source);
@@ -1420,7 +1417,7 @@ void W8Missile::EnterImpactCycle()
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             DetonateMissileSpell();
         }
-        if (g_missile_table_65bde0[missile_table_index_1d8].spell_missile_154 != 0) {
+        if (g_missile_table[missile_table_index_1d8].spell_missile_154 != 0) {
             AbsorbMissileDamage(this);
         }
     }
@@ -1432,13 +1429,13 @@ bool W8Missile::OnCollision(W8Navigator* other)
     char hit_result;
     unsigned char deflect_chance;
 
-    if (g_startup_world_659c0c == other) {
+    if (g_startup_world == other) {
         if (TargetSourceIsCharacter(&m_Source, 0)) {
             goto miss;
         }
         if (combat_slot_260.iType != W8_TARGET_KIND_PARTY &&
             combat_slot_260.iType != W8_TARGET_KIND_CHARACTER) {
-            if (g_missile_table_65bde0[missile_table_index_1d8].spell_missile_154 != 0) {
+            if (g_missile_table[missile_table_index_1d8].spell_missile_154 != 0) {
                 goto miss;
             }
             if (combat_slot_260.iType != W8_TARGET_KIND_NONE) {
@@ -1468,7 +1465,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
         }
         if (combat_slot_260.iType != W8_TARGET_KIND_MONSTER ||
             combat_slot_260.iMonsterID != location_id) {
-            if (g_missile_table_65bde0[missile_table_index_1d8].spell_missile_154 != 0) {
+            if (g_missile_table[missile_table_index_1d8].spell_missile_154 != 0) {
                 goto miss;
             }
             if (combat_slot_260.iType != W8_TARGET_KIND_NONE) {
@@ -1484,10 +1481,10 @@ bool W8Missile::OnCollision(W8Navigator* other)
     }
 
     hit_result = 1;
-    if (g_missile_table_65bde0[missile_table_index_1d8].spell_missile_154 == 0) {
+    if (g_missile_table[missile_table_index_1d8].spell_missile_154 == 0) {
         if (combat_slot_260.iType == W8_TARGET_KIND_CHARACTER) {
-            deflect_chance = g_status_685170.buffers.Char[combat_slot_260.iChar]
-                                 .bonus_1770.missile_deflect_chance_49;
+            deflect_chance =
+                g_status.buffers.Char[combat_slot_260.iChar].bonus_1770.missile_deflect_chance_49;
         } else {
             W8MonsterInfo* monster_info =
                 MonsterInfoFromID(0x676, MISSILE_CPP, combat_slot_260.iMonsterID, 1);
@@ -1503,7 +1500,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
     } else if (g_combat_state != 0 && g_combat_state->engaged_missile != 0) {
         g_combat_state->missile_hit_result = hit_result;
         g_combat_state->TargetHit = combat_slot_260;
-    } else if (g_missile_table_65bde0[missile_table_index_1d8].spell_missile_154 != 0) {
+    } else if (g_missile_table[missile_table_index_1d8].spell_missile_154 != 0) {
         ResolveSpellMissileHit(this);
     } else {
         ResolveMissileHit(this, hit_result == 2);

@@ -45,8 +45,8 @@ struct W8ConditionImmunity {
 };
 #pragma pack(pop)
 
-extern W8ConditionImmunity g_condition_immunities_006171A8[3];
-extern unsigned short g_condition_notices_0061E570[128];
+extern W8ConditionImmunity g_condition_immunities[3];
+extern unsigned short g_condition_notices[128];
 
 void RemoveCharacterCondition(int party_slot, int condition, int announce);
 void SetMonsterCondition(int location_id, int condition, int duration, int argument,

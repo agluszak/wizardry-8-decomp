@@ -16,7 +16,7 @@ typedef void (*W8MasterFunction)(int);
 
 /* The registered master functions, and the flag a callback sets to ask the
    dispatcher to drop it after this run. */
-extern W8Vector<W8MasterFunction>* g_master_functions_006834d8;
+extern W8Vector<W8MasterFunction>* g_master_functions;
 extern bool g_flag_006834dc;
 extern bool g_flag_006834dd;
 

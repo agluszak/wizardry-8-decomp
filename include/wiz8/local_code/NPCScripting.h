@@ -111,7 +111,7 @@ static_assert(offsetof(W8NpcScriptingState, stopping_voice_playback) == 0xcb,
 static_assert(sizeof(W8NpcScriptingState) == 0xcc, "W8NpcScriptingState_size");
 
 extern W8NpcScriptingState g_npc_scripting;
-extern unsigned char g_message_queue_idle_68c501; /* 0x0068C501 */
+extern unsigned char g_message_queue_idle; /* 0x0068C501 */
 /* 0x0068506F: scripted portrait-pick / cutscene gate PortraitSelectRegionEvent
    and EndScriptedPortraitPick00529C40 clear. */
 

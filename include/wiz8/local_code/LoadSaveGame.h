@@ -79,7 +79,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks);
 unsigned char LoadItemStatus(W8Chunk* chunk, int level);
 unsigned char MeasureLevelStatusChunks(W8Chunk* chunk, int level, unsigned int* empty_percent);
 
-extern bool g_save_pending_00689f98;
+extern bool g_save_pending;
 
 /* Mark a matching CHAR payload consumed in Saves\\CurrentGame.SAV. */
 char MarkCurrentGameCharacterChunkConsumed(const char* path); /* 0x005154A0 */

@@ -232,9 +232,9 @@ int W8ListBoxDialog::CreateControls()
             m_background_path),
         static_cast<short>(m_background_flags), 0, 0);
     m_text_button_08c = CreateTextButton(
-        m_text, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
-        g_dialog_font_background_64fded, m_inlay_image_0f8, static_cast<short>(m_x) + 9,
-        static_cast<short>(m_y) + 9, static_cast<short>(m_width) - 0x12,
+        m_text, g_dialog_font_64fde8, g_dialog_font_foreground, g_dialog_font_background,
+        m_inlay_image_0f8, static_cast<short>(m_x) + 9, static_cast<short>(m_y) + 9,
+        static_cast<short>(m_width) - 0x12,
         static_cast<short>(GetFontHeight(g_dialog_font_64fde8) * 0x96 / 100), 0x8004, 0x7e, 0, 0);
     if (m_text_button_08c == -1) {
         m_error = 7;
@@ -247,7 +247,7 @@ int W8ListBoxDialog::CreateControls()
         m_error = 7;
         return 7;
     }
-    SpecifyButtonMultiColorFont(m_text_button_08c, g_dialog_font_enabled_69ca32);
+    SpecifyButtonMultiColorFont(m_text_button_08c, g_dialog_font_enabled);
     m_inlay_image_094 = LoadGenericButtonImages(
         0,
         reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
@@ -264,7 +264,7 @@ int W8ListBoxDialog::CreateControls()
         return 4;
     }
     m_area_button_098 = CreateTextButton(
-        0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec, g_dialog_font_background_64fded,
+        0, g_dialog_font_64fde8, g_dialog_font_foreground, g_dialog_font_background,
         m_inlay_image_094, static_cast<short>(m_x + (GetButtonX(m_text_button_08c) - m_x)),
         static_cast<short>(
             m_y + (GetButtonY(m_text_button_08c) + GetButtonHeight(m_text_button_08c) + 4 - m_y)),
@@ -336,14 +336,14 @@ int W8ListBoxDialog::CreateControls()
             0, 3, 3);
         if (m_inlay_image_0b4 != -1) {
             m_third_text_button_0b8 =
-                CreateTextButton(0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
-                                 g_dialog_font_background_64fded, m_inlay_image_0b4, 0, 0, 1, 1, 4,
-                                 0x7d, SliderTrackButtonCallback, SliderTrackButtonCallback);
+                CreateTextButton(0, g_dialog_font_64fde8, g_dialog_font_foreground,
+                                 g_dialog_font_background, m_inlay_image_0b4, 0, 0, 1, 1, 4, 0x7d,
+                                 SliderTrackButtonCallback, SliderTrackButtonCallback);
             if (m_third_text_button_0b8 != -1) {
                 SetButtonUserDataPointer(m_third_text_button_0b8, this);
                 m_second_text_button_090 = CreateTextButton(
-                    0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
-                    g_dialog_font_background_64fded, m_inlay_image_0f8, static_cast<short>(m_x + 9),
+                    0, g_dialog_font_64fde8, g_dialog_font_foreground, g_dialog_font_background,
+                    m_inlay_image_0f8, static_cast<short>(m_x + 9),
                     static_cast<short>((m_height - GetButtonHeight(m_ok_button_0bc) * 0x96 / 100) -
                                        9 + m_y),
                     static_cast<short>(m_width - 0x12),
@@ -1348,8 +1348,7 @@ void W8TriggerItemPickerDialog::TransferSelectedItems(int destination)
             if (destination == -1) {
                 added = AddItemToParty(instance, 1, 0);
             } else {
-                added = AddItemToCharacter(&g_status_685170.buffers.Char[destination], instance, 0,
-                                           1, 0);
+                added = AddItemToCharacter(&g_status.buffers.Char[destination], instance, 0, 1, 0);
             }
             if (added != 0) {
                 items_54.RemoveAt(index);
@@ -1418,7 +1417,7 @@ void W8TriggerItemPickerDialog::TakeSelectedToCharacter(W8DialogButton* button)
 {
     if (button != 0) {
         static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040)
-            ->TransferSelectedItems(g_status_685170.selected_character);
+            ->TransferSelectedItems(g_status.selected_character);
     }
 }
 
@@ -1979,9 +1978,9 @@ void W8TriggerItemPickerDialog::Draw()
         }
         W8WorldItem* world_item = *items_54.GetAt(item_index);
         W8ItemInstance* item = &world_item->item;
-        int video_object = g_item_video_objects_68ec68.GetOrCreateVideoObject(item->iItemNo);
+        int video_object = g_item_video_objects.GetOrCreateVideoObject(item->iItemNo);
         DrawCatalogImage(-0xe, video_object, 0, 0, button->GetX() + 2, button->GetY() + 2, 2, 0);
-        SetFont(g_wiz_text_font_683640);
+        SetFont(g_wiz_text_font);
         if (item->stack_count > 1) {
             wchar_t* name = GetItemDisplayName(item);
             gprintf(button->GetX() + 0x3c, button->GetY() + 6, L"%s (%d)", name, item->stack_count);
@@ -1990,7 +1989,7 @@ void W8TriggerItemPickerDialog::Draw()
             gprintf(button->GetX() + 0x3c, button->GetY() + 6, name);
         }
         unsigned short weight = g_item_records[item->iItemNo].weight;
-        gprintf(button->GetX() + 0x3c, button->GetY() + GetFontHeight(g_wiz_text_font_683640) + 6,
+        gprintf(button->GetX() + 0x3c, button->GetY() + GetFontHeight(g_wiz_text_font) + 6,
                 L"%4.1f lbs", weight * 0.1f);
     }
 }

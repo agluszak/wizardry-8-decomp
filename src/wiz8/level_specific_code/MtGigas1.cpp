@@ -23,11 +23,11 @@
    at 0x004DBE70. */
 
 // GLOBAL: WIZ8 0x006834f4
-GDProp* g_plate_prop_6834f4;
+GDProp* g_plate_prop;
 // GLOBAL: WIZ8 0x006834f8
-unsigned char g_plate_contact_6834f8;
+unsigned char g_plate_contact;
 // GLOBAL: WIZ8 0x006834f9
-unsigned char g_plate_down_6834f9;
+unsigned char g_plate_down;
 
 /* Level-load restore: binds the "plate" trigger's prop to the plate GDProp
    global and mirrors the saved PPlateDown variable into the latch flag,
@@ -38,8 +38,8 @@ void MtGigas1Setup(void)
     Trigger* pTrigger;
     W8Prop* prop;
 
-    g_plate_prop_6834f4 = 0;
-    g_plate_down_6834f9 = 0;
+    g_plate_prop = 0;
+    g_plate_down = 0;
     pTrigger = FindTriggerByName("plate");
     if (pTrigger != 0) {
         if (pTrigger->m_bRepType != 2) {
@@ -48,7 +48,7 @@ void MtGigas1Setup(void)
         }
         prop = pTrigger->m_pProp;
         if (prop != 0) {
-            g_plate_prop_6834f4 = prop->m_gd_prop;
+            g_plate_prop = prop->m_gd_prop;
         }
     }
     if (GetLocationVarIDByName("PPlateDown") == -1) {
@@ -56,7 +56,7 @@ void MtGigas1Setup(void)
         return;
     }
     if (GetLocationVarValueByName("PPlateDown") != 0) {
-        g_plate_down_6834f9 = 1;
+        g_plate_down = 1;
     }
 }
 
@@ -71,11 +71,11 @@ bool MtGigas1Lift1(Trigger* pTrigger)
     W8NpcState* npc = GetNpcStateByKind(0x5d);
     W8ItemInstance* item = 0;
 
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return false;
 }
 
@@ -90,11 +90,11 @@ bool MtGigas1Lift2(Trigger* pTrigger)
     W8NpcState* npc = GetNpcStateByKind(0x5e);
     W8ItemInstance* item = 0;
 
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return false;
 }
 
@@ -111,19 +111,19 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
     Trigger* pPlateTrigger;
     srVector3T<float> position;
 
-    if (g_plate_prop_6834f4 == 0) {
+    if (g_plate_prop == 0) {
         return false;
     }
     srVector3T<double> camera_position = GetWorld()->camera->getLocation();
     position.x = static_cast<float>(camera_position.x);
     position.z = static_cast<float>(camera_position.z);
-    g_plate_prop_6834f4->ComputeBounds(&minimum, &maximum);
-    g_plate_contact_6834f8 = 0;
+    g_plate_prop->ComputeBounds(&minimum, &maximum);
+    g_plate_contact = 0;
     if ((position.x >= minimum.x && position.x <= maximum.x && position.z >= minimum.z &&
          position.z <= maximum.z) ||
-        g_plate_prop_6834f4->HasListEntries() != 0) {
-        g_plate_contact_6834f8 = 1;
-        if (g_plate_down_6834f9 != 0) {
+        g_plate_prop->HasListEntries() != 0) {
+        g_plate_contact = 1;
+        if (g_plate_down != 0) {
             return false;
         }
         pPlateTrigger = FindTriggerByName("secretDoor-01");
@@ -148,13 +148,13 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
                 pPlateTrigger->m_pProp->SetSetting6E(1);
             }
         }
-        g_plate_down_6834f9 = 1;
+        g_plate_down = 1;
         SetTriggerVariableByName("PPlateDown", 1);
         SoundPlay("Data\\Sound\\Ambients\\Door Stone Open.wav", 0);
         SoundPlay("Data\\Sound\\Ambients\\Amb Rumble Very Low.wav", 0);
         return false;
     }
-    if (g_plate_down_6834f9 == 0) {
+    if (g_plate_down == 0) {
         return false;
     }
     pPlateTrigger = FindTriggerByName("secretDoor-01");
@@ -179,7 +179,7 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
             pPlateTrigger->m_pProp->SetSetting6E(3);
         }
     }
-    g_plate_down_6834f9 = 0;
+    g_plate_down = 0;
     SetTriggerVariableByName("PPlateDown", 0);
     SoundPlay("Data\\Sound\\Ambients\\Door Stone Close 01.wav", 0);
     SoundPlay("Data\\Sound\\Ambients\\Amb Rumble Very Low.wav", 0);

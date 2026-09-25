@@ -40,15 +40,15 @@
    (MR109, ButtonGigas, ButtonTrang, ButtonRift, ButtonMaten). */
 
 // GLOBAL: WIZ8 0x00683558
-bool g_teleport_running_683558;
+bool g_teleport_running;
 // GLOBAL: WIZ8 0x0068355C
-Trigger* g_door_controller_68355c;
+Trigger* g_door_controller;
 // GLOBAL: WIZ8 0x00683560
-stSound3D* g_gas_sound_00_683560;
+stSound3D* g_gas_sound_00;
 // GLOBAL: WIZ8 0x00683564
-stSound3D* g_gas_sound_01_683564;
+stSound3D* g_gas_sound_01;
 // GLOBAL: WIZ8 0x00683568
-W8IntervalGate* g_transport_gate_683568;
+W8IntervalGate* g_transport_gate;
 
 /* The level-5 entry point called from InitializeLevelMasterFunctions:
    caches the J-Doorcontroller trigger, seeds DialState, kicks the Trang
@@ -65,11 +65,11 @@ void MartensBluff1Setup(void)
     int dial_state;
 
     FindTriggerByName("Gas-Switch");
-    g_door_controller_68355c = FindTriggerByName("J-Doorcontroller");
-    g_gas_sound_00_683560 = 0;
-    g_gas_sound_01_683564 = 0;
-    g_teleport_running_683558 = 0;
-    if (g_door_controller_68355c != 0 && GetLocationVarIDByName("DialState") == -1) {
+    g_door_controller = FindTriggerByName("J-Doorcontroller");
+    g_gas_sound_00 = 0;
+    g_gas_sound_01 = 0;
+    g_teleport_running = 0;
+    if (g_door_controller != 0 && GetLocationVarIDByName("DialState") == -1) {
         Random(8);
         Random(8);
         Random(8);
@@ -88,7 +88,7 @@ void MartensBluff1Setup(void)
             }
         }
     }
-    if (g_door_controller_68355c != 0) {
+    if (g_door_controller != 0) {
         dial_state = 0;
         if (GetLocationVarIDByName("DialState") != -1) {
             dial_state = GetLocationVarValueByName("DialState");
@@ -99,7 +99,7 @@ void MartensBluff1Setup(void)
                 particle->SetActive(0);
             } else {
                 particle->getLocation(position);
-                g_gas_sound_00_683560 = CreateAndPlaySoundNode(
+                g_gas_sound_00 = CreateAndPlaySoundNode(
                     "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, 1);
             }
         }
@@ -109,7 +109,7 @@ void MartensBluff1Setup(void)
                 particle->SetActive(0);
             } else {
                 particle->getLocation(position);
-                g_gas_sound_01_683564 = CreateAndPlaySoundNode(
+                g_gas_sound_01 = CreateAndPlaySoundNode(
                     "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, 1);
             }
         }
@@ -126,13 +126,13 @@ bool MartensBluff1FHandlock(Trigger* pTrigger)
     if (pTrigger->running != 0) {
         return true;
     }
-    if (g_status_685170.item_in_cursor != 0 && GetItemInHand() == 0x26f) {
+    if (g_status.item_in_cursor != 0 && GetItemInHand() == 0x26f) {
         return true;
     }
     SetDice(&dice, 2, 4, 1);
     ApplyRolledHealthChangeToParty(&dice, 0, 1);
     SoundPlay("Data\\Sound\\Ambients\\Electricity 04.wav", 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return false;
 }
 
@@ -142,7 +142,7 @@ bool MartensBluff1DialA(Trigger* pTrigger)
 {
     int state;
 
-    if (g_door_controller_68355c == 0) {
+    if (g_door_controller == 0) {
         return false;
     }
     state = GetLocationVarValueByName("DialState");
@@ -157,7 +157,7 @@ bool MartensBluff1DialB(Trigger* pTrigger)
 {
     int state;
 
-    if (g_door_controller_68355c == 0) {
+    if (g_door_controller == 0) {
         return false;
     }
     state = GetLocationVarValueByName("DialState");
@@ -172,7 +172,7 @@ bool MartensBluff1DialC(Trigger* pTrigger)
 {
     int state;
 
-    if (g_door_controller_68355c == 0) {
+    if (g_door_controller == 0) {
         return false;
     }
     state = GetLocationVarValueByName("DialState");
@@ -190,7 +190,7 @@ bool MartensBluff1GasSwitch(Trigger* pTrigger)
     stParticle* particle;
     int state;
 
-    if (g_door_controller_68355c == 0) {
+    if (g_door_controller == 0) {
         return false;
     }
     state = GetLocationVarValueByName("DialState");
@@ -208,13 +208,13 @@ bool MartensBluff1GasSwitch(Trigger* pTrigger)
     if (particle != 0) {
         particle->SetActive(0);
     }
-    if (g_gas_sound_00_683560 != 0) {
-        g_gas_sound_00_683560->Stop();
-        g_gas_sound_00_683560 = 0;
+    if (g_gas_sound_00 != 0) {
+        g_gas_sound_00->Stop();
+        g_gas_sound_00 = 0;
     }
-    if (g_gas_sound_01_683564 != 0) {
-        g_gas_sound_01_683564->Stop();
-        g_gas_sound_01_683564 = 0;
+    if (g_gas_sound_01 != 0) {
+        g_gas_sound_01->Stop();
+        g_gas_sound_01 = 0;
     }
     SetTriggerVariableByName("DialState", state);
     return true;
@@ -230,7 +230,7 @@ bool MartensBluff1JDoorController(Trigger* pTrigger)
     stParticle* particle;
     int state;
 
-    if (g_door_controller_68355c == 0 || pTrigger->running != 0) {
+    if (g_door_controller == 0 || pTrigger->running != 0) {
         return false;
     }
     state = GetLocationVarValueByName("DialState");
@@ -240,20 +240,20 @@ bool MartensBluff1JDoorController(Trigger* pTrigger)
     if ((state & 0xf000) != 0) {
         return false;
     }
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     particle = FindRegisteredParticle("GasSpray-00");
     if (particle != 0) {
         particle->SetActive(1);
         particle->getLocation(position);
-        g_gas_sound_00_683560 = CreateAndPlaySoundNode(
-            "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, 1);
+        g_gas_sound_00 = CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Air_Escaping_Loop.wav",
+                                                position, 0.3f, 30.0f, 1);
     }
     particle = FindRegisteredParticle("GasSpray-01");
     if (particle != 0) {
         particle->SetActive(1);
         particle->getLocation(position);
-        g_gas_sound_01_683564 = CreateAndPlaySoundNode(
-            "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, 1);
+        g_gas_sound_01 = CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Air_Escaping_Loop.wav",
+                                                position, 0.3f, 30.0f, 1);
     }
     position = GetWorld()->camera->getLocation();
     PointCastSpell(position, 0x25, 5);
@@ -271,7 +271,7 @@ bool MartensBluff1Controller(Trigger* pTrigger)
     } else {
         SetFact(0x42, 0, 0);
     }
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return true;
 }
 
@@ -330,24 +330,23 @@ void MartensBluff1Transporter(int command)
             if (GetFact(0x43)) {
                 return;
             }
-            if (g_transport_gate_683568 != 0) {
-                g_transport_gate_683568->Arm();
+            if (g_transport_gate != 0) {
+                g_transport_gate->Arm();
             } else {
-                g_transport_gate_683568 = new W8IntervalGate(60.0f, 0, 1);
+                g_transport_gate = new W8IntervalGate(60.0f, 0, 1);
             }
             if (GetLocationVarIDByName("TransportSpawn") != -1) {
-                g_transport_gate_683568->SetProgress(GetLocationVarValueByName("TransportSpawn") *
-                                                     g_movement_speed_step_005ed490);
+                g_transport_gate->SetProgress(GetLocationVarValueByName("TransportSpawn") *
+                                              g_movement_speed_step);
             }
-            g_master_functions_006834d8->Add(MartensBluff1Transporter);
+            g_master_functions->Add(MartensBluff1Transporter);
             return;
         }
         if (command != -1) {
             return;
         }
-        if (g_transport_gate_683568 != 0) {
-            progress = static_cast<int>(g_transport_gate_683568->GetProgress() *
-                                        g_octree_cell_scale_005ebcd0);
+        if (g_transport_gate != 0) {
+            progress = static_cast<int>(g_transport_gate->GetProgress() * g_octree_cell_scale);
         }
         if (GetLocationVarIDByName("TransportSpawn") == -1) {
             CreateLocationVar("TransportSpawn", progress);
@@ -356,22 +355,22 @@ void MartensBluff1Transporter(int command)
         }
         return;
     }
-    if (g_transport_gate_683568 == 0) {
+    if (g_transport_gate == 0) {
         g_flag_006834dc = true;
         return;
     }
-    if (!g_transport_gate_683568->IsFinished()) {
-        g_transport_gate_683568->PollElapsedIntervals();
-        if (!g_transport_gate_683568->IsFinished()) {
+    if (!g_transport_gate->IsFinished()) {
+        g_transport_gate->PollElapsedIntervals();
+        if (!g_transport_gate->IsFinished()) {
             return;
         }
     }
     if (MartensBluff1TransportSpawn()) {
-        g_transport_gate_683568->Arm();
+        g_transport_gate->Arm();
         return;
     }
-    delete g_transport_gate_683568;
-    g_transport_gate_683568 = 0;
+    delete g_transport_gate;
+    g_transport_gate = 0;
     g_flag_006834dc = true;
 }
 
@@ -414,10 +413,10 @@ bool MartensBluff1Teleporter(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DF540
 bool MartensBluff1ButtonGigas(Trigger* pTrigger)
 {
-    if (g_teleport_running_683558 == 0) {
+    if (g_teleport_running == 0) {
         return MartensBluff1TeleportState(1);
     }
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return true;
 }
 
@@ -425,10 +424,10 @@ bool MartensBluff1ButtonGigas(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DF560
 bool MartensBluff1ButtonTrang(Trigger* pTrigger)
 {
-    if (g_teleport_running_683558 == 0) {
+    if (g_teleport_running == 0) {
         return MartensBluff1TeleportState(2);
     }
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return true;
 }
 
@@ -436,10 +435,10 @@ bool MartensBluff1ButtonTrang(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DF580
 bool MartensBluff1ButtonRift(Trigger* pTrigger)
 {
-    if (g_teleport_running_683558 == 0) {
+    if (g_teleport_running == 0) {
         return MartensBluff1TeleportState(3);
     }
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return true;
 }
 
@@ -447,10 +446,10 @@ bool MartensBluff1ButtonRift(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DF5A0
 bool MartensBluff1ButtonMaten(Trigger* pTrigger)
 {
-    if (g_teleport_running_683558 == 0) {
+    if (g_teleport_running == 0) {
         return MartensBluff1TeleportState(4);
     }
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return true;
 }
 
@@ -481,7 +480,7 @@ bool MartensBluff1TeleportState(int new_state)
     if (state == new_state) {
         return false;
     }
-    g_teleport_running_683558 = 1;
+    g_teleport_running = 1;
     switch (state - 1) {
     case 0:
         pOldButtonTrigger = FindTriggerByName("ButtonGigas");
@@ -517,7 +516,7 @@ bool MartensBluff1TeleportState(int new_state)
     pOldButtonTrigger->Run(-1);
 set_state:
     SetTriggerVariableByName("TeleporterState", new_state);
-    g_teleport_running_683558 = 0;
+    g_teleport_running = 0;
     return true;
 }
 
@@ -529,7 +528,7 @@ bool MartensBluff1WireTrigger(Trigger* pTrigger)
 {
     Trigger* pTelTrigger;
 
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     pTelTrigger = FindTriggerByName("MR109");
     if (pTelTrigger == 0) {
         srAssertFail("pTelTrigger", MARTENSBLUFF1_CPP, 0x329,
@@ -543,14 +542,14 @@ bool MartensBluff1WireTrigger(Trigger* pTrigger)
         }
         SetTriggerVariableByName("TeleporterState", 1);
     }
-    g_teleport_running_683558 = 1;
+    g_teleport_running = 1;
     pTelTrigger = FindTriggerByName("ButtonGigas");
     if (pTelTrigger == 0) {
         srAssertFail("pTelTrigger", MARTENSBLUFF1_CPP, 0x336,
                      "Missing trigger 'ButtonGigas'! It's not in the LVL file!");
     }
     pTelTrigger->Run(-1);
-    g_teleport_running_683558 = 0;
+    g_teleport_running = 0;
     return true;
 }
 

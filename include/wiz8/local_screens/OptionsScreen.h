@@ -461,8 +461,8 @@ static_assert(sizeof(W8OptionsScreen) == 0x64, "W8OptionsScreen_must_be_0x64");
    W8DialogCloseListener at +0x8; the first own member follows at +0x0c. */
 W8_ASSERT_BASE_END(W8OptionsScreen, W8DialogCloseListener, m_save_slots, 0x8);
 
-extern W8OptionsScreen* g_options_screen_0069c254;
-extern wchar_t g_options_last_save_name_0069c1cc[64];
+extern W8OptionsScreen* g_options_screen;
+extern wchar_t g_options_last_save_name[64];
 
 void SetLastSaveName(const wchar_t* target);
 wchar_t* GetLastSaveName(void);

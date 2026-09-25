@@ -39,7 +39,7 @@
    AcquireRadarBlip's highlight path reuses rows group*3 and group*3+2 as the
    facing/up orientation vectors. */
 // GLOBAL: WIZ8 0x0064ca90
-const float g_radar_blip_colors_0064ca90[18][3] = {
+const float g_radar_blip_colors[18][3] = {
     {0.5f, 0.5f, 0.0f}, {0.7f, 0.7f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.5f, 0.0f, 0.0f},
     {0.7f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.5f, 0.0f}, {0.0f, 0.7f, 0.0f},
     {0.0f, 1.0f, 0.0f}, {0.2f, 0.2f, 0.2f}, {0.5f, 0.5f, 0.5f}, {0.7f, 0.7f, 0.7f},
@@ -49,12 +49,12 @@ const float g_radar_blip_colors_0064ca90[18][3] = {
 
 /* 0x0064CB68: ubDisposition to blip class for live monsters. */
 // GLOBAL: WIZ8 0x0064cb68
-const unsigned char g_radar_disposition_class_0064cb68[4] = {0, 1, 2, 0};
+const unsigned char g_radar_disposition_class[4] = {0, 1, 2, 0};
 
 /* 0x0064CB6C: screen offsets at which the zoomed map image gets each
    occupied formation cell's party-order chip painted. */
 // GLOBAL: WIZ8 0x0064cb6c
-const int g_radar_cell_offsets_0064cb6c[15][2] = {
+const int g_radar_cell_offsets[15][2] = {
     {45, 37}, {42, 38}, {48, 38}, {53, 45}, {52, 42}, {52, 48}, {45, 53}, {48, 52},
     {42, 52}, {37, 45}, {38, 48}, {38, 42}, {45, 42}, {43, 46}, {47, 46},
 };
@@ -63,27 +63,27 @@ const int g_radar_cell_offsets_0064cb6c[15][2] = {
    preset flag, the three sprites, the eighteen sector blip pools with their
    per-sector reuse cursors, and the active range/scale band. */
 // GLOBAL: WIZ8 0x0069bf58
-stModelInstance2D* g_radar_backdrop_0069bf58 = 0;
+stModelInstance2D* g_radar_backdrop = 0;
 // GLOBAL: WIZ8 0x0069bf5c
-bool g_radar_zoomed_0069bf5c = false;
+bool g_radar_zoomed = false;
 // GLOBAL: WIZ8 0x0069bf60
-stModelInstance2D* g_radar_compass_0069bf60 = 0;
+stModelInstance2D* g_radar_compass = 0;
 // GLOBAL: WIZ8 0x0069c088
-stModelInstance2D* g_radar_frame_0069c088 = 0;
+stModelInstance2D* g_radar_frame = 0;
 // GLOBAL: WIZ8 0x0069bf68
-W8GrowableVector<stModelInstance2D*> g_radar_icon_pools_0069bf68[18];
+W8GrowableVector<stModelInstance2D*> g_radar_icon_pools[18];
 // GLOBAL: WIZ8 0x0069c08c
-int g_radar_icon_cursors_0069c08c[18];
+int g_radar_icon_cursors[18];
 // GLOBAL: WIZ8 0x0069c0d4
-float g_radar_outer_radius_0069c0d4;
+float g_radar_outer_radius;
 // GLOBAL: WIZ8 0x0069c0d8
-float g_radar_inner_radius_0069c0d8;
+float g_radar_inner_radius;
 // GLOBAL: WIZ8 0x0069c0dc
-stModelInstance2D* g_radar_map_0069c0dc = 0;
+stModelInstance2D* g_radar_map = 0;
 // GLOBAL: WIZ8 0x0069c0e0
-float g_radar_map_scale_0069c0e0;
+float g_radar_map_scale;
 // GLOBAL: WIZ8 0x0069c0e4
-unsigned char g_radar_map_enabled_0069c0e4 = 0;
+unsigned char g_radar_map_enabled = 0;
 
 // GLOBAL: WIZ8 0x005eecd8
 const double g_double_005eecd8 = 3.141592653589793;
@@ -100,13 +100,13 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, unsigne
 // FUNCTION: WIZ8 0x005a20e0
 void EnableRadarMap(char enable)
 {
-    g_radar_map_enabled_0069c0e4 = enable;
+    g_radar_map_enabled = enable;
     if (enable == 0) {
         for (int sector = 0; sector < 18; ++sector) {
-            W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools_0069bf68[sector];
+            W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
             int count = pool->count;
 
-            g_radar_icon_cursors_0069c08c[sector] = 0;
+            g_radar_icon_cursors[sector] = 0;
             for (int index = 0; index < count; ++index) {
                 (*pool->GetAt(index))->setFlag(srNode::FLAG_DISABLE);
             }
@@ -117,28 +117,28 @@ void EnableRadarMap(char enable)
 // FUNCTION: WIZ8 0x005a2140
 void EnsureRadarMapOverlay(void)
 {
-    if (g_radar_backdrop_0069bf58 == 0) {
+    if (g_radar_backdrop == 0) {
         W8ControlsRect bounds;
 
         bounds.left = 0x17;
         bounds.top = 0x166;
         bounds.right = 0x80;
         bounds.bottom = 0x1c2;
-        g_radar_backdrop_0069bf58 = CreateSpriteFromVideoSurface(-0xe, &bounds, 0, 0, 1);
-        PositionToolTipNode(g_radar_backdrop_0069bf58, 0x17, 0x166, 0);
-        g_radar_backdrop_0069bf58->render_state_164.display_state = 4;
+        g_radar_backdrop = CreateSpriteFromVideoSurface(-0xe, &bounds, 0, 0, 1);
+        PositionToolTipNode(g_radar_backdrop, 0x17, 0x166, 0);
+        g_radar_backdrop->render_state_164.display_state = 4;
     }
 }
 
 // FUNCTION: WIZ8 0x005a21b0
 static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit)
 {
-    W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools_0069bf68[sector];
+    W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
     stModelInstance2D* icon;
-    int cursor = g_radar_icon_cursors_0069c08c[sector];
+    int cursor = g_radar_icon_cursors[sector];
 
     if (cursor < pool->count) {
-        g_radar_icon_cursors_0069c08c[sector] = cursor + 1;
+        g_radar_icon_cursors[sector] = cursor + 1;
         icon = *pool->GetAt(cursor);
     } else {
         icon = new stModelInstance2D(0);
@@ -148,7 +148,7 @@ static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit)
     if (icon != 0) {
         icon->clearFlag(srNode::FLAG_DISABLE);
         icon->setParent(0, 1);
-        icon->setParent(g_scene_square_65965c, 1);
+        icon->setParent(g_scene_square, 1);
         icon->overlay_scene_flag_160 |= 1;
         if (lit == 0) {
             icon->SetGlowEnabled(0);
@@ -160,12 +160,12 @@ static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit)
             icon->SetGlowEnabled(1);
             second.w = 1.0f;
             first.w = 1.0f;
-            second.x = g_radar_blip_colors_0064ca90[group + 2][0];
-            second.y = g_radar_blip_colors_0064ca90[group + 2][1];
-            second.z = g_radar_blip_colors_0064ca90[group + 2][2];
-            first.x = g_radar_blip_colors_0064ca90[group][0];
-            first.y = g_radar_blip_colors_0064ca90[group][1];
-            first.z = g_radar_blip_colors_0064ca90[group][2];
+            second.x = g_radar_blip_colors[group + 2][0];
+            second.y = g_radar_blip_colors[group + 2][1];
+            second.z = g_radar_blip_colors[group + 2][2];
+            first.x = g_radar_blip_colors[group][0];
+            first.y = g_radar_blip_colors[group][1];
+            first.z = g_radar_blip_colors[group][2];
             icon->SetGlowColors(&first, &second);
             icon->render_state_164.render_depth = 1000;
         }
@@ -176,20 +176,20 @@ static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit)
 // FUNCTION: WIZ8 0x005a23e0
 void ReleaseRadarMap(void)
 {
-    if (g_radar_map_0069c0dc != 0) {
-        ReleaseObject(g_radar_map_0069c0dc);
-        g_radar_map_0069c0dc = 0;
+    if (g_radar_map != 0) {
+        ReleaseObject(g_radar_map);
+        g_radar_map = 0;
     }
-    if (g_radar_frame_0069c088 != 0) {
-        ReleaseObject(g_radar_frame_0069c088);
-        g_radar_frame_0069c088 = 0;
+    if (g_radar_frame != 0) {
+        ReleaseObject(g_radar_frame);
+        g_radar_frame = 0;
     }
-    if (g_radar_compass_0069bf60 != 0) {
-        ReleaseObject(g_radar_compass_0069bf60);
-        g_radar_compass_0069bf60 = 0;
+    if (g_radar_compass != 0) {
+        ReleaseObject(g_radar_compass);
+        g_radar_compass = 0;
     }
     for (int sector = 0; sector < 18; ++sector) {
-        W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools_0069bf68[sector];
+        W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
 
         while (pool->count != 0) {
             stModelInstance2D* icon = pool->RemoveAt(0);
@@ -198,9 +198,9 @@ void ReleaseRadarMap(void)
             }
         }
     }
-    if (g_radar_backdrop_0069bf58 != 0) {
-        g_radar_backdrop_0069bf58->release();
-        g_radar_backdrop_0069bf58 = 0;
+    if (g_radar_backdrop != 0) {
+        g_radar_backdrop->release();
+        g_radar_backdrop = 0;
     }
 }
 
@@ -209,23 +209,23 @@ void RefreshRadarMap(void)
 {
     int sector;
 
-    if (g_radar_map_enabled_0069c0e4 == 0) {
+    if (g_radar_map_enabled == 0) {
         return;
     }
-    if (g_radar_map_0069c0dc != 0) {
-        ReleaseObject(g_radar_map_0069c0dc);
-        g_radar_map_0069c0dc = 0;
+    if (g_radar_map != 0) {
+        ReleaseObject(g_radar_map);
+        g_radar_map = 0;
     }
-    if (g_radar_frame_0069c088 != 0) {
-        ReleaseObject(g_radar_frame_0069c088);
-        g_radar_frame_0069c088 = 0;
+    if (g_radar_frame != 0) {
+        ReleaseObject(g_radar_frame);
+        g_radar_frame = 0;
     }
-    if (g_radar_compass_0069bf60 != 0) {
-        ReleaseObject(g_radar_compass_0069bf60);
-        g_radar_compass_0069bf60 = 0;
+    if (g_radar_compass != 0) {
+        ReleaseObject(g_radar_compass);
+        g_radar_compass = 0;
     }
     for (sector = 0; sector < 18; ++sector) {
-        W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools_0069bf68[sector];
+        W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
 
         while (pool->count != 0) {
             stModelInstance2D* icon = *pool->GetAt(0);
@@ -235,14 +235,14 @@ void RefreshRadarMap(void)
             }
         }
     }
-    if (g_radar_backdrop_0069bf58 != 0) {
-        g_radar_backdrop_0069bf58->release();
-        g_radar_backdrop_0069bf58 = 0;
+    if (g_radar_backdrop != 0) {
+        g_radar_backdrop->release();
+        g_radar_backdrop = 0;
     }
 
     unsigned int map_surface;
     unsigned int handle;
-    if (g_radar_zoomed_0069bf5c == 0) {
+    if (g_radar_zoomed == 0) {
         handle = GetCatalogVideoObjectHandle(0xa4, 0);
         if (handle == 0) {
             return;
@@ -255,14 +255,14 @@ void RefreshRadarMap(void)
         }
         MakeVSurfaceFromVObject(handle, 0, &map_surface);
         for (int slot = 0; slot < 8; ++slot) {
-            W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-            W8PartyFormationPosition* position = &g_status_685170.formation.positions[slot];
+            W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+            W8PartyFormationPosition* position = &g_status.formation.positions[slot];
 
             if (row->fOccupied != 0 && position->bQuadrant != -1) {
                 int cell = position->bQuadrant * 3 + position->bQuadrantSlot;
                 DrawCatalogImage((int)map_surface, 0xa5, 0, row->party_order_index,
-                                 g_radar_cell_offsets_0064cb6c[cell][0],
-                                 g_radar_cell_offsets_0064cb6c[cell][1], 2, 0);
+                                 g_radar_cell_offsets[cell][0], g_radar_cell_offsets[cell][1], 2,
+                                 0);
             }
         }
     }
@@ -284,26 +284,26 @@ void RefreshRadarMap(void)
     unsigned int compass_surface;
     MakeVSurfaceFromVObject(handle, 0, &compass_surface);
 
-    g_radar_compass_0069bf60 = CreateSpriteFromSurface(compass_surface, 0, 1, 0, 1);
-    PositionToolTipNode(g_radar_compass_0069bf60, 0x1e, 0x167, 0);
-    g_radar_compass_0069bf60->render_state_164.display_state = 4;
-    g_radar_frame_0069c088 = CreateSpriteFromSurface(frame_surface, 0, 1, 0, 1);
-    PositionToolTipNode(g_radar_frame_0069c088, 0x1e, 0x167, 0);
-    g_radar_frame_0069c088->render_state_164.display_state = 4;
-    g_radar_map_0069c0dc = CreateSpriteFromSurface(map_surface, 0, 1, 0, 1);
-    PositionToolTipNode(g_radar_map_0069c0dc, 0x1e, 0x167, 0);
-    g_radar_map_0069c0dc->render_state_164.display_state = 4;
+    g_radar_compass = CreateSpriteFromSurface(compass_surface, 0, 1, 0, 1);
+    PositionToolTipNode(g_radar_compass, 0x1e, 0x167, 0);
+    g_radar_compass->render_state_164.display_state = 4;
+    g_radar_frame = CreateSpriteFromSurface(frame_surface, 0, 1, 0, 1);
+    PositionToolTipNode(g_radar_frame, 0x1e, 0x167, 0);
+    g_radar_frame->render_state_164.display_state = 4;
+    g_radar_map = CreateSpriteFromSurface(map_surface, 0, 1, 0, 1);
+    PositionToolTipNode(g_radar_map, 0x1e, 0x167, 0);
+    g_radar_map->render_state_164.display_state = 4;
 
     for (sector = 0; sector < 18; ++sector) {
         srVector4T<float> color;
         stModelInstance2D* icon;
 
-        color.x = g_radar_blip_colors_0064ca90[sector][0];
-        color.y = g_radar_blip_colors_0064ca90[sector][1];
-        color.z = g_radar_blip_colors_0064ca90[sector][2];
+        color.x = g_radar_blip_colors[sector][0];
+        color.y = g_radar_blip_colors[sector][1];
+        color.z = g_radar_blip_colors[sector][2];
         color.w = 1.0f;
         icon = CreateColoredPolygonSprite(2, 2, &color, 0);
-        g_radar_icon_pools_0069bf68[sector].Add(icon);
+        g_radar_icon_pools[sector].Add(icon);
         icon->overlay_scene_flag_160 |= 1;
     }
     UpdateRadarBlips();
@@ -322,24 +322,23 @@ void UpdateRadarBlips(void)
     bool detect_all;
 
     for (int sector = 0; sector < 18; ++sector) {
-        W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools_0069bf68[sector];
+        W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
         int count = pool->count;
 
-        g_radar_icon_cursors_0069c08c[sector] = 0;
+        g_radar_icon_cursors[sector] = 0;
         for (int index = 0; index < count; ++index) {
             (*pool->GetAt(index))->setFlag(srNode::FLAG_DISABLE);
         }
     }
-    if (g_radar_map_enabled_0069c0e4 == 0 || gXStatus.fSurprisePossible != 0) {
+    if (g_radar_map_enabled == 0 || gXStatus.fSurprisePossible != 0) {
         return;
     }
-    if (g_radar_compass_0069bf60 != 0) {
-        RotateNodeInDegrees(g_radar_compass_0069bf60,
-                            g_status_685170.party_facing -
-                                static_cast<int>(g_status_685170.party_heading) + 0x168);
+    if (g_radar_compass != 0) {
+        RotateNodeInDegrees(g_radar_compass, g_status.party_facing -
+                                                 static_cast<int>(g_status.party_heading) + 0x168);
     }
-    if (g_radar_frame_0069c088 != 0) {
-        RotateNodeInDegrees(g_radar_frame_0069c088, g_status_685170.party_facing);
+    if (g_radar_frame != 0) {
+        RotateNodeInDegrees(g_radar_frame, g_status.party_facing);
     }
     GetCameraPosition(&camera);
     detect_all = PartyHasCondition(0x40);
@@ -359,11 +358,11 @@ void UpdateRadarBlips(void)
                 position.x += center.x;
                 position.y += center.y;
                 position.z += center.z;
-                party = g_startup_world_659c0c->GetPosition();
+                party = g_startup_world->GetPosition();
                 delta = position - party;
                 if ((detect_all != 0 || ((rep->flags >> 3) & 1) != 0 ||
                      HasCameraLineOfSight(&position)) &&
-                    delta.Length() <= g_radar_outer_radius_0069c0d4) {
+                    delta.Length() <= g_radar_outer_radius) {
                     if (PlaceRadarBlip(&delta, 4, item->IsRadarBlipLit()) != 0) {
                         rep->flags |= 8;
                     }
@@ -381,9 +380,9 @@ void UpdateRadarBlips(void)
             (monster->disabled_217 == 0 || detect_all != 0)) {
             bool hostile = false;
 
-            if (gXStatus.fCombatMode != 0 && g_status_685170.selected_character != -1 &&
-                g_status_685170.buffers.XChar[g_status_685170.selected_character].fOccupied != 0 &&
-                ((unsigned char)(1 << g_status_685170.selected_character) &
+            if (gXStatus.fCombatMode != 0 && g_status.selected_character != -1 &&
+                g_status.buffers.XChar[g_status.selected_character].fOccupied != 0 &&
+                (static_cast<unsigned char>(1 << g_status.selected_character) &
                  MonsterGetHighlightMask(monster)) != 0) {
                 hostile = 1;
             }
@@ -396,10 +395,10 @@ void UpdateRadarBlips(void)
                     position.x = center.x + info->party_threat.camera_position_0c.x;
                     position.y = center.y + info->party_threat.camera_position_0c.y;
                     position.z = center.z + info->party_threat.camera_position_0c.z;
-                    party = g_startup_world_659c0c->GetPosition();
+                    party = g_startup_world->GetPosition();
                     delta = position - party;
                     float distance = delta.Length();
-                    if (distance - monster->radius_084 < g_radar_outer_radius_0069c0d4) {
+                    if (distance - monster->radius_084 < g_radar_outer_radius) {
                         distance = distance / (distance - monster->radius_084);
                         delta.x *= distance;
                         delta.z *= distance;
@@ -407,9 +406,8 @@ void UpdateRadarBlips(void)
                     } else {
                         delta.y = 0.0f;
                         distance = delta.Length();
-                        if (distance - monster->radius_084 > g_radar_outer_radius_0069c0d4) {
-                            distance =
-                                g_radar_outer_radius_0069c0d4 / (distance - monster->radius_084);
+                        if (distance - monster->radius_084 > g_radar_outer_radius) {
+                            distance = g_radar_outer_radius / (distance - monster->radius_084);
                             delta.x *= distance;
                             delta.z *= distance;
                             PlaceRadarBlip(&delta, 3, hostile);
@@ -425,24 +423,22 @@ void UpdateRadarBlips(void)
                 position.x = center.x + party.x;
                 position.y = center.y + party.y;
                 position.z = center.z + party.z;
-                party = g_startup_world_659c0c->GetPosition();
+                party = g_startup_world->GetPosition();
                 delta = position - party;
                 float distance = delta.Length();
-                if (distance - monster->radius_084 < g_radar_outer_radius_0069c0d4) {
+                if (distance - monster->radius_084 < g_radar_outer_radius) {
                     distance = distance / (distance - monster->radius_084);
                     delta.x *= distance;
                     delta.z *= distance;
-                    PlaceRadarBlip(&delta, g_radar_disposition_class_0064cb68[info->ubDisposition],
-                                   hostile);
+                    PlaceRadarBlip(&delta, g_radar_disposition_class[info->ubDisposition], hostile);
                 } else {
                     delta.y = 0.0f;
                     distance = delta.Length();
-                    if (distance - monster->radius_084 > g_radar_outer_radius_0069c0d4) {
-                        distance = g_radar_outer_radius_0069c0d4 / (distance - monster->radius_084);
+                    if (distance - monster->radius_084 > g_radar_outer_radius) {
+                        distance = g_radar_outer_radius / (distance - monster->radius_084);
                         delta.x *= distance;
                         delta.z *= distance;
-                        PlaceRadarBlip(&delta,
-                                       g_radar_disposition_class_0064cb68[info->ubDisposition],
+                        PlaceRadarBlip(&delta, g_radar_disposition_class[info->ubDisposition],
                                        hostile);
                     }
                 }
@@ -462,9 +458,9 @@ void UpdateRadarBlips(void)
             position.x = center.x + party.x;
             position.y = center.y + party.y;
             position.z = center.z + party.z;
-            party = g_startup_world_659c0c->GetPosition();
+            party = g_startup_world->GetPosition();
             delta = position - party;
-            if (delta.Length() < g_radar_outer_radius_0069c0d4) {
+            if (delta.Length() < g_radar_outer_radius) {
                 PlaceRadarBlip(&delta, 5, 0);
             }
         }
@@ -495,7 +491,7 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, unsigne
     rotation.vectors[1].y = 1.0f;
     rotation.vectors[2].x = 0.0f;
     rotation.vectors[2].y = 0.0f;
-    double angle = g_double_005eecd8 * g_float_005ebcf8 * (0x168 - g_status_685170.party_facing);
+    double angle = g_double_005eecd8 * g_float_005ebcf8 * (0x168 - g_status.party_facing);
     rotation.vectors[0].z = 0.0f;
     rotation.vectors[1].z = 0.0f;
     rotation.vectors[2].z = 1.0f;
@@ -522,21 +518,20 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, unsigne
     delta->y = 0.0f;
 
     float distance = delta->Length();
-    if (distance <= g_radar_inner_radius_0069c0d8) {
+    if (distance <= g_radar_inner_radius) {
         float scale;
 
         if (group == 5 || group == 4) {
-            scale = g_radar_map_scale_0069c0e0 / g_radar_inner_radius_0069c0d8;
+            scale = g_radar_map_scale / g_radar_inner_radius;
         } else {
-            scale = g_radar_map_scale_0069c0e0 / distance;
+            scale = g_radar_map_scale / distance;
         }
         left = (int)(scale * delta->x) + 0x4b;
         top = 0x194 - (int)(scale * delta->z);
     } else {
-        float scale = g_radar_map_scale_0069c0e0 +
-                      (distance - g_radar_inner_radius_0069c0d8) *
-                          (g_float_005eecf0 - g_radar_map_scale_0069c0e0) /
-                          (g_radar_outer_radius_0069c0d4 - g_radar_inner_radius_0069c0d8);
+        float scale = g_radar_map_scale + (distance - g_radar_inner_radius) *
+                                              (g_float_005eecf0 - g_radar_map_scale) /
+                                              (g_radar_outer_radius - g_radar_inner_radius);
 
         if (scale > g_float_005eecf0) {
             scale = g_float_005eecf0;
@@ -553,45 +548,45 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, unsigne
 // FUNCTION: WIZ8 0x005a3360
 void ToggleRadarMapZoom(void)
 {
-    if (g_radar_zoomed_0069bf5c == 0) {
-        float radius = g_startup_world_659c0c->radius_084;
+    if (g_radar_zoomed == 0) {
+        float radius = g_startup_world->radius_084;
 
-        g_radar_zoomed_0069bf5c = true;
-        g_radar_map_scale_0069c0e0 = 13.0f;
-        g_radar_inner_radius_0069c0d8 = CalcRangeDistance(W8_RANGE_TOUCH) + radius;
-        g_radar_outer_radius_0069c0d4 = CalcRangeDistance(W8_RANGE_LONG) + radius;
+        g_radar_zoomed = true;
+        g_radar_map_scale = 13.0f;
+        g_radar_inner_radius = CalcRangeDistance(W8_RANGE_TOUCH) + radius;
+        g_radar_outer_radius = CalcRangeDistance(W8_RANGE_LONG) + radius;
         RefreshRadarMap();
         return;
     }
-    float radius = g_startup_world_659c0c->radius_084;
+    float radius = g_startup_world->radius_084;
 
-    g_radar_zoomed_0069bf5c = false;
-    g_radar_map_scale_0069c0e0 = 2.0f;
-    g_radar_inner_radius_0069c0d8 = radius;
-    g_radar_outer_radius_0069c0d4 = CalcRangeDistance(W8_RANGE_EXTREME) + radius;
+    g_radar_zoomed = false;
+    g_radar_map_scale = 2.0f;
+    g_radar_inner_radius = radius;
+    g_radar_outer_radius = CalcRangeDistance(W8_RANGE_EXTREME) + radius;
     RefreshRadarMap();
 }
 
 // FUNCTION: WIZ8 0x005a3410
 void ZoomRadarMapIn(void)
 {
-    float radius = g_startup_world_659c0c->radius_084;
+    float radius = g_startup_world->radius_084;
 
-    g_radar_zoomed_0069bf5c = true;
-    g_radar_map_scale_0069c0e0 = 13.0f;
-    g_radar_inner_radius_0069c0d8 = CalcRangeDistance(W8_RANGE_TOUCH) + radius;
-    g_radar_outer_radius_0069c0d4 = CalcRangeDistance(W8_RANGE_LONG) + radius;
+    g_radar_zoomed = true;
+    g_radar_map_scale = 13.0f;
+    g_radar_inner_radius = CalcRangeDistance(W8_RANGE_TOUCH) + radius;
+    g_radar_outer_radius = CalcRangeDistance(W8_RANGE_LONG) + radius;
     RefreshRadarMap();
 }
 
 // FUNCTION: WIZ8 0x005a3470
 void ZoomRadarMapOut(void)
 {
-    float radius = g_startup_world_659c0c->radius_084;
+    float radius = g_startup_world->radius_084;
 
-    g_radar_zoomed_0069bf5c = false;
-    g_radar_map_scale_0069c0e0 = 2.0f;
-    g_radar_inner_radius_0069c0d8 = radius;
-    g_radar_outer_radius_0069c0d4 = CalcRangeDistance(W8_RANGE_EXTREME) + radius;
+    g_radar_zoomed = false;
+    g_radar_map_scale = 2.0f;
+    g_radar_inner_radius = radius;
+    g_radar_outer_radius = CalcRangeDistance(W8_RANGE_EXTREME) + radius;
     RefreshRadarMap();
 }

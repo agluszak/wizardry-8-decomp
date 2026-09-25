@@ -9,9 +9,9 @@
 #include <string.h>
 
 // GLOBAL: WIZ8 0x0065a154
-unsigned int g_frame_tick_65a154;
+unsigned int g_frame_tick;
 // GLOBAL: WIZ8 0x0065a158
-float g_frame_elapsed_65a158;
+float g_frame_elapsed;
 
 /* The renderer's shared millisecond delta. The constructor immediately before
    this body seeds the same clock; every consumer reads the single scaled
@@ -20,9 +20,9 @@ float g_frame_elapsed_65a158;
 void UpdateRenderElapsedTime(void)
 {
     unsigned int now = GetTickCount();
-    unsigned int elapsed = now - g_frame_tick_65a154;
-    g_frame_tick_65a154 = now;
-    g_frame_elapsed_65a158 = elapsed * 0.001f;
+    unsigned int elapsed = now - g_frame_tick;
+    g_frame_tick = now;
+    g_frame_elapsed = elapsed * 0.001f;
 }
 
 // GLOBAL: WIZ8 0x0065A178
@@ -30,21 +30,21 @@ EnvironmentColour g_environment_colours_65a178[256];
 // GLOBAL: WIZ8 0x0065AD98
 EnvironmentColour g_environment_colours_65ad98[256];
 // GLOBAL: WIZ8 0x0065A168
-stTextureAnim* g_sky_gradient_animations_0065a168[3];
+stTextureAnim* g_sky_gradient_animations[3];
 // GLOBAL: WIZ8 0x0060A394
-bool g_environment_time_enabled_60a394 = true;
+bool g_environment_time_enabled = true;
 // GLOBAL: WIZ8 0x0065A160
-W8Prop* g_sun_prop_0065a160;
+W8Prop* g_sun_prop;
 // GLOBAL: WIZ8 0x0065AD84
-W8Prop* g_moon_prop_0065ad84;
+W8Prop* g_moon_prop;
 // GLOBAL: WIZ8 0x0065AD88
-srVector3T<float> g_celestial_origin_65ad88;
+srVector3T<float> g_celestial_origin;
 // GLOBAL: WIZ8 0x0060A390
-float g_view_distance_0060a390 = 12.0f;
+float g_view_distance = 12.0f;
 // GLOBAL: WIZ8 0x0060A3A4
-float g_celestial_orbit_radius_0060a3a4 = -1.0f;
+float g_celestial_orbit_radius = -1.0f;
 // GLOBAL: WIZ8 0x0065AD78
-EnvironmentColour g_light_direction_0065ad78;
+EnvironmentColour g_light_direction;
 
 static float normalized_colour(unsigned int component)
 {
@@ -72,13 +72,13 @@ unsigned char InitializeEnvironmentColours(void)
         g_environment_colours_65a178[index] = value;
         g_environment_colours_65ad98[index] = value;
     }
-    g_sky_gradient_animations_0065a168[0] = 0;
-    g_sky_gradient_animations_0065a168[1] = 0;
-    g_environment_time_enabled_60a394 = 0;
-    g_sun_prop_0065a160 = 0;
-    g_moon_prop_0065ad84 = 0;
-    g_environment_lights_0065b998.Clear();
-    g_view_distance_0060a390 = 12.0f;
-    g_sky_gradient_animations_0065a168[2] = 0;
+    g_sky_gradient_animations[0] = 0;
+    g_sky_gradient_animations[1] = 0;
+    g_environment_time_enabled = 0;
+    g_sun_prop = 0;
+    g_moon_prop = 0;
+    g_environment_lights.Clear();
+    g_view_distance = 12.0f;
+    g_sky_gradient_animations[2] = 0;
     return 1;
 }

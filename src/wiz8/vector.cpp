@@ -268,7 +268,7 @@ class stModelInstance;
 // TEMPLATE: WIZ8 0x00438c70
 // W8GrowableVector<stModelInstance*>::~W8GrowableVector<stModelInstance*>
 
-/* Local Screens\MGSRadarMap.cpp's g_radar_icon_pools_0069bf68 emission: the
+/* Local Screens\MGSRadarMap.cpp's g_radar_icon_pools emission: the
    static initializer constructs the eighteen-pool array through this ctor. */
 
 class stModelInstance2D;
@@ -309,7 +309,7 @@ struct W8EncounterScriptName;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* Engine Code\Trigger.cpp's g_timed_events_006599b8. */
+/* Engine Code\Trigger.cpp's g_timed_events. */
 // VTABLE: WIZ8 0x005ec16c
 // class W8GrowableVector<W8TriggerEvent*>
 
@@ -335,7 +335,7 @@ struct W8EncounterScriptName;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* Engine Code\3dapi.cpp's g_worlds_00659a80. */
+/* Engine Code\3dapi.cpp's g_worlds. */
 // VTABLE: WIZ8 0x005ec2b8
 // class W8GrowableVector<W8World*>
 
@@ -451,7 +451,7 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x00474c40
 // W8GrowableVector<stMeshModel*>::~W8GrowableVector<stMeshModel*>
 
-/* Engine Code\ReadMesh.cpp's g_retained_materials_65b9d0: the static
+/* Engine Code\ReadMesh.cpp's g_retained_materials: the static
    initializer at 0x00485AF0 constructs it with capacity five; the stores
    feed it srMaterialIFace* entries out of the mesh material arrays.
    0x005ECA60 is this specialization's construction-phase table. */
@@ -511,7 +511,7 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x0048ce80
 // W8GrowableVector<W8EncounterTableRuntime*>::~W8GrowableVector<W8EncounterTableRuntime*>
 
-/* Engine Code\stCube.cpp's g_world_cursor_nodes_65ba58: the static
+/* Engine Code\stCube.cpp's g_world_cursor_nodes: the static
    initializer at 0x0048D020 constructs it with capacity five; the table
    holds the world's W8WorldCursorNode* cursor nodes.
    0x005ECAD4 is this specialization's construction-phase table. */
@@ -534,7 +534,7 @@ class W8Navigator;
    by MasterFunctionList.cpp. InitializeLevelMasterFunctions's
    five-element construction calls the base ctor 0x004D9A70 and then installs
    the derived vtable 0x005ED438 itself, so the retail new-expression is
-   `new W8Vector<W8MasterFunction>(5)` and g_master_functions_006834d8 is the
+   `new W8Vector<W8MasterFunction>(5)` and g_master_functions is the
    thin derived type. The base vtable 0x005ED43C also tags the
    DialogFactoryDialogs.cpp member embedded at +0x64, which that unit only
    constructs, clears and destroys. No other specialization shares either
@@ -616,7 +616,7 @@ class W8Navigator;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* Engine Code\Spells.cpp's g_sound3d_instances_65be40. */
+/* Engine Code\Spells.cpp's g_sound3d_instances. */
 // VTABLE: WIZ8 0x005ed018
 // class W8GrowableVector<stSound3D*>
 
@@ -694,7 +694,7 @@ class srClipPlane;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* Local Code\Search.cpp's g_searchables_00689fa8. */
+/* Local Code\Search.cpp's g_searchables. */
 // VTABLE: WIZ8 0x005ed840
 // class W8GrowableVector<W8Searchable*>
 
@@ -876,7 +876,7 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x005b1bc0
 // W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor'
 
-/* Local Screens\CreditsScreen.cpp's g_credit_lines_0069c4a8: the enter path
+/* Local Screens\CreditsScreen.cpp's g_credit_lines: the enter path
    news the vector and the element constructor allocates five 0x14-byte
    W8CreditLine slots. */
 // VTABLE: WIZ8 0x005ef310

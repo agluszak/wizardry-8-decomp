@@ -48,11 +48,11 @@ static W8PortraitQuoteBubble* g_current_portrait_quote;
 /* The bubble artwork file tables, indexed by the edge and background selector
    arguments of LayoutPortraitQuoteBubble. */
 // GLOBAL: WIZ8 0x0064f550
-static const char* g_quote_bubble_edges_64f550[] = {
+static const char* g_quote_bubble_edges[] = {
     "data\\NPC Interaction\\npc_PopUp_edge.sti",
 };
 // GLOBAL: WIZ8 0x0064f554
-static const char* g_quote_bubble_backgrounds_64f554[] = {
+static const char* g_quote_bubble_backgrounds[] = {
     "data\\NPC Interaction\\npc_popup_back.pcx",
 };
 
@@ -60,7 +60,7 @@ static const char* g_quote_bubble_backgrounds_64f554[] = {
    them into the record and clears the staging value. Bit 0 selects the flat
    white fill instead of the background artwork. */
 // GLOBAL: WIZ8 0x0069c5c8
-static unsigned int g_quote_bubble_flags_69c5c8;
+static unsigned int g_quote_bubble_flags;
 
 int MeasureWrappedText(int arg_1, int arg_2, unsigned int wrap_width, int arg_4, int font,
                        int colour, const wchar_t* text, int arg_8, int arg_9, int arg_10,
@@ -226,7 +226,7 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                         StringPixLength(reinterpret_cast<UINT16*>(
                                             line), // reinterpret-ok: SGP wide-text API boundary
                                         active_font);
-                    active_font = g_font12point1_683648;
+                    active_font = g_font12point1;
                     remaining_width -= line_width;
                     memset(line, 0, sizeof(line));
                     memset(word, 0, sizeof(word));
@@ -395,7 +395,7 @@ int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, 
                     StringPixLength(reinterpret_cast<UINT16*>(
                                         line), // reinterpret-ok: SGP wide-text API boundary
                                     active_font);
-                    active_font = g_font12point1_683648;
+                    active_font = g_font12point1;
                     memset(line, 0, sizeof(line));
                     memset(word, 0, sizeof(word));
                     SetFontShadow(0);
@@ -518,13 +518,13 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
         bubble = new W8PortraitQuoteBubble;
         g_current_portrait_quote = bubble;
         surface_desc.fCreateFlags = VSURFACE_CREATE_FROMFILE | VSURFACE_SYSTEM_MEM_USAGE;
-        strcpy(surface_desc.ImageFile, g_quote_bubble_backgrounds_64f554[background_index]);
+        strcpy(surface_desc.ImageFile, g_quote_bubble_backgrounds[background_index]);
         if (!AddVideoSurface(&surface_desc, &bubble->background_surface)) {
             delete bubble;
             return -1;
         }
         object_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-        strcpy(object_desc.ImageFile, g_quote_bubble_edges_64f550[edge_index]);
+        strcpy(object_desc.ImageFile, g_quote_bubble_edges[edge_index]);
         if (!AddVideoObject(&object_desc, &g_current_portrait_quote->object)) {
             delete bubble;
             return -1;
@@ -543,12 +543,12 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
                 g_current_portrait_quote->has_resources_14 = false;
             }
             surface_desc.fCreateFlags = VSURFACE_CREATE_FROMFILE | VSURFACE_SYSTEM_MEM_USAGE;
-            strcpy(surface_desc.ImageFile, g_quote_bubble_backgrounds_64f554[background_index]);
+            strcpy(surface_desc.ImageFile, g_quote_bubble_backgrounds[background_index]);
             if (!AddVideoSurface(&surface_desc, &g_current_portrait_quote->background_surface)) {
                 return -1;
             }
             object_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-            strcpy(object_desc.ImageFile, g_quote_bubble_edges_64f550[edge_index]);
+            strcpy(object_desc.ImageFile, g_quote_bubble_edges[edge_index]);
             if (!AddVideoObject(&object_desc, &g_current_portrait_quote->object)) {
                 return -1;
             }
@@ -559,9 +559,9 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     }
     g_current_portrait_quote->text = static_cast<wchar_t*>(malloc(wcslen(text) * 2 + 2));
     wcscpy(g_current_portrait_quote->text, text);
-    g_current_portrait_quote->flags = g_quote_bubble_flags_69c5c8;
+    g_current_portrait_quote->flags = g_quote_bubble_flags;
     position = 0;
-    g_quote_bubble_flags_69c5c8 = 0;
+    g_quote_bubble_flags = 0;
     max_line = 0xffffffff;
     remaining = wcslen(text);
     memset(line, 0, sizeof(line));
@@ -581,7 +581,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
                         if ((static_cast<unsigned short>(ch) < 0xb2 ||
                              static_cast<unsigned short>(ch) > 0xb5) &&
                             static_cast<unsigned short>(ch) > 10) {
-                            line_width += StringPixLengthArg(g_font12point1_683648, 1, write);
+                            line_width += StringPixLengthArg(g_font12point1, 1, write);
                         }
                         ++write;
                     } while (--length != 0);
@@ -604,7 +604,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             if ((static_cast<unsigned short>(ch) < 0xb2 ||
                  static_cast<unsigned short>(ch) > 0xb5) &&
                 static_cast<unsigned short>(ch) > 10) {
-                line_width += StringPixLengthArg(g_font12point1_683648, 1, write);
+                line_width += StringPixLengthArg(g_font12point1, 1, write);
             }
             ++write;
         } while (--length != 0);
@@ -618,15 +618,13 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     } else {
         max_line = (max_width - margin_x) - 0x17;
         right_edge = 0xffffffff;
-        MeasureWrappedText(0, 0, max_line, 2, g_font12point1_683648, 0xd0, text, 0, 0, 1,
-                           &right_edge);
+        MeasureWrappedText(0, 0, max_line, 2, g_font12point1, 0xd0, text, 0, 0, 1, &right_edge);
         if (right_edge != 0xffffffff && static_cast<int>(right_edge - (max_line & 0xffff)) < 0x14) {
             max_line = right_edge;
             max_width = right_edge + 0x18;
         }
     }
-    text_height =
-        MeasureWrappedText(0, 0, max_line, 2, g_font12point1_683648, 0xd0, text, 0, 0, 1, 0);
+    text_height = MeasureWrappedText(0, 0, max_line, 2, g_font12point1, 0xd0, text, 0, 0, 1, 0);
     height = text_height + margin_top + 0x18 + margin_bottom;
     max_width = max_width + margin_x * 2;
     if (static_cast<unsigned short>(max_width) >= 0x15e) {
@@ -693,11 +691,11 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
         if (bubble->palette != 0xffffffff) {
             colour = static_cast<unsigned char>(bubble->palette);
         }
-        SetFont(g_font12point1_683648);
+        SetFont(g_font12point1);
         SetFontForeground(foreground);
         SetFontDestBuffer(bubble->surface, 0, 0, width_px, height_px, 0);
-        DrawWrappedText(margin_x + 0xc, margin_top + 0xc, max_line, 2, g_font12point1_683648,
-                        colour, text, 0, 0, 1);
+        DrawWrappedText(margin_x + 0xc, margin_top + 0xc, max_line, 2, g_font12point1, colour, text,
+                        0, 0, 1);
         SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
         SetFontForeground(2);
         if (quote_handle == -1 && bubble != 0) {

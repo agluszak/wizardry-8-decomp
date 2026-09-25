@@ -19,17 +19,17 @@
 #include <wchar.h>
 
 // GLOBAL: WIZ8 0x0069C4A8
-W8GrowableVector<W8CreditLine>* g_credit_lines_0069c4a8;
+W8GrowableVector<W8CreditLine>* g_credit_lines;
 // GLOBAL: WIZ8 0x0069C494
-int g_credit_elapsed_steps_0069c494;
+int g_credit_elapsed_steps;
 // GLOBAL: WIZ8 0x0069C498
-bool g_credit_redraw_0069c498;
+bool g_credit_redraw;
 // GLOBAL: WIZ8 0x0069C49C
-unsigned long g_credit_started_at_0069c49c;
+unsigned long g_credit_started_at;
 // GLOBAL: WIZ8 0x0069C4A0
-int g_credit_y_0069c4a0;
+int g_credit_y;
 // GLOBAL: WIZ8 0x0069C4A4
-int g_credit_line_0069c4a4;
+int g_credit_line;
 
 /* Read one wide line, stopping at a newline, capacity, or the end of the
    stream. Answers whether the line ended at a newline; trailing carriage
@@ -83,7 +83,7 @@ unsigned char CreditsScreenEnter(void)
     ResetRegions();
     RegionSetEnable(2);
     DisableCursorScene();
-    g_credit_lines_0069c4a8 = new W8GrowableVector<W8CreditLine>();
+    g_credit_lines = new W8GrowableVector<W8CreditLine>();
 
     handle = FileOpen((char*)"Data\\Options\\Credits.txt", FILE_ACCESS_READ, 0);
     if (handle != 0) {
@@ -113,29 +113,28 @@ unsigned char CreditsScreenEnter(void)
                     }
                 }
                 if (!blank) {
-                    entry.pixel_width =
-                        StringPixLength(entry.primary, bold ? g_options_title_font_68368c
-                                                            : g_options_detail_font_683614);
+                    entry.pixel_width = StringPixLength(
+                        entry.primary, bold ? g_options_title_font : g_options_detail_font_683614);
                 }
                 entry.line_height = 0x14 + (bold ? 5 : 0);
-                g_credit_lines_0069c4a8->Add(entry);
+                g_credit_lines->Add(entry);
             }
         }
         FileClose(handle);
     }
-    g_credit_line_0069c4a4 = 0;
-    g_credit_elapsed_steps_0069c494 = 0;
-    g_credit_y_0069c4a0 = 0x1df;
-    g_credit_started_at_0069c49c = GetTickCount();
-    g_credit_redraw_0069c498 = true;
+    g_credit_line = 0;
+    g_credit_elapsed_steps = 0;
+    g_credit_y = 0x1df;
+    g_credit_started_at = GetTickCount();
+    g_credit_redraw = true;
     return 1;
 }
 
 // FUNCTION: WIZ8 0x005bc420
 unsigned char CreditsScreenLeave(int)
 {
-    for (int index = 0; index < g_credit_lines_0069c4a8->count; ++index) {
-        W8CreditLine* entry = g_credit_lines_0069c4a8->GetAt(index);
+    for (int index = 0; index < g_credit_lines->count; ++index) {
+        W8CreditLine* entry = g_credit_lines->GetAt(index);
         if (entry->primary != 0) {
             free(entry->primary);
         }
@@ -143,7 +142,7 @@ unsigned char CreditsScreenLeave(int)
             free(entry->secondary);
         }
     }
-    delete g_credit_lines_0069c4a8;
+    delete g_credit_lines;
     ResetRegions();
     EnableCursorScene();
     if (IsCurrentMusicPlaylist("EndCredit.MPL")) {
@@ -166,35 +165,32 @@ void CreditsScreenFrame(void)
         }
     }
 
-    int steps =
-        (GetTickCount() - g_credit_started_at_0069c49c) / 35 - g_credit_elapsed_steps_0069c494;
+    int steps = (GetTickCount() - g_credit_started_at) / 35 - g_credit_elapsed_steps;
     if (steps >= 1) {
-        g_credit_elapsed_steps_0069c494 += steps;
-        g_credit_redraw_0069c498 = true;
-        W8CreditLine entry = *g_credit_lines_0069c4a8->GetAt(g_credit_line_0069c4a4);
-        g_credit_y_0069c4a0 -= steps;
-        while (g_credit_y_0069c4a0 < 0) {
-            ++g_credit_line_0069c4a4;
-            if (g_credit_line_0069c4a4 >= g_credit_lines_0069c4a8->count) {
+        g_credit_elapsed_steps += steps;
+        g_credit_redraw = true;
+        W8CreditLine entry = *g_credit_lines->GetAt(g_credit_line);
+        g_credit_y -= steps;
+        while (g_credit_y < 0) {
+            ++g_credit_line;
+            if (g_credit_line >= g_credit_lines->count) {
                 RequestScreenTransition();
                 break;
             }
-            entry = *g_credit_lines_0069c4a8->GetAt(g_credit_line_0069c4a4);
-            g_credit_y_0069c4a0 += entry.line_height;
+            entry = *g_credit_lines->GetAt(g_credit_line);
+            g_credit_y += entry.line_height;
         }
     }
-    if (!g_credit_redraw_0069c498) {
+    if (!g_credit_redraw) {
         return;
     }
 
     DrawCatalogImage(-14, 0xe9, 0, 0, 0, 0, 2, 0);
-    int y = g_credit_y_0069c4a0;
-    for (int index = g_credit_line_0069c4a4; index < g_credit_lines_0069c4a8->count && y <= 0x1df;
-         ++index) {
-        const W8CreditLine* entry = g_credit_lines_0069c4a8->GetAt(index);
+    int y = g_credit_y;
+    for (int index = g_credit_line; index < g_credit_lines->count && y <= 0x1df; ++index) {
+        const W8CreditLine* entry = g_credit_lines->GetAt(index);
         if ((entry->flags & 4) == 0) {
-            SetFont((entry->flags & 1) ? g_options_title_font_68368c
-                                       : g_options_detail_font_683614);
+            SetFont((entry->flags & 1) ? g_options_title_font : g_options_detail_font_683614);
             if ((entry->flags & 2) == 0) {
                 gprintf((0x280 - entry->pixel_width) / 2, y, L"%s", entry->primary);
             } else {
@@ -207,7 +203,7 @@ void CreditsScreenFrame(void)
         y += entry->line_height;
     }
     ResetTransientRenderScenes();
-    g_credit_redraw_0069c498 = false;
+    g_credit_redraw = false;
     RenderFrame();
 }
 

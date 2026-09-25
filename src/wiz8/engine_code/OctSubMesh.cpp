@@ -22,11 +22,11 @@
    the default shader state later consumed by the path visualization and
    trace models in OctPath.cpp and GameData.cpp. */
 // GLOBAL: WIZ8 0x00652dbc
-stMaterial* g_oct_mesh_default_material_00652dbc;
+stMaterial* g_oct_mesh_default_material;
 // GLOBAL: WIZ8 0x00652dc0
-srTextureIFace* g_oct_mesh_default_texture_00652dc0;
+srTextureIFace* g_oct_mesh_default_texture;
 // GLOBAL: WIZ8 0x00652dc4
-srShader* g_oct_mesh_default_shader_00652dc4;
+srShader* g_oct_mesh_default_shader;
 
 /* The loader verifies every array the same way: a null getter result and a
    failed bulk read each stop with the call site's own diagnostic. */
@@ -208,14 +208,14 @@ stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
                                         srTextureIFace** textures, unsigned long* render_flags,
                                         stMeshModel** meshes, int material_count)
 {
-    if (g_oct_mesh_default_material_00652dbc == 0) {
-        g_oct_mesh_default_material_00652dbc = new stMaterial;
-        *static_cast<srMaterial*>(g_oct_mesh_default_material_00652dbc) =
+    if (g_oct_mesh_default_material == 0) {
+        g_oct_mesh_default_material = new stMaterial;
+        *static_cast<srMaterial*>(g_oct_mesh_default_material) =
             *static_cast<srMaterial*>(materials[0]);
-        g_oct_mesh_default_texture_00652dc0 = textures[0];
-        delete g_oct_mesh_default_shader_00652dc4;
-        g_oct_mesh_default_shader_00652dc4 = new srShader;
-        g_oct_mesh_default_shader_00652dc4->CopyValue(render_flags);
+        g_oct_mesh_default_texture = textures[0];
+        delete g_oct_mesh_default_shader;
+        g_oct_mesh_default_shader = new srShader;
+        g_oct_mesh_default_shader->CopyValue(render_flags);
     }
 
     unsigned char read_ok = 1;

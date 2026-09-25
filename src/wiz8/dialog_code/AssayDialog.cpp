@@ -74,26 +74,26 @@ W8ControlsRect g_assay_text_area_offsets = {0x48, 0x4a, 0x156, 0xef};
 // GLOBAL: WIZ8 0x0064faa8
 int g_assay_text_buffer_string_ids[W8_ASSAY_TEXT_BUFFER_COUNT] = {270, 271, 270, 272, 270};
 // GLOBAL: WIZ8 0x0061e7dc
-unsigned short g_equip_class_name_ids_61e7dc[32] = {
+unsigned short g_equip_class_name_ids[32] = {
     1087, 1088, 1089, 1090, 1091, 1092, 1093, 1094, 1095, 1096, 1097, 1098, 1099, 1100, 1101, 1102,
     1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1114, 1115, 1116, 1117, 1118, 1119};
 // GLOBAL: WIZ8 0x0064fbb4
-const wchar_t g_assay_format_1f_0064fbb4[] = L"%.1f";
+const wchar_t g_assay_format_1f[] = L"%.1f";
 // GLOBAL: WIZ8 0x0064fbc0
-const wchar_t g_assay_format_1f_1f_s_0064fbc0[] = L"%.1f (%.1f %s)";
+const wchar_t g_assay_format_1f_1f_s[] = L"%.1f (%.1f %s)";
 /* String-list label ids indexed by W8ItemDatabaseRecord::flags_041 bit. */
 // GLOBAL: WIZ8 0x0061e938
-const unsigned short g_item_flag_name_ids_61e938[8] = {
+const unsigned short g_item_flag_name_ids[8] = {
     1255, 1256, 1257, 1258, 1259, 1260, 1261, 1262,
 };
 /* String-list label ids indexed by W8ItemDatabaseRecord::quantity_kind. */
 // GLOBAL: WIZ8 0x0061e948
-const unsigned short g_quantity_kind_name_ids_61e948[7] = {
+const unsigned short g_quantity_kind_name_ids[7] = {
     1264, 1265, 1266, 1267, 1268, 0, 1269,
 };
 /* String-list label ids indexed by W8ItemDatabaseRecord::property_075. */
 // GLOBAL: WIZ8 0x0061e97c
-const unsigned short g_item_property_name_ids_61e97c[6] = {
+const unsigned short g_item_property_name_ids[6] = {
     1289, 1290, 1291, 1292, 1293, 1294,
 };
 // GLOBAL: WIZ8 0x0069c818
@@ -247,13 +247,13 @@ unsigned char W8AssayDialog::PopulateText()
     }
     if (record->attack_hit_bonus != 0 && m_item->identified != 0) {
         m_text_area.AddEntry(gppStringList[0x22dc / 4],
-                             FormatWideString(g_format_plus_d_0064dc24, record->attack_hit_bonus),
-                             10, 0xf, 0);
+                             FormatWideString(g_format_plus_d, record->attack_hit_bonus), 10, 0xf,
+                             0);
     }
     if (record->attack_damage_bonus != 0 && m_item->identified != 0) {
-        m_text_area.AddEntry(
-            gppStringList[0x22c4 / 4],
-            FormatWideString(g_format_plus_d_0064dc24, record->attack_damage_bonus), 10, 0xf, 0);
+        m_text_area.AddEntry(gppStringList[0x22c4 / 4],
+                             FormatWideString(g_format_plus_d, record->attack_damage_bonus), 10,
+                             0xf, 0);
     }
     slot_mask = GetItemEquipSlotMask(m_item->iItemNo, 1, 1, 1, 1);
     count = 0;
@@ -261,10 +261,10 @@ unsigned char W8AssayDialog::PopulateText()
         if (bit != 8 && bit != 9 && (slot_mask & (1 << bit)) != 0) {
             if (count == 0) {
                 wcscpy(g_assay_entry_text, &g_wchar_00689b34);
-            } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) < 0x101) {
-                wcscat(g_assay_entry_text, g_comma_space_00619794);
+            } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space);
             }
-            text = gppStringList[g_equip_slot_label_ids_61e7c4[bit]];
+            text = gppStringList[g_equip_slot_label_ids[bit]];
             if (wcslen(g_assay_entry_text) + 1 + wcslen(text) < 0x101) {
                 wcscat(g_assay_entry_text, text);
             }
@@ -294,13 +294,13 @@ unsigned char W8AssayDialog::PopulateText()
     }
     count = 0;
     bit = 0;
-    label = g_item_flag_name_ids_61e938;
+    label = g_item_flag_name_ids;
     do {
         if ((1 << bit) == 4 && (record->flags_041 & 4) != 0) {
             if (count == 0) {
                 wcscpy(g_assay_entry_text, &g_wchar_00689b34);
-            } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) < 0x101) {
-                wcscat(g_assay_entry_text, g_comma_space_00619794);
+            } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space);
             }
             text = gppStringList[*label];
             if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
@@ -310,7 +310,7 @@ unsigned char W8AssayDialog::PopulateText()
         }
         ++label;
         ++bit;
-    } while (label < g_item_flag_name_ids_61e938 + 8);
+    } while (label < g_item_flag_name_ids + 8);
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x244c / 4], g_assay_entry_text, 10, 0xf, 0);
     }
@@ -320,19 +320,17 @@ unsigned char W8AssayDialog::PopulateText()
             if (record->missile_values_050[index] != 0) {
                 if (count == 0) {
                     wcscpy(g_assay_entry_text, &g_wchar_00689b34);
-                } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) <
-                           0x101) {
-                    wcscat(g_assay_entry_text, g_comma_space_00619794);
+                } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
+                    wcscat(g_assay_entry_text, g_comma_space);
                 }
-                text = gppStringList[g_damage_type_name_ids_61e9cc[index]];
+                text = gppStringList[g_damage_type_name_ids[index]];
                 if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                     wcscat(g_assay_entry_text, text);
                 }
                 if (wcslen(g_assay_entry_text) + 1 + wcslen(L" ") < 0x101) {
                     wcscat(g_assay_entry_text, L" ");
                 }
-                text = FormatWideString(g_format_d_percent_0064bab0,
-                                        record->missile_values_050[index]);
+                text = FormatWideString(g_format_d_percent, record->missile_values_050[index]);
                 if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                     wcscat(g_assay_entry_text, text);
                 }
@@ -356,10 +354,9 @@ unsigned char W8AssayDialog::PopulateText()
             m_text_area.AddEntry(gppStringList[0x2358 / 4], g_assay_entry_text, 10, 0xf, 0);
         }
         if (record->slays_kind_061 != 0xff) {
-            m_text_area.AddEntry(
-                gppStringList[0x2360 / 4],
-                gppStringList[g_special_category_name_ids_61ea78[record->slays_kind_061]], 10, 0xf,
-                0);
+            m_text_area.AddEntry(gppStringList[0x2360 / 4],
+                                 gppStringList[g_special_category_name_ids[record->slays_kind_061]],
+                                 10, 0xf, 0);
         }
         if (record->equip_class == 5 && m_character != 0 &&
             IsItemWornByCharacter(m_character, m_item)) {
@@ -370,15 +367,15 @@ unsigned char W8AssayDialog::PopulateText()
                                  gppStringList[0x10a0 / 4]),
                 10, 0xf, 0);
         } else if (record->armor_class_bonus != 0) {
-            m_text_area.AddEntry(
-                gppStringList[0x237c / 4],
-                FormatWideString(g_format_plus_d_0064dc24, record->armor_class_bonus), 10, 0xf, 0);
+            m_text_area.AddEntry(gppStringList[0x237c / 4],
+                                 FormatWideString(g_format_plus_d, record->armor_class_bonus), 10,
+                                 0xf, 0);
         }
     }
     if (record->property_075 != 0) {
         m_text_area.AddEntry(gppStringList[0x23a4 / 4],
-                             gppStringList[g_item_property_name_ids_61e97c[record->property_075]],
-                             10, 0xf, 0);
+                             gppStringList[g_item_property_name_ids[record->property_075]], 10, 0xf,
+                             0);
     }
     switch (record->equip_class) {
     case 0:
@@ -388,35 +385,35 @@ unsigned char W8AssayDialog::PopulateText()
     case 0x11:
     case 0x12:
         m_text_area.AddEntry(gppStringList[0x239c / 4],
-                             gppStringList[g_spell_range_name_ids_61e9a0[record->wield_group]], 10,
-                             0xf, 0);
+                             gppStringList[g_spell_range_name_ids[record->wield_group]], 10, 0xf,
+                             0);
     }
     index = GetItemSpellPresentation(record);
     if (index == -1) {
         if (record->weapon_skill != -1) {
-            m_text_area.AddEntry(
-                gppStringList[0x2320 / 4],
-                gppStringList[g_character_skill_name_ids_61e454[record->weapon_skill]], 10, 0xf, 0);
+            m_text_area.AddEntry(gppStringList[0x2320 / 4],
+                                 gppStringList[g_character_skill_name_ids[record->weapon_skill]],
+                                 10, 0xf, 0);
         }
     } else {
         if (record->weapon_skill == -1) {
-            text = gppStringList[g_character_skill_name_ids_61e454[index]];
+            text = gppStringList[g_character_skill_name_ids[index]];
         } else {
-            text = FormatWideString(
-                L"%s, %s", gppStringList[g_character_skill_name_ids_61e454[index]],
-                gppStringList[g_character_skill_name_ids_61e454[record->weapon_skill]]);
+            text =
+                FormatWideString(L"%s, %s", gppStringList[g_character_skill_name_ids[index]],
+                                 gppStringList[g_character_skill_name_ids[record->weapon_skill]]);
         }
         m_text_area.AddEntry(gppStringList[0x2320 / 4], text, 10, 0xf, 0);
     }
     count = 0;
     bit = 0;
-    flag_names = g_attack_flag_name_ids_61e9a8;
+    flag_names = g_attack_flag_name_ids;
     do {
         if ((record->attack_flags_04e & (1 << bit)) != 0) {
             if (count == 0) {
                 wcscpy(g_assay_entry_text, &g_wchar_00689b34);
-            } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) < 0x101) {
-                wcscat(g_assay_entry_text, g_comma_space_00619794);
+            } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space);
             }
             text = gppStringList[(*flag_names)[0]];
             if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
@@ -426,7 +423,7 @@ unsigned char W8AssayDialog::PopulateText()
         }
         ++flag_names;
         ++bit;
-    } while (flag_names < g_attack_flag_name_ids_61e9a8 + 9);
+    } while (flag_names < g_attack_flag_name_ids + 9);
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x235c / 4], g_assay_entry_text, 10, 0xf, 0);
     }
@@ -449,22 +446,22 @@ unsigned char W8AssayDialog::PopulateText()
     }
     if (m_item->identified != 0) {
         if (record->quantity_kind == 2) {
-            m_text_area.AddEntry(
-                gppStringList[g_quantity_kind_name_ids_61e948[record->quantity_kind]],
-                FormatWideString(g_format_d_0060aa20, m_item->uses_or_charges), 10, 0xf, 0);
+            m_text_area.AddEntry(gppStringList[g_quantity_kind_name_ids[record->quantity_kind]],
+                                 FormatWideString(g_format_d_0060aa20, m_item->uses_or_charges), 10,
+                                 0xf, 0);
         }
         if (record->quantity_kind == 3 || record->quantity_kind == 4) {
             m_text_area.AddEntry(
-                gppStringList[g_quantity_kind_name_ids_61e948[record->quantity_kind]],
-                FormatWideString(g_format_d_slash_d_00614b58, m_item->uses_or_charges,
+                gppStringList[g_quantity_kind_name_ids[record->quantity_kind]],
+                FormatWideString(g_format_d_slash_d, m_item->uses_or_charges,
                                  record->initial_quantity.sides * record->initial_quantity.count +
                                      record->initial_quantity.base),
                 10, 0xf, 0);
         }
         if (record->modifier_06c > 0) {
             m_text_area.AddEntry(gppStringList[0x2364 / 4],
-                                 FormatWideString(g_format_plus_d_0064dc24, record->modifier_06c),
-                                 10, 0xf, 0);
+                                 FormatWideString(g_format_plus_d, record->modifier_06c), 10, 0xf,
+                                 0);
         }
         if (record->modifier_06c < 0) {
             m_text_area.AddEntry(gppStringList[0x2368 / 4],
@@ -473,8 +470,8 @@ unsigned char W8AssayDialog::PopulateText()
         }
         if (record->modifier_06d > 0) {
             m_text_area.AddEntry(gppStringList[0x236c / 4],
-                                 FormatWideString(g_format_plus_d_0064dc24, record->modifier_06d),
-                                 10, 0xf, 0);
+                                 FormatWideString(g_format_plus_d, record->modifier_06d), 10, 0xf,
+                                 0);
         }
         if (record->modifier_06d < 0) {
             m_text_area.AddEntry(gppStringList[0x2370 / 4],
@@ -483,8 +480,8 @@ unsigned char W8AssayDialog::PopulateText()
         }
         if (record->modifier_06e > 0) {
             m_text_area.AddEntry(gppStringList[0x2374 / 4],
-                                 FormatWideString(g_format_plus_d_0064dc24, record->modifier_06e),
-                                 10, 0xf, 0);
+                                 FormatWideString(g_format_plus_d, record->modifier_06e), 10, 0xf,
+                                 0);
         }
         if (record->modifier_06e < 0) {
             m_text_area.AddEntry(gppStringList[0x2378 / 4],
@@ -492,28 +489,26 @@ unsigned char W8AssayDialog::PopulateText()
                                  0xf, 0);
         }
         if (record->modifier_0b3_index != -1 && record->modifier_0b3_value > 0) {
-            swprintf(
-                modifier_text, L"%s %+d",
-                gppStringList[g_character_description_first_ids_61e3a4[record->modifier_0b3_index]],
-                record->modifier_0b3_value);
+            swprintf(modifier_text, L"%s %+d",
+                     gppStringList[g_character_description_first_ids[record->modifier_0b3_index]],
+                     record->modifier_0b3_value);
             m_text_area.AddEntry(gppStringList[0x230c / 4], modifier_text, 10, 0xf, 0);
         }
         if (record->modifier_0b3_index != -1 && record->modifier_0b3_value < 0) {
-            swprintf(
-                modifier_text, L"%s %d",
-                gppStringList[g_character_description_first_ids_61e3a4[record->modifier_0b3_index]],
-                record->modifier_0b3_value);
+            swprintf(modifier_text, L"%s %d",
+                     gppStringList[g_character_description_first_ids[record->modifier_0b3_index]],
+                     record->modifier_0b3_value);
             m_text_area.AddEntry(gppStringList[0x2310 / 4], modifier_text, 10, 0xf, 0);
         }
         if (record->modifier_0b1_index != -1 && record->modifier_0b1_value > 0) {
             swprintf(modifier_text, L"%s %+d",
-                     gppStringList[g_character_skill_name_ids_61e454[record->modifier_0b1_index]],
+                     gppStringList[g_character_skill_name_ids[record->modifier_0b1_index]],
                      record->modifier_0b1_value);
             m_text_area.AddEntry(gppStringList[0x2314 / 4], modifier_text, 10, 0xf, 0);
         }
         if (record->modifier_0b1_index != -1 && record->modifier_0b1_value < 0) {
             swprintf(modifier_text, L"%s %d",
-                     gppStringList[g_character_skill_name_ids_61e454[record->modifier_0b1_index]],
+                     gppStringList[g_character_skill_name_ids[record->modifier_0b1_index]],
                      record->modifier_0b1_value);
             m_text_area.AddEntry(gppStringList[0x2318 / 4], modifier_text, 10, 0xf, 0);
         }
@@ -522,12 +517,10 @@ unsigned char W8AssayDialog::PopulateText()
             if (record->resistance_bonus_06f[index] > 0) {
                 if (count == 0) {
                     wcscpy(g_assay_entry_text, &g_wchar_00689b34);
-                } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) <
-                           0x101) {
-                    wcscat(g_assay_entry_text, g_comma_space_00619794);
+                } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
+                    wcscat(g_assay_entry_text, g_comma_space);
                 }
-                text = FormatWideString(g_format_d_percent_0064bab0,
-                                        record->resistance_bonus_06f[index]);
+                text = FormatWideString(g_format_d_percent, record->resistance_bonus_06f[index]);
                 if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                     wcscat(g_assay_entry_text, text);
                 }
@@ -560,11 +553,10 @@ unsigned char W8AssayDialog::PopulateText()
     requirement = record->attribute_requirements;
     for (index = 0; index < 2; ++index, ++requirement) {
         if (requirement->stat_id != 0xff) {
-            if (count != 0 &&
-                wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) < 0x101) {
-                wcscat(g_assay_entry_text, g_comma_space_00619794);
+            if (count != 0 && wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space);
             }
-            text = gppStringList[g_character_description_first_ids_61e3a4[static_cast<signed char>(
+            text = gppStringList[g_character_description_first_ids[static_cast<signed char>(
                 requirement->stat_id)]];
             if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                 wcscat(g_assay_entry_text, text);
@@ -579,11 +571,10 @@ unsigned char W8AssayDialog::PopulateText()
     requirement = record->skill_requirements;
     for (index = 0; index < 2; ++index, ++requirement) {
         if (requirement->stat_id != 0xff) {
-            if (count != 0 &&
-                wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) < 0x101) {
-                wcscat(g_assay_entry_text, g_comma_space_00619794);
+            if (count != 0 && wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space);
             }
-            text = gppStringList[g_character_skill_name_ids_61e454[static_cast<signed char>(
+            text = gppStringList[g_character_skill_name_ids[static_cast<signed char>(
                 requirement->stat_id)]];
             if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                 wcscat(g_assay_entry_text, text);
@@ -600,8 +591,8 @@ unsigned char W8AssayDialog::PopulateText()
             srAssertFail("uiSpell != SPELL_NONE", ASSAY_DIALOG_CPP, 0x390, 0);
         }
         if (count != 0) {
-            if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) < 0x101) {
-                wcscat(g_assay_entry_text, g_comma_space_00619794);
+            if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space);
             }
         }
         if (record->category == 6) {
@@ -677,9 +668,9 @@ void W8AssayDialog::Draw()
         W8DialogBase::Draw();
     }
     if (m_item_portrait_dirty != 0) {
-        DrawCatalogImageAndInvalidate(
-            -0xe, g_item_video_objects_68ec68.GetOrCreateVideoObject(m_item->iItemNo), 0, 0,
-            m_x + 0x45, m_y + 0xe, 2, 0);
+        DrawCatalogImageAndInvalidate(-0xe,
+                                      g_item_video_objects.GetOrCreateVideoObject(m_item->iItemNo),
+                                      0, 0, m_x + 0x45, m_y + 0xe, 2, 0);
         if (m_item->identified == 0) {
             DrawCatalogImageAndInvalidate(-0xe, 0x11b, 0, 0, m_x + 0x45, m_y + 0xe, 2, 0);
         }
@@ -904,7 +895,7 @@ unsigned char W8AssayDialog::PopulateRequirements()
             srAssertFail("iUnknownButtonIndex != MAXDWORD", ASSAY_DIALOG_CPP, 0x43f, 0);
             break;
         }
-        switch (g_status_685170.rpc_races_243a[us_index]) {
+        switch (g_status.rpc_races_243a[us_index]) {
         case 0xb:
             frame = 0x1e;
             tooltip_index = 0x28f;
@@ -973,17 +964,15 @@ unsigned char W8AssayDialog::CreateTextBuffers()
 
     m_text_buffers[0]->SetText(FormatItemDisplayName(m_item, 0), g_font_683660);
     equip_class = GetItemEquipClass(m_item);
-    m_text_buffers[2]->SetText(gppStringList[g_equip_class_name_ids_61e7dc[equip_class]],
-                               g_font_683660);
+    m_text_buffers[2]->SetText(gppStringList[g_equip_class_name_ids[equip_class]], g_font_683660);
     item = m_item;
     if (g_item_records[item->iItemNo].quantity_kind == 1 && item->stack_count > 1) {
         unsigned int unit_weight = GetItemUnitWeight(item);
-        text = FormatWideString(g_assay_format_1f_1f_s_0064fbc0,
-                                GetItemStackWeight(m_item) * g_float_005ed8b8,
-                                unit_weight * g_float_005ed8b8, gppStringList[0x45c / 4]);
+        text =
+            FormatWideString(g_assay_format_1f_1f_s, GetItemStackWeight(m_item) * g_float_005ed8b8,
+                             unit_weight * g_float_005ed8b8, gppStringList[0x45c / 4]);
     } else {
-        text = FormatWideString(g_assay_format_1f_0064fbb4,
-                                GetItemUnitWeight(item) * g_float_005ed8b8);
+        text = FormatWideString(g_assay_format_1f, GetItemUnitWeight(item) * g_float_005ed8b8);
     }
     m_text_buffers[4]->SetText(text, g_font_683660);
     return 1;
@@ -1105,7 +1094,7 @@ void W8AssayDialog::SetRaceIconsVisible(int show)
         case 15:
             button_index = -1;
             for (us_index = 0; us_index < NUM_RPC_RACES; ++us_index) {
-                if (race == g_status_685170.rpc_races_243a[us_index]) {
+                if (race == g_status.rpc_races_243a[us_index]) {
                     if (us_index >= NUM_RPC_RACES) {
                         srAssertFail("usIndex < NUM_RPC_RACES", ASSAY_DIALOG_CPP, 0x691, 0);
                     }

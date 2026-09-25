@@ -197,7 +197,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                 stLight* light = CreateWorldLight0046E030(0, "MonsterLight");
                 light->diffuse_1a4 = color;
                 light->specular_1b0 = srVector3T<float>(0.0f, 0.0f, 0.0f);
-                ConfigureWorldLight(light, range * g_world_scale_005ebc40);
+                ConfigureWorldLight(light, range * g_world_scale);
                 light->intensity_1d0 = intensity;
                 light->setLocation(position.x, position.y, position.z);
                 light->m_position_228 = position;

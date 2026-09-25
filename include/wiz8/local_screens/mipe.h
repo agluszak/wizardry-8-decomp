@@ -26,10 +26,10 @@ struct W8MipeMonsterEntry {
 static_assert(sizeof(W8MipeMonsterEntry) == 0x32, "W8MipeMonsterEntry_size");
 
 /* One row of mipeEdit.cpp's prop field editor: a label index into the
-   g_mipe_prop_labels_0064e004 table plus the live value slots.  type 1 edits
+   g_mipe_prop_labels table plus the live value slots.  type 1 edits
    float_value, types 2/4/5 edit value as int/bool, 6 edits the heap text
    buffer and 7 picks one of option_count names starting at option_base in the
-   g_mipe_key_names_0064ea04 table. */
+   g_mipe_key_names table. */
 struct W8MipeEditField {
     char type;                /* 0x00 */
     int label_index;          /* 0x04 */
@@ -43,7 +43,7 @@ struct W8MipeEditField {
 static_assert(sizeof(W8MipeEditField) == 0x18, "W8MipeEditField_size");
 
 /* Local Screens\mipe.cpp's editor state, allocated once and stored in
-   g_mipe_state_0068f100.  Offset zero is a live W8IList holding the selected
+   g_mipe_state.  Offset zero is a live W8IList holding the selected
    monster location ids, and callers pass the state pointer itself to
    IListGetAt/ILLength. */
 struct W8MipeState {
@@ -75,13 +75,13 @@ static_assert(offsetof(W8MipeState, drag_anchor) == 0x24, "W8MipeState_drag_anch
 static_assert(offsetof(W8MipeState, waypoints) == 0x3c, "W8MipeState_waypoints");
 static_assert(offsetof(W8MipeState, generator) == 0x54, "W8MipeState_generator");
 
-extern unsigned char g_debug_monster_cycle_0068f0fc;
-extern W8MipeState* g_mipe_state_0068f100;
-extern int g_mipe_mode_0068f108;
-extern int g_mipe_count_0068f10c;
+extern unsigned char g_debug_monster_cycle;
+extern W8MipeState* g_mipe_state;
+extern int g_mipe_mode;
+extern int g_mipe_count;
 /* First visible table row; shared by mipe.cpp's table view and mipeEdit.cpp's
    prop field editor. */
-extern int g_mipe_table_base_0068f120;
+extern int g_mipe_table_base;
 
 /* mipeEdit.cpp: prop field-editor key handler, fed MSG wParam key values by
    mipe.cpp's mode-0xd dispatcher. */

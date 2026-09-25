@@ -54,7 +54,7 @@
 #include "wiz8/engine_code/PolyPick.h"
 
 // GLOBAL: WIZ8 0x0065BE40
-W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
+W8GrowableVector<stSound3D*> g_sound3d_instances;
 
 /* Names of the seven bitmap cycles in each of the four spell-visual groups,
    in load order: FLASH, EXPLOSION, TARGET and CONE. */
@@ -69,7 +69,7 @@ const char* g_spell_cycle_names[28] = {
 
 /* The persistent TargetCone visual the targeting code toggles on and off. */
 // GLOBAL: WIZ8 0x0065BE20
-W8SpellVisual* g_target_cone_visual_65be20;
+W8SpellVisual* g_target_cone_visual;
 
 static __inline int MinimumCasterLevel(int spell_level)
 {
@@ -282,7 +282,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         GetCameraPosition(&position);
         SetPosition004A6DF0(&position);
         rotation.SetIdentity();
-        angle = GetCameraYawRadians() - g_monster_rotation_offset_005ec04c;
+        angle = GetCameraYawRadians() - g_monster_rotation_offset;
         if (angle != g_zero_005ebb40) {
             rotation.RotateAboutY(sin(angle), cos(angle));
         }
@@ -319,7 +319,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
             GetCameraPosition(&camera_position);
             if (location_id_1ec == 0) {
                 SetPosition004A6DF0(&camera_position);
-                g_gd_camera_65a0f8->GetRotationMatrix(&rotation);
+                g_gd_camera->GetRotationMatrix(&rotation);
                 apply_rotation = true;
             } else {
                 W8Monster* monster = GetMonsterByLocationID(location_id_1ec);
@@ -354,8 +354,9 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         float angle;
 
         billboard.SetIdentity();
-        camera_position = g_gd_camera_65a0f8->m_position_08c;
-        angle = GetHeadingAngle(&visual_position, &camera_position) + (float)g_camera_pi_005ec2a0;
+        camera_position = g_gd_camera->m_position_08c;
+        angle =
+            GetHeadingAngle(&visual_position, &camera_position) + static_cast<float>(g_camera_pi);
         if (angle != g_zero_005ebb40) {
             billboard.RotateAboutY(sin(angle), cos(angle));
         }
@@ -658,7 +659,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
                         }
                     }
                     effect = new W8CameraShakeEffect(duration, 1, intensity,
-                                                     distance * g_world_scale_005ebc40, 0);
+                                                     distance * g_world_scale, 0);
                     if (effect != 0) {
                         effect->cycle_3c = index;
                         effect->frame_40 = frame;
@@ -669,7 +670,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
                 continue;
             }
 
-            memcpy(loop_name, &g_empty_ambient_name_65a110, 2);
+            memcpy(loop_name, &g_empty_ambient_name, 2);
             memset(loop_name + 2, 0, sizeof(loop_name) - 2);
             sscanf(line, "%s %s %d %s %s", pac_command, pac_name, &frame, pac_value, loop_name);
 #pragma clang diagnostic push
@@ -938,7 +939,7 @@ placed:
         GetCameraPosition(&position);
         visual->SetPosition004A6DF0(&position);
         rotation.SetIdentity();
-        angle = GetCameraYawRadians() - g_monster_rotation_offset_005ec04c;
+        angle = GetCameraYawRadians() - g_monster_rotation_offset;
         if (angle != g_zero_005ebb40) {
             rotation.RotateAboutY(sin(angle), cos(angle));
         }
@@ -1103,7 +1104,7 @@ placed:
             srMatrix3T<float> rotation;
 
             GetCameraPosition(&position);
-            g_gd_camera_65a0f8->GetRotationMatrix(&rotation);
+            g_gd_camera->GetRotationMatrix(&rotation);
             visual->SetPosition004A6DF0(&position);
             visual->host->SetRotation004B88D0(&rotation);
         }
@@ -1177,17 +1178,17 @@ placed:
 void SetTargetConeEnabled(char enabled)
 {
     if (enabled != 0) {
-        if (g_target_cone_visual_65be20 == 0) {
-            g_target_cone_visual_65be20 = CreateAttachedSpellEffect("TargetCone", 1, 0, 0, 0);
-            if (g_target_cone_visual_65be20 != 0) {
-                g_target_cone_visual_65be20->host->pending_behaviour_071 = 3;
+        if (g_target_cone_visual == 0) {
+            g_target_cone_visual = CreateAttachedSpellEffect("TargetCone", 1, 0, 0, 0);
+            if (g_target_cone_visual != 0) {
+                g_target_cone_visual->host->pending_behaviour_071 = 3;
             }
         }
         return;
     }
-    if (g_target_cone_visual_65be20 != 0) {
-        delete g_target_cone_visual_65be20;
-        g_target_cone_visual_65be20 = 0;
+    if (g_target_cone_visual != 0) {
+        delete g_target_cone_visual;
+        g_target_cone_visual = 0;
     }
 }
 
@@ -1263,7 +1264,7 @@ W8SpellEmitterHost::~W8SpellEmitterHost()
    effect slot - Armormelt, Acid Bomb, Toxic Cloud, Firestorm, Death Cloud and
    Draining Cloud, the spells that leave a standing hazard instead of resolving
    once. MonsterAI walks the same list through
-   g_combat_effect_slot_spells_00616db4 to skip re-casting one that is still
+   g_combat_effect_slot_spells to skip re-casting one that is still
    running, and the effect update loop uses it to keep the per-cast
    result/report path off the lingering spells. */
 // FUNCTION: WIZ8 0x004aca00
@@ -1438,7 +1439,7 @@ stSound3D::stSound3D(const char* name, srNode* parent)
         wave_name = static_cast<char*>(malloc(strlen(name) + 1));
         strcpy(wave_name, name);
     }
-    g_sound3d_instances_65be40.Add(this);
+    g_sound3d_instances.Add(this);
 }
 
 // FUNCTION: WIZ8 0x004AEAA0
@@ -1450,9 +1451,9 @@ stSound3D::~stSound3D()
     if (sound_handle != -1) {
         SoundStop(sound_handle);
     }
-    int index = g_sound3d_instances_65be40.IndexOf(this);
+    int index = g_sound3d_instances.IndexOf(this);
     if (index != -1) {
-        g_sound3d_instances_65be40.RemoveAt(index);
+        g_sound3d_instances.RemoveAt(index);
     }
 }
 
@@ -1485,7 +1486,7 @@ unsigned char stSound3D::Play(unsigned char loop, unsigned char release_when_don
 void stSound3D::BuildSoundOptions(const srVector3T<float>* listener, SOUND3DPARMS* options)
 {
     float angle = -GetCameraYawRadians();
-    unsigned int scaled_volume = (volume * g_settings_6850c8.sound_effects_volume) / 0x7f;
+    unsigned int scaled_volume = (volume * g_settings.sound_effects_volume) / 0x7f;
     srMatrix3T<float> rotation;
     srVector3T<float> node_position;
     srVector3T<float> offset;
@@ -1555,10 +1556,10 @@ void Update3DSounds()
 
     GetCameraPosition(&listener);
     int index = 0;
-    int count = g_sound3d_instances_65be40.GetCount();
+    int count = g_sound3d_instances.GetCount();
     if (count > 0) {
         do {
-            stSound3D* sound = *g_sound3d_instances_65be40.GetAt(index);
+            stSound3D* sound = *g_sound3d_instances.GetAt(index);
             if (sound->sound_handle != -1) {
                 srVector3T<double> world = sound->getWorldSpaceLocation();
                 if (SoundIsPlaying(sound->sound_handle) == 0) {
@@ -1597,7 +1598,7 @@ void Update3DSounds()
                                            transformed.z);
                         Sound3DSetDirection(sound->sound_handle, -transformed.x, -transformed.y,
                                             -transformed.z, 0.0f, g_float_005ebb38, 0.0f);
-                        volume = (sound->volume * g_settings_6850c8.sound_effects_volume) / 0x7f;
+                        volume = (sound->volume * g_settings.sound_effects_volume) / 0x7f;
                         SoundSetVolume(
                             sound->sound_handle,
                             static_cast<UINT32>((g_float_005ebb38 - distance / sound->falloff) *

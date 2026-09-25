@@ -82,7 +82,7 @@ struct W8PendingNotice {
     unsigned char force;
     unsigned char unused_16[2];
 };
-extern W8PendingNotice g_pending_notice_68ee60;
+extern W8PendingNotice g_pending_notice;
 extern wchar_t g_wchar_0068ee58[4];
 
 /* W8MainScreenState::dialogue_layout - which NPC dialogue layout is up. The
@@ -278,7 +278,7 @@ struct W8MainScreenState {
     /* 0x22c: the gold the player put on the trade table - the split-amount
        dialog result, spent by ConfirmNpcTradePurchase. */
     int trade_gold;
-    /* 0x230: g_settings_6850c8.main_ui_mode saved while the NPC dialogue is
+    /* 0x230: g_settings.main_ui_mode saved while the NPC dialogue is
        suppressed and handed back to ApplyMainGameModeFlag when it reopens. */
     W8MainUiMode saved_mode_230;
     /* 0x234: the next UpdateNpcDialogueSubMode must reapply the
@@ -376,7 +376,7 @@ void ResetMainScreenStateBlock(void);
 extern W8GrowableVector<W8GrowableVector<W8GrowableVector<wchar_t*>*>*> g_keyword_lists;
 /* 0x0068F0F8: both files are loaded and the tables are usable. Raised once the
    second file loads and lowered whenever the tables are released. */
-extern bool g_keyword_lists_loaded_68f0f8;
+extern bool g_keyword_lists_loaded;
 /* 0x0056C200: replace the keyword lists with the contents of
    Data\Strings\English_Keywords.txt and Data\Strings\translated_Keywords.txt. */
 void ReloadKeywordLists(void);
@@ -416,7 +416,7 @@ unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */
 bool ProcessPendingEvent(void);
 void SyncDialogueNpcStateAndMarkPending(void);
 void ClearMainGameTargetState(void);
-/* 0x0068F0F9: a script notice is staged in g_pending_notice_68ee60 */
+/* 0x0068F0F9: a script notice is staged in g_pending_notice */
 extern bool g_flag_68f0f9;
 void SyncNpcServiceButtons(int party_slot); /* 0x0056EE20 */
 /* Forward mouse events to W8MainScreenState control slots indexed by

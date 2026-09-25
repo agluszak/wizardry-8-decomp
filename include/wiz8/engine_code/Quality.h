@@ -33,7 +33,7 @@ unsigned char GetRenderOptionState(int option);
 unsigned char LoadRenderOptions(int handle);
 bool SaveRenderOptions(int handle);
 
-extern float g_render_brightness_60a210;
-extern float g_render_fog_distance_60e610;
+extern float g_render_brightness;
+extern float g_render_fog_distance;
 extern bool g_render_flag_60a20c;
 extern bool g_render_flag_603c6c;

@@ -20,7 +20,7 @@
    strings live in the gppStringList message table. */
 
 // GLOBAL: WIZ8 0x0061c4b4
-const wchar_t g_format_S_0061c4b4[] = L"%S";
+const wchar_t g_format_S[] = L"%S";
 
 /* The live popup; the constructor publishes it so the option callback and the
    Enter handling in ProcessInput can reach the active instance. */
@@ -28,7 +28,7 @@ const wchar_t g_format_S_0061c4b4[] = L"%S";
 static W8NpcDialog* g_npc_dialog;
 
 // GLOBAL: WIZ8 0x0064fc84
-static const wchar_t g_format_s_dg_0064fc84[] = L"%s %dg";
+static const wchar_t g_format_s_dg[] = L"%s %dg";
 
 // FUNCTION: WIZ8 0x005DA6B0
 W8NpcDialog::W8NpcDialog(W8NpcQuoteEntry* message, int aux_data)
@@ -58,8 +58,8 @@ W8NpcDialog::W8NpcDialog(W8NpcQuoteEntry* message, int aux_data)
             m_compact_options = 1;
         }
         for (index = 0; index < message->sub_entry_count; ++index) {
-            swprintf(line, g_format_S_0061c4b4, message->sub_entries[index].text);
-            short length = StringPixLength(line, g_wiz_text_mono_font_683630);
+            swprintf(line, g_format_S, message->sub_entries[index].text);
+            short length = StringPixLength(line, g_wiz_text_mono_font);
             if (max_width < length) {
                 max_width = length;
             }
@@ -68,7 +68,7 @@ W8NpcDialog::W8NpcDialog(W8NpcQuoteEntry* message, int aux_data)
         width = (m_text_width + 0xa) * message->sub_entry_count + 0x1e;
     } else if (opcode == '\x12' || opcode == '\x1e') {
         m_compact_options = 0;
-        short length = StringPixLength(gppStringList[0x7df], g_wiz_text_mono_font_683630);
+        short length = StringPixLength(gppStringList[0x7df], g_wiz_text_mono_font);
         height = 0x50;
         m_text_width = length + 6;
         width = m_text_width * 2 + 0x32;
@@ -106,10 +106,10 @@ int W8NpcDialog::CreateControls()
             (m_width - static_cast<short>((m_text_width + 10) * m_message->sub_entry_count - 10)) /
             2;
         for (index = 0; index < m_message->sub_entry_count; ++index) {
-            swprintf(line, g_format_S_0061c4b4, m_message->sub_entries[index].text);
+            swprintf(line, g_format_S, m_message->sub_entries[index].text);
             m_buttons[index] = new W8DialogButton;
             m_buttons[index]->ConfigureTextButton(
-                line, g_wiz_text_mono_font_683630, 4, 5, static_cast<short>(m_x + x),
+                line, g_wiz_text_mono_font, 4, 5, static_cast<short>(m_x + x),
                 static_cast<short>(m_y + 0x23), m_text_width, 0x14, OptionSelected, index);
             x += m_text_width + 10;
         }
@@ -124,10 +124,10 @@ int W8NpcDialog::CreateControls()
         short x = static_cast<short>((m_width - static_cast<short>((m_text_width + 5) * 2)) / 2);
         m_buttons[0] = new W8DialogButton;
         m_buttons[0]->ConfigureTextButton(
-            gppStringList[0x7df], g_wiz_text_mono_font_683630, 4, 5, static_cast<short>(m_x + x),
+            gppStringList[0x7df], g_wiz_text_mono_font, 4, 5, static_cast<short>(m_x + x),
             static_cast<short>(m_y + 0x1e), m_text_width, 0x14, OptionSelected, 0);
         m_buttons[1] = new W8DialogButton;
-        m_buttons[1]->ConfigureTextButton(gppStringList[0x7e0], g_wiz_text_mono_font_683630, 4, 5,
+        m_buttons[1]->ConfigureTextButton(gppStringList[0x7e0], g_wiz_text_mono_font, 4, 5,
                                           static_cast<short>(m_x + x + m_text_width + 10),
                                           static_cast<short>(m_y + 0x1e), m_text_width, 0x14,
                                           OptionSelected, 1);
@@ -139,7 +139,7 @@ int W8NpcDialog::CreateControls()
         m_text_buffers[0] = new W8TextBuffer(
             &bounds, line, g_font_683660,
             g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
-        swprintf(line, g_format_s_dg_0064fc84, gppStringList[0x7e6], g_status_685170.party_gold);
+        swprintf(line, g_format_s_dg, gppStringList[0x7e6], g_status.party_gold);
         bounds.left = m_x + 10;
         bounds.top = m_y + 0x37;
         bounds.right = m_x + m_width - 10;

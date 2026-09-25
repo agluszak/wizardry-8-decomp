@@ -62,7 +62,7 @@ public:
 
 static_assert(sizeof(W8AmbientSound) == 0x12c, "W8AmbientSound_must_be_0x12c");
 
-/* Reverb environment id indexing g_footstep_surfaces_609eb8; retail's range
+/* Reverb environment id indexing g_footstep_surfaces; retail's range
    check admits 9, one past the table's last entry (the ids are byte-sized in
    the record, so the parameters stay `char`). */
 enum W8FootstepSurface {
@@ -78,7 +78,7 @@ enum W8FootstepSurface {
     W8_FOOTSTEP_SURFACE_MAX = 9,
 };
 
-/* Step material id indexing g_footstep_names_609edc; ids at and above
+/* Step material id indexing g_footstep_names; ids at and above
    CLIMB_LADDER bypass the per-surface naming path and play a single
    "Step_<name>.WAV". */
 enum W8FootstepMaterial {
@@ -150,12 +150,12 @@ unsigned char GetSoundEffectsVolume(void);
 void SetSoundEffectsVolume(unsigned char volume);
 void SetSoundEffectsMuted(unsigned char muted);
 
-extern unsigned char g_default_footstep_surface_65a108;
-extern unsigned char g_default_footstep_material_65a109;
-extern unsigned char g_footstep_alternate_65a10a;
+extern unsigned char g_default_footstep_surface;
+extern unsigned char g_default_footstep_material;
+extern unsigned char g_footstep_alternate;
 extern int g_previous_footstep_variant_65a10c;
-extern const char* g_footstep_names_609edc[];
-extern const char* g_footstep_surfaces_609eb8[];
+extern const char* g_footstep_names[];
+extern const char* g_footstep_surfaces[];
 /* Zeroed 128-byte ambient name image; only its first word is ever read — a
    `memcpy` of it followed by a memset seeds an empty fixed-size name. */
-extern unsigned short g_empty_ambient_name_65a110;
+extern unsigned short g_empty_ambient_name;

@@ -75,8 +75,8 @@ static_assert(sizeof(W8CameraShakeEffect) == 0x4c, "W8CameraShakeEffect_must_be_
 
 /* The live list every active effect is on, and the timer the first effect
    creates alongside it. Both are built lazily by the constructor. */
-extern W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
-extern W8GameTimer* g_shake_timer_0065be30;
+extern W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects;
+extern W8GameTimer* g_shake_timer;
 
 W8CameraShakeEffect* CreateCameraShakeEffect(float duration, char preset, float intensity,
                                              float distance_cap, const srVector3T<float>* position);

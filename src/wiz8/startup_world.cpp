@@ -13,13 +13,13 @@
 #include <string.h>
 
 // GLOBAL: WIZ8 0x00659c0c
-W8Navigator* g_startup_world_659c0c;
+W8Navigator* g_startup_world;
 // GLOBAL: WIZ8 0x006081e8
-float g_runtime_world_scale_6081e8 = 500.0f;
+float g_runtime_world_scale = 500.0f;
 // GLOBAL: WIZ8 0x005EBC40
-extern const float g_world_scale_005ebc40 = 500.0f;
+extern const float g_world_scale = 500.0f;
 // GLOBAL: WIZ8 0x005EC000
-extern const float g_startup_near_limit_005ec000 = 250.0f;
+extern const float g_startup_near_limit = 250.0f;
 
 /* Builds the startup navigation state after the renderer graph is open.
    0x0044F060 sits in the attribution gap between Prop.cpp (ends 0x0044E1F0)
@@ -36,15 +36,15 @@ unsigned char InitializeStartupNavigation(void)
     InitializeEnvironmentColours();
 
     navigator = new W8Navigator;
-    g_startup_world_659c0c = navigator;
+    g_startup_world = navigator;
     navigator->configureStartupRange(500.0f);
-    if (g_runtime_world_scale_6081e8 < g_world_scale_005ebc40) {
-        g_runtime_world_scale_6081e8 = 500.0f;
+    if (g_runtime_world_scale < g_world_scale) {
+        g_runtime_world_scale = 500.0f;
     }
-    navigator->configureStartupDepth(g_default_world_height_00603ac8 < g_startup_near_limit_005ec000
-                                         ? g_startup_near_limit_005ec000
-                                         : g_default_world_height_00603ac8,
-                                     g_default_world_height_00603ac8);
+    navigator->configureStartupDepth(g_default_world_height < g_startup_near_limit
+                                         ? g_startup_near_limit
+                                         : g_default_world_height,
+                                     g_default_world_height);
     return 1;
 }
 /* Tears down the startup navigation state InitializeStartupNavigation
@@ -57,8 +57,8 @@ void ShutdownStartupNavigation(void)
     FreeAniMeshCache();
     DestroyRenderQuality();
     ClearEnvironmentObjects();
-    if (g_startup_world_659c0c != 0) {
-        delete g_startup_world_659c0c;
+    if (g_startup_world != 0) {
+        delete g_startup_world;
     }
-    g_startup_world_659c0c = 0;
+    g_startup_world = 0;
 }

@@ -9,13 +9,13 @@ class srCamera;
 struct W8World;
 class srScene;
 
-extern bool g_renderer_ready_00607d7c;
-extern bool g_world_cleanup_flag_00659757;
-extern bool g_shift_held_006f0530;
-extern bool g_monster_combat_timer_enabled_006f0531;
-extern bool g_modifier_held_006f0534;
-extern bool g_navigator_vertical_enabled_006081f8;
-extern bool g_world_mesh_update_enabled_00607d7d;
+extern bool g_renderer_ready;
+extern bool g_world_cleanup_flag;
+extern bool g_shift_held;
+extern bool g_monster_combat_timer_enabled;
+extern bool g_modifier_held;
+extern bool g_navigator_vertical_enabled;
+extern bool g_world_mesh_update_enabled;
 extern float g_float_00609c88;
 extern bool g_flag_00609c8c;
 

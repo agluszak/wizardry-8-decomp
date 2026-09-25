@@ -119,8 +119,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                                 match->in_range = 1;
                                 match->sound_handle = sound_handle;
                                 match->target_volume =
-                                    (match->volume_max * g_settings_6850c8.sound_effects_volume) /
-                                    0x7f;
+                                    (match->volume_max * g_settings.sound_effects_volume) / 0x7f;
                                 match->current_volume = SoundGetVolume(sound_handle);
                                 match->fade_timer.SetDuration(g_float_005ec3b8 /
                                                               match->target_volume);
@@ -141,7 +140,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                     target_volume = 0;
                     {
                         unsigned int full_volume =
-                            (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+                            (volume_max * g_settings.sound_effects_volume) / 0x7f;
                         fade_timer.SetDuration(g_float_005ec3b8 / full_volume);
                         fade_timer.Restart();
                         fade_timer.m_flags &= ~8;
@@ -177,11 +176,11 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                 Sound3DSetPosition(sound_handle, transformed.x, transformed.y, transformed.z);
                 Sound3DSetDirection(sound_handle, -transformed.x, -transformed.y, -transformed.z,
                                     0.0f, g_float_005ebb38, 0.0f);
-                if (radius * g_navigator_mode3_scale_005ebca4 <= distance) {
+                if (radius * g_navigator_mode3_scale <= distance) {
                     volume = current_volume;
                 } else {
                     volume = static_cast<unsigned int>(
-                        (g_float_005ebb38 - (distance - radius * g_navigator_mode3_scale_005ebca4) /
+                        (g_float_005ebb38 - (distance - radius * g_navigator_mode3_scale) /
                                                 (radius * g_float_005ec5a8)) *
                         current_volume);
                 }
@@ -190,7 +189,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
             return;
         }
         {
-            unsigned int full_volume = (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+            unsigned int full_volume = (volume_max * g_settings.sound_effects_volume) / 0x7f;
             if (target_volume != full_volume) {
                 target_volume = full_volume;
                 fade_timer.SetDuration(g_float_005ec3b8 / full_volume);
@@ -221,8 +220,8 @@ void W8AmbientSound::Service(unsigned char entered)
             memset(&parms, -1, sizeof(parms));
             parms.uiMaxInstances = 1;
             parms.uiPriority = -16;
-            parms.uiVolMin = (volume_min * g_settings_6850c8.sound_effects_volume) / 0x7f;
-            parms.uiVolMax = (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+            parms.uiVolMin = (volume_min * g_settings.sound_effects_volume) / 0x7f;
+            parms.uiVolMax = (volume_max * g_settings.sound_effects_volume) / 0x7f;
             parms.uiPanMin = 0x40;
             parms.uiPanMax = 0x40;
             parms.uiTimeMin = time_min;
@@ -279,14 +278,14 @@ void W8AmbientSound::Service(unsigned char entered)
                 to_listener = camera - position;
                 distance = to_listener.Length();
                 volume = static_cast<unsigned int>(((Random(volume_max - volume_min) + volume_min) *
-                                                    g_settings_6850c8.sound_effects_volume) /
+                                                    g_settings.sound_effects_volume) /
                                                    0x7f);
                 current_volume = volume;
-                if (distance < radius * g_navigator_mode3_scale_005ebca4) {
+                if (distance < radius * g_navigator_mode3_scale) {
                     pos.uiVolume = current_volume;
                 } else {
                     pos.uiVolume = static_cast<unsigned int>(
-                        (g_float_005ebb38 - (distance - radius * g_navigator_mode3_scale_005ebca4) /
+                        (g_float_005ebb38 - (distance - radius * g_navigator_mode3_scale) /
                                                 (radius * g_float_005ec5a8)) *
                         current_volume);
                 }
@@ -307,7 +306,7 @@ void W8AmbientSound::Service(unsigned char entered)
         SOUND3DPARMS parms;
 
         GetCameraPosition(&camera);
-        current_volume = (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+        current_volume = (volume_max * g_settings.sound_effects_volume) / 0x7f;
         rotation.SetIdentity();
         if (angle != g_zero_005ebb40) {
             rotation.RotateAboutY(sin(angle), cos(angle));
@@ -348,7 +347,7 @@ void W8AmbientSound::Service(unsigned char entered)
         parms.uiVolume = 0;
         parms.uiLoop = 0;
         current_volume = 0;
-        target_volume = (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+        target_volume = (volume_max * g_settings.sound_effects_volume) / 0x7f;
         sound_handle = SoundPlay(config_004.wave_name, &parms);
         fade_timer.SetDuration(g_float_005ec3b8 / target_volume);
         fade_timer.Restart();
@@ -442,19 +441,19 @@ void UpdateAmbientSounds(W8World* world)
 }
 
 // GLOBAL: WIZ8 0x0065a108
-unsigned char g_default_footstep_surface_65a108;
+unsigned char g_default_footstep_surface;
 
 // GLOBAL: WIZ8 0x0065a109
-unsigned char g_default_footstep_material_65a109;
+unsigned char g_default_footstep_material;
 
 // GLOBAL: WIZ8 0x0065a10a
-unsigned char g_footstep_alternate_65a10a;
+unsigned char g_footstep_alternate;
 
 // GLOBAL: WIZ8 0x0065a10c
 int g_previous_footstep_variant_65a10c;
 
 // GLOBAL: WIZ8 0x00609edc
-const char* g_footstep_names_609edc[] = {
+const char* g_footstep_names[] = {
     "None",        "Gritty",     "Grass",     "Stone",       "ShallowWater",   "CreakyWood",
     "SolidWood",   "HollowWood", "Metal",     "Gravel",      "RoughStone",     "Marble",
     "Mud",         "Sand",       "Leaves",    "Snow",        "Carpet",         "Magic",
@@ -462,14 +461,14 @@ const char* g_footstep_names_609edc[] = {
     "Fly",         "",
 };
 // GLOBAL: WIZ8 0x00609eb8
-const char* g_footstep_surfaces_609eb8[] = {
+const char* g_footstep_surfaces[] = {
     "None",       "SmallCave", "MediumCave",   "LargeCave",      "SmallRoom",
     "MediumRoom", "LargeRoom", "OutdoorsFlat", "OutdoorsCanyon",
 };
 // GLOBAL: WIZ8 0x00609f44
-const char* g_footstep_fixed_name_609f44 = "Jump";
+const char* g_footstep_fixed_name = "Jump";
 // GLOBAL: WIZ8 0x00609f48
-const char* g_footstep_scuff_name_609f48 = "Scuff";
+const char* g_footstep_scuff_name = "Scuff";
 
 /* Surface and material ids are range-checked against 1..9 / 1..25 before
    indexing the name tables. */
@@ -489,16 +488,15 @@ int PlayFootstep0047A440(signed char surface, signed char material, int kind)
     selected_surface = surface;
     if (selected_surface < W8_FOOTSTEP_SURFACE_SMALL_CAVE ||
         selected_surface > W8_FOOTSTEP_SURFACE_MAX) {
-        selected_surface = g_default_footstep_surface_65a108;
+        selected_surface = g_default_footstep_surface;
     }
     selected_material = material;
     if (selected_material < W8_FOOTSTEP_MATERIAL_GRITTY ||
         selected_material > W8_FOOTSTEP_MATERIAL_MAX) {
-        selected_material = g_default_footstep_material_65a109;
+        selected_material = g_default_footstep_material;
     }
     if (selected_material >= W8_FOOTSTEP_MATERIAL_CLIMB_LADDER) {
-        sprintf(path, "Data\\Sound\\Footsteps\\Step_%s.WAV",
-                g_footstep_names_609edc[selected_material]);
+        sprintf(path, "Data\\Sound\\Footsteps\\Step_%s.WAV", g_footstep_names[selected_material]);
     } else {
         int variant;
         do {
@@ -509,8 +507,8 @@ int PlayFootstep0047A440(signed char surface, signed char material, int kind)
         g_previous_footstep_variant_65a10c = variant;
     }
     memset(&options, -1, sizeof(options));
-    options.uiVolume = g_settings_6850c8.footstep_volume;
-    g_footstep_alternate_65a10a = g_footstep_alternate_65a10a == 0;
+    options.uiVolume = g_settings.footstep_volume;
+    g_footstep_alternate = g_footstep_alternate == 0;
     return SoundPlay(path, &options);
 }
 
@@ -519,21 +517,19 @@ void BuildFootstepPath(char* path, signed char surface, signed char material, ch
                        int variant)
 {
     if (kind == W8_FOOTSTEP_KIND_STEP) {
-        sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%.2d.WAV",
-                g_footstep_names_609edc[material], g_footstep_surfaces_609eb8[surface],
-                g_footstep_names_609edc[material], variant);
+        sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%.2d.WAV", g_footstep_names[material],
+                g_footstep_surfaces[surface], g_footstep_names[material], variant);
         return;
     }
     if (kind == W8_FOOTSTEP_KIND_JUMP) {
-        sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%s.WAV",
-                g_footstep_names_609edc[material], g_footstep_surfaces_609eb8[surface],
-                g_footstep_names_609edc[material], g_footstep_fixed_name_609f44);
+        sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%s.WAV", g_footstep_names[material],
+                g_footstep_surfaces[surface], g_footstep_names[material], g_footstep_fixed_name);
         return;
     }
     if (kind == W8_FOOTSTEP_KIND_SCUFF) {
         sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%s_%.2d.WAV",
-                g_footstep_names_609edc[material], g_footstep_surfaces_609eb8[surface],
-                g_footstep_names_609edc[material], g_footstep_scuff_name_609f48, variant);
+                g_footstep_names[material], g_footstep_surfaces[surface],
+                g_footstep_names[material], g_footstep_scuff_name, variant);
     }
 }
 
@@ -703,7 +699,7 @@ void ToggleAmbientSoundByName(W8World* /* unused */, const char* name)
 }
 
 // GLOBAL: WIZ8 0x0065A110
-unsigned short g_empty_ambient_name_65a110;
+unsigned short g_empty_ambient_name;
 
 // FUNCTION: WIZ8 0x0047ab40
 unsigned char LoadAmbientSoundList0047AB40(char* filename)
@@ -743,7 +739,7 @@ unsigned char LoadAmbientSoundList0047AB40(char* filename)
             } else {
                 direct.uiLoop = direct_selector;
                 direct.uiPriority = -16;
-                direct.uiVolume = (g_settings_6850c8.sound_effects_volume * configured[5]) / 0x7f;
+                direct.uiVolume = (g_settings.sound_effects_volume * configured[5]) / 0x7f;
                 SoundPlay(path, &direct);
             }
         }
@@ -763,7 +759,7 @@ void SetSoundEffectsVolume(unsigned char volume)
     int count;
     int index;
 
-    g_settings_6850c8.sound_effects_volume = volume;
+    g_settings.sound_effects_volume = volume;
     SoundSetDefaultVolume(volume);
     if (g_world != 0 && g_world->plsAmbientSounds != 0) {
         count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
@@ -773,7 +769,7 @@ void SetSoundEffectsVolume(unsigned char volume)
             if (sound != 0) {
                 if (sound->sound_handle != -1) {
                     unsigned int adjusted =
-                        (sound->volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+                        (sound->volume_max * g_settings.sound_effects_volume) / 0x7f;
                     sound->target_volume = adjusted;
                     sound->current_volume = adjusted;
                     SoundSetVolume(sound->sound_handle, adjusted);
@@ -814,13 +810,13 @@ void SetSoundEffectsVolume(unsigned char volume)
 // FUNCTION: WIZ8 0x0047ae70
 unsigned char GetSoundEffectsVolume(void)
 {
-    return g_settings_6850c8.sound_effects_volume;
+    return g_settings.sound_effects_volume;
 }
 
 // FUNCTION: WIZ8 0x0047ae80
 bool IsSoundEffectsMuted(void)
 {
-    return g_settings_6850c8.muted_sound_effects_volume != 0xff;
+    return g_settings.muted_sound_effects_volume != 0xff;
 }
 
 // FUNCTION: WIZ8 0x0047ae90
@@ -831,9 +827,9 @@ void SetSoundEffectsMuted(unsigned char muted)
     int index;
 
     if (muted != 0) {
-        if (g_settings_6850c8.muted_sound_effects_volume == 0xff) {
-            g_settings_6850c8.muted_sound_effects_volume = g_settings_6850c8.sound_effects_volume;
-            g_settings_6850c8.sound_effects_volume = 0;
+        if (g_settings.muted_sound_effects_volume == 0xff) {
+            g_settings.muted_sound_effects_volume = g_settings.sound_effects_volume;
+            g_settings.sound_effects_volume = 0;
             SoundSetDefaultVolume(0);
             if (g_world != 0 && g_world->plsAmbientSounds != 0) {
                 count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
@@ -843,7 +839,7 @@ void SetSoundEffectsMuted(unsigned char muted)
                     if (sound != 0) {
                         if (sound->sound_handle != -1) {
                             unsigned int adjusted =
-                                (sound->volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+                                (sound->volume_max * g_settings.sound_effects_volume) / 0x7f;
                             sound->target_volume = adjusted;
                             sound->current_volume = adjusted;
                             SoundSetVolume(sound->sound_handle, adjusted);
@@ -870,9 +866,9 @@ void SetSoundEffectsMuted(unsigned char muted)
                 return;
             }
         }
-    } else if (g_settings_6850c8.muted_sound_effects_volume != 0xff) {
-        g_settings_6850c8.sound_effects_volume = g_settings_6850c8.muted_sound_effects_volume;
-        SoundSetDefaultVolume(g_settings_6850c8.muted_sound_effects_volume);
+    } else if (g_settings.muted_sound_effects_volume != 0xff) {
+        g_settings.sound_effects_volume = g_settings.muted_sound_effects_volume;
+        SoundSetDefaultVolume(g_settings.muted_sound_effects_volume);
         if (g_world != 0 && g_world->plsAmbientSounds != 0) {
             count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
             for (index = 0; index < count; ++index) {
@@ -881,7 +877,7 @@ void SetSoundEffectsMuted(unsigned char muted)
                 if (sound != 0) {
                     if (sound->sound_handle != -1) {
                         unsigned int adjusted =
-                            (sound->volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+                            (sound->volume_max * g_settings.sound_effects_volume) / 0x7f;
                         sound->target_volume = adjusted;
                         sound->current_volume = adjusted;
                         SoundSetVolume(sound->sound_handle, adjusted);
@@ -917,7 +913,7 @@ void SetSoundEffectsMuted(unsigned char muted)
             }
             Update3DSounds();
         }
-        g_settings_6850c8.muted_sound_effects_volume = 0xff;
+        g_settings.muted_sound_effects_volume = 0xff;
     }
 }
 
@@ -930,7 +926,7 @@ void SaveAmbientSoundList(HWFILE handle)
     char empty_name[0x80];
     int index;
 
-    memcpy(empty_name, &g_empty_ambient_name_65a110, 2);
+    memcpy(empty_name, &g_empty_ambient_name, 2);
     memset(empty_name + 2, 0, sizeof(empty_name) - 2);
     ok = FileWrite(handle, &version, 1, 0);
     if (g_world->plsAmbientSounds == 0) {

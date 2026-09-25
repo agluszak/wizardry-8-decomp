@@ -37,16 +37,16 @@
 #define MGSUSEITEMSELECT_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSUseItemSelect.cpp"
 
 // GLOBAL: WIZ8 0x0069B984
-int g_use_item_select_flags_0069b984;
+int g_use_item_select_flags;
 // GLOBAL: WIZ8 0x0069b988
 W8MainUiMode g_value_69b988;
 // GLOBAL: WIZ8 0x0069B98C
-int g_use_item_select_mode_0069b98c;
+int g_use_item_select_mode;
 
 // GLOBAL: WIZ8 0x0069B950
 W8TextControl* g_use_item_select_scroll_buttons[3];
 // GLOBAL: WIZ8 0x0069B95C
-int g_selected_use_item_line_0069b95c;
+int g_selected_use_item_line;
 // GLOBAL: WIZ8 0x0069B960
 W8TextControl* g_use_item_select_controls[9];
 // GLOBAL: WIZ8 0x0069B9A0
@@ -54,30 +54,30 @@ W8ItemInstance* g_value_69b9a0;
 // GLOBAL: WIZ8 0x0069B9A4
 W8ItemInstance* g_value_69b9a4;
 // GLOBAL: WIZ8 0x0069B990
-int g_use_item_list_count_0069b990;
+int g_use_item_list_count;
 // GLOBAL: WIZ8 0x0069B994
-Controls* g_use_item_select_panels_69b994[3];
+Controls* g_use_item_select_panels[3];
 // GLOBAL: WIZ8 0x0069B9A8
 int g_use_item_cursor_x_0069b9a8;
 // GLOBAL: WIZ8 0x0069B9AC
-int g_use_item_cursor_y_0069b9ac;
+int g_use_item_cursor_y;
 // GLOBAL: WIZ8 0x0069B9B0
-int g_use_item_owner_index_0069b9b0;
+int g_use_item_owner_index;
 // GLOBAL: WIZ8 0x0069B9B4
-W8ItemInstance* g_use_item_list_0069b9b4[0x15e];
+W8ItemInstance* g_use_item_list[0x15e];
 // GLOBAL: WIZ8 0x0069BF2C
-W8ItemInstance* g_use_item_detail_item_0069bf2c;
+W8ItemInstance* g_use_item_detail_item;
 // GLOBAL: WIZ8 0x0069BF30
-int g_saved_target_cursor_0069bf30;
+int g_saved_target_cursor;
 // GLOBAL: WIZ8 0x0069BF34
-int g_use_item_hover_row_0069bf34;
+int g_use_item_hover_row;
 /* 0x0069BF38: held while CommitSelectedSpellTarget runs for a use-item
    commit; CloseUseItemSelectView early-outs on it so the commit's side
    effects cannot tear the view down mid-call. */
 // GLOBAL: WIZ8 0x0069BF38
-bool g_use_item_commit_active_0069bf38;
+bool g_use_item_commit_active;
 // GLOBAL: WIZ8 0x0064C7DC
-const wchar_t g_format_s_paren_question_0064c7dc[] = L"%s (?)";
+const wchar_t g_format_s_paren_question[] = L"%s (?)";
 
 void UpdateUseItemScrollButtons(void);                           /* 0x0059D070 */
 void RebuildUseItemSelectList(int mode, W8ItemInstance* select); /* 0x0059D230 */
@@ -99,10 +99,10 @@ void CreateUseItemSelectControls(void)
     Controls* panel;
     Controls** panel_iter;
 
-    g_use_item_select_panels_69b994[0] = new Controls(0x17, 0x166, 0xa4, 0x1c2, 0x97, 0, 0);
-    g_use_item_select_panels_69b994[1] = new Controls(0xa4, 0x166, 0x1dc, 0x1c2, 0x97, 0, 1);
-    g_use_item_select_panels_69b994[2] = new Controls(0x1dc, 0x166, 0x269, 0x1c2, 0x97, 0, 2);
-    panel = g_use_item_select_panels_69b994[0];
+    g_use_item_select_panels[0] = new Controls(0x17, 0x166, 0xa4, 0x1c2, 0x97, 0, 0);
+    g_use_item_select_panels[1] = new Controls(0xa4, 0x166, 0x1dc, 0x1c2, 0x97, 0, 1);
+    g_use_item_select_panels[2] = new Controls(0x1dc, 0x166, 0x269, 0x1c2, 0x97, 0, 2);
+    panel = g_use_item_select_panels[0];
     g_use_item_select_scroll_buttons[0] =
         new W8TextControl(panel, 0x9c, 0x24, 0x1d, 0x44, 0x3d, 0x98, 0, 0, 2, 1, 4, 3);
     g_use_item_select_scroll_buttons[1] =
@@ -116,7 +116,7 @@ void CreateUseItemSelectControls(void)
     g_use_item_select_scroll_buttons[2]->m_textBuffer.SetLayoutMode(
         g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
     g_use_item_select_scroll_buttons[2]->m_textBuffer.SetText(gppStringList[0x77a], g_font_683660);
-    panel = g_use_item_select_panels_69b994[2];
+    panel = g_use_item_select_panels[2];
     g_use_item_select_controls[0] =
         new W8TextControl(panel, 0x9e, 5, 5, 0x31, 0x39, -1, -1, -1, -1, -1, -1, -1);
     g_use_item_select_controls[0]->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED55C |
@@ -152,8 +152,8 @@ void CreateUseItemSelectControls(void)
     g_use_item_select_controls[5]->m_primaryActivationCallback = NoOp;
     g_use_item_select_controls[6]->m_primaryActivationCallback = NoOp;
     g_use_item_select_controls[8]->m_primaryActivationCallback = CloseUseItemSelection;
-    for (panel_iter = g_use_item_select_panels_69b994;
-         panel_iter < g_use_item_select_panels_69b994 + 3; panel_iter++) {
+    for (panel_iter = g_use_item_select_panels; panel_iter < g_use_item_select_panels + 3;
+         panel_iter++) {
         (*panel_iter)->SetEnabled(1);
     }
 }
@@ -164,7 +164,7 @@ unsigned char OpenUseItemSelectView(int slot)
     W8TextControl** control;
     W8MainUiMode mode;
 
-    g_use_item_commit_active_0069bf38 = 0;
+    g_use_item_commit_active = 0;
     UpdateScreenOverlays(0);
     gXStatus.fItemSelectMode = true;
     if (g_level_block->combat_end_notification != -1) {
@@ -174,7 +174,7 @@ unsigned char OpenUseItemSelectView(int slot)
         EndNpcDialogueSession(0);
     }
     CloseMainGameOverlays();
-    mode = g_settings_6850c8.main_ui_mode;
+    mode = g_settings.main_ui_mode;
     if (mode == W8_MAIN_UI_MODE_RADAR) {
         ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 0);
     } else {
@@ -196,24 +196,24 @@ unsigned char OpenUseItemSelectView(int slot)
     ResetEditorStatusLine(-1);
     g_level_block->text_box_visible_271 = 0;
     CreateUseItemSelectControls();
-    g_use_item_select_mode_0069b98c = -1;
-    g_use_item_select_flags_0069b984 = 0;
+    g_use_item_select_mode = -1;
+    g_use_item_select_flags = 0;
     g_use_item_cursor_x_0069b9a8 = -1;
-    g_use_item_cursor_y_0069b9ac = -1;
-    g_use_item_hover_row_0069bf34 = -1;
+    g_use_item_cursor_y = -1;
+    g_use_item_hover_row = -1;
     g_value_69b9a0 = 0;
     g_value_69b9a4 = 0;
-    g_use_item_detail_item_0069bf2c = 0;
+    g_use_item_detail_item = 0;
     for (control = g_use_item_select_controls + 1; control <= g_use_item_select_controls + 6;
          control++) {
         (*control)->SetEnabled(0);
     }
-    memset(g_use_item_list_0069b9b4, 0, sizeof(g_use_item_list_0069b9b4));
+    memset(g_use_item_list, 0, sizeof(g_use_item_list));
     g_use_item_select_controls[7]->SetEnabled(0);
     RequestRedraw(0x200);
     RequestRedraw(0x100);
     RequestRedraw(0x1000);
-    g_use_item_owner_index_0069b9b0 = -1;
+    g_use_item_owner_index = -1;
     RefreshUseItemSelectionForSlot(slot);
     SelectSpellCastingPartySlot(slot);
     PauseMainGameWorld();
@@ -226,7 +226,7 @@ void CloseUseItemSelectView(void)
     W8TextControl** control;
     Controls** panel;
 
-    if (g_use_item_commit_active_0069bf38 == 0) {
+    if (g_use_item_commit_active == 0) {
         RegionSetDisable(0x1a);
         DisableRegionInput(0x52);
         DisableRegionInput(0x53);
@@ -250,8 +250,7 @@ void CloseUseItemSelectView(void)
                 delete *control;
             }
         }
-        for (panel = g_use_item_select_panels_69b994; panel < g_use_item_select_panels_69b994 + 3;
-             panel++) {
+        for (panel = g_use_item_select_panels; panel < g_use_item_select_panels + 3; panel++) {
             if (*panel != 0) {
                 delete *panel;
             }
@@ -294,9 +293,9 @@ void RefreshUseItemSelectionForSlot(int party_slot)
         CloseUseItemSelectView();
         return;
     }
-    g_use_item_owner_index_0069b9b0 = party_slot;
+    g_use_item_owner_index = party_slot;
     if (gXStatus.item_drag_active) {
-        if (g_status_685170.item_in_cursor == 0) {
+        if (g_status.item_in_cursor == 0) {
             if (gXStatus.dragged_item_origin == 2) {
                 if (gXStatus.fCombatMode) {
                     srAssertFail("!gXStatus.fCombatMode", MGSUSEITEMSELECT_CPP, 0x1f0, 0);
@@ -318,28 +317,25 @@ void RefreshUseItemSelectionForSlot(int party_slot)
                 g_use_item_select_controls[3]->EnableSecondaryState(1);
                 g_use_item_select_controls[3]->Invalidate(0);
             }
-            g_use_item_select_flags_0069b984 |= 1;
-            g_use_item_list_count_0069b990 = 0;
-            g_selected_use_item_line_0069b95c = -1;
-            AppendUseItemListEntry(&g_status_685170.item_in_hand_235b,
-                                   &g_status_685170.item_in_hand_235b, 0);
-            AppendUseItemListEntry(&g_status_685170.item_in_hand_235b,
-                                   &g_status_685170.item_in_hand_235b, 1);
+            g_use_item_select_flags |= 1;
+            g_use_item_list_count = 0;
+            g_selected_use_item_line = -1;
+            AppendUseItemListEntry(&g_status.item_in_hand_235b, &g_status.item_in_hand_235b, 0);
+            AppendUseItemListEntry(&g_status.item_in_hand_235b, &g_status.item_in_hand_235b, 1);
         }
-        if (g_selected_use_item_line_0069b95c == -1) {
+        if (g_selected_use_item_line == -1) {
             srAssertFail("giReuseItemLineNumber != -1", MGSUSEITEMSELECT_CPP, 0x1fe, 0);
         }
-        ScrollTextBoxTo(g_selected_use_item_line_0069b95c);
+        ScrollTextBoxTo(g_selected_use_item_line);
         gXStatus.item_drag_active = 0;
         return;
     }
     if (CanPartySlotUseRecordedItem(party_slot)) {
         gXStatus.dragged_item = 0;
-        item =
-            FindCharacterItemAt(party_slot, g_status_685170.buffers.XChar[party_slot].item_origin,
-                                g_status_685170.buffers.XChar[party_slot].item_slot);
-        if (CanUseItemForAction(g_use_item_owner_index_0069b9b0, item)) {
-            if (g_status_685170.buffers.XChar[party_slot].item_origin == 2) {
+        item = FindCharacterItemAt(party_slot, g_status.buffers.XChar[party_slot].item_origin,
+                                   g_status.buffers.XChar[party_slot].item_slot);
+        if (CanUseItemForAction(g_use_item_owner_index, item)) {
+            if (g_status.buffers.XChar[party_slot].item_origin == 2) {
                 if (gXStatus.fCombatMode) {
                     srAssertFail("!gXStatus.fCombatMode", MGSUSEITEMSELECT_CPP, 0x216, 0);
                 }
@@ -352,18 +348,18 @@ void RefreshUseItemSelectionForSlot(int party_slot)
                 mode = 0;
             }
             RebuildUseItemSelectList(mode, item);
-            if (g_selected_use_item_line_0069b95c == -1) {
+            if (g_selected_use_item_line == -1) {
                 srAssertFail("giReuseItemLineNumber != -1", MGSUSEITEMSELECT_CPP, 0x221, 0);
             }
-            ScrollTextBoxTo(g_selected_use_item_line_0069b95c);
-            SelectTextSlot1D8(g_selected_use_item_line_0069b95c, 2);
+            ScrollTextBoxTo(g_selected_use_item_line);
+            SelectTextSlot1D8(g_selected_use_item_line, 2);
             RedrawTextBox();
             return;
         }
     }
     gXStatus.dragged_item = 0;
-    if (g_use_item_select_mode_0069b98c != -1) {
-        RebuildUseItemSelectList(g_use_item_select_mode_0069b98c, 0);
+    if (g_use_item_select_mode != -1) {
+        RebuildUseItemSelectList(g_use_item_select_mode, 0);
         return;
     }
     g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
@@ -388,7 +384,7 @@ void SetValue69B988(W8MainUiMode value)
 // FUNCTION: WIZ8 0x0059CF40
 void RedrawPanel69B998(void)
 {
-    g_use_item_select_panels_69b994[1]->Invalidate(0);
+    g_use_item_select_panels[1]->Invalidate(0);
 }
 
 /* fItemSelectMode per-frame update: keep the scroll buttons synced, run the
@@ -404,29 +400,28 @@ void UpdateUseItemSelect(unsigned char active)
     panel_dirty = false;
     UpdateUseItemScrollButtons();
     for (i = 0; i < 3; i++) {
-        if (g_use_item_select_panels_69b994[i]->m_fEnabled) {
+        if (g_use_item_select_panels[i]->m_fEnabled) {
             if (active) {
-                g_use_item_select_panels_69b994[i]->Invalidate(0);
+                g_use_item_select_panels[i]->Invalidate(0);
             }
             if (i == 1) {
-                panel_dirty = g_use_item_select_panels_69b994[1]->m_fEnabled != 0 &&
-                              (g_use_item_select_panels_69b994[1]->m_fDirty != 0 ||
-                               g_use_item_select_panels_69b994[1]->m_fLayoutDirty != 0);
+                panel_dirty = g_use_item_select_panels[1]->m_fEnabled != 0 &&
+                              (g_use_item_select_panels[1]->m_fDirty != 0 ||
+                               g_use_item_select_panels[1]->m_fLayoutDirty != 0);
             }
-            g_use_item_select_panels_69b994[i]->Redraw();
+            g_use_item_select_panels[i]->Redraw();
             if (panel_dirty) {
                 RedrawTextBoxScrollChrome();
             }
         }
     }
-    if (g_value_69b9a0 != 0 &&
-        CanUseItemForAction(g_status_685170.selected_character, g_value_69b9a0) &&
-        IsItemTargetOfNeededKind(g_status_685170.selected_character, g_value_69b9a0)) {
-        character = &g_status_685170.buffers.Char[g_status_685170.selected_character];
+    if (g_value_69b9a0 != 0 && CanUseItemForAction(g_status.selected_character, g_value_69b9a0) &&
+        IsItemTargetOfNeededKind(g_status.selected_character, g_value_69b9a0)) {
+        character = &g_status.buffers.Char[g_status.selected_character];
         if (g_value_69b9a0 != 0) {
-            g_use_item_commit_active_0069bf38 = 1;
+            g_use_item_commit_active = 1;
             CommitSelectedSpellTarget();
-            g_use_item_commit_active_0069bf38 = 0;
+            g_use_item_commit_active = 0;
             AimItemUseAtCurrentTarget(character, g_value_69b9a0);
             if (g_value_69b9a0 != 0 && g_value_69b9a0->iItemNo != -1 &&
                 GetItemSpell(g_value_69b9a0) == 0x17) {
@@ -443,7 +438,7 @@ void UpdateUseItemSelect(unsigned char active)
 // FUNCTION: WIZ8 0x0059D070
 void UpdateUseItemScrollButtons(void)
 {
-    if (g_use_item_select_mode_0069b98c == -1 && g_use_item_list_count_0069b990 == 1) {
+    if (g_use_item_select_mode == -1 && g_use_item_list_count == 1) {
         g_use_item_select_scroll_buttons[0]->SetEnabled(0);
         g_use_item_select_scroll_buttons[1]->SetEnabled(0);
         return;
@@ -521,15 +516,14 @@ void UseItemSelectFilterToggle(void)
         g_use_item_select_controls[3]->EnableSecondaryState(1);
         g_use_item_select_controls[3]->Invalidate(0);
     }
-    g_use_item_select_flags_0069b984 |= 1;
+    g_use_item_select_flags |= 1;
 }
 
 // FUNCTION: WIZ8 0x0059D860
 void UseItemSelectAssayButton(void)
 {
-    if (g_use_item_detail_item_0069bf2c != 0 &&
-        g_use_item_select_controls[0]->m_imageObject != -1) {
-        OpenUseItemAssayDialog(g_use_item_detail_item_0069bf2c);
+    if (g_use_item_detail_item != 0 && g_use_item_select_controls[0]->m_imageObject != -1) {
+        OpenUseItemAssayDialog(g_use_item_detail_item);
     }
 }
 
@@ -542,14 +536,13 @@ void CommitSelectedItemUse(void)
 {
     W8Character* character;
 
-    if (g_value_69b9a0 != 0 &&
-        CanUseItemForAction(g_status_685170.selected_character, g_value_69b9a0) &&
-        IsItemTargetOfNeededKind(g_status_685170.selected_character, g_value_69b9a0)) {
-        character = &g_status_685170.buffers.Char[g_status_685170.selected_character];
+    if (g_value_69b9a0 != 0 && CanUseItemForAction(g_status.selected_character, g_value_69b9a0) &&
+        IsItemTargetOfNeededKind(g_status.selected_character, g_value_69b9a0)) {
+        character = &g_status.buffers.Char[g_status.selected_character];
         if (g_value_69b9a0 != 0) {
-            g_use_item_commit_active_0069bf38 = 1;
+            g_use_item_commit_active = 1;
             CommitSelectedSpellTarget();
-            g_use_item_commit_active_0069bf38 = 0;
+            g_use_item_commit_active = 0;
             AimItemUseAtCurrentTarget(character, g_value_69b9a0);
             if (g_value_69b9a0 != 0 && g_value_69b9a0->iItemNo != -1 &&
                 GetItemSpell(g_value_69b9a0) == 0x17) {
@@ -574,11 +567,11 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
     unsigned int i;
     int slot;
 
-    slot = g_status_685170.selected_character;
+    slot = g_status.selected_character;
     ResetEditorStatusLine(2);
     ClearTextSlot1E8(2);
     g_value_69b9a0 = 0;
-    g_use_item_detail_item_0069bf2c = 0;
+    g_use_item_detail_item = 0;
     g_use_item_select_controls[0]->m_imageObject = -1;
     g_use_item_select_controls[0]->m_measured_w = -1;
     g_use_item_select_controls[0]->m_measured_h = -1;
@@ -587,8 +580,8 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
     g_use_item_select_controls[0]->m_pressedSprite = -1;
     g_use_item_select_controls[0]->m_textBuffer.SetText(g_wchar_0068ee58, 0);
     g_use_item_select_controls[0]->Invalidate(1);
-    SelectSpellCastingPartySlot(g_status_685170.selected_character);
-    g_use_item_select_mode_0069b98c = mode;
+    SelectSpellCastingPartySlot(g_status.selected_character);
+    g_use_item_select_mode = mode;
     if (mode == -1) {
         for (i = 1; i <= 6; i++) {
             g_use_item_select_controls[i]->SetEnabled(0);
@@ -601,25 +594,24 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
         g_use_item_select_controls[3]->EnableSecondaryState(1);
         g_use_item_select_controls[3]->Invalidate(0);
     }
-    g_use_item_select_flags_0069b984 |= 1;
-    g_use_item_list_count_0069b990 = 0;
-    g_selected_use_item_line_0069b95c = -1;
+    g_use_item_select_flags |= 1;
+    g_use_item_list_count = 0;
+    g_selected_use_item_line = -1;
     pass = 0;
     if (mode != 0) {
         do {
-            for (i = 0; i < static_cast<unsigned int>(g_status_685170.party_item_count_1791); i++) {
-                if (!AppendUseItemListEntry(&g_status_685170.party_item_pool_0021[i], select,
-                                            pass)) {
+            for (i = 0; i < static_cast<unsigned int>(g_status.party_item_count_1791); i++) {
+                if (!AppendUseItemListEntry(&g_status.party_item_pool_0021[i], select, pass)) {
                     return;
                 }
             }
             ScrollTextBoxTo(0);
             pass++;
         } while (pass < 2);
-        g_use_item_select_panels_69b994[1]->Invalidate(0);
+        g_use_item_select_panels[1]->Invalidate(0);
         return;
     }
-    character = &g_status_685170.buffers.Char[slot];
+    character = &g_status.buffers.Char[slot];
     do {
         for (i = 0; i < 12; i++) {
             if (!AppendUseItemListEntry(&character->EquippedItem[i], select, pass)) {
@@ -634,7 +626,7 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
         pass++;
     } while (pass < 2);
     ScrollTextBoxTo(0);
-    g_use_item_select_panels_69b994[1]->Invalidate(0);
+    g_use_item_select_panels[1]->Invalidate(0);
 }
 
 /* Append one item to the use-item list under the active filter. Pass 0 takes
@@ -656,7 +648,7 @@ bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select, unsign
     if (IsUseItemFilteredOut(item)) {
         return true;
     }
-    if (pass != 0 || !CanUseItemForAction(g_use_item_owner_index_0069b9b0, item)) {
+    if (pass != 0 || !CanUseItemForAction(g_use_item_owner_index, item)) {
         if (gXStatus.fCampMode) {
             return true;
         }
@@ -669,35 +661,35 @@ bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select, unsign
         if (pass != 1) {
             return true;
         }
-        if (CanUseItemForAction(g_use_item_owner_index_0069b9b0, item)) {
+        if (CanUseItemForAction(g_use_item_owner_index, item)) {
             return true;
         }
-        if (g_use_item_list_count_0069b990 + 1U > 0x15e) {
-            g_selected_use_item_line_0069b95c = g_use_item_list_count_0069b990;
+        if (g_use_item_list_count + 1U > 0x15e) {
+            g_selected_use_item_line = g_use_item_list_count;
             return false;
         }
         if (select != 0 && select == item) {
-            g_selected_use_item_line_0069b95c = g_use_item_list_count_0069b990;
+            g_selected_use_item_line = g_use_item_list_count;
         }
-        g_use_item_list_0069b9b4[g_use_item_list_count_0069b990] = item;
+        g_use_item_list[g_use_item_list_count] = item;
         if (g_item_records[item->iItemNo].equip_class != 0xd ||
-            g_status_685170.buffers.Char[g_use_item_owner_index_0069b9b0].uiCondition[8] == 0) {
+            g_status.buffers.Char[g_use_item_owner_index].uiCondition[8] == 0) {
             color = 0;
         } else {
             color = 4;
         }
         ShowNotice(color, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
-        g_use_item_list_count_0069b990 = g_use_item_list_count_0069b990 + 1;
+        g_use_item_list_count = g_use_item_list_count + 1;
         return true;
     }
-    if (g_use_item_list_count_0069b990 + 1U > 0x15e) {
-        g_selected_use_item_line_0069b95c = g_use_item_list_count_0069b990;
+    if (g_use_item_list_count + 1U > 0x15e) {
+        g_selected_use_item_line = g_use_item_list_count;
         return false;
     }
     if (select != 0 && select == item) {
-        g_selected_use_item_line_0069b95c = g_use_item_list_count_0069b990;
+        g_selected_use_item_line = g_use_item_list_count;
     }
-    g_use_item_list_0069b9b4[g_use_item_list_count_0069b990] = item;
+    g_use_item_list[g_use_item_list_count] = item;
     charged = false;
     switch (g_item_records[item->iItemNo].quantity_kind) {
     case 1:
@@ -707,10 +699,9 @@ bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select, unsign
     case 3:
         if (item->identified == 0) {
             ShowNotice(0xf,
-                       FormatWideString(g_format_s_paren_question_0064c7dc,
-                                        FormatItemDisplayName(item, 0)),
+                       FormatWideString(g_format_s_paren_question, FormatItemDisplayName(item, 0)),
                        2, 0xffffffff, false);
-            g_use_item_list_count_0069b990 = g_use_item_list_count_0069b990 + 1;
+            g_use_item_list_count = g_use_item_list_count + 1;
             return true;
         }
         charged = true;
@@ -722,18 +713,18 @@ bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select, unsign
         break;
     default:
         ShowNotice(0xf, FormatItemDisplayName(item, 0), 2, 0xffffffff, false);
-        g_use_item_list_count_0069b990 = g_use_item_list_count_0069b990 + 1;
+        g_use_item_list_count = g_use_item_list_count + 1;
         return true;
     }
     if (count == -1) {
-        text = FormatWideString(g_format_s_paren_question_0064c7dc, FormatItemDisplayName(item, 0));
+        text = FormatWideString(g_format_s_paren_question, FormatItemDisplayName(item, 0));
     } else if (count > 1 || charged) {
-        text = FormatWideString(g_format_s_paren_d_0061a700, FormatItemDisplayName(item, 0), count);
+        text = FormatWideString(g_format_s_paren_d, FormatItemDisplayName(item, 0), count);
     } else {
         text = FormatItemDisplayName(item, 0);
     }
     ShowNotice(0xf, text, 2, 0xffffffff, false);
-    g_use_item_list_count_0069b990 = g_use_item_list_count_0069b990 + 1;
+    g_use_item_list_count = g_use_item_list_count + 1;
     return true;
 }
 
@@ -746,24 +737,21 @@ bool IsUseItemFilteredOut(W8ItemInstance* item)
 {
     W8NpcState* npc;
 
-    if (g_use_item_select_flags_0069b984 == 0) {
+    if (g_use_item_select_flags == 0) {
         return false;
     }
     if (item->iItemNo == -1) {
         return true;
     }
-    if (!CanCharacterActivateItem(&g_status_685170.buffers.Char[g_status_685170.selected_character],
-                                  item)) {
-        if (CanCastFromItem(&g_status_685170.buffers.Char[g_status_685170.selected_character],
-                            item)) {
+    if (!CanCharacterActivateItem(&g_status.buffers.Char[g_status.selected_character], item)) {
+        if (CanCastFromItem(&g_status.buffers.Char[g_status.selected_character], item)) {
             return false;
         }
         if (!IsUsableItemClass(item)) {
             return true;
         }
-        if ((g_status_685170.selected_character == 0 || g_status_685170.selected_character == 1) &&
-            (npc = GetNpcState(
-                 g_status_685170.buffers.XChar[g_status_685170.selected_character].npc_index),
+        if ((g_status.selected_character == 0 || g_status.selected_character == 1) &&
+            (npc = GetNpcState(g_status.buffers.XChar[g_status.selected_character].npc_index),
              npc != 0) &&
             NpcWantsItem(npc, item)) {
             return true;
@@ -777,8 +765,8 @@ bool IsUseItemFilteredOut(W8ItemInstance* item)
 // FUNCTION: WIZ8 0x0059D690
 void RefreshUseItemSelection(void)
 {
-    if (g_use_item_select_mode_0069b98c != -1) {
-        RebuildUseItemSelectList(g_use_item_select_mode_0069b98c, 0);
+    if (g_use_item_select_mode != -1) {
+        RebuildUseItemSelectList(g_use_item_select_mode, 0);
         RequestRedraw(0x200);
     }
 }
@@ -791,11 +779,10 @@ void OpenUseItemAssayDialog(W8ItemInstance* item)
 {
     W8AssayDialog* dialog;
 
-    g_saved_target_cursor_0069bf30 = gXStatus.iCurrentCursor;
-    dialog =
-        new W8AssayDialog(item, &g_status_685170.buffers.Char[g_use_item_owner_index_0069b9b0]);
+    g_saved_target_cursor = gXStatus.iCurrentCursor;
+    dialog = new W8AssayDialog(item, &g_status.buffers.Char[g_use_item_owner_index]);
     dialog->SetText(&g_wchar_00689b34);
-    dialog->SetOrigin(g_info_dialog_x_005ef958, 0x48);
+    dialog->SetOrigin(g_info_dialog_x, 0x48);
     dialog->m_destroy_callback = RestoreTargetCursor;
     OpenModal(dialog);
 }
@@ -805,7 +792,7 @@ void OpenUseItemAssayDialog(W8ItemInstance* item)
 // FUNCTION: WIZ8 0x0059D930
 void RestoreTargetCursor(W8DialogBase*)
 {
-    SetTargetCursor(g_saved_target_cursor_0069bf30);
+    SetTargetCursor(g_saved_target_cursor);
     RequestRedraw(-1);
 }
 
@@ -813,7 +800,7 @@ void RestoreTargetCursor(W8DialogBase*)
 void CloseUseItemSelection(void)
 {
     CloseUseItemSelectView();
-    ClearSlotTargeting(g_status_685170.selected_character);
+    ClearSlotTargeting(g_status.selected_character);
 }
 
 /* Scroll up/down buttons for the use-item list (catalog callback_ids 0 and 1). */
@@ -899,7 +886,7 @@ unsigned char UseItemSelectControlRegionEvent(const InputAtom* event, W8Region* 
    and all action happens on release - left release commits the slot's line,
    right release opens the assay dialog for the item under the cursor. Motion
    keeps g_use_item_cursor_x/y as the last cursor point and tracks the hovered
-   row into g_use_item_hover_row_0069bf34. */
+   row into g_use_item_hover_row. */
 // FUNCTION: WIZ8 0x0059DB40
 unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event, W8Region* region)
 {
@@ -929,31 +916,31 @@ unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event, W8Region* 
     case MOUSE_POS:
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
             ClearTextSlot1D8(2);
-            g_use_item_hover_row_0069bf34 = -1;
+            g_use_item_hover_row = -1;
             return 1;
         }
         if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
             g_use_item_cursor_x_0069b9a8 = static_cast<unsigned short>(event->uiParam);
-            g_use_item_cursor_y_0069b9ac = static_cast<unsigned short>(event->uiParam >> 16);
+            g_use_item_cursor_y = static_cast<unsigned short>(event->uiParam >> 16);
             return 1;
         }
         if (static_cast<unsigned short>(event->uiParam) == g_use_item_cursor_x_0069b9a8 &&
-            static_cast<int>(event->uiParam >> 16) == g_use_item_cursor_y_0069b9ac) {
+            static_cast<int>(event->uiParam >> 16) == g_use_item_cursor_y) {
             return 1;
         }
         g_use_item_cursor_x_0069b9a8 = static_cast<unsigned short>(event->uiParam);
-        g_use_item_cursor_y_0069b9ac = static_cast<unsigned short>(event->uiParam >> 16);
+        g_use_item_cursor_y = static_cast<unsigned short>(event->uiParam >> 16);
         y = static_cast<unsigned short>(event->uiParam >> 16);
         if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
             row = (y - g_level_block->text_box_top) / 0xb;
-            if (row != g_use_item_hover_row_0069bf34) {
+            if (row != g_use_item_hover_row) {
                 ClearTextSlot1D8(2);
-                if (row < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[2])) {
+                if (row < static_cast<int>(g_status.text_box_lines_shown_49a7[2])) {
                     SelectTextSlot1D8(g_level_block->text_lines[2] + row, 2);
                 }
                 RedrawTextBox();
             }
-            g_use_item_hover_row_0069bf34 = row;
+            g_use_item_hover_row = row;
         }
         return 1;
     case RIGHT_BUTTON_UP:
@@ -966,9 +953,9 @@ unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event, W8Region* 
             return 1;
         }
         row = (y - g_level_block->text_box_top) / 0xb;
-        if (row < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[2]) &&
-            g_use_item_list_0069b9b4[g_level_block->text_lines[2] + row] != 0) {
-            OpenUseItemAssayDialog(g_use_item_list_0069b9b4[g_level_block->text_lines[2] + row]);
+        if (row < static_cast<int>(g_status.text_box_lines_shown_49a7[2]) &&
+            g_use_item_list[g_level_block->text_lines[2] + row] != 0) {
+            OpenUseItemAssayDialog(g_use_item_list[g_level_block->text_lines[2] + row]);
         }
         return 1;
     }
@@ -986,14 +973,14 @@ void UseItemSelectTextBoxWheelAt(short x, unsigned short y, unsigned char flag)
         return;
     }
     row = (y - g_level_block->text_box_top) / 0xb;
-    if (row != g_use_item_hover_row_0069bf34 || flag != 0) {
+    if (row != g_use_item_hover_row || flag != 0) {
         ClearTextSlot1D8(2);
-        if (row < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[2])) {
+        if (row < static_cast<int>(g_status.text_box_lines_shown_49a7[2])) {
             SelectTextSlot1D8(g_level_block->text_lines[2] + row, 2);
         }
         RedrawTextBox();
     }
-    g_use_item_hover_row_0069bf34 = row;
+    g_use_item_hover_row = row;
 }
 
 /* Left-click commit of a use-item list row: validate the item's spell for
@@ -1007,21 +994,20 @@ void SelectUseItemLine(int iTextLine)
     if (iTextLine < 0) {
         srAssertFail("iTextLine >= 0", MGSUSEITEMSELECT_CPP, 0x61d, 0);
     }
-    if (iTextLine >= g_use_item_list_count_0069b990) {
+    if (iTextLine >= g_use_item_list_count) {
         // c-style-cast-ok: the assertion text itself spells (INT32)
         srAssertFail("iTextLine < (INT32) guiNumItemsInList", MGSUSEITEMSELECT_CPP, 0x61e, 0);
     }
     SetTargetingMode(0);
-    UpdateUseItemDetailPanel(g_use_item_list_0069b9b4[iTextLine]);
-    if (ValidateItemSpellUse(g_use_item_owner_index_0069b9b0, g_use_item_list_0069b9b4[iTextLine],
+    UpdateUseItemDetailPanel(g_use_item_list[iTextLine]);
+    if (ValidateItemSpellUse(g_use_item_owner_index, g_use_item_list[iTextLine],
                              SpellCastingNoticeClosed) != 0) {
-        QueueCharacterEvent(&g_status_685170.buffers.Char[g_use_item_owner_index_0069b9b0],
-                            g_character_event_kind_005ee65c, 0,
-                            g_character_event_flags_mask_005ed8e4 | g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+        QueueCharacterEvent(
+            &g_status.buffers.Char[g_use_item_owner_index], g_character_event_kind_005ee65c, 0,
+            g_character_event_flags_mask | g_effect_argument_005ed8c8, g_effect_argument_005ed914);
         return;
     }
-    g_value_69b9a0 = g_use_item_list_0069b9b4[iTextLine];
+    g_value_69b9a0 = g_use_item_list[iTextLine];
     if (Trynnie2UseItem(g_value_69b9a0) != 0) {
         CloseUseItemSelectView();
         return;
@@ -1031,10 +1017,8 @@ void SelectUseItemLine(int iTextLine)
         CloseUseItemSelectView();
         return;
     }
-    if (CanCastFromItem(&g_status_685170.buffers.Char[g_status_685170.selected_character],
-                        g_value_69b9a0)) {
-        LearnSpellFromItem(&g_status_685170.buffers.Char[g_status_685170.selected_character],
-                           g_value_69b9a0);
+    if (CanCastFromItem(&g_status.buffers.Char[g_status.selected_character], g_value_69b9a0)) {
+        LearnSpellFromItem(&g_status.buffers.Char[g_status.selected_character], g_value_69b9a0);
         CloseUseItemSelectView();
         return;
     }
@@ -1059,7 +1043,7 @@ void UpdateUseItemDetailPanel(W8ItemInstance* item)
     bool charges = false;
 
     g_use_item_select_controls[0]->m_imageObject =
-        g_item_video_objects_68ec68.GetOrCreateVideoObject(item->iItemNo);
+        g_item_video_objects.GetOrCreateVideoObject(item->iItemNo);
     g_use_item_select_controls[0]->m_measured_w = -1;
     g_use_item_select_controls[0]->m_measured_h = -1;
     g_use_item_select_controls[0]->m_imageFrame = 0;
@@ -1094,7 +1078,7 @@ void UpdateUseItemDetailPanel(W8ItemInstance* item)
     }
     g_use_item_select_controls[0]->m_textBuffer.SetText(value, g_font_683660);
     g_use_item_select_controls[0]->Invalidate(1);
-    g_use_item_detail_item_0069bf2c = item;
+    g_use_item_detail_item = item;
 }
 
 // FUNCTION: WIZ8 0x0059E0D0
@@ -1110,7 +1094,7 @@ W8ItemInstance* GetSelectedOrFallbackValue(void)
 // FUNCTION: WIZ8 0x0059E0E0
 void SelectCurrentUseItemLine(void)
 {
-    SelectUseItemLine(g_selected_use_item_line_0069b95c);
+    SelectUseItemLine(g_selected_use_item_line);
 }
 
 /* Move the selected item into the cursor hand. When the hand is already
@@ -1123,28 +1107,26 @@ void TakeUseItemIntoHand(void)
     unsigned int i;
     int old_count;
 
-    if (g_status_685170.item_in_cursor == 0) {
-        CopyItemInstance(&g_status_685170.item_in_hand_235b, g_value_69b9a0, 0, 1);
+    if (g_status.item_in_cursor == 0) {
+        CopyItemInstance(&g_status.item_in_hand_235b, g_value_69b9a0, 0, 1);
         return;
     }
-    if (g_use_item_owner_index_0069b9b0 == -1) {
+    if (g_use_item_owner_index == -1) {
         srAssertFail("giUseItemChar != BAD_INDEX", MGSUSEITEMSELECT_CPP, 0x6c1, 0);
     }
-    old_count = g_status_685170.party_item_count_1791;
-    GiveItemToCharacterOrParty(g_use_item_owner_index_0069b9b0, &g_status_685170.item_in_hand_235b,
-                               1);
-    if (g_use_item_select_mode_0069b98c == 1 &&
-        old_count != g_status_685170.party_item_count_1791 &&
-        g_status_685170.party_item_count_1791 != 0) {
-        for (i = 0; i < static_cast<unsigned int>(g_status_685170.party_item_count_1791); i++) {
-            if (g_value_69b9a0 == &g_status_685170.party_item_pool_0021[i]) {
-                g_value_69b9a0 = &g_status_685170.party_item_pool_0021[i + 1];
-                CopyItemInstance(&g_status_685170.item_in_hand_235b, g_value_69b9a0, 0, 1);
+    old_count = g_status.party_item_count_1791;
+    GiveItemToCharacterOrParty(g_use_item_owner_index, &g_status.item_in_hand_235b, 1);
+    if (g_use_item_select_mode == 1 && old_count != g_status.party_item_count_1791 &&
+        g_status.party_item_count_1791 != 0) {
+        for (i = 0; i < static_cast<unsigned int>(g_status.party_item_count_1791); i++) {
+            if (g_value_69b9a0 == &g_status.party_item_pool_0021[i]) {
+                g_value_69b9a0 = &g_status.party_item_pool_0021[i + 1];
+                CopyItemInstance(&g_status.item_in_hand_235b, g_value_69b9a0, 0, 1);
                 return;
             }
         }
     }
-    CopyItemInstance(&g_status_685170.item_in_hand_235b, g_value_69b9a0, 0, 1);
+    CopyItemInstance(&g_status.item_in_hand_235b, g_value_69b9a0, 0, 1);
 }
 
 // FUNCTION: WIZ8 0x0059E1E0

@@ -51,7 +51,7 @@ struct W8WorldCursorState {
     /* 0x4c: the selected monster group id - passed to
        GetMonsterGroupIndexByID, assigned from monster_group->group_id,
        written by SetWorldCursorGroupId and seeded from/restored to
-       g_cursor_saved_group_id_60ab44. */
+       g_cursor_saved_group_id. */
     int monster_group_id_4c;
     /* 0x50: when set the cursor is detached from the camera - input moves
        position_28 directly and the placement update skips the

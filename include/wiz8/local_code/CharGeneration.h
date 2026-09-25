@@ -48,7 +48,7 @@ void FinalizeCreatedCharacter(W8Character*, W8CharacterCreationState*, bool);
 void AddCharacterStartingEquipment(W8Character*);
 /* The six starting item ids each profession hands out, with the faerie
    race's own row last; -1 is an empty slot. */
-extern int g_starting_equipment_61635c[0x10][6];
+extern int g_starting_equipment[0x10][6];
 void RecomputeAttributeLimits(W8Character*, W8CharacterCreationState*);
 void ClampAttributesToBudget(W8Character*, W8CharacterCreationState*);
 void ApplyProfessionMinimumAttributes(W8Character*, W8CharacterCreationState*);

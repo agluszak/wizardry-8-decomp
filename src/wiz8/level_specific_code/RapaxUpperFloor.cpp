@@ -40,7 +40,7 @@ bool RapaxUpperFloorAirBox(Trigger* pTrigger)
     int item_id;
     int var_id;
 
-    if (g_status_685170.item_in_cursor != 0) {
+    if (g_status.item_in_cursor != 0) {
         item_id = GetItemInHand();
         if (item_id == 0x1cb || item_id == 0x1cd || item_id == 0x1cc || item_id == 0x1ce) {
             SetFact(0x236, 1, 0);

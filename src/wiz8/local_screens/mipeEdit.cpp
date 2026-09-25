@@ -24,18 +24,18 @@
 /* Decimal-place counter while typing a fraction into a type-1 field: -1 until
    '.' starts the fractional digits. */
 // GLOBAL: WIZ8 0x0064e000
-static signed char g_mipe_edit_decimal_0064e000 = -1;
+static signed char g_mipe_edit_decimal = -1;
 
 /* Row labels for the prop field editor, one per W8MipeEditField label_index. */
 // GLOBAL: WIZ8 0x0064e004
-static wchar_t g_mipe_prop_labels_0064e004[][0x80] = {
+static wchar_t g_mipe_prop_labels[][0x80] = {
     L"Open",   L"Lockable", L"Locked",   L"AutoLocking", L"One Way",
     L"Secret", L"Found",    L"Jammable", L"Jammed",      L"Key",
 };
 
 /* Key names for the type-7 "Key" row, indexed by option_base + value. */
 // GLOBAL: WIZ8 0x0064ea04
-static wchar_t g_mipe_key_names_0064ea04[][0x80] = {
+static wchar_t g_mipe_key_names[][0x80] = {
     L"Any Key",
     L"Master Key",
     L"Gold Key",
@@ -44,7 +44,7 @@ static wchar_t g_mipe_key_names_0064ea04[][0x80] = {
 /* The door-prop field table: nine bit flags packed into flags_008/flags_009
    plus the key id written to item_00a by CommitMipeEditFields. */
 // GLOBAL: WIZ8 0x0064ed08
-static W8MipeEditField g_mipe_prop_fields_0064ed08[10] = {
+static W8MipeEditField g_mipe_prop_fields[10] = {
     {5, 0, 0, 0, 0, 0.0f, 1}, {5, 1, 0, 0, 0, 0.0f, 1}, {5, 2, 0, 0, 0, 0.0f, 1},
     {5, 3, 0, 0, 0, 0.0f, 1}, {5, 4, 0, 0, 0, 0.0f, 1}, {5, 5, 0, 0, 0, 0.0f, 1},
     {5, 6, 0, 0, 0, 0.0f, 1}, {5, 7, 0, 0, 0, 0.0f, 1}, {5, 8, 0, 0, 0, 0.0f, 1},
@@ -53,34 +53,34 @@ static W8MipeEditField g_mipe_prop_fields_0064ed08[10] = {
 
 /* Field table per variable set; only set 0 (prop trigger flags) exists. */
 // GLOBAL: WIZ8 0x0064edf8
-static W8MipeEditField* g_mipe_var_set_fields_0064edf8[NUM_VAR_SETS] = {
-    g_mipe_prop_fields_0064ed08,
+static W8MipeEditField* g_mipe_var_set_fields[NUM_VAR_SETS] = {
+    g_mipe_prop_fields,
 };
 
 // GLOBAL: WIZ8 0x0064edfc
-static int g_mipe_prop_field_count_0064edfc = 10;
+static int g_mipe_prop_field_count = 10;
 
 /* Running digit accumulator while typing a numeric field value. */
 // GLOBAL: WIZ8 0x0069c510
-static float g_mipe_edit_accum_0069c510;
+static float g_mipe_edit_accum;
 
 static void DrawMipeEditFieldRow(W8MipeEditField* field, unsigned int palette, char row);
 static void CommitMipeEditFields(W8TriggerActionData* data, signed char bVarSet);
 
 /* Redraws the up-to-seven visible editor rows starting at
-   g_mipe_table_base_0068f120; the selected row gets palette 6, the rest 15. */
+   g_mipe_table_base; the selected row gets palette 6, the rest 15. */
 #define MIPE_REDRAW_EDIT_FIELDS()                                                                  \
     do {                                                                                           \
-        W8MipeState* state_ = g_mipe_state_0068f100;                                               \
-        char shown_ = static_cast<char>(state_->edit_field_count -                                 \
-                                        static_cast<char>(g_mipe_table_base_0068f120));            \
+        W8MipeState* state_ = g_mipe_state;                                                        \
+        char shown_ =                                                                              \
+            static_cast<char>(state_->edit_field_count - static_cast<char>(g_mipe_table_base));    \
         char row_;                                                                                 \
         if (shown_ >= 8) {                                                                         \
             shown_ = 7;                                                                            \
         }                                                                                          \
         ResetEditorStatusLine(-1);                                                                 \
-        for (row_ = static_cast<char>(g_mipe_table_base_0068f120);                                 \
-             row_ < g_mipe_table_base_0068f120 + shown_; ++row_) {                                 \
+        for (row_ = static_cast<char>(g_mipe_table_base); row_ < g_mipe_table_base + shown_;       \
+             ++row_) {                                                                             \
             DrawMipeEditFieldRow(&state_->edit_fields[static_cast<int>(row_)],                     \
                                  row_ != state_->edit_selection ? 15 : 6, row_);                   \
         }                                                                                          \
@@ -92,7 +92,7 @@ static void CommitMipeEditFields(W8TriggerActionData* data, signed char bVarSet)
 // FUNCTION: WIZ8 0x005c3880
 void HandleMipeEditPropKey(unsigned short key)
 {
-    W8MipeState* state = g_mipe_state_0068f100;
+    W8MipeState* state = g_mipe_state;
     W8MipeEditField* fields = state->edit_fields;
     W8MipeEditField* field;
     Trigger* trigger;
@@ -118,7 +118,7 @@ void HandleMipeEditPropKey(unsigned short key)
             }
             len = wcslen(field->text);
             if (static_cast<int>(len) < 0x7e) {
-                if (key != 0x20 && g_shift_held_006f0530 == 0 && (key < 0x30 || key > 0x39)) {
+                if (key != 0x20 && g_shift_held == 0 && (key < 0x30 || key > 0x39)) {
                     key += 0x20;
                 }
                 field->text[len] = key;
@@ -143,8 +143,8 @@ void HandleMipeEditPropKey(unsigned short key)
         break;
     case 0x26:
         if (state->edit_selection == -1) {
-            if (g_mipe_table_base_0068f120 != 0) {
-                --g_mipe_table_base_0068f120;
+            if (g_mipe_table_base != 0) {
+                --g_mipe_table_base;
             }
         } else {
             field = &fields[static_cast<int>(state->edit_selection)];
@@ -160,8 +160,8 @@ void HandleMipeEditPropKey(unsigned short key)
         break;
     case 0x28:
         if (state->edit_selection == -1) {
-            if (g_mipe_table_base_0068f120 < state->edit_field_count - 1) {
-                ++g_mipe_table_base_0068f120;
+            if (g_mipe_table_base < state->edit_field_count - 1) {
+                ++g_mipe_table_base;
             }
         } else {
             field = &fields[static_cast<int>(state->edit_selection)];
@@ -176,8 +176,8 @@ void HandleMipeEditPropKey(unsigned short key)
         MIPE_REDRAW_EDIT_FIELDS();
         break;
     case 0x2e:
-        if (g_mipe_edit_decimal_0064e000 == -1) {
-            g_mipe_edit_decimal_0064e000 = 0;
+        if (g_mipe_edit_decimal == -1) {
+            g_mipe_edit_decimal = 0;
             MIPE_REDRAW_EDIT_FIELDS();
         }
         break;
@@ -193,27 +193,25 @@ void HandleMipeEditPropKey(unsigned short key)
     case 0x39:
         if (state->edit_selection == -1) {
             state->edit_selection = static_cast<signed char>(key - 0x30);
-            g_mipe_edit_accum_0069c510 = 0.0f;
+            g_mipe_edit_accum = 0.0f;
             field = &fields[static_cast<int>(state->edit_selection)];
-            g_mipe_edit_decimal_0064e000 = -1;
+            g_mipe_edit_decimal = -1;
             if (field->type == 6 && field->text != 0) {
                 field->text[0] = 0;
             }
         } else {
             field = &fields[static_cast<int>(state->edit_selection)];
             if (field->type == 4) {
-                g_mipe_edit_accum_0069c510 =
-                    g_mipe_edit_accum_0069c510 * g_float_005ebc88 + (key - 0x30);
-                field->value = static_cast<int>(g_mipe_edit_accum_0069c510);
+                g_mipe_edit_accum = g_mipe_edit_accum * g_float_005ebc88 + (key - 0x30);
+                field->value = static_cast<int>(g_mipe_edit_accum);
             } else if (field->type == 1) {
-                g_mipe_edit_accum_0069c510 =
-                    g_mipe_edit_accum_0069c510 * g_float_005ebc88 + (key - 0x30);
-                if (g_mipe_edit_decimal_0064e000 < 0) {
-                    field->float_value = g_mipe_edit_accum_0069c510;
+                g_mipe_edit_accum = g_mipe_edit_accum * g_float_005ebc88 + (key - 0x30);
+                if (g_mipe_edit_decimal < 0) {
+                    field->float_value = g_mipe_edit_accum;
                 } else {
-                    ++g_mipe_edit_decimal_0064e000;
-                    field->float_value = static_cast<float>(
-                        g_mipe_edit_accum_0069c510 / pow(10.0, g_mipe_edit_decimal_0064e000));
+                    ++g_mipe_edit_decimal;
+                    field->float_value =
+                        static_cast<float>(g_mipe_edit_accum / pow(10.0, g_mipe_edit_decimal));
                 }
             }
         }
@@ -228,31 +226,31 @@ void HandleMipeEditPropKey(unsigned short key)
 static void DrawMipeEditFieldRow(W8MipeEditField* field, unsigned int palette, char row)
 {
     if (field->type == 1) {
-        if (g_mipe_edit_decimal_0064e000 == 0) {
+        if (g_mipe_edit_decimal == 0) {
             ShowNoticef(palette, L"%d) %s: %g.", static_cast<int>(row),
-                        g_mipe_prop_labels_0064e004[field->label_index], field->float_value);
+                        g_mipe_prop_labels[field->label_index], field->float_value);
         } else {
             ShowNoticef(palette, L"%d) %s: %g", static_cast<int>(row),
-                        g_mipe_prop_labels_0064e004[field->label_index], field->float_value);
+                        g_mipe_prop_labels[field->label_index], field->float_value);
         }
     } else if (field->type == 2 || field->type == 4) {
         ShowNoticef(palette, L"%d) %s: %d", static_cast<int>(row),
-                    g_mipe_prop_labels_0064e004[field->label_index], field->value);
+                    g_mipe_prop_labels[field->label_index], field->value);
     } else if (field->type == 5) {
         if (field->value != 0) {
             ShowNoticef(palette, L"%d) %s: true", static_cast<int>(row),
-                        g_mipe_prop_labels_0064e004[field->label_index]);
+                        g_mipe_prop_labels[field->label_index]);
         } else {
             ShowNoticef(palette, L"%d) %s: false", static_cast<int>(row),
-                        g_mipe_prop_labels_0064e004[field->label_index]);
+                        g_mipe_prop_labels[field->label_index]);
         }
     } else if (field->type == 6) {
         ShowNoticef(palette, L"%d) %s: %s", static_cast<int>(row),
-                    g_mipe_prop_labels_0064e004[field->label_index], field->text);
+                    g_mipe_prop_labels[field->label_index], field->text);
     } else if (field->type == 7) {
         ShowNoticef(palette, L"%d) %s: %s", static_cast<int>(row),
-                    g_mipe_prop_labels_0064e004[field->label_index],
-                    g_mipe_key_names_0064ea04[field->option_base + field->value]);
+                    g_mipe_prop_labels[field->label_index],
+                    g_mipe_key_names[field->option_base + field->value]);
     }
 }
 
@@ -266,7 +264,7 @@ static void CommitMipeEditFields(W8TriggerActionData* data, signed char bVarSet)
     if (bVarSet >= NUM_VAR_SETS) {
         srAssertFail("bVarSet < NUM_VAR_SETS", MIPE_EDIT_CPP, 0x20a, 0);
     }
-    fields = g_mipe_var_set_fields_0064edf8[static_cast<int>(bVarSet)];
+    fields = g_mipe_var_set_fields[static_cast<int>(bVarSet)];
     if (bVarSet == 0) {
         static_cast<W8DoorTriggerActionData*>(data)->flags_008 =
             (static_cast<W8DoorTriggerActionData*>(data)->flags_008 & ~1) | (fields[0].value & 1);

@@ -172,7 +172,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         return;
     case 0x37:
         fact_value = EvaluateFact(0x36);
-        if (g_status_685170.log_fact_checks_3120) {
+        if (g_status.log_fact_checks_3120) {
             if (fact_value == 0) {
                 wcscpy(display_value, L"FALSE");
             } else {
@@ -186,9 +186,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         return;
     case 0x39:
-        if (value != 0 &&
-            g_status_685170.buffers.Char[g_status_685170.party_slot_249c].uiCondition[0x13] != 0) {
-            RemoveCharacterCondition(g_status_685170.party_slot_249c, 0x13, 1);
+        if (value != 0 && g_status.buffers.Char[g_status.party_slot_249c].uiCondition[0x13] != 0) {
+            RemoveCharacterCondition(g_status.party_slot_249c, 0x13, 1);
         }
         return;
     case 0x3a:
@@ -226,8 +225,8 @@ void HandleFactChange(int fact_id, unsigned char value)
     case 0x86:
         if (value != 0) {
             for (slot = 0; slot < 8; ++slot) {
-                character = &g_status_685170.buffers.Char[slot];
-                if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
+                character = &g_status.buffers.Char[slot];
+                if (g_status.buffers.XChar[slot].fOccupied != 0 &&
                     character->highest_condition < 0x12 &&
                     g_profession_skill_availability[7][character->iProfession] != 0 &&
                     character->skills[7].points_02 < 10) {
@@ -374,7 +373,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             return;
         }
         fact_value = EvaluateFact(0xd1);
-        if (g_status_685170.log_fact_checks_3120) {
+        if (g_status.log_fact_checks_3120) {
             if (fact_value == 0) {
                 wcscpy(display_value, L"FALSE");
             } else {
@@ -519,8 +518,8 @@ void HandleFactChange(int fact_id, unsigned char value)
             return;
         }
         for (slot = 0; slot < 8; ++slot) {
-            character = &g_status_685170.buffers.Char[slot];
-            if (g_status_685170.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
+            character = &g_status.buffers.Char[slot];
+            if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
                 character->highest_condition < 0x12) {
                 added = 100 - character->attributes[1].value;
                 if (added > 5) {
@@ -674,7 +673,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         position.z = 36936.0f;
         CameraLookAt(&position);
         fact_value = EvaluateFact(0x177);
-        if (g_status_685170.log_fact_checks_3120) {
+        if (g_status.log_fact_checks_3120) {
             if (fact_value == 0) {
                 wcscpy(display_value, L"FALSE");
             } else {
@@ -721,13 +720,13 @@ void HandleFactChange(int fact_id, unsigned char value)
         QueueNpcMessageLine(W8_NPC_MSG_SAVANT_APPEARS, 0);
         return;
     case 0x219:
-        g_status_685170.endgame2_queued = 1;
+        g_status.endgame2_queued = 1;
         return;
     case 0x21b:
         QueueNpcMessageLine(W8_NPC_MSG_PHOONZANG_SPLIT, 0);
         return;
     case 0x21c:
-        g_status_685170.endgame3_queued = 1;
+        g_status.endgame3_queued = 1;
         return;
     case 0x21e:
         if (value == 0) {
@@ -906,7 +905,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        g_status_685170.vi_event_stage_498b = 1;
+        g_status.vi_event_stage_498b = 1;
         group = FindFirstMonsterByID(0x234);
         if (group != 0) {
             SetMonsterGroupHostility(group, 2, 0);
@@ -968,7 +967,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
             if (npc->name_style == 0x18) {
                 wchar_t display_value[16];
                 unsigned char fact_ok = EvaluateFact(0xc1);
-                if (g_status_685170.log_fact_checks_3120 != 0) {
+                if (g_status.log_fact_checks_3120 != 0) {
                     if (fact_ok) {
                         wcscpy(display_value, L"TRUE");
                     } else {
@@ -979,7 +978,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
                 }
                 if (fact_ok == 0) {
                     fact_ok = EvaluateFact(0xdb);
-                    if (g_status_685170.log_fact_checks_3120 != 0) {
+                    if (g_status.log_fact_checks_3120 != 0) {
                         if (fact_ok) {
                             wcscpy(display_value, L"TRUE");
                         } else {
@@ -1012,8 +1011,8 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     int index;
     int pick;
     for (slot = 0; slot < 8; ++slot) {
-        W8Character* character = &g_status_685170.buffers.Char[slot];
-        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
+        W8Character* character = &g_status.buffers.Char[slot];
+        if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
             character->highest_condition < 0xf) {
             eligible_slots[eligible_count] = slot;
             ++eligible_count;
@@ -1021,31 +1020,31 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     }
     for (index = 0; index < eligible_count; ++index) {
         if (eligible_slots[index] == lead_index) {
-            QueueCharacterEvent(&g_status_685170.buffers.Char[eligible_slots[index]],
-                                g_effect_005ee618, g_event_flag_005ed8e0,
-                                g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+            QueueCharacterEvent(&g_status.buffers.Char[eligible_slots[index]], g_effect_005ee618,
+                                g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
+                                g_effect_argument_005ed914);
         }
     }
     if (eligible_count > 2) {
         do {
             pick = Random(eligible_count);
         } while (eligible_slots[pick] == lead_index);
-        QueueCharacterEvent(&g_status_685170.buffers.Char[eligible_slots[pick]], g_effect_005ee618,
+        QueueCharacterEvent(&g_status.buffers.Char[eligible_slots[pick]], g_effect_005ee618,
                             g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
     }
     for (slot = 0; slot < 8; ++slot) {
-        W8Character* character = &g_status_685170.buffers.Char[slot];
-        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
+        W8Character* character = &g_status.buffers.Char[slot];
+        if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
             character->highest_condition < 0xf) {
             QueueCharacterEvent(character, g_effect_005ee630, g_event_flag_005ed8e0,
                                 g_effect_argument_005ed8c8, g_effect_argument_005ed914);
         }
     }
-    if (g_status_685170.endgame2_queued != 0 ||
-        (g_status_685170.endgame3_queued != 0 && FindNpcOfKind(W8_NPC_PHOONZANG) != 0)) {
+    if (g_status.endgame2_queued != 0 ||
+        (g_status.endgame3_queued != 0 && FindNpcOfKind(W8_NPC_PHOONZANG) != 0)) {
         QueueNpcMessageLine(W8_NPC_MSG_TURN_TO_BOOK, 0);
-    } else if (g_status_685170.endgame3_queued != 0) {
+    } else if (g_status.endgame3_queued != 0) {
         QueueNpcMessageLine(W8_NPC_MSG_PHOONZANG_NOTICE, 0);
     }
     for (unsigned int entry_index = 0; entry_index < PLLength(gXStatus.plsMonsterList);
@@ -1091,7 +1090,7 @@ void MonsterKilled(int record_id, int killer_party_slot)
     } else {
         if (record_id == 0x22b) {
             value = EvaluateFact(0x1be);
-            if (g_status_685170.log_fact_checks_3120 != 0) {
+            if (g_status.log_fact_checks_3120 != 0) {
                 if (value != 0) {
                     wcscpy(display_value, L"TRUE");
                 } else {
@@ -1103,14 +1102,13 @@ void MonsterKilled(int record_id, int killer_party_slot)
             if (value != 0) {
                 SetFact(0x2a6, 0, 0);
             }
-            if (g_status_685170.rpc_active_2489 != 0) {
-                if (g_status_685170.buffers.Char[g_status_685170.sedexus_party_slot_247f]
-                        .uiCondition[10] > 0) {
-                    RemoveCharacterCondition(g_status_685170.sedexus_party_slot_247f, 10, 0);
+            if (g_status.rpc_active_2489 != 0) {
+                if (g_status.buffers.Char[g_status.sedexus_party_slot_247f].uiCondition[10] > 0) {
+                    RemoveCharacterCondition(g_status.sedexus_party_slot_247f, 10, 0);
                 }
-                QueueCharacterEvent(
-                    &g_status_685170.buffers.Char[g_status_685170.sedexus_party_slot_247f],
-                    g_effect_005ee6f8, 0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                QueueCharacterEvent(&g_status.buffers.Char[g_status.sedexus_party_slot_247f],
+                                    g_effect_005ee6f8, 0, g_effect_argument_005ed8c8,
+                                    g_effect_argument_005ed914);
             }
             SetFact(0x1b6, 1, 0);
             return;

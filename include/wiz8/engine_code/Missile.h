@@ -160,7 +160,7 @@ void DestroyMissile(W8Missile* missile); /* 0x004A4180 */
 void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<float>* position);
 void DestroyAllMissiles(W8World* world); /* 0x004A4210 */
 
-extern unsigned int g_missile_table_count_65bddc;
+extern unsigned int g_missile_table_count;
 
 /* One 0x1e5-byte MissileTables.dbs runtime row. Only the fields reached by
    recovered consumers are named. */
@@ -190,7 +190,7 @@ struct W8MissileTableRecord {
 
 static_assert(sizeof(W8MissileTableRecord) == 0x1e5, "W8MissileTableRecord_must_be_0x1e5");
 
-extern W8MissileTableRecord* g_missile_table_65bde0;
+extern W8MissileTableRecord* g_missile_table;
 
 W8Missile* NextMissile(char restart);
 

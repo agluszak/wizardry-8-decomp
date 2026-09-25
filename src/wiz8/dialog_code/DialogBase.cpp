@@ -24,8 +24,8 @@ W8DialogBase::W8DialogBase()
     m_error = 0;
     m_text = 0;
     m_font = g_dialog_font_64fde8;
-    m_foreground = g_dialog_font_foreground_64fdec;
-    m_background = g_dialog_font_background_64fded;
+    m_foreground = g_dialog_font_foreground;
+    m_background = g_dialog_font_background;
     m_border = -1;
     m_x = -1;
     m_y = -1;
@@ -175,7 +175,7 @@ int W8DialogBase::CreateControls()
                          static_cast<short>(m_height), 0x8004, 0x7d, 0, 0);
     if (m_resource != -1) {
         SpecifyButtonTextOffsets(m_resource, 3, 3, 1);
-        SpecifyButtonMultiColorFont(m_resource, g_dialog_font_enabled_69ca32);
+        SpecifyButtonMultiColorFont(m_resource, g_dialog_font_enabled);
         m_dirty_flags |= 1;
         m_initialized = true;
         return 0;

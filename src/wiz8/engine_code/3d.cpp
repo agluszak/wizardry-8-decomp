@@ -430,55 +430,55 @@ unsigned char ShowTargetMarker(const srVector3T<float>* eye, const srVector3T<fl
 
     point = (*lower + *upper) * g_double_005ebe80;
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point = *upper;
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point = *lower;
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point.Set(lower->x, upper->y, upper->z);
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point.Set(lower->x, upper->y, lower->z);
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point.Set(upper->x, upper->y, lower->z);
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point.Set(upper->x, lower->y, upper->z);
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point.Set(lower->x, lower->y, upper->z);
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
     point.Set(upper->x, lower->y, lower->z);
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
@@ -495,39 +495,39 @@ char TraceLineOfSightToBounds(const srVector3T<float>* origin, srVector3T<float>
     srVector3T<float> point;
 
     point = (*minimum + *maximum) * g_double_005ebe80;
-    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+    if (g_octree->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
         return 1;
     }
     point = *maximum;
-    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+    if (g_octree->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
         return 1;
     }
     point = *minimum;
-    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+    if (g_octree->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
         return 1;
     }
     point.Set(minimum->x, maximum->y, maximum->z);
-    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+    if (g_octree->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
         return 1;
     }
     point.Set(minimum->x, maximum->y, minimum->z);
-    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+    if (g_octree->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
         return 1;
     }
     point.Set(maximum->x, maximum->y, minimum->z);
-    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+    if (g_octree->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
         return 1;
     }
     point.Set(maximum->x, minimum->y, maximum->z);
-    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+    if (g_octree->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
         return 1;
     }
     point.Set(minimum->x, minimum->y, maximum->z);
-    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+    if (g_octree->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
         return 1;
     }
     point.Set(maximum->x, minimum->y, minimum->z);
-    return g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0;
+    return g_octree->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0;
 }
 
 /* Report whether the eye sees a bounds box: true when the midpoint or any one
@@ -539,39 +539,39 @@ bool HasLineOfSightToBounds0046FD70(const srVector3T<float>* origin, srVector3T<
     srVector3T<float> point;
 
     point = (*minimum + *maximum) * g_double_005ebe80;
-    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+    if (g_octree->HasLineOfSight(origin, &point, 1)) {
         return true;
     }
     point = *maximum;
-    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+    if (g_octree->HasLineOfSight(origin, &point, 1)) {
         return true;
     }
     point = *minimum;
-    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+    if (g_octree->HasLineOfSight(origin, &point, 1)) {
         return true;
     }
     point.Set(minimum->x, maximum->y, maximum->z);
-    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+    if (g_octree->HasLineOfSight(origin, &point, 1)) {
         return true;
     }
     point.Set(minimum->x, maximum->y, minimum->z);
-    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+    if (g_octree->HasLineOfSight(origin, &point, 1)) {
         return true;
     }
     point.Set(maximum->x, maximum->y, minimum->z);
-    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+    if (g_octree->HasLineOfSight(origin, &point, 1)) {
         return true;
     }
     point.Set(maximum->x, minimum->y, maximum->z);
-    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+    if (g_octree->HasLineOfSight(origin, &point, 1)) {
         return true;
     }
     point.Set(minimum->x, minimum->y, maximum->z);
-    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+    if (g_octree->HasLineOfSight(origin, &point, 1)) {
         return true;
     }
     point.Set(maximum->x, minimum->y, minimum->z);
-    return g_octree_6598a4->HasLineOfSight(origin, &point, 1);
+    return g_octree->HasLineOfSight(origin, &point, 1);
 }
 
 // FUNCTION: WIZ8 0x0046F510
@@ -990,14 +990,14 @@ void SetSceneAmbientLightWhite(srScene* scene)
 }
 
 // GLOBAL: WIZ8 0x00652db0
-W8GameData* g_octree_game_data_00652db0;
+W8GameData* g_octree_game_data;
 
 /* The octree builds read the level data through this slot; the recovered
    caller passes the W8GameData object it just read. */
 // FUNCTION: WIZ8 0x0046D7D0
 void __stdcall SetOctreeGameData(W8GameData* value)
 {
-    g_octree_game_data_00652db0 = value;
+    g_octree_game_data = value;
 }
 
 /* Test one point against all six frustum planes: outside if any signed

@@ -37,11 +37,11 @@ static void SetupAudioTestWorld()
    left it unbuilt and pin it so the listener position is deterministic. */
 static void EnsureTestCamera()
 {
-    if (g_gd_camera_65a0f8 == 0) {
-        g_gd_camera_65a0f8 = new GDCamera();
+    if (g_gd_camera == 0) {
+        g_gd_camera = new GDCamera();
     }
-    g_gd_camera_65a0f8->m_position_08c.Set(0.0f, 0.0f, 0.0f);
-    g_gd_camera_65a0f8->m_yaw = 0.0f;
+    g_gd_camera->m_position_08c.Set(0.0f, 0.0f, 0.0f);
+    g_gd_camera->m_yaw = 0.0f;
 }
 
 static unsigned char CheckFootstepPaths()
@@ -64,10 +64,10 @@ static unsigned char CheckFootstepPaths()
     /* The material table drives both the directory name and the >= CLIMB_LADDER
        single-file bypass in PlayFootstep. */
     int vocabulary =
-        strcmp(g_footstep_names_609edc[W8_FOOTSTEP_MATERIAL_CLIMB_LADDER], "ClimbLadder") == 0 &&
-        strcmp(g_footstep_names_609edc[W8_FOOTSTEP_MATERIAL_SHALLOW_WATER], "ShallowWater") == 0 &&
-        strcmp(g_footstep_names_609edc[W8_FOOTSTEP_MATERIAL_GRAVEL], "Gravel") == 0 &&
-        strcmp(g_footstep_surfaces_609eb8[W8_FOOTSTEP_SURFACE_OUTDOORS_FLAT], "OutdoorsFlat") == 0;
+        strcmp(g_footstep_names[W8_FOOTSTEP_MATERIAL_CLIMB_LADDER], "ClimbLadder") == 0 &&
+        strcmp(g_footstep_names[W8_FOOTSTEP_MATERIAL_SHALLOW_WATER], "ShallowWater") == 0 &&
+        strcmp(g_footstep_names[W8_FOOTSTEP_MATERIAL_GRAVEL], "Gravel") == 0 &&
+        strcmp(g_footstep_surfaces[W8_FOOTSTEP_SURFACE_OUTDOORS_FLAT], "OutdoorsFlat") == 0;
 
     /* The >= CLIMB_LADDER single-file bypass never assigns the anti-repeat
        global; the ordinary variant path always does. That makes the branch
@@ -92,11 +92,11 @@ static unsigned char CheckFootstepPaths()
 
 static unsigned char CheckSound3DLifecycle()
 {
-    int base = g_sound3d_instances_65be40.GetCount();
+    int base = g_sound3d_instances.GetCount();
     unsigned char flags = 0;
 
     stSound3D* first = new stSound3D("alpha.wav", static_cast<srNode*>(0));
-    if (g_sound3d_instances_65be40.GetCount() == base + 1 && first->sound_handle == -1) {
+    if (g_sound3d_instances.GetCount() == base + 1 && first->sound_handle == -1) {
         flags |= 1;
     }
 
@@ -107,24 +107,23 @@ static unsigned char CheckSound3DLifecycle()
     /* operator= registers the destination again: retail's clone path treats
        assignment as publish-into-registry, so the entry count grows by one and
        the name is deep-copied while the live handle is not. */
-    if (g_sound3d_instances_65be40.GetCount() == base + 3 && second->wave_name != 0 &&
+    if (g_sound3d_instances.GetCount() == base + 3 && second->wave_name != 0 &&
         strcmp(second->wave_name, "alpha.wav") == 0 && second->wave_name != first->wave_name &&
         second->volume == 0x40 && second->falloff == 750.0f && second->sound_handle == -1) {
         flags |= 2;
     }
 
     delete first;
-    if (g_sound3d_instances_65be40.GetCount() == base + 2 &&
-        g_sound3d_instances_65be40.IndexOf(first) == -1) {
+    if (g_sound3d_instances.GetCount() == base + 2 && g_sound3d_instances.IndexOf(first) == -1) {
         flags |= 4;
     }
 
     delete second;
     /* The assignment added a second registration for the same object; remove
        the leftover entry so the global vector is exactly as found. */
-    int duplicate = g_sound3d_instances_65be40.IndexOf(second);
+    int duplicate = g_sound3d_instances.IndexOf(second);
     if (duplicate != -1) {
-        g_sound3d_instances_65be40.RemoveAt(duplicate);
+        g_sound3d_instances.RemoveAt(duplicate);
     }
     return flags;
 }
@@ -181,9 +180,9 @@ static unsigned char CheckSound3DFalloff()
     SOUND3DPARMS options;
     srVector3T<float> listener;
     unsigned char flags = 0;
-    unsigned char saved_volume = g_settings_6850c8.sound_effects_volume;
+    unsigned char saved_volume = g_settings.sound_effects_volume;
 
-    g_settings_6850c8.sound_effects_volume = 0x7f;
+    g_settings.sound_effects_volume = 0x7f;
     stSound3D* probe = new stSound3D("probe.wav", static_cast<srNode*>(0));
     probe->setLocation(0.0, 0.0, 0.0);
     probe->volume = 0x7f;
@@ -221,35 +220,35 @@ static unsigned char CheckSound3DFalloff()
     }
 
     /* Muted bus: effects volume zero collapses every distance to silence. */
-    g_settings_6850c8.sound_effects_volume = 0;
+    g_settings.sound_effects_volume = 0;
     listener.Set(0.0f, 0.0f, 0.0f);
     probe->BuildSoundOptions(&listener, &options);
     if (options.uiVolume == 0) {
         flags |= 0x10;
     }
 
-    g_settings_6850c8.sound_effects_volume = saved_volume;
+    g_settings.sound_effects_volume = saved_volume;
     delete probe;
     return flags;
 }
 
 static unsigned char CheckMuteState()
 {
-    unsigned char saved_volume = g_settings_6850c8.sound_effects_volume;
-    unsigned char saved_muted = g_settings_6850c8.muted_sound_effects_volume;
+    unsigned char saved_volume = g_settings.sound_effects_volume;
+    unsigned char saved_muted = g_settings.muted_sound_effects_volume;
     unsigned char ok = 1;
 
     /* 0xff is the unmuted sentinel; muting saves the live volume there and
        zeroes the bus, unmuting restores it. */
-    g_settings_6850c8.sound_effects_volume = 100;
-    g_settings_6850c8.muted_sound_effects_volume = 0xff;
+    g_settings.sound_effects_volume = 100;
+    g_settings.muted_sound_effects_volume = 0xff;
     SetSoundEffectsMuted(1);
     ok = ok && IsSoundEffectsMuted() && GetSoundEffectsVolume() == 0;
     SetSoundEffectsMuted(0);
     ok = ok && !IsSoundEffectsMuted() && GetSoundEffectsVolume() == 100;
 
-    g_settings_6850c8.sound_effects_volume = saved_volume;
-    g_settings_6850c8.muted_sound_effects_volume = saved_muted;
+    g_settings.sound_effects_volume = saved_volume;
+    g_settings.muted_sound_effects_volume = saved_muted;
     return ok;
 }
 

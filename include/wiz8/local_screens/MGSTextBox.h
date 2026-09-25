@@ -46,7 +46,7 @@ struct W8MessageStorageRecord {
 
 static_assert(sizeof(W8MessageStorageRecord) == 0x24, "W8MessageStorageRecord_must_be_0x24");
 
-extern W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
+extern W8MessageStorageRecord g_message_storage[4][0x15e];
 
 /* 0x0058AA20: reset one editor status line; -1 selects the current line. */
 void ResetEditorStatusLine(short line);
@@ -109,7 +109,7 @@ void AttemptTrapDisarm(int level, int flag, char backfire);
 void AppendToLastTextLine(const wchar_t* text, int text_box);
 /* 0x0069B7BC: wrapped line count of the notice ShowNotice last displayed;
    only maintained while game_status.quote_audit_2431 is raised. */
-extern int g_notice_line_count_0069b7bc;
+extern int g_notice_line_count;
 /* 0x0058FB30: the number of lines the notice pane can scroll. */
 int GetTextBoxScrollRange(void);
 /* 0x00590950/0x00590B40: the two variadic notice formatters. The binary

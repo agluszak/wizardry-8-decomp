@@ -209,12 +209,12 @@ int W8SplitItemDialog::CreateControls()
     m_buttons_054[3]->m_dirty = true;
     m_count_input_0b4->m_dirty = true;
     m_count_input_0b4->m_button->m_dirty = true;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(m_item_0d0) * m_remaining_0bc) * g_float_005ed8b8);
     m_texts_07c[7]->SetText(text, g_font_683660);
     m_buttons_054[4]->m_dirty = true;
     m_texts_07c[7]->m_geometryDirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(m_item_0d0) * split_count_0c0) * g_float_005ed8b8);
     m_texts_07c[9]->SetText(text, g_font_683660);
     m_buttons_054[5]->m_dirty = true;
@@ -384,7 +384,7 @@ unsigned char W8SplitItemDialog::CreateTextBuffers()
     m_texts_07c[3]->SetText(FormatItemDisplayName(m_item_0d0, 0), g_font_683660);
     m_texts_07c[4]->SetText(
         FormatWideString(
-            L"%s (%s)", gppStringList[g_equip_class_name_ids_61e7dc[GetItemEquipClass(m_item_0d0)]],
+            L"%s (%s)", gppStringList[g_equip_class_name_ids[GetItemEquipClass(m_item_0d0)]],
             gppStringList[g_generic_item_name_notice[GetItemUnidentifiedNameIndex(m_item_0d0)]]),
         g_font_683660);
     return 1;
@@ -448,7 +448,7 @@ void W8SplitItemDialog::Draw()
     }
     if (m_first_draw_0d4 != 0) {
         DrawCatalogImageAndInvalidate(
-            -0xe, g_item_video_objects_68ec68.GetOrCreateVideoObject(m_item_0d0->iItemNo), 0, 0,
+            -0xe, g_item_video_objects.GetOrCreateVideoObject(m_item_0d0->iItemNo), 0, 0,
             m_x + 0x18, m_y + 0xe, 2, 0);
         m_first_draw_0d4 = 0;
     }
@@ -557,14 +557,14 @@ void W8SplitItemDialog::UpdateAcceptButton()
     can_accept = split_count_0c0 != 0;
     switch (m_kind_0cc) {
     case 1:
-        if (g_status_685170.party_gold < static_cast<unsigned int>(CalculateTradeStackPrice(
-                                             g_screen_state_00649f1c->dialogue_npc, &stack, 0))) {
+        if (g_status.party_gold < static_cast<unsigned int>(CalculateTradeStackPrice(
+                                      g_screen_state_00649f1c->dialogue_npc, &stack, 0))) {
             can_accept = false;
         }
         break;
     case 2:
-        if (g_status_685170.party_gold < static_cast<unsigned int>(CalculateTradeStackPrice(
-                                             g_screen_state_00649f1c->dialogue_npc, &stack, 1))) {
+        if (g_status.party_gold < static_cast<unsigned int>(CalculateTradeStackPrice(
+                                      g_screen_state_00649f1c->dialogue_npc, &stack, 1))) {
             can_accept = false;
         }
         break;
@@ -596,12 +596,12 @@ void W8SplitItemDialog::OnNumericInputChanged(int value)
     m_buttons_054[3]->m_dirty = true;
     m_count_input_0b4->m_dirty = true;
     m_count_input_0b4->m_button->m_dirty = true;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(m_item_0d0) * m_remaining_0bc) * g_float_005ed8b8);
     m_texts_07c[7]->SetText(text, g_font_683660);
     m_buttons_054[4]->m_dirty = true;
     m_texts_07c[7]->m_geometryDirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(m_item_0d0) * split_count_0c0) * g_float_005ed8b8);
     m_texts_07c[9]->SetText(text, g_font_683660);
     m_buttons_054[5]->m_dirty = true;
@@ -702,13 +702,13 @@ void W8SplitItemDialog::OnSplitDecrement(W8DialogButton* button)
     dialog->m_buttons_054[3]->m_dirty = true;
     dialog->m_count_input_0b4->m_dirty = true;
     dialog->m_count_input_0b4->m_button->m_dirty = true;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->m_remaining_0bc) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[7]->SetText(text, g_font_683660);
     dialog->m_buttons_054[4]->m_dirty = true;
     dialog->m_texts_07c[7]->m_geometryDirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->split_count_0c0) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[9]->SetText(text, g_font_683660);
@@ -739,13 +739,13 @@ void W8SplitItemDialog::OnSplitIncrement(W8DialogButton* button)
     dialog->m_buttons_054[3]->m_dirty = true;
     dialog->m_count_input_0b4->m_dirty = true;
     dialog->m_count_input_0b4->m_button->m_dirty = true;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->m_remaining_0bc) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[7]->SetText(text, g_font_683660);
     dialog->m_buttons_054[4]->m_dirty = true;
     dialog->m_texts_07c[7]->m_geometryDirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->split_count_0c0) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[9]->SetText(text, g_font_683660);
@@ -776,13 +776,13 @@ void W8SplitItemDialog::OnSplitDecrementMany(W8DialogButton* button)
     dialog->m_buttons_054[3]->m_dirty = true;
     dialog->m_count_input_0b4->m_dirty = true;
     dialog->m_count_input_0b4->m_button->m_dirty = true;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->m_remaining_0bc) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[7]->SetText(text, g_font_683660);
     dialog->m_buttons_054[4]->m_dirty = true;
     dialog->m_texts_07c[7]->m_geometryDirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->split_count_0c0) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[9]->SetText(text, g_font_683660);
@@ -813,13 +813,13 @@ void W8SplitItemDialog::OnSplitIncrementMany(W8DialogButton* button)
     dialog->m_buttons_054[3]->m_dirty = true;
     dialog->m_count_input_0b4->m_dirty = true;
     dialog->m_count_input_0b4->m_button->m_dirty = true;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->m_remaining_0bc) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[7]->SetText(text, g_font_683660);
     dialog->m_buttons_054[4]->m_dirty = true;
     dialog->m_texts_07c[7]->m_geometryDirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->split_count_0c0) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[9]->SetText(text, g_font_683660);

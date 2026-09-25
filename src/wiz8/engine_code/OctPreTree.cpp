@@ -39,7 +39,7 @@ float g_float_005ec410 = 0.3333333432674408f;
 float g_float_005ec414 = 0.9998999834060669f;
 
 // GLOBAL: WIZ8 0x00659c74
-OctPreTree* g_oct_pre_tree_659c74 = 0;
+OctPreTree* g_oct_pre_tree = 0;
 
 /* Paired item/key sorts shared through stHash.hpp; these emissions are this
    file's unsigned long and unsigned short instantiations. */
@@ -65,7 +65,7 @@ OctPreTree::OctPreTree() : W8Octree(0, 0)
     automesh_cells_29c = 0;
     pre_pathing_2a0 = 0;
     props_3b8 = new W8GrowableVector<GDProp*>;
-    g_oct_pre_tree_659c74 = this;
+    g_oct_pre_tree = this;
 }
 
 /* Tears down the automesh cell map, the owned pre-pathing service and the
@@ -84,7 +84,7 @@ OctPreTree::~OctPreTree()
     if (props_3b8 != 0) {
         delete props_3b8;
     }
-    g_oct_pre_tree_659c74 = 0;
+    g_oct_pre_tree = 0;
 }
 
 /* Copies the working bounds straight into the spatial state; the build tree
@@ -1224,7 +1224,7 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
     srVector3T<float> node;
 
     object_registry = new W8OctreeObjectRegistry;
-    g_octree_game_data_00652db0 = game_data;
+    g_octree_game_data = game_data;
     delete m_owned_194;
     m_owned_194 = new BitArray(spatial_000.item_count_40 + 0x14);
     pre_pathing_2a0 = new PrePathing;
@@ -1232,8 +1232,7 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
                                         min_component_percent, this);
     ReportBuildStatus(6, "\nBuilding Path Lists:\n=======================\n");
     path_node_extent_3b4 = m_region_cell_178 + m_region_cell_178;
-    float level_height =
-        (spatial_000.maximum_18.y - spatial_000.minimum_0c.y) * g_path_span_scale_005ec344;
+    float level_height = (spatial_000.maximum_18.y - spatial_000.minimum_0c.y) * g_path_span_scale;
     int x_cells = static_cast<int>((spatial_000.maximum_18.x - spatial_000.minimum_0c.x) /
                                    m_region_cell_178) +
                   1;
@@ -1294,7 +1293,7 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
                         ++path_node_count_2a4;
                     }
                     node.y -= m_lNumSupports_2a8 != 0 ? NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE
-                                                      : g_world_scale_005ebc40;
+                                                      : g_world_scale;
                 }
                 cell += 0x10000;
             }
@@ -1313,7 +1312,7 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
             m_owned_0c0);
         /* Verified retail behavior: this early return runs only the two
            local hash-table destructors.  preprops (and its pStopMeshes
-           arrays), object_registry and g_octree_game_data_00652db0 are all
+           arrays), object_registry and g_octree_game_data are all
            left behind - the registry pointer and global stay live. */
         if (!pre_pathing_2a0->BuildPathList(head, &node_map)) {
             return 0;
@@ -1332,7 +1331,7 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
     free(preprops);
     delete object_registry;
     object_registry = 0;
-    g_octree_game_data_00652db0 = 0;
+    g_octree_game_data = 0;
     return 1;
 }
 
@@ -1352,7 +1351,7 @@ char OctPreTree::PathNodeObstructed0046B700(const srVector3T<float>* node)
        bit-wise: the probe-box height above the node. */
     float clearance;
     memcpy(&clearance, &m_path_clearance_17c, sizeof(clearance));
-    bounds_min.y = node->y + clearance * g_navigator_mode3_scale_005ebca4;
+    bounds_min.y = node->y + clearance * g_navigator_mode3_scale;
     bounds_max.y = bounds_min.y + clearance;
     float half = m_region_cell_178 * g_float_005ebc7c;
     bounds_min.x = node->x - half;
@@ -1384,7 +1383,7 @@ char OctPreTree::PathNodeObstructed0046B700(const srVector3T<float>* node)
                 corner.z = bounds_max.z;
                 break;
             }
-            corner.y = bounds_min.y + g_world_scale_005ebc40;
+            corner.y = bounds_min.y + g_world_scale;
             out = SnapToGround(&corner, 1);
             if (out == 0) {
                 out = 1;
@@ -1393,7 +1392,7 @@ char OctPreTree::PathNodeObstructed0046B700(const srVector3T<float>* node)
                            clearance * static_cast<float>(g_double_005ebe80)) {
                 out = result;
                 if (current_prop >= 0) {
-                    corner.y = bounds_min.y + g_world_scale_005ebc40;
+                    corner.y = bounds_min.y + g_world_scale;
                     probe = SnapToGround(&corner, 0);
                     if (probe == 0 || clearance * static_cast<float>(g_double_005ebe80) <
                                           fabsf(node->y - corner.y)) {
@@ -1521,11 +1520,11 @@ char OctPreTree::TestPathPropBounds0046BEC0(const srVector3T<float>* minimum,
     bounds[1] = *maximum;
     int count = QueryObjects(&ids, minimum, maximum, 3, -1);
     for (int i = 0; i < count && hit == 0; ++i) {
-        W8GDSurface* surface = g_octree_game_data_00652db0->m_pSurfaces + ids[i];
+        W8GDSurface* surface = g_octree_game_data->m_pSurfaces + ids[i];
         if ((surface->flags_00 & 0x1080) == 0) {
-            triangle[0] = g_octree_game_data_00652db0->m_pVertices[surface->vertex_indices_18[0]];
-            triangle[1] = g_octree_game_data_00652db0->m_pVertices[surface->vertex_indices_18[1]];
-            triangle[2] = g_octree_game_data_00652db0->m_pVertices[surface->vertex_indices_18[2]];
+            triangle[0] = g_octree_game_data->m_pVertices[surface->vertex_indices_18[0]];
+            triangle[1] = g_octree_game_data->m_pVertices[surface->vertex_indices_18[1]];
+            triangle[2] = g_octree_game_data->m_pVertices[surface->vertex_indices_18[2]];
             hit = TestSpatialTriangle(bounds, triangle, surface->Normal());
         }
     }
@@ -1668,9 +1667,9 @@ static char PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first, uns
             if (t->pathAI_06.scaled_01 == 2) {
                 a = t->pathAI_06.pScaledPaths[first];
                 b = t->pathAI_06.pScaledPaths[last];
-                if (g_camera_snap_epsilon_005ebc2c < fabsf(a.scale.x - b.scale.x) ||
-                    g_camera_snap_epsilon_005ebc2c < fabsf(a.scale.y - b.scale.y) ||
-                    g_camera_snap_epsilon_005ebc2c < fabsf(a.scale.z - b.scale.z)) {
+                if (g_camera_snap_epsilon < fabsf(a.scale.x - b.scale.x) ||
+                    g_camera_snap_epsilon < fabsf(a.scale.y - b.scale.y) ||
+                    g_camera_snap_epsilon < fabsf(a.scale.z - b.scale.z)) {
                     differ = 1;
                 }
             } else {
@@ -1682,18 +1681,15 @@ static char PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first, uns
                 g_float_005ebc7c < fabsf(a.path.position_00.z - b.path.position_00.z)) {
                 differ = 1;
             }
-            if (g_camera_snap_epsilon_005ebc2c < fabsf(a.path.angle_0c - b.path.angle_0c) ||
-                g_camera_snap_epsilon_005ebc2c < fabsf(a.path.axis_10.x - b.path.axis_10.x) ||
-                g_camera_snap_epsilon_005ebc2c < fabsf(a.path.axis_10.y - b.path.axis_10.y) ||
-                g_camera_snap_epsilon_005ebc2c < fabsf(a.path.axis_10.z - b.path.axis_10.z)) {
-                if (!(fabsf((b.path.angle_0c + a.path.angle_0c) - g_camera_half_pi_005ec3fc) <=
+            if (g_camera_snap_epsilon < fabsf(a.path.angle_0c - b.path.angle_0c) ||
+                g_camera_snap_epsilon < fabsf(a.path.axis_10.x - b.path.axis_10.x) ||
+                g_camera_snap_epsilon < fabsf(a.path.axis_10.y - b.path.axis_10.y) ||
+                g_camera_snap_epsilon < fabsf(a.path.axis_10.z - b.path.axis_10.z)) {
+                if (!(fabsf((b.path.angle_0c + a.path.angle_0c) - g_camera_half_pi) <=
                           g_float_005ebc3c &&
-                      fabsf(b.path.axis_10.x + a.path.axis_10.x) <=
-                          g_camera_snap_epsilon_005ebc2c &&
-                      fabsf(b.path.axis_10.y + a.path.axis_10.y) <=
-                          g_camera_snap_epsilon_005ebc2c &&
-                      fabsf(b.path.axis_10.z + a.path.axis_10.z) <=
-                          g_camera_snap_epsilon_005ebc2c)) {
+                      fabsf(b.path.axis_10.x + a.path.axis_10.x) <= g_camera_snap_epsilon &&
+                      fabsf(b.path.axis_10.y + a.path.axis_10.y) <= g_camera_snap_epsilon &&
+                      fabsf(b.path.axis_10.z + a.path.axis_10.z) <= g_camera_snap_epsilon)) {
                     differ = 1;
                 }
             }

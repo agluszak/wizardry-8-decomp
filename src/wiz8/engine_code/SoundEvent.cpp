@@ -60,7 +60,7 @@ W8SoundEvent* CreateSoundEvent(int kind, int cycle, int frame, int subcycle, con
    every mask bit, so it is cleared before each scan instead of reallocated;
    the static initializer constructs it with capacity five. */
 // GLOBAL: WIZ8 0x00683408
-W8GrowableVector<W8SoundEvent*> g_sound_event_candidates_00683408(5);
+W8GrowableVector<W8SoundEvent*> g_sound_event_candidates(5);
 
 /* The static initializer above emits this specialization's capacity ctor.
    0x005ED098 is its construction-phase table; the final table and both
@@ -69,10 +69,10 @@ W8GrowableVector<W8SoundEvent*> g_sound_event_candidates_00683408(5);
 // W8GrowableVector<W8SoundEvent*>::W8GrowableVector
 
 // GLOBAL: WIZ8 0x00683418
-int g_selected_sound_event_00683418;
+int g_selected_sound_event;
 
 // GLOBAL: WIZ8 0x0061095c
-int g_last_sound_event_0061095c = 0x1869f;
+int g_last_sound_event = 0x1869f;
 
 // GLOBAL: WIZ8 0x00683420
 static int g_previous_footstep_variant_00683420;
@@ -99,7 +99,7 @@ unsigned char UpdateSoundEvents(W8GrowableVector<W8SoundEvent*>* events,
             int candidate_count = 0;
             int index;
 
-            g_sound_event_candidates_00683408.Clear();
+            g_sound_event_candidates.Clear();
             for (index = 0; index < count; ++index) {
                 W8SoundEvent* event = *events->GetAt(index);
                 unsigned int kind = event->kind;
@@ -117,23 +117,22 @@ unsigned char UpdateSoundEvents(W8GrowableVector<W8SoundEvent*>* events,
                         continue;
                     }
                 }
-                g_sound_event_candidates_00683408.Add(event);
-                candidate_count = g_sound_event_candidates_00683408.GetCount();
+                g_sound_event_candidates.Add(event);
+                candidate_count = g_sound_event_candidates.GetCount();
             }
             if (candidate_count != 0) {
                 W8SoundEvent* selected;
 
                 do {
-                    g_selected_sound_event_00683418 = (int)Random(candidate_count);
-                    if (g_sound_event_candidates_00683408.GetCount() < 2) {
+                    g_selected_sound_event = static_cast<int>(Random(candidate_count));
+                    if (g_sound_event_candidates.GetCount() < 2) {
                         break;
                     }
-                    candidate_count = g_sound_event_candidates_00683408.GetCount();
-                } while (g_selected_sound_event_00683418 == g_last_sound_event_0061095c);
-                selected =
-                    *g_sound_event_candidates_00683408.GetAt(g_selected_sound_event_00683418);
+                    candidate_count = g_sound_event_candidates.GetCount();
+                } while (g_selected_sound_event == g_last_sound_event);
+                selected = *g_sound_event_candidates.GetAt(g_selected_sound_event);
                 if (selected->Play(event_mask, position, cycle, frame, subcycle)) {
-                    g_last_sound_event_0061095c = g_selected_sound_event_00683418;
+                    g_last_sound_event = g_selected_sound_event;
                 }
             }
         }

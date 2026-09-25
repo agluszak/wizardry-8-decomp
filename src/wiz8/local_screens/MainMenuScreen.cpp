@@ -155,7 +155,7 @@ unsigned char MainMenuScreenEnter(void)
 
     ResetVideoFrameState();
     MSYS_Init();
-    g_status_685170.game_started = 0;
+    g_status.game_started = 0;
     g_main_menu_has_save_games = SaveGameExists();
     g_main_menu_redraw = true;
     ClearPrimarySurface();
@@ -178,7 +178,7 @@ unsigned char MainMenuScreenEnter(void)
     FormatVersionBanner(text, 0, 0, 0);
     wcscpy(wide, ConvertStringToWide(text));
     SetFont(g_font_683660);
-    SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes_68ee1c[8]);
+    SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[8]);
     measured = StringPixLength(wide, g_font_683660);
     gprintf(0x27b - measured, 5, wide);
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
@@ -234,7 +234,7 @@ void MainMenuScreenFrame()
     POINT point;
     InputAtom input;
 
-    if (g_dev_mode_689b32 != 0) {
+    if (g_dev_mode != 0) {
         RequestExitScreen();
     }
     if (g_main_menu_dialog != 0) {
@@ -260,7 +260,7 @@ void MainMenuScreenFrame()
         while (DequeueEvent(&input) == 1) {
             if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
                 if (HandleDeveloperModeKey(&input)) {
-                    if (g_dev_mode_689b32 != 0) {
+                    if (g_dev_mode != 0) {
                         SetFont(g_font_683660);
                         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
                         gprintfDirty(5, 5, L"Developer mode enabled.");
@@ -272,7 +272,7 @@ void MainMenuScreenFrame()
                         case 0:
                             DrawMainMenuItem(g_main_menu_selected_item, 2);
                             RequestScreenTransition();
-                            g_settings_6850c8.intro_seen = false;
+                            g_settings.intro_seen = false;
                             SetValue64D8AC(0);
                             SetPendingScreenState(W8_SCREEN_INTRO);
                             break;
@@ -513,7 +513,7 @@ unsigned char MainMenuIntroduction(const InputAtom* event, W8Region* region)
         DrawMainMenuItem(g_main_menu_selected_item, 1);
         if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
             RequestScreenTransition();
-            g_settings_6850c8.intro_seen = false;
+            g_settings.intro_seen = false;
             SetValue64D8AC(0);
             SetPendingScreenState(W8_SCREEN_INTRO);
         }

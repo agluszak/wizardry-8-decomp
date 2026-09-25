@@ -49,7 +49,7 @@ enum { W8_DEGREES_PER_TURN = 360, W8_DEGREES_PER_QUADRANT = 90 };
 
 #define FORMATION_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Formation & Facing.cpp"
 
-extern wchar_t g_formation_row_names_00649e54[5][20];
+extern wchar_t g_formation_row_names[5][20];
 
 /* Copy a party formation state. The 0x84-byte structure is copied as 33
    dwords via REP MOVSD. */
@@ -76,11 +76,11 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
 
     InitializePartyFormation(&working);
     for (slot = 0; slot < 8; ++slot) {
-        const W8Character* character = &g_status_685170.buffers.Char[slot];
+        const W8Character* character = &g_status.buffers.Char[slot];
         signed char row;
         bool row_changed;
 
-        if (g_status_685170.buffers.XChar[slot].fOccupied == 0 || character->hp_current <= 0 ||
+        if (g_status.buffers.XChar[slot].fOccupied == 0 || character->hp_current <= 0 ||
             character->highest_condition >= W8_CONDITION_HOSTILE) {
             continue;
         }
@@ -99,11 +99,11 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
         }
     }
     for (slot = 0; slot < 8; ++slot) {
-        const W8Character* character = &g_status_685170.buffers.Char[slot];
+        const W8Character* character = &g_status.buffers.Char[slot];
         W8PartyFormationPosition* live_position = &live->positions[slot];
         W8PartyFormationPosition* edited_position = &edited->positions[slot];
 
-        if (g_status_685170.buffers.XChar[slot].fOccupied == 0 ||
+        if (g_status.buffers.XChar[slot].fOccupied == 0 ||
             (character->hp_current > 0 && character->highest_condition < W8_CONDITION_HOSTILE)) {
             continue;
         }
@@ -133,8 +133,7 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
             SetFormationPosition(&working, slot, row, column, 0, 0, 0);
             working.positions[slot].facing = live_position->facing;
             if (edited_position->bQuadrant != row) {
-                PostCharacterNotice(slot, gppStringList[0x924 / 4],
-                                    &g_formation_row_names_00649e54[row][0]);
+                PostCharacterNotice(slot, gppStringList[0x924 / 4], &g_formation_row_names[row][0]);
             }
         } else {
             signed char new_rows[3] = {4, 2, 3};
@@ -147,7 +146,7 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
                     if (working.bOccupantChar[new_row][column] == -1) {
                         SetFormationPosition(&working, slot, new_row, column, 0, 0, 1);
                         PostCharacterNotice(slot, gppStringList[0x928 / 4],
-                                            &g_formation_row_names_00649e54[new_row][0]);
+                                            &g_formation_row_names[new_row][0]);
                         placed = true;
                         break;
                     }
@@ -180,7 +179,7 @@ int GetQuadrantForPosition(srVector3T<float> position)
 
     GetCameraPosition(&party);
     bearing = static_cast<int>(NormalizeAngle(GetHeadingAngle(&party, &position)));
-    bearing -= g_status_685170.party_facing;
+    bearing -= g_status.party_facing;
     if (bearing < 0) {
         bearing += W8_DEGREES_PER_TURN;
     }
@@ -212,7 +211,7 @@ float g_facing_tolerance_005ebcf4 = 0.05f;
 // FUNCTION: WIZ8 0x005549e0
 bool CanHoldFormationPlace(int party_slot)
 {
-    const W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    const W8Character* character = &g_status.buffers.Char[party_slot];
 
     return character->hp_current > 0 && character->highest_condition < W8_CONDITION_HOSTILE;
 }
@@ -224,8 +223,7 @@ void SaveCombatFormation(void)
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", FORMATION_CPP, 258, 0);
     }
-    memcpy(&g_combat_state->saved_formation, &g_status_685170.formation,
-           sizeof(W8PartyFormationState));
+    memcpy(&g_combat_state->saved_formation, &g_status.formation, sizeof(W8PartyFormationState));
 }
 
 /* Put the formation combat started with back, if anything moved. Comparing the
@@ -237,9 +235,9 @@ void RestoreCombatFormation(void)
         srAssertFail("gXStatus.fCombatMode", FORMATION_CPP, 266, 0);
     }
 
-    if (memcmp(&g_combat_state->saved_formation, &g_status_685170.formation,
+    if (memcmp(&g_combat_state->saved_formation, &g_status.formation,
                sizeof(W8PartyFormationState)) != 0) {
-        memcpy(&g_status_685170.formation, &g_combat_state->saved_formation,
+        memcpy(&g_status.formation, &g_combat_state->saved_formation,
                sizeof(W8PartyFormationState));
         RefreshFormationBoard();
         RefreshRadarMap();
@@ -250,7 +248,7 @@ void RestoreCombatFormation(void)
 /* When set during combat, camera yaw updates party_heading only and leaves
    party_facing alone. Cleared, the free-look path also writes party_facing. */
 // GLOBAL: WIZ8 0x0069B7D4
-static unsigned char g_combat_preserve_party_facing_0069b7d4;
+static unsigned char g_combat_preserve_party_facing;
 
 /* Sync party facing/heading from the camera yaw and refresh the formation
    compass. Level-data flag 6 and combat-with-preserve skip writing facing. */
@@ -262,18 +260,18 @@ void SyncPartyFacingFromCamera(void)
 
     yaw = static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN;
     flag6 = GetLevelDataFlag6();
-    if ((gXStatus.fCombatMode == 0 || g_combat_preserve_party_facing_0069b7d4 == 0) &&
+    if ((gXStatus.fCombatMode == 0 || g_combat_preserve_party_facing == 0) &&
         static_cast<unsigned char>(flag6) == 0) {
-        g_status_685170.party_facing = static_cast<int>(yaw);
-        if (yaw != g_status_685170.party_heading) {
-            g_status_685170.party_heading = yaw;
+        g_status.party_facing = static_cast<int>(yaw);
+        if (yaw != g_status.party_heading) {
+            g_status.party_heading = yaw;
             UpdateFormationCompass();
             if (static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN != yaw) {
                 SetCameraYawDegrees(static_cast<float>(yaw));
             }
         }
-    } else if (yaw != g_status_685170.party_heading) {
-        g_status_685170.party_heading = yaw;
+    } else if (yaw != g_status.party_heading) {
+        g_status.party_heading = yaw;
         UpdateFormationCompass();
         if (static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN != yaw) {
             SetCameraYawDegrees(static_cast<float>(yaw));
@@ -288,10 +286,10 @@ unsigned int TurnPartyTo(unsigned int degrees)
 {
     unsigned int previous;
 
-    g_status_685170.party_facing = degrees;
-    previous = g_status_685170.party_heading;
-    if (degrees != g_status_685170.party_heading) {
-        g_status_685170.party_heading = degrees;
+    g_status.party_facing = degrees;
+    previous = g_status.party_heading;
+    if (degrees != g_status.party_heading) {
+        g_status.party_heading = degrees;
         UpdateFormationCompass();
         previous = (unsigned int)GetCameraYawDegrees() / W8_DEGREES_PER_TURN;
         if ((unsigned int)GetCameraYawDegrees() % W8_DEGREES_PER_TURN != degrees) {
@@ -306,10 +304,10 @@ unsigned int TurnPartyTo(unsigned int degrees)
 // FUNCTION: WIZ8 0x00555420
 void TurnPartyToImmediate(unsigned int degrees, char snap)
 {
-    if (degrees == g_status_685170.party_heading) {
+    if (degrees == g_status.party_heading) {
         return;
     }
-    g_status_685170.party_heading = degrees;
+    g_status.party_heading = degrees;
     UpdateFormationCompass();
     if ((unsigned int)GetCameraYawDegrees() % W8_DEGREES_PER_TURN == degrees) {
         return;
@@ -329,22 +327,21 @@ void FaceCameraToSelection(int party_slot)
 {
     unsigned int heading;
 
-    if (g_settings_6850c8.camera_rotation_mode != 0 ||
-        g_status_685170.selected_character != party_slot) {
+    if (g_settings.camera_rotation_mode != 0 || g_status.selected_character != party_slot) {
         return;
     }
-    heading = g_status_685170.party_facing +
-              static_cast<unsigned char>(g_status_685170.formation.positions[party_slot].facing) *
+    heading = g_status.party_facing +
+              static_cast<unsigned char>(g_status.formation.positions[party_slot].facing) *
                   W8_DEGREES_PER_QUADRANT;
-    if (heading == g_status_685170.party_heading) {
+    if (heading == g_status.party_heading) {
         return;
     }
-    g_status_685170.party_heading = heading;
+    g_status.party_heading = heading;
     UpdateFormationCompass();
     if (static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN == heading) {
         return;
     }
-    if (g_settings_6850c8.camera_rotation_style) {
+    if (g_settings.camera_rotation_style) {
         TurnCameraToDegrees(static_cast<float>(heading));
     } else {
         SetCameraYawDegrees(static_cast<float>(heading));
@@ -358,8 +355,8 @@ void FacePositionAsDecided(int position, int arg_2)
 {
     signed char facing = DecideFacingForPosition(position, arg_2);
 
-    if (facing != W8_FACING_ANY && g_status_685170.formation.positions[position].facing != facing) {
-        g_status_685170.formation.positions[position].facing = facing;
+    if (facing != W8_FACING_ANY && g_status.formation.positions[position].facing != facing) {
+        g_status.formation.positions[position].facing = facing;
         RefreshFormationBoard();
     }
 }
@@ -374,7 +371,7 @@ bool PositionFacesAsDecided(int position, int arg_2)
     if (facing == W8_FACING_ANY) {
         return true;
     }
-    return facing == g_status_685170.formation.positions[position].facing;
+    return facing == g_status.formation.positions[position].facing;
 }
 
 /* Whether a position is facing exactly away from where the rules want it -
@@ -388,7 +385,7 @@ bool PositionFacesOppositeToDecided(int arg_1, int position)
     if (facing == W8_FACING_ANY) {
         return false;
     }
-    difference = facing - g_status_685170.formation.positions[position].facing;
+    difference = facing - g_status.formation.positions[position].facing;
     if (difference < 0) {
         difference = -difference;
     }
@@ -401,7 +398,7 @@ bool PositionFacesOppositeToDecided(int arg_1, int position)
 bool IsPartyLookingAwayFrom(int, W8MonsterInfo* monster_info)
 {
     srVector3T<float> monster_position = monster_info->p3D->GetPosition();
-    srVector3T<float> party_position = g_startup_world_659c0c->GetPosition();
+    srVector3T<float> party_position = g_startup_world->GetPosition();
     float bearing = NormalizeAngle(GetHeadingAngle(&monster_position, &party_position));
     float facing = monster_info->p3D->GetYaw();
 
@@ -415,8 +412,8 @@ bool IsPartyLookingAwayFrom(int, W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x00555e70
 signed char DecideFacingForPosition(int position, int arg_2)
 {
-    signed char source = g_status_685170.formation.positions[position].bQuadrant;
-    signed char target = g_status_685170.formation.positions[arg_2].bQuadrant;
+    signed char source = g_status.formation.positions[position].bQuadrant;
+    signed char target = g_status.formation.positions[arg_2].bQuadrant;
 
     if (source == -1) {
         srAssertFail("bSourceQuadrant != -1", FORMATION_CPP, 0x40d, 0);
@@ -464,7 +461,7 @@ bool IsPartyLookingAt(W8MonsterInfo* monster_info, srVector3T<float> point)
 
 /* The five formation rows' display names, indexed by row. */
 // GLOBAL: WIZ8 0x00649e54
-wchar_t g_formation_row_names_00649e54[5][20] = {
+wchar_t g_formation_row_names[5][20] = {
     L"Front", L"Right", L"Rear", L"Left", L"Center",
 };
 
@@ -611,22 +608,21 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, signed cha
     if (detach != 0 && old_row != -1) {
         CompactFormationRow(formation, old_row);
     }
-    if (g_status_685170.game_started != 0 && gXStatus.fNpcDialogueMode == 0) {
+    if (g_status.game_started != 0 && gXStatus.fNpcDialogueMode == 0) {
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-            g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_RADAR &&
-            formation == &g_status_685170.formation) {
+            g_settings.main_ui_mode != W8_MAIN_UI_MODE_RADAR && formation == &g_status.formation) {
             RefreshFormationBoard();
             RefreshRadarMap();
         }
         if (announce != 0) {
             if (new_row != -1) {
                 PostCharacterNotice(slot, gppStringList[0x930 / 4],
-                                    &g_formation_row_names_00649e54[new_row][0]);
+                                    &g_formation_row_names[new_row][0]);
                 return;
             }
             if (old_row != -1) {
                 PostCharacterNotice(slot, gppStringList[0x934 / 4],
-                                    &g_formation_row_names_00649e54[old_row][0]);
+                                    &g_formation_row_names[old_row][0]);
             }
         }
     }
@@ -646,7 +642,7 @@ void UpdateFormationSlotState(W8PartyFormationState* formation, int slot)
     signed char seat;
     int index;
 
-    if (g_status_685170.buffers.Char[slot].highest_condition >= W8_CONDITION_DEAD) {
+    if (g_status.buffers.Char[slot].highest_condition >= W8_CONDITION_DEAD) {
         if (position->bQuadrant == -1) {
             return;
         }
@@ -662,7 +658,7 @@ void UpdateFormationSlotState(W8PartyFormationState* formation, int slot)
         seat = MakeRoomInFormationRow(formation, row);
         if (seat != -1) {
             SetFormationPosition(formation, slot, position->bOldQuadrant, seat,
-                                 formation == &g_status_685170.formation, 1, 1);
+                                 formation == &g_status.formation, 1, 1);
             position->bOldQuadrant = -1;
             return;
         }
@@ -694,7 +690,7 @@ void SeatFormationSlotInRow(W8PartyFormationState* formation, int slot, int row)
         SetFormationPosition(formation, slot, row, seat, 0, 1, 1);
         return;
     }
-    PostCharacterNotice(slot, gppStringList[0x938 / 4], &g_formation_row_names_00649e54[row][0]);
+    PostCharacterNotice(slot, gppStringList[0x938 / 4], &g_formation_row_names[row][0]);
 }
 
 /* Swap two party slots' formation positions: the second takes the first's
@@ -733,8 +729,7 @@ void SwapFormationSlots(W8PartyFormationState* formation, int slot_a, int slot_b
             SetFormationPosition(formation, slot_a, row, seat, 0, 1, 1);
             return;
         }
-        PostCharacterNotice(slot_a, gppStringList[0x938 / 4],
-                            &g_formation_row_names_00649e54[row][0]);
+        PostCharacterNotice(slot_a, gppStringList[0x938 / 4], &g_formation_row_names[row][0]);
     }
 }
 
@@ -746,7 +741,7 @@ void RebuildPartyStatus(W8PartyFormationState* status)
 {
     unsigned int slot;
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.XChar[slot].fOccupied == 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied == 0 &&
             status->positions[slot].bQuadrant != -1 &&
             status->positions[slot].bQuadrantSlot != -1) {
             SetFormationPosition(status, slot, -1, -1, 0, 1, 1);
@@ -759,7 +754,7 @@ void RebuildPartyStatus(W8PartyFormationState* status)
 // FUNCTION: WIZ8 0x00555a60
 int IsMonsterFacingParty(W8MonsterInfo* monster_info)
 {
-    srVector3T<float> party_position = g_startup_world_659c0c->GetPosition();
+    srVector3T<float> party_position = g_startup_world->GetPosition();
     srVector3T<float> monster_position = monster_info->p3D->GetPosition();
     float bearing = NormalizeAngle(GetHeadingAngle(&monster_position, &party_position));
     float facing = monster_info->p3D->GetYaw();
@@ -815,7 +810,7 @@ bool IsCharacterFacingMonster(int party_slot, W8MonsterInfo* monster_info)
 
     GetCameraPosition(&camera_position);
     angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&camera_position, &monster_position)));
-    angle -= g_status_685170.party_facing;
+    angle -= g_status.party_facing;
     if (angle < 0) {
         angle += 0x168;
     }
@@ -836,7 +831,7 @@ bool IsCharacterFacingMonster(int party_slot, W8MonsterInfo* monster_info)
         srAssertFail("FALSE", FORMATION_CPP, 0x456, 0);
         return true;
     }
-    return side == g_status_685170.formation.positions[party_slot].facing;
+    return side == g_status.formation.positions[party_slot].facing;
 }
 
 /* Turn the character's formation facing toward the side the monster is on. */
@@ -850,7 +845,7 @@ void TurnCharacterTowardMonster(int party_slot, W8MonsterInfo* monster_info)
 
     GetCameraPosition(&camera_position);
     angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&camera_position, &monster_position)));
-    angle -= g_status_685170.party_facing;
+    angle -= g_status.party_facing;
     if (angle < 0) {
         angle += 0x168;
     }
@@ -871,8 +866,8 @@ void TurnCharacterTowardMonster(int party_slot, W8MonsterInfo* monster_info)
         srAssertFail("FALSE", FORMATION_CPP, 0x456, 0);
         return;
     }
-    if (g_status_685170.formation.positions[party_slot].facing != side) {
-        g_status_685170.formation.positions[party_slot].facing = side;
+    if (g_status.formation.positions[party_slot].facing != side) {
+        g_status.formation.positions[party_slot].facing = side;
         RefreshFormationBoard();
     }
 }
@@ -890,7 +885,7 @@ int IsMonsterBehindCharacter(W8MonsterInfo* monster_info, int party_slot)
 
     GetCameraPosition(&camera_position);
     angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&camera_position, &monster_position)));
-    angle -= g_status_685170.party_facing;
+    angle -= g_status.party_facing;
     if (angle < 0) {
         angle += 0x168;
     }
@@ -911,7 +906,7 @@ int IsMonsterBehindCharacter(W8MonsterInfo* monster_info, int party_slot)
         srAssertFail("FALSE", FORMATION_CPP, 0x456, 0);
         return 0;
     }
-    difference = side - g_status_685170.formation.positions[party_slot].facing;
+    difference = side - g_status.formation.positions[party_slot].facing;
     if (difference < 0) {
         difference = -difference;
     }
@@ -954,7 +949,7 @@ void FaceCharacterTowardCombatTarget(int party_slot, W8CombatSlot* target)
         srVector3T<float> camera_position;
         GetCameraPosition(&camera_position);
         int angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&camera_position, &position)));
-        angle -= g_status_685170.party_facing;
+        angle -= g_status.party_facing;
         if (angle < 0) {
             angle += W8_DEGREES_PER_TURN;
         }
@@ -978,8 +973,8 @@ void FaceCharacterTowardCombatTarget(int party_slot, W8CombatSlot* target)
             return;
         }
     }
-    if (g_status_685170.formation.positions[party_slot].facing != facing) {
-        g_status_685170.formation.positions[party_slot].facing = facing;
+    if (g_status.formation.positions[party_slot].facing != facing) {
+        g_status.formation.positions[party_slot].facing = facing;
         RefreshFormationBoard();
     }
 }

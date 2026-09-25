@@ -72,8 +72,8 @@ public:
     W8IntervalGate* m_manual_input_timer; /* 0x0bc */
 };
 
-extern GDCamera* g_gd_camera_65a0f8;
-extern srCamera* g_game_camera_65a0fc;
+extern GDCamera* g_gd_camera;
+extern srCamera* g_game_camera;
 
 void GetCameraForwardPoint00421100(float distance, srVector3T<float>* output);
 void GetCameraForwardPoint00421150(float distance, srVector3T<float>* output);
@@ -84,13 +84,13 @@ void OffsetPositionByYawPitch(float distance, srVector3T<float>* position, float
    radians; the homing missile tick faces its representation with them. */
 /* ElevationToTargetCPP and HeadingToTargetCPP are declared in
    wiz8/engine_code/PolyPick.h. */
-extern float g_camera_level_forward_scale_603aac;
-extern float g_camera_max_yaw_velocity_609ea4;
-extern const float g_negative_one_005ebc38;
-extern const double g_camera_pi_005ec2a0;
-extern const float g_camera_transition_epsilon_005ebc84;
-extern float g_camera_default_forward_scale_603ab0;
-extern float g_camera_forward_scale_603ab4;
+extern float g_camera_level_forward_scale;
+extern float g_camera_max_yaw_velocity;
+extern const float g_negative_one;
+extern const double g_camera_pi;
+extern const float g_camera_transition_epsilon;
+extern float g_camera_default_forward_scale;
+extern float g_camera_forward_scale;
 
 static_assert(sizeof(GDCamera) == 0xc0, "GDCamera_must_be_0xc0");
 

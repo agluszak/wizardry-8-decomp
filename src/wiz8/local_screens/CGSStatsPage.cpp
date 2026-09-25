@@ -31,16 +31,16 @@
 #define CGS_STATS_PAGE_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\CGSStatsPage.cpp"
 
 // GLOBAL: WIZ8 0x0069c550
-unsigned int g_character_stats_region_set_0069c550;
+unsigned int g_character_stats_region_set;
 // GLOBAL: WIZ8 0x0069c554
-unsigned int g_character_stats_profession_region_set_0069c554;
+unsigned int g_character_stats_profession_region_set;
 // GLOBAL: WIZ8 0x0069c558
-unsigned int g_character_stats_race_region_set_0069c558;
+unsigned int g_character_stats_race_region_set;
 // GLOBAL: WIZ8 0x0069c55c
-unsigned int g_character_stats_gender_region_set_0069c55c;
+unsigned int g_character_stats_gender_region_set;
 
 // GLOBAL: WIZ8 0x0064f028
-W8CharacterStatsRecord g_character_profession_records_0064f028[15] = {
+W8CharacterStatsRecord g_character_profession_records[15] = {
     {0x0000010b, 0x0000000a, 0x0000000b, 0x02a4, 0, 0},
     {0x0000010b, 0x00000018, 0x00000019, 0x02a5, 0, 0},
     {0x0000010b, 0x00000008, 0x00000009, 0x02a6, 0, 0},
@@ -58,7 +58,7 @@ W8CharacterStatsRecord g_character_profession_records_0064f028[15] = {
     {0x0000010b, 0x0000001a, 0x0000001b, 0x02b2, 0, 0},
 };
 // GLOBAL: WIZ8 0x0064f118
-W8CharacterStatsRecord g_character_race_records_0064f118[11] = {
+W8CharacterStatsRecord g_character_race_records[11] = {
     {0x0000010c, 0x00000008, 0x00000009, 0x0284, 1, 0},
     {0x0000010c, 0x00000004, 0x00000005, 0x0285, 1, 0},
     {0x0000010c, 0x0000000c, 0x0000000d, 0x0286, 1, 0},
@@ -72,30 +72,30 @@ W8CharacterStatsRecord g_character_race_records_0064f118[11] = {
     {0x0000010c, 0x00000006, 0x00000007, 0x028e, 1, 0},
 };
 // GLOBAL: WIZ8 0x0064f218
-W8CharacterStatsRecord g_character_gender_records_0064f218[2] = {
+W8CharacterStatsRecord g_character_gender_records[2] = {
     {0x0000010d, 0x00000000, 0x00000001, 0x02d1, 0, 0},
     {0x0000010d, 0x00000002, 0x00000003, 0x02d2, 0, 0},
 };
 // GLOBAL: WIZ8 0x0064f248
-W8CharacterStatsRecord g_character_profession_default_record_0064f248 = {
+W8CharacterStatsRecord g_character_profession_default_record = {
     0x0000010e, 0x00000002, 0x00000003, 0x008f, 1, 0,
 };
 // GLOBAL: WIZ8 0x0064f258
-W8CharacterStatsRecord g_character_race_default_record_0064f258 = {
+W8CharacterStatsRecord g_character_race_default_record = {
     0x0000010e, 0x00000000, 0x00000001, 0x0090, 1, 0,
 };
 // GLOBAL: WIZ8 0x0064f268
-W8CharacterStatsRecord g_character_gender_default_record_0064f268 = {
+W8CharacterStatsRecord g_character_gender_default_record = {
     0x0000010e, 0x00000004, 0x00000005, 0x0091, 1, 0,
 };
 
 /* The six resistance icons drawn beside the stats page's resistance values. */
 // GLOBAL: WIZ8 0x0064ce60
-int g_character_resistance_images_0064ce60[6] = {
+int g_character_resistance_images[6] = {
     0x193, 0x194, 0x195, 0x196, 0x197, 0x198,
 };
 // GLOBAL: WIZ8 0x0061e530
-unsigned short g_character_trait_name_ids_61e530[0x20] = {
+unsigned short g_character_trait_name_ids[0x20] = {
     0x328, 0x329, 0x32a, 0x32b, 0x32c, 0x32d, 0x32e, 0x32f, 0x330, 0x331, 0x332,
     0x333, 0x334, 0x335, 0x336, 0x337, 0x338, 0x339, 0x33a, 0x33b, 0x33c, 0x33d,
     0x33e, 0x33f, 0x340, 0x341, 0x342, 0x343, 0x344, 0x345, 0x346, 0x347,
@@ -103,15 +103,15 @@ unsigned short g_character_trait_name_ids_61e530[0x20] = {
 // GLOBAL: WIZ8 0x0060aa20
 const wchar_t g_format_d_0060aa20[] = L"%d";
 // GLOBAL: WIZ8 0x00614b58
-const wchar_t g_format_d_slash_d_00614b58[] = L"%d/%d";
+const wchar_t g_format_d_slash_d[] = L"%d/%d";
 // GLOBAL: WIZ8 0x00617584
-const wchar_t g_format_s_space_s_00617584[] = L"%s %s";
+const wchar_t g_format_s_space_s[] = L"%s %s";
 // GLOBAL: WIZ8 0x0064789c
 const wchar_t g_dash_0064789c[] = L"-";
 // GLOBAL: WIZ8 0x0064dc24
-const wchar_t g_format_plus_d_0064dc24[] = L"%+d";
+const wchar_t g_format_plus_d[] = L"%+d";
 // GLOBAL: WIZ8 0x0064f2c0
-const wchar_t g_zero_slash_zero_0064f2c0[] = L"0/0";
+const wchar_t g_zero_slash_zero[] = L"0/0";
 
 /* Skill name message ids indexed by skill id are declared with the stats
    page's shared tables in CharacterScreen.h. */
@@ -552,19 +552,19 @@ void W8CharacterStatsPage::UpdateRowValues()
 
     if (m_mode_068 == 0) {
         if (m_character_060->iProfession == 2) {
-            g_character_gender_records_0064f218[0].enabled_0e = 0;
+            g_character_gender_records[0].enabled_0e = 0;
         } else {
-            g_character_gender_records_0064f218[0].enabled_0e = 1;
-            g_character_gender_records_0064f218[1].enabled_0e = 1;
+            g_character_gender_records[0].enabled_0e = 1;
+            g_character_gender_records[1].enabled_0e = 1;
         }
     } else if (m_mode_068 == 2) {
         DetermineEligibleProfessions(m_character_060, m_creation_state_064, eligible);
     }
     for (int index = 0; index < 15; ++index) {
         if (m_mode_068 == 0) {
-            g_character_profession_records_0064f028[index].enabled_0e = 1;
+            g_character_profession_records[index].enabled_0e = 1;
         } else if (m_mode_068 == 2) {
-            g_character_profession_records_0064f028[index].enabled_0e = eligible[index];
+            g_character_profession_records[index].enabled_0e = eligible[index];
         }
     }
 
@@ -903,17 +903,16 @@ void W8CharacterStatsPage::SetCharacter(W8Character* character,
     m_profession_row_07c = new W8CharacterStatsRow;
     m_race_row_080 = new W8CharacterStatsRow;
     m_gender_row_084 = new W8CharacterStatsRow;
-    AcquireRegionSet(&g_character_stats_region_set_0069c550);
-    m_profession_row_07c->Initialize(this, &g_character_stats_profession_region_set_0069c554, 0x16,
-                                     10, 0xf, g_character_profession_records_0064f028,
-                                     &g_character_profession_default_record_0064f248, 0xf7, 0xf6,
-                                     0xf8);
-    m_race_row_080->Initialize(this, &g_character_stats_race_region_set_0069c558, 0x16, 0x3d, 0xb,
-                               g_character_race_records_0064f118,
-                               &g_character_race_default_record_0064f258, 0xfa, 0xf9, 0xfb);
-    m_gender_row_084->Initialize(this, &g_character_stats_gender_region_set_0069c55c, 0x16, 0x70, 2,
-                                 g_character_gender_records_0064f218,
-                                 &g_character_gender_default_record_0064f268, 0xfd, 0xfc, 0xfe);
+    AcquireRegionSet(&g_character_stats_region_set);
+    m_profession_row_07c->Initialize(this, &g_character_stats_profession_region_set, 0x16, 10, 0xf,
+                                     g_character_profession_records,
+                                     &g_character_profession_default_record, 0xf7, 0xf6, 0xf8);
+    m_race_row_080->Initialize(this, &g_character_stats_race_region_set, 0x16, 0x3d, 0xb,
+                               g_character_race_records, &g_character_race_default_record, 0xfa,
+                               0xf9, 0xfb);
+    m_gender_row_084->Initialize(this, &g_character_stats_gender_region_set, 0x16, 0x70, 2,
+                                 g_character_gender_records, &g_character_gender_default_record,
+                                 0xfd, 0xfc, 0xfe);
     m_profession_row_07c->m_listener_030 = this;
     m_race_row_080->m_listener_030 = this;
     m_gender_row_084->m_listener_030 = this;
@@ -964,7 +963,7 @@ void W8CharacterStatsPage::SetCharacter(W8Character* character,
         AddEntry(entry);
         entry->m_listener_004 = this;
         entry->SetContent(attribute_index,
-                          gppStringList[g_character_description_first_ids_61e3a4[attribute_index]],
+                          gppStringList[g_character_description_first_ids[attribute_index]],
                           &character->attributes[attribute_index].value,
                           &creation_state->attribute_values_008[attribute_index],
                           &creation_state->attribute_limits_028[attribute_index], 0x101);
@@ -1083,9 +1082,9 @@ void W8CharacterStatsPage::Redraw()
                 text.SetLayoutBounds(&bounds, 1, 1);
                 text.SetText(
                     FormatWideString(
-                        g_format_s_space_s_00617584,
+                        g_format_s_space_s,
                         gppStringList
-                            [g_character_skill_name_ids_61e454
+                            [g_character_skill_name_ids
                                  [g_profession_bonus_skills[m_character_060->iProfession]]],
                         gppStringList[0xb2]),
                     g_font_683660);
@@ -1095,7 +1094,7 @@ void W8CharacterStatsPage::Redraw()
             for (int trait_index = 0; trait_index < 0x20; ++trait_index) {
                 if (available[trait_index] != 0) {
                     text.SetLayoutBounds(&bounds, 1, 1);
-                    text.SetText(gppStringList[g_character_trait_name_ids_61e530[trait_index]],
+                    text.SetText(gppStringList[g_character_trait_name_ids[trait_index]],
                                  g_font_683660);
                     text.RenderToTarget(0, 0, -14);
                     bounds.top = bounds.top + line_height;
@@ -1203,7 +1202,7 @@ void W8CharacterStatsPage::Redraw()
                 if (value == 0) {
                     text.SetText(FormatWideString(g_dash_0064789c), g_font_683660);
                 } else {
-                    text.SetText(FormatWideString(g_format_plus_d_0064dc24, value), g_font_683660);
+                    text.SetText(FormatWideString(g_format_plus_d, value), g_font_683660);
                 }
                 text.RenderToTarget(0, 0, -14);
             }
@@ -1211,10 +1210,9 @@ void W8CharacterStatsPage::Redraw()
         for (int realm_index = 0; realm_index < 6; ++realm_index) {
             bool first_column = (realm_index & 1) == 0;
             int frame_top = (first_column ? 0x155 : 0x16f) + top;
-            DrawCatalogImageAndInvalidate(
-                -14, g_character_resistance_images_0064ce60[realm_index], 0,
-                g_spell_realm_animations_00648c90[realm_index].initial_frame,
-                (realm_index / 2) * 0x3f + 0x23 + left, frame_top, 2, 0);
+            DrawCatalogImageAndInvalidate(-14, g_character_resistance_images[realm_index], 0,
+                                          g_spell_realm_animations[realm_index].initial_frame,
+                                          (realm_index / 2) * 0x3f + 0x23 + left, frame_top, 2, 0);
         }
 
         text.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
@@ -1233,7 +1231,7 @@ void W8CharacterStatsPage::Redraw()
             bounds.right = left + 0x1a9;
             text.SetLayoutBounds(&bounds, 1, 1);
             text.SetText(
-                gppStringList[g_character_skill_name_ids_61e454
+                gppStringList[g_character_skill_name_ids
                                   [g_profession_bonus_skills[m_character_060->iProfession]]],
                 g_font_683660);
             text.RenderToTarget(0, 0, -14);
@@ -1244,7 +1242,7 @@ void W8CharacterStatsPage::Redraw()
                     text.SetLayoutBounds(&bounds, 1, 1);
                     text.SetText(
                         gppStringList
-                            [g_character_skill_name_ids_61e454
+                            [g_character_skill_name_ids
                                  [g_profession_skills[m_character_060->iProfession][index]]],
                         g_font_683660);
                     text.RenderToTarget(0, 0, -14);
@@ -1311,10 +1309,9 @@ void W8CharacterStatsPage::Redraw()
         text.SetLayoutBounds(&bounds, 1, 1);
         int total = m_creation_state_064->attribute_points_total;
         if (total < 1) {
-            text.SetText(const_cast<wchar_t*>(g_zero_slash_zero_0064f2c0),
-                         g_options_detail_font_683614);
+            text.SetText(const_cast<wchar_t*>(g_zero_slash_zero), g_options_detail_font_683614);
         } else {
-            text.SetText(FormatWideString(g_format_d_slash_d_00614b58,
+            text.SetText(FormatWideString(g_format_d_slash_d,
                                           m_creation_state_064->attribute_points_remaining, total),
                          g_options_detail_font_683614);
         }

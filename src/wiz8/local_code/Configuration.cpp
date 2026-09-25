@@ -17,7 +17,7 @@
 #include "wiz8/engine_code/Video2.h"
 
 // GLOBAL: WIZ8 0x006850c8
-W8GameSettings g_settings_6850c8;
+W8GameSettings g_settings;
 // GLOBAL: WIZ8 0x0061e184
 char g_config_file_name[8] = "Wiz8";
 // GLOBAL: WIZ8 0x0061e18c
@@ -38,8 +38,8 @@ void LoadGameConfiguration(void)
             file.OpenChunk(0, 0);
             unsigned int id = file.CurrentChunkId();
             if (id == 0x47464e43) {
-                if (file.CurrentChunkExtent() == sizeof(g_settings_6850c8)) {
-                    file.Read(&g_settings_6850c8, sizeof(g_settings_6850c8), 0);
+                if (file.CurrentChunkExtent() == sizeof(g_settings)) {
+                    file.Read(&g_settings, sizeof(g_settings), 0);
                     loaded = true;
                 }
             } else if (id == 0x4d59454b) {
@@ -53,8 +53,8 @@ void LoadGameConfiguration(void)
         file.Close();
     }
     if (loaded) {
-        if (static_cast<unsigned int>(g_settings_6850c8.combat_delay_ms) <= 5000u &&
-            g_settings_6850c8.text_display_delay_ms <= 5000u) {
+        if (static_cast<unsigned int>(g_settings.combat_delay_ms) <= 5000u &&
+            g_settings.text_display_delay_ms <= 5000u) {
             reset = false;
         } else {
             srAssertFail(
@@ -67,12 +67,12 @@ void LoadGameConfiguration(void)
         ResetGameplaySettings();
         SaveGameConfiguration();
     }
-    SetSoundEffectsVolume(g_settings_6850c8.sound_effects_volume);
-    SetMusicVolume(g_settings_6850c8.music_volume);
-    if (g_settings_6850c8.gamma < 0.1f || g_settings_6850c8.gamma > 2.0f) {
-        g_settings_6850c8.gamma = 1.0f;
+    SetSoundEffectsVolume(g_settings.sound_effects_volume);
+    SetMusicVolume(g_settings.music_volume);
+    if (g_settings.gamma < 0.1f || g_settings.gamma > 2.0f) {
+        g_settings.gamma = 1.0f;
     }
-    SetDisplayGamma(g_settings_6850c8.gamma);
+    SetDisplayGamma(g_settings.gamma);
 }
 
 // FUNCTION: WIZ8 0x0054b6d0
@@ -86,7 +86,7 @@ unsigned char SaveGameConfiguration(void)
         return 0;
     }
     file.OpenChunk(0x47464e43, 0);
-    file.Write(&g_settings_6850c8, sizeof(g_settings_6850c8), 0);
+    file.Write(&g_settings, sizeof(g_settings), 0);
     file.ReleaseCurrentChunk();
     file.OpenChunk(0x59544c51, 0);
     SaveRenderOptions(file.m_hFile);

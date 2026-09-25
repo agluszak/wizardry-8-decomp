@@ -348,7 +348,7 @@ W8CharacterStatsPage* CreateCharacterStatsPage();
 W8CharacterSpellsPage* CreateCharacterSpellsPage();
 W8CharacterSkillsPage* CreateCharacterSkillsPage();
 W8CharacterPersonalityPage* CreateCharacterPersonalityPage();
-extern unsigned int g_character_page4_region_set_0069c52c;
+extern unsigned int g_character_page4_region_set;
 
 /* Realm animation records shared by the stats page's resistance icons and the
    spells page's realm list. The stats page reads only initial_frame, through
@@ -358,30 +358,30 @@ struct W8SpellRealmAnimation {
     unsigned int frame_count;
     unsigned int initial_frame;
 };
-extern W8SpellRealmAnimation g_spell_realm_animations_00648c90[6];
-extern const wchar_t g_format_s_space_s_00617584[];
-extern const wchar_t g_format_s_colon_00648164[];
+extern W8SpellRealmAnimation g_spell_realm_animations[6];
+extern const wchar_t g_format_s_space_s[];
+extern const wchar_t g_format_s_colon[];
 
 /* The six realm-icon object ids; the definition is the GLOBAL in
    CGSStatsPage.cpp. The camp screen's character block reuses them. */
-extern int g_character_resistance_images_0064ce60[6];
+extern int g_character_resistance_images[6];
 
 /* One message id per character trait, indexed by trait id. */
-extern unsigned short g_character_trait_name_ids_61e530[0x20];
+extern unsigned short g_character_trait_name_ids[0x20];
 
 /* Attribute-entry and skill-name message id tables shared by the stats and
    skills pages. */
-extern unsigned short g_character_description_first_ids_61e3a4[22];
-extern unsigned short g_character_skill_name_ids_61e454[84];
+extern unsigned short g_character_description_first_ids[22];
+extern unsigned short g_character_skill_name_ids[84];
 /* 0x0061E430: one row per gender, the third entry the possessive the item
    notices print. */
-extern unsigned short g_gender_name_message_rows_61e430[4][4];
+extern unsigned short g_gender_name_message_rows[4][4];
 /* One message id per final-page personality slot; the array's terminating zero
    keeps its ten-entry extent. */
-extern unsigned short g_personality_message_ids_61e674[10];
+extern unsigned short g_personality_message_ids[10];
 
 /* Page and per-row region sets. */
-extern unsigned int g_character_stats_region_set_0069c550;
+extern unsigned int g_character_stats_region_set;
 
 /* Skill-availability bookkeeping raised by RefreshCharacterSkillAvailability while the character
    screen is open: adjust the named page-2 entry and refresh that page. */
@@ -463,14 +463,14 @@ static_assert(sizeof(W8CharacterScreen) == 0x1b28, "W8CharacterScreen_size");
 /* Retail secondary vftable 0x005ef21c places W8TextControl::Listener at +0x4. */
 W8_ASSERT_BASE_END(W8CharacterScreen, W8TextControl::Listener, m_mode_008, 0x4);
 
-extern W8CharacterScreen* g_character_screen_0069c2e8;
+extern W8CharacterScreen* g_character_screen;
 
 /* CharacterScreen.cpp GLOBAL at 0x0061E3F0: per-profession message indexes. */
-extern unsigned short g_profession_name_message_ids_61e3f0[32];
-extern unsigned short g_race_name_message_ids_61e3d0[16];
+extern unsigned short g_profession_name_message_ids[32];
+extern unsigned short g_race_name_message_ids[16];
 /* CharacterScreen.cpp GLOBAL at 0x0061E688: per-profession level-name message
    indexes, one row per profession for the level bands. */
-extern unsigned short g_profession_level_name_message_ids_61e688[15][9];
+extern unsigned short g_profession_level_name_message_ids[15][9];
 
 /* Refresh the character-screen response when a party slot changes. */
 void RefreshCharacterScreenPartySlot(unsigned int party_slot); /* 0x005B1AD0 */
@@ -479,5 +479,5 @@ void CharacterScreenFrame(void);
 unsigned char CharacterScreenLeave(int leaving);
 extern const wchar_t g_dash_0064789c[];
 extern const wchar_t g_format_d_0060aa20[];
-extern const wchar_t g_format_d_slash_d_00614b58[];
-extern const wchar_t g_format_plus_d_0064dc24[];
+extern const wchar_t g_format_d_slash_d[];
+extern const wchar_t g_format_plus_d[];

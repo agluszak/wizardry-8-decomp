@@ -25,7 +25,7 @@
 #define SWAMP_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\Swamp.cpp"
 
 // GLOBAL: WIZ8 0x006834e4
-W8Monster* g_swamp_spawned_monster_6834e4;
+W8Monster* g_swamp_spawned_monster;
 
 /* Level Specific Code\Swamp.cpp (level 0x18).
 
@@ -40,11 +40,11 @@ W8Monster* g_swamp_spawned_monster_6834e4;
 // FUNCTION: WIZ8 0x004DA960
 bool SwampOilPool(Trigger* pTrigger)
 {
-    if (g_status_685170.item_in_cursor != 0 && GetItemInHand() == 0x2d0) {
+    if (g_status.item_in_cursor != 0 && GetItemInHand() == 0x2d0) {
         ClearHeldItemDisplay();
-        ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x15e, 0, 1, 0);
+        ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x15e, 0, 1, 0);
         SetItemCursor(0);
-        g_trigger_feedback_00606994 = 1;
+        g_trigger_feedback = 1;
     }
     return 0;
 }
@@ -128,16 +128,16 @@ bool SwampGasFireSpawn(Trigger* pTrigger)
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x8f, SWAMP_CPP, index, 1));
         if (monster_info != 0) {
-            g_swamp_spawned_monster_6834e4 = monster_info->p3D;
+            g_swamp_spawned_monster = monster_info->p3D;
             monster_info->p3D->m_pRep->instance_scale_05c = 1.0f;
             monster_info->p3D->m_pRep->apply_instance_scale_061 = 1;
-            g_swamp_spawned_monster_6834e4->BeginFadeIn(2.0f);
-            g_swamp_spawned_monster_6834e4->GetMappedPosition(&mapped);
+            g_swamp_spawned_monster->BeginFadeIn(2.0f);
+            g_swamp_spawned_monster->GetMappedPosition(&mapped);
             look_target = monster_info->p3D->movement_0c0.position_040;
             look_target.y += monster_info->p3D->movement_0c0.height_offset_0b8;
-            g_gd_camera_65a0f8->LookAt(&look_target, 0);
+            g_gd_camera->LookAt(&look_target, 0);
             g_flag_6109f0 = false;
-            g_master_functions_006834d8->Add(SwampGasFireItemDrop);
+            g_master_functions->Add(SwampGasFireItemDrop);
         }
     }
     npc = FindNpcBindingForMonster(MonsterGetIndexByLocationID(0xa3, SWAMP_CPP, index, 1));
@@ -159,20 +159,20 @@ void SwampGasFireItemDrop(int command)
     if (command != 0) {
         if (command == static_cast<int>(0xEFFFFFFF)) {
             g_flag_6109f0 = false;
-            g_master_functions_006834d8->Add(SwampGasFireItemDrop);
+            g_master_functions->Add(SwampGasFireItemDrop);
         }
         return;
     }
     g_flag_006834dc = false;
     if (g_flag_6109f0 != 0) {
         g_flag_006834dc = true;
-        if (g_swamp_spawned_monster_6834e4 != 0) {
-            position = g_swamp_spawned_monster_6834e4->GetPosition();
+        if (g_swamp_spawned_monster != 0) {
+            position = g_swamp_spawned_monster->GetPosition();
             drop_position = position;
             item = SpawnItem(0x264, &drop_position, 3, 1);
             item->item.identified = 0;
             ActivateItem(item);
-            g_swamp_spawned_monster_6834e4->BeginFadeOutAndRemove(0);
+            g_swamp_spawned_monster->BeginFadeOutAndRemove(0);
         }
     }
 }

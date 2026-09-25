@@ -79,13 +79,13 @@ int ComputeRealmSkillDebt(W8Character* original, W8Character* edited)
    reset or level-up hands to the editing state; the byte at 0x34 records that
    a profession change forced the sex to one. */
 // GLOBAL: WIZ8 0x0068de28
-int g_attribute_point_bonus_0068de28;
+int g_attribute_point_bonus;
 // GLOBAL: WIZ8 0x0068de2c
-int g_skill_point_bonus_0068de2c;
+int g_skill_point_bonus;
 // GLOBAL: WIZ8 0x0068de30
-int g_spell_point_bonus_0068de30;
+int g_spell_point_bonus;
 // GLOBAL: WIZ8 0x0068de34
-bool g_gender_locked_0068de34;
+bool g_gender_locked;
 
 /* Empty every item record the character carries. 0x00520070 expands the
    per-slot helper at both loops, which is why the body lives in PC Item.cpp
@@ -96,10 +96,10 @@ bool g_gender_locked_0068de34;
 // FUNCTION: WIZ8 0x00556dc0
 void InitializeCharacterCreation(W8Character* character, W8CharacterCreationState* creation_state)
 {
-    g_attribute_point_bonus_0068de28 = 0;
-    g_skill_point_bonus_0068de2c = 0;
-    g_spell_point_bonus_0068de30 = 0;
-    g_gender_locked_0068de34 = false;
+    g_attribute_point_bonus = 0;
+    g_skill_point_bonus = 0;
+    g_spell_point_bonus = 0;
+    g_gender_locked = false;
     memset(character, 0, sizeof(*character));
     character->gender = W8_GENDER_UNSET;
     character->iProfession = W8_PROFESSION_NONE;
@@ -116,7 +116,7 @@ void InitializeCharacterCreation(W8Character* character, W8CharacterCreationStat
 
     int points = 0;
     if (character->iProfession != -1 && character->iRace != -1) {
-        points = 0x3c + g_attribute_point_bonus_0068de28;
+        points = 0x3c + g_attribute_point_bonus;
         if (character->uiExpLevel != 1) {
             points -= 0x36;
         }
@@ -128,7 +128,7 @@ void InitializeCharacterCreation(W8Character* character, W8CharacterCreationStat
     creation_state->attribute_points_remaining = points;
     RecomputeAttributeLimits(character, creation_state);
 
-    points = 0xf + g_skill_point_bonus_0068de2c;
+    points = 0xf + g_skill_point_bonus;
     if (character->uiExpLevel != 1) {
         points -= 6;
     }
@@ -146,17 +146,17 @@ void InitializeCharacterCreation(W8Character* character, W8CharacterCreationStat
 // FUNCTION: WIZ8 0x00556cc0
 void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState* creation_state)
 {
-    g_attribute_point_bonus_0068de28 = 0;
-    g_skill_point_bonus_0068de2c = 0;
-    g_spell_point_bonus_0068de30 = 0;
-    g_gender_locked_0068de34 = false;
+    g_attribute_point_bonus = 0;
+    g_skill_point_bonus = 0;
+    g_spell_point_bonus = 0;
+    g_gender_locked = false;
     ++character->uiExpLevel;
     ++character->profession_levels[character->iProfession];
     memset(creation_state, 0, sizeof(*creation_state));
 
     int points = 0;
     if (character->iProfession != -1 && character->iRace != -1) {
-        points = 0x3c + g_attribute_point_bonus_0068de28;
+        points = 0x3c + g_attribute_point_bonus;
         if (character->uiExpLevel != 1) {
             points -= 0x36;
         }
@@ -168,7 +168,7 @@ void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState
     creation_state->attribute_points_remaining = points;
     RecomputeAttributeLimits(character, creation_state);
 
-    points = 0xf + g_skill_point_bonus_0068de2c;
+    points = 0xf + g_skill_point_bonus;
     if (character->uiExpLevel != 1) {
         points -= 6;
     }
@@ -620,7 +620,7 @@ void FinalizeSpellPointPool(W8Character* character, W8CharacterCreationState* cr
         } else {
             creation_state->magic_skill_bonus = 1;
         }
-        creation_state->magic_skill_bonus += g_spell_point_bonus_0068de30;
+        creation_state->magic_skill_bonus += g_spell_point_bonus;
         int total = 0;
         if (GetProfessionCasterLevel(character, -1) > 0) {
             for (unsigned int realm = 0x18; realm < 0x1c; ++realm) {
@@ -953,7 +953,7 @@ bool CanAffordStartingEquipment(W8Character* character)
         --count;
     } while (count != 0);
     EmptyAllCarriedItems(character);
-    return total <= g_status_685170.party_gold;
+    return total <= g_status.party_gold;
 }
 
 /* Recompute the level-up pools after a profession change, refunding every
@@ -973,11 +973,11 @@ void RebuildLevelUpPoolsForProfession(W8Character* character,
 
     if (profession == W8_PROFESSION_VALKYRIE) {
         if (character->gender == W8_GENDER_MALE) {
-            g_gender_locked_0068de34 = true;
+            g_gender_locked = true;
             character->gender = W8_GENDER_FEMALE;
         }
-    } else if (g_gender_locked_0068de34) {
-        g_gender_locked_0068de34 = false;
+    } else if (g_gender_locked) {
+        g_gender_locked = false;
         character->gender = W8_GENDER_MALE;
     }
 
@@ -1063,7 +1063,7 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
         }
         if (character->iProfession != -1) {
             if (character->uiExpLevel == 1) {
-                int points = 0x3c + g_attribute_point_bonus_0068de28;
+                int points = 0x3c + g_attribute_point_bonus;
                 if (points < 0) {
                     points = 0;
                 }
@@ -1244,7 +1244,7 @@ void FinalizeCreatedCharacter(W8Character* character, W8CharacterCreationState* 
 /* The six starting item ids each profession hands out, with the faerie race's
    own row last; -1 is an empty slot. */
 // GLOBAL: WIZ8 0x0061635c
-int g_starting_equipment_61635c[0x10][6] = {
+int g_starting_equipment[0x10][6] = {
     {143, 153, 203, 246, -1, -1},  {35, 1, 158, 204, 247, 210},  {75, 170, 197, 246, 215, -1},
     {110, 125, 157, 188, 247, -1}, {38, 49, 165, 192, 246, -1},  {105, 230, 180, 209, 253, -1},
     {79, 105, 165, 192, 246, -1},  {0, 0, 99, 156, 187, 247},    {132, 156, 187, 246, -1, -1},
@@ -1267,10 +1267,10 @@ void AddCharacterStartingEquipment(W8Character* character)
 
     set = character->iRace == 5 ? 15 : character->iProfession;
     for (slot = 0; slot < 6; ++slot) {
-        if (g_starting_equipment_61635c[set][slot] == -1) {
+        if (g_starting_equipment[set][slot] == -1) {
             continue;
         }
-        ReplaceOrCreateItem(&item, g_starting_equipment_61635c[set][slot], 1, 1, 1);
+        ReplaceOrCreateItem(&item, g_starting_equipment[set][slot], 1, 1, 1);
         AddItemToCharacter(character, &item, 1, 0, 0);
     }
 

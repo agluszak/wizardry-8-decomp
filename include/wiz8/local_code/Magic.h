@@ -16,7 +16,7 @@ class W8Missile;
 
 void TickSpellEffects(void); /* 0x00500E90 */
 
-extern int g_learn_sound_0068c510;
+extern int g_learn_sound;
 
 /* 0x005001E0: whether the spell may be cast in the current situation. Every
    retail caller pushes only these two arguments. */

@@ -32,6 +32,6 @@ public:
     int loaded_count;
 };
 
-extern W8ItemVideoObjectCache g_item_video_objects_68ec68;
+extern W8ItemVideoObjectCache g_item_video_objects;
 
 #endif

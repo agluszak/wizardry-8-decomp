@@ -41,11 +41,11 @@
    line 337 establishes the original translation unit. */
 
 // GLOBAL: WIZ8 0x00689fa8
-W8GrowableVector<W8Searchable*> g_searchables_00689fa8(5);
+W8GrowableVector<W8Searchable*> g_searchables(5);
 // GLOBAL: WIZ8 0x00689fb8
-W8SearchableView g_search_view_00689fb8;
+W8SearchableView g_search_view;
 // GLOBAL: WIZ8 0x00689fcc
-TIMER g_search_pulse_clock_00689fcc;
+TIMER g_search_pulse_clock;
 
 /* 10000.0: the unit search radius PickBestSearcher scales by score, and the
    collector's outer range gate. */
@@ -78,7 +78,7 @@ void W8Searchable::Reveal()
         trigger->Run(-1);
         trigger->flags_0a0 |= W8_TRIGGER_SEARCHED;
     }
-    g_searchables_00689fa8.Remove(this);
+    g_searchables.Remove(this);
     delete this;
 }
 
@@ -88,19 +88,19 @@ void W8Searchable::Reveal()
 // FUNCTION: WIZ8 0x00516ba0
 W8SearchableView* CollectSearchablesInView(void)
 {
-    int total = g_searchables_00689fa8.count;
+    int total = g_searchables.count;
     srVector3T<float> camera;
     GetCameraPosition(&camera);
-    g_search_view_00689fb8.items.Clear();
-    g_search_view_00689fb8.cursor = -1;
+    g_search_view.items.Clear();
+    g_search_view.cursor = -1;
     for (int index = 0; index < total; ++index) {
-        W8Searchable* searchable = *g_searchables_00689fa8.GetAt(index);
+        W8Searchable* searchable = *g_searchables.GetAt(index);
         srVector3T<float> position;
         searchable->GetPosition(&position);
         srVector3T<float> delta = camera - position;
         if (delta.Length() < g_float_0061a364) {
             if (searchable->world_item == 0 && searchable->trigger != 0) {
-                g_search_view_00689fb8.items.Add(searchable);
+                g_search_view.items.Add(searchable);
             } else {
                 float half_cone = g_float_0061a368 * g_float_005ebc7c;
                 srVector3T<float> from = camera;
@@ -109,15 +109,15 @@ W8SearchableView* CollectSearchablesInView(void)
                 float heading = GetHeadingAngle(&from, &to);
                 float ahead = NormalizeAngle(yaw - heading);
                 float behind = NormalizeAngle(heading - yaw);
-                if ((half_cone <= ahead && half_cone <= behind) || g_octree_6598a4 == 0 ||
-                    g_octree_6598a4->HasLineOfSight(&camera, &position, 1) == 0) {
+                if ((half_cone <= ahead && half_cone <= behind) || g_octree == 0 ||
+                    g_octree->HasLineOfSight(&camera, &position, 1) == 0) {
                     continue;
                 }
-                g_search_view_00689fb8.items.Add(searchable);
+                g_search_view.items.Add(searchable);
             }
         }
     }
-    return g_search_view_00689fb8.items.count != 0 ? &g_search_view_00689fb8 : 0;
+    return g_search_view.items.count != 0 ? &g_search_view : 0;
 }
 
 /* Register one searchable world item. The item pointer lands in the record's
@@ -131,7 +131,7 @@ void RegisterSearchableWorldItem(W8WorldItem* item)
         srAssertFail("pSearchable", "C:\\Projects\\Wizardry 8\\Local Code\\search.cpp", 0x125, 0);
     }
     searchable->world_item = item;
-    g_searchables_00689fa8.Add(searchable);
+    g_searchables.Add(searchable);
 }
 
 // FUNCTION: WIZ8 0x00516f00
@@ -142,16 +142,16 @@ void RegisterSearchableTrigger00516F00(Trigger* trigger)
         srAssertFail("pSearchable", "C:\\Projects\\Wizardry 8\\Local Code\\search.cpp", 0x151, 0);
     }
     searchable->trigger = trigger;
-    g_searchables_00689fa8.Add(searchable);
+    g_searchables.Add(searchable);
 }
 
 // FUNCTION: WIZ8 0x00516fe0
 void UnregisterSearchableTrigger(Trigger* trigger)
 {
-    for (int index = 0; index < g_searchables_00689fa8.count; ++index) {
-        W8Searchable* searchable = *g_searchables_00689fa8.GetAt(index);
+    for (int index = 0; index < g_searchables.count; ++index) {
+        W8Searchable* searchable = *g_searchables.GetAt(index);
         if (searchable->trigger == trigger) {
-            g_searchables_00689fa8.Remove(searchable);
+            g_searchables.Remove(searchable);
             delete searchable;
             return;
         }
@@ -171,7 +171,7 @@ void W8Searchable::GetPosition(srVector3T<float>* position)
             return;
         }
         position->x = world_item->position.x;
-        position->y = world_item->position.y + g_octree_cell_scale_005ebcd0;
+        position->y = world_item->position.y + g_octree_cell_scale;
         position->z = world_item->position.z;
         return;
     }
@@ -202,7 +202,7 @@ void W8Searchable::GetPosition(srVector3T<float>* position)
 // FUNCTION: WIZ8 0x005171b0
 void ClearSearchables()
 {
-    g_searchables_00689fa8.Clear();
+    g_searchables.Clear();
 }
 
 /* The 500ms search sweep: while nothing is interacting or surprising the
@@ -211,13 +211,13 @@ void ClearSearchables()
 // FUNCTION: WIZ8 0x005171c0
 void RunSearchPulse(void)
 {
-    if (ClockIsTicking(g_search_pulse_clock_00689fcc) == 0) {
-        g_search_pulse_clock_00689fcc = SetCountdownClock(500);
+    if (ClockIsTicking(g_search_pulse_clock) == 0) {
+        g_search_pulse_clock = SetCountdownClock(500);
         if (GetEnvironmentFlag0060A394() != 0 && gXStatus.world_update_blocked == 0 &&
             gXStatus.fSurprisePossible == 0 && gXStatus.fLockInteractMode == 0 &&
             gXStatus.fLockInteract == 0 && gXStatus.fTrapInteractMode == 0 &&
             gXStatus.fTrapInteract == 0) {
-            if ((g_level_data_00652dac->flags & 0x100) != 0 && g_status_685170.search_mode != 0) {
+            if ((g_level_data->flags & 0x100) != 0 && g_status.search_mode != 0) {
                 ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_SPECIAL_LEVEL], -1, -1, 0);
             }
             W8SearchableView* view = CollectSearchablesInView();
@@ -235,7 +235,7 @@ void RunSearchPulse(void)
                     }
                     int slot = searchable->PickBestSearcher();
                     if (slot != -1) {
-                        W8Character* character = &g_status_685170.buffers.Char[slot];
+                        W8Character* character = &g_status.buffers.Char[slot];
                         if (searchable->world_item == 0) {
                             if (searchable->trigger == 0) {
                                 QueueCharacterEvent(character, g_effect_005ee5f0, 0,
@@ -286,22 +286,21 @@ void RunSearchPulse(void)
                     }
                 }
             }
-            if (g_status_685170.search_mode == 0 || (g_level_data_00652dac->flags & 0x100) != 0) {
+            if (g_status.search_mode == 0 || (g_level_data->flags & 0x100) != 0) {
                 /* Retail scans the party for a live member carrying the
                    Scouting skill and then discards the result. */
                 for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-                    W8Character* character = &g_status_685170.buffers.Char[slot];
-                    if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
-                        character->hp_current != 0 &&
+                    W8Character* character = &g_status.buffers.Char[slot];
+                    if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
                         character->highest_condition < W8_CONDITION_TURNCOAT &&
                         character->skills[W8_SKILL_SCOUTING].level != 0) {
                         break;
                     }
                 }
             }
-            if (g_status_685170.search_mode != 0 && (g_level_data_00652dac->flags & 0x100) == 0 &&
-                !found && Random(100) == 0) {
-                ApplyItemEffectToRandomCharacter(g_container_event_0068c548, -1, 0,
+            if (g_status.search_mode != 0 && (g_level_data->flags & 0x100) == 0 && !found &&
+                Random(100) == 0) {
+                ApplyItemEffectToRandomCharacter(g_container_event, -1, 0,
                                                  g_effect_argument_005ed8c8);
             }
         }
@@ -320,20 +319,19 @@ int W8Searchable::PickBestSearcher()
     int best_slot = -1;
     bool earned = false;
     for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-        W8Character* character = &g_status_685170.buffers.Char[slot];
-        if (g_status_685170.buffers.XChar[slot].fOccupied == 0 || character->hp_current == 0 ||
+        W8Character* character = &g_status.buffers.Char[slot];
+        if (g_status.buffers.XChar[slot].fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_TURNCOAT) {
             continue;
         }
-        if (CharacterHasTrait(character, W8_TRAIT_SEARCH) || g_status_685170.search_mode != 0) {
+        if (CharacterHasTrait(character, W8_TRAIT_SEARCH) || g_status.search_mode != 0) {
             unsigned int level = character->skills[W8_SKILL_SCOUTING].level;
             unsigned int base = level >> 1;
-            if ((g_level_data_00652dac->flags & 0x100) != 0) {
+            if ((g_level_data->flags & 0x100) != 0) {
                 base = level >> 2;
             }
             unsigned int score = 0;
-            if (base != 0 ||
-                (g_status_685170.search_mode != 0 && (g_level_data_00652dac->flags & 0x100) == 0)) {
+            if (base != 0 || (g_status.search_mode != 0 && (g_level_data->flags & 0x100) == 0)) {
                 unsigned int attribute = character->attributes[W8_ATTRIBUTE_SENSES].effective;
                 if (attribute < 0x33) {
                     score = base + attribute / 5;
@@ -358,7 +356,7 @@ int W8Searchable::PickBestSearcher()
                 best_slot = slot;
             }
         }
-        if (g_status_685170.party_modifiers_22e3.detect_secrets_46 != 0) {
+        if (g_status.party_modifiers_22e3.detect_secrets_46 != 0) {
             if (best_slot != -1 && Random(2) == 0) {
                 continue;
             }
@@ -367,7 +365,7 @@ int W8Searchable::PickBestSearcher()
             best_slot = slot;
         }
     }
-    float range = best_score * g_float_0061a364 * g_movement_speed_step_005ed490;
+    float range = best_score * g_float_0061a364 * g_movement_speed_step;
     srVector3T<float> camera;
     GetCameraPosition(&camera);
     srVector3T<float> position;
@@ -375,8 +373,7 @@ int W8Searchable::PickBestSearcher()
     srVector3T<float> delta = camera - position;
     if (delta.Length() < range) {
         if (earned) {
-            PracticeCharacterSkill(&g_status_685170.buffers.Char[best_slot], W8_SKILL_SCOUTING, 5,
-                                   0);
+            PracticeCharacterSkill(&g_status.buffers.Char[best_slot], W8_SKILL_SCOUTING, 5, 0);
         }
         return best_slot;
     }
@@ -389,15 +386,15 @@ int W8Searchable::PickBestSearcher()
 // FUNCTION: WIZ8 0x00517780
 void ToggleSearchMode(void)
 {
-    if (g_status_685170.search_mode != 0) {
-        g_status_685170.search_mode = 0;
+    if (g_status.search_mode != 0) {
+        g_status.search_mode = 0;
         ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_MODE_OFF], -1, -1, 0);
         return;
     }
     if (gXStatus.fCombatMode == 0) {
-        g_status_685170.search_mode = 1;
+        g_status.search_mode = 1;
         ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_MODE_ON], -1, -1, 0);
-        g_search_pulse_clock_00689fcc = SetCountdownClock(0x1f4);
+        g_search_pulse_clock = SetCountdownClock(0x1f4);
         ClearValue6834D4();
     } else {
         ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_BLOCKED_COMBAT], -1, -1, 0);

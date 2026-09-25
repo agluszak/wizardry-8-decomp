@@ -64,7 +64,7 @@ unsigned char W8WorldCursorNode::GetLocation0048D050(srVector3T<float>* position
    initializer at 0x0048D020 constructs it with capacity five and its
    destructor is run through atexit. */
 // GLOBAL: WIZ8 0x0065ba58
-W8GrowableVector<W8WorldCursorNode*> g_world_cursor_nodes_65ba58(5);
+W8GrowableVector<W8WorldCursorNode*> g_world_cursor_nodes(5);
 
 /* The double selection range at 0x005ECAC8: node distances below it select the
    node. Read as 75000.0, not the zero a float view would give. */
@@ -72,10 +72,10 @@ W8GrowableVector<W8WorldCursorNode*> g_world_cursor_nodes_65ba58(5);
 const double g_double_005ecac8 = 75000.0;
 
 // GLOBAL: WIZ8 0x0060a9b0
-int g_cursor_node_index_0060a9b0 = -1;
+int g_cursor_node_index = -1;
 
 // GLOBAL: WIZ8 0x005ebf50
-double g_world_cursor_scale_005ebf50 = 0.002;
+double g_world_cursor_scale = 0.002;
 
 // SYNTHETIC: WIZ8 0x0048F260
 // W8WorldCursorNode::`scalar deleting destructor'
@@ -245,7 +245,7 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     entry->size_1c = 0;
     entry->name_24[0] = 0;
 
-    g_world_cursor_nodes_65ba58.Add(entry);
+    g_world_cursor_nodes.Add(entry);
     return entry;
 }
 
@@ -260,7 +260,7 @@ void DestroyWorldCursorCube(W8WorldCursorNode* entry)
         entry->size_1c = 0;
         entry->node_04->setParent(0, 1);
         entry->node_04->release();
-        g_world_cursor_nodes_65ba58.Remove(entry);
+        g_world_cursor_nodes.Remove(entry);
         delete entry;
     }
 }
@@ -318,13 +318,13 @@ void DrawWorldCursorNodeLabel(W8WorldCursorNode* entry)
         SaveFontSettings();
         SetFontDestBuffer(FontDestBuffer, 0, 0, surface->getWidth(), surface->getHeight(),
                           static_cast<unsigned char>(FontDestWrap));
-        SetFont(g_smfnt_font_683694);
-        SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
+        SetFont(g_smfnt_font);
+        SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
         for (int index = 0; index < 3; ++index) {
             wchar_t text[20];
             swprintf(text, g_format_d_0060aa20, entry->numbers_0c[index]);
-            gprintf_buffer(data, surface->getPitch(), g_smfnt_font_683694, 0,
-                           GetFontHeight(g_smfnt_font_683694) * index, text);
+            gprintf_buffer(data, surface->getPitch(), g_smfnt_font, 0,
+                           GetFontHeight(g_smfnt_font) * index, text);
         }
         texture->invalidate();
         RestoreFontSettings();
@@ -465,10 +465,10 @@ static W8WorldCursorNode* FindNearestWorldCursorNode(int x, int y)
 {
     float nearest = 999999.0f;
     W8WorldCursorNode* result = 0;
-    int count = g_world_cursor_nodes_65ba58.count;
+    int count = g_world_cursor_nodes.count;
 
     for (int index = 0; index < count; ++index) {
-        W8WorldCursorNode* entry = *g_world_cursor_nodes_65ba58.GetAt(index);
+        W8WorldCursorNode* entry = *g_world_cursor_nodes.GetAt(index);
         if (entry != 0 && entry->node_04 != 0 && entry->node_04 == GetPickedModelInstance()) {
             srVector3T<double> camera;
             g_world->camera->getLocation(camera);
@@ -538,9 +538,8 @@ unsigned int LoadWorldCursorNodeStates(int handle)
             int cube_index;
 
             FileRead(handle, name, sizeof(name), 0);
-            for (cube_index = 0; cube_index < g_world_cursor_nodes_65ba58.GetCount();
-                 ++cube_index) {
-                W8WorldCursorNode* candidate = *g_world_cursor_nodes_65ba58.GetAt(cube_index);
+            for (cube_index = 0; cube_index < g_world_cursor_nodes.GetCount(); ++cube_index) {
+                W8WorldCursorNode* candidate = *g_world_cursor_nodes.GetAt(cube_index);
                 if (strcmp(candidate->name_24, name) == 0) {
                     cube = candidate;
                     break;
@@ -593,12 +592,12 @@ unsigned char SaveWorldCursorNodeStates(int handle)
     if (!FileWrite(handle, &version, 4, 0)) {
         return 0;
     }
-    count = g_world_cursor_nodes_65ba58.count;
+    count = g_world_cursor_nodes.count;
     if (!FileWrite(handle, &count, 4, 0)) {
         return 0;
     }
     for (index = 0; index < count && ok; ++index) {
-        node = *g_world_cursor_nodes_65ba58.GetAt(index);
+        node = *g_world_cursor_nodes.GetAt(index);
         ok = FileWrite(handle, node->name_24, sizeof(node->name_24), 0) &&
              FileWrite(handle, &node->size_1c, 4, 0);
         if (node->size_1c != 0) {
@@ -668,9 +667,9 @@ unsigned int LoadWorldCursorNodes(int handle)
         }
 
         srVector3T<float> scale(
-            (maximum[0] - minimum[0]) * static_cast<float>(g_world_cursor_scale_005ebf50),
-            (maximum[1] - minimum[1]) * static_cast<float>(g_world_cursor_scale_005ebf50),
-            (maximum[2] - minimum[2]) * static_cast<float>(g_world_cursor_scale_005ebf50));
+            (maximum[0] - minimum[0]) * static_cast<float>(g_world_cursor_scale),
+            (maximum[1] - minimum[1]) * static_cast<float>(g_world_cursor_scale),
+            (maximum[2] - minimum[2]) * static_cast<float>(g_world_cursor_scale));
         if (cube != 0) {
             stModelInstance* instance = static_cast<stModelInstance*>(cube->node_04);
             if (instance != 0) {
@@ -723,12 +722,12 @@ unsigned char SaveWorldCursorNodes(int handle)
         return 0;
     }
     FileWrite(handle, &gXStatus.mipe_cube_serial, 4, 0);
-    count = g_world_cursor_nodes_65ba58.count;
+    count = g_world_cursor_nodes.count;
     if (!FileWrite(handle, &count, 4, 0)) {
         return 0;
     }
     for (index = 0; index < count && ok; ++index) {
-        node = *g_world_cursor_nodes_65ba58.GetAt(index);
+        node = *g_world_cursor_nodes.GetAt(index);
         FileWrite(handle, node->name_24, sizeof(node->name_24), 0);
         for (component = 0; component < 3 && ok; ++component) {
             ok = FileWrite(handle, &node->numbers_0c[component], 4, 0);
@@ -750,13 +749,13 @@ unsigned char SaveWorldCursorNodes(int handle)
 // FUNCTION: WIZ8 0x0048ED00
 int GetWorldCursorNodeCount(void)
 {
-    return g_world_cursor_nodes_65ba58.count;
+    return g_world_cursor_nodes.count;
 }
 
 // FUNCTION: WIZ8 0x0048ED10
 W8WorldCursorNode* GetWorldCursorNode(int index)
 {
-    return *g_world_cursor_nodes_65ba58.GetAt(index);
+    return *g_world_cursor_nodes.GetAt(index);
 }
 
 /* Attach or detach the node's scene node under the world's dynamic scene. */
@@ -787,10 +786,10 @@ void SetWorldCursorNodeName(W8WorldCursorNode* entry, const char* name)
 // FUNCTION: WIZ8 0x0048ED70
 void SetWorldCursorNodesVisible(unsigned char visible)
 {
-    unsigned int count = g_world_cursor_nodes_65ba58.count;
+    unsigned int count = g_world_cursor_nodes.count;
 
     for (unsigned int index = 0; index < count; ++index) {
-        W8WorldCursorNode* entry = *g_world_cursor_nodes_65ba58.GetAt(index);
+        W8WorldCursorNode* entry = *g_world_cursor_nodes.GetAt(index);
 
         if (entry != 0) {
             srNode* parent = 0;
@@ -809,11 +808,11 @@ void SetWorldCursorNodesVisible(unsigned char visible)
 W8WorldCursorNode* FindWorldCursorNodeAtPoint(W8WorldCursorNode* after, srVector3T<float>* point)
 {
     unsigned int index = 0;
-    unsigned int count = g_world_cursor_nodes_65ba58.count;
+    unsigned int count = g_world_cursor_nodes.count;
 
     if (after != 0) {
         for (unsigned int i = 0; i < count; ++i) {
-            if (*g_world_cursor_nodes_65ba58.GetAt(i) == after) {
+            if (*g_world_cursor_nodes.GetAt(i) == after) {
                 index = i + 1;
                 if (i == count - 1) {
                     return 0;
@@ -822,7 +821,7 @@ W8WorldCursorNode* FindWorldCursorNodeAtPoint(W8WorldCursorNode* after, srVector
         }
     }
     while (index < count) {
-        W8WorldCursorNode* entry = *g_world_cursor_nodes_65ba58.GetAt(index);
+        W8WorldCursorNode* entry = *g_world_cursor_nodes.GetAt(index);
         if (entry->node_04 != 0) {
             srNode::BoundInfo bounds;
             entry->node_04->getLocalBounds(bounds);
@@ -900,9 +899,9 @@ bool SelectWorldCursorNode(void)
 
         GetCameraPosition(&camera_position);
         camera_location.SetFromFloat(&camera_position);
-        int selected = g_cursor_node_index_0060a9b0;
-        if (selected >= 0 && selected < g_world_cursor_nodes_65ba58.count) {
-            W8WorldCursorNode* entry = g_world_cursor_nodes_65ba58.data[selected];
+        int selected = g_cursor_node_index;
+        if (selected >= 0 && selected < g_world_cursor_nodes.count) {
+            W8WorldCursorNode* entry = g_world_cursor_nodes.data[selected];
             srVector3T<double> target = entry->node_04->getLocation();
 
             if (entry != 0) {
@@ -914,9 +913,9 @@ bool SelectWorldCursorNode(void)
                 }
             }
         }
-        int count = g_world_cursor_nodes_65ba58.count;
+        int count = g_world_cursor_nodes.count;
         for (int index = 0; index < count; ++index) {
-            W8WorldCursorNode* entry = g_world_cursor_nodes_65ba58.data[index];
+            W8WorldCursorNode* entry = g_world_cursor_nodes.data[index];
             srVector3T<double> target = entry->node_04->getLocation();
 
             if (entry != 0) {
@@ -924,7 +923,7 @@ bool SelectWorldCursorNode(void)
 
                 delta -= camera_location;
                 if (delta.Length() < g_double_005ecac8) {
-                    g_cursor_node_index_0060a9b0 = index;
+                    g_cursor_node_index = index;
                     return 1;
                 }
             }
@@ -939,8 +938,8 @@ bool SelectWorldCursorNode(void)
 // FUNCTION: WIZ8 0x0048DB30
 void ReleaseWorldCursorNodes0048DB30(void)
 {
-    while (g_world_cursor_nodes_65ba58.count != 0) {
-        W8WorldCursorNode* entry = g_world_cursor_nodes_65ba58.data[0];
+    while (g_world_cursor_nodes.count != 0) {
+        W8WorldCursorNode* entry = g_world_cursor_nodes.data[0];
 
         if (entry != 0) {
             if (entry->pUserdata != 0) {
@@ -950,7 +949,7 @@ void ReleaseWorldCursorNodes0048DB30(void)
             entry->size_1c = 0;
             entry->node_04->setParent(0, 1);
             entry->node_04->release();
-            g_world_cursor_nodes_65ba58.Remove(entry);
+            g_world_cursor_nodes.Remove(entry);
             delete entry;
         }
     }

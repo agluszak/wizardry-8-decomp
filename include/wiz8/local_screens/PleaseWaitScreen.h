@@ -1,6 +1,6 @@
 #pragma once
 
-extern int g_level_load_font_69b7c0; /* 0x0069B7C0: font used for level-load and
+extern int g_level_load_font; /* 0x0069B7C0: font used for level-load and
                                         party-death/ending overlay text */
 
 unsigned char PleaseWaitScreenInitialize(void);

@@ -13,7 +13,7 @@
 float g_rate_006068EC = 0.1f;
 
 // GLOBAL: WIZ8 0x006598bc
-W8GameTimeAccumulator* g_game_time_accumulator_6598bc;
+W8GameTimeAccumulator* g_game_time_accumulator;
 
 // VTABLE: WIZ8 0x005ec0ac
 // class W8GameTimeAccumulator

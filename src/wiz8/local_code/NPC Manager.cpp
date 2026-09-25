@@ -135,9 +135,9 @@ char GetNpcDisposition(W8NpcState* npc)
     }
     if (npc->record->allied_faction_6e != 0) {
         for (slot = 0; slot < 2; ++slot) {
-            if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
-                g_status_685170.buffers.Char[slot].hp_current > 0) {
-                bound_index = g_status_685170.buffers.XChar[slot].npc_index;
+            if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+                g_status.buffers.Char[slot].hp_current > 0) {
+                bound_index = g_status.buffers.XChar[slot].npc_index;
                 if (g_npc_states != 0) {
                     bound = *g_npc_states->GetAt(bound_index);
                     if (bound != 0 && bound->binding_unavailable == 0 &&
@@ -280,10 +280,10 @@ W8NpcState* GetNpcStateByKind(int kind)
 // FUNCTION: WIZ8 0x0050B8F0
 bool NpcLeadHasNameStyle(unsigned int kind)
 {
-    if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
+    if (g_status.buffers.XChar[0].fOccupied != 0) {
         W8NpcState* npc = 0;
         if (g_npc_states != 0) {
-            int index = g_status_685170.buffers.XChar[0].npc_index;
+            int index = g_status.buffers.XChar[0].npc_index;
             W8NpcState** slot = g_npc_states->data;
             if (index < g_npc_states->count) {
                 slot += index;
@@ -293,14 +293,14 @@ bool NpcLeadHasNameStyle(unsigned int kind)
                 npc = 0;
             }
         }
-        if (npc->name_style == kind && g_status_685170.buffers.Char[0].highest_condition < 0xf) {
+        if (npc->name_style == kind && g_status.buffers.Char[0].highest_condition < 0xf) {
             return 1;
         }
     }
-    if (g_status_685170.buffers.XChar[1].fOccupied != 0) {
+    if (g_status.buffers.XChar[1].fOccupied != 0) {
         W8NpcState* npc = 0;
         if (g_npc_states != 0) {
-            int index = g_status_685170.buffers.XChar[1].npc_index;
+            int index = g_status.buffers.XChar[1].npc_index;
             W8NpcState** slot = g_npc_states->data;
             if (index < g_npc_states->count) {
                 slot += index;
@@ -310,7 +310,7 @@ bool NpcLeadHasNameStyle(unsigned int kind)
                 npc = 0;
             }
         }
-        if (npc->name_style == kind && g_status_685170.buffers.Char[1].highest_condition < 0xf) {
+        if (npc->name_style == kind && g_status.buffers.Char[1].highest_condition < 0xf) {
             return 1;
         }
     }
@@ -352,7 +352,7 @@ W8Character* GetNpcGroupCharacter(W8NpcState* npc)
     if (!npc->is_grouped) {
         return 0;
     }
-    return &g_status_685170.buffers.Char[npc->group_index];
+    return &g_status.buffers.Char[npc->group_index];
 }
 
 /* Whether an NPC would take one item in trade. The kind that trades in nothing
@@ -375,15 +375,15 @@ bool WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item)
 // FUNCTION: WIZ8 0x0050b9b0
 unsigned char CountLeadingPartySlots(void)
 {
-    if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
-        if (g_status_685170.buffers.XChar[1].fOccupied != 0) {
+    if (g_status.buffers.XChar[0].fOccupied != 0) {
+        if (g_status.buffers.XChar[1].fOccupied != 0) {
             return 2;
         }
-        if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
+        if (g_status.buffers.XChar[0].fOccupied != 0) {
             return 1;
         }
     }
-    if (g_status_685170.buffers.XChar[1].fOccupied != 0) {
+    if (g_status.buffers.XChar[1].fOccupied != 0) {
         return 1;
     }
     return 0;
@@ -447,8 +447,7 @@ bool NpcWantsItem(W8NpcState* npc, W8ItemInstance* item)
         return 0;
     }
     if (npc->is_grouped != 0 &&
-        CountItemOnCharacter(&g_status_685170.buffers.Char[npc->group_index], item->iItemNo, 0, 2) >
-            1) {
+        CountItemOnCharacter(&g_status.buffers.Char[npc->group_index], item->iItemNo, 0, 2) > 1) {
         return 0;
     }
     return 1;
@@ -492,7 +491,7 @@ void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character)
 // FUNCTION: WIZ8 0x0050b590
 int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool neutral)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
+    W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
     if (row->npc_index == -1) {
         return 0;
     }
@@ -506,7 +505,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
     if (npc == 0 || npc->binding_unavailable) {
         return 0;
     }
-    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8Character* character = &g_status.buffers.Char[party_slot];
     *npc->character = *character;
     npc->is_grouped = false;
     ReleaseNpcScriptFile(npc->script_file);
@@ -566,8 +565,8 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
 // FUNCTION: WIZ8 0x0050B3B0
 void UpdateNpcPartyMember(int party_slot)
 {
-    W8NpcState* npc = GetNpcState(g_status_685170.buffers.XChar[party_slot].npc_index);
-    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8NpcState* npc = GetNpcState(g_status.buffers.XChar[party_slot].npc_index);
+    W8Character* character = &g_status.buffers.Char[party_slot];
     srVector3T<float> position;
 
     if (character->highest_condition == 0x12) {
@@ -584,7 +583,7 @@ void UpdateNpcPartyMember(int party_slot)
         ShowNoticef(0, gppStringList[0x7d5]);
         return;
     }
-    int band = GetLevelBand(g_status_685170.current_level);
+    int band = GetLevelBand(g_status.current_level);
     int service = 0;
     if (g_npc_services[0].service_id != 0xffffffff) {
         while (g_npc_services[service].service_id != 0xffffffff) {
@@ -623,16 +622,16 @@ bool RecruitNpcIntoParty(W8NpcState* npc)
     }
     int index;
     for (index = 0; index < 0x29; ++index) {
-        if (g_status_685170.buffers.Char[party_slot].skills[index].points_02 > 0) {
-            g_status_685170.buffers.Char[party_slot].skills[index].available_13 = true;
+        if (g_status.buffers.Char[party_slot].skills[index].points_02 > 0) {
+            g_status.buffers.Char[party_slot].skills[index].available_13 = true;
         }
     }
-    RefreshCharacterSkillAvailability(&g_status_685170.buffers.Char[party_slot]);
+    RefreshCharacterSkillAvailability(&g_status.buffers.Char[party_slot]);
     if (npc->has_monster && npc->is_present) {
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, npc->location_id, 1));
         if (monster != 0) {
-            CopyMonsterConditionsToCharacter(&g_status_685170.buffers.Char[party_slot], monster);
+            CopyMonsterConditionsToCharacter(&g_status.buffers.Char[party_slot], monster);
             RemoveMonster(
                 MonsterGetIndexByLocationID(0x5bf, NPC_MANAGER_CPP, monster->location_id, 1), 1);
         }
@@ -660,13 +659,13 @@ bool RecruitNpcIntoParty(W8NpcState* npc)
         return true;
     }
     for (index = 0; index < 5; ++index) {
-        if (g_status_685170.rpc_races_243a[index] == race) {
+        if (g_status.rpc_races_243a[index] == race) {
             return true;
         }
     }
     for (index = 0; index < 5; ++index) {
-        if (g_status_685170.rpc_races_243a[index] == 0) {
-            g_status_685170.rpc_races_243a[index] = race;
+        if (g_status.rpc_races_243a[index] == 0) {
+            g_status.rpc_races_243a[index] = race;
             break;
         }
     }
@@ -801,7 +800,7 @@ bool CanNpcJoinParty(W8NpcState* npc)
     }
     /* The service ids are the GetLevelBand region numbering: an NPC who offers
        the current region's service stays on duty and refuses to join. */
-    band = GetLevelBand(g_status_685170.current_level);
+    band = GetLevelBand(g_status.current_level);
     row = 0;
     while (g_npc_services[row].service_id != 0xffffffff) {
         if (g_npc_services[row].service_id == static_cast<unsigned int>(band)) {
@@ -835,11 +834,11 @@ bool CanNpcJoinParty(W8NpcState* npc)
         count = 0;
         average = 0;
         for (index = 0; index < 8; ++index) {
-            if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
-                g_status_685170.buffers.Char[index].hp_current > 0 &&
-                g_status_685170.buffers.Char[index].highest_condition < 0xf) {
+            if (g_status.buffers.XChar[index].fOccupied != 0 &&
+                g_status.buffers.Char[index].hp_current > 0 &&
+                g_status.buffers.Char[index].highest_condition < 0xf) {
                 ++count;
-                total += g_status_685170.buffers.Char[index].uiExpLevel;
+                total += g_status.buffers.Char[index].uiExpLevel;
             }
         }
         if (count > 0) {
@@ -946,12 +945,12 @@ void AdvanceNpcTimers(unsigned int elapsed)
                 }
             }
             if (npc->talk_cooldown_active != 0 &&
-                static_cast<unsigned int>(g_status_685170.world_clock - npc->talk_cooldown_clock) >
+                static_cast<unsigned int>(g_status.world_clock - npc->talk_cooldown_clock) >
                     0xa8c0) {
                 npc->talk_cooldown_active = 0;
             }
             if (npc->trade_cooldown_active != 0 &&
-                static_cast<unsigned int>(g_status_685170.world_clock - npc->trade_cooldown_clock) >
+                static_cast<unsigned int>(g_status.world_clock - npc->trade_cooldown_clock) >
                     0xa8c0) {
                 npc->trade_cooldown_active = 0;
             }
@@ -973,7 +972,7 @@ void ProcessNpcPendingEvents(void)
     unsigned char all_clear = 1; // bool-byte-ok: retail byte flag
 
     if (gXStatus.fCombatMode == 0 && gXStatus.fSurprisePossible == 0) {
-        if (g_status_685170.infatuation_pending_2446 != 0) {
+        if (g_status.infatuation_pending_2446 != 0) {
             bool flagged = false;
             for (int index = 0; index < g_npc_states->count; ++index) {
                 W8NpcState* candidate = *g_npc_states->GetAt(index);
@@ -985,54 +984,54 @@ void ProcessNpcPendingEvents(void)
                 }
             }
             if (flagged != 0) {
-                g_status_685170.infatuation_pending_2446 = 0;
+                g_status.infatuation_pending_2446 = 0;
             } else {
-                char band = GetLevelBand(g_status_685170.current_level);
+                char band = GetLevelBand(g_status.current_level);
                 if (band != 9 && band != 0xa) {
                     W8Character* character =
-                        &g_status_685170.buffers.Char[g_status_685170.sedexus_party_slot_247f];
+                        &g_status.buffers.Char[g_status.sedexus_party_slot_247f];
                     if (character->gender == W8_GENDER_MALE) {
                         QueueCharacterEvent(character, g_effect_005ee638, 0,
                                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
                     }
-                    SetCharacterCondition(g_status_685170.sedexus_party_slot_247f,
-                                          W8_CONDITION_INFATUATED, 9999, 0, 0, 1);
-                    g_status_685170.infatuation_pending_2446 = 0;
+                    SetCharacterCondition(g_status.sedexus_party_slot_247f, W8_CONDITION_INFATUATED,
+                                          9999, 0, 0, 1);
+                    g_status.infatuation_pending_2446 = 0;
                     SetFact(0x2a6, 1, 0);
                 }
             }
         }
-        if (g_status_685170.binding_reset_pending_242e != 0 &&
-            (g_status_685170.world_clock - g_status_685170.binding_reset_clock_242a) > 0x3c) {
+        if (g_status.binding_reset_pending_242e != 0 &&
+            (g_status.world_clock - g_status.binding_reset_clock_242a) > 0x3c) {
             int service = 0;
             if (g_npc_services[0].service_id != 0xffffffff) {
                 while (g_npc_services[service].service_id !=
-                       static_cast<unsigned int>(GetLevelBand(g_status_685170.current_level))) {
+                       static_cast<unsigned int>(GetLevelBand(g_status.current_level))) {
                     ++service;
                     if (g_npc_services[service].service_id == 0xffffffff) {
-                        g_status_685170.binding_reset_pending_242e = 0;
+                        g_status.binding_reset_pending_242e = 0;
                         return;
                     }
                 }
                 for (int slot = 0; slot < 2; ++slot) {
-                    W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-                    W8Character* character = &g_status_685170.buffers.Char[slot];
+                    W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+                    W8Character* character = &g_status.buffers.Char[slot];
                     if (row->fOccupied == 0 || character->hp_current == 0) {
                         continue;
                     }
                     W8NpcState* npc = GetNpcState(row->npc_index);
                     if (character->highest_condition < 0xf) {
                         int event = 0;
-                        if (GetLevelBand(g_status_685170.current_level) != 0xd) {
+                        if (GetLevelBand(g_status.current_level) != 0xd) {
                             if (npc->name_style == 0x11 &&
-                                (g_status_685170.buffers.XChar[0].fOccupied == 0 ||
-                                 GetNpcState(g_status_685170.buffers.XChar[0].npc_index)
-                                         ->name_style != 0x10 ||
-                                 g_status_685170.buffers.Char[0].highest_condition >= 0xf) &&
-                                (g_status_685170.buffers.XChar[1].fOccupied == 0 ||
-                                 GetNpcState(g_status_685170.buffers.XChar[1].npc_index)
-                                         ->name_style != 0x10 ||
-                                 g_status_685170.buffers.Char[1].highest_condition >= 0xf)) {
+                                (g_status.buffers.XChar[0].fOccupied == 0 ||
+                                 GetNpcState(g_status.buffers.XChar[0].npc_index)->name_style !=
+                                     0x10 ||
+                                 g_status.buffers.Char[0].highest_condition >= 0xf) &&
+                                (g_status.buffers.XChar[1].fOccupied == 0 ||
+                                 GetNpcState(g_status.buffers.XChar[1].npc_index)->name_style !=
+                                     0x10 ||
+                                 g_status.buffers.Char[1].highest_condition >= 0xf)) {
                                 event = 0x6c;
                             } else if (npc->name_style == 0x10 && !NpcLeadHasNameStyle(0x11)) {
                                 event = 0x67;
@@ -1048,8 +1047,8 @@ void ProcessNpcPendingEvents(void)
                         W8NpcState* bound = GetNpcState(row->npc_index);
                         if (bound != 0 && bound->service_flags[service] == 0) {
                             bound->service_flags[service] = 1;
-                            if (NpcOffersService(
-                                    bound, GetLevelBand(g_status_685170.current_level)) == 0 &&
+                            if (NpcOffersService(bound, GetLevelBand(g_status.current_level)) ==
+                                    0 &&
                                 service != 0xc && service != 0xd) {
                                 QueueCharacterEvent(
                                     character,
@@ -1059,7 +1058,7 @@ void ProcessNpcPendingEvents(void)
                         }
                         bound = GetNpcState(row->npc_index);
                         if (bound != 0) {
-                            char band = GetLevelBand(g_status_685170.current_level);
+                            char band = GetLevelBand(g_status.current_level);
                             for (int index = 0; g_npc_services[index].service_id != 0xffffffff;
                                  ++index) {
                                 if (g_npc_services[index].service_id ==
@@ -1067,7 +1066,7 @@ void ProcessNpcPendingEvents(void)
                                     if ((bound->record->service_flags &
                                          g_npc_services[index].bit) != 0) {
                                         row->npc_bound_fe = true;
-                                        bound->event_clock_eb = g_status_685170.world_clock;
+                                        bound->event_clock_eb = g_status.world_clock;
                                         RebuildConditionsAndDerivedStats(slot);
                                         QueueCharacterEvent(character, 0x56, 0,
                                                             g_effect_argument_005ed8c8,
@@ -1089,7 +1088,7 @@ void ProcessNpcPendingEvents(void)
                     return;
                 }
             }
-            g_status_685170.binding_reset_pending_242e = 0;
+            g_status.binding_reset_pending_242e = 0;
         }
     }
 }
@@ -1105,7 +1104,7 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
     int start_level;
 
     value = EvaluateFact(0x4e);
-    if (g_status_685170.log_fact_checks_3120) {
+    if (g_status.log_fact_checks_3120) {
         if (value) {
             wcscpy(display_value, L"TRUE");
         } else {
@@ -1118,7 +1117,7 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
         start_level = 8;
     } else {
         value = EvaluateFact(0x4c);
-        if (g_status_685170.log_fact_checks_3120) {
+        if (g_status.log_fact_checks_3120) {
             if (value) {
                 wcscpy(display_value, L"TRUE");
             } else {
@@ -1135,10 +1134,10 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
     }
     *level = start_level;
     *entrance = 0;
-    g_status_685170.greeting_pending_2497 = 1;
+    g_status.greeting_pending_2497 = 1;
 
     value = EvaluateFact(0x4e);
-    if (g_status_685170.log_fact_checks_3120) {
+    if (g_status.log_fact_checks_3120) {
         if (value) {
             wcscpy(display_value, L"TRUE");
         } else {
@@ -1152,7 +1151,7 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
     }
 
     value = EvaluateFact(0x4c);
-    if (g_status_685170.log_fact_checks_3120) {
+    if (g_status.log_fact_checks_3120) {
         if (value) {
             wcscpy(display_value, L"TRUE");
         } else {
@@ -1168,7 +1167,7 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
     }
 
     value = EvaluateFact(0x4b);
-    if (g_status_685170.log_fact_checks_3120) {
+    if (g_status.log_fact_checks_3120) {
         if (value) {
             wcscpy(display_value, L"TRUE");
         } else {
@@ -1201,7 +1200,7 @@ void SelectStartNpcGreeting(void)
     srVector3T<float> head;
 
     value = EvaluateFact(0x4e);
-    if (g_status_685170.log_fact_checks_3120) {
+    if (g_status.log_fact_checks_3120) {
         if (value) {
             wcscpy(display_value, L"TRUE");
         } else {
@@ -1211,13 +1210,12 @@ void SelectStartNpcGreeting(void)
                     display_value);
     }
     if (value != 0) {
-        ApplyItemEffectToRandomCharacter(g_fact_check_event_005ee6f0, -1, 0,
-                                         g_effect_argument_005ed8c8);
+        ApplyItemEffectToRandomCharacter(g_fact_check_event, -1, 0, g_effect_argument_005ed8c8);
         return;
     }
 
     value = EvaluateFact(0x4c);
-    if (g_status_685170.log_fact_checks_3120) {
+    if (g_status.log_fact_checks_3120) {
         if (value) {
             wcscpy(display_value, L"TRUE");
         } else {
@@ -1230,7 +1228,7 @@ void SelectStartNpcGreeting(void)
         npc = GetNpcStateByKind(0xc);
     } else {
         value = EvaluateFact(0x4b);
-        if (g_status_685170.log_fact_checks_3120) {
+        if (g_status.log_fact_checks_3120) {
             if (value) {
                 wcscpy(display_value, L"TRUE");
             } else {
@@ -1253,7 +1251,7 @@ void SelectStartNpcGreeting(void)
             head.x = monster->movement_0c0.position_040.x;
             head.y = monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
             head.z = monster->movement_0c0.position_040.z;
-            g_gd_camera_65a0f8->LookAt(&head, 0);
+            g_gd_camera->LookAt(&head, 0);
             return;
         }
         npc = GetNpcStateByKind(0x18);
@@ -1272,7 +1270,7 @@ int SelectNewGameStartLevel(void)
     wchar_t display_value[10];
 
     value = EvaluateFact(0x4e);
-    if (g_status_685170.log_fact_checks_3120) {
+    if (g_status.log_fact_checks_3120) {
         if (value) {
             wcscpy(display_value, L"TRUE");
         } else {
@@ -1286,7 +1284,7 @@ int SelectNewGameStartLevel(void)
     }
 
     value = EvaluateFact(0x4c);
-    if (g_status_685170.log_fact_checks_3120) {
+    if (g_status.log_fact_checks_3120) {
         if (value) {
             wcscpy(display_value, L"TRUE");
         } else {
@@ -1300,7 +1298,7 @@ int SelectNewGameStartLevel(void)
     }
 
     value = EvaluateFact(0x4b);
-    if (g_status_685170.log_fact_checks_3120) {
+    if (g_status.log_fact_checks_3120) {
         if (value) {
             wcscpy(display_value, L"TRUE");
         } else {
@@ -1571,8 +1569,8 @@ void BindNpcToMonster(unsigned char npc_id, int has_monster, int location_id)
     npc->location_id = location_id;
     npc->is_present = has_monster;
     npc->has_monster = true;
-    npc->level_band = GetLevelBand(g_status_685170.current_level);
-    npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
+    npc->level_band = GetLevelBand(g_status.current_level);
+    npc->bound_level = static_cast<unsigned char>(g_status.current_level);
     ReloadNpcScriptResources(npc);
 }
 
@@ -1787,8 +1785,8 @@ void LoadNpcStates(W8Chunk* chunks)
         if (npc->is_grouped != 0) {
             npc->is_present = 0;
             npc->has_monster = 1;
-            npc->level_band = GetLevelBand(g_status_685170.current_level);
-            npc->bound_level = g_status_685170.current_level;
+            npc->level_band = GetLevelBand(g_status.current_level);
+            npc->bound_level = g_status.current_level;
             ReloadNpcScriptResources(npc);
         }
         if (npc->spawned_04 == 0xffff) {
@@ -1910,7 +1908,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         int sum;
 
         npc->talk_cooldown_active = 1;
-        npc->talk_cooldown_clock = g_status_685170.world_clock;
+        npc->talk_cooldown_clock = g_status.world_clock;
         if (scale < 1) {
             level = static_cast<int>(GetBestPartySkillLevel(0x16, &kind));
             quotient = -scale / 5;
@@ -1927,7 +1925,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         } else {
             npc->disposition += static_cast<char>(delta);
         }
-        PracticeCharacterSkill(&g_status_685170.buffers.Char[kind], 0x16, 8, 0);
+        PracticeCharacterSkill(&g_status.buffers.Char[kind], 0x16, 8, 0);
         GetNpcDisposition(npc);
         return;
     }
@@ -1946,7 +1944,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         int index;
 
         npc->trade_cooldown_active = 1;
-        npc->trade_cooldown_clock = g_status_685170.world_clock;
+        npc->trade_cooldown_clock = g_status.world_clock;
         if (npc->has_monster == 0 || npc->is_present == 0) {
             monster_info = 0;
         } else {
@@ -1959,8 +1957,8 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
             monster_level = 1;
         }
         for (index = 0; index < 8; ++index) {
-            W8Character* character = &g_status_685170.buffers.Char[index];
-            if (g_status_685170.buffers.XChar[index].fOccupied != 0 && character->hp_current != 0 &&
+            W8Character* character = &g_status.buffers.Char[index];
+            if (g_status.buffers.XChar[index].fOccupied != 0 && character->hp_current != 0 &&
                 character->highest_condition < 0xf) {
                 ++count;
                 total_level += character->uiExpLevel;
@@ -1991,7 +1989,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         } else {
             npc->disposition += static_cast<char>(delta);
         }
-        PracticeCharacterSkill(&g_status_685170.buffers.Char[value], 0x16, 5, 0);
+        PracticeCharacterSkill(&g_status.buffers.Char[value], 0x16, 5, 0);
         GetNpcDisposition(npc);
         return;
     }
@@ -2129,8 +2127,8 @@ int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance
                 static_cast<signed char>(npc->suspicion_84) * 7;
     unsigned int seed = 0;
     for (index = 2; index < 8; ++index) {
-        if (g_status_685170.buffers.XChar[index].fOccupied != 0) {
-            seed += g_status_685170.buffers.Char[index].experience;
+        if (g_status.buffers.XChar[index].fOccupied != 0) {
+            seed += g_status.buffers.Char[index].experience;
         }
     }
     srand(seed);
@@ -2207,8 +2205,8 @@ char AttemptNpcItemTheft(W8Character* character, W8NpcState* npc, int item_id, i
                 static_cast<signed char>(npc->suspicion_84) * 7;
     unsigned int seed = 0;
     for (index = 2; index < 8; ++index) {
-        if (g_status_685170.buffers.XChar[index].fOccupied != 0) {
-            seed += g_status_685170.buffers.Char[index].experience;
+        if (g_status.buffers.XChar[index].fOccupied != 0) {
+            seed += g_status.buffers.Char[index].experience;
         }
     }
     srand(seed);
@@ -2242,18 +2240,17 @@ bool ProbeNpcPlacementNearParty(int /*party_slot*/, int /*mode*/, srVector3T<flo
     float yaw;
 
     GetCameraPosition(&party_position);
-    party_position.y = party_position.y - g_default_world_height_00603ac8;
+    party_position.y = party_position.y - g_default_world_height;
     yaw = GetCameraYawRadians() + g_float_005ec29c;
-    if (g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, 1, 0,
-                                               1, 10, 0) > 0) {
+    if (g_octree->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, 1, 0, 1, 10,
+                                        0) > 0) {
         return 1;
     }
-    if (g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, 1, 0,
-                                               1, 20, 0) > 0) {
+    if (g_octree->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, 1, 0, 1, 20,
+                                        0) > 0) {
         return 1;
     }
-    g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, 1, 0, 1,
-                                           30, 0);
+    g_octree->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, 1, 0, 1, 30, 0);
     return 0;
 }
 
@@ -2300,16 +2297,16 @@ void UpdateNpcEvents0050D530(void)
     W8NpcState* npc;
     unsigned int index;
 
-    if (g_status_685170.trang_check_pending_49bb != 0 &&
-        static_cast<unsigned int>(g_status_685170.world_clock -
-                                  g_status_685170.trang_check_clock_49b7) > 0x2a30) {
+    if (g_status.trang_check_pending_49bb != 0 &&
+        static_cast<unsigned int>(g_status.world_clock - g_status.trang_check_clock_49b7) >
+            0x2a30) {
         if (GetFact(W8_FACT_ALIGNMENT_UMPANI) != 0 && Random(100) < 6) {
             SetFact(W8_FACT_TRANG_YOU_ARE_BUSTED, 1, 0);
         }
-        g_status_685170.trang_check_pending_49bb = 0;
+        g_status.trang_check_pending_49bb = 0;
     }
-    if (g_status_685170.savant_hack_tick != 0 &&
-        static_cast<unsigned int>(GetTickCount() - g_status_685170.savant_hack_tick) > 0x32) {
+    if (g_status.savant_hack_tick != 0 &&
+        static_cast<unsigned int>(GetTickCount() - g_status.savant_hack_tick) > 0x32) {
         group = FindFirstMonsterByID(0x1b3);
         if (group != 0) {
             index =
@@ -2317,11 +2314,11 @@ void UpdateNpcEvents0050D530(void)
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             MonsterStartsDying(monster_info, 1);
         }
-        g_status_685170.savant_hack_tick = 0;
-        g_status_685170.bela_cycle_tick = GetTickCount();
+        g_status.savant_hack_tick = 0;
+        g_status.bela_cycle_tick = GetTickCount();
     }
-    if (g_status_685170.bela_cycle_tick != 0 &&
-        static_cast<unsigned int>(GetTickCount() - g_status_685170.bela_cycle_tick) > 0x1388) {
+    if (g_status.bela_cycle_tick != 0 &&
+        static_cast<unsigned int>(GetTickCount() - g_status.bela_cycle_tick) > 0x1388) {
         group = FindFirstMonsterByID(0x1b6);
         if (group != 0) {
             index =
@@ -2330,16 +2327,16 @@ void UpdateNpcEvents0050D530(void)
             StartMonsterCycle(monster_info, 0x10, 1);
             monster_info->p3D->SetCycleCallback(0x10, TriggerBelaVoice);
         }
-        g_status_685170.bela_cycle_tick = 0;
+        g_status.bela_cycle_tick = 0;
     }
 
-    if (g_status_685170.npc_restore_pending_2430 != 0) {
+    if (g_status.npc_restore_pending_2430 != 0) {
         W8NpcState* partner = 0;
 
         for (int slot = 0; slot < g_npc_states->GetCount(); ++slot) {
             npc = *g_npc_states->GetAt(slot);
             if (npc->binding_unavailable != 0 || npc->restored_ea == 0) {
-                g_status_685170.npc_restore_pending_2430 = 0;
+                g_status.npc_restore_pending_2430 = 0;
                 continue;
             }
             unsigned int kind = npc->name_style;
@@ -2353,7 +2350,7 @@ void UpdateNpcEvents0050D530(void)
                 }
             }
             if (!partner->has_monster) {
-                g_status_685170.npc_restore_pending_2430 = 0;
+                g_status.npc_restore_pending_2430 = 0;
                 continue;
             }
             if (partner->is_present) {
@@ -2376,11 +2373,11 @@ void UpdateNpcEvents0050D530(void)
                     released->binding_unavailable = 1;
                 }
             }
-            g_status_685170.npc_restore_pending_2430 = 0;
+            g_status.npc_restore_pending_2430 = 0;
         }
     }
 
-    if (gXStatus.fCombatMode == 0 && g_status_685170.vi_event_stage_498b > 1) {
+    if (gXStatus.fCombatMode == 0 && g_status.vi_event_stage_498b > 1) {
         bool run_event = GetFact(W8_FACT_VI_IS_DEAD) != 0;
 
         if (!run_event) {
@@ -2395,7 +2392,7 @@ void UpdateNpcEvents0050D530(void)
             }
         }
         if (run_event) {
-            g_status_685170.vi_event_stage_498b = 0;
+            g_status.vi_event_stage_498b = 0;
             for (int search = 0; search < g_npc_states->GetCount(); ++search) {
                 W8NpcState* candidate = *g_npc_states->GetAt(search);
                 if (candidate->record->kind == 0x8d) {
@@ -2411,8 +2408,8 @@ void UpdateNpcEvents0050D530(void)
 
     if (gXStatus.fSurprisePossible == 0) {
         for (int slot = 0; slot < 2; ++slot) {
-            W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-            W8Character* character = &g_status_685170.buffers.Char[slot];
+            W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+            W8Character* character = &g_status.buffers.Char[slot];
 
             if (row->fOccupied != 0 && character->hp_current != 0) {
                 W8NpcState* npc_state = 0;
@@ -2423,29 +2420,28 @@ void UpdateNpcEvents0050D530(void)
                     }
                 }
                 if (row->npc_bound_fe != 0 &&
-                    (g_status_685170.world_clock - npc_state->event_clock_eb) > 0x168) {
+                    (g_status.world_clock - npc_state->event_clock_eb) > 0x168) {
                     if (Random(2) == 0) {
-                        npc_state->event_clock_eb = g_status_685170.world_clock + Random(6) * 0x3c;
+                        npc_state->event_clock_eb = g_status.world_clock + Random(6) * 0x3c;
                     } else {
                         int event = Random(2) == 0 ? 0x57 : 0x58;
                         QueueCharacterEvent(character, event, 0, g_effect_argument_005ed8c8,
                                             g_effect_argument_005ed914);
-                        npc_state->event_clock_eb = g_status_685170.world_clock;
+                        npc_state->event_clock_eb = g_status.world_clock;
                     }
                 }
             }
         }
     }
 
-    if (g_status_685170.fact_b8_pending_248a != 0 &&
-        static_cast<unsigned int>(g_status_685170.world_clock -
-                                  g_status_685170.fact_b8_clock_2493) > 0x2a300) {
-        g_status_685170.fact_b8_pending_248a = 0;
+    if (g_status.fact_b8_pending_248a != 0 &&
+        static_cast<unsigned int>(g_status.world_clock - g_status.fact_b8_clock_2493) > 0x2a300) {
+        g_status.fact_b8_pending_248a = 0;
         SetFact(0xb8, 1, 0);
     }
-    if (g_status_685170.greeting_pending_2497 != 0 &&
-        (g_status_685170.world_clock - g_status_685170.binding_reset_clock_242a) > 0x3c) {
-        g_status_685170.greeting_pending_2497 = 0;
+    if (g_status.greeting_pending_2497 != 0 &&
+        (g_status.world_clock - g_status.binding_reset_clock_242a) > 0x3c) {
+        g_status.greeting_pending_2497 = 0;
         SelectStartNpcGreeting();
     }
 }
@@ -2459,11 +2455,11 @@ void UpdateNpcEvents0050D530(void)
 // FUNCTION: WIZ8 0x0050db50
 void ResetNpcBindingsForParty(void)
 {
-    g_status_685170.binding_reset_clock_242a = g_status_685170.world_clock;
-    g_status_685170.binding_reset_pending_242e = 1;
+    g_status.binding_reset_clock_242a = g_status.world_clock;
+    g_status.binding_reset_pending_242e = 1;
     for (int party_slot = 0; party_slot < 2; ++party_slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
-        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
+        W8Character* character = &g_status.buffers.Char[party_slot];
 
         if (row->fOccupied != 0 && character->hp_current != 0) {
             GetNpcState(row->npc_index)->incapacitated_e8 = 0;
@@ -2481,7 +2477,7 @@ void ApplyBoundNpcPenalty(W8Character* character, W8GameplayModifierBlock* targe
 {
     unsigned int index;
 
-    if (g_status_685170.buffers.XChar[CharacterPointerToPartySlot(character)].npc_bound_fe == 0) {
+    if (g_status.buffers.XChar[CharacterPointerToPartySlot(character)].npc_bound_fe == 0) {
         return;
     }
     for (index = 0; index < 7; ++index) {
@@ -2515,7 +2511,7 @@ void RestoreNamedNpcAtLevel(int kind, char level, const char* entity_name)
     if (npc == 0) {
         npc = CreateNpcRuntimeNode(kind);
     }
-    if (level == g_status_685170.current_level) {
+    if (level == g_status.current_level) {
         RestoreNpcMonster(npc, entity_name);
         npc->restored_ea = false;
         return;
@@ -2543,7 +2539,7 @@ void ClearPendingNpcLevelFlags(void)
             W8NpcState* npc = *slot;
 
             if (npc->pending_restore != 0 && npc->binding_unavailable == 0 &&
-                npc->pending_restore_level == g_status_685170.current_level) {
+                npc->pending_restore_level == g_status.current_level) {
                 if (RestoreNpcMonster(npc, npc->restore_entity_name) != 0) {
                     npc->pending_restore = 0;
                 }
@@ -2575,7 +2571,7 @@ void ReleaseNpcMonsterBindings(void)
         W8NpcState* npc = *slot;
 
         if (npc->pending_release != 0 && npc->binding_unavailable == 0 &&
-            npc->pending_release_level == g_status_685170.current_level) {
+            npc->pending_release_level == g_status.current_level) {
             W8NpcState* companion = 0;
             bool found = false;
 
@@ -2637,7 +2633,7 @@ void ReleaseNpcMonsterBindings(void)
 // FUNCTION: WIZ8 0x0050C440
 void ReleaseNpcMonsterBinding(W8NpcState* npc, char level)
 {
-    if (level == g_status_685170.current_level) {
+    if (level == g_status.current_level) {
         unsigned int count = g_npc_states->count;
         W8NpcState* companion = 0;
         for (unsigned int index = 0; index < count; ++index) {
@@ -2796,7 +2792,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
     if (npc->name_style == W8_NPC_VI_DOMINA) {
         SetFact(0x22b, 0, 0);
     }
-    if (npc->name_style == ')' && g_status_685170.current_level == 0xd) {
+    if (npc->name_style == ')' && g_status.current_level == 0xd) {
         srVector3T<float> position;
 
         if (GetLocationVarIDByName("CODESgtRubbleTeleport") == -1 ||
@@ -2891,7 +2887,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
         }
     } else {
         npc->restored_ea = true;
-        g_status_685170.npc_restore_pending_2430 = 1;
+        g_status.npc_restore_pending_2430 = 1;
     }
     if (npc->marked_114 == 0) {
         if (npc->name_style == 7 && GetFact(0x1f) != 0) {
@@ -2998,8 +2994,8 @@ bool NotifyNpcTriggerActivation(Trigger* trigger)
         W8NpcState* npc = *g_npc_states->GetAt(trigger->m_lData1);
 
         if ((trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 || npc->name_style == '{') {
-            if (g_status_685170.item_in_cursor != 0) {
-                item = &g_status_685170.item_in_hand_235b;
+            if (g_status.item_in_cursor != 0) {
+                item = &g_status.item_in_hand_235b;
             }
         }
         QueueNpcScriptNotice(npc, item, -1, 0, 0);
@@ -3059,8 +3055,8 @@ void RebindNpcLevelTriggers(void)
                     trigger->m_lData1 = static_cast<int>(npc_index);
                     npc->has_monster = 1;
                     npc->level_band =
-                        static_cast<unsigned char>(GetLevelBand(g_status_685170.current_level));
-                    npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
+                        static_cast<unsigned char>(GetLevelBand(g_status.current_level));
+                    npc->bound_level = static_cast<unsigned char>(g_status.current_level);
                     ReloadNpcScriptResources(npc);
                     npc->is_present = 0;
                 }
@@ -3103,8 +3099,8 @@ char QueueNpcDepartureEvents(int destination_level)
     bool queued = false;
 
     for (int slot = 0; slot < 2; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-        W8Character* character = &g_status_685170.buffers.Char[slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+        W8Character* character = &g_status.buffers.Char[slot];
 
         if (row->fOccupied == 0 || character->hp_current == 0) {
             continue;
@@ -3125,7 +3121,7 @@ char QueueNpcDepartureEvents(int destination_level)
                             while (g_npc_services[other].service_id != 0xffffffff) {
                                 if (g_npc_services[other].service_id ==
                                     static_cast<unsigned int>(
-                                        GetLevelBand(g_status_685170.current_level))) {
+                                        GetLevelBand(g_status.current_level))) {
                                     if ((npc->record->service_flags & g_npc_services[other].bit) !=
                                         0) {
                                         serves_here = true;
@@ -3158,21 +3154,21 @@ char QueueNpcDepartureEvents(int destination_level)
                 ++service;
             }
         }
-        if (GetLevelBand(g_status_685170.current_level) == 0xd) {
+        if (GetLevelBand(g_status.current_level) == 0xd) {
             int event = 0;
             if (npc->name_style == W8_NPC_RODAN) {
                 bool paired = false;
-                if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
-                    W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[0].npc_index);
+                if (g_status.buffers.XChar[0].fOccupied != 0) {
+                    W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
                     if (lead->name_style == W8_NPC_DRAZIC &&
-                        g_status_685170.buffers.Char[0].highest_condition < 0xf) {
+                        g_status.buffers.Char[0].highest_condition < 0xf) {
                         paired = true;
                     }
                 }
-                if (!paired && g_status_685170.buffers.XChar[1].fOccupied != 0) {
-                    W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[1].npc_index);
+                if (!paired && g_status.buffers.XChar[1].fOccupied != 0) {
+                    W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
                     if (lead->name_style == W8_NPC_DRAZIC &&
-                        g_status_685170.buffers.Char[1].highest_condition < 0xf) {
+                        g_status.buffers.Char[1].highest_condition < 0xf) {
                         paired = true;
                     }
                 }
@@ -3181,17 +3177,17 @@ char QueueNpcDepartureEvents(int destination_level)
                 }
             } else if (npc->name_style == W8_NPC_DRAZIC) {
                 bool paired = false;
-                if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
-                    W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[0].npc_index);
+                if (g_status.buffers.XChar[0].fOccupied != 0) {
+                    W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
                     if (lead->name_style == W8_NPC_RODAN &&
-                        g_status_685170.buffers.Char[0].highest_condition < 0xf) {
+                        g_status.buffers.Char[0].highest_condition < 0xf) {
                         paired = true;
                     }
                 }
-                if (!paired && g_status_685170.buffers.XChar[1].fOccupied != 0) {
-                    W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[1].npc_index);
+                if (!paired && g_status.buffers.XChar[1].fOccupied != 0) {
+                    W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
                     if (lead->name_style == W8_NPC_RODAN &&
-                        g_status_685170.buffers.Char[1].highest_condition < 0xf) {
+                        g_status.buffers.Char[1].highest_condition < 0xf) {
                         paired = true;
                     }
                 }
@@ -3221,8 +3217,8 @@ void QueueNpcTravelRefusals(int destination_level)
 {
     ClearLevelDataFlag6();
     for (int slot = 0; slot < 2; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-        W8Character* character = &g_status_685170.buffers.Char[slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+        W8Character* character = &g_status.buffers.Char[slot];
 
         if (row->fOccupied == 0 || character->hp_current == 0) {
             continue;
@@ -3247,22 +3243,22 @@ void QueueNpcTravelRefusals(int destination_level)
         }
         if (npc->name_style == W8_NPC_RODAN) {
             bool paired = false;
-            if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
-                W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[0].npc_index);
+            if (g_status.buffers.XChar[0].fOccupied != 0) {
+                W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
                 if (lead->name_style == W8_NPC_DRAZIC &&
-                    g_status_685170.buffers.Char[0].highest_condition < 0xf) {
+                    g_status.buffers.Char[0].highest_condition < 0xf) {
                     paired = true;
                 }
             }
             if (!paired) {
-                if (g_status_685170.buffers.XChar[1].fOccupied == 0) {
+                if (g_status.buffers.XChar[1].fOccupied == 0) {
                     BeginScriptedWorldAction();
                     QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
                     return;
                 }
-                W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[1].npc_index);
+                W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
                 if (lead->name_style != W8_NPC_DRAZIC ||
-                    g_status_685170.buffers.Char[1].highest_condition >= 0xf) {
+                    g_status.buffers.Char[1].highest_condition >= 0xf) {
                     BeginScriptedWorldAction();
                     QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
                     return;
@@ -3271,22 +3267,22 @@ void QueueNpcTravelRefusals(int destination_level)
         }
         if (npc->name_style == W8_NPC_DRAZIC) {
             bool paired = false;
-            if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
-                W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[0].npc_index);
+            if (g_status.buffers.XChar[0].fOccupied != 0) {
+                W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
                 if (lead->name_style == W8_NPC_RODAN &&
-                    g_status_685170.buffers.Char[0].highest_condition < 0xf) {
+                    g_status.buffers.Char[0].highest_condition < 0xf) {
                     paired = true;
                 }
             }
             if (!paired) {
-                if (g_status_685170.buffers.XChar[1].fOccupied == 0) {
+                if (g_status.buffers.XChar[1].fOccupied == 0) {
                     BeginScriptedWorldAction();
                     QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
                     return;
                 }
-                W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[1].npc_index);
+                W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
                 if (lead->name_style != W8_NPC_RODAN ||
-                    g_status_685170.buffers.Char[1].highest_condition >= 0xf) {
+                    g_status.buffers.Char[1].highest_condition >= 0xf) {
                     BeginScriptedWorldAction();
                     QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
                     return;

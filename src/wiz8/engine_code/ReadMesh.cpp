@@ -76,24 +76,24 @@ void ReadMeshTransform(int file, srVector3T<float>* location, srMatrix3T<float>*
 /* The material reader retains its three parallel result tables together with
    the normalized serialized records used to identify a reusable table. */
 // GLOBAL: WIZ8 0x0065B9E8
-static srMaterialIFace** g_read_mesh_materials_65b9e8;
+static srMaterialIFace** g_read_mesh_materials;
 // GLOBAL: WIZ8 0x0065B9EC
-static srTextureIFace** g_read_mesh_textures_65b9ec;
+static srTextureIFace** g_read_mesh_textures;
 // GLOBAL: WIZ8 0x0065B9F0
-static unsigned long* g_read_mesh_render_flags_65b9f0;
+static unsigned long* g_read_mesh_render_flags;
 // GLOBAL: WIZ8 0x0065B9F4
-static W8MaterialRecord* g_read_mesh_material_records_65b9f4;
+static W8MaterialRecord* g_read_mesh_material_records;
 // GLOBAL: WIZ8 0x0065B9F8
-static int g_read_mesh_scratch_count_65b9f8;
+static int g_read_mesh_scratch_count;
 // GLOBAL: WIZ8 0x0065B9CC
-static int g_read_mesh_material_count_65b9cc;
+static int g_read_mesh_material_count;
 
 // FUNCTION: WIZ8 0x00489A80
 bool IsTextureInReadMeshScratch(const srTextureIFace* texture)
 {
-    if (g_read_mesh_textures_65b9ec != 0 && g_read_mesh_scratch_count_65b9f8 > 0) {
-        for (short index = 0; index < g_read_mesh_scratch_count_65b9f8; ++index) {
-            if (g_read_mesh_textures_65b9ec[index] == texture) {
+    if (g_read_mesh_textures != 0 && g_read_mesh_scratch_count > 0) {
+        for (short index = 0; index < g_read_mesh_scratch_count; ++index) {
+            if (g_read_mesh_textures[index] == texture) {
                 return 1;
             }
         }
@@ -104,9 +104,9 @@ bool IsTextureInReadMeshScratch(const srTextureIFace* texture)
 // FUNCTION: WIZ8 0x00489AC0
 bool IsReadMeshMaterial(const srClass* material)
 {
-    if (g_read_mesh_materials_65b9e8 != 0 && g_read_mesh_material_count_65b9cc > 0) {
-        for (short index = 0; index < g_read_mesh_material_count_65b9cc; ++index) {
-            if (g_read_mesh_materials_65b9e8[index] == material) {
+    if (g_read_mesh_materials != 0 && g_read_mesh_material_count > 0) {
+        for (short index = 0; index < g_read_mesh_material_count; ++index) {
+            if (g_read_mesh_materials[index] == material) {
                 return 1;
             }
         }
@@ -114,21 +114,21 @@ bool IsReadMeshMaterial(const srClass* material)
     return 0;
 }
 // GLOBAL: WIZ8 0x0065B9E4
-static unsigned int g_read_mesh_index_65b9e4;
+static unsigned int g_read_mesh_index;
 // GLOBAL: WIZ8 0x0065BA00
-static srMaterialIFace** g_multi_mesh_materials_65ba00;
+static srMaterialIFace** g_multi_mesh_materials;
 // GLOBAL: WIZ8 0x0065B9FC
-static srTextureIFace** g_multi_mesh_textures_65b9fc;
+static srTextureIFace** g_multi_mesh_textures;
 
 // GLOBAL: WIZ8 0x0065BA04
-static unsigned long* g_multi_mesh_render_flags_65ba04;
+static unsigned long* g_multi_mesh_render_flags;
 /* The retained-material list is a real W8GrowableVector object at 0x0065B9D0:
    its static initializer at 0x00485AF0 constructs it with capacity five and
    its destructor is run through atexit. The element type is srMaterialIFace*
    (the material arrays' own element type), which keeps this specialization
    distinct from AutomapScreen's W8GrowableVector<srClass*>. */
 // GLOBAL: WIZ8 0x0065b9d0
-static W8GrowableVector<srMaterialIFace*> g_retained_materials_65b9d0(5);
+static W8GrowableVector<srMaterialIFace*> g_retained_materials(5);
 
 namespace {
 
@@ -858,12 +858,11 @@ int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials,
         ClearMaterialRecordPadding(records + index);
     }
 
-    if (g_read_mesh_scratch_count_65b9f8 == count &&
-        memcmp(records, g_read_mesh_material_records_65b9f4, count * sizeof(W8MaterialRecord)) ==
-            0) {
-        *materials = g_read_mesh_materials_65b9e8;
-        *textures = g_read_mesh_textures_65b9ec;
-        *render_flags = g_read_mesh_render_flags_65b9f0;
+    if (g_read_mesh_scratch_count == count &&
+        memcmp(records, g_read_mesh_material_records, count * sizeof(W8MaterialRecord)) == 0) {
+        *materials = g_read_mesh_materials;
+        *textures = g_read_mesh_textures;
+        *render_flags = g_read_mesh_render_flags;
         free(records);
         return count;
     }
@@ -876,11 +875,11 @@ int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials,
     memset(*textures, 0, count * sizeof(**textures));
     memset(*render_flags, 0, count * sizeof(**render_flags));
 
-    g_read_mesh_materials_65b9e8 = *materials;
-    g_read_mesh_textures_65b9ec = *textures;
-    g_read_mesh_render_flags_65b9f0 = *render_flags;
-    g_read_mesh_material_records_65b9f4 = records;
-    g_read_mesh_scratch_count_65b9f8 = count;
+    g_read_mesh_materials = *materials;
+    g_read_mesh_textures = *textures;
+    g_read_mesh_render_flags = *render_flags;
+    g_read_mesh_material_records = records;
+    g_read_mesh_scratch_count = count;
 
     for (index = 0; index < count; ++index) {
         if (index == 0) {
@@ -1139,7 +1138,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
     for (int index = 0; index < material_count; ++index) {
         srMaterialIFace* material = materials[index];
         if (material != 0 && material->getReferenceCount() == 0) {
-            g_retained_materials_65b9d0.Add(material);
+            g_retained_materials.Add(material);
             material->addReference();
         }
     }
@@ -1191,10 +1190,9 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
         FileRead(info->hFile, &root_count, sizeof(root_count), 0);
     }
 
-    g_read_mesh_material_count_65b9cc =
-        ReadMeshMaterials(info, &g_multi_mesh_materials_65ba00, &g_multi_mesh_textures_65b9fc,
-                          &g_multi_mesh_render_flags_65ba04, 1);
-    if (g_read_mesh_material_count_65b9cc == 0) {
+    g_read_mesh_material_count = ReadMeshMaterials(
+        info, &g_multi_mesh_materials, &g_multi_mesh_textures, &g_multi_mesh_render_flags, 1);
+    if (g_read_mesh_material_count == 0) {
         srAssertFail("uiMatCount", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x329, 0);
     }
 
@@ -1213,15 +1211,14 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
     stMeshModel** meshes = static_cast<stMeshModel**>(malloc(count * sizeof(*meshes)));
     srVector3T<float> minimum;
     srVector3T<float> maximum;
-    for (g_read_mesh_index_65b9e4 = 0; g_read_mesh_index_65b9e4 < mesh_count;
-         ++g_read_mesh_index_65b9e4) {
+    for (g_read_mesh_index = 0; g_read_mesh_index < mesh_count; ++g_read_mesh_index) {
         if (g_current_screen_state.id == 4) {
             UpdatePleaseWaitLoadFrame();
         }
-        stMeshModel* model = reader.Read0049E9A0(
-            info->hFile, g_multi_mesh_materials_65ba00, g_multi_mesh_textures_65b9fc,
-            g_multi_mesh_render_flags_65ba04, meshes, g_read_mesh_material_count_65b9cc);
-        meshes[g_read_mesh_index_65b9e4] = model;
+        stMeshModel* model =
+            reader.Read0049E9A0(info->hFile, g_multi_mesh_materials, g_multi_mesh_textures,
+                                g_multi_mesh_render_flags, meshes, g_read_mesh_material_count);
+        meshes[g_read_mesh_index] = model;
         if ((model->control_state_390 & 1) == 0) {
             unsigned long state = model->control_state_390;
             model->control_state_390 = state | 1;
@@ -1231,16 +1228,15 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
         model->getBoundingBox(minimum, maximum);
     }
 
-    for (g_read_mesh_index_65b9e4 = 0; g_read_mesh_index_65b9e4 < root_count;
-         ++g_read_mesh_index_65b9e4) {
-        stMeshModel* model = meshes[g_read_mesh_index_65b9e4];
+    for (g_read_mesh_index = 0; g_read_mesh_index < root_count; ++g_read_mesh_index) {
+        stMeshModel* model = meshes[g_read_mesh_index];
         model->setName(name);
         if (model->previous == 0) {
             stModelInstance* instance = CreateModelInstance(model);
             instance->setName("Multi Mesh Instance");
-            instance->mesh_index_17c = g_read_mesh_index_65b9e4;
+            instance->mesh_index_17c = g_read_mesh_index;
             model->duplicate_on_reuse_3cc = MeshHasAnimatedTexture(model);
-            instances[g_read_mesh_index_65b9e4] = instance;
+            instances[g_read_mesh_index] = instance;
         }
     }
 
@@ -1251,10 +1247,10 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
                      "NewReadMesh: Incorrect offset in file at end of mesh.");
     }
 
-    for (int index = 0; index < g_read_mesh_material_count_65b9cc; ++index) {
-        srMaterialIFace* material = g_multi_mesh_materials_65ba00[index];
+    for (int index = 0; index < g_read_mesh_material_count; ++index) {
+        srMaterialIFace* material = g_multi_mesh_materials[index];
         if (material != 0 && material->getReferenceCount() == 0) {
-            g_retained_materials_65b9d0.Add(material);
+            g_retained_materials.Add(material);
             material->addReference();
         }
     }
@@ -1266,9 +1262,9 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
 // FUNCTION: WIZ8 0x00489920
 void ReleaseRetainedMaterials()
 {
-    while (g_retained_materials_65b9d0.GetCount() != 0) {
-        (*g_retained_materials_65b9d0.GetAt(0))->release();
-        g_retained_materials_65b9d0.RemoveAt(0);
+    while (g_retained_materials.GetCount() != 0) {
+        (*g_retained_materials.GetAt(0))->release();
+        g_retained_materials.RemoveAt(0);
     }
 }
 
@@ -1288,23 +1284,23 @@ void ClearMaterialRecordPadding(W8MaterialRecord* material)
 // FUNCTION: WIZ8 0x004881d0
 void ReleaseReadMeshScratch()
 {
-    if (g_read_mesh_materials_65b9e8 != 0) {
-        free(g_read_mesh_materials_65b9e8);
-        g_read_mesh_materials_65b9e8 = 0;
+    if (g_read_mesh_materials != 0) {
+        free(g_read_mesh_materials);
+        g_read_mesh_materials = 0;
     }
-    if (g_read_mesh_textures_65b9ec != 0) {
-        free(g_read_mesh_textures_65b9ec);
-        g_read_mesh_textures_65b9ec = 0;
+    if (g_read_mesh_textures != 0) {
+        free(g_read_mesh_textures);
+        g_read_mesh_textures = 0;
     }
-    if (g_read_mesh_render_flags_65b9f0 != 0) {
-        free(g_read_mesh_render_flags_65b9f0);
-        g_read_mesh_render_flags_65b9f0 = 0;
+    if (g_read_mesh_render_flags != 0) {
+        free(g_read_mesh_render_flags);
+        g_read_mesh_render_flags = 0;
     }
-    if (g_read_mesh_material_records_65b9f4 != 0) {
-        free(g_read_mesh_material_records_65b9f4);
-        g_read_mesh_material_records_65b9f4 = 0;
+    if (g_read_mesh_material_records != 0) {
+        free(g_read_mesh_material_records);
+        g_read_mesh_material_records = 0;
     }
-    g_read_mesh_scratch_count_65b9f8 = 0;
+    g_read_mesh_scratch_count = 0;
 }
 
 // FUNCTION: WIZ8 0x00487bd0

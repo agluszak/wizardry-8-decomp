@@ -30,9 +30,9 @@ void InitializeRenderQuality(void)
 }
 
 // GLOBAL: WIZ8 0x0060A210
-float g_render_brightness_60a210 = 1.0f;
+float g_render_brightness = 1.0f;
 // GLOBAL: WIZ8 0x0060E610
-float g_render_fog_distance_60e610 = 0.5f;
+float g_render_fog_distance = 0.5f;
 // GLOBAL: WIZ8 0x0060A20C
 bool g_render_flag_60a20c = true;
 // GLOBAL: WIZ8 0x00603C6C
@@ -60,36 +60,36 @@ void SetRenderOption(int option, int enabled)
 {
     switch (option) {
     case 2:
-        g_gerd_659634->setTextureDefaultMagFilter(enabled ? srTextureIFace::FILTER_BEST
-                                                          : srTextureIFace::FILTER_NONE);
+        g_gerd->setTextureDefaultMagFilter(enabled ? srTextureIFace::FILTER_BEST
+                                                   : srTextureIFace::FILTER_NONE);
         break;
     case 3:
-        g_gerd_659634->setTextureDefaultMinFilter(enabled ? srTextureIFace::FILTER_BEST
-                                                          : srTextureIFace::FILTER_NONE);
+        g_gerd->setTextureDefaultMinFilter(enabled ? srTextureIFace::FILTER_BEST
+                                                   : srTextureIFace::FILTER_NONE);
         break;
     case W8_RENDER_OPTION_MIP_MAPPING:
-        g_gerd_659634->setTextureDefaultMipmap(enabled ? srTextureIFace::MIPMAP_BEST
-                                                       : srTextureIFace::MIPMAP_NONE);
+        g_gerd->setTextureDefaultMipmap(enabled ? srTextureIFace::MIPMAP_BEST
+                                                : srTextureIFace::MIPMAP_NONE);
         break;
     case W8_RENDER_OPTION_DITHER:
-        if ((g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_0) != 0) != (enabled != 0)) {
-            g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_0);
+        if ((g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_0) != 0) != (enabled != 0)) {
+            g_gerd->toggle(srGERD::ENABLE_POSITIONAL_0);
         }
         break;
     case 6:
-        g_render_brightness_60a210 = enabled ? 1.0f : 0.8f;
+        g_render_brightness = enabled ? 1.0f : 0.8f;
         break;
     case 7:
-        if (!enabled && g_render_fog_distance_60e610 < 0.7f)
-            g_render_fog_distance_60e610 = 0.7f;
-        if (enabled && g_render_fog_distance_60e610 > 0.3f)
-            g_render_fog_distance_60e610 = 0.3f;
+        if (!enabled && g_render_fog_distance < 0.7f)
+            g_render_fog_distance = 0.7f;
+        if (enabled && g_render_fog_distance > 0.3f)
+            g_render_fog_distance = 0.3f;
         break;
     case 8:
-        if (!enabled && g_render_fog_distance_60e610 < 0.9f)
-            g_render_fog_distance_60e610 = 0.9f;
-        if (enabled && g_render_fog_distance_60e610 > 0.1f)
-            g_render_fog_distance_60e610 = 0.1f;
+        if (!enabled && g_render_fog_distance < 0.9f)
+            g_render_fog_distance = 0.9f;
+        if (enabled && g_render_fog_distance > 0.1f)
+            g_render_fog_distance = 0.1f;
         break;
     case W8_RENDER_OPTION_MISSILE_LIGHTS:
         g_render_flag_60a20c = enabled != 0;

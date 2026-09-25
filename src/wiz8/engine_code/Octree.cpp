@@ -92,53 +92,53 @@ void W8Octree::UpdatePathVisualization()
 }
 
 // GLOBAL: WIZ8 0x00659760
-int g_octree_query_slot_00659760;
+int g_octree_query_slot;
 // GLOBAL: WIZ8 0x00659764
-unsigned short g_octree_query_kind_00659764;
+unsigned short g_octree_query_kind;
 // GLOBAL: WIZ8 0x00659766
-unsigned short g_octree_query_id_00659766;
+unsigned short g_octree_query_id;
 
 // GLOBAL: WIZ8 0x00659770
 unsigned int* g_octree_storage_00659770;
 
 // GLOBAL: WIZ8 0x00659774
-unsigned int g_octree_query_cell_00659774;
+unsigned int g_octree_query_cell;
 
 // GLOBAL: WIZ8 0x00659778
-GETFILESTRUCT g_octree_file_search_00659778;
+GETFILESTRUCT g_octree_file_search;
 
 // GLOBAL: WIZ8 0x006598b2
-unsigned char g_octree_file_search_active_006598b2;
+unsigned char g_octree_file_search_active;
 
 // GLOBAL: WIZ8 0x00606810
-char g_octree_point_extension_00606810[] = ".pts";
+char g_octree_point_extension[] = ".pts";
 
 // GLOBAL: WIZ8 0x006068a0
-char g_octree_file_search_wildcard_006068a0[] = "*";
+char g_octree_file_search_wildcard[] = "*";
 
 // GLOBAL: WIZ8 0x00659890
-unsigned long* g_octree_state_00659890;
+unsigned long* g_octree_state;
 // GLOBAL: WIZ8 0x00659894
-stModelInstance* g_octree_trace_node_00659894;
+stModelInstance* g_octree_trace_node;
 // GLOBAL: WIZ8 0x00659898
-bool g_octree_update_suspended_00659898;
+bool g_octree_update_suspended;
 // GLOBAL: WIZ8 0x00659899
-bool g_octree_trace_enabled_00659899;
+bool g_octree_trace_enabled;
 
 /* Build a packed four-byte colour from four components and answer its
    address. The receiver is the output slot. */
 /* Draw the probe box through the world camera. */
 
 // GLOBAL: WIZ8 0x006598a4
-W8Octree* g_octree_6598a4;
+W8Octree* g_octree;
 
 // GLOBAL: WIZ8 0x006068a4
-char g_region_link_extension_006068a4[] = ".rlk";
+char g_region_link_extension[] = ".rlk";
 
 // GLOBAL: WIZ8 0x006598a8
-bool g_octree_disabled_6598a8;
+bool g_octree_disabled;
 // GLOBAL: WIZ8 0x006598b0
-unsigned short g_octree_region_debug_last_006598b0;
+unsigned short g_octree_region_debug_last;
 
 /* Renderer switches toggled across a region-link build: while sampling,
    meshes render without baked vertex lighting or textures and with front
@@ -146,18 +146,18 @@ unsigned short g_octree_region_debug_last_006598b0;
    path (RenderWorldToSurface and the tri-mesh renderer) but no Wiz8 code
    ever writes it. */
 // GLOBAL: WIZ8 0x0065a0ec
-unsigned char g_render_unlit_0065a0ec;
+unsigned char g_render_unlit;
 // GLOBAL: WIZ8 0x0065a0ed
-unsigned char g_render_cull_front_0065a0ed;
+unsigned char g_render_cull_front;
 // GLOBAL: WIZ8 0x0065a0ee
-unsigned char g_inverted_depth_render_0065a0ee;
+unsigned char g_inverted_depth_render;
 // GLOBAL: WIZ8 0x0065a146
-unsigned char g_render_untextured_0065a146;
+unsigned char g_render_untextured;
 
 // FUNCTION: WIZ8 0x0042bc00
 void NoOct(void)
 {
-    g_octree_disabled_6598a8 = 1;
+    g_octree_disabled = 1;
 }
 
 // GLOBAL: WIZ8 0x005ec02c
@@ -197,7 +197,7 @@ float g_float_005ec050 = 0.00020000000949949026f;
 void W8Octree::UpdateCameraVisibility()
 {
     W8World* world = GetWorld();
-    if (g_octree_update_suspended_00659898 != 0 || m_visibility_suspended_294 != 0) {
+    if (g_octree_update_suspended != 0 || m_visibility_suspended_294 != 0) {
         return;
     }
 
@@ -222,7 +222,7 @@ void W8Octree::UpdateCameraVisibility()
     m_owned_190->ClearAll();
     m_projected_regions_15c->ClearAll();
     UpdateVisibility();
-    if (g_octree_trace_enabled_00659899 != 0) {
+    if (g_octree_trace_enabled != 0) {
         UpdateWorldTrace();
     }
 }
@@ -655,11 +655,11 @@ short W8Octree::ProjectLinkedRegionsForLocation(srVector3T<float>* location,
         if (PointInsideFrustum0046D880(location, volume->planes_88) == 0) {
             continue;
         }
-        if (reported_region == 0 && region_index != g_octree_region_debug_last_006598b0) {
+        if (reported_region == 0 && region_index != g_octree_region_debug_last) {
             sprintf(expected_regions, "Point in region %d, expected regions: %s\n", region_index,
                     point_region_label);
             NoOp();
-            g_octree_region_debug_last_006598b0 = region_index;
+            g_octree_region_debug_last = region_index;
             reported_region = region_index;
         }
         m_projected_regions_15c->ClearAll();
@@ -998,11 +998,11 @@ void W8Octree::CollectVisibleCells()
 unsigned char FindNextLevelFile(char* name)
 {
     if (name == 0) {
-        g_octree_file_search_active_006598b2 = 0;
+        g_octree_file_search_active = 0;
         return 0;
     }
 
-    if (g_octree_file_search_active_006598b2 == 0) {
+    if (g_octree_file_search_active == 0) {
         char pattern[256];
         char extension[52];
 
@@ -1013,15 +1013,14 @@ unsigned char FindNextLevelFile(char* name)
             strcpy(extension, extension_start);
             *extension_start = '\0';
         }
-        strcat(pattern, g_octree_file_search_wildcard_006068a0);
+        strcat(pattern, g_octree_file_search_wildcard);
         strcat(pattern, extension);
-        g_octree_file_search_active_006598b2 =
-            GetFileFirst(pattern, &g_octree_file_search_00659778);
+        g_octree_file_search_active = GetFileFirst(pattern, &g_octree_file_search);
     } else {
-        g_octree_file_search_active_006598b2 = GetFileNext(&g_octree_file_search_00659778);
+        g_octree_file_search_active = GetFileNext(&g_octree_file_search);
     }
-    if (g_octree_file_search_active_006598b2 == 0) {
-        GetFileClose(&g_octree_file_search_00659778);
+    if (g_octree_file_search_active == 0) {
+        GetFileClose(&g_octree_file_search);
         return 0;
     }
 
@@ -1029,8 +1028,8 @@ unsigned char FindNextLevelFile(char* name)
     if (separator != 0) {
         separator[1] = '\0';
     }
-    strcat(name, g_octree_file_search_00659778.zFileName);
-    return g_octree_file_search_active_006598b2;
+    strcat(name, g_octree_file_search.zFileName);
+    return g_octree_file_search_active;
 }
 
 // FUNCTION: WIZ8 0x00432b80
@@ -1042,7 +1041,7 @@ bool W8Octree::LoadPointFiles(const char* level_name)
     if (extension != 0) {
         *extension = '\0';
     }
-    strcat(name, g_octree_point_extension_00606810);
+    strcat(name, g_octree_point_extension);
 
     FindNextLevelFile(0);
     unsigned char first = 1;
@@ -1129,7 +1128,7 @@ bool W8Octree::ReadRegionLinkFile(const char* level_name)
     if (extension != 0) {
         *extension = '\0';
     }
-    strcat(name, g_region_link_extension_006068a4);
+    strcat(name, g_region_link_extension);
     if (FileExists(name) == 0) {
         return 0;
     }
@@ -1284,7 +1283,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
     }
     m_projected_regions_valid_16a = false;
     short samples = static_cast<short>(static_cast<int>(
-        g_camera_angle_period_005ec014 / horizontal_fov_1f0 + g_camera_snap_epsilon_005ebc2c));
+        g_camera_angle_period_005ec014 / horizontal_fov_1f0 + g_camera_snap_epsilon));
     if (samples * horizontal_fov_1f0 < g_float_005ec010) {
         ++samples;
     }
@@ -1473,11 +1472,11 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     srMatrix3T<float> saved_rotation;
     world->camera->getLocation(saved_location);
     world->camera->getRotation(saved_rotation);
-    g_light_update_flags_0060bfdc &= ~1u;
-    g_render_untextured_0065a146 = 1;
+    g_light_update_flags &= ~1u;
+    g_render_untextured = 1;
     SetCameraLightMode(2);
-    g_render_unlit_0065a0ec = 1;
-    g_render_cull_front_0065a0ed = 1;
+    g_render_unlit = 1;
+    g_render_cull_front = 1;
     double saved_width = world->camera->getHorizontalFOV();
     double saved_height = world->camera->getVerticalFOV();
     world->camera->setViewPlane(2.094395102, 2.094395102);
@@ -1527,8 +1526,8 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
                             z_index = 0;
                         } else if (input.usParam == 0x1b) {
                             aborted = true;
-                            if (g_build_level_links_0065bd2c != 0) {
-                                g_build_level_links_0065bd2c = false;
+                            if (g_build_level_links != 0) {
+                                g_build_level_links = false;
                             }
                             continue;
                         }
@@ -1536,7 +1535,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
                 }
                 point.y = spatial_000.minimum_0c.y + spatial_000.extent_04;
                 while (pathing_180->SnapToLowerPathCell(&point, 1) != 0) {
-                    point.y += g_default_world_height_00603ac8;
+                    point.y += g_default_world_height;
                     unsigned int key = RegionKeyForPoint(&point);
                     if (key != last_key) {
                         if (last_key != 0) {
@@ -1547,12 +1546,12 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
                         last_key = key;
                     }
                     SampleRegionLinks(&point, 0, 0, key);
-                    point.y -= g_default_world_height_00603ac8 + g_startup_near_limit_005ec000;
+                    point.y -= g_default_world_height + g_startup_near_limit;
                 }
             }
         }
     }
-    g_render_untextured_0065a146 = 0;
+    g_render_untextured = 0;
     EnableAllRenderOptions();
     W8HashTable<unsigned int, unsigned short>* stale;
     if (rebuild_all == 0) {
@@ -1569,7 +1568,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
         if (extension != 0) {
             *extension = '\0';
         }
-        strcat(point_path, g_octree_point_extension_00606810);
+        strcat(point_path, g_octree_point_extension);
         if (FileExists(point_path)) {
             if (_access(point_path, 2) != 0) {
                 _chmod(point_path, 0x180);
@@ -1600,10 +1599,10 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     restore_location.SetFromFloat(&saved_location);
     world->camera->setLocation(restore_location);
     world->camera->setRotation(saved_rotation);
-    g_light_update_flags_0060bfdc |= 1u;
+    g_light_update_flags |= 1u;
     SetCameraLightMode(3);
-    g_render_unlit_0065a0ec = 0;
-    g_render_cull_front_0065a0ed = 0;
+    g_render_unlit = 0;
+    g_render_cull_front = 0;
     SetScaledViewport00425DA0(0, 0, 0x280, 0x1e0);
     m_region_links_dirty_16c = 1;
     m_region_links_ready_169 = 1;
@@ -1618,18 +1617,17 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     if (aborted) {
         stale = m_pRegionLinks_150;
         m_pRegionLinks_150 = saved_links;
-        CreateMessageBox(FormatWideString(L"  Linking Aborted!  "), g_small_font_683678, 1, 1, 0,
-                         0);
+        CreateMessageBox(FormatWideString(L"  Linking Aborted!  "), g_small_font, 1, 1, 0, 0);
     } else {
         SaveRegionLinks(m_owned_0c0);
         if (hours == 0) {
             CreateMessageBox(
                 FormatWideString(L"  Linking Time: %d Min, %d Sec  ", minutes, elapsed % 60),
-                g_small_font_683678, 1, 1, 0, 0);
+                g_small_font, 1, 1, 0, 0);
         } else {
             CreateMessageBox(FormatWideString(L"  Linking Time: %d Hours, %d Min, %d Sec  ", hours,
                                               minutes, elapsed % 60),
-                             g_small_font_683678, 1, 1, 0, 0);
+                             g_small_font, 1, 1, 0, 0);
         }
         stale = saved_links;
     }
@@ -1785,8 +1783,8 @@ unsigned char W8Octree::ValidateRegionMeshLinks()
     spatial.node_index_94 = 1;
     int bad_links = CountBadRegionMeshLinks(&spatial);
     if (bad_links != 0) {
-        CreateMessageBox(FormatWideString(L" %d Bad Region-Mesh Links!", bad_links),
-                         g_small_font_683678, 1, 1, 0, 0);
+        CreateMessageBox(FormatWideString(L" %d Bad Region-Mesh Links!", bad_links), g_small_font,
+                         1, 1, 0, 0);
         return 0;
     }
     return 1;
@@ -1881,14 +1879,14 @@ int W8Octree::CountBadRegionMeshLinks(W8OctSpatialState* spatial)
 void W8Octree::ToggleUpdateSuspension(W8World* world)
 {
     if (world == 0) {
-        g_octree_trace_node_00659894 = 0;
-        g_octree_update_suspended_00659898 = false;
+        g_octree_trace_node = 0;
+        g_octree_update_suspended = false;
         return;
     }
-    g_octree_update_suspended_00659898 = (g_octree_update_suspended_00659898 == 0);
-    if (g_octree_update_suspended_00659898 == 0) {
-        g_octree_trace_node_00659894->setFlag(srNode::FLAG_DISABLE);
-        g_octree_trace_node_00659894->setFlag(srNode::FLAG_TERMINATE);
+    g_octree_update_suspended = (g_octree_update_suspended == 0);
+    if (g_octree_update_suspended == 0) {
+        g_octree_trace_node->setFlag(srNode::FLAG_DISABLE);
+        g_octree_trace_node->setFlag(srNode::FLAG_TERMINATE);
         m_reset_visibility_168 = 1;
         MarkRendererReady();
         return;
@@ -1903,13 +1901,13 @@ void W8Octree::ToggleUpdateSuspension(W8World* world)
             ->setFlag(srNode::FLAG_TERMINATE);
     }
     memset(m_pfRegsVisited, 0, spatial_000.region_id_bound_58 + 1);
-    if (g_octree_trace_node_00659894 == 0) {
-        g_octree_trace_node_00659894 = g_octree_game_data_00652db0->CreateTraceModel0041C930();
-        g_octree_trace_node_00659894->setParent(world->static_scene, 1);
-        SetModelInstanceChainExclusionMask(g_octree_trace_node_00659894, 2);
+    if (g_octree_trace_node == 0) {
+        g_octree_trace_node = g_octree_game_data->CreateTraceModel0041C930();
+        g_octree_trace_node->setParent(world->static_scene, 1);
+        SetModelInstanceChainExclusionMask(g_octree_trace_node, 2);
     }
-    g_octree_trace_node_00659894->clearFlag(srNode::FLAG_DISABLE);
-    g_octree_trace_node_00659894->clearFlag(srNode::FLAG_TERMINATE);
+    g_octree_trace_node->clearFlag(srNode::FLAG_DISABLE);
+    g_octree_trace_node->clearFlag(srNode::FLAG_TERMINATE);
 }
 
 // FUNCTION: WIZ8 0x00434220
@@ -1984,7 +1982,7 @@ unsigned char W8Octree::PrepareNavigatorTarget00434250(W8NavigatorMovementState*
                                                     &movement->position_040);
         return 1;
     }
-    if (gap < g_world_scale_005ebc40) {
+    if (gap < g_world_scale) {
         delta.SetLength(gap * g_float_005ec028);
         delta += movement->position_040;
         movement->attachment_0ac->InitializeSegment(&movement->position_040, &delta);
@@ -2010,8 +2008,7 @@ bool __stdcall IsNavigatorAtTarget(W8NavigatorMovementState* movement)
     } else {
         target = movement->target_position_04c;
     }
-    if (movement->movement_scale_060 * g_world_scale_005ebc40 <
-        (target - movement->position_040).Length()) {
+    if (movement->movement_scale_060 * g_world_scale < (target - movement->position_040).Length()) {
         return 0;
     }
     return 1;
@@ -2032,7 +2029,7 @@ unsigned char W8Octree::PrepareNavigatorPatrol(W8NavigatorMovementState* movemen
         if (result == 0) {
             return 0;
         }
-        double step = movement->movement_scale_060 * g_world_scale_005ebc40;
+        double step = movement->movement_scale_060 * g_world_scale;
         movement->attachment_0ac->GetNextPosition(&movement->target_position_04c);
         srVector3T<float> delta;
         delta = movement->target_position_04c - movement->position_040;
@@ -2059,12 +2056,12 @@ unsigned char W8Octree::LinkNavigatorTarget(W8NavigatorMovementState* movement,
    None of their bodies are recovered, so they keep address-qualified names. */
 
 // GLOBAL: WIZ8 0x005ebcd0
-float g_octree_cell_scale_005ebcd0 = 100.0f;
+float g_octree_cell_scale = 100.0f;
 /* 0x00659888 accumulates every byte the loader reads, and 0x00652DB0 caches the
    game-data block LoadWorld hands back through its out parameter. */
 
 // GLOBAL: WIZ8 0x00659888
-unsigned long g_octree_bytes_read_00659888;
+unsigned long g_octree_bytes_read;
 
 namespace {
 
@@ -2224,25 +2221,25 @@ float W8Octree::SettleToGround(srVector3T<float>* position, unsigned char* out_h
                 goto done;
             }
             if (test_props != 0) {
-                g_octree_state_00659890 = m_aulGDObjs;
+                g_octree_state = m_aulGDObjs;
                 m_gd_result_count_1b8 = 0;
                 unsigned long before = m_gd_result_count_1b8;
                 CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
                 if (m_gd_result_count_1b8 != before) {
-                    int prop = g_octree_game_data_00652db0->TestPropSurfaces(
-                        m_gd_result_count_1b8, m_aulGDObjs, &trace, 0, 0);
+                    int prop = g_octree_game_data->TestPropSurfaces(m_gd_result_count_1b8,
+                                                                    m_aulGDObjs, &trace, 0, 0);
                     current_prop = prop;
                     if (prop >= 0) {
                         prop_hit = true;
                     }
                 }
             }
-            g_octree_game_data_00652db0->trace_flag4_gate_88 = 1;
+            g_octree_game_data->trace_flag4_gate_88 = 1;
             if (ProbeCellForTrace(cell) == 0) {
                 goto descend;
             }
-            hit = g_octree_game_data_00652db0->TestTraceResult(m_gd_result_count_1b8, m_aulGDObjs,
-                                                               &trace, 0, 0);
+            hit = g_octree_game_data->TestTraceResult(m_gd_result_count_1b8, m_aulGDObjs, &trace, 0,
+                                                      0);
             if (hit == 0) {
             descend:
                 if (prop_hit) {
@@ -2257,7 +2254,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, unsigned char* out_h
             } else if (prop_hit) {
                 current_prop = -1;
             }
-            g_octree_game_data_00652db0->trace_flag4_gate_88 = 0;
+            g_octree_game_data->trace_flag4_gate_88 = 0;
         } while (-1 < cell[1]);
         if (hit != 0) {
         done:
@@ -2285,7 +2282,7 @@ bool W8Octree::SnapToGround(srVector3T<float>* position, char mode)
         position->y = spatial_000.clipped_maximum_30.y;
     }
     srVector3T<float> probe = *position;
-    probe.y = position->y - g_world_scale_005ebc40;
+    probe.y = position->y - g_world_scale;
     SettleToGround(&probe, &hit, mode, 500.0f);
     if (hit != 0) {
         position->y = probe.y;
@@ -2451,13 +2448,13 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
 
         if (span < 2) {
             ProbeCellForTrace(cell);
-            blocked = g_octree_game_data_00652db0->TestTraceResult(
-                m_gd_result_count_1b8, m_aulGDObjs, &trace, m_trace_skip_flag_134, 0);
+            blocked = g_octree_game_data->TestTraceResult(m_gd_result_count_1b8, m_aulGDObjs,
+                                                          &trace, m_trace_skip_flag_134, 0);
 
             if (blocked == 0 && span != 0) {
                 ProbeCellForTrace(end_cell);
-                blocked = g_octree_game_data_00652db0->TestTraceResult(
-                    m_gd_result_count_1b8, m_aulGDObjs, &trace, m_trace_skip_flag_134, 0);
+                blocked = g_octree_game_data->TestTraceResult(m_gd_result_count_1b8, m_aulGDObjs,
+                                                              &trace, m_trace_skip_flag_134, 0);
             }
         } else {
             BuildCellWalk(from, to, &walk);
@@ -2482,7 +2479,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                         break;
                     }
                     if (ProbeCellForTrace(cell) != 0) {
-                        blocked = g_octree_game_data_00652db0->TestTraceResult(
+                        blocked = g_octree_game_data->TestTraceResult(
                             m_gd_result_count_1b8, m_aulGDObjs, &trace, m_trace_skip_flag_134, 0);
                     }
                     if (error_0 < error_1) {
@@ -2490,7 +2487,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                             cell[minor_0] += step[minor_0];
                             error_0 += walk.error_reset_30;
                             if (ProbeCellForTrace(cell) != 0) {
-                                blocked = g_octree_game_data_00652db0->TestTraceResult(
+                                blocked = g_octree_game_data->TestTraceResult(
                                     m_gd_result_count_1b8, m_aulGDObjs, &trace,
                                     m_trace_skip_flag_134, 0);
                             }
@@ -2498,7 +2495,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                                 cell[minor_1] += step[minor_1];
                                 error_1 += walk.error_reset_3c;
                                 if (ProbeCellForTrace(cell) != 0) {
-                                    blocked = g_octree_game_data_00652db0->TestTraceResult(
+                                    blocked = g_octree_game_data->TestTraceResult(
                                         m_gd_result_count_1b8, m_aulGDObjs, &trace,
                                         m_trace_skip_flag_134, 0);
                                 }
@@ -2508,15 +2505,15 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                         cell[minor_1] += step[minor_1];
                         error_1 += walk.error_reset_3c;
                         if (ProbeCellForTrace(cell) != 0) {
-                            blocked = g_octree_game_data_00652db0->TestTraceResult(
-                                m_gd_result_count_1b8, m_aulGDObjs, &trace, m_trace_skip_flag_134,
-                                0);
+                            blocked = g_octree_game_data->TestTraceResult(m_gd_result_count_1b8,
+                                                                          m_aulGDObjs, &trace,
+                                                                          m_trace_skip_flag_134, 0);
                         }
                         if (error_0 < 0 && blocked == 0) {
                             cell[minor_0] += step[minor_0];
                             error_0 += walk.error_reset_30;
                             if (ProbeCellForTrace(cell) != 0) {
-                                blocked = g_octree_game_data_00652db0->TestTraceResult(
+                                blocked = g_octree_game_data->TestTraceResult(
                                     m_gd_result_count_1b8, m_aulGDObjs, &trace,
                                     m_trace_skip_flag_134, 0);
                             }
@@ -2590,9 +2587,9 @@ char W8Octree::ResolveTraceHit(const srVector3T<float>* from, srVector3T<float>*
                                                  (to->y - from->y) * (to->y - from->y) +
                                                  (to->z - from->z) * (to->z - from->z)));
     }
-    inflate = g_runtime_world_scale_6081e8;
-    if (inflate < g_position_height_epsilon_005ebfdc) {
-        inflate = g_position_height_epsilon_005ebfdc;
+    inflate = g_runtime_world_scale;
+    if (inflate < g_position_height_epsilon) {
+        inflate = g_position_height_epsilon;
     }
     if (hit_location == 0) {
         target = -3;
@@ -2623,8 +2620,8 @@ char W8Octree::ResolveTraceHit(const srVector3T<float>* from, srVector3T<float>*
     high.y = high.y + inflate;
     high.z = high.z + inflate;
     if (target == -1) {
-        radius = g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
-        navigator = g_startup_world_659c0c;
+        radius = g_startup_world->movement_0c0.alternate_radius_0b4;
+        navigator = g_startup_world;
     } else {
         if (target < 1) {
             goto no_probes;
@@ -2668,7 +2665,7 @@ no_probes:;
                                                      (center.z - from->z) * (center.z - from->z))) /
                                                 segment_length * g_float_005ebc78 +
                                             g_float_005ebc3c) *
-                                               g_world_scale_005ebc40;
+                                               g_world_scale;
                             if (distance < g_float_005ebb34) {
                                 distance = g_float_005ebb34;
                             }
@@ -2738,12 +2735,12 @@ no_probes:;
                                                     (center.x - from->x) * (center.x - from->x))) /
                                 segment_length * g_float_005ebc78 +
                             g_float_005ebc3c) *
-                               g_world_scale_005ebc40;
+                               g_world_scale;
             if (distance < g_float_005ebb34) {
                 distance = g_float_005ebb34;
             }
         }
-        float camera_radius = g_startup_world_659c0c->radius_084 * g_float_006081f4;
+        float camera_radius = g_startup_world->radius_084 * g_float_006081f4;
         if (distance < camera_radius) {
             offset.x = to->x - from->x;
             offset.y = to->y - from->y;
@@ -3070,20 +3067,14 @@ void W8Octree::BuildCellWalk(const srVector3T<float>* from, const srVector3T<flo
     int minor_1;
     int span;
 
-    cell_size = spatial_000.node_extent_70 * g_octree_cell_scale_005ebcd0;
+    cell_size = spatial_000.node_extent_70 * g_octree_cell_scale;
     cell = static_cast<int>(cell_size);
-    from_cell[0] =
-        static_cast<int>(((from->x - spatial_000.minimum_0c.x) * g_octree_cell_scale_005ebcd0));
-    to_cell[0] =
-        static_cast<int>(((to->x - spatial_000.minimum_0c.x) * g_octree_cell_scale_005ebcd0));
-    from_cell[1] =
-        static_cast<int>(((from->y - spatial_000.minimum_0c.y) * g_octree_cell_scale_005ebcd0));
-    to_cell[1] =
-        static_cast<int>(((to->y - spatial_000.minimum_0c.y) * g_octree_cell_scale_005ebcd0));
-    from_cell[2] =
-        static_cast<int>(((from->z - spatial_000.minimum_0c.z) * g_octree_cell_scale_005ebcd0));
-    to_cell[2] =
-        static_cast<int>(((to->z - spatial_000.minimum_0c.z) * g_octree_cell_scale_005ebcd0));
+    from_cell[0] = static_cast<int>(((from->x - spatial_000.minimum_0c.x) * g_octree_cell_scale));
+    to_cell[0] = static_cast<int>(((to->x - spatial_000.minimum_0c.x) * g_octree_cell_scale));
+    from_cell[1] = static_cast<int>(((from->y - spatial_000.minimum_0c.y) * g_octree_cell_scale));
+    to_cell[1] = static_cast<int>(((to->y - spatial_000.minimum_0c.y) * g_octree_cell_scale));
+    from_cell[2] = static_cast<int>(((from->z - spatial_000.minimum_0c.z) * g_octree_cell_scale));
+    to_cell[2] = static_cast<int>(((to->z - spatial_000.minimum_0c.z) * g_octree_cell_scale));
 
     for (axis = 0; axis < 3; ++axis) {
         span = to_cell[axis] - from_cell[axis];
@@ -3151,7 +3142,7 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
     int error_1;
 
     W8OctreeTrace trace(from, to);
-    g_octree_state_00659890 = m_aulGDObjs;
+    g_octree_state = m_aulGDObjs;
     m_gd_result_count_1b8 = 0;
     m_owned_194->ClearAll();
     cell[0] = static_cast<int>((from->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
@@ -3162,10 +3153,10 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
     end_cell[2] = static_cast<int>((to->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
     span = abs(cell[2] - end_cell[2]) + abs(cell[1] - end_cell[1]) + abs(cell[0] - end_cell[0]);
     if (span < 2) {
-        g_octree_state_00659890 = m_aulGDObjs;
+        g_octree_state = m_aulGDObjs;
         CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
         if (span != 0) {
-            g_octree_state_00659890 = m_aulGDObjs;
+            g_octree_state = m_aulGDObjs;
             CollectObjectsInCell(end_cell, W8_OCTREE_KIND_PROP);
         }
     } else {
@@ -3184,30 +3175,30 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
             error_1 = walk.error_38;
             error_0 = walk.error_2c;
             do {
-                g_octree_state_00659890 = m_aulGDObjs;
+                g_octree_state = m_aulGDObjs;
                 CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
                 if (error_0 < error_1) {
                     if (error_0 < 0) {
                         error_0 += walk.error_reset_30;
                         cell[walk.minor_axis_1c] += step[walk.minor_axis_1c];
-                        g_octree_state_00659890 = m_aulGDObjs;
+                        g_octree_state = m_aulGDObjs;
                         CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
                         if (error_1 < 0) {
                             cell[cell[3]] += step[cell[3]];
                             error_1 += walk.error_reset_3c;
-                            g_octree_state_00659890 = m_aulGDObjs;
+                            g_octree_state = m_aulGDObjs;
                             CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
                         }
                     }
                 } else if (error_1 < 0) {
                     cell[cell[3]] += step[cell[3]];
-                    g_octree_state_00659890 = m_aulGDObjs;
+                    g_octree_state = m_aulGDObjs;
                     error_1 += walk.error_reset_3c;
                     CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
                     if (error_0 < 0) {
                         cell[walk.minor_axis_1c] += step[walk.minor_axis_1c];
                         error_0 += walk.error_reset_30;
-                        g_octree_state_00659890 = m_aulGDObjs;
+                        g_octree_state = m_aulGDObjs;
                         CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
                     }
                 }
@@ -3218,8 +3209,8 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
             } while (count != 0);
         }
     }
-    current_prop = g_octree_game_data_00652db0->TestPropSurfaces(m_gd_result_count_1b8, m_aulGDObjs,
-                                                                 &trace, skip_flag, gate);
+    current_prop = g_octree_game_data->TestPropSurfaces(m_gd_result_count_1b8, m_aulGDObjs, &trace,
+                                                        skip_flag, gate);
     if (current_prop < 0) {
         return 0;
     }
@@ -3684,7 +3675,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
         goto failed;
     }
     if (CheckLevelAssetSet0042CCC0(path) > 0 && BuildPreprocessedFiles(path) == 0) {
-        g_octree_6598a4 = 0;
+        g_octree = 0;
         spatial_000.flags_00 |= 0x80000000;
         ReportStartupMessage("Cannot find or build current preprocessed files.");
         ReportStartupMessage("Attempting to run with LVL file only -- SOME FEATURES DISABLED.");
@@ -3696,7 +3687,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
         srAssertFail("hOctFile", OCTREE_CPP, 0xa3, "ReadOctFile: Couldn't open octree file.");
     }
     fSuccess = FileRead(hOctFile, &header, sizeof(header), &uiRead);
-    g_octree_bytes_read_00659888 += uiRead;
+    g_octree_bytes_read += uiRead;
     fLoaded = 0;
     if (fSuccess != 0) {
         fSuccess = FileRead(hOctFile, &uiTerminator, 4, &uiRead);
@@ -3734,7 +3725,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                     strcpy(acMessage, "ReadOctFile: Couldn't read octree nodes.");
                 }
             }
-            g_octree_bytes_read_00659888 += uiRead;
+            g_octree_bytes_read += uiRead;
             fLoaded = 0;
             if (fSuccess != 0) {
                 block = malloc((header.leaf_count_6e * 5 + 10) * 8);
@@ -3748,7 +3739,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                         strcpy(acMessage, "ReadOctFile: Couldn't read octree leaves.");
                     }
                 }
-                g_octree_bytes_read_00659888 += uiRead;
+                g_octree_bytes_read += uiRead;
                 fLoaded = 0;
                 if (fSuccess != 0) {
                     block = malloc(header.leaf_polygon_stream_len_82 * 4 + 8);
@@ -3765,7 +3756,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                    "ReadOctFile: Couldn't read polygon index list for leaves.");
                         }
                     }
-                    g_octree_bytes_read_00659888 += uiRead;
+                    g_octree_bytes_read += uiRead;
                 }
             }
         }
@@ -3785,7 +3776,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
         if (fLoaded == 0) {
             strcpy(acMessage, "ReadOctFile: Couldn't read octree nodes.");
         }
-        g_octree_bytes_read_00659888 += uiRead;
+        g_octree_bytes_read += uiRead;
     } else {
         m_owned_0b0 = 0;
     }
@@ -3802,7 +3793,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
             if (fLoaded == 0) {
                 strcpy(acMessage, "ReadOctFile: Couldn't read Poly Lookup table.");
             }
-            g_octree_bytes_read_00659888 += uiRead;
+            g_octree_bytes_read += uiRead;
             fSuccess = 0;
             if (fLoaded != 0) {
                 if (header.region_list_len_92 != 0) {
@@ -3817,7 +3808,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                     if (fLoaded == 0) {
                         strcpy(acMessage, "ReadOctFile: Couldn't read region list.");
                     }
-                    g_octree_bytes_read_00659888 += uiRead;
+                    g_octree_bytes_read += uiRead;
                 }
                 fSuccess = 0;
                 if (fLoaded != 0) {
@@ -3834,7 +3825,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                         if (fLoaded == 0) {
                             strcpy(acMessage, "ReadOctFile: Couldn't read GD Poly list.");
                         }
-                        g_octree_bytes_read_00659888 += uiRead;
+                        g_octree_bytes_read += uiRead;
                     }
                     fSuccess = 0;
                     if (fLoaded != 0) {
@@ -3851,7 +3842,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                             if (fLoaded == 0) {
                                 strcpy(acMessage, "ReadOctFile: Couldn't read Trigger list.");
                             }
-                            g_octree_bytes_read_00659888 += uiRead;
+                            g_octree_bytes_read += uiRead;
                         }
                         fSuccess = 0;
                         if (fLoaded != 0) {
@@ -3869,7 +3860,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                 if (fLoaded == 0) {
                                     strcpy(acMessage, "ReadOctFile: Couldn't read region array.");
                                 }
-                                g_octree_bytes_read_00659888 += uiRead;
+                                g_octree_bytes_read += uiRead;
                             }
                             fSuccess = 0;
                             if (fLoaded != 0) {
@@ -3896,7 +3887,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                 strcpy(acMessage,
                                                        "ReadOctFile: Couldn't read submesh array.");
                                             }
-                                            g_octree_bytes_read_00659888 += uiRead;
+                                            g_octree_bytes_read += uiRead;
                                             if (fLoaded != 0) {
                                                 unsigned int* scan;
                                                 unsigned int remaining;
@@ -3959,7 +3950,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                 strcpy(acMessage,
                                                        "ReadOctFile: Couldn't read octree nodes.");
                                             }
-                                            g_octree_bytes_read_00659888 += uiRead;
+                                            g_octree_bytes_read += uiRead;
                                             m_pusMeshParticles = static_cast<unsigned short*>(
                                                 malloc(m_usMeshParticlesLen_0e8 * 2));
                                             if (m_pusMeshParticles == 0) {
@@ -3991,7 +3982,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                 strcpy(acMessage,
                                                        "ReadOctFile: Couldn't read octree nodes.");
                                             }
-                                            g_octree_bytes_read_00659888 += uiRead;
+                                            g_octree_bytes_read += uiRead;
                                             m_pusMeshProps = static_cast<unsigned short*>(
                                                 malloc(m_usMeshPropsLen_0f4 * 2));
                                             if (m_pusMeshProps == 0) {
@@ -4078,7 +4069,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
     }
 
 finish:
-    g_octree_game_data_00652db0 = 0;
+    g_octree_game_data = 0;
     *game_data = 0;
     if (fSuccess != 0 && header.gd_surface_stream_len_86 != 0) {
         pGameData = new W8GameData(hOctFile, false);
@@ -4095,10 +4086,10 @@ finish:
     }
     FileClose(hOctFile);
     if (fSuccess != 0) {
-        g_octree_6598a4 = this;
+        g_octree = this;
         pGameData->octree_04 = this;
         *game_data = pGameData;
-        g_octree_game_data_00652db0 = pGameData;
+        g_octree_game_data = pGameData;
         ReadRegionLinkFile(m_owned_0c0);
         LoadPointFiles(m_owned_0c0);
         if (pathing_180 != 0) {
@@ -4107,7 +4098,7 @@ finish:
         return;
     }
 failed:
-    g_octree_6598a4 = 0;
+    g_octree = 0;
     spatial_000.flags_00 |= 0x80000000;
 }
 
@@ -4126,7 +4117,7 @@ int CheckLevelAssetSet0042CCC0(const char* level_path)
     int file;
     char* extension;
 
-    if (g_octree_disabled_6598a8 != 0) {
+    if (g_octree_disabled != 0) {
         return -1;
     }
 
@@ -4149,7 +4140,7 @@ int CheckLevelAssetSet0042CCC0(const char* level_path)
         (file = FileOpen(const_cast<char*>(level_path), 1, 0)) != 0 &&
         FileRead(file, &version, 2, 0) != 0) {
         if (version < 0x22) {
-            if (g_octree_disabled_6598a8 != 0) {
+            if (g_octree_disabled != 0) {
                 return -1;
             }
             rebuild = 1;
@@ -4201,7 +4192,7 @@ int CheckLevelAssetSet0042CCC0(const char* level_path)
 void W8Octree::Reset()
 {
     g_octree_storage_00659770 = 0;
-    g_octree_state_00659890 = 0;
+    g_octree_state = 0;
     spatial_000.Reset0046CDC0();
     memset(this, 0, sizeof(*this));
     current_prop = -1;
@@ -4432,7 +4423,7 @@ W8Octree::~W8Octree()
    so consecutive levels pick up where the previous one's props ended. */
 
 // GLOBAL: WIZ8 0x006598ac
-int g_prop_sun_index_006598ac;
+int g_prop_sun_index;
 
 /* Attach the prop-sunlight bit array, but only one that has been sized. */
 // FUNCTION: WIZ8 0x0042e3e0
@@ -4452,11 +4443,11 @@ void W8Octree::SetPropSunBits(BitArray* bits)
 int W8Octree::TestPropSunBit(int offset)
 {
     if (offset < 0) {
-        prop_sun_base_184 = g_prop_sun_index_006598ac;
+        prop_sun_base_184 = g_prop_sun_index;
         return 0;
     }
-    g_prop_sun_index_006598ac = prop_sun_base_184 + offset;
-    if (m_pPropSunBits != 0 && m_pPropSunBits->Test(g_prop_sun_index_006598ac)) {
+    g_prop_sun_index = prop_sun_base_184 + offset;
+    if (m_pPropSunBits != 0 && m_pPropSunBits->Test(g_prop_sun_index)) {
         return 1;
     }
     return 0;
@@ -4541,10 +4532,10 @@ int W8Octree::CollectObjectsAlongSegment(unsigned long** results, const srVector
     int high_cell[3];
     int cell[3];
 
-    g_octree_state_00659890 = *results;
-    if (g_octree_state_00659890 == 0) {
-        g_octree_state_00659890 = m_aulGDObjs;
-        *results = g_octree_state_00659890;
+    g_octree_state = *results;
+    if (g_octree_state == 0) {
+        g_octree_state = m_aulGDObjs;
+        *results = g_octree_state;
     }
     m_gd_result_count_1b8 = 0;
     float radius = delta->Length();
@@ -4587,7 +4578,7 @@ int W8Octree::CollectObjectsAlongSegment(unsigned long** results, const srVector
             ++cell[0];
         } while (cell[0] <= high_cell[0]);
     }
-    g_octree_state_00659890 = 0;
+    g_octree_state = 0;
     return static_cast<int>(m_gd_result_count_1b8); /* c-style-cast-ok: the shared count field is
         stored unsigned */
 }
@@ -4622,21 +4613,18 @@ unsigned char W8Octree::TestBoxOccupied(const srVector3T<float>* lower,
     unsigned int index = 0;
     if (count != 0) {
         do {
-            W8GDSurface* surface = g_octree_game_data_00652db0->m_pSurfaces + objects[index];
+            W8GDSurface* surface = g_octree_game_data->m_pSurfaces + objects[index];
             srVector3T<float> bounds[2];
             srVector3T<float> triangle[3];
             for (int axis = 0; axis < 3; ++axis) {
                 (&bounds[0].x)[axis] = (&lower->x)[axis];
                 (&bounds[1].x)[axis] = (&upper->x)[axis];
                 (&triangle[0].x)[axis] =
-                    (&g_octree_game_data_00652db0->m_pVertices[surface->vertex_indices_18[0]]
-                          .x)[axis];
+                    (&g_octree_game_data->m_pVertices[surface->vertex_indices_18[0]].x)[axis];
                 (&triangle[1].x)[axis] =
-                    (&g_octree_game_data_00652db0->m_pVertices[surface->vertex_indices_18[1]]
-                          .x)[axis];
+                    (&g_octree_game_data->m_pVertices[surface->vertex_indices_18[1]].x)[axis];
                 (&triangle[2].x)[axis] =
-                    (&g_octree_game_data_00652db0->m_pVertices[surface->vertex_indices_18[2]]
-                          .x)[axis];
+                    (&g_octree_game_data->m_pVertices[surface->vertex_indices_18[2]].x)[axis];
             }
             if (TestSpatialTriangle(bounds, triangle, surface->Normal()) != 0) {
                 return 1;
@@ -4711,10 +4699,10 @@ int W8Octree::QueryObjects(unsigned long** objects, const srVector3T<float>* low
     int end[3];
     int cell[3];
 
-    g_octree_state_00659890 = *objects;
-    if (g_octree_state_00659890 == 0) {
-        g_octree_state_00659890 = m_aulGDObjs;
-        *objects = g_octree_state_00659890;
+    g_octree_state = *objects;
+    if (g_octree_state == 0) {
+        g_octree_state = m_aulGDObjs;
+        *objects = g_octree_state;
     }
     m_gd_result_count_1b8 = 0;
     m_owned_194->ClearAll();
@@ -4748,7 +4736,7 @@ int W8Octree::QueryObjects(unsigned long** objects, const srVector3T<float>* low
             }
         }
     }
-    g_octree_state_00659890 = 0;
+    g_octree_state = 0;
     return m_gd_result_count_1b8;
 }
 
@@ -4814,7 +4802,7 @@ unsigned int W8Octree::CollectObjectsInCell(const int* cell, unsigned short kind
                     }
                     ++stream;
                     if (m_owned_194->Set(*stream) == 0) {
-                        g_octree_state_00659890[m_gd_result_count_1b8] = *stream;
+                        g_octree_state[m_gd_result_count_1b8] = *stream;
                         ++m_gd_result_count_1b8;
                     }
                     ++index;
@@ -4825,37 +4813,35 @@ unsigned int W8Octree::CollectObjectsInCell(const int* cell, unsigned short kind
     default:
         if (W8_OCTREE_KIND_LOCATION < kind) {
             if (cell != 0) {
-                g_octree_query_cell_00659774 = PackOctreeCellKey(cell[0], cell[1], cell[2]);
-                g_octree_query_slot_00659760 = -1;
+                g_octree_query_cell = PackOctreeCellKey(cell[0], cell[1], cell[2]);
+                g_octree_query_slot = -1;
             }
-            slot = object_registry->by_cell->FindNextEntry(&g_octree_query_cell_00659774,
-                                                           g_octree_query_slot_00659760);
-            g_octree_query_slot_00659760 = slot;
+            slot =
+                object_registry->by_cell->FindNextEntry(&g_octree_query_cell, g_octree_query_slot);
+            g_octree_query_slot = slot;
             if (slot >= 0) {
                 unsigned int packed =
                     static_cast<unsigned int>(object_registry->by_cell->entries[slot].value);
-                g_octree_query_kind_00659764 = static_cast<unsigned short>(OctreeKeyKind(packed));
-                g_octree_query_id_00659766 = static_cast<unsigned short>(packed);
+                g_octree_query_kind = static_cast<unsigned short>(OctreeKeyKind(packed));
+                g_octree_query_id = static_cast<unsigned short>(packed);
                 while (m_gd_result_count_1b8 < 10000) {
                     short entry_kind = static_cast<short>(OctreeKeyKind(packed));
                     if ((entry_kind == W8_OCTREE_KIND_LOCATION ||
                          entry_kind == W8_OCTREE_KIND_NAVIGATOR) &&
                         m_owned_194->Set(OctreeKeyId(packed) - 1) == 0) {
-                        g_octree_state_00659890[m_gd_result_count_1b8] =
-                            g_octree_query_id_00659766 - 1;
+                        g_octree_state[m_gd_result_count_1b8] = g_octree_query_id - 1;
                         ++m_gd_result_count_1b8;
                     }
-                    slot = object_registry->by_cell->FindNextEntry(&g_octree_query_cell_00659774,
-                                                                   g_octree_query_slot_00659760);
-                    g_octree_query_slot_00659760 = slot;
+                    slot = object_registry->by_cell->FindNextEntry(&g_octree_query_cell,
+                                                                   g_octree_query_slot);
+                    g_octree_query_slot = slot;
                     if (slot < 0) {
                         return 0;
                     }
                     packed =
                         static_cast<unsigned int>(object_registry->by_cell->entries[slot].value);
-                    g_octree_query_kind_00659764 =
-                        static_cast<unsigned short>(OctreeKeyKind(packed));
-                    g_octree_query_id_00659766 = static_cast<unsigned short>(packed);
+                    g_octree_query_kind = static_cast<unsigned short>(OctreeKeyKind(packed));
+                    g_octree_query_id = static_cast<unsigned short>(packed);
                 }
             }
             break;
@@ -4865,32 +4851,31 @@ unsigned int W8Octree::CollectObjectsInCell(const int* cell, unsigned short kind
     case W8_OCTREE_KIND_WAYPOINT:
     case W8_OCTREE_KIND_LOCATION:
         if (cell != 0) {
-            g_octree_query_cell_00659774 = PackOctreeCellKey(cell[0], cell[1], cell[2]);
-            g_octree_query_slot_00659760 = -1;
+            g_octree_query_cell = PackOctreeCellKey(cell[0], cell[1], cell[2]);
+            g_octree_query_slot = -1;
         }
-        slot = object_registry->by_cell->FindNextEntry(&g_octree_query_cell_00659774,
-                                                       g_octree_query_slot_00659760);
-        g_octree_query_slot_00659760 = slot;
+        slot = object_registry->by_cell->FindNextEntry(&g_octree_query_cell, g_octree_query_slot);
+        g_octree_query_slot = slot;
         if (slot >= 0) {
             unsigned int packed =
                 static_cast<unsigned int>(object_registry->by_cell->entries[slot].value);
-            g_octree_query_kind_00659764 = static_cast<unsigned short>(OctreeKeyKind(packed));
-            g_octree_query_id_00659766 = static_cast<unsigned short>(packed);
+            g_octree_query_kind = static_cast<unsigned short>(OctreeKeyKind(packed));
+            g_octree_query_id = static_cast<unsigned short>(packed);
             while (m_gd_result_count_1b8 < 10000) {
                 if ((static_cast<unsigned short>(OctreeKeyKind(packed)) == kind) &&
                     m_owned_194->Set(OctreeKeyId(packed) - 1) == 0) {
-                    g_octree_state_00659890[m_gd_result_count_1b8] = g_octree_query_id_00659766 - 1;
+                    g_octree_state[m_gd_result_count_1b8] = g_octree_query_id - 1;
                     ++m_gd_result_count_1b8;
                 }
-                slot = object_registry->by_cell->FindNextEntry(&g_octree_query_cell_00659774,
-                                                               g_octree_query_slot_00659760);
-                g_octree_query_slot_00659760 = slot;
+                slot = object_registry->by_cell->FindNextEntry(&g_octree_query_cell,
+                                                               g_octree_query_slot);
+                g_octree_query_slot = slot;
                 if (slot < 0) {
                     return 0;
                 }
                 packed = static_cast<unsigned int>(object_registry->by_cell->entries[slot].value);
-                g_octree_query_kind_00659764 = static_cast<unsigned short>(OctreeKeyKind(packed));
-                g_octree_query_id_00659766 = static_cast<unsigned short>(packed);
+                g_octree_query_kind = static_cast<unsigned short>(OctreeKeyKind(packed));
+                g_octree_query_id = static_cast<unsigned short>(packed);
             }
         }
         break;
@@ -4973,19 +4958,19 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     bool reached = true;
 
     if (pathing_180 != 0) {
-        if (g_navigator_link_mode_00659c10 == 0) {
+        if (g_navigator_link_mode == 0) {
             return pathing_180->StepAlongPath004669B0(movement, radius, separation);
         }
         return pathing_180->StepMonsterAlongPath(movement, radius, separation);
     }
-    if (g_navigator_link_mode_00659c10 != 0) {
+    if (g_navigator_link_mode != 0) {
         return 1;
     }
     vecDir = movement->target_position_04c - movement->position_040;
     vecDir.y = 0.0f;
     distance = srVector2T<float>(vecDir.x, vecDir.z).Length();
-    step = g_game_time_accumulator_6598bc->GetFrameDelta() * movement->movement_scale_060 *
-           g_rate_006068EC * g_world_scale_005ebc40;
+    step = g_game_time_accumulator->GetFrameDelta() * movement->movement_scale_060 *
+           g_rate_006068EC * g_world_scale;
     if (step >= distance) {
         step = distance;
     } else {
@@ -5318,11 +5303,11 @@ char SphereNearBounds(const srVector3T<float>* point, float radius, const W8Boun
    three columns (0, +1, -1) per ring, or all five when more than ten
    positions are wanted. */
 // GLOBAL: WIZ8 0x00605ae8
-static const float g_scatter_column_offsets_00605ae8[5] = {0.0f, 1.0f, -1.0f, 2.0f, -2.0f};
+static const float g_scatter_column_offsets[5] = {0.0f, 1.0f, -1.0f, 2.0f, -2.0f};
 
 /* Ring-scatter search for up to `count` clear positions around `position`.
    Each ring steps `spacing` units out along the `yaw`-rotated frame and
-   columns offset laterally through g_scatter_column_offsets_00605ae8; the
+   columns offset laterally through g_scatter_column_offsets; the
    first accepted candidate becomes the reference the remaining candidates
    must span to. With `proximity_check` set each candidate is also rejected
    inside the startup navigator's or any nearby monster's radius. `flatten_y`
@@ -5341,7 +5326,7 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
     if (count > 10) {
         columns = 5;
     }
-    float angle = NormalizeAngle(yaw + g_monster_rotation_offset_005ec04c);
+    float angle = NormalizeAngle(yaw + g_monster_rotation_offset);
     float cos_angle = static_cast<float>(cos(angle));
     srVector3T<float> source;
     source = *position;
@@ -5371,7 +5356,7 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
             break;
         }
         if (columns != 0) {
-            const float* column_offset = g_scatter_column_offsets_00605ae8;
+            const float* column_offset = g_scatter_column_offsets;
             unsigned int column = 0;
             do {
                 if (count <= found) {
@@ -5389,7 +5374,7 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
                 srVector3T<float> candidate;
                 candidate.x = sin_step * (ring + jitter_ring) + source.x +
                               neg_cos_step * (jitter_column + *column_offset);
-                candidate.y = source.y + g_world_scale_005ebc40;
+                candidate.y = source.y + g_world_scale;
                 candidate.z = (ring + jitter_ring) * cos_step + source.z +
                               (jitter_column + *column_offset) * sin_step;
                 float ground = SettlePositionToGround00420BD0(&candidate, 0);
@@ -5405,11 +5390,11 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
                     } else {
                         float reach = spacing * g_float_005ebc7c;
                         if (pathing_180->TestPathCellClearance(&candidate, reach, 0) != 0) {
-                            srVector3T<float> navigator = g_startup_world_659c0c->GetPosition();
+                            srVector3T<float> navigator = g_startup_world->GetPosition();
                             float dx = navigator.x - candidate.x;
                             float dy = navigator.y - candidate.y;
                             float dz = navigator.z - candidate.z;
-                            float separation = g_startup_world_659c0c->radius_084 + reach;
+                            float separation = g_startup_world->radius_084 + reach;
                             if (separation * separation <= dx * dx + dy * dy + dz * dz) {
                                 unsigned int m = 0;
                                 if (monsters != 0) {
@@ -5473,17 +5458,17 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     int found_j = 9999;
     float source_y = source->y;
     unsigned long* candidates = 0;
-    float camera_radius = g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
+    float camera_radius = g_startup_world->movement_0c0.alternate_radius_0b4;
     bool placed = false;
     float separation =
         (CalcRangeDistance(W8_RANGE_TOUCH) + radius) * g_float_005ebc7c + camera_radius;
-    float angle = NormalizeAngle(yaw + g_monster_rotation_offset_005ec04c);
+    float angle = NormalizeAngle(yaw + g_monster_rotation_offset);
     float cos_angle = static_cast<float>(cos(angle));
     float sin_angle = static_cast<float>(sin(angle));
     float cos_radius = radius * cos_angle;
     float sin_radius = radius * sin_angle;
     float neg_cos_radius = -cos_radius;
-    source->y = source->y + g_world_scale_005ebc40;
+    source->y = source->y + g_world_scale;
     float ground = SettlePositionToGround00420BD0(source, 0);
     float height = source->y - ground;
     if (static_cast<float>(g_double_005ebc30) <= fabsf(height) &&
@@ -5544,7 +5529,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
                             srVector3T<float> candidate;
                             candidate.x = sin_radius * (i + jitter_i) + source->x +
                                           neg_cos_radius * (jitter_j + j);
-                            candidate.y = source->y + g_world_scale_005ebc40;
+                            candidate.y = source->y + g_world_scale;
                             candidate.z = (i + jitter_i) * cos_radius + source->z +
                                           (jitter_j + j) * sin_radius;
                             ground = SettlePositionToGround00420BD0(&candidate, 0);
@@ -5567,8 +5552,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
                                      InsideDestinationTrigger(candidate.x, candidate.y,
                                                               candidate.z) == 0)) {
                                     if (first_only != 0) {
-                                        srVector3T<float> camera =
-                                            g_startup_world_659c0c->GetPosition();
+                                        srVector3T<float> camera = g_startup_world->GetPosition();
                                         float camera_dx = camera.x - candidate.x;
                                         float camera_dy = camera.y - candidate.y;
                                         float camera_dz = camera.z - candidate.z;

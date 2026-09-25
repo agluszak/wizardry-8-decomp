@@ -117,7 +117,7 @@ bool OnWheelStarActivated(Trigger* trigger)
 {
     if (GetItemInHand() != 0x24c) {
         ShowLevelMessage(0x22);
-        g_trigger_feedback_00606994 = 1;
+        g_trigger_feedback = 1;
         return false;
     }
     RemovePartyItemByID(GetItemInHand(), 0);

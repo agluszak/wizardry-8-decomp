@@ -30,7 +30,7 @@ static_assert(offsetof(W8MainGameResourceSlot, frame_count) == 0x08,
 static_assert(offsetof(W8MainGameResourceSlot, size_x) == 0x0c, "W8MainGameResourceSlot_size_x");
 
 /* Main-game chrome mode ApplyMainGameModeFlag writes into both the level block
-   and g_settings_6850c8. NONE is settings-only: Screens parks it at -1 while
+   and g_settings. NONE is settings-only: Screens parks it at -1 while
    ApplyMainGameModeFlag re-raises panels during main-game enter. */
 enum W8MainUiMode {
     W8_MAIN_UI_MODE_NONE = -1,

@@ -130,7 +130,7 @@ void W8ProfRaceInfoDialogBase::Draw()
         int top = 0x37;
         for (int attribute = 0; attribute < ATTR_COUNT; ++attribute) {
             DrawTextLine(g_W8TextBufferLayoutMask005ED548, 0x10, top, 0x74, 0xc,
-                         gppStringList[g_character_description_first_ids_61e3a4[attribute]],
+                         gppStringList[g_character_description_first_ids[attribute]],
                          g_font_683660);
             const wchar_t* minimum;
             if (m_minimums[attribute] == -1) {
@@ -266,14 +266,13 @@ unsigned char W8ProfessionInfoDialog::PopulateText()
         if (ability == -1) {
             break;
         }
-        m_text_area_118.AddEntry(0, gppStringList[g_character_trait_name_ids_61e530[ability]], 10,
-                                 0xf, 0);
+        m_text_area_118.AddEntry(0, gppStringList[g_character_trait_name_ids[ability]], 10, 0xf, 0);
     }
     m_text_area_118.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
     m_text_area_118.AddEntry(gppStringList[0x14e], &g_wchar_00689b34, 10, 0xf, 0);
     m_text_area_118.AddEntry(
-        0, gppStringList[g_character_skill_name_ids_61e454[g_profession_bonus_skills[m_uiIndex]]],
-        10, 0xf, 0);
+        0, gppStringList[g_character_skill_name_ids[g_profession_bonus_skills[m_uiIndex]]], 10, 0xf,
+        0);
     m_text_area_118.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
     m_text_area_118.AddEntry(gppStringList[0x14f], &g_wchar_00689b34, 10, 0xf, 0);
     for (index = 0; index < 4; ++index) {
@@ -281,13 +280,12 @@ unsigned char W8ProfessionInfoDialog::PopulateText()
         if (skill == -1) {
             break;
         }
-        m_text_area_118.AddEntry(0, gppStringList[g_character_skill_name_ids_61e454[skill]], 10,
-                                 0xf, 0);
+        m_text_area_118.AddEntry(0, gppStringList[g_character_skill_name_ids[skill]], 10, 0xf, 0);
     }
     m_text_area_118.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
     m_text_area_118.AddEntry(gppStringList[0x150], &g_wchar_00689b34, 10, 0xf, 0);
     for (index = 0; index < 6; ++index) {
-        int item = g_starting_equipment_61635c[m_uiIndex][index];
+        int item = g_starting_equipment[m_uiIndex][index];
         if (item != -1) {
             m_text_area_118.AddEntry(0, g_item_records[item].display_name, 10, 0xf, 0);
         }
@@ -368,8 +366,7 @@ unsigned char W8RaceInfoDialog::PopulateText()
             }
             return 1;
         }
-        m_text_area_118.AddEntry(0, gppStringList[g_character_trait_name_ids_61e530[ability]], 10,
-                                 0xf, 0);
+        m_text_area_118.AddEntry(0, gppStringList[g_character_trait_name_ids[ability]], 10, 0xf, 0);
         listed = 1;
     }
     return 1;

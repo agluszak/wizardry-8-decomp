@@ -44,15 +44,15 @@ GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short 
     m_path_bounds_4c.max_x = 0;
     m_path_bounds_4c.min_x = 0;
 
-    if (g_octree_6598a4 != 0 && g_octree_6598a4->pathing_180 != 0) {
-        m_path_handle_04 = g_octree_6598a4->pathing_180->FindPathHandle(
-            path_name, &m_path_bounds_4c, &m_path_range_28);
+    if (g_octree != 0 && g_octree->pathing_180 != 0) {
+        m_path_handle_04 =
+            g_octree->pathing_180->FindPathHandle(path_name, &m_path_bounds_4c, &m_path_range_28);
     }
 
     if (instance != 0) {
-        if (m_path_handle_04 != 0 && g_octree_6598a4->pathing_180 != 0) {
-            g_octree_6598a4->pathing_180->LinkSurfaces(this);
-            g_octree_6598a4->pathing_180->LinkEdges(this);
+        if (m_path_handle_04 != 0 && g_octree->pathing_180 != 0) {
+            g_octree->pathing_180->LinkSurfaces(this);
+            g_octree->pathing_180->LinkEdges(this);
         }
         Initialize(instance, 1, prop_number, footstep_surface, footstep_material);
     }
@@ -200,7 +200,7 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
         mesh = mesh->next;
     }
 
-    W8PathingService* pathing = g_octree_6598a4->pathing_180;
+    W8PathingService* pathing = g_octree->pathing_180;
     if (m_path_handle_04 != 0 && pathing != 0) {
         if (attach == 0) {
             if (m_prop_number_02 != 0xffff) {
@@ -268,7 +268,7 @@ void GDProp::BindTrigger(Trigger* owner)
                 m_flags_00 &= 0xfff7;
             }
 
-            W8PathingService* pathing = g_octree_6598a4->pathing_180;
+            W8PathingService* pathing = g_octree->pathing_180;
             if (pathing != 0) {
                 pathing->UpdateConditionalPathFlags(m_path_handle_04, m_prop_number_02, path_flags);
             }
@@ -565,7 +565,7 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
     translation.z = node->path.position_00.z * g_double_005ec150;
 
     if ((mesh->flags_0c & 1) != 0 && (mesh->flags_0c & 2) != 0) {
-        factor = mesh->lod_scale_58 * g_world_scale_005ebc40;
+        factor = mesh->lod_scale_58 * g_world_scale;
     } else {
         factor = static_cast<float>(g_double_005ec150);
     }
