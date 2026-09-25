@@ -1383,13 +1383,13 @@ W8TriggerActionData::~W8TriggerActionData() {}
 // class W8DoorTriggerActionData
 
 // VTABLE: WIZ8 0x005ec158
-// class W8TriggerActionData005EC158
+// class W8StringTriggerActionData
 
 // SYNTHETIC: WIZ8 0x00443730
-// W8TriggerActionData005EC158::`scalar deleting destructor'
+// W8StringTriggerActionData::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00443750
-W8TriggerActionData005EC158::~W8TriggerActionData005EC158()
+W8StringTriggerActionData::~W8StringTriggerActionData()
 {
     if (owned_string_008 != 0) {
         delete[] owned_string_008;
@@ -1662,7 +1662,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, &unused, 1, 0);
             FileRead(handle, action_string, sizeof(action_string), 0);
             if (action == 17) {
-                W8TriggerActionData005EC158* data = new W8TriggerActionData005EC158;
+                W8StringTriggerActionData* data = new W8StringTriggerActionData;
                 data->type_004 = 6;
                 data->owned_string_008 = 0;
                 delete trigger->m_pActionData;

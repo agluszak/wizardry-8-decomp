@@ -84,9 +84,9 @@ W8OctBuildNode::~W8OctBuildNode()
    The caller supplies local copies of the level bounds because this constructor
    deliberately expands them by half a leaf on every axis. */
 // FUNCTION: WIZ8 0x00446390
-W8OctBuildTree00446390::W8OctBuildTree00446390(float leaf_size, srVector3T<float>* minimum,
-                                               srVector3T<float>* maximum,
-                                               unsigned short item_limit, short extent_mode)
+W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
+                               srVector3T<float>* maximum, unsigned short item_limit,
+                               short extent_mode)
     : spatial_00(0)
 {
     spatial_00.Reset0046CDC0();
@@ -186,7 +186,7 @@ W8OctBuildTree00446390::W8OctBuildTree00446390(float leaf_size, srVector3T<float
    every allocated link bank.  The first-member spatial value performs its own
    shallow teardown after this body returns. */
 // FUNCTION: WIZ8 0x004466d0
-W8OctBuildTree00446390::~W8OctBuildTree00446390()
+W8OctBuildTree::~W8OctBuildTree()
 {
     delete spatial_00.root_90;
     if (g_oct_build_scratch_00659a48 != 0) {
@@ -215,8 +215,7 @@ W8OctBuildTree00446390::~W8OctBuildTree00446390()
 /* Reject triangles outside the build domain, lazily create the root node, and
    then hand the complete typed working record to the recursive inserter. */
 // FUNCTION: WIZ8 0x00446820
-unsigned char W8OctBuildTree00446390::InsertSurface00446820(W8GDSurface* surface,
-                                                            unsigned long mode)
+unsigned char W8OctBuildTree::InsertSurface00446820(W8GDSurface* surface, unsigned long mode)
 {
     W8OctSpatialState working(&spatial_00);
     srVector3T<float> vertices[3];
@@ -257,10 +256,10 @@ unsigned char W8OctBuildTree00446390::InsertSurface00446820(W8GDSurface* surface
 /* Descend through every overlapping octant.  Branch nodes own child nodes;
    leaf nodes reuse the same eight slots as per-mode linked-list heads. */
 // FUNCTION: WIZ8 0x004469f0
-unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatialState* working,
-                                                                     W8GDSurface* surface,
-                                                                     srVector3T<float>* plane_point,
-                                                                     unsigned long mode)
+unsigned char W8OctBuildTree::InsertSurfaceRecursive004469F0(W8OctSpatialState* working,
+                                                             W8GDSurface* surface,
+                                                             srVector3T<float>* plane_point,
+                                                             unsigned long mode)
 {
     W8OctSpatialState child(working);
     unsigned char inserted = 0;
@@ -331,7 +330,7 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatia
    the tree watermark, then either extend the tail or seed the head. The same
    body is inlined inside InsertSurfaceRecursive's leaf path. */
 // FUNCTION: WIZ8 0x00446d00
-void W8OctBuildTree00446390::AppendLink(W8OctBuildNode* node, void* payload, short kind)
+void W8OctBuildTree::AppendLink(W8OctBuildNode* node, void* payload, short kind)
 {
     ++node->leaf_kind_2a;
     if (deepest_link_list_b8 < node->leaf_kind_2a) {
@@ -354,11 +353,10 @@ void W8OctBuildTree00446390::AppendLink(W8OctBuildNode* node, void* payload, sho
    walk the tree. `half_angle` is unused. Collected surfaces carry the 0x2000
    visit mark, which this clears before returning the count. */
 // FUNCTION: WIZ8 0x00446d80
-int W8OctBuildTree00446390::CollectObjectsAlongSegment00446D80(int** results,
-                                                               const srVector3T<float>* from,
-                                                               const srVector3T<float>* to,
-                                                               float half_angle, float extent,
-                                                               unsigned short kind)
+int W8OctBuildTree::CollectObjectsAlongSegment00446D80(int** results, const srVector3T<float>* from,
+                                                       const srVector3T<float>* to,
+                                                       float half_angle, float extent,
+                                                       unsigned short kind)
 {
     W8OctSpatialState state(&spatial_00);
     float bounds[6];
@@ -414,8 +412,7 @@ int W8OctBuildTree00446390::CollectObjectsAlongSegment00446D80(int** results,
    collect the whole leaf subtree (2), walk the eight octants (1), or skip
    (0). A state already at the bottom level collects as a leaf either way. */
 // FUNCTION: WIZ8 0x00446f20
-int W8OctBuildTree00446390::CollectRecursive(W8OctSpatialState* state, const float* bounds,
-                                             short kind)
+int W8OctBuildTree::CollectRecursive(W8OctSpatialState* state, const float* bounds, short kind)
 {
     W8OctSpatialState child(state);
     int collected = 0;
@@ -473,7 +470,7 @@ int W8OctBuildTree00446390::CollectRecursive(W8OctSpatialState* state, const flo
    0x2000 flag and dedup-scans list 4; kind 10 dedup-scans list 7 and runs the
    predicate on the 0xb list; other kinds run the predicate on list `kind`. */
 // FUNCTION: WIZ8 0x00447110
-int W8OctBuildTree00446390::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
+int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
 {
     W8OctBuildLink* link;
     W8GDSurface* surface;
@@ -586,7 +583,7 @@ int W8OctBuildTree00446390::CollectLeaf(W8OctBuildNode* node, short depth, short
    corner is inside, a bounds corner inside the box), 0 when disjoint. `leaf`
    stops the scan on the first inside corner at the bottom octree level. */
 // FUNCTION: WIZ8 0x00447310
-int W8OctBuildTree00446390::ClassifyBoxBounds(const float* box, const float* bounds, char leaf)
+int W8OctBuildTree::ClassifyBoxBounds(const float* box, const float* bounds, char leaf)
 {
     short x;
     short y;

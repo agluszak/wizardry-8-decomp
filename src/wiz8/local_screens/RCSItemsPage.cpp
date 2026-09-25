@@ -1191,7 +1191,7 @@ void DrawCampItemIcons(void)
     const W8CampScreenRegion* region;
     W8ItemInstance* item;
     W8Character* character = g_review_character_0069c0f8;
-    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    W8CampScreenState* state = g_camp_screen_0069c0f4;
 
     for (index = 0; index < 8; ++index) {
         item = &character->backpack[index];

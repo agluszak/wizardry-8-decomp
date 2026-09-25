@@ -84,7 +84,7 @@ struct W8LevelDataRecord {
     unsigned char UpdateFootstepFromMotion();
 };
 
-struct W8OctBuildTree00446390;
+struct W8OctBuildTree;
 class Trigger;
 class srCamera;
 class srNode;
@@ -202,7 +202,7 @@ struct W8GameData {
                                                srVector3T<float>* position,
                                                srVector3T<float>* scratch, float* nearest_distance);
 
-    W8OctBuildTree00446390* geometry_index_00;
+    W8OctBuildTree* geometry_index_00;
     /* +0x04: the loading octree's back-pointer, stored by W8Octree's file-load
        finish path (retail writes [ESI+4], not +0) and tested by trigger
        integration. geometry_index_00 above is untouched by that store. */

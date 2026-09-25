@@ -158,10 +158,10 @@ W8_ASSERT_BASE_END(W8MainGameTextPanel, W8RangeListener, m_entries_054, 0x50);
 /* The 0x00588A90 constructor establishes a Controls-derived status panel.
    Ordinary destructor 0x00588DB0; 0x00588D90 is the scalar deleting wrapper. */
 // VTABLE: WIZ8 0x005eebc0
-class W8MainGameStatusPanel005EEBC0 : public Controls {
+class W8MainGameStatusPanel : public Controls {
 public:
-    W8MainGameStatusPanel005EEBC0();          /* 0x00588A90 */
-    virtual ~W8MainGameStatusPanel005EEBC0(); /* 0x00588DB0 */
+    W8MainGameStatusPanel();          /* 0x00588A90 */
+    virtual ~W8MainGameStatusPanel(); /* 0x00588DB0 */
     virtual void Redraw() override;
     void RefreshStatusTexts(); /* 0x00588E60 */
 
@@ -174,7 +174,7 @@ public:
     W8TextBuffer* m_text_064;
     int m_target_068;
 };
-static_assert(sizeof(W8MainGameStatusPanel005EEBC0) == 0x6c, "W8MainGameStatusPanel005EEBC0_size");
+static_assert(sizeof(W8MainGameStatusPanel) == 0x6c, "W8MainGameStatusPanel_size");
 
 /* 0x0055DE40 constructs this Controls-derived NPC dialogue text controller:
    Controls base, six dwords, then the W8DialogTextArea at +0x64 for a 0xBC
@@ -449,15 +449,14 @@ static_assert(offsetof(W8LockInteraction, m_timer_80) == 0x80, "W8LockInteractio
    it into Listener-only inheritance would move Listener to +0 and shrink the
    object. */
 // VTABLE: WIZ8 0x005eebdc
-class W8MainGameTextSelectionListener005EEBDC {
+class W8MainGameTextSelectionListener {
 public:
     virtual void SelectTextEntry(int index) = 0;
 };
 
 // VTABLE: WIZ8 0x005eebd8
 // VTABLE: WIZ8 0x005eebd0 W8TextControl::Listener
-class W8MainGameScreen : public W8MainGameTextSelectionListener005EEBDC,
-                         public W8TextControl::Listener {
+class W8MainGameScreen : public W8MainGameTextSelectionListener, public W8TextControl::Listener {
 public:
     W8MainGameScreen(Trigger* owner); /* 0x00589160 */
     ~W8MainGameScreen();              /* 0x005894B0 */
@@ -473,7 +472,7 @@ public:
 
     Trigger* m_owner_008;
     W8MainGameTextPanel* m_text_panel_00c;
-    W8MainGameStatusPanel005EEBC0* m_status_panel_010;
+    W8MainGameStatusPanel* m_status_panel_010;
     Controls* m_action_panel_014;
     int m_disarm_state_018;
     int m_selected_character_01c;

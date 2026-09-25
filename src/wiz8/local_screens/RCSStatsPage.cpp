@@ -438,7 +438,7 @@ unsigned int CountEquipItemPenalties(int slot)
 // FUNCTION: WIZ8 0x005c4ee0
 void RebuildCampEffectList(void)
 {
-    W8CampScreenState0069C0F4* screen = g_camp_screen_0069c0f4;
+    W8CampScreenState* screen = g_camp_screen_0069c0f4;
     if (screen->effect_list != 0) {
         DeleteStack(screen->effect_list);
         screen->effect_list = 0;
@@ -537,7 +537,7 @@ void RebuildCampEffectList(void)
 // FUNCTION: WIZ8 0x005c5240
 void FilterCampEffectList(void)
 {
-    W8CampScreenState0069C0F4* screen = g_camp_screen_0069c0f4;
+    W8CampScreenState* screen = g_camp_screen_0069c0f4;
     screen->effect_visible_lines = 0;
     bool any_visible = false;
     unsigned int count = StackSize(screen->effect_list);
@@ -584,7 +584,7 @@ void FilterCampEffectList(void)
 // FUNCTION: WIZ8 0x005c53c0
 static void DrawCampEffectList(void)
 {
-    W8CampScreenState0069C0F4* screen = g_camp_screen_0069c0f4;
+    W8CampScreenState* screen = g_camp_screen_0069c0f4;
     SetFontDestBuffer(0xfffffff2, 0, 0xbe, 0x280, 0x1ac, 0);
     int line = -screen->effect_scroll;
     unsigned int count = StackSize(screen->effect_list);
@@ -1021,14 +1021,14 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
    the CGSSpellsPage anchor; their retail span 0x005C6460..0x005C7D60 matches
    demo 0x005CFAD0..0x005D0FE0 inside the same hull. */
 
-// VTABLE: WIZ8 0x005ef57c W8CharacterPage005EF57C
+// VTABLE: WIZ8 0x005ef57c W8CharacterPersonalityPage
 // VTABLE: WIZ8 0x005ef578 W8ControlSelectionListener
 // VTABLE: WIZ8 0x005ef570 W8TextControl::Listener
-// class W8CharacterPage005EF57C
+// class W8CharacterPersonalityPage
 
 // FUNCTION: WIZ8 0x005c6460
-void W8CharacterPage005EF57C::SetCharacter(W8Character* character,
-                                           W8CharacterCreationState* creation_state, int mode)
+void W8CharacterPersonalityPage::SetCharacter(W8Character* character,
+                                              W8CharacterCreationState* creation_state, int mode)
 {
     AcquireRegionSet(&g_character_page4_region_set_0069c52c);
     W8CharacterPage::SetCharacter(character, creation_state, mode);
@@ -1077,7 +1077,7 @@ void W8CharacterPage005EF57C::SetCharacter(W8Character* character,
 }
 
 // FUNCTION: WIZ8 0x005c6820
-void W8CharacterPage005EF57C::Activate()
+void W8CharacterPersonalityPage::Activate()
 {
     EnableRegionSet(1);
     m_prepared_06c = 1;
@@ -1095,7 +1095,7 @@ void W8CharacterPage005EF57C::Activate()
 }
 
 // FUNCTION: WIZ8 0x005c68f0
-void W8CharacterPage005EF57C::Deactivate()
+void W8CharacterPersonalityPage::Deactivate()
 {
     EnableRegionSet(0);
     RemoveTextInputField(1);
@@ -1104,7 +1104,7 @@ void W8CharacterPage005EF57C::Deactivate()
 }
 
 // FUNCTION: WIZ8 0x005c6910
-void W8CharacterPage005EF57C::Accept()
+void W8CharacterPersonalityPage::Accept()
 {
     if (m_mode_068 == 0) {
         InvalidateAndRecalculateCharacterClassData(m_character_060);
@@ -1122,7 +1122,7 @@ void W8CharacterPage005EF57C::Accept()
 }
 
 // FUNCTION: WIZ8 0x005c69a0
-void W8CharacterPage005EF57C::GetNavigationState(bool* next_enabled, bool* exit_enabled)
+void W8CharacterPersonalityPage::GetNavigationState(bool* next_enabled, bool* exit_enabled)
 {
     *next_enabled = GetTextInputFieldLength(0) != 0 && GetTextInputFieldLength(1) != 0;
     if (m_mode_068 != 0) {
@@ -1142,7 +1142,7 @@ void W8CharacterPage005EF57C::GetNavigationState(bool* next_enabled, bool* exit_
 }
 
 // FUNCTION: WIZ8 0x005c6a60
-void W8CharacterPage005EF57C::HandleInput(InputAtom* input)
+void W8CharacterPersonalityPage::HandleInput(InputAtom* input)
 {
     if (m_screen_05c->HasDialog())
         return;
@@ -1173,7 +1173,7 @@ void W8CharacterPage005EF57C::HandleInput(InputAtom* input)
 }
 
 // FUNCTION: WIZ8 0x005c6b20
-void W8CharacterPage005EF57C::Refresh()
+void W8CharacterPersonalityPage::Refresh()
 {
     SetInputFieldStringWith16BitString(0, m_character_060->name_part_2);
     SetInputFieldStringWith16BitString(1, m_character_060->name);
@@ -1185,7 +1185,7 @@ void W8CharacterPage005EF57C::Refresh()
    fixed text labels and the nine personality labels, then let the dirty
    portrait, description and name-row blocks refresh themselves. */
 // FUNCTION: WIZ8 0x005c6b70
-void W8CharacterPage005EF57C::Redraw()
+void W8CharacterPersonalityPage::Redraw()
 {
     if (m_animation_active_0fc != 0) {
         int elapsed = static_cast<int>(m_animation_timer_0d4.GetProgress());
@@ -1321,7 +1321,7 @@ void W8CharacterPage005EF57C::Redraw()
 }
 
 // FUNCTION: WIZ8 0x005c7220
-void W8CharacterPage005EF57C::OnPrimary(W8TextControl* control)
+void W8CharacterPersonalityPage::OnPrimary(W8TextControl* control)
 {
     int portrait = m_character_060->portrait_index;
     if (control == m_control_078) {
@@ -1369,7 +1369,7 @@ void W8CharacterPage005EF57C::OnPrimary(W8TextControl* control)
 }
 
 // FUNCTION: WIZ8 0x005c73b0
-void W8CharacterPage005EF57C::OnSelectionChanged(W8ControlSelection* control, int selected)
+void W8CharacterPersonalityPage::OnSelectionChanged(W8ControlSelection* control, int selected)
 {
     if (control == &m_voice_selection_0b0) {
         m_character_060->voice_0085 = selected;
@@ -1381,24 +1381,24 @@ void W8CharacterPage005EF57C::OnSelectionChanged(W8ControlSelection* control, in
 }
 
 // FUNCTION: WIZ8 0x005c73f0
-W8CharacterPage005EF57C* CreateCharacterPage005C73F0()
+W8CharacterPersonalityPage* CreateCharacterPersonalityPage()
 {
-    return new W8CharacterPage005EF57C;
+    return new W8CharacterPersonalityPage;
 }
 
 // SYNTHETIC: WIZ8 0x005c74c0
-// W8CharacterPage005EF57C::`scalar deleting destructor'
+// W8CharacterPersonalityPage::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005c74e0
-W8CharacterPage005EF57C::~W8CharacterPage005EF57C() {}
+W8CharacterPersonalityPage::~W8CharacterPersonalityPage() {}
 
-// VTABLE: WIZ8 0x005ef5c8 W8CharacterPage005EF5C8
+// VTABLE: WIZ8 0x005ef5c8 W8CharacterSkillsPage
 // VTABLE: WIZ8 0x005ef5c0 W8CharacterPageEntryListener
-// class W8CharacterPage005EF5C8
+// class W8CharacterSkillsPage
 
 // FUNCTION: WIZ8 0x005c7580
-void W8CharacterPage005EF5C8::SetCharacter(W8Character* character,
-                                           W8CharacterCreationState* creation_state, int mode)
+void W8CharacterSkillsPage::SetCharacter(W8Character* character,
+                                         W8CharacterCreationState* creation_state, int mode)
 {
     AcquireRegionSet(&g_character_page2_region_set_0069c530);
     W8CharacterPage::SetCharacter(character, creation_state, mode);
@@ -1418,7 +1418,7 @@ void W8CharacterPage005EF5C8::SetCharacter(W8Character* character,
 }
 
 // FUNCTION: WIZ8 0x005c76a0
-void W8CharacterPage005EF5C8::Activate()
+void W8CharacterSkillsPage::Activate()
 {
     EnableRegionSet(1);
     Refresh();
@@ -1426,13 +1426,13 @@ void W8CharacterPage005EF5C8::Activate()
     m_prepared_06c = 1;
 }
 
-void W8CharacterPage005EF5C8::Deactivate()
+void W8CharacterSkillsPage::Deactivate()
 {
     EnableRegionSet(0);
 }
 
 // FUNCTION: WIZ8 0x005c76c0
-void W8CharacterPage005EF5C8::Accept()
+void W8CharacterSkillsPage::Accept()
 {
     RefundAllSkillPoints(m_character_060, m_creation_state_064);
     Invalidate(0);
@@ -1444,7 +1444,7 @@ void W8CharacterPage005EF5C8::Accept()
 }
 
 // FUNCTION: WIZ8 0x005c7720
-void W8CharacterPage005EF5C8::GetNavigationState(bool* next_enabled, bool* exit_enabled)
+void W8CharacterSkillsPage::GetNavigationState(bool* next_enabled, bool* exit_enabled)
 {
     *next_enabled = m_creation_state_064->skills_complete;
     *exit_enabled =
@@ -1458,7 +1458,7 @@ void W8CharacterPage005EF5C8::GetNavigationState(bool* next_enabled, bool* exit_
 }
 
 // FUNCTION: WIZ8 0x005c7790
-void W8CharacterPage005EF5C8::AdjustEntry(W8CharacterPageEntry* entry, int delta)
+void W8CharacterSkillsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 {
     entry->MarkDirty();
     m_dirty_06d = 1;
@@ -1467,13 +1467,13 @@ void W8CharacterPage005EF5C8::AdjustEntry(W8CharacterPageEntry* entry, int delta
 }
 
 // FUNCTION: WIZ8 0x005c77d0
-void W8CharacterPage005EF5C8::ShowEntryInfo(W8CharacterPageEntry* entry)
+void W8CharacterSkillsPage::ShowEntryInfo(W8CharacterPageEntry* entry)
 {
     m_screen_05c->ShowDialog005B08E0(entry->m_id_02c);
 }
 
 // FUNCTION: WIZ8 0x005c77f0
-void W8CharacterPage005EF5C8::Redraw()
+void W8CharacterSkillsPage::Redraw()
 {
     bool redraw = static_cast<unsigned char>(m_fEnabled && m_fDirty);
     if (m_force_redraw_074) {
@@ -1542,7 +1542,7 @@ void W8CharacterPage005EF5C8::Redraw()
 }
 
 // FUNCTION: WIZ8 0x005c7b50
-void W8CharacterPage005EF5C8::UpdateEntries()
+void W8CharacterSkillsPage::UpdateEntries()
 {
     int index;
     for (index = 0; index < 0x29; ++index) {
@@ -1577,19 +1577,19 @@ void W8CharacterPage005EF5C8::UpdateEntries()
 }
 
 // FUNCTION: WIZ8 0x005c7cc0
-W8CharacterPage005EF5C8* CreateCharacterPage005C7CC0()
+W8CharacterSkillsPage* CreateCharacterSkillsPage()
 {
-    return new W8CharacterPage005EF5C8;
+    return new W8CharacterSkillsPage;
 }
 
 // FUNCTION: WIZ8 0x005c7d30
-void W8CharacterPage005EF5C8::Refresh()
+void W8CharacterSkillsPage::Refresh()
 {
     m_force_redraw_074 = true;
 }
 
 // SYNTHETIC: WIZ8 0x005c7d40
-// W8CharacterPage005EF5C8::`scalar deleting destructor'
+// W8CharacterSkillsPage::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005c7d60
-W8CharacterPage005EF5C8::~W8CharacterPage005EF5C8() {}
+W8CharacterSkillsPage::~W8CharacterSkillsPage() {}

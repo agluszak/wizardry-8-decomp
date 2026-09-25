@@ -1186,8 +1186,7 @@ unsigned char InitializeGameData(W8GameData* game_data)
     srVector3T<float> minimum = game_data->minimum_08;
     srVector3T<float> maximum = game_data->maximum_14;
     if (game_data->geometry_index_00 == 0) {
-        game_data->geometry_index_00 =
-            new W8OctBuildTree00446390(2000.0f, &minimum, &maximum, 0x40, 0);
+        game_data->geometry_index_00 = new W8OctBuildTree(2000.0f, &minimum, &maximum, 0x40, 0);
     }
 
     for (int index = 0; index < game_data->m_iNumSurfaces; ++index) {

@@ -64,7 +64,7 @@ unsigned short* g_journal_font_palette_69c4d0;
 // GLOBAL: WIZ8 0x0069C4D8
 unsigned short* g_journal_font_original_palette_69c4d8;
 // GLOBAL: WIZ8 0x0069C4D4
-W8JournalPanel005EF340* g_journal_panel_0069c4d4;
+W8JournalPanel* g_journal_panel_0069c4d4;
 // GLOBAL: WIZ8 0x0069C4E4
 W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
 // GLOBAL: WIZ8 0x0069C4DC
@@ -217,7 +217,7 @@ void DrawJournalLine(const wchar_t* text, int column, int y, int palette, char c
 // FUNCTION: WIZ8 0x005bd860
 void RefreshJournalPanel(void)
 {
-    W8JournalPanel005EF340* panel = g_journal_panel_0069c4d4;
+    W8JournalPanel* panel = g_journal_panel_0069c4d4;
 
     if (!panel->m_alternate_mode_064) {
         int last_page = (g_journal_entries_0069c4e4->count - 1) / 12;
@@ -305,10 +305,10 @@ void RefreshJournalPanel(void)
 
 // VTABLE: WIZ8 0x005ef340 Controls
 // VTABLE: WIZ8 0x005ef338 W8TextControl::Listener
-// class W8JournalPanel005EF340
+// class W8JournalPanel
 
 // FUNCTION: WIZ8 0x005bd530
-W8JournalPanel005EF340::W8JournalPanel005EF340(unsigned int* region_set)
+W8JournalPanel::W8JournalPanel(unsigned int* region_set)
     : Controls(0x66, 0x1bb, 0, 0, 0xf3, 0, 0), m_next_050(0), m_previous_054(0), m_close_058(0),
       m_mode_05c(0), m_page_text_060(0), m_alternate_mode_064(0)
 {
@@ -349,14 +349,14 @@ W8JournalPanel005EF340::W8JournalPanel005EF340(unsigned int* region_set)
 }
 
 // FUNCTION: WIZ8 0x005bd7f0
-W8JournalPanel005EF340::~W8JournalPanel005EF340()
+W8JournalPanel::~W8JournalPanel()
 {
     DestroyAllControls();
     delete m_page_text_060;
 }
 
 // FUNCTION: WIZ8 0x005bdbf0
-void W8JournalPanel005EF340::Redraw()
+void W8JournalPanel::Redraw()
 {
     if (m_fEnabled && (m_fDirty || m_fLayoutDirty)) {
         Controls::Redraw();
@@ -365,7 +365,7 @@ void W8JournalPanel005EF340::Redraw()
 }
 
 // FUNCTION: WIZ8 0x005bdc20
-void W8JournalPanel005EF340::OnPrimary(W8TextControl* control)
+void W8JournalPanel::OnPrimary(W8TextControl* control)
 {
     if (control == m_previous_054) {
         if (g_journal_page_0064df38 > 0) {
@@ -434,7 +434,7 @@ unsigned char JournalScreenEnter(void)
     ResetRegions();
     UpdateHeldItemCursor();
     g_journal_entries_0069c4e4 = new W8GrowableVector<W8JournalEntry>();
-    g_journal_panel_0069c4d4 = new W8JournalPanel005EF340(&g_journal_region_set_0069c4dc);
+    g_journal_panel_0069c4d4 = new W8JournalPanel(&g_journal_region_set_0069c4dc);
 
     switch (g_settings_6850c8.difficulty) {
     case W8_DIFFICULTY_NOVICE:

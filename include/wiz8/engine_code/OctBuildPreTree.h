@@ -68,7 +68,7 @@ extern unsigned short g_region_id_count_65be6c;
 /* Retail assertion text gives the class and member names directly:
    "OctBuildPreTree::m_ppPolyList too long.", "m_pulRegPaths" and
    "m_psrvRegCenters" in Engine Code\OctBuildPreTree.cpp. */
-struct OctBuildPreTree : W8OctBuildTree00446390 {
+struct OctBuildPreTree : W8OctBuildTree {
     OctBuildPreTree(float leaf_size, srVector3T<float>* minimum, srVector3T<float>* maximum,
                     unsigned short item_limit, unsigned long path_capacity, short extent_mode);
     OctPreTree* BuildOctPreTree();

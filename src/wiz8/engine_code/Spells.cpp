@@ -1229,7 +1229,7 @@ W8AniMesh* W8SpellEmitterHost::GetEmitterAniMesh(signed char emitter)
 /* The clone slot owns both the 0x37c allocation and the copy-construction
    call. */
 // FUNCTION: WIZ8 0x004ade70
-W8AnimRepBase005EC1D8* W8SpellEmitterHost::Clone()
+W8AnimRepBase* W8SpellEmitterHost::Clone()
 {
     return new W8SpellEmitterHost(*this);
 }

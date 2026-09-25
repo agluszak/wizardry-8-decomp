@@ -1881,8 +1881,7 @@ void W8MainGameTextPanel::OnRangeChanged(W8RangeControl* control)
 }
 
 // FUNCTION: WIZ8 0x00588a90
-W8MainGameStatusPanel005EEBC0::W8MainGameStatusPanel005EEBC0()
-    : Controls(0x17, 0x166, 0, 0, 0x1b1, 0, 0)
+W8MainGameStatusPanel::W8MainGameStatusPanel() : Controls(0x17, 0x166, 0, 0, 0x1b1, 0, 0)
 {
     W8ControlsRect bounds;
 
@@ -1920,10 +1919,10 @@ W8MainGameStatusPanel005EEBC0::W8MainGameStatusPanel005EEBC0()
 }
 
 // SYNTHETIC: WIZ8 0x00588d90
-// W8MainGameStatusPanel005EEBC0::`scalar deleting destructor'
+// W8MainGameStatusPanel::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00588db0
-W8MainGameStatusPanel005EEBC0::~W8MainGameStatusPanel005EEBC0()
+W8MainGameStatusPanel::~W8MainGameStatusPanel()
 {
     delete m_text_04c;
     delete m_text_050;
@@ -1935,7 +1934,7 @@ W8MainGameStatusPanel005EEBC0::~W8MainGameStatusPanel005EEBC0()
 }
 
 // FUNCTION: WIZ8 0x00588e60
-void W8MainGameStatusPanel005EEBC0::RefreshStatusTexts()
+void W8MainGameStatusPanel::RefreshStatusTexts()
 {
     W8Character* character = &g_status_685170.buffers.Char[g_status_685170.selected_character];
     int level = GetPartySlotSkill10Level(g_status_685170.selected_character);
@@ -2007,7 +2006,7 @@ int GetPartySlotSkill10Level(int slot)
 }
 
 // FUNCTION: WIZ8 0x005890e0
-void W8MainGameStatusPanel005EEBC0::Redraw()
+void W8MainGameStatusPanel::Redraw()
 {
     if (m_fEnabled && m_fDirty) {
         Controls::Redraw();
@@ -2029,7 +2028,7 @@ W8MainGameScreen::W8MainGameScreen(Trigger* owner)
     m_difficulty_038 = owner->lock_state.difficulty;
     m_text_panel_00c = new W8MainGameTextPanel();
     m_text_panel_00c->m_screen_07c = this;
-    m_status_panel_010 = new W8MainGameStatusPanel005EEBC0();
+    m_status_panel_010 = new W8MainGameStatusPanel();
     m_action_panel_014 = new Controls(0x1e7, 0x166, 0, 0, 0x1b1, 0, 2);
     m_action_panel_014->AcquireRegionSet(&g_main_game_action_panel_region_set_0068f2d0);
     m_action_controls_020[1] =

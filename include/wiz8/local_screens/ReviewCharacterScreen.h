@@ -63,7 +63,7 @@ W8_ASSERT_BASE_END(W8CampCharacterInfo, W8TextControl::Listener, m_combat_view, 
 
 /* malloc(0xd54) in Camp entry owns the record. Suspension destroys this UI;
    the screen-state stack retains the arguments needed to recreate it. */
-struct W8CampScreenState0069C0F4 {
+struct W8CampScreenState {
     wchar_t caption[120];
     int page; /* 0x0f0 */
     unsigned int hover_region;
@@ -119,19 +119,18 @@ struct W8CampScreenState0069C0F4 {
     bool item_icons_drawn_d50;
     unsigned char padding_d51[3];
 };
-static_assert(sizeof(W8CampScreenState0069C0F4) == 0xd54, "W8CampScreenState_size");
-static_assert(offsetof(W8CampScreenState0069C0F4, learned_spells) == 0x100,
+static_assert(sizeof(W8CampScreenState) == 0xd54, "W8CampScreenState_size");
+static_assert(offsetof(W8CampScreenState, learned_spells) == 0x100,
               "W8CampScreenState_learned_spells_offset");
-static_assert(offsetof(W8CampScreenState0069C0F4, learned_spells) +
-                      offsetof(W8LearnedSpellState, scroll) ==
+static_assert(offsetof(W8CampScreenState, learned_spells) + offsetof(W8LearnedSpellState, scroll) ==
                   0x4c0,
               "W8CampScreenState_spell_scroll_offset");
-static_assert(offsetof(W8CampScreenState0069C0F4, learned_spells) +
+static_assert(offsetof(W8CampScreenState, learned_spells) +
                       offsetof(W8LearnedSpellState, learned_total) ==
                   0x4d8,
               "W8CampScreenState_learned_total_offset");
 
-extern W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;
+extern W8CampScreenState* g_camp_screen_0069c0f4;
 extern int giReviewCharSlot;
 extern W8Character* g_review_character_0069c0f8;
 extern W8Character* g_camp_entry_parameter_0069c0fc; /* gpIdentifyingPC */

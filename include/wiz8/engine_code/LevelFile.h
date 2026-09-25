@@ -376,7 +376,7 @@ struct W8LevelFileFrame {
     unsigned char flags_00;
     W8LevelFileMesh mesh_01; /* 0x5c */
     short num_textures_5d;
-    W8MaterialRecord004B8A70* pTextures_5f; /* num_textures_5d * 0x12a */
+    W8MaterialRecord* pTextures_5f; /* num_textures_5d * 0x12a */
 };
 
 struct W8LevelFileLODMesh {
@@ -460,7 +460,7 @@ struct W8LevelFileProp { /* 0xbf */
    embedded behind the version byte. Its 0x225-byte extent and every named
    offset come directly from the version-sized reads and subsequent uses in
    0x004BD0D0. */
-struct W8LevelParticleRecord004BD0D0 {
+struct W8LevelParticleRecord {
     char name[64];                      /* 0x000 */
     srVector3T<float> location;         /* 0x040 */
     float rotation_angle;               /* 0x04c */
@@ -472,30 +472,30 @@ struct W8LevelParticleRecord004BD0D0 {
     float spread_x_06c;
     float spread_y_070;
     float spread_z_074;
-    int has_acceleration;              /* 0x078 */
-    srVector3T<float> acceleration;    /* 0x07c */
-    int expiry_mode;                   /* 0x088: nonzero enables particle expiry */
-    int bounds_mode;                   /* 0x08c */
-    srVector3T<float> bounds_origin;   /* 0x090 */
-    float bounds_radius;               /* 0x09c */
-    srVector3T<float> bounds_extent;   /* 0x0a0 */
-    unsigned int lifetime;             /* 0x0ac */
-    int velocity_mode;                 /* 0x0b0 */
-    unsigned int emission_interval;    /* 0x0b4 */
-    int los_check;                     /* 0x0b8: nonzero enables the line-of-sight check */
-    int placement_mode;                /* 0x0bc */
-    float placement_0c0;               /* 0x0c0 */
-    float placement_0c4;               /* 0x0c4 */
-    float placement_0c8;               /* 0x0c8 */
-    float particle_size;               /* 0x0cc: billboard quad scale */
-    int flutter_mode;                  /* 0x0d0 */
-    float flutter_value;               /* 0x0d4 */
-    float flutter_period;              /* 0x0d8 */
-    int direction_mode;                /* 0x0dc */
-    float direction_0e0;               /* 0x0e0 */
-    float direction_0e4;               /* 0x0e4 */
-    int initially_active;              /* 0x0e8 */
-    W8MaterialRecord004B8A70 material; /* 0x0ec */
+    int has_acceleration;            /* 0x078 */
+    srVector3T<float> acceleration;  /* 0x07c */
+    int expiry_mode;                 /* 0x088: nonzero enables particle expiry */
+    int bounds_mode;                 /* 0x08c */
+    srVector3T<float> bounds_origin; /* 0x090 */
+    float bounds_radius;             /* 0x09c */
+    srVector3T<float> bounds_extent; /* 0x0a0 */
+    unsigned int lifetime;           /* 0x0ac */
+    int velocity_mode;               /* 0x0b0 */
+    unsigned int emission_interval;  /* 0x0b4 */
+    int los_check;                   /* 0x0b8: nonzero enables the line-of-sight check */
+    int placement_mode;              /* 0x0bc */
+    float placement_0c0;             /* 0x0c0 */
+    float placement_0c4;             /* 0x0c4 */
+    float placement_0c8;             /* 0x0c8 */
+    float particle_size;             /* 0x0cc: billboard quad scale */
+    int flutter_mode;                /* 0x0d0 */
+    float flutter_value;             /* 0x0d4 */
+    float flutter_period;            /* 0x0d8 */
+    int direction_mode;              /* 0x0dc */
+    float direction_0e0;             /* 0x0e0 */
+    float direction_0e4;             /* 0x0e4 */
+    int initially_active;            /* 0x0e8 */
+    W8MaterialRecord material;       /* 0x0ec */
     /* 0x216, version >= 2: copied to the particle's attachment_key_260 when
        non-negative. */
     short attachment_key_216;
@@ -509,7 +509,7 @@ struct W8LevelParticleRecord004BD0D0 {
 
 struct W8LevelFileParticleSystem { /* 0x226 */
     char version_00;
-    W8LevelParticleRecord004BD0D0 particle_01;
+    W8LevelParticleRecord particle_01;
 };
 
 /* Serialized form of W8NamedPosition: one version byte precedes the runtime
@@ -557,7 +557,7 @@ struct W8LevelFile {
     W8LevelFileMesh* pMeshes;                        /* 0x08: one 0x5c record */
     OctMeshModel* pModels_0c;                        /* 0x0c: written/freed, elements 0x48 */
     short nTextures;                                 /* 0x10 */
-    W8MaterialRecord004B8A70* pTextures;             /* 0x12: nTextures * 0x12a */
+    W8MaterialRecord* pTextures;                     /* 0x12: nTextures * 0x12a */
     short nLights;                                   /* 0x16 */
     W8LevelFileLight* pLights;                       /* 0x18: nLights * 0x44 */
     int nMonsters;                                   /* 0x1c */
@@ -656,8 +656,7 @@ static_assert(offsetof(W8LevelFileProp, footstep_surface_bd) == 0xbd,
               "W8LevelFileProp_footstep_surface_bd");
 static_assert(offsetof(W8LevelFileProp, footstep_material_be) == 0xbe,
               "W8LevelFileProp_footstep_material_be");
-static_assert(sizeof(W8LevelParticleRecord004BD0D0) == 0x225,
-              "W8LevelParticleRecord004BD0D0_must_be_0x225");
+static_assert(sizeof(W8LevelParticleRecord) == 0x225, "W8LevelParticleRecord_must_be_0x225");
 static_assert(sizeof(W8LevelFileParticleSystem) == 0x226,
               "W8LevelFileParticleSystem_must_be_0x226");
 static_assert(offsetof(W8LevelFileParticleSystem, particle_01.location) == 0x41,

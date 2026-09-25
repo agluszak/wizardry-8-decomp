@@ -52,17 +52,17 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
     if (pLevel->nTextures == 0) {
         return 0;
     }
-    pLevel->pTextures = static_cast<W8MaterialRecord004B8A70*>(
-        malloc(pLevel->nTextures * sizeof(W8MaterialRecord004B8A70)));
+    pLevel->pTextures =
+        static_cast<W8MaterialRecord*>(malloc(pLevel->nTextures * sizeof(W8MaterialRecord)));
     if (pLevel->pTextures == 0) {
         srAssertFail("pLevel->pTextures", LEVELFILE_CPP, 0x41, 0);
     }
-    memset(pLevel->pTextures, 0, pLevel->nTextures * sizeof(W8MaterialRecord004B8A70));
+    memset(pLevel->pTextures, 0, pLevel->nTextures * sizeof(W8MaterialRecord));
     unsigned char fSuccess = 1;
     unsigned char ok;
     int i;
     for (i = 0; i < pLevel->nTextures; ++i) {
-        W8MaterialRecord004B8A70* pTexture = pLevel->pTextures + i;
+        W8MaterialRecord* pTexture = pLevel->pTextures + i;
         ok = FileRead(hFile, pTexture, 0x11a, 0);
         if (pTexture->version_00 >= 4) {
             ok &= FileRead(hFile, pTexture->texture_modes_11a, 0x10, 0);
@@ -297,7 +297,7 @@ BOOLEAN WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
     }
     ok = 1;
     for (i = 0; i < (short)iCount; ++i) {
-        W8MaterialRecord004B8A70* pTexture = pLevel->pTextures + i;
+        W8MaterialRecord* pTexture = pLevel->pTextures + i;
         ok = FileWrite(hFile, pTexture, 0x11a, 0);
         if (pTexture->version_00 >= 4) {
             ok &= FileWrite(hFile, pTexture->texture_modes_11a, 0x10, 0);
@@ -1636,7 +1636,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                         ReadMeshFile(hFile, &pFrame->mesh_01) &
                                         FileRead(hFile, &pFrame->num_textures_5d, 2, 0);
                             if (pFrame->num_textures_5d != 0) {
-                                pFrame->pTextures_5f = static_cast<W8MaterialRecord004B8A70*>(
+                                pFrame->pTextures_5f = static_cast<W8MaterialRecord*>(
                                     malloc(pFrame->num_textures_5d * 0x12a));
                                 if (pFrame->pTextures_5f == 0) {
                                     srAssertFail(
@@ -1646,7 +1646,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                 memset(pFrame->pTextures_5f, 0, pFrame->num_textures_5d * 0x12a);
                                 unsigned char fTextures = 1;
                                 for (j = 0; j < pFrame->num_textures_5d; ++j) {
-                                    W8MaterialRecord004B8A70* pTexture = pFrame->pTextures_5f + j;
+                                    W8MaterialRecord* pTexture = pFrame->pTextures_5f + j;
                                     fTextures = FileRead(hFile, pTexture, 0x11a, 0);
                                     if (pTexture->version_00 >= 4) {
                                         fTextures &=
@@ -1708,7 +1708,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                 return FALSE;
                             }
                             if (pFrame->num_textures_5d != 0) {
-                                pFrame->pTextures_5f = static_cast<W8MaterialRecord004B8A70*>(
+                                pFrame->pTextures_5f = static_cast<W8MaterialRecord*>(
                                     malloc(pFrame->num_textures_5d * 0x12a));
                                 if (pFrame->pTextures_5f == 0) {
                                     srAssertFail(
@@ -1718,7 +1718,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                 memset(pFrame->pTextures_5f, 0, pFrame->num_textures_5d * 0x12a);
                                 unsigned char fTextures = 1;
                                 for (j = 0; j < pFrame->num_textures_5d; ++j) {
-                                    W8MaterialRecord004B8A70* pTexture = pFrame->pTextures_5f + j;
+                                    W8MaterialRecord* pTexture = pFrame->pTextures_5f + j;
                                     fTextures = FileRead(hFile, pTexture, 0x11a, 0);
                                     if (pTexture->version_00 >= 4) {
                                         fTextures &=
@@ -1843,7 +1843,7 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                             }
                             fSuccess = 1;
                             for (j = 0; j < pFrame->num_textures_5d; ++j) {
-                                W8MaterialRecord004B8A70* pTexture = pFrame->pTextures_5f + j;
+                                W8MaterialRecord* pTexture = pFrame->pTextures_5f + j;
                                 fSuccess = FileWrite(hFile, pTexture, 0x11a, 0);
                                 if (pTexture->version_00 >= 4) {
                                     fSuccess &=
@@ -1902,7 +1902,7 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                             }
                             fSuccess = 1;
                             for (j = 0; j < pFrame->num_textures_5d; ++j) {
-                                W8MaterialRecord004B8A70* pTexture = pFrame->pTextures_5f + j;
+                                W8MaterialRecord* pTexture = pFrame->pTextures_5f + j;
                                 fSuccess = FileWrite(hFile, pTexture, 0x11a, 0);
                                 if (pTexture->version_00 >= 4) {
                                     fSuccess &=

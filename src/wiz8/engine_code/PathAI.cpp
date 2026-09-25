@@ -17,7 +17,7 @@
 
 /* Retail shares one no-op stub at 0x004023a0 across arities;
    PathAIApplyToRep calls this typed overload with two arguments. */
-void NoOp(W8AIRecord*, W8AnimRepBase005EC1D8*) {}
+void NoOp(W8AIRecord*, W8AnimRepBase*) {}
 
 /* Retail shares this empty body with the stub at 0x004023a0. */
 
@@ -138,7 +138,7 @@ unsigned char PathAIRecordFlag(const W8AIRecord* record)
 }
 
 // FUNCTION: WIZ8 0x004a91f0
-void PathAIApplyToRep(W8AIRecord* record, W8AnimRepBase005EC1D8* representation)
+void PathAIApplyToRep(W8AIRecord* record, W8AnimRepBase* representation)
 {
     if (record->kind_00 != 0) {
         if (record->kind_00 == 3) {

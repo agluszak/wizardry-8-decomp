@@ -71,15 +71,14 @@ public:
 
 static_assert(sizeof(W8DoorTriggerActionData) == 0x98, "W8DoorTriggerActionData_must_be_0x98");
 
-/* Type 6 owns its string at +8. */
-class W8TriggerActionData005EC158 : public W8TriggerActionData {
+/* Type 6 (built for action 17) owns a copy of the trigger's action string. */
+class W8StringTriggerActionData : public W8TriggerActionData {
 public:
-    virtual ~W8TriggerActionData005EC158() override;
+    virtual ~W8StringTriggerActionData() override;
     char* owned_string_008;
 };
 
-static_assert(sizeof(W8TriggerActionData005EC158) == 0x0c,
-              "W8TriggerActionData005EC158_must_be_0x0c");
+static_assert(sizeof(W8StringTriggerActionData) == 0x0c, "W8StringTriggerActionData_must_be_0x0c");
 
 /* The flags_0a0 bits whose roles are established by recovered producers and
    consumers:

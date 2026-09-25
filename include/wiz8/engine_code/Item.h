@@ -14,7 +14,7 @@ class Trigger;
 
 /* Engine Code\Item.cpp. The assertion expressions establish the original
    m_pRep and m_psrMesh names; the bodies establish their offsets. */
-struct W8ItemRep : public W8AnimRepBase005EC1D8 {
+struct W8ItemRep : public W8AnimRepBase {
     W8ItemRep();
     virtual ~W8ItemRep() override;
 

@@ -60,8 +60,7 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
     state->attributes_complete = creation->attributes_complete ? 1 : 0;
     state->skills_complete = creation->skills_complete ? 1 : 0;
 
-    W8CharacterPage005EF778* stats_page =
-        static_cast<W8CharacterPage005EF778*>(screen->m_pages_1b0c[0]);
+    W8CharacterStatsPage* stats_page = static_cast<W8CharacterStatsPage*>(screen->m_pages_1b0c[0]);
     if (state->page_present[0] && stats_page != 0) {
         state->profession_index = stats_page->m_profession_row_07c != 0
                                       ? stats_page->m_profession_row_07c->m_index_004
@@ -88,8 +87,8 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
         state->stat_entries_enabled = state->stat_count > 0 && state->stat_entries[0].enabled;
     }
 
-    W8CharacterPage005EF5C8* skills_page =
-        static_cast<W8CharacterPage005EF5C8*>(screen->m_pages_1b0c[2]);
+    W8CharacterSkillsPage* skills_page =
+        static_cast<W8CharacterSkillsPage*>(screen->m_pages_1b0c[2]);
     if (state->page_present[2] && skills_page != 0) {
         state->skill_count = skills_page->m_entries_04c.count;
         if (state->skill_count > 16) {
@@ -108,8 +107,8 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
         }
     }
 
-    W8CharacterPage005EF57C* final_page =
-        static_cast<W8CharacterPage005EF57C*>(screen->m_pages_1b0c[3]);
+    W8CharacterPersonalityPage* final_page =
+        static_cast<W8CharacterPersonalityPage*>(screen->m_pages_1b0c[3]);
     if (state->page_present[3] && final_page != 0) {
         state->final_prepared = final_page->m_prepared_06c != 0;
     }
@@ -153,8 +152,8 @@ static int FlowRegionForTarget(int target, int index)
     }
     if (target == FLOW_TARGET_PROFESSION_NEXT || target == FLOW_TARGET_RACE_NEXT ||
         target == FLOW_TARGET_GENDER_NEXT || target == FLOW_TARGET_STAT_INCREMENT) {
-        W8CharacterPage005EF778* stats_page =
-            static_cast<W8CharacterPage005EF778*>(screen->m_pages_1b0c[0]);
+        W8CharacterStatsPage* stats_page =
+            static_cast<W8CharacterStatsPage*>(screen->m_pages_1b0c[0]);
         if (stats_page == 0) {
             return -1;
         }
@@ -176,8 +175,8 @@ static int FlowRegionForTarget(int target, int index)
         return control != 0 ? control->m_region : -1;
     }
     if (target == FLOW_TARGET_SKILL_INCREMENT || target == FLOW_TARGET_SKILL_HELP) {
-        W8CharacterPage005EF5C8* skills_page =
-            static_cast<W8CharacterPage005EF5C8*>(screen->m_pages_1b0c[2]);
+        W8CharacterSkillsPage* skills_page =
+            static_cast<W8CharacterSkillsPage*>(screen->m_pages_1b0c[2]);
         if (skills_page == 0 || index < 0 || index >= skills_page->m_entries_04c.count ||
             skills_page->m_entries_04c.data[index] == 0) {
             return -1;

@@ -53,7 +53,7 @@ public:
     W8MissileRep();
     W8MissileRep(const W8MissileRep& other);
     virtual ~W8MissileRep() override;
-    virtual W8AnimRepBase005EC1D8* Clone() override;
+    virtual W8AnimRepBase* Clone() override;
     virtual srModelInstance* SetCycleFrameLod(signed char cycle, signed char frame,
                                               signed char lod) override;
     virtual unsigned int ApplyEmitterSetting(signed char emitter) override;

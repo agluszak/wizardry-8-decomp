@@ -1226,7 +1226,7 @@ void W8MonsterRep::CopyCycle(signed char cycle, const W8MonsterRep* other, signe
    allocation size and call to the copy constructor are both visible in the
    emitted body; there is no separate representation wrapper involved. */
 // FUNCTION: WIZ8 0x004ca9e0
-W8AnimRepBase005EC1D8* W8MonsterRep::Clone()
+W8AnimRepBase* W8MonsterRep::Clone()
 {
     return new W8MonsterRep(*this);
 }

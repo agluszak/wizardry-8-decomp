@@ -17,7 +17,7 @@ class srModelInstance;
 
 /* The 0x005ED058 table adds three pure emitter operations to the two-slot
    AnimRep hierarchy.  Concrete missile and spell hosts supply those slots. */
-class W8EmitterHost : public W8AnimRep005ED050 {
+class W8EmitterHost : public W8AnimRep {
 public:
     W8EmitterHost();
     W8EmitterHost(const W8EmitterHost& other);

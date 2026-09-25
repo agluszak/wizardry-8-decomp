@@ -92,7 +92,7 @@ struct W8MonsterRep : public W8EmitterHost {
     W8MonsterRep();
     W8MonsterRep(const W8MonsterRep& other);
     virtual ~W8MonsterRep() override;
-    virtual W8AnimRepBase005EC1D8* Clone() override; /* 0x004CA9E0 */
+    virtual W8AnimRepBase* Clone() override; /* 0x004CA9E0 */
     virtual srModelInstance* SetCycleFrameLod(signed char cycle, signed char frame,
                                               signed char lod) override;  /* 0x004BF8C0 */
     virtual unsigned int ApplyEmitterSetting(signed char cycle) override; /* 0x004BF970 */

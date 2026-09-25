@@ -237,14 +237,14 @@ void W8CharacterSpellList::OnRangeChanged(W8RangeControl* range)
 }
 
 // SYNTHETIC: WIZ8 0x005C8350
-// W8CharacterPage005EF664::`scalar deleting destructor'
+// W8CharacterSpellsPage::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005C8370
-W8CharacterPage005EF664::~W8CharacterPage005EF664() {}
+W8CharacterSpellsPage::~W8CharacterSpellsPage() {}
 
 // FUNCTION: WIZ8 0x005c83d0
-void W8CharacterPage005EF664::SetCharacter(W8Character* character,
-                                           W8CharacterCreationState* creation_state, int mode)
+void W8CharacterSpellsPage::SetCharacter(W8Character* character,
+                                         W8CharacterCreationState* creation_state, int mode)
 {
     W8CharacterPage::SetCharacter(character, creation_state, mode);
     AcquireRegionSet(&g_character_spells_region_set_0069c534);
@@ -257,7 +257,7 @@ void W8CharacterPage005EF664::SetCharacter(W8Character* character,
 }
 
 // FUNCTION: WIZ8 0x005C8530
-void W8CharacterPage005EF664::Activate()
+void W8CharacterSpellsPage::Activate()
 {
     EnableRegionSet(1);
     UpdateSpellLists();
@@ -269,7 +269,7 @@ void W8CharacterPage005EF664::Activate()
 }
 
 // FUNCTION: WIZ8 0x005c8570
-void W8CharacterPage005EF664::Deactivate()
+void W8CharacterSpellsPage::Deactivate()
 {
     EnableRegionSet(0);
     for (int realm = 0; realm < 6; ++realm) {
@@ -280,7 +280,7 @@ void W8CharacterPage005EF664::Deactivate()
 /* Drop every pending pick: clear the per-entry selected flags, return the
    creation-state spell selections, and repaint. */
 // FUNCTION: WIZ8 0x005C8730
-void W8CharacterPage005EF664::Accept()
+void W8CharacterSpellsPage::Accept()
 {
     for (int index = 0; index < 0x72; ++index) {
         m_SpellData[index].selected = 0;
@@ -297,7 +297,7 @@ void W8CharacterPage005EF664::Accept()
 /* Repaint the spell-point instructions and pool, the six realm headings and
    values, then the animated realm icons and their range controls. */
 // FUNCTION: WIZ8 0x005C88C0
-void W8CharacterPage005EF664::Redraw()
+void W8CharacterSpellsPage::Redraw()
 {
     bool redraw = m_fEnabled && m_fDirty;
     W8TextBuffer text;
@@ -399,13 +399,13 @@ void W8CharacterPage005EF664::Redraw()
 }
 
 // FUNCTION: WIZ8 0x005c87a0
-void W8CharacterPage005EF664::Refresh()
+void W8CharacterSpellsPage::Refresh()
 {
     UpdateSpellLists();
 }
 
 // FUNCTION: WIZ8 0x005c85a0
-void W8CharacterPage005EF664::UpdateSpellLists()
+void W8CharacterSpellsPage::UpdateSpellLists()
 {
     int entry = 0;
     for (int realm = 0; realm < 6; ++realm) {
@@ -445,7 +445,7 @@ void W8CharacterPage005EF664::UpdateSpellLists()
 }
 
 // FUNCTION: WIZ8 0x005c8770
-void W8CharacterPage005EF664::GetNavigationState(bool* next_enabled, bool* exit_enabled)
+void W8CharacterSpellsPage::GetNavigationState(bool* next_enabled, bool* exit_enabled)
 {
     *next_enabled = 1;
     *exit_enabled =
@@ -455,7 +455,7 @@ void W8CharacterPage005EF664::GetNavigationState(bool* next_enabled, bool* exit_
 /* Retail emits this with the W8CharacterSpellListListener-adjusted `this`
    (page + 0x70): the slot is only ever dispatched through that base. */
 // FUNCTION: WIZ8 0x005c87b0
-void W8CharacterPage005EF664::SelectSpell(unsigned int uiSelected)
+void W8CharacterSpellsPage::SelectSpell(unsigned int uiSelected)
 {
     if (m_SpellData[uiSelected].fSelectable == 0) {
         srAssertFail("m_SpellData[uiSelected].fSelectable",
@@ -488,13 +488,13 @@ void W8CharacterPage005EF664::SelectSpell(unsigned int uiSelected)
 }
 
 // FUNCTION: WIZ8 0x005c88a0
-void W8CharacterPage005EF664::ShowSpellInfo(unsigned int entry)
+void W8CharacterSpellsPage::ShowSpellInfo(unsigned int entry)
 {
     m_screen_05c->ShowDialog005B0610(m_SpellData[entry].spell);
 }
 
 // FUNCTION: WIZ8 0x005C8DE0
-W8CharacterPage005EF664* CreateCharacterPage005C8DE0()
+W8CharacterSpellsPage* CreateCharacterSpellsPage()
 {
-    return new W8CharacterPage005EF664();
+    return new W8CharacterSpellsPage();
 }

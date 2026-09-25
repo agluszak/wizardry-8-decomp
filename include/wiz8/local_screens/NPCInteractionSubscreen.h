@@ -31,10 +31,10 @@ struct W8SkillNoticePayload;
    the Controls base call plus m_value_4c = 0x11; no standalone derived body
    exists. */
 // VTABLE: WIZ8 0x005ee9f0
-class W8MainGamePanel005EE9F0 : public Controls {
+class W8NpcDialogueOptionsPanel : public Controls {
 public:
-    W8MainGamePanel005EE9F0(int left, int top, int new_right, int new_bottom, int render_target,
-                            int render_arg_1c, int render_arg_20)
+    W8NpcDialogueOptionsPanel(int left, int top, int new_right, int new_bottom, int render_target,
+                              int render_arg_1c, int render_arg_20)
         : Controls(left, top, new_right, new_bottom, render_target, render_arg_1c, render_arg_20)
     {
         m_value_4c = 0x11;
@@ -44,7 +44,7 @@ public:
 
     int m_value_4c; /* 0x4c: catalog image used while dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX */
 };
-static_assert(sizeof(W8MainGamePanel005EE9F0) == 0x50, "W8MainGamePanel005EE9F0_size");
+static_assert(sizeof(W8NpcDialogueOptionsPanel) == 0x50, "W8NpcDialogueOptionsPanel_size");
 
 /* The Controls-sized panel stored at W8MainScreenState+0x1c0 (bounds
    0x1dc,0x166-0x269,0x1c0). Enabling it starts text-input scheme 1 and
@@ -52,9 +52,9 @@ static_assert(sizeof(W8MainGamePanel005EE9F0) == 0x50, "W8MainGamePanel005EE9F0_
    image at y 0x19b while where_is_query is raised, else 0x18b. The constructor is the
    plain Controls base call inlined at 0x0056D1D0 with no extra fields. */
 // VTABLE: WIZ8 0x005ee9e4
-class W8MainGamePanel005EE9E4 : public Controls {
+class W8NpcTypedDialoguePanel : public Controls {
 public:
-    W8MainGamePanel005EE9E4(int left, int top, int new_right, int new_bottom, int render_target,
+    W8NpcTypedDialoguePanel(int left, int top, int new_right, int new_bottom, int render_target,
                             int render_arg_1c, int render_arg_20)
         : Controls(left, top, new_right, new_bottom, render_target, render_arg_1c, render_arg_20)
     {
@@ -62,7 +62,7 @@ public:
     virtual void SetEnabled(bool enable) override; /* 0x0056BAC0 */
     virtual void Redraw() override;                /* 0x0056BB20 */
 };
-static_assert(sizeof(W8MainGamePanel005EE9E4) == 0x4c, "W8MainGamePanel005EE9E4_size");
+static_assert(sizeof(W8NpcTypedDialoguePanel) == 0x4c, "W8NpcTypedDialoguePanel_size");
 
 struct W8PendingNoticeLine {
     wchar_t* text;
@@ -197,13 +197,13 @@ struct W8MainScreenState {
     W8TextControl* dialogue_text_19c;
     W8TextControl* dialogue_text_1a0;
     W8TextControl* dialogue_text_1a4;
-    W8MainGamePanel005EE9F0* panel_1a8;                       /* 0x1a8 */
+    W8NpcDialogueOptionsPanel* panel_1a8;                     /* 0x1a8 */
     Controls* panel_1ac;                                      /* 0x1ac */
     W8NpcDialogueTextController* npc_dialogue_controller_1b0; /* 0x1b0 */
     Controls* npc_dialogue_panel_1b4;                         /* 0x1b4 */
     Controls* panel_1b8;                                      /* 0x1b8 */
     Controls* panel_1bc;                                      /* 0x1bc */
-    W8MainGamePanel005EE9E4* text_input_panel_1c0;            /* 0x1c0 */
+    W8NpcTypedDialoguePanel* text_input_panel_1c0;            /* 0x1c0 */
     /* 0x1c4/0x1c8: the cursor position of the last mouse event the region
        handler acted on; repeat events at the same point are dropped. */
     int last_mouse_x;

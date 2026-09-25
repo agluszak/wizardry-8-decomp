@@ -810,7 +810,7 @@ void DestroyFormationPanel(void)
 // FUNCTION: WIZ8 0x005b4000
 void DrawCampHeader(void)
 {
-    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    W8CampScreenState* state = g_camp_screen_0069c0f4;
     W8Character* character = g_review_character_0069c0f8;
     unsigned int row;
     unsigned int slot;

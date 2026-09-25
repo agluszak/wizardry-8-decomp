@@ -236,7 +236,7 @@ unsigned long W8OctBuildNode::ConvertToOctPreTree(unsigned short depth, OctPreTr
 OctBuildPreTree::OctBuildPreTree(float leaf_size, srVector3T<float>* minimum,
                                  srVector3T<float>* maximum, unsigned short item_limit,
                                  unsigned long path_capacity, short extent_mode)
-    : W8OctBuildTree00446390(leaf_size, minimum, maximum, item_limit, extent_mode)
+    : W8OctBuildTree(leaf_size, minimum, maximum, item_limit, extent_mode)
 {
     mesh_linking_f4 = 1;
     use_owned_nodes_b4 = 1;
@@ -1658,7 +1658,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
     int particle_number = 0;
 
     for (int particle_index = 0; particle_index < particle_count; ++particle_index) {
-        const W8LevelParticleRecord004BD0D0& particle = particles[particle_index].particle_01;
+        const W8LevelParticleRecord& particle = particles[particle_index].particle_01;
         char name[64];
         strcpy(name, particle.name);
         _strupr(name);

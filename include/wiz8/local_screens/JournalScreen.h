@@ -11,10 +11,10 @@ extern wchar_t g_default_level_0064d7b8[];
 /* Local Screens\JournalScreen.cpp's live panel.  Construction starts with a
    complete Controls at +0, then installs the independently evidenced callback
    base at +0x4c before the five owned display objects. */
-class W8JournalPanel005EF340 : public Controls, public W8TextControl::Listener {
+class W8JournalPanel : public Controls, public W8TextControl::Listener {
 public:
-    explicit W8JournalPanel005EF340(unsigned int* region_set);
-    virtual ~W8JournalPanel005EF340();
+    explicit W8JournalPanel(unsigned int* region_set);
+    virtual ~W8JournalPanel();
     virtual void Redraw() override;
     virtual void OnPrimary(W8TextControl* control) override;
 
@@ -27,9 +27,9 @@ public:
     unsigned char m_pad_065[3];
 };
 
-static_assert(sizeof(W8JournalPanel005EF340) == 0x68, "W8JournalPanel005EF340_size");
+static_assert(sizeof(W8JournalPanel) == 0x68, "W8JournalPanel_size");
 /* Retail secondary vftable 0x005ef338 places W8TextControl::Listener at +0x4c. */
-W8_ASSERT_BASE_END(W8JournalPanel005EF340, W8TextControl::Listener, m_next_050, 0x4c);
+W8_ASSERT_BASE_END(W8JournalPanel, W8TextControl::Listener, m_next_050, 0x4c);
 
 struct W8JournalEntry {
     int level;
@@ -39,7 +39,7 @@ struct W8JournalEntry {
 static_assert(sizeof(W8JournalEntry) == 0x0c, "W8JournalEntry_size");
 
 // SYNTHETIC: WIZ8 0x005bd7d0
-// W8JournalPanel005EF340::`scalar deleting destructor'
+// W8JournalPanel::`scalar deleting destructor'
 
 void RefreshJournalPanel(void);
 

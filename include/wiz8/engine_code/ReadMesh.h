@@ -1,7 +1,7 @@
 #pragma once
 
 #include "surrender/srMath.h"
-struct W8MaterialRecord004B8A70;
+struct W8MaterialRecord;
 
 #include "wiz8/vector.h"
 
@@ -47,6 +47,6 @@ stMeshModel* BuildSingleLevelMesh00488650(int face_count, W8ReadMeshFace* faces,
 
 void OptimizeMeshOrder(srMeshModel* model, unsigned long flags);
 
-void ClearMaterialRecordPadding(W8MaterialRecord004B8A70* material);
+void ClearMaterialRecordPadding(W8MaterialRecord* material);
 void ReadMeshTransform(int file, srVector3T<float>* location, srMatrix3T<float>* rotation,
                        srVector3T<float>* scale);

@@ -59,10 +59,10 @@ struct W8CountedOctBuildNode : W8OctBuildNode {
    constructor at 0x00446390 nor the destructor at 0x004466D0 stores a vptr;
    the vtables emitted near this TU belong to vector/template material, not to
    this type. */
-struct W8OctBuildTree00446390 {
-    W8OctBuildTree00446390(float leaf_size, srVector3T<float>* minimum, srVector3T<float>* maximum,
-                           unsigned short item_limit, short extent_mode);
-    ~W8OctBuildTree00446390();
+struct W8OctBuildTree {
+    W8OctBuildTree(float leaf_size, srVector3T<float>* minimum, srVector3T<float>* maximum,
+                   unsigned short item_limit, short extent_mode);
+    ~W8OctBuildTree();
 
     unsigned char InsertSurface00446820(W8GDSurface* surface, unsigned long mode);
     unsigned char InsertSurfaceRecursive004469F0(W8OctSpatialState* working, W8GDSurface* surface,
@@ -104,7 +104,7 @@ static_assert(sizeof(W8OctBuildLink) == 8, "W8OctBuildLink_must_be_8");
 static_assert(sizeof(W8OctBuildLinkLists) == 0x25c, "W8OctBuildLinkLists_must_be_0x25c");
 static_assert(sizeof(W8OctBuildNode) == 0x30, "W8OctBuildNode00446330_must_be_0x30");
 static_assert(sizeof(W8CountedOctBuildNode) == 0x30, "W8CountedOctBuildNode004AF760_must_be_0x30");
-static_assert(sizeof(W8OctBuildTree00446390) == 0xbc, "W8OctBuildTree00446390_must_be_0xbc");
+static_assert(sizeof(W8OctBuildTree) == 0xbc, "W8OctBuildTree_must_be_0xbc");
 
 extern float g_float_005ec188;
 extern void* g_oct_build_scratch_00659a48;

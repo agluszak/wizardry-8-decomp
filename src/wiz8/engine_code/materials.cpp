@@ -270,9 +270,9 @@ int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight*
 int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry,
                         unsigned char* classify);
 int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry);
-unsigned char* ClassifyTextures(W8MaterialRecord004B8A70* textures, int count, char* stem);
-int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord004B8A70* textures,
-                         int count, unsigned char* classify);
+unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* stem);
+int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
+                         unsigned char* classify);
 void OctBuildOptions(char* stem);
 
 // FUNCTION: WIZ8 0x00492E60
@@ -1189,7 +1189,7 @@ int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex* vertic
 int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsigned char* classify)
 {
     W8LevelFileMesh* mesh = level->pMeshes;
-    W8MaterialRecord004B8A70* materials = level->pTextures;
+    W8MaterialRecord* materials = level->pTextures;
     W8OctPreTreeVertex* vertices = geometry->vertices_04;
     char message[1024];
     int vertex_index[3];
@@ -1670,7 +1670,7 @@ int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight*
    when the record claims full opacity, and records missing textures in the
    prop/sun bit array. Returns the per-material kind byte array. */
 // FUNCTION: WIZ8 0x00496000
-unsigned char* ClassifyTextures(W8MaterialRecord004B8A70* textures, int count, char* stem)
+unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* stem)
 {
     char folder[1024];
     char texture[1024];
@@ -1700,7 +1700,7 @@ unsigned char* ClassifyTextures(W8MaterialRecord004B8A70* textures, int count, c
     } else {
         g_prop_sun_bits_0065bd3c = new BitArray(count);
         for (index = 0; index < count; ++index) {
-            W8MaterialRecord004B8A70* record = textures + index;
+            W8MaterialRecord* record = textures + index;
             unsigned char opaque = 1.0f <= record->opacity_0fd;
             texture[0] = '\0';
             if (record->texture_name_001[0] != 0) {
@@ -1789,8 +1789,8 @@ unsigned char* ClassifyTextures(W8MaterialRecord004B8A70* textures, int count, c
    string, remaps each polygon's material index at its group's representative
    and moves the old index into the texture slot. */
 // FUNCTION: WIZ8 0x00496500
-int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord004B8A70* textures,
-                         int count, unsigned char* classify)
+int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
+                         unsigned char* classify)
 {
     char name[516];
     char* material_names;
@@ -1834,7 +1834,7 @@ int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord004B8A7
     material_count = 0;
     texture_count = 0;
     if (1 < count) {
-        W8MaterialRecord004B8A70* record = textures + 1;
+        W8MaterialRecord* record = textures + 1;
         int* material_slot = material_lookup;
         for (index = 1; index < count; ++index) {
             ++material_slot;
@@ -2195,8 +2195,7 @@ shown:
    established cdecl extra argument: retail 0x004B8A70 never reads it and
    always passes required=1 to the texture loaders. */
 // FUNCTION: WIZ8 0x004B8A70
-unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
-                                   const W8MaterialRecord004B8A70* source,
+unsigned char LoadMaterial004B8A70(const char* bitmap_folder, const W8MaterialRecord* source,
                                    srMaterialIFace** material, srTextureIFace** texture,
                                    unsigned long* render_flags, int)
 {
@@ -2397,7 +2396,7 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
 /* Load a texture by full path: split it into folder and file, then take the
    animated loader for .IFL names and the plain one for everything else. */
 // FUNCTION: WIZ8 0x004B9460
-srTextureIFace* LoadTexture004B9460(const char* path, const W8MaterialRecord004B8A70* source,
+srTextureIFace* LoadTexture004B9460(const char* path, const W8MaterialRecord* source,
                                     unsigned char required)
 {
     char drive[_MAX_PATH];
@@ -2490,7 +2489,7 @@ srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned ch
 
 // FUNCTION: WIZ8 0x004B98F0
 stTextureAnim* LoadAnimatedTexture(const char* folder, const char* name,
-                                   const W8MaterialRecord004B8A70* source, unsigned char required)
+                                   const W8MaterialRecord* source, unsigned char required)
 {
     char buffer[_MAX_PATH];
     unsigned char more = 1;

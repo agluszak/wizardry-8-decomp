@@ -430,16 +430,16 @@ void W8CharacterScreen::SelectPage(int index)
         W8CharacterPage* page = 0;
         switch (index) {
         case 0:
-            page = CreateCharacterPage005CBA90();
+            page = CreateCharacterStatsPage();
             break;
         case 1:
-            page = CreateCharacterPage005C8DE0();
+            page = CreateCharacterSpellsPage();
             break;
         case 2:
-            page = CreateCharacterPage005C7CC0();
+            page = CreateCharacterSkillsPage();
             break;
         case 3:
-            page = CreateCharacterPage005C73F0();
+            page = CreateCharacterPersonalityPage();
             break;
         }
         page->m_screen_05c = this;

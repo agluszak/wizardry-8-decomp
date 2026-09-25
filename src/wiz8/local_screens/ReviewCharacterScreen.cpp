@@ -90,7 +90,7 @@
    selector and from the running game. */
 
 // GLOBAL: WIZ8 0x0069c0f4
-W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;
+W8CampScreenState* g_camp_screen_0069c0f4;
 // GLOBAL: WIZ8 0x0064cbe8
 int giReviewCharSlot = -1;
 // GLOBAL: WIZ8 0x0069c0f8
@@ -274,19 +274,19 @@ const W8CampScreenRegion g_camp_screen_regions_64cbf0[12] = {
    left-button handlers compile identically to W8HelpTextControl's and fold to
    0x005B7CB0/0x005B7CD0. */
 // VTABLE: WIZ8 0x005ef2b0
-class W8CampInfoLabel005EF2B0 : public W8TextControl {
+class W8CampInfoLabel : public W8TextControl {
 public:
-    W8CampInfoLabel005EF2B0(Controls* panel, unsigned int region, int left, int top, int right,
-                            int bottom, int text_40, int text_44, int text_48, int text_4c,
-                            int text_54, int text_50, int text_58)
+    W8CampInfoLabel(Controls* panel, unsigned int region, int left, int top, int right, int bottom,
+                    int text_40, int text_44, int text_48, int text_4c, int text_54, int text_50,
+                    int text_58)
         : W8TextControl(panel, region, left, top, right, bottom, text_40, text_44, text_48, text_4c,
                         text_54, text_50, text_58)
     {
     }
     // SYNTHETIC: WIZ8 0x005b7c20
-    // W8CampInfoLabel005EF2B0::`scalar deleting destructor'
+    // W8CampInfoLabel::`scalar deleting destructor'
     // FUNCTION: WIZ8 0x005b7c40
-    virtual ~W8CampInfoLabel005EF2B0() override {}
+    virtual ~W8CampInfoLabel() override {}
     virtual void OnMouseEnter(int event) override;
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override;
@@ -294,7 +294,7 @@ public:
 };
 
 // FUNCTION: WIZ8 0x005b7c90
-void W8CampInfoLabel005EF2B0::OnMouseEnter(int event)
+void W8CampInfoLabel::OnMouseEnter(int event)
 {
     PushButtonSoundScheme(0, 1);
     W8TextControl::OnMouseEnter(event);
@@ -302,7 +302,7 @@ void W8CampInfoLabel005EF2B0::OnMouseEnter(int event)
 
 /* Identical body to W8HelpTextControl::OnLeftButtonDown; ICF folds it to
    0x005B7CB0. */
-void W8CampInfoLabel005EF2B0::OnLeftButtonDown(int event)
+void W8CampInfoLabel::OnLeftButtonDown(int event)
 {
     PushButtonSoundScheme(0, 1);
     W8TextControl::OnLeftButtonDown(event);
@@ -310,14 +310,14 @@ void W8CampInfoLabel005EF2B0::OnLeftButtonDown(int event)
 
 /* Identical body to W8HelpTextControl::OnLeftButtonUp; ICF folds it to
    0x005B7CD0. */
-void W8CampInfoLabel005EF2B0::OnLeftButtonUp(int event)
+void W8CampInfoLabel::OnLeftButtonUp(int event)
 {
     PushButtonSoundScheme(0, 1);
     W8TextControl::OnLeftButtonUp(event);
 }
 
 // FUNCTION: WIZ8 0x005b7cf0
-void W8CampInfoLabel005EF2B0::OnLeftButtonDoubleClick(int event)
+void W8CampInfoLabel::OnLeftButtonDoubleClick(int event)
 {
     PushButtonSoundScheme(0, 1);
     W8TextControl::OnLeftButtonDoubleClick(event);
@@ -388,7 +388,7 @@ void RefreshCampSpellRanges(void)
 // FUNCTION: WIZ8 0x005B7300
 void DrawCampSpellPages(void)
 {
-    W8CampScreenState0069C0F4* state;
+    W8CampScreenState* state;
     W8Character* character = g_review_character_0069c0f8;
     const W8SpellRealmAnimation* animation;
     int realm;
@@ -686,7 +686,7 @@ void RedrawCampItemsPage(void)
 // FUNCTION: WIZ8 0x005b7e00
 void DrawCampCharacterInfo(void)
 {
-    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    W8CampScreenState* state = g_camp_screen_0069c0f4;
     W8Character* character = g_review_character_0069c0f8;
     int index;
     int realm;
@@ -804,7 +804,7 @@ void DrawCampCharacterInfo(void)
 // FUNCTION: WIZ8 0x005b8440
 void DrawCampBackpackItems(void)
 {
-    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    W8CampScreenState* state = g_camp_screen_0069c0f4;
     W8Character* character = g_review_character_0069c0f8;
     unsigned int slot;
     int left;
@@ -857,7 +857,7 @@ void DrawCampBackpackItems(void)
 // FUNCTION: WIZ8 0x005b8690
 void DrawCampEquipmentItems(void)
 {
-    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    W8CampScreenState* state = g_camp_screen_0069c0f4;
     W8Character* character = g_review_character_0069c0f8;
     const W8CampScreenRegion* region;
     unsigned int slot;
@@ -966,7 +966,7 @@ void DrawCampEquipmentItems(void)
 // FUNCTION: WIZ8 0x005b8b20
 void DrawCampItemPool(void)
 {
-    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    W8CampScreenState* state = g_camp_screen_0069c0f4;
     W8Character* character = g_review_character_0069c0f8;
     unsigned int visible;
     unsigned int i;
@@ -1055,7 +1055,7 @@ void DrawCampItemPool(void)
 // FUNCTION: WIZ8 0x005b8ec0
 void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
 {
-    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    W8CampScreenState* state = g_camp_screen_0069c0f4;
     int height;
 
     switch (g_item_records[item->iItemNo].quantity_kind) {
@@ -1292,7 +1292,7 @@ void RefreshItemsTabPanel(char invalidate)
 
 /* The top secondary panel: the Items/Character info page tabs, the help line,
    the seven attribute labels and the four secondary value labels. The labels
-   are W8CampInfoLabel005EF2B0 controls created with absolute coordinates
+   are W8CampInfoLabel controls created with absolute coordinates
    relative to the panel origin. */
 // FUNCTION: WIZ8 0x005b9900
 int CreateCampSecondaryPanel(void)
@@ -1343,22 +1343,22 @@ int CreateCampSecondaryPanel(void)
     right = 0x20e - panel->origin_x;
     top = 0x3a - panel->origin_y;
     for (index = 0; index < 7; ++index) {
-        g_camp_stat_labels_0069c448[index] = new W8CampInfoLabel005EF2B0(
-            panel, -1, left, top, right, top + 0xc, -1, -1, -1, -1, -1, -1, -1);
+        g_camp_stat_labels_0069c448[index] =
+            new W8CampInfoLabel(panel, -1, left, top, right, top + 0xc, -1, -1, -1, -1, -1, -1, -1);
         g_camp_stat_labels_0069c448[index]->EnableRegionHelp(0x958);
         top += 0xe;
     }
     left = 0x144 - panel->origin_x;
     right = 0x1b9 - panel->origin_x;
     top = -panel->origin_y;
-    g_camp_info_labels_0069c42c[0] = new W8CampInfoLabel005EF2B0(
-        panel, -1, left, top + 0x3a, right, top + 0x46, -1, -1, -1, -1, -1, -1, -1);
-    g_camp_info_labels_0069c42c[1] = new W8CampInfoLabel005EF2B0(
-        panel, -1, left, top + 0x48, right, top + 0x54, -1, -1, -1, -1, -1, -1, -1);
-    g_camp_info_labels_0069c42c[2] = new W8CampInfoLabel005EF2B0(
-        panel, -1, left, top + 0x80, right, top + 0x8c, -1, -1, -1, -1, -1, -1, -1);
-    g_camp_info_labels_0069c42c[3] = new W8CampInfoLabel005EF2B0(
-        panel, -1, left, top + 0x8e, right, top + 0x9a, -1, -1, -1, -1, -1, -1, -1);
+    g_camp_info_labels_0069c42c[0] = new W8CampInfoLabel(panel, -1, left, top + 0x3a, right,
+                                                         top + 0x46, -1, -1, -1, -1, -1, -1, -1);
+    g_camp_info_labels_0069c42c[1] = new W8CampInfoLabel(panel, -1, left, top + 0x48, right,
+                                                         top + 0x54, -1, -1, -1, -1, -1, -1, -1);
+    g_camp_info_labels_0069c42c[2] = new W8CampInfoLabel(panel, -1, left, top + 0x80, right,
+                                                         top + 0x8c, -1, -1, -1, -1, -1, -1, -1);
+    g_camp_info_labels_0069c42c[3] = new W8CampInfoLabel(panel, -1, left, top + 0x8e, right,
+                                                         top + 0x9a, -1, -1, -1, -1, -1, -1, -1);
     g_camp_stat_labels_0069c448[0]->m_secondaryActivationCallback = OpenStatInfoDialog005BA200;
     g_camp_stat_labels_0069c448[1]->m_secondaryActivationCallback = OpenStatInfoDialog005BA210;
     g_camp_stat_labels_0069c448[2]->m_secondaryActivationCallback = OpenStatInfoDialog005BA220;
@@ -1777,8 +1777,7 @@ unsigned char CampScreenEnter(void)
     gXStatus.dragged_item_origin = 0xff;
     gXStatus.dragged_character_slot = -1;
     if (!g_camp_screen_0069c0f4) {
-        g_camp_screen_0069c0f4 =
-            static_cast<W8CampScreenState0069C0F4*>(malloc(sizeof(W8CampScreenState0069C0F4)));
+        g_camp_screen_0069c0f4 = static_cast<W8CampScreenState*>(malloc(sizeof(W8CampScreenState)));
         if (!g_camp_screen_0069c0f4) {
             if (IsMessageBoxActive()) {
                 CloseMessageBox();
@@ -1787,7 +1786,7 @@ unsigned char CampScreenEnter(void)
             RequestScreenTransition();
             return 0;
         }
-        memset(g_camp_screen_0069c0f4, 0, sizeof(W8CampScreenState0069C0F4));
+        memset(g_camp_screen_0069c0f4, 0, sizeof(W8CampScreenState));
     }
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     g_camp_screen_0069c0f4->entry_mode = entry_mode;
@@ -2046,7 +2045,7 @@ void DismissSelectedPartyCharacter(void)
 // FUNCTION: WIZ8 0x005a42a0
 void DrawCampScreen(void)
 {
-    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    W8CampScreenState* state = g_camp_screen_0069c0f4;
     unsigned int index;
 
     NoOp();
@@ -2160,7 +2159,7 @@ void SwitchCampPage(int page)
 // FUNCTION: WIZ8 0x005a45b0
 void ActivateCampPage(void)
 {
-    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    W8CampScreenState* state = g_camp_screen_0069c0f4;
     unsigned int index;
 
     RegionSetEnable(0x29);
@@ -2218,7 +2217,7 @@ void ActivateCampPage(void)
 // FUNCTION: WIZ8 0x005a4770
 void DeactivateCampPage(void)
 {
-    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    W8CampScreenState* state = g_camp_screen_0069c0f4;
     unsigned int index;
 
     switch (state->page) {

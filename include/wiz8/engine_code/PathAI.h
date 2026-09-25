@@ -5,7 +5,7 @@
 #include "wiz8/vector.h"
 
 class srNode;
-class W8AnimRepBase005EC1D8;
+class W8AnimRepBase;
 
 /* Engine Code\PathAI.cpp.  The assertion-backed `pPathAI` identity and the
    five consumers below establish these offsets; unresolved members remain
@@ -59,7 +59,7 @@ static_assert(sizeof(W8PathAI) == 0x40, "W8PathAI_size_must_be_0x40");
 unsigned char PathAIUpdate(W8AIRecord* record, signed char direction);
 void PathAIResetRecord(W8PathAI* path);
 unsigned char PathAIRecordFlag(const W8AIRecord* record);
-void PathAIApplyToRep(W8AIRecord* record, W8AnimRepBase005EC1D8* representation);
+void PathAIApplyToRep(W8AIRecord* record, W8AnimRepBase* representation);
 /* Places one srNode (model instance, light, camera, …) through a path. The
    body only calls srNode child/location/rotation/scale APIs; retail callers
    pass those node kinds interchangeably. */

@@ -82,7 +82,7 @@ static srTextureIFace** g_read_mesh_textures_65b9ec;
 // GLOBAL: WIZ8 0x0065B9F0
 static unsigned long* g_read_mesh_render_flags_65b9f0;
 // GLOBAL: WIZ8 0x0065B9F4
-static W8MaterialRecord004B8A70* g_read_mesh_material_records_65b9f4;
+static W8MaterialRecord* g_read_mesh_material_records_65b9f4;
 // GLOBAL: WIZ8 0x0065B9F8
 static int g_read_mesh_scratch_count_65b9f8;
 // GLOBAL: WIZ8 0x0065B9CC
@@ -838,9 +838,9 @@ int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials,
         return 0;
     }
 
-    W8MaterialRecord004B8A70* records =
-        static_cast<W8MaterialRecord004B8A70*>(malloc(count * sizeof(W8MaterialRecord004B8A70)));
-    memset(records, 0, count * sizeof(W8MaterialRecord004B8A70));
+    W8MaterialRecord* records =
+        static_cast<W8MaterialRecord*>(malloc(count * sizeof(W8MaterialRecord)));
+    memset(records, 0, count * sizeof(W8MaterialRecord));
     FileRead(info->hFile, records, 0x11a, 0);
     if (records[0].version_00 < 4) {
         for (index = 1; index < count; ++index) {
@@ -850,7 +850,7 @@ int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials,
         FileRead(info->hFile, records[0].texture_modes_11a, sizeof(records[0].texture_modes_11a),
                  0);
         if (count > 1) {
-            FileRead(info->hFile, records + 1, (count - 1) * sizeof(W8MaterialRecord004B8A70), 0);
+            FileRead(info->hFile, records + 1, (count - 1) * sizeof(W8MaterialRecord), 0);
         }
     }
 
@@ -859,8 +859,8 @@ int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials,
     }
 
     if (g_read_mesh_scratch_count_65b9f8 == count &&
-        memcmp(records, g_read_mesh_material_records_65b9f4,
-               count * sizeof(W8MaterialRecord004B8A70)) == 0) {
+        memcmp(records, g_read_mesh_material_records_65b9f4, count * sizeof(W8MaterialRecord)) ==
+            0) {
         *materials = g_read_mesh_materials_65b9e8;
         *textures = g_read_mesh_textures_65b9ec;
         *render_flags = g_read_mesh_render_flags_65b9f0;
@@ -1273,7 +1273,7 @@ void ReleaseRetainedMaterials()
 }
 
 // FUNCTION: WIZ8 0x00489980
-void ClearMaterialRecordPadding(W8MaterialRecord004B8A70* material)
+void ClearMaterialRecordPadding(W8MaterialRecord* material)
 {
     if (material == 0) {
         return;

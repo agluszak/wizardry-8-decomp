@@ -115,7 +115,7 @@ W8Prop::W8Prop()
    with the source capacity.  Clone's vtable slot allocates 0xc4 and lands here. */
 // FUNCTION: WIZ8 0x0044ad10
 W8PropRepresentation::W8PropRepresentation(const W8PropRepresentation& other)
-    : W8AnimRep005ED050(other), animation_speed(other.animation_speed),
+    : W8AnimRep(other), animation_speed(other.animation_speed),
       frame_index_0a0(other.frame_index_0a0), animation_running_0a4(other.animation_running_0a4),
       random_play_0a5(other.random_play_0a5), play_chance_0a8(other.play_chance_0a8),
       saved_subcycle_0ac(other.saved_subcycle_0ac), frame_steps_0ad(other.frame_steps_0ad),
@@ -143,7 +143,7 @@ W8PropRepresentation::~W8PropRepresentation()
 }
 
 // FUNCTION: WIZ8 0x0044ef80
-W8AnimRepBase005EC1D8* W8PropRepresentation::Clone()
+W8AnimRepBase* W8PropRepresentation::Clone()
 {
     return new W8PropRepresentation(*this);
 }

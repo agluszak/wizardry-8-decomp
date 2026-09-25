@@ -198,7 +198,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
 
 namespace {
 
-struct W8LevelItemRecord004BC380 {
+struct W8LevelItemRecord {
     int positional_00;
     srVector3T<float> position_04;
     int positional_10;
@@ -207,10 +207,9 @@ struct W8LevelItemRecord004BC380 {
     char item_name_1c[20];
 };
 
-static_assert(sizeof(W8LevelItemRecord004BC380) == 0x30,
-              "W8LevelItemRecord004BC380_size_must_be_0x30");
+static_assert(sizeof(W8LevelItemRecord) == 0x30, "W8LevelItemRecord_size_must_be_0x30");
 
-struct W8LevelLightRecord004BBAD0 {
+struct W8LevelLightRecord {
     short version;
     unsigned char create;
     bool visible;
@@ -221,8 +220,7 @@ struct W8LevelLightRecord004BBAD0 {
     float range;
 };
 
-static_assert(sizeof(W8LevelLightRecord004BBAD0) == 0x28,
-              "W8LevelLightRecord004BBAD0_size_must_be_0x28");
+static_assert(sizeof(W8LevelLightRecord) == 0x28, "W8LevelLightRecord_size_must_be_0x28");
 
 } // namespace
 
@@ -276,7 +274,7 @@ unsigned char ReadWorldLights(W8World* world, int hFile)
     }
 
     for (index = 0; index < light_count; ++index) {
-        W8LevelLightRecord004BBAD0 record;
+        W8LevelLightRecord record;
         stLightDefinition005ECDBC* definition = 0;
         W8PathAI* path = 0;
         stLight* light = 0;
@@ -600,7 +598,7 @@ unsigned char ReadWorldItems(W8ReadLevelInfo* pInfo, W8World* pWorld)
     int positional_value;
     int index;
     int count;
-    W8LevelItemRecord004BC380 record;
+    W8LevelItemRecord record;
     unsigned char positional_byte;
     unsigned char success;
     Trigger* trigger;
@@ -815,7 +813,7 @@ unsigned char ReadWorldCameras(W8ReadLevelInfo* pInfo, W8World* pWorld)
 unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
                                          W8GrowableVector<stParticle*>* pParticles)
 {
-    W8LevelParticleRecord004BD0D0 record;
+    W8LevelParticleRecord record;
     srMaterialIFace* material;
     srTextureIFace* texture;
     srShader render_flags;

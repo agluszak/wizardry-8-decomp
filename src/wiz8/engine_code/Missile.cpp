@@ -914,7 +914,7 @@ W8MissileRep::W8MissileRep(const W8MissileRep& other)
 }
 
 // FUNCTION: WIZ8 0x004a5d40
-W8AnimRepBase005EC1D8* W8MissileRep::Clone()
+W8AnimRepBase* W8MissileRep::Clone()
 {
     return new W8MissileRep(*this);
 }

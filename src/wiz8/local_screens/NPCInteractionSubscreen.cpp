@@ -194,7 +194,7 @@ const wchar_t* g_dialogue_person_keywords[] = {L"BALBRAK", L"BILDUBLU", L"EWAXX"
 /* Enabling starts text-input scheme 1 and installs the typed-dialogue field;
    disabling removes it. An already-enabled panel does none of this. */
 // FUNCTION: WIZ8 0x0056BAC0
-void W8MainGamePanel005EE9E4::SetEnabled(bool enable)
+void W8NpcTypedDialoguePanel::SetEnabled(bool enable)
 {
     if (!enable || !m_fEnabled) {
         Controls::SetEnabled(enable);
@@ -210,7 +210,7 @@ void W8MainGamePanel005EE9E4::SetEnabled(bool enable)
 /* Base redraw plus the input-frame image: drawn at y 0x19b while where_is_query is
    raised, else 0x18b. */
 // FUNCTION: WIZ8 0x0056BB20
-void W8MainGamePanel005EE9E4::Redraw()
+void W8NpcTypedDialoguePanel::Redraw()
 {
     int redrawn = 0;
     int index;
@@ -250,7 +250,7 @@ void W8MainGamePanel005EE9E4::Redraw()
 /* Unlike the base, the six option buttons stay inactive while the expanded
    NPC dialogue layout (dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) is not up. */
 // FUNCTION: WIZ8 0x0056BC50
-void W8MainGamePanel005EE9F0::SetEnabled(bool enable)
+void W8NpcDialogueOptionsPanel::SetEnabled(bool enable)
 {
     int index;
 
@@ -273,7 +273,7 @@ void W8MainGamePanel005EE9F0::SetEnabled(bool enable)
 /* Base redraw except the foreground catalog image is m_value_4c rather than
    m_renderArg_20 while the expanded dialogue layout is up. */
 // FUNCTION: WIZ8 0x0056BD30
-void W8MainGamePanel005EE9F0::Redraw()
+void W8NpcDialogueOptionsPanel::Redraw()
 {
     int redrawn = 0;
     int index;
@@ -920,7 +920,7 @@ void CreateNpcDialogueControls(void)
     W8MainScreenState* state;
 
     state = g_screen_state_00649f1c;
-    state->panel_1a8 = new W8MainGamePanel005EE9F0(0x17, 0x166, 0xa4, 0x1c2, 0x1a9, 0, 0);
+    state->panel_1a8 = new W8NpcDialogueOptionsPanel(0x17, 0x166, 0xa4, 0x1c2, 0x1a9, 0, 0);
     state->panel_1ac = new Controls(0xa4, 0x166, 0x1dc, 0x1c2, 0x1a9, 0, 1);
     state->npc_dialogue_controller_1b0 =
         new W8NpcDialogueTextController(0x1dc, 0x11b, 0x269, 0x140, 0x1a9, 0, 2, 4, 3);
@@ -928,7 +928,7 @@ void CreateNpcDialogueControls(void)
     state->panel_1b8 = new Controls(0x1dc, 0x166, 0x269, 0x1c2, 0x1a9, 0, 7);
     state->panel_1bc = new Controls(0x1dc, 0x166, 0x238, 499, 0x1a9, 0, 6);
     state->text_input_panel_1c0 =
-        new W8MainGamePanel005EE9E4(0x1dc, 0x166, 0x269, 0x1c0, 0x1a9, 0, 0xd);
+        new W8NpcTypedDialoguePanel(0x1dc, 0x166, 0x269, 0x1c0, 0x1a9, 0, 0xd);
 
     panel = state->panel_1a8;
     state->dialogue_text_10c =
