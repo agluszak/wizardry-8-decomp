@@ -1407,8 +1407,8 @@ static void RewrapDialogueTextFromLine(unsigned int line)
             }
             ++start;
             word_length = wcscspn(g_level_block->dialogue_text_input->text + start, L" ");
-            width += StringPixLengthArg(g_level_block->text_box_font, word_length + 1,
-                                        g_level_block->dialogue_text_input->text + start);
+            width += StringNPixLength(g_level_block->dialogue_text_input->text + start,
+                                      word_length + 1, g_level_block->text_box_font);
             if (static_cast<unsigned int>(width) > g_level_block->dialogue_text_input->wrap_width) {
                 break;
             }

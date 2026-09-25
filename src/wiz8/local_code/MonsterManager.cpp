@@ -496,10 +496,9 @@ unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_fil
     }
 
     if (assert_on_failure != 0) {
-        srAssertFail(
-            "FALSE", MONSTER_MANAGER_CPP, 0x5c1,
-            reinterpret_cast<const char*>(String("MonsterIndex: ID %d not found (%s line %d)",
-                                                 location_id, caller_file, caller_line)));
+        srAssertFail("FALSE", MONSTER_MANAGER_CPP, 0x5c1,
+                     FormatString("MonsterIndex: ID %d not found (%s line %d)", location_id,
+                                  caller_file, caller_line));
     }
     return 0xffffffff;
 }
@@ -520,9 +519,8 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
         if (result != 0) {
             return result;
         }
-        detail = reinterpret_cast<const char*>(
-            String("MonsterInfo: ERROR - PLGet failed, index %d, pList %d", monster_list_index,
-                   gXStatus.plsMonsterList));
+        detail = FormatString("MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
+                              monster_list_index, gXStatus.plsMonsterList);
         line = 0x5de;
     } else {
         if (monster_list_index - 10000 >= PLLength(gXStatus.plsUnbornMonsterList)) {
@@ -534,9 +532,8 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
         if (result != 0) {
             return result;
         }
-        detail = reinterpret_cast<const char*>(
-            String("MonsterInfo: ERROR - PLGet failed, index %d, pList %d", monster_list_index,
-                   gXStatus.plsMonsterList));
+        detail = FormatString("MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
+                              monster_list_index, gXStatus.plsMonsterList);
         line = 0x5d5;
     }
     /* One tail, reached from both branches with only the line number differing.
@@ -596,10 +593,9 @@ static __inline W8MonsterInfo* MonsterInfoFromIDInline(int caller_line, const ch
         monster = MonsterGetScriptPartByLocationIndex(index);
     }
     if (monster == 0 && assert_on_failure != 0) {
-        srAssertFail(
-            "FALSE", MONSTER_MANAGER_CPP, 0x626,
-            reinterpret_cast<const char*>(String("MonsterInfoFromID: ID %d not found (%s line %d)",
-                                                 location_id, caller_file, caller_line)));
+        srAssertFail("FALSE", MONSTER_MANAGER_CPP, 0x626,
+                     FormatString("MonsterInfoFromID: ID %d not found (%s line %d)", location_id,
+                                  caller_file, caller_line));
     }
     return monster;
 }
@@ -1541,11 +1537,11 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
             }
             srAssertFail(
                 "FALSE", MONSTER_MANAGER_CPP, 0x497,
-                reinterpret_cast<const char*>(String(
+                FormatString(
                     "%ls starting new cycle (%s) with an uninterruptable cycle pending (%s)!",
                     GetMonsterName(monster_info, 0, 0),
                     g_cycle_names[static_cast<signed char>(cycle)].name,
-                    g_cycle_names[static_cast<signed char>(pending)].name)));
+                    g_cycle_names[static_cast<signed char>(pending)].name));
             return;
         }
         if (static_cast<signed char>(cycle) == W8_CYCLE_STOP ||

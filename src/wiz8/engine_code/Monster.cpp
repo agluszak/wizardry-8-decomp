@@ -750,8 +750,8 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
     if (representation->animations[1].GetCount() < 1) {
         ShutdownWithErrorBox(
             reinterpret_cast<const char*>(String( // reinterpret-ok: String returns a logging buffer
-                "Monster %s: Missing CYCLE_%s, sub-cycle %d", representation->name_5c0, "IDLE",
-                0)));
+                "Monster %s: Missing CYCLE_%s, sub-cycle %d", representation->name_5c0,
+                g_cycle_names[1].name, 0)));
     }
     W8AnimObj* idle = *representation->animations[1].GetAt(0);
     if (idle != 0) {
@@ -1850,8 +1850,10 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
     }
     animations = &m_pRep->animations[cycle];
     if (animations->GetCount() <= subcycle) {
-        ShutdownWithErrorBox(FormatString("Monster %s: Missing CYCLE_%s, sub-cycle %d",
-                                          m_pRep->name_5c0, g_cycle_names[cycle].name, subcycle));
+        ShutdownWithErrorBox(
+            reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+                String("Monster %s: Missing CYCLE_%s, sub-cycle %d", m_pRep->name_5c0,
+                       g_cycle_names[cycle].name, subcycle)));
     }
     animation = *animations->GetAt(subcycle);
 
@@ -2782,7 +2784,7 @@ void SetMonsterPartySlotMarker(int party_slot, int location_id, char on)
         if (rep->objects_5c8[party_slot] == 0) {
             sprintf(path, g_monster_bitmap_path_format,
                     g_party_target_marker_bitmaps[g_status.buffers.XChar[party_slot]
-                                                               .party_order_index]);
+                                                      .party_order_index]);
             rep->objects_5c8[party_slot] = CreateMonsterIconItem(g_world, path, 1);
             ++rep->icon_count_5c4;
         }
@@ -4907,9 +4909,11 @@ void W8Monster::CollectModelInstances004C6350(W8GrowableVector<stModelInstance*>
             W8AnimObj* animation;
 
             if (subcycle >= cycle_animations->GetCount()) {
-                ShutdownWithErrorBox(FormatString("Monster %s: Missing CYCLE_%s, sub-cycle %d",
-                                                  m_pRep->name_5c0, g_cycle_names[cycle].name,
-                                                  subcycle));
+                ShutdownWithErrorBox(
+                    reinterpret_cast<
+                        const char*>( // reinterpret-ok: String returns a logging buffer
+                        String("Monster %s: Missing CYCLE_%s, sub-cycle %d", m_pRep->name_5c0,
+                               g_cycle_names[cycle].name, subcycle)));
             }
             animation = *cycle_animations->GetAt(subcycle);
             if (animation == 0) {

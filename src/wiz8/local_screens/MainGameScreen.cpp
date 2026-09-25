@@ -5120,8 +5120,8 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
         }
     }
     if (g_level_block->highlight_graphic == 0) {
-        srAssertFail("gpMGSV->pHighlightGraphic",
-                     "C:\\Projects\\Wizardry 8\\Local Screens\\MainGameScreen.cpp", 0xd84, 0);
+        ReportAssertion("gpMGSV->pHighlightGraphic",
+                        "C:\\Projects\\Wizardry 8\\Local Screens\\MainGameScreen.cpp", 0xd84);
     }
     SetModelInstance2DDisplayState(g_level_block->highlight_graphic, 4);
     Position2DNodeUnsnapped(g_level_block->highlight_graphic, g_level_block->dialogue_x_220 + 7,
