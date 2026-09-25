@@ -3440,66 +3440,37 @@ void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* 
     case W8_TARGET_KIND_CHARACTER:
     case W8_TARGET_KIND_CHARACTER_INDIRECT:
         SetTargetSourceToCharacter(target_copy.iChar, source);
-        if (TargetSourceIsCharacter(&source_copy, 0)) {
-            target->iType = W8_TARGET_KIND_CHARACTER;
-            target->iChar = source_copy.iChar;
-            source->point_source_1d = 1;
-            return;
-        }
-        if (TargetSourceIsMonster(&source_copy, 0)) {
-            target->iType = W8_TARGET_KIND_MONSTER;
-            target->iMonsterID = source_copy.iMonsterID;
-            source->point_source_1d = 1;
-            return;
-        }
+        break;
+    case W8_TARGET_KIND_MONSTER:
+        list_index = MonsterGetIndexByLocationID(0xc09, MAGIC_CPP, target_copy.iMonsterID, 1);
+        monster_info = MonsterGetScriptPartByLocationIndex(list_index);
+        SetTargetSourceToMonster(monster_info, source);
         break;
     case W8_TARGET_KIND_PARTY:
-        slot = 0;
-        while (g_status_685170.buffers.XChar[slot].fOccupied == 0 ||
-               g_status_685170.buffers.Char[slot].hp_current == 0 ||
-               0x12 <= g_status_685170.buffers.Char[slot].highest_condition) {
-            ++slot;
-            if (8 <= slot) {
-                srAssertFail("FALSE", MAGIC_CPP, 0xc1b, 0);
-                return;
+        for (slot = 0; slot < 8; ++slot) {
+            if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
+                g_status_685170.buffers.Char[slot].hp_current != 0 &&
+                g_status_685170.buffers.Char[slot].highest_condition < 0x12) {
+                break;
             }
         }
-        if (7 < slot) {
+        if (slot > 7) {
             srAssertFail("FALSE", MAGIC_CPP, 0xc1b, 0);
             return;
         }
         SetTargetSourceToCharacter(slot, source);
         ResetCombatSlot(target);
         if (source_copy.iType == W8_TARGET_SOURCE_CHARACTER) {
-            goto LAB_004fe9ec;
-        }
-        if (source_copy.iType == W8_TARGET_SOURCE_MONSTER) {
+            target->iType = W8_TARGET_KIND_PARTY;
+        } else if (source_copy.iType == W8_TARGET_SOURCE_MONSTER) {
             target->iType = W8_TARGET_KIND_GROUP;
             monster_info = MonsterInfoFromID(0xc2a, MAGIC_CPP, source_copy.iMonsterID, 1);
             target->iGroupID = monster_info->monster_group_id;
-            source->point_source_1d = 1;
-            return;
+        } else {
+            srAssertFail("FALSE", MAGIC_CPP, 0xc2d, 0);
         }
-        srAssertFail("FALSE", MAGIC_CPP, 0xc2d, 0);
         source->point_source_1d = 1;
         return;
-    case W8_TARGET_KIND_MONSTER:
-        list_index = MonsterGetIndexByLocationID(0xc09, MAGIC_CPP, target_copy.iMonsterID, 1);
-        monster_info = MonsterGetScriptPartByLocationIndex(list_index);
-        SetTargetSourceToMonster(monster_info, source);
-        if (TargetSourceIsCharacter(&source_copy, 0)) {
-            target->iType = W8_TARGET_KIND_CHARACTER;
-            target->iChar = source_copy.iChar;
-            source->point_source_1d = 1;
-            return;
-        }
-        if (TargetSourceIsMonster(&source_copy, 0)) {
-            target->iType = W8_TARGET_KIND_MONSTER;
-            target->iMonsterID = source_copy.iMonsterID;
-            source->point_source_1d = 1;
-            return;
-        }
-        break;
     case W8_TARGET_KIND_GROUP:
         list_index = GetMonsterGroupIndexByID(0xc33, MAGIC_CPP, target_copy.iGroupID, 1);
         group = GetMonsterGroupByListIndex(list_index);
@@ -3508,26 +3479,29 @@ void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* 
         SetTargetSourceToMonster(monster_info, source);
         ResetCombatSlot(target);
         if (source_copy.iType == W8_TARGET_SOURCE_CHARACTER) {
-        LAB_004fe9ec:
             target->iType = W8_TARGET_KIND_PARTY;
-            source->point_source_1d = 1;
-            return;
-        }
-        if (source_copy.iType == W8_TARGET_SOURCE_MONSTER) {
+        } else if (source_copy.iType == W8_TARGET_SOURCE_MONSTER) {
             target->iType = W8_TARGET_KIND_GROUP;
             monster_info = MonsterInfoFromID(0xc40, MAGIC_CPP, source_copy.iMonsterID, 1);
             target->iGroupID = monster_info->monster_group_id;
-            source->point_source_1d = 1;
-            return;
+        } else {
+            srAssertFail("FALSE", MAGIC_CPP, 0xc43, 0);
         }
-        srAssertFail("FALSE", MAGIC_CPP, 0xc43, 0);
         source->point_source_1d = 1;
         return;
     default:
         srAssertFail("FALSE", MAGIC_CPP, 0xc52, 0);
         return;
     }
-    srAssertFail("FALSE", MAGIC_CPP, 0xc6b, 0);
+    if (TargetSourceIsCharacter(&source_copy, 0)) {
+        target->iType = W8_TARGET_KIND_CHARACTER;
+        target->iChar = source_copy.iChar;
+    } else if (TargetSourceIsMonster(&source_copy, 0)) {
+        target->iType = W8_TARGET_KIND_MONSTER;
+        target->iMonsterID = source_copy.iMonsterID;
+    } else {
+        srAssertFail("FALSE", MAGIC_CPP, 0xc6b, 0);
+    }
     source->point_source_1d = 1;
 }
 
@@ -3545,11 +3519,11 @@ void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSl
     W8Navigator* navigator;
     int target_type;
 
-    if (source->iType < 1 || 3 < source->iType) {
+    if (source->iType <= W8_TARGET_SOURCE_NONE || source->iType >= W8_TARGET_SOURCE_COUNT) {
         srAssertFail("(pSource->iType > SOURCE_TYPE_NONE) && (pSource->iType < SOURCE_TYPE_COUNT)",
                      MAGIC_CPP, 0xc78, 0);
     }
-    if (target->iType < 1 || 9 < target->iType) {
+    if (target->iType <= W8_TARGET_KIND_NONE || target->iType >= W8_TARGET_KIND_COUNT) {
         srAssertFail("(pTarget->iType > TARGET_TYPE_NONE) && (pTarget->iType < TARGET_TYPE_COUNT)",
                      MAGIC_CPP, 0xc79, 0);
     }
@@ -3598,19 +3572,17 @@ void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSl
         if (TargetSourceIsCharacter(source, 0)) {
             GetCameraPosition(&from);
             target->point = from;
-            source->iType = W8_TARGET_SOURCE_INDIRECT;
-            return;
-        }
-        if (TargetSourceIsMonster(source, 0)) {
+        } else if (TargetSourceIsMonster(source, 0)) {
             navigator = monster_info->p3D;
             target->point.x = navigator->movement_0c0.position_040.x;
             target->point.y =
                 navigator->movement_0c0.position_040.y + navigator->movement_0c0.height_offset_0b8;
             target->point.z = navigator->movement_0c0.position_040.z;
-            source->iType = W8_TARGET_SOURCE_INDIRECT;
-            return;
+        } else {
+            target->point = saved;
         }
-        goto LAB_004fed4b;
+        source->iType = W8_TARGET_SOURCE_INDIRECT;
+        return;
     case 6:
         break;
     default:
@@ -3623,14 +3595,12 @@ void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSl
     source->point = target->point;
     if (TargetSourceIsCharacter(source, 0)) {
         navigator = g_startup_world_659c0c;
-    } else {
-        if (!TargetSourceIsMonster(source, 0)) {
-        LAB_004fed4b:
-            target->point = saved;
-            source->iType = W8_TARGET_SOURCE_INDIRECT;
-            return;
-        }
+    } else if (TargetSourceIsMonster(source, 0)) {
         navigator = monster_info->p3D;
+    } else {
+        target->point = saved;
+        source->iType = W8_TARGET_SOURCE_INDIRECT;
+        return;
     }
     trace = navigator->GetPosition();
     target->point = trace;
