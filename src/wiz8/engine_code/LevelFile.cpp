@@ -269,7 +269,7 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
 }
 
 // FUNCTION: WIZ8 0x004D07C0
-bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
+unsigned char WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
 {
     unsigned int uiBytes;
     unsigned char fSuccess;
@@ -504,7 +504,7 @@ bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
 }
 
 // FUNCTION: WIZ8 0x004D1110
-bool ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
+unsigned char ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
 {
     int i;
     memset(pMesh, 0, sizeof(W8LevelFileMesh));
@@ -612,7 +612,7 @@ bool ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
 }
 
 // FUNCTION: WIZ8 0x004D1510
-bool WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
+unsigned char WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
 {
     unsigned char fSuccess = FileWrite(hFile, &pMesh->version_00, 4, 0);
     fSuccess &= FileWrite(hFile, &pMesh->num_vertices_04, 4, 0);
@@ -701,7 +701,7 @@ bool WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
 }
 
 // FUNCTION: WIZ8 0x004D1820
-bool ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight)
+unsigned char ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight)
 {
     unsigned char fSuccess = FileRead(hFile, &pLight->version_00, 2, 0);
     fSuccess &= FileRead(hFile, &pLight->create_02, 4, 0);
@@ -744,7 +744,7 @@ bool ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight)
 }
 
 // FUNCTION: WIZ8 0x004D1960
-bool WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight)
+unsigned char WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight)
 {
     unsigned char fSuccess = FileWrite(hFile, &pLight->version_00, 2, 0);
     fSuccess &= FileWrite(hFile, &pLight->create_02, 4, 0);
@@ -778,7 +778,7 @@ bool WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight)
 }
 
 // FUNCTION: WIZ8 0x004D1A90
-bool ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight)
+unsigned char ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight)
 {
     unsigned char fSuccess = FileRead(hFile, &pLight->version_00, 1, 0);
     fSuccess &= FileRead(hFile, &pLight->position_01, 0xc, 0);
@@ -804,7 +804,7 @@ bool ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight)
 }
 
 // FUNCTION: WIZ8 0x004D1B50
-bool WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight)
+unsigned char WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight)
 {
     unsigned char fSuccess = FileWrite(hFile, &pLight->version_00, 1, 0);
     fSuccess &= FileWrite(hFile, &pLight->position_01, 0xc, 0);
@@ -826,7 +826,7 @@ bool WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight)
 }
 
 // FUNCTION: WIZ8 0x004D1C10
-bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
+unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
 {
     unsigned char ok;
 
@@ -1019,7 +1019,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
 }
 
 // FUNCTION: WIZ8 0x004D23F0
-bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
+unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
 {
     unsigned char fSuccess;
     unsigned char ok;
@@ -1172,20 +1172,16 @@ bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
 }
 
 // FUNCTION: WIZ8 0x004D2A30
-bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
+unsigned char ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
 {
     W8LevelFileSuperTrigger* pSuper = static_cast<W8LevelFileSuperTrigger*>(malloc(0x867));
     if (pSuper == 0) {
-        srAssertFail("pData", LEVELFILE_CPP, 1340, 0);
+        ReportBuildStatus00497690(7,
+                                  "ReadSuperTrigger: Could not allocate SuperTrigger strucutre.\n");
+        return 0;
     }
-    memset(pSuper, 0, sizeof(W8LevelFileSuperTrigger));
     unsigned char fSuccess = FileRead(hFile, &pSuper->version_00, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->name_01, 0x80, 0);
-    ReportBuildStatus00497690(
-        5, reinterpret_cast< // reinterpret-ok: String returns a logging buffer
-               const char*>(
-               String("Super Trigger: %s ",
-                      pSuper->name_01))); // reinterpret-ok: String returns a logging buffer
     fSuccess &= FileRead(hFile, &pSuper->flags_81, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->active_82, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->kind_83, 1, 0);
@@ -1193,38 +1189,24 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess &= FileRead(hFile, &pSuper->prop_index_85, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->activation_count_86, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->inactive_count_87, 1, 0);
-    ReportBuildStatus00497690(
-        5, reinterpret_cast<const char*>(String( // reinterpret-ok: String returns a logging buffer
-               "     Active: %d Kind: %d WhenActive: %d PropIndex: %d, activated %d "
-               "times, inactive %d times, interaction: %d",
-               pSuper->active_82, pSuper->kind_83, pSuper->when_active_84, pSuper->prop_index_85,
-               pSuper->activation_count_86, pSuper->inactive_count_87, pSuper->flags_81 & 1)));
     fSuccess &= FileRead(hFile, &pSuper->trigger_88, 4, 0);
     fSuccess &= FileRead(hFile, &pSuper->trigger_on_8c, 4, 0);
     fSuccess &= FileRead(hFile, &pSuper->trigger_off_90, 4, 0);
     fSuccess &= FileRead(hFile, pSuper->recipients_94, 0x100, 0);
-    ReportBuildStatus00497690(
-        5,
-        reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-            String("     trigger: %d (on %d, off %d) name: %s", pSuper->trigger_88,
-                   pSuper->trigger_on_8c, pSuper->trigger_off_90, pSuper->recipients_94)));
     fSuccess &= FileRead(hFile, &pSuper->ataxia_or_cure_194, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->ps_events_195, 0x100, 0);
-    ReportBuildStatus00497690(
-        5,
-        reinterpret_cast< // reinterpret-ok: String returns a logging buffer
-            const char*>(String(
-            "     ataxia/cure: %d PSEvents %s", // reinterpret-ok: String returns a logging buffer
-            pSuper->ataxia_or_cure_194, pSuper->ps_events_195)));
     fSuccess &= FileRead(hFile, &pSuper->allow_save_295, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->price_296, 4, 0);
     fSuccess &= FileRead(hFile, &pSuper->door_kind_29a, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->animation_29b, 0x80, 0);
+    if (fSuccess == 0) {
+        return 0;
+    }
     ReportBuildStatus00497690(
-        5, reinterpret_cast<const char*>(String( // reinterpret-ok: String returns a logging buffer
-               "     allow save: %d, price: %d door kind %d anim: %s", pSuper->allow_save_295,
-               pSuper->price_296, pSuper->door_kind_29a, pSuper->animation_29b)));
-    if (pSuper->version_00 > 1) {
+        5,
+        reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+            String("Super Trigger: %s, recipients: %s\n", pSuper->name_01, pSuper->recipients_94)));
+    if (pSuper->version_00 >= 2) {
         fSuccess &= FileRead(hFile, pSuper->size_49b, 0xc, 0);
         fSuccess &= FileRead(hFile, &pSuper->direction_4a7, 4, 0);
         fSuccess &= FileRead(hFile, &pSuper->wait_4ab, 1, 0);
@@ -1232,88 +1214,82 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileRead(hFile, &pSuper->wait_4ad, 1, 0);
         fSuccess &= FileRead(hFile, &pSuper->loop_4ae, 1, 0);
         fSuccess &= FileRead(hFile, &pSuper->speed_4af, 0x10, 0);
-        ReportBuildStatus00497690(
-            5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-                   String("     size: (%f, %f, %f) direction: %f speed: %f wait (%d,%d,%d) loop %d",
-                          (double)pSuper->size_49b[0], (double)pSuper->size_49b[1],
-                          (double)pSuper->size_49b[2], (double)pSuper->direction_4a7,
-                          (double)pSuper->speed_4af, (int)pSuper->wait_4ab, (int)pSuper->wait_4ac,
-                          (int)pSuper->wait_4ad, (int)pSuper->loop_4ae)));
-        fSuccess &= FileRead(hFile, &pSuper->ignore_4bf, 1, 0);
-        fSuccess &= FileRead(hFile, &pSuper->group_4c0, 1, 0);
-        fSuccess &= FileRead(hFile, &pSuper->set_group_4c1, 1, 0);
-        fSuccess &= FileRead(hFile, pSuper->groups_4c2, 0x100, 0);
-        fSuccess &= FileRead(hFile, pSuper->objects_5c2, 0x100, 0);
-        ReportBuildStatus00497690(
-            5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-                   String("     ignore: %d Group %d set_group %d groups %s objects %s",
-                          pSuper->ignore_4bf, pSuper->group_4c0, pSuper->set_group_4c1,
-                          pSuper->groups_4c2, pSuper->objects_5c2)));
-        fSuccess &= FileRead(hFile, &pSuper->close_door_6c2, 1, 0);
-        fSuccess &= FileRead(hFile, &pSuper->wait_6c3, 4, 0);
-        fSuccess &= FileRead(hFile, &pSuper->field_6c7, 4, 0);
-        fSuccess &= FileRead(hFile, pSuper->event_6cb, 0x100, 0);
-        ReportBuildStatus00497690(
-            5,
-            reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-                String("     close door: %d wait: %d 5fCount %d event: %s", pSuper->close_door_6c2,
-                       pSuper->wait_6c3, pSuper->field_6c7, pSuper->event_6cb)));
-        fSuccess &= FileRead(hFile, &pSuper->field_7cb, 4, 0);
+        if (fSuccess == 0) {
+            return 0;
+        }
     }
-    if (pSuper->version_00 > 2) {
-        fSuccess &= FileRead(hFile, pSuper->particle_system_7cf, 0x80, 0);
-        ReportBuildStatus00497690(
-            5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-                   String("     attach particle system: %s", pSuper->particle_system_7cf)));
-    }
-    if ((fSuccess & 1) == 0) {
+    fSuccess &= FileRead(hFile, &pSuper->ignore_4bf, 1, 0);
+    fSuccess &= FileRead(hFile, &pSuper->group_4c0, 1, 0);
+    fSuccess &= FileRead(hFile, &pSuper->set_group_4c1, 1, 0);
+    fSuccess &= FileRead(hFile, pSuper->groups_4c2, 0x100, 0);
+    fSuccess &= FileRead(hFile, pSuper->objects_5c2, 0x100, 0);
+    fSuccess &= FileRead(hFile, &pSuper->close_door_6c2, 1, 0);
+    if (fSuccess == 0) {
         return 0;
     }
-    if ((pSuper->flags_81 & 1) != 0) {
-        fSuccess &= 1;
-        return fSuccess;
+    fSuccess &= FileRead(hFile, &pSuper->wait_6c3, 4, 0);
+    fSuccess &= FileRead(hFile, &pSuper->field_6c7, 4, 0);
+    fSuccess &= FileRead(hFile, pSuper->event_6cb, 0x100, 0);
+    fSuccess &= FileRead(hFile, &pSuper->field_7cb, 4, 0);
+    if (fSuccess == 0) {
+        return 0;
     }
-    fSuccess &= FileRead(hFile, &pSuper->door_kind_84f, 1, 0);
-    if (pSuper->door_kind_84f == 1) {
-        pSuper->pType1_850 =
-            static_cast<W8LevelFileType1Record*>(malloc(sizeof(W8LevelFileType1Record)));
-        if (pSuper->pType1_850 != 0) {
+    if (pSuper->version_00 >= 3) {
+        fSuccess &= FileRead(hFile, pSuper->particle_system_7cf, 0x80, 0);
+    }
+    if ((pSuper->flags_81 & 1) == 0) {
+        fSuccess &= FileRead(hFile, &pSuper->door_kind_84f, 1, 0);
+        if (pSuper->door_kind_84f == 1) {
+            pSuper->pType1_850 =
+                static_cast<W8LevelFileType1Record*>(malloc(sizeof(W8LevelFileType1Record)));
+            if (pSuper->pType1_850 == 0) {
+                ReportBuildStatus00497690(
+                    7, "ReadSuperTrigger: Could not allocate Trigger Position structure.\n");
+                return 0;
+            }
             fSuccess &= FileRead(hFile, pSuper->pType1_850, sizeof(W8LevelFileType1Record), 0);
-        }
-    } else if (pSuper->door_kind_84f == 2) {
-        pSuper->pPlane_854 = static_cast<W8LevelFilePlane*>(malloc(0x30));
-        if (pSuper->pPlane_854 != 0) {
+        } else if (pSuper->door_kind_84f == 2) {
+            pSuper->pPlane_854 = static_cast<W8LevelFilePlane*>(malloc(0x30));
+            if (pSuper->pPlane_854 == 0) {
+                ReportBuildStatus00497690(
+                    7, "ReadSuperTrigger: Could not allocate Trigger Plane structure.\n");
+                return 0;
+            }
             fSuccess &= FileRead(hFile, pSuper->pPlane_854, 0x30, 0);
             g_level_file_6833fc
                 ->invisible_planes_1669[g_level_file_6833fc->num_invisible_planes_1665] =
                 pSuper->pPlane_854;
             ++g_level_file_6833fc->num_invisible_planes_1665;
         }
-    }
-    if ((fSuccess & 1) == 0) {
-        return 0;
-    }
-    fSuccess &= FileRead(hFile, &pSuper->field_858, 1, 0);
-    if (pSuper->field_858 != 0) {
-        pSuper->pRecord_859 =
-            static_cast<W8LevelFileRecord859*>(malloc(sizeof(W8LevelFileRecord859)));
-        fSuccess &= FileRead(hFile, pSuper->pRecord_859, sizeof(W8LevelFileRecord859), 0);
         if (fSuccess == 0) {
             return 0;
         }
+        fSuccess &= FileRead(hFile, &pSuper->field_858, 1, 0);
+        if (pSuper->field_858 != 0) {
+            pSuper->pRecord_859 =
+                static_cast<W8LevelFileRecord859*>(malloc(sizeof(W8LevelFileRecord859)));
+            if (pSuper->pRecord_859 == 0) {
+                ReportBuildStatus00497690(
+                    7, "ReadSuperTrigger: Could not allocate Trigger HotSpot structure.\n");
+                return 0;
+            }
+            fSuccess &= FileRead(hFile, pSuper->pRecord_859, sizeof(W8LevelFileRecord859), 0);
+        }
     }
-    if ((fSuccess & 1) == 0) {
+    if (fSuccess == 0) {
         return 0;
     }
     fSuccess &= FileRead(hFile, &pSuper->field_85d, 1, 0);
     if (pSuper->field_85d != 0) {
         fSuccess &= FileRead(hFile, &pSuper->door_85e.kind_00, 1, 0);
         if (pSuper->door_85e.kind_00 == 1) {
-            fSuccess &= ReadDoorTriggerFile004D3540(hFile, &pSuper->door_85e);
+            fSuccess = ReadDoorTriggerFile004D3540(hFile, &pSuper->door_85e);
         } else if (pSuper->door_85e.kind_00 == 2) {
             W8LevelFileLinkedRecord* pRecord = static_cast<W8LevelFileLinkedRecord*>(malloc(0x1bb));
-            unsigned char ok = 0;
-            if (pRecord != 0) {
+            unsigned char ok;
+            if (pRecord == 0) {
+                ok = 0;
+            } else {
                 ok = FileRead(hFile, &pRecord->kind_00, 1, 0);
                 ok &= FileRead(hFile, pRecord->vertices_01, 0x1b0, 0);
                 ok &= FileRead(hFile, &pRecord->linked_face_1b1, 2, 0);
@@ -1322,12 +1298,11 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
                 ++g_level_file_6833fc->num_linked_records_2609;
                 pSuper->pRecord_863 = pRecord;
             }
-            if ((fSuccess & ok) == 0) {
-                return 0;
-            }
+            fSuccess &= ok;
+            /* Retail writes through pRecord_863 even when the allocation
+               failed and left it unset. */
             pSuper->pRecord_863->normal_scale_1b3 = pSuper->field_7cb;
             pSuper->pRecord_863->forward_scale_1b7 = pSuper->direction_4a7;
-            fSuccess &= ok;
         }
     }
     pTrigger->pData_02 = pSuper;
@@ -1335,7 +1310,7 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
 }
 
 // FUNCTION: WIZ8 0x004D3000
-bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
+unsigned char WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
 {
     W8LevelFileSuperTrigger* pSuper = static_cast<W8LevelFileSuperTrigger*>(pTrigger->pData_02);
     if (pSuper == 0) {
@@ -1436,7 +1411,7 @@ bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
 }
 
 // FUNCTION: WIZ8 0x004D3540
-bool ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor)
+unsigned char ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor)
 {
     W8LevelFileDoor* pDoorRec = static_cast<W8LevelFileDoor*>(malloc(0x99));
     if (pDoorRec == 0) {
@@ -1461,7 +1436,7 @@ bool ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor)
 }
 
 // FUNCTION: WIZ8 0x004D3660
-bool WriteDoorTriggerFile004D3660(int hFile, W8LevelFileDoorRef* pDoor)
+unsigned char WriteDoorTriggerFile004D3660(int hFile, W8LevelFileDoorRef* pDoor)
 {
     W8LevelFileDoor* pDoorRec = pDoor->door_01;
     if (pDoorRec == 0) {
@@ -1486,7 +1461,7 @@ bool WriteDoorTriggerFile004D3660(int hFile, W8LevelFileDoorRef* pDoor)
 }
 
 // FUNCTION: WIZ8 0x004D3770
-bool ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI)
+unsigned char ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI)
 {
     unsigned char fSuccess = FileRead(hFile, &pPathAI->version_00, 1, 0);
     fSuccess &= FileRead(hFile, &pPathAI->scaled_01, 1, 0);
@@ -1513,7 +1488,7 @@ bool ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI)
 }
 
 // FUNCTION: WIZ8 0x004D38E0
-bool WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI)
+unsigned char WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI)
 {
     unsigned char fSuccess = FileWrite(hFile, &pPathAI->version_00, 1, 0);
     fSuccess &= FileWrite(hFile, &pPathAI->scaled_01, 1, 0);
@@ -1543,7 +1518,8 @@ bool WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI)
 /* fSuccess arrives in a stack slot the caller never initializes; the authored
    signature carried a default argument. */
 // FUNCTION: WIZ8 0x004D3A10
-bool ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj, unsigned char fSuccess)
+unsigned char ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj,
+                                      unsigned char fSuccess)
 {
     unsigned short usFrame;
     short i;
@@ -1771,7 +1747,7 @@ bool ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj, unsigned c
 }
 
 // FUNCTION: WIZ8 0x004D4480
-bool WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj)
+unsigned char WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj)
 {
     unsigned short usFrame;
     short i;
@@ -2047,7 +2023,7 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
 }
 
 // FUNCTION: WIZ8 0x004D4FC0
-bool WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps)
+unsigned char WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps)
 {
     unsigned char fSuccess = 1;
     if (count == 0) {
@@ -2112,7 +2088,7 @@ bool WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps)
 }
 
 // FUNCTION: WIZ8 0x004D5240
-bool ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSystem)
+unsigned char ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSystem)
 {
     unsigned char fSuccess = FileRead(hFile, pSystem, 0x217, 0) & 1;
     if (pSystem->version_00 < 2) {
@@ -2147,7 +2123,7 @@ bool ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSyste
 }
 
 // FUNCTION: WIZ8 0x004D5370
-bool WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSystem)
+unsigned char WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSystem)
 {
     unsigned char fSuccess = FileWrite(hFile, pSystem, 0x217, 0) & 1;
     if (pSystem->version_00 > 1) {
@@ -2168,7 +2144,7 @@ bool WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSyst
 }
 
 // FUNCTION: WIZ8 0x004D5430
-bool ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock)
+unsigned char ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock)
 {
     unsigned char fSuccess = FileRead(hFile, &pBlock->fog_enabled_00, 1, 0) & 1;
     fSuccess &= FileRead(hFile, &pBlock->environment_red_01, 4, 0);
@@ -2196,7 +2172,7 @@ bool ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock)
 }
 
 // FUNCTION: WIZ8 0x004D5580
-bool WriteLevelFileBlock004D5580(int hFile, W8LevelFileBlock* pBlock)
+unsigned char WriteLevelFileBlock004D5580(int hFile, W8LevelFileBlock* pBlock)
 {
     unsigned char fSuccess = FileWrite(hFile, &pBlock->fog_enabled_00, 1, 0) & 1;
     fSuccess &= FileWrite(hFile, &pBlock->environment_red_01, 4, 0);
