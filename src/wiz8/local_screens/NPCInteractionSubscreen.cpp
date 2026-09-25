@@ -3211,8 +3211,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
                         ++hit;
                     }
                     ++i;
-                    if (static_cast<unsigned int>(g_status.party_item_count_1791) <=
-                        static_cast<unsigned int>(i)) {
+                    if (g_status.party_item_count_1791 <= static_cast<unsigned int>(i)) {
                         return 0;
                     }
                 } while (true);
