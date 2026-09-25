@@ -1079,7 +1079,7 @@ void SetCameraLightMode00483E80(int mode)
     stLight* camera_light;
     float intensity;
 
-    if (g_world != 0 && (camera_light = g_world->camera_light, camera_light != 0)) {
+    if (g_world != 0 && (camera_light = g_world->camera_light) != 0) {
         switch (mode) {
         case 0:
             camera_light->clearFlag(srNode::FLAG_DISABLE);

@@ -2972,7 +2972,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     }
     CombatLog("Chance of FAILURE: %d", b);
     CombatLog("");
-    if (b != 0 && (roll = Random(100), roll < static_cast<unsigned int>(b))) {
+    if (b != 0 && (roll = Random(100)) < static_cast<unsigned int>(b)) {
         if (g_spell_records[spell_id].realm == 0 && g_camera_sway_active_652da4 != false) {
             b = 0;
         } else if (!quiet && !forced) {
@@ -2990,7 +2990,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         if (static_cast<unsigned int>(b) <= roll) {
             fizzled = true;
             SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.", 0);
-            if (local_a0 != -1 && (roll = Random(100), roll < 0x46)) {
+            if (local_a0 != -1 && (roll = Random(100)) < 0x46) {
                 QueueCharacterEvent(&g_status_685170.buffers.Char[local_a0],
                                     g_special_event_0068c558, 0, g_effect_argument_005ed8c8,
                                     g_effect_argument_005ed914);

@@ -827,13 +827,10 @@ bool WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight)
 // FUNCTION: WIZ8 0x004D1C10
 bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
 {
-    unsigned char fSuccess = 0;
     unsigned char ok;
 
-    ok = FileRead(hFile, &pTrigger->version_00, 1, 0);
-    if ((ok != 0) && (ok = FileRead(hFile, &pTrigger->type_01, 1, 0), ok != 0)) {
-        fSuccess = 1;
-    }
+    unsigned char fSuccess =
+        FileRead(hFile, &pTrigger->version_00, 1, 0) && FileRead(hFile, &pTrigger->type_01, 1, 0);
     switch (pTrigger->type_01) {
     case 1: {
         W8LevelFileSwitch* pSwitch = static_cast<W8LevelFileSwitch*>(malloc(0x271));
@@ -1532,7 +1529,6 @@ bool WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI)
 // FUNCTION: WIZ8 0x004D3A10
 bool ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj, unsigned char fSuccess)
 {
-    unsigned char ok;
     unsigned short usFrame;
     short i;
     short j;
@@ -1547,32 +1543,25 @@ bool ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj, unsigned c
                       FileRead(hFile, &pAnimObj->path_lists_06, 1, 0);
     if (pAnimObj->version_00 < 3) {
         pAnimObj->playback_scale_07 = 15.0f;
-    } else if ((f == 0) || (ok = FileRead(hFile, &pAnimObj->playback_scale_07, 4, 0), ok == 0)) {
-        f = 0;
     } else {
-        f = 1;
+        f = f && FileRead(hFile, &pAnimObj->playback_scale_07, 4, 0);
     }
     if (pAnimObj->version_00 < 5) {
         pAnimObj->start_frame_0b = 0;
-    } else if ((f == 0) || (ok = FileRead(hFile, &pAnimObj->start_frame_0b, 1, 0), ok == 0)) {
-        f = 0;
     } else {
-        f = 1;
+        f = f && FileRead(hFile, &pAnimObj->start_frame_0b, 1, 0);
     }
     if (pAnimObj->version_00 < 6) {
         pAnimObj->random_play_0c = 0;
         pAnimObj->play_chance_0d = 1.0f;
-        if ((f != 0) && (ok = FileRead(hFile, pAnimObj->discarded_11, 0x32, 0), ok != 0)) {
-            goto header_done;
-        }
-    } else if ((f != 0) && (ok = FileRead(hFile, &pAnimObj->random_play_0c, 1, 0), ok != 0)) {
-        f = FileRead(hFile, &pAnimObj->play_chance_0d, 4, 0);
-        if ((f != 0) && (ok = FileRead(hFile, pAnimObj->discarded_11, 0x32, 0), ok != 0)) {
-            goto header_done;
-        }
+    } else {
+        f = f && FileRead(hFile, &pAnimObj->random_play_0c, 1, 0);
+        f = f && FileRead(hFile, &pAnimObj->play_chance_0d, 4, 0);
     }
-    srAssertFail("fSuccess", LEVELFILE_CPP, 0x7a5, 0);
-header_done:
+    f = f && FileRead(hFile, pAnimObj->discarded_11, 0x32, 0);
+    if (f == 0) {
+        srAssertFail("fSuccess", LEVELFILE_CPP, 0x7a5, 0);
+    }
     if (pAnimObj->num_anims_01 != 0) {
         pAnimObj->abHowMany = static_cast<char*>(malloc(pAnimObj->num_anims_01));
         if (pAnimObj->abHowMany == 0) {
@@ -1616,16 +1605,18 @@ header_done:
         }
     }
     if (pAnimObj->path_lists_06 == 0) {
-        if ((pAnimObj->version_00 > 8) &&
-            (FileRead(hFile, &pAnimObj->has_path_ai_51, 1, 0), pAnimObj->has_path_ai_51 != 0)) {
-            pAnimObj->pPathAI_52 =
-                static_cast<W8LevelFilePathAI*>(malloc(sizeof(W8LevelFilePathAI)));
-            if (pAnimObj->pPathAI_52 == 0) {
-                return 0;
-            }
-            fSuccess = ReadPathAIFile004D3770(hFile, pAnimObj->pPathAI_52);
-            if (fSuccess == 0) {
-                return 0;
+        if (pAnimObj->version_00 > 8) {
+            FileRead(hFile, &pAnimObj->has_path_ai_51, 1, 0);
+            if (pAnimObj->has_path_ai_51 != 0) {
+                pAnimObj->pPathAI_52 =
+                    static_cast<W8LevelFilePathAI*>(malloc(sizeof(W8LevelFilePathAI)));
+                if (pAnimObj->pPathAI_52 == 0) {
+                    return 0;
+                }
+                fSuccess = ReadPathAIFile004D3770(hFile, pAnimObj->pPathAI_52);
+                if (fSuccess == 0) {
+                    return 0;
+                }
             }
         }
         if (pAnimObj->num_anims_01 != 0) {
@@ -1766,7 +1757,6 @@ header_done:
 // FUNCTION: WIZ8 0x004D4480
 bool WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj)
 {
-    unsigned char ok;
     unsigned short usFrame;
     short i;
     short j;
@@ -1779,35 +1769,19 @@ bool WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj)
                       FileWrite(hFile, &pAnimObj->cycle_05, 1, 0) &
                       FileWrite(hFile, &pAnimObj->path_lists_06, 1, 0);
     if (pAnimObj->version_00 > 2) {
-        if ((f == 0) || (ok = FileWrite(hFile, &pAnimObj->playback_scale_07, 4, 0), ok == 0)) {
-            f = 0;
-        } else {
-            f = 1;
-        }
+        f = f && FileWrite(hFile, &pAnimObj->playback_scale_07, 4, 0);
     }
     if (pAnimObj->version_00 > 4) {
-        if ((f == 0) || (ok = FileWrite(hFile, &pAnimObj->start_frame_0b, 1, 0), ok == 0)) {
-            f = 0;
-        } else {
-            f = 1;
-        }
+        f = f && FileWrite(hFile, &pAnimObj->start_frame_0b, 1, 0);
     }
-    unsigned char fSuccess;
-    if (pAnimObj->version_00 < 6) {
-        if ((f != 0) && (ok = FileWrite(hFile, pAnimObj->discarded_11, 0x32, 0), ok != 0)) {
-            fSuccess = 1;
-            goto header_done;
-        }
-    } else if ((f != 0) && (ok = FileWrite(hFile, &pAnimObj->random_play_0c, 1, 0), ok != 0)) {
-        f = FileWrite(hFile, &pAnimObj->play_chance_0d, 4, 0);
-        if ((f != 0) && (ok = FileWrite(hFile, pAnimObj->discarded_11, 0x32, 0), ok != 0)) {
-            fSuccess = 1;
-            goto header_done;
-        }
+    if (pAnimObj->version_00 > 5) {
+        f = f && FileWrite(hFile, &pAnimObj->random_play_0c, 1, 0);
+        f = f && FileWrite(hFile, &pAnimObj->play_chance_0d, 4, 0);
     }
-    fSuccess = 0;
-    srAssertFail("fSuccess", LEVELFILE_CPP, 0x867, 0);
-header_done:
+    unsigned char fSuccess = f && FileWrite(hFile, pAnimObj->discarded_11, 0x32, 0);
+    if (fSuccess == 0) {
+        srAssertFail("fSuccess", LEVELFILE_CPP, 0x867, 0);
+    }
     if (pAnimObj->num_anims_01 != 0) {
         if (pAnimObj->abHowMany == 0) {
             srAssertFail("pAnimObj->abHowMany", LEVELFILE_CPP, 0x86b, 0);
@@ -1844,13 +1818,14 @@ header_done:
         }
     }
     if (pAnimObj->path_lists_06 == 0) {
-        if ((pAnimObj->version_00 > 8) &&
-            (FileWrite(hFile, &pAnimObj->has_path_ai_51, 1, 0), pAnimObj->has_path_ai_51 != 0) &&
-            (pAnimObj->pPathAI_52 != 0)) {
-            fSuccess = WritePathAIFile004D38E0(hFile, pAnimObj->pPathAI_52);
-            free(pAnimObj->pPathAI_52);
-            if (fSuccess == 0) {
-                return 0;
+        if (pAnimObj->version_00 > 8) {
+            FileWrite(hFile, &pAnimObj->has_path_ai_51, 1, 0);
+            if (pAnimObj->has_path_ai_51 != 0 && pAnimObj->pPathAI_52 != 0) {
+                fSuccess = WritePathAIFile004D38E0(hFile, pAnimObj->pPathAI_52);
+                free(pAnimObj->pPathAI_52);
+                if (fSuccess == 0) {
+                    return 0;
+                }
             }
         }
         if (pAnimObj->num_anims_01 != 0) {

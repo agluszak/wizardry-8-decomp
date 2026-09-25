@@ -2215,9 +2215,11 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
         result = CreateCharacterBreathEffect(party_slot);
         break;
     case 3:
-        if (gXStatus.hostile_monster_count != 0 &&
-            (TurnUndead(party_slot, &fatigue_cost, 1), fatigue_cost != -1)) {
-            goto action_done;
+        if (gXStatus.hostile_monster_count != 0) {
+            TurnUndead(party_slot, &fatigue_cost, 1);
+            if (fatigue_cost != -1) {
+                goto action_done;
+            }
         }
         goto action_failed;
     case 4:
