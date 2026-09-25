@@ -828,8 +828,6 @@ unsigned char WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight
 // FUNCTION: WIZ8 0x004D1C10
 unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
 {
-    unsigned char ok;
-
     unsigned char fSuccess =
         FileRead(hFile, &pTrigger->version_00, 1, 0) && FileRead(hFile, &pTrigger->type_01, 1, 0);
     switch (pTrigger->type_01) {
@@ -839,21 +837,20 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
             srAssertFail("pSwitch", LEVELFILE_CPP, 0x3f8, 0);
         }
         memset(pSwitch, 0, sizeof(W8LevelFileSwitch));
-        ok = FileRead(hFile, &pSwitch->version_00, 1, 0);
-        ok &= FileRead(hFile, &pSwitch->cycle_bounce_01, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->state_count_05, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->flag_09, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->range_0d, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->action_11, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->value_15, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->flag_19, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->packed_flags_1d, 1, 0);
-        ok &= FileRead(hFile, &pSwitch->enabled_1e, 1, 0);
-        ok &= FileRead(hFile, pSwitch->name_1f, 0x80, 0);
-        ok &= FileRead(hFile, pSwitch->recipients_9f, 0x100, 0);
-        ok &= FileRead(hFile, pSwitch->sound_19f, 0x80, 0);
-        ok &= fSuccess;
-        if (ok == 0) {
+        fSuccess &= FileRead(hFile, &pSwitch->version_00, 1, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->cycle_bounce_01, 4, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->state_count_05, 4, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->flag_09, 4, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->range_0d, 4, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->action_11, 4, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->value_15, 4, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->flag_19, 4, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->packed_flags_1d, 1, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->enabled_1e, 1, 0);
+        fSuccess &= FileRead(hFile, pSwitch->name_1f, 0x80, 0);
+        fSuccess &= FileRead(hFile, pSwitch->recipients_9f, 0x100, 0);
+        fSuccess &= FileRead(hFile, pSwitch->sound_19f, 0x80, 0);
+        if (fSuccess == 0) {
             srAssertFail("fSuccess", LEVELFILE_CPP, 0x408, 0);
         }
         ReportBuildStatus00497690(
@@ -863,19 +860,19 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
                 "Switch Trigger: %s, recipients: %s\n", // reinterpret-ok: String returns a logging buffer
                 pSwitch->name_1f, pSwitch->recipients_9f)));
         if (pSwitch->version_00 > 1) {
-            ok &= FileRead(hFile, &pSwitch->minimum_range_21f, 4, 0);
-            ok &= FileRead(hFile, pSwitch->surface_id_223, 0x40, 0);
+            fSuccess &= FileRead(hFile, &pSwitch->minimum_range_21f, 4, 0);
+            fSuccess &= FileRead(hFile, pSwitch->surface_id_223, 0x40, 0);
             ReportBuildStatus00497690(
                 5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
                        String("Switch Trigger name: %s\n", pSwitch->surface_id_223)));
         }
         if (pSwitch->version_00 > 2) {
-            ok &= FileRead(hFile, &pSwitch->has_door_trigger_263, 1, 0);
+            fSuccess &= FileRead(hFile, &pSwitch->has_door_trigger_263, 1, 0);
             if (pSwitch->has_door_trigger_263 != 0) {
-                ok &= FileRead(hFile, &pSwitch->door_264.kind_00, 1, 0);
+                fSuccess &= FileRead(hFile, &pSwitch->door_264.kind_00, 1, 0);
                 if (pSwitch->door_264.kind_00 == 1) {
-                    ok &= ReadDoorTriggerFile004D3540(hFile, &pSwitch->door_264);
-                    if (ok == 0) {
+                    fSuccess &= ReadDoorTriggerFile004D3540(hFile, &pSwitch->door_264);
+                    if (fSuccess == 0) {
                         ReportBuildStatus00497690(7, "Problem reading door trigger.\n");
                         return 0;
                     }
@@ -883,13 +880,87 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
             }
         }
         if (pSwitch->version_00 > 3) {
-            ok &= FileRead(hFile, &pSwitch->action_value_26d, 4, 0);
+            fSuccess &= FileRead(hFile, &pSwitch->action_value_26d, 4, 0);
         }
         pTrigger->pData_02 = pSwitch;
         g_level_file_6833fc->switch_triggers_6c5[g_level_file_6833fc->num_switch_triggers_6c1] =
             pSwitch;
         ++g_level_file_6833fc->num_switch_triggers_6c1;
-        return ok;
+        return fSuccess;
+    }
+    case 2: {
+        W8LevelFileInvisible* pInvis = static_cast<W8LevelFileInvisible*>(malloc(0x241));
+        if (pInvis == 0) {
+            srAssertFail("pInvis", LEVELFILE_CPP, 0x42f, 0);
+        }
+        memset(pInvis, 0, sizeof(W8LevelFileInvisible));
+        fSuccess &= FileRead(hFile, &pInvis->version_00, 1, 0);
+        fSuccess &= FileRead(hFile, &pInvis->range_01, 4, 0);
+        fSuccess &= FileRead(hFile, &pInvis->position_05, 0xc, 0);
+        fSuccess &= FileRead(hFile, &pInvis->action_11, 4, 0);
+        fSuccess &= FileRead(hFile, &pInvis->searchable_15, 4, 0);
+        fSuccess &= FileRead(hFile, &pInvis->fire_linked_19, 1, 0);
+        fSuccess &= FileRead(hFile, &pInvis->enabled_1a, 1, 0);
+        fSuccess &= FileRead(hFile, pInvis->name_1b, 0x80, 0);
+        fSuccess &= FileRead(hFile, pInvis->recipients_9b, 0x100, 0);
+        ReportBuildStatus00497690(
+            5,
+            reinterpret_cast< // reinterpret-ok: String returns a logging buffer
+                const char*>(String(
+                "Invisible Trigger: %s, recipients: %s\n", // reinterpret-ok: String returns a logging buffer
+                pInvis->name_1b, pInvis->recipients_9b)));
+        if (pInvis->version_00 > 1) {
+            fSuccess &= FileRead(hFile, &pInvis->plane_flag_19b, 1, 0);
+            pInvis->pPlane_19c = static_cast<W8LevelFilePlane*>(malloc(0x30));
+            if (pInvis->pPlane_19c == 0) {
+                srAssertFail("pInvis->pPlane", LEVELFILE_CPP, 0x441, 0);
+            }
+            memset(pInvis->pPlane_19c, 0, sizeof(W8LevelFilePlane));
+            fSuccess &= FileRead(hFile, pInvis->pPlane_19c, 0x30, 0);
+        }
+        if (pInvis->version_00 > 2) {
+            fSuccess &= FileRead(hFile, &pInvis->angle_1a0, 4, 0);
+            fSuccess &= FileRead(hFile, &pInvis->direction_1a4, 0xc, 0);
+            fSuccess &= FileRead(hFile, &pInvis->unused_1b0, 1, 0);
+            fSuccess &= FileRead(hFile, pInvis->action_string_1b1, 0x80, 0);
+        }
+        if (pInvis->version_00 > 3) {
+            fSuccess &= FileRead(hFile, &pInvis->flag_231, 1, 0);
+            fSuccess &= FileRead(hFile, &pInvis->action_value_232, 4, 0);
+        }
+        if (pInvis->version_00 > 4) {
+            fSuccess &= FileRead(hFile, &pInvis->has_legacy_geometry_236, 1, 0);
+            if (pInvis->has_legacy_geometry_236 != 0) {
+                fSuccess &= FileRead(hFile, &pInvis->geometry_kind_238, 1, 0);
+                if (pInvis->field_237 == 2) {
+                    W8LevelFileLinkedRecord* pRecord =
+                        static_cast<W8LevelFileLinkedRecord*>(malloc(0x1bb));
+                    unsigned char okRecord = 0;
+                    if (pRecord != 0) {
+                        okRecord = FileRead(hFile, &pRecord->kind_00, 1, 0);
+                        okRecord &= FileRead(hFile, pRecord->vertices_01, 0x1b0, 0);
+                        okRecord &= FileRead(hFile, &pRecord->linked_face_1b1, 2, 0);
+                        g_level_file_6833fc
+                            ->linked_records_260d[g_level_file_6833fc->num_linked_records_2609] =
+                            pRecord;
+                        ++g_level_file_6833fc->num_linked_records_2609;
+                        pInvis->pRecord_23d = pRecord;
+                    }
+                    if ((fSuccess & okRecord) != 0) {
+                        pInvis->pRecord_23d->normal_scale_1b3 = pInvis->range_01;
+                        pInvis->pRecord_23d->forward_scale_1b7 = 1.0f;
+                        pTrigger->pData_02 = pInvis;
+                        return fSuccess & okRecord;
+                    }
+                    return 0;
+                }
+            }
+        }
+        g_level_file_6833fc->invisible_planes_1669[g_level_file_6833fc->num_invisible_planes_1665] =
+            pInvis->pPlane_19c;
+        ++g_level_file_6833fc->num_invisible_planes_1665;
+        pTrigger->pData_02 = pInvis;
+        return fSuccess;
     }
     case 3: {
         W8LevelFileSound* pSound = static_cast<W8LevelFileSound*>(malloc(0x170));
@@ -897,32 +968,31 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
             srAssertFail("pSound", LEVELFILE_CPP, 0x46c, 0);
         }
         memset(pSound, 0, sizeof(W8LevelFileSound));
-        ok = FileRead(hFile, &pSound->version_00, 1, 0);
-        ok &= FileRead(hFile, &pSound->volume_min_01, 4, 0);
-        ok &= FileRead(hFile, &pSound->volume_max_05, 4, 0);
-        ok &= FileRead(hFile, &pSound->speed_min_09, 4, 0);
-        ok &= FileRead(hFile, &pSound->speed_max_0d, 4, 0);
-        ok &= FileRead(hFile, &pSound->time_min_11, 4, 0);
-        ok &= FileRead(hFile, &pSound->time_max_15, 4, 0);
-        ok &= FileRead(hFile, &pSound->unbounded_19, 4, 0);
-        ok &= FileRead(hFile, &pSound->radius_1d, 4, 0);
-        ok &= FileRead(hFile, &pSound->position_21, 0xc, 0);
-        ok &= FileRead(hFile, &pSound->region_u_2d, 0xc, 0);
-        ok &= FileRead(hFile, &pSound->region_v_39, 0xc, 0);
-        ok &= FileRead(hFile, pSound->wave_45, 0x80, 0);
-        ok &= fSuccess;
+        fSuccess &= FileRead(hFile, &pSound->version_00, 1, 0);
+        fSuccess &= FileRead(hFile, &pSound->volume_min_01, 4, 0);
+        fSuccess &= FileRead(hFile, &pSound->volume_max_05, 4, 0);
+        fSuccess &= FileRead(hFile, &pSound->speed_min_09, 4, 0);
+        fSuccess &= FileRead(hFile, &pSound->speed_max_0d, 4, 0);
+        fSuccess &= FileRead(hFile, &pSound->time_min_11, 4, 0);
+        fSuccess &= FileRead(hFile, &pSound->time_max_15, 4, 0);
+        fSuccess &= FileRead(hFile, &pSound->unbounded_19, 4, 0);
+        fSuccess &= FileRead(hFile, &pSound->radius_1d, 4, 0);
+        fSuccess &= FileRead(hFile, &pSound->position_21, 0xc, 0);
+        fSuccess &= FileRead(hFile, &pSound->region_u_2d, 0xc, 0);
+        fSuccess &= FileRead(hFile, &pSound->region_v_39, 0xc, 0);
+        fSuccess &= FileRead(hFile, pSound->wave_45, 0x80, 0);
         if (pSound->version_00 > 1) {
-            ok &= FileRead(hFile, &pSound->has_position_c5, 1, 0);
-            ok &= FileRead(hFile, &pSound->looping_c6, 1, 0);
+            fSuccess &= FileRead(hFile, &pSound->has_position_c5, 1, 0);
+            fSuccess &= FileRead(hFile, &pSound->looping_c6, 1, 0);
         }
         if (pSound->version_00 > 2) {
-            ok &= FileRead(hFile, &pSound->region_center_c7, 0xc, 0);
-            ok &= FileRead(hFile, &pSound->region_angle_d3, 4, 0);
-            ok &= FileRead(hFile, &pSound->region_min_d7, 0xc, 0);
-            ok &= FileRead(hFile, &pSound->region_max_e3, 0xc, 0);
+            fSuccess &= FileRead(hFile, &pSound->region_center_c7, 0xc, 0);
+            fSuccess &= FileRead(hFile, &pSound->region_angle_d3, 4, 0);
+            fSuccess &= FileRead(hFile, &pSound->region_min_d7, 0xc, 0);
+            fSuccess &= FileRead(hFile, &pSound->region_max_e3, 0xc, 0);
         }
         if (pSound->version_00 > 3) {
-            ok &= FileRead(hFile, pSound->name_ef, 0x80, 0);
+            fSuccess &= FileRead(hFile, pSound->name_ef, 0x80, 0);
             ReportBuildStatus00497690(
                 5, reinterpret_cast< // reinterpret-ok: String returns a logging buffer
                        const char*>(
@@ -930,183 +1000,97 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
                               pSound->name_ef))); // reinterpret-ok: String returns a logging buffer
         }
         if (pSound->version_00 > 4) {
-            ok &= FileRead(hFile, &pSound->shared_16f, 1, 0);
+            fSuccess &= FileRead(hFile, &pSound->shared_16f, 1, 0);
         }
         pTrigger->pData_02 = pSound;
-        return ok;
+        return fSuccess;
     }
     case 4:
         return ReadSuperTriggerFile004D2A30(hFile, pTrigger) & fSuccess;
-    case 2:
-        break;
     default:
         return fSuccess;
     }
-
-    W8LevelFileInvisible* pInvis = static_cast<W8LevelFileInvisible*>(malloc(0x241));
-    if (pInvis == 0) {
-        srAssertFail("pInvis", LEVELFILE_CPP, 0x42f, 0);
-    }
-    memset(pInvis, 0, sizeof(W8LevelFileInvisible));
-    ok = FileRead(hFile, &pInvis->version_00, 1, 0);
-    ok &= FileRead(hFile, &pInvis->range_01, 4, 0);
-    ok &= FileRead(hFile, &pInvis->position_05, 0xc, 0);
-    ok &= FileRead(hFile, &pInvis->action_11, 4, 0);
-    ok &= FileRead(hFile, &pInvis->searchable_15, 4, 0);
-    ok &= FileRead(hFile, &pInvis->fire_linked_19, 1, 0);
-    ok &= FileRead(hFile, &pInvis->enabled_1a, 1, 0);
-    ok &= FileRead(hFile, pInvis->name_1b, 0x80, 0);
-    ok &= FileRead(hFile, pInvis->recipients_9b, 0x100, 0);
-    ok &= fSuccess;
-    ReportBuildStatus00497690(
-        5,
-        reinterpret_cast< // reinterpret-ok: String returns a logging buffer
-            const char*>(String(
-            "Invisible Trigger: %s, recipients: %s\n", // reinterpret-ok: String returns a logging buffer
-            pInvis->name_1b, pInvis->recipients_9b)));
-    if (pInvis->version_00 > 1) {
-        ok &= FileRead(hFile, &pInvis->plane_flag_19b, 1, 0);
-        pInvis->pPlane_19c = static_cast<W8LevelFilePlane*>(malloc(0x30));
-        if (pInvis->pPlane_19c == 0) {
-            srAssertFail("pInvis->pPlane", LEVELFILE_CPP, 0x441, 0);
-        }
-        memset(pInvis->pPlane_19c, 0, sizeof(W8LevelFilePlane));
-        ok &= FileRead(hFile, pInvis->pPlane_19c, 0x30, 0);
-    }
-    if (pInvis->version_00 > 2) {
-        ok &= FileRead(hFile, &pInvis->angle_1a0, 4, 0);
-        ok &= FileRead(hFile, &pInvis->direction_1a4, 0xc, 0);
-        ok &= FileRead(hFile, &pInvis->unused_1b0, 1, 0);
-        ok &= FileRead(hFile, pInvis->action_string_1b1, 0x80, 0);
-    }
-    if (pInvis->version_00 > 3) {
-        ok &= FileRead(hFile, &pInvis->flag_231, 1, 0);
-        ok &= FileRead(hFile, &pInvis->action_value_232, 4, 0);
-    }
-    if (pInvis->version_00 > 4) {
-        ok &= FileRead(hFile, &pInvis->has_legacy_geometry_236, 1, 0);
-        if (pInvis->has_legacy_geometry_236 != 0) {
-            ok &= FileRead(hFile, &pInvis->geometry_kind_238, 1, 0);
-            if (pInvis->field_237 == 2) {
-                W8LevelFileLinkedRecord* pRecord =
-                    static_cast<W8LevelFileLinkedRecord*>(malloc(0x1bb));
-                unsigned char okRecord = 0;
-                if (pRecord != 0) {
-                    okRecord = FileRead(hFile, &pRecord->kind_00, 1, 0);
-                    okRecord &= FileRead(hFile, pRecord->vertices_01, 0x1b0, 0);
-                    okRecord &= FileRead(hFile, &pRecord->linked_face_1b1, 2, 0);
-                    g_level_file_6833fc
-                        ->linked_records_260d[g_level_file_6833fc->num_linked_records_2609] =
-                        pRecord;
-                    ++g_level_file_6833fc->num_linked_records_2609;
-                    pInvis->pRecord_23d = pRecord;
-                }
-                if ((ok & okRecord) != 0) {
-                    pInvis->pRecord_23d->normal_scale_1b3 = pInvis->range_01;
-                    pInvis->pRecord_23d->forward_scale_1b7 = 1.0f;
-                    pTrigger->pData_02 = pInvis;
-                    return ok & okRecord;
-                }
-                return 0;
-            }
-        }
-    }
-    g_level_file_6833fc->invisible_planes_1669[g_level_file_6833fc->num_invisible_planes_1665] =
-        pInvis->pPlane_19c;
-    ++g_level_file_6833fc->num_invisible_planes_1665;
-    pTrigger->pData_02 = pInvis;
-    return ok;
 }
 
 // FUNCTION: WIZ8 0x004D23F0
 unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
 {
-    unsigned char fSuccess;
-    unsigned char ok;
-
-    ok = FileWrite(hFile, &pTrigger->version_00, 1, 0);
-    if ((ok != 0) && (FileWrite(hFile, &pTrigger->type_01, 1, 0) != 0)) {
-        fSuccess = 1;
-    } else {
-        fSuccess = 0;
-    }
-    fSuccess = (ok != 0) & fSuccess;
+    unsigned char fSuccess = FileWrite(hFile, &pTrigger->version_00, 1, 0) != 0;
+    fSuccess &= fSuccess && FileWrite(hFile, &pTrigger->type_01, 1, 0);
     switch (pTrigger->type_01) {
     case 1: {
         W8LevelFileSwitch* pSwitch = static_cast<W8LevelFileSwitch*>(pTrigger->pData_02);
         if (pSwitch == 0) {
             srAssertFail("pSwitch", LEVELFILE_CPP, 0x4be, 0);
         }
-        ok = FileWrite(hFile, &pSwitch->version_00, 1, 0);
-        ok &= FileWrite(hFile, &pSwitch->cycle_bounce_01, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->state_count_05, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->flag_09, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->range_0d, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->action_11, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->value_15, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->flag_19, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->packed_flags_1d, 1, 0);
-        ok &= FileWrite(hFile, &pSwitch->enabled_1e, 1, 0);
-        ok &= FileWrite(hFile, pSwitch->name_1f, 0x80, 0);
-        ok &= FileWrite(hFile, pSwitch->recipients_9f, 0x100, 0);
-        ok &= FileWrite(hFile, pSwitch->sound_19f, 0x80, 0);
-        ok &= fSuccess;
-        if (ok == 0) {
+        fSuccess &= FileWrite(hFile, &pSwitch->version_00, 1, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->cycle_bounce_01, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->state_count_05, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->flag_09, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->range_0d, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->action_11, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->value_15, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->flag_19, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->packed_flags_1d, 1, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->enabled_1e, 1, 0);
+        fSuccess &= FileWrite(hFile, pSwitch->name_1f, 0x80, 0);
+        fSuccess &= FileWrite(hFile, pSwitch->recipients_9f, 0x100, 0);
+        fSuccess &= FileWrite(hFile, pSwitch->sound_19f, 0x80, 0);
+        if (fSuccess == 0) {
             srAssertFail("fSuccess", LEVELFILE_CPP, 0x4cd, 0);
         }
         if (pSwitch->version_00 > 1) {
-            ok &= FileWrite(hFile, &pSwitch->minimum_range_21f, 4, 0);
-            ok &= FileWrite(hFile, pSwitch->surface_id_223, 0x40, 0);
+            fSuccess &= FileWrite(hFile, &pSwitch->minimum_range_21f, 4, 0);
+            fSuccess &= FileWrite(hFile, pSwitch->surface_id_223, 0x40, 0);
         }
         if (pSwitch->version_00 > 2) {
-            ok &= FileWrite(hFile, &pSwitch->has_door_trigger_263, 1, 0);
+            fSuccess &= FileWrite(hFile, &pSwitch->has_door_trigger_263, 1, 0);
             if (pSwitch->has_door_trigger_263 != 0) {
-                ok &= FileWrite(hFile, &pSwitch->door_264.kind_00, 1, 0);
+                fSuccess &= FileWrite(hFile, &pSwitch->door_264.kind_00, 1, 0);
                 if (pSwitch->door_264.kind_00 == 1) {
-                    ok &= WriteDoorTriggerFile004D3660(hFile, &pSwitch->door_264);
+                    fSuccess &= WriteDoorTriggerFile004D3660(hFile, &pSwitch->door_264);
                 }
             }
         }
         if (pSwitch->version_00 > 3) {
-            ok &= FileWrite(hFile, &pSwitch->action_value_26d, 4, 0);
+            fSuccess &= FileWrite(hFile, &pSwitch->action_value_26d, 4, 0);
         }
         free(pSwitch);
-        return ok;
+        return fSuccess;
     }
     case 2: {
         W8LevelFileInvisible* pInvis = static_cast<W8LevelFileInvisible*>(pTrigger->pData_02);
         if (pInvis == 0) {
             srAssertFail("pInvis", LEVELFILE_CPP, 0x4ea, 0);
         }
-        ok = FileWrite(hFile, &pInvis->version_00, 1, 0);
-        ok &= FileWrite(hFile, &pInvis->range_01, 4, 0);
-        ok &= FileWrite(hFile, &pInvis->position_05, 0xc, 0);
-        ok &= FileWrite(hFile, &pInvis->action_11, 4, 0);
-        ok &= FileWrite(hFile, &pInvis->searchable_15, 4, 0);
-        ok &= FileWrite(hFile, &pInvis->fire_linked_19, 1, 0);
-        ok &= FileWrite(hFile, &pInvis->enabled_1a, 1, 0);
-        ok &= FileWrite(hFile, pInvis->name_1b, 0x80, 0);
-        ok &= FileWrite(hFile, pInvis->recipients_9b, 0x100, 0);
-        ok &= fSuccess;
+        fSuccess &= FileWrite(hFile, &pInvis->version_00, 1, 0);
+        fSuccess &= FileWrite(hFile, &pInvis->range_01, 4, 0);
+        fSuccess &= FileWrite(hFile, &pInvis->position_05, 0xc, 0);
+        fSuccess &= FileWrite(hFile, &pInvis->action_11, 4, 0);
+        fSuccess &= FileWrite(hFile, &pInvis->searchable_15, 4, 0);
+        fSuccess &= FileWrite(hFile, &pInvis->fire_linked_19, 1, 0);
+        fSuccess &= FileWrite(hFile, &pInvis->enabled_1a, 1, 0);
+        fSuccess &= FileWrite(hFile, pInvis->name_1b, 0x80, 0);
+        fSuccess &= FileWrite(hFile, pInvis->recipients_9b, 0x100, 0);
         if (pInvis->version_00 > 1) {
-            ok &= FileWrite(hFile, &pInvis->plane_flag_19b, 1, 0);
-            ok &= FileWrite(hFile, pInvis->pPlane_19c, 0x30, 0);
+            fSuccess &= FileWrite(hFile, &pInvis->plane_flag_19b, 1, 0);
+            fSuccess &= FileWrite(hFile, pInvis->pPlane_19c, 0x30, 0);
             free(pInvis->pPlane_19c);
         }
         if (pInvis->version_00 > 2) {
-            ok &= FileWrite(hFile, &pInvis->angle_1a0, 4, 0);
-            ok &= FileWrite(hFile, &pInvis->direction_1a4, 0xc, 0);
-            ok &= FileWrite(hFile, &pInvis->unused_1b0, 1, 0);
-            ok &= FileWrite(hFile, pInvis->action_string_1b1, 0x80, 0);
+            fSuccess &= FileWrite(hFile, &pInvis->angle_1a0, 4, 0);
+            fSuccess &= FileWrite(hFile, &pInvis->direction_1a4, 0xc, 0);
+            fSuccess &= FileWrite(hFile, &pInvis->unused_1b0, 1, 0);
+            fSuccess &= FileWrite(hFile, pInvis->action_string_1b1, 0x80, 0);
         }
         if (pInvis->version_00 > 3) {
-            ok &= FileWrite(hFile, &pInvis->flag_231, 1, 0);
-            ok &= FileWrite(hFile, &pInvis->action_value_232, 4, 0);
+            fSuccess &= FileWrite(hFile, &pInvis->flag_231, 1, 0);
+            fSuccess &= FileWrite(hFile, &pInvis->action_value_232, 4, 0);
         }
         if (pInvis->version_00 > 4) {
-            ok &= FileWrite(hFile, &pInvis->has_legacy_geometry_236, 1, 0);
+            fSuccess &= FileWrite(hFile, &pInvis->has_legacy_geometry_236, 1, 0);
             if (pInvis->has_legacy_geometry_236 != 0) {
-                ok &= FileWrite(hFile, &pInvis->geometry_kind_238, 1, 0);
+                fSuccess &= FileWrite(hFile, &pInvis->geometry_kind_238, 1, 0);
                 if (pInvis->field_237 == 2) {
                     W8LevelFileLinkedRecord* pRecord = pInvis->pRecord_23d;
                     unsigned char okRecord = 0;
@@ -1116,53 +1100,52 @@ unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
                         okRecord &= FileWrite(hFile, &pRecord->linked_face_1b1, 2, 0);
                         free(pRecord);
                     }
-                    ok &= okRecord;
-                    if (ok == 0) {
+                    fSuccess &= okRecord;
+                    if (fSuccess == 0) {
                         return 0;
                     }
                 }
             }
         }
         free(pInvis);
-        return ok;
+        return fSuccess;
     }
     case 3: {
         W8LevelFileSound* pSound = static_cast<W8LevelFileSound*>(pTrigger->pData_02);
         if (pSound == 0) {
             srAssertFail("pSound", LEVELFILE_CPP, 0x51e, 0);
         }
-        ok = FileWrite(hFile, &pSound->version_00, 1, 0);
-        ok &= FileWrite(hFile, &pSound->volume_min_01, 4, 0);
-        ok &= FileWrite(hFile, &pSound->volume_max_05, 4, 0);
-        ok &= FileWrite(hFile, &pSound->speed_min_09, 4, 0);
-        ok &= FileWrite(hFile, &pSound->speed_max_0d, 4, 0);
-        ok &= FileWrite(hFile, &pSound->time_min_11, 4, 0);
-        ok &= FileWrite(hFile, &pSound->time_max_15, 4, 0);
-        ok &= FileWrite(hFile, &pSound->unbounded_19, 4, 0);
-        ok &= FileWrite(hFile, &pSound->radius_1d, 4, 0);
-        ok &= FileWrite(hFile, &pSound->position_21, 0xc, 0);
-        ok &= FileWrite(hFile, &pSound->region_u_2d, 0xc, 0);
-        ok &= FileWrite(hFile, &pSound->region_v_39, 0xc, 0);
-        ok &= FileWrite(hFile, pSound->wave_45, 0x80, 0);
-        ok &= fSuccess;
+        fSuccess &= FileWrite(hFile, &pSound->version_00, 1, 0);
+        fSuccess &= FileWrite(hFile, &pSound->volume_min_01, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSound->volume_max_05, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSound->speed_min_09, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSound->speed_max_0d, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSound->time_min_11, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSound->time_max_15, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSound->unbounded_19, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSound->radius_1d, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSound->position_21, 0xc, 0);
+        fSuccess &= FileWrite(hFile, &pSound->region_u_2d, 0xc, 0);
+        fSuccess &= FileWrite(hFile, &pSound->region_v_39, 0xc, 0);
+        fSuccess &= FileWrite(hFile, pSound->wave_45, 0x80, 0);
         if (pSound->version_00 > 1) {
-            ok &= FileWrite(hFile, &pSound->has_position_c5, 1, 0);
-            ok &= FileWrite(hFile, &pSound->looping_c6, 1, 0);
+            fSuccess &= FileWrite(hFile, &pSound->has_position_c5, 1, 0);
+            fSuccess &= FileWrite(hFile, &pSound->looping_c6, 1, 0);
         }
         if (pSound->version_00 > 2) {
-            ok &= FileWrite(hFile, &pSound->region_center_c7, 0xc, 0);
-            ok &= FileWrite(hFile, &pSound->region_angle_d3, 4, 0);
-            ok &= FileWrite(hFile, &pSound->region_min_d7, 0xc, 0);
-            ok &= FileWrite(hFile, &pSound->region_max_e3, 0xc, 0);
+            fSuccess &= FileWrite(hFile, &pSound->region_center_c7, 0xc, 0);
+            fSuccess &= FileWrite(hFile, &pSound->region_angle_d3, 4, 0);
+            fSuccess &= FileWrite(hFile, &pSound->region_min_d7, 0xc, 0);
+            fSuccess &= FileWrite(hFile, &pSound->region_max_e3, 0xc, 0);
         }
         if (pSound->version_00 > 3) {
-            ok &= FileWrite(hFile, pSound->name_ef, 0x80, 0);
+            fSuccess &= FileWrite(hFile, pSound->name_ef, 0x80, 0);
         }
         if (pSound->version_00 > 4) {
-            ok &= FileWrite(hFile, &pSound->shared_16f, 1, 0);
+            fSuccess &= FileWrite(hFile, &pSound->shared_16f, 1, 0);
         }
         free(pSound);
-        return ok;
+        return fSuccess;
     }
     case 4:
         return WriteSuperTriggerFile004D3000(hFile, pTrigger) & fSuccess;

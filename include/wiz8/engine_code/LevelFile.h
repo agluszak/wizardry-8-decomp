@@ -228,7 +228,7 @@ struct W8LevelFileLinkedRecord {
    (Trigger.cpp case 1) reads the same fields into a W8Trigger, which names
    the serialized semantics. */
 struct W8LevelFileSwitch { /* 0x271 */
-    unsigned char version_00;
+    char version_00;
     int cycle_bounce_01;           /* -> Trigger::cycle_bounce */
     int state_count_05;            /* -> Trigger::state_count */
     float flag_09;                 /* != 0 -> Trigger::flags_0a0 bit0 */
@@ -256,7 +256,7 @@ struct W8LevelFilePlane { /* 0x30 */
 /* The 0x241-byte type-2 (invisible) trigger record. The .pvl type-2 stream
    (Trigger.cpp case 2) reads the same fields into a W8Trigger. */
 struct W8LevelFileInvisible { /* 0x241 */
-    unsigned char version_00;
+    char version_00;
     float range_01;                /* -> range_maximum_0a8 (*500) */
     srVector3T<float> position_05; /* -> position_118 (*500) */
     int action_11;                 /* -> initial_action_22a */
@@ -288,7 +288,7 @@ struct W8LevelFileInvisible { /* 0x241 */
    stream (Trigger.cpp case 3) reads the same fields and hands them to
    AddAmbientSound0047A790. */
 struct W8LevelFileSound { /* 0x170 */
-    unsigned char version_00;
+    char version_00;
     int volume_min_01;
     int volume_max_05;
     int speed_min_09;
@@ -365,8 +365,8 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
 
 struct W8LevelFileTrigger {
     unsigned char version_00;
-    unsigned char type_01; /* 1 switch, 2 invisible, 3 sound, 4 super */
-    void* pData_02;        /* type_01 selects the pointed-to record */
+    char type_01;   /* 1 switch, 2 invisible, 3 sound, 4 super */
+    void* pData_02; /* type_01 selects the pointed-to record */
 };
 
 /* One LOD/morph frame: a flag byte, an embedded mesh record, and a texture
