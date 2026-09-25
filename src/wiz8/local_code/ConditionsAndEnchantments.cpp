@@ -282,7 +282,7 @@ void SanitizeLoadedItems(void)
             }
         }
     }
-    for (index = 0; index < static_cast<unsigned int>(g_status.party_item_count_1791); ++index) {
+    for (index = 0; index < g_status.party_item_count_1791; ++index) {
         if (g_status.party_item_pool_0021[index].iItemNo != -1) {
             NormalizeItemQuantityKind(&g_status.party_item_pool_0021[index]);
         }

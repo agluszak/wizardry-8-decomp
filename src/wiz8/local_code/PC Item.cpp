@@ -1640,7 +1640,7 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
         }
     }
 
-    for (pool_index = 0; pool_index < static_cast<unsigned int>(g_status.party_item_count_1791);
+    for (pool_index = 0; pool_index < g_status.party_item_count_1791;
          ++pool_index) {
         if (item == &g_status.party_item_pool_0021[pool_index]) {
             *origin = 2;
@@ -2063,11 +2063,11 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
 
     if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
         index = 0;
-        while (index < static_cast<unsigned int>(g_status.party_item_count_1791) &&
+        while (index < g_status.party_item_count_1791 &&
                item != &g_status.party_item_pool_0021[index]) {
             ++index;
         }
-        if (index < static_cast<unsigned int>(g_status.party_item_count_1791) &&
+        if (index < g_status.party_item_count_1791 &&
             g_status.party_item_pool_0021[index].iItemNo == -1) {
             unsigned int bytes =
                 (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance);
@@ -2460,13 +2460,13 @@ bool FindItemOnParty(int item_id, W8ItemInstance** found, W8Character** found_ch
     if (include_backpack == 2) {
         unsigned int index = 0;
         if (resume_after != 0) {
-            while (index < static_cast<unsigned int>(g_status.party_item_count_1791) &&
+            while (index < g_status.party_item_count_1791 &&
                    &g_status.party_item_pool_0021[index] != resume_after) {
                 ++index;
             }
             ++index;
         }
-        for (; index < static_cast<unsigned int>(g_status.party_item_count_1791); ++index) {
+        for (; index < g_status.party_item_count_1791; ++index) {
             W8ItemInstance* item = &g_status.party_item_pool_0021[index];
             if (item->iItemNo == item_id) {
                 if (found != 0) {
@@ -2553,7 +2553,7 @@ unsigned int CountItemOnParty(int item_id, W8ItemInstance** found, W8Character**
 
     if (include_backpack == 2) {
         for (unsigned int index = 0;
-             index < static_cast<unsigned int>(g_status.party_item_count_1791); ++index) {
+             index < g_status.party_item_count_1791; ++index) {
             W8ItemInstance* item = &g_status.party_item_pool_0021[index];
             if (item->iItemNo == item_id) {
                 total += item->stack_count == 0 ? 1 : item->stack_count;
@@ -3499,7 +3499,7 @@ bool CharacterHasServiceItem(W8Character* character)
     }
     if (g_status.party_item_count_1791 != 0) {
         item = g_status.party_item_pool_0021;
-        for (index = 0; index < static_cast<unsigned int>(g_status.party_item_count_1791);
+        for (index = 0; index < g_status.party_item_count_1791;
              ++index, ++item) {
             if (item->iItemNo != -1 && CanCharacterActivateItem(character, item) != 0) {
                 record = &g_item_records[item->iItemNo];
@@ -3548,7 +3548,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char 
     bool stored = false;
 
     if (g_item_records[item->iItemNo].quantity_kind == 1 && !skip_stacking) {
-        while (index < static_cast<unsigned int>(g_status.party_item_count_1791)) {
+        while (index < g_status.party_item_count_1791) {
             if (MergeItemStacks(&g_status.party_item_pool_0021[index], item, &partially_merged)) {
                 stored = true;
                 break;
@@ -4126,7 +4126,7 @@ void RemovePartyPoolEntry(unsigned int index)
     W8ItemInstance* pool = g_status.party_item_pool_0021;
 
     if (pool[index].iItemNo != -1 ||
-        index >= static_cast<unsigned int>(g_status.party_item_count_1791)) {
+        index >= g_status.party_item_count_1791) {
         return;
     }
 
@@ -4235,7 +4235,7 @@ unsigned char FindItemByDatabaseKindOnParty(unsigned short item_kind, W8ItemInst
 
     if (include_backpack == 2) {
         for (unsigned int index = 0;
-             index < static_cast<unsigned int>(g_status.party_item_count_1791); ++index) {
+             index < g_status.party_item_count_1791; ++index) {
             W8ItemInstance* entry = &g_status.party_item_pool_0021[index];
             if (entry->iItemNo != -1 &&
                 g_item_records[entry->iItemNo].unidentified_name_index == item_kind) {

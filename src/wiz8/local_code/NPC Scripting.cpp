@@ -275,7 +275,7 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
             }
         }
     }
-    for (slot = 0; slot < static_cast<unsigned int>(g_status.party_item_count_1791); ++slot) {
+    for (slot = 0; slot < g_status.party_item_count_1791; ++slot) {
         slot_item = &g_status.party_item_pool_0021[slot];
         if (slot_item->iItemNo != -1 &&
             (slot_item == item || (match_item_id != 0 && slot_item->iItemNo == item_id))) {

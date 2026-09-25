@@ -2289,7 +2289,7 @@ void RebuildCampItemList(void)
         }
     }
     pool = g_status.party_item_pool_0021;
-    for (index = 0; index < static_cast<unsigned int>(g_status.party_item_count_1791);
+    for (index = 0; index < g_status.party_item_count_1791;
          ++index, ++pool) {
         if (pool->iItemNo != -1 &&
             (g_camp_screen->realm_flags[0] == 0 ||
@@ -2628,7 +2628,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                 merge_tried = 1;
             }
             if (merged == 0 && origin == 2) {
-                for (index = 0; index < static_cast<unsigned int>(g_status.party_item_count_1791);
+                for (index = 0; index < g_status.party_item_count_1791;
                      ++index) {
                     if (MergeItemStacks(&g_status.party_item_pool_0021[index],
                                         &g_status.item_in_hand_235b, &partially_merged) != 0) {
@@ -2670,7 +2670,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                         g_camp_screen->dialog = dialog;
                         ActivateDialogRegion(0x138);
                     }
-                } else if (slot_index < static_cast<unsigned int>(g_status.party_item_count_1791)) {
+                } else if (slot_index < g_status.party_item_count_1791) {
                     /* An empty hand picks the clicked pool row up. */
                     CopyItemInstance(&g_status.item_in_hand_235b, item, 0, 1);
                     changed = 1;

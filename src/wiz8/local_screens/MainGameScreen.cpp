@@ -9469,7 +9469,7 @@ void PopulateNpcTradeList(void)
         if ((g_screen_state_00649f1c->dialogue_text_124->m_stateFlags &
              g_W8TextControlMask005ED570) != 0) {
             for (unsigned int index = 0;
-                 index < static_cast<unsigned int>(g_status.party_item_count_1791); ++index) {
+                 index < g_status.party_item_count_1791; ++index) {
                 W8ItemInstance* item = &g_status.party_item_pool_0021[index];
                 bool acceptable = true;
                 unsigned int font_palette;

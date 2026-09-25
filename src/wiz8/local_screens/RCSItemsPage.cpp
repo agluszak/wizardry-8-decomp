@@ -993,7 +993,7 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
     if (event->usEvent < 0x101) {
         if (event->usEvent == 0x100) {
             if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 &&
-                pool_index < static_cast<unsigned int>(g_status.party_item_count_1791) &&
+                pool_index < g_status.party_item_count_1791 &&
                 g_camp_screen->entry_mode != 3) {
                 g_camp_entry_parameter = g_review_character;
                 if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
