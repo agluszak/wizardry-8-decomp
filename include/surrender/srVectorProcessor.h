@@ -83,6 +83,8 @@ public:
 
     /* srVertexPipe's record paths dispatch the vertex4 sources through the
        three-vector4 copyIndexed overloads at vtable +0x84/+0x88/+0x8c. */
+    // FUNCTION: SURRENDER 0x1005CC60 SYMBOL
+    // srVectorProcessor::copyIndexed(srVector4*, const srARGB*, const SRDWORD*, SRDWORD)
     static inline void copyIndexed(srVector4* destination, const srARGB* source,
                                    const SRDWORD* indices, SRDWORD count)
     {
@@ -320,6 +322,20 @@ public:
         vp->_reverse(destination, source, count);
     }
 
+    /* srPixelConvert's keyed 32-bit formats fold a constant into the pixel
+       run through the dword _and/_or slots (+0x44/+0x4c). */
+    static inline void bitwiseAnd(SRDWORD* destination, const SRDWORD* source,
+                                  SRDWORD constant, SRDWORD count)
+    {
+        vp->_and(destination, source, constant, count);
+    }
+
+    static inline void bitwiseOr(SRDWORD* destination, const SRDWORD* source,
+                                 SRDWORD constant, SRDWORD count)
+    {
+        vp->_or(destination, source, constant, count);
+    }
+
     static inline void neg(float* destination, const float* source, SRDWORD count)
     {
         vp->_neg(destination, source, count);
@@ -407,8 +423,10 @@ public:
     }
 
 private:
-    /* srMaterial::postProcess dispatches the per-vertex blend through vp. */
+    /* srMaterial::postProcess dispatches the per-vertex blend through vp;
+       srCore::dump reads it directly for the Vector Processor report line. */
     friend class srMaterial;
+    friend class srCore;
     static void install(srVP* processor);
     // GLOBAL: SURRENDER 0x100A923C
     static SR_DLL_IMPORT srVP* vp;

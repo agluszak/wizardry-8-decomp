@@ -74,7 +74,8 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
                                            char prefer_unlocked, unsigned int power_level);
 
 int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* target,
-                        unsigned int power_level, int a, int b, int c, int* d, int e,
+                        unsigned int power_level, int power_cast_bonus, unsigned int failure_chance,
+                        bool recast, int* out_power, int cast_kind,
                         W8GrowableVector<int>* party_targets,
                         W8GrowableVector<int>* monster_targets); /* 0x004FB4C0 */
 /* 0x004FEA50: assert and route the source/target pair a cast is about to
@@ -91,7 +92,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
 /* 0x00501B70: drop every marker that no longer names a live, targetable
    monster; a few spell ids prune on extra monster-record rules. */
 void PruneSpellTargetMarkers00501B70(int spell_id, W8GrowableVector<int>* monster_markers);
-int GetProfessionCasterLevel(W8Character* character, int profession_id);
+int GetProfessionCasterLevel(const W8Character* character, int profession_id);
 /* 0x00501D60: the highest power level this slot can afford to cast the spell
    at for its current target; zero when none is castable. */
 unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int identify_context);

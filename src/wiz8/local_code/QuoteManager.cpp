@@ -153,9 +153,9 @@ int PickRandomPartySpeaker(unsigned int event_type, int excluded_slot)
    five-vector dispatch queue. */
 
 // GLOBAL: WIZ8 0x0068C578
-int g_special_event_0068c578;
+int g_special_event_0068c578 = g_first_remapped_event_005ee718;
 // GLOBAL: WIZ8 0x0068c57c
-unsigned int g_event_range_min_0068c57c;
+unsigned int g_event_range_min_0068c57c = g_first_remapped_event_005ee718 + 21;
 /* 0x0068C580: the shared wide buffer formatted character text lands in. The
    message reader admits at most 0x7D0 code units, so the buffer holds exactly
    the two thousand characters that reach the next global at 0x0068D520. */
@@ -169,11 +169,11 @@ const char g_quote_personality_names_005ed91c[9][0x14] = {
     "aggr", "intell", "burly", "chaos", "cun", "ecc", "kind", "laid", "loner",
 };
 // GLOBAL: WIZ8 0x0068c554
-unsigned int g_event_range_max_0068c554;
+unsigned int g_event_range_max_0068c554 = g_first_remapped_event_005ee718 + 23;
 // GLOBAL: WIZ8 0x0068C53C
-int g_trap_notice_event_0068c53c;
+int g_trap_notice_event_0068c53c = g_first_remapped_event_005ee718 + 12;
 // GLOBAL: WIZ8 0x0068C54C
-int g_lock_notice_event_0068c54c;
+int g_lock_notice_event_0068c54c = g_first_remapped_event_005ee718 + 11;
 struct W8PortraitTables {
     unsigned short quote_x[8];
     unsigned short quote_y[8];
@@ -431,49 +431,49 @@ int g_effect_005ee5d4 = 19;
 // GLOBAL: WIZ8 0x005EE5D8
 int g_effect_005ee5d8 = 20;
 // GLOBAL: WIZ8 0x0068C504
-int g_special_event_0068c504;
+int g_special_event_0068c504 = g_first_remapped_event_005ee718 + 9;
 // GLOBAL: WIZ8 0x0068C508
-int g_special_event_0068c508;
+int g_special_event_0068c508 = g_first_remapped_event_005ee718 + 10;
 // GLOBAL: WIZ8 0x0068C50C
-int g_special_event_0068c50c;
+int g_special_event_0068c50c = g_first_remapped_event_005ee718 + 5;
 // GLOBAL: WIZ8 0x0068C514
-int g_special_event_0068c514;
+int g_special_event_0068c514 = g_first_remapped_event_005ee718 + 1;
 // GLOBAL: WIZ8 0x0068C51C
-int g_special_event_0068c51c;
+int g_special_event_0068c51c = g_first_remapped_event_005ee718 + 18;
 // GLOBAL: WIZ8 0x0068C524
-int g_special_event_0068c524;
+int g_special_event_0068c524 = g_first_remapped_event_005ee718 + 27;
 // GLOBAL: WIZ8 0x0068C528
-int g_special_event_0068c528;
+int g_special_event_0068c528 = g_first_remapped_event_005ee718 + 28;
 // GLOBAL: WIZ8 0x0068C52C
-int g_special_event_0068c52c;
+int g_special_event_0068c52c = g_first_remapped_event_005ee718 + 2;
 // GLOBAL: WIZ8 0x0068C530
-int g_special_event_0068c530;
+int g_special_event_0068c530 = g_first_remapped_event_005ee718 + 29;
 // GLOBAL: WIZ8 0x0068C534
-int g_special_event_0068c534;
+int g_special_event_0068c534 = g_first_remapped_event_005ee718 + 4;
 // GLOBAL: WIZ8 0x0068C538
-int g_special_event_0068c538;
+int g_special_event_0068c538 = g_first_remapped_event_005ee718 + 8;
 // GLOBAL: WIZ8 0x0068C544
-int g_special_event_0068c544;
+int g_special_event_0068c544 = g_first_remapped_event_005ee718 + 7;
 // GLOBAL: WIZ8 0x0068C540
-int g_special_event_0068c540;
+int g_special_event_0068c540 = g_first_remapped_event_005ee718 + 19;
 // GLOBAL: WIZ8 0x0068C550
-int g_special_event_0068c550;
+int g_special_event_0068c550 = g_first_remapped_event_005ee718 + 17;
 // GLOBAL: WIZ8 0x0068C558
-int g_special_event_0068c558;
+int g_special_event_0068c558 = g_first_remapped_event_005ee718 + 15;
 // GLOBAL: WIZ8 0x0068C55C
-int g_special_event_0068c55c;
+int g_special_event_0068c55c = g_first_remapped_event_005ee718 + 3;
 // GLOBAL: WIZ8 0x0068C560
-int g_special_event_0068c560;
+int g_special_event_0068c560 = g_first_remapped_event_005ee718 + 25;
 // GLOBAL: WIZ8 0x0068C564
-int g_special_event_0068c564;
+int g_special_event_0068c564 = g_first_remapped_event_005ee718 + 20;
 // GLOBAL: WIZ8 0x0068C568
-int g_special_event_0068c568;
+int g_special_event_0068c568 = g_first_remapped_event_005ee718 + 6;
 // GLOBAL: WIZ8 0x0068C56C
-int g_special_event_0068c56c;
+int g_special_event_0068c56c = g_first_remapped_event_005ee718 + 22;
 // GLOBAL: WIZ8 0x0068C570
-int g_special_event_0068c570;
+int g_special_event_0068c570 = g_first_remapped_event_005ee718 + 24;
 // GLOBAL: WIZ8 0x0068C574
-int g_special_event_0068c574;
+int g_special_event_0068c574 = g_first_remapped_event_005ee718 + 26;
 
 static bool MapEventTypeToDescriptorIndex(unsigned int event_type, unsigned int* descriptor_index)
 {
@@ -586,7 +586,7 @@ unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int even
     has_npc = 0;
     if (character->fInParty != 0 && g_current_screen_state.id != W8_SCREEN_CHARACTER) {
         unsigned int slot = CharacterPointerToPartySlot(character);
-        npc_index = g_status_685170.buffers.XChar[slot].animation_0fa;
+        npc_index = g_status_685170.buffers.XChar[slot].npc_index;
         has_npc = npc_index != -1;
     }
     if (!has_npc) {
@@ -871,7 +871,7 @@ unsigned char W8CharacterEvent::PlayEventSound()
 {
     unsigned int party_slot = CharacterPointerToPartySlot(character);
     unsigned int sound_event = event_type;
-    int npc_index = g_status_685170.buffers.XChar[party_slot].animation_0fa;
+    int npc_index = g_status_685170.buffers.XChar[party_slot].npc_index;
     char voice_stem[20];
     char sound_path[80];
     char npc_sound_name[128];
@@ -973,7 +973,7 @@ unsigned char W8CharacterEvent::Dispatch()
             SetNpcDialoguePanelVisible(0);
         }
         row = &g_status_685170.buffers.XChar[party_slot];
-        npc_index = row->animation_0fa;
+        npc_index = row->npc_index;
         if (npc_index != -1 && event_type < 0x93) {
             npc = GetNpcState(npc_index);
             row->pending_event_type_ff = event_type;

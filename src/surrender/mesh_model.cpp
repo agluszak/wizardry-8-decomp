@@ -2386,3 +2386,137 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
         renderer.popEnable();
     }
 }
+
+// FUNCTION: SURRENDER 0x100417D0
+float srMeshModel::getSortBias() const
+{
+    return sort_bias_238;
+}
+
+// FUNCTION: SURRENDER 0x10041790
+void srMeshModel::setSortBias(float bias)
+{
+    sort_bias_238 = bias;
+    if ((control_state_390 & 8) == 0) {
+        control_state_390 |= 8;
+        control_state_390 |= 8;
+    }
+}
+
+// FUNCTION: SURRENDER 0x100417E0
+void srMeshModel::disable(e_control control)
+{
+    control_state_394 &= ~(1 << control);
+    if ((control_state_390 & 8) == 0) {
+        control_state_390 |= 8;
+        control_state_390 |= 8;
+    }
+}
+
+// FUNCTION: SURRENDER 0x10041830
+void srMeshModel::enable(e_control control)
+{
+    control_state_394 |= 1 << control;
+    if ((control_state_390 & 8) == 0) {
+        control_state_390 |= 8;
+        control_state_390 |= 8;
+    }
+}
+
+// FUNCTION: SURRENDER 0x10041870
+int srMeshModel::isEnabled(e_control control) const
+{
+    return (control_state_394 & (1 << control)) != 0;
+}
+
+// FUNCTION: SURRENDER 0x10041890
+void srMeshModel::setPassCount(long count)
+{
+    pass_count_228 = count;
+    if (count < 1) {
+        pass_count_228 = 1;
+        return;
+    }
+    if (count > MAX_PASSES) {
+        pass_count_228 = MAX_PASSES;
+    }
+}
+
+// FUNCTION: SURRENDER 0x10041AC0
+long srMeshModel::getPassCount() const
+{
+    return pass_count_228;
+}
+
+// FUNCTION: SURRENDER 0x10041AD0
+long srMeshModel::getPolygonCount() const
+{
+    return polygon_count_230;
+}
+
+// FUNCTION: SURRENDER 0x10041AE0
+long srMeshModel::getVertexCount() const
+{
+    return vertex_location_count_22c;
+}
+
+/* Retail expands setDirty(0..3) inline; flag 0 also runs updateAllClients. */
+// FUNCTION: SURRENDER 0x10041660
+void srMeshModel::setDirtyAll()
+{
+    setDirty(static_cast<e_flags>(0));
+    setDirty(static_cast<e_flags>(1));
+    setDirty(static_cast<e_flags>(2));
+    setDirty(static_cast<e_flags>(3));
+}
+
+// FUNCTION: SURRENDER 0x10041AF0
+const char* srMeshModel::sGetClassName()
+{
+    return "srMeshModel";
+}
+
+// SYNTHETIC: SURRENDER 0x1003FFB0
+// srVector3i implicit copy-assignment emission
+
+// TEMPLATE: SURRENDER 0x10042A30
+// srClassSupport<srMeshModel, srModel, 0, 0x2010>::~srClassSupport
+
+// SYNTHETIC: SURRENDER 0x10043970
+// std::ios_base::Init global static-init block
+
+// LIBRARY: SURRENDER 0x10043980
+// std::ios_base::Init::Init
+
+// SYNTHETIC: SURRENDER 0x10043990
+// std::ios_base::Init global atexit registrar
+
+// LIBRARY: SURRENDER 0x100439A0
+// std::ios_base::Init::~Init
+
+// SYNTHETIC: SURRENDER 0x100439B0
+// std::_Winit global static-init block
+
+// LIBRARY: SURRENDER 0x100439C0
+// std::_Winit::_Winit
+
+// SYNTHETIC: SURRENDER 0x100439D0
+// std::_Winit global atexit registrar
+
+// LIBRARY: SURRENDER 0x100439E0
+// std::_Winit::~_Winit
+
+// SYNTHETIC: SURRENDER 0x100439F0
+// srClassSupport<srMeshModel, srModel, 0, 0x2010> scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x10043A10
+// srPtr<srTextureIFace> element destructor emission
+
+// SYNTHETIC: SURRENDER 0x10043A40
+// srPtr<srMaterialIFace> element destructor emission
+
+// TEMPLATE: SURRENDER 0x10043A70
+// srClassSupport<srModel, srClass, true, 0x2000>::sGetClassNode
+
+// SYNTHETIC: SURRENDER 0x100425A0
+// srMeshModel default constructor closure

@@ -85,7 +85,7 @@ unsigned char AscensionPeakInit004DF870(void)
                 SpawnMonsters(0xf, 4, &position, 1, 1, 0, 0);
             }
             info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x17f, ASCENSION_CPP, group->leader_id_9f, 1));
+                MonsterGetIndexByLocationID(0x17f, ASCENSION_CPP, group->leader_location_id, 1));
             info->p3D->SetScript004C7F10("proximitylandslide.msf", 1);
             SpawnAscensionAmbush004DFEA0();
             CreateLocationVar("AP_AtLeast2of3Items", 1);

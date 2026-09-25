@@ -580,7 +580,7 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
         characters = g_status_685170.buffers.Char;
         for (slot = 0; slot < 2; ++slot) {
             if (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
-                bound = GetNpcState(g_status_685170.buffers.XChar[slot].animation_0fa);
+                bound = GetNpcState(g_status_685170.buffers.XChar[slot].npc_index);
                 if ((bound->name_style == 0x11 || bound->name_style == 0x10) &&
                     characters[slot].highest_condition >= 0xf) {
                     for (condition = 0; condition <= 0x12; ++condition) {
@@ -692,6 +692,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
     W8MonsterInfo* info;
     W8MonsterInfo* dialogue_info;
     unsigned char band;
+    unsigned char greet;
     wchar_t space[2];
     srVector3T<float> position;
 
@@ -747,6 +748,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
     EnableRegionInput(0x55);
     g_level_block->action_panel_visible = 1;
     gXStatus.fCampMode = 0;
+    greet = force == 0;
     if (item != 0) {
         state = g_screen_state_00649f1c;
         state->pending_item_1ed = *item;
@@ -757,7 +759,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
         if (npc->record->merchant_056 != 0) {
             if (HandleNpcDialogueItem(&state->pending_item_1ed) == 0) {
                 OpenNpcDialogueTranscriptLayout();
-                goto dispatch;
+                greet = 1;
             }
         } else if (HandleNpcDialogueItem(&state->pending_item_1ed) == 0) {
             switch (g_screen_state_00649f1c->dialogue_layout) {
@@ -791,31 +793,29 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
             } else {
                 ShowNpcDialogueTopicMenu();
             }
-            goto dispatch;
+            greet = 1;
         }
     }
-    if (force != 0) {
-        goto tail;
-    }
-dispatch:
-    if (g_screen_state_00649f1c->dialogue_npc->record->merchant_056 != 0) {
-        QueueNpcScriptLine(0, 0, 0, 0);
-        OpenNpcDialogueTranscriptLayout();
-    } else {
-        band = GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc);
-        if (g_screen_state_00649f1c->dialogue_npc->name_style == W8_NPC_ZANT &&
-            GetFact(W8_FACT_TRANG_YOU_ARE_BUSTED) != 0 && GetFact(W8_FACT_ALIGNMENT_UMPANI) == 0) {
-            SetFact(W8_FACT_TRANG_YOU_ARE_BUSTED, 0, 0);
-        }
-        if (band == 0) {
-            HandleNpcDialogueDeparture(1);
+    if (greet != 0) {
+        if (g_screen_state_00649f1c->dialogue_npc->record->merchant_056 != 0) {
+            QueueNpcScriptLine(0, 0, 0, 0);
             OpenNpcDialogueTranscriptLayout();
-        } else if (band == 1) {
-            QueueNpcScriptLine(2, 0, 0, 0);
-            ShowNpcDialogueTopicMenu();
+        } else {
+            band = GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc);
+            if (g_screen_state_00649f1c->dialogue_npc->name_style == W8_NPC_ZANT &&
+                GetFact(W8_FACT_TRANG_YOU_ARE_BUSTED) != 0 &&
+                GetFact(W8_FACT_ALIGNMENT_UMPANI) == 0) {
+                SetFact(W8_FACT_TRANG_YOU_ARE_BUSTED, 0, 0);
+            }
+            if (band == 0) {
+                HandleNpcDialogueDeparture(1);
+                OpenNpcDialogueTranscriptLayout();
+            } else if (band == 1) {
+                QueueNpcScriptLine(2, 0, 0, 0);
+                ShowNpcDialogueTopicMenu();
+            }
         }
     }
-tail:
     RequestRedraw(0x100);
     RequestRedraw(0x1000);
     if (g_mouselook_active_0068edd8 != 0) {
@@ -2624,35 +2624,47 @@ void AddNpcDialogueKeyword(wchar_t* text, signed char category, int play_chime)
         for (index = 0; index < gXStatus.uiItemsInDatabase; ++index) {
             if (CompareWideTextIgnoreAsciiCase00402920(text, g_item_records[index].display_name) ==
                 0) {
-                category = W8_DIALOGUE_CATEGORY_ITEMS;
-                goto classified;
+                break;
             }
         }
-        for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
-            if (CompareWideTextIgnoreAsciiCase00402920(text,
-                                                       g_npc_records[index].source_name_004) == 0) {
+        if (index < gXStatus.uiItemsInDatabase) {
+            category = W8_DIALOGUE_CATEGORY_ITEMS;
+        } else {
+            for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
+                if (CompareWideTextIgnoreAsciiCase00402920(
+                        text, g_npc_records[index].source_name_004) == 0) {
+                    break;
+                }
+            }
+            if (index < gXStatus.uiNpcsInDatabase) {
                 category = W8_DIALOGUE_CATEGORY_PEOPLE;
-                goto classified;
+            } else {
+                for (index = 0; g_dialogue_person_keywords[index][0] != 0; ++index) {
+                    if (CompareWideTextIgnoreAsciiCase00402920(
+                            text, g_dialogue_person_keywords[index]) == 0) {
+                        break;
+                    }
+                }
+                if (g_dialogue_person_keywords[index][0] != 0) {
+                    category = W8_DIALOGUE_CATEGORY_PEOPLE;
+                } else {
+                    for (index = 0;
+                         index < static_cast<unsigned int>(g_dialogue_place_keyword_count);
+                         ++index) {
+                        if (CompareWideTextIgnoreAsciiCase00402920(
+                                text, gppStringList[g_dialogue_place_keyword_ids[index]]) == 0) {
+                            break;
+                        }
+                    }
+                    if (index < static_cast<unsigned int>(g_dialogue_place_keyword_count)) {
+                        category = W8_DIALOGUE_CATEGORY_PLACES;
+                    } else {
+                        category = W8_DIALOGUE_CATEGORY_MISC;
+                    }
+                }
             }
         }
-        for (index = 0; g_dialogue_person_keywords[index][0] != 0; ++index) {
-            if (CompareWideTextIgnoreAsciiCase00402920(text, g_dialogue_person_keywords[index]) ==
-                0) {
-                category = W8_DIALOGUE_CATEGORY_PEOPLE;
-                goto classified;
-            }
-        }
-        for (index = 0; index < static_cast<unsigned int>(g_dialogue_place_keyword_count);
-             ++index) {
-            if (CompareWideTextIgnoreAsciiCase00402920(
-                    text, gppStringList[g_dialogue_place_keyword_ids[index]]) == 0) {
-                category = W8_DIALOGUE_CATEGORY_PLACES;
-                goto classified;
-            }
-        }
-        category = W8_DIALOGUE_CATEGORY_MISC;
     }
-classified:
     if (controller != 0) {
         if (controller->AddTranscriptEntry(text, category, play_chime) != 0) {
             if (g_screen_state_00649f1c->dialogue_category_filter != W8_DIALOGUE_CATEGORY_ALL &&
@@ -3301,9 +3313,7 @@ W8ItemInstance* ResolveNpcTradeRow005729C0(int index, char pick, char decrement,
                     ++g_screen_state_00649f1c->trade_quantity;
                     if (entry->item.stack_count < g_screen_state_00649f1c->trade_quantity) {
                         g_screen_state_00649f1c->trade_quantity = entry->item.stack_count;
-                        goto selected;
-                    }
-                    if (entry->item.stack_count != 0) {
+                    } else if (entry->item.stack_count != 0) {
                         g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_flag_4c = 1;
                         g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_geometryDirty =
                             1;
@@ -3319,9 +3329,7 @@ W8ItemInstance* ResolveNpcTradeRow005729C0(int index, char pick, char decrement,
                 --g_screen_state_00649f1c->trade_quantity;
                 if (g_screen_state_00649f1c->trade_quantity == 0) {
                     g_screen_state_00649f1c->trade_quantity = 1;
-                    goto selected;
-                }
-                if (entry->item.stack_count != 0) {
+                } else if (entry->item.stack_count != 0) {
                     g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_flag_4c = 1;
                     g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_geometryDirty = 1;
                     g_screen_state_00649f1c->dialogue_text_16c->Invalidate(0);
@@ -3335,7 +3343,6 @@ W8ItemInstance* ResolveNpcTradeRow005729C0(int index, char pick, char decrement,
             g_screen_state_00649f1c->trade_quantity = 1;
         }
     }
-selected:
     g_screen_state_00649f1c->selected_trade_row = i;
     if (pick != 0) {
         if (commit != 0) {
@@ -3898,6 +3905,33 @@ void HandleNpcDialogueReply(wchar_t* text, char echo)
     }
 }
 
+/* Copy the next space-separated word of `text` into `word`. Returns the text
+   after the word, or 0 when no word is left. Retail expands this inline at all
+   five uses in HandleNpcDialogueInput and keeps no out-of-line copy. */
+static inline wchar_t* ReadNextWord(wchar_t* text, wchar_t* word)
+{
+    wchar_t* out;
+    int length = 0;
+
+    word[0] = 0;
+    while (*text == L' ' && *text != 0) {
+        ++text;
+    }
+    if (*text == L' ') {
+        return 0;
+    }
+    out = word;
+    while (*text != L' ' && *text != 0) {
+        *out++ = *text++;
+        ++length;
+    }
+    if (length == 0) {
+        return 0;
+    }
+    word[length] = 0;
+    return text;
+}
+
 /* The NPC dialogue's typed-input processor. Strips punctuation, tokenizes into
    words, and resolves the text to one or two quote ids: the "join"-style
    keywords go straight to RequestNpcJoinParty, name/place prefixes are stripped
@@ -3914,14 +3948,12 @@ void HandleNpcDialogueInput(void)
     wchar_t word2[200];
     wchar_t notice[200];
     wchar_t* cursor;
-    wchar_t* out;
-    wchar_t ch;
     int quote_id = -1;
     int second_quote_id = -1;
     bool show_fallback = true;
     bool plain_text = true;
+    bool echo = false;
     int quote;
-    int len;
     int word_count;
     int matches;
 
@@ -3937,34 +3969,9 @@ void HandleNpcDialogueInput(void)
     }
     word_count = 0;
     cursor = field_text;
-    if (cursor != 0) {
-        for (;;) {
-            len = 0;
-            word[0] = 0;
-            if (*cursor == L' ') {
-                ch = L' ';
-                do {
-                    if (ch == 0)
-                        break;
-                    ch = *++cursor;
-                } while (ch == L' ');
-            }
-            ch = *cursor;
-            if (ch == L' ')
-                break;
-            out = word;
-            do {
-                if (ch == 0)
-                    break;
-                *out++ = ch;
-                ch = *++cursor;
-                ++len;
-            } while (ch != L' ');
-            if (len == 0)
-                break;
-            word[len] = 0;
-            if (cursor == 0)
-                break;
+    while (cursor != 0) {
+        cursor = ReadNextWord(cursor, word);
+        if (cursor != 0) {
             ++word_count;
         }
     }
@@ -3990,197 +3997,110 @@ void HandleNpcDialogueInput(void)
         if (quote != -1) {
             plain_text = false;
             quote_id = quote;
-            goto found;
         }
     } else {
         swprintf(buf, g_format_s_006068e4, field_text);
         quote = FindNpcScriptQuoteByKeyword(buf, 0, 0);
         if (quote != -1) {
             quote_id = quote;
-            goto found;
         }
     }
-    wcscpy(buf, field_text);
-    if (_wcsnicmp(buf, gppStringList[0x1dc0 / 4], 0xb) != 0) {
-        if (_wcsnicmp(buf, gppStringList[0x1db4 / 4], 9) == 0 ||
-            _wcsnicmp(buf, gppStringList[0x1db8 / 4], 0xa) == 0 ||
-            _wcsnicmp(buf, gppStringList[0x1dbc / 4], 8) == 0) {
+
+    if (quote_id == -1) {
+        wcscpy(buf, field_text);
+        if (_wcsnicmp(buf, gppStringList[0x1dc0 / 4], 0xb) == 0) {
+            wcscpy(field_text, buf + 0xb);
+            show_fallback = false;
+        } else if (_wcsnicmp(buf, gppStringList[0x1db4 / 4], 9) == 0 ||
+                   _wcsnicmp(buf, gppStringList[0x1db8 / 4], 0xa) == 0 ||
+                   _wcsnicmp(buf, gppStringList[0x1dbc / 4], 8) == 0) {
             wcscpy(field_text, buf + 9);
             plain_text = false;
             show_fallback = false;
-        } else if (g_screen_state_00649f1c->where_is_query == 0) {
-            plain_text = true;
-            goto pair_scan;
-        } else {
+            quote_id = FindNpcNameOrPlaceQuote(g_screen_state_00649f1c->dialogue_npc, field_text);
+            if (quote_id == -1) {
+                quote_id = 0x76;
+            }
+        } else if (g_screen_state_00649f1c->where_is_query != 0) {
             plain_text = false;
+            quote_id = FindNpcNameOrPlaceQuote(g_screen_state_00649f1c->dialogue_npc, field_text);
+            if (quote_id == -1) {
+                quote_id = 0x76;
+            }
+        } else {
+            plain_text = true;
         }
-        quote_id = FindNpcNameOrPlaceQuote(g_screen_state_00649f1c->dialogue_npc, field_text);
-        if (quote_id == -1) {
-            quote_id = 0x76;
-            goto fallback;
-        }
-        goto found;
     }
-    wcscpy(field_text, buf + 0xb);
-    show_fallback = false;
-pair_scan:
-    cursor = field_text;
-    word[0] = 0;
-    if (cursor != 0) {
-        do {
+
+    /* Try each adjacent word pair. */
+    if (quote_id == -1) {
+        cursor = field_text;
+        word[0] = 0;
+        while (cursor != 0) {
             if (wcslen(word) == 0) {
-                len = 0;
-                word[0] = 0;
-                if (*cursor == L' ') {
-                    ch = L' ';
-                    do {
-                        if (ch == 0)
-                            break;
-                        ch = *++cursor;
-                    } while (ch == L' ');
-                }
-                ch = *cursor;
-                if (ch == L' ')
-                    goto multi_scan;
-                out = word;
-                do {
-                    if (ch == 0)
-                        break;
-                    *out++ = ch;
-                    ch = *++cursor;
-                    ++len;
-                } while (ch != L' ');
-                if (len == 0)
-                    goto multi_scan;
-                word[len] = 0;
+                cursor = ReadNextWord(cursor, word);
             } else {
                 wcscpy(word, word2);
             }
-            if (cursor == 0)
-                goto multi_scan;
-            len = 0;
-            word2[0] = 0;
-            if (*cursor == L' ') {
-                ch = L' ';
-                do {
-                    if (ch == 0)
-                        break;
-                    ch = *++cursor;
-                } while (ch == L' ');
+            if (cursor == 0) {
+                break;
             }
-            ch = *cursor;
-            if (ch == L' ')
-                goto multi_scan;
-            out = word2;
-            do {
-                if (ch == 0)
-                    break;
-                *out++ = ch;
-                ch = *++cursor;
-                ++len;
-            } while (ch != L' ');
-            if (len == 0)
-                goto multi_scan;
-            word2[len] = 0;
-            if (cursor == 0)
-                goto multi_scan;
+            cursor = ReadNextWord(cursor, word2);
+            if (cursor == 0) {
+                break;
+            }
             swprintf(buf, g_format_s_space_s_00617584, word, word2);
             quote = FindNpcScriptQuoteByKeyword(buf, 0, 0);
-        } while (quote == -1);
-        quote_id = quote;
-        goto found;
-    }
-multi_scan:
-    matches = 0;
-    cursor = field_text;
-    if (cursor == 0)
-        goto fallback;
-    for (;;) {
-        len = 0;
-        word[0] = 0;
-        if (*cursor == L' ') {
-            ch = L' ';
-            do {
-                if (ch == 0)
-                    break;
-                ch = *++cursor;
-            } while (ch == L' ');
-        }
-        ch = *cursor;
-        if (ch == L' ')
-            break;
-        out = word;
-        do {
-            if (ch == 0)
-                break;
-            *out++ = ch;
-            ch = *++cursor;
-            ++len;
-        } while (ch != L' ');
-        if (len == 0)
-            break;
-        word[len] = 0;
-        if (cursor == 0)
-            break;
-        quote = FindNpcScriptQuoteByKeyword(word, 0, 0);
-        if (quote != -1) {
-            ++matches;
-        }
-    }
-    if (matches > 2) {
-        quote_id = 0x20;
-        goto echo;
-    }
-    if (matches <= 0) {
-        goto fallback;
-    }
-    {
-        int found_count = 0;
-        cursor = field_text;
-        do {
-            do {
-                len = 0;
-                word[0] = 0;
-                if (*cursor == L' ') {
-                    ch = L' ';
-                    do {
-                        if (ch == 0)
-                            break;
-                        ch = *++cursor;
-                    } while (ch == L' ');
-                }
-                ch = *cursor;
-                if (ch == L' ')
-                    goto found;
-                out = word;
-                do {
-                    if (ch == 0)
-                        break;
-                    *out++ = ch;
-                    ch = *++cursor;
-                    ++len;
-                } while (ch != L' ');
-                if (len == 0)
-                    goto found;
-                word[len] = 0;
-                if (cursor == 0)
-                    goto found;
-                quote = FindNpcScriptQuoteByKeyword(word, 0, 0);
-            } while (quote == -1);
-            ++found_count;
-            if (found_count == 1) {
+            if (quote != -1) {
                 quote_id = quote;
-            } else if (found_count == 2 && quote != quote_id) {
-                second_quote_id = quote;
+                break;
             }
-        } while (matches != 1);
+        }
     }
-found:
+
+    /* Then each single word: more than two hits echoes the text, otherwise the
+       first hit (and a different second one) answer. */
+    if (quote_id == -1) {
+        matches = 0;
+        cursor = field_text;
+        while (cursor != 0) {
+            cursor = ReadNextWord(cursor, word);
+            if (cursor != 0 && FindNpcScriptQuoteByKeyword(word, 0, 0) != -1) {
+                ++matches;
+            }
+        }
+        if (matches > 2) {
+            quote_id = 0x20;
+            echo = true;
+        } else if (matches > 0) {
+            int found_count = 0;
+            cursor = field_text;
+            for (;;) {
+                cursor = ReadNextWord(cursor, word);
+                if (cursor == 0) {
+                    break;
+                }
+                quote = FindNpcScriptQuoteByKeyword(word, 0, 0);
+                if (quote == -1) {
+                    continue;
+                }
+                ++found_count;
+                if (found_count == 1) {
+                    quote_id = quote;
+                } else if (found_count == 2 && quote != quote_id) {
+                    second_quote_id = quote;
+                }
+                if (matches == 1) {
+                    break;
+                }
+            }
+        }
+    }
+
     if (quote_id >= 0x59 && quote_id < 0x69 && second_quote_id == -1) {
-        goto echo;
+        echo = true;
     }
-fallback:
-    if (show_fallback) {
+    if (!echo && show_fallback) {
         unsigned int roll;
         const wchar_t* fmt;
         const wchar_t* text;
@@ -4203,11 +4123,9 @@ fallback:
         }
         swprintf(notice, fmt, text, field_text);
         ShowNotice(0xa, notice, 3, GetTextBoxScrollRange(), 0);
-        goto dispatch;
+    } else {
+        ShowNotice(0xa, field_text, 3, GetTextBoxScrollRange(), 0);
     }
-echo:
-    ShowNotice(0xa, field_text, 3, GetTextBoxScrollRange(), 0);
-dispatch:
     if (quote_id == -1) {
         QueueNpcScriptLine(Random(2) + 0x23, 0, 0, 0);
         return;
@@ -4631,19 +4549,20 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
                     return 1;
                 }
                 if ((g_item_records[item->iItemNo].flags_041 & 2) != 0) {
-                    goto unavailable;
+                    QueueNpcScriptLine(0x11, 0, 0, 0);
+                    return 1;
                 }
                 if (AcceptNpcDialogueItem005B1740(g_screen_state_00649f1c->dialogue_npc, item, 1) !=
                     0) {
                     QueueNpcScriptLine(0x10, 0, 0, 0);
-                    goto remove;
+                    RemoveNpcScriptItem(item, 0, -1);
+                    return result;
                 }
                 QueueNpcScriptLine(0x11, 0, 0, 0);
             } else {
                 QueueNpcScriptLine(fact_result, 0, 0, 0);
                 result = 0;
                 if (flag != 0) {
-                remove:
                     RemoveNpcScriptItem(item, 0, -1);
                     return result;
                 }
@@ -4676,7 +4595,6 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
             RemoveNpcScriptItem(item, 0, -1);
             return result;
         }
-    unavailable:
         QueueNpcScriptLine(0x11, 0, 0, 0);
         return 1;
     }
@@ -5007,7 +4925,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
 }
 
 // FUNCTION: WIZ8 0x00576650
-unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event)
+unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event, W8Region*)
 {
     if (event->usEvent != LEFT_BUTTON_DOWN) {
         return 0;
@@ -5246,14 +5164,14 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
                 } else {
                     Get16BitStringFromField(0, field_text);
                     StripNpcKeywordPunctuation(entry_text);
-                    goto inject;
+                    static_cast<void>(wcslen(field_text));
+                    SetInputFieldStringWith16BitString(0, entry_text);
+                    HandleNpcDialogueInput();
                 }
-                goto done;
+                break;
             }
         }
-        goto done;
-    }
-    if (request->kind_00 == 0x12 || request->kind_00 == 0x1e) {
+    } else if (request->kind_00 == 0x12 || request->kind_00 == 0x1e) {
         if (npc_dialog->m_selected_option == 0) {
             wcscpy(entry_text, gppStringList[0x1f7c / 4]);
         } else {
@@ -5264,7 +5182,6 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
         } else {
             Get16BitStringFromField(0, field_text);
             StripNpcKeywordPunctuation(entry_text);
-        inject:
             static_cast<void>(wcslen(field_text));
             SetInputFieldStringWith16BitString(0, entry_text);
             HandleNpcDialogueInput();
@@ -5280,7 +5197,6 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
             HandleNpcDialogueInput();
         }
     }
-done:
     g_screen_state_00649f1c->script_busy = 0;
 }
 

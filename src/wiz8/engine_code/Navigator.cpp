@@ -38,16 +38,6 @@ double g_double_005ec030 = 2500.0;
 
 namespace {
 
-unsigned int float_bits(float value)
-{
-    union {
-        float floating;
-        unsigned int bits;
-    } representation;
-    representation.floating = value;
-    return representation.bits;
-}
-
 // GLOBAL: WIZ8 0x00659b30
 W8GrowableVector<W8Navigator*> g_registered_navigators(5);
 

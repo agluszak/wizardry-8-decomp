@@ -22,7 +22,7 @@ public:
        always writes 0. */
     enum e_clip { CLIP_POSITIONAL_0 = 0 };
 
-    srClipPlane(srNode* parent);
+    srClipPlane(srNode* parent = 0);
     srClipPlane(const srClipPlane& other);
     srClipPlane& operator=(const srClipPlane& other);
 

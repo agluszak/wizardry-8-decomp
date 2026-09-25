@@ -264,7 +264,7 @@ unsigned char W8PathingService::SaveWaypointSnapshot00459400(unsigned char force
     if (waypoints_dirty_1cc == 0 && force == 0) {
         return 0;
     }
-    if (FileExists("cd-rom") != 0) {
+    if (FileExists("cd.rom") != 0) {
         return 0;
     }
 
@@ -4382,11 +4382,6 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(const srVector3T<float>
                                                          unsigned char adjust_destination,
                                                          unsigned char diagonal_steps)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     unsigned char blocked = 0;
 
     if (adjust_destination == 0 &&
@@ -4545,27 +4540,27 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(const srVector3T<float>
                 --iteration;
                 error += walk.cell_size_30;
             }
-        } else {
-            if (error < 0 && blocked == 0) {
-                cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
-                error += walk.cell_size_30;
-                if (cell[1] * 0x10000 + cell[0] == destination_key) {
-                    --iteration;
-                    direction = directions[1];
-                    goto stepped;
-                }
+        } else if (error < 0 && blocked == 0) {
+            cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
+            error += walk.cell_size_30;
+            if (static_cast<unsigned int>(cell[1] * 0x10000 + cell[0]) == destination_key) {
+                --iteration;
+                direction = directions[1];
+            } else {
                 if ((directions[0] == 0 && directions[1] == 6) ||
                     (directions[0] == 6 && directions[1] == 0)) {
                     direction = 7;
                 } else {
                     direction = (directions[0] + directions[1]) / 2;
                 }
+                cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
+                error -= walk.error_28;
             }
+        } else {
             cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
             error -= walk.error_28;
         }
 
-    stepped:
         if (cell_key == destination_key) {
             iteration = walk.count_24;
         } else if (direction_mask != 0 && (direction_mask & 1 << (direction & 0x1f)) == 0) {
@@ -4611,7 +4606,6 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(const srVector3T<float>
     }
 
     return blocked == 0;
-#pragma clang diagnostic pop
 }
 
 /* Compare clearance along the two compass rays bracketing a horizontal
@@ -4941,26 +4935,24 @@ void W8PathingService::SnapPathHeight0045B5A0(srVector3T<float>* position)
     }
 }
 
-/* Derive the path surface normal from the retail three-point construction.
-
-   The middle point is height-snapped before receiving the same X offset as
-   the second sample. This unusual order is intentional: it is the exact
-   construction in the retail body, not a conventionalized terrain sampler. */
+/* Build the path surface normal from height-snapped samples at the current
+   point, one X cell over, and one Z cell over. The Z-edge crossed with the
+   X-edge gives the upward normal on flat ground, matching the retail order. */
 // FUNCTION: WIZ8 0x0045b730
 void W8PathingService::GetPathSurfaceNormal0045B730(const srVector3T<float>* position,
                                                     srVector3T<float>* normal)
 {
-    srVector3T<float> first = *position;
-    srVector3T<float> middle = *position;
-    srVector3T<float> second = *position;
+    srVector3T<float> origin = *position;
+    srVector3T<float> x_sample = *position;
+    srVector3T<float> z_sample = *position;
 
-    SnapPathHeight0045B5A0(&middle);
-    second.x += grid_scale_01c;
-    middle.x += grid_scale_01c;
-    SnapPathHeight0045B5A0(&second);
-    SnapPathHeight0045B5A0(&first);
+    SnapPathHeight0045B5A0(&origin);
+    x_sample.x += grid_scale_01c;
+    SnapPathHeight0045B5A0(&x_sample);
+    z_sample.z += grid_scale_01c;
+    SnapPathHeight0045B5A0(&z_sample);
 
-    *normal = CrossProduct(first - middle, second - middle);
+    *normal = CrossProduct(z_sample - origin, x_sample - origin);
     normal->Normalize();
 }
 

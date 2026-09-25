@@ -35,7 +35,7 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
          ++group_index) {
         W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
         W8MonsterInfo* info = MonsterInfoFromID(
-            0x2e, "C:\\Projects\\Wizardry 8\\Local Code\\Noise.cpp", group->leader_id_9f, 1);
+            0x2e, "C:\\Projects\\Wizardry 8\\Local Code\\Noise.cpp", group->leader_location_id, 1);
         if (info->p3D->deaf_28f != 0) {
             continue;
         }
@@ -61,7 +61,7 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
                 0x54, "C:\\Projects\\Wizardry 8\\Local Code\\Noise.cpp", group->leader_group_id, 1);
             W8MonsterGroup* leader = GetMonsterGroupByListIndex(leader_index);
             info = MonsterInfoFromID(0x55, "C:\\Projects\\Wizardry 8\\Local Code\\Noise.cpp",
-                                     leader->leader_id_9f, 1);
+                                     leader->leader_location_id, 1);
             if (info->p3D->deaf_28f != 0) {
                 continue;
             }

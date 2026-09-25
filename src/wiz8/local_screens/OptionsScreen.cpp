@@ -418,7 +418,7 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
             return;
         case 3: {
             char path[260];
-            sprintf(path, "%s\\%S.%s", "Saves", m_previous_name, "SAV");
+            sprintf(path, "%s\\%S.%s", "Saves", m_previous_name, g_save_extension);
             if (DeleteFileA(path) == 0) {
                 g_options_screen_0069c254->ShowNotification(this, 0, 0x82e, 0);
                 return;
@@ -516,7 +516,7 @@ void W8OptionsSaveLoadPanel::DeleteSelectedSave()
     int selected_slot = m_current_04c * 5 + 1 + m_selection.m_selectedIndex;
     W8SaveSlot* slot = *g_options_screen_0069c254->m_save_slots.GetAt(selected_slot);
     char path[260];
-    sprintf(path, "%s\\%S.%s", "Saves", slot->name, "SAV");
+    sprintf(path, "%s\\%S.%s", "Saves", slot->name, g_save_extension);
     if (DeleteFileA(path) == 0) {
         g_options_screen_0069c254->ShowNotification(this, 0, 0x82f, 0);
         return;
@@ -579,7 +579,7 @@ void W8OptionsSaveLoadPanel::SaveSelectedSave()
     }
 
     char path[260];
-    sprintf(path, "%s\\%S.%s", "Saves", slot->name, "SAV");
+    sprintf(path, "%s\\%S.%s", "Saves", slot->name, g_save_extension);
     if (FileExists(path) != 0 && DeleteFileA(path) == 0) {
         g_options_screen_0069c254->ShowNotification(this, 0, 0x82e, 0);
         return;
@@ -595,16 +595,16 @@ void W8OptionsSaveLoadPanel::SaveSelectedSave()
     SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
 }
 
-__forceinline W8OptionsButton::W8OptionsButton(Controls* owner, int left, int top, int right,
-                                               int bottom, const wchar_t* text)
+inline W8OptionsButton::W8OptionsButton(Controls* owner, int left, int top, int right, int bottom,
+                                        const wchar_t* text)
     : W8TextControl(owner, 0xffffffff, left, top, right, bottom, -1, -1, -1, -1, -1, -1, -1)
 {
     m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED558);
     m_textBuffer.SetText(text, g_options_detail_font_683614);
 }
 
-__forceinline W8OptionsKeyButton::W8OptionsKeyButton(Controls* owner, int top, int primary_binding,
-                                                     int secondary_binding)
+inline W8OptionsKeyButton::W8OptionsKeyButton(Controls* owner, int top, int primary_binding,
+                                              int secondary_binding)
     : W8OptionsButton(owner, 100, top, 0x15e, top + 22, &g_wchar_00689b34),
       m_primary_binding(primary_binding), m_secondary_binding(secondary_binding)
 {
@@ -613,7 +613,7 @@ __forceinline W8OptionsKeyButton::W8OptionsKeyButton(Controls* owner, int top, i
                                g_W8TextBufferLayoutMask005ED558);
 }
 
-__forceinline W8OptionsSaveRow::W8OptionsSaveRow(Controls* owner, int top, unsigned char save_mode)
+inline W8OptionsSaveRow::W8OptionsSaveRow(Controls* owner, int top, unsigned char save_mode)
     : W8TextControl(owner, 0xffffffff, 10, top, 0, 0, 0xf9, 0, save_mode ? 2 : 0, save_mode ? 3 : 1,
                     -1, -1, 4),
       m_save_mode(save_mode), m_editing(0), m_save(0), m_save_listener(0)

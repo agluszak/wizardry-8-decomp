@@ -388,17 +388,13 @@ void ApplyProfessionMinimumAttributes(W8Character* character,
 // FUNCTION: WIZ8 0x00557200
 void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* creation_state)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     int deficits[7][2];
     int index;
 
     int total = 0;
     for (index = 0; index < 7; ++index) {
-        int minimum = g_profession_attribute_minimums[character->iProfession].values[index];
+        unsigned int minimum =
+            g_profession_attribute_minimums[character->iProfession].values[index];
         int deficit = 0;
         if (character->attributes[index].value < minimum) {
             deficit = minimum - character->attributes[index].value;
@@ -437,7 +433,6 @@ void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* crea
     }
     creation_state->attribute_points_total = character->attribute_point_deficit_0199;
     character->level_band_base = character->uiExpLevel;
-#pragma clang diagnostic pop
 }
 
 /* Which of the fifteen professions the current attribute budget can still

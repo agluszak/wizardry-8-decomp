@@ -826,3 +826,6 @@ float srLight::getSafeRange() const
 {
     return safe_range_1d4;
 }
+
+// SYNTHETIC: SURRENDER 0x1004EEF0
+// srLight default constructor closure

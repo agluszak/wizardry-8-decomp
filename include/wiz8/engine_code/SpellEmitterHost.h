@@ -19,8 +19,8 @@ public:
     virtual W8AnimRepBase005EC1D8* Clone() override;
     virtual srModelInstance* SetCycleFrameLod(signed char cycle, signed char frame,
                                               signed char lod) override;
-    virtual unsigned int ApplyEmitterSetting(char emitter) override;
-    virtual W8AniMesh* GetEmitterAniMesh(char emitter) override;
+    virtual unsigned int ApplyEmitterSetting(signed char emitter) override;
+    virtual W8AniMesh* GetEmitterAniMesh(signed char emitter) override;
     unsigned char ReadCycleData004AB340(W8ReadLevelInfo* info, W8SpellVisual* visual,
                                         int positional_2, int emitter_index);
 

@@ -63,7 +63,7 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
     text[*length] = 0xb4; /* font glyph */
     *length += 1;
     text[*length] = GetTable647CCCEntry(
-        static_cast<char>(g_status_685170.buffers.XChar[party_slot].party_order_index));
+        static_cast<signed char>(g_status_685170.buffers.XChar[party_slot].party_order_index));
     *length += 1;
     text[*length] = L' ';
     *length += 1;

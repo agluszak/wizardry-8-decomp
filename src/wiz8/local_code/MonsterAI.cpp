@@ -214,7 +214,7 @@ void UpdateMonsterGroups(char staggered)
         if (MonsterGroupAllMembersDying00511850(monster_group) != 0) {
             continue;
         }
-        monster_info = MonsterInfoFromID(113, MONSTER_AI_CPP, monster_group->leader_id_9f, 1);
+        monster_info = MonsterInfoFromID(113, MONSTER_AI_CPP, monster_group->leader_location_id, 1);
         if (monster_info == 0 || monster_info->p3D == 0) {
             continue;
         }
@@ -224,12 +224,12 @@ void UpdateMonsterGroups(char staggered)
              group_list_index % 5 != g_monster_group_tick % 5)) {
             continue;
         }
-        if (monster_group->members_active_28 == 0) {
+        if (monster_group->members_active == 0) {
             if (nearest_distance < WorldGetFarClip(GetWorld()) * g_float_005ec3b8) {
                 LoadMonsterGroupMembers(monster_group);
             }
         }
-        if (monster_group->members_active_28 != 0 && monster_group->fInCombat == 0) {
+        if (monster_group->members_active != 0 && monster_group->fInCombat == 0) {
             double far_clip;
             if (monster_group->leader_group_id == 0) {
                 RefreshMonsterGroupHostility005113A0(monster_group);
@@ -249,7 +249,7 @@ void UpdateMonsterGroups(char staggered)
             }
             if (monster_group->leader_group_id == 0) {
                 monster_info =
-                    MonsterInfoFromID(215, MONSTER_AI_CPP, monster_group->leader_id_9f, 1);
+                    MonsterInfoFromID(215, MONSTER_AI_CPP, monster_group->leader_location_id, 1);
                 if (monster_info->p3D->IsDying() == 0) {
                     DoMonsterRTAI(monster_info, 1);
                 }
@@ -275,7 +275,7 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
     if (g_status_685170.world_suspended_2390 != 0 || GetFlag68F105() != 0) {
         return 0;
     }
-    monster_info = MonsterInfoFromID(0xf0, MONSTER_AI_CPP, monster_group->leader_id_9f, 1);
+    monster_info = MonsterInfoFromID(0xf0, MONSTER_AI_CPP, monster_group->leader_location_id, 1);
     record = GetMonsterDataForInfo(monster_info);
     if (record != 0 && record->untargetable_24a != 0) {
         return 0;
@@ -439,12 +439,12 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
 char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 {
     W8Monster* monster;
-    char changed;
+    bool changed;
     char mode;
 
     monster = monster_info->p3D;
     mode = 0;
-    changed = 0;
+    changed = false;
     if (monster->face_party_290 != 0 && monster_info->pathing_cooldown_246 == 0 &&
         monster_info->player_visibility.line_of_sight_28 != 0) {
         srVector3T<float> delta;
@@ -492,127 +492,122 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
         fabsf(monster->movement_0c0.target_yaw - monster->movement_0c0.yaw) >=
             g_camera_transition_epsilon_005ebc84) {
         mode = 8;
-        goto commit;
-    }
-    if (monster_info->heard_noise_radius_43 > 0 && monster->movement_stopped_024 != 0 &&
-        monster_info->ai_mode_255 == 4) {
-        srVector3T<float> delta;
+    } else {
+        if (monster_info->heard_noise_radius_43 > 0 && monster->movement_stopped_024 != 0 &&
+            monster_info->ai_mode_255 == 4) {
+            srVector3T<float> delta;
 
-        delta = monster_info->heard_noise_position_37 - monster->GetPosition();
-        if (delta.Length() < g_double_005ee768) {
-            monster_info->heard_noise_radius_43 = 0;
-        }
-    }
-    if (monster_info->heard_noise_radius_43 > 0) {
-        srVector3T<float> noise_position;
-        srVector3T<float> position;
-        float range;
-        int radius;
-        int hops;
-
-        if (monster->movement_stopped_024 == 0 && monster_info->ai_mode_255 == 4) {
-            mode = 4;
-            goto commit;
-        }
-        noise_position = monster_info->heard_noise_position_37;
-        radius = monster_info->heard_noise_radius_43 * 3 / 2;
-        if (radius >= g_int_00617ae8) {
-            radius = g_int_00617ae8;
-        }
-        range = (float)radius;
-        position = monster->GetPosition();
-        if (g_octree_6598a4->TestNoiseLineOfSight00434220(&position, &noise_position, &range,
-                                                          &hops) != 0 &&
-            NoiseHearingMargin004F0E50(monster_info->heard_noise_radius_43, static_cast<int>(range),
-                                       hops) > 0) {
-            mode = 4;
-            changed = 1;
-            goto commit;
-        }
-        mode = 8;
-        goto commit;
-    }
-    if (monster_info->look_timer_303 != 0) {
-        if (Random(0x14) == 0) {
-            double angle;
-
-            mode = 0xa;
-            angle = (double)(Random(0x168) << 1) * g_camera_pi_005ec2a0 * g_double_005ed7b0;
-            monster->move_direction_2bc.x = (float)(cos(angle) * g_double_005ec150);
-            monster->move_direction_2bc.y = 0.0f;
-            monster->move_direction_2bc.z = (float)(sin(angle) * g_double_005ec150);
-        } else {
-            mode = 0;
-        }
-        goto commit;
-    }
-    switch (monster->order_mode_28e) {
-    case 0: {
-        srVector3T<float> delta;
-        srVector3T<float> patrol;
-
-        monster->GetPatrolPoint004CA360(&patrol);
-        delta = patrol - monster->GetPosition();
-        if (delta.Length() < g_double_005ee768) {
-            mode = 0;
-        } else {
-            mode = 7;
-        }
-        goto commit;
-    }
-    case 1:
-        mode = 6;
-        if (monster->movement_stopped_024 == 0) {
-            goto commit;
-        }
-        goto set_changed;
-    case 2:
-    case 3: {
-        srVector3T<float> delta;
-        srVector3T<float> patrol;
-        int count;
-        int next;
-
-        mode = 7;
-        monster->GetPatrolPoint004CA360(&patrol);
-        delta = patrol - monster->GetPosition();
-        if (delta.Length() >= g_double_005ee768) {
-            goto commit;
-        }
-        count = monster->vector_29c.GetCount();
-        if (monster->order_mode_28e == 2) {
-            next = monster->patrol_index_2ac + 1;
-            if (next < count) {
-                monster->patrol_index_2ac = (signed char)next;
-            } else {
-                monster->patrol_index_2ac = 0;
+            delta = monster_info->heard_noise_position_37 - monster->GetPosition();
+            if (delta.Length() < g_double_005ee768) {
+                monster_info->heard_noise_radius_43 = 0;
             }
-        } else if (count < 2) {
-            monster->patrol_index_2ac = 0;
-        } else if ((monster_info->ai_mode_255 & 0xf) == 7) {
-            do {
-                next = (signed char)Random(count);
-            } while (next == monster->patrol_index_2ac);
-            monster->patrol_index_2ac = (signed char)next;
-        } else {
-            monster->patrol_index_2ac = (signed char)Random(count);
         }
-        goto set_changed;
+        if (monster_info->heard_noise_radius_43 > 0) {
+            if (monster->movement_stopped_024 == 0 && monster_info->ai_mode_255 == 4) {
+                mode = 4;
+            } else {
+                srVector3T<float> noise_position;
+                srVector3T<float> position;
+                float range;
+                int radius;
+                int hops;
+
+                noise_position = monster_info->heard_noise_position_37;
+                radius = monster_info->heard_noise_radius_43 * 3 / 2;
+                if (radius >= g_int_00617ae8) {
+                    radius = g_int_00617ae8;
+                }
+                range = (float)radius;
+                position = monster->GetPosition();
+                if (g_octree_6598a4->TestNoiseLineOfSight00434220(&position, &noise_position,
+                                                                  &range, &hops) != 0 &&
+                    NoiseHearingMargin004F0E50(monster_info->heard_noise_radius_43,
+                                               static_cast<int>(range), hops) > 0) {
+                    mode = 4;
+                    changed = true;
+                } else {
+                    mode = 8;
+                }
+            }
+        } else if (monster_info->look_timer_303 != 0) {
+            if (Random(0x14) == 0) {
+                double angle;
+
+                mode = 0xa;
+                angle = (double)(Random(0x168) << 1) * g_camera_pi_005ec2a0 * g_double_005ed7b0;
+                monster->move_direction_2bc.x = (float)(cos(angle) * g_double_005ec150);
+                monster->move_direction_2bc.y = 0.0f;
+                monster->move_direction_2bc.z = (float)(sin(angle) * g_double_005ec150);
+            } else {
+                mode = 0;
+            }
+        } else {
+            switch (monster->order_mode_28e) {
+            case 0: {
+                srVector3T<float> delta;
+                srVector3T<float> patrol;
+
+                monster->GetPatrolPoint004CA360(&patrol);
+                delta = patrol - monster->GetPosition();
+                if (delta.Length() < g_double_005ee768) {
+                    mode = 0;
+                } else {
+                    mode = 7;
+                }
+                break;
+            }
+            case 1:
+                mode = 6;
+                if (monster->movement_stopped_024 != 0) {
+                    changed = true;
+                }
+                break;
+            case 2:
+            case 3: {
+                srVector3T<float> delta;
+                srVector3T<float> patrol;
+                int count;
+                int next;
+
+                mode = 7;
+                monster->GetPatrolPoint004CA360(&patrol);
+                delta = patrol - monster->GetPosition();
+                if (delta.Length() >= g_double_005ee768) {
+                    break;
+                }
+                count = monster->vector_29c.GetCount();
+                if (monster->order_mode_28e == 2) {
+                    next = monster->patrol_index_2ac + 1;
+                    if (next < count) {
+                        monster->patrol_index_2ac = (signed char)next;
+                    } else {
+                        monster->patrol_index_2ac = 0;
+                    }
+                } else if (count < 2) {
+                    monster->patrol_index_2ac = 0;
+                } else if ((monster_info->ai_mode_255 & 0xf) == 7) {
+                    do {
+                        next = (signed char)Random(count);
+                    } while (next == monster->patrol_index_2ac);
+                    monster->patrol_index_2ac = (signed char)next;
+                } else {
+                    monster->patrol_index_2ac = (signed char)Random(count);
+                }
+                changed = true;
+                break;
+            }
+            case 4:
+                monster->move_direction_2bc.x = monster->direction_x_2b0;
+                monster->move_direction_2bc.y = monster->direction_y_2b4;
+                monster->move_direction_2bc.z = monster->direction_z_2b8;
+                mode = 0xa;
+                changed = true;
+                break;
+            }
+        }
     }
-    case 4:
-        monster->move_direction_2bc.x = monster->direction_x_2b0;
-        monster->move_direction_2bc.y = monster->direction_y_2b4;
-        monster->move_direction_2bc.z = monster->direction_z_2b8;
-        mode = 0xa;
-        goto set_changed;
-    default:
-        goto commit;
-    }
-set_changed:
-    changed = 1;
-commit:
     if (mode != static_cast<char>(monster_info->ai_mode_255)) {
-        changed = 1;
+        changed = true;
     }
     *decision = (unsigned char)mode;
     return changed;
@@ -693,7 +688,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         }
         monster_group = GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x2de, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
-        if (monster_group->encounter_registered_c3 != 0) {
+        if (monster_group->encounter_registered != 0) {
             if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0) {
                 FormatDebugMessage(0,
                                    "Monster %d and associated monsters killed because it "
@@ -733,7 +728,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         }
         monster_group = GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x2de, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
-        if (monster_group->encounter_registered_c3 != 0) {
+        if (monster_group->encounter_registered != 0) {
             if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0) {
                 FormatDebugMessage(0,
                                    "Monster %d and associated monsters killed because it "
@@ -1020,8 +1015,8 @@ members:
             distance = member->p3D->GetDistanceToPlayer004C7CB0();
             if (GetMonsterCombatMoveRange(member) * g_float_005ee774 > distance) {
                 if (waypoint_checked == 0) {
-                    leader =
-                        MonsterInfoFromID(0x4cb, MONSTER_AI_CPP, monster_group->leader_id_9f, 1);
+                    leader = MonsterInfoFromID(0x4cb, MONSTER_AI_CPP,
+                                               monster_group->leader_location_id, 1);
                     if (leader != 0 && leader->fActive != 0) {
                         destination = g_startup_world_659c0c->GetPosition();
                         source = leader->p3D->GetPosition();
@@ -1968,7 +1963,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
             monster_group = GetMonsterGroupByListIndex(index);
             if (monster_group->group_id != monster_info->monster_group_id &&
-                monster_group->members_active_28 != 0 && monster_group->fInCombat != 0 &&
+                monster_group->members_active != 0 && monster_group->fInCombat != 0 &&
                 MonsterGroupAllMembersDying00511850(monster_group) == 0 &&
                 MonsterGroupHalfSpellTargetsValid(monster_info, spell_id, monster_group) != 0) {
                 ResetCombatSlot(&slot);
@@ -2096,7 +2091,7 @@ void CheckMonsterGroupsLeaveCombat(void)
     RefreshOutwardSightForAllMonsters();
     for (group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
         group = GetMonsterGroupByListIndex(group_index);
-        if (group->members_active_28 == 0 || group->fInCombat == 0 ||
+        if (group->members_active == 0 || group->fInCombat == 0 ||
             MonsterGroupAllMembersDying00511850(group) != 0) {
             continue;
         }
@@ -2119,7 +2114,7 @@ void CheckMonsterGroupsLeaveCombat(void)
             if (group->ubDisposition != DISP_HOSTILE) {
                 break;
             }
-            leader = MonsterInfoFromID(0xbcd, MONSTER_AI_CPP, group->leader_id_9f, 1);
+            leader = MonsterInfoFromID(0xbcd, MONSTER_AI_CPP, group->leader_location_id, 1);
             if (GetMonsterGroupEngagementState(group->group_id) != 0 && leader != 0 &&
                 leader->fActive != 0) {
                 nearest = GetGroupNearestDistance(group);
@@ -2157,7 +2152,7 @@ void CheckMonsterGroupsLeaveCombat(void)
     }
     for (group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
         group = GetMonsterGroupByListIndex(group_index);
-        if (group->members_active_28 != 0 && group->fInCombat != 0 &&
+        if (group->members_active != 0 && group->fInCombat != 0 &&
             MonsterGroupAllMembersDying00511850(group) == 0) {
             MonsterGroupLeaveCombat(group);
         }
@@ -2599,7 +2594,7 @@ void UpdateMonsterGroupEngagement(void)
     }
     for (group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
         group = GetMonsterGroupByListIndex(group_index);
-        if (group->members_active_28 == 0 || group->fInCombat == 0 ||
+        if (group->members_active == 0 || group->fInCombat == 0 ||
             group->ubDisposition != DISP_HOSTILE || group->leader_group_id != 0) {
             continue;
         }
@@ -2629,7 +2624,7 @@ void UpdateMonsterGroupEngagement(void)
             }
         }
         SetMonsterGroupEngagementState(group->group_id,
-                                       member_starting == 0 ? group->engagement_ticks_c9 < 3 : 0);
+                                       member_starting == 0 ? group->engagement_ticks < 3 : 0);
     }
 }
 
@@ -2704,11 +2699,12 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
     srVector3T<float> party;
 
     if (MonsterGroupAllMembersDying00511850(monster_group) != 0 ||
-        monster_group->members_active_28 == 0) {
+        monster_group->members_active == 0) {
         return 0;
     }
-    if (monster_group->leader_id_9f == -0x32323233 ||
-        (leader = MonsterInfoFromID(0xf53, MONSTER_AI_CPP, monster_group->leader_id_9f, 1)) == 0 ||
+    if (monster_group->leader_location_id == -0x32323233 ||
+        (leader = MonsterInfoFromID(0xf53, MONSTER_AI_CPP, monster_group->leader_location_id, 1)) ==
+            0 ||
         leader->p3D == 0) {
         FormatDebugMessage(1, "ERROR: Group %d is without an active leader",
                            monster_group->group_id);

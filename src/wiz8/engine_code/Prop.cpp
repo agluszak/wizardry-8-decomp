@@ -133,7 +133,7 @@ W8PropRepresentation::~W8PropRepresentation()
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        delete slots.data[index];
+        delete *slots.GetAt(index);
     }
     slots.count = 0;
     if (animation != 0) {
@@ -403,7 +403,8 @@ char ResolvePickedProp(W8World* world)
             Trigger* trigger = prop->trigger_18;
             g_selected_prop_trigger_00659a60 = trigger;
             if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
-                ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0) &&
+                ((trigger->flags_0a0 & W8_TRIGGER_ONCE) == 0 ||
+                 (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0) &&
                 (g_combat_inactive_006081e4 ||
                  (trigger->m_pActionData != 0 && trigger->m_pActionData->type_004 == 10 &&
                   (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->flags_008 & 1) ==
@@ -443,30 +444,32 @@ srModelInstance* W8PropRepresentation::ToggleAnimation(int argument)
 }
 
 /* Select the animation slot whose second byte carries the requested tag.
-   The slot's signed first byte is the new animation tag; the old and new
-   values are retained as an ordered range for the transition state. */
+   The slot's first byte is the target frame; the current subcycle and that
+   frame become the ordered range the animation plays through. */
 // FUNCTION: WIZ8 0x0044ba50
 unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
 {
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        if (slots.data[index]->tag == tag) {
-            signed char selected = static_cast<signed char>(slots.data[index]->frame);
+        W8PropAnimationSegment* slot = *slots.GetAt(index);
+
+        if (slot->tag == tag) {
+            signed char selected = slot->frame;
 
             if (selected < 0) {
                 return 0;
             }
-            frame_lo_068 = first_frame_094;
-            frame_hi_069 = static_cast<unsigned char>(selected);
-            if (selected < static_cast<signed char>(first_frame_094)) {
-                frame_lo_068 = static_cast<unsigned char>(selected);
-                frame_hi_069 = first_frame_094;
+            first_frame_094 = subcycle_064;
+            last_frame_095 = static_cast<unsigned char>(selected);
+            if (static_cast<unsigned char>(selected) < subcycle_064) {
+                last_frame_095 = subcycle_064;
+                first_frame_094 = static_cast<unsigned char>(selected);
             }
-            if (frame_hi_069 <= first_frame_094) {
-                frame_direction_06e = 3;
-            } else {
+            if (last_frame_095 > subcycle_064) {
                 frame_direction_06e = 1;
+            } else {
+                frame_direction_06e = 3;
             }
             animation_playing_06d = 1;
             return 1;
@@ -481,60 +484,48 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
 // FUNCTION: WIZ8 0x0044bae0
 int W8PropRepresentation::FindCurrentAnimationSlot()
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        if (static_cast<int>(static_cast<char>(slots.data[index]->frame)) ==
-            static_cast<unsigned int>(first_frame_094)) {
+        if ((*slots.GetAt(index))->frame == first_frame_094) {
             return index;
         }
     }
     return -1;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x0044bb20
 unsigned char W8PropRepresentation::AdvanceAnimationSegment()
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
+    int count;
+    int index;
     int segment;
 
-    if (slots.count < 3) {
+    count = slots.count;
+    if (count < 3) {
         return 0;
     }
-    for (segment = 0; segment < slots.count; ++segment) {
-        if (static_cast<int>(static_cast<char>(slots.data[segment]->frame)) ==
-            static_cast<unsigned int>(first_frame_094)) {
+    segment = -1;
+    for (index = 0; index < count; ++index) {
+        if ((*slots.GetAt(index))->frame == first_frame_094) {
+            segment = index;
             break;
         }
-    }
-    if (segment == slots.count) {
-        segment = -1;
     }
     if (segment == -1) {
         srAssertFail("lSegment!=(-1)", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 0x2c3, 0);
     }
-    if (segment == slots.count - 2) {
+    if (segment == count - 2) {
         segment = 0;
     } else {
         ++segment;
     }
-    first_frame_094 = slots.data[segment]->frame;
-    last_frame_095 = slots.data[segment + 1]->frame;
+    first_frame_094 = (*slots.GetAt(segment))->frame;
+    last_frame_095 = (*slots.GetAt(segment + 1))->frame;
     frame_direction_06e = 1;
     animation_playing_06d = 1;
     subcycle_064 = first_frame_094;
     return (unsigned char)segment;
-#pragma clang diagnostic pop
 }
 
 /* The same toggle reached through the prop rather than through the member. */
@@ -1398,7 +1389,8 @@ bool W8Prop::IsTriggerInView0044E3A0(srVector3T<float>* position)
     float distance;
 
     if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
-        ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0)) {
+        ((trigger->flags_0a0 & W8_TRIGGER_ONCE) == 0 ||
+         (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0)) {
         AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, &minimum, &maximum);
         center.Set((minimum.x + maximum.x) * g_double_005ebe80,
                    (minimum.y + maximum.y) * g_double_005ebe80,
@@ -1602,15 +1594,17 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
                 W8PropAnimationSegment* slot = new W8PropAnimationSegment;
 
                 FileRead(hFile, &frame_tmp, 2, 0);
-                slot->frame = static_cast<unsigned char>(frame_tmp);
+                slot->frame = static_cast<signed char>(frame_tmp);
                 FileRead(hFile, &tag_tmp, 2, 0);
                 slot->tag = static_cast<unsigned char>(tag_tmp);
                 if (frame_count <= frame_tmp) {
                     srAssertFail(
-                        "(usTemp < (UINT16)ubNumFrames)", PROP_CPP, 0x11f,
+                        "(usTemp < (UINT16)ubNumFrames)", /* c-style-cast-ok: verbatim assert text */
+                        PROP_CPP, 0x11f,
                         reinterpret_cast<const char*>(
                             String("%s Prop Error:Segment %d frame number is out of range (%d)",
-                                   prop->m_name, (unsigned int)tag_tmp, (unsigned int)frame_tmp)));
+                                   prop->m_name, static_cast<unsigned int>(tag_tmp),
+                                   static_cast<unsigned int>(frame_tmp))));
                 }
                 this->slots.Add(slot);
             }

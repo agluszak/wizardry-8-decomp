@@ -121,8 +121,9 @@ enum W8FootstepKind {
 /* 0x00479030: stop all random samples and the shared ambient priority group */
 void StopAllAmbientSounds();
 
-void BuildFootstepPath0047A540(char* path, char surface, char material, char kind, int variant);
-int PlayFootstep0047A440(char surface, char material, int kind);
+void BuildFootstepPath0047A540(char* path, signed char surface, signed char material, char kind,
+                               int variant);
+int PlayFootstep0047A440(signed char surface, signed char material, int kind);
 void UpdateAmbientSounds0047A3E0(W8World* world);
 void RepositionAmbientSounds0047A600(W8World* world);
 unsigned char LoadAmbientSoundList0047AB40(char* filename);

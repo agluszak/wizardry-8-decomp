@@ -62,7 +62,7 @@ int W8CharacterSummaryDialog::CreateControls()
     ResetPartySlotRow(0);
     ResetGameplaySlot(0);
     g_status_685170.buffers.Char[0].fInParty = 1;
-    g_status_685170.buffers.XChar[0].animation_0fa = -1;
+    g_status_685170.buffers.XChar[0].npc_index = -1;
     if (!CreateQuoteText()) {
         m_error = 7;
         return 7;

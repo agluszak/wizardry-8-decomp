@@ -194,7 +194,7 @@ void ReleaseHitSoundDatabase(void)
    PlayCombatSound may append a variant digit. */
 /* The impact lookup shared by the emitted body below and by the sibling
    callers, where retail folds it inline. */
-static __forceinline char* LookupMaterialImpactSound(int weapon_class, int target_material)
+static inline char* LookupMaterialImpactSound(int weapon_class, int target_material)
 {
     char* sound;
 
@@ -216,7 +216,7 @@ char* GetMaterialImpactSound00549EB0(int weapon_class, int target_material)
 
 /* The two missile/monster siblings spell the same lookup as three leaves
    that each call PlayCombatSound rather than sharing one tail call. */
-static __forceinline void PlayMaterialImpactSound(int weapon_class, int target_material, int volume)
+static inline void PlayMaterialImpactSound(int weapon_class, int target_material, int volume)
 {
     char* sound;
 
@@ -235,7 +235,7 @@ static __forceinline void PlayMaterialImpactSound(int weapon_class, int target_m
 /* The equipment slot covering one armour-class hit location, then the item
    worn there (-1 when that location is bare).  The inlined copies share the
    line-168 assertion. */
-static __forceinline int PCItemInACSlot(const W8Character* character, int hit_location)
+static inline int PCItemInACSlot(const W8Character* character, int hit_location)
 {
     int slot = 0;
 

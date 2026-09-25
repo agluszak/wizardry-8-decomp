@@ -766,7 +766,7 @@ bool IsUseItemFilteredOut0059D6B0(W8ItemInstance* item)
         }
         if ((g_status_685170.selected_character == 0 || g_status_685170.selected_character == 1) &&
             (npc = GetNpcState(
-                 g_status_685170.buffers.XChar[g_status_685170.selected_character].animation_0fa),
+                 g_status_685170.buffers.XChar[g_status_685170.selected_character].npc_index),
              npc != 0) &&
             NpcWantsItem0050DC50(npc, item)) {
             return true;

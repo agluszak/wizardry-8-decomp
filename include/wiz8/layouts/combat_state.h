@@ -62,7 +62,9 @@ struct W8PartySlotRow {
     /* 0x0f6: distance-scaled fatigue accumulator; every 2500 units convert
        into real fatigue via FatigueCharacter. */
     float movement_fatigue;
-    int animation_0fa;
+    /* 0x0fa: for a recruited NPC's slot, the index of its W8NpcState in
+       g_npc_states (GetNpcState); -1 for a created character. */
+    int npc_index;
     /* 0x0fe: cleared by the level-entry NPC-binding reset. */
     /* 0xfe: an NPC is bound to this party slot; set when the binding
        restores, cleared by the level-entry reset. Gates the RPC banter

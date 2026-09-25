@@ -48,7 +48,6 @@ struct W8SpellCastingView {
 
 static_assert(sizeof(W8SpellCastingView) == 0xc5c, "W8SpellCastingView_must_be_0xc5c");
 
-unsigned char IgnoreSpellCastingInput(const InputAtom* input);               /* 0x005A1140 */
 unsigned char OpenSpellCastingView(int party_slot);                          /* 0x0059F0E0 */
 void CloseSpellCastingView(void);                                            /* 0x0059F2B0 */
 void RestoreSpellCastingRegions(void);                                       /* 0x0059F440 */
@@ -69,6 +68,7 @@ void SpellCastingNoticeClosed005A02F0(W8DialogBase* dialog);
 unsigned char SpellRealmButtonRegionEvent(const InputAtom* event,
                                           W8Region* region);                      /* 0x005A0C80 */
 unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region); /* 0x005A0E50 */
+unsigned char IgnoreSpellCastingInput(const InputAtom* event, W8Region* region);  /* 0x005A1140 */
 /* Text-box body callback while spell casting is active. */
 unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event,
                                           W8Region* region); /* 0x005A0F70 */

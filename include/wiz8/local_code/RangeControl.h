@@ -121,8 +121,8 @@ public:
     W8HorizontalRangeThumbListener* m_listener;
 
 protected:
-    __forceinline void InvalidateThumb();
-    __forceinline void ClampPositionAndInvalidate();
+    void InvalidateThumb();
+    void ClampPositionAndInvalidate();
 };
 
 static_assert(sizeof(W8HorizontalRangeThumb) == 0x70, "W8HorizontalRangeThumb_size");

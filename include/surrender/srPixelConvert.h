@@ -32,7 +32,13 @@ public:
         long bytes_per_pixel_minus_one;
         unsigned long flags;
 
-        void getName(char* name);
+        /* Retail exports the standalone copy (param mangles QAD = char* const);
+           no recovered caller ODR-uses it, so only provider dllexport keeps
+           the emission. */
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        void getName(char* const name);
         int isValid() const;
         unsigned long match(const PixelFormat* formats, unsigned long count) const;
 
@@ -67,3 +73,7 @@ public:
 
 static_assert(sizeof(srPixelConvert::PixelFormat) == 0x14,
               "srPixelConvert_PixelFormat_must_be_0x14");
+
+/* Builds the conversion lookup tables (channel expansion/reduction ramps,
+   dither cube, channel weights, decode/grayscale palettes) at library init. */
+void __cdecl initPixelTables(void);

@@ -503,8 +503,8 @@ void BindCursorMonsterToGroup004914E0(void)
                                                  monster_group->leader_group_id, 1);
                 monster_group = GetMonsterGroupByListIndex(index);
             }
-            index =
-                MonsterGetIndexByLocationID(0x247, CURSOR3D_CPP, monster_group->leader_id_9f, 1);
+            index = MonsterGetIndexByLocationID(0x247, CURSOR3D_CPP,
+                                                monster_group->leader_location_id, 1);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             if (monster_info != 0 && monster_info->p3D != 0 &&
                 monster_info->p3D->SetScript004C7F10("Test.msf", 1) == 0) {

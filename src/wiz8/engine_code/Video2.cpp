@@ -1218,13 +1218,13 @@ void RenderFrame(void)
             int half_width = (g_viewport_6595e8.right - g_viewport_6595e8.left) / 2;
             int half_height = (g_viewport_6595e8.bottom - g_viewport_6595e8.top) / 2;
             srGERD::Pick pick;
-            pick.x_00 = (g_cursor_hotspot_x_6596bc - half_width - g_viewport_6595e8.left +
+            pick.position_00.x = (g_cursor_hotspot_x_6596bc - half_width - g_viewport_6595e8.left +
                          g_cursor_width_654ad0) /
                         static_cast<float>(half_width);
-            pick.y_04 = -static_cast<float>(g_cursor_hotspot_y_6596c0 - half_height -
+            pick.position_00.y = -static_cast<float>(g_cursor_hotspot_y_6596c0 - half_height -
                                             g_viewport_6595e8.top + g_cursor_height_654ad4) /
                         static_cast<float>(half_height);
-            pick.z_08 = 1.0f;
+            pick.position_00.z = 1.0f;
             pick.selected_model_0c = 0;
             pick.value_10 = 0;
             g_gerd_659634->setPickKey(0);
@@ -1469,19 +1469,6 @@ void SetWorldModelPickingEnabled(char enabled)
 }
 
 /* Mouse cursor scene and rendering. */
-namespace {
-
-unsigned long float_bits(float value)
-{
-    union {
-        float floating;
-        unsigned long bits;
-    } representation;
-    representation.floating = value;
-    return representation.bits;
-}
-
-} // namespace
 
 // FUNCTION: WIZ8 0x00424EB0
 srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, double width,
@@ -1491,7 +1478,6 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
     srMeshModel* model;
     srTextureMap* texture;
     stModelInstance2D* instance;
-    srModeler::MappingInfo mapping;
     srVector3T<float> scale;
     srShader shader;
 
@@ -1503,12 +1489,8 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
     model->setName("Video2DMakePolygonBrush");
 
     g_modeler_65963c->createGrid(1, 1);
-    mapping.axis_u_00 = srModeler::AXIS_X;
-    mapping.axis_v_04 = srModeler::AXIS_Y;
-    mapping.u_scale_08 = float_bits(mapping_width);
-    mapping.v_scale_0c = float_bits(mapping_height);
-    mapping.u_offset_10 = float_bits(mapping_x);
-    mapping.v_offset_14 = float_bits(mapping_y);
+    srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y, mapping_width,
+                                   mapping_height, mapping_x, mapping_y);
     g_modeler_65963c->planarMap(0, 0, mapping);
     scale.x = static_cast<float>(width);
     scale.y = static_cast<float>(height);
@@ -1551,7 +1533,6 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
                                            char keep_aspect, char a5)
 {
     srShader shader;
-    srModeler::MappingInfo mapping;
     srVector3T<float> scale;
     int w = static_cast<int>(width * 640.0);
     int h = static_cast<int>(height * 480.0);
@@ -1565,10 +1546,9 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
 
     float step = g_surface_scale_659680 * (g_float_005ebb38 / w);
     g_modeler_65963c->createGrid(1, 1);
-    mapping.axis_u_00 = srModeler::AXIS_X;
-    mapping.axis_v_04 = srModeler::AXIS_Y;
-    mapping.u_scale_08 = mapping.v_scale_0c = float_bits(g_float_005ebb38 - (step + step));
-    mapping.u_offset_10 = mapping.v_offset_14 = float_bits(step);
+    srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y,
+                                   g_float_005ebb38 - (step + step),
+                                   g_float_005ebb38 - (step + step), step, step);
     g_modeler_65963c->planarMap(0, 0, mapping);
     scale.x = static_cast<float>(width);
     scale.y = static_cast<float>(height);
@@ -3370,7 +3350,7 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
                                              mapping_x, mapping_y, overlay);
     if (node != 0) {
         stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
-        instance->overlay_scene_flag_160 = g_active_page_6596e4;
+        instance->render_state_164.display_state = static_cast<unsigned char>(g_active_page_6596e4);
         instance->render_state_164.left = (short)(rect[2] - rect[0]);
         instance->render_state_164.top = (short)(rect[3] - rect[1]);
         instance->render_state_164.right = (short)rect[0];
@@ -3888,13 +3868,9 @@ srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float heigh
     model->setName("VideoMakePoster");
     texture->getDimensions(dimensions);
     g_modeler_65963c->createGrid(1, 1);
-    srModeler::MappingInfo mapping;
-    mapping.axis_u_00 = srModeler::AXIS_X;
-    mapping.axis_v_04 = srModeler::AXIS_Y;
-    mapping.u_scale_08 = g_float_005ebb38 - extent_w;
-    mapping.v_scale_0c = g_float_005ebb38 - extent_h;
-    mapping.u_offset_10 = extent_w;
-    mapping.v_offset_14 = extent_h;
+    srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y,
+                                   g_float_005ebb38 - extent_w, g_float_005ebb38 - extent_h,
+                                   extent_w, extent_h);
     g_modeler_65963c->planarMap(0, 0, mapping);
     srVector3T<float> scale;
     scale.x = width;

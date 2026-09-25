@@ -12,7 +12,7 @@
 class srIlluminator : public srClassSupport<srIlluminator, srNode, false, 0x1200>,
                       public srVertexProcessor {
 public:
-    SR_DLL_IMPORT srIlluminator(srNode* parent);
+    SR_DLL_IMPORT srIlluminator(srNode* parent = 0);
     SR_DLL_IMPORT srIlluminator(const srIlluminator& other);
     SR_DLL_IMPORT srIlluminator& operator=(const srIlluminator& other);
     static SR_DLL_IMPORT const char* sGetClassName();

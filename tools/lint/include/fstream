@@ -1,0 +1,18 @@
+#pragma once
+
+#include <ostream>
+
+/* The recovered srWindowOutStreamBuf "&Save" path constructs and deletes a
+   std::ofstream through the VC6 interface. VC6's real <fstream> does not
+   parse as C++14, so the compile-only lane needs the spelled surface. The
+   matching compiler continues to use the real VC6 header. */
+namespace std {
+template <typename E, typename T> class basic_ofstream : public basic_ostream<E, T> {
+public:
+    explicit basic_ofstream(const char* name);
+    /* srWindowOutStreamBuf::saveText releases the stream through a plain
+       delete, which retail lowers to the deleting-destructor slot. */
+    virtual ~basic_ofstream();
+};
+typedef basic_ofstream<char, char_traits<char> > ofstream;
+} // namespace std

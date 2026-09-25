@@ -107,8 +107,8 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
             group = FindFirstMonsterByID(0x18c);
             if (group != 0) {
                 index = MonsterGetIndexByLocationID(
-                    0x100, "C:\\Projects\\Wizardry 8\\Engine Code\\Camera.cpp", group->leader_id_9f,
-                    1);
+                    0x100, "C:\\Projects\\Wizardry 8\\Engine Code\\Camera.cpp",
+                    group->leader_location_id, 1);
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
                 PointCameraAtMonster(monster_info, 1, 1);
                 position = monster_info->p3D->GetPosition();
@@ -140,8 +140,8 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
             group = FindFirstMonsterByID(0x1b4);
             if (group != 0) {
                 index = MonsterGetIndexByLocationID(
-                    0xd0, "C:\\Projects\\Wizardry 8\\Engine Code\\Camera.cpp", group->leader_id_9f,
-                    1);
+                    0xd0, "C:\\Projects\\Wizardry 8\\Engine Code\\Camera.cpp",
+                    group->leader_location_id, 1);
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
                 MonsterForwardReferencePosition(monster_info->p3D, 0);
                 return;

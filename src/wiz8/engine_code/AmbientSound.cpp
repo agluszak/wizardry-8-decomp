@@ -474,15 +474,13 @@ const char* g_footstep_fixed_name_609f44 = "Jump";
 // GLOBAL: WIZ8 0x00609f48
 const char* g_footstep_scuff_name_609f48 = "Scuff";
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wchar-subscripts"
-/* Surface and material ids are recovered as char and range-checked against
-   1..9 / 1..25 before indexing the name tables. */
+/* Surface and material ids are range-checked against 1..9 / 1..25 before
+   indexing the name tables. */
 // FUNCTION: WIZ8 0x0047a440
-int PlayFootstep0047A440(char surface, char material, int kind)
+int PlayFootstep0047A440(signed char surface, signed char material, int kind)
 {
-    char selected_surface;
-    char selected_material;
+    signed char selected_surface;
+    signed char selected_material;
     char path[260];
     SOUNDPARMS options;
     int attempts = 0;
@@ -520,7 +518,8 @@ int PlayFootstep0047A440(char surface, char material, int kind)
 }
 
 // FUNCTION: WIZ8 0x0047a540
-void BuildFootstepPath0047A540(char* path, char surface, char material, char kind, int variant)
+void BuildFootstepPath0047A540(char* path, signed char surface, signed char material, char kind,
+                               int variant)
 {
     if (kind == W8_FOOTSTEP_KIND_STEP) {
         sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%.2d.WAV",
@@ -540,7 +539,6 @@ void BuildFootstepPath0047A540(char* path, char surface, char material, char kin
                 g_footstep_names_609edc[material], g_footstep_scuff_name_609f48, variant);
     }
 }
-#pragma clang diagnostic pop
 
 // FUNCTION: WIZ8 0x0047a600
 void RepositionAmbientSounds0047A600(W8World* world)

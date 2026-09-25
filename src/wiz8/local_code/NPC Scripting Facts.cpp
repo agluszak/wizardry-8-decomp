@@ -940,7 +940,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         group = FindFirstMonsterByID(0xc2);
         if (group != 0) {
             monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                0x4b4, NPC_SCRIPTING_FACTS_CPP, group->leader_id_9f, 1));
+                0x4b4, NPC_SCRIPTING_FACTS_CPP, group->leader_location_id, 1));
             monster_info->p3D->SetScript004C7F10("MoveSavantBoffo.msf", 1);
         }
         SoundPlayStreamedFile("Data\\Sound\\Misc\\Earthquake End.wav", 0);

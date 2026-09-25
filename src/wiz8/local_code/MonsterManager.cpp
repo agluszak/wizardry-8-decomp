@@ -951,8 +951,8 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     monster_info->p3D->inactive_215 = 0;
 }
 
-static __forceinline double DistanceBetweenPositions(const srVector3T<float>* first,
-                                                     const srVector3T<float>& second)
+static inline double DistanceBetweenPositions(const srVector3T<float>* first,
+                                              const srVector3T<float>& second)
 {
     return (*first - second).Length();
 }
@@ -1242,7 +1242,7 @@ unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destr
             DestroyMonsterGroup(monster_group, monster_info);
         } else {
             RecountActiveMonsterGroupMembers(monster_group);
-            if (monster_group->leader_id_9f == monster_info->location_id) {
+            if (monster_group->leader_location_id == monster_info->location_id) {
                 ElectGroupLeaderMember(monster_group);
                 if (monster_group->leader_group_id == 0) {
                     RefreshMonsterGroupAndAllies(monster_group);
@@ -1483,7 +1483,7 @@ void ToggleCombatMode(void)
         for (group_list_index = 0; group_list_index < PLLength(gXStatus.plsMonsterGroupList);
              ++group_list_index) {
             monster_group = GetMonsterGroupByListIndex(group_list_index);
-            if (monster_group->members_active_28 != 0 && monster_group->fInCombat != 0 &&
+            if (monster_group->members_active != 0 && monster_group->fInCombat != 0 &&
                 MonsterGroupCanEngage(monster_group) != 0) {
                 ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
                 return;
@@ -1699,7 +1699,7 @@ wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
         if (monster_group == 0) {
             srAssertFail("pMonsterGroup", MONSTER_MANAGER_CPP, 0x54d, 0);
         }
-        if (monster_group->alternate_name_2c != 0) {
+        if (monster_group->alternate_name != 0) {
             return record->name_00 + name_form * 24;
         }
     }
@@ -1830,13 +1830,13 @@ void DetectMonsterGroups004E4AB0(void)
     for (unsigned int group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList);
          ++group_index) {
         W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
-        if (group->members_active_28 == 0 ||
-            (group->alternate_name_2c != 0 && group->group_state_2d[0] != 0) ||
+        if (group->members_active == 0 ||
+            (group->alternate_name != 0 && group->group_state[0] != 0) ||
             (gXStatus.fCombatMode != 0 && group->fInCombat == 0) ||
             MonsterGroupHasRenderableMember(group, 0) == 0) {
             continue;
         }
-        if (group->alternate_name_2c == 0) {
+        if (group->alternate_name == 0) {
             W8MonsterRecord* record = MonsterGroupGetRecord(group);
             int best_slot = -1;
             unsigned int best_margin = 0;
@@ -1867,7 +1867,7 @@ void DetectMonsterGroups004E4AB0(void)
             }
             if (best_slot != -1) {
                 PostCharacterNotice(best_slot, gppStringList[0x1ca], GetMonsterGroupName(group));
-                group->alternate_name_2c = 1;
+                group->alternate_name = 1;
                 bool vowel;
                 switch (towupper(*GetMonsterGroupName(group))) {
                 case L'A':
@@ -1891,7 +1891,7 @@ void DetectMonsterGroups004E4AB0(void)
                 noticed = true;
             }
         }
-        if (group->group_state_2d[0] == 0) {
+        if (group->group_state[0] == 0) {
             for (unsigned int slot = 0; slot < 8; ++slot) {
                 W8Character* character = &g_status_685170.buffers.Char[slot];
                 if (g_status_685170.buffers.XChar[slot].fOccupied == 0 ||
@@ -1907,7 +1907,7 @@ void DetectMonsterGroups004E4AB0(void)
                 character->monster_awareness_12b6[group->monster_id] =
                     static_cast<unsigned char>(awareness);
             }
-            group->group_state_2d[0] = 1;
+            group->group_state[0] = 1;
         }
     }
     if (noticed) {
@@ -1946,14 +1946,14 @@ void EvaluateCombatDifficulty004E6CE0(void)
         }
         bool count_character = true;
         if (slot < 2) {
-            W8NpcState* npc = GetNpcState(row->animation_0fa);
+            W8NpcState* npc = GetNpcState(row->npc_index);
             if (npc != 0) {
                 int faction = npc->record->faction_5f;
                 if (faction != 0 && faction != 1) {
                     for (unsigned int group_index = 0;
                          group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
                         W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
-                        if (group->members_active_28 && group->fInCombat &&
+                        if (group->members_active && group->fInCombat &&
                             group->ubDisposition == DISP_HOSTILE &&
                             MonsterGroupGetRecord(group)->faction_id_25f == faction) {
                             count_character = false;
@@ -2020,7 +2020,7 @@ void EvaluateCombatDifficulty004E6CE0(void)
     for (slot = 0; slot < 2; ++slot) {
         W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
         if (row->fOccupied) {
-            W8NpcState* npc = GetNpcState(row->animation_0fa);
+            W8NpcState* npc = GetNpcState(row->npc_index);
             if (npc != 0) {
                 W8Character* character = &g_status_685170.buffers.Char[slot];
                 if (character->highest_condition == 0x12) {

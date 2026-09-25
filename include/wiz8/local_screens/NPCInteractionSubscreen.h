@@ -479,7 +479,7 @@ unsigned char IsNpcDialogueCursorActive(void); /* 0x0056EFB0 */
 /* 0x0056EFF0: forward a portrait pick into an active NPC dialogue. */
 void TryNpcDialoguePickpocket0056EFF0(int party_slot);
 void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned int width, int font);
-unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event);
+unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event, W8Region* region);
 void SetDialogueFieldKeyword(wchar_t* keyword, unsigned char append);
 void ActivateNpcDialoguePanels0056ECF0(unsigned char active); /* 0x0056ECF0 */
 bool HasNpcDialogueDirtyPanels0056ED80(void);                 /* 0x0056ED80 */

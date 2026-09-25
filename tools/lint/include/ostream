@@ -13,8 +13,12 @@ template <typename E> struct char_traits {};
    the complete template forms. */
 template <typename E, typename T> class basic_streambuf {
 public:
+    /* The deleting destructor slot is real in VC6: srWindowOut deletes its
+       buffer through this base. */
+    virtual ~basic_streambuf();
     virtual int overflow(int ch);
     virtual int underflow();
+    virtual int sync();
 };
 typedef basic_streambuf<char, char_traits<char> > streambuf;
 
@@ -29,11 +33,17 @@ public:
     fmtflags setf(fmtflags mask, fmtflags field);
     int width() const;
     int width(int value);
+    /* srWindowOut's destructor releases its window stream buffer through
+       rdbuf(). */
+    streambuf* rdbuf() const;
 };
 
 template <typename E, typename T> class basic_ostream : public ios {
 public:
     basic_ostream(basic_streambuf<E, T>* buffer);
+    /* The RichEdit stream-out callback writes the window text through the
+       VC6 unformatted-output member. */
+    basic_ostream& write(const E* data, long count);
     basic_ostream& operator<<(int value);
     basic_ostream& operator<<(long value);
     basic_ostream& operator<<(unsigned long value);

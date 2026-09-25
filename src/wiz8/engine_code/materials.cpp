@@ -2374,7 +2374,7 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
     concrete = new stMaterial;
     *material = concrete;
     if (concrete == 0) {
-        srAssertFail("ppstMaterial", MATERIALS_CPP, 0x130, 0);
+        srAssertFail("*ppstMaterial", MATERIALS_CPP, 0x130, 0);
     }
     concrete->setName(name);
     concrete->autoRelease();

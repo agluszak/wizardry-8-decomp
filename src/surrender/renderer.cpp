@@ -383,6 +383,14 @@ int srGERD::Renderer::isBatchFull() const
     return 0;
 }
 
+// FUNCTION: SURRENDER 0x10024DE0
+void srGERD::Renderer::rewindVertexArray(unsigned long count)
+{
+    if (first_vertex_c0_ != -1) {
+        vertices_78_.count_40 -= count;
+    }
+}
+
 // FUNCTION: SURRENDER 0x10024E00
 void srGERD::Renderer::allocVertexArray(srVertexArray& arrays, unsigned long count)
 {
@@ -1055,7 +1063,7 @@ void srGERD::Renderer::render(const TriInput& input)
             return;
         }
     }
-    if (gerd_d4_->pick_depth_19ec_ != 0) {
+    if (gerd_d4_->pick_176c_.pick_depth_280_ != 0) {
         PickInput pick;
         pick.indices_00 = batch->indices_0c;
         pick.triangles_04 = batch->triangles_10;

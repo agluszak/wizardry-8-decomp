@@ -31,9 +31,9 @@ char GetTargetNoticeColor(const W8TargetSource* source,
    eight bytes fit exactly before gXStatus.picked_monster. Context 2 hands out
    both addresses and stores the selected use-item value in the block. */
 
-unsigned char GetFactionFlag(char faction);
+unsigned char GetFactionFlag(signed char faction);
 /* One faction's last band-change world-clock stamp. */
-int GetFactionValue(char faction); /* 0x005360f0 */
+int GetFactionValue(signed char faction); /* 0x005360f0 */
 void AimByKind(int actor, W8TargetKind kind, W8TargetingContext context);
 void SetMonsterCombatTarget(W8MonsterInfo* monster_info, int location_id);
 bool MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id);
@@ -57,7 +57,7 @@ void HighlightSpellTargetsAtCachedPosition(void);
 /* Pick an attack fallback, allowing the character's alternate weapon set when
    the ordinary group selection has no usable monster. */
 int ChooseFallbackMonsterTarget0053C990(int party_slot, int group_id, W8TargetingContext context);
-void SetFactionFlag(char faction, unsigned char flag);
+void SetFactionFlag(signed char faction, unsigned char flag);
 bool ShowMonsterTargetMarker(W8MonsterInfo* monster_info);
 bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext context);
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
@@ -192,5 +192,5 @@ int PickNextTargetableMonster(int party_slot);
 bool IsDeadCharacterTargetable(int party_slot);
 
 /* 0x005360B0: the faction table index for a name, -1 when none matches. */
-char FindFactionByName(const char* name);
+signed char FindFactionByName(const char* name);
 void RepickInvalidCombatTargets00536400(void);

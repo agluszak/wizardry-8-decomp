@@ -64,9 +64,9 @@ struct W8MonsterRep : public W8EmitterHost {
     virtual ~W8MonsterRep() override;
     virtual W8AnimRepBase005EC1D8* Clone() override; /* 0x004CA9E0 */
     virtual srModelInstance* SetCycleFrameLod(signed char cycle, signed char frame,
-                                              signed char lod) override; /* 0x004BF8C0 */
-    virtual unsigned int ApplyEmitterSetting(char cycle) override;       /* 0x004BF970 */
-    virtual W8AniMesh* GetEmitterAniMesh(char cycle) override;           /* 0x004BF920 */
+                                              signed char lod) override;  /* 0x004BF8C0 */
+    virtual unsigned int ApplyEmitterSetting(signed char cycle) override; /* 0x004BF970 */
+    virtual W8AniMesh* GetEmitterAniMesh(signed char cycle) override;     /* 0x004BF920 */
     virtual void CopyCycle004BF0F0(signed char cycle, const W8MonsterRep* other,
                                    signed char other_cycle);
     unsigned char ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monster* monster, int cycle_index,

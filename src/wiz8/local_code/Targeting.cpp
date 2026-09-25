@@ -243,13 +243,10 @@ extern const char g_faction_names[W8_FACTION_COUNT][0x1e] = {
 /* Look a faction up by name, case-insensitively. -1 for a name that is not one
    of the twenty-one. */
 // FUNCTION: WIZ8 0x005360b0
-char FindFactionByName(const char* name)
+signed char FindFactionByName(const char* name)
 {
-    char faction;
+    signed char faction;
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wchar-subscripts"
-    /* Faction ids are a recovered char, including the -1 miss sentinel. */
     for (faction = 0; faction < W8_FACTION_COUNT; ++faction) {
         if (_stricmp(g_faction_names[faction], name) == 0) {
             return faction;
@@ -260,24 +257,23 @@ char FindFactionByName(const char* name)
 
 /* One faction's runtime value. */
 // FUNCTION: WIZ8 0x005360f0
-int GetFactionValue(char faction)
+int GetFactionValue(signed char faction)
 {
     return g_factions[faction].band_changed_clock_06;
 }
 
 /* Raise or lower one faction's flag. */
 // FUNCTION: WIZ8 0x00536110
-void SetFactionFlag(char faction, unsigned char flag)
+void SetFactionFlag(signed char faction, unsigned char flag)
 {
     g_factions[faction].encountered_0a = flag;
 }
 
 // FUNCTION: WIZ8 0x00536130
-unsigned char GetFactionFlag(char faction)
+unsigned char GetFactionFlag(signed char faction)
 {
     return g_factions[faction].encountered_0a;
 }
-#pragma clang diagnostic pop
 
 /* Build an empty target block: everything zeroed, then the two ids set to
    BAD_INDEX. The kind is written twice, once by the clear and once on its
@@ -1267,7 +1263,7 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
         if (group == 0) {
             srAssertFail("pMonsterGroup != NULL", TARGETING_CPP, 0xa3, 0);
         }
-        if (group->member_count == 0 || group->members_active_28 == 0) {
+        if (group->member_count == 0 || group->members_active == 0) {
             return false;
         }
         break;
@@ -2349,18 +2345,8 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
         if (resolved == W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
             ++g_combat_state->characters[party_slot].pending_action_repick_count;
         }
-        switch (kind) {
-        case 0:
-        case 1:
-            is_attack_kind = 1;
-            break;
-        case 7:
-        case 8:
-            break;
-        default:
-            goto clear_target;
-        }
-        if (needed == 2) {
+        is_attack_kind = kind == 0 || kind == 1;
+        if ((is_attack_kind != 0 || kind == 7 || kind == 8) && needed == 2) {
             group_id = -1;
             if (target->iMonsterID != -1 && (monster_index = MonsterGetIndexByLocationID(
                                                  0xf40, TARGETING_CPP, target->iMonsterID, 0),
@@ -2397,18 +2383,17 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
                         AimAtTarget(party_slot, target, W8_TARGETING_CONTEXT_IN_COMBAT);
                     }
                 }
-                goto done;
             }
         }
     }
-clear_target:
-    memset(&new_target, 0, sizeof(new_target));
-    new_target.iMonsterID = -1;
-    new_target.iChar = -1;
-    new_target.iGroupID = -1;
-    new_target.iType = W8_TARGET_KIND_NONE;
-    AimAtTarget(party_slot, &new_target, (W8TargetingContext)arg);
-done:
+    if (result == 0) {
+        memset(&new_target, 0, sizeof(new_target));
+        new_target.iMonsterID = -1;
+        new_target.iChar = -1;
+        new_target.iGroupID = -1;
+        new_target.iType = W8_TARGET_KIND_NONE;
+        AimAtTarget(party_slot, &new_target, (W8TargetingContext)arg);
+    }
     if (gXStatus.fCombatMode != 0 && action_context == W8_TARGETING_CONTEXT_IN_COMBAT &&
         target->iType != previous_kind) {
         RequestPartySlotRedraw(party_slot);
@@ -2695,7 +2680,7 @@ bool SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normaliz
         for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
             W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
 
-            if (group->members_active_28 != 0 && CanTargetMonsterGroup(party_slot, group)) {
+            if (group->members_active != 0 && CanTargetMonsterGroup(party_slot, group)) {
                 return 1;
             }
         }
@@ -2952,10 +2937,10 @@ void CycleToNextTarget(int party_slot)
     W8TargetSource source;
     W8ActionDetailBlock* detail_block;
     W8TargetingContext context;
-    int needed;
     int action;
     int detail;
     int pick;
+    bool pick_group = false;
 
     context = GetCurrentTargetingContext(party_slot);
     if (ResolveTargetingContext(party_slot, context) != 0) {
@@ -2963,42 +2948,39 @@ void CycleToNextTarget(int party_slot)
                            &detail_block);
         switch (action) {
         case 7:
-            needed = GetTargetNeededForSpellFriendly(detail, 0, W8_TARGETING_CONTEXT_CURRENT);
+            pick_group =
+                GetTargetNeededForSpellFriendly(detail, 0, W8_TARGETING_CONTEXT_CURRENT) == 5;
             break;
         case 8:
-            needed = GetTargetNeededForItem(detail_block->item_use.item);
+            pick_group = GetTargetNeededForItem(detail_block->item_use.item) == 5;
             break;
-        default:
-            goto pick_monster;
-        }
-        if (needed == 5) {
-            pick = PickNextTargetableGroup(party_slot);
-            if (pick == BAD_INDEX) {
-                return;
-            }
-            memset(&target, 0, sizeof(target));
-            target.iMonsterID = BAD_INDEX;
-            target.iChar = BAD_INDEX;
-            target.iType = W8_TARGET_KIND_GROUP;
-            target.iGroupID = pick;
-            AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
-            gXStatus.picked_group = pick;
-            goto finish;
         }
     }
-pick_monster:
-    pick = PickNextTargetableMonster(party_slot);
-    if (pick == BAD_INDEX) {
-        return;
+    if (pick_group) {
+        pick = PickNextTargetableGroup(party_slot);
+        if (pick == BAD_INDEX) {
+            return;
+        }
+        memset(&target, 0, sizeof(target));
+        target.iMonsterID = BAD_INDEX;
+        target.iChar = BAD_INDEX;
+        target.iType = W8_TARGET_KIND_GROUP;
+        target.iGroupID = pick;
+        AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
+        gXStatus.picked_group = pick;
+    } else {
+        pick = PickNextTargetableMonster(party_slot);
+        if (pick == BAD_INDEX) {
+            return;
+        }
+        memset(&target, 0, sizeof(target));
+        target.iChar = BAD_INDEX;
+        target.iGroupID = BAD_INDEX;
+        target.iType = W8_TARGET_KIND_MONSTER;
+        target.iMonsterID = pick;
+        AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
+        gXStatus.picked_monster = pick;
     }
-    memset(&target, 0, sizeof(target));
-    target.iChar = BAD_INDEX;
-    target.iGroupID = BAD_INDEX;
-    target.iType = W8_TARGET_KIND_MONSTER;
-    target.iMonsterID = pick;
-    AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
-    gXStatus.picked_monster = pick;
-finish:
     StartBreathCycle(party_slot, 0);
     SetTargetSourceToCharacter(party_slot, &source);
     PointCameraAtCombatTarget(&source,
@@ -3088,7 +3070,7 @@ void RefreshMonsterTargetCounts005398D0(void)
         int on_screen_count;
         int selectable_count;
 
-        if (group->members_active_28 == 0) {
+        if (group->members_active == 0) {
             continue;
         }
         on_screen_count = 0;

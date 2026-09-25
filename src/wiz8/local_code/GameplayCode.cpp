@@ -289,7 +289,8 @@ void RefreshLevelUpReadyNotices(void)
                         text = static_cast<wchar_t*>(operator new(0x400));
                         text[0] = L' ';
                         text[1] = 0xb4;
-                        text[2] = GetTable647CCCEntry(static_cast<char>(row->party_order_index));
+                        text[2] =
+                            GetTable647CCCEntry(static_cast<signed char>(row->party_order_index));
                         text[3] = L' ';
                         swprintf(text + 4, g_format_s_006068e4, character->name);
                         length = wcslen(text);
@@ -648,7 +649,7 @@ void CalcAttacks(W8Character* character)
                                60;
         if (character->fInParty && character->iRace == 15) {
             unsigned int party_slot = CharacterPointerToPartySlot(character);
-            W8NpcState* npc = GetNpcState(g_status_685170.buffers.XChar[party_slot].animation_0fa);
+            W8NpcState* npc = GetNpcState(g_status_685170.buffers.XChar[party_slot].npc_index);
             if (npc != 0 && npc->name_style == W8_NPC_RFS81_A &&
                 !GetFact(W8_FACT_RFS81_HAS_BEEN_FIXED)) {
                 attack->attack_score /= 2;
@@ -1028,7 +1029,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
     ResetGameplaySlot(slot);
 
     W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-    row->animation_0fa = slot_kind;
+    row->npc_index = slot_kind;
     for (unsigned int index = 0; index < 8; ++index) {
         if (g_status_685170.party_order_slots[index] == (unsigned int)-1) {
             g_status_685170.party_order_slots[index] = slot;
@@ -1067,7 +1068,7 @@ unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
 {
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
-    if (save_character_data != 0 && g_status_685170.buffers.XChar[party_slot].animation_0fa == -1) {
+    if (save_character_data != 0 && g_status_685170.buffers.XChar[party_slot].npc_index == -1) {
         srAssertFail("!fSaveCharData || fCHAR_NPC(uiSlot)", GAMEPLAY_CODE_CPP, 0x895, 0);
     }
     gXStatus.character_event_queue->RemoveCharacterEvents(character);
@@ -1075,7 +1076,7 @@ unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
     if (save_character_data != 0) {
         RebuildCharacterModifierBlock(character);
         RecalculateCharacterDerivedStats(character);
-        if (SaveCharacter(character, g_status_685170.buffers.XChar[party_slot].animation_0fa, 1,
+        if (SaveCharacter(character, g_status_685170.buffers.XChar[party_slot].npc_index, 1,
                           0) == 0) {
             character->fInParty = 1;
             RebuildCharacterModifierBlock(character);
@@ -1097,7 +1098,7 @@ unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
     g_status_685170.party_order_slots[g_status_685170.buffers.XChar[party_slot].party_order_index] =
         -1;
     --g_status_685170.total_member_count;
-    if (g_status_685170.buffers.XChar[party_slot].animation_0fa == -1) {
+    if (g_status_685170.buffers.XChar[party_slot].npc_index == -1) {
         --g_status_685170.regular_member_count;
     } else {
         --g_status_685170.auxiliary_member_count;
@@ -1139,7 +1140,7 @@ unsigned char RecruitCharacterIntoParty004EF7E0(W8Character* character, W8Charac
     character->fInParty = 1;
     ResetPartySlotRow(slot);
     ResetGameplaySlot(slot);
-    g_status_685170.buffers.XChar[slot].animation_0fa = -1;
+    g_status_685170.buffers.XChar[slot].npc_index = -1;
     for (order_index = 0; order_index < 8; ++order_index) {
         if (g_status_685170.party_order_slots[order_index] == static_cast<unsigned int>(-1)) {
             g_status_685170.party_order_slots[order_index] = slot;

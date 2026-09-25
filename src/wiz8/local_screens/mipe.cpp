@@ -743,7 +743,7 @@ static unsigned char HandleMipeMonsterCreateKey00578500(unsigned short key)
         formation.y = anchor.y;
         formation.z = anchor.z;
         SetMonsterGroupFormation(monster_group, &formation);
-        monster_group->group_state_2d[0x6d] = g_mipe_state_0068f100->creation_method_30;
+        monster_group->group_state[0x6d] = g_mipe_state_0068f100->creation_method_30;
     }
     return 1;
 }
