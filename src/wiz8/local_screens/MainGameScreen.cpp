@@ -7985,8 +7985,7 @@ void SetCombatSelection(int value)
                 FormatMonsterHealth(monster_info, health);
                 wcscat(text, health);
                 wcscat(text, L")");
-                VideoToolTip(
-                    reinterpret_cast<UINT16*>(text)); // reinterpret-ok: SGP wide-text API boundary
+                VideoToolTip(text);
                 int y = point.y - g_cursor_image_height / 2;
                 if (point.x < 0) {
                     point.x = 2;
@@ -8104,8 +8103,7 @@ void SetCombatTarget(int value)
             wchar_t* text = FormatItemDisplayName(&item->item, 1);
             int y;
 
-            VideoToolTip(
-                reinterpret_cast<UINT16*>(text)); // reinterpret-ok: SGP wide-text API boundary
+            VideoToolTip(text);
             y = point.y - g_cursor_image_height / 2;
             if (point.x < 0) {
                 point.x = 2;

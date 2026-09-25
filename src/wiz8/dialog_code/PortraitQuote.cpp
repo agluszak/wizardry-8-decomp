@@ -147,34 +147,27 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
             word[word_length++] = ch;
         } else if ((word[0] < 0xb2 || word[0] > 0xb5) && word[0] != L'\n') {
             word[word_length] = L'\0';
-            unsigned int word_width = StringPixLength(
-                reinterpret_cast<UINT16*>(word), // reinterpret-ok: SGP wide-text API boundary
-                active_font);
+            unsigned int word_width = StringPixLength(word, active_font);
             word[word_length++] = L' ';
             word[word_length] = L'\0';
             if ((wrap_width & 0xffff) < word_width + line_width) {
                 if (flags & 0x20) {
                     SetFontShadow(0);
                 }
-                DrawWrappedTextLine(
-                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
-                    draw_x, draw_y, remaining_width, active_font, active_colour,
-                    static_cast<unsigned char>(background), section != 0, flags);
+                DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
+                                    active_colour, static_cast<unsigned char>(background),
+                                    section != 0, flags);
                 if (flags & 0x20) {
                     SetFontShadow(2);
                 }
                 draw_y += GetFontHeight(active_font) + (line_spacing & 0xff);
                 ++line_count;
                 wcscpy(line, word);
-                line_width = StringPixLength(
-                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
-                    active_font);
+                line_width = StringPixLength(line, active_font);
                 remaining_width = wrap_width;
                 draw_x = x;
             } else {
-                line_width += StringPixLength(
-                    reinterpret_cast<UINT16*>(word), // reinterpret-ok: SGP wide-text API boundary
-                    active_font);
+                line_width += StringPixLength(word, active_font);
                 wcscat(line, word);
             }
             word_length = 0;
@@ -183,10 +176,9 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                 if (flags & 0x20) {
                     SetFontShadow(0);
                 }
-                DrawWrappedTextLine(
-                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
-                    draw_x, draw_y, remaining_width, active_font, active_colour,
-                    static_cast<unsigned char>(background), section != 0, flags);
+                DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
+                                    active_colour, static_cast<unsigned char>(background),
+                                    section != 0, flags);
                 if (flags & 0x20) {
                     SetFontShadow(2);
                 }
@@ -202,18 +194,14 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                 if (flags & 0x20) {
                     SetFontShadow(0);
                 }
-                DrawWrappedTextLine(
-                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
-                    draw_x, draw_y, remaining_width, active_font, active_colour,
-                    static_cast<unsigned char>(background), section != 0, flags);
+                DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
+                                    active_colour, static_cast<unsigned char>(background),
+                                    section != 0, flags);
                 if (flags & 0x20) {
                     SetFontShadow(2);
                 }
                 if (alternate) {
-                    int span =
-                        StringPixLength(reinterpret_cast<UINT16*>(
-                                            line), // reinterpret-ok: SGP wide-text API boundary
-                                        active_font);
+                    int span = StringPixLength(line, active_font);
                     remaining_width -= line_width;
                     memset(line, 0, sizeof(line));
                     memset(word, 0, sizeof(word));
@@ -222,10 +210,7 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                     draw_x += span;
                     active_font = font;
                 } else {
-                    int span =
-                        StringPixLength(reinterpret_cast<UINT16*>(
-                                            line), // reinterpret-ok: SGP wide-text API boundary
-                                        active_font);
+                    int span = StringPixLength(line, active_font);
                     active_font = g_font12point1;
                     remaining_width -= line_width;
                     memset(line, 0, sizeof(line));
@@ -240,10 +225,9 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                     if (flags & 0x20) {
                         SetFontShadow(0);
                     }
-                    DrawWrappedTextLine(reinterpret_cast<UINT16*>(
-                                            line), // reinterpret-ok: SGP wide-text API boundary
-                                        draw_x, draw_y, remaining_width, active_font, active_colour,
-                                        static_cast<unsigned char>(background), true, flags);
+                    DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
+                                        active_colour, static_cast<unsigned char>(background), true,
+                                        flags);
                     if (flags & 0x20) {
                         SetFontShadow(2);
                     }
@@ -266,19 +250,16 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                 if (flags & 0x20) {
                     SetFontShadow(0);
                 }
-                DrawWrappedTextLine(
-                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
-                    draw_x, draw_y, remaining_width, active_font, active_colour,
-                    static_cast<unsigned char>(background), section != 0, flags);
+                DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
+                                    active_colour, static_cast<unsigned char>(background),
+                                    section != 0, flags);
                 if (flags & 0x20) {
                     SetFontShadow(2);
                 }
                 if (word[0] == 0xb4 && word[1] != L' ' && word[1] < 0x100) {
                     active_colour = static_cast<unsigned char>(word[1]);
                 }
-                int span = StringPixLength(
-                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
-                    active_font);
+                int span = StringPixLength(line, active_font);
                 remaining_width -= line_width;
                 memset(line, 0, sizeof(line));
                 memset(word, 0, sizeof(word));
@@ -296,10 +277,8 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
             if (flags & 0x20) {
                 SetFontShadow(0);
             }
-            DrawWrappedTextLine(
-                reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
-                draw_x, draw_y, remaining_width, active_font, active_colour,
-                static_cast<unsigned char>(background), section != 0, flags);
+            DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font, active_colour,
+                                static_cast<unsigned char>(background), section != 0, flags);
             if (flags & 0x20) {
                 SetFontShadow(2);
             }
@@ -345,9 +324,7 @@ int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, 
             }
         } else if ((word[0] < 0xb2 || word[0] > 0xb5) && word[0] != L'\n') {
             word[word_length] = L'\0';
-            unsigned int word_width = StringPixLength(
-                reinterpret_cast<UINT16*>(word), // reinterpret-ok: SGP wide-text API boundary
-                active_font);
+            unsigned int word_width = StringPixLength(word, active_font);
             word[word_length++] = L' ';
             word[word_length] = L'\0';
             unsigned int next_width = word_width + line_width;
@@ -358,13 +335,9 @@ int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, 
                 }
                 ++line_count;
                 wcscpy(line, word);
-                line_width = StringPixLength(
-                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
-                    active_font);
+                line_width = StringPixLength(line, active_font);
             } else {
-                line_width += StringPixLength(
-                    reinterpret_cast<UINT16*>(word), // reinterpret-ok: SGP wide-text API boundary
-                    active_font);
+                line_width += StringPixLength(word, active_font);
                 wcscat(line, word);
             }
             word_length = 0;
@@ -383,18 +356,14 @@ int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, 
                 break;
             case 0xb2:
                 if (alternate) {
-                    StringPixLength(reinterpret_cast<UINT16*>(
-                                        line), // reinterpret-ok: SGP wide-text API boundary
-                                    active_font);
+                    StringPixLength(line, active_font);
                     memset(line, 0, sizeof(line));
                     memset(word, 0, sizeof(word));
                     alternate = false;
                     word_length = 0;
                     active_font = font;
                 } else {
-                    StringPixLength(reinterpret_cast<UINT16*>(
-                                        line), // reinterpret-ok: SGP wide-text API boundary
-                                    active_font);
+                    StringPixLength(line, active_font);
                     active_font = g_font12point1;
                     memset(line, 0, sizeof(line));
                     memset(word, 0, sizeof(word));
@@ -422,9 +391,7 @@ int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, 
                 break;
             case 0xb4:
             case 0xb5:
-                StringPixLength(
-                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
-                    active_font);
+                StringPixLength(line, active_font);
                 memset(line, 0, sizeof(line));
                 memset(word, 0, sizeof(word));
                 word_length = 0;

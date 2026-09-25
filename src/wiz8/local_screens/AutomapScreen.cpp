@@ -1801,8 +1801,7 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
             rect.top = (0x20 - screen_y) - ((unsigned)GetFontHeight(g_font_683660) >> 1);
             rect.left = marker_width / 2 + (0xe - screen_x);
             rect.bottom = rect.top + GetFontHeight(g_font_683660) + 3;
-            rect.right =
-                StringPixLength((unsigned short*)note->text, g_font_683660) + 3 + rect.left;
+            rect.right = StringPixLength(note->text, g_font_683660) + 3 + rect.left;
             if (rect.left < 0xc) {
                 rect.left = 0xc;
             }
@@ -2258,17 +2257,14 @@ void RenderAutomapMarkers00582930(void)
                     y += ((height & 0xffff) >> 1) - ((font_height & 0xffff) >> 1);
                     width = marker->GetWidth00480EF0();
                     x += (width & 0xffff) + 2;
-                    // reinterpret-ok: SGP text APIs take UINT16*; wchar_t*.
-                    gprintfDirty(x, y, reinterpret_cast<UINT16*>(note->text));
+                    gprintfDirty(x, y, note->text);
                     if (note == g_automap_editing_note) {
                         marker->setScale(srVector3T<double>(0.22f, 0.22f, 0.22f));
                         unsigned int pitch;
                         char* buffer = static_cast<char*>(LockPrimarySurface(&pitch));
                         SetClippingRegionAndImageWidth(pitch, 0xc, 0x20, 0x1c7, 0x1b3);
                         int color = Get16BPPColor(0x569bef);
-                        int length =
-                            // reinterpret-ok: SGP text APIs take UINT16*.
-                            StringPixLength(reinterpret_cast<UINT16*>(note->text), g_font_683660);
+                        int length = StringPixLength(note->text, g_font_683660);
                         RectangleDraw(TRUE, x - 1, y, x + length + 2, y + (font_height & 0xffff),
                                       color, buffer);
                         UnlockPrimarySurface();

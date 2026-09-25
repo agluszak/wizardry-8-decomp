@@ -607,7 +607,7 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     if (has_accept || has_cancel) {
         height = 0x6c;
     }
-    unsigned short width = StringPixLength((unsigned short*)text, font) + 10;
+    unsigned short width = StringPixLength(text, font) + 10;
     if (width > 0x258) {
         width = 0x258;
     } else if (width < 0x64) {
@@ -626,9 +626,8 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
         0, 0, 0);
     int yloc = (0x1e0 - height) / 2;
     g_message_box_background_button = CreateTextButton(
-        reinterpret_cast<unsigned short*>(text), // reinterpret-ok: SGP text API takes UINT16*
-        (unsigned short)font, 0xff, 0, g_message_box_background_image, (0x280 - width) / 2, yloc,
-        width, height, 4, 0x7d, 0, MessageBoxAcceptClickCallback);
+        text, (unsigned short)font, 0xff, 0, g_message_box_background_image, (0x280 - width) / 2,
+        yloc, width, height, 4, 0x7d, 0, MessageBoxAcceptClickCallback);
     if (g_message_box_background_button < 0) {
         return false;
     }

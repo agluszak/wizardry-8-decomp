@@ -1356,9 +1356,8 @@ void DrawSubMenuCharacterAction(void)
     character = &g_status.buffers.Char[slot];
     swprintf(text, L"%s - %s", character->name,
              gppStringList[g_profession_name_message_ids[character->iProfession]]);
-    // c-style-cast-ok: SGP spells wide text UINT16*, the historical ABI boundary
-    gprintf((0xb9 - StringPixLength((UINT16*)text, g_smfnt_font)) / 2 + 0x157, 0x1c6,
-            (UINT16*)g_format_s_006068e4, text);
+    gprintf((0xb9 - StringPixLength(text, g_smfnt_font)) / 2 + 0x157, 0x1c6,
+            const_cast<UINT16*>(g_format_s_006068e4), text);
     if (gXStatus.fCombatMode != 1) {
         if (character->highest_condition == 0) {
             return;
@@ -1393,12 +1392,9 @@ void DrawSubMenuCharacterAction(void)
                 if (character->Hand[0].in_play == 0) {
                     wcscat(text, second);
                 } else {
-                    // c-style-cast-ok: SGP spells wide text UINT16*, the historical ABI boundary
-                    width = StringPixLength((UINT16*)text, g_smfnt_font);
-                    // c-style-cast-ok: SGP spells wide text UINT16*, the historical ABI boundary
-                    separator = StringPixLength((UINT16*)L"/)", g_smfnt_font);
-                    // c-style-cast-ok: SGP spells wide text UINT16*, the historical ABI boundary
-                    trailing = StringPixLength((UINT16*)second, g_smfnt_font);
+                    width = StringPixLength(text, g_smfnt_font);
+                    separator = StringPixLength(L"/)", g_smfnt_font);
+                    trailing = StringPixLength(second, g_smfnt_font);
                     if ((unsigned int)(trailing + width + separator) < 0xb9) {
                         wcscat(text, L"/");
                         wcscat(text, second);
@@ -1440,9 +1436,7 @@ void DrawSubMenuCharacterAction(void)
             break;
         }
     }
-    // c-style-cast-ok: SGP spells wide text UINT16*, the historical ABI boundary
-    gprintf((0xb9 - StringPixLength((UINT16*)text, g_smfnt_font)) / 2 + 0x157, 0x1d1,
-            (UINT16*)text);
+    gprintf((0xb9 - StringPixLength(text, g_smfnt_font)) / 2 + 0x157, 0x1d1, text);
 }
 
 /* Enable the fight/review panel buttons from combat engagement and mode
