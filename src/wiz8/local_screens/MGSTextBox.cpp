@@ -2048,10 +2048,10 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
                 draw_x += StringPixLength(Wiz8ToSgpWideText(scratch), g_level_block->text_box_font);
             }
             if (wcslen(line->wString) < line->highlight_stop) {
-                srAssertFail("wcslen(pTextLine->wString) >= pTextLine->ubStopChar",
-                             MGS_TEXT_BOX_CPP, 0x5ef,
-                             FormatString("DrawTextMessage: ERROR - String length %d, stop %d",
-                                          wcslen(line->wString), line->highlight_stop));
+                srAssertFail(
+                    "wcslen(pTextLine->wString) >= pTextLine->ubStopChar", MGS_TEXT_BOX_CPP, 0x5ef,
+                    FormatString("DrawTextMessage: ERROR - String %ls, length %d, StopChar %d",
+                                 line->wString, wcslen(line->wString), line->highlight_stop));
             }
             if (line->length_14 == -1) {
                 length = static_cast<int>(wcslen(line->wString)) - line->highlight_stop;

@@ -1606,10 +1606,11 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
                 FileRead(hFile, &tag_tmp, 2, 0);
                 slot->tag = static_cast<unsigned char>(tag_tmp);
                 if (frame_count <= frame_tmp) {
-                    srAssertFail("(usTemp < (UINT16)ubNumFrames)", PROP_CPP, 0x11f,
-                                 reinterpret_cast<const char*>(
-                                     String("%s Prop Error Segment %d frame n", prop->m_name,
-                                            (unsigned int)tag_tmp, (unsigned int)frame_tmp)));
+                    srAssertFail(
+                        "(usTemp < (UINT16)ubNumFrames)", PROP_CPP, 0x11f,
+                        reinterpret_cast<const char*>(
+                            String("%s Prop Error:Segment %d frame number is out of range (%d)",
+                                   prop->m_name, (unsigned int)tag_tmp, (unsigned int)frame_tmp)));
                 }
                 this->slots.Add(slot);
             }

@@ -860,7 +860,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
             5,
             reinterpret_cast< // reinterpret-ok: String returns a logging buffer
                 const char*>(String(
-                "Switch Trigger: %s (recipients: %s)\n", // reinterpret-ok: String returns a logging buffer
+                "Switch Trigger: %s, recipients: %s\n", // reinterpret-ok: String returns a logging buffer
                 pSwitch->name_1f, pSwitch->recipients_9f)));
         if (pSwitch->version_00 > 1) {
             ok &= FileRead(hFile, &pSwitch->minimum_range_21f, 4, 0);
@@ -962,7 +962,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         5,
         reinterpret_cast< // reinterpret-ok: String returns a logging buffer
             const char*>(String(
-            "Invisible Trigger: %s (recipients: %s)\n", // reinterpret-ok: String returns a logging buffer
+            "Invisible Trigger: %s, recipients: %s\n", // reinterpret-ok: String returns a logging buffer
             pInvis->name_1b, pInvis->recipients_9b)));
     if (pInvis->version_00 > 1) {
         ok &= FileRead(hFile, &pInvis->plane_flag_19b, 1, 0);
@@ -1439,29 +1439,44 @@ bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
 bool ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor)
 {
     W8LevelFileDoor* pDoorRec = static_cast<W8LevelFileDoor*>(malloc(0x99));
-    if (pDoorRec != 0) {
-        unsigned char fSuccess = FileRead(hFile, &pDoorRec->version_00, 10, 0);
-        fSuccess &= FileRead(hFile, &pDoorRec->item_0a, 2, 0);
-        fSuccess &= FileRead(hFile, &pDoorRec->has_position_0c, 1, 0);
-        fSuccess &= FileRead(hFile, &pDoorRec->position_0d, 0xc, 0);
-        fSuccess &= FileRead(hFile, pDoorRec->linked_trigger_19, 0x80, 0);
-        ReportBuildStatus00497690(
-            5,
-            reinterpret_cast< // reinterpret-ok: String returns a logging buffer
-                const char*>(String(
-                "Door: %s",
-                pDoorRec->linked_trigger_19))); // reinterpret-ok: String returns a logging buffer
-        pDoor->door_01 = pDoorRec;
-        return fSuccess;
+    if (pDoorRec == 0) {
+        return 0;
     }
-    return 0;
+    unsigned char fSuccess = FileRead(hFile, &pDoorRec->version_00, 1, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->flags_01[0], 1, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->flags_01[1], 1, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->flags_01[2], 1, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->flags_01[3], 1, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->flags_01[4], 1, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->flags_01[5], 1, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->flags_01[6], 1, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->flags_01[7], 1, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->flags_01[8], 1, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->item_0a, 2, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->has_position_0c, 1, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->position_0d, 0xc, 0);
+    fSuccess &= FileRead(hFile, pDoorRec->linked_trigger_19, 0x80, 0);
+    pDoor->door_01 = pDoorRec;
+    return fSuccess;
 }
 
 // FUNCTION: WIZ8 0x004D3660
 bool WriteDoorTriggerFile004D3660(int hFile, W8LevelFileDoorRef* pDoor)
 {
     W8LevelFileDoor* pDoorRec = pDoor->door_01;
-    unsigned char fSuccess = FileWrite(hFile, &pDoorRec->version_00, 10, 0);
+    if (pDoorRec == 0) {
+        return 0;
+    }
+    unsigned char fSuccess = FileWrite(hFile, &pDoorRec->version_00, 1, 0);
+    fSuccess &= FileWrite(hFile, &pDoorRec->flags_01[0], 1, 0);
+    fSuccess &= FileWrite(hFile, &pDoorRec->flags_01[1], 1, 0);
+    fSuccess &= FileWrite(hFile, &pDoorRec->flags_01[2], 1, 0);
+    fSuccess &= FileWrite(hFile, &pDoorRec->flags_01[3], 1, 0);
+    fSuccess &= FileWrite(hFile, &pDoorRec->flags_01[4], 1, 0);
+    fSuccess &= FileWrite(hFile, &pDoorRec->flags_01[5], 1, 0);
+    fSuccess &= FileWrite(hFile, &pDoorRec->flags_01[6], 1, 0);
+    fSuccess &= FileWrite(hFile, &pDoorRec->flags_01[7], 1, 0);
+    fSuccess &= FileWrite(hFile, &pDoorRec->flags_01[8], 1, 0);
     fSuccess &= FileWrite(hFile, &pDoorRec->item_0a, 2, 0);
     fSuccess &= FileWrite(hFile, &pDoorRec->has_position_0c, 1, 0);
     fSuccess &= FileWrite(hFile, &pDoorRec->position_0d, 0xc, 0);
@@ -1714,7 +1729,7 @@ bool ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj, unsigned c
                                         FileRead(hFile, &pFrame->num_textures_5d, 2, 0);
                             if ((pFrame->num_textures_5d < 0) || (pFrame->num_textures_5d > 500)) {
                                 sprintf(g_level_file_error_682ff8,
-                                        "Invalid number of materials in mesh: %d\n",
+                                        "Invalid number of materials in mesh (%d materials).\n",
                                         (int)pFrame->num_textures_5d);
                                 ReportBuildStatus00497690(7, g_level_file_error_682ff8);
                                 return 0;

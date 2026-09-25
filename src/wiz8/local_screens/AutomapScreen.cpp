@@ -682,13 +682,13 @@ unsigned char AutomapScreenEnter(void)
     g_automap_layers.Clear();
     g_automap_layers.Add(0);
     char layer_name[16];
-    sprintf(layer_name, "LAYER_%d", layer_number);
+    sprintf(layer_name, "LAYER %d", layer_number);
     srClipPlane::ClientType* layer = static_cast<srClipPlane::ClientType*>(
         srCore.getRegistry()->find(srClipPlane::ClientType::sGetClassNode(), layer_name, 0));
     while (layer) {
         g_automap_layers.Add(layer);
         ++layer_number;
-        sprintf(layer_name, "LAYER_%d", layer_number);
+        sprintf(layer_name, "LAYER %d", layer_number);
         layer = static_cast<srClipPlane::ClientType*>(
             srCore.getRegistry()->find(srClipPlane::ClientType::sGetClassNode(), layer_name, 0));
     }
@@ -754,13 +754,13 @@ unsigned char AutomapScreenEnter(void)
                 char* text = (*script.lines.GetAt(line))->text;
                 if (strchr(text, '['))
                     break;
-                if (!strstr(text, "LAYER_")) {
+                if (!strstr(text, "LAYER=")) {
                     excluded_textures.Add(text);
                 } else {
                     float height = static_cast<float>(atof(text + 6));
                     srClipPlane::ClientType* clip = SR_NEW(srClipPlane)(static_cast<srNode*>(0));
                     if (clip) {
-                        sprintf(layer_name, "LAYER_%d", layer_number);
+                        sprintf(layer_name, "LAYER %d", layer_number);
                         clip->setName(layer_name);
                         srVector4T<float> plane;
                         plane.Set(0.0f, 1.0f, 0.0f, 0.0f);

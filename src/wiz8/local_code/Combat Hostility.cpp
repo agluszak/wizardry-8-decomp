@@ -157,7 +157,7 @@ char GetOppositeDisposition(W8TargetSource* source)
         unsigned int monster_list_index =
             MonsterGetIndexByLocationID(0xd3, COMBAT_HOSTILITY_CPP, source->iMonsterID, 0);
         if (monster_list_index == 0xffffffff) {
-            FormatDebugMessage(1, "GetOppositeDisposition - ERROR - can't find monster %d!",
+            FormatDebugMessage(1, "GetOppositeDisposition - ERROR: checking obsolete Monster ID %d",
                                source->iMonsterID);
             return 0;
         }

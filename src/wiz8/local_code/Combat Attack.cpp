@@ -3779,9 +3779,9 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     }
     party_row->attack_mode[hand] = mode;
     if (row->hand_attack_values_40[hand] == 0) {
-        FormatDebugMessage(1,
-                           "ERROR: %ls is starting attack with 0 of %d attacks remaining (hand %d)",
-                           character->name, row->saved_attack_value[hand], hand);
+        FormatDebugMessage(
+            1, "ERROR: %ls is starting attack with 0 of %d attacks remaining (hand %d)!",
+            character->name, row->saved_attack_value[hand], hand);
         return 0;
     }
     row->hand_attack_values_40[hand]--;

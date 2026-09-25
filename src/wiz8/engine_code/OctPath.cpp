@@ -487,9 +487,15 @@ void W8PathingService::BuildWaypointFileData0045E440()
                     }
                 }
                 if (g_dev_mode_689b32 != 0) {
-                    const char* message = removed == 0 ? "Deleting Isolated WayPt at:  %1f, %1f"
-                                                       : "Deleting Dead End WayPt at:  %1f, %1f";
-                    FormatDebugMessage(0, message, surface->position_04.x, surface->position_04.y);
+                    if (removed == 0) {
+                        FormatDebugMessage(0, "Deleting Isolated WayPt at (%.1f, %.1f, %.1f)",
+                                           surface->position_04.x, surface->position_04.y,
+                                           surface->position_04.z);
+                    } else {
+                        FormatDebugMessage(0, "Deleting Dead End WayPt at (%.1f, %.1f, %.1f)",
+                                           surface->position_04.x, surface->position_04.y,
+                                           surface->position_04.z);
+                    }
                 }
             }
         } else {
@@ -5520,7 +5526,7 @@ void W8PathingService::DrawPathPosition0045C9A0(srVector3T<float> position, unsi
         best_node = path_heap_06c->root_node_04;
         if (best_node > search_node_count_0cc) {
             char message[80];
-            sprintf(message, "A:  Invalid node index %d from Queue.", best_node);
+            sprintf(message, "A*, Invalid node index %d from Queue", best_node);
             srAssertFail("(ulBestNode <= m_ulSearchNodesUsed)", OCTPATH_CPP, 0x1110, message);
         }
     }

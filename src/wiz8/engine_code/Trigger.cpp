@@ -3228,8 +3228,7 @@ void Trigger::Run(int source)
             float duration = (float)abs(m_lData2) * 0.001f;
 
             if (m_lData2 > 0 && trigger_kind_018 != 2) {
-                srAssertFail("m_lData2 < 0 || m_iType == TRIGGER_INVISIBLE",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x87f,
+                srAssertFail("0", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x87f,
                              "Continous firing missile must be invisible trigger.");
             }
             m_pEvent = new W8TriggerEvent;
@@ -3437,8 +3436,8 @@ void Trigger::Run(int source)
             if (trigger_kind_018 == 2) {
                 flags_0a0 |= W8_TRIGGER_RUNNING;
             } else if (m_lData3 == -1) {
-                srAssertFail("m_lData3 != -1", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                             0x7e4, "Non invisible triggers with shake must have a duration.");
+                srAssertFail("m_lData3!=-1", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                             0x7e4, "Non-invisible triggers with shake camera must be timed");
             }
         }
         break;

@@ -1020,7 +1020,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
         }
         if ((flags & 2) == 0) {
             srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x131,
-                         "Uncompressed mesh, please re-export level.");
+                         "Uncompressed mesh, please re-export level with newer plugin");
         } else {
             compressed_vertices = new short*[frame_count];
             if (compressed_vertices == 0) {

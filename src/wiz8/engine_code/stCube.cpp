@@ -639,13 +639,13 @@ unsigned int LoadWorldCursorNodes0048E7B0(int handle)
         float location[3];
         int component;
 
-        if (version < 2) {
-            sprintf(cube->name_24, "Cube_%d", index);
-        } else {
+        if (version >= 2) {
             FileRead(handle, cube->name_24, 0x20, 0);
             if (cube->name_24[0] == 0) {
-                sprintf(cube->name_24, "Cube_3_%d", gXStatus.mipe_cube_serial++);
+                sprintf(cube->name_24, "Cube%3.3d", gXStatus.mipe_cube_serial++);
             }
+        } else {
+            sprintf(cube->name_24, "Cube%d", index);
         }
         for (component = 0; component < 3; ++component) {
             if (success && FileRead(handle, &cube->numbers_0c[component], 4, 0)) {

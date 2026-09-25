@@ -1998,7 +1998,8 @@ void OctBuildOptions00496CD0(char* stem)
             sprintf(lines[0], "OCTBUILD VERSION %d -- OPTIONS: ", 0x22);
             sprintf(lines[1], "(L)og %s               ", log_state);
             if (g_option_pathing_0060ac70 == 0) {
-                sprintf(lines[2], "(P)athing %s", pathing_state);
+                sprintf(lines[2], "(P)athing %s                                         ",
+                        pathing_state);
             } else {
                 sprintf(lines[2],
                         "(P)athing %s    (N)ode Spacing: %5.2fm    (H)ead Room:   %5.2fm"
@@ -2010,17 +2011,17 @@ void OctBuildOptions00496CD0(char* stem)
             sprintf(lines[3], "(R)ename Alphas %s    (M)esh Linking %s", rename_state, mesh_state);
             sprintf(lines[4],
                     "Min. Leaf (S)ize %5.2fm    Max. Leaf (C)ount %d    (A)uto Region"
-                    " Size %5.2fm",
+                    " Size %5.2fm     ",
                     (g_option_min_leaf_size_0060ac80 * g_float_005ebc60),
                     g_option_max_leaf_count_0060ac88,
                     (g_option_auto_region_size_0065bd30 * g_float_005ebc60));
             sprintf(lines[5], "Hit ENTER to accept,  ESC to cancel and exit");
             if (edit_mode == 0) {
-                sprintf(lines[6], " ");
+                sprintf(lines[6], "                                            ");
             } else {
                 if (edit_mode == 1) {
                     prompt = " Path Node Spacing: %s"
-                             "                                          ";
+                             "                          ";
                 } else if (edit_mode == 2) {
                     prompt = " Minimum Leaf Size: %s"
                              "                           ";

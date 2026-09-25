@@ -149,8 +149,9 @@ void DrawPartyMovementPanel(void)
     if ((g_combat_state->uiCurrentPartyAction == 0 ||
          g_combat_state->uiCurrentPartyActionStatus == W8_ACTION_STATUS_FINISHED) &&
         g_combat_state->uiNextPartyAction == 0) {
-        srAssertFail("!(gpCombat->uiCurrentPartyAction==0 || "
-                     "gpCombat->uiCurrentPartyActionStatus==3) && gpCombat->uiNextPartyAction!=0",
+        srAssertFail("((gpCombat->uiCurrentPartyAction != PARTY_ACTION_NONE) && "
+                     "(gpCombat->uiCurrentPartyActionStatus != ACTION_STATUS_FINISHED)) || "
+                     "(gpCombat->uiNextPartyAction != PARTY_ACTION_NONE)",
                      PARTY_MOVEMENT_CPP, 0xfb, 0);
     }
     panel_live =

@@ -455,7 +455,7 @@ int W8ItemVideoObjectCache::GetOrCreateVideoObject(int item_id)
     if (name[0] == '\0') {
         name = g_item_video_object_fallback_names[record->unidentified_name_index];
     }
-    sprintf(g_video_frames_62c430[object].path, "Data\\Items\\%s", name);
+    sprintf(g_video_frames_62c430[object].path, "%s\\%s", "Data\\Items", name);
     if (strstr(g_video_frames_62c430[object].path, ".sti") == 0) {
         strcat(g_video_frames_62c430[object].path, ".sti");
     }
@@ -2048,7 +2048,7 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
 
     if ((unsigned int)item_id >= gXStatus.uiItemsInDatabase) {
         srAssertFail("uiItemNo < gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 564,
-                     FormatString("InitNewItem: error: invalid item %d", item_id));
+                     FormatString("InitNewItem: error, invalid item # %ld specified", item_id));
     }
 
     if (item == &g_status_685170.item_in_hand_235b) {
@@ -2851,10 +2851,9 @@ unsigned char MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* sourc
     if (destination->stack_count > record->maximum_quantity) {
         srAssertFail(
             "FALSE", PC_ITEM_CPP, 3371,
-            FormatString(
-                "StackItemsIfPossible: ERROR - slot quantity %d exceeds maximum %d for item %d %S",
-                destination->stack_count, record->maximum_quantity, destination->iItemNo,
-                FormatItemDisplayName(destination, 1)));
+            FormatString("StackItemsIfPossible: ERROR - slot holds %d when max is %d, item %d(%ls)",
+                         destination->stack_count, record->maximum_quantity, destination->iItemNo,
+                         FormatItemDisplayName(destination, 1)));
         destination->stack_count = record->maximum_quantity;
     }
     if (destination->iItemNo != source->iItemNo || destination->identified != source->identified) {

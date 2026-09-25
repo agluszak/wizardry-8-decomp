@@ -2052,7 +2052,7 @@ wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* tar
     default:
         srAssertFail(
             "FALSE", MAGIC_CPP, 0xde,
-            FormatString("SpellTargetString: ERROR - Invalid spell target for %d", target->iType));
+            FormatString("SpellTargetString: ERROR - Invalid target type %d", target->iType));
         return gppStringList[W8_MESSAGE_TARGET_UNKNOWN / 4];
     }
 
@@ -2988,7 +2988,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         CombatLog("");
         if (static_cast<unsigned int>(b) <= roll) {
             fizzled = true;
-            SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.", 0);
+            SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);
             if (local_a0 != -1 && (roll = Random(100)) < 0x46) {
                 QueueCharacterEvent(&g_status_685170.buffers.Char[local_a0],
                                     g_special_event_0068c558, 0, g_effect_argument_005ed8c8,
@@ -2996,7 +2996,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             }
             if (e == 2) {
                 if (source->iType != W8_TARGET_SOURCE_CHARACTER) {
-                    srAssertFail("pSource->iType == SOURCE_TYPE_CHARACTER", MAGIC_CPP, 0x8c2, 0);
+                    srAssertFail("pSource->iType == SOURCE_TYPE_CHAR", MAGIC_CPP, 0x8c2, 0);
                 }
                 index = 0x1aa;
                 goto LAB_004fcdb3;
@@ -3076,7 +3076,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         caster_figure = GetSpellDifficulty(record_data->effective_level_24f, spell_id, power_level);
     } else {
         if (source->iType != W8_TARGET_SOURCE_INDIRECT) {
-            srAssertFail("pSource->iType == SOURCE_TYPE_3D", MAGIC_CPP, 0x6b2, 0);
+            srAssertFail("pSource->iType == SOURCE_TYPE_3D_POINT", MAGIC_CPP, 0x6b2, 0);
         }
         caster_figure = (g_spell_records[spell_id].spell_point_cost / 2 +
                          g_spell_records[spell_id].spell_level) /
@@ -3404,7 +3404,7 @@ LAB_004fce23:
 
 LAB_004fcdb3:
     if (source->iType != W8_TARGET_SOURCE_CHARACTER) {
-        srAssertFail("pSource->iType == SOURCE_TYPE_CHARACTER", MAGIC_CPP, 0x8c6, 0);
+        srAssertFail("pSource->iType == SOURCE_TYPE_CHAR", MAGIC_CPP, 0x8c6, 0);
     }
     if (e == 3) {
         index = 0x1ab;

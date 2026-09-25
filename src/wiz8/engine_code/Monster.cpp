@@ -592,8 +592,8 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                 sscanf(line, "%s %s %s", command, old_name, new_name);
                 if (damage_stage != -1 &&
                     (*monster)->ReplaceSkinTexture004C6700(damage_stage, old_name, new_name) == 0) {
-                    ShutdownWithErrorBox(reinterpret_cast<const char*>(
-                        String("The skin texture %s not found in %s", old_name, monster_name)));
+                    ShutdownWithErrorBox(reinterpret_cast<const char*>(String(
+                        "The skin texture %s not found in monster %s!", old_name, monster_name)));
                 }
             } else {
                 if (strlen(argument) <= 2) {
@@ -696,10 +696,10 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                             (*monster)->AddShakeEffect004A8530(effect);
                         }
                     } else {
-                        srAssertFail(
-                            "FALSE", MONSTER_CPP, 0x636,
-                            FormatString("Monster::ReadAllCycles: ERROR - Unknown command %s in %s",
-                                         command, path));
+                        srAssertFail("FALSE", MONSTER_CPP, 0x636,
+                                     FormatString("Monster::ReadAllCycles: ERROR - Unrecognized "
+                                                  "MLS string \"%s\" in %s",
+                                                  command, path));
                     }
                 }
             }
@@ -1790,8 +1790,8 @@ unsigned char W8Monster::GetProjectilePosition004C77F0(srVector3T<float>* positi
         return 0;
     }
     if (IsCycleSupported(0x11) != 0 && IsCycleSupported(0x0d) != 0) {
-        srAssertFail("!(IsCycleSupported(CYCLE_ATTACK_1) && "
-                     "IsCycleSupported(CYCLE_ATTACK_2))",
+        srAssertFail("!(IsCycleSupported(CYCLE_ATTACK_SHOOT) && "
+                     "IsCycleSupported(CYCLE_ATTACK_THROW))",
                      MONSTER_CPP, 0x18b1, 0);
     }
     if (IsCycleSupported(0x0d) != 0) {
@@ -1809,7 +1809,7 @@ unsigned char W8Monster::GetProjectilePosition004C77F0(srVector3T<float>* positi
         if (g_dev_mode_689b32 != 0) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x18c3, MONSTER_CPP, location_id_1e4, 1));
-            FormatDebugMessage(0, "WARNING: %ls does not have a MISSILE_START_POINT defined",
+            FormatDebugMessage(0, "WARNING: %ls does not have a MISSILE vertex marked --> Lee!",
                                GetMonsterDataForInfo(info));
         }
         missile_point_warned_22d = 1;
@@ -4066,7 +4066,7 @@ prepare_attack:
 
     if (selected_attack != 0) {
         accuracy = GetMonsterAttackScore(monster_info, attack, monster_info->action_detail, 0);
-        CombatLog("TO HIT: MISSILE ACCURACY = %d%%\n", accuracy);
+        CombatLog("TO HIT (MISSILE ACCURACY): Chance %d", accuracy);
     } else {
         accuracy = 50;
     }
