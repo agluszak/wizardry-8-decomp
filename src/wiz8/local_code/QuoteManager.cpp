@@ -586,7 +586,7 @@ unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int even
     has_npc = 0;
     if (character->fInParty != 0 && g_current_screen_state.id != W8_SCREEN_CHARACTER) {
         unsigned int slot = CharacterPointerToPartySlot(character);
-        npc_index = g_status_685170.buffers.XChar[slot].animation_0fa;
+        npc_index = g_status_685170.buffers.XChar[slot].npc_index;
         has_npc = npc_index != -1;
     }
     if (!has_npc) {
@@ -871,7 +871,7 @@ unsigned char W8CharacterEvent::PlayEventSound()
 {
     unsigned int party_slot = CharacterPointerToPartySlot(character);
     unsigned int sound_event = event_type;
-    int npc_index = g_status_685170.buffers.XChar[party_slot].animation_0fa;
+    int npc_index = g_status_685170.buffers.XChar[party_slot].npc_index;
     char voice_stem[20];
     char sound_path[80];
     char npc_sound_name[128];
@@ -973,7 +973,7 @@ unsigned char W8CharacterEvent::Dispatch()
             SetNpcDialoguePanelVisible(0);
         }
         row = &g_status_685170.buffers.XChar[party_slot];
-        npc_index = row->animation_0fa;
+        npc_index = row->npc_index;
         if (npc_index != -1 && event_type < 0x93) {
             npc = GetNpcState(npc_index);
             row->pending_event_type_ff = event_type;

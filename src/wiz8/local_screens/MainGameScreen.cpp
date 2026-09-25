@@ -9289,7 +9289,7 @@ void ConfirmNpcTradeItem005AD290(void)
         (g_screen_state_00649f1c->dialogue_text_120->m_stateFlags & g_W8TextControlMask005ED570) !=
             0) {
         selected = g_status_685170.selected_character;
-        npc_kind = g_status_685170.buffers.XChar[selected].animation_0fa;
+        npc_kind = g_status_685170.buffers.XChar[selected].npc_index;
         if (npc_kind != -1) {
             npc = GetNpcState(npc_kind);
             if (npc != 0 && g_screen_state_00649f1c->trade_item != 0 &&

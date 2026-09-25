@@ -2142,7 +2142,7 @@ done:
 void SyncReviewCharInputRegion005A4570(void)
 {
     if (giReviewCharSlot != -1 &&
-        g_status_685170.buffers.XChar[giReviewCharSlot].animation_0fa != -1) {
+        g_status_685170.buffers.XChar[giReviewCharSlot].npc_index != -1) {
         DisableRegionInput(0xf2);
         return;
     }
@@ -2177,7 +2177,7 @@ void ActivateCampPage005A45B0(void)
         for (index = 0; index < 8; ++index) {
             DisableRegionInput(index + 0xea);
         }
-    } else if (g_status_685170.buffers.XChar[giReviewCharSlot].animation_0fa == -1) {
+    } else if (g_status_685170.buffers.XChar[giReviewCharSlot].npc_index == -1) {
         EnableRegionInput(0xf2);
     } else {
         DisableRegionInput(0xf2);
@@ -2743,7 +2743,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                     g_camp_character_pending_0069c104 = 0;
                     if (item->iItemNo != -1 && (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
                         npc = GetNpcState(
-                            g_status_685170.buffers.XChar[giReviewCharSlot].animation_0fa);
+                            g_status_685170.buffers.XChar[giReviewCharSlot].npc_index);
                         if (npc != 0 && NpcWantsItem0050DC50(npc, item) != 0) {
                             g_camp_character_pending_0069c104 = 1;
                             g_camp_character_0069c100 = g_review_character_0069c0f8;
@@ -2781,7 +2781,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                             if (paired->iItemNo != -1 &&
                                 (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
                                 npc = GetNpcState(
-                                    g_status_685170.buffers.XChar[giReviewCharSlot].animation_0fa);
+                                    g_status_685170.buffers.XChar[giReviewCharSlot].npc_index);
                                 if (npc != 0 && NpcWantsItem0050DC50(npc, paired) != 0) {
                                     g_camp_character_pending_0069c104 = 1;
                                     g_camp_character_0069c100 = g_review_character_0069c0f8;
@@ -2799,7 +2799,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                             if (giReviewCharSlot == 0 || giReviewCharSlot == 1) {
                                 if (NpcWantsItem0050DC50(
                                         GetNpcState(g_status_685170.buffers.XChar[giReviewCharSlot]
-                                                        .animation_0fa),
+                                                        .npc_index),
                                         paired) != 0) {
                                     text = gppStringList[0x2430 / 4];
                                     dialog =
@@ -3002,7 +3002,7 @@ void MarkCampCharacterPending005A6020(W8ItemInstance* item)
 
     g_camp_character_pending_0069c104 = 0;
     if (item->iItemNo != -1 && (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
-        npc = GetNpcState(g_status_685170.buffers.XChar[giReviewCharSlot].animation_0fa);
+        npc = GetNpcState(g_status_685170.buffers.XChar[giReviewCharSlot].npc_index);
         if (npc != 0 && NpcWantsItem0050DC50(npc, item) != 0) {
             g_camp_character_pending_0069c104 = 1;
             g_camp_character_0069c100 = g_review_character_0069c0f8;

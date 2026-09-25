@@ -173,7 +173,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
             L"ID/Group (Leader)",
             FormatWideString(L"%d/%d (%d/%d) %s", m_location_id, monster_info->monster_group_id,
                              leader_location_id, leader_group_id,
-                             group->encounter_registered_c3 != 0 ? L"random" : L"placed"),
+                             group->encounter_registered != 0 ? L"random" : L"placed"),
             5, 0xf, 0);
     }
 

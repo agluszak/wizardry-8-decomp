@@ -747,7 +747,7 @@ static unsigned char HandleMipeMonsterCreateKey00578500(unsigned short key)
         formation.y = anchor.y;
         formation.z = anchor.z;
         SetMonsterGroupFormation(monster_group, &formation);
-        monster_group->group_state_2d[0x6d] = g_mipe_state_0068f100->creation_method_30;
+        monster_group->group_state[0x6d] = g_mipe_state_0068f100->creation_method_30;
     }
     return 1;
 }
@@ -1475,7 +1475,8 @@ static void HandleMipePropEditKey00579FF0(unsigned short key)
                 trigger = g_mipe_state_0068f100->prop->GetValue18();
                 ResetEditorStatusLine0058AA20(-1);
                 ShowNoticef(6, L"Edit Locks & Traps");
-                ShowNoticef(0xf, L"1) Type: %s", g_lock_type_names_0064a1d0[trigger->lock_state.lock_type]);
+                ShowNoticef(0xf, L"1) Type: %s",
+                            g_lock_type_names_0064a1d0[trigger->lock_state.lock_type]);
                 index = trigger->lock_state.key_id;
                 if (index < 0) {
                     key_name = &g_wchar_00689b34;
@@ -2905,7 +2906,8 @@ unsigned char HandleMipeKey0057C230(const InputAtom* event)
                                         ResetEditorStatusLine0058AA20(-1);
                                         ShowNoticef(6, L"Edit Locks & Traps");
                                         ShowNoticef(0xf, L"1) Type: %s",
-                                                    g_lock_type_names_0064a1d0[trigger->lock_state.lock_type]);
+                                                    g_lock_type_names_0064a1d0[trigger->lock_state
+                                                                                   .lock_type]);
                                         key_id = trigger->lock_state.key_id;
                                         if (key_id < 0) {
                                             key_name = &g_wchar_00689b34;

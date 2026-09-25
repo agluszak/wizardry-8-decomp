@@ -99,15 +99,35 @@ static_assert(sizeof(W8TriggerActionData005EC158) == 0x0c,
    - ALTERNATE_ACTION alternates action_data_128 with
      alternate_action_data_1a8, tracked by ALTERNATE_SELECTED.
    - ITEM_PICKER marks the item-picker dialog open for this trigger.
-   - SEARCHED marks an already-searched trigger; loading unregisters it. */
+   - SEARCHED marks an already-searched trigger; loading unregisters it.
+   - ANIMATE_STATES animates the prop through its states as the state index
+     cycles; ANIMATE_ACTION lets UpdateActionAnimation run.
+   - PLANE marks a trigger registered with AddTriggerPlane; the proximity scan
+     skips it.
+   - KEEP_ON_FINISH stops FinishAction undoing the action on the recipients.
+   - HAS_ALTERNATE is set when the record has an alternate action; SelectAction
+     then raises USE_ALTERNATE after the initial action, and ALTERNATE_TOGGLES
+     drops it again after the alternate one.
+   - CONSUME_ITEM removes the required item from the party when it is used.
+   - ONCE triggers refuse SelectAction once the action has set FIRED. */
 enum W8TriggerFlag {
+    W8_TRIGGER_ANIMATE_STATES = 0x1,
+    W8_TRIGGER_ANIMATE_ACTION = 0x2,
+    W8_TRIGGER_PLANE = 0x4,
+    W8_TRIGGER_KEEP_ON_FINISH = 0x8,
     W8_TRIGGER_ON = 0x10,
     W8_TRIGGER_RUNNING = 0x40,
     W8_TRIGGER_FIRE_LINKED = 0x80,
     W8_TRIGGER_ENABLED = 0x100,
     W8_TRIGGER_LINK_ON_DEACTIVATE = 0x200,
     W8_TRIGGER_POSITIONED = 0x800,
+    W8_TRIGGER_HAS_ALTERNATE = 0x2000,
+    W8_TRIGGER_USE_ALTERNATE = 0x4000,
+    W8_TRIGGER_ALTERNATE_TOGGLES = 0x8000,
+    W8_TRIGGER_CONSUME_ITEM = 0x10000,
     W8_TRIGGER_CAN_RUN_LINKED = 0x20000,
+    W8_TRIGGER_ONCE = 0x40000,
+    W8_TRIGGER_FIRED = 0x80000,
     W8_TRIGGER_EXCLUSIVE = 0x100000,
     W8_TRIGGER_REACTIVATE_LINKED = 0x200000,
     W8_TRIGGER_ALTERNATE_ACTION = 0x800000,

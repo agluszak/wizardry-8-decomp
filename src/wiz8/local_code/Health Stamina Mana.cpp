@@ -1159,7 +1159,7 @@ void CharacterDies(int party_slot)
         DropCharacterFromRound(party_slot);
     }
 
-    animation = row->animation_0fa;
+    animation = row->npc_index;
     if (animation != -1) {
         W8NpcState* npc = GetNpcState(animation);
         if (npc != 0) {

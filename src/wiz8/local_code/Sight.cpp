@@ -952,9 +952,9 @@ bool MonsterGroupCanSeeGroup(W8MonsterGroup* source, W8MonsterGroup* target)
     int index;
 
     source_info = MonsterGetScriptPartByLocationIndex(
-        MonsterGetIndexByLocationID(0x47c, SIGHT_CPP, source->leader_id_9f, 1));
+        MonsterGetIndexByLocationID(0x47c, SIGHT_CPP, source->leader_location_id, 1));
     target_info = MonsterGetScriptPartByLocationIndex(
-        MonsterGetIndexByLocationID(0x47d, SIGHT_CPP, target->leader_id_9f, 1));
+        MonsterGetIndexByLocationID(0x47d, SIGHT_CPP, target->leader_location_id, 1));
     source_monster = source_info->p3D;
     target_monster = target_info->p3D;
     if (target_info->fInCombat == 0) {

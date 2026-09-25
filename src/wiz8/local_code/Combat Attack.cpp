@@ -4094,7 +4094,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
             if (character->iRace == 0xf) {
                 W8NpcState* npc_state = GetNpcState(
                     g_status_685170.buffers.XChar[CharacterPointerToPartySlot(character)]
-                        .animation_0fa);
+                        .npc_index);
                 if (npc_state != NULL && npc_state->name_style == ' ' && GetFact(0x44) == 0) {
                     fumble_chance += 5;
                 }

@@ -91,8 +91,15 @@ def changed_source_files(repository: Path, since: str | None = None) -> list[Pat
     ]
 
 
+_CALLED_NAME = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
+
+
 def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
-    """Locate added source lines that can contain a call expression."""
+    """Locate added source lines that can contain a new call expression.
+
+    A line whose called names all appear on the lines its hunk removes (a
+    renamed argument, a reflowed expression) adds no call, so it is skipped.
+    """
 
     if (repository / ".jj").is_dir() and resolve_executable("jj") is not None:
         command = ["jj", "diff", "--git", "--from", since]
@@ -103,6 +110,7 @@ def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
     added: dict[Path, set[int]] = {}
     path: Path | None = None
     line = 0
+    removed_names: set[str] = set()
     for row in output.splitlines():
         if row.startswith("diff --git "):
             match = re.match(r"diff --git a/(.*?) b/(.*)", row)
@@ -110,11 +118,15 @@ def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
         elif row.startswith("@@"):
             match = re.search(r"\+(\d+)", row)
             line = int(match.group(1)) if match else 0
+            removed_names = set()
+        elif row.startswith("-") and not row.startswith("---"):
+            removed_names.update(_CALLED_NAME.findall(row[1:]))
         elif row.startswith("+") and not row.startswith("+++"):
             if (
                 path is not None
                 and path.suffix.lower() in {".cpp", ".cc", ".cxx", ".h", ".hpp"}
                 and "(" in row
+                and not set(_CALLED_NAME.findall(row[1:])) <= removed_names
             ):
                 added.setdefault(path, set()).add(line)
             line += 1

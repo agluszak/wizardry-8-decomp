@@ -1263,7 +1263,7 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
         if (group == 0) {
             srAssertFail("pMonsterGroup != NULL", TARGETING_CPP, 0xa3, 0);
         }
-        if (group->member_count == 0 || group->members_active_28 == 0) {
+        if (group->member_count == 0 || group->members_active == 0) {
             return false;
         }
         break;
@@ -2680,7 +2680,7 @@ bool SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normaliz
         for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
             W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
 
-            if (group->members_active_28 != 0 && CanTargetMonsterGroup(party_slot, group)) {
+            if (group->members_active != 0 && CanTargetMonsterGroup(party_slot, group)) {
                 return 1;
             }
         }
@@ -3070,7 +3070,7 @@ void RefreshMonsterTargetCounts005398D0(void)
         int on_screen_count;
         int selectable_count;
 
-        if (group->members_active_28 == 0) {
+        if (group->members_active == 0) {
             continue;
         }
         on_screen_count = 0;

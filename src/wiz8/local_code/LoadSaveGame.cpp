@@ -1125,7 +1125,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         stream->Read(&is_encounter, 1, 0);
     }
     if (group->version < 3) {
-        group->forced_neutral_ca = 0;
+        group->forced_neutral = 0;
     }
     record = MonsterDBFromSpecies(group->monster_id);
     if (record == 0) {
@@ -1140,7 +1140,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         }
         group->member_count = 0;
         group->active_member_count = 0;
-        group->members_active_28 = 0;
+        group->members_active = 0;
         group->fInCombat = 0;
         if (is_encounter) {
             index = PLAdoptAppend(gXStatus.plsMonsterGroupEncounterList, group);
@@ -1152,7 +1152,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
             return 0;
         }
         ActivateGroupMembers(group, 0);
-        if (group->encounter_registered_c3 != 0 && group->leader_group_id == 0) {
+        if (group->encounter_registered != 0 && group->leader_group_id == 0) {
             RegisterActiveEncounterGroup(group);
         }
     }
@@ -1245,10 +1245,10 @@ unsigned char LoadMonster(W8Chunk* chunk)
             return 0;
         }
         IListAdd(monster_group->monsters, monster_info->location_id);
-        if (static_cast<unsigned int>(monster_group->leader_id_9f) == 0xcdcdcdcdU ||
-            static_cast<unsigned int>(monster_group->leader_id_9f) <
+        if (static_cast<unsigned int>(monster_group->leader_location_id) == 0xcdcdcdcdU ||
+            static_cast<unsigned int>(monster_group->leader_location_id) <
                 static_cast<unsigned int>(monster_info->location_id)) {
-            monster_group->leader_id_9f = monster_info->location_id;
+            monster_group->leader_location_id = monster_info->location_id;
         }
         ++monster_group->member_count;
         RequestRedrawParty();

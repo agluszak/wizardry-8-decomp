@@ -683,7 +683,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     if (group == 0) {
         srAssertFail("pGroup", MAGIC_EFFECTS_CPP, 0xa0c, 0);
     }
-    summon = MonsterInfoFromID(0xa0e, MAGIC_EFFECTS_CPP, group->leader_id_9f, 1);
+    summon = MonsterInfoFromID(0xa0e, MAGIC_EFFECTS_CPP, group->leader_location_id, 1);
     summon->p3D->SetAngles004538F0(
         HeadingTowardNearestMonster(effect->target.point, disposition, summon->location_id));
     SetMonsterGroupHostility(group, disposition, 0);
@@ -1741,8 +1741,7 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition, char f
                             turns = 1;
                         }
                         character->stamina = turns;
-                        int npc_index =
-                            g_status_685170.buffers.XChar[character_index].animation_0fa;
+                        int npc_index = g_status_685170.buffers.XChar[character_index].npc_index;
                         if (npc_index != -1 &&
                             (npc_state = GetNpcState(npc_index), npc_state != 0)) {
                             npc_state->spawned_04 = 0;

@@ -675,7 +675,7 @@ void ShowDismissCharacterDialog(void)
 void OnDismissCharacterDialogClosed(W8DialogBase* base)
 {
     if (GetDialogResult(base) &&
-        g_status_685170.buffers.XChar[giReviewCharSlot].animation_0fa != -1) {
+        g_status_685170.buffers.XChar[giReviewCharSlot].npc_index != -1) {
         gXStatus.review_character_slot = static_cast<unsigned short>(giReviewCharSlot);
         DismissSelectedPartyCharacter();
     }

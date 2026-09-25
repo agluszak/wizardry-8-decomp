@@ -443,8 +443,7 @@ void ApplyWorldCursorInput00490C60(void)
             gp3DCursor->light_24->setLocation(node_location);
         }
         if (gp3DCursor->dragged_info_dc != 0) {
-            gp3DCursor->dragged_info_dc->p3D->SetPositionInternal00453590(
-                &gp3DCursor->position_28);
+            gp3DCursor->dragged_info_dc->p3D->SetPositionInternal00453590(&gp3DCursor->position_28);
             g_octree_6598a4->UpdateMonsterLocation(gp3DCursor->dragged_info_dc->location_id,
                                                    &gp3DCursor->position_28);
             if (gfKeyState[0x10] != 0) {
@@ -504,8 +503,8 @@ void BindCursorMonsterToGroup004914E0(void)
                                                  monster_group->leader_group_id, 1);
                 monster_group = GetMonsterGroupByListIndex(index);
             }
-            index =
-                MonsterGetIndexByLocationID(0x247, CURSOR3D_CPP, monster_group->leader_id_9f, 1);
+            index = MonsterGetIndexByLocationID(0x247, CURSOR3D_CPP,
+                                                monster_group->leader_location_id, 1);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             if (monster_info != 0 && monster_info->p3D != 0 &&
                 monster_info->p3D->SetScript004C7F10("Test.msf", 1) == 0) {

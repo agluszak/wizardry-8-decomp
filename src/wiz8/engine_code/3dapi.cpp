@@ -1072,9 +1072,7 @@ W8World* ForwardCreateWorld00451100(void)
     return CreateWorld();
 }
 
-/* Resolve the PARTY alias or a named position stored with the current world.
-   The third out-param is float* at every call site (World.h); retail still
-   stores named-position angle_bits_08c as int bits into that slot. */
+/* Resolve the PARTY alias or a named position stored with the current world. */
 // FUNCTION: WIZ8 0x004512C0
 bool FindEntityByName(const char* name, srVector3T<float>* position, float* angle,
                       srVector3T<float>* direction)
@@ -1093,8 +1091,7 @@ bool FindEntityByName(const char* name, srVector3T<float>* position, float* angl
         if (_stricmp(name, entry->name) == 0) {
             *position = entry->position;
             if (angle != 0) {
-                // c-style-cast-ok: angle_bits_08c is int storage written through float* out-param
-                *(int*)angle = entry->angle_bits_08c;
+                *angle = entry->angle;
             }
             if (direction != 0) {
                 direction->x = entry->direction_090.x;
