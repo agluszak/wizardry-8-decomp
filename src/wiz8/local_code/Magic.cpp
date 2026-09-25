@@ -1438,7 +1438,6 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8Monster
     unsigned int budget;
     unsigned int cost;
     int band;
-    int roll;
 
     if (spell_id == W8_MONSTER_SPELL_NONE) {
         return 0;
@@ -1479,13 +1478,17 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8Monster
         --power_level;
     }
 
-    roll = Random(4);
-    if (roll == 0) {
+    switch (Random(4)) {
+    case 0:
         if (power_level > 2) {
             --power_level;
         }
-    } else if (roll == 1 && power_level < W8_SPELL_POWER_MAX) {
-        ++power_level;
+        break;
+    case 1:
+        if (power_level < W8_SPELL_POWER_MAX) {
+            ++power_level;
+        }
+        break;
     }
 
     if (power_level == 0 || power_level > W8_SPELL_POWER_MAX) {
