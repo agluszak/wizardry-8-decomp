@@ -826,7 +826,7 @@ BOOLEAN WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight)
 }
 
 // FUNCTION: WIZ8 0x004D1C10
-unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
+BOOLEAN ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
 {
     unsigned char fSuccess =
         FileRead(hFile, &pTrigger->version_00, 1, 0) && FileRead(hFile, &pTrigger->type_01, 1, 0);
@@ -1013,7 +1013,7 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
 }
 
 // FUNCTION: WIZ8 0x004D23F0
-unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
+BOOLEAN WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
 {
     unsigned char fSuccess = FileWrite(hFile, &pTrigger->version_00, 1, 0) != 0;
     fSuccess &= fSuccess && FileWrite(hFile, &pTrigger->type_01, 1, 0);
@@ -1155,7 +1155,7 @@ unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
 }
 
 // FUNCTION: WIZ8 0x004D2A30
-unsigned char ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
+BOOLEAN ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
 {
     W8LevelFileSuperTrigger* pSuper = static_cast<W8LevelFileSuperTrigger*>(malloc(0x867));
     if (pSuper == 0) {
@@ -1294,7 +1294,7 @@ unsigned char ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigg
 }
 
 // FUNCTION: WIZ8 0x004D3000
-unsigned char WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
+BOOLEAN WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
 {
     W8LevelFileSuperTrigger* pSuper = static_cast<W8LevelFileSuperTrigger*>(pTrigger->pData_02);
     if (pSuper == 0) {
@@ -1414,7 +1414,7 @@ unsigned char WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrig
 }
 
 // FUNCTION: WIZ8 0x004D3540
-unsigned char ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor)
+BOOLEAN ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor)
 {
     W8LevelFileDoor* pDoorRec = static_cast<W8LevelFileDoor*>(malloc(0x99));
     if (pDoorRec == 0) {
@@ -1439,7 +1439,7 @@ unsigned char ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor)
 }
 
 // FUNCTION: WIZ8 0x004D3660
-unsigned char WriteDoorTriggerFile004D3660(int hFile, W8LevelFileDoorRef* pDoor)
+BOOLEAN WriteDoorTriggerFile004D3660(int hFile, W8LevelFileDoorRef* pDoor)
 {
     W8LevelFileDoor* pDoorRec = pDoor->door_01;
     if (pDoorRec == 0) {
