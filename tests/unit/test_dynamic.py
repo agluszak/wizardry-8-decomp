@@ -11,15 +11,24 @@ from wiz8decomp.dynamic import (
     BRING_UP,
     LOAD,
     SCREENS,
+    SMOKE,
+    BreakpointAction,
     Event,
+    StateProbe,
+    TracePoint,
     _allocate_port,
+    _state_lines,
+    compare_states,
     compare_streams,
     gdb_script,
     load_points,
     parse_events,
+    parse_state,
     rebase_plan,
+    rebase_probes,
     run_trace,
     screen_points,
+    state_probes,
     trace_plan,
 )
 
@@ -230,3 +239,129 @@ def test_a_run_that_stops_early_diverges_where_it_stopped() -> None:
     assert result["agrees"] is False
     assert result["common_prefix"] == 2
     assert "InitializeSubsystem" in result["detail"]
+
+
+def test_the_smoke_scenario_watches_the_products_own_lifecycle() -> None:
+    # Entry, the menu, the quit path and the exit: the lifecycle the runtime
+    # test executable's explicit SGPExit plus TerminateProcess cannot prove.
+    names = [point.name for point in trace_plan(REPOSITORY, SMOKE)]
+
+    assert "WinMain" in names
+    assert "screen_1_enter" in names
+    assert "screen_12_enter" in names
+    assert "SGPExit" in names
+
+
+def test_the_load_checkpoint_resolves_its_probes_from_reviewed_globals() -> None:
+    probes, unwatched = state_probes(REPOSITORY, LOAD)
+
+    assert unwatched == []
+    names = [probe.name for probe in probes]
+    assert {"screen.id", "pending.id", "camera.x"} <= set(names)
+    # The camera placement is reached through the global's pointer, not at a
+    # fixed address: its object is lazily allocated, so the base is indirect.
+    assert {probe.global_name for probe in probes if probe.indirect} == {"g_gd_camera"}
+
+
+def test_rebase_probes_translate_bases_through_the_builds_map() -> None:
+    probes, _ = state_probes(REPOSITORY, LOAD)
+    camera = next(probe for probe in probes if probe.name == "camera.x")
+    link_map = LinkerMap(
+        symbols=[
+            MapSymbol(
+                segment=3,
+                offset=0x92048,
+                address=0x685048,
+                decorated_name="?g_gd_camera@@3PAVGDCamera@@A",
+                object_name="GDCamera.cpp.obj",
+                is_function=False,
+            )
+        ],
+        sections=[],
+        source_lines=[],
+    )
+
+    rebased, dropped = rebase_probes(REPOSITORY, [camera], link_map)
+
+    assert dropped == []
+    assert rebased[0].address == "00685048"
+    assert rebased[0].offset == camera.offset
+
+
+def test_rebase_probes_reports_a_global_the_image_lacks() -> None:
+    probes, _ = state_probes(REPOSITORY, LOAD)
+    camera = next(probe for probe in probes if probe.name == "camera.x")
+    link_map = LinkerMap(symbols=[], sections=[], source_lines=[])
+
+    rebased, dropped = rebase_probes(REPOSITORY, [camera], link_map)
+
+    assert rebased == []
+    assert dropped == ["g_gd_camera"]
+
+
+def test_an_action_runs_once_at_its_breakpoint() -> None:
+    script = gdb_script(
+        [TracePoint(address="00401000", name="screen_1_enter", kind="screen")],
+        4242,
+        actions={"screen_1_enter": BreakpointAction(lines=("shell xdotool key Next Return",))},
+    )
+
+    assert "set $action_screen_1_enter = 0" in script
+    assert "if $action_screen_1_enter == 0" in script
+    assert "shell xdotool key Next Return" in script
+    # The gesture runs at the hit it belongs to, after the event is recorded.
+    assert script.index("EVENT screen screen_1_enter") < script.index("shell xdotool")
+
+
+def test_a_periodic_action_repeats_every_nth_hit() -> None:
+    script = gdb_script(
+        [TracePoint(address="00401000", name="screen_0_frame", kind="screen")],
+        4242,
+        actions={"screen_0_frame": BreakpointAction(lines=("shell xdotool key Escape",), every=30)},
+    )
+
+    assert "set $action_screen_0_frame = $action_screen_0_frame + 1" in script
+    assert "if $action_screen_0_frame % 30 == 0" in script
+    assert "shell xdotool key Escape" in script
+
+
+def test_the_fingerprint_reads_through_a_null_checked_pointer() -> None:
+    lines = _state_lines(
+        [
+            StateProbe("screen.id", "g_current_screen_state", "0068ec78", 0x00, False),
+            StateProbe("camera.x", "g_gd_camera", "0065a0f8", 0x8C, True),
+        ]
+    )
+
+    assert 'printf "STATE screen.id 0x%08x\\n", *(unsigned int*)(0x0068ec78 + 0)' in lines
+    assert "if *(unsigned int*)0x0065a0f8 != 0" in lines
+    assert (
+        'printf "STATE camera.x 0x%08x\\n", *(unsigned int*)(*(unsigned int*)0x0065a0f8 + 140)'
+    ) in lines
+    assert 'printf "STATE camera.x missing\\n"' in lines
+
+
+def test_the_first_fingerprint_write_wins() -> None:
+    state = parse_state(
+        "STATE screen.id 0x00000007\n"
+        "gdb chatter\n"
+        "STATE screen.id 0x00000009\n"
+        "STATE camera.x missing\n"
+    )
+
+    assert state == {"screen.id": "0x00000007", "camera.x": "missing"}
+
+
+def test_state_comparison_reports_field_level_divergence() -> None:
+    result = compare_states(
+        {"screen.id": "0x7", "camera.x": "0x42"},
+        {"screen.id": "0x7", "camera.x": "0x41", "pending.id": "0x0"},
+    )
+
+    assert result["agrees"] is False
+    assert [diff["name"] for diff in result["diffs"]] == ["camera.x", "pending.id"]
+    assert result["diffs"][1]["left"] == "<absent>"
+
+
+def test_identical_fingerprints_agree() -> None:
+    assert compare_states({"a": "0x1"}, {"a": "0x1"})["agrees"] is True

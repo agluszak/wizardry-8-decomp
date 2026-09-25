@@ -3,8 +3,8 @@
    the game thread once the main menu is live so the item database is real.
 
    The destroy callback's accept path is not driven: its tail calls
-   (RebuildEquipmentAndDerivedStatsForSlot, RebuildCampItemList005A4A00,
-   SetCampItemActionMode005B59B0) are recovered, but they assume the camp
+   (RebuildEquipmentAndDerivedStatsForSlot, RebuildCampItemList,
+   SetCampItemActionMode) are recovered, but they assume the camp
    state and the items-page action controls are live, which only holds while
    the review screen is open. The cancel path is exercised because it returns
    before touching them. */
@@ -45,16 +45,16 @@ struct SplitStackStateScope {
 
     SplitStackStateScope()
     {
-        cursor = g_status_685170.item_in_cursor;
-        hand = g_status_685170.item_in_hand_235b;
-        source = g_split_item_source_0069c424;
+        cursor = g_status.item_in_cursor;
+        hand = g_status.item_in_hand_235b;
+        source = g_split_item_source;
     }
 
     ~SplitStackStateScope()
     {
-        g_status_685170.item_in_cursor = cursor;
-        g_status_685170.item_in_hand_235b = hand;
-        g_split_item_source_0069c424 = source;
+        g_status.item_in_cursor = cursor;
+        g_status.item_in_hand_235b = hand;
+        g_split_item_source = source;
     }
 };
 
@@ -76,8 +76,8 @@ static bool RunSplitStackBody(SplitStackSemanticResult* result, bool fail_early)
     memset(&source, 0, sizeof(source));
     source.iItemNo = item_id;
     source.stack_count = 6;
-    g_status_685170.item_in_cursor = 0;
-    g_status_685170.item_in_hand_235b.iItemNo = -1;
+    g_status.item_in_cursor = 0;
+    g_status.item_in_hand_235b.iItemNo = -1;
 
     /* The constructor picks the split count: half the stack for stacks whose
        record allows more than ten, one for small-capacity stacks. */
@@ -107,13 +107,13 @@ static bool RunSplitStackBody(SplitStackSemanticResult* result, bool fail_early)
 
     /* A cancelled dialog must leave the stack untouched; the result callback
        is the real RCSItemsPage destroy callback. */
-    g_split_item_source_0069c424 = &source;
+    g_split_item_source = &source;
     cancel_dialog = new W8SplitItemDialog(0, &source, -1);
     if (cancel_dialog != 0) {
-        cancel_dialog->split_result_0c8 = g_split_result_kind_005efb44 + 1;
-        SplitStackDialogResult005BAA80(cancel_dialog);
+        cancel_dialog->split_result_0c8 = g_split_result_kind + 1;
+        SplitStackDialogResult(cancel_dialog);
         result->cancel_leaves_stack =
-            source.stack_count == 6 && g_status_685170.item_in_hand_235b.iItemNo == -1;
+            source.stack_count == 6 && g_status.item_in_hand_235b.iItemNo == -1;
         delete cancel_dialog;
     }
     return true;
@@ -130,13 +130,13 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
         W8ItemInstance sentinel_source;
 
         memset(&sentinel_source, 0, sizeof(sentinel_source));
-        g_split_item_source_0069c424 = &sentinel_source;
-        g_status_685170.item_in_cursor = 0x5a;
-        g_status_685170.item_in_hand_235b.iItemNo = 0x1234;
+        g_split_item_source = &sentinel_source;
+        g_status.item_in_cursor = 0x5a;
+        g_status.item_in_hand_235b.iItemNo = 0x1234;
         RunSplitStackBody(result, true);
-        result->state_restored_after_failure = g_split_item_source_0069c424 == &sentinel_source &&
-                                               g_status_685170.item_in_cursor == 0x5a &&
-                                               g_status_685170.item_in_hand_235b.iItemNo == 0x1234;
+        result->state_restored_after_failure = g_split_item_source == &sentinel_source &&
+                                               g_status.item_in_cursor == 0x5a &&
+                                               g_status.item_in_hand_235b.iItemNo == 0x1234;
     }
 
     RunSplitStackBody(result, false);

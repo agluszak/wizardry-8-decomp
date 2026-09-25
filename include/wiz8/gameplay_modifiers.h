@@ -98,12 +98,12 @@ static_assert(sizeof(W8GameplayModifierBlock) == 0x67, "W8GameplayModifierBlock_
 /* The spell that fills each being effect slot; the monster side indexes
    W8MonsterInfo::effect_slots_10f, the party side
    W8GameStatus::effect_slots_17af. */
-extern const int g_being_effect_slot_spells_00616d84[12];
+extern const int g_being_effect_slot_spells[12];
 /* The combat-state spell per effect slot, walked against
    W8CombatState::effect_slots and the monster's effect_slots_3e. */
-extern const int g_combat_effect_slot_spells_00616db4[9];
+extern const int g_combat_effect_slot_spells[9];
 /* The same mapping for the second combat effect block, indexed against
    W8CombatState::effect_slots_85a and the monster's effect_slots_d7. */
-extern const int g_combat_effect_slot_spells_and_cast_success_00616dd8[23];
+extern const int g_combat_effect_slot_spells_and_cast_success[23];
 
 #endif

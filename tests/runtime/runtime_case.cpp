@@ -11,7 +11,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/game_timer.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/layouts/main_game_screen.h"
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -176,6 +176,63 @@ int IsExtendedScenarioKey(unsigned short key)
     return 0;
 }
 
+/* A discrete key tap through the OS keyboard path: down+up in one SendInput
+   batch. `flags` carries caller extras like KEYEVENTF_EXTENDEDKEY for the
+   navigation cluster. */
+void SendScenarioKeyPress(unsigned short key, unsigned long flags)
+{
+    ParkMouseOutsideActiveRegions();
+    INPUT events[2];
+    memset(events, 0, sizeof(events));
+    events[0].type = INPUT_KEYBOARD;
+    events[0].ki.wVk = key;
+    events[0].ki.dwFlags = flags;
+    events[1] = events[0];
+    events[1].ki.dwFlags |= KEYEVENTF_KEYUP;
+    SetForegroundWindow(ghWindow);
+    if (SendInput(2, events, sizeof(INPUT)) != 2) {
+        fprintf(stderr,
+                "WIZ8_RUNTIME_FAILURE scenario=%s step=input reason=sendinput-failed error=%lu\n",
+                g_case_scenario, GetLastError());
+        fflush(stderr);
+    }
+}
+
+/* SGP's mouse hook consumes client coordinates, so the driver converts the
+   target point before handing the absolute move to SendInput. */
+void SendScenarioMouseClick(int client_x, int client_y)
+{
+    MoveScenarioMouse(client_x, client_y);
+    INPUT events[2];
+    memset(events, 0, sizeof(events));
+    events[0].type = INPUT_MOUSE;
+    events[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+    events[1].type = INPUT_MOUSE;
+    events[1].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+    SetForegroundWindow(ghWindow);
+    if (SendInput(2, events, sizeof(INPUT)) != 2) {
+        fprintf(stderr,
+                "WIZ8_RUNTIME_FAILURE scenario=%s step=input reason=sendinput-failed error=%lu\n",
+                g_case_scenario, GetLastError());
+        fflush(stderr);
+    }
+}
+
+void SendScenarioRightMouseButton(bool release)
+{
+    INPUT event;
+    memset(&event, 0, sizeof(event));
+    event.type = INPUT_MOUSE;
+    event.mi.dwFlags = release ? MOUSEEVENTF_RIGHTUP : MOUSEEVENTF_RIGHTDOWN;
+    SetForegroundWindow(ghWindow);
+    if (SendInput(1, &event, sizeof(INPUT)) != 1) {
+        fprintf(stderr,
+                "WIZ8_RUNTIME_FAILURE scenario=%s step=input reason=sendinput-failed error=%lu\n",
+                g_case_scenario, GetLastError());
+        fflush(stderr);
+    }
+}
+
 /* Held input uses the OS keyboard path, including SGP's hook, not driver-thread
    writes to gfKeyState or its event queue. The physical scan and extended bit
    distinguish dedicated arrows from the numeric keypad. */
@@ -218,7 +275,7 @@ void CheckGameplayReadyOnGameThread(void* opaque)
     bool settled = g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                    g_pending_screen_state.id == -1 && g_mgs_keyboard != 0 && g_level_block != 0 &&
                    !g_level_block->review_transition_done_328 &&
-                   !g_level_block->review_transition_active && g_level_data_00652dac != 0 &&
+                   !g_level_block->review_transition_active && g_level_data != 0 &&
                    !IsScreenInputBlocked() && gXStatus.world_update_blocked == 0;
     check->screen = g_current_screen_state.id;
     check->pending = g_pending_screen_state.id;
@@ -228,29 +285,27 @@ void CheckGameplayReadyOnGameThread(void* opaque)
         g_level_block != 0 ? g_level_block->review_transition_done_328 : -1;
     check->review_transition_active =
         g_level_block != 0 ? g_level_block->review_transition_active : -1;
-    check->level_data_present = g_level_data_00652dac != 0;
+    check->level_data_present = g_level_data != 0;
     check->blocked = IsScreenInputBlocked();
-    check->flags = g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0;
+    check->flags = g_level_data != 0 ? g_level_data->flags : 0;
     check->flag4_effective = IsLevelDataFlag4EffectivelySet();
     /* GetCameraPosition dereferences the camera record unconditionally; it
        does not exist until the world does. */
     srVector3T<float> camera;
     camera.Set(0, 0, 0);
-    if (g_gd_camera_65a0f8 != 0) {
+    if (g_gd_camera != 0) {
         GetCameraPosition(&camera);
     }
     check->camera_x = camera.x;
     check->camera_y = camera.y;
     check->camera_z = camera.z;
-    check->timer_flags =
-        g_game_time_accumulator_6598bc != 0 ? g_game_time_accumulator_6598bc->m_flags : 0;
+    check->timer_flags = g_game_time_accumulator != 0 ? g_game_time_accumulator->m_flags : 0;
     check->timer_paused = g_shared_timer_paused;
     check->timer_d1 = g_shared_timer_flag_d1;
     check->timer_d2 = g_shared_timer_flag_d2;
-    check->timer_scale = g_game_time_accumulator_6598bc != 0
-                             ? g_game_time_accumulator_6598bc->GetFrameDelta()
-                             : -1.0f;
-    check->ground_latch = g_environ_ground_latch_00652db8;
+    check->timer_scale =
+        g_game_time_accumulator != 0 ? g_game_time_accumulator->GetFrameDelta() : -1.0f;
+    check->ground_latch = g_environ_ground_latch;
     check->world_update_blocked = gXStatus.world_update_blocked;
     /* flag4 is the per-frame walkable-contact bit: ApplyEnvironContact sets
        it while the party capsule touches ground and ApplyCameraMotion clears
@@ -273,12 +328,12 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     W8CameraAngleRecord yaw, pitch;
     s->position.Set(0, 0, 0);
     s->yaw = s->input_motion = s->world_motion = 0;
-    if (g_level_data_00652dac != 0) {
+    if (g_level_data != 0) {
         GetCameraPosition(&s->position);
         GetCameraOrientation(yaw, pitch);
         s->yaw = yaw[0];
-        s->input_motion = g_level_data_00652dac->vector_40.Length();
-        s->world_motion = g_level_data_00652dac->vector_a0.Length();
+        s->input_motion = g_level_data->vector_40.Length();
+        s->world_motion = g_level_data->vector_a0.Length();
     }
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;
@@ -291,7 +346,7 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     s->action_monster = g_combat_state != 0 && g_combat_state->pActionMonsterInfo != 0
                             ? g_combat_state->pActionMonsterInfo->location_id
                             : -1;
-    s->modal_owner_present = g_modal_owner_0068edd0 != 0;
+    s->modal_owner_present = g_modal_owner != 0;
     s->world_update_blocked = gXStatus.world_update_blocked;
     s->world_render_flags = g_level_block != 0 ? g_level_block->world_render_flags : 0;
     s->held_key = request->held_key;
@@ -415,6 +470,11 @@ RuntimeCase::RuntimeCase(const char* name, unsigned long budget_ms)
     expected_[0] = 0;
     memset(&last_snapshot_, 0, sizeof(last_snapshot_));
     memset(&last_ready_check_, 0, sizeof(last_ready_check_));
+    RuntimeInstrumentationInitialize();
+    for (int kind = 0; kind < RUNTIME_EVENT_KIND_COUNT; ++kind) {
+        event_baseline_[kind] = RuntimeEventCount(static_cast<RuntimeEventKind>(kind));
+        event_seen_[kind] = event_baseline_[kind];
+    }
     g_case_scenario = name;
 }
 
@@ -496,6 +556,7 @@ bool RuntimeCase::fail(const char* step, const char* reason)
     }
     fprintf(stderr, "runtime-case %s: reproduce uv run wiz8 runtime-test --scenario %s\n", name_,
             name_);
+    RuntimeWriteRecentEvents(stderr, name_);
     fflush(stderr);
     /* The runner owns the game lifecycle; a case failure only reports. */
     return false;
@@ -638,6 +699,26 @@ bool RuntimeCase::wait_until(const char* condition, unsigned long budget_ms, Run
     return false;
 }
 
+unsigned long RuntimeCase::event_count(RuntimeEventKind kind) const
+{
+    return RuntimeEventCount(kind) - event_baseline_[kind];
+}
+
+bool RuntimeCase::wait_for_event(RuntimeEventKind kind, unsigned long budget_ms)
+{
+    unsigned long started = GetTickCount();
+    while (GetTickCount() - started < budget_ms && remaining_ms() > 0 && gfProgramIsRunning) {
+        unsigned long count = RuntimeEventCount(kind);
+        if (count > event_seen_[kind]) {
+            event_seen_[kind] = count;
+            return true;
+        }
+        Sleep(10);
+    }
+    expected("event=%s", RuntimeEventName(kind));
+    return fail(RuntimeEventName(kind), "event-not-observed");
+}
+
 GameplayWait RuntimeCase::wait_gameplay_ready(unsigned long budget_ms, const char* step)
 {
     unsigned long started = GetTickCount();
@@ -687,6 +768,70 @@ GameplayWait RuntimeCase::wait_gameplay_ready(unsigned long budget_ms, const cha
 const GameplayReadyCheck& RuntimeCase::last_ready_check() const
 {
     return last_ready_check_;
+}
+
+void RuntimeCase::observe_long(const char* name, long value)
+{
+    printf("WIZ8_RUNTIME_OBSERVE scenario=%s name=%s value=%ld\n", name_, name, value);
+    fflush(stdout);
+}
+
+void RuntimeCase::observe_ulong(const char* name, unsigned long value)
+{
+    printf("WIZ8_RUNTIME_OBSERVE scenario=%s name=%s value=%lu\n", name_, name, value);
+    fflush(stdout);
+}
+
+void RuntimeCase::observe(const char* name, int value)
+{
+    observe_long(name, value);
+}
+
+void RuntimeCase::observe(const char* name, unsigned int value)
+{
+    observe_ulong(name, value);
+}
+
+void RuntimeCase::observe(const char* name, long value)
+{
+    observe_long(name, value);
+}
+
+void RuntimeCase::observe(const char* name, unsigned long value)
+{
+    observe_ulong(name, value);
+}
+
+void RuntimeCase::observe(const char* name, double value)
+{
+    printf("WIZ8_RUNTIME_OBSERVE scenario=%s name=%s value=%.6g\n", name_, name, value);
+    fflush(stdout);
+}
+
+void RuntimeCase::observe(const char* name, const char* value)
+{
+    printf("WIZ8_RUNTIME_OBSERVE scenario=%s name=%s value=%s\n", name_, name, value);
+    fflush(stdout);
+}
+
+bool RuntimeCase::expect_eq(const char* name, long expected_value, long actual_value)
+{
+    observe_long(name, actual_value);
+    if (expected_value == actual_value) {
+        return true;
+    }
+    expected("%s=%ld", name, expected_value);
+    return fail(name, "expectation-mismatch");
+}
+
+bool RuntimeCase::expect_eq(const char* name, const char* expected_value, const char* actual_value)
+{
+    observe(name, actual_value);
+    if (strcmp(expected_value, actual_value) == 0) {
+        return true;
+    }
+    expected("%s=%s", name, expected_value);
+    return fail(name, "expectation-mismatch");
 }
 
 void RuntimeCase::finish(bool passed)

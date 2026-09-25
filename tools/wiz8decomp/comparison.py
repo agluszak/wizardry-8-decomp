@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 import os
+import re
+from bisect import bisect_right
 from collections.abc import Iterable
 from dataclasses import asdict
 from pathlib import Path
@@ -87,6 +89,204 @@ def changed_source_files(repository: Path, since: str | None = None) -> list[Pat
         if path.suffix.lower() in {".c", ".cpp", ".cc", ".cxx", ".h", ".hpp", ".hxx"}
         and path.is_file()
     ]
+
+
+_CALLED_NAME = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
+_ADDRESS_SUFFIX = re.compile(r"(?<=[A-Za-z_])[0-9A-F]{8}$")
+_CLASS_HEAD = re.compile(r"^\s*(?:class|struct)\s+([A-Za-z_]\w*)")
+_SOURCE_SUFFIXES = {".cpp", ".cc", ".cxx", ".h", ".hpp"}
+
+
+def _called_names(text: str, renamed: dict[str, str]) -> set[str]:
+    """Called names, spelled as the baseline spelled them."""
+
+    names: list[str] = _CALLED_NAME.findall(text)
+    return {_ADDRESS_SUFFIX.sub("", renamed.get(name, name)) for name in names}
+
+
+def _renamed_classes(hunks: list[list[tuple[str, str]]]) -> dict[str, str]:
+    """Map classes the change renamed to their baseline spelling.
+
+    A hunk that removes the head of `class Old` and adds `class New` in the same
+    position renames the class, so constructor and destructor definitions
+    spelled with the new name add no call.
+    """
+
+    renamed: dict[str, str] = {}
+    for rows in hunks:
+        removed = [
+            m.group(1) for sign, text in rows if sign == "-" if (m := _CLASS_HEAD.match(text))
+        ]
+        added = [m.group(1) for sign, text in rows if sign == "+" if (m := _CLASS_HEAD.match(text))]
+        if len(removed) == len(added):
+            renamed.update((new, old) for old, new in zip(removed, added) if old != new)
+    return renamed
+
+
+def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
+    """Locate added source lines that can contain a new call expression.
+
+    A line whose called names all appear on the lines its hunk removes (a
+    renamed argument, a reflowed expression, a callee losing its address
+    suffix, a renamed class's constructor or destructor) adds no call, so it
+    is skipped.
+    """
+
+    if (repository / ".jj").is_dir() and resolve_executable("jj") is not None:
+        command = ["jj", "diff", "--git", "--from", since]
+    else:
+        baseline = f"origin/{since.removesuffix('@origin')}" if since.endswith("@origin") else since
+        command = ["git", "diff", "--no-ext-diff", "--no-renames", baseline, "HEAD"]
+    output = run(command, cwd=repository).stdout
+
+    # hunk = (source path, first added line, [(sign, text)])
+    hunks: list[tuple[Path | None, int, list[tuple[str, str]]]] = []
+    path: Path | None = None
+    for row in output.splitlines():
+        if row.startswith("diff --git "):
+            match = re.match(r"diff --git a/(.*?) b/(.*)", row)
+            path = repository / match.group(2) if match else None
+        elif row.startswith("@@"):
+            match = re.search(r"\+(\d+)", row)
+            hunks.append((path, int(match.group(1)) if match else 0, []))
+        elif hunks and row[:1] in {"-", "+", " "} and not row.startswith(("---", "+++")):
+            hunks[-1][2].append((row[0], row[1:]))
+
+    renamed = _renamed_classes(
+        [
+            rows
+            for source, _, rows in hunks
+            if source is not None and source.suffix.lower() in _SOURCE_SUFFIXES
+        ]
+    )
+
+    added: dict[Path, set[int]] = {}
+    for source, line, rows in hunks:
+        if source is None or source.suffix.lower() not in _SOURCE_SUFFIXES:
+            continue
+        removed_names: set[str] = set()
+        for sign, text in rows:
+            if sign == "-":
+                removed_names |= _called_names(text, {})
+        for sign, text in rows:
+            if sign == "-":
+                continue
+            if sign == "+" and "(" in text and not _called_names(text, renamed) <= removed_names:
+                added.setdefault(source, set()).add(line)
+            line += 1
+    return added
+
+
+def _folded_callee_identity(engine: Compare, destination: int, callees: set[int]) -> int | None:
+    """Retail callee an unpaired recompiled function would have been folded into.
+
+    The comparison build links with /OPT:NOICF, so a source function that retail
+    ICF folded into another keeps its own unpaired body. It is that callee when
+    its code is byte-identical to the recompiled body of one retail callee and
+    contains no relative branch leaving the body, whose bytes would name a
+    different target at a different address.
+    """
+    from capstone.x86 import X86_OP_IMM
+    from reccmp.types import ImageId
+
+    from .binary.code import disassembler
+
+    entity = engine._db.get(ImageId.RECOMP, destination)
+    size = entity.size(ImageId.RECOMP) if entity is not None else None
+    if not size:
+        return None
+    body = bytes(engine.recomp_bin.read(destination, size))
+    for instruction in disassembler().disasm(body, destination):
+        if instruction.mnemonic in ("call", "jmp") or instruction.mnemonic.startswith("j"):
+            operand = instruction.operands[0]
+            if operand.type == X86_OP_IMM and not destination <= operand.imm < destination + size:
+                return None
+    identities = set()
+    for callee in callees:
+        match = engine._db.get_one_match(callee)
+        if match is None or match.size(ImageId.RECOMP) != size:
+            continue
+        if bytes(engine.recomp_bin.read(match.recomp_addr, size)) == body:
+            identities.add(callee)
+    return identities.pop() if len(identities) == 1 else None
+
+
+def check_changed_call_targets(repository: Path, target: str, since: str) -> dict[str, Any]:
+    """Check direct calls emitted by changed source lines against retail callees."""
+
+    from capstone.x86 import X86_OP_IMM
+    from reccmp.types import ImageId
+
+    from .binary.code import disassembler
+
+    added = _added_call_lines(repository, since)
+    if not added:
+        return {"status": "passed", "checked": 0, "errors": []}
+    from .source_index import source_functions
+
+    model = source_functions(repository, target)
+    engine = Compare.from_target(comparison_target(repository, target))
+    decoder = disassembler()
+    errors: list[dict[str, Any]] = []
+    checked = 0
+    for address, marker in model.items():
+        source = repository / marker.source_file
+        lines = added.get(source)
+        declaration = marker.declaration
+        if not lines or declaration is None or not declaration.is_definition:
+            continue
+        if not any(declaration.line <= line <= declaration.end_line for line in lines):
+            continue
+        match = engine._db.get_one_match(address)
+        if match is None:
+            errors.append({"function": f"0x{address:08x}", "reason": "no linked retail pair"})
+            continue
+        original_size = match.size(ImageId.ORIG) or match.max_size(ImageId.ORIG)
+        recomp_size = match.size(ImageId.RECOMP) or match.max_size(ImageId.RECOMP)
+        if not original_size or not recomp_size:
+            errors.append({"function": f"0x{address:08x}", "reason": "function extent unknown"})
+            continue
+        original_calls: set[int] = set()
+        for instruction in decoder.disasm(engine.orig_bin.read(address, original_size), address):
+            if instruction.mnemonic == "call" and instruction.operands[0].type == X86_OP_IMM:
+                destination = instruction.operands[0].imm
+                canonical = engine._db.alias_canonical_orig(ImageId.ORIG, destination)
+                original_calls.add(canonical or destination)
+        recomp_address = match.recomp_addr
+        line_starts = sorted(
+            (position, location[1])
+            for position in range(recomp_address, recomp_address + recomp_size)
+            if (location := engine._lines_db.find_line_of_recomp_address(position))
+            and location[0] == source
+        )
+        positions = [position for position, _ in line_starts]
+        for instruction in decoder.disasm(
+            engine.recomp_bin.read(recomp_address, recomp_size), recomp_address
+        ):
+            if instruction.mnemonic != "call" or instruction.operands[0].type != X86_OP_IMM:
+                continue
+            index = bisect_right(positions, instruction.address) - 1
+            if index < 0 or line_starts[index][1] not in lines:
+                continue
+            checked += 1
+            destination = instruction.operands[0].imm
+            canonical = engine._db.alias_canonical_orig(ImageId.RECOMP, destination)
+            if canonical is None:
+                canonical = _folded_callee_identity(engine, destination, original_calls)
+            if canonical not in original_calls:
+                errors.append(
+                    {
+                        "function": f"0x{address:08x}",
+                        "source": f"{marker.source_file}:{line_starts[index][1]}",
+                        "call": f"0x{instruction.address:08x}",
+                        "recompiled_target": f"0x{destination:08x}",
+                        "retail_identity": f"0x{canonical:08x}" if canonical else None,
+                        "reason": "callee absent from retail function"
+                        if canonical
+                        else "callee identity unresolved",
+                    }
+                )
+    return {"status": "failed" if errors else "passed", "checked": checked, "errors": errors}
 
 
 def selected_addresses(

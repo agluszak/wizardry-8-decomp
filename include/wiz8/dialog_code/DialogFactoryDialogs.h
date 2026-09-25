@@ -48,7 +48,7 @@ public:
     int m_caret;
     int m_font;             /* 0x14 */
     int m_value;            /* 0x18 */
-    unsigned char m_dirty;  /* 0x1c */
+    bool m_dirty;           /* 0x1c */
     unsigned char m_active; /* 0x1d */
     unsigned char padding_01e[2];
     /* 0x20: -1, then the stack total for the split dialogs. The acceptance
@@ -129,7 +129,7 @@ public:
     int m_cancel_button_0d4; /* 0x0d4 */
     int m_cancel_image_0d8;  /* 0x0d8 */
     W8ControlsRect m_cancel_rect_0dc;
-    unsigned char m_scrollable; /* 0x0ec: scrolling area is scrollable */
+    bool m_scrollable; /* 0x0ec: scrolling area is scrollable */
     unsigned char padding_0ed[3];
     int m_first_visible_line_0f0; /* 0x0f0 */
     int m_selected_line_0f4;      /* 0x0f4 */
@@ -141,7 +141,7 @@ public:
 class W8SplitAmountDialog : public W8DialogBase {
     /* NPCInteractionSubscreen's destroy callback reads m_taken_084 and
        m_result_08c back out of the closing dialog. */
-    friend void OnNpcTradeSplitDialogDestroy00572870(W8DialogBase* dialog);
+    friend void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog);
 
 public:
     W8SplitAmountDialog(); /* 0x005D97D0 */
@@ -266,11 +266,11 @@ static_assert(sizeof(W8TriggerItemPickerDialog) == 0xb0, "W8TriggerItemPickerDia
 
 /* The item-split dialog RCSItemsPage.cpp opens for stackable item stacks.
    Derivation is proven by the retail static_cast to W8DialogBase at the
-   OpenSplitStackDialog005BA400 call site, the virtual SetText/SetOrigin calls
+   OpenSplitStackDialog call site, the virtual SetText/SetOrigin calls
    on the result and DisplayCampDialog(W8DialogBase*). The constructor stores
    this vtable at +0; the listed slots are the ones that differ from
    W8DialogBase (the rest reuse the base implementations). split_count_0c0 is
-   the count the destroy callback SplitStackDialogResult005BAA80 reads back
+   the count the destroy callback SplitStackDialogResult reads back
    and split_result_0c8 is the dialog result kind it tests. */
 // VTABLE: WIZ8 0x005efb78
 class W8SplitItemDialog : public W8DialogBase {

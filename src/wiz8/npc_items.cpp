@@ -143,97 +143,85 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
     int roll;
 
     count = PLLength(npc->items);
-    index = 0;
-    if (count > 0) {
-        do {
-            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-            if (((entry != 0 && entry->quantity != 0) &&
-                 (NormalizeItemQuantityKind(&entry->item),
-                  g_item_records[entry->item.iItemNo].quantity_kind == 1)) &&
-                entry->quantity > entry->item.stack_count) {
-                entry->item.stack_count = entry->quantity;
-                entry->quantity = 1;
-            }
-            ++index;
-        } while (index < count);
-    }
-
-    if (static_cast<unsigned int>(g_status_685170.world_clock - npc->restock_clock) > 0xa8c0 ||
-        force != 0) {
-        npc->restock_clock = g_status_685170.world_clock;
-        count = PLLength(npc->record->item_stock_rules);
-        rule_index = 0;
-        if (count > 0) {
-            do {
-                rule = static_cast<W8NpcItemStockRule*>(
-                    PLGet(npc->record->item_stock_rules, rule_index));
-                if (rule->persistent != 0) {
-                    item_id = rule->item_id;
-                    configured = 0;
-                    search_count = PLLength(npc->record->item_stock_rules);
-                    for (search = 0; search < search_count; ++search) {
-                        candidate = static_cast<W8NpcItemStockRule*>(
-                            PLGet(npc->record->item_stock_rules, search));
-                        if (candidate->item_id == item_id) {
-                            configured = candidate->quantity;
-                            break;
-                        }
-                    }
-                    if (configured != 0) {
-                        item_id = rule->item_id;
-                        held = 0;
-                        search_count = PLLength(npc->items);
-                        for (search = 0; search < search_count; ++search) {
-                            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
-                            if (entry != 0 && entry->item.iItemNo == item_id) {
-                                held = entry->quantity;
-                                break;
-                            }
-                        }
-                        if (held <= configured / 2) {
-                            configured = configured - held;
-                            roll = Random(3);
-                            if (roll == 0) {
-                                jitter = static_cast<unsigned char>(configured >> 1);
-                                configured = configured + jitter;
-                            } else if (roll == 1) {
-                                jitter = static_cast<unsigned char>(-(configured >> 1));
-                                configured = configured + jitter;
-                            }
-                            if (configured != 0) {
-                                AddNpcItem(npc, rule->item_id, configured);
-                            }
-                        }
-                    }
-                }
-                ++rule_index;
-            } while (rule_index < count);
+    for (index = 0; index < count; ++index) {
+        entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+        if (((entry != 0 && entry->quantity != 0) &&
+             (NormalizeItemQuantityKind(&entry->item),
+              g_item_records[entry->item.iItemNo].quantity_kind == 1)) &&
+            entry->quantity > entry->item.stack_count) {
+            entry->item.stack_count = entry->quantity;
+            entry->quantity = 1;
         }
     }
 
-    if (static_cast<unsigned int>(g_status_685170.world_clock - npc->maintenance_clock) < 0x15180 &&
+    if (static_cast<unsigned int>(g_status.world_clock - npc->restock_clock) > 0xa8c0 ||
+        force != 0) {
+        npc->restock_clock = g_status.world_clock;
+        count = PLLength(npc->record->item_stock_rules);
+        for (rule_index = 0; rule_index < count; ++rule_index) {
+            rule =
+                static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, rule_index));
+            if (rule->persistent != 0) {
+                item_id = rule->item_id;
+                configured = 0;
+                search_count = PLLength(npc->record->item_stock_rules);
+                for (search = 0; search < search_count; ++search) {
+                    candidate = static_cast<W8NpcItemStockRule*>(
+                        PLGet(npc->record->item_stock_rules, search));
+                    if (candidate->item_id == item_id) {
+                        configured = candidate->quantity;
+                        break;
+                    }
+                }
+                if (configured != 0) {
+                    item_id = rule->item_id;
+                    held = 0;
+                    search_count = PLLength(npc->items);
+                    for (search = 0; search < search_count; ++search) {
+                        entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
+                        if (entry != 0 && entry->item.iItemNo == item_id) {
+                            held = entry->quantity;
+                            break;
+                        }
+                    }
+                    if (held <= configured / 2) {
+                        configured -= held;
+                        roll = Random(3);
+                        if (roll == 0) {
+                            jitter = static_cast<unsigned char>(configured >> 1);
+                            configured += jitter;
+                        } else if (roll == 1) {
+                            jitter = static_cast<unsigned char>(-(configured >> 1));
+                            configured += jitter;
+                        }
+                        if (configured != 0) {
+                            AddNpcItem(npc, rule->item_id, configured);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (static_cast<unsigned int>(g_status.world_clock - npc->maintenance_clock) < 0x15180 &&
         force == 0) {
         return 0;
     }
     DecayNpcInventory(npc);
     RestockNpcItems(npc);
     count = PLLength(npc->items);
-    index = 0;
-    if (count != 0) {
-        do {
-            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-            if (entry != 0 && entry->quantity == 0) {
-                delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, index));
-                if (index != 0) {
-                    index = index - 1;
-                }
-                count = PLLength(npc->items);
+    for (index = 0; index < count; ++index) {
+        entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+        if (entry != 0 && entry->quantity == 0) {
+            delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, index));
+            if (index != 0) {
+                --index;
             }
-            ++index;
-        } while (index < count);
+            count = PLLength(npc->items);
+        }
     }
-    npc->maintenance_clock = g_status_685170.world_clock;
-    npc->restock_clock = g_status_685170.world_clock;
+    npc->maintenance_clock = g_status.world_clock;
+    npc->restock_clock = g_status.world_clock;
     return 1;
 }
 
@@ -273,59 +261,54 @@ unsigned char PopulateNpcStock(W8NpcState* npc)
         npc->items = PLCreate();
     }
     rule_count = PLLength(npc->record->item_stock_rules);
-    rule_index = 0;
-    if (rule_count > 0) {
-        do {
-            rule =
-                static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, rule_index));
-            item_id = rule->item_id;
-            if (item_id < (int)gXStatus.uiItemsInDatabase) {
-                persistent = rule->persistent;
-                added = 0;
-                if (rule->quantity != 0) {
-                    remaining = rule->quantity;
-                    do {
-                        if (persistent == 0) {
-                            tier = RateItemIdentifyDifficulty(npc, item_id);
-                        } else {
-                            tier = 4;
-                        }
-                        switch (tier) {
-                        case 0:
-                            chance = 0;
-                            break;
-                        case 1:
-                            chance = 25;
-                            break;
-                        case 2:
-                            chance = 50;
-                            break;
-                        case 3:
-                            chance = 75;
-                            break;
-                        case 4:
-                            chance = 100;
-                            break;
-                        default:
-                            chance = 0;
-                            break;
-                        }
-                        if (Random(100) < static_cast<unsigned int>(chance)) {
-                            ++added;
-                        }
-                        --remaining;
-                    } while (remaining != 0);
-                }
-                if (added != 0) {
-                    AddNpcItem(npc, rule->item_id, added);
-                }
+    for (rule_index = 0; rule_index < rule_count; ++rule_index) {
+        rule = static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, rule_index));
+        item_id = rule->item_id;
+        if (item_id < (int)gXStatus.uiItemsInDatabase) {
+            persistent = rule->persistent;
+            added = 0;
+            if (rule->quantity != 0) {
+                remaining = rule->quantity;
+                do {
+                    if (persistent == 0) {
+                        tier = RateItemIdentifyDifficulty(npc, item_id);
+                    } else {
+                        tier = 4;
+                    }
+                    switch (tier) {
+                    case 0:
+                        chance = 0;
+                        break;
+                    case 1:
+                        chance = 25;
+                        break;
+                    case 2:
+                        chance = 50;
+                        break;
+                    case 3:
+                        chance = 75;
+                        break;
+                    case 4:
+                        chance = 100;
+                        break;
+                    default:
+                        chance = 0;
+                        break;
+                    }
+                    if (Random(100) < static_cast<unsigned int>(chance)) {
+                        ++added;
+                    }
+                    --remaining;
+                } while (remaining != 0);
             }
-            ++rule_index;
-        } while (rule_index < rule_count);
+            if (added != 0) {
+                AddNpcItem(npc, rule->item_id, added);
+            }
+        }
     }
     SortNpcItems(npc);
-    npc->maintenance_clock = g_status_685170.world_clock;
-    npc->restock_clock = g_status_685170.world_clock;
+    npc->maintenance_clock = g_status.world_clock;
+    npc->restock_clock = g_status.world_clock;
     return 1;
 }
 
@@ -360,7 +343,7 @@ void SortNpcItems(W8NpcState* npc)
         cursor = array;
         for (index = 0; index < count; ++index) {
             *cursor = *static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-            cursor = cursor + 1;
+            ++cursor;
         }
         qsort(array, count, sizeof(W8NpcItemEntry), CompareNpcItems);
 
@@ -379,7 +362,7 @@ void SortNpcItems(W8NpcState* npc)
             }
             *entry = *cursor;
             PLAdoptAppend(npc->items, entry);
-            cursor = cursor + 1;
+            ++cursor;
         }
         delete[] array;
     }
@@ -456,13 +439,13 @@ int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char qua
         if (entry->quantity == 0) {
             entry->quantity = 1;
         }
-        entry->item.stack_count = entry->item.stack_count + quantity;
+        entry->item.stack_count += quantity;
         return index;
     }
     if (entry->item.stack_count == 0) {
         entry->item.stack_count = 1;
     }
-    entry->quantity = entry->quantity + quantity;
+    entry->quantity += quantity;
     return index;
 }
 
@@ -492,90 +475,82 @@ int RestockNpcItems(W8NpcState* npc)
     int roll;
 
     rule_count = PLLength(npc->record->item_stock_rules);
-    rule_index = 0;
-    if (rule_count > 0) {
-        do {
-            rule =
-                static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, rule_index));
-            if (rule->persistent != 0 ||
-                (rule->item_id == 0x1fc && GetFact(W8_FACT_TEMPLAR) == 0)) {
-                goto next_rule;
-            }
+    for (rule_index = 0; rule_index < rule_count; ++rule_index) {
+        rule = static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, rule_index));
+        if (rule->persistent != 0 || (rule->item_id == 0x1fc && GetFact(W8_FACT_TEMPLAR) == 0)) {
+            continue;
+        }
 
-            item_id = rule->item_id;
-            configured = 0;
-            search_count = PLLength(npc->record->item_stock_rules);
-            for (search = 0; search < search_count; ++search) {
-                candidate =
-                    static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, search));
-                if (candidate->item_id == item_id) {
-                    configured = candidate->quantity;
-                    break;
-                }
+        item_id = rule->item_id;
+        configured = 0;
+        search_count = PLLength(npc->record->item_stock_rules);
+        for (search = 0; search < search_count; ++search) {
+            candidate =
+                static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, search));
+            if (candidate->item_id == item_id) {
+                configured = candidate->quantity;
+                break;
             }
-            if (configured <= 0) {
-                goto next_rule;
-            }
+        }
+        if (configured <= 0) {
+            continue;
+        }
 
-            item_id = rule->item_id;
-            held = 0;
-            search_count = PLLength(npc->items);
-            for (search = 0; search < search_count; ++search) {
-                entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
-                if (entry != 0 && entry->item.iItemNo == item_id) {
-                    held = entry->quantity;
-                    break;
-                }
+        item_id = rule->item_id;
+        held = 0;
+        search_count = PLLength(npc->items);
+        for (search = 0; search < search_count; ++search) {
+            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
+            if (entry != 0 && entry->item.iItemNo == item_id) {
+                held = entry->quantity;
+                break;
             }
-            if (held > configured / 2) {
-                goto next_rule;
-            }
+        }
+        if (held > configured / 2) {
+            continue;
+        }
 
-            if (rule->persistent == 0) {
-                tier = RateItemIdentifyDifficulty(npc, rule->item_id);
-            } else {
-                tier = 4;
-            }
-            switch (tier) {
-            case 0:
-                chance = 0;
-                break;
-            case 1:
-                chance = 25;
-                break;
-            case 2:
-                chance = 50;
-                break;
-            case 3:
-                chance = 75;
-                break;
-            case 4:
-                chance = 100;
-                break;
-            default:
-                chance = 0;
-                break;
-            }
-            if (static_cast<unsigned int>(chance) <= Random(100)) {
-                goto next_rule;
-            }
+        if (rule->persistent == 0) {
+            tier = RateItemIdentifyDifficulty(npc, rule->item_id);
+        } else {
+            tier = 4;
+        }
+        switch (tier) {
+        case 0:
+            chance = 0;
+            break;
+        case 1:
+            chance = 25;
+            break;
+        case 2:
+            chance = 50;
+            break;
+        case 3:
+            chance = 75;
+            break;
+        case 4:
+            chance = 100;
+            break;
+        default:
+            chance = 0;
+            break;
+        }
+        if (static_cast<unsigned int>(chance) <= Random(100)) {
+            continue;
+        }
 
-            amount = configured - held;
-            roll = Random(3);
-            if (roll == 0) {
-                jitter = static_cast<unsigned char>(amount >> 1);
-                amount = amount + jitter;
-            } else if (roll == 1) {
-                jitter = static_cast<unsigned char>(-(amount >> 1));
-                amount = amount + jitter;
-            }
-            if (amount != 0) {
-                AddNpcItem(npc, rule->item_id, amount);
-            }
-
-        next_rule:
-            ++rule_index;
-        } while (rule_index < rule_count);
+        amount = configured - held;
+        roll = Random(3);
+        if (roll == 0) {
+            jitter = static_cast<unsigned char>(amount >> 1);
+            amount += jitter;
+        } else if (roll == 1) {
+            jitter = static_cast<unsigned char>(-(amount >> 1));
+            amount += jitter;
+        }
+        if (amount != 0) {
+            AddNpcItem(npc, rule->item_id, amount);
+        }
     }
     return 1;
 }
@@ -636,7 +611,7 @@ int AddNpcItemWithDelay(W8NpcState* npc, int item_id, unsigned int quantity, int
         return -1;
     }
     entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-    entry->available_at = g_status_685170.world_clock + delay;
+    entry->available_at = g_status.world_clock + delay;
     return index;
 }
 
@@ -653,11 +628,11 @@ unsigned int GetNpcItemCount(W8NpcState* npc)
 }
 
 // GLOBAL: WIZ8 0x0062A80C
-char g_sound_cash_transaction_62a80c[] = "Data\\Sound\\misc\\Cash Transaction.wav";
+char g_sound_cash_transaction[] = "Data\\Sound\\misc\\Cash Transaction.wav";
 
 // FUNCTION: WIZ8 0x0055B730
-unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
-                                    char suppress_payment)
+unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
+                            char suppress_payment)
 {
     W8ItemInstance stack;
     int amount;
@@ -670,7 +645,7 @@ unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsig
             if (suppress_payment == 0) {
                 AddPartyGold(amount, 0);
             }
-            SoundPlay(g_sound_cash_transaction_62a80c, 0);
+            SoundPlay(g_sound_cash_transaction, 0);
             if (item->stack_count == 0) {
                 item->stack_count = 1;
             }
@@ -885,8 +860,8 @@ int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode)
    accumulated stack then leaves the party purse and the stock entry shrinks.
    The trailing pass drops entries whose remaining count hit zero. */
 // FUNCTION: WIZ8 0x0055B7E0
-bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char quantity,
-                                     char no_payment, int* remaining_out)
+bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity, char no_payment,
+                             int* remaining_out)
 {
     unsigned char available;
     unsigned char moved;
@@ -922,8 +897,8 @@ bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char q
                 hand.stack_count = unit;
             }
         }
-        if (AddItemToPartyOrDrop(&hand, 0) == 0 && g_status_685170.item_in_cursor == 0) {
-            DisplayNpcQuote00529570(gppStringList[0x1ac4 / 4], 0);
+        if (AddItemToPartyOrDrop(&hand, 0) == 0 && g_status.item_in_cursor == 0) {
+            DisplayNpcQuote(gppStringList[0x1ac4 / 4], 0);
         }
         moved += unit;
         if (quantity <= moved) {
@@ -933,7 +908,7 @@ bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char q
             ReplaceOrCreateItem(&stack, entry->item.iItemNo, 0, 1, 0);
             stack.stack_count = moved;
             price = CalculateTradeStackPrice(npc, &stack, 1);
-            SoundPlay(g_sound_cash_transaction_62a80c, 0);
+            SoundPlay(g_sound_cash_transaction, 0);
             if (ConsumeNpcItemQuantity(npc, index, moved) == 0) {
                 return 0;
             }
@@ -944,19 +919,15 @@ bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char q
                 *remaining_out = available - moved;
             }
             count = PLLength(npc->items);
-            i = 0;
-            if (count != 0) {
-                do {
-                    entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, i));
-                    if (entry != 0 && entry->quantity == 0) {
-                        delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, i));
-                        if (i != 0) {
-                            --i;
-                        }
-                        count = PLLength(npc->items);
+            for (i = 0; i < count; ++i) {
+                entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, i));
+                if (entry != 0 && entry->quantity == 0) {
+                    delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, i));
+                    if (i != 0) {
+                        --i;
                     }
-                    ++i;
-                } while (i < count);
+                    count = PLLength(npc->items);
+                }
             }
             return 1;
         }
@@ -1054,7 +1025,7 @@ void DecayNpcInventory(W8NpcState* npc)
 }
 
 // FUNCTION: WIZ8 0x0055BB10
-void MatureNpcDelayedItems0055BB10(W8NpcState* npc)
+void MatureNpcDelayedItems(W8NpcState* npc)
 {
     if (npc->items == 0) {
         return;
@@ -1063,7 +1034,7 @@ void MatureNpcDelayedItems0055BB10(W8NpcState* npc)
     for (unsigned int index = 0; index < count; ++index) {
         W8NpcItemEntry* entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
         if (entry->available_at == 0 ||
-            entry->available_at >= static_cast<unsigned int>(g_status_685170.world_clock)) {
+            entry->available_at >= static_cast<unsigned int>(g_status.world_clock)) {
             continue;
         }
         entry->available_at = 0;
@@ -1118,5 +1089,5 @@ void MatureNpcDelayedItems0055BB10(W8NpcState* npc)
 void RestockNpcInventory(W8NpcState* npc)
 {
     MaintainNpcStock(npc, 0);
-    MatureNpcDelayedItems0055BB10(npc);
+    MatureNpcDelayedItems(npc);
 }

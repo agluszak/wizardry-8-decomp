@@ -2,7 +2,7 @@
 #define WIZ8_ITEM_VIDEO_OBJECT_VECTOR_H
 
 struct W8ItemVideoObjectEntry {
-    unsigned char initialized;
+    bool initialized;
     unsigned char padding_01[3];
     int video_object;
 
@@ -32,6 +32,6 @@ public:
     int loaded_count;
 };
 
-extern W8ItemVideoObjectCache g_item_video_objects_68ec68;
+extern W8ItemVideoObjectCache g_item_video_objects;
 
 #endif

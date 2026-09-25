@@ -18,12 +18,23 @@ def doctor_command() -> None:
     cli.emit(validate_environment(cli.settings()))
 
 
-def prepare_command() -> None:
-    """Idempotently prepare extracted variants and pinned source dependencies."""
+def prepare_command(
+    comparison_target: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--comparison-target",
+            help="Prepare only reviewed original binaries for this reccmp target; repeatable.",
+        ),
+    ] = None,
+) -> None:
+    """Prepare full runtime inputs or a minimal comparison-only corpus."""
     from .. import command_support as cli
-    from ..build import prepare
+    from ..build import prepare, prepare_comparison
 
-    cli.emit(prepare(cli.settings()))
+    settings = cli.settings()
+    cli.emit(
+        prepare_comparison(settings, comparison_target) if comparison_target else prepare(settings)
+    )
 
 
 def check_command() -> None:
@@ -197,6 +208,22 @@ def compare_command(
     cli.emit(action())
 
 
+def verify_call_targets_command(
+    base: Annotated[
+        str, typer.Option("--base", help="Revision to compare changed calls against.")
+    ] = "main@origin",
+) -> None:
+    """Require changed WIZ8 direct calls to name retail's callees."""
+    from .. import command_support as cli
+    from ..comparison import check_changed_call_targets
+    from ..config import repository_root
+
+    result = check_changed_call_targets(repository_root(), "WIZ8", base)
+    cli.emit(result)
+    if result["status"] != "passed":
+        raise typer.Exit(code=1)
+
+
 def vtable_command(
     class_filter: Annotated[str | None, typer.Argument(help="Class-name substring.")] = None,
     program: Annotated[str, typer.Option("--program")] = "wiz8",
@@ -303,12 +330,12 @@ def runtime_test_command(
             "default keeps the caller's environment.",
         ),
     ] = None,
-    batch: Annotated[
+    isolate: Annotated[
         bool,
         typer.Option(
-            "--batch",
-            help="Run batch-eligible semantic cases grouped by fixture in one "
-            "process; crashed or poisoned batches re-run leftover cases fresh.",
+            "--isolate",
+            help="Give every case a fresh process instead of batching "
+            "batch-eligible cases that share a fixture.",
         ),
     ] = False,
     workers: Annotated[
@@ -319,7 +346,7 @@ def runtime_test_command(
             help="Run independent cases on this many isolated workers; each "
             "gets its own stage, Wine prefix, and virtual display.",
         ),
-    ] = 1,
+    ] = 2,
 ) -> None:
     """Run deterministic in-process semantic scenarios using the existing product."""
     from .. import command_support as cli
@@ -338,7 +365,7 @@ def runtime_test_command(
             repeat=repeat,
             check_order=check_order,
             renderer=renderer,
-            batch=batch,
+            batch=not isolate,
             workers=workers,
         )
     )
@@ -390,6 +417,7 @@ def register(app: typer.Typer) -> None:
     app.command("diagnostics")(diagnostics_command)
     app.command("build")(build_command)
     app.command("compare")(compare_command)
+    app.command("verify-call-targets")(verify_call_targets_command)
     app.command("vtable")(vtable_command)
     app.command("datacmp")(datacmp_command)
     app.command("addr")(address_command)
@@ -402,6 +430,7 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("inventory")(inventory_command)
     analyze_app.command("trace")(trace_command)
     analyze_app.command("differential")(differential_command)
+    analyze_app.command("smoke")(smoke_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
     analyze_app.command("decompiler-quality")(decompiler_quality_command)
@@ -549,6 +578,7 @@ def unresolved_report_command(
     link_map: Annotated[Path | None, typer.Option(help="Linker MAP.")] = None,
 ) -> None:
     from .. import command_support as cli
+    from ..runtime_stubs import linked_objects
     from ..unresolved import unresolved_report
 
     def action():
@@ -556,6 +586,7 @@ def unresolved_report_command(
         report = unresolved_report(
             objects or settings.recovered_objects_dir,
             link_map or settings.product_build_dir / "Wiz8.map",
+            objects=None if objects else linked_objects(settings),
         )
         return report
 
@@ -736,6 +767,7 @@ def differential_command(
         SCENARIO_TERMINAL,
         Event,
         Sandbox,
+        compare_states,
         compare_streams,
         run_trace,
         write_report,
@@ -813,6 +845,12 @@ def differential_command(
             streams["retail-a"][: bounds["retail-a"]],
             streams["recomp"][: bounds["recomp"]],
         )
+        # The checkpoint fingerprint runs through the same verdicts: the
+        # state the terminal event left behind must reproduce within retail
+        # before the cross-build comparison can claim equivalence.
+        states = {label: run.get("state", {}) for label, run in runs.items()}
+        state_repeatability = compare_states(states["retail-a"], states["retail-b"])
+        state_differential = compare_states(states["retail-a"], states["recomp"])
         # An affirmative verdict needs every precondition, not just equal
         # prefixes: each run must have started under the debugger and reached
         # the scenario's terminal event, retail must be repeatable against
@@ -828,12 +866,18 @@ def differential_command(
             "retail_repeatable": bounded_repeatability["agrees"],
             "no_unwatched_points": not any(unwatched.values()),
             "streams_agree": bounded_differential["agrees"],
+            "state_repeatable": state_repeatability["agrees"],
+            "state_agrees": state_differential["agrees"],
         }
         return {
             "scenario": scenario,
             "affirmative": all(requirements.values()),
             "requirements": requirements,
             "reached_terminal": reached_terminal,
+            "state": {
+                "retail_repeatability": state_repeatability,
+                "differential": state_differential,
+            },
             "bounded": {
                 "events": bounds,
                 "retail_repeatability": bounded_repeatability,
@@ -850,11 +894,54 @@ def differential_command(
                 label: {
                     "events": len(run["events"]),
                     "started": run["started"],
+                    "state": states[label],
                     "provenance": run["provenance"],
                 }
                 for label, run in runs.items()
             },
         }
+
+    cli.emit(action())
+
+
+def smoke_command(
+    seconds: Annotated[int, typer.Option(help="How long to let the run go.")] = 120,
+    executable: Annotated[
+        str, typer.Option(help="Sandboxed product image to exercise.")
+    ] = "Wiz8Runtime.exe",
+    link_map: Annotated[
+        Path | None,
+        typer.Option(
+            "--link-map",
+            exists=True,
+            dir_okay=False,
+            help="Rebuilt image's linker MAP for breakpoint rebasing.",
+        ),
+    ] = None,
+) -> None:
+    """The product's own entry/exit lifecycle: WinMain, menu, player quit,
+    process exit - the path the runtime-test executable's explicit SGPExit
+    plus TerminateProcess does not exercise."""
+    from .. import command_support as cli
+    from ..dynamic import Sandbox, run_smoke, write_report
+
+    def action():
+        settings = cli.settings()
+        sandbox = Sandbox.from_environment()
+        if link_map is None:
+            candidate = settings.product_build_dir / "Wiz8Runtime.map"
+            resolved_map = candidate if candidate.is_file() else None
+        else:
+            resolved_map = link_map
+        result = run_smoke(
+            settings.repo_dir,
+            sandbox,
+            seconds=seconds,
+            executable=executable,
+            link_map=resolved_map,
+        )
+        write_report({**result, "scenario": "smoke"}, settings.repo_dir / "build/reports/trace")
+        return result
 
     cli.emit(action())
 

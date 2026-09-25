@@ -7,51 +7,22 @@ struct RuntimeObservation {
     unsigned int first_region;
     unsigned int last_region;
     unsigned char menu_seen;
-    unsigned char shade_table_ok;
-    unsigned char exit_observed;
-    unsigned char transition_observed;
-    unsigned char character_entered;
-    unsigned char character_returned;
-    unsigned char final_page_entered;
-    unsigned char final_page_redrawn;
-    unsigned char character_name_typed;
-    unsigned char character_summary_opened;
-    unsigned char character_committed;
-    unsigned char character_in_party;
     unsigned char main_game_entered;
-    unsigned char party_moved;
     unsigned char case_passed;
-    unsigned char return_observed;
     unsigned char timed_out;
-    int character_page_start;
-    int character_page_after;
-    unsigned char tooltip_shown;
-    unsigned char tooltip_removed;
-    unsigned char skill_tooltip_shown;
-    unsigned char skill_tooltip_removed;
-    unsigned char skill_interacted;
-    unsigned char playlist_active;
-    int playlist_tracks;
-    int playlist_weight;
-    int playlist_pause_min;
-    int playlist_pause_max;
-    int playlist_pause_chance;
-    int patch_catalog_count;
-    unsigned int item_database_count;
-    unsigned int monster_database_count;
-    unsigned int npc_database_count;
-    unsigned char patch_precedence_ok;
-    unsigned char physical_fallback_ok;
 };
 
 enum RuntimePhase { RUNTIME_ENGINE_READY, RUNTIME_MAIN_MENU, RUNTIME_MAIN_GAME };
-enum RuntimeFixtureId { FIXTURE_ENGINE_READY, FIXTURE_MAIN_MENU, FIXTURE_MONASTERY_PARTY };
+enum RuntimeFixtureId {
+    FIXTURE_ENGINE_READY,
+    FIXTURE_MAIN_MENU,
+    FIXTURE_MONASTERY_PARTY,
+    FIXTURE_MONASTERY_SINGLE_PARTY
+};
 enum RuntimeFixturePath { FIXTURE_PATH_NATURAL, FIXTURE_PATH_SHORTCUT };
 enum RuntimeTier { RUNTIME_PR, RUNTIME_MAIN, RUNTIME_NIGHTLY };
 enum RuntimeKind { RUNTIME_ACCEPTANCE, RUNTIME_INTEGRATION, RUNTIME_SEMANTIC };
 
-typedef unsigned long (*RuntimeScenarioFn)();
-typedef bool (*RuntimeValidateFn)(const RuntimeObservation& observation);
 class RuntimeCase;
 typedef bool (*RuntimeCaseFn)(RuntimeCase& test);
 
@@ -62,12 +33,8 @@ struct RuntimeScenario {
     RuntimeTier tier;
     RuntimeKind kind;
     unsigned int timeout_ms;
-    RuntimeScenarioFn run;
-    RuntimeValidateFn validate;
-    /* New-style cases run under a driver-owned RuntimeCase; trailing member
-       zero-initializes for unmigrated scenarios. */
     RuntimeCaseFn case_run;
     /* Opt-in same-process batching: only cases whose fixture owns explicit
-       cleanup may set this. Zero-initializes for unmigrated scenarios. */
+       cleanup may set this. */
     unsigned char batch;
 };

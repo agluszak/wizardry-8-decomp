@@ -97,7 +97,7 @@ stTextureAnim::stTextureAnim(const stTextureAnim& other)
 stTextureAnim::~stTextureAnim()
 {
     if (IsTextureInReadMeshScratch(this) != 0) {
-        ReleaseReadMeshScratch004881D0();
+        ReleaseReadMeshScratch();
     }
 
     while (textures_54->GetCount() != 0) {
@@ -108,14 +108,14 @@ stTextureAnim::~stTextureAnim()
 }
 
 // FUNCTION: WIZ8 0x00485400
-void stTextureAnim::SetFrame00485400(int frame)
+void stTextureAnim::SetFrame(int frame)
 {
     frame_58 = frame;
     frame_tick_6c = GetTickCount();
 }
 
 // FUNCTION: WIZ8 0x00485420
-void stTextureAnim::AddTexture00485420(srTextureIFace* texture)
+void stTextureAnim::AddTexture(srTextureIFace* texture)
 {
     textures_54->Add(texture);
     texture->addReference();

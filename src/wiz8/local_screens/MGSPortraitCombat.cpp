@@ -59,60 +59,60 @@
 #include "wiz8/xstatus.h"
 
 // GLOBAL: WIZ8 0x0064C238
-const char g_submenu_icons_path_64c238[] = "Data\\Main Interface\\icons_standard.sti";
+const char g_submenu_icons_path[] = "Data\\Main Interface\\icons_standard.sti";
 // GLOBAL: WIZ8 0x0064C260
-const char g_submenu_combat_icons_path_64c260[] = "Data\\Main Interface\\icon_combat_toggle.sti";
+const char g_submenu_combat_icons_path[] = "Data\\Main Interface\\icon_combat_toggle.sti";
 /* The (x, y) of the nine bank buttons. */
 // GLOBAL: WIZ8 0x0064C290
-const int g_submenu_button_positions_64c290[9][2] = {
+const int g_submenu_button_positions[9][2] = {
     {40, 452},  {70, 452},  {100, 452}, {130, 452}, {160, 452},
     {232, 452}, {262, 452}, {199, 452}, {200, 452},
 };
 /* The (x, y) of the two scroll arrows. */
 // GLOBAL: WIZ8 0x0064C330
-const int g_scroll_button_positions_64c330[2][2] = {{300, 456}, {323, 456}};
+const int g_scroll_button_positions[2][2] = {{300, 456}, {323, 456}};
 /* The (x, y) of the two panel buttons (close and formation). */
 // GLOBAL: WIZ8 0x0064C378
-const int g_submenu_panel_button_positions_64c378[2][2] = {{541, 452}, {571, 452}};
+const int g_submenu_panel_button_positions[2][2] = {{541, 452}, {571, 452}};
 // GLOBAL: WIZ8 0x0064C388
-const char g_options_disk_path_64c388[] = "Data\\Main Interface\\options_disk.sti";
+const char g_options_disk_path[] = "Data\\Main Interface\\options_disk.sti";
 // GLOBAL: WIZ8 0x0064C3B0
-const int g_options_disk_position_64c3b0[2] = {0, 450};
+const int g_options_disk_position[2] = {0, 450};
 // GLOBAL: WIZ8 0x0064C3B8
-const char g_attack_confirm_path_64c3b8[] = "Data\\Main Interface\\attack_confirm.sti";
+const char g_attack_confirm_path[] = "Data\\Main Interface\\attack_confirm.sti";
 // GLOBAL: WIZ8 0x0064C3E0
-const char g_combat_stop_path_64c3e0[] = "Data\\Main Interface\\combat_stop.sti";
+const char g_combat_stop_path[] = "Data\\Main Interface\\combat_stop.sti";
 // GLOBAL: WIZ8 0x0064C404
-const char g_cont_start_path_64c404[] = "Data\\Main Interface\\cont_start.sti";
+const char g_cont_start_path[] = "Data\\Main Interface\\cont_start.sti";
 // GLOBAL: WIZ8 0x0064C428
-const char g_cont_toggle_path_64c428[] = "Data\\Main Interface\\cont_toggle.sti";
+const char g_cont_toggle_path[] = "Data\\Main Interface\\cont_toggle.sti";
 // GLOBAL: WIZ8 0x0064C44C
-const char g_cont_pending_path_64c44c[] = "Data\\Main Interface\\cont_pending.sti";
+const char g_cont_pending_path[] = "Data\\Main Interface\\cont_pending.sti";
 /* All five combat-stance buttons share the same screen origin. */
 // GLOBAL: WIZ8 0x0064C478
-const int g_combat_stance_positions_64c478[5][2] = {
+const int g_combat_stance_positions[5][2] = {
     {610, 450}, {610, 450}, {610, 450}, {610, 450}, {610, 450},
 };
 // GLOBAL: WIZ8 0x0064C4A0
-const char g_roof_buttons_path_64c4a0[] = "Data\\Main Interface\\main_roof_buttons.sti";
+const char g_roof_buttons_path[] = "Data\\Main Interface\\main_roof_buttons.sti";
 // GLOBAL: WIZ8 0x0064C4D0
-const int g_roof_button_positions_64c4d0[3][2] = {{10, 1}, {39, 1}, {68, 1}};
+const int g_roof_button_positions[3][2] = {{10, 1}, {39, 1}, {68, 1}};
 // GLOBAL: WIZ8 0x0064C4E8
-const char g_layout_arrows_path_64c4e8[] = "Data\\Main Interface\\main_layout_arrows.sti";
+const char g_layout_arrows_path[] = "Data\\Main Interface\\main_layout_arrows.sti";
 /* Left column then right column; both columns share the same x in retail. */
 // GLOBAL: WIZ8 0x0064C518
-const int g_layout_arrow_positions_64c518[6][2] = {
+const int g_layout_arrow_positions[6][2] = {
     {0, 371}, {0, 394}, {0, 417}, {0, 371}, {0, 394}, {0, 417},
 };
 /* The (menu, item) keyed message indexes both menus build rows from. */
 // GLOBAL: WIZ8 0x0064C548
-const short g_submenu_entry_message_ids_64c548[25] = {
+const short g_submenu_entry_message_ids[25] = {
     0,  63, 70,  77,  84, 91, 98, -1,  -1,  -1, 154, 161, 168,
     -1, -1, 105, 112, -1, -1, -1, 175, 182, -1, -1,  -1,
 };
 /* The matching help indexes. */
 // GLOBAL: WIZ8 0x0064C57C
-const int g_submenu_entry_help_ids_64c57c[25] = {
+const int g_submenu_entry_help_ids[25] = {
     82, 83, 84, 85, 86, 87, 88, -1, -1, -1, 91, 92, -1,
     -1, -1, 89, -1, -1, -1, -1, 95, 94, -1, -1, -1,
 };
@@ -143,28 +143,27 @@ unsigned char CreateSubMenuButtons(void)
             return 0;
         }
     }
-    g_submenu_buttons_69b8b0[0]->Configure(g_submenu_icons_path_64c238, 0x2b, 0x28, 0x29, 0x2a,
-                                           0x2c, SubMenuButtonPendingScreen, 0, 0, 0x7f, 0x42, 0,
-                                           0);
-    g_submenu_buttons_69b8b0[1]->Configure(g_submenu_icons_path_64c238, 0x3, 0x0, 0x1, 0x2, 0x4,
+    g_submenu_buttons_69b8b0[0]->Configure(g_submenu_icons_path, 0x2b, 0x28, 0x29, 0x2a, 0x2c,
+                                           SubMenuButtonPendingScreen, 0, 0, 0x7f, 0x42, 0, 0);
+    g_submenu_buttons_69b8b0[1]->Configure(g_submenu_icons_path, 0x3, 0x0, 0x1, 0x2, 0x4,
                                            SubMenuButtonSurprise, 0, 0, 0x7f, 0x43, 0, 0);
-    g_submenu_buttons_69b8b0[2]->Configure(g_submenu_icons_path_64c238, 0x8, 0x5, 0x6, 0x7, 0x9,
+    g_submenu_buttons_69b8b0[2]->Configure(g_submenu_icons_path, 0x8, 0x5, 0x6, 0x7, 0x9,
                                            SubMenuButtonToggleFlag, 0, 1, 0x7f, 0x44, 0, 0);
-    g_submenu_buttons_69b8b0[3]->Configure(g_submenu_icons_path_64c238, 0x17, 0x14, 0x15, 0x16,
-                                           0x18, SubMenuButtonUseItem, 0, 1, 0x7f, 0x45, 0, 0);
-    g_submenu_buttons_69b8b0[4]->Configure(g_submenu_icons_path_64c238, 0x1c, 0x19, 0x1a, 0x1b,
-                                           0x1d, SubMenuButtonSpellView, 0, 1, 0x7f, 0x46, 0, 0);
-    g_submenu_buttons_69b8b0[5]->Configure(g_submenu_icons_path_64c238, 0x12, 0xf, 0x10, 0x11, 0x13,
+    g_submenu_buttons_69b8b0[3]->Configure(g_submenu_icons_path, 0x17, 0x14, 0x15, 0x16, 0x18,
+                                           SubMenuButtonUseItem, 0, 1, 0x7f, 0x45, 0, 0);
+    g_submenu_buttons_69b8b0[4]->Configure(g_submenu_icons_path, 0x1c, 0x19, 0x1a, 0x1b, 0x1d,
+                                           SubMenuButtonSpellView, 0, 1, 0x7f, 0x46, 0, 0);
+    g_submenu_buttons_69b8b0[5]->Configure(g_submenu_icons_path, 0x12, 0xf, 0x10, 0x11, 0x13,
                                            SubMenuButtonOpenMenu1, 0, 0, 0x7f, 0x4a, 0, 0);
-    g_submenu_buttons_69b8b0[6]->Configure(g_submenu_icons_path_64c238, 0xd, 0xa, 0xb, 0xc, 0xe,
+    g_submenu_buttons_69b8b0[6]->Configure(g_submenu_icons_path, 0xd, 0xa, 0xb, 0xc, 0xe,
                                            SubMenuButtonOpenMenu0, 0, 0, 0x7f, 0x49, 0, 0);
-    g_submenu_buttons_69b8b0[7]->Configure(g_submenu_combat_icons_path_64c260, 0x3, 0x0, 0x1, 0x2,
-                                           0x2, SubMenuButtonToggleCombat, 0, 0, 0x7f, 0x47, 0, 0);
-    g_submenu_buttons_69b8b0[8]->Configure(g_submenu_combat_icons_path_64c260, 0x7, 0x4, 0x5, 0x6,
-                                           0x6, SubMenuButtonToggleCombat, 0, 0, 0x7f, 0x48, 0, 0);
+    g_submenu_buttons_69b8b0[7]->Configure(g_submenu_combat_icons_path, 0x3, 0x0, 0x1, 0x2, 0x2,
+                                           SubMenuButtonToggleCombat, 0, 0, 0x7f, 0x47, 0, 0);
+    g_submenu_buttons_69b8b0[8]->Configure(g_submenu_combat_icons_path, 0x7, 0x4, 0x5, 0x6, 0x6,
+                                           SubMenuButtonToggleCombat, 0, 0, 0x7f, 0x48, 0, 0);
     for (index = 0; index < 9; ++index) {
-        g_submenu_buttons_69b8b0[index]->SetPosition(g_submenu_button_positions_64c290[index][0],
-                                                     g_submenu_button_positions_64c290[index][1]);
+        g_submenu_buttons_69b8b0[index]->SetPosition(g_submenu_button_positions[index][0],
+                                                     g_submenu_button_positions[index][1]);
         g_submenu_buttons_69b8b0[index]->m_owner_040 = 0;
     }
     return 1;
@@ -222,22 +221,21 @@ void UpdateSubMenuButton(int index)
         break;
     case 2:
         g_submenu_buttons_69b8b0[2]->SetEnabled(gXStatus.fCombatMode == 0);
-        if (g_submenu_buttons_69b8b0[2]->IsPressed() != (g_status_685170.search_mode != 0)) {
-            g_submenu_buttons_69b8b0[2]->SetPressed(g_status_685170.search_mode != 0);
+        if (g_submenu_buttons_69b8b0[2]->IsPressed() != (g_status.search_mode != 0)) {
+            g_submenu_buttons_69b8b0[2]->SetPressed(g_status.search_mode != 0);
         }
         break;
     case 3:
-        g_submenu_buttons_69b8b0[3]->SetEnabled(
-            IsPartySlotEligible00524A10(g_status_685170.selected_character) != 0);
+        g_submenu_buttons_69b8b0[3]->SetEnabled(IsPartySlotEligible(g_status.selected_character) !=
+                                                0);
         if (g_submenu_buttons_69b8b0[3]->IsPressed() != (gXStatus.fItemSelectMode != 0)) {
             g_submenu_buttons_69b8b0[3]->SetPressed(gXStatus.fItemSelectMode != 0);
         }
         break;
     case 4:
         g_submenu_buttons_69b8b0[4]->SetEnabled(
-            IsPartySlotEligible00524A10(g_status_685170.selected_character) != 0 &&
-            CharacterHasCastableSpell(
-                &g_status_685170.buffers.Char[g_status_685170.selected_character]) != 0);
+            IsPartySlotEligible(g_status.selected_character) != 0 &&
+            CharacterHasCastableSpell(&g_status.buffers.Char[g_status.selected_character]) != 0);
         if (g_submenu_buttons_69b8b0[4]->IsPressed() != (gXStatus.fSpellCastMode != 0)) {
             g_submenu_buttons_69b8b0[4]->SetPressed(gXStatus.fSpellCastMode != 0);
         }
@@ -245,7 +243,7 @@ void UpdateSubMenuButton(int index)
     case 5:
     case 6:
         g_submenu_buttons_69b8b0[index]->SetEnabled(gXStatus.fCombatMode != 0);
-        if (IsPartySlotEligible00524A10(g_status_685170.selected_character) == 0) {
+        if (IsPartySlotEligible(g_status.selected_character) == 0) {
             g_submenu_buttons_69b8b0[index]->SetEnabled(0);
         }
         break;
@@ -262,9 +260,9 @@ void UpdateSubMenuButton(int index)
 void SubMenuButtonPendingScreen(W8DialogButton* button)
 {
     button->SetPressed(0);
-    button->m_dirty = 1;
+    button->m_dirty = true;
     if (gXStatus.fNpcDialogueMode != 0) {
-        gXStatus.fCampMode = 1;
+        gXStatus.fCampMode = true;
     }
     SetPendingScreenState(W8_SCREEN_JOURNAL);
 }
@@ -272,7 +270,7 @@ void SubMenuButtonPendingScreen(W8DialogButton* button)
 // FUNCTION: WIZ8 0x005950C0
 void SubMenuButtonSurprise(W8DialogButton* button)
 {
-    RequestCamp00502460();
+    RequestCamp();
     RequestRedraw(0x200);
     DrawSubMenuCharacterAction();
 }
@@ -281,7 +279,7 @@ void SubMenuButtonSurprise(W8DialogButton* button)
 void SubMenuButtonToggleFlag(W8DialogButton* button)
 {
     ToggleSearchMode();
-    button->SetPressed(g_status_685170.search_mode ? 1 : 0);
+    button->SetPressed(g_status.search_mode ? 1 : 0);
     RequestRedraw(0x200);
     DrawSubMenuCharacterAction();
 }
@@ -335,23 +333,22 @@ void SubMenuButtonUseItem(W8DialogButton* button)
         }
         SetSubMenuButtonTooltips(0);
         g_submenu_clock_69b880 = SetCountdownClock(0);
-        g_submenu_flag_69b8d4 = 0;
+        g_submenu_flag_69b8d4 = false;
         RequestRedraw(0x200);
         ResetClickedMode();
         return;
     }
-    OpenUseItemSelectView(g_status_685170.selected_character);
+    OpenUseItemSelectView(g_status.selected_character);
 }
 
 // FUNCTION: WIZ8 0x00595280
 void SubMenuButtonSpellView(W8DialogButton* button)
 {
-    if (CharacterHasCastableSpell(
-            &g_status_685170.buffers.Char[g_status_685170.selected_character]) != 0) {
+    if (CharacterHasCastableSpell(&g_status.buffers.Char[g_status.selected_character]) != 0) {
         if (gXStatus.fSpellCastMode != 0) {
             CloseSpellCastingView();
         } else {
-            OpenSpellCastingView(g_status_685170.selected_character);
+            OpenSpellCastingView(g_status.selected_character);
         }
     }
 }
@@ -400,7 +397,7 @@ void SubMenuButtonOpenMenu0(W8DialogButton* button)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock_69b880 = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = 0;
+    g_submenu_flag_69b8d4 = false;
     RequestRedraw(0x200);
 }
 
@@ -448,7 +445,7 @@ void SubMenuButtonOpenMenu1(W8DialogButton* button)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock_69b880 = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = 0;
+    g_submenu_flag_69b8d4 = false;
     RequestRedraw(0x200);
 }
 
@@ -532,6 +529,6 @@ void ReopenSubMenuPanel(void)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock_69b880 = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = 0;
+    g_submenu_flag_69b8d4 = false;
     RequestRedraw(0x200);
 }

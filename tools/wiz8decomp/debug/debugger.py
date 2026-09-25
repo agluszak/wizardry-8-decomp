@@ -17,8 +17,12 @@ from ..config import Settings
 from ..display import runtime_display
 from ..paths import atomic_json, sha256_file
 from ..runtime import (
+    apply_product_video_config,
+    configure_runtime_runner,
     configure_wine_window_management,
     format_crash_candidates,
+    require_umu_runner,
+    runtime_runner,
     runtime_test_environment,
     stage_game,
 )
@@ -83,11 +87,14 @@ def _prepare_artifact_dir(artifact_dir: Path) -> None:
     artifact_dir.mkdir(parents=True, exist_ok=True)
 
 
-def _stop_debug_wineserver(environment: dict[str, str]) -> None:
+def _stop_debug_wineserver(environment: dict[str, str], runner: str) -> None:
     """Stop only the server belonging to the debugger's dedicated prefix."""
 
+    wineserver = "wineserver" if runner == "wine" else os.environ.get("WIZ8_UMU_WINESERVER")
+    if not wineserver or shutil.which(wineserver) is None:
+        raise RuntimeError(f"wineserver is not available for {runner}")
     subprocess.run(
-        ["wineserver", "-k"],
+        [wineserver, "-k"],
         env=environment,
         check=False,
         capture_output=True,
@@ -235,15 +242,19 @@ def format_crash_snapshot(
 
 
 def _debug_environment(
-    settings: Settings, *, scenario: bool = False
+    settings: Settings, *, scenario: bool = False, runner: str = "wine"
 ) -> tuple[Path, dict[str, str]]:
     prefix = Path(
-        os.environ.get("WIZ8_DEBUG_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-debug")
+        os.environ.get(
+            "WIZ8_DEBUG_WINE_PREFIX",
+            settings.work_dir / "wine" / ("wiz8-ge-debug" if runner == "umu" else "wiz8-debug"),
+        )
     )
     if scenario:
-        return runtime_test_environment(settings, prefix=prefix)
+        return runtime_test_environment(settings, prefix=prefix, sound=runner == "umu")
     prefix.mkdir(parents=True, exist_ok=True)
     environment = {**os.environ, "WINEPREFIX": str(prefix)}
+    configure_runtime_runner(environment, runner)
     environment.setdefault("WINEDLLOVERRIDES", "winemenubuilder.exe=d")
     return prefix, environment
 
@@ -294,12 +305,18 @@ def _run_debugger_locked(
         objects=settings.recovered_objects_dir,
         reset_saves=scenario is not None,
     )
+    runner = runtime_runner()
+    if scenario is None or runner == "umu":
+        apply_product_video_config(settings, staged.root)
+    runner_environment = dict(os.environ)
+    configure_runtime_runner(runner_environment, runner)
+    umu_run = require_umu_runner(runner_environment) if runner == "umu" else ""
     executable = staged.executable
     map_path = staged.map
     artifact_dir = settings.repo_dir / "build/debug"
     manifest_path = settings.product_build_dir / "generated/runtime-stubs/runtime_stubs.json"
-    prefix, environment = _debug_environment(settings, scenario=scenario is not None)
-    _stop_debug_wineserver(environment)
+    prefix, environment = _debug_environment(settings, scenario=scenario is not None, runner=runner)
+    _stop_debug_wineserver(environment, runner)
     _prepare_artifact_dir(artifact_dir)
     launch_arguments = (
         ("--scenario", scenario) if scenario is not None else ("/WINDOW", *(arguments or []))
@@ -314,6 +331,7 @@ def _run_debugger_locked(
             "arguments": list(launch_arguments),
             "breakpoints": breakpoints or [],
             "timeout": timeout,
+            "runner": runner,
         },
     )
 
@@ -323,13 +341,15 @@ def _run_debugger_locked(
             default="virtual" if scenario is not None else "host",
             log_path=artifact_dir / "display.log",
         ) as display:
-            configure_wine_window_management(environment, private_display=display is not None)
+            if runner == "wine":
+                configure_wine_window_management(environment, private_display=display is not None)
             session = GdbSession(
                 executable,
                 staged.root,
                 environment,
                 artifact_dir,
                 arguments=launch_arguments,
+                launch_command=(umu_run, "winedbg.exe") if runner == "umu" else ("winedbg",),
             )
             return asyncio.run(
                 _run_debug_session(
@@ -342,4 +362,4 @@ def _run_debugger_locked(
                 )
             )
     finally:
-        _stop_debug_wineserver(environment)
+        _stop_debug_wineserver(environment, runner)

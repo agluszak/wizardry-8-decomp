@@ -12,14 +12,13 @@
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/Configuration.h"
 
-/* The monster-side difficulty scaler: a hostile monster scales like a
-   turncoated character and a friendly one like a party character. Normal
-   difficulty leaves the value alone. */
+/* The monster-side counterpart: a hostile monster scales like a turncoated
+   character and a friendly one like a party character. */
 // FUNCTION: WIZ8 0x0055ccb0
 void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value)
 {
     if (monster_info->ubDisposition == DISP_HOSTILE) {
-        switch (g_settings_6850c8.difficulty) {
+        switch (g_settings.difficulty) {
         case 0:
             *value = (*value * 3 * 20) / 100;
             break;
@@ -28,7 +27,7 @@ void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value)
             break;
         }
     } else if (monster_info->ubDisposition == DISP_FRIENDLY) {
-        switch (g_settings_6850c8.difficulty) {
+        switch (g_settings.difficulty) {
         case 0:
             *value = (*value * 7 * 20) / 100;
             break;

@@ -11,17 +11,17 @@ float g_lod_range_default_0060e608 = 3500.0f;
 // GLOBAL: WIZ8 0x0060e60c
 float g_lod_range_default_0060e60c = 8500.0f;
 
-// VTABLE: WIZ8 0x005ec1d8 W8AnimRepBase005EC1D8
-// class W8AnimRepBase005EC1D8
+// VTABLE: WIZ8 0x005ec1d8 W8AnimRepBase
+// class W8AnimRepBase
 
-// VTABLE: WIZ8 0x005ed050 W8AnimRep005ED050
-// class W8AnimRep005ED050
+// VTABLE: WIZ8 0x005ed050 W8AnimRep
+// class W8AnimRep
 
 // VTABLE: WIZ8 0x005ed058 W8EmitterHost
 // class W8EmitterHost
 
 // FUNCTION: WIZ8 0x004b86e0
-W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8()
+W8AnimRepBase::W8AnimRepBase()
 {
     location_004.SetZero();
     local_location_010.SetZero();
@@ -32,12 +32,12 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8()
     render_state_04c.highlight_blue = 0.0f;
     render_state_04c.highlight_alpha = 0.0f;
     instance_scale_05c = 1.0f;
-    flag_060 = 0;
+    flag_060 = false;
     apply_instance_scale_061 = 0;
 }
 
 // FUNCTION: WIZ8 0x004b55c0
-void W8AnimRep005ED050::SetFrameMethod004B55C0(signed char method)
+void W8AnimRep::SetFrameMethod(signed char method)
 {
     if (method < 1 || method > 4) {
         srAssertFail("bFrameMethod >= DIR_FIRST && bFrameMethod <= DIR_LAST",
@@ -50,7 +50,7 @@ void W8AnimRep005ED050::SetFrameMethod004B55C0(signed char method)
    runtime scale and flags instead of copying them.  Bytes 0x62 and 0x63 are
    not touched by the canonical constructor. */
 // FUNCTION: WIZ8 0x004b87c0
-W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(const W8AnimRepBase005EC1D8& other)
+W8AnimRepBase::W8AnimRepBase(const W8AnimRepBase& other)
 {
     location_004 = other.location_004;
     local_location_010 = other.local_location_010;
@@ -58,7 +58,7 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(const W8AnimRepBase005EC1D8& other)
     rotation_028 = other.rotation_028;
     render_state_04c = other.render_state_04c;
     instance_scale_05c = 1.0f;
-    flag_060 = 0;
+    flag_060 = false;
     apply_instance_scale_061 = 0;
 }
 
@@ -66,7 +66,7 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(const W8AnimRepBase005EC1D8& other)
    from its parent location.  The three floating-point additions establish
    these as vectors rather than opaque twelve-byte values. */
 // FUNCTION: WIZ8 0x004b8850
-void W8AnimRepBase005EC1D8::SetLocation004B8850(const srVector3T<float>* location)
+void W8AnimRepBase::SetLocation004B8850(const srVector3T<float>* location)
 {
     local_location_010.x = location->x;
     local_location_010.y = location->y;
@@ -75,7 +75,7 @@ void W8AnimRepBase005EC1D8::SetLocation004B8850(const srVector3T<float>* locatio
 }
 
 // FUNCTION: WIZ8 0x004b8890
-void W8AnimRepBase005EC1D8::GetLocation004B8890(srVector3T<float>* location) const
+void W8AnimRepBase::GetLocation004B8890(srVector3T<float>* location) const
 {
     location->x = location_004.x;
     location->y = location_004.y;
@@ -83,7 +83,7 @@ void W8AnimRepBase005EC1D8::GetLocation004B8890(srVector3T<float>* location) con
 }
 
 // FUNCTION: WIZ8 0x004b88b0
-void W8AnimRepBase005EC1D8::GetLocalLocation004B88B0(srVector3T<float>* location) const
+void W8AnimRepBase::GetLocalLocation(srVector3T<float>* location) const
 {
     location->x = local_location_010.x;
     location->y = local_location_010.y;
@@ -91,19 +91,19 @@ void W8AnimRepBase005EC1D8::GetLocalLocation004B88B0(srVector3T<float>* location
 }
 
 // FUNCTION: WIZ8 0x004b88d0
-void W8AnimRepBase005EC1D8::SetRotation004B88D0(const srMatrix3T<float>* rotation)
+void W8AnimRepBase::SetRotation004B88D0(const srMatrix3T<float>* rotation)
 {
     rotation_028 = *rotation;
 }
 
 // FUNCTION: WIZ8 0x004b88f0
-void W8AnimRepBase005EC1D8::GetRotation004B88F0(srMatrix3T<float>* rotation)
+void W8AnimRepBase::GetRotation(srMatrix3T<float>* rotation)
 {
     *rotation = rotation_028;
 }
 
 // FUNCTION: WIZ8 0x004b53d0
-W8AnimRep005ED050::W8AnimRep005ED050()
+W8AnimRep::W8AnimRep()
 {
     subcycle_064 = 0;
     pending_subcycle_066 = 0xffff;
@@ -129,19 +129,19 @@ W8AnimRep005ED050::W8AnimRep005ED050()
 /* Vtable 0x005EC1D8's clone slot allocates exactly the root's 0x64-byte
    extent, then invokes the copy constructor above. */
 // FUNCTION: WIZ8 0x0044edf0
-W8AnimRepBase005EC1D8* W8AnimRepBase005EC1D8::Clone()
+W8AnimRepBase* W8AnimRepBase::Clone()
 {
-    return new W8AnimRepBase005EC1D8(*this);
+    return new W8AnimRepBase(*this);
 }
 
 // SYNTHETIC: WIZ8 0x0044ee50
-// W8AnimRepBase005EC1D8::`scalar deleting destructor'
+// W8AnimRepBase::`scalar deleting destructor'
 
 /* AnimRep.cpp copies persistent animation state, then timestamps the new
    representation from the shared SurRender timer.  The source assertion names
    that global `gpsrTimer`. */
 // FUNCTION: WIZ8 0x004b54a0
-W8AnimRep005ED050::W8AnimRep005ED050(const W8AnimRep005ED050& other) : W8AnimRepBase005EC1D8(other)
+W8AnimRep::W8AnimRep(const W8AnimRep& other) : W8AnimRepBase(other)
 {
     subcycle_064 = other.subcycle_064;
     pending_subcycle_066 = other.pending_subcycle_066;
@@ -169,14 +169,14 @@ W8AnimRep005ED050::W8AnimRep005ED050(const W8AnimRep005ED050& other) : W8AnimRep
    SYNTHETIC marker records the deleting wrapper VC6 generates for vtable slot
    zero. */
 // SYNTHETIC: WIZ8 0x004b5760
-// W8AnimRep005ED050::`scalar deleting destructor'
+// W8AnimRep::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x0044ef20
-W8AnimRep005ED050::~W8AnimRep005ED050() {}
+W8AnimRep::~W8AnimRep() {}
 
 /* The abstract emitter host copies its stable settings, but starts with no
    selected emitter and the canonical 00 00 FF FF transient byte pattern. */
 // FUNCTION: WIZ8 0x004b5680
-W8EmitterHost::W8EmitterHost(const W8EmitterHost& other) : W8AnimRep005ED050(other)
+W8EmitterHost::W8EmitterHost(const W8EmitterHost& other) : W8AnimRep(other)
 {
     m_bLOD = other.m_bLOD;
     lod_range_09c = other.lod_range_09c;

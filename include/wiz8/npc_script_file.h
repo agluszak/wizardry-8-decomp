@@ -86,8 +86,8 @@ static_assert(sizeof(W8NpcScriptFile) == 0x0e, "W8NpcScriptFile_size");
 static_assert(offsetof(W8NpcScriptFile, name) == 6, "W8NpcScriptFile_name");
 static_assert(offsetof(W8NpcScriptFile, quotes) == 0x0a, "W8NpcScriptFile_quotes");
 
-void ReleaseNpcScriptFile0055A0A0(W8NpcScriptFile* file);
-unsigned char ReadNpcScriptQuote0055A140(int handle, W8NpcScriptQuote* quote);
-W8NpcScriptFile* LoadNpcScriptFile0055A480(char* path);
+void ReleaseNpcScriptFile(W8NpcScriptFile* file);
+unsigned char ReadNpcScriptQuote(int handle, W8NpcScriptQuote* quote);
+W8NpcScriptFile* LoadNpcScriptFile(char* path);
 
 #endif

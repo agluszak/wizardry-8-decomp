@@ -10,18 +10,18 @@ struct W8ItemInstance {
     int iItemNo;
     unsigned char stack_count;     /* 0x04: quantity-kind 1 */
     unsigned char uses_or_charges; /* 0x05: quantity-kinds 2 through 4 */
-    unsigned char identified;
+    bool identified;
     /* 0x07: the spell hint displays even before full identification. */
     unsigned char spell_hint_07;
     unsigned char unknown_08;
     /* 0x09 bit0: the item's one-shot use effect has fired. */
-    unsigned char effect_used_09;
+    bool effect_used_09;
     /* 0x0a: the binding has already been announced for this instance, which is
        what stops the log line repeating. */
     unsigned char bind_announced;
     /* 0x0b: the instance is bound to its wearer. Raised when a binds-on-equip
        item is worn and read by the predicates that refuse to take it off. */
-    unsigned char bound;
+    bool bound;
 }; /* 0x0c */
 
 #pragma pack(pop)

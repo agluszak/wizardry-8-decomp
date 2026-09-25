@@ -45,8 +45,8 @@ void SaveMonsterGenerators(int handle);
 void DestroyMonsterGenerators(void);
 void LoadMonsterGenerators(int handle); /* 0x0048C470 */
 void RunMonsterGenerators(void);
-void DespawnAllActiveMonsterGroups0048C9F0(void);
-void ResetMonsterGeneratorTimers0048CBE0(void);
+void DespawnAllActiveMonsterGroups(void);
+void ResetMonsterGeneratorTimers(void);
 void SetMonsterGeneratorDurationScale(float scale); /* 0x0048CB80 */
 
 /* The encounter-budget registry used by random groups. */

@@ -68,8 +68,8 @@ static bool CheckSerialization(MonGen* generator)
 bool RunMonGenSemanticTest(void)
 {
     GDCamera camera;
-    GDCamera* saved_camera = g_gd_camera_65a0f8;
-    g_gd_camera_65a0f8 = &camera;
+    GDCamera* saved_camera = g_gd_camera;
+    g_gd_camera = &camera;
     MonGen generator;
     generator.custom_interval_seconds = 10;
     /* The pinned MSVCRT's first rand after srand(1) is 41: Random(5) is zero,
@@ -92,14 +92,14 @@ bool RunMonGenSemanticTest(void)
 
     bool gates_clear = !g_generator_save_flag && !gXStatus.world_update_blocked &&
                        !gXStatus.fCombatMode && !gXStatus.fNpcDialogueMode && !GetFlag68F105() &&
-                       !g_status_685170.world_suspended_2390;
+                       !g_status.world_suspended_2390;
     GetCameraPosition(&generator.spawn_position_0c);
     bool range = gates_clear && generator.CanGenerateEncounter(0) == 0;
     generator.spawn_position_0c.x += 200001.0f;
     range = range && generator.CanGenerateEncounter(0) == 0;
 
-    int saved_time = g_status_685170.game_time_ms;
-    g_status_685170.game_time_ms = 36000000;
+    int saved_time = g_status.game_time_ms;
+    g_status.game_time_ms = 36000000;
     W8EncounterTableRuntime table;
     unsigned short species = 11;
     unsigned char rarity = 3;
@@ -124,30 +124,30 @@ bool RunMonGenSemanticTest(void)
     srand(1);
     bool filtering =
         generator.SelectEncounterCandidates(&table, &candidates) == 1 && *candidates.GetAt(0) == 0;
-    g_status_685170.game_time_ms = 0;
+    g_status.game_time_ms = 0;
     srand(1);
     filtering = filtering && generator.SelectEncounterCandidates(&table, &candidates) == 1 &&
                 *candidates.GetAt(0) == 1;
-    g_status_685170.game_time_ms = saved_time;
+    g_status.game_time_ms = saved_time;
 
     W8MonsterGroup group;
     memset(&group, 0, sizeof(group));
-    group.encounter_registered_c3 = 1;
-    group.spawn_time = g_status_685170.world_clock;
+    group.encounter_registered = 1;
+    group.spawn_time = g_status.world_clock;
     int before = g_active_groups.GetCount();
     RegisterActiveEncounterGroup(&group);
     RegisterActiveEncounterGroup(&group);
     bool lifecycle = g_active_groups.GetCount() == before + 1;
-    int saved_level = g_status_685170.current_level;
-    g_status_685170.current_level = 0;
+    int saved_level = g_status.current_level;
+    g_status.current_level = 0;
     CullExpiredEncounters();
     lifecycle = lifecycle && g_active_groups.IndexOf(&group) != -1;
     UnregisterActiveEncounterGroup(&group);
     UnregisterActiveEncounterGroup(&group);
     lifecycle = lifecycle && g_active_groups.GetCount() == before;
-    g_status_685170.current_level = saved_level;
+    g_status.current_level = saved_level;
     bool serialization = CheckSerialization(&generator);
-    g_gd_camera_65a0f8 = saved_camera;
+    g_gd_camera = saved_camera;
     delete camera.m_manual_input_timer;
     fprintf(
         stderr,

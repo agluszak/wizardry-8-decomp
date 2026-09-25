@@ -7,6 +7,10 @@
    ambient/diffuse/specular coefficients. Ctor preset 0 sets enable flags
    0x12, preset 1 (Wizardry default) sets 0x10, preset 2 sets bit 0. */
 #pragma pack(push, 4)
+/* Two vtables: the primary srClassSupport table and the srVertexProcessor
+   virtual-base sub-table. */
+// VTABLE: SURRENDER 0x100770B8 srVertexProcessor
+// VTABLE: SURRENDER 0x100770C4 srLight
 class srLight : public srClassSupport<srLight, srIlluminator, false, 0x1220> {
 public:
     enum e_preset { PRESET_POSITIONAL_0 = 0, PRESET_POSITIONAL_1 = 1, PRESET_POSITIONAL_2 = 2 };

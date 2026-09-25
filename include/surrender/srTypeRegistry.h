@@ -47,6 +47,7 @@ public:
         srRuntimeClass* findRelative(ClassNode* requested_class, int exact,
                                      const srRuntimeClass* relative_to);
         srRuntimeClass* findByID(ClassNode* requested_class, unsigned long id, int exact);
+        void dump(std::ostream& stream, int indent);
 
         ClassNode(ClassNode* parent, const char* class_name, unsigned long class_id);
         ~ClassNode();
@@ -299,42 +300,113 @@ private:
 
 static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");
 
-/* SurRender's exported decorated vtable names establish this template's
-   parameter order. It contributes no storage: it supplies registry identity,
-   instance registration and the class hierarchy's clone slot for a class
-   derived from an existing registry class. */
-template <class Derived, class Base, bool RegisterInstances, unsigned long ClassID>
-class srClassSupport : public Base {
+/* The concrete client class a canonical SurRender type hands out through
+   ClientType. It is not a provider support layer: retail's client scalar
+   deleting destructor calls the imported base destructor directly with no
+   support-layer vtable store (W8ColorSurface at 0x00423F00, srNode at
+   0x0044F3D0, the srEXT JPEG importer at 0x100151D0), a shape VC6 only
+   emits for an implicit destructor, while every provider layer's declared
+   ~srClassSupport restores the support vtable and unregisters the instance.
+   The client layer supplies the same registry identity and clone surface
+   without the registration lifecycle; the imported base constructor already
+   registers the object under the canonical class node. */
+template <class Base, unsigned long ClassID> class srClientSupport : public Base {
 private:
-    /* VC6 has no partial class-template specialization. Overload resolution
-       still gives the primary template its evidenced Derived == Base case.
-       Base* reaches the typed overload only when both arguments name the same
-       class; otherwise it falls back to the ellipsis overload. The sizeof is
-       compile-time only, and /O2 removes the imported self-support class's
-       already-owned registry lifecycle. */
-    static char selfType(Derived*);
+    /* Same derived==base-style detection the provider template uses: a client
+       type for the canonical class itself reuses that class's registry node,
+       while a client type for a descendant such as srFog must register its
+       own ClassID above the inherited ancestor node. */
+    static char selfType(Base*);
     static long selfType(...);
-    enum { IsSelfType = sizeof(selfType(static_cast<Base*>(0))) == sizeof(char) };
     enum {
         BaseOwnsClass =
             sizeof(selfType(static_cast<typename Base::RegistryClass*>(0))) == sizeof(char)
     };
 
 public:
-    typedef Derived RegistryClass;
-    typedef srClassSupport<Derived, Derived, false, ClassID> ClientType;
+    typedef Base RegistryClass;
+    typedef srClientSupport ClientType;
 
     static srRegistry::ClassNode* sGetClassNode()
     {
-        /* A self-support instantiation reuses the canonical class's registry
-           body. Retail's emitted self-type functions contain that body once;
-           recursively registering the same ClassID a second time is absent. */
-        // Fog and clip planes inherit an ancestor's registry support. Their
-        // client layer must register its own ClassID above that ancestor.
-        if (IsSelfType && BaseOwnsClass) {
+        if (BaseOwnsClass) {
             return Base::sGetClassNode();
         }
+        srRegistry* registry = srCore.getRegistry();
+        srRegistry::ClassNode* node = registry->getClassNode(ClassID);
+        if (node == 0) {
+            node =
+                registry->registerClass(Base::sGetClassName(), Base::sGetClassNode(), ClassID, 0);
+        }
+        return node;
+    }
 
+    virtual const char* getClassName() const override
+    {
+        return Base::sGetClassName();
+    }
+
+    virtual unsigned long getClassID() const override
+    {
+        return ClassID;
+    }
+
+    virtual srRegistry::ClassNode* getClassNode() const override
+    {
+        return sGetClassNode();
+    }
+
+public:
+    /* The client constructions forward the canonical base constructor before
+       installing the instantiation's table; the imported base constructor
+       already performs the registry work a provider layer would repeat. */
+    srClientSupport() {}
+
+    explicit srClientSupport(srNode* parent) : Base(parent) {}
+
+    explicit srClientSupport(srColorSurfaceIFace* surface) : Base(surface) {}
+
+    template <class A0, class A1> srClientSupport(A0 a0, A1 a1) : Base(a0, a1) {}
+
+    template <class A0, class A1, class A2> srClientSupport(A0 a0, A1 a1, A2 a2) : Base(a0, a1, a2)
+    {
+    }
+
+    template <class A0, class A1, class A2, class A3, class A4>
+    srClientSupport(A0 a0, A1 a1, A2 a2, A3 a3, A4 a4) : Base(a0, a1, a2, a3, a4)
+    {
+    }
+
+public:
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#pragma clang diagnostic ignored "-Wsuggest-override"
+#endif
+    /* Same clone slot as the provider layer. */
+    virtual srClass* clone()
+    {
+        Base* copy = static_cast<Base*>(this->vInstance());
+        *copy = *static_cast<const Base*>(this);
+        return copy;
+    }
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+};
+
+/* SurRender's exported decorated vtable names establish this template's
+   parameter order. It contributes no storage: it supplies registry identity,
+   instance registration and the class hierarchy's clone slot for a class
+   derived from an existing registry class. */
+template <class Derived, class Base, bool RegisterInstances, unsigned long ClassID>
+class srClassSupport : public Base {
+public:
+    typedef Derived RegistryClass;
+    typedef srClientSupport<Derived, ClassID> ClientType;
+
+    static srRegistry::ClassNode* sGetClassNode()
+    {
         srRegistry* registry = srCore.getRegistry();
         srRegistry::ClassNode* node = registry->getClassNode(ClassID);
 
@@ -371,8 +443,8 @@ public:
 public:
     /* Scene-graph instantiations forward the canonical node parent to their
        Base constructor. The previous Base* parameter was a guessed shape and
-       cannot express the client-side srClassSupport<srFog,srFog> construction
-       that calls the imported srFog(srNode*) constructor. */
+       cannot express the client-side srClientSupport<srFog> construction that
+       calls the imported srFog(srNode*) constructor. */
     explicit srClassSupport(srNode* parent) : Base(parent)
     {
         srCore.getRegistry()->registerInstance(sGetClassNode(), this);

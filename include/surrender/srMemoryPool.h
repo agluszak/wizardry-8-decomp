@@ -44,7 +44,16 @@ private:
                   "srMemoryPool_Entry_must_be_0x14");
 
     Entry* addEntry(Entry* previous, Entry* next);
-    long convertPtr(const void* allocation) const;
+    /* Retail inlines both helpers at every call site yet still exports the
+       standalone copies; member-level provider export roots the emission. */
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    long convertPtr(const void* allocation) const
+    {
+        return static_cast<const char*>(allocation) -
+               static_cast<const char*>(memory_08);
+    }
     void defrag(Entry* entry);
     Entry* find(long offset) const;
     Entry* findArea(long offset) const;
@@ -53,7 +62,13 @@ private:
     Entry* findPlacing(long offset) const;
     Entry* findSpace(long size) const;
     void freeInternal(Entry* entry);
-    unsigned long hashVal(long offset) const;
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    unsigned long hashVal(long offset) const
+    {
+        return (offset >> 5) & 0xff;
+    }
 
     e_fit policy_00;
     long size_04;

@@ -5,13 +5,19 @@
 #include "clang/AST/Decl.h"
 #include "clang/AST/Expr.h"
 #include "clang/AST/ExprCXX.h"
+#include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "clang/Basic/DiagnosticIDs.h"
+#include "clang/Lex/Lexer.h"
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 
 #include <cstdlib>
+#include <set>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -27,6 +33,42 @@ struct FileRanges {
     std::string file;
     std::vector<LineRange> ranges;
 };
+
+static constexpr llvm::StringLiteral project_roots[] = {
+    "src/wiz8/",          "include/wiz8/",           "src/surrender/",
+    "include/surrender/", "src/srext_jpegimporter/", "src/srext_unzip/",
+};
+
+static std::string normalized_repository_path(llvm::StringRef input)
+{
+    std::string path = input.str();
+    for (char& character : path) {
+        if (character == '\\') {
+            character = '/';
+        }
+    }
+    for (llvm::StringRef root : project_roots) {
+        if (llvm::StringRef(path).starts_with(root)) {
+            return path;
+        }
+        const std::string marker = "/" + root.str();
+        const size_t position = path.find(marker);
+        if (position != std::string::npos) {
+            return path.substr(position + 1);
+        }
+    }
+    return path;
+}
+
+static bool is_project_source_path(llvm::StringRef path)
+{
+    for (llvm::StringRef root : project_roots) {
+        if (path.starts_with(root)) {
+            return true;
+        }
+    }
+    return false;
+}
 
 class AddedLineFilter {
 public:
@@ -52,8 +94,9 @@ public:
         if (all_lines_) {
             return true;
         }
+        const std::string normalized_file = normalized_repository_path(file);
         for (const FileRanges& entry : files_) {
-            if (file != entry.file) {
+            if (normalized_file != entry.file) {
                 continue;
             }
             for (const LineRange& range : entry.ranges) {
@@ -77,7 +120,7 @@ private:
                 continue;
             }
             FileRanges file_ranges;
-            file_ranges.file = split.first.str();
+            file_ranges.file = normalized_repository_path(split.first);
             llvm::SmallVector<llvm::StringRef, 16> ranges;
             split.second.split(ranges, ',', -1, false);
             for (llvm::StringRef range_text : ranges) {
@@ -230,7 +273,8 @@ static bool is_direct_non_overloaded_call(const CallExpr* call, const FunctionDe
     }
 
     llvm::SmallPtrSet<const FunctionDecl*, 4> functions;
-    for (const NamedDecl* declaration : function->getDeclContext()->lookup(function->getDeclName())) {
+    for (const NamedDecl* declaration :
+         function->getDeclContext()->lookup(function->getDeclName())) {
         if (const auto* other = dyn_cast<FunctionDecl>(declaration)) {
             functions.insert(other->getCanonicalDecl());
         } else if (isa<FunctionTemplateDecl>(declaration) || isa<UsingShadowDecl>(declaration)) {
@@ -242,12 +286,54 @@ static bool is_direct_non_overloaded_call(const CallExpr* call, const FunctionDe
 
 static std::string repository_relative_path(const SourceManager& sources, SourceLocation location)
 {
-    std::string path = sources.getFilename(location).str();
-    constexpr char repo_prefix[] = "/repo/";
-    if (path.rfind(repo_prefix, 0) == 0) {
-        path.erase(0, sizeof(repo_prefix) - 1);
+    const PresumedLoc presumed = sources.getPresumedLoc(location);
+    if (presumed.isValid()) {
+        return normalized_repository_path(presumed.getFilename());
     }
-    return path;
+    return normalized_repository_path(sources.getFilename(location));
+}
+
+// Removing a C-style cast leaves its operand in place: the operand of `(T)e` is
+// already a cast-expression, so it parses identically without the prefix. A
+// static_cast keeps its parentheses unless the operand is a primary expression.
+static std::vector<FixItHint> removal_fix(const ExplicitCastExpr* cast, const SourceManager& sources,
+                                          const LangOptions& language, bool whole_argument = false)
+{
+    std::vector<FixItHint> hints;
+    const Expr* operand = cast->getSubExprAsWritten();
+    if (operand == nullptr || cast->getBeginLoc().isMacroID() || operand->getBeginLoc().isMacroID() ||
+        cast->getEndLoc().isMacroID()) {
+        return hints;
+    }
+    if (isa<CStyleCastExpr>(cast)) {
+        // A whole call argument needs no grouping parentheses once the cast is gone.
+        if (const auto* group = dyn_cast<ParenExpr>(operand); group != nullptr && whole_argument &&
+                                                             !group->getRParen().isMacroID()) {
+            hints.push_back(FixItHint::CreateRemoval(CharSourceRange::getCharRange(
+                cast->getBeginLoc(), group->getSubExpr()->getBeginLoc())));
+            hints.push_back(FixItHint::CreateRemoval(
+                CharSourceRange::getTokenRange(group->getRParen(), group->getRParen())));
+            return hints;
+        }
+        hints.push_back(FixItHint::CreateRemoval(
+            CharSourceRange::getCharRange(cast->getBeginLoc(), operand->getBeginLoc())));
+        return hints;
+    }
+    if (isa<CXXStaticCastExpr>(cast)) {
+        const Expr* bare = operand->IgnoreParens();
+        const bool primary = isa<DeclRefExpr>(bare) || isa<MemberExpr>(bare) || isa<CallExpr>(bare) ||
+                             isa<ArraySubscriptExpr>(bare) || isa<IntegerLiteral>(bare) ||
+                             isa<FloatingLiteral>(bare);
+        const CharSourceRange text = CharSourceRange::getTokenRange(operand->getSourceRange());
+        std::string spelling = Lexer::getSourceText(text, sources, language).str();
+        if (spelling.empty()) {
+            return hints;
+        }
+        hints.push_back(FixItHint::CreateReplacement(
+            CharSourceRange::getTokenRange(cast->getSourceRange()),
+            primary ? spelling : "(" + spelling + ")"));
+    }
+    return hints;
 }
 
 class RedundantScalarCastCheck final : public ClangTidyCheck {
@@ -302,21 +388,24 @@ public:
 
         if (source->isIntegerType() && target->isIntegerType() && !source->isBooleanType() &&
             !target->isBooleanType() && !source->isAnyCharacterType() &&
-            !target->isAnyCharacterType() && context.getTypeSize(source) == context.getTypeSize(target) &&
+            !target->isAnyCharacterType() &&
+            context.getTypeSize(source) == context.getTypeSize(target) &&
             source->isSignedIntegerType() == target->isSignedIntegerType()) {
             if (const auto* outer = dyn_cast_or_null<ExplicitCastExpr>(parent)) {
                 if (outer->getType()->isArithmeticType()) {
                     diag(cast->getBeginLoc(),
                          "intermediate cast from %0 to %1 is redundant; both types have the same "
                          "signedness and width before the enclosing conversion")
-                        << source << target;
+                        << source << target
+                        << removal_fix(cast, sources, context.getLangOpts());
                     return;
                 }
             }
         }
 
         if (const auto* binary = dyn_cast_or_null<BinaryOperator>(parent)) {
-            if (binary->isAdditiveOp() || binary->isMultiplicativeOp() || binary->isComparisonOp()) {
+            if (binary->isAdditiveOp() || binary->isMultiplicativeOp() ||
+                binary->isComparisonOp()) {
                 const Expr* other = other_operand(binary, cast);
                 if (other != nullptr && context.hasSameType(canonical(other->getType()), target) &&
                     is_implicit_floating_operand_conversion(source, target)) {
@@ -334,7 +423,8 @@ public:
                     diag(cast->getBeginLoc(),
                          "explicit cast from %0 to %1 is redundant; the surrounding floating-point "
                          "operation already performs this conversion")
-                        << source << target;
+                        << source << target
+                        << removal_fix(cast, sources, context.getLangOpts());
                     return;
                 }
             }
@@ -353,19 +443,22 @@ public:
                 continue;
             }
             if (index < function->getNumParams()) {
-                if (!context.hasSameType(canonical(function->getParamDecl(index)->getType()), target)) {
+                if (!context.hasSameType(canonical(function->getParamDecl(index)->getType()),
+                                         target)) {
                     return;
                 }
-                diag(cast->getBeginLoc(),
-                     "explicit cast from %0 to %1 is redundant; this non-overloaded parameter already "
-                     "performs the value-preserving conversion")
-                    << source << target;
+                diag(cast->getBeginLoc(), "explicit cast from %0 to %1 is redundant; this "
+                                          "non-overloaded parameter already "
+                                          "performs the value-preserving conversion")
+                    << source << target << removal_fix(cast, sources, context.getLangOpts(), true);
                 return;
             }
-            if (function->isVariadic() && floating_rank(source) == 1 && floating_rank(target) == 2) {
+            if (function->isVariadic() && floating_rank(source) == 1 &&
+                floating_rank(target) == 2) {
                 diag(cast->getBeginLoc(),
                      "explicit cast from float to double is redundant; variadic argument promotion "
-                     "already performs this conversion");
+                     "already performs this conversion")
+                    << removal_fix(cast, sources, context.getLangOpts(), true);
                 return;
             }
         }
@@ -375,21 +468,42 @@ private:
     AddedLineFilter added_lines_;
 };
 
-struct ProjectRecordPointer {
+struct ProjectRecordType {
     const RecordDecl* record = nullptr;
     unsigned pointer_depth = 0;
+    bool reference = false;
 };
 
-static ProjectRecordPointer project_record_pointer(QualType type)
+static bool is_project_record(const RecordDecl* record, const SourceManager& sources)
 {
-    ProjectRecordPointer result;
-    type = canonical(type);
+    if (record == nullptr) {
+        return false;
+    }
+    const RecordDecl* declaration = record->getDefinition();
+    if (declaration == nullptr) {
+        declaration = dyn_cast<RecordDecl>(record->getCanonicalDecl());
+    }
+    if (declaration == nullptr) {
+        return false;
+    }
+    SourceLocation location = sources.getSpellingLoc(declaration->getLocation());
+    if (location.isInvalid() || sources.isInSystemHeader(location)) {
+        return false;
+    }
+    return is_project_source_path(repository_relative_path(sources, location));
+}
+
+static ProjectRecordType project_record_type(QualType type, const SourceManager& sources)
+{
+    ProjectRecordType result;
+    type = type.getCanonicalType();
+    if (const auto* reference = dyn_cast<ReferenceType>(type.getTypePtr())) {
+        result.reference = true;
+        type = reference->getPointeeType().getCanonicalType();
+    }
     while (type->isPointerType()) {
         ++result.pointer_depth;
-        type = canonical(type->getPointeeType());
-    }
-    if (result.pointer_depth == 0) {
-        return {};
+        type = type->getPointeeType().getCanonicalType();
     }
 
     const auto* record_type = type->getAs<RecordType>();
@@ -397,15 +511,327 @@ static ProjectRecordPointer project_record_pointer(QualType type)
         return {};
     }
     const RecordDecl* record = record_type->getDecl();
-    if (const RecordDecl* definition = record->getDefinition()) {
-        record = definition;
-    }
-    const llvm::StringRef name = record->getName();
-    if (!name.starts_with("W8") && !name.starts_with("sr") && !name.starts_with("st")) {
+    if (!is_project_record(record, sources)) {
         return {};
     }
     result.record = dyn_cast<RecordDecl>(record->getCanonicalDecl());
     return result;
+}
+
+static ProjectRecordType project_record_expression(const Expr* expression,
+                                                   const SourceManager& sources)
+{
+    if (expression == nullptr) {
+        return {};
+    }
+    ProjectRecordType result = project_record_type(expression->getType(), sources);
+    if (result.record != nullptr && result.pointer_depth == 0 && !result.reference &&
+        expression->isGLValue()) {
+        result.reference = true;
+    }
+    return result;
+}
+
+static const Expr* strip_expression_wrappers(const Expr* expression)
+{
+    while (expression != nullptr) {
+        if (const auto* paren = dyn_cast<ParenExpr>(expression)) {
+            expression = paren->getSubExpr();
+        } else if (const auto* implicit = dyn_cast<ImplicitCastExpr>(expression)) {
+            expression = implicit->getSubExpr();
+        } else if (const auto* cleanups = dyn_cast<ExprWithCleanups>(expression)) {
+            expression = cleanups->getSubExpr();
+        } else if (const auto* bound = dyn_cast<CXXBindTemporaryExpr>(expression)) {
+            expression = bound->getSubExpr();
+        } else {
+            break;
+        }
+    }
+    return expression;
+}
+
+static bool is_direct_variable_reference(const Expr* expression, const VarDecl* variable)
+{
+    expression = strip_expression_wrappers(expression);
+    const auto* reference = dyn_cast_or_null<DeclRefExpr>(expression);
+    return reference != nullptr && reference->getDecl() == variable;
+}
+
+class VariableReferenceFinder final : public RecursiveASTVisitor<VariableReferenceFinder> {
+public:
+    explicit VariableReferenceFinder(const VarDecl* variable) : variable_(variable) {}
+
+    bool VisitDeclRefExpr(const DeclRefExpr* reference)
+    {
+        found_ = found_ || reference->getDecl() == variable_;
+        return true;
+    }
+
+    bool found() const
+    {
+        return found_;
+    }
+
+private:
+    const VarDecl* variable_;
+    bool found_ = false;
+};
+
+static bool references_variable(const Expr* expression, const VarDecl* variable)
+{
+    if (expression == nullptr) {
+        return false;
+    }
+    VariableReferenceFinder finder(variable);
+    finder.TraverseStmt(const_cast<Expr*>(expression));
+    return finder.found();
+}
+
+class LocalDefinitionSafety final : public RecursiveASTVisitor<LocalDefinitionSafety> {
+public:
+    explicit LocalDefinitionSafety(const VarDecl* variable) : variable_(variable) {}
+
+    bool VisitBinaryOperator(const BinaryOperator* binary)
+    {
+        if (!binary->isAssignmentOp()) {
+            return true;
+        }
+        if (is_direct_variable_reference(binary->getLHS(), variable_)) {
+            modified_ = true;
+        }
+        if (references_variable(binary->getRHS(), variable_)) {
+            const auto* lhs_reference =
+                dyn_cast_or_null<DeclRefExpr>(strip_expression_wrappers(binary->getLHS()));
+            const auto* lhs_variable =
+                lhs_reference == nullptr ? nullptr : dyn_cast<VarDecl>(lhs_reference->getDecl());
+            if (lhs_variable == nullptr || !lhs_variable->isLocalVarDecl()) {
+                escaped_ = true;
+            }
+        }
+        return true;
+    }
+
+    bool VisitUnaryOperator(const UnaryOperator* unary)
+    {
+        if (unary->isIncrementDecrementOp() &&
+            is_direct_variable_reference(unary->getSubExpr(), variable_)) {
+            modified_ = true;
+        }
+        if (unary->getOpcode() == UO_AddrOf &&
+            is_direct_variable_reference(unary->getSubExpr(), variable_)) {
+            escaped_ = true;
+        }
+        return true;
+    }
+
+    bool VisitCallExpr(const CallExpr* call)
+    {
+        for (const Expr* argument : call->arguments()) {
+            escaped_ = escaped_ || references_variable(argument, variable_);
+        }
+        return true;
+    }
+
+    bool VisitReturnStmt(const ReturnStmt* statement)
+    {
+        escaped_ = escaped_ || is_direct_variable_reference(statement->getRetValue(), variable_);
+        return true;
+    }
+
+    bool VisitLambdaExpr(const LambdaExpr* expression)
+    {
+        for (const LambdaCapture& capture : expression->captures()) {
+            if (capture.capturesVariable() && capture.getCapturedVar() == variable_) {
+                escaped_ = true;
+            }
+        }
+        return true;
+    }
+
+    bool safe() const
+    {
+        return !modified_ && !escaped_;
+    }
+
+private:
+    const VarDecl* variable_;
+    bool modified_ = false;
+    bool escaped_ = false;
+};
+
+static bool has_single_local_definition(const VarDecl* variable, const FunctionDecl* function,
+                                        llvm::DenseMap<const VarDecl*, bool>& cache)
+{
+    const auto cached = cache.find(variable);
+    if (cached != cache.end()) {
+        return cached->second;
+    }
+    if (isa<ParmVarDecl>(variable) || !variable->isLocalVarDecl() || variable->hasGlobalStorage() ||
+        variable->getInit() == nullptr || function == nullptr || function->getBody() == nullptr) {
+        cache[variable] = false;
+        return false;
+    }
+    LocalDefinitionSafety safety(variable);
+    safety.TraverseStmt(const_cast<Stmt*>(function->getBody()));
+    cache[variable] = safety.safe();
+    return safety.safe();
+}
+
+static bool is_byte_pointer(QualType type)
+{
+    type = canonical(type);
+    if (!type->isPointerType()) {
+        return false;
+    }
+    while (type->isPointerType()) {
+        type = canonical(type->getPointeeType());
+    }
+    const auto* builtin = dyn_cast<BuiltinType>(type.getTypePtr());
+    if (builtin == nullptr) {
+        return false;
+    }
+    switch (builtin->getKind()) {
+    case BuiltinType::Char_S:
+    case BuiltinType::Char_U:
+    case BuiltinType::SChar:
+    case BuiltinType::UChar:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static bool is_erased_pointer_type(QualType type)
+{
+    type = canonical(type);
+    if (!type->isPointerType()) {
+        return false;
+    }
+    const QualType original = type;
+    while (type->isPointerType()) {
+        type = canonical(type->getPointeeType());
+    }
+    return type->isVoidType() || is_byte_pointer(original);
+}
+
+struct RecordProvenance {
+    ProjectRecordType origin;
+    SourceLocation erasure;
+    bool unresolved = false;
+};
+
+static void set_erasure_site(RecordProvenance& provenance, SourceLocation location)
+{
+    if (provenance.origin.record != nullptr && provenance.erasure.isInvalid()) {
+        provenance.erasure = location;
+    }
+}
+
+static SourceLocation explicit_cast_site(const ExplicitCastExpr* cast)
+{
+    if (const auto* named = dyn_cast<CXXNamedCastExpr>(cast)) {
+        return named->getOperatorLoc();
+    }
+    if (const auto* c_style = dyn_cast<CStyleCastExpr>(cast)) {
+        return c_style->getLParenLoc();
+    }
+    return cast->getBeginLoc();
+}
+
+static RecordProvenance trace_record_provenance(const Expr* expression,
+                                                const SourceManager& sources,
+                                                const FunctionDecl* function,
+                                                llvm::DenseMap<const VarDecl*, bool>& local_cache,
+                                                llvm::SmallPtrSetImpl<const VarDecl*>& visited,
+                                                unsigned depth = 0)
+{
+    if (expression == nullptr || depth >= 32) {
+        return {};
+    }
+
+    if (const auto* paren = dyn_cast<ParenExpr>(expression)) {
+        return trace_record_provenance(paren->getSubExpr(), sources, function, local_cache, visited,
+                                       depth + 1);
+    }
+    if (const auto* cleanups = dyn_cast<ExprWithCleanups>(expression)) {
+        return trace_record_provenance(cleanups->getSubExpr(), sources, function, local_cache,
+                                       visited, depth + 1);
+    }
+    if (const auto* bound = dyn_cast<CXXBindTemporaryExpr>(expression)) {
+        return trace_record_provenance(bound->getSubExpr(), sources, function, local_cache, visited,
+                                       depth + 1);
+    }
+    if (const auto* implicit = dyn_cast<ImplicitCastExpr>(expression)) {
+        RecordProvenance provenance = trace_record_provenance(
+            implicit->getSubExpr(), sources, function, local_cache, visited, depth + 1);
+        if (is_erased_pointer_type(implicit->getType())) {
+            set_erasure_site(provenance, implicit->getExprLoc());
+        }
+        return provenance;
+    }
+    if (const auto* explicit_cast = dyn_cast<ExplicitCastExpr>(expression)) {
+        RecordProvenance provenance = trace_record_provenance(
+            explicit_cast->getSubExpr(), sources, function, local_cache, visited, depth + 1);
+        if (is_erased_pointer_type(explicit_cast->getType())) {
+            set_erasure_site(provenance, explicit_cast_site(explicit_cast));
+        }
+        return provenance;
+    }
+    if (const auto* reference = dyn_cast<DeclRefExpr>(expression)) {
+        if (const auto* variable = dyn_cast<VarDecl>(reference->getDecl())) {
+            const FunctionDecl* owner = function;
+            if (owner == nullptr) {
+                owner = dyn_cast<FunctionDecl>(variable->getDeclContext());
+            }
+            const bool is_local = !isa<ParmVarDecl>(variable) && variable->isLocalVarDecl() &&
+                                  !variable->hasGlobalStorage();
+            const bool has_one_definition =
+                is_local && has_single_local_definition(variable, owner, local_cache);
+            if (has_one_definition && visited.insert(variable).second) {
+                RecordProvenance provenance = trace_record_provenance(
+                    variable->getInit(), sources, owner, local_cache, visited, depth + 1);
+                visited.erase(variable);
+                if (provenance.origin.record != nullptr || provenance.unresolved) {
+                    return provenance;
+                }
+            }
+            if (is_local && is_erased_pointer_type(variable->getType()) && !has_one_definition) {
+                return {{}, SourceLocation(), true};
+            }
+            return {project_record_expression(expression, sources), SourceLocation()};
+        }
+        return {project_record_expression(expression, sources), SourceLocation()};
+    }
+
+    return {project_record_expression(expression, sources), SourceLocation()};
+}
+
+static bool is_ordinary_inheritance_cast(const ProjectRecordType& source,
+                                         const ProjectRecordType& target)
+{
+    if (source.record == nullptr || target.record == nullptr ||
+        source.pointer_depth != target.pointer_depth || source.reference != target.reference ||
+        (source.reference ? source.pointer_depth != 0 : source.pointer_depth != 1)) {
+        return false;
+    }
+    const auto* source_record = dyn_cast<CXXRecordDecl>(source.record);
+    const auto* target_record = dyn_cast<CXXRecordDecl>(target.record);
+    return source_record != nullptr && target_record != nullptr &&
+           (source_record->isDerivedFrom(target_record) ||
+            target_record->isDerivedFrom(source_record));
+}
+
+static std::string record_name(const ProjectRecordType& type)
+{
+    if (type.record == nullptr) {
+        return "<unknown>";
+    }
+    return type.record->getQualifiedNameAsString();
+}
+
+static std::string record_indirection(const ProjectRecordType& type)
+{
+    return std::string(type.pointer_depth, '*') + (type.reference ? "&" : "");
 }
 
 class ProjectRecordReinterpretCastCheck final : public ClangTidyCheck {
@@ -417,55 +843,108 @@ public:
 
     void registerMatchers(ast_matchers::MatchFinder* finder) override
     {
-        finder->addMatcher(ast_matchers::cxxReinterpretCastExpr().bind("record-cast"), this);
+        finder->addMatcher(ast_matchers::explicitCastExpr().bind("record-cast"), this);
     }
 
     void check(const ast_matchers::MatchFinder::MatchResult& result) override
     {
-        const auto* cast = result.Nodes.getNodeAs<CXXReinterpretCastExpr>("record-cast");
+        const auto* cast = result.Nodes.getNodeAs<ExplicitCastExpr>("record-cast");
         if (cast == nullptr || result.Context == nullptr || result.SourceManager == nullptr) {
             return;
         }
-        if (cast->getBeginLoc().isMacroID()) {
+        if (!isa<CXXReinterpretCastExpr>(cast) && !isa<CXXStaticCastExpr>(cast) &&
+            !isa<CStyleCastExpr>(cast)) {
             return;
         }
 
         SourceManager& sources = *result.SourceManager;
-        SourceLocation location = sources.getExpansionLoc(cast->getBeginLoc());
-        if (location.isInvalid() || sources.isInSystemHeader(location)) {
+        const SourceLocation spelling_location = sources.getSpellingLoc(cast->getBeginLoc());
+        const SourceLocation expansion_location = sources.getExpansionLoc(cast->getBeginLoc());
+        if (spelling_location.isInvalid() || sources.isInSystemHeader(spelling_location)) {
             return;
         }
-        const std::string file = repository_relative_path(sources, location);
-        const unsigned line = sources.getSpellingLineNumber(location);
-        if (!added_lines_.contains(file, line)) {
+        const std::string spelling_file = repository_relative_path(sources, spelling_location);
+        if (!is_project_source_path(spelling_file)) {
+            return;
+        }
+        const unsigned spelling_line = sources.getSpellingLineNumber(spelling_location);
+        const std::string expansion_file = repository_relative_path(sources, expansion_location);
+        const unsigned expansion_line = sources.getSpellingLineNumber(expansion_location);
+        if (!added_lines_.contains(spelling_file, spelling_line) &&
+            !added_lines_.contains(expansion_file, expansion_line)) {
             return;
         }
 
         ASTContext& context = *result.Context;
-        if (is_in_template_instantiation(cast, context)) {
+        const FunctionDecl* function = enclosing_function(cast, context);
+        llvm::SmallPtrSet<const VarDecl*, 8> visited;
+        RecordProvenance provenance = trace_record_provenance(cast->getSubExpr(), sources, function,
+                                                              local_definition_cache_, visited);
+        const ProjectRecordType source = provenance.origin;
+        const ProjectRecordType target = project_record_expression(cast, sources);
+        if (target.record == nullptr) {
+            return;
+        }
+        if (source.record == nullptr) {
+            if (provenance.unresolved) {
+                const std::string target_name = record_name(target);
+                diag(cast->getBeginLoc(),
+                     "source record provenance for conversion to repository record '%0' is "
+                     "unresolved because the local erased pointer has ambiguous definitions or "
+                     "escapes its function")
+                    << target_name;
+            }
+            return;
+        }
+        if (source.record == target.record && source.pointer_depth == target.pointer_depth &&
+            source.reference == target.reference) {
+            return;
+        }
+        if (provenance.erasure.isInvalid() && !isa<CXXReinterpretCastExpr>(cast) &&
+            is_ordinary_inheritance_cast(source, target)) {
             return;
         }
 
-        const Expr* source_expr = cast->getSubExpr()->IgnoreParenImpCasts();
-        const QualType source_type = canonical(source_expr->getType());
-        const QualType target_type = canonical(cast->getType());
-        const ProjectRecordPointer source = project_record_pointer(source_type);
-        const ProjectRecordPointer target = project_record_pointer(target_type);
-        if (source.record == nullptr || target.record == nullptr) {
-            return;
-        }
-        if (source.record == target.record && source.pointer_depth == target.pointer_depth) {
+        const std::string source_name = record_name(source);
+        const std::string target_name = record_name(target);
+        const std::string source_indirection = record_indirection(source);
+        const std::string target_indirection = record_indirection(target);
+        const auto site = sources.getPresumedLoc(spelling_location);
+        const std::string site_file = spelling_file;
+        const unsigned site_line = site.isValid() ? site.getLine() : spelling_line;
+        const unsigned site_column = site.isValid() ? site.getColumn() : 0;
+        const FindingKey key{site_file,
+                             site_line,
+                             site_column,
+                             source_name,
+                             source.pointer_depth,
+                             source.reference,
+                             target_name,
+                             target.pointer_depth,
+                             target.reference};
+        if (!findings_.insert(key).second) {
             return;
         }
 
         diag(cast->getBeginLoc(),
-             "reinterpret_cast from modeled project record pointer %0 to %1 hides a "
-             "source-model disagreement; fix the owning type or recovered prototype instead")
-            << source_type << target_type;
+             "conversion from repository record '%0' to repository record '%1' crosses "
+             "incompatible source types (%0%2 to %1%3); repair the owning declaration")
+            << source_name << target_name << source_indirection << target_indirection;
+        if (provenance.erasure.isValid()) {
+            diag(provenance.erasure,
+                 "source record '%0%1' is erased here before conversion to '%2%3'",
+                 DiagnosticIDs::Note)
+                << source_name << source_indirection << target_name << target_indirection;
+        }
     }
 
 private:
+    using FindingKey = std::tuple<std::string, unsigned, unsigned, std::string, unsigned, bool,
+                                  std::string, unsigned, bool>;
+
     AddedLineFilter added_lines_;
+    llvm::DenseMap<const VarDecl*, bool> local_definition_cache_;
+    std::set<FindingKey> findings_;
 };
 
 class WizardryTidyModule final : public ClangTidyModule {
@@ -478,8 +957,8 @@ public:
     }
 };
 
-static ClangTidyModuleRegistry::Add<WizardryTidyModule> module(
-    "wiz8-module", "Adds Wizardry reconstruction checks.");
+static ClangTidyModuleRegistry::Add<WizardryTidyModule>
+    module("wiz8-module", "Adds Wizardry reconstruction checks.");
 
 } // namespace
 } // namespace clang::tidy::wiz8

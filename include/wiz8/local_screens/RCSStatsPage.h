@@ -41,21 +41,21 @@ W8_ASSERT_BASE_END(W8CampStatsControls, W8TextControl::Listener, m_buttons, 0x4c
 /* 0x005C48B0: camp page-1 renderer - attributes, traits and the effect list
    trigger; 0x005C5D80: camp page-2 renderer - the five skill categories. Both
    dispatch from the page switch in ReviewCharacterScreen.cpp's 0x005A42A0. */
-void DrawCampStatsPage005C48B0(void);
-void DrawCampSkillsPage005C5D80(void);
+void DrawCampStatsPage(void);
+void DrawCampSkillsPage(void);
 
 /* Rebuilds the stats page's effect list from the reviewed character's
    conditions, enchantments and equipped items, then refilters it. Called when
    the reviewed character changes and when the stats page is entered. */
-void RebuildCampEffectList005C4EE0(void);
-void FilterCampEffectList005C5240(void);
+void RebuildCampEffectList(void);
+void FilterCampEffectList(void);
 
 /* Lazily creates and enables the five per-category skill regions of camp page
-   2; DisableCampSkillRegions005C5D70 releases them on camp leave. */
-void CreateCampSkillRegions005C5CD0(void);
-void DisableCampSkillRegions005C5D70(void);
-unsigned char CampSkillListRegionHandler005C6230(const InputAtom* event, W8Region* region);
+   2; DisableCampSkillRegions releases them on camp leave. */
+void CreateCampSkillRegions(void);
+void DisableCampSkillRegions(void);
+unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* region);
 
-extern unsigned int g_camp_stats_range_region_set_0069c51c;
-extern unsigned int g_camp_stats_controls_region_set_0069c520;
-extern unsigned int g_camp_skill_regions_0069c528;
+extern unsigned int g_camp_stats_range_region_set;
+extern unsigned int g_camp_stats_controls_region_set;
+extern unsigned int g_camp_skill_regions;

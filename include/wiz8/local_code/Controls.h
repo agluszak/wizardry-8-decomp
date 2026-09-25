@@ -13,7 +13,7 @@ struct W8Region;
 class W8Widget;
 
 /* The single-space separator wrapped notice lines are re-joined with. */
-extern const wchar_t g_W8TextSeparator0060CC74[]; /* 0x0060CC74 */
+extern const wchar_t g_W8TextSeparator[]; /* 0x0060CC74 */
 
 // VTABLE: WIZ8 0x005ed5b0
 // class W8GrowableVector<W8Widget*>
@@ -33,7 +33,7 @@ struct Controls {
     Controls();
     Controls(int left, int top, int right, int bottom, int render_target, int render_arg_1c,
              int render_arg_20);
-    __forceinline ~Controls();
+    ~Controls();
 
     virtual void SetEnabled(bool enable);
     virtual void Invalidate(const W8ControlsRect* rect);

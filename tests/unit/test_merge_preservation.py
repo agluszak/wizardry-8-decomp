@@ -174,27 +174,49 @@ def test_function_stub_conflict_cannot_be_waived_as_loss(tmp_path: Path) -> None
     ]
 
 
-def test_folded_alias_shares_an_address_without_becoming_a_duplicate(tmp_path: Path) -> None:
-    """An ICF-folded alias names an identity owned elsewhere, not a second owner."""
+def test_legacy_folded_annotation_is_not_a_merge_identity(tmp_path: Path) -> None:
+    """Historical FOLDED annotations are comparison metadata, not source identities."""
 
     _repo(tmp_path)
     head = _commit(
         tmp_path,
         {
-            "src/wiz8/owner.cpp": (
-                "// FUNCTION: WIZ8 0x00401000\nint FoldedOwner() { return 1; }\n"
-            ),
-            "src/wiz8/alias.cpp": (
-                "// FUNCTION: WIZ8 0x00401000 FOLDED\nint FoldedAlias() { return 1; }\n"
+            "src/wiz8/owner.cpp": "// FUNCTION: WIZ8 0x00401000\nint Owner() { return 1; }\n",
+            "src/wiz8/legacy.cpp": (
+                "// FUNCTION: WIZ8 0x00401000 FOLDED\nint LegacyAlias() { return 1; }\n"
             ),
         },
-        "folded alias",
+        "legacy folded annotation",
     )
 
     report = merge_preservation_report(tmp_path, head, head)
 
     assert report["status"] == "passed"
     assert report["duplicates"] == []
+
+
+def test_removing_legacy_folded_annotation_is_not_identity_loss(tmp_path: Path) -> None:
+    _repo(tmp_path)
+    base = _commit(
+        tmp_path,
+        {
+            "src/wiz8/owner.cpp": "// FUNCTION: WIZ8 0x00401000\nint Owner() { return 1; }\n",
+            "src/wiz8/legacy.cpp": (
+                "// FUNCTION: WIZ8 0x00401000 FOLDED\nint LegacyAlias() { return 1; }\n"
+            ),
+        },
+        "base",
+    )
+    head = _commit(
+        tmp_path,
+        {"src/wiz8/legacy.cpp": "int LegacyAlias() { return 1; }\n"},
+        "drop folded annotation",
+    )
+
+    report = merge_preservation_report(tmp_path, base, head)
+
+    assert report["status"] == "passed"
+    assert report["removed"] == []
 
 
 def test_two_owning_claims_on_one_address_still_fail(tmp_path: Path) -> None:
@@ -212,47 +234,6 @@ def test_two_owning_claims_on_one_address_still_fail(tmp_path: Path) -> None:
 
     assert report["status"] == "failed"
     assert report["unexplained_duplicates"] == ["FUNCTION WIZ8 0x00401000"]
-
-
-def test_a_fold_only_address_keeps_its_claims_as_owners(tmp_path: Path) -> None:
-    _repo(tmp_path)
-    head = _commit(
-        tmp_path,
-        {
-            "src/wiz8/first.cpp": "// FUNCTION: WIZ8 0x00401000 FOLDED\nint First();\n",
-            "src/wiz8/second.cpp": "// FUNCTION: WIZ8 0x00401000 FOLDED\nint Second();\n",
-        },
-        "fold only",
-    )
-
-    report = merge_preservation_report(tmp_path, head, head)
-
-    assert report["status"] == "failed"
-    assert report["unexplained_duplicates"] == ["FUNCTION WIZ8 0x00401000"]
-
-
-def test_folded_alias_cannot_demote_the_owning_definition(tmp_path: Path) -> None:
-    """The owner stays a definition even though an alias of it is declaration-only."""
-
-    _repo(tmp_path)
-    base = _commit(
-        tmp_path,
-        {"src/wiz8/owner.cpp": "// FUNCTION: WIZ8 0x00401000\nint Owner() { return 1; }\n"},
-        "base",
-    )
-    head = _commit(
-        tmp_path,
-        {
-            "src/wiz8/owner.cpp": "// FUNCTION: WIZ8 0x00401000\nint Owner() { return 1; }\n",
-            "src/wiz8/alias.cpp": "// FUNCTION: WIZ8 0x00401000 FOLDED\nint Alias();\n",
-        },
-        "head",
-    )
-
-    report = merge_preservation_report(tmp_path, base, head)
-
-    assert report["status"] == "passed"
-    assert report["demoted"] == []
 
 
 def test_vtable_class_discriminator_is_not_an_alias(tmp_path: Path) -> None:
@@ -313,6 +294,22 @@ def test_base_ancestry_passes_when_base_is_ancestor(tmp_path: Path) -> None:
     assert report["merge_base"] == base
     assert report["ahead"] == 1
     assert report["behind"] == 0
+
+
+def test_jj_base_accepts_git_remote_branch_spelling(tmp_path: Path, monkeypatch) -> None:
+    from wiz8decomp.merge_preservation import _resolve_commit
+
+    (tmp_path / ".jj").mkdir()
+    calls = []
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        return subprocess.CompletedProcess(command, 0, stdout="base-commit\n", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    assert _resolve_commit(tmp_path, "origin/main") == "base-commit"
+    assert calls == [["jj", "log", "-r", "main@origin", "--no-graph", "-T", "commit_id"]]
 
 
 def test_base_ancestry_fails_on_diverged_branch(tmp_path: Path) -> None:

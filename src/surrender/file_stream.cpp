@@ -297,10 +297,22 @@ srFileManager::srFileManager()
     first_path_04 = 0;
 }
 
+// FUNCTION: SURRENDER 0x100163C0
+srFileManager::srFileManager(const srFileManager& other) : first_path_04(other.first_path_04)
+{
+}
+
 // FUNCTION: SURRENDER 0x1002E750
 srFileManager::~srFileManager()
 {
     setPath(0);
+}
+
+// FUNCTION: SURRENDER 0x100163E0
+srFileManager& srFileManager::operator=(const srFileManager& other)
+{
+    first_path_04 = other.first_path_04;
+    return *this;
 }
 
 namespace {
@@ -805,3 +817,8 @@ unsigned long srBinOFStream::tell()
 
 // FUNCTION: SURRENDER 0x100308C0
 srBinOFStream::~srBinOFStream() {}
+
+/* srFileManager's implicit deleting destructor is emitted in this unit with
+   the Path members. */
+// SYNTHETIC: SURRENDER 0x100163F0
+// srFileManager scalar deleting destructor

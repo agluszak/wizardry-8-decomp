@@ -84,7 +84,7 @@ unsigned char W8Chunk::OpenWrite(char* path)
     if (m_hFile != 0) {
         return 0;
     }
-    m_hFile = FileOpen(path, FILE_ACCESS_WRITE | FILE_CREATE_ALWAYS, 0);
+    m_hFile = FileOpen(path, FILE_ACCESS_WRITE | FILE_CREATE_ALWAYS | FILE_TRUNCATE_EXISTING, 0);
     if (m_hFile == 0) {
         return 0;
     }

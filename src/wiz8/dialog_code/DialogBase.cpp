@@ -24,8 +24,8 @@ W8DialogBase::W8DialogBase()
     m_error = 0;
     m_text = 0;
     m_font = g_dialog_font_64fde8;
-    m_foreground = g_dialog_font_foreground_64fdec;
-    m_background = g_dialog_font_background_64fded;
+    m_foreground = g_dialog_font_foreground;
+    m_background = g_dialog_font_background;
     m_border = -1;
     m_x = -1;
     m_y = -1;
@@ -34,8 +34,8 @@ W8DialogBase::W8DialogBase()
     m_background_path = 0;
     m_background_flags = 0;
     m_field_4c = 0;
-    m_initialized = 0;
-    m_keep_open = 1;
+    m_initialized = false;
+    m_keep_open = true;
     m_destroy_callback = 0;
     m_user_data = 0;
     ++g_dword_69ca28;
@@ -175,9 +175,9 @@ int W8DialogBase::CreateControls()
                          static_cast<short>(m_height), 0x8004, 0x7d, 0, 0);
     if (m_resource != -1) {
         SpecifyButtonTextOffsets(m_resource, 3, 3, 1);
-        SpecifyButtonMultiColorFont(m_resource, g_dialog_font_enabled_69ca32);
+        SpecifyButtonMultiColorFont(m_resource, g_dialog_font_enabled);
         m_dirty_flags |= 1;
-        m_initialized = 1;
+        m_initialized = true;
         return 0;
     }
     return m_error = 7;
@@ -205,7 +205,7 @@ void W8DialogBase::DestroyControls()
     }
     ClearSurfaceRect(m_x, m_y, m_x + m_width + 1, m_y + m_height + 1);
     InvalidateRegion(m_x, m_y, m_x + m_width + 1, m_y + m_height + 1, 1);
-    m_initialized = 0;
+    m_initialized = false;
 }
 
 // FUNCTION: WIZ8 0x005dcce0
@@ -242,7 +242,7 @@ unsigned char W8DialogBase::ProcessInput()
             break;
         case KEY_DOWN:
             if (input.usParam == 0x1b) {
-                m_keep_open = 0;
+                m_keep_open = false;
             }
             break;
         }
@@ -255,7 +255,7 @@ void DialogCloseButtonCallback(W8DialogButton* button)
 {
     W8DialogBase* dialog = button->m_owner_040;
     if (dialog != 0) {
-        dialog->m_keep_open = 0;
+        dialog->m_keep_open = false;
     }
 }
 
@@ -265,9 +265,8 @@ int W8DialogBase::GetDialogType()
     return 0;
 }
 
-/* Shared one-argument no-op at 0x005B1BE0, also emitted for widget Redraw.
-   Keep its existing source marker at that owner. */
-// FUNCTION: WIZ8 0x005b1be0 FOLDED
+/* Retail ICF shares this one-argument no-op with the retained widget Redraw
+   body at 0x005B1BE0; this override has no separate retail address marker. */
 void W8DialogBase::OnNumericInputChanged(int) {}
 
 // FUNCTION: WIZ8 0x005ad270
@@ -279,6 +278,5 @@ void W8DialogBase::OnRightButtonDown()
 // FUNCTION: WIZ8 0x005b1bf0
 void W8DialogBase::OnRightButtonUp() {}
 
-/* Same 0x005B1BE0 no-op as OnNumericInputChanged. */
-// FUNCTION: WIZ8 0x005b1be0 FOLDED
+/* Retail ICF shares this no-op with the retained body at 0x005B1BE0. */
 void W8DialogBase::OnMouseWheel(int) {}

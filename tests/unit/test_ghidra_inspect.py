@@ -332,10 +332,10 @@ def test_named_source_abi_defects() -> None:
     uchar = SimpleNamespace(
         kind="definition",
         parameter_types=("int",),
-        source_signature="unsigned char IsLevelCdMissing0042B6F0(int level)",
+        source_signature="unsigned char IsLevelCdMissing(int level)",
         calling_convention="__cdecl",
         return_type="unsigned char",
-        name="IsLevelCdMissing0042B6F0",
+        name="IsLevelCdMissing",
     )
     uchar_fn = SimpleNamespace(
         getParameterCount=lambda: 1,

@@ -1,6 +1,6 @@
 #pragma once
 
-extern wchar_t g_default_level_0064d7b8[];
+extern wchar_t g_default_level[];
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/vector.h"
 
@@ -11,10 +11,10 @@ extern wchar_t g_default_level_0064d7b8[];
 /* Local Screens\JournalScreen.cpp's live panel.  Construction starts with a
    complete Controls at +0, then installs the independently evidenced callback
    base at +0x4c before the five owned display objects. */
-class W8JournalPanel005EF340 : public Controls, public W8TextControl::Listener {
+class W8JournalPanel : public Controls, public W8TextControl::Listener {
 public:
-    explicit W8JournalPanel005EF340(unsigned int* region_set);
-    virtual ~W8JournalPanel005EF340();
+    explicit W8JournalPanel(unsigned int* region_set);
+    virtual ~W8JournalPanel();
     virtual void Redraw() override;
     virtual void OnPrimary(W8TextControl* control) override;
 
@@ -27,9 +27,9 @@ public:
     unsigned char m_pad_065[3];
 };
 
-static_assert(sizeof(W8JournalPanel005EF340) == 0x68, "W8JournalPanel005EF340_size");
+static_assert(sizeof(W8JournalPanel) == 0x68, "W8JournalPanel_size");
 /* Retail secondary vftable 0x005ef338 places W8TextControl::Listener at +0x4c. */
-W8_ASSERT_BASE_END(W8JournalPanel005EF340, W8TextControl::Listener, m_next_050, 0x4c);
+W8_ASSERT_BASE_END(W8JournalPanel, W8TextControl::Listener, m_next_050, 0x4c);
 
 struct W8JournalEntry {
     int level;
@@ -39,27 +39,27 @@ struct W8JournalEntry {
 static_assert(sizeof(W8JournalEntry) == 0x0c, "W8JournalEntry_size");
 
 // SYNTHETIC: WIZ8 0x005bd7d0
-// W8JournalPanel005EF340::`scalar deleting destructor'
+// W8JournalPanel::`scalar deleting destructor'
 
-void RefreshJournalPanel005BD860(void);
+void RefreshJournalPanel(void);
 
 /* 0x0068de40: the fact journal, created lazily by the initializer below and
    appended to whenever a fact changes. */
-extern W8GrowableVector<W8JournalEntry>* g_fact_journal_entries_0068de40;
+extern W8GrowableVector<W8JournalEntry>* g_fact_journal_entries;
 /* 0x0064D7F0: the "%d / %d" current-over-max format shared by journal pages
    and debug stat readouts. */
-extern wchar_t g_journal_page_format_0064d7f0[];
+extern wchar_t g_journal_page_format[];
 void InitializeFactJournal(void);
 /* 0x005588F0: append one changed fact to the journal and, unless notices are
    suppressed, post the fact's own journal entry. */
 void RecordFactChangeForJournal(int fact_id);
 /* 0x00558A90: write the entry count, a format dword and each journal entry
    into the open JRNL chunk. */
-void SaveFactJournal00558A90(int file);
+void SaveFactJournal(int file);
 unsigned char JournalScreenInitialize(void);
 unsigned char JournalScreenEnter(void);
 void JournalScreenFrame(void);
 unsigned char JournalScreenLeave(int leaving);
 unsigned char JournalScreenFinalize(void);
 /* 0x00558B20: load the fact journal vector from the JRNL section. */
-void LoadJournalEntries00558B20(unsigned int file);
+void LoadJournalEntries(unsigned int file);

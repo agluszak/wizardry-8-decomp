@@ -57,7 +57,7 @@
 /* 0x0054B300 resets one of eight slots. */
 /* The gStatus object owned by GameplayDatabase.cpp. */
 // GLOBAL: WIZ8 0x00685170
-W8GlobalStatus g_status_685170;
+W8GlobalStatus g_status;
 /* Packed gXStatus named by the database and manager assertions. Record
    arrays remain separate roots at their own addresses. */
 // GLOBAL: WIZ8 0x006836B8
@@ -333,10 +333,13 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
     return 1;
 }
 
-/* Retail places this in the GameplayDatabase.cpp -> Gameplay Init.cpp gap, but
-   the demo build puts its unique match (demo 0x0054F670) between
-   GameplayDatabase.cpp source-path anchors 0x0054F3D0 and 0x0054F6E0, inside a
-   span too narrow to hold a foreign TU. */
+/* Retail emits this owning-list teardown out of line here and expands the same
+   operation at the NPC-item sites.  The exact source boundary remains
+   unresolved; it is neither an authored specialization nor a W8PList member
+   destructor under the VC6 ABI. */
+// TEMPLATE: WIZ8 0x0055ADA0
+// unresolved owning PL teardown emission
+
 // FUNCTION: WIZ8 0x0054ac90
 void DestroyNpcDatabase(void)
 {

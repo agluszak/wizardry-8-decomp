@@ -64,7 +64,7 @@ W8_ASSERT_BASE_END(W8CampCharacterInfo, W8TextControl::Listener, m_combat_view, 
 
 /* malloc(0xd54) in Camp entry owns the record. Suspension destroys this UI;
    the screen-state stack retains the arguments needed to recreate it. */
-struct W8CampScreenState0069C0F4 {
+struct W8CampScreenState {
     wchar_t caption[120];
     int page; /* 0x0f0 */
     unsigned int hover_region;
@@ -75,7 +75,7 @@ struct W8CampScreenState0069C0F4 {
     unsigned char padding_4e2[2];
     unsigned int item_scroll;
     /* 0x4e8: the displayed item-pool indices - the count and the list of pool
-       slots RCSItemsPage.cpp renders. RebuildCampItemList005A4A00 rebuilds it; the pool
+       slots RCSItemsPage.cpp renders. RebuildCampItemList rebuilds it; the pool
        handler reads it through item_scroll. */
     unsigned int item_list_count;
     int item_list_4ec[500];
@@ -84,15 +84,15 @@ struct W8CampScreenState0069C0F4 {
     W8CampStatsRange* stats_range; /* 0xcd8 */
     W8CampStatsControls* stats_controls;
     unsigned int item_timer; /* 0xce0 */
-    unsigned char item_timer_active;
-    unsigned char item_timer_expired;
+    bool item_timer_active;
+    bool item_timer_expired;
     unsigned char padding_ce6[2];
     unsigned int animation_timer;
     unsigned int animation_frames[6];
     int input_mode; /* 0xd04 */
     /* 0xd08..0xd30: the stats page's condition/equipment effect list, rebuilt
-       by RebuildCampEffectList005C4EE0 and refiltered by
-       FilterCampEffectList005C5240. */
+       by RebuildCampEffectList and refiltered by
+       FilterCampEffectList. */
     unsigned char effect_items_only; /* 0xd08: 1 lists equipped items, 0 conditions/enchantments */
     unsigned char padding_d09[3];
     int effect_filter; /* 0xd0c: 0 all, 1 beneficial only, 2 detrimental only */
@@ -117,48 +117,47 @@ struct W8CampScreenState0069C0F4 {
     W8CampCharacterInfo* character_info;
     /* 0xd50: the camp item icons were drawn while the monster/combat
        timer was enabled; its stop forces a full redraw to drop them. */
-    unsigned char item_icons_drawn_d50;
+    bool item_icons_drawn_d50;
     unsigned char padding_d51[3];
 };
-static_assert(sizeof(W8CampScreenState0069C0F4) == 0xd54, "W8CampScreenState_size");
-static_assert(offsetof(W8CampScreenState0069C0F4, learned_spells) == 0x100,
+static_assert(sizeof(W8CampScreenState) == 0xd54, "W8CampScreenState_size");
+static_assert(offsetof(W8CampScreenState, learned_spells) == 0x100,
               "W8CampScreenState_learned_spells_offset");
-static_assert(offsetof(W8CampScreenState0069C0F4, learned_spells) +
-                      offsetof(W8LearnedSpellState, scroll) ==
+static_assert(offsetof(W8CampScreenState, learned_spells) + offsetof(W8LearnedSpellState, scroll) ==
                   0x4c0,
               "W8CampScreenState_spell_scroll_offset");
-static_assert(offsetof(W8CampScreenState0069C0F4, learned_spells) +
+static_assert(offsetof(W8CampScreenState, learned_spells) +
                       offsetof(W8LearnedSpellState, learned_total) ==
                   0x4d8,
               "W8CampScreenState_learned_total_offset");
 
-extern W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;
+extern W8CampScreenState* g_camp_screen;
 extern int giReviewCharSlot;
-extern W8Character* g_review_character_0069c0f8;
-extern W8Character* g_camp_entry_parameter_0069c0fc; /* gpIdentifyingPC */
-extern W8Character* g_camp_character_0069c100;
-extern bool g_camp_character_pending_0069c104;
-extern unsigned int g_camp_item_region_set_0069c108;
-extern unsigned int g_camp_spell_region_sets_0069c40c[6];
+extern W8Character* g_review_character;
+extern W8Character* g_camp_entry_parameter; /* gpIdentifyingPC */
+extern W8Character* g_camp_character;
+extern bool g_camp_character_pending;
+extern unsigned int g_camp_item_region_set;
+extern unsigned int g_camp_spell_region_sets[6];
 
 /* Panel controls owned by the camp screen, created by
-   CreateCampSecondaryPanel005B9900, CreateCampActionPanel005B9070 and
-   CreateItemsTabPanel005B9350 and read here and in RCSItemsPage.cpp. The
+   CreateCampSecondaryPanel, CreateCampActionPanel and
+   CreateItemsTabPanel and read here and in RCSItemsPage.cpp. The
    secondary panel owns the Items/Character info page tabs, the character-info
    help text, the seven attribute rows and the four secondary value labels. */
-extern Controls* g_camp_secondary_panel_0069c428;
-extern W8Widget* g_camp_info_labels_0069c42c[4];
-extern W8TextControl* g_camp_page_tabs_0069c43c[2];
-extern W8HelpTextControl* g_camp_help_text_0069c444;
-extern W8Widget* g_camp_stat_labels_0069c448[7];
-extern Controls* g_camp_action_panel_0069c464;
-extern W8TextControl* g_camp_action_buttons_0069c468[2];
-extern W8TextControl* g_camp_realm_tabs_0069c470[7];
-extern Controls* g_camp_realm_tab_panel_0069c48c;
-extern unsigned int g_camp_secondary_region_set_0069c490;
+extern Controls* g_camp_secondary_panel;
+extern W8Widget* g_camp_info_labels[4];
+extern W8TextControl* g_camp_page_tabs[2];
+extern W8HelpTextControl* g_camp_help_text;
+extern W8Widget* g_camp_stat_labels[7];
+extern Controls* g_camp_action_panel;
+extern W8TextControl* g_camp_action_buttons[2];
+extern W8TextControl* g_camp_realm_tabs[7];
+extern Controls* g_camp_realm_tab_panel;
+extern unsigned int g_camp_secondary_region_set;
 /* One gppStringList id per primary attribute row; defined in
    ReviewCharacterScreen.cpp, drawn by RCSStatsPage.cpp's stats page. */
-extern int g_attribute_label_ids_64dd30[7];
+extern int g_attribute_label_ids[7];
 
 /* 0x0064CBF0: the twelve camp-screen regions the layout rules do not cover,
    given as explicit rectangles. The region initializer reads the first four
@@ -175,36 +174,35 @@ struct W8CampScreenRegion {
     int label_flag_20;         /* 0x20: label draw flag */
 };
 
-extern const W8CampScreenRegion g_camp_screen_regions_64cbf0[12];
+extern const W8CampScreenRegion g_camp_screen_regions[12];
 /* 0x00648C48: load-category font-palette selectors indexed by
    W8Character::load_category. */
-extern int g_load_category_palettes_648c48[5];
+extern int g_load_category_palettes[5];
 /* 0x0064CDA0: the three portrait catalog ids per race used by the camp
    party strip. */
-extern int g_race_portrait_images_64cda0[0x30];
+extern int g_race_portrait_images[0x30];
 
-void SwitchCampPage005A4540(int page);
-void ClearOtherRealmFilters005A49D0(unsigned int realm);
-void RebuildCampItemList005A4A00(void);
-void SetCampInputMode005A4BC0(int mode);
+void SwitchCampPage(int page);
+void ClearOtherRealmFilters(unsigned int realm);
+void RebuildCampItemList(void);
+void SetCampInputMode(int mode);
 void DisplayCampDialog(W8DialogBase* dialog);
 void DismissSelectedPartyCharacter(void);
 
-/* The pending-companion swap set by MarkCampCharacterPending005A6020 and
-   consumed by ResolvePendingCampCharacter005A5F30. */
-bool ResolvePendingCampCharacter005A5F30(bool force);
-void MarkCampCharacterPending005A6020(W8ItemInstance* item);
+/* The pending-companion swap set by MarkCampCharacterPending and
+   consumed by ResolvePendingCampCharacter. */
+bool ResolvePendingCampCharacter(bool force);
+void MarkCampCharacterPending(W8ItemInstance* item);
 /* 0x005A6090 gates an item click on the character's remaining action
    allowance in combat; 0x005A6440 programs a pending use-item action aimed at
    an item. */
-bool IsCampActionAllowed005A6090(int party_slot);
-int CommitPartySlotSpell005A6340(int party_slot, int spell_id, int power_level,
-                                 W8CombatSlot* target);
-int CommitPartySlotItemUse005A6440(int party_slot, W8ItemInstance* item, W8CombatSlot* target);
+bool IsCampActionAllowed(int party_slot);
+int CommitPartySlotSpell(int party_slot, int spell_id, int power_level, W8CombatSlot* target);
+int CommitPartySlotItemUse(int party_slot, W8ItemInstance* item, W8CombatSlot* target);
 
 /* 0x005A5DA0: move a single unit between the clicked stack and the item in
    hand - split one off into the hand, or add one onto the held stack. */
-void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsigned int origin);
+void TakeItemUnitToHand(W8ItemInstance* item, unsigned short slot, unsigned int origin);
 
 void CampScreenInitializeRegions(void);
 void LayoutCampSecondaryRegions(void);
@@ -216,14 +214,14 @@ unsigned char CampScreenLeave(int leaving);
 /* Camp spell-page pieces in ReviewCharacterScreen.cpp: the character switch,
    the six realm scrollbars, the page renderer, the resistance bars and the
    spell-list region callback that opens per-spell info dialogs. */
-void SetCampSpellRangesEnabled005B71C0(unsigned char enable);
-void RefreshCampSpellRanges005B7290(void);
-void DrawCampSpellPages005B7300(void);
-void DrawCampResistances005B7790(void);
-unsigned char SpellListRegionHandler005B79F0(const InputAtom* event, W8Region* region);
-void OpenSpellInfoDialog005B7BB0(unsigned int spell_id);
-void SyncReviewCharInputRegion005A4570(void);
-bool IsEquippableItemClass005A6310(W8ItemInstance* item); /* 0x005A6310 */
+void SetCampSpellRangesEnabled(unsigned char enable);
+void RefreshCampSpellRanges(void);
+void DrawCampSpellPages(void);
+void DrawCampResistances(void);
+unsigned char SpellListRegionHandler(const InputAtom* event, W8Region* region);
+void OpenSpellInfoDialog(unsigned int spell_id);
+void SyncReviewCharInputRegion(void);
+bool IsEquippableItemClass(W8ItemInstance* item); /* 0x005A6310 */
 
 extern int g_effect_005ee6ec;
 extern int g_effect_argument_005ed8cc;
@@ -232,17 +230,17 @@ extern int g_effect_argument_005ed8cc;
    finishes; `fade_to_black` selects the alpha ramp. */
 void BeginScreenFade(int fade_to_black, int arg_2, int fade_code, void (*callback)(void), char flag,
                      char arg_6);
-unsigned char UpdateScreenFade005A6790(void);
-void BeginPartyDeath005A68C0(void);
-void PumpReviewTransition005A6970(void);
-void DrawPartyDeathScreen005A6A70(void);
-void EndReviewTransition005A6B20(void);
+extern const wchar_t g_format_s_0064dd28[];
+unsigned char UpdateScreenFade(void);
+void BeginPartyDeath(void);
+void PumpReviewTransition(void);
+void DrawPartyDeathScreen(void);
+void EndReviewTransition(void);
 /* Ending sequence picker run when that fade completes. */
-void ShowEndingScreen005A6B90(void); /* 0x005A6B90 */
+void ShowEndingScreen(void); /* 0x005A6B90 */
 /* 0x005A6580 */
-void BeginEndgameSequence005A6580(void);
+void BeginEndgameSequence(void);
 /* Camp and main-game notice dialogs ShowNoticeLine forwards into. */
 void ShowCampNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
                         int cancel); /* 0x005A4C00 */
-void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index,
-                                 unsigned int origin);
+void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned int origin);

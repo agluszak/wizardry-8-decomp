@@ -28,22 +28,29 @@ public:
         }
     }
 
-    /* Free-then-allocate exact storage without preserving contents; the
-       reserve constructor reaches it. */
-    inline void reserve(unsigned long count)
+    /* Default-init then assign: srHuffman::Sampler's exported copy
+       constructor (0x100014F0) zeroes its srArray<Symbol> member and inlines
+       the full operator= body, and srModeler's copy constructor (0x10037DE0)
+       does the same for srArray<Triangle>. */
+    inline srArray(const srArray& other) : data(0), capacity(0)
     {
-        release();
-        if (count != 0) {
-            capacity = count;
-            data = static_cast<T*>(::operator new(count * sizeof(T)));
-        }
+        *this = other;
     }
+
+    /* Free-then-allocate exact storage without preserving contents; the
+       reserve constructor reaches it. srArray<Triangle>'s emission
+       (0x10038120) constructs every element: new T[] scalar-allocates for
+       these trivially destructible element types while still running each
+       element constructor, matching retail. */
+    // TEMPLATE: SURRENDER 0x10038120
+    // srArray<srModeler::Triangle>::reserve
+    void reserve(unsigned long count);
 
     /* Retail's canonical emissions (srArray<srNode*>::setCapacity at
        0x0049E290, the folded scalar-delete destructor at 0x004701B0) use the
-       scalar global operators on raw bytes, never new[]/delete[]: every
-       instantiated element type is POD, so construction and element teardown
-       do not exist. */
+       scalar global operators on raw bytes. delete[] lowers to the same
+       scalar operator call for these trivially destructible element types;
+       sr.dll imports no vector delete emission at all. */
     // TEMPLATE: SURRENDER 0x10026F10
     // srArray<float>::~srArray
     inline ~srArray()
@@ -65,23 +72,19 @@ public:
     // srArray<unsigned long>::release
     inline void release()
     {
-        ::operator delete(data);
+        delete[] data;
         data = 0;
         capacity = 0;
     }
 
-    /* Deep copy proved by srHuffman::Sampler's exported copy operations:
-       self-check, release the old storage, allocate the source capacity, copy
-       that many elements. */
+    /* Deep copy proved by srHuffman::Sampler's exported copy operations and
+       srModeler's implicit assignment (0x10037F90): self-check, reserve the
+       source capacity (release + exact-size allocate), copy that many
+       elements. */
     inline srArray& operator=(const srArray& other)
     {
         if (this != &other) {
-            unsigned long new_capacity = other.capacity;
-            release();
-            if (new_capacity > 0) {
-                capacity = new_capacity;
-                data = static_cast<T*>(::operator new(new_capacity * sizeof(T)));
-            }
+            reserve(other.capacity);
             for (unsigned long index = 0; index < other.capacity; ++index) {
                 data[index] = other.data[index];
             }
@@ -89,6 +92,9 @@ public:
         return *this;
     }
 
+    /* srArray<Triangle>'s emission (0x1003BCF0) constructs every element of
+       the new storage before copy-assigning the preserved prefix; new T[]
+       emits that construction for the non-trivial element type. */
     // TEMPLATE: SURRENDER 0x100274E0
     // srArray<float>::setCapacity
     // TEMPLATE: SURRENDER 0x10027550
@@ -97,32 +103,22 @@ public:
     // srArray<unsigned long>::setCapacity
     // TEMPLATE: SURRENDER 0x10027720
     // srArray<srGERD::Renderer::TextureSet>::setCapacity
-    inline void setCapacity(unsigned long new_capacity)
-    {
-        if (capacity != new_capacity) {
-            T* replacement = 0;
-            if (new_capacity > 0) {
-                replacement = static_cast<T*>(::operator new(new_capacity * sizeof(T)));
-                if (data != 0 && capacity > 0) {
-                    unsigned long copy_count = capacity;
-                    if (copy_count >= new_capacity) {
-                        copy_count = new_capacity;
-                    }
-                    for (unsigned long index = 0; index < copy_count; ++index) {
-                        replacement[index] = data[index];
-                    }
-                }
-            }
-            release();
-            data = replacement;
-            capacity = new_capacity;
-        }
-    }
+    // TEMPLATE: SURRENDER 0x1003BCF0
+    // srArray<srModeler::Triangle>::setCapacity
+    // TEMPLATE: SURRENDER 0x10044EE0
+    // srArray<srTriMeshPipeline::Record>::setCapacity
+    // TEMPLATE: SURRENDER 0x10044E60
+    // srArray<srVertexArray>::setCapacity
+    // TEMPLATE: SURRENDER 0x10045030
+    // srArray<srTriMeshPipeline::Pass>::setCapacity
+    void setCapacity(unsigned long new_capacity);
 
     // TEMPLATE: SURRENDER 0x10026F50
     // srArray<float>::operator[]
     // TEMPLATE: SURRENDER 0x10027120
     // srArray<unsigned long>::operator[]
+    // TEMPLATE: SURRENDER 0x10044E30
+    // srArray<srTriMeshPipeline::Record>::operator[]
     inline T& operator[](unsigned long index)
     {
         if (index >= capacity) {
@@ -134,6 +130,43 @@ public:
     T* data;
     unsigned long capacity;
 };
+
+/* Out-of-class with auto-inlining disabled so the instantiations emit as
+   standalone calls the way retail callers reach them: srModeler's accessors
+   inline operator[]'s grow check then CALL 0x1003BCF0 rather than inlining
+   the allocation loop. */
+#pragma auto_inline(off)
+template <class T> void srArray<T>::reserve(unsigned long count)
+{
+    release();
+    if (count > 0) {
+        capacity = count;
+        data = new T[count];
+    }
+}
+
+template <class T> void srArray<T>::setCapacity(unsigned long new_capacity)
+{
+    if (capacity != new_capacity) {
+        T* replacement = 0;
+        if (new_capacity > 0) {
+            replacement = new T[new_capacity];
+            if (data != 0 && capacity > 0) {
+                unsigned long copy_count = capacity;
+                if (copy_count >= new_capacity) {
+                    copy_count = new_capacity;
+                }
+                for (unsigned long index = 0; index < copy_count; ++index) {
+                    replacement[index] = data[index];
+                }
+            }
+        }
+        release();
+        data = replacement;
+        capacity = new_capacity;
+    }
+}
+#pragma auto_inline(on)
 
 /* The separately proved srHeap-backed family has both preserving exact-size
    storage and a scratch-buffer operation that discards old contents when it
@@ -170,7 +203,7 @@ public:
     inline void reserve(unsigned long count)
     {
         release();
-        if (count != 0) {
+        if (count > 0) {
             capacity = count;
             data = allocate(count);
         }
@@ -352,6 +385,10 @@ public:
         capacity = 0;
     }
 
+    // TEMPLATE: SURRENDER 0x100276C0
+    // srHeapBuffer<unsigned char>::allocate
+    // TEMPLATE: SURRENDER 0x100276E0
+    // srHeapBuffer<unsigned long>::allocate
     // TEMPLATE: SURRENDER 0x10027700
     // srHeapBuffer<srGERD::Renderer::TexCoordQ>::allocate
     static inline T* allocate(unsigned long count)

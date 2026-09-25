@@ -36,14 +36,10 @@ _MARKER = re.compile(
 )
 _DECLARATOR = re.compile(r"([A-Za-z_]\w*(?:::[A-Za-z_]\w*)*)\s*(?:\(|=|;|\[)")
 
-# A FOLDED marker names a retail address the compiler ICF-folded onto another
-# recovered body, so it aliases an identity owned elsewhere instead of owning
-# one. The reccmp importer keeps the first non-folded claim on an address as
-# its owner and treats the rest as aliases; identity lint likewise excludes
-# aliases from ownership. Any other trailing token is a discriminator that
-# distinguishes co-located entities (a VTABLE's implemented class) and stays
-# part of the ownership claim.
-_ALIAS_QUALIFIER = "FOLDED"
+# Historical revisions may contain reccmp FOLDED annotations. They describe
+# linked-image equivalence, not source identities, so merge preservation ignores
+# them. Current source rejects new FOLDED markers in reccmp_lint.
+_FOLDED_QUALIFIER = "FOLDED"
 
 Identity = tuple[str, str, int]
 AllowedTransition = tuple[str, str, int, str]
@@ -74,6 +70,8 @@ def _resolve_commit(repo_dir: Path, revision: str) -> str:
     """Resolve a Jujutsu revset or a Git revision to a commit id."""
 
     if (repo_dir / ".jj").is_dir():
+        if revision.startswith("origin/"):
+            revision = f"{revision.removeprefix('origin/')}@origin"
         return subprocess.run(
             ["jj", "log", "-r", revision, "--no-graph", "-T", "commit_id"],
             cwd=repo_dir,
@@ -251,6 +249,8 @@ def collect_identities(
             if marker is None:
                 continue
             kind = marker.group("kind")
+            if marker.group("qualifier").upper() == _FOLDED_QUALIFIER:
+                continue
             key = (kind, marker.group("target"), int(marker.group("address"), 16))
             entity, form = _owned_entity(lines, index + 1, kind)
             identities[key].append(
@@ -259,21 +259,9 @@ def collect_identities(
                     "entity": entity,
                     "form": form,
                     "name": _entity_name(entity),
-                    "alias": "yes" if marker.group("qualifier") == _ALIAS_QUALIFIER else "no",
                 }
             )
     return identities
-
-
-def _owning(items: list[dict[str, str]]) -> list[dict[str, str]]:
-    """Claims that own the address; FOLDED aliases reference an owner elsewhere.
-
-    An address with only FOLDED claims keeps them as owners, matching the
-    importer's promotion rule for a FOLDED-only address.
-    """
-
-    owners = [item for item in items if item["alias"] != "yes"]
-    return owners or items
 
 
 def _references(sources: dict[str, str], names: set[str]) -> dict[str, int]:
@@ -327,9 +315,7 @@ def merge_preservation_report(
         and sorted(item["entity"] for item in before[key])
         != sorted(item["entity"] for item in after[key])
     ]
-    duplicates = [
-        key for key in sorted(after) if key[0] in IDENTITY_KINDS and len(_owning(after[key])) > 1
-    ]
+    duplicates = [key for key in sorted(after) if key[0] in IDENTITY_KINDS and len(after[key]) > 1]
     conflicts = [
         {"target": target, "address": f"0x{address:08X}", "kinds": ["FUNCTION", "STUB"]}
         for kind, target, address in sorted(after)

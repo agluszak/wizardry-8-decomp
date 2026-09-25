@@ -28,7 +28,6 @@ _DECL = re.compile(
     r"^(?P<prefix>.*?)(?P<name>[A-Za-z_]\w*)\s*(?P<arrays>(?:\[[^\]]*\])*)\s*(?:=|;)"
 )
 _VTABLE_OR_FUNCTION = re.compile(r"^\s*//\s*(?:VTABLE|FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY):")
-_IDENTITY_ALIAS = re.compile(r"identity-alias\s*:", re.IGNORECASE)
 _DOCUMENTED_ALIAS = re.compile(r"alias(?:es)?\s+(?:of|for)\b|no separate definition", re.IGNORECASE)
 # A file-scope variable definition whose name ends in a retail address. The
 # name must be preceded by type text so in-body assignments (`g_x_... = 1;`)
@@ -241,11 +240,7 @@ def parse_global_definitions(
                 comments, look, decl = scanned
                 window = " ".join(comments)
                 parsed = _DECL.match(decl)
-                if (
-                    _extern_declaration(decl, parsed)
-                    or _IDENTITY_ALIAS.search(window)
-                    or _DOCUMENTED_ALIAS.search(window)
-                ):
+                if _extern_declaration(decl, parsed) or _DOCUMENTED_ALIAS.search(window):
                     index = look + 1
                     continue
                 if depth > 0:
@@ -615,11 +610,11 @@ def validate_type_consistency(repo_dir: Path) -> dict[str, Any]:
     return {"ok": True, "gate": "type-consistency", "globals": len(definitions)}
 
 
-_STATUS_MEMBER = re.compile(r"g_status_685170\.([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)")
+_STATUS_MEMBER = re.compile(r"\bg_status\.([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)")
 
 
 def status_member_accesses(repo_dir: Path) -> list[dict[str, Any]]:
-    """Source sites that name a g_status_685170 member."""
+    """Source sites that name a g_status member."""
 
     rows: list[dict[str, Any]] = []
     for root in (repo_dir / "src/wiz8", repo_dir / "include/wiz8"):
@@ -668,8 +663,8 @@ def classify_status_region(definitions: list[dict[str, Any]]) -> list[dict[str, 
                 container = str(item["name"])
                 offset = 0
             else:
-                kind = "member of g_status_685170"
-                container = "g_status_685170"
+                kind = "member of g_status"
+                container = "g_status"
                 offset = address - GSTATUS_START
         elif address == GXSTATUS_START:
             kind = "object"

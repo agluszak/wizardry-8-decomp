@@ -74,12 +74,7 @@
    anchored GameplayDatabase.cpp tail (0x54A9A0, LoadMonsterDatabaseRange) and
    Configuration.cpp (0x54B6D0, SaveGameConfiguration). The demo string cluster
    for this TU is nearly empty - its loaders share the pooled
-   "SaveConfig: ERROR - FileOpen failed on file %s" literal.
-
-   Exception: DestroyNpcDatabase at 0x0054AC90 moved to GameplayDatabase.cpp -
-   its unique demo match 0x0054F670 is bounded inside the demo
-   GameplayDatabase.cpp hull (anchors 0x0054F3D0/0x0054F6E0), too narrow for
-   an interleaved foreign TU. */
+   "SaveConfig: ERROR - FileOpen failed on file %s" literal. */
 
 /* NPC.DBS records carry an optional sub-list, stored after the record when its
    leading count exceeds one and its 0x9D flag is clear: a count, then that many
@@ -142,13 +137,6 @@ unsigned char InitializeNpcDatabase(void)
     FileClose(handle);
     return 1;
 }
-
-/* Retail emits this owning-list teardown out of line here and expands the same
-   operation at the NPC-item sites.  The exact source boundary remains
-   unresolved; it is neither an authored specialization nor a W8PList member
-   destructor under the VC6 ABI. */
-// TEMPLATE: WIZ8 0x0055ADA0
-// unresolved owning PL teardown emission
 
 /* The three loaders below share one shape: build Data\Databases\<NAME>.DBS,
    open it, read a record count, allocate count * stride, then read the records
@@ -243,28 +231,28 @@ void DestroyLevelDatabase(void)
 void ResetGameStatus(unsigned char release)
 {
     if (release) {
-        if (g_status_685170.buffers.Char) {
-            free(g_status_685170.buffers.Char);
-            g_status_685170.buffers.Char = 0;
+        if (g_status.buffers.Char) {
+            free(g_status.buffers.Char);
+            g_status.buffers.Char = 0;
         }
-        if (g_status_685170.buffers.XChar) {
-            free(g_status_685170.buffers.XChar);
-            g_status_685170.buffers.XChar = 0;
+        if (g_status.buffers.XChar) {
+            free(g_status.buffers.XChar);
+            g_status.buffers.XChar = 0;
         }
     }
-    memset(&g_status_685170, 0, sizeof(g_status_685170));
-    g_status_685170.buffers.Char =
+    memset(&g_status, 0, sizeof(g_status));
+    g_status.buffers.Char =
         static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
-    if (!g_status_685170.buffers.Char) {
+    if (!g_status.buffers.Char) {
         return;
     }
-    g_status_685170.buffers.XChar =
+    g_status.buffers.XChar =
         static_cast<W8PartySlotRow*>(malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
-    if (!g_status_685170.buffers.XChar) {
+    if (!g_status.buffers.XChar) {
         return;
     }
-    memset(g_status_685170.buffers.Char, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
-    memset(g_status_685170.buffers.XChar, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
+    memset(g_status.buffers.Char, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
+    memset(g_status.buffers.XChar, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
 }
 
 /* Clear the complete status object, including its POD gameplay-state tail. */
@@ -293,8 +281,8 @@ void ResetGameplayStatusBlock(void)
 {
     memset(gXStatus.spell_cooldown_clocks, 0, sizeof(gXStatus.spell_cooldown_clocks));
     gXStatus.character_event_queue->DestroyAllEvents();
-    gXStatus.party_moving = 0;
-    gXStatus.fSurprisePossible = 0;
+    gXStatus.party_moving = false;
+    gXStatus.fSurprisePossible = false;
 }
 
 // FUNCTION: WIZ8 0x0054b0b0
@@ -325,32 +313,32 @@ void ResetForNewGame(void)
     unsigned int* id;
     unsigned int index;
 
-    if (g_status_685170.buffers.Char) {
-        free(g_status_685170.buffers.Char);
-        g_status_685170.buffers.Char = 0;
+    if (g_status.buffers.Char) {
+        free(g_status.buffers.Char);
+        g_status.buffers.Char = 0;
     }
-    if (g_status_685170.buffers.XChar) {
-        free(g_status_685170.buffers.XChar);
-        g_status_685170.buffers.XChar = 0;
+    if (g_status.buffers.XChar) {
+        free(g_status.buffers.XChar);
+        g_status.buffers.XChar = 0;
     }
-    memset(&g_status_685170, 0, sizeof(g_status_685170));
-    g_status_685170.buffers.Char =
+    memset(&g_status, 0, sizeof(g_status));
+    g_status.buffers.Char =
         static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
-    if (g_status_685170.buffers.Char) {
-        g_status_685170.buffers.XChar =
+    if (g_status.buffers.Char) {
+        g_status.buffers.XChar =
             static_cast<W8PartySlotRow*>(malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
-        if (g_status_685170.buffers.XChar) {
-            memset(g_status_685170.buffers.Char, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
-            memset(g_status_685170.buffers.XChar, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
+        if (g_status.buffers.XChar) {
+            memset(g_status.buffers.Char, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
+            memset(g_status.buffers.XChar, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
         }
     }
     ReleaseMessageStorage();
-    EmptyItemRecord(&g_status_685170.item_in_hand_235b, 0, 1);
-    slot = g_status_685170.party_item_pool_0021;
+    EmptyItemRecord(&g_status.item_in_hand_235b, 0, 1);
+    slot = g_status.party_item_pool_0021;
     do {
         EmptyItemRecord(slot, 0, 1);
         ++slot;
-    } while (slot < g_status_685170.party_item_pool_0021 + 500);
+    } while (slot < g_status.party_item_pool_0021 + 500);
     id = g_starting_item_ids;
     do {
         if (*id != 0xffffffff) {
@@ -360,12 +348,12 @@ void ResetForNewGame(void)
         }
         ++id;
     } while (id < g_starting_item_ids + 6);
-    g_status_685170.party_gold = 500;
-    g_status_685170.selected_character = GetNextCharacter(1, 1, -1);
-    g_status_685170.current_level = -1;
-    InitializePartyFormation(&g_status_685170.formation);
+    g_status.party_gold = 500;
+    g_status.selected_character = GetNextCharacter(1, 1, -1);
+    g_status.current_level = -1;
+    InitializePartyFormation(&g_status.formation);
     for (index = 0; index < 8; ++index) {
-        g_status_685170.party_order_slots[index] = 0xffffffff;
+        g_status.party_order_slots[index] = 0xffffffff;
     }
 }
 
@@ -375,12 +363,12 @@ void ResetForNewGame(void)
 // FUNCTION: WIZ8 0x0054b250
 void RunNewGameOpeningSequence(unsigned char notify, const wchar_t* target)
 {
-    g_status_685170.game_started = 1;
+    g_status.game_started = 1;
     if (target) {
-        g_status_685170.iron_man = 1;
+        g_status.iron_man = 1;
         SetLastSaveName(target);
     }
-    g_status_685170.difficulty = g_settings_6850c8.difficulty;
+    g_status.difficulty = g_settings.difficulty;
     gXStatus.fEncumbranceDirty = true;
     SetGameTimeMilliseconds(0x2932e00);
     SetGameTimeDays(1);
@@ -426,7 +414,7 @@ void ResetGameplaySlot(unsigned int slot)
     record->portrait_frame = 6;
     record->portrait_pose_animation_active = 0;
     tier = 1;
-    if (g_status_685170.buffers.Char[slot].highest_condition >= 0xf) {
+    if (g_status.buffers.Char[slot].highest_condition >= 0xf) {
         tier = 2;
     }
     record->portrait_pose = tier;
@@ -474,7 +462,7 @@ void ResetGameplaySlot(unsigned int slot)
 // FUNCTION: WIZ8 0x0054b470
 void ResetPartySlotRow(int slot)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+    W8PartySlotRow* row = &g_status.buffers.XChar[slot];
 
     memset(row, 0, sizeof(W8PartySlotRow));
     row->fOccupied = 1;
@@ -521,51 +509,51 @@ void FreeStatusBuffers(W8StatusBuffers* status)
 // FUNCTION: WIZ8 0x0054b560
 void ResetGameplaySettings(void)
 {
-    memset(&g_settings_6850c8, 0, sizeof(g_settings_6850c8));
-    g_settings_6850c8.sound_effects_volume = 0x40;
-    g_settings_6850c8.voice_volume = 0x40;
-    g_settings_6850c8.main_ui_mode = W8_MAIN_UI_MODE_FORMATION;
-    g_settings_6850c8.continuous_combat = 0;
-    g_settings_6850c8.auto_advance_character = 0;
-    g_settings_6850c8.tooltips_enabled = 1;
-    g_settings_6850c8.formation_action_panel_preference = 1;
-    g_settings_6850c8.formation_radar_map_preference = 1;
-    g_settings_6850c8.formation_board_preference = 1;
-    g_settings_6850c8.portraits_action_panel_preference = 1;
-    g_settings_6850c8.field_000 = 0;
-    g_settings_6850c8.invert_mouse_y = 0;
-    g_settings_6850c8.field_03b = 0;
-    g_settings_6850c8.difficulty = W8_DIFFICULTY_NORMAL;
-    g_settings_6850c8.text_display_delay_ms = 0x9c4;
-    g_settings_6850c8.combat_delay_ms = 1000;
-    g_settings_6850c8.field_019 = 5000;
-    g_settings_6850c8.camera_rotation_mode = 1;
-    g_settings_6850c8.camera_rotation_style = 1;
-    g_settings_6850c8.tooltip_delay_ms = 600;
-    g_settings_6850c8.music_volume = 0x1f;
-    g_settings_6850c8.footstep_volume = 0x13;
-    g_settings_6850c8.muted_sound_effects_volume = 0xff;
-    g_settings_6850c8.muted_music_volume = 0xff;
-    g_settings_6850c8.muted_voice_volume = 0xff;
-    g_settings_6850c8.field_035 = 0xff;
-    g_settings_6850c8.monster_movement_speed = 2.5f;
-    g_settings_6850c8.gamma = 1.0f;
-    g_settings_6850c8.pc_confirmations = 1;
-    g_settings_6850c8.pc_subtitles = 1;
-    g_settings_6850c8.mouselook_toggle = 0;
-    g_settings_6850c8.mouselook_smoothing = 1;
-    g_settings_6850c8.numeric_hit_points = 1;
-    g_settings_6850c8.auto_save = 0;
-    g_settings_6850c8.field_047 = 0;
-    g_settings_6850c8.monster_shadows = 1;
-    g_settings_6850c8.smooth_monster_animations = 1;
-    g_settings_6850c8.smooth_world_animations = 1;
-    g_settings_6850c8.skill_increase_messages = 1;
-    g_settings_6850c8.ctrl_right_click_info = 0;
-    g_settings_6850c8.autoswap_weapons = 1;
-    g_settings_6850c8.autotarget_spells = 1;
-    g_settings_6850c8.autoscroll_combat_messages = 0;
-    g_settings_6850c8.simplified_npc_interaction = 1;
+    memset(&g_settings, 0, sizeof(g_settings));
+    g_settings.sound_effects_volume = 0x40;
+    g_settings.voice_volume = 0x40;
+    g_settings.main_ui_mode = W8_MAIN_UI_MODE_FORMATION;
+    g_settings.continuous_combat = 0;
+    g_settings.auto_advance_character = 0;
+    g_settings.tooltips_enabled = true;
+    g_settings.formation_action_panel_preference = 1;
+    g_settings.formation_radar_map_preference = 1;
+    g_settings.formation_board_preference = 1;
+    g_settings.portraits_action_panel_preference = 1;
+    g_settings.field_000 = 0;
+    g_settings.invert_mouse_y = 0;
+    g_settings.field_03b = 0;
+    g_settings.difficulty = W8_DIFFICULTY_NORMAL;
+    g_settings.text_display_delay_ms = 0x9c4;
+    g_settings.combat_delay_ms = 1000;
+    g_settings.field_019 = 5000;
+    g_settings.camera_rotation_mode = 1;
+    g_settings.camera_rotation_style = 1;
+    g_settings.tooltip_delay_ms = 600;
+    g_settings.music_volume = 0x1f;
+    g_settings.footstep_volume = 0x13;
+    g_settings.muted_sound_effects_volume = 0xff;
+    g_settings.muted_music_volume = 0xff;
+    g_settings.muted_voice_volume = 0xff;
+    g_settings.field_035 = 0xff;
+    g_settings.monster_movement_speed = 2.5f;
+    g_settings.gamma = 1.0f;
+    g_settings.pc_confirmations = 1;
+    g_settings.pc_subtitles = 1;
+    g_settings.mouselook_toggle = 0;
+    g_settings.mouselook_smoothing = 1;
+    g_settings.numeric_hit_points = 1;
+    g_settings.auto_save = 0;
+    g_settings.field_047 = 0;
+    g_settings.monster_shadows = 1;
+    g_settings.smooth_monster_animations = 1;
+    g_settings.smooth_world_animations = 1;
+    g_settings.skill_increase_messages = 1;
+    g_settings.ctrl_right_click_info = 0;
+    g_settings.autoswap_weapons = 1;
+    g_settings.autotarget_spells = 1;
+    g_settings.autoscroll_combat_messages = 0;
+    g_settings.simplified_npc_interaction = 1;
     EnableAllRenderOptions();
     if (GetTotalPhysicalMemory() <= 0x4000000) {
         DisableRenderOption(0xb);

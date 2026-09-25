@@ -478,7 +478,6 @@ def _source_attachment(
                 "signature": identity.source_signature,
                 "calling_convention": identity.calling_convention,
                 "definition": identity.is_definition,
-                "folded": identity.folded,
             }
             for identity in found
         ],

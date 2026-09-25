@@ -53,7 +53,7 @@ wchar_t* GetItemDisplayName(const W8ItemInstance* item);
 
 /* 0x0051B7B0 and 0x0051CCE0 are also expanded at their own call sites inside
    this unit: retail inlines the display-name body seven times in UseItem,
-   three times in FormatItemDisplayName and twice in CastItemSpell0051EE70,
+   three times in FormatItemDisplayName and twice in CastItemSpell,
    and the name-kind test once in EquipMatchingPartnerItem, while nine and
    eight call sites in other units call the out-of-line copies. VC6 /O2
    expands only inline-marked bodies, yet the retail copies sit inside the PC
@@ -128,8 +128,8 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
 void SwapItemInstances(W8ItemInstance* item, W8ItemInstance* destination, W8Character* character,
                        unsigned char refresh); /* 0x0051FD20 */
 void NormalizeItemStack(W8ItemInstance* item);
-unsigned char MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
-                              unsigned char* partially_merged);
+bool MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
+                     unsigned char* partially_merged);
 void MergeItemUses(W8Character* character, W8ItemInstance* into, W8ItemInstance* from);
 void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item);
 void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_character,
@@ -140,9 +140,8 @@ int CountItemOnCharacter(W8Character* character, int item_id, W8ItemInstance** f
                          int include_backpack);
 /* 0x005223A0: move the departing character's soul-bound equipment to the
    party pool or the held-item display before the slot is released. */
-void StashDepartingCharacterItems005223A0(W8Character* character);
-void StagePartySlotItemUse0051DC50(int party_slot, W8ItemInstance* item,
-                                   const W8CombatSlot* target);
+void StashDepartingCharacterItems(W8Character* character);
+void StagePartySlotItemUse(int party_slot, W8ItemInstance* item, const W8CombatSlot* target);
 char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2);
 
 bool CanItemLeaveItsSlot(const W8ItemInstance* item);                              /* 0x0051F2B0 */
@@ -178,9 +177,8 @@ bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item,
 bool ItemHasHiddenProperties(int item_id);                /* 0x00520750 */
 /* Find the first equipped, or optionally carried, item with a matching
    unidentified database name kind. */
-char FindCharacterItemByDatabaseKind005213C0(W8Character* character, short item_kind,
-                                             W8ItemInstance** out, int include_backpack);
-void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
+char FindCharacterItemByDatabaseKind(W8Character* character, short item_kind, W8ItemInstance** out,
+                                     int include_backpack);
 
 /* 0x0051B910: per-item-class notice index into gppStringList used for the
    unidentified ("Uncursed item" style) display name. */
@@ -207,20 +205,16 @@ void BindCharacterItems(int party_slot, int arg_2); /* 0x0051D2C0 */
 bool IsItemBoundToWearer(const W8ItemInstance* item); /* 0x0051D180 */
 W8ItemInstance* FindCharacterItemAt(int party_slot, unsigned char origin,
                                     unsigned short slot); /* 0x00522180 */
-void RecordItemOrigin(int party_slot, unsigned char origin, unsigned short slot);
 void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_3);
-unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
+unsigned char RemovePartyItemByID(int item_id, char remove_all);
 
 bool CanUseItemForAction(int party_slot, const W8ItemInstance* item);
 
-/* Unresolved gap callees, declared for the ReviewCharacterScreen.cpp camp item
-   handler. 0x0051E980 scans the merge-kind table for the related
-   unidentified-name kind of an item. 0x0051CDE0 reports whether the held item
-   may occupy an equipment slot given the item in its paired hand slot.
-   0x00521E20 shifts the party pool open and inserts the item at an index. */
-char GetItemMergeKind0051E980(int item_id, short* related_kind);
-char HeldItemFitsPairedSlot0051CDE0(int party_slot, int equip_slot);
-char InsertItemIntoPartyPool00521E20(W8ItemInstance* item, int index);
+/* Camp item operations: paired hand compatibility, merge-kind lookup, and
+   insertion into the party's item pool. */
+char GetItemMergeKind(int item_id, short* related_kind);
+char HeldItemFitsPairedSlot(int party_slot, unsigned int equip_slot);
+char InsertItemIntoPartyPool(W8ItemInstance* item, int index);
 int ChooseCharacterEquipSlot(W8Character* character, int item_id);
 
 /* 0x0051EB90: fill an equipment slot from the item that pairs with the given
@@ -247,29 +241,25 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
 /* 0x0051DCD0 rates how hard one attempt at an item's spell is for a character
    of this skill level. 0x0051EE70 applies the item's spell and consumes the
    uses it took. */
-unsigned int GetItemUseDifficulty0051DCD0(const W8Character* character, int skill,
-                                          unsigned int skill_level, unsigned int spell_id,
-                                          unsigned int power);
-int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned int power);
+unsigned int GetItemUseDifficulty(const W8Character* character, int skill, unsigned int skill_level,
+                                  unsigned int spell_id, unsigned int power);
+int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int power);
 
-void AimItemUseAtCurrentTarget0051DB60(W8Character* character, W8ItemInstance* item);
-unsigned char SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh);
-void SplitThrowableStackBetweenHands0051ED30(W8Character* character, int equip_slot);
-void RemovePartyPoolEntry00521C20(unsigned int index);
-unsigned char FindItemByDatabaseKindOnParty00521480(unsigned short item_kind,
-                                                    W8ItemInstance** found,
-                                                    W8Character** found_character,
-                                                    int include_backpack);
-void EmptyBackpackSlot00521AC0(W8Character* character, int slot);
-void EmptyPartyPoolEntry00521CD0(int index);
-void UpgradeProfessionClassItem005218C0(W8Character* character);
+void AimItemUseAtCurrentTarget(W8Character* character, W8ItemInstance* item);
+unsigned char SwapWeaponSetSlots(int party_slot, char announce, unsigned char refresh);
+void SplitThrowableStackBetweenHands(W8Character* character, int equip_slot);
+void RemovePartyPoolEntry(unsigned int index);
+unsigned char FindItemByDatabaseKindOnParty(unsigned short item_kind, W8ItemInstance** found,
+                                            W8Character** found_character, int include_backpack);
+void EmptyBackpackSlot(W8Character* character, int slot);
+void EmptyPartyPoolEntry(int index);
+void UpgradeProfessionClassItem(W8Character* character);
 
 int __cdecl CompareItemsForPool(const void* first, const void* second);
 void UpdateGadgeteerOmnigun(W8Character* character);
-unsigned int SwapCharacterWeaponSets(int party_slot, char announce, int refresh);
 void BindEveryPartyItem(void); /* 0x0051D230 */
 /* 0x00522A00: whether the item's equip class is directly usable (0x17/0x19). */
-bool IsUsableItemClass00522A00(W8ItemInstance* item);
+bool IsUsableItemClass(W8ItemInstance* item);
 /* 0x00522B80: validate an item's embedded spell for use now; nonzero reports
    use blocked with the reason notice queued through the callback. */
 char ValidateItemSpellUse(int character_index, W8ItemInstance* item,

@@ -171,7 +171,7 @@ struct W8Character {
     /* 0x0000: SaveCharacter stamps 1 here before writing the record, so the
        leading dword is a saved-record version rather than runtime state. */
     unsigned int record_version;
-    unsigned char fInParty; /* 0x0004: pPC->fInParty assertion spelling */
+    bool fInParty; /* 0x0004: pPC->fInParty assertion spelling */
     /* 0x0005: the character's name, wide, and the stem SaveCharacter formats
        "%ls.CHR" from. The extent below partitions the unknown run up to the
        profession at 0x0069; it is not proven, and only the fact that a wide
@@ -196,9 +196,9 @@ struct W8Character {
     /* 0x0079: the portrait/catalog index. Looked up from the table at
        0x00616604 by gender, race and profession together, drawn through
        DrawCatalogImage(-14, ...) and RenderPartyPortrait, and reassigned from
-       g_portrait_groups_648950[].portraits[] when the portrait changes. */
+       g_portrait_groups[].portraits[] when the portrait changes. */
     int portrait_index;
-    /* 0x007d: cleared by DeriveCharacterPersonality004EFA30 in both of its branches and set to -1
+    /* 0x007d: cleared by DeriveCharacterPersonality in both of its branches and set to -1
        by the character rebuild; all three accesses are four-byte stores. */
     int unknown_007d;
     int personality_0081; /* indexes the state-5 descriptor text */
@@ -367,7 +367,7 @@ struct W8Character {
        W8GlobalStatus::pending_move_location. */
     W8WorldCameraState saved_location; /* 0x17d7 */
     /* 0x1813: which level that anchor belongs to. The recall compares it
-       against g_status_685170.current_level and takes a different path when they differ. */
+       against g_status.current_level and takes a different path when they differ. */
     int saved_level;                               /* 0x1813 */
     W8CharacterConditionRecord conditions_1817[4]; /* 0x1817 .. 0x185a */
     /* 0x185b: the deep-fatigue effect is already on this character, which is
@@ -401,7 +401,7 @@ extern int g_profession_skill_availability[0x29][W8_PROFESSION_COUNT];
 extern int g_profession_bonus_skills[W8_PROFESSION_COUNT];
 extern W8SkillAttributes g_skill_attributes[0x29];
 
-/* Profession and race trait sets consulted by CharacterHasTrait00547940. Each entry is
+/* Profession and race trait sets consulted by CharacterHasTrait. Each entry is
    only its id list: three profession abilities, five race abilities. */
 struct W8ProfessionAbilitySet {
     int ability_ids[3];
@@ -426,6 +426,6 @@ struct W8PortraitDescriptor {
 
 static_assert(sizeof(W8PortraitDescriptor) == 0x10, "W8PortraitDescriptor_size");
 
-extern W8PortraitDescriptor g_portrait_descriptors_6483d0[80];
+extern W8PortraitDescriptor g_portrait_descriptors[80];
 
 #endif

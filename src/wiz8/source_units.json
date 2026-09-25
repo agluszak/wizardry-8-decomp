@@ -16,7 +16,7 @@
     "src/wiz8/dialog_code/MessageDialogBase.cpp",
     "src/wiz8/dialog_code/NotificationDialog.cpp",
     "src/wiz8/dialog_code/PortraitQuote.cpp",
-    "src/wiz8/engine_code/GameTimeAccumulator0043A910.cpp",
+    "src/wiz8/engine_code/GameTimeAccumulator.cpp",
     "src/wiz8/engine_code/IntervalGate.cpp",
     "src/wiz8/engine_code/MonsterLight.cpp",
     "src/wiz8/engine_code/OctRegionPolygon.cpp",

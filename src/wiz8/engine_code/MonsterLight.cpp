@@ -1,6 +1,6 @@
 #include "wiz8/engine_code/MonsterLight.h"
 
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/float_constants.h"
 #include "surrender/srCore.h"
 
@@ -8,7 +8,7 @@
 #include <string.h>
 
 // GLOBAL: WIZ8 0x005ecd4c
-float g_monster_light_cycle_rate_005ecd4c = 0.025f;
+float g_monster_light_cycle_rate = 0.025f;
 // GLOBAL: WIZ8 0x005ec318
 double g_double_005ec318 = 6.2831852;
 
@@ -42,7 +42,7 @@ MonsterLight::MonsterLight(srNode* parent, unsigned char cycle_color, float rang
     specular_1b0.SetZero();
     diffuse_1a4 = *first_color;
     setFlag(srNode::FLAG_DISABLE);
-    m_start_time_244 = g_game_time_accumulator_6598bc->GetElapsed();
+    m_start_time_244 = g_game_time_accumulator->GetElapsed();
 }
 
 /* A copied monster light preserves the authored light configuration and
@@ -90,7 +90,7 @@ MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
     setParent(other.getParent(), 1);
     intensity_1d0 = 1.0f;
     setFlag(srNode::FLAG_DISABLE);
-    m_start_time_244 = g_game_time_accumulator_6598bc->GetElapsed();
+    m_start_time_244 = g_game_time_accumulator->GetElapsed();
 }
 
 /* The concrete class owns no allocation beyond its regular srLight base.
@@ -119,7 +119,7 @@ void MonsterLight::SetVisible0049D970(char visible)
 // FUNCTION: WIZ8 0x0049D990
 void MonsterLight::Update0049D990(const srVector3T<float>* position)
 {
-    float elapsed = g_game_time_accumulator_6598bc->GetElapsed() - m_start_time_244;
+    float elapsed = g_game_time_accumulator->GetElapsed() - m_start_time_244;
 
     if (m_fade_out_249 != 0) {
         float fade = elapsed * g_float_005ebc3c;
@@ -128,10 +128,10 @@ void MonsterLight::Update0049D990(const srVector3T<float>* position)
         }
         intensity_1d0 = g_float_005ebb38 - fade;
     } else if (m_cycle_color_248 != 0) {
-        float cycle = elapsed * g_monster_light_cycle_rate_005ecd4c;
-        double whole = floor((double)cycle);
+        float cycle = elapsed * g_monster_light_cycle_rate;
+        double whole = floor(cycle);
         float first_weight =
-            (float)(sin(((double)cycle - whole) * g_double_005ec318) + g_float_005ebb38) *
+            static_cast<float>(sin((cycle - whole) * g_double_005ec318) + g_float_005ebb38) *
             g_float_005ebc7c;
         float second_weight = g_float_005ebb38 - first_weight;
 
@@ -148,10 +148,10 @@ void MonsterLight::Update0049D990(const srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x0049DAF0
-void MonsterLight::StartFadeOut0049DAF0()
+void MonsterLight::StartFadeOut()
 {
     m_fade_out_249 = 1;
-    m_start_time_244 = g_game_time_accumulator_6598bc->GetElapsed();
+    m_start_time_244 = g_game_time_accumulator->GetElapsed();
 }
 
 // TEMPLATE: WIZ8 0x0049DC20

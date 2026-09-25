@@ -54,12 +54,16 @@ public:
         srTextureIFace* texture_00;
         unsigned long pass_value_04;
         srShader flags_08;
+        /* Per-stage per-vertex texture tables; the mesh fills both slots of
+           the {0x0c,0x10} pair through (&texture_array_0c)[layer]. Writers
+           store srPtr<srTextureIFace> or stTextureAnim frame tables; the
+           renderer only copies each dword entry into the texture-set key. */
         void* texture_array_0c;
-        unsigned long value_10;
+        void* texture_array_10;
         const srShader* shader_14;
         srVector2T<float>* st_18;
-        /* The mesh's poly UV index table, stored through the ulong slot. */
-        unsigned long poly_uv_1c;
+        /* The mesh's per-triangle poly-UV corner source table. */
+        const srVector3i* poly_uv_1c;
     };
 
     static_assert(sizeof(Record) == 0x5c, "srTriMeshPipeline_Record_must_be_0x5c");
@@ -82,14 +86,14 @@ public:
         if (this == current) {
             current->flushing_8c = 1;
             if (current->slot_count_84 > 0) {
-                current->FlushSlots00475600();
+                current->FlushSlots();
             }
             current->flushing_8c = 0;
         }
     }
 
     /* Slot 0 of vtable 0x005ec520. */
-    virtual void FlushSlots00475600();
+    virtual void FlushSlots();
     /* Slot 1 / complete destructor at 0x004752F0. */
     virtual ~srTriMeshPipeline();
 
@@ -107,7 +111,7 @@ public:
     const srVector4T<float>* projected_vertices_30;
     const srVector3i* triangles_34;
     /* stParticle stores allocation_160 (vec3*) here; Reset/Get null it.
-       FlushSlots00475600 then CALLINDs vp+0x18c (_minMax vec4) with this
+       FlushSlots then CALLINDs vp+0x18c (_minMax vec4) with this
        pointer and the packed vec3 min/max at +0x44/+0x50. Stores and the
        xyz-only center math keep these as vec3; the vec4 slot is recorded,
        not a reason to widen the fields. */
@@ -133,6 +137,9 @@ public:
     srArray<srVertexArray> vertex_arrays_a4;
 
 protected:
+    /* srExit releases the singleton through this protected static. */
+    friend SR_DLL_IMPORT int __cdecl srExit(void);
+
     static SR_DLL_IMPORT srTriMeshPipeline* pipe;
 
 private:

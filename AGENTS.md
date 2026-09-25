@@ -54,12 +54,42 @@ printing and put large disposable output under `build/`. Detailed operational re
 
 ## Source fidelity
 
-- Faithfulness is mandatory; exact byte identity is incremental. Recover plausible authored circa-2000
-  C++ and VC6 ABI, not compiler lowering. Never invent, omit, stub or approximate retail behavior.
+- **Reconstruct first; pursue exactness afterwards.** Recovery has two distinct phases. First recover
+  the most plausible authored circa-2000 C++ and VC6 ABI: behavior, types, ownership, object layout,
+  abstractions, source placement and header/TU visibility. During reconstruction, comparison is evidence
+  and validation, not an objective function. Prefer the better source model even when its score is worse.
+- Only after the affected source model is coherent may remaining differences be treated as an exactness/
+  code-generation problem. Investigate compiler/toolchain version differences, ABI, pragmas, declaration
+  order, TU/header visibility, inlining and other genuine source/compiler causes. Do not distort recovered
+  source merely to reproduce VC6 lowering.
+- An `exact` or `effective` result proves that the current source reproduces the relevant machine code;
+  it does not prove that the source spelling or abstraction is original. Conversely, a mismatch does not
+  justify a less plausible source form. Accepted source oracles and source-model evidence outrank
+  comparison score; matching may distinguish between independently plausible authored forms.
+- Never invent, omit, stub or approximate retail behavior. Never add dummy variables, artificial aliases,
+  overlapping locals, dead branches, redundant counters, fake wrappers, manual inlining, register-shaped
+  temporaries, volatile barriers, unions, casts or other constructs solely to manipulate register
+  allocation, stack layout, scheduling, CFG shape or comparison percentage. If faithful ordinary source
+  leaves a compiler-only mismatch, retain the faithful source and record the lowering gap.
+- When stronger evidence changes the reconstructed model, fix the model even if exactness temporarily
+  regresses, then investigate the new mismatch from that corrected baseline. A known-unfaithful construct
+  is matching debt, not precedent; prefer removing it and fixing the shared owner, ABI, toolchain model,
+  header/TU placement or tooling when the evidence supports that explanation.
+- Treat fidelity as an ordered stack: source-model fidelity first, semantic/ABI fidelity second, codegen
+  fidelity third. Never knowingly make the source model less plausible to improve a comparison score.
+  Pursue exact bytes after reconstructing the authored abstraction; if the remaining difference is
+  established compiler/linker lowering, keep the clean source and record the mismatch instead.
+- Source-shaping compiler controls are source claims, not matching knobs. Do not add `__forceinline`,
+  noinline attributes, per-function optimizer pragmas or equivalent controls merely to change generated
+  code. They require positive source/oracle evidence or strong independent evidence about authored
+  visibility/control. Existing suspicious sites are recovery debt, not precedent.
 - Never promote compiler output into an authored source construct. A concrete template emission proves
   only that the primary template was instantiated for those arguments; it never proves an explicit
   specialization or explicit instantiation. Likewise an inlined copy does not prove manual inlining,
   a deleting destructor does not prove a handwritten wrapper, and folded functions do not prove aliases.
+  Retail ICF is linked-image evidence, not source identity: recovered source must not use reccmp
+  `FOLDED` markers. Mark only the retained retail emission; independently evidenced sibling source
+  functions remain ordinary unmarked functions.
   Keep template behavior in the primary template unless an accepted original-source oracle directly
   establishes otherwise. Recovered Wizardry/SurRender source gates new explicit specializations and
   instantiations without a comment waiver; an oracle-backed exception must change that reviewed gate.
@@ -106,6 +136,11 @@ printing and put large disposable output under `build/`. Detailed operational re
   skill for `TEMPLATE`, `SYNTHETIC`, `LIBRARY`, `VTABLE` and `GLOBAL` ownership.
 - Preserve TU ownership/order in `src/wiz8/sources.cmake`. Recover placement before optimizer control:
   ordinary functions stay unannotated; header visibility/inlining requires cross-TU/call-site evidence.
+  The comparison build intentionally uses `/OPT:NOICF`; an ICF-derived call-target or vtable mismatch
+  is acceptable once the fold is independently established. Do not add aliases, casts, or source
+  markers merely to force the retained retail address. The retired `identity-alias:` escape hatch
+  must not be reintroduced; a proven consumer/provider ABI prototype discrepancy uses the narrow
+  `abi-prototype-ok: <reason>` waiver instead.
 - Legitimate `reinterpret_cast` sites express storage the type system cannot: external ABI, raw
   serialized/pixel memory, tagged storage, deliberate address/bit reinterpretation or an explicitly
   unresolved site. New casts require an attached `reinterpret-ok: <reason>` comment; a marker never justifies
@@ -157,8 +192,9 @@ need no independent rediscovery. If no evidence-backed correction remains, retai
 report the unresolved mismatch/evidence gap rather than manufacturing certainty.
 
 Never add handwritten fake implementations to make a runnable product link. Unrecovered retail calls
-may use the build-generated runtime `STUB` traps; `FUNCTION` means a body was actually recovered. The
-runtime-bringup skill owns the detailed stub/debug workflow.
+may use the build-generated runtime `STUB` traps only when their retail address identity is established;
+an addressless unresolved first-party callable is a source-model error, not a runnable stub. `FUNCTION`
+means a body was actually recovered. The runtime-bringup skill owns the detailed stub/debug workflow.
 
 ## Verification
 

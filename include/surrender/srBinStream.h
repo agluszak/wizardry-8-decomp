@@ -2,9 +2,16 @@
 
 #include "srHeap.h"
 
+/* The provider exports the full member surface including the implicit copy
+   constructor/assignment and the vftable, so the declaration is dllexport
+   under SURRENDER_BUILD; consumers keep the class-wide import. */
 // VTABLE: SURRENDER 0x10076970 srBinStream
 // class srBinStream
+#if defined(SURRENDER_BUILD)
+class __declspec(dllexport) srBinStream {
+#else
 class SR_DLL_IMPORT srBinStream {
+#endif
 public:
     enum e_state { SR_STREAM_OK = 0, SR_STREAM_ERROR = 1, SR_STREAM_STATE_2 = 2 };
 

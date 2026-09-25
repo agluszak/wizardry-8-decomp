@@ -1,5 +1,13 @@
 #pragma once
 
+#include <iostream>
+
+#include "srHeap.h"
+
+class srShader;
+
+SR_DLL_IMPORT std::ostream& operator<<(std::ostream& stream, const srShader& shader);
+
 /* SurRender stores a shader as one 32-bit packed word. operator<<(ostream,
    srShader) at 0x10034db0 prints every field; Wizardry writes the same word
    with masks. The modeller/mesh default 0x0100241b is PASS_LEQUAL, depth and
@@ -7,14 +15,11 @@
    TEXTURING_DISABLE, DITHER_ENABLE. */
 class srShader {
 public:
-#ifdef SURRENDER_BUILD
-    /* Provider-inline: retail expands the default word inline inside
-       getShaderDisableMask; no provider out-of-line emission exists. Wiz8
-       emits its own out-of-line copy at 0x00424A40. */
-    srShader() : value(0x0100241b) {}
-#else
+    /* Out-of-line in both images: the gerd.cpp unit emits the provider copy
+       (0x100199F0) that all other provider units call, and Video2.cpp emits
+       the consumer copy (0x00424A40); retail expands the default word inline
+       only inside getShaderDisableMask. */
     srShader();
-#endif
 
     /* Copy one packed shader word into value; sources are shader words and
        render-flag table entries alike. */
@@ -63,6 +68,12 @@ public:
         DETAILALPHA_SCALE = 2,
         DETAILALPHA_INVSCALE = 3
     };
+    enum e_depthWrite { DEPTH_WRITE_DISABLE = 0, DEPTH_WRITE_ENABLE = 1 };
+    enum e_colorWrite { COLOR_WRITE_DISABLE = 0, COLOR_WRITE_ENABLE = 1 };
+    enum e_alphaTest { ALPHATEST_DISABLE = 0, ALPHATEST_ENABLE = 1 };
+    enum e_dither { DITHER_DISABLE = 0, DITHER_ENABLE = 1 };
+    enum e_secondaryGradient { SECONDARY_GRADIENT_DISABLE = 0, SECONDARY_GRADIENT_ENABLE = 1 };
+    enum e_texturing { TEXTURING_DISABLE = 0, TEXTURING_ENABLE = 1 };
 
     /* Packed-field masks. Depth/color write, texturing, alphatest and dither
        are one-bit enables. Gradient occupies bits 10–11 (MODULATE=0x400,
@@ -85,6 +96,24 @@ public:
         DETAILCOLOR1_SHIFT = 25,
         DETAILALPHA1_SHIFT = 29
     };
+
+    /* Packed-field range test; srMeshModel::verify asserts it on shader
+       words. Retail expands it inline as a disjunction of per-field
+       over-maximum tests — no out-of-line emission exists. */
+    int isValid() const
+    {
+        return !(
+            (value & 0x7) > PASS_ALWAYS || (value >> 0x3 & 0x1) > 1 || (value >> 0x4 & 0x1) > 1 ||
+            (value >> DSTBLEND_SHIFT & 0x7) > DSTBLEND_ONE_MINUS_SRC_ALPHA ||
+            (value >> FOG_SHIFT & 0x3) > FOG_WHITE || (value >> 0xa & 0x3) > GRADIENT_ADD ||
+            (value >> 0xc & 0x1) > 1 ||
+            (value >> SRCBLEND_SHIFT & 0x3) > SRCBLEND_ONE_MINUS_SRC_ALPHA ||
+            (value >> 0xf & 0x1) > 1 ||
+            (value >> DETAILCOLOR0_SHIFT & 0xf) > DETAILCOLOR_DETAILBLEND ||
+            (value >> DETAILALPHA0_SHIFT & 0x7) > DETAILALPHA_INVSCALE ||
+            (value >> 0x17 & 0x1) > 1 || (value >> 0x18 & 0x1) > 1 ||
+            (value >> DETAILCOLOR1_SHIFT & 0xf) > 0x8 || (value >> DETAILALPHA1_SHIFT & 0x7) > 0x3);
+    }
 
     unsigned long value;
 };

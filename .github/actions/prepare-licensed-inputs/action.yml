@@ -1,5 +1,5 @@
-name: Prepare licensed Wizardry inputs
-description: Restore encrypted licensed caches, materialize the installer, and refresh checkout-local projections.
+name: Prepare licensed Wizardry runtime inputs
+description: Materialize the canonical installer and full runtime game tree.
 
 inputs:
   inputs-token:
@@ -12,140 +12,18 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Restore encrypted GOG installer cache
-      id: installer-cache
+    - name: Materialize canonical GOG installer
+      uses: ./.github/actions/materialize-gog-installer
+      with:
+        inputs-token: ${{ inputs.inputs-token }}
+        cache-key: ${{ inputs.cache-key }}
+
+    - name: Restore public FID source cache
       uses: actions/cache@v4
       with:
-        path: ${{ runner.temp }}/wiz8-gog-cache
-        key: wiz8-gog-${{ env.GOG_INSTALLER_SHA256 }}-${{ env.GOG_CACHE_VERSION }}
+        path: ${{ env.WIZ8_WORK_DIR }}/fid/sources
+        key: wiz8-fid-sources-v1-${{ hashFiles('config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
 
-    - name: Fetch and encrypt GOG installer on cache miss
-      if: steps.installer-cache.outputs.cache-hit != 'true'
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.inputs-token }}
-        WIZ8_CACHE_KEY: ${{ inputs.cache-key }}
-      run: |
-        set -euo pipefail
-        test -n "$GH_TOKEN"
-        test -n "$WIZ8_CACHE_KEY"
-
-        cache_dir="$RUNNER_TEMP/wiz8-gog-cache"
-        download_dir="$RUNNER_TEMP/wiz8-gog-download"
-        downloaded="$download_dir/$GOG_RELEASE_ASSET_NAME"
-        installer="$download_dir/$GOG_INSTALLER_NAME"
-        encrypted="$cache_dir/$GOG_INSTALLER_NAME.enc"
-
-        rm -rf "$cache_dir" "$download_dir"
-        mkdir -p "$cache_dir" "$download_dir"
-
-        gh release download "$GOG_RELEASE_TAG" \
-          --repo "$GOG_INPUT_REPO" \
-          --pattern "$GOG_RELEASE_ASSET_NAME" \
-          --dir "$download_dir"
-
-        test -s "$downloaded"
-        mv "$downloaded" "$installer"
-        echo "$GOG_INSTALLER_SHA256  $installer" | sha256sum --check -
-
-        openssl enc \
-          -aes-256-cbc \
-          -pbkdf2 \
-          -iter 200000 \
-          -salt \
-          -in "$installer" \
-          -out "$encrypted" \
-          -pass env:WIZ8_CACHE_KEY
-
-        rm -rf "$download_dir"
-        test -s "$encrypted"
-
-    - name: Materialize licensed GOG installer
-      shell: bash
-      env:
-        WIZ8_CACHE_KEY: ${{ inputs.cache-key }}
-      run: |
-        set -euo pipefail
-        test -n "$WIZ8_CACHE_KEY"
-
-        encrypted="$RUNNER_TEMP/wiz8-gog-cache/$GOG_INSTALLER_NAME.enc"
-        installer="$WIZ8_INPUT_DIR/$GOG_INSTALLER_NAME"
-
-        test -s "$encrypted"
-        mkdir -p "$WIZ8_INPUT_DIR"
-
-        openssl enc \
-          -d \
-          -aes-256-cbc \
-          -pbkdf2 \
-          -iter 200000 \
-          -in "$encrypted" \
-          -out "$installer" \
-          -pass env:WIZ8_CACHE_KEY
-
-        echo "$GOG_INSTALLER_SHA256  $installer" | sha256sum --check -
-
-        cat > config/local-inputs.yml <<EOF
-        schema: wiz8.local-inputs
-        inputs:
-          gog-media: $GOG_INSTALLER_NAME
-        EOF
-
-    - name: Restore encrypted prepared-corpus cache
-      id: prepared-cache
-      uses: actions/cache@v4
-      with:
-        path: ${{ runner.temp }}/wiz8-prepared-cache
-        key: wiz8-prepared-v1-${{ env.GOG_INSTALLER_SHA256 }}-${{ hashFiles('config/variants.yml', 'config/static-libraries.yml', 'config/known_binaries.yml', 'tools/wiz8decomp/extract/**', 'tools/wiz8decomp/inputs/**', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
-
-    - name: Materialize prepared corpus
-      if: steps.prepared-cache.outputs.cache-hit == 'true'
-      shell: bash
-      env:
-        WIZ8_CACHE_KEY: ${{ inputs.cache-key }}
-      run: |
-        set -euo pipefail
-        encrypted="$RUNNER_TEMP/wiz8-prepared-cache/work.tar.zst.enc"
-        archive="$RUNNER_TEMP/wiz8-prepared-work.tar.zst"
-        test -s "$encrypted"
-        rm -rf "$WIZ8_WORK_DIR"
-        mkdir -p "$(dirname "$WIZ8_WORK_DIR")"
-        openssl enc \
-          -d \
-          -aes-256-cbc \
-          -pbkdf2 \
-          -iter 200000 \
-          -in "$encrypted" \
-          -out "$archive" \
-          -pass env:WIZ8_CACHE_KEY
-        zstd -d -q "$archive" -c | tar -C "$(dirname "$WIZ8_WORK_DIR")" -xf -
-        rm -f "$archive"
-
-    - name: Refresh prepared inputs and checkout-local projections
+    - name: Prepare full runtime corpus
       shell: bash
       run: uv run wiz8 prepare
-
-    - name: Encrypt prepared corpus on cache miss
-      if: steps.prepared-cache.outputs.cache-hit != 'true'
-      shell: bash
-      env:
-        WIZ8_CACHE_KEY: ${{ inputs.cache-key }}
-      run: |
-        set -euo pipefail
-        cache_dir="$RUNNER_TEMP/wiz8-prepared-cache"
-        archive="$RUNNER_TEMP/wiz8-prepared-work.tar.zst"
-        encrypted="$cache_dir/work.tar.zst.enc"
-        rm -rf "$cache_dir"
-        mkdir -p "$cache_dir"
-        tar -C "$(dirname "$WIZ8_WORK_DIR")" -cf - "$(basename "$WIZ8_WORK_DIR")" \
-          | zstd -T0 -1 -q -o "$archive"
-        openssl enc \
-          -aes-256-cbc \
-          -pbkdf2 \
-          -iter 200000 \
-          -salt \
-          -in "$archive" \
-          -out "$encrypted" \
-          -pass env:WIZ8_CACHE_KEY
-        rm -f "$archive"
-        test -s "$encrypted"

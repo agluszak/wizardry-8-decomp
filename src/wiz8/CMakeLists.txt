@@ -8,16 +8,23 @@ function(wiz8_collect_zlib_units RESULT SOURCE_ROOT)
 endfunction()
 
 function(wiz8_add_executable)
-    cmake_parse_arguments(ARG "OPT_REF;CONSOLE;ALLOW_UNRESOLVED;FIXED_BASE" "TARGET;OUTPUT;MAP" "LIBRARIES;SOURCES" ${ARGN})
+    cmake_parse_arguments(ARG "OPT_REF;CONSOLE;ALLOW_UNRESOLVED;FIXED_BASE;INSTRUMENTED" "TARGET;OUTPUT;MAP" "LIBRARIES;SOURCES" ${ARGN})
+    if(ARG_INSTRUMENTED)
+        set(instrumentable_objects $<TARGET_OBJECTS:wiz8_test_instrumented_objects>)
+    else()
+        set(instrumentable_objects $<TARGET_OBJECTS:wiz8_recovered_instrumentable_objects>)
+    endif()
     if(ARG_CONSOLE)
         add_executable(${ARG_TARGET}
             $<TARGET_OBJECTS:wiz8_recovered_objects>
+            ${instrumentable_objects}
             ${ARG_SOURCES}
         )
         set(subsystem /SUBSYSTEM:CONSOLE,4.0)
     else()
         add_executable(${ARG_TARGET} WIN32
             $<TARGET_OBJECTS:wiz8_recovered_objects>
+            ${instrumentable_objects}
             ${ARG_SOURCES}
         )
         set(subsystem /SUBSYSTEM:WINDOWS,4.0)
@@ -82,19 +89,36 @@ endif()
 include(sources.cmake)
 set(WIZ8_SOURCE_FILES ${WIZ8_SOURCE_UNITS})
 list(TRANSFORM WIZ8_SOURCE_FILES PREPEND "${PROJECT_SOURCE_DIR}/")
+set(WIZ8_INSTRUMENTABLE_SOURCE_FILES
+    "${PROJECT_SOURCE_DIR}/src/wiz8/local_code/Gameloop.cpp"
+    "${PROJECT_SOURCE_DIR}/src/wiz8/local_code/RegionManager.cpp"
+    "${PROJECT_SOURCE_DIR}/src/wiz8/engine_code/Video2.cpp"
+    "${PROJECT_SOURCE_DIR}/src/wiz8/local_code/QuoteManager.cpp"
+)
+list(REMOVE_ITEM WIZ8_SOURCE_FILES ${WIZ8_INSTRUMENTABLE_SOURCE_FILES})
 
-# Compile recovered first-party sources once, then reuse those exact objects in
-# every product; the lint lane registers the same target instead of a parallel
-# source list.
+# Share the common recovered objects across products. Only the selected units
+# are compiled again for the instrumented runtime test image.
 add_library(wiz8_recovered_objects OBJECT ${WIZ8_SOURCE_FILES})
 target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
 wiz8_lint_target(wiz8_recovered_objects)
+add_library(wiz8_recovered_instrumentable_objects OBJECT ${WIZ8_INSTRUMENTABLE_SOURCE_FILES})
+target_link_libraries(wiz8_recovered_instrumentable_objects PRIVATE wiz8_compile_settings)
+wiz8_lint_target(wiz8_recovered_instrumentable_objects)
+add_library(wiz8_test_instrumented_objects OBJECT ${WIZ8_INSTRUMENTABLE_SOURCE_FILES})
+target_link_libraries(wiz8_test_instrumented_objects PRIVATE wiz8_compile_settings)
+target_compile_definitions(wiz8_test_instrumented_objects PRIVATE WIZ8_RUNTIME_TESTS=1)
+target_include_directories(wiz8_test_instrumented_objects PRIVATE
+    "${PROJECT_SOURCE_DIR}/tests/runtime/instrumentation")
+wiz8_lint_target(wiz8_test_instrumented_objects)
 
 set(WIZ8_RUNTIME_TEST_SOURCES
     "${PROJECT_SOURCE_DIR}/tests/runtime/game_thread_executor.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/runtime_case.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/instrumentation/runtime_instrumentation.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/gameplay_actions.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/combat_actions.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/character_actions.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_runtime_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/oct_file_semantic_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/keyboard_menu_semantic_test.cpp"
@@ -110,6 +134,9 @@ set(WIZ8_RUNTIME_TEST_SOURCES
 )
 add_library(wiz8_runtime_test_objects OBJECT ${WIZ8_RUNTIME_TEST_SOURCES})
 target_link_libraries(wiz8_runtime_test_objects PRIVATE wiz8_compile_settings)
+target_compile_definitions(wiz8_runtime_test_objects PRIVATE WIZ8_RUNTIME_TESTS=1)
+target_include_directories(wiz8_runtime_test_objects PRIVATE
+    "${PROJECT_SOURCE_DIR}/tests/runtime/instrumentation")
 wiz8_lint_target(wiz8_runtime_test_objects)
 
 if(WIZ8_BUILD_PRODUCTS)
@@ -174,6 +201,7 @@ if(WIZ8_BUILD_PRODUCTS)
         MAP Wiz8RuntimeTest.map
         OPT_REF
         CONSOLE
+        INSTRUMENTED
         FIXED_BASE
         SOURCES
             "$<TARGET_OBJECTS:wiz8_runtime_stub_objects>"

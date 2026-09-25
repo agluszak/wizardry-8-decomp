@@ -22,9 +22,9 @@
 #define COMBAT_SOUND_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Combat Sound.cpp"
 
 // GLOBAL: WIZ8 0x0068DD90
-char* g_weapon_attack_sounds_68dd90[38];
+char* g_weapon_attack_sounds[38];
 // GLOBAL: WIZ8 0x0068D850
-char* g_material_impact_sounds_68d850[28][12];
+char* g_material_impact_sounds[28][12];
 
 /* Play one combat sound under Data\Sound\Combat\.  When the name carries more
    than one recorded variant a random 1..n digit is appended onto the caller's
@@ -33,8 +33,7 @@ char* g_material_impact_sounds_68d850[28][12];
    level; zero and below play at the default.  With the flag set the handle is
    registered on the combat state so the service can poll SoundIsPlaying. */
 // FUNCTION: WIZ8 0x005499D0
-void PlayCombatSound005499D0(char* sound_name, unsigned int variant_count, bool store_handle,
-                             int volume)
+void PlayCombatSound(char* sound_name, unsigned int variant_count, bool store_handle, int volume)
 {
     SOUNDPARMS parms;
     char zSoundFileName[0x60];
@@ -50,8 +49,7 @@ void PlayCombatSound005499D0(char* sound_name, unsigned int variant_count, bool 
     }
     if (volume > 0) {
         memset(&parms, 0xff, sizeof(parms));
-        parms.uiVolume =
-            static_cast<unsigned int>(g_settings_6850c8.sound_effects_volume * volume) / 127;
+        parms.uiVolume = static_cast<unsigned int>(g_settings.sound_effects_volume * volume) / 127;
         handle = SoundPlay(zSoundFileName, &parms);
     } else {
         handle = SoundPlay(zSoundFileName, 0);
@@ -120,8 +118,8 @@ unsigned char LoadHitSoundDatabase(void)
     int row = 0;
     int column = -1;
 
-    memset(g_weapon_attack_sounds_68dd90, 0, sizeof(g_weapon_attack_sounds_68dd90));
-    memset(g_material_impact_sounds_68d850, 0, sizeof(g_material_impact_sounds_68d850));
+    memset(g_weapon_attack_sounds, 0, sizeof(g_weapon_attack_sounds));
+    memset(g_material_impact_sounds, 0, sizeof(g_material_impact_sounds));
     handle = FileOpen(path, 0x41, 0);
     if (!handle) {
         return 0;
@@ -135,7 +133,7 @@ unsigned char LoadHitSoundDatabase(void)
             TrimHitSoundLine(line);
         }
         if (line[0]) {
-            g_weapon_attack_sounds_68dd90[row++] = DuplicateHitSound(line);
+            g_weapon_attack_sounds[row++] = DuplicateHitSound(line);
         }
     }
     if (row != 38) {
@@ -157,7 +155,7 @@ unsigned char LoadHitSoundDatabase(void)
             FileClose(handle);
             return 0;
         }
-        g_material_impact_sounds_68d850[row++][column] = DuplicateHitSound(line);
+        g_material_impact_sounds[row++][column] = DuplicateHitSound(line);
     }
     FileClose(handle);
     // Several impact materials intentionally provide one catch-all sound rather than one
@@ -173,16 +171,16 @@ void ReleaseHitSoundDatabase(void)
     int column;
 
     for (row = 0; row < 38; ++row) {
-        if (g_weapon_attack_sounds_68dd90[row]) {
-            free(g_weapon_attack_sounds_68dd90[row]);
-            g_weapon_attack_sounds_68dd90[row] = 0;
+        if (g_weapon_attack_sounds[row]) {
+            free(g_weapon_attack_sounds[row]);
+            g_weapon_attack_sounds[row] = 0;
         }
     }
     for (column = 0; column < 12; ++column) {
         for (row = 0; row < 28; ++row) {
-            if (g_material_impact_sounds_68d850[row][column]) {
-                free(g_material_impact_sounds_68d850[row][column]);
-                g_material_impact_sounds_68d850[row][column] = 0;
+            if (g_material_impact_sounds[row][column]) {
+                free(g_material_impact_sounds[row][column]);
+                g_material_impact_sounds[row][column] = 0;
             }
         }
     }
@@ -194,48 +192,48 @@ void ReleaseHitSoundDatabase(void)
    PlayCombatSound may append a variant digit. */
 /* The impact lookup shared by the emitted body below and by the sibling
    callers, where retail folds it inline. */
-static __forceinline char* LookupMaterialImpactSound(int weapon_class, int target_material)
+static inline char* LookupMaterialImpactSound(int weapon_class, int target_material)
 {
     char* sound;
 
     if (weapon_class < 0 || weapon_class >= 28 || target_material < 0 || target_material >= 12) {
         return const_cast<char*>("HIT");
     }
-    sound = g_material_impact_sounds_68d850[weapon_class][target_material];
+    sound = g_material_impact_sounds[weapon_class][target_material];
     if (sound == 0) {
-        sound = g_material_impact_sounds_68d850[0][target_material];
+        sound = g_material_impact_sounds[0][target_material];
     }
     return sound;
 }
 
 // FUNCTION: WIZ8 0x00549EB0
-char* GetMaterialImpactSound00549EB0(int weapon_class, int target_material)
+char* GetMaterialImpactSound(int weapon_class, int target_material)
 {
     return LookupMaterialImpactSound(weapon_class, target_material);
 }
 
 /* The two missile/monster siblings spell the same lookup as three leaves
    that each call PlayCombatSound rather than sharing one tail call. */
-static __forceinline void PlayMaterialImpactSound(int weapon_class, int target_material, int volume)
+static inline void PlayMaterialImpactSound(int weapon_class, int target_material, int volume)
 {
     char* sound;
 
     if (weapon_class < 0 || weapon_class >= 28 || target_material < 0 || target_material >= 12) {
-        PlayCombatSound005499D0(const_cast<char*>("HIT"), 1, 1, volume);
+        PlayCombatSound(const_cast<char*>("HIT"), 1, 1, volume);
         return;
     }
-    sound = g_material_impact_sounds_68d850[weapon_class][target_material];
+    sound = g_material_impact_sounds[weapon_class][target_material];
     if (sound) {
-        PlayCombatSound005499D0(sound, 1, 1, volume);
+        PlayCombatSound(sound, 1, 1, volume);
     } else {
-        PlayCombatSound005499D0(g_material_impact_sounds_68d850[0][target_material], 1, 1, volume);
+        PlayCombatSound(g_material_impact_sounds[0][target_material], 1, 1, volume);
     }
 }
 
 /* The equipment slot covering one armour-class hit location, then the item
    worn there (-1 when that location is bare).  The inlined copies share the
    line-168 assertion. */
-static __forceinline int PCItemInACSlot(const W8Character* character, int hit_location)
+static inline int PCItemInACSlot(const W8Character* character, int hit_location)
 {
     int slot = 0;
 
@@ -262,8 +260,8 @@ static __forceinline int PCItemInACSlot(const W8Character* character, int hit_lo
 }
 
 // FUNCTION: WIZ8 0x00549EF0
-void MakePCAttackSound00549EF0(W8CombatCharacterRow* row, const W8HandAttack* hand_attack,
-                               int arg_3, bool store_handle, int volume)
+void MakePCAttackSound(W8CombatCharacterRow* row, const W8HandAttack* hand_attack, int arg_3,
+                       bool store_handle, int volume)
 {
     int weapon_class;
 
@@ -275,12 +273,12 @@ void MakePCAttackSound00549EF0(W8CombatCharacterRow* row, const W8HandAttack* ha
             return;
         }
     }
-    PlayCombatSound005499D0(g_weapon_attack_sounds_68dd90[weapon_class], 1, store_handle, volume);
+    PlayCombatSound(g_weapon_attack_sounds[weapon_class], 1, store_handle, volume);
 }
 
 // FUNCTION: WIZ8 0x00549F50
-void MakePCMeleeHitSound00549F50(int iChar, const W8HandAttack* hand_attack, W8CombatSlot* target,
-                                 int hit_location, int volume)
+void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlot* target,
+                         int hit_location, int volume)
 {
     int weapon_class;
     int target_material = -1;
@@ -292,7 +290,7 @@ void MakePCMeleeHitSound00549F50(int iChar, const W8HandAttack* hand_attack, W8C
                            .weapon_sound_class_0c5;
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-        const W8Character* character = &g_status_685170.buffers.Char[target->iChar];
+        const W8Character* character = &g_status.buffers.Char[target->iChar];
         int item = PCItemInACSlot(character, hit_location);
         target_material = item == -1 ? 0 : g_item_records[item].material_0c1;
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -301,20 +299,19 @@ void MakePCMeleeHitSound00549F50(int iChar, const W8HandAttack* hand_attack, W8C
     } else {
         srAssertFail("FALSE", COMBAT_SOUND_CPP, 415, "MakePCHitSound : Unknown target type");
     }
-    PlayCombatSound005499D0(LookupMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
+    PlayCombatSound(LookupMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
 }
 
 // FUNCTION: WIZ8 0x0054A0E0
 void MakePCHitSound(W8Missile* missile, W8CombatSlot* target, int hit_location, int volume)
 {
-    int weapon_class =
-        g_missile_table_65bde0[missile->missile_table_index_1d8].weapon_sound_class_165;
+    int weapon_class = g_missile_table[missile->missile_table_index_1d8].weapon_sound_class_165;
     /* Defined so the assert-failure path still reaches the material lookup;
        -1 is out of range and yields the retail "HIT" fallback. */
     int target_material = -1;
 
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-        const W8Character* character = &g_status_685170.buffers.Char[target->iChar];
+        const W8Character* character = &g_status.buffers.Char[target->iChar];
         int item = PCItemInACSlot(character, hit_location);
         target_material = item == -1 ? 0 : g_item_records[item].material_0c1;
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -327,8 +324,8 @@ void MakePCHitSound(W8Missile* missile, W8CombatSlot* target, int hit_location, 
 }
 
 // FUNCTION: WIZ8 0x0054A270
-void MakeMonsterHitSound0054A270(const W8MonsterAttack* attack, W8CombatSlot* target,
-                                 int hit_location, int volume)
+void MakeMonsterHitSound(const W8MonsterAttack* attack, W8CombatSlot* target, int hit_location,
+                         int volume)
 {
     int weapon_class;
     /* Defined so the assert-failure path still reaches the material lookup;
@@ -343,7 +340,7 @@ void MakeMonsterHitSound0054A270(const W8MonsterAttack* attack, W8CombatSlot* ta
     }
     weapon_class = attack->weapon_class_1c;
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-        const W8Character* character = &g_status_685170.buffers.Char[target->iChar];
+        const W8Character* character = &g_status.buffers.Char[target->iChar];
         int item = PCItemInACSlot(character, hit_location);
         target_material = item == -1 ? 0 : g_item_records[item].material_0c1;
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {

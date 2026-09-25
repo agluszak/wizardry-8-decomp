@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import glob
 import hashlib
 import json
 import logging
@@ -9,6 +10,7 @@ import os
 import re
 import shlex
 import shutil
+import subprocess
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -22,7 +24,6 @@ from .paths import compile_database_relative
 _SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
 _SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
 _SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
-_SOURCE_INDEX_SCHEMAS = frozenset({"reccmp-source-index-v2", "reccmp-source-index-v3"})
 LINT_ONLY_SOURCE_ROOTS = ("tests/runtime",)
 _ATTACHED_INCLUDE_FLAGS = (
     "-isystem",
@@ -92,10 +93,14 @@ def load_source_index(repository: Path) -> dict[str, Any]:
     path = repository / "build/source-index.json"
     if not path.is_file():
         raise SourceIndexError(f"{path} is missing; run `uv run wiz8 check`")
+    return _read_source_index_document(path)
+
+
+def _read_source_index_document(path: Path) -> dict[str, Any]:
     document = json.loads(path.read_text(encoding="utf-8"))
-    if document.get("schema") not in _SOURCE_INDEX_SCHEMAS:
-        raise SourceIndexError(f"{path} has an unsupported source-index schema")
-    return document
+    if not isinstance(document, Mapping):
+        raise SourceIndexError(f"{path} must contain a JSON object")
+    return dict(document)
 
 
 def try_load_source_index(repository: Path) -> dict[str, Any] | None:
@@ -107,13 +112,7 @@ def try_load_source_index(repository: Path) -> dict[str, Any] | None:
     path = repository / "build/source-index.json"
     if not path.is_file():
         return None
-    try:
-        document = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return None
-    if document.get("schema") not in _SOURCE_INDEX_SCHEMAS:
-        return None
-    return document
+    return _read_source_index_document(path)
 
 
 def source_index_freshness(repository: Path, target: str = "WIZ8") -> dict[str, Any]:
@@ -130,18 +129,13 @@ def source_index_freshness(repository: Path, target: str = "WIZ8") -> dict[str, 
             "detail": f"{relative} is missing; run `uv run wiz8 check`",
         }
     try:
-        document = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as error:
+        document = _read_source_index_document(path)
+        document["member_uses"]
+    except (OSError, ValueError, KeyError) as error:
         return {
             "state": "invalid",
             "path": relative,
-            "detail": f"{relative} could not be read: {error}",
-        }
-    if document.get("schema") not in _SOURCE_INDEX_SCHEMAS:
-        return {
-            "state": "invalid",
-            "path": relative,
-            "detail": f"{relative} has an unsupported source-index schema",
+            "detail": f"{relative} is invalid: {error}",
         }
     indexed_at = path.stat().st_mtime_ns
     roots = indexed_targets(repository).get(target.upper(), ())
@@ -202,8 +196,6 @@ class AddressBoundIdentity:
     owning_class: str | None
     source_signature: str | None
     is_definition: bool
-    folded: bool
-    identity_alias: bool
 
 
 def _declaration_is_variadic(entry: Mapping[str, Any], signature: str | None = None) -> bool:
@@ -272,9 +264,7 @@ def _identity_from_declaration(
     *,
     target: str,
     address: int,
-    identity_alias: bool,
     marker_kind: str | None = None,
-    folded: bool = False,
     kind: str | None = None,
 ) -> AddressBoundIdentity:
     qualified = str(entry.get("qualified_name") or "")
@@ -298,8 +288,6 @@ def _identity_from_declaration(
         owning_class=str(entry["owning_class"]) if entry.get("owning_class") else None,
         source_signature=str(entry["source_signature"]) if entry.get("source_signature") else None,
         is_definition=bool(entry.get("is_definition")),
-        folded=folded,
-        identity_alias=identity_alias,
     )
 
 
@@ -308,7 +296,7 @@ def address_bound_identities(
 ) -> dict[int, tuple[AddressBoundIdentity, ...]]:
     """Every explicit (target, address) source binding, including declaration-only."""
 
-    from .identity_lint import _IDENTITY_ALIAS, _declaration_address, _declaration_lines
+    from .identity_lint import _declaration_address, _declaration_lines
 
     document = load_source_index(repository)
     wanted = target.upper()
@@ -342,9 +330,7 @@ def address_bound_identities(
                     embedded,
                     target=marker_target,
                     address=address,
-                    identity_alias=bool(marker.get("folded")),
                     marker_kind=marker_kind,
-                    folded=bool(marker.get("folded")),
                     kind=kind,
                 )
             )
@@ -369,8 +355,6 @@ def address_bound_identities(
                 owning_class=None,
                 source_signature=None,
                 is_definition=marker_kind == "FUNCTION",
-                folded=bool(marker.get("folded")),
-                identity_alias=bool(marker.get("folded")),
             )
         )
 
@@ -389,16 +373,11 @@ def address_bound_identities(
         namespace = str(entry.get("target") or "") or _namespace_for_source(
             str(entry.get("source_file") or ""), targets
         )
-        alias = any(
-            _IDENTITY_ALIAS.search(line)
-            for line in lines[max(0, int(entry["line"]) - 6) : int(entry["end_line"])]
-        )
         add(
             _identity_from_declaration(
                 entry,
                 target=namespace.upper(),
                 address=int(address_text, 16),
-                identity_alias=alias,
             )
         )
 
@@ -488,7 +467,11 @@ def _source_index_input_digest(repository: Path, database: Path) -> str:
     from .build import clang_configure_inputs
 
     digest = hashlib.sha256(b"wiz8-source-index-inputs-v1\0")
-    candidates = {repository / "reccmp-project.yml", *clang_configure_inputs(repository)}
+    candidates = {
+        repository / "reccmp-project.yml",
+        repository / "tools/wiz8decomp/source_index.py",
+        *clang_configure_inputs(repository),
+    }
     roots = indexed_targets(repository, database if database.is_file() else None)
     for source_roots in roots.values():
         for root in source_roots:
@@ -779,6 +762,45 @@ def _analysis_indexer_binary() -> Path:
     return Path(source_package.__file__).with_name("indexer.cpp")
 
 
+def _compile_indexer_locally(source: Path, output: Path) -> None:
+    """Compile reccmp's collector using the installed LLVM selection."""
+    from reccmp.source.batch import _COMPILE, _pick_library, _run
+
+    config = shutil.which("llvm-config-19")
+    include = "/usr/lib/llvm-19/include"
+    if config:
+        probed = subprocess.run(
+            [config, "--includedir"], capture_output=True, text=True, check=False
+        )
+        if probed.returncode == 0 and probed.stdout.strip():
+            include = probed.stdout.strip()
+    patterns = (
+        "/usr/lib/llvm-19/lib/libclang-cpp.so.*",
+        "/usr/lib/x86_64-linux-gnu/libclang-cpp.so.*",
+        "/usr/lib/llvm-19/lib/libLLVM*.so*",
+        "/usr/lib/x86_64-linux-gnu/libLLVM*.so*",
+    )
+    hits = [match for pattern in patterns for match in glob.glob(pattern)]
+    clang_cpp = _pick_library([hit for hit in hits if "libclang-cpp" in hit])
+    llvm = _pick_library([hit for hit in hits if "libclang-cpp" not in hit and "libLLVM" in hit])
+    if clang_cpp is None or llvm is None:
+        raise SourceIndexError(
+            "no LLVM 19 development libraries found for the extended source indexer"
+        )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    _run(
+        shlex.split(
+            _COMPILE.format(
+                include=include,
+                clang_cpp=clang_cpp,
+                llvm=llvm,
+                source=shlex.quote(str(source)),
+                output=shlex.quote(str(output)),
+            )
+        )
+    )
+
+
 def _compile_indexer_in_analysis_image(settings: Settings, source: Path, output: Path) -> None:
     """Build reccmp's Clang indexer once inside the lint image."""
     from .build import VC6_IMAGE
@@ -840,25 +862,25 @@ def _prepare_analysis_indexer(settings: Settings, cache: Path) -> None:
     binary itself has to run in the analysis image unless this process is
     already inside that image.
     """
-    if os.environ.get("RECCMP_SOURCE_INDEXER") or shutil.which("reccmp-source-indexer"):
-        return
+    cache = cache.resolve()
     cache.mkdir(parents=True, exist_ok=True)
-    if Path("/usr/bin/clang-cl").is_file():
-        from reccmp.source.batch import resolve_indexer
-
-        resolve_indexer(cache)
-        return
-
-    from .build import LINT_BUILD_DIR, VC6_IMAGE, Mount
-    from .subprocesses import resolve_executable
-
     source = _analysis_indexer_binary()
     binary = cache / "indexer"
     stamp = cache / "indexer.sha256"
     digest = hashlib.sha256(source.read_bytes()).hexdigest()
     if not binary.is_file() or not stamp.is_file() or stamp.read_text(encoding="utf-8") != digest:
-        _compile_indexer_in_analysis_image(settings, source, binary)
+        if Path("/usr/bin/clang-cl").is_file():
+            _compile_indexer_locally(source, binary)
+        else:
+            _compile_indexer_in_analysis_image(settings, source, binary)
         stamp.write_text(digest, encoding="utf-8")
+
+    if Path("/usr/bin/clang-cl").is_file():
+        os.environ["RECCMP_SOURCE_INDEXER"] = str(binary)
+        return
+
+    from .build import LINT_BUILD_DIR, VC6_IMAGE, Mount
+    from .subprocesses import resolve_executable
 
     docker = resolve_executable("docker") or "docker"
     repository = settings.repo_dir.resolve()
@@ -925,7 +947,7 @@ def _source_artifact_projections(
     targets: dict[str, tuple[Path, ...]],
     cache: Path,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Project header declarations and TU dependencies from reccmp's cached artifacts."""
+    """Project header declarations and TU dependencies from native artifacts."""
     import subprocess
 
     from reccmp.source.batch import resolve_indexer
@@ -1007,6 +1029,7 @@ def _source_index_result(document: dict[str, Any], *, cached: bool) -> dict[str,
         "declarations": len(document.get("declarations") or ()),
         "classes": len(document.get("classes") or ()),
         "variables": len(document.get("variables") or ()),
+        "member_uses": len(document["member_uses"]),
         "conflicts": len(document.get("conflicts") or ()),
         "cached": cached,
     }

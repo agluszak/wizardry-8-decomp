@@ -288,3 +288,6 @@ void srBounder::dump(std::ostream& stream)
     }
     stream.flags(flags & 0x7fff);
 }
+
+// SYNTHETIC: SURRENDER 0x1004B3A0
+// srBounder default constructor closure

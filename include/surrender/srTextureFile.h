@@ -15,7 +15,9 @@
    srTexture; slot 14 (getTextureName) stays on srTextureIFace. */
 class srTextureFile : public srClassSupport<srTextureFile, srTexture, 0, 0x2112> {
 public:
-    srTextureFile(const char* file_name, int cached);
+    /* The default-constructor closure 0x10060090 proves both arguments
+       default to zero for paren-less new expressions. */
+    srTextureFile(const char* file_name = 0, int cached = 0);
     srTextureFile(const srTextureFile& other);
     srTextureFile& operator=(const srTextureFile& other);
 
@@ -41,7 +43,9 @@ protected:
 
     int cached_54;
     char* file_name_58;
-    srColorSurface* surface_5c;
+    /* loadSurface stores the importSurface result here and releaseSurface
+       releases through srClass; the field is the interface pointer. */
+    srColorSurfaceIFace* surface_5c;
     unsigned long frame_handle_60;
 };
 

@@ -47,7 +47,7 @@ W8PList* PLCreate(void)
 // FUNCTION: WIZ8 0x005e2370
 unsigned char PListInit(W8PList* ppl)
 {
-    unsigned char created;
+    bool created;
 
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x56, 0);
@@ -269,13 +269,10 @@ done:
     return index;
 }
 
-/* The retail linker folds this ordinary PList.cpp function with ILLength. The
-   retained body and canonical address marker belong to the IList.cpp
-   contribution; the FOLDED alias binds our separate /OPT:NOICF emission to
-   the same original address. {PLLength, ILLength} is therefore one
-   linker-equivalence class: callers spell whichever name their argument type
-   takes, and the call lands on the folded address either way. */
-// FUNCTION: WIZ8 0x005e2c70 FOLDED
+/* Retail ICF folds this ordinary PList.cpp function with ILLength. The retained
+   retail body is the IList.cpp emission at 0x005e2c70. PLLength remains a
+   separate typed source function with no retail address marker; the /OPT:NOICF
+   comparison build may therefore report call-target differences. */
 unsigned int PLLength(W8PList* ppl)
 {
     if (!ppl) {

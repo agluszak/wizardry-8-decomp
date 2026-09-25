@@ -64,7 +64,7 @@ struct W8MonsterManagerEntry {
     int target_portrait_pose;
     int portrait_pose_clock;
     int portrait_idle_clock;
-    unsigned char portrait_pose_animation_active;
+    bool portrait_pose_animation_active;
     bool portrait_pose_dirty;
     bool portrait_frame_dirty;
     /* 0x09c..0x0ab: the floating damage-number splat animation. The poster at
@@ -129,7 +129,7 @@ struct W8MonsterManagerEntry {
     /* 0x0e9: edge latch mirroring the character's uiCondition[19]: the
        periodic party sync copies it in and the reaction pass fires the
        condition-change event once while the latch is still clear. */
-    unsigned char condition_19_latch;
+    bool condition_19_latch;
     /* 0x0ea: per-skill "increased" notice flags posted by PracticeCharacterSkill
        and drained into W8_NPC_MSG_SKILL_NOTICES message lines. */
     unsigned char skill_notice_pending[W8_SKILL_COUNT];
@@ -229,7 +229,7 @@ struct W8MonsterCombatState {
     /* Berserk latch: interrupt case 8 raises it so the monster attacks
        indiscriminately (friends included); Combat Range counts allies as
        hostile while set. */
-    unsigned char berserk_015;
+    bool berserk_015;
     /* 0x016: the queue of actions the monster's AI has decided on, one
        W8MonsterAction each. The AI owns the list and destroys it outright. */
     W8PList* plsCombatActionList;
@@ -345,13 +345,13 @@ struct W8MonsterInfo {
     /* 0x15: fInCombat, named by the MonsterManager.cpp:666 and :712 assertions
        "!pMonsterInfo->fInCombat" and "pMonsterInfo->fInCombat", which bracket
        the pair that allocates and releases pCombat. */
-    unsigned char fInCombat;
+    bool fInCombat;
     /* 0x16: the monster's disposition, named by the 0x00530f10 assertion
        "pMonsterInfo->ubDisposition != DISP_HOSTILE". Copied from the group's
        ubDisposition when the entry is created. */
     W8Disposition ubDisposition;
     /* 0x17: the spawn position, unaligned. 0x004e3930 copies the caller's three
-       floats here and hands the same triple to GetCameraFacingYaw004BE5C0,
+       floats here and hands the same triple to GetCameraFacingYaw,
        whose result it stores next, and to 0x0042e620 with the new entry's id. */
     srVector3T<float> position_17;
     float derived_23; /* 0x23: camera-facing yaw over position_17 */
@@ -428,10 +428,10 @@ struct W8MonsterInfo {
     signed char effect_2de;
     /* 0x2df: the committed attack already launched its missile; asserted by
        ContinueMonsterAttack when an out-of-range attack reports no release. */
-    unsigned char fMissileReleased;
+    bool fMissileReleased;
     /* 0x2e0: the committed spell/special attack already released its payload;
        the action step asserts on it in the spell-wait case. */
-    unsigned char fSpellReleased;
+    bool fSpellReleased;
     /* 0x2e1: the action the monster is taking, -1 through 9. Its whole domain
        is enumerated by MonsterActionFatigueCost, whose error text names it. */
     int action_kind;
@@ -493,7 +493,7 @@ float GetMonsterCombatMoveRange(W8MonsterInfo* monster_info);
 void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int GetMonsterQuadrant(W8MonsterInfo* monster_info);
-int GetMonsterCycleFallbackValue004E5B50(unsigned int monster_species);
+int GetMonsterCycleFallbackValue(unsigned int monster_species);
 void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup);
 void ConvertMonsterAttributes(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
@@ -521,13 +521,13 @@ unsigned char ShutdownMonsterManager(void);
 
 wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                         unsigned char name_form);
-unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destroy_monster);
+bool RemoveMonster(unsigned int monster_list_index, unsigned char destroy_monster);
 void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
 void DeactivateMonster(W8MonsterInfo* monster_info);
 void ToggleCombatMode(void); /* 0x004E6A80 */
 void TogglePartyCombatStance(void);
-void DetectMonsterGroups004E4AB0(void);      /* 0x004E4AB0 */
-void EvaluateCombatDifficulty004E6CE0(void); /* 0x004E6CE0 */
+void DetectMonsterGroups(void);      /* 0x004E4AB0 */
+void EvaluateCombatDifficulty(void); /* 0x004E6CE0 */
 /* The kill bookkeeping a monster's death runs: credit the killer, post the
    "%s %s!" notice, clear conditions the dead monster sourced, apply the
    faction fallout, and bank the kill count and experience when it fought. */

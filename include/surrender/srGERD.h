@@ -12,20 +12,32 @@
 
 #include "srRendererDefs.h"
 #include "srDD.h"
+#include "srTriMeshPipeline.h"
+#include "srColorSurfaceIFace.h"
+#include "srPtr.h"
+#include "srARGB.h"
+class srColorSurface;
 class srCriticalSection;
 class srDebugDD;
 class srModelInstance;
+class srPalette;
 class srVertexProcessor;
 struct srVertexArray;
 
+/* Retail exports the private _lockBuffer/accumAlloc/changeTexture/applyXxx
+   members and the implicit copy constructor, so the class is dllexport under
+   SURRENDER_BUILD; consumer TUs stay member-level imported. */
+// VTABLE: SURRENDER 0x100766B0 srGERD
+#if defined(SURRENDER_BUILD)
+class __declspec(dllexport) srGERD : public srRuntimeClass {
+#else
 class SR_DLL_IMPORT srGERD : public srRuntimeClass {
+#endif
 public:
     struct Pick {
         /* Normalized pick point the caller fills: x and y are the cursor's
            viewport-space coordinates, z is the fixed 1.0 far value. */
-        float x_00;
-        float y_04;
-        float z_08;
+        srVector3T<float> position_00;
         srModelInstance* selected_model_0c;
         unsigned long value_10;
     };
@@ -34,6 +46,17 @@ public:
         srVector4T<float> planes_000[32];
         unsigned long mask_200;
         unsigned long value_204;
+    };
+
+    /* pushEnvironment/popEnvironment record: {minimum, maximum, scale,
+       inverse_scale}. Unlike the scalar environment fields this element is
+       POD: the constructor emits no __ehvector_ctor over the 16-entry stack
+       the way it does for every srVector4T<float> array. */
+    struct Environment {
+        float x;
+        float y;
+        float z;
+        float w;
     };
 
     /* ortho/frustum take this packed six-double box. */
@@ -181,8 +204,22 @@ public:
 
         Renderer(const Parameters& parameters);
         void allocVertexArray(srVertexArray& arrays, unsigned long count);
-        /* FUN_10025260: expands/dedups the input triangles into the vertex
-           batch. */
+        /* FUN_10024E30: intern the pass's {texture0,texture1,shader} key into
+           texture_set, folding per-vertex texture/shader table transitions
+           into the output ids. */
+        void assignTextureSets(unsigned long* texture_set, const unsigned long* indices,
+                               unsigned long count, const srTriMeshPipeline::Pass* pass);
+        /* Retail 0x10024DE0: while a vertex range is reserved
+           (first_vertex_c0_ != -1), give count accumulated vertices back. */
+        void rewindVertexArray(unsigned long count);
+        /* FUN_10025260: expands/dedups the input triangles into the index and
+           vertex batches, per record. */
+        void expandTriangles(const TriInput& input, int sorted);
+        /* FUN_100259D0: transforms the reserved position range by the input's
+           matrix in 0x80-vertex chunks (choosing ortho/perspective/generic by
+           the matrix's zero pattern), derives per-vertex clip flags, and
+           replicates the chunk across the remaining records. */
+        void transformVertices(const TriInput& input, unsigned char* clip_flags);
         void render(const TriInput& input);
         /* FUN_10024db0: the accumulated batch count passed the limit. Only
            immediate (non-sorted) renderers report full. */
@@ -202,6 +239,10 @@ public:
         /* FUN_100268a0: discard accumulated state; nonzero also releases
            the backing arrays. */
         void reset(int release_buffers);
+        /* resetStatistics zeroes the +0x28 stat block; getStatistics copies
+           its seven counters out for srGERD::getStatistics. */
+        void resetStatistics();
+        void getStatistics(unsigned long* statistics);
 
         /* The checked-free srHeapBuffer family, not srHeapArray: ~Renderer
            null-checks before freeing these streams. bytes_00_ grows by 1-byte
@@ -236,10 +277,26 @@ public:
         long batch_limit_dc_;
         unsigned long texture_stages_e0_;
     };
+    static_assert(sizeof(Renderer) == 0xe4, "srGERD_Renderer_must_be_0xe4");
 
-    enum e_error {};
+    /* errStrings literal order at 0x100993A4. */
+    enum e_error {
+        ERROR_NONE = 0,
+        ERROR_INVALID_ENUM = 1,
+        ERROR_INVALID_VALUE = 2,
+        ERROR_WINDOW_OPEN_FAILED = 3,
+        ERROR_WINDOW_NOT_OPEN = 4,
+        ERROR_BUFFER_LOCK_FAILED = 5,
+        ERROR_INVALID_WHANDLE = 6,
+        ERROR_SHARED_CONTEXT = 7,
+        ERROR_CONTEXT_CREATION_FAILED = 8,
+        ERROR_NO_CONTEXT = 9
+    };
     enum e_closeHint {};
     enum e_buffer {};
+    /* dump prints none (blit)/one (double)/two (triple) for values 1/2/3. */
+    enum e_backBuffer { BACKBUFFER_NONE = 1, BACKBUFFER_ONE = 2, BACKBUFFER_TWO = 3 };
+    enum e_polygonMode {};
     /* Wizardry uses 0 immediately before model-view loads and 1 immediately
        before identity+ortho. OpenGL srDD talks GL_MODELVIEW (0x1700) and
        GL_PROJECTION (0x1701) for those two stacks. */
@@ -255,9 +312,61 @@ public:
        (Wizardry render-option 5). Option 1 is the particle path. Option 4 is
        SetRendererOption4Enabled. Option 5 wraps/unwraps srDebugDD. GERD dump
        has no enable-name table. */
-    enum e_enable { ENABLE_POSITIONAL_0 = 0, ENABLE_POSITIONAL_1 = 1, ENABLE_POSITIONAL_4 = 4 };
+    /* The constructor sets bits 4 and 6 on enable_flags_20_; ~srGERD toggles
+       bit 5, which openWindow's comment identifies as the debug-DD wrap. */
+    enum e_enable {
+        ENABLE_POSITIONAL_0 = 0,
+        ENABLE_POSITIONAL_1 = 1,
+        ENABLE_POSITIONAL_4 = 4,
+        ENABLE_POSITIONAL_5 = 5,
+        ENABLE_POSITIONAL_6 = 6
+    };
     enum e_winding { WINDING_POSITIONAL_0 = 0, WINDING_POSITIONAL_1 = 1 };
     enum e_visibility { VISIBILITY_POSITIONAL_0 = 0 };
+    /* dump(stream, flags) section selectors: bit 0 driver/device info plus
+       the window block, bit 1 the texture cache, bit 3 the statistics
+       snapshot, bit 5 the srDebugDD call profile. dump(stream) passes 0x3f. */
+    enum e_info {
+        INFO_DEVICE = 0x1,
+        INFO_TEXTURE_CACHE = 0x2,
+        INFO_STATISTICS = 0x8,
+        INFO_DEBUG_DD = 0x20,
+        INFO_ALL = 0x3f
+    };
+    enum e_hint {};
+    enum e_hintMode {};
+    /* accumulate() switch evidence: 0 loads the frame buffer into the accum
+       buffer, 1 accumulates, 4 returns the accum buffer to the frame
+       buffer; 2/3 multiply/add through the accum path. */
+    enum e_accum {
+        ACCUM_LOAD = 0,
+        ACCUM_ACCUMULATE = 1,
+        ACCUM_MULTIPLY = 2,
+        ACCUM_ADD = 3,
+        ACCUM_RETURN = 4
+    };
+    enum e_depthBuffer {};
+    /* getDisplayModeInfo output triple. */
+    struct DisplayModeInfo {
+        long width_00;
+        long height_04;
+        long depth_08;
+    };
+    /* getTextureInfo output: the device pixel format plus the device's
+       width/height and last mip level. */
+    struct TextureInfo {
+        srPixelConvert::PixelFormat pixel_format_00;
+        unsigned long width_14;
+        unsigned long height_18;
+        unsigned long last_level_1c;
+    };
+    /* accumulate()'s signed 16-bit accum-buffer pixel. */
+    struct AccumPixel {
+        short red_00;
+        short green_02;
+        short blue_04;
+        short alpha_06;
+    };
 
     /* Not in the consumer import table and no client emission exists in
        retail Wiz8 (no "srGERD" literal): the consumer never references it,
@@ -266,15 +375,16 @@ public:
     static srRegistry::ClassNode* sGetClassNode();
 
     srGERD(srDD* device, void* module, const char* device_name);
-    srGERD(const srGERD& other);
     virtual ~srGERD() override;
 
     virtual const char* getClassName() const override;
     virtual unsigned long getClassID() const override;
     virtual srRegistry::ClassNode* getClassNode() const override;
     virtual void dump(std::ostream& stream) override;
-
-    static srGERD* loadDevice(srStringTable& devices, unsigned long flags);
+    void dump(std::ostream& stream, const srFlags<e_info>& info);
+    static srGERD* loadDevice(srStringTable& devices, unsigned long index);
+    static srGERD* loadDevice(const char* name, const char* path, unsigned long device);
+    static srGERD* loadDeviceWithFileName(const char* filename, unsigned long device);
     static srGERD* getFirst();
     srGERD* getNext() const;
     /* Open-device list used by srTexture::invalidateFrameHandle; the links
@@ -285,10 +395,24 @@ public:
     int isContextCreated() const;
     void deleteContext();
     long getDisplayMode(unsigned long width, unsigned long height, unsigned long depth) const;
+    /* openWindowInternal parameter block: the current client size and the
+       requested backbuffer size plus the display-mode index (-1 windowed). */
+    struct OpenInfo {
+        long window_width_00;
+        long window_height_04;
+        long width_08;
+        long height_0c;
+        long display_mode_10;
+    };
+    /* Number of back buffers in the swap chain; openWindowInternal stores
+       the device result at +0x38c (1, 2 or 3). */
     e_error openWindow();
+    e_error openWindow(long width, long height);
     e_error openWindow(long mode);
     void closeWindow(e_closeHint hint);
+    e_backBuffer getBackBufferType() const;
     int isWindowOpen() const;
+    int isFullScreen() const;
     unsigned long getWindowHandle() const;
     void setGamma(const srVector3T<float>& gamma);
     e_error beginFrame();
@@ -302,19 +426,29 @@ public:
     void resetStatistics();
     /* getStatistics buffer. The render probes return the double at +0x10
        through ftol; the 0x00427460 debug overlay prints the dword counters at
-       +0x08/+0x0c (the TT pair), +0x20 (PO), +0x24 (VO), +0x34 (PI),
+       +0x08/+0x0c (the TT pair halves), +0x20 (PO), +0x24 (VO), +0x34 (PI),
        +0x3c (VI), +0x4c (TC) and +0x68 (DD). */
     struct Statistics {
-        unsigned char unknown_00[8];
+        /* Epoch written by resetStatistics; getStatistics returns the
+           seconds elapsed since then. */
+        double elapsed_00;
+        /* Device texture byte count mirrored from srDD::Statistics +0x00 as
+           two dwords; dump reinterprets the pair as a double for the
+           "DD Texture data transfer (Mb/s)" line. */
         unsigned long value_08;
         unsigned long value_0c;
         double value_10;
-        unsigned char unknown_18[8];
+        unsigned long value_18;
+        unsigned long value_1c;
         unsigned long value_20;
         unsigned long value_24;
-        unsigned char unknown_28[0xc];
+        unsigned long value_28;
+        /* Frames presented: flipFrame increments once per call. */
+        unsigned long frames_2c;
+        unsigned long value_30;
         unsigned long value_34;
-        unsigned char unknown_38[4];
+        /* getStatistics accumulates this only for sorted renderers. */
+        unsigned long value_38;
         unsigned long value_3c;
         /* applyViewStateChanges increments this counter on every apply. */
         unsigned long view_state_applies_40;
@@ -335,7 +469,7 @@ public:
         unsigned long shader_sets_5c;
         /* drawArrays/drawElements increment this draw-call count. */
         unsigned long draw_calls_60;
-        unsigned char unknown_64[4];
+        unsigned long value_64;
         unsigned long value_68;
         /* testBoundingSphere call count / visible-result count. */
         unsigned long sphere_tests_6c;
@@ -362,7 +496,13 @@ public:
        this overload. */
     void setFogColor(const srVector4T<float>& color);
     void setScissor(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
+    /* Dirty-rectangle pair handed to flipFrame in {x,y,width,height} form;
+       GERD converts each to srDD::Scissor left/top/right/bottom. */
+    struct Rectangle {
+        long x, y, width, height;
+    };
     void flipFrame();
+    void flipFrame(const Rectangle* first, const Rectangle* second, unsigned long count);
     void setTextureReduction(long reduction);
     void setViewPort(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
     void matrixMode(e_matrixMode mode);
@@ -405,10 +545,30 @@ public:
     void getEnvironmentScaleFactor(float& scale, float& inverse_scale);
     unsigned long getExclusionMask() const;
     void setExclusionMask(unsigned long mask);
-    /* The pipeline's single-stage mask branch inlines this exported getter. */
+/* The pipeline's single-stage mask branch inlines this exported getter. */
+// FUNCTION: SURRENDER 0x1001BB70 SYMBOL
+// ?getMaxTextureStages@srGERD@@QBEJXZ
     long getMaxTextureStages() const
     {
-        return max_texture_stages_78_;
+        return device_40_.info_10_.max_texture_stages_28_;
+    }
+// FUNCTION: SURRENDER 0x1001CF10 SYMBOL
+// ?getMaxPickStackDepth@srGERD@@QBEJXZ
+    long getMaxPickStackDepth() const
+    {
+        return 0x20;
+    }
+// FUNCTION: SURRENDER 0x1001CF20 SYMBOL
+// ?getMaxModelviewStackDepth@srGERD@@QBEJXZ
+    long getMaxModelviewStackDepth() const
+    {
+        return 0x20;
+    }
+// FUNCTION: SURRENDER 0x1001CF30 SYMBOL
+// ?getMaxProjectionStackDepth@srGERD@@QBEJXZ
+    long getMaxProjectionStackDepth() const
+    {
+        return 0x20;
     }
     void pushMatrix();
     void pushMultMatrix(const srMatrix4x3T<float>& matrix);
@@ -456,6 +616,8 @@ public:
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
     void setTexture(srTextureIFace* texture, unsigned long layer);
+    void setTextureDefaultCorrection(srTextureIFace::e_correction correction);
+    void setTextureDefaultCompression(srTextureIFace::e_compression compression);
     void setTextureDefaultMagFilter(srTextureIFace::e_filter filter);
     void setTextureDefaultMinFilter(srTextureIFace::e_filter filter);
     void setTextureDefaultMipmap(srTextureIFace::e_mipmap mipmap);
@@ -468,6 +630,7 @@ public:
     void pushPick(const Pick& pick);
     void toggle(e_enable option);
     void invalidateResidentTextures();
+    void invalidateResidentTexture(srTextureIFace* texture);
     void invalidateTextureCache();
     void invalidateTexture(srTextureIFace* texture);
     void invalidateTextureByFrameHandle(unsigned long handle);
@@ -477,30 +640,116 @@ public:
     long getPolygonOffset() const;
     void setPolygonOffset(long offset);
 
-    /* These ordinary methods are header-visible in Wiz8 call sites even
+    /* Retail 0x10020DD0. */
+    int isBufferLocked();
+    /* Retail 0x1001CF60/0x1001CF70: the +0x30/+0x38 list links. */
+    srGERD* getPrev() const;
+    srGERD* getPrevOpen() const;
+    /* Retail 0x1001B400/0x1001B420: walks the global device list. */
+    static long getGERDCount();
+    static srGERD* getGERD(unsigned long index);
+    /* Retail 0x10018BC0/0x10018C70: scan provider libraries for devices. */
+    static void loadDevices(const char* path);
+    static void scanDevices(const char* path, srStringTable& devices);
+    /* Retail 0x10018E60: releases every GERD on the global list. */
+    static void releaseAll();
+    /* Retail 0x1001AFF0: static error-string table lookup. */
+    const char* getErrorString(e_error error);
+    e_error getError();
+    int isFlipped() const;
+    const char* getApiVersion() const;
+    /* device_40_.info_10_.text_3c_[0..8] accessors: initDDInfo seeds the nine 0x40-byte
+       identity strings, getInfo's driver fills them. */
+    const char* getDeviceName() const;
+    const char* getDeviceVendor() const;
+    const char* getDevicePlatform() const;
+    const char* getDriverName() const;
+    const char* getDriverVendor() const;
+    const char* getDriverVersion() const;
+    const char* getHardwareChipset() const;
+    const char* getHardwareName() const;
+    const char* getHardwareVendor() const;
+    srDD::e_driverID getDriverID() const;
+    srDD::e_hardwareID getHardwareID() const;
+    e_depthBuffer getDepthBufferType() const;
+    unsigned long getSwapInterval() const;
+    void getTextureFormat(unsigned long index, srPixelConvert::PixelFormat& format) const;
+    unsigned long getTextureFormatCount() const;
+    void getDisplayModeInfo(long index, DisplayModeInfo& info) const;
+    unsigned long getDisplayModeCount() const;
+    e_hintMode getHint(e_hint hint) const;
+    void setHint(e_hint hint, e_hintMode mode);
+    void getGamma(srVector3T<float>& gamma) const;
+    e_antiAlias getAntiAlias() const;
+    void extCommand(unsigned long command, void* data, unsigned long size);
+    void disable(e_enable option);
+    void enable(e_enable option);
+    srShader getShader() const;
+    /* Retail 0x1001BBB0: submits one triangle through drawElements. */
+    void drawTriangle(const srVector3i& triangle);
+    void setDepthRange(double minimum, double maximum);
+    void getDepthRange(double& minimum, double& maximum) const;
+    void setPolygonMode(e_polygonMode mode);
+    e_polygonMode getPolygonMode() const;
+    void getClearColor(srVector4T<float>& color) const;
+    void getClearAccum(srVector4T<float>& color) const;
+    void setClearAccum(const srVector4T<float>& color);
+    void setClearAccum(float red, float green, float blue, float alpha);
+    double getClearDepth() const;
+    void setClearStencil(unsigned long stencil);
+    unsigned long getClearStencil() const;
+    long getAccumAlphaBits() const;
+    long getAccumRedBits() const;
+    long getAccumGreenBits() const;
+    long getAccumBlueBits() const;
+    void accumulate(e_accum operation, float scale);
+    int isTextureCached(srTextureIFace* texture) const;
+    int isTextureResident(srTextureIFace* texture) const;
+    int getTextureInfo(srTextureIFace* texture, TextureInfo& info);
+    srTextureIFace::e_compression getTextureDefaultCompression() const;
+    srTextureIFace::e_correction getTextureDefaultCorrection() const;
+    srTextureIFace::e_filter getTextureDefaultMagFilter() const;
+    srTextureIFace::e_filter getTextureDefaultMinFilter() const;
+    srTextureIFace::e_mipmap getTextureDefaultMipmap() const;
+    long getTextureReduction() const;
+    void invalidateResidentPalette(srPalette* palette);
+    void setGlobalPalette(const srPalette& palette);
+    long getMaxTextureWidth() const;
+    long getMaxTextureHeight() const;
+    long getMaxTextureAspectRatio() const;
+    static unsigned long sGetClassID();
+    static void dumpDeviceList(std::ostream& stream);
+
+/* These ordinary methods are header-visible in Wiz8 call sites even
        though SR.DLL also exports out-of-line copies. */
+// FUNCTION: SURRENDER 0x1001BB80 SYMBOL
+// ?isPickStackEmpty@srGERD@@QBEHXZ
     int isPickStackEmpty() const
     {
-        return pick_depth_19ec_ == 0;
+        return pick_176c_.pick_depth_280_ == 0;
     }
 
+// FUNCTION: SURRENDER 0x1001BAE0 SYMBOL
+// ?isEnabled@srGERD@@QBEHW4e_enable@1@@Z
     int isEnabled(e_enable option) const
     {
         return (enable_flags_20_.value & (1UL << option)) != 0;
     }
 
+// FUNCTION: SURRENDER 0x1001BB90 SYMBOL
+// ?setCullMode@srGERD@@QAEXW4e_cullMode@1@@Z
     void setCullMode(e_cullMode mode)
     {
-        if (cull_mode_1648_ != mode) {
-            cull_mode_1648_ = mode;
+        if (state_390_.cull_mode_12b8_ != mode) {
+            state_390_.cull_mode_12b8_ = mode;
             dirty_24_ |= 0x2000;
         }
     }
 
-    /* Header inline that also emits the standalone retail 0x1001BB40 copy;
+/* Header inline that also emits the standalone retail 0x1001BB40 copy;
        drawSorted calls the emission while drawImmediate inlines it. */
-    // FUNCTION: SURRENDER 0x1001BB40 SYMBOL
-    // ?setShader@srGERD@@QAEXABVsrShader@@@Z
+// FUNCTION: SURRENDER 0x1001BB40 SYMBOL
+// ?setShader@srGERD@@QAEXABVsrShader@@@Z
     void setShader(const srShader& shader)
     {
         if (shader_1ff8_.value != shader.value) {
@@ -509,12 +758,33 @@ public:
         }
     }
 
+// FUNCTION: SURRENDER 0x1001BEF0 SYMBOL
+// ?setVertexArrayMask@srGERD@@QAEXV?$srFlags@W4e_vertexArray@srRendererDefs@@@@@Z
     void setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray> mask)
     {
         vertex_arrays_21c4_.mask_00 = mask;
         dirty_21c0_ |= 1;
     }
 
+// FUNCTION: SURRENDER 0x1001BEE0 SYMBOL
+// ?getVertexArrayMask@srGERD@@QBE?AV?$srFlags@W4e_vertexArray@srRendererDefs@@@@XZ
+    srFlags<srRendererDefs::e_vertexArray> getVertexArrayMask() const
+    {
+        return vertex_arrays_21c4_.mask_00;
+    }
+
+    /* Retail emits each specialized setter as its own export writing the
+       indexed slot directly; setDataPtr is the general entry point the
+       renderer's bindVertexArrays calls. */
+    void setDiffusePointer(long components, srRendererDefs::e_type type, unsigned long stride,
+                           const void* values);
+    void setSpecularPointer(long components, srRendererDefs::e_type type, unsigned long stride,
+                            const void* values);
+    void setFogPointer(long components, srRendererDefs::e_type type, unsigned long stride,
+                       const void* values);
+
+// FUNCTION: SURRENDER 0x1001BFD0 SYMBOL
+// ?setTexCoordPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXK@Z
     void setTexCoordPointer(long components, srRendererDefs::e_type type, unsigned long stride,
                             const void* values, unsigned long layer)
     {
@@ -526,11 +796,17 @@ public:
         dirty_21c0_ |= 1;
     }
 
+// FUNCTION: SURRENDER 0x1001BE90 SYMBOL
+// ?setVertexPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXJ@Z
     void setVertexPointer(long primitive, srRendererDefs::e_type type, unsigned long stride,
                           const void* values, long count)
     {
         vertex_arrays_21c4_.count_04 = count < 0 ? 0 : count;
-        setDataPtr(srRendererDefs::VERTEX_ARRAY_POSITIONS, primitive, type, stride, values);
+        vertex_arrays_21c4_.components_0c[0] = primitive;
+        vertex_arrays_21c4_.types_24[0] = type;
+        vertex_arrays_21c4_.strides_3c[0] = stride;
+        vertex_arrays_21c4_.arrays_54[0] = values;
+        dirty_21c0_ |= 1;
     }
 
 private:
@@ -552,24 +828,48 @@ private:
     };
     static_assert(sizeof(Texture) == 0xa8, "srGERD_Texture_must_be_0xa8");
 
+    /* Renderer::render's pick path hands this batch view to
+       performPickTest: indices selects triangles out of the caller's
+       srVector3i stream, vertices remaps each corner to a position index,
+       positions is the renderer's vec4 stream base. */
+    struct PickInput {
+        const unsigned long* indices_00;
+        const srVector3i* triangles_04;
+        unsigned long triangle_count_08;
+        const unsigned long* vertices_0c;
+        const srVector4T<float>* positions_10;
+        unsigned long vertex_count_14;
+    };
+
+    /* Retail's exported operator= is a private no-op returning *this; the
+       class-level dllexport emits it even though nothing calls it. */
     srGERD& operator=(const srGERD& other);
-    /* Renderer::submit reaches getDD; VC6 does not give nested classes
-       enclosing-member access. */
-    friend class Renderer;
+    /* Renderer::submit and LockSurface's pixel transfers reach getDD; VC6
+       does not give nested classes enclosing-member access. */
     srDD* getDD() const;
 
-    /* Header inline that also emits the standalone retail 0x1001BC30 copy;
-       the batched renderer programs the six DD array slots through it. */
-    // FUNCTION: SURRENDER 0x1001BC30
+    /* The members marked dllexport below are retail exports no recovered
+       caller references; without the annotation the linker garbage-collects
+       the emissions and the provider exports dangle. Retail mangles them
+       private. */
+    static void debugWrite(const char* text);
+    void fenceVertexArrays();
+    void dumpTextureCache(std::ostream& stream);
     void setDataPtr(srRendererDefs::e_vertexArray index, long components,
-                    srRendererDefs::e_type type, unsigned long stride, const void* values)
-    {
-        vertex_arrays_21c4_.components_0c[index] = components;
-        vertex_arrays_21c4_.types_24[index] = type;
-        vertex_arrays_21c4_.strides_3c[index] = stride;
-        vertex_arrays_21c4_.arrays_54[index] = values;
-        dirty_21c0_ |= 1;
-    }
+                    srRendererDefs::e_type type, unsigned long stride, const void* values);
+
+    /* Renderer member functions reach GERD's array-state fields directly;
+       VC6 extended enclosing-class access to nested members, clang-cl
+       needs the explicit grant. */
+    friend class Renderer;
+    /* Retail 0x1001D630: for each queued Pick, w-normalize the batch's
+       positions into pick_vertices_2230_ and run the edge-function
+       triangle test against the pick ray. */
+    void performPickTest(const PickInput& input);
+    void deleteRenderers();
+    /* getErrorString table: the ten e_error names followed by no terminator;
+       out-of-range errors report "UNKNOWN ERROR". */
+    static const char* errStrings[10];
 
     /* Handle-hash chain node: {next, handle, texture} at stride 0xc, proven
        by invalidateTextureByFrameHandle's walk. */
@@ -615,24 +915,269 @@ private:
                                    const srTextureIFace::Dimensions& dimensions);
     void evaluateTexturePixelFormat(Texture& texture, const srTextureIFace::Dimensions& dimensions);
     void releaseTextureMemory(long bytes);
-    unsigned long getTextureBytesNeeded(const Texture& texture) const;
+    unsigned long getTextureBytesNeeded(Texture& texture) const;
     Texture* findLowestPriority();
     void invalidateTexture(Texture& texture);
+    void invalidateResidentTexture(Texture& texture);
+    void resetCurrentTexPointers();
     void markTextureAsDeleted(Texture& texture);
+    void initTexCache();
+    void closeTexCache();
+    void initDDInfo();
+    void initTextureFormats();
+    void initDisplayModeList();
+    void initGlobalPalette();
+    /* Retail 0x1001CF00: +0x2d8 of the device info block. */
+    unsigned long getDDAPIVersion() const;
+    void initClearColors();
+    void initView();
+    void initLights();
+    void initMatrices();
+    void initTextureParameterMatrix();
+    void deleteDeletedRenderers();
+    e_error openWindowInternal(const OpenInfo& info);
+    srDD::e_error _lockBuffer();
+    srDD::e_error _unlockBuffer();
+    void getPixelFormat(srPixelConvert::PixelFormat& format) const;
+    void accumAlloc();
+    short accumConvert(float value) const;
+    void accumClear();
+    void accumRelease();
+    /* MMX row kernels for accumulate(); retail inlines the same instruction
+       sequences inside accumulate itself. */
+    static void __cdecl accumAccum_MMX(AccumPixel* accum, const srARGB* pixels, long scale,
+                                       long count);
+    static void __cdecl accumLoad_MMX(AccumPixel* accum, const srARGB* pixels, long scale,
+                                      long count);
+    static void __cdecl accumReturn_MMX(srARGB* pixels, const AccumPixel* accum, long scale,
+                                        long count);
+    static void __cdecl accumAdd_MMX(AccumPixel* accum, long value, long count);
+    static void __cdecl accumMult_MMX(AccumPixel* accum, long value, long count);
     static void convertPixelFormat(srDD::PixelFormat& device,
                                    const srPixelConvert::PixelFormat& format);
+    static void convertPixelFormat(srPixelConvert::PixelFormat& format,
+                                   const srDD::PixelFormat& device);
     RendererEntry* createRenderer(int sorted);
     void flushNonBusyRenderers();
     void flushSort();
     Renderer* _lockRenderer(RendererEntry* entry);
+    /* lockBuffer's 0x60-byte locked-back-buffer surface, defined in
+       gerd.cpp; LockSurface's pixel transfers reach the private getDD. */
     class LockSurface;
+    friend class LockSurface;
+
+    /* The five-word texture pool at +0x2014: live-texture count, free-list
+       head, the chunk-pointer array and the chunk count. srGERD's destructor
+       calls release() at body level and deleteTexture reaches it when the live
+       count drains; its embedded array still gets the memberwise teardown. */
+    struct TexturePool {
+        /* Retail's constructor helper (0x1001EEA0) is the out-of-line
+           emission; it zeroes all five words (the embedded srArray
+           contributes the middle two). */
+        TexturePool();
+
+        /* ~srGERD's member teardown calls this before the embedded array's
+           memberwise ~srArray, so the destructor body is release(). */
+        ~TexturePool()
+        {
+            release();
+        }
+
+        /* Frees every chunk through srHeap, releases the chunk array and
+           zeroes the record; the indexed free goes through srArray's
+           growing operator[] the way retail inlines it. */
+        void release();
+
+        unsigned long count_00;
+        Texture* free_04;
+        srArray<Texture*> chunks_08;
+        unsigned long pool_count_10;
+    };
+
+    /* +0x21b0: the registered srVertexProcessor pointers plus the live count
+       share one constructed record — the ctor helper zeroes all three words
+       then calls release(), so the count lives inside a derived array. */
+    struct VertexProcessors : public srArray<srVertexProcessor*> {
+        VertexProcessors() : count_08(0)
+        {
+            release();
+        }
+
+        unsigned long count_08;
+    };
 
     static srGERD* first;
     static srGERD* firstOpen;
 
     struct MatrixStack {
+        /* The constructor emits __ehvector_ctor over state_390_.matrix_stacks_80_ with
+           this block's constructor (0x10019A00) as the element callback: it
+           is a real function, not an inlined member init. */
+        MatrixStack();
+
         srMatrix4T<float> stack_00[32];
         unsigned long depth_800;
+    };
+
+    /* +0x40 device record: the implicit memberwise copy constructor emits a
+       single 0xD4-dword rep movsd over the whole block, so these fields sit
+       inside one trivially copyable member rather than as flat members.
+       Info's and DriverInfo's declared ctors produce the constructor's
+       +0x68/+0x2D0 init stores inside the inlined block construction. */
+    struct Device {
+        srDD* dd_00_;
+        srDebugDD* debug_dd_04_;
+        srDD* real_dd_08_;
+        /* Dynamic-library handle the constructor stores and ~srGERD passes
+           to srDynamicLibrary::free. */
+        void* module_0c_;
+        /* Device info record handed to srDD::getInfo by initDDInfo; GERD
+           reads the staging/clamp fields out of it. openWindowInternal
+           clamps the requested back-buffer against its maximums. */
+        srDD::Info info_10_;
+        /* getDriverInfo target; getDDAPIVersion/getDriverID/getDriverName
+           (pre-context) and getApiVersion read its trailing fields. */
+        srDD::DriverInfo driver_info_28c_;
+        srPixelConvert::PixelFormat* texture_formats_320_;
+        long texture_format_count_324_;
+        unsigned long* display_modes_328_;
+        long display_mode_count_32c_;
+        /* setHint/getHint index this by e_hint. */
+        e_hintMode hints_330_[1];
+        unsigned long window_334_;
+        /* openWindowInternal memsets then struct-copies the OpenInfo record
+           verbatim: windowed dims, backbuffer dims, then the display-mode
+           index. isFullScreen tests display_mode_10 against -1, and
+           openWindow leaves it -1 for the windowed path. */
+        OpenInfo open_info_338_;
+        /* e_backBuffer result of srDD::openWindow; getBackBufferType reads
+           it. */
+        unsigned long back_buffer_type_34c_;
+    };
+
+    /* +0x390 render-state record: the implicit copy emits one 0x4F2-dword
+       rep movsd over the block and the constructor zeroes it wholesale
+       through srZeroMemory(&state_390_, 0x13C8). scissor_flags_12f0_ is the
+       only ctor-initialised scalar; its store lands between the clip-plane
+       and inverse-modelview __ehvector_ctor calls. */
+    struct State {
+        State() : scissor_flags_12f0_(0)
+        {
+        }
+
+        /* Per-mode current matrices; pushMatrix indexes by mode. */
+        srMatrix4T<float> matrix_current_00_[2];
+        /* Per-mode 32-deep matrix stacks; each block ends with its depth
+           counter (stride 0x804). */
+        MatrixStack matrix_stacks_80_[2];
+        /* The constructor emits a single __ehvector_ctor over 32 srVector4T
+           elements: entries [0..5] are the eye-space frustum planes
+           maintained by applyClipPlaneChanges and [6..31] the user planes
+           pushed by pushClipPlane (mask bits 6..31 of clip_mask_12e4_). */
+        srVector4T<float> clip_planes_1088_[32];
+        /* Depth range forwarded into srDD::ViewPort by applyViewStateChanges;
+           initView resets it to [0.0, 1.0] and setDepthRange clamps it. */
+        double depth_min_1288_;
+        double depth_max_1290_;
+        srDD::Scissor scissor_1298_;
+        unsigned long view_left_12a8_;
+        unsigned long view_top_12ac_;
+        unsigned long view_right_12b0_;
+        unsigned long view_bottom_12b4_;
+        e_cullMode cull_mode_12b8_;
+        e_winding winding_12bc_;
+        e_matrixMode matrix_mode_12c0_;
+        unsigned char unknown_12c4_[6];
+        /* Per-user-plane e_clipMode bytes written by pushClipPlane. */
+        unsigned char clip_modes_12ca_[26];
+        /* Plane-enable mask: bits 0..5 frustum, bits 6..31 user planes. */
+        unsigned long clip_mask_12e4_;
+        /* Subset of clip_mask_12e4_ carrying mode-1 user planes. */
+        unsigned long clip_mode1_mask_12e8_;
+        long clip_plane_count_12ec_;
+        /* Bit 1: recalcScissor marks the scissor as the full view. */
+        unsigned long scissor_flags_12f0_;
+        srMatrix4T<float> inverse_modelview_12f4_;
+        srMatrix4T<float> project_clip_near_1334_;
+        srMatrix4T<float> normal_matrix_1374_;
+        srMatrix4T<float>::e_scaleType modelview_scale_type_13b4_;
+        float max_modelview_scale_13b8_;
+        /* classifyMatrix writes the per-mode projection-shape class here;
+           the projection class at +0x13C0 feeds srDD::setProjectionMatrix. */
+        srMatrix4T<float>::e_type matrix_class_13bc_[2];
+        unsigned char unknown_13c4_[4];
+    };
+
+    /* +0x1758 presentation record: the implicit copy emits a 5-dword rep
+       movsd over the block. */
+    struct Display {
+        srVector3T<float> gamma_00_;
+        unsigned long swap_interval_0c_;
+        e_antiAlias antialias_10_;
+    };
+
+    /* +0x176C pick record: the implicit copy emits a 0xA2-dword rep movsd
+       over the block; pick_depth_280_ is the ctor-initialised scalar whose
+       store lands right after the pick-stack __ehvector_ctor. */
+    struct PickState {
+        PickState() : pick_depth_280_(0)
+        {
+        }
+
+        Pick pick_stack_00_[32];
+        unsigned long pick_depth_280_;
+        unsigned long pick_key_284_;
+    };
+
+    /* +0x1B08 clear record: the implicit copy emits a 0xC-dword rep movsd
+       over the block. */
+    struct ClearState {
+        srDD::ClearValues clear_values_00_;
+        unsigned char unknown_2c_[4];
+    };
+
+    /* +0x1F5C texture-state record: the implicit copy emits a 0x20-dword
+       rep movsd over the block. setTextureParameters indexes these maps
+       from the packed texture state; filter selector 4 is a valid index in
+       both filter maps. */
+    struct TextureState {
+        unsigned long correction_map_00_[4];
+        unsigned long mag_filter_map_10_[5];
+        unsigned long min_filter_map_24_[5];
+        /* The fourth entry doubles as the current mipmap parameter written
+           by setTextureDefaultMipmap. */
+        unsigned long mipmap_map_38_[4];
+        unsigned long wrap_s_map_48_[2];
+        unsigned long wrap_t_map_50_[2];
+        srTextureIFace::e_correction default_correction_58_;
+        srTextureIFace::e_filter default_mag_filter_5c_;
+        srTextureIFace::e_filter default_min_filter_60_;
+        srTextureIFace::e_mipmap default_mipmap_64_;
+        /* Per-type default device parameters; evaluateTexturePixelFormat
+           copies entry [Dimensions::parameter_index] into
+           srDD::Texture::parameter_34. Entry [4] doubles as the current
+           compression parameter written by setTextureDefaultCompression. */
+        unsigned long default_texture_params_68_[5];
+        /* Default Dimensions::compression for newly created textures;
+           setTextureDefaultCompression indexes default_texture_params_68_
+           with it. */
+        srTextureIFace::e_compression default_compression_7c_;
+    };
+
+    /* +0x2068 environment/enable record: the implicit copy emits a
+       0x52-dword rep movsd over the block. pushEnvironment/popEnvironment
+       stack {min, max, scale, inv_scale} POD elements — the constructor
+       emits no ehctor over that array — while enable_stack_104_ gets the
+       sixteen-element srFlags __ehvector_ctor (element ctor 0x1001EF50). */
+    struct EnvironmentState {
+        EnvironmentState() : environment_depth_100_(0), enable_depth_144_(0)
+        {
+        }
+
+        Environment environment_stack_00_[16];
+        unsigned long environment_depth_100_;
+        srFlags<e_enable> enable_stack_104_[16];
+        unsigned long enable_depth_144_;
     };
 
     unsigned char unknown_0c_[4];
@@ -644,134 +1189,72 @@ private:
     unsigned long dirty_24_;
     unsigned long state_flags_28_;
     e_error last_error_2c_;
-    unsigned char unknown_30_[4];
+    /* getPrev reads this list link; first is the global head. */
+    srGERD* prev_30_;
     srGERD* next_34_;
-    unsigned char unknown_38_[4];
+    /* Open-GERD list links; closeWindow splices via prev->next_open_3c_ and
+       next->prev_open_38_. */
+    srGERD* prev_open_38_;
     srGERD* next_open_3c_;
-    srDD* dd_40_;
-    srDebugDD* debug_dd_44_;
-    srDD* real_dd_48_;
-    unsigned char unknown_4c_[0x1c];
-    /* changeTexture tests bit 5 to release resident surface data after a
-       texture-stage swap. */
-    unsigned long flags_68_;
-    /* createRenderer passes this to each Renderer as its batch limit. */
-    unsigned long renderer_batch_limit_6c_;
-    unsigned char unknown_70_[8];
-    long max_texture_stages_78_;
-    /* Texture-dimension clamps applied by evaluateTextureDimensions. */
-    unsigned long texture_min_dim_7c_;
-    unsigned long texture_max_dim_80_;
-    unsigned long texture_max_aspect_84_;
-    unsigned char unknown_88_[0x2d8];
-    srPixelConvert::PixelFormat* texture_formats_360_;
-    long texture_format_count_364_;
-    unsigned long* display_modes_368_;
-    long display_mode_count_36c_;
-    unsigned char unknown_370_[4];
-    unsigned long window_374_;
-    unsigned char unknown_378_[8];
-    long width_380_;
-    long height_384_;
-    unsigned char unknown_388_[8];
-    /* Per-mode current matrices at 0x390; pushMatrix indexes by mode. */
-    srMatrix4T<float> matrix_current_390_[2];
-    /* Per-mode 32-deep matrix stacks; each block ends with its depth counter
-       (0x410 and 0xC14, stride 0x804). */
-    MatrixStack matrix_stacks_410_[2];
-    /* Six eye-space frustum planes maintained by applyClipPlaneChanges. */
-    srVector4T<float> frustum_planes_1418_[6];
-    /* User clip planes pushed by pushClipPlane; mask bits 6..31 of
-       clip_mask_1674_. */
-    srVector4T<float> user_clip_planes_1478_[26];
-    /* Extra viewport parameters copied into srDD::ViewPort by
-       applyViewStateChanges. */
-    unsigned long viewport_extra_1618_[4];
-    srDD::Scissor scissor_1628_;
-    unsigned long view_left_1638_;
-    unsigned long view_top_163c_;
-    unsigned long view_right_1640_;
-    unsigned long view_bottom_1644_;
-    e_cullMode cull_mode_1648_;
-    e_winding winding_164c_;
-    e_matrixMode matrix_mode_1650_;
-    unsigned char unknown_1654_[6];
-    /* Per-user-plane e_clipMode bytes written by pushClipPlane. */
-    unsigned char clip_modes_165a_[26];
-    /* Plane-enable mask: bits 0..5 frustum, bits 6..31 user planes. */
-    unsigned long clip_mask_1674_;
-    /* Subset of clip_mask_1674_ carrying mode-1 user planes. */
-    unsigned long clip_mode1_mask_1678_;
-    long clip_plane_count_167c_;
-    /* Bit 1: recalcScissor marks the scissor as the full view. */
-    unsigned long scissor_flags_1680_;
-    srMatrix4T<float> inverse_modelview_1684_;
-    srMatrix4T<float> project_clip_near_16c4_;
-    srMatrix4T<float> normal_matrix_1704_;
-    srMatrix4T<float>::e_scaleType modelview_scale_type_1744_;
-    float max_modelview_scale_1748_;
-    /* classifyMatrix writes the per-mode projection-shape class here; the
-       projection class at +0x1750 feeds srDD::setProjectionMatrix. */
-    srMatrix4T<float>::e_type matrix_class_174c_[2];
-    unsigned char unknown_1754_[4];
-    srVector3T<float> gamma_1758_;
-    unsigned long swap_interval_1764_;
-    e_antiAlias antialias_1768_;
-    Pick pick_stack_176c_[32];
-    unsigned long pick_depth_19ec_; /* 0x19ec */
-    unsigned long pick_key_19f0_;
-    unsigned char unknown_19f4_[0x84];
-    Statistics statistics_1a78_;
-    unsigned char unknown_1af8_[8];
+    /* Device record; retail's implicit copy constructor emits a single
+       0xD4-dword rep movsd over the whole member. */
+    Device device_40_;
+    /* Render-state record; retail copies it as one 0x4F2-dword rep movsd
+       and the constructor zeroes it wholesale. */
+    State state_390_;
+    /* Presentation record; retail copies it as a 5-dword rep movsd. */
+    Display display_1758_;
+    /* Pick record; retail copies it as a 0xA2-dword rep movsd. */
+    PickState pick_176c_;
+    unsigned char unknown_19f4_[4];
+    /* Snapshot getStatistics refreshes on every flipFrame; dump prints it. */
+    Statistics statistics_19f8_;
+    /* getDD counts each device access at value_68 (the overlay's "DD" row),
+       so the live counters are writable from const. */
+    mutable Statistics statistics_1a78_;
+    /* accumAlloc sizes this width*height*8 accumulation pixel buffer plus a
+       width*4 scratch block; accumClear fills it from clear_1b08_.clear_values_00_'s
+       accum color over the current scissor. */
+    AccumPixel* accum_buffer_1af8_;
+    unsigned long* accum_scratch_1afc_;
     LockSurface* lock_surface_1b00_;
-    unsigned char unknown_1b04_[4];
-    srVector4T<float> clear_color_1b08_;
-    unsigned char unknown_1b18_[0x10];
-    double clear_depth_1b28_;
-    unsigned char unknown_1b30_[0x408];
+    /* Buffer-lock nesting depth; _lockBuffer only locks the device on the
+       first entry and _unlockBuffer unlocks when this returns to zero. */
+    long buffer_lock_count_1b04_;
+    /* Clear record; retail's implicit copy constructor emits a 0xC-dword
+       rep movsd over the whole member. */
+    ClearState clear_1b08_;
+    /* Grayscale ramp built by initGlobalPalette and handed to
+       srDD::setGlobalPalette; matchPalette compares it as srARGB. */
+    srARGB global_palette_1b38_[0x100];
     /* Bound Texture per stage, swapped by changeTexture. */
     Texture* texture_slots_1f38_[2];
     /* Per-stage packed device parameters written by setTextureParameters. */
     srDD::TexParms texture_parms_1f40_[2];
     /* Device palette record handed to bindPalette/deletePalette. */
     srDD::Palette palette_1f50_;
-    /* setTextureParameters packs the stage parameters through these filter
-       tables, indexed by bits of the texture's packed state. */
-    unsigned long wrap_map_1f5c_[4];
-    unsigned long mag_filter_map_1f6c_[4];
-    unsigned long mag_filter_param_1f7c_;
-    unsigned long min_filter_map_1f80_[4];
-    unsigned long min_filter_param_1f90_;
-    /* The fourth entry doubles as the current mipmap parameter written by
-       setTextureDefaultMipmap. */
-    unsigned long mipmap_map_1f94_[4];
-    unsigned long correction_map_1fa4_[2];
-    unsigned long detail_map_1fac_[2];
-    unsigned char unknown_1fb4_[4];
-    srTextureIFace::e_filter default_mag_filter_1fb8_;
-    srTextureIFace::e_filter default_min_filter_1fbc_;
-    srTextureIFace::e_mipmap default_mipmap_1fc0_;
-    /* Per-type default device parameters; evaluateTexturePixelFormat copies
-       entry [Dimensions::parameter_index] into srDD::Texture::parameter_34. */
-    unsigned long default_texture_params_1fc4_[5];
-    /* Default Dimensions::parameter_index for newly created textures. */
-    unsigned long default_parameter_index_1fd8_;
-    /* Palette currently bound to the device. */
-    srPalette* palette_1fdc_;
+    /* Texture-parameter map record; retail's implicit copy constructor
+       emits a 0x20-dword rep movsd over the whole member. */
+    TextureState texture_state_1f5c_;
+    /* Palette currently bound to the device; srGERD's destructor runs the
+       releasing srPtr teardown at the member-teardown level after
+       texture_iface_; the assigning sites inline operator='s addref/release
+       handoff. */
+    srPtr<srPalette> palette_1fdc_;
     /* srDD::e_polygonMode value; the empty enum cannot be a field type. */
     unsigned long polygon_mode_1fe0_;
     long polygon_offset_1fe4_;
     srVector4T<float> fog_color_1fe8_;
     srShader shader_1ff8_;
-    /* Texture interfaces requested through setTexture for stages 0/1. */
-    srTextureIFace* texture_iface_1ffc_[2];
+    /* Texture interfaces requested through setTexture for stages 0/1; the
+       srPtr array is proven by ~srGERD's __ehvec_dtor over two releasing
+       elements. */
+    srPtr<srTextureIFace> texture_iface_1ffc_[2];
     /* Live textures keyed by the texture interface's frame handle. */
     srHashTable<unsigned long, Texture*> texture_lookup_2004_;
-    unsigned long texture_count_2014_;
-    Texture* texture_free_2018_;
-    /* Chunk pointers backing the 0xa8-byte Texture pool. */
-    srArray<Texture*> texture_pool_201c_;
-    unsigned long texture_pool_count_2024_;
+    /* Chunk pointers backing the 0xa8-byte Texture pool; ~srGERD calls its
+       release() before the memberwise teardown reaches chunks_08. */
+    TexturePool texture_pool_2014_;
     Texture* texture_deleted_2028_;
     Texture* texture_head_202c_;
     Texture* texture_default_2030_;
@@ -782,20 +1265,23 @@ private:
     bool texture_hash_enabled_2044_;
     unsigned char unknown_2045_[3];
     srVector4T<float> ambient_light_2048_;
-    srVector4T<float> environment_2058_;
-    /* pushEnvironment/popEnvironment stack of {min, max, scale, inv_scale}. */
-    srVector4T<float> environment_stack_2068_[16];
-    unsigned long environment_depth_2168_;
-    unsigned long enable_stack_216c_[16];
-    unsigned long enable_depth_21ac_;
-    srArray<srVertexProcessor*> vertex_processors_21b0_;
-    unsigned long vertex_processor_count_21b8_;
+    Environment environment_2058_;
+    /* Environment/enable record; retail's implicit copy constructor emits a
+       0x52-dword rep movsd over the whole member. */
+    EnvironmentState environment_state_2068_;
+    VertexProcessors vertex_processors_21b0_;
     unsigned long exclusion_mask_21bc_;
     unsigned long dirty_21c0_;
-    /* The vertex-stream state handed to srDD::setVertexArrayInfo by
-       drawArrays/drawElements; setDataPtr and the pointer setters program it. */
     srRendererDefs::VertexArrayInfo vertex_arrays_21c4_;
-    unsigned char unknown_2230_[8];
+    /* performPickTest's w-normalized {x,y,z,sign(w)} scratch per vertex;
+       released by closeWindow. */
+    srHeapBuffer<srVector4T<float> > pick_vertices_2230_;
+
+    /* Implicit memberwise copy constructor emitted by the class-level
+       provider dllexport; retail has no in-DLL call sites. */
+    // SYNTHETIC: SURRENDER 0x1001B020
+    // ??0srGERD@@QAE@ABV0@@Z
+
 };
 
 /* Retail 0x10027BF0: the three-word texture-set key hash; the interning
