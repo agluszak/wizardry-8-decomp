@@ -170,7 +170,7 @@ void stLight::process(const srNode::ProcessInfo& info, srNode::e_processType typ
 void stLight::SetDefinitionTime(float time)
 {
     if (m_definition_234 != 0 && m_definition_234->type_04 == 2) {
-        static_cast<stLightDefinition005ECDA0*>(m_definition_234)->time_4c = time;
+        static_cast<stKeyframedLightDefinition*>(m_definition_234)->time_4c = time;
     }
 }
 
@@ -187,8 +187,8 @@ void stLight::SetDefinitionTime(float time)
 void stLight::Update0049C960()
 {
     if (m_definition_234 != 0 && m_definition_234->type_04 == 2) {
-        stLightDefinition005ECDA0* definition =
-            static_cast<stLightDefinition005ECDA0*>(m_definition_234);
+        stKeyframedLightDefinition* definition =
+            static_cast<stKeyframedLightDefinition*>(m_definition_234);
         float time = definition->time_4c;
         int count = definition->values_18.count;
         int last = count - 1;
@@ -254,8 +254,8 @@ void stLight::Update0049C960()
     unsigned long ticks = GetTickCount();
     W8PathAI* path = m_owned_244;
     float seconds = ticks * g_float_005ec128;
-    stLightDefinition005ECDBC* definition =
-        static_cast<stLightDefinition005ECDBC*>(m_definition_234);
+    stParametricLightDefinition* definition =
+        static_cast<stParametricLightDefinition*>(m_definition_234);
     if (definition->period_30 < g_float_005ebc90) {
         definition->period_30 = 1.0f;
     }
@@ -411,15 +411,15 @@ void stLight::Reset0049D070()
 {
     if (m_definition_234 != 0) {
         if (m_definition_234->type_04 == 2) {
-            stLightDefinition005ECDA0* definition =
-                static_cast<stLightDefinition005ECDA0*>(m_definition_234);
+            stKeyframedLightDefinition* definition =
+                static_cast<stKeyframedLightDefinition*>(m_definition_234);
             definition->time_4c = 0.0f;
             definition->keyframe_index_48 = 0;
             m_path_index_248 = 0;
             m_path_direction_250 = 1;
         } else {
-            stLightDefinition005ECDBC* definition =
-                static_cast<stLightDefinition005ECDBC*>(m_definition_234);
+            stParametricLightDefinition* definition =
+                static_cast<stParametricLightDefinition*>(m_definition_234);
             intensity_1d0 = definition->intensity_28;
             if ((definition->flags_08 & 8) != 0) {
                 diffuse_1a4 = definition->color_10;
@@ -564,7 +564,7 @@ unsigned char W8OctRegionVolume::ContainsPoint0049E460(const srVector3T<float>* 
 }
 
 // SYNTHETIC: WIZ8 0x004A2200
-// stLightDefinition005ECDBC::`scalar deleting destructor'
+// stParametricLightDefinition::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0049E290
 // srArray<srNode*>::setCapacity

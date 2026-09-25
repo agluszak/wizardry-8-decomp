@@ -239,7 +239,7 @@ void AssociateWorldLights(W8World* world)
         stLightDefinition* definition = light->m_definition_234;
 
         if (definition != 0 && definition->type_04 == 1 &&
-            (static_cast<stLightDefinition005ECDBC*>(definition)->flags_08 & 1) != 0) {
+            (static_cast<stParametricLightDefinition*>(definition)->flags_08 & 1) != 0) {
             int prop_count = PLLength(world->plsProps);
             int prop_index;
 
@@ -275,7 +275,7 @@ unsigned char ReadWorldLights(W8World* world, int hFile)
 
     for (index = 0; index < light_count; ++index) {
         W8LevelLightRecord record;
-        stLightDefinition005ECDBC* definition = 0;
+        stParametricLightDefinition* definition = 0;
         W8PathAI* path = 0;
         stLight* light = 0;
         char name[20];
@@ -286,7 +286,7 @@ unsigned char ReadWorldLights(W8World* world, int hFile)
             _strupr(name);
 
             if ((record.flags & 2) != 0) {
-                definition = new stLightDefinition005ECDBC;
+                definition = new stParametricLightDefinition;
                 record.create = 1;
 
                 FileRead(hFile, &definition->flags_08, 4, 0);

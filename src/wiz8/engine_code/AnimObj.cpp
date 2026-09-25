@@ -139,7 +139,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
             }
 
             if (definition_kind == 1) {
-                stLightDefinition005ECDBC* typed = new stLightDefinition005ECDBC;
+                stParametricLightDefinition* typed = new stParametricLightDefinition;
                 FileRead(handle, &typed->flags_08, 4, 0);
                 FileRead(handle, &typed->flicker_chance_0c, 4, 0);
                 FileRead(handle, &typed->color_10, 12, 0);
@@ -155,7 +155,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                 FileRead(handle, &typed->subcycle_max_40, 4, 0);
                 definition = typed;
             } else if (definition_kind == 2) {
-                stLightDefinition005ECDA0* typed = new stLightDefinition005ECDA0;
+                stKeyframedLightDefinition* typed = new stKeyframedLightDefinition;
                 int previous = 0;
                 int key;
 
@@ -792,9 +792,9 @@ stLightDefinition::~stLightDefinition() {}
    clone iterates the second vector's count, which is the retail authority for
    the shared extent, then copies the four scalar playback  */
 // FUNCTION: WIZ8 0x004a2230
-stLightDefinition* stLightDefinition005ECDA0::Clone() const
+stLightDefinition* stKeyframedLightDefinition::Clone() const
 {
-    stLightDefinition005ECDA0* copy = new stLightDefinition005ECDA0;
+    stKeyframedLightDefinition* copy = new stKeyframedLightDefinition;
     int index;
 
     if (copy == 0) {
@@ -814,7 +814,7 @@ stLightDefinition* stLightDefinition005ECDA0::Clone() const
 }
 
 // FUNCTION: WIZ8 0x004a2580
-bool stLightDefinition005ECDA0::IsEnabledForSubcycle(unsigned char subcycle)
+bool stKeyframedLightDefinition::IsEnabledForSubcycle(unsigned char subcycle)
 {
     if (*values_18.GetAt(0) <= time_4c && time_4c <= *values_18.GetAt(values_18.GetCount() - 1)) {
         return true;
@@ -823,10 +823,10 @@ bool stLightDefinition005ECDA0::IsEnabledForSubcycle(unsigned char subcycle)
 }
 
 // SYNTHETIC: WIZ8 0x004a25c0
-// stLightDefinition005ECDA0::`scalar deleting destructor'
+// stKeyframedLightDefinition::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x004a25e0
-stLightDefinition005ECDA0::~stLightDefinition005ECDA0() {}
+stKeyframedLightDefinition::~stKeyframedLightDefinition() {}
 
 // TEMPLATE: WIZ8 0x004A2500
 // W8GrowableVector<int>::W8GrowableVector

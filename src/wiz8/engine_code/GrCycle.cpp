@@ -724,8 +724,8 @@ void W8GrCycle::UpdateLights()
             continue;
         }
         if (definition->type_04 == 1) {
-            stLightDefinition005ECDBC* cycle_definition =
-                static_cast<stLightDefinition005ECDBC*>(definition);
+            stParametricLightDefinition* cycle_definition =
+                static_cast<stParametricLightDefinition*>(definition);
             if ((cycle_definition->flags_08 & 3) == 3 && (cycle_definition->flags_08 & 0x40) != 0) {
                 if (cycle_definition->IsEnabledForSubcycle(representation->subcycle_064) == 0) {
                     if (light->parentNode() != 0) {

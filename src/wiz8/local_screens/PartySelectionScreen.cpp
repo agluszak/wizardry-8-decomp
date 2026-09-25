@@ -634,15 +634,13 @@ W8PartySelectionController* g_party_selection_controller;
 // FUNCTION: WIZ8 0x005C33C0
 void RefreshPartySelectionPortrait(unsigned int party_slot)
 {
-    W8PartySelectionPartySlotRow** rows =
-        // reinterpret-ok: the slot panel's button list stores the derived row type
-        reinterpret_cast<W8PartySelectionPartySlotRow**>(
-            g_party_selection_controller->m_control_28->m_control_50.m_lsButtons.data);
+    W8TextControl** buttons =
+        g_party_selection_controller->m_control_28->m_control_50.m_lsButtons.data;
     if (static_cast<int>(party_slot - 2) <
         g_party_selection_controller->m_control_28->m_control_50.m_lsButtons.count) {
-        rows += party_slot - 2;
+        buttons += party_slot - 2;
     }
-    W8PartySelectionPartySlotRow* row = *rows;
+    W8PartySelectionPartySlotRow* row = static_cast<W8PartySelectionPartySlotRow*>(*buttons);
     Controls* panel = row->m_pPanel;
     int portrait = g_status_685170.buffers.Char[row->m_row + 2].portrait_index;
     int flags = 2;

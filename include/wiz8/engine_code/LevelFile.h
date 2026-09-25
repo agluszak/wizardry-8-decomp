@@ -79,7 +79,7 @@ struct W8LevelFileMesh {
     float lod_scale_58;                      /* flags_0c & 1 && lod_mode_40 > 1 */
 };
 
-/* The 0x3c-byte serialized block covering stLightDefinition005ECDBC fields
+/* The 0x3c-byte serialized block covering stParametricLightDefinition fields
    flags_08 through subcycle_max_40: the runtime object's first 8 bytes
    (vtable/type) are not serialized. flags_00 bit 0x10 marks the light as
    owning a path-AI block. Serialized under a light's flags_04 bit1, and
