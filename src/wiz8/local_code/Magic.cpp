@@ -4182,62 +4182,35 @@ void PruneSpellTargetMarkers00501B70(int spell_id, W8GrowableVector<int>* monste
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
     int index;
-    int shift;
-    int location_id;
 
-    index = monster_markers->count;
-joined_r0x00501b7a:
-    --index;
-    if (index < 0) {
-        return;
-    }
-    if (index < monster_markers->count) {
-        location_id = monster_markers->data[index];
-    } else {
-        location_id = monster_markers->data[0];
-    }
-    monster_info = MonsterGetScriptPartByLocationIndex(
-        MonsterGetIndexByLocationID(0x1595, MAGIC_CPP, location_id, 1));
-    record = GetMonsterDataForInfo(monster_info);
-    if (monster_info->fActive == 0 || monster_info->hp_current == 0 ||
-        monster_info->uiCondition[0x12] != 0 || record->untargetable_24a != 0) {
-        goto LAB_00501cc9;
-    }
-    if (spell_id == 0x16) {
-        if (record->kind_0cb == 20 || record->kind_0cb == 21) {
-            goto joined_r0x00501b7a;
+    for (index = monster_markers->count - 1; index >= 0; --index) {
+        monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x1595, MAGIC_CPP, *monster_markers->GetAt(index), 1));
+        record = GetMonsterDataForInfo(monster_info);
+        if (monster_info->fActive == 0 || monster_info->hp_current == 0 ||
+            monster_info->uiCondition[0x12] > 0 || record->untargetable_24a != 0) {
+            monster_markers->RemoveAt(index);
+            continue;
         }
-    } else if (spell_id == 0x4d) {
-        if (record->kind_0cb == 20 || record->kind_0cb == 21 || record->kind_0cb == 28 ||
-            monster_info->summoned_2da != 0) {
-            goto joined_r0x00501b7a;
-        }
-    } else {
-        if (spell_id != 0x81 || record->kind_0cb == 20) {
-            goto joined_r0x00501b7a;
+        switch (spell_id) {
+        case 0x16:
+            if (record->kind_0cb != 20 && record->kind_0cb != 21) {
+                monster_markers->RemoveAt(index);
+            }
+            break;
+        case 0x4d:
+            if (record->kind_0cb != 20 && record->kind_0cb != 21 && record->kind_0cb != 28 &&
+                monster_info->summoned_2da == 0) {
+                monster_markers->RemoveAt(index);
+            }
+            break;
+        case 0x81:
+            if (record->kind_0cb != 20) {
+                monster_markers->RemoveAt(index);
+            }
+            break;
         }
     }
-    if (monster_markers->count <= index || index < 0) {
-        goto joined_r0x00501b7a;
-    }
-    shift = index;
-    while (shift < monster_markers->count - 1) {
-        monster_markers->data[shift] = monster_markers->data[shift + 1];
-        ++shift;
-    }
-    goto LAB_00501cee;
-LAB_00501cc9:
-    if (monster_markers->count <= index || index < 0) {
-        goto joined_r0x00501b7a;
-    }
-    shift = index;
-    while (shift < monster_markers->count - 1) {
-        monster_markers->data[shift] = monster_markers->data[shift + 1];
-        ++shift;
-    }
-LAB_00501cee:
-    --monster_markers->count;
-    goto joined_r0x00501b7a;
 }
 
 // FUNCTION: WIZ8 0x00501D20
