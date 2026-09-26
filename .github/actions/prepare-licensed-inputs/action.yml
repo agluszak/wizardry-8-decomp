@@ -26,4 +26,6 @@ runs:
 
     - name: Prepare full runtime corpus
       shell: bash
+      env:
+        WIZ8_RUNTIME_RUNNER: wine
       run: uv run wiz8 prepare
