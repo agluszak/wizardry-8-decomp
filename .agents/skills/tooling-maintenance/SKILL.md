@@ -70,9 +70,20 @@ should be fixed at the path/mount/compile-database boundary, not hidden with dia
 ## Lint and validation
 
 Keep the gating profile narrow and reconstruction-relevant. A diagnostic becomes gating when it finds
-real source-model defects with an acceptable false-positive rate. Proven retail/vendor ABI behavior
-wins over a generic lint heuristic; suppress such cases narrowly at the affected construct instead of
-weakening the global profile.
+real source-model defects with an acceptable false-positive rate. Prove that with a whole-tree trial
+over every recovered TU before gating a check, and record the trial's evidence and exclusions in
+`.clang-tidy`; the checks already gated there were each clean across all 295 recovered translation
+units. Proven retail/vendor ABI behavior wins over a generic lint heuristic; suppress such cases
+narrowly at the affected construct instead of weakening the global profile.
+
+`uv run wiz8 tidy-audit` is the non-gating counterpart to `wiz8 lint`, in the same relationship
+`wiz8 diagnostics` has to it. `.clang-tidy-audit` holds checks that are too ambiguous to gate — enum
+sentinels, `memset`/`memcpy`/`memcmp` over records, union layout heuristics. It reports the whole
+corpus, never filters to changed lines, and never fails; treat a finding as evidence about the source
+model, not a defect to repair. Never "fix" a finding to turn this lane green, and never promote a
+check into `.clang-tidy` without the whole-tree trial above. The audit invokes the real clang-tidy
+directly rather than the `clang-tidy` wrapper, because the wrapper's boolean-fact post-processing
+belongs to the gating lane and exits non-zero.
 
 Do not add tests by default. Add a test for a concrete correctness bug or stable public behavior that
 existing checks missed. Avoid tests of source spelling, documentation text, inventory counts, generated

@@ -3400,8 +3400,8 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
 {
     unsigned int target_flag;
     unsigned char blind = 0;
-    unsigned char primary;
-    unsigned char secondary;
+    bool primary;
+    bool secondary;
     unsigned char position_ok;
     srVector3T<float> source_position;
     srVector3T<float> target_position;

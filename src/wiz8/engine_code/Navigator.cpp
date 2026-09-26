@@ -1065,7 +1065,7 @@ srVector3T<float>* W8Navigator::AdjustPosition(srVector3T<float>* result,
     }
     srVector3T<float> probe = *current;
     probe.y += g_world_scale;
-    unsigned char hit;
+    bool hit;
     float ground = g_octree->SettleToGround(&probe, &hit, 1, 500.0f);
     if (hit == 0) {
         movement_0c0.velocity_034.SetZero();

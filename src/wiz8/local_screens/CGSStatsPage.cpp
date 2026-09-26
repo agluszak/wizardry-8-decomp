@@ -493,7 +493,7 @@ void W8CharacterStatsRow::OnSecondary(W8TextControl* control)
                 m_listener_030->OnRowInfoRequested(this, m_index_004);
             }
         } else {
-            for (unsigned int index = 0; index < m_count_008; ++index) {
+            for (int index = 0; index < m_count_008; ++index) {
                 if (control == m_subpanel_entries_02c[index]) {
                     control->OnMouseLeave(0);
                     m_listener_030->OnRowInfoRequested(this, index);

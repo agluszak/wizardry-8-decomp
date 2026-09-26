@@ -597,7 +597,7 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
                       void (*callback)(void))
 {
     SGPRect rect;
-    char filename[16];
+    char filename[32];
     if (g_message_box_state != 0) {
         return false;
     }
@@ -630,11 +630,6 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
         return false;
     }
     SpecifyButtonMultiColorFont(g_message_box_background_button, 1);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfortify-source"
-    /* Retail's sixteen-byte name slot is too small for these full paths; the
-       strcpy tail overruns into the saved-register area, which retail never
-       reads again. The byte-true layout is kept. */
     if (has_accept) {
         strcpy(filename, "Data\\Message Box\\Ok.sti");
         g_message_box_accept_image = LoadButtonImage(
@@ -669,7 +664,6 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     } else {
         g_message_box_cancel_button = -1;
     }
-#pragma clang diagnostic pop
     if (has_accept || has_cancel) {
         DisableButton(g_message_box_background_button);
     }

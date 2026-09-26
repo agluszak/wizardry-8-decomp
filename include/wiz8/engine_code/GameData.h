@@ -277,14 +277,13 @@ struct W8GameData {
        position delta when no pre-tree exists (reseeding the caller's record
        to the world-space hit), and restores the arrays. `gate` skips flag-4
        props when set. */
-    unsigned char TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag,
-                           char gate); /* 0x0041C140 */
+    bool TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag, char gate); /* 0x0041C140 */
     /* Ray-test `count` surfaces - all of m_pSurfaces when `surface_ids` is
        null, else the listed surface indexes - against the trace record.
        trace_flag4_gate_88, flag and mode filters apply; a closer hit stores index_04
        into last_hit_surface_54, the contact into the record's end_0c and the distance
        into hit_limit_24. */
-    char TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
+    bool TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
                          char skip_flag, int mode); /* 0x0041C330 */
 };
 
@@ -339,10 +338,10 @@ void GetLevelSoundEnvironment(char* environment, char* secondary);
 /* 0x00420BD0: settle a world point onto the octree ground through the
    GameData geometry index; the false branch reports the input height and
    clears the caller's hit byte. */
-float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned char* hit);
+float SettlePositionToGround00420BD0(const srVector3T<float>* position, bool* hit);
 /* 0x00420C30: same ground-settle query with a fixed 500-unit probe range,
    returning the resulting height. */
-float SettlePositionToGround00420C30(srVector3T<float>* position, unsigned char* hit);
+float SettlePositionToGround00420C30(srVector3T<float>* position, bool* hit);
 
 void ClearLevelDataFlags5To7(void); /* 0x0041F0C0 */
 srCamera* CreateOrSetGameCamera(srNode* parent, srCamera* camera);

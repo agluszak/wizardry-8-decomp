@@ -458,7 +458,7 @@ void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character)
 {
     bool returned = false;
     bool dropped = false;
-    int slot;
+    unsigned int slot;
     for (slot = 0; slot < 12; ++slot) {
         W8ItemInstance* item = &character->EquippedItem[slot];
         if (item->iItemNo != -1 && CanUnequipSlotItem(character, slot) &&

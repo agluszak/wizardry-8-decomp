@@ -239,13 +239,13 @@ public:
     unsigned char SetScriptLabel(const char* label);
     bool IsPendingFinalize() const;
     bool IsWithinWorldRange();
-    unsigned char CheckLineOfSightToPlayer();
-    void GetPlayerSightFlags(unsigned char* primary, unsigned char* secondary);
+    bool CheckLineOfSightToPlayer();
+    void GetPlayerSightFlags(bool* primary, bool* secondary);
     unsigned char IsVisibleToPlayer(unsigned char use_bounds);
-    void GetPlayerToMonsterSightFlags(unsigned char* primary, unsigned char* secondary,
+    void GetPlayerToMonsterSightFlags(bool* primary, bool* secondary,
                                       const srVector3T<float>* source);
     unsigned char HasLineOfSightToMonster(W8Monster* monster);
-    void GetMonsterSightFlags(W8Monster* monster, unsigned char* primary, unsigned char* secondary);
+    void GetMonsterSightFlags(W8Monster* monster, bool* primary, bool* secondary);
     unsigned char HasLineOfSightFromPoint(srVector3T<float> point);
     int IsFacingMonster(W8Monster* monster);
     int IsFacingPlayer();

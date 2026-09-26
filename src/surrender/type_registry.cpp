@@ -1513,7 +1513,6 @@ long srClass::getReferenceCount() const
 {
     return reference_count_0c;
 }
-
 // SYNTHETIC: SURRENDER 0x100105F0
 // std::ios_base::Init global static-init block
 
@@ -1567,3 +1566,42 @@ long srClass::getReferenceCount() const
 
 // TEMPLATE: SURRENDER 0x10011620
 // srHashTable<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Grow
+
+// SYNTHETIC: SURRENDER 0x1000E2D0
+// srClass scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x1000E470
+// srRuntimeClass scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x1000E8A0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0x1000E8B0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x1000E8E0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0x1000E8F0
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x10011D00
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0x10011D10
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x10011D40
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0x10011D50
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x10011D80
+// srConfig global static-init block
+
+// SYNTHETIC: SURRENDER 0x10011D90
+// srConfig global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x1000F4F0
+// unreferenced ClassNode name/ID consistency-check emission

@@ -445,6 +445,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends innoextract llvm xvfb
+          # GE-Proton's Steam Runtime uses its bundled bwrap, which needs a
+          # user namespace on this disposable Ubuntu runner.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
           command -v llvm-undname
       - name: Load VC6 analysis image

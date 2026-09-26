@@ -59,7 +59,7 @@ void MergeItemStacksWithHeld(W8ItemInstance* item);
 void ReportCastResult(int party_slot);
 void UseHeldItemOnItem(W8ItemInstance* item);
 void TargetCharacterWithHeldItem(unsigned int uiTargetChar);
-bool CanCharacterUseItemEntry(W8Character* character, W8ItemInstance* item);
+int CanCharacterUseItemEntry(W8Character* character, W8ItemInstance* item);
 bool CanSplitItemStack(const W8ItemInstance* item);
 void SplitStackDialogResult(W8DialogBase* dialog);
 void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot);

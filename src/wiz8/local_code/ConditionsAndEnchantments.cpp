@@ -976,7 +976,7 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns)
 // FUNCTION: WIZ8 0x005246c0
 void RemoveConditionFromParty(int condition)
 {
-    int party_slot;
+    unsigned int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
@@ -992,7 +992,7 @@ void RemoveConditionFromParty(int condition)
 // FUNCTION: WIZ8 0x005244a0
 void RemoveConditionFromEveryone(int condition)
 {
-    int party_slot;
+    unsigned int party_slot;
     unsigned int monster_index;
     W8MonsterInfo* monster_info;
 
@@ -1073,7 +1073,7 @@ void RemoveAllEnchantments(void)
 void RemoveAllConditionsFromParty(void)
 {
     unsigned int condition;
-    int party_slot;
+    unsigned int party_slot;
 
     for (condition = 0; condition < W8_CONDITION_CLEARABLE_COUNT; ++condition) {
         if (condition == W8_CONDITION_SURVIVES_DEATH) {

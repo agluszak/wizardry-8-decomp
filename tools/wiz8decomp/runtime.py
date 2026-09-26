@@ -66,6 +66,8 @@ RUNTIME_REGISTRY_TIMEOUT_SECONDS = 300.0
 def configure_runtime_environment(settings: Settings, environment: dict[str, str]) -> None:
     environment.setdefault("WIZ8_UMU_RUN", str(umu_run_path(settings)))
     environment.setdefault("PROTONPATH", str(ge_proton_path(settings)))
+    environment.setdefault("PROTON_USE_WINED3D", "1")
+    environment.setdefault("PROTON_USE_XALIA", "0")
     environment.setdefault(
         "WIZ8_UMU_WINESERVER",
         str(Path(environment["PROTONPATH"]).expanduser() / "files/bin/wineserver"),
@@ -829,15 +831,19 @@ def _initialize_wine_prefix(prefix: Path, environment: dict[str, str]) -> None:
     if (prefix / "system.reg").exists():
         return
     clean = {key: value for key, value in environment.items() if key != "WINEDLLOVERRIDES"}
-    subprocess.run(
+    result = subprocess.run(
         _wine_control_command(environment, "reg", "query", r"HKCU\Software\Wine"),
         env=clean,
         check=False,
         capture_output=True,
+        text=True,
         timeout=120,
     )
     if not (prefix / "system.reg").exists():
-        raise RuntimeError(f"wine failed to initialize prefix {prefix}")
+        raise RuntimeError(
+            f"wine failed to initialize prefix {prefix} (exit {result.returncode})\n"
+            f"stdout:\n{result.stdout[-4000:]}\nstderr:\n{result.stderr[-4000:]}"
+        )
 
 
 def configure_wine_window_management(

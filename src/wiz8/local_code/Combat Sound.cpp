@@ -36,7 +36,7 @@ char* g_material_impact_sounds[28][12];
 void PlayCombatSound(char* sound_name, unsigned int variant_count, bool store_handle, int volume)
 {
     SOUNDPARMS parms;
-    char zSoundFileName[0x60];
+    char zSoundFileName[100];
     unsigned int handle;
 
     if (variant_count > 1) {

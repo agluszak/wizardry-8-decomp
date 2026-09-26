@@ -1,0 +1,49 @@
+# The non-gating clang-tidy audit profile, run by `uv run wiz8 tidy-audit`.
+#
+# This is the counterpart to .clang-tidy in the same way `wiz8 diagnostics` is
+# the counterpart to `wiz8 lint`: the gating profile answers "is the changed
+# reconstruction clean?", while this one answers "what does the recovered corpus
+# look like under checks that are too ambiguous to gate?".
+#
+# A finding here is evidence about the source model, not a defect to repair.
+# Most of these checks encode a heuristic that a faithful VC6 reconstruction
+# legitimately violates:
+#
+# - bugprone-non-zero-enum-to-bool-conversion: a recovered enum is often still
+#   missing its zero/sentinel value, so a truth test on a not-yet-enumerated
+#   enumerator is incomplete recovery, not a wrong conversion. It is still the
+#   cheapest available pointer at enum-model debt, so it stays enabled.
+# - bugprone-undefined-memory-manipulation / -suspicious-memory-comparison:
+#   the reconstruction deliberately uses large amounts of memset/memcpy/memcmp
+#   over records and blocks, which is what the retail code does. "Fixing" a hit
+#   here would replace a matching body with a plausible-looking non-matching
+#   one. Read a hit as evidence about a class's triviality or a struct's
+#   padding, then check it against retail before touching source.
+# - bugprone-tagged-union-member-count: its structural heuristic (an enum
+#   discriminant versus a member count) is far too crude for recovered layouts
+#   whose discriminant is implicit or whose alternatives overlap deliberately.
+# - bugprone-implicit-widening-of-multiplication-result: kept because Wizardry
+#   is 32-bit, where this has a much lower yield than on 64-bit code and so
+#   costs little to keep reporting.
+# - bugprone-string-literal-with-embedded-nul: a low-noise typo detector, kept
+#   because a resource/binary-ish literal that trips it should be looked at
+#   once rather than never.
+#
+# The gate is `WarningsAsErrors: ''` and the command never fails on findings.
+# Nothing here should ever be "fixed" to turn this lane green; promote a check
+# into .clang-tidy only after a whole-tree trial shows an acceptable
+# false-positive rate, exactly as the checks already listed there were.
+Checks: >
+  -*,
+  bugprone-non-zero-enum-to-bool-conversion,
+  bugprone-implicit-widening-of-multiplication-result,
+  bugprone-tagged-union-member-count,
+  bugprone-undefined-memory-manipulation,
+  bugprone-suspicious-memory-comparison,
+  bugprone-string-literal-with-embedded-nul
+WarningsAsErrors: ''
+# Match first-party trees by repository-relative path so the same filter works
+# under Docker's /repo mount, a local checkout, and relative compile-database
+# entries. Do not hard-code /repo here.
+HeaderFilterRegex: '(^|/)(include/wiz8|include/surrender|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
+FormatStyle: none

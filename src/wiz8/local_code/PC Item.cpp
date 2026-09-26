@@ -2614,7 +2614,7 @@ unsigned int CountItemOnParty(int item_id, W8ItemInstance** found, W8Character**
         }
     }
 
-    for (int party_slot = 0; party_slot < 8; ++party_slot) {
+    for (unsigned int party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
             int count = CountItemOnCharacter(&g_status.buffers.Char[party_slot], item_id, found,
                                              include_backpack);
@@ -2646,7 +2646,7 @@ unsigned int CountItemOnParty(int item_id, W8ItemInstance** found, W8Character**
 // FUNCTION: WIZ8 0x00521360
 bool EveryCharacterHasItem(int item_id, int include_backpack)
 {
-    int party_slot;
+    unsigned int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
@@ -2756,7 +2756,7 @@ bool TryIdentifyItemFor(W8Character* character, W8ItemInstance* item)
 // FUNCTION: WIZ8 0x0051d230
 void BindEveryPartyItem(void)
 {
-    int party_slot;
+    unsigned int party_slot;
 
     if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0 &&
         gXStatus.fPartyMovementMode == 0) {

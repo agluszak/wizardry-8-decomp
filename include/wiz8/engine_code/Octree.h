@@ -392,7 +392,7 @@ public:
     unsigned char LinkNavigatorTarget(W8NavigatorMovementState* movement,
                                       const srVector3T<float>* target, float separation);
     void GetPathSurfaceNormal(const srVector3T<float>* position, srVector3T<float>* normal);
-    float SettleToGround(srVector3T<float>* position, unsigned char* out_hit, char mode,
+    float SettleToGround(srVector3T<float>* position, bool* out_hit, char mode,
                          float limit); /* 0x00433820 */
     /* Clamp `position` to the clipped ceiling, probe the ground one
        world-scale unit lower and keep the settled height on a hit. */

@@ -491,7 +491,7 @@ static void AcceptFormationChanges(void)
     }
     if (gXStatus.fCombatMode == 0) {
         ReconcilePartyFormation(&gXStatus.edited_formation, &g_status.formation);
-    } else if (memcmp(&gXStatus.edited_formation, &g_status.formation,
+    } else if (memcmp(&g_status.formation, &gXStatus.edited_formation,
                       sizeof(W8PartyFormationState)) != 0) {
         ShowNotice(8, gppStringList[0x7d9], -1, -1, 0);
     }

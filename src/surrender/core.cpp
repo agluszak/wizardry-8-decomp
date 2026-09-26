@@ -691,3 +691,9 @@ const unsigned char srLogo[0x1000] = {
 
 // SYNTHETIC: SURRENDER 0x100162F0
 // srMaterial scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x10015770
+// srIOManager scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x10015790
+// srIOManager global destruction callback

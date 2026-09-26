@@ -90,10 +90,10 @@ protected:
 public:
     unsigned int m_maxLineWidth; /* 0x3c */
 public:
-    /* State-5's controller raises the alternate-renderer byte directly when
-       it changes modes; retain that observed public storage access. */
-    bool m_geometryDirty;
-    unsigned char m_alternateRenderer;
+    /* The party-selection controller raises the geometry-dirty byte directly
+       when it changes modes; retain that observed public storage access. */
+    bool m_geometryDirty;              /* 0x40 */
+    unsigned char m_alternateRenderer; /* 0x41 */
     unsigned char pad_42[2];
     int m_renderMode;     /* 0x44: 4 initially */
     int m_fontStateIndex; /* 0x48: -1 skips the state-table override */

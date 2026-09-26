@@ -3745,7 +3745,7 @@ void ScatterSpellPointTarget(int spell_id, W8TargetSource* source, W8CombatSlot*
             (Random(0x7d1) - g_monster_poster_max_distance) * range * g_double_005ec8d0 + origin.z);
         point.y = Random(0x3e9) * range * g_double_005ec8d0 + origin.y;
         g_octree->TraceLineOfSight(&origin, &point, 1, -3, -3, 1, 0);
-        point.y = SettlePositionToGround00420BD0(&point, (unsigned char*)0x0);
+        point.y = SettlePositionToGround00420BD0(&point, 0);
         if (point.y != g_ground_settle_fail) {
             break;
         }

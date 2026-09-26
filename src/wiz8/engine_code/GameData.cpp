@@ -59,7 +59,7 @@ W8LevelDataRecord* g_level_data;
 unsigned char g_mouselook_manual;
 
 // FUNCTION: WIZ8 0x00420bd0
-float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned char* hit)
+float SettlePositionToGround00420BD0(const srVector3T<float>* position, bool* hit)
 {
     srVector3T<float> candidate = *position;
     if (g_octree_game_data != 0 && g_octree_game_data->octree_04 != 0) {
@@ -67,13 +67,13 @@ float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned
     }
     float height = position->y;
     if (hit != 0) {
-        *hit = 0;
+        *hit = false;
     }
     return height;
 }
 
 // FUNCTION: WIZ8 0x00420C30
-float SettlePositionToGround00420C30(srVector3T<float>* position, unsigned char* hit)
+float SettlePositionToGround00420C30(srVector3T<float>* position, bool* hit)
 {
     srVector3T<float> candidate = *position;
     srVector3T<float> ground;
@@ -82,7 +82,7 @@ float SettlePositionToGround00420C30(srVector3T<float>* position, unsigned char*
         return g_octree_game_data->octree_04->SettleToGround(&ground, hit, 1, 500.0f);
     }
     if (hit != 0) {
-        *hit = 0;
+        *hit = false;
     }
     return candidate.y;
 }
@@ -1226,11 +1226,11 @@ int W8GameData::TestPropSurfaces(int count, unsigned long* ids, W8OctreeTrace* t
    position delta; on a hit the caller's record is reseeded from the start to
    the world-space contact. `gate` skips flag-4 props when set. */
 // FUNCTION: WIZ8 0x0041c140
-unsigned char W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag, char gate)
+bool W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag, char gate)
 {
     W8GDSurface* saved_surfaces = m_pSurfaces;
     srVector3T<float>* saved_vertices = m_pVertices;
-    unsigned char hit = 0;
+    bool hit = false;
     GDProp* gd_prop;
     W8Prop* prop;
 
@@ -1282,10 +1282,10 @@ unsigned char W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_
    storing index_04 into last_hit_surface_54, the contact into end_0c and the hit
    distance into hit_limit_24/length_28. */
 // FUNCTION: WIZ8 0x0041c330
-char W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
+bool W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
                                  char skip_flag, int mode)
 {
-    char hit = 0;
+    bool hit = false;
     float best_x;
     float best_y;
     float best_z;
@@ -1349,7 +1349,7 @@ char W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
                     if (PointInsideTriangle(vertices, surface->flags_00 & 3, &contact) != 0 &&
                         hit_distance < trace->hit_limit_24) {
                         last_hit_surface_54 = surface->index_04;
-                        hit = 1;
+                        hit = true;
                         trace->hit_limit_24 = hit_distance;
                         best_y = contact.y;
                         best_z = contact.z;
@@ -1373,7 +1373,7 @@ char W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
             return hit;
         }
     }
-    return 0;
+    return false;
 }
 
 /* Selects a switch interface's state: the matching state group's conditional

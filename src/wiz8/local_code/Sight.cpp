@@ -365,17 +365,17 @@ bool IsVisibleUnderConditions(const W8MonsterInfo* monster, const W8VisibilityRe
     case 0:
         return row->sight_state_04 != W8_SIGHT_UNSEEN;
     case 1:
-        return row->can_see_0b != 0;
+        return row->can_see_0b;
     case 2:
-        return row->los_flags_05[0] != 0;
+        return row->los_flags_05[0];
     case 3:
-        return row->los_flags_05[2] != 0;
+        return row->los_flags_05[2];
     case 4:
-        return row->los_flags_05[monster->has_missile_37a != 0] != 0;
+        return row->los_flags_05[monster->has_missile_37a != 0];
     case 5:
-        return row->los_flags_05[2 + (monster->has_spell_37c != 0)] != 0;
+        return row->los_flags_05[2 + (monster->has_spell_37c != 0)];
     default:
-        return row->line_of_sight_28 != 0;
+        return row->line_of_sight_28;
     }
 }
 
@@ -585,17 +585,17 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                                                       entry->los_flags_05 + 2);
                         if (monster_info->has_missile_37a != 0) {
                             unsigned char found = monster->GetProjectilePosition(&trace_position);
-                            unsigned char clear;
+                            bool clear;
 
                             if (found == 0) {
                                 srAssertFail("fFoundMissileVertex", SIGHT_CPP, 0x1f5, 0);
-                                clear = 0;
+                                clear = false;
                             } else {
                                 short line = g_octree->TraceLineOfSight(
                                     &trace_position, &other_position, 1, monster_info->location_id,
                                     other->location_id, 1, 1);
 
-                                clear = (line != 0) ? 0 : 1;
+                                clear = line == 0;
                             }
                             entry->los_flags_05[1] = clear;
                         }
@@ -604,12 +604,12 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
 
                             if (found == 0) {
                                 srAssertFail("fFoundSpellVertex", SIGHT_CPP, 0x1fd, 0);
-                                entry->los_flags_05[3] = 0;
+                                entry->los_flags_05[3] = false;
                             } else {
                                 short line = g_octree->TraceLineOfSight(
                                     &trace_position, &other_position, 1, -3, -3, 1, 0);
 
-                                entry->los_flags_05[3] = (line == 1) ? 0 : 1;
+                                entry->los_flags_05[3] = line != 1;
                             }
                         }
                     }
@@ -702,22 +702,22 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
         monster_info->player_visibility.los_flags_05[0] = 0;
         monster_info->player_visibility.los_flags_05[1] = 0;
         monster_info->player_visibility.los_flags_05[2] = 0;
-        monster_info->player_visibility.los_flags_05[3] = 0;
+        monster_info->player_visibility.los_flags_05[3] = false;
     } else {
         monster->GetPlayerSightFlags(monster_info->player_visibility.los_flags_05,
                                      monster_info->player_visibility.los_flags_05 + 2);
         if (monster_info->has_missile_37a != 0) {
             unsigned char found = monster->GetProjectilePosition(&trace_position);
-            unsigned char clear;
+            bool clear;
 
             if (found == 0) {
                 srAssertFail("fFoundMissileVertex", SIGHT_CPP, 0x9b, 0);
-                clear = 0;
+                clear = false;
             } else {
                 short line = g_octree->TraceLineOfSight(&trace_position, &camera_position, 1,
                                                         monster_info->location_id, -1, 1, 1);
 
-                clear = (line != 0) ? 0 : 1;
+                clear = line == 0;
             }
             monster_info->player_visibility.los_flags_05[1] = clear;
         }
@@ -726,12 +726,12 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
 
             if (found == 0) {
                 srAssertFail("fFoundSpellVertex", SIGHT_CPP, 0xa3, 0);
-                monster_info->player_visibility.los_flags_05[3] = 0;
+                monster_info->player_visibility.los_flags_05[3] = false;
             } else {
                 short line =
                     g_octree->TraceLineOfSight(&trace_position, &camera_position, 1, -3, -3, 1, 0);
 
-                monster_info->player_visibility.los_flags_05[3] = (line == 1) ? 0 : 1;
+                monster_info->player_visibility.los_flags_05[3] = line != 1;
             }
         }
     }

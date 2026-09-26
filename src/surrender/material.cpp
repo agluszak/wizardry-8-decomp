@@ -811,3 +811,39 @@ std::ostream& operator<<(std::ostream& stream, const srShader& shader)
     }
     return stream;
 }
+
+// TEMPLATE: SURRENDER 0x100347F0
+// srClassSupport<srMaterialIFace, srClass, true, 0x2200>::sGetClassNode
+
+// SYNTHETIC: SURRENDER 0x10034B70
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0x10034B80
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x10034BB0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0x10034BC0
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x10034D00
+// srMaterialIFace scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x10035230
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0x10035240
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x10035270
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0x10035280
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x100352B0
+// srEnvironmentMapper global static-init block
+
+// SYNTHETIC: SURRENDER 0x100352C0
+// srEnvironmentMapper global atexit registrar

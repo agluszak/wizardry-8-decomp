@@ -166,7 +166,7 @@ W8NpcScriptFile* LoadNpcScriptFile(char* path)
     W8NpcScriptQuote* quotes;
     unsigned int transferred;
     unsigned short length;
-    unsigned int index;
+    int index;
 
     handle = FileOpen(path, 0x41, 0);
     if (handle == 0) {
