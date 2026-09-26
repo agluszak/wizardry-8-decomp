@@ -2578,9 +2578,12 @@ int CountItemOnCharacter(W8Character* character, int item_id, W8ItemInstance** f
     if (include_backpack != 0) {
         for (slot = 0; slot < 8; ++slot) {
             if (character->backpack[slot].iItemNo == item_id) {
-                total += character->backpack[slot].stack_count == 0
+                /* Retail bug: a matching backpack slot adds the stack count of
+                   the equipped slot with the same index (0x5211A0 reads
+                   [item - 0xc8]), not its own. */
+                total += character->EquippedItem[slot].stack_count == 0
                              ? 1
-                             : character->backpack[slot].stack_count;
+                             : character->EquippedItem[slot].stack_count;
                 if (first != 0 && *first == 0) {
                     *first = &character->backpack[slot];
                 }

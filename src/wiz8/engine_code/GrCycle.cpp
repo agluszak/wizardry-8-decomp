@@ -854,7 +854,7 @@ void W8GrCycle::ResetRepresentation()
     PathAIResetRecord(static_cast<W8PathAI*>(m_pAI));
     target->frame_direction_06e = 1;
     target->subcycle_064 = 0;
-    target->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+    target->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 }
 
 /* Push the cycle's animation state into the live scene.

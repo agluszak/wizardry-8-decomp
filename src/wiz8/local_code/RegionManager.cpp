@@ -910,7 +910,7 @@ void EnableRegionSetInput(unsigned int region_set_index)
                 srAssertFail("uiRegionIndex < guiRegionCount",
                              "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp", 0x259, 0);
             }
-            region->flags &= ~W8_REGION_INPUT_MODE_MASK;
+            region->flags &= 0xfff3;
             ++region_index;
             ++region;
         } while (region_index <= g_region_sets[region_set_index].last_region);
@@ -936,7 +936,7 @@ void DisableRegionSetInput(unsigned int region_set_index)
             }
             last_region = g_region_sets[region_set_index].last_region;
             g_regions[region_index].flags =
-                (g_regions[region_index].flags & ~W8_REGION_INPUT_MODE_MASK) |
+                (g_regions[region_index].flags & 0xfff3) |
                 W8_REGION_INPUT_DISABLED;
             ++region_index;
         } while (region_index <= last_region);
@@ -950,7 +950,7 @@ void EnableRegionInput(unsigned int region_index)
         srAssertFail("uiRegionIndex < guiRegionCount",
                      "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp", 0x259, 0);
     }
-    g_regions[region_index].flags &= ~W8_REGION_INPUT_MODE_MASK;
+    g_regions[region_index].flags &= 0xfff3;
 }
 
 // FUNCTION: WIZ8 0x004f23d0
@@ -961,7 +961,7 @@ void DisableRegionInput(unsigned int region_index)
                      "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp", 0x262, 0);
     }
     unsigned int flags = g_regions[region_index].flags;
-    flags &= ~W8_REGION_INPUT_MODE_MASK;
+    flags &= 0xfff3;
     flags |= W8_REGION_INPUT_DISABLED;
     g_regions[region_index].flags = flags;
 }
