@@ -199,7 +199,7 @@ unsigned char InitializeMenuFonts(void)
     CreateObjectPaletteTables(g_wiz_text_bold_font_object, HVOBJECT_GLOW_GREEN);
     CreateObjectPaletteTables(g_options_title_font_object, HVOBJECT_GLOW_GREEN);
     CreateObjectPaletteTables(g_options_detail_font_object, HVOBJECT_GLOW_GREEN);
-    CreateObjectPaletteTables(g_profession_font_object, HVOBJECT_GLOW_BLUE);
+    CreateObjectPaletteTables(g_profession_font_object, HVOBJECT_GLOW_YELLOW);
     CreateObjectPaletteTables(g_dialog_font_object, HVOBJECT_GLOW_GREEN);
     CreateObjectPaletteTables(g_font12point1_object, HVOBJECT_GLOW_GREEN);
 

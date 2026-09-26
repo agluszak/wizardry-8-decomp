@@ -789,7 +789,7 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
    it, and a character with no protection against it is put under condition
    one. */
 // FUNCTION: WIZ8 0x0052b7e0
-void DamageCharacter(int party_slot, int damage, char announce)
+void DamageCharacter(int party_slot, unsigned int damage, char announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 

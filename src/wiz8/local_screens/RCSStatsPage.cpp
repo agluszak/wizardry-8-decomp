@@ -788,10 +788,8 @@ void CreateCampSkillRegions(void)
             SetRegionCallback(region, CampSkillListRegionHandler,
                               static_cast<unsigned short>(category));
             SetRegionHelp(region, 1, -1);
-            unsigned short x =
-                static_cast<unsigned short>(g_camp_skill_category_positions[category][0]);
-            unsigned short y =
-                static_cast<unsigned short>(g_camp_skill_category_positions[category][1]);
+            int x = g_camp_skill_category_positions[category][0];
+            int y = g_camp_skill_category_positions[category][1];
             if (category == 4) {
                 x += 0x136;
             } else {

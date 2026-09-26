@@ -1133,7 +1133,7 @@ void CloseFormationGap(W8MonsterInfo* monster_info, int party_slot, int* rows_ap
 // FUNCTION: WIZ8 0x0051ae60
 bool AnyoneStandsAhead(unsigned char position)
 {
-    int found = 0;
+    unsigned char found = 0;
     unsigned int index;
     signed char slot;
 
@@ -1143,7 +1143,7 @@ bool AnyoneStandsAhead(unsigned char position)
             ++found;
         }
     }
-    return found != 0;
+    return found > 0;
 }
 
 /* How many formation rows between `party_slot` and the monster block a short

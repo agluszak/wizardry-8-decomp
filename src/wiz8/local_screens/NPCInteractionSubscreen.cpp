@@ -1565,8 +1565,8 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
 /* Region callback on the NPC-dialogue notice text boxes: the left button
    routes through the keyword/slot click helpers, the right button through the
    assay/keyword lookup helpers, and MOUSE_POS tracks the hovered line or
-   notice word. The right-held flag is also raised on left release/double-click
-   (retail quirk). */
+   notice word. Left release falls through into RIGHT_BUTTON_DOWN and also
+   raises the right-held flag (retail bug). */
 // FUNCTION: WIZ8 0x0056F1D0
 unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* region)
 {
@@ -1575,15 +1575,16 @@ unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* re
 
     switch (event->usEvent) {
     case LEFT_BUTTON_DBL_CLK:
-        NpcDialogueTextBoxDoubleClick(static_cast<short>(event->uiParam),
-                                      static_cast<short>(event->uiParam >> 16));
+        NpcDialogueTextBoxDoubleClick(static_cast<unsigned short>(event->uiParam),
+                                      event->uiParam >> 16);
         return 1;
     case LEFT_BUTTON_UP:
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
             region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-            NpcDialogueTextBoxLeftUp(static_cast<short>(event->uiParam),
-                                     static_cast<short>(event->uiParam >> 16));
+            NpcDialogueTextBoxLeftUp(static_cast<unsigned short>(event->uiParam),
+                                     event->uiParam >> 16);
         }
+        /* fall through */
     case RIGHT_BUTTON_DOWN:
         region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
         return 1;
@@ -1595,8 +1596,8 @@ unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* re
     case RIGHT_BUTTON_UP:
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
             region->flags &= ~W8_REGION_RIGHT_BUTTON_HELD;
-            NpcDialogueTextBoxRightUp(static_cast<short>(event->uiParam),
-                                      static_cast<short>(event->uiParam >> 16));
+            NpcDialogueTextBoxRightUp(static_cast<unsigned short>(event->uiParam),
+                                      event->uiParam >> 16);
         }
         return 1;
     default:
@@ -1633,8 +1634,8 @@ unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* re
     g_screen_state_00649f1c->last_mouse_x = static_cast<unsigned short>(event->uiParam);
     g_screen_state_00649f1c->last_mouse_y = event->uiParam >> 16;
     if (g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
-        HighlightNoticeWordAt(3, static_cast<short>(event->uiParam),
-                              static_cast<short>(event->uiParam >> 16));
+        HighlightNoticeWordAt(3, static_cast<unsigned short>(event->uiParam),
+                              static_cast<unsigned short>(event->uiParam >> 16));
         return 1;
     }
     if (g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {

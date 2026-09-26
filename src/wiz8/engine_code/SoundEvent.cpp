@@ -47,7 +47,7 @@ W8SoundEvent* CreateSoundEvent(int kind, int cycle, int frame, int subcycle, con
     pSndEvent->cycle = cycle;
     pSndEvent->frame = frame;
     pSndEvent->subcycle = subcycle;
-    pSndEvent->m_pacWaveName = new char[strlen(wave_name) + 1];
+    pSndEvent->m_pacWaveName = new char[strlen(wave_name) + 2];
     pSndEvent->looping = looping;
     if (pSndEvent->m_pacWaveName == 0) {
         srAssertFail("pSndEvent->m_pacWaveName", SOUNDEVENT_CPP, 0x79, "SoundEvent: Out of memory");

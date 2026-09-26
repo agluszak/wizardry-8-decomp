@@ -190,14 +190,16 @@ void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState
     FinalizeSpellPointPool(character, creation_state);
 }
 
-/* Reset one skill's contribution to the editing state: drop its flag, refund
-   its spent points, and let a realm skill that was just opened up reach its
+/* Reset one skill's contribution to the editing state: set its reset byte,
+   refund its spent points, and let a realm skill that was just opened up reach its
    minimum five. */
 // FUNCTION: WIZ8 0x00557c90
 void ResetSkillContribution(W8Character* character, W8CharacterCreationState* creation_state,
                             int skill_id)
 {
-    character->skills[skill_id].active_00 = 1;
+    /* Retail stores to byte 1 of the skill record (0x00557CAB), not to the
+       active flag at byte 0. */
+    character->skills[skill_id].reset_flag_01 = 1;
     creation_state->skill_points_spent[skill_id] = 0;
 
     if (skill_id >= 0x18 && skill_id < 0x1c) {

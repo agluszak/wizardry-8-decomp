@@ -20,14 +20,14 @@ Behavior that only looks odd, or an unmatched recompiled body, is not an entry.
 | `W8Octree::UpdateVisibility`, `W8Octree::UpdatePathVisualization` | `0x004304A0`, `0x00434170` | The cursor position guard tests `y` twice and never tests `x`. | Both bodies compare the same `y` component twice against the same constant. |
 | Octree segment hit test | `0x004353F0` | The reported hit offset is the last colliding candidate's, not the nearest one's. | Documented at the recovered body (`Octree.cpp`); not re-verified against the instructions for this list. |
 | `PathNodeObstructed` / `BuildPathLists` | — | The support and block appends write the slot before the `> 29` assertion runs, so a 30th entry overruns the array. | The store precedes the assertion in both appends. |
+| `ResetSkillContribution` | `0x00557C90` | Stores 1 to byte 1 of the skill record instead of the active flag at byte 0, so resetting a skill leaves its active flag unchanged. No retail code reads byte 1. | The store is `mov byte ptr [edx + 0x19E], 1` (`0x00557CAB`); the skill array starts at character offset `0x19D`, where `ApplyAttributeChange` tests and sets the flag (`0x00553AF8`). |
 | `MonGen::SetEncounterTable` | `0x0048CC50` | Sets the HARASSMENT bit (bit 5) for a harassment table but never clears it when a later table is not a harassment table. | The body's only flag write is `or dword ptr [esi], 0x20` (`0x0048CC8B`). |
-| NPC dialogue notice region callback | `0x0056F1D0` | Left-button release and double-click also raise the right-button-held flag. | Documented at the recovered body (`NPCInteractionSubscreen.cpp`); not re-verified against the instructions for this list. |
+| `NpcDialogueTextBoxRegionEvent` | `0x0056F1D0` | Left-button release falls through and also raises the right-button-held flag. | The `LEFT_BUTTON_UP` path (`0x0056F213`) ends at the shared `or dword ptr [edi], 0x80` (`0x0056F234`) that `RIGHT_BUTTON_DOWN` uses. |
 
 ## Memory and resource bugs
 
 | Function | Address | Defect | Evidence |
 | --- | --- | --- | --- |
-| `CreateMessageBox` | `0x00518510` | The 16-byte image-name buffer receives full paths such as `Data\Message Box\Ok.sti`, and `strcpy` overruns into the saved-register area. | The frame reserves 16 bytes for the name. Retail never reads the clobbered slots again, so the overrun is harmless in practice. |
 | `FormatCharacterQuoteText` | `0x0052D0B0` | Stores zero at `buffer[wcslen(buffer) - 1]` without checking the reader result, so an empty string writes `buffer[-1]`. | There is no test of the read result or of the length before the store. |
 | `OctPreTree::WriteOctFile` | `0x004683F0` | Every write-failure return skips `FileClose`, leaking the handle. | Verified at `0x004686B4` and the following error paths. |
 | `OctPreTree::SplitMeshes` | `0x00469670` | The allocation-failure paths leak the five sort arrays. | The failure returns do not free them. |

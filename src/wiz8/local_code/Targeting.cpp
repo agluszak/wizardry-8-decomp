@@ -323,7 +323,7 @@ bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext 
 /* The same check without the range half, and with one target kind that a
    global override always accepts. */
 // FUNCTION: WIZ8 0x00537270
-bool IsSpellTargetOfNeededKind(int party_slot, int spell_id)
+char IsSpellTargetOfNeededKind(int party_slot, int spell_id)
 {
     W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
     int needed = GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
@@ -331,7 +331,7 @@ bool IsSpellTargetOfNeededKind(int party_slot, int spell_id)
     if (needed == 2 && g_settings.autotarget_spells != 0) {
         return 1;
     }
-    return TargetMatchesNeeded(target, (char)needed);
+    return TargetMatchesNeeded(target, needed);
 }
 
 /* What an item's spell needs picked before it can be cast. An item with no
@@ -589,7 +589,7 @@ void ApplyTarget(W8CombatSlot* target, W8TargetingContext context)
 /* Put the on-screen marker over one monster, from the party's eye to the
    monster's own bounds. */
 // FUNCTION: WIZ8 0x00539870
-bool ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
+unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
 {
     srVector3T<float> eye;
     srVector3T<float> lower;
@@ -1576,7 +1576,7 @@ void SetMonsterCombatTarget(W8MonsterInfo* monster_info, int location_id)
    chosen hostile spell accepts. The caller only needs the validator's side
    effects, so this wrapper discards its answer. */
 // FUNCTION: WIZ8 0x0053A300
-bool MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id)
+char MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id)
 {
     return TargetMatchesNeeded(&monster_info->Target, GetTargetNeededForSpellHostile(spell_id));
 }
@@ -1594,7 +1594,7 @@ int GetTargetingCursorForState(int alternate)
     case 2:
         return alternate != 0;
     case 5:
-        return 11 - (alternate != 0);
+        return alternate != 0 ? 10 : 11;
     case 3:
         return 2;
     case 4:

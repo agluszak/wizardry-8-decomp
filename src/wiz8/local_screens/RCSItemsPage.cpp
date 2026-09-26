@@ -437,16 +437,13 @@ void TargetCharacterWithHeldItem(unsigned int uiTargetChar)
 }
 
 // FUNCTION: WIZ8 0x005BAA10
-bool CanCharacterUseItemEntry(W8Character* character, W8ItemInstance* item)
+int CanCharacterUseItemEntry(W8Character* character, W8ItemInstance* item)
 {
-    if (CanCharacterActivateItem(character, item) == 0) {
-        if (CanCastFromItem(character, item) == 0) {
-            if (IsUsableItemClass(item) == 0) {
-                return 0;
-            }
-        }
+    if (CanCharacterActivateItem(character, item) || CanCastFromItem(character, item) ||
+        IsUsableItemClass(item)) {
+        return 1;
     }
-    return 1;
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x005BAA50

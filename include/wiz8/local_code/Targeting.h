@@ -36,7 +36,7 @@ unsigned char GetFactionFlag(signed char faction);
 int GetFactionValue(signed char faction); /* 0x005360f0 */
 void AimByKind(int actor, W8TargetKind kind, W8TargetingContext context);
 void SetMonsterCombatTarget(W8MonsterInfo* monster_info, int location_id);
-bool MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id);
+char MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id);
 W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext context);
 void ClearTargetMarker(void);
 void RefreshTargetMarker(void);
@@ -58,7 +58,7 @@ void HighlightSpellTargetsAtCachedPosition(void);
    the ordinary group selection has no usable monster. */
 int ChooseFallbackMonsterTarget(int party_slot, int group_id, W8TargetingContext context);
 void SetFactionFlag(signed char faction, unsigned char flag);
-bool ShowMonsterTargetMarker(W8MonsterInfo* monster_info);
+unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info);
 bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext context);
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
 void ClearPartySlotMonsterHighlights(unsigned int party_slot);
@@ -107,7 +107,7 @@ bool CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group); /* 0x00536D60
 void ClearSlotTargeting(int party_slot);                           /* 0x0053B050 */
 /* 0x00537270: whether the slot's current target satisfies the spell's
    needed-target kind. */
-bool IsSpellTargetOfNeededKind(int party_slot, int spell_id);
+char IsSpellTargetOfNeededKind(int party_slot, int spell_id);
 /* 0x005372B0: whether the slot's current target satisfies the item's
    needed-target kind. */
 bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item); /* 0x005372B0 */

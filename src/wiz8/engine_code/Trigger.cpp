@@ -196,20 +196,7 @@ void W8LockState::Reset()
         for (int pin = 0; pin < 8; ++pin) {
             device_state.pins[pin] = static_cast<char>(Random(4));
         }
-        pins = difficulty;
-        if (pins < 8) {
-            if (pins < 2) {
-                lock_countdown = 6;
-                last_interaction_clock = -1;
-                device_state.completed = 0;
-                return;
-            }
-            if (pins > 7) {
-                pins = 8;
-            }
-        } else {
-            pins = 8;
-        }
+        pins = difficulty < 8 ? (difficulty < 2 ? 2 : difficulty) : 8;
         lock_countdown = pins * 3;
     }
     last_interaction_clock = -1;
