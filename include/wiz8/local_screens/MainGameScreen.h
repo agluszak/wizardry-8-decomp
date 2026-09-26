@@ -23,7 +23,7 @@ void ClearHighlightIfItIs(const int* item);
 
 #include "wiz8/layouts/main_game_screen.h"
 /* MainGameScreen.cpp GLOBAL at 0x006068E4: the "%s" display format. */
-extern const wchar_t g_format_s_006068e4[];
+extern const wchar_t g_format_s[];
 /* MainGameScreen.cpp GLOBAL at 0x0064BAB0: the "%d%%" display format. */
 extern const wchar_t g_format_d_percent[];
 /* MainGameScreen.cpp GLOBAL at 0x0061C3E0: the "%s: %s" display format. */

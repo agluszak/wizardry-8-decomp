@@ -201,7 +201,7 @@ int W8SplitItemDialog::CreateControls()
     }
     UpdateArrowStates();
     UpdateAcceptButton();
-    swprintf(text, g_format_d_0060aa20, m_remaining_0bc);
+    swprintf(text, g_format_d, m_remaining_0bc);
     m_texts_07c[2]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[2]->m_dirty = true;
     m_texts_07c[2]->m_geometryDirty = 1;
@@ -508,11 +508,11 @@ void W8SplitItemDialog::UpdateCostLabels()
         remaining_price = GetItemStackValue(m_item_0d0);
         split_price = remaining_price;
     }
-    swprintf(text, g_format_d_0060aa20, remaining_price);
+    swprintf(text, g_format_d, remaining_price);
     m_texts_07c[11]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[8]->m_dirty = true;
     m_texts_07c[11]->m_geometryDirty = 1;
-    swprintf(text, g_format_d_0060aa20, split_price);
+    swprintf(text, g_format_d, split_price);
     m_texts_07c[13]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[9]->m_dirty = true;
     m_texts_07c[13]->m_geometryDirty = 1;
@@ -579,7 +579,7 @@ void W8SplitItemDialog::OnNumericInputChanged(int value)
     m_remaining_0bc = m_stack_total_0c4 - m_count_input_0b4->m_value;
     UpdateArrowStates();
     UpdateAcceptButton();
-    swprintf(text, g_format_d_0060aa20, m_remaining_0bc);
+    swprintf(text, g_format_d, m_remaining_0bc);
     m_texts_07c[2]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[2]->m_dirty = true;
     m_texts_07c[2]->m_geometryDirty = 1;
@@ -685,7 +685,7 @@ void W8SplitItemDialog::OnSplitDecrement(W8DialogButton* button)
     dialog->m_remaining_0bc = __min(dialog->m_stack_total_0c4, dialog->m_remaining_0bc + 1);
     dialog->UpdateArrowStates();
     dialog->UpdateAcceptButton();
-    swprintf(text, g_format_d_0060aa20, dialog->m_remaining_0bc);
+    swprintf(text, g_format_d, dialog->m_remaining_0bc);
     dialog->m_texts_07c[2]->SetText(text, g_wiz_text_font_secondary);
     dialog->m_buttons_054[2]->m_dirty = true;
     dialog->m_texts_07c[2]->m_geometryDirty = 1;
@@ -722,7 +722,7 @@ void W8SplitItemDialog::OnSplitIncrement(W8DialogButton* button)
     dialog->split_count_0c0 = __min(dialog->m_stack_total_0c4, dialog->split_count_0c0 + 1);
     dialog->UpdateArrowStates();
     dialog->UpdateAcceptButton();
-    swprintf(text, g_format_d_0060aa20, dialog->m_remaining_0bc);
+    swprintf(text, g_format_d, dialog->m_remaining_0bc);
     dialog->m_texts_07c[2]->SetText(text, g_wiz_text_font_secondary);
     dialog->m_buttons_054[2]->m_dirty = true;
     dialog->m_texts_07c[2]->m_geometryDirty = 1;
@@ -759,7 +759,7 @@ void W8SplitItemDialog::OnSplitDecrementMany(W8DialogButton* button)
     dialog->m_remaining_0bc = __min(dialog->m_stack_total_0c4, dialog->m_remaining_0bc + 5);
     dialog->UpdateArrowStates();
     dialog->UpdateAcceptButton();
-    swprintf(text, g_format_d_0060aa20, dialog->m_remaining_0bc);
+    swprintf(text, g_format_d, dialog->m_remaining_0bc);
     dialog->m_texts_07c[2]->SetText(text, g_wiz_text_font_secondary);
     dialog->m_buttons_054[2]->m_dirty = true;
     dialog->m_texts_07c[2]->m_geometryDirty = 1;
@@ -796,7 +796,7 @@ void W8SplitItemDialog::OnSplitIncrementMany(W8DialogButton* button)
     dialog->split_count_0c0 = __min(dialog->m_stack_total_0c4, dialog->split_count_0c0 + 5);
     dialog->UpdateArrowStates();
     dialog->UpdateAcceptButton();
-    swprintf(text, g_format_d_0060aa20, dialog->m_remaining_0bc);
+    swprintf(text, g_format_d, dialog->m_remaining_0bc);
     dialog->m_texts_07c[2]->SetText(text, g_wiz_text_font_secondary);
     dialog->m_buttons_054[2]->m_dirty = true;
     dialog->m_texts_07c[2]->m_geometryDirty = 1;

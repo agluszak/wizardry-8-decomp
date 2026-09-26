@@ -1301,7 +1301,7 @@ void EndNpcDialogueSession(int param_1)
             if (slot != -1) {
                 W8CharacterEvent* event = QueueCharacterEvent(
                     &g_status.buffers.Char[slot], g_special_event_0068c534, g_event_flag_005ed8e8,
-                    g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                    g_character_event_no_flags, g_character_event_full_volume);
                 if (event != 0) {
                     event->dispatch_delay_ms = 1000;
                     event->dispatch_delay_start = GetTickCount();
@@ -3933,7 +3933,7 @@ void HandleNpcDialogueInput(void)
         if (_wcsnicmp(field_text, gppStringList[0x1db4 / 4], 9) == 0 ||
             _wcsnicmp(field_text, gppStringList[0x1db8 / 4], 0xa) == 0 ||
             _wcsnicmp(field_text, gppStringList[0x1dbc / 4], 8) == 0) {
-            fmt = g_format_s_006068e4;
+            fmt = g_format_s;
         } else {
             fmt = gppStringList[0x1da8 / 4];
         }
@@ -3944,7 +3944,7 @@ void HandleNpcDialogueInput(void)
             quote_id = quote;
         }
     } else {
-        swprintf(buf, g_format_s_006068e4, field_text);
+        swprintf(buf, g_format_s, field_text);
         quote = FindNpcScriptQuoteByKeyword(buf, 0, 0);
         if (quote != -1) {
             quote_id = quote;
@@ -4593,7 +4593,7 @@ void RefreshNpcTradePrice(void)
     wchar_t text[32];
 
     if (g_npc_interaction->trade_item != 0) {
-        swprintf(text, g_format_d_0060aa20, g_npc_interaction->trade_quantity);
+        swprintf(text, g_format_d, g_npc_interaction->trade_quantity);
         g_npc_interaction->dialogue_text_16c->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
     }
 }

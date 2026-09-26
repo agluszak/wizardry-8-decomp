@@ -6495,8 +6495,7 @@ unsigned int W8PathingService::EditWaypointLinkFlags(const char* title, unsigned
                 ++length;
             }
             wide[line][length] = 0;
-            gprintfDirty(0x1f, 0x65 + line * 0xd, const_cast<UINT16*>(g_format_s_006068e4),
-                         wide[line]);
+            gprintfDirty(0x1f, 0x65 + line * 0xd, const_cast<UINT16*>(g_format_s), wide[line]);
         }
         InvalidateRegion(0x1e, 0x64, 0x262, 0xcc, 4);
         if (DequeueEvent(&atom) == 0) {
@@ -6621,7 +6620,7 @@ unsigned int W8PathingService::EditWaypointLinkFlags(const char* title, unsigned
     ClearSurfaceRect(0x1e, 0x64, 0x262, 0xd9);
     for (line = 0; line < 9; ++line) {
         wide[line][0x50] = 0;
-        gprintfDirty(0x1f, 0x65 + line * 0xd, const_cast<UINT16*>(g_format_s_006068e4), wide[line]);
+        gprintfDirty(0x1f, 0x65 + line * 0xd, const_cast<UINT16*>(g_format_s), wide[line]);
     }
     InvalidateRegion(0x1e, 0x64, 0x262, 0xd9, 4);
     RenderFrame();

@@ -625,8 +625,8 @@ static void RebuildSpellCastingList(int spell_id)
                                      g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
                                      spell->display_name);
                             ShowNotice(0xf, line, 2, -1, 0);
-                            AppendTextBoxLine(
-                                FormatWideString(g_format_d_0060aa20, spell->spell_point_cost), 2);
+                            AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost),
+                                              2);
                             SetSpellListLineColor(gpSCSV->uiSpellsInList - 1, 4);
                         }
                     } else if (pass == 0) {
@@ -638,8 +638,8 @@ static void RebuildSpellCastingList(int spell_id)
                                      g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
                                      spell->display_name);
                             ShowNotice(0xf, line, 2, -1, 0);
-                            AppendTextBoxLine(
-                                FormatWideString(g_format_d_0060aa20, spell->spell_point_cost), 2);
+                            AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost),
+                                              2);
                         }
                         if (id == spell_id) {
                             selected = gpSCSV->uiSpellsInList - 1;
@@ -657,8 +657,7 @@ static void RebuildSpellCastingList(int spell_id)
                              g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
                              spell->display_name);
                     ShowNotice(0xf, line, 2, -1, 0);
-                    AppendTextBoxLine(
-                        FormatWideString(g_format_d_0060aa20, spell->spell_point_cost), 2);
+                    AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost), 2);
                     SetSpellListLineColor(gpSCSV->uiSpellsInList - 1, 0);
                 }
                 ++index;
@@ -1026,7 +1025,7 @@ void SelectSpellPowerLevel(int power_level)
         }
         gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
         if (gpSCSV->iSpellPowerClass == 3) {
-            text = FormatWideString(g_format_d_0060aa20,
+            text = FormatWideString(g_format_d,
                                     g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
         } else {
             text = &g_empty_wide_string;
@@ -1044,7 +1043,7 @@ void SelectSpellPowerLevel(int power_level)
             }
         }
         gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
-        text = FormatWideString(g_format_d_0060aa20,
+        text = FormatWideString(g_format_d,
                                 (power_level + 1) *
                                     g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
     }
@@ -1075,7 +1074,7 @@ void PreviewSpellPowerPipHover(int power_level)
             if (power_level != -1) {
                 spell_name->m_textBuffer.SetRenderMode(6);
                 text = FormatWideString(
-                    g_format_d_0060aa20,
+                    g_format_d,
                     (power_level + 1) * g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
                 spell_name->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
                 return;
@@ -1084,9 +1083,8 @@ void PreviewSpellPowerPipHover(int power_level)
                 spell_name->m_textBuffer.SetRenderMode(4);
                 if (gpSCSV->iSpellPower != -1) {
                     text = FormatWideString(
-                        g_format_d_0060aa20,
-                        (gpSCSV->iSpellPower + 1) *
-                            g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
+                        g_format_d, (gpSCSV->iSpellPower + 1) *
+                                        g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
                     spell_name->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
                     return;
                 }
@@ -1350,9 +1348,10 @@ static void SelectSpellCastingListRow(int index)
         gpSCSV->uiSpellIndex = -1;
         ConfigureSpellTargetFilter(-1, 0);
         ShowSpellCastingError(spell_id);
-        QueueCharacterEvent(
-            &g_status.buffers.Char[g_status.selected_character], g_character_event_kind_005ee65c, 0,
-            g_character_event_flags_mask | g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+        QueueCharacterEvent(&g_status.buffers.Char[g_status.selected_character],
+                            g_character_event_kind_005ee65c, 0,
+                            g_character_event_flags_mask | g_character_event_no_flags,
+                            g_character_event_full_volume);
         return;
     }
     SetSpellListLineColor(gpSCSV->uiSpellIndex, 3);

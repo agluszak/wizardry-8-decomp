@@ -1003,9 +1003,10 @@ void SelectUseItemLine(int iTextLine)
     UpdateUseItemDetailPanel(g_use_item_list[iTextLine]);
     if (ValidateItemSpellUse(g_use_item_owner_index, g_use_item_list[iTextLine],
                              SpellCastingNoticeClosed) != 0) {
-        QueueCharacterEvent(
-            &g_status.buffers.Char[g_use_item_owner_index], g_character_event_kind_005ee65c, 0,
-            g_character_event_flags_mask | g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+        QueueCharacterEvent(&g_status.buffers.Char[g_use_item_owner_index],
+                            g_character_event_kind_005ee65c, 0,
+                            g_character_event_flags_mask | g_character_event_no_flags,
+                            g_character_event_full_volume);
         return;
     }
     g_value_69b9a0 = g_use_item_list[iTextLine];
@@ -1072,7 +1073,7 @@ void UpdateUseItemDetailPanel(W8ItemInstance* item)
     if (count == -1) {
         value = L"?";
     } else if (count > 1 || charges) {
-        swprintf(text, g_format_d_0060aa20, count);
+        swprintf(text, g_format_d, count);
         value = text;
     } else {
         value = g_wchar_0068ee58;

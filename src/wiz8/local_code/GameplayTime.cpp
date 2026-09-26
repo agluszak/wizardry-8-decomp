@@ -407,7 +407,7 @@ void EndSurprise(void)
         int party_slot = g_status.pending_condition_party_slot_248f;
         RemoveCharacterCondition(party_slot, 0x13, 0);
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_effect_005ee658, 0,
-                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                            g_character_event_no_flags, g_character_event_full_volume);
         SetFact(0xb6, 1, 0);
     }
 }

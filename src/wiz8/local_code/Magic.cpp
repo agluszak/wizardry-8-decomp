@@ -1261,8 +1261,8 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item)
         }
     }
     EmptyItemRecord(item, character, 1);
-    QueueCharacterEvent(character, g_learn_sound, 0, g_effect_argument_005ed8c8,
-                        g_effect_argument_005ed914);
+    QueueCharacterEvent(character, g_learn_sound, 0, g_character_event_no_flags,
+                        g_character_event_full_volume);
 }
 
 /* Eight is not a power level but the request to cast at the highest one the
@@ -2354,7 +2354,7 @@ bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool 
     if (!valid && (!gXStatus.fCombatMode || !MonsterCanAimSpell(spell_id) ||
                    gXStatus.hostile_monster_count != 0 || !g_combat_state->enemies_engaged_a54)) {
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_character_event_kind_005ee65c, 0,
-                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                            g_character_event_no_flags, g_character_event_full_volume);
     }
     return valid;
 }
@@ -2877,8 +2877,8 @@ LAB_004faa0f:
         } else {
             index = g_special_event_0068c524;
         }
-        QueueCharacterEvent(character, index, 0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+        QueueCharacterEvent(character, index, 0, g_character_event_no_flags,
+                            g_character_event_full_volume);
     }
     result = CastSpellFromSource(spell_id, &source, aim, power_level, power_cast_bonus, chance,
                                  recast, &cast_result, 0, 0, 0);
@@ -3008,7 +3008,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);
             if (caster_slot != -1 && Random(100) < 0x46) {
                 QueueCharacterEvent(&g_status.buffers.Char[caster_slot], g_special_event_0068c558,
-                                    0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                    0, g_character_event_no_flags, g_character_event_full_volume);
             }
         }
     }
@@ -3388,11 +3388,11 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             if (caster_slot != -1) {
                 if (Random(2) == 0) {
                     QueueCharacterEvent(&g_status.buffers.Char[caster_slot],
-                                        g_item_message_005ee5c8, 0, g_effect_argument_005ed8c8,
-                                        g_effect_argument_005ed914);
+                                        g_item_message_005ee5c8, 0, g_character_event_no_flags,
+                                        g_character_event_full_volume);
                 } else {
                     ApplyItemEffectToRandomCharacter(g_item_message_005ee5cc, caster_slot, 0,
-                                                     g_effect_argument_005ed8c8);
+                                                     g_character_event_no_flags);
                 }
             }
         }

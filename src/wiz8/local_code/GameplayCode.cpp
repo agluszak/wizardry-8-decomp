@@ -291,7 +291,7 @@ void RefreshLevelUpReadyNotices(void)
                         text[2] =
                             GetTable647CCCEntry(static_cast<signed char>(row->party_order_index));
                         text[3] = L' ';
-                        swprintf(text + 4, g_format_s_006068e4, character->name);
+                        swprintf(text + 4, g_format_s, character->name);
                         length = wcslen(text);
                         text[length] = L' ';
                         text[length + 1] = 0xb5;

@@ -326,7 +326,7 @@ void W8SpellInfoDialog::DrawLabels()
     }
     width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0x25 + (0x7b - width) / 2, m_y + 0x33, L"%s", text);
-    text = FormatWideString(g_format_d_0060aa20, record->spell_level);
+    text = FormatWideString(g_format_d, record->spell_level);
     width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0x7c + (0x16 - width) / 2, m_y + 0x24, L"%s", text);
     text = FormatWideString(g_format_d_s, record->spell_point_cost, gppStringList[0x46c / 4]);

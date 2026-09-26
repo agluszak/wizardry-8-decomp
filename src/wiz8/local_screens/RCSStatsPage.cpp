@@ -242,14 +242,13 @@ void DrawCampStatsPage(void)
         wchar_t* text = gppStringList[0x937];
         gprintf(g_camp_stats_origin_x + 10 +
                     ((0x11f - StringPixLength(text, g_wiz_text_font_secondary)) >> 1),
-                g_camp_stats_origin_y + 10, const_cast<wchar_t*>(g_format_s_006068e4), text);
+                g_camp_stats_origin_y + 10, const_cast<wchar_t*>(g_format_s), text);
         int row_y = 0xbf;
         for (index = 0; index < 7; ++index) {
             wchar_t* label = gppStringList[g_attribute_label_ids[index]];
             gprintf(g_camp_stats_origin_x + 10 +
                         ((0x7b - StringPixLength(label, g_wiz_text_font_secondary)) >> 1),
-                    row_y - 0xa6 + g_camp_stats_origin_y, const_cast<wchar_t*>(g_format_s_006068e4),
-                    label);
+                    row_y - 0xa6 + g_camp_stats_origin_y, const_cast<wchar_t*>(g_format_s), label);
             unsigned int effective = g_review_character->attributes[index].effective;
             unsigned int base = g_review_character->attributes[index].value;
             int gained;
@@ -287,24 +286,24 @@ void DrawCampStatsPage(void)
                 DrawCatalogImageAndInvalidate(-0xe, 0x143, 0, 2, 0x88, row_y, 2, 0);
             }
             SetClippingRect(&saved_clip);
-            swprintf(g_camp_screen->caption, const_cast<wchar_t*>(g_format_d_0060aa20), effective);
+            swprintf(g_camp_screen->caption, const_cast<wchar_t*>(g_format_d), effective);
             gprintf(
                 g_camp_stats_origin_x + 0x108 +
                     ((0x21 - StringPixLength(g_camp_screen->caption, g_wiz_text_font_secondary)) >>
                      1),
-                row_y - 0xa6 + g_camp_stats_origin_y, const_cast<wchar_t*>(g_format_s_006068e4),
+                row_y - 0xa6 + g_camp_stats_origin_y, const_cast<wchar_t*>(g_format_s),
                 g_camp_screen->caption);
             row_y += 0xe;
         }
         text = gppStringList[0x938];
         gprintf(g_camp_stats_origin_x + 10 +
                     ((0x11f - StringPixLength(text, g_wiz_text_font_secondary)) >> 1),
-                g_camp_stats_origin_y + 0x8d, const_cast<wchar_t*>(g_format_s_006068e4), text);
+                g_camp_stats_origin_y + 0x8d, const_cast<wchar_t*>(g_format_s), text);
         swprintf(g_camp_screen->caption, const_cast<wchar_t*>(g_format_s_space_s),
                  gppStringList[g_character_skill_name_ids
                                    [g_profession_bonus_skills[g_review_character->iProfession]]],
                  gppStringList[0x8c5]);
-        gprintf(0x10, 0x142, const_cast<wchar_t*>(g_format_s_006068e4), g_camp_screen->caption);
+        gprintf(0x10, 0x142, const_cast<wchar_t*>(g_format_s), g_camp_screen->caption);
         int trait_count = 0;
         char traits[0x20];
         for (index = 0; index < 0x20; ++index) {
@@ -319,7 +318,7 @@ void DrawCampStatsPage(void)
         int trait_y = step + 0x14e;
         for (index = 0; index < 0x20; ++index) {
             if (traits[index] != 0) {
-                gprintf(0x10, trait_y, const_cast<wchar_t*>(g_format_s_006068e4),
+                gprintf(0x10, trait_y, const_cast<wchar_t*>(g_format_s),
                         gppStringList[g_character_trait_name_ids[index]]);
                 trait_y += step + 0xc;
             }
@@ -327,7 +326,7 @@ void DrawCampStatsPage(void)
         text = gppStringList[0x939];
         gprintf(g_camp_stats_origin_x + 0x13b +
                     ((0x13b - StringPixLength(text, g_wiz_text_font_secondary)) >> 1),
-                g_camp_stats_origin_y + 10, const_cast<wchar_t*>(g_format_s_006068e4), text);
+                g_camp_stats_origin_y + 10, const_cast<wchar_t*>(g_format_s), text);
         g_camp_screen->stats_controls->Invalidate(0);
         g_camp_screen->stats_range->m_range->Invalidate(0);
     }
@@ -646,7 +645,7 @@ static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
         W8ItemDatabaseRecord* record =
             &g_item_records[g_review_character->EquippedItem[entry->index].iItemNo];
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
-        gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_006068e4),
+        gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s),
                 GetItemDisplayName(&g_review_character->EquippedItem[entry->index]));
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
         int next = line + 1;
@@ -926,19 +925,17 @@ void DrawCampSkillsPage(void)
                 SetFontObjectPalette16BPP(g_wiz_text_font_secondary, palette);
                 short width = StringPixLength(gppStringList[g_character_skill_name_ids[skill]],
                                               g_wiz_text_font_secondary);
-                gprintf((0x6b - width) / 2 + 2 + left, top + 1,
-                        const_cast<wchar_t*>(g_format_s_006068e4),
+                gprintf((0x6b - width) / 2 + 2 + left, top + 1, const_cast<wchar_t*>(g_format_s),
                         gppStringList[g_character_skill_name_ids[skill]]);
                 palette = g_colour_68ee08;
                 if (value->improved_12 != 0) {
                     palette = g_font_state_palettes[1];
                 }
                 SetFontObjectPalette16BPP(g_wiz_text_font_secondary, palette);
-                short value_width =
-                    StringPixLengthArg(g_wiz_text_font_secondary, 3,
-                                       const_cast<wchar_t*>(g_format_d_0060aa20), value->level);
+                short value_width = StringPixLengthArg(
+                    g_wiz_text_font_secondary, 3, const_cast<wchar_t*>(g_format_d), value->level);
                 gprintfDirty((0x24 - value_width) / 2 + 0xee + left, top + 1,
-                             const_cast<wchar_t*>(g_format_d_0060aa20), value->level);
+                             const_cast<wchar_t*>(g_format_d), value->level);
                 SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
                 SetObjectShade(g_wiz_text_font_secondary_object, 4);
                 ++category_count[category];
@@ -1285,8 +1282,8 @@ void W8CharacterPersonalityPage::Redraw()
     if (m_description_dirty_0fd) {
         W8TextBuffer text;
         W8ControlsRect bounds;
-        W8CharacterEvent element(m_character_060, g_effect_005ee588, 0, g_effect_argument_005ed8c8,
-                                 g_effect_argument_005ed914);
+        W8CharacterEvent element(m_character_060, g_effect_005ee588, 0, g_character_event_no_flags,
+                                 g_character_event_full_volume);
 
         bounds.top = origin_y + 0x13a;
         bounds.bottom = origin_y + 0x16a;

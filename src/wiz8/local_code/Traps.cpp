@@ -265,7 +265,7 @@ void CompleteTrapDisarm(Trigger* trigger)
     trigger->CompleteItemInteraction();
     type = trigger->lock_state.device_id;
     if (Random(100) < 40) {
-        ApplyItemEffectToRandomCharacter(g_learn_sound, -1, 0, g_effect_argument_005ed8c8);
+        ApplyItemEffectToRandomCharacter(g_learn_sound, -1, 0, g_character_event_no_flags);
     }
     text = FormatWideString(g_format_s_space_s, gppStringList[g_value_0061e9ec[type]],
                             gppStringList[0x7b2]);

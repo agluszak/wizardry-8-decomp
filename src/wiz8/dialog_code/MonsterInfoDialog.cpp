@@ -200,13 +200,13 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     if (knowledge < 10 || is_npc != 0) {
         wcscpy(text, gppStringList[0x13a]);
     } else {
-        wcscpy(text, FormatWideString(g_format_d_0060aa20, monster_info->hp_current));
+        wcscpy(text, FormatWideString(g_format_d, monster_info->hp_current));
     }
     wcscat(text, L" / ");
     if (knowledge < 5 || is_npc != 0) {
         wcscpy(text, gppStringList[0x13a]);
     } else {
-        wcscat(text, FormatWideString(g_format_d_0060aa20, monster_info->uiHPMax));
+        wcscat(text, FormatWideString(g_format_d, monster_info->uiHPMax));
     }
     m_text_area_ec.AddEntry(gppStringList[0x13d], text, 10, 0xf, 0);
     if (g_dev_mode != 0 && knowledge < 10) {
@@ -218,13 +218,13 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     if (knowledge < 0x14 || is_npc != 0) {
         wcscpy(text, gppStringList[0x13a]);
     } else {
-        wcscpy(text, FormatWideString(g_format_d_0060aa20, monster_info->stamina));
+        wcscpy(text, FormatWideString(g_format_d, monster_info->stamina));
     }
     wcscat(text, L" / ");
     if (knowledge < 0xf || is_npc != 0) {
         wcscpy(text, gppStringList[0x13a]);
     } else {
-        wcscat(text, FormatWideString(g_format_d_0060aa20, monster_info->stamina_max));
+        wcscat(text, FormatWideString(g_format_d, monster_info->stamina_max));
     }
     m_text_area_ec.AddEntry(gppStringList[0x13e], text, 10, 0xf, 0);
     if (g_dev_mode != 0 && knowledge < 0x14) {
@@ -423,9 +423,9 @@ unsigned char W8MonsterInfoDialog::PopulateText()
 
     for (index = 0; index < 6; ++index) {
         if (g_monster_resistance_label_gates[index][0] <= static_cast<int>(knowledge)) {
-            m_text_area_ec.AddEntry(
-                gppStringList[g_monster_resistance_label_gates[index][1]],
-                FormatWideString(g_format_d_0060aa20, record->resistances[index]), 10, 0xf, 0);
+            m_text_area_ec.AddEntry(gppStringList[g_monster_resistance_label_gates[index][1]],
+                                    FormatWideString(g_format_d, record->resistances[index]), 10,
+                                    0xf, 0);
         }
     }
 
@@ -443,8 +443,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
                                 FormatWideString(L"<%S>", script != 0 ? script->getName() : 0), 5,
                                 0xf, 0);
         m_text_area_ec.AddEntry(L"Leader's AI Mode",
-                                FormatWideString(g_format_d_0060aa20, leader_info->ai_mode_255), 5,
-                                0xf, 0);
+                                FormatWideString(g_format_d, leader_info->ai_mode_255), 5, 0xf, 0);
         const wchar_t* strategy = L"Close";
         if (record->prefer_ranged_actions_1b9 != 0) {
             strategy = L"Ranged";

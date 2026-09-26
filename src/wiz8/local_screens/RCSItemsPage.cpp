@@ -386,7 +386,7 @@ void UseHeldItemOnItem(W8ItemInstance* item)
                 if (item->identified == 0) {
                     QueueCharacterEvent(g_status.buffers.Char + giCasterCharSlot,
                                         g_character_event_kind_005ee65c, 0,
-                                        g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                        g_character_event_no_flags, g_character_event_full_volume);
                 }
             }
             RebuildCampItemList();
@@ -396,8 +396,8 @@ void UseHeldItemOnItem(W8ItemInstance* item)
             return;
         }
         QueueCharacterEvent(g_status.buffers.Char + giCasterCharSlot,
-                            g_character_event_kind_005ee65c, 0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+                            g_character_event_kind_005ee65c, 0, g_character_event_no_flags,
+                            g_character_event_full_volume);
     }
 }
 
@@ -916,7 +916,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
                 SetRegionHelpText(g_camp_screen->caption);
                 return 1;
             }
-            swprintf(g_camp_screen->caption, g_format_s_006068e4,
+            swprintf(g_camp_screen->caption, g_format_s,
                      gppStringList[g_equip_slot_label_ids[slot]]);
             SetRegionHelpText(g_camp_screen->caption);
             return 1;
@@ -939,7 +939,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
                 SetRegionHelpDelay(delay);
                 SetRegionHelpForceEnabled(1);
                 if (item->iItemNo == -1) {
-                    swprintf(g_camp_screen->caption, g_format_s_006068e4,
+                    swprintf(g_camp_screen->caption, g_format_s,
                              gppStringList[g_equip_slot_label_ids[slot]]);
                 } else {
                     name = FormatItemDisplayName(item, 0);

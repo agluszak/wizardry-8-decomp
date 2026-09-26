@@ -510,8 +510,8 @@ void ProcessNpcScriptingFrame(void)
             }
             character = &g_status.buffers.Char[selected_party_member];
             if (character->gender == W8_GENDER_MALE) {
-                QueueCharacterEvent(character, g_effect_005ee634, 0, g_effect_argument_005ed8c8,
-                                    g_effect_argument_005ed914);
+                QueueCharacterEvent(character, g_effect_005ee634, 0, g_character_event_no_flags,
+                                    g_character_event_full_volume);
             }
             g_npc_scripting.sedexus_capture_active = 0;
             if (g_sedexus_sound_handle != -1) {
@@ -1624,8 +1624,8 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_PARTY_MEMBER_EVENT: {
         int party_slot = line->payload_10.argument;
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_effect_005ee58c,
-                            g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+                            g_event_flag_005ed8e0, g_character_event_no_flags,
+                            g_character_event_full_volume);
         break;
     }
     case W8_NPC_MSG_PARTY_SPEAKER_EVENT: {
@@ -1634,8 +1634,8 @@ void ProcessMessageBoxQueue(void)
         if (party_slot != -1) {
             g_status.selected_party_member_2434 = static_cast<unsigned char>(party_slot);
             QueueCharacterEvent(&g_status.buffers.Char[party_slot], event_type,
-                                g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
-                                g_effect_argument_005ed914);
+                                g_event_flag_005ed8e0, g_character_event_no_flags,
+                                g_character_event_full_volume);
             SetNpcDialoguePanelVisible(0);
             if (g_npc_interaction->modal_dialog_open != 0) {
                 g_npc_interaction->suppress_parting_reaction = 1;
@@ -1886,7 +1886,7 @@ void ProcessMessageBoxQueue(void)
                 if (g_status.buffers.XChar[party_slot].fOccupied != 0 && character->iRace == 10 &&
                     character->highest_condition < 0xf) {
                     QueueCharacterEvent(character, g_effect_005ee654, g_event_flag_005ed8e0,
-                                        g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                        g_character_event_no_flags, g_character_event_full_volume);
                     break;
                 }
             }
@@ -1897,7 +1897,7 @@ void ProcessMessageBoxQueue(void)
         int party_slot = line->payload_10.argument;
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], 0x18,
                             g_event_flag_005ed8ec | g_event_flag_005ed8e0,
-                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                            g_character_event_no_flags, g_character_event_full_volume);
         break;
     }
     case W8_NPC_MSG_SEDEXUS_PASSOUT:
@@ -2687,7 +2687,7 @@ void EndScriptedPortraitPick(int party_slot)
     if (character->gender == W8_GENDER_FEMALE && other_gender_present != 0) {
         SetFact(0x1c0, 1, 0);
         QueueCharacterEvent(character, g_effect_005ee634, g_event_flag_005ed8e0,
-                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                            g_character_event_no_flags, g_character_event_full_volume);
         return;
     }
     if (g_status.buffers.XChar[party_slot].npc_index == -1 && character->highest_condition < 0xf) {
@@ -2699,8 +2699,8 @@ void EndScriptedPortraitPick(int party_slot)
             g_status.sedexus_party_slot_247f = party_slot;
             g_status.rpc_active_2489 = 1;
             g_status.infatuation_pending_2446 = 1;
-            QueueCharacterEvent(character, g_special_event_0068c50c, 0, g_effect_argument_005ed8c8,
-                                g_effect_argument_005ed914);
+            QueueCharacterEvent(character, g_special_event_0068c50c, 0, g_character_event_no_flags,
+                                g_character_event_full_volume);
         } else {
             SetFact(0x1c1, 1, 0);
         }

@@ -240,12 +240,12 @@ void RunSearchPulse(void)
                             if (searchable->trigger == 0) {
                                 QueueCharacterEvent(character, g_effect_005ee5f0, 0,
                                                     g_effect_argument_005ed8cc,
-                                                    g_effect_argument_005ed914);
+                                                    g_character_event_full_volume);
                                 found = true;
                             } else {
                                 QueueCharacterEvent(character, g_effect_005ee5f0, 0,
                                                     g_effect_argument_005ed8cc,
-                                                    g_effect_argument_005ed914);
+                                                    g_character_event_full_volume);
                                 int message = searchable->trigger->m_lData1;
                                 found = true;
                                 if (message >= 0) {
@@ -270,7 +270,7 @@ void RunSearchPulse(void)
                             }
                             W8CharacterEvent* event = new W8CharacterEvent(
                                 character, event_type, 0, g_effect_argument_005ed8cc,
-                                g_effect_argument_005ed914);
+                                g_character_event_full_volume);
                             if (searchable->world_item != 0) {
                                 event->item = searchable->world_item->item;
                             }
@@ -301,7 +301,7 @@ void RunSearchPulse(void)
             if (g_status.search_mode != 0 && (g_level_data->flags & 0x100) == 0 && !found &&
                 Random(100) == 0) {
                 ApplyItemEffectToRandomCharacter(g_container_event, -1, 0,
-                                                 g_effect_argument_005ed8c8);
+                                                 g_character_event_no_flags);
             }
         }
     }

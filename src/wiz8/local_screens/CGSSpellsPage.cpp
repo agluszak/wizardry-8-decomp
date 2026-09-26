@@ -356,9 +356,9 @@ void W8CharacterSpellsPage::Redraw()
             text.RenderToTarget(0, 0, -14);
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
-            text.SetText(FormatWideString(g_format_d_0060aa20,
-                                          m_character_060->skills[0x1c + realm].points_02),
-                         g_wiz_text_font_secondary);
+            text.SetText(
+                FormatWideString(g_format_d, m_character_060->skills[0x1c + realm].points_02),
+                g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
 
             text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);

@@ -430,25 +430,23 @@ unsigned char W8AssayDialog::PopulateText()
     if ((m_item->identified != 0 || m_item->spell_hint_07 != 0) && record->spell_id != 0) {
         if (record->equip_class == 0xd || record->equip_class == 0xe ||
             record->equip_class == 0x13) {
-            text = FormatWideString(g_format_s_006068e4,
-                                    g_spell_records[record->spell_id].display_name);
+            text = FormatWideString(g_format_s, g_spell_records[record->spell_id].display_name);
         } else {
             text = FormatWideString(L"%s (Pwr %d)", g_spell_records[record->spell_id].display_name,
                                     record->spell_power_064);
         }
         m_text_area.AddEntry(gppStringList[0x23a8 / 4], text, 10, 0xf, 0);
         if (record->equip_class == 0x13) {
-            m_text_area.AddEntry(gppStringList[0x23ac / 4],
-                                 FormatWideString(g_format_d_0060aa20,
-                                                  g_spell_records[record->spell_id].spell_level),
-                                 10, 0xf, 0);
+            m_text_area.AddEntry(
+                gppStringList[0x23ac / 4],
+                FormatWideString(g_format_d, g_spell_records[record->spell_id].spell_level), 10,
+                0xf, 0);
         }
     }
     if (m_item->identified != 0) {
         if (record->quantity_kind == 2) {
             m_text_area.AddEntry(gppStringList[g_quantity_kind_name_ids[record->quantity_kind]],
-                                 FormatWideString(g_format_d_0060aa20, m_item->uses_or_charges), 10,
-                                 0xf, 0);
+                                 FormatWideString(g_format_d, m_item->uses_or_charges), 10, 0xf, 0);
         }
         if (record->quantity_kind == 3 || record->quantity_kind == 4) {
             m_text_area.AddEntry(
@@ -465,8 +463,7 @@ unsigned char W8AssayDialog::PopulateText()
         }
         if (record->modifier_06c < 0) {
             m_text_area.AddEntry(gppStringList[0x2368 / 4],
-                                 FormatWideString(g_format_d_0060aa20, record->modifier_06c), 10,
-                                 0xf, 0);
+                                 FormatWideString(g_format_d, record->modifier_06c), 10, 0xf, 0);
         }
         if (record->modifier_06d > 0) {
             m_text_area.AddEntry(gppStringList[0x236c / 4],
@@ -475,8 +472,7 @@ unsigned char W8AssayDialog::PopulateText()
         }
         if (record->modifier_06d < 0) {
             m_text_area.AddEntry(gppStringList[0x2370 / 4],
-                                 FormatWideString(g_format_d_0060aa20, record->modifier_06d), 10,
-                                 0xf, 0);
+                                 FormatWideString(g_format_d, record->modifier_06d), 10, 0xf, 0);
         }
         if (record->modifier_06e > 0) {
             m_text_area.AddEntry(gppStringList[0x2374 / 4],
@@ -485,8 +481,7 @@ unsigned char W8AssayDialog::PopulateText()
         }
         if (record->modifier_06e < 0) {
             m_text_area.AddEntry(gppStringList[0x2378 / 4],
-                                 FormatWideString(g_format_d_0060aa20, record->modifier_06e), 10,
-                                 0xf, 0);
+                                 FormatWideString(g_format_d, record->modifier_06e), 10, 0xf, 0);
         }
         if (record->modifier_0b3_index != -1 && record->modifier_0b3_value > 0) {
             swprintf(modifier_text, L"%s %+d",
@@ -622,8 +617,7 @@ unsigned char W8AssayDialog::PopulateText()
     }
     if (record->maximum_quantity != 0) {
         m_text_area.AddEntry(gppStringList[0x23e0 / 4],
-                             FormatWideString(g_format_d_0060aa20, record->maximum_quantity), 10,
-                             0xf, 0);
+                             FormatWideString(g_format_d, record->maximum_quantity), 10, 0xf, 0);
     }
     strcpy(path, "Data\\Databases\\ItemDesc.dbs");
     GetStringFromStringDatabase(path, m_item->iItemNo, description, 0, 0);

@@ -1749,7 +1749,8 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition, char f
                     }
                     if (Random(100) < 0x32) {
                         QueueCharacterEvent(character, g_special_event_0068c55c, 0,
-                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                            g_character_event_no_flags,
+                                            g_character_event_full_volume);
                     }
                 } else {
                     all_cured = 0;

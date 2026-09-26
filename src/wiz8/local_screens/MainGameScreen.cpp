@@ -258,7 +258,7 @@ const char g_trap_sprung_sound[] = "Data\\Sound\\Misc\\Trap Sprung.wav";
 const wchar_t g_format_d_percent[] = L"%d%%";
 
 // GLOBAL: WIZ8 0x006068e4
-const wchar_t g_format_s_006068e4[] = L"%s";
+const wchar_t g_format_s[] = L"%s";
 
 // GLOBAL: WIZ8 0x00648170
 const wchar_t g_format_d_s_paren_d_slash_d_slash_d[] = L"%d %s (%d/%d/%d)";
@@ -382,7 +382,7 @@ int OpenLockInteraction(Trigger* trigger)
     }
     if (gXStatus.fLockInteractMode != 0 || (gXStatus.fLockInteract != 0 && trigger != 0)) {
         event = ApplyItemEffectToRandomCharacter(g_lock_notice_event, -1, g_event_flag_005ed8e8,
-                                                 g_effect_argument_005ed8c8);
+                                                 g_character_event_no_flags);
         if (event != 0) {
             event->dispatch_delay_ms = 600;
             event->dispatch_delay_start = GetTickCount();
@@ -392,7 +392,7 @@ int OpenLockInteraction(Trigger* trigger)
     }
     if (gXStatus.fCombatMode != 0) {
         event = ApplyItemEffectToRandomCharacter(g_lock_notice_event, -1, g_event_flag_005ed8e8,
-                                                 g_effect_argument_005ed8c8);
+                                                 g_character_event_no_flags);
         if (event != 0) {
             event->dispatch_delay_ms = 600;
             event->dispatch_delay_start = GetTickCount();
@@ -419,7 +419,7 @@ int OpenLockInteraction(Trigger* trigger)
     RequestRedraw(0x1000);
     if (gXStatus.fLockInteract == 0) {
         event = ApplyItemEffectToRandomCharacter(g_lock_notice_event, -1, g_event_flag_005ed8e8,
-                                                 g_effect_argument_005ed8c8);
+                                                 g_character_event_no_flags);
         if (event != 0) {
             event->dispatch_delay_ms = 600;
             event->dispatch_delay_start = GetTickCount();
@@ -1525,7 +1525,7 @@ void W8MainGameTextKeyHandler::Redraw(int full_redraw)
             colour = g_colour_68ee08;
         }
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, colour);
-        gprintf(left, top, const_cast<wchar_t*>(g_format_s_006068e4),
+        gprintf(left, top, const_cast<wchar_t*>(g_format_s),
                 gppStringList[m_line_string_ids_0ac[line]]);
         top += 0xe;
     }
@@ -2558,7 +2558,7 @@ int OpenTrapInteraction(Trigger* trigger)
             return 1;
         }
         event = ApplyItemEffectToRandomCharacter(g_trap_notice_event, -1, g_event_flag_005ed8e8,
-                                                 g_effect_argument_005ed8c8);
+                                                 g_character_event_no_flags);
         if (event != 0) {
             event->dispatch_delay_ms = 600;
             event->dispatch_delay_start = GetTickCount();
@@ -2568,7 +2568,7 @@ int OpenTrapInteraction(Trigger* trigger)
     }
     if (gXStatus.fCombatMode != 0) {
         event = ApplyItemEffectToRandomCharacter(g_trap_notice_event, -1, g_event_flag_005ed8e8,
-                                                 g_effect_argument_005ed8c8);
+                                                 g_character_event_no_flags);
         if (event != 0) {
             event->dispatch_delay_ms = 600;
             event->dispatch_delay_start = GetTickCount();
@@ -2618,7 +2618,7 @@ int OpenTrapInteraction(Trigger* trigger)
             event_type = g_trap_notice_event;
         }
         event = ApplyItemEffectToRandomCharacter(event_type, -1, g_event_flag_005ed8e8,
-                                                 g_effect_argument_005ed8c8);
+                                                 g_character_event_no_flags);
         if (event != 0) {
             event->dispatch_delay_ms = 600;
             event->dispatch_delay_start = GetTickCount();
@@ -4690,8 +4690,7 @@ void RedrawCombatMonsterList(void)
                         }
                     }
                     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, palette);
-                    gprintfDirty(0xfa, row_y, const_cast<UINT16*>(g_format_s_006068e4),
-                                 scratch_text);
+                    gprintfDirty(0xfa, row_y, const_cast<UINT16*>(g_format_s), scratch_text);
                     row_y += 0xb;
                     ++live_row_count;
                     if (max_text_width < static_cast<unsigned int>(text_width)) {
@@ -4745,8 +4744,8 @@ void SelectPartyCharacter(int party_slot)
         return;
     }
     if (gXStatus.fCombatMode == 0) {
-        QueueCharacterEvent(character, g_special_event_0068c568, 0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+        QueueCharacterEvent(character, g_special_event_0068c568, 0, g_character_event_no_flags,
+                            g_character_event_full_volume);
     }
     if (g_status.selected_character != -1) {
         RequestPartySlotRedraw(g_status.selected_character);
@@ -5031,7 +5030,7 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
     int font_height = GetFontHeight(g_wiz_text_font);
     int name_width = StringPixLength(name, g_wiz_text_font);
     gprintf(left + static_cast<int>(panel_width >> 1) - name_width / 2,
-            (0xc - font_height) / 2 + top + 6, const_cast<wchar_t*>(g_format_s_006068e4), name);
+            (0xc - font_height) / 2 + top + 6, const_cast<wchar_t*>(g_format_s), name);
     SetFontObjectPalette16BPP(g_wiz_text_font, g_font_palette_wiz_text);
 
     row_y_pos = top + 0x12;
@@ -5154,7 +5153,7 @@ void DrawPortraitVitalsOverlay(int party_slot)
     unsigned int value_center = (text_width - label_width) >> 1;
     width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
     gprintf(value_center - width / 2 + text_x + label_width, row_y,
-            const_cast<wchar_t*>(g_format_s_006068e4), g_level_block->text_paint_scratch_000);
+            const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
     row_y += 0x12;
 
     swprintf(g_level_block->text_paint_scratch_000, g_format_s_colon, gppStringList[0x283]);
@@ -5163,7 +5162,7 @@ void DrawPortraitVitalsOverlay(int party_slot)
              character->uiStaminaMax);
     width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
     gprintf(value_center - width / 2 + text_x + label_width, row_y,
-            const_cast<wchar_t*>(g_format_s_006068e4), g_level_block->text_paint_scratch_000);
+            const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
     row_y += 0x12;
 
     for (realm = 0; realm < 6; ++realm) {
@@ -5175,7 +5174,7 @@ void DrawPortraitVitalsOverlay(int party_slot)
         int text_y = (0x12 - GetFontHeight(g_wiz_text_font)) / 2 + row_y;
         width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
         gprintf(value_center - width / 2 + text_x + label_width, text_y,
-                const_cast<wchar_t*>(g_format_s_006068e4), g_level_block->text_paint_scratch_000);
+                const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
         row_y += 0x12;
     }
 }
@@ -5200,7 +5199,7 @@ void DrawPortraitConditionOverlay(int party_slot)
     unsigned int max_width = 0;
     for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
         if (character->uiCondition[condition] != 0) {
-            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s,
                      gppStringList[g_condition_notices[condition * 4]]);
             int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
             if (max_width < static_cast<unsigned int>(width)) {
@@ -5222,12 +5221,11 @@ void DrawPortraitConditionOverlay(int party_slot)
     for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
         if (character->uiCondition[condition] != 0) {
             DrawCatalogImage(-0xe, condition + 0xb6, 0, 0, text_x, row_y, 2, 0);
-            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s,
                      gppStringList[g_condition_notices[condition * 4]]);
             int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
             gprintf((((text_width - 0x1aU) >> 1) - width / 2) + 0x1a + text_x, row_y,
-                    const_cast<wchar_t*>(g_format_s_006068e4),
-                    g_level_block->text_paint_scratch_000);
+                    const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
             row_y += 0x12;
         }
     }
@@ -5254,7 +5252,7 @@ void DrawPortraitStatusOverlay(int party_slot)
     }
     for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
         if (character->uiCondition[condition] != 0) {
-            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s,
                      gppStringList[g_condition_notices[condition * 4]]);
             int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
             if (max_width < static_cast<unsigned int>(width)) {
@@ -5306,24 +5304,22 @@ void DrawPortraitStatusOverlay(int party_slot)
     for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
         if (character->uiCondition[condition] != 0) {
             DrawCatalogImage(-0xe, condition + 0xb6, 0, 0, text_x, row_y, 2, 0);
-            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s,
                      gppStringList[g_condition_notices[condition * 4]]);
             int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
             gprintf(((text_width >> 1) - width / 2) + 0x1a + text_x, row_y,
-                    const_cast<wchar_t*>(g_format_s_006068e4),
-                    g_level_block->text_paint_scratch_000);
+                    const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
             row_y += 0x12;
             ++rows_drawn;
         }
     }
     for (slot = 7; slot > 0; --slot) {
         if (rows_drawn == 0x13 && truncated) {
-            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
-                     gppStringList[0x7d8], character->enchantments[slot].power_00);
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s, gppStringList[0x7d8],
+                     character->enchantments[slot].power_00);
             int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
             gprintf((((text_width - width) + 0x1a) >> 1) + text_x, row_y,
-                    const_cast<wchar_t*>(g_format_s_006068e4),
-                    g_level_block->text_paint_scratch_000);
+                    const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
             return;
         }
         if (character->enchantments[slot].turns_08 != 0) {
@@ -5333,8 +5329,7 @@ void DrawPortraitStatusOverlay(int party_slot)
                      character->enchantments[slot].power_00);
             int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
             gprintf(((text_width >> 1) - width / 2) + 0x1a + text_x, row_y,
-                    const_cast<wchar_t*>(g_format_s_006068e4),
-                    g_level_block->text_paint_scratch_000);
+                    const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
             row_y += 0x12;
             ++rows_drawn;
         }
@@ -5388,8 +5383,7 @@ void DrawPortraitEnchantmentOverlay(int party_slot)
                      character->enchantments[slot].power_00);
             int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
             gprintf((((text_width - 0x1aU) >> 1) - width / 2) + 0x1a + text_x, row_y,
-                    const_cast<wchar_t*>(g_format_s_006068e4),
-                    g_level_block->text_paint_scratch_000);
+                    const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
             row_y += 0x12;
         }
     }
@@ -6471,7 +6465,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                                     QueueCharacterEvent(
                                         &g_status.buffers.Char[g_status.selected_character],
                                         g_character_event_kind_005ee65c, 0,
-                                        g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                        g_character_event_no_flags, g_character_event_full_volume);
                                     ShowNotice(0xc, gppStringList[0x1f70 / 4], -1, -1, 0);
                                 } else {
                                     AimAtCharacter(g_status.selected_character, slot,
@@ -6484,8 +6478,8 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                         } else {
                             QueueCharacterEvent(&g_status.buffers.Char[g_status.selected_character],
                                                 g_character_event_kind_005ee65c, 0,
-                                                g_effect_argument_005ed8c8,
-                                                g_effect_argument_005ed914);
+                                                g_character_event_no_flags,
+                                                g_character_event_full_volume);
                         }
                     } else if (g_status.item_in_cursor == 0 || gXStatus.iCurrentCursor != 7 ||
                                gXStatus.dragged_item == &g_status.item_in_hand_235b) {
@@ -9199,7 +9193,7 @@ void ConfirmNpcTradeItem(void)
             if (npc != 0 && g_npc_interaction->trade_item != 0 &&
                 NpcWantsItem(npc, g_npc_interaction->trade_item) != 0) {
                 QueueCharacterEvent(&g_status.buffers.Char[selected], g_effect_005ee6ec, 0,
-                                    g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                                    g_effect_argument_005ed8cc, g_character_event_full_volume);
                 return;
             }
         }

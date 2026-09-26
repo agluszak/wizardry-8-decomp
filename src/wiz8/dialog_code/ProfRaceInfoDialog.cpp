@@ -136,8 +136,8 @@ void W8ProfRaceInfoDialogBase::Draw()
             if (m_minimums[attribute] == -1) {
                 minimum = L"?";
             } else {
-                minimum = FormatWideString(g_format_d_0060aa20, m_minimums[attribute],
-                                           g_wiz_text_font_secondary);
+                minimum =
+                    FormatWideString(g_format_d, m_minimums[attribute], g_wiz_text_font_secondary);
             }
             DrawTextLine(g_W8TextBufferAlignCenter, 0x85, top, 0x16, 0xc, minimum,
                          g_wiz_text_font_secondary);

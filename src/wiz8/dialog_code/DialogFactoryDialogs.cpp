@@ -915,7 +915,7 @@ void W8SplitAmountDialog::UpdateTextBuffers()
 {
     wchar_t text[12];
 
-    swprintf(text, g_format_d_0060aa20, m_remaining_080);
+    swprintf(text, g_format_d, m_remaining_080);
     m_text_buffers_06c[2]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[2]->m_dirty = true;
     m_text_buffers_06c[2]->m_geometryDirty = 1;

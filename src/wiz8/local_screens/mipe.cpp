@@ -2309,7 +2309,7 @@ static void HandleMipeLockTrapKey(unsigned short key)
         trigger = g_mipe_state->prop->GetValue18();
         ResetEditorStatusLine(-1);
         ShowNoticef(6, L"Enter Key ID:");
-        ShowNoticef(0xf, g_format_d_0060aa20, trigger->lock_state.key_id);
+        ShowNoticef(0xf, g_format_d, trigger->lock_state.key_id);
         return;
     case 0x33:
         ++trigger->lock_state.difficulty;
@@ -2393,7 +2393,7 @@ void EditTriggerKeyID(unsigned int key)
     trigger = g_mipe_state->prop->GetValue18();
     ResetEditorStatusLine(-1);
     ShowNoticef(6, L"Enter Key ID:");
-    ShowNoticef(0xf, g_format_d_0060aa20, trigger->lock_state.key_id);
+    ShowNoticef(0xf, g_format_d, trigger->lock_state.key_id);
 }
 
 /* Mode-0x1d key handler: the prop trigger's treasure-table picker. Enter
@@ -3150,7 +3150,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
         case 0x20:
             ResetEditorStatusLine(-1);
             ShowNoticef(6, L"Enter the limit for random encounters:");
-            ShowNoticef(0xf, g_format_d_0060aa20, g_random_encounter_limit);
+            ShowNoticef(0xf, g_format_d, g_random_encounter_limit);
             return handled;
         case 8:
             g_random_encounter_limit /= 10;
@@ -3172,7 +3172,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
         }
         ResetEditorStatusLine(-1);
         ShowNoticef(6, L"Enter the limit for random encounters:");
-        ShowNoticef(0xf, g_format_d_0060aa20, g_random_encounter_limit);
+        ShowNoticef(0xf, g_format_d, g_random_encounter_limit);
         return handled;
     case 0x19:
         EditMonsterGeneratorName(key);
@@ -3203,12 +3203,12 @@ unsigned char HandleMipeKey(const InputAtom* event)
             g_encounter_culling_time_seconds = (key - 0x30) + g_encounter_culling_time_seconds * 10;
             ResetEditorStatusLine(-1);
             ShowNoticef(6, L"Enter the encounter culling time (sec):");
-            ShowNoticef(0xf, g_format_d_0060aa20, g_encounter_culling_time_seconds);
+            ShowNoticef(0xf, g_format_d, g_encounter_culling_time_seconds);
             return handled;
         default:
             return handled;
         }
-        ShowNoticef(0xf, g_format_d_0060aa20, shown);
+        ShowNoticef(0xf, g_format_d, shown);
         return handled;
     case 0x1b:
         HandleMipeLockTrapKey(key);

@@ -322,7 +322,7 @@ void DrawWorldCursorNodeLabel(W8WorldCursorNode* entry)
         SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
         for (int index = 0; index < 3; ++index) {
             wchar_t text[20];
-            swprintf(text, g_format_d_0060aa20, entry->numbers_0c[index]);
+            swprintf(text, g_format_d, entry->numbers_0c[index]);
             gprintf_buffer(data, surface->getPitch(), g_smfnt_font, 0,
                            GetFontHeight(g_smfnt_font) * index, text);
         }
