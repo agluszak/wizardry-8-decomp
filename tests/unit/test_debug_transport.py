@@ -8,7 +8,7 @@ from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
-from unittest.mock import ANY, AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 from wiz8decomp.binary.linker_map import LinkerMap
@@ -541,12 +541,11 @@ def test_launcher_uses_one_proxy_path(
     run_debugger(settings, scenario=scenario)
 
     command = popen.call_args.args[0]
-    assert command[:6] == [
+    assert command[:5] == [
         "/prepared/umu-run",
         "winedbg.exe",
         "--gdb",
         "--no-start",
         "--port",
-        command[5],
     ]
     assert command[6:] == [str(executable), *arguments]
