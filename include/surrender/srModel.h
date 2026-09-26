@@ -6,8 +6,12 @@
 
 class srGERD;
 
+// VTABLE: SURRENDER 0x10076D08 srModel
+// class srModel
 class SR_DLL_IMPORT srModel : public srClassSupport<srModel, srClass, true, 0x2000> {
 public:
+// VTABLE: SURRENDER 0x10076CD8 Client
+// class Client
     class SR_DLL_IMPORT Client {
     public:
         enum e_update {};

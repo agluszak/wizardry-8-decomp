@@ -14,6 +14,8 @@ class srModel;
    the declaration is dllexport under SURRENDER_BUILD. */
 // FUNCTION: SURRENDER 0x100050F0 SYNTHETIC
 // ??0srSurfaceIOManager@@QAE@XZ
+// VTABLE: SURRENDER 0x10075418
+// class srSurfaceIOManager
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
@@ -52,6 +54,16 @@ public:
     SurfaceExporter* getExporter(const char* path);
     void getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description, const char* path,
                         const ImportInfo& options);
+
+    /* Implicit copy ctor/assignment/destructor emitted via the class-level
+       dllexport as memberwise base-subobject copies. */
+    // SYNTHETIC: SURRENDER 0x10005190
+    // ??0srSurfaceIOManager@@QAE@ABV0@@Z
+    // SYNTHETIC: SURRENDER 0x100051D0
+    // ??4srSurfaceIOManager@@QAEAAV0@ABV0@@Z
+    // SYNTHETIC: SURRENDER 0x10005210
+    // ??1srSurfaceIOManager@@UAE@XZ
+
 };
 
 static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x0c), "srSurfaceImportInfo_must_be_0x0c");
@@ -66,6 +78,16 @@ class
 #endif
     __declspec(novtable) srSurfaceIOManager::SurfaceImporter : public srIOManager::Importer {
 public:
+    /* Implicit lifecycle sweep emitted via the class-level dllexport. */
+    // SYNTHETIC: SURRENDER 0x10005110
+    // ??0SurfaceImporter@srSurfaceIOManager@@QAE@XZ
+    // SYNTHETIC: SURRENDER 0x10005120
+    // ??0SurfaceImporter@srSurfaceIOManager@@QAE@ABV01@@Z
+    // SYNTHETIC: SURRENDER 0x10005130
+    // ??4SurfaceImporter@srSurfaceIOManager@@QAEAAV01@ABV01@@Z
+    // SYNTHETIC: SURRENDER 0x10005140
+    // ??1SurfaceImporter@srSurfaceIOManager@@UAE@XZ
+
     virtual int getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description, srBinIStream& stream,
                                const srSurfaceIOManager::ImportInfo& options);
     virtual srColorSurfaceIFace* importSurface(srBinIStream& stream,
@@ -76,6 +98,7 @@ public:
    lifecycle sweep (ctor, copy ctor, assignment, destructor) and the vftable, so
    the declaration is dllexport under SURRENDER_BUILD. */
 // VTABLE: SURRENDER 0x10075530 srHierarchyIOManager
+// class srHierarchyIOManager
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
@@ -89,6 +112,9 @@ public:
 #endif
         ImportInfo {
     public:
+        // SYNTHETIC: SURRENDER 0x10016490
+        // ??4ImportInfo@srHierarchyIOManager@@QAEAAV01@ABV01@@Z
+
         unsigned char unknown_00;
     };
     class
@@ -97,6 +123,9 @@ public:
 #endif
         ExportInfo {
     public:
+        // SYNTHETIC: SURRENDER 0x100164A0
+        // ??4ExportInfo@srHierarchyIOManager@@QAEAAV01@ABV01@@Z
+
         unsigned char unknown_00;
     };
 
@@ -124,7 +153,18 @@ class
 #endif
     __declspec(novtable) srHierarchyIOManager::HierarchyImporter : public srIOManager::Importer {
 public:
+    // FUNCTION: SURRENDER 0x100164B0
+    // ??0HierarchyImporter@srHierarchyIOManager@@QAE@XZ
     HierarchyImporter() {}
+
+    /* Implicit copy ctor/assignment/destructor emitted via the class-level
+       dllexport. */
+    // SYNTHETIC: SURRENDER 0x100164C0
+    // ??0HierarchyImporter@srHierarchyIOManager@@QAE@ABV01@@Z
+    // SYNTHETIC: SURRENDER 0x100164D0
+    // ??4HierarchyImporter@srHierarchyIOManager@@QAEAAV01@ABV01@@Z
+    // SYNTHETIC: SURRENDER 0x100164E0
+    // ??1HierarchyImporter@srHierarchyIOManager@@UAE@XZ
 
     /* importHierarchy's call site dispatches through vtable slot 2. */
     virtual void importHierarchy(srBinIStream& stream, const ImportInfo& options) = 0;
@@ -134,6 +174,7 @@ public:
    lifecycle sweep (ctor, copy ctor, assignment, destructor) and the vftable, so
    the declaration is dllexport under SURRENDER_BUILD. */
 // VTABLE: SURRENDER 0x10075534 srModelIOManager
+// class srModelIOManager
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
@@ -147,6 +188,9 @@ public:
 #endif
         ImportInfo {
     public:
+        // SYNTHETIC: SURRENDER 0x100169A0
+        // ??4ImportInfo@srModelIOManager@@QAEAAV01@ABV01@@Z
+
         unsigned char unknown_00;
     };
     class
@@ -155,6 +199,9 @@ public:
 #endif
         ExportInfo {
     public:
+        // SYNTHETIC: SURRENDER 0x100169B0
+        // ??4ExportInfo@srModelIOManager@@QAEAAV01@ABV01@@Z
+
         unsigned char unknown_00;
     };
 
@@ -180,7 +227,18 @@ class
 #endif
     __declspec(novtable) srModelIOManager::ModelImporter : public srIOManager::Importer {
 public:
+    // FUNCTION: SURRENDER 0x100169C0
+    // ??0ModelImporter@srModelIOManager@@QAE@XZ
     ModelImporter() {}
+
+    /* Implicit copy ctor/assignment/destructor emitted via the class-level
+       dllexport. */
+    // SYNTHETIC: SURRENDER 0x100169D0
+    // ??0ModelImporter@srModelIOManager@@QAE@ABV01@@Z
+    // SYNTHETIC: SURRENDER 0x100169E0
+    // ??4ModelImporter@srModelIOManager@@QAEAAV01@ABV01@@Z
+    // SYNTHETIC: SURRENDER 0x100169F0
+    // ??1ModelImporter@srModelIOManager@@UAE@XZ
 
     /* importModel's call site dispatches through vtable slot 2. */
     virtual srModel* importModel(srBinIStream& stream, const ImportInfo& options) = 0;

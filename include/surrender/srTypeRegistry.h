@@ -169,6 +169,8 @@ public:
    protected constructor/destructor and the implicit copy operations, so the
    class is dllexport-ed when building the provider (the same convention as
    srDebugDD and srDummyStreamBuf). */
+// VTABLE: SURRENDER 0x100754E4 srRuntimeClass
+// class srRuntimeClass
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)

@@ -4,6 +4,7 @@
 
 /* Provider-side utility. The SR vtable is known, but no known consumer imports
    srMutex symbols; provider ABI evidence alone does not justify dllimport. */
+// VTABLE: SURRENDER 0x10076DE4 srMutex
 class srMutex {
 public:
     srMutex();

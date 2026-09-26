@@ -10,6 +10,7 @@ class srColorSurfaceIFace;
    object. The executable emits the inline srClassSupport registry and clone
    slots, which is why its local vtable mixes imported srPalette methods with
    the 0x2900 class-support methods recovered in stTextureFile.cpp. */
+// VTABLE: SURRENDER 0x100753CC srPalette
 class srPalette : public srClassSupport<srPalette, srClass, 1, 0x2900> {
 public:
     /* Provider-side quantizer; its 0x21918-byte allocation and member surface

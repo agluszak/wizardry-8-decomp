@@ -5,6 +5,9 @@
 
 #include <math.h>
 
+// VTABLE: SURRENDER 0x10077150 srModel::Client
+// VTABLE: SURRENDER 0x10077160 srClassSupport<srModelInstance, srNode, 0, 4352>
+// class srModelInstance
 class SR_DLL_IMPORT srModelInstance : public srClassSupport<srModelInstance, srNode, 0, 0x1100>,
                                       public srModel::Client {
 public:

@@ -6,6 +6,8 @@
    implicit lifecycle sweep (copy ctor and assignment emit as memberwise
    copies), so the declaration is dllexport under SURRENDER_BUILD. Consumers
    keep the member-level imports below. */
+// VTABLE: SURRENDER 0x10076960
+// class srIOManager
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
@@ -93,6 +95,10 @@ public:
     Error(const char* description) { description_00 = description; }
     SR_DLL_IMPORT const char* getDescription();
 
+    /* Implicit memberwise assignment emitted via the class-level dllexport. */
+    // SYNTHETIC: SURRENDER 0x1002CC70
+    // ??4Error@srIOManager@@QAEAAV01@ABV01@@Z
+
 private:
     const char* description_00;
 };
@@ -105,10 +111,21 @@ class
 #endif
     __declspec(novtable) srIOManager::Importer {
 public:
+    // FUNCTION: SURRENDER 0x1002CC80
+    // ??0Importer@srIOManager@@QAE@XZ
     Importer() {}
 
     virtual const char* getTypeName() const = 0;
+
+    // FUNCTION: SURRENDER 0x1002CC50
+    // ??1Importer@srIOManager@@UAE@XZ
     virtual ~Importer() {}
+
+    /* Implicit copy ctor/assignment emitted via the class-level dllexport. */
+    // SYNTHETIC: SURRENDER 0x1002CC90
+    // ??0Importer@srIOManager@@QAE@ABV01@@Z
+    // SYNTHETIC: SURRENDER 0x1002CCA0
+    // ??4Importer@srIOManager@@QAEAAV01@ABV01@@Z
 
 protected:
     SR_DLL_IMPORT void addToImporters(srIOManager* manager, const char* extension);
@@ -125,10 +142,21 @@ class
 #endif
     __declspec(novtable) srIOManager::Exporter {
 public:
+    // FUNCTION: SURRENDER 0x1002CCB0
+    // ??0Exporter@srIOManager@@QAE@XZ
     Exporter() {}
 
     virtual const char* getTypeName() const = 0;
+
+    // FUNCTION: SURRENDER 0x1002CC60
+    // ??1Exporter@srIOManager@@UAE@XZ
     virtual ~Exporter() {}
+
+    /* Implicit copy ctor/assignment emitted via the class-level dllexport. */
+    // SYNTHETIC: SURRENDER 0x1002CD70
+    // ??0Exporter@srIOManager@@QAE@ABV01@@Z
+    // SYNTHETIC: SURRENDER 0x1002CD80
+    // ??4Exporter@srIOManager@@QAEAAV01@ABV01@@Z
 
 protected:
     SR_DLL_IMPORT void addToExporters(srIOManager* manager, const char* extension);

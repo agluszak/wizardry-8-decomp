@@ -3,6 +3,8 @@
 #include "srPtr.h"
 #include "srTexture.h"
 
+// VTABLE: SURRENDER 0x10077578 srTextureMap
+// class srTextureMap
 class SR_DLL_IMPORT srTextureMap : public srClassSupport<srTextureMap, srTexture, 0, 0x2111> {
 public:
     /* The default-constructor closure 0x100608C0 proves the surface argument

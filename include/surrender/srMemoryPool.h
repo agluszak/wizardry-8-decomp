@@ -46,6 +46,8 @@ private:
     Entry* addEntry(Entry* previous, Entry* next);
     /* Retail inlines both helpers at every call site yet still exports the
        standalone copies; member-level provider export roots the emission. */
+    // FUNCTION: SURRENDER 0x100369E0
+    // ?convertPtr@srMemoryPool@@ABEJPBX@Z
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
 #endif
@@ -62,6 +64,8 @@ private:
     Entry* findPlacing(long offset) const;
     Entry* findSpace(long size) const;
     void freeInternal(Entry* entry);
+    // FUNCTION: SURRENDER 0x100369D0
+    // ?hashVal@srMemoryPool@@ABEKJ@Z
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
 #endif

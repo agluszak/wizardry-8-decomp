@@ -15,6 +15,7 @@
    intermediate vtable proves the support level introduces clone rather than
    srNode. See docs/libraries/surrender-abi.md for the addresses, the slot
    table and the falsified alternatives. */
+// VTABLE: SURRENDER 0x100771D0 srNode
 class srNode : public srClassSupport<srNode, srClass, true, 0x1000> {
 public:
     class TraverseInfo {

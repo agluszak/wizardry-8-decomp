@@ -25,6 +25,7 @@
    frequency at +0x808 and the tick quotient at +0x838, where the byte-exact
    constructor addresses them. */
 #pragma pack(push, 4)
+// VTABLE: SURRENDER 0x10077620 srTimer
 class SR_DLL_IMPORT srTimer {
 public:
     enum e_timerReadControl { TIMER_READ_DEFAULT = 0 };

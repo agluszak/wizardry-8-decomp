@@ -5,6 +5,7 @@
 /* The interface owns the common 0x44-byte surface description. The concrete
    implementation adds conversion callbacks, palette ownership and pixel-data
    storage; srClassSupport contributes registry identity without storage. */
+// VTABLE: SURRENDER 0x100772D0 srColorSurface
 class srColorSurface : public srClassSupport<srColorSurface, srColorSurfaceIFace, 0, 0x3110> {
 public:
     SR_DLL_IMPORT srColorSurface(const srPixelConvert::PixelFormat& format, unsigned long width,
