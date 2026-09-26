@@ -34,7 +34,6 @@ from wiz8decomp.runtime import (
 def _isolate_runtime_environment(monkeypatch) -> None:
     for name in (
         "WIZ8_RUNTIME_VIDEO_CONFIG",
-        "WIZ8_RUNTIME_RUNNER",
         "WIZ8_UMU_RUN",
         "WIZ8_UMU_WINESERVER",
         "WIZ8_UMU_FOLDERS_PATH",
@@ -43,7 +42,6 @@ def _isolate_runtime_environment(monkeypatch) -> None:
         "PROTONPATH",
     ):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setenv("WIZ8_RUNTIME_RUNNER", "wine")
 
 
 def _settings(tmp_path: Path) -> Settings:
@@ -56,7 +54,7 @@ def _settings(tmp_path: Path) -> Settings:
     (repo / "config" / "runtime").mkdir(parents=True)
     (repo / "config" / "runtime" / "3DVideo.CFG").write_text("Software\n640\n480\n16\nAudio\n")
     (repo / "config" / "runtime" / "Wiz8.CFG.hex").write_text("00ff")
-    return Settings.model_validate(
+    settings = Settings.model_validate(
         {
             "GHIDRA_INSTALL_DIR": tmp_path / "ghidra",
             "WIZ8_INPUT_DIR": tmp_path / "inputs",
@@ -64,6 +62,18 @@ def _settings(tmp_path: Path) -> Settings:
             "repo_dir": repo,
         }
     )
+    umu = settings.runtime_toolchain_dir / "umu-launcher-1.4.4/umu-run"
+    proton = settings.runtime_toolchain_dir / "GE-Proton11-7-x86_64"
+    wineserver = proton / "files/bin/wineserver"
+    umu.parent.mkdir(parents=True)
+    wineserver.parent.mkdir(parents=True)
+    umu.write_text("#!/bin/sh\n")
+    umu.chmod(0o755)
+    (proton / "proton").write_text("#!/bin/sh\n")
+    (proton / "proton").chmod(0o755)
+    wineserver.write_text("#!/bin/sh\n")
+    wineserver.chmod(0o755)
+    return settings
 
 
 def test_stage_game_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> None:
@@ -110,7 +120,6 @@ def test_selected_glide_config_reaches_runtime_test_stage_and_display(
     assert (stage.root / "3DVideo.CFG").read_bytes() == config.read_bytes()
     _, environment = runtime_test_environment(settings)
     assert environment["WIZ8_RUNTIME_SCREEN_GEOMETRY"] == "800x600x24"
-    environment["WIZ8_RUNTIME_RUNNER"] = "umu"
     environment["WIZ8_UMU_RUN"] = "/path/to/umu-run"
     assert _runtime_test_command(stage.executable, environment) == [
         "/path/to/umu-run",
@@ -119,13 +128,11 @@ def test_selected_glide_config_reaches_runtime_test_stage_and_display(
 
 
 def test_default_runtime_uses_ge_proton_and_glide_geometry(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.delenv("WIZ8_RUNTIME_RUNNER")
     settings = _settings(tmp_path)
     (settings.repo_dir / "config/runtime/3DVideo.CFG").write_text("Glide2x\n800\n600\n16\nAudio\n")
 
     _, environment = runtime_test_environment(settings)
 
-    assert environment["WIZ8_RUNTIME_RUNNER"] == "umu"
     assert environment["PROTONPATH"] == str(
         settings.runtime_toolchain_dir / "GE-Proton11-7-x86_64"
     )
@@ -157,18 +164,13 @@ def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None
         )
 
 
-def test_interactive_run_restores_managed_wine_window(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("WIZ8_RUNTIME_RUNNER", "wine")
+def test_interactive_run_uses_prepared_umu(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.delenv("WIZ8_RUNTIME_VIDEO_CONFIG", raising=False)
     monkeypatch.delenv("WIZ8_WINE_PREFIX", raising=False)
     settings = _settings(tmp_path)
     (settings.product_build_dir / "Wiz8Runtime.exe").write_bytes(b"runtime")
-    prefix = settings.work_dir / "wine" / "wiz8-runtime"
-    prefix.mkdir(parents=True)
-    (prefix / "system.reg").write_text("")
     calls = []
 
-    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
     monkeypatch.setattr(
         "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
     )
@@ -178,16 +180,15 @@ def test_interactive_run_restores_managed_wine_window(tmp_path: Path, monkeypatc
             calls.append((args, kwargs)) or SimpleNamespace(returncode=0, stdout="", stderr="")
         ),
     )
-    monkeypatch.delenv("WIZ8_WINE_VIRTUAL_DESKTOP", raising=False)
 
     run_product(settings)
 
-    assert calls[0][0][0][-3:] == ["/d", "Y", "/f"]
-    # Host display maps Wiz8 as an ordinary managed window: the Wine Explorer
-    # Desktop value is removed rather than pointing at a 640x480 shell.
-    assert calls[1][0][0][-4:] == [r"HKCU\Software\Wine\Explorer", "/v", "Desktop", "/f"]
-    assert calls[2][0][0][-2:] == ["./Wiz8Runtime.exe", "/WINDOW"]
-    assert calls[2][1]["env"]["WINEPREFIX"] == str(settings.work_dir / "wine" / "wiz8-runtime")
+    command = calls[0][0][0]
+    assert command[0] == str(settings.runtime_toolchain_dir / "umu-launcher-1.4.4/umu-run")
+    assert command[-1] == "/WINDOW"
+    assert calls[0][1]["env"]["WINEPREFIX"] == str(
+        settings.work_dir / "wine" / "wiz8-ge-proton"
+    )
 
 
 def test_runtime_test_environment_honours_explicit_renderer(tmp_path: Path, monkeypatch) -> None:
@@ -669,7 +670,8 @@ def test_runtime_suite_selection_and_server_lifetime(
     assert all(
         (stage / "scenario-output.tmp").read_text() == scenario for scenario, stage in visited
     )
-    assert shutdowns == [["wineserver", "-k"]]
+    wineserver = str(settings.runtime_toolchain_dir / "GE-Proton11-7-x86_64/files/bin/wineserver")
+    assert shutdowns == [[wineserver, "-k"], [wineserver, "-k"], [wineserver, "-k"]]
     assert result["deterministic"] is (True if check_order else None)
     assert result["scenario_stages"] == {
         f"{stage.parent.name}/{scenario}": str(stage) for scenario, stage in visited
@@ -869,7 +871,6 @@ def test_staging_without_map_never_reuses_a_previous_map(tmp_path: Path) -> None
 def test_interactive_crash_uses_staged_map_after_build_map_changes(
     tmp_path: Path, synthetic_pe: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setenv("WIZ8_RUNTIME_RUNNER", "wine")
     monkeypatch.delenv("WIZ8_RUNTIME_VIDEO_CONFIG", raising=False)
     monkeypatch.delenv("WIZ8_WINE_PREFIX", raising=False)
     settings = _settings(tmp_path)
@@ -878,11 +879,7 @@ def test_interactive_crash_uses_staged_map_after_build_map_changes(
     map_file = executable.with_suffix(".map")
     original_map = " Timestamp is 12345678\n first build\n"
     map_file.write_text(original_map)
-    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda _: "/usr/bin/wine")
     monkeypatch.setattr("wiz8decomp.runtime.runtime_display", lambda *a, **kw: nullcontext(None))
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.configure_wine_window_management", lambda *a, **kw: None
-    )
 
     def launch(*args, **kwargs):
         map_file.write_text("relinked while the game was running")
@@ -1065,21 +1062,25 @@ def test_unhandled_exception_without_register_dump_reports_parse_failure(
 def test_runtime_timeout_preserves_in_process_diagnostics(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    wine = tmp_path / "wine"
-    wine.write_text(
+    umu = tmp_path / "umu-run"
+    umu.write_text(
         "#!/usr/bin/env python3\n"
         "import sys, time\n"
         "print('partial stdout', flush=True)\n"
         "print('menu reached; teardown stuck', file=sys.stderr, flush=True)\n"
         "time.sleep(60)\n"
     )
-    wine.chmod(0o755)
+    umu.chmod(0o755)
     monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
     with pytest.raises(RuntimeError, match="last_step=process-start"):
         _run_runtime_scenario(
             tmp_path / "test.exe",
             tmp_path,
-            {"PATH": f"{tmp_path}:/usr/bin:/bin"},
+            {
+                "PATH": f"{tmp_path}:/usr/bin:/bin",
+                "WIZ8_UMU_RUN": str(umu),
+                "WIZ8_UMU_WINESERVER": "wineserver",
+            },
             "main-menu-startup",
             timeout_seconds=1,
         )
@@ -1100,8 +1101,8 @@ def test_runtime_terminal_failure_has_short_grace_and_preserves_report(
         if crash
         else "WIZ8_RUNTIME_FAILURE scenario=probe step=fixture reason=broken line=12\n"
     )
-    wine = tmp_path / "wine"
-    wine.write_text(
+    umu = tmp_path / "umu-run"
+    umu.write_text(
         "#!/usr/bin/env python3\nimport sys, time\n"
         f"report = {report!r}\n"
         # Exercise partial pipe reads without losing a candidate before CRASH_END.
@@ -1109,7 +1110,7 @@ def test_runtime_terminal_failure_has_short_grace_and_preserves_report(
         "    print(line, file=sys.stderr, flush=True)\n"
         "    time.sleep(0.03)\n" + ("time.sleep(60)\n" if hang else "")
     )
-    wine.chmod(0o755)
+    umu.chmod(0o755)
     stopped = []
     monkeypatch.setattr("wiz8decomp.runtime.RUNTIME_FAILURE_GRACE_SECONDS", 0.15)
     monkeypatch.setattr(
@@ -1120,7 +1121,11 @@ def test_runtime_terminal_failure_has_short_grace_and_preserves_report(
         _run_runtime_scenario(
             tmp_path / "test.exe",
             tmp_path,
-            {"PATH": f"{tmp_path}:/usr/bin:/bin"},
+            {
+                "PATH": f"{tmp_path}:/usr/bin:/bin",
+                "WIZ8_UMU_RUN": str(umu),
+                "WIZ8_UMU_WINESERVER": "wineserver",
+            },
             "probe",
             timeout_seconds=5,
         )
@@ -1180,7 +1185,7 @@ def test_wine_window_management_matches_display_mode(
     prefix = tmp_path / "prefix"
     prefix.mkdir()
     (prefix / "system.reg").write_text("")
-    environment = {"WINEPREFIX": str(prefix)}
+    environment = {"WINEPREFIX": str(prefix), "WIZ8_UMU_RUN": "/prepared/umu-run"}
     configure_wine_window_management(environment, private_display=private_display)
 
     argv = calls[0][0][0]
@@ -1211,7 +1216,6 @@ def test_wine_window_management_uses_prepared_umu(
     (prefix / "system.reg").write_text("")
     environment = {
         "WINEPREFIX": str(prefix),
-        "WIZ8_RUNTIME_RUNNER": "umu",
         "WIZ8_UMU_RUN": "/prepared/umu-run",
     }
 
@@ -1235,7 +1239,7 @@ def test_wine_window_management_virtual_desktop_is_an_explicit_opt_in(
     prefix = tmp_path / "prefix"
     prefix.mkdir()
     (prefix / "system.reg").write_text("")
-    environment = {"WINEPREFIX": str(prefix)}
+    environment = {"WINEPREFIX": str(prefix), "WIZ8_UMU_RUN": "/prepared/umu-run"}
     configure_wine_window_management(environment, private_display=private_display)
 
     assert calls[1][0][0][-5:] == ["/v", "Desktop", "/d", "Wizardry", "/f"]
@@ -1259,7 +1263,11 @@ def test_configure_wine_initializes_a_fresh_prefix_without_audio_overrides(
     monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", run)
     monkeypatch.delenv("WIZ8_WINE_VIRTUAL_DESKTOP", raising=False)
 
-    environment = {"WINEPREFIX": str(prefix), "WINEDLLOVERRIDES": "dsound=d"}
+    environment = {
+        "WINEPREFIX": str(prefix),
+        "WIZ8_UMU_RUN": "/prepared/umu-run",
+        "WINEDLLOVERRIDES": "dsound=d",
+    }
     configure_wine_window_management(environment, private_display=True)
 
     assert calls[0][0][1:3] == ["reg", "query"]
