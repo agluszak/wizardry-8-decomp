@@ -552,7 +552,7 @@ struct W8LevelFileBlock { /* 0x634 */
 /* The level workspace ReadLevelFile builds. Assert-proven pointer members;
    unproven spans are kept as unknown byte arrays. */
 struct W8LevelFile {
-    int submesh_count_00;                            /* pModels_0c element count; initialized 1 */
+    unsigned int submesh_count_00;                   /* pModels_0c element count; initialized 1 */
     int mesh_count_04;                               /* the tree's mesh count; initialized 1 */
     W8LevelFileMesh* pMeshes;                        /* 0x08: one 0x5c record */
     OctMeshModel* pModels_0c;                        /* 0x0c: written/freed, elements 0x48 */

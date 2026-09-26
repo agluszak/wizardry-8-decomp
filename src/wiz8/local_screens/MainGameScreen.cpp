@@ -1803,7 +1803,7 @@ void W8MainGameTextPanel::Redraw()
         return;
     }
     if (m_progress_display_084) {
-        progress = (int)(m_progress_elapsed_08c * g_float_005eebbc);
+        progress = static_cast<int>(m_progress_elapsed_08c * g_float_005eebbc);
         if (progress > m_progress_drawn_090) {
             m_progress_drawn_090 = progress;
             InvalidateRegion(m_text_bounds_0b8.left, m_text_bounds_0b8.top, m_text_bounds_0b8.right,

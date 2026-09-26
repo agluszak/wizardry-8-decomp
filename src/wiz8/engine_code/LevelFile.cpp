@@ -315,7 +315,7 @@ BOOLEAN WriteLevelFile(int hFile, int hFileIn, W8LevelFile* pLevel)
     free(pLevel->pTextures);
     if (pLevel->submesh_count_00 != 0) {
         OctMeshModel* pModel = pLevel->pModels_0c;
-        for (i = 0; (unsigned int)i < (unsigned int)pLevel->submesh_count_00; ++i) {
+        for (i = 0; static_cast<unsigned int>(i) < pLevel->submesh_count_00; ++i) {
             pModel->Write0049E5D0(hFile);
             ++pModel;
         }
