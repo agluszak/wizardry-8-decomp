@@ -44,7 +44,7 @@ W8DialogTextEntry::W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text,
         wcscpy(m_buffer, prefix);
         wcscat(m_buffer, L": ");
     } else {
-        wcscpy(m_buffer, &g_wchar_00689b34);
+        wcscpy(m_buffer, &g_empty_wide_string);
     }
     wcscat(m_buffer, text);
     UpdateLayout();

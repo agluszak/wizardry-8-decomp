@@ -211,7 +211,7 @@ bool CanSelectRcsPartySlot(int ui_slot)
 void DrawRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode)
 {
     W8ControlsRect bounds = {left, top, left + width, top + 12};
-    W8TextBuffer buffer(&bounds, text, g_font_683660, layout_mode, 4);
+    W8TextBuffer buffer(&bounds, text, g_wiz_text_font_secondary, layout_mode, 4);
     buffer.RenderToTarget(0, 0, -14);
 }
 
@@ -227,7 +227,7 @@ void DrawRcsBoldText(const wchar_t* text, int left, int top, int width, unsigned
 void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode)
 {
     W8ControlsRect bounds = {left, top, left + width, top + 18};
-    W8TextBuffer buffer(&bounds, text, g_font_683660, layout_mode, 4);
+    W8TextBuffer buffer(&bounds, text, g_wiz_text_font_secondary, layout_mode, 4);
     buffer.RenderToTarget(0, 0, -14);
 }
 
@@ -240,13 +240,14 @@ void DrawRcsTextJustified(const wchar_t* text, int left, int top, int width, int
                           unsigned int layout_mode)
 {
     if (layout_mode == (g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C)) {
-        left += (width - StringPixLength(const_cast<wchar_t*>(text), g_font_683660)) / 2;
+        left +=
+            (width - StringPixLength(const_cast<wchar_t*>(text), g_wiz_text_font_secondary)) / 2;
     } else if (layout_mode ==
                (g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554)) {
-        left += width - StringPixLength(const_cast<wchar_t*>(text), g_font_683660);
+        left += width - StringPixLength(const_cast<wchar_t*>(text), g_wiz_text_font_secondary);
     }
-    top += (height - GetFontHeight(g_font_683660)) / 2;
-    SetFont(g_font_683660);
+    top += (height - GetFontHeight(g_wiz_text_font_secondary)) / 2;
+    SetFont(g_wiz_text_font_secondary);
     gprintfDirty(left, top, L"%s", text);
 }
 
@@ -901,28 +902,28 @@ void DrawCampHeader(void)
         gprintfDirty((0xba - StringPixLength(state->caption, g_wiz_text_bold_font)) / 2 + 0x74,
                      0x60, const_cast<UINT16*>(g_format_s_006068e4), state->caption);
         SetFontObjectPalette16BPP(g_wiz_text_bold_font, g_font_palette_wiz_text_bold);
-        SetFont(g_font_683660);
+        SetFont(g_wiz_text_font_secondary);
         SetObjectShade(g_wiz_text_font_secondary_object, 4);
         wcscpy(state->caption, gppStringList[g_gender_name_message_rows[character->gender][0]]);
         wcscat(state->caption, L" ");
         wcscat(state->caption, gppStringList[g_race_name_message_ids[character->iRace]]);
-        gprintfDirty((0xba - StringPixLength(state->caption, g_font_683660)) / 2 + 0x74, 0x6f,
-                     const_cast<UINT16*>(g_format_s_006068e4), state->caption);
+        gprintfDirty((0xba - StringPixLength(state->caption, g_wiz_text_font_secondary)) / 2 + 0x74,
+                     0x6f, const_cast<UINT16*>(g_format_s_006068e4), state->caption);
         if (state->hover_region == 0xf3) {
-            SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[1]);
+            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
         }
         wcscpy(state->caption,
                gppStringList[g_profession_name_message_ids[character->iProfession]]);
-        gprintfDirty((0xba - StringPixLength(state->caption, g_font_683660)) / 2 + 0x74, 0x7c,
-                     const_cast<UINT16*>(g_format_s_006068e4), state->caption);
-        SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
-        SetFont(g_font_683660);
+        gprintfDirty((0xba - StringPixLength(state->caption, g_wiz_text_font_secondary)) / 2 + 0x74,
+                     0x7c, const_cast<UINT16*>(g_format_s_006068e4), state->caption);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+        SetFont(g_wiz_text_font_secondary);
         SetObjectShade(g_wiz_text_font_secondary_object, 4);
         swprintf(state->caption, g_format_s_d_paren_s, gppStringList[0x91a], character->uiExpLevel,
                  gppStringList[g_profession_level_name_message_ids[character->iProfession]
                                                                   [character->level_band]]);
-        gprintfDirty((0xba - StringPixLength(state->caption, g_font_683660)) / 2 + 0x74, 0x89,
-                     const_cast<UINT16*>(g_format_s_006068e4), state->caption);
+        gprintfDirty((0xba - StringPixLength(state->caption, g_wiz_text_font_secondary)) / 2 + 0x74,
+                     0x89, const_cast<UINT16*>(g_format_s_006068e4), state->caption);
     }
     for (slot = 0; slot < 8; ++slot) {
         if ((state->redraw_flags & (1 << (slot & 0x1f))) != 0) {

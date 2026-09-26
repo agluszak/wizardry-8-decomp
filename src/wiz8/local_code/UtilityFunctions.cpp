@@ -212,7 +212,7 @@ wchar_t* FormatUnsignedIntegerWithCommas(wchar_t* output, unsigned int value)
     unsigned int divisor;
     int exponent;
 
-    wcscpy(output, &g_wchar_00689b34);
+    wcscpy(output, &g_empty_wide_string);
     exponent = 9;
     do {
         unsigned int threshold;

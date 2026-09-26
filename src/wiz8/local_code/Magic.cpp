@@ -2069,7 +2069,7 @@ wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* tar
     switch (target->iType) {
     case 0:
     case 6:
-        return &g_wchar_00689b34;
+        return &g_empty_wide_string;
 
     case 1:
     case 9:

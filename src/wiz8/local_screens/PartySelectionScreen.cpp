@@ -349,7 +349,7 @@ void W8PartySelectionListControl::Redraw(int full_redraw)
             end = g_party_selection_character_collection->names.count;
         }
         top += 1;
-        SetFont(g_font_683660);
+        SetFont(g_wiz_text_font_secondary);
         for (int row = m_first_visible; row < end; ++row) {
             unsigned short* colour = g_font_state_palettes[3];
             if (row != m_selection) {
@@ -358,12 +358,12 @@ void W8PartySelectionListControl::Redraw(int full_redraw)
                     colour = g_font_state_palettes[5];
                 }
             }
-            SetFontObjectPalette16BPP(g_font_683660, colour);
+            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, colour);
             gprintf(left + 2, top, L"%S",
                     *g_party_selection_character_collection->names.GetAt(row));
             top += 0x0e;
         }
-        SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
         SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
         m_dirty = false;
     }
@@ -695,7 +695,7 @@ void W8PartySelectionCharacterRow::Redraw(int full_redraw)
     }
 
     left += 0x36;
-    SetFont(g_font_683660);
+    SetFont(g_wiz_text_font_secondary);
     gprintf(left, top + 4, const_cast<wchar_t*>(L"%s"), character->name);
     gprintf(left, top + 0x0e, L"%s %d %s", gppStringList[0x1ae4 / 4], character->uiExpLevel,
             gppStringList[g_profession_name_message_ids[character->iProfession]]);
@@ -915,7 +915,7 @@ void W8PartySelectionPartySlotRow::Redraw(int full_redraw)
         }
         RenderPartyPortrait(portrait, left, top, flags, 1, m_row + 2);
     }
-    m_textBuffer.SetText(character ? character->name : 0, g_font_683660);
+    m_textBuffer.SetText(character ? character->name : 0, g_wiz_text_font_secondary);
     DrawCatalogImageAndInvalidate(-14, 0x100, 0, 0, left - 0x0d, top - 0x0b, 2, 0);
     W8TextControl::Redraw(full_redraw);
     if (m_redraw_partner) {
@@ -1060,7 +1060,7 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
                       g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
     name.RenderToTarget(0, 0, -14);
 
-    SetFont(g_font_683660);
+    SetFont(g_wiz_text_font_secondary);
     SetObjectShade(g_wiz_text_font_secondary_object, 4);
 
     const wchar_t* level_text = gppStringList[0x1ae4 / 4];
@@ -1068,19 +1068,19 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
         gppStringList[g_profession_name_message_ids[character->iProfession]];
     wchar_t* level_line =
         FormatWideString(L"%s %d %s", level_text, character->uiExpLevel, profession);
-    int width = StringPixLength(level_line, g_font_683660);
+    int width = StringPixLength(level_line, g_wiz_text_font_secondary);
     gprintf((0xbf - width) / 2 + 0x78, 0xef, L"%s %d %s", level_text, character->uiExpLevel,
             profession);
 
     const wchar_t* gender = gppStringList[g_gender_name_message_rows[character->gender][0]];
     const wchar_t* race = gppStringList[g_race_name_message_ids[character->iRace]];
     wchar_t* race_line = FormatWideString(L"%s %s", gender, race);
-    width = StringPixLength(race_line, g_font_683660);
+    width = StringPixLength(race_line, g_wiz_text_font_secondary);
     gprintf((0xbf - width) / 2 + 0x7f, 0xfd, L"%s %s", gender, race);
 
     const wchar_t* personality =
         gppStringList[g_personality_message_ids[character->personality_0081]];
-    width = StringPixLength(const_cast<wchar_t*>(personality), g_font_683660);
+    width = StringPixLength(const_cast<wchar_t*>(personality), g_wiz_text_font_secondary);
     gprintf((0xbf - width) / 2 + 0x82, 0x10b, const_cast<wchar_t*>(L"%s"), personality);
 
     gprintf(0x96, 0x127, gppStringList[0x1ae8 / 4]);
@@ -1234,42 +1234,42 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
 
     if (mode == 0) {
         m_entries_7c.Add(new W8TextBuffer(
-            &bounds, gppStringList[0x1fdc / 4], g_options_detail_font_683614,
+            &bounds, gppStringList[0x1fdc / 4], g_options_detail_font,
             g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548, 4));
 
         bounds.right = origin_x + 0x155;
         m_entries_7c.Add(new W8TextBuffer(
-            &bounds, gppStringList[0x1fe0 / 4], g_options_detail_font_683614,
+            &bounds, gppStringList[0x1fe0 / 4], g_options_detail_font,
             g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED558, 4));
         bounds.top += 0x16;
         m_entries_7c.Add(new W8TextBuffer(
-            &bounds, gppStringList[0x1fe4 / 4], g_options_detail_font_683614,
+            &bounds, gppStringList[0x1fe4 / 4], g_options_detail_font,
             g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED558, 4));
         bounds.top += 0x16;
         m_entries_7c.Add(new W8TextBuffer(
-            &bounds, gppStringList[0x1fe8 / 4], g_options_detail_font_683614,
+            &bounds, gppStringList[0x1fe8 / 4], g_options_detail_font,
             g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED558, 4));
 
         bounds.right = origin_x + 0x16e;
         bounds.top += 0x2c;
         m_entries_7c.Add(new W8TextBuffer(
-            &bounds, gppStringList[0x202c / 4], g_options_detail_font_683614,
+            &bounds, gppStringList[0x202c / 4], g_options_detail_font,
             g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548, 4));
 
         bounds.top += 0x2c;
         W8TextBuffer* text = new W8TextBuffer(
-            &bounds, gppStringList[0x1b34 / 4], g_options_detail_font_683614,
+            &bounds, gppStringList[0x1b34 / 4], g_options_detail_font,
             g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED558, 4);
         text->SetLineHeight(0x16);
         m_entries_7c.Add(text);
 
         bounds.top += 0x42;
         m_entries_7c.Add(new W8TextBuffer(
-            &bounds, gppStringList[0x1b38 / 4], g_options_detail_font_683614,
+            &bounds, gppStringList[0x1b38 / 4], g_options_detail_font,
             g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548, 4));
 
         bounds.top += 0x2c;
-        text = new W8TextBuffer(&bounds, gppStringList[0x1b3c / 4], g_options_detail_font_683614,
+        text = new W8TextBuffer(&bounds, gppStringList[0x1b3c / 4], g_options_detail_font,
                                 g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED558,
                                 4);
         text->SetLineHeight(0x16);
@@ -1280,7 +1280,7 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
     if (mode == 1) {
         bounds.top += 0x2c;
         W8TextBuffer* text = new W8TextBuffer(
-            &bounds, gppStringList[0x1b40 / 4], g_options_detail_font_683614,
+            &bounds, gppStringList[0x1b40 / 4], g_options_detail_font,
             g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED558, 4);
         text->SetLineHeight(0x16);
         m_entries_7c.Add(text);
@@ -1294,7 +1294,7 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
     bounds.left = origin_x + 0x2c;
     bounds.right = origin_x + 0x164;
     W8TextBuffer* text =
-        new W8TextBuffer(&bounds, gppStringList[0x1b44 / 4], g_options_detail_font_683614,
+        new W8TextBuffer(&bounds, gppStringList[0x1b44 / 4], g_options_detail_font,
                          g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED558, 4);
     text->SetLineHeight(0x16);
     m_entries_7c.Add(text);
@@ -1644,7 +1644,7 @@ void W8PartySelectionController::SetSelection(int selection, int party_slot, int
     m_control_2c->Invalidate(0);
     wchar_t* text =
         gppStringList[((!m_character_18 || !m_character_18->fInParty) ? 0x1b18 : 0x1b1c) / 4];
-    m_text_44->m_textBuffer.SetText(text, g_font_683660);
+    m_text_44->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
     unsigned char have_character = m_character_18 != 0;
     m_text_44->SetEnabled(have_character);
     m_text_44->Invalidate(0);
@@ -2100,7 +2100,7 @@ unsigned char PartySelectionScreenEnter(void)
     MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();
-    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
     SetFontObjectPalette16BPP(g_wiz_text_bold_font, g_font_palette_wiz_text_bold);
 
     W8PartySelectionCharacterCollection* collection = g_party_selection_character_collection;

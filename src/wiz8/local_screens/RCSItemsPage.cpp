@@ -161,7 +161,7 @@ void OpenItemInfoDialog(W8ItemInstance* item, W8DialogDestroyCallback destroy_ca
     } else {
         dialog = new W8AssayDialog(item, g_review_character);
     }
-    dialog->SetText(&g_wchar_00689b34);
+    dialog->SetText(&g_empty_wide_string);
     dialog->SetOrigin(g_info_dialog_x, g_info_dialog_y);
     dialog->m_destroy_callback = destroy_callback;
     DisplayCampDialog(dialog);
@@ -283,7 +283,7 @@ void OpenSplitStackDialog(W8ItemInstance* item)
         g_item_records[item->iItemNo].quantity_kind == 1) {
         g_split_item_source = item;
         dialog = new W8SplitItemDialog(g_split_dialog_kind, item, -1);
-        dialog->SetText(&g_wchar_00689b34);
+        dialog->SetText(&g_empty_wide_string);
         dialog->SetOrigin(g_split_dialog_x, g_split_dialog_y);
         dialog->m_destroy_callback = SplitStackDialogResult;
         DisplayCampDialog(dialog);

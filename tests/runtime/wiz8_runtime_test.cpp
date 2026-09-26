@@ -109,7 +109,7 @@ static bool RunSearchModeSemanticTest(void)
 {
     W8LevelRuntimeBlock level;
     memset(&level, 0, sizeof(level));
-    level.text_box_font = g_font_683660;
+    level.text_box_font = g_wiz_text_font_secondary;
     level.text_box_right = 30000;
     W8LevelRuntimeBlock* saved_level = g_level_block;
     int saved_screen = g_current_screen_state.id;

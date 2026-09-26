@@ -273,7 +273,7 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
 
         ++position;
         if (ch == L'\0') {
-            wcscat(line, &g_wchar_00689b34);
+            wcscat(line, &g_empty_wide_string);
             if (flags & 0x20) {
                 SetFontShadow(0);
             }

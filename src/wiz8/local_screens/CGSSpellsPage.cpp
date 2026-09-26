@@ -111,8 +111,8 @@ void W8CharacterSpellList::Redraw(int force)
         InvalidateRegion(left, top, right, bottom, 0);
         BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
         int y = top + 1;
-        SetFont(g_font_683660);
-        SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+        SetFont(g_wiz_text_font_secondary);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
         SetObjectShade(g_wiz_text_font_secondary_object, 4);
         for (int index = m_first_entry + m_scroll_offset;
              index < m_first_entry + m_scroll_offset + 7; ++index) {
@@ -121,17 +121,17 @@ void W8CharacterSpellList::Redraw(int force)
             if (!m_entries[index].fSelectable) {
                 SetObjectShade(g_wiz_text_font_secondary_object, 6);
             } else if (m_entries[index].selected) {
-                SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[3]);
+                SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[3]);
             } else if (index == m_hovered_entry) {
-                SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[5]);
+                SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[5]);
             }
             gprintf(left + 2, y, L"%s", g_spell_records[m_entries[index].spell].display_name);
             wchar_t cost[6];
             wcscpy(cost, FormatWideString(
                              L"%d", g_spell_records[m_entries[index].spell].spell_point_cost));
-            gprintf(right - StringPixLength(cost, g_font_683660) - 2, y, L"%s", cost);
+            gprintf(right - StringPixLength(cost, g_wiz_text_font_secondary) - 2, y, L"%s", cost);
             y += 13;
-            SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
             SetObjectShade(g_wiz_text_font_secondary_object, 4);
         }
         m_range->Invalidate(0);
@@ -312,14 +312,14 @@ void W8CharacterSpellsPage::Redraw()
         bounds.bottom = 0x173;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[m_creation_state_064->spell_points_total == 0 ? 0xeb : 0xea],
-                     g_font_683660);
+                     g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.top = 0x173;
         bounds.bottom = 0x18a;
         bounds.right = 0x8f;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0xf4], g_font_683660);
+        text.SetText(gppStringList[0xf4], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         m_prepared_06c = 0;
     }
@@ -334,7 +334,7 @@ void W8CharacterSpellsPage::Redraw()
         text.SetText(FormatWideString(g_format_d_slash_d,
                                       m_creation_state_064->spell_points_remaining,
                                       m_creation_state_064->spell_points_total),
-                     g_options_detail_font_683614);
+                     g_options_detail_font);
         text.RenderToTarget(0, 1, -14);
         m_dirty_06d = 0;
     }
@@ -351,13 +351,14 @@ void W8CharacterSpellsPage::Redraw()
             bounds.bottom = bounds.top + 0x0e;
             text.SetLayoutBounds(&bounds, 1, 1);
             text.SetFontStateIndex(1);
-            text.SetText(FormatWideString(g_format_s_0064dd28, gppStringList[0xf2]), g_font_683660);
+            text.SetText(FormatWideString(g_format_s_0064dd28, gppStringList[0xf2]),
+                         g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
             text.SetText(FormatWideString(g_format_d_0060aa20,
                                           m_character_060->skills[0x1c + realm].points_02),
-                         g_font_683660);
+                         g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
 
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
@@ -365,14 +366,15 @@ void W8CharacterSpellsPage::Redraw()
             bounds.right = bounds.left + 0x53;
             text.SetLayoutBounds(&bounds, 1, 1);
             text.SetFontStateIndex(1);
-            text.SetText(FormatWideString(g_format_s_0064dd28, gppStringList[0xf3]), g_font_683660);
+            text.SetText(FormatWideString(g_format_s_0064dd28, gppStringList[0xf3]),
+                         g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
             text.SetText(FormatWideString(g_format_d_slash_d,
                                           GetCharacterRealmSpellPoints(m_character_060, realm),
                                           m_character_060->sp_max[realm]),
-                         g_font_683660);
+                         g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
         }
     }

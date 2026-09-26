@@ -23,7 +23,7 @@ struct W8NpcState;
 struct W8Region;
 struct W8SkillNoticePayload;
 
-/* The 0x50-byte panel stored at W8MainScreenState+0x1a8 (bounds
+/* The 0x50-byte panel stored at W8NpcInteractionState+0x1a8 (bounds
    0x17,0x166-0xa4,0x1c2); it hosts the six option buttons at +0x170..+0x184.
    Its SetEnabled keeps those six inactive unless the expanded NPC dialogue
    layout (dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) is up, and its Redraw substitutes m_value_4c for
@@ -46,7 +46,7 @@ public:
 };
 static_assert(sizeof(W8NpcDialogueOptionsPanel) == 0x50, "W8NpcDialogueOptionsPanel_size");
 
-/* The Controls-sized panel stored at W8MainScreenState+0x1c0 (bounds
+/* The Controls-sized panel stored at W8NpcInteractionState+0x1c0 (bounds
    0x1dc,0x166-0x269,0x1c0). Enabling it starts text-input scheme 1 and
    installs the typed-dialogue input field; Redraw also draws the input-frame
    image at y 0x19b while where_is_query is raised, else 0x18b. The constructor is the
@@ -85,7 +85,7 @@ struct W8PendingNotice {
 extern W8PendingNotice g_pending_notice;
 extern wchar_t g_wchar_0068ee58[4];
 
-/* W8MainScreenState::dialogue_layout - which NPC dialogue layout is up. The
+/* W8NpcInteractionState::dialogue_layout - which NPC dialogue layout is up. The
    layout-1 caption is "MAGIC" (Charm/Mindread/Use Item services) and the
    layout-5 caption "TRADE"; both spellings come from the StringData.DAT
    captions each open routine loads. A mode 6 is closed everywhere but no
@@ -99,7 +99,7 @@ enum W8NpcDialogueLayout {
     W8_DIALOGUE_LAYOUT_TRADE = 5
 };
 
-/* W8MainScreenState::trade_mode - the active tab of the option/trade
+/* W8NpcInteractionState::trade_mode - the active tab of the option/trade
    layouts. The StringData.DAT captions the tabs and headers load are
    "Give", "Sell", "Buy" and "Shoplift": mode 2 lists the party's items
    with the purse as row zero, mode 3 the character/party sell pools, and
@@ -113,7 +113,7 @@ enum W8NpcTradeMode {
 };
 
 /* Transcript keyword categories stored in
-   W8MainScreenState::dialogue_category_filter and on each
+   W8NpcInteractionState::dialogue_category_filter and on each
    W8DialogTextEntry::m_category. The five filter buttons spell them
    "Items", "People", "Places", "Misc" and "All"; 0x00571660 classifies a
    keyword by scanning the item records, the NPC records plus the
@@ -138,7 +138,7 @@ struct W8DialogueTranscriptRecord {
 };
 static_assert(sizeof(W8DialogueTranscriptRecord) == 0xca, "W8DialogueTranscriptRecord_size");
 
-struct W8MainScreenState {
+struct W8NpcInteractionState {
     /* 0x000: a word 0x0056CAD0 clears while the dialogue opens. */
     short value_000;
     unsigned char unknown_002[0xee];
@@ -333,40 +333,43 @@ struct W8MainScreenState {
     unsigned char unknown_263;
     int last_notice_npc_kind; /* 0x264 */
 };
-static_assert(sizeof(W8MainScreenState) == 0x268, "W8MainScreenState_size");
-static_assert(offsetof(W8MainScreenState, dialogue_scroll_up_button) == 0x134,
-              "W8MainScreenState_dialogue_scroll_up_button");
-static_assert(offsetof(W8MainScreenState, dialogue_scroll_down_button) == 0x138,
-              "W8MainScreenState_dialogue_scroll_down_button");
-static_assert(offsetof(W8MainScreenState, npc_dialogue_controller_1b0) == 0x1b0,
-              "W8MainScreenState_npc_dialogue_controller_1b0");
-static_assert(offsetof(W8MainScreenState, npc_dialogue_panel_1b4) == 0x1b4,
-              "W8MainScreenState_npc_dialogue_panel_1b4");
-static_assert(offsetof(W8MainScreenState, script_busy) == 0x1fa, "W8MainScreenState_script_busy");
-static_assert(offsetof(W8MainScreenState, dialogue_npc) == 0x1d4, "W8MainScreenState_dialogue_npc");
-static_assert(offsetof(W8MainScreenState, quote_bubble) == 0x208, "W8MainScreenState_quote_bubble");
-static_assert(offsetof(W8MainScreenState, quote_visible) == 0x214,
-              "W8MainScreenState_quote_visible");
-static_assert(offsetof(W8MainScreenState, quote_notice_kind) == 0x248,
-              "W8MainScreenState_quote_notice_kind");
-static_assert(offsetof(W8MainScreenState, quote_notice_payload) == 0x24c,
-              "W8MainScreenState_quote_notice_payload");
-static_assert(offsetof(W8MainScreenState, pending_notice_lines) == 0x218,
-              "W8MainScreenState_pending_notice_lines");
-static_assert(offsetof(W8MainScreenState, dialogue_hidden) == 0x228,
-              "W8MainScreenState_dialogue_hidden");
-static_assert(offsetof(W8MainScreenState, dialogue_panel_hidden) == 0x262,
-              "W8MainScreenState_dialogue_panel_hidden");
-static_assert(offsetof(W8MainScreenState, last_notice_npc_kind) == 0x264,
-              "W8MainScreenState_last_notice_npc_kind");
+static_assert(sizeof(W8NpcInteractionState) == 0x268, "W8NpcInteractionState_size");
+static_assert(offsetof(W8NpcInteractionState, dialogue_scroll_up_button) == 0x134,
+              "W8NpcInteractionState_dialogue_scroll_up_button");
+static_assert(offsetof(W8NpcInteractionState, dialogue_scroll_down_button) == 0x138,
+              "W8NpcInteractionState_dialogue_scroll_down_button");
+static_assert(offsetof(W8NpcInteractionState, npc_dialogue_controller_1b0) == 0x1b0,
+              "W8NpcInteractionState_npc_dialogue_controller_1b0");
+static_assert(offsetof(W8NpcInteractionState, npc_dialogue_panel_1b4) == 0x1b4,
+              "W8NpcInteractionState_npc_dialogue_panel_1b4");
+static_assert(offsetof(W8NpcInteractionState, script_busy) == 0x1fa,
+              "W8NpcInteractionState_script_busy");
+static_assert(offsetof(W8NpcInteractionState, dialogue_npc) == 0x1d4,
+              "W8NpcInteractionState_dialogue_npc");
+static_assert(offsetof(W8NpcInteractionState, quote_bubble) == 0x208,
+              "W8NpcInteractionState_quote_bubble");
+static_assert(offsetof(W8NpcInteractionState, quote_visible) == 0x214,
+              "W8NpcInteractionState_quote_visible");
+static_assert(offsetof(W8NpcInteractionState, quote_notice_kind) == 0x248,
+              "W8NpcInteractionState_quote_notice_kind");
+static_assert(offsetof(W8NpcInteractionState, quote_notice_payload) == 0x24c,
+              "W8NpcInteractionState_quote_notice_payload");
+static_assert(offsetof(W8NpcInteractionState, pending_notice_lines) == 0x218,
+              "W8NpcInteractionState_pending_notice_lines");
+static_assert(offsetof(W8NpcInteractionState, dialogue_hidden) == 0x228,
+              "W8NpcInteractionState_dialogue_hidden");
+static_assert(offsetof(W8NpcInteractionState, dialogue_panel_hidden) == 0x262,
+              "W8NpcInteractionState_dialogue_panel_hidden");
+static_assert(offsetof(W8NpcInteractionState, last_notice_npc_kind) == 0x264,
+              "W8NpcInteractionState_last_notice_npc_kind");
 
-extern W8MainScreenState* g_screen_state_00649f1c;
+extern W8NpcInteractionState* g_npc_interaction;
 
 void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int suppress);
 void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int suppress,
                           int arg); /* 0x0056C5E0 */
 void FlushPendingNoticeLines(void); /* 0x005766B0 */
-/* 0x0056C520: zero W8MainScreenState, write its reset values, and reload the
+/* 0x0056C520: zero W8NpcInteractionState, write its reset values, and reload the
    keyword lists through the loader below. */
 void ResetMainScreenStateBlock(void);
 /* 0x0068EE80: the dialogue keyword tables, one file list per language;
@@ -419,7 +422,7 @@ void ClearMainGameTargetState(void);
 /* 0x0068F0F9: a script notice is staged in g_pending_notice */
 extern bool g_flag_68f0f9;
 void SyncNpcServiceButtons(int party_slot); /* 0x0056EE20 */
-/* Forward mouse events to W8MainScreenState control slots indexed by
+/* Forward mouse events to W8NpcInteractionState control slots indexed by
    callback_id from dialogue_text_10c (ids 1..37, 39; id 0x27 is ignored). */
 unsigned char MainScreenControlRegionEvent(const InputAtom* event,
                                            struct W8Region* region); /* 0x0056F020 */

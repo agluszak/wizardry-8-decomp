@@ -252,7 +252,7 @@ void W8CharacterScreen::ShowDialog005B0610(int value)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8SpellInfoDialog(value);
-    m_dialog_1b1c->SetText(&g_wchar_00689b34);
+    m_dialog_1b1c->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
 }
 
@@ -261,7 +261,7 @@ void W8CharacterScreen::ShowProfessionInfo(unsigned int profession)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8ProfessionInfoDialog(profession);
-    m_dialog_1b1c->SetText(&g_wchar_00689b34);
+    m_dialog_1b1c->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
 }
 
@@ -270,7 +270,7 @@ void W8CharacterScreen::ShowRaceInfo(unsigned int race)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8RaceInfoDialog(race);
-    m_dialog_1b1c->SetText(&g_wchar_00689b34);
+    m_dialog_1b1c->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
 }
 
@@ -279,7 +279,7 @@ void W8CharacterScreen::ShowAttributeInfo005B07C0(unsigned int attribute)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8AttributeInfoDialog(attribute);
-    m_dialog_1b1c->SetText(&g_wchar_00689b34);
+    m_dialog_1b1c->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
 }
 
@@ -288,7 +288,7 @@ void W8CharacterScreen::ShowAttributeInfo005B0850(unsigned int attribute)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8SecondaryAttributeInfoDialog(attribute);
-    m_dialog_1b1c->SetText(&g_wchar_00689b34);
+    m_dialog_1b1c->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
 }
 
@@ -301,7 +301,7 @@ void W8CharacterScreen::ShowDialog005B08E0(int value)
     } else {
         m_dialog_1b1c = new W8SkillInfoDialog(value, 0, 0, 0);
     }
-    m_dialog_1b1c->SetText(&g_wchar_00689b34);
+    m_dialog_1b1c->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
 }
 
@@ -507,7 +507,7 @@ void W8CharacterScreen::DrawHeader()
     W8ControlsRect bounds = {0xc3, 0, 0x285, 0x2c};
     text.SetLayoutBounds(&bounds, 1, 1);
     text.SetText(gppStringList[g_character_page_title_ids[m_page_index_00c]],
-                 g_options_detail_font_683614);
+                 g_options_detail_font);
     text.RenderToTarget(0, 1, -14);
     DrawCatalogImageAndInvalidate(-14, 0x107, 0, 1, 0, 0, 2, 0);
 
@@ -529,7 +529,7 @@ void W8CharacterScreen::DrawHeader()
         text.SetLayoutMode(g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED54C);
         if (m_mode_008 != 0) {
             text.SetLayoutBounds(&bounds, 1, 1);
-            text.SetText(m_character_018.name, g_font_683660);
+            text.SetText(m_character_018.name, g_wiz_text_font_secondary);
             text.RenderToTarget(0, 1, -14);
         }
         bounds.top += 0xe;
@@ -538,12 +538,12 @@ void W8CharacterScreen::DrawHeader()
             FormatWideString(L"%s %s",
                              gppStringList[g_gender_name_message_rows[m_character_018.gender][0]],
                              gppStringList[g_race_name_message_ids[m_character_018.iRace]]),
-            g_font_683660);
+            g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[g_profession_name_message_ids[m_character_018.iProfession]],
-                     g_font_683660);
+                     g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, 1, 1);
@@ -552,7 +552,7 @@ void W8CharacterScreen::DrawHeader()
                 L"%s %d (%s)", gppStringList[0x1ae4 / 4], m_character_018.uiExpLevel,
                 gppStringList[g_profession_level_name_message_ids[m_character_018.iProfession]
                                                                  [m_character_018.level_band]]),
-            g_font_683660);
+            g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
     }
     m_header_dirty_010 = false;
@@ -735,7 +735,7 @@ unsigned char CharacterScreenEnter(void)
     MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();
-    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
     SetFontObjectPalette16BPP(g_wiz_text_bold_font, g_font_palette_wiz_text_bold);
     g_character_screen = new W8CharacterScreen(
         g_current_screen_state.mode, static_cast<W8Character*>(g_current_screen_state.parameter_3));

@@ -270,7 +270,7 @@ static void DrawPartyMovementGauge(short right, short image, char panel_live, in
                                   right - 0xf, 0x142, 2, 0);
     InvalidateRegion(right - 0xf, 0x142, right - 1, 0x150, 0);
     if (caption != -1) {
-        g_party_movement_caption->SetText(gppStringList[caption], g_font_683660);
+        g_party_movement_caption->SetText(gppStringList[caption], g_wiz_text_font_secondary);
         g_party_movement_caption->RenderToTarget(0, 0, -0xe);
     }
 }

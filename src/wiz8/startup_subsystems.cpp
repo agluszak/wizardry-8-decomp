@@ -39,7 +39,7 @@ HVOBJECT g_tiny_mono_font_object;
 // GLOBAL: WIZ8 0x00683610
 HVOBJECT g_calligraphy_shadow_font_object;
 // GLOBAL: WIZ8 0x00683614
-int g_options_detail_font_683614;
+int g_options_detail_font;
 // GLOBAL: WIZ8 0x00683618
 HVOBJECT g_large_font_object;
 // GLOBAL: WIZ8 0x0068361C
@@ -77,7 +77,7 @@ int g_profession_font;
 // GLOBAL: WIZ8 0x0068365C
 HVOBJECT g_wiz_text_bold_font_object;
 // GLOBAL: WIZ8 0x00683660
-int g_font_683660;
+int g_wiz_text_font_secondary;
 // GLOBAL: WIZ8 0x00683664
 int g_wiz_text_bold_font;
 // GLOBAL: WIZ8 0x00683668
@@ -150,11 +150,11 @@ unsigned char InitializeMenuFonts(void)
     LOAD_FONT(g_button_font, "Data\\Fonts\\ButtonFont.sti");
     LOAD_FONT(g_engraved_font, "Data\\Fonts\\Engraved.sti");
     LOAD_FONT(g_embossed_font, "Data\\Fonts\\Embossed.sti");
-    LOAD_FONT(g_font_683660, "Data\\Fonts\\Wiz_Text_Font.sti");
+    LOAD_FONT(g_wiz_text_font_secondary, "Data\\Fonts\\Wiz_Text_Font.sti");
     LOAD_FONT(g_wiz_text_bold_font, "Data\\Fonts\\Wiz_Text_Font_Bold.sti");
     LOAD_FONT(g_wiz_text_mono_font, "Data\\Fonts\\wiz_text_font_monopalette.sti");
     LOAD_FONT(g_options_title_font, "Data\\Fonts\\Opt_title_font.sti");
-    LOAD_FONT(g_options_detail_font_683614, "Data\\Fonts\\Opt_detail_font.sti");
+    LOAD_FONT(g_options_detail_font, "Data\\Fonts\\Opt_detail_font.sti");
     LOAD_FONT(g_profession_font, "Data\\Fonts\\Profession.sti");
     LOAD_FONT(g_font10arial, "Data\\Fonts\\Font10Arial.sti");
     LOAD_FONT(g_dialog_font_683654, "Data\\Fonts\\dialog_font.sti");
@@ -174,10 +174,10 @@ unsigned char InitializeMenuFonts(void)
     g_button_font_object = GetFontObject(g_button_font);
     g_engraved_font_object = GetFontObject(g_engraved_font);
     g_embossed_font_object = GetFontObject(g_embossed_font);
-    g_wiz_text_font_secondary_object = GetFontObject(g_font_683660);
+    g_wiz_text_font_secondary_object = GetFontObject(g_wiz_text_font_secondary);
     g_wiz_text_bold_font_object = GetFontObject(g_wiz_text_bold_font);
     g_options_title_font_object = GetFontObject(g_options_title_font);
-    g_options_detail_font_object = GetFontObject(g_options_detail_font_683614);
+    g_options_detail_font_object = GetFontObject(g_options_detail_font);
     g_profession_font_object = GetFontObject(g_profession_font);
     g_font10arial_object = GetFontObject(g_font10arial);
     g_dialog_font_object = GetFontObject(g_dialog_font_683654);
@@ -216,9 +216,9 @@ unsigned char InitializeMenuFonts(void)
     g_font_palette_calligraphy_shadow = GetFontObjectPalette16BPP(g_calligraphy_shadow_font);
     g_font_palette_wiz_text = GetFontObjectPalette16BPP(g_wiz_text_font);
     g_font_palette_button = GetFontObjectPalette16BPP(g_button_font);
-    g_colour_68ee08 = GetFontObjectPalette16BPP(g_font_683660);
+    g_colour_68ee08 = GetFontObjectPalette16BPP(g_wiz_text_font_secondary);
     g_font_palette_wiz_text_bold = GetFontObjectPalette16BPP(g_wiz_text_bold_font);
-    g_font_palette_options_detail = GetFontObjectPalette16BPP(g_options_detail_font_683614);
+    g_font_palette_options_detail = GetFontObjectPalette16BPP(g_options_detail_font);
     ConfigureDialogFont(g_dialog_font_683654, 1, 0xff, 0);
     return 1;
 }

@@ -552,7 +552,7 @@ void BeginCombatExecution(void)
     }
     g_combat_state->round_counter = GetPhaseStep();
     if (CombatMayAdvanceContinuously()) {
-        ShowNotice(0xc, &g_wchar_00689b34, -1, -1, false);
+        ShowNotice(0xc, &g_empty_wide_string, -1, -1, false);
         ShowNoticef(0xc, gppStringList[0x227], g_combat_state->round_count_004);
     }
 

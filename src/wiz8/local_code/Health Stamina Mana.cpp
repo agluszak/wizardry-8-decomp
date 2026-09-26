@@ -133,7 +133,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
             ShowNoticef(9, gppStringList[0x950 / 4], amount);
         } else {
             PostCharacterNotice(party_slot, gppStringList[0x954 / 4], amount,
-                                arg_3 != 0 ? gppStringList[0x95c / 4] : &g_wchar_00689b34);
+                                arg_3 != 0 ? gppStringList[0x95c / 4] : &g_empty_wide_string);
         }
     }
 
@@ -401,7 +401,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
                 } else {
                     ShowNoticef(category, gppStringList[0x958 / 4],
                                 GetMonsterName(monster_info, 0, 0), amount,
-                                quiet != 0 ? g_poison_suffix : &g_wchar_00689b34);
+                                quiet != 0 ? g_poison_suffix : &g_empty_wide_string);
                 }
             }
         }

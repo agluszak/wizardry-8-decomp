@@ -103,7 +103,7 @@ void W8CharacterPageEntry::SetContent(unsigned int id, const wchar_t* label, uns
     m_first_020 = first;
     m_second_024 = second;
     m_third_028 = third;
-    m_label_014->SetText(label, g_font_683660);
+    m_label_014->SetText(label, g_wiz_text_font_secondary);
     if (help_id == -1)
         m_help_010->DisableRegionHelp();
     else
@@ -156,8 +156,9 @@ void W8CharacterPageEntry::Redraw()
         if (m_draw_background_038) {
             DrawCatalogImageAndInvalidate(-14, 0x108, 0, 2, m_x_030, m_y_034, 2, 0);
         }
-        m_first_text_018->SetText(FormatWideString(L"%d", *m_first_020), g_font_683660);
-        m_second_text_01c->SetText(FormatWideString(L"%d", *m_second_024), g_font_683660);
+        m_first_text_018->SetText(FormatWideString(L"%d", *m_first_020), g_wiz_text_font_secondary);
+        m_second_text_01c->SetText(FormatWideString(L"%d", *m_second_024),
+                                   g_wiz_text_font_secondary);
         m_label_014->FillBounds(0x8000);
         m_first_text_018->FillBounds(0x8000);
         m_second_text_01c->FillBounds(0x8000);

@@ -914,16 +914,16 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
             gprintf((0x12 - text_width) / 2 + 2 + band_portrait_edge, menu_y + 3,
                     const_cast<UINT16*>(g_format_s_006068e4), text);
 
-            SetFont(g_font_683660);
+            SetFont(g_wiz_text_font_secondary);
             if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME ||
-                (SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08),
+                (SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08),
                  g_current_screen_state.id != W8_SCREEN_MAIN_GAME) ||
                 (text_shade = 1,
                  g_level_block->party_slots_170[2] != static_cast<int>(party_slot))) {
                 text_shade = 4;
             }
             SetObjectShade(g_wiz_text_font_secondary_object, text_shade);
-            text_width = StringPixLength(character->name, g_font_683660);
+            text_width = StringPixLength(character->name, g_wiz_text_font_secondary);
             gprintf((0x54 - text_width) / 2 + 0x15 + menu_x, menu_y + 0x49,
                     const_cast<UINT16*>(g_format_s_006068e4), character->name);
             SetObjectShade(g_wiz_text_font_secondary_object, 4);
@@ -1093,11 +1093,10 @@ portrait_fx:
     }
 
     if (overlay_ready != 0 && gXStatus.fNpcDialogueMode != 0 &&
-        g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT &&
-        g_screen_state_00649f1c->scripted_dialogue == 0 &&
-        g_screen_state_00649f1c->dialogue_panel_hidden == 0 &&
-        g_screen_state_00649f1c->script_busy == 0 &&
-        g_screen_state_00649f1c->dialogue_hidden == 0 && gXStatus.scripted_scene_19b7 == 0) {
+        g_npc_interaction->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT &&
+        g_npc_interaction->scripted_dialogue == 0 &&
+        g_npc_interaction->dialogue_panel_hidden == 0 && g_npc_interaction->script_busy == 0 &&
+        g_npc_interaction->dialogue_hidden == 0 && gXStatus.scripted_scene_19b7 == 0) {
         SetNpcDialoguePanelVisible(1);
     }
 }

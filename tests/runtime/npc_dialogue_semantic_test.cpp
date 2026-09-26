@@ -47,11 +47,11 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
 {
     W8NpcDatabaseRecord* fake_record;
     W8NpcState* fake_npc;
-    W8MainScreenState* fake_screen;
+    W8NpcInteractionState* fake_screen;
     W8LevelRuntimeBlock* test_level_block;
     W8LevelRuntimeBlock* saved_level_block;
     W8NpcState* saved_script_npc;
-    W8MainScreenState* saved_screen;
+    W8NpcInteractionState* saved_screen;
     W8PendingNotice saved_notice;
     W8MessageBoxLine* tail;
     unsigned char saved_flag_68f0f9;
@@ -69,7 +69,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
 
     fake_record = static_cast<W8NpcDatabaseRecord*>(malloc(sizeof(W8NpcDatabaseRecord)));
     fake_npc = static_cast<W8NpcState*>(malloc(sizeof(W8NpcState)));
-    fake_screen = new W8MainScreenState();
+    fake_screen = new W8NpcInteractionState();
     if (fake_record == 0 || fake_npc == 0 || fake_screen == 0) {
         free(fake_record);
         free(fake_npc);
@@ -105,7 +105,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     }
 
     saved_script_npc = g_npc_scripting.npc;
-    saved_screen = g_screen_state_00649f1c;
+    saved_screen = g_npc_interaction;
     saved_notice = g_pending_notice;
     saved_flag_68f0f9 = g_flag_68f0f9;
     saved_flag_6109f0 = g_flag_6109f0;
@@ -118,7 +118,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     saved_screen_id = g_current_screen_state.id;
 
     g_npc_scripting.npc = fake_npc;
-    g_screen_state_00649f1c = fake_screen;
+    g_npc_interaction = fake_screen;
     g_current_screen_state.id = W8_SCREEN_MAIN_GAME;
     gXStatus.fCampMode = 1;
     gXStatus.fCombatMode = 1;
@@ -196,7 +196,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     g_npc_scripting.pending_script_values.Clear();
 
     g_npc_scripting.npc = saved_script_npc;
-    g_screen_state_00649f1c = saved_screen;
+    g_npc_interaction = saved_screen;
     g_pending_notice = saved_notice;
     g_flag_68f0f9 = saved_flag_68f0f9;
     g_flag_6109f0 = saved_flag_6109f0;

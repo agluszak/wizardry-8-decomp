@@ -215,7 +215,7 @@ struct W8LevelRuntimeBlock {
     int move_budget_2dc;
     int move_budget_2e0;
     unsigned char unknown_2e4[4];
-    int text_box_font;           /* 0x2e8: g_font_683660 while the main text box is live */
+    int text_box_font; /* 0x2e8: g_wiz_text_font_secondary while the main text box is live */
     unsigned short* palette_2ec; /* 0x2ec */
     int selection_kind;
     int value_2f4; /* 0x2f4 */

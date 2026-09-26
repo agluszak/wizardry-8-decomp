@@ -275,7 +275,7 @@ static void ShowMipeMonsterStatus(void)
     ShowNoticef(6, L"OR type C to change what monster to place.  ");
     ShowNoticef(6, L"OR type O to edit the creation method.      ");
     ShowNoticef(3, L"How many: %d", g_mipe_count);
-    ShowNoticef(0xf, &g_wchar_00689b34);
+    ShowNoticef(0xf, &g_empty_wide_string);
     if (g_mipe_state->creation_method_30 == 0) {
         method = L"Creation Method: Exact #";
     } else if (g_mipe_state->creation_method_30 == 1) {
@@ -304,7 +304,7 @@ static void ShowMipeItemStatus(void)
     ShowNoticef(6, L"Type # to specify how many, then ENTER,");
     ShowNoticef(6, L"OR type C to change what item to place.  ");
     ShowNoticef(3, L"How many: %d", g_mipe_count);
-    ShowNoticef(0xf, &g_wchar_00689b34);
+    ShowNoticef(0xf, &g_empty_wide_string);
     if (g_byte_0064a1cd == 0) {
         line = L"A - All invisible items  will be blue.";
         palette = 3;
@@ -338,7 +338,7 @@ static void ShowMipeTableRows(W8PList* list)
         do {
             entry = PLGet(list, g_mipe_table_base + row);
             if (entry == 0) {
-                ShowNoticef(0xf, &g_wchar_00689b34);
+                ShowNoticef(0xf, &g_empty_wide_string);
             } else {
                 palette = row == g_mipe_table_row ? 3 : 0xf;
                 ShowNoticef(palette, L"    %s", entry);
@@ -356,10 +356,10 @@ static void ShowMipeChooseMenu(void)
     ResetEditorStatusLine(-1);
     ShowNoticef(6, L"Choose monster or item to edit.");
     ShowNoticef(0xf, L"Type C to change how to choose.");
-    ShowNoticef(0xf, &g_wchar_00689b34);
-    ShowNoticef(0xf, &g_wchar_00689b34);
-    ShowNoticef(0xf, &g_wchar_00689b34);
-    ShowNoticef(0xf, &g_wchar_00689b34);
+    ShowNoticef(0xf, &g_empty_wide_string);
+    ShowNoticef(0xf, &g_empty_wide_string);
+    ShowNoticef(0xf, &g_empty_wide_string);
+    ShowNoticef(0xf, &g_empty_wide_string);
     if (g_mipe_choose_group != 0) {
         ShowNoticef(0xf, L"Choosing: Group");
         return;
@@ -450,10 +450,10 @@ void ShowMonsterSpeedStatus(void)
     ResetEditorStatusLine(-1);
     ShowNoticef(6, L"Type ',' to decrease speed, '.' to increase.");
     ShowNoticef(6, L"Type 'k' to decrease increment, 'l' to increase.");
-    ShowNoticef(0xf, &g_wchar_00689b34);
+    ShowNoticef(0xf, &g_empty_wide_string);
     ShowNoticef(0xf, L"Increment: %g", g_mipe_state->speed_step);
-    ShowNoticef(0xf, &g_wchar_00689b34);
-    ShowNoticef(0xf, &g_wchar_00689b34);
+    ShowNoticef(0xf, &g_empty_wide_string);
+    ShowNoticef(0xf, &g_empty_wide_string);
     if (g_mipe_state->monster == 0) {
         ShowNoticef(8, L"No monster available.");
         return;
@@ -518,7 +518,7 @@ void ShowMonsterGeneratorStatus(void)
         state = "On";
     }
     ShowNoticef(0xf, L"6) Toggle Active  [%s]", state);
-    ShowNoticef(0xf, &g_wchar_00689b34);
+    ShowNoticef(0xf, &g_empty_wide_string);
     if (g_mipe_state->generator != 0) {
         if (g_mipe_state->selecting != 0) {
             ShowNoticef(3, L"<--- MOUSE OVER MONGEN --->");
@@ -531,7 +531,7 @@ void ShowMonsterGeneratorStatus(void)
         ShowNoticef(3, L"---> SELECTING MONGEN <---");
         return;
     }
-    ShowNoticef(0xf, &g_wchar_00689b34);
+    ShowNoticef(0xf, &g_empty_wide_string);
 }
 
 /* The "Edit Monster Generator" pane. */
@@ -592,7 +592,7 @@ static void ShowMipeEncounterCategory(void)
             entry = static_cast<W8EncounterTableRuntime*>(
                 PLGet(g_mipe_category_list, g_mipe_table_base + row));
             if (entry == 0) {
-                ShowNoticef(0xf, &g_wchar_00689b34);
+                ShowNoticef(0xf, &g_empty_wide_string);
             } else {
                 palette = row == g_mipe_table_row ? 3 : 0xf;
                 ShowNoticef(palette, L"    %S", entry->name);
@@ -618,7 +618,7 @@ static void ShowMipeItemTableCategory(void)
             entry = static_cast<W8ItemTableRecord*>(
                 PLGet(g_mipe_category_list, g_mipe_table_base + row));
             if (entry == 0) {
-                ShowNoticef(0xf, &g_wchar_00689b34);
+                ShowNoticef(0xf, &g_empty_wide_string);
             } else {
                 palette = row == g_mipe_table_row ? 3 : 0xf;
                 ShowNoticef(palette, L"    %S", entry->name);
@@ -1343,11 +1343,11 @@ void HandleWaypointKey(unsigned short key)
         PLAdoptAppend(&g_mipe_state->waypoints, monster);
         ResetEditorStatusLine(-1);
         ShowNoticef(6, L"Type 'C' to create a waypoint.");
-        ShowNoticef(0xf, &g_wchar_00689b34);
+        ShowNoticef(0xf, &g_empty_wide_string);
         ShowNoticef(3, L"Laying down waypoint %d", g_mipe_state->waypoint_count);
-        ShowNoticef(0xf, &g_wchar_00689b34);
-        ShowNoticef(0xf, &g_wchar_00689b34);
-        ShowNoticef(0xf, &g_wchar_00689b34);
+        ShowNoticef(0xf, &g_empty_wide_string);
+        ShowNoticef(0xf, &g_empty_wide_string);
+        ShowNoticef(0xf, &g_empty_wide_string);
         ShowNoticef(0xf, L"Type X to delete last waypoint.");
     } else if (key == 0x58) {
         if (g_mipe_state != 0) {
@@ -1366,11 +1366,11 @@ void HandleWaypointKey(unsigned short key)
         }
         ResetEditorStatusLine(-1);
         ShowNoticef(6, L"Type 'C' to create a waypoint.");
-        ShowNoticef(0xf, &g_wchar_00689b34);
+        ShowNoticef(0xf, &g_empty_wide_string);
         ShowNoticef(3, L"Laying down waypoint %d", g_mipe_state->waypoint_count);
-        ShowNoticef(0xf, &g_wchar_00689b34);
-        ShowNoticef(0xf, &g_wchar_00689b34);
-        ShowNoticef(0xf, &g_wchar_00689b34);
+        ShowNoticef(0xf, &g_empty_wide_string);
+        ShowNoticef(0xf, &g_empty_wide_string);
+        ShowNoticef(0xf, &g_empty_wide_string);
         ShowNoticef(0xf, L"Type X to delete last waypoint.");
     }
 }
@@ -1421,7 +1421,7 @@ static void HandleMipePropEditKey(unsigned short key)
                 ShowNoticef(0xf, L"1) Type: %s", g_lock_type_names[trigger->lock_state.lock_type]);
                 index = trigger->lock_state.key_id;
                 if (index < 0) {
-                    key_name = &g_wchar_00689b34;
+                    key_name = &g_empty_wide_string;
                 } else {
                     key_name = g_item_records[index].display_name;
                 }
@@ -1488,7 +1488,7 @@ static void HandleMipePropEditKey(unsigned short key)
                         table = static_cast<W8ItemTableRecord*>(
                             PLGet(g_mipe_category_list, g_mipe_table_base + row));
                         if (table == 0) {
-                            ShowNoticef(0xf, &g_wchar_00689b34);
+                            ShowNoticef(0xf, &g_empty_wide_string);
                         } else {
                             palette = row == g_mipe_table_row ? 3 : 0xf;
                             ShowNoticef(palette, L"    %S", table->name);
@@ -1926,7 +1926,7 @@ int HandleMonsterGeneratorEditKey(unsigned short key)
             entry = static_cast<W8EncounterTableRuntime*>(
                 PLGet(g_mipe_category_list, g_mipe_table_base + slot));
             if (entry == 0) {
-                ShowNoticef(0xf, &g_wchar_00689b34);
+                ShowNoticef(0xf, &g_empty_wide_string);
             } else {
                 ShowNoticef(slot == g_mipe_table_row ? 3 : 0xf, L"    %S", entry->name);
             }
@@ -2058,7 +2058,7 @@ static void HandleMipeGeneratorTableKey(unsigned short key)
                 entry = static_cast<W8EncounterTableRuntime*>(
                     PLGet(g_mipe_category_list, g_mipe_table_base + row));
                 if (entry == 0) {
-                    ShowNoticef(0xf, &g_wchar_00689b34);
+                    ShowNoticef(0xf, &g_empty_wide_string);
                 } else {
                     palette = row == g_mipe_table_row ? 3 : 0xf;
                     ShowNoticef(palette, L"    %S", entry->name);
@@ -2134,7 +2134,7 @@ static void HandleMipeGeneratorTableKey(unsigned short key)
                 entry = static_cast<W8EncounterTableRuntime*>(
                     PLGet(g_mipe_category_list, g_mipe_table_base + row));
                 if (entry == 0) {
-                    ShowNoticef(0xf, &g_wchar_00689b34);
+                    ShowNoticef(0xf, &g_empty_wide_string);
                 } else {
                     palette = row == g_mipe_table_row ? 3 : 0xf;
                     ShowNoticef(palette, L"    %S", entry->name);
@@ -2160,7 +2160,7 @@ static void HandleMipeGeneratorTableKey(unsigned short key)
                 entry = static_cast<W8EncounterTableRuntime*>(
                     PLGet(g_mipe_category_list, g_mipe_table_base + row));
                 if (entry == 0) {
-                    ShowNoticef(0xf, &g_wchar_00689b34);
+                    ShowNoticef(0xf, &g_empty_wide_string);
                 } else {
                     palette = row == g_mipe_table_row ? 3 : 0xf;
                     ShowNoticef(palette, L"    %S", entry->name);
@@ -2205,7 +2205,7 @@ static void HandleMipeGeneratorTableKey(unsigned short key)
                 entry = static_cast<W8EncounterTableRuntime*>(
                     PLGet(g_mipe_category_list, g_mipe_table_base + row));
                 if (entry == 0) {
-                    ShowNoticef(0xf, &g_wchar_00689b34);
+                    ShowNoticef(0xf, &g_empty_wide_string);
                 } else {
                     palette = row == g_mipe_table_row ? 3 : 0xf;
                     ShowNoticef(palette, L"    %S", entry->name);
@@ -2329,7 +2329,7 @@ static void HandleMipeLockTrapKey(unsigned short key)
     ShowNoticef(0xf, L"1) Type: %s", g_lock_type_names[trigger->lock_state.lock_type]);
     key_id = trigger->lock_state.key_id;
     if (key_id < 0) {
-        key_name = &g_wchar_00689b34;
+        key_name = &g_empty_wide_string;
     } else {
         key_name = g_item_records[key_id].display_name;
     }
@@ -2434,7 +2434,7 @@ static void HandleMipeItemTableKey(unsigned short key)
                 table = static_cast<W8ItemTableRecord*>(
                     PLGet(g_mipe_category_list, g_mipe_table_base + row));
                 if (table == 0) {
-                    ShowNoticef(0xf, &g_wchar_00689b34);
+                    ShowNoticef(0xf, &g_empty_wide_string);
                 } else {
                     palette = row == g_mipe_table_row ? 3 : 0xf;
                     ShowNoticef(palette, L"    %S", table->name);
@@ -2458,7 +2458,7 @@ static void HandleMipeItemTableKey(unsigned short key)
                     table = static_cast<W8ItemTableRecord*>(
                         PLGet(g_mipe_category_list, g_mipe_table_base + row));
                     if (table == 0) {
-                        ShowNoticef(0xf, &g_wchar_00689b34);
+                        ShowNoticef(0xf, &g_empty_wide_string);
                     } else {
                         palette = row == g_mipe_table_row ? 3 : 0xf;
                         ShowNoticef(palette, L"    %S", table->name);
@@ -2518,7 +2518,7 @@ static void HandleMipeItemTableKey(unsigned short key)
                 table = static_cast<W8ItemTableRecord*>(
                     PLGet(g_mipe_category_list, g_mipe_table_base + row));
                 if (table == 0) {
-                    ShowNoticef(0xf, &g_wchar_00689b34);
+                    ShowNoticef(0xf, &g_empty_wide_string);
                 } else {
                     palette = row == g_mipe_table_row ? 3 : 0xf;
                     ShowNoticef(palette, L"    %S", table->name);
@@ -2544,7 +2544,7 @@ static void HandleMipeItemTableKey(unsigned short key)
                 table = static_cast<W8ItemTableRecord*>(
                     PLGet(g_mipe_category_list, g_mipe_table_base + row));
                 if (table == 0) {
-                    ShowNoticef(0xf, &g_wchar_00689b34);
+                    ShowNoticef(0xf, &g_empty_wide_string);
                 } else {
                     palette = row == g_mipe_table_row ? 3 : 0xf;
                     ShowNoticef(palette, L"    %S", table->name);
@@ -2585,7 +2585,7 @@ static void HandleMipeItemTableKey(unsigned short key)
                 table = static_cast<W8ItemTableRecord*>(
                     PLGet(g_mipe_category_list, g_mipe_table_base + row));
                 if (table == 0) {
-                    ShowNoticef(0xf, &g_wchar_00689b34);
+                    ShowNoticef(0xf, &g_empty_wide_string);
                 } else {
                     palette = row == g_mipe_table_row ? 3 : 0xf;
                     ShowNoticef(palette, L"    %S", table->name);
@@ -2804,7 +2804,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                                             g_lock_type_names[trigger->lock_state.lock_type]);
                                         key_id = trigger->lock_state.key_id;
                                         if (key_id < 0) {
-                                            key_name = &g_wchar_00689b34;
+                                            key_name = &g_empty_wide_string;
                                         } else {
                                             key_name = g_item_records[key_id].display_name;
                                         }
@@ -2993,11 +2993,11 @@ unsigned char HandleMipeKey(const InputAtom* event)
             g_mipe_state->waypoint_count = 0;
             ResetEditorStatusLine(-1);
             ShowNoticef(6, L"Type 'C' to create a waypoint.");
-            ShowNoticef(0xf, &g_wchar_00689b34);
+            ShowNoticef(0xf, &g_empty_wide_string);
             ShowNoticef(3, L"Laying down waypoint %d", g_mipe_state->waypoint_count);
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
+            ShowNoticef(0xf, &g_empty_wide_string);
+            ShowNoticef(0xf, &g_empty_wide_string);
+            ShowNoticef(0xf, &g_empty_wide_string);
             ShowNoticef(0xf, L"Type X to delete last waypoint.");
             return handled;
         }
@@ -3028,10 +3028,10 @@ unsigned char HandleMipeKey(const InputAtom* event)
             ResetEditorStatusLine(-1);
             ShowNoticef(6, L"MOVE IT!!");
             ShowNoticef(0xf, L"Type C to change how to choose.");
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
+            ShowNoticef(0xf, &g_empty_wide_string);
+            ShowNoticef(0xf, &g_empty_wide_string);
+            ShowNoticef(0xf, &g_empty_wide_string);
+            ShowNoticef(0xf, &g_empty_wide_string);
             ShowNoticef(0xf, g_mipe_choose_group == 0 ? L"Choosing: One" : L"Choosing: Group");
             g_mipe_mode = 4;
             g_mipe_state->selecting = 1;
@@ -3048,10 +3048,10 @@ unsigned char HandleMipeKey(const InputAtom* event)
             ResetEditorStatusLine(-1);
             ShowNoticef(6, L"MOVE IT!!");
             ShowNoticef(0xf, L"Type C to change how to choose.");
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
+            ShowNoticef(0xf, &g_empty_wide_string);
+            ShowNoticef(0xf, &g_empty_wide_string);
+            ShowNoticef(0xf, &g_empty_wide_string);
+            ShowNoticef(0xf, &g_empty_wide_string);
             ShowNoticef(0xf, g_mipe_choose_group == 0 ? L"Choosing: One" : L"Choosing: Group");
             return handled;
         }
@@ -3080,10 +3080,10 @@ unsigned char HandleMipeKey(const InputAtom* event)
             ResetEditorStatusLine(-1);
             ShowNoticef(6, L"Choose monster or item to edit.");
             ShowNoticef(0xf, L"Type C to change how to choose.");
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
+            ShowNoticef(0xf, &g_empty_wide_string);
+            ShowNoticef(0xf, &g_empty_wide_string);
+            ShowNoticef(0xf, &g_empty_wide_string);
+            ShowNoticef(0xf, &g_empty_wide_string);
             ShowNoticef(0xf, g_mipe_choose_group == 0 ? L"Choosing: One" : L"Choosing: Group");
             return handled;
         }

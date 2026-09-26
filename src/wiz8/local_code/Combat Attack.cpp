@@ -975,7 +975,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
                    gppStringList[g_monster_hit_location_labels[hit_location]
                                                               [record->constitution_15e]]);
         } else {
-            wcscpy(location_name, &g_wchar_00689b34);
+            wcscpy(location_name, &g_empty_wide_string);
         }
     } else {
         total = 0;
@@ -1217,7 +1217,7 @@ wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target)
     switch (target->iType) {
     case W8_TARGET_KIND_NONE:
     case W8_TARGET_KIND_PLACE:
-        return &g_wchar_00689b34;
+        return &g_empty_wide_string;
     case W8_TARGET_KIND_CHARACTER:
     case W8_TARGET_KIND_CHARACTER_INDIRECT:
         break;
@@ -1799,7 +1799,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                     gppStringList[g_monster_hit_location_labels[hit_location]
                                                                [target_record->constitution_15e]];
             } else {
-                location_text = &g_wchar_00689b34;
+                location_text = &g_empty_wide_string;
             }
         }
         wcscpy(location_name, location_text);
@@ -4156,7 +4156,7 @@ int ResolveCharacterAttack(int party_slot)
                            gppStringList[g_monster_hit_location_labels[hit_location]
                                                                       [record->constitution_15e]]);
                 } else {
-                    wcscpy(location_name, &g_wchar_00689b34);
+                    wcscpy(location_name, &g_empty_wide_string);
                 }
             } else {
                 if (g_combat_state->TargetHit.iType != W8_TARGET_KIND_CHARACTER) {

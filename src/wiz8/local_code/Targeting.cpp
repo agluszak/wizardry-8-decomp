@@ -2516,7 +2516,7 @@ bool CanTargetMonster(int party_slot, int location_id, int allow_single_target, 
     if (monster_info->uiCondition[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0) {
         return 0;
     }
-    if (gXStatus.fCampMode != 0 && g_screen_state_00649f1c->target_location_id_f8 != location_id) {
+    if (gXStatus.fCampMode != 0 && g_npc_interaction->target_location_id_f8 != location_id) {
         return 0;
     }
 
@@ -3498,7 +3498,7 @@ void ConfigureSpellTargetFilter(int target_type, unsigned int needed_kind)
         if (gXStatus.fCampMode != 0) {
             ResetCombatSlot(&target);
             target.iType = W8_TARGET_KIND_MONSTER;
-            target.iMonsterID = g_screen_state_00649f1c->target_location_id_f8;
+            target.iMonsterID = g_npc_interaction->target_location_id_f8;
             AimAtTarget(selected, &target, W8_TARGETING_CONTEXT_CURRENT);
             needed_kind = 0;
         } else if (g_settings.autotarget_spells != 0 &&

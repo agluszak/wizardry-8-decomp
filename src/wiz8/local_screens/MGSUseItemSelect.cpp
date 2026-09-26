@@ -115,7 +115,8 @@ void CreateUseItemSelectControls(void)
     g_use_item_select_scroll_buttons[1]->m_primaryActivationCallback = UseItemSelectScrollDown;
     g_use_item_select_scroll_buttons[2]->m_textBuffer.SetLayoutMode(
         g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
-    g_use_item_select_scroll_buttons[2]->m_textBuffer.SetText(gppStringList[0x77a], g_font_683660);
+    g_use_item_select_scroll_buttons[2]->m_textBuffer.SetText(gppStringList[0x77a],
+                                                              g_wiz_text_font_secondary);
     panel = g_use_item_select_panels[2];
     g_use_item_select_controls[0] =
         new W8TextControl(panel, 0x9e, 5, 5, 0x31, 0x39, -1, -1, -1, -1, -1, -1, -1);
@@ -781,7 +782,7 @@ void OpenUseItemAssayDialog(W8ItemInstance* item)
 
     g_saved_target_cursor = gXStatus.iCurrentCursor;
     dialog = new W8AssayDialog(item, &g_status.buffers.Char[g_use_item_owner_index]);
-    dialog->SetText(&g_wchar_00689b34);
+    dialog->SetText(&g_empty_wide_string);
     dialog->SetOrigin(g_info_dialog_x, 0x48);
     dialog->m_destroy_callback = RestoreTargetCursor;
     OpenModal(dialog);
@@ -1076,7 +1077,7 @@ void UpdateUseItemDetailPanel(W8ItemInstance* item)
     } else {
         value = g_wchar_0068ee58;
     }
-    g_use_item_select_controls[0]->m_textBuffer.SetText(value, g_font_683660);
+    g_use_item_select_controls[0]->m_textBuffer.SetText(value, g_wiz_text_font_secondary);
     g_use_item_select_controls[0]->Invalidate(1);
     g_use_item_detail_item = item;
 }

@@ -341,7 +341,7 @@ void DrawCampSpellPages(void)
     unsigned int visible;
     unsigned short* palette;
 
-    SetFont(g_font_683660);
+    SetFont(g_wiz_text_font_secondary);
     if ((g_camp_screen->redraw_flags & 0x100000) != 0 && gXStatus.fSpellCastMode == 0) {
         DrawCampResistances();
     }
@@ -356,19 +356,19 @@ void DrawCampSpellPages(void)
         top = (realm / 3) * 0x8c + 0xaa;
         if (character->skill_unlocks[0x1c + realm] != 0) {
             DrawCatalogImageAndInvalidate(-14, 0x140, 0, 3, left, top, 2, 0);
-            SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[1]);
+            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
             gprintf(left + 0x1b, top + 8, const_cast<wchar_t*>(g_format_s_0064dd28),
                     gppStringList[0x231c / 4]);
             gprintf(left + 0x72, top + 8, gppStringList[0x2324 / 4]);
-            SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
-            width = StringPixLengthArg(g_font_683660, wcslen(gppStringList[0x231c / 4]) + 2,
-                                       const_cast<UINT16*>(g_format_s_colon),
-                                       gppStringList[0x231c / 4]);
+            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+            width = StringPixLengthArg(
+                g_wiz_text_font_secondary, wcslen(gppStringList[0x231c / 4]) + 2,
+                const_cast<UINT16*>(g_format_s_colon), gppStringList[0x231c / 4]);
             gprintf(left + 0x1b + width, top + 8, const_cast<wchar_t*>(g_format_d_0064dd20),
                     character->skills[0x1c + realm].level);
-            width = StringPixLengthArg(g_font_683660, 7, const_cast<UINT16*>(g_format_d_slash_d),
-                                       GetCharacterRealmSpellPoints(character, realm),
-                                       character->sp_max[realm]);
+            width = StringPixLengthArg(
+                g_wiz_text_font_secondary, 7, const_cast<UINT16*>(g_format_d_slash_d),
+                GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
             gprintf(left + 0xc8 - width, top + 8, const_cast<wchar_t*>(g_format_d_slash_d),
                     GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
             visible = character->skill_unlocks[0x1c + realm];
@@ -391,8 +391,9 @@ void DrawCampSpellPages(void)
                 } else {
                     palette = g_font_state_palettes[0];
                 }
-                SetFontObjectPalette16BPP(g_font_683660, palette);
-                width = StringPixLengthArg(g_font_683660, 3, const_cast<UINT16*>(g_format_3d),
+                SetFontObjectPalette16BPP(g_wiz_text_font_secondary, palette);
+                width = StringPixLengthArg(g_wiz_text_font_secondary, 3,
+                                           const_cast<UINT16*>(g_format_3d),
                                            g_spell_records[spell_id].spell_point_cost);
                 gprintf(left + 0x1c, row_top, const_cast<wchar_t*>(g_format_s_006068e4),
                         g_spell_records[spell_id].display_name);
@@ -400,7 +401,7 @@ void DrawCampSpellPages(void)
                         g_spell_records[spell_id].spell_point_cost);
                 row_top += 0xd;
             }
-            SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
         }
         state = g_camp_screen;
         state->spell_ranges[realm]->m_range->Invalidate(0);
@@ -447,7 +448,7 @@ void DrawCampResistances(void)
     DrawCatalogImageAndInvalidate(-14, 0x140, 0, 0, 0x136, 0, 2, 0);
     text = gppStringList[0x2328 / 4];
     width = StringPixLengthArg(
-        g_font_683660, wcslen(text),
+        g_wiz_text_font_secondary, wcslen(text),
         reinterpret_cast< // reinterpret-ok: SGP's historical UINT16 text ABI stores wchar_t data
             UINT16*>(text));
     gprintf((0x134 - width) / 2 + 0x144, 0x1e, text);
@@ -486,7 +487,8 @@ void DrawCampResistances(void)
             DrawCatalogImageAndInvalidate(-14, 0x143, 0, 2, left + 0x18, top + 4, 2, 0);
         }
         SetClippingRect(&saved_clip);
-        width = StringPixLengthArg(g_font_683660, 5, const_cast<UINT16*>(g_format_d_0060aa20),
+        width = StringPixLengthArg(g_wiz_text_font_secondary, 5,
+                                   const_cast<UINT16*>(g_format_d_0060aa20),
                                    character->resistances[index].total);
         gprintf(left + 0x93 - width, top + 3, const_cast<wchar_t*>(g_format_d_0060aa20),
                 character->resistances[index].total);
@@ -578,7 +580,7 @@ unsigned char SpellListRegionHandler(const InputAtom* event, W8Region* region)
 void OpenSpellInfoDialog(unsigned int spell_id)
 {
     W8SpellInfoDialog* dialog = new W8SpellInfoDialog(spell_id);
-    dialog->SetText(&g_wchar_00689b34);
+    dialog->SetText(&g_empty_wide_string);
     DisplayCampDialog(dialog);
 }
 
@@ -588,7 +590,7 @@ void OpenSpellInfoDialog(unsigned int spell_id)
 // FUNCTION: WIZ8 0x005b7d10
 void RedrawCampItemsPage(void)
 {
-    SetFont(g_font_683660);
+    SetFont(g_wiz_text_font_secondary);
     SetObjectShade(g_wiz_text_font_secondary_object, 4);
     if ((g_camp_screen->redraw_flags & 0x2000) != 0) {
         DrawCampCharacterInfo();
@@ -684,7 +686,7 @@ void DrawCampCharacterInfo(void)
                 g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
     if (character->load_category != 0) {
         SetFontObjectPalette16BPP(
-            g_font_683660,
+            g_wiz_text_font_secondary,
             g_font_state_palettes[g_load_category_palettes[character->load_category]]);
     }
     swprintf(state->caption, g_format_d_slash_d, character->total_carried_weight / 10,
@@ -695,7 +697,7 @@ void DrawCampCharacterInfo(void)
              character->inventory_weight / 10, gppStringList[0x2304 / 4],
              character->party_weight_share / 10);
     g_camp_help_text->SetRegionHelp(state->caption);
-    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
     DrawRcsText(gppStringList[0x2484 / 4], 0x144, 0x72, 0x75,
                 g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
     top = 0x3a;
@@ -1004,25 +1006,25 @@ void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
         break;
     case 2:
     case 3:
-        SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[3]);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[3]);
         if (item->identified == 0) {
             swprintf(state->caption, L"?");
         } else {
             swprintf(state->caption, g_format_d_0060aa20, item->uses_or_charges);
         }
-        height = GetFontHeight(g_font_683660);
+        height = GetFontHeight(g_wiz_text_font_secondary);
         DrawRcsTextJustified(state->caption, left, top, width, height,
                              g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED550);
         break;
     case 4:
-        SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[5]);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[5]);
         swprintf(state->caption, g_format_d_0060aa20, item->uses_or_charges);
-        height = GetFontHeight(g_font_683660);
+        height = GetFontHeight(g_wiz_text_font_secondary);
         DrawRcsTextJustified(state->caption, left, top, width, height,
                              g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED550);
         break;
     }
-    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
 }
 
 // FUNCTION: WIZ8 0x005b9330
@@ -3020,8 +3022,8 @@ void ShowEndingScreen(void)
     bounds.right = 0x239;
     bounds.bottom = 0x1d0;
     {
-        W8TextBuffer buffer(&bounds, text, g_options_detail_font_683614,
-                            g_W8TextBufferLayoutMask005ED55C, 4);
+        W8TextBuffer buffer(&bounds, text, g_options_detail_font, g_W8TextBufferLayoutMask005ED55C,
+                            4);
         buffer.RenderToTarget(0, 0, -14);
     }
     SetRadarMapVisible(0);
