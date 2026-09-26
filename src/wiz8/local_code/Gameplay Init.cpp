@@ -526,7 +526,7 @@ void ResetGameplaySettings(void)
     g_settings.difficulty = W8_DIFFICULTY_NORMAL;
     g_settings.text_display_delay_ms = 0x9c4;
     g_settings.combat_delay_ms = 1000;
-    g_settings.field_019 = 5000;
+    g_settings.continuous_combat_start_delay_ms = 5000;
     g_settings.camera_rotation_mode = 1;
     g_settings.camera_rotation_style = 1;
     g_settings.tooltip_delay_ms = 600;

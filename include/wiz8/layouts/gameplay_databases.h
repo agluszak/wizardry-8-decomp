@@ -186,8 +186,11 @@ struct W8SpellRuntimeRecord {
     /* 0x127: radius added per power level; PopulateSpellTargetMarkers scales
        the pair as (radius_per_level_127 * power + effect_radius) * 500. */
     float radius_per_level_127;
-    /* 0x12b: SpellInfoDialog selects the long-range caption when this is 3. */
-    int field_12b;
+    /* 0x12b: the power class the spell-casting view copies into
+       iSpellPowerClass (retail asserts it is not BAD_INDEX). It selects how
+       power pips work: 2 prices a max cast, 3 is a fixed-cost spell, and
+       SpellInfoDialog shows the alternate caption for 3. */
+    int power_class;
     /* 0x12f: the range category a monster casting this spell needs. */
     W8RangeCategory range_category;
     W8SpellRealm realm;            /* 0x133 */

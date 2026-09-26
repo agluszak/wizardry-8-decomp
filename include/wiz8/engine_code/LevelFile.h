@@ -352,15 +352,15 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
     int wait_6c3;
     int field_6c7;
     char event_6cb[0x100];
-    float field_7cb;                           /* copied to the linked record's normal_scale_1b3 */
+    float normal_scale_7cb;                    /* copied to the linked record's normal_scale_1b3 */
     char particle_system_7cf[0x80];            /* version_00 > 2 */
     unsigned char placement_kind_84f;          /* !(flags_81 & 1) */
     W8LevelFileTriggerPosition* pPosition_850; /* placement_kind_84f == 1 */
     W8LevelFilePlane* pPlane_854;              /* placement_kind_84f == 2 */
     unsigned char has_hotspot_858;             /* !(flags_81 & 1) */
     W8LevelFileTriggerHotSpot* pHotSpot_859;   /* has_hotspot_858 != 0 */
-    unsigned char field_85d;
-    W8LevelFileDoorRef door_85e;          /* field_85d != 0; kind 1 owns door */
+    unsigned char has_door_85d;
+    W8LevelFileDoorRef door_85e;          /* has_door_85d != 0; kind 1 owns door */
     W8LevelFileLinkedRecord* pRecord_863; /* door_85e.kind_00 == 2 */
 };
 
@@ -552,8 +552,8 @@ struct W8LevelFileBlock { /* 0x634 */
 /* The level workspace ReadLevelFile builds. Assert-proven pointer members;
    unproven spans are kept as unknown byte arrays. */
 struct W8LevelFile {
-    int field_00;                                    /* written 1 */
-    int field_04;                                    /* written 1 */
+    unsigned int submesh_count_00;                   /* pModels_0c element count; initialized 1 */
+    int mesh_count_04;                               /* the tree's mesh count; initialized 1 */
     W8LevelFileMesh* pMeshes;                        /* 0x08: one 0x5c record */
     OctMeshModel* pModels_0c;                        /* 0x0c: written/freed, elements 0x48 */
     short nTextures;                                 /* 0x10 */

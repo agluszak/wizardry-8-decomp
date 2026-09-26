@@ -141,7 +141,7 @@ namespace {
 bool ReadMeshFaceNeedsSplit(const W8ReadMeshFace& face, srMaterialIFace** materials)
 {
     return (face.flags & 4) != 0 ||
-           (static_cast<stMaterial*>(materials[face.material_index])->m_field_78 & 1) != 0;
+           (static_cast<stMaterial*>(materials[face.material_index])->m_shader_flags_78 & 1) != 0;
 }
 
 } // namespace

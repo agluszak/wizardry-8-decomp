@@ -1458,7 +1458,7 @@ void CastSpellAtLockInteraction(unsigned int level, int flag, int backfire)
 // FUNCTION: WIZ8 0x00587cf0
 W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, int top, int right,
                                                    int bottom, int line_count,
-                                                   const unsigned short* field_ac,
+                                                   const unsigned short* line_string_ids,
                                                    unsigned int* region_set)
     : W8Widget(panel, 0xffffffff, left, top, right - 0x13, bottom),
       m_range_038(panel->origin_x - 0x12 + right, panel->origin_y + top, right + panel->origin_x,
@@ -1466,11 +1466,11 @@ W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, in
 {
     m_line_count_0a4 = line_count;
     m_visible_lines_0a8 = (bottom - top) / 0xe;
-    m_field_0ac = field_ac;
-    m_field_0b0 = 0;
-    m_field_0b8 = 0;
+    m_line_string_ids_0ac = line_string_ids;
+    m_selected_line_0b0 = 0;
+    m_first_visible_line_0b8 = 0;
     m_range_listener_0bc = 0;
-    m_field_0b4 = -1;
+    m_hover_line_0b4 = -1;
     m_range_038.m_listener = this;
     m_range_038.SetRange(0, m_line_count_0a4 - m_visible_lines_0a8);
     m_range_038.Invalidate(0);
@@ -1508,20 +1508,20 @@ void W8MainGameTextKeyHandler::Redraw(int full_redraw)
     InvalidateRegion(left, top, right, bottom, 0);
     BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
     SetFont(g_font_683660);
-    last = m_field_0b8 + m_visible_lines_0a8;
+    last = m_first_visible_line_0b8 + m_visible_lines_0a8;
     left += 2;
     top += 1;
-    for (line = m_field_0b8; line < last; ++line) {
-        if (line == m_field_0b0) {
+    for (line = m_first_visible_line_0b8; line < last; ++line) {
+        if (line == m_selected_line_0b0) {
             colour = g_font_state_palettes[3];
-        } else if (line == m_field_0b4) {
+        } else if (line == m_hover_line_0b4) {
             colour = g_font_state_palettes[4];
         } else {
             colour = g_colour_68ee08;
         }
         SetFontObjectPalette16BPP(g_font_683660, colour);
         gprintf(left, top, const_cast<wchar_t*>(g_format_s_006068e4),
-                gppStringList[m_field_0ac[line]]);
+                gppStringList[m_line_string_ids_0ac[line]]);
         top += 0xe;
     }
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
@@ -1532,7 +1532,7 @@ void W8MainGameTextKeyHandler::Redraw(int full_redraw)
 // FUNCTION: WIZ8 0x00587ff0
 void W8MainGameTextKeyHandler::OnMouseLeave(int event)
 {
-    m_field_0b4 = -1;
+    m_hover_line_0b4 = -1;
     Invalidate((unsigned char)event);
 }
 
@@ -1543,9 +1543,9 @@ void W8MainGameTextKeyHandler::OnMouseMove(int)
     int line;
 
     SGPMouseGetPos(&point);
-    line = (point.y - m_pPanel->origin_y - m_top) / 0xe + m_field_0b8;
-    if (line != m_field_0b4) {
-        m_field_0b4 = line;
+    line = (point.y - m_pPanel->origin_y - m_top) / 0xe + m_first_visible_line_0b8;
+    if (line != m_hover_line_0b4) {
+        m_hover_line_0b4 = line;
         Invalidate(0);
     }
 }
@@ -1570,24 +1570,24 @@ void W8MainGameTextKeyHandler::OnLeftButtonUp(int)
     POINT point;
 
     SGPMouseGetPos(&point);
-    SetSelectedLine((point.y - m_pPanel->origin_y - m_top) / 0xe + m_field_0b8);
+    SetSelectedLine((point.y - m_pPanel->origin_y - m_top) / 0xe + m_first_visible_line_0b8);
 }
 
 // FUNCTION: WIZ8 0x00588100
 void W8MainGameTextKeyHandler::SetSelectedLine(int line)
 {
-    if (line == m_field_0b0) {
+    if (line == m_selected_line_0b0) {
         return;
     }
-    m_field_0b0 = line;
+    m_selected_line_0b0 = line;
     Invalidate(0);
-    if (m_field_0b0 < m_range_038.m_value ||
-        m_field_0b0 >= m_range_038.m_value + m_visible_lines_0a8) {
-        int first = m_field_0b0;
-        if (m_field_0b0 >= m_range_038.m_value) {
-            first = m_field_0b0 - m_visible_lines_0a8 + 1;
+    if (m_selected_line_0b0 < m_range_038.m_value ||
+        m_selected_line_0b0 >= m_range_038.m_value + m_visible_lines_0a8) {
+        int first = m_selected_line_0b0;
+        if (m_selected_line_0b0 >= m_range_038.m_value) {
+            first = m_selected_line_0b0 - m_visible_lines_0a8 + 1;
         }
-        m_field_0b8 = first;
+        m_first_visible_line_0b8 = first;
         m_range_038.SetValue(first);
     }
     if (m_range_listener_0bc != 0) {
@@ -1602,24 +1602,24 @@ char W8MainGameTextKeyHandler::HandleKey(unsigned short key)
 
     switch (key) {
     case 0x26:
-        SetSelectedLine(m_field_0b0 - 1 < 0 ? 0 : m_field_0b0 - 1);
+        SetSelectedLine(m_selected_line_0b0 - 1 < 0 ? 0 : m_selected_line_0b0 - 1);
         return 1;
     case 0x28:
-        line = m_field_0b0 + 1;
+        line = m_selected_line_0b0 + 1;
         if (m_line_count_0a4 - 1 < line) {
             line = m_line_count_0a4 - 1;
         }
         SetSelectedLine(line);
         return 1;
     case 0x21:
-        line = m_field_0b0 - 5;
+        line = m_selected_line_0b0 - 5;
         if (line < 0) {
             line = 0;
         }
         SetSelectedLine(line);
         return 1;
     case 0x22:
-        line = m_field_0b0 + 5;
+        line = m_selected_line_0b0 + 5;
         if (m_line_count_0a4 - 1 < line) {
             line = m_line_count_0a4 - 1;
         }
@@ -1639,7 +1639,7 @@ char W8MainGameTextKeyHandler::HandleKey(unsigned short key)
 // FUNCTION: WIZ8 0x00588240
 void W8MainGameTextKeyHandler::OnRangeChanged(W8RangeControl* control)
 {
-    m_field_0b8 = control->m_value;
+    m_first_visible_line_0b8 = control->m_value;
     Invalidate(0);
 }
 
@@ -1803,14 +1803,14 @@ void W8MainGameTextPanel::Redraw()
         return;
     }
     if (m_progress_display_084) {
-        progress = (int)(m_field_08c * g_float_005eebbc);
-        if (progress > m_field_090) {
-            m_field_090 = progress;
+        progress = static_cast<int>(m_progress_elapsed_08c * g_float_005eebbc);
+        if (progress > m_progress_drawn_090) {
+            m_progress_drawn_090 = progress;
             InvalidateRegion(m_text_bounds_0b8.left, m_text_bounds_0b8.top, m_text_bounds_0b8.right,
                              m_text_bounds_0b8.bottom, 0);
             GetClippingRect(&previous);
             clip = previous;
-            clip.iBottom = m_text_bounds_0b8.left + m_field_090;
+            clip.iBottom = m_text_bounds_0b8.left + m_progress_drawn_090;
             SetClippingRect(&clip);
             DrawCatalogImage(-14, 0x1b5, 0, 0, m_text_bounds_0b8.left, m_text_bounds_0b8.top, 2, 0);
             SetClippingRect(&previous);
@@ -1818,7 +1818,7 @@ void W8MainGameTextPanel::Redraw()
         }
     }
     if (m_fEnabled && m_target_changed_140 && m_target_marker_pending_141) {
-        int frame = m_field_13c % 12;
+        int frame = m_marker_anim_time_13c % 12;
         if (frame >= 7) {
             frame = 12 - frame;
         }
@@ -1848,7 +1848,7 @@ void W8MainGameTextPanel::OnRangeChanged(W8RangeControl* control)
 {
     int column;
     int* values;
-    int selection = m_key_handler_074->m_field_0b0;
+    int selection = m_key_handler_074->m_selected_line_0b0;
 
     (void)control;
     m_selection_078 = selection;
@@ -2110,9 +2110,9 @@ void W8MainGameScreen::SelectTextEntry(int index)
     m_action_panel_014->Invalidate(0);
     m_text_panel_00c->m_progress_display_084 = 1;
     m_text_panel_00c->m_text_buffer_0c8.SetText(gppStringList[0x1ed4 / 4], g_font_683660);
-    m_text_panel_00c->m_field_088 = duration;
-    m_text_panel_00c->m_field_08c = 0.0f;
-    m_text_panel_00c->m_field_090 = 0;
+    m_text_panel_00c->m_progress_duration_088 = duration;
+    m_text_panel_00c->m_progress_elapsed_08c = 0.0f;
+    m_text_panel_00c->m_progress_drawn_090 = 0;
     m_text_panel_00c->m_timer_094.SetDuration(hold);
     m_text_panel_00c->m_timer_094.Restart();
     for (i = 0; i < 8; ++i) {
@@ -2188,9 +2188,9 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     m_action_panel_014->Invalidate(0);
     m_text_panel_00c->m_progress_display_084 = 1;
     m_text_panel_00c->m_text_buffer_0c8.SetText(gppStringList[0x1ed8 / 4], g_font_683660);
-    m_text_panel_00c->m_field_088 = duration;
-    m_text_panel_00c->m_field_08c = 0.0f;
-    m_text_panel_00c->m_field_090 = 0;
+    m_text_panel_00c->m_progress_duration_088 = duration;
+    m_text_panel_00c->m_progress_elapsed_08c = 0.0f;
+    m_text_panel_00c->m_progress_drawn_090 = 0;
     m_text_panel_00c->m_timer_094.SetDuration(hold);
     m_text_panel_00c->m_timer_094.Restart();
     for (i = 0; i < 8; ++i) {
@@ -2235,7 +2235,7 @@ void W8MainGameScreen::Update()
     if (panel->m_target_changed_140 != 0) {
         elapsed = (int)panel->m_timer_118.GetProgress();
         if (elapsed != 0) {
-            panel->m_field_13c += elapsed;
+            panel->m_marker_anim_time_13c += elapsed;
             panel->m_target_marker_pending_141 = 1;
         }
     }
@@ -2243,8 +2243,8 @@ void W8MainGameScreen::Update()
     panel = m_text_panel_00c;
     if (panel->m_progress_display_084 != 0) {
         progress = panel->m_timer_094.GetProgress();
-        if (progress < panel->m_field_088) {
-            panel->m_field_08c = progress;
+        if (progress < panel->m_progress_duration_088) {
+            panel->m_progress_elapsed_08c = progress;
             return;
         }
         panel->m_progress_display_084 = 0;

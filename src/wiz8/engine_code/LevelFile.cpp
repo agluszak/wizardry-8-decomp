@@ -31,8 +31,8 @@ W8LevelFile* ReadLevelFile(int hFile)
         srAssertFail("pLevel", LEVELFILE_CPP, 0x2b, 0);
     }
     memset(pLevel, 0, sizeof(W8LevelFile));
-    pLevel->field_00 = 1;
-    pLevel->field_04 = 1;
+    pLevel->submesh_count_00 = 1;
+    pLevel->mesh_count_04 = 1;
     pLevel->num_switch_triggers_6c1 = 0;
     memset(pLevel->switch_triggers_6c5, 0, sizeof(pLevel->switch_triggers_6c5));
     pLevel->num_invisible_planes_1665 = 0;
@@ -288,8 +288,8 @@ BOOLEAN WriteLevelFile(int hFile, int hFileIn, W8LevelFile* pLevel)
     if (pLevel->pMeshes == 0) {
         srAssertFail("pLevel->pMeshes", LEVELFILE_CPP, 0x10e, 0);
     }
-    FileWrite(hFile, &pLevel->field_00, 4, 0);
-    FileWrite(hFile, &pLevel->field_04, 4, 0);
+    FileWrite(hFile, &pLevel->submesh_count_00, 4, 0);
+    FileWrite(hFile, &pLevel->mesh_count_04, 4, 0);
     FileWrite(hFile, &pLevel->nTextures, 2, 0);
     iCount = pLevel->nTextures;
     if (iCount == 0) {
@@ -313,9 +313,9 @@ BOOLEAN WriteLevelFile(int hFile, int hFileIn, W8LevelFile* pLevel)
         return FALSE;
     }
     free(pLevel->pTextures);
-    if (pLevel->field_00 != 0) {
+    if (pLevel->submesh_count_00 != 0) {
         OctMeshModel* pModel = pLevel->pModels_0c;
-        for (i = 0; (unsigned int)i < (unsigned int)pLevel->field_00; ++i) {
+        for (i = 0; static_cast<unsigned int>(i) < pLevel->submesh_count_00; ++i) {
             pModel->Write0049E5D0(hFile);
             ++pModel;
         }
@@ -1209,7 +1209,7 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess &= FileRead(hFile, &pSuper->wait_6c3, 4, 0);
     fSuccess &= FileRead(hFile, &pSuper->field_6c7, 4, 0);
     fSuccess &= FileRead(hFile, pSuper->event_6cb, 0x100, 0);
-    fSuccess &= FileRead(hFile, &pSuper->field_7cb, 4, 0);
+    fSuccess &= FileRead(hFile, &pSuper->normal_scale_7cb, 4, 0);
     if (!fSuccess) {
         return FALSE;
     }
@@ -1258,8 +1258,8 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
     if (!fSuccess) {
         return FALSE;
     }
-    fSuccess &= FileRead(hFile, &pSuper->field_85d, 1, 0);
-    if (pSuper->field_85d != 0) {
+    fSuccess &= FileRead(hFile, &pSuper->has_door_85d, 1, 0);
+    if (pSuper->has_door_85d != 0) {
         fSuccess &= FileRead(hFile, &pSuper->door_85e.kind_00, 1, 0);
         if (pSuper->door_85e.kind_00 == 1) {
             fSuccess = ReadDoorTriggerFile(hFile, &pSuper->door_85e);
@@ -1276,7 +1276,7 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
             }
             fSuccess &= ok;
             /* Retail stores through pRecord_863 even when the allocation failed. */
-            pSuper->pRecord_863->normal_scale_1b3 = pSuper->field_7cb;
+            pSuper->pRecord_863->normal_scale_1b3 = pSuper->normal_scale_7cb;
             pSuper->pRecord_863->forward_scale_1b7 = pSuper->direction_4a7;
         }
     }
@@ -1338,7 +1338,7 @@ BOOLEAN WriteSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess &= FileWrite(hFile, &pSuper->wait_6c3, 4, 0);
     fSuccess &= FileWrite(hFile, &pSuper->field_6c7, 4, 0);
     fSuccess &= FileWrite(hFile, pSuper->event_6cb, 0x100, 0);
-    fSuccess &= FileWrite(hFile, &pSuper->field_7cb, 4, 0);
+    fSuccess &= FileWrite(hFile, &pSuper->normal_scale_7cb, 4, 0);
     if (fSuccess == 0) {
         return 0;
     }
@@ -1380,8 +1380,8 @@ BOOLEAN WriteSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
     if (fSuccess == 0) {
         return 0;
     }
-    fSuccess &= FileWrite(hFile, &pSuper->field_85d, 1, 0);
-    if (pSuper->field_85d != 0) {
+    fSuccess &= FileWrite(hFile, &pSuper->has_door_85d, 1, 0);
+    if (pSuper->has_door_85d != 0) {
         fSuccess &= FileWrite(hFile, &pSuper->door_85e.kind_00, 1, 0);
         if (pSuper->door_85e.kind_00 == 1) {
             fSuccess = WriteDoorTriggerFile(hFile, &pSuper->door_85e);

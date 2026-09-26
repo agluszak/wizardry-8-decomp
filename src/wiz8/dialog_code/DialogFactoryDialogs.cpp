@@ -50,7 +50,7 @@ W8ListBoxDialog::W8ListBoxDialog()
     m_field_080 = 0.9f;
     m_field_084 = 0.75f;
     m_field_074 = 0;
-    m_field_088 = 0x6000;
+    m_fill_colour_088 = 0x6000;
     m_text_button_08c = -1;
     m_second_text_button_090 = -1;
     m_inlay_image_094 = -1;
@@ -514,10 +514,11 @@ void W8ListBoxDialog::Draw()
                                m_selected_line_0f4) /
                                   m_lines_054.GetCount() +
                               m_y + 3 + dy);
-        ColorFillVideoSurfaceArea(
-            -0xe, m_x + width + dx, m_y + dy + GetButtonHeight(m_up_button_09c),
-            m_x + width + dx + GetButtonWidth(m_up_button_09c),
-            m_y + height + dy - GetButtonHeight(m_down_button_0a4), Get16BPPColor(m_field_088));
+        ColorFillVideoSurfaceArea(-0xe, m_x + width + dx,
+                                  m_y + dy + GetButtonHeight(m_up_button_09c),
+                                  m_x + width + dx + GetButtonWidth(m_up_button_09c),
+                                  m_y + height + dy - GetButtonHeight(m_down_button_0a4),
+                                  Get16BPPColor(m_fill_colour_088));
         SetButtonPosition(m_third_text_button_0b8, m_x + dx + width, m_y + dy);
         ResizeButton(m_third_text_button_0b8,
                      static_cast<short>(GetButtonWidth(m_up_button_09c) + 7),
@@ -550,7 +551,7 @@ void W8ListBoxDialog::Draw()
                 width + m_x - 3 + dx,
                 (unsigned int)GetFontHeight(g_dialog_font_64fde8) + m_y +
                     (unsigned int)GetFontHeight(g_dialog_font_64fde8) * index + dy,
-                Get16BPPColor(m_field_088));
+                Get16BPPColor(m_fill_colour_088));
         }
         gprintf(m_x + 3 + dx,
                 (unsigned int)GetFontHeight(g_dialog_font_64fde8) * index + m_y + 2 + dy, text);
@@ -651,9 +652,9 @@ W8SplitAmountDialog::W8SplitAmountDialog()
     for (index = 0; index < 6; ++index) {
         m_buttons_054[index] = 0;
     }
-    m_field_6c = 0;
-    m_field_70 = 0;
-    m_field_74 = 0;
+    m_text_buffers_06c[0] = 0;
+    m_text_buffers_06c[1] = 0;
+    m_text_buffers_06c[2] = 0;
     m_split_input_078 = 0;
     m_remaining_080 = 0;
     m_taken_084 = 0;
@@ -672,9 +673,9 @@ W8SplitAmountDialog::W8SplitAmountDialog(int total)
     for (index = 0; index < 6; ++index) {
         m_buttons_054[index] = 0;
     }
-    m_field_6c = 0;
-    m_field_70 = 0;
-    m_field_74 = 0;
+    m_text_buffers_06c[0] = 0;
+    m_text_buffers_06c[1] = 0;
+    m_text_buffers_06c[2] = 0;
     m_split_input_078 = 0;
     m_remaining_080 = total;
     m_total_088 = total;
@@ -687,7 +688,6 @@ W8SplitAmountDialog::W8SplitAmountDialog(int total)
 void W8SplitAmountDialog::DestroyControls()
 {
     int index;
-    W8TextBuffer** field;
 
     W8DialogBase::DestroyControls();
     for (index = 0; index < 6; ++index) {
@@ -696,13 +696,11 @@ void W8SplitAmountDialog::DestroyControls()
             m_buttons_054[index] = 0;
         }
     }
-    field = &m_field_6c;
     for (index = 0; index < 3; ++index) {
-        if (*field != 0) {
-            delete *field;
-            *field = 0;
+        if (m_text_buffers_06c[index] != 0) {
+            delete m_text_buffers_06c[index];
+            m_text_buffers_06c[index] = 0;
         }
-        ++field;
     }
     if (m_split_input_078 != 0) {
         NoOp();
@@ -718,7 +716,6 @@ void W8SplitAmountDialog::DestroyControls()
 W8SplitAmountDialog::~W8SplitAmountDialog()
 {
     int index;
-    W8TextBuffer** field;
 
     W8DialogBase::DestroyControls();
     for (index = 0; index < 6; ++index) {
@@ -727,13 +724,11 @@ W8SplitAmountDialog::~W8SplitAmountDialog()
             m_buttons_054[index] = 0;
         }
     }
-    field = &m_field_6c;
     for (index = 0; index < 3; ++index) {
-        if (*field != 0) {
-            delete *field;
-            *field = 0;
+        if (m_text_buffers_06c[index] != 0) {
+            delete m_text_buffers_06c[index];
+            m_text_buffers_06c[index] = 0;
         }
-        ++field;
     }
     if (m_split_input_078 != 0) {
         NoOp();
@@ -748,7 +743,6 @@ W8SplitAmountDialog::~W8SplitAmountDialog()
 int W8SplitAmountDialog::CreateControls()
 {
     int index;
-    W8TextBuffer** field;
 
     W8DialogBase::CreateControls();
     m_result_08c = 0;
@@ -773,13 +767,11 @@ int W8SplitAmountDialog::CreateControls()
                 m_buttons_054[index] = 0;
             }
         }
-        field = &m_field_6c;
         for (index = 0; index < 3; ++index) {
-            if (*field != 0) {
-                delete *field;
-                *field = 0;
+            if (m_text_buffers_06c[index] != 0) {
+                delete m_text_buffers_06c[index];
+                m_text_buffers_06c[index] = 0;
             }
-            ++field;
         }
         m_error = 7;
         return 7;
@@ -833,29 +825,24 @@ unsigned char W8SplitAmountDialog::CreateTextBuffers()
 {
     int index;
     W8ControlsRect bounds;
-    W8TextBuffer** field;
 
-    field = &m_field_6c;
     for (index = 0; index < 3; ++index) {
         bounds.left = g_split_amount_text_bounds[index].left + m_x;
         bounds.top = g_split_amount_text_bounds[index].top + m_y;
         bounds.right = g_split_amount_text_bounds[index].right + m_x;
         bounds.bottom = g_split_amount_text_bounds[index].bottom + m_y;
-        *field = new W8TextBuffer(
+        m_text_buffers_06c[index] = new W8TextBuffer(
             &bounds, gppStringList[g_split_amount_string_ids[index]], g_font_683660,
             g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED550, 4);
-        if (*field == 0) {
-            field = &m_field_6c;
+        if (m_text_buffers_06c[index] == 0) {
             for (index = 0; index < 3; ++index) {
-                if (*field != 0) {
-                    delete *field;
-                    *field = 0;
+                if (m_text_buffers_06c[index] != 0) {
+                    delete m_text_buffers_06c[index];
+                    m_text_buffers_06c[index] = 0;
                 }
-                ++field;
             }
             return 0;
         }
-        ++field;
     }
     return 1;
 }
@@ -886,7 +873,6 @@ unsigned char W8SplitAmountDialog::CreateNumericInput()
 void W8SplitAmountDialog::Draw()
 {
     int index;
-    W8TextBuffer** field;
 
     if ((m_dirty_flags & 1) != 0) {
         if (m_initialized == 0) {
@@ -895,10 +881,8 @@ void W8SplitAmountDialog::Draw()
         for (index = 0; index < 6; ++index) {
             m_buttons_054[index]->m_dirty = true;
         }
-        field = &m_field_6c;
         for (index = 0; index < 3; ++index) {
-            (*field)->m_geometryDirty = 1;
-            ++field;
+            m_text_buffers_06c[index]->m_geometryDirty = 1;
         }
         W8DialogNumericInput* numeric = m_split_input_078;
         numeric->m_dirty = true;
@@ -916,12 +900,10 @@ void W8SplitAmountDialog::Draw()
             m_buttons_054[index]->Draw();
         }
     }
-    field = &m_field_6c;
     for (index = 0; index < 3; ++index) {
-        if (*field != 0) {
-            (*field)->RenderToTarget(0, 0, -0xe);
+        if (m_text_buffers_06c[index] != 0) {
+            m_text_buffers_06c[index]->RenderToTarget(0, 0, -0xe);
         }
-        ++field;
     }
     if (m_split_input_078 != 0) {
         m_split_input_078->Draw(0);
@@ -934,13 +916,13 @@ void W8SplitAmountDialog::UpdateTextBuffers()
     wchar_t text[12];
 
     swprintf(text, g_format_d_0060aa20, m_remaining_080);
-    m_field_74->SetText(text, g_font_683660);
+    m_text_buffers_06c[2]->SetText(text, g_font_683660);
     m_buttons_054[2]->m_dirty = true;
-    m_field_74->m_geometryDirty = 1;
+    m_text_buffers_06c[2]->m_geometryDirty = 1;
     if (m_remaining_080 < 0) {
-        m_field_74->m_fontStateIndex = 0;
+        m_text_buffers_06c[2]->m_fontStateIndex = 0;
     } else {
-        m_field_74->m_fontStateIndex = -1;
+        m_text_buffers_06c[2]->m_fontStateIndex = -1;
     }
     m_split_input_078->SetValue(m_taken_084);
     m_buttons_054[3]->m_dirty = true;

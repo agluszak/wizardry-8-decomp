@@ -319,7 +319,7 @@ void W8SpellInfoDialog::DrawLabels()
     text = gppStringList[0x460 / 4];
     width = StringPixLength(text, g_font_683660);
     gprintf(m_x + 0x25 + (0x53 - width) / 2, m_y + 0x24, L"%s", text);
-    if (record->field_12b == 3) {
+    if (record->power_class == 3) {
         text = gppStringList[0x468 / 4];
     } else {
         text = gppStringList[0x464 / 4];

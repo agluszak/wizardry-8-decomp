@@ -106,7 +106,7 @@ public:
     float m_field_07c;            /* 0x07c: 0.2 */
     float m_field_080;            /* 0x080: 0.9 */
     float m_field_084;            /* 0x084: 0.75 */
-    int m_field_088;              /* 0x088: highlight fill colour */
+    int m_fill_colour_088;        /* 0x088: highlight fill colour */
     int m_text_button_08c;        /* 0x08c */
     int m_second_text_button_090; /* 0x090 */
     short m_inlay_image_094;      /* 0x094: DialogInlay inlay for 0x098 */
@@ -180,9 +180,9 @@ private:
 
 private:
     W8DialogButton* m_buttons_054[6];
-    W8TextBuffer* m_field_6c;
-    W8TextBuffer* m_field_70;
-    W8TextBuffer* m_field_74;
+    /* 0x06c: the labels named by g_split_amount_string_ids; [2] shows the
+       amount still remaining. */
+    W8TextBuffer* m_text_buffers_06c[3];
     W8DialogNumericInput* m_split_input_078;
     /* 0x07c: the numeric field while the cursor or keyboard owns it. */
     W8DialogNumericInput* m_active_field_7c;

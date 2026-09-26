@@ -65,7 +65,7 @@ class W8MainGameTextPanel;
 class W8MainGameTextKeyHandler : public W8Widget, public W8RangeListener {
 public:
     W8MainGameTextKeyHandler(Controls* panel, int left, int top, int right, int bottom,
-                             int line_count, const unsigned short* field_ac,
+                             int line_count, const unsigned short* line_string_ids,
                              unsigned int* region_set);
     virtual ~W8MainGameTextKeyHandler() override;
     virtual void Redraw(int full_redraw) override;
@@ -80,10 +80,10 @@ public:
     W8RangeControl m_range_038;
     int m_line_count_0a4;
     int m_visible_lines_0a8;
-    const unsigned short* m_field_0ac;
-    int m_field_0b0;
-    int m_field_0b4;
-    int m_field_0b8;
+    const unsigned short* m_line_string_ids_0ac;
+    int m_selected_line_0b0;
+    int m_hover_line_0b4;
+    int m_first_visible_line_0b8;
     W8RangeListener* m_range_listener_0bc;
 };
 static_assert(sizeof(W8MainGameTextKeyHandler) == 0xc0, "W8MainGameTextKeyHandler_size");
@@ -132,18 +132,17 @@ public:
     int m_selection_078;
     W8MainGameScreen* m_screen_07c;
     int* m_values_080;
-    /* 0x84: the timed progress text block (m_field_088 duration,
-       m_field_08c clock) is displayed. */
+    /* 0x84: the timed progress text block is displayed. */
     unsigned char m_progress_display_084;
     unsigned char m_pad_085[3];
-    float m_field_088;
-    float m_field_08c;
-    int m_field_090;
+    float m_progress_duration_088;
+    float m_progress_elapsed_08c;
+    int m_progress_drawn_090; /* widest progress extent drawn so far */
     W8GameTimer m_timer_094;
     W8ControlsRect m_text_bounds_0b8;
     W8TextBuffer m_text_buffer_0c8;
     W8GameTimer m_timer_118;
-    int m_field_13c;
+    int m_marker_anim_time_13c; /* drives the 12-frame target-changed marker */
     bool m_target_changed_140;
     /* 0x141: draw the animated target-changed marker this frame;
        raised while m_fDirty, consumed by Redraw. */
