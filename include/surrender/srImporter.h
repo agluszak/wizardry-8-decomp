@@ -12,8 +12,6 @@ class srModel;
 /* The provider exports the full member surface including the implicit
    lifecycle sweep (ctor, copy ctor, assignment, destructor) and the vftable, so
    the declaration is dllexport under SURRENDER_BUILD. */
-// FUNCTION: SURRENDER 0x100050F0 SYNTHETIC
-// ??0srSurfaceIOManager@@QAE@XZ
 // VTABLE: SURRENDER 0x10075418
 // class srSurfaceIOManager
 class
@@ -36,6 +34,11 @@ public:
 
     class SurfaceImporter;
     class SurfaceExporter;
+
+    /* The default constructor is a real emission, not a marker-only helper:
+       retail calls srIOManager's constructor and then installs this vftable
+       (0x100050F0), exactly as the two sibling managers do. */
+    srSurfaceIOManager();
 
     /* Provider-side entry (0x1002DCD0); no consumer import evidence, so it
        stays unannotated. */

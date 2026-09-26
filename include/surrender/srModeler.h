@@ -44,6 +44,11 @@ public:
         {
         }
 
+        /* Implicit assignment emitted via the class-level dllexport as a
+           memberwise copy of the six fields. */
+        // SYNTHETIC: SURRENDER 0x10037DA0
+        // ??4MappingInfo@srModeler@@QAEAAU01@ABU01@@Z
+
         e_axis axis_u_00;
         e_axis axis_v_04;
         float u_scale_08;
@@ -93,9 +98,7 @@ public:
 
     /* Retail exports the full Triangle lifecycle sweep including the implicit
        copy/assignment bodies, so the declaration is dllexport under
-       SURRENDER_BUILD. The implicit copy constructor (0x10037C10) is a
-       trivial memberwise emission whose odr-use lives in still-unrecovered
-       modeler code; the .def entry preserves the export identity. */
+       SURRENDER_BUILD. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -106,6 +109,20 @@ public:
         void reset();
         void flipFacing();
 
+        /* Implicit copy constructor/assignment emitted via the class-level
+           dllexport as memberwise copies. The assignment reaches the Vertex
+           members through srModeler::Vertex::operator= rather than a block
+           move; the copy constructor block-copies them.
+
+           The copy constructor's export ordinal addresses inter-function
+           padding: retail and the recompiled provider both place nops at that
+           RVA, so no body exists in either image to compare, and the
+           recompiled export reproduces retail's ordinal and RVA. */
+        // SYNTHETIC: SURRENDER 0x10037C10
+        // ??0Triangle@srModeler@@QAE@ABV01@@Z
+        // SYNTHETIC: SURRENDER 0x10037C70
+        // ??4Triangle@srModeler@@QAEAAV01@ABV01@@Z
+
         srTextureIFace* textures_00[4][2];
         srShader shaders_20[4];
         Vertex vertices_30[3];
@@ -115,9 +132,7 @@ public:
 
     /* Retail exports the full Polygon lifecycle sweep including the implicit
        copy/assignment bodies, so the declaration is dllexport under
-       SURRENDER_BUILD. The implicit copy constructor (0x10037CF0) is a
-       trivial memberwise emission whose odr-use lives in still-unrecovered
-       modeler code; the .def entry preserves the export identity. */
+       SURRENDER_BUILD. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -128,6 +143,14 @@ public:
         ~Polygon();
         void reset();
         void reAllocate(int vertices);
+
+        /* Implicit copy constructor/assignment emitted via the class-level
+           dllexport as memberwise copies. The copy constructor's export
+           ordinal addresses inter-function padding, as for Triangle above. */
+        // SYNTHETIC: SURRENDER 0x10037CF0
+        // ??0Polygon@srModeler@@QAE@ABV01@@Z
+        // SYNTHETIC: SURRENDER 0x10037D40
+        // ??4Polygon@srModeler@@QAEAAV01@ABV01@@Z
 
         srTextureIFace* textures_00[4][2];
         srShader shaders_20[4];
