@@ -291,7 +291,7 @@ struct W8PartyThreatRecord {
     /* 0x28b: the sight-flag pair GetPlayerToMonsterSightFlags writes;
        CanPartyMemberAimAtMonster indexes it by the resolved action's
        ranged flag. */
-    unsigned char los_flags_05[2];
+    bool los_flags_05[2];
     /* 0x28d: the party-detection result after the per-observer threshold and
        camouflage checks run. */
     unsigned char party_detected_07;
@@ -318,7 +318,7 @@ struct W8VisibilityRecord {
     unsigned char sight_state_04; /* 0x04: W8SightState */
     /* 0x05: two sight-flag pairs - GetMonsterSightFlags writes [0]/[2], and
        the missile/spell vertex traces overwrite [1]/[3]. */
-    unsigned char los_flags_05[4];
+    bool los_flags_05[4];
     unsigned char unknown_09[2];
     /* 0x0b: the CanMonsterSeeMonster result for mon-to-mon records; the
        party-facing record stores its visible_to_player result here. */
@@ -326,7 +326,7 @@ struct W8VisibilityRecord {
     int last_seen_clock_0c;                /* 0x0c */
     srVector3T<float> subject_position_10; /* 0x10: the observer */
     srVector3T<float> target_position_1c;  /* 0x1c: the observed */
-    unsigned char line_of_sight_28;        /* 0x28 */
+    bool line_of_sight_28;                 /* 0x28 */
     unsigned char unknown_29[8];           /* 0x29 */
 }; /* 0x31 */
 static_assert(sizeof(W8VisibilityRecord) == 0x31, "W8VisibilityRecord_size");

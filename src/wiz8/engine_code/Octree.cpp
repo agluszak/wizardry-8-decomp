@@ -1921,7 +1921,7 @@ unsigned char W8Octree::PrepareNavigatorTarget(W8NavigatorMovementState* movemen
                                                float separation)
 {
     unsigned char result = 0;
-    unsigned char hit = 0;
+    bool hit = false;
     if (movement->target_position_04c.y > spatial_000.clipped_maximum_30.y) {
         movement->target_position_04c.y = spatial_000.clipped_maximum_30.y;
     }
@@ -2182,7 +2182,7 @@ unsigned int W8Octree::LeafIndexForCell(const int* cell)
    The point's y drops to the contact on a hit and keeps its input value on a
    miss; `out_hit` receives the outcome byte when given. */
 // FUNCTION: WIZ8 0x00433820
-float W8Octree::SettleToGround(srVector3T<float>* position, unsigned char* out_hit, char test_props,
+float W8Octree::SettleToGround(srVector3T<float>* position, bool* out_hit, char test_props,
                                float limit)
 {
     W8OctreeTrace trace;
@@ -2190,7 +2190,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, unsigned char* out_h
     srVector3T<float> start;
     srVector3T<float> end;
     bool prop_hit = false;
-    char hit = 0;
+    bool hit = false;
 
     m_gd_result_count_1b8 = 0;
     if (test_props != 0) {
@@ -2242,7 +2242,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, unsigned char* out_h
             if (hit == 0) {
             descend:
                 if (prop_hit) {
-                    hit = 1;
+                    hit = true;
                 } else {
                     float level = static_cast<float>(cell[1]);
                     --cell[1];
@@ -2276,7 +2276,7 @@ out:
 // FUNCTION: WIZ8 0x00431d20
 bool W8Octree::SnapToGround(srVector3T<float>* position, char mode)
 {
-    unsigned char hit = 0;
+    bool hit = false;
     if (position->y > spatial_000.clipped_maximum_30.y) {
         position->y = spatial_000.clipped_maximum_30.y;
     }
@@ -2286,7 +2286,7 @@ bool W8Octree::SnapToGround(srVector3T<float>* position, char mode)
     if (hit != 0) {
         position->y = probe.y;
     }
-    return hit != 0;
+    return hit;
 }
 
 /* Whether one point can see another, and where the line stops if it cannot.
@@ -2412,7 +2412,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
     int end_cell[3];
     int step[3];
 
-    char blocked = 0;
+    bool blocked = false;
     char previous = 0;
     int span;
     int error_0;
@@ -2531,7 +2531,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                 goto resolve;
             }
         } else {
-            blocked = 1;
+            blocked = true;
         }
         result = 1;
         if (blocked != 0) {
@@ -4924,7 +4924,7 @@ int* W8Octree::WorldPositionToCell(const srVector3T<float>* position, int* point
 void W8Octree::AdjustPosition(srVector3T<float>* position, unsigned int mode)
 {
     srVector3T<float> adjusted;
-    unsigned char hit = 0;
+    bool hit = false;
 
     if (spatial_000.clipped_maximum_30.y < position->y) {
         position->y = spatial_000.clipped_maximum_30.y;
@@ -4998,7 +4998,7 @@ void W8Octree::AdjustPortalDestination(srVector3T<float>* destination,
     srVector3T<float> local_destination;
     srVector3T<float> local_source;
     srVector3T<float> probe;
-    unsigned char hit;
+    bool hit;
 
     if (pathing_180 == 0) {
         return;
@@ -5009,7 +5009,7 @@ void W8Octree::AdjustPortalDestination(srVector3T<float>* destination,
     local_destination = *destination;
     local_source = *source;
 
-    hit = 0;
+    hit = false;
     if (local_destination.y > spatial_000.clipped_maximum_30.y) {
         local_destination.y = spatial_000.clipped_maximum_30.y;
     }
@@ -5019,7 +5019,7 @@ void W8Octree::AdjustPortalDestination(srVector3T<float>* destination,
         local_destination.y = probe.y;
     }
 
-    hit = 0;
+    hit = false;
     if (local_source.y > spatial_000.clipped_maximum_30.y) {
         local_source.y = spatial_000.clipped_maximum_30.y;
     }
