@@ -492,7 +492,6 @@ def test_launcher_uses_one_proxy_path(
 ) -> None:
     from wiz8decomp.debug.debugger import run_debugger
 
-    monkeypatch.setenv("WIZ8_RUNTIME_RUNNER", "wine")
     monkeypatch.delenv("WIZ8_RUNTIME_VIDEO_CONFIG", raising=False)
 
     executable = tmp_path / product
@@ -502,6 +501,7 @@ def test_launcher_uses_one_proxy_path(
         work_dir=tmp_path,
         product_build_dir=tmp_path,
         recovered_objects_dir=tmp_path,
+        runtime_toolchain_dir=tmp_path / "runtime-toolchain",
     )
     config = tmp_path / "config/runtime/3DVideo.CFG"
     config.parent.mkdir(parents=True)
@@ -514,14 +514,13 @@ def test_launcher_uses_one_proxy_path(
             map=None,
         ),
     )
-    configure_window = Mock()
-    monkeypatch.setattr(
-        "wiz8decomp.debug.debugger.configure_wine_window_management", configure_window
-    )
     monkeypatch.setattr(
         "wiz8decomp.debug.debugger.runtime_display", lambda *a, **kw: nullcontext(None)
     )
     monkeypatch.setattr("wiz8decomp.debug.debugger._stop_debug_wineserver", Mock())
+    monkeypatch.setattr(
+        "wiz8decomp.debug.debugger.require_umu_runner", lambda environment: "/prepared/umu-run"
+    )
     monkeypatch.setattr(
         "wiz8decomp.debug.debugger._write_provenance", lambda *a: tmp_path / "session.json"
     )
@@ -541,7 +540,13 @@ def test_launcher_uses_one_proxy_path(
 
     run_debugger(settings, scenario=scenario)
 
-    configure_window.assert_called_once_with(ANY, private_display=False)
     command = popen.call_args.args[0]
-    assert command[:4] == ["winedbg", "--gdb", "--no-start", "--port"]
-    assert command[5:] == [str(executable), *arguments]
+    assert command[:6] == [
+        "/prepared/umu-run",
+        "winedbg.exe",
+        "--gdb",
+        "--no-start",
+        "--port",
+        command[5],
+    ]
+    assert command[6:] == [str(executable), *arguments]
