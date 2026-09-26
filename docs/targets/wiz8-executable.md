@@ -61,9 +61,9 @@ while every writable path stays under `build/`. The prepared `gog-base` variant 
 Interactive runs, debugging, and runtime scenarios default to the pinned GE-Proton 11-7 and
 umu-launcher materialized by `wiz8 prepare` under `WIZ8_WORK_DIR/runtime-toolchain`, with umu's
 own Steam Runtime/cache state kept under the same tree. The default video config is Glide2x at
-800×600. `PROTONPATH` and `WIZ8_UMU_RUN` are explicit overrides;
-`WIZ8_RUNTIME_RUNNER=wine` and `WIZ8_RUNTIME_VIDEO_CONFIG=config/runtime/3DVideo.Software.CFG`
-select the system-Wine software-renderer setup used by CI.
+800×600. CI runs that same prepared umu + GE-Proton stack and video configuration; it does not use
+a separate system-Wine runtime path. `PROTONPATH` and `WIZ8_UMU_RUN` remain explicit developer
+overrides of the prepared tools.
 
 `uv run wiz8 runtime-test` uses the existing semantic-test image; pass `--build` to refresh it. It
 defaults to the private display and judges only `WIZ8_RUNTIME_TEST`; set
