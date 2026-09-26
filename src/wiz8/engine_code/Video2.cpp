@@ -2002,10 +2002,9 @@ void ReleaseSurfaceNode(srNode* node)
     if (node == 0) {
         return;
     }
-    int index = 0;
-    for (srNode** slot = g_surface_nodes; slot < g_surface_nodes + 0x12c0; ++slot, ++index) {
-        if (*slot == node) {
-            *slot = 0;
+    for (int index = 0; index < 0x12c0; ++index) {
+        if (g_surface_nodes[index] == node) {
+            g_surface_nodes[index] = 0;
             g_tile_dirty_flags[index] = 0;
         }
     }
