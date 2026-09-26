@@ -1530,7 +1530,7 @@ void W8Monster::Update()
                     m_pRep->frame_direction_06e = 1;
                     m_pRep->pending_behaviour_071 = 1;
                     m_pRep->active = 1;
-                    m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_subcycle_066 = 0;
                 }
                 break;
@@ -1547,7 +1547,7 @@ void W8Monster::Update()
                         m_pRep->pending_cycle = 1;
                     }
                     m_pRep->active = 1;
-                    m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_subcycle_066 = 0;
                 }
                 break;
@@ -1556,7 +1556,7 @@ void W8Monster::Update()
                     m_pRep->pending_cycle = 1;
                     m_pRep->frame_direction_06e = 1;
                     m_pRep->active = 1;
-                    m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_behaviour_071 = 3;
                     m_pRep->pending_subcycle_066 = 0;
                 }
@@ -1585,7 +1585,7 @@ void W8Monster::Update()
                         }
                         m_pRep->active = 1;
                         m_pRep->timer_068 =
-                            g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+                            g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     }
                 }
                 break;
@@ -1604,7 +1604,7 @@ void W8Monster::Update()
                         m_pRep->pending_subcycle_066 = 0;
                     }
                     m_pRep->active = 1;
-                    m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                 }
                 break;
             case 3:
@@ -1616,7 +1616,7 @@ void W8Monster::Update()
                         m_pRep->pending_cycle = 4;
                     }
                     m_pRep->active = 1;
-                    m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_behaviour_071 = 3;
                     m_pRep->pending_subcycle_066 = 0;
                 }
@@ -1625,7 +1625,7 @@ void W8Monster::Update()
                 if (Query(7) != 0) {
                     m_pRep->pending_cycle = 1;
                     m_pRep->active = 1;
-                    m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_behaviour_071 = 3;
                     m_pRep->pending_subcycle_066 = 0;
                 }
@@ -1646,7 +1646,7 @@ void W8Monster::Update()
         (m_pRep->pending_cycle == -1 || m_pRep->pending_cycle == 1 || m_pRep->pending_cycle == 2) &&
         (g_combat_state->eCombatActionStatus != 2 || g_combat_state->pActionMonsterInfo == 0 ||
          g_combat_state->pActionMonsterInfo->location_id != location_id_1e4)) {
-        m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+        m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     }
 
     if (monster_info != 0 && monster_info->uiCondition[5] != 0) {
@@ -2066,7 +2066,7 @@ void W8Monster::ProcessScript()
                         m_pRep->pending_cycle = (signed char)cycle;
                         m_pRep->active = 1;
                         m_pRep->timer_068 =
-                            g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+                            g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                         SetSubCycle(0);
                         m_pRep->forced_subcycle_0a6 = subcycle - 1;
                         if (m_pRep->pending_cycle == -1) {
@@ -2138,7 +2138,7 @@ void W8Monster::ProcessScript()
                 m_pRep->pending_behaviour_071 = 1;
                 m_pRep->pending_cycle = 0x15;
                 m_pRep->active = 1;
-                m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+                m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                 SetSubCycle(0);
                 break;
             case MONSCR_END:
