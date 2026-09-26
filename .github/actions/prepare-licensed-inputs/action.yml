@@ -24,8 +24,12 @@ runs:
         path: ${{ env.WIZ8_WORK_DIR }}/fid/sources
         key: wiz8-fid-sources-v1-${{ hashFiles('config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
 
+    - name: Restore pinned runtime toolchain cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.WIZ8_WORK_DIR }}/runtime-toolchain
+        key: wiz8-runtime-toolchain-v1-${{ runner.os }}-${{ hashFiles('tools/wiz8decomp/runtime_toolchain.py') }}
+
     - name: Prepare full runtime corpus
       shell: bash
-      env:
-        WIZ8_RUNTIME_RUNNER: wine
       run: uv run wiz8 prepare
