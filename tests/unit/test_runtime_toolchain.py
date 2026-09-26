@@ -36,7 +36,9 @@ def _tar_with_file(path: Path, root: str, relative: str, data: bytes) -> None:
 def test_runtime_toolchain_paths_are_checkout_local(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
 
-    assert umu_run_path(settings) == settings.work_dir / "runtime-toolchain/umu-launcher-1.4.4/umu-run"
+    assert umu_run_path(settings) == (
+        settings.work_dir / "runtime-toolchain/umu-launcher-1.4.4/umu-run"
+    )
     assert ge_proton_path(settings) == settings.work_dir / "runtime-toolchain/GE-Proton11-7-x86_64"
     assert ge_proton_wineserver_path(settings) == (
         settings.work_dir / "runtime-toolchain/GE-Proton11-7-x86_64/files/bin/wineserver"
