@@ -814,7 +814,7 @@ void SaveTriggerActionData(W8World* world, int handle)
    a version/count header, then per record the trigger name and its 0x100-byte
    inline payload. Records for missing triggers are skipped with a seek. */
 // FUNCTION: WIZ8 0x0043d1f0
-bool LoadTriggerActionData0043D1F0(int handle)
+bool LoadTriggerActionData(int handle)
 {
     int version;
     int saved_count;
@@ -1439,7 +1439,7 @@ void Trigger::SetPosition004416F0(srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x004417c0
-W8TriggerActionData* LoadTriggerActionData004417C0(int handle)
+W8TriggerActionData* ReadDoorTriggerActionData(int handle)
 {
     W8DoorTriggerActionData* data = new W8DoorTriggerActionData;
     data->type_004 = 10;
@@ -1563,7 +1563,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 unsigned char action_data_kind;
                 FileRead(handle, &action_data_kind, 1, 0);
                 if (action_data_kind == 1) {
-                    trigger->m_pActionData = LoadTriggerActionData004417C0(handle);
+                    trigger->m_pActionData = ReadDoorTriggerActionData(handle);
                     trigger->state_index =
                         (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->flags_008 &
                          1) != 0;
@@ -2052,7 +2052,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             unsigned char action_data_kind;
             FileRead(handle, &action_data_kind, 1, 0);
             if (action_data_kind == 1) {
-                trigger->m_pActionData = LoadTriggerActionData004417C0(handle);
+                trigger->m_pActionData = ReadDoorTriggerActionData(handle);
                 trigger->state_index =
                     (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->flags_008 &
                      1) != 0;

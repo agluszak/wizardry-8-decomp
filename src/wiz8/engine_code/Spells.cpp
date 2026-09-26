@@ -508,7 +508,7 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(W8ReadLevelInfo* info,
                      "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x25a, 0);
     }
     animation = CreateAnimObj();
-    success = AnimObjReadFromFile004A05C0(info, animation, 1, lights, 1);
+    success = AnimObjReadFromFile(info, animation, 1, lights, 1);
     emitter = static_cast<signed char>(animation->cycle);
 
     if (lights->GetCount() == 0) {

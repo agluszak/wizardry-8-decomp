@@ -1602,7 +1602,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
             }
         }
         animation = CreateAnimObj();
-        result = AnimObjReadFromFile004A05C0(info, animation, 1, 0, 1);
+        result = AnimObjReadFromFile(info, animation, 1, 0, 1);
         this->animation = animation;
         if (AnimationIsRunning(animation) == 1) {
             animation->frame_count_16 = frame_count;

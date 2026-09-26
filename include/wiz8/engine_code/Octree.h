@@ -709,5 +709,5 @@ extern unsigned char g_render_untextured;
 
 int CheckLevelAssetSet(const char* level_path);
 
-unsigned long* __fastcall PackColour00433FB0(unsigned long* color, double red, double green,
-                                             double blue, double alpha);
+unsigned long* __fastcall PackColourToLong(unsigned long* color, double red, double green,
+                                           double blue, double alpha);

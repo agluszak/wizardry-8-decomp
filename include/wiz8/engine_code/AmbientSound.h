@@ -126,7 +126,7 @@ void BuildFootstepPath(char* path, signed char surface, signed char material, ch
 int PlayFootstep(signed char surface, signed char material, int kind);
 void UpdateAmbientSounds(W8World* world);
 void RepositionAmbientSounds(W8World* world);
-unsigned char LoadAmbientSoundList0047AB40(char* filename);
+unsigned char ReadAmbientSoundListFile(char* filename);
 
 void PositionAmbientSoundByName(W8World* /* unused */, const char* name);
 void StopAmbientSoundByName(W8World* /* unused */, const char* name);
@@ -143,7 +143,7 @@ unsigned char AddAmbientSound(W8World* world, const char* name, const W8AmbientS
                               const srVector3T<float>* region_scale, unsigned char shared);
 
 void SaveAmbientSoundList(HWFILE handle);
-void LoadAmbientSoundList0047B270(HWFILE handle);
+void LoadAmbientSoundList(HWFILE handle);
 
 bool IsSoundEffectsMuted(void);
 unsigned char GetSoundEffectsVolume(void);

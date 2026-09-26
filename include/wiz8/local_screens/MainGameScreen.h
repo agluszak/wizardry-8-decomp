@@ -709,4 +709,4 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, struct W8Reg
 void SetNpcDialogueSubMode4(void);
 void ConfirmNpcTradeItem(void);
 void RestockNpcTradeStock(void);
-void OpenNpcTradeSplitDialog005AE040(void);
+void OpenNpcTradeQuantityDialog(void);

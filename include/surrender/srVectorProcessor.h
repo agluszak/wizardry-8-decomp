@@ -19,7 +19,7 @@ class srDebugVP;
    FUN_00474730, FlushSlots, FUN_0047f930, FUN_00486970,
    PrepareGeometry, GDProp::Initialize, FUN_00580270 and FUN_005809f0.
    Offsets +0x210/+0x218/+0x224 are the srVector3 `_length`, `_normalize`
-   and `_transform` slots. FillDwordBuffer00474700 / AddFloatBuffer call the dword
+   and `_transform` slots. FillDwordBuffer / AddFloatBuffer call the dword
    `_copy` and float `_add` overloads; both compare exact against retail
    CALLIND +0x38 / +0xd8. */
 class srVectorProcessor {

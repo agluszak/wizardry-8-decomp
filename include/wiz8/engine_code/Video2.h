@@ -162,7 +162,7 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional);
 void DrawVideoInspector(int left, unsigned int top);
 /* 0x00428830: the option-4-suppressed render probe - draws the node between
    the dynamic scene's bracketing passes and returns the sampled statistic. */
-unsigned int MeasureNodeRender00428830(srNode* node);
+unsigned int MeasureNodeRenderWithoutPositionalOption(srNode* node);
 /* 0x00424EB0: build the 2D polygon-brush model instance over a surface;
    RenderAutomapMarkers' item-marker factory calls it cross-TU. */
 srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, double width,
@@ -186,7 +186,7 @@ void SetRendererModePair(void);
    link builder uses to count a mesh's drawn faces — begin the probe pass,
    draw the node and return its covered-face count, then end the pass. */
 void BeginRenderProbe(void);
-unsigned int MeasureNodeRender004289E0(srNode* node);
+unsigned int MeasureNodeRender(srNode* node);
 void EndRenderProbe(void);
 
 #endif
@@ -293,7 +293,7 @@ IDirectDrawSurface2* BeginVideoPresentation(void);
 unsigned char FinishVideoPresentation(void);
 void PublishLightDirection(const EnvironmentColour* direction);
 void GetWorldColour(EnvironmentColour* colour); /* 0x00427290 */
-srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color);
+srVector3T<float>* __fastcall SaturateColor(srVector3T<float>* color);
 void ReleaseObject(srClass* object);
 void Initialize16BitPixelFormatMasks(void);
 unsigned char CreateWizardryWindow(void);

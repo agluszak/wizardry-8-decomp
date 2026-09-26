@@ -55,7 +55,7 @@ static_assert(sizeof(W8OctRegionPolygon) == 0x74, "W8OctRegionPolygon_must_be_0x
 
 /* Grows `*run` to (count + capacity) dwords when count lands on a capacity
    boundary, preserving existing entries. */
-int CheckArrayLength004CFB70(int** run, unsigned short count, unsigned short capacity);
+int CheckArrayLength(int** run, unsigned short count, unsigned short capacity);
 
 extern int g_build_node_instances;
 extern unsigned long g_poly_list_count;

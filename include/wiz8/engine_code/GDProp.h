@@ -70,7 +70,7 @@ public:
        it to the out parameters. */
     void ComputeBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
     /* Box-vs-bound test used by the pre-tree path obstruction pass. */
-    char BoundsOverlap004B7620(const srVector3T<float>* minimum, const srVector3T<float>* maximum);
+    char BoundsOverlap(const srVector3T<float>* minimum, const srVector3T<float>* maximum);
     /* Appends the index to the waypoint list when the grid point lies inside
        the path bounds; the list grows ten entries at a time. */
     unsigned char RegisterPathSurface(unsigned int index, const srVector2i* point);
@@ -103,7 +103,7 @@ private:
     Trigger* m_owner_24;                 /* 0x24: installed by 0x004B7470 */
     W8PathVerticalRange m_path_range_28; /* 0x28 */
     /* Vertex AABB cached by ComputeBounds and tested by
-       BoundsOverlap004B7620. */
+       BoundsOverlap. */
     srVector3T<float> m_bound_min_34;  /* 0x34 */
     srVector3T<float> m_bound_max_40;  /* 0x40 */
     W8PathGridBounds m_path_bounds_4c; /* 0x4c */

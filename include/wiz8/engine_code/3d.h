@@ -59,7 +59,7 @@ bool SphereInsideFrustum(const srVector3T<float>* point, float radius, const W8P
 bool PointInsideTriangle(const srVector3T<float>* vertices, short axis,
                          const srVector3T<float>* point);
 /* Build the six frustum planes from the eight sorted corner points. */
-void BuildFrustumPlanes0046D7E0(const srVector3T<float>* points, W8Plane* planes);
+void BuildFrustumPlanes(const srVector3T<float>* points, W8Plane* planes);
 /* Order a volume's eight corner points into the canonical (y,z,x)-sorted
    sequence the frustum plane builder expects. */
 void SortFrustumCorners(srVector3T<float>* points);
@@ -69,8 +69,8 @@ void SortFrustumCorners(srVector3T<float>* points);
 bool BoundsInsideFrustum(const W8OctRegionVolume* volume, const W8BoundingBox* bounds);
 char TraceLineOfSightToBounds(const srVector3T<float>* origin, srVector3T<float>* minimum,
                               srVector3T<float>* maximum);
-bool HasLineOfSightToBounds0046FD70(const srVector3T<float>* origin, srVector3T<float>* minimum,
-                                    srVector3T<float>* maximum);
+bool HasLineOfSightToBounds(const srVector3T<float>* origin, srVector3T<float>* minimum,
+                            srVector3T<float>* maximum);
 unsigned char ShowTargetMarker(const srVector3T<float>* eye, const srVector3T<float>* lower,
                                const srVector3T<float>* upper); /* 0x0046F820 */
 
@@ -80,8 +80,8 @@ double WorldGetFarClip(W8World* world);
 void WorldSetFarClip(W8World* world, float distance);
 void WorldSetRenderRange(W8World* world, float value);
 stLight* CreateLight(srNode* parent, const char* name);
-stLight* CreateWorldLight0046E030(W8World* world, const char* name);
-stLight* CreateWorldLight0046E140(W8World* world, const char* name);
+stLight* CreateWorldLight(W8World* world, const char* name);
+stLight* CreateRangedWorldLight(W8World* world, const char* name);
 void ConfigureWorldLight(srLight* light, float range);
 void WorldRemoveLight(W8World* world, stLight* light); /* 0x0046E250 */
 void DestroyWorldLights(W8World* world);

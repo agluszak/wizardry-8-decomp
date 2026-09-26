@@ -489,15 +489,15 @@ void NpcDialogueTextBoxWheelAt(short x, unsigned short y, char flag); /* 0x0056F
 /* True when an NPC quote/portrait session is active: finish voice playback and
    report that the click was consumed. */
 bool FinishNpcVoiceIfSessionActive(void); /* 0x00577A20 */
-void ToggleNpcTradeFilter00573660(void);
-void ToggleNpcTradeFilter00573730(void);
-void ToggleNpcTradeFilter00573800(void);
-void ToggleNpcTradeFilter005738D0(void);
-void ToggleNpcTradeFilter005739A0(void);
-void ToggleNpcTradeFilter00573A10(void);
+void ToggleNpcTradeFilterButton0(void);
+void ToggleNpcTradeFilterButton1(void);
+void ToggleNpcTradeFilterButton3(void);
+void ToggleNpcTradeFilterButton4(void);
+void ToggleNpcTradeFilterButton2(void);
+void ToggleNpcTradeFilterButton5(void);
 void BackOutNpcDialogue(void);
-void SubmitNpcDialogueInput00575B00(void);
-void SubmitNpcDialogueInput00575B40(void);
+void SubmitNpcWhereIsQuery(void);
+void SubmitNpcDialogueInput(void);
 void SelectNpcDialogueService(void);
 void SelectNpcDialogueTalk(void);
 void SelectNpcDialogueExit(void);
@@ -531,13 +531,13 @@ void RequestNpcSpellService41(void);
 void RequestNpcCharacterService(void);
 void OnNpcTradeDialogClosed(W8DialogBase* dialog);
 void UpdateNpcTradeSelection(int index, int, int);
-void OpenNpcTradeSplitDialog00572780(void);
+void OpenNpcGoldAmountDialog(void);
 /* The dialogue text-box's button-up/double-click handlers, dispatched from
    NpcDialogueTextBoxRegionEvent. */
 void NpcDialogueTextBoxLeftUp(int x, int y);      /* 0x0056F530 */
 void NpcDialogueTextBoxRightUp(int x, int y);     /* 0x0056F6B0 */
 void NpcDialogueTextBoxDoubleClick(int x, int y); /* 0x0056F840 */
-/* W8SplitAmountDialog destroy callback installed by OpenNpcTradeSplitDialog00572780. */
+/* W8SplitAmountDialog destroy callback installed by OpenNpcGoldAmountDialog. */
 void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog);         /* 0x00572870 */
 W8ItemInstance* ResolveNpcTradeRow(int index, char, char, char); /* 0x005729C0 */
 bool NpcTradeItemAllowed(W8ItemInstance* item);                  /* 0x00573190 */

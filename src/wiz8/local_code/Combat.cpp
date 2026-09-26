@@ -2535,7 +2535,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             result = IsMonsterControlPointInRange(monster_info) != 0;
             break;
         case 0:
-            result = StartMonsterAttack0053FEA0(monster_info, record);
+            result = StartMonsterAttack(monster_info, record);
             break;
         case 2: {
             int spell_id = monster_info->action_detail;

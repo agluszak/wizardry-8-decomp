@@ -223,7 +223,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     }
 
     if (game_data_path[0] != '\0' && world->m_owned_04c == 0) {
-        world->m_owned_04c = ReadGameData00447570(game_data_path, false);
+        world->m_owned_04c = ReadGameData(game_data_path, false);
         if (world->m_owned_04c != 0 && InitializeGameData(world->m_owned_04c) == 0) {
             return 0;
         }
@@ -231,7 +231,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
 
     SetSceneAmbientLightWhite(world->static_scene);
     world->camera = CreateOrSetGameCamera(world->static_scene, 0);
-    world->camera_light = CreateWorldLight0046E140(world, "CameraLight");
+    world->camera_light = CreateRangedWorldLight(world, "CameraLight");
     world->camera_light->ambient_198.SetZero();
     world->camera_light->diffuse_1a4.Set(1.0f, 0.85f, 0.39f);
     world->camera_light->specular_1b0.SetZero();

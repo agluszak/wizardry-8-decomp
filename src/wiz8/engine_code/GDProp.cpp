@@ -318,8 +318,7 @@ unsigned char GDProp::ContainsPathCoordinate(unsigned short x, unsigned short y)
    copied into a local two-vector box and each surface's three vertices are
    gathered into a triangle before the spatial triangle test runs. */
 // FUNCTION: WIZ8 0x004b7620
-char GDProp::BoundsOverlap004B7620(const srVector3T<float>* minimum,
-                                   const srVector3T<float>* maximum)
+char GDProp::BoundsOverlap(const srVector3T<float>* minimum, const srVector3T<float>* maximum)
 {
     srVector3T<float> bounds[2];
     srVector3T<float> triangle[3];

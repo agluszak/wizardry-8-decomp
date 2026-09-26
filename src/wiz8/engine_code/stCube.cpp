@@ -238,7 +238,7 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     }
 
     unsigned long packed;
-    PackColour00433FB0(&packed, 1.0, 0.0, 0.0, 0.5);
+    PackColourToLong(&packed, 1.0, 0.0, 0.0, 0.5);
     SetWorldCursorNodeColor(entry, packed);
     DrawWorldCursorNodeLabel(entry);
     entry->pUserdata = 0;
@@ -506,7 +506,7 @@ void SetWorldCursorNodeColor(W8WorldCursorNode* entry, unsigned long color)
 void SetWorldCursorNodeColorComponents(W8WorldCursorNode* entry, float red, float green, float blue)
 {
     unsigned long packed;
-    SetWorldCursorNodeColor(entry, *PackColour00433FB0(&packed, 1.0, red, green, blue));
+    SetWorldCursorNodeColor(entry, *PackColourToLong(&packed, 1.0, red, green, blue));
 }
 
 // FUNCTION: WIZ8 0x0048e470
@@ -832,7 +832,7 @@ W8WorldCursorNode* FindWorldCursorNodeAtPoint(W8WorldCursorNode* after, srVector
             bounds.maximum.x += static_cast<float>(location.x);
             bounds.maximum.y += static_cast<float>(location.y);
             bounds.maximum.z += static_cast<float>(location.z);
-            if (PointInsideBounds004BE870(point, &bounds.minimum, &bounds.maximum) != 0) {
+            if (PointInsideBounds(point, &bounds.minimum, &bounds.maximum) != 0) {
                 return entry;
             }
         }

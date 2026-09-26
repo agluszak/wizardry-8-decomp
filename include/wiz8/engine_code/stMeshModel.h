@@ -133,7 +133,7 @@ int __fastcall IsZeroVector(const srVector3T<float>* vector);
 void CopyDwordBuffer(void* destination, const void* source, int count);
 /* Fill `count` dwords with `value`. FUN_00472270 uses this when a vec3's
    components are equal, passing vertex_count*3. */
-void FillDwordBuffer00474700(void* destination, unsigned int value, int count);
+void FillDwordBuffer(void* destination, unsigned int value, int count);
 /* Plain dword walk used by RenderTriMeshWithEquations's active-poly
    scratch resize and by stMeshModel clone's sunlight table copy. */
 void CopyUlongBuffer(unsigned long* destination, const unsigned long* source, unsigned long count);

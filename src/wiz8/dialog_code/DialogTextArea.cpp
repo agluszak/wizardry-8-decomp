@@ -381,7 +381,7 @@ void W8DialogTextArea::RebuildVisibleEntries()
                 int position;
                 for (position = 0; position < m_visible_lines_02c.count; ++position) {
                     CopyVisibleEntryText(position, other);
-                    if (CompareWideTextIgnoreAsciiCase00402920(text, other) < 0)
+                    if (CompareWideTextIgnoreAsciiCase(text, other) < 0)
                         break;
                 }
                 if (position == m_visible_lines_02c.count) {

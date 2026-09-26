@@ -65,7 +65,7 @@ float g_path_endpoint_scale = 0.9900000095367432f;
 /* Opens a game-data file, builds its record, and pulls the polygon and
    vertex banks through the record reader. */
 // FUNCTION: WIZ8 0x00447570
-W8GameData* ReadGameData00447570(const char* path, bool secondary)
+W8GameData* ReadGameData(const char* path, bool secondary)
 {
     HANDLE file = CreateFileA(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     W8GameData* game_data;

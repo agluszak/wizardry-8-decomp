@@ -996,7 +996,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                                        chunk_id == 0x534b434c) { /* LCKS */
                                 LoadTriggerRuntimeStates(stream->m_hFile);
                             } else if (chunk_id == 0x53455254) { /* TRES */
-                                LoadTriggerActionData0043D1F0(stream->m_hFile);
+                                LoadTriggerActionData(stream->m_hFile);
                             } else if (chunk_id == 0x4f545541) { /* AUTO */
                                 LoadAutomapNotes(stream->m_hFile);
                             } else if (chunk_id == 0x47495254) { /* TRIG */
@@ -1008,7 +1008,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                             } else if (chunk_id == 0x534e474d) { /* MGNS */
                                 LoadMonsterGenerators(stream->m_hFile);
                             } else if (chunk_id == 0x53424d41) { /* AMBS */
-                                LoadAmbientSoundList0047B270(stream->m_hFile);
+                                LoadAmbientSoundList(stream->m_hFile);
                             } else if (chunk_id == 0x54524150) { /* PART */
                                 LoadParticleStates(stream->m_hFile);
                             } else if (chunk_id == 0x5448474c) { /* LGHT */
@@ -1076,7 +1076,7 @@ unsigned char LoadDefaultLevelStatus(unsigned int level)
                 } else if (chunk_id == 0x474e4f4d) { /* MONG */
                     MonGen::LoadAll(chunk.m_hFile);
                 } else if (chunk_id == 0x53455254) { /* TRES */
-                    LoadTriggerActionData0043D1F0(chunk.m_hFile);
+                    LoadTriggerActionData(chunk.m_hFile);
                 }
             }
             chunk.SkipCurrentChunk();

@@ -527,9 +527,9 @@ unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* spatial,
                        deterministic zero models that defect path. */
                     unsigned char intersects = 0;
                     if (mode == 6) {
-                        intersects = PointInsideBounds0046D4D0(&child.minimum_0c, geometry);
+                        intersects = PointInsideBoxBounds(&child.minimum_0c, geometry);
                     } else if (mode == 5) {
-                        intersects = BoundsOverlap0046D470(&child.minimum_0c, geometry);
+                        intersects = BoundsOverlapStrict(&child.minimum_0c, geometry);
                     }
 
                     W8OctBuildNode* parent = spatial->root_90;
@@ -668,7 +668,7 @@ unsigned short OctBuildPreTree::LoadRegionFile(const char* stem, srVector3T<floa
         }
         volume->value_18 = record.value_06;
         SortFrustumCorners(&volume->points_1c[1]);
-        BuildFrustumPlanes0046D7E0(&volume->points_1c[1], volume->planes_88);
+        BuildFrustumPlanes(&volume->points_1c[1], volume->planes_88);
     }
     CloseHandle(file);
     ReportBuildStatus(6, path);
@@ -790,7 +790,7 @@ unsigned char OctBuildPreTree::AssignPolygonRegions(W8OctPreTreeGeometry* geomet
             for (int corner = 0; corner != 3; ++corner) {
                 W8OctPreTreeVertex* vertex =
                     &geometry->vertices_04[poly->vertices_34[corner]->vertex_index_04];
-                CheckArrayLength004CFB70(&vertex->face_indices_44, vertex->face_count_40, 5);
+                CheckArrayLength(&vertex->face_indices_44, vertex->face_count_40, 5);
                 vertex->face_indices_44[vertex->face_count_40] = polygon;
                 ++vertex->face_count_40;
             }

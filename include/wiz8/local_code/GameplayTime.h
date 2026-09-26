@@ -16,7 +16,7 @@ void ResolveSurpriseHold(void);
 /* 0x00503100: per-character share of the 0x00502D00 aging tick - damage/heal/
    stamina/spell-point modifiers, disease progression, regen accumulators and
    the condition/enchantment countdowns. */
-void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes);
+void GameTurnsPassedChar(int party_slot, unsigned int minutes);
 /* 0x005044D0: camping fatigue tick - rolls fatigue dice per character. */
 void UpdateCampFatigue(int ticks);
 /* 0x00504670: stamina driver - refreshes the wait state then ticks each

@@ -285,7 +285,7 @@ void InitializeStateDrivenPropVariables(Trigger* trigger);
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 
 Trigger* FindTriggerByName(const char* name);
-W8TriggerActionData* LoadTriggerActionData004417C0(int handle);
+W8TriggerActionData* ReadDoorTriggerActionData(int handle);
 /* The TRES save chunk: the world's triggers, their runtime states, and their
    action data. */
 int ResetNextTriggerId(void);
@@ -294,7 +294,7 @@ bool LoadWorldTriggers(W8World* world, int handle);
 void SaveTriggerRuntimeStates(W8World* world, int handle, bool restoring);
 bool LoadTriggerRuntimeStates(int handle);
 void SaveTriggerActionData(W8World* world, int handle);
-bool LoadTriggerActionData0043D1F0(int handle);
+bool LoadTriggerActionData(int handle);
 
 extern unsigned char g_trigger_feedback;
 extern unsigned char g_flag_0068506e;

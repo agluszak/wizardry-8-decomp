@@ -371,9 +371,9 @@ const char* g_monster_script_commands[MONSCR_COUNT] = {"GOTO",
    movement settings, visual flags, sound/shake events, skin stages, lights,
    and the list of binary .mon cycles. */
 // FUNCTION: WIZ8 0x004c0300
-unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
-                                           const char* monster_name, W8Monster** monster,
-                                           int load_value, int location_id)
+unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
+                                       const char* monster_name, W8Monster** monster,
+                                       int load_value, int location_id)
 {
     W8Monster* shared = static_cast<W8Monster*>(FindFirstGrCycleByName(monster_name));
     if (shared != 0) {
@@ -1035,7 +1035,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
     }
 
     animation = CreateAnimObj();
-    success = AnimObjReadFromFile004A05C0(info, animation, value, lights, 0);
+    success = AnimObjReadFromFile(info, animation, value, lights, 0);
     if (cycle_index == -1) {
         cycle_index = static_cast<signed char>(animation->cycle);
     }
@@ -2634,7 +2634,7 @@ unsigned char W8Monster::IsVisibleToPlayer004C4920(unsigned char use_bounds)
             position = GetPosition();
             maximum += position;
         }
-        return HasLineOfSightToBounds0046FD70(&player_position, &minimum, &maximum);
+        return HasLineOfSightToBounds(&player_position, &minimum, &maximum);
     }
 
     srVector3T<float> monster_position = movement_0c0.position_040;
@@ -4659,11 +4659,10 @@ void NotifyMonsterHighlight(int party_slot, int location_id, int on)
 /* The public forwarding boundary preserves the loader's AL result. Both
    MonsterManager callers assert that result immediately after this call. */
 // FUNCTION: WIZ8 0x004c58e0
-unsigned char MonsterReadAllCycles004C58E0(const W8GrCycleLoadContext* context,
-                                           const char* monster_name, W8Monster** monster,
-                                           int load_value, int location_id)
+unsigned char MonsterReadAllCycles(const W8GrCycleLoadContext* context, const char* monster_name,
+                                   W8Monster** monster, int load_value, int location_id)
 {
-    return MonsterReadAllCycles004C0300(context, monster_name, monster, load_value, location_id);
+    return ReadOrCloneMonsterCycles(context, monster_name, monster, load_value, location_id);
 }
 
 /* Load one monster cycle through GrCycle's polymorphic factory boundary, then
@@ -4976,7 +4975,7 @@ unsigned char W8Monster::ReplaceSkinTexture(int stage, const char* old_name, con
     unsigned char replaced = 0;
 
     sprintf(path, "Data\\Monsters\\Bitmaps\\%s", new_name);
-    srTextureIFace* texture = LoadTexture004B9460(path, 0, 1);
+    srTextureIFace* texture = LoadTextureFromPath(path, 0, 1);
     if (texture == 0) {
         ShutdownWithErrorBox(FormatString("Missing skin texture: %s", new_name));
         return 0;
@@ -5140,7 +5139,7 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
             material->setDiffuse(colour);
             particle->SetRetainedObject(material);
             particle->SetTexture(
-                LoadTexture004B95D0("Data\\Monsters\\Bitmaps\\", "BloodParticle.tga", 1));
+                LoadTextureFromFolder("Data\\Monsters\\Bitmaps\\", "BloodParticle.tga", 1));
             shader.value = 0x100c4b3;
             particle->SetRenderFlags(shader);
             particle->particle_size_140 = 20.0;

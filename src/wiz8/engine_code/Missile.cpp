@@ -141,7 +141,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
     if (gXStatus.world_update_blocked != 0) {
         return 1;
     }
-    advance = AdvanceMissileAI004A50A0(record, &out, delta);
+    advance = AdvanceMissileAI(record, &out, delta);
     remaining = missile->duration_1f8 - record->elapsed_14 + 1.0f;
     if (remaining <= advance) {
         advance = remaining;
@@ -189,7 +189,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
    flags the record when a prop blocks the path and fires the prop's
    missile trigger. Returns the distance the step covered. */
 // FUNCTION: WIZ8 0x004a50a0
-float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out, unsigned int steps)
+float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int steps)
 {
     W8MissileRep* representation;
     W8Missile* missile;
@@ -929,7 +929,7 @@ unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missi
         srAssertFail("pInfo && pInfo->hFile && pMissile", MISSILE_CPP, 0x1df, 0);
     }
     animation = CreateAnimObj();
-    success = AnimObjReadFromFile004A05C0(info, animation, 1, lights, 1);
+    success = AnimObjReadFromFile(info, animation, 1, lights, 1);
     emitter = static_cast<signed char>(animation->cycle);
 
     if (lights->GetCount() == 0) {

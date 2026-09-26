@@ -1373,11 +1373,11 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
                     for (int i = 0; i < meshes.GetCount(); ++i) {
                         stModelInstance* mesh = *meshes.GetAt(i);
                         if (mesh != 0) {
-                            unsigned int faces = MeasureNodeRender004289E0(mesh);
+                            unsigned int faces = MeasureNodeRender(mesh);
                             all_known = 9 < faces;
                             srNode* child = mesh->firstChild();
                             while (child != 0 && descend != 0) {
-                                faces = MeasureNodeRender004289E0(child);
+                                faces = MeasureNodeRender(child);
                                 if (9 < faces) {
                                     all_known = true;
                                 }
@@ -1403,7 +1403,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
                         if (mesh != 0) {
                             unsigned int cell = static_cast<unsigned int>(*cells.GetAt(index));
                             if (cell != 0) {
-                                unsigned int faces = MeasureNodeRender004289E0(mesh);
+                                unsigned int faces = MeasureNodeRender(mesh);
                                 if (9 < faces) {
                                     sprintf(text, "%d, ", cell);
                                     NoOp();
@@ -1412,7 +1412,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
                                 }
                                 srNode* child = mesh->firstChild();
                                 while (child != 0 && descend != 0) {
-                                    faces = MeasureNodeRender004289E0(child);
+                                    faces = MeasureNodeRender(child);
                                     if (9 < faces) {
                                         m_projected_regions_15c->Set(cell);
                                         linked = true;
@@ -1747,7 +1747,7 @@ unsigned char W8Octree::UpdateWorldTrace()
     maximum.x = minimum.x + spatial_000.node_extent_70;
     maximum.y = minimum.y + spatial_000.node_extent_70;
     maximum.z = minimum.z + spatial_000.node_extent_70;
-    unsigned long* packed = PackColour00433FB0(&color, 0.0, 1.0, 0.0, 0.0);
+    unsigned long* packed = PackColourToLong(&color, 0.0, 1.0, 0.0, 0.0);
     DrawWorldBox(g_world, minimum, maximum, *packed);
     return 1;
 }
@@ -1758,8 +1758,8 @@ const double g_double_005ebf60 = 255.0;
 /* Pack four filtered colour components into the caller's unsigned long: red
    lands in the top byte and alpha in the low one. */
 // FUNCTION: WIZ8 0x00433fb0
-unsigned long* __fastcall PackColour00433FB0(unsigned long* color, double red, double green,
-                                             double blue, double alpha)
+unsigned long* __fastcall PackColourToLong(unsigned long* color, double red, double green,
+                                           double blue, double alpha)
 {
     unsigned char* bytes =
         reinterpret_cast<unsigned char*>(color); // reinterpret-ok: packed colour storage

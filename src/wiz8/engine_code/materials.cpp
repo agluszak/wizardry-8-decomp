@@ -270,8 +270,8 @@ int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry,
                         unsigned char* classify);
 int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry);
 unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* stem);
-int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
-                         unsigned char* classify);
+int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
+                 unsigned char* classify);
 void OctBuildOptions(char* stem);
 
 // FUNCTION: WIZ8 0x00492E60
@@ -477,7 +477,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
             ReportBuildStatus(6, message);
             ReportBuildStatus(6, "\nReading GameData...\n");
             sprintf(message, "%s.wgd", stem);
-            value = ReadGameData00447570(message, true);
+            value = ReadGameData(message, true);
             if (value == 0) {
                 ReportBuildStatus(7, "\n Error -- Cannot load or find game data.\n");
             } else {
@@ -748,8 +748,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                         tree->SetPropSunBits(sun_bits);
                     }
                     ReportBuildStatus(6, "\nSorting Materials and Textures...\n");
-                    result = MaterialSort00496500(&geometry, level->pTextures, level->nTextures,
-                                                  classify);
+                    result = MaterialSort(&geometry, level->pTextures, level->nTextures, classify);
                     if (result == 0) {
                         ReportBuildStatus(7, "Could not generate polygon list by regions.\n");
                     } else {
@@ -1774,8 +1773,8 @@ unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* ste
    string, remaps each polygon's material index at its group's representative
    and moves the old index into the texture slot. */
 // FUNCTION: WIZ8 0x00496500
-int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
-                         unsigned char* classify)
+int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
+                 unsigned char* classify)
 {
     char name[516];
     char* material_names;
@@ -2200,7 +2199,7 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
         if (strlen(texture_path) > 3 && _strnicmp(extension, ".IFL", 4) == 0) {
             *texture = LoadAnimatedTexture(texture_folder, texture_file, source, 1);
         } else {
-            *texture = LoadTexture004B95D0(texture_folder, texture_file, 1);
+            *texture = LoadTextureFromFolder(texture_folder, texture_file, 1);
         }
         if (*texture == 0) {
             return 0;
@@ -2360,7 +2359,7 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
 /* Load a texture by full path: split it into folder and file, then take the
    animated loader for .IFL names and the plain one for everything else. */
 // FUNCTION: WIZ8 0x004B9460
-srTextureIFace* LoadTexture004B9460(const char* path, const W8MaterialRecord* source,
+srTextureIFace* LoadTextureFromPath(const char* path, const W8MaterialRecord* source,
                                     unsigned char required)
 {
     char drive[_MAX_PATH];
@@ -2379,11 +2378,11 @@ srTextureIFace* LoadTexture004B9460(const char* path, const W8MaterialRecord* so
     if (strlen(path) > 3 && _strnicmp(extension, ".IFL", 4) == 0) {
         return LoadAnimatedTexture(texture_folder, texture_file, source, required);
     }
-    return LoadTexture004B95D0(texture_folder, texture_file, required);
+    return LoadTextureFromFolder(texture_folder, texture_file, required);
 }
 
 // FUNCTION: WIZ8 0x004B95D0
-srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned char required)
+srTexture* LoadTextureFromFolder(const char* folder, const char* name, unsigned char required)
 {
     char path[_MAX_PATH];
     char* extension;
@@ -2476,7 +2475,7 @@ stTextureAnim* LoadAnimatedTexture(const char* folder, const char* name,
         if (strlen(buffer) <= 2) {
             more = 0;
         } else {
-            srTexture* texture = LoadTexture004B95D0(folder, buffer, required);
+            srTexture* texture = LoadTextureFromFolder(folder, buffer, required);
             if (texture != 0) {
                 animation->AddTexture(texture);
             }

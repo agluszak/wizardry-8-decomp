@@ -21,13 +21,13 @@ float MonsterDistanceToCamera(W8World* world, W8Monster* monster);
 /* 0x004BE7C0: free-function twin of W8Item::DistanceToCamera for the item-list
    scans in ItemManager.cpp. */
 float ItemDistanceToCamera(W8World* world, W8Item* item);
-bool PointInsideBounds004BE870(const srVector3T<float>* point, const srVector3T<float>* minimum,
-                               const srVector3T<float>* maximum);
+bool PointInsideBounds(const srVector3T<float>* point, const srVector3T<float>* minimum,
+                       const srVector3T<float>* maximum);
 /* Per-axis overlap test for two axis-aligned bounds. */
-unsigned char BoundsOverlap004BE8D0(const srVector3T<float>* first_minimum,
-                                    const srVector3T<float>* first_maximum,
-                                    const srVector3T<float>* second_minimum,
-                                    const srVector3T<float>* second_maximum);
+unsigned char BoundsOverlap(const srVector3T<float>* first_minimum,
+                            const srVector3T<float>* first_maximum,
+                            const srVector3T<float>* second_minimum,
+                            const srVector3T<float>* second_maximum);
 unsigned char ProjectPointThroughCamera(const srVector3T<float>* position);
 
 #endif

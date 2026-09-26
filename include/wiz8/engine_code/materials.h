@@ -82,7 +82,7 @@ extern float g_material_emissive_override;
 unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* source,
                            srMaterialIFace** material, srTextureIFace** texture,
                            unsigned long* render_flags, int positional_unused);
-srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned char required);
+srTexture* LoadTextureFromFolder(const char* folder, const char* name, unsigned char required);
 stTextureAnim* LoadAnimatedTexture(const char* folder, const char* name,
                                    const W8MaterialRecord* source, unsigned char required);
 bool MeshHasAnimatedTexture(srMeshModel* model);
@@ -91,7 +91,7 @@ stTextureAnim* GetModelAnimatedTexture(srModelInstance* instance);
 
 unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace** texture,
                                     unsigned long* render_flags);
-srTextureIFace* LoadTexture004B9460(const char* path, const W8MaterialRecord* source,
+srTextureIFace* LoadTextureFromPath(const char* path, const W8MaterialRecord* source,
                                     unsigned char required);
 
 struct W8OctPreTreeVertex;

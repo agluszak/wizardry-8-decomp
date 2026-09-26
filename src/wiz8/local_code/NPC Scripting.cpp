@@ -189,38 +189,37 @@ int FindNpcNameOrPlaceQuote(W8NpcState* npc, wchar_t* text)
     int index;
     int band;
 
-    if (CompareWideTextIgnoreAsciiCase00402920(npc->record->source_name_004, text) == 0) {
+    if (CompareWideTextIgnoreAsciiCase(npc->record->source_name_004, text) == 0) {
         return 0x75;
     }
     for (index = 0; g_npc_named_quotes[index].name[0] != 0; ++index) {
-        if (CompareWideTextIgnoreAsciiCase00402920(text, g_npc_named_quotes[index].name) == 0) {
+        if (CompareWideTextIgnoreAsciiCase(text, g_npc_named_quotes[index].name) == 0) {
             if ((npc->record->name_alias_mask_060 & g_npc_named_quotes[index].mask) == 0) {
                 return -1;
             }
             return g_npc_named_quotes[index].quote;
         }
     }
-    if (CompareWideTextIgnoreAsciiCase00402920(text, L"Trang") == 0 &&
+    if (CompareWideTextIgnoreAsciiCase(text, L"Trang") == 0 &&
         (npc->record->name_alias_mask_060 & 0x40) != 0) {
         return 0x6d;
     }
     for (index = 0; g_npc_script_region_names[index].name[0] != 0; ++index) {
-        if (CompareWideTextIgnoreAsciiCase00402920(text, g_npc_script_region_names[index].name) ==
-            0) {
+        if (CompareWideTextIgnoreAsciiCase(text, g_npc_script_region_names[index].name) == 0) {
             band = GetLevelBand(g_status.current_level);
             return g_npc_region_quotes[g_npc_script_region_names[index].region][band];
         }
     }
-    if (CompareWideTextIgnoreAsciiCase00402920(text, L"Mt Gigas") == 0 ||
-        CompareWideTextIgnoreAsciiCase00402920(text, L"Gigas") == 0) {
+    if (CompareWideTextIgnoreAsciiCase(text, L"Mt Gigas") == 0 ||
+        CompareWideTextIgnoreAsciiCase(text, L"Gigas") == 0) {
         band = GetLevelBand(g_status.current_level);
         return g_npc_region_quotes[11][band];
     }
-    if (CompareWideTextIgnoreAsciiCase00402920(text, L"the swamp") == 0) {
+    if (CompareWideTextIgnoreAsciiCase(text, L"the swamp") == 0) {
         band = GetLevelBand(g_status.current_level);
         return g_npc_region_quotes[4][band];
     }
-    if (CompareWideTextIgnoreAsciiCase00402920(text, L"the Monastery") != 0) {
+    if (CompareWideTextIgnoreAsciiCase(text, L"the Monastery") != 0) {
         return -1;
     }
     band = GetLevelBand(g_status.current_level);
@@ -719,8 +718,8 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
         return;
     }
     if (notice_only == 0) {
-        if (CompareWideTextIgnoreAsciiCase00402920(plain_text, L"EMPTY") == 0 ||
-            CompareWideTextIgnoreAsciiCase00402920(plain_text, L"BLANK") == 0) {
+        if (CompareWideTextIgnoreAsciiCase(plain_text, L"EMPTY") == 0 ||
+            CompareWideTextIgnoreAsciiCase(plain_text, L"BLANK") == 0) {
             quote_index = g_npc_scripting.staging_restore.current_quote_index;
             if (quote_index != 0x67 && quote_index != 0x68 && quote_index != 0x69) {
                 return;
@@ -743,7 +742,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
             SoundPlay(fallback_path, &fallback_parms);
             return;
         }
-        if (CompareWideTextIgnoreAsciiCase00402920(plain_text, L"UNKNOWN") == 0) {
+        if (CompareWideTextIgnoreAsciiCase(plain_text, L"UNKNOWN") == 0) {
             quote_index = Random(100) < 50 ? 0x1c : 0x1d;
             line = new W8MessageBoxLine;
             memset(line, 0, sizeof(W8MessageBoxLine));
@@ -754,7 +753,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
             g_npc_scripting.message_lines.Add(line);
             return;
         }
-        if (CompareWideTextIgnoreAsciiCase00402920(plain_text, L"CLASSIFIED") == 0) {
+        if (CompareWideTextIgnoreAsciiCase(plain_text, L"CLASSIFIED") == 0) {
             line = new W8MessageBoxLine;
             memset(line, 0, sizeof(W8MessageBoxLine));
             line->quote_index = 0x1e;
@@ -764,7 +763,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
             g_npc_scripting.message_lines.Add(line);
             return;
         }
-        if (CompareWideTextIgnoreAsciiCase00402920(plain_text, L"SOUND") != 0 &&
+        if (CompareWideTextIgnoreAsciiCase(plain_text, L"SOUND") != 0 &&
             g_npc_scripting.npc->is_grouped == 0) {
             if (gXStatus.fNpcDialogueMode == 0 &&
                 g_npc_scripting.npc->record->voice_script_2ea == 0) {
@@ -957,7 +956,7 @@ int FindNpcScriptQuoteByKeyword(wchar_t* keyword, short* entry_index, short* sub
             if (entry->kind_00 == 4) {
                 for (sub_index = 0; sub_index < entry->sub_entry_count; sub_index++) {
                     swprintf(text, L"%S", entry->sub_entries[sub_index].text);
-                    if (CompareWideTextIgnoreAsciiCase00402920(text, translated) == 0) {
+                    if (CompareWideTextIgnoreAsciiCase(text, translated) == 0) {
                         if (entry_index != 0) {
                             *entry_index = static_cast<short>(item_index);
                         }
@@ -2366,7 +2365,7 @@ int FindNpcReplyQuote(wchar_t* text)
     if (index < quote->entry_count) {
         for (sub = 0; sub < entry->sub_entry_count; ++sub) {
             swprintf(sub_text, L"%S", entry->sub_entries[sub].text);
-            if (CompareWideTextIgnoreAsciiCase00402920(sub_text, text) != 0) {
+            if (CompareWideTextIgnoreAsciiCase(sub_text, text) != 0) {
                 continue;
             }
             /* The reply matched an option: a keyword answer, else the generic
@@ -2376,7 +2375,7 @@ int FindNpcReplyQuote(wchar_t* text)
                 if (entry->kind_00 == 6 && entry->operand_09 == 3 && entry->sub_entry_count != 0) {
                     for (sub = 0; sub < entry->sub_entry_count; ++sub) {
                         swprintf(sub_text, L"%S", entry->sub_entries[sub].text);
-                        if (CompareWideTextIgnoreAsciiCase00402920(sub_text, text) == 0) {
+                        if (CompareWideTextIgnoreAsciiCase(sub_text, text) == 0) {
                             return entry->operand_01;
                         }
                     }

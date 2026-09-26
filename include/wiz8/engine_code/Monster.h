@@ -375,12 +375,11 @@ public:
 };
 
 int ParseMonsterCycleName(const char* name, signed char* subcycle = 0);
-unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
-                                           const char* monster_name, W8Monster** monster,
-                                           int load_value, int location_id);
-unsigned char MonsterReadAllCycles004C58E0(const W8GrCycleLoadContext* context,
-                                           const char* monster_name, W8Monster** monster,
-                                           int load_value, int location_id);
+unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
+                                       const char* monster_name, W8Monster** monster,
+                                       int load_value, int location_id);
+unsigned char MonsterReadAllCycles(const W8GrCycleLoadContext* context, const char* monster_name,
+                                   W8Monster** monster, int load_value, int location_id);
 unsigned short ChooseDifferentMonsterDirection(unsigned short previous_direction);
 
 unsigned char MonsterGetWorldAnimationBounds(W8Monster* monster, srVector3T<float>* minimum,

@@ -1535,7 +1535,7 @@ char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
     for (int k = 0; k < count; ++k) {
         int id = ids[k];
         GDProp* prop = *props_3b8->GetAt(id);
-        if (prop->BoundsOverlap004B7620(minimum, maximum) != 0) {
+        if (prop->BoundsOverlap(minimum, maximum) != 0) {
             prop_hit = true;
             if ((prop->m_flags_00 & 1) != 0)
                 return 1;
@@ -1788,7 +1788,7 @@ W8OctSpatialState::~W8OctSpatialState()
 
 /* Strict axis-aligned overlap: touching faces are not an intersection. */
 // FUNCTION: WIZ8 0x0046d470
-unsigned char BoundsOverlap0046D470(const srVector3T<float>* first, const srVector3T<float>* second)
+unsigned char BoundsOverlapStrict(const srVector3T<float>* first, const srVector3T<float>* second)
 {
     return first[1].x > second[0].x && first[0].x < second[1].x && first[1].y > second[0].y &&
            first[0].y < second[1].y && first[1].z > second[0].z && first[0].z < second[1].z;
@@ -1796,7 +1796,7 @@ unsigned char BoundsOverlap0046D470(const srVector3T<float>* first, const srVect
 
 /* Inclusive point containment for an axis-aligned box. */
 // FUNCTION: WIZ8 0x0046d4d0
-bool PointInsideBounds0046D4D0(const srVector3T<float>* bounds, const srVector3T<float>* point)
+bool PointInsideBoxBounds(const srVector3T<float>* bounds, const srVector3T<float>* point)
 {
     return bounds[0].x <= point->x && point->x <= bounds[1].x && bounds[0].y <= point->y &&
            point->y <= bounds[1].y && bounds[0].z <= point->z && point->z <= bounds[1].z;
