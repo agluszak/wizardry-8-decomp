@@ -215,8 +215,9 @@ public:
     void createGrid(long columns, long rows);
     void tesselateEdges(double threshold);
     void tesselateEdges(unsigned long triangle, double threshold);
-    /* Deferred: the retail body delegates to a separate 0x20-byte worker
-       object; that worker is its own recovery lane. */
+    /* Delegates to the file-local AutoSmoother worker in modeler.cpp: it
+       builds per-shade-vertex triangle adjacency, tests each coincident pair's
+       facing/materials, and floods group bits back into flags_360. */
     void autoSmooth(double threshold, int smooth);
 
     void addPolygon(const Polygon& polygon);
@@ -238,7 +239,9 @@ public:
     struct VertexHash {
         struct Entry {
             unsigned long flags_00;
-            unsigned long shade_index_04;
+            /* Signed: the AutoSmoother worker's max scan in modeler.cpp
+               compares it against its long vertex count with a signed JGE. */
+            long shade_index_04;
             Vertex* vertex_08;
             Entry* next_0c;
             unsigned long index_10;

@@ -1,10 +1,339 @@
 #include "surrender/srModeler.h"
 
+#include "surrender/srDebug.h"
 #include "surrender/srHeap.h"
 #include "surrender/srTriangulator.h"
 
 #include <math.h>
 #include <string.h>
+
+#if defined(WIZ8_CLANG_LINT)
+/* The lint lane's stub <ostream> declares only the operator<< overloads the
+   recovered ABI references. AutoSmoother::assignGroups calls std::endl - the
+   real VC6 header resolves it to the _CRTIMP char overload imported from
+   MSVCP60 - so the compile-only lane needs this declaration to parse. */
+namespace std {
+ostream& endl(ostream& stream);
+}
+#endif
+
+/* autoSmooth's worker: buckets triangle indices by deduplicated shade vertex,
+   turns every triangle pair coincident at a vertex into a candidate edge
+   weighted by the facing/material test, floods smooth-group bits through the
+   smooth edges, then copies the assigned mask back into Triangle::flags_360.
+   Retail emits its members at 0x100370B0-0x10037B20, ahead of this TU's
+   srModeler bodies. */
+namespace {
+
+class AutoSmoother {
+public:
+    AutoSmoother(srModeler::Triangle* triangles, unsigned long triangle_count,
+                 srModeler::VertexHash* hash, double threshold, int smooth);
+    ~AutoSmoother();
+    void smooth();
+
+    /* Per shade-group vertex: the triangles sharing that vertex, filled by a
+       count/allocate/fill pass. */
+    struct VertexEntry {
+        long count_00;
+        long fill_04;
+        unsigned long* triangles_08;
+    };
+
+    /* One triangle-pair coincidence at a shared vertex: smooth_00 is the edge
+       test result, group_04 the assigned smooth group (-1 until assigned). */
+    struct Edge {
+        int smooth_00;
+        long group_04;
+        unsigned long first_08;
+        unsigned long second_0c;
+    };
+
+    /* Per triangle: its edge list plus the assigned/blocked group masks;
+       groups_10 becomes the triangle's new flags_360. */
+    struct TriangleEntry {
+        TriangleEntry()
+            : blocked_0c(0), groups_10(0)
+        {
+        }
+
+        long count_00;
+        unsigned long* edges_04;
+        long fill_08;
+        unsigned long blocked_0c;
+        unsigned long groups_10;
+    };
+
+    int isSmooth(unsigned long first, unsigned long second, double cosine, int smooth);
+    void markEdge(Edge* edge, long group);
+    void assignGroups(long group);
+
+    srModeler::Triangle* triangles_00;
+    unsigned long triangle_count_04;
+    srModeler::VertexHash* hash_08;
+    long vertex_count_0c;
+    unsigned long edge_count_10;
+    VertexEntry* vertices_14;
+    Edge* edges_18;
+    TriangleEntry* entries_1c;
+};
+
+// FUNCTION: SURRENDER 0x100370B0
+AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangle_count,
+                           srModeler::VertexHash* hash, double threshold, int smooth)
+    : triangles_00(triangles), triangle_count_04(triangle_count), hash_08(hash),
+      vertex_count_0c(0)
+{
+    unsigned long index;
+    unsigned long vertex;
+    /* The adjacency table is indexed by the representative shade index, not
+       the unique ordinal: vertices duplicated across triangles share one. */
+    for (index = 0; index < hash_08->unique_count_1008; ++index) {
+        if (vertex_count_0c < hash_08->entries_00[index].shade_index_04) {
+            vertex_count_0c = hash_08->entries_00[index].shade_index_04;
+        }
+    }
+    ++vertex_count_0c;
+    vertices_14 = new VertexEntry[vertex_count_0c];
+    /* Retail walks the vertex table with unsigned counters against the signed
+       vertex_count_0c (JBE/JC); the mixed-sign spelling is part of the body. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+    for (vertex = 0; vertex < vertex_count_0c; ++vertex) {
+        vertices_14[vertex].count_00 = 0;
+        vertices_14[vertex].fill_04 = 0;
+    }
+    srModeler::VertexHash::Entry** entries = hash_08->table_1004;
+    for (index = 0; index < triangle_count_04; ++index) {
+        ++vertices_14[entries[0]->shade_index_04].count_00;
+        ++vertices_14[entries[1]->shade_index_04].count_00;
+        ++vertices_14[entries[2]->shade_index_04].count_00;
+        entries += 3;
+    }
+    for (vertex = 0; vertex < vertex_count_0c; ++vertex) {
+        vertices_14[vertex].triangles_08 = new unsigned long[vertices_14[vertex].count_00];
+    }
+    entries = hash_08->table_1004;
+    for (index = 0; index < triangle_count_04; ++index) {
+        VertexEntry* group = &vertices_14[entries[0]->shade_index_04];
+        group->triangles_08[group->fill_04++] = index;
+        group = &vertices_14[entries[1]->shade_index_04];
+        group->triangles_08[group->fill_04++] = index;
+        group = &vertices_14[entries[2]->shade_index_04];
+        group->triangles_08[group->fill_04++] = index;
+        entries += 3;
+    }
+    edge_count_10 = 0;
+    for (vertex = 0; vertex < vertex_count_0c; ++vertex) {
+        edge_count_10 += (vertices_14[vertex].count_00 - 1) * vertices_14[vertex].count_00 / 2;
+    }
+    edges_18 = new Edge[edge_count_10];
+    double cosine = cos(threshold);
+    unsigned long edge = 0;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
+    /* Retail increments this smooth-edge counter but never reads it - the
+       store is recovered behavior, not dead code. */
+    long smooth_edges = 0;
+#pragma clang diagnostic pop
+    for (vertex = 0; vertex < vertex_count_0c; ++vertex) {
+        for (long i = 0; i < vertices_14[vertex].count_00 - 1; ++i) {
+            for (long j = i + 1; j < vertices_14[vertex].count_00; ++j) {
+                edges_18[edge].group_04 = -1;
+                edges_18[edge].first_08 = vertices_14[vertex].triangles_08[i];
+                edges_18[edge].second_0c = vertices_14[vertex].triangles_08[j];
+                edges_18[edge].smooth_00 =
+                    isSmooth(edges_18[edge].first_08, edges_18[edge].second_0c, cosine, smooth);
+                if (edges_18[edge].smooth_00 != 0) {
+                    ++smooth_edges;
+                }
+                ++edge;
+            }
+        }
+    }
+#pragma clang diagnostic pop
+    entries_1c = new TriangleEntry[triangle_count_04];
+    for (index = 0; index < triangle_count_04; ++index) {
+        entries_1c[index].count_00 = 0;
+    }
+    for (edge = 0; edge < edge_count_10; ++edge) {
+        ++entries_1c[edges_18[edge].first_08].count_00;
+        ++entries_1c[edges_18[edge].second_0c].count_00;
+    }
+    for (index = 0; index < triangle_count_04; ++index) {
+        entries_1c[index].groups_10 = 0;
+        entries_1c[index].blocked_0c = 0;
+        entries_1c[index].edges_04 = new unsigned long[entries_1c[index].count_00];
+        entries_1c[index].fill_08 = 0;
+    }
+    for (edge = 0; edge < edge_count_10; ++edge) {
+        TriangleEntry* first = &entries_1c[edges_18[edge].first_08];
+        first->edges_04[first->fill_08++] = edge;
+        TriangleEntry* second = &entries_1c[edges_18[edge].second_0c];
+        second->edges_04[second->fill_08++] = edge;
+    }
+}
+
+// FUNCTION: SURRENDER 0x10037550
+AutoSmoother::~AutoSmoother()
+{
+    for (unsigned long index = 0; index < triangle_count_04; ++index) {
+        delete[] entries_1c[index].edges_04;
+    }
+    delete[] entries_1c;
+    delete[] edges_18;
+    /* Retail walks the vertex table with an unsigned counter against the
+       signed vertex_count_0c (JBE); the mixed-sign spelling is part of the
+       body. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+    for (unsigned long vertex = 0; vertex < vertex_count_0c; ++vertex) {
+        delete[] vertices_14[vertex].triangles_08;
+    }
+#pragma clang diagnostic pop
+    delete[] vertices_14;
+}
+
+// FUNCTION: SURRENDER 0x100375D0
+int AutoSmoother::isSmooth(unsigned long first, unsigned long second, double cosine, int smooth)
+{
+    const srModeler::Triangle* first_triangle = &triangles_00[first];
+    const srModeler::Triangle* second_triangle = &triangles_00[second];
+    if (smooth == 0) {
+        for (long pass = 0; pass < 4; ++pass) {
+            if (first_triangle->shaders_20[pass].value != second_triangle->shaders_20[pass].value) {
+                return 0;
+            }
+            for (long layer = 0; layer < 2; ++layer) {
+                if (first_triangle->textures_00[pass][layer] !=
+                    second_triangle->textures_00[pass][layer]) {
+                    return 0;
+                }
+            }
+        }
+    }
+    srVector3T<float> first_normal =
+        CrossProduct(first_triangle->vertices_30[0].position_00 -
+                         first_triangle->vertices_30[1].position_00,
+                     first_triangle->vertices_30[2].position_00 -
+                         first_triangle->vertices_30[1].position_00);
+    srVector3T<float> second_normal =
+        CrossProduct(second_triangle->vertices_30[0].position_00 -
+                         second_triangle->vertices_30[1].position_00,
+                     second_triangle->vertices_30[2].position_00 -
+                         second_triangle->vertices_30[1].position_00);
+    float magnitude = first_normal.Length() * second_normal.Length();
+    if (0.0 < magnitude) {
+        if (DotProduct(first_normal, second_normal) / magnitude <= cosine) {
+            return 0;
+        }
+        return 1;
+    }
+    return 1;
+}
+
+// FUNCTION: SURRENDER 0x100378B0
+void AutoSmoother::markEdge(Edge* edge, long group)
+{
+    edge->group_04 = group;
+    unsigned long bit = 1 << (group & 0x1f);
+    entries_1c[edge->first_08].groups_10 |= bit;
+    entries_1c[edge->second_0c].groups_10 |= bit;
+    long index;
+    for (index = 0; index < entries_1c[edge->first_08].count_00; ++index) {
+        Edge* other = &edges_18[entries_1c[edge->first_08].edges_04[index]];
+        if (other->smooth_00 == 0) {
+            unsigned long triangle =
+                other->first_08 == edge->first_08 ? other->second_0c : other->first_08;
+            entries_1c[triangle].blocked_0c |= bit;
+        }
+    }
+    for (index = 0; index < entries_1c[edge->second_0c].count_00; ++index) {
+        Edge* other = &edges_18[entries_1c[edge->second_0c].edges_04[index]];
+        if (other->smooth_00 == 0) {
+            unsigned long triangle =
+                other->first_08 == edge->second_0c ? other->second_0c : other->first_08;
+            entries_1c[triangle].blocked_0c |= bit;
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x100379C0
+void AutoSmoother::assignGroups(long group)
+{
+    if (group >= 0x1f) {
+        srErr << "Warning: srModeler::autoSmooth() ran out of groups." << std::endl;
+        for (unsigned long index = 0; index < edge_count_10; ++index) {
+            if (edges_18[index].group_04 == -1) {
+                entries_1c[edges_18[index].first_08].groups_10 |= 0x80000000;
+                entries_1c[edges_18[index].second_0c].groups_10 |= 0x80000000;
+                edges_18[index].group_04 = 0x1f;
+            }
+        }
+        return;
+    }
+    for (unsigned long index = 0; index < edge_count_10; ++index) {
+        Edge* edge = &edges_18[index];
+        if (edge->smooth_00 != 0 && edge->group_04 == -1) {
+            ++group;
+            markEdge(edge, group);
+            /* Rescan from the seed edge: a smooth edge with no hard-edge
+               neighbour blocking this group joins it immediately. */
+            for (unsigned long scan = index; scan < edge_count_10; ++scan) {
+                Edge* other = &edges_18[scan];
+                if (other->smooth_00 != 0 && other->group_04 == -1) {
+                    unsigned long bit = 1 << (group & 0x1f);
+                    if ((entries_1c[other->first_08].blocked_0c & bit) == 0 &&
+                        (entries_1c[other->second_0c].blocked_0c & bit) == 0) {
+                        markEdge(other, group);
+                    }
+                }
+            }
+            assignGroups(group);
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x10037B20
+void AutoSmoother::smooth()
+{
+    unsigned long flags = 0;
+    for (unsigned long index = 0; index < triangle_count_04; ++index) {
+        flags |= triangles_00[index].flags_360;
+    }
+    if (flags != 0) {
+        /* The flood starts one below the highest set flag bit so the first
+           smooth group reuses that slot. */
+        unsigned long bit = 0;
+        if ((flags & 0xffff0000) != 0) {
+            bit = 0x10;
+            flags >>= 0x10;
+        }
+        if ((flags & 0xff00) != 0) {
+            bit += 8;
+            flags >>= 8;
+        }
+        if ((flags & 0xf0) != 0) {
+            bit += 4;
+            flags >>= 4;
+        }
+        if ((flags & 0xc) != 0) {
+            bit += 2;
+            flags >>= 2;
+        }
+        if ((flags & 0x2) != 0) {
+            bit += 1;
+        }
+        if (bit < 0x1f) {
+            assignGroups(bit - 1);
+            for (unsigned long index = 0; index < triangle_count_04; ++index) {
+                triangles_00[index].flags_360 = entries_1c[index].groups_10;
+            }
+        }
+    }
+}
+
+} // namespace
 
 /* TU-scope constant the geometry generators and cylinderMap load from rdata
    0x10076C90 (pi + pi / pi * 2.0 in retail emission). */
@@ -1097,6 +1426,17 @@ void srModeler::tesselateEdges(double threshold)
     for (unsigned long index = 0; index < count; ++index) {
         tesselateEdges(index, threshold);
     }
+}
+
+// FUNCTION: SURRENDER 0x1003B940
+void srModeler::autoSmooth(double threshold, int smooth)
+{
+    VertexHash* hash = getUniqueVertexList();
+    AutoSmoother* smoother =
+        new AutoSmoother(&triangles_08[0], triangle_count_04, hash, threshold, smooth);
+    smoother->smooth();
+    delete hash;
+    delete smoother;
 }
 
 // FUNCTION: SURRENDER 0x1003BB40
