@@ -581,7 +581,6 @@ static void RefreshSpellPowerPip(int pip)
 // FUNCTION: WIZ8 0x0059FAD0
 static void RebuildSpellCastingList(int spell_id)
 {
-    wchar_t line[120];
     int index;
     int realm;
     int selected;
@@ -621,6 +620,7 @@ static void RebuildSpellCastingList(int spell_id)
                             ++gpSCSV->uiSpellsInList;
                             gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
                             gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = 4;
+                            wchar_t line[120];
                             swprintf(line, g_format_s_space_s,
                                      g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
                                      spell->display_name);
@@ -634,6 +634,7 @@ static void RebuildSpellCastingList(int spell_id)
                             ++gpSCSV->uiSpellsInList;
                             gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
                             gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = 0xf;
+                            wchar_t line[120];
                             swprintf(line, g_format_s_space_s,
                                      g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
                                      spell->display_name);
@@ -653,6 +654,7 @@ static void RebuildSpellCastingList(int spell_id)
                     ++gpSCSV->uiSpellsInList;
                     gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
                     gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = 0;
+                    wchar_t line[120];
                     swprintf(line, g_format_s_space_s,
                              g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
                              spell->display_name);

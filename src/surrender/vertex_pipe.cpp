@@ -694,6 +694,7 @@ void srVertexPipe::applyDiffuseLight(const srVector4T<float>& light)
 
 /* The indexed diffuse-source helper setupDiffuse reaches through the record's
    colors/kind pair: kind 0 selects ARGB, 1 vector3 and 2 vector4 copyIndexed. */
+// FUNCTION: SURRENDER 0x1002BF20
 static void copyDiffuseColors(const srVertexPipe::Record& record, srVector4T<float>* destination,
                               const unsigned long* indices, unsigned long count)
 {
@@ -1048,3 +1049,6 @@ void* srVertexPipe::getUserArray(unsigned long index)
 {
     return current_record_74->user_2c[index];
 }
+
+// TEMPLATE: SURRENDER 0x1002C860
+// srHeapArray<T>::release emission

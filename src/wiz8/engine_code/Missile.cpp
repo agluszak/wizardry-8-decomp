@@ -1087,7 +1087,7 @@ void W8Missile::StartIfHostActive()
         if (m_pAI != 0) {
             PathAIUpdate(m_pAI, 1);
         }
-        TickAnimation(1.0f);
+        W8GrCycle::TickAnimation(1.0f);
     } else {
         flight_done_1e0 = 1;
         if (missile_table_index_1d8 == 0x23 &&

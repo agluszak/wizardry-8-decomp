@@ -1435,7 +1435,7 @@ void W8PartySelectionController::SetMode(int mode)
     m_panel_38->Invalidate(0);
     m_panel_3c->Invalidate(0);
 
-    m_text_buffer_60->m_alternateRenderer = 1;
+    m_text_buffer_60->m_geometryDirty = true;
     m_panel_3c->SetEnabled(1);
     m_panel_3c->EnableRegionSet(1);
     m_control_28->SetEnabled(1);
@@ -1848,7 +1848,7 @@ void W8PartySelectionController::InvalidatePartySelectionComposition()
     m_control_28->Invalidate(0);
     m_panel_38->Invalidate(0);
     m_panel_3c->Invalidate(0);
-    m_text_buffer_60->m_alternateRenderer = 1;
+    m_text_buffer_60->m_geometryDirty = true;
 }
 
 /* Draw the party-selection composition in owner order.  The one-shot backdrop is

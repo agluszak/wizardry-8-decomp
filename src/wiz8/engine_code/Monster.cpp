@@ -2570,7 +2570,7 @@ bool W8Monster::IsWithinWorldRange()
 /* Exercise the inexpensive elevated-origin sight query from this Monster to
    the player, and answer with the trace's own result. */
 // FUNCTION: WIZ8 0x004c4810
-unsigned char W8Monster::CheckLineOfSightToPlayer()
+bool W8Monster::CheckLineOfSightToPlayer()
 {
     srVector3T<float> monster_position;
     srVector3T<float> player_position;
@@ -2585,7 +2585,7 @@ unsigned char W8Monster::CheckLineOfSightToPlayer()
    flags. A clear trace sets both false, the special -1 result sets only the
    secondary flag, and every other obstructed result sets both. */
 // FUNCTION: WIZ8 0x004c4870
-void W8Monster::GetPlayerSightFlags(unsigned char* primary, unsigned char* secondary)
+void W8Monster::GetPlayerSightFlags(bool* primary, bool* secondary)
 {
     srVector3T<float> monster_position;
     srVector3T<float> player_position;
@@ -2597,14 +2597,14 @@ void W8Monster::GetPlayerSightFlags(unsigned char* primary, unsigned char* secon
     result = g_octree->TraceLineOfSight(&monster_position, &player_position, 1, location_id_1e4, -1,
                                         1, 0);
     if (result == -1) {
-        *secondary = 1;
-        *primary = 0;
+        *secondary = true;
+        *primary = false;
     } else if (result != 1) {
-        *secondary = 1;
-        *primary = 1;
+        *secondary = true;
+        *primary = true;
     } else {
-        *secondary = 0;
-        *primary = 0;
+        *secondary = false;
+        *primary = false;
     }
 }
 
@@ -2643,7 +2643,7 @@ unsigned char W8Monster::IsVisibleToPlayer(unsigned char use_bounds)
 }
 
 // FUNCTION: WIZ8 0x004c4a20
-void W8Monster::GetPlayerToMonsterSightFlags(unsigned char* primary, unsigned char* secondary,
+void W8Monster::GetPlayerToMonsterSightFlags(bool* primary, bool* secondary,
                                              const srVector3T<float>* source)
 {
     srVector3T<float> monster_position;
@@ -2660,14 +2660,14 @@ void W8Monster::GetPlayerToMonsterSightFlags(unsigned char* primary, unsigned ch
     result = g_octree->TraceLineOfSight(&player_position, &monster_position, 1, -1, location_id_1e4,
                                         1, 0);
     if (result == -1) {
-        *secondary = 1;
-        *primary = 0;
+        *secondary = true;
+        *primary = false;
     } else if (result != 1) {
-        *secondary = 1;
-        *primary = 1;
+        *secondary = true;
+        *primary = true;
     } else {
-        *secondary = 0;
-        *primary = 0;
+        *secondary = false;
+        *primary = false;
     }
 }
 
@@ -2685,8 +2685,7 @@ unsigned char W8Monster::HasLineOfSightToMonster(W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x004c4b70
-void W8Monster::GetMonsterSightFlags(W8Monster* monster, unsigned char* primary,
-                                     unsigned char* secondary)
+void W8Monster::GetMonsterSightFlags(W8Monster* monster, bool* primary, bool* secondary)
 {
     srVector3T<float> from;
     srVector3T<float> to;
@@ -2699,14 +2698,14 @@ void W8Monster::GetMonsterSightFlags(W8Monster* monster, unsigned char* primary,
     result =
         g_octree->TraceLineOfSight(&from, &to, 1, location_id_1e4, monster->location_id_1e4, 1, 0);
     if (result == -1) {
-        *secondary = 1;
-        *primary = 0;
+        *secondary = true;
+        *primary = false;
     } else if (result != 1) {
-        *secondary = 1;
-        *primary = 1;
+        *secondary = true;
+        *primary = true;
     } else {
-        *secondary = 0;
-        *primary = 0;
+        *secondary = false;
+        *primary = false;
     }
 }
 

@@ -1173,3 +1173,24 @@ void srGERD::Renderer::bindTextureSet(unsigned long index)
 
 // SYNTHETIC: SURRENDER 0x10024BF0
 // srGERD::Renderer::~Renderer
+
+// TEMPLATE: SURRENDER 0x10026DC0
+// srArray<T>::release emission
+
+// TEMPLATE: SURRENDER 0x10026E30
+// srHeapArray<T>::release emission
+
+// TEMPLATE: SURRENDER 0x10027040
+// srHeapArray<T>::release emission
+
+// TEMPLATE: SURRENDER 0x100270E0
+// srArray<T>::release emission
+
+// TEMPLATE: SURRENDER 0x100271A0
+// srHeapArray<T>::release emission
+
+// TEMPLATE: SURRENDER 0x10027250
+// srHeapArray<T>::release emission
+
+// SYNTHETIC: SURRENDER 0x10027C10
+// member destructor emission (EH unwind)

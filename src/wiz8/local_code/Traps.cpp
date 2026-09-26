@@ -147,7 +147,7 @@ void ApplyRecordModeLine(void)
 // FUNCTION: WIZ8 0x005E35A0
 void PromptRecordModeEntry(void)
 {
-    char message[96];
+    char message[100];
 
     ResetEditorStatusLine(-1);
     strcpy(message, s_record_mode_prompt);

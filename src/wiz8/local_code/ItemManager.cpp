@@ -1170,7 +1170,7 @@ bool AnyWorldItemVisible(void)
 unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
 {
     srVector3T<float> probe;
-    unsigned char hit;
+    bool hit;
     float ground;
     float previous_y;
     float dt;
@@ -1233,7 +1233,7 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
 unsigned char SettleWorldItem(W8WorldItem* item)
 {
     srVector3T<float> start;
-    unsigned char hit;
+    bool hit;
     int sector;
 
     start.x = item->position.x;

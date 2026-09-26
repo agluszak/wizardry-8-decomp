@@ -222,7 +222,7 @@ bool g_automap_cursor_inside;
 // GLOBAL: WIZ8 0x0068f25c
 bool g_automap_redraw;
 // GLOBAL: WIZ8 0x0068f260
-int g_automap_page;
+unsigned int g_automap_page;
 // GLOBAL: WIZ8 0x0068f264
 bool g_flag_0068f264;
 // GLOBAL: WIZ8 0x0068f25d

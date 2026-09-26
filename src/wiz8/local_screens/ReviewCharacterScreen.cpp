@@ -1606,7 +1606,7 @@ unsigned char CampScreenLeave(int)
         ClearActiveRegionIfMatches(0x138);
         delete g_camp_screen->dialog;
     }
-    for (unsigned int realm = 0; realm < 6; ++realm) {
+    for (int realm = 0; realm < 6; ++realm) {
         delete g_camp_screen->spell_ranges[realm];
     }
     delete g_camp_screen->stats_range;

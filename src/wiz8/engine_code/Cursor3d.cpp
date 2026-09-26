@@ -340,7 +340,7 @@ void GetWorldCursorAnchor(srVector3T<float>* position)
 // FUNCTION: WIZ8 0x00490C60
 void ApplyWorldCursorInput(void)
 {
-    unsigned char hit;
+    bool hit;
     srMatrix3T<float> rotation;
     srVector3T<double> node_location;
     srVector3T<float> camera;
@@ -674,7 +674,7 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
     srVector3T<float> dir;
     srVector3T<float> scaled;
     srVector3T<float> probe;
-    unsigned char hit;
+    bool hit;
     double dist;
     double step;
     float lower_best = -1e+10f;
