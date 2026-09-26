@@ -124,14 +124,6 @@ srHuffman::BitOStream::~BitOStream()
     flush();
 }
 
-/* Retail 0x10001740 is a 0x28-byte memberwise copy emitted as rep movsd. */
-// FUNCTION: SURRENDER 0x10001740
-srHuffman::Compressor& srHuffman::Compressor::operator=(const Compressor& other)
-{
-    memcpy(this, &other, sizeof(Compressor));
-    return *this;
-}
-
 // FUNCTION: SURRENDER 0x10001760
 void srHuffman::BitOStream::put(unsigned long value, unsigned long bits)
 {

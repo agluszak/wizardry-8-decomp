@@ -128,7 +128,11 @@ public:
 
         SR_DLL_IMPORT Compressor(const Sampler& sampler);
         SR_DLL_IMPORT ~Compressor();
-        SR_DLL_IMPORT Compressor& operator=(const Compressor& other);
+        /* Implicit assignment: retail emits it via the class-level dllexport
+           as a 0x28-byte memberwise copy (rep movsd). */
+        // SYNTHETIC: SURRENDER 0x10001740
+        // srHuffman::Compressor::operator=
+
         SR_DLL_IMPORT void storeSymbolTable(BitOStream& stream);
         SR_DLL_IMPORT void buildSymbolTree();
         SR_DLL_IMPORT void collectSymbols(const Sampler& sampler);

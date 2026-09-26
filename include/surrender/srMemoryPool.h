@@ -4,7 +4,11 @@
 
 /* Provider-side utility. No known Wizardry/JPEG/ZIP consumer imports
    srMemoryPool symbols, so its provider declarations are not dllimport. */
-class srMemoryPool {
+class
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srMemoryPool {
 public:
     enum e_fit {
         FIT_FIRST = 0,
@@ -13,7 +17,10 @@ public:
 
     srMemoryPool(void* memory, long size, long alignment);
     ~srMemoryPool();
-    srMemoryPool& operator=(const srMemoryPool& pool);
+    /* Implicit assignment: retail emits it via the class-level dllexport
+       as a whole-object memberwise copy (rep movsd). */
+    // SYNTHETIC: SURRENDER 0x10036A80
+    // srMemoryPool::operator=
 
     void* allocate(long size);
     void dump();
@@ -45,12 +52,9 @@ private:
 
     Entry* addEntry(Entry* previous, Entry* next);
     /* Retail inlines both helpers at every call site yet still exports the
-       standalone copies; member-level provider export roots the emission. */
+       standalone copies; the class-level provider export roots the emission. */
     // FUNCTION: SURRENDER 0x100369E0
     // ?convertPtr@srMemoryPool@@ABEJPBX@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     long convertPtr(const void* allocation) const
     {
         return static_cast<const char*>(allocation) -
@@ -66,9 +70,6 @@ private:
     void freeInternal(Entry* entry);
     // FUNCTION: SURRENDER 0x100369D0
     // ?hashVal@srMemoryPool@@ABEKJ@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     unsigned long hashVal(long offset) const
     {
         return (offset >> 5) & 0xff;

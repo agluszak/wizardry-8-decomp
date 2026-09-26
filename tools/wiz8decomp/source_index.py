@@ -791,8 +791,8 @@ def _compile_indexer_locally(source: Path, output: Path) -> None:
     """Compile reccmp's collector using the installed LLVM selection."""
     from reccmp.source.batch import _COMPILE, _pick_library, _run
 
-    config = shutil.which("llvm-config-19")
-    include = "/usr/lib/llvm-19/include"
+    config = shutil.which("llvm-config-21")
+    include = "/usr/lib/llvm-21/include"
     if config:
         probed = subprocess.run(
             [config, "--includedir"], capture_output=True, text=True, check=False
@@ -800,9 +800,9 @@ def _compile_indexer_locally(source: Path, output: Path) -> None:
         if probed.returncode == 0 and probed.stdout.strip():
             include = probed.stdout.strip()
     patterns = (
-        "/usr/lib/llvm-19/lib/libclang-cpp.so.*",
+        "/usr/lib/llvm-21/lib/libclang-cpp.so.*",
         "/usr/lib/x86_64-linux-gnu/libclang-cpp.so.*",
-        "/usr/lib/llvm-19/lib/libLLVM*.so*",
+        "/usr/lib/llvm-21/lib/libLLVM*.so*",
         "/usr/lib/x86_64-linux-gnu/libLLVM*.so*",
     )
     hits = [match for pattern in patterns for match in glob.glob(pattern)]
@@ -810,7 +810,7 @@ def _compile_indexer_locally(source: Path, output: Path) -> None:
     llvm = _pick_library([hit for hit in hits if "libclang-cpp" not in hit and "libLLVM" in hit])
     if clang_cpp is None or llvm is None:
         raise SourceIndexError(
-            "no LLVM 19 development libraries found for the extended source indexer"
+            "no LLVM 21 development libraries found for the extended source indexer"
         )
     output.parent.mkdir(parents=True, exist_ok=True)
     _run(
@@ -835,16 +835,16 @@ def _compile_indexer_in_analysis_image(settings: Settings, source: Path, output:
     output.parent.mkdir(parents=True, exist_ok=True)
     script = r"""
 set -euo pipefail
-config=$(command -v llvm-config-19 || command -v llvm-config || true)
-include=/usr/lib/llvm-19/include
+config=$(command -v llvm-config-21 || command -v llvm-config || true)
+include=/usr/lib/llvm-21/include
 if [ -n "$config" ]; then
   probed=$("$config" --includedir)
   if [ -n "$probed" ]; then include=$probed; fi
 fi
-clang_cpp=$(ls /usr/lib/llvm-19/lib/libclang-cpp.so.* /usr/lib/x86_64-linux-gnu/libclang-cpp.so.* 2>/dev/null | tail -n1 || true)
-llvm=$(ls /usr/lib/llvm-19/lib/libLLVM.so.* /usr/lib/x86_64-linux-gnu/libLLVM*.so* 2>/dev/null | grep -v libclang-cpp | tail -n1 || true)
+clang_cpp=$(ls /usr/lib/llvm-21/lib/libclang-cpp.so.* /usr/lib/x86_64-linux-gnu/libclang-cpp.so.* 2>/dev/null | tail -n1 || true)
+llvm=$(ls /usr/lib/llvm-21/lib/libLLVM.so.* /usr/lib/x86_64-linux-gnu/libLLVM*.so* 2>/dev/null | grep -v libclang-cpp | tail -n1 || true)
 if [ -z "$clang_cpp" ] || [ -z "$llvm" ]; then
-  echo "no LLVM 19 development libraries in the analysis image" >&2
+  echo "no LLVM 21 development libraries in the analysis image" >&2
   exit 1
 fi
 clang++ -O2 -std=c++17 -fno-rtti -fno-exceptions \
@@ -879,6 +879,13 @@ clang++ -O2 -std=c++17 -fno-rtti -fno-exceptions \
         raise SourceIndexError("the analysis image did not produce a source indexer")
 
 
+def _inside_analysis_image() -> bool:
+    """The analysis image's lower-cased VC6 header mirror, which the lint
+    compile commands name, exists nowhere else; a host clang-cl does not
+    make the host that image."""
+    return Path("/opt/msvc6-vc98-include").is_dir()
+
+
 def _prepare_analysis_indexer(settings: Settings, cache: Path) -> None:
     """Point reccmp at an indexer that can see clang-cl and the MSVC headers.
 
@@ -892,15 +899,16 @@ def _prepare_analysis_indexer(settings: Settings, cache: Path) -> None:
     source = _analysis_indexer_binary()
     binary = cache / "indexer"
     stamp = cache / "indexer.sha256"
-    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    # The LLVM the binary links against is part of its identity.
+    digest = hashlib.sha256(source.read_bytes() + b"\0llvm-21").hexdigest()
     if not binary.is_file() or not stamp.is_file() or stamp.read_text(encoding="utf-8") != digest:
-        if Path("/usr/bin/clang-cl").is_file():
+        if _inside_analysis_image():
             _compile_indexer_locally(source, binary)
         else:
             _compile_indexer_in_analysis_image(settings, source, binary)
         stamp.write_text(digest, encoding="utf-8")
 
-    if Path("/usr/bin/clang-cl").is_file():
+    if _inside_analysis_image():
         os.environ["RECCMP_SOURCE_INDEXER"] = str(binary)
         return
 

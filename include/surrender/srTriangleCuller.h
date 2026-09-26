@@ -3,7 +3,11 @@
 #include "srHeap.h"
 #include "srMath.h"
 
-class srTriangleCuller {
+class
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srTriangleCuller {
 public:
     struct Output {
         unsigned long* indices_00;
@@ -45,7 +49,11 @@ public:
                                           const srVector3T<float>* vertices,
                                           const srVector4T<float>& plane, unsigned long shift,
                                           unsigned long count, int first);
-    srTriangleCuller& operator=(const srTriangleCuller& other);
+    /* Implicit assignment: retail emits it via the class-level dllexport
+       as a whole-object memberwise copy (rep movsd). */
+    // SYNTHETIC: SURRENDER 0x10029F30
+    // srTriangleCuller::operator=
+
     /* Sphere-vs-plane-mask test over the six axis frustum planes plus every
        set bit of mask. depth becomes the 0..1 penetration fraction when the
        sphere clips any of the six primary planes. */

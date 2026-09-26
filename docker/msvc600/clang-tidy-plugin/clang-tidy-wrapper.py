@@ -12,7 +12,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-REAL_CLANG_TIDY = "/usr/bin/clang-tidy-19"
+REAL_CLANG_TIDY = "/usr/bin/clang-tidy-21"
 PLUGIN = "/usr/local/lib/wiz8-clang-tidy.so"
 # Historical name: project-specific AST debt checks use the same changed-line scope.
 FILTER_ENV = "WIZ8_REDUNDANT_CAST_LINES"
