@@ -22,7 +22,7 @@ from .binary.linker_map import LinkerMap, SymbolResolution
 from .config import Settings
 from .display import runtime_display
 from .paths import write_if_changed
-from .runtime_toolchain import ge_proton_path, ge_proton_wineserver_path, umu_run_path
+from .runtime_toolchain import ge_proton_path, umu_run_path
 
 
 def _managed_link(source: Path, destination: Path) -> None:
