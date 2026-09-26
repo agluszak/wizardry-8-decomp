@@ -82,7 +82,10 @@ def _download_verified(settings: Settings, archive: RuntimeArchive) -> Path:
     temporary = Path(temporary_name)
     digest = hashlib.sha256()
     try:
-        with urllib.request.urlopen(request, timeout=60) as response, temporary.open("wb") as stream:
+        with (
+            urllib.request.urlopen(request, timeout=60) as response,
+            temporary.open("wb") as stream,
+        ):
             while chunk := response.read(4 * 1024 * 1024):
                 digest.update(chunk)
                 stream.write(chunk)
