@@ -7,7 +7,6 @@ from wiz8decomp.runtime_toolchain import (
     RuntimeArchive,
     _materialize_archive,
     ge_proton_path,
-    ge_proton_wineserver_path,
     umu_run_path,
 )
 
@@ -40,9 +39,6 @@ def test_runtime_toolchain_paths_are_checkout_local(tmp_path: Path) -> None:
         settings.work_dir / "runtime-toolchain/umu-launcher-1.4.4/umu-run"
     )
     assert ge_proton_path(settings) == settings.work_dir / "runtime-toolchain/GE-Proton11-7-x86_64"
-    assert ge_proton_wineserver_path(settings) == (
-        settings.work_dir / "runtime-toolchain/GE-Proton11-7-x86_64/files/bin/wineserver"
-    )
 
 
 def test_materialize_archive_uses_verified_cached_archive(
