@@ -443,13 +443,10 @@ jobs:
           enable-cache: true
       - name: Install WIZ8 runtime host tools
         run: |
-          sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            innoextract llvm wine wine32:i386 wine64 xvfb
+          sudo apt-get install -y --no-install-recommends innoextract llvm xvfb
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
           command -v llvm-undname
-          command -v wine
       - name: Load VC6 analysis image
         uses: ./.github/actions/load-vc6-image
       - name: Restore compiler-backed analysis cache
@@ -483,8 +480,6 @@ jobs:
         continue-on-error: true
         env:
           RUNTIME_RENDERER: ${{ inputs.renderer || 'default' }}
-          WIZ8_RUNTIME_RUNNER: wine
-          WIZ8_RUNTIME_VIDEO_CONFIG: config/runtime/3DVideo.Software.CFG
         shell: bash
         run: |
           set -uo pipefail
@@ -515,9 +510,7 @@ jobs:
         run: exit 1
       - name: Remove plaintext licensed WIZ8 inputs
         if: always()
-        run: |
-          wineserver -k || true
-          rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" "$RUNNER_TEMP/wiz8-gog-download" config/local-inputs.yml
+        run: rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" "$RUNNER_TEMP/wiz8-gog-download" config/local-inputs.yml
 
   surrender:
     name: SURRENDER comparison

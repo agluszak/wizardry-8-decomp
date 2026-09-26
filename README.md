@@ -135,10 +135,11 @@ Common development commands:
 
 Use `uv run wiz8 --help` for the complete command set.
 
-Runtime launch requires `umu-run` from umu-launcher and GE-Proton 11-7 installed under
-`~/.local/share/Steam/compatibilitytools.d/GE-Proton11-7-x86_64`. The default renderer is
-Glide2x at 800×600. Set `PROTONPATH` for another GE-Proton location, or set
-`WIZ8_RUNTIME_RUNNER=wine` to use system Wine explicitly.
+`uv run wiz8 prepare` downloads and verifies the pinned umu-launcher and GE-Proton runtime under
+`WIZ8_WORK_DIR/runtime-toolchain`. umu's Steam Runtime and cache are kept there as well instead of
+using the user's Steam/XDG directories. The default renderer is Glide2x at 800×600. CI
+uses the same prepared umu + GE-Proton runtime and Glide2x configuration as local development.
+`PROTONPATH` or `WIZ8_UMU_RUN` are explicit developer overrides of the prepared tools.
 
 More detailed developer documentation:
 

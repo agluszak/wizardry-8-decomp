@@ -22,6 +22,7 @@ from .binary.linker_map import LinkerMap, SymbolResolution
 from .config import Settings
 from .display import runtime_display
 from .paths import write_if_changed
+from .runtime_toolchain import ge_proton_path, umu_run_path
 
 
 def _managed_link(source: Path, destination: Path) -> None:
@@ -56,31 +57,39 @@ WINE_STACK_LINE = re.compile(
     re.MULTILINE,
 )
 RUNTIME_FAILURE_GRACE_SECONDS = 2.0
-DEFAULT_GE_PROTON = Path.home() / ".local/share/Steam/compatibilitytools.d/GE-Proton11-7-x86_64"
+# A cold GE-Proton prefix spends its first run creating the prefix before the
+# runtime-test executable is even reached, so the registry probe gets a much
+# larger budget than a warm scenario start.
+RUNTIME_REGISTRY_TIMEOUT_SECONDS = 300.0
 
 
-def runtime_runner() -> str:
-    runner = os.environ.get("WIZ8_RUNTIME_RUNNER", "umu")
-    if runner not in {"wine", "umu"}:
-        raise ValueError("WIZ8_RUNTIME_RUNNER must be 'wine' or 'umu'")
-    return runner
-
-
-def configure_runtime_runner(environment: dict[str, str], runner: str) -> None:
-    environment["WIZ8_RUNTIME_RUNNER"] = runner
-    if runner == "umu":
-        environment.setdefault("PROTONPATH", str(DEFAULT_GE_PROTON))
+def configure_runtime_environment(settings: Settings, environment: dict[str, str]) -> None:
+    environment.setdefault("WIZ8_UMU_RUN", str(umu_run_path(settings)))
+    environment.setdefault("PROTONPATH", str(ge_proton_path(settings)))
+    environment.setdefault(
+        "WIZ8_UMU_WINESERVER",
+        str(Path(environment["PROTONPATH"]).expanduser() / "files/bin/wineserver"),
+    )
+    # umu normally owns state below the user's XDG directories. Keep every
+    # downloaded Steam Runtime/cache entry checkout-local instead.
+    environment["UMU_FOLDERS_PATH"] = environment.get(
+        "WIZ8_UMU_FOLDERS_PATH", str(settings.runtime_toolchain_dir / "state")
+    )
+    environment["XDG_CACHE_HOME"] = environment.get(
+        "WIZ8_UMU_CACHE_HOME", str(settings.runtime_toolchain_dir / "cache")
+    )
 
 
 def require_umu_runner(environment: dict[str, str]) -> str:
-    umu_run = environment.get("WIZ8_UMU_RUN", "umu-run")
-    if shutil.which(umu_run) is None:
-        raise RuntimeError(f"install umu-launcher to provide {umu_run} for GE-Proton")
-    if environment["PROTONPATH"] == str(DEFAULT_GE_PROTON) and not DEFAULT_GE_PROTON.is_dir():
+    requested_umu = environment["WIZ8_UMU_RUN"]
+    umu_run = shutil.which(requested_umu)
+    proton = Path(environment["PROTONPATH"]).expanduser()
+    if umu_run is None:
         raise RuntimeError(
-            f"GE-Proton is missing: {environment['PROTONPATH']}; "
-            "install GE-Proton11-7-x86_64 or set PROTONPATH"
+            f"prepared umu launcher is missing: {requested_umu}; run `uv run wiz8 prepare`"
         )
+    if not proton.is_dir() or not (proton / "proton").is_file():
+        raise RuntimeError(f"prepared GE-Proton is missing: {proton}; run `uv run wiz8 prepare`")
     return umu_run
 
 
@@ -133,28 +142,31 @@ def _parse_runtime_scenarios(output: str) -> dict[str, RuntimeScenario]:
 def _read_runtime_scenarios(
     executable: Path, stage: Path, environment: dict[str, str]
 ) -> dict[str, RuntimeScenario]:
-    result = subprocess.run(
-        ["wine", f"./{executable.name}", "--list-scenarios"],
-        cwd=stage,
-        env=environment,
-        capture_output=True,
-        text=True,
-        timeout=15,
-        check=True,
+    # GE-Proton does not forward this console application's stdout, so the
+    # registry arrives through the same WIZ8_RUNTIME_TEST_OUTPUT redirection the
+    # scenario driver uses. A cold prefix also spends its budget creating the
+    # Proton prefix before the executable is reached, so allow for that here.
+    result = _drive_runtime_process(
+        executable,
+        stage,
+        environment,
+        ["--list-scenarios"],
+        RUNTIME_REGISTRY_TIMEOUT_SECONDS,
     )
+    if result.timed_out:
+        raise RuntimeError(
+            f"runtime scenario registry did not complete within "
+            f"{RUNTIME_REGISTRY_TIMEOUT_SECONDS:.0f}s; rebuild runtime-test"
+        )
     return _parse_runtime_scenarios(result.stdout)
 
 
 def _runtime_test_command(executable: Path, environment: dict[str, str]) -> list[str]:
-    if environment.get("WIZ8_RUNTIME_RUNNER", "wine") == "umu":
-        return [environment.get("WIZ8_UMU_RUN", "umu-run"), str(executable)]
-    return ["wine", f"./{executable.name}"]
+    return [environment["WIZ8_UMU_RUN"], str(executable)]
 
 
 def _runtime_test_wineserver(environment: dict[str, str]) -> str:
-    if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
-        return environment.get("WIZ8_UMU_WINESERVER", "wineserver")
-    return "wineserver"
+    return environment["WIZ8_UMU_WINESERVER"]
 
 
 @dataclass(frozen=True)
@@ -296,12 +308,9 @@ def run_product(
 ) -> dict[str, Any]:
     """Stage and launch one game process, symbolizing a crash when it happens."""
 
-    runner = runtime_runner()
-    if runner == "wine" and shutil.which("wine") is None:
-        raise RuntimeError("wine is required to run the game")
     environment = dict(os.environ)
-    configure_runtime_runner(environment, runner)
-    umu_run = require_umu_runner(environment) if runner == "umu" else ""
+    configure_runtime_environment(settings, environment)
+    umu_run = require_umu_runner(environment)
     if original:
         staged = stage_game(
             settings,
@@ -320,25 +329,16 @@ def run_product(
     prefix = Path(
         os.environ.get(
             "WIZ8_WINE_PREFIX",
-            settings.work_dir / "wine" / ("wiz8-ge-proton" if runner == "umu" else "wiz8-runtime"),
+            settings.work_dir / "wine" / "wiz8-ge-proton",
         )
     )
     prefix.mkdir(parents=True, exist_ok=True)
     environment["WINEPREFIX"] = str(prefix)
     environment.setdefault("WIZ8_RUNTIME_SCREEN_GEOMETRY", runtime_video_screen_geometry(settings))
     environment.setdefault("WINEDLLOVERRIDES", "winemenubuilder.exe=d")
-    with runtime_display(
-        environment, default="host", log_path=staged.root / "xvfb-run.log"
-    ) as display:
-        if runner == "wine":
-            configure_wine_window_management(environment, private_display=display is not None)
-        command = (
-            ["wine", f"./{staged.executable.name}"]
-            if runner == "wine"
-            else [umu_run, str(staged.executable)]
-        )
+    with runtime_display(environment, default="host", log_path=staged.root / "xvfb-run.log"):
         completed = subprocess.run(
-            [*command, "/WINDOW", *(arguments or [])],
+            [umu_run, str(staged.executable), "/WINDOW", *(arguments or [])],
             cwd=staged.root,
             env=environment,
             check=False,
@@ -787,14 +787,11 @@ def runtime_test_environment(
     renderer: str | None = None,
     sound: bool = False,
 ) -> tuple[Path, dict[str, str]]:
-    runner = runtime_runner()
     if prefix is None:
         prefix = Path(
             os.environ.get(
                 "WIZ8_WINE_PREFIX",
-                settings.work_dir
-                / "wine"
-                / ("wiz8-ge-proton" if runner == "umu" else "wiz8-runtime"),
+                settings.work_dir / "wine" / "wiz8-ge-proton",
             )
         )
     prefix.mkdir(parents=True, exist_ok=True)
@@ -805,7 +802,7 @@ def runtime_test_environment(
         "mmdevapi=d;dsound=d"
     )
     environment = {**os.environ, "WINEPREFIX": str(prefix)}
-    configure_runtime_runner(environment, runner)
+    configure_runtime_environment(settings, environment)
     environment.setdefault("WIZ8_RUNTIME_SCREEN_GEOMETRY", runtime_video_screen_geometry(settings))
     if sound:
         environment.pop("WINEDLLOVERRIDES", None)
@@ -815,6 +812,10 @@ def runtime_test_environment(
         environment["GALLIUM_DRIVER"] = renderer
     environment["WINEDEBUG"] = "-all"
     return prefix, environment
+
+
+def _wine_control_command(environment: dict[str, str], *arguments: str) -> list[str]:
+    return [environment["WIZ8_UMU_RUN"], *arguments]
 
 
 def _initialize_wine_prefix(prefix: Path, environment: dict[str, str]) -> None:
@@ -829,7 +830,7 @@ def _initialize_wine_prefix(prefix: Path, environment: dict[str, str]) -> None:
         return
     clean = {key: value for key, value in environment.items() if key != "WINEDLLOVERRIDES"}
     subprocess.run(
-        ["wine", "reg", "query", r"HKCU\Software\Wine"],
+        _wine_control_command(environment, "reg", "query", r"HKCU\Software\Wine"),
         env=clean,
         check=False,
         capture_output=True,
@@ -864,8 +865,8 @@ def configure_wine_window_management(
 
     _initialize_wine_prefix(Path(environment["WINEPREFIX"]), environment)
     subprocess.run(
-        [
-            "wine",
+        _wine_control_command(
+            environment,
             "reg",
             "add",
             r"HKCU\Software\Wine\X11 Driver",
@@ -874,30 +875,30 @@ def configure_wine_window_management(
             "/d",
             "N" if private_display else "Y",
             "/f",
-        ],
+        ),
         env=environment,
         check=True,
         timeout=60,
     )
     if not virtual_desktop:
         subprocess.run(
-            [
-                "wine",
+            _wine_control_command(
+                environment,
                 "reg",
                 "delete",
                 r"HKCU\Software\Wine\Explorer",
                 "/v",
                 "Desktop",
                 "/f",
-            ],
+            ),
             env=environment,
             check=False,
             timeout=60,
         )
         return
     subprocess.run(
-        [
-            "wine",
+        _wine_control_command(
+            environment,
             "reg",
             "add",
             r"HKCU\Software\Wine\Explorer",
@@ -906,14 +907,14 @@ def configure_wine_window_management(
             "/d",
             "Wizardry",
             "/f",
-        ],
+        ),
         env=environment,
         check=True,
         timeout=60,
     )
     subprocess.run(
-        [
-            "wine",
+        _wine_control_command(
+            environment,
             "reg",
             "add",
             r"HKCU\Software\Wine\Explorer\Desktops",
@@ -922,7 +923,7 @@ def configure_wine_window_management(
             "/d",
             "640x480",
             "/f",
-        ],
+        ),
         env=environment,
         check=True,
         timeout=60,
@@ -1016,12 +1017,11 @@ def _drive_runtime_process(
     environment = environment.copy()
     proton_output = stage / "diagnostics" / "runtime-test.stdout"
     proton_log = stage / "diagnostics" / "runtime-test.stderr"
-    if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
-        proton_output.parent.mkdir(parents=True, exist_ok=True)
-        proton_output.unlink(missing_ok=True)
-        proton_log.unlink(missing_ok=True)
-        environment["WIZ8_RUNTIME_TEST_OUTPUT"] = str(proton_output)
-        environment["WIZ8_RUNTIME_TEST_LOG"] = str(proton_log)
+    proton_output.parent.mkdir(parents=True, exist_ok=True)
+    proton_output.unlink(missing_ok=True)
+    proton_log.unlink(missing_ok=True)
+    environment["WIZ8_RUNTIME_TEST_OUTPUT"] = str(proton_output)
+    environment["WIZ8_RUNTIME_TEST_LOG"] = str(proton_log)
     timed_out = False
     failure_deadline: float | None = None
     pending_stderr = b""
@@ -1107,16 +1107,15 @@ def _drive_runtime_process(
                 process.wait()
     stdout = output["stdout"].decode(errors="replace")
     stderr = output["stderr"].decode(errors="replace")
-    if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
-        if proton_output.exists():
-            stdout = proton_output.read_text(encoding="utf-8", errors="replace")
-        if proton_log.exists():
-            stderr = proton_log.read_text(encoding="utf-8", errors="replace") + stderr
-        for line in stderr.splitlines():
-            if line.startswith("WIZ8_RUNTIME_STEP "):
-                fields = dict(item.split("=", 1) for item in line.split()[1:] if "=" in item)
-                last_step = fields.get("step", last_step)
-                last_step_scenario = fields.get("scenario")
+    if proton_output.exists():
+        stdout = proton_output.read_text(encoding="utf-8", errors="replace")
+    if proton_log.exists():
+        stderr = proton_log.read_text(encoding="utf-8", errors="replace") + stderr
+    for line in stderr.splitlines():
+        if line.startswith("WIZ8_RUNTIME_STEP "):
+            fields = dict(item.split("=", 1) for item in line.split()[1:] if "=" in item)
+            last_step = fields.get("step", last_step)
+            last_step_scenario = fields.get("scenario")
     if timed_out:
         stderr += f"\nruntime-test deadline: last_step={last_step}\n"
     return _RuntimeProcessResult(
@@ -1336,13 +1335,14 @@ def run_runtime_suite(
             "unset WIZ8_RUNTIME_DISPLAY or set it to 'virtual'"
         )
 
-    if shutil.which("wine") is None or shutil.which("wineserver") is None:
-        raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
-    runner = runtime_runner()
-    if runner == "umu":
-        runner_environment = dict(os.environ)
-        configure_runtime_runner(runner_environment, runner)
-        require_umu_runner(runner_environment)
+    runner_environment = dict(os.environ)
+    configure_runtime_environment(settings, runner_environment)
+    require_umu_runner(runner_environment)
+    wineserver = runner_environment["WIZ8_UMU_WINESERVER"]
+    if shutil.which(wineserver) is None:
+        raise RuntimeError(
+            f"prepared GE-Proton wineserver is missing: {wineserver}; run `uv run wiz8 prepare`"
+        )
     stage = settings.runtime_stage("runtime-test")
     stage.mkdir(parents=True, exist_ok=True)
     executable = settings.product_build_dir / "Wiz8RuntimeTest.exe"
@@ -1351,7 +1351,7 @@ def run_runtime_suite(
 
     base_prefix = os.environ.get(
         "WIZ8_WINE_PREFIX",
-        str(settings.work_dir / "wine" / ("wiz8-ge-proton" if runner == "umu" else "wiz8-runtime")),
+        str(settings.work_dir / "wine" / "wiz8-ge-proton"),
     )
     # The registry read runs on the base prefix; once the job list is known,
     # the actual worker prefixes are allocated (the base prefix itself when
@@ -1367,7 +1367,7 @@ def run_runtime_suite(
 
     with runtime_display(
         registry_environment,
-        default="host" if registry_environment.get("WIZ8_RUNTIME_RUNNER") == "umu" else "virtual",
+        default="host",
         log_path=stage / "xvfb-registry.log",
     ) as display:
         configure_wine_window_management(registry_environment, private_display=display is not None)
@@ -1382,17 +1382,15 @@ def run_runtime_suite(
         registry = _read_runtime_scenarios(
             registry_stage.executable, registry_stage.root, registry_environment
         )
-        # Registry discovery uses system Wine. Retire its prefix services while
-        # their X connection is still live, before GE-Proton starts on another
-        # private display for the scenarios.
-        if registry_environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
-            subprocess.run(
-                [_runtime_test_wineserver(registry_environment), "-k"],
-                env=registry_environment,
-                check=False,
-                capture_output=True,
-                timeout=5,
-            )
+        # Retire the registry-read prefix services while their X connection is
+        # still live before scenarios start on worker displays.
+        subprocess.run(
+            [_runtime_test_wineserver(registry_environment), "-k"],
+            env=registry_environment,
+            check=False,
+            capture_output=True,
+            timeout=5,
+        )
     if scenarios is None:
         scenarios = tuple(
             name for name, spec in registry.items() if tiers.index(spec.tier) <= tiers.index(tier)
@@ -1595,14 +1593,13 @@ def run_runtime_suite(
                 log_path=stage / f"xvfb-worker-{index}.log",
             ) as display:
                 configure_wine_window_management(environment, private_display=display is not None)
-                if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
-                    subprocess.run(
-                        [_runtime_test_wineserver(environment), "-k"],
-                        env=environment,
-                        check=False,
-                        capture_output=True,
-                        timeout=5,
-                    )
+                subprocess.run(
+                    [_runtime_test_wineserver(environment), "-k"],
+                    env=environment,
+                    check=False,
+                    capture_output=True,
+                    timeout=5,
+                )
                 while True:
                     job_index = pending.get()
                     try:
