@@ -5011,6 +5011,7 @@ const char* srGERD::getErrorString(e_error error)
     return "UNKNOWN ERROR";
 }
 
+// GLOBAL: SURRENDER 0x100993A4
 const char* srGERD::errStrings[10] = {"ERROR_NONE",
                                       "ERROR_INVALID_ENUM",
                                       "ERROR_INVALID_VALUE",
