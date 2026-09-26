@@ -1196,6 +1196,31 @@ def test_wine_window_management_matches_display_mode(
     assert len(calls) == 2
 
 
+def test_wine_window_management_uses_prepared_umu(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = []
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.subprocess.run",
+        lambda *args, **kwargs: calls.append((args, kwargs)),
+    )
+    monkeypatch.delenv("WIZ8_WINE_VIRTUAL_DESKTOP", raising=False)
+
+    prefix = tmp_path / "prefix"
+    prefix.mkdir()
+    (prefix / "system.reg").write_text("")
+    environment = {
+        "WINEPREFIX": str(prefix),
+        "WIZ8_RUNTIME_RUNNER": "umu",
+        "WIZ8_UMU_RUN": "/prepared/umu-run",
+    }
+
+    configure_wine_window_management(environment, private_display=True)
+
+    assert calls[0][0][0][:3] == ["/prepared/umu-run", "reg", "add"]
+    assert calls[1][0][0][:3] == ["/prepared/umu-run", "reg", "delete"]
+
+
 @pytest.mark.parametrize("private_display", [True, False])
 def test_wine_window_management_virtual_desktop_is_an_explicit_opt_in(
     private_display: bool, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
