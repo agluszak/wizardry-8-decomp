@@ -19,7 +19,7 @@ class RuntimeArchive:
     name: str
     url: str
     sha256: str
-    archive_root: str
+    archive_root: str | None
     destination: str
     sentinel: str
 
@@ -46,7 +46,7 @@ GE_PROTON_ARCHIVE = RuntimeArchive(
         f"GE-Proton11-7/{GE_PROTON_VERSION}.tar.gz"
     ),
     sha256="c5448b76a230384e2d7bc6beb5ccb97bafb7e2c3b6c527cb03a1a546bbcb00a0",
-    archive_root=GE_PROTON_VERSION,
+    archive_root=None,
     destination=GE_PROTON_VERSION,
     sentinel="proton",
 )
@@ -120,11 +120,18 @@ def _materialize_archive(settings: Settings, archive: RuntimeArchive) -> Path:
         unpacked.mkdir()
         with tarfile.open(source) as bundle:
             bundle.extractall(unpacked, filter="data")
-        root = unpacked / archive.archive_root
-        if not root.is_dir():
-            raise RuntimeError(
-                f"{archive.name} did not contain expected root {archive.archive_root}"
-            )
+        if archive.archive_root is not None:
+            root = unpacked / archive.archive_root
+            if not root.is_dir():
+                raise RuntimeError(
+                    f"{archive.name} did not contain expected root {archive.archive_root}"
+                )
+        else:
+            entries = list(unpacked.iterdir())
+            roots = [entry for entry in entries if entry.is_dir()]
+            if len(entries) != 1 or len(roots) != 1:
+                raise RuntimeError(f"{archive.name} did not contain one top-level directory")
+            root = roots[0]
         root.replace(candidate)
         (candidate / ".wiz8-source-sha256").write_text(archive.sha256 + "\n", encoding="ascii")
 
