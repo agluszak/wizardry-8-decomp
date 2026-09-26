@@ -2384,7 +2384,7 @@ unsigned char LoadGame(const char* slot_name)
 }
 
 /* Render the world onto an 80x60 ARGB1555 surface backed by the record's
-   pixel store. Renderer option 4 is suppressed while Function426F80 captures
+   pixel store. Renderer option 4 is suppressed while RenderWorldToSurface captures
    the frame, then RenderFrame repaints the real front buffer before the
    option is restored. */
 

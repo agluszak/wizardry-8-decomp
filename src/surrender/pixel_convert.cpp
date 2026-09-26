@@ -95,7 +95,7 @@ struct FormatEntry {
     FormatEntry* next;
 };
 
-/* Lookup tables built by Function10007850(): n-bit channel expansion
+/* Lookup tables built by initPixelTables(): n-bit channel expansion
    (round(i * 255 / (2^n - 1))), 8-bit channel reduction, the ordered-dither
    bias cube, the packed-chroma decode table and the fixed-point channel
    weight ramps the conversion kernels read. */

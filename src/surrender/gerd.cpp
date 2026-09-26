@@ -37,7 +37,7 @@ srGERD* srGERD::first;
 // GLOBAL: SURRENDER 0x100A4784
 srGERD* srGERD::firstOpen;
 
-/* Retail EH funclet FUN_10010660 proves a scoped guard whose dtor releases
+/* The retail EH funclet at 0x10010660 proves a scoped guard whose dtor releases
    the renderers critical section; every renderer-list function enters it
    once per lock acquisition. */
 namespace {

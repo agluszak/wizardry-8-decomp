@@ -13,11 +13,12 @@ class srDebugVP;
 
    Extra inlines below are the srVP slots Wiz8 actually reaches through the
    imported vp global (IAT 0x005eb7e8): load vp, then CALL [vtable+offset].
-   Confirmed Wiz8 loaders include FUN_0046e8a0, FUN_00470040,
-   CopyDwordBuffer,
-   FUN_00471ad0, FUN_00472270, FUN_004729f0, FUN_00473190, FUN_00474700,
-   FUN_00474730, FlushSlots, FUN_0047f930, FUN_00486970,
-   PrepareGeometry, GDProp::Initialize, FUN_00580270 and FUN_005809f0.
+   Confirmed Wiz8 loaders include BakeInstanceVertexLighting, OffsetVertices,
+   CopyDwordBuffer, stMeshModel::GetVertexLocations, stMeshModel::getTriMesh,
+   stMeshModel::ComputeFrameNormals, stMeshModel::GetFrameBounds,
+   FillDwordBuffer, AddFloatBuffer, FlushSlots, stModelInstance::RenderMeshes,
+   ComputeMeshOrder, PrepareGeometry, GDProp::Initialize, ResetAutomapLighting
+   and LightAutomapCell.
    Offsets +0x210/+0x218/+0x224 are the srVector3 `_length`, `_normalize`
    and `_transform` slots. FillDwordBuffer / AddFloatBuffer call the dword
    `_copy` and float `_add` overloads; both compare exact against retail
