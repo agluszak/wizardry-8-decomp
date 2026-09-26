@@ -199,7 +199,7 @@ void ResetSkillContribution(W8Character* character, W8CharacterCreationState* cr
 {
     /* Retail stores to byte 1 of the skill record (0x00557CAB), not to the
        active flag at byte 0. */
-    character->skills[skill_id].reset_flag_01 = 1;
+    character->skills[skill_id].reset_flag_01 = true;
     creation_state->skill_points_spent[skill_id] = 0;
 
     if (skill_id >= 0x18 && skill_id < 0x1c) {

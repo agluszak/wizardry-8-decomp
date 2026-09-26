@@ -76,7 +76,7 @@ struct W8CharacterAttribute {
 struct W8CharacterSkill {
     bool active_00; /* 0x00: skill slot in use */
     /* 0x01: ResetSkillContribution stores 1 here; no retail code reads it. */
-    unsigned char reset_flag_01;
+    bool reset_flag_01;
     /* 0x02: a second figure the spell-learning ceiling divides by ten, the
        same way the resistances divide `level`. The two are distinct fields of
        one skill, not one field read two ways. */
