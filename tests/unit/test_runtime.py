@@ -37,6 +37,9 @@ def _isolate_runtime_environment(monkeypatch) -> None:
         "WIZ8_RUNTIME_RUNNER",
         "WIZ8_UMU_RUN",
         "WIZ8_UMU_WINESERVER",
+        "WIZ8_UMU_FOLDERS_PATH",
+        "WIZ8_UMU_CACHE_HOME",
+        "UMU_FOLDERS_PATH",
         "PROTONPATH",
     ):
         monkeypatch.delenv(name, raising=False)
@@ -123,9 +126,22 @@ def test_default_runtime_uses_ge_proton_and_glide_geometry(tmp_path: Path, monke
     _, environment = runtime_test_environment(settings)
 
     assert environment["WIZ8_RUNTIME_RUNNER"] == "umu"
-    assert environment["PROTONPATH"].endswith("/GE-Proton11-7-x86_64")
+    assert environment["PROTONPATH"] == str(
+        settings.runtime_toolchain_dir / "GE-Proton11-7-x86_64"
+    )
+    assert environment["WIZ8_UMU_RUN"] == str(
+        settings.runtime_toolchain_dir / "umu-launcher-1.4.4/umu-run"
+    )
+    assert environment["WIZ8_UMU_WINESERVER"] == str(
+        settings.runtime_toolchain_dir / "GE-Proton11-7-x86_64/files/bin/wineserver"
+    )
+    assert environment["UMU_FOLDERS_PATH"] == str(settings.runtime_toolchain_dir / "state")
+    assert environment["XDG_CACHE_HOME"] == str(settings.runtime_toolchain_dir / "cache")
     assert environment["WIZ8_RUNTIME_SCREEN_GEOMETRY"] == "800x600x24"
-    assert _runtime_test_command(Path("game.exe"), environment) == ["umu-run", "game.exe"]
+    assert _runtime_test_command(Path("game.exe"), environment) == [
+        str(settings.runtime_toolchain_dir / "umu-launcher-1.4.4/umu-run"),
+        "game.exe",
+    ]
 
 
 def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None:
