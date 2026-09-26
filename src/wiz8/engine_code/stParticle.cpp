@@ -1030,7 +1030,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     }
 
     ++pipeline->slot_count_84;
-    pipeline->PrepareSlot00475540();
+    pipeline->PrepareSlot();
 
     if (!renderer->isPickStackEmpty()) {
         srGERD::Pick pick;

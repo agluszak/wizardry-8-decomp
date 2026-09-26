@@ -195,7 +195,7 @@ void W8PathHeapHandle::DeleteRoot(W8PathSearchNode* node)
    smaller than the two sentinel entries are normalized to an empty set before
    the header is emitted, exactly as the read side treats them. */
 // FUNCTION: WIZ8 0x00458ad0
-unsigned char W8PathingService::WritePathNodes00458AD0(unsigned int handle)
+unsigned char W8PathingService::WritePathNodes(unsigned int handle)
 {
     unsigned int block[4];
     unsigned char success;
@@ -288,7 +288,7 @@ unsigned char W8PathingService::SaveWaypointSnapshot(unsigned char force)
         m_pEdges_04c[index].flags_00 &= 0x7fffffff;
     }
 
-    unsigned char result = WriteWaypointFile00459540();
+    unsigned char result = WriteWaypointFile();
     free(m_pFileWayPoints);
     m_pFileWayPoints = 0;
     return result;
@@ -298,7 +298,7 @@ unsigned char W8PathingService::SaveWaypointSnapshot(unsigned char force)
    results with OR, so a partially successful sequence still reports success;
    that behavior is part of the recovered format contract. */
 // FUNCTION: WIZ8 0x00459540
-unsigned char W8PathingService::WriteWaypointFile00459540()
+unsigned char W8PathingService::WriteWaypointFile()
 {
     unsigned int version = 2;
     unsigned char result = 0;
@@ -328,7 +328,7 @@ unsigned char W8PathingService::WriteWaypointFile00459540()
    Version one stores the four persistent edge fields separately; later files
    contain the complete packed 0x0e-byte edge record. */
 // FUNCTION: WIZ8 0x00459650
-unsigned char W8PathingService::ReadWaypointFile00459650()
+unsigned char W8PathingService::ReadWaypointFile()
 {
     unsigned int version = 2;
     unsigned char success = 0;
@@ -881,8 +881,7 @@ unsigned int W8PathingService::FindConditionalPathValue(unsigned int key, unsign
 
 /* Refresh the disabled bit for a conditional list of waypoints. */
 // FUNCTION: WIZ8 0x004601b0
-void W8PathingService::CheckConditionalWayPtStatus004601B0(unsigned short count,
-                                                           unsigned short* waypoints)
+void W8PathingService::CheckConditionalWayPtStatus(unsigned short count, unsigned short* waypoints)
 {
     while (count != 0) {
         unsigned short waypoint = *waypoints;
@@ -906,8 +905,7 @@ void W8PathingService::CheckConditionalWayPtStatus004601B0(unsigned short count,
    the conditional-span flag participate. A disabled source always disables
    its edge; otherwise the current span test decides the bit. */
 // FUNCTION: WIZ8 0x00460250
-void W8PathingService::CheckConditionalLinkStatus00460250(unsigned short count,
-                                                          unsigned short* edges)
+void W8PathingService::CheckConditionalLinkStatus(unsigned short count, unsigned short* edges)
 {
     while (count != 0) {
         unsigned short edge_index = *edges;
@@ -1578,7 +1576,7 @@ unsigned char W8PathingService::BuildPatrolPath(W8NavigatorAttachment* attachmen
     float dz = surfaces[start].position_04.z - attachment->position_10.z;
     m_pSurfaces_048[start].cost_1c = sqrt(dx * dx + dy * dy + dz * dz);
     m_pSurfaces_048[start].parent_10 = 0;
-    unsigned int node = RecursePatrolLinks00461D10(usStartNode);
+    unsigned int node = RecursePatrolLinks(usStartNode);
     if (static_cast<short>(node) == 0) {
         if (patrol_node_1dc == 0) {
             node = static_cast<unsigned short>(probe_cell_key_078);
@@ -1649,7 +1647,7 @@ unsigned char W8PathingService::BuildPatrolPath(W8NavigatorAttachment* attachmen
    patrol_node_1dc and the best-cost alternate in probe_cell_key_078 for the
    caller's fallback. The visited set is rendered_waypoints_05c. */
 // FUNCTION: WIZ8 0x00461d10
-unsigned short W8PathingService::RecursePatrolLinks00461D10(unsigned short waypoint)
+unsigned short W8PathingService::RecursePatrolLinks(unsigned short waypoint)
 {
     unsigned short links[20];
     unsigned long keys[20];
@@ -1739,7 +1737,7 @@ unsigned short W8PathingService::RecursePatrolLinks00461D10(unsigned short waypo
                 (patrol_min_1e0 < distance)) {
                 return next;
             }
-            unsigned short found = RecursePatrolLinks00461D10(next);
+            unsigned short found = RecursePatrolLinks(next);
             if (found != 0) {
                 return found;
             }
@@ -2893,7 +2891,7 @@ unsigned short W8PathingService::ConfigureMovementSearch(
         trace_target_location_0c0 = target_location;
     }
 
-    g_octree->AdjustPosition00431DA0(&movement->target_position_04c, 1);
+    g_octree->AdjustPosition(&movement->target_position_04c, 1);
 
     unsigned short result = 0;
     W8NavigatorAttachment* attachment = movement->attachment_0ac;
@@ -4900,8 +4898,8 @@ void W8PathingService::SnapPathHeight(srVector3T<float>* position)
    point, one X cell over, and one Z cell over. The Z-edge crossed with the
    X-edge gives the upward normal on flat ground, matching the retail order. */
 // FUNCTION: WIZ8 0x0045b730
-void W8PathingService::GetPathSurfaceNormal0045B730(const srVector3T<float>* position,
-                                                    srVector3T<float>* normal)
+void W8PathingService::GetPathSurfaceNormal(const srVector3T<float>* position,
+                                            srVector3T<float>* normal)
 {
     srVector3T<float> origin = *position;
     srVector3T<float> x_sample = *position;
@@ -5042,8 +5040,8 @@ void W8PathingService::ActivateMovementTrigger(W8NavigatorMovementState* movemen
    mode lazily creates and attaches its node before drawing the adjusted point.
    Visibility flag order follows the retail exits exactly. */
 // FUNCTION: WIZ8 0x0045bc40
-void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* source,
-                                                       const srVector3T<float>* destination)
+void W8PathingService::UpdatePathVisualization(const srVector3T<float>* source,
+                                               const srVector3T<float>* destination)
 {
     W8World* world = GetWorld();
     srNode* node = m_pPathModelInstance;
@@ -5051,7 +5049,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
     if (waypoint_editing_1c8 != 0) {
         srVector3T<float> adjusted = *source;
         srVector3T<float> endpoint = *destination;
-        g_octree->AdjustPosition00431DA0(&adjusted, 1);
+        g_octree->AdjustPosition(&adjusted, 1);
         PreparePathVisualization(&adjusted, &endpoint);
 
         if (CollectPathVisualization(&adjusted) != 0) {
@@ -5103,7 +5101,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
         }
 
         srVector3T<float> adjusted = *source;
-        g_octree->AdjustPosition00431DA0(&adjusted, 1);
+        g_octree->AdjustPosition(&adjusted, 1);
         DrawPathPosition(adjusted, 1);
     }
 

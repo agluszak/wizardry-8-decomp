@@ -79,8 +79,8 @@ W8GameData* ReadGameData(const char* path, bool secondary)
     if (game_data == 0) {
         srAssertFail("pGameData", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0xa7, 0);
     }
-    got_polygons = game_data->ReadWGDList00447660(file, 0);
-    got_vertices = game_data->ReadWGDList00447660(file, 1);
+    got_polygons = game_data->ReadWGDList(file, 0);
+    got_vertices = game_data->ReadWGDList(file, 1);
     if (got_vertices == 0 && got_polygons == 0) {
         ReportBuildStatus(7, "ReadGameData: No polygons or vertices in GameData!\n");
     }
@@ -126,7 +126,7 @@ static_assert(sizeof(W8GDExtendedFace) == 0x44, "W8GDExtendedFace_must_be_0x44")
    other type grows the existing banks and also consumes each face's extended
    name record into the interface tables. */
 // FUNCTION: WIZ8 0x00447660
-unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
+unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
 {
     DWORD bytes_read;
     int vertex_count;
@@ -359,7 +359,7 @@ unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
                     maximum_14.z = bounds[2];
                 }
                 if (m_ppNames != 0 && cond_faces != 0) {
-                    CompileGDInterfaces00447FB0(cond_faces, record_count);
+                    CompileGDInterfaces(cond_faces, record_count);
                     free(cond_faces);
                 }
                 m_iNumVertices += vertex_count;
@@ -380,7 +380,7 @@ unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
    group, and the counted conditional-poly lists. The interface record id and
    first-state index are written before the group scan, the state count after. */
 // FUNCTION: WIZ8 0x00447FB0
-void W8GameData::CompileGDInterfaces00447FB0(const int* records, int count)
+void W8GameData::CompileGDInterfaces(const int* records, int count)
 {
     int states[3000];
     int group_ids[100];
@@ -690,13 +690,13 @@ void W8GameData::IntegrateTriggers()
     for (int index = m_iNumSurfaces; index < end; ++index) {
         W8GDSurface* surface =
             index < m_iNumSurfaces ? &m_pSurfaces[index] : &m_pTrigSurfaces[index - m_iNumSurfaces];
-        geometry_index_00->InsertSurface00446820(surface, 3);
+        geometry_index_00->InsertSurface(surface, 3);
     }
     bits_58 = new BitArray(m_iNumTriggers);
     bits_5c = new BitArray(m_iNumTriggers);
 }
 
-/* The CompileGameData00449D10 counterpart of IntegrateTriggers: folds the
+/* The CompileGameData counterpart of IntegrateTriggers: folds the
    trigger banks into the main vertex and surface arrays without rebuilding
    the spatial index. */
 // FUNCTION: WIZ8 0x00448A60
@@ -810,7 +810,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
         vertex_base += 3;
         ClassifySurfacePlane(m_pTrigVertices, surface);
         if (index == *face) {
-            CreateGDEnviron00448E60(surface, value);
+            CreateGDEnviron(surface, value);
             W8EnvironRecord* environ_record = m_ppEnvirons[m_iNumEnvirons];
             environ_record->forward_scale_34 *= scalar;
             environ_record->motion_limit_38 =
@@ -828,7 +828,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
    fresh W8EnvironRecord whose motion vector derives from the linked surface's
    plane scaled by `scale`. */
 // FUNCTION: WIZ8 0x00448E60
-void W8GameData::CreateGDEnviron00448E60(const W8GDSurface* surface, float scale)
+void W8GameData::CreateGDEnviron(const W8GDSurface* surface, float scale)
 {
     if (m_iNumEnvirons % 10 == 0) {
         unsigned int size = m_iNumEnvirons * sizeof(W8EnvironRecord*) + 0x28;
@@ -1189,8 +1189,7 @@ unsigned char InitializeGameData(W8GameData* game_data)
     }
 
     for (int index = 0; index < game_data->m_iNumSurfaces; ++index) {
-        if (game_data->geometry_index_00->InsertSurface00446820(&game_data->m_pSurfaces[index],
-                                                                3) == 0) {
+        if (game_data->geometry_index_00->InsertSurface(&game_data->m_pSurfaces[index], 3) == 0) {
             return 0;
         }
     }
@@ -1345,7 +1344,7 @@ static void LinkSurfaceEdge(int polygon, int edge, W8HashTable<unsigned int, int
    collision-flag faces first, fills the shared build vertex/polygon arrays
    and stitches polygon edge links. */
 // FUNCTION: WIZ8 0x00449D10
-void W8GameData::CompileGameData00449D10()
+void W8GameData::CompileGameData()
 {
     W8HashTable<unsigned int, int> weld_table;
     W8HashTable<unsigned int, int> edge_table;
@@ -1694,7 +1693,7 @@ static void LinkSurfaceEdge(int polygon, int edge, W8HashTable<unsigned int, int
 }
 
 // FUNCTION: WIZ8 0x0044aa40
-unsigned char W8GameData::WriteGameData0044AA40(int handle)
+unsigned char W8GameData::WriteGameData(int handle)
 {
     W8ProcessedGameDataHeader header;
     int index;

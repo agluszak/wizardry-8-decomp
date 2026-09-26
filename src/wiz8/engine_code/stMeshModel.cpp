@@ -667,7 +667,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                     }
 
                     ++pipeline->slot_count_84;
-                    pipeline->PrepareSlot00475540();
+                    pipeline->PrepareSlot();
                 }
 
                 pipeline->FlushIfCurrent();
@@ -1687,7 +1687,7 @@ void srTriMeshPipeline::SetFlags004752C0(srShader shader)
 /* Point current_record_14 / current_pass_18 at slot slot_count_84, growing
    either table by (capacity + slot + 8) when needed. */
 // FUNCTION: WIZ8 0x00475540
-void srTriMeshPipeline::PrepareSlot00475540()
+void srTriMeshPipeline::PrepareSlot()
 {
     current_record_14 = &records_94[slot_count_84];
     current_pass_18 = &passes_9c[slot_count_84];
@@ -1716,7 +1716,7 @@ void srTriMeshPipeline::Flush00475510()
 }
 
 /* Bind a renderer and rebuild the current slot. Retail duplicates the prepare
-   body rather than calling PrepareSlot00475540. */
+   body rather than calling PrepareSlot. */
 // FUNCTION: WIZ8 0x004753F0
 void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
 {
@@ -2051,7 +2051,7 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
     pipeline->texture_78 = 0;
     pipeline->pass_value_7c = 0;
     pipeline->material_80 = srCore.getMaterial();
-    pipeline->PrepareSlot00475540();
+    pipeline->PrepareSlot();
     return pipe;
 }
 /* Retail ICF folds this empty thiscall onto W8OptionsGraphicsPanel::OnDragEnd

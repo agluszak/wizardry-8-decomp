@@ -41,7 +41,7 @@ public:
     void RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh);
 
     stTextureAnim* FindMouthTexture(); /* 0x00481080 */
-    int AddDamageStage00480560(const char* name);
+    int AddDamageStage(const char* name);
     int AddExistingDamageStage(const char* name);
     int FindDamageStage(const char* name);
     unsigned char ReplaceDamageStageTexture(int stage, const char* old_name,

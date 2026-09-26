@@ -58,8 +58,8 @@ public:
                                               signed char lod) override;
     virtual unsigned int ApplyEmitterSetting(signed char emitter) override;
     virtual W8AniMesh* GetEmitterAniMesh(signed char emitter) override;
-    unsigned char ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missile* missile, int cycle_index,
-                                        int positional_3);
+    unsigned char ReadCycleData(W8ReadLevelInfo* info, W8Missile* missile, int cycle_index,
+                                int positional_3);
 
     unsigned int value_0ac;
     unsigned int value_0b0;
@@ -96,7 +96,7 @@ public:
        the hit to Combat Attack.cpp or leave it for the combat engine. */
     virtual bool OnCollision(W8Navigator* other) override; /* 0x004A4720 */
 
-    unsigned long GetAnimationState004A4640(int mode);
+    unsigned long GetAnimationState(int mode);
     void DetonateMissileSpell();
     void AnnounceCollisionTarget(); /* 0x004A4AC0 */
     /* Switch the representation to its impact cycle, or end the flight when the

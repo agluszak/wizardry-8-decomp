@@ -572,9 +572,9 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                 has_light = true;
             } else if (_stricmp(command, "skin") == 0) {
                 if (damage_stage == -1) {
-                    damage_stage = (*monster)->AddDamageStage004C6880(monster_name, 0);
+                    damage_stage = (*monster)->AddDamageStage(monster_name, 0);
                     W8GrowableVector<stModelInstance*> instances;
-                    (*monster)->CollectModelInstances004C6350(&instances);
+                    (*monster)->CollectModelInstances(&instances);
                     for (int index = 0; index < instances.GetCount(); ++index) {
                         (*instances.GetAt(index))->damage_stage_184 = damage_stage;
                     }
@@ -582,7 +582,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                 }
                 if (_stricmp(argument, "default") != 0) {
                     ++skin_stage;
-                    damage_stage = (*monster)->AddDamageStage004C6880(monster_name, skin_stage);
+                    damage_stage = (*monster)->AddDamageStage(monster_name, skin_stage);
                 }
             } else if (_stricmp(command, "skinswap") == 0) {
                 char old_name[64];
@@ -773,7 +773,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
     }
     if (glow > 0.0f) {
         W8GrowableVector<stModelInstance*> instances;
-        (*monster)->CollectModelInstances004C6350(&instances);
+        (*monster)->CollectModelInstances(&instances);
         for (int index = 0; index < instances.GetCount(); ++index) {
             stModelInstance* instance = *instances.GetAt(index);
             instance->emissive_override_enabled_1a1 = 1;
@@ -1020,8 +1020,8 @@ W8MonsterRep::W8MonsterRep()
    subcycle is the newly appended animation slot; its playback scale and light
    list occupy the two parallel vectors for the same cycle. */
 // FUNCTION: WIZ8 0x004BF520
-unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monster* monster,
-                                                  int cycle_index, int value)
+unsigned char W8MonsterRep::ReadCycleData(W8ReadLevelInfo* info, W8Monster* monster,
+                                          int cycle_index, int value)
 {
     W8GrowableVector<stLight*>* lights = new W8GrowableVector<stLight*>;
     W8AnimObj* animation;
@@ -1389,7 +1389,7 @@ void W8Monster::Update()
     if (sunlit_state_2d0 == -1 || g_light_scale_0060bfe0 < g_float_005ebb38) {
         current_scale_300 = 0.75f;
         g_monster_model_instances.Clear();
-        CollectModelInstances004C6350(&g_monster_model_instances);
+        CollectModelInstances(&g_monster_model_instances);
         for (index = 0; index < g_monster_model_instances.GetCount(); ++index) {
             stModelInstance* model = *g_monster_model_instances.GetAt(index);
             model->light_scale_194 = 0.75f;
@@ -1444,7 +1444,7 @@ void W8Monster::Update()
             }
         }
         g_monster_model_instances.Clear();
-        CollectModelInstances004C6350(&g_monster_model_instances);
+        CollectModelInstances(&g_monster_model_instances);
         for (index = 0; index < g_monster_model_instances.GetCount(); ++index) {
             stModelInstance* model = *g_monster_model_instances.GetAt(index);
             model->light_scale_194 = current_scale_300;
@@ -2612,7 +2612,7 @@ void W8Monster::GetPlayerSightFlags(unsigned char* primary, unsigned char* secon
    detailed path tests the translated animation bounds at their centre and
    corners. */
 // FUNCTION: WIZ8 0x004c4920
-unsigned char W8Monster::IsVisibleToPlayer004C4920(unsigned char use_bounds)
+unsigned char W8Monster::IsVisibleToPlayer(unsigned char use_bounds)
 {
     srVector3T<float> player_position;
 
@@ -3594,7 +3594,7 @@ void W8Monster::SetCycle(signed char cycle)
     }
 
     g_monster_model_instances.Clear();
-    CollectModelInstances004C6350(&g_monster_model_instances);
+    CollectModelInstances(&g_monster_model_instances);
     for (index = 0; index < g_monster_model_instances.GetCount(); ++index) {
         stModelInstance* model = *g_monster_model_instances.GetAt(index);
         model->light_scale_194 = current_scale_300;
@@ -4770,7 +4770,7 @@ void MonsterSetAdjustedPosition(W8Monster* monster, const srVector3T<float>* pos
     srVector3T<float> result;
 
     current = *position;
-    adjusted_position = monster->AdjustPosition00454440(&adjusted, &current, &current);
+    adjusted_position = monster->AdjustPosition(&adjusted, &current, &current);
     result = *adjusted_position;
     monster->SetPositionInternal(&result);
 }
@@ -4896,7 +4896,7 @@ void MonsterAimAtMonster(W8Monster* monster, W8Monster* target, char alternate)
    element type: AniMesh's frame lookup returns stModelInstance objects and the
    consumers read their first-party fields beyond the srModelInstance base. */
 // FUNCTION: WIZ8 0x004c6350
-void W8Monster::CollectModelInstances004C6350(W8GrowableVector<stModelInstance*>* instances)
+void W8Monster::CollectModelInstances(W8GrowableVector<stModelInstance*>* instances)
 {
     int cycle;
 
@@ -4982,7 +4982,7 @@ unsigned char W8Monster::ReplaceSkinTexture(int stage, const char* old_name, con
     }
 
     W8GrowableVector<stModelInstance*> instances;
-    CollectModelInstances004C6350(&instances);
+    CollectModelInstances(&instances);
     for (int index = 0; index < instances.GetCount(); ++index) {
         if ((*instances.GetAt(index))->ReplaceDamageStageTexture(stage, old_name, texture) != 0) {
             replaced = 1;
@@ -5003,18 +5003,18 @@ unsigned char W8Monster::ReplaceSkinTexture(int stage, const char* old_name, con
 /* Damage table names are the parsed skin name followed by its numeric stage.
    A frame either creates the table or attaches the already-created table. */
 // FUNCTION: WIZ8 0x004c6880
-int W8Monster::AddDamageStage004C6880(const char* base_name, int stage)
+int W8Monster::AddDamageStage(const char* base_name, int stage)
 {
     char name[128];
     int result = -1;
     W8GrowableVector<stModelInstance*> instances;
 
     sprintf(name, "%s%d", base_name, stage);
-    CollectModelInstances004C6350(&instances);
+    CollectModelInstances(&instances);
     for (int index = 0; index < instances.GetCount(); ++index) {
         stModelInstance* instance = *instances.GetAt(index);
         if (instance->FindDamageStage(name) == -1) {
-            result = instance->AddDamageStage00480560(name);
+            result = instance->AddDamageStage(name);
         } else {
             result = instance->AddExistingDamageStage(name);
         }
@@ -5031,7 +5031,7 @@ void W8Monster::RemoveCycleSkinTables()
     W8GrowableVector<stModelInstance*> instances;
 
     if (cycle_name != 0) {
-        CollectModelInstances004C6350(&instances);
+        CollectModelInstances(&instances);
         for (int index = 0; index < instances.GetCount(); ++index) {
             stMeshModel* mesh = static_cast<stMeshModel*>((*instances.GetAt(index))->model());
             for (; mesh != 0; mesh = mesh->next) {
@@ -5049,7 +5049,7 @@ void W8Monster::SetDamageStage(int stage)
     W8GrowableVector<stModelInstance*> instances;
     int index;
 
-    CollectModelInstances004C6350(&instances);
+    CollectModelInstances(&instances);
     for (index = 0; index < instances.GetCount(); ++index) {
         (*instances.GetAt(index))->damage_stage_184 = stage;
     }
@@ -5062,7 +5062,7 @@ int W8Monster::GetDamageStageCount()
 {
     W8GrowableVector<stModelInstance*> instances;
 
-    CollectModelInstances004C6350(&instances);
+    CollectModelInstances(&instances);
     if (instances.GetCount() != 0) {
         return (*instances.GetAt(0))->damage_stage_tables_188.capacity;
     }

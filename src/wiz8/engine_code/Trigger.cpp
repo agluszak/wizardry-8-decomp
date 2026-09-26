@@ -899,7 +899,7 @@ void UpdateWorldTriggers(W8World* world)
     for (int index = 0; index < count; ++index) {
         Trigger* trigger = *world->triggers->GetAt(index);
         if ((trigger->flags_0a0 & W8_TRIGGER_ITEM_PICKER) != 0 && trigger->m_pProp != 0 &&
-            (trigger->m_pProp->GetAnimationState0044EBE0() < 2 ||
+            (trigger->m_pProp->GetAnimationState() < 2 ||
              trigger->m_pProp->Rep()->animation_playing_06d == 0)) {
             trigger->GenerateItemGroup();
             if (g_modal_owner == 0 && trigger->world_item_group_34c != 0) {

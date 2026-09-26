@@ -1054,9 +1054,9 @@ unsigned char W8Navigator::UpdateLinkedPosition()
 }
 
 // FUNCTION: WIZ8 0x00454440
-srVector3T<float>* W8Navigator::AdjustPosition00454440(srVector3T<float>* result,
-                                                       const srVector3T<float>* current,
-                                                       const srVector3T<float>* previous)
+srVector3T<float>* W8Navigator::AdjustPosition(srVector3T<float>* result,
+                                               const srVector3T<float>* current,
+                                               const srVector3T<float>* previous)
 {
     float acceleration_scale = 0.25f;
     if (movement_0c0.location_id_004 == 0 || navigation_mode_008 == 4) {
@@ -1128,7 +1128,7 @@ void W8Navigator::UpdateFacing(char immediate)
     srVector3T<float> forward(0.0f, 0.0f, 1.0f);
     srVector3T<float> normal;
     forward.RotateAboutY(sin(movement_0c0.yaw), cos(movement_0c0.yaw));
-    g_octree->GetPathSurfaceNormal00433A70(&movement_0c0.position_040, &normal);
+    g_octree->GetPathSurfaceNormal(&movement_0c0.position_040, &normal);
     if (movement_0c0.pitch_enabled_074 != 0) {
         float angle = static_cast<float>(acos(DotProduct(normal, forward)));
         if (angle < g_float_005ec2a8) {
@@ -2249,7 +2249,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
     tracked_dirty_0b4 = 0;
     if (position_dirty_09c != 0 || movement_0c0.position_adjusted_0c8 != 0) {
         movement_0c0.position_040 =
-            *AdjustPosition00454440(&adjusted, &movement_0c0.position_040, &previous);
+            *AdjustPosition(&adjusted, &movement_0c0.position_040, &previous);
     }
 
     if (movement_0c0.vertical_amplitude_080 != g_float_005ebb34) {
@@ -2459,7 +2459,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
         }
 
         movement_0c0.position_040 =
-            *AdjustPosition00454440(&adjusted, &movement_0c0.position_040, &previous);
+            *AdjustPosition(&adjusted, &movement_0c0.position_040, &previous);
         UpdateFacing(0);
         if (movement_stopped_024 == 0) {
             srVector3T<float> velocity;

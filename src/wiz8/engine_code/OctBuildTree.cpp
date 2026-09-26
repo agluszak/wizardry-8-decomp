@@ -215,7 +215,7 @@ W8OctBuildTree::~W8OctBuildTree()
 /* Reject triangles outside the build domain, lazily create the root node, and
    then hand the complete typed working record to the recursive inserter. */
 // FUNCTION: WIZ8 0x00446820
-unsigned char W8OctBuildTree::InsertSurface00446820(W8GDSurface* surface, unsigned long mode)
+unsigned char W8OctBuildTree::InsertSurface(W8GDSurface* surface, unsigned long mode)
 {
     W8OctSpatialState working(&spatial_00);
     srVector3T<float> vertices[3];
@@ -246,7 +246,7 @@ unsigned char W8OctBuildTree::InsertSurface00446820(W8GDSurface* surface, unsign
     working.owned_98 = vertices;
     working.depth_44 = 0;
     working.level_kind_6c = 1;
-    if (InsertSurfaceRecursive004469F0(&working, surface, &plane_point, mode) == 0) {
+    if (InsertSurfaceRecursive(&working, surface, &plane_point, mode) == 0) {
         return 0;
     }
     ++spatial_00.item_count_40;
@@ -256,10 +256,10 @@ unsigned char W8OctBuildTree::InsertSurface00446820(W8GDSurface* surface, unsign
 /* Descend through every overlapping octant.  Branch nodes own child nodes;
    leaf nodes reuse the same eight slots as per-mode linked-list heads. */
 // FUNCTION: WIZ8 0x004469f0
-unsigned char W8OctBuildTree::InsertSurfaceRecursive004469F0(W8OctSpatialState* working,
-                                                             W8GDSurface* surface,
-                                                             srVector3T<float>* plane_point,
-                                                             unsigned long mode)
+unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
+                                                     W8GDSurface* surface,
+                                                     srVector3T<float>* plane_point,
+                                                     unsigned long mode)
 {
     W8OctSpatialState child(working);
     unsigned char inserted = 0;
@@ -314,8 +314,7 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive004469F0(W8OctSpatialState* 
                         }
                         child.root_90 = node->children_00[octant];
                         child.owned_98 = working->owned_98;
-                        if (InsertSurfaceRecursive004469F0(&child, surface, plane_point, mode) !=
-                            0) {
+                        if (InsertSurfaceRecursive(&child, surface, plane_point, mode) != 0) {
                             inserted = 1;
                         }
                     }
@@ -353,10 +352,9 @@ void W8OctBuildTree::AppendLink(W8OctBuildNode* node, void* payload, short kind)
    walk the tree. `half_angle` is unused. Collected surfaces carry the 0x2000
    visit mark, which this clears before returning the count. */
 // FUNCTION: WIZ8 0x00446d80
-int W8OctBuildTree::CollectObjectsAlongSegment00446D80(int** results, const srVector3T<float>* from,
-                                                       const srVector3T<float>* to,
-                                                       float half_angle, float extent,
-                                                       unsigned short kind)
+int W8OctBuildTree::CollectObjectsAlongSegment(int** results, const srVector3T<float>* from,
+                                               const srVector3T<float>* to, float half_angle,
+                                               float extent, unsigned short kind)
 {
     W8OctSpatialState state(&spatial_00);
     float bounds[6];

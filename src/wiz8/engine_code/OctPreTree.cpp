@@ -268,8 +268,7 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
    dword and the +0xc9..+0xf4 tail stay unwritten, exactly as retail leaves
    them. */
 // FUNCTION: WIZ8 0x004683f0
-unsigned char OctPreTree::WriteOctFile004683F0(W8OctPreTreeGeometry* geometry,
-                                               W8GameData* game_data)
+unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameData* game_data)
 {
     unsigned char written;
     int file;
@@ -423,7 +422,7 @@ unsigned char OctPreTree::WriteOctFile004683F0(W8OctPreTreeGeometry* geometry,
                           "WriteOctFile: Couldn't write Terminator after Mesh Prop Link Table.\n");
         return 0;
     }
-    if (pre_pathing_2a0 != 0 && pre_pathing_2a0->WritePathNodes00458AD0(file) == 0) {
+    if (pre_pathing_2a0 != 0 && pre_pathing_2a0->WritePathNodes(file) == 0) {
         ReportBuildStatus(7, "WriteOctFile: Couldn't write Path Nodes.\n");
         return 0;
     }
@@ -440,7 +439,7 @@ unsigned char OctPreTree::WriteOctFile004683F0(W8OctPreTreeGeometry* geometry,
        above (verified at 0x468572); this null check is authentic but
        unreachable-with-null. */
     if (game_data != 0 && header.gd_surface_stream_len_86 != 0) {
-        written = game_data->WriteGameData0044AA40(file);
+        written = game_data->WriteGameData(file);
         /* Retail bitwise-ORs the game-data and terminator results: a failed
            game-data write followed by a successful four-byte write reports
            success.  Verified at 0x468be0-0x468bec. */
@@ -473,7 +472,7 @@ static void FreeSubmeshBuildArrays(W8OctSubmeshBuild* records, unsigned long cou
    vertex/polygon data, counts the per-kind totals and marks the alpha-bit
    rows whose packed header is nonzero. */
 // FUNCTION: WIZ8 0x00468c30
-OctMeshModel* OctPreTree::CreateSubMeshes00468C30(W8OctPreTreeGeometry* geometry)
+OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
 {
     OctMeshModel* models;
     W8OctSubmeshBuild* records;
@@ -497,7 +496,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes00468C30(W8OctPreTreeGeometry* geometry
     } else {
         memset(records, 0, (spatial_000.submesh_count_74 + 1) * 0x9c);
         AllocateSubMesh(records);
-        SplitMeshes00469670(geometry, records);
+        SplitMeshes(geometry, records);
         m_aulPolyLookup = static_cast<unsigned long*>(malloc(geometry->polygon_count_08 * 4 + 4));
         if (m_aulPolyLookup == 0) {
             ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate m_aulPolyLookup.\n");
@@ -659,8 +658,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes00468C30(W8OctPreTreeGeometry* geometry
    SplitUVMaps.  Retail leaks the five sort arrays on the allocation-failure
    paths; kept as-is. */
 // FUNCTION: WIZ8 0x00469670
-unsigned long OctPreTree::SplitMeshes00469670(W8OctPreTreeGeometry* geometry,
-                                              W8OctSubmeshBuild* records)
+unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records)
 {
     unsigned long count = spatial_000.submesh_count_74;
     if (count == 0) {
@@ -872,7 +870,7 @@ unsigned long OctPreTree::SplitMeshes00469670(W8OctPreTreeGeometry* geometry,
             }
             memcpy(record->vertex_ids_20, vertex_ids, vertex_count * 4);
             total_vertices += vertex_count;
-            total_maps += SplitUVMaps0046A4B0(record, geometry);
+            total_maps += SplitUVMaps(record, geometry);
         }
     }
 
@@ -912,8 +910,7 @@ static_assert(sizeof(W8OctUvPoolEntry) == 0xc, "W8OctUvPoolEntry_must_be_0xc");
 // srVector3T<float>::operator=
 
 // FUNCTION: WIZ8 0x0046a4b0
-unsigned long OctPreTree::SplitUVMaps0046A4B0(W8OctSubmeshBuild* record,
-                                              W8OctPreTreeGeometry* geometry)
+unsigned long OctPreTree::SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeometry* geometry)
 {
     W8OctUvPoolEntry* table =
         static_cast<W8OctUvPoolEntry*>(malloc(record->polygon_count_1c * 0x30));
@@ -1240,7 +1237,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
                                    m_region_cell_178) +
                   1;
 
-    int prop_count = CreatePathProps0046C0F0(level, &preprops);
+    int prop_count = CreatePathProps(level, &preprops);
     W8PrePathNode* record = pre_pathing_2a0->GetPathNode();
     W8PrePathNode* head = record;
     path_node_count_2a4 = 1;
@@ -1271,7 +1268,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
                         }
                         node.y = snapped;
                     }
-                    if (PathNodeObstructed0046B700(&node) != 1) {
+                    if (PathNodeObstructed(&node) != 1) {
                         W8PrePathNode* next = pre_pathing_2a0->GetPathNode();
                         record->next = next;
                         record = next;
@@ -1281,8 +1278,8 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
                             static_cast<unsigned int>(static_cast<int>(
                                 (node.y - spatial_000.minimum_0c.y) / level_height)) +
                             1;
-                        if (InsertConditionalNodes0046B9D0(&cond_map, cell, record->level_flags,
-                                                           preprops, prop_count)) {
+                        if (InsertConditionalNodes(&cond_map, cell, record->level_flags, preprops,
+                                                   prop_count)) {
                             record->level_flags |= 0x4000000;
                         }
                         int slot = node_map.FindNextEntry(&cell, -1);
@@ -1338,7 +1335,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
    support a node are deduplicated into m_lSupports (result 6); a prop-blocked
    or floating node yields 1. */
 // FUNCTION: WIZ8 0x0046b700
-char OctPreTree::PathNodeObstructed0046B700(const srVector3T<float>* node)
+char OctPreTree::PathNodeObstructed(const srVector3T<float>* node)
 {
     srVector3T<float> bounds_min, bounds_max;
     srVector3T<float> corner;
@@ -1434,10 +1431,9 @@ char OctPreTree::PathNodeObstructed0046B700(const srVector3T<float>* node)
    conditional-node map keyed by (stop-mesh frame << 16 | preprop index + 1).
    Blocker nodes are flagged 0x2000000. */
 // FUNCTION: WIZ8 0x0046b9d0
-unsigned char
-OctPreTree::InsertConditionalNodes0046B9D0(W8HashTable<unsigned int, CondPathNode*>* nodes,
-                                           unsigned int cell, unsigned int node,
-                                           W8PreProp* preprops, int preprop_count)
+unsigned char OctPreTree::InsertConditionalNodes(W8HashTable<unsigned int, CondPathNode*>* nodes,
+                                                 unsigned int cell, unsigned int node,
+                                                 W8PreProp* preprops, int preprop_count)
 {
     if (m_lNumSupports_2a8 == 0 && m_lNumBlocks_2ac == 0)
         return 0;
@@ -1558,7 +1554,7 @@ char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
    and registers every element in props_3b8. Returns the record count and the
    malloc'd array through `preprops`. */
 // FUNCTION: WIZ8 0x0046c0f0
-int OctPreTree::CreatePathProps0046C0F0(W8LevelFile* level, W8PreProp** preprops)
+int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
 {
     int count = level->nProps;
     unsigned short prop_number = 0;

@@ -391,7 +391,7 @@ public:
                                          float maximum);
     unsigned char LinkNavigatorTarget(W8NavigatorMovementState* movement,
                                       const srVector3T<float>* target, float separation);
-    void GetPathSurfaceNormal00433A70(const srVector3T<float>* position, srVector3T<float>* normal);
+    void GetPathSurfaceNormal(const srVector3T<float>* position, srVector3T<float>* normal);
     float SettleToGround(srVector3T<float>* position, unsigned char* out_hit, char mode,
                          float limit); /* 0x00433820 */
     /* Clamp `position` to the clipped ceiling, probe the ground one
@@ -406,7 +406,7 @@ public:
     int QueryObjects(unsigned long** objects, const srVector3T<float>* lower,
                      const srVector3T<float>* upper, unsigned short kind,
                      int excluded); /* 0x0042F280 */
-    void AdjustPosition00431DA0(srVector3T<float>* position, unsigned int mode);
+    void AdjustPosition(srVector3T<float>* position, unsigned int mode);
     /* Refresh the pathing service's debug preview from the world cursor,
        falling back to the camera eye when the cursor is unset. */
     void UpdatePathVisualization(); /* 0x00434170 */
@@ -456,7 +456,7 @@ public:
        mark the visible ones in the current region set. */
     void MarkVisibleRegions(); /* 0x004301C0 */
     /* Build the six frustum planes from the camera basis and far clip. */
-    void BuildFrustumPlanes004302E0(); /* 0x004302E0 */
+    void BuildFrustumPlanes(); /* 0x004302E0 */
     short ProjectLinkedRegionsForLocation(srVector3T<float>* location,
                                           unsigned short* region_list); /* 0x00431050 */
 
@@ -656,25 +656,25 @@ public:
        (or starts within 1.0f in front) and the contact lands inside it. */
     bool TestCollectedPolygons(W8OctreeTrace* trace);
     /* Serializes the finished octree to NewLevel.oct. */
-    unsigned char WriteOctFile004683F0(W8OctPreTreeGeometry* geometry, W8GameData* game_data);
+    unsigned char WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameData* game_data);
     /* Partitions the geometry into submesh records, emits the OctMeshModel
        array and fills m_pSubmeshes/m_aulPolyLookup. */
-    OctMeshModel* CreateSubMeshes00468C30(W8OctPreTreeGeometry* geometry);
-    unsigned long SplitMeshes00469670(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
+    OctMeshModel* CreateSubMeshes(W8OctPreTreeGeometry* geometry);
+    unsigned long SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
     unsigned long AllocateSubMesh(W8OctSubmeshBuild* records);
-    unsigned long SplitUVMaps0046A4B0(W8OctSubmeshBuild* record, W8OctPreTreeGeometry* geometry);
+    unsigned long SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeometry* geometry);
     void VerifyPolygonRegions();
     void VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
     unsigned char BuildPathLists(W8GameData* game_data, W8LevelFile* level,
                                  unsigned int min_component_percent);
-    char PathNodeObstructed0046B700(const srVector3T<float>* node_position);
-    unsigned char InsertConditionalNodes0046B9D0(W8HashTable<unsigned int, CondPathNode*>* nodes,
-                                                 unsigned int cell, unsigned int node,
-                                                 W8PreProp* preprops, int preprop_count);
+    char PathNodeObstructed(const srVector3T<float>* node_position);
+    unsigned char InsertConditionalNodes(W8HashTable<unsigned int, CondPathNode*>* nodes,
+                                         unsigned int cell, unsigned int node, W8PreProp* preprops,
+                                         int preprop_count);
     /* Tests the bounds box against static surfaces and registered props;
        0 clear, 1 blocked, 3 clear but prop ids were recorded in m_lBlocks_328. */
     char TestPathPropBounds(const srVector3T<float>* minimum, const srVector3T<float>* maximum);
-    int CreatePathProps0046C0F0(W8LevelFile* level, W8PreProp** preprops);
+    int CreatePathProps(W8LevelFile* level, W8PreProp** preprops);
 };
 
 static_assert(sizeof(OctPreTree) == 0x3bc, "OctPreTree_must_be_0x3bc");

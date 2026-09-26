@@ -61,11 +61,10 @@
 #define OCTREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp"
 
 // FUNCTION: WIZ8 0x00433a70
-void W8Octree::GetPathSurfaceNormal00433A70(const srVector3T<float>* position,
-                                            srVector3T<float>* normal)
+void W8Octree::GetPathSurfaceNormal(const srVector3T<float>* position, srVector3T<float>* normal)
 {
     if (pathing_180 != 0) {
-        pathing_180->GetPathSurfaceNormal0045B730(position, normal);
+        pathing_180->GetPathSurfaceNormal(position, normal);
         return;
     }
     normal->x = 0.0f;
@@ -84,10 +83,10 @@ void W8Octree::UpdatePathVisualization()
         if (cursor.y >= g_float_005ebb34 || cursor.y >= g_float_005ebb34 ||
             cursor.z >= g_float_005ebb34) {
             srVector3T<float> point = cursor;
-            pathing_180->UpdatePathVisualization0045BC40(&point, &camera_dof_1cc);
+            pathing_180->UpdatePathVisualization(&point, &camera_dof_1cc);
             return;
         }
-        pathing_180->UpdatePathVisualization0045BC40(&camera_location_1c0, &camera_dof_1cc);
+        pathing_180->UpdatePathVisualization(&camera_location_1c0, &camera_dof_1cc);
     }
 }
 
@@ -310,9 +309,9 @@ void W8Octree::UpdateVisibility()
            twice and x is never examined. */
         if (dof.y >= g_float_005ebb34 || dof.y >= g_float_005ebb34 || dof.z >= g_float_005ebb34) {
             srVector3T<float> probe = dof;
-            pathing_180->UpdatePathVisualization0045BC40(&probe, &camera_dof_1cc);
+            pathing_180->UpdatePathVisualization(&probe, &camera_dof_1cc);
         } else {
-            pathing_180->UpdatePathVisualization0045BC40(&camera_location_1c0, &camera_dof_1cc);
+            pathing_180->UpdatePathVisualization(&camera_location_1c0, &camera_dof_1cc);
         }
     }
     if (m_projected_regions_valid_16a != 0) {
@@ -838,7 +837,7 @@ void W8Octree::MarkVisibleRegions()
 /* Build the four side frustum planes from the camera basis and far clip, and
    accumulate the two far-plane offsets the region projection reads. */
 // FUNCTION: WIZ8 0x004302e0
-void W8Octree::BuildFrustumPlanes004302E0()
+void W8Octree::BuildFrustumPlanes()
 {
     float fov = horizontal_fov_1f0 * g_float_005ebc7c;
     float extent = spatial_000.max_region_radius_60;
@@ -898,7 +897,7 @@ void W8Octree::BuildFrustumPlanes004302E0()
 // FUNCTION: WIZ8 0x0042fe90
 void W8Octree::CollectVisibleCells()
 {
-    BuildFrustumPlanes004302E0();
+    BuildFrustumPlanes();
     MarkVisibleRegions();
     short radius = static_cast<short>(
         (static_cast<int>((far_clip_200 / spatial_000.region_grid_cell_54)) + 1));
@@ -4093,7 +4092,7 @@ finish:
         ReadRegionLinkFile(m_owned_0c0);
         LoadPointFiles(m_owned_0c0);
         if (pathing_180 != 0) {
-            pathing_180->ReadWaypointFile00459650();
+            pathing_180->ReadWaypointFile();
         }
         return;
     }
@@ -4922,7 +4921,7 @@ int* W8Octree::WorldPositionToCell(const srVector3T<float>* position, int* point
    The walk reports through the flag; the height it wrote is discarded on a
    miss. */
 // FUNCTION: WIZ8 0x00431DA0
-void W8Octree::AdjustPosition00431DA0(srVector3T<float>* position, unsigned int mode)
+void W8Octree::AdjustPosition(srVector3T<float>* position, unsigned int mode)
 {
     srVector3T<float> adjusted;
     unsigned char hit = 0;

@@ -500,7 +500,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                     }
                     build_tree->spatial_00.region_grid_cell_54 = g_option_auto_region_size;
                     int alpha_polys = BuildRegionPolygons(level, &geometry, classify);
-                    build_tree->SortGeometry004AFEA0(&geometry);
+                    build_tree->SortGeometry(&geometry);
                     short light_total = level->nLights;
                     last_sun = -1;
                     if (light_total != 0) {
@@ -591,10 +591,10 @@ unsigned char PreprocessLevel(int handle, char* stem)
                                                record->forward_scale_1b7, &record->linked_face_1b1);
                     }
                     value->geometry_index_00 = build_tree;
-                    value->CompileGameData00449D10();
+                    value->CompileGameData();
                     for (i = 0; i < value->m_iNumSurfaces; ++i) {
                         W8OctRegionPolygon* surface = g_gd_polygons + i;
-                        if (build_tree->InsertSurface004B02F0(surface, 3) == 0) {
+                        if (build_tree->InsertSurface(surface, 3) == 0) {
                             sprintf(message,
                                     "Warning: GD Polygon %d cannot be inserted into tree\n", i);
                             ReportBuildStatus(6, message);
@@ -622,7 +622,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                     build_tree->BuildGeometryRegions(level->pProps, level->nProps, 0, 0);
                     build_tree->BuildGeometryRegions(level->pBitmaps, level->nBitmaps,
                                                      level->nProps, 1);
-                    build_tree->spatial_00.root_90->RearrangeNodePolys004AF7B0(
+                    build_tree->spatial_00.root_90->RearrangeNodePolys(
                         0, build_tree->spatial_00.depth_44);
                     for (i = 0; i < static_cast<int>(geometry.vertex_count_00); ++i) {
                         vertices[i].visited_0a = 0;
@@ -761,7 +761,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                             ReportBuildStatus(7, "Could not generate polygon list by regions.\n");
                         } else {
                             ReportBuildStatus(6, "\nCreating Submeshes ------------------------\n");
-                            submeshes = tree->CreateSubMeshes00468C30(&geometry);
+                            submeshes = tree->CreateSubMeshes(&geometry);
                             sprintf(message, "Number of Submeshes: %d\n",
                                     static_cast<int>(tree->GetMeshCount()));
                             ReportBuildStatus(6, message);
@@ -801,7 +801,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                                         bound_max.y, bound_max.z);
                                 ReportBuildStatus(6, message);
                                 ReportBuildStatus(6, "\nWriting Oct File...\n");
-                                result = tree->WriteOctFile004683F0(&geometry, value);
+                                result = tree->WriteOctFile(&geometry, value);
                             }
                         }
                     }

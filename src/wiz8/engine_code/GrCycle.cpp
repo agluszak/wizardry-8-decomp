@@ -398,15 +398,15 @@ unsigned char ReadGrCycleData(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycl
 
     switch (object_type) {
     case 0:
-        success = static_cast<W8Monster*>(*cycle)->m_pRep->ReadCycleData004BF520(
+        success = static_cast<W8Monster*>(*cycle)->m_pRep->ReadCycleData(
             info, static_cast<W8Monster*>(*cycle), cycle_index, value);
         break;
     case 1:
-        success = static_cast<W8Missile*>(*cycle)->m_pRep->ReadCycleData004A3300(
+        success = static_cast<W8Missile*>(*cycle)->m_pRep->ReadCycleData(
             info, static_cast<W8Missile*>(*cycle), cycle_index, value);
         break;
     case 2:
-        success = static_cast<W8SpellVisual*>(*cycle)->host->ReadCycleData004AB340(
+        success = static_cast<W8SpellVisual*>(*cycle)->host->ReadCycleData(
             info, static_cast<W8SpellVisual*>(*cycle), cycle_index, value);
         break;
     }

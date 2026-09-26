@@ -336,7 +336,7 @@ void ReleaseMissileDatabase(void)
 bool W8Missile::BlocksEndingCombat()
 {
     if (flight_done_1e0 == 0) {
-        if (GetAnimationState004A4640(6) != 1) {
+        if (GetAnimationState(6) != 1) {
             return 1;
         }
     }
@@ -917,8 +917,8 @@ W8AnimRepBase* W8MissileRep::Clone()
 }
 
 // FUNCTION: WIZ8 0x004A3300
-unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missile* missile,
-                                                  int cycle_index, int)
+unsigned char W8MissileRep::ReadCycleData(W8ReadLevelInfo* info, W8Missile* missile,
+                                          int cycle_index, int)
 {
     W8GrowableVector<stLight*>* lights = new W8GrowableVector<stLight*>;
     W8AnimObj* animation;
@@ -1029,7 +1029,7 @@ W8Missile::W8Missile(const W8Missile& other)
 /* Mode-keyed query over the representation's emitter/cycle state; used by the
    missile script handlers. */
 // FUNCTION: WIZ8 0x004A4640
-unsigned long W8Missile::GetAnimationState004A4640(int mode)
+unsigned long W8Missile::GetAnimationState(int mode)
 {
     switch (mode) {
     case 0:
@@ -1083,7 +1083,7 @@ void W8Missile::StartIfHostActive()
     if (m_pRep->active == 0) {
         return;
     }
-    if (GetAnimationState004A4640(2) == 0 || impacting_1e1 == 0) {
+    if (GetAnimationState(2) == 0 || impacting_1e1 == 0) {
         if (m_pAI != 0) {
             PathAIUpdate(m_pAI, 1);
         }
@@ -1401,7 +1401,7 @@ void W8Missile::AnnounceCollisionTarget()
 void W8Missile::EnterImpactCycle()
 {
     if (IsCycleSupported(1)) {
-        if (GetAnimationState004A4640(6) != 1) {
+        if (GetAnimationState(6) != 1) {
             W8MissileRep* representation = m_pRep;
             srVector3T<float> position = representation->location_004;
             representation->pending_cycle = 1;
