@@ -60,10 +60,6 @@ def ge_proton_path(settings: Settings) -> Path:
     return settings.runtime_toolchain_dir / GE_PROTON_ARCHIVE.destination
 
 
-def ge_proton_wineserver_path(settings: Settings) -> Path:
-    return ge_proton_path(settings) / "files/bin/wineserver"
-
-
 def _download_verified(settings: Settings, archive: RuntimeArchive) -> Path:
     cache = settings.runtime_toolchain_dir / "downloads"
     cache.mkdir(parents=True, exist_ok=True)
