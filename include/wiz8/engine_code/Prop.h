@@ -122,7 +122,7 @@ public:
        type-10 action payload naming item_00a). */
     bool TriggerRequiresItem(); /* 0x0044E380 */
     /* The prop's current animation value; -1 when it has none. */
-    int GetAnimationState0044EBE0() const; /* 0x0044EBE0 */
+    int GetAnimationState() const; /* 0x0044EBE0 */
     void AttachAnimationInstances(W8World* world);
     unsigned char GetSetting6C();
     srModelInstance* ToggleRepAnimation(int argument);

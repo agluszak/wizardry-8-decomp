@@ -291,8 +291,8 @@ public:
                                       float separation);
     void LinkSurfaces(GDProp* prop); /* 0x00460020 */
     void LinkEdges(GDProp* prop);    /* 0x004600B0 */
-    void CheckConditionalWayPtStatus004601B0(unsigned short count, unsigned short* waypoints);
-    void CheckConditionalLinkStatus00460250(unsigned short count, unsigned short* edges);
+    void CheckConditionalWayPtStatus(unsigned short count, unsigned short* waypoints);
+    void CheckConditionalLinkStatus(unsigned short count, unsigned short* edges);
     void SetConditionalPathFrame(unsigned int path_handle, short frame);
     unsigned int FindConditionalPathValue(unsigned int key, unsigned int value);
     void
@@ -333,10 +333,10 @@ public:
                                   unsigned char* dynamic);
     unsigned short FindWaypoint(const srVector3T<float>* position, unsigned char exhaustive);
     void SnapPathHeight(srVector3T<float>* position);
-    void GetPathSurfaceNormal0045B730(const srVector3T<float>* position, srVector3T<float>* normal);
+    void GetPathSurfaceNormal(const srVector3T<float>* position, srVector3T<float>* normal);
     void ActivateMovementTrigger(W8NavigatorMovementState* movement, unsigned char use_path_edge);
-    void UpdatePathVisualization0045BC40(const srVector3T<float>* source,
-                                         const srVector3T<float>* destination);
+    void UpdatePathVisualization(const srVector3T<float>* source,
+                                 const srVector3T<float>* destination);
     void DrawPathPosition(srVector3T<float> position, unsigned char mode);
     void BuildSearchVisualization();
     stModelInstance* BuildPathVisualization();
@@ -396,7 +396,7 @@ public:
        first candidate beyond patrol_distance_1e8 or the first nonzero
        recursive result. probe_cell_key_078 tracks the farthest candidate. */
     unsigned short RecurseTargetLinks(unsigned short waypoint); /* 0x004615D0 */
-    unsigned short RecursePatrolLinks00461D10(unsigned short waypoint);
+    unsigned short RecursePatrolLinks(unsigned short waypoint);
     float MeasureDirectionalPath(const int* cell, int direction, unsigned int height,
                                  float distance);
     float CompareDirectionalClearance(const srVector3T<float>* position,
@@ -426,10 +426,10 @@ public:
     void ConfigureForLevel(int size, float grid_scale, int path_clearance,
                            const srVector3T<float>* bounds, const char* name); /* 0x00458A50 */
     unsigned char Load00458CE0(int handle);                                    /* 0x00458CE0 */
-    unsigned char WritePathNodes00458AD0(unsigned int handle);
+    unsigned char WritePathNodes(unsigned int handle);
     unsigned char SaveWaypointSnapshot(unsigned char force);
-    unsigned char WriteWaypointFile00459540();
-    unsigned char ReadWaypointFile00459650();
+    unsigned char WriteWaypointFile();
+    unsigned char ReadWaypointFile();
     void BuildWaypointFileData();
     /* Owning destructor: releases owned tables and bit sets. Single caller
        destroys the service at octree teardown. */

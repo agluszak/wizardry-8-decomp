@@ -97,8 +97,8 @@ struct W8MonsterRep : public W8EmitterHost {
     virtual unsigned int ApplyEmitterSetting(signed char cycle) override; /* 0x004BF970 */
     virtual W8AniMesh* GetEmitterAniMesh(signed char cycle) override;     /* 0x004BF920 */
     virtual void CopyCycle(signed char cycle, const W8MonsterRep* other, signed char other_cycle);
-    unsigned char ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monster* monster, int cycle_index,
-                                        int value);
+    unsigned char ReadCycleData(W8ReadLevelInfo* info, W8Monster* monster, int cycle_index,
+                                int value);
 
     /* The spell-icon list; named by the SetMonsterSpellIcon assert
        "pMonRep->GetSpellIcons()". */
@@ -201,11 +201,11 @@ public:
     bool IsDying();                              /* 0x004CA4C0 */
     unsigned char IsCycleInterruptable(signed char cycle);
     void ApplyRemovalStateEffects();
-    void CollectModelInstances004C6350(W8GrowableVector<stModelInstance*>* instances);
+    void CollectModelInstances(W8GrowableVector<stModelInstance*>* instances);
     void SetDamageStage(int stage);
     int GetDamageStageCount();
     unsigned char ReplaceSkinTexture(int stage, const char* old_name, const char* new_name);
-    int AddDamageStage004C6880(const char* base_name, int stage);
+    int AddDamageStage(const char* base_name, int stage);
     void RemoveCycleSkinTables();
     void RandomizeAppearanceAndMotion();
     unsigned char IsRenderable(char alternate);
@@ -241,7 +241,7 @@ public:
     bool IsWithinWorldRange();
     unsigned char CheckLineOfSightToPlayer();
     void GetPlayerSightFlags(unsigned char* primary, unsigned char* secondary);
-    unsigned char IsVisibleToPlayer004C4920(unsigned char use_bounds);
+    unsigned char IsVisibleToPlayer(unsigned char use_bounds);
     void GetPlayerToMonsterSightFlags(unsigned char* primary, unsigned char* secondary,
                                       const srVector3T<float>* source);
     unsigned char HasLineOfSightToMonster(W8Monster* monster);
@@ -375,12 +375,11 @@ public:
 };
 
 int ParseMonsterCycleName(const char* name, signed char* subcycle = 0);
-unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
-                                           const char* monster_name, W8Monster** monster,
-                                           int load_value, int location_id);
-unsigned char MonsterReadAllCycles004C58E0(const W8GrCycleLoadContext* context,
-                                           const char* monster_name, W8Monster** monster,
-                                           int load_value, int location_id);
+unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
+                                       const char* monster_name, W8Monster** monster,
+                                       int load_value, int location_id);
+unsigned char MonsterReadAllCycles(const W8GrCycleLoadContext* context, const char* monster_name,
+                                   W8Monster** monster, int load_value, int location_id);
 unsigned short ChooseDifferentMonsterDirection(unsigned short previous_direction);
 
 unsigned char MonsterGetWorldAnimationBounds(W8Monster* monster, srVector3T<float>* minimum,

@@ -30,8 +30,7 @@ static_assert(sizeof(W8TgaHeader) == 20, "W8TgaHeader_must_be_20");
    parameter is a pointer the callee never dereferences; the sole caller
    passes the address of a zeroed dword. */
 srColorSurface* __stdcall LoadSurface(int handle, long* unused_out);
-void __stdcall LoadSurfacePixels0047BC80(int handle, srColorSurface* surface,
-                                         const W8TgaHeader* header);
+void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface, const W8TgaHeader* header);
 
 /* Wizardry's virtual-file-backed texture. SR.DLL exports a parallel
    srTextureFile (id 0x2112) whose 17-slot vtable is:

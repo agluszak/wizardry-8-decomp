@@ -79,7 +79,7 @@ unsigned char W8AmbientSound::IsInsideRegion(const srVector3T<float>* listener)
         }
         relative.Transform(rotation);
     }
-    return PointInsideBounds004BE870(&relative, &region_min, &region_max);
+    return PointInsideBounds(&relative, &region_min, &region_max);
 }
 
 /* Listener-relative servicing. Out of range: shared sounds try to hand their
@@ -702,7 +702,7 @@ void ToggleAmbientSoundByName(W8World* /* unused */, const char* name)
 unsigned short g_empty_ambient_name;
 
 // FUNCTION: WIZ8 0x0047ab40
-unsigned char LoadAmbientSoundList0047AB40(char* filename)
+unsigned char ReadAmbientSoundListFile(char* filename)
 {
     int handle;
     unsigned char more = 1;
@@ -959,7 +959,7 @@ void SaveAmbientSoundList(HWFILE handle)
    script commands are replayed — the helpers rescan the list themselves, and
    VC6 inlines that rescan twice here. */
 // FUNCTION: WIZ8 0x0047b270
-void LoadAmbientSoundList0047B270(HWFILE handle)
+void LoadAmbientSoundList(HWFILE handle)
 {
     unsigned char version;
     unsigned char ok;

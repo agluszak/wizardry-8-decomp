@@ -91,19 +91,19 @@ const wchar_t g_format_s_d_paren_s[] = L"%s %d (%s)";
 
 /* The page and item-action button callbacks CreateCampButtonPanel
    wires into m_primaryActivationCallback. */
-static void CampPageAction005B5AE0(void);
-static void CampPageAction005B5B30(void);
-static void CampPageAction005B5B80(void);
-static void CampPageAction005B5BD0(void);
+static void OnCampPageButton0(void);
+static void OnCampPageButton1(void);
+static void OnCampPageButton2(void);
+static void OnCampPageButton3(void);
 static void CampPageDismissAction(void);
-static void CampItemAction005B5C30(void);
-static void CampItemAction005B5C80(void);
-static void CampItemAction005B5CD0(void);
-static void CampItemAction005B5D10(void);
-static void CampItemAction005B5D50(void);
-static void CampItemAction005B5D90(void);
-static void CampItemAction005B5DF0(void);
-static void CampItemAction005B5E60(void);
+static void OnCampItemActionButton0(void);
+static void OnCampItemActionButton1(void);
+static void OnCampItemActionButton2(void);
+static void OnCampItemActionButton3(void);
+static void OnCampItemActionButton4(void);
+static void OnCampItemActionButton5(void);
+static void OnCampItemActionButton6(void);
+static void OnCampItemActionButton7(void);
 
 void ShowDismissCharacterDialog(void);
 void OnDismissCharacterDialogClosed(W8DialogBase* dialog);
@@ -1192,10 +1192,10 @@ int CreateCampButtonPanel(void)
         g_camp_page_buttons[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
         g_camp_page_buttons[2]->AddLayoutFlags(g_W8TextControlMask005ED578);
         g_camp_page_buttons[3]->AddLayoutFlags(g_W8TextControlMask005ED578);
-        g_camp_page_buttons[0]->m_primaryActivationCallback = CampPageAction005B5AE0;
-        g_camp_page_buttons[1]->m_primaryActivationCallback = CampPageAction005B5B30;
-        g_camp_page_buttons[2]->m_primaryActivationCallback = CampPageAction005B5B80;
-        g_camp_page_buttons[3]->m_primaryActivationCallback = CampPageAction005B5BD0;
+        g_camp_page_buttons[0]->m_primaryActivationCallback = OnCampPageButton0;
+        g_camp_page_buttons[1]->m_primaryActivationCallback = OnCampPageButton1;
+        g_camp_page_buttons[2]->m_primaryActivationCallback = OnCampPageButton2;
+        g_camp_page_buttons[3]->m_primaryActivationCallback = OnCampPageButton3;
         g_camp_page_buttons[4]->m_primaryActivationCallback = CampPageDismissAction;
         g_item_action_controls[0] = new W8TextControl(g_item_actions_panel, 0x124, 0, 0, 0x2c, 0x1e,
                                                       0x112, 0, 0, 2, 1, 4, 3);
@@ -1225,14 +1225,14 @@ int CreateCampButtonPanel(void)
                 g_item_action_controls[5]->AddLayoutFlags(g_W8TextControlMask005ED578);
                 g_item_action_controls[6]->AddLayoutFlags(g_W8TextControlMask005ED578);
                 g_item_action_controls[7]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls[0]->m_primaryActivationCallback = CampItemAction005B5C30;
-                g_item_action_controls[1]->m_primaryActivationCallback = CampItemAction005B5C80;
-                g_item_action_controls[2]->m_primaryActivationCallback = CampItemAction005B5CD0;
-                g_item_action_controls[3]->m_primaryActivationCallback = CampItemAction005B5D10;
-                g_item_action_controls[4]->m_primaryActivationCallback = CampItemAction005B5D50;
-                g_item_action_controls[5]->m_primaryActivationCallback = CampItemAction005B5D90;
-                g_item_action_controls[6]->m_primaryActivationCallback = CampItemAction005B5DF0;
-                g_item_action_controls[7]->m_primaryActivationCallback = CampItemAction005B5E60;
+                g_item_action_controls[0]->m_primaryActivationCallback = OnCampItemActionButton0;
+                g_item_action_controls[1]->m_primaryActivationCallback = OnCampItemActionButton1;
+                g_item_action_controls[2]->m_primaryActivationCallback = OnCampItemActionButton2;
+                g_item_action_controls[3]->m_primaryActivationCallback = OnCampItemActionButton3;
+                g_item_action_controls[4]->m_primaryActivationCallback = OnCampItemActionButton4;
+                g_item_action_controls[5]->m_primaryActivationCallback = OnCampItemActionButton5;
+                g_item_action_controls[6]->m_primaryActivationCallback = OnCampItemActionButton6;
+                g_item_action_controls[7]->m_primaryActivationCallback = OnCampItemActionButton7;
                 g_item_actions_panel->SetEnabled(1);
                 g_camp_page_buttons[0]->EnableSecondaryState(0);
                 return 1;
@@ -1459,7 +1459,7 @@ void SetCampItemActionMode(char mode)
    secondary state is up, clear it on every page button and switch to the
    button's page; then raise the pressed button's secondary state. */
 // FUNCTION: WIZ8 0x005b5ae0
-static void CampPageAction005B5AE0(void)
+static void OnCampPageButton0(void)
 {
     int index;
 
@@ -1477,7 +1477,7 @@ static void CampPageAction005B5AE0(void)
 }
 
 // FUNCTION: WIZ8 0x005b5b30
-static void CampPageAction005B5B30(void)
+static void OnCampPageButton1(void)
 {
     int index;
 
@@ -1495,7 +1495,7 @@ static void CampPageAction005B5B30(void)
 }
 
 // FUNCTION: WIZ8 0x005b5b80
-static void CampPageAction005B5B80(void)
+static void OnCampPageButton2(void)
 {
     int index;
 
@@ -1513,7 +1513,7 @@ static void CampPageAction005B5B80(void)
 }
 
 // FUNCTION: WIZ8 0x005b5bd0
-static void CampPageAction005B5BD0(void)
+static void OnCampPageButton3(void)
 {
     int index;
 
@@ -1540,7 +1540,7 @@ static void CampPageDismissAction(void)
    click performs the held-item action or arms the button's targeting mode;
    while it is down the click falls back to clearing the action mode. */
 // FUNCTION: WIZ8 0x005b5c30
-static void CampItemAction005B5C30(void)
+static void OnCampItemActionButton0(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[0]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -1556,7 +1556,7 @@ static void CampItemAction005B5C30(void)
 }
 
 // FUNCTION: WIZ8 0x005b5c80
-static void CampItemAction005B5C80(void)
+static void OnCampItemActionButton1(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[1]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -1571,7 +1571,7 @@ static void CampItemAction005B5C80(void)
 }
 
 // FUNCTION: WIZ8 0x005b5cd0
-static void CampItemAction005B5CD0(void)
+static void OnCampItemActionButton2(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[2]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -1586,7 +1586,7 @@ static void CampItemAction005B5CD0(void)
 }
 
 // FUNCTION: WIZ8 0x005b5d10
-static void CampItemAction005B5D10(void)
+static void OnCampItemActionButton3(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[3]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -1601,7 +1601,7 @@ static void CampItemAction005B5D10(void)
 }
 
 // FUNCTION: WIZ8 0x005b5d50
-static void CampItemAction005B5D50(void)
+static void OnCampItemActionButton4(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[4]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -1618,7 +1618,7 @@ static void CampItemAction005B5D50(void)
 }
 
 // FUNCTION: WIZ8 0x005b5d90
-static void CampItemAction005B5D90(void)
+static void OnCampItemActionButton5(void)
 {
     unsigned char eligible;
     unsigned char active;
@@ -1641,7 +1641,7 @@ static void CampItemAction005B5D90(void)
 }
 
 // FUNCTION: WIZ8 0x005b5df0
-static void CampItemAction005B5DF0(void)
+static void OnCampItemActionButton6(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[6]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -1659,7 +1659,7 @@ static void CampItemAction005B5DF0(void)
 }
 
 // FUNCTION: WIZ8 0x005b5e60
-static void CampItemAction005B5E60(void)
+static void OnCampItemActionButton7(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[7]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {

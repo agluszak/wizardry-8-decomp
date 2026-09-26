@@ -2761,7 +2761,7 @@ unsigned char W8NpcDialogueTextController::AddTranscriptEntry(const wchar_t* tex
     for (index = 0; index < text_area.m_all_lines_01c.count; ++index) {
         text_area.GetEntry(index);
         text_area.CopyEntryText(index, existing);
-        if (CompareWideTextIgnoreAsciiCase00402920(existing, text) == 0) {
+        if (CompareWideTextIgnoreAsciiCase(existing, text) == 0) {
             return 0;
         }
     }
@@ -2774,7 +2774,7 @@ unsigned char W8NpcDialogueTextController::AddTranscriptEntry(const wchar_t* tex
         for (index = 0; index < text_area.m_all_lines_01c.count; ++index) {
             text_area.GetEntry(index);
             text_area.CopyEntryText(index, existing);
-            if (CompareWideTextIgnoreAsciiCase00402920(existing, L" [No Keywords]") == 0) {
+            if (CompareWideTextIgnoreAsciiCase(existing, L" [No Keywords]") == 0) {
                 text_area.RemoveEntry(index);
                 Invalidate(0);
                 break;
@@ -4449,7 +4449,7 @@ void DrawMainGameScreen(void)
         if (g_node_cull_pending != 0) {
             for (node = g_world->level->firstChild(); node != 0; node = node->nextSibling()) {
                 if (node->getClassID() == 0x10004) {
-                    if (MeasureNodeRender00428830(node) == 0) {
+                    if (MeasureNodeRenderWithoutPositionalOption(node) == 0) {
                         node->setFlag(srNode::FLAG_DISABLE);
                     } else {
                         node->clearFlag(srNode::FLAG_DISABLE);
@@ -5462,7 +5462,7 @@ void FallbackFromUnreachableAction(int party_slot)
                 SelectPartyCharacter(party_slot);
                 if (party_slot == g_status.selected_character) {
                     OpenSpellCastingView(party_slot);
-                    SelectSpellPowerLevel005A06F0(row->action_detail_045.spell.power_level - 1);
+                    SelectSpellPowerLevel(row->action_detail_045.spell.power_level - 1);
                     return;
                 }
             }
@@ -9144,7 +9144,7 @@ void W8NpcDialogueTextController::SetTranscriptSorted(unsigned char sorted)
     Invalidate(0);
 }
 
-/* The trade-mode split-dialog kinds OpenNpcTradeSplitDialog005AE040 selects:
+/* The trade-mode split-dialog kinds OpenNpcTradeQuantityDialog selects:
    1 while the party sells to the NPC, 2 while buying or identifying. */
 // GLOBAL: WIZ8 0x005EFB68
 int g_split_dialog_sell_kind = 1;
@@ -9533,7 +9533,7 @@ void PopulateNpcTradeList(void)
 }
 
 // FUNCTION: WIZ8 0x005AE040
-void OpenNpcTradeSplitDialog005AE040(void)
+void OpenNpcTradeQuantityDialog(void)
 {
     W8SplitItemDialog* dialog;
 

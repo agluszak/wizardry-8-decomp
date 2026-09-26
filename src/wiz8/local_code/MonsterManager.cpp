@@ -295,15 +295,15 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
     context.directory_08 = "Data\\Monsters";
 
     if (mode == 0) {
-        success = MonsterReadAllCycles004C58E0(&context, record->cycle_name_189, &monster_info->p3D,
-                                               1, monster_info->location_id);
+        success = MonsterReadAllCycles(&context, record->cycle_name_189, &monster_info->p3D, 1,
+                                       monster_info->location_id);
         if (success == 0) {
             srAssertFail("fSuccess", MONSTER_MANAGER_CPP, 0x20a,
                          "ActivateMonster: ERROR - MonsterReadAllCycles failed");
         }
     } else if (mode == 1) {
-        success = MonsterReadAllCycles004C58E0(&context, record->cycle_name_189, &monster_info->p3D,
-                                               0, monster_info->location_id);
+        success = MonsterReadAllCycles(&context, record->cycle_name_189, &monster_info->p3D, 0,
+                                       monster_info->location_id);
         if (success == 0) {
             srAssertFail("fSuccess", MONSTER_MANAGER_CPP, 0x20f,
                          "ActivateMonster: ERROR - MonsterReadAllCycles failed");

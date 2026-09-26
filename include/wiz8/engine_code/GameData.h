@@ -158,14 +158,14 @@ struct W8GameData {
     ~W8GameData();                          /* 0x00449BB0 */
     void ReadProcessedGameData(int handle); /* 0x00449240 */
     /* Writes the game-data block WriteOctFile appends after the terminator. */
-    unsigned char WriteGameData0044AA40(int handle); /* 0x0044AA40 */
+    unsigned char WriteGameData(int handle); /* 0x0044AA40 */
     /* Reads one WGD vertex/polygon list: counts, the scaled vertex bank with
        unscaled bounds tracking, the face records, and — for the non-primary
        pass — the interface name and conditional-face records. */
-    unsigned char ReadWGDList00447660(HANDLE file, int poly_type);
+    unsigned char ReadWGDList(HANDLE file, int poly_type);
     /* Builds m_pInterfaces/m_pStates/m_piCondPolys from the {interface id,
        surface index, group} triples collected by ReadWGDList. */
-    void CompileGDInterfaces00447FB0(const int* records, int count);
+    void CompileGDInterfaces(const int* records, int count);
     /* Release the level-data record, game-time accumulator and companion
        level-data globals; runs first in ~W8GameData. */
     void ReleaseLevelData();
@@ -250,9 +250,9 @@ struct W8GameData {
                          const signed char* face); /* 0x00448C60 */
     /* Grows the environment bank by tens and appends a record whose motion
        derives from the linked surface's scaled plane. */
-    void CreateGDEnviron00448E60(const W8GDSurface* surface, float scale);
+    void CreateGDEnviron(const W8GDSurface* surface, float scale);
     /* Folds the trigger vertex/surface banks into the main arrays without
-       rebuilding the spatial index; the CompileGameData00449D10 path. */
+       rebuilding the spatial index; the CompileGameData path. */
     void IntegrateTriggerGeometry();
     /* 1-based ordinal of the m_ppNames entry whose name matches, else -1. */
     int FindPointerByName(const char* name); /* 0x004482A0 */
@@ -266,7 +266,7 @@ struct W8GameData {
     void AddLinkedRecord(const srVector3T<float>* vertices, float value, float scalar,
                          const signed char* face); /* 0x00448BF0 */
     /* Compiles the read game data into the shared build arrays. */
-    void CompileGameData00449D10(); /* 0x00449D10 */
+    void CompileGameData(); /* 0x00449D10 */
 
     /* Loop the buffered prop ids through TestProp and return the id of the
        last prop that reported a hit, or -1. */

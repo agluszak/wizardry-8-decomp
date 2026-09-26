@@ -1602,7 +1602,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
             }
         }
         animation = CreateAnimObj();
-        result = AnimObjReadFromFile004A05C0(info, animation, 1, 0, 1);
+        result = AnimObjReadFromFile(info, animation, 1, 0, 1);
         this->animation = animation;
         if (AnimationIsRunning(animation) == 1) {
             animation->frame_count_16 = frame_count;
@@ -1813,7 +1813,7 @@ fail_with_result:
 /* The prop representation's current animation value, or -1 while it owns no
    animation. */
 // FUNCTION: WIZ8 0x0044ebe0
-int W8Prop::GetAnimationState0044EBE0() const
+int W8Prop::GetAnimationState() const
 {
     W8AnimObj* animation = Rep()->animation;
     if (animation != 0) {

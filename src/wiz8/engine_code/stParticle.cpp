@@ -661,7 +661,7 @@ void stParticle::Update00499FA0()
                 srVector4T<float> transformed = transform.Transform(local);
                 srVector3T<float> local_point;
                 local_point.Set(transformed.x, transformed.y, transformed.z);
-                if (PointInsideBounds004BE870(&local_point, &minimum_21c, &maximum_228) == 0) {
+                if (PointInsideBounds(&local_point, &minimum_21c, &maximum_228) == 0) {
                     particle_active_194[index] = 0;
                     update_flags_250 |= 2;
                     --active_particle_count_18c;
@@ -1030,7 +1030,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     }
 
     ++pipeline->slot_count_84;
-    pipeline->PrepareSlot00475540();
+    pipeline->PrepareSlot();
 
     if (!renderer->isPickStackEmpty()) {
         srGERD::Pick pick;

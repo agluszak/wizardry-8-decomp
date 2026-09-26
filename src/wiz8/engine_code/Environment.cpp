@@ -650,7 +650,7 @@ void BeginWorldLightingFade(float duration)
             colour.x = 0.0f;
             colour.y = 0.0f;
             colour.z = 0.0f;
-            SaturateColor004299B0(&colour);
+            SaturateColor(&colour);
             ApplyEnvironmentColour(world, intensity, &colour);
         } else {
             ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
@@ -670,7 +670,7 @@ void BeginWorldLightingFade(float duration)
                 colour.x = 0.0f;
                 colour.y = 0.0f;
                 colour.z = 0.0f;
-                SaturateColor004299B0(&colour);
+                SaturateColor(&colour);
                 ApplyEnvironmentColour(world, intensity, &colour);
             } else {
                 ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
@@ -753,7 +753,7 @@ void UpdateEnvironmentLighting(void)
         colour.x = 0.0f;
         colour.y = 0.0f;
         colour.z = 0.0f;
-        SaturateColor004299B0(&colour);
+        SaturateColor(&colour);
         ApplyEnvironmentColour(world, intensity, &colour);
     } else {
         ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
@@ -773,7 +773,7 @@ void UpdateEnvironmentLighting(void)
             colour.x = 0.0f;
             colour.y = 0.0f;
             colour.z = 0.0f;
-            SaturateColor004299B0(&colour);
+            SaturateColor(&colour);
             ApplyEnvironmentColour(world, secondary, &colour);
         } else {
             ApplyEnvironmentColour(world, secondary, &world->environment_colour_02c);
@@ -959,7 +959,7 @@ const double g_double_005ec988 = 2.3148148148148148e-08;
 const double g_double_005ec990 = 43200000.0;
 
 /* Scale one colour triple by a double factor and clamp every component to the
-   unit range in place. A product helper like SaturateColor004299B0: no matching
+   unit range in place. A product helper like SaturateColor: no matching
    srVector3T method survives in the SurRender headers. */
 // FUNCTION: WIZ8 0x00483d70
 srVector3T<float>* __fastcall ScaleColourAndSaturate(srVector3T<float>* colour, double scale)
@@ -1009,7 +1009,7 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
         srVector3T<float> scaled(colour->x, colour->y, colour->z);
 
         scaled *= (double)intensity;
-        SaturateColor004299B0(&scaled);
+        SaturateColor(&scaled);
         light->ambient_198 = scaled;
     }
     {

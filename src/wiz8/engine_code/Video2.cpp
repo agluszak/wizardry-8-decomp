@@ -1016,7 +1016,7 @@ void UpdateRenderElapsedTime(void);
 /* Saturate the three components of a renderer colour in place and return it.
    The reviewed body performs these three scalar saturations in order. */
 // FUNCTION: WIZ8 0x004299b0
-srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color)
+srVector3T<float>* __fastcall SaturateColor(srVector3T<float>* color)
 {
     if (color->x <= 0.0f)
         color->x = 0.0f;
@@ -1073,7 +1073,7 @@ void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char pre
             fog.SetZero();
         } else {
             g_world->static_scene->getFogColor(fog);
-            SaturateColor004299B0(&fog);
+            SaturateColor(&fog);
         }
         scene->setFogColor(fog);
     }
@@ -1137,7 +1137,7 @@ void RenderFrame(void)
     srScene* retire_overlay;
 
     clear_color.SetZero();
-    SaturateColor004299B0(&clear_color);
+    SaturateColor(&clear_color);
     if (!g_video_active) {
         return;
     }
@@ -2943,8 +2943,8 @@ double g_double_005ebf40 = 0.75;
 /* Packs four normalized colour components into the surface byte order:
    red, green, blue, alpha from the high byte down. */
 // FUNCTION: WIZ8 0x00429700
-void __fastcall PackColour00429700(unsigned char* colour, double red, double green, double blue,
-                                   double alpha)
+void __fastcall PackColourBytes(unsigned char* colour, double red, double green, double blue,
+                                double alpha)
 {
     colour[3] = (int)(red * g_double_005ebf60);
     colour[2] = (int)(green * g_double_005ebf60);
@@ -3372,7 +3372,7 @@ void VideoToolTip(UINT16* text)
     void* data = surface->getDataPtr();
     unsigned char colour[4];
     for (int y = 0; y < g_help_box_height; ++y) {
-        PackColour00429700(colour, 1.0, 0.0, 0.0, 0.0);
+        PackColourBytes(colour, 1.0, 0.0, 0.0, 0.0);
         surface->setHLine(0, y, g_help_box_width, *(unsigned long*)colour);
     }
     buffer->RenderText(static_cast<unsigned char*>(data),
@@ -3581,7 +3581,7 @@ void SetDisplayGamma(float value)
    option forced off, draw the node between the dynamic scene's bracketing
    passes, restore the option and return the sampled statistic. */
 // FUNCTION: WIZ8 0x00428830
-unsigned int MeasureNodeRender00428830(srNode* node)
+unsigned int MeasureNodeRenderWithoutPositionalOption(srNode* node)
 {
     srGERD::Statistics statistics;
     srNode::ProcessInfo process;
@@ -3626,7 +3626,7 @@ void BeginRenderProbe(void)
 /* Draw the node between the dynamic scene's bracketing passes and return the
    renderer statistic the probe samples. */
 // FUNCTION: WIZ8 0x004289e0
-unsigned int MeasureNodeRender004289E0(srNode* node)
+unsigned int MeasureNodeRender(srNode* node)
 {
     srGERD::Statistics statistics;
     srNode::ProcessInfo process;

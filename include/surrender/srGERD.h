@@ -204,7 +204,7 @@ public:
 
         Renderer(const Parameters& parameters);
         void allocVertexArray(srVertexArray& arrays, unsigned long count);
-        /* FUN_10024E30: intern the pass's {texture0,texture1,shader} key into
+        /* intern the pass's {texture0,texture1,shader} key into
            texture_set, folding per-vertex texture/shader table transitions
            into the output ids. */
         void assignTextureSets(unsigned long* texture_set, const unsigned long* indices,
@@ -212,31 +212,31 @@ public:
         /* Retail 0x10024DE0: while a vertex range is reserved
            (first_vertex_c0_ != -1), give count accumulated vertices back. */
         void rewindVertexArray(unsigned long count);
-        /* FUN_10025260: expands/dedups the input triangles into the index and
+        /* expands/dedups the input triangles into the index and
            vertex batches, per record. */
         void expandTriangles(const TriInput& input, int sorted);
-        /* FUN_100259D0: transforms the reserved position range by the input's
+        /* transforms the reserved position range by the input's
            matrix in 0x80-vertex chunks (choosing ortho/perspective/generic by
            the matrix's zero pattern), derives per-vertex clip flags, and
            replicates the chunk across the remaining records. */
         void transformVertices(const TriInput& input, unsigned char* clip_flags);
         void render(const TriInput& input);
-        /* FUN_10024db0: the accumulated batch count passed the limit. Only
+        /* the accumulated batch count passed the limit. Only
            immediate (non-sorted) renderers report full. */
         int isBatchFull() const;
-        /* FUN_100266e0: submit the accumulated batch through the DD. */
+        /* submit the accumulated batch through the DD. */
         void submit();
-        /* FUN_10025d50/0x10025F40: the immediate (sorted_d8_ == 0) and
+        /* the immediate (sorted_d8_ == 0) and
            sorted draw paths over the accumulated index batch. */
         void drawImmediate();
         void drawSorted();
-        /* FUN_10027ed0: point the draw state at texture set `index`,
+        /* point the draw state at texture set `index`,
            updating each of texture0/texture1/shader only on change. */
         void bindTextureSet(unsigned long index);
-        /* FUN_10026360: repack the per-stage stq scratch streams and program
+        /* repack the per-stage stq scratch streams and program
            the DD vertex arrays for the bound batch. */
         void programVertexArrays(srVertexArray* arrays, unsigned long count);
-        /* FUN_100268a0: discard accumulated state; nonzero also releases
+        /* discard accumulated state; nonzero also releases
            the backing arrays. */
         void reset(int release_buffers);
         /* resetStatistics zeroes the +0x28 stat block; getStatistics copies

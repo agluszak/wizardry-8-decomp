@@ -6,7 +6,7 @@
    colour tables and g_light_direction with 1.0f per component (0x004821E0,
    0x00482200, 0x00482220), so the inline default constructor makes white.
    The renderer takes these colours wherever it expects srVector3T<float>
-   (fog colour, SaturateColor004299B0) with no conversion. The clamping
+   (fog colour, SaturateColor) with no conversion. The clamping
    constructor and Set are recovered in AutomapScreen.cpp (0x005806B0,
    0x00580940). */
 struct EnvironmentColour : public srVector3T<float> {

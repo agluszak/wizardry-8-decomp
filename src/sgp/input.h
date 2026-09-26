@@ -1,4 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-09-26.
    Declare Wizardry key translation in the owning input interface.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __INPUT_
@@ -93,7 +93,7 @@ UINT16 IsLowercaseWideChar(UINT16 character);
 UINT16 IsPunctuationWideChar(UINT16 character);
 INT32 ToUppercaseWideChar(INT32 character);
 INT32 ToLowercaseWideChar(INT32 character);
-INT32 CompareWideTextIgnoreAsciiCase00402920(const wchar_t* first, const wchar_t* second);
+INT32 CompareWideTextIgnoreAsciiCase(const wchar_t* first, const wchar_t* second);
 
 extern BOOLEAN			InitializeInputManager(void);
 extern void					ShutdownInputManager(void);

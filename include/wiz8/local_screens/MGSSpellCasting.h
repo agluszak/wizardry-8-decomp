@@ -55,7 +55,7 @@ void SelectSpellCastingCharacter(int party_slot);                    /* 0x0059F4
 void BeginSpellCast(int spell_id, int location_id, int interact_id); /* 0x005A0110 */
 void SetSpellCastingPanelsActive(unsigned char active);              /* 0x005A0270 */
 void InvalidateSpellCastingDescription(void);                        /* 0x005A0300 */
-void SelectSpellPowerLevel005A06F0(int power_level);                 /* 0x005A06F0 */
+void SelectSpellPowerLevel(int power_level);                         /* 0x005A06F0 */
 void ResetSpellCastingSelection(void);                               /* 0x005A0B90 */
 void CommitSpellCastingSelection(void);                              /* 0x005A0BC0 */
 void SetSpellCastingMode(W8MainUiMode value);                        /* 0x005A1330 */

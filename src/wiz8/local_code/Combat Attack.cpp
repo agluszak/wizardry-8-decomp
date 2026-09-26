@@ -2121,7 +2121,7 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
    the pending attack, confirm the target is still reachable, roll the swing
    count, announce it and start the cycle. */
 // FUNCTION: WIZ8 0x0053fea0
-char StartMonsterAttack0053FEA0(W8MonsterInfo* monster_info, W8MonsterRecord* record)
+char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
 {
     W8MonsterCombatState* combat;
     unsigned int attack;

@@ -1899,7 +1899,7 @@ void srTriMeshPipeline::SetFlags004752C0(srShader shader)
 }
 
 /* Bind a renderer and rebuild the current slot. Retail duplicates the prepare
-   body rather than calling PrepareSlot00475540. */
+   body rather than calling PrepareSlot. */
 // FUNCTION: SURRENDER 0x100441A0
 void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
 {
@@ -1951,7 +1951,7 @@ void srTriMeshPipeline::Flush00475510()
 /* Point current_record_14 / current_pass_18 at slot slot_count_84, growing
    either table by (capacity + slot + 8) when needed. */
 // FUNCTION: SURRENDER 0x100442E0
-void srTriMeshPipeline::PrepareSlot00475540()
+void srTriMeshPipeline::PrepareSlot()
 {
     current_record_14 = &records_94[slot_count_84];
     current_pass_18 = &passes_9c[slot_count_84];
@@ -2244,7 +2244,7 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
     pipeline->texture_78 = 0;
     pipeline->pass_value_7c = 0;
     pipeline->material_80 = srCore.getMaterial();
-    pipeline->PrepareSlot00475540();
+    pipeline->PrepareSlot();
     return pipe;
 }
 
@@ -2376,7 +2376,7 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                     }
 
                     ++pipeline->slot_count_84;
-                    pipeline->PrepareSlot00475540();
+                    pipeline->PrepareSlot();
                 }
 
                 pipeline->FlushIfCurrent();

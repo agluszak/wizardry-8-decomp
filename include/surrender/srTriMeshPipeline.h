@@ -75,7 +75,7 @@ public:
     void SetFlags004752C0(srShader shader);
     void Reset004753F0(srGERD* renderer);
     void Flush00475510();
-    void PrepareSlot00475540();
+    void PrepareSlot();
 
     /* The guarded header-visible boundary expands at the stParticle call
        sites. Its original spelling is not present in the binary. */

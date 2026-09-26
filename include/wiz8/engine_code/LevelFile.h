@@ -183,7 +183,7 @@ struct W8LevelFileCamera {
     W8LevelFilePathAI pathAI_21;
 };
 
-/* Door trigger action data: the .pvl loader (LoadTriggerActionData004417C0)
+/* Door trigger action data: the .pvl loader (ReadDoorTriggerActionData)
    reads the same byte stream: version, nine flag bytes, the item index, a
    position gate, an optional position and the linked trigger name. */
 struct W8LevelFileDoor { /* 0x99 */

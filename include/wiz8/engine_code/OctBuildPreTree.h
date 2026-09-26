@@ -55,7 +55,7 @@ static_assert(sizeof(W8OctRegionPolygon) == 0x74, "W8OctRegionPolygon_must_be_0x
 
 /* Grows `*run` to (count + capacity) dwords when count lands on a capacity
    boundary, preserving existing entries. */
-int CheckArrayLength004CFB70(int** run, unsigned short count, unsigned short capacity);
+int CheckArrayLength(int** run, unsigned short count, unsigned short capacity);
 
 extern int g_build_node_instances;
 extern unsigned long g_poly_list_count;
@@ -92,17 +92,17 @@ struct OctBuildPreTree : W8OctBuildTree {
     void ValidateRegionBounds(const W8BoundingBox* region_bounds);
     /* SortGeometry: welds duplicate vertices, drops degenerate polygons,
        repacks both arrays and re-inserts every polygon with mode 2. */
-    unsigned char SortGeometry004AFEA0(W8OctPreTreeGeometry* geometry);
+    unsigned char SortGeometry(W8OctPreTreeGeometry* geometry);
     /* Inserts one region polygon into the octree working state. */
-    unsigned char InsertSurface004B02F0(W8OctRegionPolygon* polygon, unsigned long mode);
+    unsigned char InsertSurface(W8OctRegionPolygon* polygon, unsigned long mode);
     /* Recursive inserter for InsertSurface: subdivides to the leaf, collecting
        overlapping region ids on first touch and appending the polygon to the
        leaf's mode link list. */
-    unsigned char InsertSurfaceRecursive004B03E0(W8OctSpatialState* working,
-                                                 W8OctRegionPolygon* polygon, unsigned long mode);
+    unsigned char InsertSurfaceRecursive(W8OctSpatialState* working, W8OctRegionPolygon* polygon,
+                                         unsigned long mode);
     /* Fill the leaf's region-id list with every region volume overlapping
        `bounds`; grows a 50-entry scratch list on first use. */
-    void FindLeafRegions004B1090(W8OctBuildNode* node, const W8BoundingBox* bounds);
+    void FindLeafRegions(W8OctBuildNode* node, const W8BoundingBox* bounds);
     /* Loads the .rlk region file beside the level and folds its bounds into
        the build. */
     unsigned short LoadRegionFile(const char* stem, srVector3T<float>* minimum,

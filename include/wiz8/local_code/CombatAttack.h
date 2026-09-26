@@ -155,8 +155,7 @@ void AnnounceAccidentalStrike(W8TargetSource* source, W8CombatSlot* target);
 /* Whether a character catches the incoming attack in time to turn toward it. */
 char CharacterNoticesAttacker(int party_slot); /* 0x0053D590 */
 /* Begin one of the monster's attacks for the round. */
-char StartMonsterAttack0053FEA0(W8MonsterInfo* monster_info,
-                                W8MonsterRecord* record); /* 0x0053FEA0 */
+char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record); /* 0x0053FEA0 */
 /* 0x00545B20: the monster-side counterpart - the target still in play and in
    range, the monster able to act, and the attack itself able to come off. */
 bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info);

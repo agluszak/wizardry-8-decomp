@@ -1798,7 +1798,7 @@ void ActivateCampPage(void)
         EnableCampActionButtons();
         UpdateItemsRealmTabs();
         EnableCampSecondaryPanel();
-        SetItemPageMode005B9FD0(state->item_mode);
+        SetCampInfoPageMode(state->item_mode);
         state->item_range->m_range->EnableRegionSet(1);
         if (g_status.game_started != 0) {
             RegionSetEnable(0x2b);

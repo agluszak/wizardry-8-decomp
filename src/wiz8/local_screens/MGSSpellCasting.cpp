@@ -79,21 +79,21 @@ int GetSpellCastingPowerIndex(void)
 
 static void CreateSpellCastingViewControls(void);
 static void ReleaseSpellCastingViewControls(void);
-void SelectSpellRealm005A0320(void);
-void SelectSpellRealm005A0330(void);
-void SelectSpellRealm005A0340(void);
-void SelectSpellRealm005A0350(void);
-void SelectSpellRealm005A0360(void);
-void SelectSpellRealm005A0370(void);
-void SelectSpellPowerLevel005A0500(void);
-void SelectSpellPowerLevel005A0510(void);
-void SelectSpellPowerLevel005A0520(void);
-void SelectSpellPowerLevel005A0530(void);
-void SelectSpellPowerLevel005A0540(void);
-void SelectSpellPowerLevel005A0550(void);
-void SelectSpellPowerLevel005A0560(void);
-void SelectSpellPowerLevel005A0570(void);
-void SelectSpellPowerLevel005A0660(void);
+void SelectFireSpellRealm(void);
+void SelectWaterSpellRealm(void);
+void SelectAirSpellRealm(void);
+void SelectEarthSpellRealm(void);
+void SelectMentalSpellRealm(void);
+void SelectDivineSpellRealm(void);
+void SelectSpellPowerPip0(void);
+void SelectSpellPowerPip1(void);
+void SelectSpellPowerPip2(void);
+void SelectSpellPowerPip3(void);
+void SelectSpellPowerPip4(void);
+void SelectSpellPowerPip5(void);
+void SelectSpellPowerPip6(void);
+void SelectSpellPowerPip7(void);
+void SelectSpellPowerPip8(void);
 void SpellCastingDialogResult(W8DialogBase* dialog);
 void PreviewSpellPowerPipHover(int power_level);
 static void UpdateSpellRealmPointDisplays(void);
@@ -146,12 +146,12 @@ static void CreateSpellCastingViewControls(void)
     gpSCSV->realm_buttons[3]->UpdateTextBounds(0x91, 0x23, 200, 0x39);
     gpSCSV->realm_buttons[4]->UpdateTextBounds(0x1e, 0x39, 0x55, 0x4f);
     gpSCSV->realm_buttons[5]->UpdateTextBounds(0x85, 0x39, 0xbc, 0x4f);
-    gpSCSV->realm_buttons[0]->m_primaryActivationCallback = SelectSpellRealm005A0320;
-    gpSCSV->realm_buttons[1]->m_primaryActivationCallback = SelectSpellRealm005A0330;
-    gpSCSV->realm_buttons[2]->m_primaryActivationCallback = SelectSpellRealm005A0340;
-    gpSCSV->realm_buttons[3]->m_primaryActivationCallback = SelectSpellRealm005A0350;
-    gpSCSV->realm_buttons[4]->m_primaryActivationCallback = SelectSpellRealm005A0360;
-    gpSCSV->realm_buttons[5]->m_primaryActivationCallback = SelectSpellRealm005A0370;
+    gpSCSV->realm_buttons[0]->m_primaryActivationCallback = SelectFireSpellRealm;
+    gpSCSV->realm_buttons[1]->m_primaryActivationCallback = SelectWaterSpellRealm;
+    gpSCSV->realm_buttons[2]->m_primaryActivationCallback = SelectAirSpellRealm;
+    gpSCSV->realm_buttons[3]->m_primaryActivationCallback = SelectEarthSpellRealm;
+    gpSCSV->realm_buttons[4]->m_primaryActivationCallback = SelectMentalSpellRealm;
+    gpSCSV->realm_buttons[5]->m_primaryActivationCallback = SelectDivineSpellRealm;
 
     gpSCSV->realm_icons[0] = new W8TextControl(panel, -1, 0x55, 0xf, 0x67, 0x21, 0x193, 0,
                                                g_spell_realm_animations[0].initial_frame, -1, -1,
@@ -203,15 +203,15 @@ static void CreateSpellCastingViewControls(void)
     for (index = 0; index < 9; ++index) {
         gpSCSV->power_pips[index]->AddLayoutFlags(g_W8TextControlMask005ED578);
     }
-    gpSCSV->power_pips[0]->m_primaryActivationCallback = SelectSpellPowerLevel005A0500;
-    gpSCSV->power_pips[1]->m_primaryActivationCallback = SelectSpellPowerLevel005A0510;
-    gpSCSV->power_pips[2]->m_primaryActivationCallback = SelectSpellPowerLevel005A0520;
-    gpSCSV->power_pips[3]->m_primaryActivationCallback = SelectSpellPowerLevel005A0530;
-    gpSCSV->power_pips[4]->m_primaryActivationCallback = SelectSpellPowerLevel005A0540;
-    gpSCSV->power_pips[5]->m_primaryActivationCallback = SelectSpellPowerLevel005A0550;
-    gpSCSV->power_pips[6]->m_primaryActivationCallback = SelectSpellPowerLevel005A0560;
-    gpSCSV->power_pips[7]->m_primaryActivationCallback = SelectSpellPowerLevel005A0570;
-    gpSCSV->power_pips[8]->m_primaryActivationCallback = SelectSpellPowerLevel005A0660;
+    gpSCSV->power_pips[0]->m_primaryActivationCallback = SelectSpellPowerPip0;
+    gpSCSV->power_pips[1]->m_primaryActivationCallback = SelectSpellPowerPip1;
+    gpSCSV->power_pips[2]->m_primaryActivationCallback = SelectSpellPowerPip2;
+    gpSCSV->power_pips[3]->m_primaryActivationCallback = SelectSpellPowerPip3;
+    gpSCSV->power_pips[4]->m_primaryActivationCallback = SelectSpellPowerPip4;
+    gpSCSV->power_pips[5]->m_primaryActivationCallback = SelectSpellPowerPip5;
+    gpSCSV->power_pips[6]->m_primaryActivationCallback = SelectSpellPowerPip6;
+    gpSCSV->power_pips[7]->m_primaryActivationCallback = SelectSpellPowerPip7;
+    gpSCSV->power_pips[8]->m_primaryActivationCallback = SelectSpellPowerPip8;
 
     gpSCSV->spell_name =
         new W8TextControl(panel, 0x9a, 0xe, 10, 0x30, 0x18, -1, -1, -1, -1, -1, -1, -1);
@@ -421,7 +421,7 @@ void SelectSpellCastingCharacter(int party_slot)
     gpSCSV->uiSpellIndex = -1;
     SelectSpellCastingRow(-1);
     gpSCSV->uiPowerLevels = 0;
-    SelectSpellPowerLevel005A06F0(-1);
+    SelectSpellPowerLevel(-1);
     gpSCSV->dialog_confirmed = false;
     UpdateSpellPowerPips();
     SelectSpellCastingPartySlot(g_status.selected_character);
@@ -833,39 +833,39 @@ void InvalidateSpellCastingDescription(void)
 }
 
 // FUNCTION: WIZ8 0x005A0320
-void SelectSpellRealm005A0320(void)
+void SelectFireSpellRealm(void)
 {
-    SelectSpellCastingRealm(0);
+    SelectSpellCastingRealm(W8_SPELL_REALM_FIRE);
 }
 
 // FUNCTION: WIZ8 0x005A0330
-void SelectSpellRealm005A0330(void)
+void SelectWaterSpellRealm(void)
 {
-    SelectSpellCastingRealm(1);
+    SelectSpellCastingRealm(W8_SPELL_REALM_WATER);
 }
 
 // FUNCTION: WIZ8 0x005A0340
-void SelectSpellRealm005A0340(void)
+void SelectAirSpellRealm(void)
 {
-    SelectSpellCastingRealm(2);
+    SelectSpellCastingRealm(W8_SPELL_REALM_AIR);
 }
 
 // FUNCTION: WIZ8 0x005A0350
-void SelectSpellRealm005A0350(void)
+void SelectEarthSpellRealm(void)
 {
-    SelectSpellCastingRealm(3);
+    SelectSpellCastingRealm(W8_SPELL_REALM_EARTH);
 }
 
 // FUNCTION: WIZ8 0x005A0360
-void SelectSpellRealm005A0360(void)
+void SelectMentalSpellRealm(void)
 {
-    SelectSpellCastingRealm(4);
+    SelectSpellCastingRealm(W8_SPELL_REALM_MENTAL);
 }
 
 // FUNCTION: WIZ8 0x005A0370
-void SelectSpellRealm005A0370(void)
+void SelectDivineSpellRealm(void)
 {
-    SelectSpellCastingRealm(5);
+    SelectSpellCastingRealm(W8_SPELL_REALM_DIVINE);
 }
 
 /* Switches the view to another realm: the old realm's icon returns to its
@@ -895,7 +895,7 @@ static void SelectSpellCastingRealm(int realm)
         gpSCSV->uiSpellIndex = -1;
         SelectSpellCastingRow(-1);
         gpSCSV->uiPowerLevels = 0;
-        SelectSpellPowerLevel005A06F0(-1);
+        SelectSpellPowerLevel(-1);
         gpSCSV->dialog_confirmed = false;
         UpdateSpellPowerPips();
         SelectSpellCastingPartySlot(g_status.selected_character);
@@ -908,52 +908,52 @@ static void SelectSpellCastingRealm(int realm)
 }
 
 // FUNCTION: WIZ8 0x005A0500
-void SelectSpellPowerLevel005A0500(void)
+void SelectSpellPowerPip0(void)
 {
-    SelectSpellPowerLevel005A06F0(0);
+    SelectSpellPowerLevel(0);
 }
 
 // FUNCTION: WIZ8 0x005A0510
-void SelectSpellPowerLevel005A0510(void)
+void SelectSpellPowerPip1(void)
 {
-    SelectSpellPowerLevel005A06F0(1);
+    SelectSpellPowerLevel(1);
 }
 
 // FUNCTION: WIZ8 0x005A0520
-void SelectSpellPowerLevel005A0520(void)
+void SelectSpellPowerPip2(void)
 {
-    SelectSpellPowerLevel005A06F0(2);
+    SelectSpellPowerLevel(2);
 }
 
 // FUNCTION: WIZ8 0x005A0530
-void SelectSpellPowerLevel005A0530(void)
+void SelectSpellPowerPip3(void)
 {
-    SelectSpellPowerLevel005A06F0(3);
+    SelectSpellPowerLevel(3);
 }
 
 // FUNCTION: WIZ8 0x005A0540
-void SelectSpellPowerLevel005A0540(void)
+void SelectSpellPowerPip4(void)
 {
-    SelectSpellPowerLevel005A06F0(4);
+    SelectSpellPowerLevel(4);
 }
 
 // FUNCTION: WIZ8 0x005A0550
-void SelectSpellPowerLevel005A0550(void)
+void SelectSpellPowerPip5(void)
 {
-    SelectSpellPowerLevel005A06F0(5);
+    SelectSpellPowerLevel(5);
 }
 
 // FUNCTION: WIZ8 0x005A0560
-void SelectSpellPowerLevel005A0560(void)
+void SelectSpellPowerPip6(void)
 {
-    SelectSpellPowerLevel005A06F0(6);
+    SelectSpellPowerLevel(6);
 }
 
 /* The seventh power pip: while its secondary state is lit it clears the lower
    pips and prices the name label with the max cast, otherwise it empties the
    label. */
 // FUNCTION: WIZ8 0x005A0570
-void SelectSpellPowerLevel005A0570(void)
+void SelectSpellPowerPip7(void)
 {
     int pip;
 
@@ -980,7 +980,7 @@ void SelectSpellPowerLevel005A0570(void)
 /* The max-power pip: while its secondary state is lit it prices the name
    label with the max cast, otherwise it relights and repaints the label. */
 // FUNCTION: WIZ8 0x005A0660
-void SelectSpellPowerLevel005A0660(void)
+void SelectSpellPowerPip8(void)
 {
     if (static_cast<unsigned char>(gpSCSV->power_pips[8]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -997,7 +997,7 @@ void SelectSpellPowerLevel005A0660(void)
 /* Records the chosen power level: pips through the level light, pips above it
    go dark, and the name label shows the cast's total cost. */
 // FUNCTION: WIZ8 0x005A06F0
-void SelectSpellPowerLevel005A06F0(int power_level)
+void SelectSpellPowerLevel(int power_level)
 {
     int pip;
     const wchar_t* text;
@@ -1113,7 +1113,7 @@ void SpellCastingDialogResult(W8DialogBase* dialog)
     gpSCSV->uiSpellIndex = -1;
     SelectSpellCastingRow(-1);
     gpSCSV->uiPowerLevels = 0;
-    SelectSpellPowerLevel005A06F0(-1);
+    SelectSpellPowerLevel(-1);
     gpSCSV->dialog_confirmed = false;
     UpdateSpellPowerPips();
     SelectSpellCastingPartySlot(g_status.selected_character);
@@ -1375,7 +1375,7 @@ static void SelectSpellCastingListRow(int index)
     needed = GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
     target_type = GetSpellTargetType(spell_id, 0);
     ConfigureSpellTargetFilter(target_type, needed);
-    SelectSpellPowerLevel005A06F0(-1);
+    SelectSpellPowerLevel(-1);
     UpdateSpellPowerPips();
     RequestRedraw(0x200);
 }

@@ -61,11 +61,10 @@
 #define OCTREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp"
 
 // FUNCTION: WIZ8 0x00433a70
-void W8Octree::GetPathSurfaceNormal00433A70(const srVector3T<float>* position,
-                                            srVector3T<float>* normal)
+void W8Octree::GetPathSurfaceNormal(const srVector3T<float>* position, srVector3T<float>* normal)
 {
     if (pathing_180 != 0) {
-        pathing_180->GetPathSurfaceNormal0045B730(position, normal);
+        pathing_180->GetPathSurfaceNormal(position, normal);
         return;
     }
     normal->x = 0.0f;
@@ -84,10 +83,10 @@ void W8Octree::UpdatePathVisualization()
         if (cursor.y >= g_float_005ebb34 || cursor.y >= g_float_005ebb34 ||
             cursor.z >= g_float_005ebb34) {
             srVector3T<float> point = cursor;
-            pathing_180->UpdatePathVisualization0045BC40(&point, &camera_dof_1cc);
+            pathing_180->UpdatePathVisualization(&point, &camera_dof_1cc);
             return;
         }
-        pathing_180->UpdatePathVisualization0045BC40(&camera_location_1c0, &camera_dof_1cc);
+        pathing_180->UpdatePathVisualization(&camera_location_1c0, &camera_dof_1cc);
     }
 }
 
@@ -310,9 +309,9 @@ void W8Octree::UpdateVisibility()
            twice and x is never examined. */
         if (dof.y >= g_float_005ebb34 || dof.y >= g_float_005ebb34 || dof.z >= g_float_005ebb34) {
             srVector3T<float> probe = dof;
-            pathing_180->UpdatePathVisualization0045BC40(&probe, &camera_dof_1cc);
+            pathing_180->UpdatePathVisualization(&probe, &camera_dof_1cc);
         } else {
-            pathing_180->UpdatePathVisualization0045BC40(&camera_location_1c0, &camera_dof_1cc);
+            pathing_180->UpdatePathVisualization(&camera_location_1c0, &camera_dof_1cc);
         }
     }
     if (m_projected_regions_valid_16a != 0) {
@@ -838,7 +837,7 @@ void W8Octree::MarkVisibleRegions()
 /* Build the four side frustum planes from the camera basis and far clip, and
    accumulate the two far-plane offsets the region projection reads. */
 // FUNCTION: WIZ8 0x004302e0
-void W8Octree::BuildFrustumPlanes004302E0()
+void W8Octree::BuildFrustumPlanes()
 {
     float fov = horizontal_fov_1f0 * g_float_005ebc7c;
     float extent = spatial_000.max_region_radius_60;
@@ -898,7 +897,7 @@ void W8Octree::BuildFrustumPlanes004302E0()
 // FUNCTION: WIZ8 0x0042fe90
 void W8Octree::CollectVisibleCells()
 {
-    BuildFrustumPlanes004302E0();
+    BuildFrustumPlanes();
     MarkVisibleRegions();
     short radius = static_cast<short>(
         (static_cast<int>((far_clip_200 / spatial_000.region_grid_cell_54)) + 1));
@@ -1373,11 +1372,11 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
                     for (int i = 0; i < meshes.GetCount(); ++i) {
                         stModelInstance* mesh = *meshes.GetAt(i);
                         if (mesh != 0) {
-                            unsigned int faces = MeasureNodeRender004289E0(mesh);
+                            unsigned int faces = MeasureNodeRender(mesh);
                             all_known = 9 < faces;
                             srNode* child = mesh->firstChild();
                             while (child != 0 && descend != 0) {
-                                faces = MeasureNodeRender004289E0(child);
+                                faces = MeasureNodeRender(child);
                                 if (9 < faces) {
                                     all_known = true;
                                 }
@@ -1403,7 +1402,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
                         if (mesh != 0) {
                             unsigned int cell = static_cast<unsigned int>(*cells.GetAt(index));
                             if (cell != 0) {
-                                unsigned int faces = MeasureNodeRender004289E0(mesh);
+                                unsigned int faces = MeasureNodeRender(mesh);
                                 if (9 < faces) {
                                     sprintf(text, "%d, ", cell);
                                     NoOp();
@@ -1412,7 +1411,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
                                 }
                                 srNode* child = mesh->firstChild();
                                 while (child != 0 && descend != 0) {
-                                    faces = MeasureNodeRender004289E0(child);
+                                    faces = MeasureNodeRender(child);
                                     if (9 < faces) {
                                         m_projected_regions_15c->Set(cell);
                                         linked = true;
@@ -1747,7 +1746,7 @@ unsigned char W8Octree::UpdateWorldTrace()
     maximum.x = minimum.x + spatial_000.node_extent_70;
     maximum.y = minimum.y + spatial_000.node_extent_70;
     maximum.z = minimum.z + spatial_000.node_extent_70;
-    unsigned long* packed = PackColour00433FB0(&color, 0.0, 1.0, 0.0, 0.0);
+    unsigned long* packed = PackColourToLong(&color, 0.0, 1.0, 0.0, 0.0);
     DrawWorldBox(g_world, minimum, maximum, *packed);
     return 1;
 }
@@ -1758,8 +1757,8 @@ const double g_double_005ebf60 = 255.0;
 /* Pack four filtered colour components into the caller's unsigned long: red
    lands in the top byte and alpha in the low one. */
 // FUNCTION: WIZ8 0x00433fb0
-unsigned long* __fastcall PackColour00433FB0(unsigned long* color, double red, double green,
-                                             double blue, double alpha)
+unsigned long* __fastcall PackColourToLong(unsigned long* color, double red, double green,
+                                           double blue, double alpha)
 {
     unsigned char* bytes =
         reinterpret_cast<unsigned char*>(color); // reinterpret-ok: packed colour storage
@@ -4093,7 +4092,7 @@ finish:
         ReadRegionLinkFile(m_owned_0c0);
         LoadPointFiles(m_owned_0c0);
         if (pathing_180 != 0) {
-            pathing_180->ReadWaypointFile00459650();
+            pathing_180->ReadWaypointFile();
         }
         return;
     }
@@ -4922,7 +4921,7 @@ int* W8Octree::WorldPositionToCell(const srVector3T<float>* position, int* point
    The walk reports through the flag; the height it wrote is discarded on a
    miss. */
 // FUNCTION: WIZ8 0x00431DA0
-void W8Octree::AdjustPosition00431DA0(srVector3T<float>* position, unsigned int mode)
+void W8Octree::AdjustPosition(srVector3T<float>* position, unsigned int mode)
 {
     srVector3T<float> adjusted;
     unsigned char hit = 0;

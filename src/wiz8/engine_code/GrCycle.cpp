@@ -358,11 +358,16 @@ unsigned char ReadGrCycleData(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycl
     }
 
     FileRead(info->hFile, &has_path, 1, 0);
-    if (has_path != 0 &&
-        // reinterpret-ok: retail passes the tagged GrObject AI slot at +0x0c directly;
-        // this loader writes a W8PathAI pointer or null into that slot
-        LoadPathAI004A92A0(reinterpret_cast<W8PathAI**>(&(*cycle)->m_pAI), info->hFile) == 0) {
-        srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x1e6, 0);
+    if (has_path != 0) {
+        /* LoadPathAI stores its result only on success; the base-typed AI
+           slot takes the loaded path from there. */
+        W8PathAI* path;
+        if (LoadPathAI(&path, info->hFile) == 0) {
+            srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x1e6,
+                         0);
+        } else {
+            (*cycle)->m_pAI = path;
+        }
     }
 
     FileRead(info->hFile, &has_particles, 1, 0);
@@ -398,15 +403,15 @@ unsigned char ReadGrCycleData(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycl
 
     switch (object_type) {
     case 0:
-        success = static_cast<W8Monster*>(*cycle)->m_pRep->ReadCycleData004BF520(
+        success = static_cast<W8Monster*>(*cycle)->m_pRep->ReadCycleData(
             info, static_cast<W8Monster*>(*cycle), cycle_index, value);
         break;
     case 1:
-        success = static_cast<W8Missile*>(*cycle)->m_pRep->ReadCycleData004A3300(
+        success = static_cast<W8Missile*>(*cycle)->m_pRep->ReadCycleData(
             info, static_cast<W8Missile*>(*cycle), cycle_index, value);
         break;
     case 2:
-        success = static_cast<W8SpellVisual*>(*cycle)->host->ReadCycleData004AB340(
+        success = static_cast<W8SpellVisual*>(*cycle)->host->ReadCycleData(
             info, static_cast<W8SpellVisual*>(*cycle), cycle_index, value);
         break;
     }

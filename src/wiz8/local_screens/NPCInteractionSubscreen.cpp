@@ -472,7 +472,7 @@ void TranslateDialogueKeyword(const wchar_t* source, wchar_t* destination)
     for (entry_index = 0; entry_index < file->count; ++entry_index) {
         entry = *file->GetAt(entry_index);
         for (word_index = 0; word_index < entry->count; ++word_index) {
-            if (CompareWideTextIgnoreAsciiCase00402920(source, *entry->GetAt(word_index)) == 0) {
+            if (CompareWideTextIgnoreAsciiCase(source, *entry->GetAt(word_index)) == 0) {
                 english = *(*g_keyword_lists.GetAt(0))->GetAt(entry_index);
                 wcscpy(destination, *english->GetAt(word_index));
                 return;
@@ -978,12 +978,12 @@ void CreateNpcDialogueControls(void)
     state->option_buttons_170[4]->EnableRegionHelp(0x7c6);
     state->option_buttons_170[5]->AddLayoutFlags(g_W8TextControlMask005ED578);
     state->option_buttons_170[5]->EnableRegionHelp(0x7c7);
-    state->option_buttons_170[0]->m_primaryActivationCallback = ToggleNpcTradeFilter00573660;
-    state->option_buttons_170[1]->m_primaryActivationCallback = ToggleNpcTradeFilter00573730;
-    state->option_buttons_170[2]->m_primaryActivationCallback = ToggleNpcTradeFilter005739A0;
-    state->option_buttons_170[3]->m_primaryActivationCallback = ToggleNpcTradeFilter00573800;
-    state->option_buttons_170[4]->m_primaryActivationCallback = ToggleNpcTradeFilter005738D0;
-    state->option_buttons_170[5]->m_primaryActivationCallback = ToggleNpcTradeFilter00573A10;
+    state->option_buttons_170[0]->m_primaryActivationCallback = ToggleNpcTradeFilterButton0;
+    state->option_buttons_170[1]->m_primaryActivationCallback = ToggleNpcTradeFilterButton1;
+    state->option_buttons_170[2]->m_primaryActivationCallback = ToggleNpcTradeFilterButton2;
+    state->option_buttons_170[3]->m_primaryActivationCallback = ToggleNpcTradeFilterButton3;
+    state->option_buttons_170[4]->m_primaryActivationCallback = ToggleNpcTradeFilterButton4;
+    state->option_buttons_170[5]->m_primaryActivationCallback = ToggleNpcTradeFilterButton5;
 
     panel = state->panel_1ac;
     state->dialogue_widget_12c = new W8Widget(panel, 0x89, 2, 4, 0x136, 0x57);
@@ -1005,12 +1005,12 @@ void CreateNpcDialogueControls(void)
     state->dialogue_text_168 =
         new W8TextControl(panel, 0x73, 9, 0x33, 0x84, 0x44, 0x1a9, 0, -1, -1, 0xe, 0xf, -1);
     state->dialogue_text_168->m_textBuffer.SetText(gppStringList[0x741], g_font_683660);
-    state->dialogue_text_168->m_primaryActivationCallback = SubmitNpcDialogueInput00575B40;
+    state->dialogue_text_168->m_primaryActivationCallback = SubmitNpcDialogueInput;
     state->dialogue_text_168->EnableRegionHelp(0x66);
     state->dialogue_text_164 =
         new W8TextControl(panel, 0x72, 9, 0x43, 0x84, 0x52, 0x1a9, 0, -1, -1, 0xe, 0xf, -1);
     state->dialogue_text_164->m_textBuffer.SetText(gppStringList[0x742], g_font_683660);
-    state->dialogue_text_164->m_primaryActivationCallback = SubmitNpcDialogueInput00575B00;
+    state->dialogue_text_164->m_primaryActivationCallback = SubmitNpcWhereIsQuery;
     state->dialogue_text_164->EnableRegionHelp(0x67);
 
     panel = state->npc_dialogue_panel_1b4;
@@ -2615,8 +2615,7 @@ void AddNpcDialogueKeyword(wchar_t* text, signed char category, int play_chime)
     StripNpcKeywordPunctuation(text);
     if (category == W8_DIALOGUE_CATEGORY_ALL) {
         for (index = 0; index < gXStatus.uiItemsInDatabase; ++index) {
-            if (CompareWideTextIgnoreAsciiCase00402920(text, g_item_records[index].display_name) ==
-                0) {
+            if (CompareWideTextIgnoreAsciiCase(text, g_item_records[index].display_name) == 0) {
                 break;
             }
         }
@@ -2624,8 +2623,8 @@ void AddNpcDialogueKeyword(wchar_t* text, signed char category, int play_chime)
             category = W8_DIALOGUE_CATEGORY_ITEMS;
         } else {
             for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
-                if (CompareWideTextIgnoreAsciiCase00402920(
-                        text, g_npc_records[index].source_name_004) == 0) {
+                if (CompareWideTextIgnoreAsciiCase(text, g_npc_records[index].source_name_004) ==
+                    0) {
                     break;
                 }
             }
@@ -2633,8 +2632,8 @@ void AddNpcDialogueKeyword(wchar_t* text, signed char category, int play_chime)
                 category = W8_DIALOGUE_CATEGORY_PEOPLE;
             } else {
                 for (index = 0; g_dialogue_person_keywords[index][0] != 0; ++index) {
-                    if (CompareWideTextIgnoreAsciiCase00402920(
-                            text, g_dialogue_person_keywords[index]) == 0) {
+                    if (CompareWideTextIgnoreAsciiCase(text, g_dialogue_person_keywords[index]) ==
+                        0) {
                         break;
                     }
                 }
@@ -2644,7 +2643,7 @@ void AddNpcDialogueKeyword(wchar_t* text, signed char category, int play_chime)
                     for (index = 0;
                          index < static_cast<unsigned int>(g_dialogue_place_keyword_count);
                          ++index) {
-                        if (CompareWideTextIgnoreAsciiCase00402920(
+                        if (CompareWideTextIgnoreAsciiCase(
                                 text, gppStringList[g_dialogue_place_keyword_ids[index]]) == 0) {
                             break;
                         }
@@ -3052,9 +3051,9 @@ void ConfirmNpcTradeSlot(void)
         if (slot != -1) {
             UpdateNpcTradeSelection(slot, 0, 0);
             if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE && slot == 0) {
-                OpenNpcTradeSplitDialog00572780();
+                OpenNpcGoldAmountDialog();
             } else if (g_screen_state_00649f1c->trade_item->stack_count > 1) {
-                OpenNpcTradeSplitDialog005AE040();
+                OpenNpcTradeQuantityDialog();
             }
         }
     }
@@ -3067,7 +3066,7 @@ void ConfirmNpcTradeSlot(void)
    buttons and open the W8SplitAmountDialog seeded with the party purse. The
    result lands back through OnNpcTradeSplitDialogDestroy. */
 // FUNCTION: WIZ8 0x00572780
-void OpenNpcTradeSplitDialog00572780(void)
+void OpenNpcGoldAmountDialog(void)
 {
     W8SplitAmountDialog* dialog;
 
@@ -3493,7 +3492,7 @@ void EnableNpcTradeFilterButtons(void)
    trade_filter (the previously active sibling is dimmed and cleared), and when it
    is lowered the bit comes off again; RebuildNpcTradeItemList(1) refreshes the list. */
 // FUNCTION: WIZ8 0x00573660
-void ToggleNpcTradeFilter00573660(void)
+void ToggleNpcTradeFilterButton0(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->option_buttons_170[0]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -3520,7 +3519,7 @@ void ToggleNpcTradeFilter00573660(void)
 }
 
 // FUNCTION: WIZ8 0x00573730
-void ToggleNpcTradeFilter00573730(void)
+void ToggleNpcTradeFilterButton1(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->option_buttons_170[1]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -3547,7 +3546,7 @@ void ToggleNpcTradeFilter00573730(void)
 }
 
 // FUNCTION: WIZ8 0x00573800
-void ToggleNpcTradeFilter00573800(void)
+void ToggleNpcTradeFilterButton3(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->option_buttons_170[3]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -3574,7 +3573,7 @@ void ToggleNpcTradeFilter00573800(void)
 }
 
 // FUNCTION: WIZ8 0x005738D0
-void ToggleNpcTradeFilter005738D0(void)
+void ToggleNpcTradeFilterButton4(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->option_buttons_170[4]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -3604,7 +3603,7 @@ void ToggleNpcTradeFilter005738D0(void)
    "usable by anyone" toggle: option_buttons_170[2] lowers bit 0x40 and raises
    bit 1 while pressed, and drops bit 1 when released. */
 // FUNCTION: WIZ8 0x005739A0
-void ToggleNpcTradeFilter005739A0(void)
+void ToggleNpcTradeFilterButton2(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->option_buttons_170[2]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -3619,7 +3618,7 @@ void ToggleNpcTradeFilter005739A0(void)
 }
 
 // FUNCTION: WIZ8 0x00573A10
-void ToggleNpcTradeFilter00573A10(void)
+void ToggleNpcTradeFilterButton5(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->option_buttons_170[5]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
@@ -3862,7 +3861,7 @@ void HandleNpcDialogueReply(wchar_t* text, char echo)
                 QueueNpcScriptLine(line, 0, 0, 0);
             }
         } else {
-            if (CompareWideTextIgnoreAsciiCase00402920(text, gppStringList[0x1f7c / 4]) == 0) {
+            if (CompareWideTextIgnoreAsciiCase(text, gppStringList[0x1f7c / 4]) == 0) {
                 if (static_cast<unsigned int>(g_screen_state_00649f1c->pending_price_204) >
                     g_status.party_gold) {
                     RunNpcScriptLine(0x14, 0);
@@ -4300,7 +4299,7 @@ void SetDialogueFieldKeyword(wchar_t* keyword, unsigned char append)
 bool IsDialoguePlaceKeyword(const wchar_t* name)
 {
     for (int index = 0; index < g_dialogue_place_keyword_count; ++index) {
-        if (CompareWideTextIgnoreAsciiCase00402920(
+        if (CompareWideTextIgnoreAsciiCase(
                 name, gppStringList[g_dialogue_place_keyword_ids[index]]) == 0) {
             return 1;
         }
@@ -4594,7 +4593,7 @@ unsigned char AcceptNpcDialogueItem(W8NpcState*, W8ItemInstance*, int)
 /* While NPC script deferral holds character events during an open dialogue,
    pump Escape and left-click so layout dismissals still run. */
 // FUNCTION: WIZ8 0x00575B00
-void SubmitNpcDialogueInput00575B00(void)
+void SubmitNpcWhereIsQuery(void)
 {
     g_screen_state_00649f1c->where_is_query = 1;
     g_screen_state_00649f1c->text_input_panel_1c0->Invalidate(0);
@@ -4603,7 +4602,7 @@ void SubmitNpcDialogueInput00575B00(void)
 }
 
 // FUNCTION: WIZ8 0x00575B40
-void SubmitNpcDialogueInput00575B40(void)
+void SubmitNpcDialogueInput(void)
 {
     g_screen_state_00649f1c->where_is_query = 0;
     g_screen_state_00649f1c->text_input_panel_1c0->Invalidate(0);
@@ -5385,16 +5384,15 @@ void AddDialogueTranscriptKeyword(const wchar_t* name, signed char category)
     if (category == -1) {
         unsigned int index;
         for (index = 0; index < gXStatus.uiItemsInDatabase; ++index) {
-            if (CompareWideTextIgnoreAsciiCase00402920(keyword,
-                                                       g_item_records[index].display_name) == 0) {
+            if (CompareWideTextIgnoreAsciiCase(keyword, g_item_records[index].display_name) == 0) {
                 category = W8_DIALOGUE_CATEGORY_ITEMS;
                 break;
             }
         }
         if (category == -1) {
             for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
-                if (CompareWideTextIgnoreAsciiCase00402920(
-                        keyword, g_npc_records[index].source_name_004) == 0) {
+                if (CompareWideTextIgnoreAsciiCase(keyword, g_npc_records[index].source_name_004) ==
+                    0) {
                     category = W8_DIALOGUE_CATEGORY_PEOPLE;
                     break;
                 }
@@ -5402,8 +5400,8 @@ void AddDialogueTranscriptKeyword(const wchar_t* name, signed char category)
         }
         if (category == -1) {
             for (index = 0; g_dialogue_person_keywords[index][0] != 0; ++index) {
-                if (CompareWideTextIgnoreAsciiCase00402920(
-                        keyword, g_dialogue_person_keywords[index]) == 0) {
+                if (CompareWideTextIgnoreAsciiCase(keyword, g_dialogue_person_keywords[index]) ==
+                    0) {
                     category = W8_DIALOGUE_CATEGORY_PEOPLE;
                     break;
                 }
@@ -5415,7 +5413,7 @@ void AddDialogueTranscriptKeyword(const wchar_t* name, signed char category)
         }
     }
     for (int index = 0; index < g_screen_state_00649f1c->dialogue_transcript.GetCount(); ++index) {
-        if (CompareWideTextIgnoreAsciiCase00402920(
+        if (CompareWideTextIgnoreAsciiCase(
                 (*g_screen_state_00649f1c->dialogue_transcript.GetAt(index))->text, keyword) == 0) {
             return;
         }

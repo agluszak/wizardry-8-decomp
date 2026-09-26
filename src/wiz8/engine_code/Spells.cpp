@@ -494,9 +494,8 @@ W8SpellEmitterHost::W8SpellEmitterHost(const W8SpellEmitterHost& other)
 }
 
 // FUNCTION: WIZ8 0x004AB340
-unsigned char W8SpellEmitterHost::ReadCycleData004AB340(W8ReadLevelInfo* info,
-                                                        W8SpellVisual* visual, int,
-                                                        int emitter_index)
+unsigned char W8SpellEmitterHost::ReadCycleData(W8ReadLevelInfo* info, W8SpellVisual* visual, int,
+                                                int emitter_index)
 {
     W8GrowableVector<stLight*>* lights = new W8GrowableVector<stLight*>;
     W8AnimObj* animation;
@@ -508,7 +507,7 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(W8ReadLevelInfo* info,
                      "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x25a, 0);
     }
     animation = CreateAnimObj();
-    success = AnimObjReadFromFile004A05C0(info, animation, 1, lights, 1);
+    success = AnimObjReadFromFile(info, animation, 1, lights, 1);
     emitter = static_cast<signed char>(animation->cycle);
 
     if (lights->GetCount() == 0) {

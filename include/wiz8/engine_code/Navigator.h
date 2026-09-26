@@ -399,11 +399,10 @@ public:
     unsigned char ConfigureMovement(float minimum, float maximum); /* 0x00453D20 */
     unsigned char SetMovementTarget(const srVector3T<float>* target,
                                     char propagate); /* 0x00454170 */
-    srVector3T<float>* AdjustPosition00454440(srVector3T<float>* result,
-                                              const srVector3T<float>* current,
-                                              const srVector3T<float>* previous); /* 0x00454440 */
-    void UpdateFacing(char immediate);                                            /* 0x00454780 */
-    void UpdateLinkedNavigator();                                                 /* 0x00454D70 */
+    srVector3T<float>* AdjustPosition(srVector3T<float>* result, const srVector3T<float>* current,
+                                      const srVector3T<float>* previous); /* 0x00454440 */
+    void UpdateFacing(char immediate);                                    /* 0x00454780 */
+    void UpdateLinkedNavigator();                                         /* 0x00454D70 */
     unsigned char UpdateLinkedPosition();
     void CollectGroupNavigators(W8GrowableVector<W8Navigator*>* navigators); /* 0x00455140 */
     int ResolveMovement();                                                   /* 0x00455CC0 */

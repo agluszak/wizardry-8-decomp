@@ -38,7 +38,7 @@ unsigned char W8OctRegionPolygon::ContainsPoint004CFB30(const srVector3T<float>*
 /* Grow `*run` to (count + capacity) dwords when count lands on a capacity
    boundary, preserving existing entries. */
 // FUNCTION: WIZ8 0x004cfb70
-int CheckArrayLength004CFB70(int** run, unsigned short count, unsigned short capacity)
+int CheckArrayLength(int** run, unsigned short count, unsigned short capacity)
 {
     if (count % capacity == 0) {
         unsigned short total = count + capacity;

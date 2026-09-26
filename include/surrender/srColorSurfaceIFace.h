@@ -191,8 +191,8 @@ protected:
        Wiz8 imports no alpha accessor, so the read is a field access. The
        file-scope pixel decoder reads bytes_per_pixel_minus_one the same way. */
     friend class stTextureFile;
-    friend void __stdcall LoadSurfacePixels0047BC80(int handle, srColorSurface* surface,
-                                                    const W8TgaHeader* header);
+    friend void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface,
+                                            const W8TgaHeader* header);
     /* srColorSurface::isCompatible and the blit/copy/scale paths read the
        protected geometry/format fields of a srColorSurfaceIFace& directly
        (e.g. [src+0x30] field compares with no getter call), so the concrete

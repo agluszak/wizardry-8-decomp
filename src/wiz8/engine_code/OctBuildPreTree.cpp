@@ -57,7 +57,7 @@ W8CountedOctBuildNode::~W8CountedOctBuildNode()
 /* Replace the two polygon-link chains used by pre-tree leaves with compact,
    null-terminated surface arrays. */
 // FUNCTION: WIZ8 0x004af7b0
-unsigned char W8OctBuildNode::RearrangeNodePolys004AF7B0(short current_depth, short target_depth)
+unsigned char W8OctBuildNode::RearrangeNodePolys(short current_depth, short target_depth)
 {
     if (current_depth == target_depth) {
         for (short mode = 2; mode < 4; ++mode) {
@@ -81,7 +81,7 @@ unsigned char W8OctBuildNode::RearrangeNodePolys004AF7B0(short current_depth, sh
     } else {
         for (int child = 0; child != 8; ++child) {
             if (children_00[child] != 0) {
-                children_00[child]->RearrangeNodePolys004AF7B0(current_depth + 1, target_depth);
+                children_00[child]->RearrangeNodePolys(current_depth + 1, target_depth);
             }
         }
     }
@@ -271,7 +271,7 @@ OctBuildPreTree::OctBuildPreTree(float leaf_size, srVector3T<float>* minimum,
    both arrays, then re-insert every surviving polygon and continue into the
    region assignment pass. Normalizes each vertex normal on the way. */
 // FUNCTION: WIZ8 0x004afea0
-unsigned char OctBuildPreTree::SortGeometry004AFEA0(W8OctPreTreeGeometry* geometry)
+unsigned char OctBuildPreTree::SortGeometry(W8OctPreTreeGeometry* geometry)
 {
     game_data_134 = geometry;
     unsigned long next_index = 1;
@@ -371,7 +371,7 @@ unsigned char OctBuildPreTree::SortGeometry004AFEA0(W8OctPreTreeGeometry* geomet
     geometry->vertices_04 = new_vertices;
     geometry->polygons_0c = new_polygons;
     for (polygon = 1; polygon < geometry->polygon_count_08; ++polygon) {
-        if (InsertSurface004B02F0(&geometry->polygons_0c[polygon], 2) == 0) {
+        if (InsertSurface(&geometry->polygons_0c[polygon], 2) == 0) {
             char message[1024];
             sprintf(message, "SortGeometry: Polygon %d cannot be inserted into tree",
                     static_cast<int>(polygon));
@@ -387,8 +387,7 @@ unsigned char OctBuildPreTree::SortGeometry004AFEA0(W8OctPreTreeGeometry* geomet
    inserter. Unlike UpdateRegionForGeometry the root here is the plain node;
    the mode counter mirrors that function's 2/3 split. */
 // FUNCTION: WIZ8 0x004b02f0
-unsigned char OctBuildPreTree::InsertSurface004B02F0(W8OctRegionPolygon* polygon,
-                                                     unsigned long mode)
+unsigned char OctBuildPreTree::InsertSurface(W8OctRegionPolygon* polygon, unsigned long mode)
 {
     W8OctSpatialState working(&spatial_00);
     if (spatial_00.root_90 == 0) {
@@ -402,7 +401,7 @@ unsigned char OctBuildPreTree::InsertSurface004B02F0(W8OctRegionPolygon* polygon
     }
     working.depth_44 = 0;
     working.level_kind_6c = 1;
-    return InsertSurfaceRecursive004B03E0(&working, polygon, mode);
+    return InsertSurfaceRecursive(&working, polygon, mode);
 }
 
 /* Descend the build octree to the leaf holding the region polygon: subdivide
@@ -412,9 +411,9 @@ unsigned char OctBuildPreTree::InsertSurface004B02F0(W8OctRegionPolygon* polygon
    its kind counter and appends the polygon to the mode link list. Depth 16 is
    the hard floor and returns failure. */
 // FUNCTION: WIZ8 0x004b03e0
-unsigned char OctBuildPreTree::InsertSurfaceRecursive004B03E0(W8OctSpatialState* working,
-                                                              W8OctRegionPolygon* polygon,
-                                                              unsigned long mode)
+unsigned char OctBuildPreTree::InsertSurfaceRecursive(W8OctSpatialState* working,
+                                                      W8OctRegionPolygon* polygon,
+                                                      unsigned long mode)
 {
     W8OctSpatialState child(working);
     unsigned char inserted = 0;
@@ -443,7 +442,7 @@ unsigned char OctBuildPreTree::InsertSurfaceRecursive004B03E0(W8OctSpatialState*
                                 parent->children_00[octant] = new W8OctBuildNode;
                             }
                             child.root_90 = parent->children_00[octant];
-                            if (InsertSurfaceRecursive004B03E0(&child, polygon, mode) != 0) {
+                            if (InsertSurfaceRecursive(&child, polygon, mode) != 0) {
                                 inserted = 1;
                             }
                         }
@@ -458,7 +457,7 @@ unsigned char OctBuildPreTree::InsertSurfaceRecursive004B03E0(W8OctSpatialState*
                 W8BoundingBox leaf_bounds;
                 leaf_bounds.minimum = working->minimum_0c;
                 leaf_bounds.maximum = working->maximum_18;
-                FindLeafRegions004B1090(node, &leaf_bounds);
+                FindLeafRegions(node, &leaf_bounds);
             }
             ++node->leaf_kind_2a;
             if (static_cast<short>(mode) == 2) {
@@ -527,9 +526,9 @@ unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* spatial,
                        deterministic zero models that defect path. */
                     unsigned char intersects = 0;
                     if (mode == 6) {
-                        intersects = PointInsideBounds0046D4D0(&child.minimum_0c, geometry);
+                        intersects = PointInsideBoxBounds(&child.minimum_0c, geometry);
                     } else if (mode == 5) {
-                        intersects = BoundsOverlap0046D470(&child.minimum_0c, geometry);
+                        intersects = BoundsOverlapStrict(&child.minimum_0c, geometry);
                     }
 
                     W8OctBuildNode* parent = spatial->root_90;
@@ -668,7 +667,7 @@ unsigned short OctBuildPreTree::LoadRegionFile(const char* stem, srVector3T<floa
         }
         volume->value_18 = record.value_06;
         SortFrustumCorners(&volume->points_1c[1]);
-        BuildFrustumPlanes0046D7E0(&volume->points_1c[1], volume->planes_88);
+        BuildFrustumPlanes(&volume->points_1c[1], volume->planes_88);
     }
     CloseHandle(file);
     ReportBuildStatus(6, path);
@@ -680,7 +679,7 @@ unsigned short OctBuildPreTree::LoadRegionFile(const char* stem, srVector3T<floa
    `bounds`. The list is a malloc'd run of up to 0x32 ids terminated by a zero
    slot; the first allocation reports failure through the build log. */
 // FUNCTION: WIZ8 0x004b1090
-void OctBuildPreTree::FindLeafRegions004B1090(W8OctBuildNode* node, const W8BoundingBox* bounds)
+void OctBuildPreTree::FindLeafRegions(W8OctBuildNode* node, const W8BoundingBox* bounds)
 {
     for (unsigned short region = 1; region < spatial_00.region_count_46; ++region) {
         if ((spatial_00.owned_5c[region].flags_00 & 4) == 0 &&
@@ -790,7 +789,7 @@ unsigned char OctBuildPreTree::AssignPolygonRegions(W8OctPreTreeGeometry* geomet
             for (int corner = 0; corner != 3; ++corner) {
                 W8OctPreTreeVertex* vertex =
                     &geometry->vertices_04[poly->vertices_34[corner]->vertex_index_04];
-                CheckArrayLength004CFB70(&vertex->face_indices_44, vertex->face_count_40, 5);
+                CheckArrayLength(&vertex->face_indices_44, vertex->face_count_40, 5);
                 vertex->face_indices_44[vertex->face_count_40] = polygon;
                 ++vertex->face_count_40;
             }

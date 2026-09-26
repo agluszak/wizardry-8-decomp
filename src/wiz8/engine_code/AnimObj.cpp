@@ -33,8 +33,8 @@ W8AnimObj* CreateAnimObj()
 }
 
 // FUNCTION: WIZ8 0x004a05c0
-unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* animation, int load_all,
-                                          W8GrowableVector<stLight*>* light_list, int unused)
+unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, int load_all,
+                                  W8GrowableVector<stLight*>* light_list, int unused)
 {
     /* Retail read `frames` uninitialised when its FileRead short-circuited; the recovery keeps
        that read. */
@@ -194,7 +194,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                 srAssertFail("0", ANIM_OBJ_CPP, 0x1b2,
                              "AnimObjReadFromFile: Where is the light list?");
             } else {
-                stLight* light = CreateWorldLight0046E030(0, "MonsterLight");
+                stLight* light = CreateWorldLight(0, "MonsterLight");
                 light->diffuse_1a4 = color;
                 light->specular_1b0 = srVector3T<float>(0.0f, 0.0f, 0.0f);
                 ConfigureWorldLight(light, range * g_world_scale);
@@ -213,7 +213,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
         FileRead(handle, &has_path, 1, 0);
         if (has_path != 0) {
             W8PathAI* path = 0;
-            success = LoadPathAI004A92A0(&path, handle);
+            success = LoadPathAI(&path, handle);
             if (!success) {
                 srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x1c5, 0);
             }
@@ -274,7 +274,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                     srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x20f, 0);
                 }
                 PListInsert(animation->meshes_28[channel], entry, mesh);
-                success = LoadPathAI004A92A0(&path, handle);
+                success = LoadPathAI(&path, handle);
                 if (!success) {
                     srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x217, 0);
                 }

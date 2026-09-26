@@ -1012,7 +1012,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                 geometry_to = motion_delta;
                 geometry_from = camera_position;
                 nearest_surface = 0;
-                hit_count = geometry_index_00->CollectObjectsAlongSegment00446D80(
+                hit_count = geometry_index_00->CollectObjectsAlongSegment(
                     &geometry_hits, &geometry_from, &geometry_to, 1.57079637f, 2000.0f, 3);
             }
             if (((hit_count == 0 && prop_hit == 0) || g_environment_motion_active == 0)) {
@@ -1087,7 +1087,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                     if (octree_04 == 0) {
                         if (geometry_index_00 != 0) {
                             geometry_hits = 0;
-                            hit_count = geometry_index_00->CollectObjectsAlongSegment00446D80(
+                            hit_count = geometry_index_00->CollectObjectsAlongSegment(
                                 &geometry_hits, &geometry_from, &geometry_to, 1.57079637f, 2000.0f,
                                 3);
                         } else {

@@ -116,8 +116,7 @@ void UpdateGameClock(int elapsed)
                 ++item;
             }
         }
-        for (unsigned int index = 0;
-             index < g_status.party_item_count_1791; ++index) {
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
             W8ItemInstance* item = &g_status.party_item_pool_0021[index];
             if (item->iItemNo == 0x266) {
                 AddItemUses(item, static_cast<char>(hours));
@@ -557,7 +556,7 @@ void AdvanceTimedEffects(unsigned int minutes)
         if (g_status.buffers.XChar[slot].fOccupied != 0 &&
             (character->highest_condition < 0x12 ||
              (character->uiCondition[0x12] == 0 && GetConditionRecordFlag(slot, 1) != 0))) {
-            GameTurnsPassedChar00503100(slot, minutes);
+            GameTurnsPassedChar(slot, minutes);
         }
     }
 
@@ -660,7 +659,7 @@ void AdvanceTimedEffects(unsigned int minutes)
    regeneration accumulators, and the finite condition and enchantment
    countdowns. */
 // FUNCTION: WIZ8 0x00503100
-void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
+void GameTurnsPassedChar(int party_slot, unsigned int minutes)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     bool diseased = false;

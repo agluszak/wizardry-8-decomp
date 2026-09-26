@@ -140,7 +140,7 @@ void InitializeWorldCursor(void)
             PLAdoptAppend(g_world->plsMonsters, gp3DCursor->monster_00);
             UpdateCycleRepresentation(gp3DCursor->monster_00, g_world);
             MonsterSetStateA0(gp3DCursor->monster_00, 0);
-            gp3DCursor->light_24 = CreateWorldLight0046E140(g_world, "3D Cursor Light");
+            gp3DCursor->light_24 = CreateRangedWorldLight(g_world, "3D Cursor Light");
             gp3DCursor->light_24->intensity_1d0 = 1.0f;
             ConfigureWorldLight(gp3DCursor->light_24, 2500.0f);
             gp3DCursor->light_24->ambient_198.Set(0.0f, 0.0f, 0.0f);
@@ -154,7 +154,7 @@ void InitializeWorldCursor(void)
                 material->setDiffuse(colour);
                 gp3DCursor->particle_04->SetRetainedObject(material);
                 gp3DCursor->particle_04->SetTexture(
-                    LoadTexture004B95D0("Data\\Monsters\\Bitmaps\\", "particle.tga", 1));
+                    LoadTextureFromFolder("Data\\Monsters\\Bitmaps\\", "particle.tga", 1));
                 shader.value = 0x100c433;
                 gp3DCursor->particle_04->SetRenderFlags(shader);
                 gp3DCursor->particle_04->rotateX(-1.5707963);

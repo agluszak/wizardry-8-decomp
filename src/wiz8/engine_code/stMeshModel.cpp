@@ -326,7 +326,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                             unsigned int bits;
                             // reinterpret-ok: FillDwordBuffer takes the float bit pattern
                             bits = *reinterpret_cast<unsigned int*>(&scaled.x);
-                            FillDwordBuffer00474700(dig, bits, count * 3);
+                            FillDwordBuffer(dig, bits, count * 3);
                         } else {
                             srVectorProcessor::copy(dig, scaled, static_cast<SRDWORD>(count));
                         }
@@ -354,7 +354,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                      ambient_color_3a4.z == g_float_005ebb34) ||
                     vertex_light_table_3b0 == 1) {
                     if (vertex_location_count_22c != 0) {
-                        FillDwordBuffer00474700(dig, 0, vertex_location_count_22c * 3);
+                        FillDwordBuffer(dig, 0, vertex_location_count_22c * 3);
                     }
                 } else {
                     count = vertex_location_count_22c;
@@ -364,7 +364,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                             unsigned int bits;
                             // reinterpret-ok: FillDwordBuffer takes the float bit pattern
                             bits = *reinterpret_cast<unsigned int*>(&ambient_color_3a4.x);
-                            FillDwordBuffer00474700(dig, bits, count * 3);
+                            FillDwordBuffer(dig, bits, count * 3);
                         } else {
                             srVectorProcessor::copy(dig, ambient_color_3a4,
                                                     static_cast<SRDWORD>(count));
@@ -400,7 +400,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                                 srVectorProcessor::mul(dig + index, scaled, dig + index,
                                                        static_cast<SRDWORD>(run));
                             } else {
-                                FillDwordBuffer00474700(dig + index, 0, run * 3);
+                                FillDwordBuffer(dig + index, 0, run * 3);
                             }
                         }
                     }
@@ -423,7 +423,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
             if (light_scale != g_float_005ebb38 &&
                 (count = vertex_location_count_22c, count != 0)) {
                 if (light_scale == g_float_005ebb34) {
-                    FillDwordBuffer00474700(dig, 0, count * 3);
+                    FillDwordBuffer(dig, 0, count * 3);
                 } else {
                     srVectorProcessor::mul(
                         reinterpret_cast<float*>(dig), // reinterpret-ok: packed DIG as float*
@@ -667,7 +667,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                     }
 
                     ++pipeline->slot_count_84;
-                    pipeline->PrepareSlot00475540();
+                    pipeline->PrepareSlot();
                 }
 
                 pipeline->FlushIfCurrent();
@@ -713,7 +713,7 @@ int __fastcall IsZeroVector(const srVector3T<float>* vector)
 
 /* Fill `count` dwords through vp->_copy(SRDWORD*, SRDWORD, SRDWORD). */
 // FUNCTION: WIZ8 0x00474700
-void FillDwordBuffer00474700(void* destination, unsigned int value, int count)
+void FillDwordBuffer(void* destination, unsigned int value, int count)
 {
     if (count != 0) {
         srVectorProcessor::copy(static_cast<SRDWORD*>(destination), value,
@@ -1489,7 +1489,7 @@ void stMeshModel::ComputeFrameNormals(int frame)
         srAssertFail("vnorm", "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x4db, 0);
     }
     if (shade_index == 0) {
-        FillDwordBuffer00474700(vnorm, 0, vertex_location_count_22c * 3);
+        FillDwordBuffer(vnorm, 0, vertex_location_count_22c * 3);
         for (int corner_poly = 0; corner_poly < polygon_count_230; ++corner_poly) {
             vnorm[poly_vertex[corner_poly].x] += pnorm[corner_poly];
             vnorm[poly_vertex[corner_poly].y] += pnorm[corner_poly];
@@ -1497,7 +1497,7 @@ void stMeshModel::ComputeFrameNormals(int frame)
         }
     } else {
         srVector3T<float>* shaded = new srVector3T<float>[vertex_location_count_22c];
-        FillDwordBuffer00474700(shaded, 0, vertex_location_count_22c * 3);
+        FillDwordBuffer(shaded, 0, vertex_location_count_22c * 3);
         for (int corner_poly = 0; corner_poly < polygon_count_230; ++corner_poly) {
             shaded[shade_index[poly_vertex[corner_poly].x]] += pnorm[corner_poly];
             shaded[shade_index[poly_vertex[corner_poly].y]] += pnorm[corner_poly];
@@ -1687,7 +1687,7 @@ void srTriMeshPipeline::SetFlags004752C0(srShader shader)
 /* Point current_record_14 / current_pass_18 at slot slot_count_84, growing
    either table by (capacity + slot + 8) when needed. */
 // FUNCTION: WIZ8 0x00475540
-void srTriMeshPipeline::PrepareSlot00475540()
+void srTriMeshPipeline::PrepareSlot()
 {
     current_record_14 = &records_94[slot_count_84];
     current_pass_18 = &passes_9c[slot_count_84];
@@ -1716,7 +1716,7 @@ void srTriMeshPipeline::Flush00475510()
 }
 
 /* Bind a renderer and rebuild the current slot. Retail duplicates the prepare
-   body rather than calling PrepareSlot00475540. */
+   body rather than calling PrepareSlot. */
 // FUNCTION: WIZ8 0x004753F0
 void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
 {
@@ -2051,7 +2051,7 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
     pipeline->texture_78 = 0;
     pipeline->pass_value_7c = 0;
     pipeline->material_80 = srCore.getMaterial();
-    pipeline->PrepareSlot00475540();
+    pipeline->PrepareSlot();
     return pipe;
 }
 /* Retail ICF folds this empty thiscall onto W8OptionsGraphicsPanel::OnDragEnd

@@ -98,21 +98,21 @@ const unsigned short g_equip_slot_label_ids[12] = {
 /* The two page-tab primary callbacks: the Items and Character info buttons
    created by CreateCampSecondaryPanel. */
 // FUNCTION: WIZ8 0x005B9FB0
-void SetItemPageMode005B9FB0(void)
+void ShowCampItemsPage(void)
 {
-    SetItemPageMode005B9FD0(0);
+    SetCampInfoPageMode(0);
 }
 
 // FUNCTION: WIZ8 0x005B9FC0
-void SetItemPageMode005B9FC0(void)
+void ShowCampCharacterPage(void)
 {
-    SetItemPageMode005B9FD0(1);
+    SetCampInfoPageMode(1);
 }
 
 /* The items page swaps two control panels in and out: mode zero shows the
    item page, mode one the character page. */
 // FUNCTION: WIZ8 0x005B9FD0
-void SetItemPageMode005B9FD0(char mode)
+void SetCampInfoPageMode(char mode)
 {
     int index;
 
@@ -172,79 +172,79 @@ void OpenItemInfoDialog(W8ItemInstance* item, W8DialogDestroyCallback destroy_ca
    info dialog at its own index. Note retail wires both
    g_camp_info_labels[2] and [3] to the index-3 thunk. */
 // FUNCTION: WIZ8 0x005BA200
-void OpenStatInfoDialog005BA200(void)
+void OpenStrengthInfoDialog(void)
 {
-    OpenStatInfoDialog005BA2B0(0);
+    OpenAttributeInfoDialog(W8_ATTRIBUTE_STRENGTH);
 }
 
 // FUNCTION: WIZ8 0x005BA210
-void OpenStatInfoDialog005BA210(void)
+void OpenIntelligenceInfoDialog(void)
 {
-    OpenStatInfoDialog005BA2B0(1);
+    OpenAttributeInfoDialog(W8_ATTRIBUTE_INTELLIGENCE);
 }
 
 // FUNCTION: WIZ8 0x005BA220
-void OpenStatInfoDialog005BA220(void)
+void OpenPietyInfoDialog(void)
 {
-    OpenStatInfoDialog005BA2B0(2);
+    OpenAttributeInfoDialog(W8_ATTRIBUTE_PIETY);
 }
 
 // FUNCTION: WIZ8 0x005BA230
-void OpenStatInfoDialog005BA230(void)
+void OpenVitalityInfoDialog(void)
 {
-    OpenStatInfoDialog005BA2B0(3);
+    OpenAttributeInfoDialog(W8_ATTRIBUTE_VITALITY);
 }
 
 // FUNCTION: WIZ8 0x005BA240
-void OpenStatInfoDialog005BA240(void)
+void OpenDexterityInfoDialog(void)
 {
-    OpenStatInfoDialog005BA2B0(4);
+    OpenAttributeInfoDialog(W8_ATTRIBUTE_DEXTERITY);
 }
 
 // FUNCTION: WIZ8 0x005BA250
-void OpenStatInfoDialog005BA250(void)
+void OpenSpeedInfoDialog(void)
 {
-    OpenStatInfoDialog005BA2B0(5);
+    OpenAttributeInfoDialog(W8_ATTRIBUTE_SPEED);
 }
 
 // FUNCTION: WIZ8 0x005BA260
-void OpenStatInfoDialog005BA260(void)
+void OpenSensesInfoDialog(void)
 {
-    OpenStatInfoDialog005BA2B0(6);
+    OpenAttributeInfoDialog(W8_ATTRIBUTE_SENSES);
 }
 
 // FUNCTION: WIZ8 0x005BA270
-void OpenSecondaryStatInfoDialog005BA270(void)
+void OpenSecondaryAttributeInfoDialog0(void)
 {
-    OpenSecondaryStatInfoDialog005BA310(0);
+    OpenSecondaryAttributeInfoDialog(0);
 }
 
 // FUNCTION: WIZ8 0x005BA280
-void OpenSecondaryStatInfoDialog005BA280(void)
+void OpenSecondaryAttributeInfoDialog1(void)
 {
-    OpenSecondaryStatInfoDialog005BA310(1);
+    OpenSecondaryAttributeInfoDialog(1);
 }
 
 // FUNCTION: WIZ8 0x005BA290
-void OpenSecondaryStatInfoDialog005BA290(void)
+void OpenSecondaryAttributeInfoDialog3(void)
 {
-    OpenSecondaryStatInfoDialog005BA310(3);
+    OpenSecondaryAttributeInfoDialog(3);
 }
 
 // FUNCTION: WIZ8 0x005BA2A0
-void OpenSecondaryStatInfoDialog005BA2A0(void)
+void OpenSecondaryAttributeInfoDialog4(void)
 {
-    OpenSecondaryStatInfoDialog005BA310(4);
+    OpenSecondaryAttributeInfoDialog(4);
 }
 
 // FUNCTION: WIZ8 0x005BA2B0
-void OpenStatInfoDialog005BA2B0(unsigned int uiIndex)
+void OpenAttributeInfoDialog(unsigned int uiIndex)
 {
     DisplayCampDialog(new W8AttributeInfoDialog(uiIndex));
 }
 
 // FUNCTION: WIZ8 0x005BA310
-void OpenSecondaryStatInfoDialog005BA310(unsigned int uiIndex)
+void OpenSecondaryAttributeInfoDialog(unsigned int uiIndex)
 {
     DisplayCampDialog(new W8SecondaryAttributeInfoDialog(uiIndex));
 }
@@ -698,43 +698,43 @@ void TogglePartyRowFlag(void)
 }
 
 // FUNCTION: WIZ8 0x005BB1C0
-void SelectItemsRealmTab005BB1C0(void)
+void SelectCampRealmTab0(void)
 {
-    SelectItemsRealmTab005BB250(0);
+    SelectCampRealmTab(0);
 }
 
 // FUNCTION: WIZ8 0x005BB1D0
-void SelectItemsRealmTab005BB1D0(void)
+void SelectCampRealmTab1(void)
 {
-    SelectItemsRealmTab005BB250(1);
+    SelectCampRealmTab(1);
 }
 
 // FUNCTION: WIZ8 0x005BB1E0
-void SelectItemsRealmTab005BB1E0(void)
+void SelectCampRealmTab2(void)
 {
-    SelectItemsRealmTab005BB250(2);
+    SelectCampRealmTab(2);
 }
 
 // FUNCTION: WIZ8 0x005BB1F0
-void SelectItemsRealmTab005BB1F0(void)
+void SelectCampRealmTab3(void)
 {
-    SelectItemsRealmTab005BB250(3);
+    SelectCampRealmTab(3);
 }
 
 // FUNCTION: WIZ8 0x005BB200
-void SelectItemsRealmTab005BB200(void)
+void SelectCampRealmTab4(void)
 {
-    SelectItemsRealmTab005BB250(4);
+    SelectCampRealmTab(4);
 }
 
 // FUNCTION: WIZ8 0x005BB210
-void SelectItemsRealmTab005BB210(void)
+void SelectCampRealmTab5(void)
 {
-    SelectItemsRealmTab005BB250(5);
+    SelectCampRealmTab(5);
 }
 
 // FUNCTION: WIZ8 0x005BB220
-void SortPartyItemPool005BB220(void)
+void SortCampItemPool(void)
 {
     SortPartyItemPool();
     g_camp_screen->item_scroll = 0;
@@ -744,7 +744,7 @@ void SortPartyItemPool005BB220(void)
 
 /* Tab index to realm_flags index: the UI tab order is not the realm order. */
 // FUNCTION: WIZ8 0x005BB250
-void SelectItemsRealmTab005BB250(int tab)
+void SelectCampRealmTab(int tab)
 {
     int realm;
     int index;
@@ -1431,13 +1431,13 @@ int CreateItemsTabPanel(void)
             for (index = 0; index < 6; ++index) {
                 g_camp_realm_tabs[index]->AddLayoutFlags(g_W8TextControlMask005ED578);
             }
-            g_camp_realm_tabs[0]->m_primaryActivationCallback = SelectItemsRealmTab005BB1C0;
-            g_camp_realm_tabs[1]->m_primaryActivationCallback = SelectItemsRealmTab005BB1D0;
-            g_camp_realm_tabs[2]->m_primaryActivationCallback = SelectItemsRealmTab005BB1E0;
-            g_camp_realm_tabs[3]->m_primaryActivationCallback = SelectItemsRealmTab005BB1F0;
-            g_camp_realm_tabs[4]->m_primaryActivationCallback = SelectItemsRealmTab005BB200;
-            g_camp_realm_tabs[5]->m_primaryActivationCallback = SelectItemsRealmTab005BB210;
-            g_camp_realm_tabs[6]->m_primaryActivationCallback = SortPartyItemPool005BB220;
+            g_camp_realm_tabs[0]->m_primaryActivationCallback = SelectCampRealmTab0;
+            g_camp_realm_tabs[1]->m_primaryActivationCallback = SelectCampRealmTab1;
+            g_camp_realm_tabs[2]->m_primaryActivationCallback = SelectCampRealmTab2;
+            g_camp_realm_tabs[3]->m_primaryActivationCallback = SelectCampRealmTab3;
+            g_camp_realm_tabs[4]->m_primaryActivationCallback = SelectCampRealmTab4;
+            g_camp_realm_tabs[5]->m_primaryActivationCallback = SelectCampRealmTab5;
+            g_camp_realm_tabs[6]->m_primaryActivationCallback = SortCampItemPool;
             g_camp_realm_tab_panel->SetEnabled(1);
             return 1;
         }
@@ -1571,25 +1571,25 @@ int CreateCampSecondaryPanel(void)
                                                 -1, -1, -1, -1, -1, -1);
     g_camp_info_labels[3] = new W8CampInfoLabel(panel, -1, left, top + 0x8e, right, top + 0x9a, -1,
                                                 -1, -1, -1, -1, -1, -1);
-    g_camp_stat_labels[0]->m_secondaryActivationCallback = OpenStatInfoDialog005BA200;
-    g_camp_stat_labels[1]->m_secondaryActivationCallback = OpenStatInfoDialog005BA210;
-    g_camp_stat_labels[2]->m_secondaryActivationCallback = OpenStatInfoDialog005BA220;
-    g_camp_stat_labels[3]->m_secondaryActivationCallback = OpenStatInfoDialog005BA230;
-    g_camp_stat_labels[4]->m_secondaryActivationCallback = OpenStatInfoDialog005BA240;
-    g_camp_stat_labels[5]->m_secondaryActivationCallback = OpenStatInfoDialog005BA250;
-    g_camp_stat_labels[6]->m_secondaryActivationCallback = OpenStatInfoDialog005BA260;
-    g_camp_info_labels[0]->m_secondaryActivationCallback = OpenSecondaryStatInfoDialog005BA270;
-    g_camp_info_labels[1]->m_secondaryActivationCallback = OpenSecondaryStatInfoDialog005BA280;
-    g_camp_info_labels[2]->m_secondaryActivationCallback = OpenSecondaryStatInfoDialog005BA290;
-    g_camp_info_labels[3]->m_secondaryActivationCallback = OpenSecondaryStatInfoDialog005BA290;
+    g_camp_stat_labels[0]->m_secondaryActivationCallback = OpenStrengthInfoDialog;
+    g_camp_stat_labels[1]->m_secondaryActivationCallback = OpenIntelligenceInfoDialog;
+    g_camp_stat_labels[2]->m_secondaryActivationCallback = OpenPietyInfoDialog;
+    g_camp_stat_labels[3]->m_secondaryActivationCallback = OpenVitalityInfoDialog;
+    g_camp_stat_labels[4]->m_secondaryActivationCallback = OpenDexterityInfoDialog;
+    g_camp_stat_labels[5]->m_secondaryActivationCallback = OpenSpeedInfoDialog;
+    g_camp_stat_labels[6]->m_secondaryActivationCallback = OpenSensesInfoDialog;
+    g_camp_info_labels[0]->m_secondaryActivationCallback = OpenSecondaryAttributeInfoDialog0;
+    g_camp_info_labels[1]->m_secondaryActivationCallback = OpenSecondaryAttributeInfoDialog1;
+    g_camp_info_labels[2]->m_secondaryActivationCallback = OpenSecondaryAttributeInfoDialog3;
+    g_camp_info_labels[3]->m_secondaryActivationCallback = OpenSecondaryAttributeInfoDialog3;
     for (index = 0; index < 4; ++index) {
         g_camp_info_labels[index]->EnableRegionHelp(0x958);
     }
-    g_camp_help_text->m_secondaryActivationCallback = OpenSecondaryStatInfoDialog005BA2A0;
+    g_camp_help_text->m_secondaryActivationCallback = OpenSecondaryAttributeInfoDialog4;
     g_camp_page_tabs[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
     g_camp_page_tabs[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_camp_page_tabs[0]->m_primaryActivationCallback = SetItemPageMode005B9FB0;
-    g_camp_page_tabs[1]->m_primaryActivationCallback = SetItemPageMode005B9FC0;
+    g_camp_page_tabs[0]->m_primaryActivationCallback = ShowCampItemsPage;
+    g_camp_page_tabs[1]->m_primaryActivationCallback = ShowCampCharacterPage;
     g_camp_page_tabs[0]->EnableRegionHelp(0x95d);
     g_camp_page_tabs[1]->EnableRegionHelp(0x95e);
     panel->SetEnabled(1);
@@ -1607,10 +1607,10 @@ void EnableCampSecondaryPanel(void)
         g_camp_page_tabs[index]->SetEnabled(1);
     }
     if (g_camp_screen->item_mode == 0) {
-        SetItemPageMode005B9FD0(0);
+        SetCampInfoPageMode(0);
         return;
     }
-    SetItemPageMode005B9FD0(1);
+    SetCampInfoPageMode(1);
 }
 
 // FUNCTION: WIZ8 0x005b9f60

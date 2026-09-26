@@ -25,7 +25,7 @@ struct W8OctBuildNode {
     W8OctBuildNode();
     ~W8OctBuildNode();
 
-    unsigned char RearrangeNodePolys004AF7B0(short current_depth, short target_depth);
+    unsigned char RearrangeNodePolys(short current_depth, short target_depth);
     int CollectLinkedSurfaces(short current_depth, short target_depth, short mode);
     int CollectSurfaceArray(short mode);
     unsigned long ConvertToOctPreTree(unsigned short depth, OctPreTree* tree);
@@ -64,13 +64,12 @@ struct W8OctBuildTree {
                    unsigned short item_limit, short extent_mode);
     ~W8OctBuildTree();
 
-    unsigned char InsertSurface00446820(W8GDSurface* surface, unsigned long mode);
-    unsigned char InsertSurfaceRecursive004469F0(W8OctSpatialState* working, W8GDSurface* surface,
-                                                 srVector3T<float>* plane_point,
-                                                 unsigned long mode);
-    int CollectObjectsAlongSegment00446D80(int** results, const srVector3T<float>* from,
-                                           const srVector3T<float>* to, float half_angle,
-                                           float extent, unsigned short kind);
+    unsigned char InsertSurface(W8GDSurface* surface, unsigned long mode);
+    unsigned char InsertSurfaceRecursive(W8OctSpatialState* working, W8GDSurface* surface,
+                                         srVector3T<float>* plane_point, unsigned long mode);
+    int CollectObjectsAlongSegment(int** results, const srVector3T<float>* from,
+                                   const srVector3T<float>* to, float half_angle, float extent,
+                                   unsigned short kind);
     /* Append `payload` to the node's `kind` link list, growing the tail and
        raising the leaf counter plus the tree's deepest-list watermark. */
     void AppendLink(W8OctBuildNode* node, void* payload, short kind);

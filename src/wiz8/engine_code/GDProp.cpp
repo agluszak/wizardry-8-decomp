@@ -210,10 +210,10 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
             pathing->SetConditionalPathFrame(m_path_handle_04,
                                              static_cast<short>(m_prop_number_02));
             if (m_waypoint_count_0a != 0) {
-                pathing->CheckConditionalWayPtStatus004601B0(m_waypoint_count_0a, m_waypoints_10);
+                pathing->CheckConditionalWayPtStatus(m_waypoint_count_0a, m_waypoints_10);
             }
             if (m_link_count_08 != 0) {
-                pathing->CheckConditionalLinkStatus00460250(m_link_count_08, m_links_0c);
+                pathing->CheckConditionalLinkStatus(m_link_count_08, m_links_0c);
             }
         }
     }
@@ -318,8 +318,7 @@ unsigned char GDProp::ContainsPathCoordinate(unsigned short x, unsigned short y)
    copied into a local two-vector box and each surface's three vertices are
    gathered into a triangle before the spatial triangle test runs. */
 // FUNCTION: WIZ8 0x004b7620
-char GDProp::BoundsOverlap004B7620(const srVector3T<float>* minimum,
-                                   const srVector3T<float>* maximum)
+char GDProp::BoundsOverlap(const srVector3T<float>* minimum, const srVector3T<float>* maximum)
 {
     srVector3T<float> bounds[2];
     srVector3T<float> triangle[3];

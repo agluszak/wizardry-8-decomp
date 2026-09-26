@@ -169,7 +169,7 @@ static unsigned char CheckAmbientSerializeRoundtrip()
     if (file == 0) {
         return 0;
     }
-    LoadAmbientSoundList0047B270(file);
+    LoadAmbientSoundList(file);
     FileClose(file);
 
     return wind->stopped == 0 && drip->stopped == 1 && wind->in_range == 0 && drip->in_range == 0;

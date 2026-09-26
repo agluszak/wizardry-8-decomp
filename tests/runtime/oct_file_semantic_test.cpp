@@ -425,7 +425,7 @@ static unsigned char CheckUvSeam(OctPreTree* tree)
     memset(&geometry, 0, sizeof(geometry));
     geometry.polygons_0c = polygons;
 
-    if (tree->SplitUVMaps0046A4B0(&record, &geometry) != 5 || record.poly_uv_index_2c == 0 ||
+    if (tree->SplitUVMaps(&record, &geometry) != 5 || record.poly_uv_index_2c == 0 ||
         record.uv_map_30 == 0) {
         return 0;
     }
@@ -470,7 +470,7 @@ static unsigned char CheckCondNodes(OctPreTree* tree)
     tree->m_lSupports_2b0[0] = 5;
     tree->m_lNumBlocks_2ac = 1;
     tree->m_lBlocks_328[0] = 12;
-    if (tree->InsertConditionalNodes0046B9D0(&nodes, 0x1234, 0x56, preprops, 2) != 1) {
+    if (tree->InsertConditionalNodes(&nodes, 0x1234, 0x56, preprops, 2) != 1) {
         return 0;
     }
     /* The malloc'd CondPathNode payloads and the stop-mesh arrays leak with
@@ -612,7 +612,7 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     geometry.vertex_count_00 = 3;
     geometry.polygon_count_08 = 1;
 
-    result->write_ok = tree->WriteOctFile004683F0(&geometry, game_data);
+    result->write_ok = tree->WriteOctFile(&geometry, game_data);
     if (result->write_ok == 0) {
         goto restore;
     }

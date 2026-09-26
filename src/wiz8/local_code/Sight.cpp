@@ -748,7 +748,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                 use_bounds = 1;
             }
             monster_info->party_threat.use_bounds_24 = static_cast<unsigned char>(use_bounds);
-            seen_by_party = monster->IsVisibleToPlayer004C4920(use_bounds) != 0;
+            seen_by_party = monster->IsVisibleToPlayer(use_bounds) != 0;
             monster_info->party_threat.visible_to_player_25 = seen_by_party ? 1 : 0;
             if (seen_by_party) {
                 float yaw;

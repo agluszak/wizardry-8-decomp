@@ -120,7 +120,7 @@ int stModelInstance::FindDamageStage(const char* name)
 /* Add a stage by cloning the first stage's table across the complete linked
    mesh chain. The instance stores the table id shared by that chain. */
 // FUNCTION: WIZ8 0x00480560
-int stModelInstance::AddDamageStage00480560(const char* name)
+int stModelInstance::AddDamageStage(const char* name)
 {
     stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
 

@@ -28,8 +28,7 @@ srHeapArray<unsigned char> g_tga_row_data;
    at each row start and carries only the remaining packet count across a row
    boundary. */
 // FUNCTION: WIZ8 0x0047BC80
-void __stdcall LoadSurfacePixels0047BC80(int handle, srColorSurface* surface,
-                                         const W8TgaHeader* header)
+void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface, const W8TgaHeader* header)
 {
     unsigned char* destination = static_cast<unsigned char*>(surface->getDataPtr());
     if (destination == 0) {
@@ -220,7 +219,7 @@ srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
     }
 
     if (surface != 0) {
-        LoadSurfacePixels0047BC80(handle, surface, &header);
+        LoadSurfacePixels(handle, surface, &header);
     }
     return surface;
 }
