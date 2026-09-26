@@ -59,7 +59,7 @@ def test_materialize_archive_uses_verified_cached_archive(
         name="bundle.tar",
         url="https://example.invalid/bundle.tar",
         sha256=digest,
-        archive_root="payload",
+        archive_root=None,
         destination="runtime",
         sentinel="launcher",
     )
