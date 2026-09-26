@@ -104,13 +104,6 @@ int srTriangleCuller::setClipFlagsObjectSpace(unsigned long* clip_flags, const s
     return shared == 0;
 }
 
-// FUNCTION: SURRENDER 0x10029F30
-srTriangleCuller& srTriangleCuller::operator=(const srTriangleCuller& other)
-{
-    memcpy(this, &other, sizeof(srTriangleCuller));
-    return *this;
-}
-
 // FUNCTION: SURRENDER 0x10029FC0
 unsigned long srTriangleCuller::getClipMask(const srVector3& center, float radius,
                                             const srVector4* planes, unsigned long mask,

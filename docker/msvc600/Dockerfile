@@ -83,16 +83,23 @@ ENTRYPOINT ["/usr/bin/wine"]
 # Repository analysis adds native Clang/LLVM and the custom clang-tidy plugin.
 FROM product AS analysis
 
-RUN apt-get update \
+# LLVM 21 comes from trixie-backports.
+RUN echo "deb http://deb.debian.org/debian trixie-backports main" \
+      > /etc/apt/sources.list.d/backports.list \
+ && apt-get update \
  && apt-get install -y --no-install-recommends \
-      clang \
-      clang-tidy \
       cmake \
-      libclang-dev \
-      llvm-dev \
       ninja-build \
+ && apt-get install -y --no-install-recommends -t trixie-backports \
+      clang-21 \
+      clang-tidy-21 \
+      libclang-21-dev \
+      libclang-cpp21-dev \
+      llvm-21-dev \
  && rm -rf /var/lib/apt/lists/* \
- && ln -sf clang /usr/bin/clang-cl
+ && ln -sf clang-21 /usr/bin/clang \
+ && ln -sf clang++-21 /usr/bin/clang++ \
+ && ln -sf clang-21 /usr/bin/clang-cl
 
 # VC6's archive stores many headers with uppercase filenames. Wine provides
 # Windows' case-insensitive lookup to cl.exe, but native clang-cl needs a
@@ -113,8 +120,8 @@ RUN cmake \
       -G Ninja \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
-      -DLLVM_DIR=/usr/lib/llvm-19/lib/cmake/llvm \
-      -DClang_DIR=/usr/lib/llvm-19/lib/cmake/clang \
+      -DLLVM_DIR=/usr/lib/llvm-21/lib/cmake/llvm \
+      -DClang_DIR=/usr/lib/llvm-21/lib/cmake/clang \
  && cmake --build /tmp/wiz8-clang-tidy-plugin/build \
  && cmake --install /tmp/wiz8-clang-tidy-plugin/build \
  && install -m 0755 /tmp/wiz8-clang-tidy-plugin/clang-tidy-wrapper.py /usr/local/bin/clang-tidy \

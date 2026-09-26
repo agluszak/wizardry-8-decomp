@@ -4,10 +4,17 @@
 
 /* Recovered SR provider utility. Its methods are provider exports, not imports
    in the known consumers, so the class must not carry consumer dllimport. */
-class srExponentTable {
+class
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srExponentTable {
 public:
     srExponentTable(float exponent = 1.0f);
-    srExponentTable& operator=(const srExponentTable& other);
+    /* Implicit assignment: retail emits it via the class-level dllexport
+       as a whole-object memberwise copy (rep movsd). */
+    // SYNTHETIC: SURRENDER 0x10003140
+    // srExponentTable::operator=
 
     float getExponent() const;
     float getValue(float x) const;
@@ -24,7 +31,11 @@ static_assert((sizeof(srExponentTable) == 0x1004), "srExponentTable_must_be_0x10
 /* The cached table keeps a process-wide doubly linked freelist of up to 0x10
    exponent tables. get() bumps a reference count and reuses the last result;
    the renderer releases tables back to the pool instead of deleting them. */
-class srCachedExponentTable : public srExponentTable {
+class
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srCachedExponentTable : public srExponentTable {
 public:
     static srCachedExponentTable* get(float exponent);
     static void freeAll();
@@ -32,7 +43,10 @@ public:
 
     void release();
 
-    srCachedExponentTable& operator=(const srCachedExponentTable& other);
+    /* Implicit assignment: retail emits it via the class-level dllexport
+       as a whole-object memberwise copy (rep movsd). */
+    // SYNTHETIC: SURRENDER 0x10003180
+    // srCachedExponentTable::operator=
 
 protected:
     /* The ??_F default-constructor closures (0x10003160 base, 0x100031A0

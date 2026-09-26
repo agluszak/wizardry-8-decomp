@@ -4193,7 +4193,7 @@ void W8Octree::Reset()
     g_octree_storage_ = 0;
     g_octree_state = 0;
     spatial_000.Reset0046CDC0();
-    memset(this, 0, sizeof(*this));
+    memset(static_cast<void*>(this), 0, sizeof(*this));
     current_prop = -1;
 }
 
