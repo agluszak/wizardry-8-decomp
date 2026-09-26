@@ -3,10 +3,12 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
 import time
+from collections import Counter
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -940,6 +942,76 @@ def lint(
         "files": len(files),
         "docker_runs": docker_runs,
         "log": str(log.relative_to(repository)),
+    }
+
+
+TIDY_AUDIT_CONFIG = ".clang-tidy-audit"
+# The wrapper at /usr/local/bin/clang-tidy post-processes the project boolean
+# facts and exits non-zero on a proven finding, so it belongs to the gating
+# lane. The audit profile enables no project-specific check and must never fail
+# a command, so it invokes the real clang-tidy directly.
+TIDY_AUDIT_BINARY = "/usr/bin/clang-tidy-21"
+_TIDY_DIAGNOSTIC = re.compile(r"\[([a-z0-9_.-]+)\]\s*$")
+
+
+def tidy_audit(settings: Settings) -> dict[str, Any]:
+    """Report the whole recovered corpus under the non-gating audit profile.
+
+    Unlike :func:`lint` this never fails and never filters to changed lines: a
+    finding is evidence about the source model for a human or agent to classify,
+    not a defect to repair. See .clang-tidy-audit for why each check is too
+    ambiguous to gate.
+    """
+
+    repository = settings.repo_dir
+    output, prefix = configure_clang(settings)
+    recovered, _vendor = _lint_compile_files(output, repository, None)
+    if not recovered:
+        return {"status": "ok", "mode": "tidy-audit", "files": 0, "findings": {}}
+
+    command = shlex.join(
+        [
+            TIDY_AUDIT_BINARY,
+            "--quiet",
+            "-p",
+            "/out",
+            "--config-file",
+            f"/repo/{TIDY_AUDIT_CONFIG}",
+            # A whole-corpus audit intentionally exceeds Clang's default
+            # diagnostic limit; truncating the inventory defeats the purpose.
+            "--extra-arg=-ferror-limit=0",
+            *recovered,
+        ]
+    )
+    result = run(
+        [
+            *prefix,
+            "--entrypoint",
+            "bash",
+            VC6_IMAGE,
+            "-lc",
+            command,
+        ],
+        cwd=output,
+        check=False,
+    )
+    report = repository / "build" / "logs" / "tidy-audit.log"
+    report.parent.mkdir(parents=True, exist_ok=True)
+    report.write_text(result.stdout + result.stderr, encoding="utf-8", errors="replace")
+
+    findings: Counter[str] = Counter()
+    for line in report.read_text(encoding="utf-8", errors="replace").splitlines():
+        match = _TIDY_DIAGNOSTIC.search(line)
+        if match is not None and "warning:" in line:
+            findings[match.group(1)] += 1
+    return {
+        "status": "ok",
+        "mode": "tidy-audit",
+        "gating": False,
+        "files": len(recovered),
+        "findings": dict(sorted(findings.items())),
+        "total_findings": sum(findings.values()),
+        "log": str(report.relative_to(repository)),
     }
 
 

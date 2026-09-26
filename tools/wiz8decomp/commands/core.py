@@ -54,6 +54,14 @@ def lint_command() -> None:
     cli.emit(lint(cli.settings()))
 
 
+def tidy_audit_command() -> None:
+    """Report the whole corpus under the non-gating clang-tidy audit profile."""
+    from .. import command_support as cli
+    from ..build import tidy_audit
+
+    cli.emit(tidy_audit(cli.settings()))
+
+
 def pr_check_command(
     base: Annotated[str, typer.Option("--base", help="PR base revision.")] = "main@origin",
 ) -> None:
@@ -434,6 +442,7 @@ def register(app: typer.Typer) -> None:
     app.command("prepare")(prepare_command)
     app.command("check")(check_command)
     app.command("lint")(lint_command)
+    app.command("tidy-audit")(tidy_audit_command)
     app.command("pr-check")(pr_check_command)
     app.command("diagnostics")(diagnostics_command)
     app.command("build")(build_command)

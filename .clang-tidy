@@ -42,6 +42,39 @@
 #   surfaced as non-gating warnings only when recovered code actually uses them.
 #   A proven intentional byte boolean can use `bool-byte-ok: reason` on or
 #   immediately above its declaration.
+#
+# The stock checks below the project-specific ones are gated because a
+# whole-tree trial over all 295 recovered translation units found zero hits, so
+# they add reconstruction-error detection without demanding a single
+# suppression. They catch the failure modes a hand-recovered body actually
+# produces: a botched comparison chain, a pointer-arithmetic operand misplaced
+# into an allocation size, a malformed empty statement where a loop body
+# belongs, a control-flow reconstruction whose loop can never terminate, and a
+# reference member mistaken for an assignable pointer-like relationship. An
+# empty `if (...) ;` or a genuinely infinite loop is never faithful source.
+#
+# bugprone-suspicious-string-compare is configured rather than left at its
+# defaults: `if (strcmp(a, b))` and `!strcmp(a, b)` are entirely plausible
+# period source, so only the actually suspicious result handling (`== 1` /
+# `== -1`, or a type error) is a reconstruction defect. The trial found no hits
+# either way, so this records intent rather than silencing evidence.
+#
+# Deliberately not gated, pending classification (see .clang-tidy-audit):
+# - bugprone-suspicious-memory-comparison: 11 hits, all `memcmp` over
+#   W8CombatSlot, whose 1-byte W8TargetKind at 0x00 leaves padding before
+#   `int iChar` at 0x04 and so has no unique object representation. A raw block
+#   compare is the plausible VC6 idiom and is what the retail machine code
+#   would do; rewriting it member-wise would be a matching regression, not a
+#   fix. This is evidence about the struct's layout, not a defect to repair.
+# - bugprone-non-zero-enum-to-bool-conversion,
+#   bugprone-implicit-widening-of-multiplication-result,
+#   bugprone-tagged-union-member-count,
+#   bugprone-undefined-memory-manipulation and
+#   bugprone-string-literal-with-embedded-nul found zero hits tree-wide, so
+#   they are cheap to keep reporting and expensive to trust blindly: an
+#   incomplete recovered enum legitimately omits a sentinel value, and the
+#   reconstruction uses large amounts of memset/memcpy that must not be
+#   "fixed" to appease a heuristic. They stay in the non-gating audit profile.
 Checks: >
   -*,
   wiz8-redundant-scalar-cast,
@@ -53,12 +86,21 @@ Checks: >
   bugprone-swapped-arguments,
   bugprone-suspicious-enum-usage,
   bugprone-pointer-arithmetic-on-polymorphic-object,
-  readability-redundant-declaration
+  readability-redundant-declaration,
+  bugprone-chained-comparison,
+  bugprone-infinite-loop,
+  bugprone-misleading-setter-of-reference,
+  bugprone-misplaced-operator-in-strlen-in-alloc,
+  bugprone-misplaced-pointer-arithmetic-in-alloc,
+  bugprone-suspicious-semicolon,
+  bugprone-suspicious-string-compare
 CheckOptions:
   bugprone-sizeof-expression.WarnOnSizeOfPointerToAggregate: 'false'
   bugprone-sizeof-expression.WarnOnSizeOfPointer: 'false'
   bugprone-suspicious-enum-usage.StrictMode: 'false'
   bugprone-pointer-arithmetic-on-polymorphic-object.IgnoreInheritedVirtualFunctions: 'true'
+  bugprone-suspicious-string-compare.WarnOnImplicitComparison: 'false'
+  bugprone-suspicious-string-compare.WarnOnLogicalNotComparison: 'false'
 WarningsAsErrors: '*'
 # Match first-party trees by repository-relative path so the same filter
 # works under Docker's /repo mount, a local checkout, and relative
