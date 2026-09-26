@@ -90,7 +90,7 @@ def _prepare_artifact_dir(artifact_dir: Path) -> None:
 def _stop_debug_wineserver(environment: dict[str, str], runner: str) -> None:
     """Stop only the server belonging to the debugger's dedicated prefix."""
 
-    wineserver = "wineserver" if runner == "wine" else os.environ.get("WIZ8_UMU_WINESERVER")
+    wineserver = "wineserver" if runner == "wine" else environment.get("WIZ8_UMU_WINESERVER")
     if not wineserver or shutil.which(wineserver) is None:
         raise RuntimeError(f"wineserver is not available for {runner}")
     subprocess.run(
@@ -254,7 +254,7 @@ def _debug_environment(
         return runtime_test_environment(settings, prefix=prefix, sound=runner == "umu")
     prefix.mkdir(parents=True, exist_ok=True)
     environment = {**os.environ, "WINEPREFIX": str(prefix)}
-    configure_runtime_runner(environment, runner)
+    configure_runtime_runner(settings, environment, runner)
     environment.setdefault("WINEDLLOVERRIDES", "winemenubuilder.exe=d")
     return prefix, environment
 
@@ -308,14 +308,12 @@ def _run_debugger_locked(
     runner = runtime_runner()
     if scenario is None or runner == "umu":
         apply_product_video_config(settings, staged.root)
-    runner_environment = dict(os.environ)
-    configure_runtime_runner(runner_environment, runner)
-    umu_run = require_umu_runner(runner_environment) if runner == "umu" else ""
     executable = staged.executable
     map_path = staged.map
     artifact_dir = settings.repo_dir / "build/debug"
     manifest_path = settings.product_build_dir / "generated/runtime-stubs/runtime_stubs.json"
     prefix, environment = _debug_environment(settings, scenario=scenario is not None, runner=runner)
+    umu_run = require_umu_runner(environment) if runner == "umu" else ""
     _stop_debug_wineserver(environment, runner)
     _prepare_artifact_dir(artifact_dir)
     launch_arguments = (
