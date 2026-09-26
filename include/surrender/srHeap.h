@@ -31,6 +31,21 @@ inline void srZeroMemory(void* destination, unsigned long size)
     }
 }
 
+/* Float-to-int through the FPU's current rounding mode: every use site
+   lowers to an inline `fld value` / `fistp result` pair instead of the
+   _ftol call a C conversion emits, so it rounds to nearest rather than
+   truncating. The pixel format converters quantize dot-product results
+   and the exponent table indexes through it; no standalone emission. */
+inline long srFloatToInt(float value)
+{
+    long result;
+    __asm {
+        fld value
+        fistp result
+    }
+    return result;
+}
+
 class srHeap {
 public:
     SR_DLL_IMPORT srHeap();

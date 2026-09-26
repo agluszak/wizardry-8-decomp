@@ -32,6 +32,11 @@ public:
         long bytes_per_pixel_minus_one;
         unsigned long flags;
 
+        /* The default ctor initializes only flags: retail emits a
+           flags-clearing array-init loop over format_table (0x10007780)
+           and zeroes stack PixelFormat flags in srGERD::lockBuffer. */
+        PixelFormat() : flags(0) {}
+
         /* Retail exports the standalone copy (param mangles QAD = char* const);
            no recovered caller ODR-uses it, so only provider dllexport keeps
            the emission. */

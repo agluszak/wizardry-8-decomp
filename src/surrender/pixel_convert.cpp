@@ -5,16 +5,15 @@
 
 #include "surrender/srARGB.h"
 #include "surrender/srCore.h"
+#include "surrender/srMath.h"
 #include "surrender/srPalette.h"
 #include "surrender/srVariableTimer.h"
 #include "surrender/srVectorProcessor.h"
 
 /* Conversion routines stored in the format table. The generic pair is
    selected by PixelFormat::conversion_class; the per-entry overrides cover
-   formats whose converter does not fit a generic kernel. The MMX pair is
-   installed by initFormats() when the CPU reports the feature bit. The YUV,
-   indexed and MMX bodies are still unrecovered, so they stay
-   link-unresolved like the other first-party gaps. */
+   formats whose converter does not fit a generic kernel. The MMX workers
+   are installed by initFormats() when the CPU reports the feature bit. */
 void __cdecl writeRGB(const srPixelConvert::ConversionInfo& info);
 void __cdecl readRGB(const srPixelConvert::ConversionInfo& info);
 void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info);
@@ -27,8 +26,8 @@ void __cdecl writeRGB555(const srPixelConvert::ConversionInfo& info);
 void __cdecl readRGB555(const srPixelConvert::ConversionInfo& info);
 void __cdecl writeBGRX(const srPixelConvert::ConversionInfo& info);
 void __cdecl readBGRX(const srPixelConvert::ConversionInfo& info);
-void __cdecl writeRGB332(const srPixelConvert::ConversionInfo& info);
-void __cdecl readRGB332(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeBGRA(const srPixelConvert::ConversionInfo& info);
+void __cdecl readBGRA(const srPixelConvert::ConversionInfo& info);
 void __cdecl writeABGR(const srPixelConvert::ConversionInfo& info);
 void __cdecl readABGR(const srPixelConvert::ConversionInfo& info);
 void __cdecl writeRGB24(const srPixelConvert::ConversionInfo& info);
@@ -41,8 +40,8 @@ void __cdecl writeARGB1555MMX(const srPixelConvert::ConversionInfo& info);
 void __cdecl readARGB1555MMX(const srPixelConvert::ConversionInfo& info);
 void __cdecl writeARGB4444MMX(const srPixelConvert::ConversionInfo& info);
 void __cdecl readARGB4444MMX(const srPixelConvert::ConversionInfo& info);
-void __cdecl writeARGB32MMX(const srPixelConvert::ConversionInfo& info);
-void __cdecl readARGB32MMX(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeBGR24MMX(const srPixelConvert::ConversionInfo& info);
+void __cdecl readBGR24MMX(const srPixelConvert::ConversionInfo& info);
 
 /* Shared conversion kernels the generic dispatchers route through, by
    destination/source byte width: pack writes BGRA source pixels through
@@ -135,6 +134,17 @@ unsigned char lutReduce2[256];
 // GLOBAL: SURRENDER 0x100A2438
 FormatEntry format_table[25];
 
+/* YUV conversion matrices, filled by this unit's static-init emissions
+   (0x100075F0/0x10007600 and 0x100076B0/0x100076C0): rgbToYUV rows are the
+   Y, U and V weights applied to the source pixel's float channels;
+   yuvToRGB rows decode the expanded Y, U and V back to R, G and B. */
+// GLOBAL: SURRENDER 0x100A2758
+srVector3T<float> yuvToRGB[3] = {
+    srVector3T<float>(1.0f, 0.956f, 0.620f),
+    srVector3T<float>(1.0f, -0.272f, -0.647f),
+    srVector3T<float>(1.0f, -1.108f, 1.705f),
+};
+
 // GLOBAL: SURRENDER 0x100A277C
 unsigned char lutDecode[256][4];
 
@@ -149,6 +159,12 @@ long lutRamp18[256];
 int lutDither[9][4][4][4];
 // GLOBAL: SURRENDER 0x100A397C
 long lutRamp54[256];
+// GLOBAL: SURRENDER 0x100A3D80
+srVector3T<float> rgbToYUV[3] = {
+    srVector3T<float>(0.299f, 0.587f, 0.114f),
+    srVector3T<float>(0.596f, -0.275f, -0.321f),
+    srVector3T<float>(0.212f, -0.528f, 0.311f),
+};
 // GLOBAL: SURRENDER 0x100A3DA4
 unsigned char lutGray[256][4];
 // GLOBAL: SURRENDER 0x100A41A4
@@ -355,10 +371,10 @@ void initFormats()
     format_table[8].read = readRGB555;
     format_table[0xd].write = writeBGRX;
     format_table[0xd].read = readBGRX;
-    format_table[0x11].write = writeRGB332;
-    format_table[0x11].read = readRGB332;
-    format_table[0x17].write = writeABGR;
-    format_table[0x17].read = readABGR;
+    format_table[0xe].write = writeBGRA;
+    format_table[0xe].read = readBGRA;
+    format_table[0x16].write = writeABGR;
+    format_table[0x16].read = readABGR;
     format_table[0x18].write = writeRGB24;
     format_table[0x18].read = readRGB24;
     if ((srCore.getTimer()->m_cpu_features & 0x800000) != 0) {
@@ -370,8 +386,8 @@ void initFormats()
         format_table[9].read = readARGB1555MMX;
         format_table[0xb].write = writeARGB4444MMX;
         format_table[0xb].read = readARGB4444MMX;
-        format_table[0xe].write = writeARGB32MMX;
-        format_table[0xe].read = readARGB32MMX;
+        format_table[0xc].write = writeBGR24MMX;
+        format_table[0xc].read = readBGR24MMX;
     }
     memset(format_hash, 0, sizeof(format_hash));
     for (FormatEntry* hashed = format_table; hashed < format_table + 25; hashed++) {
@@ -602,6 +618,237 @@ void srPixelConvert::selectFuncs(const PixelFormat& format, ConversionFunc& writ
     case 3:
         write = writeIndexed;
         read = readIndexed;
+    }
+}
+
+/* Clamps a decoded YUV channel to a byte for the srARGB pack. */
+static inline int clampChannel(float value)
+{
+    if (0.0f < value) {
+        if (value < 255.0f) {
+            return srFloatToInt(value);
+        }
+        return 0xff;
+    }
+    return 0;
+}
+
+/* YUVA write dispatcher: every case float-vectorizes the source pixel,
+   dot-products it with the rgbToYUV rows, then quantizes the Y, U and V
+   results through the format's channel reduction tables. Retail derives
+   the destination index from the shifted green-channel term instead of
+   the loop index, so writes scatter across the head of the destination;
+   preserved as written. */
+// FUNCTION: SURRENDER 0x100088D0
+void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info)
+{
+    const srPixelConvert::PixelFormat* format = info.format;
+    const unsigned char* luts[4];
+    unsigned char shifts[4];
+    luts[0] = channel_reduce[format->red_bits];
+    luts[1] = channel_reduce[format->green_bits];
+    luts[2] = channel_reduce[format->blue_bits];
+    luts[3] = channel_reduce[format->alpha_bits];
+    shifts[0] = format->red_shift;
+    shifts[1] = format->green_shift;
+    shifts[2] = format->blue_shift;
+    shifts[3] = format->alpha_shift;
+    const srARGB* source = static_cast<const srARGB*>(info.source);
+    switch (format->bytes_per_pixel_minus_one) {
+    case 0: {
+        unsigned char* dest = static_cast<unsigned char*>(info.dest);
+        for (unsigned long i = info.count; i != 0; --i, ++source) {
+            srARGB pixel = *source;
+            srVector3T<float> rgb((float)pixel.red, (float)pixel.green,
+                                  (float)pixel.blue);
+            srVector3T<float> yuv(DotProduct(rgbToYUV[0], rgb),
+                                  DotProduct(rgbToYUV[1], rgb),
+                                  DotProduct(rgbToYUV[2], rgb));
+            int y = srFloatToInt(yuv.x);
+            int u = srFloatToInt(yuv.y);
+            int v = srFloatToInt(yuv.z);
+            unsigned long index = luts[1][(u >> 8) & 0xff] << shifts[1];
+            dest[index] = luts[0][(y >> 16) & 0xff] << shifts[0] |
+                          luts[3][pixel.alpha] << shifts[3] |
+                          luts[2][v & 0xff] << shifts[2] | index;
+        }
+        return;
+    }
+    case 1: {
+        unsigned short* dest = static_cast<unsigned short*>(info.dest);
+        for (unsigned long i = info.count; i != 0; --i, ++source) {
+            srARGB pixel = *source;
+            srVector3T<float> rgb((float)pixel.red, (float)pixel.green,
+                                  (float)pixel.blue);
+            srVector3T<float> yuv(DotProduct(rgbToYUV[0], rgb),
+                                  DotProduct(rgbToYUV[1], rgb),
+                                  DotProduct(rgbToYUV[2], rgb));
+            int y = srFloatToInt(yuv.x);
+            int u = srFloatToInt(yuv.y);
+            int v = srFloatToInt(yuv.z);
+            unsigned long index = luts[1][(u >> 8) & 0xff] << shifts[1];
+            dest[index] = luts[0][(y >> 16) & 0xff] << shifts[0] |
+                          luts[3][pixel.alpha] << shifts[3] |
+                          luts[2][v & 0xff] << shifts[2] | index;
+        }
+        return;
+    }
+    case 2: {
+        unsigned char* dest = static_cast<unsigned char*>(info.dest);
+        for (unsigned long i = info.count; i != 0; --i, ++source) {
+            srARGB pixel = *source;
+            srVector3T<float> rgb((float)pixel.red, (float)pixel.green,
+                                  (float)pixel.blue);
+            srVector3T<float> yuv(DotProduct(rgbToYUV[0], rgb),
+                                  DotProduct(rgbToYUV[1], rgb),
+                                  DotProduct(rgbToYUV[2], rgb));
+            int y = srFloatToInt(yuv.x);
+            int u = srFloatToInt(yuv.y);
+            int v = srFloatToInt(yuv.z);
+            unsigned long index = luts[1][(u >> 8) & 0xff] << shifts[1];
+            unsigned long packed = luts[0][(y >> 16) & 0xff] << shifts[0] |
+                                   luts[3][pixel.alpha] << shifts[3] |
+                                   luts[2][v & 0xff] << shifts[2] | index;
+            unsigned char* dst = dest + index * 3;
+            dst[0] = static_cast<unsigned char>(packed);
+            dst[1] = static_cast<unsigned char>(packed >> 8);
+            dst[2] = static_cast<unsigned char>(packed >> 16);
+        }
+        return;
+    }
+    case 3: {
+        unsigned long* dest = static_cast<unsigned long*>(info.dest);
+        for (unsigned long i = info.count; i != 0; --i, ++source) {
+            srARGB pixel = *source;
+            srVector3T<float> rgb((float)pixel.red, (float)pixel.green,
+                                  (float)pixel.blue);
+            srVector3T<float> yuv(DotProduct(rgbToYUV[0], rgb),
+                                  DotProduct(rgbToYUV[1], rgb),
+                                  DotProduct(rgbToYUV[2], rgb));
+            int y = srFloatToInt(yuv.x);
+            int u = srFloatToInt(yuv.y);
+            int v = srFloatToInt(yuv.z);
+            unsigned long index = luts[1][(u >> 8) & 0xff] << shifts[1];
+            dest[index] = luts[0][(y >> 16) & 0xff] << shifts[0] |
+                          luts[3][pixel.alpha] << shifts[3] |
+                          luts[2][v & 0xff] << shifts[2] | index;
+        }
+        return;
+    }
+    }
+}
+
+/* YUVA read dispatcher: every case expands the packed Y, U and V channels
+   through the format's channel expansion tables, dot-products them with
+   the yuvToRGB rows, clamps the results and packs an srARGB. Retail
+   derives the destination index from the expanded green (U) channel
+   instead of the loop index; preserved as written. */
+// FUNCTION: SURRENDER 0x10008F70
+void __cdecl readYUV(const srPixelConvert::ConversionInfo& info)
+{
+    const srPixelConvert::PixelFormat* format = info.format;
+    unsigned long masks[4];
+    unsigned char shifts[4];
+    const unsigned char* luts[4];
+    masks[0] = (1ul << format->red_bits) - 1;
+    masks[1] = (1ul << format->green_bits) - 1;
+    masks[2] = (1ul << format->blue_bits) - 1;
+    masks[3] = (1ul << format->alpha_bits) - 1;
+    shifts[0] = format->red_shift;
+    shifts[1] = format->green_shift;
+    shifts[2] = format->blue_shift;
+    shifts[3] = format->alpha_shift;
+    luts[0] = channel_expand[format->red_bits];
+    luts[1] = channel_expand[format->green_bits];
+    luts[2] = channel_expand[format->blue_bits];
+    luts[3] = channel_expand[format->alpha_bits];
+    unsigned long* dest = static_cast<unsigned long*>(info.dest);
+    switch (format->bytes_per_pixel_minus_one) {
+    case 0: {
+        const unsigned char* source =
+            static_cast<const unsigned char*>(info.source);
+        for (unsigned long i = 0; i < info.count; i++) {
+            unsigned long pixel = source[i];
+            srVector3T<float> yuv(
+                (float)luts[0][(pixel >> shifts[0]) & masks[0]],
+                (float)luts[1][(pixel >> shifts[1]) & masks[1]],
+                (float)luts[2][(pixel >> shifts[2]) & masks[2]]);
+            srVector3T<float> rgb(DotProduct(yuvToRGB[0], yuv),
+                                  DotProduct(yuvToRGB[1], yuv),
+                                  DotProduct(yuvToRGB[2], yuv));
+            unsigned long index =
+                luts[1][(pixel >> shifts[1]) & masks[1]];
+            dest[index] = luts[3][(pixel >> shifts[3]) & masks[3]] << 24 |
+                          clampChannel(rgb.x) << 16 | clampChannel(rgb.y) << 8 |
+                          clampChannel(rgb.z);
+        }
+        return;
+    }
+    case 1: {
+        const unsigned short* source =
+            static_cast<const unsigned short*>(info.source);
+        for (unsigned long i = 0; i < info.count; i++) {
+            unsigned long pixel = source[i];
+            srVector3T<float> yuv(
+                (float)luts[0][(pixel >> shifts[0]) & masks[0]],
+                (float)luts[1][(pixel >> shifts[1]) & masks[1]],
+                (float)luts[2][(pixel >> shifts[2]) & masks[2]]);
+            srVector3T<float> rgb(DotProduct(yuvToRGB[0], yuv),
+                                  DotProduct(yuvToRGB[1], yuv),
+                                  DotProduct(yuvToRGB[2], yuv));
+            unsigned long index =
+                luts[1][(pixel >> shifts[1]) & masks[1]];
+            dest[index] = luts[3][(pixel >> shifts[3]) & masks[3]] << 24 |
+                          clampChannel(rgb.x) << 16 | clampChannel(rgb.y) << 8 |
+                          clampChannel(rgb.z);
+        }
+        return;
+    }
+    case 2: {
+        const unsigned char* source =
+            static_cast<const unsigned char*>(info.source);
+        for (unsigned long i = 0; i < info.count; i++) {
+            /* reinterpret-ok: 24-bit source records load their high two
+               bytes as a word plus the low byte separately. */
+            unsigned long pixel =
+                *reinterpret_cast<const unsigned short*>(source + 1) * 0x100 +
+                source[0];
+            srVector3T<float> yuv(
+                (float)luts[0][(pixel >> shifts[0]) & masks[0]],
+                (float)luts[1][(pixel >> shifts[1]) & masks[1]],
+                (float)luts[2][(pixel >> shifts[2]) & masks[2]]);
+            srVector3T<float> rgb(DotProduct(yuvToRGB[0], yuv),
+                                  DotProduct(yuvToRGB[1], yuv),
+                                  DotProduct(yuvToRGB[2], yuv));
+            unsigned long index =
+                luts[1][(pixel >> shifts[1]) & masks[1]];
+            dest[index] = luts[3][(pixel >> shifts[3]) & masks[3]] << 24 |
+                          clampChannel(rgb.x) << 16 | clampChannel(rgb.y) << 8 |
+                          clampChannel(rgb.z);
+            source += 3;
+        }
+        return;
+    }
+    case 3: {
+        const unsigned long* source =
+            static_cast<const unsigned long*>(info.source);
+        for (unsigned long i = 0; i < info.count; i++) {
+            unsigned long pixel = source[i];
+            srVector3T<float> yuv(
+                (float)luts[0][(pixel >> shifts[0]) & masks[0]],
+                (float)luts[1][(pixel >> shifts[1]) & masks[1]],
+                (float)luts[2][(pixel >> shifts[2]) & masks[2]]);
+            srVector3T<float> rgb(DotProduct(yuvToRGB[0], yuv),
+                                  DotProduct(yuvToRGB[1], yuv),
+                                  DotProduct(yuvToRGB[2], yuv));
+            unsigned long index =
+                luts[1][(pixel >> shifts[1]) & masks[1]];
+            dest[index] = luts[3][(pixel >> shifts[3]) & masks[3]] << 24 |
+                          clampChannel(rgb.x) << 16 | clampChannel(rgb.y) << 8 |
+                          clampChannel(rgb.z);
+        }
+        return;
+    }
     }
 }
 
@@ -1032,8 +1279,9 @@ void __cdecl readRGB24(const srPixelConvert::ConversionInfo& info)
     }
 }
 
+/* format_table[0xe] write/read: straight dword copy for BGRA32. */
 // FUNCTION: SURRENDER 0x1000A950
-void __cdecl writeRGB332(const srPixelConvert::ConversionInfo& info)
+void __cdecl writeBGRA(const srPixelConvert::ConversionInfo& info)
 {
     if (info.count != 0 && info.dest != info.source) {
         srVectorProcessor::memcopy(info.dest, info.source, info.count * 4);
@@ -1041,7 +1289,7 @@ void __cdecl writeRGB332(const srPixelConvert::ConversionInfo& info)
 }
 
 // FUNCTION: SURRENDER 0x1000A980
-void __cdecl readRGB332(const srPixelConvert::ConversionInfo& info)
+void __cdecl readBGRA(const srPixelConvert::ConversionInfo& info)
 {
     if (info.count != 0 && info.dest != info.source) {
         srVectorProcessor::memcopy(info.dest, info.source, info.count * 4);
@@ -1159,6 +1407,914 @@ void __cdecl readRGB555(const srPixelConvert::ConversionInfo& info)
         unsigned long pixel = source[i];
         dest[i] = 0xff000000 | lutExpand32[pixel >> 10] << 16 |
                   lutExpand32[pixel >> 5 & 0x1f] << 8 | lutExpand32[pixel & 0x1f];
+    }
+}
+
+/* MMX conversion workers, installed over the scalar table entries by
+   initFormats() when the CPU reports the feature bit. Each handles a
+   scalar alignment head, an MMX main loop, then a scalar tail. */
+
+/* format_table[0xc] MMX read: BGR24 source records to srARGB with alpha
+   forced opaque. */
+// FUNCTION: SURRENDER 0x1000B050
+void __cdecl readBGR24MMX(const srPixelConvert::ConversionInfo& info)
+{
+    void* dest = info.dest;
+    const void* source = info.source;
+    unsigned long count = info.count;
+    __asm {
+        mov edi, dest
+        mov esi, source
+        mov eax, count
+        mov ecx, esi
+        neg ecx
+        and ecx, 7
+        cmp ecx, eax
+        jl short readBGR24MMX_head
+        mov ecx, eax
+    readBGR24MMX_head:
+        sub eax, ecx
+    readBGR24MMX_body:
+        push eax
+        test ecx, ecx
+        jz short readBGR24MMX_mmx
+    readBGR24MMX_scalar:
+        xor eax, eax
+        mov al, byte ptr [esi]
+        xor ebx, ebx
+        mov bl, byte ptr [esi + 1]
+        shl ebx, 8
+        or eax, ebx
+        xor ebx, ebx
+        mov bl, byte ptr [esi + 2]
+        shl ebx, 16
+        or eax, ebx
+        or eax, 0ff000000h
+        mov dword ptr [edi], eax
+        add esi, 3
+        add edi, 4
+        dec ecx
+        jnz readBGR24MMX_scalar
+    readBGR24MMX_mmx:
+        pop ecx
+        push ecx
+        and ecx, 0fffffff8h
+        jz short readBGR24MMX_tail
+        lea edi, [edi + ecx*4]
+        neg ecx
+        pcmpeqd mm7, mm7
+        pslld mm7, 24
+        jmp short readBGR24MMX_loop
+    readBGR24MMX_loop:
+        movq mm3, qword ptr [esi]
+        movq mm1, qword ptr [esi + 8]
+        movq mm2, qword ptr [esi + 16]
+        movq mm0, mm3
+        psrlq mm3, 24
+        movq mm4, mm0
+        psrlq mm0, 32
+        punpckldq mm4, mm3
+        punpckldq mm0, mm1
+        psrlq mm0, 8
+        punpckldq mm0, mm1
+        psrlq mm1, 32
+        psrld mm0, 8
+        movq mm5, mm2
+        punpckldq mm1, mm2
+        movq mm3, mm1
+        psrlq mm3, 24
+        psrlq mm5, 16
+        punpckldq mm1, mm3
+        psrlq mm2, 40
+        por mm4, mm7
+        punpckldq mm5, mm2
+        por mm0, mm7
+        por mm1, mm7
+        por mm5, mm7
+        movq qword ptr [edi + ecx*4], mm4
+        movq qword ptr [edi + ecx*4 + 8], mm0
+        movq qword ptr [edi + ecx*4 + 16], mm1
+        movq qword ptr [edi + ecx*4 + 24], mm5
+        add esi, 24
+        add ecx, 8
+        js readBGR24MMX_loop
+        emms
+    readBGR24MMX_tail:
+        pop ecx
+        xor eax, eax
+        and ecx, 7
+        jnz readBGR24MMX_body
+    }
+}
+
+/* format_table[0xb] MMX read: ARGB4444 source words to srARGB with each
+   nibble replicated into its byte lane. */
+// FUNCTION: SURRENDER 0x1000B150
+void __cdecl readARGB4444MMX(const srPixelConvert::ConversionInfo& info)
+{
+    void* dest = info.dest;
+    const void* source = info.source;
+    unsigned long count = info.count;
+    __asm {
+        mov edi, dest
+        mov esi, source
+        mov eax, count
+        test eax, eax
+        jz readARGB4444MMX_done
+        test edi, 4
+        jz readARGB4444MMX_bulk
+        mov ecx, 1
+        dec eax
+    readARGB4444MMX_entry:
+        push eax
+    readARGB4444MMX_scalar:
+        xor eax, eax
+        mov ax, word ptr [esi]
+        mov ebx, eax
+        shl ebx, 8
+        mov edx, eax
+        shl edx, 16
+        and eax, 0ffh
+        and edx, 0ff000000h
+        or eax, ebx
+        or eax, edx
+        mov ebx, eax
+        and eax, 0ff00ffh
+        and ebx, 0f00ff00fh
+        shl eax, 4
+        or eax, ebx
+        mov dword ptr [edi], eax
+        add esi, 2
+        add edi, 4
+        dec ecx
+        jnz readARGB4444MMX_scalar
+        pop eax
+    readARGB4444MMX_bulk:
+        mov ecx, eax
+        push ecx
+        and ecx, 0fffffffch
+        jz readARGB4444MMX_tail
+        lea esi, [esi + ecx*2]
+        lea edi, [edi + ecx*4]
+        neg ecx
+        pcmpeqw mm6, mm6
+        psrlw mm6, 8
+        movq mm7, mm6
+        psrlw mm7, 4
+        pcmpeqw mm5, mm5
+        psllw mm5, 12
+        por mm7, mm5
+    readARGB4444MMX_loop:
+        movq mm0, qword ptr [esi + ecx*2]
+        movq mm1, mm0
+        punpcklbw mm0, mm0
+        punpckhbw mm1, mm1
+        movq mm2, mm0
+        movq mm3, mm1
+        pand mm0, mm6
+        pand mm1, mm6
+        pand mm2, mm7
+        pand mm3, mm7
+        pslld mm0, 4
+        pslld mm1, 4
+        por mm0, mm2
+        por mm1, mm3
+        movq qword ptr [edi + ecx*4], mm0
+        movq qword ptr [edi + ecx*4 + 8], mm1
+        add ecx, 4
+        js readARGB4444MMX_loop
+        emms
+    readARGB4444MMX_tail:
+        pop ecx
+        xor eax, eax
+        and ecx, 3
+        jnz readARGB4444MMX_entry
+    readARGB4444MMX_done:
+    }
+}
+
+/* format_table[2] MMX read: L8 source bytes to srARGB by triplicating the
+   index and forcing alpha opaque. */
+// FUNCTION: SURRENDER 0x1000B250
+void __cdecl readL8MMX(const srPixelConvert::ConversionInfo& info)
+{
+    void* dest = info.dest;
+    const void* source = info.source;
+    unsigned long count = info.count;
+    __asm {
+        mov edi, dest
+        mov esi, source
+        mov eax, count
+        test eax, eax
+        jz readL8MMX_done
+        test edi, 4
+        jz readL8MMX_bulk
+        mov ecx, 1
+        dec eax
+    readL8MMX_entry:
+        push eax
+    readL8MMX_scalar:
+        xor eax, eax
+        mov al, byte ptr [esi]
+        mov ebx, eax
+        shl ebx, 8
+        or eax, ebx
+        shl ebx, 8
+        or eax, ebx
+        or eax, 0ff000000h
+        mov dword ptr [edi], eax
+        inc esi
+        add edi, 4
+        dec ecx
+        jnz readL8MMX_scalar
+        pop eax
+    readL8MMX_bulk:
+        mov ecx, eax
+        push ecx
+        and ecx, 0fffffff8h
+        jz readL8MMX_tail
+        add esi, ecx
+        lea edi, [edi + ecx*4]
+        neg ecx
+        pcmpeqd mm7, mm7
+        pslld mm7, 24
+        jmp short readL8MMX_loop
+    readL8MMX_loop:
+        movq mm0, qword ptr [esi + ecx*1]
+        movq mm2, mm0
+        punpcklbw mm0, mm0
+        punpckhbw mm2, mm2
+        movq mm1, mm0
+        movq mm3, mm2
+        punpcklwd mm0, mm0
+        punpckhwd mm1, mm1
+        punpcklwd mm2, mm2
+        punpckhwd mm3, mm3
+        por mm0, mm7
+        por mm1, mm7
+        por mm2, mm7
+        por mm3, mm7
+        movq qword ptr [edi + ecx*4], mm0
+        movq qword ptr [edi + ecx*4 + 8], mm1
+        movq qword ptr [edi + ecx*4 + 16], mm2
+        movq qword ptr [edi + ecx*4 + 24], mm3
+        add ecx, 8
+        js readL8MMX_loop
+        emms
+    readL8MMX_tail:
+        pop ecx
+        xor eax, eax
+        and ecx, 7
+        jnz readL8MMX_entry
+    readL8MMX_done:
+    }
+}
+
+/* format_table[9] MMX read: ARGB1555 source words to srARGB with bit
+   replication filling the low channel bits. */
+// FUNCTION: SURRENDER 0x1000B330
+void __cdecl readARGB1555MMX(const srPixelConvert::ConversionInfo& info)
+{
+    void* dest = info.dest;
+    const void* source = info.source;
+    unsigned long count = info.count;
+    __asm {
+        mov edi, dest
+        mov esi, source
+        mov eax, count
+        test eax, eax
+        jz readARGB1555MMX_done
+        test edi, 4
+        jz readARGB1555MMX_bulk
+        mov ecx, 1
+        dec eax
+    readARGB1555MMX_entry:
+        push eax
+    readARGB1555MMX_scalar:
+        xor eax, eax
+        mov ax, word ptr [esi]
+        mov ebx, eax
+        shl eax, 16
+        sar eax, 7
+        and eax, 0fff80000h
+        mov edx, ebx
+        shl ebx, 6
+        and ebx, 0f800h
+        or eax, ebx
+        shl edx, 3
+        and edx, 0f8h
+        or eax, edx
+        mov ebx, eax
+        shr ebx, 5
+        and ebx, 070707h
+        or eax, ebx
+        mov dword ptr [edi], eax
+        add esi, 2
+        add edi, 4
+        dec ecx
+        jnz readARGB1555MMX_scalar
+        pop eax
+    readARGB1555MMX_bulk:
+        mov ecx, eax
+        push ecx
+        and ecx, 0fffffffch
+        jz readARGB1555MMX_tail
+        lea esi, [esi + ecx*2]
+        lea edi, [edi + ecx*4]
+        neg ecx
+        mov ebx, 07070707h
+        movd mm7, ebx
+        punpckldq mm7, mm7
+    readARGB1555MMX_loop:
+        movq mm0, qword ptr [esi + ecx*2]
+        movq mm2, mm0
+        movq mm1, mm0
+        psraw mm0, 10
+        paddw mm1, mm1
+        psllw mm0, 3
+        psrlw mm1, 13
+        por mm0, mm1
+        movq mm1, mm2
+        psllw mm2, 11
+        psrlw mm1, 5
+        psrlw mm2, 8
+        psllw mm1, 11
+        por mm1, mm2
+        movq mm2, mm1
+        psrlw mm2, 5
+        pand mm2, mm7
+        por mm1, mm2
+        movq mm2, mm1
+        punpcklwd mm1, mm0
+        punpckhwd mm2, mm0
+        movq qword ptr [edi + ecx*4], mm1
+        movq qword ptr [edi + ecx*4 + 8], mm2
+        add ecx, 4
+        js readARGB1555MMX_loop
+        emms
+    readARGB1555MMX_tail:
+        pop ecx
+        xor eax, eax
+        and ecx, 3
+        jnz readARGB1555MMX_entry
+    readARGB1555MMX_done:
+    }
+}
+
+/* format_table[7] MMX read: RGB565 source words to srARGB with bit
+   replication and alpha forced opaque. */
+// FUNCTION: SURRENDER 0x1000B440
+void __cdecl readRGB565MMX(const srPixelConvert::ConversionInfo& info)
+{
+    void* dest = info.dest;
+    const void* source = info.source;
+    unsigned long count = info.count;
+    __asm {
+        mov edi, dest
+        mov esi, source
+        mov eax, count
+        test eax, eax
+        jz readRGB565MMX_done
+        test edi, 4
+        jz readRGB565MMX_bulk
+        mov ecx, 1
+        dec eax
+    readRGB565MMX_entry:
+        push eax
+    readRGB565MMX_scalar:
+        xor eax, eax
+        mov ax, word ptr [esi]
+        mov ebx, eax
+        mov edx, eax
+        and ebx, 0f800h
+        and edx, 0e000h
+        shl ebx, 8
+        shl edx, 3
+        or ebx, edx
+        mov edx, eax
+        and edx, 07e0h
+        shl edx, 5
+        or ebx, edx
+        and edx, 0c000h
+        shr edx, 6
+        or ebx, edx
+        and eax, 01fh
+        shl eax, 3
+        or ebx, eax
+        and eax, 0e0h
+        shr eax, 5
+        or eax, ebx
+        or eax, 0ff000000h
+        mov dword ptr [edi], eax
+        add esi, 2
+        add edi, 4
+        dec ecx
+        jnz readRGB565MMX_scalar
+        pop eax
+    readRGB565MMX_bulk:
+        mov ecx, eax
+        push ecx
+        and ecx, 0fffffffch
+        jz readRGB565MMX_tail
+        lea esi, [esi + ecx*2]
+        lea edi, [edi + ecx*4]
+        neg ecx
+        mov eax, 0f800f800h
+        movd mm6, eax
+        punpckldq mm6, mm6
+        mov eax, 0ff00ff00h
+        movd mm7, eax
+        punpckldq mm7, mm7
+    readRGB565MMX_loop:
+        movq mm0, qword ptr [esi + ecx*2]
+        movq mm1, mm6
+        movq mm2, mm0
+        pand mm1, mm0
+        psrlw mm2, 13
+        movq mm4, mm7
+        psrlw mm1, 8
+        por mm1, mm2
+        psllw mm0, 3
+        por mm1, mm7
+        pandn mm4, mm0
+        pand mm0, mm7
+        movq mm3, mm4
+        psllw mm0, 2
+        psrlw mm4, 5
+        movq mm5, mm0
+        psrlw mm0, 6
+        por mm3, mm4
+        por mm0, mm5
+        pand mm0, mm7
+        por mm0, mm3
+        movq mm2, mm0
+        punpcklwd mm0, mm1
+        punpckhwd mm2, mm1
+        movq qword ptr [edi + ecx*4], mm0
+        movq qword ptr [edi + ecx*4 + 8], mm2
+        add ecx, 4
+        js readRGB565MMX_loop
+        emms
+    readRGB565MMX_tail:
+        pop ecx
+        xor eax, eax
+        and ecx, 3
+        jnz readRGB565MMX_entry
+    readRGB565MMX_done:
+    }
+}
+
+/* format_table[2] MMX write: srARGB to L8 intensity using the 54/183/19
+   luma weights. */
+// FUNCTION: SURRENDER 0x1000B570
+void __cdecl writeL8MMX(const srPixelConvert::ConversionInfo& info)
+{
+    void* dest = info.dest;
+    const void* source = info.source;
+    unsigned long count = info.count;
+    __asm {
+        mov edi, dest
+        mov esi, source
+        mov ecx, count
+        test ecx, ecx
+        jz writeL8MMX_done
+        mov eax, 0360036h
+        mov ebx, 0b700b7h
+        mov edx, 0130013h
+        movd mm5, eax
+        movd mm6, ebx
+        movd mm7, edx
+        punpckldq mm5, mm5
+        punpckldq mm6, mm6
+        punpckldq mm7, mm7
+        test esi, 4
+        jz writeL8MMX_bulk
+    writeL8MMX_scalar:
+        movd mm0, dword ptr [esi]
+        movq mm1, mm0
+        pslld mm1, 8
+        psrld mm1, 24
+        pmullw mm1, mm5
+        movq mm2, mm0
+        pslld mm2, 16
+        psrld mm2, 24
+        pmullw mm2, mm6
+        paddw mm1, mm2
+        pslld mm0, 24
+        psrld mm0, 24
+        pmullw mm0, mm7
+        paddw mm0, mm1
+        movd eax, mm0
+        mov byte ptr [edi], ah
+        add esi, 4
+        inc edi
+        dec ecx
+        jz writeL8MMX_emms
+        cmp ecx, 4
+        jl writeL8MMX_scalar
+    writeL8MMX_bulk:
+        push ecx
+        and ecx, 0fffffffch
+        jz writeL8MMX_tail
+        lea esi, [esi + ecx*4]
+        add edi, ecx
+        neg ecx
+        jmp short writeL8MMX_loop
+    writeL8MMX_loop:
+        movq mm0, qword ptr [esi + ecx*4]
+        movq mm1, qword ptr [esi + ecx*4 + 8]
+        movq mm2, mm0
+        movq mm3, mm1
+        pslld mm2, 8
+        psrld mm2, 24
+        pslld mm3, 8
+        psrld mm3, 24
+        packssdw mm2, mm3
+        pmullw mm2, mm5
+        movq mm3, mm0
+        movq mm4, mm1
+        pslld mm3, 16
+        psrld mm3, 24
+        pslld mm4, 16
+        psrld mm4, 24
+        packssdw mm3, mm4
+        pmullw mm3, mm6
+        pslld mm0, 24
+        psrld mm0, 24
+        pslld mm1, 24
+        psrld mm1, 24
+        packssdw mm0, mm1
+        pmullw mm0, mm7
+        paddw mm2, mm3
+        paddw mm0, mm2
+        psrlw mm0, 8
+        packuswb mm0, mm0
+        movd dword ptr [edi + ecx*1], mm0
+        add ecx, 4
+        js writeL8MMX_loop
+    writeL8MMX_tail:
+        pop ecx
+        and ecx, 3
+        jnz writeL8MMX_scalar
+    writeL8MMX_emms:
+        emms
+    writeL8MMX_done:
+    }
+}
+
+/* format_table[7] MMX write: srARGB to RGB565. */
+// FUNCTION: SURRENDER 0x1000B6A0
+void __cdecl writeRGB565MMX(const srPixelConvert::ConversionInfo& info)
+{
+    unsigned __int64 maskRB = 0x00f800f800f800f8;
+    unsigned __int64 maskG = 0x0000fc000000fc00;
+    unsigned __int64 maskReplicate = 0x001f001f001f001f;
+    unsigned __int64 maskPacked = 0xf800f800f800f800;
+    void* dest = info.dest;
+    const void* source = info.source;
+    unsigned long count = info.count;
+    __asm {
+        mov edi, dest
+        mov esi, source
+        mov eax, count
+        mov ecx, edi
+        neg ecx
+        and ecx, 7
+        shr ecx, 1
+        cmp ecx, eax
+        jl short writeRGB565MMX_head
+        mov ecx, eax
+    writeRGB565MMX_head:
+        sub eax, ecx
+    writeRGB565MMX_body:
+        push eax
+        test ecx, ecx
+        jz short writeRGB565MMX_mmx
+    writeRGB565MMX_scalar:
+        mov eax, dword ptr [esi]
+        mov ebx, eax
+        mov edx, eax
+        and eax, 0f80000h
+        and ebx, 0fc00h
+        and edx, 0f8h
+        shr eax, 8
+        shr ebx, 5
+        shr edx, 3
+        or eax, ebx
+        or eax, edx
+        mov word ptr [edi], ax
+        add esi, 4
+        add edi, 2
+        dec ecx
+        jnz writeRGB565MMX_scalar
+    writeRGB565MMX_mmx:
+        pop ecx
+        push ecx
+        and ecx, 0fffffffch
+        jz writeRGB565MMX_tail
+        lea esi, [esi + ecx*4]
+        lea edi, [edi + ecx*2]
+        neg ecx
+        movq mm4, qword ptr maskRB
+        movq mm5, qword ptr maskG
+        movq mm6, qword ptr maskReplicate
+        movq mm7, qword ptr maskPacked
+        jmp short writeRGB565MMX_loop
+    writeRGB565MMX_loop:
+        movq mm0, qword ptr [esi + ecx*4]
+        movq mm1, qword ptr [esi + ecx*4 + 8]
+        movq mm2, mm0
+        movq mm3, mm1
+        pand mm0, mm4
+        pand mm1, mm4
+        pand mm2, mm5
+        pand mm3, mm5
+        psrlq mm2, 5
+        psrlq mm3, 5
+        packuswb mm0, mm1
+        packssdw mm2, mm3
+        movq mm1, mm0
+        psrlq mm1, 3
+        pand mm1, mm6
+        pand mm0, mm7
+        por mm0, mm1
+        por mm0, mm2
+        movq qword ptr [edi + ecx*2], mm0
+        add ecx, 4
+        js writeRGB565MMX_loop
+        emms
+    writeRGB565MMX_tail:
+        pop ecx
+        xor eax, eax
+        and ecx, 3
+        jnz writeRGB565MMX_body
+    }
+}
+
+/* format_table[0xb] MMX write: srARGB to ARGB4444 through the high
+   nibbles. */
+// FUNCTION: SURRENDER 0x1000B7C0
+void __cdecl writeARGB4444MMX(const srPixelConvert::ConversionInfo& info)
+{
+    unsigned long mask = 0xf0f0f0f0;
+    void* dest = info.dest;
+    const void* source = info.source;
+    unsigned long count = info.count;
+    __asm {
+        mov edi, dest
+        mov esi, source
+        mov eax, count
+        mov ecx, edi
+        neg ecx
+        and ecx, 7
+        shr ecx, 1
+        cmp ecx, eax
+        jl short writeARGB4444MMX_head
+        mov ecx, eax
+    writeARGB4444MMX_head:
+        sub eax, ecx
+    writeARGB4444MMX_body:
+        push eax
+        test ecx, ecx
+        jz short writeARGB4444MMX_mmx
+    writeARGB4444MMX_scalar:
+        mov eax, dword ptr [esi]
+        mov ebx, eax
+        shr eax, 8
+        shr ebx, 4
+        and eax, 0f000f0h
+        and ebx, 0f000fh
+        or eax, ebx
+        mov ebx, eax
+        shr ebx, 8
+        or eax, ebx
+        mov word ptr [edi], ax
+        add esi, 4
+        add edi, 2
+        dec ecx
+        jnz writeARGB4444MMX_scalar
+    writeARGB4444MMX_mmx:
+        pop ecx
+        push ecx
+        and ecx, 0fffffffch
+        jz writeARGB4444MMX_tail
+        lea esi, [esi + ecx*4]
+        lea edi, [edi + ecx*2]
+        neg ecx
+        movd mm7, mask
+        punpckldq mm7, mm7
+        jmp short writeARGB4444MMX_loop
+    writeARGB4444MMX_loop:
+        movq mm0, qword ptr [esi + ecx*4]
+        movq mm1, qword ptr [esi + ecx*4 + 8]
+        pand mm0, mm7
+        pand mm1, mm7
+        movq mm2, mm0
+        movq mm3, mm1
+        psllw mm2, 4
+        psllw mm3, 4
+        por mm0, mm2
+        por mm1, mm3
+        psrlw mm0, 8
+        psrlw mm1, 8
+        packuswb mm0, mm1
+        movq qword ptr [edi + ecx*2], mm0
+        add ecx, 4
+        js writeARGB4444MMX_loop
+        emms
+    writeARGB4444MMX_tail:
+        pop ecx
+        xor eax, eax
+        and ecx, 3
+        jnz writeARGB4444MMX_body
+    }
+}
+
+/* format_table[9] MMX write: srARGB to ARGB1555. */
+// FUNCTION: SURRENDER 0x1000B8A0
+void __cdecl writeARGB1555MMX(const srPixelConvert::ConversionInfo& info)
+{
+    unsigned long maskA = 0x80008000;
+    unsigned long maskR = 0x7c007c00;
+    unsigned long maskG = 0x03e003e0;
+    unsigned long maskB = 0x001f001f;
+    void* dest = info.dest;
+    const void* source = info.source;
+    unsigned long count = info.count;
+    __asm {
+        mov edi, dest
+        mov esi, source
+        mov eax, count
+        mov ecx, edi
+        neg ecx
+        and ecx, 7
+        shr ecx, 1
+        cmp ecx, eax
+        jl short writeARGB1555MMX_head
+        mov ecx, eax
+    writeARGB1555MMX_head:
+        sub eax, ecx
+    writeARGB1555MMX_body:
+        push eax
+        test ecx, ecx
+        jz short writeARGB1555MMX_mmx
+    writeARGB1555MMX_scalar:
+        mov eax, dword ptr [esi]
+        shr eax, 3
+        mov ebx, eax
+        mov edx, eax
+        and ebx, 01fh
+        and edx, 01f00h
+        shr edx, 3
+        or ebx, edx
+        mov edx, eax
+        and edx, 01f0000h
+        shr edx, 6
+        or ebx, edx
+        and eax, 010000000h
+        shr eax, 13
+        or ebx, eax
+        mov word ptr [edi], bx
+        add esi, 4
+        add edi, 2
+        dec ecx
+        jnz writeARGB1555MMX_scalar
+    writeARGB1555MMX_mmx:
+        pop ecx
+        push ecx
+        and ecx, 0fffffffch
+        jz writeARGB1555MMX_tail
+        lea esi, [esi + ecx*4]
+        lea edi, [edi + ecx*2]
+        neg ecx
+        movd mm4, maskA
+        movd mm5, maskR
+        movd mm6, maskG
+        movd mm7, maskB
+        punpckldq mm4, mm4
+        punpckldq mm5, mm5
+        punpckldq mm6, mm6
+        punpckldq mm7, mm7
+        jmp short writeARGB1555MMX_loop
+    writeARGB1555MMX_loop:
+        movq mm0, qword ptr [esi + ecx*4]
+        movq mm1, qword ptr [esi + ecx*4 + 8]
+        movq mm2, mm0
+        movq mm3, mm1
+        psrlw mm0, 3
+        psrlw mm1, 3
+        pand mm0, mm7
+        pand mm1, mm7
+        psrlw mm2, 8
+        psrlw mm3, 8
+        packuswb mm0, mm1
+        packuswb mm2, mm3
+        movq mm1, mm0
+        movq mm3, mm2
+        psllw mm0, 2
+        psllw mm3, 2
+        pand mm0, mm5
+        pand mm1, mm7
+        pand mm2, mm4
+        pand mm3, mm6
+        por mm0, mm1
+        por mm0, mm2
+        por mm0, mm3
+        movq qword ptr [edi + ecx*2], mm0
+        add ecx, 4
+        js writeARGB1555MMX_loop
+        emms
+    writeARGB1555MMX_tail:
+        pop ecx
+        xor eax, eax
+        and ecx, 3
+        jnz writeARGB1555MMX_body
+    }
+}
+
+/* format_table[0xc] MMX write: srARGB to BGR24 triplets. */
+// FUNCTION: SURRENDER 0x1000B9D0
+void __cdecl writeBGR24MMX(const srPixelConvert::ConversionInfo& info)
+{
+    void* dest = info.dest;
+    const void* source = info.source;
+    unsigned long count = info.count;
+    __asm {
+        mov edi, dest
+        mov esi, source
+        mov ecx, count
+    writeBGR24MMX_head:
+        test ecx, ecx
+        jz writeBGR24MMX_done
+        test edi, 7
+        jz writeBGR24MMX_bulk
+        mov eax, dword ptr [esi]
+        mov byte ptr [edi], al
+        shr eax, 8
+        mov byte ptr [edi + 1], al
+        shr eax, 8
+        mov byte ptr [edi + 2], al
+        add esi, 4
+        add edi, 3
+        dec ecx
+        jmp writeBGR24MMX_head
+    writeBGR24MMX_bulk:
+        push ecx
+        and ecx, 0fffffff8h
+        jz writeBGR24MMX_tail
+        lea esi, [esi + ecx*4]
+        neg ecx
+    writeBGR24MMX_loop:
+        movq mm0, qword ptr [esi + ecx*4]
+        movq mm1, qword ptr [esi + ecx*4 + 8]
+        movq mm2, qword ptr [esi + ecx*4 + 16]
+        movq mm3, qword ptr [esi + ecx*4 + 24]
+        movq mm4, mm0
+        psllq mm4, 40
+        punpckhdq mm4, mm0
+        psrlq mm4, 8
+        psrlq mm0, 40
+        punpcklwd mm0, mm1
+        punpckldq mm4, mm0
+        movq mm5, mm1
+        psllq mm5, 40
+        punpckhdq mm5, mm1
+        psrlq mm5, 24
+        movq mm6, mm2
+        psllq mm6, 40
+        punpckhdq mm6, mm2
+        psrlq mm6, 8
+        punpckldq mm5, mm6
+        psrlq mm2, 40
+        punpcklwd mm2, mm3
+        movq mm6, mm3
+        psllq mm6, 40
+        punpckhdq mm6, mm3
+        psrlq mm6, 24
+        punpckldq mm2, mm6
+        movq qword ptr [edi], mm4
+        movq qword ptr [edi + 8], mm5
+        movq qword ptr [edi + 16], mm2
+        add edi, 24
+        add ecx, 8
+        js writeBGR24MMX_loop
+        emms
+    writeBGR24MMX_tail:
+        pop ecx
+        and ecx, 7
+        jz writeBGR24MMX_done
+    writeBGR24MMX_scalar:
+        mov eax, dword ptr [esi]
+        mov byte ptr [edi], al
+        shr eax, 8
+        mov byte ptr [edi + 1], al
+        shr eax, 8
+        mov byte ptr [edi + 2], al
+        add esi, 4
+        add edi, 3
+        dec ecx
+        jnz writeBGR24MMX_scalar
+    writeBGR24MMX_done:
     }
 }
 
@@ -1713,3 +2869,27 @@ static void unpack32(unsigned long* dest, const unsigned long* source,
                   luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
     }
 }
+
+/* This unit's static-init emission chain: the CRT initterm table calls
+   the thunks at 0x100075F0/0x100076B0/0x10007770, which tail-jump into the
+   bodies that write the YUV matrices and clear the format_table flags. */
+// SYNTHETIC: SURRENDER 0x100075F0
+// rgbToYUV static-init thunk
+
+// SYNTHETIC: SURRENDER 0x10007600
+// rgbToYUV static-init body
+
+// SYNTHETIC: SURRENDER 0x100076B0
+// yuvToRGB static-init thunk
+
+// SYNTHETIC: SURRENDER 0x100076C0
+// yuvToRGB static-init body
+
+// SYNTHETIC: SURRENDER 0x10007770
+// format_table PixelFormat::flags array-init thunk
+
+// SYNTHETIC: SURRENDER 0x10007780
+// format_table PixelFormat::flags array-init body
+
+// TEMPLATE: SURRENDER 0x1000E030
+// DotProduct<float>
