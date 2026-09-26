@@ -39,7 +39,7 @@ protected:
     virtual ~stMaterial() override;
 
 public:
-    int m_field_78; /* 0x78 */
+    int m_shader_flags_78; /* 0x78 */
 };
 
 static_assert((sizeof(stMaterial) == 0x7C), "stMaterial_must_be_0x7c");

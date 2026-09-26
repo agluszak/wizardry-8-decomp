@@ -31,8 +31,8 @@ static const W8ControlsRect g_character_summary_quote_bounds[1] = {
 // FUNCTION: WIZ8 0x005e0320
 W8CharacterSummaryDialog::W8CharacterSummaryDialog(W8Character* character)
     : m_voice_started_054(0), m_quote_text_058(0), m_numeric_input_05c(0), m_field_060(0),
-      m_field_064(0), m_field_068(0), m_field_06c(0), m_field_070(0), m_character_074(character),
-      m_field_1af8(0), m_portrait_clock_started_1af9(0)
+      m_remaining_064(0), m_taken_068(0), m_total_06c(0), m_field_070(0),
+      m_character_074(character), m_field_1af8(0), m_portrait_clock_started_1af9(0)
 {
     SetExtent(0x171, 0x60);
     SetBackground("Data\\Dialogs\\popup_quote.sti", 0);
@@ -143,8 +143,8 @@ void W8CharacterSummaryDialog::DrawPortraitAnimationFrame()
 void W8CharacterSummaryDialog::OnNumericInputChanged(int value)
 {
     if (value == 0) {
-        m_field_068 = m_numeric_input_05c->m_value;
-        m_field_064 = m_field_06c - m_field_068;
+        m_taken_068 = m_numeric_input_05c->m_value;
+        m_remaining_064 = m_total_06c - m_taken_068;
     }
 }
 

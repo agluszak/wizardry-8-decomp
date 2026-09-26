@@ -113,7 +113,7 @@ void W8NormalTexcoordMapper::process(srVertexPipe& pipe)
 // FUNCTION: WIZ8 0x004925B0
 stMaterial::stMaterial()
 {
-    m_field_78 = 0;
+    m_shader_flags_78 = 0;
 }
 
 // TEMPLATE: WIZ8 0x00492940
@@ -138,7 +138,7 @@ srClass* stMaterial::clone()
 
     if (this != instance) {
         *static_cast<srMaterial*>(instance) = *this;
-        instance->m_field_78 = m_field_78;
+        instance->m_shader_flags_78 = m_shader_flags_78;
     }
     return instance;
 }
@@ -841,8 +841,8 @@ unsigned char PreprocessLevel(int handle, char* stem)
                             ReportBuildStatus(7, "Could not open new level file.\n");
                             result = 0;
                         } else {
-                            level->field_00 = tree->GetMeshCount();
-                            level->field_04 = tree->m_meshCount_1b4;
+                            level->submesh_count_00 = tree->GetMeshCount();
+                            level->mesh_count_04 = tree->m_meshCount_1b4;
                             level->pModels_0c = submeshes;
                             ReportBuildStatus(6, "\nWriting PVL File...\n");
                             result = result & WriteLevelFile(file, handle, level);
@@ -2296,7 +2296,7 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
                                              source->emission_101, 1.0f);
             }
             concrete->dirty_74 = 1;
-            concrete->m_field_78 = source->shader_flags_116;
+            concrete->m_shader_flags_78 = source->shader_flags_116;
             if ((source->shader_flags_116 & 0x1fe) != 0) {
                 concrete->setMapper(&g_normal_texcoord_mapper);
             }
@@ -2352,7 +2352,7 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
     concrete->dirty_74 = 1;
     concrete->parms.emissive = 0.0f;
     concrete->dirty_74 = 1;
-    concrete->m_field_78 = 0;
+    concrete->m_shader_flags_78 = 0;
     return 1;
 }
 

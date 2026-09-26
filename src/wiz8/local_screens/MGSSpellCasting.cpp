@@ -1356,7 +1356,7 @@ static void SelectSpellCastingListRow(int index)
         return;
     }
     SetSpellListLineColor(gpSCSV->uiSpellIndex, 3);
-    power_class = g_spell_records[spell_id].field_12b;
+    power_class = g_spell_records[spell_id].power_class;
     if (power_class == -1) {
         srAssertFail("iSpellPowerClass != BAD_INDEX", SPELLCASTING_CPP, 0x834, 0);
     }

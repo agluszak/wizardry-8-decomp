@@ -367,7 +367,7 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
     material->parms.diffuse.w = 1.0f;
     material->parms.emissive = 0.0f;
     material->dirty_74 = 1;
-    material->m_field_78 = 0;
+    material->m_shader_flags_78 = 0;
     material->setMapper(&g_material_mapper);
 
     for (srNode* node = sky_world->level->firstChild(); node != 0; node = node->nextSibling()) {

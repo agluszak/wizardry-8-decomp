@@ -39,9 +39,9 @@ private:
     W8TextBuffer* m_quote_text_058;
     W8DialogNumericInput* m_numeric_input_05c;
     void* m_field_060;
-    int m_field_064;
-    int m_field_068;
-    int m_field_06c;
+    int m_remaining_064;
+    int m_taken_068;
+    int m_total_06c;
     int m_field_070;
     W8Character* m_character_074;
     W8Character m_saved_character_078;

@@ -30,7 +30,7 @@ struct W8GameSettings {
     int difficulty;
     unsigned int text_display_delay_ms;
     int combat_delay_ms;
-    int field_019;
+    int continuous_combat_start_delay_ms;
     int camera_rotation_mode;
     int camera_rotation_style;
     int tooltip_delay_ms;

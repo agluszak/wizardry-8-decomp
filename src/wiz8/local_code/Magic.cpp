@@ -2724,7 +2724,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     realm = record->realm;
     sp_cost = record->spell_point_cost;
     *out_points = 0;
-    switch (record->field_12b) {
+    switch (record->power_class) {
     case 1:
         if (gXStatus.fCombatMode == 0 && power_level == 8) {
             recast = true;

@@ -928,7 +928,7 @@ void BuildShadowMesh()
                 material->setEmissive(color);
                 color.Set(1.0f, 1.0f, 1.0f, 0.0f);
                 material->setDiffuse(color);
-                material->m_field_78 = 0;
+                material->m_shader_flags_78 = 0;
             }
             srVector3i* triangles = static_cast<srVector3i*>(srHeap.allocate(6 * sizeof(long)));
             g_shadow_mesh->poly_vertices_10 = triangles;
