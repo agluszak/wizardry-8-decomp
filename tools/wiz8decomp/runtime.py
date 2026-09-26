@@ -902,15 +902,15 @@ def configure_wine_window_management(
     )
     if not virtual_desktop:
         subprocess.run(
-            [
-                "wine",
+            _wine_control_command(
+                environment,
                 "reg",
                 "delete",
                 r"HKCU\Software\Wine\Explorer",
                 "/v",
                 "Desktop",
                 "/f",
-            ],
+            ),
             env=environment,
             check=False,
             timeout=60,
