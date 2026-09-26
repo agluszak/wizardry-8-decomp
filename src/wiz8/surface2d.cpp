@@ -134,7 +134,7 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width, int sour
 stSurface2D::~stSurface2D()
 {
     int index;
-    for (index = 0; index != tile_count; ++index)
+    for (index = 0; index < tile_count; ++index)
         tiles[index]->release();
     delete[] tiles;
 }
