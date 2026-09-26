@@ -413,7 +413,10 @@ def test_scenario_cleanup_failure_preserves_primary_failure(
         _run_runtime_scenario(
             tmp_path / "Wiz8RuntimeTest.exe",
             tmp_path,
-            {},
+            {
+                "WIZ8_UMU_RUN": "umu-run",
+                "WIZ8_UMU_WINESERVER": "wineserver",
+            },
             "probe",
             30,
         )
