@@ -1051,11 +1051,10 @@ void W8TextControl::Invalidate(unsigned char immediate)
 }
 
 // FUNCTION: WIZ8 0x004f4600
-void W8TextControl::SetFlaggedRegionBounds(short left, short top, unsigned short right)
+void W8TextControl::SetFlaggedRegionBounds(int left, int top, int right)
 {
     if (m_region != -1 && m_pPanel != 0 && RegionHasFlags(m_region, 2)) {
-        SetRegionBounds(m_region, (unsigned short)((short)m_pPanel->origin_x + left),
-                        (unsigned short)((short)m_pPanel->origin_y + top), right, 0);
+        SetRegionBounds(m_region, m_pPanel->origin_x + left, m_pPanel->origin_y + top, right, 0);
     }
 }
 

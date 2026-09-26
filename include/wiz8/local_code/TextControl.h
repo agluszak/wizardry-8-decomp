@@ -43,7 +43,7 @@ public:
     void Invalidate(unsigned char immediate);
     virtual void SetEnabled(bool enabled) override;
     virtual void Redraw(int full_redraw) override;
-    void SetFlaggedRegionBounds(short left, short top, unsigned short right);
+    void SetFlaggedRegionBounds(int left, int top, int right);
     virtual void AddLayoutFlags(unsigned int flags) override;
     virtual void SetAlternateTextEnabled(unsigned char enabled) override;
     void RemoveLayoutFlags(unsigned int flags);

@@ -404,7 +404,7 @@ done:
     if (g_video_inspector_enabled) {
         _chdir("DLL");
         srExtension::load("INSPECTOR", 0);
-        _chdir(".");
+        _chdir("..");
     }
     if (!InitializeStartupNavigation()) {
         return 0;
@@ -852,7 +852,7 @@ unsigned char FinishVideoPresentation(void)
         g_video_primary_surface2->Release();
         g_video_primary_surface2 = 0;
     }
-    g_direct_draw2->SetCooperativeLevel(ghWindow, DDSCL_NORMAL);
+    g_direct_draw2->SetCooperativeLevel(NULL, DDSCL_NORMAL);
     // reinterpret-ok: SurRender takes the window handle as an integer
     g_gerd->createContext(reinterpret_cast<unsigned long>(ghWindow));
     return OpenRendererWindow();
