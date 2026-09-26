@@ -686,7 +686,7 @@ void UnequipBothHands(void)
 // FUNCTION: WIZ8 0x005BB140
 void TogglePartyRowFlag(void)
 {
-    if ((g_camp_action_buttons[1]->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+    if ((g_camp_action_buttons[1]->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
         g_status.buffers.XChar[giReviewCharSlot].item_action_pending_0f5 = 1;
         g_camp_action_buttons[0]->SetEnabled(0);
         g_camp_action_buttons[0]->Invalidate(0);
@@ -771,7 +771,7 @@ void SelectCampRealmTab(int tab)
     default:
         realm = tab;
     }
-    if ((g_camp_realm_tabs[tab]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+    if ((g_camp_realm_tabs[tab]->m_stateFlags & g_W8TextControlStateSecondary) == 0) {
         g_camp_screen->realm_flags[realm] = 0;
     } else {
         g_camp_screen->realm_flags[realm] = 1;
@@ -780,7 +780,7 @@ void SelectCampRealmTab(int tab)
             index = 0;
             do {
                 if (index != tab &&
-                    (g_camp_realm_tabs[index]->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+                    (g_camp_realm_tabs[index]->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
                     g_camp_realm_tabs[index]->DisableSecondaryState(1);
                 }
                 ++index;
@@ -1248,7 +1248,7 @@ static void DrawCampItemLabel(W8ItemInstance* item, int left, int top, char flag
     bounds.right = left + 0xfa;
     bounds.bottom = top + 0xfa;
     text = new W8TextBuffer(&bounds, g_camp_screen->caption, g_font10arial,
-                            g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548, 4);
+                            g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4);
     if (text != 0) {
         height = text->m_lineCount;
         width = text->m_maxLineWidth + 4;
@@ -1356,7 +1356,7 @@ int CreateCampActionPanel(void)
     while (g_camp_action_buttons[index] != 0) {
         ++index;
         if (index > 1) {
-            g_camp_action_buttons[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
+            g_camp_action_buttons[1]->AddLayoutFlags(g_W8TextControlLayoutToggle);
             g_camp_action_buttons[0]->m_primaryActivationCallback = UnequipBothHands;
             g_camp_action_buttons[1]->m_primaryActivationCallback = TogglePartyRowFlag;
             g_camp_action_panel->SetEnabled(1);
@@ -1429,7 +1429,7 @@ int CreateItemsTabPanel(void)
         ++index;
         if (index > 6) {
             for (index = 0; index < 6; ++index) {
-                g_camp_realm_tabs[index]->AddLayoutFlags(g_W8TextControlMask005ED578);
+                g_camp_realm_tabs[index]->AddLayoutFlags(g_W8TextControlLayoutToggle);
             }
             g_camp_realm_tabs[0]->m_primaryActivationCallback = SelectCampRealmTab0;
             g_camp_realm_tabs[1]->m_primaryActivationCallback = SelectCampRealmTab1;
@@ -1586,8 +1586,8 @@ int CreateCampSecondaryPanel(void)
         g_camp_info_labels[index]->EnableRegionHelp(0x958);
     }
     g_camp_help_text->m_secondaryActivationCallback = OpenSecondaryAttributeInfoDialog4;
-    g_camp_page_tabs[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_camp_page_tabs[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_camp_page_tabs[0]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_camp_page_tabs[1]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     g_camp_page_tabs[0]->m_primaryActivationCallback = ShowCampItemsPage;
     g_camp_page_tabs[1]->m_primaryActivationCallback = ShowCampCharacterPage;
     g_camp_page_tabs[0]->EnableRegionHelp(0x95d);

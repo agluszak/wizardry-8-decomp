@@ -320,7 +320,7 @@ static unsigned char CreateFormationPanel(void)
             DestroyFormationPanel();
             return 0;
         }
-        cell->AddLayoutFlags(g_W8TextControlMask005ED578);
+        cell->AddLayoutFlags(g_W8TextControlLayoutToggle);
         cell->m_primaryActivationCallback = SelectFormationCell;
         cell = new W8TextControl(g_formation_panel, -1, left, top, left + 0x20, top + 0x20, 0xa0, 0,
                                  -1, -1, -1, -1, -1);
@@ -444,7 +444,7 @@ static void UpdateFormationCells(void)
             overlay->SetEnabled(true);
             g_formation_cell_slots[cell] = slot;
             if (slot == g_status.selected_character &&
-                (primary->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+                (primary->m_stateFlags & g_W8TextControlStateSecondary) == 0) {
                 primary->EnableSecondaryState(0);
             }
         }
@@ -465,7 +465,7 @@ static void SelectFormationCell(void)
 
             if (index == g_formation_active_cell) {
                 control->EnableSecondaryState(0);
-            } else if ((control->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+            } else if ((control->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
                 control->DisableSecondaryState(0);
                 g_formation_cell_overlays[index]->Invalidate(0);
             }
@@ -678,7 +678,7 @@ static void BeginFormationDrag(const InputAtom*)
 
             if (index == g_formation_active_cell) {
                 control->EnableSecondaryState(0);
-            } else if ((control->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+            } else if ((control->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
                 control->DisableSecondaryState(0);
                 g_formation_cell_overlays[index]->Invalidate(0);
             }
@@ -764,7 +764,7 @@ void SelectFormationSlotCell(int party_slot)
         if (g_formation_cell_slots[index] == party_slot) {
             control->EnableSecondaryState(0);
             g_formation_cell_overlays[index]->Invalidate(0);
-        } else if ((control->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+        } else if ((control->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
             control->DisableSecondaryState(0);
             g_formation_cell_overlays[index]->Invalidate(0);
         }

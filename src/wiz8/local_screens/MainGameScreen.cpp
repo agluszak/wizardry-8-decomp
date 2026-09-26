@@ -775,34 +775,34 @@ W8LockInfoPanel::W8LockInfoPanel(int tumbler_count) : Controls(0x17, 0x166, 0, 0
     bounds.top = origin_y + 7;
     bounds.right = origin_x + 0xb4;
     bounds.bottom = origin_y + 0x11;
-    m_text_050 = new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED54C, 4);
+    m_text_050 =
+        new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
     m_text_054 = new W8TextBuffer(&bounds, gppStringList[0x1ea4 / 4], g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED548, 4);
+                                  g_W8TextBufferAlignLeft, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
     m_text_05c = new W8TextBuffer(&bounds, gppStringList[0x1ea8 / 4], g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED548, 4);
+                                  g_W8TextBufferAlignLeft, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
     m_text_064 = new W8TextBuffer(&bounds, gppStringList[0x1eac / 4], g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED548, 4);
+                                  g_W8TextBufferAlignLeft, 4);
     bounds.left = origin_x + 0x98;
     bounds.top = origin_y + 0x15;
     bounds.right = origin_x + 0xb5;
     bounds.bottom = origin_y + 0x1f;
-    m_text_058 = new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED54C, 4);
+    m_text_058 =
+        new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_060 = new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED54C, 4);
+    m_text_060 =
+        new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_068 = new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED54C, 4);
+    m_text_068 =
+        new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     SetEnabled(1);
     Invalidate(0);
 }
@@ -1672,7 +1672,7 @@ W8MainGameTextEntry::W8MainGameTextEntry(Controls* panel, int index)
     m_bottom = m_measured_h + top;
     m_top = top;
     SetPanel(panel);
-    AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
+    AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
 }
 
 // SYNTHETIC: WIZ8 0x00588350
@@ -1766,7 +1766,7 @@ W8MainGameTextPanel::W8MainGameTextPanel()
     Invalidate(0);
     for (index = 0; index < 8; ++index) {
         if ((static_cast<unsigned char>(m_entries_054[index]->m_stateFlags) &
-             g_W8TextControlMask005ED570) == 0) {
+             g_W8TextControlStateSecondary) == 0) {
             m_entries_054[index]->SetEnabled(GetTable650434Entry(m_selection_078, index) != 0);
             m_entries_054[index]->Invalidate(0);
         }
@@ -1859,7 +1859,7 @@ void W8MainGameTextPanel::OnRangeChanged(W8RangeControl* control)
     m_selection_078 = selection;
     for (column = 0; column < 8; ++column) {
         if ((static_cast<unsigned char>(m_entries_054[column]->m_stateFlags) &
-             g_W8TextControlMask005ED570) == 0) {
+             g_W8TextControlStateSecondary) == 0) {
             m_entries_054[column]->SetEnabled(GetTable650434Entry(selection, column) != 0);
             m_entries_054[column]->Invalidate(0);
         }
@@ -1884,34 +1884,34 @@ W8MainGameStatusPanel::W8MainGameStatusPanel() : Controls(0x17, 0x166, 0, 0, 0x1
     bounds.top = origin_y + 7;
     bounds.right = origin_x + 0xb4;
     bounds.bottom = origin_y + 0x11;
-    m_text_04c = new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED54C, 4);
+    m_text_04c =
+        new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
     m_text_050 = new W8TextBuffer(&bounds, gppStringList[0x1ea4 / 4], g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED548, 4);
+                                  g_W8TextBufferAlignLeft, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
     m_text_058 = new W8TextBuffer(&bounds, gppStringList[0x1ea8 / 4], g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED548, 4);
+                                  g_W8TextBufferAlignLeft, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
     m_text_060 = new W8TextBuffer(&bounds, gppStringList[0x1ec0 / 4], g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED548, 4);
+                                  g_W8TextBufferAlignLeft, 4);
     bounds.left = origin_x + 0x98;
     bounds.top = origin_y + 0x15;
     bounds.right = origin_x + 0xb5;
     bounds.bottom = origin_y + 0x1f;
-    m_text_054 = new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED54C, 4);
+    m_text_054 =
+        new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_05c = new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED54C, 4);
+    m_text_05c =
+        new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_064 = new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary,
-                                  g_W8TextBufferLayoutMask005ED54C, 4);
+    m_text_064 =
+        new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     m_target_068 = 0;
     SetEnabled(1);
     Invalidate(0);
@@ -2128,7 +2128,7 @@ void W8MainGameScreen::SelectTextEntry(int index)
     m_text_panel_00c->m_timer_094.Restart();
     for (i = 0; i < 8; ++i) {
         if ((static_cast<unsigned char>(m_text_panel_00c->m_entries_054[i]->m_stateFlags) &
-             g_W8TextControlMask005ED570) == 0) {
+             g_W8TextControlStateSecondary) == 0) {
             m_text_panel_00c->m_entries_054[i]->m_input_blocked_bc = true;
         }
     }
@@ -2207,7 +2207,7 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     m_text_panel_00c->m_timer_094.Restart();
     for (i = 0; i < 8; ++i) {
         if ((static_cast<unsigned char>(m_text_panel_00c->m_entries_054[i]->m_stateFlags) &
-             g_W8TextControlMask005ED570) == 0) {
+             g_W8TextControlStateSecondary) == 0) {
             m_text_panel_00c->m_entries_054[i]->m_input_blocked_bc = true;
         }
     }
@@ -2263,7 +2263,7 @@ void W8MainGameScreen::Update()
         panel->Invalidate(0);
         for (column = 0; column < 8; ++column) {
             if ((static_cast<unsigned char>(panel->m_entries_054[column]->m_stateFlags) &
-                 g_W8TextControlMask005ED570) == 0) {
+                 g_W8TextControlStateSecondary) == 0) {
                 panel->m_entries_054[column]->m_input_blocked_bc = false;
             }
         }
@@ -2349,7 +2349,7 @@ void W8MainGameScreen::RefreshActionPanel()
     m_action_controls_020[4]->SetEnabled(skill >= 0);
     for (i = 0; i < 8; ++i) {
         if ((static_cast<unsigned char>(m_text_panel_00c->m_entries_054[i]->m_stateFlags) &
-             g_W8TextControlMask005ED570) == 0) {
+             g_W8TextControlStateSecondary) == 0) {
             m_text_panel_00c->m_entries_054[i]->m_input_blocked_bc = skill < 0;
         }
     }
@@ -2708,8 +2708,8 @@ W8NpcDialogueTextController::W8NpcDialogueTextController(int panel_left, int pan
     bounds.top = bounds.bottom - line_height;
     bounds.right = panel_left + 0x7c;
     text_area.Configure(&bounds, g_wiz_text_font_secondary,
-                        g_W8TextBufferLayoutMask005EF890 | g_W8TextBufferLayoutMask005EF88C |
-                            g_W8TextBufferLayoutMask005EF888);
+                        g_W8DialogTextAreaAlignRight | g_W8DialogTextAreaAlignCenter |
+                            g_W8DialogTextAreaAlignLeft);
     text_area.SetLineHeight(scroll_height);
 }
 
@@ -2858,8 +2858,8 @@ void W8NpcDialogueTextController::Collapse()
     bounds.bottom = origin_y + 0x12;
     bounds.top = bounds.bottom - line_height;
     text_area.Configure(&bounds, g_wiz_text_font_secondary,
-                        g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED54C |
-                            g_W8TextBufferLayoutMask005ED550);
+                        g_W8TextBufferAlignLeft | g_W8TextBufferAlignCenter |
+                            g_W8TextBufferAlignRight);
     RegionSetDisable(3);
     DisableRegionInput(9);
     g_npc_interaction->npc_dialogue_panel_1b4->SetEnabled(0);
@@ -2884,8 +2884,8 @@ void W8NpcDialogueTextController::Expand()
     bounds.top = bounds.bottom - text_height;
     scroll_height = text_height;
     text_area.Configure(&bounds, g_wiz_text_font_secondary,
-                        g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED54C |
-                            g_W8TextBufferLayoutMask005ED550);
+                        g_W8TextBufferAlignLeft | g_W8TextBufferAlignCenter |
+                            g_W8TextBufferAlignRight);
     if (scroll_height != 0xff) {
         text_area.SetFirstVisibleEntry(0);
     }
@@ -8139,8 +8139,8 @@ void DrawMainGamePrompt(void)
         bounds.top = 0x13f;
         bounds.right = 0x1cf;
         bounds.bottom = 0x153;
-        buffer = new W8TextBuffer(
-            &bounds, 0, g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 0, 4);
+        buffer = new W8TextBuffer(&bounds, 0, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter,
+                                  0, 4);
         if (gXStatus.fCombatMode == 0) {
             buffer->SetText(gppStringList[0x77f], g_wiz_text_font_secondary);
         } else {
@@ -9191,7 +9191,7 @@ void ConfirmNpcTradeItem(void)
     }
     if ((g_npc_interaction->trade_mode == W8_NPC_TRADE_GIVE ||
          g_npc_interaction->trade_mode == W8_NPC_TRADE_SELL) &&
-        (g_npc_interaction->dialogue_text_120->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+        (g_npc_interaction->dialogue_text_120->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
         selected = g_status.selected_character;
         npc_kind = g_status.buffers.XChar[selected].npc_index;
         if (npc_kind != -1) {
@@ -9217,7 +9217,7 @@ void ConfirmNpcTradeItem(void)
             break;
         }
         slot = GetTextSlot1E8(2);
-        if ((g_npc_interaction->dialogue_text_120->m_stateFlags & g_W8TextControlMask005ED570) !=
+        if ((g_npc_interaction->dialogue_text_120->m_stateFlags & g_W8TextControlStateSecondary) !=
             0) {
             trading = &g_status.buffers.Char[g_status.selected_character];
             shown = 0;
@@ -9241,7 +9241,7 @@ void ConfirmNpcTradeItem(void)
                 }
             }
         } else if ((g_npc_interaction->dialogue_text_124->m_stateFlags &
-                    g_W8TextControlMask005ED570) != 0) {
+                    g_W8TextControlStateSecondary) != 0) {
             shown = 0;
             target = slot;
             if (g_npc_interaction->trade_mode != W8_NPC_TRADE_GIVE || slot != 0) {
@@ -9437,8 +9437,8 @@ void PopulateNpcTradeList(void)
                    false);
         AppendTextBoxLine(g_level_block->text_paint_scratch_000, 2);
     }
-    if ((g_npc_interaction->dialogue_text_120->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
-        if ((g_npc_interaction->dialogue_text_124->m_stateFlags & g_W8TextControlMask005ED570) !=
+    if ((g_npc_interaction->dialogue_text_120->m_stateFlags & g_W8TextControlStateSecondary) == 0) {
+        if ((g_npc_interaction->dialogue_text_124->m_stateFlags & g_W8TextControlStateSecondary) !=
             0) {
             for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
                 W8ItemInstance* item = &g_status.party_item_pool_0021[index];

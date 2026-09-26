@@ -170,15 +170,15 @@ W8CampStatsControls::W8CampStatsControls()
 {
     AcquireRegionSet(&g_camp_stats_controls_region_set);
     m_buttons[0] = new W8TextControl(this, -1, 0x13c, 0xbe, 0, 0, 0x145, 0, 0, 1, 2, 4, 3);
-    m_buttons[0]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
+    m_buttons[0]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
     m_buttons[0]->m_listener = this;
     m_buttons[0]->EnableRegionHelp(0x954);
     m_buttons[1] = new W8TextControl(this, -1, 0x13c, 0xd6, 0, 0, 0x145, 0, 5, 6, 7, 9, 8);
-    m_buttons[1]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
+    m_buttons[1]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
     m_buttons[1]->m_listener = this;
     m_buttons[1]->EnableRegionHelp(0x955);
     m_buttons[2] = new W8TextControl(this, -1, 0x13c, 0xf3, 0, 0, 0x145, 0, 10, 15, 12, 17, 13);
-    m_buttons[2]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
+    m_buttons[2]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
     m_buttons[2]->m_listener = this;
     m_buttons[2]->EnableRegionHelp(0x956);
     if (g_camp_screen->effect_items_only) {
@@ -203,14 +203,16 @@ W8CampStatsControls::~W8CampStatsControls()
 void W8CampStatsControls::OnPrimary(W8TextControl* control)
 {
     if (control == m_buttons[0]) {
-        if (static_cast<unsigned char>(m_buttons[0]->m_stateFlags & g_W8TextControlMask005ED570)) {
+        if (static_cast<unsigned char>(m_buttons[0]->m_stateFlags &
+                                       g_W8TextControlStateSecondary)) {
             m_buttons[1]->DisableSecondaryState(0);
             g_camp_screen->effect_filter = 1;
         } else {
             g_camp_screen->effect_filter = 0;
         }
     } else if (control == m_buttons[1]) {
-        if (static_cast<unsigned char>(m_buttons[1]->m_stateFlags & g_W8TextControlMask005ED570)) {
+        if (static_cast<unsigned char>(m_buttons[1]->m_stateFlags &
+                                       g_W8TextControlStateSecondary)) {
             m_buttons[0]->DisableSecondaryState(0);
             g_camp_screen->effect_filter = 2;
         } else {
@@ -218,8 +220,8 @@ void W8CampStatsControls::OnPrimary(W8TextControl* control)
         }
     } else {
         g_camp_screen->effect_items_only =
-            static_cast<unsigned char>(m_buttons[2]->m_stateFlags & g_W8TextControlMask005ED570) !=
-            0;
+            static_cast<unsigned char>(m_buttons[2]->m_stateFlags &
+                                       g_W8TextControlStateSecondary) != 0;
     }
     FilterCampEffectList();
     g_camp_screen->redraw_flags |= 0x20000;
@@ -1045,7 +1047,7 @@ void W8CharacterPersonalityPage::SetCharacter(W8Character* character,
         W8TextControl* entry =
             new W8TextControl(this, 0xffffffff, column * 0x80 + 0x24, row * 0xe + 0x107,
                               column * 0x80 + 0xa3, row * 0xe + 0x114, 0x105, 0, 5, 7, 6, 8, -1);
-        entry->AddLayoutFlags(g_W8TextControlMask005ED594);
+        entry->AddLayoutFlags(g_W8TextControlLayoutImageAtOrigin);
         m_personality_selection_08c.AddEntry(entry);
     }
     m_personality_selection_08c.SetSelected(character->personality_0081);
@@ -1055,7 +1057,7 @@ void W8CharacterPersonalityPage::SetCharacter(W8Character* character,
         int top = index == 0 ? 0x140 : 0x15d;
         W8TextControl* entry = new W8TextControl(this, 0xffffffff, 0x21, top, 0x69, top + 0xe,
                                                  0x105, 0, 5, 7, 6, 8, -1);
-        entry->AddLayoutFlags(g_W8TextControlMask005ED594);
+        entry->AddLayoutFlags(g_W8TextControlLayoutImageAtOrigin);
         m_voice_selection_0b0.AddEntry(entry);
     }
     ClampInteger(&character->voice_0085, 0, 1);
@@ -1249,7 +1251,7 @@ void W8CharacterPersonalityPage::Redraw()
             bounds.top = origin_y + 0x106 + (index / 3) * 0xe;
             bounds.bottom = bounds.top + 0xe;
             text.SetLayoutBounds(&bounds, 1, 1);
-            text.SetLayoutMode(g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548);
+            text.SetLayoutMode(g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft);
             text.SetText(gppStringList[*message_id], g_wiz_text_font_secondary);
             text.RenderToTarget(0, 1, -14);
         }
@@ -1258,7 +1260,7 @@ void W8CharacterPersonalityPage::Redraw()
         bounds.bottom = origin_y + 0x14d;
         bounds.left = origin_x + 0x29;
         bounds.right = origin_x + 0x69;
-        text.SetLayoutMode(g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED558);
+        text.SetLayoutMode(g_W8TextBufferAlignCenter | g_W8TextBufferAlignTop);
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x8d], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);

@@ -654,7 +654,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
             bounds.right = band_portrait_edge + 0x14;
             bounds.top = menu_y + 0x3e;
             bounds.bottom = menu_y + 0x46;
-            text.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+            text.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
             text.SetLayoutBounds(&bounds, 1, 1);
             SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
             text.SetText(FormatWideString(g_format_d_0060aa20, character->hp_current),

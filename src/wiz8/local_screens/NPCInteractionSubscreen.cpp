@@ -932,12 +932,12 @@ void CreateNpcDialogueControls(void)
     panel = state->panel_1a8;
     state->dialogue_text_10c =
         new W8TextControl(panel, 0xffffffff, 5, 2, 0x89, 0x12, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_10c->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
-                                                         g_W8TextBufferLayoutMask005ED54C);
+    state->dialogue_text_10c->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                         g_W8TextBufferAlignCenter);
     state->dialogue_text_1a4 =
         new W8TextControl(panel, 0xffffffff, 5, 0x47, 0x89, 0x57, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_1a4->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
-                                                         g_W8TextBufferLayoutMask005ED54C);
+    state->dialogue_text_1a4->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                         g_W8TextBufferAlignCenter);
     state->dialogue_text_110 =
         new W8TextControl(panel, 0x82, 2, 0x11, 0x45, 0x21, 0x1a9, 0, -1, 0xc, 10, 0xb, -1);
     state->dialogue_text_114 =
@@ -965,17 +965,17 @@ void CreateNpcDialogueControls(void)
                                                      0x14, 0x15, 0x16, 0x18, 0x17);
     state->option_buttons_170[5] = new W8TextControl(panel, 0x7a, 0x62, 0x46, 0x72, 0x56, 0x1ab, 0,
                                                      0x19, 0x1a, 0x1b, 0x1d, 0x1c);
-    state->option_buttons_170[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[0]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     state->option_buttons_170[0]->EnableRegionHelp(0x7c2);
-    state->option_buttons_170[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[1]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     state->option_buttons_170[1]->EnableRegionHelp(0x7c3);
-    state->option_buttons_170[2]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[2]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     state->option_buttons_170[2]->EnableRegionHelp(0x7c4);
-    state->option_buttons_170[3]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[3]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     state->option_buttons_170[3]->EnableRegionHelp(0x7c5);
-    state->option_buttons_170[4]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[4]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     state->option_buttons_170[4]->EnableRegionHelp(0x7c6);
-    state->option_buttons_170[5]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[5]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     state->option_buttons_170[5]->EnableRegionHelp(0x7c7);
     state->option_buttons_170[0]->m_primaryActivationCallback = ToggleNpcTradeFilterButton0;
     state->option_buttons_170[1]->m_primaryActivationCallback = ToggleNpcTradeFilterButton1;
@@ -1015,62 +1015,63 @@ void CreateNpcDialogueControls(void)
     panel = state->npc_dialogue_panel_1b4;
     state->dialogue_sort_button =
         new W8TextControl(panel, 0x6b, 6, 2, 0x89, 0xe, 0x1a9, 0, 8, 9, -1, -1, -1);
-    state->dialogue_sort_button->AddLayoutFlags(
-        g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C | g_W8TextControlMask005ED578);
+    state->dialogue_sort_button->AddLayoutFlags(g_W8TextControlLayoutImageLeft |
+                                                g_W8TextControlLayoutTextBesideImage |
+                                                g_W8TextControlLayoutToggle);
     state->dialogue_people_button =
         new W8TextControl(panel, 0x6d, 6, 0xf, 0x41, 0x1b, 0x1a9, 0, 8, 9, -1, -1, -1);
     state->dialogue_people_button->AddLayoutFlags(
-        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
-        g_W8TextControlMask005ED578);
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
     state->dialogue_places_button =
         new W8TextControl(panel, 0x6e, 0x43, 0xf, 0x89, 0x1b, 0x1a9, 0, 8, 9, -1, -1, -1);
     state->dialogue_places_button->AddLayoutFlags(
-        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
-        g_W8TextControlMask005ED578);
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
     state->dialogue_items_button =
         new W8TextControl(panel, 0x6f, 6, 0x1b, 0x41, 0x27, 0x1a9, 0, 8, 9, -1, -1, -1);
     state->dialogue_items_button->AddLayoutFlags(
-        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
-        g_W8TextControlMask005ED578);
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
     state->dialogue_misc_button =
         new W8TextControl(panel, 0x70, 0x43, 0x1b, 0x89, 0x27, 0x1a9, 0, 8, 9, -1, -1, -1);
     state->dialogue_misc_button->AddLayoutFlags(
-        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
-        g_W8TextControlMask005ED578);
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
     state->dialogue_all_button =
         new W8TextControl(panel, 0x71, 6, 0x27, 0x41, 0x33, 0x1a9, 0, 8, 9, -1, -1, -1);
     state->dialogue_all_button->AddLayoutFlags(
-        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
-        g_W8TextControlMask005ED578);
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
 
     panel = state->panel_1bc;
     state->dialogue_text_16c =
         new W8TextControl(panel, 0x74, 5, 0x14, 0x32, 0x49, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_16c->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED55C |
-                                                         g_W8TextBufferLayoutMask005ED550);
-    state->dialogue_text_16c->AddLayoutFlags(g_W8TextControlMask005ED594);
+    state->dialogue_text_16c->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignBottom |
+                                                         g_W8TextBufferAlignRight);
+    state->dialogue_text_16c->AddLayoutFlags(g_W8TextControlLayoutImageAtOrigin);
     state->dialogue_text_188 = new W8TextControl(panel, 0x7b, 0x35, 0x36, 0x51, 0x46, 0x1aa, 0,
                                                  0x1e, 0x22, 0x1f, 0x20, 0x21);
     state->dialogue_text_188->EnableRegionHelp(0x7c9);
     state->dialogue_text_190 =
         new W8TextControl(panel, 0x7d, 0x53, 0x4d, 0x86, 0x58, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_190->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                                         g_W8TextBufferLayoutMask005ED554);
+    state->dialogue_text_190->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignRight |
+                                                         g_W8TextBufferAlignMiddle);
     state->dialogue_text_190->SetEnabled(0);
     state->dialogue_text_194 =
         new W8TextControl(panel, 0x7e, 5, 0x4d, 0x51, 0x58, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_194->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
-                                                         g_W8TextBufferLayoutMask005ED54C);
+    state->dialogue_text_194->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                         g_W8TextBufferAlignCenter);
     state->dialogue_text_194->SetEnabled(0);
     state->dialogue_text_198 =
         new W8TextControl(panel, 0x7f, 0x53, 0x3a, 0x86, 0x45, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_198->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                                         g_W8TextBufferLayoutMask005ED554);
+    state->dialogue_text_198->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignRight |
+                                                         g_W8TextBufferAlignMiddle);
     state->dialogue_text_198->SetEnabled(0);
     state->dialogue_text_19c =
         new W8TextControl(panel, 0x80, 4, 4, 0x88, 0x11, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_19c->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
-                                                         g_W8TextBufferLayoutMask005ED54C);
+    state->dialogue_text_19c->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                         g_W8TextBufferAlignCenter);
     state->dialogue_text_19c->SetEnabled(0);
     state->dialogue_text_1a0 =
         new W8TextControl(panel, 0x81, 0x38, 0x22, 0x88, 0x34, -1, -1, -1, -1, -1, -1, -1);
@@ -2682,7 +2683,7 @@ void RefreshNpcDialogueTranscript(void)
 void SyncNpcDialogueListFilter(void)
 {
     if (static_cast<unsigned char>(g_npc_interaction->dialogue_sort_button->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_npc_interaction->transcript_sorted = 1;
     } else {
         g_npc_interaction->transcript_sorted = 0;
@@ -2695,7 +2696,7 @@ void SyncNpcDialogueListFilter(void)
 void SelectNpcDialogueCategory1(void)
 {
     if (static_cast<unsigned char>(g_npc_interaction->dialogue_people_button->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_npc_interaction->dialogue_category_filter = W8_DIALOGUE_CATEGORY_PEOPLE;
         SyncDialogueCategoryButtons();
     }
@@ -2707,7 +2708,7 @@ void SelectNpcDialogueCategory1(void)
 void SelectNpcDialogueCategory2(void)
 {
     if (static_cast<unsigned char>(g_npc_interaction->dialogue_places_button->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_npc_interaction->dialogue_category_filter = W8_DIALOGUE_CATEGORY_PLACES;
         SyncDialogueCategoryButtons();
     }
@@ -2719,7 +2720,7 @@ void SelectNpcDialogueCategory2(void)
 void SelectNpcDialogueCategory0(void)
 {
     if (static_cast<unsigned char>(g_npc_interaction->dialogue_items_button->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_npc_interaction->dialogue_category_filter = W8_DIALOGUE_CATEGORY_ITEMS;
         SyncDialogueCategoryButtons();
     }
@@ -2731,7 +2732,7 @@ void SelectNpcDialogueCategory0(void)
 void SelectNpcDialogueCategoryAll(void)
 {
     if (static_cast<unsigned char>(g_npc_interaction->dialogue_all_button->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_npc_interaction->dialogue_category_filter = W8_DIALOGUE_CATEGORY_ALL;
         SyncDialogueCategoryButtons();
     }
@@ -2743,7 +2744,7 @@ void SelectNpcDialogueCategoryAll(void)
 void SelectNpcDialogueCategory3(void)
 {
     if (static_cast<unsigned char>(g_npc_interaction->dialogue_misc_button->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_npc_interaction->dialogue_category_filter = W8_DIALOGUE_CATEGORY_MISC;
         SyncDialogueCategoryButtons();
     }
@@ -2800,14 +2801,14 @@ void OpenNpcDialogueOptionLayout(void)
     g_npc_interaction->dialogue_text_190->m_textBuffer.SetText(buffer, g_wiz_text_font_secondary);
     g_npc_interaction->dialogue_text_1a0->SetEnabled(0);
     g_npc_interaction->dialogue_text_1a0->m_primaryActivationCallback = ConfirmNpcTradeItem;
-    g_npc_interaction->dialogue_text_120->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_npc_interaction->dialogue_text_124->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_npc_interaction->dialogue_text_120->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_npc_interaction->dialogue_text_124->AddLayoutFlags(g_W8TextControlLayoutToggle);
     g_npc_interaction->dialogue_text_120->DisableSecondaryState(1);
     g_npc_interaction->dialogue_text_124->DisableSecondaryState(1);
-    g_npc_interaction->dialogue_text_110->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_npc_interaction->dialogue_text_114->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_npc_interaction->dialogue_text_118->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_npc_interaction->dialogue_text_11c->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_npc_interaction->dialogue_text_110->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_npc_interaction->dialogue_text_114->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_npc_interaction->dialogue_text_118->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_npc_interaction->dialogue_text_11c->AddLayoutFlags(g_W8TextControlLayoutToggle);
     UpdateNpcDialogueSubMode();
     g_npc_interaction->pending_trade_toggle = 1;
     if (g_npc_interaction->reopen_topics != 0) {
@@ -2939,12 +2940,12 @@ void CloseNpcDialogueOptionLayout(void)
     text = g_npc_interaction->dialogue_text_124;
     text->m_textBuffer.SetFontStateIndex(-1);
     text->m_textBuffer.SetGeometryDirty();
-    g_npc_interaction->dialogue_text_110->RemoveLayoutFlags(g_W8TextControlMask005ED578);
-    g_npc_interaction->dialogue_text_114->RemoveLayoutFlags(g_W8TextControlMask005ED578);
-    g_npc_interaction->dialogue_text_118->RemoveLayoutFlags(g_W8TextControlMask005ED578);
-    g_npc_interaction->dialogue_text_11c->RemoveLayoutFlags(g_W8TextControlMask005ED578);
-    g_npc_interaction->dialogue_text_120->RemoveLayoutFlags(g_W8TextControlMask005ED578);
-    g_npc_interaction->dialogue_text_124->RemoveLayoutFlags(g_W8TextControlMask005ED578);
+    g_npc_interaction->dialogue_text_110->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
+    g_npc_interaction->dialogue_text_114->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
+    g_npc_interaction->dialogue_text_118->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
+    g_npc_interaction->dialogue_text_11c->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
+    g_npc_interaction->dialogue_text_120->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
+    g_npc_interaction->dialogue_text_124->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
     g_npc_interaction->dialogue_text_110->SetEnabled(1);
     g_npc_interaction->dialogue_text_114->SetEnabled(1);
     g_npc_interaction->dialogue_text_118->SetEnabled(1);
@@ -3118,9 +3119,9 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
             --index;
         }
         if (static_cast<unsigned char>(g_npc_interaction->dialogue_text_120->m_stateFlags &
-                                       g_W8TextControlMask005ED570) == 0) {
+                                       g_W8TextControlStateSecondary) == 0) {
             if (static_cast<unsigned char>(g_npc_interaction->dialogue_text_124->m_stateFlags &
-                                           g_W8TextControlMask005ED570) != 0 &&
+                                           g_W8TextControlStateSecondary) != 0 &&
                 g_status.party_item_count_1791 != 0) {
                 i = 0;
                 do {
@@ -3461,7 +3462,7 @@ void EnableNpcTradeFilterButtons(void)
 void ToggleNpcTradeFilterButton0(void)
 {
     if (static_cast<unsigned char>(g_npc_interaction->option_buttons_170[0]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         switch (g_npc_interaction->trade_filter & 0x3c) {
         case 8:
             g_npc_interaction->option_buttons_170[3]->DisableSecondaryState(1);
@@ -3488,7 +3489,7 @@ void ToggleNpcTradeFilterButton0(void)
 void ToggleNpcTradeFilterButton1(void)
 {
     if (static_cast<unsigned char>(g_npc_interaction->option_buttons_170[1]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         switch (g_npc_interaction->trade_filter & 0x3c) {
         case 4:
             g_npc_interaction->option_buttons_170[0]->DisableSecondaryState(1);
@@ -3515,7 +3516,7 @@ void ToggleNpcTradeFilterButton1(void)
 void ToggleNpcTradeFilterButton3(void)
 {
     if (static_cast<unsigned char>(g_npc_interaction->option_buttons_170[3]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         switch (g_npc_interaction->trade_filter & 0x3c) {
         case 4:
             g_npc_interaction->option_buttons_170[0]->DisableSecondaryState(1);
@@ -3542,7 +3543,7 @@ void ToggleNpcTradeFilterButton3(void)
 void ToggleNpcTradeFilterButton4(void)
 {
     if (static_cast<unsigned char>(g_npc_interaction->option_buttons_170[4]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         switch (g_npc_interaction->trade_filter & 0x3c) {
         case 4:
             g_npc_interaction->option_buttons_170[0]->DisableSecondaryState(1);
@@ -3572,7 +3573,7 @@ void ToggleNpcTradeFilterButton4(void)
 void ToggleNpcTradeFilterButton2(void)
 {
     if (static_cast<unsigned char>(g_npc_interaction->option_buttons_170[2]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_npc_interaction->option_buttons_170[5]->DisableSecondaryState(1);
         g_npc_interaction->trade_filter &= ~0x40;
         g_npc_interaction->trade_filter |= 1;
@@ -3587,7 +3588,7 @@ void ToggleNpcTradeFilterButton2(void)
 void ToggleNpcTradeFilterButton5(void)
 {
     if (static_cast<unsigned char>(g_npc_interaction->option_buttons_170[5]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_npc_interaction->option_buttons_170[2]->DisableSecondaryState(1);
         g_npc_interaction->trade_filter &= ~1;
         g_npc_interaction->trade_filter |= 0x40;
@@ -3649,7 +3650,7 @@ void OpenNpcDialogueMode1Layout(void)
     g_npc_interaction->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1ccc / 4],
                                                                g_wiz_text_font_secondary);
     g_npc_interaction->dialogue_text_11c->m_primaryActivationCallback = RequestNpcCharacterService;
-    g_npc_interaction->dialogue_text_11c->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_npc_interaction->dialogue_text_11c->AddLayoutFlags(g_W8TextControlLayoutToggle);
     g_npc_interaction->dialogue_text_11c->EnableRegionHelp(0x7ca);
     g_npc_interaction->dialogue_text_118->SetActive(0);
     g_npc_interaction->dialogue_text_120->SetActive(0);
@@ -3677,7 +3678,7 @@ void CloseNpcDialogueMode1Layout(void)
 {
     RegionSetDisable(0x18);
     RegionSetDisable(0x17);
-    g_npc_interaction->dialogue_text_11c->RemoveLayoutFlags(g_W8TextControlMask005ED578);
+    g_npc_interaction->dialogue_text_11c->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
     g_npc_interaction->panel_1a8->SetEnabled(0);
     g_npc_interaction->panel_1ac->SetEnabled(0);
     g_npc_interaction->panel_1b8->SetEnabled(0);
@@ -3751,7 +3752,7 @@ W8ItemInstance* GetNpcTradeSlotItem(int index)
     character = &g_status.buffers.Char[g_status.selected_character];
     hit = 0;
     if (static_cast<unsigned char>(g_npc_interaction->dialogue_text_11c->m_stateFlags &
-                                   g_W8TextControlMask005ED570) == 0) {
+                                   g_W8TextControlStateSecondary) == 0) {
         return 0;
     }
     for (slot = 0; slot < 12; ++slot) {

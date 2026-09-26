@@ -304,7 +304,7 @@ void W8CharacterSpellsPage::Redraw()
     W8ControlsRect bounds;
 
     W8CharacterPage::Redraw();
-    text.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+    text.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     if (m_prepared_06c) {
         bounds.left = 4;
         bounds.top = 0xec;
@@ -344,7 +344,7 @@ void W8CharacterSpellsPage::Redraw()
             if (m_realms_074[realm]->m_entry_count == 0) {
                 continue;
             }
-            text.SetLayoutMode(g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+            text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
             bounds.left = origin_x + 0x29 + (realm % 2) * 0xd7;
             bounds.top = origin_y + 0x0f + (realm / 2) * 0x82;
             bounds.right = bounds.left + 0x3c;
@@ -355,13 +355,13 @@ void W8CharacterSpellsPage::Redraw()
                          g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
             text.SetFontStateIndex(-1);
-            text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
+            text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(FormatWideString(g_format_d_0060aa20,
                                           m_character_060->skills[0x1c + realm].points_02),
                          g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
 
-            text.SetLayoutMode(g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+            text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
             bounds.left += 0x58;
             bounds.right = bounds.left + 0x53;
             text.SetLayoutBounds(&bounds, 1, 1);
@@ -370,7 +370,7 @@ void W8CharacterSpellsPage::Redraw()
                          g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
             text.SetFontStateIndex(-1);
-            text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
+            text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(FormatWideString(g_format_d_slash_d,
                                           GetCharacterRealmSpellPoints(m_character_060, realm),
                                           m_character_060->sp_max[realm]),

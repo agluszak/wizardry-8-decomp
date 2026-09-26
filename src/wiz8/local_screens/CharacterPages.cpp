@@ -65,15 +65,15 @@ W8CharacterPageEntry::W8CharacterPageEntry(Controls* owner, int x, int y, bool c
     int split = m_x_030 + (compact ? 0x6d : 0x78);
     W8ControlsRect bounds = {m_x_030 + 5, m_y_034 + 1, split, m_y_034 + 0xd};
     m_label_014 = new W8TextBuffer(&bounds, 0, 0, 0, 4);
-    m_label_014->SetLayoutMode(g_W8TextBufferLayoutMask005ED548);
+    m_label_014->SetLayoutMode(g_W8TextBufferAlignLeft);
     bounds.left = split;
     bounds.right = split + 0x17;
     m_first_text_018 = new W8TextBuffer(&bounds, 0, 0, 0, 4);
-    m_first_text_018->SetLayoutMode(g_W8TextBufferLayoutMask005ED550);
+    m_first_text_018->SetLayoutMode(g_W8TextBufferAlignRight);
     bounds.left = split + 0x2a;
     bounds.right = split + 0x39;
     m_second_text_01c = new W8TextBuffer(&bounds, 0, 0, 0, 4);
-    m_second_text_01c->SetLayoutMode(g_W8TextBufferLayoutMask005ED550);
+    m_second_text_01c->SetLayoutMode(g_W8TextBufferAlignRight);
 
     int relative_split = split - owner->origin_x;
     m_decrement_00c = new W8TextControl(owner, 0xffffffff, relative_split + 0x1b, y + 1, 0, 0,

@@ -950,8 +950,7 @@ unsigned char W8AssayDialog::CreateTextBuffers()
         bounds.bottom = m_y + g_assay_text_buffer_offsets[index].bottom;
         m_text_buffers[index] = new W8TextBuffer(
             &bounds, gppStringList[g_assay_text_buffer_string_ids[index]],
-            g_wiz_text_font_secondary,
-            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
+            g_wiz_text_font_secondary, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
         if (m_text_buffers[index] == 0) {
             for (index = 0; index < W8_ASSAY_TEXT_BUFFER_COUNT; ++index) {
                 if (m_text_buffers[index] != 0) {

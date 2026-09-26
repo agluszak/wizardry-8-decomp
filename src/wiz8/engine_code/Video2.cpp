@@ -3360,9 +3360,8 @@ void VideoToolTip(UINT16* text)
     bounds.top = 0;
     bounds.right = 0xfa;
     bounds.bottom = 0xfa;
-    W8TextBuffer* buffer =
-        new W8TextBuffer(&bounds, text, g_font10arial,
-                         g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548, 4);
+    W8TextBuffer* buffer = new W8TextBuffer(&bounds, text, g_font10arial,
+                                            g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4);
     if (buffer == 0) {
         return;
     }

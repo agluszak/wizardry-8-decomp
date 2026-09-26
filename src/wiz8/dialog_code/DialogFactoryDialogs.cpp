@@ -833,7 +833,7 @@ unsigned char W8SplitAmountDialog::CreateTextBuffers()
         bounds.bottom = g_split_amount_text_bounds[index].bottom + m_y;
         m_text_buffers_06c[index] = new W8TextBuffer(
             &bounds, gppStringList[g_split_amount_string_ids[index]], g_wiz_text_font_secondary,
-            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED550, 4);
+            g_W8TextBufferAlignMiddle | g_W8TextBufferAlignRight, 4);
         if (m_text_buffers_06c[index] == 0) {
             for (index = 0; index < 3; ++index) {
                 if (m_text_buffers_06c[index] != 0) {

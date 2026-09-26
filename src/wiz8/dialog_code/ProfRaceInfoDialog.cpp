@@ -123,13 +123,13 @@ void W8ProfRaceInfoDialogBase::Draw()
         W8DialogBase::Draw();
         DrawCatalogImageAndInvalidate(-0xe, m_uiTitleId, 0, m_uiSummaryId, m_x + 0xd, m_y + 0xd, 2,
                                       0);
-        DrawTextLine(g_W8TextBufferLayoutMask005ED548, 0x25, 0xb, 0x147, 0x18,
-                     gppStringList[m_uiNameId], g_options_detail_font);
-        DrawTextLine(g_W8TextBufferLayoutMask005ED54C, 0xd, 0x29, 0x8e, 0xc,
-                     gppStringList[m_uiHeadingId], g_wiz_text_font_secondary);
+        DrawTextLine(g_W8TextBufferAlignLeft, 0x25, 0xb, 0x147, 0x18, gppStringList[m_uiNameId],
+                     g_options_detail_font);
+        DrawTextLine(g_W8TextBufferAlignCenter, 0xd, 0x29, 0x8e, 0xc, gppStringList[m_uiHeadingId],
+                     g_wiz_text_font_secondary);
         int top = 0x37;
         for (int attribute = 0; attribute < ATTR_COUNT; ++attribute) {
-            DrawTextLine(g_W8TextBufferLayoutMask005ED548, 0x10, top, 0x74, 0xc,
+            DrawTextLine(g_W8TextBufferAlignLeft, 0x10, top, 0x74, 0xc,
                          gppStringList[g_character_description_first_ids[attribute]],
                          g_wiz_text_font_secondary);
             const wchar_t* minimum;
@@ -139,7 +139,7 @@ void W8ProfRaceInfoDialogBase::Draw()
                 minimum = FormatWideString(g_format_d_0060aa20, m_minimums[attribute],
                                            g_wiz_text_font_secondary);
             }
-            DrawTextLine(g_W8TextBufferLayoutMask005ED54C, 0x85, top, 0x16, 0xc, minimum,
+            DrawTextLine(g_W8TextBufferAlignCenter, 0x85, top, 0x16, 0xc, minimum,
                          g_wiz_text_font_secondary);
             top += 0xe;
         }
@@ -154,7 +154,7 @@ void W8ProfRaceInfoDialogBase::DrawTextLine(unsigned int layout_mode, int left, 
                                             int height, const wchar_t* text, int font)
 {
     W8TextBuffer buffer;
-    buffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 | layout_mode);
+    buffer.SetLayoutMode(g_W8TextBufferAlignMiddle | layout_mode);
     W8ControlsRect bounds;
     bounds.left = m_x + left;
     bounds.right = bounds.left + width;

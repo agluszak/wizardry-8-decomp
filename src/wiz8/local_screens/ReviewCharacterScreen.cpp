@@ -661,29 +661,29 @@ void DrawCampCharacterInfo(void)
         }
     }
     DrawRcsText(gppStringList[0x246c / 4], 0x159, 10, 0xce,
-                g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     DrawRcsText(gppStringList[0x2470 / 4], 0x15e, 0x18, 0x65,
-                g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+                g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     DrawRcsText(gppStringList[0x2474 / 4], 0x15e, 0x26, 0x65,
-                g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+                g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     FormatUnsignedIntegerWithCommas(state->caption, character->experience);
     DrawRcsText(state->caption, 0x1c0, 0x18, 0x67,
-                g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     FormatUnsignedIntegerWithCommas(state->caption, character->experience_goal);
     DrawRcsText(state->caption, 0x1c0, 0x26, 0x67,
-                g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     DrawRcsText(gppStringList[0x2478 / 4], 0x144, 0x3a, 0x45,
-                g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+                g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     DrawRcsText(gppStringList[0x247c / 4], 0x144, 0x48, 0x45,
-                g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+                g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     DrawRcsText(gppStringList[0x2480 / 4], 0x144, 0x56, 0x45,
-                g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+                g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     swprintf(state->caption, g_format_d_slash_d, character->hp_current, character->uiHPMax);
     DrawRcsText(state->caption, 0x18d, 0x3a, 0x2c,
-                g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     swprintf(state->caption, g_format_d_slash_d, character->stamina, character->uiStaminaMax);
     DrawRcsText(state->caption, 0x18d, 0x48, 0x2c,
-                g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     if (character->load_category != 0) {
         SetFontObjectPalette16BPP(
             g_wiz_text_font_secondary,
@@ -692,21 +692,21 @@ void DrawCampCharacterInfo(void)
     swprintf(state->caption, g_format_d_slash_d, character->total_carried_weight / 10,
              character->carrying_capacity / 10);
     DrawRcsTextJustified(state->caption, 0x18d, 0x56, 0x2c, 0xc,
-                         g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                         g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     swprintf(state->caption, g_format_s_colon_d_s_colon_d, gppStringList[0x2300 / 4],
              character->inventory_weight / 10, gppStringList[0x2304 / 4],
              character->party_weight_share / 10);
     g_camp_help_text->SetRegionHelp(state->caption);
     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
     DrawRcsText(gppStringList[0x2484 / 4], 0x144, 0x72, 0x75,
-                g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     top = 0x3a;
     for (index = 0; index < 7; ++index) {
         DrawRcsText(gppStringList[g_attribute_label_ids[index]], 0x1c2, top, 0x4c,
-                    g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
         swprintf(state->caption, g_format_d_0060aa20, character->attributes[index].effective);
         DrawRcsText(state->caption, 0x212, top, 0x14,
-                    g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                    g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
         top += 0xe;
     }
     top = 0xd;
@@ -718,7 +718,7 @@ void DrawCampCharacterInfo(void)
             swprintf(state->caption, g_format_d_slash_d,
                      GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
             DrawTallRcsText(state->caption, 0x242, top, 0x32,
-                            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                            g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
             frame = g_spell_realm_animations[realm].initial_frame;
         }
         DrawCatalogImageAndInvalidate(-14, g_character_resistance_images[realm], 0, frame, 0x22d,
@@ -726,15 +726,15 @@ void DrawCampCharacterInfo(void)
         top += 0x18;
     }
     DrawRcsText(gppStringList[0x2488 / 4], 0x144, 0x80, 0x45,
-                g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+                g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     swprintf(state->caption, g_format_d_0060aa20, character->armor_class_total);
     DrawRcsText(state->caption, 0x18d, 0x80, 0x2c,
-                g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     DrawRcsText(gppStringList[0x248c / 4], 0x144, 0x8e, 0x45,
-                g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+                g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     swprintf(state->caption, g_format_d_0060aa20, character->armor_class_average);
     DrawRcsText(state->caption, 0x18d, 0x8e, 0x2c,
-                g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     g_camp_secondary_panel->Invalidate(0);
 }
 
@@ -755,7 +755,7 @@ void DrawCampBackpackItems(void)
     if ((state->item_redraw_flags & 1) != 0) {
         DrawCatalogImageAndInvalidate(-14, 0x114, 0, 1, 0, 0xa5, 2, 0);
         DrawRcsBoldText(gppStringList[0x24ac / 4], 0xc, 0xae, 0x5d,
-                        g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                        g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     }
     for (slot = 0; slot < 8; ++slot) {
         left = (slot & 1) * 0x31 + 0xb;
@@ -859,7 +859,7 @@ void DrawCampEquipmentItems(void)
         swprintf(state->caption, g_format_d_0060aa20, character->armor_class_by_location[frame]);
         DrawCatalogImageAndInvalidate(-14, 0x11c, 0, 0, region->x + 2, region->y + 1, 2, 0);
         DrawRcsText(state->caption, region->x + 2, region->y + 2, 0x11,
-                    g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                    g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     no_armor_label:
         DrawCatalogImageAndInvalidate(-14, 0x115, 0, region->frame_10 + 3, region->x - 2,
                                       region->y - 2, 2, 0);
@@ -925,10 +925,10 @@ void DrawCampItemPool(void)
     }
     if ((state->item_redraw_flags & 0x400000) != 0) {
         DrawRcsBoldText(gppStringList[0x24b0 / 4], 0x1e6, 0xae, 0x8d,
-                        g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                        g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
         FormatUnsignedIntegerWithCommas(state->caption, g_status.party_gold);
         DrawRcsText(state->caption, 0x229, 0x1a9, 0x30,
-                    g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                    g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     }
     for (i = 0;; ++i) {
         visible = state->item_list_count - state->item_scroll;
@@ -1001,7 +1001,7 @@ void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
         if (item->stack_count > 1) {
             swprintf(state->caption, g_format_d_0060aa20, item->stack_count);
             DrawRcsText(state->caption, left, top, width,
-                        g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED550);
+                        g_W8TextBufferAlignMiddle | g_W8TextBufferAlignRight);
         }
         break;
     case 2:
@@ -1014,14 +1014,14 @@ void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
         }
         height = GetFontHeight(g_wiz_text_font_secondary);
         DrawRcsTextJustified(state->caption, left, top, width, height,
-                             g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED550);
+                             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignRight);
         break;
     case 4:
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[5]);
         swprintf(state->caption, g_format_d_0060aa20, item->uses_or_charges);
         height = GetFontHeight(g_wiz_text_font_secondary);
         DrawRcsTextJustified(state->caption, left, top, width, height,
-                             g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED550);
+                             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignRight);
         break;
     }
     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
@@ -1124,51 +1124,51 @@ void W8CampCharacterInfo::Redraw()
         return;
     InvalidateCampPanel();
     DrawRcsText(gppStringList[0x24d4 / 4], 0x15e, 0x84, 0x4e,
-                g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED548);
+                g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
     swprintf(g_camp_screen->caption, L"%d", g_review_character->kill_count_09f9);
     DrawRcsText(g_camp_screen->caption, 0x1ae, 0x84, 0x20,
-                g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
     DrawRcsText(gppStringList[0x24d8 / 4], 0x15e, 0x92, 0x4e,
-                g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED548);
+                g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
     swprintf(g_camp_screen->caption, L"%d", g_review_character->death_count_09fd);
     DrawRcsText(g_camp_screen->caption, 0x1ae, 0x92, 0x20,
-                g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
     if (m_combat_view) {
         DrawRcsText(gppStringList[0x22c0 / 4], 0x15b, 10, 0x11d,
-                    g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         DrawRcsText(gppStringList[0x22c4 / 4], 0x15e, 0x30, 0x4e,
-                    g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED548);
+                    g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
         swprintf(g_camp_screen->caption, L"%d", g_review_character->initiative);
         DrawRcsText(g_camp_screen->caption, 0x1ae, 0x30, 0x20,
-                    g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         if (g_review_character->EquippedItem[6].iItemNo == -1 &&
             g_review_character->EquippedItem[7].iItemNo == -1) {
             DrawRcsText(gppStringList[0x22d4 / 4], 0x1d6, 0x22, 0x50,
-                        g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             DrawRcsText(gppStringList[0x22d0 / 4], 0x228, 0x22, 0x50,
-                        g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         } else {
             DrawRcsText(gppStringList[0x22c8 / 4], 0x1d6, 0x22, 0x50,
-                        g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             DrawRcsText(gppStringList[0x22cc / 4], 0x228, 0x22, 0x50,
-                        g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         }
         DrawRcsText(gppStringList[0x22d8 / 4], 0x1f8, 0x30, 0x5e,
-                    g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         DrawRcsText(gppStringList[0x22f4 / 4], 0x1f8, 0x3e, 0x5e,
-                    g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         DrawRcsText(gppStringList[0x22f0 / 4], 0x1f8, 0x4c, 0x5e,
-                    g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         DrawRcsText(gppStringList[0x22e8 / 4], 0x1f8, 0x5a, 0x5e,
-                    g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         DrawRcsText(gppStringList[0x22ec / 4], 0x1f8, 0x68, 0x5e,
-                    g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         DrawRcsText(gppStringList[0x22dc / 4], 0x1f8, 0x76, 0x5e,
-                    g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         DrawRcsText(gppStringList[0x22e0 / 4], 0x1f8, 0x84, 0x5e,
-                    g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         DrawRcsText(gppStringList[0x22e4 / 4], 0x1f8, 0x92, 0x5e,
-                    g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         bool unknown_partner =
             ItemHasSingledOutGenericName(g_review_character->EquippedItem[6].iItemNo) &&
             !g_review_character->EquippedItem[7].identified;
@@ -1182,8 +1182,7 @@ void W8CampCharacterInfo::Redraw()
                  (hand == 0 && unknown_partner))) {
                 for (int row = 0; row < 8; ++row) {
                     DrawRcsText(L"?", x, 0x30 + row * 14, 0x20,
-                                g_W8TextBufferLayoutMask005ED54C |
-                                    g_W8TextBufferLayoutMask005ED554);
+                                g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
                 }
                 wcscpy(g_camp_screen->caption, gppStringList[0x2570 / 4]);
                 wcscat(g_camp_screen->caption, L"?");
@@ -1216,10 +1215,10 @@ void W8CampCharacterInfo::Redraw()
             swprintf(g_camp_screen->caption, L"%+d",
                      attack->damage_bonus + g_review_character->bonus_1770.damage_bonus_00);
             DrawRcsText(g_camp_screen->caption, x, 0x30, 0x20,
-                        g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             swprintf(g_camp_screen->caption, L"%d-%d", minimum, maximum);
             DrawRcsText(g_camp_screen->caption, x, 0x3e, 0x20,
-                        g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             wcscpy(g_camp_screen->caption, gppStringList[0x2570 / 4]);
             wcscat(g_camp_screen->caption, FormatWideString(L" %d, ", dice.base + dice.count));
             wcscat(g_camp_screen->caption, gppStringList[0x256c / 4]);
@@ -1230,7 +1229,7 @@ void W8CampCharacterInfo::Redraw()
             m_values[hand + 2]->SetRegionHelp(g_camp_screen->caption);
             swprintf(g_camp_screen->caption, L"%d", skill_bonus + hit_bonus);
             DrawRcsText(g_camp_screen->caption, x, 0x4c, 0x20,
-                        g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             wcscpy(g_camp_screen->caption, gppStringList[0x2564 / 4]);
             wcscat(g_camp_screen->caption, FormatWideString(L" %d, ", skill_bonus));
             wcscat(g_camp_screen->caption, gppStringList[0x2568 / 4]);
@@ -1238,24 +1237,24 @@ void W8CampCharacterInfo::Redraw()
             m_values[hand]->SetRegionHelp(g_camp_screen->caption);
             swprintf(g_camp_screen->caption, L"%d", attack->attacks);
             DrawRcsText(g_camp_screen->caption, x, 0x5a, 0x20,
-                        g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             swprintf(g_camp_screen->caption, L"%d", attack->swings);
             DrawRcsText(g_camp_screen->caption, x, 0x68, 0x20,
-                        g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             swprintf(g_camp_screen->caption, L"%+d", hit_bonus);
             DrawRcsText(g_camp_screen->caption, x, 0x76, 0x20,
-                        g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             swprintf(g_camp_screen->caption, L"%+d",
                      attack->attack_bonus_25 + g_review_character->bonus_1770.attack_bonus_02);
             DrawRcsText(g_camp_screen->caption, x, 0x84, 0x20,
-                        g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             swprintf(g_camp_screen->caption, L"%+d%%", damage_bonus);
             DrawRcsText(g_camp_screen->caption, x, 0x92, 0x20,
-                        g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         }
     } else {
         DrawRcsText(gppStringList[0x22f8 / 4], 0x15b, 10, 0x11d,
-                    g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         for (unsigned int component = 0; component < 12; ++component) {
             if (component == 11 && g_review_character->armor_class_components[11] == 0)
                 continue;
@@ -1263,19 +1262,19 @@ void W8CampCharacterInfo::Redraw()
             int label_x = component / 6 ? 0x1ef : 0x15e;
             int value_x = component / 6 ? 600 : 0x1c7;
             DrawRcsText(gppStringList[g_camp_armor_class_labels[component]], label_x, y, 0x67,
-                        g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED548);
+                        g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
             int value = g_review_character->armor_class_components[component];
             if (value) {
                 swprintf(g_camp_screen->caption, L"%+d", value);
                 DrawRcsText(g_camp_screen->caption, value_x, y, 0x20,
-                            g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                            g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             }
         }
         DrawRcsText(gppStringList[0x22fc / 4], 0x1da, 0x84, 0x7c,
-                    g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED548);
+                    g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
         swprintf(g_camp_screen->caption, L"%d%%", g_review_character->damage_reduction);
         DrawRcsText(g_camp_screen->caption, 600, 0x84, 0x20,
-                    g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
+                    g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
     }
 }
 
@@ -3022,8 +3021,7 @@ void ShowEndingScreen(void)
     bounds.right = 0x239;
     bounds.bottom = 0x1d0;
     {
-        W8TextBuffer buffer(&bounds, text, g_options_detail_font, g_W8TextBufferLayoutMask005ED55C,
-                            4);
+        W8TextBuffer buffer(&bounds, text, g_options_detail_font, g_W8TextBufferAlignBottom, 4);
         buffer.RenderToTarget(0, 0, -14);
     }
     SetRadarMapVisible(0);

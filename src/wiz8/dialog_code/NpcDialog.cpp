@@ -117,9 +117,9 @@ int W8NpcDialog::CreateControls()
         bounds.top = m_y + 10;
         bounds.right = m_x + m_width - 10;
         bounds.bottom = m_y + 0x19;
-        m_text_buffers[0] = new W8TextBuffer(
-            &bounds, gppStringList[0x7e4], g_wiz_text_font_secondary,
-            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
+        m_text_buffers[0] =
+            new W8TextBuffer(&bounds, gppStringList[0x7e4], g_wiz_text_font_secondary,
+                             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
     } else if (m_message->kind_00 == 18 || m_message->kind_00 == 30) {
         short x = static_cast<short>((m_width - static_cast<short>((m_text_width + 5) * 2)) / 2);
         m_buttons[0] = new W8DialogButton;
@@ -136,17 +136,17 @@ int W8NpcDialog::CreateControls()
         bounds.top = m_y + 10;
         bounds.right = m_x + m_width - 10;
         bounds.bottom = m_y + 0x19;
-        m_text_buffers[0] = new W8TextBuffer(
-            &bounds, line, g_wiz_text_font_secondary,
-            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
+        m_text_buffers[0] =
+            new W8TextBuffer(&bounds, line, g_wiz_text_font_secondary,
+                             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
         swprintf(line, g_format_s_dg, gppStringList[0x7e6], g_status.party_gold);
         bounds.left = m_x + 10;
         bounds.top = m_y + 0x37;
         bounds.right = m_x + m_width - 10;
         bounds.bottom = m_y + 0x46;
-        m_text_buffers[1] = new W8TextBuffer(
-            &bounds, line, g_wiz_text_font_secondary,
-            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
+        m_text_buffers[1] =
+            new W8TextBuffer(&bounds, line, g_wiz_text_font_secondary,
+                             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
     } else if (m_message->kind_00 == 19) {
         SetTextInputScheme(1);
         m_input_field = AddTextInputField(m_x + (m_width - 0x8c) / 2, m_y + 0x23, 0x8c, 0x10, 0x7f,
@@ -156,9 +156,9 @@ int W8NpcDialog::CreateControls()
         bounds.top = m_y + 10;
         bounds.right = m_x + m_width - 10;
         bounds.bottom = m_y + 0x19;
-        m_text_buffers[0] = new W8TextBuffer(
-            &bounds, gppStringList[0x7e4], g_wiz_text_font_secondary,
-            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
+        m_text_buffers[0] =
+            new W8TextBuffer(&bounds, gppStringList[0x7e4], g_wiz_text_font_secondary,
+                             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
     }
     return 0;
 }

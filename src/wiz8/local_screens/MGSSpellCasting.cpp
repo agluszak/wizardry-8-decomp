@@ -134,11 +134,11 @@ static void CreateSpellCastingViewControls(void)
     gpSCSV->realm_buttons[5] =
         new W8TextControl(panel, 0x90, 0x71, 0x39, 0xbc, 0x4f, 0x191, 0, 4, 7, 5, 7, 6);
     for (index = 0; index < W8_SPELL_REALM_COUNT; ++index) {
-        gpSCSV->realm_buttons[index]->AddLayoutFlags(g_W8TextControlMask005ED578);
+        gpSCSV->realm_buttons[index]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     }
     for (index = 0; index < W8_SPELL_REALM_COUNT; ++index) {
-        gpSCSV->realm_buttons[index]->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
-                                                                 g_W8TextBufferLayoutMask005ED54C);
+        gpSCSV->realm_buttons[index]->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                                 g_W8TextBufferAlignCenter);
     }
     gpSCSV->realm_buttons[0]->UpdateTextBounds(0x1e, 0xd, 0x55, 0x23);
     gpSCSV->realm_buttons[1]->UpdateTextBounds(0x85, 0xd, 0xbc, 0x23);
@@ -201,7 +201,7 @@ static void CreateSpellCastingViewControls(void)
     gpSCSV->power_pips[7]->SetFlaggedRegionBounds(0x1e, 0x2d, 0xe);
     gpSCSV->power_pips[8]->SetFlaggedRegionBounds(0x1e, 0x2d, 0xe);
     for (index = 0; index < 9; ++index) {
-        gpSCSV->power_pips[index]->AddLayoutFlags(g_W8TextControlMask005ED578);
+        gpSCSV->power_pips[index]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     }
     gpSCSV->power_pips[0]->m_primaryActivationCallback = SelectSpellPowerPip0;
     gpSCSV->power_pips[1]->m_primaryActivationCallback = SelectSpellPowerPip1;
@@ -215,8 +215,8 @@ static void CreateSpellCastingViewControls(void)
 
     gpSCSV->spell_name =
         new W8TextControl(panel, 0x9a, 0xe, 10, 0x30, 0x18, -1, -1, -1, -1, -1, -1, -1);
-    gpSCSV->spell_name->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
-                                                   g_W8TextBufferLayoutMask005ED54C);
+    gpSCSV->spell_name->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                   g_W8TextBufferAlignCenter);
     gpSCSV->cancel_button =
         new W8TextControl(panel, 0x9b, 0x96, 6, 0xb1, 0x21, 0x8e, 0, 4, -1, 5, 6, 7);
     gpSCSV->cancel_button->m_primaryActivationCallback = ResetSpellCastingSelection;
@@ -958,7 +958,7 @@ void SelectSpellPowerPip7(void)
     int pip;
 
     if (static_cast<unsigned char>(gpSCSV->power_pips[7]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         for (pip = 0; pip < 7; ++pip) {
             W8TextControl* control = gpSCSV->power_pips[pip];
             if (control->m_enabled) {
@@ -983,7 +983,7 @@ void SelectSpellPowerPip7(void)
 void SelectSpellPowerPip8(void)
 {
     if (static_cast<unsigned char>(gpSCSV->power_pips[8]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
         gpSCSV->spell_name->m_textBuffer.SetText(L"?", g_wiz_text_font_secondary);
         gpSCSV->iSpellPower = 7;
@@ -1005,7 +1005,7 @@ void SelectSpellPowerLevel(int power_level)
     gpSCSV->panels[2]->Invalidate(0);
     if (power_level == -1 ||
         (static_cast<unsigned char>(gpSCSV->power_pips[power_level]->m_stateFlags &
-                                    g_W8TextControlMask005ED570) == 0 &&
+                                    g_W8TextControlStateSecondary) == 0 &&
          gpSCSV->iSpellPower == power_level)) {
         for (pip = 0; pip < 7; ++pip) {
             gpSCSV->power_pips[pip]->DisableSecondaryState(0);
@@ -1014,7 +1014,7 @@ void SelectSpellPowerLevel(int power_level)
         if (gpSCSV->iSpellPowerClass == 2) {
             gpSCSV->power_pips[8]->EnableSecondaryState(0);
             if (static_cast<unsigned char>(gpSCSV->power_pips[8]->m_stateFlags &
-                                           g_W8TextControlMask005ED570) == 0) {
+                                           g_W8TextControlStateSecondary) == 0) {
                 gpSCSV->power_pips[8]->EnableSecondaryState(0);
             } else {
                 gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
@@ -1225,7 +1225,7 @@ unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region)
             (&gpSCSV->power_pips[0])[region->callback_id]->OnLeftButtonUp(0);
             callback_id = region->callback_id;
             if (callback_id < 7 && ((&gpSCSV->power_pips[0])[callback_id]->m_stateFlags &
-                                    g_W8TextControlMask005ED570) == 0) {
+                                    g_W8TextControlStateSecondary) == 0) {
                 PreviewSpellPowerPipHover(callback_id);
             }
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {

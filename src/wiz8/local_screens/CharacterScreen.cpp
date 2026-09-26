@@ -526,7 +526,7 @@ void W8CharacterScreen::DrawHeader()
         bounds.top = 0xa5;
         bounds.right = 0xc1;
         bounds.bottom = 0xdf;
-        text.SetLayoutMode(g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED54C);
+        text.SetLayoutMode(g_W8TextBufferAlignTop | g_W8TextBufferAlignCenter);
         if (m_mode_008 != 0) {
             text.SetLayoutBounds(&bounds, 1, 1);
             text.SetText(m_character_018.name, g_wiz_text_font_secondary);

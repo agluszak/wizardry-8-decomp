@@ -344,7 +344,7 @@ unsigned char W8SplitItemDialog::CreateTextBuffers()
         bounds.bottom = g_split_text_bounds[index].bottom + m_y;
         m_texts_07c[index] = new W8TextBuffer(
             &bounds, gppStringList[g_split_text_string_ids[index]], g_wiz_text_font_secondary,
-            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
+            g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
         if (m_texts_07c[index] == 0) {
             count = 0;
             if (m_kind_0cc == 0) {
@@ -361,17 +361,12 @@ unsigned char W8SplitItemDialog::CreateTextBuffers()
             return 0;
         }
     }
-    m_texts_07c[2]->SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                  g_W8TextBufferLayoutMask005ED554);
-    m_texts_07c[7]->SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                  g_W8TextBufferLayoutMask005ED554);
-    m_texts_07c[9]->SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                  g_W8TextBufferLayoutMask005ED554);
+    m_texts_07c[2]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
+    m_texts_07c[7]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
+    m_texts_07c[9]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
     if (m_kind_0cc == 1 || m_kind_0cc == 2) {
-        m_texts_07c[11]->SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                       g_W8TextBufferLayoutMask005ED554);
-        m_texts_07c[13]->SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                       g_W8TextBufferLayoutMask005ED554);
+        m_texts_07c[11]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
+        m_texts_07c[13]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
         if (m_kind_0cc == 1) {
             m_texts_07c[1]->SetText(gppStringList[274], g_wiz_text_font_secondary);
             header = gppStringList[268];

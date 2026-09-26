@@ -109,20 +109,20 @@ void CreateUseItemSelectControls(void)
         new W8TextControl(panel, 0x9d, 0x48, 0x1d, 0x68, 0x3d, 0x98, 0, 5, 7, 6, 9, 8);
     g_use_item_select_scroll_buttons[2] =
         new W8TextControl(panel, 0xffffffff, 4, 4, 0x89, 0x13, -1, -1, -1, -1, -1, -1, -1);
-    g_use_item_select_scroll_buttons[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_use_item_select_scroll_buttons[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_use_item_select_scroll_buttons[0]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_use_item_select_scroll_buttons[1]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     g_use_item_select_scroll_buttons[0]->m_primaryActivationCallback = UseItemSelectScrollUp;
     g_use_item_select_scroll_buttons[1]->m_primaryActivationCallback = UseItemSelectScrollDown;
-    g_use_item_select_scroll_buttons[2]->m_textBuffer.SetLayoutMode(
-        g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+    g_use_item_select_scroll_buttons[2]->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                                    g_W8TextBufferAlignCenter);
     g_use_item_select_scroll_buttons[2]->m_textBuffer.SetText(gppStringList[0x77a],
                                                               g_wiz_text_font_secondary);
     panel = g_use_item_select_panels[2];
     g_use_item_select_controls[0] =
         new W8TextControl(panel, 0x9e, 5, 5, 0x31, 0x39, -1, -1, -1, -1, -1, -1, -1);
-    g_use_item_select_controls[0]->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED55C |
-                                                              g_W8TextBufferLayoutMask005ED550);
-    g_use_item_select_controls[0]->AddLayoutFlags(g_W8TextControlMask005ED594);
+    g_use_item_select_controls[0]->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignBottom |
+                                                              g_W8TextBufferAlignRight);
+    g_use_item_select_controls[0]->AddLayoutFlags(g_W8TextControlLayoutImageAtOrigin);
     g_use_item_select_controls[1] =
         new W8TextControl(panel, 0xffffffff, 0x36, 6, 0x44, 0x14, 0x1ab, 0, 0, 1, 2, 4, 3);
     g_use_item_select_controls[2] =
@@ -139,11 +139,11 @@ void CreateUseItemSelectControls(void)
                                                       0x1aa, 0, 0x1e, 0x22, 0x1f, 0x20, 0x21);
     g_use_item_select_controls[8] =
         new W8TextControl(panel, 0xa0, 0x6c, 6, 0x87, 0x21, 0x8e, 0, 4, -1, 5, 6, 7);
-    g_use_item_select_controls[2]->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_use_item_select_controls[3]->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_use_item_select_controls[4]->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_use_item_select_controls[5]->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_use_item_select_controls[6]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_use_item_select_controls[2]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_use_item_select_controls[3]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_use_item_select_controls[4]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_use_item_select_controls[5]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_use_item_select_controls[6]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     g_use_item_select_controls[0]->m_primaryActivationCallback = UseItemSelectAssayButton;
     g_use_item_select_controls[0]->m_secondaryActivationCallback = UseItemSelectAssayButton;
     g_use_item_select_controls[1]->m_primaryActivationCallback = NoOp;
@@ -314,7 +314,7 @@ void RefreshUseItemSelectionForSlot(int party_slot)
             ResetEditorStatusLine(2);
             g_use_item_select_controls[3]->SetEnabled(1);
             if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
-                                           g_W8TextControlMask005ED570) == 0) {
+                                           g_W8TextControlStateSecondary) == 0) {
                 g_use_item_select_controls[3]->EnableSecondaryState(1);
                 g_use_item_select_controls[3]->Invalidate(0);
             }
@@ -365,9 +365,9 @@ void RefreshUseItemSelectionForSlot(int party_slot)
     }
     g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
     if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
-                                       g_W8TextControlMask005ED570) != 0) {
+                                       g_W8TextControlStateSecondary) != 0) {
             g_use_item_select_scroll_buttons[1]->DisableSecondaryState(0);
             g_use_item_select_scroll_buttons[1]->Invalidate(0);
         }
@@ -446,13 +446,13 @@ void UpdateUseItemScrollButtons(void)
     }
     if (gXStatus.fCombatMode) {
         if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
-                                       g_W8TextControlMask005ED570) == 0) {
+                                       g_W8TextControlStateSecondary) == 0) {
             g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
             g_use_item_select_scroll_buttons[0]->Invalidate(0);
             if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
-                                           g_W8TextControlMask005ED570) != 0) {
+                                           g_W8TextControlStateSecondary) != 0) {
                 if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
-                                               g_W8TextControlMask005ED570) != 0) {
+                                               g_W8TextControlStateSecondary) != 0) {
                     g_use_item_select_scroll_buttons[1]->DisableSecondaryState(0);
                     g_use_item_select_scroll_buttons[1]->Invalidate(0);
                 }
@@ -481,9 +481,9 @@ void UpdateUseItemScrollButtons(void)
 void UseItemSelectScrollUp(void)
 {
     if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
-                                       g_W8TextControlMask005ED570) != 0) {
+                                       g_W8TextControlStateSecondary) != 0) {
             g_use_item_select_scroll_buttons[1]->DisableSecondaryState(0);
             g_use_item_select_scroll_buttons[1]->Invalidate(0);
         }
@@ -497,9 +497,9 @@ void UseItemSelectScrollUp(void)
 void UseItemSelectScrollDown(void)
 {
     if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
-                                       g_W8TextControlMask005ED570) != 0) {
+                                       g_W8TextControlStateSecondary) != 0) {
             g_use_item_select_scroll_buttons[0]->DisableSecondaryState(0);
             g_use_item_select_scroll_buttons[0]->Invalidate(0);
         }
@@ -513,7 +513,7 @@ void UseItemSelectScrollDown(void)
 void UseItemSelectFilterToggle(void)
 {
     if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) == 0) {
+                                   g_W8TextControlStateSecondary) == 0) {
         g_use_item_select_controls[3]->EnableSecondaryState(1);
         g_use_item_select_controls[3]->Invalidate(0);
     }
@@ -591,7 +591,7 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
     }
     g_use_item_select_controls[3]->SetEnabled(1);
     if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) == 0) {
+                                   g_W8TextControlStateSecondary) == 0) {
         g_use_item_select_controls[3]->EnableSecondaryState(1);
         g_use_item_select_controls[3]->Invalidate(0);
     }

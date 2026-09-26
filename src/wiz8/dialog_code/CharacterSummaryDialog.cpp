@@ -100,9 +100,9 @@ bool W8CharacterSummaryDialog::CreateQuoteText()
         W8CharacterEvent* event =
             new W8CharacterEvent(character, g_effect_005ee588, 0, g_effect_argument_005ed8c8,
                                  g_effect_argument_005ed914);
-        *buffers[index] = new W8TextBuffer(
-            &absolute, event->GetQuoteText(), g_wiz_text_font_secondary,
-            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
+        *buffers[index] =
+            new W8TextBuffer(&absolute, event->GetQuoteText(), g_wiz_text_font_secondary,
+                             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
         delete event;
         if (*buffers[index] == 0) {
             delete m_quote_text_058;
