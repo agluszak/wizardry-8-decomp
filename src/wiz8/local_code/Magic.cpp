@@ -2821,8 +2821,8 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     }
     minimum_level = GetMinimumCasterLevelForSpell(spell_id);
     caster_level = GetProfessionCasterLevel(character, -1);
-    spellbook = (-(record->psionics_spell != 0) & 8U) | (-(record->divinity_spell != 0) & 2U) |
-                (record->wizardry_spell != 0) | (-(record->alchemy_spell != 0) & 4U);
+    spellbook = (record->psionics_spell != 0 ? 8U : 0U) | (record->divinity_spell != 0 ? 2U : 0U) |
+                (record->wizardry_spell != 0 ? 1U : 0U) | (record->alchemy_spell != 0 ? 4U : 0U);
     profession_level = character->profession_levels;
     profession = W8_PROFESSION_FIGHTER;
     do {
@@ -2974,7 +2974,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         forced = true;
         failure_chance = 100;
     }
-    if (g_spell_records[spell_id].realm == 0 && g_camera_sway_active != false) {
+    if (g_spell_records[spell_id].realm == 0 && g_camera_sway_active) {
         failure_chance = 100;
     }
     if (quiet && g_flag_00689b68 == 0) {
@@ -2984,7 +2984,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     CombatLog("");
     if (failure_chance != 0 && (roll = Random(100)) < failure_chance) {
         backfire_chance = failure_chance;
-        if (g_spell_records[spell_id].realm == 0 && g_camera_sway_active != false) {
+        if (g_spell_records[spell_id].realm == 0 && g_camera_sway_active) {
             backfire_chance = 0;
         } else if (!quiet && !forced) {
             if (backfire_chance < 6) {

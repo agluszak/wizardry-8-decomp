@@ -686,8 +686,7 @@ void UpdateCombatStanceButtons(void)
     } else if ((ClockIsTicking(g_combat_state->combat_ui_timer_7a8) == 0 &&
                 CombatMayAdvanceContinuously() != 0) ||
                g_combat_state->party_surprised_a52 != 0) {
-        stance =
-            (static_cast<unsigned int>(-(g_combat_state->round_active_001 != 0)) & 0xfffffffdU) + 4;
+        stance = g_combat_state->round_active_001 != 0 ? 1U : 4U;
     } else {
         stance = 2;
     }
