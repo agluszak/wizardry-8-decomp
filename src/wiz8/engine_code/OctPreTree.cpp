@@ -1749,7 +1749,7 @@ W8OctSpatialState::W8OctSpatialState(const W8OctSpatialState* source)
 // FUNCTION: WIZ8 0x0046cdc0
 void W8OctSpatialState::Reset0046CDC0()
 {
-    memset(this, 0, sizeof(*this));
+    memset(static_cast<void*>(this), 0, sizeof(*this));
 }
 
 // FUNCTION: WIZ8 0x0046cdf0

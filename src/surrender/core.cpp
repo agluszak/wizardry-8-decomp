@@ -145,13 +145,6 @@ void srCore::supportMultiThread(int enabled)
     multi_thread_160 = enabled;
 }
 
-// FUNCTION: SURRENDER 0x10015740
-class srCore& srCore::operator=(const class srCore& other)
-{
-    memcpy(this, &other, sizeof(class srCore));
-    return *this;
-}
-
 // FUNCTION: SURRENDER 0x100157A0
 int __cdecl srExit()
 {

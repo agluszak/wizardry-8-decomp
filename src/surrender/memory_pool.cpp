@@ -103,13 +103,6 @@ srMemoryPool::~srMemoryPool()
     largest_free_10 = 0;
 }
 
-// FUNCTION: SURRENDER 0x10036A80
-srMemoryPool& srMemoryPool::operator=(const srMemoryPool& pool)
-{
-    memcpy(this, &pool, sizeof(srMemoryPool));
-    return *this;
-}
-
 // FUNCTION: SURRENDER 0x10036BB0
 void srMemoryPool::defrag(Entry* entry)
 {

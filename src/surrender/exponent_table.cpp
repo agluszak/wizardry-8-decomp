@@ -39,13 +39,6 @@ void srExponentTable::setExponent(float exponent)
     }
 }
 
-// FUNCTION: SURRENDER 0x10003140
-srExponentTable& srExponentTable::operator=(const srExponentTable& other)
-{
-    memcpy(this, &other, sizeof(srExponentTable));
-    return *this;
-}
-
 // GLOBAL: SURRENDER 0x100A0284
 srCachedExponentTable* srCachedExponentTable::first;
 
@@ -145,13 +138,6 @@ srCachedExponentTable* srCachedExponentTable::get(float exponent)
     }
     lastResult = new srCachedExponentTable(exponent);
     return lastResult;
-}
-
-// FUNCTION: SURRENDER 0x10003180
-srCachedExponentTable& srCachedExponentTable::operator=(const srCachedExponentTable& other)
-{
-    memcpy(this, &other, sizeof(srCachedExponentTable));
-    return *this;
 }
 
 /* Emitted inside this TU by the constructor defaults. */

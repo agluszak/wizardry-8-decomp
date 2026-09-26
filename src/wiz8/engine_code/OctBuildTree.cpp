@@ -62,7 +62,7 @@ W8OctBuildLink* W8OctBuildLinkLists::GetNewLink(void* surface)
 // FUNCTION: WIZ8 0x00446330
 W8OctBuildNode::W8OctBuildNode()
 {
-    memset(this, 0, 10 * sizeof(unsigned long));
+    memset(static_cast<void*>(this), 0, 10 * sizeof(unsigned long));
     region_28 = 0;
     leaf_kind_2a = 0;
     provisional_region_2c = 0;
@@ -72,7 +72,7 @@ W8OctBuildNode::W8OctBuildNode()
 W8OctBuildNode::~W8OctBuildNode()
 {
     if (leaf_kind_2a != 0) {
-        memset(this, 0, 10 * sizeof(unsigned long));
+        memset(static_cast<void*>(this), 0, 10 * sizeof(unsigned long));
         return;
     }
     for (int child = 0; child != 8; ++child) {
