@@ -116,12 +116,12 @@ bool Trynnie2MeatBox(Trigger* pTrigger)
 
     group = FindFirstMonsterByID(0x1d4);
     if (group == 0 || g_status.item_in_cursor == 0) {
-        ShowNotice(0xf, gppStringList[0x2590 / 4]);
+        ShowNotice(0xf, gppStringList[0x964]);
         return 1;
     }
     item_id = GetItemInHand();
     if (item_id != 0x1b4 && item_id != 0x1c2) {
-        ShowNotice(0xf, gppStringList[0x2590 / 4]);
+        ShowNotice(0xf, gppStringList[0x964]);
         return 1;
     }
     index = MonsterGetIndexByLocationID(0x68, TRYNNIE2_CPP, group->leader_location_id, 1);
@@ -161,18 +161,18 @@ bool Trynnie2UseItem(W8ItemInstance* item)
         return 0;
     }
     if (DispatchWorldCursorNodeCommand(0, 8, 0) == 0) {
-        ShowString(gppStringList[0x2598 / 4]);
+        ShowString(gppStringList[0x966]);
         return 1;
     }
     if (item->iItemNo == 0x1b3) {
-        ShowString(gppStringList[0x25a0 / 4]);
+        ShowString(gppStringList[0x968]);
     } else {
-        ShowString(gppStringList[0x259c / 4]);
+        ShowString(gppStringList[0x967]);
     }
     if (g_status.use_item_latch_2445 == 0) {
         g_status.use_item_latch_2445 = true;
     } else {
-        ShowString(gppStringList[0x25a4 / 4]);
+        ShowString(gppStringList[0x969]);
         if (FindEntityByName("NP_MysticalShaman", &position, 0, 0) != 0) {
             SpawnMonsters(0xec, 1, &position, 0, 1, 0, 0);
         }

@@ -493,7 +493,7 @@ static void AcceptFormationChanges(void)
         ReconcilePartyFormation(&gXStatus.edited_formation, &g_status.formation);
     } else if (memcmp(&gXStatus.edited_formation, &g_status.formation,
                       sizeof(W8PartyFormationState)) != 0) {
-        ShowNotice(8, gppStringList[0x1f64 / 4], -1, -1, 0);
+        ShowNotice(8, gppStringList[0x7d9], -1, -1, 0);
     }
     RefreshFormationBoard();
     RefreshRadarMap();

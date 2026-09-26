@@ -155,14 +155,13 @@ void UpdateGameClock(int elapsed)
             UpdatePartyStamina(static_cast<int>(stamina_ticks));
         }
 
-        if (gXStatus.fSurprisePossible == 0 && AnyCharacterEngaged() == false &&
-            AnyCharacterActive() && g_status.party_fatigued_2433 == 0 &&
-            HasLevelDataVector() == 0 && static_cast<char>(GetLevelDataFlag4()) != 0 &&
-            static_cast<char>(IsScreenIdle()) != 0) {
+        if (gXStatus.fSurprisePossible == 0 && !AnyCharacterEngaged() && AnyCharacterActive() &&
+            g_status.party_fatigued_2433 == 0 && HasLevelDataVector() == 0 &&
+            static_cast<char>(GetLevelDataFlag4()) != 0 && static_cast<char>(IsScreenIdle()) != 0) {
             if (gXStatus.world_update_blocked != 0) {
                 ResumeMainGameWorld();
             }
-            if (AnyCharacterEngaged() == false) {
+            if (!AnyCharacterEngaged()) {
                 gXStatus.surprise_unengaged = 1;
                 ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
             } else {
@@ -227,7 +226,7 @@ void RequestCamp(void)
         if (gXStatus.world_update_blocked != 0) {
             ResumeMainGameWorld();
         }
-        if (AnyCharacterEngaged() == false) {
+        if (!AnyCharacterEngaged()) {
             gXStatus.surprise_unengaged = 1;
             ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
         } else {

@@ -697,7 +697,7 @@ void W8PartySelectionCharacterRow::Redraw(int full_redraw)
     left += 0x36;
     SetFont(g_wiz_text_font_secondary);
     gprintf(left, top + 4, const_cast<wchar_t*>(L"%s"), character->name);
-    gprintf(left, top + 0x0e, L"%s %d %s", gppStringList[0x1ae4 / 4], character->uiExpLevel,
+    gprintf(left, top + 0x0e, L"%s %d %s", gppStringList[0x6b9], character->uiExpLevel,
             gppStringList[g_profession_name_message_ids[character->iProfession]]);
     gprintf(left, top + 0x18, L"%s %s",
             gppStringList[g_gender_name_message_rows[character->gender][0]],
@@ -1047,7 +1047,7 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
     DrawCatalogImageAndInvalidate(-14, 0x11, character->portrait_index, 0, 0x85, 0x30, 2, 0);
     if (character->fInParty) {
         W8ControlsRect bounds = {0x85, 0x30, 0x139, 0xba};
-        W8TextBuffer overlay(&bounds, gppStringList[0x1ae0 / 4], g_options_title_font,
+        W8TextBuffer overlay(&bounds, gppStringList[0x6b8], g_options_title_font,
                              g_W8TextBufferAlignBottom | g_W8TextBufferAlignCenter, 4);
         overlay.RenderToTarget(0, 0, -14);
     }
@@ -1061,7 +1061,7 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
     SetFont(g_wiz_text_font_secondary);
     SetObjectShade(g_wiz_text_font_secondary_object, 4);
 
-    const wchar_t* level_text = gppStringList[0x1ae4 / 4];
+    const wchar_t* level_text = gppStringList[0x6b9];
     const wchar_t* profession =
         gppStringList[g_profession_name_message_ids[character->iProfession]];
     wchar_t* level_line =
@@ -1081,28 +1081,28 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
     width = StringPixLength(const_cast<wchar_t*>(personality), g_wiz_text_font_secondary);
     gprintf((0xbf - width) / 2 + 0x82, 0x10b, const_cast<wchar_t*>(L"%s"), personality);
 
-    gprintf(0x96, 0x127, gppStringList[0x1ae8 / 4]);
+    gprintf(0x96, 0x127, gppStringList[0x6ba]);
     gprintf(0xbf, 0x127, L"%d", character->attributes[0].value);
-    gprintf(0x96, 0x135, gppStringList[0x1aec / 4]);
+    gprintf(0x96, 0x135, gppStringList[0x6bb]);
     gprintf(0xbf, 0x135, L"%d", character->attributes[1].value);
-    gprintf(0x96, 0x143, gppStringList[0x1af0 / 4]);
+    gprintf(0x96, 0x143, gppStringList[0x6bc]);
     gprintf(0xbf, 0x143, L"%d", character->attributes[2].value);
-    gprintf(0x96, 0x151, gppStringList[0x1af4 / 4]);
+    gprintf(0x96, 0x151, gppStringList[0x6bd]);
     gprintf(0xbf, 0x151, L"%d", character->attributes[3].value);
-    gprintf(0x96, 0x15f, gppStringList[0x1af8 / 4]);
+    gprintf(0x96, 0x15f, gppStringList[0x6be]);
     gprintf(0xbf, 0x15f, L"%d", character->attributes[4].value);
-    gprintf(0x96, 0x16d, gppStringList[0x1afc / 4]);
+    gprintf(0x96, 0x16d, gppStringList[0x6bf]);
     gprintf(0xbf, 0x16d, L"%d", character->attributes[5].value);
-    gprintf(0x96, 0x17b, gppStringList[0x1b00 / 4]);
+    gprintf(0x96, 0x17b, gppStringList[0x6c0]);
     gprintf(0xbf, 0x17b, L"%d", character->attributes[6].value);
 
-    gprintf(0xe3, 0x127, gppStringList[0x1b04 / 4]);
+    gprintf(0xe3, 0x127, gppStringList[0x6c1]);
     gprintf(0x115, 0x127, L"%d", character->uiHPMax);
-    gprintf(0xe3, 0x135, gppStringList[0x1b08 / 4]);
+    gprintf(0xe3, 0x135, gppStringList[0x6c2]);
     gprintf(0x115, 0x135, L"%d", SumCharacterSpellPoints(character));
-    gprintf(0xe3, 0x143, gppStringList[0x1b0c / 4]);
+    gprintf(0xe3, 0x143, gppStringList[0x6c3]);
     gprintf(0x115, 0x143, L"%d", character->uiStaminaMax);
-    gprintf(0xe3, 0x151, gppStringList[0x1b10 / 4]);
+    gprintf(0xe3, 0x151, gppStringList[0x6c4]);
     gprintf(0x115, 0x151, L"%d", character->carrying_capacity / 10);
 }
 
@@ -1231,37 +1231,37 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
     W8ControlsRect bounds = {origin_x + 0x22, origin_y + 0x12, origin_x + 0x16e, origin_y + 0x171};
 
     if (mode == 0) {
-        m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x1fdc / 4], g_options_detail_font,
+        m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x7f7], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4));
 
         bounds.right = origin_x + 0x155;
-        m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x1fe0 / 4], g_options_detail_font,
+        m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x7f8], g_options_detail_font,
                                           g_W8TextBufferAlignRight | g_W8TextBufferAlignTop, 4));
         bounds.top += 0x16;
-        m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x1fe4 / 4], g_options_detail_font,
+        m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x7f9], g_options_detail_font,
                                           g_W8TextBufferAlignRight | g_W8TextBufferAlignTop, 4));
         bounds.top += 0x16;
-        m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x1fe8 / 4], g_options_detail_font,
+        m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x7fa], g_options_detail_font,
                                           g_W8TextBufferAlignRight | g_W8TextBufferAlignTop, 4));
 
         bounds.right = origin_x + 0x16e;
         bounds.top += 0x2c;
-        m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x202c / 4], g_options_detail_font,
+        m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x80b], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4));
 
         bounds.top += 0x2c;
         W8TextBuffer* text =
-            new W8TextBuffer(&bounds, gppStringList[0x1b34 / 4], g_options_detail_font,
+            new W8TextBuffer(&bounds, gppStringList[0x6cd], g_options_detail_font,
                              g_W8TextBufferAlignCenter | g_W8TextBufferAlignTop, 4);
         text->SetLineHeight(0x16);
         m_entries_7c.Add(text);
 
         bounds.top += 0x42;
-        m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x1b38 / 4], g_options_detail_font,
+        m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x6ce], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4));
 
         bounds.top += 0x2c;
-        text = new W8TextBuffer(&bounds, gppStringList[0x1b3c / 4], g_options_detail_font,
+        text = new W8TextBuffer(&bounds, gppStringList[0x6cf], g_options_detail_font,
                                 g_W8TextBufferAlignCenter | g_W8TextBufferAlignTop, 4);
         text->SetLineHeight(0x16);
         m_entries_7c.Add(text);
@@ -1271,7 +1271,7 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
     if (mode == 1) {
         bounds.top += 0x2c;
         W8TextBuffer* text =
-            new W8TextBuffer(&bounds, gppStringList[0x1b40 / 4], g_options_detail_font,
+            new W8TextBuffer(&bounds, gppStringList[0x6d0], g_options_detail_font,
                              g_W8TextBufferAlignCenter | g_W8TextBufferAlignTop, 4);
         text->SetLineHeight(0x16);
         m_entries_7c.Add(text);
@@ -1284,7 +1284,7 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
 
     bounds.left = origin_x + 0x2c;
     bounds.right = origin_x + 0x164;
-    W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[0x1b44 / 4], g_options_detail_font,
+    W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[0x6d1], g_options_detail_font,
                                           g_W8TextBufferAlignCenter | g_W8TextBufferAlignTop, 4);
     text->SetLineHeight(0x16);
     m_entries_7c.Add(text);
@@ -1327,18 +1327,18 @@ void W8PartySelectionController::Setup()
     m_panel_34 = new Controls(0x145, 0x137, 0, 0, -1, -1, -1);
     m_panel_34->AcquireRegionSet(&g_party_selection_left_action_region_set);
     m_text_40 = new W8TextControl(m_panel_34, 0xffffffff, 0, 0, 0, 0, 0xfe, 0, 0, 2, 1, 2, 3);
-    m_text_40->m_textBuffer.SetText(gppStringList[0x1b14 / 4], g_wiz_text_bold_font);
+    m_text_40->m_textBuffer.SetText(gppStringList[0x6c5], g_wiz_text_bold_font);
     m_text_40->m_listener = this;
 
     m_text_44 = new W8TextControl(m_panel_34, 0xffffffff, 0, 0x1a, 0, 0, 0xfe, 0, 0, 2, 1, 2, 3);
     m_text_44->m_listener = this;
 
     m_text_48 = new W8TextControl(m_panel_34, 0xffffffff, 0, 0x34, 0, 0, 0xfe, 0, 0, 2, 1, 2, 3);
-    m_text_48->m_textBuffer.SetText(gppStringList[0x1b20 / 4], g_wiz_text_bold_font);
+    m_text_48->m_textBuffer.SetText(gppStringList[0x6c8], g_wiz_text_bold_font);
     m_text_48->m_listener = this;
 
     m_text_4c = new W8TextControl(m_panel_34, 0xffffffff, 0, 0x4e, 0, 0, 0xfe, 0, 0, 2, 1, 2, 3);
-    m_text_4c->m_textBuffer.SetText(gppStringList[0x1b24 / 4], g_wiz_text_bold_font);
+    m_text_4c->m_textBuffer.SetText(gppStringList[0x6c9], g_wiz_text_bold_font);
     m_text_4c->m_listener = this;
 
     m_panel_38 = new Controls(0x148, 0x31, 0, 0, -1, -1, -1);
@@ -1487,7 +1487,7 @@ void W8PartySelectionController::SetMode(int mode)
         m_control_30->SetEnabled(0);
         m_control_30->EnableRegionSet(0);
         m_text_54->SetEnabled(CountActiveCharacters() != 0);
-        label = gppStringList[0x1ad0 / 4];
+        label = gppStringList[0x6b4];
         break;
     }
     case 1: {
@@ -1542,7 +1542,7 @@ void W8PartySelectionController::SetMode(int mode)
         m_control_2c->SetEnabled(1);
         m_control_30->SetEnabled(0);
         m_control_30->EnableRegionSet(0);
-        label = gppStringList[0x1ad4 / 4];
+        label = gppStringList[0x6b5];
         break;
     }
     case 2:
@@ -1562,17 +1562,17 @@ void W8PartySelectionController::SetMode(int mode)
         m_control_30->SetEnabled(1);
         m_control_30->EnableRegionSet(1);
         m_control_30->SetOptionPanelMode(0);
-        label = gppStringList[0x1ad8 / 4];
+        label = gppStringList[0x6b6];
         break;
     case 3:
         m_text_50->SetActive(0);
         m_control_30->SetOptionPanelMode(1);
-        label = gppStringList[0x1adc / 4];
+        label = gppStringList[0x6b7];
         break;
     case 4:
         m_text_50->SetActive(0);
         m_control_30->SetOptionPanelMode(2);
-        label = gppStringList[0x1adc / 4];
+        label = gppStringList[0x6b7];
         break;
     default:
         return;
@@ -1663,7 +1663,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
         case 0:
         case 1:
             if (CountActiveCharacters() != 0) {
-                OpenNotification(gppStringList[0x1b4c / 4], 1, 5);
+                OpenNotification(gppStringList[0x6d3], 1, 5);
                 return;
             }
             RequestScreenTransition();
@@ -1684,8 +1684,8 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
         return;
     }
     if (control == m_text_48) {
-        OpenNotification(FormatWideString(L"%s %s %s", gppStringList[0x1b50 / 4],
-                                          m_character_18->name, gppStringList[0x1b54 / 4]),
+        OpenNotification(FormatWideString(L"%s %s %s", gppStringList[0x6d4], m_character_18->name,
+                                          gppStringList[0x6d5]),
                          1, 1);
         return;
     }
@@ -1713,8 +1713,8 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
         switch (m_mode) {
         case 0:
             if ((unsigned int)CountActiveCharacters() < 6) {
-                OpenNotification(
-                    FormatWideString(gppStringList[0x1b64 / 4], CountActiveCharacters()), 1, 3);
+                OpenNotification(FormatWideString(gppStringList[0x6d9], CountActiveCharacters()), 1,
+                                 3);
                 return;
             }
             /* fall through */
@@ -1755,7 +1755,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
         return;
     }
     if (CountActiveCharacters() != 0) {
-        OpenNotification(gppStringList[0x1b58 / 4], 1, 4);
+        OpenNotification(gppStringList[0x6d6], 1, 4);
         return;
     }
 
@@ -1794,7 +1794,7 @@ void W8PartySelectionController::OnDecision(W8PartySelectionInputHandler*, unsig
         wchar_t slot_name[64];
         Get16BitStringFromField(0, slot_name);
         if (SaveSlotFileExists(ConvertWideStringToString(slot_name))) {
-            OpenNotification(gppStringList[0x20a4 / 4], 1, 2);
+            OpenNotification(gppStringList[0x829], 1, 2);
             return;
         }
         if (m_input_handler_64) {
@@ -1814,7 +1814,7 @@ void W8PartySelectionController::OnDecision(W8PartySelectionInputHandler*, unsig
                 RequestScreenTransition();
                 return;
             }
-            OpenNotification(gppStringList[0x1b4c / 4], 1, 5);
+            OpenNotification(gppStringList[0x6d3], 1, 5);
             return;
         case 2:
         case 3:
@@ -2216,7 +2216,7 @@ void PartySelectionScreenFrame(void)
                     if (CountActiveCharacters() == 0) {
                         RequestScreenTransition();
                     } else {
-                        controller->OpenNotification(gppStringList[0x1b4c / 4], 1, 5);
+                        controller->OpenNotification(gppStringList[0x6d3], 1, 5);
                     }
                     break;
                 case 2:

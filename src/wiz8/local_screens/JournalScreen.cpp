@@ -136,7 +136,7 @@ void RecordFactChangeForJournal(int fact_id)
         return;
     }
     int range = GetTextBoxScrollRange();
-    ShowNotice(3, gppStringList[0x1d28 / 4], 2, range, 0);
+    ShowNotice(3, gppStringList[0x74a], 2, range, 0);
     SoundPlay("Data\\Sound\\Misc\\Journal Entry.wav", 0);
 }
 
@@ -234,8 +234,8 @@ void RefreshJournalPanel(void)
         swprintf(page_text, g_journal_page_format, g_journal_page + 1, page_count);
         panel->m_page_text_060->SetText(page_text, g_options_detail_font);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
-        DrawJournalLine(gppStringList[0x1b6c / 4], 0, 0x19, 0, 1);
-        DrawJournalLine(gppStringList[0x1b70 / 4], 1, 0x19, 0, 1);
+        DrawJournalLine(gppStringList[0x6db], 0, 0x19, 0, 1);
+        DrawJournalLine(gppStringList[0x6dc], 1, 0x19, 0, 1);
 
         int first = g_journal_page * 12;
         int last = first + 11;
@@ -254,7 +254,7 @@ void RefreshJournalPanel(void)
             if (entry->level == 0x38) {
                 level_name = g_default_level;
             } else if (entry->level == -1) {
-                level_name = gppStringList[0x1b74 / 4];
+                level_name = gppStringList[0x6dd];
             } else {
                 level_name = gppStringList[g_level_name_indices[entry->level]];
             }
@@ -269,8 +269,8 @@ void RefreshJournalPanel(void)
         panel->m_previous_054->SetEnabled(0);
         panel->m_page_text_060->SetText(g_journal_alternate_page, g_options_detail_font);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
-        DrawJournalLine(gppStringList[0x1b78 / 4], 0, 0x19, 0, 1);
-        DrawJournalLine(gppStringList[0x1b7c / 4], 1, 0x19, 0, 1);
+        DrawJournalLine(gppStringList[0x6de], 0, 0x19, 0, 1);
+        DrawJournalLine(gppStringList[0x6df], 1, 0x19, 0, 1);
 
         int y = 0x39;
         for (int index = 0; index < 11; ++index) {
@@ -280,13 +280,13 @@ void RefreshJournalPanel(void)
                 const wchar_t* disposition_name = 0;
                 switch (disposition) {
                 case W8_FACTION_HOSTILE:
-                    disposition_name = gppStringList[0x800 / 4];
+                    disposition_name = gppStringList[0x200];
                     break;
                 case W8_FACTION_NEUTRAL:
-                    disposition_name = gppStringList[0x7fc / 4];
+                    disposition_name = gppStringList[0x1ff];
                     break;
                 case W8_FACTION_FRIENDLY:
-                    disposition_name = gppStringList[0x804 / 4];
+                    disposition_name = gppStringList[0x201];
                     break;
                 }
                 if (disposition_name != 0) {

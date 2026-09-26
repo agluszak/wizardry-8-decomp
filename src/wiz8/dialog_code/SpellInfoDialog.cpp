@@ -188,38 +188,38 @@ unsigned char W8SpellInfoDialog::PopulateText()
             ++count;
         }
     }
-    m_text_area_0ec.AddEntry(gppStringList[0x470 / 4], text, 10, 0xf, 0);
-    m_text_area_0ec.AddEntry(gppStringList[0x474 / 4],
+    m_text_area_0ec.AddEntry(gppStringList[0x11c], text, 10, 0xf, 0);
+    m_text_area_0ec.AddEntry(gppStringList[0x11d],
                              gppStringList[g_spell_usage_name_ids[record->usable_when]], 10, 0xf,
                              0);
 
     target_type = GetSpellTargetType(m_spell_054, 0);
     m_text_area_0ec.AddEntry(
-        gppStringList[0x478 / 4],
+        gppStringList[0x11e],
         FormatWideString(g_format_s_space_s,
                          gppStringList[g_spell_target_type_name_ids[target_type]],
                          g_spell_target_parentheticals[target_type]),
         10, 0xf, 0);
-    m_text_area_0ec.AddEntry(gppStringList[0x47c / 4],
+    m_text_area_0ec.AddEntry(gppStringList[0x11f],
                              gppStringList[g_spell_range_name_ids[record->range_category]], 10, 0xf,
                              0);
 
     if (record->show_effect_dice != 0 &&
         (record->effect_dice.base != 0 || record->effect_dice.count != 0)) {
         if (record->effect_dice.count == 0) {
-            m_text_area_0ec.AddEntry(gppStringList[0x480 / 4],
+            m_text_area_0ec.AddEntry(gppStringList[0x120],
                                      FormatWideString(g_format_d_s,
                                                       static_cast<int>(record->effect_dice.base),
-                                                      gppStringList[0x484 / 4]),
+                                                      gppStringList[0x121]),
                                      10, 0xf, 0);
         } else {
             m_text_area_0ec.AddEntry(
-                gppStringList[0x480 / 4],
+                gppStringList[0x120],
                 FormatWideString(g_format_d_d_s,
                                  record->effect_dice.count + (int)record->effect_dice.base,
                                  record->effect_dice.sides * record->effect_dice.count +
                                      (int)record->effect_dice.base,
-                                 gppStringList[0x484 / 4]),
+                                 gppStringList[0x121]),
                 10, 0xf, 0);
         }
     }
@@ -286,20 +286,20 @@ unsigned char W8SpellInfoDialog::PopulateText()
         }
         wcscat(text, gppStringList[ui_units_lvl]);
         if (display_base > 0) {
-            wcscat(text, gppStringList[0x4a8 / 4]);
+            wcscat(text, gppStringList[0x12a]);
         }
-        m_text_area_0ec.AddEntry(gppStringList[0x488 / 4], text, 10, 0xf, 0);
+        m_text_area_0ec.AddEntry(gppStringList[0x122], text, 10, 0xf, 0);
     }
 
     text[0] = L'\0';
     if (GetStringFromStringDatabase(g_spell_effect_database_path, m_spell_054, text, 0, 0) != 0 &&
         text[0] != L'\0') {
-        m_text_area_0ec.AddEntry(gppStringList[0x4ac / 4], text, 10, 0xf, 0);
+        m_text_area_0ec.AddEntry(gppStringList[0x12b], text, 10, 0xf, 0);
     }
     text[0] = L'\0';
     if (GetStringFromStringDatabase(g_spell_desc_database_path, m_spell_054, text, 0, 0) != 0 &&
         text[0] != L'\0') {
-        m_text_area_0ec.AddEntry(gppStringList[0x4b0 / 4], text, 10, 0xf, 0);
+        m_text_area_0ec.AddEntry(gppStringList[0x12c], text, 10, 0xf, 0);
     }
     return 1;
 }
@@ -316,20 +316,20 @@ void W8SpellInfoDialog::DrawLabels()
     text = record->display_name;
     width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0x25 + (0xe7 - width) / 2, m_y + 0x12, L"%s", text);
-    text = gppStringList[0x460 / 4];
+    text = gppStringList[0x118];
     width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0x25 + (0x53 - width) / 2, m_y + 0x24, L"%s", text);
     if (record->power_class == 3) {
-        text = gppStringList[0x468 / 4];
+        text = gppStringList[0x11a];
     } else {
-        text = gppStringList[0x464 / 4];
+        text = gppStringList[0x119];
     }
     width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0x25 + (0x7b - width) / 2, m_y + 0x33, L"%s", text);
     text = FormatWideString(g_format_d, record->spell_level);
     width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0x7c + (0x16 - width) / 2, m_y + 0x24, L"%s", text);
-    text = FormatWideString(g_format_d_s, record->spell_point_cost, gppStringList[0x46c / 4]);
+    text = FormatWideString(g_format_d_s, record->spell_point_cost, gppStringList[0x11b]);
     width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0xa4 + (0x25 - width) / 2, m_y + 0x33, L"%s", text);
 }

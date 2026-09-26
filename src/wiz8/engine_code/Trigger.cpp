@@ -3370,7 +3370,7 @@ void Trigger::Run(int source)
                 PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
             } else if (action_230 == 0x27) {
                 RestorePartySpellPoints(m_lData3);
-                ShowString(gppStringList[0x1c88 / 4]);
+                ShowString(gppStringList[0x722]);
                 PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
             } else {
                 int spell_id;

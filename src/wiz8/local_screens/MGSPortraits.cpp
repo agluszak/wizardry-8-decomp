@@ -114,7 +114,7 @@ void SyncPartyPortraitVitalsBars(void)
             }
 
             stamina = character->stamina;
-            stamina_bar = ((((static_cast<int>(stamina) < 0) - 1) & stamina) * 0x2d) /
+            stamina_bar = ((static_cast<int>(stamina) < 0 ? 0 : stamina) * 0x2d) /
                           static_cast<unsigned int>(character->uiStaminaMax);
             if (stamina_bar == 0 && stamina != 0) {
                 stamina_bar = 1;
@@ -580,7 +580,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
             if (fill_height != 0) {
                 int draw_y = (bar_y - numeric_hp_mode) + menu_y;
                 int draw_x = hp_bar_x + band_portrait_edge;
-                int line_count = (-(numeric_hp_mode != 0) & 2) + 3;
+                int line_count = (numeric_hp_mode != 0 ? 5 : 3);
                 char* screen = static_cast<char*>(LockPrimarySurface(&pitch));
 
                 if (line_count != 0) {
@@ -603,7 +603,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
             if (fill_height != 0) {
                 int draw_y = (bar_y - numeric_hp_mode) + menu_y;
                 int draw_x = stamina_bar_x + band_portrait_edge;
-                int line_count = (-(numeric_hp_mode != 0) & 2) + 3;
+                int line_count = (numeric_hp_mode != 0 ? 5 : 3);
                 char* screen = static_cast<char*>(LockPrimarySurface(&pitch));
 
                 if (line_count != 0) {
@@ -627,7 +627,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
                 if (fill_height != 0) {
                     int draw_y = (bar_y - numeric_hp_mode) + menu_y;
                     int draw_x = spell_bar_x + band_portrait_edge;
-                    int line_count = (-(numeric_hp_mode != 0) & 2) + 3;
+                    int line_count = (numeric_hp_mode != 0 ? 5 : 3);
                     char* screen = static_cast<char*>(LockPrimarySurface(&pitch));
 
                     if (line_count != 0) {

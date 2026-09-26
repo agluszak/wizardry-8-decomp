@@ -481,10 +481,10 @@ void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character)
         }
     }
     if (returned) {
-        ShowNoticef(0, gppStringList[0x7f4 / 4], npc->record->source_name_004);
+        ShowNoticef(0, gppStringList[0x1fd], npc->record->source_name_004);
     }
     if (dropped) {
-        ShowNoticef(0, gppStringList[0x7f8 / 4], npc->record->source_name_004);
+        ShowNoticef(0, gppStringList[0x1fe], npc->record->source_name_004);
     }
 }
 

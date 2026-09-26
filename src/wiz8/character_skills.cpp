@@ -79,7 +79,7 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
     if (skill_id == g_profession_bonus_skills[character->iProfession]) {
         skill_level = (skill_level * 0x7d) / 100;
     }
-    swprintf(text + *length, gppStringList[0x76c / 4],
+    swprintf(text + *length, gppStringList[0x1db],
              gppStringList[g_character_skill_name_ids[skill_id]], skill_level);
     *length = static_cast<unsigned int>(wcslen(text));
 }

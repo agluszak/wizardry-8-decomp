@@ -358,12 +358,11 @@ void DrawCampSpellPages(void)
             DrawCatalogImageAndInvalidate(-14, 0x140, 0, 3, left, top, 2, 0);
             SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
             gprintf(left + 0x1b, top + 8, const_cast<wchar_t*>(g_format_s_0064dd28),
-                    gppStringList[0x231c / 4]);
-            gprintf(left + 0x72, top + 8, gppStringList[0x2324 / 4]);
+                    gppStringList[0x8c7]);
+            gprintf(left + 0x72, top + 8, gppStringList[0x8c9]);
             SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
-            width = StringPixLengthArg(
-                g_wiz_text_font_secondary, wcslen(gppStringList[0x231c / 4]) + 2,
-                const_cast<UINT16*>(g_format_s_colon), gppStringList[0x231c / 4]);
+            width = StringPixLengthArg(g_wiz_text_font_secondary, wcslen(gppStringList[0x8c7]) + 2,
+                                       const_cast<UINT16*>(g_format_s_colon), gppStringList[0x8c7]);
             gprintf(left + 0x1b + width, top + 8, const_cast<wchar_t*>(g_format_d_0064dd20),
                     character->skills[0x1c + realm].level);
             width = StringPixLengthArg(
@@ -446,7 +445,7 @@ void DrawCampResistances(void)
     int width;
 
     DrawCatalogImageAndInvalidate(-14, 0x140, 0, 0, 0x136, 0, 2, 0);
-    text = gppStringList[0x2328 / 4];
+    text = gppStringList[0x8ca];
     width = StringPixLengthArg(
         g_wiz_text_font_secondary, wcslen(text),
         reinterpret_cast< // reinterpret-ok: SGP's historical UINT16 text ABI stores wchar_t data
@@ -659,11 +658,11 @@ void DrawCampCharacterInfo(void)
             SetClippingRect(&previous_clip);
         }
     }
-    DrawRcsText(gppStringList[0x246c / 4], 0x159, 10, 0xce,
+    DrawRcsText(gppStringList[0x91b], 0x159, 10, 0xce,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-    DrawRcsText(gppStringList[0x2470 / 4], 0x15e, 0x18, 0x65,
+    DrawRcsText(gppStringList[0x91c], 0x15e, 0x18, 0x65,
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
-    DrawRcsText(gppStringList[0x2474 / 4], 0x15e, 0x26, 0x65,
+    DrawRcsText(gppStringList[0x91d], 0x15e, 0x26, 0x65,
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     FormatUnsignedIntegerWithCommas(state->caption, character->experience);
     DrawRcsText(state->caption, 0x1c0, 0x18, 0x67,
@@ -671,11 +670,11 @@ void DrawCampCharacterInfo(void)
     FormatUnsignedIntegerWithCommas(state->caption, character->experience_goal);
     DrawRcsText(state->caption, 0x1c0, 0x26, 0x67,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-    DrawRcsText(gppStringList[0x2478 / 4], 0x144, 0x3a, 0x45,
+    DrawRcsText(gppStringList[0x91e], 0x144, 0x3a, 0x45,
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
-    DrawRcsText(gppStringList[0x247c / 4], 0x144, 0x48, 0x45,
+    DrawRcsText(gppStringList[0x91f], 0x144, 0x48, 0x45,
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
-    DrawRcsText(gppStringList[0x2480 / 4], 0x144, 0x56, 0x45,
+    DrawRcsText(gppStringList[0x920], 0x144, 0x56, 0x45,
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     swprintf(state->caption, g_format_d_slash_d, character->hp_current, character->uiHPMax);
     DrawRcsText(state->caption, 0x18d, 0x3a, 0x2c,
@@ -692,12 +691,12 @@ void DrawCampCharacterInfo(void)
              character->carrying_capacity / 10);
     DrawRcsTextJustified(state->caption, 0x18d, 0x56, 0x2c, 0xc,
                          g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-    swprintf(state->caption, g_format_s_colon_d_s_colon_d, gppStringList[0x2300 / 4],
-             character->inventory_weight / 10, gppStringList[0x2304 / 4],
+    swprintf(state->caption, g_format_s_colon_d_s_colon_d, gppStringList[0x8c0],
+             character->inventory_weight / 10, gppStringList[0x8c1],
              character->party_weight_share / 10);
     g_camp_help_text->SetRegionHelp(state->caption);
     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
-    DrawRcsText(gppStringList[0x2484 / 4], 0x144, 0x72, 0x75,
+    DrawRcsText(gppStringList[0x921], 0x144, 0x72, 0x75,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     top = 0x3a;
     for (index = 0; index < 7; ++index) {
@@ -724,12 +723,12 @@ void DrawCampCharacterInfo(void)
                                       top, 2, 0);
         top += 0x18;
     }
-    DrawRcsText(gppStringList[0x2488 / 4], 0x144, 0x80, 0x45,
+    DrawRcsText(gppStringList[0x922], 0x144, 0x80, 0x45,
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     swprintf(state->caption, g_format_d, character->armor_class_total);
     DrawRcsText(state->caption, 0x18d, 0x80, 0x2c,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-    DrawRcsText(gppStringList[0x248c / 4], 0x144, 0x8e, 0x45,
+    DrawRcsText(gppStringList[0x923], 0x144, 0x8e, 0x45,
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     swprintf(state->caption, g_format_d, character->armor_class_average);
     DrawRcsText(state->caption, 0x18d, 0x8e, 0x2c,
@@ -753,7 +752,7 @@ void DrawCampBackpackItems(void)
 
     if ((state->item_redraw_flags & 1) != 0) {
         DrawCatalogImageAndInvalidate(-14, 0x114, 0, 1, 0, 0xa5, 2, 0);
-        DrawRcsBoldText(gppStringList[0x24ac / 4], 0xc, 0xae, 0x5d,
+        DrawRcsBoldText(gppStringList[0x92b], 0xc, 0xae, 0x5d,
                         g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     }
     for (slot = 0; slot < 8; ++slot) {
@@ -923,7 +922,7 @@ void DrawCampItemPool(void)
         return;
     }
     if ((state->item_redraw_flags & 0x400000) != 0) {
-        DrawRcsBoldText(gppStringList[0x24b0 / 4], 0x1e6, 0xae, 0x8d,
+        DrawRcsBoldText(gppStringList[0x92c], 0x1e6, 0xae, 0x8d,
                         g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
         FormatUnsignedIntegerWithCommas(state->caption, g_status.party_gold);
         DrawRcsText(state->caption, 0x229, 0x1a9, 0x30,
@@ -1122,51 +1121,51 @@ void W8CampCharacterInfo::Redraw()
     if (!redraw)
         return;
     InvalidateCampPanel();
-    DrawRcsText(gppStringList[0x24d4 / 4], 0x15e, 0x84, 0x4e,
+    DrawRcsText(gppStringList[0x935], 0x15e, 0x84, 0x4e,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
     swprintf(g_camp_screen->caption, L"%d", g_review_character->kill_count_09f9);
     DrawRcsText(g_camp_screen->caption, 0x1ae, 0x84, 0x20,
                 g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-    DrawRcsText(gppStringList[0x24d8 / 4], 0x15e, 0x92, 0x4e,
+    DrawRcsText(gppStringList[0x936], 0x15e, 0x92, 0x4e,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
     swprintf(g_camp_screen->caption, L"%d", g_review_character->death_count_09fd);
     DrawRcsText(g_camp_screen->caption, 0x1ae, 0x92, 0x20,
                 g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
     if (m_combat_view) {
-        DrawRcsText(gppStringList[0x22c0 / 4], 0x15b, 10, 0x11d,
+        DrawRcsText(gppStringList[0x8b0], 0x15b, 10, 0x11d,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-        DrawRcsText(gppStringList[0x22c4 / 4], 0x15e, 0x30, 0x4e,
+        DrawRcsText(gppStringList[0x8b1], 0x15e, 0x30, 0x4e,
                     g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
         swprintf(g_camp_screen->caption, L"%d", g_review_character->initiative);
         DrawRcsText(g_camp_screen->caption, 0x1ae, 0x30, 0x20,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         if (g_review_character->EquippedItem[6].iItemNo == -1 &&
             g_review_character->EquippedItem[7].iItemNo == -1) {
-            DrawRcsText(gppStringList[0x22d4 / 4], 0x1d6, 0x22, 0x50,
+            DrawRcsText(gppStringList[0x8b5], 0x1d6, 0x22, 0x50,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-            DrawRcsText(gppStringList[0x22d0 / 4], 0x228, 0x22, 0x50,
+            DrawRcsText(gppStringList[0x8b4], 0x228, 0x22, 0x50,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         } else {
-            DrawRcsText(gppStringList[0x22c8 / 4], 0x1d6, 0x22, 0x50,
+            DrawRcsText(gppStringList[0x8b2], 0x1d6, 0x22, 0x50,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-            DrawRcsText(gppStringList[0x22cc / 4], 0x228, 0x22, 0x50,
+            DrawRcsText(gppStringList[0x8b3], 0x228, 0x22, 0x50,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         }
-        DrawRcsText(gppStringList[0x22d8 / 4], 0x1f8, 0x30, 0x5e,
+        DrawRcsText(gppStringList[0x8b6], 0x1f8, 0x30, 0x5e,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-        DrawRcsText(gppStringList[0x22f4 / 4], 0x1f8, 0x3e, 0x5e,
+        DrawRcsText(gppStringList[0x8bd], 0x1f8, 0x3e, 0x5e,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-        DrawRcsText(gppStringList[0x22f0 / 4], 0x1f8, 0x4c, 0x5e,
+        DrawRcsText(gppStringList[0x8bc], 0x1f8, 0x4c, 0x5e,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-        DrawRcsText(gppStringList[0x22e8 / 4], 0x1f8, 0x5a, 0x5e,
+        DrawRcsText(gppStringList[0x8ba], 0x1f8, 0x5a, 0x5e,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-        DrawRcsText(gppStringList[0x22ec / 4], 0x1f8, 0x68, 0x5e,
+        DrawRcsText(gppStringList[0x8bb], 0x1f8, 0x68, 0x5e,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-        DrawRcsText(gppStringList[0x22dc / 4], 0x1f8, 0x76, 0x5e,
+        DrawRcsText(gppStringList[0x8b7], 0x1f8, 0x76, 0x5e,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-        DrawRcsText(gppStringList[0x22e0 / 4], 0x1f8, 0x84, 0x5e,
+        DrawRcsText(gppStringList[0x8b8], 0x1f8, 0x84, 0x5e,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-        DrawRcsText(gppStringList[0x22e4 / 4], 0x1f8, 0x92, 0x5e,
+        DrawRcsText(gppStringList[0x8b9], 0x1f8, 0x92, 0x5e,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         bool unknown_partner =
             ItemHasSingledOutGenericName(g_review_character->EquippedItem[6].iItemNo) &&
@@ -1183,16 +1182,16 @@ void W8CampCharacterInfo::Redraw()
                     DrawRcsText(L"?", x, 0x30 + row * 14, 0x20,
                                 g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
                 }
-                wcscpy(g_camp_screen->caption, gppStringList[0x2570 / 4]);
+                wcscpy(g_camp_screen->caption, gppStringList[0x95c]);
                 wcscat(g_camp_screen->caption, L"?");
-                wcscat(g_camp_screen->caption, gppStringList[0x256c / 4]);
+                wcscat(g_camp_screen->caption, gppStringList[0x95b]);
                 wcscat(g_camp_screen->caption, L"?");
-                wcscat(g_camp_screen->caption, gppStringList[0x2568 / 4]);
+                wcscat(g_camp_screen->caption, gppStringList[0x95a]);
                 wcscat(g_camp_screen->caption, L"?");
                 m_values[hand + 2]->SetRegionHelp(g_camp_screen->caption);
-                wcscpy(g_camp_screen->caption, gppStringList[0x2564 / 4]);
+                wcscpy(g_camp_screen->caption, gppStringList[0x959]);
                 wcscat(g_camp_screen->caption, L"?");
-                wcscat(g_camp_screen->caption, gppStringList[0x2568 / 4]);
+                wcscat(g_camp_screen->caption, gppStringList[0x95a]);
                 wcscat(g_camp_screen->caption, L"?");
                 m_values[hand]->SetRegionHelp(g_camp_screen->caption);
                 continue;
@@ -1218,20 +1217,20 @@ void W8CampCharacterInfo::Redraw()
             swprintf(g_camp_screen->caption, L"%d-%d", minimum, maximum);
             DrawRcsText(g_camp_screen->caption, x, 0x3e, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-            wcscpy(g_camp_screen->caption, gppStringList[0x2570 / 4]);
+            wcscpy(g_camp_screen->caption, gppStringList[0x95c]);
             wcscat(g_camp_screen->caption, FormatWideString(L" %d, ", dice.base + dice.count));
-            wcscat(g_camp_screen->caption, gppStringList[0x256c / 4]);
+            wcscat(g_camp_screen->caption, gppStringList[0x95b]);
             wcscat(g_camp_screen->caption,
                    FormatWideString(L" %d, ", dice.base + dice.count * dice.sides));
-            wcscat(g_camp_screen->caption, gppStringList[0x2568 / 4]);
+            wcscat(g_camp_screen->caption, gppStringList[0x95a]);
             wcscat(g_camp_screen->caption, FormatWideString(L" %+d%%", damage_bonus));
             m_values[hand + 2]->SetRegionHelp(g_camp_screen->caption);
             swprintf(g_camp_screen->caption, L"%d", skill_bonus + hit_bonus);
             DrawRcsText(g_camp_screen->caption, x, 0x4c, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-            wcscpy(g_camp_screen->caption, gppStringList[0x2564 / 4]);
+            wcscpy(g_camp_screen->caption, gppStringList[0x959]);
             wcscat(g_camp_screen->caption, FormatWideString(L" %d, ", skill_bonus));
-            wcscat(g_camp_screen->caption, gppStringList[0x2568 / 4]);
+            wcscat(g_camp_screen->caption, gppStringList[0x95a]);
             wcscat(g_camp_screen->caption, FormatWideString(L" %+d", hit_bonus));
             m_values[hand]->SetRegionHelp(g_camp_screen->caption);
             swprintf(g_camp_screen->caption, L"%d", attack->attacks);
@@ -1252,7 +1251,7 @@ void W8CampCharacterInfo::Redraw()
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         }
     } else {
-        DrawRcsText(gppStringList[0x22f8 / 4], 0x15b, 10, 0x11d,
+        DrawRcsText(gppStringList[0x8be], 0x15b, 10, 0x11d,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         for (unsigned int component = 0; component < 12; ++component) {
             if (component == 11 && g_review_character->armor_class_components[11] == 0)
@@ -1269,7 +1268,7 @@ void W8CampCharacterInfo::Redraw()
                             g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             }
         }
-        DrawRcsText(gppStringList[0x22fc / 4], 0x1da, 0x84, 0x7c,
+        DrawRcsText(gppStringList[0x8bf], 0x1da, 0x84, 0x7c,
                     g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
         swprintf(g_camp_screen->caption, L"%d%%", g_review_character->damage_reduction);
         DrawRcsText(g_camp_screen->caption, 600, 0x84, 0x20,
@@ -1448,7 +1447,7 @@ unsigned char CampScreenEnter(void)
                 if (g_status.buffers.XChar[slot].fOccupied && IsPartySlotEligible(slot) &&
                     g_status.buffers.XChar[slot].pending_action == 9) {
                     swprintf(g_camp_screen->caption, L"%s %s", g_status.buffers.Char[slot].name,
-                             gppStringList[0x2464 / 4]);
+                             gppStringList[0x919]);
                     goto show_equip_message;
                 }
             }
@@ -1464,7 +1463,7 @@ unsigned char CampScreenEnter(void)
                         if (count == g_combat_state->equip_pending_a51) {
                             wcscat(g_camp_screen->caption, L" ");
                             wcscat(g_camp_screen->caption,
-                                   FormatWideString(gppStringList[0x2460 / 4],
+                                   FormatWideString(gppStringList[0x918],
                                                     g_status.buffers.Char[slot].name));
                             goto show_equip_message;
                         }
@@ -1532,7 +1531,7 @@ void CampScreenFrame(void)
                         SelectCampCharacter(CharacterPointerToPartySlot(g_camp_character));
                         if (!IsPartySlotEligible(giReviewCharSlot)) {
                             wchar_t* text =
-                                FormatWideString(gppStringList[0x24c4 / 4], g_camp_character->name);
+                                FormatWideString(gppStringList[0x931], g_camp_character->name);
                             W8MessageDialogBase* dialog =
                                 static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                             dialog->SetClientExtent(250, 200);
@@ -1558,7 +1557,7 @@ void CampScreenFrame(void)
                 W8MessageDialogBase* dialog =
                     static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                 dialog->SetClientExtent(250, 200);
-                dialog->SetMessage(gppStringList[0x20c8 / 4], 1, 50, 1, 1, 1, 1, 0, 350);
+                dialog->SetMessage(gppStringList[0x832], 1, 50, 1, 1, 1, 1, 0, 350);
                 SetDialogDestroyCallback(dialog, OnQuitGameDialogClosed);
                 g_camp_screen->dialog = dialog;
                 ActivateDialogRegion(0x138);
@@ -1637,7 +1636,7 @@ void DismissSelectedPartyCharacter(void)
                                 g_character_event_full_volume);
             return;
         }
-        wchar_t* text = FormatWideString(gppStringList[0x24c4 / 4], g_camp_character->name);
+        wchar_t* text = FormatWideString(gppStringList[0x931], g_camp_character->name);
         W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2056,7 +2055,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         return;
     }
     if (g_status.game_started == 0) {
-        text = gppStringList[0x2400 / 4];
+        text = gppStringList[0x900];
         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2067,7 +2066,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     }
     character = &g_status.buffers.Char[giReviewCharSlot];
     if (character->uiCondition[0x13] != 0 && (origin == 1 || origin == 0)) {
-        text = gppStringList[0x241c / 4];
+        text = gppStringList[0x907];
         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2077,7 +2076,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         return;
     }
     if (character->uiCondition[0xe] != 0 && (origin == 1 || origin == 0)) {
-        text = gppStringList[0x2420 / 4];
+        text = gppStringList[0x908];
         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2087,7 +2086,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         return;
     }
     if (character->uiCondition[W8_CONDITION_HOSTILE] != 0 && (origin == 1 || origin == 0)) {
-        text = gppStringList[0x2424 / 4];
+        text = gppStringList[0x909];
         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2098,7 +2097,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     }
     if (character->highest_condition >= W8_CONDITION_HOSTILE && origin != 2 &&
         g_status.item_in_cursor != 0 && gXStatus.held_item_source != giReviewCharSlot) {
-        text = gppStringList[0x2404 / 4];
+        text = gppStringList[0x901];
         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2210,7 +2209,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                     QueueCharacterEvent(g_camp_character, g_effect_005ee6ec, 0,
                                         g_effect_argument_005ed8cc, g_character_event_full_volume);
                 } else {
-                    text = FormatWideString(gppStringList[0x24c4 / 4], g_camp_character->name);
+                    text = FormatWideString(gppStringList[0x931], g_camp_character->name);
                     dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                     dialog->SetClientExtent(250, 200);
                     dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2233,7 +2232,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
        bound mark; the next click then unequips them. */
     if (item->iItemNo != -1 && origin == 1) {
         if (CanUnequipSlotItem(g_review_character, slot_index) == 0) {
-            text = gppStringList[0x242c / 4];
+            text = gppStringList[0x90b];
             dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
             dialog->SetClientExtent(250, 200);
             dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2293,8 +2292,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                                 g_effect_argument_005ed8cc,
                                                 g_character_event_full_volume);
                         } else {
-                            text =
-                                FormatWideString(gppStringList[0x24c4 / 4], g_camp_character->name);
+                            text = FormatWideString(gppStringList[0x931], g_camp_character->name);
                             dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                             dialog->SetClientExtent(250, 200);
                             dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2307,7 +2305,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                         changed = 1;
                         RebuildCampItemList();
                     } else {
-                        text = gppStringList[0x2430 / 4];
+                        text = gppStringList[0x90c];
                         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                         dialog->SetClientExtent(250, 200);
                         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2352,7 +2350,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                         paired_slot = GetPairedEquipSlot(slot_index);
                         paired = &g_review_character->EquippedItem[paired_slot];
                         if (CanUnequipSlotItem(g_review_character, paired_slot) == 0) {
-                            text = gppStringList[0x2458 / 4];
+                            text = gppStringList[0x916];
                             dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                             dialog->SetClientExtent(250, 200);
                             dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2392,7 +2390,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                         GetNpcState(
                                             g_status.buffers.XChar[giReviewCharSlot].npc_index),
                                         paired) != 0) {
-                                    text = gppStringList[0x2430 / 4];
+                                    text = gppStringList[0x90c];
                                     dialog =
                                         static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                                     dialog->SetClientExtent(250, 200);
@@ -2404,7 +2402,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                 }
                             }
                             if (AddItemToParty(paired, 0, 1) == 0) {
-                                text = gppStringList[0x2430 / 4];
+                                text = gppStringList[0x90c];
                                 dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                                 dialog->SetClientExtent(250, 200);
                                 dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2434,7 +2432,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                             g_effect_argument_005ed8cc,
                                             g_character_event_full_volume);
                     } else {
-                        text = FormatWideString(gppStringList[0x24c4 / 4], g_camp_character->name);
+                        text = FormatWideString(gppStringList[0x931], g_camp_character->name);
                         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                         dialog->SetClientExtent(250, 200);
                         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
@@ -2565,7 +2563,7 @@ bool ResolvePendingCampCharacter(bool force)
                                 g_character_event_full_volume);
             return 0;
         }
-        text = FormatWideString(gppStringList[0x24c4 / 4], g_camp_character->name);
+        text = FormatWideString(gppStringList[0x931], g_camp_character->name);
         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
         dialog->SetMessage(text, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
@@ -2617,31 +2615,31 @@ bool IsCampActionAllowed(int party_slot)
         if (g_combat_state->equip_phase_a50 != 0) {
             return 1;
         }
-        message = gppStringList[0x2428 / 4];
+        message = gppStringList[0x90a];
     } else {
         row = &g_status.buffers.XChar[party_slot];
         if (g_combat_state->equip_phase_a50 == 0) {
             if (g_combat_state->characters[party_slot].dead_34 != 0) {
                 if (row->pending_action == W8_ACTION_EQUIP) {
-                    message = gppStringList[0x240c / 4];
+                    message = gppStringList[0x903];
                 } else if (row->action_03d == W8_ACTION_EQUIP) {
-                    message = gppStringList[0x2410 / 4];
+                    message = gppStringList[0x904];
                 } else {
-                    message = gppStringList[0x2408 / 4];
+                    message = gppStringList[0x902];
                 }
             } else if (row->action_03d == W8_ACTION_EQUIP) {
-                message = gppStringList[0x240c / 4];
+                message = gppStringList[0x903];
             } else {
-                message = gppStringList[0x2408 / 4];
+                message = gppStringList[0x902];
             }
         } else {
             if (row->pending_action == W8_ACTION_EQUIP) {
                 return 1;
             }
             if (row->action_03d == W8_ACTION_EQUIP) {
-                message = gppStringList[0x2410 / 4];
+                message = gppStringList[0x904];
             } else {
-                message = gppStringList[0x2408 / 4];
+                message = gppStringList[0x902];
             }
         }
     }

@@ -112,7 +112,7 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
             continue;
         }
         if (edited_position->bQuadrant != live_position->bQuadrant) {
-            PostCharacterNotice(slot, gppStringList[0x920 / 4]);
+            PostCharacterNotice(slot, gppStringList[0x248]);
         }
         row = live_position->bQuadrant;
         if (working.ubQuadrantOccupants[row] < 3) {
@@ -133,7 +133,7 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
             SetFormationPosition(&working, slot, row, column, 0, 0, 0);
             working.positions[slot].facing = live_position->facing;
             if (edited_position->bQuadrant != row) {
-                PostCharacterNotice(slot, gppStringList[0x924 / 4], &g_formation_row_names[row][0]);
+                PostCharacterNotice(slot, gppStringList[0x249], &g_formation_row_names[row][0]);
             }
         } else {
             signed char new_rows[3] = {4, 2, 3};
@@ -145,7 +145,7 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
                 for (column = 0; column < 3; ++column) {
                     if (working.bOccupantChar[new_row][column] == -1) {
                         SetFormationPosition(&working, slot, new_row, column, 0, 0, 1);
-                        PostCharacterNotice(slot, gppStringList[0x928 / 4],
+                        PostCharacterNotice(slot, gppStringList[0x24a],
                                             &g_formation_row_names[new_row][0]);
                         placed = true;
                         break;
@@ -241,7 +241,7 @@ void RestoreCombatFormation(void)
                sizeof(W8PartyFormationState));
         RefreshFormationBoard();
         RefreshRadarMap();
-        ShowNotice(8, gppStringList[0x92c / 4], 0, -1, 0);
+        ShowNotice(8, gppStringList[0x24b], 0, -1, 0);
     }
 }
 
@@ -616,13 +616,11 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, signed cha
         }
         if (announce != 0) {
             if (new_row != -1) {
-                PostCharacterNotice(slot, gppStringList[0x930 / 4],
-                                    &g_formation_row_names[new_row][0]);
+                PostCharacterNotice(slot, gppStringList[0x24c], &g_formation_row_names[new_row][0]);
                 return;
             }
             if (old_row != -1) {
-                PostCharacterNotice(slot, gppStringList[0x934 / 4],
-                                    &g_formation_row_names[old_row][0]);
+                PostCharacterNotice(slot, gppStringList[0x24d], &g_formation_row_names[old_row][0]);
             }
         }
     }
@@ -690,7 +688,7 @@ void SeatFormationSlotInRow(W8PartyFormationState* formation, int slot, int row)
         SetFormationPosition(formation, slot, row, seat, 0, 1, 1);
         return;
     }
-    PostCharacterNotice(slot, gppStringList[0x938 / 4], &g_formation_row_names[row][0]);
+    PostCharacterNotice(slot, gppStringList[0x24e], &g_formation_row_names[row][0]);
 }
 
 /* Swap two party slots' formation positions: the second takes the first's
@@ -729,7 +727,7 @@ void SwapFormationSlots(W8PartyFormationState* formation, int slot_a, int slot_b
             SetFormationPosition(formation, slot_a, row, seat, 0, 1, 1);
             return;
         }
-        PostCharacterNotice(slot_a, gppStringList[0x938 / 4], &g_formation_row_names[row][0]);
+        PostCharacterNotice(slot_a, gppStringList[0x24e], &g_formation_row_names[row][0]);
     }
 }
 

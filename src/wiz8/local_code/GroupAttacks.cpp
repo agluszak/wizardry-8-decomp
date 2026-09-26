@@ -392,7 +392,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
         }
         if (announce == 0) {
             if (uiHits[0] == 0) {
-                AppendToLastTextLine(gppStringList[0x694 / 4], -1);
+                AppendToLastTextLine(gppStringList[0x1a5], -1);
             } else {
                 for (i = 0; i < 2; ++i) {
                     if (uiHits[i] == 0) {
@@ -412,19 +412,19 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                             -1);
                         break;
                     case 2:
-                        text = FormatWideString(gppStringList[0x704 / 4], uiHits[i],
+                        text = FormatWideString(gppStringList[0x1c1], uiHits[i],
                                                 uiTotals[i] / uiHits[i], -1);
                         break;
                     case 3:
-                        text = FormatWideString(gppStringList[0x708 / 4], uiHits[i],
+                        text = FormatWideString(gppStringList[0x1c2], uiHits[i],
                                                 uiTotals[i] / uiHits[i], -1);
                         break;
                     case 4:
-                        text = FormatWideString(gppStringList[0x70c / 4], uiHits[i],
+                        text = FormatWideString(gppStringList[0x1c3], uiHits[i],
                                                 uiTotals[i] / uiHits[i], -1);
                         break;
                     case 5:
-                        text = FormatWideString(gppStringList[0x664 / 4], uiHits[i],
+                        text = FormatWideString(gppStringList[0x199], uiHits[i],
                                                 uiTotals[i] / uiHits[i], -1);
                         break;
                     default:
@@ -513,7 +513,7 @@ void SpawnSummonedMonsterGroup(int special_attack_kind, W8TargetSource* pSource,
     }
     if (placed == 0) {
         RemoveAllGroupMembers(group);
-        ShowNotice(9, gppStringList[0x9a8 / 4], -1, -1, 0);
+        ShowNotice(9, gppStringList[0x26a], -1, -1, 0);
         return;
     }
     RefreshAllSight();

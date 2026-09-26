@@ -261,7 +261,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
         if (m_active != 0 && m_caret != -1) {
             int next = m_caret - 1;
             m_dirty = true;
-            m_caret = next & ((next < 0) - 1);
+            m_caret = next < 0 ? 0 : next;
             m_button->m_dirty = true;
             return 1;
         }

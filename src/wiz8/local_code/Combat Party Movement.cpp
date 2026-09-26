@@ -368,7 +368,7 @@ void EndPartyMovementPhase(void)
         return;
     }
     if (!GetLevelDataFlag6()) {
-        ShowNotice(8, gppStringList[0x870 / 4], -1, -1, 0);
+        ShowNotice(8, gppStringList[0x21c], -1, -1, 0);
     }
     ResetLevelDataVectors();
     DisableFreeTurnButton();

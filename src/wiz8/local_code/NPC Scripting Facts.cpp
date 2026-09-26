@@ -533,7 +533,7 @@ void HandleFactChange(int fact_id, unsigned char value)
                 ApplyAttributeChange(character, 1);
             }
         }
-        ShowString(gppStringList[0x770 / 4]);
+        ShowString(gppStringList[0x1dc]);
         trigger = FindTriggerByName("FOUNT_RIDDLE");
         if (trigger == 0) {
             return;

@@ -1187,7 +1187,7 @@ unsigned char SpellRealmButtonRegionEvent(const InputAtom* event, W8Region* regi
             } else {
                 SetRegionHelpText(FormatWideString(
                     g_format_s_parens_s_colon_d,
-                    gppStringList[g_spell_realm_help_string_ids[realm]], gppStringList[0xb4 / 4],
+                    gppStringList[g_spell_realm_help_string_ids[realm]], gppStringList[0x2d],
                     g_status.buffers.Char[g_status.selected_character]
                         .skills[W8_SKILL_FIRST_REALM + realm]
                         .level));
