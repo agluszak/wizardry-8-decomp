@@ -83,15 +83,16 @@ static srTextureIFace** g_read_mesh_textures;
 static unsigned long* g_read_mesh_render_flags;
 // GLOBAL: WIZ8 0x0065B9F4
 static W8MaterialRecord* g_read_mesh_material_records;
+/* Element count of the three scratch tables; every retail access is 16-bit. */
 // GLOBAL: WIZ8 0x0065B9F8
-static int g_read_mesh_scratch_count;
+static short g_read_mesh_scratch_count;
 // GLOBAL: WIZ8 0x0065B9CC
 static int g_read_mesh_material_count;
 
 // FUNCTION: WIZ8 0x00489A80
 bool IsTextureInReadMeshScratch(const srTextureIFace* texture)
 {
-    if (g_read_mesh_textures != 0 && g_read_mesh_scratch_count > 0) {
+    if (g_read_mesh_textures != 0 && g_read_mesh_scratch_count != 0) {
         for (short index = 0; index < g_read_mesh_scratch_count; ++index) {
             if (g_read_mesh_textures[index] == texture) {
                 return 1;
@@ -104,8 +105,8 @@ bool IsTextureInReadMeshScratch(const srTextureIFace* texture)
 // FUNCTION: WIZ8 0x00489AC0
 bool IsReadMeshMaterial(const srClass* material)
 {
-    if (g_read_mesh_materials != 0 && g_read_mesh_material_count > 0) {
-        for (short index = 0; index < g_read_mesh_material_count; ++index) {
+    if (g_read_mesh_materials != 0 && g_read_mesh_scratch_count != 0) {
+        for (short index = 0; index < g_read_mesh_scratch_count; ++index) {
             if (g_read_mesh_materials[index] == material) {
                 return 1;
             }
