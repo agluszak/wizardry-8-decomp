@@ -74,7 +74,10 @@ def configure_runtime_runner(
         return
     environment.setdefault("WIZ8_UMU_RUN", str(umu_run_path(settings)))
     environment.setdefault("PROTONPATH", str(ge_proton_path(settings)))
-    environment.setdefault("WIZ8_UMU_WINESERVER", str(ge_proton_wineserver_path(settings)))
+    environment.setdefault(
+        "WIZ8_UMU_WINESERVER",
+        str(Path(environment["PROTONPATH"]).expanduser() / "files/bin/wineserver"),
+    )
     # umu normally owns state below the user's XDG directories. Keep every
     # downloaded Steam Runtime/cache entry checkout-local instead.
     environment["UMU_FOLDERS_PATH"] = environment.get(
@@ -86,17 +89,18 @@ def configure_runtime_runner(
 
 
 def require_umu_runner(environment: dict[str, str]) -> str:
-    umu_run = Path(environment["WIZ8_UMU_RUN"])
-    proton = Path(environment["PROTONPATH"])
-    if not umu_run.is_file() or not os.access(umu_run, os.X_OK):
+    requested_umu = environment["WIZ8_UMU_RUN"]
+    umu_run = shutil.which(requested_umu)
+    proton = Path(environment["PROTONPATH"]).expanduser()
+    if umu_run is None:
         raise RuntimeError(
-            f"prepared umu launcher is missing: {umu_run}; run `uv run wiz8 prepare`"
+            f"prepared umu launcher is missing: {requested_umu}; run `uv run wiz8 prepare`"
         )
     if not proton.is_dir() or not (proton / "proton").is_file():
         raise RuntimeError(
             f"prepared GE-Proton is missing: {proton}; run `uv run wiz8 prepare`"
         )
-    return str(umu_run)
+    return umu_run
 
 
 @dataclass(frozen=True)
