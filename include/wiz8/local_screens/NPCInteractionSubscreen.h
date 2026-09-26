@@ -363,7 +363,7 @@ static_assert(offsetof(W8NpcInteractionState, dialogue_panel_hidden) == 0x262,
 static_assert(offsetof(W8NpcInteractionState, last_notice_npc_kind) == 0x264,
               "W8NpcInteractionState_last_notice_npc_kind");
 
-extern W8NpcInteractionState* g_npc_interaction;
+extern W8NpcInteractionState* g_screen_state_00649f1c;
 
 void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int suppress);
 void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int suppress,

@@ -131,7 +131,7 @@ int W8NpcDialog::CreateControls()
                                           static_cast<short>(m_x + x + m_text_width + 10),
                                           static_cast<short>(m_y + 0x1e), m_text_width, 0x14,
                                           OptionSelected, 1);
-        swprintf(line, gppStringList[0x7e5], g_npc_interaction->pending_price_204);
+        swprintf(line, gppStringList[0x7e5], g_screen_state_00649f1c->pending_price_204);
         bounds.left = m_x + 10;
         bounds.top = m_y + 10;
         bounds.right = m_x + m_width - 10;

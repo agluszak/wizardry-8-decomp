@@ -2862,7 +2862,7 @@ void W8NpcDialogueTextController::Collapse()
                             g_W8TextBufferAlignRight);
     RegionSetDisable(3);
     DisableRegionInput(9);
-    g_npc_interaction->npc_dialogue_panel_1b4->SetEnabled(0);
+    g_screen_state_00649f1c->npc_dialogue_panel_1b4->SetEnabled(0);
 }
 
 // FUNCTION: WIZ8 0x0055E1E0
@@ -2950,7 +2950,7 @@ void W8NpcDialogueScrollWidget::OnMouseEnter(int event)
 {
     W8NpcDialogueTextController* controller;
 
-    controller = g_npc_interaction->npc_dialogue_controller_1b0;
+    controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
     if (controller->text_area.SelectEntry(controller->text_area.m_first_visible_entry)) {
         controller->InvalidateLayout();
     }
@@ -2961,7 +2961,7 @@ void W8NpcDialogueScrollWidget::OnMouseLeave(int event)
 {
     W8NpcDialogueTextController* controller;
 
-    controller = g_npc_interaction->npc_dialogue_controller_1b0;
+    controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
     if (controller->text_area.ClearSelection()) {
         controller->InvalidateLayout();
     }
@@ -2995,12 +2995,12 @@ void W8NpcDialogueTextController::SetTranscriptCategoryFilter(signed char catego
     text_area.SetCategoryFilter(category);
     Collapse();
     Expand();
-    if (g_npc_interaction->npc_dialogue_controller_1b0->scroll_height == 0xff) {
-        g_npc_interaction->dialogue_scroll_up_button->SetEnabled(1);
-        g_npc_interaction->dialogue_scroll_down_button->SetEnabled(1);
+    if (g_screen_state_00649f1c->npc_dialogue_controller_1b0->scroll_height == 0xff) {
+        g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
+        g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(1);
     } else {
-        g_npc_interaction->dialogue_scroll_up_button->SetEnabled(0);
-        g_npc_interaction->dialogue_scroll_down_button->SetEnabled(0);
+        g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(0);
+        g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(0);
     }
 }
 
@@ -3011,23 +3011,23 @@ void W8NpcDialogueTextController::RestoreTranscriptEntries()
     W8NpcDialogueTextController* controller;
     int index;
 
-    for (index = 0; index < g_npc_interaction->dialogue_transcript.count; ++index) {
-        record = *g_npc_interaction->dialogue_transcript.GetAt(index);
+    for (index = 0; index < g_screen_state_00649f1c->dialogue_transcript.count; ++index) {
+        record = *g_screen_state_00649f1c->dialogue_transcript.GetAt(index);
         AddTranscriptEntry(record->text, record->category, 0);
     }
     Invalidate(0);
-    if (g_npc_interaction->dialogue_transcript.count == 0) {
-        g_npc_interaction->dialogue_category_filter = W8_DIALOGUE_CATEGORY_ALL;
-        controller = g_npc_interaction->npc_dialogue_controller_1b0;
-        controller->text_area.SetCategoryFilter(g_npc_interaction->dialogue_category_filter);
+    if (g_screen_state_00649f1c->dialogue_transcript.count == 0) {
+        g_screen_state_00649f1c->dialogue_category_filter = W8_DIALOGUE_CATEGORY_ALL;
+        controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+        controller->text_area.SetCategoryFilter(g_screen_state_00649f1c->dialogue_category_filter);
         controller->Collapse();
         controller->Expand();
-        if (g_npc_interaction->npc_dialogue_controller_1b0->scroll_height == 0xff) {
-            g_npc_interaction->dialogue_scroll_up_button->SetEnabled(1);
-            g_npc_interaction->dialogue_scroll_down_button->SetEnabled(1);
+        if (g_screen_state_00649f1c->npc_dialogue_controller_1b0->scroll_height == 0xff) {
+            g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
+            g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(1);
         } else {
-            g_npc_interaction->dialogue_scroll_up_button->SetEnabled(0);
-            g_npc_interaction->dialogue_scroll_down_button->SetEnabled(0);
+            g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(0);
+            g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(0);
         }
         SyncDialogueCategoryButtons();
         AddTranscriptEntry(L" [No Keywords]", W8_DIALOGUE_CATEGORY_ALL, 0);
@@ -9112,7 +9112,7 @@ void W8NpcDialogueTextController::SaveTranscriptEntries()
         entry = text_area.GetEntry(index);
         entry->CopyTextTo(record->text);
         record->category = entry->m_category;
-        g_npc_interaction->dialogue_transcript.Add(record);
+        g_screen_state_00649f1c->dialogue_transcript.Add(record);
     }
 }
 
@@ -9183,36 +9183,37 @@ void ConfirmNpcTradeItem(void)
     if (!ValidateNpcTradeSelection()) {
         return;
     }
-    if ((g_npc_interaction->trade_mode == W8_NPC_TRADE_GIVE ||
-         g_npc_interaction->trade_mode == W8_NPC_TRADE_SELL) &&
-        (g_npc_interaction->dialogue_text_120->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
+    if ((g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE ||
+         g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SELL) &&
+        (g_screen_state_00649f1c->dialogue_text_120->m_stateFlags &
+         g_W8TextControlStateSecondary) != 0) {
         selected = g_status.selected_character;
         npc_kind = g_status.buffers.XChar[selected].npc_index;
         if (npc_kind != -1) {
             npc = GetNpcState(npc_kind);
-            if (npc != 0 && g_npc_interaction->trade_item != 0 &&
-                NpcWantsItem(npc, g_npc_interaction->trade_item) != 0) {
+            if (npc != 0 && g_screen_state_00649f1c->trade_item != 0 &&
+                NpcWantsItem(npc, g_screen_state_00649f1c->trade_item) != 0) {
                 QueueCharacterEvent(&g_status.buffers.Char[selected], g_effect_005ee6ec, 0,
                                     g_effect_argument_005ed8cc, g_character_event_full_volume);
                 return;
             }
         }
     }
-    switch (g_npc_interaction->trade_mode) {
+    switch (g_screen_state_00649f1c->trade_mode) {
     case W8_NPC_TRADE_GIVE:
         HandleNpcDialogueItemChoice();
         break;
     case W8_NPC_TRADE_SELL:
-        wants =
-            NpcHasTopic(g_npc_interaction->dialogue_npc, g_npc_interaction->trade_item->iItemNo);
-        if (SellItemToNpc(g_npc_interaction->dialogue_npc, g_npc_interaction->trade_item,
-                          static_cast<unsigned char>(g_npc_interaction->trade_quantity),
-                          wants) == 0) {
+        wants = NpcHasTopic(g_screen_state_00649f1c->dialogue_npc,
+                            g_screen_state_00649f1c->trade_item->iItemNo);
+        if (SellItemToNpc(
+                g_screen_state_00649f1c->dialogue_npc, g_screen_state_00649f1c->trade_item,
+                static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity), wants) == 0) {
             break;
         }
         slot = GetTextSlot1E8(2);
-        if ((g_npc_interaction->dialogue_text_120->m_stateFlags & g_W8TextControlStateSecondary) !=
-            0) {
+        if ((g_screen_state_00649f1c->dialogue_text_120->m_stateFlags &
+             g_W8TextControlStateSecondary) != 0) {
             trading = &g_status.buffers.Char[g_status.selected_character];
             shown = 0;
             for (index = 0; index < 8; ++index) {
@@ -9228,18 +9229,18 @@ void ConfirmNpcTradeItem(void)
             if (index != -1) {
                 if (trading->backpack[index].stack_count > 0) {
                     trading->backpack[index].stack_count -=
-                        static_cast<unsigned char>(g_npc_interaction->trade_quantity);
+                        static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity);
                 }
                 if (trading->backpack[index].stack_count == 0) {
                     EmptyBackpackSlot(trading, index);
                 }
             }
-        } else if ((g_npc_interaction->dialogue_text_124->m_stateFlags &
+        } else if ((g_screen_state_00649f1c->dialogue_text_124->m_stateFlags &
                     g_W8TextControlStateSecondary) != 0) {
             shown = 0;
             target = slot;
-            if (g_npc_interaction->trade_mode != W8_NPC_TRADE_GIVE || slot != 0) {
-                if (g_npc_interaction->trade_mode == W8_NPC_TRADE_GIVE) {
+            if (g_screen_state_00649f1c->trade_mode != W8_NPC_TRADE_GIVE || slot != 0) {
+                if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE) {
                     --target;
                 }
                 for (index = 0; static_cast<unsigned int>(index) < g_status.party_item_count_1791;
@@ -9256,7 +9257,7 @@ void ConfirmNpcTradeItem(void)
                 if (index != -1) {
                     if (g_status.party_item_pool_0021[index].stack_count > 0) {
                         g_status.party_item_pool_0021[index].stack_count -=
-                            static_cast<unsigned char>(g_npc_interaction->trade_quantity);
+                            static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity);
                     }
                     if (g_status.party_item_pool_0021[index].stack_count == 0) {
                         EmptyPartyPoolEntry(index);
@@ -9265,8 +9266,8 @@ void ConfirmNpcTradeItem(void)
             }
         }
         RebuildNpcTradeItemList(false);
-        g_npc_interaction->trade_item = 0;
-        SortNpcItems(g_npc_interaction->dialogue_npc);
+        g_screen_state_00649f1c->trade_item = 0;
+        SortNpcItems(g_screen_state_00649f1c->dialogue_npc);
         SelectTextSlot1E8(slot, 2);
         UpdateNpcTradeSelection(slot, 0, 1);
         if (wants != 0) {
@@ -9275,11 +9276,11 @@ void ConfirmNpcTradeItem(void)
         break;
     case W8_NPC_TRADE_BUY:
         slot = GetTextSlot1E8(2);
-        count = GetNpcItemCount(g_npc_interaction->dialogue_npc);
+        count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
         shown = 0;
         index = -1;
         for (i = 0; i < count; ++i) {
-            entry = GetNpcItemAt(g_npc_interaction->dialogue_npc, i);
+            entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, i);
             if (entry != 0 && !NpcTradeItemAllowed(&entry->item) && entry->available_at == 0) {
                 if (shown == slot) {
                     index = i;
@@ -9288,12 +9289,12 @@ void ConfirmNpcTradeItem(void)
                 ++shown;
             }
         }
-        if (index != -1 &&
-            CompleteNpcItemPurchase(g_npc_interaction->dialogue_npc, index,
-                                    static_cast<unsigned char>(g_npc_interaction->trade_quantity),
-                                    0, &moved) != 0) {
+        if (index != -1 && CompleteNpcItemPurchase(
+                               g_screen_state_00649f1c->dialogue_npc, index,
+                               static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity),
+                               0, &moved) != 0) {
             RebuildNpcTradeItemList(false);
-            g_npc_interaction->trade_item = 0;
+            g_screen_state_00649f1c->trade_item = 0;
             RebuildNpcTradeItemList(false);
             SelectTextSlot1E8(slot, 2);
             UpdateNpcTradeSelection(slot, 0, 1);
@@ -9301,11 +9302,11 @@ void ConfirmNpcTradeItem(void)
         break;
     case W8_NPC_TRADE_SHOPLIFT:
         slot = GetTextSlot1E8(2);
-        count = GetNpcItemCount(g_npc_interaction->dialogue_npc);
+        count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
         shown = 0;
         index = -1;
         for (i = 0; i < count; ++i) {
-            entry = GetNpcItemAt(g_npc_interaction->dialogue_npc, i);
+            entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, i);
             if (entry != 0 && !NpcTradeItemAllowed(&entry->item) && entry->available_at == 0) {
                 if (shown == slot) {
                     index = i;
@@ -9315,9 +9316,10 @@ void ConfirmNpcTradeItem(void)
             }
         }
         if (index != -1) {
-            entry = GetNpcItemAt(g_npc_interaction->dialogue_npc, index);
-            AttemptNpcItemTrade(
-                &entry->item, static_cast<unsigned char>(g_npc_interaction->trade_quantity), index);
+            entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, index);
+            AttemptNpcItemTrade(&entry->item,
+                                static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity),
+                                index);
         }
         break;
     }
@@ -9328,7 +9330,7 @@ void ConfirmNpcTradeItem(void)
 // FUNCTION: WIZ8 0x005AD950
 void ShowNpcTradeItemNotice(W8ItemInstance* item)
 {
-    int mode = g_npc_interaction->trade_mode;
+    int mode = g_screen_state_00649f1c->trade_mode;
     unsigned int font_palette = 0xf;
     unsigned int price;
     int sell_mode = 0;
@@ -9343,15 +9345,16 @@ void ShowNpcTradeItemNotice(W8ItemInstance* item)
         } else {
             stack_count = 1;
         }
-        price = CalculateNpcTradeStackPrice(g_npc_interaction->dialogue_npc, item->iItemNo,
+        price = CalculateNpcTradeStackPrice(g_screen_state_00649f1c->dialogue_npc, item->iItemNo,
                                             sell_mode, stack_count, item->identified);
     } else {
         price = GetItemStackValue(item);
     }
-    if (g_status.party_gold < price && g_npc_interaction->trade_mode != W8_NPC_TRADE_SHOPLIFT) {
+    if (g_status.party_gold < price &&
+        g_screen_state_00649f1c->trade_mode != W8_NPC_TRADE_SHOPLIFT) {
         font_palette = 0;
     }
-    mode = g_npc_interaction->trade_mode;
+    mode = g_screen_state_00649f1c->trade_mode;
     if (mode != W8_NPC_TRADE_SELL && mode != W8_NPC_TRADE_BUY && mode != W8_NPC_TRADE_SHOPLIFT) {
         ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
         return;
@@ -9367,11 +9370,11 @@ void ShowNpcTradeItemNotice(W8ItemInstance* item)
 // FUNCTION: WIZ8 0x005ADAA0
 int ResolveNpcTradeStockIndex(int index)
 {
-    unsigned int count = GetNpcItemCount(g_npc_interaction->dialogue_npc);
+    unsigned int count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
     int visible = 0;
 
     for (unsigned int i = 0; i < count; ++i) {
-        W8NpcItemEntry* entry = GetNpcItemAt(g_npc_interaction->dialogue_npc, i);
+        W8NpcItemEntry* entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, i);
         if (entry != 0 && !NpcTradeItemAllowed(&entry->item) && entry->available_at == 0) {
             if (visible == index) {
                 return i;
@@ -9391,12 +9394,12 @@ void RebuildNpcTradeItemList(bool scroll_to_top)
     if (scroll_to_top) {
         ClearTextLineEntry(2);
     }
-    if (g_npc_interaction->trade_mode == W8_NPC_TRADE_BUY ||
-        g_npc_interaction->trade_mode == W8_NPC_TRADE_SHOPLIFT) {
+    if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_BUY ||
+        g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SHOPLIFT) {
         unsigned int shown = 0;
-        unsigned int count = GetNpcItemCount(g_npc_interaction->dialogue_npc);
+        unsigned int count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
         for (int index = 0; index < static_cast<int>(count); ++index) {
-            W8NpcItemEntry* entry = GetNpcItemAt(g_npc_interaction->dialogue_npc, index);
+            W8NpcItemEntry* entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, index);
             ++shown;
             if (shown > 0x15e) {
                 break;
@@ -9422,7 +9425,7 @@ void PopulateNpcTradeList(void)
     ResetEditorStatusLine(2);
     ResetNpcDialogueItemEditor();
     EnableNpcTradeFilterButtons();
-    if (g_npc_interaction->trade_mode == W8_NPC_TRADE_GIVE) {
+    if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE) {
         swprintf(g_level_block->text_paint_scratch_000, L"%d%s", g_status.party_gold,
                  gppStringList[0x1e5c / 4]);
         ShowNotice(0xf, gppStringList[0x1cb4 / 4], 2,
@@ -9431,9 +9434,10 @@ void PopulateNpcTradeList(void)
                    false);
         AppendTextBoxLine(g_level_block->text_paint_scratch_000, 2);
     }
-    if ((g_npc_interaction->dialogue_text_120->m_stateFlags & g_W8TextControlStateSecondary) == 0) {
-        if ((g_npc_interaction->dialogue_text_124->m_stateFlags & g_W8TextControlStateSecondary) !=
-            0) {
+    if ((g_screen_state_00649f1c->dialogue_text_120->m_stateFlags &
+         g_W8TextControlStateSecondary) == 0) {
+        if ((g_screen_state_00649f1c->dialogue_text_124->m_stateFlags &
+             g_W8TextControlStateSecondary) != 0) {
             for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
                 W8ItemInstance* item = &g_status.party_item_pool_0021[index];
                 bool acceptable = true;
@@ -9441,8 +9445,8 @@ void PopulateNpcTradeList(void)
                 if (item->iItemNo == -1) {
                     continue;
                 }
-                if (NpcAcceptsTradeItem(g_npc_interaction->dialogue_npc, item) == 0 &&
-                    g_npc_interaction->trade_mode != W8_NPC_TRADE_GIVE) {
+                if (NpcAcceptsTradeItem(g_screen_state_00649f1c->dialogue_npc, item) == 0 &&
+                    g_screen_state_00649f1c->trade_mode != W8_NPC_TRADE_GIVE) {
                     font_palette = 0;
                     acceptable = false;
                 } else {
@@ -9455,16 +9459,16 @@ void PopulateNpcTradeList(void)
                 if (shown > 0x15d) {
                     break;
                 }
-                if (g_npc_interaction->trade_mode == W8_NPC_TRADE_SELL) {
+                if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SELL) {
                     unsigned char stack_count;
                     if (g_item_records[item->iItemNo].equip_class == 4) {
                         stack_count = item->stack_count;
                     } else {
                         stack_count = 1;
                     }
-                    int price =
-                        CalculateNpcTradeStackPrice(g_npc_interaction->dialogue_npc, item->iItemNo,
-                                                    0, stack_count, item->identified);
+                    int price = CalculateNpcTradeStackPrice(g_screen_state_00649f1c->dialogue_npc,
+                                                            item->iItemNo, 0, stack_count,
+                                                            item->identified);
                     if (acceptable) {
                         swprintf(g_level_block->text_paint_scratch_000, L"%d%s", price,
                                  gppStringList[0x1e5c / 4]);
@@ -9497,14 +9501,14 @@ void PopulateNpcTradeList(void)
             if (NpcTradeItemAllowed(item)) {
                 continue;
             }
-            if (NpcAcceptsTradeItem(g_npc_interaction->dialogue_npc, item) == 0 &&
-                g_npc_interaction->trade_mode != W8_NPC_TRADE_GIVE) {
+            if (NpcAcceptsTradeItem(g_screen_state_00649f1c->dialogue_npc, item) == 0 &&
+                g_screen_state_00649f1c->trade_mode != W8_NPC_TRADE_GIVE) {
                 font_palette = 0;
                 acceptable = false;
             } else {
                 font_palette = 0xf;
             }
-            if (g_npc_interaction->trade_mode == W8_NPC_TRADE_SELL) {
+            if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SELL) {
                 unsigned char stack_count;
                 if (g_item_records[item->iItemNo].equip_class == 4) {
                     stack_count = item->stack_count;
@@ -9512,8 +9516,8 @@ void PopulateNpcTradeList(void)
                     stack_count = 1;
                 }
                 int price =
-                    CalculateNpcTradeStackPrice(g_npc_interaction->dialogue_npc, item->iItemNo, 0,
-                                                stack_count, item->identified);
+                    CalculateNpcTradeStackPrice(g_screen_state_00649f1c->dialogue_npc,
+                                                item->iItemNo, 0, stack_count, item->identified);
                 if (acceptable) {
                     swprintf(g_level_block->text_paint_scratch_000, L"%d%s", price,
                              gppStringList[0x1e5c / 4]);
@@ -9531,7 +9535,7 @@ void PopulateNpcTradeList(void)
             }
         }
     }
-    g_npc_interaction->panel_1ac->Invalidate(0);
+    g_screen_state_00649f1c->panel_1ac->Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x005AE040
@@ -9539,19 +9543,21 @@ void OpenNpcTradeQuantityDialog(void)
 {
     W8SplitItemDialog* dialog;
 
-    if (g_npc_interaction->trade_item == 0 || g_npc_interaction->trade_item->stack_count < 2) {
+    if (g_screen_state_00649f1c->trade_item == 0 ||
+        g_screen_state_00649f1c->trade_item->stack_count < 2) {
         return;
     }
-    if (g_npc_interaction->trade_mode == W8_NPC_TRADE_SELL) {
-        dialog = new W8SplitItemDialog(g_split_dialog_sell_kind, g_npc_interaction->trade_item,
-                                       g_npc_interaction->trade_quantity);
-    } else if (g_npc_interaction->trade_mode == W8_NPC_TRADE_BUY ||
-               g_npc_interaction->trade_mode == W8_NPC_TRADE_SHOPLIFT) {
-        dialog = new W8SplitItemDialog(g_split_dialog_buy_kind, g_npc_interaction->trade_item,
-                                       g_npc_interaction->trade_quantity);
+    if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SELL) {
+        dialog =
+            new W8SplitItemDialog(g_split_dialog_sell_kind, g_screen_state_00649f1c->trade_item,
+                                  g_screen_state_00649f1c->trade_quantity);
+    } else if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_BUY ||
+               g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SHOPLIFT) {
+        dialog = new W8SplitItemDialog(g_split_dialog_buy_kind, g_screen_state_00649f1c->trade_item,
+                                       g_screen_state_00649f1c->trade_quantity);
     } else {
-        dialog = new W8SplitItemDialog(g_split_dialog_kind, g_npc_interaction->trade_item,
-                                       g_npc_interaction->trade_quantity);
+        dialog = new W8SplitItemDialog(g_split_dialog_kind, g_screen_state_00649f1c->trade_item,
+                                       g_screen_state_00649f1c->trade_quantity);
     }
     dialog->SetText(&g_empty_wide_string);
     dialog->SetOrigin(g_split_dialog_x, g_split_dialog_y);
@@ -9562,14 +9568,14 @@ void OpenNpcTradeQuantityDialog(void)
 // FUNCTION: WIZ8 0x005AE000
 void SetNpcDialogueSubMode4(void)
 {
-    g_npc_interaction->trade_mode = W8_NPC_TRADE_BUY;
+    g_screen_state_00649f1c->trade_mode = W8_NPC_TRADE_BUY;
     UpdateNpcDialogueSubMode();
 }
 
 // FUNCTION: WIZ8 0x005AE020
 void RestockNpcTradeStock(void)
 {
-    RestockNpcInventory(g_npc_interaction->dialogue_npc);
+    RestockNpcInventory(g_screen_state_00649f1c->dialogue_npc);
 }
 
 // FUNCTION: WIZ8 0x005AE1A0
@@ -9581,7 +9587,7 @@ void NpcTradeSplitDialogResult(W8DialogBase* dialog)
         int count = split->split_count_0c0;
         if (count != 0) {
             int slot = GetTextSlot1E8(2);
-            g_npc_interaction->trade_quantity = count - 1;
+            g_screen_state_00649f1c->trade_quantity = count - 1;
             SelectTextSlot1E8(slot, 2);
             UpdateNpcTradeSelection(slot, 0, 1);
         }
@@ -9593,23 +9599,23 @@ bool ValidateNpcTradeSelection(void)
 {
     bool accepted = true;
 
-    if (g_npc_interaction->trade_mode == W8_NPC_TRADE_SELL) {
-        if (g_npc_interaction->trade_item == 0) {
+    if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SELL) {
+        if (g_screen_state_00649f1c->trade_item == 0) {
             return false;
         }
-        if (NpcAcceptsTradeItem(g_npc_interaction->dialogue_npc, g_npc_interaction->trade_item) ==
-            0) {
+        if (NpcAcceptsTradeItem(g_screen_state_00649f1c->dialogue_npc,
+                                g_screen_state_00649f1c->trade_item) == 0) {
             accepted = false;
             QueueNpcScriptLine(0x11, 0, 0, 0);
         }
-    } else if (g_npc_interaction->trade_mode == W8_NPC_TRADE_BUY) {
-        W8ItemInstance* item = g_npc_interaction->trade_item;
+    } else if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_BUY) {
+        W8ItemInstance* item = g_screen_state_00649f1c->trade_item;
         if (item == 0) {
             return false;
         }
         unsigned int price = CalculateNpcTradeStackPrice(
-            g_npc_interaction->dialogue_npc, item->iItemNo, 1,
-            static_cast<unsigned char>(g_npc_interaction->trade_quantity), item->identified);
+            g_screen_state_00649f1c->dialogue_npc, item->iItemNo, 1,
+            static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity), item->identified);
         if (g_status.party_gold < price) {
             QueueNpcScriptLine(0x14, 0, 0, 0);
             return false;
@@ -9625,27 +9631,27 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
     char result;
     W8Character* character = &g_status.buffers.Char[g_status.selected_character];
 
-    result =
-        AttemptNpcItemTheft(character, g_npc_interaction->dialogue_npc, item->iItemNo, quantity);
+    result = AttemptNpcItemTheft(character, g_screen_state_00649f1c->dialogue_npc, item->iItemNo,
+                                 quantity);
     if (result == 0) {
         swprintf(text, gppStringList[0x1d34 / 4], character->name, GetItemDisplayName(item));
         DisplayNpcQuote(text, 1);
         if (g_item_records[item->iItemNo].identify_difficulty != 0 && quantity == 1) {
-            AddNpcTopic(g_npc_interaction->dialogue_npc, item->iItemNo);
+            AddNpcTopic(g_screen_state_00649f1c->dialogue_npc, item->iItemNo);
         }
-        CompleteNpcItemPurchase(g_npc_interaction->dialogue_npc, index, quantity, 1, 0);
+        CompleteNpcItemPurchase(g_screen_state_00649f1c->dialogue_npc, index, quantity, 1, 0);
         ResetEditorStatusLine(2);
         ResetNpcDialogueItemEditor();
         EnableNpcTradeFilterButtons();
-        if (g_npc_interaction->trade_mode != W8_NPC_TRADE_BUY &&
-            g_npc_interaction->trade_mode != W8_NPC_TRADE_SHOPLIFT) {
+        if (g_screen_state_00649f1c->trade_mode != W8_NPC_TRADE_BUY &&
+            g_screen_state_00649f1c->trade_mode != W8_NPC_TRADE_SHOPLIFT) {
             PopulateNpcTradeList();
             return true;
         }
         unsigned int shown = 0;
-        int count = GetNpcItemCount(g_npc_interaction->dialogue_npc);
+        int count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
         for (int i = 0; i < count; ++i) {
-            W8NpcItemEntry* entry = GetNpcItemAt(g_npc_interaction->dialogue_npc, i);
+            W8NpcItemEntry* entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, i);
             ++shown;
             if (shown > 0x15e) {
                 return true;
@@ -9663,8 +9669,8 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
     }
     if (result == 2) {
         QueueNpcScriptLine(0x17, 0, 0, 0);
-        SetNpcDispositionBand(g_npc_interaction->dialogue_npc, 1);
-        ApplyFactionChange(3, g_npc_interaction->dialogue_npc->record->faction_5f, 1, -5);
+        SetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc, 1);
+        ApplyFactionChange(3, g_screen_state_00649f1c->dialogue_npc->record->faction_5f, 1, -5);
         CloseNpcDialogueOptionLayout();
         ShowNpcDialogueTopicMenu();
         return false;
@@ -9694,7 +9700,7 @@ void W8NpcDialogueTextController::SelectTranscriptKeywordAtPoint(int x, int y)
     wchar_t keyword[200];
     unsigned int hit;
 
-    if (g_npc_interaction->modal_dialog_open != 0) {
+    if (g_screen_state_00649f1c->modal_dialog_open != 0) {
         return;
     }
 
@@ -9739,7 +9745,7 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, W8Region* re
         }
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
             region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-            g_npc_interaction->npc_dialogue_controller_1b0->SelectTranscriptKeywordAtPoint(
+            g_screen_state_00649f1c->npc_dialogue_controller_1b0->SelectTranscriptKeywordAtPoint(
                 static_cast<unsigned short>(event->uiParam),
                 static_cast<unsigned short>(event->uiParam >> 16));
             return 1;
@@ -9751,7 +9757,7 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, W8Region* re
             }
             delta = GetMouseWheelDeltaValue(event->usParam);
             if (delta > 0) {
-                controller = g_npc_interaction->npc_dialogue_controller_1b0;
+                controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
                 scrolled = controller->text_area.ScrollUp(0);
                 if (scrolled == 0) {
                     return 0;
@@ -9759,7 +9765,7 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, W8Region* re
                 controller->Invalidate(0);
                 return 0;
             }
-            controller = g_npc_interaction->npc_dialogue_controller_1b0;
+            controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
             scrolled = controller->text_area.ScrollDown(0);
             if (scrolled == 0) {
                 return 0;
@@ -9769,7 +9775,7 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, W8Region* re
         }
         if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
             if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
-                controller = g_npc_interaction->npc_dialogue_controller_1b0;
+                controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
                 if (controller->text_area.UpdateSelectionFromPoint(
                         static_cast<unsigned short>(event->uiParam),
                         static_cast<unsigned short>(event->uiParam >> 16)) != 0) {
@@ -9777,7 +9783,7 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, W8Region* re
                 }
             }
         } else {
-            controller = g_npc_interaction->npc_dialogue_controller_1b0;
+            controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
             if (controller->text_area.ClearPointSelection() != 0) {
                 controller->InvalidateLayout();
                 return 1;

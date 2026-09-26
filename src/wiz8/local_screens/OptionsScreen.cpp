@@ -1904,9 +1904,11 @@ W8OptionsMenuSet::W8OptionsMenuSet(unsigned int* shared_region_set)
     m_next_054 = new W8TextControl(this, 0xffffffff, 0x11f, 3, 0, 0, 0xf4, 0, 4, 6, 5, -1, 7);
     m_next_054->m_listener = this;
 
-    m_page_text_05c =
-        new W8TextBuffer((W8ControlsRect*)&origin_x, &g_empty_wide_string, g_options_detail_font,
-                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle, 4);
+    // reinterpret-ok: retail passes the panel's contiguous origin_x/origin_y/right/bottom
+    // ints as the bounds rect; Controls does not yet model them as one W8ControlsRect
+    m_page_text_05c = new W8TextBuffer(reinterpret_cast<W8ControlsRect*>(&origin_x),
+                                       &g_empty_wide_string, g_options_detail_font,
+                                       g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle, 4);
 }
 
 /* The menu-set table has its own deleting destructor; the normal destructor

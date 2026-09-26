@@ -1092,10 +1092,11 @@ portrait_fx:
     }
 
     if (overlay_ready != 0 && gXStatus.fNpcDialogueMode != 0 &&
-        g_npc_interaction->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT &&
-        g_npc_interaction->scripted_dialogue == 0 &&
-        g_npc_interaction->dialogue_panel_hidden == 0 && g_npc_interaction->script_busy == 0 &&
-        g_npc_interaction->dialogue_hidden == 0 && gXStatus.scripted_scene_19b7 == 0) {
+        g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT &&
+        g_screen_state_00649f1c->scripted_dialogue == 0 &&
+        g_screen_state_00649f1c->dialogue_panel_hidden == 0 &&
+        g_screen_state_00649f1c->script_busy == 0 &&
+        g_screen_state_00649f1c->dialogue_hidden == 0 && gXStatus.scripted_scene_19b7 == 0) {
         SetNpcDialoguePanelVisible(1);
     }
 }
