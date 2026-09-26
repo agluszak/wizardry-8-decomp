@@ -171,7 +171,7 @@ unsigned int RollEffectDuration(W8SpellEffectDefinition* definition)
 void ClearMonsterEffect2DE(W8MonsterInfo* monster_info)
 {
     if (monster_info->effect_2de != 0) {
-        PostMonsterNotice(monster_info, gppStringList[0x6b4 / 4]);
+        PostMonsterNotice(monster_info, gppStringList[0x1ad]);
         monster_info->effect_2de = 0;
         SetMonsterSpellIcon(monster_info->p3D, SPELL_ICON_CHARMED, 0);
     }
@@ -493,10 +493,10 @@ void AnnounceEffectResisted(W8CombatSlot* target)
     if (target->iType == W8_TARGET_KIND_MONSTER) {
         PostMonsterNotice(MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                               3758, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
-                          gppStringList[0x6cc / 4]);
+                          gppStringList[0x1b3]);
         return;
     }
-    PostCharacterNotice(target->iChar, gppStringList[0x6cc / 4]);
+    PostCharacterNotice(target->iChar, gppStringList[0x1b3]);
 }
 
 /* Apply an effect and say so if it did not take. Only a zero result counts as
@@ -512,10 +512,10 @@ void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, int real
     if (target->iType == W8_TARGET_KIND_MONSTER) {
         PostMonsterNotice(MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                               3758, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
-                          gppStringList[0x6cc / 4]);
+                          gppStringList[0x1b3]);
         return;
     }
-    PostCharacterNotice(target->iChar, gppStringList[0x6cc / 4]);
+    PostCharacterNotice(target->iChar, gppStringList[0x1b3]);
 }
 
 /* Which of the seven display slots one condition owns. Anything not among the
@@ -628,11 +628,11 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     if (TargetSourceIsCharacter(&effect->Source, 0) &&
         GetConditionRecordFlag(effect->Source.iChar, 0) != 0) {
         if (g_settings.verbose_combat_messages != 0) {
-            PostCharacterNotice(effect->Source.iChar, gppStringList[0x6a0 / 4]);
+            PostCharacterNotice(effect->Source.iChar, gppStringList[0x1a8]);
         } else {
             AppendToLastTextLine(L" -- ", -1);
             SetTextBoxMode(1, -1);
-            AppendToLastTextLine(gppStringList[0x6a0 / 4], -1);
+            AppendToLastTextLine(gppStringList[0x1a8], -1);
         }
         effect->reported_124 = true;
         return;
@@ -984,7 +984,7 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target, i
             case 6:
                 if (CharacterHasTrait(character, 3) != 0) {
                     if (announce_resistance != 0) {
-                        PostCharacterNotice(target->iChar, gppStringList[0x600 / 4]);
+                        PostCharacterNotice(target->iChar, gppStringList[0x180]);
                     }
                     return 1;
                 }
@@ -1005,7 +1005,7 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target, i
                 if (CharacterHasTrait(character, 0xe) != 0) {
                     if (announce_resistance != 0) {
                         PostCharacterNotice(
-                            target->iChar, gppStringList[0x604 / 4],
+                            target->iChar, gppStringList[0x181],
                             gppStringList[g_condition_notices[condition_id * 4] * 4]);
                     }
                     return 1;
@@ -1028,9 +1028,9 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target, i
             unsigned int monster_index =
                 MonsterGetIndexByLocationID(0xeae, MAGIC_EFFECTS_CPP, target->iMonsterID, 1);
             PostMonsterNotice(MonsterGetScriptPartByLocationIndex(monster_index),
-                              gppStringList[0x6cc / 4]);
+                              gppStringList[0x1b3]);
         } else {
-            PostCharacterNotice(target->iChar, gppStringList[0x6cc / 4]);
+            PostCharacterNotice(target->iChar, gppStringList[0x1b3]);
         }
     }
     return resolved;

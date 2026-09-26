@@ -1376,7 +1376,7 @@ void W8Missile::AnnounceCollisionTarget()
     if (gXStatus.fCombatMode == 0) {
         return;
     }
-    swprintf(text, L"%s ", gppStringList[0x6fc / 4]);
+    swprintf(text, L"%s ", gppStringList[0x1bf]);
     target_start = wcslen(text);
     if (combat_slot_260.iType == W8_TARGET_KIND_MONSTER) {
         unsigned int monster_list_index =
@@ -1390,7 +1390,7 @@ void W8Missile::AnnounceCollisionTarget()
     source_color = GetSourceNoticeColor(&m_Source);
     target_color = GetTargetNoticeColor(&m_Source, &combat_slot_260);
     wcscat(text, L" ");
-    wcscat(text, gppStringList[0x700 / 4]);
+    wcscat(text, gppStringList[0x1c0]);
     ShowNotice(source_color, text, -1, -1, 0);
     if (target_color != source_color) {
         HighlightTextBoxRange(target_color, target_start, target_stop, -1);

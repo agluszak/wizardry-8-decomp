@@ -493,7 +493,7 @@ wchar_t* FormatItemDisplayName(const W8ItemInstance* item, unsigned char include
         if (g_generic_item_names[name_index] == 0) {
             name = static_cast<wchar_t*>(malloc(0x78));
             g_generic_item_names[name_index] = name;
-            swprintf(name, gppStringList[0x79c / 4],
+            swprintf(name, gppStringList[0x1e7],
                      gppStringList[g_generic_item_name_notice[name_index]]);
         }
         name = g_generic_item_names[name_index];
@@ -1087,7 +1087,7 @@ wchar_t* GetItemDisplayName(const W8ItemInstance* item)
     if (g_generic_item_names[name_index] == 0) {
         built = static_cast<wchar_t*>(malloc(0x78));
         g_generic_item_names[name_index] = built;
-        swprintf(built, gppStringList[0x79c / 4],
+        swprintf(built, gppStringList[0x1e7],
                  gppStringList[g_generic_item_name_notice[name_index]]);
     }
     return g_generic_item_names[name_index];
@@ -1162,26 +1162,26 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
     unsigned char used = 0;
 
     if (!CanCharacterUseItem(character, item->iItemNo)) {
-        PostCharacterNotice(party_slot, gppStringList[0x590 / 4], GetItemDisplayName(item));
+        PostCharacterNotice(party_slot, gppStringList[0x164], GetItemDisplayName(item));
         *out_uses = -1;
         return 0;
     }
     if (!CanCharacterActivateItem(character, item)) {
-        PostCharacterNotice(party_slot, gppStringList[0x594 / 4], GetItemDisplayName(item));
+        PostCharacterNotice(party_slot, gppStringList[0x165], GetItemDisplayName(item));
         *out_uses = -1;
         return 0;
     }
 
     if (record->quantity_kind == 2 && item->uses_or_charges == 0) {
-        PostCharacterNotice(party_slot, gppStringList[0x7c4 / 4], GetItemDisplayName(item));
+        PostCharacterNotice(party_slot, gppStringList[0x1f1], GetItemDisplayName(item));
         event_type = g_special_event_0068c558;
     } else if (record->quantity_kind == 4 && item->uses_or_charges == 0) {
-        PostCharacterNotice(party_slot, gppStringList[0x7c8 / 4], GetItemDisplayName(item));
+        PostCharacterNotice(party_slot, gppStringList[0x1f2], GetItemDisplayName(item));
         event_type = g_effect_005ee624;
     } else {
         if (record->equip_class == 0xd &&
             character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
-            PostCharacterNotice(party_slot, gppStringList[0x598 / 4]);
+            PostCharacterNotice(party_slot, gppStringList[0x166]);
             *out_uses = -1;
             return 0;
         }
@@ -1238,7 +1238,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
             } while (power != 0);
 
             if (power == 0) {
-                PostCharacterNotice(party_slot, gppStringList[0x7cc / 4], GetItemDisplayName(item));
+                PostCharacterNotice(party_slot, gppStringList[0x1f3], GetItemDisplayName(item));
                 PracticeCharacterSkill(character, skill, 1, 0);
                 *out_uses = -1;
                 return 0;
@@ -1383,7 +1383,7 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
         srAssertFail("pIntoPCItem->iItemNo != -1", PC_ITEM_CPP, 2923, 0);
     }
     if (destination->identified == 0 || held->identified == 0) {
-        ShowCampNoticeLine(gppStringList[0x58c / 4], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x163], 0, 1, 0);
         return 0;
     }
 
@@ -1522,10 +1522,9 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
             return stacked;
         }
         if (!found) {
-            ShowCampNoticeLine(gppStringList[0x584 / 4], 0, 1, 0);
+            ShowCampNoticeLine(gppStringList[0x161], 0, 1, 0);
         } else {
-            ShowCampNoticeLine(FormatWideString(gppStringList[0x588 / 4], character->name), 0, 1,
-                               0);
+            ShowCampNoticeLine(FormatWideString(gppStringList[0x162], character->name), 0, 1, 0);
         }
     }
     return merged;
@@ -1624,7 +1623,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
         g_camp_screen->item_redraw_flags |= 2 << stored_index;
     }
     if (announce) {
-        PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x7a0 / 4],
+        PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x1e8],
                             display_name);
     }
     UpdateFactsAfterAcquiringItem(stored_item);
@@ -1760,12 +1759,12 @@ void StashDepartingCharacterItems(W8Character* character)
             if ((g_item_records[g_status.item_in_hand_235b.iItemNo].flags_041 & 2) == 0) {
                 DropHeldItem(0);
             } else {
-                ShowNoticeLine(gppStringList[0x13bc / 4], 0, 1, 0);
+                ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
             }
             if (was_in_cursor) {
                 g_status.item_in_hand_235b = saved_hand;
             }
-            ShowNoticef(0, gppStringList[0x1f4c / 4], &g_item_records[item_id]);
+            ShowNoticef(0, gppStringList[0x7d3], &g_item_records[item_id]);
         }
     }
 
@@ -1785,12 +1784,12 @@ void StashDepartingCharacterItems(W8Character* character)
             if ((g_item_records[g_status.item_in_hand_235b.iItemNo].flags_041 & 2) == 0) {
                 DropHeldItem(0);
             } else {
-                ShowNoticeLine(gppStringList[0x13bc / 4], 0, 1, 0);
+                ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
             }
             if (was_in_cursor) {
                 g_status.item_in_hand_235b = saved_hand;
             }
-            ShowNoticef(0, gppStringList[0x1f4c / 4], &g_item_records[item_id]);
+            ShowNoticef(0, gppStringList[0x7d3], &g_item_records[item_id]);
         }
     }
 }
@@ -1892,9 +1891,9 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
     }
 
     if (IsPartySlotEligible(uiChar) == 0 && !party_first) {
-        ShowNoticeLine(gppStringList[0x7d4 / 4], 0, 1, 0);
+        ShowNoticeLine(gppStringList[0x1f5], 0, 1, 0);
     } else {
-        ShowNoticeLine(gppStringList[0x2430 / 4], 0, 1, 0);
+        ShowNoticeLine(gppStringList[0x90c], 0, 1, 0);
     }
     return stored;
 }
@@ -1982,7 +1981,7 @@ bool DropItemInHand(int arg_1)
 {
     if ((g_item_records[g_status.item_in_hand_235b.iItemNo].flags_041 & W8_ITEM_FLAG_NO_DISCARD) !=
         0) {
-        ShowNoticeLine(gppStringList[0x13bc / 4], 0, 1, 0);
+        ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
         return false;
     }
     DropHeldItem(arg_1);
@@ -2097,8 +2096,8 @@ void AddPartyGold(int amount, char announce)
     }
 
     if (announce) {
-        line = FormatWideString(gppStringList[0x788 / 4], gppStringList[0x57c / 4], amount,
-                                gppStringList[0x580 / 4], -1, -1, 0);
+        line = FormatWideString(gppStringList[0x1e2], gppStringList[0x15f], amount,
+                                gppStringList[0x160], -1, -1, 0);
         ShowNotice(8, line);
         if (!SoundFileIsPlaying(sound_path)) {
             SoundPlay(sound_path, 0);
@@ -2201,7 +2200,7 @@ void BindEquippedItem(W8Character* character, int equip_slot)
     }
     if (g_equip_slot_icons[equip_slot] != -1 && item->bound == 0) {
         item->bound = 1;
-        ShowNoticef(8, gppStringList[0x7a8 / 4], FormatItemDisplayName(item, 1));
+        ShowNoticef(8, gppStringList[0x1ea], FormatItemDisplayName(item, 1));
     }
 }
 
@@ -2445,7 +2444,7 @@ void EquipMatchingPartnerItem(W8Character* character, W8ItemInstance* item, int 
     }
 
     SwapItemInstances(pair, &character->EquippedItem[equip_slot], character, 1);
-    PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x750 / 4]);
+    PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x1d4]);
 }
 
 /* Where one item id sits on a character. The worn slots are searched first and
@@ -2758,7 +2757,7 @@ void BindEveryPartyItem(void)
 
     if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0 &&
         gXStatus.fPartyMovementMode == 0) {
-        ShowNotice(0xc, gppStringList[0x7d8 / 4], -1, -1, 0);
+        ShowNotice(0xc, gppStringList[0x1f6], -1, -1, 0);
         return;
     }
     for (party_slot = 0; party_slot < 8; ++party_slot) {
@@ -2766,7 +2765,7 @@ void BindEveryPartyItem(void)
             BindCharacterItems(party_slot, 0);
         }
     }
-    ShowNotice(8, gppStringList[0x7b4 / 4], -1, -1, 0);
+    ShowNotice(8, gppStringList[0x1ed], -1, -1, 0);
 }
 
 /* Order two pool entries. Both have to hold something - the two assertions say
@@ -3525,14 +3524,14 @@ char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
         CanCastFromItem(character, item)) {
         if (gXStatus.fCombatMode != 0 || gXStatus.fCampMode != 0 || gXStatus.fLockInteract != 0 ||
             gXStatus.fTrapInteract != 0) {
-            ShowNoticeLine(gppStringList[0x1e98 / 4], callback, 1, 0);
+            ShowNoticeLine(gppStringList[0x7a6], callback, 1, 0);
             return 1;
         }
         return 0;
     }
     if (character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
         record->equip_class == 0xd) {
-        ShowNoticeLine(gppStringList[0x1e9c / 4], callback, 1, 0);
+        ShowNoticeLine(gppStringList[0x7a7], callback, 1, 0);
         return 1;
     }
     if (gXStatus.fItemSelectMode != 0) {
@@ -3541,12 +3540,12 @@ char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
                                             ItemClassNormalizesTarget(record));
         SetValue69B9A4(0);
         if (has_target == 0) {
-            ShowNoticeLine(gppStringList[0x1ea0 / 4], callback, 1, 0);
+            ShowNoticeLine(gppStringList[0x7a8], callback, 1, 0);
             return 1;
         }
     }
     if (SpellUsableNow(record->spell_id, 0) == 0) {
-        ShowNoticeLine(gppStringList[0x1e98 / 4], callback, 1, 0);
+        ShowNoticeLine(gppStringList[0x7a6], callback, 1, 0);
         return 1;
     }
     return 0;
@@ -3666,7 +3665,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char 
         g_camp_screen->item_redraw_flags |= 0x7fc00000;
     }
     if (announce) {
-        ShowNoticef(8, gppStringList[0x7a4 / 4], display_name);
+        ShowNoticef(8, gppStringList[0x1e9], display_name);
     }
     W8ItemInstance* stored_item = &g_status.party_item_pool_0021[index];
     UpdateFactsAfterAcquiringItem(stored_item);
@@ -3724,13 +3723,13 @@ void UnequipUnusableItems(W8Character* character)
             }
         }
         if (unmet) {
-            PostCharacterNotice(party_slot, gppStringList[0x7bc / 4],
+            PostCharacterNotice(party_slot, gppStringList[0x1ef],
                                 gppStringList[g_gender_name_message_rows[character->gender][2]],
                                 FormatItemDisplayName(item, 1),
                                 gppStringList[g_gender_name_message_rows[character->gender][2]],
                                 gppStringList[message_id]);
         } else {
-            PostCharacterNotice(party_slot, gppStringList[0x7c0 / 4],
+            PostCharacterNotice(party_slot, gppStringList[0x1f0],
                                 gppStringList[g_gender_name_message_rows[character->gender][2]],
                                 FormatItemDisplayName(item, 1), item, 1);
         }
@@ -3998,7 +3997,7 @@ void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item)
     if (FindCharacterItemByDatabaseKind(character, g_compatible_partner_pairs[row][1], &partner,
                                         1)) {
         MergeItemUses(character, item, partner);
-        PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x750 / 4]);
+        PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x1d4]);
         return;
     }
 
@@ -4035,7 +4034,7 @@ unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, unsigned char announce)
         0) {
         DropHeldItem(0);
     } else {
-        ShowNoticeLine(gppStringList[0x13bc / 4], 0, 1, 0);
+        ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
     }
 
     if (hand_was_holding) {
@@ -4129,7 +4128,7 @@ int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int pow
 
     if (effect == 1) {
         if (g_settings.verbose_combat_messages != 0 || item->identified == 0) {
-            FormatNotice(8, -1, gppStringList[0x7d0 / 4], GetItemDisplayName(item),
+            FormatNotice(8, -1, gppStringList[0x1f4], GetItemDisplayName(item),
                          g_spell_records[spell_id].display_name, power);
             if (g_settings.verbose_combat_messages == 0) {
                 SetTextBoxMode(1, -1);
@@ -4590,13 +4589,13 @@ void BindCharacterItems(int party_slot, int arg_2)
 {
     if (gXStatus.fCombatMode != 0) {
         if (g_combat_state->round_active_001 == 0 && gXStatus.fPartyMovementMode == 0) {
-            ShowNotice(0xc, gppStringList[0x7d8 / 4], -1, 0xffffffff, 0);
+            ShowNotice(0xc, gppStringList[0x1f6], -1, 0xffffffff, 0);
             return;
         }
         if (g_combat_state->iActionChar == party_slot && g_combat_state->eCombatActionStatus == 2 &&
             (g_status.buffers.XChar[party_slot].pending_action == W8_ACTION_ATTACK ||
              g_status.buffers.XChar[party_slot].pending_action == W8_ACTION_BERSERK)) {
-            ShowNoticef(8, gppStringList[0x7dc / 4], g_status.buffers.Char[party_slot].name);
+            ShowNoticef(8, gppStringList[0x1f7], g_status.buffers.Char[party_slot].name);
             return;
         }
     }

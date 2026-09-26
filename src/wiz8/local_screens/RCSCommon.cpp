@@ -154,19 +154,19 @@ void TryGiveHeldItemToCampPortrait(int slot)
     }
     character = &g_status.buffers.Char[slot];
     if (character->uiCondition[19] != 0) {
-        ShowCampNoticeLine(gppStringList[0x241c / 4], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x907], 0, 1, 0);
         return;
     }
     if (character->uiCondition[14] != 0) {
-        ShowCampNoticeLine(gppStringList[0x2420 / 4], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x908], 0, 1, 0);
         return;
     }
     if (character->uiCondition[13] != 0) {
-        ShowCampNoticeLine(gppStringList[0x2424 / 4], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x909], 0, 1, 0);
         return;
     }
     if (!IsPartySlotEligible(slot)) {
-        ShowCampNoticeLine(gppStringList[0x2404 / 4], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x901], 0, 1, 0);
         return;
     }
     if (IsCampActionAllowed(slot) == 0) {

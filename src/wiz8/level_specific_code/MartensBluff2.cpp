@@ -445,7 +445,7 @@ bool MartensBluff2PerfumeBox(Trigger* pTrigger)
         }
     }
     SetTriggerVariableByName("RavenQuest", quest_state);
-    ShowString(gppStringList[0x1c70 / 4]);
+    ShowString(gppStringList[0x71c]);
     return false;
 }
 
@@ -679,7 +679,7 @@ bool MartensBluff2StoneIdol(Trigger* pTrigger)
     }
     ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x291, 0, 0, 0);
     SetItemCursor(0);
-    ShowString(gppStringList[0x1c74 / 4]);
+    ShowString(gppStringList[0x71d]);
     particle = FindRegisteredParticle("IdolGas");
     if (particle != 0) {
         particle->SetActive(1);

@@ -925,7 +925,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
         return;
     }
     TargetSourceIsCharacter(source, 0);
-    swprintf(text, L"%s ", gppStringList[0x6fc / 4]);
+    swprintf(text, L"%s ", gppStringList[0x1bf]);
     target_start = wcslen(text);
     if (target->iType == W8_TARGET_KIND_MONSTER) {
         monster_list_index =
@@ -937,7 +937,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
     }
     if (missile->retargeted_322) {
         wcscat(text, L" ");
-        wcscat(text, gppStringList[0x700 / 4]);
+        wcscat(text, gppStringList[0x1c0]);
     }
     target_stop = wcslen(text);
     source_color = GetSourceNoticeColor(source);
@@ -947,7 +947,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
         HighlightTextBoxRange(target_color, target_start, target_stop, -1);
     }
     if (deflected) {
-        ShowNotice(source_color, gppStringList[0x850 / 4], -1, -1, 0);
+        ShowNotice(source_color, gppStringList[0x214], -1, -1, 0);
         return;
     }
 
@@ -994,7 +994,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
         wcscpy(location_name, gppStringList[g_pc_hit_location_labels[hit_location][0]]);
     }
     if (g_settings.verbose_combat_messages != 0) {
-        ShowNoticef(source_color, gppStringList[0x830 / 4], location_name);
+        ShowNoticef(source_color, gppStringList[0x20c], location_name);
     }
 
     attack_mode = g_missile_table[missile->missile_table_index_1d8].attack_mode_144;
@@ -1013,10 +1013,10 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
             }
             ApplyEffectConditions(source, target, &missile->definition_1fc, 1, 0, 0);
         } else if (g_settings.verbose_combat_messages != 0) {
-            ShowNoticef(source_color, gppStringList[0x838 / 4]);
+            ShowNoticef(source_color, gppStringList[0x20e]);
         }
     } else {
-        ShowNoticef(source_color, gppStringList[0x83c / 4]);
+        ShowNoticef(source_color, gppStringList[0x20f]);
         MakePCHitSound(missile, target, hit_location, -1);
     }
 }

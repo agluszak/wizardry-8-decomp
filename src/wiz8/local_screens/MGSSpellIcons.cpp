@@ -319,14 +319,14 @@ void ShowPartyEffectIconHelp(int slot_index)
     g_effect_icon_help_duration = duration;
     name = FormatWideString(g_format_s_spaced_colon, records[effect_id].display_name);
     name_len = wcslen(name);
-    detail = FormatWideString(gppStringList[0x1e70 / 4], amount, g_effect_icon_help_duration);
+    detail = FormatWideString(gppStringList[0x79c], amount, g_effect_icon_help_duration);
     detail_len = wcslen(detail);
     text = static_cast<wchar_t*>(operator new((name_len + detail_len) * 2 + 2));
     if (text == 0) {
         srAssertFail("pText", MGSSPELLICONS_CPP, 0x15c, 0);
     }
     wcscpy(text, FormatWideString(g_format_s_colon, records[effect_id].display_name));
-    wcscat(text, FormatWideString(gppStringList[0x1e70 / 4], amount, g_effect_icon_help_duration));
+    wcscat(text, FormatWideString(gppStringList[0x79c], amount, g_effect_icon_help_duration));
     SetRegionHelpText(text);
     operator delete(text);
 }
@@ -386,14 +386,14 @@ void ShowCombatLeftEffectIconHelp(int slot_index)
     g_effect_icon_help_duration = duration;
     name = FormatWideString(g_format_s_spaced_colon, records[effect_id].display_name);
     name_len = wcslen(name);
-    detail = FormatWideString(gppStringList[0x1e74 / 4], amount);
+    detail = FormatWideString(gppStringList[0x79d], amount);
     detail_len = wcslen(detail);
     text = static_cast<wchar_t*>(operator new((name_len + detail_len) * 2 + 2));
     if (text == 0) {
         srAssertFail("pText", MGSSPELLICONS_CPP, 0x2e1, 0);
     }
     wcscpy(text, FormatWideString(g_format_s_colon, records[effect_id].display_name));
-    wcscat(text, FormatWideString(gppStringList[0x1e74 / 4], amount));
+    wcscat(text, FormatWideString(gppStringList[0x79d], amount));
     SetRegionHelpText(text);
     operator delete(text);
 }
@@ -415,14 +415,14 @@ void ShowCombatRightEffectIconHelp(int slot_index)
     g_effect_icon_help_duration = duration;
     name = FormatWideString(g_format_s_spaced_colon, records[effect_id].display_name);
     name_len = wcslen(name);
-    detail = FormatWideString(gppStringList[0x1e70 / 4], amount, g_effect_icon_help_duration);
+    detail = FormatWideString(gppStringList[0x79c], amount, g_effect_icon_help_duration);
     detail_len = wcslen(detail);
     text = static_cast<wchar_t*>(operator new((name_len + detail_len) * 2 + 2));
     if (text == 0) {
         srAssertFail("pText", MGSSPELLICONS_CPP, 0x30d, 0);
     }
     wcscpy(text, FormatWideString(g_format_s_colon, records[effect_id].display_name));
-    wcscat(text, FormatWideString(gppStringList[0x1e70 / 4], amount, g_effect_icon_help_duration));
+    wcscat(text, FormatWideString(gppStringList[0x79c], amount, g_effect_icon_help_duration));
     SetRegionHelpText(text);
     operator delete(text);
 }

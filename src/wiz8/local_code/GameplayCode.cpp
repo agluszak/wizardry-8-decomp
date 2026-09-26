@@ -296,7 +296,7 @@ void RefreshLevelUpReadyNotices(void)
                         text[length] = L' ';
                         text[length + 1] = 0xb5;
                         text[length + 2] = L' ';
-                        swprintf(text + length + 3, gppStringList[0x1dcc / 4], text);
+                        swprintf(text + length + 3, gppStringList[0x773], text);
                         extra = static_cast<int*>(operator new(4));
                         *extra = party_slot;
                         AddMessageBoxLine(W8_NPC_MSG_LEVEL_UP, text, extra);
@@ -1040,7 +1040,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
 
     if (g_status.game_started != 0) {
         gXStatus.edited_formation.positions[slot].bOldQuadrant = 0xff;
-        PostCharacterNotice(slot, gppStringList[0x940 / 4]);
+        PostCharacterNotice(slot, gppStringList[0x250]);
     }
     ++g_status.total_member_count;
     if (slot_kind == -1) {

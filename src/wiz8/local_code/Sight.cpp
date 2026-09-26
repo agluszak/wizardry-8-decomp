@@ -874,7 +874,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                         if (gXStatus.fSurprisePossible == 0 &&
                             (g_sight_fade_in_tick == 0 || now - g_sight_fade_in_tick > 199)) {
                             g_sight_fade_in_tick = now;
-                            ShowNotice(8, gppStringList[0x774 / 4], -1, -1, 0);
+                            ShowNotice(8, gppStringList[0x1dd], -1, -1, 0);
                         }
                     }
                     monster_info->party_threat.sight_state_04 = W8_SIGHT_SEEN;
@@ -893,7 +893,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                 if (gXStatus.fSurprisePossible == 0 &&
                     (g_sight_fade_out_tick == 0 || now - g_sight_fade_out_tick > 199)) {
                     g_sight_fade_out_tick = now;
-                    ShowNotice(8, gppStringList[0x778 / 4], -1, -1, 0);
+                    ShowNotice(8, gppStringList[0x1de], -1, -1, 0);
                 }
             }
             if (monster_info->party_threat.last_seen_clock_08 == 0) {

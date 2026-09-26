@@ -1314,13 +1314,12 @@ unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region)
             SetRegionHelpForceEnabled(1);
             slot = g_status.selected_character;
             if (CanPartySlotUseRecordedItem(slot) == 0) {
-                SetRegionHelpText(gppStringList[0x174 / 4]);
+                SetRegionHelpText(gppStringList[0x5d]);
             } else {
                 party_row = &g_status.buffers.XChar[slot];
                 item = FindCharacterItemAt(slot, party_row->item_origin, party_row->item_slot);
                 name = FormatItemDisplayName(item, 0);
-                SetRegionHelpText(
-                    FormatWideString(g_format_s_colon_s, gppStringList[0x174 / 4], name));
+                SetRegionHelpText(FormatWideString(g_format_s_colon_s, gppStringList[0x5d], name));
             }
         }
         g_submenu_rows_69b8ec[region->callback_id]->OnMouseEnter(0);
@@ -1381,7 +1380,7 @@ void DrawSubMenuCharacterAction(void)
             swprintf(text, L"%s - ", gppStringList[g_action_kind_message_ids_61e988[0]]);
             if (character->Hand[0].in_play != 0) {
                 if (character->EquippedItem[6].iItemNo == -1) {
-                    wcscat(text, gppStringList[0x16e0 / 4]);
+                    wcscat(text, gppStringList[0x5b8]);
                 } else {
                     wcscat(text,
                            gppStringList[g_generic_item_name_notice[GetItemUnidentifiedNameIndex(
@@ -1390,11 +1389,11 @@ void DrawSubMenuCharacterAction(void)
             }
             if (character->Hand[1].in_play == 0) {
                 if (character->Hand[0].in_play == 0) {
-                    wcscat(text, gppStringList[0x16e0 / 4]);
+                    wcscat(text, gppStringList[0x5b8]);
                 }
             } else {
                 if (character->EquippedItem[7].iItemNo == -1) {
-                    swprintf(second, L"%s", gppStringList[0x16e0 / 4]);
+                    swprintf(second, L"%s", gppStringList[0x5b8]);
                 } else {
                     swprintf(second, L"%s",
                              gppStringList[g_generic_item_name_notice[GetItemUnidentifiedNameIndex(
@@ -1429,7 +1428,7 @@ void DrawSubMenuCharacterAction(void)
             }
             break;
         case -1:
-            wcscpy(text, gppStringList[0x1f84 / 4]);
+            wcscpy(text, gppStringList[0x7e1]);
             break;
         default:
             swprintf(text, L"%s ", gppStringList[g_action_kind_message_ids_61e988[action]]);

@@ -286,12 +286,12 @@ void DispatchMGSCommand(int command)
                 }
             }
             ClearValue69DA68();
-            ShowMainGameNoticeLine(gppStringList[0x1de4 / 4], OnLeaveGameConfirmClosed, 1, 1);
+            ShowMainGameNoticeLine(gppStringList[0x779], OnLeaveGameConfirmClosed, 1, 1);
         }
         InvalidateRegion(0xa8, 0x16e, 0x1c4, 0x1ba, 0);
         break;
     case W8_MGS_COMMAND_QUIT_GAME:
-        ShowMainGameNoticeLine(gppStringList[0x20c8 / 4], OnQuitGameDialogClosed, 1, 1);
+        ShowMainGameNoticeLine(gppStringList[0x832], OnQuitGameDialogClosed, 1, 1);
         break;
     case W8_MGS_COMMAND_TOGGLE_FULLSCREEN:
         ResetTransientRenderScenes();
@@ -320,9 +320,9 @@ void DispatchMGSCommand(int command)
                 delay += 0xfa - delay % 0xfa;
             }
             g_settings.combat_delay_ms = delay;
-            ShowNoticef(0xc, L"%s %d", gppStringList[0x1ee8 / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s %d", gppStringList[0x7ba], 0x14 - delay / 0xfa);
         } else {
-            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x1eec / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x7bb], 0x14 - delay / 0xfa);
         }
         break;
     }
@@ -335,9 +335,9 @@ void DispatchMGSCommand(int command)
                 delay -= delay % 0xfa;
             }
             g_settings.combat_delay_ms = delay;
-            ShowNoticef(0xc, L"%s %d", gppStringList[0x1ee8 / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s %d", gppStringList[0x7ba], 0x14 - delay / 0xfa);
         } else {
-            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x1ef0 / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x7bc], 0x14 - delay / 0xfa);
         }
         break;
     }
@@ -350,9 +350,9 @@ void DispatchMGSCommand(int command)
                 delay += 0xfa - delay % 0xfa;
             }
             g_settings.text_display_delay_ms = delay;
-            ShowNoticef(0xc, L"%s %d", gppStringList[0x1edc / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s %d", gppStringList[0x7b7], 0x14 - delay / 0xfa);
         } else {
-            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x1ee0 / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x7b8], 0x14 - delay / 0xfa);
         }
         break;
     }
@@ -365,9 +365,9 @@ void DispatchMGSCommand(int command)
                 delay -= delay % 0xfa;
             }
             g_settings.text_display_delay_ms = delay;
-            ShowNoticef(0xc, L"%s %d", gppStringList[0x1edc / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s %d", gppStringList[0x7b7], 0x14 - delay / 0xfa);
         } else {
-            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x1ee4 / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x7b9], 0x14 - delay / 0xfa);
         }
         break;
     }
@@ -467,23 +467,23 @@ void DispatchMGSCommand(int command)
             break;
         }
         if (g_status.iron_man != 0 && g_dev_mode == 0) {
-            ShowNotice(0xc, gppStringList[0x20b0 / 4], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x82c], -1, -1, 0);
             break;
         }
         if (gXStatus.fCombatMode != 0) {
             if (g_dev_mode != 0) {
                 EndCombat(0);
             } else {
-                ShowNotice(0xc, gppStringList[0x1dd0 / 4], -1, -1, 0);
+                ShowNotice(0xc, gppStringList[0x774], -1, -1, 0);
                 break;
             }
         }
         SelectQuickSaveSlotForWrite(slot_name);
         if (SaveGame(slot_name, 0)) {
             SetLastSaveName(ConvertStringToWide(slot_name));
-            ShowNotice(0xc, gppStringList[0x1bd4 / 4], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x6f5], -1, -1, 0);
         } else {
-            ShowNotice(0xc, gppStringList[0x1bd8 / 4], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x6f6], -1, -1, 0);
         }
         break;
     }
@@ -493,7 +493,7 @@ void DispatchMGSCommand(int command)
             break;
         }
         if (g_status.iron_man != 0 && g_dev_mode == 0) {
-            ShowNotice(0xc, gppStringList[0x20b0 / 4], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x82c], -1, -1, 0);
             break;
         }
         if (FindStartupQuickSave(slot_name)) {
@@ -506,7 +506,7 @@ void DispatchMGSCommand(int command)
             SetMainGameMode(0);
             SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
         } else {
-            ShowNotice(0xc, gppStringList[0x1e18 / 4], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x786], -1, -1, 0);
         }
         break;
     }
@@ -1166,14 +1166,14 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
             g_keyboard_menu_items[row_id] == 1) {
             SetRegionHelpForceEnabled(1);
             if (g_keyboard_menu_rows[region->callback_id]->m_enabled == 0) {
-                SetRegionHelpText(gppStringList[0x168 / 4]);
+                SetRegionHelpText(gppStringList[0x5a]);
                 return 1;
             }
             name = g_spell_records[g_status.buffers.XChar[g_selected_party_slot].spell_id]
                        .display_name;
             power = GetAffordableSpellPowerLevel(g_selected_party_slot);
-            SetRegionHelpText(FormatWideString(g_format_s_colon_s_paren_d, gppStringList[0x168 / 4],
-                                               name, power));
+            SetRegionHelpText(
+                FormatWideString(g_format_s_colon_s_paren_d, gppStringList[0x5a], name, power));
             return 1;
         }
         if (g_keyboard_menu_pages[row_id] != W8_SUBMENU_ITEMS) {
@@ -1184,14 +1184,14 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
         }
         SetRegionHelpForceEnabled(1);
         if (g_keyboard_menu_rows[region->callback_id]->m_enabled == 0) {
-            SetRegionHelpText(gppStringList[0x174 / 4]);
+            SetRegionHelpText(gppStringList[0x5d]);
             return 1;
         }
         party_row = &g_status.buffers.XChar[g_selected_party_slot];
         item = FindCharacterItemAt(g_selected_party_slot, party_row->item_origin,
                                    party_row->item_slot);
         name = FormatItemDisplayName(item, 0);
-        SetRegionHelpText(FormatWideString(g_format_s_colon_s, gppStringList[0x174 / 4], name));
+        SetRegionHelpText(FormatWideString(g_format_s_colon_s, gppStringList[0x5d], name));
         return 1;
     }
     return 0;

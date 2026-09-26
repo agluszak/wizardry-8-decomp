@@ -2161,7 +2161,7 @@ void PromptNpcDispositionChange(void)
 {
     W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
 
-    SetDialogPrompt(dialog, gppStringList[0x1e60 / 4], 0, 0);
+    SetDialogPrompt(dialog, gppStringList[0x798], 0, 0);
     dialog->m_destroy_callback = OnNpcDispositionPromptClosed;
     OpenModal(dialog);
 }
@@ -2249,26 +2249,26 @@ void ShowNpcDialogueTopicMenu(void)
     g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(
         g_screen_state_00649f1c->dialogue_npc->record->source_name_004, g_wiz_text_bold_font);
     g_screen_state_00649f1c->dialogue_text_10c->Invalidate(1);
-    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(gppStringList[0x1c98 / 4],
+    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(gppStringList[0x726],
                                                                      g_wiz_text_bold_font);
-    g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1c9c / 4],
+    g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x727],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback =
         SelectNpcDialogueService;
-    g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1ca0 / 4],
+    g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x728],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback = SelectNpcDialogueTalk;
-    g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x1ca4 / 4],
+    g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x729],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_118->m_primaryActivationCallback = SelectNpcDialogueExit;
-    g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1c8c / 4],
+    g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x723],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback =
         PromptNpcDispositionChange;
-    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetText(gppStringList[0x1c90 / 4],
+    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetText(gppStringList[0x724],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_120->m_primaryActivationCallback = EnterNpcServiceLayout;
-    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetText(gppStringList[0x1c94 / 4],
+    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetText(gppStringList[0x725],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_124->m_primaryActivationCallback =
         LeaveNpcDialogueLayout;
@@ -2411,23 +2411,23 @@ void OpenNpcDialogueTranscriptLayout(void)
         g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(
             g_screen_state_00649f1c->dialogue_npc->record->source_name_004, g_wiz_text_bold_font);
     }
-    g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1cd4 / 4],
+    g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x735],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback = EnterNpcTradeOptions;
-    g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1ce0 / 4],
+    g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x738],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback = ShowNpcDialogueNotice;
-    g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x1c90 / 4],
+    g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x724],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_118->m_primaryActivationCallback = EnterNpcServiceLayout;
-    g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1cdc / 4],
+    g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x737],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback = RequestNpcJoinParty;
-    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetText(gppStringList[0x1c8c / 4],
+    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetText(gppStringList[0x723],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_120->m_primaryActivationCallback =
         PromptNpcDispositionChange;
-    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetText(gppStringList[0x1c94 / 4],
+    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetText(gppStringList[0x725],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_124->m_primaryActivationCallback =
         LeaveNpcDialogueLayout;
@@ -2440,27 +2440,27 @@ void OpenNpcDialogueTranscriptLayout(void)
         SubmitNpcDialogueKeyword;
     g_screen_state_00649f1c->dialogue_text_140->m_primaryActivationCallback =
         RefreshNpcDialogueTranscript;
-    g_screen_state_00649f1c->dialogue_sort_button->m_textBuffer.SetText(gppStringList[0x1d00 / 4],
+    g_screen_state_00649f1c->dialogue_sort_button->m_textBuffer.SetText(gppStringList[0x740],
                                                                         g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_sort_button->m_primaryActivationCallback =
         SyncNpcDialogueListFilter;
     g_screen_state_00649f1c->dialogue_people_button->m_textBuffer.SetText(
-        gppStringList[0x1d0c / 4], g_wiz_text_font_secondary);
+        gppStringList[0x743], g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_people_button->m_primaryActivationCallback =
         SelectNpcDialogueCategory1;
     g_screen_state_00649f1c->dialogue_places_button->m_textBuffer.SetText(
-        gppStringList[0x1d10 / 4], g_wiz_text_font_secondary);
+        gppStringList[0x744], g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_places_button->m_primaryActivationCallback =
         SelectNpcDialogueCategory2;
-    g_screen_state_00649f1c->dialogue_items_button->m_textBuffer.SetText(gppStringList[0x1d14 / 4],
+    g_screen_state_00649f1c->dialogue_items_button->m_textBuffer.SetText(gppStringList[0x745],
                                                                          g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_items_button->m_primaryActivationCallback =
         SelectNpcDialogueCategory0;
-    g_screen_state_00649f1c->dialogue_misc_button->m_textBuffer.SetText(gppStringList[0x1d18 / 4],
+    g_screen_state_00649f1c->dialogue_misc_button->m_textBuffer.SetText(gppStringList[0x746],
                                                                         g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_misc_button->m_primaryActivationCallback =
         SelectNpcDialogueCategory3;
-    g_screen_state_00649f1c->dialogue_all_button->m_textBuffer.SetText(gppStringList[0x1d1c / 4],
+    g_screen_state_00649f1c->dialogue_all_button->m_textBuffer.SetText(gppStringList[0x747],
                                                                        g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_all_button->m_primaryActivationCallback =
         SelectNpcDialogueCategoryAll;
@@ -2550,7 +2550,7 @@ void RequestNpcJoinParty(void)
 {
     unsigned int slot;
 
-    ShowNotice(0xa, gppStringList[0x1d20 / 4], 3, GetTextBoxScrollRange(), 0);
+    ShowNotice(0xa, gppStringList[0x748], 3, GetTextBoxScrollRange(), 0);
     if (g_screen_state_00649f1c->dialogue_hidden != 0) {
         SetNpcDialogueHidden(0);
     }
@@ -2573,7 +2573,7 @@ void RequestNpcJoinParty(void)
 // FUNCTION: WIZ8 0x005715A0
 void ShowNpcDialogueNotice(void)
 {
-    ShowNotice(0xa, gppStringList[0x1d24 / 4], 3, GetTextBoxScrollRange(), 0);
+    ShowNotice(0xa, gppStringList[0x749], 3, GetTextBoxScrollRange(), 0);
     SetNpcDialogueHidden(1);
 }
 
@@ -2798,28 +2798,28 @@ void OpenNpcDialogueOptionLayout(void)
     g_screen_state_00649f1c->panel_1bc->SetEnabled(1);
     RegionSetEnable(0x18);
     RegionSetEnable(0x17);
-    g_screen_state_00649f1c->dialogue_text_194->m_textBuffer.SetText(gppStringList[0x1cb4 / 4],
+    g_screen_state_00649f1c->dialogue_text_194->m_textBuffer.SetText(gppStringList[0x72d],
                                                                      g_wiz_text_font_secondary);
-    g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1cf4 / 4],
+    g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x73d],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback =
         SetNpcDialogueSubMode4;
-    g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1cf8 / 4],
+    g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x73e],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback =
         SetNpcDialogueSubMode3;
-    g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x1cfc / 4],
+    g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x73f],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_118->m_primaryActivationCallback =
         SetNpcDialogueSubMode2;
-    g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1cb8 / 4],
+    g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x72e],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback =
         SetNpcDialogueSubMode5;
-    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetText(gppStringList[0x1cac / 4],
+    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetText(gppStringList[0x72b],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_120->m_primaryActivationCallback = SelectNpcTradeMode1;
-    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetText(gppStringList[0x1cb0 / 4],
+    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetText(gppStringList[0x72c],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_124->m_primaryActivationCallback = SelectNpcTradeMode0;
     g_screen_state_00649f1c->dialogue_text_16c->m_primaryActivationCallback = OpenNpcItemAssay;
@@ -2877,9 +2877,9 @@ void UpdateNpcDialogueSubMode(void)
         g_screen_state_00649f1c->dialogue_text_110->DisableSecondaryState(1);
         g_screen_state_00649f1c->dialogue_text_114->DisableSecondaryState(1);
         g_screen_state_00649f1c->dialogue_text_11c->DisableSecondaryState(1);
-        g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x1cec / 4],
+        g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x73b],
                                                                          g_wiz_text_bold_font);
-        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetText(gppStringList[0x1cec / 4],
+        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetText(gppStringList[0x73b],
                                                                          g_wiz_text_bold_font);
         g_screen_state_00649f1c->dialogue_text_120->SetEnabled(1);
         g_screen_state_00649f1c->dialogue_text_124->SetEnabled(1);
@@ -2891,9 +2891,9 @@ void UpdateNpcDialogueSubMode(void)
         g_screen_state_00649f1c->dialogue_text_11c->DisableSecondaryState(1);
         g_screen_state_00649f1c->dialogue_text_120->SetEnabled(1);
         g_screen_state_00649f1c->dialogue_text_124->SetEnabled(1);
-        g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x1ce8 / 4],
+        g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x73a],
                                                                          g_wiz_text_bold_font);
-        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetText(gppStringList[0x1ce8 / 4],
+        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetText(gppStringList[0x73a],
                                                                          g_wiz_text_bold_font);
         break;
     case W8_NPC_TRADE_BUY:
@@ -2901,9 +2901,9 @@ void UpdateNpcDialogueSubMode(void)
         g_screen_state_00649f1c->dialogue_text_114->DisableSecondaryState(1);
         g_screen_state_00649f1c->dialogue_text_118->DisableSecondaryState(1);
         g_screen_state_00649f1c->dialogue_text_11c->DisableSecondaryState(1);
-        g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x1cf0 / 4],
+        g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x73c],
                                                                          g_wiz_text_bold_font);
-        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetText(gppStringList[0x1cf0 / 4],
+        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetText(gppStringList[0x73c],
                                                                          g_wiz_text_bold_font);
         g_screen_state_00649f1c->dialogue_text_120->SetEnabled(0);
         g_screen_state_00649f1c->dialogue_text_124->SetEnabled(0);
@@ -2913,9 +2913,9 @@ void UpdateNpcDialogueSubMode(void)
         g_screen_state_00649f1c->dialogue_text_114->DisableSecondaryState(1);
         g_screen_state_00649f1c->dialogue_text_118->DisableSecondaryState(1);
         g_screen_state_00649f1c->dialogue_text_110->DisableSecondaryState(1);
-        g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x1cb8 / 4],
+        g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x72e],
                                                                          g_wiz_text_bold_font);
-        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetText(gppStringList[0x1cb8 / 4],
+        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetText(gppStringList[0x72e],
                                                                          g_wiz_text_bold_font);
         g_screen_state_00649f1c->dialogue_text_120->SetEnabled(0);
         g_screen_state_00649f1c->dialogue_text_124->SetEnabled(0);
@@ -3423,21 +3423,21 @@ void OpenNpcDialogueMode5Layout(void)
     g_screen_state_00649f1c->panel_1bc->SetEnabled(1);
     RegionSetEnable(0x18);
     RegionSetEnable(0x17);
-    g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x1ce4 / 4],
+    g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x739],
                                                                      g_wiz_text_bold_font);
-    g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1cf4 / 4],
+    g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x73d],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback =
         SetNpcDialogueSubMode4;
-    g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1cf8 / 4],
+    g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x73e],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback =
         SetNpcDialogueSubMode3;
-    g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x1cfc / 4],
+    g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x73f],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_118->m_primaryActivationCallback =
         SetNpcDialogueSubMode2;
-    g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1cb8 / 4],
+    g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x72e],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback =
         SetNpcDialogueSubMode5;
@@ -3680,17 +3680,17 @@ void OpenNpcDialogueMode1Layout(void)
     g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_empty_wide_string,
                                                                      g_wiz_text_bold_font);
     RegionSetEnable(0x18);
-    g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x1cbc / 4],
+    g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x72f],
                                                                      g_wiz_text_bold_font);
-    g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1cc0 / 4],
+    g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x730],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback =
         RequestNpcSpellService3;
-    g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1cc8 / 4],
+    g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x732],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback =
         RequestNpcSpellService41;
-    g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1ccc / 4],
+    g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x733],
                                                                      g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback =
         RequestNpcCharacterService;
@@ -3869,7 +3869,7 @@ void HandleNpcDialogueReply(wchar_t* text, char echo)
                 QueueNpcScriptLine(line, 0, 0, 0);
             }
         } else {
-            if (CompareWideTextIgnoreAsciiCase(text, gppStringList[0x1f7c / 4]) == 0) {
+            if (CompareWideTextIgnoreAsciiCase(text, gppStringList[0x7df]) == 0) {
                 if (static_cast<unsigned int>(g_screen_state_00649f1c->pending_price_204) >
                     g_status.party_gold) {
                     RunNpcScriptLine(0x14, 0);
@@ -3969,19 +3969,19 @@ void HandleNpcDialogueInput(void)
     if (word_count > 2) {
         show_fallback = false;
     }
-    if (_wcsnicmp(field_text, gppStringList[0x1dac / 4], 4) == 0 ||
-        _wcsnicmp(field_text, gppStringList[0x1db0 / 4], 7) == 0) {
+    if (_wcsnicmp(field_text, gppStringList[0x76b], 4) == 0 ||
+        _wcsnicmp(field_text, gppStringList[0x76c], 7) == 0) {
         RequestNpcJoinParty();
         return;
     }
     if (g_screen_state_00649f1c->where_is_query == 1) {
         const wchar_t* fmt;
-        if (_wcsnicmp(field_text, gppStringList[0x1db4 / 4], 9) == 0 ||
-            _wcsnicmp(field_text, gppStringList[0x1db8 / 4], 0xa) == 0 ||
-            _wcsnicmp(field_text, gppStringList[0x1dbc / 4], 8) == 0) {
+        if (_wcsnicmp(field_text, gppStringList[0x76d], 9) == 0 ||
+            _wcsnicmp(field_text, gppStringList[0x76e], 0xa) == 0 ||
+            _wcsnicmp(field_text, gppStringList[0x76f], 8) == 0) {
             fmt = g_format_s;
         } else {
-            fmt = gppStringList[0x1da8 / 4];
+            fmt = gppStringList[0x76a];
         }
         swprintf(buf, fmt, field_text);
         quote = FindNpcScriptQuoteByKeyword(buf, 0, 0);
@@ -3999,12 +3999,12 @@ void HandleNpcDialogueInput(void)
 
     if (quote_id == -1) {
         wcscpy(buf, field_text);
-        if (_wcsnicmp(buf, gppStringList[0x1dc0 / 4], 0xb) == 0) {
+        if (_wcsnicmp(buf, gppStringList[0x770], 0xb) == 0) {
             wcscpy(field_text, buf + 0xb);
             show_fallback = false;
-        } else if (_wcsnicmp(buf, gppStringList[0x1db4 / 4], 9) == 0 ||
-                   _wcsnicmp(buf, gppStringList[0x1db8 / 4], 0xa) == 0 ||
-                   _wcsnicmp(buf, gppStringList[0x1dbc / 4], 8) == 0) {
+        } else if (_wcsnicmp(buf, gppStringList[0x76d], 9) == 0 ||
+                   _wcsnicmp(buf, gppStringList[0x76e], 0xa) == 0 ||
+                   _wcsnicmp(buf, gppStringList[0x76f], 8) == 0) {
             wcscpy(field_text, buf + 9);
             plain_text = false;
             show_fallback = false;
@@ -4525,7 +4525,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
         }
         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
-        message = FormatWideString(gppStringList[0x1f58 / 4]);
+        message = FormatWideString(gppStringList[0x7d6]);
         dialog->SetMessage(message, 1, 0x32, 1, 1, 1, 1, 0, 0x15e);
         SetDialogDestroyCallback(dialog, OnNpcTradeDialogClosed);
         OpenModal(dialog);
@@ -5164,9 +5164,9 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
         }
     } else if (request->kind_00 == 0x12 || request->kind_00 == 0x1e) {
         if (npc_dialog->m_selected_option == 0) {
-            wcscpy(entry_text, gppStringList[0x1f7c / 4]);
+            wcscpy(entry_text, gppStringList[0x7df]);
         } else {
-            wcscpy(entry_text, gppStringList[0x1f80 / 4]);
+            wcscpy(entry_text, gppStringList[0x7e0]);
         }
         if (gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->scripted_dialogue != 0) {
             HandleNpcDialogueReply(entry_text, 0);

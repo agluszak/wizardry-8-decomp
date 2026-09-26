@@ -181,7 +181,7 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
                 g_swap_disc_dialog->SetExtent(0xa0, 100);
             }
             wchar_t* message =
-                FormatWideString(L"%s%d", gppStringList[0x1bb8 / 4], GetLevelCdNumber(level));
+                FormatWideString(L"%s%d", gppStringList[0x6ee], GetLevelCdNumber(level));
             g_swap_disc_dialog->SetMessage(message, 1, 0x32, 1, 1, 1, 0, 0, 0);
             EnableCursorScene();
             return 0;
@@ -250,21 +250,20 @@ void PleaseWaitScreenFrame(void)
 
     switch (g_load_descriptor->mode) {
     case 0:
-        wcscpy(g_load_descriptor->caption, gppStringList[0x1bbc / 4]);
+        wcscpy(g_load_descriptor->caption, gppStringList[0x6ef]);
         break;
     case 1: {
         wchar_t** strings = gppStringList;
         wcscpy(g_load_descriptor->caption,
-               strncmp(g_load_descriptor->name, "Quick", strlen("Quick")) == 0
-                   ? strings[0x1bc4 / 4]
-                   : strings[0x1bc0 / 4]);
+               strncmp(g_load_descriptor->name, "Quick", strlen("Quick")) == 0 ? strings[0x6f1]
+                                                                               : strings[0x6f0]);
     } break;
     case 2:
-        wcscpy(g_load_descriptor->caption, gppStringList[0x1bc8 / 4]);
+        wcscpy(g_load_descriptor->caption, gppStringList[0x6f2]);
         break;
     case 3:
         if (static_cast<unsigned int>(g_load_descriptor->parameter) < W8_LEVEL_COUNT) {
-            swprintf(g_load_descriptor->caption, L"%s %s...", gppStringList[0x1bcc / 4],
+            swprintf(g_load_descriptor->caption, L"%s %s...", gppStringList[0x6f3],
                      gppStringList[g_level_name_indices[g_load_descriptor->parameter]]);
         } else if (g_load_descriptor->parameter == 0x38) {
             wcscpy(g_load_descriptor->caption, L"Entering default level...");
@@ -304,7 +303,7 @@ void PleaseWaitScreenFrame(void)
         break;
     case 2: {
         bool saved = SaveGame(g_load_descriptor->name, g_load_descriptor->save_payload);
-        ShowNotice(0xc, saved ? gppStringList[0x1bd0 / 4] : gppStringList[0x1bd8 / 4], -1, -1, 0);
+        ShowNotice(0xc, saved ? gppStringList[0x6f4] : gppStringList[0x6f6], -1, -1, 0);
         if (g_load_descriptor->save_payload) {
             delete g_load_descriptor->save_payload;
         }

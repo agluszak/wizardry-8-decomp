@@ -138,7 +138,7 @@ W8CharacterScreen::W8CharacterScreen(int mode, W8Character* character)
     if (m_mode_008 == 3) {
         m_mode_008 = 2;
         SoundPlay("Data\\Sound\\Misc\\GainLevel.wav", 0);
-        ShowMessage(FormatWideString(gppStringList[0x364 / 4], m_character_018.name, 0, 0), 0, 0);
+        ShowMessage(FormatWideString(gppStringList[0xd9], m_character_018.name, 0, 0), 0, 0);
     }
     m_page_enabled_1b08[0] = m_mode_008 != 1;
     m_page_enabled_1b08[1] = m_mode_008 != 1;
@@ -312,7 +312,7 @@ void W8CharacterScreen::OnPrimary(W8TextControl* control)
         if (m_mode_008 == 1 && !m_exit_1afc->m_enabled) {
             RequestScreenTransition();
         } else {
-            ShowMessage(gppStringList[0x34c / 4], 1, 2);
+            ShowMessage(gppStringList[0xd3], 1, 2);
         }
     } else if (control == m_exit_1afc) {
         m_pages_1b0c[m_page_index_00c]->Accept();
@@ -342,10 +342,9 @@ void W8CharacterScreen::OnSecondary(W8TextControl*) {}
 // FUNCTION: WIZ8 0x005b09b0
 void W8CharacterScreen::ShowDescription(int first, int second)
 {
-    ShowMessage(FormatWideString(gppStringList[0x758 / 4],
-                                 gppStringList[g_character_description_first_ids[first]],
-                                 m_character_018.name,
-                                 gppStringList[g_character_skill_name_ids[second]]),
+    ShowMessage(FormatWideString(
+                    gppStringList[0x1d6], gppStringList[g_character_description_first_ids[first]],
+                    m_character_018.name, gppStringList[g_character_skill_name_ids[second]]),
                 0, 0);
 }
 
@@ -364,7 +363,7 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
         int index = m_page_index_00c;
         if (index == 1 && m_creation_state_187c.spell_points_remaining > 0 &&
             !m_block_advance_1aec) {
-            ShowMessage(gppStringList[0x310 / 4], 1, 3);
+            ShowMessage(gppStringList[0xc4], 1, 3);
             return;
         }
         if (index == 0) {
@@ -374,7 +373,7 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
                 if (value > 0) {
                     ShowMessage(
                         FormatWideString(
-                            gppStringList[0x36c / 4],
+                            gppStringList[0xdb],
                             gppStringList
                                 [g_profession_name_message_ids[m_original_014->iProfession]],
                             gppStringList
@@ -384,7 +383,7 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
                 } else {
                     ShowMessage(
                         FormatWideString(
-                            gppStringList[0x368 / 4],
+                            gppStringList[0xda],
                             gppStringList
                                 [g_profession_name_message_ids[m_original_014->iProfession]],
                             gppStringList
@@ -413,7 +412,7 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
                 }
             }
         } else if (ValidateName()) {
-            ShowMessage(gppStringList[0x358 / 4], 1, 5);
+            ShowMessage(gppStringList[0xd6], 1, 5);
         }
     }
 }
@@ -549,7 +548,7 @@ void W8CharacterScreen::DrawHeader()
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(
             FormatWideString(
-                L"%s %d (%s)", gppStringList[0x1ae4 / 4], m_character_018.uiExpLevel,
+                L"%s %d (%s)", gppStringList[0x6b9], m_character_018.uiExpLevel,
                 gppStringList[g_profession_level_name_message_ids[m_character_018.iProfession]
                                                                  [m_character_018.level_band]]),
             g_wiz_text_font_secondary);
@@ -579,7 +578,7 @@ bool W8CharacterScreen::CommitCharacter()
         m_character_018.fInParty = false;
         if (!SaveCharacter(&m_character_018, -1, 0, 0)) {
             memcpy(&m_character_018, &backup, sizeof(m_character_018));
-            ShowMessage(gppStringList[0x350 / 4], 0, 0);
+            ShowMessage(gppStringList[0xd4], 0, 0);
             return false;
         }
         m_character_018.fInParty = backup.fInParty;
@@ -657,10 +656,10 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
             int next_response;
             wchar_t* format;
             if (CanAffordStartingEquipment(&m_character_018)) {
-                format = gppStringList[0x35c / 4];
+                format = gppStringList[0xd7];
                 next_response = 6;
             } else {
-                format = gppStringList[0x360 / 4];
+                format = gppStringList[0xd8];
                 next_response = 7;
             }
             ShowMessage(FormatWideString(format, value), 1, next_response);
@@ -694,14 +693,14 @@ bool W8CharacterScreen::ValidateName()
         char path[260];
         BuildCharacterPath(path, m_character_018.name, -1);
         if (FileExists(path)) {
-            ShowMessage(gppStringList[0x354 / 4], 0, 0);
+            ShowMessage(gppStringList[0xd5], 0, 0);
             return false;
         }
     }
     for (int index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
         if (g_status.buffers.XChar[index].fOccupied &&
             wcscmp(g_status.buffers.Char[index].name, m_character_018.name) == 0) {
-            ShowMessage(gppStringList[0x354 / 4], 0, 0);
+            ShowMessage(gppStringList[0xd5], 0, 0);
             return false;
         }
     }
@@ -790,7 +789,7 @@ void CharacterScreenFrame(void)
                 if (screen->m_mode_008 == 1 && !screen->m_exit_1afc->m_enabled) {
                     RequestScreenTransition();
                 } else {
-                    screen->ShowMessage(gppStringList[0x34c / 4], 1, 2);
+                    screen->ShowMessage(gppStringList[0xd3], 1, 2);
                 }
             } else if ((input.usParam == 0x25 || input.usParam == 0x42) &&
                        screen->m_page_index_00c != 3) {

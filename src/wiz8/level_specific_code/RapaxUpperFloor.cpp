@@ -87,9 +87,9 @@ bool RapaxUpperFloorAirBox(Trigger* pTrigger)
             SetTriggerVariableByName("TMakeTreasureNumber", item_id);
             return true;
         }
-        ShowString(gppStringList[0x25a8 / 4]);
+        ShowString(gppStringList[0x96a]);
     }
-    ShowString(gppStringList[0x2590 / 4]);
+    ShowString(gppStringList[0x964]);
     return true;
 }
 

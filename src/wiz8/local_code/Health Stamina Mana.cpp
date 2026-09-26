@@ -98,7 +98,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
         return 0;
     }
     if (g_status.world_suspended_2390 != 0) {
-        PostCharacterNotice(party_slot, gppStringList[0x94c / 4], amount);
+        PostCharacterNotice(party_slot, gppStringList[0x253], amount);
         return 0;
     }
 
@@ -117,7 +117,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
         PostCharacterNotice(party_slot, gppStringList[0x193 - (arg_3 != 0)], absorbed);
         amount -= absorbed;
         ClearCharacterEnchantmentSlot(party_slot, 2);
-        PostCharacterNotice(party_slot, gppStringList[0x650 / 4]);
+        PostCharacterNotice(party_slot, gppStringList[0x194]);
     }
 
     FatigueCharacter(party_slot, (amount * 2) / 3, 0, result_stats);
@@ -128,12 +128,12 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
 
     if (arg_5 != 0) {
         if (arg_7 != 0) {
-            PostCharacterNotice(party_slot, gppStringList[0x9a0 / 4], amount);
+            PostCharacterNotice(party_slot, gppStringList[0x268], amount);
         } else if (arg_4 != 0) {
-            ShowNoticef(9, gppStringList[0x950 / 4], amount);
+            ShowNoticef(9, gppStringList[0x254], amount);
         } else {
-            PostCharacterNotice(party_slot, gppStringList[0x954 / 4], amount,
-                                arg_3 != 0 ? gppStringList[0x95c / 4] : &g_empty_wide_string);
+            PostCharacterNotice(party_slot, gppStringList[0x255], amount,
+                                arg_3 != 0 ? gppStringList[0x257] : &g_empty_wide_string);
         }
     }
 
@@ -395,13 +395,12 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
                 if (c != 0) {
                     ShowNoticef(category, FormatWideString(g_format_s_space_s,
                                                            GetMonsterName(monster_info, 0, 0),
-                                                           gppStringList[0x9a0 / 4], amount));
+                                                           gppStringList[0x268], amount));
                 } else if (a != 0) {
-                    ShowNoticef(category, gppStringList[0x950 / 4], amount);
+                    ShowNoticef(category, gppStringList[0x254], amount);
                 } else {
-                    ShowNoticef(category, gppStringList[0x958 / 4],
-                                GetMonsterName(monster_info, 0, 0), amount,
-                                quiet != 0 ? g_poison_suffix : &g_empty_wide_string);
+                    ShowNoticef(category, gppStringList[0x256], GetMonsterName(monster_info, 0, 0),
+                                amount, quiet != 0 ? g_poison_suffix : &g_empty_wide_string);
                 }
             }
         }
@@ -460,9 +459,9 @@ void HealMonster(W8MonsterInfo* monster_info, unsigned int amount, char announce
 
     if (announce) {
         if (monster_info->hp_current == static_cast<unsigned int>(monster_info->uiHPMax)) {
-            ShowNoticef(9, gppStringList[0x964 / 4], GetMonsterName(monster_info, 0, 0));
+            ShowNoticef(9, gppStringList[0x259], GetMonsterName(monster_info, 0, 0));
         } else {
-            ShowNoticef(9, gppStringList[0x96c / 4], GetMonsterName(monster_info, 0, 0), amount);
+            ShowNoticef(9, gppStringList[0x25b], GetMonsterName(monster_info, 0, 0), amount);
         }
     }
 }
@@ -613,9 +612,9 @@ void HealCharacter(int party_slot, int amount, char announce)
     }
     if (announce) {
         if (character->hp_current == hp_max) {
-            PostCharacterNotice(party_slot, gppStringList[0x960 / 4]);
+            PostCharacterNotice(party_slot, gppStringList[0x258]);
         } else {
-            PostCharacterNotice(party_slot, gppStringList[0x968 / 4], amount);
+            PostCharacterNotice(party_slot, gppStringList[0x25a], amount);
         }
     }
 
@@ -662,9 +661,9 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce)
     }
     if (announce) {
         if (character->stamina == stamina_max) {
-            PostCharacterNotice(party_slot, gppStringList[0x970 / 4]);
+            PostCharacterNotice(party_slot, gppStringList[0x25c]);
         } else {
-            PostCharacterNotice(party_slot, gppStringList[0x978 / 4], amount);
+            PostCharacterNotice(party_slot, gppStringList[0x25e], amount);
         }
     }
 
@@ -699,7 +698,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
         return;
     }
     if (g_status.world_suspended_2390 != 0) {
-        PostCharacterNotice(party_slot, gppStringList[0x980 / 4], amount);
+        PostCharacterNotice(party_slot, gppStringList[0x260], amount);
         return;
     }
 
@@ -712,7 +711,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
             }
             SpendCharacterSpellPoints(party_slot, realm, taken);
             if (announce) {
-                ShowNoticef(8, gppStringList[0x98c / 4], amount,
+                ShowNoticef(8, gppStringList[0x263], amount,
                             gppStringList[g_realm_message_offsets[realm]]);
             }
             remaining = amount - taken;
@@ -763,7 +762,7 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
             if (order[index].deficit == 0 || (index != W8_SPELL_REALM_COUNT - 1 &&
                                               order[index].deficit < order[index + 1].deficit)) {
                 if (index == W8_SPELL_REALM_COUNT - 1) {
-                    PostCharacterNotice(party_slot, gppStringList[0x68c / 4], granted);
+                    PostCharacterNotice(party_slot, gppStringList[0x1a3], granted);
                     return;
                 }
                 continue;
@@ -777,12 +776,12 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
                 break;
             }
             if (amount == 0) {
-                PostCharacterNotice(party_slot, gppStringList[0x68c / 4], granted);
+                PostCharacterNotice(party_slot, gppStringList[0x1a3], granted);
                 return;
             }
         }
     }
-    PostCharacterNotice(party_slot, gppStringList[0x68c / 4], granted);
+    PostCharacterNotice(party_slot, gppStringList[0x1a3], granted);
 }
 
 /* Wound one character. Two thirds of the damage also tires them, the damage
@@ -801,7 +800,7 @@ void DamageCharacter(int party_slot, int damage, char announce)
     if (character->uiHPMax != 0 && character->hp_current != 0) {
         FatigueCharacter(party_slot, (damage * 2) / 3, 0, 0);
         if (announce) {
-            ShowNoticef(8, gppStringList[0x710 / 4], damage);
+            ShowNoticef(8, gppStringList[0x1c4], damage);
         }
         character->hp_adjustment -= damage;
         RecalculateCharacterHitPoints(character);
@@ -883,9 +882,9 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
     }
     if (announce) {
         if (static_cast<unsigned int>(monster_info->stamina) == stamina_max) {
-            ShowNoticef(9, gppStringList[0x974 / 4], GetMonsterName(monster_info, 0, 0));
+            ShowNoticef(9, gppStringList[0x25d], GetMonsterName(monster_info, 0, 0));
         } else {
-            ShowNoticef(9, gppStringList[0x97c / 4], GetMonsterName(monster_info, 0, 0), amount);
+            ShowNoticef(9, gppStringList[0x25f], GetMonsterName(monster_info, 0, 0), amount);
         }
     }
 
@@ -1094,7 +1093,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
     }
 
     if (g_status.world_suspended_2390 != 0) {
-        PostCharacterNotice(party_slot, gppStringList[0x988 / 4], amount,
+        PostCharacterNotice(party_slot, gppStringList[0x262], amount,
                             gppStringList[g_realm_message_offsets[realm]]);
         return;
     }
@@ -1110,8 +1109,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
     }
     SpendCharacterSpellPoints(party_slot, realm, amount);
     if (announce) {
-        ShowNoticef(8, gppStringList[0x98c / 4], amount,
-                    gppStringList[g_realm_message_offsets[realm]]);
+        ShowNoticef(8, gppStringList[0x263], amount, gppStringList[g_realm_message_offsets[realm]]);
     }
 }
 

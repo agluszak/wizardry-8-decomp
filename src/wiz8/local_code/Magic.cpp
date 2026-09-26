@@ -843,11 +843,11 @@ void FinishSpellEffect(W8SpellEffectEntry* effect)
             position = movement->position_040;
             position.y += movement->height_offset_0b8;
             position.y = SettlePositionToGround00420BD0(&position, 0);
-            PostMonsterNotice(monster_info, gppStringList[0x654 / 4]);
+            PostMonsterNotice(monster_info, gppStringList[0x195]);
         } else {
             GetCameraPosition(&position);
             position.y -= g_default_world_height;
-            PostCharacterNotice(effect->target.iChar, gppStringList[0x654 / 4]);
+            PostCharacterNotice(effect->target.iChar, gppStringList[0x195]);
         }
         if (g_settings.verbose_combat_messages == 0) {
             SetTextBoxMode(1, -1);
@@ -1203,22 +1203,22 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
         return;
     }
 
-    piece = FormatWideString(gppStringList[0x6e4 / 4], character->name);
+    piece = FormatWideString(gppStringList[0x1b9], character->name);
     name_length = wcslen(piece);
     spell_length = wcslen(g_spell_records[spell_id].display_name);
     wcscpy(realm_name, gppStringList[g_realm_message_offsets[realm]]);
-    piece = FormatWideString(gppStringList[0x6e8 / 4], realm_name, character->sp_max[realm]);
+    piece = FormatWideString(gppStringList[0x1ba], realm_name, character->sp_max[realm]);
     points_length = wcslen(piece);
 
     line = new wchar_t[name_length + spell_length + 8 + points_length];
     if (line == 0) {
         srAssertFail("wTempMsg", MAGIC_CPP, 0xfdc, 0);
     }
-    wcscpy(line, FormatWideString(gppStringList[0x6e4 / 4], realm_name));
+    wcscpy(line, FormatWideString(gppStringList[0x1b9], realm_name));
     wcscat(line, L" -- ");
     wcscat(line, g_spell_records[spell_id].display_name);
     wcscat(line, L", ");
-    wcscat(line, FormatWideString(gppStringList[0x6e8 / 4], realm_name, character->sp_max[realm]));
+    wcscat(line, FormatWideString(gppStringList[0x1ba], realm_name, character->sp_max[realm]));
     ShowNoticeLine(line, 0, 1, 0);
 }
 
@@ -1246,7 +1246,7 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item)
     spell_id = g_item_records[item->iItemNo].spell_id;
 
     if (!CanCharacterLearnSpell(character, spell_id)) {
-        ShowNoticeLine(FormatWideString(gppStringList[0x6ec / 4], character->name), 0, 1, 0);
+        ShowNoticeLine(FormatWideString(gppStringList[0x1bb], character->name), 0, 1, 0);
         return;
     }
 
@@ -2243,11 +2243,11 @@ void ReportSpellResult(W8SpellEffectEntry* effect)
     }
     if (effect->result_126.amount != 0) {
         if (effect->result_126.count == 1) {
-            AppendToLastTextLine(
-                FormatWideString(gppStringList[0x668 / 4], effect->result_126.amount), -1);
+            AppendToLastTextLine(FormatWideString(gppStringList[0x19a], effect->result_126.amount),
+                                 -1);
         } else {
             AppendToLastTextLine(
-                FormatWideString(gppStringList[0x664 / 4], effect->result_126.count,
+                FormatWideString(gppStringList[0x199], effect->result_126.count,
                                  effect->result_126.amount / effect->result_126.count, -1),
                 -1);
             SetTextBoxMode(1, -1);
@@ -2311,7 +2311,7 @@ void ReportSpellResult(W8SpellEffectEntry* effect)
         }
     }
     if (effect->reported_124 == 0) {
-        AppendToLastTextLine(gppStringList[0x694 / 4], -1);
+        AppendToLastTextLine(gppStringList[0x1a5], -1);
     }
 }
 

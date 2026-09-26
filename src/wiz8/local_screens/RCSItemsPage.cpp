@@ -345,15 +345,15 @@ void ReportCastResult(int party_slot)
     character = g_status.buffers.Char + party_slot;
     if (result == 0) {
         SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);
-        text = FormatWideString(gppStringList[0x6f8 / 4], character->name, 0, 1, 0);
+        text = FormatWideString(gppStringList[0x1be], character->name, 0, 1, 0);
         ShowCampNoticeLine(text, 0, 1, 0);
     } else if (result == 1) {
         SoundPlay("Data\\Sound\\Misc\\GeneralMagic.wav", 0);
-        text = FormatWideString(gppStringList[0x6f4 / 4], character->name, 0, 1, 0);
+        text = FormatWideString(gppStringList[0x1bd], character->name, 0, 1, 0);
         ShowCampNoticeLine(text, 0, 1, 0);
     } else if (result == 2) {
         SoundPlay("Data\\Sound\\Misc\\GeneralMagic.wav", 0);
-        text = FormatWideString(gppStringList[0x6f0 / 4], character->name, 0, 1, 0);
+        text = FormatWideString(gppStringList[0x1bc], character->name, 0, 1, 0);
         ShowCampNoticeLine(text, 0, 1, 0);
     }
     g_camp_screen->redraw_flags |= 0xfffffff;
@@ -510,7 +510,7 @@ void SplitStackDialogResult(W8DialogBase* dialog)
         if (destination == 0 &&
             (character == 0 || AddItemToCharacter(character, &split, 0, 0, 0) == 0) &&
             AddItemToParty(&split, 0, 0) == 0) {
-            ShowCampNoticeLine(gppStringList[0x2454 / 4], 0, 1, 0);
+            ShowCampNoticeLine(gppStringList[0x915], 0, 1, 0);
             g_status.item_in_hand_235b.stack_count = remaining;
             if (ResolvePendingCampCharacter(1) != 0 && DropItemInHand(0) != 0) {
                 SetCampItemActionMode(0);
@@ -663,11 +663,11 @@ void UnequipBothHands(void)
 
     if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0 &&
         gXStatus.fPartyMovementMode == 0 && g_combat_state->equip_phase_a50 == 0) {
-        ShowCampNoticeLine(gppStringList[0x240c / 4], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x903], 0, 1, 0);
         return;
     }
     if (IsPartySlotEligible(giReviewCharSlot) == 0) {
-        ShowCampNoticeLine(gppStringList[0x245c / 4], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x917], 0, 1, 0);
         return;
     }
     character = g_status.buffers.Char + giReviewCharSlot;
@@ -680,7 +680,7 @@ void UnequipBothHands(void)
         g_camp_screen->redraw_flags |= 0x2000;
         return;
     }
-    ShowCampNoticeLine(gppStringList[0x2458 / 4], 0, 1, 0);
+    ShowCampNoticeLine(gppStringList[0x916], 0, 1, 0);
 }
 
 // FUNCTION: WIZ8 0x005BB140
@@ -1166,7 +1166,7 @@ void SetItemTooltip(W8ItemInstance* item, W8Region* region)
         if (g_review_character->spell_learned[record->spell_id] == 1 &&
             (item->identified != 0 || item->spell_hint_07 != 0)) {
             wcscat(g_camp_screen->caption, L" (");
-            wcscat(g_camp_screen->caption, gppStringList[0x24c0 / 4]);
+            wcscat(g_camp_screen->caption, gppStringList[0x930]);
             wcscat(g_camp_screen->caption, L")");
         }
     }

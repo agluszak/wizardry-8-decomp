@@ -208,7 +208,7 @@ unsigned char MainMenuScreenEnter(void)
     if (!HasEnoughFreeDiskSpace() && !g_main_menu_warning_shown) {
         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
-        dialog->SetMessage(gppStringList[0x1fb8 / 4], 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
+        dialog->SetMessage(gppStringList[0x7ee], 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);
         g_main_menu_warning_shown = true;
         g_main_menu_dialog = dialog;

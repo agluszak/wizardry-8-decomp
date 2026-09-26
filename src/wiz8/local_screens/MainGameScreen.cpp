@@ -779,15 +779,15 @@ W8LockInfoPanel::W8LockInfoPanel(int tumbler_count) : Controls(0x17, 0x166, 0, 0
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_054 = new W8TextBuffer(&bounds, gppStringList[0x1ea4 / 4], g_wiz_text_font_secondary,
+    m_text_054 = new W8TextBuffer(&bounds, gppStringList[0x7a9], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_05c = new W8TextBuffer(&bounds, gppStringList[0x1ea8 / 4], g_wiz_text_font_secondary,
+    m_text_05c = new W8TextBuffer(&bounds, gppStringList[0x7aa], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_064 = new W8TextBuffer(&bounds, gppStringList[0x1eac / 4], g_wiz_text_font_secondary,
+    m_text_064 = new W8TextBuffer(&bounds, gppStringList[0x7ab], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
     bounds.left = origin_x + 0x98;
     bounds.top = origin_y + 0x15;
@@ -1097,7 +1097,7 @@ void W8LockInteraction::Process()
             }
         }
         SoundPlay(s_lock_picking_success_64babc, 0);
-        ShowNotice(0xc, gppStringList[0x1eb0 / 4]);
+        ShowNotice(0xc, gppStringList[0x7ac]);
         BeginUnlock();
         break;
     }
@@ -1227,7 +1227,7 @@ void W8LockInteraction::ResolvePick()
         }
     }
     SoundPlay(s_lock_picking_success_64babc, 0);
-    ShowNotice(0xc, gppStringList[0x1eb0 / 4]);
+    ShowNotice(0xc, gppStringList[0x7ac]);
     m_tumbler_panel_10->EnableRegionSet(0);
     m_action_panel_18->EnableRegionSet(0);
     m_state_34 = 8;
@@ -1256,8 +1256,8 @@ void W8LockInteraction::AttemptForce()
             FatigueCharacter(g_status.selected_character, 0x50, 0, 0);
             if (static_cast<int>(Random(100)) < static_cast<int>(chance)) {
                 SoundPlay(s_lock_forcing_success_64bb5c, 0);
-                ShowString(FormatWideString(g_format_s_space_s, character->name,
-                                            gppStringList[0x1eb8 / 4]));
+                ShowString(
+                    FormatWideString(g_format_s_space_s, character->name, gppStringList[0x7ae]));
                 m_tumbler_panel_10->EnableRegionSet(0);
                 m_action_panel_18->EnableRegionSet(0);
                 m_state_34 = 8;
@@ -1266,8 +1266,7 @@ void W8LockInteraction::AttemptForce()
                 return;
             }
             SoundPlay(s_lock_forcing_fail_64bb34, 0);
-            ShowString(
-                FormatWideString(g_format_s_space_s, character->name, gppStringList[0x1eb4 / 4]));
+            ShowString(FormatWideString(g_format_s_space_s, character->name, gppStringList[0x7ad]));
             if (!IsPartySlotEligible(g_status.selected_character)) {
                 level = -1;
             } else if (character->skills[10].active_00 == 0 && character->skills[10].level == 0) {
@@ -1454,7 +1453,7 @@ void CastSpellAtLockInteraction(unsigned int level, int flag, int backfire)
         return;
     }
     if (gXStatus.fLockInteractMode == 0) {
-        ShowNotice(0xc, gppStringList[0x1ebc / 4], -1, -1, 0);
+        ShowNotice(0xc, gppStringList[0x7af], -1, -1, 0);
         return;
     }
     g_lock_interaction->ApplyKnockKnock(level, flag, backfire);
@@ -1888,15 +1887,15 @@ W8MainGameStatusPanel::W8MainGameStatusPanel() : Controls(0x17, 0x166, 0, 0, 0x1
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_050 = new W8TextBuffer(&bounds, gppStringList[0x1ea4 / 4], g_wiz_text_font_secondary,
+    m_text_050 = new W8TextBuffer(&bounds, gppStringList[0x7a9], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_058 = new W8TextBuffer(&bounds, gppStringList[0x1ea8 / 4], g_wiz_text_font_secondary,
+    m_text_058 = new W8TextBuffer(&bounds, gppStringList[0x7aa], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_060 = new W8TextBuffer(&bounds, gppStringList[0x1ec0 / 4], g_wiz_text_font_secondary,
+    m_text_060 = new W8TextBuffer(&bounds, gppStringList[0x7b0], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
     bounds.left = origin_x + 0x98;
     bounds.top = origin_y + 0x15;
@@ -2119,8 +2118,7 @@ void W8MainGameScreen::SelectTextEntry(int index)
     m_action_controls_020[4]->SetEnabled(0);
     m_action_panel_014->Invalidate(0);
     m_text_panel_00c->m_progress_display_084 = 1;
-    m_text_panel_00c->m_text_buffer_0c8.SetText(gppStringList[0x1ed4 / 4],
-                                                g_wiz_text_font_secondary);
+    m_text_panel_00c->m_text_buffer_0c8.SetText(gppStringList[0x7b5], g_wiz_text_font_secondary);
     m_text_panel_00c->m_progress_duration_088 = duration;
     m_text_panel_00c->m_progress_elapsed_08c = 0.0f;
     m_text_panel_00c->m_progress_drawn_090 = 0;
@@ -2198,8 +2196,7 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     m_action_controls_020[4]->SetEnabled(0);
     m_action_panel_014->Invalidate(0);
     m_text_panel_00c->m_progress_display_084 = 1;
-    m_text_panel_00c->m_text_buffer_0c8.SetText(gppStringList[0x1ed8 / 4],
-                                                g_wiz_text_font_secondary);
+    m_text_panel_00c->m_text_buffer_0c8.SetText(gppStringList[0x7b6], g_wiz_text_font_secondary);
     m_text_panel_00c->m_progress_duration_088 = duration;
     m_text_panel_00c->m_progress_elapsed_08c = 0.0f;
     m_text_panel_00c->m_progress_drawn_090 = 0;
@@ -3145,7 +3142,7 @@ unsigned char MainGameScreenEnter(void)
         DisableSky();
     }
     if (TakePendingSaveFlag()) {
-        ShowNotice(0xc, gppStringList[0x1e08 / 4], -1, -1, 0);
+        ShowNotice(0xc, gppStringList[0x782], -1, -1, 0);
     }
     if (g_settings.difficulty != difficulty) {
         g_settings.difficulty = difficulty;
@@ -3160,7 +3157,7 @@ unsigned char MainGameScreenEnter(void)
             display_mode = 0x7fa;
             break;
         }
-        ShowNoticef(0xc, gppStringList[0x1e30 / 4], gppStringList[display_mode]);
+        ShowNoticef(0xc, gppStringList[0x78c], gppStringList[display_mode]);
     }
     ResetTransientRenderScenes();
     MoveTimer(4);
@@ -5613,7 +5610,7 @@ void RequestLevelTransition(int level, int entry, unsigned char flag)
     if (flag != 0) {
         if (normalized < 0x2f) {
             swprintf(g_level_block->text_paint_scratch_000, g_format_s_s_question,
-                     gppStringList[0x1e64 / 4], gppStringList[g_level_name_indices[normalized]]);
+                     gppStringList[0x799], gppStringList[g_level_name_indices[normalized]]);
         } else if (normalized == 0x38) {
             wcscpy(g_level_block->text_paint_scratch_000, g_text_enter_default_level);
         } else {
@@ -6466,7 +6463,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                                         &g_status.buffers.Char[g_status.selected_character],
                                         g_character_event_kind_005ee65c, 0,
                                         g_character_event_no_flags, g_character_event_full_volume);
-                                    ShowNotice(0xc, gppStringList[0x1f70 / 4], -1, -1, 0);
+                                    ShowNotice(0xc, gppStringList[0x7dc], -1, -1, 0);
                                 } else {
                                     AimAtCharacter(g_status.selected_character, slot,
                                                    W8_TARGETING_CONTEXT_CURRENT);
@@ -6611,9 +6608,9 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     if (g_level_block->portrait_refresh_pending[slot] == 0) {
                         if (g_status.item_in_cursor == 0 || gXStatus.iCurrentCursor != 7 ||
                             gXStatus.dragged_item == &g_status.item_in_hand_235b) {
-                            help_text = gppStringList[0x74 / 4];
+                            help_text = gppStringList[0x1d];
                         } else {
-                            help_text = gppStringList[0x78 / 4];
+                            help_text = gppStringList[0x1e];
                         }
                         SetRegionHelpText(help_text);
                     }
@@ -7183,7 +7180,7 @@ unsigned char PartyCombatActionRegionEvent(const InputAtom* event, W8Region* reg
             if (row->action_03d == W8_ACTION_CAST_SPELL) {
                 EnableRegionHelpFlag(region);
                 SetRegionHelpText(
-                    FormatWideString(g_format_s_colon_s_paren_d, gppStringList[0x1a0 / 4],
+                    FormatWideString(g_format_s_colon_s_paren_d, gppStringList[0x68],
                                      g_spell_records[row->action_detail_041].display_name,
                                      row->action_detail_045.spell.power_level));
                 return 0;
@@ -7191,7 +7188,7 @@ unsigned char PartyCombatActionRegionEvent(const InputAtom* event, W8Region* reg
             if (row->action_03d == W8_ACTION_USE_ITEM) {
                 EnableRegionHelpFlag(region);
                 SetRegionHelpText(FormatWideString(
-                    g_format_s_colon_s, gppStringList[0x1a4 / 4],
+                    g_format_s_colon_s, gppStringList[0x69],
                     FormatItemDisplayName(row->action_detail_045.item_use.item, 0)));
                 return 0;
             }
@@ -7499,7 +7496,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                     CanPartyMemberAimAtMonster(g_status.selected_character, 2, monster_info, 6,
                                                0) != 0) {
                     if ((GetMonsterDataForInfo(monster_info)->flags_0d0 & 1) == 0) {
-                        ShowNotice(0xc, gppStringList[0x1f78 / 4], -1, -1, 0);
+                        ShowNotice(0xc, gppStringList[0x7de], -1, -1, 0);
                     } else {
                         W8ItemInstance* item = 0;
                         if (g_status.item_in_cursor != 0) {
@@ -7511,13 +7508,13 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                             QueueNpcScriptNotice(npc, item, -1, 0, 0);
                             SetCombatSelection(-1);
                         } else {
-                            ShowNotice(0xc, gppStringList[0x1f78 / 4], -1, -1, 0);
+                            ShowNotice(0xc, gppStringList[0x7de], -1, -1, 0);
                         }
                     }
                 }
             }
         } else if (g_combat_state->round_active_001 == 0 && gXStatus.fPartyMovementMode == 0) {
-            ShowNotice(0xc, gppStringList[0x1f74 / 4], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x7dd], -1, -1, 0);
             assign = 0;
         } else if (g_shift_held != 0) {
             for (slot = 0; slot < 8; ++slot) {
@@ -9359,7 +9356,7 @@ void ShowNpcTradeItemNotice(W8ItemInstance* item)
         ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
         return;
     }
-    swprintf(g_level_block->text_paint_scratch_000, L"%d%s", price, gppStringList[0x1e5c / 4]);
+    swprintf(g_level_block->text_paint_scratch_000, L"%d%s", price, gppStringList[0x797]);
     ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2,
                GetTextBoxScrollRange() -
                    StringPixLength(g_level_block->text_paint_scratch_000, GetTextBoxValue2E8()),
@@ -9427,8 +9424,8 @@ void PopulateNpcTradeList(void)
     EnableNpcTradeFilterButtons();
     if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE) {
         swprintf(g_level_block->text_paint_scratch_000, L"%d%s", g_status.party_gold,
-                 gppStringList[0x1e5c / 4]);
-        ShowNotice(0xf, gppStringList[0x1cb4 / 4], 2,
+                 gppStringList[0x797]);
+        ShowNotice(0xf, gppStringList[0x72d], 2,
                    GetTextBoxScrollRange() -
                        StringPixLength(g_level_block->text_paint_scratch_000, GetTextBoxValue2E8()),
                    false);
@@ -9471,7 +9468,7 @@ void PopulateNpcTradeList(void)
                                                             item->identified);
                     if (acceptable) {
                         swprintf(g_level_block->text_paint_scratch_000, L"%d%s", price,
-                                 gppStringList[0x1e5c / 4]);
+                                 gppStringList[0x797]);
                     } else {
                         swprintf(g_level_block->text_paint_scratch_000, L"---");
                     }
@@ -9520,7 +9517,7 @@ void PopulateNpcTradeList(void)
                                                 item->iItemNo, 0, stack_count, item->identified);
                 if (acceptable) {
                     swprintf(g_level_block->text_paint_scratch_000, L"%d%s", price,
-                             gppStringList[0x1e5c / 4]);
+                             gppStringList[0x797]);
                 } else {
                     swprintf(g_level_block->text_paint_scratch_000, L"---");
                 }
@@ -9634,7 +9631,7 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
     result = AttemptNpcItemTheft(character, g_screen_state_00649f1c->dialogue_npc, item->iItemNo,
                                  quantity);
     if (result == 0) {
-        swprintf(text, gppStringList[0x1d34 / 4], character->name, GetItemDisplayName(item));
+        swprintf(text, gppStringList[0x74d], character->name, GetItemDisplayName(item));
         DisplayNpcQuote(text, 1);
         if (g_item_records[item->iItemNo].identify_difficulty != 0 && quantity == 1) {
             AddNpcTopic(g_screen_state_00649f1c->dialogue_npc, item->iItemNo);
@@ -9663,7 +9660,7 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
         return true;
     }
     if (result == 1) {
-        swprintf(text, gppStringList[0x1d3c / 4], character->name);
+        swprintf(text, gppStringList[0x74f], character->name);
         DisplayNpcQuote(text, 0);
         return false;
     }

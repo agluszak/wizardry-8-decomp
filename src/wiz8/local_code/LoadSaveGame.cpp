@@ -1825,7 +1825,7 @@ void ReportSaveFailed(char quiet)
     if (quiet == 0 || g_status.iron_man != 0) {
         gXStatus.save_notice_shown = true;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            ShowNotice(0xc, gppStringList[0x1e0c / 4], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x783], -1, -1, 0);
         }
     }
 }
@@ -1871,7 +1871,7 @@ void ProcessMainGameAutoSave(void)
         }
         gXStatus.save_notice_shown = true;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            ShowNotice(0xc, gppStringList[0x1e0c / 4], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x783], -1, -1, 0);
         }
         gXStatus.gameplay_timer->Restart();
         return;
@@ -1894,10 +1894,10 @@ void ProcessMainGameAutoSave(void)
         return;
     }
     if (saved == 0) {
-        ShowNotice(0xc, gppStringList[0x1e14 / 4], -1, -1, 0);
+        ShowNotice(0xc, gppStringList[0x785], -1, -1, 0);
         return;
     }
-    ShowNotice(0xc, gppStringList[0x1e10 / 4], -1, -1, 0);
+    ShowNotice(0xc, gppStringList[0x784], -1, -1, 0);
 }
 
 /* Serialize the live monster-control effect into the open HYPN chunk. The

@@ -161,7 +161,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             }
         }
         if (announce != 0) {
-            PostCharacterNotice(party_slot, gppStringList[0x90c / 4],
+            PostCharacterNotice(party_slot, gppStringList[0x243],
                                 gppStringList[g_condition_notices[condition * 4]]);
         }
         character->uiCondition[condition] = 0;
@@ -583,7 +583,7 @@ void ClearMonsterCondition(int location_id, int condition)
             SetMonsterHostility(monster_info, monster_group->ubDisposition);
         }
         if (gXStatus.fCombatMode != 0 || monster_info->party_threat.visible_to_player_25 != 0) {
-            ShowNoticef(9, gppStringList[0x910 / 4], GetMonsterName(monster_info, 0, 0),
+            ShowNoticef(9, gppStringList[0x244], GetMonsterName(monster_info, 0, 0),
                         gppStringList[g_condition_notices[condition * 4]]);
         }
         monster_info->uiCondition[condition] = 0;
@@ -703,14 +703,14 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         break;
     }
     if (g_status.world_suspended_2390 != 0) {
-        PostCharacterNotice(party_slot, gppStringList[0x908 / 4],
+        PostCharacterNotice(party_slot, gppStringList[0x242],
                             gppStringList[g_condition_notices[condition * 4]]);
         return 0;
     }
     switch (condition) {
     case 6:
         if (CharacterHasTrait(character, 3) != 0) {
-            PostCharacterNotice(party_slot, gppStringList[0x600 / 4]);
+            PostCharacterNotice(party_slot, gppStringList[0x180]);
             return 0;
         }
         /* fall through */
@@ -730,7 +730,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         /* fall through */
     case 0xd:
         if (CharacterHasTrait(character, 0xe) != 0) {
-            PostCharacterNotice(party_slot, gppStringList[0x604 / 4]);
+            PostCharacterNotice(party_slot, gppStringList[0x181]);
             return 0;
         }
         break;
@@ -768,7 +768,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     }
     if (value_6 != 0) {
         if (condition == 0x13 && value_5 != 0) {
-            PostCharacterNotice(party_slot, gppStringList[0x754 / 4]);
+            PostCharacterNotice(party_slot, gppStringList[0x1d5]);
         } else {
             PostCharacterNotice(party_slot, L"%s!",
                                 gppStringList[g_condition_notices[condition * 4]]);
