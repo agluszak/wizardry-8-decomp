@@ -56,6 +56,11 @@ class Settings(BaseModel):
         """Parent of the shared and product-specific recovered object targets."""
         return self.product_build_dir / "src/wiz8/CMakeFiles"
 
+    @property
+    def runtime_toolchain_dir(self) -> Path:
+        """Pinned umu/GE-Proton inputs and their checkout-local runtime state."""
+        return self.work_dir / "runtime-toolchain"
+
     def runtime_stage(self, name: str) -> Path:
         """Writable game tree under build/runtime; source variants stay immutable."""
         return self.build_dir / "runtime" / name
