@@ -179,12 +179,19 @@ def prepare(settings: Settings) -> dict[str, Any]:
     from .extract.variants import extract_role, materialize_variants
     from .ghidra.fid_seeds import fetch_seed_sources
     from .inputs.scan import load_manifest
+    from .runtime import runtime_runner
+    from .runtime_toolchain import prepare_runtime_toolchain
     from .source_index import write_source_index
 
     manifest = load_manifest(settings)
     extraction = extract_role(settings, "gog-media")
     variants = materialize_variants(settings, only=["gog-base"])
     sources = fetch_seed_sources(settings)
+    runtime_toolchain = (
+        prepare_runtime_toolchain(settings)
+        if runtime_runner() == "umu"
+        else {"status": "system-wine"}
+    )
     write_source_index(settings)
     write_wiz8_data_source(settings.repo_dir)
     run(
@@ -209,6 +216,7 @@ def prepare(settings: Settings) -> dict[str, Any]:
             "ready": sum(row["status"] == "ready" for row in sources["sources"]),
             "skipped": sum(row["status"] != "ready" for row in sources["sources"]),
         },
+        "runtime_toolchain": runtime_toolchain,
         "detect": "ok",
     }
 
