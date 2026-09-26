@@ -781,7 +781,7 @@ void DestroyFormationPanel(void)
         delete panel;
         g_formation_panel = 0;
     }
-    for (int index = 0; index < 15; ++index) {
+    for (unsigned int index = 0; index < 15; ++index) {
         if (g_formation_cell_controls[index] != 0) {
             delete g_formation_cell_controls[index];
             g_formation_cell_controls[index] = 0;

@@ -708,12 +708,9 @@ void UpdateCombatStanceButtons(void)
 // FUNCTION: WIZ8 0x00597D30
 void RedrawCombatStanceButtons(void)
 {
-    W8DialogButton** button;
-
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 3, 0x262, 0x1c2, 2, 0);
-    for (button = g_combat_stance_buttons_69b89c; button < &g_combat_stance_buttons_69b89c[5];
-         ++button) {
-        (*button)->m_dirty = true;
+    for (int index = 0; index < 5; ++index) {
+        g_combat_stance_buttons_69b89c[index]->m_dirty = true;
     }
     UpdateCombatStanceButtons();
 }
@@ -850,11 +847,9 @@ unsigned char CreateRoofButtons(void)
 // FUNCTION: WIZ8 0x00598060
 void RedrawRoofButtons(void)
 {
-    W8DialogButton** button;
-
     DrawCatalogImage(-0xe, 0x85, 0, 0, 0, 0, 2, 0);
-    for (button = g_roof_buttons_69b8d8; button < &g_options_disk_button_69b8e4; ++button) {
-        (*button)->m_dirty = true;
+    for (int index = 0; index < 3; ++index) {
+        g_roof_buttons_69b8d8[index]->m_dirty = true;
     }
     UpdateRoofButtons();
     RequestRedraw(0x100000);

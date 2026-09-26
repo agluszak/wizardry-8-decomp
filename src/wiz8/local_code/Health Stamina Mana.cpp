@@ -216,7 +216,7 @@ void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* res
 void HealPartyByDice(unsigned char count, unsigned char sides, short base)
 {
     W8Dice dice;
-    int party_slot;
+    unsigned int party_slot;
 
     dice.base = base;
     dice.count = count;
@@ -233,7 +233,7 @@ void HealPartyByDice(unsigned char count, unsigned char sides, short base)
 void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short base)
 {
     W8Dice dice;
-    int party_slot;
+    unsigned int party_slot;
 
     dice.base = base;
     dice.count = count;
@@ -281,7 +281,7 @@ void RestoreCharacterRealmSpellPoints(int party_slot, int realm, int amount)
 // FUNCTION: WIZ8 0x0052b550
 void DrainPartySpellPoints(int arg_1, int arg_2)
 {
-    int party_slot;
+    unsigned int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied != 0) {

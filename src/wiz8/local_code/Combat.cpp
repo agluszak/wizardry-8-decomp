@@ -739,7 +739,7 @@ void CombatLog(const char* format, ...)
 // FUNCTION: WIZ8 0x004ecf00
 void BeginCombatRound(void)
 {
-    int party_slot;
+    unsigned int party_slot;
 
     if (gXStatus.fCombatMode == 0) {
         return;
