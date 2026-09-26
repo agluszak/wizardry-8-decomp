@@ -10,6 +10,7 @@
 /* Retail exports the private getUniqueVertexList/isClockwise members and the
    implicit copy constructor/assignment, so the class is dllexport under
    SURRENDER_BUILD; consumer TUs stay member-level imported. */
+// VTABLE: SURRENDER 0x10076C88 srModeler
 #if defined(SURRENDER_BUILD)
 class __declspec(dllexport) srModeler {
 #else
