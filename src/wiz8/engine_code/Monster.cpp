@@ -5106,7 +5106,7 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
         SetFontDestBuffer(FontDestBuffer, 0, 0, surface->getWidth(), surface->getHeight(),
                           static_cast<unsigned char>(FontDestWrap));
         SetFont(g_monster_damage_font);
-        swprintf(text, g_format_d_0060aa20, amount);
+        swprintf(text, g_format_d, amount);
         gprintf_buffer(data, surface->getPitch(), g_monster_damage_font,
                        0x80 - StringPixLength(text, g_monster_damage_font) / 2,
                        0x80 - GetFontHeight(g_monster_damage_font) / 2, text);

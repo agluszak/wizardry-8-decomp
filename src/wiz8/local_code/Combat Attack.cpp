@@ -975,7 +975,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
                    gppStringList[g_monster_hit_location_labels[hit_location]
                                                               [record->constitution_15e]]);
         } else {
-            wcscpy(location_name, &g_wchar_00689b34);
+            wcscpy(location_name, &g_empty_wide_string);
         }
     } else {
         total = 0;
@@ -1217,7 +1217,7 @@ wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target)
     switch (target->iType) {
     case W8_TARGET_KIND_NONE:
     case W8_TARGET_KIND_PLACE:
-        return &g_wchar_00689b34;
+        return &g_empty_wide_string;
     case W8_TARGET_KIND_CHARACTER:
     case W8_TARGET_KIND_CHARACTER_INDIRECT:
         break;
@@ -1799,7 +1799,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                     gppStringList[g_monster_hit_location_labels[hit_location]
                                                                [target_record->constitution_15e]];
             } else {
-                location_text = &g_wchar_00689b34;
+                location_text = &g_empty_wide_string;
             }
         }
         wcscpy(location_name, location_text);
@@ -1817,8 +1817,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                     event_ids[1] = g_special_event_0068c560;
                     event_ids[2] = g_special_event_0068c574;
                     QueueCharacterEvent(&g_status.buffers.Char[g_combat_state->TargetHit.iChar],
-                                        event_ids[Random(3)], 0, g_effect_argument_005ed8c8,
-                                        g_effect_argument_005ed914);
+                                        event_ids[Random(3)], 0, g_character_event_no_flags,
+                                        g_character_event_full_volume);
                 }
                 if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
                     static_cast<char>(target_info->p3D->IsFacingMonster(monster_info->p3D)) != 0 &&
@@ -2083,7 +2083,7 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
                     if (condition == 0x13) {
                         if (report->target.iType == W8_TARGET_KIND_CHARACTER &&
                             GetConditionRecordFlag(report->target.iChar, 1) != 0) {
-                            PostCharacterNotice(report->target.iChar, g_format_s_006068e4,
+                            PostCharacterNotice(report->target.iChar, g_format_s,
                                                 gppStringList[0x1d5]);
                         }
                     } else if (report->target.iType == W8_TARGET_KIND_MONSTER) {
@@ -2661,8 +2661,8 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
         *out_hit = 1;
     }
     if (dice_count > 1 && Random(100) < dice_count * 20 - 20) {
-        QueueCharacterEvent(pPC, g_learn_sound, 0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+        QueueCharacterEvent(pPC, g_learn_sound, 0, g_character_event_no_flags,
+                            g_character_event_full_volume);
     }
 
     int damage =
@@ -3004,13 +3004,13 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                             ShowNoticef(8, gppStringList[0x17f]);
                             if (Random(100) < 0x32) {
                                 QueueCharacterEvent(&g_status.buffers.Char[source->iChar],
-                                                    g_learn_sound, 0, g_effect_argument_005ed8c8,
-                                                    g_effect_argument_005ed914);
+                                                    g_learn_sound, 0, g_character_event_no_flags,
+                                                    g_character_event_full_volume);
                             } else if (gXStatus.hostile_monster_count > 1 &&
                                        (event = QueueCharacterEvent(
                                             &g_status.buffers.Char[source->iChar],
-                                            g_item_message_005ee668, 0, g_effect_argument_005ed8c8,
-                                            g_effect_argument_005ed914)) != NULL) {
+                                            g_item_message_005ee668, 0, g_character_event_no_flags,
+                                            g_character_event_full_volume)) != NULL) {
                                 event->dispatch_delay_ms = 800;
                                 event->dispatch_delay_start = GetTickCount();
                             }
@@ -3369,7 +3369,7 @@ void QueueFumbleReaction(int party_slot)
     int slot;
     if (Random(2) != 0) {
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_item_message_005ee5c8, 0,
-                            g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                            g_effect_argument_005ed8cc, g_character_event_full_volume);
         return;
     }
     if (g_combat_state->TargetHit.iType != W8_TARGET_KIND_CHARACTER ||
@@ -3383,7 +3383,7 @@ void QueueFumbleReaction(int party_slot)
         return;
     }
     QueueCharacterEvent(&g_status.buffers.Char[slot], g_item_message_005ee5cc, 0,
-                        g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                        g_effect_argument_005ed8cc, g_character_event_full_volume);
 }
 
 /* When GetMonsterByLocationID returns NULL the sight-flag call is skipped and
@@ -3935,8 +3935,8 @@ char StartCharacterAttack(int party_slot, int attack_mode)
         event_ids[0] = g_event_range_min;
         event_ids[1] = g_special_event_0068c56c;
         event_ids[2] = g_event_range_max;
-        QueueCharacterEvent(character, event_ids[Random(3)], 0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+        QueueCharacterEvent(character, event_ids[Random(3)], 0, g_character_event_no_flags,
+                            g_character_event_full_volume);
     }
     return 1;
 }
@@ -4156,7 +4156,7 @@ int ResolveCharacterAttack(int party_slot)
                            gppStringList[g_monster_hit_location_labels[hit_location]
                                                                       [record->constitution_15e]]);
                 } else {
-                    wcscpy(location_name, &g_wchar_00689b34);
+                    wcscpy(location_name, &g_empty_wide_string);
                 }
             } else {
                 if (g_combat_state->TargetHit.iType != W8_TARGET_KIND_CHARACTER) {
@@ -4203,12 +4203,13 @@ int ResolveCharacterAttack(int party_slot)
                         g_navigator_mode3_scale) {
                         if (Random(100) < 0x1e) {
                             QueueCharacterEvent(character, g_special_event_0068c558, 0,
-                                                g_effect_argument_005ed8c8,
-                                                g_effect_argument_005ed914);
+                                                g_character_event_no_flags,
+                                                g_character_event_full_volume);
                         }
                     } else if (Random(100) < 0x19) {
                         QueueCharacterEvent(character, g_special_event_0068c558, 0,
-                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                            g_character_event_no_flags,
+                                            g_character_event_full_volume);
                     }
                     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
                         static_cast<char>(monster_info->p3D->IsFacingPlayer()) != 0 &&
@@ -4263,7 +4264,7 @@ int ResolveCharacterAttack(int party_slot)
                                 gXStatus.hostile_monster_count > 1) {
                                 W8CharacterEvent* event = QueueCharacterEvent(
                                     character, g_item_message_005ee668, 0,
-                                    g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                    g_character_event_no_flags, g_character_event_full_volume);
                                 if (event != NULL) {
                                     event->dispatch_delay_ms = 800;
                                     event->dispatch_delay_start = GetTickCount();

@@ -133,7 +133,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
             ShowNoticef(9, gppStringList[0x950 / 4], amount);
         } else {
             PostCharacterNotice(party_slot, gppStringList[0x954 / 4], amount,
-                                arg_3 != 0 ? gppStringList[0x95c / 4] : &g_wchar_00689b34);
+                                arg_3 != 0 ? gppStringList[0x95c / 4] : &g_empty_wide_string);
         }
     }
 
@@ -401,7 +401,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
                 } else {
                     ShowNoticef(category, gppStringList[0x958 / 4],
                                 GetMonsterName(monster_info, 0, 0), amount,
-                                quiet != 0 ? g_poison_suffix : &g_wchar_00689b34);
+                                quiet != 0 ? g_poison_suffix : &g_empty_wide_string);
                 }
             }
         }
@@ -1002,8 +1002,8 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
         }
     } else if (band != previous_band && band > W8_FATIGUE_BAND_DEEP) {
         if (!character->deep_fatigue_applied) {
-            QueueCharacterEvent(character, g_effect_005ee598, 0, g_effect_argument_005ed8c8,
-                                g_effect_argument_005ed914);
+            QueueCharacterEvent(character, g_effect_005ee598, 0, g_character_event_no_flags,
+                                g_character_event_full_volume);
             character->deep_fatigue_applied = 1;
         }
         if ((unsigned int)character->fatigue_band < W8_FATIGUE_BAND_RECOVERED) {

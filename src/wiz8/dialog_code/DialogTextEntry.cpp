@@ -12,7 +12,7 @@
 
 /* Retail initializer 0x005D1010 copies the Controls layout constant. */
 // GLOBAL: WIZ8 0x0069c5d0
-unsigned int g_dialog_text_layout_mask = g_W8TextBufferLayoutMask005ED560;
+unsigned int g_dialog_text_layout_mask = g_W8TextBufferNoWrap;
 
 // FUNCTION: WIZ8 0x005d1020
 W8DialogTextEntry::~W8DialogTextEntry() {}
@@ -44,7 +44,7 @@ W8DialogTextEntry::W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text,
         wcscpy(m_buffer, prefix);
         wcscat(m_buffer, L": ");
     } else {
-        wcscpy(m_buffer, &g_wchar_00689b34);
+        wcscpy(m_buffer, &g_empty_wide_string);
     }
     wcscat(m_buffer, text);
     UpdateLayout();

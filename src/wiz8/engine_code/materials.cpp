@@ -2016,8 +2016,7 @@ void OctBuildOptions(char* stem)
                     ++length;
                 }
                 wide[line][length] = 0;
-                gprintfDirty(1, 0x184 + line * 0xd, const_cast<UINT16*>(g_format_s_006068e4),
-                             wide[line]);
+                gprintfDirty(1, 0x184 + line * 0xd, const_cast<UINT16*>(g_format_s), wide[line]);
             }
             InvalidateRegion(0, 0x183, 0x27f, 0x1df, 4);
             while (DequeueEvent(&atom) == 0) {
@@ -2141,7 +2140,7 @@ accepted:
         ++length;
     }
     wide[1][length] = 0;
-    gprintfDirty(1, 0x184, const_cast<UINT16*>(g_format_s_006068e4), wide[1]);
+    gprintfDirty(1, 0x184, const_cast<UINT16*>(g_format_s), wide[1]);
     InvalidateRegion(0, 0x183, 0x27f, 0x1df, 4);
     RenderFrame();
     RenderFrame();

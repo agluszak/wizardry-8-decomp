@@ -114,7 +114,7 @@ unsigned char CreditsScreenEnter(void)
                 }
                 if (!blank) {
                     entry.pixel_width = StringPixLength(
-                        entry.primary, bold ? g_options_title_font : g_options_detail_font_683614);
+                        entry.primary, bold ? g_options_title_font : g_options_detail_font);
                 }
                 entry.line_height = 0x14 + (bold ? 5 : 0);
                 g_credit_lines->Add(entry);
@@ -190,7 +190,7 @@ void CreditsScreenFrame(void)
     for (int index = g_credit_line; index < g_credit_lines->count && y <= 0x1df; ++index) {
         const W8CreditLine* entry = g_credit_lines->GetAt(index);
         if ((entry->flags & 4) == 0) {
-            SetFont((entry->flags & 1) ? g_options_title_font : g_options_detail_font_683614);
+            SetFont((entry->flags & 1) ? g_options_title_font : g_options_detail_font);
             if ((entry->flags & 2) == 0) {
                 gprintf((0x280 - entry->pixel_width) / 2, y, L"%s", entry->primary);
             } else {

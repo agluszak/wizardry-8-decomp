@@ -821,7 +821,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                                     }
                                     W8CharacterEvent* notice = QueueCharacterEvent(
                                         &g_status.buffers.Char[party_slot], effect, 0,
-                                        g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                        g_character_event_no_flags, g_character_event_full_volume);
 
                                     if (notice != 0) {
                                         notice->dispatch_delay_ms = 0x5dc;
@@ -853,7 +853,8 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                                         }
                                         W8CharacterEvent* notice = QueueCharacterEvent(
                                             &g_status.buffers.Char[party_slot], effect, 0,
-                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                            g_character_event_no_flags,
+                                            g_character_event_full_volume);
 
                                         if (notice != 0) {
                                             notice->dispatch_delay_ms = 0x5dc;

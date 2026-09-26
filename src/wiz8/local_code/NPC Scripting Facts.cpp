@@ -213,8 +213,8 @@ void HandleFactChange(int fact_id, unsigned char value)
                     return;
                 }
                 character = GetNpcGroupCharacter(npc);
-                QueueCharacterEvent(character, 0, 0, g_effect_argument_005ed8c8,
-                                    g_effect_argument_005ed914);
+                QueueCharacterEvent(character, 0, 0, g_character_event_no_flags,
+                                    g_character_event_full_volume);
             }
         }
         return;
@@ -1025,8 +1025,8 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     for (index = 0; index < eligible_count; ++index) {
         if (eligible_slots[index] == lead_index) {
             QueueCharacterEvent(&g_status.buffers.Char[eligible_slots[index]], g_effect_005ee618,
-                                g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
-                                g_effect_argument_005ed914);
+                                g_event_flag_005ed8e0, g_character_event_no_flags,
+                                g_character_event_full_volume);
         }
     }
     if (eligible_count > 2) {
@@ -1034,15 +1034,15 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
             pick = Random(eligible_count);
         } while (eligible_slots[pick] == lead_index);
         QueueCharacterEvent(&g_status.buffers.Char[eligible_slots[pick]], g_effect_005ee618,
-                            g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+                            g_event_flag_005ed8e0, g_character_event_no_flags,
+                            g_character_event_full_volume);
     }
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
             character->highest_condition < 0xf) {
             QueueCharacterEvent(character, g_effect_005ee630, g_event_flag_005ed8e0,
-                                g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                g_character_event_no_flags, g_character_event_full_volume);
         }
     }
     if (g_status.endgame2_queued != 0 ||
@@ -1111,8 +1111,8 @@ void MonsterKilled(int record_id, int killer_party_slot)
                     RemoveCharacterCondition(g_status.sedexus_party_slot_247f, 10, 0);
                 }
                 QueueCharacterEvent(&g_status.buffers.Char[g_status.sedexus_party_slot_247f],
-                                    g_effect_005ee6f8, 0, g_effect_argument_005ed8c8,
-                                    g_effect_argument_005ed914);
+                                    g_effect_005ee6f8, 0, g_character_event_no_flags,
+                                    g_character_event_full_volume);
             }
             SetFact(0x1b6, 1, 0);
             return;

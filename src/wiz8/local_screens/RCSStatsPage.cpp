@@ -170,15 +170,15 @@ W8CampStatsControls::W8CampStatsControls()
 {
     AcquireRegionSet(&g_camp_stats_controls_region_set);
     m_buttons[0] = new W8TextControl(this, -1, 0x13c, 0xbe, 0, 0, 0x145, 0, 0, 1, 2, 4, 3);
-    m_buttons[0]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
+    m_buttons[0]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
     m_buttons[0]->m_listener = this;
     m_buttons[0]->EnableRegionHelp(0x954);
     m_buttons[1] = new W8TextControl(this, -1, 0x13c, 0xd6, 0, 0, 0x145, 0, 5, 6, 7, 9, 8);
-    m_buttons[1]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
+    m_buttons[1]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
     m_buttons[1]->m_listener = this;
     m_buttons[1]->EnableRegionHelp(0x955);
     m_buttons[2] = new W8TextControl(this, -1, 0x13c, 0xf3, 0, 0, 0x145, 0, 10, 15, 12, 17, 13);
-    m_buttons[2]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
+    m_buttons[2]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
     m_buttons[2]->m_listener = this;
     m_buttons[2]->EnableRegionHelp(0x956);
     if (g_camp_screen->effect_items_only) {
@@ -203,14 +203,16 @@ W8CampStatsControls::~W8CampStatsControls()
 void W8CampStatsControls::OnPrimary(W8TextControl* control)
 {
     if (control == m_buttons[0]) {
-        if (static_cast<unsigned char>(m_buttons[0]->m_stateFlags & g_W8TextControlMask005ED570)) {
+        if (static_cast<unsigned char>(m_buttons[0]->m_stateFlags &
+                                       g_W8TextControlStateSecondary)) {
             m_buttons[1]->DisableSecondaryState(0);
             g_camp_screen->effect_filter = 1;
         } else {
             g_camp_screen->effect_filter = 0;
         }
     } else if (control == m_buttons[1]) {
-        if (static_cast<unsigned char>(m_buttons[1]->m_stateFlags & g_W8TextControlMask005ED570)) {
+        if (static_cast<unsigned char>(m_buttons[1]->m_stateFlags &
+                                       g_W8TextControlStateSecondary)) {
             m_buttons[0]->DisableSecondaryState(0);
             g_camp_screen->effect_filter = 2;
         } else {
@@ -218,8 +220,8 @@ void W8CampStatsControls::OnPrimary(W8TextControl* control)
         }
     } else {
         g_camp_screen->effect_items_only =
-            static_cast<unsigned char>(m_buttons[2]->m_stateFlags & g_W8TextControlMask005ED570) !=
-            0;
+            static_cast<unsigned char>(m_buttons[2]->m_stateFlags &
+                                       g_W8TextControlStateSecondary) != 0;
     }
     FilterCampEffectList();
     g_camp_screen->redraw_flags |= 0x20000;
@@ -231,22 +233,22 @@ void W8CampStatsControls::OnPrimary(W8TextControl* control)
 // FUNCTION: WIZ8 0x005c48b0
 void DrawCampStatsPage(void)
 {
-    SetFont(g_font_683660);
+    SetFont(g_wiz_text_font_secondary);
     if (g_camp_screen->redraw_flags == 0xfffffff) {
         DrawCatalogImageAndInvalidate(-0xe, 0x142, 0, 1, 0, 0xa5, 2, 0);
         g_camp_stats_origin_x = 0;
         g_camp_stats_origin_y = 0xa5;
         int index;
         wchar_t* text = gppStringList[0x937];
-        gprintf(g_camp_stats_origin_x + 10 + ((0x11f - StringPixLength(text, g_font_683660)) >> 1),
-                g_camp_stats_origin_y + 10, const_cast<wchar_t*>(g_format_s_006068e4), text);
+        gprintf(g_camp_stats_origin_x + 10 +
+                    ((0x11f - StringPixLength(text, g_wiz_text_font_secondary)) >> 1),
+                g_camp_stats_origin_y + 10, const_cast<wchar_t*>(g_format_s), text);
         int row_y = 0xbf;
         for (index = 0; index < 7; ++index) {
             wchar_t* label = gppStringList[g_attribute_label_ids[index]];
             gprintf(g_camp_stats_origin_x + 10 +
-                        ((0x7b - StringPixLength(label, g_font_683660)) >> 1),
-                    row_y - 0xa6 + g_camp_stats_origin_y, const_cast<wchar_t*>(g_format_s_006068e4),
-                    label);
+                        ((0x7b - StringPixLength(label, g_wiz_text_font_secondary)) >> 1),
+                    row_y - 0xa6 + g_camp_stats_origin_y, const_cast<wchar_t*>(g_format_s), label);
             unsigned int effective = g_review_character->attributes[index].effective;
             unsigned int base = g_review_character->attributes[index].value;
             int gained;
@@ -284,21 +286,24 @@ void DrawCampStatsPage(void)
                 DrawCatalogImageAndInvalidate(-0xe, 0x143, 0, 2, 0x88, row_y, 2, 0);
             }
             SetClippingRect(&saved_clip);
-            swprintf(g_camp_screen->caption, const_cast<wchar_t*>(g_format_d_0060aa20), effective);
-            gprintf(g_camp_stats_origin_x + 0x108 +
-                        ((0x21 - StringPixLength(g_camp_screen->caption, g_font_683660)) >> 1),
-                    row_y - 0xa6 + g_camp_stats_origin_y, const_cast<wchar_t*>(g_format_s_006068e4),
-                    g_camp_screen->caption);
+            swprintf(g_camp_screen->caption, const_cast<wchar_t*>(g_format_d), effective);
+            gprintf(
+                g_camp_stats_origin_x + 0x108 +
+                    ((0x21 - StringPixLength(g_camp_screen->caption, g_wiz_text_font_secondary)) >>
+                     1),
+                row_y - 0xa6 + g_camp_stats_origin_y, const_cast<wchar_t*>(g_format_s),
+                g_camp_screen->caption);
             row_y += 0xe;
         }
         text = gppStringList[0x938];
-        gprintf(g_camp_stats_origin_x + 10 + ((0x11f - StringPixLength(text, g_font_683660)) >> 1),
-                g_camp_stats_origin_y + 0x8d, const_cast<wchar_t*>(g_format_s_006068e4), text);
+        gprintf(g_camp_stats_origin_x + 10 +
+                    ((0x11f - StringPixLength(text, g_wiz_text_font_secondary)) >> 1),
+                g_camp_stats_origin_y + 0x8d, const_cast<wchar_t*>(g_format_s), text);
         swprintf(g_camp_screen->caption, const_cast<wchar_t*>(g_format_s_space_s),
                  gppStringList[g_character_skill_name_ids
                                    [g_profession_bonus_skills[g_review_character->iProfession]]],
                  gppStringList[0x8c5]);
-        gprintf(0x10, 0x142, const_cast<wchar_t*>(g_format_s_006068e4), g_camp_screen->caption);
+        gprintf(0x10, 0x142, const_cast<wchar_t*>(g_format_s), g_camp_screen->caption);
         int trait_count = 0;
         char traits[0x20];
         for (index = 0; index < 0x20; ++index) {
@@ -313,15 +318,15 @@ void DrawCampStatsPage(void)
         int trait_y = step + 0x14e;
         for (index = 0; index < 0x20; ++index) {
             if (traits[index] != 0) {
-                gprintf(0x10, trait_y, const_cast<wchar_t*>(g_format_s_006068e4),
+                gprintf(0x10, trait_y, const_cast<wchar_t*>(g_format_s),
                         gppStringList[g_character_trait_name_ids[index]]);
                 trait_y += step + 0xc;
             }
         }
         text = gppStringList[0x939];
         gprintf(g_camp_stats_origin_x + 0x13b +
-                    ((0x13b - StringPixLength(text, g_font_683660)) >> 1),
-                g_camp_stats_origin_y + 10, const_cast<wchar_t*>(g_format_s_006068e4), text);
+                    ((0x13b - StringPixLength(text, g_wiz_text_font_secondary)) >> 1),
+                g_camp_stats_origin_y + 10, const_cast<wchar_t*>(g_format_s), text);
         g_camp_screen->stats_controls->Invalidate(0);
         g_camp_screen->stats_range->m_range->Invalidate(0);
     }
@@ -605,10 +610,10 @@ static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
     int index;
     int line = *line_out;
     if (entry->kind == 0) {
-        SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[1]);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
         gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_space_s),
                 gppStringList[0x8d1], gppStringList[g_condition_notices[entry->index * 4]]);
-        SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
         int next = line + 1;
         if (entry->turns == 9999) {
             gprintf(0x15e, (line + 1) * 0xe + 0xbf, gppStringList[0x8d2]);
@@ -628,10 +633,10 @@ static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
             }
         }
     } else if (entry->kind == 1) {
-        SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[1]);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
         gprintf(0x15e, line * 0xe + 0xbf, L"%s %s (%d)", gppStringList[0x8d4],
                 gppStringList[g_condition_notices[entry->index + 100]], entry->enchantment);
-        SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
         gprintf(0x15e, (line + 1) * 0xe + 0xbf, const_cast<wchar_t*>(g_format_d_s), entry->turns,
                 gppStringList[0x8d3]);
         *line_out = line + 3;
@@ -639,10 +644,10 @@ static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
     } else if (entry->kind == 2) {
         W8ItemDatabaseRecord* record =
             &g_item_records[g_review_character->EquippedItem[entry->index].iItemNo];
-        SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[1]);
-        gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_006068e4),
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
+        gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s),
                 GetItemDisplayName(&g_review_character->EquippedItem[entry->index]));
-        SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
         int next = line + 1;
         if (record->attack_damage_bonus != 0) {
             gprintf(0x15e, (line + 1) * 0xe + 0xbf, L"%s %+d", gppStringList[0x8b1],
@@ -653,7 +658,7 @@ static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
         wchar_t value_text[12];
         for (index = 0; index < 0x10; ++index) {
             if (record->missile_values_050[index] != 0) {
-                wcscpy(g_camp_screen->caption, &g_wchar_00689b34);
+                wcscpy(g_camp_screen->caption, &g_empty_wide_string);
                 wcscat(g_camp_screen->caption, gppStringList[g_damage_type_name_ids[index]]);
                 wcscat(g_camp_screen->caption, L" ");
                 swprintf(value_text, const_cast<wchar_t*>(g_format_d_percent),
@@ -810,7 +815,7 @@ void DisableCampSkillRegions(void)
 // FUNCTION: WIZ8 0x005c5d80
 void DrawCampSkillsPage(void)
 {
-    SetFont(g_font_683660);
+    SetFont(g_wiz_text_font_secondary);
     if (g_camp_screen->redraw_flags == 0xfffffff) {
         bool has_fifth = false;
         int skill;
@@ -917,22 +922,21 @@ void DrawCampSkillsPage(void)
                         }
                     }
                 }
-                SetFontObjectPalette16BPP(g_font_683660, palette);
+                SetFontObjectPalette16BPP(g_wiz_text_font_secondary, palette);
                 short width = StringPixLength(gppStringList[g_character_skill_name_ids[skill]],
-                                              g_font_683660);
-                gprintf((0x6b - width) / 2 + 2 + left, top + 1,
-                        const_cast<wchar_t*>(g_format_s_006068e4),
+                                              g_wiz_text_font_secondary);
+                gprintf((0x6b - width) / 2 + 2 + left, top + 1, const_cast<wchar_t*>(g_format_s),
                         gppStringList[g_character_skill_name_ids[skill]]);
                 palette = g_colour_68ee08;
                 if (value->improved_12 != 0) {
                     palette = g_font_state_palettes[1];
                 }
-                SetFontObjectPalette16BPP(g_font_683660, palette);
+                SetFontObjectPalette16BPP(g_wiz_text_font_secondary, palette);
                 short value_width = StringPixLengthArg(
-                    g_font_683660, 3, const_cast<wchar_t*>(g_format_d_0060aa20), value->level);
+                    g_wiz_text_font_secondary, 3, const_cast<wchar_t*>(g_format_d), value->level);
                 gprintfDirty((0x24 - value_width) / 2 + 0xee + left, top + 1,
-                             const_cast<wchar_t*>(g_format_d_0060aa20), value->level);
-                SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+                             const_cast<wchar_t*>(g_format_d), value->level);
+                SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
                 SetObjectShade(g_wiz_text_font_secondary_object, 4);
                 ++category_count[category];
             }
@@ -1040,7 +1044,7 @@ void W8CharacterPersonalityPage::SetCharacter(W8Character* character,
         W8TextControl* entry =
             new W8TextControl(this, 0xffffffff, column * 0x80 + 0x24, row * 0xe + 0x107,
                               column * 0x80 + 0xa3, row * 0xe + 0x114, 0x105, 0, 5, 7, 6, 8, -1);
-        entry->AddLayoutFlags(g_W8TextControlMask005ED594);
+        entry->AddLayoutFlags(g_W8TextControlLayoutImageAtOrigin);
         m_personality_selection_08c.AddEntry(entry);
     }
     m_personality_selection_08c.SetSelected(character->personality_0081);
@@ -1050,7 +1054,7 @@ void W8CharacterPersonalityPage::SetCharacter(W8Character* character,
         int top = index == 0 ? 0x140 : 0x15d;
         W8TextControl* entry = new W8TextControl(this, 0xffffffff, 0x21, top, 0x69, top + 0xe,
                                                  0x105, 0, 5, 7, 6, 8, -1);
-        entry->AddLayoutFlags(g_W8TextControlMask005ED594);
+        entry->AddLayoutFlags(g_W8TextControlLayoutImageAtOrigin);
         m_voice_selection_0b0.AddEntry(entry);
     }
     ClampInteger(&character->voice_0085, 0, 1);
@@ -1193,25 +1197,25 @@ void W8CharacterPersonalityPage::Redraw()
         bounds.top = origin_y + 0x19;
         bounds.bottom = origin_y + 0x31;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0xee], g_font_683660);
+        text.SetText(gppStringList[0xee], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.top = origin_y + 0x67;
         bounds.bottom = origin_y + 0x7f;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0xf0], g_font_683660);
+        text.SetText(gppStringList[0xf0], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.left = origin_x + 0x160;
         bounds.right = origin_x + 0x198;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0xf1], g_font_683660);
+        text.SetText(gppStringList[0xf1], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.top = origin_y + 0x19;
         bounds.bottom = origin_y + 0x31;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0xef], g_font_683660);
+        text.SetText(gppStringList[0xef], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.left = origin_x + 0x24;
@@ -1219,13 +1223,13 @@ void W8CharacterPersonalityPage::Redraw()
         bounds.top = origin_y + 0xaa;
         bounds.bottom = origin_y + 0xbc;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x84], g_font_683660);
+        text.SetText(gppStringList[0x84], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.top = origin_y + 0xc6;
         bounds.bottom = origin_y + 0xd8;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x85], g_font_683660);
+        text.SetText(gppStringList[0x85], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.left = origin_x + 0x18;
@@ -1233,7 +1237,7 @@ void W8CharacterPersonalityPage::Redraw()
         bounds.right = origin_x + 0x1a8;
         bounds.bottom = origin_y + 0xfa;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x86], g_font_683660);
+        text.SetText(gppStringList[0x86], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         int index = 0;
@@ -1244,8 +1248,8 @@ void W8CharacterPersonalityPage::Redraw()
             bounds.top = origin_y + 0x106 + (index / 3) * 0xe;
             bounds.bottom = bounds.top + 0xe;
             text.SetLayoutBounds(&bounds, 1, 1);
-            text.SetLayoutMode(g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548);
-            text.SetText(gppStringList[*message_id], g_font_683660);
+            text.SetLayoutMode(g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft);
+            text.SetText(gppStringList[*message_id], g_wiz_text_font_secondary);
             text.RenderToTarget(0, 1, -14);
         }
 
@@ -1253,15 +1257,15 @@ void W8CharacterPersonalityPage::Redraw()
         bounds.bottom = origin_y + 0x14d;
         bounds.left = origin_x + 0x29;
         bounds.right = origin_x + 0x69;
-        text.SetLayoutMode(g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED558);
+        text.SetLayoutMode(g_W8TextBufferAlignCenter | g_W8TextBufferAlignTop);
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x8d], g_font_683660);
+        text.SetText(gppStringList[0x8d], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.top = origin_y + 0x15c;
         bounds.bottom = origin_y + 0x16a;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x8e], g_font_683660);
+        text.SetText(gppStringList[0x8e], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         m_portrait_dirty_0fe = true;
@@ -1278,15 +1282,15 @@ void W8CharacterPersonalityPage::Redraw()
     if (m_description_dirty_0fd) {
         W8TextBuffer text;
         W8ControlsRect bounds;
-        W8CharacterEvent element(m_character_060, g_effect_005ee588, 0, g_effect_argument_005ed8c8,
-                                 g_effect_argument_005ed914);
+        W8CharacterEvent element(m_character_060, g_effect_005ee588, 0, g_character_event_no_flags,
+                                 g_character_event_full_volume);
 
         bounds.top = origin_y + 0x13a;
         bounds.bottom = origin_y + 0x16a;
         bounds.left = origin_x + 0x70;
         bounds.right = origin_x + 0x150;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(element.GetQuoteText(), g_font_683660);
+        text.SetText(element.GetQuoteText(), g_wiz_text_font_secondary);
         text.FillBounds(0x8000);
         text.RenderToTarget(0, 1, -14);
         m_description_dirty_0fd = false;
@@ -1296,7 +1300,7 @@ void W8CharacterPersonalityPage::Redraw()
         W8TextBuffer text;
         W8ControlsRect bounds = {9, 0xec, 0xbd, 0x184};
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0xe9], g_font_683660);
+        text.SetText(gppStringList[0xe9], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         m_prepared_06c = 0;
     }
@@ -1482,18 +1486,18 @@ void W8CharacterSkillsPage::Redraw()
         W8TextBuffer text;
         W8ControlsRect bounds = {4, 0xec, 0xc2, 0x162};
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0xe8], g_font_683660);
+        text.SetText(gppStringList[0xe8], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         bounds.top = 0x162;
         bounds.right = 0x8f;
         bounds.bottom = 0x179;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0xe3], g_font_683660);
+        text.SetText(gppStringList[0xe3], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         bounds.top = 0x184;
         bounds.bottom = 0x19b;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0xe4], g_font_683660);
+        text.SetText(gppStringList[0xe4], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         bounds.left = 0x8f;
         bounds.top = 0x162;
@@ -1502,7 +1506,7 @@ void W8CharacterSkillsPage::Redraw()
         DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x162, 2, 0);
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(FormatWideString(L"%d", m_creation_state_064->skill_step_limit),
-                     g_options_detail_font_683614);
+                     g_options_detail_font);
         text.RenderToTarget(0, 1, -14);
         m_prepared_06c = 0;
     }
@@ -1514,7 +1518,7 @@ void W8CharacterSkillsPage::Redraw()
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(FormatWideString(L"%d/%d", m_creation_state_064->skill_points_remaining,
                                       m_creation_state_064->skill_points_total),
-                     g_options_detail_font_683614);
+                     g_options_detail_font);
         text.RenderToTarget(0, 1, -14);
         m_dirty_06d = 0;
     }

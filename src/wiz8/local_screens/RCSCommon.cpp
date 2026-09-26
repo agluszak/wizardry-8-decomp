@@ -211,7 +211,7 @@ bool CanSelectRcsPartySlot(int ui_slot)
 void DrawRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode)
 {
     W8ControlsRect bounds = {left, top, left + width, top + 12};
-    W8TextBuffer buffer(&bounds, text, g_font_683660, layout_mode, 4);
+    W8TextBuffer buffer(&bounds, text, g_wiz_text_font_secondary, layout_mode, 4);
     buffer.RenderToTarget(0, 0, -14);
 }
 
@@ -227,7 +227,7 @@ void DrawRcsBoldText(const wchar_t* text, int left, int top, int width, unsigned
 void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode)
 {
     W8ControlsRect bounds = {left, top, left + width, top + 18};
-    W8TextBuffer buffer(&bounds, text, g_font_683660, layout_mode, 4);
+    W8TextBuffer buffer(&bounds, text, g_wiz_text_font_secondary, layout_mode, 4);
     buffer.RenderToTarget(0, 0, -14);
 }
 
@@ -239,14 +239,14 @@ void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned
 void DrawRcsTextJustified(const wchar_t* text, int left, int top, int width, int height,
                           unsigned int layout_mode)
 {
-    if (layout_mode == (g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C)) {
-        left += (width - StringPixLength(const_cast<wchar_t*>(text), g_font_683660)) / 2;
-    } else if (layout_mode ==
-               (g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554)) {
-        left += width - StringPixLength(const_cast<wchar_t*>(text), g_font_683660);
+    if (layout_mode == (g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter)) {
+        left +=
+            (width - StringPixLength(const_cast<wchar_t*>(text), g_wiz_text_font_secondary)) / 2;
+    } else if (layout_mode == (g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle)) {
+        left += width - StringPixLength(const_cast<wchar_t*>(text), g_wiz_text_font_secondary);
     }
-    top += (height - GetFontHeight(g_font_683660)) / 2;
-    SetFont(g_font_683660);
+    top += (height - GetFontHeight(g_wiz_text_font_secondary)) / 2;
+    SetFont(g_wiz_text_font_secondary);
     gprintfDirty(left, top, L"%s", text);
 }
 
@@ -325,7 +325,8 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                     if (!CanPartySlotParticipate(static_cast<int>(target_slot))) {
                         QueueCharacterEvent(&g_status.buffers.Char[giReviewCharSlot],
                                             g_character_event_kind_005ee65c, 0,
-                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                            g_character_event_no_flags,
+                                            g_character_event_full_volume);
                         return 1;
                     }
                     AimAtCharacter(giReviewCharSlot, static_cast<int>(target_slot),
@@ -346,7 +347,8 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                     if (IsDeadCharacterTargetable(static_cast<int>(target_slot)) == 0) {
                         QueueCharacterEvent(&g_status.buffers.Char[giReviewCharSlot],
                                             g_character_event_kind_005ee65c, 0,
-                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                            g_character_event_no_flags,
+                                            g_character_event_full_volume);
                         return 1;
                     }
                     AimAtCharacterIndirect(giReviewCharSlot, static_cast<int>(target_slot),
@@ -827,7 +829,7 @@ void DrawCampHeader(void)
             ColorFillVideoSurfaceArea(0xfffffff2, 0, 0, 0x136, 0xa5, 0x8000);
             DrawCatalogImage(-14, 0x123, 0, 0, 0, 0, 2, 0);
             DrawRcsText(gppStringList[0x8c2], 0xb, 0xd, 0x11e,
-                        g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+                        g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
             row = 0;
             for (profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
                 if (character->profession_levels[profession] != 0 ||
@@ -840,14 +842,11 @@ void DrawCampHeader(void)
                         level_x = 0x10a;
                     }
                     y = (row & 7) * 0xe + 0x24;
-                    DrawRcsText(
-                        gppStringList[g_profession_name_message_ids[profession]], name_x, y, 0x68,
-                        g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
-                    swprintf(state->caption, g_format_d_0060aa20,
-                             character->profession_levels[profession]);
+                    DrawRcsText(gppStringList[g_profession_name_message_ids[profession]], name_x, y,
+                                0x68, g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
+                    swprintf(state->caption, g_format_d, character->profession_levels[profession]);
                     DrawRcsText(state->caption, level_x, y, 0x20,
-                                g_W8TextBufferLayoutMask005ED554 |
-                                    g_W8TextBufferLayoutMask005ED54C);
+                                g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
                     ++row;
                 }
             }
@@ -899,30 +898,30 @@ void DrawCampHeader(void)
         }
         wcscpy(state->caption, character->name);
         gprintfDirty((0xba - StringPixLength(state->caption, g_wiz_text_bold_font)) / 2 + 0x74,
-                     0x60, const_cast<UINT16*>(g_format_s_006068e4), state->caption);
+                     0x60, const_cast<UINT16*>(g_format_s), state->caption);
         SetFontObjectPalette16BPP(g_wiz_text_bold_font, g_font_palette_wiz_text_bold);
-        SetFont(g_font_683660);
+        SetFont(g_wiz_text_font_secondary);
         SetObjectShade(g_wiz_text_font_secondary_object, 4);
         wcscpy(state->caption, gppStringList[g_gender_name_message_rows[character->gender][0]]);
         wcscat(state->caption, L" ");
         wcscat(state->caption, gppStringList[g_race_name_message_ids[character->iRace]]);
-        gprintfDirty((0xba - StringPixLength(state->caption, g_font_683660)) / 2 + 0x74, 0x6f,
-                     const_cast<UINT16*>(g_format_s_006068e4), state->caption);
+        gprintfDirty((0xba - StringPixLength(state->caption, g_wiz_text_font_secondary)) / 2 + 0x74,
+                     0x6f, const_cast<UINT16*>(g_format_s), state->caption);
         if (state->hover_region == 0xf3) {
-            SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[1]);
+            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
         }
         wcscpy(state->caption,
                gppStringList[g_profession_name_message_ids[character->iProfession]]);
-        gprintfDirty((0xba - StringPixLength(state->caption, g_font_683660)) / 2 + 0x74, 0x7c,
-                     const_cast<UINT16*>(g_format_s_006068e4), state->caption);
-        SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
-        SetFont(g_font_683660);
+        gprintfDirty((0xba - StringPixLength(state->caption, g_wiz_text_font_secondary)) / 2 + 0x74,
+                     0x7c, const_cast<UINT16*>(g_format_s), state->caption);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+        SetFont(g_wiz_text_font_secondary);
         SetObjectShade(g_wiz_text_font_secondary_object, 4);
         swprintf(state->caption, g_format_s_d_paren_s, gppStringList[0x91a], character->uiExpLevel,
                  gppStringList[g_profession_level_name_message_ids[character->iProfession]
                                                                   [character->level_band]]);
-        gprintfDirty((0xba - StringPixLength(state->caption, g_font_683660)) / 2 + 0x74, 0x89,
-                     const_cast<UINT16*>(g_format_s_006068e4), state->caption);
+        gprintfDirty((0xba - StringPixLength(state->caption, g_wiz_text_font_secondary)) / 2 + 0x74,
+                     0x89, const_cast<UINT16*>(g_format_s), state->caption);
     }
     for (slot = 0; slot < 8; ++slot) {
         if ((state->redraw_flags & (1 << (slot & 0x1f))) != 0) {
@@ -1054,8 +1053,8 @@ void DrawCampVitals(void)
     bounds.right = 0x121;
     bounds.top = 0xd;
     bounds.bottom = 0x17;
-    text = new W8TextBuffer(
-        &bounds, 0, g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 0, 4);
+    text =
+        new W8TextBuffer(&bounds, 0, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 0, 4);
     if (g_status.game_started == 0) {
         text->m_fontStateIndex = 8;
     } else {
@@ -1072,7 +1071,7 @@ void DrawCampVitals(void)
         bounds.bottom = 0x51;
         text->SetLayoutBounds(&bounds, 1, 0);
         text->m_fontStateIndex = -1;
-        formatted = FormatWideString(g_format_d_0060aa20, g_review_character->hp_current);
+        formatted = FormatWideString(g_format_d, g_review_character->hp_current);
         text->SetText(formatted, g_smfnt_font);
         text->RenderToTarget(0, 0, -14);
     }
@@ -1112,11 +1111,11 @@ void DrawCampHands(void)
                          0x22, 2, 0);
         count = g_review_character->EquippedItem[6].stack_count;
         if (count != 0) {
-            swprintf(text, g_format_d_0060aa20, count);
+            swprintf(text, g_format_d, count);
             SetFont(g_smfnt_font);
             SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
             gprintf(0x89 - (StringPixLength(text, g_smfnt_font) + 1) / 2, 0x31,
-                    const_cast<UINT16*>(g_format_s_006068e4), text);
+                    const_cast<UINT16*>(g_format_s), text);
         }
     }
     if (!two_handed) {
@@ -1129,16 +1128,16 @@ void DrawCampHands(void)
                              0x3a, 2, 0);
             count = g_review_character->EquippedItem[7].stack_count;
             if (count != 0) {
-                swprintf(text, g_format_d_0060aa20, count);
+                swprintf(text, g_format_d, count);
                 SetFont(g_smfnt_font);
                 SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
                 gprintf(0x8c - (StringPixLength(text, g_smfnt_font) + 1) / 2, 0x49,
-                        const_cast<UINT16*>(g_format_s_006068e4), text);
+                        const_cast<UINT16*>(g_format_s), text);
             }
         }
     }
     SetFont(g_smfnt_font);
-    swprintf(text, g_format_d_0060aa20, g_review_character->armor_class_average);
+    swprintf(text, g_format_d, g_review_character->armor_class_average);
     palette = g_font_palette_smfnt;
     if (g_review_character->load_category != 0) {
         palette =
@@ -1146,7 +1145,7 @@ void DrawCampHands(void)
     }
     SetFontObjectPalette16BPP(g_smfnt_font, palette);
     gprintf((0xd - StringPixLength(text, g_smfnt_font)) / 2 + 0x84, 0xe,
-            const_cast<UINT16*>(g_format_s_006068e4), text);
+            const_cast<UINT16*>(g_format_s), text);
     InvalidateRegion(0x81, 0xb, 0x95, 0x53, 0);
 }
 
@@ -1188,10 +1187,10 @@ int CreateCampButtonPanel(void)
                 return 0;
             }
         }
-        g_camp_page_buttons[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
-        g_camp_page_buttons[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
-        g_camp_page_buttons[2]->AddLayoutFlags(g_W8TextControlMask005ED578);
-        g_camp_page_buttons[3]->AddLayoutFlags(g_W8TextControlMask005ED578);
+        g_camp_page_buttons[0]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+        g_camp_page_buttons[1]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+        g_camp_page_buttons[2]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+        g_camp_page_buttons[3]->AddLayoutFlags(g_W8TextControlLayoutToggle);
         g_camp_page_buttons[0]->m_primaryActivationCallback = OnCampPageButton0;
         g_camp_page_buttons[1]->m_primaryActivationCallback = OnCampPageButton1;
         g_camp_page_buttons[2]->m_primaryActivationCallback = OnCampPageButton2;
@@ -1217,14 +1216,14 @@ int CreateCampButtonPanel(void)
         while (g_item_action_controls[index] != 0) {
             ++index;
             if (index > 7) {
-                g_item_action_controls[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls[2]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls[3]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls[4]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls[5]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls[6]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls[7]->AddLayoutFlags(g_W8TextControlMask005ED578);
+                g_item_action_controls[0]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+                g_item_action_controls[1]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+                g_item_action_controls[2]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+                g_item_action_controls[3]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+                g_item_action_controls[4]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+                g_item_action_controls[5]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+                g_item_action_controls[6]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+                g_item_action_controls[7]->AddLayoutFlags(g_W8TextControlLayoutToggle);
                 g_item_action_controls[0]->m_primaryActivationCallback = OnCampItemActionButton0;
                 g_item_action_controls[1]->m_primaryActivationCallback = OnCampItemActionButton1;
                 g_item_action_controls[2]->m_primaryActivationCallback = OnCampItemActionButton2;
@@ -1399,7 +1398,7 @@ void SetCampItemActionMode(char mode)
     W8TextControl** control;
 
     for (control = g_item_action_controls, index = 8; index != 0; ++control, --index) {
-        if (static_cast<unsigned char>((*control)->m_stateFlags & g_W8TextControlMask005ED570) !=
+        if (static_cast<unsigned char>((*control)->m_stateFlags & g_W8TextControlStateSecondary) !=
             0) {
             (*control)->DisableSecondaryState(0);
         }
@@ -1449,7 +1448,7 @@ void SetCampItemActionMode(char mode)
     }
     if (selected != -1 &&
         static_cast<unsigned char>(g_item_action_controls[selected]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) == 0) {
+                                   g_W8TextControlStateSecondary) == 0) {
         g_item_action_controls[selected]->EnableSecondaryState(0);
     }
     g_camp_screen->redraw_flags |= 0x1000;
@@ -1464,10 +1463,10 @@ static void OnCampPageButton0(void)
     int index;
 
     if (static_cast<unsigned char>(g_camp_page_buttons[0]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         for (index = 0; index < 5; ++index) {
             if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
-                                           g_W8TextControlMask005ED570) != 0) {
+                                           g_W8TextControlStateSecondary) != 0) {
                 g_camp_page_buttons[index]->DisableSecondaryState(0);
             }
         }
@@ -1482,10 +1481,10 @@ static void OnCampPageButton1(void)
     int index;
 
     if (static_cast<unsigned char>(g_camp_page_buttons[1]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         for (index = 0; index < 5; ++index) {
             if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
-                                           g_W8TextControlMask005ED570) != 0) {
+                                           g_W8TextControlStateSecondary) != 0) {
                 g_camp_page_buttons[index]->DisableSecondaryState(0);
             }
         }
@@ -1500,10 +1499,10 @@ static void OnCampPageButton2(void)
     int index;
 
     if (static_cast<unsigned char>(g_camp_page_buttons[2]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         for (index = 0; index < 5; ++index) {
             if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
-                                           g_W8TextControlMask005ED570) != 0) {
+                                           g_W8TextControlStateSecondary) != 0) {
                 g_camp_page_buttons[index]->DisableSecondaryState(0);
             }
         }
@@ -1518,10 +1517,10 @@ static void OnCampPageButton3(void)
     int index;
 
     if (static_cast<unsigned char>(g_camp_page_buttons[3]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         for (index = 0; index < 5; ++index) {
             if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
-                                           g_W8TextControlMask005ED570) != 0) {
+                                           g_W8TextControlStateSecondary) != 0) {
                 g_camp_page_buttons[index]->DisableSecondaryState(0);
             }
         }
@@ -1543,7 +1542,7 @@ static void CampPageDismissAction(void)
 static void OnCampItemActionButton0(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[0]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_camp_entry_parameter = g_review_character;
         if (g_status.item_in_cursor != 0) {
             IdentifyAndOpenItemInfo(&g_status.item_in_hand_235b);
@@ -1559,7 +1558,7 @@ static void OnCampItemActionButton0(void)
 static void OnCampItemActionButton1(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[1]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         SetCampItemActionMode(1);
         if (g_status.item_in_cursor != 0) {
             SetHandCursors(0);
@@ -1574,7 +1573,7 @@ static void OnCampItemActionButton1(void)
 static void OnCampItemActionButton2(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[2]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         if (g_status.item_in_cursor != 0) {
             OpenSplitStackDialog(&g_status.item_in_hand_235b);
             return;
@@ -1589,7 +1588,7 @@ static void OnCampItemActionButton2(void)
 static void OnCampItemActionButton3(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[3]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         if (g_status.item_in_cursor != 0) {
             UseItem005BA4F0(&g_status.item_in_hand_235b);
             return;
@@ -1604,7 +1603,7 @@ static void OnCampItemActionButton3(void)
 static void OnCampItemActionButton4(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[4]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         if (g_status.item_in_cursor != 0) {
             if (ResolvePendingCampCharacter(1) != 0) {
                 DropHeldItem005BA3D0();
@@ -1625,7 +1624,7 @@ static void OnCampItemActionButton5(void)
 
     eligible = IsCampActionAllowed(giReviewCharSlot);
     active = static_cast<unsigned char>(g_item_action_controls[5]->m_stateFlags &
-                                        g_W8TextControlMask005ED570);
+                                        g_W8TextControlStateSecondary);
     if (eligible == 0) {
         if (active != 0) {
             g_item_action_controls[5]->DisableSecondaryState(0);
@@ -1644,7 +1643,7 @@ static void OnCampItemActionButton5(void)
 static void OnCampItemActionButton6(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[6]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         giCasterCharSlot = giReviewCharSlot;
         if (g_status.item_in_cursor != 0) {
             UseHeldItemOnItem(&g_status.item_in_hand_235b);
@@ -1662,7 +1661,7 @@ static void OnCampItemActionButton6(void)
 static void OnCampItemActionButton7(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[7]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         giCasterCharSlot = giReviewCharSlot;
         SetCampItemActionMode(9);
         return;

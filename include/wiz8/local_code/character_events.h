@@ -138,10 +138,10 @@ extern int g_special_event_0068c518;   /* 0x0068C518: emitted when the selected
                                         sight line is blocked */
 extern int g_special_event_0068c534;   /* 0x0068C534 */
 extern unsigned int g_first_remapped_event;
-extern int g_effect_argument_005ed8c8;
+extern int g_character_event_no_flags;
 extern int g_effect_argument_005ed8d8;
 extern unsigned int g_event_flag_005ed8e8; /* 0x005ED8E8 */
-extern int g_effect_argument_005ed914;
+extern int g_character_event_full_volume;
 extern int g_effect_005ee618; /* 0x005EE618: event type 36 - queued on the bound
                                party row plus one random peer when the allied
                                NPC dies (HandleScriptedNpcDeath) */

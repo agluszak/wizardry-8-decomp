@@ -456,8 +456,8 @@ done:
                                 ? 1
                                 : static_cast<int>(level_total / static_cast<double>(occupied));
                 if (share + 2 <= static_cast<int>(record->effective_level_24f)) {
-                    QueueCharacterEvent(killer, g_effect_005ee61c, 0, g_effect_argument_005ed8c8,
-                                        g_effect_argument_005ed914);
+                    QueueCharacterEvent(killer, g_effect_005ee61c, 0, g_character_event_no_flags,
+                                        g_character_event_full_volume);
                 }
             }
         }
@@ -2005,7 +2005,7 @@ void EvaluateCombatDifficulty(void)
             event_type = g_effect_005ee604;
             break;
         }
-        ApplyItemEffectToRandomCharacter(event_type, -1, 0, g_effect_argument_005ed8c8);
+        ApplyItemEffectToRandomCharacter(event_type, -1, 0, g_character_event_no_flags);
     }
     ++g_status.combat_difficulty_counts[difficulty];
     gXStatus.combat_difficulty = difficulty;

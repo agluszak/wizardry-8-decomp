@@ -5,19 +5,19 @@
 
 /* Shared declaration owner; implementation remains in Local Code\Controls.cpp. */
 
-extern const unsigned int g_W8TextBufferLayoutMask005ED548;
-extern const unsigned int g_W8TextBufferLayoutMask005ED54C;
-extern const unsigned int g_W8TextBufferLayoutMask005ED550;
-extern const unsigned int g_W8TextBufferLayoutMask005ED554;
-extern const unsigned int g_W8TextBufferLayoutMask005ED558;
-extern const unsigned int g_W8TextBufferLayoutMask005ED55C;
-extern const unsigned int g_W8TextBufferLayoutMask005ED560;
+extern const unsigned int g_W8TextBufferAlignLeft;
+extern const unsigned int g_W8TextBufferAlignCenter;
+extern const unsigned int g_W8TextBufferAlignRight;
+extern const unsigned int g_W8TextBufferAlignMiddle;
+extern const unsigned int g_W8TextBufferAlignTop;
+extern const unsigned int g_W8TextBufferAlignBottom;
+extern const unsigned int g_W8TextBufferNoWrap;
 /* The 0x55DE40 translation unit's own copies of the 1/2/4 layout masks; the
    Controls.cpp definitions above carry the same values but retail bound the
    NPC dialogue text controller to its own emission. */
-extern const unsigned int g_W8TextBufferLayoutMask005EF888;
-extern const unsigned int g_W8TextBufferLayoutMask005EF88C;
-extern const unsigned int g_W8TextBufferLayoutMask005EF890;
+extern const unsigned int g_W8DialogTextAreaAlignLeft;
+extern const unsigned int g_W8DialogTextAreaAlignCenter;
+extern const unsigned int g_W8DialogTextAreaAlignRight;
 extern const wchar_t g_W8LineBreakCharacters[];
 
 // VTABLE: WIZ8 0x005ed5b8

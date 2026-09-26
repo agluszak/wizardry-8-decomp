@@ -23,7 +23,7 @@ void ClearHighlightIfItIs(const int* item);
 
 #include "wiz8/layouts/main_game_screen.h"
 /* MainGameScreen.cpp GLOBAL at 0x006068E4: the "%s" display format. */
-extern const wchar_t g_format_s_006068e4[];
+extern const wchar_t g_format_s[];
 /* MainGameScreen.cpp GLOBAL at 0x0064BAB0: the "%d%%" display format. */
 extern const wchar_t g_format_d_percent[];
 /* MainGameScreen.cpp GLOBAL at 0x0061C3E0: the "%s: %s" display format. */
@@ -177,7 +177,7 @@ static_assert(sizeof(W8MainGameStatusPanel) == 0x6c, "W8MainGameStatusPanel_size
 
 /* 0x0055DE40 constructs this Controls-derived NPC dialogue text controller:
    Controls base, six dwords, then the W8DialogTextArea at +0x64 for a 0xBC
-   total. W8MainScreenState stores the live instance at +0x1b0. */
+   total. W8NpcInteractionState stores the live instance at +0x1b0. */
 // VTABLE: WIZ8 0x005ee920
 class W8NpcDialogueTextController : public Controls {
 public:
@@ -246,7 +246,7 @@ static_assert(offsetof(W8NpcDialogueTextController, text_area) == 0x64,
               "W8NpcDialogueTextController_text_area");
 
 /* The hover/click target the dialogue controller embeds for its text area
-   (constructed by 0x0055E570, stored in W8MainScreenState at +0x130, parented
+   (constructed by 0x0055E570, stored in W8NpcInteractionState at +0x130, parented
    to the +0x1b0 controller). Entering selects the first visible entry,
    leaving clears the selection, and the button handlers track the press in
    m_flags_34 before firing the widget callbacks. */

@@ -5,14 +5,14 @@
 
 /* Shared declaration owner; implementation remains in Local Code\Controls.cpp. */
 
-extern const unsigned int g_W8TextControlMask005ED56C;
-extern const unsigned int g_W8TextControlMask005ED570;
-extern const unsigned int g_W8TextControlMask005ED578;
-extern const unsigned int g_W8TextControlMask005ED57C;
-extern const unsigned int g_W8TextControlMask005ED580;
-extern const unsigned int g_W8TextControlMask005ED584;
+extern const unsigned int g_W8TextControlStatePressed;
+extern const unsigned int g_W8TextControlStateSecondary;
+extern const unsigned int g_W8TextControlLayoutToggle;
+extern const unsigned int g_W8TextControlLayoutTextBesideImage;
+extern const unsigned int g_W8TextControlLayoutImageLeft;
+extern const unsigned int g_W8TextControlLayoutStayLatched;
 extern const unsigned int g_W8TextControlMask005ED588;
-extern const unsigned int g_W8TextControlMask005ED594;
+extern const unsigned int g_W8TextControlLayoutImageAtOrigin;
 
 // VTABLE: WIZ8 0x005ed604
 class W8TextControl : public W8Widget {

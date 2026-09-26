@@ -134,11 +134,11 @@ static void CreateSpellCastingViewControls(void)
     gpSCSV->realm_buttons[5] =
         new W8TextControl(panel, 0x90, 0x71, 0x39, 0xbc, 0x4f, 0x191, 0, 4, 7, 5, 7, 6);
     for (index = 0; index < W8_SPELL_REALM_COUNT; ++index) {
-        gpSCSV->realm_buttons[index]->AddLayoutFlags(g_W8TextControlMask005ED578);
+        gpSCSV->realm_buttons[index]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     }
     for (index = 0; index < W8_SPELL_REALM_COUNT; ++index) {
-        gpSCSV->realm_buttons[index]->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
-                                                                 g_W8TextBufferLayoutMask005ED54C);
+        gpSCSV->realm_buttons[index]->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                                 g_W8TextBufferAlignCenter);
     }
     gpSCSV->realm_buttons[0]->UpdateTextBounds(0x1e, 0xd, 0x55, 0x23);
     gpSCSV->realm_buttons[1]->UpdateTextBounds(0x85, 0xd, 0xbc, 0x23);
@@ -201,7 +201,7 @@ static void CreateSpellCastingViewControls(void)
     gpSCSV->power_pips[7]->SetFlaggedRegionBounds(0x1e, 0x2d, 0xe);
     gpSCSV->power_pips[8]->SetFlaggedRegionBounds(0x1e, 0x2d, 0xe);
     for (index = 0; index < 9; ++index) {
-        gpSCSV->power_pips[index]->AddLayoutFlags(g_W8TextControlMask005ED578);
+        gpSCSV->power_pips[index]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     }
     gpSCSV->power_pips[0]->m_primaryActivationCallback = SelectSpellPowerPip0;
     gpSCSV->power_pips[1]->m_primaryActivationCallback = SelectSpellPowerPip1;
@@ -215,8 +215,8 @@ static void CreateSpellCastingViewControls(void)
 
     gpSCSV->spell_name =
         new W8TextControl(panel, 0x9a, 0xe, 10, 0x30, 0x18, -1, -1, -1, -1, -1, -1, -1);
-    gpSCSV->spell_name->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
-                                                   g_W8TextBufferLayoutMask005ED54C);
+    gpSCSV->spell_name->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                   g_W8TextBufferAlignCenter);
     gpSCSV->cancel_button =
         new W8TextControl(panel, 0x9b, 0x96, 6, 0xb1, 0x21, 0x8e, 0, 4, -1, 5, 6, 7);
     gpSCSV->cancel_button->m_primaryActivationCallback = ResetSpellCastingSelection;
@@ -465,7 +465,7 @@ static void UpdateSpellRealmPointDisplays(void)
             FormatWideString(g_format_d_slash_d,
                              GetCharacterRealmSpellPoints(gpSCSV->caster, realm),
                              gpSCSV->caster->sp_max[realm]),
-            g_font_683660);
+            g_wiz_text_font_secondary);
     }
 }
 
@@ -625,8 +625,8 @@ static void RebuildSpellCastingList(int spell_id)
                                      g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
                                      spell->display_name);
                             ShowNotice(0xf, line, 2, -1, 0);
-                            AppendTextBoxLine(
-                                FormatWideString(g_format_d_0060aa20, spell->spell_point_cost), 2);
+                            AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost),
+                                              2);
                             SetSpellListLineColor(gpSCSV->uiSpellsInList - 1, 4);
                         }
                     } else if (pass == 0) {
@@ -638,8 +638,8 @@ static void RebuildSpellCastingList(int spell_id)
                                      g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
                                      spell->display_name);
                             ShowNotice(0xf, line, 2, -1, 0);
-                            AppendTextBoxLine(
-                                FormatWideString(g_format_d_0060aa20, spell->spell_point_cost), 2);
+                            AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost),
+                                              2);
                         }
                         if (id == spell_id) {
                             selected = gpSCSV->uiSpellsInList - 1;
@@ -657,8 +657,7 @@ static void RebuildSpellCastingList(int spell_id)
                              g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
                              spell->display_name);
                     ShowNotice(0xf, line, 2, -1, 0);
-                    AppendTextBoxLine(
-                        FormatWideString(g_format_d_0060aa20, spell->spell_point_cost), 2);
+                    AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost), 2);
                     SetSpellListLineColor(gpSCSV->uiSpellsInList - 1, 0);
                 }
                 ++index;
@@ -958,7 +957,7 @@ void SelectSpellPowerPip7(void)
     int pip;
 
     if (static_cast<unsigned char>(gpSCSV->power_pips[7]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         for (pip = 0; pip < 7; ++pip) {
             W8TextControl* control = gpSCSV->power_pips[pip];
             if (control->m_enabled) {
@@ -966,13 +965,13 @@ void SelectSpellPowerPip7(void)
             }
         }
         gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
-        gpSCSV->spell_name->m_textBuffer.SetText(L"?", g_font_683660);
+        gpSCSV->spell_name->m_textBuffer.SetText(L"?", g_wiz_text_font_secondary);
         gpSCSV->iSpellPower = 7;
         gpSCSV->spell_name->Invalidate(1);
         return;
     }
     gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
-    gpSCSV->spell_name->m_textBuffer.SetText(&g_wchar_00689b34, g_font_683660);
+    gpSCSV->spell_name->m_textBuffer.SetText(&g_empty_wide_string, g_wiz_text_font_secondary);
     gpSCSV->iSpellPower = -1;
     gpSCSV->spell_name->Invalidate(1);
 }
@@ -983,9 +982,9 @@ void SelectSpellPowerPip7(void)
 void SelectSpellPowerPip8(void)
 {
     if (static_cast<unsigned char>(gpSCSV->power_pips[8]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
-        gpSCSV->spell_name->m_textBuffer.SetText(L"?", g_font_683660);
+        gpSCSV->spell_name->m_textBuffer.SetText(L"?", g_wiz_text_font_secondary);
         gpSCSV->iSpellPower = 7;
         gpSCSV->spell_name->Invalidate(1);
         return;
@@ -1005,7 +1004,7 @@ void SelectSpellPowerLevel(int power_level)
     gpSCSV->panels[2]->Invalidate(0);
     if (power_level == -1 ||
         (static_cast<unsigned char>(gpSCSV->power_pips[power_level]->m_stateFlags &
-                                    g_W8TextControlMask005ED570) == 0 &&
+                                    g_W8TextControlStateSecondary) == 0 &&
          gpSCSV->iSpellPower == power_level)) {
         for (pip = 0; pip < 7; ++pip) {
             gpSCSV->power_pips[pip]->DisableSecondaryState(0);
@@ -1014,11 +1013,11 @@ void SelectSpellPowerLevel(int power_level)
         if (gpSCSV->iSpellPowerClass == 2) {
             gpSCSV->power_pips[8]->EnableSecondaryState(0);
             if (static_cast<unsigned char>(gpSCSV->power_pips[8]->m_stateFlags &
-                                           g_W8TextControlMask005ED570) == 0) {
+                                           g_W8TextControlStateSecondary) == 0) {
                 gpSCSV->power_pips[8]->EnableSecondaryState(0);
             } else {
                 gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
-                gpSCSV->spell_name->m_textBuffer.SetText(L"?", g_font_683660);
+                gpSCSV->spell_name->m_textBuffer.SetText(L"?", g_wiz_text_font_secondary);
                 gpSCSV->iSpellPower = 7;
             }
             gpSCSV->spell_name->Invalidate(1);
@@ -1026,10 +1025,10 @@ void SelectSpellPowerLevel(int power_level)
         }
         gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
         if (gpSCSV->iSpellPowerClass == 3) {
-            text = FormatWideString(g_format_d_0060aa20,
+            text = FormatWideString(g_format_d,
                                     g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
         } else {
-            text = &g_wchar_00689b34;
+            text = &g_empty_wide_string;
         }
     } else {
         gpSCSV->iSpellPower = power_level;
@@ -1044,11 +1043,11 @@ void SelectSpellPowerLevel(int power_level)
             }
         }
         gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
-        text = FormatWideString(g_format_d_0060aa20,
+        text = FormatWideString(g_format_d,
                                 (power_level + 1) *
                                     g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
     }
-    gpSCSV->spell_name->m_textBuffer.SetText(text, g_font_683660);
+    gpSCSV->spell_name->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
 }
 
 /* Hover preview for a power pip: clears the spell-name plate and shows the
@@ -1075,22 +1074,21 @@ void PreviewSpellPowerPipHover(int power_level)
             if (power_level != -1) {
                 spell_name->m_textBuffer.SetRenderMode(6);
                 text = FormatWideString(
-                    g_format_d_0060aa20,
+                    g_format_d,
                     (power_level + 1) * g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
-                spell_name->m_textBuffer.SetText(text, g_font_683660);
+                spell_name->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
                 return;
             }
             if (gpSCSV->iSpellPowerClass == 0) {
                 spell_name->m_textBuffer.SetRenderMode(4);
                 if (gpSCSV->iSpellPower != -1) {
                     text = FormatWideString(
-                        g_format_d_0060aa20,
-                        (gpSCSV->iSpellPower + 1) *
-                            g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
-                    spell_name->m_textBuffer.SetText(text, g_font_683660);
+                        g_format_d, (gpSCSV->iSpellPower + 1) *
+                                        g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
+                    spell_name->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
                     return;
                 }
-                spell_name->m_textBuffer.SetText(&g_wchar_00689b34, g_font_683660);
+                spell_name->m_textBuffer.SetText(&g_empty_wide_string, g_wiz_text_font_secondary);
             }
         }
     }
@@ -1225,7 +1223,7 @@ unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region)
             (&gpSCSV->power_pips[0])[region->callback_id]->OnLeftButtonUp(0);
             callback_id = region->callback_id;
             if (callback_id < 7 && ((&gpSCSV->power_pips[0])[callback_id]->m_stateFlags &
-                                    g_W8TextControlMask005ED570) == 0) {
+                                    g_W8TextControlStateSecondary) == 0) {
                 PreviewSpellPowerPipHover(callback_id);
             }
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
@@ -1306,7 +1304,7 @@ unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event, W8Region* regi
         }
         g_saved_target_cursor = gXStatus.iCurrentCursor;
         dialog = new W8SpellInfoDialog(gpSCSV->uiSpells[line]);
-        dialog->SetText(&g_wchar_00689b34);
+        dialog->SetText(&g_empty_wide_string);
         dialog->m_destroy_callback = RestoreTargetCursor;
         OpenModal(dialog);
         return 1;
@@ -1350,9 +1348,10 @@ static void SelectSpellCastingListRow(int index)
         gpSCSV->uiSpellIndex = -1;
         ConfigureSpellTargetFilter(-1, 0);
         ShowSpellCastingError(spell_id);
-        QueueCharacterEvent(
-            &g_status.buffers.Char[g_status.selected_character], g_character_event_kind_005ee65c, 0,
-            g_character_event_flags_mask | g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+        QueueCharacterEvent(&g_status.buffers.Char[g_status.selected_character],
+                            g_character_event_kind_005ee65c, 0,
+                            g_character_event_flags_mask | g_character_event_no_flags,
+                            g_character_event_full_volume);
         return;
     }
     SetSpellListLineColor(gpSCSV->uiSpellIndex, 3);

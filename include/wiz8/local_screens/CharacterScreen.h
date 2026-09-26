@@ -478,6 +478,6 @@ unsigned char CharacterScreenEnter(void);
 void CharacterScreenFrame(void);
 unsigned char CharacterScreenLeave(int leaving);
 extern const wchar_t g_dash_0064789c[];
-extern const wchar_t g_format_d_0060aa20[];
+extern const wchar_t g_format_d[];
 extern const wchar_t g_format_d_slash_d[];
 extern const wchar_t g_format_plus_d[];

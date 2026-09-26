@@ -343,7 +343,7 @@ char AddTextInputField(int left, int top, int width, int height, int priority, c
     field->szString = static_cast<wchar_t*>(malloc((capacity + 1) * sizeof(wchar_t)));
     if (text == 0) {
         field->ubStrLen = 0;
-        swprintf(field->szString, &g_wchar_00689b34);
+        swprintf(field->szString, &g_empty_wide_string);
     } else {
         field->ubStrLen = (unsigned char)wcslen(text);
         swprintf(field->szString, text);
@@ -417,7 +417,7 @@ void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
                 wcsncpy(field->szString, text, field->ubMaxChars);
             } else if (!field->fUserField) {
                 field->ubStrLen = 0;
-                swprintf(field->szString, &g_wchar_00689b34);
+                swprintf(field->szString, &g_empty_wide_string);
             }
             gfHiliteMode = false;
             gubCursorPos = 0;

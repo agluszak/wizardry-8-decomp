@@ -134,17 +134,17 @@
 #include "wiz8/local_screens/OptionsScreen.h"
 
 // GLOBAL: WIZ8 0x0068ee90
-W8MainScreenState g_screen_state_storage;
+W8NpcInteractionState g_npc_interaction_storage;
 /* The global object's implicit constructor and destructor; 0x0056B930 is the
    retail static initializer that runs the former and registers the latter. */
 // SYNTHETIC: WIZ8 0x0056b960
-// W8MainScreenState::~W8MainScreenState
+// W8NpcInteractionState::~W8NpcInteractionState
 
 // SYNTHETIC: WIZ8 0x0056b9a0
-// W8MainScreenState::W8MainScreenState
+// W8NpcInteractionState::W8NpcInteractionState
 
 // GLOBAL: WIZ8 0x00649f1c
-W8MainScreenState* g_screen_state_00649f1c = &g_screen_state_storage;
+W8NpcInteractionState* g_screen_state_00649f1c = &g_npc_interaction_storage;
 /* 0x0068EE80: the dialogue keyword tables. Element zero is the English file
    list and element one the translated one; each file list holds one line list
    per line and each line list one word per field. */
@@ -200,7 +200,7 @@ void W8NpcTypedDialoguePanel::SetEnabled(bool enable)
         Controls::SetEnabled(enable);
         if (enable) {
             InitTextInputModeWithScheme(1);
-            AddTextInputField(0x1e5, 0x170, 0x7a, 0x12, 0x7f, &g_wchar_00689b34, 0xbe, 0xf, 1);
+            AddTextInputField(0x1e5, 0x170, 0x7a, 0x12, 0x7f, &g_empty_wide_string, 0xbe, 0xf, 1);
         } else {
             RemoveTextInputField(0);
         }
@@ -488,7 +488,7 @@ void ResetMainScreenStateBlock(void)
 {
     int unset = -1;
 
-    memset(static_cast<void*>(g_screen_state_00649f1c), 0, sizeof(W8MainScreenState));
+    memset(static_cast<void*>(g_screen_state_00649f1c), 0, sizeof(W8NpcInteractionState));
     g_screen_state_00649f1c->dialogue_category_filter = unset;
     g_screen_state_00649f1c->transcript_sorted = 0;
     g_screen_state_00649f1c->pending_trade_toggle = 0;
@@ -565,7 +565,7 @@ void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int s
 void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
                               int force)
 {
-    W8MainScreenState* state;
+    W8NpcInteractionState* state;
     W8MonsterInfo* info;
     W8NpcState* bound;
     W8NpcState* selected;
@@ -688,7 +688,7 @@ void DispatchPendingNpcScriptNotice(void)
 // FUNCTION: WIZ8 0x0056CAD0
 unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsigned char force)
 {
-    W8MainScreenState* state;
+    W8NpcInteractionState* state;
     W8MonsterInfo* info;
     W8MonsterInfo* dialogue_info;
     unsigned char band;
@@ -773,7 +773,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
                 g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
                 g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
                 g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(
-                    &g_wchar_00689b34, g_wiz_text_bold_font);
+                    &g_empty_wide_string, g_wiz_text_bold_font);
             /* fall through */
             case 6:
                 SetNpcDialogueLayoutMode(0);
@@ -853,7 +853,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
 // FUNCTION: WIZ8 0x0056D030
 void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
 {
-    W8MainScreenState* state;
+    W8NpcInteractionState* state;
     W8MonsterInfo* info;
     W8NpcState* selected;
     int slot;
@@ -917,7 +917,7 @@ void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
 void CreateNpcDialogueControls(void)
 {
     Controls* panel;
-    W8MainScreenState* state;
+    W8NpcInteractionState* state;
 
     state = g_screen_state_00649f1c;
     state->panel_1a8 = new W8NpcDialogueOptionsPanel(0x17, 0x166, 0xa4, 0x1c2, 0x1a9, 0, 0);
@@ -933,12 +933,12 @@ void CreateNpcDialogueControls(void)
     panel = state->panel_1a8;
     state->dialogue_text_10c =
         new W8TextControl(panel, 0xffffffff, 5, 2, 0x89, 0x12, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_10c->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
-                                                         g_W8TextBufferLayoutMask005ED54C);
+    state->dialogue_text_10c->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                         g_W8TextBufferAlignCenter);
     state->dialogue_text_1a4 =
         new W8TextControl(panel, 0xffffffff, 5, 0x47, 0x89, 0x57, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_1a4->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
-                                                         g_W8TextBufferLayoutMask005ED54C);
+    state->dialogue_text_1a4->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                         g_W8TextBufferAlignCenter);
     state->dialogue_text_110 =
         new W8TextControl(panel, 0x82, 2, 0x11, 0x45, 0x21, 0x1a9, 0, -1, 0xc, 10, 0xb, -1);
     state->dialogue_text_114 =
@@ -966,17 +966,17 @@ void CreateNpcDialogueControls(void)
                                                      0x14, 0x15, 0x16, 0x18, 0x17);
     state->option_buttons_170[5] = new W8TextControl(panel, 0x7a, 0x62, 0x46, 0x72, 0x56, 0x1ab, 0,
                                                      0x19, 0x1a, 0x1b, 0x1d, 0x1c);
-    state->option_buttons_170[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[0]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     state->option_buttons_170[0]->EnableRegionHelp(0x7c2);
-    state->option_buttons_170[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[1]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     state->option_buttons_170[1]->EnableRegionHelp(0x7c3);
-    state->option_buttons_170[2]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[2]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     state->option_buttons_170[2]->EnableRegionHelp(0x7c4);
-    state->option_buttons_170[3]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[3]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     state->option_buttons_170[3]->EnableRegionHelp(0x7c5);
-    state->option_buttons_170[4]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[4]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     state->option_buttons_170[4]->EnableRegionHelp(0x7c6);
-    state->option_buttons_170[5]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[5]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     state->option_buttons_170[5]->EnableRegionHelp(0x7c7);
     state->option_buttons_170[0]->m_primaryActivationCallback = ToggleNpcTradeFilterButton0;
     state->option_buttons_170[1]->m_primaryActivationCallback = ToggleNpcTradeFilterButton1;
@@ -1004,74 +1004,75 @@ void CreateNpcDialogueControls(void)
     state->dialogue_text_140->EnableRegionHelp(0x65);
     state->dialogue_text_168 =
         new W8TextControl(panel, 0x73, 9, 0x33, 0x84, 0x44, 0x1a9, 0, -1, -1, 0xe, 0xf, -1);
-    state->dialogue_text_168->m_textBuffer.SetText(gppStringList[0x741], g_font_683660);
+    state->dialogue_text_168->m_textBuffer.SetText(gppStringList[0x741], g_wiz_text_font_secondary);
     state->dialogue_text_168->m_primaryActivationCallback = SubmitNpcDialogueInput;
     state->dialogue_text_168->EnableRegionHelp(0x66);
     state->dialogue_text_164 =
         new W8TextControl(panel, 0x72, 9, 0x43, 0x84, 0x52, 0x1a9, 0, -1, -1, 0xe, 0xf, -1);
-    state->dialogue_text_164->m_textBuffer.SetText(gppStringList[0x742], g_font_683660);
+    state->dialogue_text_164->m_textBuffer.SetText(gppStringList[0x742], g_wiz_text_font_secondary);
     state->dialogue_text_164->m_primaryActivationCallback = SubmitNpcWhereIsQuery;
     state->dialogue_text_164->EnableRegionHelp(0x67);
 
     panel = state->npc_dialogue_panel_1b4;
     state->dialogue_sort_button =
         new W8TextControl(panel, 0x6b, 6, 2, 0x89, 0xe, 0x1a9, 0, 8, 9, -1, -1, -1);
-    state->dialogue_sort_button->AddLayoutFlags(
-        g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C | g_W8TextControlMask005ED578);
+    state->dialogue_sort_button->AddLayoutFlags(g_W8TextControlLayoutImageLeft |
+                                                g_W8TextControlLayoutTextBesideImage |
+                                                g_W8TextControlLayoutToggle);
     state->dialogue_people_button =
         new W8TextControl(panel, 0x6d, 6, 0xf, 0x41, 0x1b, 0x1a9, 0, 8, 9, -1, -1, -1);
     state->dialogue_people_button->AddLayoutFlags(
-        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
-        g_W8TextControlMask005ED578);
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
     state->dialogue_places_button =
         new W8TextControl(panel, 0x6e, 0x43, 0xf, 0x89, 0x1b, 0x1a9, 0, 8, 9, -1, -1, -1);
     state->dialogue_places_button->AddLayoutFlags(
-        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
-        g_W8TextControlMask005ED578);
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
     state->dialogue_items_button =
         new W8TextControl(panel, 0x6f, 6, 0x1b, 0x41, 0x27, 0x1a9, 0, 8, 9, -1, -1, -1);
     state->dialogue_items_button->AddLayoutFlags(
-        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
-        g_W8TextControlMask005ED578);
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
     state->dialogue_misc_button =
         new W8TextControl(panel, 0x70, 0x43, 0x1b, 0x89, 0x27, 0x1a9, 0, 8, 9, -1, -1, -1);
     state->dialogue_misc_button->AddLayoutFlags(
-        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
-        g_W8TextControlMask005ED578);
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
     state->dialogue_all_button =
         new W8TextControl(panel, 0x71, 6, 0x27, 0x41, 0x33, 0x1a9, 0, 8, 9, -1, -1, -1);
     state->dialogue_all_button->AddLayoutFlags(
-        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
-        g_W8TextControlMask005ED578);
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
 
     panel = state->panel_1bc;
     state->dialogue_text_16c =
         new W8TextControl(panel, 0x74, 5, 0x14, 0x32, 0x49, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_16c->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED55C |
-                                                         g_W8TextBufferLayoutMask005ED550);
-    state->dialogue_text_16c->AddLayoutFlags(g_W8TextControlMask005ED594);
+    state->dialogue_text_16c->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignBottom |
+                                                         g_W8TextBufferAlignRight);
+    state->dialogue_text_16c->AddLayoutFlags(g_W8TextControlLayoutImageAtOrigin);
     state->dialogue_text_188 = new W8TextControl(panel, 0x7b, 0x35, 0x36, 0x51, 0x46, 0x1aa, 0,
                                                  0x1e, 0x22, 0x1f, 0x20, 0x21);
     state->dialogue_text_188->EnableRegionHelp(0x7c9);
     state->dialogue_text_190 =
         new W8TextControl(panel, 0x7d, 0x53, 0x4d, 0x86, 0x58, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_190->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                                         g_W8TextBufferLayoutMask005ED554);
+    state->dialogue_text_190->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignRight |
+                                                         g_W8TextBufferAlignMiddle);
     state->dialogue_text_190->SetEnabled(0);
     state->dialogue_text_194 =
         new W8TextControl(panel, 0x7e, 5, 0x4d, 0x51, 0x58, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_194->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
-                                                         g_W8TextBufferLayoutMask005ED54C);
+    state->dialogue_text_194->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                         g_W8TextBufferAlignCenter);
     state->dialogue_text_194->SetEnabled(0);
     state->dialogue_text_198 =
         new W8TextControl(panel, 0x7f, 0x53, 0x3a, 0x86, 0x45, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_198->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                                         g_W8TextBufferLayoutMask005ED554);
+    state->dialogue_text_198->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignRight |
+                                                         g_W8TextBufferAlignMiddle);
     state->dialogue_text_198->SetEnabled(0);
     state->dialogue_text_19c =
         new W8TextControl(panel, 0x80, 4, 4, 0x88, 0x11, -1, -1, -1, -1, -1, -1, -1);
-    state->dialogue_text_19c->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
-                                                         g_W8TextBufferLayoutMask005ED54C);
+    state->dialogue_text_19c->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
+                                                         g_W8TextBufferAlignCenter);
     state->dialogue_text_19c->SetEnabled(0);
     state->dialogue_text_1a0 =
         new W8TextControl(panel, 0x81, 0x38, 0x22, 0x88, 0x34, -1, -1, -1, -1, -1, -1, -1);
@@ -1228,7 +1229,7 @@ void EndNpcDialogueSession(int param_1)
         g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
         g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
         g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
-        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_wchar_00689b34,
+        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_empty_wide_string,
                                                                          g_wiz_text_bold_font);
         g_screen_state_00649f1c->previous_dialogue_layout =
             g_screen_state_00649f1c->dialogue_layout;
@@ -1302,7 +1303,7 @@ void EndNpcDialogueSession(int param_1)
             if (slot != -1) {
                 W8CharacterEvent* event = QueueCharacterEvent(
                     &g_status.buffers.Char[slot], g_special_event_0068c534, g_event_flag_005ed8e8,
-                    g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                    g_character_event_no_flags, g_character_event_full_volume);
                 if (event != 0) {
                     event->dispatch_delay_ms = 1000;
                     event->dispatch_delay_start = GetTickCount();
@@ -1478,7 +1479,7 @@ void TryNpcDialoguePickpocket(int party_slot)
 }
 
 /* Forward mouse enter/leave and button events to the main-screen control whose
-   pointer sits at W8MainScreenState::dialogue_text_10c[callback_id]. Id 0x27
+   pointer sits at W8NpcInteractionState::dialogue_text_10c[callback_id]. Id 0x27
    is the panel slot at +0x1a8 and is ignored. Ids 1..6 and 0x16/0x17 pass 1
    into the widget hooks; every other id passes 0. Mouse-enter always passes 0. */
 // FUNCTION: WIZ8 0x0056F020
@@ -1750,7 +1751,7 @@ void NpcDialogueTextBoxRightUp(int x, int y)
             return;
         }
         dialog = new W8AssayDialog(item, &g_status.buffers.Char[g_status.selected_character]);
-        dialog->SetText(&g_wchar_00689b34);
+        dialog->SetText(&g_empty_wide_string);
         dialog->SetOrigin(g_info_dialog_x, 0x48);
         dialog->m_destroy_callback = OnNpcAssayDialogClosed;
         OpenModal(dialog);
@@ -1878,8 +1879,9 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
             g_screen_state_00649f1c->dialogue_text_188->SetEnabled(0);
         }
         ShortenTextToWidth(text, FormatItemDisplayName(g_screen_state_00649f1c->trade_item, 0),
-                           0x7d, g_font_683660);
-        g_screen_state_00649f1c->dialogue_text_19c->m_textBuffer.SetText(text, g_font_683660);
+                           0x7d, g_wiz_text_font_secondary);
+        g_screen_state_00649f1c->dialogue_text_19c->m_textBuffer.SetText(text,
+                                                                         g_wiz_text_font_secondary);
         g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_fontStateIndex = 1;
         g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
         switch (g_screen_state_00649f1c->trade_mode) {
@@ -1922,7 +1924,8 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
         default:
             return;
         }
-        g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.SetText(price_text, g_font_683660);
+        g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.SetText(price_text,
+                                                                         g_wiz_text_font_secondary);
         return;
     }
     if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE && index == 0) {
@@ -1931,9 +1934,10 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
         g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
         g_screen_state_00649f1c->dialogue_text_188->SetEnabled(1);
         g_screen_state_00649f1c->dialogue_text_19c->m_textBuffer.SetText(gppStringList[0x72d],
-                                                                         g_font_683660);
+                                                                         g_wiz_text_font_secondary);
         swprintf(price_text, L"%dg", g_screen_state_00649f1c->trade_gold);
-        g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.SetText(price_text, g_font_683660);
+        g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.SetText(price_text,
+                                                                         g_wiz_text_font_secondary);
         g_screen_state_00649f1c->panel_1bc->Invalidate(0);
     }
 }
@@ -1954,10 +1958,10 @@ void ResetNpcDialogueItemEditor(void)
     g_screen_state_00649f1c->dialogue_text_16c->m_pressedSprite = -1;
     g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(g_wchar_0068ee58, 0);
     g_screen_state_00649f1c->dialogue_text_16c->Invalidate(1);
-    g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.SetText(&g_wchar_00689b34,
-                                                                     g_font_683660);
-    g_screen_state_00649f1c->dialogue_text_19c->m_textBuffer.SetText(&g_wchar_00689b34,
-                                                                     g_font_683660);
+    g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.SetText(&g_empty_wide_string,
+                                                                     g_wiz_text_font_secondary);
+    g_screen_state_00649f1c->dialogue_text_19c->m_textBuffer.SetText(&g_empty_wide_string,
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_188->SetEnabled(0);
     g_screen_state_00649f1c->selected_trade_row = -1;
     g_screen_state_00649f1c->trade_quantity = 1;
@@ -2029,7 +2033,7 @@ void SwitchNpcDialogueLayout(int interact_id)
         g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
         g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
         g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
-        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_wchar_00689b34,
+        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_empty_wide_string,
                                                                          g_wiz_text_bold_font);
         g_screen_state_00649f1c->previous_dialogue_layout =
             g_screen_state_00649f1c->dialogue_layout;
@@ -2108,7 +2112,7 @@ void LeaveNpcDialogueLayout(void)
             g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
             g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
             g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
-            g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_wchar_00689b34,
+            g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_empty_wide_string,
                                                                              g_wiz_text_bold_font);
             g_screen_state_00649f1c->previous_dialogue_layout =
                 g_screen_state_00649f1c->dialogue_layout;
@@ -2185,7 +2189,7 @@ void EnterNpcServiceLayout(void)
         g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
         g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
         g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
-        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_wchar_00689b34,
+        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_empty_wide_string,
                                                                          g_wiz_text_bold_font);
         g_screen_state_00649f1c->previous_dialogue_layout =
             g_screen_state_00649f1c->dialogue_layout;
@@ -2248,24 +2252,24 @@ void ShowNpcDialogueTopicMenu(void)
     g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(gppStringList[0x1c98 / 4],
                                                                      g_wiz_text_bold_font);
     g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1c9c / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback =
         SelectNpcDialogueService;
     g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1ca0 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback = SelectNpcDialogueTalk;
     g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x1ca4 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_118->m_primaryActivationCallback = SelectNpcDialogueExit;
     g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1c8c / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback =
         PromptNpcDispositionChange;
     g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetText(gppStringList[0x1c90 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_120->m_primaryActivationCallback = EnterNpcServiceLayout;
     g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetText(gppStringList[0x1c94 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_124->m_primaryActivationCallback =
         LeaveNpcDialogueLayout;
     g_screen_state_00649f1c->dialogue_text_128->SetActive(0);
@@ -2295,7 +2299,7 @@ void CloseNpcDialogueLayout(void)
     g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
     g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
     g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
-    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_wchar_00689b34,
+    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_empty_wide_string,
                                                                      g_wiz_text_bold_font);
     g_screen_state_00649f1c->previous_dialogue_layout = g_screen_state_00649f1c->dialogue_layout;
     g_screen_state_00649f1c->dialogue_layout = W8_DIALOGUE_LAYOUT_NONE;
@@ -2367,7 +2371,7 @@ void SelectNpcDialogueExit(void)
     g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
     g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
     g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
-    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_wchar_00689b34,
+    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_empty_wide_string,
                                                                      g_wiz_text_bold_font);
     g_screen_state_00649f1c->previous_dialogue_layout = g_screen_state_00649f1c->dialogue_layout;
     g_screen_state_00649f1c->dialogue_layout = W8_DIALOGUE_LAYOUT_NONE;
@@ -2394,7 +2398,7 @@ void OpenNpcDialogueTranscriptLayout(void)
     g_screen_state_00649f1c->npc_dialogue_panel_1b4->SetEnabled(1);
     g_screen_state_00649f1c->text_input_panel_1c0->SetEnabled(1);
     g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
-    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_wchar_00689b34,
+    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_empty_wide_string,
                                                                      g_wiz_text_bold_font);
     RegionSetEnable(0x18);
     RegionSetEnable(0x16);
@@ -2408,23 +2412,23 @@ void OpenNpcDialogueTranscriptLayout(void)
             g_screen_state_00649f1c->dialogue_npc->record->source_name_004, g_wiz_text_bold_font);
     }
     g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1cd4 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback = EnterNpcTradeOptions;
     g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1ce0 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback = ShowNpcDialogueNotice;
     g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x1c90 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_118->m_primaryActivationCallback = EnterNpcServiceLayout;
     g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1cdc / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback = RequestNpcJoinParty;
     g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetText(gppStringList[0x1c8c / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_120->m_primaryActivationCallback =
         PromptNpcDispositionChange;
     g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetText(gppStringList[0x1c94 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_124->m_primaryActivationCallback =
         LeaveNpcDialogueLayout;
     g_screen_state_00649f1c->dialogue_scroll_130->m_primaryActivationCallback = NoOp;
@@ -2437,27 +2441,27 @@ void OpenNpcDialogueTranscriptLayout(void)
     g_screen_state_00649f1c->dialogue_text_140->m_primaryActivationCallback =
         RefreshNpcDialogueTranscript;
     g_screen_state_00649f1c->dialogue_sort_button->m_textBuffer.SetText(gppStringList[0x1d00 / 4],
-                                                                        g_font_683660);
+                                                                        g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_sort_button->m_primaryActivationCallback =
         SyncNpcDialogueListFilter;
-    g_screen_state_00649f1c->dialogue_people_button->m_textBuffer.SetText(gppStringList[0x1d0c / 4],
-                                                                          g_font_683660);
+    g_screen_state_00649f1c->dialogue_people_button->m_textBuffer.SetText(
+        gppStringList[0x1d0c / 4], g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_people_button->m_primaryActivationCallback =
         SelectNpcDialogueCategory1;
-    g_screen_state_00649f1c->dialogue_places_button->m_textBuffer.SetText(gppStringList[0x1d10 / 4],
-                                                                          g_font_683660);
+    g_screen_state_00649f1c->dialogue_places_button->m_textBuffer.SetText(
+        gppStringList[0x1d10 / 4], g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_places_button->m_primaryActivationCallback =
         SelectNpcDialogueCategory2;
     g_screen_state_00649f1c->dialogue_items_button->m_textBuffer.SetText(gppStringList[0x1d14 / 4],
-                                                                         g_font_683660);
+                                                                         g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_items_button->m_primaryActivationCallback =
         SelectNpcDialogueCategory0;
     g_screen_state_00649f1c->dialogue_misc_button->m_textBuffer.SetText(gppStringList[0x1d18 / 4],
-                                                                        g_font_683660);
+                                                                        g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_misc_button->m_primaryActivationCallback =
         SelectNpcDialogueCategory3;
     g_screen_state_00649f1c->dialogue_all_button->m_textBuffer.SetText(gppStringList[0x1d1c / 4],
-                                                                       g_font_683660);
+                                                                       g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_all_button->m_primaryActivationCallback =
         SelectNpcDialogueCategoryAll;
     g_screen_state_00649f1c->dialogue_text_128->SetActive(0);
@@ -2704,7 +2708,7 @@ void RefreshNpcDialogueTranscript(void)
 void SyncNpcDialogueListFilter(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->dialogue_sort_button->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_screen_state_00649f1c->transcript_sorted = 1;
     } else {
         g_screen_state_00649f1c->transcript_sorted = 0;
@@ -2717,7 +2721,7 @@ void SyncNpcDialogueListFilter(void)
 void SelectNpcDialogueCategory1(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->dialogue_people_button->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_screen_state_00649f1c->dialogue_category_filter = W8_DIALOGUE_CATEGORY_PEOPLE;
         SyncDialogueCategoryButtons();
     }
@@ -2729,7 +2733,7 @@ void SelectNpcDialogueCategory1(void)
 void SelectNpcDialogueCategory2(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->dialogue_places_button->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_screen_state_00649f1c->dialogue_category_filter = W8_DIALOGUE_CATEGORY_PLACES;
         SyncDialogueCategoryButtons();
     }
@@ -2741,7 +2745,7 @@ void SelectNpcDialogueCategory2(void)
 void SelectNpcDialogueCategory0(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->dialogue_items_button->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_screen_state_00649f1c->dialogue_category_filter = W8_DIALOGUE_CATEGORY_ITEMS;
         SyncDialogueCategoryButtons();
     }
@@ -2753,7 +2757,7 @@ void SelectNpcDialogueCategory0(void)
 void SelectNpcDialogueCategoryAll(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->dialogue_all_button->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_screen_state_00649f1c->dialogue_category_filter = W8_DIALOGUE_CATEGORY_ALL;
         SyncDialogueCategoryButtons();
     }
@@ -2765,7 +2769,7 @@ void SelectNpcDialogueCategoryAll(void)
 void SelectNpcDialogueCategory3(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->dialogue_misc_button->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_screen_state_00649f1c->dialogue_category_filter = W8_DIALOGUE_CATEGORY_MISC;
         SyncDialogueCategoryButtons();
     }
@@ -2787,7 +2791,7 @@ void OpenNpcDialogueOptionLayout(void)
         SetNpcDialogueHidden(0);
     }
     g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
-    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_wchar_00689b34,
+    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_empty_wide_string,
                                                                      g_wiz_text_bold_font);
     g_screen_state_00649f1c->panel_1a8->SetEnabled(1);
     g_screen_state_00649f1c->panel_1ac->SetEnabled(1);
@@ -2795,45 +2799,46 @@ void OpenNpcDialogueOptionLayout(void)
     RegionSetEnable(0x18);
     RegionSetEnable(0x17);
     g_screen_state_00649f1c->dialogue_text_194->m_textBuffer.SetText(gppStringList[0x1cb4 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1cf4 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback =
         SetNpcDialogueSubMode4;
     g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1cf8 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback =
         SetNpcDialogueSubMode3;
     g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x1cfc / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_118->m_primaryActivationCallback =
         SetNpcDialogueSubMode2;
     g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1cb8 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback =
         SetNpcDialogueSubMode5;
     g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetText(gppStringList[0x1cac / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_120->m_primaryActivationCallback = SelectNpcTradeMode1;
     g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetText(gppStringList[0x1cb0 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_124->m_primaryActivationCallback = SelectNpcTradeMode0;
     g_screen_state_00649f1c->dialogue_text_16c->m_primaryActivationCallback = OpenNpcItemAssay;
     g_screen_state_00649f1c->dialogue_text_16c->m_secondaryActivationCallback = OpenNpcItemAssay;
     g_screen_state_00649f1c->dialogue_text_188->SetEnabled(0);
     g_screen_state_00649f1c->dialogue_text_188->m_primaryActivationCallback = ConfirmNpcTradeSlot;
     swprintf(buffer, L"%dg", g_status.party_gold);
-    g_screen_state_00649f1c->dialogue_text_190->m_textBuffer.SetText(buffer, g_font_683660);
+    g_screen_state_00649f1c->dialogue_text_190->m_textBuffer.SetText(buffer,
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_1a0->SetEnabled(0);
     g_screen_state_00649f1c->dialogue_text_1a0->m_primaryActivationCallback = ConfirmNpcTradeItem;
-    g_screen_state_00649f1c->dialogue_text_120->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_screen_state_00649f1c->dialogue_text_124->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_screen_state_00649f1c->dialogue_text_120->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_screen_state_00649f1c->dialogue_text_124->AddLayoutFlags(g_W8TextControlLayoutToggle);
     g_screen_state_00649f1c->dialogue_text_120->DisableSecondaryState(1);
     g_screen_state_00649f1c->dialogue_text_124->DisableSecondaryState(1);
-    g_screen_state_00649f1c->dialogue_text_110->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_screen_state_00649f1c->dialogue_text_114->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_screen_state_00649f1c->dialogue_text_118->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_screen_state_00649f1c->dialogue_text_11c->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_screen_state_00649f1c->dialogue_text_110->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_screen_state_00649f1c->dialogue_text_114->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_screen_state_00649f1c->dialogue_text_118->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_screen_state_00649f1c->dialogue_text_11c->AddLayoutFlags(g_W8TextControlLayoutToggle);
     UpdateNpcDialogueSubMode();
     g_screen_state_00649f1c->pending_trade_toggle = 1;
     if (g_screen_state_00649f1c->reopen_topics != 0) {
@@ -2965,12 +2970,12 @@ void CloseNpcDialogueOptionLayout(void)
     text = g_screen_state_00649f1c->dialogue_text_124;
     text->m_textBuffer.SetFontStateIndex(-1);
     text->m_textBuffer.SetGeometryDirty();
-    g_screen_state_00649f1c->dialogue_text_110->RemoveLayoutFlags(g_W8TextControlMask005ED578);
-    g_screen_state_00649f1c->dialogue_text_114->RemoveLayoutFlags(g_W8TextControlMask005ED578);
-    g_screen_state_00649f1c->dialogue_text_118->RemoveLayoutFlags(g_W8TextControlMask005ED578);
-    g_screen_state_00649f1c->dialogue_text_11c->RemoveLayoutFlags(g_W8TextControlMask005ED578);
-    g_screen_state_00649f1c->dialogue_text_120->RemoveLayoutFlags(g_W8TextControlMask005ED578);
-    g_screen_state_00649f1c->dialogue_text_124->RemoveLayoutFlags(g_W8TextControlMask005ED578);
+    g_screen_state_00649f1c->dialogue_text_110->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
+    g_screen_state_00649f1c->dialogue_text_114->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
+    g_screen_state_00649f1c->dialogue_text_118->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
+    g_screen_state_00649f1c->dialogue_text_11c->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
+    g_screen_state_00649f1c->dialogue_text_120->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
+    g_screen_state_00649f1c->dialogue_text_124->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
     g_screen_state_00649f1c->dialogue_text_110->SetEnabled(1);
     g_screen_state_00649f1c->dialogue_text_114->SetEnabled(1);
     g_screen_state_00649f1c->dialogue_text_118->SetEnabled(1);
@@ -3000,7 +3005,7 @@ void OpenNpcItemAssay(void)
         g_screen_state_00649f1c->dialogue_text_16c->m_imageObject != 0x1ac) {
         dialog = new W8AssayDialog(g_screen_state_00649f1c->trade_item,
                                    &g_status.buffers.Char[g_status.selected_character]);
-        dialog->SetText(&g_wchar_00689b34);
+        dialog->SetText(&g_empty_wide_string);
         dialog->SetOrigin(g_info_dialog_x, 0x48);
         dialog->m_destroy_callback = OnNpcAssayDialogClosed;
         OpenModal(dialog);
@@ -3078,7 +3083,7 @@ void OpenNpcGoldAmountDialog(void)
     }
     g_screen_state_00649f1c->panel_1ac->Invalidate(0);
     dialog = new W8SplitAmountDialog(g_status.party_gold);
-    dialog->SetText(&g_wchar_00689b34);
+    dialog->SetText(&g_empty_wide_string);
     dialog->SetOrigin(g_split_dialog_origin_x, g_split_dialog_origin_y);
     dialog->m_destroy_callback = OnNpcTradeSplitDialogDestroy;
     OpenModal(dialog);
@@ -3100,9 +3105,10 @@ void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog)
     g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
     g_screen_state_00649f1c->dialogue_text_188->SetEnabled(1);
     g_screen_state_00649f1c->dialogue_text_19c->m_textBuffer.SetText(gppStringList[0x72d],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     swprintf(text, L"%dg", g_screen_state_00649f1c->trade_gold);
-    g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.SetText(text, g_font_683660);
+    g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.SetText(text,
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->panel_1bc->Invalidate(0);
 }
 
@@ -3137,17 +3143,17 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
                 g_screen_state_00649f1c->dialogue_text_16c->m_imageFrame = 0;
                 g_screen_state_00649f1c->dialogue_text_16c->m_normalSprite = 0;
                 g_screen_state_00649f1c->dialogue_text_16c->m_pressedSprite = 0;
-                g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(g_wchar_0068ee58,
-                                                                                 g_font_683660);
+                g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(
+                    g_wchar_0068ee58, g_wiz_text_font_secondary);
                 return 0;
             }
             --index;
         }
         if (static_cast<unsigned char>(g_screen_state_00649f1c->dialogue_text_120->m_stateFlags &
-                                       g_W8TextControlMask005ED570) == 0) {
+                                       g_W8TextControlStateSecondary) == 0) {
             if (static_cast<unsigned char>(
                     g_screen_state_00649f1c->dialogue_text_124->m_stateFlags &
-                    g_W8TextControlMask005ED570) != 0 &&
+                    g_W8TextControlStateSecondary) != 0 &&
                 g_status.party_item_count_1791 != 0) {
                 i = 0;
                 do {
@@ -3203,7 +3209,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
                                 text = count_text;
                             }
                             g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(
-                                text, g_font_683660);
+                                text, g_wiz_text_font_secondary);
                             g_screen_state_00649f1c->dialogue_text_16c->Invalidate(1);
                             return &g_status.party_item_pool_0021[i];
                         }
@@ -3269,7 +3275,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
                             text = count_text;
                         }
                         g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(
-                            text, g_font_683660);
+                            text, g_wiz_text_font_secondary);
                         g_screen_state_00649f1c->dialogue_text_16c->Invalidate(1);
                         return &character->backpack[i];
                     }
@@ -3345,7 +3351,8 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
             swprintf(count_text, L"%d", g_screen_state_00649f1c->trade_quantity);
             text = count_text;
         }
-        g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(text, g_font_683660);
+        g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(text,
+                                                                         g_wiz_text_font_secondary);
         g_screen_state_00649f1c->dialogue_text_16c->Invalidate(1);
     }
     return &entry->item;
@@ -3419,25 +3426,26 @@ void OpenNpcDialogueMode5Layout(void)
     g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x1ce4 / 4],
                                                                      g_wiz_text_bold_font);
     g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1cf4 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback =
         SetNpcDialogueSubMode4;
     g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1cf8 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback =
         SetNpcDialogueSubMode3;
     g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x1cfc / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_118->m_primaryActivationCallback =
         SetNpcDialogueSubMode2;
     g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1cb8 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback =
         SetNpcDialogueSubMode5;
     g_screen_state_00649f1c->dialogue_text_188->SetEnabled(0);
     g_screen_state_00649f1c->dialogue_text_188->m_primaryActivationCallback = ConfirmNpcTradeSlot;
     swprintf(buffer, L"%dg", g_status.party_gold);
-    g_screen_state_00649f1c->dialogue_text_190->m_textBuffer.SetText(buffer, g_font_683660);
+    g_screen_state_00649f1c->dialogue_text_190->m_textBuffer.SetText(buffer,
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_1a0->SetEnabled(0);
     g_screen_state_00649f1c->dialogue_text_1a0->m_primaryActivationCallback = RestockNpcTradeStock;
     g_screen_state_00649f1c->dialogue_text_120->SetActive(0);
@@ -3495,7 +3503,7 @@ void EnableNpcTradeFilterButtons(void)
 void ToggleNpcTradeFilterButton0(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->option_buttons_170[0]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         switch (g_screen_state_00649f1c->trade_filter & 0x3c) {
         case 8:
             g_screen_state_00649f1c->option_buttons_170[3]->DisableSecondaryState(1);
@@ -3522,7 +3530,7 @@ void ToggleNpcTradeFilterButton0(void)
 void ToggleNpcTradeFilterButton1(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->option_buttons_170[1]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         switch (g_screen_state_00649f1c->trade_filter & 0x3c) {
         case 4:
             g_screen_state_00649f1c->option_buttons_170[0]->DisableSecondaryState(1);
@@ -3549,7 +3557,7 @@ void ToggleNpcTradeFilterButton1(void)
 void ToggleNpcTradeFilterButton3(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->option_buttons_170[3]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         switch (g_screen_state_00649f1c->trade_filter & 0x3c) {
         case 4:
             g_screen_state_00649f1c->option_buttons_170[0]->DisableSecondaryState(1);
@@ -3576,7 +3584,7 @@ void ToggleNpcTradeFilterButton3(void)
 void ToggleNpcTradeFilterButton4(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->option_buttons_170[4]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         switch (g_screen_state_00649f1c->trade_filter & 0x3c) {
         case 4:
             g_screen_state_00649f1c->option_buttons_170[0]->DisableSecondaryState(1);
@@ -3606,7 +3614,7 @@ void ToggleNpcTradeFilterButton4(void)
 void ToggleNpcTradeFilterButton2(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->option_buttons_170[2]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_screen_state_00649f1c->option_buttons_170[5]->DisableSecondaryState(1);
         g_screen_state_00649f1c->trade_filter &= ~0x40;
         g_screen_state_00649f1c->trade_filter |= 1;
@@ -3621,7 +3629,7 @@ void ToggleNpcTradeFilterButton2(void)
 void ToggleNpcTradeFilterButton5(void)
 {
     if (static_cast<unsigned char>(g_screen_state_00649f1c->option_buttons_170[5]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
+                                   g_W8TextControlStateSecondary) != 0) {
         g_screen_state_00649f1c->option_buttons_170[2]->DisableSecondaryState(1);
         g_screen_state_00649f1c->trade_filter &= ~1;
         g_screen_state_00649f1c->trade_filter |= 0x40;
@@ -3669,24 +3677,24 @@ void OpenNpcDialogueMode1Layout(void)
     g_screen_state_00649f1c->panel_1ac->SetEnabled(1);
     g_screen_state_00649f1c->panel_1b8->SetEnabled(1);
     g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
-    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_wchar_00689b34,
+    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_empty_wide_string,
                                                                      g_wiz_text_bold_font);
     RegionSetEnable(0x18);
     g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(gppStringList[0x1cbc / 4],
                                                                      g_wiz_text_bold_font);
     g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1cc0 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback =
         RequestNpcSpellService3;
     g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1cc8 / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback =
         RequestNpcSpellService41;
     g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1ccc / 4],
-                                                                     g_font_683660);
+                                                                     g_wiz_text_font_secondary);
     g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback =
         RequestNpcCharacterService;
-    g_screen_state_00649f1c->dialogue_text_11c->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_screen_state_00649f1c->dialogue_text_11c->AddLayoutFlags(g_W8TextControlLayoutToggle);
     g_screen_state_00649f1c->dialogue_text_11c->EnableRegionHelp(0x7ca);
     g_screen_state_00649f1c->dialogue_text_118->SetActive(0);
     g_screen_state_00649f1c->dialogue_text_120->SetActive(0);
@@ -3715,7 +3723,7 @@ void CloseNpcDialogueMode1Layout(void)
 {
     RegionSetDisable(0x18);
     RegionSetDisable(0x17);
-    g_screen_state_00649f1c->dialogue_text_11c->RemoveLayoutFlags(g_W8TextControlMask005ED578);
+    g_screen_state_00649f1c->dialogue_text_11c->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
     g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
     g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
     g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
@@ -3790,7 +3798,7 @@ W8ItemInstance* GetNpcTradeSlotItem(int index)
     character = &g_status.buffers.Char[g_status.selected_character];
     hit = 0;
     if (static_cast<unsigned char>(g_screen_state_00649f1c->dialogue_text_11c->m_stateFlags &
-                                   g_W8TextControlMask005ED570) == 0) {
+                                   g_W8TextControlStateSecondary) == 0) {
         return 0;
     }
     for (slot = 0; slot < 12; ++slot) {
@@ -3811,8 +3819,8 @@ W8ItemInstance* GetNpcTradeSlotItem(int index)
                     swprintf(count_text, L"%d", character->EquippedItem[slot].stack_count);
                     text = count_text;
                 }
-                g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(text,
-                                                                                 g_font_683660);
+                g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(
+                    text, g_wiz_text_font_secondary);
                 g_screen_state_00649f1c->dialogue_text_16c->Invalidate(1);
                 return &character->EquippedItem[slot];
             }
@@ -3837,8 +3845,8 @@ W8ItemInstance* GetNpcTradeSlotItem(int index)
                     swprintf(count_text, L"%d", character->backpack[slot].stack_count);
                     text = count_text;
                 }
-                g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(text,
-                                                                                 g_font_683660);
+                g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(
+                    text, g_wiz_text_font_secondary);
                 g_screen_state_00649f1c->dialogue_text_16c->Invalidate(1);
                 return &character->backpack[slot];
             }
@@ -3971,7 +3979,7 @@ void HandleNpcDialogueInput(void)
         if (_wcsnicmp(field_text, gppStringList[0x1db4 / 4], 9) == 0 ||
             _wcsnicmp(field_text, gppStringList[0x1db8 / 4], 0xa) == 0 ||
             _wcsnicmp(field_text, gppStringList[0x1dbc / 4], 8) == 0) {
-            fmt = g_format_s_006068e4;
+            fmt = g_format_s;
         } else {
             fmt = gppStringList[0x1da8 / 4];
         }
@@ -3982,7 +3990,7 @@ void HandleNpcDialogueInput(void)
             quote_id = quote;
         }
     } else {
-        swprintf(buf, g_format_s_006068e4, field_text);
+        swprintf(buf, g_format_s, field_text);
         quote = FindNpcScriptQuoteByKeyword(buf, 0, 0);
         if (quote != -1) {
             quote_id = quote;
@@ -4128,7 +4136,7 @@ void HandleNpcDialogueInput(void)
 // FUNCTION: WIZ8 0x00574BB0
 void HandleNpcDialogueKeyEvent(const InputAtom* event)
 {
-    W8MainScreenState* state;
+    W8NpcInteractionState* state;
     int command;
     int line;
     int y;
@@ -4193,7 +4201,7 @@ void HandleNpcDialogueKeyEvent(const InputAtom* event)
             return;
         }
         if (EditingText()) {
-            SetInputFieldStringWith16BitString(0, &g_wchar_00689b34);
+            SetInputFieldStringWith16BitString(0, &g_empty_wide_string);
             ClearActiveField();
             return;
         }
@@ -4437,7 +4445,7 @@ void OnNpcTradeDialogClosed(W8DialogBase* dialog)
         g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
         g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
         g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
-        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_wchar_00689b34,
+        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_empty_wide_string,
                                                                          g_wiz_text_bold_font);
         g_screen_state_00649f1c->previous_dialogue_layout =
             g_screen_state_00649f1c->dialogue_layout;
@@ -4627,7 +4635,8 @@ void RefreshNpcTradePartyGold(void)
     wchar_t text[32];
 
     swprintf(text, L"%dg", g_status.party_gold);
-    g_screen_state_00649f1c->dialogue_text_190->m_textBuffer.SetText(text, g_font_683660);
+    g_screen_state_00649f1c->dialogue_text_190->m_textBuffer.SetText(text,
+                                                                     g_wiz_text_font_secondary);
 }
 
 // FUNCTION: WIZ8 0x00575C00
@@ -4636,8 +4645,9 @@ void RefreshNpcTradePrice(void)
     wchar_t text[32];
 
     if (g_screen_state_00649f1c->trade_item != 0) {
-        swprintf(text, g_format_d_0060aa20, g_screen_state_00649f1c->trade_quantity);
-        g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(text, g_font_683660);
+        swprintf(text, g_format_d, g_screen_state_00649f1c->trade_quantity);
+        g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetText(text,
+                                                                         g_wiz_text_font_secondary);
     }
 }
 
@@ -4732,7 +4742,7 @@ void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data)
         SetNpcDialoguePanelVisible(0);
     }
     dialog = new W8NpcDialog(request, aux_data);
-    dialog->SetText(&g_wchar_00689b34);
+    dialog->SetText(&g_empty_wide_string);
     dialog->m_destroy_callback = OnNpcDialogClosed;
     OpenModal(dialog);
     g_screen_state_00649f1c->script_busy = 1;
@@ -5198,7 +5208,7 @@ void CloseNpcDialogueForCamp(void)
         g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
         g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
         g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
-        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_wchar_00689b34,
+        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(&g_empty_wide_string,
                                                                          g_wiz_text_bold_font);
         g_screen_state_00649f1c->previous_dialogue_layout =
             g_screen_state_00649f1c->dialogue_layout;

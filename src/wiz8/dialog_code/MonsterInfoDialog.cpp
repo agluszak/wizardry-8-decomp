@@ -153,7 +153,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         }
     }
     combat_range = monster_info->p3D->GetDistanceToPlayer();
-    m_text_area_ec.Configure(&bounds, g_font_683660, 0);
+    m_text_area_ec.Configure(&bounds, g_wiz_text_font_secondary, 0);
     m_text_area_ec.SetEntrySpacing(1);
 
     if (g_dev_mode != 0) {
@@ -200,13 +200,13 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     if (knowledge < 10 || is_npc != 0) {
         wcscpy(text, gppStringList[0x13a]);
     } else {
-        wcscpy(text, FormatWideString(g_format_d_0060aa20, monster_info->hp_current));
+        wcscpy(text, FormatWideString(g_format_d, monster_info->hp_current));
     }
     wcscat(text, L" / ");
     if (knowledge < 5 || is_npc != 0) {
         wcscpy(text, gppStringList[0x13a]);
     } else {
-        wcscat(text, FormatWideString(g_format_d_0060aa20, monster_info->uiHPMax));
+        wcscat(text, FormatWideString(g_format_d, monster_info->uiHPMax));
     }
     m_text_area_ec.AddEntry(gppStringList[0x13d], text, 10, 0xf, 0);
     if (g_dev_mode != 0 && knowledge < 10) {
@@ -218,13 +218,13 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     if (knowledge < 0x14 || is_npc != 0) {
         wcscpy(text, gppStringList[0x13a]);
     } else {
-        wcscpy(text, FormatWideString(g_format_d_0060aa20, monster_info->stamina));
+        wcscpy(text, FormatWideString(g_format_d, monster_info->stamina));
     }
     wcscat(text, L" / ");
     if (knowledge < 0xf || is_npc != 0) {
         wcscpy(text, gppStringList[0x13a]);
     } else {
-        wcscat(text, FormatWideString(g_format_d_0060aa20, monster_info->stamina_max));
+        wcscat(text, FormatWideString(g_format_d, monster_info->stamina_max));
     }
     m_text_area_ec.AddEntry(gppStringList[0x13e], text, 10, 0xf, 0);
     if (g_dev_mode != 0 && knowledge < 0x14) {
@@ -423,9 +423,9 @@ unsigned char W8MonsterInfoDialog::PopulateText()
 
     for (index = 0; index < 6; ++index) {
         if (g_monster_resistance_label_gates[index][0] <= static_cast<int>(knowledge)) {
-            m_text_area_ec.AddEntry(
-                gppStringList[g_monster_resistance_label_gates[index][1]],
-                FormatWideString(g_format_d_0060aa20, record->resistances[index]), 10, 0xf, 0);
+            m_text_area_ec.AddEntry(gppStringList[g_monster_resistance_label_gates[index][1]],
+                                    FormatWideString(g_format_d, record->resistances[index]), 10,
+                                    0xf, 0);
         }
     }
 
@@ -443,8 +443,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
                                 FormatWideString(L"<%S>", script != 0 ? script->getName() : 0), 5,
                                 0xf, 0);
         m_text_area_ec.AddEntry(L"Leader's AI Mode",
-                                FormatWideString(g_format_d_0060aa20, leader_info->ai_mode_255), 5,
-                                0xf, 0);
+                                FormatWideString(g_format_d, leader_info->ai_mode_255), 5, 0xf, 0);
         const wchar_t* strategy = L"Close";
         if (record->prefer_ranged_actions_1b9 != 0) {
             strategy = L"Ranged";
@@ -514,13 +513,13 @@ void W8MonsterInfoDialog::Draw()
         m_scroll_bar_58.m_dirty = true;
         m_button_a4.m_dirty = true;
         W8DialogBase::Draw();
-        SetFont(g_font_683660);
-        SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+        SetFont(g_wiz_text_font_secondary);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
         unsigned int monster_list_index =
             MonsterGetIndexByLocationID(0x1f1, MONSTER_INFO_DIALOG_CPP, m_location_id, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
-        INT16 width = StringPixLength(name, g_font_683660);
+        INT16 width = StringPixLength(name, g_wiz_text_font_secondary);
         gprintf(m_x + 0xe + (0x112 - width) / 2, m_y + 0x11, L"%s", name);
     }
     m_text_area_ec.Draw(0);

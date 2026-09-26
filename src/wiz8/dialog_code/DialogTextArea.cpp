@@ -19,11 +19,11 @@
    layout masks; they sit immediately ahead of this file's vector vtable at
    0x005EF898 in retail data. */
 // GLOBAL: WIZ8 0x005EF888
-extern const unsigned int g_W8TextBufferLayoutMask005EF888 = 0x01;
+extern const unsigned int g_W8DialogTextAreaAlignLeft = 0x01;
 // GLOBAL: WIZ8 0x005EF88C
-extern const unsigned int g_W8TextBufferLayoutMask005EF88C = 0x02;
+extern const unsigned int g_W8DialogTextAreaAlignCenter = 0x02;
 // GLOBAL: WIZ8 0x005EF890
-extern const unsigned int g_W8TextBufferLayoutMask005EF890 = 0x04;
+extern const unsigned int g_W8DialogTextAreaAlignRight = 0x04;
 
 // SYNTHETIC: WIZ8 0x005d2560
 // W8GrowableVector<W8DialogTextEntry*>::`scalar deleting destructor' (second emission)
@@ -324,14 +324,12 @@ int W8DialogTextArea::AddEntry(const wchar_t* prefix, const wchar_t* text,
     if (m_behavior_flags & 1) {
         entry = new W8DialogTextEntry(
             prefix, text, prefix_palette, text_palette, &m_bounds, m_font, category,
-            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED548 |
-                g_dialog_text_layout_mask,
+            g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft | g_dialog_text_layout_mask,
             m_behavior_flags & 4);
     } else {
-        entry = new W8DialogTextEntry(
-            prefix, text, prefix_palette, text_palette, &m_bounds, m_font, category,
-            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED548,
-            m_behavior_flags & 4);
+        entry = new W8DialogTextEntry(prefix, text, prefix_palette, text_palette, &m_bounds, m_font,
+                                      category, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft,
+                                      m_behavior_flags & 4);
     }
     if (m_line_height_override != -1)
         entry->SetLineHeight(m_line_height_override);

@@ -248,7 +248,7 @@ void DrawDamageSplatOverlay(unsigned int party_slot)
             bounds.right = left + 0x52;
             bounds.bottom = top + 0x4c;
             W8TextBuffer splat_text(&bounds, 0, 0, 0, 4);
-            splat_text.SetText(FormatWideString(g_format_d_0060aa20, entry->damage_splat_amount),
+            splat_text.SetText(FormatWideString(g_format_d, entry->damage_splat_amount),
                                g_wiz_text_bold_font);
             splat_text.RenderToTarget(0, 0, -0xe);
         }
@@ -654,11 +654,10 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
             bounds.right = band_portrait_edge + 0x14;
             bounds.top = menu_y + 0x3e;
             bounds.bottom = menu_y + 0x46;
-            text.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+            text.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
             text.SetLayoutBounds(&bounds, 1, 1);
             SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
-            text.SetText(FormatWideString(g_format_d_0060aa20, character->hp_current),
-                         g_smfnt_font);
+            text.SetText(FormatWideString(g_format_d, character->hp_current), g_smfnt_font);
             InvalidateRegion(bounds.left, bounds.top + 1, bounds.right, bounds.bottom, 0);
             ColorFillVideoSurfaceArea(-14, bounds.left, bounds.top + 1, bounds.right, bounds.bottom,
                                       0x8000);
@@ -851,13 +850,13 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                                      g_item_video_objects.GetOrCreateVideoObject(main_hand_item_id),
                                      0, 2, band_menu_edge + 3, menu_y + 0x17, 2, 0);
                     if (character->EquippedItem[6].stack_count != 0) {
-                        swprintf(text, g_format_d_0060aa20,
+                        swprintf(text, g_format_d,
                                  static_cast<int>(character->EquippedItem[6].stack_count));
                         SetFont(g_smfnt_font);
                         SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
                         text_width = StringPixLength(text, g_smfnt_font);
                         gprintf((band_menu_edge - (text_width + 1) / 2) + 8, menu_y + 0x26,
-                                const_cast<UINT16*>(g_format_s_006068e4), text);
+                                const_cast<UINT16*>(g_format_s), text);
                     }
                 }
 
@@ -871,13 +870,13 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                             -14, g_item_video_objects.GetOrCreateVideoObject(off_hand_item_id), 0,
                             2, band_menu_edge + 3, menu_y + 0x2f, 2, 0);
                         if (character->EquippedItem[7].stack_count != 0) {
-                            swprintf(text, g_format_d_0060aa20,
+                            swprintf(text, g_format_d,
                                      static_cast<int>(character->EquippedItem[7].stack_count));
                             SetFont(g_smfnt_font);
                             SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
                             text_width = StringPixLength(text, g_smfnt_font);
                             gprintf((band_menu_edge - (text_width + 1) / 2) + 0xb, menu_y + 0x3e,
-                                    const_cast<UINT16*>(g_format_s_006068e4), text);
+                                    const_cast<UINT16*>(g_format_s), text);
                         }
                     }
                 }
@@ -891,7 +890,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
             SetFont(g_smfnt_font);
             if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
                 g_level_block->portrait_refresh_pending[party_slot] != 0) {
-                swprintf(text, g_format_d_0060aa20, character->armor_class_average);
+                swprintf(text, g_format_d, character->armor_class_average);
                 if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
                     unsigned short* palette = g_font_palette_smfnt;
                     if (character->load_category != 0) {
@@ -902,7 +901,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                 }
                 text_width = StringPixLength(text, g_smfnt_font);
                 gprintf((0xd - text_width) / 2 + 3 + band_menu_edge, menu_y + 3,
-                        const_cast<UINT16*>(g_format_s_006068e4), text);
+                        const_cast<UINT16*>(g_format_s), text);
             }
 
             wcscpy(text, gppStringList[g_profession_name_message_ids[character->iProfession + 16]]);
@@ -912,20 +911,20 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
             }
             text_width = StringPixLength(text, g_smfnt_font);
             gprintf((0x12 - text_width) / 2 + 2 + band_portrait_edge, menu_y + 3,
-                    const_cast<UINT16*>(g_format_s_006068e4), text);
+                    const_cast<UINT16*>(g_format_s), text);
 
-            SetFont(g_font_683660);
+            SetFont(g_wiz_text_font_secondary);
             if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME ||
-                (SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08),
+                (SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08),
                  g_current_screen_state.id != W8_SCREEN_MAIN_GAME) ||
                 (text_shade = 1,
                  g_level_block->party_slots_170[2] != static_cast<int>(party_slot))) {
                 text_shade = 4;
             }
             SetObjectShade(g_wiz_text_font_secondary_object, text_shade);
-            text_width = StringPixLength(character->name, g_font_683660);
+            text_width = StringPixLength(character->name, g_wiz_text_font_secondary);
             gprintf((0x54 - text_width) / 2 + 0x15 + menu_x, menu_y + 0x49,
-                    const_cast<UINT16*>(g_format_s_006068e4), character->name);
+                    const_cast<UINT16*>(g_format_s), character->name);
             SetObjectShade(g_wiz_text_font_secondary_object, 4);
 
             if (gXStatus.fCombatMode != 0) {

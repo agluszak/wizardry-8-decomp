@@ -402,7 +402,7 @@ unsigned char WorldCursorNodeApplyItemEffect004D9560(int command, W8WorldCursorN
 {
     if (command == 1) {
         ApplyItemEffectToRandomCharacter(g_character_event_kind_005ee5f4, -1, 0,
-                                         g_effect_argument_005ed8c8);
+                                         g_character_event_no_flags);
     }
     return 1;
 }
@@ -418,7 +418,7 @@ unsigned char WorldCursorNodeMaleCharacterEvent(int command, W8WorldCursorNode* 
         character = g_status.buffers.Char + g_status.sedexus_party_slot_247f;
         if (character->gender == W8_GENDER_MALE) {
             QueueCharacterEvent(character, g_character_event_kind_005ee63c, 0,
-                                g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                g_character_event_no_flags, g_character_event_full_volume);
         }
     }
     return 1;
@@ -443,7 +443,7 @@ unsigned char WorldCursorNodeSeenBodies(int command, W8WorldCursorNode* node, in
             if (CountAscensionPeakItems() == 3) {
                 if (GetFact(0x5c) != 0 || GetFact(0x97) != 0) {
                     ApplyItemEffectToRandomCharacter(g_character_event_kind_005ee688, -1, 0,
-                                                     g_effect_argument_005ed8c8);
+                                                     g_character_event_no_flags);
                     CreateLocationVar("AP_SeenBodies", 1);
                     if (GetFact(0x133) != 0) {
                         SetFact(0x133, 0, 0);
@@ -466,7 +466,7 @@ unsigned char WorldCursorNodeApplyItemEffect004D96C0(int command, W8WorldCursorN
 {
     if (command == 1) {
         ApplyItemEffectToRandomCharacter(g_character_event_kind_005ee688, -1, 0,
-                                         g_effect_argument_005ed8c8);
+                                         g_character_event_no_flags);
     }
     return 1;
 }
@@ -568,7 +568,7 @@ unsigned char WorldCursorNodePartyVoice(int command, W8WorldCursorNode* node, in
             slot = PickRandomPartySpeaker(event_type, -1);
             if (slot != -1) {
                 QueueCharacterEvent(g_status.buffers.Char + slot, event_type, 0,
-                                    g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                    g_character_event_no_flags, g_character_event_full_volume);
             }
         }
     }

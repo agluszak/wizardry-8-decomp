@@ -65,15 +65,15 @@ W8CharacterPageEntry::W8CharacterPageEntry(Controls* owner, int x, int y, bool c
     int split = m_x_030 + (compact ? 0x6d : 0x78);
     W8ControlsRect bounds = {m_x_030 + 5, m_y_034 + 1, split, m_y_034 + 0xd};
     m_label_014 = new W8TextBuffer(&bounds, 0, 0, 0, 4);
-    m_label_014->SetLayoutMode(g_W8TextBufferLayoutMask005ED548);
+    m_label_014->SetLayoutMode(g_W8TextBufferAlignLeft);
     bounds.left = split;
     bounds.right = split + 0x17;
     m_first_text_018 = new W8TextBuffer(&bounds, 0, 0, 0, 4);
-    m_first_text_018->SetLayoutMode(g_W8TextBufferLayoutMask005ED550);
+    m_first_text_018->SetLayoutMode(g_W8TextBufferAlignRight);
     bounds.left = split + 0x2a;
     bounds.right = split + 0x39;
     m_second_text_01c = new W8TextBuffer(&bounds, 0, 0, 0, 4);
-    m_second_text_01c->SetLayoutMode(g_W8TextBufferLayoutMask005ED550);
+    m_second_text_01c->SetLayoutMode(g_W8TextBufferAlignRight);
 
     int relative_split = split - owner->origin_x;
     m_decrement_00c = new W8TextControl(owner, 0xffffffff, relative_split + 0x1b, y + 1, 0, 0,
@@ -103,7 +103,7 @@ void W8CharacterPageEntry::SetContent(unsigned int id, const wchar_t* label, uns
     m_first_020 = first;
     m_second_024 = second;
     m_third_028 = third;
-    m_label_014->SetText(label, g_font_683660);
+    m_label_014->SetText(label, g_wiz_text_font_secondary);
     if (help_id == -1)
         m_help_010->DisableRegionHelp();
     else
@@ -156,8 +156,9 @@ void W8CharacterPageEntry::Redraw()
         if (m_draw_background_038) {
             DrawCatalogImageAndInvalidate(-14, 0x108, 0, 2, m_x_030, m_y_034, 2, 0);
         }
-        m_first_text_018->SetText(FormatWideString(L"%d", *m_first_020), g_font_683660);
-        m_second_text_01c->SetText(FormatWideString(L"%d", *m_second_024), g_font_683660);
+        m_first_text_018->SetText(FormatWideString(L"%d", *m_first_020), g_wiz_text_font_secondary);
+        m_second_text_01c->SetText(FormatWideString(L"%d", *m_second_024),
+                                   g_wiz_text_font_secondary);
         m_label_014->FillBounds(0x8000);
         m_first_text_018->FillBounds(0x8000);
         m_second_text_01c->FillBounds(0x8000);

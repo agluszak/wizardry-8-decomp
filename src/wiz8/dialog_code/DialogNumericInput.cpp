@@ -64,7 +64,7 @@ void W8DialogNumericInput::SetActive(unsigned char active, const POINT* point)
         m_button->m_dirty = true;
         return;
     }
-    swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
+    swprintf(g_numeric_input_text, g_format_d, m_value);
     size_t length = wcslen(g_numeric_input_text);
     unsigned int count = 0;
     m_caret = -1;
@@ -89,14 +89,14 @@ void W8DialogNumericInput::Draw(unsigned char force)
     if (force == 0 && m_dirty == 0) {
         return;
     }
-    swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
+    swprintf(g_numeric_input_text, g_format_d, m_value);
     size_t length = wcslen(g_numeric_input_text);
     SetFont(m_font);
     HVOBJECT font_object = GetFontObject(m_font);
     if (font_object == 0) {
         return;
     }
-    swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
+    swprintf(g_numeric_input_text, g_format_d, m_value);
     SetObjectShade(font_object, 4);
     SetFontDestBuffer(-14, m_bounds.left, m_bounds.top, m_bounds.right, m_bounds.bottom, 0);
     unsigned short font_height = GetFontHeight(m_font);
@@ -105,7 +105,7 @@ void W8DialogNumericInput::Draw(unsigned char force)
     if (text_x <= m_bounds.left) {
         text_x = m_bounds.left;
     }
-    gprintfDirty(text_x, text_y, const_cast<wchar_t*>(g_format_s_006068e4), g_numeric_input_text);
+    gprintfDirty(text_x, text_y, const_cast<wchar_t*>(g_format_s), g_numeric_input_text);
     if (m_active != 0 && m_caret != -1) {
         int caret_x =
             m_bounds.right - StringPixLength(g_numeric_input_text + length - m_caret, m_font) - 1;
@@ -128,12 +128,12 @@ void W8DialogNumericInput::Draw(unsigned char force)
 void W8DialogNumericInput::TypeDigit(wchar_t digit)
 {
     if (m_active != 0) {
-        swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
+        swprintf(g_numeric_input_text, g_format_d, m_value);
         size_t length = wcslen(g_numeric_input_text);
         if (length < 10) {
             unsigned int value;
             g_numeric_input_text[length - m_caret] = digit;
-            swscanf(g_numeric_input_text, g_format_d_0060aa20, &value);
+            swscanf(g_numeric_input_text, g_format_d, &value);
             if (value <= m_maximum) {
                 m_value = value;
                 m_dirty = true;
@@ -152,7 +152,7 @@ void W8DialogNumericInput::TypeDigit(wchar_t digit)
 void W8DialogNumericInput::DeleteForward()
 {
     if (m_active != 0 && m_caret != 0) {
-        swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
+        swprintf(g_numeric_input_text, g_format_d, m_value);
         size_t length = wcslen(g_numeric_input_text);
         unsigned int position = length - m_caret;
         if (position < length) {
@@ -168,7 +168,7 @@ void W8DialogNumericInput::DeleteForward()
         if (length == 1) {
             m_value = 0;
         } else {
-            swscanf(g_numeric_input_text, g_format_d_0060aa20, &m_value);
+            swscanf(g_numeric_input_text, g_format_d, &m_value);
         }
         m_dirty = true;
         m_button->m_dirty = true;
@@ -180,7 +180,7 @@ void W8DialogNumericInput::DeleteForward()
 void W8DialogNumericInput::Backspace()
 {
     if (m_active != 0) {
-        swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
+        swprintf(g_numeric_input_text, g_format_d, m_value);
         size_t length = wcslen(g_numeric_input_text);
         if (length != 0 && m_caret != static_cast<int>(length)) {
             unsigned int position = (length - m_caret) - 1;
@@ -199,7 +199,7 @@ void W8DialogNumericInput::Backspace()
             if (length == 1) {
                 m_value = 0;
             } else {
-                swscanf(g_numeric_input_text, g_format_d_0060aa20, &m_value);
+                swscanf(g_numeric_input_text, g_format_d, &m_value);
             }
             m_dirty = true;
             m_button->m_dirty = true;
@@ -268,7 +268,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
         break;
     case 0x25:
         if (m_active != 0 && m_caret != -1) {
-            swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
+            swprintf(g_numeric_input_text, g_format_d, m_value);
             size_t length = wcslen(g_numeric_input_text);
             unsigned int next = m_caret + 1;
             if (next <= length) {

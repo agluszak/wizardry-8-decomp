@@ -595,8 +595,8 @@ void UpdateNpcPartyMember(int party_slot)
                         QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, party_slot);
                         return;
                     }
-                    QueueCharacterEvent(character, 0x53, 0, g_effect_argument_005ed8c8,
-                                        g_effect_argument_005ed914);
+                    QueueCharacterEvent(character, 0x53, 0, g_character_event_no_flags,
+                                        g_character_event_full_volume);
                     return;
                 }
                 break;
@@ -605,8 +605,8 @@ void UpdateNpcPartyMember(int party_slot)
         }
     }
     if (character->highest_condition < 0xf) {
-        QueueCharacterEvent(character, g_effect_005ee69c, 0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+        QueueCharacterEvent(character, g_effect_005ee69c, 0, g_character_event_no_flags,
+                            g_character_event_full_volume);
     }
 }
 
@@ -992,7 +992,8 @@ void ProcessNpcPendingEvents(void)
                         &g_status.buffers.Char[g_status.sedexus_party_slot_247f];
                     if (character->gender == W8_GENDER_MALE) {
                         QueueCharacterEvent(character, g_effect_005ee638, 0,
-                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                            g_character_event_no_flags,
+                                            g_character_event_full_volume);
                     }
                     SetCharacterCondition(g_status.sedexus_party_slot_247f, W8_CONDITION_INFATUATED,
                                           9999, 0, 0, 1);
@@ -1038,8 +1039,8 @@ void ProcessNpcPendingEvents(void)
                             }
                         }
                         if (event != 0) {
-                            QueueCharacterEvent(character, event, 0, g_effect_argument_005ed8c8,
-                                                g_effect_argument_005ed914);
+                            QueueCharacterEvent(character, event, 0, g_character_event_no_flags,
+                                                g_character_event_full_volume);
                             BeginScriptedWorldAction();
                             QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
                             continue;
@@ -1053,7 +1054,7 @@ void ProcessNpcPendingEvents(void)
                                 QueueCharacterEvent(
                                     character,
                                     static_cast<unsigned char>(g_npc_services[service].npc_id), 0,
-                                    g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                    g_character_event_no_flags, g_character_event_full_volume);
                             }
                         }
                         bound = GetNpcState(row->npc_index);
@@ -1069,8 +1070,8 @@ void ProcessNpcPendingEvents(void)
                                         bound->event_clock_eb = g_status.world_clock;
                                         RebuildConditionsAndDerivedStats(slot);
                                         QueueCharacterEvent(character, 0x56, 0,
-                                                            g_effect_argument_005ed8c8,
-                                                            g_effect_argument_005ed914);
+                                                            g_character_event_no_flags,
+                                                            g_character_event_full_volume);
                                     }
                                     break;
                                 }
@@ -1210,7 +1211,7 @@ void SelectStartNpcGreeting(void)
                     display_value);
     }
     if (value != 0) {
-        ApplyItemEffectToRandomCharacter(g_fact_check_event, -1, 0, g_effect_argument_005ed8c8);
+        ApplyItemEffectToRandomCharacter(g_fact_check_event, -1, 0, g_character_event_no_flags);
         return;
     }
 
@@ -2425,8 +2426,8 @@ void UpdateNpcEvents(void)
                         npc_state->event_clock_eb = g_status.world_clock + Random(6) * 0x3c;
                     } else {
                         int event = Random(2) == 0 ? 0x57 : 0x58;
-                        QueueCharacterEvent(character, event, 0, g_effect_argument_005ed8c8,
-                                            g_effect_argument_005ed914);
+                        QueueCharacterEvent(character, event, 0, g_character_event_no_flags,
+                                            g_character_event_full_volume);
                         npc_state->event_clock_eb = g_status.world_clock;
                     }
                 }
@@ -3133,9 +3134,10 @@ char QueueNpcDepartureEvents(int destination_level)
                                     if (g_npc_services[departure].service_id ==
                                         static_cast<unsigned int>(
                                             GetLevelBand(destination_level))) {
-                                        QueueCharacterEvent(
-                                            character, g_npc_services[departure].npc_id, 0,
-                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                        QueueCharacterEvent(character,
+                                                            g_npc_services[departure].npc_id, 0,
+                                                            g_character_event_no_flags,
+                                                            g_character_event_full_volume);
                                         queued = true;
                                         break;
                                     }
@@ -3191,8 +3193,8 @@ char QueueNpcDepartureEvents(int destination_level)
                 }
             }
             if (event != 0) {
-                QueueCharacterEvent(character, event, 0, g_effect_argument_005ed8c8,
-                                    g_effect_argument_005ed914);
+                QueueCharacterEvent(character, event, 0, g_character_event_no_flags,
+                                    g_character_event_full_volume);
                 queued = true;
             }
         }

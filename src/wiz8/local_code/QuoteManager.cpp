@@ -123,7 +123,7 @@ void StartBreathCycle(int party_slot, char force)
 {
     if ((gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) || force != 0) {
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_special_event_0068c50c, 0,
-                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                            g_character_event_no_flags, g_character_event_full_volume);
     }
 }
 
@@ -188,7 +188,7 @@ W8PortraitTables g_portrait_tables = {
 };
 // GLOBAL: WIZ8 0x005ED8C8
 #pragma bss_seg(".data")
-int g_effect_argument_005ed8c8 = 0;
+int g_character_event_no_flags = 0;
 #pragma bss_seg()
 // GLOBAL: WIZ8 0x005ED8E0
 unsigned int g_event_flag_005ed8e0 = 8;
@@ -209,7 +209,7 @@ int g_effect_argument_005ed8d4 = 1;
 // GLOBAL: WIZ8 0x005ED8D8
 int g_effect_argument_005ed8d8 = 2;
 // GLOBAL: WIZ8 0x005ED914
-int g_effect_argument_005ed914 = 127;
+int g_character_event_full_volume = 127;
 // GLOBAL: WIZ8 0x005EE590
 int g_effect_005ee590 = 2;
 // GLOBAL: WIZ8 0x005EE594
@@ -1571,7 +1571,7 @@ W8CharacterEvent* ApplyItemEffectToRandomCharacter(unsigned int event_type, int 
         ++attempts;
     }
     return QueueCharacterEvent(&g_status.buffers.Char[character_slot], event_type, argument, flags,
-                               g_effect_argument_005ed914);
+                               g_character_event_full_volume);
 }
 
 // FUNCTION: WIZ8 0x0052E690
@@ -1657,8 +1657,8 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
         }
         effect = Random(2) == 0 ? g_effect_005ee590 : g_effect_005ee5f8;
     }
-    if (effect != -1 && QueueCharacterEvent(character, effect, 0, g_effect_argument_005ed8c8,
-                                            g_effect_argument_005ed914) != 0) {
+    if (effect != -1 && QueueCharacterEvent(character, effect, 0, g_character_event_no_flags,
+                                            g_character_event_full_volume) != 0) {
         gXStatus.character_event_queue->SetEventCharacterMask(effect, party_slot, 1);
     }
 }
@@ -1688,7 +1688,7 @@ void QueuePartyDeathReaction(unsigned int party_slot)
     remaining = GetRandomPartySlots(0, 0, party_slot, selected, 1, skip_first_two);
     for (index = 0; index < remaining; ++index) {
         entry = QueueCharacterEvent(&g_status.buffers.Char[selected[index]], effect, 0,
-                                    g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                                    g_effect_argument_005ed8cc, g_character_event_full_volume);
         if (entry != 0) {
             entry->dispatch_delay_ms = 3000;
             entry->dispatch_delay_start = GetTickCount();
@@ -1727,10 +1727,10 @@ void QueueDamageReactionEvents(W8Character* character)
                 effect = g_effect_005ee590;
             }
             entry = QueueCharacterEvent(character, effect, g_effect_argument_005ed8d4,
-                                        g_effect_argument_005ed8d0, g_effect_argument_005ed914);
+                                        g_effect_argument_005ed8d0, g_character_event_full_volume);
         } else {
             entry = QueueCharacterEvent(character, g_effect_005ee594, g_effect_argument_005ed8d4,
-                                        g_effect_argument_005ed8d0, g_effect_argument_005ed914);
+                                        g_effect_argument_005ed8d0, g_character_event_full_volume);
         }
         if (entry != 0) {
             entry->dispatch_delay_ms = 0x5dc;
@@ -1742,7 +1742,7 @@ queue_follow_up_event:
     follow_up_events[1] = g_special_event_0068c550;
     follow_up_events[2] = g_special_event_0068c51c;
     QueueCharacterEvent(character, follow_up_events[Random(3)], g_effect_argument_005ed8d4,
-                        g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                        g_effect_argument_005ed8cc, g_character_event_full_volume);
 }
 
 /* Turn-begin path for several surviving party members: queue event 0x15 on
@@ -1757,7 +1757,7 @@ void QueueTurnReactionEvent(void)
     remaining = GetRandomPartySlots(0, 0, -1, selected, 1, 0);
     for (index = 0; index < remaining; ++index) {
         QueueCharacterEvent(&g_status.buffers.Char[selected[index]], g_effect_005ee5dc, 0,
-                            g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                            g_effect_argument_005ed8cc, g_character_event_full_volume);
     }
 }
 
@@ -1778,7 +1778,7 @@ void QueueLastSurvivorEvent(void)
     }
     if (alive_count != 0) {
         QueueCharacterEvent(&g_status.buffers.Char[last_alive], g_effect_005ee5e0, 0,
-                            g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                            g_effect_argument_005ed8cc, g_character_event_full_volume);
     }
 }
 
@@ -1809,27 +1809,27 @@ void QueueConditionChangeReaction(W8Character* character)
         events[1] = g_special_event_0068c540;
         events[2] = g_special_event_0068c564;
         QueueCharacterEvent(character, events[Random(3)], g_effect_argument_005ed8d4,
-                            g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                            g_effect_argument_005ed8cc, g_character_event_full_volume);
         return;
     case 0x11:
         events[0] = g_special_event_0068c538;
         events[1] = g_special_event_0068c540;
         events[2] = g_special_event_0068c564;
-        QueueCharacterEvent(character, events[Random(3)], 0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+        QueueCharacterEvent(character, events[Random(3)], 0, g_character_event_no_flags,
+                            g_character_event_full_volume);
         return;
     case 5:
         QueueCharacterEvent(character, g_special_event_0068c558, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
+                            g_character_event_full_volume);
         return;
     case 8:
         QueueCharacterEvent(character, g_special_event_0068c508, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
+                            g_character_event_full_volume);
         return;
     case 3:
     case 4:
         QueueCharacterEvent(character, g_special_event_0068c52c, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
+                            g_character_event_full_volume);
         return;
     case 2:
     case 7:
@@ -1840,16 +1840,16 @@ void QueueConditionChangeReaction(W8Character* character)
             reaction = g_condition_reaction_alt;
         }
         QueueCharacterEvent(character, reaction, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
+                            g_character_event_full_volume);
         return;
     case 0xc:
         QueueCharacterEvent(character, g_effect_005ee5a4, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
+                            g_character_event_full_volume);
         return;
     case 0xe:
     case 0x10:
         QueueCharacterEvent(character, g_effect_005ee5ac, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
+                            g_character_event_full_volume);
         return;
     case 0x13:
         excluded_slot = CharacterPointerToPartySlot(character);
@@ -1867,17 +1867,17 @@ void QueueConditionChangeReaction(W8Character* character)
                 ++attempts;
             }
             QueueCharacterEvent(&g_status.buffers.Char[slot], reaction, 0,
-                                g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                                g_effect_argument_005ed8cc, g_character_event_full_volume);
             return;
         }
         break;
     case 6:
         QueueCharacterEvent(character, g_special_event_0068c514, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
+                            g_character_event_full_volume);
         return;
     case 0xb:
         QueueCharacterEvent(character, g_special_event_0068c578, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
+                            g_character_event_full_volume);
         break;
     }
 }
@@ -1898,12 +1898,12 @@ void QueueConditionClearedReaction(W8Character* character, int condition)
     switch (condition) {
     case 0x12:
         QueueCharacterEvent(character, g_effect_005ee5b8, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
+                            g_character_event_full_volume);
         return;
     case 10:
     case 0x13:
         QueueCharacterEvent(character, g_effect_005ee5b4, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
+                            g_character_event_full_volume);
         return;
     case 2:
     case 3:
@@ -1920,11 +1920,11 @@ void QueueConditionClearedReaction(W8Character* character, int condition)
     case 0x11:
         if (character->highest_condition == 0) {
             QueueCharacterEvent(character, g_effect_005ee6dc, 0, g_effect_argument_005ed8cc,
-                                g_effect_argument_005ed914);
+                                g_character_event_full_volume);
             return;
         }
         QueueCharacterEvent(character, g_effect_005ee6d8, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
+                            g_character_event_full_volume);
         break;
     }
 }

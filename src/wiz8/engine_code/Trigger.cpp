@@ -2767,7 +2767,7 @@ void Trigger::Run(int source)
             }
             ApplyItemEffectToRandomCharacter(Random(2) != 0 ? g_condition_reaction
                                                             : g_condition_reaction_alt,
-                                             -1, 0, g_effect_argument_005ed8c8);
+                                             -1, 0, g_character_event_no_flags);
             flags_0a0 |= W8_TRIGGER_RUNNING;
             goto commit_action;
 
@@ -3128,7 +3128,7 @@ void Trigger::Run(int source)
                     if (m_pProp->Rep()->subcycle_064 == 0) {
                         ApplyItemEffectToRandomCharacter(Random(2) != 0 ? g_container_event
                                                                         : g_container_event_alt,
-                                                         -1, 0, g_effect_argument_005ed8c8);
+                                                         -1, 0, g_character_event_no_flags);
                     }
                 } else if (item_count == 2 && g_status.item_in_cursor == 0) {
                     item = world_item_group_34c->next;

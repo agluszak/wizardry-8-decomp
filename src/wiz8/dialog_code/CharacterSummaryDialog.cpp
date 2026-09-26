@@ -98,11 +98,11 @@ bool W8CharacterSummaryDialog::CreateQuoteText()
                                    g_character_summary_quote_bounds[index].bottom + m_y};
         W8Character* character = m_field_1af8 ? m_character_074 : g_status.buffers.Char;
         W8CharacterEvent* event =
-            new W8CharacterEvent(character, g_effect_005ee588, 0, g_effect_argument_005ed8c8,
-                                 g_effect_argument_005ed914);
-        *buffers[index] = new W8TextBuffer(
-            &absolute, event->GetQuoteText(), g_font_683660,
-            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
+            new W8CharacterEvent(character, g_effect_005ee588, 0, g_character_event_no_flags,
+                                 g_character_event_full_volume);
+        *buffers[index] =
+            new W8TextBuffer(&absolute, event->GetQuoteText(), g_wiz_text_font_secondary,
+                             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
         delete event;
         if (*buffers[index] == 0) {
             delete m_quote_text_058;
@@ -184,8 +184,8 @@ unsigned char W8CharacterSummaryDialog::ProcessInput()
     if (!m_voice_started_054 && m_portrait_clock_1afc + 750 < GetClock()) {
         m_voice_started_054 = 1;
         W8Character* character = m_field_1af8 ? m_character_074 : g_status.buffers.Char;
-        QueueCharacterEvent(character, g_effect_005ee588, 0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+        QueueCharacterEvent(character, g_effect_005ee588, 0, g_character_event_no_flags,
+                            g_character_event_full_volume);
     }
     while (DequeueEvent(&input) == 1) {
         switch (input.usEvent) {

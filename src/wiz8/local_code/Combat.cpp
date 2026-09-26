@@ -483,10 +483,10 @@ void ApplyCombatEndEffects(void)
                 if (character->highest_condition == 0x12) {
                     if (npc->healer_assist_f0) {
                         ApplyItemEffectToRandomCharacter(g_effect_005ee5bc, -1, 0,
-                                                         g_effect_argument_005ed8c8);
+                                                         g_character_event_no_flags);
                     } else if (npc->item_assist_f1) {
                         ApplyItemEffectToRandomCharacter(g_effect_005ee5d8, -1, 0,
-                                                         g_effect_argument_005ed8c8);
+                                                         g_character_event_no_flags);
                     }
                 }
             }
@@ -501,7 +501,7 @@ void ApplyCombatEndEffects(void)
             (!g_status.condition13_clock_2487 ||
              g_status.pending_condition_party_slot_248f != slot)) {
             ApplyItemEffectToRandomCharacter(g_effect_005ee628, slot, 0,
-                                             g_effect_argument_005ed8c8);
+                                             g_character_event_no_flags);
         }
     }
 }
@@ -552,7 +552,7 @@ void BeginCombatExecution(void)
     }
     g_combat_state->round_counter = GetPhaseStep();
     if (CombatMayAdvanceContinuously()) {
-        ShowNotice(0xc, &g_wchar_00689b34, -1, -1, false);
+        ShowNotice(0xc, &g_empty_wide_string, -1, -1, false);
         ShowNoticef(0xc, gppStringList[0x227], g_combat_state->round_count_004);
     }
 
@@ -900,8 +900,8 @@ unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target)
     if (Random(100) >= g_flee_chance) {
         return 0;
     }
-    QueueCharacterEvent(character, g_effect_005ee610, 0, g_effect_argument_005ed8c8,
-                        g_effect_argument_005ed914);
+    QueueCharacterEvent(character, g_effect_005ee610, 0, g_character_event_no_flags,
+                        g_character_event_full_volume);
     return 1;
 }
 
@@ -1211,7 +1211,7 @@ void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBl
     case W8_ACTION_WALK:
     case W8_ACTION_RUN:
         ApplyItemEffectToRandomCharacter(g_special_event_0068c50c, -1, 0,
-                                         g_effect_argument_005ed8c8);
+                                         g_character_event_no_flags);
         break;
     }
 }
@@ -1980,7 +1980,7 @@ int CheckCombatEnd(unsigned int arg_1)
                 GetRandomPartySlots(0, 0, -1, &party_slot, 1, 0) != 0 &&
                 (event = QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_effect_005ee614,
                                              g_effect_argument_005ed8d8, g_effect_argument_005ed8cc,
-                                             g_effect_argument_005ed914),
+                                             g_character_event_full_volume),
                  event != 0)) {
                 event->dispatch_delay_ms = 0x5dc;
                 event->dispatch_delay_start = GetTickCount();

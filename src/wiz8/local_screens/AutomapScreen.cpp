@@ -1799,10 +1799,11 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
             }
             g_automap_text_marker->GetHeight00480F70();
             W8ScreenRect rect;
-            rect.top = (0x20 - screen_y) - ((unsigned)GetFontHeight(g_font_683660) >> 1);
+            rect.top =
+                (0x20 - screen_y) - ((unsigned)GetFontHeight(g_wiz_text_font_secondary) >> 1);
             rect.left = marker_width / 2 + (0xe - screen_x);
-            rect.bottom = rect.top + GetFontHeight(g_font_683660) + 3;
-            rect.right = StringPixLength(note->text, g_font_683660) + 3 + rect.left;
+            rect.bottom = rect.top + GetFontHeight(g_wiz_text_font_secondary) + 3;
+            rect.right = StringPixLength(note->text, g_wiz_text_font_secondary) + 3 + rect.left;
             if (rect.left < 0xc) {
                 rect.left = 0xc;
             }
@@ -2219,10 +2220,10 @@ void RenderAutomapMarkers(void)
         GetClippingRect(&saved_clip);
         SGPRect clip = {0xc, 0x20, 0x1d3, 0x1d3};
         SetClippingRect(&clip);
-        SetFont(g_font_683660);
+        SetFont(g_wiz_text_font_secondary);
         SetObjectShade(g_wiz_text_font_secondary_object, 4);
         SetFontDestClip(0xc, 0x20, 0x1d3, 0x1d3);
-        int font_height = GetFontHeight(g_font_683660);
+        int font_height = GetFontHeight(g_wiz_text_font_secondary);
         unsigned int count = g_automap_notes->GetCount();
         for (unsigned int index = 0; index < count; ++index) {
             W8AutomapNote* note = *g_automap_notes->GetAt(index);
@@ -2264,7 +2265,7 @@ void RenderAutomapMarkers(void)
                         char* buffer = static_cast<char*>(LockPrimarySurface(&pitch));
                         SetClippingRegionAndImageWidth(pitch, 0xc, 0x20, 0x1c7, 0x1b3);
                         int color = Get16BPPColor(0x569bef);
-                        int length = StringPixLength(note->text, g_font_683660);
+                        int length = StringPixLength(note->text, g_wiz_text_font_secondary);
                         RectangleDraw(TRUE, x - 1, y, x + length + 2, y + (font_height & 0xffff),
                                       color, buffer);
                         UnlockPrimarySurface();

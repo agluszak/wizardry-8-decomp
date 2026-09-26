@@ -832,8 +832,8 @@ unsigned char W8SplitAmountDialog::CreateTextBuffers()
         bounds.right = g_split_amount_text_bounds[index].right + m_x;
         bounds.bottom = g_split_amount_text_bounds[index].bottom + m_y;
         m_text_buffers_06c[index] = new W8TextBuffer(
-            &bounds, gppStringList[g_split_amount_string_ids[index]], g_font_683660,
-            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED550, 4);
+            &bounds, gppStringList[g_split_amount_string_ids[index]], g_wiz_text_font_secondary,
+            g_W8TextBufferAlignMiddle | g_W8TextBufferAlignRight, 4);
         if (m_text_buffers_06c[index] == 0) {
             for (index = 0; index < 3; ++index) {
                 if (m_text_buffers_06c[index] != 0) {
@@ -857,8 +857,8 @@ unsigned char W8SplitAmountDialog::CreateNumericInput()
     bounds.top = g_split_amount_field_bounds.top + m_y;
     bounds.right = g_split_amount_field_bounds.right + m_x;
     bounds.bottom = g_split_amount_field_bounds.bottom + m_y;
-    m_split_input_078 =
-        new W8DialogNumericInput(0, &bounds, m_taken_084, g_font_683660, this, m_buttons_054[3]);
+    m_split_input_078 = new W8DialogNumericInput(0, &bounds, m_taken_084, g_wiz_text_font_secondary,
+                                                 this, m_buttons_054[3]);
     if (m_split_input_078 == 0) {
         NoOp();
         delete m_split_input_078;
@@ -915,8 +915,8 @@ void W8SplitAmountDialog::UpdateTextBuffers()
 {
     wchar_t text[12];
 
-    swprintf(text, g_format_d_0060aa20, m_remaining_080);
-    m_text_buffers_06c[2]->SetText(text, g_font_683660);
+    swprintf(text, g_format_d, m_remaining_080);
+    m_text_buffers_06c[2]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[2]->m_dirty = true;
     m_text_buffers_06c[2]->m_geometryDirty = 1;
     if (m_remaining_080 < 0) {

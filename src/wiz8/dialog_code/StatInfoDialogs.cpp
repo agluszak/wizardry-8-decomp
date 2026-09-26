@@ -112,10 +112,10 @@ void W8StatInfoDialogBase::Draw()
 // FUNCTION: WIZ8 0x005dfb40
 void W8StatInfoDialogBase::DrawTitle()
 {
-    SetFont(g_font_683660);
-    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+    SetFont(g_wiz_text_font_secondary);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
     wchar_t* title = gppStringList[m_title_id_140];
-    INT16 width = StringPixLength(title, g_font_683660);
+    INT16 width = StringPixLength(title, g_wiz_text_font_secondary);
     gprintf(m_x + 0xe + (0x112 - width) / 2, m_y + 0x11, L"%s", title);
 }
 
@@ -168,10 +168,10 @@ unsigned char W8StatInfoDialogBase::PopulateText()
     bounds.top = m_y + 0x26;
     bounds.right = m_x + 0x11f;
     bounds.bottom = m_y + 0xdf;
-    textarea_0e8.Configure(&bounds, g_font_683660, 0);
+    textarea_0e8.Configure(&bounds, g_wiz_text_font_secondary, 0);
     textarea_0e8.SetEntrySpacing(0);
     textarea_0e8.AddEntry(gppStringList[0x155], gppStringList[m_detail_id_144], 10, 0xf, 0);
-    textarea_0e8.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
+    textarea_0e8.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
     return 1;
 }
 
@@ -229,11 +229,11 @@ unsigned char W8SkillInfoDialog::PopulateText()
     bounds.top = m_y + 0x26;
     bounds.right = m_x + 0x11f;
     bounds.bottom = m_y + 0xdf;
-    textarea_0e8.Configure(&bounds, g_font_683660, 0);
+    textarea_0e8.Configure(&bounds, g_wiz_text_font_secondary, 0);
     textarea_0e8.SetEntrySpacing(0);
     textarea_0e8.AddEntry(gppStringList[0x155], gppStringList[m_detail_id_144], 10, 0xf, 0);
-    textarea_0e8.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
-    textarea_0e8.AddEntry(gppStringList[0x156], &g_wchar_00689b34, 10, 0xf, 0);
+    textarea_0e8.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    textarea_0e8.AddEntry(gppStringList[0x156], &g_empty_wide_string, 10, 0xf, 0);
     W8SkillAttributes* skill = &g_skill_attributes[m_skill_148];
     textarea_0e8.AddEntry(
         0, gppStringList[g_character_description_first_ids[skill->attribute_2_08]], 10, 0xf, 0);
@@ -242,15 +242,15 @@ unsigned char W8SkillInfoDialog::PopulateText()
             0, gppStringList[g_character_description_first_ids[skill->attribute_3_0c]], 10, 0xf, 0);
     }
     if (m_first_14c != 0) {
-        textarea_0e8.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
+        textarea_0e8.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
         textarea_0e8.AddEntry(0, gppStringList[0x157], 10, 5, 0);
     }
     if (m_second_14d != 0) {
-        textarea_0e8.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
+        textarea_0e8.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
         textarea_0e8.AddEntry(0, gppStringList[0x158], 10, 0xb, 0);
     }
     if (m_bonus_14e != 0) {
-        textarea_0e8.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
+        textarea_0e8.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
         textarea_0e8.AddEntry(0, FormatWideString(gppStringList[0x159], 0x19), 10, 3, 0);
     }
     return 1;

@@ -123,24 +123,24 @@ void W8ProfRaceInfoDialogBase::Draw()
         W8DialogBase::Draw();
         DrawCatalogImageAndInvalidate(-0xe, m_uiTitleId, 0, m_uiSummaryId, m_x + 0xd, m_y + 0xd, 2,
                                       0);
-        DrawTextLine(g_W8TextBufferLayoutMask005ED548, 0x25, 0xb, 0x147, 0x18,
-                     gppStringList[m_uiNameId], g_options_detail_font_683614);
-        DrawTextLine(g_W8TextBufferLayoutMask005ED54C, 0xd, 0x29, 0x8e, 0xc,
-                     gppStringList[m_uiHeadingId], g_font_683660);
+        DrawTextLine(g_W8TextBufferAlignLeft, 0x25, 0xb, 0x147, 0x18, gppStringList[m_uiNameId],
+                     g_options_detail_font);
+        DrawTextLine(g_W8TextBufferAlignCenter, 0xd, 0x29, 0x8e, 0xc, gppStringList[m_uiHeadingId],
+                     g_wiz_text_font_secondary);
         int top = 0x37;
         for (int attribute = 0; attribute < ATTR_COUNT; ++attribute) {
-            DrawTextLine(g_W8TextBufferLayoutMask005ED548, 0x10, top, 0x74, 0xc,
+            DrawTextLine(g_W8TextBufferAlignLeft, 0x10, top, 0x74, 0xc,
                          gppStringList[g_character_description_first_ids[attribute]],
-                         g_font_683660);
+                         g_wiz_text_font_secondary);
             const wchar_t* minimum;
             if (m_minimums[attribute] == -1) {
                 minimum = L"?";
             } else {
                 minimum =
-                    FormatWideString(g_format_d_0060aa20, m_minimums[attribute], g_font_683660);
+                    FormatWideString(g_format_d, m_minimums[attribute], g_wiz_text_font_secondary);
             }
-            DrawTextLine(g_W8TextBufferLayoutMask005ED54C, 0x85, top, 0x16, 0xc, minimum,
-                         g_font_683660);
+            DrawTextLine(g_W8TextBufferAlignCenter, 0x85, top, 0x16, 0xc, minimum,
+                         g_wiz_text_font_secondary);
             top += 0xe;
         }
     }
@@ -154,7 +154,7 @@ void W8ProfRaceInfoDialogBase::DrawTextLine(unsigned int layout_mode, int left, 
                                             int height, const wchar_t* text, int font)
 {
     W8TextBuffer buffer;
-    buffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 | layout_mode);
+    buffer.SetLayoutMode(g_W8TextBufferAlignMiddle | layout_mode);
     W8ControlsRect bounds;
     bounds.left = m_x + left;
     bounds.right = bounds.left + width;
@@ -173,7 +173,7 @@ unsigned char W8ProfRaceInfoDialogBase::PopulateText()
     bounds.top = m_y + 0x29;
     bounds.right = m_x + 0x151;
     bounds.bottom = m_y + 0xe1;
-    m_text_area_118.Configure(&bounds, g_font_683660, 0);
+    m_text_area_118.Configure(&bounds, g_wiz_text_font_secondary, 0);
     m_text_area_118.SetEntrySpacing(0);
     return 1;
 }
@@ -255,11 +255,11 @@ unsigned char W8ProfessionInfoDialog::PopulateText()
     bounds.top = m_y + 0x29;
     bounds.right = m_x + 0x151;
     bounds.bottom = m_y + 0xe1;
-    m_text_area_118.Configure(&bounds, g_font_683660, 0);
+    m_text_area_118.Configure(&bounds, g_wiz_text_font_secondary, 0);
     m_text_area_118.SetEntrySpacing(0);
     m_text_area_118.AddEntry(gppStringList[0x153], gppStringList[m_uiDetailId], 10, 0xf, 0);
-    m_text_area_118.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
-    m_text_area_118.AddEntry(gppStringList[0x14d], &g_wchar_00689b34, 10, 0xf, 0);
+    m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area_118.AddEntry(gppStringList[0x14d], &g_empty_wide_string, 10, 0xf, 0);
     unsigned int index;
     for (index = 0; index < 3; ++index) {
         int ability = g_profession_abilities[m_uiIndex].ability_ids[index];
@@ -268,13 +268,13 @@ unsigned char W8ProfessionInfoDialog::PopulateText()
         }
         m_text_area_118.AddEntry(0, gppStringList[g_character_trait_name_ids[ability]], 10, 0xf, 0);
     }
-    m_text_area_118.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
-    m_text_area_118.AddEntry(gppStringList[0x14e], &g_wchar_00689b34, 10, 0xf, 0);
+    m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area_118.AddEntry(gppStringList[0x14e], &g_empty_wide_string, 10, 0xf, 0);
     m_text_area_118.AddEntry(
         0, gppStringList[g_character_skill_name_ids[g_profession_bonus_skills[m_uiIndex]]], 10, 0xf,
         0);
-    m_text_area_118.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
-    m_text_area_118.AddEntry(gppStringList[0x14f], &g_wchar_00689b34, 10, 0xf, 0);
+    m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area_118.AddEntry(gppStringList[0x14f], &g_empty_wide_string, 10, 0xf, 0);
     for (index = 0; index < 4; ++index) {
         int skill = g_profession_skills[m_uiIndex][index];
         if (skill == -1) {
@@ -282,8 +282,8 @@ unsigned char W8ProfessionInfoDialog::PopulateText()
         }
         m_text_area_118.AddEntry(0, gppStringList[g_character_skill_name_ids[skill]], 10, 0xf, 0);
     }
-    m_text_area_118.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
-    m_text_area_118.AddEntry(gppStringList[0x150], &g_wchar_00689b34, 10, 0xf, 0);
+    m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area_118.AddEntry(gppStringList[0x150], &g_empty_wide_string, 10, 0xf, 0);
     for (index = 0; index < 6; ++index) {
         int item = g_starting_equipment[m_uiIndex][index];
         if (item != -1) {
@@ -352,11 +352,11 @@ unsigned char W8RaceInfoDialog::PopulateText()
     bounds.top = m_y + 0x29;
     bounds.right = m_x + 0x151;
     bounds.bottom = m_y + 0xe1;
-    m_text_area_118.Configure(&bounds, g_font_683660, 0);
+    m_text_area_118.Configure(&bounds, g_wiz_text_font_secondary, 0);
     m_text_area_118.SetEntrySpacing(0);
     m_text_area_118.AddEntry(gppStringList[0x153], gppStringList[m_uiDetailId], 10, 0xf, 0);
-    m_text_area_118.AddEntry(0, &g_wchar_00689b34, 10, 0xf, 0);
-    m_text_area_118.AddEntry(gppStringList[0x14d], &g_wchar_00689b34, 10, 0xf, 0);
+    m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area_118.AddEntry(gppStringList[0x14d], &g_empty_wide_string, 10, 0xf, 0);
     unsigned char listed = 0;
     for (unsigned int index = 0; index < 5; ++index) {
         int ability = g_race_abilities[m_uiIndex].ability_ids[index];

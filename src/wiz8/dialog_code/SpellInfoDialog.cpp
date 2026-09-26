@@ -169,7 +169,7 @@ unsigned char W8SpellInfoDialog::PopulateText()
     bounds.top = m_y + 0x43;
     bounds.right = m_x + 0x11f;
     bounds.bottom = m_y + 0xfc;
-    m_text_area_0ec.Configure(&bounds, g_font_683660, 0);
+    m_text_area_0ec.Configure(&bounds, g_wiz_text_font_secondary, 0);
     m_text_area_0ec.SetEntrySpacing(1);
 
     record = &g_spell_records[m_spell_054];
@@ -311,26 +311,26 @@ void W8SpellInfoDialog::DrawLabels()
     INT16 width;
     W8SpellRuntimeRecord* record = &g_spell_records[m_spell_054];
 
-    SetFont(g_font_683660);
-    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+    SetFont(g_wiz_text_font_secondary);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
     text = record->display_name;
-    width = StringPixLength(text, g_font_683660);
+    width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0x25 + (0xe7 - width) / 2, m_y + 0x12, L"%s", text);
     text = gppStringList[0x460 / 4];
-    width = StringPixLength(text, g_font_683660);
+    width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0x25 + (0x53 - width) / 2, m_y + 0x24, L"%s", text);
     if (record->power_class == 3) {
         text = gppStringList[0x468 / 4];
     } else {
         text = gppStringList[0x464 / 4];
     }
-    width = StringPixLength(text, g_font_683660);
+    width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0x25 + (0x7b - width) / 2, m_y + 0x33, L"%s", text);
-    text = FormatWideString(g_format_d_0060aa20, record->spell_level);
-    width = StringPixLength(text, g_font_683660);
+    text = FormatWideString(g_format_d, record->spell_level);
+    width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0x7c + (0x16 - width) / 2, m_y + 0x24, L"%s", text);
     text = FormatWideString(g_format_d_s, record->spell_point_cost, gppStringList[0x46c / 4]);
-    width = StringPixLength(text, g_font_683660);
+    width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0xa4 + (0x25 - width) / 2, m_y + 0x33, L"%s", text);
 }
 

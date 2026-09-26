@@ -68,8 +68,8 @@ unsigned char CreatePartyMovementPanel(void)
     bounds.right = 0x1b9;
     bounds.top = 0x13f;
     bounds.bottom = 0x153;
-    g_party_movement_caption = new W8TextBuffer(
-        &bounds, 0, g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 0, 4);
+    g_party_movement_caption =
+        new W8TextBuffer(&bounds, 0, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 0, 4);
 
     g_party_movement_buttons[0] = new W8TextControl(g_party_movement_panel, 200, 0x10a, 0, 0x11e,
                                                     0x14, 0x94, 0, 4, 6, 5, 6, 7);
@@ -270,7 +270,7 @@ static void DrawPartyMovementGauge(short right, short image, char panel_live, in
                                   right - 0xf, 0x142, 2, 0);
     InvalidateRegion(right - 0xf, 0x142, right - 1, 0x150, 0);
     if (caption != -1) {
-        g_party_movement_caption->SetText(gppStringList[caption], g_font_683660);
+        g_party_movement_caption->SetText(gppStringList[caption], g_wiz_text_font_secondary);
         g_party_movement_caption->RenderToTarget(0, 0, -0xe);
     }
 }

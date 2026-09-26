@@ -232,7 +232,7 @@ void RefreshJournalPanel(void)
 
         wchar_t page_text[20];
         swprintf(page_text, g_journal_page_format, g_journal_page + 1, page_count);
-        panel->m_page_text_060->SetText(page_text, g_options_detail_font_683614);
+        panel->m_page_text_060->SetText(page_text, g_options_detail_font);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
         DrawJournalLine(gppStringList[0x1b6c / 4], 0, 0x19, 0, 1);
         DrawJournalLine(gppStringList[0x1b70 / 4], 1, 0x19, 0, 1);
@@ -267,7 +267,7 @@ void RefreshJournalPanel(void)
     } else {
         panel->m_next_050->SetEnabled(0);
         panel->m_previous_054->SetEnabled(0);
-        panel->m_page_text_060->SetText(g_journal_alternate_page, g_options_detail_font_683614);
+        panel->m_page_text_060->SetText(g_journal_alternate_page, g_options_detail_font);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
         DrawJournalLine(gppStringList[0x1b78 / 4], 0, 0x19, 0, 1);
         DrawJournalLine(gppStringList[0x1b7c / 4], 1, 0x19, 0, 1);
@@ -324,12 +324,11 @@ W8JournalPanel::W8JournalPanel(unsigned int* region_set)
     m_next_050->m_listener = this;
 
     W8ControlsRect bounds = {origin_x, origin_y, right, bottom};
-    m_page_text_060 =
-        new W8TextBuffer(&bounds, &g_wchar_00689b34, g_options_detail_font_683614,
-                         g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
+    m_page_text_060 = new W8TextBuffer(&bounds, &g_empty_wide_string, g_options_detail_font,
+                                       g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
 
     m_mode_05c = new W8TextControl(this, 0xffffffff, 0x1b0, -2, 0, 0, 0x1bb, 0, 0, 2, 1, 2, 3);
-    m_mode_05c->AddLayoutFlags(g_W8TextControlMask005ED578);
+    m_mode_05c->AddLayoutFlags(g_W8TextControlLayoutToggle);
     m_mode_05c->m_listener = this;
 
     m_close_058 =
@@ -340,7 +339,7 @@ W8JournalPanel::W8JournalPanel(unsigned int* region_set)
     EnableRegionSet(1);
     m_alternate_mode_064 = 0;
     m_mode_05c->EnableRegionHelp(0x6eb);
-    if ((m_mode_05c->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+    if ((m_mode_05c->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
         m_mode_05c->ActivateSecondary(1);
     }
 }
@@ -378,15 +377,15 @@ void W8JournalPanel::OnPrimary(W8TextControl* control)
         RequestScreenTransition();
     } else {
         m_alternate_mode_064 =
-            static_cast<unsigned char>(m_mode_05c->m_stateFlags & g_W8TextControlMask005ED570);
+            static_cast<unsigned char>(m_mode_05c->m_stateFlags & g_W8TextControlStateSecondary);
         if (m_alternate_mode_064) {
             m_mode_05c->EnableRegionHelp(0x6ec);
-            if ((m_mode_05c->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+            if ((m_mode_05c->m_stateFlags & g_W8TextControlStateSecondary) == 0) {
                 m_mode_05c->ActivatePrimary(1);
             }
         } else {
             m_mode_05c->EnableRegionHelp(0x6eb);
-            if ((m_mode_05c->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+            if ((m_mode_05c->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
                 m_mode_05c->ActivateSecondary(1);
             }
         }

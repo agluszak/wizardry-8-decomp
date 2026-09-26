@@ -30,35 +30,35 @@
 extern const wchar_t g_W8LineBreakCharacters[] = L"\n";
 
 // GLOBAL: WIZ8 0x005ED548
-extern const unsigned int g_W8TextBufferLayoutMask005ED548 = 0x01;
+extern const unsigned int g_W8TextBufferAlignLeft = 0x01;
 // GLOBAL: WIZ8 0x005ED54C
-extern const unsigned int g_W8TextBufferLayoutMask005ED54C = 0x02;
+extern const unsigned int g_W8TextBufferAlignCenter = 0x02;
 // GLOBAL: WIZ8 0x005ED550
-extern const unsigned int g_W8TextBufferLayoutMask005ED550 = 0x04;
+extern const unsigned int g_W8TextBufferAlignRight = 0x04;
 // GLOBAL: WIZ8 0x005ED554
-extern const unsigned int g_W8TextBufferLayoutMask005ED554 = 0x08;
+extern const unsigned int g_W8TextBufferAlignMiddle = 0x08;
 // GLOBAL: WIZ8 0x005ED558
-extern const unsigned int g_W8TextBufferLayoutMask005ED558 = 0x10;
+extern const unsigned int g_W8TextBufferAlignTop = 0x10;
 // GLOBAL: WIZ8 0x005ED55C
-extern const unsigned int g_W8TextBufferLayoutMask005ED55C = 0x20;
+extern const unsigned int g_W8TextBufferAlignBottom = 0x20;
 // GLOBAL: WIZ8 0x005ED560
-extern const unsigned int g_W8TextBufferLayoutMask005ED560 = 0x40;
+extern const unsigned int g_W8TextBufferNoWrap = 0x40;
 // GLOBAL: WIZ8 0x005ED56C
-extern const unsigned int g_W8TextControlMask005ED56C = 0x01;
+extern const unsigned int g_W8TextControlStatePressed = 0x01;
 // GLOBAL: WIZ8 0x005ED570
-extern const unsigned int g_W8TextControlMask005ED570 = 0x02;
+extern const unsigned int g_W8TextControlStateSecondary = 0x02;
 // GLOBAL: WIZ8 0x005ED578
-extern const unsigned int g_W8TextControlMask005ED578 = 0x01;
+extern const unsigned int g_W8TextControlLayoutToggle = 0x01;
 // GLOBAL: WIZ8 0x005ED57C
-extern const unsigned int g_W8TextControlMask005ED57C = 0x02;
+extern const unsigned int g_W8TextControlLayoutTextBesideImage = 0x02;
 // GLOBAL: WIZ8 0x005ED580
-extern const unsigned int g_W8TextControlMask005ED580 = 0x04;
+extern const unsigned int g_W8TextControlLayoutImageLeft = 0x04;
 // GLOBAL: WIZ8 0x005ED584
-extern const unsigned int g_W8TextControlMask005ED584 = 0x08;
+extern const unsigned int g_W8TextControlLayoutStayLatched = 0x08;
 // GLOBAL: WIZ8 0x005ED588
 extern const unsigned int g_W8TextControlMask005ED588 = 0x10;
 // GLOBAL: WIZ8 0x005ed594
-extern const unsigned int g_W8TextControlMask005ED594 = 0x80;
+extern const unsigned int g_W8TextControlLayoutImageAtOrigin = 0x80;
 
 // SYNTHETIC: WIZ8 0x004f68a0
 // W8GrowableVector<W8Widget*>::`scalar deleting destructor'
@@ -1106,8 +1106,8 @@ void W8TextControl::RemoveLayoutFlags(unsigned int flags)
 void W8TextControl::EnableSecondaryState(unsigned char immediate)
 {
     if ((m_flags_38 & 1) != 0 && (m_stateFlags & 2) == 0) {
-        m_stateFlags |= g_W8TextControlMask005ED56C;
-        m_stateFlags |= g_W8TextControlMask005ED570;
+        m_stateFlags |= g_W8TextControlStatePressed;
+        m_stateFlags |= g_W8TextControlStateSecondary;
         InvalidateCore(immediate);
     }
 }
@@ -1116,8 +1116,8 @@ void W8TextControl::EnableSecondaryState(unsigned char immediate)
 void W8TextControl::DisableSecondaryState(unsigned char immediate)
 {
     if ((m_flags_38 & 1) != 0 && (m_stateFlags & 2) != 0) {
-        m_stateFlags &= ~g_W8TextControlMask005ED56C;
-        m_stateFlags &= ~g_W8TextControlMask005ED570;
+        m_stateFlags &= ~g_W8TextControlStatePressed;
+        m_stateFlags &= ~g_W8TextControlStateSecondary;
         InvalidateCore(immediate);
     }
 }
@@ -1158,7 +1158,7 @@ void W8TextControl::OnMouseLeave(int event)
     if (!m_enabled) {
         PushButtonSoundScheme(0, 1);
         if ((m_flags_38 & 1) == 0) {
-            m_stateFlags &= ~g_W8TextControlMask005ED56C;
+            m_stateFlags &= ~g_W8TextControlStatePressed;
         }
         SetAlternateTextEnabled(0);
         return;
@@ -1188,7 +1188,7 @@ void W8TextControl::OnMouseLeave(int event)
     if ((m_stateFlags & 2) != 0) {
         return;
     }
-    m_stateFlags &= ~g_W8TextControlMask005ED56C;
+    m_stateFlags &= ~g_W8TextControlStatePressed;
     InvalidateCore((unsigned char)event);
 }
 
@@ -1211,12 +1211,12 @@ void W8TextControl::OnLeftButtonDown(int event)
     }
 
     if ((m_flags_38 & 1) == 0) {
-        m_stateFlags |= g_W8TextControlMask005ED56C;
+        m_stateFlags |= g_W8TextControlStatePressed;
         if (m_imageObject != -1 && m_imageFrame != -1) {
             InvalidateCore((unsigned char)event);
         }
     } else if ((m_stateFlags & 1) == 0) {
-        m_stateFlags |= g_W8TextControlMask005ED56C;
+        m_stateFlags |= g_W8TextControlStatePressed;
         if ((m_flags_38 & 0x10) == 0) {
             InvalidateCore((unsigned char)event);
         }
@@ -1255,7 +1255,7 @@ void W8TextControl::OnLeftButtonUp(int event)
     if (!m_enabled) {
         PushButtonSoundScheme(0, 1);
         if ((m_flags_38 & 1) == 0) {
-            m_stateFlags &= ~g_W8TextControlMask005ED56C;
+            m_stateFlags &= ~g_W8TextControlStatePressed;
         }
         return;
     }
@@ -1267,17 +1267,17 @@ void W8TextControl::OnLeftButtonUp(int event)
     }
 
     if ((m_flags_38 & 1) == 0) {
-        m_stateFlags &= ~g_W8TextControlMask005ED56C;
+        m_stateFlags &= ~g_W8TextControlStatePressed;
         InvalidateCore((unsigned char)event);
     } else if ((m_stateFlags & 2) == 0) {
-        m_stateFlags |= g_W8TextControlMask005ED56C;
-        m_stateFlags |= g_W8TextControlMask005ED570;
+        m_stateFlags |= g_W8TextControlStatePressed;
+        m_stateFlags |= g_W8TextControlStateSecondary;
         if ((m_flags_38 & 0x10) != 0) {
             InvalidateCore((unsigned char)event);
         }
     } else if ((m_flags_38 & 8) == 0) {
-        m_stateFlags &= ~g_W8TextControlMask005ED56C;
-        m_stateFlags &= ~g_W8TextControlMask005ED570;
+        m_stateFlags &= ~g_W8TextControlStatePressed;
+        m_stateFlags &= ~g_W8TextControlStateSecondary;
         InvalidateCore((unsigned char)event);
     }
 

@@ -953,7 +953,7 @@ void PostCharacterNotice(int party_slot, const wchar_t* format, ...)
     vswprintf(text, format, arguments);
     va_end(arguments);
 
-    wcscpy(separator, (text[0] == L'\'' || text[0] == L':') ? &g_wchar_00689b34 : L" ");
+    wcscpy(separator, (text[0] == L'\'' || text[0] == L':') ? &g_empty_wide_string : L" ");
     ShowNoticef(8, L"%s%s%s", g_status.buffers.Char[party_slot].name, separator, text);
     stop = wcslen(g_status.buffers.Char[party_slot].name);
     if (text[0] == L'\'') {
@@ -979,7 +979,7 @@ void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* fo
     vswprintf(text, format, arguments);
     va_end(arguments);
 
-    wcscpy(separator, (text[0] == L'\'' || text[0] == L':') ? &g_wchar_00689b34 : L" ");
+    wcscpy(separator, (text[0] == L'\'' || text[0] == L':') ? &g_empty_wide_string : L" ");
     FormatNotice(8, context, L"%s%s%s", g_status.buffers.Char[party_slot].name, separator, text);
     stop = wcslen(g_status.buffers.Char[party_slot].name);
     if (text[0] == L'\'') {
@@ -1220,7 +1220,7 @@ static void DrawDialogueTextInputLines(int x, int y, unsigned int first_line)
     bool clipped = false;
 
     if (input->first_line_prefix != 0 && first_line == 0) {
-        gprintf(x, y, const_cast<wchar_t*>(g_format_s_006068e4), input->first_line_prefix);
+        gprintf(x, y, const_cast<wchar_t*>(g_format_s), input->first_line_prefix);
         x += StringPixLength(input->first_line_prefix, g_level_block->text_box_font);
     }
     if (line < input->line_count - 1) {
@@ -1228,7 +1228,7 @@ static void DrawDialogueTextInputLines(int x, int y, unsigned int first_line)
             wchar_t* next = input->text + input->line_offsets[line + 1];
             wchar_t saved = *next;
             *next = 0;
-            gprintf(x, y, const_cast<wchar_t*>(g_format_s_006068e4), string);
+            gprintf(x, y, const_cast<wchar_t*>(g_format_s), string);
             int width = StringPixLength(string, g_level_block->text_box_font);
             if (max_width < width) {
                 max_width = StringPixLength(string, g_level_block->text_box_font);
@@ -1247,7 +1247,7 @@ static void DrawDialogueTextInputLines(int x, int y, unsigned int first_line)
         } while (line < input->line_count - 1);
     }
     if (!clipped) {
-        gprintf(x, y, const_cast<wchar_t*>(g_format_s_006068e4), string);
+        gprintf(x, y, const_cast<wchar_t*>(g_format_s), string);
         ++line;
         int width = StringPixLength(string, g_level_block->text_box_font);
         if (max_width < width) {
@@ -1981,11 +1981,11 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             if (line->length_14 == -1) {
-                gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), line->wString);
+                gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), line->wString);
             } else {
                 wcsncpy(scratch, line->wString, line->length_14);
                 scratch[line->length_14] = 0;
-                gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+                gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), scratch);
             }
         } else if (line->highlight_color == 0xff) {
             if (line->font_palette < 0xf) {
@@ -1995,11 +1995,11 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             if (line->length_14 == -1) {
-                gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), line->wString);
+                gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), line->wString);
             } else {
                 wcsncpy(scratch, line->wString, line->length_14);
                 scratch[line->length_14] = 0;
-                gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+                gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), scratch);
             }
         } else {
             draw_x = x;
@@ -2012,7 +2012,7 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
                 SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
                 wcsncpy(scratch, line->wString, line->highlight_start);
                 scratch[line->highlight_start] = 0;
-                gprintfDirty(draw_x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+                gprintfDirty(draw_x, y, Wiz8ToSgpWideText(g_format_s), scratch);
                 draw_x += StringPixLength(Wiz8ToSgpWideText(scratch), g_level_block->text_box_font);
             }
             if (line->highlight_stop < line->highlight_start) {
@@ -2034,7 +2034,7 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
                 SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
                 wcsncpy(scratch, line->wString + line->highlight_start, length);
                 scratch[length] = 0;
-                gprintfDirty(draw_x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+                gprintfDirty(draw_x, y, Wiz8ToSgpWideText(g_format_s), scratch);
                 draw_x += StringPixLength(Wiz8ToSgpWideText(scratch), g_level_block->text_box_font);
             }
             if (wcslen(line->wString) < line->highlight_stop) {
@@ -2064,25 +2064,25 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
                 SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
                 wcsncpy(scratch, line->wString + line->highlight_stop, length);
                 scratch[length] = 0;
-                gprintfDirty(draw_x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+                gprintfDirty(draw_x, y, Wiz8ToSgpWideText(g_format_s), scratch);
             }
         }
     } else {
         SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
         if (line->length_14 == -1) {
-            gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), line->wString);
+            gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), line->wString);
         } else {
             wcsncpy(scratch, line->wString, line->length_14);
             scratch[line->length_14] = 0;
-            gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+            gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), scratch);
         }
     }
 
     if (line->length_14 != -1) {
         wcscpy(scratch, line->wString + line->length_14);
         width = StringPixLength(Wiz8ToSgpWideText(scratch), g_level_block->text_box_font);
-        gprintfDirty(g_level_block->text_box_right - width, y,
-                     Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+        gprintfDirty(g_level_block->text_box_right - width, y, Wiz8ToSgpWideText(g_format_s),
+                     scratch);
         DrawNoticeWordOverlays(line, x, y);
         return;
     }
@@ -2468,7 +2468,7 @@ void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             memset(word_text, 0, sizeof(word_text));
             wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
-            gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s_006068e4),
+            gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s),
                          Wiz8ToSgpWideText(word_text));
             word->redraw_09 = false;
         }
@@ -2482,7 +2482,7 @@ void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             memset(word_text, 0, sizeof(word_text));
             wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
-            gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s_006068e4),
+            gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s),
                          Wiz8ToSgpWideText(word_text));
             word->redraw_09 = false;
         }
@@ -2637,7 +2637,7 @@ void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...)
     vswprintf(text, format, arguments);
     va_end(arguments);
 
-    wcscpy(separator, text[0] == L'\'' || text[0] == L':' ? &g_wchar_00689b34 : L" ");
+    wcscpy(separator, text[0] == L'\'' || text[0] == L':' ? &g_empty_wide_string : L" ");
     ShowNoticef(9, L"%s%s%s", GetMonsterName(monster_info, 0, 0), separator, text);
 }
 

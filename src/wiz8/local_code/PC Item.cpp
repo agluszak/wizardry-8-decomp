@@ -1317,7 +1317,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
     }
 
     QueueCharacterEvent(&g_status.buffers.Char[party_slot], event_type, 0,
-                        g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                        g_effect_argument_005ed8cc, g_character_event_full_volume);
     *out_uses = fatigue_cost;
     return used;
 }
@@ -1399,8 +1399,8 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
             } else {
                 merged = character->skills[recipe->merge_skill].level >= recipe->merge_skill_level;
                 if (merged) {
-                    QueueCharacterEvent(character, g_learn_sound, 0, g_effect_argument_005ed8c8,
-                                        g_effect_argument_005ed914);
+                    QueueCharacterEvent(character, g_learn_sound, 0, g_character_event_no_flags,
+                                        g_character_event_full_volume);
                     PracticeCharacterSkill(character, recipe->merge_skill,
                                            recipe->merge_skill_level / 10, 0);
                 }
@@ -2439,8 +2439,8 @@ void EquipMatchingPartnerItem(W8Character* character, W8ItemInstance* item, int 
                                character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_LEFT].iItemNo)) {
         pair = &character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_LEFT];
     } else if (item_id == -1 || !FindItemOnCharacter(character, item_id, &pair, 1, 0)) {
-        QueueCharacterEvent(character, g_effect_005ee624, 0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+        QueueCharacterEvent(character, g_effect_005ee624, 0, g_character_event_no_flags,
+                            g_character_event_full_volume);
         return;
     }
 
@@ -3448,7 +3448,7 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_c
         }
         signed char npc_slot = npc->group_index;
         QueueCharacterEvent(&g_status.buffers.Char[npc_slot], g_item_message_005ee68c, 0,
-                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                            g_character_event_no_flags, g_character_event_full_volume);
         return;
     }
     default:
@@ -3461,8 +3461,8 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_c
         break;
     }
 
-    QueueCharacterEvent(character, message, 0, g_effect_argument_005ed8c8,
-                        g_effect_argument_005ed914);
+    QueueCharacterEvent(character, message, 0, g_character_event_no_flags,
+                        g_character_event_full_volume);
     item->effect_used_09 |= 1;
 }
 
@@ -4002,8 +4002,8 @@ void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item)
         return;
     }
 
-    QueueCharacterEvent(character, g_effect_005ee624, 0, g_effect_argument_005ed8c8,
-                        g_effect_argument_005ed914);
+    QueueCharacterEvent(character, g_effect_005ee624, 0, g_character_event_no_flags,
+                        g_character_event_full_volume);
     CalcAttacks(character);
 }
 
