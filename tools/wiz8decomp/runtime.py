@@ -57,6 +57,10 @@ WINE_STACK_LINE = re.compile(
     re.MULTILINE,
 )
 RUNTIME_FAILURE_GRACE_SECONDS = 2.0
+# A cold GE-Proton prefix spends its first run creating the prefix before the
+# runtime-test executable is even reached, so the registry probe gets a much
+# larger budget than a warm scenario start.
+RUNTIME_REGISTRY_TIMEOUT_SECONDS = 300.0
 
 
 def configure_runtime_environment(settings: Settings, environment: dict[str, str]) -> None:
@@ -85,9 +89,7 @@ def require_umu_runner(environment: dict[str, str]) -> str:
             f"prepared umu launcher is missing: {requested_umu}; run `uv run wiz8 prepare`"
         )
     if not proton.is_dir() or not (proton / "proton").is_file():
-        raise RuntimeError(
-            f"prepared GE-Proton is missing: {proton}; run `uv run wiz8 prepare`"
-        )
+        raise RuntimeError(f"prepared GE-Proton is missing: {proton}; run `uv run wiz8 prepare`")
     return umu_run
 
 
@@ -140,15 +142,22 @@ def _parse_runtime_scenarios(output: str) -> dict[str, RuntimeScenario]:
 def _read_runtime_scenarios(
     executable: Path, stage: Path, environment: dict[str, str]
 ) -> dict[str, RuntimeScenario]:
-    result = subprocess.run(
-        [*_runtime_test_command(executable, environment), "--list-scenarios"],
-        cwd=stage,
-        env=environment,
-        capture_output=True,
-        text=True,
-        timeout=15,
-        check=True,
+    # GE-Proton does not forward this console application's stdout, so the
+    # registry arrives through the same WIZ8_RUNTIME_TEST_OUTPUT redirection the
+    # scenario driver uses. A cold prefix also spends its budget creating the
+    # Proton prefix before the executable is reached, so allow for that here.
+    result = _drive_runtime_process(
+        executable,
+        stage,
+        environment,
+        ["--list-scenarios"],
+        RUNTIME_REGISTRY_TIMEOUT_SECONDS,
     )
+    if result.timed_out:
+        raise RuntimeError(
+            f"runtime scenario registry did not complete within "
+            f"{RUNTIME_REGISTRY_TIMEOUT_SECONDS:.0f}s; rebuild runtime-test"
+        )
     return _parse_runtime_scenarios(result.stdout)
 
 
@@ -327,9 +336,7 @@ def run_product(
     environment["WINEPREFIX"] = str(prefix)
     environment.setdefault("WIZ8_RUNTIME_SCREEN_GEOMETRY", runtime_video_screen_geometry(settings))
     environment.setdefault("WINEDLLOVERRIDES", "winemenubuilder.exe=d")
-    with runtime_display(
-        environment, default="host", log_path=staged.root / "xvfb-run.log"
-    ):
+    with runtime_display(environment, default="host", log_path=staged.root / "xvfb-run.log"):
         completed = subprocess.run(
             [umu_run, str(staged.executable), "/WINDOW", *(arguments or [])],
             cwd=staged.root,
@@ -1334,8 +1341,7 @@ def run_runtime_suite(
     wineserver = runner_environment["WIZ8_UMU_WINESERVER"]
     if shutil.which(wineserver) is None:
         raise RuntimeError(
-            f"prepared GE-Proton wineserver is missing: {wineserver}; "
-            "run `uv run wiz8 prepare`"
+            f"prepared GE-Proton wineserver is missing: {wineserver}; run `uv run wiz8 prepare`"
         )
     stage = settings.runtime_stage("runtime-test")
     stage.mkdir(parents=True, exist_ok=True)

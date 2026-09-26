@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import json
 import sys
-from contextlib import nullcontext
 from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
@@ -478,12 +477,3 @@ def test_console_reassembles_mi_chunks_before_parsing(tmp_path: Path, monkeypatc
     monkeypatch.setattr(session, "_command", command)
     frames = _parse_frame_addresses(asyncio.run(session._console("thread apply all bt 16")))
     assert frames == (0x79A9C8B4, 0x79B6834F, 0x004D9A09, 0x458B08EC)
-
-
-@pytest.mark.parametrize(
-    ("scenario", "product", "arguments"),
-    [
-        (None, "Wiz8Runtime.exe", ["/WINDOW"]),
-        ("main-game-start", "Wiz8RuntimeTest.exe", ["--scenario", "main-game-start"]),
-    ],
-)
