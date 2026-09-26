@@ -832,6 +832,12 @@ def runtime_test_environment(
     return prefix, environment
 
 
+def _wine_control_command(environment: dict[str, str], *arguments: str) -> list[str]:
+    if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
+        return [environment["WIZ8_UMU_RUN"], *arguments]
+    return ["wine", *arguments]
+
+
 def _initialize_wine_prefix(prefix: Path, environment: dict[str, str]) -> None:
     """Populate a fresh prefix once without the WINEDLLOVERRIDES audio set.
 
@@ -844,7 +850,7 @@ def _initialize_wine_prefix(prefix: Path, environment: dict[str, str]) -> None:
         return
     clean = {key: value for key, value in environment.items() if key != "WINEDLLOVERRIDES"}
     subprocess.run(
-        ["wine", "reg", "query", r"HKCU\Software\Wine"],
+        _wine_control_command(environment, "reg", "query", r"HKCU\Software\Wine"),
         env=clean,
         check=False,
         capture_output=True,
@@ -879,8 +885,8 @@ def configure_wine_window_management(
 
     _initialize_wine_prefix(Path(environment["WINEPREFIX"]), environment)
     subprocess.run(
-        [
-            "wine",
+        _wine_control_command(
+            environment,
             "reg",
             "add",
             r"HKCU\Software\Wine\X11 Driver",
@@ -889,7 +895,7 @@ def configure_wine_window_management(
             "/d",
             "N" if private_display else "Y",
             "/f",
-        ],
+        ),
         env=environment,
         check=True,
         timeout=60,
@@ -911,8 +917,8 @@ def configure_wine_window_management(
         )
         return
     subprocess.run(
-        [
-            "wine",
+        _wine_control_command(
+            environment,
             "reg",
             "add",
             r"HKCU\Software\Wine\Explorer",
@@ -921,14 +927,14 @@ def configure_wine_window_management(
             "/d",
             "Wizardry",
             "/f",
-        ],
+        ),
         env=environment,
         check=True,
         timeout=60,
     )
     subprocess.run(
-        [
-            "wine",
+        _wine_control_command(
+            environment,
             "reg",
             "add",
             r"HKCU\Software\Wine\Explorer\Desktops",
@@ -937,7 +943,7 @@ def configure_wine_window_management(
             "/d",
             "640x480",
             "/f",
-        ],
+        ),
         env=environment,
         check=True,
         timeout=60,
@@ -1351,13 +1357,20 @@ def run_runtime_suite(
             "unset WIZ8_RUNTIME_DISPLAY or set it to 'virtual'"
         )
 
-    if shutil.which("wine") is None or shutil.which("wineserver") is None:
-        raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
     runner = runtime_runner()
-    if runner == "umu":
+    if runner == "wine":
+        if shutil.which("wine") is None or shutil.which("wineserver") is None:
+            raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
+    else:
         runner_environment = dict(os.environ)
-        configure_runtime_runner(runner_environment, runner)
+        configure_runtime_runner(settings, runner_environment, runner)
         require_umu_runner(runner_environment)
+        wineserver = runner_environment["WIZ8_UMU_WINESERVER"]
+        if shutil.which(wineserver) is None:
+            raise RuntimeError(
+                f"prepared GE-Proton wineserver is missing: {wineserver}; "
+                "run `uv run wiz8 prepare`"
+            )
     stage = settings.runtime_stage("runtime-test")
     stage.mkdir(parents=True, exist_ok=True)
     executable = settings.product_build_dir / "Wiz8RuntimeTest.exe"
@@ -1397,9 +1410,8 @@ def run_runtime_suite(
         registry = _read_runtime_scenarios(
             registry_stage.executable, registry_stage.root, registry_environment
         )
-        # Registry discovery uses system Wine. Retire its prefix services while
-        # their X connection is still live, before GE-Proton starts on another
-        # private display for the scenarios.
+        # Retire the registry-read prefix services while their X connection is
+        # still live before scenarios start on worker displays.
         if registry_environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
             subprocess.run(
                 [_runtime_test_wineserver(registry_environment), "-k"],
