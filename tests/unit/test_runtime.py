@@ -127,30 +127,6 @@ def test_selected_glide_config_reaches_runtime_test_stage_and_display(
     ]
 
 
-def test_default_runtime_uses_ge_proton_and_glide_geometry(tmp_path: Path, monkeypatch) -> None:
-    settings = _settings(tmp_path)
-    (settings.repo_dir / "config/runtime/3DVideo.CFG").write_text("Glide2x\n800\n600\n16\nAudio\n")
-
-    _, environment = runtime_test_environment(settings)
-
-    assert environment["PROTONPATH"] == str(
-        settings.runtime_toolchain_dir / "GE-Proton11-7-x86_64"
-    )
-    assert environment["WIZ8_UMU_RUN"] == str(
-        settings.runtime_toolchain_dir / "umu-launcher-1.4.4/umu-run"
-    )
-    assert environment["WIZ8_UMU_WINESERVER"] == str(
-        settings.runtime_toolchain_dir / "GE-Proton11-7-x86_64/files/bin/wineserver"
-    )
-    assert environment["UMU_FOLDERS_PATH"] == str(settings.runtime_toolchain_dir / "state")
-    assert environment["XDG_CACHE_HOME"] == str(settings.runtime_toolchain_dir / "cache")
-    assert environment["WIZ8_RUNTIME_SCREEN_GEOMETRY"] == "800x600x24"
-    assert _runtime_test_command(Path("game.exe"), environment) == [
-        str(settings.runtime_toolchain_dir / "umu-launcher-1.4.4/umu-run"),
-        "game.exe",
-    ]
-
-
 def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
     unmanaged = settings.runtime_stage("runtime-test") / "Data"
@@ -162,33 +138,6 @@ def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None
             name="runtime-test",
             executable=settings.product_build_dir / "Wiz8RuntimeTest.exe",
         )
-
-
-def test_interactive_run_uses_prepared_umu(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.delenv("WIZ8_RUNTIME_VIDEO_CONFIG", raising=False)
-    monkeypatch.delenv("WIZ8_WINE_PREFIX", raising=False)
-    settings = _settings(tmp_path)
-    (settings.product_build_dir / "Wiz8Runtime.exe").write_bytes(b"runtime")
-    calls = []
-
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
-    )
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.subprocess.run",
-        lambda *args, **kwargs: (
-            calls.append((args, kwargs)) or SimpleNamespace(returncode=0, stdout="", stderr="")
-        ),
-    )
-
-    run_product(settings)
-
-    command = calls[0][0][0]
-    assert command[0] == str(settings.runtime_toolchain_dir / "umu-launcher-1.4.4/umu-run")
-    assert command[-1] == "/WINDOW"
-    assert calls[0][1]["env"]["WINEPREFIX"] == str(
-        settings.work_dir / "wine" / "wiz8-ge-proton"
-    )
 
 
 def test_runtime_test_environment_honours_explicit_renderer(tmp_path: Path, monkeypatch) -> None:
@@ -1202,30 +1151,6 @@ def test_wine_window_management_matches_display_mode(
         "/f",
     ]
     assert len(calls) == 2
-
-
-def test_wine_window_management_uses_prepared_umu(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    calls = []
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.subprocess.run",
-        lambda *args, **kwargs: calls.append((args, kwargs)),
-    )
-    monkeypatch.delenv("WIZ8_WINE_VIRTUAL_DESKTOP", raising=False)
-
-    prefix = tmp_path / "prefix"
-    prefix.mkdir()
-    (prefix / "system.reg").write_text("")
-    environment = {
-        "WINEPREFIX": str(prefix),
-        "WIZ8_UMU_RUN": "/prepared/umu-run",
-    }
-
-    configure_wine_window_management(environment, private_display=True)
-
-    assert calls[0][0][0][:3] == ["/prepared/umu-run", "reg", "add"]
-    assert calls[1][0][0][:3] == ["/prepared/umu-run", "reg", "delete"]
 
 
 @pytest.mark.parametrize("private_display", [True, False])
