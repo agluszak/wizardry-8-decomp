@@ -2363,12 +2363,12 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
                 new_target.iGroupID = -1;
                 new_target.iType = W8_TARGET_KIND_MONSTER;
                 new_target.iMonsterID = selected;
-                AimAtTarget(party_slot, &new_target, (W8TargetingContext)arg);
+                AimAtTarget(party_slot, &new_target, resolved);
                 result = 1;
                 if (arg != 0) {
                     StartBreathCycle(party_slot, 0);
                 }
-                if (arg == 0) {
+                if (resolved == W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
                     if (g_settings.verbose_combat_messages != 0) {
                         PostCharacterNotice(party_slot, gppStringList[0x26b]);
                     }
@@ -2392,7 +2392,7 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
         new_target.iChar = -1;
         new_target.iGroupID = -1;
         new_target.iType = W8_TARGET_KIND_NONE;
-        AimAtTarget(party_slot, &new_target, (W8TargetingContext)arg);
+        AimAtTarget(party_slot, &new_target, resolved);
     }
     if (gXStatus.fCombatMode != 0 && action_context == W8_TARGETING_CONTEXT_IN_COMBAT &&
         target->iType != previous_kind) {
@@ -3022,7 +3022,7 @@ void RefreshAllPartyTargets(void)
             if (IsPartySlotEligible(party_slot) != 0 &&
                 (row->action_03d == W8_ACTION_ATTACK || row->action_03d == W8_ACTION_BERSERK) &&
                 (row->weapon_swap_pending_105 != 0 ||
-                 CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0)) {
+                 !CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0))) {
                 int group_id = -1;
 
                 if (row->target_in_combat.iMonsterID != -1) {

@@ -3881,6 +3881,7 @@ int W8Monster::Query(int query)
         result = m_pRep->current_subcycle;
         break;
     case 7:
+        result = 0;
         if (m_pRep->animation_behaviour_070 == 3) {
             if (m_pRep->animation_playing_06d == 0) {
                 result = 1;

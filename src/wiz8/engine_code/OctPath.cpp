@@ -2612,11 +2612,10 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
             probe_cell_key_078 = route_node;
             break;
         }
-        if (route_node == 0 || m_owned_0c8[route_node].path_cost_10 > remaining_callback) {
-            continue;
+        if (remaining_callback < m_owned_0c8[route_parent].path_cost_10) {
+            probe_cell_key_078 = route_node;
+            break;
         }
-        probe_cell_key_078 = route_node;
-        break;
     }
 
     if (static_cast<unsigned int>(attachment->path_position_index_08) + 1 >=

@@ -2825,13 +2825,13 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
         RefreshAllSight();
         monster = monster_info->p3D;
         combat = monster_info->pCombat;
-        if (static_cast<int>((monster->movement_0c0.callback_threshold_058 <= g_float_005ebb34
+        if (static_cast<int>((monster->movement_0c0.callback_threshold_058 > g_float_005ebb34
                                   ? monster->movement_0c0.callback_progress_05c /
                                         monster->movement_0c0.callback_threshold_058
                                   : g_float_005ebb34) *
                              g_octree_cell_scale) < 100) {
             progress_pct =
-                static_cast<int>((monster->movement_0c0.callback_threshold_058 <= g_float_005ebb34
+                static_cast<int>((monster->movement_0c0.callback_threshold_058 > g_float_005ebb34
                                       ? monster->movement_0c0.callback_progress_05c /
                                             monster->movement_0c0.callback_threshold_058
                                       : g_float_005ebb34) *

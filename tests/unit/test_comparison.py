@@ -354,6 +354,17 @@ def test_compare_selected_uses_one_in_process_comparison(tmp_path, monkeypatch):
                 recomp=DifferenceSide(instruction_index=1),
             )
         ),
+        report_diff=[
+            (
+                "full function",
+                [
+                    {
+                        "orig": [("0x00401003", "jne 0x401020"), ("0x00401005", "mov eax, 1")],
+                        "recomp": [("0x00501003", "je 0x501020"), ("0x00501005", "mov eax, 2")],
+                    }
+                ],
+            )
+        ],
     )
     seen = []
     (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
@@ -404,8 +415,66 @@ def test_compare_selected_uses_one_in_process_comparison(tmp_path, monkeypatch):
     assert row["first_difference"]["original"]["name"] == "Widget::Run"
     assert row["first_difference"]["original"]["address"] == "0x00401000"
     assert row["artifacts"]["diff"] == "build/reports/compare/00401000.txt"
-    assert (tmp_path / row["artifacts"]["diff"]).is_file()
+    artifact = (tmp_path / row["artifacts"]["diff"]).read_text()
+    assert "0x00401003" in artifact
+    assert "0x00401005" in artifact
+    assert "0x00501003" in artifact
+    assert "0x00501005" in artifact
+    assert "status=" not in artifact
+    assert seen[0]["include_diff"] is True
     assert row["instruction_window"]["original"][0]["divergence"]
+
+
+def test_compare_selected_writes_inconclusive_native_diff(tmp_path, monkeypatch):
+    from reccmp.compare.diagnosis import ComparisonAnalysis
+    from reccmp.compare.report import ReccmpComparedEntity
+    from reccmp.types import EntityType
+
+    (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
+
+    entity = ReccmpComparedEntity(
+        orig_addr=0x401000,
+        recomp_addr=0x501000,
+        name="Widget::Run",
+        type=EntityType.FUNCTION,
+        accuracy=0.4,
+        analysis=ComparisonAnalysis.inconclusive("non_isomorphic_cfg"),
+        report_diff=[
+            (
+                "body",
+                [{"orig": [("0x00401000", "push ebp")], "recomp": [("0x00501000", "sub esp, 4")]}],
+            )
+        ],
+    )
+    products = tmp_path / "build/decomp"
+    products.mkdir(parents=True)
+    target = SimpleNamespace(
+        original_path=tmp_path / "orig.exe",
+        recompiled_path=products / "Wiz8.exe",
+        recompiled_pdb=products / "Wiz8.pdb",
+    )
+    target.recompiled_path.write_bytes(b"exe")
+    target.recompiled_pdb.write_bytes(b"pdb")
+    monkeypatch.setattr(
+        comparison, "_project", lambda _repository: SimpleNamespace(get=lambda _target: target)
+    )
+    monkeypatch.setattr(
+        comparison.Compare,
+        "from_target",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            compare_addresses=lambda **_kwargs: iter([entity])
+        ),
+    )
+
+    row = compare_selected(tmp_path, "WIZ8", [0x401000])["functions"][0]
+
+    assert row["status"] == "inconclusive"
+    assert row["reason"] == "non_isomorphic_cfg"
+    artifact = (tmp_path / row["artifacts"]["diff"]).read_text()
+    assert "0x00401000" in artifact
+    assert "push ebp" in artifact
+    assert "0x00501000" in artifact
+    assert "sub esp, 4" in artifact
 
 
 def test_compare_selected_marks_unpaired_addresses_missing(tmp_path, monkeypatch):

@@ -8,14 +8,17 @@ import re
 from bisect import bisect_right
 from collections import Counter
 from collections.abc import Iterable
+from contextlib import redirect_stdout
 from dataclasses import asdict
+from io import StringIO
 from pathlib import Path
 from typing import Any
 
 from reccmp.compare import Compare
-from reccmp.compare.report import ReccmpComparedEntity
+from reccmp.compare.report import ReccmpComparedEntity, get_udiff_for_entity
 from reccmp.project.detect import RecCmpProject, RecCmpTarget
 from reccmp.source import SourceIndexError
+from reccmp.utils import print_combined_diff
 
 from .config import Settings
 from .paths import atomic_json, atomic_write
@@ -550,7 +553,7 @@ def compare_selected(
             entity.orig_addr: entity
             for entity in engine.compare_addresses(
                 orig_addrs=addresses,
-                include_diff=False,
+                include_diff=True,
                 include_exact_diff=False,
             )
         }
@@ -606,7 +609,7 @@ def compare_selected(
                     row["reported_difference"] = difference
                     row["difference"] = {"kind": "alignment_or_structure"}
         if row["status"] in {"mismatch", "inconclusive"}:
-            artifact = _write_compare_artifact(repository, row)
+            artifact = _write_compare_artifact(repository, entity)
             if artifact:
                 row["artifacts"] = {"diff": artifact}
         functions.append(row)
@@ -627,47 +630,17 @@ def compare_selected(
     }
 
 
-def _write_compare_artifact(repository: Path, row: dict[str, Any]) -> str | None:
-    """Write the first difference and instruction window next to other reports."""
+def _write_compare_artifact(repository: Path, entity: ReccmpComparedEntity) -> str | None:
+    """Save reccmp's complete asm diff next to the structured summary."""
 
-    address = str(row.get("address") or "").removeprefix("0x")
-    if not address:
+    udiff = get_udiff_for_entity(entity)
+    if udiff is None:
         return None
-    first = row.get("first_difference") or {}
-    original = first.get("original") or {}
-    recompiled = first.get("recompiled") or {}
-    lines = [
-        f"{row.get('name') or ''} {row.get('address')}".strip(),
-        f"status={row.get('status')}",
-        f"kind={first.get('kind') or (row.get('difference') or {}).get('kind') or ''}",
-        (
-            "original="
-            f"{original.get('name') or row.get('name')} "
-            f"{original.get('address') or row.get('address')} "
-            f"index={original.get('instruction_index')}"
-        ),
-        (
-            "recompiled="
-            f"{recompiled.get('name') or row.get('name')} "
-            f"{recompiled.get('address') or row.get('recompiled')} "
-            f"index={recompiled.get('instruction_index')}"
-        ),
-    ]
-    if row.get("reason"):
-        lines.append(f"reason={row['reason']}")
-    window = row.get("instruction_window") or {}
-    for side in ("original", "recomp"):
-        instructions = window.get(side) or []
-        if not instructions:
-            continue
-        lines.append(f"[{side}]")
-        for item in instructions:
-            marker = ">>" if item.get("divergence") else "  "
-            lines.append(
-                f"{marker} {item.get('address', '')}  {item.get('instruction', '')}".rstrip()
-            )
-    path = repository / "build" / "reports" / "compare" / f"{address}.txt"
-    atomic_write(path, "\n".join(lines) + "\n")
+    output = StringIO()
+    with redirect_stdout(output):
+        print_combined_diff(udiff, plain=True, show_both=True)
+    path = repository / "build" / "reports" / "compare" / f"{entity.orig_addr:08x}.txt"
+    atomic_write(path, output.getvalue())
     return str(path.relative_to(repository))
 
 

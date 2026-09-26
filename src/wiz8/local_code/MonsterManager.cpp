@@ -1791,7 +1791,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         return;
     }
     if (health_knowledge < 10 || suppress_exact_health != 0) {
-        wcscpy(health_text, L"");
+        wcscpy(health_text, L"?");
     } else {
         wcscpy(health_text, FormatWideString(L"%d", monster_info->hp_current));
     }
@@ -1800,7 +1800,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         wcscat(health_text, FormatWideString(L"%d", monster_info->uiHPMax));
         return;
     }
-    wcscat(health_text, L"");
+    wcscat(health_text, L"?");
 }
 
 // FUNCTION: WIZ8 0x004e6970
