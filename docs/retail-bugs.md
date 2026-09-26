@@ -18,10 +18,10 @@ Behavior that only looks odd, or an unmatched recompiled body, is not an entry.
 | `GetFact` / `SetFact` | `0x00506280` / `0x005061A0` | The range check is `fact_id > 1000`, so id 1000 passes. It reads and writes one past the 1000-entry `g_fact_values`, into `g_npc_name_buffer[0]`. | The bound constant is 1000 and `g_fact_values` ends exactly at `g_npc_name_buffer`. |
 | `TrimAndLowercaseString` | `0x00497940` | The trailing-space check looks at `text[length]`, the terminator, so trailing spaces are never trimmed. | The first trailing test is `cmp byte ptr [text + length], 0x20` (`0x0049796E`), the terminator, so the trim loop never starts. |
 | `W8Octree::UpdateVisibility`, `W8Octree::UpdatePathVisualization` | `0x004304A0`, `0x00434170` | The cursor position guard tests `y` twice and never tests `x`. | Both bodies compare the same `y` component twice against the same constant. |
-| Octree segment hit test | `0x004353F0` | The reported hit offset is the last colliding candidate's, not the nearest one's. | Recorded at the recovered body; the offset store is not guarded by the distance comparison. |
+| Octree segment hit test | `0x004353F0` | The reported hit offset is the last colliding candidate's, not the nearest one's. | Documented at the recovered body (`Octree.cpp`); not re-verified against the instructions for this list. |
 | `PathNodeObstructed` / `BuildPathLists` | — | The support and block appends write the slot before the `> 29` assertion runs, so a 30th entry overruns the array. | The store precedes the assertion in both appends. |
 | `MonGen::SetEncounterTable` | `0x0048CC50` | Sets the HARASSMENT bit (bit 5) for a harassment table but never clears it when a later table is not a harassment table. | The body's only flag write is `or dword ptr [esi], 0x20` (`0x0048CC8B`). |
-| NPC dialogue notice region callback | `0x0056F1D0` | Left-button release and double-click also raise the right-button-held flag. | Recorded at the recovered body. |
+| NPC dialogue notice region callback | `0x0056F1D0` | Left-button release and double-click also raise the right-button-held flag. | Documented at the recovered body (`NPCInteractionSubscreen.cpp`); not re-verified against the instructions for this list. |
 
 ## Memory and resource bugs
 
