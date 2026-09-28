@@ -1,3 +1,5 @@
+/* Retail calls AIL_shutdown here through the import thunk, not the IAT. */
+#define MSS_IMPORT_THUNKS
 #include "Mss.h"
 #include <stdlib.h>
 

@@ -719,19 +719,25 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
     if (scale_range_start != -1.0f && scale_range_end != -1.0f) {
         representation->minimum_scale_5f4 = scale_range_start;
         representation->maximum_scale_5f8 = scale_range_end;
-        scale_factor =
-            (scale_range_end - scale_range_start) * (Random(1000) * 0.001f) + scale_range_start;
+        scale_factor = (scale_range_end - scale_range_start) * 0.5f + scale_range_start;
     }
     representation->scale_5f0 = scale_factor;
     representation->death_scale_5fc = death_scale;
 
+    /* The world scale follows the largest radius any monster reaches. */
     if (walk_radius != 0.0f) {
         walk_radius *= g_world_scale;
         (*monster)->movement_0c0.collision_radius_0b0 = walk_radius;
+        if (g_runtime_world_scale < walk_radius) {
+            g_runtime_world_scale = walk_radius;
+        }
     }
     if (fight_radius != 0.0f) {
         fight_radius *= g_world_scale;
         (*monster)->movement_0c0.alternate_radius_0b4 = fight_radius;
+        if (g_runtime_world_scale < fight_radius) {
+            g_runtime_world_scale = fight_radius;
+        }
     }
     if (target_height != 0.0f) {
         target_height *= g_world_scale;
@@ -787,7 +793,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
     (*monster)->bob_amplitude_max_228 = bob_range_end;
     if (shadow_width != 0.0f) {
         if (shadow_width < 0.0f) {
-            shadow_width = (*monster)->movement_0c0.collision_radius_0b0 * 0.75f;
+            shadow_width = (*monster)->movement_0c0.collision_radius_0b0 * 0.002f;
         }
         if (shadow_depth == 0.0f)
             shadow_depth = shadow_width;
@@ -800,7 +806,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
     if (has_light != 0 && representation->monster_light_624 == 0) {
         representation->monster_light_624 = new MonsterLight(
             g_world->dynamic_scene, light_pulsing,
-            (*monster)->movement_0c0.collision_radius_0b0 * 0.1f, &light_first, &light_second);
+            (*monster)->movement_0c0.collision_radius_0b0 * 3.0f, &light_first, &light_second);
         representation->monster_light_624->m_vertical_offset_228 =
             (*monster)->movement_0c0.height_offset_0b8;
     }
@@ -812,7 +818,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
     srVector3T<float> maximum;
     (*monster)->GetAnimationBounds(&minimum, &maximum);
     (*monster)->SetBounds(&minimum, &maximum);
-    if (movement_rate < 2.0f)
+    if (movement_rate < 0.1f)
         movement_rate = 2.0f;
     (*monster)->SetValue120(movement_rate);
     (*monster)->SetTurnRate(rotation_rate * (float)g_double_005ec318);

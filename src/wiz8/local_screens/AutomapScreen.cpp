@@ -1793,10 +1793,11 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
                 marker_width = static_cast<int>(
                     static_cast<unsigned short>(g_automap_text_marker->GetWidth00480EF0()) * 0.22);
             } else {
-                marker_width = (int)((1.0f / (g_automap_zoom * 0.00004f)) *
-                                     static_cast<double>(static_cast<unsigned short>(
-                                         g_automap_text_marker->GetWidth00480EF0())) *
-                                     0.5f);
+                marker_width = static_cast<int>(
+                    (1.0f / (g_automap_zoom * 0.00004f)) * 0.44f *
+                    static_cast<double>(
+                        static_cast<unsigned short>(g_automap_text_marker->GetWidth00480EF0())) *
+                    0.5f);
             }
             g_automap_text_marker->GetHeight00480F70();
             W8ScreenRect rect;

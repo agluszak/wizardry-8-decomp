@@ -289,7 +289,9 @@ extern "C" {
     #define DXDEF __declspec(dllexport)
   #else
 
-    #ifdef __BORLANDC__
+    /* Miles' own import-library startup object (MSS_IMPORT_THUNKS) calls the
+       DLL through the import library's thunks, as Borland code does. */
+    #if defined(__BORLANDC__) || defined(MSS_IMPORT_THUNKS)
       #define DXDEC extern
 	  #define DXDEF
     #else
