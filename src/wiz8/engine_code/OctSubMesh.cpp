@@ -215,7 +215,7 @@ stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
         g_oct_mesh_default_texture = textures[0];
         delete g_oct_mesh_default_shader;
         g_oct_mesh_default_shader = new srShader;
-        g_oct_mesh_default_shader->CopyValue(render_flags);
+        g_oct_mesh_default_shader->value = render_flags[0];
     }
 
     unsigned char read_ok = 1;
@@ -355,9 +355,11 @@ stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
         ShutdownWithErrorBox("Mesh Model in .pvl file is wrong length.");
     }
 
-    srShader shader;
-    shader.CopyValue(&render_flags[selected_material]);
-    model->setShader(shader, 0);
+    /* Retail copy-constructs the argument directly from the render-flag word
+       (0x0049EFCF), which makes the table an srShader array; the loader chain
+       that fills it still types the words as unsigned long. */
+    // reinterpret-ok: unresolved srShader/render-flag table type
+    model->setShader(*reinterpret_cast<const srShader*>(&render_flags[selected_material]), 0);
     if ((render_flags[selected_material] & 0x6000) == 0x4000) {
         if (unweighted) {
             ShutdownWithErrorBox("OctMeshModel::Read -- Wrong shader type.\n");

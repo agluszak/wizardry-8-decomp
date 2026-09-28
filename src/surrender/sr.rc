@@ -1,0 +1,35 @@
+#include <winver.h>
+
+/* Transcribed from retail sr.dll's only resource (VERSIONINFO 1, language
+   0x0409). The internal and original names are the vendor's srdb build. */
+LANGUAGE 0x09, 0x01
+1 VERSIONINFO
+FILEVERSION 1,42,2,9
+PRODUCTVERSION 1,42,2,9
+FILEFLAGSMASK 0x3fL
+FILEFLAGS 0x0L
+FILEOS 0x40004L
+FILETYPE 0x2L
+FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "For further information contact surrender@surrender3d.com\0"
+            VALUE "CompanyName", "Hybrid Holding, Ltd.\0"
+            VALUE "FileDescription", "SurRender3D Runtime Library (DLL)\0"
+            VALUE "FileVersion", "1, 42, 2, 9\0"
+            VALUE "InternalName", "srdb\0"
+            VALUE "LegalCopyright", "Copyright \251 1994-2000 Hybrid Holding, Ltd.\0"
+            VALUE "LegalTrademarks", "SurRender3D\0"
+            VALUE "OriginalFilename", "srdb.dll\0"
+            VALUE "ProductName", "SurRender3D 1.4x\0"
+            VALUE "ProductVersion", "1, 42, 2, 9\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

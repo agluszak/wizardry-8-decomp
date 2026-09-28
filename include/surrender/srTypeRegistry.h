@@ -262,6 +262,11 @@ protected:
 public:
     virtual srClass* vInstance() = 0;
 
+    /* Slot 7. Its own spelling is not exported; vClone follows the vInstance
+       convention of slot 6. clone below is the exported nonvirtual forwarder
+       onto it, as instance is onto vInstance. */
+    virtual srClass* vClone() = 0;
+
     SR_DLL_IMPORT srClass* clone();
     SR_DLL_IMPORT srClass* instance();
     SR_DLL_IMPORT int release() const;
@@ -386,7 +391,7 @@ public:
 #pragma clang diagnostic ignored "-Wsuggest-override"
 #endif
     /* Same clone slot as the provider layer. */
-    virtual srClass* clone()
+    virtual srClass* vClone()
     {
         Base* copy = static_cast<Base*>(this->vInstance());
         *copy = *static_cast<const Base*>(this);
@@ -497,10 +502,8 @@ public:
     /* Slot 7 of every registry class. The return type is srClass* at every
        level, which is what makes the nested chain legal under VC6: srClass's
        own nonvirtual clone forwards through this slot and returns srClass*.
-       A specialization whose Base already declares it overrides it rather than
-       introducing it, so this cannot carry an unconditional override
-       specifier. */
-    virtual srClass* clone()
+       srClass declares vClone, so every specialization overrides it. */
+    virtual srClass* vClone()
     {
         Derived* copy = static_cast<Derived*>(this->vInstance());
         *copy = *static_cast<const Derived*>(this);

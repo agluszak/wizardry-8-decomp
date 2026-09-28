@@ -765,7 +765,7 @@ stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int ver
 
         srShader shader;
         shader.value = 0x0100241b;
-        shader.CopyValue(polygon_types.data + type);
+        shader.value = polygon_types.data[type];
         model->setShader(shader, 0);
 
         free(polygon_shades[type]);

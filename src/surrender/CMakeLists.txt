@@ -100,21 +100,42 @@ target_link_libraries(wiz8_surrender_objects PRIVATE wiz8_compile_settings)
 wiz8_lint_target(wiz8_surrender_objects)
 
 if(WIZ8_BUILD_PRODUCTS)
+    find_program(CVTRES_EXECUTABLE cvtres.exe REQUIRED)
+    set(SURRENDER_RESOURCE_RES "${CMAKE_CURRENT_BINARY_DIR}/sr_resource.res")
+    set(SURRENDER_RESOURCE_OBJECT "${CMAKE_CURRENT_BINARY_DIR}/sr_resource.obj")
+    add_custom_command(
+        OUTPUT "${SURRENDER_RESOURCE_OBJECT}"
+        COMMAND "${CMAKE_RC_COMPILER}"
+            "/fo${SURRENDER_RESOURCE_RES}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/sr.rc"
+        COMMAND "${CVTRES_EXECUTABLE}" /nologo /machine:ix86
+            "/out:${SURRENDER_RESOURCE_OBJECT}"
+            "${SURRENDER_RESOURCE_RES}"
+        DEPENDS sr.rc
+        VERBATIM
+    )
+    set_source_files_properties("${SURRENDER_RESOURCE_OBJECT}" PROPERTIES
+        EXTERNAL_OBJECT TRUE
+        GENERATED TRUE
+    )
+
     add_library(SURRENDER SHARED
         $<TARGET_OBJECTS:wiz8_surrender_objects>
         sr.def
+        "${SURRENDER_RESOURCE_OBJECT}"
     )
     # msvcrt must resolve ??3 (operator delete) before msvcprt's delop_s.obj
     # claims it; retail imports ??3 from MSVCRT.dll.
-    target_link_libraries(SURRENDER PRIVATE msvcrt.lib wiz8_compile_settings version.lib)
+    target_link_libraries(SURRENDER PRIVATE
+        msvcrt.lib wiz8_compile_settings version.lib
+        # srTimer's hi-resolution path calls timeGetTime; retail sr.dll imports
+        # WINMM.dll for it.
+        winmm.lib
+    )
     target_link_options(SURRENDER PRIVATE
         /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO
         /OPT:NOREF /OPT:NOICF /BASE:0x10000000 /FILEALIGN:0x1000
         /OSVERSION:4.0 /SUBSYSTEM:WINDOWS,4.0
-        # Comparison image, not a runnable replacement: emitted vtables still
-        # reference unrecovered virtuals (srDebugDD/srNode/srVP machinery) and
-        # other first-party bodies remain outstanding. Never link clients here.
-        /FORCE:UNRESOLVED
         "/MAP:${CMAKE_BINARY_DIR}/sr.map"
     )
     set_target_properties(SURRENDER PROPERTIES

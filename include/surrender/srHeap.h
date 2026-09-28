@@ -12,6 +12,20 @@
 #define SR_DLL_IMPORT
 #endif
 
+/* Provider-side export, independent of the consumer import contract above.
+   sr.def names the export table itself. Retail also exports a `default
+   constructor closure' (??_F) for each class whose exported constructor takes
+   only defaulted arguments; VC6 emits that closure for a dllexport
+   constructor, so those constructors carry this marker. A member-level export
+   is the scope the closure establishes: the classes' unexported members (for
+   example the protected srTimer calibration at 0x10061EC0) rule out a
+   class-level export. */
+#if defined(SURRENDER_BUILD)
+#define SR_DLL_EXPORT __declspec(dllexport)
+#else
+#define SR_DLL_EXPORT
+#endif
+
 /* The SDK's zero fill pre-aligns the destination to an 8-byte boundary:
    VC6 lowers each site to a head memset + dword-body memset split rather
    than the single rep stosd a plain memset produces. Inlined everywhere;

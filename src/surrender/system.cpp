@@ -14,22 +14,27 @@ long srSystem::scanFiles(srStringTable& files, const char* path)
         return 0;
     }
 
-    const char* slash = strrchr(path, '/');
-    if (slash == 0) {
-        return scanFiles(files, 0, path);
+    const long last = strlen(path) - 1;
+    long slash;
+    for (slash = last; slash >= 0; --slash) {
+        if (path[slash] == '/') {
+            break;
+        }
     }
-    if (slash == path + strlen(path) - 1) {
+    if (slash == last) {
         return 0;
     }
-    if (slash == path) {
-        return scanFiles(files, "/", slash + 1);
+    if (slash > 0) {
+        /* The directory keeps its trailing separator. */
+        char directory[MAX_PATH];
+        memcpy(directory, path, slash + 1);
+        directory[slash + 1] = '\0';
+        return scanFiles(files, directory, path + slash + 1);
     }
-
-    char directory[MAX_PATH];
-    const size_t directory_length = slash - path;
-    memcpy(directory, path, directory_length);
-    directory[directory_length] = '\0';
-    return scanFiles(files, directory, slash + 1);
+    if (*path == '/') {
+        return scanFiles(files, "/", path + 1);
+    }
+    return scanFiles(files, 0, path);
 }
 
 // FUNCTION: SURRENDER 0x10045B70
@@ -45,10 +50,7 @@ long srSystem::chDir(const char* path)
 }
 
 // FUNCTION: SURRENDER 0x10045BA0
-long srSystem::scanLibraries(
-    srStringTable& libraries,
-    const char* directory,
-    const char* extension)
+long srSystem::scanLibraries(srStringTable& libraries, const char* directory, const char* extension)
 {
     char pattern[MAX_PATH + 4];
     strcpy(pattern, extension);
@@ -70,8 +72,7 @@ long srSystem::scanLibraries(
 }
 
 // FUNCTION: SURRENDER 0x10045CD0
-long srSystem::scanFiles(
-    srStringTable& files, const char* directory, const char* pattern)
+long srSystem::scanFiles(srStringTable& files, const char* directory, const char* pattern)
 {
     if (pattern == 0) {
         return 0;
@@ -108,19 +109,14 @@ long srSystem::scanFiles(
 }
 
 // FUNCTION: SURRENDER 0x10045DE0
-void srSystem::makePath(
-    char* path,
-    const char* drive,
-    const char* directory,
-    const char* filename,
-    const char* extension)
+void srSystem::makePath(char* path, const char* drive, const char* directory, const char* filename,
+                        const char* extension)
 {
     _makepath(path, drive, directory, filename, extension);
 }
 
 // FUNCTION: SURRENDER 0x10045E10
-char* srSystem::fullPath(
-    char* absolute_path, const char* path, unsigned long size)
+char* srSystem::fullPath(char* absolute_path, const char* path, unsigned long size)
 {
     if (absolute_path == 0) {
         absolute_path = new char[MAX_PATH];
@@ -129,12 +125,8 @@ char* srSystem::fullPath(
 }
 
 // FUNCTION: SURRENDER 0x10045E40
-void srSystem::splitPath(
-    const char* path,
-    char* drive,
-    char* directory,
-    char* filename,
-    char* extension)
+void srSystem::splitPath(const char* path, char* drive, char* directory, char* filename,
+                         char* extension)
 {
     _splitpath(path, drive, directory, filename, extension);
 }

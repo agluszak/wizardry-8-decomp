@@ -18,7 +18,7 @@ class srTextureFile : public srClassSupport<srTextureFile, srTexture, 0, 0x2112>
 public:
     /* The default-constructor closure 0x10060090 proves both arguments
        default to zero for paren-less new expressions. */
-    srTextureFile(const char* file_name = 0, int cached = 0);
+    SR_DLL_EXPORT srTextureFile(const char* file_name = 0, int cached = 0);
     srTextureFile(const srTextureFile& other);
     srTextureFile& operator=(const srTextureFile& other);
 

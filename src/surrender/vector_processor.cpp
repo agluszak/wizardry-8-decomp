@@ -158,7 +158,7 @@ void srVectorProcessor::dump(std::ostream& stream)
         srStreamPrintf(stream, "misAlignments not checked\n");
     }
     srStreamPrintf(stream, "\n");
-    std::endl(stream);
+    stream << std::endl;
     operator delete(order);
     operator delete(scores);
 }

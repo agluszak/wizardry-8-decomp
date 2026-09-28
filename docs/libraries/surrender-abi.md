@@ -244,9 +244,11 @@ touches the global counter. Update records form an intrusive list; a nonpositive
 for each advancing frame, while a positive interval catches up at each elapsed boundary. The next
 record is saved before invoking a callback, allowing that callback to remove its own update safely.
 
-The provider's nonvirtual `srClass::clone` export is a five-byte tail dispatch through slot 7, the
-slot introduced by `srClassSupport`; expressing that body would require the raw vtable call forbidden
-at the recovered source boundary, so consumers continue to import it. The client-emitted self-support
+The provider's nonvirtual `srClass::clone` export is a five-byte tail dispatch through slot 7, exactly
+as `srClass::instance` (`0x1000E850`) dispatches through slot 6. `srClass` therefore declares slot 7
+as a pure virtual beside `vInstance`; its spelling is not exported, so the source names it `vClone`.
+Provider callers such as `srNode::cloneHierarchy` dispatch through the slot directly rather than
+calling the forwarder. The client-emitted self-support
 identity and clone families for material, camera, scene and color surface are byte-exact with the
 generic template. No provider or client binary retains an SDK declaration macro, construction macro,
 or nested alias name. Consequently the template behavior is recovered, while `SR_NEW` and
@@ -271,7 +273,7 @@ A plain `srClass` base cannot produce that distinct support phase.
 
 The intermediate table also settles who owns clone. It has eight slots, and slots 0, 1, 2, 4 and 7
 (clone, `0x10055510`) hold the same targets as srNode's own table; srNode overrides only 3 (dump),
-5 (destructor) and 6 (vInstance). So the support level introduces clone and srNode inherits it.
+5 (destructor) and 6 (vInstance). So the support level supplies the clone body and srNode inherits it.
 
 ### The clone slot returns srClass* at every level
 

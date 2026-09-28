@@ -20,7 +20,7 @@ public:
         unsigned long value_14;
     };
 
-    srScene(srNode* parent = 0);
+    SR_DLL_EXPORT srScene(srNode* parent = 0);
     srScene(const srScene& other);
     srScene& operator=(const srScene& other);
 

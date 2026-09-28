@@ -3874,9 +3874,7 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, unsig
     }
     model->setMaterial(g_blit_material, 0, static_cast<srMeshModel::e_side>(0));
     model->setTexture(texture, 0, 0);
-    srShader shader_copy;
-    shader_copy.CopyValue(&shader.value);
-    model->setShader(shader_copy, 0);
+    model->setShader(shader, 0);
 
     stModelInstance* instance = SR_NEW(stModelInstance)(static_cast<srNode*>(0));
     instance->setName("VideoMakePoster");
