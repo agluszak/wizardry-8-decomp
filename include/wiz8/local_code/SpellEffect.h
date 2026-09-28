@@ -140,7 +140,7 @@ struct W8SpellEffectEntry {
     /* 0x100/0x110: spawned visuals and owned missiles. The cited tables are
        W8GrowableVector construction/final tables, not derived-vector proof. */
     W8GrowableVector<W8SpellVisual*> spell_visuals; /* 0x100 */
-    W8GrowableVector<W8Missile*> missiles;          /* 0x110 */
+    W8Vector<W8Missile*> missiles;                  /* 0x110 */
     /* 0x120: when the effect ends without having applied, the tick re-casts
        the spell from the stored source. CastSpellFromSource's `c` argument. */
     bool recast_120;

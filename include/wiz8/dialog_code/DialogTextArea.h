@@ -6,8 +6,11 @@
 
 /* Two instances of this pointer-vector specialization are embedded in
    W8DialogTextArea. */
-// VTABLE: WIZ8 0x005ef898
+// VTABLE: WIZ8 0x005ef89c
 // class W8GrowableVector<W8DialogTextEntry*>
+
+// VTABLE: WIZ8 0x005ef898
+// class W8Vector<W8DialogTextEntry*>
 
 /* Nonpolymorphic scrolling-text helper contained by dialogs, not a widget or
    text-buffer base. Both vectors belong to this object; only all_lines owns
@@ -49,13 +52,13 @@ public:
     void SetFirstVisibleEntry(unsigned int index);
 
 private:
-    W8ControlsRect m_bounds;                              /* 0x00: passed to entry construction */
-    int m_font;                                           /* 0x10 */
-    int m_first_visible_entry;                            /* 0x14 */
-    int m_first_visible_line;                             /* 0x18 */
-    W8GrowableVector<W8DialogTextEntry*> m_all_lines_01c; /* owns entries */
-    W8GrowableVector<W8DialogTextEntry*> m_visible_lines_02c; /* non-owning view */
-    bool m_layout_initialized;                                /* 0x3c */
+    W8ControlsRect m_bounds;                          /* 0x00: passed to entry construction */
+    int m_font;                                       /* 0x10 */
+    int m_first_visible_entry;                        /* 0x14 */
+    int m_first_visible_line;                         /* 0x18 */
+    W8Vector<W8DialogTextEntry*> m_all_lines_01c;     /* owns entries */
+    W8Vector<W8DialogTextEntry*> m_visible_lines_02c; /* non-owning view */
+    bool m_layout_initialized;                        /* 0x3c */
 public:
     /* Owning dialogs raise this before Draw, the same way they dirty the
        contained button and scrollbar. */

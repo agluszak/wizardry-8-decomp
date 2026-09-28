@@ -65,9 +65,9 @@ public:
     unsigned char saved_subcycle_0ac; /* 0xac */
     unsigned char frame_steps_0ad;    /* 0xad */
     unsigned char padding_0ae[2];
-    W8GrowableVector<W8PropAnimationSegment*> slots; /* 0xb0 */
-    unsigned char footstep_surface_0c0;              /* 0xc0 */
-    unsigned char footstep_material_0c1;             /* 0xc1 */
+    W8Vector<W8PropAnimationSegment*> slots; /* 0xb0 */
+    unsigned char footstep_surface_0c0;      /* 0xc0 */
+    unsigned char footstep_material_0c1;     /* 0xc1 */
     unsigned char padding_0c2[2];
 }; /* 0xc4 */
 

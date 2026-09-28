@@ -510,7 +510,7 @@ bool g_flag_652da5;
 // FUNCTION: WIZ8 0x004D9740
 void LoadAwayCampChest(void)
 {
-    W8GrowableVector<W8WorldItem*> items(5);
+    W8Vector<W8WorldItem*> items(5);
     W8Prop* pChest;
     Trigger* pTrigger;
     W8WorldItem* pContainer;

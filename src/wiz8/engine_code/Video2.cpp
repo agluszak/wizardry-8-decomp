@@ -2904,11 +2904,11 @@ void SaveJpegScreenshot(void)
     if (surface != 0) {
         char filename[32];
         srSurfaceIOManager::ExportInfo options;
+
+        ++g_screenshot_index;
         options.unknown_00 = 0;
         options.unknown_04 = 1;
         options.option_string = 0;
-
-        ++g_screenshot_index;
         sprintf(filename, "Wiz8%5.5d.JPG", screenshot_index);
         if (g_auto_capture == 0) {
             surface_io_manager->exportSurface(filename, *surface, options);

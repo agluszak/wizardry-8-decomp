@@ -37,12 +37,12 @@ struct W8SearchableView {
     W8SearchableView();
 
     int cursor;
-    W8GrowableVector<W8Searchable*> items;
+    W8Vector<W8Searchable*> items;
 };
 
 static_assert(sizeof(W8SearchableView) == 0x14, "W8SearchableView_must_be_0x14");
 
-extern W8GrowableVector<W8Searchable*> g_searchables;
+extern W8Vector<W8Searchable*> g_searchables;
 extern W8SearchableView g_search_view;
 /* 500ms pulse clock arming the search-mode sweep. */
 extern unsigned int g_search_pulse_clock;

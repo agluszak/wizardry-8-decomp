@@ -115,14 +115,14 @@ void ConstructWorldCollections(W8World* world)
     world->plsProps = PLCreate();
     world->plsCameras = PLCreate();
     world->plsAmbientSounds = PLCreate();
-    world->lights_to_update = new W8GrowableVector<stLight*>;
-    world->collidable_props = new W8GrowableVector<W8Prop*>;
-    world->monster_generators = new W8GrowableVector<MonGen*>;
+    world->lights_to_update = new W8Vector<stLight*>;
+    world->collidable_props = new W8Vector<W8Prop*>;
+    world->monster_generators = new W8Vector<MonGen*>;
     world->spell_visuals = new W8GrowableVector<W8SpellVisual*>;
-    world->missiles = new W8GrowableVector<W8Missile*>;
-    world->triggers = new W8GrowableVector<Trigger*>;
-    world->particles = new W8GrowableVector<stParticle*>;
-    world->named_positions = new W8GrowableVector<W8NamedPosition*>;
+    world->missiles = new W8Vector<W8Missile*>;
+    world->triggers = new W8Vector<Trigger*>;
+    world->particles = new W8Vector<stParticle*>;
+    world->named_positions = new W8Vector<W8NamedPosition*>;
 
     if (world->plsMonsters == 0) {
         srAssertFail("pWorld->plsMonsters", THREE_D_API_CPP, 0x57e,
@@ -155,6 +155,14 @@ void ConstructWorldCollections(W8World* world)
     if (world->monster_generators == 0) {
         srAssertFail("pWorld->plsMonsterGenerators", THREE_D_API_CPP, 0x585,
                      "Out of memory creating plsMonsterGenerators.");
+    }
+    if (world->lights_to_update == 0) {
+        srAssertFail("pWorld->plsLightsToUpdate", THREE_D_API_CPP, 0x586,
+                     "Out of memory creating plsLightsToUpdate.");
+    }
+    if (world->collidable_props == 0) {
+        srAssertFail("pWorld->plsCollidableProps", THREE_D_API_CPP, 0x587,
+                     "Out of memory creating plsCollidableProps.");
     }
     if (world->missiles == 0) {
         srAssertFail("pWorld->plsMissiles", THREE_D_API_CPP, 0x588,
@@ -545,6 +553,8 @@ void DestroyWorldCollections(W8World* world)
         PLDestroy(world->plsAmbientSounds);
         world->plsAmbientSounds = 0;
     }
+    if (g_world_cleanup_flag != 0)
+        RenderFrame();
 
     if (world->particles != 0) {
         while (world->particles->GetCount() != 0) {

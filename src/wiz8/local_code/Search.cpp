@@ -42,7 +42,7 @@
    line 337 establishes the original translation unit. */
 
 // GLOBAL: WIZ8 0x00689fa8
-W8GrowableVector<W8Searchable*> g_searchables(5);
+W8Vector<W8Searchable*> g_searchables(5);
 // GLOBAL: WIZ8 0x00689fb8
 W8SearchableView g_search_view;
 // GLOBAL: WIZ8 0x00689fcc

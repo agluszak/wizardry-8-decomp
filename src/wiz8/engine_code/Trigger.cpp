@@ -2563,7 +2563,7 @@ void Trigger::RunDestination(const char* destination)
 // FUNCTION: WIZ8 0x00445500
 void Trigger::GenerateItemGroup()
 {
-    W8GrowableVector<W8WorldItem*> items(5);
+    W8Vector<W8WorldItem*> items(5);
     srVector3T<float> position;
     unsigned int table_id;
     unsigned int maximum_items;

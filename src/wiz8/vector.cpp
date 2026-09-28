@@ -61,43 +61,46 @@
 // W8GrowableVector<unsigned short>::`scalar deleting destructor'
 
 // VTABLE: WIZ8 0x005ee8c8
-// class W8GrowableVector<W8ChunkHead*>
+// class W8Vector<W8ChunkHead*>
 
 // SYNTHETIC: WIZ8 0x0055cbe0
-// W8GrowableVector<W8ChunkHead*>::`scalar deleting destructor'
+// W8Vector<W8ChunkHead*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0055cb90
-// W8GrowableVector<W8ChunkHead*>::~W8GrowableVector<W8ChunkHead*>
+// W8Vector<W8ChunkHead*>::~W8Vector<W8ChunkHead*>
 
 // VTABLE: WIZ8 0x005ec15c
-// class W8GrowableVector<W8WorldItem*>
+// class W8Vector<W8WorldItem*>
 
 // SYNTHETIC: WIZ8 0x004461e0
-// W8GrowableVector<W8WorldItem*>::`scalar deleting destructor'
+// W8Vector<W8WorldItem*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00446070
-// W8GrowableVector<W8WorldItem*>::~W8GrowableVector<W8WorldItem*>
+// W8Vector<W8WorldItem*>::~W8Vector<W8WorldItem*>
 
 class W8Missile;
 
-/* 0x005EBFE8 is the construction-phase table of this specialization; the
-   final table is 0x005EC27C, which CastSpellFromSource 0x004FB4C0 writes into
+/* 0x005EBFE8 is the base W8GrowableVector table; the derived W8Vector
+   table is 0x005EC27C, which CastSpellFromSource 0x004FB4C0 writes into
    W8SpellEffectEntry::missiles and ConstructWorldCollections writes into
    W8World::missiles. */
-// VTABLE: WIZ8 0x005ec27c
+// VTABLE: WIZ8 0x005ebfe8
 // class W8GrowableVector<W8Missile*>
 
+// VTABLE: WIZ8 0x005ec27c
+// class W8Vector<W8Missile*>
+
 // TEMPLATE: WIZ8 0x00501e50
-// W8GrowableVector<W8Missile*>::W8GrowableVector
+// W8Vector<W8Missile*>::W8Vector
 
 // SYNTHETIC: WIZ8 0x00451b00
-// W8GrowableVector<W8Missile*>::`scalar deleting destructor'
+// W8Vector<W8Missile*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0042bbd0
-// W8GrowableVector<W8Missile*>::`scalar deleting destructor' (construction-phase copy)
+// W8GrowableVector<W8Missile*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00451b20
-// W8GrowableVector<W8Missile*>::~W8GrowableVector<W8Missile*>
+// W8Vector<W8Missile*>::~W8Vector<W8Missile*>
 
 struct W8SpellDamageReport;
 
@@ -186,23 +189,26 @@ struct W8MessageBoxLine;
 
 /* Local Code\Health Stamina Mana.cpp's W8CharacterEventQueue members: the
    queue constructor writes each vector's table in two stages, first
-   0x005EE74C - this specialization's construction-phase table - then the
-   final 0x005EE748. The deleting destructor at 0x0052E570 chains to the
-   destructor body at 0x0052E520, which reinstalls the construction-phase
+   0x005EE74C - the base table - then the derived 0x005EE748. The deleting
+   destructor at 0x0052E570 chains to the destructor body at 0x0052E520,
+   which reinstalls the base
    table before freeing data. */
 class W8CharacterEvent;
 
-// VTABLE: WIZ8 0x005ee748
+// VTABLE: WIZ8 0x005ee74c
 // class W8GrowableVector<W8CharacterEvent*>
 
+// VTABLE: WIZ8 0x005ee748
+// class W8Vector<W8CharacterEvent*>
+
 // SYNTHETIC: WIZ8 0x0052e570
-// W8GrowableVector<W8CharacterEvent*>::`scalar deleting destructor'
+// W8Vector<W8CharacterEvent*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0052e540
-// W8GrowableVector<W8CharacterEvent*>::`scalar deleting destructor' (construction-phase copy)
+// W8GrowableVector<W8CharacterEvent*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0052e520
-// W8GrowableVector<W8CharacterEvent*>::~W8GrowableVector<W8CharacterEvent*>
+// W8Vector<W8CharacterEvent*>::~W8Vector<W8CharacterEvent*>
 
 // TEMPLATE: WIZ8 0x0052e4d0
 // W8GrowableVector<W8CharacterEvent*>::Remove
@@ -213,60 +219,57 @@ class W8CharacterEvent;
 // SYNTHETIC: WIZ8 0x0050e510
 // W8GrowableVector<W8NpcState*>::`scalar deleting destructor'
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-/* AutomapScreen.cpp's CreateAutomapMarkerSprites constructs
-   g_releasable_68f1f4 with `new W8GrowableVector<srClass*>(5)`. That use is
-   what emits this specialization. Retail splits the capacity ctor there: a
-   helper at 0x00585460 writes the construction-phase table 0x005EBFB8 and
-   allocates the array, then the final-vtable store at 0x00582310 (inside
-   CreateAutomapMarkerSprites, not a separate function) installs 0x005EBFB4.
-   The complete TEMPLATE ctor below performs both stages in one body. Like the
-   other construction-phase tables in this file, 0x005EBFB8 carries no marker
-   of its own. */
-// VTABLE: WIZ8 0x005ebfb4
+/* CreateAutomapMarkerSprites constructs the derived W8Vector<srClass*>.
+   The base ctor helper at 0x00585460 stamps 0x005EBFB8 and allocates the
+   array; the caller installs the derived 0x005EBFB4 table. The complete
+   ctor at 0x0042A260 performs both stages. */
+// VTABLE: WIZ8 0x005ebfb8
 // class W8GrowableVector<srClass*>
 
+// VTABLE: WIZ8 0x005ebfb4
+// class W8Vector<srClass*>
+
 // TEMPLATE: WIZ8 0x0042a260
-// W8GrowableVector<srClass*>::W8GrowableVector
+// W8Vector<srClass*>::W8Vector
 
 // SYNTHETIC: WIZ8 0x0042a310
-// W8GrowableVector<srClass*>::`scalar deleting destructor'
+// W8Vector<srClass*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0042a2c0
-// W8GrowableVector<srClass*>::~W8GrowableVector<srClass*>
+// W8Vector<srClass*>::~W8Vector<srClass*>
 
-/* 0x0042A2E0 installs the base 0x005EBFB8 table and frees the element array
-   itself: the W8Vector<srClass*> base subobject's own deleting destructor. */
+/* The base deleting destructor restamps 0x005EBFB8 and frees the array. */
 // SYNTHETIC: WIZ8 0x0042a2e0
-// W8Vector<srClass*>::`scalar deleting destructor'
+// W8GrowableVector<srClass*>::`scalar deleting destructor'
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
 class stModelInstance;
 
-/* 0x005EC004 is the construction-phase table of this specialization: the
+/* 0x005EC004 is the base W8GrowableVector table: the
    complete-object ctor 0x004CAD80 writes it during setup and 0x005EC018 when
    the object is finished, and the member-construction emission 0x004390F0
-   leaves it in place for the enclosing ctor to overwrite. Like the other
-   construction-phase tables in this file it carries no marker of its own. */
-// VTABLE: WIZ8 0x005ec018
+   leaves it in place for the enclosing ctor to overwrite. */
+// VTABLE: WIZ8 0x005ec004
 // class W8GrowableVector<stModelInstance*>
 
+// VTABLE: WIZ8 0x005ec018
+// class W8Vector<stModelInstance*>
+
 // TEMPLATE: WIZ8 0x004cad80
-// W8GrowableVector<stModelInstance*>::W8GrowableVector
+// W8Vector<stModelInstance*>::W8Vector
 
 // TEMPLATE: WIZ8 0x004390f0
 // W8GrowableVector<stModelInstance*>::W8GrowableVector (member-construction emission)
 
 // SYNTHETIC: WIZ8 0x00438f70
-// W8GrowableVector<stModelInstance*>::`scalar deleting destructor'
+// W8Vector<stModelInstance*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00438f40
-// W8GrowableVector<stModelInstance*>::`scalar deleting destructor' (construction-phase copy)
+// W8GrowableVector<stModelInstance*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00438c70
-// W8GrowableVector<stModelInstance*>::~W8GrowableVector<stModelInstance*>
+// W8Vector<stModelInstance*>::~W8Vector<stModelInstance*>
 
 /* Local Screens\MGSRadarMap.cpp's g_radar_icon_pools emission: the
    static initializer constructs the eighteen-pool array through this ctor. */
@@ -325,13 +328,13 @@ struct W8EncounterScriptName;
 /* Emitted lifecycle bodies belong directly to the template specialization. */
 
 // TEMPLATE: WIZ8 0x00484870
-// W8GrowableVector<stLight*>::W8GrowableVector
+// W8Vector<stLight*>::W8Vector
 
 // SYNTHETIC: WIZ8 0x00451d10
-// W8GrowableVector<stLight*>::`scalar deleting destructor'
+// W8Vector<stLight*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00451d30
-// W8GrowableVector<stLight*>::~W8GrowableVector<stLight*>
+// W8Vector<stLight*>::~W8Vector<stLight*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
@@ -372,52 +375,52 @@ class W8Navigator;
    lifecycle table whose scalar/vector deleting destructors and inline
    teardowns are emitted in this unit. */
 // SYNTHETIC: WIZ8 0x00451b90
-// W8GrowableVector<Trigger*>::`vector deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00451bc0
 // W8GrowableVector<Trigger*>::`scalar deleting destructor'
 
+// SYNTHETIC: WIZ8 0x00451bc0
+// W8Vector<Trigger*>::`scalar deleting destructor'
+
 // TEMPLATE: WIZ8 0x00451be0
-// W8GrowableVector<Trigger*>::~W8GrowableVector<Trigger*>
+// W8Vector<Trigger*>::~W8Vector<Trigger*>
 
 // SYNTHETIC: WIZ8 0x00451c00
-// W8GrowableVector<stParticle*>::`vector deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00451c30
 // W8GrowableVector<stParticle*>::`scalar deleting destructor'
 
+// SYNTHETIC: WIZ8 0x00451c30
+// W8Vector<stParticle*>::`scalar deleting destructor'
+
 // TEMPLATE: WIZ8 0x00451c50
-// W8GrowableVector<stParticle*>::~W8GrowableVector<stParticle*>
+// W8Vector<stParticle*>::~W8Vector<stParticle*>
 
 // SYNTHETIC: WIZ8 0x00451c70
-// W8GrowableVector<W8NamedPosition*>::`vector deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00451ca0
 // W8GrowableVector<W8NamedPosition*>::`scalar deleting destructor'
 
+// SYNTHETIC: WIZ8 0x00451ca0
+// W8Vector<W8NamedPosition*>::`scalar deleting destructor'
+
 // TEMPLATE: WIZ8 0x00451cc0
-// W8GrowableVector<W8NamedPosition*>::~W8GrowableVector<W8NamedPosition*>
+// W8Vector<W8NamedPosition*>::~W8Vector<W8NamedPosition*>
 
 // SYNTHETIC: WIZ8 0x00451ce0
-// W8GrowableVector<stLight*>::`vector deleting destructor'
+// W8GrowableVector<stLight*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00451d50
-// W8GrowableVector<W8Prop*>::`vector deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00451d80
 // W8GrowableVector<W8Prop*>::`scalar deleting destructor'
 
+// SYNTHETIC: WIZ8 0x00451d80
+// W8Vector<W8Prop*>::`scalar deleting destructor'
+
 // TEMPLATE: WIZ8 0x00451da0
-// W8GrowableVector<W8Prop*>::~W8GrowableVector<W8Prop*>
+// W8Vector<W8Prop*>::~W8Vector<W8Prop*>
 
 // SYNTHETIC: WIZ8 0x00451dc0
-// W8GrowableVector<MonGen*>::`vector deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00451df0
 // W8GrowableVector<MonGen*>::`scalar deleting destructor'
 
+// SYNTHETIC: WIZ8 0x00451df0
+// W8Vector<MonGen*>::`scalar deleting destructor'
+
 // TEMPLATE: WIZ8 0x00451e10
-// W8GrowableVector<MonGen*>::~W8GrowableVector<MonGen*>
+// W8Vector<MonGen*>::~W8Vector<MonGen*>
 
 // TEMPLATE: WIZ8 0x00451ae0
 // W8GrowableVector<W8SpellVisual*>::~W8GrowableVector<W8SpellVisual*>
@@ -432,7 +435,7 @@ class W8Navigator;
 // W8GrowableVector<W8EncounterScriptName*>::`vector deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004461b0
-// W8GrowableVector<W8WorldItem*>::`vector deleting destructor' (companion table 0x005EC160)
+// W8GrowableVector<W8WorldItem*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00446200
 // W8GrowableVector<W8TriggerEvent*>::`vector deleting destructor' (companion table 0x005EC170)
@@ -506,7 +509,7 @@ class W8Navigator;
 // W8GrowableVector<unsigned short>::Grow
 
 // TEMPLATE: WIZ8 0x0048CFD0
-// W8GrowableVector<stLight*>::W8GrowableVector (copy)
+// W8GrowableVector<MonGen*>::W8GrowableVector (copy)
 
 // TEMPLATE: WIZ8 0x0048ce80
 // W8GrowableVector<W8EncounterTableRuntime*>::~W8GrowableVector<W8EncounterTableRuntime*>
@@ -567,8 +570,11 @@ class W8Navigator;
 /* The emitted lifecycle and both reviewed vtables belong directly to the
    ordinary light-vector template specializations. */
 
-// VTABLE: WIZ8 0x005ec294
+// VTABLE: WIZ8 0x005ec298
 // class W8GrowableVector<stLight*>
+
+// VTABLE: WIZ8 0x005ec294
+// class W8Vector<stLight*>
 
 // VTABLE: WIZ8 0x005ece60
 // class W8GrowableVector<W8GrowableVector<stLight*>*>
@@ -602,14 +608,17 @@ class W8Navigator;
 
 /* Emitted W8GrowableVector instantiation identified by its vtable. */
 
-// VTABLE: WIZ8 0x005ecf00
+// VTABLE: WIZ8 0x005ecf04
 // class W8GrowableVector<srVector3T<float>*>
 
+// VTABLE: WIZ8 0x005ecf00
+// class W8Vector<srVector3T<float>*>
+
 // SYNTHETIC: WIZ8 0x004aaaf0
-// W8GrowableVector<srVector3T<float>*>::`scalar deleting destructor'
+// W8Vector<srVector3T<float>*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004aab10
-// W8GrowableVector<srVector3T<float>*>::~W8GrowableVector<srVector3T<float>*>
+// W8Vector<srVector3T<float>*>::~W8Vector<srVector3T<float>*>
 
 // TEMPLATE: WIZ8 0x004aab30
 // W8GrowableVector<srVector3T<float>*>::W8GrowableVector
@@ -695,53 +704,74 @@ class srClipPlane;
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
 /* Local Code\Search.cpp's g_searchables. */
-// VTABLE: WIZ8 0x005ed840
+// VTABLE: WIZ8 0x005ed844
 // class W8GrowableVector<W8Searchable*>
 
+// VTABLE: WIZ8 0x005ed840
+// class W8Vector<W8Searchable*>
+
 // TEMPLATE: WIZ8 0x00517810
-// W8GrowableVector<W8Searchable*>::W8GrowableVector
+// W8Vector<W8Searchable*>::W8Vector
 
 // SYNTHETIC: WIZ8 0x005178c0
-// W8GrowableVector<W8Searchable*>::`scalar deleting destructor'
+// W8Vector<W8Searchable*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00517870
-// W8GrowableVector<W8Searchable*>::~W8GrowableVector<W8Searchable*>
+// W8Vector<W8Searchable*>::~W8Vector<W8Searchable*>
 
 /* Engine Code\3dapi.cpp's ConstructWorldCollections00450B10 emission span:
    each `new W8GrowableVector<T*>` member there instantiates the
    specialization's destructor bodies in this neighbourhood, and each dtor
    restamps the construction-phase table the member's ctor wrote first. */
 
-// VTABLE: WIZ8 0x005ec274
+// VTABLE: WIZ8 0x005ec278
 // class W8GrowableVector<Trigger*>
 
-// VTABLE: WIZ8 0x005ec26c
+// VTABLE: WIZ8 0x005ec274
+// class W8Vector<Trigger*>
+
+// VTABLE: WIZ8 0x005ec270
 // class W8GrowableVector<stParticle*>
 
-// VTABLE: WIZ8 0x005ec264
+// VTABLE: WIZ8 0x005ec26c
+// class W8Vector<stParticle*>
+
+// VTABLE: WIZ8 0x005ec268
 // class W8GrowableVector<W8NamedPosition*>
 
-// VTABLE: WIZ8 0x005ec28c
+// VTABLE: WIZ8 0x005ec264
+// class W8Vector<W8NamedPosition*>
+
+// VTABLE: WIZ8 0x005ec290
 // class W8GrowableVector<W8Prop*>
 
-// VTABLE: WIZ8 0x005ec284
+// VTABLE: WIZ8 0x005ec28c
+// class W8Vector<W8Prop*>
+
+// VTABLE: WIZ8 0x005ec288
 // class W8GrowableVector<MonGen*>
+
+// VTABLE: WIZ8 0x005ec284
+// class W8Vector<MonGen*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
 struct W8AutomapNote;
 
-// VTABLE: WIZ8 0x005eea28
+// VTABLE: WIZ8 0x005eea2c
 // class W8GrowableVector<W8AutomapNote*>
+
+// VTABLE: WIZ8 0x005eea28
+// class W8Vector<W8AutomapNote*>
 
 // TEMPLATE: WIZ8 0x005853A0
 // W8HashTable<unsigned int,int>::Lookup
 
 // SYNTHETIC: WIZ8 0x00585420
-// W8GrowableVector<W8AutomapNote*>::`scalar deleting destructor'
+// W8Vector<W8AutomapNote*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00585440
-// W8GrowableVector<W8AutomapNote*>::~W8GrowableVector<W8AutomapNote*>
+// W8Vector<W8AutomapNote*>::~W8Vector<W8AutomapNote*>
 
 // TEMPLATE: WIZ8 0x00585460
 // W8GrowableVector<srClass*>::W8GrowableVector
@@ -889,11 +919,11 @@ struct W8AutomapNote;
    table's element type is unresolved; the other emissions re-instantiate
    already-reviewed specializations. */
 // VTABLE: WIZ8 0x005ec160
-// class W8GrowableVector_005EC160 (element type unresolved)
+// class W8GrowableVector<W8WorldItem*>
 
 /* Prop.cpp span. */
 // VTABLE: WIZ8 0x005ec1d4
-// class W8GrowableVector_005EC1D4 (element type unresolved)
+// class W8GrowableVector<W8PropAnimationSegment*>
 
 /* Environment.cpp span. */
 // VTABLE: WIZ8 0x005ec9bc
@@ -912,18 +942,17 @@ struct W8AutomapNote;
 // TEMPLATE: WIZ8 0x004A5DB0
 // W8GrowableVector<W8SpellDamageReport> member-dtor emission (Missile.cpp span)
 
-/* GrCycle.cpp span. 0x005ECED0 and 0x005ECEE0 are the derived W8Vector
-   tables riding over 0x005ECED4 (W8CameraShakeEffect elements) and
-   0x005ECEE4 (W8GrowableVector<W8GrCycle*>* elements). */
+/* GrCycle.cpp span. 0x005ECED0 is the particle-attachment base table;
+   0x005ECED4 is the derived shake-effect table. */
 // VTABLE: WIZ8 0x005eced0
-// class W8Vector<W8CameraShakeEffect*>
+// class W8GrowableVector<W8GrCycleParticleAttachment*>
 
 // VTABLE: WIZ8 0x005ecee0
 // class W8Vector<W8GrowableVector<W8GrCycle*>*>
 
 /* PathAI.CPP -> Spells.cpp gap. */
 // SYNTHETIC: WIZ8 0x004AAAC0
-// W8GrowableVector<srVector3T<float>*>::`scalar deleting destructor' (PathAI.CPP emission)
+// W8GrowableVector<srVector3T<float>*>::`scalar deleting destructor'
 
 /* Spells.cpp span. */
 // SYNTHETIC: WIZ8 0x004AF710
@@ -967,16 +996,16 @@ struct W8AutomapNote;
 
 /* Controls.cpp -> ItemManager.cpp gap. */
 // VTABLE: WIZ8 0x005ed5b4
-// class W8GrowableVector_005ED5B4 (element type unresolved)
+// class W8GrowableVector<W8Widget*>
 
 // VTABLE: WIZ8 0x005ed660
-// class W8GrowableVector_005ED660 (element type unresolved)
+// class W8GrowableVector<W8TextControl*>
 
 // SYNTHETIC: WIZ8 0x004F6870
-// `scalar deleting destructor' for the 0x005ED5B4 vector table
+// W8GrowableVector<W8Widget*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004F68E0
-// `scalar deleting destructor' for the 0x005ED660 vector table
+// W8GrowableVector<W8TextControl*>::`scalar deleting destructor'
 
 /* ItemManager.cpp span. */
 
@@ -993,14 +1022,14 @@ struct W8AutomapNote;
 
 /* search.cpp span. */
 // SYNTHETIC: WIZ8 0x00517890
-// W8GrowableVector<W8Searchable*>::`scalar deleting destructor' (search.cpp emission)
+// W8GrowableVector<W8Searchable*>::`scalar deleting destructor'
 
 /* chunk.cpp span. */
 // VTABLE: WIZ8 0x005ee8cc
-// class W8GrowableVector_005EE8CC (element type unresolved)
+// class W8GrowableVector<W8ChunkHead*>
 
 // SYNTHETIC: WIZ8 0x0055CBB0
-// `scalar deleting destructor' for the 0x005EE8CC vector table
+// W8GrowableVector<W8ChunkHead*>::`scalar deleting destructor'
 
 /* InputMapper.cpp span. */
 // VTABLE: WIZ8 0x005ee8f8
@@ -1017,7 +1046,7 @@ struct W8AutomapNote;
 
 /* AutomapScreen.cpp span. */
 // SYNTHETIC: WIZ8 0x005853F0
-// W8GrowableVector<W8AutomapNote*>::`scalar deleting destructor' (second emission)
+// W8GrowableVector<W8AutomapNote*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0047D290
 // intrusive-list head init emission

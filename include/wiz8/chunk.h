@@ -20,7 +20,7 @@ struct W8Chunk {
     int m_hFile;                            /* 0x00 */
     bool m_fWriting;                        /* 0x04 */
     unsigned char padding_05[3];            /* 0x05 */
-    W8GrowableVector<W8ChunkHead*> m_heads; /* 0x08 */
+    W8Vector<W8ChunkHead*> m_heads;         /* 0x08 */
     W8GrowableVector<int> m_group_counts;   /* 0x18 */
     W8GrowableVector<int> m_offsets;        /* 0x28 */
     W8GrowableVector<int> m_group_progress; /* 0x38 */

@@ -88,13 +88,13 @@ struct W8World {
     W8PList m_list_09c;
     W8PList m_lights_0a8;
     W8GrowableVector<W8SpellVisual*>* spell_visuals;
-    W8GrowableVector<W8Missile*>* missiles;
-    W8GrowableVector<stLight*>* lights_to_update;
-    W8GrowableVector<W8Prop*>* collidable_props;
-    W8GrowableVector<MonGen*>* monster_generators;
-    W8GrowableVector<Trigger*>* triggers;
-    W8GrowableVector<stParticle*>* particles;
-    W8GrowableVector<W8NamedPosition*>* named_positions;
+    W8Vector<W8Missile*>* missiles;
+    W8Vector<stLight*>* lights_to_update;
+    W8Vector<W8Prop*>* collidable_props;
+    W8Vector<MonGen*>* monster_generators;
+    W8Vector<Trigger*>* triggers;
+    W8Vector<stParticle*>* particles;
+    W8Vector<W8NamedPosition*>* named_positions;
     unsigned char m_padding_0d4[8];
 };
 

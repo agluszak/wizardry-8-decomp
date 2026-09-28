@@ -570,12 +570,10 @@ void ToggleRadarMapZoom(void)
 // FUNCTION: WIZ8 0x005a3410
 void ZoomRadarMapIn(void)
 {
-    float radius = g_startup_world->radius_084;
-
     g_radar_zoomed = true;
     g_radar_map_scale = 13.0f;
-    g_radar_inner_radius = CalcRangeDistance(W8_RANGE_TOUCH) + radius;
-    g_radar_outer_radius = CalcRangeDistance(W8_RANGE_LONG) + radius;
+    g_radar_inner_radius = CalcRangeDistance(W8_RANGE_TOUCH) + g_startup_world->radius_084;
+    g_radar_outer_radius = CalcRangeDistance(W8_RANGE_LONG) + g_startup_world->radius_084;
     RefreshRadarMap();
 }
 

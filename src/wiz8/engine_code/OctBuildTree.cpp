@@ -63,8 +63,8 @@ W8OctBuildLink* W8OctBuildLinkLists::GetNewLink(void* surface)
 W8OctBuildNode::W8OctBuildNode()
 {
     memset(static_cast<void*>(this), 0, 10 * sizeof(unsigned long));
-    region_28 = 0;
     leaf_kind_2a = 0;
+    region_28 = 0;
     provisional_region_2c = 0;
 }
 

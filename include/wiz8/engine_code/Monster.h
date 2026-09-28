@@ -141,7 +141,7 @@ struct W8MonsterRep : public W8EmitterHost {
     /* 0x610: left-handed strike chance percent; Random(100) is rolled
        against it for the mirrored attack anim. */
     int left_handed_610;
-    W8GrowableVector<stModelInstance*> linked_runtime_objects_614;
+    W8Vector<stModelInstance*> linked_runtime_objects_614;
     class MonsterLight* monster_light_624;
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);

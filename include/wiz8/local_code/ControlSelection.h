@@ -13,7 +13,7 @@ public:
 };
 
 // VTABLE: WIZ8 0x005ed65c
-// class W8GrowableVector<W8TextControl*>
+// class W8Vector<W8TextControl*>
 
 /* W8Control is itself the ordinary two-slot text-control listener. The same
    W8TextControl pointer is laid out, registered in the vector and dispatched
@@ -34,7 +34,7 @@ public:
     int m_value_4;
     int m_value_8;
     int m_selectedIndex;
-    W8GrowableVector<W8TextControl*> m_lsButtons;
+    W8Vector<W8TextControl*> m_lsButtons;
     W8ControlSelectionListener* m_selectionListener;
 };
 static_assert(sizeof(W8ControlSelection) == 0x24, "W8ControlSelection_size");

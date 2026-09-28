@@ -555,8 +555,7 @@ void ArnikaElevator1Setup(void)
 }
 
 /* "RedButton": while the button press is armed it stamps the pressed fact,
-   then either starts the lift (states 1/7) or just re-arms the button master
-   and always reports handled. */
+   then either starts the lift (states 1/7) or re-arms the button master. */
 // FUNCTION: WIZ8 0x004E1740
 bool ArnikaRedButton(Trigger* pTrigger)
 {
@@ -575,9 +574,13 @@ bool ArnikaRedButton(Trigger* pTrigger)
     g_trigger_feedback = 1;
     if (gEl01.state != 3) {
         if (gEl01.button_down == 2) {
+            g_trigger_feedback = 1;
+            g_red_button_armed = 1;
             return false;
         }
         if (gEl01.state != 1 && gEl01.state != 7) {
+            g_trigger_feedback = 1;
+            g_red_button_armed = 1;
             return false;
         }
         ArnikaElevatorAdvance(1);

@@ -204,8 +204,7 @@ const double g_monster_facing_tolerance = 0.78539815;
 // GLOBAL: WIZ8 0x005ed2c0
 const double g_monster_group_nearest_range = 12500.0;
 // GLOBAL: WIZ8 0x0060f684
-char g_warning_missing_spell_vertex[] =
-    "WARNING: %ls does not have a SPELL vertex marked! --> Lee";
+char g_warning_missing_spell_vertex[] = "WARNING: %ls does not have a SPELL vertex marked! --> Lee";
 // GLOBAL: WIZ8 0x0060EA08
 W8CycleNameRow g_cycle_names[W8_MONSTER_CYCLE_COUNT] = {
     {"BIRTH", 5},
@@ -243,7 +242,7 @@ unsigned char g_monster_gib_option = 1;
 extern const double g_monster_light_color_scale = 0.00392156862745098;
 
 // GLOBAL: WIZ8 0x00682FD0
-static W8GrowableVector<stModelInstance*> g_monster_model_instances;
+static W8Vector<stModelInstance*> g_monster_model_instances;
 
 #define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"
 
@@ -573,7 +572,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
             } else if (_stricmp(command, "skin") == 0) {
                 if (damage_stage == -1) {
                     damage_stage = (*monster)->AddDamageStage(monster_name, 0);
-                    W8GrowableVector<stModelInstance*> instances;
+                    W8Vector<stModelInstance*> instances;
                     (*monster)->CollectModelInstances(&instances);
                     for (int index = 0; index < instances.GetCount(); ++index) {
                         (*instances.GetAt(index))->damage_stage_184 = damage_stage;
@@ -778,7 +777,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
         (*monster)->scale_1cc = opacity;
     }
     if (glow > 0.0f) {
-        W8GrowableVector<stModelInstance*> instances;
+        W8Vector<stModelInstance*> instances;
         (*monster)->CollectModelInstances(&instances);
         for (int index = 0; index < instances.GetCount(); ++index) {
             stModelInstance* instance = *instances.GetAt(index);
@@ -1029,7 +1028,7 @@ W8MonsterRep::W8MonsterRep()
 unsigned char W8MonsterRep::ReadCycleData(W8ReadLevelInfo* info, W8Monster* monster,
                                           int cycle_index, int value)
 {
-    W8GrowableVector<stLight*>* lights = new W8GrowableVector<stLight*>;
+    W8GrowableVector<stLight*>* lights = new W8Vector<stLight*>;
     W8AnimObj* animation;
     unsigned char success;
     signed char cycle;
@@ -1189,7 +1188,7 @@ void W8MonsterRep::CopyCycle(signed char cycle, const W8MonsterRep* other, signe
         if (source_lights != 0) {
             int light_index;
 
-            copied_lights = new W8GrowableVector<stLight*>;
+            copied_lights = new W8Vector<stLight*>;
             if (copied_lights == 0) {
                 srAssertFail("plsNewLights", MONSTER_CPP, 0x1e5,
                              "Out of memory creating monster light list");
@@ -4986,7 +4985,7 @@ unsigned char W8Monster::ReplaceSkinTexture(int stage, const char* old_name, con
         return 0;
     }
 
-    W8GrowableVector<stModelInstance*> instances;
+    W8Vector<stModelInstance*> instances;
     CollectModelInstances(&instances);
     for (int index = 0; index < instances.GetCount(); ++index) {
         if ((*instances.GetAt(index))->ReplaceDamageStageTexture(stage, old_name, texture) != 0) {
@@ -5012,7 +5011,7 @@ int W8Monster::AddDamageStage(const char* base_name, int stage)
 {
     char name[128];
     int result = -1;
-    W8GrowableVector<stModelInstance*> instances;
+    W8Vector<stModelInstance*> instances;
 
     sprintf(name, "%s%d", base_name, stage);
     CollectModelInstances(&instances);
@@ -5033,7 +5032,7 @@ int W8Monster::AddDamageStage(const char* base_name, int stage)
 void W8Monster::RemoveCycleSkinTables()
 {
     const char* cycle_name = GetRegisteredName();
-    W8GrowableVector<stModelInstance*> instances;
+    W8Vector<stModelInstance*> instances;
 
     if (cycle_name != 0) {
         CollectModelInstances(&instances);
@@ -5051,7 +5050,7 @@ void W8Monster::RemoveCycleSkinTables()
 // FUNCTION: WIZ8 0x004c6990
 void W8Monster::SetDamageStage(int stage)
 {
-    W8GrowableVector<stModelInstance*> instances;
+    W8Vector<stModelInstance*> instances;
     int index;
 
     CollectModelInstances(&instances);
@@ -5065,7 +5064,7 @@ void W8Monster::SetDamageStage(int stage)
 // FUNCTION: WIZ8 0x004c6a50
 int W8Monster::GetDamageStageCount()
 {
-    W8GrowableVector<stModelInstance*> instances;
+    W8Vector<stModelInstance*> instances;
 
     CollectModelInstances(&instances);
     if (instances.GetCount() != 0) {

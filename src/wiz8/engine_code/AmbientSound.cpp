@@ -644,10 +644,12 @@ void PositionAmbientSoundByName(W8World* /* unused */, const char* name)
         W8AmbientSound* sound =
             static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
-            srVector3T<float> position;
-            GetCameraPosition(&position);
-            sound->stopped = 0;
-            sound->UpdatePosition(&position);
+            if (sound != 0) {
+                srVector3T<float> position;
+                GetCameraPosition(&position);
+                sound->stopped = 0;
+                sound->UpdatePosition(&position);
+            }
             return;
         }
     }
@@ -663,10 +665,12 @@ void StopAmbientSoundByName(W8World* /* unused */, const char* name)
         W8AmbientSound* sound =
             static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
-            SoundStop(sound->sound_handle);
-            sound->in_range = 0;
-            sound->stopped = 1;
-            sound->sound_handle = -1;
+            if (sound != 0) {
+                SoundStop(sound->sound_handle);
+                sound->in_range = 0;
+                sound->stopped = 1;
+                sound->sound_handle = -1;
+            }
             return;
         }
     }
@@ -682,17 +686,19 @@ void ToggleAmbientSoundByName(W8World* /* unused */, const char* name)
         W8AmbientSound* sound =
             static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
-            if (sound->stopped != 0) {
-                srVector3T<float> position;
-                GetCameraPosition(&position);
-                sound->stopped = 0;
-                sound->UpdatePosition(&position);
-                return;
+            if (sound != 0) {
+                if (sound->stopped != 0) {
+                    srVector3T<float> position;
+                    GetCameraPosition(&position);
+                    sound->stopped = 0;
+                    sound->UpdatePosition(&position);
+                    return;
+                }
+                SoundStop(sound->sound_handle);
+                sound->in_range = 0;
+                sound->stopped = 1;
+                sound->sound_handle = -1;
             }
-            SoundStop(sound->sound_handle);
-            sound->in_range = 0;
-            sound->stopped = 1;
-            sound->sound_handle = -1;
             return;
         }
     }

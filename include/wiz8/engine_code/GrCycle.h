@@ -75,7 +75,7 @@ static_assert(sizeof(W8CameraShakeEffect) == 0x4c, "W8CameraShakeEffect_must_be_
 
 /* The live list every active effect is on, and the timer the first effect
    creates alongside it. Both are built lazily by the constructor. */
-extern W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects;
+extern W8Vector<W8CameraShakeEffect*>* g_shake_effects;
 extern W8GameTimer* g_shake_timer;
 extern const float g_float_005ecf9c;
 
@@ -164,13 +164,13 @@ public:
 
 public:
     srModelInstance* current_model_instance_1a8;
-    W8GrowableVector<stLight*>* m_plsLights;                  /* 0x1ac */
-    W8GrowableVector<W8CameraShakeEffect*>* m_plsShakeEvents; /* 0x1b0 */
-    bool m_fDeleteLights;                                     /* 0x1b4: named by GrCycle.cpp:1656 */
+    W8GrowableVector<stLight*>* m_plsLights;          /* 0x1ac */
+    W8Vector<W8CameraShakeEffect*>* m_plsShakeEvents; /* 0x1b0 */
+    bool m_fDeleteLights;                             /* 0x1b4: named by GrCycle.cpp:1656 */
     /* 0x1b5: the subcycle the last update pass left on the representation. */
     unsigned char last_subcycle_1b5;
     unsigned char padding_1b6[2];
-    W8GrowableVector<W8GrCycleParticleAttachment*>* m_plsParticles; /* 0x1b8 */
+    W8Vector<W8GrCycleParticleAttachment*>* m_plsParticles; /* 0x1b8 */
     /* 0x1bc: set when the frame walk wrapped to first_frame; suppresses the
        per-subcycle light reset. */
     unsigned char wrapped_1bc;

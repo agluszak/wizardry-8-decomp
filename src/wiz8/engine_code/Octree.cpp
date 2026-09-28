@@ -1260,7 +1260,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
 {
     bool linked = false;
     W8World* world = GetWorld();
-    W8GrowableVector<stModelInstance*> meshes(5);
+    W8Vector<stModelInstance*> meshes(5);
     W8GrowableVector<int> cells;
     camera_location_1c0 = *point;
     far_clip_200 = spatial_000.extent_04;
@@ -1778,8 +1778,8 @@ unsigned char W8Octree::ValidateRegionMeshLinks()
 {
     W8OctSpatialState spatial(&spatial_000);
     spatial.depth_44 = 0;
-    spatial.level_kind_6c = 1;
     spatial.node_index_94 = 1;
+    spatial.level_kind_6c = 1;
     int bad_links = CountBadRegionMeshLinks(&spatial);
     if (bad_links != 0) {
         CreateMessageBox(FormatWideString(L" %d Bad Region-Mesh Links!", bad_links), g_small_font,

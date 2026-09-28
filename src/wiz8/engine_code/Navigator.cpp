@@ -436,28 +436,11 @@ void W8NavigatorMovementState::CopySettingsFrom(const W8NavigatorMovementState& 
     target_location_id_010 = -1;
 }
 
-/* The attachment and both allocations hanging off it. Each pointer is cleared
-   before its storage goes back, and the two use different allocators. */
+/* The attachment destructor releases its two allocations before deletion. */
 // FUNCTION: WIZ8 0x00457530
 W8NavigatorMovementState::~W8NavigatorMovementState()
 {
-    W8NavigatorAttachment* attachment = attachment_0ac;
-
-    if (attachment != 0) {
-        srVector3T<float>* position = attachment->position_4c;
-
-        if (position != 0) {
-            attachment->position_4c = 0;
-            srHeap.free(position);
-        }
-        if (attachment->path_values_50 != 0) {
-            void* allocation = attachment->path_values_50;
-
-            attachment->path_values_50 = 0;
-            free(allocation);
-        }
-        delete attachment;
-    }
+    delete attachment_0ac;
     attachment_0ac = 0;
 }
 

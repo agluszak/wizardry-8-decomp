@@ -165,6 +165,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
    clean only three of the four dwords they push across the tail. */
 
 static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster_species);
+static __inline W8MonsterRecord* GetMonsterDataForInfoInline(W8MonsterInfo* monster_info);
 
 /* Materialize one inactive script record in the world. Existing engine
    Monsters are reattached without rebuilding their representation; absent or
@@ -290,7 +291,7 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
         return;
     }
 
-    record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+    record = GetMonsterDataForInfoInline(monster_info);
     context.world_00 = GetWorld();
     context.bitmap_directory_04 = 0;
     context.directory_08 = "Data\\Monsters";
@@ -568,13 +569,18 @@ static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster
     return record;
 }
 
-// FUNCTION: WIZ8 0x004e5720
-W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info)
+static __inline W8MonsterRecord* GetMonsterDataForInfoInline(W8MonsterInfo* monster_info)
 {
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
     }
     return MonsterDBFromSpeciesInline(monster_info->monster_species);
+}
+
+// FUNCTION: WIZ8 0x004e5720
+W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info)
+{
+    return GetMonsterDataForInfoInline(monster_info);
 }
 
 // FUNCTION: WIZ8 0x004e57c0
