@@ -53,6 +53,11 @@ extern const float g_camera_angle_dead_zone = 0.03141592815518379f;
 extern const float g_camera_transition_duration_scale = 0.31830987334251404f;
 // GLOBAL: WIZ8 0x005ec580
 extern const double g_camera_smoothing_scale = 0.31830989161357204;
+/* Ten degrees a second, the turn deceleration and the pitch speed limit.
+   Retail stores it as an immediate where it is assigned and compares with
+   the constants below. */
+#define CAMERA_TURN_RATE 0.1745329350233078f
+
 // GLOBAL: WIZ8 0x005ec590
 extern const float g_camera_input_deceleration = 0.1745329350233078f;
 // GLOBAL: WIZ8 0x005ec58c
@@ -697,10 +702,10 @@ void GDCamera::ApplyYawInput(float input)
         unsigned char decelerating_positive = 0;
         if (input == g_float_005ebb34) {
             if (m_angle_velocity_0a8 < g_float_005ebb34) {
-                input = g_camera_input_deceleration;
+                input = CAMERA_TURN_RATE;
                 decelerating_negative = 1;
             } else if (m_angle_velocity_0a8 > g_float_005ebb34) {
-                input = g_camera_negative_input_deceleration;
+                input = -CAMERA_TURN_RATE;
                 decelerating_positive = 1;
             } else {
                 m_angle_velocity_0a8 = 0.0f;
@@ -762,10 +767,10 @@ void GDCamera::ApplyPitchInput(float input)
     unsigned char decelerating_positive = 0;
     if (input == g_float_005ebb34) {
         if (m_pitch_velocity_0ac < g_camera_negative_velocity_epsilon) {
-            input = g_camera_input_deceleration;
+            input = CAMERA_TURN_RATE;
             decelerating_negative = 1;
         } else if (m_pitch_velocity_0ac > g_camera_transition_epsilon) {
-            input = g_camera_negative_input_deceleration;
+            input = -CAMERA_TURN_RATE;
             decelerating_positive = 1;
         } else {
             m_pitch_velocity_0ac = 0.0f;
@@ -784,9 +789,9 @@ void GDCamera::ApplyPitchInput(float input)
         return;
     }
     if (m_pitch_velocity_0ac > g_camera_input_deceleration) {
-        m_pitch_velocity_0ac = g_camera_input_deceleration;
+        m_pitch_velocity_0ac = CAMERA_TURN_RATE;
     } else if (m_pitch_velocity_0ac < g_camera_negative_input_deceleration) {
-        m_pitch_velocity_0ac = g_camera_negative_input_deceleration;
+        m_pitch_velocity_0ac = -CAMERA_TURN_RATE;
     }
 
     float stopping_distance = m_pitch_velocity_0ac * g_camera_velocity_stop_scale *

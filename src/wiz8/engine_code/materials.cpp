@@ -2244,7 +2244,10 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
             source->specular_0ed[0], source->specular_0ed[1], source->specular_0ed[2],
             source->shininess_0f9, source->opacity_0fd, source->emission_101, source->emission_101,
             source->emission_101, static_cast<int>(source->shader_flags_116),
-            texture_path[0] == '\0' ? 'F' : 'T');
+            /* Retail passes the string's address for %c, so the name ends in
+               that address's low byte. */
+            reinterpret_cast<int>( // reinterpret-ok: retail formats the pointer
+                texture_path[0] == '\0' ? "F" : "T"));
 
     {
         srRegistry* registry = srCore.getRegistry();
@@ -2280,7 +2283,7 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
             concrete->parms.diffuse.z = source->diffuse_0d5[2];
             concrete->parms.diffuse.w = source->opacity_0fd == 0.0f ? 0.7f : source->opacity_0fd;
             concrete->dirty_74 = 1;
-            concrete->setOpacity(source->opacity_0fd == 0.0f ? 0.7 : source->opacity_0fd);
+            concrete->setOpacity(source->opacity_0fd == 0.0f ? 0.7f : source->opacity_0fd);
 
             if (texture_path[0] == '\0') {
                 concrete->parms.ambient.Set(source->diffuse_0d5[0], source->diffuse_0d5[1],

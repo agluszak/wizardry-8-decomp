@@ -1793,10 +1793,11 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
                 marker_width = static_cast<int>(
                     static_cast<unsigned short>(g_automap_text_marker->GetWidth00480EF0()) * 0.22);
             } else {
-                marker_width = (int)((1.0f / (g_automap_zoom * 0.00004f)) *
-                                     static_cast<double>(static_cast<unsigned short>(
-                                         g_automap_text_marker->GetWidth00480EF0())) *
-                                     0.5f);
+                marker_width = static_cast<int>(
+                    (1.0f / (g_automap_zoom * 0.00004f)) * 0.44f *
+                    static_cast<double>(
+                        static_cast<unsigned short>(g_automap_text_marker->GetWidth00480EF0())) *
+                    0.5f);
             }
             g_automap_text_marker->GetHeight00480F70();
             W8ScreenRect rect;
@@ -2365,7 +2366,10 @@ stModelInstance2D* CreateAutomapMonsterMarker(int type)
     g_releasable_68f1f4->Add(marker);
     marker->SetGlowEnabled(1);
     marker->setRenderDepth(2000);
-    float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f * 0.85f;
+    /* Retail scales by 0.85 as a step of its own; written as one product, VC6
+       folds 0.44 * 0.85 into a single constant. */
+    float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f;
+    factor *= 0.85f;
     if ((marker->GetHeight00480F70() & 0xffff) * factor < g_float_005ebb38) {
         marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
         factor = g_float_005ebb38 / (marker->GetHeight00480F70() & 0xffff);

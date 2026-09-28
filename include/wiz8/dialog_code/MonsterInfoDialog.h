@@ -32,3 +32,6 @@ private:
     W8DialogTextArea m_text_area_ec;   /* 0xec */
 };
 static_assert(sizeof(W8MonsterInfoDialog) == 0x144, "W8MonsterInfoDialog_size");
+
+/* 0x0064F610: the monster and statistic info dialogs' background. */
+extern char* g_info_dialog_background;
