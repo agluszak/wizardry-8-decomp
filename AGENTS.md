@@ -5,7 +5,7 @@ This is a Jujutsu repository for evidence-driven matching decompilation.
 ## Evidence and ownership
 
 - Retail instructions/call sites and accepted original-source oracles outrank inferred Ghidra types,
-  generated output, comparison scores and workflow documentation. Correct errors at their owner; keep
+  generated output, comparison results and workflow documentation. Correct errors at their owner; keep
   unresolved facts unknown.
 - Ghidra owns live retail analysis: functions, signatures/storage, symbols, references, types/fields,
   vtables, comments, decompiler state and original-binary TU evidence. Git/C++ owns recovered source,
@@ -36,7 +36,7 @@ This is a Jujutsu repository for evidence-driven matching decompilation.
 `.agents/skills` is the canonical shared tree. Load the task skill and only the references it routes to:
 
 - [matching-decomp](.agents/skills/matching-decomp/SKILL.md): recover function bodies, place source,
-  interpret focused reccmp mismatches and use source oracles.
+  interpret focused decompiled comparisons and use source oracles.
 - [ghidra-analysis](.agents/skills/ghidra-analysis/SKILL.md): inspect/edit canonical Ghidra analysis;
   checkpoint reconciliation and bulk source import are opt-in references there.
 - [type-modeling](.agents/skills/type-modeling/SKILL.md): prototypes, globals, fields, enums/bools,
@@ -54,31 +54,34 @@ printing and put large disposable output under `build/`. Detailed operational re
 
 ## Source fidelity
 
-- **Reconstruct first; pursue exactness afterwards.** Recovery has two distinct phases. First recover
-  the most plausible authored circa-2000 C++ and VC6 ABI: behavior, types, ownership, object layout,
-  abstractions, source placement and header/TU visibility. During reconstruction, comparison is evidence
-  and validation, not an objective function. Prefer the better source model even when its score is worse.
-- Only after the affected source model is coherent may remaining differences be treated as an exactness/
-  code-generation problem. Investigate compiler/toolchain version differences, ABI, pragmas, declaration
-  order, TU/header visibility, inlining and other genuine source/compiler causes. Do not distort recovered
-  source merely to reproduce VC6 lowering.
-- An `exact` or `effective` result proves that the current source reproduces the relevant machine code;
-  it does not prove that the source spelling or abstraction is original. Conversely, a mismatch does not
-  justify a less plausible source form. Accepted source oracles and source-model evidence outrank
-  comparison score; matching may distinguish between independently plausible authored forms.
+- **Reconstruct first; investigate remaining differences afterwards.** Recovery has two distinct
+  phases. First recover the most plausible authored circa-2000 C++ and VC6 ABI: behavior, types,
+  ownership, object layout, abstractions, source placement and header/TU visibility. During
+  reconstruction, comparison is evidence and validation, not an objective function. Prefer the better
+  source model even when its decompiled diff is larger.
+- Only after the affected source model is coherent may remaining differences be treated as a
+  code-generation question. Investigate compiler/toolchain version differences, ABI, pragmas,
+  declaration order, TU/header visibility, inlining and other genuine source/compiler causes. Do not
+  distort recovered source merely to reproduce VC6 lowering or to shrink a decompiler diff.
+- reccmp decompiles both sides with Ghidra and diffs them with Ghidriff. A `no-differences` result is
+  useful evidence that the source reproduces retail behavior as Ghidra sees it; it proves neither
+  equivalence nor that the source spelling or abstraction is original. Conversely, a difference does not
+  justify a less plausible source form. Accepted source oracles and source-model evidence outrank the
+  comparison; it may distinguish between independently plausible authored forms.
 - Never invent, omit, stub or approximate retail behavior. Never add dummy variables, artificial aliases,
   overlapping locals, dead branches, redundant counters, fake wrappers, manual inlining, register-shaped
   temporaries, volatile barriers, unions, casts or other constructs solely to manipulate register
-  allocation, stack layout, scheduling, CFG shape or comparison percentage. If faithful ordinary source
-  leaves a compiler-only mismatch, retain the faithful source and record the lowering gap.
-- When stronger evidence changes the reconstructed model, fix the model even if exactness temporarily
-  regresses, then investigate the new mismatch from that corrected baseline. A known-unfaithful construct
+  allocation, stack layout, scheduling, CFG shape or a decompiled diff. If faithful ordinary source
+  leaves a compiler-only difference, retain the faithful source and record the lowering gap.
+- When stronger evidence changes the reconstructed model, fix the model even if the comparison
+  temporarily shows more differences, then investigate them from that corrected baseline. A known-unfaithful construct
   is matching debt, not precedent; prefer removing it and fixing the shared owner, ABI, toolchain model,
   header/TU placement or tooling when the evidence supports that explanation.
 - Treat fidelity as an ordered stack: source-model fidelity first, semantic/ABI fidelity second, codegen
-  fidelity third. Never knowingly make the source model less plausible to improve a comparison score.
-  Pursue exact bytes after reconstructing the authored abstraction; if the remaining difference is
-  established compiler/linker lowering, keep the clean source and record the mismatch instead.
+  fidelity third. Never knowingly make the source model less plausible to improve a comparison.
+  Investigate remaining logical differences after reconstructing the authored abstraction; if what
+  remains is decompiler representation or established compiler/linker lowering, keep the clean source
+  and record it instead.
 - Source-shaping compiler controls are source claims, not matching knobs. Do not add `__forceinline`,
   noinline attributes, per-function optimizer pragmas or equivalent controls merely to change generated
   code. They require positive source/oracle evidence or strong independent evidence about authored
@@ -95,7 +98,7 @@ printing and put large disposable output under `build/`. Detailed operational re
   instantiations without a comment waiver; an oracle-backed exception must change that reviewed gate.
 - Compiler-owned storage reuse is not source evidence. Never alias a parameter/local or add overlapping
   source variables merely to reproduce stack-slot, register, spill or temporary reuse. Introduce the
-  logical source variables even when that lowers comparison score.
+  logical source variables even when that grows the decompiled diff.
 - A machine-width access does not establish a source field of that width. Treat widened loads/stores,
   dword/block moves, `memcpy`, and same-offset alternate interpretations as compiler/aggregate-copy
   evidence first. Before adding an overlay or decomposing copied storage into sibling fields, trace the
@@ -114,7 +117,7 @@ printing and put large disposable output under `build/`. Detailed operational re
   the same coherent change. When original spelling is unknown, use a behavior-descriptive name.
 - Preserve ordinary counted `for` loops instead of reproducing guarded `do`/`while` lowering. Do not
   add redundant counters, artificial scopes, duplicate cleanup, return temporaries or rearranged
-  expressions merely to change registers, CFG or comparison score.
+  expressions merely to change registers, CFG or the decompiled diff.
 - Preserve retail bugs/UB when evidence establishes them. Do not initialize, clamp, guard or otherwise
   normalize recovered code merely to make the recomp safer or deterministic. An explicitly requested
   compatibility deviation must be isolated and documented, never disguised as the recovered body.
@@ -136,7 +139,7 @@ printing and put large disposable output under `build/`. Detailed operational re
   skill for `TEMPLATE`, `SYNTHETIC`, `LIBRARY`, `VTABLE` and `GLOBAL` ownership.
 - Preserve TU ownership/order in `src/wiz8/sources.cmake`. Recover placement before optimizer control:
   ordinary functions stay unannotated; header visibility/inlining requires cross-TU/call-site evidence.
-  The comparison build intentionally uses `/OPT:NOICF`; an ICF-derived call-target or vtable mismatch
+  The comparison build intentionally uses `/OPT:NOICF`; an ICF-derived call-target or vtable difference
   is acceptable once the fold is independently established. Do not add aliases, casts, or source
   markers merely to force the retained retail address. The retired `identity-alias:` escape hatch
   must not be reintroduced; a proven consumer/provider ABI prototype discrepancy uses the narrow
@@ -184,12 +187,12 @@ model would otherwise become inconsistent, a concrete failure encountered during
 or the task explicitly requests an audit. Keep exploratory scripts disposable.
 
 Do not incidentally edit `src/sgp` while recovering Wizardry/SurRender code. An SGP source change needs
-its own accepted-source/retail evidence and required modification notice; a generated-code mismatch by
+its own accepted-source/retail evidence and required modification notice; a generated-code difference by
 itself is not evidence that the released SGP source changed.
 
-Stop when the requested bodies, ABI bundle or behavior meet acceptance criteria. Exact/effective bodies
-need no independent rediscovery. If no evidence-backed correction remains, retain faithful source and
-report the unresolved mismatch/evidence gap rather than manufacturing certainty.
+Stop when the requested bodies, ABI bundle or behavior meet acceptance criteria. Bodies whose comparison
+shows no differences need no independent rediscovery. If no evidence-backed correction remains, retain
+faithful source and report the unresolved difference/evidence gap rather than manufacturing certainty.
 
 Never add handwritten fake implementations to make a runnable product link. Unrecovered retail calls
 may use the build-generated runtime `STUB` traps only when their retail address identity is established;
@@ -211,8 +214,8 @@ not each textual edit, and reuse a successful result until a relevant input chan
 
 For a substantial recovery batch, focused compares run during development are not the final audit. After
 the last source edit run `uv run wiz8 compare --changed` and account for every new or materially changed
-`FUNCTION`: exact/effective, an explained compiler-lowering mismatch, or explicitly inconclusive with
-retail CFG/call/branch review.
+`FUNCTION`: no differences, differences explained as decompiler representation or established lowering,
+or an unstable diff with retail CFG/call/branch review.
 
 `uv run wiz8 check` is the fast repository lane; `uv run wiz8 lint` is the clang-cl/tidy lane. A
 gating failure is work to fix, not a provenance question: do not first establish whether it is

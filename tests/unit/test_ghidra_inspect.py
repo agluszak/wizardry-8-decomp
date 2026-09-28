@@ -320,7 +320,7 @@ def test_named_source_abi_defects() -> None:
     identity = SimpleNamespace(
         kind="definition",
         parameter_types=("int",),
-        source_signature="void Node::nudge(int flags)",
+        semantic_id="?nudge@Node@@QAEXH@Z",
         calling_convention="__thiscall",
         has_this=True,
         return_type="void",
@@ -332,7 +332,7 @@ def test_named_source_abi_defects() -> None:
     uchar = SimpleNamespace(
         kind="definition",
         parameter_types=("int",),
-        source_signature="unsigned char IsLevelCdMissing(int level)",
+        semantic_id="?IsLevelCdMissing@@YAEH@Z",
         calling_convention="__cdecl",
         return_type="unsigned char",
         name="IsLevelCdMissing",
@@ -352,10 +352,10 @@ def test_named_source_abi_defects() -> None:
     )
     empty_fn = SimpleNamespace(getParameterCount=lambda: 0)
     unresolved_defects = _defects(empty_fn, "void Mystery(void) {}", empty_high, (unresolved,))
-    assert any(row["kind"] == "source-signature-unresolved" for row in unresolved_defects)
+    assert any(row["kind"] == "source-declaration-unresolved" for row in unresolved_defects)
     text = candidate_text_with_defects("void Mystery(void) {}", unresolved_defects)
     assert text is not None
-    assert "// defect: source-signature-unresolved:" in text
+    assert "// defect: source-declaration-unresolved:" in text
 
 
 def test_decompile_text_keeps_success_when_batch_has_failure() -> None:

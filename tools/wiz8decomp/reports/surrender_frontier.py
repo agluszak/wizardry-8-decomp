@@ -535,9 +535,10 @@ def surrender_frontier_report(
     *,
     class_filter: str | None = None,
     priority_filter: str | None = None,
-    compare: bool = True,
+    compare: bool = False,
 ) -> dict[str, Any]:
     repository = settings.repo_dir
+    ghidra_install_dir = settings.ghidra_install_dir
     warn_if_source_index_may_be_stale(repository, "SURRENDER")
 
     imports = load_surrender_imports(repository)
@@ -637,19 +638,16 @@ def surrender_frontier_report(
                 from ..comparison import compare_selected
 
                 result = compare_selected(
-                    repository,
-                    "SURRENDER",
-                    sorted(set(compared)),
-                    include_windows=False,
+                    repository, "SURRENDER", sorted(set(compared)), ghidra_install_dir
                 )
                 by_address = {
-                    str(item.get("address")): item.get("status")
+                    str(item.get("orig")): item.get("outcome")
                     for item in result.get("functions") or []
                 }
                 for record in records:
                     address = record["provider"].get("address")
                     if address in by_address:
-                        record["provider"]["match_status"] = by_address[address]
+                        record["provider"]["comparison"] = by_address[address]
                 compare_available = True
             except FileNotFoundError:
                 compare_available = False
@@ -727,11 +725,17 @@ def surrender_frontier_report(
             and info["provider_global"] == 0
             and info["provider_vtable"] == 0
         ),
-        "p0_match": {
-            status: sum(
-                1 for record in p0_records if record["provider"].get("match_status") == status
+        "p0_comparison": {
+            outcome: sum(
+                1 for record in p0_records if record["provider"].get("comparison") == outcome
             )
-            for status in ("exact", "effective", "mismatch", "inconclusive", "missing")
+            for outcome in (
+                "differences",
+                "no-differences",
+                "unpaired",
+                "analysis-failed",
+                "missing",
+            )
         },
     }
 

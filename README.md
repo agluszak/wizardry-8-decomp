@@ -31,7 +31,7 @@ There are three useful views of the reconstruction:
 The runnable build is intentionally incomplete. Unrecovered first-party calls trap instead of being
 silently replaced with fake implementations.
 
-For exact, current recovery and matching statistics, developers can run:
+For current source coverage and pairing statistics, developers can run:
 
 ```sh
 uv run wiz8 report status
@@ -48,11 +48,12 @@ The project combines several kinds of evidence rather than treating decompiler o
 3. **Recovered C/C++** is written as plausible authored source rather than a transcription of compiler
    lowering.
 4. **MSVC 6** recompiles the recovered code using the original ABI and compiler family.
-5. **reccmp** compares the rebuilt code with the retail executable at function and data level.
+5. **reccmp** pairs rebuilt functions with retail ones; Ghidra decompiles both and Ghidriff diffs them,
+   alongside data and vtable checks.
 6. **Runtime tests** exercise recovered behavior against the real game data.
 
-Matching matters because it gives unusually strong feedback about recovered source, but byte identity
-is not used as an excuse to write decompiler-shaped or compiler-shaped C++.
+The comparison gives strong feedback about recovered source, but a clean diff is not used as an excuse
+to write decompiler-shaped or compiler-shaped C++.
 
 ## Browsing the repository
 

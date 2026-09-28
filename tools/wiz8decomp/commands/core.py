@@ -132,11 +132,18 @@ def compare_command(
     build: Annotated[
         bool, typer.Option("--build", help="Build fresh products and metadata before comparing.")
     ] = False,
+    side_by_side: Annotated[
+        bool, typer.Option("--sxs", help="Also write Ghidriff's side-by-side HTML diffs.")
+    ] = False,
 ) -> None:
-    """Compare existing products; optionally build fresh products first."""
+    """Decompile and diff selected functions against retail with reccmp (Ghidriff).
+
+    Differences are review material. Fails only when a comparison did not
+    complete or a selected function has no retail counterpart."""
     from .. import command_support as cli
     from ..build import build_target
     from ..comparison import (
+        addresses_from_files,
         changed_source_files,
         compare_selected,
         header_dependent_files,
@@ -186,16 +193,26 @@ def compare_command(
                     )
                 dependent_files = header_dependent_files(settings, target, changed_files)
                 selected_files.extend(dependent_files)
-            selected = selected_addresses(
-                settings.repo_dir, target, addresses or [], selected_files
-            )
-            result = compare_selected(
-                settings.repo_dir,
-                target,
-                selected,
-                include_windows=True,
-                classify_header_emissions=needs_index,
-            )
+            if (
+                changed
+                and not addresses
+                and not addresses_from_files(settings.repo_dir, target, selected_files)
+            ):
+                # Changed files without this target's FUNCTION markers: there
+                # is nothing to compare, which is not a failure.
+                result: dict[str, Any] = {"ok": True, "selected": 0, "functions": []}
+            else:
+                selected = selected_addresses(
+                    settings.repo_dir, target, addresses or [], selected_files
+                )
+                result = compare_selected(
+                    settings.repo_dir,
+                    target,
+                    selected,
+                    settings.ghidra_install_dir,
+                    side_by_side=side_by_side,
+                    classify_header_emissions=needs_index,
+                )
             if changed:
                 baseline = since or "working-copy parent"
                 result["selection"] = {
@@ -213,22 +230,9 @@ def compare_command(
             return result
         raise ValueError("select functions by address, --file, or --changed")
 
-    cli.emit(action())
-
-
-def verify_call_targets_command(
-    base: Annotated[
-        str, typer.Option("--base", help="Revision to compare changed calls against.")
-    ] = "main@origin",
-) -> None:
-    """Require changed WIZ8 direct calls to name retail's callees."""
-    from .. import command_support as cli
-    from ..comparison import check_changed_call_targets
-    from ..config import repository_root
-
-    result = check_changed_call_targets(repository_root(), "WIZ8", base)
+    result = action()
     cli.emit(result)
-    if result["status"] != "passed":
+    if not result["ok"]:
         raise typer.Exit(code=1)
 
 
@@ -276,27 +280,6 @@ def datacmp_command(
             build_target(settings, target)
         result = compare_data(settings.repo_dir, target)
         return result
-
-    result = action()
-    cli.emit(result)
-    if not result.get("ok"):
-        raise typer.Exit(code=1)
-
-
-def equivalence_command(
-    program: Annotated[str, typer.Option("--program")] = "wiz8",
-) -> None:
-    """Re-prove configured reccmp equivalence groups against the original image."""
-    from .. import command_support as cli
-    from ..comparison import verify_equivalence_groups
-
-    def action() -> Any:
-        settings = cli.settings()
-        from ..source_index import target_for_program
-
-        return verify_equivalence_groups(
-            settings.repo_dir, target_for_program(settings.repo_dir, program)
-        )
 
     result = action()
     cli.emit(result)
@@ -447,10 +430,8 @@ def register(app: typer.Typer) -> None:
     app.command("diagnostics")(diagnostics_command)
     app.command("build")(build_command)
     app.command("compare")(compare_command)
-    app.command("verify-call-targets")(verify_call_targets_command)
     app.command("vtable")(vtable_command)
     app.command("datacmp")(datacmp_command)
-    app.command("equivalence")(equivalence_command)
     app.command("addr")(address_command)
     app.command("runtime-test")(runtime_test_command)
     app.command("run")(run_command)

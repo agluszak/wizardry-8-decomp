@@ -1,4 +1,4 @@
-"""Focused tests for project-wide source and matching statistics.
+"""Focused tests for project-wide source and pairing statistics.
 
 Every assertion here builds its own minimal reccmp surface, so the tests state
 what the derivation does rather than restating current repository counts.
@@ -10,14 +10,8 @@ import logging
 from types import SimpleNamespace
 
 import pytest
-from reccmp.compare.diagnosis import (
-    ComparisonAnalysis,
-    ComparisonDifference,
-    DifferenceSide,
-)
-from reccmp.compare.report import ReccmpComparedEntity
+from reccmp.compare.db import PairBasis
 from reccmp.parser.marker import MarkerType
-from reccmp.types import EntityType
 from typer.testing import CliRunner
 from wiz8decomp import command_support
 from wiz8decomp.cli import app
@@ -49,27 +43,16 @@ def _marker(address: int, marker_type: MarkerType, *, nameref: bool = False):
     return _FakeMarker(address, marker_type, nameref=nameref)
 
 
-def _entity(
-    address: int,
-    analysis: ComparisonAnalysis,
-    *,
-    accuracy: float = 1.0,
-    name: str = "Function",
-) -> ReccmpComparedEntity:
-    return ReccmpComparedEntity(
-        orig_addr=address,
-        recomp_addr=address + 0x1000,
-        name=name,
-        type=EntityType.FUNCTION,
-        accuracy=accuracy,
-        analysis=analysis,
-    )
+def _match(address: int, name: str = "Function") -> SimpleNamespace:
+    return SimpleNamespace(orig_addr=address, best_name=lambda: name)
 
 
-def _engine(markers, entities):
+def _engine(markers, matches, basis=PairBasis.ANNOTATION):
+    by_address = {match.orig_addr: match for match in matches}
     return SimpleNamespace(
         codebase=FakeCodebase(markers),
-        compare_addresses=lambda **_kwargs: entities,
+        get_match=by_address.get,
+        pair_basis=lambda address: basis if address in by_address else None,
     )
 
 
@@ -98,47 +81,18 @@ def test_function_markers_are_the_only_recovered_source() -> None:
     assert name_refs == set()
 
 
-def test_comparison_classification_and_effective_score() -> None:
-    addresses = {0x401000, 0x401010, 0x401020, 0x401030, 0x401040}
-    entities = [
-        _entity(0x401000, ComparisonAnalysis.exact(), accuracy=1.0),
-        _entity(
-            0x401010,
-            ComparisonAnalysis.effective(("register_allocation",)),
-            accuracy=0.2,
-        ),
-        _entity(
-            0x401020,
-            ComparisonAnalysis.mismatch(
-                ComparisonDifference(
-                    kind="call_argument",
-                    orig=DifferenceSide(),
-                    recomp=DifferenceSide(),
-                )
-            ),
-            accuracy=0.75,
-        ),
-        _entity(
-            0x401030,
-            ComparisonAnalysis.inconclusive("analysis_limit"),
-            accuracy=0.25,
-        ),
-    ]
+def test_pairing_counts_paired_unpaired_and_basis() -> None:
+    addresses = {0x401000, 0x401010, 0x401020}
     target = SimpleNamespace(report_config=None)
 
-    comparison, effective_score = status._comparison_statistics(
-        _engine([], entities), target, addresses, set()
+    pairing = status._pairing_statistics(
+        _engine([], [_match(0x401000), _match(0x401010)]), target, addresses, set()
     )
 
-    assert comparison["exact"] == 1
-    assert comparison["effective"] == 1
-    assert comparison["mismatch"] == 1
-    assert comparison["inconclusive"] == 1
-    assert comparison["unpaired"] == 1
-    assert comparison["unpaired_line_refs"] == 1
-    assert comparison["paired"] == 4
-    assert effective_score == pytest.approx(3.0)
-    assert comparison["accuracy"] == pytest.approx(0.75)
+    assert pairing["paired"] == 2
+    assert pairing["unpaired"] == 1
+    assert pairing["unpaired_line_refs"] == 1
+    assert pairing["pair_basis"] == {"annotation": 2}
 
 
 def test_unpaired_name_refs_are_not_line_ref_diagnostics() -> None:
@@ -146,15 +100,14 @@ def test_unpaired_name_refs_are_not_line_ref_diagnostics() -> None:
     # recomp emits no standalone copy; a line-reference marker that stays
     # unpaired is the "Failed to find function symbol" diagnostic.
     addresses = {0x401000, 0x401010, 0x401020}
-    entities = [_entity(0x401000, ComparisonAnalysis.exact())]
     target = SimpleNamespace(report_config=None)
 
-    comparison, _ = status._comparison_statistics(
-        _engine([], entities), target, addresses, {0x401020}
+    pairing = status._pairing_statistics(
+        _engine([], [_match(0x401000)]), target, addresses, {0x401020}
     )
 
-    assert comparison["unpaired"] == 2
-    assert comparison["unpaired_line_refs"] == 1
+    assert pairing["unpaired"] == 2
+    assert pairing["unpaired_line_refs"] == 1
 
 
 def test_reccmp_diagnostics_are_captured_and_counted() -> None:
@@ -175,68 +128,56 @@ def test_reccmp_diagnostics_are_captured_and_counted() -> None:
 
 def test_ignored_source_functions_are_counted_not_dropped() -> None:
     addresses = {0x401000, 0x401010}
-    entities = [
-        _entity(0x401000, ComparisonAnalysis.exact()),
-        _entity(0x401010, ComparisonAnalysis.exact(), name="Ignored"),
-    ]
     target = SimpleNamespace(report_config=SimpleNamespace(ignore_functions=["Ignored"]))
 
-    comparison, effective_score = status._comparison_statistics(
-        _engine([], entities), target, addresses, set()
+    pairing = status._pairing_statistics(
+        _engine([], [_match(0x401000), _match(0x401010, "Ignored")]), target, addresses, set()
     )
 
-    assert comparison["ignored"] == 1
-    assert comparison["paired"] == 1
-    assert comparison["exact"] == 1
-    assert effective_score == pytest.approx(1.0)
+    assert pairing["ignored"] == 1
+    assert pairing["paired"] == 1
 
 
 def _target_row(*, functions: int, paired: int, original: int | None) -> dict:
     return {
         "state": "comparison",
         "source": {"functions": functions},
-        "comparison": {
+        "pairing": {
             "paired": paired,
-            "exact": 0,
-            "effective": 0,
-            "mismatch": paired,
-            "inconclusive": 0,
-            "unpaired": 0,
+            "unpaired": functions - paired,
             "unpaired_line_refs": 0,
             "ignored": 0,
-            "accuracy": 0.0,
+            "pair_basis": {},
         },
         "diagnostics": {"error_count": 0},
         "original_functions": original,
     }
 
 
-def test_project_totals_weight_by_function_count() -> None:
+def test_project_totals_sum_counts_and_coverage() -> None:
     targets = {
-        "WIZ8": _target_row(functions=9, paired=9, original=100),
+        "WIZ8": _target_row(functions=9, paired=8, original=100),
         "SREXT_UNZIP": _target_row(functions=1, paired=1, original=10),
         "SRDD_OPENGL": {"state": "original-only"},
     }
-    scores = {"WIZ8": 0.0, "SREXT_UNZIP": 1.0}
 
-    totals = status._totals(targets, scores)
+    totals = status._totals(targets)
 
     assert totals["targets"] == 3
     assert totals["comparison_targets"] == 2
-    # Mean-of-percentages would be 0.5; summed-score coverage is 1/10.
-    assert totals["accuracy"] == pytest.approx(0.1)
+    assert totals["paired"] == 9
+    assert totals["unpaired"] == 1
     assert totals["known_original_scope"] == {
         "targets": 2,
         "original_functions": 110,
         "source_functions": 10,
         "source_coverage": pytest.approx(10 / 110),
-        "progress": pytest.approx(1 / 110),
     }
 
 
 def test_status_report_uses_hash_matched_original_denominator(tmp_path, monkeypatch) -> None:
     marker = _marker(0x401000, MarkerType.FUNCTION)
-    engine = _engine([marker], [_entity(0x401000, ComparisonAnalysis.exact())])
+    engine = _engine([marker], [_match(0x401000)])
 
     def partial(filename, sha256, *, recompiled):
         if recompiled:
@@ -284,19 +225,18 @@ def test_status_report_uses_hash_matched_original_denominator(tmp_path, monkeypa
     assert wiz8["state"] == "comparison"
     assert wiz8["original_functions"] == 7701
     assert wiz8["source_coverage"] == pytest.approx(1 / 7701)
-    assert wiz8["progress"] == pytest.approx(1 / 7701)
+    assert wiz8["pairing"]["paired"] == 1
+    assert wiz8["last_comparison"] is None
 
     unzip = report["targets"]["SREXT_UNZIP"]
     assert unzip["state"] == "comparison"
     assert unzip["original_functions"] is None
     assert unzip["source_coverage"] is None
-    assert unzip["progress"] is None
     assert report["totals"]["known_original_scope"] == {
         "targets": 1,
         "original_functions": 7701,
         "source_functions": 1,
         "source_coverage": pytest.approx(1 / 7701),
-        "progress": pytest.approx(1 / 7701),
     }
 
 

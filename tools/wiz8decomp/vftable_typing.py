@@ -35,7 +35,12 @@ from typing import Any
 
 from .class_binding import _sanitize_class_parts
 from .paths import sha256_file
-from .source_index import SourceIndex, load_source_index, source_functions
+from .source_index import (
+    SourceIndex,
+    declaration_has_this,
+    load_source_index,
+    source_functions,
+)
 
 _SCHEMA = "wiz8.vftable-typing-v2"
 _CATEGORY = "/wiz8/vftables"
@@ -1110,7 +1115,8 @@ def _definition_from_declaration(
 
     params: list[Any] = []
     convention = str(declaration.get("calling_convention") or "")
-    has_this = bool(declaration.get("has_this"))
+    # A slot typed through a base class carries has_this explicitly.
+    has_this = bool(declaration.get("has_this")) or declaration_has_this(declaration)
     owning = declaration.get("owning_class")
     if has_this and not convention:
         convention = "__thiscall"

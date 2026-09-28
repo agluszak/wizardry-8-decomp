@@ -183,7 +183,7 @@ def test_compute_quality_delta_debt_allowance_permits_reviewed_increase() -> Non
     assert delta["max_debt_total_delta"] == 3
 
 
-def test_pain_corpus_filters_to_mismatch_inconclusive(monkeypatch) -> None:
+def test_pain_corpus_keeps_functions_with_differences(monkeypatch) -> None:
     from pathlib import Path
 
     from wiz8decomp import decompiler_quality as dq
@@ -201,19 +201,19 @@ def test_pain_corpus_filters_to_mismatch_inconclusive(monkeypatch) -> None:
         lambda _markers, *, limit, seed: sorted(markers)[:limit],
     )
 
-    def fake_compare(_repo, _target, addresses):
-        status_by = {
-            0x401000: "exact",
-            0x402000: "mismatch",
-            0x403000: "inconclusive",
-            0x404000: "effective",
+    def fake_compare(_repo, _target, addresses, _ghidra):
+        outcome_by = {
+            0x401000: "no-differences",
+            0x402000: "differences",
+            0x403000: "differences",
+            0x404000: "analysis-failed",
         }
         return {
             "functions": [
                 {
-                    "address": f"0x{address:08x}",
+                    "orig": f"0x{address:08x}",
                     "name": markers[address].name,
-                    "status": status_by[address],
+                    "outcome": outcome_by[address],
                 }
                 for address in addresses
             ]
@@ -227,10 +227,11 @@ def test_pain_corpus_filters_to_mismatch_inconclusive(monkeypatch) -> None:
         limit=10,
         seed=1,
         corpus_kind="pain",
+        ghidra_install_dir=Path("/opt/ghidra"),
     )
-    assert corpus["match_filter"] == "mismatch|inconclusive"
+    assert corpus["match_filter"] == "differences"
     assert corpus["addresses"] == [0x402000, 0x403000]
-    assert {row["status"] for row in corpus["matches"]} == {"mismatch", "inconclusive"}
+    assert {row["outcome"] for row in corpus["matches"]} == {"differences"}
 
 
 def test_require_quality_measurement_rejects_missing_report(tmp_path) -> None:
@@ -281,7 +282,9 @@ def test_run_decompiler_quality_records_canonical_program_name(tmp_path, monkeyp
     import wiz8decomp.decompiler_quality as dq
 
     canonical_name = "wiz8--gog-base--wiz8--18a74ff61c65"
-    settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")
+    settings = SimpleNamespace(
+        repo_dir=tmp_path, build_dir=tmp_path / "build", ghidra_install_dir=tmp_path
+    )
     evaluated_programs = []
     monkeypatch.setattr(
         "wiz8decomp.ghidra.project.resolve_program_name",

@@ -8,7 +8,6 @@ from wiz8decomp.ghidra.mutations import RowApplyError, apply_rows, transaction_i
 from wiz8decomp.ghidra.sync import (
     _explicit_parameter_types,
     _has_function_overlap,
-    _parameter_names_from_signature,
     _projection_complete,
     _record_step,
     _stored_signature_matches,
@@ -71,20 +70,6 @@ def test_explicit_parameter_types_keep_explicit_owner_pointer() -> None:
     assert _explicit_parameter_types(dtor) == ()
     assert _explicit_parameter_types(variadic) == ("char *",)
     assert variadic.is_variadic is True
-
-
-def test_parameter_names_come_from_the_source_signature() -> None:
-    signature = (
-        "void EquipMatchingPartnerItem(W8Character * character, W8ItemInstance * item, "
-        "int item_id, int equip_slot)"
-    )
-    assert _parameter_names_from_signature(signature, 4) == [
-        "character",
-        "item",
-        "item_id",
-        "equip_slot",
-    ]
-    assert _parameter_names_from_signature("void fn(void)", 0) == []
 
 
 def test_apply_rows_does_not_nest_when_a_transaction_is_open() -> None:

@@ -93,7 +93,7 @@ def test_debug_build_option_builds_before_launch(monkeypatch) -> None:
 def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypatch) -> None:
     from wiz8decomp import build, comparison, source_index
 
-    settings = SimpleNamespace(repo_dir=tmp_path)
+    settings = SimpleNamespace(repo_dir=tmp_path, ghidra_install_dir=tmp_path / "ghidra")
     (tmp_path / "reccmp-project.yml").write_text(
         "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
     )
@@ -121,10 +121,14 @@ def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypa
         )
     )
 
-    def compare(_repo, _target, selected, **_kwargs):
+    def compare(_repo, _target, selected, ghidra_install_dir, **_kwargs):
         assert selected == [0x401000]
+        assert ghidra_install_dir == settings.ghidra_install_dir
         events.append("compare")
-        return {"functions": [{"address": "0x00401000", "name": "added", "status": "exact"}]}
+        return {
+            "ok": True,
+            "functions": [{"orig": "0x00401000", "name": "added", "outcome": "no-differences"}],
+        }
 
     monkeypatch.setattr(command_support, "settings", lambda: settings)
     monkeypatch.setattr(comparison, "changed_source_files", lambda *_args: [source])
@@ -140,7 +144,7 @@ def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypa
     assert result.exit_code == 0, result.output
     assert events == ["compare"]
     payload = json.loads(result.stdout)
-    assert payload["functions"][0]["address"] == "0x00401000"
+    assert payload["functions"][0]["orig"] == "0x00401000"
     assert payload["selection"]["changed_files"] == ["new.cpp"]
     assert payload["selection"]["dependent_files"] == []
 
@@ -166,7 +170,11 @@ def test_numeric_compare_is_read_only_and_passes_exact_addresses(tmp_path, monke
         "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
     )
     seen = []
-    monkeypatch.setattr(command_support, "settings", lambda: SimpleNamespace(repo_dir=tmp_path))
+    monkeypatch.setattr(
+        command_support,
+        "settings",
+        lambda: SimpleNamespace(repo_dir=tmp_path, ghidra_install_dir=tmp_path),
+    )
     monkeypatch.setattr(
         source_index, "write_source_index", lambda *_args: pytest.fail("must not write index")
     )
@@ -174,7 +182,7 @@ def test_numeric_compare_is_read_only_and_passes_exact_addresses(tmp_path, monke
     monkeypatch.setattr(
         comparison,
         "compare_selected",
-        lambda _repo, _target, addresses, **_kwargs: seen.append(addresses) or {"ok": True},
+        lambda _repo, _target, addresses, *_args, **_kwargs: seen.append(addresses) or {"ok": True},
     )
 
     result = CliRunner().invoke(app, ["compare", "0x4538d0"])
@@ -189,7 +197,7 @@ def test_compare_build_explicitly_refreshes_and_builds(tmp_path, monkeypatch) ->
     (tmp_path / "reccmp-project.yml").write_text(
         "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
     )
-    settings = SimpleNamespace(repo_dir=tmp_path)
+    settings = SimpleNamespace(repo_dir=tmp_path, ghidra_install_dir=tmp_path)
     events = []
     monkeypatch.setattr(command_support, "settings", lambda: settings)
     monkeypatch.setattr(source_index, "write_source_index", lambda actual: events.append("index"))
@@ -197,7 +205,9 @@ def test_compare_build_explicitly_refreshes_and_builds(tmp_path, monkeypatch) ->
         build, "build_target", lambda actual, target: events.append(("build", target))
     )
     monkeypatch.setattr(
-        comparison, "compare_selected", lambda *_args, **_kwargs: events.append("compare") or {}
+        comparison,
+        "compare_selected",
+        lambda *_args, **_kwargs: events.append("compare") or {"ok": True},
     )
 
     result = CliRunner().invoke(app, ["compare", "--build", "0x4538d0"])
@@ -443,3 +453,29 @@ def test_prepare_comparison_targets_select_minimal_mode(monkeypatch) -> None:
         ("full", None),
         ("comparison", ["WIZ8", "SURRENDER"]),
     ]
+
+
+def test_compare_changed_without_target_markers_is_an_empty_success(tmp_path, monkeypatch) -> None:
+    from wiz8decomp import comparison
+
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
+    (tmp_path / "build").mkdir()
+    (tmp_path / "build/source-index.json").write_text(json.dumps({"markers": []}))
+    source = tmp_path / "other.cpp"
+    source.write_text("void helper() {}\n")
+    monkeypatch.setattr(
+        command_support,
+        "settings",
+        lambda: SimpleNamespace(repo_dir=tmp_path, ghidra_install_dir=tmp_path),
+    )
+    monkeypatch.setattr(comparison, "changed_source_files", lambda *_args: [source])
+    monkeypatch.setattr(
+        comparison, "compare_selected", lambda *_args, **_kwargs: pytest.fail("nothing to compare")
+    )
+
+    result = CliRunner().invoke(app, ["compare", "--changed"])
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.stdout)["selected"] == 0

@@ -104,9 +104,6 @@ def test_declaration_only_address_binding(tmp_path: Path) -> None:
                         "unit_id": None,
                         "qualified_name": "EquipMatchingPartnerItem",
                         "semantic_id": "?EquipMatchingPartnerItem@@YAXPAVW8Character@@PAUW8ItemInstance@@HH@Z",
-                        "source_signature": (
-                            "void EquipMatchingPartnerItem(W8Character *, W8ItemInstance *, int, int)"
-                        ),
                         "calling_convention": "__cdecl",
                         "return_type": "void",
                         "parameter_types": [
@@ -115,7 +112,6 @@ def test_declaration_only_address_binding(tmp_path: Path) -> None:
                             "int",
                             "int",
                         ],
-                        "has_this": False,
                         "source_file": "include/wiz8/local_code/PC_Item.h",
                         "line": 1,
                         "end_line": 1,
@@ -167,7 +163,7 @@ def test_v3_declaration_key_joins_marker_to_clang_declaration(tmp_path: Path) ->
                 "unit_id": None,
                 "qualified_name": "Draw",
                 "semantic_id": semantic,
-                "source_signature": "void Draw(void)",
+                "return_type": "void",
                 "source_file": "src/wiz8/draw.cpp",
                 "line": 11,
                 "end_line": 20,
@@ -184,13 +180,13 @@ def test_v3_declaration_key_joins_marker_to_clang_declaration(tmp_path: Path) ->
     identity = bound[0x401000][0]
     assert identity.name == "Draw"
     assert identity.kind == "definition"
-    assert identity.source_signature == "void Draw(void)"
+    assert identity.return_type == "void"
 
     markers = bind_marker_declarations(document)
     assert markers[0]["declaration"]["end_line"] == 20
     assert (
         declaration_for_marker(
             document["markers"][0], {("WIZ8", semantic, ""): document["declarations"][0]}
-        )["source_signature"]
-        == "void Draw(void)"
+        )["return_type"]
+        == "void"
     )

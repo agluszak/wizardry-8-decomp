@@ -2,105 +2,82 @@
 
 | Question | Existing primitive |
 | --- | --- |
-| Does the actual recomp-linked function match? | `uv run wiz8 compare ADDRESS...` |
-| Does an almost-matching function differ mainly in stack-slot layout? | `uv run reccmp-stackcmp --target TARGET ADDRESS` diagnoses stack offsets; see below. |
-| Is a COFF code/data contribution identical independently of final linkage? | `uv run reccmp-reccmp --object ...` below |
-| Which original absolute targets correspond to COFF relocations in an exact pair? | `original_absolute_relocation_targets` below |
+| How does the recovered function differ from retail? | `uv run wiz8 compare ADDRESS...` decompiles both with Ghidra and diffs them with Ghidriff. |
 | Do class vtable slots and targets agree? | `uv run wiz8 vtable CLASS` compares matching class names and refuses zero-entity success. |
 | Does reviewed global data agree? | `uv run wiz8 datacmp` compares reviewed globals through reccmp. |
 | Are matching annotations structurally valid? | `uv run wiz8 check` runs reccmp `decomplint` over every configured source target. |
-| What is the paired original/recompiled address? | `uv run wiz8 addr ADDRESS...` translates either side in one process. |
+| What is the paired original/recompiled address, and why are they paired? | `uv run wiz8 addr ADDRESS...` looks either side up in reccmp's catalog. |
 
 Use the project command where one exists; use reccmp directly for capabilities the project does not
-wrap. Do not build a generic comparison framework or wrap all of reccmp.
+wrap. Do not build a generic comparison framework, a second differ, or an equivalence engine.
 
-## Linked-image selected function
+## Selected functions
 
 ```sh
 uv run wiz8 compare 0x0044e010
 uv run wiz8 compare 0x1004a5a0 --program sr.dll
+uv run wiz8 compare --build --changed --sxs
 ```
 
-The selected Ghidra program determines the reccmp target: the default `wiz8` program selects
-`WIZ8`, while `--program sr.dll` selects `SURRENDER`. Pass `--build` after source edits to build
-current inputs; without it the command reads the existing
-comparison product and source index. Both paths return structured selected results.
-Mismatch details include `first_difference` (named original/recompiled entities and instruction
-indexes), `difference`, `reason`/`location` where available, a bounded `instruction_window`, and an
-`artifacts.diff` path under `build/reports/compare/`. Use that first meaningful divergence; do not
-scrape JSON for a second renderer. Whole-image comparison is diagnostic, not a substitute for
-selected-function evidence.
+The selected Ghidra program determines the reccmp target: the default `wiz8` program selects `WIZ8`,
+while `--program sr.dll` selects `SURRENDER`. Pass `--build` after source edits to build current
+inputs; without it the command reads the existing comparison product and source index.
 
-Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes. The comparison link uses `/OPT:NOICF`
-and `/FIXED:NO` (base relocations retained); retail folding can therefore produce a `call_target`
-mismatch even for the type-correct source callee. Do not change these modes to hide a difference, and
-do not add a `FOLDED` source marker to make the mismatch score exact. Retail ICF belongs to comparison
-evidence, not source identity.
+`compare` runs `reccmp-reccmp` for the selected original addresses. reccmp gives both programs the
+same names for every catalog pair, analyzes both without debug information, decompiles each selected
+pair with Ghidra, and diffs the normalized C. It also compares the contents of the data each function
+refers to, so two different literals behind equal labels still show up. The first run analyzes both
+binaries (a few minutes); the original's analysis is then kept in `build/reccmp-ghidra`, and later
+runs only analyze the new recompiled build.
 
-## Stack layout diagnosis
+Each selected function gets one outcome:
 
-Use `stackcmp` only after a focused linked comparison shows an almost-matching function whose remaining
-differences repeatedly involve `ebp`/`esp` stack operands, local ordering, or apparently shifted local
-slots while the surrounding instruction structure still lines up. It is a diagnostic for forming a
-source hypothesis, not a matching target in its own right.
+| Outcome | Meaning |
+| --- | --- |
+| `differences` | Decompiled code or referenced data differs. Inspect the diff. |
+| `no-differences` | Ghidra and Ghidriff show no difference. Useful evidence, not proof. |
+| `unpaired` | reccmp has no retail counterpart for the function. |
+| `analysis-failed` | The comparison did not complete; `failures` says why (no Ghidra function at the entry, an entry inside another function, a decompiler error). |
+| `header-emission` | An inline header body with no standalone linked symbol. |
+| `missing` | The address is not a function reccmp knows. |
 
-```sh
-uv run reccmp-stackcmp --target WIZ8 0x0044e010
-uv run reccmp-stackcmp --target SURRENDER 0x1004a5a0
-```
+`ok` is false only for `analysis-failed`, `unpaired` and `missing`. Differences are review material:
+a source edit is expected to change decompiled output.
 
-The address is always the original address. `stackcmp` reads the existing recompiled image and PDB and
-does not build them; build the owning target first when source edits made those products stale. It maps
-original stack operands to recomp stack operands and, where CodeView data permits, names recomp locals.
-A one-to-one mapping at different offsets can support a hypothesis about local declaration order or
-lifetime. A non-bijective mapping is evidence that the remaining difference may be structural rather
-than mere slot order. Structural mismatch warnings mean the stack map is incomplete and the ordinary
-instruction diff must be inspected first.
+A row carries `data` findings (a paired object whose contents differ, or referenced literals that
+differ in contents), `failures`, `basis` (how reccmp paired the function), `source`, and, for a code
+difference, `code_diff.artifact`: the unified diff under `build/reports/compare/<target>/`. The run's
+`summary.json` and Ghidriff's report (`<TARGET>.ghidriff.md`, plus `sxs_html/` with `--sxs`) sit in the
+same directory. Read the side-by-side HTML for review; it highlights the changed spans inside lines.
 
-Do **not** treat stack positions as authored-source evidence. VC6 is free to reuse parameter/local/spill
-temporary storage. Never alias variables, overwrite parameters early, add overlapping storage, or
-change semantics merely to make `stackcmp` prettier. Reconcile any stack-layout hypothesis with types,
-callers, lifetimes, source oracles, and the actual instruction behavior.
+## Reading a difference
 
-`reccmp-stackcmp` is deliberately not a repository/CI gate: it is per-function and its current CLI can
-print non-bijective/structural warnings while still exiting successfully. Agents should invoke it when
-the focused mismatch calls for it and interpret the output, not run it mechanically over every body.
+Decide whether each hunk reflects a source-model divergence or decompiler representation:
 
-## COFF contribution versus original
+- a different comparison operator, constant, callee, field offset, string or global is a logical
+  difference until evidence shows otherwise;
+- renamed temporaries (`iVar3`/`uVar5`), reordered commutative operands, different local names or
+  stack-variable names, and `goto`/`break` restructuring of the same branches are usually
+  representation;
+- a signedness change in a temporary's type (`uint` versus `int`) can matter: check the comparison
+  that uses it.
 
-Use object mode when dead stripping or archive extraction prevents a contribution from surviving
-into the recomp PE, folding makes linked targets misleading, or an original-source TU/contribution
-needs validation independently of final linkage. It also supports data and static symbols.
+Never distort recovered source to reduce a decompiler diff. When the diff is large and structurally
+unstable (big switch dispatchers, heavy x87 code), do not build another fallback engine: inspect the
+specific behavioral frontier and its callees, split the investigation at real function boundaries,
+use retail Ghidra decompilation/disassembly where needed, and establish behavior with the runtime
+differential scenarios.
 
-```sh
-uv run reccmp-reccmp \
-  --target WIZ8 \
-  --object PATH_TO_OBJ \
-  --symbol 'EXACT_COFF_LINKER_SYMBOL' \
-  --orig-address 0xXXXXXXXX \
-  --size SIZE
-```
+## Identical-code folding
 
-The console entry point is `reccmp-reccmp`, even though the implementation module/tool is historically
-called asmcmp. Do not search for `reccmp-asmcmp`.
+The comparison link uses `/OPT:NOICF` and `/FIXED:NO` (base relocations retained); retail folded
+identical functions. A caller then calls a different recompiled function than retail's retained body
+(for example `PLLength` where retail calls the folded `ILLength` body), and a vtable slot can point
+at an unpaired recompiled function (`wiz8 vtable` reports it as `unpaired`). Once the fold is
+independently established, keep the type-correct source callee. Do not change link modes to hide the
+difference, and do not add a `FOLDED` marker: retail ICF is linked-image evidence, not source identity.
 
-Supply the exact current object path, exact decorated COFF linker symbol, one independently known
-original address, and independently known original extent in bytes. Establish the extent from retail
-function/data boundaries or accepted source evidence, never alignment padding or the candidate's size.
-Object mode does not build: compile changed inputs through the existing owning build target when
-needed; reuse an already-current object. No recompiled PE/PDB or surviving linked symbol is required.
-
-An `exact` / `relocation-masked-object` result means size and non-relocation bytes agree after
-supported COFF relocation operands/original base relocations are masked. It does **not** establish
-relocation-target identity, source-level syntax, or semantic equivalence by itself. Unsupported or
-unpaired evidence stays inconclusive; do not infer success from a percentage.
-
-For example, `PLLength` and `ILLength` can share an ICF-folded retail body. A caller's exact masked
-contribution establishes equality outside relocations; it does not alone prove that a differing call
-target is merely that fold. Reconcile the linked diff with relocation/reference/type evidence.
-Keep the callee appropriate to the canonical type; do not cast `W8PList*` to `W8IList*` or attach
-the retained address to `PLLength` just to force an exact linked comparison. If comparison-side
-equivalence metadata ever becomes necessary, keep it outside recovered C++ ownership.
+Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes.
 
 ## Specialized repository gates
 
@@ -111,43 +88,18 @@ remain fatal. Do not run a second hand-written marker parser as a substitute.
 
 `uv run wiz8 vtable` and `uv run wiz8 datacmp` are licensed-input comparisons over existing products.
 They emit structured JSON and exit non-zero when `ok` is false, so callers (including CI) can invoke
-them directly without wrapping JSON schema knowledge. Use `--program` for a non-WIZ8 product when that
-product is current. `datacmp` is for reviewed `GLOBAL` data; it is not a raw whole-section equality
-test.
+them directly without wrapping JSON schema knowledge. `vtable` separates a slot at a different paired
+function (`different`) from a slot at an unpaired function (`unpaired`, typically a retail fold). Use
+`--program` for a non-WIZ8 product when that product is current. `datacmp` is for reviewed `GLOBAL`
+data; it is not a raw whole-section equality test.
+
+`uv run wiz8 report status` reports source coverage, which recovered functions reccmp pairs and on
+what basis, and the counts of the last `compare` report when it compared the current build. It never
+runs Ghidra.
 
 Not every upstream reccmp console entry point belongs in routine verification. `roadmap` is a placement
-report, `aggregate` combines saved reports, `cvdump` is a lower-level CodeView inspection tool, and
-`project`/`ghidra-import` overlap project-owned setup/import workflows. Use them directly for a concrete
-diagnostic need rather than adding unconditional CI passes. `verexp` can diagnose a DLL export-table
-question, but partial DLL reconstruction makes whole-export equality unsuitable as a blanket gate until
-the relevant product's export surface is intended to be complete.
-
-## Original absolute COFF relocation targets
-
-The pinned public API is:
-
-```python
-from pathlib import Path
-from reccmp.compare.exact import original_absolute_relocation_targets
-from reccmp.formats import detect_image
-from reccmp.formats.coff import parse_coff_object
-from reccmp.formats.pe import PEImage
-
-# Use the original PE from reccmp-user.yml's WIZ8 target and the paired object.
-original = detect_image(Path("PATH_TO_ORIGINAL_PE"))
-assert isinstance(original, PEImage)
-obj = parse_coff_object(Path("PATH_TO_OBJ"))
-# symbol (str), address (int), size (int): reuse the already exact pair's inputs.
-targets = original_absolute_relocation_targets(original, obj, symbol, address, size)
-for target in targets:
-    print(target.symbol.name, hex(target.offset), hex(target.address))
-```
-
-Pass the same exact COFF symbol, original address, and independent extent used for the exact pair.
-The returned records hold a COFF `symbol`, contribution-relative operand `offset`, and original target
-`address`. For absolute i386 DIR32 operands, the API subtracts the COFF operand's addend from its
-paired original operand modulo 2**32. This is not a relative-call relocation resolver.
-
-These are diagnostic observations, not independent identity proof. Reconcile them with call sites,
-references, source ownership, types, or other evidence before assigning original target identities.
-Use this API instead of searching reccmp implementation for a relocation mapper.
+report, `cvdump` is a lower-level CodeView inspection tool, and `project`/`ghidra-import` overlap
+project-owned setup/import workflows. Use them directly for a concrete diagnostic need rather than
+adding unconditional CI passes. `verexp` can diagnose a DLL export-table question, but partial DLL
+reconstruction makes whole-export equality unsuitable as a blanket gate until the relevant product's
+export surface is intended to be complete.

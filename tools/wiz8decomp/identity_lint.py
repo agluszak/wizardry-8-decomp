@@ -38,6 +38,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from .source_index import declaration_has_this
+
 _ADDRESS = re.compile(r"/\*\s*(0x[0-9a-fA-F]{6,8})\b")
 _ABI_PROTOTYPE_WAIVER = re.compile(r"abi-prototype-ok\s*:")
 _FUNCTION_MARKER = re.compile(r"^\s*//\s*FUNCTION\b", re.IGNORECASE)
@@ -60,7 +62,7 @@ def _prototype(declaration: dict[str, Any]) -> str:
             declaration.get("calling_convention") or "",
             declaration.get("return_type") or "",
             parameters,
-            "this" if declaration.get("has_this") else "",
+            "this" if declaration_has_this(declaration) else "",
         )
     )
 

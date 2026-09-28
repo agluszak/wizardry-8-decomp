@@ -143,7 +143,8 @@ def source_index_freshness(repository: Path, target: str = "WIZ8") -> dict[str, 
         }
     try:
         document = _read_source_index_document(path)
-        document["member_uses"]
+        for record_family in ("markers", "declarations", "classes"):
+            document[record_family]
     except (OSError, ValueError, KeyError) as error:
         return {
             "state": "invalid",
@@ -207,16 +208,15 @@ class AddressBoundIdentity:
     has_this: bool
     is_variadic: bool
     owning_class: str | None
-    source_signature: str | None
     is_definition: bool
 
 
-def _declaration_is_variadic(entry: Mapping[str, Any], signature: str | None = None) -> bool:
-    if "is_variadic" in entry:
-        return bool(entry.get("is_variadic"))
-    text = signature if signature is not None else str(entry.get("source_signature") or "")
-    stripped = text.rstrip()
-    return ", ..." in stripped or stripped.endswith(("...)", ",...)"))
+_INSTANCE_KINDS = frozenset({"constructor", "destructor", "instance_method"})
+
+
+def declaration_has_this(entry: Mapping[str, Any]) -> bool:
+    """Whether the declared function takes an implicit ``this``."""
+    return str(entry.get("semantic_kind") or "") in _INSTANCE_KINDS
 
 
 def _namespace_for_source(source_file: str, targets: dict[str, dict[str, Any]]) -> str:
@@ -298,10 +298,9 @@ def _identity_from_declaration(
         else None,
         return_type=str(entry["return_type"]) if entry.get("return_type") else None,
         parameter_types=tuple(str(item) for item in (entry.get("parameter_types") or ())),
-        has_this=bool(entry.get("has_this")),
-        is_variadic=_declaration_is_variadic(entry),
+        has_this=declaration_has_this(entry),
+        is_variadic=bool(entry.get("is_variadic")),
         owning_class=str(entry["owning_class"]) if entry.get("owning_class") else None,
-        source_signature=str(entry["source_signature"]) if entry.get("source_signature") else None,
         is_definition=bool(entry.get("is_definition")),
     )
 
@@ -368,7 +367,6 @@ def address_bound_identities(
                 has_this=False,
                 is_variadic=False,
                 owning_class=None,
-                source_signature=None,
                 is_definition=marker_kind == "FUNCTION",
             )
         )
@@ -515,11 +513,10 @@ def _source_index_input_digest(repository: Path, database: Path) -> str:
 
 
 def _reccmp_index_producers() -> list[Path]:
-    import reccmp.call_facts
     import reccmp.parser
     import reccmp.source
 
-    files = [Path(reccmp.call_facts.__file__)]
+    files: list[Path] = []
     for package in (reccmp.source, reccmp.parser):
         root = Path(next(iter(package.__path__)))
         files.extend(sorted(root.glob("*.py")) + sorted(root.glob("*.cpp")))
@@ -1014,7 +1011,6 @@ def _source_index_result(document: dict[str, Any], *, cached: bool) -> dict[str,
         "declarations": len(document.get("declarations") or ()),
         "classes": len(document.get("classes") or ()),
         "variables": len(document.get("variables") or ()),
-        "member_uses": len(document["member_uses"]),
         "conflicts": len(document.get("conflicts") or ()),
         "cached": cached,
     }

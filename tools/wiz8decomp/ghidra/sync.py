@@ -150,15 +150,13 @@ def _apply_name_and_prototype(program: Any, identity: Any) -> dict[str, Any]:
                     "action": "conflict",
                     "error": f"convention-failed:{exc}",
                 }
-    signature = identity.source_signature
-    if signature or identity.parameter_types or identity.return_type:
+    if identity.parameter_types or identity.return_type:
         applied = _apply_signature(program, function, identity)
         if applied.get("error"):
             return {
                 "address": hex_address(identity.address),
                 "action": "unresolved-signature",
                 "error": applied["error"],
-                "signature": signature,
             }
         if applied.get("applied"):
             changed.append("signature")
@@ -177,36 +175,6 @@ def _type_key(data_type: Any) -> str:
     if callable(getter):
         return str(getter())
     return str(data_type)
-
-
-def _parameter_names_from_signature(signature: str | None, count: int) -> list[str]:
-    names = [f"param_{index}" for index in range(count)]
-    if not signature or "(" not in signature or ")" not in signature or count <= 0:
-        return names
-    inner = signature[signature.find("(") + 1 : signature.rfind(")")]
-    if not inner.strip() or inner.strip() == "void":
-        return names
-    parts: list[str] = []
-    depth = 0
-    current: list[str] = []
-    for char in inner:
-        if char in "([":
-            depth += 1
-        elif char in ")]":
-            depth -= 1
-        if char == "," and depth == 0:
-            parts.append("".join(current).strip())
-            current = []
-            continue
-        current.append(char)
-    if "".join(current).strip():
-        parts.append("".join(current).strip())
-    reserved = {"int", "void", "char", "short", "long", "float", "double", "bool", "unsigned"}
-    for index, part in enumerate(parts[:count]):
-        token = part.replace("*", " ").split()[-1]
-        if token.isidentifier() and token not in reserved:
-            names[index] = token
-    return names
 
 
 def _explicit_parameter_types(identity: Any) -> tuple[str, ...]:
@@ -271,13 +239,13 @@ def _stored_signature_matches(function: Any, resolved: dict[str, Any], identity:
 
 
 def _apply_signature(program: Any, function: Any, identity: Any) -> dict[str, Any]:
-    """Project the recovered prototype, structured data types first.
+    """Project the recovered prototype as ProgramDB data types.
 
     Comparing the ProgramDB-resolved structured form with normalized ABI
-    equality is what makes a repeated ``ghidra sync`` a real no-op instead of a
-    source-text parser round-trip. The parser stays the fallback for spellings
-    the structured resolver cannot place, and an existing IMPORTED prototype is
-    left untouched because ``--import-source`` owns that projection.
+    equality is what makes a repeated ``ghidra sync`` a real no-op. A spelling
+    the resolver cannot place is an unresolved signature; an existing IMPORTED
+    prototype is then left untouched because ``--import-source`` owns that
+    projection.
     """
 
     structured = _resolved_structured_signature(program, identity)
@@ -294,62 +262,15 @@ def _apply_signature(program: Any, function: Any, identity: Any) -> dict[str, An
         structured = applied
     if _signature_source(function) == "IMPORTED":
         return {"applied": False}
-    parsed = _apply_parsed_signature(program, function, identity.source_signature)
-    if not parsed.get("error"):
-        return parsed
-    return {
-        "error": "; ".join(part for part in (structured.get("error"), parsed.get("error")) if part)
-    }
-
-
-def _apply_parsed_signature(program: Any, function: Any, signature: str | None) -> dict[str, Any]:
-    if not signature:
-        return {"error": "no-source-signature"}
-    try:
-        from ghidra.app.util.parser import FunctionSignatureParser
-        from ghidra.program.model.listing import Function, ParameterImpl
-        from ghidra.program.model.symbol import SourceType
-    except Exception as exc:  # noqa: BLE001
-        return {"error": f"parser-unavailable:{exc}"}
-    try:
-        parser = FunctionSignatureParser(program.getDataTypeManager(), None)
-        parsed = parser.parse(function.getSignature(), signature)
-    except Exception as exc:  # noqa: BLE001
-        return {"error": f"parse-failed:{exc}"}
-    if parsed is None:
-        return {"error": "parse-failed"}
-    current = function.getPrototypeString(False, False)
-    desired = parsed.getPrototypeString() if hasattr(parsed, "getPrototypeString") else ""
-    if desired and current.replace(" ", "") == desired.replace(" ", ""):
-        return {"applied": False}
-    try:
-        function.setReturnType(parsed.getReturnType(), SourceType.IMPORTED)
-        parameters = [
-            ParameterImpl(
-                argument.getName() or f"param_{index}",
-                argument.getDataType(),
-                program,
-            )
-            for index, argument in enumerate(parsed.getArguments())
-        ]
-        function.replaceParameters(
-            Function.FunctionUpdateType.DYNAMIC_STORAGE_ALL_PARAMS,
-            True,
-            SourceType.IMPORTED,
-            *parameters,
-        )
-        function.setVarArgs(bool(parsed.hasVarArgs()))
-        function.setSignatureSource(SourceType.IMPORTED)
-        return {"applied": True}
-    except Exception as exc:  # noqa: BLE001
-        return {"error": f"apply-failed:{exc}"}
+    return {"error": structured["error"]}
 
 
 def _resolved_structured_signature(program: Any, identity: Any) -> dict[str, Any]:
     """Resolve the recovered prototype into ProgramDB data types.
 
-    A returned ``error`` is a hard resolve failure (an unknown spelling); the
-    caller then falls back to the source-text parser.
+    A returned ``error`` is a hard resolve failure (an unknown spelling).
+    Parameter names are not source facts the index carries: they stay
+    placeholders here, and applying keeps the names ProgramDB already has.
     """
 
     from ghidra.program.model.listing import ParameterImpl
@@ -367,22 +288,32 @@ def _resolved_structured_signature(program: Any, identity: Any) -> dict[str, Any
         return {"error": f"unresolved-return:{return_spelling}"}
     parameters = []
     spellings = _explicit_parameter_types(identity)
-    names = _parameter_names_from_signature(identity.source_signature, len(spellings))
     for index, spelling in enumerate(spellings):
         data_type = resolve_data_type(program, spelling)
         if data_type is None:
             return {"error": f"unresolved-parameter:{spelling}"}
-        parameters.append(ParameterImpl(names[index], data_type, program))
+        parameters.append(ParameterImpl(f"param_{index}", data_type, program))
     return {"return_type": return_type, "parameters": parameters}
 
 
 def _apply_structured_signature(
     program: Any, function: Any, resolved: dict[str, Any], identity: Any
 ) -> dict[str, Any]:
-    from ghidra.program.model.listing import Function
+    from ghidra.program.model.listing import Function, ParameterImpl
     from ghidra.program.model.symbol import SourceType
 
     wanted_cc = identity.calling_convention or ("__thiscall" if identity.has_this else None)
+    existing = [
+        parameter for parameter in function.getParameters() if not bool(parameter.isAutoParameter())
+    ]
+    parameters = [
+        ParameterImpl(
+            existing[index].getName() if index < len(existing) else wanted.getName(),
+            wanted.getDataType(),
+            program,
+        )
+        for index, wanted in enumerate(resolved["parameters"])
+    ]
     # Ghidra silently ignores a parameter replacement that omits the function's
     # existing auto parameters (thiscall ``this``, structure-return pointers),
     # so carry them over and append the recovered explicit parameters.
@@ -393,7 +324,7 @@ def _apply_structured_signature(
             True,
             SourceType.IMPORTED,
             *auto_parameters(function),
-            *resolved["parameters"],
+            *parameters,
         )
         if wanted_cc:
             function.setCallingConvention(wanted_cc)
