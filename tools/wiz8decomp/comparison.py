@@ -65,7 +65,8 @@ def changed_files(repository: Path, since: str | None = None) -> list[Path]:
     if (repository / ".jj").is_dir() and resolve_executable("jj") is not None:
         command = ["jj", "diff", "--name-only", "--color=never"]
         if since is not None:
-            command.extend(("--from", since))
+            baseline = f"{since[7:]}@origin" if since.startswith("origin/") else since
+            command.extend(("--from", baseline))
     else:
         baseline = since
         if baseline is None:

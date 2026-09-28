@@ -183,6 +183,20 @@ def test_changed_files_normalizes_main_at_origin_for_git(tmp_path, monkeypatch):
     assert changed_files(tmp_path, "main@origin") == [tmp_path / "One.cpp"]
 
 
+def test_changed_files_normalizes_origin_main_for_jj(tmp_path, monkeypatch):
+    (tmp_path / ".jj").mkdir()
+    (tmp_path / "One.cpp").write_text("")
+
+    def fake_run(command, *, cwd):
+        assert cwd == tmp_path
+        assert command == ["jj", "diff", "--name-only", "--color=never", "--from", "main@origin"]
+        return SimpleNamespace(stdout="One.cpp\n")
+
+    monkeypatch.setattr(comparison, "resolve_executable", lambda name: f"/bin/{name}")
+    monkeypatch.setattr(comparison, "run", fake_run)
+    assert changed_files(tmp_path, "origin/main") == [tmp_path / "One.cpp"]
+
+
 def test_changed_files_prefers_git_when_jj_executable_missing(tmp_path, monkeypatch):
     (tmp_path / ".jj").mkdir()
     (tmp_path / "One.cpp").write_text("")
