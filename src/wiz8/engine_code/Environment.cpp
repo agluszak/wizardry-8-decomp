@@ -65,7 +65,7 @@ srFog* g_environment_object_0065b9b4;
 // SYNTHETIC: WIZ8 0x00482270
 // `dynamic atexit destructor for 'g_environment_lights''
 // GLOBAL: WIZ8 0x0065B998
-W8GrowableVector<stLight*> g_environment_lights(5);
+W8Vector<stLight*> g_environment_lights(5);
 
 /* 1/duration while the transition body at 0x00484300 runs, zero when idle.
    BeginWorldLightingFade stores 1/duration and sets the lighting mode to 1;

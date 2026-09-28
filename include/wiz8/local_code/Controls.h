@@ -16,7 +16,7 @@ class W8Widget;
 extern wchar_t g_W8TextSeparator[]; /* 0x0060CC74 */
 
 // VTABLE: WIZ8 0x005ed5b0
-// class W8GrowableVector<W8Widget*>
+// class W8Vector<W8Widget*>
 
 /* The region callback a widget without its own region is given. It answers
    whether the event was consumed; the screen-input dispatcher returns that
@@ -55,8 +55,8 @@ struct Controls {
     W8ControlsRect m_dirtyRect; /* 0x24 */
     bool m_fWholeAreaDirty;     /* 0x34: set when a caller passes no rectangle */
     unsigned char unknown_35[3];
-    W8GrowableVector<W8Widget*> m_controls; /* 0x38 */
-    unsigned int m_uiRegionSetId;           /* 0x48 */
+    W8Vector<W8Widget*> m_controls; /* 0x38 */
+    unsigned int m_uiRegionSetId;   /* 0x48 */
 
     void EnableRegionSet(unsigned char enable);
     void RemoveControl(W8Widget* control);

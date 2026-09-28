@@ -376,14 +376,12 @@ wchar_t g_format_al_s[] = L"Al-%s";
 // FUNCTION: WIZ8 0x00524BD0
 void FormatNpcVoiceSoundPath(W8NpcState* npc, char* output)
 {
-    const char* name = GetNpcDisplayName(npc);
-
     if (npc->is_grouped != 0 && g_npc_script_event_active == 0) {
-        sprintf(output, "RPC_%s", name);
+        sprintf(output, "RPC_%s", GetNpcDisplayName(npc));
     } else if (npc->record->voice_script_2ea != 0) {
-        sprintf(output, "VOC_%s", name);
+        sprintf(output, "VOC_%s", GetNpcDisplayName(npc));
     } else {
-        sprintf(output, "NPC_%s", name);
+        sprintf(output, "NPC_%s", GetNpcDisplayName(npc));
     }
 }
 

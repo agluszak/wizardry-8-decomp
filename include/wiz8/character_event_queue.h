@@ -85,10 +85,10 @@ static_assert(sizeof(W8CharacterEvent) == 0x38, "W8CharacterEvent_must_be_0x38")
 struct W8CharacterEventQueue {
     /* 0x00/0x20: no retail code path ever enqueues into these; they are still
        drained and scanned alongside the live vectors. */
-    W8GrowableVector<W8CharacterEvent*> vector_00;
-    W8GrowableVector<W8CharacterEvent*> pending_events;
-    W8GrowableVector<W8CharacterEvent*> vector_20;
-    W8GrowableVector<W8CharacterEvent*> npc_deferred_events;
+    W8Vector<W8CharacterEvent*> vector_00;
+    W8Vector<W8CharacterEvent*> pending_events;
+    W8Vector<W8CharacterEvent*> vector_20;
+    W8Vector<W8CharacterEvent*> npc_deferred_events;
     W8GrowableVector<W8CharacterEvent*> active_events;
     int active_event_type;
     int active_party_slot;

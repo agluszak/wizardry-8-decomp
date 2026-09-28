@@ -2490,8 +2490,8 @@ stTextureAnim* LoadAnimatedTexture(const char* folder, const char* name,
     animation->setupDefaultValues();
     FileClose(handle);
     if (source != 0) {
-        int frame = source->animation_frame_10e;
         animation->animation_mode_60 = source->animation_mode_10d;
+        int frame = source->animation_frame_10e;
         animation->initial_frame_64 = frame;
         animation->frame_58 = frame;
         animation->frame_rate_68 = source->animation_rate_112;

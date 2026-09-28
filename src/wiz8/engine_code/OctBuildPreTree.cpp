@@ -263,7 +263,6 @@ OctBuildPreTree::OctBuildPreTree(float leaf_size, srVector3T<float>* minimum,
     mesh_props_114 = 0;
     mesh_prop_count_118 = 0;
     particle_count_11c = 0;
-    prop_count_120 = 0;
 }
 
 /* Deduplicate and repack the shared geometry: weld-chain every flagged vertex

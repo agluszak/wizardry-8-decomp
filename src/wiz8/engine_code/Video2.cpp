@@ -282,13 +282,14 @@ void AssertFailureHandler(const char* expression, const char* file, long line, c
     strcpy(text, "ERROR: You are viewing a message intended for the developers of "
                  "Wizardry 8. Please report the following information to technical "
                  "support. We apologize for this inconvenience.\n\n");
+    char* details = text + strlen(text);
     if (message != 0 && *message != '\0') {
-        _snprintf(text + strlen(text), 0x6d3,
+        _snprintf(details, 0x6d3,
                   "Debug assertion in module %s line %d failed:\n\n"
                   "Expression [ %s ] evaluates to false.\n\n%s\n",
                   file, line, expression, message);
     } else {
-        _snprintf(text + strlen(text), 0x6d3,
+        _snprintf(details, 0x6d3,
                   "Debug assertion in module %s line %d failed:\n\n"
                   "Expression [ %s ] evaluates to false.\n",
                   file, line, expression);
@@ -775,17 +776,31 @@ unsigned char OpenRendererWindow(void)
 {
     srGERD::e_error error;
     long mode;
+    LPSTR error_message;
 
-    SetLastError(0);
     if (!g_fullscreen) {
+        SetLastError(0);
         SetWindowLongA(ghWindow, GWL_STYLE,
-                       WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
+                       WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_VISIBLE);
+        GetLastError();
+        FormatMessageA(
+            FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                FORMAT_MESSAGE_IGNORE_INSERTS,
+            // reinterpret-ok: FORMAT_MESSAGE_ALLOCATE_BUFFER writes an LPSTR through this argument.
+            0, GetLastError(), 0x400, reinterpret_cast<LPSTR>(&error_message), 0, 0);
         SetWindowPos(ghWindow, NULL, g_window_rect.left, g_window_rect.top,
                      g_window_rect.right - g_window_rect.left,
                      g_window_rect.bottom - g_window_rect.top, 0);
         error = g_gerd->openWindow();
     } else {
+        SetLastError(0);
         SetWindowLongA(ghWindow, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+        GetLastError();
+        FormatMessageA(
+            FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                FORMAT_MESSAGE_IGNORE_INSERTS,
+            // reinterpret-ok: FORMAT_MESSAGE_ALLOCATE_BUFFER writes an LPSTR through this argument.
+            0, GetLastError(), 0x400, reinterpret_cast<LPSTR>(&error_message), 0, 0);
         SetWindowPos(ghWindow, NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN),
                      GetSystemMetrics(SM_CYSCREEN), 0);
         mode = g_gerd->getDisplayMode(g_screen_width, g_screen_height, g_screen_depth);
@@ -2904,11 +2919,11 @@ void SaveJpegScreenshot(void)
     if (surface != 0) {
         char filename[32];
         srSurfaceIOManager::ExportInfo options;
+
+        ++g_screenshot_index;
         options.unknown_00 = 0;
         options.unknown_04 = 1;
         options.option_string = 0;
-
-        ++g_screenshot_index;
         sprintf(filename, "Wiz8%5.5d.JPG", screenshot_index);
         if (g_auto_capture == 0) {
             surface_io_manager->exportSurface(filename, *surface, options);

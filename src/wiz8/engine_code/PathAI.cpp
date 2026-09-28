@@ -63,7 +63,7 @@ bool LoadPathAI(W8PathAI** output, int handle)
         return 0;
     }
     memset(path, 0, sizeof(W8PathAI));
-    path->nodes_0c = new W8GrowableVector<srVector3T<float>*>(5);
+    path->nodes_0c = new W8Vector<srVector3T<float>*>(5);
 
     success = FileRead(handle, &path->version_01, 1, 0);
     success = success && FileRead(handle, &path->position, 4, 0);
@@ -250,7 +250,7 @@ W8PathAI* ClonePathAI(const W8PathAI* source)
     }
     copy->nodes_0c = 0;
     if (source->nodes_0c != 0) {
-        copy->nodes_0c = new W8GrowableVector<srVector3T<float>*>();
+        copy->nodes_0c = new W8Vector<srVector3T<float>*>();
         for (index = 0; index < count; ++index) {
             srVector3T<float>* allocated =
                 static_cast<srVector3T<float>*>(srHeap.allocate(sizeof(srVector3T<float>)));
@@ -767,6 +767,6 @@ W8PathAI* CreateRecord(int unused)
         return 0;
     }
     memset(path, 0, sizeof(W8PathAI));
-    path->nodes_0c = new W8GrowableVector<srVector3T<float>*>();
+    path->nodes_0c = new W8Vector<srVector3T<float>*>();
     return path;
 }

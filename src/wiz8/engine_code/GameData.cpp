@@ -76,10 +76,8 @@ float SettlePositionToGround00420BD0(const srVector3T<float>* position, bool* hi
 float SettlePositionToGround00420C30(srVector3T<float>* position, bool* hit)
 {
     srVector3T<float> candidate = *position;
-    srVector3T<float> ground;
-    ground = candidate;
     if (g_octree_game_data != 0 && g_octree_game_data->octree_04 != 0) {
-        return g_octree_game_data->octree_04->SettleToGround(&ground, hit, 1, 500.0f);
+        return g_octree_game_data->octree_04->SettleToGround(&candidate, hit, 1, 500.0f);
     }
     if (hit != 0) {
         *hit = false;

@@ -39,7 +39,7 @@ W8GrObject::W8GrObject(const W8GrObject& other)
         int count;
         int index;
 
-        m_plsSoundEvents = new W8GrowableVector<W8SoundEvent*>();
+        m_plsSoundEvents = new W8Vector<W8SoundEvent*>();
         if (m_plsSoundEvents == 0) {
             srAssertFail("m_plsSoundEvents", GROBJECT_CPP, 0x42, 0);
         }
@@ -89,17 +89,20 @@ W8GrObject::~W8GrObject()
    W8SoundEventVector), written while the base subobject's
    destructor still owns teardown. */
 
-// VTABLE: WIZ8 0x005ed094
+// VTABLE: WIZ8 0x005ed098
 // class W8GrowableVector<W8SoundEvent*>
 
+// VTABLE: WIZ8 0x005ed094
+// class W8Vector<W8SoundEvent*>
+
 // SYNTHETIC: WIZ8 0x004b6dc0
-// W8GrowableVector<W8SoundEvent*>::`scalar deleting destructor'
+// W8Vector<W8SoundEvent*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004b6d90
-// W8GrowableVector<W8SoundEvent*>::`scalar deleting destructor' (construction-phase copy)
+// W8GrowableVector<W8SoundEvent*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004b6de0
-// W8GrowableVector<W8SoundEvent*>::~W8GrowableVector<W8SoundEvent*>
+// W8Vector<W8SoundEvent*>::~W8Vector<W8SoundEvent*>
 
 /* Creates the list on first use and appends one event to it. Only one argument
    reaches this from its three call sites, each of which builds the event with
@@ -117,7 +120,7 @@ unsigned char W8GrObject::AddSoundEvent(W8SoundEvent* pse)
         return 0;
     }
     if (!m_plsSoundEvents) {
-        m_plsSoundEvents = new W8GrowableVector<W8SoundEvent*>();
+        m_plsSoundEvents = new W8Vector<W8SoundEvent*>();
         if (!m_plsSoundEvents) {
             srAssertFail("m_plsSoundEvents", GROBJECT_CPP, 0x8b, 0);
         }

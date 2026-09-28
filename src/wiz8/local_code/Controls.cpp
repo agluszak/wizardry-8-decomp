@@ -61,10 +61,10 @@ extern const unsigned int g_W8TextControlMask005ED588 = 0x10;
 extern const unsigned int g_W8TextControlLayoutImageAtOrigin = 0x80;
 
 // SYNTHETIC: WIZ8 0x004f68a0
-// W8GrowableVector<W8Widget*>::`scalar deleting destructor'
+// W8Vector<W8Widget*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004f68c0
-// W8GrowableVector<W8Widget*>::~W8GrowableVector<W8Widget*>
+// W8Vector<W8Widget*>::~W8Vector<W8Widget*>
 
 /* The default constructor. Everything the seven-argument one takes from its
    caller, this one zeroes or sets to -1. */
@@ -378,7 +378,9 @@ void W8Widget::SetRegion(unsigned int region)
 // FUNCTION: WIZ8 0x004f3480
 W8TextBuffer::~W8TextBuffer()
 {
-    delete[] m_buffer;
+    if (m_buffer != 0) {
+        delete[] m_buffer;
+    }
 }
 
 // FUNCTION: WIZ8 0x004f3310
@@ -2368,10 +2370,10 @@ void W8Widget::SetBoundsFromRect(const W8ControlsRect* bounds)
    vector's operator new can throw after the base is built; the canonical body
    has no frame, so the original base's destructor is implicit. */
 // SYNTHETIC: WIZ8 0x004f6910
-// W8GrowableVector<W8TextControl*>::`scalar deleting destructor'
+// W8Vector<W8TextControl*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004f6930
-// W8GrowableVector<W8TextControl*>::~W8GrowableVector<W8TextControl*>
+// W8Vector<W8TextControl*>::~W8Vector<W8TextControl*>
 
 // FUNCTION: WIZ8 0x004f5450
 W8ControlSelection::W8ControlSelection()

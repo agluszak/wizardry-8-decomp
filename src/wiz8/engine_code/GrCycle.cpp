@@ -70,7 +70,7 @@ const float g_float_005ecf9c = 250.0f;
 // GLOBAL: WIZ8 0x0060da88
 bool g_flag_0060da88 = true;
 // GLOBAL: WIZ8 0x0065be2c
-W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects;
+W8Vector<W8CameraShakeEffect*>* g_shake_effects;
 // GLOBAL: WIZ8 0x0065be30
 W8GameTimer* g_shake_timer;
 
@@ -99,7 +99,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset, float inte
       cycle_3c(0), frame_40(0), subcycle_44(0), completion_callback_48(0)
 {
     if (g_shake_effects == 0) {
-        g_shake_effects = new W8GrowableVector<W8CameraShakeEffect*>(5);
+        g_shake_effects = new W8Vector<W8CameraShakeEffect*>(5);
         g_shake_timer = new W8GameTimer(g_float_005ecf98, 0);
         g_shake_timer->Restart();
     }
@@ -372,14 +372,14 @@ unsigned char ReadGrCycleData(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycl
 
     FileRead(info->hFile, &has_particles, 1, 0);
     if (has_particles != 0) {
-        W8GrowableVector<stParticle*> particles;
+        W8Vector<stParticle*> particles;
 
         success = ReadWorldParticles(info, g_world->dynamic_scene, &particles);
         if (particles.GetCount() != 0) {
             int index;
 
             if ((*cycle)->m_plsParticles == 0) {
-                (*cycle)->m_plsParticles = new W8GrowableVector<W8GrCycleParticleAttachment*>;
+                (*cycle)->m_plsParticles = new W8Vector<W8GrCycleParticleAttachment*>;
             }
             for (index = 0; index < particles.GetCount(); ++index) {
                 stParticle* particle = *particles.GetAt(index);
@@ -465,7 +465,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
     frame_fraction_1d4 = 0;
     if (other.m_plsLights != 0 && other.m_plsLights->GetCount() != 0 && m_fDeleteLights != 0) {
         count = other.m_plsLights->GetCount();
-        m_plsLights = new W8GrowableVector<stLight*>(5);
+        m_plsLights = new W8Vector<stLight*>(5);
         for (index = 0; index < count; ++index) {
             stLight* source_light = *other.m_plsLights->GetAt(index);
             float x = source_light->positionalX();
@@ -492,7 +492,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
     }
     if (other.m_plsShakeEvents != 0 && other.m_plsShakeEvents->GetCount() != 0) {
         count = other.m_plsShakeEvents->GetCount();
-        m_plsShakeEvents = new W8GrowableVector<W8CameraShakeEffect*>(5);
+        m_plsShakeEvents = new W8Vector<W8CameraShakeEffect*>(5);
         if (m_plsShakeEvents == 0) {
             srAssertFail("m_plsShakeEvents", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
                          0xe3, 0);
@@ -510,7 +510,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
     }
     if (other.m_plsParticles != 0 && other.m_plsParticles->GetCount() != 0) {
         count = other.m_plsParticles->GetCount();
-        m_plsParticles = new W8GrowableVector<W8GrCycleParticleAttachment*>(5);
+        m_plsParticles = new W8Vector<W8GrCycleParticleAttachment*>(5);
         if (m_plsParticles == 0) {
             srAssertFail("m_plsParticles", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
                          0xf6, 0);
@@ -1317,29 +1317,32 @@ W8GrowableVector<char*> g_grcycle_names;
 // GLOBAL: WIZ8 0x0065be00
 W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
 
-// VTABLE: WIZ8 0x005eced4
+// VTABLE: WIZ8 0x005eced8
 // class W8GrowableVector<W8CameraShakeEffect*>
 
+// VTABLE: WIZ8 0x005eced4
+// class W8Vector<W8CameraShakeEffect*>
+
 // SYNTHETIC: WIZ8 0x004a8f70
-// W8GrowableVector<W8CameraShakeEffect*>::`scalar deleting destructor'
+// W8Vector<W8CameraShakeEffect*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004a8f40
-// W8GrowableVector<W8CameraShakeEffect*>::`vector deleting destructor'
+// W8GrowableVector<W8CameraShakeEffect*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004a8f90
-// W8GrowableVector<W8CameraShakeEffect*>::~W8GrowableVector<W8CameraShakeEffect*>
+// W8Vector<W8CameraShakeEffect*>::~W8Vector<W8CameraShakeEffect*>
 
 // VTABLE: WIZ8 0x005ececc
-// class W8GrowableVector<W8GrCycleParticleAttachment*>
+// class W8Vector<W8GrCycleParticleAttachment*>
 
 // SYNTHETIC: WIZ8 0x004a8fe0
-// W8GrowableVector<W8GrCycleParticleAttachment*>::`scalar deleting destructor'
+// W8Vector<W8GrCycleParticleAttachment*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004a8fb0
-// W8GrowableVector<W8GrCycleParticleAttachment*>::`vector deleting destructor'
+// W8GrowableVector<W8GrCycleParticleAttachment*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004a9000
-// W8GrowableVector<W8GrCycleParticleAttachment*>::~W8GrowableVector<W8GrCycleParticleAttachment*>
+// W8Vector<W8GrCycleParticleAttachment*>::~W8Vector<W8GrCycleParticleAttachment*>
 
 // FUNCTION: WIZ8 0x004a8430
 void W8GrCycle::SetSubCycle(unsigned char subcycle)
@@ -1379,7 +1382,7 @@ void W8GrCycle::SetLights(W8GrowableVector<stLight*>* lights)
 void W8GrCycle::AddShakeEffect(W8CameraShakeEffect* effect)
 {
     if (m_plsShakeEvents == 0) {
-        m_plsShakeEvents = new W8GrowableVector<W8CameraShakeEffect*>();
+        m_plsShakeEvents = new W8Vector<W8CameraShakeEffect*>();
     }
     m_plsShakeEvents->Add(effect);
 }

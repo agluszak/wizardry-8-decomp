@@ -54,8 +54,8 @@ MonGen::MonGen()
     marker_item = 0;
     encounter_table_index = -1;
     m_pTimer = 0;
-    memset(name, 0, sizeof(name));
     generation_enabled = 1;
+    memset(name, 0, sizeof(name));
 }
 
 // FUNCTION: WIZ8 0x0048bdc0
@@ -1088,7 +1088,7 @@ void RollRandomEncounters(void)
         DespawnMonsterGroup(*g_active_groups.GetAt(g_active_groups.GetCount() - 1));
     }
 
-    W8GrowableVector<MonGen*> generators(*g_world->monster_generators);
+    W8Vector<MonGen*> generators(*g_world->monster_generators);
     int count = generators.GetCount();
     if (count > 1) {
         for (int remaining = count; remaining > 0; --remaining) {

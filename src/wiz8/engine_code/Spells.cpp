@@ -460,7 +460,7 @@ W8SpellEmitterHost::W8SpellEmitterHost(const W8SpellEmitterHost& other)
             if (source_lights != 0) {
                 int light_index;
 
-                copied_lights = new W8GrowableVector<stLight*>;
+                copied_lights = new W8Vector<stLight*>;
                 if (copied_lights == 0) {
                     srAssertFail("plsNewLights",
                                  "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x198,
@@ -497,7 +497,7 @@ W8SpellEmitterHost::W8SpellEmitterHost(const W8SpellEmitterHost& other)
 unsigned char W8SpellEmitterHost::ReadCycleData(W8ReadLevelInfo* info, W8SpellVisual* visual, int,
                                                 int emitter_index)
 {
-    W8GrowableVector<stLight*>* lights = new W8GrowableVector<stLight*>;
+    W8GrowableVector<stLight*>* lights = new W8Vector<stLight*>;
     W8AnimObj* animation;
     unsigned char success;
     signed char emitter;

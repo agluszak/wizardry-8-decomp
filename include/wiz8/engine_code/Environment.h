@@ -149,7 +149,7 @@ extern srVector3T<float> g_celestial_origin;
 
 /* The registered environment lights, ambient-filled by ApplyEnvironmentColour.
    The vector count occupies 0x0065B99C. */
-extern W8GrowableVector<stLight*> g_environment_lights;
+extern W8Vector<stLight*> g_environment_lights;
 
 void SetGameTimeDays(int value);
 void AdvanceEnvironmentTime(int elapsed); /* 0x00482A20 */

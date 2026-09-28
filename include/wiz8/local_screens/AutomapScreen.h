@@ -17,7 +17,7 @@ struct W8AutomapNote {
 };
 static_assert(sizeof(W8AutomapNote) == 0x10, "W8AutomapNote_size");
 
-extern W8GrowableVector<W8AutomapNote*>* g_automap_notes;
+extern W8Vector<W8AutomapNote*>* g_automap_notes;
 extern int g_ui_mode_current;
 extern int g_ui_mode_saved;
 void SetValue68F2B0(int value); /* 0x00587C10 */

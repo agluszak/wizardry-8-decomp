@@ -24,9 +24,9 @@ struct W8PathAI : W8AIRecord {
     unsigned char version_01;
     unsigned char padding_02[2];
     /* Normalized for interpolated movement, point units in discrete mode. */
-    float position;                                 /* 0x04 */
-    unsigned int unknown_08;                        /* 0x08: serialized; no recovered consumer */
-    W8GrowableVector<srVector3T<float>*>* nodes_0c; /* 0x0c */
+    float position;                         /* 0x04 */
+    unsigned int unknown_08;                /* 0x08: serialized; no recovered consumer */
+    W8Vector<srVector3T<float>*>* nodes_0c; /* 0x0c */
     int entry_index_10; /* 0x10: level camera/path entry index, assigned at load */
     /* 0x004A98C0 sizes both from the node count: 0x24 a record here, and a
        srVector3T<float> each in the render array. */

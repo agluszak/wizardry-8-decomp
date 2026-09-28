@@ -70,16 +70,16 @@ unsigned char g_byte_00659a64;
 // class W8PropRepresentation
 
 // VTABLE: WIZ8 0x005ec1d0
-// class W8GrowableVector<W8PropAnimationSegment*>
+// class W8Vector<W8PropAnimationSegment*>
 
 // SYNTHETIC: WIZ8 0x0044ef60
-// W8GrowableVector<W8PropAnimationSegment*>::`scalar deleting destructor'
+// W8Vector<W8PropAnimationSegment*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0044ef30
-// W8GrowableVector<W8PropAnimationSegment*>::`vector deleting destructor' (companion table 0x005EC1D4)
+// W8GrowableVector<W8PropAnimationSegment*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0044ef00
-// W8GrowableVector<W8PropAnimationSegment*>::~W8GrowableVector<W8PropAnimationSegment*>
+// W8Vector<W8PropAnimationSegment*>::~W8Vector<W8PropAnimationSegment*>
 
 // TEMPLATE: WIZ8 0x0044efe0
 // W8GrowableVector<W8PropAnimationSegment*>::W8GrowableVector
@@ -180,15 +180,11 @@ void UpdateWorldProps(W8World* world)
 W8Prop::~W8Prop()
 {
     delete static_cast<W8PropRepresentation*>(m_pRep);
-    m_pRep = 0;
     if (m_name != 0) {
         delete[] m_name;
-        m_name = 0;
     }
     delete m_pTimer;
-    m_pTimer = 0;
     delete m_gd_prop;
-    m_gd_prop = 0;
 }
 
 // FUNCTION: WIZ8 0x0044db60

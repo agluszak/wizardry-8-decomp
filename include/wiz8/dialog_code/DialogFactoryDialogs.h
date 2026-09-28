@@ -255,7 +255,7 @@ private:
     static void ScrollItemsToMouse(W8DialogButton* button);   /* 0x005CEAF0 */
 
 public:
-    W8GrowableVector<W8WorldItem*> items_54;
+    W8Vector<W8WorldItem*> items_54;
     W8GrowableVector<unsigned char> flags_64;
     W8DialogButton* m_buttons_74[13];
     int m_first_item_0a8;

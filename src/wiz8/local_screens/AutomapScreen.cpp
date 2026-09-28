@@ -67,14 +67,14 @@
    unknown, so the existing compilation boundary is retained. */
 
 // GLOBAL: WIZ8 0x0068F258
-W8GrowableVector<W8AutomapNote*>* g_automap_notes;
+W8Vector<W8AutomapNote*>* g_automap_notes;
 
 // FUNCTION: WIZ8 0x0057e5d0
 unsigned char AutomapScreenInitialize(void)
 {
-    W8GrowableVector<W8AutomapNote*>* list;
+    W8Vector<W8AutomapNote*>* list;
 
-    list = new W8GrowableVector<W8AutomapNote*>();
+    list = new W8Vector<W8AutomapNote*>();
     g_automap_notes = list;
     if (!list) {
         return 0;
@@ -113,7 +113,7 @@ stModelInstance2D* g_automap_text_marker;
 
 /* Leave releases the pointed-to objects and erases their vector entries. */
 // GLOBAL: WIZ8 0x0068F1F4
-W8GrowableVector<srClass*>* g_releasable_68f1f4;
+W8Vector<srClass*>* g_releasable_68f1f4;
 
 // GLOBAL: WIZ8 0x0068f220
 W8GrowableVector<srClipPlane::ClientType*> g_automap_created_layers;
@@ -162,7 +162,7 @@ void (*g_automap_button_callbacks[16])(void) = {
 /* Catalog object ids ConfigureVObjButton loads for each button. */
 // GLOBAL: WIZ8 0x0064b824
 int g_automap_button_catalogs[16] = {388, 392, 396, 380, 384, 348, 352, 356,
-                                           340, 344, 360, 364, 368, 372, 376, 336};
+                                     340, 344, 360, 364, 368, 372, 376, 336};
 /* Screen positions for the sixteen buttons. */
 // GLOBAL: WIZ8 0x0064b864
 int g_automap_button_positions[16][2] = {
@@ -1504,7 +1504,7 @@ void RefreshDirtyAutomap(void)
 // FUNCTION: WIZ8 0x00580380
 void UpdateAutomapBounds(void)
 {
-    W8GrowableVector<stModelInstance*> models(5);
+    W8Vector<stModelInstance*> models(5);
     PartyHasCondition(0x40);
     if (g_world->octree != 0) {
         if (g_automap_bounds_dirty != 0) {
@@ -1793,11 +1793,10 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
                 marker_width = static_cast<int>(
                     static_cast<unsigned short>(g_automap_text_marker->GetWidth00480EF0()) * 0.22);
             } else {
-                marker_width = static_cast<int>(
-                    (1.0f / (g_automap_zoom * 0.00004f)) * 0.44f *
-                    static_cast<double>(
-                        static_cast<unsigned short>(g_automap_text_marker->GetWidth00480EF0())) *
-                    0.5f);
+                marker_width = static_cast<int>((1.0f / (g_automap_zoom * 0.00004f)) * 0.44f *
+                                                static_cast<double>(static_cast<unsigned short>(
+                                                    g_automap_text_marker->GetWidth00480EF0())) *
+                                                0.5f);
             }
             g_automap_text_marker->GetHeight00480F70();
             W8ScreenRect rect;
@@ -1987,7 +1986,7 @@ W8AutomapNote* FindAutomapNoteUnderCursor(void)
 void CreateAutomapMarkerSprites(void)
 {
     if (g_releasable_68f1f4 == 0) {
-        g_releasable_68f1f4 = new W8GrowableVector<srClass*>(5);
+        g_releasable_68f1f4 = new W8Vector<srClass*>(5);
     }
     if (g_class_68f29c == 0) {
         stTextureFile* texture = new stTextureFile("Data\\Automap\\map_partymarker_a.tga", 0);

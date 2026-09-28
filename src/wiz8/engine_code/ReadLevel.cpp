@@ -525,7 +525,7 @@ unsigned char ReadWorldProps(W8ReadLevelInfo* pInfo, W8World* pWorld,
 {
     /* CollectModelInstances appends. The canonical body deliberately keeps
        this one vector across the complete prop loop. */
-    W8GrowableVector<stModelInstance*> model_instances(5);
+    W8Vector<stModelInstance*> model_instances(5);
     W8Prop* prop;
     W8BoundingBox bounds;
     int count;

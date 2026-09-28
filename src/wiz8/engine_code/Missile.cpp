@@ -879,7 +879,7 @@ W8MissileRep::W8MissileRep(const W8MissileRep& other)
             if (source_lights != 0) {
                 int light_index;
 
-                copied_lights = new W8GrowableVector<stLight*>;
+                copied_lights = new W8Vector<stLight*>;
                 if (copied_lights == 0) {
                     srAssertFail("plsNewLights", MISSILE_CPP, 0x184,
                                  "Out of memory creating monster light list");
@@ -920,7 +920,7 @@ W8AnimRepBase* W8MissileRep::Clone()
 unsigned char W8MissileRep::ReadCycleData(W8ReadLevelInfo* info, W8Missile* missile,
                                           int cycle_index, int)
 {
-    W8GrowableVector<stLight*>* lights = new W8GrowableVector<stLight*>;
+    W8GrowableVector<stLight*>* lights = new W8Vector<stLight*>;
     W8AnimObj* animation;
     unsigned char success;
     signed char emitter;
