@@ -155,18 +155,18 @@ wheels = [
 [[package]]
 name = "ghidriff"
 version = "1.0.0"
-source = { url = "https://github.com/agluszak/ghidriff/archive/c006bb64c56d9033846f95d7152ecbf3a7114d24.tar.gz" }
+source = { url = "https://github.com/agluszak/ghidriff/archive/e2ef5605784c8c747541aa229ffefe10cf5e6d16.tar.gz" }
 dependencies = [
     { name = "mdutils" },
     { name = "pyghidra" },
 ]
-sdist = { hash = "sha256:bdb517baeb5ed117df2746d36734c00d6debae625aa6a37f16d0e4ebccb7f071" }
+sdist = { hash = "sha256:ef64882e533d078e526d6d1fdefe6cab917651d598f139f1fd88919d18e28807" }
 
 [package.metadata]
 requires-dist = [
-    { name = "ghidra-stubs", marker = "extra == 'dev'" },
+    { name = "ghidra-stubs", marker = "extra == 'dev'", specifier = "==12.1.4" },
     { name = "mdutils", specifier = "==1.6.0" },
-    { name = "pyghidra", specifier = ">=3.0.0,<4" },
+    { name = "pyghidra", specifier = ">=3.1.0,<4" },
     { name = "pytest", marker = "extra == 'testing'" },
     { name = "pytest-datadir", marker = "extra == 'testing'" },
     { name = "pytest-forked", marker = "extra == 'testing'" },
@@ -478,7 +478,7 @@ wheels = [
 [[package]]
 name = "reccmp"
 version = "0.1.7"
-source = { git = "https://github.com/agluszak/reccmp?rev=c6c26788abdc70c30dbc6760b6dfa7f8e8ae20ef#c6c26788abdc70c30dbc6760b6dfa7f8e8ae20ef" }
+source = { git = "https://github.com/agluszak/reccmp?rev=c8e91454358ce0df8d9a068688529cdba7196131#c8e91454358ce0df8d9a068688529cdba7196131" }
 dependencies = [
     { name = "capstone" },
     { name = "colorama" },
@@ -628,6 +628,6 @@ dev = [
     { name = "pyright", specifier = ">=1.1.403,<2" },
     { name = "pytest", specifier = ">=8.4,<10" },
     { name = "pytest-cov", specifier = ">=6.2,<8" },
-    { name = "reccmp", git = "https://github.com/agluszak/reccmp?rev=c6c26788abdc70c30dbc6760b6dfa7f8e8ae20ef" },
+    { name = "reccmp", git = "https://github.com/agluszak/reccmp?rev=c8e91454358ce0df8d9a068688529cdba7196131" },
     { name = "ruff", specifier = ">=0.12,<1" },
 ]
