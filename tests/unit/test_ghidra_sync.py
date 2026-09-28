@@ -150,6 +150,25 @@ def test_stored_signature_agreement_ignores_only_ghidra_auto_this() -> None:
     )
 
 
+def test_stored_signature_agreement_ignores_pdb_adjusted_this() -> None:
+    void = _data_type("/void")
+    integer = _data_type("/int")
+    adjusted_this = _parameter("this", _data_type("/NodePtrOffset0x4"))
+    argument = _parameter("value", integer)
+    resolved = {"return_type": void, "parameters": [argument]}
+
+    assert _stored_signature_matches(
+        _function(void, [adjusted_this, argument], convention="__thiscall"),
+        resolved,
+        _identity(has_this=True, convention=None),
+    )
+    assert not _stored_signature_matches(
+        _function(void, [adjusted_this, argument], convention="__cdecl"),
+        resolved,
+        _identity(has_this=True, convention=None),
+    )
+
+
 def test_stored_signature_rejects_extra_programdb_parameters() -> None:
     """A stored prototype with more parameters is a disagreement, not agreement."""
 

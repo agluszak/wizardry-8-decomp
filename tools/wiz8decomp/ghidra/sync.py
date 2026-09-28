@@ -220,9 +220,7 @@ def _stored_signature_matches(function: Any, resolved: dict[str, Any], identity:
     # return that source declarations express.
     if _type_key(function.getSignature().getReturnType()) != _type_key(resolved["return_type"]):
         return False
-    existing = [
-        parameter for parameter in function.getParameters() if not bool(parameter.isAutoParameter())
-    ]
+    existing = _stored_explicit_parameters(function, identity)
     desired = resolved["parameters"]
     if len(existing) != len(desired):
         return False
@@ -236,6 +234,22 @@ def _stored_signature_matches(function: Any, resolved: dict[str, Any], identity:
         and _type_key(current.getDataType()) == _type_key(wanted.getDataType())
         for current, wanted in zip(existing, desired, strict=True)
     )
+
+
+def _stored_explicit_parameters(function: Any, identity: Any) -> list[Any]:
+    """Exclude a named thiscall receiver even when PDB made it non-automatic."""
+
+    parameters = [
+        parameter for parameter in function.getParameters() if not bool(parameter.isAutoParameter())
+    ]
+    if (
+        identity.has_this
+        and str(function.getCallingConventionName() or "") == "__thiscall"
+        and parameters
+        and parameters[0].getName() == "this"
+    ):
+        return parameters[1:]
+    return parameters
 
 
 def _apply_signature(program: Any, function: Any, identity: Any) -> dict[str, Any]:
@@ -303,9 +317,7 @@ def _apply_structured_signature(
     from ghidra.program.model.symbol import SourceType
 
     wanted_cc = identity.calling_convention or ("__thiscall" if identity.has_this else None)
-    existing = [
-        parameter for parameter in function.getParameters() if not bool(parameter.isAutoParameter())
-    ]
+    existing = _stored_explicit_parameters(function, identity)
     parameters = [
         ParameterImpl(
             existing[index].getName() if index < len(existing) else wanted.getName(),

@@ -50,6 +50,7 @@ from .class_structure_projection import (
     _decide_structure_action,
     _find_named_structure,
     _simple_name,
+    _source_size,
     _thiscall_owning_classes,
 )
 from .datatype_contracts import (
@@ -94,8 +95,9 @@ def plan_semantic_hash(plan: Mapping[str, Any]) -> str:
 def _asserted_size_classes(index: SourceIndex) -> dict[str, int]:
     sizes: dict[str, int] = {}
     for record in index.classes.values():
-        if record.asserted_size:
-            sizes[str(record.qualified_name)] = int(record.asserted_size)
+        size = _source_size(record)
+        if size is not None and record.asserted_size:
+            sizes[str(record.qualified_name)] = size
     return sizes
 
 
@@ -244,9 +246,7 @@ def build_identity_map(
         seen.add(owning)
         source_class = classes.get(owning) or classes.get(_simple_name(owning))
         asserted = (
-            int(source_class.asserted_size)
-            if source_class and source_class.asserted_size
-            else sizes.get(owning) or sizes.get(_simple_name(owning))
+            _source_size(source_class) or sizes.get(owning) or sizes.get(_simple_name(owning))
         )
         ghidra_class = (
             ensure_ghidra_class(program, owning)
