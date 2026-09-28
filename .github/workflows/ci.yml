@@ -372,6 +372,11 @@ jobs:
         continue-on-error: true
         run: |
           git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}"
+          if ! git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD | \
+            grep -Eq '^(src/wiz8/|src/sgp/|include/wiz8/|include/surrender/).*\.(c|cc|cpp|cxx|h|hpp|hxx)$'; then
+            echo 'No changed WIZ8 C/C++ source; skipping function comparison.'
+            exit 0
+          fi
           # Differences are review material; the step fails only when a
           # comparison did not complete or a changed function is unpaired.
           uv run wiz8 compare --changed --since "${{ github.event.pull_request.base.sha }}" --sxs
@@ -624,6 +629,11 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}"
+          if ! git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD | \
+            grep -Eq '^(src/surrender/|include/surrender/).*\.(c|cc|cpp|cxx|h|hpp|hxx)$'; then
+            echo 'No changed SURRENDER C/C++ source; skipping function comparison.'
+            exit 0
+          fi
           uv run wiz8 compare --changed --since "${{ github.event.pull_request.base.sha }}" \
             --program sr.dll --sxs
       - name: Upload SURRENDER comparison report
