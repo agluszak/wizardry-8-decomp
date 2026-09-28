@@ -444,8 +444,8 @@ int BitArray::NextSetBit(char restart)
                 ++cursor_bit;
             }
         }
-        cursor_base += W8_BITS_PER_WORD;
         cursor_bit = 0;
+        cursor_base += W8_BITS_PER_WORD;
         ++cursor_word;
     }
 

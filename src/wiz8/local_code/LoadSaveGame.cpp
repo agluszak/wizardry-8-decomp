@@ -1041,7 +1041,7 @@ unsigned char LoadDefaultLevelStatus(unsigned int level)
 {
     W8Chunk chunk;
     W8LevelInfo info;
-    char path[256];
+    char path[260];
     int file_level;
     int count;
 
@@ -1069,14 +1069,19 @@ unsigned char LoadDefaultLevelStatus(unsigned int level)
             if (chunk.CurrentChunkAtEnd() == 0) {
                 unsigned long chunk_id = chunk.CurrentChunkId();
 
-                if (chunk_id == 0x4b434f4c) { /* LOCK */
+                switch (chunk_id) {
+                case 0x4b434f4c: /* LOCK */
                     LoadTriggerRuntimeStates(chunk.m_hFile);
-                } else if (chunk_id == 0x45425543) { /* CUBE */
+                    break;
+                case 0x45425543: /* CUBE */
                     LoadWorldCursorNodes(chunk.m_hFile);
-                } else if (chunk_id == 0x474e4f4d) { /* MONG */
+                    break;
+                case 0x474e4f4d: /* MONG */
                     MonGen::LoadAll(chunk.m_hFile);
-                } else if (chunk_id == 0x53455254) { /* TRES */
+                    break;
+                case 0x53455254: /* TRES */
                     LoadTriggerActionData(chunk.m_hFile);
+                    break;
                 }
             }
             chunk.SkipCurrentChunk();
