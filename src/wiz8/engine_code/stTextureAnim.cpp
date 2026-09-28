@@ -130,17 +130,15 @@ void stTextureAnim::UpdateFrame004854B0()
         return;
     }
 
-    /* Retail scales rand() by the folded constant 1/32768 (0x005ec1e4),
-       not a runtime division by RAND_MAX. */
     if (trigger_mode_70 == 1) {
-        if (rand() * (1.0f / 32768.0f) < probability_74) {
-            frame_58 = static_cast<int>(rand() * (1.0f / 32768.0f) * textures_54->GetCount());
+        if (rand() / static_cast<float>(RAND_MAX) < probability_74) {
+            frame_58 = static_cast<int>(rand() / static_cast<float>(RAND_MAX) * textures_54->GetCount());
         }
         return;
     }
 
     if (trigger_mode_70 == 2) {
-        if (running_78 == 0 && rand() * (1.0f / 32768.0f) < probability_74) {
+        if (running_78 == 0 && rand() / static_cast<float>(RAND_MAX) < probability_74) {
             running_78 = 1;
             direction_5c = 0;
             frame_58 = 0;

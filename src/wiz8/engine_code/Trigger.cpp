@@ -960,9 +960,9 @@ void UpdateTimedTriggerEvents(void)
 void W8TriggerShakeEvent::Update()
 {
     if (effect_038 == 0) {
-        float intensity = intensity_03c / 1000.0f;
+        float intensity = intensity_03c / 250.0f;
 
-        if (intensity > 1.0f) {
+        if (intensity < 1.0f) {
             intensity = 1.0f;
         }
         effect_038 = CreateCameraShakeEffect(m_pCountdown->m_duration_seconds, 0, intensity, 0, 0);

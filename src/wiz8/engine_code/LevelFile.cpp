@@ -1694,7 +1694,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                         FileRead(hFile, &pFrame->num_textures_5d, 2, 0);
                             if ((pFrame->num_textures_5d < 0) || (pFrame->num_textures_5d > 500)) {
                                 sprintf(g_level_file_error,
-                                        "Invalid number of materials in mesh: %d\n",
+                                        "Invalid number of materials in mesh (%d materials).\n",
                                         (int)pFrame->num_textures_5d);
                                 ReportBuildStatus(7, g_level_file_error);
                                 return FALSE;

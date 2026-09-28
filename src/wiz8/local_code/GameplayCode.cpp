@@ -795,6 +795,7 @@ void CalcAttacks(W8Character* character)
 void CalcArmorClasses(W8Character* character)
 {
     bool defensive_action = false;
+    int location_slot = 0;
     if (gXStatus.fCombatMode) {
         unsigned int slot = CharacterPointerToPartySlot(character);
         defensive_action = TryCharacterAction(slot, 4, 0) || TryCharacterAction(slot, 5, 0);
@@ -879,16 +880,35 @@ void CalcArmorClasses(W8Character* character)
         character->armor_class_total = -5;
     }
 
-    static const int equipment_slots[5] = {0, 4, 10, 5, 11};
     int weighted_total = 0;
     for (index = 0; index < 5; ++index) {
-        int armor_class = character->armor_class_total + character->armor_class_components[6];
-        int item_id = character->EquippedItem[equipment_slots[index]].iItemNo;
-        if (item_id != -1) {
-            armor_class += g_item_records[item_id].armor_class_bonus;
+        character->armor_class_by_location[index] = character->armor_class_total;
+        character->armor_class_by_location[index] += character->armor_class_components[6];
+        switch (index) {
+        case 0:
+            location_slot = 0;
+            break;
+        case 1:
+            location_slot = 4;
+            break;
+        case 2:
+            location_slot = 10;
+            break;
+        case 3:
+            location_slot = 5;
+            break;
+        case 4:
+            location_slot = 11;
+            break;
+        default:
+            srAssertFail("FALSE", GAMEPLAY_CODE_CPP, 0x5a1,
+                         "CalcArmorClasses: ERROR - Invalid AC location");
         }
-        character->armor_class_by_location[index] = armor_class;
-        weighted_total += gubLocalACPercent[index] * armor_class;
+        int item_id = character->EquippedItem[location_slot].iItemNo;
+        if (item_id != -1) {
+            character->armor_class_by_location[index] += g_item_records[item_id].armor_class_bonus;
+        }
+        weighted_total += gubLocalACPercent[index] * character->armor_class_by_location[index];
     }
     character->armor_class_average =
         weighted_total < 0 ? (weighted_total - 50) / 100 : (weighted_total + 50) / 100;

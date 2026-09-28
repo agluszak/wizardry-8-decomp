@@ -30,6 +30,16 @@
 #include "wiz8/local_code/CombatSound.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/engine_code/Missile.h"
+#include "wiz8/engine_code/Spells.h"
+#include "wiz8/engine_code/Trigger.hpp"
+#include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/GameplayInit.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/monster_generators.h"
+#include "wiz8/regions.h"
+#include "Button System.h"
 #include "LibraryDataBase.h"
 #include <stdlib.h>
 
@@ -99,20 +109,31 @@ void ShutdownGame(void)
     int index;
 
     ReleaseHitSoundDatabase();
+    ReleaseGenericItemNames();
+    ReleaseNpcStates();
+    UnloadEncounterTables();
     ReleaseMissileDatabase();
+    ReleaseSpellDatabase();
+    DestroyItemDatabase();
+    DestroyItemTables();
+    FreeIfNotNull(0);
+    DestroyNpcDatabase();
+    DestroyFactDatabase();
+    DestroyLevelDatabase();
     for (index = 0; index < 15; ++index) {
         free(g_font_state_palettes[index]);
-        g_font_state_palettes[index] = 0;
     }
+    ReleasePointer689B40();
+    ShutdownButtonSystem();
     for (index = 0; index < W8_SCREEN_COUNT; ++index) {
         g_screen_handlers[index].finalize();
     }
-    if (g_screen_return_stack) {
-        DeleteStack(g_screen_return_stack);
-        g_screen_return_stack = 0;
-    }
+    DeleteStack(g_screen_return_stack);
     SaveGameConfiguration();
+    ReleaseAllTriggers();
+    FreeStringTable();
     ShutDownFileDatabase();
+    DestroyGameplayObjects();
 }
 
 // FUNCTION: WIZ8 0x004e3340

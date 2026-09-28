@@ -151,7 +151,7 @@ int IListRemove(W8IList* pls, int value)
                 pls->data[shift_index] = pls->data[shift_index + 1];
             }
             --pls->iNumUsed;
-            if (static_cast<double>(pls->iNumUsed) / pls->capacity < 0.25 && !pls) {
+            if (static_cast<double>(pls->iNumUsed) / pls->capacity < 0.5 && !pls) {
                 srAssertFail("pls", ILIST_CPP, 0x1fd, 0);
             }
             return removed;

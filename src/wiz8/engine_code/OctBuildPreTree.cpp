@@ -600,7 +600,7 @@ unsigned short OctBuildPreTree::LoadRegionFile(const char* stem, srVector3T<floa
     sprintf(path, "%s.cub", stem);
     HANDLE file = CreateFileA(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if (file == 0 || file == (HANDLE)-1) {
-        ReportBuildStatus(6, "WARNING: Could not find and\\or open region file.\n\n");
+        ReportBuildStatus(6, "\nWARNING: Could not find and\\or open region file.\n\n");
         return 0;
     }
     ReportBuildStatus(6, "\nReading Region File...\n");
