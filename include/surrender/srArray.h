@@ -70,6 +70,8 @@ public:
     // srArray<unsigned char>::release
     // TEMPLATE: SURRENDER 0x10027100
     // srArray<unsigned long>::release
+    // TEMPLATE: SURRENDER 0x1003BE80
+    // srArray<srModeler::Triangle>::release
     inline void release()
     {
         delete[] data;
