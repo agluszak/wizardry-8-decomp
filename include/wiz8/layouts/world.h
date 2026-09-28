@@ -87,7 +87,7 @@ struct W8World {
     unsigned char m_padding_07c[0x20];
     W8PList m_list_09c;
     W8PList m_lights_0a8;
-    W8GrowableVector<W8SpellVisual*>* spell_visuals;
+    W8Vector<W8SpellVisual*>* spell_visuals;
     W8Vector<W8Missile*>* missiles;
     W8Vector<stLight*>* lights_to_update;
     W8Vector<W8Prop*>* collidable_props;

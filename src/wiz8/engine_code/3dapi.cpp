@@ -118,7 +118,7 @@ void ConstructWorldCollections(W8World* world)
     world->lights_to_update = new W8Vector<stLight*>;
     world->collidable_props = new W8Vector<W8Prop*>;
     world->monster_generators = new W8Vector<MonGen*>;
-    world->spell_visuals = new W8GrowableVector<W8SpellVisual*>;
+    world->spell_visuals = new W8Vector<W8SpellVisual*>;
     world->missiles = new W8Vector<W8Missile*>;
     world->triggers = new W8Vector<Trigger*>;
     world->particles = new W8Vector<stParticle*>;

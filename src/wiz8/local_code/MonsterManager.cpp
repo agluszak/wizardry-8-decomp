@@ -1145,7 +1145,7 @@ bool InitializeMonsterManagerState(void)
     gXStatus.hostile_monster_count = 0;
     gXStatus.hostile_group_count = 0;
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-        g_level_block->selected_item = -1;
+        g_level_block->highlighted_item = -1;
     }
     if (gXStatus.plsMonsterList == 0) {
         gXStatus.plsMonsterList = PLCreate();

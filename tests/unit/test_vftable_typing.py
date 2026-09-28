@@ -143,7 +143,7 @@ def test_annotate_slot_prefers_source_declaration() -> None:
         return_type="void",
         parameter_types=("int",),
         calling_convention="__thiscall",
-        has_this=True,
+        semantic_kind="instance_method",
         owning_class="W8Monster",
         is_variadic=False,
     )
@@ -163,6 +163,7 @@ def test_annotate_slot_prefers_source_declaration() -> None:
     assert slots[0]["fd_source"] == "source-declaration"
     assert slots[0]["declaration"]["owning_class"] == "W8Monster"
     assert slots[0]["declaration"]["parameter_types"] == ["int"]
+    assert slots[0]["declaration"]["has_this"] is True
 
 
 def test_annotate_slot_falls_back_to_callee_implementation() -> None:

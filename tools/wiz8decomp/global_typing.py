@@ -638,11 +638,19 @@ def _apply_global_typing_row(program: Any, row: Mapping[str, Any]) -> dict[str, 
             return {**dict(row), "error": "unresolved-type"}
         end = address.add(resolved.getLength() - 1)
         try:
+            # Every row comes from an explicit GLOBAL address marker. Retain
+            # unrelated interior symbols, but permit an older primary name.
             clear_code_units_guarded(
                 program,
                 address,
                 end,
                 expected_name=str(row.get("name") or "") or None,
+                address_owned=True,
+                allow_contained_strings=bool(
+                    re.fullmatch(
+                        r"(?:static )?char\[\d+\]\[\d+\]", str(row.get("source_type") or "")
+                    )
+                ),
             )
         except ClearRangeError as exc:
             return {**dict(row), **exc.payload}

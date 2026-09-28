@@ -488,7 +488,7 @@ def _declaration_payload(declaration: Any) -> dict[str, Any]:
         "return_type": declaration.return_type,
         "parameter_types": list(declaration.parameter_types),
         "calling_convention": declaration.calling_convention,
-        "has_this": bool(declaration.has_this),
+        "has_this": declaration_has_this({"semantic_kind": declaration.semantic_kind}),
         "owning_class": declaration.owning_class,
         "is_variadic": bool(declaration.is_variadic),
     }
