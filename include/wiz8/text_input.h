@@ -28,7 +28,7 @@ void RenderAllTextFields(void);
 int GetTextInputCursor(void); /* 0x0055EF80 */
 void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason);
 void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason);
-void SetTextInputScheme(int mode);
+void SetTextInputScheme(char mode);
 unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text, int* cursor_width,
                                 size_t* visible_count);
 void RenderBackgroundField(TEXTINPUTNODE* field);

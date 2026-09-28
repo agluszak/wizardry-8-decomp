@@ -359,8 +359,8 @@ struct W8SpellRealmAnimation {
     unsigned int initial_frame;
 };
 extern W8SpellRealmAnimation g_spell_realm_animations[6];
-extern const wchar_t g_format_s_space_s[];
-extern const wchar_t g_format_s_colon[];
+extern wchar_t g_format_s_space_s[];
+extern wchar_t g_format_s_colon[];
 
 /* The six realm-icon object ids; the definition is the GLOBAL in
    CGSStatsPage.cpp. The camp screen's character block reuses them. */
@@ -477,7 +477,7 @@ void RefreshCharacterScreenPartySlot(unsigned int party_slot); /* 0x005B1AD0 */
 unsigned char CharacterScreenEnter(void);
 void CharacterScreenFrame(void);
 unsigned char CharacterScreenLeave(int leaving);
-extern const wchar_t g_dash_0064789c[];
-extern const wchar_t g_format_d[];
-extern const wchar_t g_format_d_slash_d[];
-extern const wchar_t g_format_plus_d[];
+extern wchar_t g_dash_0064789c[];
+extern wchar_t g_format_d[];
+extern wchar_t g_format_d_slash_d[];
+extern wchar_t g_format_plus_d[];

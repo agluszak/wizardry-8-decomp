@@ -18,7 +18,7 @@ extern const unsigned int g_W8TextBufferNoWrap;
 extern const unsigned int g_W8DialogTextAreaAlignLeft;
 extern const unsigned int g_W8DialogTextAreaAlignCenter;
 extern const unsigned int g_W8DialogTextAreaAlignRight;
-extern const wchar_t g_W8LineBreakCharacters[];
+extern wchar_t g_W8LineBreakCharacters[];
 
 // VTABLE: WIZ8 0x005ed5b8
 class W8TextBuffer {

@@ -1,4 +1,5 @@
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/layouts/character.h"
@@ -491,7 +492,7 @@ bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info)
    attack score - the unarmed and natural strikes. The score roll scans it for
    the attack's verb byte. */
 // GLOBAL: WIZ8 0x0061D284
-const unsigned char g_low_fatigue_attack_verbs[0x12] = {
+unsigned char g_low_fatigue_attack_verbs[0x12] = {
     0x07, 0x0d, 0x0e, 0x0f, 0x15, 0x19, 0x21, 0x2b, 0x31,
     0x32, 0x34, 0x35, 0x36, 0x38, 0x3b, 0x55, 0x56, 0x57,
 };
@@ -769,13 +770,13 @@ int AttackModeMod(int is_character, int attack_mode)
 }
 
 // GLOBAL: WIZ8 0x0061e7b0
-const unsigned short g_pc_hit_location_labels[5][2] = {
+unsigned short g_pc_hit_location_labels[5][2] = {
     {0x429, 0x42a}, {0x42b, 0x42c}, {0x42d, 0x42e}, {0x42f, 0x430}, {0x431, 0x432},
 };
 
 // clang-format off
 // GLOBAL: WIZ8 0x0061ea24
-const unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIONS][W8_MONSTER_BODY_TYPES] = {
+unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIONS][W8_MONSTER_BODY_TYPES] = {
     {0x55c, 0x563, 0x56a, 0x55c, 0x571, 0x572}, {0x55d, 0x564, 0x56b, 0x55d, 0x572, 0x575},
     {0x55e, 0x565, 0x56c, 0x55e, 0x55e, 0x55e}, {0x55f, 0x566, 0x56d, 0x55f, 0x573, 0x576},
     {0x560, 0x567, 0x56e, 0x560, 0x574, 0x577}, {0x561, 0x568, 0x56f, 0x568, 0x560, 0x560},
@@ -784,18 +785,18 @@ const unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIONS][W8_
 // clang-format on
 
 // GLOBAL: WIZ8 0x0061e9a8
-const unsigned short g_attack_flag_name_ids[9][2] = {
+unsigned short g_attack_flag_name_ids[9][2] = {
     {1311, 1312}, {1313, 1314}, {1315, 1316}, {1317, 1318}, {1319, 1320},
     {1321, 1322}, {1323, 1324}, {1325, 1326}, {1327, 1328},
 };
 
 // GLOBAL: WIZ8 0x0061e9cc
-const unsigned short g_damage_type_name_ids[0x10] = {
+unsigned short g_damage_type_name_ids[0x10] = {
     1330, 1331, 1332, 1333, 1334, 1335, 1336, 1337, 1338, 1339, 1340, 1341, 1342, 1343, 1344, 1345,
 };
 
 // GLOBAL: WIZ8 0x0061ea78
-const unsigned short g_special_category_name_ids[42] = {
+unsigned short g_special_category_name_ids[42] = {
     1400, 1401, 1402, 1403, 1404, 1405, 1406, 1407, 1408, 1409, 1410, 1411, 1412, 1413,
     1414, 1415, 1416, 1417, 1418, 1419, 1420, 1421, 1422, 1423, 1424, 1425, 1426, 1427,
     1428, 1429, 1430, 1431, 1432, 0,    1433, 1434, 1435, 1436, 1437, 1438, 1439, 1440,
@@ -2164,7 +2165,7 @@ char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
 /* Attack weapon-type name string ids; the monster attack announcement indexes
    it two words per type. */
 // GLOBAL: WIZ8 0x0061EB02
-const unsigned short g_monster_attack_name_ids[0x25] = {
+unsigned short g_monster_attack_name_ids[0x25] = {
     0x619, 0x61a, 0x61b, 0x61c, 0x61d, 0x61e, 0x61f, 0x620, 0x621, 0x622, 0x623, 0x624, 0x625,
     0x626, 0x627, 0x628, 0x629, 0x62a, 0x62b, 0x62c, 0x62d, 0x62e, 0x62f, 0x630, 0x631, 0x632,
     0x633, 0x634, 0x635, 0x636, 0x637, 0x638, 0x639, 0x63a, 0x63b, 0x63c, 0x63d,
@@ -2173,7 +2174,7 @@ const unsigned short g_monster_attack_name_ids[0x25] = {
 /* Attack verb-class string ids; the monster attack announcement appends the
    entry the attack's verb byte selects. */
 // GLOBAL: WIZ8 0x0061EB4C
-const unsigned short g_monster_attack_verb_ids[0x60] = {
+unsigned short g_monster_attack_verb_ids[0x60] = {
     0x5b8, 0x5b9, 0x5ba, 0x5bb, 0x5bc, 0x5bd, 0x5be, 0x5bf, 0x5c0, 0x5c1, 0x5c2, 0x5c3,
     0x5c4, 0x5c5, 0x5c6, 0x5c7, 0x5c8, 0x5c9, 0x5ca, 0x5cb, 0x5cc, 0x5cd, 0x5ce, 0x5cf,
     0x5d0, 0x5d1, 0x5d2, 0x5d3, 0x5d4, 0x5d5, 0x5d6, 0x5d7, 0x5d8, 0x5d9, 0x5da, 0x5db,

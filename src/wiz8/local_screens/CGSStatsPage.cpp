@@ -101,17 +101,17 @@ unsigned short g_character_trait_name_ids[0x20] = {
     0x33e, 0x33f, 0x340, 0x341, 0x342, 0x343, 0x344, 0x345, 0x346, 0x347,
 };
 // GLOBAL: WIZ8 0x0060aa20
-const wchar_t g_format_d[] = L"%d";
+wchar_t g_format_d[] = L"%d";
 // GLOBAL: WIZ8 0x00614b58
-const wchar_t g_format_d_slash_d[] = L"%d/%d";
+wchar_t g_format_d_slash_d[] = L"%d/%d";
 // GLOBAL: WIZ8 0x00617584
-const wchar_t g_format_s_space_s[] = L"%s %s";
+wchar_t g_format_s_space_s[] = L"%s %s";
 // GLOBAL: WIZ8 0x0064789c
-const wchar_t g_dash_0064789c[] = L"-";
+wchar_t g_dash_0064789c[] = L"-";
 // GLOBAL: WIZ8 0x0064dc24
-const wchar_t g_format_plus_d[] = L"%+d";
+wchar_t g_format_plus_d[] = L"%+d";
 // GLOBAL: WIZ8 0x0064f2c0
-const wchar_t g_zero_slash_zero[] = L"0/0";
+wchar_t g_zero_slash_zero[] = L"0/0";
 
 /* Skill name message ids indexed by skill id are declared with the stats
    page's shared tables in CharacterScreen.h. */

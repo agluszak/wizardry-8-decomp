@@ -39,9 +39,8 @@
  * them.
  */
 
-// GLOBAL: WIZ8 0x0061DC60
-static const char COMBAT_HOSTILITY_CPP[] =
-    "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp";
+// STRING: WIZ8 0x0061DC60
+#define COMBAT_HOSTILITY_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp"
 
 /* Species 0x224 never counts: both directions answer zero before anything
    else is read. */
@@ -365,10 +364,10 @@ bool CombatAllowsLiveGroups(void)
 }
 
 // GLOBAL: WIZ8 0x0061ec0c
-const unsigned short g_group_hostility_notice_ids[3] = {511, 512, 513};
+unsigned short g_group_hostility_notice_ids[3] = {511, 512, 513};
 
 // GLOBAL: WIZ8 0x0061ec14
-const int g_monster_special_attack_name_ids[12] = {0,    1598, 1599, 1600, 1601, 1602,
+int g_monster_special_attack_name_ids[12] = {0,    1598, 1599, 1600, 1601, 1602,
                                                    1603, 1604, 1605, 1606, 1607, 1608};
 
 // FUNCTION: WIZ8 0x00547540
@@ -569,7 +568,7 @@ int g_pray_roll_sums[14];
 int g_pray_roll_total;
 
 // GLOBAL: WIZ8 0x00619788
-const wchar_t g_pray_dash[] = L" -- ";
+wchar_t g_pray_dash[] = L" -- ";
 
 /* Pray: the trait-eleven once-per-combat divine intervention. The flat
    weight table is folded into cumulative sums on first use - the slot one

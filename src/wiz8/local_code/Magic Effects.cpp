@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/GDCamera.h"
@@ -77,7 +78,7 @@
 enum { W8_EFFECT_PERMANENT = 9999 };
 
 // GLOBAL: WIZ8 0x005ee838
-float g_float_005ee838 = 0.7900000214576721f;
+const float g_float_005ee838 = 0.7900000214576721f;
 
 /* 0x0060CFF8: eight bytes per effect id. The leading dword is the icon the
    party and combat HUD strips show for the effect (-1 means none); the second
@@ -85,7 +86,7 @@ float g_float_005ee838 = 0.7900000214576721f;
    The array fills the region between g_spellbook_name_ids and
    g_spell_usage_name_ids exactly. */
 // GLOBAL: WIZ8 0x0060cff8
-const int g_effect_visual_table[150][2] = {
+int g_effect_visual_table[150][2] = {
     {-1, -1},  {-1, -1},  {224, 34}, {-1, 38},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, 1},
     {213, -1}, {-1, -1},  {-1, -1},  {-1, 15},  {-1, 14},  {-1, -1},  {-1, -1},  {-1, 11},
     {-1, -1},  {211, -1}, {-1, -1},  {-1, -1},  {212, 25}, {-1, -1},  {-1, -1},  {-1, -1},
@@ -111,7 +112,7 @@ const int g_effect_visual_table[150][2] = {
    per power level, the column the elemental realm the caster's realm skills
    weighted the roll toward. */
 // GLOBAL: WIZ8 0x00616f4c
-const int g_insanity_group_ids[8][4] = {
+int g_insanity_group_ids[8][4] = {
     {24, 23, 21, 22}, {24, 23, 21, 22}, {28, 27, 25, 26}, {32, 31, 29, 30},
     {36, 35, 33, 34}, {40, 39, 37, 38}, {44, 43, 41, 42}, {48, 47, 45, 46},
 };
@@ -119,7 +120,7 @@ const int g_insanity_group_ids[8][4] = {
 /* 0x0061E208: the affliction spell's weighted pick - the index is the
    condition id, the value its share of a fifty-point roll. */
 // GLOBAL: WIZ8 0x0061e208
-const int g_affliction_condition_weights[W8_CONDITION_COUNT] = {
+int g_affliction_condition_weights[W8_CONDITION_COUNT] = {
     0, 0, 0, 0, 10, 0, 10, 0, 0, 5, 0, 5, 5, 1, 0, 10, 3, 0, 1, 0,
 };
 
@@ -306,7 +307,7 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
 /* 0x006172A0: how much harder each condition is to shrug off, added to the
    saving throw. */
 // GLOBAL: WIZ8 0x006172a0
-const int g_condition_resist_base[W8_CONDITION_COUNT] = {0, 1,  2,  3,  4,  4,  5,  6,  7,  8,
+int g_condition_resist_base[W8_CONDITION_COUNT] = {0, 1,  2,  3,  4,  4,  5,  6,  7,  8,
                                                          9, 10, 12, 14, 16, 20, 18, 22, 24, 22};
 
 /* The target's standing against one realm: a character's clamped total, a

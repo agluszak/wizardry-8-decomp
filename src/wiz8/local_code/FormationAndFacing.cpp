@@ -201,10 +201,10 @@ enum { W8_FACING_ANY = 4 };
    highest_condition below HOSTILE, tighter than the party-wide death window. */
 
 // GLOBAL: WIZ8 0x005ee858
-double g_facing_tolerance_005ee858 = 2.3561944500000003;
+const double g_facing_tolerance_005ee858 = 2.3561944500000003;
 
 // GLOBAL: WIZ8 0x005ebcf4
-float g_facing_tolerance_005ebcf4 = 0.05f;
+const float g_facing_tolerance_005ebcf4 = 0.05f;
 
 /* Whether one character can hold a place in the formation at all: they have to
    be alive and in better shape than the party sweeps demand. */

@@ -166,31 +166,31 @@ static const float NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE = 50.0f;
    the probe is along the ray, the more the candidate's effective distance is
    discounted. Shared with CreateTraceModel. */
 // GLOBAL: WIZ8 0x005ebc78
-float g_float_005ebc78 = 0.15000000596046448f;
+const float g_float_005ebc78 = 0.15000000596046448f;
 /* Vertical snap ceiling for navigator placement: the source may rise or fall
    at most this many units before a candidate is rejected outright. */
 // GLOBAL: WIZ8 0x005ec038
-double g_double_005ec038 = 5000.0;
+const double g_double_005ec038 = 5000.0;
 /* Fixed camera tilt (15 degrees below horizontal) the region-link projector
    applies to every sampled direction. */
 // GLOBAL: WIZ8 0x005ec008
-double g_double_005ec008 = -0.26179999113082886;
+const double g_double_005ec008 = -0.26179999113082886;
 /* Circle-coverage bound just under 2*pi: when samples*fov still falls short,
    one more direction is added. */
 // GLOBAL: WIZ8 0x005ec010
-float g_float_005ec010 = 6.282185077667236f;
+const float g_float_005ec010 = 6.282185077667236f;
 /* Jitter scale applied to the Random(1000) roll for scatter-ring candidates
    past the first; 0.0004 * 1000 spans 0.4 units. */
 // GLOBAL: WIZ8 0x005ec044
-float g_float_005ec044 = 0.00040000001899898052f;
+const float g_float_005ec044 = 0.00040000001899898052f;
 /* Multiplier on the placement radius that gives the monster-proximity query
    box its extent. */
 // GLOBAL: WIZ8 0x005ec048
-float g_float_005ec048 = 15.0f;
+const float g_float_005ec048 = 15.0f;
 /* Jitter scale applied to the Random(1000) roll for ring candidates past the
    first; 0.0002 * 1000 spans 0.2 units. */
 // GLOBAL: WIZ8 0x005ec050
-float g_float_005ec050 = 0.00020000000949949026f;
+const float g_float_005ec050 = 0.00020000000949949026f;
 
 // FUNCTION: WIZ8 0x0042f7e0
 void W8Octree::UpdateCameraVisibility()
@@ -2055,7 +2055,7 @@ unsigned char W8Octree::LinkNavigatorTarget(W8NavigatorMovementState* movement,
    None of their bodies are recovered, so they keep address-qualified names. */
 
 // GLOBAL: WIZ8 0x005ebcd0
-float g_octree_cell_scale = 100.0f;
+const float g_octree_cell_scale = 100.0f;
 /* 0x00659888 accumulates every byte the loader reads, and 0x00652DB0 caches the
    game-data block LoadWorld hands back through its out parameter. */
 
@@ -5302,7 +5302,7 @@ char SphereNearBounds(const srVector3T<float>* point, float radius, const W8Boun
    three columns (0, +1, -1) per ring, or all five when more than ten
    positions are wanted. */
 // GLOBAL: WIZ8 0x00605ae8
-static const float g_scatter_column_offsets[5] = {0.0f, 1.0f, -1.0f, 2.0f, -2.0f};
+static float g_scatter_column_offsets[5] = {0.0f, 1.0f, -1.0f, 2.0f, -2.0f};
 
 /* Ring-scatter search for up to `count` clear positions around `position`.
    Each ring steps `spacing` units out along the `yaw`-rotated frame and

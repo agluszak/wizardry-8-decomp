@@ -64,7 +64,7 @@ int g_cursor_saved_group_id = -1;
 float g_float_60ab48 = 4000.0f;
 
 // GLOBAL: WIZ8 0x005ebc88
-float g_float_005ebc88 = 10.0f;
+const float g_float_005ebc88 = 10.0f;
 
 // GLOBAL: WIZ8 0x005ecb08
 const float g_float_005ecb08 = 750.0f;
@@ -524,7 +524,7 @@ void SetFloat60AB48(void)
 
 /* 0x005EC260: hard ceiling for SetWorldCursorRange. */
 // GLOBAL: WIZ8 0x005ec260
-float g_float_005ec260 = 50000.0f;
+const float g_float_005ec260 = 50000.0f;
 
 /* Install an action-range distance into the live cursor: subtract
    g_float_005ebcdc / distance * world_scale, clamp to 50000, write range_44,

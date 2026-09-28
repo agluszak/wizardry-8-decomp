@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 // GLOBAL: WIZ8 0x005ebccc
-float g_float_005ebccc = 0.75f;
+const float g_float_005ebccc = 0.75f;
 
 // FUNCTION: WIZ8 0x004b6e00
 GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,

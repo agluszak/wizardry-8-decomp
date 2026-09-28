@@ -1,4 +1,5 @@
 #include "wiz8/local_code/Search.h"
+#include "wiz8/integer_constants.h"
 
 #include <stdio.h>
 

@@ -1,4 +1,5 @@
 #include "line.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/MGSFormation.h"
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "soundman.h"
@@ -168,14 +169,6 @@ W8PendingNotice g_pending_notice;
 // GLOBAL: WIZ8 0x0068EE78
 unsigned int g_trade_highlight_tick;
 
-/* The split-amount dialog's confirm code and its default origin; only the
-   0x572780/0x572870 pair reads them. */
-// GLOBAL: WIZ8 0x005EF9D4
-int g_split_dialog_confirm = 1;
-// GLOBAL: WIZ8 0x005EF9DC
-int g_split_dialog_origin_x = 0x9f;
-// GLOBAL: WIZ8 0x005EF9E0
-int g_split_dialog_origin_y = 0xb8;
 
 // GLOBAL: WIZ8 0x00649f20
 int g_dialogue_place_keyword_count = 15;

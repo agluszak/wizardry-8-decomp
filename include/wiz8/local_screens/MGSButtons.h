@@ -33,7 +33,7 @@ extern bool g_submenu_flag_69b8d4;
 extern W8TextControl* g_submenu_rows_69b8ec[5];
 extern W8DialogButton* g_submenu_buttons_69b8b0[9];
 /* The action-kind message indexes the caption draw maps through. */
-extern const unsigned short g_action_kind_message_ids_61e988[12];
+extern unsigned short g_action_kind_message_ids_61e988[12];
 /* Which menu the open sub-menu panel serves (W8SubMenuPage value), each row's
    entry index and each row's W8SubMenuEntryState; the retail storage is
    word-sized, so the enum values ride in shorts. */

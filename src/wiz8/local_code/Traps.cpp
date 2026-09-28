@@ -1,4 +1,5 @@
 #include "wiz8/local_code/Traps.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Prop.h"

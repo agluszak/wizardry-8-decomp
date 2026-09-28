@@ -1,6 +1,6 @@
 #pragma once
 
-extern float g_path_endpoint_scale;
+extern const float g_path_endpoint_scale;
 
 struct W8GameData;
 

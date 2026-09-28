@@ -151,7 +151,7 @@ extern Controls* g_keyboard_menu_panel;
 extern short g_keyboard_menu_pages[12];
 extern W8TextControl* g_keyboard_menu_rows[13];
 /* The (x, y) of the twelve menu rows and the trailing close row. */
-extern const int g_keyboard_row_positions[13][2];
+extern int g_keyboard_row_positions[13][2];
 
 void ResetMGSKeyboardBindings();
 

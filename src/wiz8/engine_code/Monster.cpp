@@ -204,7 +204,7 @@ const double g_monster_facing_tolerance = 0.78539815;
 // GLOBAL: WIZ8 0x005ed2c0
 const double g_monster_group_nearest_range = 12500.0;
 // GLOBAL: WIZ8 0x0060f684
-extern const char g_warning_missing_spell_vertex[] =
+char g_warning_missing_spell_vertex[] =
     "WARNING: %ls does not have a SPELL vertex marked! --> Lee";
 // GLOBAL: WIZ8 0x0060EA08
 W8CycleNameRow g_cycle_names[W8_MONSTER_CYCLE_COUNT] = {
@@ -303,7 +303,7 @@ const char* g_party_target_marker_bitmaps[8] = {"TriRed.tga",  "TriGreen.tga",  
                                                 "TriPink.tga", "TriBrown.tga"};
 
 // GLOBAL: WIZ8 0x0060f510
-const char g_monster_bitmap_path_format[] = "Data\\Monsters\\Bitmaps\\%s";
+char g_monster_bitmap_path_format[] = "Data\\Monsters\\Bitmaps\\%s";
 
 // GLOBAL: WIZ8 0x0060e958
 const char* g_monster_script_commands[MONSCR_COUNT] = {"GOTO",

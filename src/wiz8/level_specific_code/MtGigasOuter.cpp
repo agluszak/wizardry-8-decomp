@@ -40,11 +40,11 @@ W8IntervalGate* g_alarm_gate_683508;
 /* Lift prop Y travel: 5228.6 at the top of the ride, -2000.0 at the bottom,
    and -5000.0 parked out of the world once the ride is spent. */
 // GLOBAL: WIZ8 0x00613600
-const float LIFT_TOP_Y = 5228.6f;
+float LIFT_TOP_Y = 5228.6f;
 // GLOBAL: WIZ8 0x00613604
-const float LIFT_BOTTOM_Y = -2000.0f;
+float LIFT_BOTTOM_Y = -2000.0f;
 // GLOBAL: WIZ8 0x00613608
-const float LIFT_PARKED_Y = -5000.0f;
+float LIFT_PARKED_Y = -5000.0f;
 
 /* When the FlagPosition location variable exists, feed its value to the lift
    gate; values at or above 1000 stop there. Otherwise the "flag" trigger

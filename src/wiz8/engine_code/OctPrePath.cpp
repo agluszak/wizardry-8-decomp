@@ -18,7 +18,7 @@
 /* The vertical-link slack LinkPathNodes multiplies the cell size by. Retail
    Combat.cpp reads it directly, so it is not file-static. */
 // GLOBAL: WIZ8 0x005ED300
-float g_prepath_link_height = 1.1f;
+const float g_prepath_link_height = 1.1f;
 
 /* OctPrePathLog is a build-time ASCII density map of the path grid: one row of
    space-padded characters per z cell, one column per x cell, plus a parallel

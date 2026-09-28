@@ -1,4 +1,5 @@
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/character_events.h"
@@ -2298,7 +2299,7 @@ void ReportSpellResult(W8SpellEffectEntry* effect)
             if (report->kind == 1) {
                 SetTextBoxMode(0, -1);
                 PostCharacterNotice(
-                    report->value, L"%s",
+                    report->value, g_format_s_bang,
                     gppStringList[g_spell_condition_text[W8_CONDITION_EXHAUSTED * 4]]);
                 effect->reported_124 = true;
             } else if (report->kind == 3) {
@@ -2362,7 +2363,7 @@ bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool 
 /* The spells whose casts share one three-minute cooldown slot each; the
    shared slot lives in the status block's clock array. */
 // GLOBAL: WIZ8 0x00616E34
-const int g_cooldown_gated_spells[14] = {30, 38, 75, 73, 32, 33, 17, 20, 8, 40, 26, 45, 64, 58};
+int g_cooldown_gated_spells[14] = {30, 38, 75, 73, 32, 33, 17, 20, 8, 40, 26, 45, 64, 58};
 
 /* Whether the spell's current target would actually be affected by it - the
    per-spell rules the cast path checks before it spends the points. */

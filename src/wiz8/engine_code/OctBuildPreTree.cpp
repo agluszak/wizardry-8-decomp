@@ -25,11 +25,11 @@ unsigned short* g_region_id_list;
 unsigned short g_region_id_count;
 
 // GLOBAL: WIZ8 0x005ed034
-float g_float_005ed034 = -0.009999999776482582f;
+const float g_float_005ed034 = -0.009999999776482582f;
 // GLOBAL: WIZ8 0x005ed038
-float g_float_005ed038 = 4000.0f;
+const float g_float_005ed038 = 4000.0f;
 // GLOBAL: WIZ8 0x005ec52c
-float g_float_005ec52c = 3.0f;
+const float g_float_005ec52c = 3.0f;
 
 #define OCT_BUILD_PRE_TREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildPreTree.cpp"
 

@@ -54,37 +54,37 @@
 #include <stdlib.h>
 #include <string.h>
 // GLOBAL: WIZ8 0x005ebc30
-double g_double_005ebc30 = 1.0;
+const double g_double_005ebc30 = 1.0;
 // GLOBAL: WIZ8 0x005ec020
 const float g_float_005ec020 = 0.0f;
 // GLOBAL: WIZ8 0x005ec368
-double g_double_005ec368 = 25.00000037252903;
+const double g_double_005ec368 = 25.00000037252903;
 // GLOBAL: WIZ8 0x005ec378
-double g_double_005ec378 = 4.0;
+const double g_double_005ec378 = 4.0;
 // GLOBAL: WIZ8 0x005ec38c
-float g_float_005ec38c = 0.9847999811172485f;
+const float g_float_005ec38c = 0.9847999811172485f;
 // GLOBAL: WIZ8 0x005ec384
-float g_float_005ec384 = 37500.0f;
+const float g_float_005ec384 = 37500.0f;
 // GLOBAL: WIZ8 0x005ec388
-float g_float_005ec388 = 100000.0f;
+const float g_float_005ec388 = 100000.0f;
 // GLOBAL: WIZ8 0x005ec370
-float g_float_005ec370 = 550.0f;
+const float g_float_005ec370 = 550.0f;
 // GLOBAL: WIZ8 0x005ec394
-float g_float_005ec394 = 1.2000000476837158f;
+const float g_float_005ec394 = 1.2000000476837158f;
 // GLOBAL: WIZ8 0x005ec398
 const float g_float_005ec398 = 1001.0f;
 // GLOBAL: WIZ8 0x005ec39c
 const float g_float_005ec39c = 250000.0f;
 // GLOBAL: WIZ8 0x005ec3b8
-float g_float_005ec3b8 = 1.5f;
+const float g_float_005ec3b8 = 1.5f;
 // GLOBAL: WIZ8 0x005ec3bc
-float g_float_005ec3bc = 0.5099999904632568f;
+const float g_float_005ec3bc = 0.5099999904632568f;
 // GLOBAL: WIZ8 0x005ec3c0
-float g_float_005ec3c0 = 1000000.0f;
+const float g_float_005ec3c0 = 1000000.0f;
 // GLOBAL: WIZ8 0x005ec3c8
-float g_float_005ec3c8 = -107374184.0f;
+const float g_float_005ec3c8 = -107374184.0f;
 // GLOBAL: WIZ8 0x005ec3d0
-float g_float_005ec3d0 = -107374184.0f;
+const float g_float_005ec3d0 = -107374184.0f;
 // GLOBAL: WIZ8 0x005ed2e0
 const double g_double_005ed2e0 = 0.2;
 // GLOBAL: WIZ8 0x005ed2e8
@@ -104,35 +104,35 @@ unsigned short g_path_reserve = 2000;
 // GLOBAL: WIZ8 0x005ec340
 const float g_float_005ec340 = 1.25f;
 // GLOBAL: WIZ8 0x005ec344
-float g_path_span_scale = 1.5259254723787308e-05f;
+const float g_path_span_scale = 1.5259254723787308e-05f;
 
 // GLOBAL: WIZ8 0x00659c5c
 bool g_flag_00659c5c;
 // GLOBAL: WIZ8 0x00659c64
 unsigned short* g_path_scratch;
 // GLOBAL: WIZ8 0x005ec3a8
-double g_double_005ec3a8 = 1.1;
+const double g_double_005ec3a8 = 1.1;
 // GLOBAL: WIZ8 0x005ec3a0
-double g_double_005ec3a0 = 25000.0;
+const double g_double_005ec3a0 = 25000.0;
 // GLOBAL: WIZ8 0x005ec3b0
-double g_double_005ec3b0 = 0.1;
+const double g_double_005ec3b0 = 0.1;
 // GLOBAL: WIZ8 0x005ec348
-float g_path_direction_threshold_0 = -0.9239000082015991f;
+const float g_path_direction_threshold_0 = -0.9239000082015991f;
 // GLOBAL: WIZ8 0x005ec34c
-float g_path_direction_threshold_1 = -0.38269999623298645f;
+const float g_path_direction_threshold_1 = -0.38269999623298645f;
 // GLOBAL: WIZ8 0x005ec350
-float g_path_direction_threshold_2 = 0.38269999623298645f;
+const float g_path_direction_threshold_2 = 0.38269999623298645f;
 // GLOBAL: WIZ8 0x005ec354
-float g_path_direction_threshold_3 = 0.9239000082015991f;
+const float g_path_direction_threshold_3 = 0.9239000082015991f;
 // GLOBAL: WIZ8 0x005ec358
-float g_path_cardinal_scale = 1.4149999618530273f;
+const float g_path_cardinal_scale = 1.4149999618530273f;
 
 // GLOBAL: WIZ8 0x005ec360
-float g_float_005ec360 = 25000.0f;
+const float g_float_005ec360 = 25000.0f;
 // GLOBAL: WIZ8 0x00659c6c
 unsigned int g_path_visualization_cell;
 // GLOBAL: WIZ8 0x005ec380
-float g_path_search_visualization_limit = 15000.0f;
+const float g_path_search_visualization_limit = 15000.0f;
 
 // GLOBAL: WIZ8 0x0060f9e8
 float g_path_acceleration_factor = 3.0f;

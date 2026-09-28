@@ -469,7 +469,7 @@ void SetCameraSwayMode(srCamera* camera, int mode)
     camera->setViewPlane(
         (sin(radians * g_camera_sway_horizontal_phase) * 0.75 + g_camera_base_horizontal_fov) *
             radians,
-        (sin(radians * g_camera_sway_vertical_phase) * 0.63 + g_camera_base_vertical_fov) *
+        (sin(radians * g_camera_sway_vertical_phase) * 0.63f + g_camera_base_vertical_fov) *
             radians);
 }
 
@@ -1020,7 +1020,7 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         WorldSetFarClip(world,
                         static_cast<float>(WorldGetFarClip(world)) + g_position_height_epsilon);
         scale = 2.0f;
-        if (WorldGetFarClip(world) >= 50000.0f) {
+        if (WorldGetFarClip(world) >= g_float_005ec260) {
             scale = 1.5f;
         }
         WorldSetRenderRange(world, static_cast<float>(WorldGetFarClip(world)) * scale);
@@ -1029,12 +1029,12 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         WorldSetFarClip(world,
                         static_cast<float>(WorldGetFarClip(world)) - g_position_height_epsilon);
         scale = 2.0f;
-        if (WorldGetFarClip(world) >= 50000.0f) {
+        if (WorldGetFarClip(world) >= g_float_005ec260) {
             scale = 1.5f;
         }
         WorldSetRenderRange(world, static_cast<float>(WorldGetFarClip(world)) * scale);
     }
-    if ((flags & 4) != 0 && g_float_00609c88 < 180.0f) {
+    if ((flags & 4) != 0 && g_float_00609c88 < g_float_005ec25c) {
         g_float_00609c88 += g_float_005ebc88;
     }
     if ((flags & 8) != 0 && g_float_00609c88 > g_float_005ebc88) {
@@ -1047,10 +1047,10 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         world->m_loaded = world->m_loaded == 0;
     }
     if ((flags & 0x100) != 0) {
-        SetWorldEnvironmentValue(g_world, GetWorldValue24(g_world) + 0.02f);
+        SetWorldEnvironmentValue(g_world, GetWorldValue24(g_world) + g_float_005ec258);
     }
     if ((flags & 0x200) != 0) {
-        SetWorldEnvironmentValue(g_world, GetWorldValue24(g_world) - 0.02f);
+        SetWorldEnvironmentValue(g_world, GetWorldValue24(g_world) - g_float_005ec258);
     }
 }
 

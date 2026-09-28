@@ -169,15 +169,19 @@ bool QuickSave(RuntimeCase& test, RuntimeCheckpoint& out)
         return false;
     }
     out.quick_slot = -1;
-    if (!test.tap(W8_MGS_COMMAND_QUICK_SAVE, "save")) {
+    // Keep the key down until a game frame sees it; a down/up pair sent in
+    // one batch can both pass between frames on the CI runner.
+    HeldCommand held(test, W8_MGS_COMMAND_QUICK_SAVE);
+    if (!held.begin()) {
         return false;
     }
     QuickSaveCheck check;
     check.slot = -1;
     test.expected("a Saves\\Quick 1..3.SAV file");
-    if (!test.wait_until("quick-save-written", 5000, QuickSaveWritten, &check)) {
+    if (!test.wait_until("quick-save-written", 5000, QuickSaveWritten, &check, &held)) {
         return false;
     }
+    held.release();
     out.quick_slot = check.slot;
     test.step("game-saved");
     return true;

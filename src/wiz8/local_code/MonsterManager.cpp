@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "wiz8/integer_constants.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/GameplayMods.h"
@@ -68,7 +69,7 @@
 #include <wchar.h>
 #include "wiz8/local_code/ThingEditorShared.h"
 // GLOBAL: WIZ8 0x005ed4f0
-float g_monster_record_float_scale = 20.0f;
+const float g_monster_record_float_scale = 20.0f;
 // GLOBAL: WIZ8 0x00683698
 int g_monster_info_iterator_index;
 
@@ -1791,7 +1792,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         return;
     }
     if (health_knowledge < 10 || suppress_exact_health != 0) {
-        wcscpy(health_text, L"");
+        wcscpy(health_text, L"?");
     } else {
         wcscpy(health_text, FormatWideString(L"%d", monster_info->hp_current));
     }
@@ -1800,7 +1801,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         wcscat(health_text, FormatWideString(L"%d", monster_info->uiHPMax));
         return;
     }
-    wcscat(health_text, L"");
+    wcscat(health_text, L"?");
 }
 
 // FUNCTION: WIZ8 0x004e6970

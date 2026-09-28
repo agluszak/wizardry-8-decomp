@@ -20,7 +20,7 @@
    strings live in the gppStringList message table. */
 
 // GLOBAL: WIZ8 0x0061c4b4
-const wchar_t g_format_S[] = L"%S";
+wchar_t g_format_S[] = L"%S";
 
 /* The live popup; the constructor publishes it so the option callback and the
    Enter handling in ProcessInput can reach the active instance. */
@@ -28,7 +28,7 @@ const wchar_t g_format_S[] = L"%S";
 static W8NpcDialog* g_npc_dialog;
 
 // GLOBAL: WIZ8 0x0064fc84
-static const wchar_t g_format_s_dg[] = L"%s %dg";
+static wchar_t g_format_s_dg[] = L"%s %dg";
 
 // FUNCTION: WIZ8 0x005DA6B0
 W8NpcDialog::W8NpcDialog(W8NpcQuoteEntry* message, int aux_data)

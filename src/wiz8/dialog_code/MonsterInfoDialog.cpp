@@ -31,9 +31,8 @@
 #include <string.h>
 #include <wchar.h>
 
-// GLOBAL: WIZ8 0x0064F6B0
-static const char MONSTER_INFO_DIALOG_CPP[] =
-    "C:\\Projects\\Wizardry 8\\Dialog Code\\MonsterInfoDialog.cpp";
+// STRING: WIZ8 0x0064F6B0
+#define MONSTER_INFO_DIALOG_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\MonsterInfoDialog.cpp"
 
 // SYNTHETIC: WIZ8 0x005d5ee0
 // W8MonsterInfoDialog::`scalar deleting destructor'
@@ -83,12 +82,12 @@ int W8MonsterInfoDialog::CreateControls()
 /* 0x0064F614: gppStringList indices naming the seven classes the monster's
    name line falls into by how far its level sits above the party average. */
 // GLOBAL: WIZ8 0x0064f614
-const int g_monster_level_name_ids[7] = {301, 302, 303, 304, 305, 306, 307};
+int g_monster_level_name_ids[7] = {301, 302, 303, 304, 305, 306, 307};
 
 /* 0x0064F630: knowledge threshold and gppStringList label id pairs gating the
    record's six resistance entries. */
 // GLOBAL: WIZ8 0x0064f630
-const int g_monster_resistance_label_gates[6][2] = {
+int g_monster_resistance_label_gates[6][2] = {
     {70, 308}, {60, 309}, {40, 310}, {50, 311}, {80, 312}, {90, 313},
 };
 

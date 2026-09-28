@@ -1,4 +1,5 @@
 #include "wiz8/layouts/game_status.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
@@ -77,7 +78,7 @@ int g_use_item_hover_row;
 // GLOBAL: WIZ8 0x0069BF38
 bool g_use_item_commit_active;
 // GLOBAL: WIZ8 0x0064C7DC
-const wchar_t g_format_s_paren_question[] = L"%s (?)";
+wchar_t g_format_s_paren_question[] = L"%s (?)";
 
 void UpdateUseItemScrollButtons(void);                           /* 0x0059D070 */
 void RebuildUseItemSelectList(int mode, W8ItemInstance* select); /* 0x0059D230 */

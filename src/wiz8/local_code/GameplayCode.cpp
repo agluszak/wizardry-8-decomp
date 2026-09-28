@@ -75,10 +75,10 @@ enum {
 
 /* 0x00616604: one entry per sex, race and profession together. */
 // GLOBAL: WIZ8 0x00616308
-const unsigned char gubLocalACPercent[5] = {15, 40, 30, 10, 5};
+unsigned char gubLocalACPercent[5] = {15, 40, 30, 10, 5};
 
 // GLOBAL: WIZ8 0x00616604
-const int g_character_table[480] = {
+int g_character_table[480] = {
     3,  1,  0,  0,  3,  56, 4,  2,  1,  2,  5,  4,  24, 4,  5,  13, 12, 0,  12, 13, 56, 13, 12, 12,
     12, 14, 14, 14, 14, 14, 19, 19, 0,  19, 19, 56, 20, 20, 20, 20, 18, 18, 18, 18, 18, 24, 24, 0,
     24, 24, 56, 24, 24, 25, 25, 25, 25, 25, 25, 25, 28, 28, 0,  28, 28, 56, 28, 28, 29, 29, 29, 29,
@@ -101,7 +101,7 @@ const int g_character_table[480] = {
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
 
 // GLOBAL: WIZ8 0x006172F0
-static const W8Dice g_unarmed_damage_dice[12] = {{0, 1, 2}, {0, 1, 3}, {0, 2, 2}, {0, 2, 3},
+static W8Dice g_unarmed_damage_dice[12] = {{0, 1, 2}, {0, 1, 3}, {0, 2, 2}, {0, 2, 3},
                                                  {0, 2, 4}, {0, 3, 3}, {1, 3, 3}, {2, 3, 3},
                                                  {0, 3, 5}, {0, 4, 4}, {2, 4, 4}, {4, 4, 4}};
 
@@ -918,7 +918,7 @@ void CalcArmorClasses(W8Character* character)
    two dwords per row. It ends exactly where the sex/race/profession table
    at 0x00616604 begins. */
 // GLOBAL: WIZ8 0x006164F4
-const int g_character_value_table[34][2] = {
+int g_character_value_table[34][2] = {
     {0, 2}, {0, 1}, {6, 1}, {0, 1}, {0, 1}, {2, 2}, {0, 1}, {8, 1}, {7, 2}, {7, 2}, {7, 2}, {7, 2},
     {7, 2}, {7, 2}, {4, 1}, {4, 1}, {1, 1}, {5, 2}, {7, 1}, {6, 2}, {6, 2}, {6, 1}, {3, 2}, {3, 2},
     {5, 1}, {1, 1}, {1, 2}, {5, 2}, {1, 1}, {1, 2}, {2, 1}, {2, 1}, {2, 2}, {2, 2}};

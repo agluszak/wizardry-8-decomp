@@ -25,7 +25,7 @@ char GetLevelBand(int saved_level);
 extern bool g_camera_path_active;
 extern unsigned char g_level_status_loading;
 extern float g_default_world_height;
-extern float g_position_height_epsilon;
+extern const float g_position_height_epsilon;
 extern unsigned char g_environment_load_flag;
 extern unsigned char g_mipe_trigger_display;
 

@@ -155,7 +155,7 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
 /* The far distance at which the camera aims at a monster's lower height
    offset rather than its head. */
 // GLOBAL: WIZ8 0x005EBCDC
-float g_float_005ebcdc = 2000.0f;
+const float g_float_005ebcdc = 2000.0f;
 
 /* Turn the camera to face a monster: when rotation tracking is off the
    monster's own combat target still drives it if that target is the selected

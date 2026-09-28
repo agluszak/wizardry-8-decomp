@@ -30,6 +30,7 @@
     "src/wiz8/fact_state.cpp",
     "src/wiz8/game_init.cpp",
     "src/wiz8/imports/mss.cpp",
+    "src/wiz8/integer_constants.cpp",
     "src/wiz8/learned_spells.cpp",
     "src/wiz8/local_code/DifficultyScaling.cpp",
     "src/wiz8/local_code/Text_Input.cpp",

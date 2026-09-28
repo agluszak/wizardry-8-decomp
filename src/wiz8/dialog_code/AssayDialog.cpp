@@ -78,29 +78,24 @@ unsigned short g_equip_class_name_ids[32] = {
     1087, 1088, 1089, 1090, 1091, 1092, 1093, 1094, 1095, 1096, 1097, 1098, 1099, 1100, 1101, 1102,
     1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1114, 1115, 1116, 1117, 1118, 1119};
 // GLOBAL: WIZ8 0x0064fbb4
-const wchar_t g_assay_format_1f[] = L"%.1f";
+wchar_t g_assay_format_1f[] = L"%.1f";
 // GLOBAL: WIZ8 0x0064fbc0
-const wchar_t g_assay_format_1f_1f_s[] = L"%.1f (%.1f %s)";
+wchar_t g_assay_format_1f_1f_s[] = L"%.1f (%.1f %s)";
 /* String-list label ids indexed by W8ItemDatabaseRecord::flags_041 bit. */
 // GLOBAL: WIZ8 0x0061e938
-const unsigned short g_item_flag_name_ids[8] = {
+unsigned short g_item_flag_name_ids[8] = {
     1255, 1256, 1257, 1258, 1259, 1260, 1261, 1262,
 };
 /* String-list label ids indexed by W8ItemDatabaseRecord::quantity_kind. */
 // GLOBAL: WIZ8 0x0061e948
-const unsigned short g_quantity_kind_name_ids[7] = {
+unsigned short g_quantity_kind_name_ids[7] = {
     1264, 1265, 1266, 1267, 1268, 0, 1269,
-};
-/* String-list label ids indexed by W8ItemDatabaseRecord::property_075. */
-// GLOBAL: WIZ8 0x0061e97c
-const unsigned short g_item_property_name_ids[6] = {
-    1289, 1290, 1291, 1292, 1293, 1294,
 };
 // GLOBAL: WIZ8 0x0069c818
 static wchar_t g_assay_entry_text[0x101];
 
-// GLOBAL: WIZ8 0x0064FAE4
-static const char ASSAY_DIALOG_CPP[] = "C:\\Projects\\Wizardry 8\\Dialog Code\\AssayDialog.cpp";
+// STRING: WIZ8 0x0064FAE4
+#define ASSAY_DIALOG_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\AssayDialog.cpp"
 
 enum { NUM_RPC_RACES = 5 };
 
@@ -374,7 +369,7 @@ unsigned char W8AssayDialog::PopulateText()
     }
     if (record->property_075 != 0) {
         m_text_area.AddEntry(gppStringList[0x8e9],
-                             gppStringList[g_item_property_name_ids[record->property_075]], 10, 0xf,
+                             gppStringList[g_item_use_messages[W8_ITEM_PROPERTY_MESSAGE_FIRST + record->property_075]], 10, 0xf,
                              0);
     }
     switch (record->equip_class) {

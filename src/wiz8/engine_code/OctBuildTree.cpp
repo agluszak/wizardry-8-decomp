@@ -10,7 +10,7 @@
 #define OCT_BUILD_TREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildTree.cpp"
 
 // GLOBAL: WIZ8 0x005ec188
-float g_float_005ec188 = 1.000100016593933f;
+const float g_float_005ec188 = 1.000100016593933f;
 
 // GLOBAL: WIZ8 0x00659a48
 void* g_oct_build_scratch;

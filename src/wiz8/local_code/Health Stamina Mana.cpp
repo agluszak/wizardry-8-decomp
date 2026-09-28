@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/Camera.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/Screens.h"
 #include "soundman.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
@@ -181,11 +182,11 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
 /* Stamina and realm spell-point constants the encodings keep as addressable
    storage rather than immediates. */
 // GLOBAL: WIZ8 0x005ed8b8
-float g_float_005ed8b8 = 0.1f;
+const float g_float_005ed8b8 = 0.1f;
 // GLOBAL: WIZ8 0x005ec3f8
-float g_float_005ec3f8 = 125.0f;
+const float g_float_005ec3f8 = 125.0f;
 // GLOBAL: WIZ8 0x005ecbb4
-float g_float_005ecbb4 = 0.02f;
+const float g_float_005ecbb4 = 0.02f;
 
 /* The eligibility window the party sweeps use, the same one GetRandomCharacter
    and AnyPartyMemberCanUseItem apply: highest_condition below death. */
@@ -319,7 +320,7 @@ void RestorePartySpellPoints(int amount)
 /* Suffix the damage notice carries when a poison tick is what hurt the
    monster. */
 // GLOBAL: WIZ8 0x0061C964
-const wchar_t g_poison_suffix[] = L"POISON ";
+wchar_t g_poison_suffix[] = L"POISON ";
 
 /* Roll the dice once for every live monster inside the radius of a point and
    apply each roll as damage through the monster-side effect pass. */
@@ -560,12 +561,6 @@ unsigned int FatigueArmorPenalty(int fatigue_band)
     }
 }
 
-/* Two effects the party is holding that a wounded character can no longer
-   sustain, and the third that only the deeper threshold breaks. */
-// GLOBAL: WIZ8 0x005ed904
-unsigned int g_effect_threshold_005ed904 = 50;
-// GLOBAL: WIZ8 0x005ed900
-unsigned int g_effect_threshold_005ed900 = 70;
 /* 0x0061E518: one notice index per spell realm, giving the realm's name. */
 /* Turn a pool fraction into a band. The same ladder decides a character's
    fatigue band and a monster's, from the percentage of the pool that is

@@ -3,6 +3,7 @@
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/layouts/learned_spells.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/RCSStatsPage.h"
 #include "input.h"
 
@@ -174,7 +175,7 @@ struct W8CampScreenRegion {
     int label_flag_20;         /* 0x20: label draw flag */
 };
 
-extern const W8CampScreenRegion g_camp_screen_regions[12];
+extern W8CampScreenRegion g_camp_screen_regions[12];
 /* 0x00648C48: load-category font-palette selectors indexed by
    W8Character::load_category. */
 extern int g_load_category_palettes[5];
@@ -223,14 +224,11 @@ void OpenSpellInfoDialog(unsigned int spell_id);
 void SyncReviewCharInputRegion(void);
 bool IsEquippableItemClass(W8ItemInstance* item); /* 0x005A6310 */
 
-extern int g_effect_005ee6ec;
-extern int g_effect_argument_005ed8cc;
-
 /* 0x005A6620: begin the timed screen fade and run `callback` when it
    finishes; `fade_to_black` selects the alpha ramp. */
 void BeginScreenFade(int fade_to_black, int arg_2, int fade_code, void (*callback)(void), char flag,
                      char arg_6);
-extern const wchar_t g_format_s_0064dd28[];
+extern wchar_t g_format_s_0064dd28[];
 unsigned char UpdateScreenFade(void);
 void BeginPartyDeath(void);
 void PumpReviewTransition(void);

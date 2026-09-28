@@ -1,4 +1,5 @@
 #include "wiz8/local_code/Sight.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/local_code/CharGeneration.h"
@@ -74,7 +75,7 @@
 #define SIGHT_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Sight.cpp"
 
 // GLOBAL: WIZ8 0x005ec254
-float g_sight_default = 12.0f;
+const float g_sight_default = 12.0f;
 
 /* Put the sight subsystem back to its starting state. */
 // FUNCTION: WIZ8 0x005048e0
@@ -464,16 +465,6 @@ int g_sight_fade_in_tick;
 // GLOBAL: WIZ8 0x00689b74
 int g_sight_fade_out_tick;
 
-/* The effect ids the two "someone noticed you" notices post. Their slots are
-   the four consecutive dwords the producer reads. */
-// GLOBAL: WIZ8 0x005ee694
-int g_sight_effect_005ee694 = 0x43;
-// GLOBAL: WIZ8 0x005ee698
-int g_sight_effect_005ee698 = 0x44;
-// GLOBAL: WIZ8 0x005ee620
-int g_sight_effect_005ee620 = 0x26;
-// GLOBAL: WIZ8 0x005ee66c
-int g_sight_effect_005ee66c = 0x39;
 // GLOBAL: WIZ8 0x005ed7f8
 const float g_sight_threat_scale = 0.6667f;
 

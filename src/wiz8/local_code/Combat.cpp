@@ -1,4 +1,5 @@
 #include "wiz8/local_screens/Screens.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/local_code/CharGeneration.h"
@@ -109,11 +110,11 @@ W8CombatState* g_combat_state;
 // GLOBAL: WIZ8 0x0068d810
 bool g_combat_log_enabled;
 // GLOBAL: WIZ8 0x00617664
-extern const wchar_t g_combat_log_format[] = L"%hs";
+wchar_t g_combat_log_format[] = L"%hs";
 // GLOBAL: WIZ8 0x006175B0
-extern const wchar_t g_format_s_dash_dash[] = L"%s -- ";
+wchar_t g_format_s_dash_dash[] = L"%s -- ";
 // GLOBAL: WIZ8 0x006175C0
-extern const wchar_t g_format_s_bang[] = L"%s!";
+wchar_t g_format_s_bang[] = L"%s!";
 // GLOBAL: WIZ8 0x0061EC8C
 int g_breath_notice_id = 0x65b;
 /* 0x0053AC30 */
@@ -845,11 +846,8 @@ int PartyAvoidsSurprise(void)
     return 0;
 }
 
-/* 0x004C62C0 */
-// GLOBAL: WIZ8 0x005ed908
-unsigned int g_flee_chance = 15;
 // GLOBAL: WIZ8 0x005ed490
-float g_movement_speed_step = 0.009999999776482582f;
+const float g_movement_speed_step = 0.009999999776482582f;
 /* What one character's whole turn is worth. A character whose turn combat has
    already set up uses the values it saved; anyone else is asked afresh. A
    phase of exactly a hundred is worth one whatever the hands say. */

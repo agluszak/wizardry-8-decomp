@@ -366,14 +366,14 @@ void BuildEnvironmentColourRamp(void)
     float value;
 
     for (index = 0; index < 128; ++index) {
-        value = index * (1.0f / 255.0f);
+        value = index * (1.0f / 127.0f);
         g_environment_colours_65a178[index] = value;
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].x);
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].y);
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].z);
     }
     for (; index < 256; ++index) {
-        value = (255 - index) * (1.0f / 255.0f);
+        value = (255 - index) * (1.0f / 127.0f);
         g_environment_colours_65a178[index] = value;
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].x);
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].y);
@@ -388,7 +388,7 @@ void BuildLightColourRamp(void)
     float value;
 
     for (index = 0; index < 128; ++index) {
-        value = index * (1.0f / 255.0f);
+        value = index * (1.0f / 127.0f);
         g_environment_colours_65ad98[index].x = value;
         g_environment_colours_65ad98[index].y = value;
         g_environment_colours_65ad98[index].z = value;
@@ -397,7 +397,7 @@ void BuildLightColourRamp(void)
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].z);
     }
     for (; index < 256; ++index) {
-        value = (255 - index) * (1.0f / 255.0f);
+        value = (255 - index) * (1.0f / 127.0f);
         g_environment_colours_65ad98[index].x = value;
         g_environment_colours_65ad98[index].y = value;
         g_environment_colours_65ad98[index].z = value;

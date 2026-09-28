@@ -209,7 +209,7 @@ void InitTextInputModeWithScheme(int mode)
 }
 
 // FUNCTION: WIZ8 0x005D35E0
-void SetTextInputScheme(int mode)
+void SetTextInputScheme(char mode)
 {
     if (mode == 0) {
         pColors->usFont = static_cast<short>(g_font12point1);

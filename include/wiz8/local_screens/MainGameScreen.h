@@ -23,20 +23,22 @@ void ClearHighlightIfItIs(const int* item);
 
 #include "wiz8/layouts/main_game_screen.h"
 /* MainGameScreen.cpp GLOBAL at 0x006068E4: the "%s" display format. */
-extern const wchar_t g_format_s[];
+extern wchar_t g_format_s[];
 /* MainGameScreen.cpp GLOBAL at 0x0064BAB0: the "%d%%" display format. */
-extern const wchar_t g_format_d_percent[];
+extern wchar_t g_format_d_percent[];
 /* MainGameScreen.cpp GLOBAL at 0x0061C3E0: the "%s: %s" display format. */
-extern const wchar_t g_format_s_colon_s[];
+extern wchar_t g_format_s_colon_s[];
 /* MainGameScreen.cpp GLOBAL at 0x006481B4: the "%s: %s (%d)" display format. */
-extern const wchar_t g_format_s_colon_s_paren_d[];
+extern wchar_t g_format_s_colon_s_paren_d[];
 /* MainGameScreen.cpp GLOBAL at 0x0064DA8C: the " %s : " display format. */
-extern const wchar_t g_format_s_spaced_colon[];
+extern wchar_t g_format_s_spaced_colon[];
 /* MainGameScreen.cpp GLOBAL at 0x0061A700: the "%s (%d)" display format. */
-extern const wchar_t g_format_s_paren_d[];
+extern wchar_t g_format_s_paren_d[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 extern W8ScreenRect g_viewport_modes[];
+extern const float g_float_005ec258;
+extern const float g_float_005ec25c;
 /* String-list ids naming each trap row; Traps.cpp indexes it with the
    trigger's trap type for the disarm/spring notices. */
 extern unsigned short g_value_0061e9ec[];

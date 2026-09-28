@@ -1,4 +1,5 @@
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/MonsterAI.h"
@@ -53,8 +54,8 @@
 
 #include "random.h"
 
-// GLOBAL: WIZ8 0x00619FDC
-static const char MONSTER_GROUP_CPP[] = "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp";
+// STRING: WIZ8 0x00619FDC
+#define MONSTER_GROUP_CPP "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp"
 
 /* Group list indices above this select the encounter list instead, biased by
    exactly this much - the same split the monster list uses. */

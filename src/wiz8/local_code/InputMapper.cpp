@@ -21,7 +21,7 @@ struct MGSKeyName {
 };
 
 // GLOBAL: WIZ8 0x00647770
-static const MGSKeyName g_mgs_key_names[] = {
+static MGSKeyName g_mgs_key_names[] = {
     {L"F1", 112},        {L"F2", 113},        {L"F3", 114},        {L"F4", 115},
     {L"F5", 116},        {L"F6", 117},        {L"F7", 118},        {L"F8", 119},
     {L"F9", 120},        {L"F10", 121},       {L"F11", 122},       {L"F12", 123},

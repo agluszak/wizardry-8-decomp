@@ -33,27 +33,27 @@ enum W8SubMenuEntryState {
 
 /* Owned globals: the icon paths, button positions and (menu, item)-keyed
    entry message/help tables emitted by this translation unit. */
-extern const char g_submenu_icons_path[];
-extern const char g_submenu_combat_icons_path[];
-extern const char g_options_disk_path[];
-extern const char g_attack_confirm_path[];
-extern const char g_combat_stop_path[];
-extern const char g_cont_start_path[];
-extern const char g_cont_toggle_path[];
-extern const char g_cont_pending_path[];
-extern const char g_roof_buttons_path[];
-extern const char g_layout_arrows_path[];
-extern const int g_submenu_button_positions[9][2];
-extern const int g_scroll_button_positions[2][2];
-extern const int g_submenu_panel_button_positions[2][2];
-extern const int g_options_disk_position[2];
-extern const int g_combat_stance_positions[5][2];
-extern const int g_roof_button_positions[3][2];
-extern const int g_layout_arrow_positions[6][2];
+extern char g_submenu_icons_path[];
+extern char g_submenu_combat_icons_path[];
+extern char g_options_disk_path[];
+extern char g_attack_confirm_path[];
+extern char g_combat_stop_path[];
+extern char g_cont_start_path[];
+extern char g_cont_toggle_path[];
+extern char g_cont_pending_path[];
+extern char g_roof_buttons_path[];
+extern char g_layout_arrows_path[];
+extern int g_submenu_button_positions[9][2];
+extern int g_scroll_button_positions[2][2];
+extern int g_submenu_panel_button_positions[2][2];
+extern int g_options_disk_position[2];
+extern int g_combat_stance_positions[5][2];
+extern int g_roof_button_positions[3][2];
+extern int g_layout_arrow_positions[6][2];
 /* The (menu, item) keyed entry message/help indexes both menus build rows
    from; the keyboard menu shares them. */
-extern const short g_submenu_entry_message_ids[25];
-extern const int g_submenu_entry_help_ids[25];
+extern short g_submenu_entry_message_ids[25];
+extern int g_submenu_entry_help_ids[25];
 
 /* Create the nine-button bank and keep its state flag clear. */
 unsigned char CreateSubMenuButtons(void); /* 0x00594AF0 */

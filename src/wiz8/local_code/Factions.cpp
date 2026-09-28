@@ -138,7 +138,7 @@ W8FactionDisposition GetFactionDisposition(signed char faction)
 /* 0x0061EACC: the gppStringList name id for each faction row; the two filler
    factions reuse the unaligned name. */
 // GLOBAL: WIZ8 0x0061EACC
-const unsigned short g_faction_name_ids[W8_FACTION_COUNT] = {
+unsigned short g_faction_name_ids[W8_FACTION_COUNT] = {
     0x5a1, 0x5a2, 0x5a3, 0x5a4, 0x5a5, 0x5a6, 0x5a7, 0x5a8, 0x5a9, 0x5aa, 0x5ab,
     0x5ac, 0x5ad, 0x5ae, 0x5af, 0x5b0, 0x5b1, 0x5b2, 0x5b3, 0x5a1, 0x5a1,
 };

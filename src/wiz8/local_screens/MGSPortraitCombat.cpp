@@ -59,60 +59,60 @@
 #include "wiz8/xstatus.h"
 
 // GLOBAL: WIZ8 0x0064C238
-const char g_submenu_icons_path[] = "Data\\Main Interface\\icons_standard.sti";
+char g_submenu_icons_path[] = "Data\\Main Interface\\icons_standard.sti";
 // GLOBAL: WIZ8 0x0064C260
-const char g_submenu_combat_icons_path[] = "Data\\Main Interface\\icon_combat_toggle.sti";
+char g_submenu_combat_icons_path[] = "Data\\Main Interface\\icon_combat_toggle.sti";
 /* The (x, y) of the nine bank buttons. */
 // GLOBAL: WIZ8 0x0064C290
-const int g_submenu_button_positions[9][2] = {
+int g_submenu_button_positions[9][2] = {
     {40, 452},  {70, 452},  {100, 452}, {130, 452}, {160, 452},
     {232, 452}, {262, 452}, {199, 452}, {200, 452},
 };
 /* The (x, y) of the two scroll arrows. */
 // GLOBAL: WIZ8 0x0064C330
-const int g_scroll_button_positions[2][2] = {{300, 456}, {323, 456}};
+int g_scroll_button_positions[2][2] = {{300, 456}, {323, 456}};
 /* The (x, y) of the two panel buttons (close and formation). */
 // GLOBAL: WIZ8 0x0064C378
-const int g_submenu_panel_button_positions[2][2] = {{541, 452}, {571, 452}};
+int g_submenu_panel_button_positions[2][2] = {{541, 452}, {571, 452}};
 // GLOBAL: WIZ8 0x0064C388
-const char g_options_disk_path[] = "Data\\Main Interface\\options_disk.sti";
+char g_options_disk_path[] = "Data\\Main Interface\\options_disk.sti";
 // GLOBAL: WIZ8 0x0064C3B0
-const int g_options_disk_position[2] = {0, 450};
+int g_options_disk_position[2] = {0, 450};
 // GLOBAL: WIZ8 0x0064C3B8
-const char g_attack_confirm_path[] = "Data\\Main Interface\\attack_confirm.sti";
+char g_attack_confirm_path[] = "Data\\Main Interface\\attack_confirm.sti";
 // GLOBAL: WIZ8 0x0064C3E0
-const char g_combat_stop_path[] = "Data\\Main Interface\\combat_stop.sti";
+char g_combat_stop_path[] = "Data\\Main Interface\\combat_stop.sti";
 // GLOBAL: WIZ8 0x0064C404
-const char g_cont_start_path[] = "Data\\Main Interface\\cont_start.sti";
+char g_cont_start_path[] = "Data\\Main Interface\\cont_start.sti";
 // GLOBAL: WIZ8 0x0064C428
-const char g_cont_toggle_path[] = "Data\\Main Interface\\cont_toggle.sti";
+char g_cont_toggle_path[] = "Data\\Main Interface\\cont_toggle.sti";
 // GLOBAL: WIZ8 0x0064C44C
-const char g_cont_pending_path[] = "Data\\Main Interface\\cont_pending.sti";
+char g_cont_pending_path[] = "Data\\Main Interface\\cont_pending.sti";
 /* All five combat-stance buttons share the same screen origin. */
 // GLOBAL: WIZ8 0x0064C478
-const int g_combat_stance_positions[5][2] = {
+int g_combat_stance_positions[5][2] = {
     {610, 450}, {610, 450}, {610, 450}, {610, 450}, {610, 450},
 };
 // GLOBAL: WIZ8 0x0064C4A0
-const char g_roof_buttons_path[] = "Data\\Main Interface\\main_roof_buttons.sti";
+char g_roof_buttons_path[] = "Data\\Main Interface\\main_roof_buttons.sti";
 // GLOBAL: WIZ8 0x0064C4D0
-const int g_roof_button_positions[3][2] = {{10, 1}, {39, 1}, {68, 1}};
+int g_roof_button_positions[3][2] = {{10, 1}, {39, 1}, {68, 1}};
 // GLOBAL: WIZ8 0x0064C4E8
-const char g_layout_arrows_path[] = "Data\\Main Interface\\main_layout_arrows.sti";
+char g_layout_arrows_path[] = "Data\\Main Interface\\main_layout_arrows.sti";
 /* Left column then right column; both columns share the same x in retail. */
 // GLOBAL: WIZ8 0x0064C518
-const int g_layout_arrow_positions[6][2] = {
+int g_layout_arrow_positions[6][2] = {
     {0, 371}, {0, 394}, {0, 417}, {0, 371}, {0, 394}, {0, 417},
 };
 /* The (menu, item) keyed message indexes both menus build rows from. */
 // GLOBAL: WIZ8 0x0064C548
-const short g_submenu_entry_message_ids[25] = {
+short g_submenu_entry_message_ids[25] = {
     0,  63, 70,  77,  84, 91, 98, -1,  -1,  -1, 154, 161, 168,
     -1, -1, 105, 112, -1, -1, -1, 175, 182, -1, -1,  -1,
 };
 /* The matching help indexes. */
 // GLOBAL: WIZ8 0x0064C57C
-const int g_submenu_entry_help_ids[25] = {
+int g_submenu_entry_help_ids[25] = {
     82, 83, 84, 85, 86, 87, 88, -1, -1, -1, 91, 92, -1,
     -1, -1, 89, -1, -1, -1, -1, 95, 94, -1, -1, -1,
 };

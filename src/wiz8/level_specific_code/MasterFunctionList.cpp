@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include "wiz8/integer_constants.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/level_specific_code/Arnika.h"
 #include "wiz8/level_specific_code/Monastery1.h"
@@ -181,7 +182,7 @@ const int g_character_event_kind_005ee63c = 0x2d;
 const int g_character_event_kind_005ee688 = 0x40;
 
 // GLOBAL: WIZ8 0x006109F4
-static W8WorldCursorNodeHandler const g_world_cursor_node_handlers[10] = {
+static W8WorldCursorNodeHandler g_world_cursor_node_handlers[10] = {
     WorldCursorNodeShowMessageOnce,         /* type 0 */
     WorldCursorNodeShowMessageOnce,         /* type 1 */
     WorldCursorNodeShowContextMessage,      /* type 2 */

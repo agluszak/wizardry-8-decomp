@@ -2,7 +2,7 @@
 
 #include "wiz8/layouts/targeting.h"
 
-extern const wchar_t g_combat_log_format[]; /* 0x00617664 */
+extern wchar_t g_combat_log_format[]; /* 0x00617664 */
 /* 0x0068506C: a friendly NPC's combat-entry script notice is still owed. */
 
 void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data, int a,
@@ -97,3 +97,4 @@ void SetSlotAction(int party_slot, int action_kind, int action_detail);
 bool CanCharReBreathe(int party_slot);
 unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target); /* 0x004ECE00 */
 short GetCombatActionProgress(int* out_total);                      /* 0x004EC610 */
+extern wchar_t g_format_s_bang[];

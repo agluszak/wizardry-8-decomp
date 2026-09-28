@@ -1,4 +1,5 @@
 #include "wiz8/layouts/character.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/local_code/CharGeneration.h"

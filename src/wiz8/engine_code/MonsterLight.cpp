@@ -8,9 +8,9 @@
 #include <string.h>
 
 // GLOBAL: WIZ8 0x005ecd4c
-float g_monster_light_cycle_rate = 0.025f;
+const float g_monster_light_cycle_rate = 0.025f;
 // GLOBAL: WIZ8 0x005ec318
-double g_double_005ec318 = 6.2831852;
+const double g_double_005ec318 = 6.2831852;
 
 /* The light-deletion path emitted this vftable slot emission ahead of the
    class's authored bodies. */

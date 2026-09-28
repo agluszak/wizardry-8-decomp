@@ -1,0 +1,288 @@
+#include "wiz8/integer_constants.h"
+
+/* Definitions for integer_constants.h: this unit reads none of them, so no
+   user sees an initializer. */
+
+// GLOBAL: WIZ8 0x005ED8C8
+const int g_character_event_no_flags = 0;
+
+// GLOBAL: WIZ8 0x005ed8cc
+const int g_effect_argument_005ed8cc = 1;
+
+// GLOBAL: WIZ8 0x005ED8D0
+const int g_effect_argument_005ed8d0 = 2;
+
+// GLOBAL: WIZ8 0x005ED8D4
+const int g_effect_argument_005ed8d4 = 1;
+
+// GLOBAL: WIZ8 0x005ED8D8
+const int g_effect_argument_005ed8d8 = 2;
+
+// GLOBAL: WIZ8 0x005ED8E0
+const unsigned int g_event_flag_005ed8e0 = 8;
+
+// GLOBAL: WIZ8 0x005ED8E4
+const unsigned char g_character_event_flags_mask = 16;
+
+// GLOBAL: WIZ8 0x005ED8E8
+const unsigned int g_event_flag_005ed8e8 = 0x20;
+
+// GLOBAL: WIZ8 0x005ED8EC
+const unsigned int g_event_flag_005ed8ec = 0x40;
+
+// GLOBAL: WIZ8 0x005ED8F8
+const unsigned int g_flee_hp_fraction = 50;
+
+// GLOBAL: WIZ8 0x005ED8FC
+const unsigned int g_value_005ed8fc = 20;
+
+// GLOBAL: WIZ8 0x005ed900
+const unsigned int g_effect_threshold_005ed900 = 70;
+
+/* Two effects the party is holding that a wounded character can no longer
+   sustain, and the third that only the deeper threshold breaks. */
+// GLOBAL: WIZ8 0x005ed904
+const unsigned int g_effect_threshold_005ed904 = 50;
+
+/* 0x004C62C0 */
+// GLOBAL: WIZ8 0x005ed908
+const unsigned int g_flee_chance = 15;
+
+// GLOBAL: WIZ8 0x005ED914
+const int g_character_event_full_volume = 127;
+
+// GLOBAL: WIZ8 0x005ee588
+const int g_effect_005ee588 = 0;
+
+// GLOBAL: WIZ8 0x005EE58C
+const int g_effect_005ee58c = 1;
+
+// GLOBAL: WIZ8 0x005EE590
+const int g_effect_005ee590 = 2;
+
+// GLOBAL: WIZ8 0x005EE594
+const int g_effect_005ee594 = 3;
+
+// GLOBAL: WIZ8 0x005ee598
+const int g_effect_005ee598 = 4;
+
+// GLOBAL: WIZ8 0x005ee59c
+const int g_condition_reaction = 5;
+
+// GLOBAL: WIZ8 0x005ee5a0
+const int g_condition_reaction_alt = 6;
+
+// GLOBAL: WIZ8 0x005EE5A4
+const int g_effect_005ee5a4 = 7;
+
+/* The "carrying too much" camp event id. Outside camp the live special
+   event slot supplies it instead. */
+// GLOBAL: WIZ8 0x005ee5a8
+const int g_camp_overload_event_id = 8;
+
+// GLOBAL: WIZ8 0x005EE5AC
+const int g_effect_005ee5ac = 9;
+
+// GLOBAL: WIZ8 0x005EE5B4
+const int g_effect_005ee5b4 = 11;
+
+// GLOBAL: WIZ8 0x005EE5B8
+const int g_effect_005ee5b8 = 12;
+
+// GLOBAL: WIZ8 0x005EE5BC
+const int g_effect_005ee5bc = 13;
+
+// GLOBAL: WIZ8 0x005EE5C8
+const int g_item_message_005ee5c8 = 16;
+
+// GLOBAL: WIZ8 0x005EE5CC
+const int g_item_message_005ee5cc = 17;
+
+// GLOBAL: WIZ8 0x005EE5D0
+const int g_effect_005ee5d0 = 18;
+
+// GLOBAL: WIZ8 0x005EE5D4
+const int g_effect_005ee5d4 = 19;
+
+// GLOBAL: WIZ8 0x005EE5D8
+const int g_effect_005ee5d8 = 20;
+
+// GLOBAL: WIZ8 0x005EE5DC
+const int g_effect_005ee5dc = 0x15;
+
+// GLOBAL: WIZ8 0x005EE5E0
+const int g_effect_005ee5e0 = 0x16;
+
+/* Search-pulse event ids: the two found-item variants and the found-trigger
+   event queued to the searcher. */
+// GLOBAL: WIZ8 0x005EE5E4
+const int g_effect_005ee5e4 = 0x17;
+
+// GLOBAL: WIZ8 0x005EE5E8
+const int g_effect_005ee5e8 = 0x18;
+
+// GLOBAL: WIZ8 0x005EE5EC
+const int g_effect_005ee5ec = 0x19;
+
+// GLOBAL: WIZ8 0x005EE5F0
+const int g_effect_005ee5f0 = 0x1a;
+
+// GLOBAL: WIZ8 0x005EE5F8
+const int g_effect_005ee5f8 = 28;
+
+// GLOBAL: WIZ8 0x005EE5FC
+const int g_effect_005ee5fc = 29;
+
+// GLOBAL: WIZ8 0x005EE600
+const int g_effect_005ee600 = 30;
+
+// GLOBAL: WIZ8 0x005EE604
+const int g_effect_005ee604 = 31;
+
+// GLOBAL: WIZ8 0x005EE60C
+const int g_effect_005ee60c = 33;
+
+// GLOBAL: WIZ8 0x005ee610
+const int g_effect_005ee610 = 34;
+
+// GLOBAL: WIZ8 0x005EE614
+const int g_effect_005ee614 = 35;
+
+// GLOBAL: WIZ8 0x005EE618
+const int g_effect_005ee618 = 36;
+
+// GLOBAL: WIZ8 0x005EE61C
+const int g_effect_005ee61c = 37;
+
+// GLOBAL: WIZ8 0x005ee620
+const int g_sight_effect_005ee620 = 0x26;
+
+/* 0x005EE624: the character event an item use queues when the attempt ends
+   without casting anything. */
+// GLOBAL: WIZ8 0x005EE624
+const int g_effect_005ee624 = 39;
+
+// GLOBAL: WIZ8 0x005EE628
+const int g_effect_005ee628 = 40;
+
+// GLOBAL: WIZ8 0x005EE630
+const int g_effect_005ee630 = 42;
+
+// GLOBAL: WIZ8 0x005EE634
+const int g_effect_005ee634 = 43;
+
+// GLOBAL: WIZ8 0x005EE638
+const int g_effect_005ee638 = 44;
+
+// GLOBAL: WIZ8 0x005ee640
+const int g_item_message_005ee640 = 46;
+
+// GLOBAL: WIZ8 0x005ee644
+const int g_item_message_005ee644 = 47;
+
+// GLOBAL: WIZ8 0x005ee648
+const int g_item_message_005ee648 = 48;
+
+// GLOBAL: WIZ8 0x005ee64c
+const int g_item_message_005ee64c = 49;
+
+// GLOBAL: WIZ8 0x005EE654
+const int g_effect_005ee654 = 51;
+
+// GLOBAL: WIZ8 0x005EE658
+const int g_effect_005ee658 = 52;
+
+// GLOBAL: WIZ8 0x005EE65C
+const int g_character_event_kind_005ee65c = 0x35;
+
+// GLOBAL: WIZ8 0x005ee664
+const int g_item_message_005ee664 = 55;
+
+// GLOBAL: WIZ8 0x005EE668
+const int g_item_message_005ee668 = 56;
+
+// GLOBAL: WIZ8 0x005ee66c
+const int g_sight_effect_005ee66c = 0x39;
+
+// GLOBAL: WIZ8 0x005ee68c
+const int g_item_message_005ee68c = 65;
+
+// GLOBAL: WIZ8 0x005ee690
+const int g_item_message_005ee690 = 66;
+
+/* The effect ids the two "someone noticed you" notices post. Their slots are
+   the four consecutive dwords the producer reads. */
+// GLOBAL: WIZ8 0x005ee694
+const int g_sight_effect_005ee694 = 0x43;
+
+// GLOBAL: WIZ8 0x005ee698
+const int g_sight_effect_005ee698 = 0x44;
+
+// GLOBAL: WIZ8 0x005ee69c
+const int g_effect_005ee69c = 69;
+
+/* Quote indices 'F'..'R' fall outside the scripted world-action dispatch in
+   RunNpcScriptLine's kind-0x0d/0x14 entries. */
+// GLOBAL: WIZ8 0x005EE6A0
+const int g_world_action_quote_min = 'F';
+
+// GLOBAL: WIZ8 0x005EE6D0
+const int g_world_action_quote_max = 'R';
+
+// GLOBAL: WIZ8 0x005EE6D8
+const int g_effect_005ee6d8 = 0x54;
+
+// GLOBAL: WIZ8 0x005EE6DC
+const int g_effect_005ee6dc = 0x55;
+
+// GLOBAL: WIZ8 0x005ee6ec
+const int g_effect_005ee6ec = 109;
+
+// GLOBAL: WIZ8 0x005ee6f8
+const int g_effect_005ee6f8 = 131;
+
+// GLOBAL: WIZ8 0x005ee6fc
+const int g_item_message_005ee6fc = 132;
+
+// GLOBAL: WIZ8 0x005EE710
+const unsigned int g_remapped_event_count = 31;
+
+// GLOBAL: WIZ8 0x005EE718
+const unsigned int g_first_remapped_event = 500;
+
+// GLOBAL: WIZ8 0x005EF958
+const int g_info_dialog_x = 0x80;
+
+// GLOBAL: WIZ8 0x005EF95C
+const int g_info_dialog_y = 0x61;
+
+/* The split-amount dialog's confirm code and its default origin; only the
+   0x572780/0x572870 pair reads them. */
+// GLOBAL: WIZ8 0x005EF9D4
+const int g_split_dialog_confirm = 1;
+
+// GLOBAL: WIZ8 0x005EF9DC
+const int g_split_dialog_origin_x = 0x9f;
+
+// GLOBAL: WIZ8 0x005EF9E0
+const int g_split_dialog_origin_y = 0xb8;
+
+// GLOBAL: WIZ8 0x005EFB44
+const int g_split_result_kind = 1;
+
+// GLOBAL: WIZ8 0x005EFB4C
+const int g_split_dialog_x = 0xa1;
+
+// GLOBAL: WIZ8 0x005EFB50
+const int g_split_dialog_y = 0x94;
+
+// GLOBAL: WIZ8 0x005EFB64
+const int g_split_dialog_kind = 0;
+
+/* The trade-mode split-dialog kinds OpenNpcTradeQuantityDialog selects:
+   1 while the party sells to the NPC, 2 while buying or identifying. */
+// GLOBAL: WIZ8 0x005EFB68
+const int g_split_dialog_sell_kind = 1;
+
+// GLOBAL: WIZ8 0x005EFB6C
+const int g_split_dialog_buy_kind = 2;

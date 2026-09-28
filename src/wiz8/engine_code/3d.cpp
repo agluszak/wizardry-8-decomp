@@ -31,9 +31,9 @@
 #define THREE_D_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp"
 
 // GLOBAL: WIZ8 0x005EC428
-double g_double_005ec428 = 0.9980430528375734;
+const double g_double_005ec428 = 0.9980430528375734;
 // GLOBAL: WIZ8 0x005EC430
-double g_double_005ec430 = 0.0019569471624266144;
+const double g_double_005ec430 = 0.0019569471624266144;
 
 // FUNCTION: WIZ8 0x0046DD70
 void UpdateWorldMonsters(W8World* world)
