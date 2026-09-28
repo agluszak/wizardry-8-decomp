@@ -181,7 +181,7 @@ float GetAniMeshFrameRadius(W8AniMesh* mesh, unsigned char frame)
     stModelInstance* instance = GetAniMeshFrame(mesh, frame);
 
     if (instance != 0) {
-        stMeshModel* model = static_cast<stMeshModel*>(instance->model());
+        stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
 
         if (model != 0) {
             srVector3T<float> minimum(0.0f, 0.0f, 0.0f);
@@ -253,7 +253,7 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, unsigned char load_all)
 
     loaded_instance->setName("AniMeshReallyReadFromFile");
     stModelInstance* instance = static_cast<stModelInstance*>(loaded_instance);
-    stMeshModel* model = static_cast<stMeshModel*>(instance->model());
+    stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
 
     if (model->frame_count > 1) {
         mesh->flags_00 |= W8_ANI_MESH_SINGLE_INSTANCE;
@@ -318,7 +318,7 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, unsigned char load_all)
     for (frame_index = 0; frame_index < mesh->frame_count_01; ++frame_index) {
         stModelInstance* frame = GetAniMeshFrame(mesh, frame_index);
         if (frame != 0) {
-            stMeshModel* frame_model = static_cast<stMeshModel*>(frame->model());
+            stMeshModel* frame_model = static_cast<stMeshModel*>(frame->getModel());
             while (frame_model != 0) {
                 srVector3T<float> minimum;
                 srVector3T<float> maximum;

@@ -52,7 +52,7 @@ const float g_float_005ecc40 = 0.00019174758926965296f;
 // srClassSupport<stParticle,srNode,0,65545>::getClassNode
 
 // TEMPLATE: WIZ8 0x0049B5D0
-// srClassSupport<stParticle,srNode,0,65545>::clone
+// srClassSupport<stParticle,srNode,0,65545>::vClone
 
 // TEMPLATE: WIZ8 0x0049B990
 // srClassSupport<stParticle,srNode,0,65545>::~srClassSupport<stParticle,srNode,0,65545>
@@ -760,8 +760,8 @@ srClass* stParticle::vInstance()
 // FUNCTION: WIZ8 0x00498C40
 void stParticle::traverse(srNode::TraverseInfo& info)
 {
-    if (nextSibling() != 0) {
-        nextSibling()->traverse(info);
+    if (next_sibling_ != 0) {
+        next_sibling_->traverse(info);
     }
 
     if (!testFlag(FLAG_DISABLE)) {
@@ -773,8 +773,8 @@ void stParticle::traverse(srNode::TraverseInfo& info)
         }
     }
 
-    if (!testFlag(FLAG_TERMINATE) && firstChild() != 0) {
-        firstChild()->traverse(info);
+    if (!testFlag(FLAG_TERMINATE) && first_child_ != 0) {
+        first_child_->traverse(info);
     }
 }
 

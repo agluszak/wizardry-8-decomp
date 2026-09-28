@@ -6,9 +6,12 @@ class srCamera;
 class srGERD;
 class srModeler;
 
+// VTABLE: SURRENDER 0x10077264
+// class srClassSupport<srScene, srNode, 0, 4112>
+
 // VTABLE: SURRENDER 0x10077230 srScene
 // class srScene
-class SR_DLL_IMPORT srScene : public srClassSupport<srScene, srNode, 0, 0x1010> {
+class SR_DLL_IMPORT SR_DLL_EXPORT srScene : public srClassSupport<srScene, srNode, 0, 0x1010> {
 public:
     enum e_enable { ENABLE_POSITIONAL_0 = 0 };
 
@@ -20,7 +23,7 @@ public:
         unsigned long value_14;
     };
 
-    SR_DLL_EXPORT srScene(srNode* parent = 0);
+    srScene(srNode* parent = 0);
     srScene(const srScene& other);
     srScene& operator=(const srScene& other);
 

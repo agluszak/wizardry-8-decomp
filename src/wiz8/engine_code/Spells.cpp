@@ -300,7 +300,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
             while (instance != 0) {
                 srVector3T<double> scale(scale_1e8, scale_1e8, scale_1e8);
                 instance->setScale(scale);
-                instance = static_cast<srModelInstance*>(instance->firstChild());
+                instance = static_cast<srModelInstance*>(instance->first_child_);
             }
 
             srVector3T<float> minimum;
@@ -1418,7 +1418,7 @@ void SetMonsterSpellIcon(W8Monster* pMonster, int iIcon, char add)
 // srClassSupport<stSound3D,srNode,0,65547>::getClassNode
 
 // TEMPLATE: WIZ8 0x004AF460
-// srClassSupport<stSound3D,srNode,0,65547>::clone
+// srClassSupport<stSound3D,srNode,0,65547>::vClone
 
 // TEMPLATE: WIZ8 0x004AF5A0
 // srClassSupport<stSound3D,srNode,0,65547>::~srClassSupport<stSound3D,srNode,0,65547>

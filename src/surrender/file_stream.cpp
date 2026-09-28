@@ -102,6 +102,9 @@ inline void srInlineString::erase(unsigned long begin, unsigned long end)
     }
 }
 
+// SYNTHETIC: SURRENDER 0x10016410
+// srFileManager::`vector deleting destructor'
+
 // FUNCTION: SURRENDER 0x1002E010
 srFileManager::Path::Path(const char* name)
 {
@@ -298,9 +301,7 @@ srFileManager::srFileManager()
 }
 
 // FUNCTION: SURRENDER 0x100163C0
-srFileManager::srFileManager(const srFileManager& other) : first_path_04(other.first_path_04)
-{
-}
+srFileManager::srFileManager(const srFileManager& other) : first_path_04(other.first_path_04) {}
 
 // FUNCTION: SURRENDER 0x1002E750
 srFileManager::~srFileManager()
@@ -652,6 +653,9 @@ unsigned long srBinFStream::ptell()
     }
     return position;
 }
+
+// SYNTHETIC: SURRENDER 0x1002F640
+// srBinFStream::`vector deleting destructor'
 
 // FUNCTION: SURRENDER 0x1002F6B0
 srBinIFStream::srBinIFStream() {}

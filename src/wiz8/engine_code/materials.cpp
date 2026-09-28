@@ -2528,7 +2528,7 @@ bool MeshHasAnimatedTexture(srMeshModel* model)
 void SetModelAnimatedTextureFrame(srModelInstance* instance, int frame)
 {
     if (instance != 0) {
-        srMeshModel* model = static_cast<srMeshModel*>(instance->model());
+        srMeshModel* model = static_cast<srMeshModel*>(instance->getModel());
 
         if (model != 0) {
             srPtr<srTextureIFace>* textures = model->getPolyTexture(0, 0, 0);
@@ -2548,7 +2548,7 @@ void SetModelAnimatedTextureFrame(srModelInstance* instance, int frame)
 stTextureAnim* GetModelAnimatedTexture(srModelInstance* instance)
 {
     if (instance != 0) {
-        srMeshModel* model = static_cast<srMeshModel*>(instance->model());
+        srMeshModel* model = static_cast<srMeshModel*>(instance->getModel());
 
         if (model != 0) {
             srPtr<srTextureIFace>* textures = model->getPolyTexture(0, 0, 0);

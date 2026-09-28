@@ -4,6 +4,10 @@
 #include "surrender/srThread.h"
 #include "surrender/srVariableTimer.h"
 
+/* This unit's scheduling loops wait through one out-of-line helper
+   (0x100146D0) rather than calling srThread::yield directly. */
+static void yieldOneMillisecond();
+
 // FUNCTION: SURRENDER 0x10013D70
 srScheduler::srScheduler()
 {
@@ -38,7 +42,7 @@ srScheduler::~srScheduler()
     cancelAll();
     for (int index = 0; index < worker_count_3c; ++index) {
         while (workers_00[index].thread_handle_00 != -1) {
-            srThread::yield(1);
+            yieldOneMillisecond();
         }
     }
     if (critical_section_40 != 0) {
@@ -262,7 +266,7 @@ void srScheduler::finishAll()
         if (count == 0) {
             break;
         }
-        srThread::yield(1);
+        yieldOneMillisecond();
     }
 }
 
@@ -430,7 +434,7 @@ void srScheduler::waitForJob(Job* job)
         if (!pending) {
             return;
         }
-        srThread::yield(1);
+        yieldOneMillisecond();
     }
 }
 
@@ -443,5 +447,8 @@ void srScheduler::waitForJob(Job* job)
 // SYNTHETIC: SURRENDER 0x10014720
 // member pointer-pair destructor emission (EH unwind)
 
-// FUNCTION: SURRENDER 0x100146D0 SYMBOL
-// ?yield@srThread@@SAXK@Z
+// FUNCTION: SURRENDER 0x100146D0
+static void yieldOneMillisecond()
+{
+    srThread::yield(1);
+}

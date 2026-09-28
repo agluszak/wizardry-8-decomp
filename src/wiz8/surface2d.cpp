@@ -38,7 +38,7 @@ srClass* stTexture2D::vInstance()
 }
 
 // TEMPLATE: WIZ8 0x0047E7F0
-// srClassSupport<stTexture2D,srTexture,0,65551>::clone
+// srClassSupport<stTexture2D,srTexture,0,65551>::vClone
 
 // TEMPLATE: WIZ8 0x0047E830
 // srClassSupport<stTexture2D,srTexture,0,65551>::~srClassSupport<stTexture2D,srTexture,0,65551>
@@ -140,7 +140,7 @@ stSurface2D::~stSurface2D()
 }
 
 // TEMPLATE: WIZ8 0x0047E9C0
-// srClassSupport<stSurface2D,srNode,0,65550>::clone
+// srClassSupport<stSurface2D,srNode,0,65550>::vClone
 
 // TEMPLATE: WIZ8 0x0047EAC0
 // srClassSupport<stSurface2D,srNode,0,65550>::~srClassSupport<stSurface2D,srNode,0,65550>
@@ -148,8 +148,8 @@ stSurface2D::~stSurface2D()
 // FUNCTION: WIZ8 0x004D6540
 void stSurface2D::traverse(TraverseInfo& info)
 {
-    if (nextSibling() != 0) {
-        nextSibling()->traverse(info);
+    if (next_sibling_ != 0) {
+        next_sibling_->traverse(info);
     }
 
     if (!testFlag(FLAG_DISABLE)) {
@@ -159,8 +159,8 @@ void stSurface2D::traverse(TraverseInfo& info)
         ++info.entry_count;
     }
 
-    if (!testFlag(FLAG_TERMINATE) && firstChild() != 0) {
-        firstChild()->traverse(info);
+    if (!testFlag(FLAG_TERMINATE) && first_child_ != 0) {
+        first_child_->traverse(info);
     }
 }
 

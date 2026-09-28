@@ -3,6 +3,9 @@
 #include "srColorSurface.h"
 #include "srTexture.h"
 
+// VTABLE: SURRENDER 0x1007752C
+// class srClassSupport<srTextureFile, srTexture, 0, 8466>
+
 /* File-backed texture exported by SR.DLL (class id 0x2112, parent srTexture
    0x2110). Wizardry does not import this type; it owns a parallel first-party
    stTextureFile (id 0x10001) whose 17-slot vtable and method names match this
@@ -14,11 +17,11 @@
    Slots 9/10/13 (getPriority, getDimensions, getTextureParms) stay on
    srTexture; slot 14 (getTextureName) stays on srTextureIFace. */
 // VTABLE: SURRENDER 0x100774E8 srTextureFile
-class srTextureFile : public srClassSupport<srTextureFile, srTexture, 0, 0x2112> {
+class SR_DLL_EXPORT srTextureFile : public srClassSupport<srTextureFile, srTexture, 0, 0x2112> {
 public:
     /* The default-constructor closure 0x10060090 proves both arguments
        default to zero for paren-less new expressions. */
-    SR_DLL_EXPORT srTextureFile(const char* file_name = 0, int cached = 0);
+    srTextureFile(const char* file_name = 0, int cached = 0);
     srTextureFile(const srTextureFile& other);
     srTextureFile& operator=(const srTextureFile& other);
 

@@ -25,6 +25,8 @@ struct srTimerConfig {
     int(__stdcall* read_tick)(srQuadWord* out); /* +0x838 */
 };
 
+int calibrate(srTimerConfig* config);
+
 namespace {
 unsigned __int64 quadWord64(const srQuadWord& value)
 {
@@ -99,6 +101,9 @@ srTimer::srTimer(int argument_0, int argument_1, int argument_2)
     setUnits(1000);
     reset(argument_0, argument_1, argument_2);
 }
+
+// SYNTHETIC: SURRENDER 0x10060B30
+// srTimer::`vector deleting destructor'
 
 /* Retail copies the two 0x400 strings and the 13-byte CPU signature with
    byte-at-a-time loops, not memcpy, and reloads kernel32 instead of sharing
@@ -465,7 +470,7 @@ int srTimer::reset(int detect, int argument_1, int save)
 }
 
 // FUNCTION: SURRENDER 0x10061EC0
-int srTimer::calibrate(srTimerConfig* config)
+int calibrate(srTimerConfig* config)
 {
     config->save = 0;
     if (config->read_tick != 0) {
@@ -498,19 +503,19 @@ int srTimer::calibrate(srTimerConfig* config)
     if ((features & 0x10) == 0) {
         return 0;
     }
-    config->read_tick = RDTSC;
+    config->read_tick = srTimer::RDTSC;
     if (config->cpu_count > 1) {
         signature = (signature & 0xffffefff) | 0x2000;
     }
     if (strncmp(config->cpu_vendor, vendor, 0xc) != 0 ||
-        ((config->cpu_signature ^ signature) & CPU_Model_Mask) != 0 ||
-        ((config->cpu_features ^ features) & CPU_Features_Mask) != 0) {
+        ((config->cpu_signature ^ signature) & srTimer::CPU_Model_Mask) != 0 ||
+        ((config->cpu_features ^ features) & srTimer::CPU_Features_Mask) != 0) {
         config->frequency.lo = 0;
         config->frequency.hi = 0;
     }
     if ((config->frequency.lo | config->frequency.hi) != 0) {
         __int64 tolerance =
-            (__int64)((double)config->frequency * (cpuFreqVariancePct & 0xffff) * 0.01);
+            (__int64)((double)config->frequency * (srTimer::cpuFreqVariancePct & 0xffff) * 0.01);
         SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
         SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
         unsigned long edge = timeGetTime();

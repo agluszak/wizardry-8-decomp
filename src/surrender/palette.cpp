@@ -1409,8 +1409,14 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
 // SYNTHETIC: SURRENDER 0x10004F90
 // srPalette default constructor closure
 
+// TEMPLATE: SURRENDER 0x100049D0
+// srClassSupport<srPalette,srClass,1,10496>::getClassID
+
+// TEMPLATE: SURRENDER 0x100049F0
+// srClassSupport<srPalette,srClass,1,10496>::getClassNode
+
 // TEMPLATE: SURRENDER 0x10004A30
-// srClassSupport<srPalette, srClass, true, 0x2900>::clone
+// srClassSupport<srPalette, srClass, true, 0x2900>::vClone
 
 // TEMPLATE: SURRENDER 0x10004A50
 // srClientSupport<srPalette, 0x2900>::~srClientSupport
@@ -1421,8 +1427,11 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
 // SYNTHETIC: SURRENDER 0x10004FD0
 // srPalette scalar deleting destructor
 
+// SYNTHETIC: SURRENDER 0x10004FF0
+// srPalette::`vector deleting destructor'
+
 // SYNTHETIC: SURRENDER 0x10005050
-// srClientSupport<srPalette, 0x2900> scalar deleting destructor
+// srClassSupport<srPalette,srClass,1,10496>::`scalar deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x10005080
 // std::ios_base::Init global static-init block
@@ -1438,6 +1447,9 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
 
 // SYNTHETIC: SURRENDER 0x10005220
 // srSurfaceIOManager scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x10005240
+// srSurfaceIOManager::`vector deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x100052A0
 // SurfaceImporter scalar deleting destructor

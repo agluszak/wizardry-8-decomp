@@ -5,6 +5,9 @@
 
 class srVertexPipe;
 
+// VTABLE: SURRENDER 0x100755A8
+// class srClassSupport<srMaterialIFace, srClass, 1, 8704>
+
 /* srMaterialIFace is the 0x2200 node the registry tree puts between srClass and
    srMaterial's 0x2210. srVertexPipe calls its three interface slots directly:
    the srMaterial vftable resolves +0x20/+0x24/+0x28 to getMaterialInfo,

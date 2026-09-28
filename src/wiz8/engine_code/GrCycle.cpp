@@ -733,12 +733,12 @@ void W8GrCycle::UpdateLights()
                 static_cast<stParametricLightDefinition*>(definition);
             if ((cycle_definition->flags_08 & 3) == 3 && (cycle_definition->flags_08 & 0x40) != 0) {
                 if (cycle_definition->IsEnabledForSubcycle(representation->subcycle_064) == 0) {
-                    if (light->parentNode() != 0) {
+                    if (light->parent_ != 0) {
                         light->setParent(0, 0);
                     }
                 } else if ((representation->subcycle_064 == 0 &&
                             cycle_definition->subcycle_min_3c == 0) ||
-                           light->parentNode() == srCore.getRootNode()) {
+                           light->parent_ == srCore.getRootNode()) {
                     light->setParent(g_world->dynamic_scene, 0);
                     light->m_path_index_248 = 0;
                     light->m_path_direction_250 = 1;
@@ -751,10 +751,10 @@ void W8GrCycle::UpdateLights()
             }
             light->SetDefinitionTime(representation->subcycle_064 + frame_fraction_1d4);
             if (definition->IsEnabledForSubcycle(0) == 0) {
-                if (light->parentNode() != 0) {
+                if (light->parent_ != 0) {
                     light->setParent(0, 0);
                 }
-            } else if (light->parentNode() == srCore.getRootNode()) {
+            } else if (light->parent_ == srCore.getRootNode()) {
                 light->setParent(g_world->dynamic_scene, 0);
             }
         }
@@ -945,7 +945,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         location.SetFromFloat(&vecPos);
         location.y += movement_0c0.vertical_offset_0c0;
         pRep->GetRotation(&rotation);
-        child = psrMesh->firstChild();
+        child = psrMesh->first_child_;
         if (child == 0) {
             psrMesh->setLocation(location);
             psrMesh->setRotation(rotation);
@@ -954,7 +954,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             do {
                 child->setLocation(location);
                 child->setRotation(rotation);
-                child = child->nextSibling();
+                child = child->next_sibling_;
             } while (child != 0);
         }
         current_model_instance_1a8 = psrMesh;
@@ -1088,7 +1088,8 @@ void W8GrCycle::UpdateParticleAttachments()
     pRep = GetRepresentation();
     /* When there is no instance the mesh model is never read, and the original
        leaves it holding whatever the count's slot did. */
-    pMeshModel = psrMesh != 0 ? (stMeshModel*)psrMesh->model() : (stMeshModel*)count;
+    pMeshModel = psrMesh != 0 ? static_cast<stMeshModel*>(psrMesh->getModel())
+                              : (stMeshModel*)count; // c-style-cast-ok: unresolved slot reuse
 
     current_model_instance_1a8->getRotation(rotation);
     scale = current_model_instance_1a8->getScale();

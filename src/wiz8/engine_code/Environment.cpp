@@ -441,7 +441,7 @@ void UpdateEnvironmentLight(void)
 // srClientSupport<srFog,4624>::getClassNode
 
 // TEMPLATE: WIZ8 0x004847C0
-// srClientSupport<srFog,4624>::clone
+// srClientSupport<srFog,4624>::vClone
 
 // SYNTHETIC: WIZ8 0x00484840
 // srClientSupport<srFog,4624>::`scalar deleting destructor'

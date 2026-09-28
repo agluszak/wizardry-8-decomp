@@ -118,7 +118,7 @@ void FinalizeStaticScene(srScene* scene)
 {
     srNode* node;
 
-    for (node = scene->firstChild(); node != 0; node = node->nextSibling()) {
+    for (node = scene->first_child_; node != 0; node = node->next_sibling_) {
         if (node->getClassID() == 0x1220) {
             static_cast<srIlluminator*>(node)->setGroupMask(1);
         }
@@ -140,7 +140,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
 {
     srVector3T<float>* directions = 0;
     unsigned char locations_allocated = 0;
-    stMeshModel* mesh = static_cast<stMeshModel*>(instance->model());
+    stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel());
     srVector3T<float> location;
     location = instance->getWorldSpaceLocation();
     srVector3T<float> minimum;
@@ -321,7 +321,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
             if (walk_chain == 0) {
                 break;
             }
-            light_node = light_node->nextSibling();
+            light_node = light_node->next_sibling_;
         }
 
         if (locations_allocated != 0) {
@@ -355,17 +355,17 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
 // FUNCTION: WIZ8 0x0046F410
 unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
 {
-    for (; node != 0; node = node->nextSibling()) {
-        if (node->firstChild() != 0) {
-            FinalizeWorldScenes(node->firstChild(), dynamic_scene);
+    for (; node != 0; node = node->next_sibling_) {
+        if (node->first_child_ != 0) {
+            FinalizeWorldScenes(node->first_child_, dynamic_scene);
         }
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
-            srNode* lights = dynamic_scene->firstChild();
+            srNode* lights = dynamic_scene->first_child_;
             if ((instance->render_flags_178 & 2) == 0) {
                 instance->render_flags_178 |= 2;
                 for (srModelInstance* chain = instance; chain != 0;
-                     chain = static_cast<srModelInstance*>(chain->firstChild())) {
+                     chain = static_cast<srModelInstance*>(chain->first_child_)) {
                     chain->setExclusionMask(1);
                 }
                 BakeInstanceVertexLighting(instance, lights, 1);
@@ -380,12 +380,12 @@ unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
 // FUNCTION: WIZ8 0x0046F4A0
 unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance, srNode* dynamic_scene)
 {
-    srNode* lights = dynamic_scene->firstChild();
+    srNode* lights = dynamic_scene->first_child_;
 
     if ((instance->render_flags_178 & 2) == 0) {
         instance->render_flags_178 |= 2;
         for (srModelInstance* chain = instance; chain != 0;
-             chain = static_cast<srModelInstance*>(chain->firstChild())) {
+             chain = static_cast<srModelInstance*>(chain->first_child_)) {
             chain->setExclusionMask(1);
         }
         BakeInstanceVertexLighting(instance, lights, 1);
@@ -400,7 +400,7 @@ unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance, srNo
 void SetWorldMeshVertexLightTable(W8World* world, int table)
 {
     if (world->octree == 0) {
-        for (stMeshModel* model = static_cast<stMeshModel*>(world->update_mesh_source->model());
+        for (stMeshModel* model = static_cast<stMeshModel*>(world->update_mesh_source->getModel());
              model != 0; model = model->next) {
             model->vertex_light_table_3b0 = table;
             model->flags_3a0 |= 2;
@@ -409,8 +409,8 @@ void SetWorldMeshVertexLightTable(W8World* world, int table)
         for (unsigned int mesh = 0; mesh < world->octree->m_meshCount_1b4; ++mesh) {
             srModelInstance* instance = world->psrMeshes[mesh];
             if (instance != 0) {
-                for (stMeshModel* model = static_cast<stMeshModel*>(instance->model()); model != 0;
-                     model = model->next) {
+                for (stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
+                     model != 0; model = model->next) {
                     model->vertex_light_table_3b0 = table;
                     model->flags_3a0 |= 2;
                 }
@@ -602,7 +602,7 @@ stModelInstance* CreateModelInstance(stMeshModel* model)
         srAssertFail("pstHeadInstance", THREE_D_CPP, 0x5c2, 0);
     }
     instance->setName("ST_CreateInstance");
-    instance->assignModel(model);
+    instance->setModel(model);
     return instance;
 }
 
@@ -620,7 +620,7 @@ stModelInstance* DuplicateModelInstance(stModelInstance* instance)
     }
     *copy = *instance;
     copy->setName("ST_CreateInstance");
-    copy->assignModel(instance->model());
+    copy->setModel(instance->getModel());
     return copy;
 }
 
@@ -823,10 +823,10 @@ void ForwardThroughMember3C_46E640(W8World* owner, int argument)
 void SetSceneMeshShaderBit3(srNode* node, int argument)
 {
     srShader shader;
-    for (; node != 0; node = node->nextSibling()) {
+    for (; node != 0; node = node->next_sibling_) {
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
-            for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->model()); mesh != 0;
+            for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel()); mesh != 0;
                  mesh = mesh->next) {
                 srShader* polygon_shader = mesh->getPolyShader(0, 0);
                 bool clear = argument == 0 || (mesh->flags_3a0 & 1) != 0;
@@ -850,8 +850,8 @@ void SetSceneMeshShaderBit3(srNode* node, int argument)
                 }
             }
         }
-        if (node->firstChild() != 0) {
-            SetSceneMeshShaderBit3(node->firstChild(), argument);
+        if (node->first_child_ != 0) {
+            SetSceneMeshShaderBit3(node->first_child_, argument);
         }
     }
 }
@@ -862,10 +862,10 @@ void SetSceneMeshShaderBit3(srNode* node, int argument)
 void SetSceneMeshShaderLowBits(srNode* node, int argument)
 {
     srShader shader;
-    for (; node != 0; node = node->nextSibling()) {
+    for (; node != 0; node = node->next_sibling_) {
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
-            for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->model()); mesh != 0;
+            for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel()); mesh != 0;
                  mesh = mesh->next) {
                 if ((mesh->flags_3a0 & 1) != 0) {
                     continue;
@@ -891,8 +891,8 @@ void SetSceneMeshShaderLowBits(srNode* node, int argument)
                 }
             }
         }
-        if (node->firstChild() != 0) {
-            SetSceneMeshShaderLowBits(node->firstChild(), argument);
+        if (node->first_child_ != 0) {
+            SetSceneMeshShaderLowBits(node->first_child_, argument);
         }
     }
 }
@@ -908,7 +908,7 @@ void FreeThroughRenderHeap(void* block)
 // FUNCTION: WIZ8 0x0046f4f0
 void SetModelInstanceChainExclusionMask(srModelInstance* node, int value)
 {
-    for (; node != 0; node = static_cast<srModelInstance*>(node->firstChild())) {
+    for (; node != 0; node = static_cast<srModelInstance*>(node->first_child_)) {
         node->setExclusionMask(value);
     }
 }

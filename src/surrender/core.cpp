@@ -671,26 +671,38 @@ const unsigned char srLogo[0x1000] = {
     0x90, 0x90, 0x90, 0x91, 0x92, 0x91, 0x92, 0x93, 0x93, 0x92, 0x92, 0x93, 0x91, 0x90, 0x90, 0x93,
 };
 
+// TEMPLATE: SURRENDER 0x10016040
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassNode
+
+// TEMPLATE: SURRENDER 0x10016020
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassID
+
 /* This unit instantiates srMaterial in srInit, so retail emits the
    srMaterial/srMaterialIFace class-support surface here ahead of the
    file_stream TU's Path members. */
 // TEMPLATE: SURRENDER 0x100160A0
-// srClassSupport<srMaterial, srMaterialIFace, 0, 0x2210>::clone
+// srClassSupport<srMaterial, srMaterialIFace, 0, 0x2210>::vClone
 
 // SYNTHETIC: SURRENDER 0x100160C0
 // srMaterial::~srMaterial
 
+// TEMPLATE: SURRENDER 0x100161C0
+// srClassSupport<srMaterialIFace,srClass,1,8704>::getClassID
+
+// TEMPLATE: SURRENDER 0x100161E0
+// srClassSupport<srMaterialIFace,srClass,1,8704>::getClassNode
+
 // TEMPLATE: SURRENDER 0x10016220
-// srClassSupport<srMaterialIFace, srClass, true, 0x2200>::clone
+// srClassSupport<srMaterialIFace, srClass, true, 0x2200>::vClone
 
 // SYNTHETIC: SURRENDER 0x10016240
-// srMaterialIFace scalar deleting destructor
+// srClassSupport<srMaterialIFace,srClass,1,8704>::`scalar deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x10016260
 // srMaterialIFace::~srMaterialIFace
 
 // SYNTHETIC: SURRENDER 0x100162F0
-// srMaterial scalar deleting destructor
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::`scalar deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x10015770
 // srIOManager scalar deleting destructor

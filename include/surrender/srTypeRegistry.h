@@ -444,53 +444,46 @@ public:
        instantiation over srMaterial; this is not only a base-class hook. */
     srClassSupport()
     {
-        srCore.getRegistry()->registerInstance(sGetClassNode(), this);
+        srRegistry* registry = srCore.getRegistry();
+        registry->registerInstance(sGetClassNode(), this);
     }
 
 public:
-    /* Scene-graph instantiations forward the canonical node parent to their
-       Base constructor. The previous Base* parameter was a guessed shape and
-       cannot express the client-side srClientSupport<srFog> construction that
-       calls the imported srFog(srNode*) constructor. */
-    explicit srClassSupport(srNode* parent) : Base(parent)
+    /* Forwarding constructors: scene-graph instantiations pass the canonical
+       node parent, texture maps their color surface, and client-emitted
+       self-support constructions up to five arguments. They are templates so
+       that a class-level dllexport of an instantiation whose Base lacks a
+       given constructor does not instantiate a forwarding body for it. */
+    template <class A0> explicit srClassSupport(A0 a0) : Base(a0)
     {
-        srCore.getRegistry()->registerInstance(sGetClassNode(), this);
+        srRegistry* registry = srCore.getRegistry();
+        registry->registerInstance(sGetClassNode(), this);
     }
 
-    /* Wiz8's client-side srTextureMap support construction calls the exported
-       srTextureMap(srColorSurfaceIFace*) constructor, then installs the
-       support instantiation's table. This is the canonical texture argument,
-       not a wrapper-only forwarding API. */
-    explicit srClassSupport(srColorSurfaceIFace* surface) : Base(surface)
-    {
-        srCore.getRegistry()->registerInstance(sGetClassNode(), this);
-    }
-
-    /* Client-emitted self-support constructions forward the canonical base
-       constructor before installing the instantiation's table. Keep these
-       forwarding forms on the primary template: the two-argument form is
-       emitted for srMeshModel, while srColorSurface uses the three- and
-       five-argument forms. */
     template <class A0, class A1> srClassSupport(A0 a0, A1 a1) : Base(a0, a1)
     {
-        srCore.getRegistry()->registerInstance(sGetClassNode(), this);
+        srRegistry* registry = srCore.getRegistry();
+        registry->registerInstance(sGetClassNode(), this);
     }
 
     template <class A0, class A1, class A2> srClassSupport(A0 a0, A1 a1, A2 a2) : Base(a0, a1, a2)
     {
-        srCore.getRegistry()->registerInstance(sGetClassNode(), this);
+        srRegistry* registry = srCore.getRegistry();
+        registry->registerInstance(sGetClassNode(), this);
     }
 
     template <class A0, class A1, class A2, class A3, class A4>
     srClassSupport(A0 a0, A1 a1, A2 a2, A3 a3, A4 a4) : Base(a0, a1, a2, a3, a4)
     {
-        srCore.getRegistry()->registerInstance(sGetClassNode(), this);
+        srRegistry* registry = srCore.getRegistry();
+        registry->registerInstance(sGetClassNode(), this);
     }
 
 protected:
     virtual ~srClassSupport() override
     {
-        srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
+        srRegistry* registry = srCore.getRegistry();
+        registry->unregisterInstance(sGetClassNode(), this);
     }
 
 public:

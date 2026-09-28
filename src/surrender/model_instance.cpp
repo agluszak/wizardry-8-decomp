@@ -87,8 +87,8 @@ const char* srModelInstance::sGetClassName()
 // FUNCTION: SURRENDER 0x1004F3A0
 void srModelInstance::traverse(TraverseInfo& info)
 {
-    if (nextSibling() != 0) {
-        nextSibling()->traverse(info);
+    if (next_sibling_ != 0) {
+        next_sibling_->traverse(info);
     }
     if (testFlag(FLAG_DISABLE) == 0 && getModel() != 0) {
         TraverseInfo::Entry& entry = info.entries[info.entry_count];
@@ -96,8 +96,8 @@ void srModelInstance::traverse(TraverseInfo& info)
         entry.value = 0;
         ++info.entry_count;
     }
-    if (testFlag(FLAG_TERMINATE) == 0 && firstChild() != 0) {
-        firstChild()->traverse(info);
+    if (testFlag(FLAG_TERMINATE) == 0 && first_child_ != 0) {
+        first_child_->traverse(info);
     }
 }
 
@@ -282,13 +282,13 @@ void srModelInstance::setExclusionMask(unsigned long mask)
 // srModelInstance scalar deleting destructor
 
 // SYNTHETIC: SURRENDER 0x100501A0
-// srModelInstance vector deleting destructor
+// srModelInstance::`vector deleting destructor'
 
 // TEMPLATE: SURRENDER 0x1004FDA0
 // srClassSupport<srModelInstance, srNode, 0, 0x1100>::~srClassSupport
 
 // SYNTHETIC: SURRENDER 0x10050200
-// srClassSupport<srModelInstance, srNode, 0, 0x1100> scalar deleting destructor
+// srClassSupport<srModelInstance,srNode,0,4352>::`scalar deleting destructor'
 
 // LIBRARY: SURRENDER 0x10050230
 // std::ios_base::Init::Init
@@ -302,8 +302,20 @@ void srModelInstance::setExclusionMask(unsigned long mask)
 // SYNTHETIC: SURRENDER 0x10050280
 // std::_Winit global atexit registrar
 
+// SYNTHETIC: SURRENDER 0x100502A0
+// srModelInstance::`vector deleting destructor'`adjustor{312}'
+
 // LIBRARY: SURRENDER 0x100502B0
 // MFC CRect::CRect
 
+// TEMPLATE: SURRENDER 0x1004FD00
+// srClassSupport<srModelInstance,srNode,0,4352>::getClassID
+
+// TEMPLATE: SURRENDER 0x1004FD10
+// srClassSupport<srModelInstance,srNode,0,4352>::getClassName
+
+// TEMPLATE: SURRENDER 0x1004FD20
+// srClassSupport<srModelInstance,srNode,0,4352>::getClassNode
+
 // TEMPLATE: SURRENDER 0x1004FD80
-// srClassSupport<srModelInstance, srNode, 0, 0x1100>::clone
+// srClassSupport<srModelInstance, srNode, 0, 0x1100>::vClone

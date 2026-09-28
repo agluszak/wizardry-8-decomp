@@ -26,6 +26,9 @@ srVariableTimer::srVariableTimer(int a0, int a1, int a2, float multiplier, unsig
     m_step_ticks = static_cast<unsigned __int64>((double)m_step_ticks * m_step_scale);
 }
 
+// SYNTHETIC: SURRENDER 0x100633F0
+// srVariableTimer::`vector deleting destructor'
+
 // FUNCTION: SURRENDER 0x10063450
 srVariableTimer::srVariableTimer(const srVariableTimer& other) : srTimer(other)
 {

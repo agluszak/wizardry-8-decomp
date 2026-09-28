@@ -1572,11 +1572,10 @@ stModelInstance* W8GameData::CreateTraceModel()
     return instance;
 }
 
-/* srShader's inline copy constructor, emitted out-of-line for the by-value
-   setShader argument above and called by every other setShader site; the
-   primary is in srShader.h. */
-// SYNTHETIC: WIZ8 0x0041CF80
-// ??0srShader@@QAE@ABV0@@Z
+/* Wiz8's definition of srShader's copy (see srShader.h); every by-value
+   setShader argument in the executable is constructed through it. */
+// FUNCTION: WIZ8 0x0041CF80
+srShader::srShader(const srShader& other) : value(other.value) {}
 
 // GLOBAL: WIZ8 0x005ebc80
 const float g_float_005ebc80 = -0.1f;

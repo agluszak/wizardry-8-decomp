@@ -1674,7 +1674,7 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height)
                          mapping_scale, mapping_scale, 1.0f, 1.0f, 1);
     g_cursor_node_659694->setName("MouseResize");
     PositionMouseCursor(g_cursor_width, g_cursor_height, 0);
-    g_cursor_model = static_cast<srMeshModel*>(g_cursor_node_659694->model());
+    g_cursor_model = static_cast<srMeshModel*>(g_cursor_node_659694->getModel());
     g_cursor_model->enableStartupControls();
     static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(0xc7c35000);
     g_cursor_model->enableStartupControls();
@@ -1976,7 +1976,7 @@ unsigned char InitializeMouseCursorScene(void)
                          g_surface_scale / 128.0f, g_surface_scale / 128.0f, 1.0f, 1.0f, 1);
     if (g_cursor_node_659694) {
         g_cursor_node_659694->setName("MouseInit");
-        g_cursor_model = static_cast<srMeshModel*>(g_cursor_node_659694->model());
+        g_cursor_model = static_cast<srMeshModel*>(g_cursor_node_659694->getModel());
         g_cursor_model->enableStartupControls();
         static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(0xc7c35000);
         g_cursor_texture = static_cast<srTexture*>(g_cursor_model->getTexture(0, 0));
@@ -2023,7 +2023,8 @@ void ReleaseSurfaceNode(srNode* node)
             g_tile_dirty_flags[index] = 0;
         }
     }
-    srMeshModel* model = static_cast<srMeshModel*>(static_cast<stModelInstance2D*>(node)->model());
+    srMeshModel* model =
+        static_cast<srMeshModel*>(static_cast<stModelInstance2D*>(node)->getModel());
     if (model != 0) {
         srTextureIFace* texture = model->getTexture(0, 0);
         if (texture != 0) {
@@ -2050,7 +2051,7 @@ static void InvalidateDirtyTile(int cell, unsigned int flags)
                 g_tile_dirty_flags[index] = 0;
             }
         }
-        srMeshModel* model = static_cast<srMeshModel*>(node->model());
+        srMeshModel* model = static_cast<srMeshModel*>(node->getModel());
         if (model != 0) {
             srTextureIFace* texture = model->getTexture(0, 0);
             if (texture != 0) {
@@ -2631,9 +2632,9 @@ void PurgeInactiveSceneInstances(srScene* scene)
 
     if (!scene)
         return;
-    node = scene->firstChild();
+    node = scene->first_child_;
     while (node) {
-        srNode* next = node->nextSibling();
+        srNode* next = node->next_sibling_;
         unsigned long class_id = node->getClassID();
         srModelInstance* instance = static_cast<srModelInstance*>(node);
         unsigned char display_state = 0;
@@ -2650,8 +2651,8 @@ void PurgeInactiveSceneInstances(srScene* scene)
                     g_tile_dirty_flags[index] = 0;
                 }
             }
-            if (instance->model()) {
-                srMeshModel* model = static_cast<srMeshModel*>(instance->model());
+            if (instance->getModel()) {
+                srMeshModel* model = static_cast<srMeshModel*>(instance->getModel());
                 if (model) {
                     srTextureIFace* texture = model->getTexture(0, 0);
                     if (texture)

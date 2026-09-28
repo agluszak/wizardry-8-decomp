@@ -774,7 +774,7 @@ unsigned char AutomapScreenEnter(void)
             }
             for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
                 for (stMeshModel* model =
-                         static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->model());
+                         static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->getModel());
                      model; model = model->next) {
                     model->ApplyAutomapPolygonFilter(&excluded_textures);
                 }
@@ -1100,7 +1100,7 @@ unsigned char AutomapScreenLeave(int)
     UpdateHeldItemCursor();
     EnableCursorScene();
     for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
-        for (stMeshModel* model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->model());
+        for (stMeshModel* model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->getModel());
              model; model = model->next) {
             model->ClearAutomapPolygonFilter();
         }
@@ -1407,8 +1407,8 @@ void ResetAutomapLighting(void)
         for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
             srModelInstance* instance = g_world->psrMeshes[mesh];
             if (instance != 0) {
-                for (stMeshModel* model = static_cast<stMeshModel*>(instance->model()); model != 0;
-                     model = model->next) {
+                for (stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
+                     model != 0; model = model->next) {
                     srVector3T<float>* lights = model->GetVertexLights(1, 1);
                     int count = model->vertex_location_count_22c * 3;
                     if (count != 0) {
@@ -1421,7 +1421,8 @@ void ResetAutomapLighting(void)
             }
         }
     } else {
-        for (stMeshModel* model = static_cast<stMeshModel*>(g_world->update_mesh_source->model());
+        for (stMeshModel* model =
+                 static_cast<stMeshModel*>(g_world->update_mesh_source->getModel());
              model != 0; model = model->next) {
             srVector3T<float>* lights = model->GetVertexLights(1, 1);
             int count = model->vertex_location_count_22c * 3;
@@ -1593,7 +1594,7 @@ void LightAutomapCell(const srVector3T<float>* position)
             if (instance == 0) {
                 continue;
             }
-            stMeshModel* model = static_cast<stMeshModel*>(instance->model());
+            stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
             srVector3T<float> location;
             location = instance->getLocation();
             srVector3T<float> minimum;
@@ -2004,7 +2005,7 @@ void CreateAutomapMarkerSprites(void)
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
                                         surface->getHeight() * g_scale_x_5ebb1c, 1, 1);
             g_class_68f29c->setParent(g_scene_square, 1);
-            static_cast<srMeshModel*>(g_class_68f29c->model())->setControlMask(0x40);
+            static_cast<srMeshModel*>(g_class_68f29c->getModel())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
             g_class_68f29c->SetGlowEnabled(1);
             srVector4T<float> first;
@@ -2030,7 +2031,7 @@ void CreateAutomapMarkerSprites(void)
             g_class_68f2a0 =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
                                         surface->getHeight() * g_scale_y_5ebb20, 1, 0);
-            static_cast<srMeshModel*>(g_class_68f2a0->model())->setControlMask(0x40);
+            static_cast<srMeshModel*>(g_class_68f2a0->getModel())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
         }
     }
@@ -2049,7 +2050,7 @@ void CreateAutomapMarkerSprites(void)
             g_class_68f2a4 =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
                                         surface->getHeight() * g_scale_y_5ebb20, 1, 0);
-            static_cast<srMeshModel*>(g_class_68f2a4->model())->setControlMask(0x40);
+            static_cast<srMeshModel*>(g_class_68f2a4->getModel())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
         }
     }
@@ -2068,7 +2069,7 @@ void CreateAutomapMarkerSprites(void)
             g_class_68f2a8 =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
                                         surface->getHeight() * g_scale_y_5ebb20, 1, 0);
-            static_cast<srMeshModel*>(g_class_68f2a8->model())->setControlMask(0x40);
+            static_cast<srMeshModel*>(g_class_68f2a8->getModel())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
         }
     }
@@ -2087,7 +2088,7 @@ void CreateAutomapMarkerSprites(void)
             g_automap_text_marker =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
                                         surface->getHeight() * g_scale_y_5ebb20, 1, 0);
-            static_cast<srMeshModel*>(g_automap_text_marker->model())->setControlMask(0x40);
+            static_cast<srMeshModel*>(g_automap_text_marker->getModel())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
         }
     }
@@ -2305,7 +2306,7 @@ stModelInstance2D* CreateAutomapItemMarker(int item_id)
     if (marker == 0) {
         return 0;
     }
-    static_cast<srMeshModel*>(marker->model())->setControlMask(0x40);
+    static_cast<srMeshModel*>(marker->getModel())->setControlMask(0x40);
     g_releasable_68f1f4->Add(marker);
     marker->SetGlowEnabled(1);
     srVector4T<float> first;

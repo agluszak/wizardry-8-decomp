@@ -206,8 +206,17 @@ void srTextureFile::dump(std::ostream& stream)
 // SYNTHETIC: SURRENDER 0x10060090
 // srTextureFile default constructor closure
 
+// TEMPLATE: SURRENDER 0x1005FD40
+// srClassSupport<srTextureFile,srTexture,0,8466>::getClassID
+
+// TEMPLATE: SURRENDER 0x1005FD50
+// srClassSupport<srTextureFile,srTexture,0,8466>::getClassName
+
+// TEMPLATE: SURRENDER 0x1005FD60
+// srClassSupport<srTextureFile,srTexture,0,8466>::getClassNode
+
 // TEMPLATE: SURRENDER 0x1005FDF0
-// srClassSupport<srTextureFile, srTexture, 0, 0x2112>::clone
+// srClassSupport<srTextureFile, srTexture, 0, 0x2112>::vClone
 
 // TEMPLATE: SURRENDER 0x1005FE10
 // srClientSupport<srTextureFile, 0x2112>::~srClientSupport
@@ -215,8 +224,11 @@ void srTextureFile::dump(std::ostream& stream)
 // SYNTHETIC: SURRENDER 0x100600A0
 // srTextureFile scalar deleting destructor
 
+// SYNTHETIC: SURRENDER 0x100600C0
+// srTextureFile::`vector deleting destructor'
+
 // SYNTHETIC: SURRENDER 0x10060120
-// srClientSupport<srTextureFile, 0x2112> scalar deleting destructor
+// srClassSupport<srTextureFile,srTexture,0,8466>::`scalar deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x10060150
 // std::ios_base::Init global static-init block

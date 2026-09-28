@@ -206,6 +206,7 @@ jobs:
               "+refs/pull/${{ github.event.pull_request.number }}/head:$pr_head"
           done
           uv run wiz8 report merge-preservation --base "origin/$GITHUB_BASE_REF" --head "$pr_head" \
+            --allow 'SURRENDER:FUNCTION:0x100109F0:loss=retail body expands clearBlocks then destroys blocks_08 and is a compiler teardown emission with unresolved authored identity' \
             --allow 'WIZ8:GLOBAL:0x006595EC:loss=viewport top is a field of the contiguous W8ViewportRect global at 0x006595E8' \
             --allow 'WIZ8:GLOBAL:0x006595F0:loss=viewport right is a field of the contiguous W8ViewportRect global at 0x006595E8' \
             --allow 'WIZ8:GLOBAL:0x006595F4:loss=viewport bottom is a field of the contiguous W8ViewportRect global at 0x006595E8' \

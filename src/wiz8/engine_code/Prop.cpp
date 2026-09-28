@@ -1086,7 +1086,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
                 next_scale = path->scales_18[next_frame];
                 scale_vector = current_scale * inv + next_scale * anim_frame_fraction_024;
             }
-            node = instance->firstChild();
+            node = instance->first_child_;
             if (node == 0) {
                 instance->setRotation(rotation);
                 location.SetFromFloat(&position);
@@ -1104,7 +1104,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
                         scale_location.SetFromFloat(&scale_vector);
                         node->setScale(scale_location);
                     }
-                    node = node->nextSibling();
+                    node = node->next_sibling_;
                 } while (node != 0);
             }
             position_03c = position_02c;
@@ -1132,7 +1132,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
         } else {
             Rep()->GetLocation004B8890(&rep_position);
             Rep()->GetRotation(&rep_rotation);
-            node = instance->firstChild();
+            node = instance->first_child_;
             if (node == 0) {
                 location.SetFromFloat(&rep_position);
                 instance->setLocation(location);
@@ -1142,7 +1142,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
                     location.SetFromFloat(&rep_position);
                     node->setLocation(location);
                     node->setRotation(rep_rotation);
-                    node = node->nextSibling();
+                    node = node->next_sibling_;
                 } while (node != 0);
             }
         }
@@ -1619,7 +1619,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
             }
             named = reinterpret_cast<char*>(String("Prop: %s", prop->m_name));
             instance->setName(named);
-            mesh_model = static_cast<stMeshModel*>(instance->model());
+            mesh_model = static_cast<stMeshModel*>(instance->getModel());
             for (; mesh_model != 0; mesh_model = mesh_model->next) {
                 if (AnimationIsRunning(animation) == 0) {
                     mesh_model->GetVertexSunlight(1);
@@ -1632,7 +1632,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
                 axis.Set(0.0f, 1.0f, 0.0f);
                 instance->setAlignment(1);
                 instance->setAlignAxis(axis);
-                child = instance->firstChild();
+                child = instance->first_child_;
                 if (child != 0) {
                     srModelInstance* child_instance = static_cast<srModelInstance*>(child);
                     child_instance->setAlignment(1);
@@ -1676,7 +1676,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
         if (frame == 0) {
             srAssertFail("psrMesh", PROP_CPP, 0x182, 0);
         }
-        frame->model()->getBoundingBox(minimum, maximum);
+        frame->getModel()->getBoundingBox(minimum, maximum);
         for (frame_i = 0; frame_i < value_count; ++frame_i) {
             srVector3T<float> frame_min;
             srVector3T<float> frame_max;
@@ -1685,7 +1685,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
             if (frame == 0) {
                 srAssertFail("psrMesh", PROP_CPP, 0x192, 0);
             }
-            frame->model()->getBoundingBox(frame_min, frame_max);
+            frame->getModel()->getBoundingBox(frame_min, frame_max);
             if (frame_min.x < minimum.x) {
                 minimum.x = frame_min.x;
             }

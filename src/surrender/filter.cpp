@@ -48,11 +48,17 @@ double srTriangleFilter::getWeight(double value) const
     return 0.0;
 }
 
+// SYNTHETIC: SURRENDER 0x100033A0
+// srFilter::`vector deleting destructor'
+
 // FUNCTION: SURRENDER 0x10003400
 double srTriangleFilter::getSupport() const
 {
     return 1.0;
 }
+
+// SYNTHETIC: SURRENDER 0x10003640
+// srBellFilter::`vector deleting destructor'
 
 // FUNCTION: SURRENDER 0x100036A0
 const char* srTriangleFilter::getName() const
@@ -96,6 +102,9 @@ double srBellFilter::getSupport() const
     return 1.5;
 }
 
+// SYNTHETIC: SURRENDER 0x10003570
+// srBoxFilter::`vector deleting destructor'
+
 // FUNCTION: SURRENDER 0x100035D0
 const char* srBellFilter::getName() const
 {
@@ -138,6 +147,9 @@ double srBSplineFilter::getSupport() const
 {
     return 2.0;
 }
+
+// SYNTHETIC: SURRENDER 0x10003710
+// srTriangleFilter::`vector deleting destructor'
 
 // FUNCTION: SURRENDER 0x10003770
 const char* srBSplineFilter::getName() const
@@ -183,3 +195,6 @@ class srBoxFilter srBoxFilter;
 
 // SYNTHETIC: SURRENDER 0x100037C0
 // srBSplineFilter scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x100037E0
+// srBSplineFilter::`vector deleting destructor'

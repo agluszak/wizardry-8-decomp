@@ -88,24 +88,25 @@ static_assert(sizeof(srIStreamOpener) == 0x0c, "srIStreamOpener_must_be_0x0c");
    where the lifecycle bodies live, in stream.cpp (the destructor emission is
    at retail address 0x10016850, in the unit that instantiates the opener). */
 // VTABLE: SURRENDER 0x10075520 srFStreamOpener
-class srFStreamOpener : public srIStreamOpener::Opener {
+class SR_DLL_EXPORT srFStreamOpener : public srIStreamOpener::Opener {
 public:
-    /* srInit inlines the trivial construction. The member dllexport keeps the
-       header body for that folding while still emitting the exported
+    /* srInit inlines the trivial construction. The class-level export keeps
+       the header body for that folding while still emitting the exported
        standalone copy. */
     // FUNCTION: SURRENDER 0x10032440
     // ??0srFStreamOpener@@QAE@XZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
-    srFStreamOpener()
-    {
-    }
+    srFStreamOpener() {}
     virtual ~srFStreamOpener() override;
     srFStreamOpener& operator=(const srFStreamOpener& other);
 
     virtual srBinIStream* open(const char* path) override;
     virtual const char* getDescription() const override;
+
+private:
+    /* Declared and never defined: retail exports this class-level export's
+       assignment but no copy constructor, which VC6 would otherwise emit for
+       a polymorphic class. */
+    srFStreamOpener(const srFStreamOpener& other);
 };
 
 static_assert(sizeof(srFStreamOpener) == 0x04, "srFStreamOpener_must_be_0x04");

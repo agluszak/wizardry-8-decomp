@@ -5,7 +5,7 @@
 // VTABLE: SURRENDER 0x10076c68 srEnvironmentMapper
 /* Provider-only processor. No known consumer imports srEnvironmentMapper;
    its exported SR.DLL methods are provider ABI, not consumer dllimport. */
-class srEnvironmentMapper : public srVertexProcessor {
+class SR_DLL_EXPORT srEnvironmentMapper : public srVertexProcessor {
 public:
     srEnvironmentMapper();
     srEnvironmentMapper(const srEnvironmentMapper& other);

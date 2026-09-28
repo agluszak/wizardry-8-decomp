@@ -13,13 +13,12 @@
 #endif
 
 /* Provider-side export, independent of the consumer import contract above.
-   sr.def names the export table itself. Retail also exports a `default
-   constructor closure' (??_F) for each class whose exported constructor takes
-   only defaulted arguments; VC6 emits that closure for a dllexport
-   constructor, so those constructors carry this marker. A member-level export
-   is the scope the closure establishes: the classes' unexported members (for
-   example the protected srTimer calibration at 0x10061EC0) rule out a
-   class-level export. */
+   A class whose retail vtable holds a genuine vector deleting destructor was
+   exported whole: VC6 emits a distinct `vector deleting destructor' only for
+   a class-level dllexport and otherwise aliases it to the scalar one. A
+   class without that evidence whose default-argument constructor has an
+   exported `default constructor closure' (??_F) marks that constructor
+   alone, which is enough for VC6 to emit the closure. */
 #if defined(SURRENDER_BUILD)
 #define SR_DLL_EXPORT __declspec(dllexport)
 #else

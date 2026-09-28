@@ -161,8 +161,17 @@ const char* srModel::sGetClassName()
 }
 #endif
 
+// TEMPLATE: SURRENDER 0x1003C630
+// srClassSupport<srModel,srClass,1,8192>::getClassID
+
+// TEMPLATE: SURRENDER 0x1003C640
+// srClassSupport<srModel,srClass,1,8192>::getClassName
+
+// TEMPLATE: SURRENDER 0x1003C650
+// srClassSupport<srModel,srClass,1,8192>::getClassNode
+
 // TEMPLATE: SURRENDER 0x1003C690
-// srClassSupport<srModel, srClass, true, 0x2000>::clone
+// srClassSupport<srModel, srClass, true, 0x2000>::vClone
 
 // SYNTHETIC: SURRENDER 0x1003C6B0
 // srPtr element destructor emission
@@ -170,11 +179,17 @@ const char* srModel::sGetClassName()
 // SYNTHETIC: SURRENDER 0x1003C850
 // Client scalar deleting destructor
 
+// SYNTHETIC: SURRENDER 0x1003C870
+// srModel::Client::`vector deleting destructor'
+
 // SYNTHETIC: SURRENDER 0x1003C8D0
 // srModel scalar deleting destructor
 
+// SYNTHETIC: SURRENDER 0x1003C8F0
+// srModel::`vector deleting destructor'
+
 // SYNTHETIC: SURRENDER 0x1003C950
-// srClientSupport<srModel, 0x2000> scalar deleting destructor
+// srClassSupport<srModel,srClass,1,8192>::`scalar deleting destructor'
 
 // TEMPLATE: SURRENDER 0x1003C970
 // srClientSupport<srModel, 0x2000>::~srClientSupport

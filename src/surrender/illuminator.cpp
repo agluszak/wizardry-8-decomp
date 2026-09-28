@@ -3,6 +3,9 @@
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
 
+// SYNTHETIC: SURRENDER 0x1004C7C0
+// srFog::`vector deleting destructor'`adjustor{312}'
+
 // FUNCTION: SURRENDER 0x1004C7D0
 srIlluminator::srIlluminator(srNode* parent)
     : srClassSupport<srIlluminator, srNode, false, 0x1200>(static_cast<srNode*>(0))
@@ -56,8 +59,8 @@ void srIlluminator::process(const ProcessInfo& info, e_processType type)
 // FUNCTION: SURRENDER 0x1004C9E0
 void srIlluminator::traverse(TraverseInfo& info)
 {
-    if (nextSibling() != 0) {
-        nextSibling()->traverse(info);
+    if (next_sibling_ != 0) {
+        next_sibling_->traverse(info);
     }
     if (!testFlag(FLAG_TERMINATE)) {
         if (!testFlag(FLAG_DISABLE)) {
@@ -70,8 +73,8 @@ void srIlluminator::traverse(TraverseInfo& info)
                 info.nodes[info.node_count] = this;
                 ++info.node_count;
             }
-            if (firstChild() != 0) {
-                firstChild()->traverse(info);
+            if (first_child_ != 0) {
+                first_child_->traverse(info);
             }
             if (!testFlag(FLAG_GLOBAL)) {
                 TraverseInfo::Entry& entry = info.entries[info.entry_count];
@@ -79,8 +82,8 @@ void srIlluminator::traverse(TraverseInfo& info)
                 entry.value = 2;
                 ++info.entry_count;
             }
-        } else if (firstChild() != 0) {
-            firstChild()->traverse(info);
+        } else if (first_child_ != 0) {
+            first_child_->traverse(info);
         }
     }
 }
@@ -125,3 +128,9 @@ srIlluminator::~srIlluminator()
 
 // SYNTHETIC: SURRENDER 0x1004CC30
 // srIlluminator scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x1004CC50
+// srIlluminator::`vector deleting destructor'
+
+// SYNTHETIC: SURRENDER 0x1004CCB0
+// srIlluminator::`vector deleting destructor'`adjustor{312}'

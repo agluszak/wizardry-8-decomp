@@ -97,13 +97,13 @@ void W8Item::AttachMesh(W8World* world)
     if (mesh == 0) {
         srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x219, 0);
     }
-    if (mesh->firstChild() == 0) {
+    if (mesh->first_child_ == 0) {
         mesh->clearFlag(srNode::FLAG_DISABLE);
     }
     mesh->setParent(world->dynamic_scene, 0);
     m_pRep->GetLocation004B8890(&location);
     m_pRep->GetRotation(&rotation);
-    child = mesh->firstChild();
+    child = mesh->first_child_;
     if (child == 0) {
         widened.SetFromFloat(&location);
         mesh->setLocation(widened);
@@ -114,7 +114,7 @@ void W8Item::AttachMesh(W8World* world)
         widened.SetFromFloat(&location);
         child->setLocation(widened);
         child->setRotation(rotation);
-        child = child->nextSibling();
+        child = child->next_sibling_;
     } while (child != 0);
 }
 
@@ -202,7 +202,7 @@ bool W8ItemRep::ReadFromFile(W8ReadLevelInfo* info, W8Item* item, bool anonymous
 // FUNCTION: WIZ8 0x0049F2B0
 void W8ItemRep::RefreshBounds()
 {
-    m_psrMesh->model()->getBoundingBox(bounds_minimum, bounds_maximum);
+    m_psrMesh->getModel()->getBoundingBox(bounds_minimum, bounds_maximum);
     bounds_radius = static_cast<float>((bounds_maximum - bounds_minimum).Length() * 0.5);
 }
 
@@ -298,10 +298,10 @@ void W8Item::UpdateAnimation()
         rotation.MultiplyBy(step);
         srNode* mesh = rep->m_psrMesh;
         m_pRep->SetRotation004B88D0(&rotation);
-        if (mesh->firstChild() == 0) {
+        if (mesh->first_child_ == 0) {
             mesh->setRotation(rotation);
         } else {
-            for (srNode* child = mesh->firstChild(); child != 0; child = child->nextSibling()) {
+            for (srNode* child = mesh->first_child_; child != 0; child = child->next_sibling_) {
                 child->setRotation(rotation);
             }
         }
@@ -385,10 +385,10 @@ void W8Item::SetYaw(float angle)
     }
     srNode* mesh = static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
     m_pRep->SetRotation004B88D0(&rotation);
-    if (mesh->firstChild() == 0) {
+    if (mesh->first_child_ == 0) {
         mesh->setRotation(rotation);
     } else {
-        for (srNode* child = mesh->firstChild(); child != 0; child = child->nextSibling()) {
+        for (srNode* child = mesh->first_child_; child != 0; child = child->next_sibling_) {
             child->setRotation(rotation);
         }
     }

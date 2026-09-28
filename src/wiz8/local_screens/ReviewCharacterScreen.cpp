@@ -127,8 +127,6 @@ unsigned int g_camp_spell_region_sets[6];
 // GLOBAL: WIZ8 0x0069c408
 unsigned int g_camp_character_info_region_set;
 
-
-
 void DrawCampCharacterInfo(void);
 void DrawCampBackpackItems(void);
 void DrawCampEquipmentItems(void);
@@ -1103,7 +1101,7 @@ void W8CampCharacterInfo::OnPrimary(W8TextControl* control)
 
 // GLOBAL: WIZ8 0x0061e798
 unsigned short g_camp_armor_class_labels[12] = {1052, 1053, 1054, 1055, 1056, 1057,
-                                                      1058, 1059, 1060, 1061, 1062, 1063};
+                                                1058, 1059, 1060, 1061, 1062, 1063};
 
 // FUNCTION: WIZ8 0x005b34a0
 void W8CampCharacterInfo::Redraw()
@@ -2789,14 +2787,14 @@ void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callb
     color.w = 1.0f;
     g_fade_overlay = CreateColoredPolygonSprite(0x280, 0x1e0, &color, 1);
     PositionToolTipNode(g_fade_overlay, 0, 0, 0);
-    shader = static_cast<srMeshModel*>(g_fade_overlay->model())->getShader(0);
+    shader = static_cast<srMeshModel*>(g_fade_overlay->getModel())->getShader(0);
     if (fade_to_black == 0) {
         shader.value = (shader.value & ~0x6040) | 0xa0;
     } else {
         shader.value = (shader.value & ~0x20c0) | 0x4020;
     }
-    static_cast<srMeshModel*>(g_fade_overlay->model())->setShader(shader, 0);
-    static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay->model())
+    static_cast<srMeshModel*>(g_fade_overlay->getModel())->setShader(shader, 0);
+    static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay->getModel())
                                  ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
         ->setOpacity(fade_out != 0 ? 1.0f : 0.0f);
     g_fade_tick_base = GetTickCount();
@@ -2817,7 +2815,7 @@ unsigned char UpdateScreenFade(void)
     if (g_fade_duration < elapsed) {
         g_level_block->review_transition_done_328 = 0;
         if (g_fade_out == 0) {
-            static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay->model())
+            static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay->getModel())
                                          ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
                 ->setOpacity(1.0f);
             RenderFrame();
@@ -2832,7 +2830,7 @@ unsigned char UpdateScreenFade(void)
     }
     float progress = static_cast<float>(elapsed) / g_fade_duration;
     srMaterial* material =
-        static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay->model())
+        static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay->getModel())
                                      ->getMaterial(0, static_cast<srMeshModel::e_side>(0)));
     if (g_fade_out == 0) {
         material->setOpacity(progress);

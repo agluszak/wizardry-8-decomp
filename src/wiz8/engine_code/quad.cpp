@@ -43,7 +43,7 @@ static W8QuadCell* GetPolygonQuadCell(W8Quad* quad, srModelInstance* instance, i
                                       unsigned int* row, unsigned int* column, float origin_x,
                                       float origin_z)
 {
-    srMeshModel* model = static_cast<srMeshModel*>(instance->model());
+    srMeshModel* model = static_cast<srMeshModel*>(instance->getModel());
     srVector3i* polygon_vertices = model->getPolyVertex();
     srVector3T<float>* vertices = model->getVertexLoc();
     srVector3T<float> center(0.0f, 0.0f, 0.0f);
@@ -106,7 +106,7 @@ W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x_0c, float
         quad->rows[row].count = column_count;
     }
 
-    srMeshModel* model = static_cast<srMeshModel*>(instance->model());
+    srMeshModel* model = static_cast<srMeshModel*>(instance->getModel());
     for (int polygon = 0; polygon < model->polygon_count_230; ++polygon) {
         unsigned int polygon_row;
         unsigned int polygon_column;

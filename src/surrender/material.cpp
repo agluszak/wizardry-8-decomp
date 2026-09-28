@@ -417,6 +417,9 @@ srMaterial::srMaterial(const srMaterial& other)
     dirty_74 = other.dirty_74;
 }
 
+// SYNTHETIC: SURRENDER 0x100345E0
+// srMaterial::`vector deleting destructor'
+
 // FUNCTION: SURRENDER 0x10034640
 srVector4T<float> srMaterial::getAmbient() const
 {
@@ -828,7 +831,7 @@ std::ostream& operator<<(std::ostream& stream, const srShader& shader)
 // std::_Winit global atexit registrar
 
 // SYNTHETIC: SURRENDER 0x10034D00
-// srMaterialIFace scalar deleting destructor
+// srMaterialIFace::`scalar deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x10035230
 // std::ios_base::Init global static-init block

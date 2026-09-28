@@ -4,28 +4,50 @@
 
 // GLOBAL: SURRENDER 0x10099028
 const char* srDebugDD::funcName[0x2c] = {
-    "dummy command",          "getInfo()",
-    "getWindowList()",        "getTextureFormat()",
-    "getStatistics()",        "resetStatistics()",
-    "closeWindow()",          "beginFrame()",
-    "endFrame()",             "flushFrame()",
-    "flipFrame()",            "clearBuffers()",
-    "update()",               "setScissor()",
-    "setViewPort()",          "setClearValues()",
-    "setFogColor()",          "setShader()",
-    "deleteTexture()",        "deletePalette()",
-    "deleteContext()",        "getDriverInfo()",
-    "openWindow()",           "isbusy()",
-    "bufferOp()",             "createContext()",
-    "extCommand()",           "bindTexture()",
-    "setTextureParameters()", "texImage()",
-    "texSubImage()",          "setGlobalPalette()",
-    "bindPalette()",          "fence()",
-    "getBufferPixelFormat()", "preBindTexture()",
-    "setPolygonMode()",       "setCullMode()",
-    "setProjectionMatrix()",  "setVertexArrayInfo()",
-    "drawElements()",         "drawArrays()",
-    "setPolygonOffset()",     "CMDMAX",
+    "dummy command",
+    "getInfo()",
+    "getWindowList()",
+    "getTextureFormat()",
+    "getStatistics()",
+    "resetStatistics()",
+    "closeWindow()",
+    "beginFrame()",
+    "endFrame()",
+    "flushFrame()",
+    "flipFrame()",
+    "clearBuffers()",
+    "update()",
+    "setScissor()",
+    "setViewPort()",
+    "setClearValues()",
+    "setFogColor()",
+    "setShader()",
+    "deleteTexture()",
+    "deletePalette()",
+    "deleteContext()",
+    "getDriverInfo()",
+    "openWindow()",
+    "isbusy()",
+    "bufferOp()",
+    "createContext()",
+    "extCommand()",
+    "bindTexture()",
+    "setTextureParameters()",
+    "texImage()",
+    "texSubImage()",
+    "setGlobalPalette()",
+    "bindPalette()",
+    "fence()",
+    "getBufferPixelFormat()",
+    "preBindTexture()",
+    "setPolygonMode()",
+    "setCullMode()",
+    "setProjectionMatrix()",
+    "setVertexArrayInfo()",
+    "drawElements()",
+    "drawArrays()",
+    "setPolygonOffset()",
+    "CMDMAX",
 };
 
 // FUNCTION: SURRENDER 0x10016CC0
@@ -68,8 +90,7 @@ srDebugDD::ScopeTimer::ScopeTimer(srDebugDD* owner, e_command command)
 // FUNCTION: SURRENDER 0x10016DA0
 srDebugDD::ScopeTimer::~ScopeTimer()
 {
-    double elapsed =
-        srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - start_08;
+    double elapsed = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - start_08;
     owner_00->call_times_18[command_04] += elapsed;
     ++owner_00->call_counts_170[command_04];
 }
@@ -139,8 +160,7 @@ void srDebugDD::flushFrame()
 }
 
 // FUNCTION: SURRENDER 0x10016F80
-void srDebugDD::flipFrame(const Scissor* first, const Scissor* second,
-                          unsigned long value)
+void srDebugDD::flipFrame(const Scissor* first, const Scissor* second, unsigned long value)
 {
     ScopeTimer timer(this, COMMAND_FLIP_FRAME);
     device_04->flipFrame(first, second, value);
@@ -280,8 +300,8 @@ void srDebugDD::texImage(Texture& texture, unsigned long level)
 }
 
 // FUNCTION: SURRENDER 0x100173D0
-void srDebugDD::texSubImage(Texture& texture, unsigned long a, unsigned long b,
-                            unsigned long c, unsigned long d, unsigned long e)
+void srDebugDD::texSubImage(Texture& texture, unsigned long a, unsigned long b, unsigned long c,
+                            unsigned long d, unsigned long e)
 {
     ScopeTimer timer(this, COMMAND_TEX_SUB_IMAGE);
     device_04->texSubImage(texture, a, b, c, d, e);
@@ -337,8 +357,7 @@ void srDebugDD::setCullMode(e_cullMode mode)
 }
 
 // FUNCTION: SURRENDER 0x100175C0
-void srDebugDD::setProjectionMatrix(const srMatrix4T<float>& matrix,
-                                    srMatrix4T<float>::e_type type)
+void srDebugDD::setProjectionMatrix(const srMatrix4T<float>& matrix, srMatrix4T<float>::e_type type)
 {
     ScopeTimer timer(this, COMMAND_SET_PROJECTION_MATRIX);
     device_04->setProjectionMatrix(matrix, type);
@@ -352,10 +371,8 @@ void srDebugDD::setVertexArrayInfo(const srRendererDefs::VertexArrayInfo* info)
 }
 
 // FUNCTION: SURRENDER 0x10017640
-void srDebugDD::drawElements(srRendererDefs::e_primitive primitive,
-                             unsigned long count,
-                             srRendererDefs::e_indexType type,
-                             const void* indices)
+void srDebugDD::drawElements(srRendererDefs::e_primitive primitive, unsigned long count,
+                             srRendererDefs::e_indexType type, const void* indices)
 {
     ScopeTimer timer(this, COMMAND_DRAW_ELEMENTS);
     device_04->drawElements(primitive, count, type, indices);
@@ -366,8 +383,7 @@ void srDebugDD::drawElements(srRendererDefs::e_primitive primitive,
    the ScopeTimer itself, so the function's original TU context had unwind
    semantics enabled (/GX) while the rest of this file did not. */
 // FUNCTION: SURRENDER 0x10017690
-void srDebugDD::drawArrays(srRendererDefs::e_primitive primitive, long first,
-                           unsigned long count)
+void srDebugDD::drawArrays(srRendererDefs::e_primitive primitive, long first, unsigned long count)
 {
     ScopeTimer timer(this, COMMAND_DRAW_ARRAYS);
     device_04->drawArrays(primitive, first, count);
@@ -416,3 +432,6 @@ void srDebugDD::increaseCallTime(e_command command, double time)
 
 // SYNTHETIC: SURRENDER 0x100178A0
 // srDebugDD scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x100178C0
+// srDebugDD::`vector deleting destructor'

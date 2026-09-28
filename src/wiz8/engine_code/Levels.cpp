@@ -370,10 +370,10 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
     material->m_shader_flags_78 = 0;
     material->setMapper(&g_material_mapper);
 
-    for (srNode* node = sky_world->level->firstChild(); node != 0; node = node->nextSibling()) {
+    for (srNode* node = sky_world->level->first_child_; node != 0; node = node->next_sibling_) {
         if (node->getClassID() == 0x10004) {
             srModelInstance* instance = static_cast<srModelInstance*>(node);
-            srMeshModel* mesh = static_cast<srMeshModel*>(instance->model());
+            srMeshModel* mesh = static_cast<srMeshModel*>(instance->getModel());
 
             mesh->setControlMask(0x20); /* CONTROL_SKIP_AUTO_SPHERE */
             mesh->setControlMask(0x10); /* CONTROL_SKIP_AUTO_BOX */
@@ -389,7 +389,7 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
             srModelInstance* instance = prop->ToggleRepAnimation(0);
 
             if (instance != 0) {
-                for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->model()); mesh != 0;
+                for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel()); mesh != 0;
                      mesh = mesh->next) {
                     mesh->setMaterial(material, 0, static_cast<srMeshModel::e_side>(0));
                 }

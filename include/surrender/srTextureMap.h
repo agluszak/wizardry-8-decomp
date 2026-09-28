@@ -3,22 +3,23 @@
 #include "srPtr.h"
 #include "srTexture.h"
 
+// VTABLE: SURRENDER 0x100775BC
+// class srClassSupport<srTextureMap, srTexture, 0, 8465>
+
 // VTABLE: SURRENDER 0x10077578 srTextureMap
 // class srTextureMap
-class SR_DLL_IMPORT srTextureMap : public srClassSupport<srTextureMap, srTexture, 0, 0x2111> {
+class SR_DLL_IMPORT SR_DLL_EXPORT srTextureMap
+    : public srClassSupport<srTextureMap, srTexture, 0, 0x2111> {
 public:
     /* The default-constructor closure 0x100608C0 proves the surface argument
        defaults to null for paren-less new expressions. */
-    SR_DLL_EXPORT srTextureMap(srColorSurfaceIFace* surface = 0);
+    srTextureMap(srColorSurfaceIFace* surface = 0);
     /* Retail's copy constructor calls operator= and leaves memberwise
        re-copies to the compiler's copy-ctor fixup emission. */
     srTextureMap(const srTextureMap& other);
 
     // FUNCTION: SURRENDER 0x10060770 SYMBOL
     // ?sGetClassName@srTextureMap@@SAPBDXZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     static const char* sGetClassName()
     {
         return "srTextureMap";

@@ -86,7 +86,7 @@ stLight::~stLight()
 stLight& stLight::operator=(const stLight& other)
 {
     srLight::operator=(other);
-    setParent(other.parentNode(), 0);
+    setParent(other.parent_, 0);
     m_position_228 = other.m_position_228;
     if (other.m_definition_234 != 0) {
         m_definition_234 = other.m_definition_234->Clone();
@@ -112,15 +112,15 @@ stLight& stLight::operator=(const stLight& other)
 // FUNCTION: WIZ8 0x0049C7A0
 void stLight::traverse(srNode::TraverseInfo& info)
 {
-    if (nextSibling() != 0) {
-        nextSibling()->traverse(info);
+    if (next_sibling_ != 0) {
+        next_sibling_->traverse(info);
     }
 
     if (!testFlag(FLAG_TERMINATE)) {
         if (testFlag(FLAG_DISABLE) || fabs(intensity_1d0) <= g_double_005ebc70 ||
             (g_light_update_flags & 1) == 0) {
-            if (firstChild() != 0) {
-                firstChild()->traverse(info);
+            if (first_child_ != 0) {
+                first_child_->traverse(info);
             }
         } else if (m_definition_234 != 0) {
             if (!testFlag(FLAG_GLOBAL)) {
@@ -133,8 +133,8 @@ void stLight::traverse(srNode::TraverseInfo& info)
                 ++info.node_count;
             }
 
-            if (firstChild() != 0) {
-                firstChild()->traverse(info);
+            if (first_child_ != 0) {
+                first_child_->traverse(info);
             }
 
             if (!testFlag(FLAG_GLOBAL)) {
@@ -348,7 +348,7 @@ void stLight::Update0049C960()
         srModelInstance* instance = 0;
         if (prop != 0) {
             instance = prop->ToggleRepAnimationDefault();
-            srMeshModel* model = static_cast<srMeshModel*>(instance->model());
+            srMeshModel* model = static_cast<srMeshModel*>(instance->getModel());
             if (MeshHasAnimatedTexture(model) == 0) {
                 m_prop_254 = 0;
                 instance = 0;
@@ -510,7 +510,7 @@ void LoadLightStates(int handle)
 // srClassSupport<srIlluminator,srNode,0,4608>::getClassNode
 
 // TEMPLATE: WIZ8 0x0049DBA0
-// srClassSupport<srIlluminator,srNode,0,4608>::clone
+// srClassSupport<srIlluminator,srNode,0,4608>::vClone
 
 // TEMPLATE: WIZ8 0x0049DFE0
 // srClassSupport<srIlluminator,srNode,0,4608>::~srClassSupport
@@ -528,7 +528,7 @@ void LoadLightStates(int handle)
 // srClassSupport<stLight,srLight,0,65542>::getClassNode
 
 // TEMPLATE: WIZ8 0x0049DD60
-// srClassSupport<stLight,srLight,0,65542>::clone
+// srClassSupport<stLight,srLight,0,65542>::vClone
 
 /* The registry base's own destructor, emitted out of line here rather than
    inlined the way 0x0049C430 expands it. */

@@ -70,8 +70,8 @@ void stLevel::traverse(TraverseInfo& info)
         entry.value = 0;
         ++info.entry_count;
     }
-    if (nextSibling() != 0) {
-        nextSibling()->traverse(info);
+    if (next_sibling_ != 0) {
+        next_sibling_->traverse(info);
     }
 }
 
@@ -92,9 +92,9 @@ void stLevel::process(const ProcessInfo& info, e_processType)
     srVector3T<float> ambient_color(ambient.x, ambient.y, ambient.z);
     m_positional_13c = 0;
 
-    for (srNode* child = firstChild(); child != 0; child = child->nextSibling()) {
+    for (srNode* child = first_child_; child != 0; child = child->next_sibling_) {
         stModelInstance* instance = static_cast<stModelInstance*>(child);
-        stMeshModel* model = static_cast<stMeshModel*>(instance->model());
+        stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
         if (instance->mesh_index_17c >= 0 && instance->testFlag(FLAG_DISABLE) != 0) {
             continue;
         }
@@ -164,7 +164,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
             }
             model = model->next;
             if (linked_child != 0) {
-                linked_child = linked_child->firstChild();
+                linked_child = linked_child->first_child_;
             }
         }
     }
@@ -188,7 +188,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
 // stLevel::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004BA240
-// srClassSupport<stLevel,srNode,0,65543>::clone
+// srClassSupport<stLevel,srNode,0,65543>::vClone
 
 // TEMPLATE: WIZ8 0x004BA280
 // srClassSupport<stLevel,srNode,0,65543>::~srClassSupport
@@ -1161,7 +1161,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after Clipping Planes.");
 
     if (use_octree != 0) {
-        srMeshModel* model = static_cast<srMeshModel*>(level_mesh->model());
+        srMeshModel* model = static_cast<srMeshModel*>(level_mesh->getModel());
         model->getBoundingBox(minimum, maximum);
         world->m_owned_06c =
             BuildWorldQuad(level_mesh, 0, minimum.x, minimum.y, minimum.z, maximum.x, maximum.y,
@@ -1194,7 +1194,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
             for (unsigned int animation_index = 0; animation_index < animation_count;
                  ++animation_index) {
                 srModelInstance* instance = prop->ToggleRepAnimation(animation_index);
-                stMeshModel* mesh = static_cast<stMeshModel*>(instance->model());
+                stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel());
 
                 for (; mesh != 0; mesh = mesh->next) {
                     if (!AnimationIsRunning(animation)) {
@@ -1241,7 +1241,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
 // srClientSupport<srClipPlane,5376>::getClassNode
 
 // TEMPLATE: WIZ8 0x004BDF90
-// srClientSupport<srClipPlane,5376>::clone
+// srClientSupport<srClipPlane,5376>::vClone
 
 // SYNTHETIC: WIZ8 0x004BDFB0
 // srClientSupport<srClipPlane,5376>::`scalar deleting destructor'
