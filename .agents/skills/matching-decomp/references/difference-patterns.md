@@ -1,8 +1,9 @@
-# Mismatch patterns
+# Difference patterns
 
-Use this reference for an unexplained focused-comparison divergence. Compare operands, widths,
-flag-producing instructions, control flow, memory effects, and calls before proposing a source
-correction. A mismatch or a higher score does not by itself establish which C++ was authored.
+Use this reference for an unexplained difference in a focused comparison. Compare operands, widths,
+comparisons, control flow, memory effects, and calls (in the decompiled diff and, where it is unclear,
+in retail disassembly) before proposing a source correction. A difference or a smaller diff does not by
+itself establish which C++ was authored.
 
 | Signal | Evidence to check before changing source |
 | --- | --- |
@@ -39,8 +40,8 @@ twins are not intrinsics — expanded wide loops are authored code.
 
 ## Stop without inventing certainty
 
-Test one supported source fact at a time. Revert demonstrated semantic or ABI regressions; a worse
-score, reordered independent stores, or changed stack slots alone does not establish one.
+Test one supported source fact at a time. Revert demonstrated semantic or ABI regressions; a larger
+diff, reordered independent stores, or changed stack slots alone does not establish one.
 When no evidence-backed source correction remains, retain straightforward C++ and report the
-unresolved mismatch. Do not call it codegen-only, relocation noise, or a classifier error without
-supporting evidence. This stopping rule does not turn a mismatch into an exact/effective result.
+unresolved difference. Do not call it codegen-only or decompiler noise without supporting evidence.
+This stopping rule does not turn a difference into a `no-differences` result.

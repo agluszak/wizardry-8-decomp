@@ -1,72 +1,10 @@
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Annotated
 
 import typer
 
-from ..config import Settings
-
 app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
-
-_SEMANTIC_FLOW_REQUESTS = {
-    "WIZ8": (
-        {
-            "case": "S05 polygon-normal consumer",
-            "selector": "0x00470380",
-            "root": "3",
-            "source_parameter_index": 2,
-        },
-        {
-            "case": "E03 status-tail scope",
-            "selector": "0x004FA4D0",
-            "root": "party_slot",
-            "source_parameter_index": 0,
-        },
-        {
-            "case": "E01 scene traversal receiver",
-            "selector": "0x00426500",
-            "root": "scene",
-            "source_parameter_index": 0,
-        },
-    ),
-    "SURRENDER": (
-        {"case": "S01 packed texture state consumer", "selector": "0x10028FB0", "root": "this"},
-        {
-            "case": "S01 correction default setter",
-            "selector": "0x10018550",
-            "root": "this",
-        },
-        {
-            "case": "S01 magnification default setter",
-            "selector": "0x10018650",
-            "root": "this",
-        },
-        {
-            "case": "S01 minification default setter",
-            "selector": "0x100186D0",
-            "root": "this",
-        },
-    ),
-}
-
-
-def _semantic_debt_field_flows(
-    settings: Settings, program: str, target: str
-) -> list[dict[str, Any]]:
-    from ..ghidra.env import open_program
-    from ..ghidra.semantic import field_accesses
-
-    requests = _SEMANTIC_FLOW_REQUESTS.get(target.upper(), ())
-    results = []
-    with open_program(settings, program) as live:
-        for request in requests:
-            results.append(
-                {
-                    **request,
-                    "flow": field_accesses(live, request["selector"], request["root"]),
-                }
-            )
-    return results
 
 
 @app.command("status")
@@ -75,7 +13,7 @@ def status_command(
         bool, typer.Option("--build", help="Build products before reporting.")
     ] = False,
 ) -> None:
-    """Report project-wide decomp and matching progress."""
+    """Report source coverage and reccmp pairing; never runs a comparison."""
     from .. import command_support as cli
     from ..reports.status import status_report
 
@@ -96,7 +34,9 @@ def surrender_frontier_command(
         None, "--priority", help="Restrict the per-import listing to P0/P3."
     ),
     compare: bool = typer.Option(
-        True, "--compare/--no-compare", help="Annotate recovered bodies with reccmp status."
+        False,
+        "--compare/--no-compare",
+        help="Annotate recovered bodies with reccmp's comparison outcome (runs Ghidra).",
     ),
 ) -> None:
     """Rank SurRender provider work by what Wiz8 actually references."""
@@ -127,11 +67,6 @@ def header_architecture_command() -> None:
 @app.command("semantic-debt")
 def semantic_debt_command(
     program: str = typer.Option("wiz8", "--program"),
-    with_flow: bool = typer.Option(
-        False,
-        "--with-flow",
-        help="Join bounded live Ghidra field flows to compiler source layouts.",
-    ),
 ) -> None:
     """Rank provisional recovery work without turning it into a gate."""
 
@@ -142,8 +77,7 @@ def semantic_debt_command(
     settings = cli.settings()
     target = target_for_program(settings.repo_dir, program)
     warn_if_source_index_may_be_stale(settings.repo_dir, target)
-    field_flows = _semantic_debt_field_flows(settings, program, target) if with_flow else None
-    cli.emit(semantic_debt_report(settings.repo_dir, target, field_flows=field_flows))
+    cli.emit(semantic_debt_report(settings.repo_dir, target))
 
 
 @app.command("retail-folded")

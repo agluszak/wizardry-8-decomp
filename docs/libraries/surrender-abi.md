@@ -37,13 +37,9 @@ Do not recover provider bodies through WIZ8's default ProgramDB. The normal focu
 uv run wiz8 build SURRENDER
 uv run wiz8 ghidra decompile 0x1003bee0 --program sr.dll
 uv run wiz8 compare 0x1003bee0 --program sr.dll
-uv run wiz8 recover regress 0x1003bee0 --program sr.dll
-uv run wiz8 recover sweep --program sr.dll --class srConfig
 ```
 
-The recovery commands infer `SURRENDER` from `--program sr.dll`; supplying a conflicting
-`--target` is an error. A sweep only selects `FUNCTION: SURRENDER` markers, so same-named classes
-or evidence from another target cannot leak into the batch. The comparison DLL remains non-runnable
+The commands infer `SURRENDER` from `--program sr.dll`. The comparison DLL remains non-runnable
 and may retain unresolved provider internals while recovery is incomplete.
 
 The recovered extension and VP loaders deliberately retain their calls to unrecovered

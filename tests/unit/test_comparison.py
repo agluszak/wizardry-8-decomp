@@ -1,6 +1,5 @@
 import json
 import os
-import struct
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -13,123 +12,6 @@ from wiz8decomp.comparison import (
     compare_selected,
     selected_addresses,
 )
-
-
-@pytest.mark.parametrize("callee,passes", [(0x401100, True), (0x401200, False)])
-def test_changed_call_target_uses_retail_identity(tmp_path, monkeypatch, callee, passes):
-    from reccmp.compare import Compare
-    from reccmp.types import ImageId
-    from wiz8decomp import source_index
-
-    source = tmp_path / "unit.cpp"
-    original = b"\x90\xe8" + struct.pack("<i", 0x401100 - (0x401000 + 6)) + b"\xc3"
-    recompiled = b"\x90\xe8" + struct.pack("<i", 0x501100 - (0x501000 + 6)) + b"\xc3"
-
-    class Image:
-        def __init__(self, data):
-            self.data = data
-
-        def read(self, _address, _size):
-            return self.data
-
-    class Match:
-        recomp_addr = 0x501000
-
-        def size(self, _side):
-            return 7
-
-    class Database:
-        def get_one_match(self, _address):
-            return Match()
-
-        def alias_canonical_orig(self, side, _address):
-            return 0x401100 if side == ImageId.ORIG else callee
-
-    engine = SimpleNamespace(
-        _db=Database(),
-        _lines_db=SimpleNamespace(
-            find_line_of_recomp_address=lambda address: (
-                (source, 10) if address == 0x501001 else None
-            )
-        ),
-        orig_bin=Image(original),
-        recomp_bin=Image(recompiled),
-    )
-    marker = SimpleNamespace(
-        source_file="unit.cpp",
-        declaration=SimpleNamespace(line=9, end_line=12, is_definition=True),
-    )
-    monkeypatch.setattr(comparison, "_added_call_lines", lambda *_: {source: {10}})
-    monkeypatch.setattr(comparison, "comparison_target", lambda *_: object())
-    monkeypatch.setattr(source_index, "source_functions", lambda *_: {0x401000: marker})
-    monkeypatch.setattr(Compare, "from_target", lambda *_: engine)
-
-    result = comparison.check_changed_call_targets(tmp_path, "WIZ8", "base")
-    assert result["checked"] == 1
-    assert (result["status"] == "passed") is passes
-    if not passes:
-        assert result["errors"][0]["retail_identity"] == "0x00401200"
-
-
-def test_added_call_lines_skip_lines_moved_elsewhere_in_the_diff(tmp_path, monkeypatch):
-    diff = (
-        "diff --git a/old.cpp b/old.cpp\n"
-        "--- a/old.cpp\n"
-        "+++ b/old.cpp\n"
-        "@@ -10,2 +10,0 @@\n"
-        "-    MovedCall(value);\n"
-        "-    return;\n"
-        "diff --git a/new.cpp b/new.cpp\n"
-        "--- a/new.cpp\n"
-        "+++ b/new.cpp\n"
-        "@@ -3,0 +4,2 @@\n"
-        "+    MovedCall(value);\n"
-        "+    FreshCall(value);\n"
-    )
-    monkeypatch.setattr(comparison, "resolve_executable", lambda _name: None)
-    monkeypatch.setattr(comparison, "run", lambda *_args, **_kwargs: SimpleNamespace(stdout=diff))
-
-    assert comparison._added_call_lines(tmp_path, "base") == {tmp_path / "new.cpp": {5}}
-
-
-@pytest.mark.parametrize("accuracy", [1.0, 0.0])
-def test_vtable_comparison_keeps_native_slot_diff(tmp_path, monkeypatch, accuracy):
-    from reccmp.compare import Compare
-    from reccmp.compare.diff import RawDiffOutput
-    from reccmp.compare.report import ReccmpComparedEntity
-    from reccmp.types import EntityType
-
-    slot = ("vtable0x00", "Widget::Draw")
-
-    def compare_vtables(*, include_diff):
-        yield ReccmpComparedEntity(
-            orig_addr=0x401000,
-            recomp_addr=0x501000,
-            name="Widget::vftable",
-            type=EntityType.VTABLE,
-            accuracy=accuracy,
-            rdiff=(
-                RawDiffOutput(
-                    codes=[("equal", 0, 1, 0, 1)],
-                    orig_inst=[slot],
-                    recomp_inst=[slot],
-                )
-                if include_diff
-                else None
-            ),
-        )
-
-    monkeypatch.setattr(comparison, "comparison_target", lambda *_args: object())
-    monkeypatch.setattr(comparison, "warn_if_build_may_be_stale", lambda *_args: None)
-    monkeypatch.setattr(
-        Compare, "from_target", lambda *_: SimpleNamespace(compare_vtables=compare_vtables)
-    )
-    result = comparison.compare_vtables(tmp_path, "WIZ8", "Widget")
-
-    assert result["ok"] is (accuracy == 1.0)
-    table = result["vtables"][0]
-    assert table["accuracy"] == accuracy
-    assert table["diff"][0][1][0]["both"] == [(slot[0], slot[1], slot[0])]
 
 
 def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
@@ -332,183 +214,6 @@ def test_changed_files_uses_jj_in_workspace(tmp_path, monkeypatch):
     assert changed_files(tmp_path) == [tmp_path / "One.cpp"]
 
 
-def test_compare_selected_uses_one_in_process_comparison(tmp_path, monkeypatch):
-    from reccmp.compare.diagnosis import (
-        ComparisonAnalysis,
-        ComparisonDifference,
-        DifferenceSide,
-    )
-    from reccmp.compare.report import ReccmpComparedEntity
-    from reccmp.types import EntityType
-
-    entity = ReccmpComparedEntity(
-        orig_addr=0x401000,
-        recomp_addr=0x501000,
-        name="Widget::Run",
-        type=EntityType.FUNCTION,
-        accuracy=0.9,
-        analysis=ComparisonAnalysis.mismatch(
-            ComparisonDifference(
-                kind="branch_target",
-                orig=DifferenceSide(instruction_index=1),
-                recomp=DifferenceSide(instruction_index=1),
-            )
-        ),
-    )
-    seen = []
-    (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
-
-    class Engine:
-        def compare_addresses(self, **kwargs):
-            seen.append(kwargs)
-            return iter([entity])
-
-    products = tmp_path / "build/decomp"
-    products.mkdir(parents=True)
-    target = SimpleNamespace(
-        original_path=tmp_path / "orig.exe",
-        recompiled_path=products / "Wiz8.exe",
-        recompiled_pdb=products / "Wiz8.pdb",
-    )
-    target.recompiled_path.write_bytes(b"exe")
-    target.recompiled_pdb.write_bytes(b"pdb")
-    monkeypatch.setattr(
-        comparison,
-        "_project",
-        lambda _repository: SimpleNamespace(get=lambda _target: target),
-    )
-    monkeypatch.setattr(comparison.Compare, "from_target", lambda *_args, **_kwargs: Engine())
-    monkeypatch.setattr(
-        comparison,
-        "_instruction_windows",
-        lambda *_args, **_kwargs: {
-            "original": [
-                {
-                    "address": "0x00401003",
-                    "instruction": "jne 0x401020",
-                    "divergence": True,
-                }
-            ]
-        },
-    )
-
-    result = compare_selected(tmp_path, "WIZ8", [0x401000])
-
-    assert len(seen) == 1
-    row = result["functions"][0]
-    assert row["status"] == "mismatch"
-    assert row["effective_matching"] == 0.9
-    assert row["difference"]["kind"] == "alignment_or_structure"
-    assert row["reported_difference"]["kind"] == "branch_target"
-    assert row["first_difference"]["kind"] == "branch_target"
-    assert row["first_difference"]["original"]["name"] == "Widget::Run"
-    assert row["first_difference"]["original"]["address"] == "0x00401000"
-    assert row["artifacts"]["diff"] == "build/reports/compare/00401000.txt"
-    assert (tmp_path / row["artifacts"]["diff"]).is_file()
-    assert row["instruction_window"]["original"][0]["divergence"]
-
-
-def test_compare_selected_marks_unpaired_addresses_missing(tmp_path, monkeypatch):
-    (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
-
-    class Engine:
-        def compare_addresses(self, **_kwargs):
-            return iter(())
-
-    products = tmp_path / "build/decomp"
-    products.mkdir(parents=True)
-    target = SimpleNamespace(
-        original_path=tmp_path / "orig.exe",
-        recompiled_path=products / "Wiz8.exe",
-        recompiled_pdb=products / "Wiz8.pdb",
-    )
-    target.recompiled_path.write_bytes(b"exe")
-    target.recompiled_pdb.write_bytes(b"pdb")
-    monkeypatch.setattr(
-        comparison,
-        "_project",
-        lambda _repository: SimpleNamespace(get=lambda _target: target),
-    )
-    monkeypatch.setattr(comparison.Compare, "from_target", lambda *_args, **_kwargs: Engine())
-
-    result = compare_selected(tmp_path, "WIZ8", [0x401000])
-
-    assert result["ok"] is False
-    assert result["missing"] == 1
-    assert result["functions"] == [{"address": "0x00401000", "status": "missing"}]
-
-
-def test_compare_selected_classifies_unlinked_header_body_as_emission(tmp_path, monkeypatch):
-    (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
-
-    class Engine:
-        def compare_addresses(self, **_kwargs):
-            return iter(())
-
-    products = tmp_path / "build/decomp"
-    products.mkdir(parents=True)
-    target = SimpleNamespace(
-        original_path=tmp_path / "orig.exe",
-        recompiled_path=products / "Wiz8.exe",
-        recompiled_pdb=products / "Wiz8.pdb",
-    )
-    target.recompiled_path.write_bytes(b"exe")
-    target.recompiled_pdb.write_bytes(b"pdb")
-    marker = SimpleNamespace(
-        name="Widget::Widget",
-        source_file="include/wiz8/Widget.h",
-        declaration=SimpleNamespace(is_definition=True),
-    )
-    monkeypatch.setattr(
-        comparison,
-        "_project",
-        lambda _repository: SimpleNamespace(get=lambda _target: target),
-    )
-    monkeypatch.setattr(comparison.Compare, "from_target", lambda *_args, **_kwargs: Engine())
-    monkeypatch.setattr(
-        "wiz8decomp.source_index.source_functions", lambda *_args: {0x401000: marker}
-    )
-
-    result = compare_selected(tmp_path, "WIZ8", [0x401000], classify_header_emissions=True)
-
-    assert result["ok"] is True
-    assert result["missing"] == 0
-    assert result["header_emissions"] == 1
-    assert result["functions"][0]["status"] == "header-emission"
-
-
-def test_numeric_missing_comparison_does_not_load_source_index(tmp_path, monkeypatch):
-    (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
-
-    class Engine:
-        def compare_addresses(self, **_kwargs):
-            return iter(())
-
-    products = tmp_path / "build/decomp"
-    products.mkdir(parents=True)
-    target = SimpleNamespace(
-        original_path=tmp_path / "orig.exe",
-        recompiled_path=products / "Wiz8.exe",
-        recompiled_pdb=products / "Wiz8.pdb",
-    )
-    target.recompiled_path.write_bytes(b"exe")
-    target.recompiled_pdb.write_bytes(b"pdb")
-    monkeypatch.setattr(
-        comparison,
-        "_project",
-        lambda _repository: SimpleNamespace(get=lambda _target: target),
-    )
-    monkeypatch.setattr(comparison.Compare, "from_target", lambda *_args, **_kwargs: Engine())
-    monkeypatch.setattr(
-        "wiz8decomp.source_index.source_functions",
-        lambda *_args: pytest.fail("numeric comparison must not load the source index"),
-    )
-
-    result = compare_selected(tmp_path, "WIZ8", [0x401000])
-
-    assert result["missing"] == 1
-
-
 def test_missing_comparison_products_fail_without_creating_a_build(tmp_path, monkeypatch):
     (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
     target = SimpleNamespace(
@@ -521,7 +226,7 @@ def test_missing_comparison_products_fail_without_creating_a_build(tmp_path, mon
     )
 
     with pytest.raises(FileNotFoundError, match=r"uv run wiz8 build"):
-        compare_selected(tmp_path, "WIZ8", [0x401000])
+        compare_selected(tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"))
 
 
 @pytest.mark.parametrize("input_newer, warns", [(True, True), (False, False)])
@@ -549,3 +254,167 @@ def test_build_freshness_warning_uses_input_mtimes(
     comparison.warn_if_build_may_be_stale(tmp_path, "WIZ8", target)
 
     assert ("comparison build may be stale" in caplog.text) is warns
+
+
+def _products(tmp_path: Path, monkeypatch) -> None:
+    (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
+    products = tmp_path / "build/decomp"
+    products.mkdir(parents=True)
+    target = SimpleNamespace(
+        original_path=tmp_path / "orig.exe",
+        recompiled_path=products / "Wiz8.exe",
+        recompiled_pdb=products / "Wiz8.pdb",
+    )
+    target.recompiled_path.write_bytes(b"exe")
+    target.recompiled_pdb.write_bytes(b"pdb")
+    monkeypatch.setattr(
+        comparison, "_project", lambda _repository: SimpleNamespace(get=lambda _target: target)
+    )
+
+
+def _fake_reccmp(monkeypatch, functions: list[dict], *, seen: list | None = None) -> None:
+    """Stand in for `reccmp-reccmp`: write its manifest and summary."""
+
+    def run(argv, *, cwd, env, log_path, check):
+        output = Path(argv[argv.index("--output") + 1])
+        output.mkdir(parents=True, exist_ok=True)
+        if seen is not None:
+            seen.append({"argv": [str(arg) for arg in argv], "cwd": cwd, "env": env})
+        (output / "manifest.json").write_text(json.dumps({"functions": functions}))
+        if functions:
+            (output / "summary.json").write_text(
+                json.dumps({"requested": len(functions), "functions": functions})
+            )
+        return SimpleNamespace(exit_status=0 if functions else 1, stderr="")
+
+    monkeypatch.setattr(comparison, "run", run)
+
+
+def _row(address: int, outcome: str, diff: list[str] | None = None) -> dict:
+    return {
+        "orig": f"{address:#x}",
+        "recomp": f"{address + 0x100000:#x}",
+        "name": "Widget::Run",
+        "basis": "annotation",
+        "source": {"path": "src/wiz8/widget.cpp", "line": 3},
+        "outcome": outcome,
+        "code_diff": diff or [],
+        "data": [],
+        "failures": [],
+        "unidentified_references": 0,
+    }
+
+
+def test_compare_selected_runs_reccmp_for_the_selected_addresses(tmp_path, monkeypatch):
+    _products(tmp_path, monkeypatch)
+    seen: list = []
+    diff = ["--- orig/Widget::Run\n", "+++ recomp/Widget::Run\n", "-  a <= b\n", "+  a > b\n"]
+    _fake_reccmp(monkeypatch, [_row(0x401000, "differences", diff)], seen=seen)
+
+    result = compare_selected(tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"), side_by_side=True)
+
+    [call] = seen
+    assert call["argv"][call["argv"].index("--orig-address") + 1] == "401000"
+    assert "--sxs" in call["argv"]
+    assert call["cwd"] == tmp_path / "build/decomp"
+    assert call["env"]["GHIDRA_INSTALL_DIR"] == "/opt/ghidra"
+    # Differences are review material, not failures.
+    assert result["ok"] is True
+    assert result["counts"]["differences"] == 1
+    [row] = result["functions"]
+    assert row["outcome"] == "differences"
+    assert row["code_diff"]["lines"] == 2
+    assert (tmp_path / row["code_diff"]["artifact"]).read_text() == "".join(diff)
+
+
+@pytest.mark.parametrize("outcome", ["analysis-failed", "unpaired"])
+def test_incomplete_comparison_fails_the_selection(tmp_path, monkeypatch, outcome):
+    _products(tmp_path, monkeypatch)
+    _fake_reccmp(monkeypatch, [_row(0x401000, outcome)])
+
+    result = compare_selected(tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"))
+
+    assert result["ok"] is False
+    assert result["counts"][outcome] == 1
+
+
+def test_compare_selected_marks_addresses_reccmp_does_not_know_missing(tmp_path, monkeypatch):
+    _products(tmp_path, monkeypatch)
+    _fake_reccmp(monkeypatch, [])
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.source_functions",
+        lambda *_args: pytest.fail("numeric comparison must not load the source index"),
+    )
+
+    result = compare_selected(tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"))
+
+    assert result["ok"] is False
+    assert result["counts"]["missing"] == 1
+    assert result["functions"] == [{"orig": "0x00401000", "outcome": "missing"}]
+
+
+def test_compare_selected_classifies_unlinked_header_body_as_emission(tmp_path, monkeypatch):
+    _products(tmp_path, monkeypatch)
+    _fake_reccmp(monkeypatch, [])
+    marker = SimpleNamespace(
+        name="Widget::Widget",
+        source_file="include/wiz8/Widget.h",
+        declaration=SimpleNamespace(is_definition=True),
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.source_functions", lambda *_args: {0x401000: marker}
+    )
+
+    result = compare_selected(
+        tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"), classify_header_emissions=True
+    )
+
+    assert result["ok"] is True
+    assert result["counts"]["header-emission"] == 1
+    assert result["functions"][0]["outcome"] == "header-emission"
+
+
+def test_vtable_comparison_reports_unpaired_and_different_slots(tmp_path, monkeypatch):
+    from reccmp.compare import Compare
+    from reccmp.compare.vtables import SlotStatus
+
+    tables = [
+        SimpleNamespace(name="Widget::vftable", orig_addr=0x401000, recomp_addr=0x501000),
+        SimpleNamespace(name="Folded::vftable", orig_addr=0x402000, recomp_addr=0x502000),
+    ]
+    slots = {
+        0x401000: [SimpleNamespace(status=SlotStatus.MATCH)],
+        0x402000: [
+            SimpleNamespace(
+                status=SlotStatus.UNPAIRED,
+                offset=0,
+                orig=SimpleNamespace(best_name=lambda: "Base::Draw"),
+                recomp=SimpleNamespace(best_name=lambda: "Folded::Draw"),
+                orig_raw=0x403000,
+                recomp_raw=0x503000,
+            )
+        ],
+    }
+    catalog = SimpleNamespace(get_vtables=lambda: tables, db=None, orig_bin=None, recomp_bin=None)
+    monkeypatch.setattr(comparison, "comparison_target", lambda *_args: object())
+    monkeypatch.setattr(comparison, "warn_if_build_may_be_stale", lambda *_args: None)
+    monkeypatch.setattr(Compare, "from_target", lambda *_: catalog)
+    monkeypatch.setattr(
+        comparison,
+        "compare_vtable",
+        lambda _db, _orig, _recomp, table: SimpleNamespace(slots=slots[table.orig_addr]),
+    )
+
+    result = comparison.compare_vtables(tmp_path, "WIZ8", None)
+
+    assert result["ok"] is False
+    assert (result["match_count"], result["unpaired_count"], result["different_count"]) == (1, 1, 0)
+    [table] = result["vtables"]
+    assert table["slots"] == [
+        {
+            "offset": 0,
+            "status": "unpaired",
+            "original": "Base::Draw",
+            "recompiled": "Folded::Draw",
+        }
+    ]

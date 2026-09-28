@@ -65,7 +65,6 @@ class DeclaredCallable:
     source_file: str
     parameter_count: int
     is_definition: bool
-    signature: str | None = None
 
 
 @dataclass(frozen=True)
@@ -96,7 +95,6 @@ class SourceFacts:
                     source_file=identity.source_file,
                     parameter_count=len(identity.parameter_types),
                     is_definition=identity.is_definition,
-                    signature=identity.source_signature,
                 )
                 for name in (identity.qualified_name, identity.name):
                     if name:

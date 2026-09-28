@@ -7,7 +7,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from reccmp.formats.coff import parse_coff_object
+from .binary.coff import external_symbols
 
 IMPORT_PREFIXES = ("__imp_", "__IMPORT_DESCRIPTOR", "__NULL_IMPORT_DESCRIPTOR")
 MAP_PUBLIC = re.compile(r"^\s+[0-9a-fA-F]{4}:[0-9a-fA-F]{8}\s+(?P<symbol>\S+)\s")
@@ -16,15 +16,7 @@ MAP_PUBLIC = re.compile(r"^\s+[0-9a-fA-F]{4}:[0-9a-fA-F]{8}\s+(?P<symbol>\S+)\s"
 def object_symbols(path: Path) -> tuple[set[str], set[str]]:
     """Return the externals this object defines and the ones it only refers to."""
 
-    defined: set[str] = set()
-    referenced: set[str] = set()
-    for symbol in parse_coff_object(path).symbols:
-        if symbol.storage_class == 2:
-            if symbol.section == 0 and symbol.value == 0:
-                referenced.add(symbol.name)
-            elif symbol.section > 0 or symbol.is_common:
-                defined.add(symbol.name)
-    return defined, referenced
+    return external_symbols(path)
 
 
 def parse_map_publics(path: Path) -> set[str]:

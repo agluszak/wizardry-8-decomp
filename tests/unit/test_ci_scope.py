@@ -41,7 +41,7 @@ def test_runtime_harness_change_does_not_trigger_comparison() -> None:
 
 
 def test_reccmp_config_change_does_not_trigger_runtime() -> None:
-    result = _MODULE.classify(["config/reccmp/wiz8-equivalence-groups.txt"])
+    result = _MODULE.classify(["config/reccmp/srext-unzip.csv"])
     assert result["wiz8_compare"] is True
     assert result["wiz8_runtime"] is False
 
@@ -130,4 +130,4 @@ def test_reccmp_comment_combines_per_target_lane_status() -> None:
     assert "needs: [wiz8, surrender]" in comment
     assert "WIZ8_STATUS: ${{ needs.wiz8.outputs.reccmp-status }}" in comment
     assert "SURRENDER_STATUS: ${{ needs.surrender.outputs.reccmp-status }}" in comment
-    assert '"#### Per target"' in comment
+    assert '"| Target | Source functions |' in comment

@@ -371,18 +371,15 @@ def _defects(
     if source_identity is not None:
         parameter_types = tuple(getattr(source_identity, "parameter_types", None) or ())
         source_explicit = len(parameter_types)
-        source_signature = getattr(source_identity, "source_signature", None)
+        declared = bool(getattr(source_identity, "semantic_id", ""))
         qualified = getattr(source_identity, "qualified_name", None) or getattr(
             source_identity, "name", None
         )
-        if not source_signature and not parameter_types:
+        if not declared:
             defects.append(
                 {
-                    "kind": "source-signature-unresolved",
-                    "detail": (
-                        f"{qualified or 'source identity'} "
-                        "has no source signature or explicit parameter types."
-                    ),
+                    "kind": "source-declaration-unresolved",
+                    "detail": (f"{qualified or 'source identity'} has no compiler declaration."),
                 }
             )
         if stored_explicit == 0 and source_explicit > 0:
@@ -475,7 +472,8 @@ def _source_attachment(
                 "kind": identity.kind,
                 "source_file": identity.source_file,
                 "line": identity.line,
-                "signature": identity.source_signature,
+                "return_type": identity.return_type,
+                "parameter_types": list(identity.parameter_types),
                 "calling_convention": identity.calling_convention,
                 "definition": identity.is_definition,
             }

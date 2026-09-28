@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Annotated
-
 import typer
 
 app = typer.Typer(
@@ -18,51 +16,3 @@ def self_test_command() -> None:
     from ..ghidra.lifecycle_fixture import verify_lifecycle_fixture
 
     cli.emit(verify_lifecycle_fixture(cli.settings()))
-
-
-@app.command("sweep")
-def sweep_command(
-    file: Annotated[
-        str | None,
-        typer.Option("--file", help="Sweep only this translation unit's functions."),
-    ] = None,
-    class_name: Annotated[
-        str | None,
-        typer.Option("--class", help="Sweep only this class's functions."),
-    ] = None,
-    target: str | None = typer.Option(
-        None, "--target", help="reccmp target id; inferred from --program when omitted."
-    ),
-    program: str = typer.Option("wiz8", "--program"),
-) -> None:
-    """Classify zero-edit regeneration for every recovered function."""
-    from .. import command_support as cli
-    from ..recover import sweep
-
-    cli.emit(
-        sweep(
-            cli.settings(),
-            source_file=file,
-            class_name=class_name,
-            target=target,
-            program_selector=program,
-        )
-    )
-
-
-@app.command("regress")
-def regress_command(
-    addresses: Annotated[
-        list[str],
-        typer.Argument(help="Function addresses whose recovered bodies to regenerate."),
-    ],
-    target: str | None = typer.Option(
-        None, "--target", help="reccmp target id; inferred from --program when omitted."
-    ),
-    program: str = typer.Option("wiz8", "--program"),
-) -> None:
-    """Export, splice, build, and compare each function; restore afterwards."""
-    from .. import command_support as cli
-    from ..recover import regress
-
-    cli.emit(regress(cli.settings(), list(addresses), target=target, program_selector=program))

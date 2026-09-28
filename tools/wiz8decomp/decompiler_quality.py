@@ -1,7 +1,7 @@
 """Objective decompiler-quality scores over high-confidence recovered functions.
 
-The corpus is recovered `FUNCTION` markers (optionally filtered to reccmp
-exact/effective). Metrics are pattern counts over Ghidra's decompiled C text so
+The corpus is recovered `FUNCTION` markers (optionally filtered to those whose
+reccmp comparison shows no differences). Metrics are pattern counts over Ghidra's decompiled C text so
 enrichment changes can be scored without arguing about aesthetics.
 """
 
@@ -204,17 +204,18 @@ def select_corpus(
     require_match: bool | None = None,
     corpus_kind: str = "oracle",
     write_manifest_dir: Path | None = None,
+    ghidra_install_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Choose corpus addresses and optional reccmp match filter metadata.
 
     ``corpus_kind``:
 
     - ``oracle``: high-confidence recovered functions (``require_match=True`` by
-      default) — exact/effective when compare is available. Measures whether
+      default) — reccmp comparison found no differences. Measures whether
       enrichment damages known truth.
-    - ``pain``: prefer ``mismatch|inconclusive`` compare statuses (exclude
-      ``exact|effective``). Oversamples FUNCTION markers then filters via
-      compare. Measures whether enrichment helps future recovery.
+    - ``pain``: recovered functions whose comparison shows differences.
+      Oversamples FUNCTION markers then filters via compare. Measures whether
+      enrichment helps future recovery.
 
     When ``addresses`` is omitted and a reviewed freeze exists at
     ``evidence/reviewed/wiz8/decompiler-quality-corpus.json``, use those
@@ -229,6 +230,13 @@ def select_corpus(
     if require_match is None:
         require_match = kind == "oracle"
 
+    def filtered(candidates: Sequence[int], outcome: str, limit: int) -> tuple[Any, list[int]]:
+        if ghidra_install_dir is None:
+            raise ValueError("filtering the corpus by comparison needs GHIDRA_INSTALL_DIR")
+        return _filter_by_outcome(
+            repository, target, candidates, ghidra_install_dir, outcome=outcome, limit=limit
+        )
+
     markers = _function_markers(repository, target)
 
     if addresses is not None:
@@ -236,9 +244,9 @@ def select_corpus(
         missing = sorted({address for address in addresses if address not in markers})
         match_rows: list[dict[str, Any]] = []
         if require_match and selected:
-            match_rows, selected = _filter_matched(repository, target, selected, limit=limit)
+            match_rows, selected = filtered(selected, "no-differences", limit)
         elif kind == "pain" and selected:
-            match_rows, selected = _filter_pain(repository, target, selected, limit=limit)
+            match_rows, selected = filtered(selected, "differences", limit)
         else:
             selected = selected[:limit]
         return {
@@ -246,9 +254,7 @@ def select_corpus(
             "candidates": len(addresses),
             "missing_from_source_index": [f"0x{address:08x}" for address in missing],
             "match_filter": (
-                "exact|effective"
-                if require_match
-                else ("mismatch|inconclusive" if kind == "pain" else None)
+                "no-differences" if require_match else ("differences" if kind == "pain" else None)
             ),
             "matches": match_rows,
             "seed": seed,
@@ -266,16 +272,14 @@ def select_corpus(
             missing = [address for address in frozen if address not in markers]
             match_rows = []
             if require_match and selected:
-                match_rows, selected = _filter_matched(
-                    repository, target, selected, limit=limit or len(selected)
-                )
+                match_rows, selected = filtered(selected, "no-differences", limit or len(selected))
             elif limit:
                 selected = selected[:limit]
             return {
                 "addresses": selected,
                 "candidates": len(frozen),
                 "missing_from_source_index": [f"0x{address:08x}" for address in missing],
-                "match_filter": "exact|effective" if require_match else None,
+                "match_filter": "no-differences" if require_match else None,
                 "matches": match_rows,
                 "seed": reviewed.get("seed", seed),
                 "limit": reviewed.get("limit", limit),
@@ -290,9 +294,9 @@ def select_corpus(
     match_rows = []
     selected = candidates
     if require_match:
-        match_rows, selected = _filter_matched(repository, target, candidates, limit=limit)
+        match_rows, selected = filtered(candidates, "no-differences", limit)
     elif kind == "pain":
-        match_rows, selected = _filter_pain(repository, target, candidates, limit=limit)
+        match_rows, selected = filtered(candidates, "differences", limit)
     else:
         selected = candidates[:limit]
     result = {
@@ -300,9 +304,7 @@ def select_corpus(
         "candidates": len(candidates),
         "missing_from_source_index": [],
         "match_filter": (
-            "exact|effective"
-            if require_match
-            else ("mismatch|inconclusive" if kind == "pain" else None)
+            "no-differences" if require_match else ("differences" if kind == "pain" else None)
         ),
         "matches": match_rows,
         "seed": seed,
@@ -327,65 +329,26 @@ def select_corpus(
     return result
 
 
-def _filter_matched(
+def _filter_by_outcome(
     repository: Path,
     target: str,
     candidates: Sequence[int],
+    ghidra_install_dir: Path,
     *,
+    outcome: str,
     limit: int,
 ) -> tuple[list[dict[str, Any]], list[int]]:
+    """Keep the candidates whose reccmp comparison has this outcome."""
     from .comparison import compare_selected
 
-    report = compare_selected(repository, target, list(candidates))
+    report = compare_selected(repository, target, list(candidates), ghidra_install_dir)
     rows: list[dict[str, Any]] = []
     kept: list[int] = []
     for row in report.get("functions", []):
-        status = str(row.get("status") or "")
-        address = int(str(row["address"]), 0)
-        if status not in {"exact", "effective"}:
+        if row.get("outcome") != outcome:
             continue
-        rows.append(
-            {
-                "address": row["address"],
-                "name": row.get("name"),
-                "status": status,
-            }
-        )
-        kept.append(address)
-        if len(kept) >= limit:
-            break
-    return rows, kept
-
-
-def _filter_pain(
-    repository: Path,
-    target: str,
-    candidates: Sequence[int],
-    *,
-    limit: int,
-) -> tuple[list[dict[str, Any]], list[int]]:
-    """Keep ``mismatch|inconclusive`` compare rows; exclude exact|effective."""
-
-    from .comparison import compare_selected
-
-    report = compare_selected(repository, target, list(candidates))
-    rows: list[dict[str, Any]] = []
-    kept: list[int] = []
-    for row in report.get("functions", []):
-        status = str(row.get("status") or "")
-        address = int(str(row["address"]), 0)
-        if status in {"exact", "effective"}:
-            continue
-        if status not in {"mismatch", "inconclusive"}:
-            continue
-        rows.append(
-            {
-                "address": row["address"],
-                "name": row.get("name"),
-                "status": status,
-            }
-        )
-        kept.append(address)
+        rows.append({"address": row["orig"], "name": row.get("name"), "outcome": outcome})
+        kept.append(int(str(row["orig"]), 0))
         if len(kept) >= limit:
             break
     return rows, kept
@@ -665,6 +628,7 @@ def run_decompiler_quality(
         require_match=require_match,
         corpus_kind=corpus_kind,
         write_manifest_dir=destination if address_list is None else None,
+        ghidra_install_dir=settings.ghidra_install_dir,
     )
     evaluation = evaluate_corpus(
         settings,

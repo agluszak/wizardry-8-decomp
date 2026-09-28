@@ -1,12 +1,12 @@
 ---
 name: matching-decomp
-description: Recover Wizardry 8 C++ bodies against the pinned VC6 target and interpret focused comparison mismatches.
+description: Recover Wizardry 8 C++ bodies against the pinned VC6 target and interpret focused decompiled comparisons.
 ---
 
 # Matching decompilation
 
 Use this skill for function-body recovery, source placement, matching annotations, inlining/header
-visibility, source-oracle lookup, and focused reccmp mismatches.
+visibility, source-oracle lookup, and focused reccmp comparisons.
 
 Route other questions instead of expanding this skill:
 
@@ -16,8 +16,8 @@ Route other questions instead of expanding this skill:
 - runtime/UI/loading behavior: [runtime-bringup](../runtime-bringup/SKILL.md);
 - build/reccmp/clang/source-index/CLI infrastructure: [tooling-maintenance](../tooling-maintenance/SKILL.md).
 
-For comparison details use [comparison](references/comparison.md); for unexplained codegen differences
-use [mismatch patterns](references/mismatch-patterns.md); for possible SGP/MSVC/zlib/IJG/Info-ZIP
+For comparison details use [comparison](references/comparison.md); for an unexplained difference
+use [difference patterns](references/difference-patterns.md); for possible SGP/MSVC/zlib/IJG/Info-ZIP
 source use [source oracles](references/source-oracles.md). Read only the reference needed for the task.
 
 ## Recovery loop
@@ -38,41 +38,33 @@ source use [source oracles](references/source-oracles.md). Read only the referen
    for type/layout source changes follow type-modeling and update the canonical declarations/consumers
    as one coherent batch.
 6. Recover straightforward authored circa-2000 C++ from the established source contract. Do not reproduce
-   compiler lowering or tweak source spelling merely to manipulate registers, stack slots, CFG or score.
-   Finish the source-model reconstruction before treating residual differences as a matching exercise.
-7. Once the affected source model is coherent, run focused linked comparison, including affected callers
-   when a shared declaration/ABI changed. WIZ8 is the default program; SurRender comparison uses
+   compiler lowering or tweak source spelling merely to manipulate registers, stack slots, CFG or a diff.
+   Finish the source-model reconstruction before treating residual differences as a comparison exercise.
+7. Once the affected source model is coherent, run the focused decompiled comparison, including affected
+   callers when a shared declaration/ABI changed. WIZ8 is the default program; SurRender comparison uses
    `--program sr.dll`. Use the result to test source hypotheses, not as an objective function.
-8. For a real mismatch, first ask whether it exposes a remaining source/type/ABI/ownership/TU/inlining
-   defect. When several authored forms are independently plausible, comparison may distinguish them.
-   Do not manufacture candidate forms from compiler output. A known-unfaithful change is not accepted
-   merely because it improves or reaches exactness.
-9. For an almost-match dominated by stack-offset/local-order differences, use `reccmp-stackcmp` as a
-   diagnostic before guessing at source changes. If final linkage obscures the question, select the
-   appropriate object/data/vtable modality from the comparison reference. When no evidence-backed source
-   correction remains, keep the faithful source and classify the residue as compiler lowering rather
-   than encoding a matching workaround.
+8. For a logical difference (operator, constant, callee, field, string, global), first ask whether it
+   exposes a remaining source/type/ABI/ownership/TU/inlining defect. When several authored forms are
+   independently plausible, comparison may distinguish them. Do not manufacture candidate forms from
+   compiler output. A known-unfaithful change is not accepted merely because it removes a difference.
+9. When the remaining diff is decompiler representation (renamed temporaries, reordered operands,
+   restructured but equivalent branches), stop. When no evidence-backed source correction remains, keep
+   the faithful source and record the residue rather than encoding a comparison workaround.
 
-## Exactness after reconstruction
+## Comparison after reconstruction
 
-Exact matching is confirmation, not the source specification. First recover ordinary, well-typed,
+A clean comparison is confirmation, not the source specification. First recover ordinary, well-typed,
 plausible authored C++ and establish its semantic/ABI contract. Then use comparison differences to look
 for missing source facts: types and promotions, parameter/reference contracts, inheritance, fields,
 helpers/operators, lifetime, TU ownership, header visibility, linkage, and only then evidenced compiler
 configuration. Do not reverse this order by sculpting C++ around register allocation, stack-slot reuse,
 ICF, tail calls, temporary placement or instruction scheduling.
 
-An improved score is never evidence for `__forceinline`, noinline attributes, optimizer pragmas,
+A smaller diff is never evidence for `__forceinline`, noinline attributes, optimizer pragmas,
 manual inlining, fake unions, aliased locals, redundant counters, casts between mismodeled records or
 other source-shaping devices. Use those constructs only when independent source/oracle evidence
 supports them. `uv run wiz8 report semantic-debt` lists current source-shaping compiler directives as
 investigation candidates so they can be audited rather than copied as precedent.
-
-For zero-edit regeneration, prefer the batch harness over manually retyping already recovered bodies:
-`uv run wiz8 recover sweep --program sr.dll --class CLASS` for SurRender, or the default WIZ8
-program for game code. `uv run wiz8 recover regress ADDRESS... --program sr.dll` does the same
-focused export/splice/build/compare cycle for selected SR functions. The reccmp target is inferred from
-`--program`; an explicit `--target` is accepted only when it agrees with that program.
 
 `uv run wiz8 ghidra decompile ADDRESS...` prints readable C with address, ProgramDB prototype,
 attached source declaration, source-index freshness, ABI warnings, and artifact paths. Named
@@ -88,7 +80,7 @@ For a substantial body, reconstruct the source contract before transcribing cont
   inputs, outputs, in/out values, flags and optional pointers. Do not overwrite an input before its
   first semantic use merely because VC6 reused its stack slot later.
 - **Compiler storage:** stack-slot/register/spill/temporary reuse belongs to VC6 lowering. Never alias a
-  parameter or local to reproduce it; use the logical source variables even if the score gets worse.
+  parameter or local to reproduce it; use the logical source variables even if the diff grows.
 - **Abstractions:** search existing source and accepted oracles for matching container methods, math
   operations, traversals, conversions and lifecycle helpers. A repeated nontrivial sequence in
   independently proven TUs is a reason to investigate a header/inline helper, not to duplicate it.
@@ -144,22 +136,21 @@ uv run wiz8 compare --changed
 require refreshing them, for example `uv run wiz8 compare --build --changed`. Do not pre-run
 `analyze source-index` or `check` merely to prepare that explicit build-and-compare operation.
 
-- `exact` / `effective`: code-generation validation is satisfied. Do not keep manipulating the body
-  for score, but still fix a known source-model defect or stronger source-oracle contradiction; exactness
-  does not prove the current source spelling was original.
-- `mismatch`: inspect the first meaningful divergence and form a concrete source/type/ABI/lifetime/
-  ownership/TU/compiler hypothesis before editing. A percentage, register choice, stack layout or changed
-  CFG is not source evidence. Prefer a faithful unresolved mismatch over an implausible matching form.
-- `inconclusive` / `missing`: identify the absent pairing/evidence/analysis; do not claim equivalence.
+- `no-differences`: Ghidra/Ghidriff found no visible code or referenced-data difference. Useful
+  evidence, not proof; still fix a known source-model defect or stronger source-oracle contradiction.
+- `differences`: inspect the decompiled diff and data findings, and decide whether each hunk reflects a
+  source-model divergence or decompiler representation. Form a concrete source/type/ABI/lifetime/
+  ownership/TU hypothesis before editing. Register choice, stack layout or local naming is not source
+  evidence. Prefer a faithful unresolved difference over an implausible matching form.
+- `unpaired`: fix the correspondence (marker, name, placement) or explain the legitimate non-emission.
+- `analysis-failed`: fix or explicitly investigate the analysis failure; it says nothing about the body.
 
-When a `mismatch` is already structurally close and the repeated differences are stack operands or
-local-slot offsets, run `uv run reccmp-stackcmp --target TARGET ADDRESS` on the original address. Use
-its 1:1/reordered/non-bijective mappings to decide what source fact to investigate next. It is not a
-pass/fail gate and stack layout is not source evidence: never alias locals/parameters or distort
-lifetimes merely to reproduce VC6 storage reuse. See the comparison reference for interpretation.
+Never distort recovered source to reduce a decompiler diff. Large unstable diffs (big switch
+dispatchers, x87-heavy bodies) are investigated behaviorally at real function boundaries, with retail
+Ghidra and the runtime differential scenarios, not by chasing text equality.
 
 Revert demonstrated semantic/ABI regressions. When no evidence-backed correction remains, keep the
-straightforward source and report the unresolved mismatch rather than inventing compiler folklore.
+straightforward source and report the unresolved difference rather than inventing compiler folklore.
 Existing matching-only aliases, dummy variables, fake wrappers, manual inlining, dead control flow or
 other code-generation steering are debt to investigate, not patterns to copy. Remove them when a more
 faithful source/toolchain/ABI explanation is established, even if comparison temporarily regresses.
@@ -172,15 +163,16 @@ A large dispatcher/multi-branch body is accepted only when:
 - typed objects do not escape through unexplained byte-pointer arithmetic;
 - existing address identities agree on one name, normalized prototype and calling convention;
 - parameter contracts and ownership/lifetime transitions have been checked against callers/siblings;
-- comparison is meaningful, or inconclusive regions received explicit retail CFG/call/branch review.
+- the decompiled comparison was reviewed, or unstable regions received explicit retail
+  CFG/call/branch review.
 
-Inconclusive matching evidence never excuses a wrong branch, field read, assertion path, call target or
-side effect. Small straightforward bodies do not need a ritual manual CFG pass.
+An unreadable diff never excuses a wrong branch, field read, assertion path, call target or side
+effect. Small straightforward bodies do not need a ritual manual CFG pass.
 
 For a multi-function/batch recovery, focused compares done while coding are not enough. After the last
 source edit run `uv run wiz8 compare --changed` and account for every new or materially changed
-`FUNCTION`: exact/effective, explained compiler-lowering mismatch, or explicitly inconclusive with the
-retail review that justifies accepting it. Do not publish a batch with an unaccounted changed body.
+`FUNCTION`: no differences, differences explained as decompiler representation or established
+lowering, or an unstable diff with the retail review that justifies accepting it. Do not publish a batch with an unaccounted changed body.
 
 ## Markers and placement
 

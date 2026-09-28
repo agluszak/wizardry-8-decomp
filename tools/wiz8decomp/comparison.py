@@ -1,25 +1,30 @@
-"""Focused comparison and address-translation workflows over reccmp's API."""
+"""Function selection for reccmp's comparison, plus catalog-backed lookups.
+
+reccmp owns comparison: `reccmp-reccmp` decompiles the selected functions and
+their originals with Ghidra and diffs them with Ghidriff. This module selects
+functions, runs it, and reads its summary.
+"""
 
 from __future__ import annotations
 
+import json
 import logging
 import os
-import re
-from bisect import bisect_right
+import sys
 from collections import Counter
 from collections.abc import Iterable
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
 from reccmp.compare import Compare
-from reccmp.compare.report import ReccmpComparedEntity
+from reccmp.compare.vtables import SlotStatus, compare_vtable
 from reccmp.project.detect import RecCmpProject, RecCmpTarget
 from reccmp.source import SourceIndexError
+from reccmp.types import ImageId
 
 from .config import Settings
-from .paths import atomic_json, atomic_write
-from .subprocesses import resolve_executable, run
+from .paths import atomic_json, atomic_write, sha256_file
+from .subprocesses import CommandFailure, resolve_executable, run
 
 LOGGER = logging.getLogger(__name__)
 _PRODUCT_INPUT_SUFFIXES = frozenset(
@@ -90,216 +95,6 @@ def changed_source_files(repository: Path, since: str | None = None) -> list[Pat
         if path.suffix.lower() in {".c", ".cpp", ".cc", ".cxx", ".h", ".hpp", ".hxx"}
         and path.is_file()
     ]
-
-
-_CALLED_NAME = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
-_ADDRESS_SUFFIX = re.compile(r"(?<=[A-Za-z_])[0-9A-F]{8}$")
-_CLASS_HEAD = re.compile(r"^\s*(?:class|struct)\s+([A-Za-z_]\w*)")
-_SOURCE_SUFFIXES = {".cpp", ".cc", ".cxx", ".h", ".hpp"}
-
-
-def _called_names(text: str, renamed: dict[str, str]) -> set[str]:
-    """Called names, spelled as the baseline spelled them."""
-
-    names: list[str] = _CALLED_NAME.findall(text)
-    return {_ADDRESS_SUFFIX.sub("", renamed.get(name, name)) for name in names}
-
-
-def _renamed_classes(hunks: list[list[tuple[str, str]]]) -> dict[str, str]:
-    """Map classes the change renamed to their baseline spelling.
-
-    A hunk that removes the head of `class Old` and adds `class New` in the same
-    position renames the class, so constructor and destructor definitions
-    spelled with the new name add no call.
-    """
-
-    renamed: dict[str, str] = {}
-    for rows in hunks:
-        removed = [
-            m.group(1) for sign, text in rows if sign == "-" if (m := _CLASS_HEAD.match(text))
-        ]
-        added = [m.group(1) for sign, text in rows if sign == "+" if (m := _CLASS_HEAD.match(text))]
-        if len(removed) == len(added):
-            renamed.update((new, old) for old, new in zip(removed, added) if old != new)
-    return renamed
-
-
-def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
-    """Locate added source lines that can contain a new call expression.
-
-    A line whose called names all appear on the lines its hunk removes (a
-    renamed argument, a reflowed expression, a callee losing its address
-    suffix, a renamed class's constructor or destructor) adds no call, so it
-    is skipped. So is a line removed verbatim elsewhere in the diff: moving a
-    body to another unit, or reordering switch cases, relocates its calls
-    without adding one.
-    """
-
-    if (repository / ".jj").is_dir() and resolve_executable("jj") is not None:
-        command = ["jj", "diff", "--git", "--from", since]
-    else:
-        baseline = f"origin/{since.removesuffix('@origin')}" if since.endswith("@origin") else since
-        command = ["git", "diff", "--no-ext-diff", "--no-renames", baseline, "HEAD"]
-    output = run(command, cwd=repository).stdout
-
-    # hunk = (source path, first added line, [(sign, text)])
-    hunks: list[tuple[Path | None, int, list[tuple[str, str]]]] = []
-    path: Path | None = None
-    for row in output.splitlines():
-        if row.startswith("diff --git "):
-            match = re.match(r"diff --git a/(.*?) b/(.*)", row)
-            path = repository / match.group(2) if match else None
-        elif row.startswith("@@"):
-            match = re.search(r"\+(\d+)", row)
-            hunks.append((path, int(match.group(1)) if match else 0, []))
-        elif hunks and row[:1] in {"-", "+", " "} and not row.startswith(("---", "+++")):
-            hunks[-1][2].append((row[0], row[1:]))
-
-    renamed = _renamed_classes(
-        [
-            rows
-            for source, _, rows in hunks
-            if source is not None and source.suffix.lower() in _SOURCE_SUFFIXES
-        ]
-    )
-
-    moved: Counter[str] = Counter(
-        text.strip()
-        for source, _, rows in hunks
-        if source is not None and source.suffix.lower() in _SOURCE_SUFFIXES
-        for sign, text in rows
-        if sign == "-" and text.strip()
-    )
-
-    added: dict[Path, set[int]] = {}
-    for source, line, rows in hunks:
-        if source is None or source.suffix.lower() not in _SOURCE_SUFFIXES:
-            continue
-        removed_names: set[str] = set()
-        for sign, text in rows:
-            if sign == "-":
-                removed_names |= _called_names(text, {})
-        for sign, text in rows:
-            if sign == "-":
-                continue
-            if sign == "+" and moved[text.strip()] > 0:
-                moved[text.strip()] -= 1
-            elif sign == "+" and "(" in text and not _called_names(text, renamed) <= removed_names:
-                added.setdefault(source, set()).add(line)
-            line += 1
-    return added
-
-
-def _folded_callee_identity(engine: Compare, destination: int, callees: set[int]) -> int | None:
-    """Retail callee an unpaired recompiled function would have been folded into.
-
-    The comparison build links with /OPT:NOICF, so a source function that retail
-    ICF folded into another keeps its own unpaired body. It is that callee when
-    its code is byte-identical to the recompiled body of one retail callee and
-    contains no relative branch leaving the body, whose bytes would name a
-    different target at a different address.
-    """
-    from capstone.x86 import X86_OP_IMM
-    from reccmp.types import ImageId
-
-    from .binary.code import disassembler
-
-    entity = engine._db.get(ImageId.RECOMP, destination)
-    size = entity.size(ImageId.RECOMP) if entity is not None else None
-    if not size:
-        return None
-    body = bytes(engine.recomp_bin.read(destination, size))
-    for instruction in disassembler().disasm(body, destination):
-        if instruction.mnemonic in ("call", "jmp") or instruction.mnemonic.startswith("j"):
-            operand = instruction.operands[0]
-            if operand.type == X86_OP_IMM and not destination <= operand.imm < destination + size:
-                return None
-    identities = set()
-    for callee in callees:
-        match = engine._db.get_one_match(callee)
-        if match is None or match.size(ImageId.RECOMP) != size:
-            continue
-        if bytes(engine.recomp_bin.read(match.recomp_addr, size)) == body:
-            identities.add(callee)
-    return identities.pop() if len(identities) == 1 else None
-
-
-def check_changed_call_targets(repository: Path, target: str, since: str) -> dict[str, Any]:
-    """Check direct calls emitted by changed source lines against retail callees."""
-
-    from capstone.x86 import X86_OP_IMM
-    from reccmp.types import ImageId
-
-    from .binary.code import disassembler
-
-    added = _added_call_lines(repository, since)
-    if not added:
-        return {"status": "passed", "checked": 0, "errors": []}
-    from .source_index import source_functions
-
-    model = source_functions(repository, target)
-    engine = Compare.from_target(comparison_target(repository, target))
-    decoder = disassembler()
-    errors: list[dict[str, Any]] = []
-    checked = 0
-    for address, marker in model.items():
-        source = repository / marker.source_file
-        lines = added.get(source)
-        declaration = marker.declaration
-        if not lines or declaration is None or not declaration.is_definition:
-            continue
-        if not any(declaration.line <= line <= declaration.end_line for line in lines):
-            continue
-        match = engine._db.get_one_match(address)
-        if match is None:
-            errors.append({"function": f"0x{address:08x}", "reason": "no linked retail pair"})
-            continue
-        original_size = match.size(ImageId.ORIG) or match.max_size(ImageId.ORIG)
-        recomp_size = match.size(ImageId.RECOMP) or match.max_size(ImageId.RECOMP)
-        if not original_size or not recomp_size:
-            errors.append({"function": f"0x{address:08x}", "reason": "function extent unknown"})
-            continue
-        original_calls: set[int] = set()
-        for instruction in decoder.disasm(engine.orig_bin.read(address, original_size), address):
-            if instruction.mnemonic == "call" and instruction.operands[0].type == X86_OP_IMM:
-                destination = instruction.operands[0].imm
-                canonical = engine._db.alias_canonical_orig(ImageId.ORIG, destination)
-                original_calls.add(canonical or destination)
-        recomp_address = match.recomp_addr
-        line_starts = sorted(
-            (position, location[1])
-            for position in range(recomp_address, recomp_address + recomp_size)
-            if (location := engine._lines_db.find_line_of_recomp_address(position))
-            and location[0] == source
-        )
-        positions = [position for position, _ in line_starts]
-        for instruction in decoder.disasm(
-            engine.recomp_bin.read(recomp_address, recomp_size), recomp_address
-        ):
-            if instruction.mnemonic != "call" or instruction.operands[0].type != X86_OP_IMM:
-                continue
-            index = bisect_right(positions, instruction.address) - 1
-            if index < 0 or line_starts[index][1] not in lines:
-                continue
-            checked += 1
-            destination = instruction.operands[0].imm
-            canonical = engine._db.alias_canonical_orig(ImageId.RECOMP, destination)
-            if canonical is None:
-                canonical = _folded_callee_identity(engine, destination, original_calls)
-            if canonical not in original_calls:
-                errors.append(
-                    {
-                        "function": f"0x{address:08x}",
-                        "source": f"{marker.source_file}:{line_starts[index][1]}",
-                        "call": f"0x{instruction.address:08x}",
-                        "recompiled_target": f"0x{destination:08x}",
-                        "retail_identity": f"0x{canonical:08x}" if canonical else None,
-                        "reason": "callee absent from retail function"
-                        if canonical
-                        else "callee identity unresolved",
-                    }
-                )
-    return {"status": "failed" if errors else "passed", "checked": checked, "errors": errors}
 
 
 def selected_addresses(
@@ -484,46 +279,81 @@ def warn_if_build_may_be_stale(repository: Path, target: str, recmp_target: RecC
         )
 
 
-def _function_result(entity: ReccmpComparedEntity) -> dict[str, Any]:
-    """Convert one reccmp comparison into the external JSON row."""
+# reccmp's Ghidra projects: the original binary's analysis is reused across
+# recompiled builds.
+GHIDRA_PROJECTS = Path("build/reccmp-ghidra")
+_OUTCOMES = ("differences", "no-differences", "unpaired", "analysis-failed")
 
-    analysis = entity.analysis
-    result: dict[str, Any] = {
-        "address": f"0x{entity.orig_addr:08x}",
-        "recompiled": (f"0x{entity.recomp_addr:08x}" if entity.recomp_addr is not None else None),
-        "name": entity.name,
-        "raw_matching": entity.accuracy,
-        "effective_matching": entity.effective_accuracy,
-        "status": analysis.status.value,
-    }
-    if analysis.effective_reasons:
-        result["effective_reasons"] = list(analysis.effective_reasons)
-    if analysis.difference is not None:
-        difference = analysis.difference
-        result["difference"] = asdict(difference)
-        original_side = difference.orig
-        recompiled_side = difference.recomp
-        result["first_difference"] = {
-            "kind": difference.kind,
-            "original": {
-                "name": entity.name,
-                "address": f"0x{entity.orig_addr:08x}",
-                "instruction_index": original_side.instruction_index,
-                "location": original_side.address,
-            },
-            "recompiled": {
-                "name": entity.name,
-                "address": (
-                    f"0x{entity.recomp_addr:08x}" if entity.recomp_addr is not None else None
-                ),
-                "instruction_index": recompiled_side.instruction_index,
-                "location": recompiled_side.address,
-            },
+
+def report_directory(repository: Path, target: str) -> Path:
+    return repository / "build" / "reports" / "compare" / target.lower()
+
+
+def _run_reccmp(
+    repository: Path,
+    target: str,
+    addresses: list[int],
+    ghidra_install_dir: Path,
+    *,
+    side_by_side: bool,
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Run `reccmp-reccmp` for the selected original addresses.
+
+    Returns reccmp's manifest and its summary; the summary is None when no
+    selected address is a function reccmp knows."""
+    output = report_directory(repository, target)
+    for stale in ("manifest.json", "summary.json"):
+        (output / stale).unlink(missing_ok=True)
+    argv: list[str | Path] = [
+        sys.executable,
+        "-m",
+        "reccmp.tools.compare",
+        "--target",
+        target,
+        "--output",
+        output,
+        "--ghidra-projects",
+        repository / GHIDRA_PROJECTS,
+    ]
+    for address in addresses:
+        argv.extend(("--orig-address", f"{address:x}"))
+    if side_by_side:
+        argv.append("--sxs")
+    result = run(
+        argv,
+        cwd=repository / "build" / "decomp",
+        env={**os.environ, "GHIDRA_INSTALL_DIR": str(ghidra_install_dir)},
+        log_path=repository / "build" / "logs" / "reccmp-compare.json",
+        check=False,
+    )
+    manifest_path = output / "manifest.json"
+    manifest = json.loads(manifest_path.read_text()) if manifest_path.is_file() else None
+    summary_path = output / "summary.json"
+    if summary_path.is_file():
+        assert manifest is not None
+        return manifest, json.loads(summary_path.read_text())
+    if manifest is not None and not manifest["functions"]:
+        return manifest, None
+    raise CommandFailure(
+        result,
+        [line for line in result.stderr.splitlines()[-20:] if line],
+        repository / "build" / "logs" / "reccmp-compare.json",
+    )
+
+
+def _function_row(repository: Path, target: str, row: dict[str, Any]) -> dict[str, Any]:
+    """reccmp's result for one function, with its code diff moved to a file."""
+    result = {key: value for key, value in row.items() if key != "code_diff"}
+    diff = row["code_diff"]
+    if diff:
+        path = report_directory(repository, target) / f"{int(row['orig'], 16):08x}.diff"
+        atomic_write(path, "".join(diff))
+        result["code_diff"] = {
+            "lines": sum(
+                1 for line in diff if line[:1] in "+-" and not line.startswith(("+++", "---"))
+            ),
+            "artifact": str(path.relative_to(repository)),
         }
-    if analysis.inconclusive_reason is not None:
-        result["reason"] = analysis.inconclusive_reason
-    if analysis.inconclusive_location is not None:
-        result["location"] = asdict(analysis.inconclusive_location)
     return result
 
 
@@ -531,34 +361,24 @@ def compare_selected(
     repository: Path,
     target: str,
     addresses: list[int],
+    ghidra_install_dir: Path,
     *,
-    include_windows: bool = True,
+    side_by_side: bool = False,
     classify_header_emissions: bool = False,
 ) -> dict[str, Any]:
+    """Compare the selected functions with reccmp and summarize its results.
+
+    Differences are review material, not failures. The selection fails when a
+    comparison did not complete, or a selected function has no counterpart."""
     recmp_target = comparison_target(repository, target)
     warn_if_build_may_be_stale(repository, target, recmp_target)
-    pairing_logger = logging.getLogger("reccmp.compare.lines")
-    previous_level = pairing_logger.level
-    # Selected comparison reports unresolved requested addresses itself. The
-    # reccmp pairing pass also logs every unrelated unlinked inline body while
-    # constructing the engine, which made the known header emissions look like
-    # failures even when they were not selected.
-    pairing_logger.setLevel(logging.CRITICAL)
-    try:
-        engine = Compare.from_target(recmp_target, orig_addrs=addresses)
-        matches = {
-            entity.orig_addr: entity
-            for entity in engine.compare_addresses(
-                orig_addrs=addresses,
-                include_diff=False,
-                include_exact_diff=False,
-            )
-        }
-    finally:
-        pairing_logger.setLevel(previous_level)
-    window_images: dict[str, Any] = {}
+    _manifest, summary = _run_reccmp(
+        repository, target, addresses, ghidra_install_dir, side_by_side=side_by_side
+    )
+    rows = {int(row["orig"], 16): row for row in (summary or {}).get("functions", [])}
+
     header_emissions: dict[int, Any] = {}
-    missing_addresses = set(addresses) - matches.keys()
+    missing_addresses = set(addresses) - rows.keys()
     if classify_header_emissions and missing_addresses:
         from .source_index import source_functions
 
@@ -580,254 +400,143 @@ def compare_selected(
         }
     functions: list[dict[str, Any]] = []
     for address in sorted(set(addresses)):
-        entity = matches.get(address)
-        if entity is None:
-            if address in header_emissions:
-                marker = header_emissions[address]
-                functions.append(
-                    {
-                        "address": f"0x{address:08x}",
-                        "name": marker.name,
-                        "status": "header-emission",
-                        "reason": "inline header body has no standalone linked symbol",
-                        "source_file": marker.source_file,
-                    }
-                )
-                continue
-            functions.append({"address": f"0x{address:08x}", "status": "missing"})
-            continue
-        row = _function_result(entity)
-        if include_windows and row["status"] == "mismatch":
-            window = _instruction_windows(recmp_target, entity, images=window_images)
-            if window:
-                row["instruction_window"] = window
-                difference = row.get("difference") or {}
-                if difference.get("kind") == "branch_target" and not _paired_branch_witness(window):
-                    row["reported_difference"] = difference
-                    row["difference"] = {"kind": "alignment_or_structure"}
-        if row["status"] in {"mismatch", "inconclusive"}:
-            artifact = _write_compare_artifact(repository, row)
-            if artifact:
-                row["artifacts"] = {"diff": artifact}
-        functions.append(row)
+        row = rows.get(address)
+        if row is not None:
+            functions.append(_function_row(repository, target, row))
+        elif address in header_emissions:
+            marker = header_emissions[address]
+            functions.append(
+                {
+                    "orig": f"0x{address:08x}",
+                    "name": marker.name,
+                    "outcome": "header-emission",
+                    "reason": "inline header body has no standalone linked symbol",
+                    "source_file": marker.source_file,
+                }
+            )
+        else:
+            functions.append({"orig": f"0x{address:08x}", "outcome": "missing"})
 
-    exact = sum(row["status"] == "exact" for row in functions)
-    effective = sum(row["status"] == "effective" for row in functions)
-    missing = sum(row["status"] == "missing" for row in functions)
-    emitted = sum(row["status"] == "header-emission" for row in functions)
+    counts = Counter(row["outcome"] for row in functions)
+    output = report_directory(repository, target)
     return {
-        "ok": exact + effective + emitted == len(functions),
+        "ok": counts["analysis-failed"] == 0 and counts["unpaired"] == 0 and counts["missing"] == 0,
         "selected": len(functions),
-        "exact": exact,
-        "effective": effective,
-        "below_exact": len(functions) - exact - effective - missing - emitted,
-        "missing": missing,
-        "header_emissions": emitted,
+        "counts": {
+            outcome: counts[outcome] for outcome in (*_OUTCOMES, "header-emission", "missing")
+        },
+        "report": {
+            "summary": str((output / "summary.json").relative_to(repository))
+            if summary is not None
+            else None,
+            "ghidriff": str((output / f"{target}.ghidriff.md").relative_to(repository))
+            if summary is not None
+            else None,
+        },
         "functions": functions,
     }
 
 
-def _write_compare_artifact(repository: Path, row: dict[str, Any]) -> str | None:
-    """Write the first difference and instruction window next to other reports."""
-
-    address = str(row.get("address") or "").removeprefix("0x")
-    if not address:
+def last_comparison(repository: Path, target: str, recompiled: Path) -> dict[str, Any] | None:
+    """Counts from the last reccmp report for this target, if it compared the
+    current recompiled binary. Never runs a comparison."""
+    path = report_directory(repository, target) / "summary.json"
+    if not path.is_file():
         return None
-    first = row.get("first_difference") or {}
-    original = first.get("original") or {}
-    recompiled = first.get("recompiled") or {}
-    lines = [
-        f"{row.get('name') or ''} {row.get('address')}".strip(),
-        f"status={row.get('status')}",
-        f"kind={first.get('kind') or (row.get('difference') or {}).get('kind') or ''}",
-        (
-            "original="
-            f"{original.get('name') or row.get('name')} "
-            f"{original.get('address') or row.get('address')} "
-            f"index={original.get('instruction_index')}"
-        ),
-        (
-            "recompiled="
-            f"{recompiled.get('name') or row.get('name')} "
-            f"{recompiled.get('address') or row.get('recompiled')} "
-            f"index={recompiled.get('instruction_index')}"
-        ),
-    ]
-    if row.get("reason"):
-        lines.append(f"reason={row['reason']}")
-    window = row.get("instruction_window") or {}
-    for side in ("original", "recomp"):
-        instructions = window.get(side) or []
-        if not instructions:
-            continue
-        lines.append(f"[{side}]")
-        for item in instructions:
-            marker = ">>" if item.get("divergence") else "  "
-            lines.append(
-                f"{marker} {item.get('address', '')}  {item.get('instruction', '')}".rstrip()
-            )
-    path = repository / "build" / "reports" / "compare" / f"{address}.txt"
-    atomic_write(path, "\n".join(lines) + "\n")
-    return str(path.relative_to(repository))
-
-
-def _paired_branch_witness(window: dict[str, list[dict[str, Any]]]) -> bool:
-    """A branch-target diagnosis requires corresponding branch instructions on both sides."""
-
-    def divergent_mnemonic(side: str) -> str:
-        row = next((item for item in window.get(side, []) if item.get("divergence")), None)
-        return str(row.get("instruction", "")).split(maxsplit=1)[0].casefold() if row else ""
-
-    mnemonics = (divergent_mnemonic("original"), divergent_mnemonic("recomp"))
-    return all(value.startswith("j") and value != "jmp" for value in mnemonics)
-
-
-def _instruction_windows(
-    target: RecCmpTarget,
-    entity: ReccmpComparedEntity,
-    *,
-    radius: int = 3,
-    images: dict[str, Any] | None = None,
-) -> dict[str, list[dict[str, Any]]]:
-    """Decode a bounded window around reccmp's structured first divergence."""
-
-    from .binary.code import disassembler
-    from .binary.image import PeImage
-
-    difference = entity.analysis.difference
-    if difference is None:
-        return {}
-    paths = {"original": target.original_path, "recomp": target.recompiled_path}
-    starts: dict[str, int | None] = {
-        "original": entity.orig_addr,
-        "recomp": entity.recomp_addr,
-    }
-    sides = {"original": difference.orig, "recomp": difference.recomp}
-    result: dict[str, list[dict[str, Any]]] = {}
-    for side in ("original", "recomp"):
-        start = starts[side]
-        index = sides[side].instruction_index
-        if start is None or not isinstance(index, int):
-            continue
-        try:
-            if images is None:
-                image = PeImage(paths[side])
-            else:
-                image = images.get(side)
-                if image is None:
-                    image = PeImage(paths[side])
-                    images[side] = image
-            instructions = list(disassembler().disasm(image.read(start, 0x4000), start))
-        except (OSError, ValueError):
-            continue
-        low, high = max(0, index - radius), min(len(instructions), index + radius + 1)
-        result[side] = [
-            {
-                "address": f"0x{instruction.address:08x}",
-                "instruction": f"{instruction.mnemonic} {instruction.op_str}".rstrip(),
-                "divergence": position == index,
-            }
-            for position, instruction in enumerate(instructions[low:high], start=low)
-        ]
-    return result
+    summary = json.loads(path.read_text())
+    if summary["inputs"]["recomp"]["sha256"] != sha256_file(recompiled):
+        return None
+    return {"requested": summary["requested"], **summary["counts"]}
 
 
 def translate_addresses(repository: Path, target: str, queries: list[int]) -> dict[str, Any]:
+    """Look addresses up in reccmp's catalog, from either image."""
     recmp_target = comparison_target(repository, target)
     warn_if_build_may_be_stale(repository, target, recmp_target)
-    engine = Compare.from_target(recmp_target)
-    entities = list(
-        engine.compare_addresses(
-            orig_addrs=queries,
-            recomp_addrs=queries,
-            include_diff=False,
-            include_exact_diff=False,
-        )
-    )
-    by_original = {entity.orig_addr: entity for entity in entities}
-    by_recompiled = {
-        entity.recomp_addr: entity for entity in entities if entity.recomp_addr is not None
-    }
+    catalog = Compare.from_target(recmp_target)
     translations: list[dict[str, Any]] = []
     for query in queries:
-        entity = by_original.get(query)
         direction = "original-to-recompiled"
-        if entity is None:
-            entity = by_recompiled.get(query)
+        match = catalog.get_match(query)
+        if match is None:
             direction = "recompiled-to-original"
-        if entity is None:
+            entity = catalog.get(ImageId.RECOMP, query)
+            orig_addr = entity.orig_addr if entity is not None else None
+            match = catalog.get_match(orig_addr) if orig_addr is not None else None
+        if match is None:
             translations.append({"query": f"0x{query:08x}", "status": "missing"})
             continue
+        basis = catalog.pair_basis(match.orig_addr)
         translations.append(
             {
                 "query": f"0x{query:08x}",
                 "direction": direction,
-                "original": f"0x{entity.orig_addr:08x}",
-                "recompiled": (
-                    f"0x{entity.recomp_addr:08x}" if entity.recomp_addr is not None else None
-                ),
-                "name": entity.name,
-                "raw_matching": entity.accuracy,
-                "status": entity.analysis.status.value,
+                "original": f"0x{match.orig_addr:08x}",
+                "recompiled": f"0x{match.recomp_addr:08x}",
+                "name": match.best_name(),
+                "basis": basis.value if basis is not None else None,
             }
         )
     return {"translations": translations}
 
 
-def compare_linked_image(repository: Path, target: str) -> dict[str, Any]:
-    """Run the whole linked-image comparison through reccmp's report API."""
-
-    from reccmp.compare.report import report_function_accuracy
-
-    recmp_target = _project(repository).get(target)
-    engine = Compare.from_target(recmp_target)
-    report = engine.to_report(
-        recmp_target.filename,
-        include_diff=False,
-        include_exact_diff=False,
-    )
-    compared, total_accuracy, total_effective = report_function_accuracy(report)
-    return {
-        "target": target,
-        "compared": compared,
-        "accuracy": total_accuracy / compared if compared else 0.0,
-        "effective_accuracy": total_effective / compared if compared else 0.0,
-    }
+def _slot_text(entity: Any, raw: int | None) -> str | None:
+    if entity is not None:
+        return entity.best_name()
+    return f"0x{raw:08x}" if raw is not None else None
 
 
 def compare_vtables(repository: Path, target: str, class_filter: str | None) -> dict[str, Any]:
-    from reccmp.compare.report import get_udiff_for_entity
-
     recmp_target = comparison_target(repository, target)
     warn_if_build_may_be_stale(repository, target, recmp_target)
-    engine = Compare.from_target(recmp_target)
+    catalog = Compare.from_target(recmp_target)
     name_filter = class_filter.casefold() if class_filter else None
     rows = []
-    for item in engine.compare_vtables(include_diff=True):
-        if name_filter is not None and name_filter not in (item.name or "").casefold():
+    for vtable in catalog.get_vtables():
+        if name_filter is not None and name_filter not in (vtable.name or "").casefold():
             continue
+        comparison = compare_vtable(catalog.db, catalog.orig_bin, catalog.recomp_bin, vtable)
+        statuses = {slot.status for slot in comparison.slots}
+        status = (
+            "match"
+            if statuses <= {SlotStatus.MATCH}
+            else "different"
+            if SlotStatus.DIFFERENT in statuses
+            else "unpaired"
+        )
         rows.append(
             {
-                "name": item.name,
-                "original": f"0x{item.orig_addr:08x}",
-                "recompiled": (
-                    f"0x{item.recomp_addr:08x}" if item.recomp_addr is not None else None
-                ),
-                "status": "exact" if item.accuracy == 1 else "mismatch",
-                "accuracy": item.accuracy,
-                "diff": get_udiff_for_entity(item),
+                "name": vtable.name,
+                "original": f"0x{vtable.orig_addr:08x}",
+                "recompiled": f"0x{vtable.recomp_addr:08x}",
+                "status": status,
+                "slots": [
+                    {
+                        "offset": slot.offset,
+                        "status": slot.status.value,
+                        "original": _slot_text(slot.orig, slot.orig_raw),
+                        "recompiled": _slot_text(slot.recomp, slot.recomp_raw),
+                    }
+                    for slot in comparison.slots
+                    if slot.status != SlotStatus.MATCH
+                ],
             }
         )
     if not rows:
         qualifier = f" matching {class_filter!r}" if class_filter else ""
         raise RuntimeError(f"reccmp found zero vtables{qualifier}; refusing vacuous success")
+    counts = Counter(row["status"] for row in rows)
     return {
-        "ok": all(row["status"] == "exact" for row in rows),
+        "ok": counts["different"] == 0 and counts["unpaired"] == 0,
         "count": len(rows),
-        "exact_count": sum(row["status"] == "exact" for row in rows),
-        "issue_count": sum(row["status"] != "exact" for row in rows),
+        "match_count": counts["match"],
+        # A slot at a paired function other than retail's.
+        "different_count": counts["different"],
+        # Only slots at functions reccmp has not paired, typically bodies the
+        # retail link folded (ICF); the comparison build links /OPT:NOICF.
+        "unpaired_count": counts["unpaired"],
         "filter": class_filter,
-        "vtables": rows,
+        "vtables": [row for row in rows if row["status"] != "match"],
     }
 
 
@@ -873,176 +582,4 @@ def compare_data(repository: Path, target: str) -> dict[str, Any]:
         "count": len(items),
         "issue_count": len(problems),
         "issues": problems,
-    }
-
-
-# Equivalence-group proof ---------------------------------------------------
-#
-# reccmp trusts `equivalence-groups` declarations: any reference into a member
-# resolves as a reference to the canonical address. The body-equivalence proof
-# is project-owned, so re-verifying every row against the original image is
-# what keeps a stale entry from silently masking a regression.
-
-_FUNCTION_WINDOW = 0x400
-_BRANCH_GROUP = 7  # capstone CS_GRP_BRANCH_RELATIVE
-
-
-def _equivalence_rows(target: RecCmpTarget) -> list[tuple[Any, int, int, str, str] | str]:
-    rows = []
-    for path in target.equivalence_groups:
-        text = Path(path).read_text(encoding="utf-8")
-        for lineno, line in enumerate(text.splitlines(), 1):
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            parts = [part.strip() for part in line.split("|")]
-            location = f"{path}:{lineno}"
-            try:
-                member, canonical = int(parts[0], 16), int(parts[1], 16)
-            except (ValueError, IndexError):
-                rows.append(location)
-                continue
-            rows.append(
-                (
-                    location,
-                    member,
-                    canonical,
-                    parts[2] if len(parts) > 2 else "",
-                    parts[3] if len(parts) > 3 else "function",
-                )
-            )
-    return rows
-
-
-def _normalized_instruction(
-    instruction: Any,
-    image: Any,
-    body_start: int,
-    reloc_sites: list[int],
-    groups: dict[int, int],
-) -> tuple[bytes, tuple[tuple[str, int], ...]]:
-    """An instruction with every address-bearing field folded to a canonical
-    token: relocated dwords map through the group table, intra-body branch
-    targets become offsets from the body start, and external targets become
-    their canonical original address. All other bytes compare literally."""
-    import bisect
-
-    from reccmp.compare.equivalence import canonical_orig_addr
-
-    fields = bytearray(instruction.bytes)
-    tokens: list[tuple[str, int]] = []
-    begin = bisect.bisect_left(reloc_sites, instruction.address)
-    for site in reloc_sites[begin:]:
-        if site + 4 > instruction.address + instruction.size:
-            break
-        offset = site - instruction.address
-        value = image.read_u32(site)
-        if value is not None:
-            tokens.append(("abs", canonical_orig_addr(groups, value)))
-        fields[offset : offset + 4] = b"\0" * 4
-    if _BRANCH_GROUP in instruction.groups:
-        operand = instruction.operands[0]
-        target = operand.imm
-        if body_start <= target < body_start + _FUNCTION_WINDOW:
-            tokens.append(("local", target - body_start))
-        else:
-            tokens.append(("ext", canonical_orig_addr(groups, target)))
-        offset = instruction.encoding.imm_offset
-        fields[offset : offset + instruction.encoding.imm_size] = (
-            b"\0" * instruction.encoding.imm_size
-        )
-    return bytes(fields), tuple(tokens)
-
-
-def _normalized_body(
-    image: Any, engine: Any, start: int, reloc_sites: list[int], groups: dict[int, int]
-) -> tuple[list[Any], str | None]:
-    """Relocation-normalized token stream for the body at ``start``.
-
-    The body ends at the first unconditional terminator (``ret``/``jmp``)
-    followed by inter-function padding; an early ``ret`` inside the stream is
-    kept as an ordinary instruction because its tail is real code, not padding.
-    A body ending in a jump table instead of padding is not bounded by this
-    scan and reports ``unbounded`` rather than a false equivalence.
-    """
-    raw = image.read(start, _FUNCTION_WINDOW)
-    if len(raw) != _FUNCTION_WINDOW:
-        return [], f"0x{start:08x}: cannot read {_FUNCTION_WINDOW}-byte body window"
-    tokens = []
-    for instruction in engine.disasm(raw, start):
-        tokens.append(_normalized_instruction(instruction, image, start, reloc_sites, groups))
-        if instruction.mnemonic in ("ret", "jmp"):
-            tail = image.read(instruction.address + instruction.size, 1)
-            if not tail or tail[0] in (0xCC, 0x90):
-                return tokens, None
-    return tokens, f"0x{start:08x}: no padding-terminated ret/jmp within {_FUNCTION_WINDOW} bytes"
-
-
-def verify_equivalence_groups(repository: Path, target: str) -> dict[str, Any]:
-    from reccmp.compare.equivalence import parse_equivalence_groups
-    from reccmp.formats.textfile import TextFile
-
-    from .binary.code import disassembler, relocation_sites
-    from .binary.image import PeImage
-
-    recmp_target = _project(repository).get(target)
-    original = recmp_target.original_path
-    if original is None or not Path(original).is_file():
-        raise FileNotFoundError("original image is missing; licensed inputs are required")
-    image = PeImage(Path(original))
-    groups = parse_equivalence_groups(
-        [TextFile.from_file(Path(path)) for path in recmp_target.equivalence_groups]
-    )
-    rows = _equivalence_rows(recmp_target)
-    sites = relocation_sites(image)
-    engine = disassembler()
-    results = []
-    for row in rows:
-        if isinstance(row, str):
-            results.append({"location": row, "status": "invalid"})
-            continue
-        location, member, canonical, name, kind = row
-        result: dict[str, Any] = {
-            "location": location,
-            "name": name,
-            "kind": kind,
-            "member": f"0x{member:08x}",
-            "canonical": f"0x{canonical:08x}",
-        }
-        if kind == "data":
-            member_value = image.read_u32(member)
-            canonical_value = image.read_u32(canonical)
-            equivalent = (
-                member_value is not None
-                and canonical_value is not None
-                and groups.get(member_value, member_value)
-                == groups.get(canonical_value, canonical_value)
-            )
-            result["status"] = "equivalent" if equivalent else "diverged"
-        else:
-            member_tokens, member_error = _normalized_body(image, engine, member, sites, groups)
-            canonical_tokens, canonical_error = _normalized_body(
-                image, engine, canonical, sites, groups
-            )
-            if member_error or canonical_error:
-                result["status"] = "unbounded"
-                result["error"] = member_error or canonical_error
-            elif member_tokens == canonical_tokens:
-                result["status"] = "equivalent"
-            else:
-                result["status"] = "diverged"
-                divergence = next(
-                    (
-                        index
-                        for index, pair in enumerate(zip(member_tokens, canonical_tokens))
-                        if pair[0] != pair[1]
-                    ),
-                    min(len(member_tokens), len(canonical_tokens)),
-                )
-                result["divergence"] = divergence
-        results.append(result)
-    return {
-        "ok": bool(results) and all(row["status"] == "equivalent" for row in results),
-        "count": len(results),
-        "rows": results,
     }
