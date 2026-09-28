@@ -1,4 +1,5 @@
 #include "line.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/MGSFormation.h"
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "soundman.h"
@@ -220,7 +221,7 @@ bool g_mouselook_left_held;
 bool g_node_cull_pending;
 
 // GLOBAL: WIZ8 0x006480f4
-const wchar_t g_format_mouselook_angles[] = L"%.3f, %.3f";
+wchar_t g_format_mouselook_angles[] = L"%.3f, %.3f";
 
 // GLOBAL: WIZ8 0x0068f2c8
 unsigned int g_main_game_text_panel_region_set;
@@ -249,19 +250,19 @@ char s_lock_open_fail_64bb88[] = "Data\\Sound\\Misc\\Lock_Open_Fail.wav";
 char s_trap_detect_64bcf0[] = "Data\\Sound\\Misc\\Trap Detect.wav";
 
 // GLOBAL: WIZ8 0x0064bcac
-const char g_trap_inspection_sound[] = "Data\\Sound\\Misc\\Trap Inspection.wav";
+char g_trap_inspection_sound[] = "Data\\Sound\\Misc\\Trap Inspection.wav";
 
 // GLOBAL: WIZ8 0x0064bcd0
-const char g_trap_sprung_sound[] = "Data\\Sound\\Misc\\Trap Sprung.wav";
+char g_trap_sprung_sound[] = "Data\\Sound\\Misc\\Trap Sprung.wav";
 
 // GLOBAL: WIZ8 0x0064bab0
-const wchar_t g_format_d_percent[] = L"%d%%";
+wchar_t g_format_d_percent[] = L"%d%%";
 
 // GLOBAL: WIZ8 0x006068e4
-const wchar_t g_format_s[] = L"%s";
+wchar_t g_format_s[] = L"%s";
 
 // GLOBAL: WIZ8 0x00648170
-const wchar_t g_format_d_s_paren_d_slash_d_slash_d[] = L"%d %s (%d/%d/%d)";
+wchar_t g_format_d_s_paren_d_slash_d_slash_d[] = L"%d %s (%d/%d/%d)";
 
 // GLOBAL: WIZ8 0x00647f84
 #pragma bss_seg(".data")
@@ -274,25 +275,27 @@ int g_monster_list_bottom = 0;
 #pragma bss_seg()
 
 // GLOBAL: WIZ8 0x006481b4
-const wchar_t g_format_s_colon_s_paren_d[] = L"%s: %s (%d)";
+wchar_t g_format_s_colon_s_paren_d[] = L"%s: %s (%d)";
 
 // GLOBAL: WIZ8 0x0064808c
-const wchar_t g_format_enter_test_level[] = L"Enter test level %c ?";
+wchar_t g_format_enter_test_level[] = L"Enter test level %c ?";
 // GLOBAL: WIZ8 0x006480b8
-const wchar_t g_text_enter_default_level[] = L"Enter default level ?";
+wchar_t g_text_enter_default_level[] = L"Enter default level ?";
 // GLOBAL: WIZ8 0x006480e4
-const wchar_t g_format_s_s_question[] = L"%s %s?";
+wchar_t g_format_s_s_question[] = L"%s %s?";
 
 // GLOBAL: WIZ8 0x0061A700
-const wchar_t g_format_s_paren_d[] = L"%s (%d)";
+wchar_t g_format_s_paren_d[] = L"%s (%d)";
 
 // GLOBAL: WIZ8 0x0061c3e0
-const wchar_t g_format_s_colon_s[] = L"%s: %s";
+wchar_t g_format_s_colon_s[] = L"%s: %s";
 // GLOBAL: WIZ8 0x0064da8c
-const wchar_t g_format_s_spaced_colon[] = L"%s :  ";
+wchar_t g_format_s_spaced_colon[] = L"%s :  ";
 
 // GLOBAL: WIZ8 0x005ec258
 const float g_float_005ec258 = 0.019999999552965164f;
+// GLOBAL: WIZ8 0x005ec25c
+const float g_float_005ec25c = 180.0f;
 // GLOBAL: WIZ8 0x005ee998
 const float g_mouselook_yaw_scale = 0.004908738192170858f;
 // GLOBAL: WIZ8 0x005ee99c
@@ -4019,7 +4022,7 @@ void RequestRedraw(unsigned int mask)
 }
 
 // GLOBAL: WIZ8 0x0064810c
-const char g_warning_drawing_text_box_while_text_buffer[] =
+char g_warning_drawing_text_box_while_text_buffer[] =
     "WARNING: Drawing text box while Text Buffer = %d (AlexP)";
 
 /* Consume the live redraw_flags word: clear the primary surface, refresh the
@@ -9146,13 +9149,6 @@ void W8NpcDialogueTextController::SetTranscriptSorted(unsigned char sorted)
     text_area.SetSorted(sorted);
     Invalidate(0);
 }
-
-/* The trade-mode split-dialog kinds OpenNpcTradeQuantityDialog selects:
-   1 while the party sells to the NPC, 2 while buying or identifying. */
-// GLOBAL: WIZ8 0x005EFB68
-int g_split_dialog_sell_kind = 1;
-// GLOBAL: WIZ8 0x005EFB6C
-int g_split_dialog_buy_kind = 2;
 
 /* The trade confirm button's activation callback. Selling mode first offers
    the selected stack outright when the NPC's wanted list matches it; the

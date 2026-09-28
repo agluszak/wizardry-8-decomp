@@ -421,7 +421,7 @@ unsigned char g_level_status_loading;
 float g_default_world_height = 1000.0f;
 
 // GLOBAL: WIZ8 0x005ebfdc
-float g_position_height_epsilon = 2500.0f;
+const float g_position_height_epsilon = 2500.0f;
 
 // GLOBAL: WIZ8 0x00603ad0
 unsigned char g_environment_load_flag = 1;
@@ -539,12 +539,12 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
 
     previous_level = g_status.current_level;
     g_status.current_level = level;
-    sprintf(music_path, "Data\\Music\\%s.MPL", g_level_folders[level].folder_name);
+    sprintf(music_path, "Data\\Music\\%s.MPL", g_level_folders[level].level_name);
     if (FileExists(music_path)) {
-        sprintf(music_path, "%s.MPL", g_level_folders[g_status.current_level].folder_name);
+        sprintf(music_path, "%s.MPL", g_level_folders[g_status.current_level].level_name);
         StartMusicResource(music_path, 1, 1);
     } else {
-        StartMusicResource("", 1, 1);
+        StartMusicResource("Adventure.MPL", 1, 1);
     }
     ServiceMusicPlaylist();
 

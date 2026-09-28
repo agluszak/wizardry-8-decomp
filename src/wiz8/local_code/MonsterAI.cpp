@@ -86,13 +86,13 @@ void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action
 /* 125000, the cap on how far a monster will walk to investigate a heard
    noise. */
 // GLOBAL: WIZ8 0x00617AE8
-const int g_int_00617ae8 = 125000;
+int g_int_00617ae8 = 125000;
 
 struct W8SpellEffectEntry;
 /* 0x0061EEFC: two dwords per special-attack kind; only the leading dword is
    read here. */
 // GLOBAL: WIZ8 0x0061EEFC
-extern const int g_special_attack_table[32][2] = {
+int g_special_attack_table[32][2] = {
     {0, 0}, {1, 0}, {1, 0}, {2, 3}, {4, 0}, {1, 1}, {1, 1}, {1, 0}, {5, 4}, {5, 0}, {1, 5},
     {1, 1}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 1}, {1, 5}, {1, 0},
     {1, 1}, {1, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {5, 0}, {6, 0},
@@ -103,14 +103,14 @@ extern const int g_special_attack_table[32][2] = {
    monster side indexes effect_slots_10f, the party side the matching rows
    in g_status. */
 // GLOBAL: WIZ8 0x00616D84
-const int g_being_effect_slot_spells[12] = {
+int g_being_effect_slot_spells[12] = {
     0x20, 0x21, 0x11, 0x14, 0x8, 0x28, 0x1a, 0x2d, 0x40, 0, 0, 0,
 };
 
 /* The combat-state spell per effect slot, walked against
    W8CombatState::effect_slots and the monster's effect_slots_3e. */
 // GLOBAL: WIZ8 0x00616DB4
-const int g_combat_effect_slot_spells[9] = {
+int g_combat_effect_slot_spells[9] = {
     0x31, 0x30, 0x4c, 0x51, 0x5d, 0x50, 0, 0, 0,
 };
 
@@ -120,14 +120,14 @@ const int g_combat_effect_slot_spells[9] = {
    0x00616DF0 — is the spell-point budget/failure percentage indexed by cost
    band that Magic.cpp's failure and power-level readers consume. */
 // GLOBAL: WIZ8 0x00616DD8
-const int g_combat_effect_slot_spells_and_cast_success[23] = {
+int g_combat_effect_slot_spells_and_cast_success[23] = {
     0x2, 0x35, 0x3b, 0x3e, 0,  0,  30,  40,  50,  58,  64,  70,
     76,  81,   86,   90,   94, 97, 100, 102, 105, 107, 110,
 };
 
 /* The per-slot weights ChooseMonsterSpell rolls against. */
 // GLOBAL: WIZ8 0x0061CC14
-static const int g_spell_cast_weights[10] = {5, 5, 5, 10, 10, 10, 10, 15, 15, 15};
+static int g_spell_cast_weights[10] = {5, 5, 5, 10, 10, 10, 10, 15, 15, 15};
 
 /* 0x005EE768: 1500.0, the "close enough" distance for patrol points and heard
    noises. */

@@ -10,7 +10,7 @@ class BitArray;
 struct W8LevelFileParticleSystem;
 struct W8LevelFileProp;
 
-extern float g_float_005ec52c;
+extern const float g_float_005ec52c;
 
 struct W8OctPreTreeVertex;
 struct W8OctPreTreeGeometry;

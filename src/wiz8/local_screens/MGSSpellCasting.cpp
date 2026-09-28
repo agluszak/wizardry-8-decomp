@@ -1,4 +1,5 @@
 #include "wiz8/local_screens/MGSSpellCasting.h"
+#include "wiz8/integer_constants.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -64,7 +65,7 @@ enum { W8_SKILL_FIRST_REALM = 0x1c };
 int g_spell_realm_help_string_ids[6] = {0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c};
 
 // GLOBAL: WIZ8 0x0064C934
-const wchar_t g_format_s_parens_s_colon_d[] = L"%s (%s: %d)";
+wchar_t g_format_s_parens_s_colon_d[] = L"%s (%s: %d)";
 
 // GLOBAL: WIZ8 0x0069BF3C
 W8SpellCastingView* gpSCSV;

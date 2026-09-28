@@ -77,25 +77,27 @@ void DecodeLocalizedText(unsigned short* text, int character_count)
     }
 }
 
+// STRING: WIZ8 0x0061a4ec
+#define STRINGS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Strings.cpp"
+
 // FUNCTION: WIZ8 0x00518360
 void LoadLocalizedStrings(const char* path)
 {
-    static const char source[] = "C:\\Projects\\Wizardry 8\\Local Code\\Strings.cpp";
     int handle = FileOpen(const_cast<char*>(path), 0x41, 0);
     int index;
 
     if (!handle) {
-        srAssertFail("hFile", source, 74, "Failed to open localization string table.");
+        srAssertFail("hFile", STRINGS_CPP, 74, "Failed to open localization string table.");
         return;
     }
     if (!FileRead(handle, &giStringListLen, 4, 0) || !giStringListLen) {
-        srAssertFail("giStringListLen", source, 79, 0);
+        srAssertFail("giStringListLen", STRINGS_CPP, 79, 0);
         FileClose(handle);
         return;
     }
     gppStringList = static_cast<wchar_t**>(malloc(giStringListLen * sizeof(wchar_t*)));
     if (!gppStringList) {
-        srAssertFail("gppStringList", source, 82, 0);
+        srAssertFail("gppStringList", STRINGS_CPP, 82, 0);
         FileClose(handle);
         return;
     }
@@ -107,7 +109,7 @@ void LoadLocalizedStrings(const char* path)
         }
         gppStringList[index] = static_cast<wchar_t*>(malloc(byte_count));
         if (!gppStringList[index]) {
-            srAssertFail("gppStringList[iCount]", source, 89, 0);
+            srAssertFail("gppStringList[iCount]", STRINGS_CPP, 89, 0);
             break;
         }
         if (!FileRead(handle, gppStringList[index], byte_count, 0)) {

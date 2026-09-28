@@ -639,12 +639,12 @@ void PathAIPosition(W8PathAI* path, srVector3T<float>* value)
 }
 
 // GLOBAL: WIZ8 0x005EC1E8
-double g_double_005ec1e8 = 2.0;
+const double g_double_005ec1e8 = 2.0;
 
 /* FLT_EPSILON: the dot-product closeness bound at which the keyframe slerps
    fall back to a linear blend. */
 // GLOBAL: WIZ8 0x005EC1F0
-double g_double_005ec1f0 = 1.1920928955078125e-07;
+const double g_double_005ec1f0 = 1.1920928955078125e-07;
 
 // FUNCTION: WIZ8 0x004aa520
 void PathAIApply(W8PathAI* path, srNode* target)

@@ -2933,11 +2933,11 @@ int g_help_box_y;
 int g_screen_transition_object_capacity;
 
 // GLOBAL: WIZ8 0x005ebe88
-double g_double_005ebe88 = 0.0020833333333333333;
+const double g_double_005ebe88 = 0.0020833333333333333;
 // GLOBAL: WIZ8 0x005ebe90
-double g_double_005ebe90 = 0.0015625;
+const double g_double_005ebe90 = 0.0015625;
 // GLOBAL: WIZ8 0x005ebf40
-double g_double_005ebf40 = 0.75;
+const double g_double_005ebf40 = 0.75;
 
 /* Packs four normalized colour components into the surface byte order:
    red, green, blue, alpha from the high byte down. */

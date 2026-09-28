@@ -693,7 +693,7 @@ static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
 extern unsigned int* g_octree_storage_;
 extern unsigned long* g_octree_state;
 extern stModelInstance* g_octree_trace_node;
-extern float g_octree_cell_scale;
+extern const float g_octree_cell_scale;
 extern unsigned long g_octree_bytes_read;
 extern int g_prop_sun_index;
 extern bool g_octree_update_suspended;

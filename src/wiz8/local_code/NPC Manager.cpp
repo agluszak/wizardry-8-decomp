@@ -1,4 +1,5 @@
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/local_code/CharGeneration.h"
@@ -398,7 +399,7 @@ struct W8NpcServiceRow {
     unsigned int bit;
 };
 // GLOBAL: WIZ8 0x00619DF8
-const W8NpcServiceRow g_npc_services[] = {
+W8NpcServiceRow g_npc_services[] = {
     {0x46, 2, W8_NPC_SERVICE_ARNIKA},
     {0x47, 3, W8_NPC_SERVICE_TRYNTON},
     {0x50, 4, W8_NPC_SERVICE_SWAMP},
@@ -675,7 +676,7 @@ bool RecruitNpcIntoParty(W8NpcState* npc)
 /* 0x00619F18: the name a fact substitutes, and 0x00689F60 the buffer it is
    copied into so the caller always gets a writable one. */
 // GLOBAL: WIZ8 0x00619F18
-const char g_substituted_npc_name[] = "RFS81B";
+char g_substituted_npc_name[] = "RFS81B";
 // GLOBAL: WIZ8 0x00689F60
 char g_npc_name_buffer[52];
 

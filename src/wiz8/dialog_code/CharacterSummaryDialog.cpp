@@ -1,4 +1,5 @@
 #include "wiz8/dialog_code/CharacterSummaryDialog.h"
+#include "wiz8/integer_constants.h"
 
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
 #include "wiz8/engine_code/Video2.h"
@@ -24,7 +25,7 @@
    original translation-unit or class spelling. */
 
 // GLOBAL: WIZ8 0x00650250
-static const W8ControlsRect g_character_summary_quote_bounds[1] = {
+static W8ControlsRect g_character_summary_quote_bounds[1] = {
     {121, 24, 345, 72},
 };
 

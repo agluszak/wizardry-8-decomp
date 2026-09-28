@@ -504,11 +504,11 @@ void ResumeAllNavigators(void);
 
 void NavigatorDefaultCallback(W8Navigator* navigator);
 
-extern float g_navigator_vertical_phase_step;
-extern float g_navigator_snap_angle;
+extern const float g_navigator_vertical_phase_step;
+extern const float g_navigator_snap_angle;
 extern unsigned char g_combat_inactive;
 extern unsigned char g_navigator_link_mode;
-extern float g_navigator_linked_radius_scale;
+extern const float g_navigator_linked_radius_scale;
 extern W8GrowableVector<W8Navigator*> g_navigator_group;
 /* Runtime scale applied to the startup navigator's radius_084 when the trace
    resolver tests the camera sphere; written during startup, not a constant. */

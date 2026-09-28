@@ -198,6 +198,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/Traps.cpp
     src/wiz8/local_code/Gameloop.cpp
     src/wiz8/game_init.cpp
+    src/wiz8/integer_constants.cpp
     src/wiz8/dialog_code/MonsterInfoDialog.cpp
     src/wiz8/dialog_code/AssayDialog.cpp
     src/wiz8/dialog_code/DialogTextArea.cpp

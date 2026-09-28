@@ -26,7 +26,7 @@
 #include "wiz8/engine_code/PolyPick.h"
 
 // GLOBAL: WIZ8 0x005ec5a8
-float g_float_005ec5a8 = 0.6000000238418579f;
+const float g_float_005ec5a8 = 0.6000000238418579f;
 
 // FUNCTION: WIZ8 0x00479030
 void StopAllAmbientSounds()

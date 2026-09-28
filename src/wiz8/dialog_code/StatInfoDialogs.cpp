@@ -23,9 +23,8 @@
    info dialog in this family reuses; its own vtable is emitted retail even
    though it is only ever a base subobject. */
 
-// GLOBAL: WIZ8 0x006501D8
-static const char STAT_INFO_DIALOGS_CPP[] =
-    "C:\\Projects\\Wizardry 8\\Dialog Code\\StatInfoDialogs.cpp";
+// STRING: WIZ8 0x006501D8
+#define STAT_INFO_DIALOGS_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\StatInfoDialogs.cpp"
 
 enum { ATTR_COUNT = 7 };
 enum { SKILL_COUNT = 0x29 };

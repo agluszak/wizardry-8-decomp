@@ -288,17 +288,17 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
     }
 
     if (animation->end_frame_15 == 0) {
-        if (animation->entries_18[2] != 0) {
-            animation->end_frame_15 =
-                static_cast<unsigned char>(AniMeshValue(animation->entries_18[2]) - 1);
-        } else if (animation->entries_18[1] != 0) {
-            animation->end_frame_15 =
-                static_cast<unsigned char>(AniMeshValue(animation->entries_18[1]) - 1);
-        } else if (animation->entries_18[0] != 0) {
-            animation->end_frame_15 =
-                static_cast<unsigned char>(AniMeshValue(animation->entries_18[0]) - 1);
-        } else if (animation->path_lists_05 == 0) {
+        W8AniMesh* mesh = animation->entries_18[2];
+        if (mesh == 0) {
+            mesh = animation->entries_18[1];
+        }
+        if (mesh == 0) {
+            mesh = animation->entries_18[0];
+        }
+        if (mesh == 0) {
             animation->end_frame_15 = animation->start_frame_14;
+        } else if (animation->path_lists_05 == 0) {
+            animation->end_frame_15 = static_cast<unsigned char>(AniMeshValue(mesh) - 1);
         } else {
             animation->end_frame_15 = animation->frame_count_16 - 1;
         }

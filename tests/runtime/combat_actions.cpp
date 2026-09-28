@@ -26,6 +26,7 @@
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/layouts/main_game_screen.h"
+#include "wiz8/music_playlist.h"
 #include "sgp.h"
 
 #include <stdio.h>
@@ -352,35 +353,23 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
     if (g_status.buffers.XChar == 0) {
         return;
     }
-    /* Aim each slot at a live target: once the provoked monster dies the
-       queued attack needs to retarget or the round swings at a corpse. Fall
-       back to the nearest live in-combat monster. */
+    /* The approach step moves beside the nearest engaged monster. Aim at
+       that monster too; the original provoked target may have moved away. */
     int aim_location_id = query->location_id;
     if (gXStatus.plsMonsterList != 0) {
-        bool alive = false;
+        srVector3T<float> camera;
+        float best = 1e30f;
+        GetCameraPosition(&camera);
         for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-            if (info != 0 && info->fActive != 0 && info->fInCombat != 0 && info->hp_current != 0 &&
-                info->uiCondition[W8_CONDITION_DEAD] == 0 && info->location_id == aim_location_id) {
-                alive = true;
-                break;
+            if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->p3D == 0 ||
+                info->hp_current == 0 || info->uiCondition[W8_CONDITION_DEAD] != 0) {
+                continue;
             }
-        }
-        if (!alive) {
-            srVector3T<float> camera;
-            float best = 1e30f;
-            GetCameraPosition(&camera);
-            for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
-                W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-                if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->p3D == 0 ||
-                    info->hp_current == 0 || info->uiCondition[W8_CONDITION_DEAD] != 0) {
-                    continue;
-                }
-                float distance = (info->p3D->GetPosition() - camera).Length();
-                if (distance < best) {
-                    best = distance;
-                    aim_location_id = info->location_id;
-                }
+            float distance = (info->p3D->GetPosition() - camera).Length();
+            if (distance < best) {
+                best = distance;
+                aim_location_id = info->location_id;
             }
         }
     }
@@ -1126,8 +1115,18 @@ static bool ObserveTargetDamage(const HostileEngagementSnapshot& state, void* op
    party melee against this target; hostile actions target the party, so this
    is durable evidence of a party hit. attack_report is diagnostic only:
    retail consumes and clears it synchronously before the harness can poll it. */
+static void IsolateCombatRandomnessOnGameThread(void*)
+{
+    /* Playlist selection uses the same rand() stream on frame timing. */
+    StopMusicPlaylist(0);
+    srand(0x57495a38);
+}
+
 bool CombatAttackCase(RuntimeCase& test)
 {
+    if (!test.on_game_thread("combat-rng", IsolateCombatRandomnessOnGameThread, 0, 60000)) {
+        return false;
+    }
     int location_id = EngageHostile(test);
     RT_REQUIRE(test, location_id >= 0);
 

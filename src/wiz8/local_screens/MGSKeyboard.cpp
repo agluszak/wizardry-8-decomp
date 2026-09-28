@@ -669,7 +669,7 @@ void DispatchMGSCommand(int command)
 }
 
 // GLOBAL: WIZ8 0x0064c1cc
-const int g_keyboard_row_positions[13][2] = {
+int g_keyboard_row_positions[13][2] = {
     {5, 55}, {23, 55}, {41, 55}, {59, 55}, {59, 37}, {5, 37},  {5, 19},
     {5, 1},  {23, 1},  {41, 1},  {59, 1},  {59, 19}, {32, 28},
 };

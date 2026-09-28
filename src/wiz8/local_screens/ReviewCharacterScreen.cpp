@@ -1,4 +1,5 @@
 #include "soundman.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/fact_state.h"
@@ -126,11 +127,7 @@ unsigned int g_camp_spell_region_sets[6];
 // GLOBAL: WIZ8 0x0069c408
 unsigned int g_camp_character_info_region_set;
 
-// GLOBAL: WIZ8 0x005ee6ec
-int g_effect_005ee6ec = 109;
 
-// GLOBAL: WIZ8 0x005ed8cc
-int g_effect_argument_005ed8cc = 1;
 
 void DrawCampCharacterInfo(void);
 void DrawCampBackpackItems(void);
@@ -186,7 +183,7 @@ int g_attribute_label_ids[7] = {0x924, 0x925, 0x926, 0x927, 0x928, 0x92a, 0x929}
 
 /* 0x0064DD4C: the help-line weight breakdown, "<personal>: n, <party>: n". */
 // GLOBAL: WIZ8 0x0064DD4C
-const wchar_t g_format_s_colon_d_s_colon_d[] = L"%s: %d, %s: %d";
+wchar_t g_format_s_colon_d_s_colon_d[] = L"%s: %d, %s: %d";
 
 // FUNCTION: WIZ8 0x005B9220
 void ReleaseCampActionPanel(void)
@@ -249,7 +246,7 @@ void InvalidateCampPanel(void)
 }
 
 // GLOBAL: WIZ8 0x0064CBF0
-const W8CampScreenRegion g_camp_screen_regions[12] = {
+W8CampScreenRegion g_camp_screen_regions[12] = {
     {0x0bc, 0x0b0, 0x2d, 0x39, 0x00, 0x01, 0x0ee, 0x0c1, 0},
     {0x1af, 0x0c6, 0x28, 0x28, 0x28, 0x08, 0x1aa, 0x0de, 1},
     {0x1af, 0x0f1, 0x28, 0x28, 0x24, 0x08, 0x1aa, 0x0f1, 1},
@@ -267,13 +264,13 @@ const W8CampScreenRegion g_camp_screen_regions[12] = {
    formats - zero-padded cost, plain number, plain string and the realm label
    prefix. */
 // GLOBAL: WIZ8 0x0064DD14
-const wchar_t g_format_3d[] = L"%3.3d";
+wchar_t g_format_3d[] = L"%3.3d";
 // GLOBAL: WIZ8 0x0064DD20
-const wchar_t g_format_d_0064dd20[] = L"%3d";
+wchar_t g_format_d_0064dd20[] = L"%3d";
 // GLOBAL: WIZ8 0x0064DD28
-const wchar_t g_format_s_0064dd28[] = L"%s:";
+wchar_t g_format_s_0064dd28[] = L"%s:";
 // GLOBAL: WIZ8 0x00648164
-const wchar_t g_format_s_colon[] = L"%s: ";
+wchar_t g_format_s_colon[] = L"%s: ";
 
 /* Enable or disable the six spell-realm scrollbars together. While enabling, a
    realm whose learned spells fit the eight visible rows keeps its bar off. */
@@ -1105,7 +1102,7 @@ void W8CampCharacterInfo::OnPrimary(W8TextControl* control)
 }
 
 // GLOBAL: WIZ8 0x0061e798
-const unsigned short g_camp_armor_class_labels[12] = {1052, 1053, 1054, 1055, 1056, 1057,
+unsigned short g_camp_armor_class_labels[12] = {1052, 1053, 1054, 1055, 1056, 1057,
                                                       1058, 1059, 1060, 1061, 1062, 1063};
 
 // FUNCTION: WIZ8 0x005b34a0

@@ -9,6 +9,7 @@
    skills and final pages. */
 
 #include "wiz8/local_screens/RCSStatsPage.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"

@@ -27,10 +27,13 @@
 #include <math.h>
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/PolyPick.h"
+
+// STRING: WIZ8 0x006081fc
+#define NAVIGATOR_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp"
 // GLOBAL: WIZ8 0x005ec2f8
-float g_float_005ec2f8 = 5000.0f;
+const float g_float_005ec2f8 = 5000.0f;
 // GLOBAL: WIZ8 0x005ec030
-double g_double_005ec030 = 2500.0;
+const double g_double_005ec030 = 2500.0;
 
 /* The world object the navigator notifies when it leaves a location, and
    the notification itself. 0x0042E880 sits outside every assertion-backed
@@ -225,11 +228,11 @@ void SetNavigatorLinkMode(unsigned char mode)
             if (navigator->group_linked_0bd != 0) {
                 W8MonsterInfo* monster_info =
                     MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                        0x4fe, "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp",
+                        0x4fe, NAVIGATOR_CPP,
                         navigator->movement_0c0.location_id_004, 1));
                 if (monster_info->fActive != 0 && monster_info->monster_group_id != 0) {
                     W8MonsterGroup* group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
-                        0x508, "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp",
+                        0x508, NAVIGATOR_CPP,
                         monster_info->monster_group_id, 1));
                     srVector3T<float> position = navigator->movement_0c0.position_040;
 
@@ -864,12 +867,12 @@ void W8Navigator::configureStartupDepth(float near_depth, float far_depth)
 }
 
 // GLOBAL: WIZ8 0x005ec2f4
-float g_navigator_default_turn_rate = 4.398229598999023f;
+const float g_navigator_default_turn_rate = 4.398229598999023f;
 
 // GLOBAL: WIZ8 0x005ec2f0
-float g_navigator_snap_angle = 0.029999999329447746f;
+const float g_navigator_snap_angle = 0.029999999329447746f;
 // GLOBAL: WIZ8 0x005ebca4
-float g_navigator_mode3_scale = 0.4000000059604645f;
+const float g_navigator_mode3_scale = 0.4000000059604645f;
 // GLOBAL: WIZ8 0x006081e4
 unsigned char g_combat_inactive = 1;
 
@@ -923,9 +926,9 @@ bool W8Navigator::StartPatrol(const srVector3T<float>* home, float distance, flo
 // GLOBAL: WIZ8 0x00659c10
 unsigned char g_navigator_link_mode;
 // GLOBAL: WIZ8 0x005ebc98
-float g_navigator_linked_radius_scale = 4.0f;
+const float g_navigator_linked_radius_scale = 4.0f;
 // GLOBAL: WIZ8 0x005ebcc8
-float g_navigator_vertical_phase_step = 0.25f;
+const float g_navigator_vertical_phase_step = 0.25f;
 // GLOBAL: WIZ8 0x005ec150
 extern const double g_double_005ec150 = 500.0;
 // GLOBAL: WIZ8 0x006081ec
@@ -1184,7 +1187,7 @@ W8Navigator* W8Navigator::ResolveBlockingNavigator(const srVector3T<float>* from
         if (hit_location > 0) {
             W8MonsterInfo* monster_info =
                 MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                    0x5d7, "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp", hit_location,
+                    0x5d7, NAVIGATOR_CPP, hit_location,
                     1));
             if (monster_info->p3D != 0) {
                 return monster_info->p3D;
@@ -1957,7 +1960,7 @@ void W8Navigator::AddPathPoint(const srVector3T<float>* position)
     if (path_ai_068 == 0) {
         path_ai_068 = CreateRecord(movement_0c0.location_id_004);
         if (path_ai_068 == 0) {
-            srAssertFail("pNavAI", "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp", 0x6c7,
+            srAssertFail("pNavAI", NAVIGATOR_CPP, 0x6c7,
                          0);
         }
     }
@@ -2026,7 +2029,7 @@ void W8Navigator::SetFacingToward(const srVector3T<float>* target)
         if (movement_0c0.location_id_004 != 0) {
             W8MonsterInfo* monster_info =
                 MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                    0xa9d, "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp",
+                    0xa9d, NAVIGATOR_CPP,
                     movement_0c0.location_id_004, 1));
             if (monster_info->fInCombat != 0) {
                 monster_info->pCombat->sight_refresh_pending_151 = 1;
@@ -2188,7 +2191,7 @@ void W8Navigator::AimAtPosition(const srVector3T<float>* target)
         if (movement_0c0.location_id_004 != 0) {
             W8MonsterInfo* monster_info =
                 MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                    0xa76, "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp",
+                    0xa76, NAVIGATOR_CPP,
                     movement_0c0.location_id_004, 1));
             if (monster_info->fInCombat != 0) {
                 monster_info->pCombat->sight_refresh_pending_151 = 1;
@@ -2200,7 +2203,6 @@ void W8Navigator::AimAtPosition(const srVector3T<float>* target)
 // FUNCTION: WIZ8 0x00455140
 void W8Navigator::CollectGroupNavigators(W8GrowableVector<W8Navigator*>* navigators)
 {
-    static const char NAVIGATOR_CPP[] = "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp";
     W8MonsterInfo* monster_info;
     W8MonsterGroup* group;
     unsigned int member;

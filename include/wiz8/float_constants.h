@@ -37,13 +37,13 @@ extern const double g_double_005ec8d8;
 extern const double g_double_005ecb18;
 extern const float g_float_005ecb10;
 extern const float g_float_005ecb0c;
-extern float g_float_005ebc64;
+extern const float g_float_005ebc64;
 /* 10.0f - the per-tick cursor input-to-world scale. */
-extern float g_float_005ebc88;
-extern float g_float_005ebcdc;
-extern double g_double_005ebc70;
-extern float g_float_005ebc90;
-extern double g_double_005ebc30;
+extern const float g_float_005ebc88;
+extern const float g_float_005ebcdc;
+extern const double g_double_005ebc70;
+extern const float g_float_005ebc90;
+extern const double g_double_005ebc30;
 extern const float g_float_005ec0a8;
 extern const float g_environment_near_scale;
 extern const float g_world_scale;
@@ -53,55 +53,55 @@ extern const float g_monster_motion_push;
    multiplies its loudness fraction by. */
 extern const float g_float_005ec510;
 extern const float g_float_005ec020;
-extern float g_float_005ec1a8;
-extern float g_float_005ec260;
+extern const float g_float_005ec1a8;
+extern const float g_float_005ec260;
 /* 0x005EC29C: pi/4, the arc bound the targeting cone tests compare
    normalized heading and elevation deltas against. */
 extern const float g_float_005ec29c;
-extern float g_float_005ec2f8;
+extern const float g_float_005ec2f8;
 /* 0x005EC35C: read as GetRangeConstant5EC35C's return and as OctPath's
    waypoint query vertical extent. */
-extern float g_float_005ec35c;
+extern const float g_float_005ec35c;
 /* 0x005EC360: 25000.0, read as a waypoint query half-extent by FindWaypoint
    and as a range bound by GetRangeConstant5EC360. */
-extern float g_float_005ec360;
-extern double g_double_005ec030;
+extern const float g_float_005ec360;
+extern const double g_double_005ec030;
 /* 0x005EC038: 5000.0, the absolute vertical-snap ceiling that bounds
    FindNavigatorPosition's candidate rejection. */
-extern double g_double_005ec038;
+extern const double g_double_005ec038;
 /* 0x005EC008: -pi/12, the fixed downward tilt applied to the sample camera by
    the region-link projector. */
-extern double g_double_005ec008;
+extern const double g_double_005ec008;
 /* 0x005EC010: 6.282185, just under 2*pi — the circle-coverage bound the
    projector compares samples*fov against before adding one more direction. */
-extern float g_float_005ec010;
+extern const float g_float_005ec010;
 /* 0x005EC044: 0.0004, the Random(1000) jitter scale used by the scatter-ring
    position search. */
-extern float g_float_005ec044;
+extern const float g_float_005ec044;
 /* 0x005EC048: 15.0, the radius multiplier that sizes the monster-proximity
    query box in navigator placement. */
-extern float g_float_005ec048;
+extern const float g_float_005ec048;
 /* 0x005EC050: 0.0002, the Random(1000) jitter scale for ring candidates. */
-extern float g_float_005ec050;
+extern const float g_float_005ec050;
 /* 0x005EC1E8 / 0x005EC1F0: the quaternion->matrix normalization factor (2.0)
    and FLT_EPSILON closeness bound shared by the keyframe slerps. */
-extern double g_double_005ec1e8;
-extern double g_double_005ec1f0;
-extern double g_double_005ec318;
-extern double g_double_005ec368;
-extern double g_double_005ec378;
+extern const double g_double_005ec1e8;
+extern const double g_double_005ec1f0;
+extern const double g_double_005ec318;
+extern const double g_double_005ec368;
+extern const double g_double_005ec378;
 /* 0x005EC428 / 0x005EC430: the pair BakeInstanceVertexLighting uses to undo
    srLight::setLinearAttenuation and recover a light's world range. */
-extern double g_double_005ec428;
-extern double g_double_005ec430;
-extern float g_float_005ebc3c;
-extern float g_float_005ebc58;
-extern float g_float_005ebc60;
+extern const double g_double_005ec428;
+extern const double g_double_005ec430;
+extern const float g_float_005ebc3c;
+extern const float g_float_005ebc58;
+extern const float g_float_005ebc60;
 /* 0x005EBC78: 0.15, the along-ray distance discount the trace resolver
    applies before a sphere-hit candidate counts as closer than the world
    geometry. */
-extern float g_float_005ebc78;
-extern float g_float_005ebc7c;
+extern const float g_float_005ebc78;
+extern const float g_float_005ebc7c;
 /* Collision-response constants: hit-fraction floor/ceiling, surface margin
    scales, the level-flag-8 height lift, and the plane-similarity thresholds. */
 extern const float g_float_005ebc80;
@@ -115,60 +115,60 @@ extern const float g_float_005ebcb8;
 extern const double g_double_005ebcc0;
 /* Shadow-extrusion pitch scale: 1/1500 as a float. */
 extern const float g_float_005ec8e0;
-extern float g_float_005ee838;
+extern const float g_float_005ee838;
 /* Automap pan step as a fraction of the current zoom span. */
 extern const float g_float_005ebcd8;
 /* Search: the unit range the search score and collector scale against. */
 extern float g_float_0061a364;
 /* Search: the full facing cone the collector tests before line of sight. */
 extern float g_float_0061a368;
-extern float g_float_005ebccc;
+extern const float g_float_005ebccc;
 /* 0x005EC340: 1.25, the fast magic-recovery trait's spell-point regen scale. */
 extern const float g_float_005ec340;
-extern float g_float_005ec028;
-extern float g_float_005ec1a0;
+extern const float g_float_005ec028;
+extern const float g_float_005ec1a0;
 /* 0x005ED7A8: pi, the amplitude cursor-driven throw angles are scaled from. */
 extern const double g_double_005ed7a8;
 /* 0x005EBF4C: 71.0, the screen-z coefficient in the drop-item pitch. */
 extern const float g_float_005ebf4c;
 /* 0x005EBC28: 5.0, a generic proximity/scale factor shared by navigation,
    monster-level math and the drop-item pitch. */
-extern float g_float_005ebc28;
+extern const float g_float_005ebc28;
 /* 0x005EBF48: 85.0, the screen-y coefficient in the drop-item yaw. */
 extern const float g_float_005ebf48;
 /* 0x005ED7C0: -2500.0, the vertical scale of the drop-item direction. */
 extern const double g_double_005ed7c0;
-extern float g_float_005ec38c;
-extern float g_float_005ec384;
-extern float g_float_005ec370;
-extern float g_float_005ec390;
-extern float g_float_005ec394;
-extern float g_float_005ec3b8;
-extern float g_float_005ec3bc;
-extern float g_float_005ec3c0;
-extern float g_float_005ec3c8;
-extern float g_float_005ec3d0;
-extern float g_float_005ec410;
-extern float g_float_005ec414;
-extern float g_float_005ec438;
-extern float g_float_005ec5c0;
-extern float g_float_005ec5c4;
-extern double g_double_005ec8d0;
-extern float g_float_005ecc38;
-extern float g_float_005ecc3c;
-extern float g_float_005ecc40;
+extern const float g_float_005ec38c;
+extern const float g_float_005ec384;
+extern const float g_float_005ec370;
+extern const float g_float_005ec390;
+extern const float g_float_005ec394;
+extern const float g_float_005ec3b8;
+extern const float g_float_005ec3bc;
+extern const float g_float_005ec3c0;
+extern const float g_float_005ec3c8;
+extern const float g_float_005ec3d0;
+extern const float g_float_005ec410;
+extern const float g_float_005ec414;
+extern const float g_float_005ec438;
+extern const float g_float_005ec5c0;
+extern const float g_float_005ec5c4;
+extern const double g_double_005ec8d0;
+extern const float g_float_005ecc38;
+extern const float g_float_005ecc3c;
+extern const float g_float_005ecc40;
 extern const float g_startup_near_limit;
-extern double g_double_005ebe80;
-extern double g_double_005ebe88;
-extern double g_double_005ebe90;
-extern double g_double_005ebf40;
+extern const double g_double_005ebe80;
+extern const double g_double_005ebe88;
+extern const double g_double_005ebe90;
+extern const double g_double_005ebf40;
 /* 0x005EC980: 0.25, the per-component weight that averages a trigger plane's
    four representation vectors into its center. */
 extern const double g_double_005ec980;
 extern const double g_double_005ebf60;
-extern float g_float_005ec3f8;
-extern float g_float_005ecbb4;
-extern float g_float_005ed8b8;
+extern const float g_float_005ec3f8;
+extern const float g_float_005ecbb4;
+extern const float g_float_005ed8b8;
 
 /* The three quarter-turn values the world heading/elevation helpers read:
    0x005EC3FC and 0x005ED1E8 are the positive and negative half turns returned
@@ -188,7 +188,7 @@ extern const float g_float_005ed1e8;
 extern float g_navigator_gravity;
 /* 0x005EBCA4: Navigator's mode-3 step scale; the regeneration passes also read
    it as the pool-ceiling share. */
-extern float g_navigator_mode3_scale;
+extern const float g_navigator_mode3_scale;
 extern float g_default_momentum_scale;
 extern float g_default_motion_limit;
 extern const float g_camera_snap_epsilon;
@@ -196,7 +196,7 @@ extern const float g_camera_snap_epsilon;
    uses to pick a side. */
 extern const double g_double_005ed2e0;
 extern const float g_float_005ebca0;
-extern float g_movement_speed_step;
+extern const float g_movement_speed_step;
 
 extern const double g_zero_005ebb40;
 /* 0x005ED7D0: -1000000, the ground-settle failure height; the only reader is

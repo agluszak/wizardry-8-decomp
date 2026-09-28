@@ -36,13 +36,13 @@
 #include <string.h>
 #include "wiz8/engine_code/GameData.h"
 // GLOBAL: WIZ8 0x005ebc3c
-float g_float_005ebc3c = 0.10000000149011612f;
+const float g_float_005ebc3c = 0.10000000149011612f;
 // GLOBAL: WIZ8 0x005ec390
-float g_float_005ec390 = 0.8999999761581421f;
+const float g_float_005ec390 = 0.8999999761581421f;
 // GLOBAL: WIZ8 0x005ec5c0
-float g_float_005ec5c0 = 0.30000001192092896f;
+const float g_float_005ec5c0 = 0.30000001192092896f;
 // GLOBAL: WIZ8 0x005ec5c4
-float g_float_005ec5c4 = 0.699999988079071f;
+const float g_float_005ec5c4 = 0.699999988079071f;
 
 /* Engine Code\GrCycle.cpp. BEHAVIOUR_FIRST and BEHAVIOUR_LAST come from the
    canonical assertion at line 1598; the body bounds-checks against 1 and 3, so
@@ -64,9 +64,9 @@ float g_float_005ec5c4 = 0.699999988079071f;
 // W8GrCycle::`scalar deleting destructor'
 
 // GLOBAL: WIZ8 0x005ecf98
-float g_float_005ecf98 = 0.02500000037252903f;
+const float g_float_005ecf98 = 0.02500000037252903f;
 // GLOBAL: WIZ8 0x005ecf9c
-float g_float_005ecf9c = 250.0f;
+const float g_float_005ecf9c = 250.0f;
 // GLOBAL: WIZ8 0x0060da88
 bool g_flag_0060da88 = true;
 // GLOBAL: WIZ8 0x0065be2c
@@ -261,9 +261,9 @@ unsigned char W8CameraShakeEffect::Evaluate004AE4E0(const srVector3T<float>* pos
 }
 
 // GLOBAL: WIZ8 0x005ec128
-float g_float_005ec128 = 0.0010000000474974513f;
+const float g_float_005ec128 = 0.0010000000474974513f;
 // GLOBAL: WIZ8 0x005ebc64
-float g_float_005ebc64 = 1000.0f;
+const float g_float_005ebc64 = 1000.0f;
 
 /* Build the two paths used while reading a .mon resource, verify its one-byte
    version, and hand the open file plus its resource context to the typed cycle

@@ -44,7 +44,7 @@ void CalcAttacks(W8Character* character);
 void CalcArmorClasses(W8Character* character);
 /* 0x00616308: the percentage of hits that land on each character armor
    location; the error text spells its original name. */
-extern const unsigned char gubLocalACPercent[W8_ARMOR_LOCATION_COUNT];
+extern unsigned char gubLocalACPercent[W8_ARMOR_LOCATION_COUNT];
 void CalcCharacterLevelBand(W8Character* character);
 
 void CalcCharacterTableValue(W8Character* character);

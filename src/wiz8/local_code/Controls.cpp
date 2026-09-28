@@ -27,7 +27,7 @@
 #define REGSET_NULL 0
 
 // GLOBAL: WIZ8 0x00617C90
-extern const wchar_t g_W8LineBreakCharacters[] = L"\n";
+wchar_t g_W8LineBreakCharacters[] = L"\n";
 
 // GLOBAL: WIZ8 0x005ED548
 extern const unsigned int g_W8TextBufferAlignLeft = 0x01;
@@ -110,15 +110,15 @@ inline Controls::~Controls() {}
 
 /* 0x00562A50 takes the redraw-request mask the panel raises. */
 // GLOBAL: WIZ8 0x0060CC74
-const wchar_t g_W8TextSeparator[] = L" ";
+wchar_t g_W8TextSeparator[] = L" ";
 // GLOBAL: WIZ8 0x00617C88
-const wchar_t g_W8TextBreakCharacters[] = L" ";
+wchar_t g_W8TextBreakCharacters[] = L" ";
 
 // GLOBAL: WIZ8 0x005ebb38
 const float g_float_005ebb38 = 1.0f;
 
 // GLOBAL: WIZ8 0x005ebc7c
-float g_float_005ebc7c = 0.5f;
+const float g_float_005ebc7c = 0.5f;
 
 // GLOBAL: WIZ8 0x005ebcd8
 const float g_float_005ebcd8 = 0.35f;

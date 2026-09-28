@@ -37,11 +37,11 @@ enum W8EquipSlot {
 
 bool CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
 
-extern const int g_item_spell_presentation[11];
+extern int g_item_spell_presentation[11];
 /* 0x00648C5C: the paper-doll icon of each of the twelve equipment slots. The
    two alternate-set hand slots have none, which is exactly the value the
    bound-item predicates refuse to hold a binding behind. */
-extern const int g_equip_slot_icons[12];
+extern int g_equip_slot_icons[12];
 int GetItemInHand(void);
 
 void SetHandType(W8Character* character, unsigned int equip_slot);
@@ -73,6 +73,10 @@ extern const unsigned short g_generic_item_name_notice[147];
 /* 0x0068C108: one lazily built generic name per unidentified-name index. */
 enum { W8_GENERIC_ITEM_NAME_COUNT = 147 };
 extern wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
+/* The message ids for what an item use did, read at every other entry; the
+   last six are the item property labels. */
+enum { W8_ITEM_PROPERTY_MESSAGE_FIRST = 19 };
+extern unsigned short g_item_use_messages[25];
 
 bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char skip_stacking);
 unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, unsigned char announce); /* 0x00522090 */

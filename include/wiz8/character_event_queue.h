@@ -2,6 +2,7 @@
 #define WIZ8_CHARACTER_EVENT_QUEUE_H
 
 #include "wiz8/layouts/item_instance.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/vector.h"
 
@@ -25,10 +26,6 @@ enum W8CharacterEventFlag {
        resources around RunNpcScriptLine and Complete skips the item notice. */
     W8_EVENT_NPC_SCRIPT = 0x40
 };
-
-/* 0x005ED8E4: mask gating the portrait quote/subtitle flag; dispatch tests
-   W8_EVENT_SUPPRESS_QUOTE through it. */
-extern unsigned char g_character_event_flags_mask;
 
 /* One queued character-event entry. The ctor, quote formatter, and process
    method live with QueueCharacterEvent in Health Stamina Mana.cpp; the

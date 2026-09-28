@@ -22,26 +22,26 @@ const char* g_spell_effect_database_path = "Data\\Databases\\SpellEffect.dbs";
 // GLOBAL: WIZ8 0x0064fcd4
 const char* g_spell_desc_database_path = "Data\\Databases\\SpellDesc.dbs";
 // GLOBAL: WIZ8 0x0061a128
-const wchar_t g_format_d_s[] = L"%d %s";
+wchar_t g_format_d_s[] = L"%d %s";
 // GLOBAL: WIZ8 0x00619794
-const wchar_t g_comma_space[] = L", ";
+wchar_t g_comma_space[] = L", ";
 // GLOBAL: WIZ8 0x0060cff0
-const unsigned short g_spellbook_name_ids[4] = {791, 792, 793, 794};
+unsigned short g_spellbook_name_ids[4] = {791, 792, 793, 794};
 // GLOBAL: WIZ8 0x0060d4a8
-const unsigned short g_spell_usage_name_ids[5] = {795, 797, 796, 796, 796};
+unsigned short g_spell_usage_name_ids[5] = {795, 797, 796, 796, 796};
 // GLOBAL: WIZ8 0x0060d4b4
-const unsigned short g_spell_target_type_name_ids[11] = {798, 799, 800, 801, 802, 803,
+unsigned short g_spell_target_type_name_ids[11] = {798, 799, 800, 801, 802, 803,
                                                          804, 805, 806, 807, 807};
 // GLOBAL: WIZ8 0x0060d4cc
-const wchar_t g_spell_target_mark_fff4[] = {0xfff4, 0};
+wchar_t g_spell_target_mark_fff4[] = {0xfff4, 0};
 // GLOBAL: WIZ8 0x0060d4d0
-const wchar_t g_spell_target_mark_fff0[] = {0xfff0, 0};
+wchar_t g_spell_target_mark_fff0[] = {0xfff0, 0};
 // GLOBAL: WIZ8 0x0060d4d4
-const wchar_t g_spell_target_mark_fff1[] = {0xfff1, 0};
+wchar_t g_spell_target_mark_fff1[] = {0xfff1, 0};
 // GLOBAL: WIZ8 0x0060d4d8
-const wchar_t g_spell_target_mark_fff2[] = {0xfff2, 0};
+wchar_t g_spell_target_mark_fff2[] = {0xfff2, 0};
 // GLOBAL: WIZ8 0x0060d4dc
-const wchar_t g_spell_target_mark_fff3[] = {0xfff3, 0};
+wchar_t g_spell_target_mark_fff3[] = {0xfff3, 0};
 // GLOBAL: WIZ8 0x0060d4e0
 const wchar_t* g_spell_target_parentheticals[11] = {
     g_spell_target_mark_fff4, g_spell_target_mark_fff2, g_spell_target_mark_fff4,
@@ -50,17 +50,16 @@ const wchar_t* g_spell_target_parentheticals[11] = {
     g_spell_target_mark_fff4, g_spell_target_mark_fff4,
 };
 // GLOBAL: WIZ8 0x0061e9a0
-const unsigned short g_spell_range_name_ids[4] = {1307, 1308, 1309, 1310};
+unsigned short g_spell_range_name_ids[4] = {1307, 1308, 1309, 1310};
 // GLOBAL: WIZ8 0x0064fdcc
-const wchar_t g_format_d_space[] = L"%d ";
+wchar_t g_format_d_space[] = L"%d ";
 // GLOBAL: WIZ8 0x0064fdc4
-const wchar_t g_plus_space[] = L"+ ";
+wchar_t g_plus_space[] = L"+ ";
 // GLOBAL: WIZ8 0x0064fdd4
-const wchar_t g_format_d_d_s[] = L"%d-%d %s";
+wchar_t g_format_d_d_s[] = L"%d-%d %s";
 
-// GLOBAL: WIZ8 0x0064FD54
-static const char SPELL_INFO_DIALOG_CPP[] =
-    "C:\\Projects\\Wizardry 8\\Dialog Code\\SpellInfoDialog.cpp";
+// STRING: WIZ8 0x0064FD54
+#define SPELL_INFO_DIALOG_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\SpellInfoDialog.cpp"
 
 // SYNTHETIC: WIZ8 0x005dbc30
 // W8SpellInfoDialog::`scalar deleting destructor'

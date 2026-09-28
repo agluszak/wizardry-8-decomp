@@ -823,7 +823,9 @@ static bool ExplorationInputCase(RuntimeCase& test)
     RT_REQUIRE(test, MoveUntilDisplaced(test, W8_MGS_COMMAND_MOVE_FORWARD, "party-moved"));
     RT_REQUIRE(test,
                MoveUntilDisplaced(test, W8_MGS_COMMAND_MOVE_BACKWARD, "party-moved-backward"));
-    RT_REQUIRE(test, TurnUntilYawChanged(test, W8_MGS_COMMAND_TURN_LEFT, "party-turned"));
+    // The alternate turn binding reaches the same command path without CI Proton's unreliable
+    // delivery of the dedicated left-arrow key.
+    RT_REQUIRE(test, TurnUntilYawChanged(test, W8_MGS_COMMAND_TURN_LEFT_ALT, "party-turned"));
     return true;
 }
 

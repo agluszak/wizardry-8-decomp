@@ -19,21 +19,21 @@ enum { W8_MONSTER_HIT_LOCATIONS = 7, W8_MONSTER_BODY_TYPES = 6 };
 
 /* 0x0061E7B0: gppStringList indices naming each character hit location,
    paired with a second form the missile hit does not use. */
-extern const unsigned short g_pc_hit_location_labels[5][2];
+extern unsigned short g_pc_hit_location_labels[5][2];
 /* 0x0061EA24: gppStringList indices naming each monster hit location for
    each body type. */
-extern const unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIONS]
+extern unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIONS]
                                                          [W8_MONSTER_BODY_TYPES];
 
 /* 0x0061E9CC: gppStringList indices naming the sixteen damage channels the
    missile_values arrays on monster attacks and item records carry. */
-extern const unsigned short g_damage_type_name_ids[0x10];
+extern unsigned short g_damage_type_name_ids[0x10];
 /* Paired label ids for the nine W8ItemDatabaseRecord::attack_flags_04e bits;
    AssayDialog reads the first of each pair, combat logging the second. */
-extern const unsigned short g_attack_flag_name_ids[9][2];
+extern unsigned short g_attack_flag_name_ids[9][2];
 /* Label ids for an item's special-category byte, also indexed by the MIPE
    editor's category selector. */
-extern const unsigned short g_special_category_name_ids[42];
+extern unsigned short g_special_category_name_ids[42];
 
 /* The missile attack paths hand FireMissileSourceToTarget the W8SpellEffectDefinition
    the fired missile stores: the weapon or monster attack's dice magnitude and

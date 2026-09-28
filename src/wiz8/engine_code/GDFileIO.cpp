@@ -35,13 +35,13 @@
    companion. */
 
 // GLOBAL: WIZ8 0x005ec1a8
-float g_float_005ec1a8 = -0.3333333432674408f;
+const float g_float_005ec1a8 = -0.3333333432674408f;
 // GLOBAL: WIZ8 0x005ebc58
-float g_float_005ebc58 = 1.0000000116860974e-07f;
+const float g_float_005ebc58 = 1.0000000116860974e-07f;
 // GLOBAL: WIZ8 0x005ec028
-float g_float_005ec028 = 1.0099999904632568f;
+const float g_float_005ec028 = 1.0099999904632568f;
 // GLOBAL: WIZ8 0x005ec1a0
-float g_float_005ec1a0 = 0.9959999918937683f;
+const float g_float_005ec1a0 = 0.9959999918937683f;
 // GLOBAL: WIZ8 0x005ec1ac
 const float g_float_005ec1ac = 3000.0f;
 // GLOBAL: WIZ8 0x005ec1b0
@@ -60,7 +60,7 @@ float g_default_momentum_scale = 0.30000001192092896f;
 float g_default_motion_limit = 112.5f;
 
 // GLOBAL: WIZ8 0x005ec1a4
-float g_path_endpoint_scale = 0.9900000095367432f;
+const float g_path_endpoint_scale = 0.9900000095367432f;
 
 /* Opens a game-data file, builds its record, and pulls the polygon and
    vertex banks through the record reader. */

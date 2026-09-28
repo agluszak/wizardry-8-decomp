@@ -6,6 +6,7 @@ class stLight;
 #include "surrender/srTypeRegistry.h"
 #include "wiz8/dice.h"
 #include "wiz8/engine_code/game_timer.h"
+#include "wiz8/integer_constants.h"
 
 struct W8Item;
 class W8Prop;
@@ -308,8 +309,6 @@ extern int g_container_event_alt;
 extern int g_trap_notice_event;
 extern int g_lock_notice_event;
 extern int g_container_event;
-extern int g_condition_reaction;
-extern int g_condition_reaction_alt;
 
 bool CreateTriggerShakeEvent(int intensity, float duration, float countdown_duration, bool reverse);
 bool AnyPropTriggerInView(W8World* world);

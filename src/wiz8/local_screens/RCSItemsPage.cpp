@@ -1,4 +1,5 @@
 #include "wiz8/local_screens/RCSItemsPage.h"
+#include "wiz8/integer_constants.h"
 
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
@@ -68,22 +69,6 @@ int giCasterCharSlot;
 // GLOBAL: WIZ8 0x0069C424
 W8ItemInstance* g_split_item_source;
 
-// GLOBAL: WIZ8 0x005EFB44
-int g_split_result_kind = 1;
-// GLOBAL: WIZ8 0x005EFB4C
-int g_split_dialog_x = 0xa1;
-// GLOBAL: WIZ8 0x005EFB50
-int g_split_dialog_y = 0x94;
-// GLOBAL: WIZ8 0x005EFB64
-#pragma bss_seg(".data")
-int g_split_dialog_kind = 0;
-#pragma bss_seg()
-// GLOBAL: WIZ8 0x005EF958
-int g_info_dialog_x = 0x80;
-// GLOBAL: WIZ8 0x005EF95C
-int g_info_dialog_y = 0x61;
-// GLOBAL: WIZ8 0x005EE65C
-int g_character_event_kind_005ee65c = 0x35;
 
 // GLOBAL: WIZ8 0x0069c490
 unsigned int g_camp_secondary_region_set;
@@ -91,7 +76,7 @@ unsigned int g_camp_secondary_region_set;
 /* 0x0061E7C4: the twelve equip-slot label message ids indexed by region
    callback_id. */
 // GLOBAL: WIZ8 0x0061E7C4
-const unsigned short g_equip_slot_label_ids[12] = {
+unsigned short g_equip_slot_label_ids[12] = {
     0x433, 0x434, 0x435, 0x436, 0x437, 0x438, 0x439, 0x43a, 0x43b, 0x43c, 0x43d, 0x43e,
 };
 

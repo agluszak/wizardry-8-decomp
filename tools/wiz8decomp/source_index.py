@@ -1031,6 +1031,9 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         digest = _source_index_input_digest(repository, database)
         if stamp.read_text(encoding="utf-8").strip() == digest:
             validate_cross_tu_declarations(repository)
+            # A checkout can restore identical inputs with newer mtimes. The
+            # digest proves the cached projection still covers those files.
+            index_path.touch()
             return _source_index_result(load_source_index(repository), cached=True)
     roots = indexed_targets(repository, database)
     targets = {

@@ -216,7 +216,7 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
 /* The faction names, thirty bytes apart, in the same order as the faction ids.
    Twenty-one of them, which is the whole faction domain. */
 // GLOBAL: WIZ8 0x0061CE74
-extern const char g_faction_names[W8_FACTION_COUNT][0x1e] = {
+char g_faction_names[W8_FACTION_COUNT][0x1e] = {
     "UNALIGNED",
     "FACTION_PARTY",
     "FACTION_DARK_SAVANT",

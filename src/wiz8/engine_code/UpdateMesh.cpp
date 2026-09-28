@@ -17,7 +17,7 @@
    edges are rotated off the camera forward vector; retail never writes it, so
    both rotations collapse to zero and the triangle degenerates to a ray. */
 // GLOBAL: WIZ8 0x005ED168
-float g_float_005ed168 = 0.01745329424738884f;
+const float g_float_005ed168 = 0.01745329424738884f;
 
 /* Camera-visible quad-cell coordinates and count: rows[]/cells[] index pairs
    into W8Quad, filled by CollectViewQuadCells and consumed by

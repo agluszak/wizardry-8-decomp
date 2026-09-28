@@ -60,29 +60,6 @@ void PlayCombatSound(char* sound_name, unsigned int variant_count, bool store_ha
     }
 }
 
-static unsigned char ReadHitSoundLine(int handle, char* line, unsigned int capacity)
-{
-    unsigned int length = 0;
-    unsigned int done;
-    char value;
-
-    while (length + 1 < capacity) {
-        done = 0;
-        if (!FileRead(handle, &value, 1, &done) || done == 0) {
-            line[length] = '\0';
-            return length != 0;
-        }
-        if (value == '\n') {
-            break;
-        }
-        if (value != '\r') {
-            line[length++] = value;
-        }
-    }
-    line[length] = '\0';
-    return 1;
-}
-
 static void TrimHitSoundLine(char* line)
 {
     char* comment = strchr(line, '*');
@@ -117,6 +94,7 @@ unsigned char LoadHitSoundDatabase(void)
     int handle;
     int row = 0;
     int column = -1;
+    unsigned char more = 1;
 
     memset(g_weapon_attack_sounds, 0, sizeof(g_weapon_attack_sounds));
     memset(g_material_impact_sounds, 0, sizeof(g_material_impact_sounds));
@@ -124,8 +102,9 @@ unsigned char LoadHitSoundDatabase(void)
     if (!handle) {
         return 0;
     }
-    while (row < 38 && ReadHitSoundLine(handle, line, sizeof(line))) {
+    while (row < 38 && more) {
         char* marker;
+        ReadTextLine(handle, line, sizeof(line), &more);
         TrimHitSoundLine(line);
         marker = strchr(line, '#');
         if (marker) {
@@ -137,23 +116,28 @@ unsigned char LoadHitSoundDatabase(void)
         }
     }
     if (row != 38) {
-        FileClose(handle);
-        return 0;
+        srAssertFail("(iRow == WPNSND_NUM_WEAPONS)", COMBAT_SOUND_CPP, 0xe3,
+                     "Error reading the Attack Sounds portion of HitSounds.txt!");
     }
     row = 0;
-    while (ReadHitSoundLine(handle, line, sizeof(line))) {
-        TrimHitSoundLine(line);
+    while (more) {
+        ReadTextLine(handle, line, sizeof(line), &more);
         if (strchr(line, '#')) {
             ++column;
             row = 0;
             continue;
         }
+        TrimHitSoundLine(line);
         if (!line[0]) {
             continue;
         }
-        if (column < 0 || column >= 12 || row >= 28) {
-            FileClose(handle);
-            return 0;
+        if (row < 0 || row >= 28) {
+            srAssertFail("(iRow >= 0) && (iRow < WPNSND_NUM_IMPACTS)", COMBAT_SOUND_CPP, 0xfe,
+                         "Error in HITSOUNDS.TXT file, bad row counter value");
+        }
+        if (column < 0 || column >= 12) {
+            srAssertFail("(iColumn >= 0) && (iColumn < MATSND_NUM_SOUNDS)", COMBAT_SOUND_CPP, 0xff,
+                         "Error in HITSOUNDS.TXT file, bad column counter value");
         }
         g_material_impact_sounds[row++][column] = DuplicateHitSound(line);
     }

@@ -25,7 +25,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decision); /* 0x00530F10 */
 /* 0x00617AE8: 125000, the cap on how far a monster will walk to investigate a
    heard noise. */
-extern const int g_int_00617ae8;
+extern int g_int_00617ae8;
 /* Whether a hostile group still has a member able to engage the party: a
    visible target to advance on, a usable attack or spell, a way to flee, or
    a short-range attack with a path to the party. */
@@ -38,7 +38,7 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int ho
 float GetGroupNearestDistance(W8MonsterGroup* group); /* 0x005324B0 */
 
 /* MonsterAI.cpp GLOBAL at 0x0061EEFC: two dwords per special attack kind. */
-extern const int g_special_attack_table[32][2];
+extern int g_special_attack_table[32][2];
 
 bool AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id); /* 0x005326F0 */
 /* Whether the combat slot accepts `spell_id` from this caster; the original

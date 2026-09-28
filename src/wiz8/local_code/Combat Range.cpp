@@ -1,4 +1,5 @@
 #include "wiz8/layouts/character.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/local_code/Combat.h"
@@ -66,7 +67,7 @@ int g_special_event_0068c518 = g_first_remapped_event + 30;
 enum { W8_FORMATION_ROW_WIDTH = 3 };
 
 // GLOBAL: WIZ8 0x005ec35c
-float g_float_005ec35c = 12500.0f;
+const float g_float_005ec35c = 12500.0f;
 
 /* The formation. Three party positions per row at 0x00687511, and each
    position's own row number at 0x00687525 with a twelve-byte stride. -1 marks
@@ -1378,12 +1379,12 @@ unsigned char TraceModeRejectsNoHit(int mode)
 // FUNCTION: WIZ8 0x0051ac30
 float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int kind)
 {
-    float best = 1000000.0f;
+    float best = 999999.0f;
 
     out->iType = W8_TARGET_KIND_NONE;
     if (monster_info->ubDisposition == 1 &&
         IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, kind) &&
-        (best = monster_info->p3D->GetDistanceToPlayer(), best < 1000000.0f)) {
+        (best = monster_info->p3D->GetDistanceToPlayer(), best < 999999.0f)) {
         out->iType = W8_TARGET_KIND_CHARACTER;
     }
     if (out->iType == W8_TARGET_KIND_NONE || monster_info->pCombat->reconsider_action_152 == 0) {

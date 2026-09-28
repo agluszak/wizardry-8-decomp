@@ -1,4 +1,5 @@
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Combat.h"
@@ -22,10 +23,6 @@
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 
-/* The "carrying too much" camp event id. Outside camp the live special
-   event slot supplies it instead. */
-// GLOBAL: WIZ8 0x005ee5a8
-int g_camp_overload_event_id = 8;
 
 /* Party encumbrance redistribution. Live query: 0x004ED9D0 is a gap between
    Local Code\Combat.cpp (upper 0x004ED390) and Local Code\GameplayCode.cpp

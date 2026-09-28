@@ -1,4 +1,5 @@
 #include "soundman.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/GameplayDatabase.h"
@@ -217,9 +218,11 @@ enum { W8_EQUIP_CLASS_FIRST_NON_WEAPON = 4 };
 /* 0x0061E956: the gppStringList message each item use kind shows for whatever
    the item was used on. Retail reads a word at a four-byte stride from this
    run of consecutive ids - every other entry - so the access doubles the use
-   kind. The run's extent ends where g_action_kind_message_ids_61e988 starts. */
+   kind. The run's extent ends where g_action_kind_message_ids_61e988 starts;
+   its last six ids, from W8_ITEM_PROPERTY_MESSAGE_FIRST, are the item property
+   labels the assay dialog reads (0x0061E97C). */
 // GLOBAL: WIZ8 0x0061e956
-extern const unsigned short g_item_use_messages[25] = {
+unsigned short g_item_use_messages[25] = {
     0x4f6, 0x4f7, 0x4f8, 0x4f9, 0x4fa, 0x4fb, 0x4fc, 0x4fd, 0x4fe, 0x4ff, 0x500, 0x501, 0x502,
     0x503, 0x504, 0x505, 0x506, 0x507, 0x508, 0x509, 0x50a, 0x50b, 0x50c, 0x50d, 0x50e,
 };
@@ -229,11 +232,11 @@ extern const unsigned short g_item_use_messages[25] = {
 // GLOBAL: WIZ8 0x0068C108
 wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 // GLOBAL: WIZ8 0x00616e84
-const int g_item_spell_presentation[11] = {-1, 20, 20, -1, -1, -1, 12, 9, 23, 7, 0};
+int g_item_spell_presentation[11] = {-1, 20, 20, -1, -1, -1, 12, 9, 23, 7, 0};
 /* The twelve slots' paper-doll icons: the two alternate-set hand slots have
    none, which is the value the bound-item predicates refuse a binding behind. */
 // GLOBAL: WIZ8 0x00648c5c
-const int g_equip_slot_icons[12] = {0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0};
+int g_equip_slot_icons[12] = {0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0};
 /* The leading entries are an offset alias of the tail of
    g_equip_class_name_ids; retail reads both views of one block. */
 // GLOBAL: WIZ8 0x0061E810
@@ -287,7 +290,7 @@ void W8ItemVideoObjectCache::Clear()
 }
 
 // GLOBAL: WIZ8 0x0062a88c
-static const char g_item_video_object_fallback_names[145][0x30] = {"Dagger.sti",
+static char g_item_video_object_fallback_names[145][0x30] = {"Dagger.sti",
                                                                    "LongSword.sti",
                                                                    "Bipennis.sti",
                                                                    "BattleAxe.sti",

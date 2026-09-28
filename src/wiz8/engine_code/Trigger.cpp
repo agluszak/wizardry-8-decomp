@@ -1,4 +1,5 @@
 #include "soundman.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
@@ -96,12 +97,6 @@ int g_container_event_alt = g_first_remapped_event + 13;
 
 // GLOBAL: WIZ8 0x0068c548
 int g_container_event = g_first_remapped_event + 14;
-
-// GLOBAL: WIZ8 0x005ee59c
-int g_condition_reaction = 5;
-
-// GLOBAL: WIZ8 0x005ee5a0
-int g_condition_reaction_alt = 6;
 
 // GLOBAL: WIZ8 0x005ec124
 const float g_float_005ec124 = 64.0f;
@@ -960,10 +955,10 @@ void UpdateTimedTriggerEvents(void)
 void W8TriggerShakeEvent::Update()
 {
     if (effect_038 == 0) {
-        float intensity = intensity_03c / 250.0f;
+        float intensity = intensity_03c / g_float_005ecf9c;
 
-        if (intensity < 1.0f) {
-            intensity = 1.0f;
+        if (intensity < g_float_005ebb38) {
+            intensity = g_float_005ebb38;
         }
         effect_038 = CreateCameraShakeEffect(m_pCountdown->m_duration_seconds, 0, intensity, 0, 0);
         effect_038->flags_00 &= ~2;

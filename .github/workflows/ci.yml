@@ -209,7 +209,18 @@ jobs:
             --allow 'WIZ8:GLOBAL:0x006595EC:loss=viewport top is a field of the contiguous W8ViewportRect global at 0x006595E8' \
             --allow 'WIZ8:GLOBAL:0x006595F0:loss=viewport right is a field of the contiguous W8ViewportRect global at 0x006595E8' \
             --allow 'WIZ8:GLOBAL:0x006595F4:loss=viewport bottom is a field of the contiguous W8ViewportRect global at 0x006595E8' \
-            --allow 'WIZ8:GLOBAL:0x0069BF44:loss=second pointer slot is element 1 of the indexed W8TextControl array at 0x0069BF40'
+            --allow 'WIZ8:GLOBAL:0x0069BF44:loss=second pointer slot is element 1 of the indexed W8TextControl array at 0x0069BF40' \
+            --allow 'WIZ8:GLOBAL:0x0060A6E0:loss=MonGen filename literal now has a STRING marker' \
+            --allow 'WIZ8:GLOBAL:0x0060BF6C:loss=stParticle filename literal now has a STRING marker' \
+            --allow 'WIZ8:GLOBAL:0x0060E0F4:loss=default material name now has a STRING marker' \
+            --allow 'WIZ8:GLOBAL:0x00619FDC:loss=MonsterGroup filename literal now has a STRING marker' \
+            --allow 'WIZ8:GLOBAL:0x0061DC60:loss=Combat Hostility filename literal now has a STRING marker' \
+            --allow 'WIZ8:GLOBAL:0x0061E97C:loss=item property names are the tail of g_item_use_messages at 0x0061E956' \
+            --allow 'WIZ8:GLOBAL:0x0064F6B0:loss=MonsterInfoDialog filename literal now has a STRING marker' \
+            --allow 'WIZ8:GLOBAL:0x0064FAE4:loss=AssayDialog filename literal now has a STRING marker' \
+            --allow 'WIZ8:GLOBAL:0x0064FD54:loss=SpellInfoDialog filename literal now has a STRING marker' \
+            --allow 'WIZ8:GLOBAL:0x00650168:loss=ProfRaceInfoDialog filename literal now has a STRING marker' \
+            --allow 'WIZ8:GLOBAL:0x006501D8:loss=StatInfoDialogs filename literal now has a STRING marker'
       - name: Install host analysis tools
         run: |
           sudo apt-get update
@@ -364,12 +375,20 @@ jobs:
           # Differences are review material; the step fails only when a
           # comparison did not complete or a changed function is unpaired.
           uv run wiz8 compare --changed --since "${{ github.event.pull_request.base.sha }}" --sxs
+      - name: Package WIZ8 comparison report
+        if: github.event_name == 'pull_request' && always()
+        run: |
+          if [[ -d build/reports/compare/wiz8 ]]; then
+            tar -czf build/reports/compare/wiz8-report.tar.gz -C build/reports/compare/wiz8 .
+          fi
       - name: Upload WIZ8 comparison report
         if: github.event_name == 'pull_request' && always()
         uses: actions/upload-artifact@v4
         with:
           name: wiz8-comparison-report
-          path: build/reports/compare/wiz8/
+          # Ghidriff names side-by-side files after C++ symbols, which can
+          # contain colons rejected by the artifact service.
+          path: build/reports/compare/wiz8-report.tar.gz
           if-no-files-found: ignore
       - name: Run WIZ8 checks
         id: wiz8-checks

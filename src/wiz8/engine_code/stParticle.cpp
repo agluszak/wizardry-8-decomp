@@ -21,20 +21,20 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/PolyPick.h"
 // GLOBAL: WIZ8 0x005ebc60
-float g_float_005ebc60 = 0.0020000000949949026f;
+const float g_float_005ebc60 = 0.0020000000949949026f;
 // GLOBAL: WIZ8 0x005ec438
-float g_float_005ec438 = 3.0517578125e-05f;
+const float g_float_005ec438 = 3.0517578125e-05f;
 // GLOBAL: WIZ8 0x005ec8d0
-double g_double_005ec8d0 = 0.001;
+const double g_double_005ec8d0 = 0.001;
 // GLOBAL: WIZ8 0x005ecc38
-float g_float_005ecc38 = -0.0010000000474974513f;
+const float g_float_005ecc38 = -0.0010000000474974513f;
 // GLOBAL: WIZ8 0x005ecc3c
-float g_float_005ecc3c = -1000.0f;
+const float g_float_005ecc3c = -1000.0f;
 // GLOBAL: WIZ8 0x005ecc40
-float g_float_005ecc40 = 0.00019174758926965296f;
+const float g_float_005ecc40 = 0.00019174758926965296f;
 
-// GLOBAL: WIZ8 0x0060BF6C
-static const char ST_PARTICLE_CPP[] = "C:\\Projects\\Wizardry 8\\Engine Code\\stParticle.cpp";
+// STRING: WIZ8 0x0060BF6C
+#define ST_PARTICLE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\stParticle.cpp"
 
 // VTABLE: WIZ8 0x005ECBD0
 // class stParticle

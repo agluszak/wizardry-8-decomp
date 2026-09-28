@@ -1,4 +1,5 @@
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/integer_constants.h"
 #include <wchar.h>
 
 #include "wiz8/local_screens/RCSCommon.h"
@@ -87,7 +88,7 @@ Controls* g_item_actions_panel;
 /* 0x0064DAD0: the level-line format the header draws - name, level and the
    profession's level-band title. */
 // GLOBAL: WIZ8 0x0064DAD0
-const wchar_t g_format_s_d_paren_s[] = L"%s %d (%s)";
+wchar_t g_format_s_d_paren_s[] = L"%s %d (%s)";
 
 /* The page and item-action button callbacks CreateCampButtonPanel
    wires into m_primaryActivationCallback. */

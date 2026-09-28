@@ -1,4 +1,5 @@
 #include "wiz8/bink_video.h"
+#include "wiz8/integer_constants.h"
 
 #include "bink.h"
 #include "cursor.h"
@@ -363,19 +364,11 @@ int g_pending_npc_travel_level;
 // GLOBAL: WIZ8 0x0061aea0
 int g_sedexus_sound_handle = -1;
 // GLOBAL: WIZ8 0x0061c324
-const char g_sedexus_moaning_sound[] = "Data\\Sound\\Ambients\\Al_Sedexus Moaning.wav";
+char g_sedexus_moaning_sound[] = "Data\\Sound\\Ambients\\Al_Sedexus Moaning.wav";
 // GLOBAL: WIZ8 0x00614b44
-const wchar_t g_format_al_s[] = L"Al-%s";
+wchar_t g_format_al_s[] = L"Al-%s";
 
-// GLOBAL: WIZ8 0x005EE634
-int g_effect_005ee634 = 43;
 
-/* Quote indices 'F'..'R' fall outside the scripted world-action dispatch in
-   RunNpcScriptLine's kind-0x0d/0x14 entries. */
-// GLOBAL: WIZ8 0x005EE6A0
-int g_world_action_quote_min = 'F';
-// GLOBAL: WIZ8 0x005EE6D0
-int g_world_action_quote_max = 'R';
 
 /* Local Code\NPC Scripting.cpp. The NPC-scripting flag gates the scripted
    monster state; the four accessors below are its only owners. */

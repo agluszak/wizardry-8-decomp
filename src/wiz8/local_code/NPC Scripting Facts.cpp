@@ -1,4 +1,5 @@
 #include "wiz8/fact_state.h"
+#include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_code/Targeting.h"
 
@@ -1061,8 +1062,6 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     }
 }
 
-// GLOBAL: WIZ8 0x005ee6f8
-int g_effect_005ee6f8 = 131;
 
 /* Scripted kill reactions keyed by monster record id: facts and faction
    changes for the special kills, the Rattkin breeder location-variable count,

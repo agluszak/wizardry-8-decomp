@@ -75,7 +75,7 @@ const double g_double_005ecac8 = 75000.0;
 int g_cursor_node_index = -1;
 
 // GLOBAL: WIZ8 0x005ebf50
-double g_world_cursor_scale = 0.002;
+const double g_world_cursor_scale = 0.002;
 
 // SYNTHETIC: WIZ8 0x0048F260
 // W8WorldCursorNode::`scalar deleting destructor'

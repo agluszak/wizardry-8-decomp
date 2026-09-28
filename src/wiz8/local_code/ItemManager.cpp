@@ -57,7 +57,7 @@ extern const double g_double_005ed7b0 = 1.0 / 360.0;
 
 /* 0x005ED7B8: camera distance inside which inactive world items are activated. */
 // GLOBAL: WIZ8 0x005ed7b8
-float g_float_005ed7b8 = 20000.0f;
+const float g_float_005ed7b8 = 20000.0f;
 
 /* 0x005ED7A8: pi, the amplitude cursor-driven throw angles are scaled from. */
 // GLOBAL: WIZ8 0x005ed7a8
@@ -173,7 +173,7 @@ struct W8ItemLevelScaleRange {
 };
 
 // GLOBAL: WIZ8 0x00617CE0
-static const W8ItemLevelScaleRange g_item_level_scale_ranges[7] = {
+static W8ItemLevelScaleRange g_item_level_scale_ranges[7] = {
     {1, 0, 500},      {6, 50, 1000},    {11, 100, 3000},     {16, 300, 5000},
     {21, 600, 10000}, {26, 800, 20000}, {31, 1000, 1000000},
 };
@@ -504,7 +504,7 @@ int ItemInfoMakeGroupList(W8WorldItem* item, W8GrowableVector<W8WorldItem*>* out
 /* 0x00617D34: the generic 3D model names ActivateItem falls back to when a
    record's internal_name is blank, indexed by unidentified_name_index. */
 // GLOBAL: WIZ8 0x00617d34
-static const char g_item_model_fallback_names[145][0x1e] = {"Dagger",
+static char g_item_model_fallback_names[145][0x1e] = {"Dagger",
                                                             "Long Sword",
                                                             "Bipennis",
                                                             "Battle Axe",

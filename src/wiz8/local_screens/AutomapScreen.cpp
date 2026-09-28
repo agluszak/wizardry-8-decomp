@@ -147,11 +147,11 @@ void ResetAutomapZoom(void);
 
 /* String-table tooltip indexes for the sixteen automap chrome buttons. */
 // GLOBAL: WIZ8 0x0064b7a4
-const int g_automap_button_tooltips[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+int g_automap_button_tooltips[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 /* Left-click actions. ResetAutomapZoom / RestoreAutomapCameraPosition are the
    already-recovered bodies at the retail callback addresses. */
 // GLOBAL: WIZ8 0x0064b7e4
-void (*const g_automap_button_callbacks[16])(void) = {
+void (*g_automap_button_callbacks[16])(void) = {
     AutomapZoomInButton,         AutomapZoomOutButton,         ResetAutomapZoom,
     AutomapSelectNoteToolButton, AutomapSelectEraseToolButton, AutomapCyclePageButton,
     AutomapCyclePageButton,      AutomapCyclePageButton,       AutomapLayerDownButton,
@@ -161,11 +161,11 @@ void (*const g_automap_button_callbacks[16])(void) = {
 };
 /* Catalog object ids ConfigureVObjButton loads for each button. */
 // GLOBAL: WIZ8 0x0064b824
-const int g_automap_button_catalogs[16] = {388, 392, 396, 380, 384, 348, 352, 356,
+int g_automap_button_catalogs[16] = {388, 392, 396, 380, 384, 348, 352, 356,
                                            340, 344, 360, 364, 368, 372, 376, 336};
 /* Screen positions for the sixteen buttons. */
 // GLOBAL: WIZ8 0x0064b864
-const int g_automap_button_positions[16][2] = {
+int g_automap_button_positions[16][2] = {
     {490, 124}, {541, 124}, {591, 124}, {490, 70},  {541, 70},  {591, 70},  {591, 70},  {591, 70},
     {490, 164}, {591, 164}, {540, 218}, {540, 326}, {486, 272}, {594, 272}, {540, 272}, {588, 441},
 };
@@ -231,8 +231,9 @@ bool g_automap_overlay_redraw;
 float g_automap_zoom;
 // GLOBAL: WIZ8 0x0068f270
 unsigned char g_automap_surface_mode;
+/* The camera's near clip: how far above the selected layer it floats. */
 // GLOBAL: WIZ8 0x0064b920
-float g_float_0064b920 = 1.0f;
+float g_automap_near_clip = 1.0f;
 // GLOBAL: WIZ8 0x0068f278
 int g_automap_zoom_mode;
 // GLOBAL: WIZ8 0x0068f27c
@@ -652,7 +653,7 @@ unsigned char AutomapScreenEnter(void)
     g_monster_shadow_updates_enabled = 1;
     g_world_render_enabled = 1;
     DisableSky();
-    g_world->camera->setClipRange(1.0, 1500000.0);
+    g_world->camera->setClipRange(g_automap_near_clip, 1500000.0);
     WorldSetRenderRange(g_world, 1500000.0f);
     g_world->camera->setRotation(3.141592653589793 * (1.0f / 180.0f) * 90.0f, 0.0, 0.0);
     int layer_number = 1;
@@ -1272,14 +1273,14 @@ void SetAutomapLayer(int layer)
 {
     if (layer < 0 || g_automap_layers.count == 0 || g_automap_layers.count <= layer ||
         *g_automap_layers.GetAt(layer) == 0) {
-        g_float_0064b920 = 1.0f;
+        g_automap_near_clip = 1.0f;
     } else {
         float height =
             g_automap_position.y - (float)(*g_automap_layers.GetAt(layer))->getLocation().y;
         if (height < 1.0f) {
-            g_float_0064b920 = 1.0f;
+            g_automap_near_clip = 1.0f;
         } else {
-            g_float_0064b920 = height;
+            g_automap_near_clip = height;
         }
     }
     g_automap_layer = layer;
@@ -1690,8 +1691,8 @@ void RenderAutomapFrame(void)
                 view.bottom = (double)-half;
                 view.right = (double)half;
                 view.top = (double)half;
-                g_world->camera->setViewPlane(view, (double)g_float_0064b920);
-                g_world->camera->setClipRange(g_float_0064b920, 1500000.0);
+                g_world->camera->setViewPlane(view, static_cast<double>(g_automap_near_clip));
+                g_world->camera->setClipRange(g_automap_near_clip, 1500000.0);
                 RenderWorldToSurface(g_automap_surface, &g_automap_viewport, 0);
                 g_automap_overlay_redraw = false;
                 SetResidentTexturePolicy(0);
@@ -2518,14 +2519,86 @@ unsigned char HandleAutomapKey(const InputAtom* input)
     }
     int tool;
     switch (input->usParam) {
-    case 0x70:
-        if (g_dev_mode != 0) {
-            g_automap_saved_camera.position = g_automap_position;
-            ResetCurrentEnvironment();
-            ResetCurrentEnvironment();
-            goto exit_screen;
+    case 8:
+        /* Backspace zooms out one step, or all the way from the full view. */
+        if (g_automap_position.y < g_automap_top_y) {
+            if (g_automap_zoom_mode == 1) {
+                g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
+                srVector3T<float> position = (g_automap_bounds_max + g_automap_bounds_min) / 2.0;
+                position.y = g_automap_top_y;
+                SetAutomapCameraPoint(&position);
+                SetAutomapToolCursor(g_automap_tool);
+                SetAutomapButtonMode(0);
+                return 1;
+            }
+            float floor = g_automap_position.y - g_automap_zoom;
+            float height = g_automap_top_y - (g_automap_top_y - floor) * 0.5f;
+            if (height < g_automap_position.y) {
+                ResetAutomapZoom();
+                return 1;
+            }
+            g_automap_position.y = height;
+            SetAutomapButtonMode(1);
+            g_automap_zoom = g_automap_position.y - floor;
+            SetAutomapCameraPoint(&g_automap_position);
+            SetAutomapToolCursor(g_automap_tool);
         }
+        return 1;
+    case 0xd: {
+        srVector3T<float> center;
+        center.x = 0.5f;
+        center.y = 0.5f;
+        center.z = 0.0f;
+        ZoomAutomapIn(&center);
+        return 1;
+    }
+    case 0x1b:
+    drop_tool:
+        /* Escape drops the tool, or leaves the screen when none is held. */
+        if (g_automap_tool == 0) {
+            RequestScreenTransition();
+            return 1;
+        }
+        g_automap_tool = 0;
+        tool = 0;
+        if (g_automap_cursor_inside) {
+            tool = g_float_005ec360 < g_automap_zoom ? 1 : 4;
+        }
+        SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
+                                      GetCatalogVideoObjectYOffset(tool + 0x14b),
+                                      static_cast<short>(g_automap_cursor_offsets[tool][0]),
+                                      static_cast<short>(g_automap_cursor_offsets[tool][1]));
+        gXStatus.iCurrentCursor = 7;
+        RefreshMouseCursorTexture();
+        return 1;
+    case 0x20:
+        g_automap_page = (g_automap_page + 1) % 3;
+        g_automap_buttons[5]->SetVisible(g_automap_page == 0);
+        g_automap_buttons[6]->SetVisible(g_automap_page == 1);
+        g_automap_buttons[7]->SetVisible(g_automap_page == 2);
+        g_automap_buttons[g_automap_page + 5]->m_dirty = true;
+        g_automap_buttons[g_automap_page + 5]->Draw();
+        g_automap_redraw = true;
+        return 1;
+    case 0x23:
+        g_automap_position.x = g_automap_saved_camera.position.x;
+        g_automap_position.z = g_automap_saved_camera.position.z;
+        SetAutomapCameraPoint(&g_automap_position);
         break;
+    case 0x24: {
+        g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
+        {
+            srVector3T<float> center(g_automap_bounds_min.x + g_automap_bounds_max.x,
+                                     g_automap_bounds_max.y + g_automap_bounds_min.y,
+                                     g_automap_bounds_min.z + g_automap_bounds_max.z);
+            srVector3T<float> position = center / 2.0;
+            position.y = g_automap_top_y;
+            SetAutomapCameraPoint(&position);
+        }
+        SetAutomapToolCursor(g_automap_tool);
+        SetAutomapButtonMode(0);
+        return 1;
+    }
     case 0x2d:
         if (g_automap_tool == 2) {
             return 1;
@@ -2547,111 +2620,74 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         gXStatus.iCurrentCursor = 7;
         RefreshMouseCursorTexture();
         return 1;
-    case 0x79:
-        if (g_dev_mode != 0) {
-            g_flag_0068f264 = g_flag_0068f264 == 0;
-            g_automap_redraw = true;
-            g_automap_overlay_redraw = true;
-        }
-        return 1;
-    case 0x24: {
-        srVector3T<float> center;
-        center.Set(g_automap_bounds_min.x + g_automap_bounds_max.x,
-                   g_automap_bounds_max.y + g_automap_bounds_min.y,
-                   g_automap_bounds_min.z + g_automap_bounds_max.z);
-        srVector3T<float> position = center / 2.0;
-        position.y = g_automap_top_y;
-        SetAutomapCameraPoint(&position);
-        SetAutomapToolCursor(g_automap_tool);
-        SetAutomapButtonMode(0);
-        return 1;
-    }
-    case 0x23:
-        g_automap_position.x = g_automap_saved_camera.position.x;
-        g_automap_position.z = g_automap_saved_camera.position.z;
-        SetAutomapCameraPoint(&g_automap_position);
-        break;
-    case 0x41:
-        if (g_dev_mode != 0) {
-            g_automap_saved_camera.position = g_automap_position;
-            srVector3T<float> center;
-            center.Set(g_automap_bounds_min.x + g_automap_bounds_max.x,
-                       g_automap_bounds_max.y + g_automap_bounds_min.y,
-                       g_automap_bounds_min.z + g_automap_bounds_max.z);
-            g_automap_position = center / 2.0;
-            g_automap_top_y = g_automap_position.y + g_automap_position.x - g_automap_bounds_min.x;
-            g_automap_position.y = g_automap_top_y;
-            SetAutomapCameraPoint(&g_automap_position);
-        }
-        return 1;
-    case 0x43:
-        if (g_dev_mode != 0) {
-            g_automap_state->blink_time = GetTickCount() + 200;
-            g_automap_state->blink_enabled = true;
-        }
-        return 1;
-    case 0x49:
-        if (g_dev_mode != 0) {
-            g_flag_64b90d = g_flag_64b90d == 0;
-            g_automap_redraw = true;
-            g_automap_overlay_redraw = true;
-        }
-        return 1;
-    case 0x53:
-        if (g_dev_mode != 0) {
-            g_automap_state->blink_time = GetTickCount() + 200;
-            g_automap_state->blink_enabled = false;
-        }
-        return 1;
     case 0x31:
     case 0x32:
     case 0x33:
     case 0x34:
         SetAutomapLayer(input->usParam - 0x31);
         return 1;
-    case 0xd: {
-        srVector3T<float> center;
-        center.x = 0.5f;
-        center.y = 0.5f;
-        center.z = 0.0f;
-        ZoomAutomapIn(&center);
-        return 1;
-    }
-    case 8:
-        g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
-        {
-            srVector3T<float> position = (g_automap_bounds_max + g_automap_bounds_min) / 2.0;
-            position.y = g_automap_top_y;
-            SetAutomapCameraPoint(&position);
+    case 0x41:
+        /* Developer: reveal the whole map. */
+        if (g_dev_mode != 0) {
+            g_bits_68f288->SetAll();
+            g_automap_bounds_dirty = true;
+            g_automap_redraw = true;
+            g_automap_overlay_redraw = true;
+            UpdateAutomapBounds();
+            g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
+            {
+                srVector3T<float> center(g_automap_bounds_min.x + g_automap_bounds_max.x,
+                                         g_automap_bounds_max.y + g_automap_bounds_min.y,
+                                         g_automap_bounds_min.z + g_automap_bounds_max.z);
+                srVector3T<float> position = center / 2.0;
+                position.y = g_automap_top_y;
+                SetAutomapCameraPoint(&position);
+            }
+            SetAutomapToolCursor(g_automap_tool);
+            SetAutomapButtonMode(0);
+            RenderAutomapFrame();
+            return 1;
         }
-        SetAutomapToolCursor(g_automap_tool);
-        SetAutomapButtonMode(0);
-        return 1;
-    case 0x20:
-        g_automap_page = (g_automap_page + 1) % 3;
-        g_automap_buttons[5]->SetVisible(g_automap_page == 0);
-        g_automap_buttons[6]->SetVisible(g_automap_page == 1);
-        g_automap_buttons[7]->SetVisible(g_automap_page == 2);
-        g_automap_buttons[g_automap_page + 5]->m_dirty = true;
-        g_automap_buttons[g_automap_page + 5]->Draw();
-        g_automap_redraw = true;
-        return 1;
-    default:
+        break;
+    case 0x43:
+        /* Developer: forget the whole map. */
+        if (g_dev_mode != 0) {
+            g_bits_68f288->ClearAll();
+            g_automap_bounds_dirty = true;
+            UpdateAutomapBounds();
+            return 1;
+        }
+        break;
+    case 0x49:
+        if (g_dev_mode != 0) {
+            g_flag_64b90d = g_flag_64b90d == 0;
+            g_automap_redraw = true;
+            return 1;
+        }
+        break;
+    case 0x53:
+        if (g_dev_mode != 0) {
+            g_automap_redraw = true;
+            g_flag_0068f264 = g_flag_0068f264 == 0;
+            return 1;
+        }
+        break;
+    case 0x70:
+        if (g_dev_mode != 0) {
+            g_automap_saved_camera.position = g_automap_position;
+            ResetCurrentEnvironment();
+            ResetCurrentEnvironment();
+            goto drop_tool;
+        }
+        break;
+    case 0x79:
+        if (g_dev_mode != 0) {
+            g_automap_state->blink_enabled = !g_automap_state->blink_enabled;
+            return 1;
+        }
         break;
     }
     return 0;
-exit_screen:
-    if (g_automap_tool == 0) {
-        RequestScreenTransition();
-        return 1;
-    }
-    g_automap_tool = 0;
-    SetMouseCursorFromVideoObject(
-        GetCatalogVideoObjectHandle(0x14b, 0), GetCatalogVideoObjectYOffset(0x14b),
-        (short)g_automap_cursor_offsets[0][0], (short)g_automap_cursor_offsets[0][1]);
-    gXStatus.iCurrentCursor = 7;
-    RefreshMouseCursorTexture();
-    return 1;
 }
 
 /* Release the previous level's automap query state, then read the cell size

@@ -2305,8 +2305,8 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
     return 1;
 }
 
-// GLOBAL: WIZ8 0x0060e0f4
-const char g_default_material_name[] = "Default Material";
+// STRING: WIZ8 0x0060e0f4
+#define DEFAULT_MATERIAL_NAME "Default Material"
 
 // FUNCTION: WIZ8 0x004B9280
 unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace** texture,
@@ -2319,7 +2319,7 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
     srVector4T<float> color;
 
     *render_flags = 0x0100251b;
-    sprintf(name, g_default_material_name);
+    sprintf(name, DEFAULT_MATERIAL_NAME);
     *texture = 0;
 
     registry = srCore.getRegistry();

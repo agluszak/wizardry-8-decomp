@@ -77,7 +77,7 @@ float HeadingTowardNearestMonster(srVector3T<float> point, char disposition, int
 
 /* 0x0060CFF8: eight bytes per effect id; the leading dword names the HUD
    effect icon and the second the monster visual resource, -1 means none. */
-extern const int g_effect_visual_table[150][2];
+extern int g_effect_visual_table[150][2];
 
 void TickCombatEffectSlots(W8EffectSlot* slots, W8CombatSlot* target); /* 0x005526F0 */
 void TickRadiusBlastEffectSlots(W8EffectSlot* slots);                  /* 0x00552EF0 */
