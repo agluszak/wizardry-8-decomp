@@ -818,7 +818,7 @@ void W8OptionsKeyButton::SetKeyText(unsigned short key)
     }
 
     if (m_secondary_binding != -1 && key != 0) {
-        text = FormatWideString(L"%s (%s)", gppStringList[0x89d], text);
+        text = FormatWideString(L"(%s) %s", gppStringList[0x89d], text);
     }
     m_textBuffer.SetText(text, g_options_detail_font);
 }

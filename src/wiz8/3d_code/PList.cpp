@@ -204,7 +204,7 @@ void* PListRemove(W8PList* ppl, void* pEntry)
                 ppl->data[shift_index] = ppl->data[shift_index + 1];
             }
             --ppl->iNumUsed;
-            if (static_cast<double>(ppl->iNumUsed) / ppl->capacity < 0.25 && !ppl) {
+            if (static_cast<double>(ppl->iNumUsed) / ppl->capacity < 0.5 && !ppl) {
                 srAssertFail("ppl", PLIST_CPP, 0x1f8, 0);
             }
             return removed;
@@ -230,7 +230,7 @@ void* PLRemoveAt(W8PList* ppl, int position)
         ppl->data[index] = ppl->data[index + 1];
     }
     --ppl->iNumUsed;
-    if (static_cast<double>(ppl->iNumUsed) / ppl->capacity < 0.25 && !ppl) {
+    if (static_cast<double>(ppl->iNumUsed) / ppl->capacity < 0.5 && !ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x1f8, 0);
     }
     return entry;

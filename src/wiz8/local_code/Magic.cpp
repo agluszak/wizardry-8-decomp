@@ -1214,10 +1214,10 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
     if (line == 0) {
         srAssertFail("wTempMsg", MAGIC_CPP, 0xfdc, 0);
     }
-    wcscpy(line, FormatWideString(gppStringList[0x1b9], realm_name));
-    wcscat(line, L" -- ");
+    wcscpy(line, FormatWideString(gppStringList[0x1b9], character->name));
+    wcscat(line, L": \"");
     wcscat(line, g_spell_records[spell_id].display_name);
-    wcscat(line, L", ");
+    wcscat(line, L"\" - ");
     wcscat(line, FormatWideString(gppStringList[0x1ba], realm_name, character->sp_max[realm]));
     ShowNoticeLine(line, 0, 1, 0);
 }
@@ -2303,7 +2303,7 @@ void ReportSpellResult(W8SpellEffectEntry* effect)
                 effect->reported_124 = true;
             } else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
-                ShowNoticef(9, L"%s %s", report->text,
+                ShowNoticef(9, L"%s %s!", report->text,
                             gppStringList[g_spell_condition_text[W8_CONDITION_EXHAUSTED * 4]]);
                 effect->reported_124 = true;
             }
@@ -3401,13 +3401,13 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         switch (cast_kind) {
         case 2:
             if (source->iType != W8_TARGET_SOURCE_CHARACTER) {
-                srAssertFail("pSource->iType == SOURCE_TYPE_CHARACTER", MAGIC_CPP, 0x8c2, 0);
+                srAssertFail("pSource->iType == SOURCE_TYPE_CHAR", MAGIC_CPP, 0x8c2, 0);
             }
             message = 0x1aa;
             // fall through
         case 3:
             if (source->iType != W8_TARGET_SOURCE_CHARACTER) {
-                srAssertFail("pSource->iType == SOURCE_TYPE_CHARACTER", MAGIC_CPP, 0x8c6, 0);
+                srAssertFail("pSource->iType == SOURCE_TYPE_CHAR", MAGIC_CPP, 0x8c6, 0);
             }
             if (cast_kind == 3) {
                 message = 0x1ab;

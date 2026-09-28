@@ -4432,7 +4432,7 @@ bool MonsterIsScalingY(W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x004c6160
-void MonsterSetStateA0(W8Monster* monster, unsigned char state)
+void MonsterSetStateA0(W8Monster* monster, bool state)
 {
     if (monster != 0) {
         monster->active_088 = state;

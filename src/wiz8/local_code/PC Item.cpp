@@ -2086,7 +2086,6 @@ bool IsItemCarriedByCharacter(W8Character* character, const W8ItemInstance* item
 void AddPartyGold(int amount, char announce)
 {
     char sound_path[32];
-    wchar_t* line;
 
     strcpy(sound_path, "Data\\Sound\\Misc\\ChaChing.wav");
 
@@ -2096,9 +2095,8 @@ void AddPartyGold(int amount, char announce)
     }
 
     if (announce) {
-        line = FormatWideString(gppStringList[0x1e2], gppStringList[0x15f], amount,
-                                gppStringList[0x160], -1, -1, 0);
-        ShowNotice(8, line);
+        ShowNotice(8, FormatWideString(L"%s %d %s.", gppStringList[0x15f], amount,
+                                       gppStringList[0x160]));
         if (!SoundFileIsPlaying(sound_path)) {
             SoundPlay(sound_path, 0);
         }

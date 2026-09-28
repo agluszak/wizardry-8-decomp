@@ -60,7 +60,7 @@ stLight::stLight(srNode* parent)
     m_level_240 = 0;
     m_definition_234 = 0;
     m_padding_238 = 0;
-    m_level_time_23c = m_path_time_24c = GetTickCount() * 0.0025f;
+    m_level_time_23c = m_path_time_24c = GetTickCount() * 0.001f;
 }
 
 /* Exactly two owned members. The definition is released through its own
@@ -103,7 +103,7 @@ stLight& stLight::operator=(const stLight& other)
     m_path_index_248 = other.m_path_index_248;
     m_path_direction_250 = other.m_path_direction_250;
     m_level_240 = other.m_level_240;
-    m_level_time_23c = m_path_time_24c = GetTickCount() * 0.0025f;
+    m_level_time_23c = m_path_time_24c = GetTickCount() * 0.001f;
     m_prop_254 = other.m_prop_254;
     m_save_marked_23a = other.m_save_marked_23a;
     return *this;
@@ -428,7 +428,7 @@ void stLight::Reset0049D070()
     }
 
     m_level_240 = 0;
-    m_path_time_24c = GetTickCount() * 0.0025f;
+    m_path_time_24c = GetTickCount() * 0.001f;
     m_level_time_23c = m_path_time_24c;
 }
 

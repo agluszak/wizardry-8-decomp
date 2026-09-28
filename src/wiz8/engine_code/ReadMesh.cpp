@@ -1097,7 +1097,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
         stModelInstance* loaded_instance = CreateModelInstance(first_model);
         loaded_instance->setName("ReadSTMeshFromFile");
         if (version > 1 && loaded_instance != 0) {
-            const double angle = 3.14159265358979323846;
+            const double angle = 3.1415926;
             rotation.RotateAboutX(sin(angle), cos(angle));
             srVector3T<double> translated(location.x * 500.0, location.y * 500.0,
                                           location.z * 500.0);

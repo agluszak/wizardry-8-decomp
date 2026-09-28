@@ -1966,7 +1966,7 @@ void W8TriggerItemPickerDialog::Draw()
         SetFont(g_wiz_text_font);
         if (item->stack_count > 1) {
             wchar_t* name = GetItemDisplayName(item);
-            gprintf(button->GetX() + 0x3c, button->GetY() + 6, L"%s (%d)", name, item->stack_count);
+            gprintf(button->GetX() + 0x3c, button->GetY() + 6, L"%s(%d)", name, item->stack_count);
         } else {
             wchar_t* name = GetItemDisplayName(item);
             gprintf(button->GetX() + 0x3c, button->GetY() + 6, name);

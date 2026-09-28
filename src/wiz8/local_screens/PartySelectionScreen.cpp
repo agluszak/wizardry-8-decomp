@@ -1684,7 +1684,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
         return;
     }
     if (control == m_text_48) {
-        OpenNotification(FormatWideString(L"%s %s %s", gppStringList[0x6d4], m_character_18->name,
+        OpenNotification(FormatWideString(L"%s %s %s?", gppStringList[0x6d4], m_character_18->name,
                                           gppStringList[0x6d5]),
                          1, 1);
         return;
