@@ -1,4 +1,5 @@
 #include "wiz8/dialog_code/StatInfoDialogs.h"
+#include "wiz8/dialog_code/MonsterInfoDialog.h"
 #include "Font.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/local_code/UtilityFunctions.h"
@@ -44,7 +45,7 @@ W8StatInfoDialogBase::W8StatInfoDialogBase()
 {
     SetOrigin(0x9c, 0x69);
     SetExtent(0x14a, 0x10e);
-    SetBackground("Data\\Dialogs\\popup_monsterinfo.sti", 0);
+    SetBackground(g_info_dialog_background, 0);
 }
 
 // SYNTHETIC: WIZ8 0x005df920
@@ -68,7 +69,7 @@ int W8StatInfoDialogBase::CreateControls()
 
     W8DialogScrollBar::Resources resources;
     resources.arrows_path = "Data\\Main Interface\\main_scroll.sti";
-    resources.track_path = "Data\\Dialogs\\popup_monsterinfo.sti";
+    resources.track_path = g_info_dialog_background;
     resources.track_frame = 1;
     resources.on_scroll = ScrollCallback;
     scrollbar_054.CreateControls(&resources);

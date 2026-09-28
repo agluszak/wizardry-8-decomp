@@ -37,12 +37,18 @@
 // SYNTHETIC: WIZ8 0x005d5ee0
 // W8MonsterInfoDialog::`scalar deleting destructor'
 
+/* The background and scroll track the monster and statistic info dialogs
+   load, read through this pointer. */
+// GLOBAL: WIZ8 0x0064f610
+// STRING: WIZ8 0x0064f660
+char* g_info_dialog_background = "Data\\Dialogs\\popup_monsterinfo.sti";
+
 // FUNCTION: WIZ8 0x005d5e30
 W8MonsterInfoDialog::W8MonsterInfoDialog(int location_id) : m_location_id(location_id)
 {
     SetOrigin(0x9c, 0x31);
     SetExtent(0x14a, 0x10e);
-    SetBackground("Data\\Dialogs\\popup_monsterinfo.sti", 0);
+    SetBackground(g_info_dialog_background, 0);
 }
 
 // FUNCTION: WIZ8 0x005d5f00
@@ -63,7 +69,7 @@ int W8MonsterInfoDialog::CreateControls()
 
     W8DialogScrollBar::Resources resources;
     resources.arrows_path = "Data\\Main Interface\\main_scroll.sti";
-    resources.track_path = "Data\\Dialogs\\popup_monsterinfo.sti";
+    resources.track_path = g_info_dialog_background;
     resources.track_frame = 1;
     resources.on_scroll = ScrollCallback;
     m_scroll_bar_58.CreateControls(&resources);
