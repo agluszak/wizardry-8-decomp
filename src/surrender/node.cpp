@@ -417,8 +417,8 @@ void srNode::dump(std::ostream& stream)
     stream.width(0x20);
     stream << "  Child count: " << getChildCount() << '\n';
     stream.width(0x20);
-    stream << "  Local matrix: " << '{' << rotation.vectors[0] << ',' << rotation.vectors[1]
-           << ',' << rotation.vectors[2] << '}' << '\n';
+    stream << "  Local matrix: " << '{' << rotation.vectors[0] << ',' << rotation.vectors[1] << ','
+           << rotation.vectors[2] << '}' << '\n';
     stream.width(0x20);
     srVector3T<double> location = getLocation();
     stream << "  Local translation: " << '{' << location.x << ',' << location.y << ',' << location.z
@@ -1043,7 +1043,7 @@ void srNode::applyWorldSpaceMatrix(srGERD& renderer)
 // FUNCTION: SURRENDER 0x100505B0
 srNode* srNode::cloneHierarchy(srNode* parent)
 {
-    srNode* node = static_cast<srNode*>(clone());
+    srNode* node = static_cast<srNode*>(vClone());
     node->setParent(parent, 0);
     if (first_child_ != 0) {
         first_child_->cloneHierarchyInternal(node);
@@ -1057,7 +1057,7 @@ srNode* srNode::cloneHierarchyInternal(srNode* parent)
     if (next_sibling_ != 0) {
         next_sibling_->cloneHierarchyInternal(parent);
     }
-    srNode* node = static_cast<srNode*>(clone());
+    srNode* node = static_cast<srNode*>(vClone());
     node->setParent(parent, 0);
     if (first_child_ != 0) {
         first_child_->cloneHierarchyInternal(node);

@@ -21,9 +21,15 @@ public:
        only inside getShaderDisableMask. */
     srShader();
 
-    /* Copy one packed shader word into value; sources are shader words and
-       render-flag table entries alike. */
-    void CopyValue(const unsigned long* source);
+    /* User-declared and inline. Retail emits the nested srModeler::Triangle/
+       Polygon implicit copy constructors (0x10037C10, 0x10037CF0), which VC6
+       generates only when a member's copy is nontrivial, and expands this body
+       there per array element. By-value srShader arguments call a standalone
+       emission instead: srModeler::convert's in sr.dll and every setShader
+       caller's in Wiz8.exe. */
+    // FUNCTION: SURRENDER 0x1003B930 SYMBOL
+    // ??0srShader@@QAE@ABV0@@Z
+    srShader(const srShader& other) : value(other.value) {}
 
     enum e_pass {
         PASS_NEVER = 0,

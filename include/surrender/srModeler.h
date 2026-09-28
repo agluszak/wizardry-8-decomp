@@ -113,12 +113,8 @@ public:
         /* Implicit copy constructor/assignment emitted via the class-level
            dllexport as memberwise copies. The assignment reaches the Vertex
            members through srModeler::Vertex::operator= rather than a block
-           move; the copy constructor block-copies them.
-
-           The copy constructor's export ordinal addresses inter-function
-           padding: retail and the recompiled provider both place nops at that
-           RVA, so no body exists in either image to compare, and the
-           recompiled export reproduces retail's ordinal and RVA. */
+           move; the copy constructor block-copies them and copies shaders_20
+           element by element through srShader's copy constructor. */
         // SYNTHETIC: SURRENDER 0x10037C10
         // ??0Triangle@srModeler@@QAE@ABV01@@Z
         // SYNTHETIC: SURRENDER 0x10037C70
@@ -146,8 +142,7 @@ public:
         void reAllocate(int vertices);
 
         /* Implicit copy constructor/assignment emitted via the class-level
-           dllexport as memberwise copies. The copy constructor's export
-           ordinal addresses inter-function padding, as for Triangle above. */
+           dllexport as memberwise copies, as for Triangle above. */
         // SYNTHETIC: SURRENDER 0x10037CF0
         // ??0Polygon@srModeler@@QAE@ABV01@@Z
         // SYNTHETIC: SURRENDER 0x10037D40

@@ -40,34 +40,54 @@ public:
 
             /* VStream's implicit constructor emits a single store at +0x10,
                the flags dword of the embedded pixel format. */
-            Info() { pixel_format_00.flags = 0; }
+            Info()
+            {
+                pixel_format_00.flags = 0;
+            }
         };
 
         virtual ~Stream() {}
-// FUNCTION: SURRENDER 0x1002DF90
-        virtual int isLoaded() { return loaded_04; }
+        // FUNCTION: SURRENDER 0x1002DF90
+        virtual int isLoaded()
+        {
+            return loaded_04;
+        }
         /* Base reset only marks the rewind pending; srEXT_FLIC's override
            rewalks the chunk headers itself. */
-// FUNCTION: SURRENDER 0x1002DFA0
-        virtual void reset() { reset_pending_10 = 1; }
-// FUNCTION: SURRENDER 0x1002DFB0
-        virtual long getIndex() { return index_0c; }
+        // FUNCTION: SURRENDER 0x1002DFA0
+        virtual void reset()
+        {
+            reset_pending_10 = 1;
+        }
+        // FUNCTION: SURRENDER 0x1002DFB0
+        virtual long getIndex()
+        {
+            return index_0c;
+        }
         /* The +0x08 payload's semantics are unresolved; no shipping importer
            reads it. */
-// FUNCTION: SURRENDER 0x1002DFC0
-        virtual void setParameter(long parameter) { parameter_08 = parameter; }
+        // FUNCTION: SURRENDER 0x1002DFC0
+        virtual void setParameter(long parameter)
+        {
+            parameter_08 = parameter;
+        }
         /* Nonzero clamps an out-of-range frame request; zero wraps it and
            rewinds (srEXT_FLIC). */
-// FUNCTION: SURRENDER 0x1002DFD0
-        virtual void setClamp(long clamp) { clamp_14 = clamp; }
-// FUNCTION: SURRENDER 0x1002DFE0
-        virtual void setPosition(long position) { position_18 = position; }
+        // FUNCTION: SURRENDER 0x1002DFD0
+        virtual void setClamp(long clamp)
+        {
+            clamp_14 = clamp;
+        }
+        // FUNCTION: SURRENDER 0x1002DFE0
+        virtual void setPosition(long position)
+        {
+            position_18 = position;
+        }
         virtual void getInfo(Info* info) = 0;
-        virtual void decompress(srColorSurfaceIFace& surface, const Target& target,
-                                long frame) = 0;
+        virtual void decompress(srColorSurfaceIFace& surface, const Target& target, long frame) = 0;
 
     protected:
-        Stream(const char* path = 0);
+        SR_DLL_EXPORT Stream(const char* path = 0);
 
         long loaded_04;
         long parameter_08;

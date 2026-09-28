@@ -14,6 +14,13 @@
    operator= at 0x100040D0, reset at 0x10012C80, operator+ at 0x10012CB0)
    while this unit owns find's callable emission at 0x100467E0. */
 
+inline srInlineString::srInlineString()
+{
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+}
+
 inline srInlineString::srInlineString(const char* source)
 {
     init();
@@ -98,8 +105,7 @@ srInlineString libraryName(const char* name, const char* extension)
     return filename + needle + suffix;
 }
 
-inline char* versionString(
-    const char* name, const char* key, unsigned char*& version_info)
+inline char* versionString(const char* name, const char* key, unsigned char*& version_info)
 {
     char* mutable_name = const_cast<char*>(name);
     DWORD ignored;
@@ -117,24 +123,16 @@ inline char* versionString(
 
     unsigned long* translation;
     unsigned int translation_size;
-    VerQueryValueA(
-        version_info,
-        "\\VarFileInfo\\Translation",
-        reinterpret_cast<void**>(&translation),
-        &translation_size);
+    VerQueryValueA(version_info, "\\VarFileInfo\\Translation",
+                   reinterpret_cast<void**>(&translation), &translation_size);
     *translation = (*translation >> 16) | ((*translation & 0xffff) << 16);
 
     char query[256];
-    wsprintfA(query, "\\StringFileInfo\\%08lx\\%s",
-              *translation, key);
+    wsprintfA(query, "\\StringFileInfo\\%08lx\\%s", *translation, key);
 
     char* value;
     unsigned int value_size;
-    if (VerQueryValueA(
-            version_info,
-            query,
-            reinterpret_cast<void**>(&value),
-            &value_size) == 0) {
+    if (VerQueryValueA(version_info, query, reinterpret_cast<void**>(&value), &value_size) == 0) {
         return 0;
     }
     return value;
@@ -143,8 +141,7 @@ inline char* versionString(
 } // namespace
 
 // FUNCTION: SURRENDER 0x10045780
-srDynamicLibrary::Compatibility
-srDynamicLibrary::checkCompatibility(const char* name)
+srDynamicLibrary::Compatibility srDynamicLibrary::checkCompatibility(const char* name)
 {
     if (name == 0) {
         return COMPATIBILITY_0;
@@ -154,9 +151,7 @@ srDynamicLibrary::checkCompatibility(const char* name)
     if (version == 0) {
         return COMPATIBILITY_0;
     }
-    return (version & 0xffffff00) == 0x012a0200
-               ? COMPATIBILITY_2
-               : COMPATIBILITY_1;
+    return (version & 0xffffff00) == 0x012a0200 ? COMPATIBILITY_2 : COMPATIBILITY_1;
 }
 
 // FUNCTION: SURRENDER 0x10045990
@@ -224,8 +219,7 @@ int srDynamicLibrary::testDependencies(const char* name)
 
     int available = 1;
     unsigned char* version_info = 0;
-    char* dependencies = versionString(
-        filename.data(), "srDependencies", version_info);
+    char* dependencies = versionString(filename.data(), "srDependencies", version_info);
     if (dependencies != 0) {
         char* dependency_list = new char[strlen(dependencies) + 1];
         strcpy(dependency_list, dependencies);
@@ -239,12 +233,12 @@ int srDynamicLibrary::testDependencies(const char* name)
                 *split = '\0';
                 next = split;
             }
-            HMODULE library = LoadLibraryExA(
-                token, 0, LOAD_LIBRARY_AS_DATAFILE);
+            HMODULE library = LoadLibraryExA(token, 0, LOAD_LIBRARY_AS_DATAFILE);
             if (library == 0) {
                 char message[512];
                 sprintf(message,
-                        "srDynamicLibrary::testDependencies () -- '%s' failed because dependent file '%s' could not be loaded\n",
+                        "srDynamicLibrary::testDependencies () -- '%s' failed because dependent "
+                        "file '%s' could not be loaded\n",
                         name, token);
                 srDebugPrintf(0, message);
             } else {
@@ -287,8 +281,7 @@ unsigned long srDynamicLibrary::getVersion(const char* name)
     int patch = 0;
     int build = 0;
     if (version != 0) {
-        sscanf(version, "%d, %d, %d, %d",
-               &major, &minor, &patch, &build);
+        sscanf(version, "%d, %d, %d, %d", &major, &minor, &patch, &build);
     }
     delete[] version_info;
     return ((major << 8 | minor) << 8 | patch) << 8 | build;

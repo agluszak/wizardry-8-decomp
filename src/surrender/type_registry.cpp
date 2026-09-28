@@ -862,6 +862,12 @@ srClass* srClass::instance()
     return vInstance();
 }
 
+// FUNCTION: SURRENDER 0x1000E860
+srClass* srClass::clone()
+{
+    return vClone();
+}
+
 // FUNCTION: SURRENDER 0x1000E870
 const char* srClass::sGetClassName()
 {

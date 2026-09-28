@@ -38,7 +38,7 @@ public:
        constructor - the out-of-line 0x004CA8B0 emission and the copies
        inlined into 0x0049C2C0 - reaches this one as srLight(0, 1), so both
        parameters carry those defaults here. */
-    SR_DLL_IMPORT srLight(srNode* parent = 0, e_preset preset = PRESET_POSITIONAL_1);
+    SR_DLL_IMPORT SR_DLL_EXPORT srLight(srNode* parent = 0, e_preset preset = PRESET_POSITIONAL_1);
     SR_DLL_IMPORT srLight(const srLight& other);
     SR_DLL_IMPORT srLight& operator=(const srLight& other);
 

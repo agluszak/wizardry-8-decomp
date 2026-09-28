@@ -1533,9 +1533,7 @@ stModelInstance* W8GameData::CreateTraceModel()
         vertex_locs[vertex + 2] = m_pVertices[surface->vertex_indices_18[2]];
         vertex += 3;
     }
-    srShader shader;
-    shader.CopyValue(&g_oct_mesh_default_shader->value);
-    mesh->setShader(shader, 0);
+    mesh->setShader(*g_oct_mesh_default_shader, 0);
     if ((mesh->control_state_390 & 8) == 0) {
         mesh->control_state_390 |= 8;
         mesh->control_state_390 |= 8;
@@ -1574,12 +1572,11 @@ stModelInstance* W8GameData::CreateTraceModel()
     return instance;
 }
 
-/* Copy one packed shader word into the shader. */
-// FUNCTION: WIZ8 0x0041cf80
-void srShader::CopyValue(const unsigned long* source)
-{
-    value = *source;
-}
+/* srShader's inline copy constructor, emitted out-of-line for the by-value
+   setShader argument above and called by every other setShader site; the
+   primary is in srShader.h. */
+// SYNTHETIC: WIZ8 0x0041CF80
+// ??0srShader@@QAE@ABV0@@Z
 
 // GLOBAL: WIZ8 0x005ebc80
 const float g_float_005ebc80 = -0.1f;

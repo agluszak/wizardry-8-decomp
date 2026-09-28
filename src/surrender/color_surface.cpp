@@ -1397,7 +1397,7 @@ int srColorSurface::changePixelFormat(const srPixelConvert::PixelFormat& format,
     if (!(format == pixel_format_30)) {
         srColorSurfaceIFace* previous = 0;
         if (preserve != 0) {
-            previous = static_cast<srColorSurfaceIFace*>(clone());
+            previous = static_cast<srColorSurfaceIFace*>(vClone());
         }
         srPalette* palette = getPalette();
         unsigned long flags = surface_flags_50;

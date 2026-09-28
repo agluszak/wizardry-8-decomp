@@ -5629,9 +5629,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization()
     }
     model->autoRelease();
     model->flags_3a0 &= ~1U;
-    srShader shader;
-    shader.CopyValue(&g_oct_mesh_default_shader->value);
-    model->setShader(shader, 0);
+    model->setShader(*g_oct_mesh_default_shader, 0);
     model->setName("WayPoint Mesh");
     model->duplicate_on_reuse_3cc = 0;
 

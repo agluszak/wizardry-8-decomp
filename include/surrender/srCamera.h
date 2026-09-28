@@ -19,7 +19,7 @@ public:
         double top;
     };
 
-    srCamera(srNode* parent = 0);
+    SR_DLL_EXPORT srCamera(srNode* parent = 0);
     srCamera(const srCamera& other);
     srCamera& operator=(const srCamera& other);
 

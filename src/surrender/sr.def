@@ -1,8 +1,8 @@
 LIBRARY sr
 EXPORTS
-    ?count@srExtension@@0JA DATA @655
-    ?firstExt@srExtension@@0PAV1@A DATA @810
-    ?funcName@srDebugDD@@0PAPBDA DATA @852
+    ?count@srExtension@@0JA DATA
+    ?firstExt@srExtension@@0PAV1@A DATA
+    ?funcName@srDebugDD@@0PAPBDA DATA
     ?getActivePolygonCount@srMeshModel@@QAEJXZ
     ?getActivePolygonTable@srMeshModel@@QAEPAKH@Z
     ?getPolyEq@srMeshModel@@QAEPAV?$srVector4T@M@@XZ
@@ -98,31 +98,31 @@ EXPORTS
     ?getVideoManager@srCore@@QBEPAVsrVideoManager@@XZ
     ?getModelIOManager@srCore@@QBEPAVsrModelIOManager@@XZ
     ?getHierarchyIOManager@srCore@@QBEPAVsrHierarchyIOManager@@XZ
-    ??4srCore@@QAEAAV0@ABV0@@Z @295
-    ?dump@srCore@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z @708
-    ?getBuildTime@srCore@@QBEPBDXZ @904
-    ?getDebugLevel@srCore@@QBEEXZ @963
-    ?getFilter@srCore@@QBEPAVsrFilter@@XZ @1018
-    ?getGlobalRecycler@srCore@@QBEPAVsrGlobalRecycler@@XZ @1044
-    ?getMaterial@srCore@@QBEPAVsrMaterial@@XZ @1082
-    ?getPalette@srCore@@QBEPAVsrPalette@@XZ @1144
-    ?getRegistry@srCore@@QBEPAVsrRegistry@@XZ @1196
-    ?getScheduler@srCore@@QBEPAVsrScheduler@@XZ @1209
-    ?getStatisticsManager@srCore@@QBEPAVsrStatisticsManager@@XZ @1235
-    ?getSurface@srCore@@QBEPAVsrColorSurfaceIFace@@XZ @1242
-    ?getTimer@srCore@@QBEPAVsrVariableTimer@@XZ @1274
-    ?getUniqueID@srCore@@QAEKXZ @1287
-    ?isInitialized@srCore@@QBEHXZ @1404
-    ?reset@srCore@@AAEXXZ @1597
-    ?setDebugLevel@srCore@@QAEXE@Z @1743
-    ?setFileManager@srCore@@QAEXPAVsrFileManager@@@Z @1766
-    ?setFilter@srCore@@QAEXPAVsrFilter@@@Z @1769
-    ?supportMultiThread@srCore@@QAEHXZ @1969
-    ?supportMultiThread@srCore@@QAEXH@Z @1970
-    ?initialized@srCore@@0HA DATA @1366
-    ?srLogo@@3QBEB DATA @1957
-    ?srInit@@YAHXZ @1955
-    ?srExit@@YAHXZ @1953
+    ??4srCore@@QAEAAV0@ABV0@@Z
+    ?dump@srCore@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?getBuildTime@srCore@@QBEPBDXZ
+    ?getDebugLevel@srCore@@QBEEXZ
+    ?getFilter@srCore@@QBEPAVsrFilter@@XZ
+    ?getGlobalRecycler@srCore@@QBEPAVsrGlobalRecycler@@XZ
+    ?getMaterial@srCore@@QBEPAVsrMaterial@@XZ
+    ?getPalette@srCore@@QBEPAVsrPalette@@XZ
+    ?getRegistry@srCore@@QBEPAVsrRegistry@@XZ
+    ?getScheduler@srCore@@QBEPAVsrScheduler@@XZ
+    ?getStatisticsManager@srCore@@QBEPAVsrStatisticsManager@@XZ
+    ?getSurface@srCore@@QBEPAVsrColorSurfaceIFace@@XZ
+    ?getTimer@srCore@@QBEPAVsrVariableTimer@@XZ
+    ?getUniqueID@srCore@@QAEKXZ
+    ?isInitialized@srCore@@QBEHXZ
+    ?reset@srCore@@AAEXXZ
+    ?setDebugLevel@srCore@@QAEXE@Z
+    ?setFileManager@srCore@@QAEXPAVsrFileManager@@@Z
+    ?setFilter@srCore@@QAEXPAVsrFilter@@@Z
+    ?supportMultiThread@srCore@@QAEHXZ
+    ?supportMultiThread@srCore@@QAEXH@Z
+    ?initialized@srCore@@0HA DATA
+    ?srLogo@@3QBEB DATA
+    ?srInit@@YAHXZ
+    ?srExit@@YAHXZ
     ?getName@srVectorProcessor@@SAPBDXZ
     ?load@srVectorProcessor@@SAHPBD@Z
     ?getID@srVectorProcessor@@SAJPBD@Z
@@ -190,24 +190,24 @@ EXPORTS
     ?getExponent@srExponentTable@@QBEMXZ
     ?getValue@srExponentTable@@QBEMM@Z
     ?setExponent@srExponentTable@@IAEXM@Z
-    ??4srExponentTable@@QAEAAV0@ABV0@@Z @300
-    ??_FsrExponentTable@@QAEXXZ @491
-    ??0srCachedExponentTable@@IAE@M@Z @71
-    ??1srCachedExponentTable@@IAE@XZ @199
-    ??1srTextureFile@@MAE@XZ @241
-    ??1srTextureIFace@@UAE@XZ @242
-    ??4srCachedExponentTable@@QAEAAV0@ABV0@@Z @289
-    ??4srTextureFile@@QAEAAV0@ABV0@@Z @330
-    ??4srTextureIFace@@QAEAAV0@ABV0@@Z @331
-    ??_FsrCachedExponentTable@@QAEXXZ @488
-    ?freeAll@srCachedExponentTable@@SAXXZ @843
-    ?freeUnused@srCachedExponentTable@@SAXXZ @848
-    ?get@srCachedExponentTable@@SAPAV1@M@Z @854
-    ?release@srCachedExponentTable@@QAEXXZ @1564
-    ?first@srCachedExponentTable@@1PAV1@A DATA @808
-    ?lastResult@srCachedExponentTable@@1PAV1@A DATA @1422
-    ?count@srCachedExponentTable@@1JA DATA @654
-    ?lastQuery@srCachedExponentTable@@1MA DATA @1421
+    ??4srExponentTable@@QAEAAV0@ABV0@@Z
+    ??_FsrExponentTable@@QAEXXZ
+    ??0srCachedExponentTable@@IAE@M@Z
+    ??1srCachedExponentTable@@IAE@XZ
+    ??1srTextureFile@@MAE@XZ
+    ??1srTextureIFace@@UAE@XZ
+    ??4srCachedExponentTable@@QAEAAV0@ABV0@@Z
+    ??4srTextureFile@@QAEAAV0@ABV0@@Z
+    ??4srTextureIFace@@QAEAAV0@ABV0@@Z
+    ??_FsrCachedExponentTable@@QAEXXZ
+    ?freeAll@srCachedExponentTable@@SAXXZ
+    ?freeUnused@srCachedExponentTable@@SAXXZ
+    ?get@srCachedExponentTable@@SAPAV1@M@Z
+    ?release@srCachedExponentTable@@QAEXXZ
+    ?first@srCachedExponentTable@@1PAV1@A DATA
+    ?lastResult@srCachedExponentTable@@1PAV1@A DATA
+    ?count@srCachedExponentTable@@1JA DATA
+    ?lastQuery@srCachedExponentTable@@1MA DATA
     ??0srEnvironmentMapper@@QAE@XZ
     ??0srEnvironmentMapper@@QAE@ABV0@@Z
     ??1srEnvironmentMapper@@UAE@XZ
@@ -217,134 +217,134 @@ EXPORTS
     ?srEnvironmentMapper@@3V0@A DATA
     ?sameSide@srTriangulator@@AAEHABV?$srVector2T@M@@000@Z
     ?isInsideTriangle@srTriangulator@@AAEHABV?$srVector2T@M@@000@Z
-    ??0srTriangulator@@QAE@PAV?$srVector2T@M@@H@Z @160
-    ??1srTriangulator@@QAE@XZ @246
-    ??4srTriangulator@@QAEAAV0@ABV0@@Z @337
-    ?next@srTriangulator@@QAE?AVsrVector3i@@XZ @1469
-    ?satisfyConstraints@srTriangulator@@AAEHVListIterator@CircularList@1@@Z @1664
+    ??0srTriangulator@@QAE@PAV?$srVector2T@M@@H@Z
+    ??1srTriangulator@@QAE@XZ
+    ??4srTriangulator@@QAEAAV0@ABV0@@Z
+    ?next@srTriangulator@@QAE?AVsrVector3i@@XZ
+    ?satisfyConstraints@srTriangulator@@AAEHVListIterator@CircularList@1@@Z
     ??0srHierarchyIOManager@@QAE@XZ
     ??0srModelIOManager@@QAE@XZ
-    ??0srSurfaceIOManager@@QAE@XZ @147
-    ??0srTexture@@QAE@ABV0@@Z @149
-    ??0srTextureFile@@QAE@ABV0@@Z @150
-    ??0srTextureFile@@QAE@PBDH@Z @151
-    ??0srTextureIFace@@QAE@ABV0@@Z @152
-    ??0srTextureIFace@@QAE@XZ @153
-    ??0srTextureMap@@QAE@ABV0@@Z @154
-    ??0Exporter@srIOManager@@QAE@ABV01@@Z @8
-    ??0Exporter@srIOManager@@QAE@XZ @9
-    ??0HierarchyExporter@srHierarchyIOManager@@QAE@ABV01@@Z @10
-    ??0HierarchyExporter@srHierarchyIOManager@@QAE@XZ @11
-    ??0HierarchyImporter@srHierarchyIOManager@@QAE@ABV01@@Z @12
-    ??0HierarchyImporter@srHierarchyIOManager@@QAE@XZ @13
-    ??0Importer@srIOManager@@QAE@ABV01@@Z @14
-    ??0Importer@srIOManager@@QAE@XZ @15
-    ??0ModelExporter@srModelIOManager@@QAE@ABV01@@Z @17
-    ??0ModelExporter@srModelIOManager@@QAE@XZ @18
-    ??0ModelImporter@srModelIOManager@@QAE@ABV01@@Z @19
-    ??0ModelImporter@srModelIOManager@@QAE@XZ @20
-    ??0Stream@srVideoManager@@IAE@PBD@Z @32
-    ??0SurfaceExporter@srSurfaceIOManager@@QAE@ABV01@@Z @33
-    ??0SurfaceExporter@srSurfaceIOManager@@QAE@XZ @34
-    ??0SurfaceImporter@srSurfaceIOManager@@QAE@ABV01@@Z @35
-    ??0SurfaceImporter@srSurfaceIOManager@@QAE@XZ @36
-    ??0srDebugDD@@QAE@ABV0@@Z @87
-    ??0srHierarchyIOManager@@QAE@ABV0@@Z @107
-    ??0srIOManager@@QAE@ABV0@@Z @110
-    ??0srModelIOManager@@QAE@ABV0@@Z @126
-    ??0srSurfaceIOManager@@QAE@ABV0@@Z @146
-    ??1Exporter@srIOManager@@UAE@XZ @171
-    ??1HierarchyExporter@srHierarchyIOManager@@UAE@XZ @172
-    ??1HierarchyImporter@srHierarchyIOManager@@UAE@XZ @173
-    ??1Importer@srIOManager@@UAE@XZ @174
-    ??1ModelExporter@srModelIOManager@@UAE@XZ @175
-    ??1ModelImporter@srModelIOManager@@UAE@XZ @176
-    ??1SurfaceExporter@srSurfaceIOManager@@UAE@XZ @183
-    ??1SurfaceImporter@srSurfaceIOManager@@UAE@XZ @184
-    ??1srSurfaceIOManager@@UAE@XZ @239
-    ??4Error@srIOManager@@QAEAAV01@ABV01@@Z @253
-    ??4ExportInfo@srHierarchyIOManager@@QAEAAV01@ABV01@@Z @254
-    ??4ExportInfo@srModelIOManager@@QAEAAV01@ABV01@@Z @255
-    ??4Exporter@srIOManager@@QAEAAV01@ABV01@@Z @256
-    ??4HierarchyExporter@srHierarchyIOManager@@QAEAAV01@ABV01@@Z @257
-    ??4HierarchyImporter@srHierarchyIOManager@@QAEAAV01@ABV01@@Z @258
-    ??4ImportInfo@srHierarchyIOManager@@QAEAAV01@ABV01@@Z @259
-    ??4ImportInfo@srModelIOManager@@QAEAAV01@ABV01@@Z @260
-    ??4Importer@srIOManager@@QAEAAV01@ABV01@@Z @261
-    ??4MappingInfo@srModeler@@QAEAAU01@ABU01@@Z @262
-    ??4ModelExporter@srModelIOManager@@QAEAAV01@ABV01@@Z @263
-    ??4ModelImporter@srModelIOManager@@QAEAAV01@ABV01@@Z @264
-    ??4Polygon@srModeler@@QAEAAV01@ABV01@@Z @268
-    ??4SurfaceExporter@srSurfaceIOManager@@QAEAAV01@ABV01@@Z @272
-    ??4SurfaceImporter@srSurfaceIOManager@@QAEAAV01@ABV01@@Z @273
-    ??4Triangle@srModeler@@QAEAAV01@ABV01@@Z @274
-    ??4srDebugDD@@QAEAAV0@ABV0@@Z @296
-    ??4srHierarchyIOManager@@QAEAAV0@ABV0@@Z @307
-    ??4srIOManager@@QAEAAV0@ABV0@@Z @308
-    ??4srModelIOManager@@QAEAAV0@ABV0@@Z @318
-    ??4srSurfaceIOManager@@QAEAAV0@ABV0@@Z @328
-    ??_7srBinFStream@@6B0@@ DATA @380
-    ??_7srBinFStream@@6BsrBinStream@@@ DATA @381
-    ??_7srBinIAsyncStream@@6BsrBinIStream@@@ DATA @382
-    ??_7srBinIAsyncStream@@6BsrBinStream@@@ DATA @383
-    ??_7srBinIFStream@@6BsrBinFStream@@@ DATA @384
-    ??_7srBinIFStream@@6BsrBinIStream@@@ DATA @385
-    ??_7srBinIFStream@@6BsrBinStream@@@ DATA @386
-    ??_7srBinIMStream@@6BsrBinIStream@@@ DATA @387
-    ??_7srBinIMStream@@6BsrBinStream@@@ DATA @388
-    ??_7srBinIOFStream@@6BsrBinFStream@@@ DATA @389
-    ??_7srBinIOFStream@@6BsrBinIStream@@@ DATA @390
-    ??_7srBinIOFStream@@6BsrBinOStream@@@ DATA @391
-    ??_7srBinIOFStream@@6BsrBinStream@@@ DATA @392
-    ??_7srBinIStream@@6B0@@ DATA @393
-    ??_7srBinIStream@@6BsrBinStream@@@ DATA @394
-    ??_7srBinOFStream@@6BsrBinFStream@@@ DATA @395
-    ??_7srBinOFStream@@6BsrBinOStream@@@ DATA @396
-    ??_7srBinOFStream@@6BsrBinStream@@@ DATA @397
-    ??_7srBinOMStream@@6BsrBinOStream@@@ DATA @398
-    ??_7srBinOMStream@@6BsrBinStream@@@ DATA @399
-    ??_7srBinOStream@@6B0@@ DATA @400
-    ??_7srBinOStream@@6BsrBinStream@@@ DATA @401
-    ??_7srBinStream@@6B@ DATA @402
-    ??_7srDebugDD@@6B@ DATA @408
-    ??_7srDummyStreamBuf@@6B@ DATA @409
-    ??_7srRuntimeClass@@6B@ DATA @433
-    ??_8srBinFStream@@7B@ DATA @442
-    ??_8srBinIAsyncStream@@7B@ DATA @443
-    ??_8srBinIFStream@@7BsrBinFStream@@@ DATA @444
-    ??_8srBinIFStream@@7BsrBinIStream@@@ DATA @445
-    ??_8srBinIMStream@@7B@ DATA @446
-    ??_8srBinIOFStream@@7BsrBinFStream@@@ DATA @447
-    ??_8srBinIOFStream@@7BsrBinIStream@@@ DATA @448
-    ??_8srBinIOFStream@@7BsrBinOStream@@@ DATA @449
-    ??_8srBinIStream@@7B@ DATA @450
-    ??_8srBinOFStream@@7B0@@ DATA @451
-    ??_8srBinOFStream@@7BsrBinFStream@@@ DATA @452
-    ??_8srBinOFStream@@7BsrBinOStream@@@ DATA @453
-    ??_8srBinOMStream@@7B@ DATA @454
-    ??_8srBinOStream@@7B@ DATA @455
-    ??_FMappingInfo@srModeler@@QAEXXZ @484
-    ??_FStream@srVideoManager@@QAEXXZ @486
-    ??_7srIOManager@@6B@ DATA @418
-    ??_7srMaterial@@6B@ DATA @423
-    ??_7srMeshModel@@6B@ DATA @424
-    ??_7srTextureMap@@6B@ DATA @437
-    ??_7srHierarchyIOManager@@6B@ DATA @417
-    ??_7srModelIOManager@@6B@ DATA @426
-    ??_7srSurfaceIOManager@@6B@ DATA @435
-    ??_7srEnvironmentMapper@@6B@ DATA @410
-    ??_7srFStreamOpener@@6B@ DATA @411
-    ??_7srCamera@@6B@ DATA @405
-    ??_7srColorSurface@@6B@ DATA @407
-    ??_7srFileManager@@6B@ DATA @412
-    ??_7srGERD@@6B@ DATA @416
-    ??_7srModeler@@6B@ DATA @429
-    ??_7srTextureFile@@6B@ DATA @436
+    ??0srSurfaceIOManager@@QAE@XZ
+    ??0srTexture@@QAE@ABV0@@Z
+    ??0srTextureFile@@QAE@ABV0@@Z
+    ??0srTextureFile@@QAE@PBDH@Z
+    ??0srTextureIFace@@QAE@ABV0@@Z
+    ??0srTextureIFace@@QAE@XZ
+    ??0srTextureMap@@QAE@ABV0@@Z
+    ??0Exporter@srIOManager@@QAE@ABV01@@Z
+    ??0Exporter@srIOManager@@QAE@XZ
+    ??0HierarchyExporter@srHierarchyIOManager@@QAE@ABV01@@Z
+    ??0HierarchyExporter@srHierarchyIOManager@@QAE@XZ
+    ??0HierarchyImporter@srHierarchyIOManager@@QAE@ABV01@@Z
+    ??0HierarchyImporter@srHierarchyIOManager@@QAE@XZ
+    ??0Importer@srIOManager@@QAE@ABV01@@Z
+    ??0Importer@srIOManager@@QAE@XZ
+    ??0ModelExporter@srModelIOManager@@QAE@ABV01@@Z
+    ??0ModelExporter@srModelIOManager@@QAE@XZ
+    ??0ModelImporter@srModelIOManager@@QAE@ABV01@@Z
+    ??0ModelImporter@srModelIOManager@@QAE@XZ
+    ??0Stream@srVideoManager@@IAE@PBD@Z
+    ??0SurfaceExporter@srSurfaceIOManager@@QAE@ABV01@@Z
+    ??0SurfaceExporter@srSurfaceIOManager@@QAE@XZ
+    ??0SurfaceImporter@srSurfaceIOManager@@QAE@ABV01@@Z
+    ??0SurfaceImporter@srSurfaceIOManager@@QAE@XZ
+    ??0srDebugDD@@QAE@ABV0@@Z
+    ??0srHierarchyIOManager@@QAE@ABV0@@Z
+    ??0srIOManager@@QAE@ABV0@@Z
+    ??0srModelIOManager@@QAE@ABV0@@Z
+    ??0srSurfaceIOManager@@QAE@ABV0@@Z
+    ??1Exporter@srIOManager@@UAE@XZ
+    ??1HierarchyExporter@srHierarchyIOManager@@UAE@XZ
+    ??1HierarchyImporter@srHierarchyIOManager@@UAE@XZ
+    ??1Importer@srIOManager@@UAE@XZ
+    ??1ModelExporter@srModelIOManager@@UAE@XZ
+    ??1ModelImporter@srModelIOManager@@UAE@XZ
+    ??1SurfaceExporter@srSurfaceIOManager@@UAE@XZ
+    ??1SurfaceImporter@srSurfaceIOManager@@UAE@XZ
+    ??1srSurfaceIOManager@@UAE@XZ
+    ??4Error@srIOManager@@QAEAAV01@ABV01@@Z
+    ??4ExportInfo@srHierarchyIOManager@@QAEAAV01@ABV01@@Z
+    ??4ExportInfo@srModelIOManager@@QAEAAV01@ABV01@@Z
+    ??4Exporter@srIOManager@@QAEAAV01@ABV01@@Z
+    ??4HierarchyExporter@srHierarchyIOManager@@QAEAAV01@ABV01@@Z
+    ??4HierarchyImporter@srHierarchyIOManager@@QAEAAV01@ABV01@@Z
+    ??4ImportInfo@srHierarchyIOManager@@QAEAAV01@ABV01@@Z
+    ??4ImportInfo@srModelIOManager@@QAEAAV01@ABV01@@Z
+    ??4Importer@srIOManager@@QAEAAV01@ABV01@@Z
+    ??4MappingInfo@srModeler@@QAEAAU01@ABU01@@Z
+    ??4ModelExporter@srModelIOManager@@QAEAAV01@ABV01@@Z
+    ??4ModelImporter@srModelIOManager@@QAEAAV01@ABV01@@Z
+    ??4Polygon@srModeler@@QAEAAV01@ABV01@@Z
+    ??4SurfaceExporter@srSurfaceIOManager@@QAEAAV01@ABV01@@Z
+    ??4SurfaceImporter@srSurfaceIOManager@@QAEAAV01@ABV01@@Z
+    ??4Triangle@srModeler@@QAEAAV01@ABV01@@Z
+    ??4srDebugDD@@QAEAAV0@ABV0@@Z
+    ??4srHierarchyIOManager@@QAEAAV0@ABV0@@Z
+    ??4srIOManager@@QAEAAV0@ABV0@@Z
+    ??4srModelIOManager@@QAEAAV0@ABV0@@Z
+    ??4srSurfaceIOManager@@QAEAAV0@ABV0@@Z
+    ??_7srBinFStream@@6B0@@ DATA
+    ??_7srBinFStream@@6BsrBinStream@@@ DATA
+    ??_7srBinIAsyncStream@@6BsrBinIStream@@@ DATA
+    ??_7srBinIAsyncStream@@6BsrBinStream@@@ DATA
+    ??_7srBinIFStream@@6BsrBinFStream@@@ DATA
+    ??_7srBinIFStream@@6BsrBinIStream@@@ DATA
+    ??_7srBinIFStream@@6BsrBinStream@@@ DATA
+    ??_7srBinIMStream@@6BsrBinIStream@@@ DATA
+    ??_7srBinIMStream@@6BsrBinStream@@@ DATA
+    ??_7srBinIOFStream@@6BsrBinFStream@@@ DATA
+    ??_7srBinIOFStream@@6BsrBinIStream@@@ DATA
+    ??_7srBinIOFStream@@6BsrBinOStream@@@ DATA
+    ??_7srBinIOFStream@@6BsrBinStream@@@ DATA
+    ??_7srBinIStream@@6B0@@ DATA
+    ??_7srBinIStream@@6BsrBinStream@@@ DATA
+    ??_7srBinOFStream@@6BsrBinFStream@@@ DATA
+    ??_7srBinOFStream@@6BsrBinOStream@@@ DATA
+    ??_7srBinOFStream@@6BsrBinStream@@@ DATA
+    ??_7srBinOMStream@@6BsrBinOStream@@@ DATA
+    ??_7srBinOMStream@@6BsrBinStream@@@ DATA
+    ??_7srBinOStream@@6B0@@ DATA
+    ??_7srBinOStream@@6BsrBinStream@@@ DATA
+    ??_7srBinStream@@6B@ DATA
+    ??_7srDebugDD@@6B@ DATA
+    ??_7srDummyStreamBuf@@6B@ DATA
+    ??_7srRuntimeClass@@6B@ DATA
+    ??_8srBinFStream@@7B@ DATA
+    ??_8srBinIAsyncStream@@7B@ DATA
+    ??_8srBinIFStream@@7BsrBinFStream@@@ DATA
+    ??_8srBinIFStream@@7BsrBinIStream@@@ DATA
+    ??_8srBinIMStream@@7B@ DATA
+    ??_8srBinIOFStream@@7BsrBinFStream@@@ DATA
+    ??_8srBinIOFStream@@7BsrBinIStream@@@ DATA
+    ??_8srBinIOFStream@@7BsrBinOStream@@@ DATA
+    ??_8srBinIStream@@7B@ DATA
+    ??_8srBinOFStream@@7B0@@ DATA
+    ??_8srBinOFStream@@7BsrBinFStream@@@ DATA
+    ??_8srBinOFStream@@7BsrBinOStream@@@ DATA
+    ??_8srBinOMStream@@7B@ DATA
+    ??_8srBinOStream@@7B@ DATA
+    ??_FMappingInfo@srModeler@@QAEXXZ
+    ??_FStream@srVideoManager@@QAEXXZ
+    ??_7srIOManager@@6B@ DATA
+    ??_7srMaterial@@6B@ DATA
+    ??_7srMeshModel@@6B@ DATA
+    ??_7srTextureMap@@6B@ DATA
+    ??_7srHierarchyIOManager@@6B@ DATA
+    ??_7srModelIOManager@@6B@ DATA
+    ??_7srSurfaceIOManager@@6B@ DATA
+    ??_7srEnvironmentMapper@@6B@ DATA
+    ??_7srFStreamOpener@@6B@ DATA
+    ??_7srCamera@@6B@ DATA
+    ??_7srColorSurface@@6B@ DATA
+    ??_7srFileManager@@6B@ DATA
+    ??_7srGERD@@6B@ DATA
+    ??_7srModeler@@6B@ DATA
+    ??_7srTextureFile@@6B@ DATA
     ??0srDebugVP@@QAE@PAVsrVP@@@Z
     ?resetInternalStatistics@srDebugVP@@AAEXXZ
-    ?reset@srStatisticsManager@@QAEXXZ @1600
-    ?getStatistics@srStatisticsManager@@QBEXAAUStatistics@1@@Z @1234
-    ?dump@srStatisticsManager@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@ABUStatistics@1@@Z @726
+    ?reset@srStatisticsManager@@QAEXXZ
+    ?getStatistics@srStatisticsManager@@QBEXAAUStatistics@1@@Z
+    ?dump@srStatisticsManager@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@ABUStatistics@1@@Z
     ??0srConfig@@QAE@XZ
     ??1srConfig@@QAE@XZ
     ?append@srConfig@@QAEXPBD0@Z
@@ -362,12 +362,12 @@ EXPORTS
     ?setLong@srConfig@@QAEXPBDJ@Z
     ?srConfig@@3V0@A DATA
     ?srCore@@3V0@A DATA
-    ??0srGlobalRecycler@@QAE@XZ @105
-    ??1srGlobalRecycler@@QAE@XZ @215
-    ?allocate@srGlobalRecycler@@QAEPAXK@Z @567
-    ?free@srGlobalRecycler@@QAEXPAX@Z @838
-    ?releaseAllUnused@srGlobalRecycler@@QAEXXZ @1570
-    ?setLimit@srGlobalRecycler@@QAEXK@Z @1789
+    ??0srGlobalRecycler@@QAE@XZ
+    ??1srGlobalRecycler@@QAE@XZ
+    ?allocate@srGlobalRecycler@@QAEPAXK@Z
+    ?free@srGlobalRecycler@@QAEXPAX@Z
+    ?releaseAllUnused@srGlobalRecycler@@QAEXXZ
+    ?setLimit@srGlobalRecycler@@QAEXK@Z
     ??0srHeap@@QAE@XZ
     ??1srHeap@@QAE@XZ
     ?allocate@srHeap@@QAEPAXK@Z
@@ -377,64 +377,64 @@ EXPORTS
     ?freeAll@srHeap@@QAEXXZ
     ?msize@srHeap@@QAEKPAX@Z
     ?srHeap@@3V0@A DATA
-    ??0srMutex@@QAE@ABV0@@Z @132
-    ??0srMutex@@QAE@XZ @133
-    ??1srMutex@@UAE@XZ @231
-    ??4srMutex@@QAEAAV0@ABV0@@Z @321
-    ??_7srMutex@@6B@ DATA @430
-    ?accessAvailable@srMutex@@QAEHXZ @525
-    ?getAccess@srMutex@@QAEXXZ @857
-    ?releaseAccess@srMutex@@QAEXXZ @1567
-    ??0srMemoryPool@@QAE@PAXJJ@Z @121
-    ??1srMemoryPool@@QAE@XZ @225
-    ??4srMemoryPool@@QAEAAV0@ABV0@@Z @315
-    ?addEntry@srMemoryPool@@AAEPAUEntry@1@PAU21@0@Z @538
-    ?allocate@srMemoryPool@@QAEPAXJ@Z @571
-    ?convertPtr@srMemoryPool@@ABEJPBX@Z @645
-    ?defrag@srMemoryPool@@AAEXPAUEntry@1@@Z @677
-    ?dump@srMemoryPool@@QAEXXZ @718
-    ?find@srMemoryPool@@ABEPAUEntry@1@J@Z @773
-    ?findArea@srMemoryPool@@ABEPAUEntry@1@J@Z @777
-    ?findBestFit@srMemoryPool@@ABEPAUEntry@1@J@Z @778
-    ?findFirstFit@srMemoryPool@@ABEPAUEntry@1@J@Z @789
-    ?findPlacing@srMemoryPool@@ABEPAUEntry@1@J@Z @799
-    ?findSpace@srMemoryPool@@ABEPAUEntry@1@J@Z @802
-    ?free@srMemoryPool@@QAEXPAX@Z @842
-    ?freeInternal@srMemoryPool@@AAEXPAUEntry@1@@Z @847
-    ?getAlignment@srMemoryPool@@QBEJXZ @867
-    ?getLockStatus@srMemoryPool@@QBEHPAX@Z @1077
-    ?getPolicy@srMemoryPool@@QBE?AW4e_fit@1@XZ @1169
-    ?getSize@srMemoryPool@@QBEJPBX@Z @1221
-    ?getSize@srMemoryPool@@QBEJXZ @1222
-    ?hashVal@srMemoryPool@@ABEKJ@Z @1343
-    ?lock@srMemoryPool@@QAEXPAX@Z @1438
-    ?maskArea@srMemoryPool@@QAEHPBXJ@Z @1447
-    ?memAvail@srMemoryPool@@QAEJXZ @1452
-    ?memFreeTotal@srMemoryPool@@QBEJXZ @1453
-    ?memUsed@srMemoryPool@@QBEJXZ @1454
-    ?setPolicy@srMemoryPool@@QAEXW4e_fit@1@@Z @1837
-    ?unlock@srMemoryPool@@QAEXPAX@Z @2006
-    ??_C@_05GOGI@srFog?$AA@ DATA @457
-    ??_C@_07HOCI@srLight?$AA@ DATA @458
-    ??_C@_07KNKM@srScene?$AA@ DATA @459
-    ??_C@_07PDEG@srModel?$AA@ DATA @460
-    ??_C@_08DALA@srCamera?$AA@ DATA @461
-    ??_C@_08GONM@kernel32?$AA@ DATA @462
-    ??_C@_09FHLE@srBounder?$AA@ DATA @463
-    ??_C@_0BA@FBJK@triangle?5filter?$AA@ DATA @464
-    ??_C@_0BA@FGE@srModelInstance?$AA@ DATA @465
-    ??_C@_0BA@HMKB@B?9Spline?5filter?$AA@ DATA @466
-    ??_C@_0BC@NKGO@bell?9curve?5filter?$AA@ DATA @467
-    ??_C@_0L@FEFD@box?5filter?$AA@ DATA @468
-    ??_C@_0M@IMNL@srMeshModel?$AA@ DATA @469
-    ??_C@_0M@LFO@srClipPlane?$AA@ DATA @470
-    ??_C@_0N@JGCA@srTextureMap?$AA@ DATA @471
-    ??_C@_0O@GKPJ@srTextureFile?$AA@ DATA @472
-    ??_C@_0P@NJDL@srTextureIFace?$AA@ DATA @473
-    ?_frameHandle@srTexture@@1KA DATA @517
+    ??0srMutex@@QAE@ABV0@@Z
+    ??0srMutex@@QAE@XZ
+    ??1srMutex@@UAE@XZ
+    ??4srMutex@@QAEAAV0@ABV0@@Z
+    ??_7srMutex@@6B@ DATA
+    ?accessAvailable@srMutex@@QAEHXZ
+    ?getAccess@srMutex@@QAEXXZ
+    ?releaseAccess@srMutex@@QAEXXZ
+    ??0srMemoryPool@@QAE@PAXJJ@Z
+    ??1srMemoryPool@@QAE@XZ
+    ??4srMemoryPool@@QAEAAV0@ABV0@@Z
+    ?addEntry@srMemoryPool@@AAEPAUEntry@1@PAU21@0@Z
+    ?allocate@srMemoryPool@@QAEPAXJ@Z
+    ?convertPtr@srMemoryPool@@ABEJPBX@Z
+    ?defrag@srMemoryPool@@AAEXPAUEntry@1@@Z
+    ?dump@srMemoryPool@@QAEXXZ
+    ?find@srMemoryPool@@ABEPAUEntry@1@J@Z
+    ?findArea@srMemoryPool@@ABEPAUEntry@1@J@Z
+    ?findBestFit@srMemoryPool@@ABEPAUEntry@1@J@Z
+    ?findFirstFit@srMemoryPool@@ABEPAUEntry@1@J@Z
+    ?findPlacing@srMemoryPool@@ABEPAUEntry@1@J@Z
+    ?findSpace@srMemoryPool@@ABEPAUEntry@1@J@Z
+    ?free@srMemoryPool@@QAEXPAX@Z
+    ?freeInternal@srMemoryPool@@AAEXPAUEntry@1@@Z
+    ?getAlignment@srMemoryPool@@QBEJXZ
+    ?getLockStatus@srMemoryPool@@QBEHPAX@Z
+    ?getPolicy@srMemoryPool@@QBE?AW4e_fit@1@XZ
+    ?getSize@srMemoryPool@@QBEJPBX@Z
+    ?getSize@srMemoryPool@@QBEJXZ
+    ?hashVal@srMemoryPool@@ABEKJ@Z
+    ?lock@srMemoryPool@@QAEXPAX@Z
+    ?maskArea@srMemoryPool@@QAEHPBXJ@Z
+    ?memAvail@srMemoryPool@@QAEJXZ
+    ?memFreeTotal@srMemoryPool@@QBEJXZ
+    ?memUsed@srMemoryPool@@QBEJXZ
+    ?setPolicy@srMemoryPool@@QAEXW4e_fit@1@@Z
+    ?unlock@srMemoryPool@@QAEXPAX@Z
+    ??_C@_05GOGI@srFog?$AA@ DATA
+    ??_C@_07HOCI@srLight?$AA@ DATA
+    ??_C@_07KNKM@srScene?$AA@ DATA
+    ??_C@_07PDEG@srModel?$AA@ DATA
+    ??_C@_08DALA@srCamera?$AA@ DATA
+    ??_C@_08GONM@kernel32?$AA@ DATA
+    ??_C@_09FHLE@srBounder?$AA@ DATA
+    ??_C@_0BA@FBJK@triangle?5filter?$AA@ DATA
+    ??_C@_0BA@FGE@srModelInstance?$AA@ DATA
+    ??_C@_0BA@HMKB@B?9Spline?5filter?$AA@ DATA
+    ??_C@_0BC@NKGO@bell?9curve?5filter?$AA@ DATA
+    ??_C@_0L@FEFD@box?5filter?$AA@ DATA
+    ??_C@_0M@IMNL@srMeshModel?$AA@ DATA
+    ??_C@_0M@LFO@srClipPlane?$AA@ DATA
+    ??_C@_0N@JGCA@srTextureMap?$AA@ DATA
+    ??_C@_0O@GKPJ@srTextureFile?$AA@ DATA
+    ??_C@_0P@NJDL@srTextureIFace?$AA@ DATA
+    ?_frameHandle@srTexture@@1KA DATA
     ?srDebugPrintf@@YAJKPBDZZ
-    ?_srLibraryInit@@YAXXZ @522
-    ?_srLibraryExit@@YAXXZ @521
+    ?_srLibraryInit@@YAXXZ
+    ?_srLibraryExit@@YAXXZ
     ?srPrintf@@YAJPBDZZ
     ?srStreamPrintf@@YAJAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@PBDZZ
     ?srAssertFail@@YAXPBD0J0ZZ
@@ -447,7 +447,7 @@ EXPORTS
     ?srOut@@3VsrOStream_withassign@@A DATA
     ?addReference@srClass@@QBEXXZ
     ?autoRelease@srClass@@QAEXXZ
-    ?autoSmooth@srModeler@@QAEXNH@Z @586
+    ?autoSmooth@srModeler@@QAEXNH@Z
     ?getID@srRuntimeClass@@QBEKXZ
     ?dumpNames@srRuntimeClass@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@H@Z
     ?getClassID@srRuntimeClass@@UBEKXZ
@@ -800,16 +800,16 @@ EXPORTS
     ??0Compressor@srHuffman@@QAE@ABVSampler@1@@Z
     ??0Decompressor@srHuffman@@QAE@AAVBitIStream@1@@Z
     ??0Error@srIOManager@@QAE@PBD@Z
-    ??0MappingInfo@srModeler@@QAE@W4e_axis@1@0MMMM@Z @16
+    ??0MappingInfo@srModeler@@QAE@W4e_axis@1@0MMMM@Z
     ??0Opener@srIStreamOpener@@QAE@XZ
     ??0Path@srFileManager@@IAE@PBD@Z
-    ??0Polygon@srModeler@@QAE@ABV01@@Z @23
-    ??0Polygon@srModeler@@QAE@H@Z @24
+    ??0Polygon@srModeler@@QAE@ABV01@@Z
+    ??0Polygon@srModeler@@QAE@H@Z
     ??0Sampler@srHuffman@@QAE@ABV01@@Z
     ??0Sampler@srHuffman@@QAE@XZ
-    ??0Triangle@srModeler@@QAE@ABV01@@Z @37
-    ??0Triangle@srModeler@@QAE@XZ @38
-    ??0Vertex@srModeler@@QAE@XZ @39
+    ??0Triangle@srModeler@@QAE@ABV01@@Z
+    ??0Triangle@srModeler@@QAE@XZ
+    ??0Vertex@srModeler@@QAE@XZ
     ??0srBinFStream@@IAE@XZ
     ??0srBinFStream@@QAE@ABV0@@Z
     ??0srBinIAsyncStream@@QAE@ABV0@@Z
@@ -842,7 +842,7 @@ EXPORTS
     ??0srColorSurface@@QAE@ABV0@@Z
     ??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@KK@Z
     ??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@PAXKKK@Z
-    ??0srColorSurfaceIFace@@QAE@ABV0@@Z @83
+    ??0srColorSurfaceIFace@@QAE@ABV0@@Z
     ??0srColorSurfaceIFace@@QAE@XZ
     ??0srDebugDD@@QAE@PAVsrDD@@@Z
     ??0srDummyStreamBuf@@AAE@ABV0@@Z
@@ -853,8 +853,8 @@ EXPORTS
     ??0srFileManager@@QAE@XZ
     ??0srFog@@QAE@ABV0@@Z
     ??0srFog@@QAE@PAVsrNode@@@Z
-    ??0srGERD@@QAE@ABV0@@Z @103
-    ??0srGERD@@QAE@PAVsrDD@@PAXPBD@Z @104
+    ??0srGERD@@QAE@ABV0@@Z
+    ??0srGERD@@QAE@PAVsrDD@@PAXPBD@Z
     ??0srIOManager@@IAE@XZ
     ??0srIStreamOpener@@QAE@XZ
     ??0srIlluminator@@QAE@ABV0@@Z
@@ -865,10 +865,10 @@ EXPORTS
     ??0srMaterial@@QAE@XZ
     ??0srMaterialIFace@@QAE@ABV0@@Z
     ??0srMaterialIFace@@QAE@XZ
-    ??1srMaterialIFace@@UAE@XZ @223
+    ??1srMaterialIFace@@UAE@XZ
     ??0srMemoryAllocator@@QAE@XZ
-    ??0srModeler@@QAE@ABV0@@Z @130
-    ??0srModeler@@QAE@XZ @131
+    ??0srModeler@@QAE@ABV0@@Z
+    ??0srModeler@@QAE@XZ
     ??0srScene@@QAE@ABV0@@Z
     ??0srScene@@QAE@PAVsrNode@@@Z
     ??0srStringTable@@QAE@ABV0@@Z
@@ -876,14 +876,14 @@ EXPORTS
     ??0srTexture@@IAE@XZ
     ??0srTextureMap@@QAE@PAVsrColorSurfaceIFace@@@Z
     ??0srVertexPipe@@QAE@XZ
-    ??0srWindowOut@@QAE@ABV0@@Z @165
-    ??0srWindowOut@@QAE@KPBDJK@Z @166
+    ??0srWindowOut@@QAE@ABV0@@Z
+    ??0srWindowOut@@QAE@KPBDJK@Z
     ??1BitOStream@srHuffman@@QAE@XZ
     ??1Compressor@srHuffman@@QAE@XZ
     ??1Decompressor@srHuffman@@QAE@XZ
     ??1Opener@srIStreamOpener@@UAE@XZ
     ??1Path@srFileManager@@IAE@XZ
-    ??1Polygon@srModeler@@QAE@XZ @179
+    ??1Polygon@srModeler@@QAE@XZ
     ??1Sampler@srHuffman@@QAE@XZ
     ??1srBinFStream@@MAE@XZ
     ??1srBinIAsyncStream@@UAE@XZ
@@ -898,13 +898,13 @@ EXPORTS
     ??1srCamera@@UAE@XZ
     ??1srClipPlane@@UAE@XZ
     ??1srColorSurface@@MAE@XZ
-    ??1srColorSurfaceIFace@@UAE@XZ @204
+    ??1srColorSurfaceIFace@@UAE@XZ
     ??1srDummyStreamBuf@@UAE@XZ
     ??1srExtension@@QAE@XZ
     ??1srFStreamOpener@@UAE@XZ
     ??1srFileManager@@UAE@XZ
     ??1srFog@@UAE@XZ
-    ??1srGERD@@UAE@XZ @214
+    ??1srGERD@@UAE@XZ
     ??1srHierarchyIOManager@@UAE@XZ
     ??1srIOManager@@MAE@XZ
     ??1srIStreamOpener@@QAE@XZ
@@ -913,19 +913,19 @@ EXPORTS
     ??1srMaterial@@MAE@XZ
     ??1srMemoryAllocator@@QAE@XZ
     ??1srModelIOManager@@UAE@XZ
-    ??1srModeler@@UAE@XZ @230
+    ??1srModeler@@UAE@XZ
     ??1srScene@@UAE@XZ
     ??1srStringTable@@QAE@XZ
     ??1srTexture@@MAE@XZ
     ??1srTextureMap@@MAE@XZ
     ??1srVertexPipe@@QAE@XZ
-    ??1srWindowOut@@UAE@XZ @249
+    ??1srWindowOut@@UAE@XZ
     ??4BitOStream@srHuffman@@AAEAAV01@ABV01@@Z
     ??4Compressor@srHuffman@@QAEAAV01@ABV01@@Z
     ??4Opener@srIStreamOpener@@QAEAAV01@ABV01@@Z
     ??4Path@srFileManager@@QAEAAV01@ABV01@@Z
     ??4Sampler@srHuffman@@QAEAAV01@ABV01@@Z
-    ??4Vertex@srModeler@@QAEAAV01@ABV01@@Z @275
+    ??4Vertex@srModeler@@QAEAAV01@ABV01@@Z
     ??4srBinFStream@@QAEAAV0@ABV0@@Z
     ??4srBinIFStream@@QAEAAV0@ABV0@@Z
     ??4srBinIOFStream@@QAEAAV0@ABV0@@Z
@@ -945,26 +945,26 @@ EXPORTS
     ??4srFStreamOpener@@QAEAAV0@ABV0@@Z
     ??4srFileManager@@QAEAAV0@ABV0@@Z
     ??4srFog@@QAEAAV0@ABV0@@Z
-    ??4srGERD@@AAEAAV0@ABV0@@Z @306
+    ??4srGERD@@AAEAAV0@ABV0@@Z
     ??4srIStreamOpener@@QAEAAV0@ABV0@@Z
     ??4srIlluminator@@QAEAAV0@ABV0@@Z
     ??4srLight@@QAEAAV0@ABV0@@Z
     ??4srMaterial@@QAEAAV0@ABV0@@Z
     ??4srMaterialIFace@@QAEAAV0@ABV0@@Z
     ??4srMemoryAllocator@@QAEAAV0@ABV0@@Z
-    ??4srModeler@@QAEAAV0@ABV0@@Z @320
+    ??4srModeler@@QAEAAV0@ABV0@@Z
     ??4srScene@@QAEAAV0@ABV0@@Z
     ??4srStringTable@@QAEAAV0@ABV0@@Z
     ??4srTexture@@QAEAAV0@ABV0@@Z
     ??4srTextureMap@@QAEAAV0@ABV0@@Z
     ??4srThread@@QAEAAV0@ABV0@@Z
     ??4srVertexPipe@@QAEAAV0@ABV0@@Z
-    ??4srWindow@@QAEAAV0@ABV0@@Z @341
-    ??4srWindowOut@@QAEAAV0@ABV0@@Z @342
-    ??6@YAAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@AAV01@ABVsrShader@@@Z @369
+    ??4srWindow@@QAEAAV0@ABV0@@Z
+    ??4srWindowOut@@QAEAAV0@ABV0@@Z
+    ??6@YAAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@AAV01@ABVsrShader@@@Z
     ??7srBinStream@@QBE_NXZ
-    ??8Vertex@srModeler@@QBEHABV01@@Z @373
-    ??9Vertex@srModeler@@QBEHABV01@@Z @374
+    ??8Vertex@srModeler@@QBEHABV01@@Z
+    ??9Vertex@srModeler@@QBEHABV01@@Z
     ??AsrStringTable@@QAEPADH@Z
     ??BsrBinStream@@QBEPAXXZ
     ??_7srClipPlane@@6B@ DATA
@@ -973,8 +973,8 @@ EXPORTS
     ??_7srLight@@6B?$srClassSupport@VsrIlluminator@@VsrNode@@$0A@$0BCAA@@@@ DATA
     ??_7srLight@@6BsrVertexProcessor@@@ DATA
     ??_7srScene@@6B@ DATA
-    ??_7srWindowOut@@6B@ DATA @441
-    ??_8srWindowOut@@7B@ DATA @456
+    ??_7srWindowOut@@6B@ DATA
+    ??_8srWindowOut@@7B@ DATA
     ??_DsrBinFStream@@QAEXXZ
     ??_DsrBinIAsyncStream@@QAEXXZ
     ??_DsrBinIFStream@@QAEXXZ
@@ -984,50 +984,50 @@ EXPORTS
     ??_DsrBinOFStream@@QAEXXZ
     ??_DsrBinOMStream@@QAEXXZ
     ??_DsrBinOStream@@QAEXXZ
-    ??_DsrWindowOut@@QAEXXZ @483
-    ??_FSampler@srPalette@@QAEXXZ @485
-    ??_FsrBounder@@QAEXXZ @487
-    ??_FsrCamera@@QAEXXZ @489
-    ??_FsrClipPlane@@QAEXXZ @490
-    ??_FsrFog@@QAEXXZ @492
-    ??_FsrIlluminator@@QAEXXZ @493
-    ??_FsrLight@@QAEXXZ @494
-    ??_FsrMeshModel@@QAEXXZ @495
-    ??_FsrModelInstance@@QAEXXZ @496
-    ??_FsrNode@@QAEXXZ @497
-    ??_FsrPalette@@QAEXXZ @498
-    ??_FsrScene@@QAEXXZ @499
-    ??_FsrTextureFile@@QAEXXZ @500
-    ??_FsrTextureMap@@QAEXXZ @501
-    ??_FsrTimer@@QAEXXZ @502
-    ??_FsrVariableTimer@@QAEXXZ @503
+    ??_DsrWindowOut@@QAEXXZ
+    ??_FSampler@srPalette@@QAEXXZ
+    ??_FsrBounder@@QAEXXZ
+    ??_FsrCamera@@QAEXXZ
+    ??_FsrClipPlane@@QAEXXZ
+    ??_FsrFog@@QAEXXZ
+    ??_FsrIlluminator@@QAEXXZ
+    ??_FsrLight@@QAEXXZ
+    ??_FsrMeshModel@@QAEXXZ
+    ??_FsrModelInstance@@QAEXXZ
+    ??_FsrNode@@QAEXXZ
+    ??_FsrPalette@@QAEXXZ
+    ??_FsrScene@@QAEXXZ
+    ??_FsrTextureFile@@QAEXXZ
+    ??_FsrTextureMap@@QAEXXZ
+    ??_FsrTimer@@QAEXXZ
+    ??_FsrVariableTimer@@QAEXXZ
     ?_lockBuffer@srGERD@@AAE?AW4e_error@srDD@@XZ
     ?_lockRenderer@srGERD@@AAEPAVRenderer@1@PAURendererEntry@1@@Z
     ?_unlockBuffer@srGERD@@AAE?AW4e_error@srDD@@XZ
     ?accumAccum_MMX@srGERD@@CAXPAUAccumPixel@1@PBVsrARGB@@JJ@Z
-    ?accumAdd_MMX@srGERD@@CAXPAUAccumPixel@1@JJ@Z @527
+    ?accumAdd_MMX@srGERD@@CAXPAUAccumPixel@1@JJ@Z
     ?accumAlloc@srGERD@@AAEXXZ
     ?accumClear@srGERD@@AAEXXZ
     ?accumConvert@srGERD@@ABEFM@Z
     ?accumLoad_MMX@srGERD@@CAXPAUAccumPixel@1@PBVsrARGB@@JJ@Z
-    ?accumMult_MMX@srGERD@@CAXPAUAccumPixel@1@JJ@Z @532
+    ?accumMult_MMX@srGERD@@CAXPAUAccumPixel@1@JJ@Z
     ?accumRelease@srGERD@@AAEXXZ
     ?accumReturn_MMX@srGERD@@CAXPAVsrARGB@@PBUAccumPixel@1@JJ@Z
     ?accumulate@srGERD@@QAEXW4e_accum@1@M@Z
-    ?addExporter@srIOManager@@IAEXPAVExporter@1@PBD@Z @539
-    ?addFromModeler@srModeler@@QAEXAAV1@@Z @540
-    ?addImporter@srIOManager@@IAEXPAVImporter@1@PBD@Z @541
-    ?addNoise@srColorSurfaceIFace@@QAEXNH@Z @542
+    ?addExporter@srIOManager@@IAEXPAVExporter@1@PBD@Z
+    ?addFromModeler@srModeler@@QAEXAAV1@@Z
+    ?addImporter@srIOManager@@IAEXPAVImporter@1@PBD@Z
+    ?addNoise@srColorSurfaceIFace@@QAEXNH@Z
     ?addPath@srFileManager@@QAEXPBD@Z
-    ?addPolygon@srModeler@@QAEXABVPolygon@1@@Z @544
+    ?addPolygon@srModeler@@QAEXABVPolygon@1@@Z
     ?addSeparatedStrings@srStringTable@@QAEXPBD0H@Z
     ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
     ?addString@srStringTable@@QAEXPBD@Z
-    ?addToExporters@Exporter@srIOManager@@IAEXPAV2@PAV12@PBD@Z @553
-    ?addToExporters@Exporter@srIOManager@@IAEXPAV2@PBD@Z @554
-    ?addToImporters@Importer@srIOManager@@IAEXPAV2@PAV12@PBD@Z @555
-    ?addToImporters@Importer@srIOManager@@IAEXPAV2@PBD@Z @556
-    ?addTriangle@srModeler@@QAEKABVTriangle@1@@Z @558
+    ?addToExporters@Exporter@srIOManager@@IAEXPAV2@PAV12@PBD@Z
+    ?addToExporters@Exporter@srIOManager@@IAEXPAV2@PBD@Z
+    ?addToImporters@Importer@srIOManager@@IAEXPAV2@PAV12@PBD@Z
+    ?addToImporters@Importer@srIOManager@@IAEXPAV2@PBD@Z
+    ?addTriangle@srModeler@@QAEKABVTriangle@1@@Z
     ?adjust@srColorSurfaceIFace@@UAEXABV?$srVector4T@M@@00@Z
     ?adjustSaturation@srColorSurfaceIFace@@UAEXN@Z
     ?align@srMemoryAllocator@@AAEPAVBlock@1@PAX@Z
@@ -1044,7 +1044,7 @@ EXPORTS
     ?applyDrawStateChanges@srGERD@@AAEXXZ
     ?applyFog@srVertexPipe@@QAEXPBM@Z
     ?applyFrameStateChanges@srGERD@@AAEXXZ
-    ?applyMatrix@srMeshModel@@QAEXABV?$srMatrix3T@M@@@Z @581
+    ?applyMatrix@srMeshModel@@QAEXABV?$srMatrix3T@M@@@Z
     ?applyViewStateChanges@srGERD@@AAEXXZ
     ?assertContext@srGERD@@ABEXXZ
     ?begin@srThread@@SAKP6AXPAX@Z0@Z
@@ -1052,17 +1052,17 @@ EXPORTS
     ?beginFrame@srGERD@@QAE?AW4e_error@1@XZ
     ?bindPalette@srDebugDD@@UAEXAAUPalette@srDD@@@Z
     ?bindTexture@srDebugDD@@UAEXKAAUTexture@srDD@@@Z
-    ?blit@srColorSurface@@UAEXJJAAVsrColorSurfaceIFace@@JJJJ@Z @592
-    ?blit@srColorSurfaceIFace@@UAEXABUBlitInfo@1@AAV1@@Z @593
-    ?blit@srColorSurfaceIFace@@UAEXJJAAV1@JJJJ@Z @594
+    ?blit@srColorSurface@@UAEXJJAAVsrColorSurfaceIFace@@JJJJ@Z
+    ?blit@srColorSurfaceIFace@@UAEXABUBlitInfo@1@AAV1@@Z
+    ?blit@srColorSurfaceIFace@@UAEXJJAAV1@JJJJ@Z
     ?bufferOp@srDebugDD@@UAE?AW4e_error@srDD@@ABUBufferCommand@3@@Z
     ?buildSymbolTree@Compressor@srHuffman@@QAEXXZ
     ?byteOrderMatch@srBinStream@@IBE_NXZ
     ?byteSwap@srBinStream@@KAXPAEH@Z
-    ?calculateBounds@srMeshModel@@MAEXXZ @600
-    ?calculatePolygonNormals@srMeshModel@@MAEXXZ @601
-    ?calculateVertexNormals@srMeshModel@@MAEXXZ @602
-    ?centerVertices@srMeshModel@@QAEXXZ @605
+    ?calculateBounds@srMeshModel@@MAEXXZ
+    ?calculatePolygonNormals@srMeshModel@@MAEXXZ
+    ?calculateVertexNormals@srMeshModel@@MAEXXZ
+    ?centerVertices@srMeshModel@@QAEXXZ
     ?chDir@srSystem@@SAJPBD@Z
     ?changePixelFormat@srColorSurface@@UAEHABUPixelFormat@srPixelConvert@@H@Z
     ?changePixelFormat@srColorSurfaceIFace@@UAEHABUPixelFormat@srPixelConvert@@H@Z
@@ -1073,7 +1073,7 @@ EXPORTS
     ?checkDrawStateChanges@srGERD@@AAEXXZ
     ?checkFrameStateChanges@srGERD@@AAEXXZ
     ?checkViewStateChanges@srGERD@@AAEXXZ
-    ?clampCoordinates@srColorSurfaceIFace@@QAEXAAJ0@Z @620
+    ?clampCoordinates@srColorSurfaceIFace@@QAEXAAJ0@Z
     ?classifyMatrix@srGERD@@AAEXW4e_matrixMode@1@@Z
     ?clear@srBinStream@@QAEXXZ
     ?clear@srGERD@@QAEXABV?$srFlags@W4e_buffer@srGERD@@@@@Z
@@ -1083,30 +1083,30 @@ EXPORTS
     ?closeWindow@srDebugDD@@UAEXXZ
     ?closeWindow@srGERD@@QAEXW4e_closeHint@1@@Z
     ?collectSymbols@Compressor@srHuffman@@QAEXABVSampler@2@@Z
-    ?composite@srColorSurfaceIFace@@UAEXJJAAV1@JJJJN@Z @639
+    ?composite@srColorSurfaceIFace@@UAEXJJAAV1@JJJJN@Z
     ?compressSymbol@Compressor@srHuffman@@QAEXAAVBitOStream@2@K@Z
-    ?convert@srModeler@@QAEXAAVsrMeshModel@@H@Z @641
+    ?convert@srModeler@@QAEXAAVsrMeshModel@@H@Z
     ?convertFromARGB8888@srColorSurface@@AAEXPAXPBKK@Z
     ?convertPixelFormat@srGERD@@CAXAAUPixelFormat@srDD@@ABU2srPixelConvert@@@Z
     ?convertPixelFormat@srGERD@@CAXAAUPixelFormat@srPixelConvert@@ABU2srDD@@@Z
     ?convertToARGB8888@srColorSurface@@AAEXPAKPBXK@Z
-    ?copy@srColorSurfaceIFace@@UAEXAAV1@@Z @647
+    ?copy@srColorSurfaceIFace@@UAEXAAV1@@Z
     ?copyColorChannel@srColorSurfaceIFace@@UAEXW4e_index@srARGB@@0@Z
     ?copyDiffuseToSpecular@srVertexPipe@@QAEXXZ
-    ?copyNoScaling@srColorSurface@@EAEXAAVsrColorSurfaceIFace@@@Z @650
+    ?copyNoScaling@srColorSurface@@EAEXAAVsrColorSurfaceIFace@@@Z
     ?copyNoScaling@srColorSurfaceIFace@@MAEXAAV1@@Z
     ?copySpecularToDiffuse@srVertexPipe@@QAEXXZ
-    ?copySurfaceParameters@srColorSurfaceIFace@@IAEXABV1@@Z @653
+    ?copySurfaceParameters@srColorSurfaceIFace@@IAEXABV1@@Z
     ?createContext@srDebugDD@@UAE?AW4e_error@srDD@@K@Z
     ?createContext@srGERD@@QAE?AW4e_error@1@K@Z
-    ?createGrid@srModeler@@QAEXJJ@Z @659
+    ?createGrid@srModeler@@QAEXJJ@Z
     ?createNewTexture@srGERD@@AAEPAUTexture@1@PAVsrTextureIFace@@@Z
     ?createRenderer@srGERD@@AAEPAURendererEntry@1@H@Z
-    ?createSphere@srModeler@@QAEXJ@Z @666
-    ?createTorus@srModeler@@QAEXJJN@Z @667
-    ?cylinderMap@srModeler@@QAEXJJABUMappingInfo@1@@Z @672
+    ?createSphere@srModeler@@QAEXJ@Z
+    ?createTorus@srModeler@@QAEXJJN@Z
+    ?cylinderMap@srModeler@@QAEXJJABUMappingInfo@1@@Z
     ?debugWrite@srGERD@@CAXPBD@Z
-    ?decompress@VStream@srVideoManager@@QAEXAAVsrColorSurfaceIFace@@@Z @674
+    ?decompress@VStream@srVideoManager@@QAEXAAVsrColorSurfaceIFace@@@Z
     ?decompressSymbol@Decompressor@srHuffman@@QAEKXZ
     ?deleteContext@srDebugDD@@UAEXXZ
     ?deleteContext@srGERD@@QAEXXZ
@@ -1117,13 +1117,13 @@ EXPORTS
     ?disable@srGERD@@QAEXW4e_enable@1@@Z
     ?disable@srLight@@QAEXW4e_enable@1@@Z
     ?disable@srMaterial@@QAEXW4e_oper@1@@Z
-    ?disable@srMeshModel@@QAEXW4e_control@1@@Z @687
+    ?disable@srMeshModel@@QAEXW4e_control@1@@Z
     ?disable@srScene@@QAEXW4e_enable@1@@Z
     ?disableChannel@srVertexPipe@@QAEXW4e_channel@srVertexProcessor@@@Z
-    ?disableDegenerateTriangles@srModeler@@QAEXXZ @690
+    ?disableDegenerateTriangles@srModeler@@QAEXXZ
     ?disableHint@srTexture@@QAEXW4e_hint@srTextureIFace@@@Z
-    ?disableTriangle@srModeler@@QAEXK@Z @692
-    ?discard@srModeler@@QAEXXZ @694
+    ?disableTriangle@srModeler@@QAEXK@Z
+    ?discard@srModeler@@QAEXXZ
     ?drawArrays@srDebugDD@@UAEXW4e_primitive@srRendererDefs@@JK@Z
     ?drawArrays@srGERD@@QAEXW4e_primitive@srRendererDefs@@JK@Z
     ?drawElements@srDebugDD@@UAEXW4e_primitive@srRendererDefs@@KW4e_indexType@3@PBX@Z
@@ -1132,21 +1132,21 @@ EXPORTS
     ?dump@srCamera@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srClipPlane@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
-    ?dump@srColorSurface@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z @705
-    ?dump@srColorSurfaceIFace@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z @706
+    ?dump@srColorSurface@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dump@srColorSurfaceIFace@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srFileManager@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srFog@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srGERD@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@ABV?$srFlags@W4e_info@srGERD@@@@@Z
     ?dump@srGERD@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
-    ?dump@srIOManager@@QAEXXZ @714
+    ?dump@srIOManager@@QAEXXZ
     ?dump@srLight@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srMaterial@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srMemoryAllocator@@QBEXXZ
-    ?dump@srMeshModel@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z @719
+    ?dump@srMeshModel@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srRuntimeClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srScene@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srTexture@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
-    ?dump@srTextureFile@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z @728
+    ?dump@srTextureFile@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srTextureMap@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srVectorProcessor@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dumpAll@srExtension@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
@@ -1155,21 +1155,21 @@ EXPORTS
     ?enable@srGERD@@QAEXW4e_enable@1@@Z
     ?enable@srLight@@QAEXW4e_enable@1@@Z
     ?enable@srMaterial@@QAEXW4e_oper@1@@Z
-    ?enable@srMeshModel@@QAEXW4e_control@1@@Z @742
+    ?enable@srMeshModel@@QAEXW4e_control@1@@Z
     ?enable@srScene@@QAEXW4e_enable@1@@Z
     ?enableChannel@srVertexPipe@@QAEXW4e_channel@srVertexProcessor@@@Z
     ?enableHint@srTexture@@QAEXW4e_hint@srTextureIFace@@@Z
-    ?enableTriangle@srModeler@@QAEXK@Z @746
+    ?enableTriangle@srModeler@@QAEXK@Z
     ?end@srThread@@SAXXZ
     ?endDebug@srVectorProcessor@@SAXXZ
     ?endFrame@srDebugDD@@UAEXXZ
     ?endFrame@srGERD@@QAEXXZ
-    ?errStrings@srGERD@@0PAPBDA DATA @751
+    ?errStrings@srGERD@@0PAPBDA DATA
     ?evaluateTextureDimensions@srGERD@@AAEXAAUTexture@srDD@@ABUDimensions@srTextureIFace@@@Z
     ?evaluateTexturePixelFormat@srGERD@@AAEXAAUTexture@1@ABUDimensions@srTextureIFace@@@Z
     ?exceptions@srBinStream@@QAE_N_N@Z
-    ?exportHierarchy@srHierarchyIOManager@@QAEXPBDABVExportInfo@1@@Z @756
-    ?exportModel@srModelIOManager@@QAEXPBDAAVsrModel@@ABVExportInfo@1@@Z @757
+    ?exportHierarchy@srHierarchyIOManager@@QAEXPBDABVExportInfo@1@@Z
+    ?exportModel@srModelIOManager@@QAEXPBDAAVsrModel@@ABVExportInfo@1@@Z
     ?extCommand@srDebugDD@@UAEXKPAXK@Z
     ?extCommand@srGERD@@QAEXKPAXK@Z
     ?fence@srDebugDD@@UAEXXZ
@@ -1178,31 +1178,31 @@ EXPORTS
     ?fill@srColorSurface@@UAEXK@Z
     ?fill@srColorSurfaceIFace@@UAEXK@Z
     ?find@srExtension@@SAPAV1@PBD@Z
-    ?findClosestVertex@srMeshModel@@QAEJABV?$srVector3T@M@@@Z @783
-    ?findClosestVertex@srModeler@@QAEXABV?$srVector3T@M@@AAK1@Z @784
-    ?findExporter@srIOManager@@IAEPAVExporter@1@PBD@Z @788
+    ?findClosestVertex@srMeshModel@@QAEJABV?$srVector3T@M@@@Z
+    ?findClosestVertex@srModeler@@QAEXABV?$srVector3T@M@@AAK1@Z
+    ?findExporter@srIOManager@@IAEPAVExporter@1@PBD@Z
     ?findImporter@srIOManager@@IAEPAVImporter@1@PBD@Z
     ?findLowestPriority@srGERD@@AAEPAUTexture@1@XZ
     ?findOpener@srIStreamOpener@@AAEPAVOpener@1@PBD@Z
-    ?findVertex@srModeler@@QAEHABV?$srVector3T@M@@AAK1K@Z @803
+    ?findVertex@srModeler@@QAEHABV?$srVector3T@M@@AAK1K@Z
     ?finishDiffuseAlpha@srVertexPipe@@AAEXXZ
     ?finishSpecularFog@srVertexPipe@@AAEXXZ
-    ?first@srGERD@@0PAV1@A DATA @809
-    ?firstOpen@srGERD@@0PAV1@A DATA @811
+    ?first@srGERD@@0PAV1@A DATA
+    ?firstOpen@srGERD@@0PAV1@A DATA
     ?flipColorChannels@srColorSurfaceIFace@@UAEXW4e_index@srARGB@@0@Z
-    ?flipFaces@srMeshModel@@QAEXXZ @813
-    ?flipFacing@Triangle@srModeler@@QAEXXZ @814
+    ?flipFaces@srMeshModel@@QAEXXZ
+    ?flipFacing@Triangle@srModeler@@QAEXXZ
     ?flipFrame@srDebugDD@@UAEXPBUScissor@srDD@@0K@Z
     ?flipFrame@srGERD@@QAEXPBURectangle@1@0K@Z
     ?flipFrame@srGERD@@QAEXXZ
     ?flipHorizontal@srCamera@@QAEXXZ
-    ?flipHorizontal@srColorSurfaceIFace@@QAEXXZ @819
+    ?flipHorizontal@srColorSurfaceIFace@@QAEXXZ
     ?flipRectangle@srColorSurface@@UAEXABURectangle@srColorSurfaceIFace@@@Z
     ?flipRectangle@srColorSurfaceIFace@@UAEXABURectangle@1@@Z
-    ?flipTriangle@srModeler@@QAEXK@Z @822
-    ?flipTriangles@srModeler@@QAEXXZ @823
+    ?flipTriangle@srModeler@@QAEXK@Z
+    ?flipTriangles@srModeler@@QAEXXZ
     ?flipVertical@srCamera@@QAEXXZ
-    ?flipVertical@srColorSurfaceIFace@@QAEXXZ @825
+    ?flipVertical@srColorSurfaceIFace@@QAEXXZ
     ?flush@BitOStream@srHuffman@@AAEXXZ
     ?flush@srGERD@@QAEXXZ
     ?flushBuffer@BitOStream@srHuffman@@AAEXXZ
@@ -1227,7 +1227,7 @@ EXPORTS
     ?getAccumRedBits@srGERD@@QBEJXZ
     ?getAddress@srColorSurface@@AAEPAEJJ@Z
     ?getAlpha@srVertexPipe@@QAEPAMXZ
-    ?getAlphaBits@srColorSurfaceIFace@@QBEKXZ @869
+    ?getAlphaBits@srColorSurfaceIFace@@QBEKXZ
     ?getAmbient@srLight@@QBE?AV?$srVector3T@M@@XZ
     ?getAmbient@srMaterial@@QBE?AV?$srVector4T@M@@XZ
     ?getAmbient@srMaterial@@QBEXAAV?$srVector4T@M@@@Z
@@ -1237,26 +1237,26 @@ EXPORTS
     ?getAntiAlias@srGERD@@QBE?AW4e_antiAlias@1@XZ
     ?getApiVersion@srGERD@@QBEPBDXZ
     ?getAspectRatio@srCamera@@QBENXZ
-    ?getAspectRatio@srColorSurfaceIFace@@QBENXZ @882
+    ?getAspectRatio@srColorSurfaceIFace@@QBENXZ
     ?getAttenuation@srLight@@QBE?AV?$srVector3T@M@@XZ
     ?getAttenuationModel@srLight@@QBE?AW4e_attenuationModel@1@XZ
-    ?getAverageRadius@srMeshModel@@QAENXZ @885
-    ?getAxialBounds@srModeler@@QAEXW4e_axis@1@AAM1@Z @886
+    ?getAverageRadius@srMeshModel@@QAENXZ
+    ?getAxialBounds@srModeler@@QAEXW4e_axis@1@AAM1@Z
     ?getBackBufferType@srGERD@@QBE?AW4e_backBuffer@1@XZ
     ?getBit@BitIStream@srHuffman@@QAEKXZ
-    ?getBitsPerPixel@srColorSurfaceIFace@@QBEJXZ @896
-    ?getBlueBits@srColorSurfaceIFace@@QBEJXZ @897
-    ?getBoundingBox@srMeshModel@@UAEHAAV?$srVector3T@M@@0@Z @900
-    ?getBoundingSphere@srMeshModel@@UAEHAAV?$srVector3T@M@@AAM@Z @901
+    ?getBitsPerPixel@srColorSurfaceIFace@@QBEJXZ
+    ?getBlueBits@srColorSurfaceIFace@@QBEJXZ
+    ?getBoundingBox@srMeshModel@@UAEHAAV?$srVector3T@M@@0@Z
+    ?getBoundingSphere@srMeshModel@@UAEHAAV?$srVector3T@M@@AAM@Z
     ?getBufferPixelFormat@srDebugDD@@UAEXAAUPixelFormat@srDD@@@Z
     ?getByte@BitIStream@srHuffman@@AAEKJ@Z
     ?getByteOrder@srBinStream@@QBE?AW4e_byteOrder@1@XZ
-    ?getBytesPerPixel@srColorSurfaceIFace@@QBEJXZ @907
+    ?getBytesPerPixel@srColorSurfaceIFace@@QBEJXZ
     ?getChannelMask@srVertexPipe@@QBE?AV?$srFlags@W4e_channel@srVertexProcessor@@@@XZ
     ?getChannelStatistics@srColorSurfaceIFace@@UAEXAAVsrStat@@W4e_index@srARGB@@@Z
     ?getChar@srBinIStream@@QAEGXZ
-    ?getClampedX@srColorSurfaceIFace@@QBEJJ@Z @923
-    ?getClampedY@srColorSurfaceIFace@@QBEJJ@Z @924
+    ?getClampedX@srColorSurfaceIFace@@QBEJJ@Z
+    ?getClampedY@srColorSurfaceIFace@@QBEJJ@Z
     ?getClassID@srGERD@@UBEKXZ
     ?getClassName@srGERD@@UBEPBDXZ
     ?getClassNode@srGERD@@UBEPAVClassNode@srRegistry@@XZ
@@ -1269,7 +1269,7 @@ EXPORTS
     ?getClipPlanes@srGERD@@QAEXAAUClipPlanes@1@@Z
     ?getClipRange@srCamera@@QBEXAAN0@Z
     ?getClipType@srClipPlane@@QBE?AW4e_clip@1@XZ
-    ?getCompression@srTexture@@QBE?AW4e_compression@srTextureIFace@@XZ @947
+    ?getCompression@srTexture@@QBE?AW4e_compression@srTextureIFace@@XZ
     ?getCorrection@srTexture@@QBE?AW4e_correction@srTextureIFace@@XZ
     ?getCount@srExtension@@SAJXZ
     ?getCount@srStringTable@@QBEJXZ
@@ -1310,7 +1310,7 @@ EXPORTS
     ?getDriverVersion@srGERD@@QBEPBDXZ
     ?getEmissive@srMaterial@@QBE?AV?$srVector4T@M@@XZ
     ?getEmissive@srMaterial@@QBEXAAV?$srVector4T@M@@@Z
-    ?getEnabledTriangleCount@srModeler@@QAEKXZ @991
+    ?getEnabledTriangleCount@srModeler@@QAEKXZ
     ?getEnvironmentRange@srCamera@@QBEXAAM0@Z
     ?getEnvironmentRange@srGERD@@QBEXAAM0@Z
     ?getEnvironmentScale@srCamera@@QBEXAAM0@Z
@@ -1319,7 +1319,7 @@ EXPORTS
     ?getErrorString@srGERD@@QAEPBDW4e_error@1@@Z
     ?getExclusionMask@srGERD@@QBEKXZ
     ?getExclusionMask@srVertexPipe@@QBEKXZ
-    ?getExporter@srSurfaceIOManager@@QAEPAVSurfaceExporter@1@PBD@Z @1002
+    ?getExporter@srSurfaceIOManager@@QAEPAVSurfaceExporter@1@PBD@Z
     ?getExtension@srIOManager@@QAEPBDPBD@Z
     ?getEyeSpaceBoundingSphere@srVertexPipe@@QBEXAAV?$srVector3T@M@@AAM@Z
     ?getEyeSpaceBounds@srGERD@@QAEXAAV?$srVector3T@M@@AAMABV2@M@Z
@@ -1331,8 +1331,8 @@ EXPORTS
     ?getEyeSpaceZDist@srVertexPipe@@QAEPBMXZ
     ?getFarAttenuationRange@srLight@@QBEXAAN0@Z
     ?getFileManager@srCore@@QBEPAVsrFileManager@@XZ
-    ?getFileName@srTextureFile@@QBEPBDXZ @1016
-    ?getFilter@srColorSurfaceIFace@@QBEPAVsrFilter@@XZ @1017
+    ?getFileName@srTextureFile@@QBEPBDXZ
+    ?getFilter@srColorSurfaceIFace@@QBEPAVsrFilter@@XZ
     ?getFilter@srTexture@@QBEPAVsrFilter@@XZ
     ?getFirst@srExtension@@SAPAV1@XZ
     ?getFirst@srGERD@@SAPAV1@XZ
@@ -1348,21 +1348,21 @@ EXPORTS
     ?getGERD@srGERD@@SAPAV1@K@Z
     ?getGERDCount@srGERD@@SAJXZ
     ?getGamma@srGERD@@QBEXAAV?$srVector3T@M@@@Z
-    ?getGreenBits@srColorSurfaceIFace@@QBEJXZ @1045
+    ?getGreenBits@srColorSurfaceIFace@@QBEJXZ
     ?getGroupMask@srIlluminator@@QBEKXZ
-    ?getHClampMode@srColorSurfaceIFace@@QBEHXZ @1047
+    ?getHClampMode@srColorSurfaceIFace@@QBEHXZ
     ?getHandle@srThread@@SAKXZ
     ?getHardwareChipset@srGERD@@QBEPBDXZ
     ?getHardwareID@srGERD@@QBE?AW4e_hardwareID@srDD@@XZ
     ?getHardwareName@srGERD@@QBEPBDXZ
     ?getHardwareVendor@srGERD@@QBEPBDXZ
-    ?getHeight@srColorSurfaceIFace@@QBEJXZ @1053
+    ?getHeight@srColorSurfaceIFace@@QBEJXZ
     ?getHeight@srGERD@@QBEJXZ
     ?getHeight@srWindow@@SAJK@Z
     ?getHint@srGERD@@QBE?AW4e_hintMode@1@W4e_hint@1@@Z
     ?getHorizontalFOV@srCamera@@QBENXZ
     ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ
-    ?getImporter@srSurfaceIOManager@@QAEPAVSurfaceImporter@1@PBD@Z @1064
+    ?getImporter@srSurfaceIOManager@@QAEPAVSurfaceImporter@1@PBD@Z
     ?getInfo@srDebugDD@@UAEXAAUInfo@srDD@@@Z
     ?getIntensity@srLight@@QBEMXZ
     ?getInverseModelViewMatrix@srGERD@@QAEXAAV?$srMatrix4T@M@@@Z
@@ -1376,24 +1376,24 @@ EXPORTS
     ?getMatrix@srGERD@@QAEXW4e_matrixMode@1@AAV?$srMatrix4T@N@@@Z
     ?getMatrixMode@srGERD@@QBE?AW4e_matrixMode@1@XZ
     ?getMaxModelViewScale@srGERD@@QAEMXZ
-    ?getMaxModelviewStackDepth@srGERD@@QBEJXZ @1092
-    ?getMaxPickStackDepth@srGERD@@QBEJXZ @1093
-    ?getMaxProjectionStackDepth@srGERD@@QBEJXZ @1094
-    ?getMaxRadius@srMeshModel@@QAENXZ @1095
+    ?getMaxModelviewStackDepth@srGERD@@QBEJXZ
+    ?getMaxPickStackDepth@srGERD@@QBEJXZ
+    ?getMaxProjectionStackDepth@srGERD@@QBEJXZ
+    ?getMaxRadius@srMeshModel@@QAENXZ
     ?getMaxTextureAspectRatio@srGERD@@QBEJXZ
     ?getMaxTextureHeight@srGERD@@QBEJXZ
     ?getMaxTextureStages@srGERD@@QBEJXZ
     ?getMaxTextureWidth@srGERD@@QBEJXZ
-    ?getMaxVertexDist@srModeler@@QAENXZ @1100
+    ?getMaxVertexDist@srModeler@@QAENXZ
     ?getMemoryAllocator@srCore@@QBEPAVsrMemoryAllocator@@XZ
     ?getMinFilter@srTexture@@QBE?AW4e_filter@srTextureIFace@@XZ
     ?getMipmap@srTexture@@QBE?AW4e_mipmap@srTextureIFace@@XZ
-    ?getMipmapBias@srTexture@@QBEMXZ @1104
+    ?getMipmapBias@srTexture@@QBEMXZ
     ?getMipmapData@srTexture@@UAEXAAUMultiRequest@srTextureIFace@@@Z
-    ?getMipmapData@srTextureFile@@UAEXAAUMultiRequest@srTextureIFace@@@Z @1106
+    ?getMipmapData@srTextureFile@@UAEXAAUMultiRequest@srTextureIFace@@@Z
     ?getMipmapData@srTextureMap@@UAEXAAUMultiRequest@srTextureIFace@@@Z
     ?getMipmapLevelPartial@srTexture@@UAEXAAUPartialRequest@srTextureIFace@@@Z
-    ?getMipmapLevelPartial@srTextureFile@@UAEXAAUPartialRequest@srTextureIFace@@@Z @1109
+    ?getMipmapLevelPartial@srTextureFile@@UAEXAAUPartialRequest@srTextureIFace@@@Z
     ?getModelViewScaleType@srGERD@@QAE?AW4e_scaleType@?$srMatrix4T@M@@XZ
     ?getName@Path@srFileManager@@QBEPBDXZ
     ?getName@PixelFormat@srPixelConvert@@QAEXQAD@Z
@@ -1401,7 +1401,7 @@ EXPORTS
     ?getName@srMemoryAllocator@@QBEPBDPAX@Z
     ?getNearAttenuationRange@srLight@@QBEXAAN0@Z
     ?getNewFrameHandle@srTexture@@KAKXZ
-    ?getNewFrameHandles@srTexture@@KAKK@Z @1128
+    ?getNewFrameHandles@srTexture@@KAKK@Z
     ?getNext@Path@srFileManager@@QBEPAV12@XZ
     ?getNext@srExtension@@QAEPAV1@XZ
     ?getNext@srGERD@@QBEPAV1@XZ
@@ -1412,28 +1412,28 @@ EXPORTS
     ?getOpacity@srMaterial@@QBEMXZ
     ?getPalette@srColorSurface@@UAEPAVsrPalette@@XZ
     ?getPalette@srColorSurfaceIFace@@UAEPAVsrPalette@@XZ
-    ?getPassCount@srMeshModel@@QBEJXZ @1148
-    ?getPassCount@srModeler@@QBEJXZ @1149
+    ?getPassCount@srMeshModel@@QBEJXZ
+    ?getPassCount@srModeler@@QBEJXZ
     ?getPath@srBinFStream@@QBEPBDXZ
     ?getPickKey@srGERD@@QBEKXZ
-    ?getPitch@srColorSurfaceIFace@@QBEJXZ @1152
+    ?getPitch@srColorSurfaceIFace@@QBEJXZ
     ?getPixel@srColorSurfaceIFace@@UAEKJJ@Z
     ?getPixelColumn@srColorSurface@@UAEXPAKJJJ@Z
     ?getPixelColumn@srColorSurfaceIFace@@UAEXPAKJJJ@Z
-    ?getPixelFormat@srColorSurfaceIFace@@IBEPBUPixelFormat@srPixelConvert@@XZ @1156
-    ?getPixelFormat@srColorSurfaceIFace@@QBEXAAUPixelFormat@srPixelConvert@@@Z @1157
+    ?getPixelFormat@srColorSurfaceIFace@@IBEPBUPixelFormat@srPixelConvert@@XZ
+    ?getPixelFormat@srColorSurfaceIFace@@QBEXAAUPixelFormat@srPixelConvert@@@Z
     ?getPixelFormat@srGERD@@ABEXAAUPixelFormat@srPixelConvert@@@Z
     ?getPixelRaw@srColorSurface@@UAEKJJ@Z
     ?getPixelRaw@srColorSurfaceIFace@@UAEKJJ@Z
-    ?getPixelReadFunc@srColorSurface@@QBEP6AXABUConversionInfo@srPixelConvert@@@ZXZ @1161
+    ?getPixelReadFunc@srColorSurface@@QBEP6AXABUConversionInfo@srPixelConvert@@@ZXZ
     ?getPixelRow@srColorSurface@@UAEXPAKJJJ@Z
     ?getPixelRowRaw@srColorSurface@@UAEXPAXJJJ@Z
-    ?getPixelWriteFunc@srColorSurface@@QBEP6AXABUConversionInfo@srPixelConvert@@@ZXZ @1164
+    ?getPixelWriteFunc@srColorSurface@@QBEP6AXABUConversionInfo@srPixelConvert@@@ZXZ
     ?getPixels@srColorSurface@@UAEXPAKPBVsrVector2i@@J@Z
     ?getPixels@srColorSurfaceIFace@@UAEXPAKPBVsrVector2i@@J@Z
     ?getPixelsRaw@srColorSurface@@UAEXPAXPBVsrVector2i@@J@Z
     ?getPixelsRaw@srColorSurfaceIFace@@UAEXPAXPBVsrVector2i@@J@Z
-    ?getPolygonCount@srMeshModel@@QBEJXZ @1175
+    ?getPolygonCount@srMeshModel@@QBEJXZ
     ?getPolygonMode@srGERD@@QBE?AW4e_polygonMode@1@XZ
     ?getPolygonOffset@srGERD@@QBEJXZ
     ?getPrev@srGERD@@QBEPAV1@XZ
@@ -1445,7 +1445,7 @@ EXPORTS
     ?getQ@srVertexPipe@@QAEPAMKH@Z
     ?getQuadWord@srBinIStream@@QAE?AVsrQuadWord@@XZ
     ?getRange@srFog@@QAEXAAN0@Z
-    ?getRedBits@srColorSurfaceIFace@@QBEJXZ @1194
+    ?getRedBits@srColorSurfaceIFace@@QBEJXZ
     ?getResidentTextureMemUsed@srGERD@@QBEKXZ
     ?getRootNode@srCore@@QBEPAVsrNode@@XZ
     ?getST@srVertexPipe@@QAEPAV?$srVector2T@M@@KH@Z
@@ -1460,7 +1460,7 @@ EXPORTS
     ?getSize@srBinStream@@UAEKXZ
     ?getSize@srFileManager@@UAEJPBD@Z
     ?getSize@srMemoryAllocator@@QBEKPAX@Z
-    ?getSortBias@srMeshModel@@QBEMXZ @1223
+    ?getSortBias@srMeshModel@@QBEMXZ
     ?getSpecular@srLight@@QBE?AV?$srVector3T@M@@XZ
     ?getSpecular@srMaterial@@QBE?AV?$srVector4T@M@@XZ
     ?getSpecular@srMaterial@@QBEXAAV?$srVector4T@M@@@Z
@@ -1472,9 +1472,9 @@ EXPORTS
     ?getStatistics@srGERD@@QAEXAAUStatistics@1@@Z
     ?getStatistics@srScene@@QAEXAAUStatistics@1@@Z
     ?getString@srStringTable@@QBEPADJ@Z
-    ?getSurfaceDesc@SurfaceImporter@srSurfaceIOManager@@UAEHAAUSurfaceDesc@srColorSurfaceIFace@@AAVsrBinIStream@@ABUImportInfo@2@@Z @1243
-    ?getSurfaceDesc@srColorSurfaceIFace@@QBEXAAUSurfaceDesc@1@@Z @1244
-    ?getSurfaceDesc@srSurfaceIOManager@@QAEXAAUSurfaceDesc@srColorSurfaceIFace@@PBDABUImportInfo@1@@Z @1245
+    ?getSurfaceDesc@SurfaceImporter@srSurfaceIOManager@@UAEHAAUSurfaceDesc@srColorSurfaceIFace@@AAVsrBinIStream@@ABUImportInfo@2@@Z
+    ?getSurfaceDesc@srColorSurfaceIFace@@QBEXAAUSurfaceDesc@1@@Z
+    ?getSurfaceDesc@srSurfaceIOManager@@QAEXAAUSurfaceDesc@srColorSurfaceIFace@@PBDABUImportInfo@1@@Z
     ?getSurfacePtr@srTextureMap@@QBEPAVsrColorSurfaceIFace@@XZ
     ?getSwapInterval@srGERD@@QBEKXZ
     ?getSymbolFrequency@Sampler@srHuffman@@QBEKK@Z
@@ -1492,34 +1492,34 @@ EXPORTS
     ?getTextureFormatCount@srGERD@@QBEKXZ
     ?getTextureFormats@srDebugDD@@UAEXAAUPixelFormatList@srDD@@@Z
     ?getTextureFrameHandle@srTexture@@UAEKXZ
-    ?getTextureFrameHandle@srTextureFile@@UAEKXZ @1265
-    ?getTextureName@srTextureIFace@@UAEPBDXZ @1268
+    ?getTextureFrameHandle@srTextureFile@@UAEKXZ
+    ?getTextureName@srTextureIFace@@UAEPBDXZ
     ?getTextureFrameHandle@srTextureMap@@UAEKXZ
     ?getTextureInfo@srGERD@@QAEHPAVsrTextureIFace@@AAUTextureInfo@1@@Z
     ?getTextureParms@srTexture@@UAEXAAUParameters@srTextureIFace@@@Z
     ?getTextureReduction@srGERD@@QBEJXZ
     ?getTranslucency@srMaterial@@QBEMXZ
-    ?getTriMesh@srMeshModel@@UAEABUTriMesh@1@XZ @1278
-    ?getTriMesh@srMeshModel@@UAEXAAUTriMesh@1@@Z @1279
-    ?getTriangle@srModeler@@QAEHKAAVTriangle@1@@Z @1280
-    ?getTriangleCount@srModeler@@QBEKXZ @1281
-    ?getUniqueVertexCount@srModeler@@QAEKXZ @1289
-    ?getUniqueVertexList@srModeler@@AAEPAUVertexHash@1@XZ @1290
+    ?getTriMesh@srMeshModel@@UAEABUTriMesh@1@XZ
+    ?getTriMesh@srMeshModel@@UAEXAAUTriMesh@1@@Z
+    ?getTriangle@srModeler@@QAEHKAAVTriangle@1@@Z
+    ?getTriangleCount@srModeler@@QBEKXZ
+    ?getUniqueVertexCount@srModeler@@QAEKXZ
+    ?getUniqueVertexList@srModeler@@AAEPAUVertexHash@1@XZ
     ?getUserArray@srVertexPipe@@QAEPAXK@Z
-    ?getUVCount@srMeshModel@@QBEJXZ @1286
-    ?getVClampMode@srColorSurfaceIFace@@QBEHXZ @1295
+    ?getUVCount@srMeshModel@@QBEJXZ
+    ?getVClampMode@srColorSurfaceIFace@@QBEHXZ
     ?getVersion@srDynamicLibrary@@SAKPBD@Z
     ?getVertexArrayMask@srGERD@@QBE?AV?$srFlags@W4e_vertexArray@srRendererDefs@@@@XZ
-    ?getVertexCount@srMeshModel@@QBEJXZ @1300
+    ?getVertexCount@srMeshModel@@QBEJXZ
     ?getVertexCount@srVertexPipe@@QBEKXZ
-    ?getVertexDCG@srMeshModel@@QAEPAV?$srVector4T@M@@JH@Z @1302
+    ?getVertexDCG@srMeshModel@@QAEPAV?$srVector4T@M@@JH@Z
     ?getVertexProcessorCount@srGERD@@QBEKXZ
     ?getVertexProcessors@srGERD@@QBEXPAPAVsrVertexProcessor@@@Z
-    ?getVertexSCG@srMeshModel@@QAEPAV?$srVector4T@M@@JH@Z @1309
+    ?getVertexSCG@srMeshModel@@QAEPAV?$srVector4T@M@@JH@Z
     ?getVerticalFOV@srCamera@@QBENXZ
     ?getViewPlane@srCamera@@QBEXAAURect@1@AAN@Z
     ?getViewPort@srGERD@@QBEXAAK000@Z
-    ?getWidth@srColorSurfaceIFace@@QBEJXZ @1320
+    ?getWidth@srColorSurfaceIFace@@QBEJXZ
     ?getWidth@srGERD@@QBEJXZ
     ?getWidth@srWindow@@SAJK@Z
     ?getWinding@srGERD@@QBE?AW4e_winding@1@XZ
@@ -1531,14 +1531,14 @@ EXPORTS
     ?getWrapT@srTexture@@QBE?AW4e_wrap@srTextureIFace@@XZ
     ?getYieldCount@srThread@@SAJXZ
     ?good@srBinStream@@QBE_NXZ
-    ?importHierarchy@srHierarchyIOManager@@QAEXPBDABVImportInfo@1@@Z @1344
-    ?importModel@srModelIOManager@@QAEPAVsrModel@@PBDABVImportInfo@1@@Z @1345
-    ?importSurface@srSurfaceIOManager@@QAEPAVsrColorSurfaceIFace@@PBDAAVsrBinIStream@@ABUImportInfo@1@@Z @1346
+    ?importHierarchy@srHierarchyIOManager@@QAEXPBDABVImportInfo@1@@Z
+    ?importModel@srModelIOManager@@QAEPAVsrModel@@PBDABVImportInfo@1@@Z
+    ?importSurface@srSurfaceIOManager@@QAEPAVsrColorSurfaceIFace@@PBDAAVsrBinIStream@@ABUImportInfo@1@@Z
     ?importSurface@srSurfaceIOManager@@QAEPAVsrColorSurfaceIFace@@PBDABUImportInfo@1@@Z
-    ?exportSurface@srSurfaceIOManager@@QAEXPBDAAVsrBinOStream@@AAVsrColorSurfaceIFace@@ABUExportInfo@1@@Z @758
-    ?exportSurface@srSurfaceIOManager@@QAEXPBDAAVsrColorSurfaceIFace@@ABUExportInfo@1@@Z @759
+    ?exportSurface@srSurfaceIOManager@@QAEXPBDAAVsrBinOStream@@AAVsrColorSurfaceIFace@@ABUExportInfo@1@@Z
+    ?exportSurface@srSurfaceIOManager@@QAEXPBDAAVsrColorSurfaceIFace@@ABUExportInfo@1@@Z
     ?increaseCallTime@srDebugDD@@QAEXW4e_command@srDD@@N@Z
-    ?init@VStream@srVideoManager@@AAEXPAVStream@2@@Z @1350
+    ?init@VStream@srVideoManager@@AAEXPAVStream@2@@Z
     ?init@srColorSurface@@AAEXABUPixelFormat@srPixelConvert@@KKK@Z
     ?initBaseVP@srVectorProcessor@@SAXXZ
     ?initClearColors@srGERD@@AAEXXZ
@@ -1552,8 +1552,8 @@ EXPORTS
     ?initTextureParameterMatrix@srGERD@@AAEXXZ
     ?initView@srGERD@@AAEXXZ
     ?insert@Sampler@srHuffman@@QAEXK@Z
-    ?interpolate@Vertex@srModeler@@QAEXABV12@0M@Z @1369
-    ?invalidate@srTextureFile@@UAEXXZ @1370
+    ?interpolate@Vertex@srModeler@@QAEXABV12@0M@Z
+    ?invalidate@srTextureFile@@UAEXXZ
     ?invalidate@srTextureMap@@UAEXXZ
     ?invalidateFrameHandle@srTexture@@IAEXK@Z
     ?invalidatePalette@srGERD@@AAEXXZ
@@ -1567,27 +1567,27 @@ EXPORTS
     ?invalidateTextureCache@srGERD@@QAEXXZ
     ?isActive@srFog@@UAEHAAVsrVertexPipe@@@Z
     ?isActive@srLight@@UAEHAAVsrVertexPipe@@@Z
-    ?isAlpha@srColorSurfaceIFace@@QBEHXZ @1386
+    ?isAlpha@srColorSurfaceIFace@@QBEHXZ
     ?isBufferLocked@srGERD@@QAEHXZ
     ?isBusy@srDebugDD@@UAEHXZ
     ?isChannelAvailable@srVertexPipe@@QBEHW4e_channel@srVertexProcessor@@@Z
-    ?isClockwise@srModeler@@AAEHPAV?$srVector2T@M@@H@Z @1391
-    ?isCompatible@srColorSurface@@AAEHAAVsrColorSurfaceIFace@@@Z @1392
+    ?isClockwise@srModeler@@AAEHPAV?$srVector2T@M@@H@Z
+    ?isCompatible@srColorSurface@@AAEHAAVsrColorSurfaceIFace@@@Z
     ?isContextCreated@srGERD@@QBEHXZ
     ?isEnabled@srGERD@@QBEHW4e_enable@1@@Z
     ?isEnabled@srLight@@QBEHW4e_enable@1@@Z
     ?isEnabled@srMaterial@@QBEHW4e_oper@1@@Z
-    ?isEnabled@srMeshModel@@QBEHW4e_control@1@@Z @1398
+    ?isEnabled@srMeshModel@@QBEHW4e_control@1@@Z
     ?isEnabled@srScene@@QBEHW4e_enable@1@@Z
     ?isFinished@srBinIAsyncStream@@QAEHXZ
     ?isFlipped@srGERD@@QBEHXZ
     ?isFullScreen@srGERD@@QBEHXZ
-    ?isHintEnabled@srTexture@@QBEHW4e_hint@srTextureIFace@@@Z @1403
+    ?isHintEnabled@srTexture@@QBEHW4e_hint@srTextureIFace@@@Z
     ?isOpen@srBinFStream@@QAEHXZ
-    ?isPaletted@srColorSurfaceIFace@@QBEHXZ @1408
+    ?isPaletted@srColorSurfaceIFace@@QBEHXZ
     ?isPickStackEmpty@srGERD@@QBEHXZ
-    ?isPixelFormatCompatible@srColorSurfaceIFace@@IBEHABV1@@Z @1412
-    ?isSurfaceLoaded@srTextureFile@@QBEHXZ @1414
+    ?isPixelFormatCompatible@srColorSurfaceIFace@@IBEHABV1@@Z
+    ?isSurfaceLoaded@srTextureFile@@QBEHXZ
     ?isTextureCached@srGERD@@QBEHPAVsrTextureIFace@@@Z
     ?isTextureResident@srGERD@@QBEHPAVsrTextureIFace@@@Z
     ?isValid@PixelFormat@srPixelConvert@@QBEHXZ
@@ -1606,20 +1606,20 @@ EXPORTS
     ?loadMatrix@srGERD@@QAEXABV?$srMatrix3T@N@@@Z
     ?loadMatrix@srGERD@@QAEXABV?$srMatrix4T@M@@@Z
     ?loadMatrix@srGERD@@QAEXABV?$srMatrix4T@N@@@Z
-    ?loadSurface@srTextureFile@@QAEXXZ @1437
+    ?loadSurface@srTextureFile@@QAEXXZ
     ?lockBuffer@srGERD@@QAEPAVsrColorSurfaceIFace@@XZ
     ?lockRenderer@srGERD@@QAEPAVRenderer@1@XZ
-    ?magnify@srColorSurfaceIFace@@MAEXAAV1@@Z @1442
+    ?magnify@srColorSurfaceIFace@@MAEXAAV1@@Z
     ?makePath@srSystem@@SAXPADPBD111@Z
     ?mapPixelFormat@srPixelConvert@@SA?AW4e_surfaceType@1@ABUPixelFormat@1@@Z
     ?mapPixelFormat@srPixelConvert@@SAXW4e_surfaceType@1@AAUPixelFormat@1@@Z
     ?markTextureAsDeleted@srGERD@@AAEXAAUTexture@1@@Z
     ?match@PixelFormat@srPixelConvert@@QBEKPBU12@K@Z
     ?matrixMode@srGERD@@QAEXW4e_matrixMode@1@@Z
-    ?minify@srColorSurfaceIFace@@MAEXAAV1@@Z @1455
+    ?minify@srColorSurfaceIFace@@MAEXAAV1@@Z
     ?mopen@srBinFStream@@IAEXPBDW4e_mode@1@H@Z
-    ?move@srModeler@@QAEXABV?$srVector3T@M@@@Z @1457
-    ?move@srModeler@@QAEXKABV?$srVector3T@M@@@Z @1458
+    ?move@srModeler@@QAEXABV?$srVector3T@M@@@Z
+    ?move@srModeler@@QAEXKABV?$srVector3T@M@@@Z
     ?multMatrix@srGERD@@QAEXABV?$srMatrix4T@M@@@Z
     ?multMatrix@srGERD@@QAEXABV?$srMatrix4T@N@@@Z
     ?normalizeViewPlane@srCamera@@QAEXXZ
@@ -1629,7 +1629,7 @@ EXPORTS
     ?open@srFStreamOpener@@UAEPAVsrBinIStream@@PBD@Z
     ?open@srIStreamOpener@@AAEPAVsrBinIStream@@PBD0@Z
     ?open@srIStreamOpener@@QAEPAVsrBinIStream@@PBD@Z
-    ?openVStream@srVideoManager@@QAEPAVVStream@1@PBD@Z @1482
+    ?openVStream@srVideoManager@@QAEPAVVStream@1@PBD@Z
     ?openWindow@srDebugDD@@UAE?AW4e_error@srDD@@ABUOpenInfo@3@AAUOpenResult@3@@Z
     ?openWindow@srGERD@@QAE?AW4e_error@1@J@Z
     ?openWindow@srGERD@@QAE?AW4e_error@1@JJ@Z
@@ -1641,9 +1641,9 @@ EXPORTS
     ?parsePrefix@srIStreamOpener@@AAEXPAPAD0PBD@Z
     ?performPickTest@srGERD@@AAEXABUPickInput@1@@Z
     ?perspective@srGERD@@QAEXNNNN@Z
-    ?pipe@srTriMeshPipeline@@1PAV1@A DATA @1500
-    ?planarMap@srModeler@@QAEXJJABUMappingInfo@1@@Z @1503
-    ?planarMapAbsolute@srModeler@@QAEXJJABUMappingInfo@1@@Z @1504
+    ?pipe@srTriMeshPipeline@@1PAV1@A DATA
+    ?planarMap@srModeler@@QAEXJJABUMappingInfo@1@@Z
+    ?planarMapAbsolute@srModeler@@QAEXJJABUMappingInfo@1@@Z
     ?popClipPlane@srGERD@@QAEXXZ
     ?popEnable@srGERD@@QAEXXZ
     ?popEnvironment@srGERD@@QAEXXZ
@@ -1683,35 +1683,35 @@ EXPORTS
     ?putFloat@srBinOStream@@QAEAAV1@M@Z
     ?putQWord@srBinOStream@@QAEAAV1@VsrQuadWord@@@Z
     ?putWord@srBinOStream@@QAEAAV1@G@Z
-    ?reAllocate@Polygon@srModeler@@QAEXH@Z @1555
+    ?reAllocate@Polygon@srModeler@@QAEXH@Z
     ?read@srBinIStream@@QAEAAV1@PAXK@Z
     ?recalcScissor@srGERD@@AAEXXZ
-    ?reindexPolygons@srMeshModel@@UAEXPBK@Z @1562
-    ?reindexVertices@srMeshModel@@UAEXPBK@Z @1563
+    ?reindexPolygons@srMeshModel@@UAEXPBK@Z
+    ?reindexVertices@srMeshModel@@UAEXPBK@Z
     ?releaseAll@srExtension@@SAXXZ
     ?releaseAll@srGERD@@SAXXZ
-    ?releaseSurface@srTextureFile@@QAEXXZ @1572
+    ?releaseSurface@srTextureFile@@QAEXXZ
     ?releaseTextureMemory@srGERD@@AAEXJ@Z
     ?releaseTextureSurfaceData@srGERD@@AAEXAAUTexture@1@@Z
-    ?relocateVertices@srMeshModel@@QAEXABV?$srVector3T@M@@@Z @1575
-    ?remapPixels@srColorSurfaceIFace@@UAEXABVsrARGB@@0@Z @1576
+    ?relocateVertices@srMeshModel@@QAEXABV?$srVector3T@M@@@Z
+    ?remapPixels@srColorSurfaceIFace@@UAEXABVsrARGB@@0@Z
     ?removeDeletedTextures@srGERD@@AAEXXZ
-    ?removeDisabledTriangles@srModeler@@QAEXXZ @1580
-    ?removeExporter@srIOManager@@IAEXPAVExporter@1@@Z @1581
-    ?removeFromExporters@Exporter@srIOManager@@IAEXPAV2@@Z @1582
-    ?removeFromImporters@Importer@srIOManager@@IAEXPAV2@@Z @1583
-    ?removeImporter@srIOManager@@IAEXPAVImporter@1@@Z @1584
-    ?removeMapping@srModeler@@QAEXJJ@Z @1585
+    ?removeDisabledTriangles@srModeler@@QAEXXZ
+    ?removeExporter@srIOManager@@IAEXPAVExporter@1@@Z
+    ?removeFromExporters@Exporter@srIOManager@@IAEXPAV2@@Z
+    ?removeFromImporters@Importer@srIOManager@@IAEXPAV2@@Z
+    ?removeImporter@srIOManager@@IAEXPAVImporter@1@@Z
+    ?removeMapping@srModeler@@QAEXJJ@Z
     ?removePath@srFileManager@@QAEXPBD@Z
     ?render@Renderer@srGERD@@QAEXABUTriInput@12@@Z
-    ?render@srMeshModel@@UAEXAAVsrGERD@@@Z @1589
+    ?render@srMeshModel@@UAEXAAVsrGERD@@@Z
     ?render@srScene@@QAEXAAVsrGERD@@PAVsrCamera@@@Z
-    ?renderTriMesh@srMeshModel@@UAEXAAVsrGERD@@ABUTriMesh@1@@Z @1591
+    ?renderTriMesh@srMeshModel@@UAEXAAVsrGERD@@ABUTriMesh@1@@Z
     ?rescale@srColorSurface@@UAEHJJ@Z
     ?rescale@srColorSurfaceIFace@@UAEHJJ@Z
-    ?reset@Polygon@srModeler@@QAEXXZ @1594
-    ?reset@Triangle@srModeler@@QAEXXZ @1595
-    ?reset@Vertex@srModeler@@QAEXXZ @1596
+    ?reset@Polygon@srModeler@@QAEXXZ
+    ?reset@Triangle@srModeler@@QAEXXZ
+    ?reset@Vertex@srModeler@@QAEXXZ
     ?reset@srMaterial@@MAEXXZ
     ?reset@srStringTable@@QAEXXZ
     ?resetCurrentTexPointers@srGERD@@AAEXXZ
@@ -1725,12 +1725,12 @@ EXPORTS
     ?reversePixels@srColorSurface@@AAEXPAXK@Z
     ?rewind@BitIStream@srHuffman@@QAEXJ@Z
     ?rewindVertexArray@Renderer@srGERD@@QAEXK@Z
-    ?rotate180@srColorSurfaceIFace@@QAEXXZ @1625
+    ?rotate180@srColorSurfaceIFace@@QAEXXZ
     ?rotate@srGERD@@QAEXNABV?$srVector3T@M@@@Z
     ?rotate@srGERD@@QAEXNABV?$srVector3T@N@@@Z
     ?rotate@srGERD@@QAEXNNNN@Z
-    ?rotate@srModeler@@QAEXABV?$srMatrix3T@M@@@Z @1629
-    ?rotate@srModeler@@QAEXKABV?$srMatrix3T@M@@@Z @1630
+    ?rotate@srModeler@@QAEXABV?$srMatrix3T@M@@@Z
+    ?rotate@srModeler@@QAEXKABV?$srMatrix3T@M@@@Z
     ?sGetClassID@srGERD@@SAKXZ
     ?sGetClassName@srCamera@@SAPBDXZ
     ?sGetClassName@srClipPlane@@SAPBDXZ
@@ -1742,28 +1742,28 @@ EXPORTS
     ?sGetClassName@srLight@@SAPBDXZ
     ?sGetClassName@srMaterial@@SAPBDXZ
     ?sGetClassName@srMaterialIFace@@SAPBDXZ
-    ?sGetClassName@srMeshModel@@SAPBDXZ @1650
+    ?sGetClassName@srMeshModel@@SAPBDXZ
     ?sGetClassName@srScene@@SAPBDXZ
     ?sGetClassName@srTexture@@SAPBDXZ
-    ?sGetClassName@srTextureFile@@SAPBDXZ @1657
-    ?sGetClassName@srTextureIFace@@SAPBDXZ @1658
-    ?sGetClassName@srTextureMap@@SAPBDXZ @1659
+    ?sGetClassName@srTextureFile@@SAPBDXZ
+    ?sGetClassName@srTextureIFace@@SAPBDXZ
+    ?sGetClassName@srTextureMap@@SAPBDXZ
     ?sGetClassNode@srGERD@@SAPAVClassNode@srRegistry@@XZ
     ?save@srFileManager@@UAEXPBDPAXK@Z
-    ?scale@srColorSurfaceIFace@@MAEXAAV1@@Z @1666
+    ?scale@srColorSurfaceIFace@@MAEXAAV1@@Z
     ?scale@srGERD@@QAEXABV?$srVector3T@M@@@Z
     ?scale@srGERD@@QAEXABV?$srVector3T@N@@@Z
     ?scale@srGERD@@QAEXN@Z
     ?scale@srGERD@@QAEXNNN@Z
-    ?scale@srMeshModel@@QAEXABV?$srVector3T@M@@@Z @1671
-    ?scale@srModeler@@QAEXABV?$srVector3T@M@@@Z @1672
-    ?scale@srModeler@@QAEXKABV?$srVector3T@M@@@Z @1673
-    ?scaleFast@srColorSurface@@EAEXAAVsrColorSurfaceIFace@@@Z @1674
-    ?scaleFast@srColorSurfaceIFace@@MAEXAAV1@@Z @1675
-    ?scaleHorizontal@srColorSurfaceIFace@@MAEXAAV1@@Z @1676
-    ?scaleToAverageRadius@srMeshModel@@QAEXN@Z @1677
-    ?scaleToMaxRadius@srMeshModel@@QAEXN@Z @1678
-    ?scaleVertical@srColorSurfaceIFace@@MAEXAAV1@@Z @1679
+    ?scale@srMeshModel@@QAEXABV?$srVector3T@M@@@Z
+    ?scale@srModeler@@QAEXABV?$srVector3T@M@@@Z
+    ?scale@srModeler@@QAEXKABV?$srVector3T@M@@@Z
+    ?scaleFast@srColorSurface@@EAEXAAVsrColorSurfaceIFace@@@Z
+    ?scaleFast@srColorSurfaceIFace@@MAEXAAV1@@Z
+    ?scaleHorizontal@srColorSurfaceIFace@@MAEXAAV1@@Z
+    ?scaleToAverageRadius@srMeshModel@@QAEXN@Z
+    ?scaleToMaxRadius@srMeshModel@@QAEXN@Z
+    ?scaleVertical@srColorSurfaceIFace@@MAEXAAV1@@Z
     ?scanChangeIndexed@srVertexPipe@@CAKPBKK0K@Z
     ?scanDevices@srGERD@@SAXPBDAAVsrStringTable@@@Z
     ?scanFiles@srSystem@@SAJAAVsrStringTable@@PBD1@Z
@@ -1794,9 +1794,9 @@ EXPORTS
     ?setAntiAlias@srGERD@@QAEXW4e_antiAlias@1@@Z
     ?setAttenuation@srLight@@QAEXABV?$srVector3T@M@@@Z
     ?setAttenuationModel@srLight@@QAEXW4e_attenuationModel@1@@Z
-    ?setBounds@srMeshModel@@QAEXABV?$srVector3T@M@@00M@Z @1720
+    ?setBounds@srMeshModel@@QAEXABV?$srVector3T@M@@00M@Z
     ?setByteOrder@srBinStream@@QAEXW4e_byteOrder@1@@Z
-    ?setCached@srTextureFile@@QAEXH@Z @1722
+    ?setCached@srTextureFile@@QAEXH@Z
     ?setClearAccum@srGERD@@QAEXABV?$srVector4T@M@@@Z
     ?setClearAccum@srGERD@@QAEXMMMM@Z
     ?setClearColor@srGERD@@QAEXABV?$srVector4T@M@@@Z
@@ -1808,7 +1808,7 @@ EXPORTS
     ?setClipRange@srCamera@@QAEXNN@Z
     ?setClipState@srGERD@@QAEXV?$srFlags@W4e_clip@srRendererDefs@@@@@Z
     ?setClipType@srClipPlane@@QAEXW4e_clip@1@@Z
-    ?setCompression@srTexture@@QAEXW4e_compression@srTextureIFace@@@Z @1738
+    ?setCompression@srTexture@@QAEXW4e_compression@srTextureIFace@@@Z
     ?setCorrection@srTexture@@QAEXW4e_correction@srTextureIFace@@@Z
     ?setCullMode@srDebugDD@@UAEXW4e_cullMode@srDD@@@Z
     ?setCullMode@srGERD@@QAEXW4e_cullMode@1@@Z
@@ -1819,10 +1819,10 @@ EXPORTS
     ?setDiffuse@srMaterial@@QAEXABV?$srVector4T@M@@@Z
     ?setDiffusePointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBX@Z
     ?setDimensions@srTexture@@QAEXABUDimensions@srTextureIFace@@@Z
-    ?setDimensionsDirty@srTexture@@QAEXXZ @1750
-    ?setDirtyAll@srMeshModel@@QAEXXZ @1752
-    ?setDirtyBounds@srMeshModel@@QAEXXZ @1753
-    ?setDirtyNormals@srMeshModel@@QAEXXZ @1754
+    ?setDimensionsDirty@srTexture@@QAEXXZ
+    ?setDirtyAll@srMeshModel@@QAEXXZ
+    ?setDirtyBounds@srMeshModel@@QAEXXZ
+    ?setDirtyNormals@srMeshModel@@QAEXXZ
     ?setEmissive@srMaterial@@QAEXABV?$srVector4T@M@@@Z
     ?setEnvironmentRange@srCamera@@QAEXMM@Z
     ?setEnvironmentRange@srGERD@@QAEXMM@Z
@@ -1832,9 +1832,9 @@ EXPORTS
     ?setExclusionMask@srGERD@@QAEXK@Z
     ?setFOV@srCamera@@QAEXNN@Z
     ?setFarAttenuationRange@srLight@@QAEXNN@Z
-    ?setFileName@srTextureFile@@QAEXPBD@Z @1767
-    ?setFilter@srColorSurfaceIFace@@QAEXPAVsrFilter@@@Z @1768
-    ?setFilter@srTexture@@QAEXPAVsrFilter@@@Z @1770
+    ?setFileName@srTextureFile@@QAEXPBD@Z
+    ?setFilter@srColorSurfaceIFace@@QAEXPAVsrFilter@@@Z
+    ?setFilter@srTexture@@QAEXPAVsrFilter@@@Z
     ?setFocalLength@srCamera@@QAEXNN@Z
     ?setFogColor@srDebugDD@@UAEXABV?$srVector4T@M@@@Z
     ?setFogColor@srGERD@@QAEXABV?$srVector3T@M@@@Z
@@ -1846,16 +1846,16 @@ EXPORTS
     ?setGlobalPalette@srDebugDD@@UAEXPAKK@Z
     ?setGlobalPalette@srGERD@@QAEXABVsrPalette@@@Z
     ?setGroupMask@srIlluminator@@QAEXK@Z
-    ?setHClampMode@srColorSurfaceIFace@@QAEXH@Z @1784
+    ?setHClampMode@srColorSurfaceIFace@@QAEXH@Z
     ?setHLine@srColorSurface@@UAEXJJJK@Z
     ?setHLine@srColorSurfaceIFace@@UAEXJJJK@Z
     ?setHint@srGERD@@QAEXW4e_hint@1@W4e_hintMode@1@@Z
     ?setIntensity@srLight@@QAEXM@Z
-    ?setLine@srColorSurfaceIFace@@UAEXJJJJK@Z @1790
+    ?setLine@srColorSurfaceIFace@@UAEXJJJJK@Z
     ?setLinearAttenuation@srLight@@QAEXMM@Z
     ?setMagFilter@srTexture@@QAEXW4e_filter@srTextureIFace@@@Z
     ?setMapper@srMaterial@@QAEXPAVsrVertexProcessor@@@Z
-    ?setMaterial@srModeler@@QAEXPAVsrMaterialIFace@@JW4e_side@srMeshModel@@@Z @1802
+    ?setMaterial@srModeler@@QAEXPAVsrMaterialIFace@@JW4e_side@srMeshModel@@@Z
     ?setMaterial@srVertexPipe@@AAEXPAVsrMaterialIFace@@@Z
     ?setMatrixDirty@srGERD@@AAEXXZ
     ?setMinFilter@srTexture@@QAEXW4e_filter@srTextureIFace@@@Z
@@ -1865,8 +1865,8 @@ EXPORTS
     ?setOpacity@srMaterial@@QAEXN@Z
     ?setPalette@srColorSurface@@UAEXPAVsrPalette@@@Z
     ?setPalette@srColorSurfaceIFace@@UAEXPAVsrPalette@@@Z
-    ?setPassCount@srMeshModel@@QAEXJ@Z @1819
-    ?setPassCount@srModeler@@QAEXJ@Z @1820
+    ?setPassCount@srMeshModel@@QAEXJ@Z
+    ?setPassCount@srModeler@@QAEXJ@Z
     ?setPath@srBinFStream@@AAEXPBD@Z
     ?setPath@srFileManager@@QAEXPBD@Z
     ?setPickKey@srGERD@@QAEXK@Z
@@ -1875,10 +1875,10 @@ EXPORTS
     ?setPixelColumn@srColorSurfaceIFace@@UAEXPBKJJJ@Z
     ?setPixelRaw@srColorSurface@@UAEXJJK@Z
     ?setPixelRaw@srColorSurfaceIFace@@UAEXJJK@Z
-    ?setPixelReadFunc@srColorSurface@@QAEXP6AXABUConversionInfo@srPixelConvert@@@Z@Z @1829
+    ?setPixelReadFunc@srColorSurface@@QAEXP6AXABUConversionInfo@srPixelConvert@@@Z@Z
     ?setPixelRow@srColorSurface@@UAEXPBKJJJ@Z
     ?setPixelRowRaw@srColorSurface@@UAEXPBXJJJ@Z
-    ?setPixelWriteFunc@srColorSurface@@QAEXP6AXABUConversionInfo@srPixelConvert@@@Z@Z @1832
+    ?setPixelWriteFunc@srColorSurface@@QAEXP6AXABUConversionInfo@srPixelConvert@@@Z@Z
     ?setPixels@srColorSurface@@UAEXPBKPBVsrVector2i@@J@Z
     ?setPixels@srColorSurfaceIFace@@UAEXPBKPBVsrVector2i@@J@Z
     ?setPixelsRaw@srColorSurface@@UAEXPBXPBVsrVector2i@@J@Z
@@ -1887,7 +1887,7 @@ EXPORTS
     ?setPolygonMode@srGERD@@QAEXW4e_polygonMode@1@@Z
     ?setPolygonOffset@srDebugDD@@UAEXJ@Z
     ?setPolygonOffset@srGERD@@QAEXJ@Z
-    ?setPriority@srTexture@@QAEXM@Z @1842
+    ?setPriority@srTexture@@QAEXM@Z
     ?setProjectionMatrix@srDebugDD@@UAEXABV?$srMatrix4T@M@@W4e_type@2@@Z
     ?setProjectionType@srCamera@@QAEXW4e_project@1@@Z
     ?setRange@srFog@@QAEXNN@Z
@@ -1896,9 +1896,9 @@ EXPORTS
     ?setScissor@srGERD@@QAEXKKKK@Z
     ?setShader@srDebugDD@@UAEXABVsrShader@@@Z
     ?setShader@srGERD@@QAEXABVsrShader@@@Z
-    ?setShader@srModeler@@QAEXVsrShader@@J@Z @1862
+    ?setShader@srModeler@@QAEXVsrShader@@J@Z
     ?setShininess@srMaterial@@QAEXN@Z
-    ?setSortBias@srMeshModel@@QAEXM@Z @1864
+    ?setSortBias@srMeshModel@@QAEXM@Z
     ?setSpecular@srLight@@QAEXABV?$srVector3T@M@@@Z
     ?setSpecular@srMaterial@@QAEXABV?$srVector4T@M@@@Z
     ?setSpecularPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBX@Z
@@ -1906,12 +1906,12 @@ EXPORTS
     ?setSpotDirection@srLight@@QAEXABV?$srVector3T@M@@@Z
     ?setSpotExponent@srLight@@QAEXM@Z
     ?setState@srBinStream@@QAEXW4e_state@1@@Z
-    ?setSurfaceDesc@srColorSurfaceIFace@@IAEXABUSurfaceDesc@1@@Z @1873
+    ?setSurfaceDesc@srColorSurfaceIFace@@IAEXABUSurfaceDesc@1@@Z
     ?setSurfacePtr@srTextureMap@@QAEXPAVsrColorSurfaceIFace@@@Z
     ?setSwapInterval@srGERD@@QAEXK@Z
     ?setTexCoordPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXK@Z
     ?setTexture@srGERD@@QAEXPAVsrTextureIFace@@K@Z
-    ?setTexture@srModeler@@QAEXPAVsrTextureIFace@@JJ@Z @1879
+    ?setTexture@srModeler@@QAEXPAVsrTextureIFace@@JJ@Z
     ?setTextureCacheSize@srGERD@@QAEXK@Z
     ?setTextureDefaultCompression@srGERD@@QAEXW4e_compression@srTextureIFace@@@Z
     ?setTextureDefaultCorrection@srGERD@@QAEXW4e_correction@srTextureIFace@@@Z
@@ -1923,11 +1923,11 @@ EXPORTS
     ?setTextureReduction@srGERD@@QAEXJ@Z
     ?setTextureSubImage@srGERD@@QAEXPAVsrTextureIFace@@JJJJJ@Z
     ?setTranslucency@srMaterial@@QAEXN@Z
-    ?setTriangle@srModeler@@QAEXKABVTriangle@1@@Z @1892
-    ?setTriangleCount@srModeler@@QAEXK@Z @1893
-    ?setTriangleVertex@srModeler@@QAEXKKABVVertex@1@@Z @1894
-    ?setUVCount@srMeshModel@@QAEXJ@Z @1895
-    ?setVClampMode@srColorSurfaceIFace@@QAEXH@Z @1899
+    ?setTriangle@srModeler@@QAEXKABVTriangle@1@@Z
+    ?setTriangleCount@srModeler@@QAEXK@Z
+    ?setTriangleVertex@srModeler@@QAEXKKABVVertex@1@@Z
+    ?setUVCount@srMeshModel@@QAEXJ@Z
+    ?setVClampMode@srColorSurfaceIFace@@QAEXH@Z
     ?setVLine@srColorSurface@@UAEXJJJK@Z
     ?setVLine@srColorSurfaceIFace@@UAEXJJJK@Z
     ?setVector@srMaterial@@IAEXAAV?$srVector4T@M@@ABV2@@Z
@@ -1942,7 +1942,7 @@ EXPORTS
     ?setWrapS@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z
     ?setWrapT@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z
     ?setupAlpha@srVertexPipe@@AAEXXZ
-    ?setupDefaultValues@srTextureFile@@MAEXXZ @1918
+    ?setupDefaultValues@srTextureFile@@MAEXXZ
     ?setupDefaultValues@srTextureMap@@MAEXXZ
     ?setupDefaultValuesFromSurface@srTexture@@IAEXPAVsrColorSurfaceIFace@@@Z
     ?setupDepthCue@srVertexPipe@@AAEXXZ
@@ -1968,8 +1968,8 @@ EXPORTS
     ?tell@srBinIOFStream@@UAEKXZ
     ?tell@srBinOFStream@@UAEKXZ
     ?tell@srBinOMStream@@UAEKXZ
-    ?tesselateEdges@srModeler@@QAEXKN@Z @1980
-    ?tesselateEdges@srModeler@@QAEXN@Z @1981
+    ?tesselateEdges@srModeler@@QAEXKN@Z
+    ?tesselateEdges@srModeler@@QAEXN@Z
     ?testBoundingBox@srGERD@@QAE?AW4e_visibility@1@ABV?$srVector3T@M@@0@Z
     ?testBoundingSphere@srGERD@@QAE?AW4e_visibility@1@ABV?$srVector3T@M@@M@Z
     ?testDependencies@srDynamicLibrary@@SAHPBD@Z
@@ -1990,20 +1990,20 @@ EXPORTS
     ?unproject@srCamera@@QAEHAAV?$srVector3T@M@@ABV?$srVector3T@N@@@Z
     ?update@srDebugDD@@UAEXABUUpdate@srDD@@@Z
     ?updateParms@srMaterial@@MAEXXZ
-    ?updateTriMesh@srMeshModel@@MAEXXZ @2022
+    ?updateTriMesh@srMeshModel@@MAEXXZ
     ?vInstance@srCamera@@UAEPAVsrClass@@XZ
     ?vInstance@srClipPlane@@UAEPAVsrClass@@XZ
     ?vInstance@srColorSurface@@UAEPAVsrClass@@XZ
     ?vInstance@srFog@@UAEPAVsrClass@@XZ
     ?vInstance@srMaterial@@UAEPAVsrClass@@XZ
-    ?vInstance@srMeshModel@@UAEPAVsrClass@@XZ @2029
+    ?vInstance@srMeshModel@@UAEPAVsrClass@@XZ
     ?vInstance@srScene@@UAEPAVsrClass@@XZ
-    ?vInstance@srTextureFile@@UAEPAVsrClass@@XZ @2034
+    ?vInstance@srTextureFile@@UAEPAVsrClass@@XZ
     ?vInstance@srTextureMap@@UAEPAVsrClass@@XZ
     ?verify@srClass@@UAEXW4e_verify@srRuntimeClass@@@Z
     ?verify@srFog@@UAEXW4e_verify@srRuntimeClass@@@Z
     ?verify@srMaterial@@UAEXW4e_verify@srRuntimeClass@@@Z
-    ?verify@srMeshModel@@UAEXW4e_verify@srRuntimeClass@@@Z @2039
+    ?verify@srMeshModel@@UAEXW4e_verify@srRuntimeClass@@@Z
     ?verify@srRuntimeClass@@UAEXW4e_verify@1@@Z
     ?vget@srBinIFStream@@EAEGXZ
     ?vget@srBinIOFStream@@EAEGXZ

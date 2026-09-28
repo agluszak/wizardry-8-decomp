@@ -78,7 +78,7 @@ public:
             long count;
         };
 
-        Sampler(long sample_limit = 0);
+        SR_DLL_EXPORT Sampler(long sample_limit = 0);
         Sampler(const Sampler& other);
         ~Sampler();
         Sampler& operator=(const Sampler& other);
@@ -181,7 +181,7 @@ public:
     static SR_DLL_IMPORT srPalette* findMatchingPalette(const srARGB* const colors,
                                                         long color_count);
 
-    SR_DLL_IMPORT srPalette(srARGB* colors = 0, long color_count = 1);
+    SR_DLL_IMPORT SR_DLL_EXPORT srPalette(srARGB* colors = 0, long color_count = 1);
     SR_DLL_IMPORT srPalette(const srPalette& other);
     SR_DLL_IMPORT srPalette& operator=(const srPalette& other);
 

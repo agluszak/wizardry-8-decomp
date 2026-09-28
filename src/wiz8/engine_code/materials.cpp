@@ -132,7 +132,7 @@ srClass* stMaterial::vInstance()
 }
 
 // FUNCTION: WIZ8 0x00492A00
-srClass* stMaterial::clone()
+srClass* stMaterial::vClone()
 {
     stMaterial* instance = static_cast<stMaterial*>(vInstance());
 

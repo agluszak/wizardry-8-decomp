@@ -32,7 +32,7 @@ public:
 
     stMaterial();
     virtual srClass* vInstance() override;
-    virtual srClass* clone() override;
+    virtual srClass* vClone() override;
     virtual void getMaterialInfo(srVertexProcessor::MaterialInfo& info) override;
 
 protected:
