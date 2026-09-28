@@ -154,7 +154,7 @@ def test_collect_plan_does_not_call_ensure(monkeypatch) -> None:
     )
     monkeypatch.setattr(
         "wiz8decomp.class_structure_projection.SourceIndex.from_dict",
-        lambda _d: SimpleNamespace(classes=[]),
+        lambda _d: SimpleNamespace(classes={}),
     )
     monkeypatch.setattr(csp, "_find_named_structure", lambda *_a, **_k: None)
     monkeypatch.setattr(csp, "_wiz8_structure", lambda *_a, **_k: None)
