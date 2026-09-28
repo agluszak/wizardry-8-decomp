@@ -137,10 +137,10 @@ struct W8SpellEffectEntry {
        constructors write only the W8GrowableVector<int> vftable. */
     W8GrowableVector<int> monster_ids_0e0;    /* 0x0e0 */
     W8GrowableVector<int> target_indices_0f0; /* 0x0f0 */
-    /* 0x100/0x110: spawned visuals and owned missiles. The cited tables are
-       W8GrowableVector construction/final tables, not derived-vector proof. */
-    W8GrowableVector<W8SpellVisual*> spell_visuals; /* 0x100 */
-    W8Vector<W8Missile*> missiles;                  /* 0x110 */
+    /* 0x100/0x110: spawned visuals and owned missiles. Their constructors
+       install a base vector table followed by the derived table. */
+    W8Vector<W8SpellVisual*> spell_visuals; /* 0x100 */
+    W8Vector<W8Missile*> missiles;          /* 0x110 */
     /* 0x120: when the effect ends without having applied, the tick re-casts
        the spell from the stored source. CastSpellFromSource's `c` argument. */
     bool recast_120;

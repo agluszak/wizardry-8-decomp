@@ -173,6 +173,37 @@ def test_clear_range_refuses_incomplete_cover_when_tail_blocked() -> None:
     assert exc.value.payload["error"] == "clear-range-incomplete-cover"
 
 
+def test_clear_range_allows_contained_strings_for_owned_char_array() -> None:
+    first = SimpleNamespace(
+        getLength=lambda: 16, getDataType=lambda: SimpleNamespace(getName=lambda: "string")
+    )
+    second = SimpleNamespace(
+        getLength=lambda: 12, getDataType=lambda: SimpleNamespace(getName=lambda: "string")
+    )
+    program = _program(data_at={0x1000: first, 0x1028: second}, primary_name="old_name")
+    with pytest.raises(ClearRangeError):
+        assert_clear_range_safe(program, _Addr(0x1000), _Addr(0x104F), expected_name="new_name")
+    assert_clear_range_safe(
+        program,
+        _Addr(0x1000),
+        _Addr(0x104F),
+        expected_name="new_name",
+        address_owned=True,
+        allow_contained_strings=True,
+    )
+    overflowing = _program(data_at={0x1000: first, 0x1048: second}, primary_name="old_name")
+    with pytest.raises(ClearRangeError) as exc:
+        assert_clear_range_safe(
+            overflowing,
+            _Addr(0x1000),
+            _Addr(0x104F),
+            expected_name="new_name",
+            address_owned=True,
+            allow_contained_strings=True,
+        )
+    assert exc.value.payload["error"] == "clear-range-incomplete-cover"
+
+
 def test_clear_range_refuses_function_overlap() -> None:
     fn = SimpleNamespace(getName=lambda _q=True: "Victim", body=(0x1000, 0x1010))
     program = _program(functions={0x1000: fn})

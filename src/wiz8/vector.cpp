@@ -35,18 +35,20 @@
 // VTABLE: WIZ8 0x005ebfe0
 // class W8GrowableVector<int>
 
-/* 0x005EBFE4 is W8SpellEffectEntry::effects' final table; CastSpellFromSource
-   0x004FB4C0 writes 0x005EC280 while the entry is under construction and
-   0x005EBFE4 once it is complete, so 0x005EC280 is that same specialization's
-   construction-phase table, not a second W8SpellVisual vector. */
+/* CastSpellFromSource installs 0x005EC280 after the base constructor. The
+   derived destructor at 0x00451AE0 restores 0x005EBFE4 before deleting the
+   array. */
 // VTABLE: WIZ8 0x005ebfe4
 // class W8GrowableVector<W8SpellVisual*>
+
+// VTABLE: WIZ8 0x005ec280
+// class W8Vector<W8SpellVisual*>
 
 // SYNTHETIC: WIZ8 0x0042bba0
 // W8GrowableVector<W8SpellVisual*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00451ac0
-// W8GrowableVector<W8SpellVisual*>::`scalar deleting destructor' (construction-phase copy)
+// W8Vector<W8SpellVisual*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0042bb70
 // W8GrowableVector<int>::`scalar deleting destructor'
@@ -423,7 +425,7 @@ class W8Navigator;
 // W8Vector<MonGen*>::~W8Vector<MonGen*>
 
 // TEMPLATE: WIZ8 0x00451ae0
-// W8GrowableVector<W8SpellVisual*>::~W8GrowableVector<W8SpellVisual*>
+// W8Vector<W8SpellVisual*>::~W8Vector<W8SpellVisual*>
 
 // SYNTHETIC: WIZ8 0x00451b40
 // W8GrowableVector<W8World*>::`vector deleting destructor'

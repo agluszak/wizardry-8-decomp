@@ -135,6 +135,7 @@ def assert_clear_range_safe(
     *,
     expected_name: str | None = None,
     address_owned: bool = False,
+    allow_contained_strings: bool = False,
 ) -> None:
     """Verify ``[start, end]`` is safe to ``clearCodeUnits``.
 
@@ -146,7 +147,7 @@ def assert_clear_range_safe(
       symbols starting inside ``(start, end]``.
 
     The start primary must be the expected source symbol, ``DAT_…``, unnamed, or
-    absent, unless ``address_owned`` is set (source-proven vtable address).
+    absent, unless ``address_owned`` is set for a source-proven address.
     """
 
     listing = program.getListing()
@@ -226,6 +227,12 @@ def assert_clear_range_safe(
             addr = start.add(offset) if hasattr(start, "add") else start + offset
             data = listing.getDataAt(addr)
             if data is not None and not _is_clearable_fill_data(data):
+                if (
+                    allow_contained_strings
+                    and _type_name(data) == "string"
+                    and offset + int(data.getLength()) <= length
+                ):
+                    continue
                 raise ClearRangeError(
                     {
                         "error": "clear-range-incomplete-cover",
@@ -285,6 +292,7 @@ def clear_code_units_guarded(
     *,
     expected_name: str | None = None,
     address_owned: bool = False,
+    allow_contained_strings: bool = False,
     clear_context: bool = False,
 ) -> None:
     """``clearCodeUnits`` after ``assert_clear_range_safe``."""
@@ -295,5 +303,6 @@ def clear_code_units_guarded(
         end,
         expected_name=expected_name,
         address_owned=address_owned,
+        allow_contained_strings=allow_contained_strings,
     )
     program.getListing().clearCodeUnits(start, end, clear_context)
