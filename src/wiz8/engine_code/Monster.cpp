@@ -4822,7 +4822,7 @@ unsigned short MonsterConfigureMovementToMonster(W8Monster* monster, W8Monster* 
 }
 
 // FUNCTION: WIZ8 0x004c6200
-void MonsterSetNavigatorFlag25(W8Monster* monster, char value)
+void MonsterSetNavigatorFlag25(W8Monster* monster, bool value)
 {
     if (monster != 0) {
         monster->SetFlag25(value);

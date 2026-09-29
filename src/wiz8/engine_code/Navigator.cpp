@@ -1590,7 +1590,7 @@ unsigned char W8Navigator::ConfigureMovementToPosition(const srVector3T<float>* 
 }
 
 // FUNCTION: WIZ8 0x004531f0
-void W8Navigator::SetFlag25(char value)
+void W8Navigator::SetFlag25(bool value)
 {
     halted_025 = value;
     if (value == 0) {
