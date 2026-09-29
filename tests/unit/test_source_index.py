@@ -1,5 +1,6 @@
 import json
 import os
+import shlex
 from pathlib import Path
 
 import pytest
@@ -406,34 +407,27 @@ def test_cross_tu_gate_rejects_mismatched_array_element_type(tmp_path: Path) -> 
         source_index.validate_cross_tu_declarations(tmp_path)
 
 
-def test_host_compile_database_rewrites_guest_mounts(tmp_path: Path) -> None:
+@pytest.mark.parametrize("representation", ["command", "arguments"])
+def test_host_compile_database_rewrites_guest_mounts(tmp_path: Path, representation: str) -> None:
     settings = _settings(tmp_path)
     repository = settings.repo_dir
     repository.mkdir()
     database = repository / "build/clang/compile_commands.json"
     database.parent.mkdir(parents=True)
-    database.write_text(
-        json.dumps(
-            [
-                {
-                    "directory": "/out",
-                    "file": "/repo/src/wiz8/local_code/Magic.cpp",
-                    "command": "/usr/bin/clang-cl -I/repo/include "
-                    "/FI/repo/include/wiz8/compat/compiler.h /c /Fo/out/Magic.cpp.obj "
-                    "/repo/src/wiz8/local_code/Magic.cpp",
-                    "arguments": [
-                        "/usr/bin/clang-cl",
-                        "-I/repo/include",
-                        "/FI/repo/include/wiz8/compat/compiler.h",
-                        "/c",
-                        "/Fo/out/Magic.cpp.obj",
-                        "/repo/src/wiz8/local_code/Magic.cpp",
-                    ],
-                }
-            ]
-        ),
-        encoding="utf-8",
-    )
+    arguments = [
+        "/usr/bin/clang-cl",
+        "-I/repo/include with spaces",
+        "/FI/repo/include/wiz8/compat/compiler.h",
+        "/c",
+        "/Fo/out/Magic.cpp.obj",
+        "/repo/src/wiz8/local_code/Magic.cpp",
+    ]
+    entry = {
+        "directory": "/out",
+        "file": "/repo/src/wiz8/local_code/Magic.cpp",
+        representation: shlex.join(arguments) if representation == "command" else arguments,
+    }
+    database.write_text(json.dumps([entry]), encoding="utf-8")
 
     rewritten = json.loads(
         source_index.host_compile_database(
@@ -445,7 +439,7 @@ def test_host_compile_database_rewrites_guest_mounts(tmp_path: Path) -> None:
     lint = str((repository / "build/clang").resolve())
     assert rewritten[0]["file"] == f"{host}/src/wiz8/local_code/Magic.cpp"
     assert rewritten[0]["directory"] == lint
-    assert rewritten[0]["arguments"][1] == f"-I{host}/include"
+    assert rewritten[0]["arguments"][1] == f"-I{host}/include with spaces"
     assert rewritten[0]["arguments"][2] == f"/FI{host}/include/wiz8/compat/compiler.h"
     assert rewritten[0]["arguments"][4] == f"/Fo{lint}/Magic.cpp.obj"
 

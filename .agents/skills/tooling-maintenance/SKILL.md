@@ -54,6 +54,8 @@ checkpoint reconciliation/replacement remains an explicit Ghidra state-managemen
 
 `uv run wiz8 check` refreshes the compiler-backed index. `uv run wiz8 analyze source-index`
 is the index-only owner for debugging that projection; inspection and recovery do not run it.
+Use `--jobs N` on the index-only command to tune native collector concurrency (default: up to eight
+workers). Reuse a valid projection; when inputs change, retain native per-TU cache invalidation.
 Inspection commands consume the existing projection and never refresh it implicitly.
 `wiz8 lint` refreshes a missing or stale index through that same owner when header
 dependency selection needs it; it does not require the entire `check` graph.

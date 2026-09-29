@@ -490,12 +490,16 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("parameter-id")(parameter_id_command)
 
 
-def source_index_command() -> None:
+def source_index_command(
+    jobs: Annotated[
+        int | None, typer.Option(min=1, help="Maximum native collector workers.")
+    ] = None,
+) -> None:
     """Generate build/source-index.json from reccmp markers and Clang AST."""
     from .. import command_support as cli
     from ..source_index import write_source_index
 
-    cli.emit(write_source_index(cli.settings()))
+    cli.emit(write_source_index(cli.settings(), jobs=jobs))
 
 
 def decompiler_quality_command(
