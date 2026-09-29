@@ -7,10 +7,21 @@
    constructor, destructor, vtable and element-width-specific methods. */
 template <class T> class W8GrowableVector {
 public:
-    /* Retail default construction goes through this one constructor with
-       five: every site emits PUSH 5 before the call, whether the compiler
-       calls the out-of-line emission or inlines the capacity constant. */
-    explicit W8GrowableVector(int initial_capacity = 5)
+    /* Retail emits both a no-argument constructor with capacity five and a
+       capacity-taking constructor. The no-argument form is out of line for
+       unsigned char, float and srVector3T<float> elements. */
+    W8GrowableVector()
+    {
+        data = new T[5];
+        count = 0;
+        if (data != 0) {
+            capacity = 5;
+        } else {
+            capacity = 0;
+        }
+    }
+
+    explicit W8GrowableVector(int initial_capacity)
     {
         if (initial_capacity < 1) {
             initial_capacity = 1;

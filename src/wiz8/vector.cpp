@@ -8,8 +8,8 @@
 // TEMPLATE: WIZ8 0x004addf0
 // W8GrowableVector<int>::Grow
 
-// TEMPLATE: WIZ8 0x004ed900
-// W8GrowableVector<int>::W8GrowableVector
+// TEMPLATE: WIZ8 0x004ed900 SYMBOL
+// ??0?$W8GrowableVector@H@@QAE@ABV0@@Z
 
 // TEMPLATE: WIZ8 0x004ed950
 // srMatrix3T<float>::TransformTransposed
@@ -20,8 +20,8 @@
 // TEMPLATE: WIZ8 0x00445f70
 // W8GrowableVector<T*>::Add
 
-// TEMPLATE: WIZ8 0x00474c60
-// W8GrowableVector<unsigned char>::W8GrowableVector
+// TEMPLATE: WIZ8 0x00474c60 SYMBOL
+// ??0?$W8GrowableVector@E@@QAE@XZ
 
 // TEMPLATE: WIZ8 0x00474ca0
 // W8GrowableVector<unsigned char>::Add
@@ -92,8 +92,8 @@ class W8Missile;
 // VTABLE: WIZ8 0x005ec27c
 // class W8Vector<W8Missile*>
 
-// TEMPLATE: WIZ8 0x00501e50
-// W8Vector<W8Missile*>::W8Vector
+// TEMPLATE: WIZ8 0x00501e50 SYMBOL
+// ??0?$W8Vector@PAVW8Missile@@@@QAE@H@Z
 
 // SYNTHETIC: WIZ8 0x00451b00
 // W8Vector<W8Missile*>::`scalar deleting destructor'
@@ -258,8 +258,8 @@ class stModelInstance;
 // VTABLE: WIZ8 0x005ec018
 // class W8Vector<stModelInstance*>
 
-// TEMPLATE: WIZ8 0x004cad80
-// W8Vector<stModelInstance*>::W8Vector
+// TEMPLATE: WIZ8 0x004cad80 SYMBOL
+// ??0?$W8Vector@PAVstModelInstance@@@@QAE@H@Z
 
 // TEMPLATE: WIZ8 0x004390f0
 // W8GrowableVector<stModelInstance*>::W8GrowableVector (member-construction emission)
@@ -329,8 +329,8 @@ struct W8EncounterScriptName;
 
 /* Emitted lifecycle bodies belong directly to the template specialization. */
 
-// TEMPLATE: WIZ8 0x00484870
-// W8Vector<stLight*>::W8Vector
+// TEMPLATE: WIZ8 0x00484870 SYMBOL
+// ??0?$W8Vector@PAVstLight@@@@QAE@H@Z
 
 // SYNTHETIC: WIZ8 0x00451d10
 // W8Vector<stLight*>::`scalar deleting destructor'
@@ -695,8 +695,8 @@ class srClipPlane;
 // TEMPLATE: WIZ8 0x00501f10
 // W8GrowableVector<W8SpellEffectEntry*>::~W8GrowableVector<W8SpellEffectEntry*>
 
-// TEMPLATE: WIZ8 0x00501f80
-// W8GrowableVector<W8SpellVisual*>::W8GrowableVector
+// TEMPLATE: WIZ8 0x00501f80 SYMBOL
+// ??0?$W8GrowableVector@PAVW8SpellVisual@@@@QAE@H@Z
 
 /* Embedded-member emission: constructs the reports vector at +0x5A of the
    enclosing result record rather than a standalone vector. */
@@ -712,8 +712,8 @@ class srClipPlane;
 // VTABLE: WIZ8 0x005ed840
 // class W8Vector<W8Searchable*>
 
-// TEMPLATE: WIZ8 0x00517810
-// W8Vector<W8Searchable*>::W8Vector
+// TEMPLATE: WIZ8 0x00517810 SYMBOL
+// ??0?$W8Vector@PAUW8Searchable@@@@QAE@H@Z
 
 // SYNTHETIC: WIZ8 0x005178c0
 // W8Vector<W8Searchable*>::`scalar deleting destructor'
@@ -775,8 +775,8 @@ struct W8AutomapNote;
 // TEMPLATE: WIZ8 0x00585440
 // W8Vector<W8AutomapNote*>::~W8Vector<W8AutomapNote*>
 
-// TEMPLATE: WIZ8 0x00585460
-// W8GrowableVector<srClass*>::W8GrowableVector
+// TEMPLATE: WIZ8 0x00585460 SYMBOL
+// ??0?$W8GrowableVector@PAVsrClass@@@@QAE@H@Z
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 

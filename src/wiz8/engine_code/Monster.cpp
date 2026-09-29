@@ -356,8 +356,8 @@ const char* g_monster_script_commands[MONSCR_COUNT] = {"GOTO",
 // VTABLE: WIZ8 0x005ecdc8
 // class W8GrowableVector<srVector3T<float> >
 
-// TEMPLATE: WIZ8 0x004a2080
-// W8GrowableVector<srVector3T<float> >::W8GrowableVector
+// TEMPLATE: WIZ8 0x004a2080 SYMBOL
+// ??0?$W8GrowableVector@V?$srVector3T@M@@@@QAE@XZ
 
 // SYNTHETIC: WIZ8 0x004a2110
 // W8GrowableVector<srVector3T<float> >::`scalar deleting destructor'

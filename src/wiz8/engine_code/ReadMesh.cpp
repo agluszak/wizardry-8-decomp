@@ -133,8 +133,8 @@ static W8GrowableVector<srMaterialIFace*> g_retained_materials(5);
 
 namespace {
 
-// TEMPLATE: WIZ8 0x00489fe0
-// W8HashTable<unsigned int,int>::W8HashTable
+// TEMPLATE: WIZ8 0x00489fe0 SYMBOL
+// ??0?$W8HashTable@IH@@QAE@XZ
 
 // TEMPLATE: WIZ8 0x0055db80
 // W8HashTable<unsigned int,int>::~W8HashTable
