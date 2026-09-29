@@ -1083,7 +1083,7 @@ void srModeler::addPolygon(const Polygon& polygon)
         }
         if (isClockwise(points, count)) {
             for (int index = 0; index < count; ++index) {
-                points[index].y *= -1.0f;
+                points[index].y *= -1.0;
             }
         }
         srTriangulator triangulator(points, count);
@@ -1233,14 +1233,14 @@ void srModeler::createGrid(long columns, long rows)
         do {
             int column = 0;
             if (0 < columns) {
-                float top = (row + 1) / (float)rows - 0.5f;
-                float bottom = row / (float)rows - 0.5f;
+                float top = (row + 1) / static_cast<double>(rows) - 0.5;
+                float bottom = row / static_cast<double>(rows) - 0.5;
                 do {
                     Triangle triangle;
-                    float column_position = (float)column;
+                    long column_position = column;
                     ++column;
-                    float left = column_position / columns - 0.5f;
-                    float right = column / (float)columns - 0.5f;
+                    float left = column_position / static_cast<double>(columns) - 0.5;
+                    float right = column / static_cast<double>(columns) - 0.5;
                     triangle.vertices_30[0].position_00.Set(left, bottom, 0.0);
                     triangle.vertices_30[1].position_00.Set(left, top, 0.0);
                     triangle.vertices_30[2].position_00.Set(right, top, 0.0);

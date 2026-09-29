@@ -261,7 +261,7 @@ void srLight::process(const ProcessInfo& info, e_processType type)
         float length_squared =
             direction.x * direction.x + direction.y * direction.y + direction.z * direction.z;
         if (length_squared != 1.0f) {
-            float scale = 1.0f / sqrtf(length_squared);
+            double scale = 1.0 / sqrt(length_squared);
             direction.x *= scale;
             direction.y *= scale;
             direction.z *= scale;
@@ -286,7 +286,7 @@ void srLight::process(const ProcessInfo& info, e_processType type)
                                    spot_direction_eye_208.y * spot_direction_eye_208.y +
                                    spot_direction_eye_208.z * spot_direction_eye_208.z;
             if (length_squared != 0.0f) {
-                float scale = 1.0f / sqrtf(length_squared);
+                double scale = 1.0 / sqrt(length_squared);
                 spot_direction_eye_208.x *= scale;
                 spot_direction_eye_208.y *= scale;
                 spot_direction_eye_208.z *= scale;
@@ -688,7 +688,7 @@ void srLight::setSpotDirection(const srVector3T<float>& direction)
                            spot_direction_1bc.y * spot_direction_1bc.y +
                            spot_direction_1bc.z * spot_direction_1bc.z;
     if (length_squared != 0.0f) {
-        float scale = 1.0f / sqrtf(length_squared);
+        double scale = 1.0 / sqrt(length_squared);
         spot_direction_1bc.x *= scale;
         spot_direction_1bc.y *= scale;
         spot_direction_1bc.z *= scale;

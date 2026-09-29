@@ -283,10 +283,10 @@ public:
         // srMeshModel::MeshTable<srVector3T<float> >::Allocate
         // TEMPLATE: SURRENDER 0x10044E10
         // srMeshModel::MeshTable<unsigned long>::Allocate
-        T* Allocate(long elements)
+        T* Allocate(unsigned long elements)
         {
             T* replacement = static_cast<T*>(srHeap.allocate(elements * sizeof(T)));
-            for (long index = 0; index < elements; ++index) {
+            for (unsigned long index = 0; index < elements; ++index) {
                 new (&replacement[index]) T;
             }
             return replacement;
@@ -313,10 +313,10 @@ public:
         // srMeshModel::MeshTable<unsigned long>::Release
         void Release()
         {
-            for (long index = 0; index < count; ++index) {
-                data[index].~T();
-            }
             if (data != 0) {
+                for (unsigned long index = 0; index < count; ++index) {
+                    data[index].~T();
+                }
                 srHeap.free(data);
             }
             data = 0;
@@ -344,15 +344,16 @@ public:
         // srMeshModel::MeshTable<srVector3T<float> >::Resize
         // TEMPLATE: SURRENDER 0x100438D0
         // srMeshModel::MeshTable<unsigned long>::Resize
-        void Resize(long elements, int preserve)
+        void Resize(unsigned long elements, int preserve)
         {
             if (count != elements) {
-                T* replacement = 0;
-                if (elements != 0) {
-                    replacement = Allocate(elements);
-                    if (data != 0 && count != 0 && preserve != 0) {
-                        Copy(replacement, data, elements < count ? elements : count);
-                    }
+                if (elements == 0) {
+                    Release();
+                    return;
+                }
+                T* replacement = Allocate(elements);
+                if (data != 0 && count != 0 && preserve != 0) {
+                    Copy(replacement, data, elements < count ? elements : count);
                 }
                 Release();
                 data = replacement;
@@ -379,15 +380,15 @@ public:
         // srMeshModel::MeshTable<srVector3T<float> >::Copy
         // TEMPLATE: SURRENDER 0x10043DD0
         // srMeshModel::MeshTable<unsigned long>::Copy
-        static void Copy(T* destination, const T* source, long count)
+        static void Copy(T* destination, const T* source, unsigned long count)
         {
-            for (long index = 0; index < count; ++index) {
+            for (unsigned long index = 0; index < count; ++index) {
                 destination[index] = source[index];
             }
         }
 
         T* data;
-        long count;
+        unsigned long count;
     };
 
     MeshTable<srPtr<srTextureIFace> > poly_textures_6c[4][2];

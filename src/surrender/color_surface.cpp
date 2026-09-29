@@ -450,7 +450,7 @@ void srColorSurfaceIFace::setPixel(long x, long y, unsigned long pixel)
 // FUNCTION: SURRENDER 0x1005B100
 unsigned long srColorSurfaceIFace::getPixelRaw(long x, long y)
 {
-    unsigned long pixel = 0;
+    unsigned long pixel;
     getPixelRowRaw(&pixel, y, x, x + 1);
     switch (pixel_format_30.bytes_per_pixel_minus_one) {
     case 0:
@@ -1694,21 +1694,22 @@ void srColorSurface::setPixels(const unsigned long* pixels, const srVector2i* po
 void srColorSurface::getPixelsRaw(void* pixels, const srVector2i* positions, long count)
 {
     unsigned char* out = (unsigned char*)pixels;
+    unsigned long pixel_count = static_cast<unsigned long>(count);
     switch (pixel_format_30.bytes_per_pixel_minus_one) {
     case 0: {
-        for (long i = 0; i < count; ++i, ++positions, ++out) {
+        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, ++out) {
             *out = *getAddress(positions->x, positions->y);
         }
         break;
     }
     case 1: {
-        for (long i = 0; i < count; ++i, ++positions, out += 2) {
+        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, out += 2) {
             *(unsigned short*)out = *(unsigned short*)getAddress(positions->x, positions->y);
         }
         break;
     }
     case 2: {
-        for (long i = 0; i < count; ++i, ++positions, out += 3) {
+        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, out += 3) {
             const unsigned char* address = getAddress(positions->x, positions->y);
             out[0] = address[0];
             out[1] = address[1];
@@ -1717,7 +1718,7 @@ void srColorSurface::getPixelsRaw(void* pixels, const srVector2i* positions, lon
         break;
     }
     case 3: {
-        for (long i = 0; i < count; ++i, ++positions, out += 4) {
+        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, out += 4) {
             *(unsigned long*)out = *(unsigned long*)getAddress(positions->x, positions->y);
         }
         break;
@@ -1729,21 +1730,22 @@ void srColorSurface::getPixelsRaw(void* pixels, const srVector2i* positions, lon
 void srColorSurface::setPixelsRaw(const void* pixels, const srVector2i* positions, long count)
 {
     const unsigned char* in = (const unsigned char*)pixels;
+    unsigned long pixel_count = static_cast<unsigned long>(count);
     switch (pixel_format_30.bytes_per_pixel_minus_one) {
     case 0: {
-        for (long i = 0; i < count; ++i, ++positions, ++in) {
+        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, ++in) {
             *getAddress(positions->x, positions->y) = *in;
         }
         break;
     }
     case 1: {
-        for (long i = 0; i < count; ++i, ++positions, in += 2) {
+        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, in += 2) {
             *(unsigned short*)getAddress(positions->x, positions->y) = *(const unsigned short*)in;
         }
         break;
     }
     case 2: {
-        for (long i = 0; i < count; ++i, ++positions, in += 3) {
+        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, in += 3) {
             unsigned char* address = getAddress(positions->x, positions->y);
             address[0] = in[0];
             address[1] = in[1];
@@ -1752,7 +1754,7 @@ void srColorSurface::setPixelsRaw(const void* pixels, const srVector2i* position
         break;
     }
     case 3: {
-        for (long i = 0; i < count; ++i, ++positions, in += 4) {
+        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, in += 4) {
             *(unsigned long*)getAddress(positions->x, positions->y) = *(const unsigned long*)in;
         }
         break;

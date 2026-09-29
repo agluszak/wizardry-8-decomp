@@ -1776,7 +1776,7 @@ short srGERD::accumConvert(float value) const
     if (value >= 1.0f) {
         return 32767;
     }
-    return static_cast<short>(value * 32767.0f);
+    return static_cast<short>(srFloatToInt(value * 32767.0f));
 }
 
 // FUNCTION: SURRENDER 0x1001F7F0
@@ -2916,7 +2916,7 @@ void srGERD::pushClipPlane(const srVector4T<float>& plane, e_clipMode mode)
         }
         unsigned long bit = 1UL << (state_390_.clip_plane_count_12ec_ + 6);
         float inverse_length =
-            1.0f / sqrt(plane.z * plane.z + plane.x * plane.x + plane.y * plane.y);
+            1.0 / sqrt(plane.z * plane.z + plane.x * plane.x + plane.y * plane.y);
         float x = plane.x * inverse_length;
         float y = plane.y * inverse_length;
         float z = plane.z * inverse_length;

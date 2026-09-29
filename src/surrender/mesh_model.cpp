@@ -214,7 +214,7 @@ srVector3T<float>* srMeshModel::getVertexLoc()
         return 0;
     }
     if (vertex_locations_1dc.data == 0) {
-        if (vertex_locations_1dc.count != vertex_location_count_22c) {
+        if (vertex_locations_1dc.count != static_cast<unsigned long>(vertex_location_count_22c)) {
             if (vertex_location_count_22c == 0) {
                 vertex_locations_1dc.Release();
             } else {
@@ -236,7 +236,7 @@ srVector3T<float>* srMeshModel::getVertexLoc()
                 vertex_locations_1dc.count = vertex_location_count_22c;
             }
         }
-        for (long index = 0; index < vertex_locations_1dc.count; ++index) {
+        for (unsigned long index = 0; index < vertex_locations_1dc.count; ++index) {
             vertex_locations_1dc.data[index].x = 0.0f;
             vertex_locations_1dc.data[index].y = 0.0f;
             vertex_locations_1dc.data[index].z = 0.0f;
@@ -251,7 +251,8 @@ srVector3T<float>* srMeshModel::getVertexNormal()
     if (vertex_location_count_22c == 0) {
         return 0;
     }
-    if (vertex_normals_1e4.data == 0 && vertex_normals_1e4.count != vertex_location_count_22c) {
+    if (vertex_normals_1e4.data == 0 &&
+        vertex_normals_1e4.count != static_cast<unsigned long>(vertex_location_count_22c)) {
         if (vertex_location_count_22c == 0) {
             vertex_normals_1e4.Release();
         } else {
@@ -275,7 +276,8 @@ srVector4T<float>* srMeshModel::getPolyEq()
     if (polygon_count_230 == 0) {
         return 0;
     }
-    if (poly_equations_134.data == 0 && poly_equations_134.count != polygon_count_230) {
+    if (poly_equations_134.data == 0 &&
+        poly_equations_134.count != static_cast<unsigned long>(polygon_count_230)) {
         if (polygon_count_230 == 0) {
             poly_equations_134.Release();
         } else {
@@ -307,7 +309,7 @@ unsigned long* srMeshModel::getActivePolygonTable(int table)
 {
     if (active_polygons_1f4.data == 0) {
         if (table != 0) {
-            if (active_polygons_1f4.count != polygon_count_230) {
+            if (active_polygons_1f4.count != static_cast<unsigned long>(polygon_count_230)) {
                 if (polygon_count_230 == 0) {
                     active_polygons_1f4.Release();
                 } else {
@@ -334,7 +336,7 @@ srVector3i* srMeshModel::getPolyVertex()
         return 0;
     }
     if (poly_vertices_10c.data == 0) {
-        if (poly_vertices_10c.count != polygon_count_230) {
+        if (poly_vertices_10c.count != static_cast<unsigned long>(polygon_count_230)) {
             if (polygon_count_230 == 0) {
                 poly_vertices_10c.Release();
             } else {
@@ -355,7 +357,7 @@ srVector3i* srMeshModel::getPolyVertex()
                 poly_vertices_10c.count = polygon_count_230;
             }
         }
-        for (long index = 0; index < poly_vertices_10c.count; ++index) {
+        for (unsigned long index = 0; index < poly_vertices_10c.count; ++index) {
             poly_vertices_10c.data[index].x = 0;
             poly_vertices_10c.data[index].y = 0;
             poly_vertices_10c.data[index].z = 0;
@@ -373,7 +375,7 @@ srPtr<srMaterialIFace>* srMeshModel::getVertexMaterial(long vertex, e_side side,
     MeshTable<srPtr<srMaterialIFace> >& slot = vertex_materials_cc[vertex][side];
     if (slot.data == 0) {
         if (table != 0) {
-            if (slot.count != vertex_location_count_22c) {
+            if (slot.count != static_cast<unsigned long>(vertex_location_count_22c)) {
                 if (vertex_location_count_22c == 0) {
                     slot.Release();
                 } else {
@@ -383,7 +385,7 @@ srPtr<srMaterialIFace>* srMeshModel::getVertexMaterial(long vertex, e_side side,
                     slot.count = vertex_location_count_22c;
                 }
             }
-            for (long index = 0; index < slot.count; ++index) {
+            for (unsigned long index = 0; index < slot.count; ++index) {
                 slot.data[index] = srPtr<srMaterialIFace>();
             }
         }
@@ -400,7 +402,7 @@ srPtr<srTextureIFace>* srMeshModel::getPolyTexture(long polygon, long layer, int
     MeshTable<srPtr<srTextureIFace> >& slot = poly_textures_6c[polygon][layer];
     if (slot.data == 0) {
         if (table != 0) {
-            if (slot.count != polygon_count_230) {
+            if (slot.count != static_cast<unsigned long>(polygon_count_230)) {
                 if (polygon_count_230 == 0) {
                     slot.Release();
                 } else {
@@ -410,7 +412,7 @@ srPtr<srTextureIFace>* srMeshModel::getPolyTexture(long polygon, long layer, int
                     slot.count = polygon_count_230;
                 }
             }
-            for (long index = 0; index < slot.count; ++index) {
+            for (unsigned long index = 0; index < slot.count; ++index) {
                 slot.data[index] = srPtr<srTextureIFace>();
             }
         }
@@ -426,7 +428,7 @@ srShader* srMeshModel::getPolyShader(long polygon, int layer)
     }
     MeshTable<srShader>& slot = poly_shaders_ac[polygon];
     if (slot.data == 0) {
-        if (layer != 0 && slot.count != polygon_count_230) {
+        if (layer != 0 && slot.count != static_cast<unsigned long>(polygon_count_230)) {
             if (polygon_count_230 != 0) {
                 srShader* replacement = slot.Allocate(polygon_count_230);
                 if (slot.data != 0) {
@@ -451,7 +453,7 @@ srVector3i* srMeshModel::getPolyUVIndex(long layer, int table)
     MeshTable<srVector3i>& slot = poly_uv_indices_114[layer];
     if (slot.data == 0) {
         if (table != 0) {
-            if (slot.count != polygon_count_230) {
+            if (slot.count != static_cast<unsigned long>(polygon_count_230)) {
                 if (polygon_count_230 == 0) {
                     slot.Release();
                 } else {
@@ -481,7 +483,7 @@ srVector3T<float>* srMeshModel::getVertexDIG(long vertex, int table)
     MeshTable<srVector3T<float> >& slot = dig_17c[vertex];
     if (slot.data == 0) {
         if (table != 0) {
-            if (slot.count != vertex_location_count_22c) {
+            if (slot.count != static_cast<unsigned long>(vertex_location_count_22c)) {
                 if (vertex_location_count_22c == 0) {
                     slot.Release();
                 } else {
@@ -493,7 +495,7 @@ srVector3T<float>* srMeshModel::getVertexDIG(long vertex, int table)
                     slot.count = vertex_location_count_22c;
                 }
             }
-            for (long index = 0; index < slot.count; ++index) {
+            for (unsigned long index = 0; index < slot.count; ++index) {
                 slot.data[index].x = 0.0f;
                 slot.data[index].y = 0.0f;
                 slot.data[index].z = 0.0f;
@@ -512,7 +514,7 @@ srVector2T<float>* srMeshModel::getVertexTexCoords(long vertex, long layer, int 
     MeshTable<srVector2T<float> >& slot = texcoords_13c[vertex][layer];
     if (slot.data == 0) {
         if (table != 0) {
-            if (slot.count != uv_count_234) {
+            if (slot.count != static_cast<unsigned long>(uv_count_234)) {
                 if (uv_count_234 == 0) {
                     slot.Release();
                 } else {
@@ -533,7 +535,7 @@ srVector2T<float>* srMeshModel::getVertexTexCoords(long vertex, long layer, int 
                     slot.count = uv_count_234;
                 }
             }
-            for (long index = 0; index < slot.count; ++index) {
+            for (unsigned long index = 0; index < slot.count; ++index) {
                 slot.data[index].x = 0.0f;
                 slot.data[index].y = 0.0f;
             }
@@ -547,7 +549,8 @@ unsigned long* srMeshModel::getVertexShadeIndex(int table)
 {
     if (vertex_shade_indices_1ec.data == 0) {
         if (table != 0) {
-            if (vertex_shade_indices_1ec.count != vertex_location_count_22c) {
+            if (vertex_shade_indices_1ec.count !=
+                static_cast<unsigned long>(vertex_location_count_22c)) {
                 if (vertex_location_count_22c == 0) {
                     vertex_shade_indices_1ec.Release();
                 } else {
@@ -569,7 +572,7 @@ unsigned long* srMeshModel::getVertexShadeIndex(int table)
                     vertex_shade_indices_1ec.count = vertex_location_count_22c;
                 }
             }
-            for (long index = 0; index < vertex_shade_indices_1ec.count; ++index) {
+            for (unsigned long index = 0; index < vertex_shade_indices_1ec.count; ++index) {
                 vertex_shade_indices_1ec.data[index] = 0;
             }
         }
@@ -738,9 +741,9 @@ void srMeshModel::calculateBounds()
             srVectorProcessor::minMax(vertices, bounds_minimum_200, bounds_maximum_20c,
                                       vertex_location_count_22c);
         }
-        bounds_center_218.x = (bounds_minimum_200.x + bounds_maximum_20c.x) * 0.5f;
-        bounds_center_218.y = (bounds_minimum_200.y + bounds_maximum_20c.y) * 0.5f;
-        bounds_center_218.z = (bounds_minimum_200.z + bounds_maximum_20c.z) * 0.5f;
+        bounds_center_218.x = (bounds_minimum_200.x + bounds_maximum_20c.x) * 0.5;
+        bounds_center_218.y = (bounds_minimum_200.y + bounds_maximum_20c.y) * 0.5;
+        bounds_center_218.z = (bounds_minimum_200.z + bounds_maximum_20c.z) * 0.5;
         long count = vertex_location_count_22c;
         if (0 < count) {
             do {
@@ -901,7 +904,7 @@ void srMeshModel::centerVertices()
                 sum.z = sum.z + vertices[index].z;
             }
         }
-        float inverse = 1.0f / count;
+        double inverse = 1.0 / count;
         srVector3T<float> offset;
         offset.x = -(sum.x * inverse);
         offset.y = -(sum.y * inverse);
@@ -1125,7 +1128,7 @@ srVector4T<float>* srMeshModel::getVertexSCG(long vertex, int table)
     MeshTable<srVector4T<float> >& slot = scg_1bc[vertex];
     if (slot.data == 0) {
         if (table != 0) {
-            if (slot.count != vertex_location_count_22c) {
+            if (slot.count != static_cast<unsigned long>(vertex_location_count_22c)) {
                 if (vertex_location_count_22c == 0) {
                     slot.Release();
                 } else {
@@ -1137,7 +1140,7 @@ srVector4T<float>* srMeshModel::getVertexSCG(long vertex, int table)
                     slot.count = vertex_location_count_22c;
                 }
             }
-            for (long index = 0; index < slot.count; ++index) {
+            for (unsigned long index = 0; index < slot.count; ++index) {
                 slot.data[index].x = 1.0f;
                 slot.data[index].y = 1.0f;
                 slot.data[index].z = 1.0f;
@@ -1158,7 +1161,7 @@ srVector4T<float>* srMeshModel::getVertexDCG(long vertex, int table)
     MeshTable<srVector4T<float> >& slot = dcg_19c[vertex];
     if (slot.data == 0) {
         if (table != 0) {
-            if (slot.count != vertex_location_count_22c) {
+            if (slot.count != static_cast<unsigned long>(vertex_location_count_22c)) {
                 if (vertex_location_count_22c == 0) {
                     slot.Release();
                 } else {
@@ -1170,7 +1173,7 @@ srVector4T<float>* srMeshModel::getVertexDCG(long vertex, int table)
                     slot.count = vertex_location_count_22c;
                 }
             }
-            for (long index = 0; index < slot.count; ++index) {
+            for (unsigned long index = 0; index < slot.count; ++index) {
                 slot.data[index].x = 1.0f;
                 slot.data[index].y = 1.0f;
                 slot.data[index].z = 1.0f;
