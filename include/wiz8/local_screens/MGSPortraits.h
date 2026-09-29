@@ -7,6 +7,9 @@
 
 struct W8Region;
 
+extern char s_spell_sound_format_0061aa9c[];
+extern char s_general_magic_sound_0064c664[];
+
 /* The eight party-condition buttons beside the portraits, created by
    CreateConditionButtons; its asserts name gpConditionButtonsPanel and
    gpConditionButtons[uiSlot]. W8TextControl is 0xb8; the derived part adds a

@@ -11,6 +11,7 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MGSRadarMap.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/fonts.h"
@@ -1384,7 +1385,7 @@ unsigned char CampScreenEnter(void)
     } else {
         g_camp_entry_parameter = g_current_screen_state.parameter_4;
         entry_mode = 2;
-        SoundPlay("Data\\Spells\\Sounds\\GeneralMagic.wav", 0);
+        SoundPlay(s_general_magic_sound_0064c664, 0);
         SetTargetingMode(6);
     }
     gXStatus.item_drag_active = 0;
@@ -2686,7 +2687,7 @@ int CommitPartySlotSpell(int party_slot, int spell_id, int power_level, W8Combat
         SoundPlay("Data\\Sound\\Misc\\Spell Learned.wav", 0);
         return 1;
     }
-    SoundPlay("Data\\Spells\\Sounds\\GeneralMagic.wav", 0);
+    SoundPlay(s_general_magic_sound_0064c664, 0);
     return 1;
 }
 
@@ -2723,7 +2724,7 @@ int CommitPartySlotItemUse(int party_slot, W8ItemInstance* item, W8CombatSlot* t
         if (g_item_records[used->iItemNo].spell_id == 0x17 && used->identified != 0) {
             SoundPlay("Data\\Sound\\Misc\\Spell Learned.wav", 0);
         } else {
-            SoundPlay("Data\\Spells\\Sounds\\GeneralMagic.wav", 0);
+            SoundPlay(s_general_magic_sound_0064c664, 0);
         }
     } else {
         SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);

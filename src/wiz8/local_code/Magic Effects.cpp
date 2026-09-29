@@ -18,6 +18,7 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/Trigger.hpp"
@@ -3820,7 +3821,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         sound_name = g_spell_records[spell_id].sound_name;
         if (sound_name[0] != 0) {
             parms = 0;
-            path = FormatString("Data\\Spells\\Sounds\\%s.wav", sound_name);
+            path = FormatString(s_spell_sound_format_0061aa9c, sound_name);
             SoundPlay(path, parms);
         }
         /* fall through */
