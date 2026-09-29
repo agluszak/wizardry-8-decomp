@@ -201,7 +201,7 @@ public:
     virtual void Populate() override;
 };
 
-// VTABLE: WIZ8 0x005ef134
+// VTABLE: WIZ8 0x005ef134 W8OptionsPanel
 // VTABLE: WIZ8 0x005ef12c W8HorizontalRangeThumbListener
 // VTABLE: WIZ8 0x005ef124 W8TextControl::Listener
 class W8OptionsInterfacePanel : public W8OptionsPanel,
@@ -216,7 +216,7 @@ public:
     W8OptionsSlider* m_tooltip_delay;
 };
 
-// VTABLE: WIZ8 0x005ef108
+// VTABLE: WIZ8 0x005ef108 W8OptionsPanel
 // VTABLE: WIZ8 0x005ef100 W8HorizontalRangeThumbListener
 // VTABLE: WIZ8 0x005ef0f8 W8TextControl::Listener
 class W8OptionsAudioPanel : public W8OptionsPanel,
@@ -232,7 +232,7 @@ public:
     W8TextControl* m_mute_buttons[4];
 };
 
-// VTABLE: WIZ8 0x005ef0dc
+// VTABLE: WIZ8 0x005ef0dc W8OptionsPanel
 // VTABLE: WIZ8 0x005ef0d4 W8HorizontalRangeThumbListener
 class W8OptionsGraphicsPanel : public W8OptionsPanel, public W8HorizontalRangeThumbListener {
 public:
@@ -278,7 +278,7 @@ public:
 static_assert(sizeof(W8OptionsButton) == 0xb8, "W8OptionsButton_size");
 static_assert(sizeof(W8OptionsKeyButton) == 0xc0, "W8OptionsKeyButton_size");
 
-// VTABLE: WIZ8 0x005ef034
+// VTABLE: WIZ8 0x005ef034 W8OptionsPanel
 // VTABLE: WIZ8 0x005ef02c W8TextControl::Listener
 // VTABLE: WIZ8 0x005ef028 W8ControlSelectionListener
 // VTABLE: WIZ8 0x005ef024 W8OptionsKeyCapture
@@ -312,7 +312,7 @@ public:
     int m_message;
 };
 
-// VTABLE: WIZ8 0x005ef070
+// VTABLE: WIZ8 0x005ef070 W8OptionsPanel
 // VTABLE: WIZ8 0x005ef068 W8TextControl::Listener
 // VTABLE: WIZ8 0x005ef064 W8DialogCloseListener
 // VTABLE: WIZ8 0x005ef060 W8OptionsTextEditor::Listener
@@ -373,7 +373,7 @@ W8_ASSERT_BASE_END(W8OptionsSaveLoadPanel, W8ControlSelectionListener, m_panel, 
 /* The 0xc0-byte menu-row class constructed at 0x005A7370.  It is a concrete
    W8TextControl with an independent listener subobject and a source-table item
    id; the two optional child controls are owned by the base Controls panel. */
-// VTABLE: WIZ8 0x005eed3c
+// VTABLE: WIZ8 0x005eed3c W8TextControl
 // VTABLE: WIZ8 0x005eed34 W8TextControl::Listener
 class W8OptionsMenuButton : public W8TextControl, public W8TextControl::Listener {
 public:
@@ -392,7 +392,7 @@ W8_ASSERT_BASE_END(W8OptionsMenuButton, W8TextControl::Listener, m_item_id_0bc, 
 /* The 0x60-byte controls-derived menu-set object constructed at 0x005A8C90.
    Its independent allocation, constructor, secondary listener vptr, and the
    OptionsScreen.cpp assertion on m_pMenuSet establish this boundary. */
-// VTABLE: WIZ8 0x005eefec
+// VTABLE: WIZ8 0x005eefec Controls
 // VTABLE: WIZ8 0x005eefe4 W8TextControl::Listener
 class W8OptionsMenuSet : public Controls, public W8TextControl::Listener {
 public:

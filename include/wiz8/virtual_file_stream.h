@@ -12,7 +12,7 @@
    "stBinIStream" - a candidate original spelling for this class, recorded but
    not promoted: getDescription is a description API (the ZIP opener returns
    prose), so it does not prove the C++ class name on its own. */
-// VTABLE: WIZ8 0x005ec6a0 W8VirtualFileBinIStream
+// VTABLE: WIZ8 0x005ec6a0 srBinIStream
 // VTABLE: WIZ8 0x005ec68c srBinStream
 /* Retail places a vtordisp{-4,0} immediately before the virtual srBinStream
    base at +0x10; leave the default vtordisp so MSVC emits the same field and

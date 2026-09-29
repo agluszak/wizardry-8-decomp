@@ -53,7 +53,7 @@ const float g_float_005ec5c4 = 0.699999988079071f;
 #define BEHAVIOUR_FIRST 1
 #define BEHAVIOUR_LAST 3
 
-// VTABLE: WIZ8 0x005ece78 W8GrCycle
+// VTABLE: WIZ8 0x005ece78 W8GrObject
 // VTABLE: WIZ8 0x005eceb8 W8Navigator
 // class W8GrCycle
 

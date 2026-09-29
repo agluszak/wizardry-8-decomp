@@ -1006,7 +1006,7 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
    the CGSSpellsPage anchor; their retail span 0x005C6460..0x005C7D60 matches
    demo 0x005CFAD0..0x005D0FE0 inside the same hull. */
 
-// VTABLE: WIZ8 0x005ef57c W8CharacterPersonalityPage
+// VTABLE: WIZ8 0x005ef57c W8CharacterPage
 // VTABLE: WIZ8 0x005ef578 W8ControlSelectionListener
 // VTABLE: WIZ8 0x005ef570 W8TextControl::Listener
 // class W8CharacterPersonalityPage
@@ -1377,7 +1377,7 @@ W8CharacterPersonalityPage* CreateCharacterPersonalityPage()
 // FUNCTION: WIZ8 0x005c74e0
 W8CharacterPersonalityPage::~W8CharacterPersonalityPage() {}
 
-// VTABLE: WIZ8 0x005ef5c8 W8CharacterSkillsPage
+// VTABLE: WIZ8 0x005ef5c8 W8CharacterPage
 // VTABLE: WIZ8 0x005ef5c0 W8CharacterPageEntryListener
 // class W8CharacterSkillsPage
 
