@@ -1093,7 +1093,7 @@ BOOLEAN W8Octree::SavePoints(char* path)
     if (extension != 0) {
         *extension = '\0';
     }
-    strcat(name, ".pts");
+    strcat(name, g_octree_point_extension);
     if (FileExists(name) != 0) {
         if (_access(name, 2) != 0) {
             _chmod(name, 0x180);

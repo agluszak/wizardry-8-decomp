@@ -1569,7 +1569,8 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
                         ShowNoticef(9, L"%s %s!", GetMonsterName(monster_info, NULL, 0),
                                     gppStringList[*notice]);
                     } else if (report->target.iType == W8_TARGET_KIND_CHARACTER) {
-                        PostCharacterNotice(report->target.iChar, L"%s!", gppStringList[*notice]);
+                        PostCharacterNotice(report->target.iChar, g_format_s_bang,
+                                            gppStringList[*notice]);
                     }
                 }
             }
@@ -1585,7 +1586,8 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
         }
         if (entry != NULL) {
             if (entry->kind == 1) {
-                PostCharacterNotice(entry->value, L"%s!", gppStringList[g_condition_notices[0x49]]);
+                PostCharacterNotice(entry->value, g_format_s_bang,
+                                    gppStringList[g_condition_notices[0x49]]);
             } else if (entry->kind == 3) {
                 ShowNoticef(9, L"%s %s!", entry->text, gppStringList[g_condition_notices[0x49]]);
             }
@@ -2091,7 +2093,7 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
                         ShowNoticef(9, L"%s %s!", GetMonsterName(monster_info, NULL, 0),
                                     gppStringList[g_condition_notices[condition * 4 + 1]]);
                     } else if (report->target.iType == W8_TARGET_KIND_CHARACTER) {
-                        PostCharacterNotice(report->target.iChar, L"%s!",
+                        PostCharacterNotice(report->target.iChar, g_format_s_bang,
                                             gppStringList[g_condition_notices[condition * 4 + 1]]);
                     }
                 }
@@ -2108,7 +2110,8 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
         }
         if (entry != NULL) {
             if (entry->kind == 1) {
-                PostCharacterNotice(entry->value, L"%s!", gppStringList[g_condition_notices[0x49]]);
+                PostCharacterNotice(entry->value, g_format_s_bang,
+                                    gppStringList[g_condition_notices[0x49]]);
             } else if (entry->kind == 3) {
                 ShowNoticef(9, L"%s %s!", entry->text, gppStringList[g_condition_notices[0x49]]);
             }

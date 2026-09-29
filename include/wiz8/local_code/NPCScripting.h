@@ -1,5 +1,7 @@
 #pragma once
 
+extern wchar_t g_format_al_s[]; /* 0x00614B44 */
+
 bool GetNpcScriptRegionName(int region, wchar_t* name);
 void StripNpcKeywordPunctuation(wchar_t* text);
 

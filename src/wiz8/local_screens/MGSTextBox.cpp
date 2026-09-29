@@ -954,7 +954,8 @@ void PostCharacterNotice(int party_slot, const wchar_t* format, ...)
     vswprintf(text, format, arguments);
     va_end(arguments);
 
-    wcscpy(separator, (text[0] == L'\'' || text[0] == L':') ? &g_empty_wide_string : L" ");
+    wcscpy(separator,
+           (text[0] == L'\'' || text[0] == L':') ? &g_empty_wide_string : g_W8TextSeparator);
     ShowNoticef(8, L"%s%s%s", g_status.buffers.Char[party_slot].name, separator, text);
     stop = wcslen(g_status.buffers.Char[party_slot].name);
     if (text[0] == L'\'') {
@@ -980,7 +981,8 @@ void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* fo
     vswprintf(text, format, arguments);
     va_end(arguments);
 
-    wcscpy(separator, (text[0] == L'\'' || text[0] == L':') ? &g_empty_wide_string : L" ");
+    wcscpy(separator,
+           (text[0] == L'\'' || text[0] == L':') ? &g_empty_wide_string : g_W8TextSeparator);
     FormatNotice(8, context, L"%s%s%s", g_status.buffers.Char[party_slot].name, separator, text);
     stop = wcslen(g_status.buffers.Char[party_slot].name);
     if (text[0] == L'\'') {
@@ -2639,7 +2641,8 @@ void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...)
     vswprintf(text, format, arguments);
     va_end(arguments);
 
-    wcscpy(separator, text[0] == L'\'' || text[0] == L':' ? &g_empty_wide_string : L" ");
+    wcscpy(separator,
+           text[0] == L'\'' || text[0] == L':' ? &g_empty_wide_string : g_W8TextSeparator);
     ShowNoticef(9, L"%s%s%s", GetMonsterName(monster_info, 0, 0), separator, text);
 }
 

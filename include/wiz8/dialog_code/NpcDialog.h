@@ -1,5 +1,7 @@
 #pragma once
 
+extern wchar_t g_format_S[]; /* 0x0061C4B4 */
+
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/local_code/ControlsRect.h"

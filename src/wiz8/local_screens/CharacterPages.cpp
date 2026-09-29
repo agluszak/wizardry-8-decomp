@@ -156,8 +156,9 @@ void W8CharacterPageEntry::Redraw()
         if (m_draw_background_038) {
             DrawCatalogImageAndInvalidate(-14, 0x108, 0, 2, m_x_030, m_y_034, 2, 0);
         }
-        m_first_text_018->SetText(FormatWideString(L"%d", *m_first_020), g_wiz_text_font_secondary);
-        m_second_text_01c->SetText(FormatWideString(L"%d", *m_second_024),
+        m_first_text_018->SetText(FormatWideString(g_format_d, *m_first_020),
+                                  g_wiz_text_font_secondary);
+        m_second_text_01c->SetText(FormatWideString(g_format_d, *m_second_024),
                                    g_wiz_text_font_secondary);
         m_label_014->FillBounds(0x8000);
         m_first_text_018->FillBounds(0x8000);

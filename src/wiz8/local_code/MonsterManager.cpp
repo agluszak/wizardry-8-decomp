@@ -1686,7 +1686,7 @@ wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
     }
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
-        swprintf(g_status.monster_name_buffer_2453, L"Al-%s",
+        swprintf(g_status.monster_name_buffer_2453, g_format_al_s,
                  g_status.buffers.Char[g_status.sedexus_party_slot_247f].name);
         return g_status.monster_name_buffer_2453;
     }

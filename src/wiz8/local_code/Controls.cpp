@@ -1,4 +1,5 @@
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/Widget.h"
@@ -1417,7 +1418,7 @@ W8HelpTextControl::W8HelpTextControl(Controls* panel, unsigned int region, int l
                                      int right, int bottom)
     : W8TextControl(panel, region, left, top, right, bottom, -1, -1, -1, -1, -1, -1, -1)
 {
-    wcscpy(m_regionHelp, L"");
+    wcscpy(m_regionHelp, &g_empty_wide_string);
 }
 
 class W8RangeControl;
