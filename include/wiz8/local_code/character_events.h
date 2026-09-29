@@ -19,8 +19,8 @@ extern int g_special_event_0068c558;
 extern int g_special_event_0068c55c;
 extern int g_special_event_0068c568;
 int UpdateCharacterEventState(void);
-W8CharacterEvent* QueueCharacterEvent(W8Character* character, int event_type, int argument,
-                                      unsigned int flags, unsigned int volume);
+W8CharacterEvent* QueueCharacterEvent(W8Character* character, int event_type, unsigned int flags,
+                                      int queue_mode, unsigned int volume);
 
 /* 0x0052D0B0: format one character quote for the given event type into the
    shared wide text buffer. Returns zero and empties it when the type has no
@@ -35,10 +35,10 @@ extern const int g_fact_check_event;
 unsigned char PartyPortraitEventsIdle(void);                            /* 0x0052E590 */
 int PickRandomPartySpeaker(unsigned int event_type, int excluded_slot); /* 0x0052FEE0 */
 W8CharacterEvent* ApplyItemEffectToRandomCharacter(unsigned int event_type, int excluded_slot,
-                                                   int argument,
-                                                   unsigned int flags); /* 0x0052E5C0 */
-void MaybeStartIncapacitationEvent(unsigned int party_slot);            /* 0x0052F060 */
-void QueueDamageReactionEvents(W8Character* character);                 /* 0x0052F2C0 */
+                                                   unsigned int flags,
+                                                   int queue_mode); /* 0x0052E5C0 */
+void MaybeStartIncapacitationEvent(unsigned int party_slot);        /* 0x0052F060 */
+void QueueDamageReactionEvents(W8Character* character);             /* 0x0052F2C0 */
 /* 0x0052F110: after a character dies, pick one other party member and queue
    their reaction event with a three-second clock. */
 void QueuePartyDeathReaction(unsigned int party_slot);

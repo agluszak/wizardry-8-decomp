@@ -152,7 +152,7 @@ def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypa
     assert result.exit_code == 0, result.output
     assert events == ["compare"]
     payload = json.loads(result.stdout)
-    assert payload["functions"][0]["orig"] == "0x00401000"
+    assert "functions" not in payload
     assert payload["selection"]["changed_files"] == ["new.cpp"]
     assert payload["selection"]["dependent_files"] == []
 

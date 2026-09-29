@@ -240,7 +240,11 @@ def compare_command(
         raise ValueError("select functions by address, --file, or --changed")
 
     result = action()
-    cli.emit(result)
+    # Changed-header selections can contain thousands of functions. Their
+    # detailed results already live in the comparison report under build/.
+    cli.emit(
+        {key: value for key, value in result.items() if key != "functions"} if changed else result
+    )
     if not result["ok"]:
         raise typer.Exit(code=1)
 

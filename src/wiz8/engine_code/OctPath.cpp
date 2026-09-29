@@ -3577,7 +3577,6 @@ W8PathingService::W8PathingService()
     trace_height_offset_0bc = 0;
     trace_target_yaw_0c4 = 0;
     path_parameters_214 = new W8PathParameters();
-    linked_attachment_218 = 0;
     m_pCondPaths = 0;
     m_ulNumCondPaths = 0;
     m_ulNumCondFrames = 0;

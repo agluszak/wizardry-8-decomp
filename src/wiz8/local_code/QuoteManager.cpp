@@ -404,9 +404,9 @@ static void CharacterEventSoundEndCallback(void* callback_data)
 }
 
 // FUNCTION: WIZ8 0x0052C810
-W8CharacterEvent::W8CharacterEvent(W8Character* character, unsigned int event_type, int argument_0c,
-                                   unsigned int flags, int volume)
-    : sound_end_handled(0), character(character), event_type(event_type), argument_0c(argument_0c),
+W8CharacterEvent::W8CharacterEvent(W8Character* character, unsigned int event_type,
+                                   unsigned int flags, int queue_mode, int volume)
+    : sound_end_handled(0), character(character), event_type(event_type), queue_mode(queue_mode),
       flags(flags), volume(volume), dispatch_delay_ms(0)
 {
     item.iItemNo = -1;
@@ -1421,7 +1421,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
    zero without queueing anything. */
 // FUNCTION: WIZ8 0x0052E5C0
 W8CharacterEvent* ApplyItemEffectToRandomCharacter(unsigned int event_type, int excluded_slot,
-                                                   int argument, unsigned int flags)
+                                                   unsigned int flags, int queue_mode)
 {
     int character_slot;
     int attempts;
@@ -1443,13 +1443,13 @@ W8CharacterEvent* ApplyItemEffectToRandomCharacter(unsigned int event_type, int 
         character_slot = GetRandomCharacter(0, 0, excluded_slot, -1);
         ++attempts;
     }
-    return QueueCharacterEvent(&g_status.buffers.Char[character_slot], event_type, argument, flags,
-                               g_character_event_full_volume);
+    return QueueCharacterEvent(&g_status.buffers.Char[character_slot], event_type, flags,
+                               queue_mode, g_character_event_full_volume);
 }
 
 // FUNCTION: WIZ8 0x0052E690
-W8CharacterEvent* QueueCharacterEvent(W8Character* character, int event_type, int argument,
-                                      unsigned int flags, unsigned int volume)
+W8CharacterEvent* QueueCharacterEvent(W8Character* character, int event_type, unsigned int flags,
+                                      int queue_mode, unsigned int volume)
 {
     W8CharacterEvent* entry;
 
@@ -1462,7 +1462,7 @@ W8CharacterEvent* QueueCharacterEvent(W8Character* character, int event_type, in
         event_type != g_special_event_0068c540 && event_type != g_special_event_0068c564) {
         volume = volume * 70 / 100;
     }
-    entry = new W8CharacterEvent(character, event_type, argument, flags, volume);
+    entry = new W8CharacterEvent(character, event_type, flags, queue_mode, volume);
     if (entry != 0 && gXStatus.character_event_queue->QueueEntry(entry) == 0) {
         return 0;
     }

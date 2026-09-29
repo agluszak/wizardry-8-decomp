@@ -27,12 +27,12 @@ enum W8CharacterEventFlag {
     W8_EVENT_NPC_SCRIPT = 0x40
 };
 
-/* One queued character-event entry. The ctor, quote formatter, and process
-   method live with QueueCharacterEvent in Health Stamina Mana.cpp; the
+/* One queued character-event entry. The constructor, quote formatter and
+   dispatch path live with QueueCharacterEvent in QuoteManager.cpp; the
    original type name is unknown. */
 struct W8CharacterEvent {
-    W8CharacterEvent(W8Character* character, unsigned int event_type, int argument_0c,
-                     unsigned int flags, int volume);
+    W8CharacterEvent(W8Character* character, unsigned int event_type, unsigned int flags,
+                     int queue_mode, int volume);
 
     /* 0x00: set before the sound is stopped on synchronous shutdown; the
        sound-end callback bails when it is set. */
@@ -40,7 +40,9 @@ struct W8CharacterEvent {
     unsigned char padding_01[3];
     W8Character* character;
     unsigned int event_type;
-    int argument_0c;
+    /* 0x0c: queue category passed as the fourth argument. */
+    int queue_mode;
+    /* 0x10: event flags passed as the third argument. */
     unsigned int flags;
     /* 0x14: the 0-127 multiplier used for SOUNDPARMS::uiVolume. */
     int volume;
