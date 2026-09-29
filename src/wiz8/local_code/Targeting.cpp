@@ -856,12 +856,13 @@ inline void SetMonsterHighlightInline(int party_slot, int location_id, char on)
     }
 
     bit = (unsigned char)(1 << (party_slot & 0x1f));
+    unsigned char mask = MonsterGetHighlightMask(monster);
     if (on) {
-        MonsterSetHighlightMask(monster, MonsterGetHighlightMask(monster) | bit);
+        MonsterSetHighlightMask(monster, mask | bit);
         NotifyMonsterHighlight(party_slot, location_id, 1);
         return;
     }
-    MonsterSetHighlightMask(monster, MonsterGetHighlightMask(monster) & ~bit);
+    MonsterSetHighlightMask(monster, mask & ~bit);
     NotifyMonsterHighlight(party_slot, location_id, 0);
 }
 
@@ -976,10 +977,11 @@ void SetGroupHighlight(int party_slot, int group_id, char on)
             srAssertFail("pMonster", TARGETING_CPP, 1888, 0);
         }
         bit = (unsigned char)(1 << (party_slot & 0x1f));
+        unsigned char mask = MonsterGetHighlightMask(monster);
         if (on == 0) {
-            MonsterSetHighlightMask(monster, MonsterGetHighlightMask(monster) & ~bit);
+            MonsterSetHighlightMask(monster, mask & ~bit);
         } else {
-            MonsterSetHighlightMask(monster, MonsterGetHighlightMask(monster) | bit);
+            MonsterSetHighlightMask(monster, mask | bit);
         }
         NotifyMonsterHighlight(party_slot, location_id, on != 0);
     }

@@ -291,8 +291,9 @@ unsigned int TurnPartyTo(unsigned int degrees)
     if (degrees != g_status.party_heading) {
         g_status.party_heading = degrees;
         UpdateFormationCompass();
-        previous = (unsigned int)GetCameraYawDegrees() / W8_DEGREES_PER_TURN;
-        if ((unsigned int)GetCameraYawDegrees() % W8_DEGREES_PER_TURN != degrees) {
+        unsigned int camera_yaw = static_cast<unsigned int>(GetCameraYawDegrees());
+        previous = camera_yaw / W8_DEGREES_PER_TURN;
+        if (camera_yaw % W8_DEGREES_PER_TURN != degrees) {
             SetCameraYawDegrees((float)degrees);
         }
     }
