@@ -2,6 +2,7 @@
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 
 #include "wiz8/cursor.h"
 #include "wiz8/local_code/ButtonSound.h"
@@ -125,11 +126,12 @@ void W8CharacterSpellList::Redraw(int force)
             } else if (index == m_hovered_entry) {
                 SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[5]);
             }
-            gprintf(left + 2, y, L"%s", g_spell_records[m_entries[index].spell].display_name);
+            gprintf(left + 2, y, g_format_s, g_spell_records[m_entries[index].spell].display_name);
             wchar_t cost[6];
             wcscpy(cost, FormatWideString(
-                             L"%d", g_spell_records[m_entries[index].spell].spell_point_cost));
-            gprintf(right - StringPixLength(cost, g_wiz_text_font_secondary) - 2, y, L"%s", cost);
+                             g_format_d, g_spell_records[m_entries[index].spell].spell_point_cost));
+            gprintf(right - StringPixLength(cost, g_wiz_text_font_secondary) - 2, y, g_format_s,
+                    cost);
             y += 13;
             SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
             SetObjectShade(g_wiz_text_font_secondary_object, 4);

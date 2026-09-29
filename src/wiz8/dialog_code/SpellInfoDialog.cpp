@@ -4,6 +4,7 @@
 #include "wiz8/fonts.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
@@ -314,23 +315,23 @@ void W8SpellInfoDialog::DrawLabels()
     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
     text = record->display_name;
     width = StringPixLength(text, g_wiz_text_font_secondary);
-    gprintf(m_x + 0x25 + (0xe7 - width) / 2, m_y + 0x12, L"%s", text);
+    gprintf(m_x + 0x25 + (0xe7 - width) / 2, m_y + 0x12, g_format_s, text);
     text = gppStringList[0x118];
     width = StringPixLength(text, g_wiz_text_font_secondary);
-    gprintf(m_x + 0x25 + (0x53 - width) / 2, m_y + 0x24, L"%s", text);
+    gprintf(m_x + 0x25 + (0x53 - width) / 2, m_y + 0x24, g_format_s, text);
     if (record->power_class == 3) {
         text = gppStringList[0x11a];
     } else {
         text = gppStringList[0x119];
     }
     width = StringPixLength(text, g_wiz_text_font_secondary);
-    gprintf(m_x + 0x25 + (0x7b - width) / 2, m_y + 0x33, L"%s", text);
+    gprintf(m_x + 0x25 + (0x7b - width) / 2, m_y + 0x33, g_format_s, text);
     text = FormatWideString(g_format_d, record->spell_level);
     width = StringPixLength(text, g_wiz_text_font_secondary);
-    gprintf(m_x + 0x7c + (0x16 - width) / 2, m_y + 0x24, L"%s", text);
+    gprintf(m_x + 0x7c + (0x16 - width) / 2, m_y + 0x24, g_format_s, text);
     text = FormatWideString(g_format_d_s, record->spell_point_cost, gppStringList[0x11b]);
     width = StringPixLength(text, g_wiz_text_font_secondary);
-    gprintf(m_x + 0xa4 + (0x25 - width) / 2, m_y + 0x33, L"%s", text);
+    gprintf(m_x + 0xa4 + (0x25 - width) / 2, m_y + 0x33, g_format_s, text);
 }
 
 // FUNCTION: WIZ8 0x005dc6c0
