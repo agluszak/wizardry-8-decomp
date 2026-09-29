@@ -356,9 +356,9 @@ def _global_addresses(repo: Path, names: set[str]) -> dict[str, int]:
 def _global_semantic_ids(repo: Path, names: set[str]) -> dict[str, str]:
     """Decorated names of the reviewed globals, for rebuilt-image rebasing."""
 
-    from .source_index import SourceIndex, load_source_index
+    from .source_index import SourceIndex
 
-    index = SourceIndex.from_dict(load_source_index(repo))
+    index = SourceIndex.read(repo / "build/source-index.json")
     return {
         variable.qualified_name: variable.semantic_id
         for key, variable in index.variables.items()

@@ -105,6 +105,23 @@ command result should expose the useful bounded answer/path. Do not dump whole i
 because the caller is an agent. `ghidra decompile` / `asm` / `sym` / `class` print compact text by
 default; `--json` serializes that same result rather than running a second path.
 
+Use `wiz8 report compare` to inspect saved comparisons by address, source file, outcome or
+`--against` an earlier summary. It never builds or starts Ghidra. Comparison runs retain separate
+directories and publish a latest pointer; keep the returned run path in task notes rather than
+copying full snapshots. reccmp owns completed-result reuse and invalidation, not the project wrapper.
+
+Return counts, bounded findings and artifact paths. Full comparison details stay in run reports;
+`pr-check` saves its detailed lane results under build/reports/pr-check.json. Do not add a generic
+query language, another report inventory or separate human/machine output modes.
+
+For builds/analysis, use a 30-second initial tool yield and 30–60-second follow-up waits. Batch
+independent reads while a process runs. Avoid one-second polling and model round trips that return
+no new evidence. Keep user progress updates timely; do not solve polling with a repository scheduler.
+
+Reuse successful checks while their relevant inputs agree. A continuation or compaction does not
+invalidate a result or require rereading unchanged loaded skills. Keep a short handoff with instruction
+paths, revision, inputs and result paths; reread when the task or instructions actually change.
+
 ## Verification
 
 Use the smallest checks that exercise the changed owner:
