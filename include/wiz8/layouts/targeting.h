@@ -110,6 +110,7 @@ union W8ActionDetailBlock {
         W8ItemInstance* item;
     } item_use;
 }; /* 0x08 */
+static_assert(sizeof(W8ActionDetailBlock) == 0x08, "W8ActionDetailBlock_size");
 
 /* The combat actions a party slot row's action_03d and the level block's
    selection_kind carry; ChooseCombatAction picks one and ChooseAction applies

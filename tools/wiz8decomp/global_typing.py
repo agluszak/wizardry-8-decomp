@@ -15,14 +15,70 @@ from pathlib import Path
 from typing import Any
 
 from .global_model import parse_global_definitions
+from .source_index import try_load_source_index
 
 _SCHEMA = "wiz8.global-typing-v1"
-_ARRAY_SUFFIX = re.compile(r"^(?P<base>.+?)(?P<arrays>(?:\[\d*\])+)$")
+_ARRAY_SUFFIX = re.compile(r"^(?P<base>.+?)(?P<arrays>(?:\[\s*(?:0[xX][0-9a-fA-F]+|\d*)\s*\])+)$")
+_SOURCE_ARRAY_SUFFIX = re.compile(r"^(?P<base>.+?)(?P<arrays>(?:\[[^\]]*\])+)$")
+_INDEX_ARRAY_SUFFIX = re.compile(r"^(?P<base>.+?)(?P<arrays>(?:\[\d+\])+)$")
 _POINTER_SUFFIX = re.compile(r"^(?P<base>.+?)\s*(?P<stars>\*+)\s*$")
 _TEMPLATE = re.compile(r"<([^<>]+)>")
 _CLASS_LIKE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(::[A-Za-z_][A-Za-z0-9_]*)*$")
 _FUNCTION_POINTER = re.compile(r"^(?P<result>.+?)\s*\(\s*\*\s*\)\s*\((?P<arguments>.*)\)$")
 _ARRAY_POINTER = re.compile(r"^(?P<base>.+?)\s*\(\s*\*\s*\)\s*(?P<array>\[\d+\])$")
+# Released SGP headers typedef these record tags; the imported debug types
+# retain the tag names rather than the typedef names.
+_SGP_RECORD_TYPEDEFS = {"MOUSE_REGION": "_MOUSE_REGION", "GUI_BUTTON": "_GUI_BUTTON"}
+_SOURCE_POINTER_TYPEDEFS = {
+    "H3DPOBJECT": "h3DPOBJECT",
+    "HDIGDRIVER": "_DIG_DRIVER",
+    "HVOBJECT": "TAG_HVOBJECT",
+    "HVSURFACE": "SGPVSurface",
+    "LPDIRECTDRAW": "IDirectDraw",
+    "LPDIRECTDRAW2": "IDirectDraw2",
+    "LPDIRECTDRAWSURFACE": "IDirectDrawSurface",
+    "LPDIRECTDRAWSURFACE2": "IDirectDrawSurface2",
+}
+_EXTERNAL_TYPE_PATHS = {
+    "CHAR": "/winnt.h/CHAR",
+    "FILE": "/mbstring.h/FILE",
+    "HANDLE": "/winnt.h/HANDLE",
+    "HHOOK": "/WinDef.h/HHOOK",
+    "HINSTANCE": "/WinDef.h/HINSTANCE",
+    "HWND": "/WinDef.h/HWND",
+    "POINT": "/WinDef.h/POINT",
+    "WNDPROC": "/winuser.h/WNDPROC",
+    # The WIZ8/SGP build selects the ANSI Win32 typedef.
+    "WIN32_FIND_DATA": "/wiz8/sgp/WIN32_FIND_DATAA",
+}
+
+
+def _qualified_parts(name: str) -> list[str]:
+    """Split C++ namespaces while retaining nested template arguments intact."""
+
+    parts: list[str] = []
+    depth = 0
+    start = 0
+    index = 0
+    while index < len(name):
+        char = name[index]
+        if char in "<[(":
+            depth += 1
+        elif char in ">])":
+            depth -= 1
+        elif name[index : index + 2] == "::" and depth == 0:
+            parts.append(name[start:index].strip())
+            index += 2
+            start = index
+            continue
+        index += 1
+    parts.append(name[start:].strip())
+    return [part for part in parts if part]
+
+
+def _simple_name(qualified: str) -> str:
+    parts = _qualified_parts(qualified)
+    return parts[-1] if parts else ""
 
 
 def _split_type_arguments(text: str) -> list[str]:
@@ -71,6 +127,169 @@ def _strip_qualifiers(type_name: str) -> str:
     return text
 
 
+def _literal_character_array(
+    definition: Mapping[str, Any], lines: Sequence[str]
+) -> tuple[str, int] | None:
+    """Size a simple ASCII string array from its current source declaration."""
+
+    spelling = str(definition.get("type") or "")
+    if _strip_qualifiers(spelling) not in {"char[]", "wchar_t[]"}:
+        return None
+    line_index = int(definition["line"]) - 1
+    if line_index < 0:
+        return None
+    try:
+        line = lines[line_index]
+    except IndexError:
+        return None
+    if line.rstrip().endswith("=") and line_index + 1 < len(lines):
+        line += " " + lines[line_index + 1].strip()
+    kind = "wchar_t" if "wchar_t" in spelling else "char"
+    prefix = "L" if kind == "wchar_t" else ""
+    name = re.escape(str(definition["name"]))
+    declaration = rf"^\s*(?:(?:static|const)\s+)*{kind}\s+{name}\s*\[\s*\]\s*=\s*"
+    suffix = r"\s*;\s*(?://.*)?$"
+    pattern = declaration + rf'{prefix}"(?P<body>(?:\\.|[^"\\])*)"' + suffix
+    match = re.fullmatch(pattern, line)
+    if match is None:
+        brace = re.fullmatch(declaration + r"\{(?P<body>[^{}]*)\}" + suffix, line)
+        if brace is None:
+            return None
+        body = brace.group("body")
+        number = r"(?:0[xX][0-9a-fA-F]+|\d+)"
+        if re.fullmatch(rf"\s*{number}(?:\s*,\s*{number})*\s*,?\s*", body) is None:
+            return None
+        values = re.findall(number, body)
+        limit = 0xFFFF if kind == "wchar_t" else 0xFF
+        if any(
+            int(value, 16 if value.lower().startswith("0x") else 10) > limit for value in values
+        ):
+            return None
+        count = len(values)
+        return spelling[:-2] + f"[{count}]", count * (2 if kind == "wchar_t" else 1)
+    body = match.group("body")
+    if not body.isascii():
+        return None
+    count = 0
+    index = 0
+    while index < len(body):
+        if body[index] != "\\":
+            count += 1
+            index += 1
+            continue
+        escaped = body[index + 1]
+        if escaped in "abfnrtv\\\"'?":
+            index += 2
+        elif escaped in "01234567":
+            end = index + 2
+            while end < min(index + 4, len(body)) and body[end] in "01234567":
+                end += 1
+            if int(body[index + 1 : end], 8) > 0x7F:
+                return None
+            index = end
+        else:
+            return None
+        count += 1
+    count += 1  # terminating NUL
+    return spelling[:-2] + f"[{count}]", count * (2 if kind == "wchar_t" else 1)
+
+
+def _literal_sized_character_arrays(
+    repository: Path, definitions: Sequence[Mapping[str, Any]]
+) -> dict[int, tuple[str, int]]:
+    sized: dict[int, tuple[str, int]] = {}
+    sources: dict[str, list[str]] = {}
+    for definition in definitions:
+        if _strip_qualifiers(str(definition.get("type") or "")) not in {"char[]", "wchar_t[]"}:
+            continue
+        source_file = str(definition["source_file"])
+        if source_file not in sources:
+            path = repository / source_file
+            sources[source_file] = (
+                path.read_text(encoding="utf-8", errors="replace").splitlines()
+                if path.is_file()
+                else []
+            )
+        result = _literal_character_array(definition, sources[source_file])
+        if result is not None:
+            sized[int(definition["address"])] = result
+    return sized
+
+
+def _compiler_sized_arrays(
+    repository: Path, definitions: Sequence[Mapping[str, Any]]
+) -> dict[int, tuple[str, int | None]]:
+    """Fill non-literal array bounds from an exact, fresh compiler declaration."""
+
+    index = try_load_source_index(repository)
+    if index is None:
+        return {}
+    variables: dict[tuple[str, str, int, str], list[str]] = {}
+    for variable in index.get("variables", []):
+        key = (
+            str(variable.get("target")),
+            str(variable.get("source_file")),
+            int(variable.get("line") or 0),
+            _simple_name(str(variable.get("qualified_name", ""))),
+        )
+        variables.setdefault(key, []).append(str(variable.get("type") or ""))
+    digests = index.get("source_digests") or {}
+    dependencies = index.get("unit_dependencies") or {}
+    current_digests: dict[str, str | None] = {}
+    sized: dict[int, tuple[str, int | None]] = {}
+    for definition in definitions:
+        spelling = str(definition.get("type") or "")
+        source_array = _SOURCE_ARRAY_SUFFIX.fullmatch(spelling)
+        if source_array is None:
+            continue
+        source_bounds = re.findall(r"\[([^\]]*)\]", source_array.group("arrays"))
+        if all(re.fullmatch(r"(?:0[xX][0-9a-fA-F]+|\d+)", bound) for bound in source_bounds):
+            continue
+        source_file = str(definition["source_file"])
+        # Macro bounds can change in an included header without changing the
+        # declaration file. Check every indexed dependency with a digest.
+        indexed_paths = dependencies.get(source_file, [source_file])
+        if source_file not in indexed_paths:
+            indexed_paths = [source_file, *indexed_paths]
+        for indexed_path in indexed_paths:
+            if indexed_path not in current_digests:
+                path = repository / indexed_path
+                current_digests[indexed_path] = (
+                    sha256(path.read_bytes()).hexdigest() if path.is_file() else None
+                )
+        if any(
+            current_digests[indexed_path] != digests.get(indexed_path)
+            for indexed_path in indexed_paths
+        ):
+            continue
+        key = (
+            str(definition["target"]),
+            source_file,
+            int(definition["line"]),
+            str(definition["name"]),
+        )
+        observed = variables.get(key, [])
+        if len(observed) != 1:
+            continue
+        indexed_array = _INDEX_ARRAY_SUFFIX.fullmatch(observed[0])
+        if indexed_array is None:
+            continue
+        bounds = [int(bound) for bound in re.findall(r"\[(\d+)\]", indexed_array.group("arrays"))]
+        if len(bounds) != len(source_bounds) or any(bound <= 0 for bound in bounds):
+            continue
+        base = _strip_qualifiers(source_array.group("base"))
+        source_size = definition.get("size")
+        if source_size is None and base in {"char", "wchar_t"}:
+            source_size = 2 if base == "wchar_t" else 1
+            for bound in bounds:
+                source_size *= bound
+        sized[int(definition["address"])] = (
+            source_array.group("base") + "".join(f"[{bound}]" for bound in bounds),
+            source_size,
+        )
+    return sized
+
+
 def _ghidra_type_name(type_name: str) -> str:
     """Map C++ template spelling to Ghidra's ``T[Args]`` Structure names."""
 
@@ -104,6 +323,8 @@ def _builtin_data_type(program: Any, name: str) -> Any | None:
         "bool": BooleanDataType,
         "char": CharDataType,
         "signed char": CharDataType,
+        "INT8": CharDataType,
+        "CHAR8": CharDataType,
         "unsigned char": UnsignedCharDataType,
         "uchar": UnsignedCharDataType,
         "byte": ByteDataType,
@@ -111,17 +332,24 @@ def _builtin_data_type(program: Any, name: str) -> Any | None:
         "BOOLEAN": UnsignedCharDataType,
         "short": ShortDataType,
         "unsigned short": UnsignedShortDataType,
+        "INT16": ShortDataType,
         "UINT16": UnsignedShortDataType,
         "wchar_t": WideCharDataType,
         "int": IntegerDataType,
+        "INT32": IntegerDataType,
         "long": LongDataType,
         "unsigned": UnsignedIntegerDataType,
         "unsigned int": UnsignedIntegerDataType,
         "unsigned long": UnsignedLongDataType,
+        "size_t": UnsignedIntegerDataType,
         "UINT32": UnsignedIntegerDataType,
         "DWORD": UnsignedIntegerDataType,
+        "HPROVIDER": UnsignedIntegerDataType,
+        "TIMER": UnsignedIntegerDataType,
         "float": FloatDataType,
+        "FLOAT": FloatDataType,
         "double": DoubleDataType,
+        "DOUBLE": DoubleDataType,
     }
     factory = builtins.get(name)
     return factory() if factory is not None else None
@@ -132,15 +360,14 @@ def _named_data_type(program: Any, name: str) -> Any | None:
     text = name.strip()
     if not text or text in {"*", "[]"}:
         return None
-    simple = text.split("::")[-1].strip()
+    parts = _qualified_parts(text)
+    simple = parts[-1] if parts else ""
     if not simple:
         return None
 
     candidates: list[str] = []
-    if "::" in text:
-        parts = [part.strip() for part in text.split("::") if part.strip()]
-        if parts:
-            candidates.append("/" + "/".join(parts))
+    if len(parts) > 1:
+        candidates.append("/" + "/".join(parts))
         candidates.append(f"/{text}")
     candidates.extend(
         (
@@ -149,6 +376,10 @@ def _named_data_type(program: Any, name: str) -> Any | None:
             f"/Demangler/{simple}",
         )
     )
+    if text in _SGP_RECORD_TYPEDEFS:
+        candidates.append(f"/{_SGP_RECORD_TYPEDEFS[text]}")
+    if text in _EXTERNAL_TYPE_PATHS:
+        candidates.append(_EXTERNAL_TYPE_PATHS[text])
     # PDB imports encode a pointer template argument as ``T_#``. Resolve that
     # spelling only after the exact source spelling, and only for one simple
     # argument, so nested or ambiguous template identities remain unresolved.
@@ -398,6 +629,11 @@ def resolve_data_type(program: Any, type_name: str) -> Any | None:
             data_type = ArrayDataType(data_type, count, data_type.getLength())
         return data_type
 
+    if text in _SOURCE_POINTER_TYPEDEFS:
+        pointee = _named_data_type(program, _SOURCE_POINTER_TYPEDEFS[text])
+        if pointee is not None:
+            return PointerDataType(pointee, program.getDataTypeManager())
+
     return _named_data_type(program, text)
 
 
@@ -421,11 +657,13 @@ def _current_data(program: Any, address: int) -> dict[str, Any]:
 _EQUIVALENT_TYPES = (
     # SGP BOOLEAN is a one-byte integer flag, not C++ bool.
     frozenset({"uchar", "byte", "BOOLEAN", "unsigned char", "undefined1"}),
+    frozenset({"char", "schar", "signed char", "INT8"}),
+    frozenset({"short", "INT16"}),
     frozenset({"int", "long", "int32", "INT32", "undefined4"}),
     frozenset({"uint", "ulong", "unsigned int", "unsigned long", "UINT32", "DWORD"}),
     frozenset({"ushort", "unsigned short", "UINT16", "word"}),
-    frozenset({"float", "Float4"}),
-    frozenset({"double", "Float8"}),
+    frozenset({"float", "Float4", "FLOAT"}),
+    frozenset({"double", "Float8", "DOUBLE"}),
 )
 
 
@@ -517,15 +755,25 @@ def collect_global_typing_plan(
     """Plan listing type/name repairs for source GLOBAL markers."""
 
     wanted = set(addresses) if addresses is not None else None
+    definitions = parse_global_definitions(repository)
+    sized_arrays = _compiler_sized_arrays(repository, definitions)
+    sized_arrays.update(_literal_sized_character_arrays(repository, definitions))
     rows: list[dict[str, Any]] = []
     counts: Counter[str] = Counter()
-    for definition in parse_global_definitions(repository):
+    for definition in definitions:
         if definition.get("target") != target:
             continue
         address = int(definition["address"])
         if wanted is not None and address not in wanted:
             continue
-        resolved = resolve_data_type(program, str(definition.get("type") or ""))
+        source_type, source_size = sized_arrays.get(
+            address,
+            (
+                str(definition.get("projected_type") or definition.get("type") or ""),
+                definition.get("size"),
+            ),
+        )
+        resolved = resolve_data_type(program, source_type)
         if resolved is None:
             action = "unresolved-type"
             resolved_name = None
@@ -533,7 +781,7 @@ def collect_global_typing_plan(
         else:
             resolved_name = str(resolved.getName())
             resolved_length = int(resolved.getLength())
-            expected = definition.get("size")
+            expected = source_size
             if expected is not None and int(expected) != resolved_length:
                 action = "size-mismatch"
             else:
@@ -572,8 +820,8 @@ def collect_global_typing_plan(
             {
                 "address": f"0x{address:08x}",
                 "name": definition.get("name"),
-                "source_type": definition.get("type"),
-                "source_size": definition.get("size"),
+                "source_type": source_type,
+                "source_size": source_size,
                 "source_file": definition.get("source_file"),
                 "ghidra_type": current["type"],
                 "ghidra_type_path": current.get("type_path"),

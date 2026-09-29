@@ -326,6 +326,7 @@ def _defects(
                 "detail": match.group(0),
             }
         )
+    parameters: list[Any] = []
     stored_explicit = 0
     stored_all = 0
     if hasattr(function, "getParameters"):
@@ -369,6 +370,16 @@ def _defects(
         None,
     )
     if source_identity is not None:
+        # Adjusted receivers can be stored as user-defined ECX parameters so
+        # Ghidra keeps the pointer-offset type. They are still implicit in C++.
+        if (
+            getattr(source_identity, "has_this", False)
+            and parameters
+            and parameters[0].getName() == "this"
+            and str(parameters[0].getVariableStorage()).startswith("ECX:")
+            and not parameters[0].isAutoParameter()
+        ):
+            stored_explicit -= 1
         parameter_types = tuple(getattr(source_identity, "parameter_types", None) or ())
         source_explicit = len(parameter_types)
         declared = bool(getattr(source_identity, "semantic_id", ""))

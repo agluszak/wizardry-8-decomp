@@ -49,6 +49,8 @@ markers = [
 line-length = 100
 
 [tool.pyright]
+venvPath = "."
+venv = ".venv"
 include = ["tools/wiz8decomp"]
 exclude = [
   "tools/wiz8decomp/ghidra",

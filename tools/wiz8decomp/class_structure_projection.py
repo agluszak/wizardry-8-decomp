@@ -19,27 +19,32 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from reccmp.source import SourceIndex
+
 from .class_binding import (
     ensure_ghidra_class,
     find_class_structure,
     find_ghidra_class,
     legacy_enriched_structure,
 )
-from .global_typing import _ghidra_type_name
-from .source_index import SourceIndex, load_source_index, source_functions
+from .global_model import parse_global_definitions
+from .global_typing import _ghidra_type_name, _simple_name
+from .source_index import load_source_index, source_functions
 
 _SCHEMA = "wiz8.class-structure-projection-v1"
 
 
-def _simple_name(qualified: str) -> str:
-    return qualified.split("::")[-1]
-
-
-def _classes_by_name(index: SourceIndex) -> dict[str, Any]:
+def _classes_by_name(index: SourceIndex, target: str) -> dict[str, Any]:
     by_name: dict[str, Any] = {}
-    for record in index.classes.values():
+    simple_names: dict[str, list[Any]] = {}
+    for key, record in index.classes.items():
+        if key.target != target:
+            continue
         by_name[record.qualified_name] = record
-        by_name.setdefault(_simple_name(record.qualified_name), record)
+        simple_names.setdefault(_simple_name(record.qualified_name), []).append(record)
+    for simple, records in simple_names.items():
+        if len(records) == 1:
+            by_name.setdefault(simple, records[0])
     return by_name
 
 
@@ -56,13 +61,16 @@ def _thiscall_owning_classes(repository: Path, target: str) -> Counter[str]:
     return counts
 
 
-def _signature_template_classes(repository: Path, target: str, index: SourceIndex) -> Counter[str]:
-    """Trusted template layouts used by address-bound source prototypes."""
+def _referenced_template_classes(repository: Path, target: str, index: SourceIndex) -> Counter[str]:
+    """Trusted template layouts used by address-bound prototypes or globals."""
 
     templates = {
         record.qualified_name: "".join(_ghidra_type_name(record.qualified_name).split())
-        for record in index.classes.values()
-        if "<" in record.qualified_name and record.layout_trusted and record.size
+        for key, record in index.classes.items()
+        if key.target == target
+        and "<" in record.qualified_name
+        and record.layout_trusted
+        and record.size
     }
     counts: Counter[str] = Counter()
     if not templates:
@@ -78,6 +86,13 @@ def _signature_template_classes(repository: Path, target: str, index: SourceInde
         )
         for name, spelling in templates.items():
             if spelling in signature:
+                counts[name] += 1
+    for definition in parse_global_definitions(repository):
+        if definition.get("target") != target:
+            continue
+        source_type = "".join(_ghidra_type_name(str(definition.get("type") or "")).split())
+        for name, spelling in templates.items():
+            if spelling in source_type:
                 counts[name] += 1
     return counts
 
@@ -222,21 +237,27 @@ def _decide_structure_action(
 ) -> str:
     """Choose projection action by binding identity — never by component-count contests."""
 
-    if bound is not None and _is_useful(bound):
+    if bound is not None and (
+        _is_useful(bound) or asserted_size == 1 and int(bound.getLength()) == 1
+    ):
         if asserted_size is not None and int(bound.getLength()) != asserted_size:
             return "conflict"
         if legacy is not None and str(legacy.getPathName()) != str(bound.getPathName()):
             return "legacy-duplicate"
         return "agree"
-    if source is not None and _is_useful(source) and source_size_ok:
+    if (
+        source is not None
+        and (_is_useful(source) or asserted_size == 1 and int(source.getLength()) == 1)
+        and source_size_ok
+    ):
         # Source already sits where findExistingClassStruct will find it once
         # the GhidraClass exists — ensure_ghidra_class is enough at apply time.
         return "agree" if bound is source else "bind-existing"
     if size_mismatched_source is not None and not _is_useful(bound):
-        if asserted_size is not None and asserted_size > 1:
+        if asserted_size is not None and asserted_size > 0:
             return "create-opaque"
         return "size-mismatch"
-    if not _is_useful(bound) and asserted_size is not None and asserted_size > 1:
+    if not _is_useful(bound) and asserted_size is not None and asserted_size > 0:
         return "create-opaque"
     return "no-layout-evidence"
 
@@ -250,10 +271,28 @@ def collect_structure_projection_plan(
 ) -> dict[str, Any]:
     """Plan class Structure binding / opaque shell creation for source classes."""
 
-    index = SourceIndex.from_dict(load_source_index(repository))
-    classes = _classes_by_name(index)
+    source_data = load_source_index(repository)
+    index = SourceIndex.from_dict(source_data)
+    classes = _classes_by_name(index, target)
     owning = _thiscall_owning_classes(repository, target)
-    signature_templates = _signature_template_classes(repository, target, index)
+    referenced_templates = _referenced_template_classes(repository, target, index)
+    # Template spellings cannot be GhidraClass namespaces. Even a marked
+    # template method or an asserted size must use the datatype path below.
+    for name in list(owning):
+        if "<" in name:
+            if name in classes and _source_size(classes[name]) is not None:
+                referenced_templates[name] += owning[name]
+            del owning[name]
+    # Sized source records without methods still need a bound Structure for
+    # globals and nested fields (for example W8WorldCursorState).
+    for record in source_data.get("classes", []):
+        if record.get("target") == target and record.get("asserted_size"):
+            name = str(record["qualified_name"])
+            if "<" in name:
+                if name in classes:
+                    referenced_templates.setdefault(name, 0)
+            else:
+                owning.setdefault(name, 0)
     if class_names is not None:
         wanted = {_simple_name(name) for name in class_names} | set(class_names)
         owning = Counter(
@@ -263,10 +302,10 @@ def collect_structure_projection_plan(
                 if name in wanted or _simple_name(name) in wanted
             }
         )
-        signature_templates = Counter(
+        referenced_templates = Counter(
             {
                 name: count
-                for name, count in signature_templates.items()
+                for name, count in referenced_templates.items()
                 if name in wanted or _simple_name(name) in wanted
             }
         )
@@ -299,7 +338,7 @@ def collect_structure_projection_plan(
                 and _is_useful(source)
                 and source_size_ok
                 or asserted is not None
-                and asserted > 1
+                and asserted > 0
             ):
                 action = "create-class"
             else:
@@ -348,8 +387,8 @@ def collect_structure_projection_plan(
         )
 
     # Ghidra namespaces cannot contain template brackets. These source-backed
-    # signature types need a DataType, but cannot be GhidraClass-bound.
-    for name, use_count in sorted(signature_templates.items()):
+    # template types need a DataType, but cannot be GhidraClass-bound.
+    for name, use_count in sorted(referenced_templates.items()):
         if name in owning:
             continue
         source_class = classes[name]
@@ -359,12 +398,12 @@ def collect_structure_projection_plan(
         data_type = _find_named_structure(program, _ghidra_type_name(name))
         if data_type is not None:
             if int(data_type.getLength()) != size:
-                counts["signature-type-size-mismatch"] += 1
+                counts["template-type-size-mismatch"] += 1
                 rows.append(
                     {
                         "class": name,
                         "methods": use_count,
-                        "action": "signature-type-size-mismatch",
+                        "action": "template-type-size-mismatch",
                         "asserted_size": size,
                         "current": {
                             "path": str(data_type.getPathName()),
@@ -373,14 +412,14 @@ def collect_structure_projection_plan(
                     }
                 )
             else:
-                counts["signature-type-agree"] += 1
+                counts["template-type-agree"] += 1
             continue
-        counts["create-signature-type"] += 1
+        counts["create-template-type"] += 1
         rows.append(
             {
                 "class": name,
                 "methods": use_count,
-                "action": "create-signature-type",
+                "action": "create-template-type",
                 "asserted_size": size,
             }
         )
@@ -393,7 +432,7 @@ def collect_structure_projection_plan(
             counts["create-opaque"]
             + counts["bind-existing"]
             + counts["create-class"]
-            + counts["create-signature-type"]
+            + counts["create-template-type"]
         ),
         "classes": rows,
     }
@@ -426,7 +465,7 @@ def _create_opaque(program: Any, name: str, size: int) -> Any:
     return manager.addDataType(structure, DataTypeConflictHandler.REPLACE_HANDLER)
 
 
-def _create_signature_type(program: Any, name: str, size: int) -> Any:
+def _create_template_type(program: Any, name: str, size: int) -> Any:
     from ghidra.program.model.data import (  # type: ignore[import-not-found]
         CategoryPath,
         DataTypeConflictHandler,
@@ -452,16 +491,16 @@ def apply_structure_projection(
         owning = str(row["class"])
         if action == "create-opaque":
             size = int(row.get("asserted_size") or 0)
-            if size <= 1:
+            if size <= 0:
                 return {**dict(row), "error": "invalid-asserted-size"}
             result = _create_opaque(_program, owning, size)
-        elif action == "create-signature-type":
+        elif action == "create-template-type":
             size = int(row.get("asserted_size") or 0)
             if size <= 0:
                 return {**dict(row), "error": "invalid-source-size"}
-            result = _create_signature_type(_program, owning, size)
-        elif action == "signature-type-size-mismatch":
-            return {**dict(row), "error": "signature-type-size-mismatch"}
+            result = _create_template_type(_program, owning, size)
+        elif action == "template-type-size-mismatch":
+            return {**dict(row), "error": "template-type-size-mismatch"}
         elif action == "create-class":
             size = int(row.get("asserted_size") or 0)
             source_path = (row.get("source") or {}).get("path")
@@ -473,7 +512,7 @@ def apply_structure_projection(
                 candidate = _program.getDataTypeManager().getDataType(str(source_path))
                 result = _as_structure(candidate)
             if result is None:
-                if size > 1:
+                if size > 0:
                     result = _create_opaque(_program, owning, size)
                 else:
                     return {**dict(row), "error": "missing-bound-structure"}
@@ -515,8 +554,8 @@ def apply_structure_projection(
             "create-opaque",
             "bind-existing",
             "create-class",
-            "create-signature-type",
-            "signature-type-size-mismatch",
+            "create-template-type",
+            "template-type-size-mismatch",
         }
     ]
     result = apply_rows(
