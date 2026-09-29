@@ -831,8 +831,8 @@ stKeyframedLightDefinition::~stKeyframedLightDefinition() {}
 // TEMPLATE: WIZ8 0x004A2500
 // W8GrowableVector<int>::W8GrowableVector
 
-// TEMPLATE: WIZ8 0x004A2540
-// W8GrowableVector<float>::W8GrowableVector
+// TEMPLATE: WIZ8 0x004A2540 SYMBOL
+// ??0?$W8GrowableVector@M@@QAE@XZ
 
 // TEMPLATE: WIZ8 0x004a2670
 // W8GrowableVector<srVector3T<float>>::Grow

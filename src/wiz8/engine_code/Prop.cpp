@@ -81,8 +81,8 @@ unsigned char g_byte_00659a64;
 // TEMPLATE: WIZ8 0x0044ef00
 // W8Vector<W8PropAnimationSegment*>::~W8Vector<W8PropAnimationSegment*>
 
-// TEMPLATE: WIZ8 0x0044efe0
-// W8GrowableVector<W8PropAnimationSegment*>::W8GrowableVector
+// TEMPLATE: WIZ8 0x0044efe0 SYMBOL
+// ??0?$W8GrowableVector@PAUW8PropAnimationSegment@@@@QAE@H@Z
 
 /* Prop::Prop() - GrObject base, then m_pRep / m_pTimer and two identity
    rotation bases.  Retail expands PropRep after the AnimRep constructor:
