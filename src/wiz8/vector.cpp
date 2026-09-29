@@ -50,8 +50,8 @@
 // SYNTHETIC: WIZ8 0x00451ac0
 // W8Vector<W8SpellVisual*>::`scalar deleting destructor'
 
-// SYNTHETIC: WIZ8 0x0042bb70
-// W8GrowableVector<int>::`scalar deleting destructor'
+// SYNTHETIC: WIZ8 0x0042bb70 SYMBOL
+// ??_G?$W8GrowableVector@H@@UAEPAXI@Z
 
 // TEMPLATE: WIZ8 0x00438c50
 // W8GrowableVector<int>::~W8GrowableVector<int> (Octree.cpp emission)
@@ -111,8 +111,8 @@ struct W8SpellDamageReport;
 
 /* The capacity-five ctor the W8SpellEffectResult::reports member calls:
    every construction site emits PUSH 5 before this out-of-line emission. */
-// TEMPLATE: WIZ8 0x00516950
-// W8GrowableVector<W8SpellDamageReport*>::W8GrowableVector
+// TEMPLATE: WIZ8 0x00516950 SYMBOL
+// ??0?$W8GrowableVector@PAUW8SpellDamageReport@@@@QAE@H@Z
 
 // SYNTHETIC: WIZ8 0x0042bb40
 // W8GrowableVector<W8SpellDamageReport*>::`scalar deleting destructor'
@@ -261,8 +261,8 @@ class stModelInstance;
 // TEMPLATE: WIZ8 0x004cad80 SYMBOL
 // ??0?$W8Vector@PAVstModelInstance@@@@QAE@H@Z
 
-// TEMPLATE: WIZ8 0x004390f0
-// W8GrowableVector<stModelInstance*>::W8GrowableVector (member-construction emission)
+// TEMPLATE: WIZ8 0x004390f0 SYMBOL
+// ??0?$W8GrowableVector@PAVstModelInstance@@@@QAE@H@Z
 
 // SYNTHETIC: WIZ8 0x00438f70
 // W8Vector<stModelInstance*>::`scalar deleting destructor'
@@ -510,8 +510,8 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x0048CF70
 // W8GrowableVector<unsigned short>::Grow
 
-// TEMPLATE: WIZ8 0x0048CFD0
-// W8GrowableVector<MonGen*>::W8GrowableVector (copy)
+// TEMPLATE: WIZ8 0x0048CFD0 SYMBOL
+// ??0?$W8GrowableVector@PAUMonGen@@@@QAE@ABV0@@Z
 
 // TEMPLATE: WIZ8 0x0048ce80
 // W8GrowableVector<W8EncounterTableRuntime*>::~W8GrowableVector<W8EncounterTableRuntime*>
@@ -888,8 +888,8 @@ struct W8AutomapNote;
 // VTABLE: WIZ8 0x005ef4f0
 // class W8Vector<W8Character*>
 
-// TEMPLATE: WIZ8 0x005c37b0
-// W8GrowableVector<W8Character*>::W8GrowableVector (PartySelectionScreen.cpp emission)
+// TEMPLATE: WIZ8 0x005c37b0 SYMBOL
+// ??0?$W8GrowableVector@PAUW8Character@@@@QAE@H@Z
 
 // TEMPLATE: WIZ8 0x005c34b0
 // W8GrowableVector<W8Character*>::~W8GrowableVector<W8Character*>
@@ -961,11 +961,11 @@ struct W8AutomapNote;
 // W8GrowableVector<stSound3D*>::`scalar deleting destructor' (Spells.cpp emission)
 
 /* AnimObj.cpp span. */
-// TEMPLATE: WIZ8 0x004A2060
-// W8GrowableVector<float>::~W8GrowableVector (AnimObj.cpp emission)
+// TEMPLATE: WIZ8 0x004A2060 SYMBOL
+// ??1?$W8GrowableVector@M@@UAE@XZ
 
-// SYNTHETIC: WIZ8 0x004A20C0
-// W8GrowableVector<float>::`scalar deleting destructor' (AnimObj.cpp emission)
+// SYNTHETIC: WIZ8 0x004A20C0 SYMBOL
+// ??_G?$W8GrowableVector@M@@UAEPAXI@Z
 
 /* Monster.cpp span. */
 // TEMPLATE: WIZ8 0x004CACE0
