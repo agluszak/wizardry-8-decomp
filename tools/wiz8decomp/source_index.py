@@ -425,7 +425,7 @@ def target_for_program(repository: Path, program_name: str) -> str:
 
 
 def source_functions(repository: Path, target: str = "WIZ8") -> dict[int, SourceMarker]:
-    return SourceIndex.from_dict(load_source_index(repository)).functions_by_address(
+    return SourceIndex.read(repository / "build/source-index.json").functions_by_address(
         target=target.upper()
     )
 

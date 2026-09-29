@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import sys
+import tempfile
 from collections import Counter
 from collections.abc import Iterable
 from pathlib import Path
@@ -312,7 +313,7 @@ _OUTCOMES = ("differences", "no-differences", "unpaired", "analysis-failed")
 
 
 def report_directory(repository: Path, target: str) -> Path:
-    return repository / "build" / "reports" / "compare" / target.lower()
+    return repository / "build" / "reports" / "compare" / target.lower() / "latest"
 
 
 def _run_reccmp(
@@ -327,11 +328,9 @@ def _run_reccmp(
 
     Returns reccmp's manifest and its summary; the summary is None when no
     selected address is a function reccmp knows."""
-    output = report_directory(repository, target)
-    for stale in ("manifest.json", "summary.json"):
-        (output / stale).unlink(missing_ok=True)
-    for stale in output.glob("*.diff"):
-        stale.unlink()
+    latest = report_directory(repository, target)
+    latest.parent.mkdir(parents=True, exist_ok=True)
+    output = Path(tempfile.mkdtemp(prefix="run-", dir=latest.parent))
     argv: list[str | Path] = [
         sys.executable,
         "-m",
@@ -364,12 +363,19 @@ def _run_reccmp(
         argv,
         cwd=repository / "build" / "decomp",
         env={**os.environ, "GHIDRA_INSTALL_DIR": str(ghidra_install_dir)},
-        log_path=repository / "build" / "logs" / "reccmp-compare.json",
+        log_path=output / "command.json",
         check=False,
     )
     manifest_path = output / "manifest.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.is_file() else None
     summary_path = output / "summary.json"
+    if result.exit_status != 0 and (manifest is None or manifest["functions"]):
+        raise CommandFailure(result, result.stderr.splitlines()[-20:], output)
+    if summary_path.is_file() or (manifest is not None and not manifest["functions"]):
+        pointer = latest.with_name("latest.next")
+        pointer.unlink(missing_ok=True)
+        pointer.symlink_to(output.name, target_is_directory=True)
+        pointer.replace(latest)
     if summary_path.is_file():
         assert manifest is not None
         return manifest, json.loads(summary_path.read_text())
@@ -378,7 +384,7 @@ def _run_reccmp(
     raise CommandFailure(
         result,
         [line for line in result.stderr.splitlines()[-20:] if line],
-        repository / "build" / "logs" / "reccmp-compare.json",
+        output / "command.json",
     )
 
 
@@ -387,7 +393,7 @@ def _function_row(repository: Path, target: str, row: dict[str, Any]) -> dict[st
     result = {key: value for key, value in row.items() if key != "code_diff"}
     diff = row["code_diff"]
     if diff:
-        path = report_directory(repository, target) / f"{int(row['orig'], 16):08x}.diff"
+        path = report_directory(repository, target).resolve() / f"{int(row['orig'], 16):08x}.diff"
         atomic_write(path, "".join(diff))
         result["code_diff"] = {
             "lines": sum(
@@ -497,7 +503,7 @@ def compare_selected(
             functions.append({"orig": f"0x{address:08x}", "outcome": "missing"})
 
     counts = Counter(row["outcome"] for row in functions)
-    output = report_directory(repository, target)
+    output = report_directory(repository, target).resolve()
     return {
         "ok": counts["analysis-failed"] == 0 and counts["unpaired"] == 0 and counts["missing"] == 0,
         "selected": len(functions),

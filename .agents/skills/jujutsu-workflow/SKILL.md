@@ -30,6 +30,9 @@ jj log -r '@ | @- | main@origin' --no-pager
 
 If `@` already contains the current task, resume it. A conversation restart or context compaction is not
 a reason to create a new change, fetch again, or restart the publication workflow.
+Use the batch handoff and recorded verification inputs to resume. Inspect state before mutation;
+do not repeat status/log/fetch merely to begin another model turn. Keep the current change open until
+the requested coherent batch and its final audit are complete.
 
 For a genuinely new task:
 

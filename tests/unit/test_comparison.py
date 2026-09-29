@@ -343,21 +343,26 @@ def test_compare_selected_runs_reccmp_for_the_selected_addresses(tmp_path, monke
     assert (tmp_path / row["code_diff"]["artifact"]).read_text() == "".join(diff)
 
 
-def test_compare_selected_discards_diffs_from_previous_selection(tmp_path, monkeypatch):
+def test_focused_comparison_preserves_previous_report_and_diff(tmp_path, monkeypatch):
     _products(tmp_path, monkeypatch)
-    output = tmp_path / "build/reports/compare/wiz8"
+    root = tmp_path / "build/reports/compare/wiz8"
+    output = root / "previous-run"
     output.mkdir(parents=True)
-    stale = output / "00402000.diff"
-    formerly_different = output / "00401000.diff"
-    stale.write_text("previous comparison")
-    formerly_different.write_text("old diff for selected function")
+    (root / "latest").symlink_to(output.name, target_is_directory=True)
+    previous_diff = output / "00402000.diff"
+    previous_diff.write_text("previous comparison")
+    previous_summary = output / "summary.json"
+    previous_summary.write_text('{"functions": []}')
     _fake_reccmp(monkeypatch, [_row(0x401000, "no-differences")])
 
     result = compare_selected(tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"))
 
     assert result["ok"] is True
-    assert not stale.exists()
-    assert not formerly_different.exists()
+    assert previous_diff.read_text() == "previous comparison"
+    assert previous_summary.read_text() == '{"functions": []}'
+    current = tmp_path / result["report"]["summary"]
+    assert current.parent != output
+    assert not (current.parent / "00402000.diff").exists()
 
 
 @pytest.mark.parametrize("outcome", ["analysis-failed", "unpaired"])

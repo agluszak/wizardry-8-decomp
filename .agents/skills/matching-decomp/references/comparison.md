@@ -2,7 +2,8 @@
 
 | Question | Existing primitive |
 | --- | --- |
-| How does the recovered function differ from retail? | `uv run wiz8 compare ADDRESS...` decompiles both with Ghidra and diffs them with Ghidriff. |
+| How does the recovered function differ from retail? | `uv run wiz8 compare ADDRESS...` compares the existing products with Ghidra/Ghidriff, reusing identical completed results. |
+| What does an existing comparison say? | `uv run wiz8 report compare` reads saved results only; filter by address, --file or --outcome. |
 | Do class vtable slots and targets agree? | `uv run wiz8 vtable CLASS` compares matching class names and refuses zero-entity success. |
 | Does reviewed global data agree? | `uv run wiz8 datacmp` compares reviewed globals through reccmp. |
 | Are matching annotations structurally valid? | `uv run wiz8 check` runs reccmp `decomplint` over every configured source target. |
@@ -28,7 +29,9 @@ same names for every catalog pair, analyzes both without debug information, deco
 pair with Ghidra, and diffs the normalized C. It also compares the contents of the data each function
 refers to, so two different literals behind equal labels still show up. The first run analyzes both
 binaries (a few minutes); the original's analysis is then kept in `build/reccmp-ghidra`, and later
-runs only analyze the new recompiled build.
+runs only analyze the new recompiled build. Completed results are also reused when the full manifest,
+binary contents, reviewed signature facts, analysis configuration and installed reccmp/Ghidriff
+implementations agree. Failed analyses are retried. Native reccmp's --no-cache bypasses reuse.
 
 Each selected function gets one outcome:
 
@@ -48,9 +51,27 @@ remain visible in the report for codegen review without failing the authored-fun
 
 A row carries `data` findings (a paired object whose contents differ, or referenced literals that
 differ in contents), `failures`, `basis` (how reccmp paired the function), `source`, and, for a code
-difference, `code_diff.artifact`: the unified diff under `build/reports/compare/<target>/`. The run's
+difference, `code_diff.artifact`: the unified diff under the returned run directory. The run's
 `summary.json` and Ghidriff's report (`<TARGET>.ghidriff.md`, plus `sxs_html/` with `--sxs`) sit in the
-same directory. Read the side-by-side HTML for review; it highlights the changed spans inside lines.
+same directory. Each invocation keeps a separate build/reports/compare/<target>/run-* directory;
+latest points to the last completed run. A focused comparison never deletes the full inventory.
+Keep the returned summary path for triage and use it with --report. Read the side-by-side HTML when
+changed spans inside lines are useful.
+
+## Inspect saved results
+
+```sh
+uv run wiz8 report compare --program sr.dll --outcome differences --limit 20
+uv run wiz8 report compare 0x10014110 --program sr.dll --diff-lines 80
+uv run wiz8 report compare --program sr.dll --report build/reports/compare/surrender/run-EXAMPLE/summary.json --file src/surrender/scheduler.cpp
+uv run wiz8 report compare --program sr.dll --against build/reports/compare/surrender/run-EARLIER/summary.json
+```
+
+These reads neither build nor open Ghidra. Output contains matched/omitted counts, bounded function
+rows and a total diff-line budget (default zero). --against shows changed results at original-address
+identities: resolved, newly-different, changed, failed/unpaired, or only-current/only-previous.
+Absent selections are not fixed or removed functions. The native summary retains raw unpaired
+emissions; changed-file gate classifications are reported by compare itself.
 
 ## Reading a difference
 

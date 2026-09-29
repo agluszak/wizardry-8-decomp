@@ -152,7 +152,8 @@ def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypa
     assert result.exit_code == 0, result.output
     assert events == ["compare"]
     payload = json.loads(result.stdout)
-    assert "functions" not in payload
+    assert len(payload["functions"]) == 1
+    assert payload["omitted"] == 0
     assert payload["selection"]["changed_files"] == ["new.cpp"]
     assert payload["selection"]["dependent_files"] == []
 
@@ -376,11 +377,13 @@ def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:
 
 
 @pytest.mark.parametrize("changed,expects_lint", [("src/wiz8/a.cpp", True), ("README.md", False)])
-def test_pr_check_requires_lint_for_product_source(monkeypatch, changed, expects_lint) -> None:
+def test_pr_check_requires_lint_for_product_source(
+    monkeypatch, tmp_path, changed, expects_lint
+) -> None:
     from wiz8decomp import build, comparison, config, merge_preservation
 
     events: list[tuple[str, Path] | tuple[str]] = []
-    repository = Path("/repo")
+    repository = tmp_path
     monkeypatch.setattr(config, "repository_root", lambda: repository)
     monkeypatch.setattr(command_support, "settings", lambda: object())
     monkeypatch.setattr(

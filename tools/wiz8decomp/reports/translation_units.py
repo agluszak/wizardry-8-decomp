@@ -315,6 +315,7 @@ def implementation_census_rows(
     identities = identities or {}
     assertion_functions = assertion_functions or set()
     ghidra_names = {int(row["address"], 16): row.get("symbol") or "" for row in gameplay}
+    recovered_addresses = {int(row["address"], 16) for row in gameplay if row.get("source_path")}
     addresses = set(ghidra_names) | set(identities)
     rows: list[dict[str, str]] = []
     for address in sorted(addresses):
@@ -323,8 +324,9 @@ def implementation_census_rows(
             (item for item in bound if getattr(item, "kind", "") in {"definition", "declaration"}),
             bound[0] if bound else None,
         )
-        has_body = any(getattr(item, "is_definition", False) for item in bound) or any(
-            row.get("source_path") and int(row["address"], 16) == address for row in gameplay
+        has_body = (
+            any(getattr(item, "is_definition", False) for item in bound)
+            or address in recovered_addresses
         )
         declaration_only = bool(bound) and not has_body
         if has_body:

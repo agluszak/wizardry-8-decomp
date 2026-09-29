@@ -71,6 +71,7 @@ def pr_check_command(
     from ..comparison import changed_files
     from ..config import repository_root
     from ..merge_preservation import base_ancestry_report
+    from ..paths import atomic_json
 
     repository = repository_root()
     ancestry = base_ancestry_report(repository, base)
@@ -89,7 +90,19 @@ def pr_check_command(
     }
     if lint_required(repository, changed_paths):
         result["lint"] = lint(cli.settings(), since=base, changed_paths=changed_paths)
-    cli.emit(result)
+    path = repository / "build/reports/pr-check.json"
+    atomic_json(path, result)
+    cli.emit(
+        {
+            "status": result["status"],
+            "base": base,
+            "head": ancestry.get("head"),
+            "changed_files": len(changed),
+            "check": result["check"].get("status"),
+            "lint": result["lint"].get("status") if result["lint"] is not None else "not-required",
+            "report": str(path.relative_to(repository)),
+        }
+    )
 
 
 def diagnostics_command() -> None:
@@ -242,8 +255,13 @@ def compare_command(
     result = action()
     # Changed-header selections can contain thousands of functions. Their
     # detailed results already live in the comparison report under build/.
+    functions = result.get("functions", [])
     cli.emit(
-        {key: value for key, value in result.items() if key != "functions"} if changed else result
+        {
+            **{key: value for key, value in result.items() if key != "functions"},
+            "functions": functions[:20],
+            "omitted": max(0, len(functions) - 20),
+        }
     )
     if not result["ok"]:
         raise typer.Exit(code=1)
