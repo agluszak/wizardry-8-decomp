@@ -341,6 +341,23 @@ def test_compare_selected_runs_reccmp_for_the_selected_addresses(tmp_path, monke
     assert (tmp_path / row["code_diff"]["artifact"]).read_text() == "".join(diff)
 
 
+def test_compare_selected_discards_diffs_from_previous_selection(tmp_path, monkeypatch):
+    _products(tmp_path, monkeypatch)
+    output = tmp_path / "build/reports/compare/wiz8"
+    output.mkdir(parents=True)
+    stale = output / "00402000.diff"
+    formerly_different = output / "00401000.diff"
+    stale.write_text("previous comparison")
+    formerly_different.write_text("old diff for selected function")
+    _fake_reccmp(monkeypatch, [_row(0x401000, "no-differences")])
+
+    result = compare_selected(tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"))
+
+    assert result["ok"] is True
+    assert not stale.exists()
+    assert not formerly_different.exists()
+
+
 @pytest.mark.parametrize("outcome", ["analysis-failed", "unpaired"])
 def test_incomplete_comparison_fails_the_selection(tmp_path, monkeypatch, outcome):
     _products(tmp_path, monkeypatch)
