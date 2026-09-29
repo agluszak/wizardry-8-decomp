@@ -364,10 +364,10 @@ stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
         if (unweighted) {
             ShutdownWithErrorBox("OctMeshModel::Read -- Wrong shader type.\n");
         } else {
-            model->enableStartupControls();
+            model->enable(srMeshModel::CONTROL_STARTUP);
         }
     } else if (!unweighted) {
-        model->enableStartupControls();
+        model->enable(srMeshModel::CONTROL_STARTUP);
     }
 
     if (link_index_04 >= 0) {

@@ -1675,9 +1675,8 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height)
     g_cursor_node_659694->setName("MouseResize");
     PositionMouseCursor(g_cursor_width, g_cursor_height, 0);
     g_cursor_model = static_cast<srMeshModel*>(g_cursor_node_659694->getModel());
-    g_cursor_model->enableStartupControls();
-    static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(0xc7c35000);
-    g_cursor_model->enableStartupControls();
+    g_cursor_model->enable(srMeshModel::CONTROL_STARTUP);
+    g_cursor_model->setSortBias(-100000.0f);
     g_cursor_model->setName("Mouse Cursor Mesh");
     g_cursor_texture = static_cast<srTexture*>(g_cursor_model->getTexture(0, 0));
     g_cursor_texture->setWrapS(srTextureIFace::WRAP_CLAMP);
@@ -1977,8 +1976,8 @@ unsigned char InitializeMouseCursorScene(void)
     if (g_cursor_node_659694) {
         g_cursor_node_659694->setName("MouseInit");
         g_cursor_model = static_cast<srMeshModel*>(g_cursor_node_659694->getModel());
-        g_cursor_model->enableStartupControls();
-        static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(0xc7c35000);
+        g_cursor_model->enable(srMeshModel::CONTROL_STARTUP);
+        g_cursor_model->setSortBias(-100000.0f);
         g_cursor_texture = static_cast<srTexture*>(g_cursor_model->getTexture(0, 0));
         g_cursor_texture->setWrapS(srTextureIFace::WRAP_CLAMP);
         g_cursor_texture->setWrapT(srTextureIFace::WRAP_CLAMP);
@@ -2750,11 +2749,7 @@ void SetMouseCursorTexture(srTextureIFace* texture)
         texture = g_cursor_texture;
     }
     g_cursor_model->setTexture(texture, 0, 0);
-    if ((g_cursor_model->control_state_390 & 8) == 0) {
-        unsigned long state = g_cursor_model->control_state_390;
-        g_cursor_model->control_state_390 = state | 8;
-        g_cursor_model->control_state_390 = state | 8;
-    }
+    g_cursor_model->setDirty(static_cast<srMeshModel::e_flags>(3));
 }
 
 // FUNCTION: WIZ8 0x004291C0
@@ -3874,7 +3869,7 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, unsig
     shader.value = 0x100a013;
     if (additive != 0) {
         shader.value = 0x100c0b3;
-        model->setControlMask(0x40);
+        model->enable(srMeshModel::CONTROL_STARTUP);
     }
     model->setMaterial(g_blit_material, 0, static_cast<srMeshModel::e_side>(0));
     model->setTexture(texture, 0, 0);

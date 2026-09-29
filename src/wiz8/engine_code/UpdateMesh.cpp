@@ -366,7 +366,7 @@ void UpdateWorldMeshFromQuads(W8World* world)
             }
         }
     }
-    mesh->setControlMask(0);
+    mesh->setDirty(static_cast<srMeshModel::e_flags>(3));
 }
 
 // FUNCTION: WIZ8 0x004BAF50
@@ -375,9 +375,7 @@ void UpdateWorldOctree(W8World* world)
     world->octree->UpdateCameraVisibility();
 }
 
-/* Rebuild the active-polygon table for the world's mesh and raise the control
-   changed bit through the canonical mesh setter; the retail site is the
-   mask-0 expansion of setControlMask. */
+/* Rebuild the active-polygon table for the world's mesh and mark it changed. */
 // FUNCTION: WIZ8 0x004baf60
 void UpdateWorldMesh(W8World* world)
 {
@@ -399,6 +397,6 @@ void UpdateWorldMesh(W8World* world)
         for (index = 0; static_cast<long>(index) < polygon_count; ++index) {
             table[index] = index;
         }
-        mesh->setControlMask(0);
+        mesh->setDirty(static_cast<srMeshModel::e_flags>(3));
     }
 }

@@ -3,6 +3,7 @@
 #include <new>
 
 #include "srHeap.h"
+#include "srFlags.h"
 #include "srMaterial.h"
 #include "srMath.h"
 #include "srModel.h"
@@ -15,7 +16,7 @@
 // class srClassSupport<srMeshModel, srModel, 0, 8208>
 
 // VTABLE: SURRENDER 0x10076D48 srMeshModel
-class SR_DLL_IMPORT srMeshModel : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
+class SR_DLL_EXPORT srMeshModel : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
 public:
     enum e_side {};
     /* Bit indices into control_state_390; setDirty(0..3) marks per-pass dirty
@@ -23,7 +24,7 @@ public:
     enum e_flags {};
     /* Bit indices into control_state_394. renderTriMesh tests bits 0/1 as
        front/back sides. updateTriMesh skips auto box when bit 4 is set and
-       auto sphere when bit 5 is set. enableStartupControls ORs bits 4–6. */
+       auto sphere when bit 5 is set. */
     enum e_control {
         CONTROL_FRONT = 0,
         CONTROL_BACK = 1,
@@ -71,12 +72,12 @@ public:
 
     /* The default-constructor closure 0x100425A0 proves both arguments
        default to zero for paren-less new expressions. */
-    SR_DLL_EXPORT srMeshModel(long polygons = 0, long vertices = 0);
+    SR_DLL_IMPORT srMeshModel(long polygons = 0, long vertices = 0);
     srMeshModel(const srMeshModel& other);
-    void reset(long polygons, long vertices);
-    void scale(const srVector3T<float>& scale);
+    SR_DLL_IMPORT void reset(long polygons, long vertices);
+    SR_DLL_IMPORT void scale(const srVector3T<float>& scale);
     void applyMatrix(const srMatrix3T<float>& matrix);
-    void relocateVertices(const srVector3T<float>& offset);
+    SR_DLL_IMPORT void relocateVertices(const srVector3T<float>& offset);
     void centerVertices();
     double getAverageRadius();
     double getMaxRadius();
@@ -84,59 +85,51 @@ public:
     void scaleToMaxRadius(double radius);
     void flipFaces();
     long findClosestVertex(const srVector3T<float>& point);
-    srMeshModel& operator=(const srMeshModel& other);
+    SR_DLL_IMPORT srMeshModel& operator=(const srMeshModel& other);
 
-#if defined(SURRENDER_BUILD)
-    static const char* sGetClassName();
-#else
+    // FUNCTION: SURRENDER 0x10041AF0
     static const char* sGetClassName()
     {
         return "srMeshModel";
     }
-#endif
 
-    virtual void dump(std::ostream& stream) override;
-    virtual void verify(srRuntimeClass::e_verify mode) override;
-    virtual srClass* vInstance() override;
-    virtual int getBoundingSphere(srVector3T<float>& center, float& radius) override;
-    virtual int getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& maximum) override;
-    virtual void render(class srGERD& renderer) override;
-    virtual void reindexPolygons(const unsigned long* indices);
-    virtual void reindexVertices(const unsigned long* indices);
-    virtual void getTriMesh(TriMesh& mesh);
-    virtual const TriMesh& getTriMesh();
-    virtual void renderTriMesh(class srGERD& renderer, const TriMesh& mesh);
-    srPtr<srTextureIFace>* getPolyTexture(long polygon, long layer, int table);
-    srVector3i* getPolyVertex();
-    srVector3i* getPolyUVIndex(long layer, int table);
-    srVector2T<float>* getVertexTexCoords(long vertex, long layer, int table);
-    srPtr<srMaterialIFace>* getVertexMaterial(long vertex, e_side side, int table);
-    unsigned long* getVertexShadeIndex(int table);
-    srVector3T<float>* getVertexNormal();
-    srVector4T<float>* getPolyEq();
-    srVector3T<float>* getVertexDIG(long vertex, int table);
+    SR_DLL_IMPORT virtual void dump(std::ostream& stream) override;
+    SR_DLL_IMPORT virtual void verify(srRuntimeClass::e_verify mode) override;
+    SR_DLL_IMPORT virtual srClass* vInstance() override;
+    SR_DLL_IMPORT virtual int getBoundingSphere(srVector3T<float>& center, float& radius) override;
+    SR_DLL_IMPORT virtual int getBoundingBox(srVector3T<float>& minimum,
+                                             srVector3T<float>& maximum) override;
+    SR_DLL_IMPORT virtual void render(class srGERD& renderer) override;
+    SR_DLL_IMPORT virtual void reindexPolygons(const unsigned long* indices);
+    SR_DLL_IMPORT virtual void reindexVertices(const unsigned long* indices);
+    SR_DLL_IMPORT virtual void getTriMesh(TriMesh& mesh);
+    SR_DLL_IMPORT virtual const TriMesh& getTriMesh();
+    SR_DLL_IMPORT virtual void renderTriMesh(class srGERD& renderer, const TriMesh& mesh);
+    SR_DLL_IMPORT srPtr<srTextureIFace>* getPolyTexture(long polygon, long layer, int table);
+    SR_DLL_IMPORT srVector3i* getPolyVertex();
+    SR_DLL_IMPORT srVector3i* getPolyUVIndex(long layer, int table);
+    SR_DLL_IMPORT srVector2T<float>* getVertexTexCoords(long vertex, long layer, int table);
+    SR_DLL_IMPORT srPtr<srMaterialIFace>* getVertexMaterial(long vertex, e_side side, int table);
+    SR_DLL_IMPORT unsigned long* getVertexShadeIndex(int table);
+    SR_DLL_IMPORT srVector3T<float>* getVertexNormal();
+    SR_DLL_IMPORT srVector4T<float>* getPolyEq();
+    SR_DLL_IMPORT srVector3T<float>* getVertexDIG(long vertex, int table);
     srVector4T<float>* getVertexSCG(long vertex, int table);
     srVector4T<float>* getVertexDCG(long vertex, int table);
-    srMaterialIFace* getMaterial(long polygon, e_side side) const;
-    srTextureIFace* getTexture(long polygon, long layer) const;
-    void setMaterial(srMaterialIFace* material, long polygon, e_side side);
-    void setTexture(srTextureIFace* texture, long polygon, long layer);
+    SR_DLL_IMPORT srMaterialIFace* getMaterial(long polygon, e_side side) const;
+    SR_DLL_IMPORT srTextureIFace* getTexture(long polygon, long layer) const;
+    SR_DLL_IMPORT void setMaterial(srMaterialIFace* material, long polygon, e_side side);
+    SR_DLL_IMPORT void setTexture(srTextureIFace* texture, long polygon, long layer);
     /* In-class inlines: srModeler::convert expands these bodies inside the
-       srModeler TU. Member-level dllexport still emits the standalone copies
-       below; class-level dllexport cannot be used because srMeshModel's
-       srClassSupport template base eagerly instantiates forwarding
-       constructors its bases do not provide. */
+       srModeler TU. */
     // FUNCTION: SURRENDER 0x10041710 SYMBOL
     // ?setDirty@srMeshModel@@QAEXW4e_flags@1@@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     void setDirty(e_flags flag)
     {
         unsigned long mask = 1 << flag;
-        if ((control_state_390 & mask) == 0) {
-            control_state_390 |= mask;
-            control_state_390 |= 8;
+        if ((control_state_390.value & mask) == 0) {
+            control_state_390.set(flag, 1);
+            control_state_390.set(3, 1);
             if (flag == 0) {
                 updateAllClients(static_cast<Client::e_update>(0));
             }
@@ -144,73 +137,66 @@ public:
     }
     // FUNCTION: SURRENDER 0x10041750 SYMBOL
     // ?clearDirty@srMeshModel@@QAEXW4e_flags@1@@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     void clearDirty(e_flags flag)
     {
-        control_state_390 &= ~(1 << flag);
+        control_state_390.set(flag, 0);
     }
     // FUNCTION: SURRENDER 0x10041770 SYMBOL
     // ?testDirty@srMeshModel@@QBEHW4e_flags@1@@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     int testDirty(e_flags flag) const
     {
-        return (control_state_390 & (1 << flag)) != 0;
+        return (control_state_390.value & (1 << flag)) != 0;
     }
-    srShader* getPolyShader(long polygon, int layer);
-    srShader getShader(long polygon) const;
-    void setShader(srShader shader, long pass);
-    void setUVCount(long count);
+    SR_DLL_IMPORT srShader* getPolyShader(long polygon, int layer);
+    SR_DLL_IMPORT srShader getShader(long polygon) const;
+    SR_DLL_IMPORT void setShader(srShader shader, long pass);
+    SR_DLL_IMPORT void setUVCount(long count);
     long getUVCount() const;
-    void setActivePolygonCount(long count);
-    long getActivePolygonCount();
+    SR_DLL_IMPORT void setActivePolygonCount(long count);
+    SR_DLL_IMPORT long getActivePolygonCount();
     long getPassCount() const;
     long getPolygonCount() const;
     long getVertexCount() const;
     void setPassCount(long count);
-    void setSortBias(float bias);
+    // FUNCTION: SURRENDER 0x10041790
+    void setSortBias(float bias)
+    {
+        sort_bias_238 = bias;
+        setDirty(static_cast<e_flags>(3));
+    }
     float getSortBias() const;
     void disable(e_control control);
-    void enable(e_control control);
+    // FUNCTION: SURRENDER 0x10041830
+    void enable(e_control control)
+    {
+        control_state_394.set(control, 1);
+        setDirty(static_cast<e_flags>(3));
+    }
     int isEnabled(e_control control) const;
-    void setDirtyAll();
+    // FUNCTION: SURRENDER 0x10041660
+    void setDirtyAll()
+    {
+        setDirty(static_cast<e_flags>(0));
+        setDirty(static_cast<e_flags>(1));
+        setDirty(static_cast<e_flags>(2));
+        setDirty(static_cast<e_flags>(3));
+    }
     void setDirtyBounds();
     void setDirtyNormals();
-    unsigned long* getActivePolygonTable(int table);
-    srVector3T<float>* getVertexLoc();
-    void enableStartupControls()
-    {
-        control_state_394 |= 0x40;
-        control_state_390 |= 8;
-        control_state_394 |= 0x30;
-    }
-    /* Raise one 0x394 control bit and mark the 0x390 changed bit when it is
-       clear. The original stores the changed bit twice; VC6 emits that pair
-       at every expansion site, so the body keeps both stores. */
-    void setControlMask(unsigned long mask)
-    {
-        control_state_394 |= mask;
-        if ((control_state_390 & 8) == 0) {
-            unsigned long state = control_state_390;
-            control_state_390 = state | 8;
-            control_state_390 = state | 8;
-        }
-    }
+    SR_DLL_IMPORT unsigned long* getActivePolygonTable(int table);
+    SR_DLL_IMPORT srVector3T<float>* getVertexLoc();
     /* Fills the cached AABB/sphere (bounds_minimum_200..bounds_radius_224)
        from the supplied box and center/radius. */
-    void setBounds(const srVector3T<float>& minimum, const srVector3T<float>& maximum,
-                   const srVector3T<float>& center, float radius);
+    SR_DLL_IMPORT void setBounds(const srVector3T<float>& minimum, const srVector3T<float>& maximum,
+                                 const srVector3T<float>& center, float radius);
 
 protected:
-    virtual ~srMeshModel() override;
+    SR_DLL_IMPORT virtual ~srMeshModel() override;
     void freeAll();
-    virtual void updateTriMesh();
-    virtual void calculateBounds();
-    virtual void calculatePolygonNormals();
-    virtual void calculateVertexNormals();
+    SR_DLL_IMPORT virtual void updateTriMesh();
+    SR_DLL_IMPORT virtual void calculateBounds();
+    SR_DLL_IMPORT virtual void calculatePolygonNormals();
+    SR_DLL_IMPORT virtual void calculateVertexNormals();
 
 public:
     /* setMaterial indexes [pass][side]; ctor default-constructs eight slots.
@@ -432,8 +418,8 @@ public:
     long uv_count_234;
     float sort_bias_238;
     TriMesh tri_mesh_23c;
-    unsigned long control_state_390;
-    unsigned long control_state_394;
+    srFlags<e_flags> control_state_390;
+    srFlags<e_control> control_state_394;
 };
 
 static_assert((sizeof(srMeshModel::TriMesh) == 0x154), "srMeshModel_TriMesh_must_be_0x154");

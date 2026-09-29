@@ -2005,7 +2005,8 @@ void CreateAutomapMarkerSprites(void)
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
                                         surface->getHeight() * g_scale_x_5ebb1c, 1, 1);
             g_class_68f29c->setParent(g_scene_square, 1);
-            static_cast<srMeshModel*>(g_class_68f29c->getModel())->setControlMask(0x40);
+            static_cast<srMeshModel*>(g_class_68f29c->getModel())
+                ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
             g_class_68f29c->SetGlowEnabled(1);
             srVector4T<float> first;
@@ -2031,7 +2032,8 @@ void CreateAutomapMarkerSprites(void)
             g_class_68f2a0 =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
                                         surface->getHeight() * g_scale_y_5ebb20, 1, 0);
-            static_cast<srMeshModel*>(g_class_68f2a0->getModel())->setControlMask(0x40);
+            static_cast<srMeshModel*>(g_class_68f2a0->getModel())
+                ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
         }
     }
@@ -2050,7 +2052,8 @@ void CreateAutomapMarkerSprites(void)
             g_class_68f2a4 =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
                                         surface->getHeight() * g_scale_y_5ebb20, 1, 0);
-            static_cast<srMeshModel*>(g_class_68f2a4->getModel())->setControlMask(0x40);
+            static_cast<srMeshModel*>(g_class_68f2a4->getModel())
+                ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
         }
     }
@@ -2069,7 +2072,8 @@ void CreateAutomapMarkerSprites(void)
             g_class_68f2a8 =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
                                         surface->getHeight() * g_scale_y_5ebb20, 1, 0);
-            static_cast<srMeshModel*>(g_class_68f2a8->getModel())->setControlMask(0x40);
+            static_cast<srMeshModel*>(g_class_68f2a8->getModel())
+                ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
         }
     }
@@ -2088,7 +2092,8 @@ void CreateAutomapMarkerSprites(void)
             g_automap_text_marker =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
                                         surface->getHeight() * g_scale_y_5ebb20, 1, 0);
-            static_cast<srMeshModel*>(g_automap_text_marker->getModel())->setControlMask(0x40);
+            static_cast<srMeshModel*>(g_automap_text_marker->getModel())
+                ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
         }
     }
@@ -2306,7 +2311,7 @@ stModelInstance2D* CreateAutomapItemMarker(int item_id)
     if (marker == 0) {
         return 0;
     }
-    static_cast<srMeshModel*>(marker->getModel())->setControlMask(0x40);
+    static_cast<srMeshModel*>(marker->getModel())->enable(srMeshModel::CONTROL_STARTUP);
     g_releasable_68f1f4->Add(marker);
     marker->SetGlowEnabled(1);
     srVector4T<float> first;

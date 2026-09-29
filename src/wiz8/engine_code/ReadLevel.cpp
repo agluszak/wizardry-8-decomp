@@ -99,7 +99,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
             continue;
         }
 
-        if ((model->control_state_394 & 0x20) == 0) {
+        if ((model->control_state_394.value & 0x20) == 0) {
             srVector3T<float> center;
             float radius;
             model->getBoundingSphere(center, radius);
@@ -107,7 +107,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
                 continue;
             }
         }
-        if ((model->control_state_394 & 0x10) == 0 && model->vertex_location_count_22c >= 8) {
+        if ((model->control_state_394.value & 0x10) == 0 && model->vertex_location_count_22c >= 8) {
             srVector3T<float> minimum;
             srVector3T<float> maximum;
             model->getBoundingBox(minimum, maximum);
