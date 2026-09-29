@@ -254,7 +254,9 @@ or overwrites live analysis.
 
 Keep one mutable change per coherent task by default. Fetch/rebase from `main@origin` only when upstream
 work is needed or immediately before authorized integration. After a rebase or merge, run
-`uv run wiz8 report merge-preservation --base origin/main`; every removed or duplicated retail-address
-identity needs an explicit `--allow` reason. Successful push completes publication;
+`uv run wiz8 report merge-preservation --base origin/main`. The checker recognizes evidence-backed
+marker reclassification and globals absorbed into a known aggregate extent; any remaining loss,
+duplicate or demotion is a source/model/tooling defect to resolve, not a waiver to add. Successful push
+completes publication;
 do not perform routine post-push proofs. Jujutsu mechanics live in
 [jujutsu-workflow](.agents/skills/jujutsu-workflow/SKILL.md).

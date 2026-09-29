@@ -147,22 +147,11 @@ def merge_preservation_command(
         "--head",
         help="Explicit result revision; defaults to the current Jujutsu change or Git working tree.",
     ),
-    allow: Annotated[
-        list[str] | None,
-        typer.Option(
-            "--allow",
-            help="TARGET:KIND:0xADDRESS:TRANSITION=reason for an intentional loss, duplicate, or demotion.",
-        ),
-    ] = None,
 ) -> None:
-    """Compare FUNCTION/GLOBAL/VTABLE marker identities by retail address between two revisions."""
+    """Compare FUNCTION/GLOBAL/VTABLE identities by retail address between two revisions."""
 
     from .. import command_support as cli
-    from ..merge_preservation import (
-        base_ancestry_report,
-        merge_preservation_report,
-        parse_allowed,
-    )
+    from ..merge_preservation import base_ancestry_report, merge_preservation_report
 
     repository = cli.settings().repo_dir
     ancestry = base_ancestry_report(repository, base, head)
@@ -173,7 +162,6 @@ def merge_preservation_command(
         repository,
         ancestry["base"],
         ancestry["head"] if head is not None else None,
-        parse_allowed(allow or []),
     )
     report["requested_base"] = base
     report["base_ancestry"] = ancestry
