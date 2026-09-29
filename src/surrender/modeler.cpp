@@ -934,9 +934,9 @@ srModeler::VertexHash* srModeler::getUniqueVertexList()
             VertexHash::Entry* entry;
             for (entry = hash->buckets_04[bucket]; entry != 0; entry = entry->next_0c) {
                 Vertex* other = entry->vertex_08;
-                if (fabs((source->position_00.x - other->position_00.x) * scale) < 0.0001 &&
-                    fabs((source->position_00.y - other->position_00.y) * scale) < 0.0001 &&
-                    fabs((source->position_00.z - other->position_00.z) * scale) < 0.0001 &&
+                if (fabs((source->position_00.x - other->position_00.x) * scale) < 0.0001f &&
+                    fabs((source->position_00.y - other->position_00.y) * scale) < 0.0001f &&
+                    fabs((source->position_00.z - other->position_00.z) * scale) < 0.0001f &&
                     (entry->flags_00 & flags) != 0 &&
                     source->shade_index_0c == other->shade_index_0c) {
                     group = entry->shade_index_04;
