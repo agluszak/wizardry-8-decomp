@@ -1,5 +1,12 @@
 # Source → Ghidra projection
 
+## Evidence boundary
+
+Source/PDB projection improves the retail ProgramDB for analysis, but it does not create independent
+retail evidence. A signature/type written from current recovered source or the recomp PDB must retain
+that provenance and must not later be used, merely because it exists in ProgramDB, to independently
+confirm the same recovered declaration.
+
 `uv run wiz8 ghidra sync` is the one established-source/evidence → ProgramDB path.
 It mutates live analysis. It is not a prerequisite for ordinary inspection: address-based
 `ghidra decompile` / `ghidra asm` / `ghidra sym` read the existing ProgramDB even when

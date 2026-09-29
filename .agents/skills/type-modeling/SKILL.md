@@ -1,129 +1,82 @@
 ---
 name: type-modeling
-description: Recover and correct Wizardry 8 C++ types, prototypes, globals, fields, enums, layouts, class boundaries, inheritance, vtables, and ABI-facing declarations.
+description: Recover Wizardry 8 C++ types, prototypes, fields, globals, layouts, inheritance, vtables and lifecycle ABI across whole consumer families.
 ---
 
 # Type modeling
 
-Use this skill when the question is about the canonical C++/ABI model rather than one function body's
-source spelling: parameter/return types, globals, fields, enums, bools, packing, object boundaries,
-inheritance/subobjects, vtables, lifecycle families, or conflicting declarations.
+Use this skill when a mismatch points to the canonical C++/ABI model rather than one function's source
+spelling.
 
-Use [ghidra-analysis](../ghidra-analysis/SKILL.md) for live binary inspection/edits and
-[matching-decomp](../matching-decomp/SKILL.md) for recovering/comparing a function body.
+Detailed source-fidelity rules live in
+[matching-decomp/source fidelity](../matching-decomp/references/source-fidelity.md). Use
+[ghidra-analysis](../ghidra-analysis/SKILL.md) for live ProgramDB facts and
+[matching-decomp](../matching-decomp/SKILL.md) for the recovery campaign.
 
-## Settle one canonical type
+## Recover the owner, not the use site
 
-Trace the type across all relevant producers and consumers before editing:
+When one mismatch suggests a type/layout defect:
 
-- load/store widths, extensions and truncations;
-- argument storage at multiple call sites and callee use;
-- return production together with caller consumption;
-- allocation size and stack/by-value extents;
-- signed/unsigned branch behavior after integer promotions;
-- serialized/external ABI storage versus in-memory semantic type;
+1. Inventory all relevant producers and consumers before editing.
+2. Group accesses by receiver identity, offset, width, read/write and call role.
+3. Reconcile conflicting evidence at the owning declaration/layout.
+4. Update all affected consumers coherently.
+5. Validate the affected family only after the substantial batch is complete.
+
+A repeated field-offset or width mismatch across many functions is one model problem.
+
+## Scalar and ABI evidence
+
+Use multiple observations:
+
+- load/store width, extension and truncation;
+- argument storage at callers and callee consumption;
+- return production and caller use;
+- signed/unsigned branch behavior after promotions;
+- stack/by-value extent and allocation size;
+- serialized/external storage versus in-memory semantic type;
 - virtual overrides and every declaration of the same external symbol.
 
-Correct the owning header/definition and the reviewed Ghidra model when the evidence establishes the
-fact. Do not hide disagreement with casts, integer/pointer substitution, opaque wrappers, duplicate
-externs, aliases, or a second local declaration.
+A byte operation establishes width, not automatically C++ `bool`. `unsigned char`, SGP
+`BOOLEAN`, C++ `bool` and Win32 `BOOL` are distinct source types.
 
-Allocation size bounds the most-derived object but does not name fields. A byte operation establishes
-width, not automatically C++ `bool`. Assertions may suggest names; their memory operands establish
-placement. Preserve unknown spans rather than filling them with convenient invented structure.
+Do not treat source-projected retail ProgramDB signatures as independent confirmation of current source.
 
-## Overlapping views and bulk operations
+## Fields and overlapping storage
 
-Treat machine-width accesses as evidence about generated operations, not automatic source declarations.
-A dword load/store spanning smaller fields, a block move, adjacent scalar moves, or a `memcpy` can be
-ordinary struct assignment/copy lowering. Before inventing a wider field, byte view, overlay or union:
+Machine-width copies are compiler/aggregate evidence, not automatic source fields. Before adding a
+wider member, overlay or union, trace the complete source/destination extent and test whether an
+existing embedded record or ordinary assignment explains it.
 
-- trace the complete source and destination extents and look for an existing record of exactly that shape;
-- if `memcpy(&object.member, source, sizeof(T))` covers the following siblings exactly, test whether the
-  authored member was an embedded `T` rather than separately declared fields;
-- trace the actual pointer passed to a callee before assigning its offsets to the caller's surrounding
-  object; a matching numeric offset in another type is not shared-field evidence;
-- treat same-offset alternate reads/writes as a contradiction to resolve, not proof of a union.
+A union requires positive source-level overlap evidence such as a discriminant or mutually exclusive
+lifetime/state. Coincident offsets, equal widths and decompiler disagreement are insufficient.
 
-A source union needs positive evidence such as a discriminant/tag, mutually exclusive lifecycle states,
-or an accepted source oracle. Same offset, same width, convenient layout, compiler-width copies and
-decompiler type disagreement are insufficient. Follow the repository's `union-ok` gate for any new
-recovered union.
+Allocation size bounds a most-derived object but does not name its fields. Preserve unknown spans.
 
-If a call only type-checks after reinterpret-casting one modeled W8/sr/st record pointer to another,
-reconcile the owning declaration or callee signature instead. Linker-folded sibling functions retain
-their source parameter types even when the linker gives their bodies one address. That shared retail
-address does not create a source alias: do not attach a `FOLDED` marker or change either prototype to
-make the linked comparison choose the retained body.
+## Classes and lifecycle
 
-A consumer/provider ABI can genuinely expose different declarations without implying two source
-identities—for example Wizardry's fixed-arity import spelling of a variadic SurRender export. Such a
-proven boundary may use `abi-prototype-ok: <reason>` next to the consumer declaration. This waiver is
-only for the cross-TU prototype-consistency check; never use it for ICF, overloads, or address aliases.
+Test existing bases, embedded members and canonical templates before creating a new class boundary.
+For hierarchy/subobject work read
+[inheritance evidence](references/inheritance-evidence.md). For `srClassSupport`, clone and
+compiler-emitted lifecycle families read [template emission](references/template-emission.md).
 
-## Object and class boundaries
+Audit hierarchy changes as a family: constructors, ordinary/desleting destructors, copy/assignment,
+vtable slots, adjustor thunks and affected receivers.
 
-First test whether an existing object, base, embedded member or generic/template definition already
-explains the evidence. Adjacency, shared initialization, repeated offsets or a convenient access
-pattern do not prove one aggregate. Require allocation/lifetime/subobject evidence before combining
-independent globals or splitting an evidenced object.
+Compiler-generated deleting destructors are marker-only `SYNTHETIC`; do not hand-write them.
 
-A distinct vtable, deleting destructor, registry family or lifecycle body alone also does not prove an
-authored class. Conversely, absence of known derived fields does not disprove a boundary: an apparently
-empty derived class can be real when its own vtable identity is corroborated by construction,
-destruction, receivers, registration or other lifecycle evidence.
+## External ABI and packing
 
-For hierarchy/subobject changes read [inheritance evidence](references/inheritance-evidence.md). For
-`srClassSupport`, clone, registry and compiler-emitted lifecycle families read
-[template emission](references/template-emission.md).
+Preserve proven calling conventions, packing and vendor interface shapes. Consumer/provider declarations
+may differ only when independently established ABI evidence requires it; do not use that as an excuse
+for ordinary source disagreement.
 
-Scalar/vector deleting destructors are MSVC ABI glue. Keep their retail identity as marker-only
-`SYNTHETIC`; never hand-write the hidden flags parameter or a destruct-and-maybe-free helper. Recover an
-ordinary destructor separately only when retail emits a standalone body.
+Clang is a consistency detector, not retail evidence. Use diagnostics to find model contradictions,
+then decide from retail/source evidence.
 
-## Byte-sized logical types
+## Validation
 
-`unsigned char`, SGP `BOOLEAN` and C++ `bool` are all one byte but are not interchangeable source types.
-Use provenance and behavior, not width alone:
-
-- real SGP interfaces/results keep `BOOLEAN`;
-- Wizardry/SurRender C++ predicates, logical state and logical arguments use `bool` when every producer
-  is canonical 0/1 and consumers are truth tests;
-- masks, enums, state codes, counts, serialized bytes and non-canonical values remain byte/integer
-  storage or gain a proper enum;
-- Win32 `BOOL` is 32-bit and belongs only where the external Windows ABI requires it.
-
-A return such as `flags & 2` is not `bool`: changing the declared return type would normalize 0/2 into
-0/1 and change behavior. When one member of a virtual family changes type, reconcile the complete
-override family and the callers feeding it.
-
-## Packing and external ABI
-
-Retail/source ABI evidence outranks a lint warning. Preserve proven packing, calling conventions and
-vendor interface shapes. If clang diagnoses a legitimate external construct, use the narrowest local
-suppression needed; do not remove `#pragma pack`, invent an adapter/thunk, add C fallback APIs, or
-weaken the global lint profile merely to silence it.
-
-## Consistency checks
-
-Clang is a consistency detector, not binary evidence:
-
-```sh
-uv run wiz8 lint
-uv run wiz8 diagnostics
-```
-
-`lint` catches incompatible declarations, conversions, overrides and narrow reconstruction errors;
-`diagnostics` is the broader non-gating lane. Cross-TU external declaration consistency is owned by
-the compiler-backed source-index writer, which `uv run wiz8 check` and `compare --build` refresh.
-Plain `compare` reads the existing projection. Project established declarations into Ghidra with
-`uv run wiz8 ghidra sync`; do not pre-run `uv run wiz8 analyze source-index` unless debugging that
-projection itself.
-
-A redundant same-type cast means the canonical types already agree: remove it. Do not dismiss a gating
-diagnostic as pre-existing. Retail instructions, call sites and accepted source decide which model is
-correct when two declarations disagree.
-
-Validate changed declarations as an ABI bundle: focused comparisons for affected functions/callers,
-`uv run wiz8 vtable CLASS` for hierarchy changes, and the relevant layout/compile gates. Do not expand
-an ordinary member-type correction into class-identity triage unless the boundary itself changes.
+Type/layout work belongs in the same rare batch cadence as recovery work. Use focused inspection while
+investigating, then compare/layout/vtable checks for the coherent family after roughly ~100 affected
+functions or another substantial model batch. Broad lint/pr-check belongs near completion, not after
+individual declaration edits.

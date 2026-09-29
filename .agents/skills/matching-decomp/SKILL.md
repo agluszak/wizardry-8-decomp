@@ -1,89 +1,86 @@
 ---
 name: matching-decomp
-description: Recover Wizardry 8 C++ bodies and source placement; triage and audit focused or batched retail/recomp discrepancies.
+description: Run systematic Wizardry 8 recovery campaigns over paired retail/recomp mismatches and recover faithful C++ at shared source-model owners.
 ---
 
-# Matching decompilation
+# Recovery campaigns
 
-Recover ordinary circa-2000 C++ from retail and accepted source oracles. AGENTS.md owns evidence,
-source fidelity and acceptance policy; this skill owns the recovery workflow.
+Wizardry is past initial bring-up. Use this skill to reduce paired mismatches systematically, not to
+chase one address at a time.
 
-Before editing recovered C++, read [source fidelity](references/source-fidelity.md). For prototypes,
-fields, layouts, inheritance, vtables or lifecycle ABI use [type-modeling](../type-modeling/SKILL.md).
-For live ProgramDB edits use [ghidra-analysis](../ghidra-analysis/SKILL.md); native decompile/asm/sym
-reads alone do not require loading that skill. For tooling use
-[tooling-maintenance](../tooling-maintenance/SKILL.md), runtime behavior
-[runtime-bringup](../runtime-bringup/SKILL.md), and history/publication
-[jujutsu-workflow](../jujutsu-workflow/SKILL.md).
+Before editing recovered C++, read [source fidelity](references/source-fidelity.md). Read
+[comparison](references/comparison.md) for saved-report and comparison semantics,
+[difference patterns](references/difference-patterns.md) for mismatch-family workflows, and
+[source oracles](references/source-oracles.md) only when an accepted source boundary is relevant.
 
-Read [comparison](references/comparison.md) for report selection/inspection and outcome meanings,
-[difference patterns](references/difference-patterns.md) for unexplained diffs, or
-[source oracles](references/source-oracles.md) for SGP/MSVC/zlib/IJG/Info-ZIP source.
-Load only references needed for the current question; retain loaded instruction paths in the handoff.
+Use [type-modeling](../type-modeling/SKILL.md) for declarations/layout/class ABI,
+[ghidra-analysis](../ghidra-analysis/SKILL.md) for live ProgramDB work,
+[runtime-bringup](../runtime-bringup/SKILL.md) for behavioral validation, and
+[tooling-maintenance](../tooling-maintenance/SKILL.md) when changing the pipeline itself.
 
-## Recovery
+## Campaign workflow
 
-1. Identify the entity's canonical source/header/TU owner. Search source and accepted oracles first;
-   reuse reviewed evidence unless missing, stale or contradictory.
-2. Inspect only unanswered retail facts using `wiz8 ghidra decompile|asm|sym ADDRESS...`. Batch related
-   addresses in one call. SurRender addresses require `--program sr.dll`; WIZ8 is the default.
-   Uncertain placement blocks insertion, not investigation. Reads never compile or synchronize.
-3. Establish parameter contracts from callers and uses; audit touched types, abstractions, lifetime,
-   pointer identity and visibility before writing a nontrivial body. Allocation -> insertion/removal ->
-   destruction is one family. Machine-width accesses may be aggregate-copy lowering.
-4. Correct established ProgramDB facts at their owner; project source facts with `wiz8 ghidra sync`
-   when necessary. Missing source metadata does not block native reads.
-5. Reconstruct the affected source model and its dependents coherently. Then compare the affected
-   bundle. An intermediate comparison should resolve a concrete uncertainty, not follow every edit.
-6. Investigate logical differences through source/type/ABI/ownership/TU facts. Keep faithful source
-   when no evidence-backed correction remains. Large unstable diffs need focused retail CFG/call/branch
-   review or the relevant runtime observation, not attempts to sculpt decompiler text.
+1. Start from a current saved comparison inventory. Use `wiz8 report compare` and report artifacts
+   before running new analysis.
+2. Select a coherent family: repeated call delta, field offset/width, ABI, global identity, literal,
+   lifecycle/template pattern, floating-point behavior, predicate/control-flow shape, or a shared
+   source/class owner.
+3. Identify the canonical owner before editing callers. Search source and accepted oracles first.
+4. Inspect only unanswered retail facts with batched `wiz8 ghidra decompile|asm|sym ADDRESS...`.
+5. Recover the shared source model and update all affected consumers coherently.
+6. Keep working through a substantial batch — normally ~100+ affected functions — before expensive
+   validation. A focused comparison during investigation must answer a concrete uncertainty; it is not
+   a ritual after every edit.
+7. Rebuild/compare the batch once, inspect every regression and major gain, then fix the batch-level
+   problems before final gates.
 
-Comments record non-obvious evidence, established retail oddities and unresolved facts. Avoid intent
-claims or narrating obvious control flow; remove stale provenance after renames and TU moves.
+Prefer one source-model correction affecting fifty callers over fifty caller-specific edits. Prefer a
+real recovery that leaves decompiler noise over a normalization that merely turns fifty rows green.
 
-## Discrepancy campaigns
+## What to prioritize
 
-Start from a current saved comparison inventory. Filter before reading details; prioritize concrete
-branch, call, constant, field and referenced-data changes, grouping candidates by shared owner or ABI.
-A full run is useful once for triage, not before every candidate. Explained representation/lowering
-and already-matched bodies need revisiting only when new evidence or relevant inputs change.
+Small high-signal queues are worth exhausting: referenced-data findings, literal/address-only
+differences, and type/cast-only differences frequently expose real model defects.
 
-Keep one mutable change across a substantial coherent group. User batch-size preferences determine
-publication cadence; do not publish a few isolated edits by default or invent fixes to fill a quota.
-Complete source corrections first, then validate a coherent group. Compilation, layout/vtable checks
-and focused comparisons may be needed during recovery when they resolve actual uncertainty.
+For large buckets, cluster first:
 
-Keep concise task-local notes under build/: revision, source owners/addresses, conclusions and evidence
-paths, unresolved questions, report paths and successful verification inputs. These notes are a handoff,
-not another symbol database or an authority above retail/source. A continuation resumes this batch;
-it is not a new preflight, inventory run, skill reload or publication cycle.
+- **Calls:** canonical callee differences, missing/extra calls, helper expansion/inlining, receiver or
+  argument differences.
+- **Fields/layouts:** same receiver with repeated offset/width disagreements; fix the record once.
+- **ABI/signatures:** argument count, convention, receiver storage, return width/type. Provenance must
+  be independent; source-projected retail ProgramDB facts cannot confirm the source that projected them.
+- **Lifecycle/templates:** constructors, destructors, deleting destructors, vtables, copy/assignment,
+  exception cleanup and inline/template emission should be audited by class/template owner.
+- **Floating point:** constant width, promotion, x87 rounding, accumulation precision, NaN behavior and
+  expression grouping are source-level questions, not generic normalization opportunities.
+- **Control flow:** only after higher-level families are removed, classify predicates, guards, bounds,
+  loop form, store ordering and genuinely large structural differences.
 
-## Final audit and formatting
+Tags and clusters are triage aids, never equivalence claims.
 
-After the final source edit, run `uv run wiz8 compare --build --changed` for affected products
-(SurRender: `--program sr.dll`). If products/index are already current, omit --build; do not pre-run
-check/source-index merely to prepare this explicit build-and-compare command. Account for every new
-or materially changed FUNCTION: no differences, explained representation/established lowering, or an
-unstable diff with retail CFG/call/branch review. Do not publish unaccounted bodies.
+## Stop conditions
 
-Format changed manually owned C/C++ with `uv run clang-format --style=file -i PATH...`, then
-`uv run clang-format --style=file --dry-run --Werror --fail-on-incomplete-format PATH...`.
-Do not format imported/vendor SGP source. Formatting alone needs no new build/comparison.
+Keep straightforward faithful source when no evidence-backed correction remains. Do not rewrite a
+counted loop, add a temporary, force inline/noinline, duplicate cleanup or reorder expressions merely
+to reduce Ghidriff output.
 
-Successful validation remains useful while its relevant inputs agree. Source/headers/ABI/build flags
-can invalidate products and comparisons; retail/analysis/catalog/tool changes invalidate affected
-analysis results. Record what ran and against which inputs. A rebase requires rechecking affected
-inputs and marker preservation, not automatically replaying every successful lane.
+Marker/TU rules, ICF, template emission, compiler storage and cast/union constraints are owned by the
+[source-fidelity reference](references/source-fidelity.md); do not restate or weaken them here.
 
-## Marker binding and placement
+## Batch validation
 
-FUNCTION binds immediately to its following declaration/definition; pragmas and unrelated comments
-belong above the marker. TEMPLATE is followed by its emitted-symbol comment, with behavior at the
-primary template owner. SYNTHETIC is followed by its compiler-identity comment; LIBRARY is address-only.
-SYNTHETIC/LIBRARY own no handwritten implementation. GLOBAL belongs at its canonical definition.
+For recovery campaigns, tests are rare. Normally do not run broad checks until the batch has covered
+~100+ affected functions or another comparably substantial systemic family.
 
-Preserve TU ownership/order in src/wiz8/sources.cmake or src/surrender/CMakeLists.txt. Compiler-emission
-TUs contain provenance only. Do not create a .cpp merely to park markers; unknown ownership remains
-an unresolved fragment. An ordinary independently emitted destructor is FUNCTION; deleting helpers
-are SYNTHETIC. Read the fidelity reference for template, ICF and header-visibility evidence rules.
+Near completion:
+
+- run the affected `uv run wiz8 compare --build --changed` once (use `--program sr.dll` for
+  SurRender);
+- account for new/materially changed authored functions;
+- format manually owned C/C++ once;
+- run `uv run wiz8 pr-check`;
+- run `uv run wiz8 report merge-preservation --base origin/main`;
+- run runtime scenarios only when the batch changes behavior they actually observe.
+
+Record report paths and unresolved questions under `build/` for continuation. A continuation resumes
+the batch; it does not trigger another preflight, inventory run or validation cycle.
