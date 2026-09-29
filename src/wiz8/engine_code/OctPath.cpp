@@ -5137,7 +5137,7 @@ stModelInstance* W8PathingService::BuildPathVisualization()
         EnsurePathVisualization();
     }
 
-    stMeshModel* model = static_cast<stMeshModel*>(m_pPathModelInstance->model());
+    stMeshModel* model = static_cast<stMeshModel*>(m_pPathModelInstance->getModel());
     srVector3T<float>* colors = model->getVertexDIG(0, 1);
     srVector3T<float>* vertices = model->getVertexLoc();
     srVector3i* polygons = model->getPolyVertex();
@@ -5498,7 +5498,7 @@ void W8PathingService::BuildSearchVisualization()
         srVector3T<float>(0.0f, 125.0f, 0.0f), srVector3T<float>(-62.5f, 0.0f, -62.5f),
         srVector3T<float>(-62.5f, 0.0f, 62.5f), srVector3T<float>(62.5f, 0.0f, 62.5f),
         srVector3T<float>(62.5f, 0.0f, -62.5f)};
-    stMeshModel* model = static_cast<stMeshModel*>(m_pPathModelInstance->model());
+    stMeshModel* model = static_cast<stMeshModel*>(m_pPathModelInstance->getModel());
     srVector3T<float>* colors = model->getVertexDIG(0, 1);
     srVector3T<float>* vertices = model->getVertexLoc();
     model->getActivePolygonTable(1);

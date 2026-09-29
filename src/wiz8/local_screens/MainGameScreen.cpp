@@ -4451,7 +4451,7 @@ void DrawMainGameScreen(void)
             UpdateWorlds();
         }
         if (g_node_cull_pending != 0) {
-            for (node = g_world->level->firstChild(); node != 0; node = node->nextSibling()) {
+            for (node = g_world->level->first_child_; node != 0; node = node->next_sibling_) {
                 if (node->getClassID() == 0x10004) {
                     node->clearFlag(srNode::FLAG_DISABLE);
                 }
@@ -4459,7 +4459,7 @@ void DrawMainGameScreen(void)
         }
         RenderFrame();
         if (g_node_cull_pending != 0) {
-            for (node = g_world->level->firstChild(); node != 0; node = node->nextSibling()) {
+            for (node = g_world->level->first_child_; node != 0; node = node->next_sibling_) {
                 if (node->getClassID() == 0x10004) {
                     if (MeasureNodeRenderWithoutPositionalOption(node) == 0) {
                         node->setFlag(srNode::FLAG_DISABLE);
@@ -9905,10 +9905,10 @@ void CreateSurpriseFade(void)
     color.w = 0.0f;
     g_surprise_fade_node = CreateColoredPolygonSprite(0x280, 0x1e0, &color, 1);
     PositionToolTipNode(g_surprise_fade_node, 0, 0, 0);
-    shader = static_cast<srMeshModel*>(g_surprise_fade_node->model())->getShader(0);
+    shader = static_cast<srMeshModel*>(g_surprise_fade_node->getModel())->getShader(0);
     shader.value = (shader.value & ~0x6040) | 0xa0;
-    static_cast<srMeshModel*>(g_surprise_fade_node->model())->setShader(shader, 0);
-    static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node->model())
+    static_cast<srMeshModel*>(g_surprise_fade_node->getModel())->setShader(shader, 0);
+    static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node->getModel())
                                  ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
         ->setOpacity(0.0);
     g_surprise_fade_tick_base = GetTickCount();
@@ -9920,7 +9920,7 @@ void ReverseSurpriseFade(void)
 {
     if (gXStatus.surprise_phase == 0) {
         srMaterial* material =
-            static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node->model())
+            static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node->getModel())
                                          ->getMaterial(0, static_cast<srMeshModel::e_side>(0)));
         float opacity = material->parms.diffuse.w;
         unsigned long now = GetTickCount();
@@ -9982,7 +9982,7 @@ unsigned char UpdateSurpriseFade(void)
         }
     }
 
-    static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node->model())
+    static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node->getModel())
                                  ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
         ->setOpacity(opacity);
 

@@ -245,7 +245,7 @@ srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
 // srClientSupport<srPalette,10496>::getClassNode
 
 // TEMPLATE: WIZ8 0x0047D6B0
-// srClientSupport<srPalette,10496>::clone
+// srClientSupport<srPalette,10496>::vClone
 
 // SYNTHETIC: WIZ8 0x0047C5C0
 // srClientSupport<srPalette,10496>::`scalar deleting destructor'
@@ -260,7 +260,7 @@ srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
 // srClassSupport<stTextureFile,srTexture,0,65537>::getClassNode
 
 // TEMPLATE: WIZ8 0x0047D790
-// srClassSupport<stTextureFile,srTexture,0,65537>::clone
+// srClassSupport<stTextureFile,srTexture,0,65537>::vClone
 
 // TEMPLATE: WIZ8 0x0047D870
 // srClassSupport<stTextureFile,srTexture,0,65537>::~srClassSupport<stTextureFile,srTexture,0,65537>

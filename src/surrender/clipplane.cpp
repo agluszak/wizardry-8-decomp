@@ -45,8 +45,8 @@ void srClipPlane::process(const ProcessInfo& info, e_processType type)
 // FUNCTION: SURRENDER 0x10049D40
 void srClipPlane::traverse(TraverseInfo& info)
 {
-    if (nextSibling() != 0) {
-        nextSibling()->traverse(info);
+    if (next_sibling_ != 0) {
+        next_sibling_->traverse(info);
     }
     if (testFlag(FLAG_TERMINATE) == 0) {
         if (testFlag(FLAG_DISABLE) == 0) {
@@ -64,8 +64,8 @@ void srClipPlane::traverse(TraverseInfo& info)
                 info.nodes.data[info.node_count] = this;
                 info.node_count++;
             }
-            if (firstChild() != 0) {
-                firstChild()->traverse(info);
+            if (first_child_ != 0) {
+                first_child_->traverse(info);
             }
             if (testFlag(FLAG_GLOBAL) == 0) {
                 if (info.entries.capacity <= info.entry_count) {
@@ -75,8 +75,8 @@ void srClipPlane::traverse(TraverseInfo& info)
                 info.entries.data[info.entry_count].value = 2;
                 info.entry_count++;
             }
-        } else if (firstChild() != 0) {
-            firstChild()->traverse(info);
+        } else if (first_child_ != 0) {
+            first_child_->traverse(info);
         }
     }
 }
@@ -157,8 +157,17 @@ srClipPlane::srClipPlane(const srClipPlane& other)
 // FUNCTION: SURRENDER 0x1004A2C0
 srClipPlane::~srClipPlane() {}
 
+// TEMPLATE: SURRENDER 0x10049F40
+// srClassSupport<srClipPlane,srNode,0,5376>::getClassID
+
+// TEMPLATE: SURRENDER 0x10049F50
+// srClassSupport<srClipPlane,srNode,0,5376>::getClassName
+
+// TEMPLATE: SURRENDER 0x10049F60
+// srClassSupport<srClipPlane,srNode,0,5376>::getClassNode
+
 // TEMPLATE: SURRENDER 0x10049FC0
-// srClassSupport<srClipPlane, srNode, 0, 0x1500>::clone
+// srClassSupport<srClipPlane, srNode, 0, 0x1500>::vClone
 
 // TEMPLATE: SURRENDER 0x10049FE0
 // srClassSupport<srClipPlane, srNode, 0, 0x1500>::~srClassSupport
@@ -169,8 +178,11 @@ srClipPlane::~srClipPlane() {}
 // SYNTHETIC: SURRENDER 0x1004A390
 // srClipPlane scalar deleting destructor
 
+// SYNTHETIC: SURRENDER 0x1004A3B0
+// srClipPlane::`vector deleting destructor'
+
 // SYNTHETIC: SURRENDER 0x1004A410
-// srClassSupport<srClipPlane, srNode, 0, 0x1500> scalar deleting destructor
+// srClassSupport<srClipPlane,srNode,0,5376>::`scalar deleting destructor'
 
 // TEMPLATE: SURRENDER 0x1004A430
 // srArray<srNode*>::setCapacity

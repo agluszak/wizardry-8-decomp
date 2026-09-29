@@ -5,17 +5,16 @@
 
 #include <math.h>
 
+// VTABLE: SURRENDER 0x10077194
+// class srClassSupport<srModelInstance, srNode, 0, 4352>
+
 // VTABLE: SURRENDER 0x10077150 srModel::Client
 // VTABLE: SURRENDER 0x10077160 srClassSupport<srModelInstance, srNode, 0, 4352>
 // class srModelInstance
-class srModelInstance : public srClassSupport<srModelInstance, srNode, 0, 0x1100>,
-                        public srModel::Client {
+class SR_DLL_EXPORT srModelInstance : public srClassSupport<srModelInstance, srNode, 0, 0x1100>,
+                                      public srModel::Client {
 public:
-#if defined(SURRENDER_BUILD)
-    SR_DLL_EXPORT srModelInstance(srNode* parent = 0);
-#else
     SR_DLL_IMPORT srModelInstance(srNode* parent = 0);
-#endif
     srModelInstance(const srModelInstance& other);
     SR_DLL_IMPORT srModelInstance& operator=(const srModelInstance& other);
 
@@ -34,15 +33,6 @@ public:
     SR_DLL_IMPORT virtual void process(const ProcessInfo& info, e_processType type) override;
     SR_DLL_IMPORT virtual void getLocalBounds(BoundInfo& bounds) override;
     SR_DLL_IMPORT virtual void updateClient(srModel::Client::e_update update) override;
-
-    void assignModel(srModel* model)
-    {
-        setModel(model);
-    }
-    srModel* model() const
-    {
-        return getModel();
-    }
 
     double getAlignAngle() const;
 #if defined(SURRENDER_BUILD)

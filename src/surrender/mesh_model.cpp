@@ -2507,7 +2507,7 @@ const char* srMeshModel::sGetClassName()
 // std::_Winit::~_Winit
 
 // SYNTHETIC: SURRENDER 0x100439F0
-// srClassSupport<srMeshModel, srModel, 0, 0x2010> scalar deleting destructor
+// srClassSupport<srMeshModel,srModel,0,8208>::`scalar deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x10043A10
 // srPtr<srTextureIFace> element destructor emission
@@ -2524,8 +2524,17 @@ const char* srMeshModel::sGetClassName()
 // SYNTHETIC: SURRENDER 0x100425B0
 // srMeshModel scalar deleting destructor
 
+// TEMPLATE: SURRENDER 0x10042990
+// srClassSupport<srMeshModel,srModel,0,8208>::getClassID
+
+// TEMPLATE: SURRENDER 0x100429A0
+// srClassSupport<srMeshModel,srModel,0,8208>::getClassName
+
+// TEMPLATE: SURRENDER 0x100429B0
+// srClassSupport<srMeshModel,srModel,0,8208>::getClassNode
+
 // TEMPLATE: SURRENDER 0x10042A10
-// srClassSupport<srMeshModel, srModel, 0, 0x2010>::clone
+// srClassSupport<srMeshModel, srModel, 0, 0x2010>::vClone
 
 // TEMPLATE: SURRENDER 0x10044010
 // srArray<T>::release emission
@@ -2535,6 +2544,9 @@ const char* srMeshModel::sGetClassName()
 
 // TEMPLATE: SURRENDER 0x10044050
 // srArray<T>::release emission
+
+// SYNTHETIC: SURRENDER 0x100425D0
+// srMeshModel::`vector deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x10042630
 // member copy-assignment emission

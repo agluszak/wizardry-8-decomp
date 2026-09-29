@@ -223,7 +223,7 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     model->getBoundingBox(minimum, maximum);
     model->autoRelease();
     model->setName("stCube");
-    instance->assignModel(model);
+    instance->setModel(model);
     entry->node_04 = instance;
 
     for (int index = 0; index < 3; ++index) {
@@ -301,7 +301,7 @@ void DrawWorldCursorNodeLabel(W8WorldCursorNode* entry)
         if (instance == 0) {
             srAssertFail("pstModelInstance", ST_CUBE_CPP, 0x124, 0);
         }
-        stMeshModel* mesh = static_cast<stMeshModel*>(instance->model());
+        stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel());
         if (mesh == 0) {
             srAssertFail("pstMeshModel", ST_CUBE_CPP, 0x127, 0);
         }
@@ -337,7 +337,7 @@ void ScaleWorldCursorNodeX(W8WorldCursorNode* entry, double scale)
     srVector3T<float> factors(static_cast<float>(scale), 1.0f, 1.0f);
     if (entry != 0) {
         stMeshModel* model =
-            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node_04)->model());
+            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node_04)->getModel());
         if (model != 0) {
             model->scale(factors);
         }
@@ -350,7 +350,7 @@ void ScaleWorldCursorNodeY(W8WorldCursorNode* entry, double scale)
     srVector3T<float> factors(1.0f, static_cast<float>(scale), 1.0f);
     if (entry != 0) {
         stMeshModel* model =
-            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node_04)->model());
+            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node_04)->getModel());
         if (model != 0) {
             model->scale(factors);
         }
@@ -363,7 +363,7 @@ void ScaleWorldCursorNodeZ(W8WorldCursorNode* entry, double scale)
     srVector3T<float> factors(1.0f, 1.0f, static_cast<float>(scale));
     if (entry != 0) {
         stMeshModel* model =
-            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node_04)->model());
+            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node_04)->getModel());
         if (model != 0) {
             model->scale(factors);
         }
@@ -673,7 +673,7 @@ unsigned int LoadWorldCursorNodes(int handle)
         if (cube != 0) {
             stModelInstance* instance = static_cast<stModelInstance*>(cube->node_04);
             if (instance != 0) {
-                stMeshModel* model = static_cast<stMeshModel*>(instance->model());
+                stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
                 if (model != 0) {
                     model->scale(scale);
                 }

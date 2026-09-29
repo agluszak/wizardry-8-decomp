@@ -4,7 +4,7 @@
 
 // VTABLE: SURRENDER 0x10075310 srFilter
 // class srFilter
-class SR_DLL_IMPORT srFilter {
+class SR_DLL_IMPORT SR_DLL_EXPORT srFilter {
 public:
     /* The trivial base members are defined inline. Retail emitted each as a
        real export while still folding it into the derived constructors/
@@ -13,36 +13,18 @@ public:
        that folding while still emitting the exported standalone copies. */
     // FUNCTION: SURRENDER 0x10003300
     // ??0srFilter@@QAE@XZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
-    srFilter()
-    {
-    }
+    srFilter() {}
 
     // FUNCTION: SURRENDER 0x10003310
     // ??0srFilter@@QAE@ABV0@@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
-    srFilter(const srFilter& other)
-    {
-    }
+    srFilter(const srFilter& other) {}
 
     // FUNCTION: SURRENDER 0x100032B0
     // ??1srFilter@@UAE@XZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
-    virtual ~srFilter()
-    {
-    }
+    virtual ~srFilter() {}
 
     // FUNCTION: SURRENDER 0x10003330
     // ??4srFilter@@QAEAAV0@ABV0@@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     srFilter& operator=(const srFilter& other)
     {
         return *this;
@@ -55,7 +37,7 @@ public:
 
 // VTABLE: SURRENDER 0x10075350 srBoxFilter
 // class srBoxFilter
-class SR_DLL_IMPORT srBoxFilter : public srFilter {
+class SR_DLL_IMPORT SR_DLL_EXPORT srBoxFilter : public srFilter {
 public:
     srBoxFilter();
     srBoxFilter(const srBoxFilter& other);
@@ -69,7 +51,7 @@ public:
 
 // VTABLE: SURRENDER 0x10075378 srBellFilter
 // class srBellFilter
-class SR_DLL_IMPORT srBellFilter : public srFilter {
+class SR_DLL_IMPORT SR_DLL_EXPORT srBellFilter : public srFilter {
 public:
     srBellFilter();
     srBellFilter(const srBellFilter& other);
@@ -83,7 +65,7 @@ public:
 
 // VTABLE: SURRENDER 0x10075398 srBSplineFilter
 // class srBSplineFilter
-class SR_DLL_IMPORT srBSplineFilter : public srFilter {
+class SR_DLL_IMPORT SR_DLL_EXPORT srBSplineFilter : public srFilter {
 public:
     srBSplineFilter();
     srBSplineFilter(const srBSplineFilter& other);
@@ -97,7 +79,7 @@ public:
 
 // VTABLE: SURRENDER 0x10075388 srTriangleFilter
 // class srTriangleFilter
-class SR_DLL_IMPORT srTriangleFilter : public srFilter {
+class SR_DLL_IMPORT SR_DLL_EXPORT srTriangleFilter : public srFilter {
 public:
     srTriangleFilter();
     srTriangleFilter(const srTriangleFilter& other);

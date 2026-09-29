@@ -580,15 +580,15 @@ void srLight::process(srVertexPipe& pipe)
 // FUNCTION: SURRENDER 0x1004DC80
 void srLight::traverse(TraverseInfo& info)
 {
-    if (nextSibling() != 0) {
-        nextSibling()->traverse(info);
+    if (next_sibling_ != 0) {
+        next_sibling_->traverse(info);
     }
     if (testFlag(FLAG_TERMINATE)) {
         return;
     }
     if (testFlag(FLAG_DISABLE) || fabsf(intensity_1d0) <= 0.0001f) {
-        if (firstChild() != 0) {
-            firstChild()->traverse(info);
+        if (first_child_ != 0) {
+            first_child_->traverse(info);
         }
         return;
     }
@@ -601,8 +601,8 @@ void srLight::traverse(TraverseInfo& info)
         info.nodes[info.node_count] = this;
         ++info.node_count;
     }
-    if (firstChild() != 0) {
-        firstChild()->traverse(info);
+    if (first_child_ != 0) {
+        first_child_->traverse(info);
     }
     if (!testFlag(FLAG_GLOBAL)) {
         TraverseInfo::Entry& entry = info.entries[info.entry_count];
@@ -833,8 +833,20 @@ float srLight::getSafeRange() const
 // SYNTHETIC: SURRENDER 0x1004EF00
 // srLight scalar deleting destructor
 
+// SYNTHETIC: SURRENDER 0x1004EF20
+// srLight::`vector deleting destructor'
+
+// TEMPLATE: SURRENDER 0x1004EF80
+// srClassSupport<srLight,srIlluminator,0,4640>::getClassID
+
+// TEMPLATE: SURRENDER 0x1004EF90
+// srClassSupport<srLight,srIlluminator,0,4640>::getClassName
+
+// TEMPLATE: SURRENDER 0x1004EFA0
+// srClassSupport<srLight,srIlluminator,0,4640>::getClassNode
+
 // TEMPLATE: SURRENDER 0x1004F030
-// srClassSupport<srLight, srIlluminator, false, 0x1220>::clone
+// srClassSupport<srLight, srIlluminator, false, 0x1220>::vClone
 
 // TEMPLATE: SURRENDER 0x1004F050
 // srClientSupport<srLight, 0x1220>::~srClientSupport
@@ -852,7 +864,13 @@ float srLight::getSafeRange() const
 // std::_Winit global atexit registrar
 
 // SYNTHETIC: SURRENDER 0x1004F250
-// srClientSupport<srLight, 0x1220> scalar deleting destructor
+// srClassSupport<srLight,srIlluminator,0,4640>::`scalar deleting destructor'
 
 // TEMPLATE: SURRENDER 0x1004F270
 // srClientSupport<srLight, 0x1220>::sGetClassNode
+
+// SYNTHETIC: SURRENDER 0x1004F300
+// srClassSupport<srLight,srIlluminator,0,4640>::`vector deleting destructor'`adjustor{312}'
+
+// SYNTHETIC: SURRENDER 0x1004F310
+// srLight::`vector deleting destructor'`adjustor{312}'

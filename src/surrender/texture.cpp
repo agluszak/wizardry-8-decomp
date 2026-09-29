@@ -489,10 +489,10 @@ srTextureIFace::~srTextureIFace() {}
 // srClassSupport<srTextureIFace, srClass, true, 0x2100>::srClassSupport
 
 // TEMPLATE: SURRENDER 0x1005EF80
-// srClassSupport<srTextureIFace, srClass, true, 0x2100>::clone
+// srClassSupport<srTextureIFace, srClass, true, 0x2100>::vClone
 
 // TEMPLATE: SURRENDER 0x1005F020
-// srClassSupport<srTexture, srTextureIFace, false, 0x2110>::clone
+// srClassSupport<srTexture, srTextureIFace, false, 0x2110>::vClone
 
 // TEMPLATE: SURRENDER 0x1005F040
 // srClientSupport<srTexture, 0x2110>::~srClientSupport

@@ -597,6 +597,9 @@ unsigned long srRuntimeClass::getID() const
     return id_08;
 }
 
+// SYNTHETIC: SURRENDER 0x10011BF0
+// srRuntimeClass::`vector deleting destructor'
+
 // FUNCTION: SURRENDER 0x10011C50
 srRegistry::ClassNode* srRuntimeClass::sGetClassNode()
 {
@@ -1538,8 +1541,11 @@ long srClass::getReferenceCount() const
 // SYNTHETIC: SURRENDER 0x10010780
 // srRegistry::ClassNode child-link list teardown (EH-unwind emission)
 
-// FUNCTION: SURRENDER 0x100109F0 SYMBOL
-// ?clearBlocks@IDIndex@ClassNode@srRegistry@@QAEXXZ
+/* Not clearBlocks (0x10010A90): this body expands clearBlocks and then
+   destroys blocks_08, and ~ClassNode (0x1000F772) and two unwind funclets
+   call it. Its authored identity is unresolved. */
+// SYNTHETIC: SURRENDER 0x100109F0
+// srRegistry::ClassNode::IDIndex block teardown with blocks_08 destruction
 
 // TEMPLATE: SURRENDER 0x10010B40
 // srArray<srRegistry::ClassNode::IDIndex::InstanceLink*>::release

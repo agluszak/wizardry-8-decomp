@@ -2,6 +2,12 @@
 
 #include "srIlluminator.h"
 
+// VTABLE: SURRENDER 0x100770F8 srVertexProcessor
+// class srClassSupport<srLight, srIlluminator, 0, 4640>
+
+// VTABLE: SURRENDER 0x10077104 srClassSupport<srIlluminator, srNode, 0, 4608>
+// class srClassSupport<srLight, srIlluminator, 0, 4640>
+
 /* Dump strings name attenuation model (No attenuation / OpenGL / 3DStudio Max),
    near/far ranges, OpenGL attenuation factors, safe range, spot, and the
    ambient/diffuse/specular coefficients. Ctor preset 0 sets enable flags
@@ -11,7 +17,7 @@
    virtual-base sub-table. */
 // VTABLE: SURRENDER 0x100770B8 srVertexProcessor
 // VTABLE: SURRENDER 0x100770C4 srLight
-class srLight : public srClassSupport<srLight, srIlluminator, false, 0x1220> {
+class SR_DLL_EXPORT srLight : public srClassSupport<srLight, srIlluminator, false, 0x1220> {
 public:
     enum e_preset { PRESET_POSITIONAL_0 = 0, PRESET_POSITIONAL_1 = 1, PRESET_POSITIONAL_2 = 2 };
     /* enable/disable/isEnabled take these as bit indices into +0x194.
@@ -38,7 +44,7 @@ public:
        constructor - the out-of-line 0x004CA8B0 emission and the copies
        inlined into 0x0049C2C0 - reaches this one as srLight(0, 1), so both
        parameters carry those defaults here. */
-    SR_DLL_IMPORT SR_DLL_EXPORT srLight(srNode* parent = 0, e_preset preset = PRESET_POSITIONAL_1);
+    SR_DLL_IMPORT srLight(srNode* parent = 0, e_preset preset = PRESET_POSITIONAL_1);
     SR_DLL_IMPORT srLight(const srLight& other);
     SR_DLL_IMPORT srLight& operator=(const srLight& other);
 

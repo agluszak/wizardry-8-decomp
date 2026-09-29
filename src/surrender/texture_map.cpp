@@ -107,8 +107,17 @@ srClass* srTextureMap::vInstance()
 // SYNTHETIC: SURRENDER 0x100608C0
 // srTextureMap default constructor closure
 
+// TEMPLATE: SURRENDER 0x100605A0
+// srClassSupport<srTextureMap,srTexture,0,8465>::getClassID
+
+// TEMPLATE: SURRENDER 0x100605B0
+// srClassSupport<srTextureMap,srTexture,0,8465>::getClassName
+
+// TEMPLATE: SURRENDER 0x100605C0
+// srClassSupport<srTextureMap,srTexture,0,8465>::getClassNode
+
 // TEMPLATE: SURRENDER 0x10060650
-// srClassSupport<srTextureMap, srTexture, 0, 0x2111>::clone
+// srClassSupport<srTextureMap, srTexture, 0, 0x2111>::vClone
 
 // TEMPLATE: SURRENDER 0x10060670
 // srClientSupport<srTextureMap, 0x2111>::~srClientSupport
@@ -119,8 +128,11 @@ srClass* srTextureMap::vInstance()
 // SYNTHETIC: SURRENDER 0x100608D0
 // srTextureMap scalar deleting destructor
 
+// SYNTHETIC: SURRENDER 0x100608F0
+// srTextureMap::`vector deleting destructor'
+
 // SYNTHETIC: SURRENDER 0x10060950
-// srClientSupport<srTextureMap, 0x2111> scalar deleting destructor
+// srClassSupport<srTextureMap,srTexture,0,8465>::`scalar deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x10060980
 // std::ios_base::Init global static-init block

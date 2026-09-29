@@ -3940,7 +3940,7 @@ Trigger::~Trigger()
 // srClassSupport<Trigger,srClass,1,65544>::getClassName
 
 // TEMPLATE: WIZ8 0x00445af0
-// srClassSupport<Trigger,srClass,1,65544>::clone
+// srClassSupport<Trigger,srClass,1,65544>::vClone
 
 // TEMPLATE: WIZ8 0x00445e00
 // srClassSupport<Trigger,srClass,1,65544>::~srClassSupport<Trigger,srClass,1,65544>

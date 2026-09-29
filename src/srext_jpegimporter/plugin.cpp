@@ -7,9 +7,7 @@
 #include "codec_adapter.h"
 #include "plugin_classes.h"
 
-srJPEGPlugin::~srJPEGPlugin()
-{
-}
+srJPEGPlugin::~srJPEGPlugin() {}
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x10014D40
 srJPEGImporter::srJPEGImporter()
@@ -68,7 +66,7 @@ bool srJPEGImporter::readHeader(void* input_cookie)
 // srClientSupport<srColorSurface,12560>::getClassNode
 
 // TEMPLATE: SREXT_JPEGIMPORTER 0x100154E0
-// srClientSupport<srColorSurface,12560>::clone
+// srClientSupport<srColorSurface,12560>::vClone
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x10014BA0
 const char* srJPEGPlugin::getDescription() const

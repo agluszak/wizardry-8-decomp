@@ -497,7 +497,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
             stModelInstance* instance =
                 static_cast<stModelInstance*>(g_world->psrMeshes[m_pSubmeshes[submesh].mesh_04]);
             if (instance != 0) {
-                srModel* model = instance->model();
+                srModel* model = instance->getModel();
                 if (model != 0) {
                     W8BoundingBox bounds;
                     model->getBoundingBox(bounds.minimum, bounds.maximum);
@@ -518,7 +518,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
         while (bit != 0) {
             srModelInstance* instance = m_papProps[bit - 2]->ToggleRepAnimationDefault();
             if (instance != 0) {
-                srModel* model = instance->model();
+                srModel* model = instance->getModel();
                 if (model != 0) {
                     srVector3T<float> center;
                     float sphere_radius;
@@ -1374,13 +1374,13 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
                         if (mesh != 0) {
                             unsigned int faces = MeasureNodeRender(mesh);
                             all_known = 9 < faces;
-                            srNode* child = mesh->firstChild();
+                            srNode* child = mesh->first_child_;
                             while (child != 0 && descend != 0) {
                                 faces = MeasureNodeRender(child);
                                 if (9 < faces) {
                                     all_known = true;
                                 }
-                                child = child->firstChild();
+                                child = child->first_child_;
                             }
                             if (!all_known) {
                                 unsigned int candidate = *cells.GetAt(i);
@@ -1409,14 +1409,14 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
                                     m_projected_regions_15c->Set(cell);
                                     linked = true;
                                 }
-                                srNode* child = mesh->firstChild();
+                                srNode* child = mesh->first_child_;
                                 while (child != 0 && descend != 0) {
                                     faces = MeasureNodeRender(child);
                                     if (9 < faces) {
                                         m_projected_regions_15c->Set(cell);
                                         linked = true;
                                     }
-                                    child = child->firstChild();
+                                    child = child->first_child_;
                                 }
                                 m_pSubmeshes[cell].flags_00 &= 0xfffffff7;
                                 srNode* node = g_world->psrMeshes[m_pSubmeshes[cell].mesh_04];
@@ -1806,7 +1806,7 @@ int W8Octree::CountBadRegionMeshLinks(W8OctSpatialState* spatial)
                 stModelInstance* mesh =
                     static_cast<stModelInstance*>(g_world->psrMeshes[m_pSubmeshes[link].mesh_04]);
                 if (mesh != 0) {
-                    stMeshModel* model = static_cast<stMeshModel*>(mesh->model());
+                    stMeshModel* model = static_cast<stMeshModel*>(mesh->getModel());
                     srVector3T<float> minimum;
                     srVector3T<float> maximum;
                     minimum.x = minimum.y = minimum.z = 1.0e7f;
@@ -3421,7 +3421,8 @@ unsigned char W8Octree::TestProbeResult(W8OctreeTrace* trace)
         unsigned int mesh_index = m_aulGDObjs[index] >> 0x10;
         if (mesh_index < m_meshCount_1b4 && g_world->psrMeshes[mesh_index] != 0 &&
             m_pAlphaBits->Test(mesh_index) == 0) {
-            stMeshModel* model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh_index]->model());
+            stMeshModel* model =
+                static_cast<stMeshModel*>(g_world->psrMeshes[mesh_index]->getModel());
             const srVector4T<float>* planes = model->getPolyEq();
             unsigned int polygon = m_aulGDObjs[index] & 0xffff;
             const srVector4T<float>* plane = planes + polygon;
@@ -3533,7 +3534,7 @@ unsigned long* W8Octree::CollectPolygonsNearPoint(srVector3T<float>* center, flo
         stMeshModel* model = 0;
         if (mesh_index < m_meshCount_1b4 && g_world->psrMeshes[mesh_index] != 0 &&
             m_pAlphaBits->Test(mesh_index) == 0) {
-            model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh_index]->model());
+            model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh_index]->getModel());
             const srVector4T<float>* planes = model->getPolyEq();
             unsigned int polygon = m_aulGDObjs[index] & 0xffff;
             if (planes[polygon].y < g_float_005ebc7c) {

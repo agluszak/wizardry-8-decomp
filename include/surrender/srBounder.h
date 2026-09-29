@@ -2,15 +2,17 @@
 
 #include "srNode.h"
 
+// VTABLE: SURRENDER 0x10076F64
+// class srClassSupport<srBounder, srNode, 0, 5632>
+
 // VTABLE: SURRENDER 0x10076f30 srBounder
-// VTABLE: SURRENDER 0x10076f64 srClassSupport<srBounder, srNode, 0, 5632>
 /* Provider-only SR class: no known Wizardry/JPEG/ZIP consumer imports its
    members. Provider exports are not a reason to apply SR_DLL_IMPORT here. */
-class srBounder : public srClassSupport<srBounder, srNode, false, 0x1600> {
+class SR_DLL_EXPORT srBounder : public srClassSupport<srBounder, srNode, false, 0x1600> {
 public:
     enum e_boundMode { BOUND_MODE_POSITIONAL_0 = 0 };
 
-    SR_DLL_EXPORT srBounder(srNode* parent = 0);
+    srBounder(srNode* parent = 0);
     srBounder(const srBounder& other);
     srBounder& operator=(const srBounder& other);
 

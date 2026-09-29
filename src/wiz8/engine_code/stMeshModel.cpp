@@ -1584,7 +1584,7 @@ void stMeshModel::FinalizeVertexFrame(int frame)
 // srClassSupport<stMeshModel,srMeshModel,0,65539>::getClassName
 
 // TEMPLATE: WIZ8 0x00474200
-// srClassSupport<stMeshModel,srMeshModel,0,65539>::clone
+// srClassSupport<stMeshModel,srMeshModel,0,65539>::vClone
 
 // TEMPLATE: WIZ8 0x00474820
 // srClassSupport<stMeshModel,srMeshModel,0,65539>::getClassNode

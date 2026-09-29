@@ -132,7 +132,7 @@ stGroundShadow::stGroundShadow(srNode* parent)
 stGroundShadow::stGroundShadow(const stGroundShadow& other)
     : srClassSupport<stGroundShadow, srNode, false, 0x10010>(static_cast<srNode*>(0))
 {
-    setParent(other.parentNode(), 1);
+    setParent(other.parent_, 1);
     setName(other.getName());
     angle_138 = other.angle_138;
     depth_13c = other.depth_13c;
@@ -144,8 +144,8 @@ stGroundShadow::stGroundShadow(const stGroundShadow& other)
    sorts ahead of surface2d.cpp. */
 void stGroundShadow::traverse(TraverseInfo& info)
 {
-    if (nextSibling() != 0) {
-        nextSibling()->traverse(info);
+    if (next_sibling_ != 0) {
+        next_sibling_->traverse(info);
     }
 
     if (!testFlag(FLAG_DISABLE)) {
@@ -155,8 +155,8 @@ void stGroundShadow::traverse(TraverseInfo& info)
         ++info.entry_count;
     }
 
-    if (!testFlag(FLAG_TERMINATE) && firstChild() != 0) {
-        firstChild()->traverse(info);
+    if (!testFlag(FLAG_TERMINATE) && first_child_ != 0) {
+        first_child_->traverse(info);
     }
 }
 
@@ -220,7 +220,7 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
 
     while (*polygons != 0) {
         mesh_index = *polygons >> 0x10;
-        model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh_index]->model());
+        model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh_index]->getModel());
         model->getTriMesh(mesh);
         count = 0;
         while (*polygons != 0 && (*polygons >> 0x10) == mesh_index) {
@@ -256,7 +256,7 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
 stGroundShadow::~stGroundShadow() {}
 
 // TEMPLATE: WIZ8 0x004d6a30
-// srClassSupport<stGroundShadow,srNode,0,65552>::clone
+// srClassSupport<stGroundShadow,srNode,0,65552>::vClone
 
 // FUNCTION: WIZ8 0x004d6bf0
 srClass* stGroundShadow::vInstance()

@@ -2,6 +2,9 @@
 
 #include "srNode.h"
 
+// VTABLE: SURRENDER 0x10076EF4
+// class srClassSupport<srClipPlane, srNode, 0, 5376>
+
 /* Reconstructed declaration surface for the closed SurRender class. The
    exported constructor and virtual methods establish the ABI; the exported
    ctor/dtor registration dance proves the srClassSupport base (0x1500 under
@@ -16,7 +19,8 @@
    exports from clipplane.cpp. */
 // VTABLE: SURRENDER 0x10076EC0 srClipPlane
 // class srClipPlane
-class SR_DLL_IMPORT srClipPlane : public srClassSupport<srClipPlane, srNode, false, 0x1500> {
+class SR_DLL_IMPORT SR_DLL_EXPORT srClipPlane
+    : public srClassSupport<srClipPlane, srNode, false, 0x1500> {
 public:
     typedef srClientSupport<srClipPlane, 0x1500> ClientType;
 
@@ -24,7 +28,7 @@ public:
        always writes 0. */
     enum e_clip { CLIP_POSITIONAL_0 = 0 };
 
-    SR_DLL_EXPORT srClipPlane(srNode* parent = 0);
+    srClipPlane(srNode* parent = 0);
     srClipPlane(const srClipPlane& other);
     srClipPlane& operator=(const srClipPlane& other);
 

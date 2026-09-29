@@ -1878,7 +1878,7 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
 
     srModelInstance* model = AnimObjDispatch(animation, 2, dispatch_value);
     if (model != 0) {
-        stMeshModel* mesh = static_cast<stMeshModel*>(model->model());
+        stMeshModel* mesh = static_cast<stMeshModel*>(model->getModel());
         int vertex = FindMappedIndexInMeshChain(&mesh, mapped_index);
         if (mesh != 0 && vertex != -1) {
             srVector3T<float>* vertices = mesh->GetVertexLocations(dispatch_value, 1, 0.0f);
@@ -3611,8 +3611,8 @@ void W8Monster::SetCycle(signed char cycle)
 
         m_pRep->highlight_colour_04c = empty;
         instance = SelectCycleFrameLod(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
-        if (instance != 0 && instance->model() != 0 &&
-            strstr(instance->model()->getName(), "gib") != 0) {
+        if (instance != 0 && instance->getModel() != 0 &&
+            strstr(instance->getModel()->getName(), "gib") != 0) {
             SetAngles(
                 static_cast<float>(g_monster_death_rotation_pi * g_float_005ebcf8 * Random(0x168)));
         }
@@ -4475,7 +4475,7 @@ void W8Monster::GetMappedPosition(srVector3T<float>* position)
     srModelInstance* instance = GetCurrentModelInstance();
 
     if (instance != 0) {
-        stMeshModel* mesh = static_cast<stMeshModel*>(instance->model());
+        stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel());
         while (mesh != 0) {
             int index = mesh->FindMappedIndex(0);
 
@@ -5026,7 +5026,7 @@ void W8Monster::RemoveCycleSkinTables()
     if (cycle_name != 0) {
         CollectModelInstances(&instances);
         for (int index = 0; index < instances.GetCount(); ++index) {
-            stMeshModel* mesh = static_cast<stMeshModel*>((*instances.GetAt(index))->model());
+            stMeshModel* mesh = static_cast<stMeshModel*>((*instances.GetAt(index))->getModel());
             for (; mesh != 0; mesh = mesh->next) {
                 mesh->RemoveSkinTablesForCycle(cycle_name);
             }
@@ -5215,7 +5215,7 @@ void W8Monster::InitializeAnimatedTexture()
             srMeshModel* model;
 
             instance = SelectCycleFrameLod(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
-            model = static_cast<srMeshModel*>(instance->model());
+            model = static_cast<srMeshModel*>(instance->getModel());
             if (MeshHasAnimatedTexture(model) == 0) {
                 flags_1dc &= ~W8_MONSTER_ANIMATED_TEXTURE;
             } else {
@@ -5324,7 +5324,7 @@ W8Item* CreateMonsterIconItem(W8World* world, const char* path, int flag)
             static_cast<stModelInstance*>(MakePosterQuad(texture, 500.0f, 500.0f, 1));
         if (instance != 0) {
             srVector3T<float> offset(0.0f, 250.0f, 0.0f);
-            static_cast<srMeshModel*>(instance->model())->relocateVertices(offset);
+            static_cast<srMeshModel*>(instance->getModel())->relocateVertices(offset);
             instance->setAlignment(1);
             W8Item* item = new W8Item();
             if (item != 0) {

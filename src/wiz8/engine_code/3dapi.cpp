@@ -401,7 +401,7 @@ void UpdateWorld(W8World* world)
 // srClientSupport<srNode,4096>::getClassID
 
 // TEMPLATE: WIZ8 0x004519F0
-// srClientSupport<srNode,4096>::clone
+// srClientSupport<srNode,4096>::vClone
 
 // SYNTHETIC: WIZ8 0x0044F3D0
 // srClientSupport<srNode,4096>::`scalar deleting destructor'

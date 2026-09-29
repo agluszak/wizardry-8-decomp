@@ -11,6 +11,9 @@
 #include "srTexture.h"
 #include "srTypeRegistry.h"
 
+// VTABLE: SURRENDER 0x10076D9C
+// class srClassSupport<srMeshModel, srModel, 0, 8208>
+
 // VTABLE: SURRENDER 0x10076D48 srMeshModel
 class SR_DLL_IMPORT srMeshModel : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
 public:

@@ -5,6 +5,9 @@
 #include "srTypeRegistry.h"
 #include "srVertexPipe.h"
 
+// VTABLE: SURRENDER 0x1007556C
+// class srClassSupport<srMaterial, srMaterialIFace, 0, 8720>
+
 /* srMaterial's exported vftable has thirteen slots, and the first seven are
    srClass's: evidence/snapshots/surrender-abi/vftable-slots.csv resolves slots
    3, 4 and 6 to dump, verify and vInstance, and Wizardry's stMaterial overrides
@@ -14,21 +17,17 @@
    Two parameter types are simplified and neither moves a slot:
    getMaterialInfo really takes srVertexProcessor::MaterialInfo&. */
 /* Retail exports the standalone default-constructor copy in addition to
-   folding the in-class body into callers, so the provider annotates the member.
-   Class-level dllexport cannot be used: it eagerly instantiates the
-   srClassSupport template base, including forwarding constructors
-   srMaterialIFace does not provide. The declared lifecycle members and the
-   vftable already emit from the srMaterial.cpp TU and export through sr.def. */
+   folding the in-class body into callers; the class-level export emits it.
+   The declared lifecycle members and the vftable emit from the srMaterial.cpp
+   TU and export through sr.def. */
 // VTABLE: SURRENDER 0x10075538 srMaterial
-class SR_DLL_IMPORT srMaterial : public srClassSupport<srMaterial, srMaterialIFace, 0, 0x2210> {
+class SR_DLL_IMPORT SR_DLL_EXPORT srMaterial
+    : public srClassSupport<srMaterial, srMaterialIFace, 0, 0x2210> {
 public:
     enum e_oper {};
 
     // FUNCTION: SURRENDER 0x10034700 SYMBOL
     // ??0srMaterial@@QAE@XZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     inline srMaterial()
     {
         reset();
@@ -68,9 +67,6 @@ public:
     int isEnabled(e_oper operation) const;
     // FUNCTION: SURRENDER 0x10034930 SYMBOL
     // ?setAmbient@srMaterial@@QAEXABV?$srVector4T@M@@@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     void setAmbient(const srVector4T<float>& ambient)
     {
         setVector(parms.ambient, ambient);
@@ -78,36 +74,24 @@ public:
     void setAmbientAndDiffuse(const srVector4T<float>& color);
     // FUNCTION: SURRENDER 0x10034960 SYMBOL
     // ?setDiffuse@srMaterial@@QAEXABV?$srVector4T@M@@@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     inline void setDiffuse(const srVector4T<float>& diffuse)
     {
         setVector(parms.diffuse, diffuse);
     }
     // FUNCTION: SURRENDER 0x10034990 SYMBOL
     // ?setEmissive@srMaterial@@QAEXABV?$srVector4T@M@@@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     inline void setEmissive(const srVector4T<float>& emissive)
     {
         setVector(parms.emissive, emissive);
     }
     // FUNCTION: SURRENDER 0x10034B40 SYMBOL
     // ?setMapper@srMaterial@@QAEXPAVsrVertexProcessor@@@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     inline void setMapper(srVertexProcessor* mapper)
     {
         mapper_70 = mapper;
     }
     // FUNCTION: SURRENDER 0x10034A80 SYMBOL
     // ?setOpacity@srMaterial@@QAEXN@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     inline void setOpacity(double opacity)
     {
         parms.diffuse.w = static_cast<float>(opacity);
@@ -116,9 +100,6 @@ public:
     void setShininess(double shininess);
     // FUNCTION: SURRENDER 0x100349C0 SYMBOL
     // ?setSpecular@srMaterial@@QAEXABV?$srVector4T@M@@@Z
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     inline void setSpecular(const srVector4T<float>& specular)
     {
         setVector(parms.specular, specular);

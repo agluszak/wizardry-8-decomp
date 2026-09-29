@@ -85,7 +85,7 @@ void GDProp::PrepareGeometry(srModelInstance* instance)
 {
     int surface_count = 0;
     int vertex_count = 0;
-    stMeshModel* mesh = static_cast<stMeshModel*>(instance->model());
+    stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel());
     while (mesh != 0) {
         surface_count += mesh->polygon_count_230;
         vertex_count += mesh->vertex_location_count_22c;
@@ -141,7 +141,7 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
 
     int vertex_base = 0;
     int surface_total = 0;
-    stMeshModel* mesh = static_cast<stMeshModel*>(instance->model());
+    stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel());
     while (mesh != 0) {
         unsigned int mesh_flags = mesh->flags_3a0;
         srVector3i* polygon_vertices = mesh->getPolyVertex();

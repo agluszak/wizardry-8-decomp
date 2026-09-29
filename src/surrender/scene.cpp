@@ -78,10 +78,10 @@ srScene& srScene::operator=(const srScene& other)
 // FUNCTION: SURRENDER 0x100561F0
 void srScene::traverse(TraverseInfo& info)
 {
-    if (nextSibling() != 0) {
-        nextSibling()->traverse(info);
+    if (next_sibling_ != 0) {
+        next_sibling_->traverse(info);
     }
-    if (!testFlag(FLAG_DISABLE) && !testFlag(FLAG_TERMINATE) && firstChild() != 0) {
+    if (!testFlag(FLAG_DISABLE) && !testFlag(FLAG_TERMINATE) && first_child_ != 0) {
         TraverseInfo::Entry& entry = info.entries[info.entry_count];
         entry.node = this;
         entry.value = 0;
@@ -92,14 +92,14 @@ void srScene::traverse(TraverseInfo& info)
 // FUNCTION: SURRENDER 0x100562E0
 void srScene::process(const ProcessInfo& info, e_processType type)
 {
-    if (firstChild() == 0) {
+    if (first_child_ == 0) {
         return;
     }
     traversal_158.entry_count = 0;
     traversal_158.node_count = 0;
     traversal_158.renderer = 0;
     traversal_158.renderer = info.renderer;
-    firstChild()->traverse(traversal_158);
+    first_child_->traverse(traversal_158);
     if (traversal_158.nodes.capacity == 0) {
         traversal_158.nodes.setCapacity(8);
     }
@@ -159,7 +159,7 @@ void srScene::render(srGERD& renderer, srCamera* camera)
     if (renderer_pointer == 0) {
         return;
     }
-    if (testFlag(FLAG_DISABLE) || testFlag(FLAG_TERMINATE) || firstChild() == 0) {
+    if (testFlag(FLAG_DISABLE) || testFlag(FLAG_TERMINATE) || first_child_ == 0) {
         return;
     }
     srNode::lockSceneGraph();
@@ -297,8 +297,17 @@ void srScene::setFogColor(const srVector3T<float>& color)
 // SYNTHETIC: SURRENDER 0x10056980
 // member pointer-pair destructor emission (EH unwind)
 
+// TEMPLATE: SURRENDER 0x100569F0
+// srClassSupport<srScene,srNode,0,4112>::getClassID
+
+// TEMPLATE: SURRENDER 0x10056A00
+// srClassSupport<srScene,srNode,0,4112>::getClassName
+
+// TEMPLATE: SURRENDER 0x10056A10
+// srClassSupport<srScene,srNode,0,4112>::getClassNode
+
 // TEMPLATE: SURRENDER 0x10056A70
-// srClassSupport<srScene, srNode, 0, 0x1010>::clone
+// srClassSupport<srScene, srNode, 0, 0x1010>::vClone
 
 // TEMPLATE: SURRENDER 0x10056A90
 // srClientSupport<srScene, 0x1010>::~srClientSupport
@@ -306,11 +315,14 @@ void srScene::setFogColor(const srVector3T<float>& color)
 // SYNTHETIC: SURRENDER 0x10057090
 // srScene scalar deleting destructor
 
+// SYNTHETIC: SURRENDER 0x100570B0
+// srScene::`vector deleting destructor'
+
 // SYNTHETIC: SURRENDER 0x10057110
 // member destructor emission (EH unwind)
 
 // SYNTHETIC: SURRENDER 0x10057150
-// srClientSupport<srScene, 0x1010> scalar deleting destructor
+// srClassSupport<srScene,srNode,0,4112>::`scalar deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x10057180
 // std::ios_base::Init global static-init block

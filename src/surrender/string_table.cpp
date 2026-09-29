@@ -196,7 +196,7 @@ inline srInlineString::srInlineString(const char* source)
 }
 
 // FUNCTION: SURRENDER 0x100040A0 SYMBOL
-// ??1srInlineString@@QAEXXZ
+// ??1srInlineString@@QAE@XZ
 inline srInlineString::~srInlineString()
 {
     if (data_ != inline_) {

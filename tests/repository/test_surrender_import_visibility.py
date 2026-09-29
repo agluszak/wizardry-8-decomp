@@ -13,7 +13,7 @@ from pathlib import Path
 REPOSITORY = Path(__file__).resolve().parents[2]
 SURRENDER_HEADERS = REPOSITORY / "include" / "surrender"
 
-CLASS_IMPORT_RE = re.compile(r"\bclass\s+SR_DLL_IMPORT\s+([A-Za-z_]\w*)")
+CLASS_IMPORT_RE = re.compile(r"\bclass\s+SR_DLL_IMPORT\s+(?:SR_DLL_EXPORT\s+)?([A-Za-z_]\w*)")
 COMMENT_RE = re.compile(r"//[^\n]*|/\*.*?\*/", re.DOTALL)
 
 # Audited class-wide imports. Removing one is just as ABI-significant as adding
@@ -172,7 +172,7 @@ def test_mixed_headers_match_audited_member_import_surface() -> None:
 
 def test_fstream_opener_stays_provider_only() -> None:
     text = _code(SURRENDER_HEADERS / "srIStreamOpener.h")
-    marker = "class srFStreamOpener"
+    marker = "class SR_DLL_EXPORT srFStreamOpener"
     assert marker in text
     fstream_declaration = text.split(marker, 1)[1]
     assert "SR_DLL_IMPORT" not in fstream_declaration, (

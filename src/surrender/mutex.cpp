@@ -15,6 +15,9 @@ srMutex& srMutex::operator=(const srMutex& mutex)
     return *this;
 }
 
+// SYNTHETIC: SURRENDER 0x10045930
+// srMutex::`vector deleting destructor'
+
 // FUNCTION: SURRENDER 0x10045A40
 srMutex::srMutex()
 {

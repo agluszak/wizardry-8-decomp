@@ -321,7 +321,7 @@ void UpdateWorldMeshFromQuads(W8World* world)
         srAssertFail("pWorld->Tree.pQuads", "C:\\Projects\\Wizardry 8\\Engine Code\\UpdateMesh.cpp",
                      0x220, 0);
     }
-    srMeshModel* mesh = static_cast<srMeshModel*>(world->update_mesh_source->model());
+    srMeshModel* mesh = static_cast<srMeshModel*>(world->update_mesh_source->getModel());
     W8Quad* quad = world->m_owned_06c;
     g_visible_quad_count = 0;
     CollectViewQuadCells(world, g_visible_quad_rows, g_visible_quad_columns, &g_visible_quad_count);
@@ -392,7 +392,7 @@ void UpdateWorldMesh(W8World* world)
     }
     source = world->update_mesh_source;
     if (source != 0) {
-        mesh = static_cast<srMeshModel*>(source->model());
+        mesh = static_cast<srMeshModel*>(source->getModel());
         polygon_count = mesh->polygon_count_230;
         mesh->setActivePolygonCount(polygon_count);
         table = mesh->getActivePolygonTable(1);

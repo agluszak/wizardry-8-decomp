@@ -141,12 +141,12 @@ void srBounder::process(const ProcessInfo& info, e_processType type) {}
 // FUNCTION: SURRENDER 0x1004A6F0
 void srBounder::traverse(TraverseInfo& info)
 {
-    if (nextSibling() != 0) {
-        nextSibling()->traverse(info);
+    if (next_sibling_ != 0) {
+        next_sibling_->traverse(info);
     }
     if (testFlag(FLAG_TERMINATE) == 0) {
         srGERD* renderer = info.renderer;
-        if (testFlag(FLAG_DISABLE) == 0 && renderer != 0 && firstChild() != 0) {
+        if (testFlag(FLAG_DISABLE) == 0 && renderer != 0 && first_child_ != 0) {
             if (bound_mode_138_ == BOUND_MODE_POSITIONAL_0 &&
                 testNotify(NOTIFY_POSITIONAL_0) != 0) {
                 updateBounds();
@@ -168,8 +168,8 @@ void srBounder::traverse(TraverseInfo& info)
                 renderer->popMatrix();
             }
         }
-        if (firstChild() != 0) {
-            firstChild()->traverse(info);
+        if (first_child_ != 0) {
+            first_child_->traverse(info);
         }
     }
 }
@@ -186,7 +186,7 @@ void srBounder::updateBounds()
         srMatrix4T<float> world;
         getWorldSpaceMatrix(world);
         inverse_world_168_.Inverse(world);
-        for (srNode* child = firstChild(); child != 0; child = child->getNext()) {
+        for (srNode* child = first_child_; child != 0; child = child->getNext()) {
             getChildBoundingBox(child);
         }
         if (bounds_13c_.state_28 == 1) {
@@ -292,14 +292,26 @@ void srBounder::dump(std::ostream& stream)
 // SYNTHETIC: SURRENDER 0x1004B3A0
 // srBounder default constructor closure
 
+// TEMPLATE: SURRENDER 0x1004AF10
+// srClassSupport<srBounder,srNode,0,5632>::getClassID
+
+// TEMPLATE: SURRENDER 0x1004AF20
+// srClassSupport<srBounder,srNode,0,5632>::getClassName
+
+// TEMPLATE: SURRENDER 0x1004AF30
+// srClassSupport<srBounder,srNode,0,5632>::getClassNode
+
 // TEMPLATE: SURRENDER 0x1004AF90
-// srClassSupport<srBounder, srNode, false, 0x1600>::clone
+// srClassSupport<srBounder, srNode, false, 0x1600>::vClone
 
 // TEMPLATE: SURRENDER 0x1004AFB0
 // srClassSupport<srBounder, srNode, false, 0x1600>::~srClassSupport
 
 // SYNTHETIC: SURRENDER 0x1004B3B0
 // srBounder scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x1004B3D0
+// srBounder::`vector deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x1004B440
 // std::ios_base::Init global static-init block
@@ -314,4 +326,4 @@ void srBounder::dump(std::ostream& stream)
 // std::_Winit global atexit registrar
 
 // SYNTHETIC: SURRENDER 0x1004B4B0
-// srClassSupport<srBounder, srNode, false, 0x1600> scalar deleting destructor
+// srClassSupport<srBounder,srNode,0,5632>::`scalar deleting destructor'

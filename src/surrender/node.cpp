@@ -503,6 +503,9 @@ void srNode::checkTransformation() const
     }
 }
 
+// SYNTHETIC: SURRENDER 0x10051BF0
+// srNode::`vector deleting destructor'
+
 // FUNCTION: SURRENDER 0x10051C50
 void srNode::setFlag(e_flag flag)
 {
@@ -1541,8 +1544,14 @@ void srNode::rollAt(const srNode* target, double amount)
 // TEMPLATE: SURRENDER 0x10055450
 // srVector3T<double>::Length
 
+// TEMPLATE: SURRENDER 0x100554B0
+// srClassSupport<srNode,srClass,1,4096>::getClassID
+
+// TEMPLATE: SURRENDER 0x100554D0
+// srClassSupport<srNode,srClass,1,4096>::getClassNode
+
 // TEMPLATE: SURRENDER 0x10055510
-// srClassSupport<srNode, srClass, true, 0x1000>::clone
+// srClassSupport<srNode, srClass, true, 0x1000>::vClone
 
 // TEMPLATE: SURRENDER 0x10055530
 // srClassSupport<srNode, srClass, true, 0x1000>::~srClassSupport
@@ -1563,7 +1572,7 @@ void srNode::rollAt(const srNode* target, double amount)
 // std::_Winit global atexit registrar
 
 // SYNTHETIC: SURRENDER 0x100556B0
-// srClassSupport<srNode, srClass, true, 0x1000> scalar deleting destructor
+// srClassSupport<srNode,srClass,1,4096>::`scalar deleting destructor'
 
 // TEMPLATE: SURRENDER 0x100556D0
 // srClassSupport<srNode, srClass, true, 0x1000>::sGetClassNode

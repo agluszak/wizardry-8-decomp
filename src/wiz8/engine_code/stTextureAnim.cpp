@@ -24,7 +24,7 @@
 // srClassSupport<stTextureAnim,srTexture,0,65536>::getClassNode
 
 // TEMPLATE: WIZ8 0x004858B0
-// srClassSupport<stTextureAnim,srTexture,0,65536>::clone
+// srClassSupport<stTextureAnim,srTexture,0,65536>::vClone
 
 // TEMPLATE: WIZ8 0x00485910
 // srClassSupport<stTextureAnim,srTexture,0,65536>::~srClassSupport<stTextureAnim,srTexture,0,65536>

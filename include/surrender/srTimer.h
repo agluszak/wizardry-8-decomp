@@ -26,7 +26,7 @@
    constructor addresses them. */
 #pragma pack(push, 4)
 // VTABLE: SURRENDER 0x10077620 srTimer
-class SR_DLL_IMPORT srTimer {
+class SR_DLL_IMPORT SR_DLL_EXPORT srTimer {
 public:
     enum e_timerReadControl { TIMER_READ_DEFAULT = 0 };
     /* CPUID signature processor-type field (EAX bits 12:13). */
@@ -37,7 +37,7 @@ public:
         CPU_TYPE_RESERVED = 3
     };
 
-    SR_DLL_EXPORT srTimer(int argument_0 = 0, int argument_1 = 0, int argument_2 = 1);
+    srTimer(int argument_0 = 0, int argument_1 = 0, int argument_2 = 1);
     srTimer(const srTimer& other);
     srTimer& operator=(const srTimer& other);
 
@@ -64,18 +64,12 @@ public:
        exported standalone copies. */
     // FUNCTION: SURRENDER 0x10062340
     // ?getCPUIdent@srTimer@@QBEPBDXZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     const char* getCPUIdent() const
     {
         return m_cpu_ident;
     }
     // FUNCTION: SURRENDER 0x10062330
     // ?getCPUCount@srTimer@@QBEKXZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     unsigned long getCPUCount() const
     {
         return m_cpu_count;
@@ -88,27 +82,18 @@ public:
     int getCPUIDSupport() const;
     // FUNCTION: SURRENDER 0x100623B0
     // ?getFPUSupport@srTimer@@QBEHXZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     int getFPUSupport() const
     {
         return m_cpu_features & 1;
     }
     // FUNCTION: SURRENDER 0x100623D0
     // ?getMMXSupport@srTimer@@QBEHXZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     int getMMXSupport() const
     {
         return m_cpu_features >> 0x17 & 1;
     }
     // FUNCTION: SURRENDER 0x100623C0
     // ?getRDTSCSupport@srTimer@@QBEHXZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     int getRDTSCSupport() const
     {
         return m_cpu_features >> 4 & 1;
@@ -116,9 +101,6 @@ public:
     void getFreq(srQuadWord& out) const;
     // FUNCTION: SURRENDER 0x100621E0
     // ?getFreqf@srTimer@@QBENXZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     double getFreqf() const
     {
         return m_frequency.lo * 1e-06 + m_frequency.hi * 4294.967296;
@@ -132,9 +114,6 @@ public:
        member dllexport emits the exported standalone copy. */
     // FUNCTION: SURRENDER 0x10062750
     // ?fastThreads@srTimer@@QAEHXZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     int fastThreads()
     {
         if (osThreadState == -1) {
@@ -171,9 +150,11 @@ public:
 protected:
     int retrieve();
     int store();
-    /* Internal frequency calibration; the record is the registry persistence
-       blob reset() fills. */
-    static int calibrate(struct srTimerConfig* config);
+    /* Internal frequency calibration over the registry persistence blob
+       reset() fills. Retail neither exports it from this class-level export
+       nor passes it a timer, so it is a free function; it installs the
+       protected RDTSC reader. */
+    friend int calibrate(struct srTimerConfig* config);
 
     static int __stdcall getTick(srQuadWord* out);
     static int __stdcall RDTSC(srQuadWord* out);

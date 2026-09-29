@@ -5,13 +5,16 @@
 
 class srColorSurfaceIFace;
 
+// VTABLE: SURRENDER 0x100753EC
+// class srClassSupport<srPalette, srClass, 1, 10496>
+
 /* SR.DLL owns palette storage and behavior. Its exported constructors and the
    allocation in Wizardry's TGA loader prove a 0x28-byte srClass-derived
    object. The executable emits the inline srClassSupport registry and clone
    slots, which is why its local vtable mixes imported srPalette methods with
    the 0x2900 class-support methods recovered in stTextureFile.cpp. */
 // VTABLE: SURRENDER 0x100753CC srPalette
-class srPalette : public srClassSupport<srPalette, srClass, 1, 0x2900> {
+class SR_DLL_EXPORT srPalette : public srClassSupport<srPalette, srClass, 1, 0x2900> {
 public:
     /* Provider-side quantizer; its 0x21918-byte allocation and member surface
        are evidenced by updateQuantizer (0x10004240) and the exported
@@ -181,7 +184,7 @@ public:
     static SR_DLL_IMPORT srPalette* findMatchingPalette(const srARGB* const colors,
                                                         long color_count);
 
-    SR_DLL_IMPORT SR_DLL_EXPORT srPalette(srARGB* colors = 0, long color_count = 1);
+    SR_DLL_IMPORT srPalette(srARGB* colors = 0, long color_count = 1);
     SR_DLL_IMPORT srPalette(const srPalette& other);
     SR_DLL_IMPORT srPalette& operator=(const srPalette& other);
 

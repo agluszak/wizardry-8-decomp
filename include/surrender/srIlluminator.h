@@ -3,6 +3,9 @@
 #include "srNode.h"
 #include "srVertexProcessor.h"
 
+// VTABLE: SURRENDER 0x10077028
+// class srClassSupport<srIlluminator, srNode, 0, 4608>
+
 /* SR.DLL's exported primary and secondary vtable names establish the exact
    srNode/srVertexProcessor multiple-inheritance prefix. getGroupMask/setGroupMask
    store a dword at complete +0x13c; operator= copies that dword only.
@@ -12,10 +15,10 @@
 // VTABLE: SURRENDER 0x10077068 srVertexProcessor
 // VTABLE: SURRENDER 0x10077074 srClassSupport<srIlluminator, srNode, 0, 4608>
 // class srIlluminator
-class srIlluminator : public srClassSupport<srIlluminator, srNode, false, 0x1200>,
-                      public srVertexProcessor {
+class SR_DLL_EXPORT srIlluminator : public srClassSupport<srIlluminator, srNode, false, 0x1200>,
+                                    public srVertexProcessor {
 public:
-    SR_DLL_IMPORT SR_DLL_EXPORT srIlluminator(srNode* parent = 0);
+    SR_DLL_IMPORT srIlluminator(srNode* parent = 0);
     SR_DLL_IMPORT srIlluminator(const srIlluminator& other);
     SR_DLL_IMPORT srIlluminator& operator=(const srIlluminator& other);
     static SR_DLL_IMPORT const char* sGetClassName();

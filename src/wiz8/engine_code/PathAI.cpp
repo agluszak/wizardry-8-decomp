@@ -663,7 +663,7 @@ void PathAIApply(W8PathAI* path, srNode* target)
     }
     PathAIPosition(path, &position);
 
-    node = target->firstChild();
+    node = target->first_child_;
     if (node == 0) {
         location.SetFromFloat(&position);
         target->setLocation(location);
@@ -671,7 +671,7 @@ void PathAIApply(W8PathAI* path, srNode* target)
         do {
             location.SetFromFloat(&position);
             node->setLocation(location);
-            node = node->nextSibling();
+            node = node->next_sibling_;
         } while (node != 0);
     }
 
@@ -696,19 +696,19 @@ void PathAIApply(W8PathAI* path, srNode* target)
             }
         }
 
-        node = target->firstChild();
+        node = target->first_child_;
         if (node == 0) {
             target->setRotation(rotation);
         } else {
             do {
                 node->setRotation(rotation);
-                node = node->nextSibling();
+                node = node->next_sibling_;
             } while (node != 0);
         }
 
         if (path->scales_18 != 0) {
             scale_vector = &path->scales_18[index];
-            node = target->firstChild();
+            node = target->first_child_;
             if (node == 0) {
                 location.SetFromFloat(scale_vector);
                 target->setScale(location);
@@ -716,7 +716,7 @@ void PathAIApply(W8PathAI* path, srNode* target)
                 do {
                     location.SetFromFloat(scale_vector);
                     node->setScale(location);
-                    node = node->nextSibling();
+                    node = node->next_sibling_;
                 } while (node != 0);
             }
         }

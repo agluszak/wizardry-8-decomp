@@ -9,10 +9,10 @@ SR_DLL_IMPORT std::ostream& operator<<(std::ostream& stream, const srVariableTim
 
 // VTABLE: SURRENDER 0x10077668 srVariableTimer
 // class srVariableTimer
-class SR_DLL_IMPORT srVariableTimer : public srTimer {
+class SR_DLL_IMPORT SR_DLL_EXPORT srVariableTimer : public srTimer {
 public:
-    SR_DLL_EXPORT srVariableTimer(int argument_0 = 0, int argument_1 = 0, int argument_2 = 1,
-                                  float multiplier = 1.0f, unsigned long step_size = 0x1e);
+    srVariableTimer(int argument_0 = 0, int argument_1 = 0, int argument_2 = 1,
+                    float multiplier = 1.0f, unsigned long step_size = 0x1e);
     srVariableTimer(const srTimer& timer);
     srVariableTimer(const srVariableTimer& timer);
     virtual ~srVariableTimer() override;

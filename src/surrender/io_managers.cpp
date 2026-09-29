@@ -225,6 +225,9 @@ void srIOManager::removeImporter(Importer* importer)
     } while (true);
 }
 
+// SYNTHETIC: SURRENDER 0x1002D030
+// srIOManager::`vector deleting destructor'
+
 // FUNCTION: SURRENDER 0x1002D090
 void srIOManager::removeExporter(Exporter* exporter)
 {
@@ -620,6 +623,9 @@ srModelIOManager::~srModelIOManager() {}
 // SYNTHETIC: SURRENDER 0x100165C0
 // srHierarchyIOManager scalar deleting destructor
 
+// SYNTHETIC: SURRENDER 0x100165E0
+// srHierarchyIOManager::`vector deleting destructor'
+
 // SYNTHETIC: SURRENDER 0x10016640
 // srHierarchyIOManager::HierarchyImporter scalar deleting destructor
 
@@ -636,10 +642,13 @@ srModelIOManager::~srModelIOManager() {}
 // srFStreamOpener scalar deleting destructor
 
 // SYNTHETIC: SURRENDER 0x10016860
-// srMaterial scalar deleting destructor
+// srMaterial::`scalar deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x10016AD0
 // srModelIOManager scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x10016AF0
+// srModelIOManager::`vector deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x10016B50
 // ModelImporter scalar deleting destructor

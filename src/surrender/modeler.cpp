@@ -52,10 +52,7 @@ public:
     /* Per triangle: its edge list plus the assigned/blocked group masks;
        groups_10 becomes the triangle's new flags_360. */
     struct TriangleEntry {
-        TriangleEntry()
-            : blocked_0c(0), groups_10(0)
-        {
-        }
+        TriangleEntry() : blocked_0c(0), groups_10(0) {}
 
         long count_00;
         unsigned long* edges_04;
@@ -81,8 +78,7 @@ public:
 // FUNCTION: SURRENDER 0x100370B0
 AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangle_count,
                            srModeler::VertexHash* hash, double threshold, int smooth)
-    : triangles_00(triangles), triangle_count_04(triangle_count), hash_08(hash),
-      vertex_count_0c(0)
+    : triangles_00(triangles), triangle_count_04(triangle_count), hash_08(hash), vertex_count_0c(0)
 {
     unsigned long index;
     unsigned long vertex;
@@ -212,16 +208,12 @@ int AutoSmoother::isSmooth(unsigned long first, unsigned long second, double cos
             }
         }
     }
-    srVector3T<float> first_normal =
-        CrossProduct(first_triangle->vertices_30[0].position_00 -
-                         first_triangle->vertices_30[1].position_00,
-                     first_triangle->vertices_30[2].position_00 -
-                         first_triangle->vertices_30[1].position_00);
-    srVector3T<float> second_normal =
-        CrossProduct(second_triangle->vertices_30[0].position_00 -
-                         second_triangle->vertices_30[1].position_00,
-                     second_triangle->vertices_30[2].position_00 -
-                         second_triangle->vertices_30[1].position_00);
+    srVector3T<float> first_normal = CrossProduct(
+        first_triangle->vertices_30[0].position_00 - first_triangle->vertices_30[1].position_00,
+        first_triangle->vertices_30[2].position_00 - first_triangle->vertices_30[1].position_00);
+    srVector3T<float> second_normal = CrossProduct(
+        second_triangle->vertices_30[0].position_00 - second_triangle->vertices_30[1].position_00,
+        second_triangle->vertices_30[2].position_00 - second_triangle->vertices_30[1].position_00);
     float magnitude = first_normal.Length() * second_normal.Length();
     if (0.0 < magnitude) {
         if (DotProduct(first_normal, second_normal) / magnitude <= cosine) {
@@ -338,6 +330,14 @@ void AutoSmoother::smooth()
 /* TU-scope constant the geometry generators and cylinderMap load from rdata
    0x10076C90 (pi + pi / pi * 2.0 in retail emission). */
 static const double pi = 3.141592653589793;
+
+/* This unit's definition of srShader's copy (see srShader.h): inline here so
+   the Triangle/Polygon implicit copies expand it per shader element. */
+// FUNCTION: SURRENDER 0x1003B930
+inline srShader::srShader(const srShader& other) : value(other.value) {}
+
+// SYNTHETIC: SURRENDER 0x100380C0
+// srModeler::`vector deleting destructor'
 
 /* Inline so the Polygon/Triangle array-construction loops in this TU inline
    the reset() call like retail; consumers see the declaration only and import

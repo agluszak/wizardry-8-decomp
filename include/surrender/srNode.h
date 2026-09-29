@@ -8,6 +8,9 @@
 
 #include <new>
 
+// VTABLE: SURRENDER 0x10077204
+// class srClassSupport<srNode, srClass, 1, 4096>
+
 /* Reconstructed from SR.DLL's export table and the reviewed 13-slot srNode
    vtable. Its exported transform and hierarchy operations establish the
    complete object layout. */
@@ -16,7 +19,7 @@
    srNode. See docs/libraries/surrender-abi.md for the addresses, the slot
    table and the falsified alternatives. */
 // VTABLE: SURRENDER 0x100771D0 srNode
-class srNode : public srClassSupport<srNode, srClass, true, 0x1000> {
+class SR_DLL_EXPORT srNode : public srClassSupport<srNode, srClass, true, 0x1000> {
 public:
     class TraverseInfo {
     public:
@@ -66,7 +69,7 @@ public:
        dump prints numeric bit indices. Wizardry does not call setNotify. */
     enum e_notify { NOTIFY_POSITIONAL_0 = 0 };
 
-    SR_DLL_IMPORT SR_DLL_EXPORT srNode(srNode* parent = 0);
+    SR_DLL_IMPORT srNode(srNode* parent = 0);
     SR_DLL_IMPORT srNode(const srNode& other);
     SR_DLL_IMPORT srNode& operator=(const srNode& other);
 
@@ -183,18 +186,6 @@ public:
     SR_DLL_IMPORT int testFlag(e_flag flag) const;
     SR_DLL_IMPORT void yawAt(const srVector3T<double>& target, double amount);
     SR_DLL_IMPORT void yawAt(const srNode* target, double amount);
-    srNode* nextSibling() const
-    {
-        return next_sibling_;
-    }
-    srNode* parentNode() const
-    {
-        return parent_;
-    }
-    srNode* firstChild() const
-    {
-        return first_child_;
-    }
 
 private:
     SR_DLL_IMPORT void checkTransformation() const;
@@ -222,10 +213,15 @@ private:
     mutable srMatrix4x3T<float> world_transform_f0;  /* 0x0f0 */
     mutable srFlags<e_notify> notifications_120;     /* 0x120 */
     srFlags<e_flag> flags_124;                       /* 0x124 */
-    srNode* next_sibling_;                           /* 0x128 */
-    srNode* previous_sibling_;                       /* 0x12c */
-    srNode* parent_;                                 /* 0x130 */
-    srNode* first_child_;                            /* 0x134 */
+
+public:
+    /* The hierarchy links are read directly by derived traversals and by
+       Wiz8's free scene walkers; the class-level export carries no inline
+       accessors for them. */
+    srNode* next_sibling_;     /* 0x128 */
+    srNode* previous_sibling_; /* 0x12c */
+    srNode* parent_;           /* 0x130 */
+    srNode* first_child_;      /* 0x134 */
 };
 
 static_assert((sizeof(srNode) == 0x138), "srNode_must_be_0x138");

@@ -21,15 +21,14 @@ public:
        only inside getShaderDisableMask. */
     srShader();
 
-    /* User-declared and inline. Retail emits the nested srModeler::Triangle/
-       Polygon implicit copy constructors (0x10037C10, 0x10037CF0), which VC6
-       generates only when a member's copy is nontrivial, and expands this body
-       there per array element. By-value srShader arguments call a standalone
-       emission instead: srModeler::convert's in sr.dll and every setShader
-       caller's in Wiz8.exe. */
-    // FUNCTION: SURRENDER 0x1003B930 SYMBOL
-    // ??0srShader@@QAE@ABV0@@Z
-    srShader(const srShader& other) : value(other.value) {}
+    /* User-declared: retail emits the nested srModeler::Triangle/Polygon
+       implicit copy constructors (0x10037C10, 0x10037CF0), which VC6
+       generates only when a member's copy is nontrivial. Like the default
+       constructor, each image defines it in one unit: modeler.cpp inlines it
+       into those copies and emits the callable copy the provider's by-value
+       arguments use; Wiz8's GameData.cpp defines the copy its setShader
+       callers use. */
+    srShader(const srShader& other);
 
     enum e_pass {
         PASS_NEVER = 0,

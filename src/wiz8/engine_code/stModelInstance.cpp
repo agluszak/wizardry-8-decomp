@@ -263,8 +263,8 @@ stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
     render_state_164.right = other.render_state_164.right;
     render_state_164.bottom = other.render_state_164.bottom;
     overlay_scene_flag_160 = other.overlay_scene_flag_160;
-    if (other.parentNode() != 0) {
-        setParent(other.parentNode(), 1);
+    if (other.parent_ != 0) {
+        setParent(other.parent_, 1);
     }
     render_state_164.glow_enabled_0d = other.render_state_164.glow_enabled_0d;
     render_state_164.render_depth = other.render_state_164.render_depth;
@@ -282,7 +282,7 @@ stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
 // FUNCTION: WIZ8 0x0047F3A0
 void stModelInstance2D::SetModel(srModel* model)
 {
-    assignModel(model);
+    setModel(model);
     if (model != 0) {
         /* Retail raises bits 5 and 4 of control_state_394 through the
            changed-bit-marking helper, not enableStartupControls' 0x40/0x30
@@ -763,7 +763,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         if (child == 0 || child->testFlag(FLAG_TERMINATE) == 0) {
             model = model->next;
             if (previous != 0) {
-                child = previous->firstChild();
+                child = previous->first_child_;
             }
         } else {
             model = 0;
@@ -888,7 +888,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
             }
             model = model->next;
             if (previous != 0) {
-                child = previous->firstChild();
+                child = previous->first_child_;
             }
         }
         if (highlight_pass_mode_190 == 0) {

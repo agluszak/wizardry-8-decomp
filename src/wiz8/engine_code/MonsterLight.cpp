@@ -161,7 +161,7 @@ void MonsterLight::StartFadeOut()
 // srClassSupport<srLight,srIlluminator,0,4640>::getClassName
 
 // TEMPLATE: WIZ8 0x0049DC40
-// srClassSupport<srLight,srIlluminator,0,4640>::clone
+// srClassSupport<srLight,srIlluminator,0,4640>::vClone
 
 // TEMPLATE: WIZ8 0x0049E300
 // srClassSupport<srLight,srIlluminator,0,4640>::getClassNode
