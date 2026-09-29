@@ -387,7 +387,7 @@ public:
                      float variation); /* 0x00453CC0 */
     /* Stores each non-negative bound as the minimum and maximum height. */
     void SetHeightRange(float minimum, float maximum); /* 0x00453EF0 */
-    void SetFlag25(char value);                        /* 0x004531F0 */
+    void SetFlag25(bool value);                        /* 0x004531F0 */
     void SetMovementStopped();                         /* 0x00453880 */
     /* Save the presence-gated movement state LoadMovementState
        consumes: the flag byte, then for an ungrouped navigator with flag

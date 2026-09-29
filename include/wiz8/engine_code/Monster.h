@@ -476,7 +476,7 @@ void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position)
    representation; it stays free because its callers pass the object on the
    stack. */
 void UpdateCycleRepresentation(W8GrCycle* cycle, W8World* world);
-void MonsterSetNavigatorFlag25(W8Monster* monster, char value);
+void MonsterSetNavigatorFlag25(W8Monster* monster, bool value);
 W8AIRecord* MonsterGetObject0C(W8Monster* monster);                /* 0x004C5B30 */
 void MonsterSetNavigatorValue120(W8Monster* monster, float value); /* 0x004C5F50 */
 float MonsterGetNavigatorValue120(W8Monster* monster);             /* 0x004C5F70 */
