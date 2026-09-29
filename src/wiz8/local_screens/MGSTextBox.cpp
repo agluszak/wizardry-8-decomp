@@ -905,7 +905,8 @@ unsigned char GetOpenDialogueFlag(void)
     return 0;
 }
 
-static unsigned int FindDialogueTextLine(const W8DialogueTextState* input)
+/* Retail expands this scan in the editor handlers without a separate emission. */
+static inline unsigned int FindDialogueTextLine(const W8DialogueTextState* input)
 {
     unsigned int line = 1;
     while (line < input->line_count && input->cursor >= input->line_offsets[line]) {
@@ -991,7 +992,8 @@ void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* fo
     HighlightTextBoxRange(g_status.buffers.XChar[party_slot].party_order_index, 0, stop, context);
 }
 
-static unsigned int GetTextBoxLineCount(short text_box)
+/* Retail expands this calculation at its callers and has no separate emission. */
+static inline unsigned int GetTextBoxLineCount(short text_box)
 {
     unsigned int count = g_status.text_box_lines_shown_49a7[text_box];
     if (g_level_block->dialogue_text_input_open != 0 && g_level_block->dialogue_text_input != 0 &&
