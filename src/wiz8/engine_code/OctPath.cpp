@@ -653,6 +653,20 @@ unsigned char W8PathingService::Load00458CE0(int handle)
     return fSuccess;
 }
 
+/* The path-linking callers share this conversion. Retail computes Z before
+   testing the optional destination, then writes X and Z together. */
+static inline void PositionToPathPoint(const W8PathingService* pathing,
+                                       const srVector3T<float>* position, srVector2i* point)
+{
+    int converted =
+        static_cast<int>((position->z - pathing->level_bounds[2]) / pathing->grid_scale_01c);
+    if (point != 0) {
+        point->x =
+            static_cast<int>((position->x - pathing->level_bounds[0]) / pathing->grid_scale_01c);
+        point->y = converted;
+    }
+}
+
 /* Offer every flagged surface to the path builder.
 
    Surfaces are 0x28 bytes apart and the walk starts at index one, so entry zero
@@ -666,7 +680,6 @@ void W8PathingService::LinkSurfaces(GDProp* prop)
     unsigned int index = 1;
     srVector2i point;
     W8PathSurface* surface;
-    int converted;
 
     if (m_ulNumWayPoints <= index) {
         return;
@@ -674,10 +687,7 @@ void W8PathingService::LinkSurfaces(GDProp* prop)
     do {
         surface = &m_pSurfaces_048[index];
         if ((surface->flags_00 & 0x40) != 0) {
-            converted =
-                static_cast<int>((surface->position_04.z - level_bounds[2]) / grid_scale_01c);
-            point.x = static_cast<int>((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
-            point.y = converted;
+            PositionToPathPoint(this, &surface->position_04, &point);
             prop->RegisterPathSurface(index, &point);
         }
         ++index;
@@ -696,7 +706,6 @@ void W8PathingService::LinkEdges(GDProp* prop)
     srVector2i second;
     W8PathEdge* edge;
     W8PathSurface* surface;
-    int converted;
 
     if (m_ulNumWayPtLinks <= index) {
         return;
@@ -705,17 +714,10 @@ void W8PathingService::LinkEdges(GDProp* prop)
         edge = &m_pEdges_04c[index];
         if ((edge->flags_00 & 0x20000000) != 0) {
             surface = &m_pSurfaces_048[edge->source_04];
-            converted =
-                static_cast<int>((surface->position_04.z - level_bounds[2]) / grid_scale_01c);
-            first.x = static_cast<int>((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
-            first.y = converted;
+            PositionToPathPoint(this, &surface->position_04, &first);
 
             surface = &m_pSurfaces_048[edge->destination_06];
-            converted =
-                static_cast<int>((surface->position_04.z - level_bounds[2]) / grid_scale_01c);
-            second.x =
-                static_cast<int>((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
-            second.y = converted;
+            PositionToPathPoint(this, &surface->position_04, &second);
             prop->RegisterPathVertex(index, &first, &second);
         }
         ++index;
