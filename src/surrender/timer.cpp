@@ -799,26 +799,22 @@ int srTimer::pause()
 unsigned long srTimer::resume()
 {
     srQuadWord delta = {0, 0};
-    if ((m_pause.lo | m_pause.hi) != 0) {
+    if ((m_pause.lo | m_pause.hi) == 0) {
         srQuadWord now;
         m_read_tick(&now);
-        delta.lo = now.lo - m_pause.lo;
-        delta.hi = now.hi - m_pause.hi - (now.lo < m_pause.lo);
-        unsigned int carry = m_base.lo;
-        m_base.lo += delta.lo;
-        m_base.hi += delta.hi + (m_base.lo < carry);
+        delta = now - m_pause;
+        m_base += delta;
         m_pause.lo = 0;
         m_pause.hi = 0;
     }
-    return (unsigned long)(quadWord64(delta) * (unsigned long)m_units_per_interval /
-                           quadWord64(m_frequency));
+    return ((delta * static_cast<unsigned int>(m_units_per_interval)) / m_frequency).lo;
 }
 
 // FUNCTION: SURRENDER 0x10062DF0
 unsigned long srTimer::getMsTime(e_timerReadControl control)
 {
     getUTime(control);
-    return (unsigned long)(quadWord64(m_tick - m_base) * 1000 / quadWord64(m_frequency));
+    return (((m_tick - m_base) * 1000u) / m_frequency).lo;
 }
 
 // FUNCTION: SURRENDER 0x10062E50
@@ -855,11 +851,8 @@ unsigned long srTimer::getUTime(srQuadWord& out, e_timerReadControl control)
 char* srTimer::getAscTime(char* buffer, e_timerReadControl control)
 {
     getUTime(control);
-    unsigned __int64 units =
-        quadWord64(m_tick - m_base) * (unsigned long)m_units_per_interval / quadWord64(m_frequency);
-    srQuadWord ticks;
-    ticks.lo = (unsigned long)units;
-    ticks.hi = (unsigned long)(units >> 0x20);
+    srQuadWord ticks =
+        ((m_tick - m_base) * static_cast<unsigned int>(m_units_per_interval)) / m_frequency;
     return getAscTime(buffer, ticks);
 }
 

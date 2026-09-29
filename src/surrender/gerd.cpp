@@ -4954,8 +4954,8 @@ void srGERD::scanDevices(const char* path, srStringTable& devices)
 {
     srStringTable libraries;
     char entry[512];
-    long count = srSystem::scanLibraries(libraries, path, "srDD*");
-    for (long index = 0; index < count; ++index) {
+    unsigned long count = srSystem::scanLibraries(libraries, path, "srDD*");
+    for (unsigned long index = 0; index < count; ++index) {
         void* library = srDynamicLibrary::load(libraries.getString(index));
         unsigned long device = 0;
         srGERD* gerd = loadDeviceWithFileName(libraries.getString(index), device);
