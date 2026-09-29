@@ -6667,7 +6667,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && targeting == 0 &&
             IsNpcDialogueCursorActive() == 0 && gXStatus.scripted_scene_19b7 == 0) {
             g_level_block->portrait_right_hold_armed = false;
-            if (g_status.item_in_cursor == 0 || gfKeyState[0x11] != 0) {
+            if (g_status.item_in_cursor == 0 || g_monster_combat_timer_enabled) {
                 if (gXStatus.fNpcDialogueMode != 0) {
                     CloseNpcDialogueForCamp();
                 }
