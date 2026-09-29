@@ -451,6 +451,7 @@ def test_vtable_comparison_reports_unpaired_and_different_slots(tmp_path, monkey
     tables = [
         SimpleNamespace(name="Widget::vftable", orig_addr=0x401000, recomp_addr=0x501000),
         SimpleNamespace(name="Folded::vftable", orig_addr=0x402000, recomp_addr=0x502000),
+        SimpleNamespace(name="NoOp::vftable", orig_addr=0x404000, recomp_addr=0x504000),
     ]
     slots = {
         0x401000: [SimpleNamespace(status=SlotStatus.MATCH)],
@@ -462,6 +463,16 @@ def test_vtable_comparison_reports_unpaired_and_different_slots(tmp_path, monkey
                 recomp=SimpleNamespace(best_name=lambda: "Folded::Draw"),
                 orig_raw=0x403000,
                 recomp_raw=0x503000,
+            )
+        ],
+        0x404000: [
+            SimpleNamespace(
+                status=SlotStatus.CODE_EQUIVALENT,
+                offset=0,
+                orig=SimpleNamespace(best_name=lambda: "Base::NoOp"),
+                recomp=SimpleNamespace(best_name=lambda: "NoOp::NoOp"),
+                orig_raw=0x405000,
+                recomp_raw=0x505000,
             )
         ],
     }
@@ -478,7 +489,13 @@ def test_vtable_comparison_reports_unpaired_and_different_slots(tmp_path, monkey
     result = comparison.compare_vtables(tmp_path, "WIZ8", None)
 
     assert result["ok"] is False
-    assert (result["match_count"], result["unpaired_count"], result["different_count"]) == (1, 1, 0)
+    assert (
+        result["match_count"],
+        result["code_equivalent_count"],
+        result["code_equivalent_slot_count"],
+        result["unpaired_count"],
+        result["different_count"],
+    ) == (1, 1, 1, 1, 0)
     [table] = result["vtables"]
     assert table["slots"] == [
         {
