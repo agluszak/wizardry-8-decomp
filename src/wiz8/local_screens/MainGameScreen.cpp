@@ -6667,7 +6667,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && targeting == 0 &&
             IsNpcDialogueCursorActive() == 0 && gXStatus.scripted_scene_19b7 == 0) {
             g_level_block->portrait_right_hold_armed = false;
-            if (g_status.item_in_cursor == 0 || g_monster_combat_timer_enabled) {
+            if (g_status.item_in_cursor == 0 || gfKeyState[0x11]) {
                 if (gXStatus.fNpcDialogueMode != 0) {
                     CloseNpcDialogueForCamp();
                 }
@@ -7377,7 +7377,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         if (g_level_block->highlighted_item != -1 && gXStatus.fSpellCastMode == 0 &&
             gXStatus.fNpcDialogueMode == 0 && gXStatus.fItemSelectMode == 0 &&
             gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
-            (g_settings.ctrl_right_click_info == 0 || g_monster_combat_timer_enabled != 0)) {
+            (g_settings.ctrl_right_click_info == 0 || gfKeyState[0x11] != 0)) {
             OpenMonsterInfoDialog(g_level_block->highlighted_item);
             return 1;
         }
@@ -7385,7 +7385,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
             gXStatus.fSpellCastMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
             gXStatus.fItemSelectMode == 0 && gXStatus.fLockInteractMode == 0 &&
             gXStatus.fTrapInteractMode == 0 &&
-            (g_settings.ctrl_right_click_info == 0 || g_monster_combat_timer_enabled != 0)) {
+            (g_settings.ctrl_right_click_info == 0 || gfKeyState[0x11] != 0)) {
             W8WorldItem* world_item = ItemInfo(ItemIndex(g_level_block->selected_item));
             PartyAttemptsToIdentifyItem(&world_item->item, 0);
             OpenAssayDialog(&world_item->item, -1);
@@ -7519,7 +7519,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         } else if (g_combat_state->round_active_001 == 0 && gXStatus.fPartyMovementMode == 0) {
             ShowNotice(0xc, gppStringList[0x7dd], -1, -1, 0);
             assign = 0;
-        } else if (g_shift_held != 0) {
+        } else if (gfKeyState[0x10] != 0) {
             for (slot = 0; slot < 8; ++slot) {
                 if (g_status.buffers.XChar[slot].fOccupied != 0 &&
                     g_status.buffers.Char[slot].hp_current != 0) {

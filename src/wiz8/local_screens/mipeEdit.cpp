@@ -16,6 +16,7 @@
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/sr_api.h"
+#include "input.h"
 
 #define MIPE_EDIT_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\mipeEdit.cpp"
 
@@ -118,7 +119,7 @@ void HandleMipeEditPropKey(unsigned short key)
             }
             len = wcslen(field->text);
             if (static_cast<int>(len) < 0x7e) {
-                if (key != 0x20 && g_shift_held == 0 && (key < 0x30 || key > 0x39)) {
+                if (key != 0x20 && gfKeyState[0x10] == 0 && (key < 0x30 || key > 0x39)) {
                     key += 0x20;
                 }
                 field->text[len] = key;

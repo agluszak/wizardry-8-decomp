@@ -1645,7 +1645,7 @@ void W8Monster::Update()
 
     UpdateAttachedObjects();
     cycle = Query(6);
-    if (g_monster_combat_timer_enabled && g_combat_state != 0 &&
+    if (gfKeyState[0x11] && g_combat_state != 0 &&
         (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
         (cycle == 1 || cycle == 2) &&
         (m_pRep->pending_cycle == -1 || m_pRep->pending_cycle == 1 || m_pRep->pending_cycle == 2) &&

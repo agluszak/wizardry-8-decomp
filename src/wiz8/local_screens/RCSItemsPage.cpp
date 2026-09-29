@@ -771,7 +771,7 @@ void SelectCampRealmTab(int tab)
     }
     g_camp_screen->item_scroll = 0;
     RebuildCampItemList();
-    if (!g_monster_combat_timer_enabled) {
+    if (!gfKeyState[0x11]) {
         g_camp_screen->item_redraw_flags |= 0x7fc00000;
         return;
     }

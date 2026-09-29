@@ -80,6 +80,13 @@ PRIMITIVE_SIZES = {
     # Accepted SGP/Win32 typedefs used as GLOBAL declaration elements.
     "CHAR": 1,
     "CHAR8": 1,
+    "BOOLEAN": 1,
+    "UINT8": 1,
+    "INT8": 1,
+    "UINT16": 2,
+    "INT16": 2,
+    "UINT32": 4,
+    "INT32": 4,
     "TIMER": 4,
     "HVOBJECT": 4,
     "HVSURFACE": 4,
@@ -116,6 +123,13 @@ _EQUIVALENT = {
     "char": "int8",
     "signed char": "int8",
     "unsigned char": "uint8",
+    "BOOLEAN": "uint8",
+    "UINT8": "uint8",
+    "INT8": "int8",
+    "UINT16": "uint16",
+    "INT16": "int16",
+    "UINT32": "uint32",
+    "INT32": "int32",
     "wchar_t": "uint16",
 }
 

@@ -8,6 +8,7 @@
 #include "FileMan.h"
 #include "Random.h"
 #include "sgp.h"
+#include "input.h"
 #include "surrender/srCamera.h"
 #include "surrender/srNode.h"
 #include "wiz8/engine_code/3d.h"
@@ -282,7 +283,7 @@ void W8Item::UpdateAnimation()
     if ((rep->flags & 0x40) == 0) {
         return;
     }
-    if ((rep->flags & 2) != 0 && g_monster_combat_timer_enabled == 0) {
+    if ((rep->flags & 2) != 0 && gfKeyState[0x11] == 0) {
         srMatrix3T<float> rotation;
         m_pRep->GetRotation(&rotation);
         double cosine = cos(-0.1963495375);

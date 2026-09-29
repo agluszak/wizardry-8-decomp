@@ -13,6 +13,7 @@
 #include "wiz8/regions.h"
 #include "wiz8/layouts/game_status.h"
 #include "soundman.h"
+#include "input.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/engine_code/stLight.hpp"
@@ -212,7 +213,7 @@ void InitializeWorldCursor(void)
             gp3DCursor->probe_offsets_60[7].y = minimum.y;
             gp3DCursor->probe_offsets_60[7].z = minimum.z;
             UpdateWorldCursorPlacement();
-            if (g_dev_mode != 0 && (g_shift_held != 0 || g_monster_combat_timer_enabled != 0)) {
+            if (g_dev_mode != 0 && (gfKeyState[0x10] != 0 || gfKeyState[0x11] != 0)) {
                 g_cursor_pick_latch = true;
             }
         }

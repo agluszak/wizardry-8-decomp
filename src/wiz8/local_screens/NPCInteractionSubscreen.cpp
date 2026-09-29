@@ -169,7 +169,6 @@ W8PendingNotice g_pending_notice;
 // GLOBAL: WIZ8 0x0068EE78
 unsigned int g_trade_highlight_tick;
 
-
 // GLOBAL: WIZ8 0x00649f20
 int g_dialogue_place_keyword_count = 15;
 // GLOBAL: WIZ8 0x00649f24
@@ -1692,7 +1691,7 @@ void NpcDialogueTextBoxLeftUp(int x, int y)
         if (word == 0 || word->keyword_08 != 1) {
             return;
         }
-        if (g_shift_held == 0) {
+        if (gfKeyState[0x10] == 0) {
             ResetUsedNoticeWords(3, 1);
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
@@ -1715,7 +1714,7 @@ void NpcDialogueTextBoxLeftUp(int x, int y)
         if (slot == -1) {
             return;
         }
-        UpdateNpcTradeSelection(slot, g_shift_held != 0 ? 1 : 0, 1);
+        UpdateNpcTradeSelection(slot, gfKeyState[0x10] != 0 ? 1 : 0, 1);
         return;
     }
 }
@@ -1739,7 +1738,7 @@ void NpcDialogueTextBoxRightUp(int x, int y)
         if (slot == -1) {
             return;
         }
-        UpdateNpcTradeSelection(slot, g_shift_held != 0 ? 1 : 0, 1);
+        UpdateNpcTradeSelection(slot, gfKeyState[0x10] != 0 ? 1 : 0, 1);
         item = ResolveNpcTradeRow(slot, 0, 0, 1);
         if (item == 0) {
             return;
@@ -1785,7 +1784,7 @@ void NpcDialogueTextBoxDoubleClick(int x, int y)
         if (word == 0) {
             return;
         }
-        if (g_shift_held == 0) {
+        if (gfKeyState[0x10] == 0) {
             ResetUsedNoticeWords(3, 1);
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);

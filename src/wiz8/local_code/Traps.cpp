@@ -10,6 +10,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/3dapi.h"
+#include "input.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/Targeting.h"
@@ -178,7 +179,7 @@ char HandleRecordModeKey(const InputAtom* input, void (*prompt)(void))
     wchar_t character;
     char* text;
 
-    if (g_monster_combat_timer_enabled != 0) {
+    if (gfKeyState[0x11] != 0) {
         return 0;
     }
     character = static_cast<wchar_t>(toupper(input->usParam));
@@ -204,7 +205,7 @@ char HandleRecordModeKey(const InputAtom* input, void (*prompt)(void))
         return -1;
     } else {
         text = ConvertWideStringToString(&character);
-        if (g_shift_held == 0 && g_modifier_held == 0 && *text >= 'A' && *text <= 'Z') {
+        if (gfKeyState[0x10] == 0 && gfKeyState[0x14] == 0 && *text >= 'A' && *text <= 'Z') {
             *text += 0x20;
         }
         g_record_mode_line[g_record_mode_length] = *text;

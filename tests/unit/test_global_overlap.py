@@ -71,6 +71,22 @@ def test_sgp_pointer_typedef_array_has_pointer_extent(tmp_path: Path) -> None:
     assert definitions[0]["size"] == 160
 
 
+def test_sgp_boolean_array_covers_interior_global_marker(tmp_path: Path) -> None:
+    _write(
+        tmp_path,
+        "src/sgp/input.c",
+        "// GLOBAL: WIZ8 0x006f0520\nBOOLEAN gfKeyState[256];\n",
+    )
+    _write(
+        tmp_path,
+        "src/wiz8/keys.cpp",
+        "// GLOBAL: WIZ8 0x006f0531\nbool g_control_alias;\n",
+    )
+    definitions = parse_global_definitions(tmp_path)
+    assert next(row for row in definitions if row["name"] == "gfKeyState")["size"] == 256
+    assert any(row["container"] == "gfKeyState" for row in overlapping_globals(definitions))
+
+
 def test_same_file_integer_define_sizes_global_without_changing_source_type(tmp_path: Path) -> None:
     _write(
         tmp_path,
