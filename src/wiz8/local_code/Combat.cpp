@@ -1270,6 +1270,7 @@ void ApplyPartyCombatAction(int party_slot, int action, int detail, const W8Acti
 void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail,
                               const W8ActionDetailBlock* data, int notify)
 {
+    int previous_action = g_status.buffers.XChar[party_slot].action_03d;
     if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) {
         g_status.buffers.XChar[party_slot].action_03d = -1;
         AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_CURRENT);
@@ -1295,19 +1296,22 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
     if (character->hp_current != 0 && character->highest_condition < 0xd && action_kind != -1) {
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, notify) == 0) {
             AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
-        } else if (TargetIsInPlay(party_slot, 2) == 0 &&
-                   RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, notify) == 1) {
-            PointCameraAtCombatTarget(&source,
-                                      &g_status.buffers.XChar[party_slot].target_in_combat);
-        }
-        if (notify != 0) {
-            RevalidateSelectedTarget(party_slot);
+        } else {
+            if (TargetIsInPlay(party_slot, 2, W8_TARGETING_CONTEXT_IN_COMBAT) == 0 &&
+                RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, notify) == 1) {
+                PointCameraAtCombatTarget(&source,
+                                          &g_status.buffers.XChar[party_slot].target_in_combat);
+            }
+            if (notify != 0) {
+                RevalidateSelectedTarget(party_slot);
+            }
         }
     }
     if (gXStatus.fCombatMode == 0) {
         return;
     }
-    if (action_detail != action_kind && g_combat_state->combat_over_000 != 0 && row->dead_34 == 0) {
+    if (action_kind != previous_action && g_combat_state->combat_over_000 != 0 &&
+        row->dead_34 == 0) {
         row->phase += g_combat_state->round_counter - row->phase_clock_stamp;
         ClampUnsignedInteger(&row->phase, g_combat_state->round_counter, 100);
         RoundPhaseToStep(&row->phase, g_combat_state->round_counter);
@@ -1315,10 +1319,10 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
     }
     RequestRedraw(1 << (party_slot & 0x1f));
     g_level_block->pick_changed_154 = 0;
-    if (action_detail == 9) {
+    if (action_kind == 9) {
         PostCharacterNotice(party_slot, gppStringList[0x225]);
-    } else if (action_kind == 9 && !(g_combat_state->iActionChar == party_slot &&
-                                     g_status.buffers.XChar[party_slot].pending_action == 9)) {
+    } else if (previous_action == 9 && !(g_combat_state->iActionChar == party_slot &&
+                                         g_status.buffers.XChar[party_slot].pending_action == 9)) {
         PostCharacterNotice(party_slot, gppStringList[0x226]);
     }
     CalcArmorClasses(character);

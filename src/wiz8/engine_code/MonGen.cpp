@@ -600,7 +600,7 @@ float g_encounter_culling_scale_fast = 1.0f;
 const float g_encounter_culling_rate = 2880.0f;
 
 // GLOBAL: WIZ8 0x005eca90
-const float g_encounter_culling_distance = 0.0f;
+const float g_encounter_culling_distance = 50000.0f;
 
 /* Retires random encounters that have outlived their welcome.
  
@@ -623,10 +623,10 @@ void CullExpiredEncounters(void)
 
     GetCameraPosition(&party);
     if (IsSightRangeOverridden() == 0) {
-        span = g_level_records[g_status.current_level].encounter_culling_seconds * g_sight_default;
+        span = g_encounter_culling_time_seconds * g_sight_default;
     } else {
-        span = g_level_records[g_status.current_level].encounter_culling_seconds *
-               g_encounter_culling_scale_fast * g_encounter_culling_rate;
+        span = g_encounter_culling_time_seconds * g_encounter_culling_scale_fast *
+               g_encounter_culling_rate;
     }
     for (index = 0; index < g_active_groups.count; ++index) {
         W8MonsterGroup* group = *g_active_groups.GetAt(index);

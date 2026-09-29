@@ -5308,7 +5308,7 @@ void W8Monster::ApplyRepresentationScale()
 }
 
 /* Build a floating icon item from a bitmap path: clamp-wrapped texture, a
-   500x500 poster quad relocated 250 units up the Y axis with alignment
+   500-unit-wide poster quad relocated 250 units up the Y axis with alignment
    enabled, wrapped in a W8Item whose mesh attachment and bounds are refreshed
    for the world. Returns 0 when the texture or quad could not be made. */
 // FUNCTION: WIZ8 0x004C5500
@@ -5321,7 +5321,7 @@ W8Item* CreateMonsterIconItem(W8World* world, const char* path, int flag)
         texture->loadSurface();
         texture->autoRelease();
         stModelInstance* instance =
-            static_cast<stModelInstance*>(MakePosterQuad(texture, 500.0f, 500.0f, 1));
+            static_cast<stModelInstance*>(MakePosterQuad(texture, 500.0f, 0.0f, 1));
         if (instance != 0) {
             srVector3T<float> offset(0.0f, 250.0f, 0.0f);
             static_cast<srMeshModel*>(instance->getModel())->relocateVertices(offset);
