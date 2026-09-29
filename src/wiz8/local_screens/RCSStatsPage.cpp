@@ -1504,7 +1504,7 @@ void W8CharacterSkillsPage::Redraw()
         bounds.bottom = 0x179;
         DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x162, 2, 0);
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(FormatWideString(L"%d", m_creation_state_064->skill_step_limit),
+        text.SetText(FormatWideString(g_format_d, m_creation_state_064->skill_step_limit),
                      g_options_detail_font);
         text.RenderToTarget(0, 1, -14);
         m_prepared_06c = 0;
@@ -1515,7 +1515,8 @@ void W8CharacterSkillsPage::Redraw()
         W8ControlsRect bounds = {0x8f, 0x184, 0xbf, 0x19b};
         DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x184, 2, 0);
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(FormatWideString(L"%d/%d", m_creation_state_064->skill_points_remaining,
+        text.SetText(FormatWideString(g_format_d_slash_d,
+                                      m_creation_state_064->skill_points_remaining,
                                       m_creation_state_064->skill_points_total),
                      g_options_detail_font);
         text.RenderToTarget(0, 1, -14);

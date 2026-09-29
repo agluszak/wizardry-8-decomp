@@ -160,7 +160,6 @@ void W8CharacterPageEntry::Redraw()
                                   g_wiz_text_font_secondary);
         m_second_text_01c->SetText(FormatWideString(g_format_d, *m_second_024),
                                    g_wiz_text_font_secondary);
-        m_label_014->FillBounds(0x8000);
         m_first_text_018->FillBounds(0x8000);
         m_second_text_01c->FillBounds(0x8000);
         m_label_014->RenderToTarget(0, 1, -14);

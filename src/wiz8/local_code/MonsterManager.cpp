@@ -40,6 +40,7 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/notices.h"
@@ -1793,18 +1794,18 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
     }
 
     if (g_dev_mode != 0) {
-        wcscpy(health_text,
-               FormatWideString(L"%d/%d", monster_info->hp_current, monster_info->uiHPMax));
+        wcscpy(health_text, FormatWideString(g_format_d_slash_d, monster_info->hp_current,
+                                             monster_info->uiHPMax));
         return;
     }
     if (health_knowledge < 10 || suppress_exact_health != 0) {
         wcscpy(health_text, L"?");
     } else {
-        wcscpy(health_text, FormatWideString(L"%d", monster_info->hp_current));
+        wcscpy(health_text, FormatWideString(g_format_d, monster_info->hp_current));
     }
     wcscat(health_text, L"/");
     if (health_knowledge > 4 && suppress_exact_health == 0) {
-        wcscat(health_text, FormatWideString(L"%d", monster_info->uiHPMax));
+        wcscat(health_text, FormatWideString(g_format_d, monster_info->uiHPMax));
         return;
     }
     wcscat(health_text, L"?");

@@ -44,6 +44,7 @@
 #include "wiz8/local_screens/PartySelectionScreen.h"
 #include "wiz8/local_code/PartyImport.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
 #include "wiz8/fonts.h"
@@ -696,10 +697,10 @@ void W8PartySelectionCharacterRow::Redraw(int full_redraw)
 
     left += 0x36;
     SetFont(g_wiz_text_font_secondary);
-    gprintf(left, top + 4, const_cast<wchar_t*>(L"%s"), character->name);
+    gprintf(left, top + 4, g_format_s, character->name);
     gprintf(left, top + 0x0e, L"%s %d %s", gppStringList[0x6b9], character->uiExpLevel,
             gppStringList[g_profession_name_message_ids[character->iProfession]]);
-    gprintf(left, top + 0x18, L"%s %s",
+    gprintf(left, top + 0x18, g_format_s_space_s,
             gppStringList[g_gender_name_message_rows[character->gender][0]],
             gppStringList[g_race_name_message_ids[character->iRace]]);
     SetObjectShade(g_wiz_text_font_secondary_object, 4);
@@ -1052,11 +1053,13 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
         overlay.RenderToTarget(0, 0, -14);
     }
 
-    W8ControlsRect name_bounds = {0x84, 0xc8, 0x139, 0xed};
-    W8TextBuffer name(
-        &name_bounds, FormatWideString(L"%s (%s)", character->name_part_2, character->name),
-        g_wiz_text_bold_font, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
-    name.RenderToTarget(0, 0, -14);
+    {
+        W8ControlsRect name_bounds = {0x84, 0xc8, 0x139, 0xed};
+        W8TextBuffer name(
+            &name_bounds, FormatWideString(L"%s (%s)", character->name_part_2, character->name),
+            g_wiz_text_bold_font, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
+        name.RenderToTarget(0, 0, -14);
+    }
 
     SetFont(g_wiz_text_font_secondary);
     SetObjectShade(g_wiz_text_font_secondary_object, 4);
@@ -1072,38 +1075,38 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
 
     const wchar_t* gender = gppStringList[g_gender_name_message_rows[character->gender][0]];
     const wchar_t* race = gppStringList[g_race_name_message_ids[character->iRace]];
-    wchar_t* race_line = FormatWideString(L"%s %s", gender, race);
+    wchar_t* race_line = FormatWideString(g_format_s_space_s, gender, race);
     width = StringPixLength(race_line, g_wiz_text_font_secondary);
-    gprintf((0xbf - width) / 2 + 0x7f, 0xfd, L"%s %s", gender, race);
+    gprintf((0xbf - width) / 2 + 0x7f, 0xfd, g_format_s_space_s, gender, race);
 
     const wchar_t* personality =
         gppStringList[g_personality_message_ids[character->personality_0081]];
     width = StringPixLength(const_cast<wchar_t*>(personality), g_wiz_text_font_secondary);
-    gprintf((0xbf - width) / 2 + 0x82, 0x10b, const_cast<wchar_t*>(L"%s"), personality);
+    gprintf((0xbf - width) / 2 + 0x82, 0x10b, g_format_s, personality);
 
     gprintf(0x96, 0x127, gppStringList[0x6ba]);
-    gprintf(0xbf, 0x127, L"%d", character->attributes[0].value);
+    gprintf(0xbf, 0x127, g_format_d, character->attributes[0].value);
     gprintf(0x96, 0x135, gppStringList[0x6bb]);
-    gprintf(0xbf, 0x135, L"%d", character->attributes[1].value);
+    gprintf(0xbf, 0x135, g_format_d, character->attributes[1].value);
     gprintf(0x96, 0x143, gppStringList[0x6bc]);
-    gprintf(0xbf, 0x143, L"%d", character->attributes[2].value);
+    gprintf(0xbf, 0x143, g_format_d, character->attributes[2].value);
     gprintf(0x96, 0x151, gppStringList[0x6bd]);
-    gprintf(0xbf, 0x151, L"%d", character->attributes[3].value);
+    gprintf(0xbf, 0x151, g_format_d, character->attributes[3].value);
     gprintf(0x96, 0x15f, gppStringList[0x6be]);
-    gprintf(0xbf, 0x15f, L"%d", character->attributes[4].value);
+    gprintf(0xbf, 0x15f, g_format_d, character->attributes[4].value);
     gprintf(0x96, 0x16d, gppStringList[0x6bf]);
-    gprintf(0xbf, 0x16d, L"%d", character->attributes[5].value);
+    gprintf(0xbf, 0x16d, g_format_d, character->attributes[5].value);
     gprintf(0x96, 0x17b, gppStringList[0x6c0]);
-    gprintf(0xbf, 0x17b, L"%d", character->attributes[6].value);
+    gprintf(0xbf, 0x17b, g_format_d, character->attributes[6].value);
 
     gprintf(0xe3, 0x127, gppStringList[0x6c1]);
-    gprintf(0x115, 0x127, L"%d", character->uiHPMax);
+    gprintf(0x115, 0x127, g_format_d, character->uiHPMax);
     gprintf(0xe3, 0x135, gppStringList[0x6c2]);
-    gprintf(0x115, 0x135, L"%d", SumCharacterSpellPoints(character));
+    gprintf(0x115, 0x135, g_format_d, SumCharacterSpellPoints(character));
     gprintf(0xe3, 0x143, gppStringList[0x6c3]);
-    gprintf(0x115, 0x143, L"%d", character->uiStaminaMax);
+    gprintf(0x115, 0x143, g_format_d, character->uiStaminaMax);
     gprintf(0xe3, 0x151, gppStringList[0x6c4]);
-    gprintf(0x115, 0x151, L"%d", character->carrying_capacity / 10);
+    gprintf(0x115, 0x151, g_format_d, character->carrying_capacity / 10);
 }
 
 // GLOBAL: WIZ8 0x0069C4FC
