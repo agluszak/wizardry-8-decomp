@@ -305,6 +305,8 @@ def _run_reccmp(
     output = report_directory(repository, target)
     for stale in ("manifest.json", "summary.json"):
         (output / stale).unlink(missing_ok=True)
+    for stale in output.glob("*.diff"):
+        stale.unlink()
     argv: list[str | Path] = [
         sys.executable,
         "-m",
