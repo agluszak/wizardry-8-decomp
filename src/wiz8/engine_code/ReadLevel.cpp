@@ -920,7 +920,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             srMatrix3T<float> rotation;
             srVector3T<float> direction;
             srVector3T<float> transformed;
-            double angle = -1.5707963267948966;
+            double angle = -1.5707963;
 
             rotation.SetIdentity();
             if (record.rotation_angle != 0.0f) {

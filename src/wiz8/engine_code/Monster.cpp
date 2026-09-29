@@ -1882,12 +1882,12 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
         int vertex = FindMappedIndexInMeshChain(&mesh, mapped_index);
         if (mesh != 0 && vertex != -1) {
             srVector3T<float>* vertices = mesh->GetVertexLocations(dispatch_value, 1, 0.0f);
-            if (vertices != 0) {
-                srMatrix4T<float> matrix;
-                srVector3T<float> owner_position = GetPosition();
-                current_model->getWorldSpaceMatrix(matrix);
+            if (vertices != 0 && current_model != 0) {
+                srMatrix3T<float> rotation;
+                current_model->getWorldSpaceRotation(rotation);
                 srVector3T<float> local = vertices[vertex] * m_pRep->scale_5f0;
-                srVector3T<float> rotated = matrix.TransformDirection(local);
+                srVector3T<float> rotated = rotation.Transform(local);
+                srVector3T<float> owner_position = GetPosition();
                 position->x = rotated.x + owner_position.x;
                 position->y = rotated.y + owner_position.y + movement_0c0.vertical_base_07c;
                 position->z = rotated.z + owner_position.z;
