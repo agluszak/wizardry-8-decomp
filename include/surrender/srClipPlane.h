@@ -29,7 +29,7 @@ public:
     enum e_clip { CLIP_POSITIONAL_0 = 0 };
 
     srClipPlane(srNode* parent = 0);
-    srClipPlane(const srClipPlane& other);
+
     srClipPlane& operator=(const srClipPlane& other);
 
 #if defined(SURRENDER_BUILD)
@@ -73,7 +73,6 @@ public:
 protected:
     srVector4T<float> clip_plane_; /* 0x138 */
     e_clip clip_type_;             /* 0x148 */
-    unsigned char unknown_14c_[4];
 };
 
 static_assert(sizeof(srClipPlane) == 0x150, "srClipPlane_must_be_0x150");

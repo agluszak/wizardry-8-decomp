@@ -23,7 +23,7 @@ public:
     };
 
     srCamera(srNode* parent = 0);
-    srCamera(const srCamera& other);
+
     srCamera& operator=(const srCamera& other);
 
     virtual void dump(std::ostream& stream) override;

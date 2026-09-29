@@ -1440,19 +1440,21 @@ void srDebugVP::_copyIndexed(srVector4* destination, const srARGB* source, const
     processor_444->_copyIndexed(destination, source, indices, count);
 }
 
-// FUNCTION: SURRENDER 0x1006F100
+/* Retail swaps these overloads' statistics indices. The linear form tracks
+   all four pointer arguments; the constant form omits constant alignment. */
+// FUNCTION: SURRENDER 0x1006F190
 void srDebugVP::_mulIndexed(srVector4* destination, const srVector4* linear_source,
                             const srVector4* indexed_source, const SRDWORD* indices, SRDWORD count)
 {
-    ScopeTimer scope_timer(this, count, 140, destination, indexed_source, indices, 0);
+    ScopeTimer scope_timer(this, count, 141, destination, linear_source, indexed_source, indices);
     processor_444->_mulIndexed(destination, linear_source, indexed_source, indices, count);
 }
 
-// FUNCTION: SURRENDER 0x1006F190
+// FUNCTION: SURRENDER 0x1006F100
 void srDebugVP::_mulIndexed(srVector4* destination, const srVector4& constant,
                             const srVector4* indexed_source, const SRDWORD* indices, SRDWORD count)
 {
-    ScopeTimer scope_timer(this, count, 141, destination, &constant, indexed_source, indices);
+    ScopeTimer scope_timer(this, count, 140, destination, indexed_source, indices, 0);
     processor_444->_mulIndexed(destination, constant, indexed_source, indices, count);
 }
 

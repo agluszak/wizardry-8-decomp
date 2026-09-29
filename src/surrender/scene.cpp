@@ -48,17 +48,8 @@ srScene::srScene(srNode* parent)
     resetStatistics();
 }
 
-// FUNCTION: SURRENDER 0x10056D60
-srScene::srScene(const srScene& other)
-    : srClassSupport<srScene, srNode, 0, 0x1010>(static_cast<srNode*>(0))
-{
-    *this = other;
-    enabled_138 = other.enabled_138;
-    statistics_140 = other.statistics_140;
-    traversal_158 = other.traversal_158;
-    ambient_light_174 = other.ambient_light_174;
-    fog_color_180 = other.fog_color_180;
-}
+// SYNTHETIC: SURRENDER 0x10056D60
+// srScene::srScene (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x100566F0
 srScene& srScene::operator=(const srScene& other)

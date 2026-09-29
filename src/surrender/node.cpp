@@ -473,22 +473,8 @@ srNode* srNode::getPrev() const
     return previous_sibling_;
 }
 
-// FUNCTION: SURRENDER 0x10051AA0
-srNode::srNode(const srNode& other)
-{
-    *this = other;
-    rotation_18 = other.rotation_18;
-    location_60 = other.location_60;
-    scale_78 = other.scale_78;
-    world_transform_90 = other.world_transform_90;
-    world_transform_f0 = other.world_transform_f0;
-    notifications_120 = other.notifications_120;
-    flags_124 = other.flags_124;
-    next_sibling_ = other.next_sibling_;
-    previous_sibling_ = other.previous_sibling_;
-    parent_ = other.parent_;
-    first_child_ = other.first_child_;
-}
+// SYNTHETIC: SURRENDER 0x10051AA0
+// srNode::srNode (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x10051A60
 void srNode::setScale(double scale)

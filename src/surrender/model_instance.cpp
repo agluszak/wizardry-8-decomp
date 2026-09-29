@@ -8,17 +8,6 @@
 srModelInstance::srModelInstance(srNode* parent)
     : srClassSupport<srModelInstance, srNode, 0, 0x1100>(static_cast<srNode*>(0))
 {
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1100);
-    if (node == 0) {
-        node = registry->getClassNode(0x1000);
-        if (node == 0) {
-            node = registry->registerClass(srNode::sGetClassName(), srClass::sGetClassNode(),
-                                           0x1000, 1);
-        }
-        node = registry->registerClass(sGetClassName(), node, 0x1100, 0);
-    }
-    registry->registerInstance(node, this);
     alignment_flags_148.value = 0;
     align_angle_158 = 0.0f;
     align_axis_14c.x = 0.0f;
@@ -30,17 +19,8 @@ srModelInstance::srModelInstance(srNode* parent)
     }
 }
 
-// FUNCTION: SURRENDER 0x10050010
-srModelInstance::srModelInstance(const srModelInstance& other)
-    : srClassSupport<srModelInstance, srNode, 0, 0x1100>(static_cast<srNode*>(0)),
-      srModel::Client(other)
-{
-    *this = other;
-    alignment_flags_148 = other.alignment_flags_148;
-    align_axis_14c = other.align_axis_14c;
-    align_angle_158 = other.align_angle_158;
-    exclusion_mask_15c = other.exclusion_mask_15c;
-}
+// SYNTHETIC: SURRENDER 0x10050010
+// srModelInstance::srModelInstance (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x1004F890
 srModelInstance& srModelInstance::operator=(const srModelInstance& other)
@@ -57,20 +37,7 @@ srModelInstance& srModelInstance::operator=(const srModelInstance& other)
 }
 
 // FUNCTION: SURRENDER 0x1004FA40
-srModelInstance::~srModelInstance()
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1100);
-    if (node == 0) {
-        node = registry->getClassNode(0x1000);
-        if (node == 0) {
-            node = registry->registerClass(srNode::sGetClassName(), srClass::sGetClassNode(),
-                                           0x1000, 1);
-        }
-        node = registry->registerClass(sGetClassName(), node, 0x1100, 0);
-    }
-    registry->unregisterInstance(node, this);
-}
+srModelInstance::~srModelInstance() {}
 
 // FUNCTION: SURRENDER 0x1004FF80
 srClass* srModelInstance::vInstance()

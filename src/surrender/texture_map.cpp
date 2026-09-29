@@ -12,11 +12,8 @@ srTextureMap::srTextureMap(srColorSurfaceIFace* surface)
 /* Retail delegates to operator= then memberwise-copies its own members;
    the surface_54_ tail uses srPtr copy-constructor semantics (addref, no
    release), which a source-level member assignment cannot reproduce. */
-// FUNCTION: SURRENDER 0x100607E0
-srTextureMap::srTextureMap(const srTextureMap& other)
-{
-    *this = other;
-}
+// SYNTHETIC: SURRENDER 0x100607E0
+// srTextureMap::srTextureMap (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x10060210
 srTextureMap& srTextureMap::operator=(const srTextureMap& other)

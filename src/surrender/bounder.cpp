@@ -7,17 +7,6 @@
 srBounder::srBounder(srNode* parent)
     : srClassSupport<srBounder, srNode, false, 0x1600>(static_cast<srNode*>(0))
 {
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1600);
-    if (node == 0) {
-        node = registry->getClassNode(0x1000);
-        if (node == 0) {
-            node = registry->registerClass(srNode::sGetClassName(), srClass::sGetClassNode(),
-                                           0x1000, 1);
-        }
-        node = registry->registerClass(sGetClassName(), node, 0x1600, 0);
-    }
-    registry->registerInstance(node, this);
     bound_mode_138_ = BOUND_MODE_POSITIONAL_0;
     bounds_13c_.state_28 = 2;
     if (parent != 0) {
@@ -27,20 +16,7 @@ srBounder::srBounder(srNode* parent)
 }
 
 // FUNCTION: SURRENDER 0x1004b2e0
-srBounder::~srBounder()
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1600);
-    if (node == 0) {
-        node = registry->getClassNode(0x1000);
-        if (node == 0) {
-            node = registry->registerClass(srNode::sGetClassName(), srClass::sGetClassNode(),
-                                           0x1000, 1);
-        }
-        node = registry->registerClass(sGetClassName(), node, 0x1600, 0);
-    }
-    registry->unregisterInstance(node, this);
-}
+srBounder::~srBounder() {}
 
 // FUNCTION: SURRENDER 0x1004b080
 srClass* srBounder::vInstance()
@@ -113,15 +89,8 @@ void srBounder::forceUpdateBounds()
     bound_mode_138_ = mode;
 }
 
-// FUNCTION: SURRENDER 0x1004B1E0
-srBounder::srBounder(const srBounder& other)
-    : srClassSupport<srBounder, srNode, false, 0x1600>(static_cast<srNode*>(0))
-{
-    *this = other;
-    bound_mode_138_ = other.bound_mode_138_;
-    bounds_13c_ = other.bounds_13c_;
-    inverse_world_168_ = other.inverse_world_168_;
-}
+// SYNTHETIC: SURRENDER 0x1004B1E0
+// srBounder::srBounder (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x1004A690
 srBounder& srBounder::operator=(const srBounder& other)

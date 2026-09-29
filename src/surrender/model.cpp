@@ -84,27 +84,11 @@ srModel::Client* srModel::Client::getPrevClient() const
 // FUNCTION: SURRENDER 0x1003C520
 srModel::srModel()
 {
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x2000);
-    if (node == 0) {
-        node = registry->registerClass(sGetClassName(), srClass::sGetClassNode(), 0x2000, 1);
-    }
-    registry->registerInstance(node, this);
     first_client_18 = 0;
 }
 
-// FUNCTION: SURRENDER 0x1003C7B0
-srModel::srModel(const srModel& other)
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x2000);
-    if (node == 0) {
-        node = registry->registerClass(sGetClassName(), srClass::sGetClassNode(), 0x2000, 1);
-    }
-    registry->registerInstance(node, this);
-    *this = other;
-    first_client_18 = other.first_client_18;
-}
+// SYNTHETIC: SURRENDER 0x1003C7B0
+// srModel::srModel (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x1003C500
 srModel& srModel::operator=(const srModel& other)
@@ -116,15 +100,7 @@ srModel& srModel::operator=(const srModel& other)
 }
 
 // FUNCTION: SURRENDER 0x1003C470
-srModel::~srModel()
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x2000);
-    if (node == 0) {
-        node = registry->registerClass(sGetClassName(), srClass::sGetClassNode(), 0x2000, 1);
-    }
-    registry->unregisterInstance(node, this);
-}
+srModel::~srModel() {}
 
 // FUNCTION: SURRENDER 0x1003C5B0
 void srModel::dump(std::ostream& stream)

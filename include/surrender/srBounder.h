@@ -13,7 +13,7 @@ public:
     enum e_boundMode { BOUND_MODE_POSITIONAL_0 = 0 };
 
     srBounder(srNode* parent = 0);
-    srBounder(const srBounder& other);
+
     srBounder& operator=(const srBounder& other);
 
     static const char* sGetClassName();

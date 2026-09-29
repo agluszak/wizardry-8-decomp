@@ -73,7 +73,7 @@ public:
     /* The default-constructor closure 0x100425A0 proves both arguments
        default to zero for paren-less new expressions. */
     SR_DLL_IMPORT srMeshModel(long polygons = 0, long vertices = 0);
-    srMeshModel(const srMeshModel& other);
+
     SR_DLL_IMPORT void reset(long polygons, long vertices);
     SR_DLL_IMPORT void scale(const srVector3T<float>& scale);
     void applyMatrix(const srMatrix3T<float>& matrix);

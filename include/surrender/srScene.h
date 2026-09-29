@@ -24,7 +24,7 @@ public:
     };
 
     srScene(srNode* parent = 0);
-    srScene(const srScene& other);
+
     srScene& operator=(const srScene& other);
 
     virtual void dump(std::ostream& stream) override;
@@ -93,7 +93,6 @@ protected:
     TraverseInfo traversal_158;          /* 0x158 (renderer at 0x170) */
     srVector3T<float> ambient_light_174; /* 0x174 */
     srVector3T<float> fog_color_180;     /* 0x180 */
-    unsigned long unknown_18c_;          /* 0x18c */
 };
 
 static_assert((sizeof(srScene) == 0x190), "srScene_must_be_0x190");

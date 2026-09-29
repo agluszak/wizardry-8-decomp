@@ -1154,19 +1154,8 @@ srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, void* data, u
     srPixelConvert::selectFuncs(format, pixel_write_44, pixel_read_48);
 }
 
-// FUNCTION: SURRENDER 0x1005DE30
-srColorSurface::srColorSurface(const srColorSurface& other)
-{
-    /* Retail assigns, then re-copies the function pointers, palette and the
-       surface_flags/data_size/data tail verbatim. */
-    *this = other;
-    pixel_write_44 = other.pixel_write_44;
-    pixel_read_48 = other.pixel_read_48;
-    palette_4c = other.palette_4c;
-    surface_flags_50 = other.surface_flags_50;
-    data_size_54 = other.data_size_54;
-    data_58 = other.data_58;
-}
+// SYNTHETIC: SURRENDER 0x1005DE30
+// srColorSurface::srColorSurface (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x1005D520
 srColorSurface& srColorSurface::operator=(const srColorSurface& other)

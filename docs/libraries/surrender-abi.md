@@ -419,3 +419,36 @@ vftable data never gives one either. So a header here states only what something
 Everything else stays `unknown_NN[...]` behind a `sizeof` assertion, so that a later edit which
 repacks the class fails to compile instead of silently mismatching. `include/surrender/srBinIStream.h`
 is the model: named where the evidence reaches, opaque and asserted where it does not.
+
+## Supported-class copy construction and lifetime
+
+The retail exported copies of `srNode` (`0x10051AA0`), `srMeshModel`
+(`0x10041BF0`), `srPalette` (`0x10004EE0`) and the supported scene/material/texture
+classes perform the same sequence: default-construct the canonical base, install
+and register the support layer, call the derived assignment operator, copy-construct
+the derived members, and install the final vtable. Assignment runs before those
+members have been constructed. This is the support template's derived-reference
+constructor followed by the compiler's implicit copy construction; it is not an
+assignment in an authored derived constructor body. The early access to derived
+state, subsequent retained pointer copies, and raw pointer aliasing remain retail
+behavior. Copies have marker-only `SYNTHETIC` identities.
+
+The support destructor owns unregistration. `srModel` (`0x1003C470`),
+`srBounder` (`0x1004B2E0`), `srModelInstance` (`0x1004FA40`), `srIlluminator`
+(`0x1004C6E0`) and `srMaterial` (`0x10016880`) must not repeat it in their bodies.
+The `srModelInstance` secondary `Client` base is destroyed before support teardown;
+material and material-interface support layers each unregister their own identity.
+
+Complete copy bodies also distinguish members from alignment padding: the gaps at
+`srIlluminator+0x14C`, `srLight+0x154/+0x224`, `srClipPlane+0x14C` and
+`srScene+0x18C` are not copied as fields. Natural alignment preserves the observed
+object extents and member offsets without source byte arrays. Retail lifecycle
+unwind frames in the core/node/model/material translation units establish `/GX`; their
+build settings must preserve member/base cleanup rather than compiling with `/GX-`.
+
+The retail `srVP_generic` table at `0x100776B0` establishes the vector4 indexed
+multiply slots: `+0x1C8` is linear-source multiplication and `+0x1CC` is the constant
+form. `srDebugVP` (`0x10077960`) forwards these through `0x1006F190` and
+`0x1006F100`, respectively. Its statistics indices are reversed (141/140), and the
+constant form omits the constant pointer from alignment tracking. Keep these quirks;
+source-projected function names must not reverse the interface slots.

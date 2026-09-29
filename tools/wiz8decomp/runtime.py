@@ -1209,7 +1209,12 @@ def _run_runtime_batch(
     error string when the process died before reporting every case (crash,
     abort, or deadline). Never raises: a poisoned batch must not mask which
     cases actually ran."""
-    timeout_seconds = sum(registry[name].timeout_ms for name in scenarios) / 1000 + 60
+    # DriveScenario gives engine initialization the first case's budget, then
+    # starts each RuntimeCase deadline. Keep the launcher/teardown allowance
+    # outside those native budgets.
+    timeout_seconds = (
+        registry[scenarios[0]].timeout_ms + sum(registry[name].timeout_ms for name in scenarios)
+    ) / 1000 + 60
     result = _drive_runtime_process(
         executable,
         stage,
@@ -1488,7 +1493,10 @@ def run_runtime_suite(
                     staged.root,
                     scenario_environment,
                     scenario,
-                    registry[scenario].timeout_ms / 1000,
+                    # Engine initialization precedes the native case deadline.
+                    # The outer process watchdog must cover both, plus launch
+                    # and teardown, just as it does for a batch.
+                    2 * registry[scenario].timeout_ms / 1000 + 60,
                     object_root,
                     staged.map,
                 )
