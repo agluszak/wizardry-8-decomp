@@ -600,7 +600,7 @@ float g_encounter_culling_scale_fast = 1.0f;
 const float g_encounter_culling_rate = 2880.0f;
 
 // GLOBAL: WIZ8 0x005eca90
-const float g_encounter_culling_distance = 50000.0f;
+const double g_encounter_culling_distance = 50000.0;
 
 /* Retires random encounters that have outlived their welcome.
  

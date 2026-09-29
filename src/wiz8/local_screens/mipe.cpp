@@ -168,7 +168,7 @@ void ToggleMipePanel(void)
         srAssertFail("pTempMonsterDB", "C:\\Projects\\Wizardry 8\\Local Screens\\mipe.cpp", 0xea5,
                      0);
     }
-    LoadMonsterDatabaseRange(0, gXStatus.uiMonstersInDatabase - 1, 0, records);
+    LoadMonsterDatabaseRange(0, gXStatus.uiMonstersInDatabase - 1, records);
     for (unsigned int index = 0; index < gXStatus.uiMonstersInDatabase; ++index) {
         W8MipeMonsterEntry* entry =
             static_cast<W8MipeMonsterEntry*>(malloc(sizeof(W8MipeMonsterEntry)));

@@ -724,8 +724,7 @@ static void SelectSpellCastingRow(int index)
         if (index < 0) {
             srAssertFail("iSpellIndex >= 0", SPELLCASTING_CPP, 0x406, 0);
         }
-        if (gpSCSV->uiSpellsInList < static_cast<unsigned int>(index)) {
-            // c-style-cast-ok: the assertion text itself spells (INT32)
+        if (index > static_cast<int>(gpSCSV->uiSpellsInList)) {
             srAssertFail("iSpellIndex <= (INT32) gpSCSV->uiSpellsInList", SPELLCASTING_CPP, 0x407,
                          0);
         }

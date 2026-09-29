@@ -5,7 +5,7 @@
 
 unsigned char LoadMonsterDatabase(W8MonsterRecord** records);
 unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
-                                       unsigned int unused, W8MonsterRecord* records);
+                                       W8MonsterRecord* records);
 unsigned char LoadMonsterDatabaseRecord(unsigned int monster_species, W8MonsterRecord* record);
 
 class W8GameTimer;

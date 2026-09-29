@@ -2453,22 +2453,26 @@ void SetPrimarySurfaceTextureHint2Enabled(unsigned char enabled)
 // FUNCTION: WIZ8 0x00424040
 unsigned char InitializeMouseSurface(void)
 {
-    srPixelConvert::e_surfaceType type;
-
     if (g_pixel_format == 7) {
-        type = srPixelConvert::SURFACE_RGB565;
+        g_mouse_surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_RGB565, 128UL, 128UL);
+        if (!g_mouse_surface) {
+            srAssertFail("psrMouseSurface", "C:\\Projects\\Wizardry 8\\Engine Code\\Video2.cpp",
+                         0x641, 0);
+        }
     } else if (g_pixel_format == 8) {
-        type = srPixelConvert::SURFACE_RGB555;
+        g_mouse_surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_RGB555, 128UL, 128UL);
+        if (!g_mouse_surface) {
+            srAssertFail("psrMouseSurface", "C:\\Projects\\Wizardry 8\\Engine Code\\Video2.cpp",
+                         0x635, 0);
+        }
     } else if (g_pixel_format == 9) {
-        type = srPixelConvert::SURFACE_ARGB1555;
+        g_mouse_surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555, 128UL, 128UL);
+        if (!g_mouse_surface) {
+            srAssertFail("psrMouseSurface", "C:\\Projects\\Wizardry 8\\Engine Code\\Video2.cpp",
+                         0x63b, 0);
+        }
     } else {
         return 0;
-    }
-
-    g_mouse_surface = SR_NEW(W8ColorSurface)(type, 128UL, 128UL);
-    if (!g_mouse_surface) {
-        srAssertFail("psrMouseSurface", "C:\\Projects\\Wizardry 8\\Engine Code\\Video2.cpp", 0x635,
-                     0);
     }
     g_mouse_surface->setFilter(&srBoxFilter);
     g_mouse_surface->fill(0);

@@ -305,7 +305,7 @@ unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
    handle open where every other failure closes it. */
 // FUNCTION: WIZ8 0x0054a9a0
 unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
-                                       unsigned int unused, W8MonsterRecord* records)
+                                       W8MonsterRecord* records)
 {
     char path[56];
     unsigned int bytes_read;
@@ -313,6 +313,9 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
 
     if (!(uiEndIndex < gXStatus.uiMonstersInDatabase)) {
         srAssertFail("uiEndIndex < gXStatus.uiMonstersInDatabase", GAMEPLAY_DATABASE_CPP, 0x17a, 0);
+    }
+    if (uiStartIndex > uiEndIndex) {
+        srAssertFail("uiStartIndex <= uiEndIndex", GAMEPLAY_DATABASE_CPP, 0x17b, 0);
     }
     sprintf(path, "%s\\%s.%s", "Data\\Databases", "Monsters", "DBS");
     handle = FileOpen(path, 1, 0);

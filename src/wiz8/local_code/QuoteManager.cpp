@@ -1436,12 +1436,14 @@ W8CharacterEvent* ApplyItemEffectToRandomCharacter(unsigned int event_type, int 
         return 0;
     }
     attempts = 0;
-    while (CanDispatchCharacterEvent(character_slot, event_type, 0) == 0) {
-        if (attempts >= 0x32) {
-            return 0;
-        }
+    bool can_dispatch = CanDispatchCharacterEvent(character_slot, event_type, 0) != 0;
+    while (!can_dispatch && attempts < 0x32) {
         character_slot = GetRandomCharacter(0, 0, excluded_slot, -1);
         ++attempts;
+        can_dispatch = CanDispatchCharacterEvent(character_slot, event_type, 0) != 0;
+    }
+    if (attempts == 0x32) {
+        return 0;
     }
     return QueueCharacterEvent(&g_status.buffers.Char[character_slot], event_type, flags,
                                queue_mode, g_character_event_full_volume);
