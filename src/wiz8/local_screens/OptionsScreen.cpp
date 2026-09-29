@@ -1846,6 +1846,13 @@ void W8OptionsMenuButton::Redraw(int full_redraw)
     W8TextControl::Redraw(full_redraw);
 }
 
+// FUNCTION: WIZ8 0x005a75e0
+void W8OptionsMenuButton::EnableSecondaryState(unsigned char immediate)
+{
+    W8TextControl::EnableSecondaryState(immediate);
+    Invalidate(immediate);
+}
+
 // FUNCTION: WIZ8 0x005a8470
 void W8OptionsPanel::Redraw()
 {

@@ -380,6 +380,7 @@ public:
     W8OptionsMenuButton(Controls* owner, const int* row);
     virtual ~W8OptionsMenuButton() override;
     virtual void Redraw(int full_redraw) override;
+    virtual void EnableSecondaryState(unsigned char immediate) override;
     virtual void OnPrimary(W8TextControl* control) override;
 
     int m_item_id_0bc;

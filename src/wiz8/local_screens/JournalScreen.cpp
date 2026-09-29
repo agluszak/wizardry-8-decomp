@@ -338,7 +338,7 @@ W8JournalPanel::W8JournalPanel(unsigned int* region_set)
     m_alternate_mode_064 = 0;
     m_mode_05c->EnableRegionHelp(0x6eb);
     if ((m_mode_05c->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
-        m_mode_05c->ActivateSecondary(1);
+        m_mode_05c->DisableSecondaryState(1);
     }
 }
 
@@ -379,12 +379,12 @@ void W8JournalPanel::OnPrimary(W8TextControl* control)
         if (m_alternate_mode_064) {
             m_mode_05c->EnableRegionHelp(0x6ec);
             if ((m_mode_05c->m_stateFlags & g_W8TextControlStateSecondary) == 0) {
-                m_mode_05c->ActivatePrimary(1);
+                m_mode_05c->EnableSecondaryState(1);
             }
         } else {
             m_mode_05c->EnableRegionHelp(0x6eb);
             if ((m_mode_05c->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
-                m_mode_05c->ActivateSecondary(1);
+                m_mode_05c->DisableSecondaryState(1);
             }
         }
         Refresh();
