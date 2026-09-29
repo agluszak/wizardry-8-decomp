@@ -9,13 +9,7 @@
 #define GROBJECT_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\GrObject.cpp"
 
 // FUNCTION: WIZ8 0x004b6900
-W8GrObject::W8GrObject()
-{
-    kind_004 = 0;
-    id_008 = -1;
-    m_pAI = 0;
-    m_plsSoundEvents = 0;
-}
+W8GrObject::W8GrObject() : kind_004(0), id_008(-1), m_pAI(0), m_plsSoundEvents(0) {}
 
 /* Nothing is shared with the source. The AI record goes through the tagged
    dispatcher, and each sound event is rebuilt from the four leading values and
