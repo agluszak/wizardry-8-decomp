@@ -1392,7 +1392,7 @@ void SetMonsterSpellIcon(W8Monster* pMonster, int iIcon, char add)
 // SYNTHETIC: WIZ8 0x004ade60
 // W8SpellVisual::`scalar deleting destructor'`adjustor{24}'
 
-// VTABLE: WIZ8 0x005ecf40 W8SpellVisual
+// VTABLE: WIZ8 0x005ecf40 W8GrObject
 // VTABLE: WIZ8 0x005ecf2c W8Navigator
 // class W8SpellVisual
 

@@ -1233,7 +1233,7 @@ W8AnimRepBase* W8MonsterRep::Clone()
     return new W8MonsterRep(*this);
 }
 
-// VTABLE: WIZ8 0x005ed22c W8Monster
+// VTABLE: WIZ8 0x005ed22c W8GrObject
 // VTABLE: WIZ8 0x005ed218 W8Navigator
 // class W8Monster
 
