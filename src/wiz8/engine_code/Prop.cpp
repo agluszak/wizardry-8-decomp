@@ -906,9 +906,9 @@ char W8Prop::GetDelta(srVector3T<float>* out, const srVector3T<float>* point)
     return 0;
 }
 
-/* Whether the prop can be used from where the caller is. The owned GDProp has
-   to be there, its own owner has to be, that owner must not be in the tenth
-   state or hold either of two bits, and the reach test has to pass. */
+/* Whether the prop can be used from where the caller is. Retail clears the
+   action pointer for non-door actions, then dereferences it when the lock
+   state does not short-circuit the test. */
 // FUNCTION: WIZ8 0x0044e0c0
 bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
 {
@@ -928,7 +928,7 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
         action = 0;
     }
     if ((owner->lock_state.lock_type != 0 && owner->lock_state.device_state.completed == 0) ||
-        (action != 0 && (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) != 0)) {
+        (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) != 0) {
         return false;
     }
     if (!m_gd_prop->ContainsPathCoordinate(static_cast<unsigned short>(arg_2),

@@ -1304,7 +1304,7 @@ void W8LockInteraction::AttemptForce()
             }
             m_force_button_24->SetEnabled(static_cast<int>(chance) > -1);
             m_info_panel_14->RefreshInfo();
-            m_action_panel_18->SetEnabled(0);
+            m_action_panel_18->Invalidate(0);
         }
     }
 }
@@ -1389,7 +1389,7 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
             SoundPlay(s_lock_pin_rising_64bb10, 0);
         } else {
             SoundPlay(s_lock_pin_falling_64bae8, 0);
-            m_tumbler_panel_10->SetEnabled(0);
+            m_tumbler_panel_10->Invalidate(0);
         }
     }
     slot = g_status.selected_character;
@@ -1434,7 +1434,7 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
     }
     m_force_button_24->SetEnabled(static_cast<int>(figure) > -1);
     m_info_panel_14->RefreshInfo();
-    m_action_panel_18->SetEnabled(0);
+    m_action_panel_18->Invalidate(0);
     m_state_34 = 7;
 }
 
@@ -2862,7 +2862,7 @@ void W8NpcDialogueTextController::Collapse()
                             g_W8TextBufferAlignRight);
     RegionSetDisable(3);
     DisableRegionInput(9);
-    g_screen_state_00649f1c->npc_dialogue_panel_1b4->SetEnabled(0);
+    g_screen_state_00649f1c->npc_dialogue_panel_1b4->Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x0055E1E0
