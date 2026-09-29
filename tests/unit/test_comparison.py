@@ -388,6 +388,43 @@ def test_compare_selected_classifies_unlinked_header_body_as_emission(tmp_path, 
     assert result["functions"][0]["outcome"] == "header-emission"
 
 
+def test_compare_selected_classifies_unpaired_inline_header_as_emission(tmp_path, monkeypatch):
+    _products(tmp_path, monkeypatch)
+    unpaired = _row(0x401000, "unpaired")
+    unpaired["recomp"] = None
+    _fake_reccmp(monkeypatch, [unpaired])
+    marker = SimpleNamespace(
+        name="Widget::Widget",
+        source_file="include/wiz8/Widget.h",
+        declaration=None,
+        marker_name="?Widget@@YAXXZ",
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.source_functions", lambda *_args: {0x401000: marker}
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.load_source_index",
+        lambda *_args: {
+            "declarations": [
+                {
+                    "semantic_id": "?Widget@@YAXXZ",
+                    "source_file": "include/wiz8/Widget.h",
+                    "target": "WIZ8",
+                    "is_definition": True,
+                }
+            ]
+        },
+    )
+
+    result = compare_selected(
+        tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"), classify_header_emissions=True
+    )
+
+    assert result["ok"] is True
+    assert result["counts"]["header-emission"] == 1
+    assert result["counts"]["unpaired"] == 0
+
+
 def test_vtable_comparison_reports_unpaired_and_different_slots(tmp_path, monkeypatch):
     from reccmp.compare import Compare
     from reccmp.compare.vtables import SlotStatus

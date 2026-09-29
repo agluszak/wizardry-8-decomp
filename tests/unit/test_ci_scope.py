@@ -106,6 +106,7 @@ def test_runtime_tooling_change_is_runtime_only() -> None:
 def test_comparison_tooling_change_is_comparison_only() -> None:
     result = _MODULE.classify(["tools/wiz8decomp/comparison.py"])
     assert result["wiz8_compare"] is True
+    assert result["surrender"] is True
     assert result["wiz8_runtime"] is False
 
 

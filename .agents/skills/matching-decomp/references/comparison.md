@@ -38,7 +38,7 @@ Each selected function gets one outcome:
 | `no-differences` | Ghidra and Ghidriff show no difference. Useful evidence, not proof. |
 | `unpaired` | reccmp has no retail counterpart for the function. |
 | `analysis-failed` | The comparison did not complete; `failures` says why (no Ghidra function at the entry, an entry inside another function, a decompiler error). |
-| `header-emission` | An inline header body with no standalone linked symbol. |
+| `header-emission` | An inline header body with no paired rebuild emission, including an unpaired retail marker. |
 | `missing` | The address is not a function reccmp knows. |
 
 `ok` is false only for `analysis-failed`, `unpaired` and `missing`. Differences are review material:
