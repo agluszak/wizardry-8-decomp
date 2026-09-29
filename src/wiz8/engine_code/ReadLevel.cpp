@@ -497,7 +497,7 @@ unsigned char ReadWorldClipPlanes(W8ReadLevelInfo* pInfo, W8World* pWorld)
     FileRead(pInfo->hFile, &version, sizeof(version), 0);
     plane.Set(0.0f, 1.0f, 0.0f, 0.0f);
     for (index = 0; index < count; ++index) {
-        clip_plane = SR_NEW(srClipPlane)(pWorld->dynamic_scene);
+        clip_plane = SR_NEW(srClipPlane)(pWorld->static_scene);
         if (clip_plane == 0) {
             srAssertFail("psrClipPlane", READ_LEVEL_CPP, 0x5ae,
                          "out of memory creating clip plane");

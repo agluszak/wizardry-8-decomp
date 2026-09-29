@@ -377,7 +377,7 @@ unsigned char W8SplitItemDialog::CreateTextBuffers()
         m_texts_07c[0]->SetText(header, g_wiz_text_font_secondary);
     }
     m_texts_07c[3]->SetText(FormatItemDisplayName(m_item_0d0, 0), g_wiz_text_font_secondary);
-    m_texts_07c[4]->SetText(
+    m_texts_07c[5]->SetText(
         FormatWideString(
             L"%s (%s)", gppStringList[g_equip_class_name_ids[GetItemEquipClass(m_item_0d0)]],
             gppStringList[g_generic_item_name_notice[GetItemUnidentifiedNameIndex(m_item_0d0)]]),

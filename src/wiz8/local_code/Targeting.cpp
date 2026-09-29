@@ -805,7 +805,7 @@ bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item)
             needed =
                 GetTargetNeededForSpellFriendly(record->spell_id, ItemClassNormalizesTarget(record),
                                                 W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
-            if (needed == 2 && g_settings.autoscroll_combat_messages != 0) {
+            if (needed == 2 && g_settings.autotarget_spells != 0) {
                 return 1;
             }
         }
@@ -1629,7 +1629,7 @@ bool ActionNeedsExplicitTarget(int party_slot)
         if (gXStatus.fCampMode != 0) {
             return false;
         }
-        return g_settings.autoscroll_combat_messages == 0;
+        return g_settings.autotarget_spells == 0;
     case W8_TARGET_TYPE_CASTER:
     case W8_TARGET_TYPE_PARTY:
     case W8_TARGET_TYPE_ALL_ENEMIES:
@@ -2684,7 +2684,7 @@ bool SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normaliz
 
     switch (GetTargetNeededForSpellFriendly(spell_id, normalize, W8_TARGETING_CONTEXT_CURRENT)) {
     case W8_SPELL_TARGET_ONE_MONSTER:
-        if (g_settings.autoscroll_combat_messages != 0) {
+        if (g_settings.autotarget_spells != 0) {
             return 1;
         }
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {

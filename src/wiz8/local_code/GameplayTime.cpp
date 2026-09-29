@@ -546,7 +546,7 @@ void AdvanceTimedEffects(unsigned int minutes)
             g_status.wait_state_2399 = 3;
         }
     } else {
-        g_status.wait_state_2399 = g_status.real_elapsed_2391 != g_float_005ebb34 ? 1 : 0;
+        g_status.wait_state_2399 = g_status.frame_elapsed_2395 != g_float_005ebb34 ? 1 : 0;
         g_status.real_elapsed_2391 = g_float_005ebb34;
         g_status.frame_elapsed_2395 = g_float_005ebb34;
     }

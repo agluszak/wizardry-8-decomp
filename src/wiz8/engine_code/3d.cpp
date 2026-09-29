@@ -648,7 +648,7 @@ stLight* CreateWorldLight(W8World* world, const char* name)
     }
 
     if (world != 0) {
-        light = new stLight(world->dynamic_scene);
+        light = new stLight(world->static_scene);
     } else {
         light = new stLight(0);
     }
@@ -679,7 +679,7 @@ stLight* CreateRangedWorldLight(W8World* world, const char* name)
         srAssertFail("pWorld", THREE_D_CPP, 604, 0);
     }
 
-    light = CreateLight(world->dynamic_scene, name);
+    light = CreateLight(world->static_scene, name);
     if (light == 0) {
         srAssertFail("pLight", THREE_D_CPP, 608, 0);
     }

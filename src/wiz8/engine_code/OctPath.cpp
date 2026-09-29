@@ -24,6 +24,7 @@
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
 #include "surrender/srNode.h"
+#include "surrender/srScene.h"
 #include "surrender/srModelInstance.h"
 #include "FileMan.h"
 #include "wiz8/engine_code/GDProp.h"
@@ -5065,7 +5066,7 @@ void W8PathingService::UpdatePathVisualization(const srVector3T<float>* source,
             m_pPathModelInstance = BuildPathVisualization();
             node = m_pPathModelInstance;
             if (node != 0) {
-                node->setParent(world->dynamic_scene, 1);
+                node->setParent(world->static_scene, 1);
                 node->clearFlag(srNode::FLAG_DISABLE);
                 return;
             }
@@ -5095,7 +5096,7 @@ void W8PathingService::UpdatePathVisualization(const srVector3T<float>* source,
         if (m_pPathModelInstance == 0) {
             EnsurePathVisualization();
             node = m_pPathModelInstance;
-            node->setParent(world->dynamic_scene, 1);
+            node->setParent(world->static_scene, 1);
             node->setFlag(srNode::FLAG_TERMINATE);
             if (m_pPathModelInstance == 0) {
                 node->clearFlag(srNode::FLAG_DISABLE);
