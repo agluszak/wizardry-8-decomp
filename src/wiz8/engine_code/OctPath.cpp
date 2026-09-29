@@ -5303,18 +5303,7 @@ stModelInstance* W8PathingService::BuildPathVisualization()
         active_polygons[active_count++] = 600 + index;
     }
     model->setActivePolygonCount(active_count);
-    if ((model->control_state_390 & 1) == 0) {
-        unsigned long state = model->control_state_390;
-        model->control_state_390 = state | 9;
-        model->reindexPolygons(0);
-    }
-    if ((model->control_state_390 & 2) == 0) {
-        model->control_state_390 |= 10;
-    }
-    if ((model->control_state_390 & 4) == 0) {
-        model->control_state_390 |= 12;
-    }
-    model->control_state_390 |= 8;
+    model->setDirtyAll();
     model->flags_3a0 &= ~2U;
     return m_pPathModelInstance;
 }
@@ -5562,18 +5551,7 @@ void W8PathingService::BuildSearchVisualization()
         active_polygons[index] = index + 600;
     }
     model->setActivePolygonCount(active_count);
-    if ((model->control_state_390 & 1) == 0) {
-        unsigned long state = model->control_state_390;
-        model->control_state_390 = state | 9;
-        model->reindexPolygons(0);
-    }
-    if ((model->control_state_390 & 2) == 0) {
-        model->control_state_390 |= 10;
-    }
-    if ((model->control_state_390 & 4) == 0) {
-        model->control_state_390 |= 12;
-    }
-    model->control_state_390 |= 8;
+    model->setDirtyAll();
     model->flags_3a0 &= ~2U;
 }
 

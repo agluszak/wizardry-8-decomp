@@ -206,17 +206,8 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     modeller.convert(*model, 1);
     model->setTexture(texture, 0, 0);
 
-    if ((model->control_state_390 & 8) == 0) {
-        unsigned long state = model->control_state_390 | 8;
-        model->control_state_390 = state;
-        model->control_state_390 = state | 8;
-    }
-    if ((model->control_state_390 & 1) == 0) {
-        unsigned long state = model->control_state_390 | 1;
-        model->control_state_390 = state;
-        model->control_state_390 = state | 8;
-        model->updateAllClients(static_cast<srModel::Client::e_update>(0));
-    }
+    model->setDirty(static_cast<srMeshModel::e_flags>(3));
+    model->setDirty(static_cast<srMeshModel::e_flags>(0));
 
     srVector3T<float> minimum;
     srVector3T<float> maximum;

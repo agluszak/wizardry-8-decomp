@@ -284,11 +284,9 @@ void stModelInstance2D::SetModel(srModel* model)
 {
     setModel(model);
     if (model != 0) {
-        /* Retail raises bits 5 and 4 of control_state_394 through the
-           changed-bit-marking helper, not enableStartupControls' 0x40/0x30
-           sequence. */
-        static_cast<srMeshModel*>(model)->setControlMask(0x20);
-        static_cast<srMeshModel*>(model)->setControlMask(0x10);
+        /* Retail enables the auto-sphere and auto-box skip flags separately. */
+        static_cast<srMeshModel*>(model)->enable(srMeshModel::CONTROL_SKIP_AUTO_SPHERE);
+        static_cast<srMeshModel*>(model)->enable(srMeshModel::CONTROL_SKIP_AUTO_BOX);
     }
 }
 
@@ -626,11 +624,11 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     srVector3T<float> center;
     float radius;
     model->getBoundingSphere(center, radius);
-    if (((model->control_state_394 & 0x20) == 0) &&
+    if (((model->control_state_394.value & 0x20) == 0) &&
         (renderer.testBoundingSphere(center, radius) == srGERD::VISIBILITY_POSITIONAL_0)) {
         return;
     }
-    if (((model->control_state_394 & 0x10) == 0) && (model->vertex_location_count_22c >= 8)) {
+    if (((model->control_state_394.value & 0x10) == 0) && (model->vertex_location_count_22c >= 8)) {
         srVector3T<float> minimum;
         srVector3T<float> maximum;
         model->getBoundingBox(minimum, maximum);

@@ -776,22 +776,10 @@ stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int ver
         delete[] polygon_textures[type];
         free(vertex_shades[type]);
 
-        if ((model->control_state_390 & 1) == 0) {
-            unsigned long state = model->control_state_390;
-            model->control_state_390 = state | 9;
-            model->reindexPolygons(0);
-        }
-        if ((model->control_state_390 & 2) == 0) {
-            model->control_state_390 |= 10;
-        }
-        if ((model->control_state_390 & 4) == 0) {
-            model->control_state_390 |= 12;
-        }
-        model->control_state_390 |= 8;
+        model->setDirtyAll();
         if ((polygon_types.data[type] & 0x6000) == 0x4000) {
             model->flags_3a0 |= 1;
-            model->control_state_394 |= 0x40; /* CONTROL_STARTUP */
-            model->control_state_390 |= 8;
+            model->enable(srMeshModel::CONTROL_STARTUP);
         } else {
             model->flags_3a0 &= ~1U;
         }
@@ -804,11 +792,7 @@ stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int ver
             first_model = model;
         }
     }
-    if ((first_model->control_state_390 & 1) == 0) {
-        unsigned long state = first_model->control_state_390;
-        first_model->control_state_390 = state | 9;
-        first_model->reindexPolygons(0);
-    }
+    first_model->setDirty(static_cast<srMeshModel::e_flags>(0));
     return first_model;
 }
 
@@ -1219,12 +1203,7 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
             reader.Read0049E9A0(info->hFile, g_multi_mesh_materials, g_multi_mesh_textures,
                                 g_multi_mesh_render_flags, meshes, g_read_mesh_material_count);
         meshes[g_read_mesh_index] = model;
-        if ((model->control_state_390 & 1) == 0) {
-            unsigned long state = model->control_state_390;
-            model->control_state_390 = state | 1;
-            model->control_state_390 = state | 9;
-            model->reindexPolygons(0);
-        }
+        model->setDirty(static_cast<srMeshModel::e_flags>(0));
         model->getBoundingBox(minimum, maximum);
     }
 

@@ -31,7 +31,6 @@ AUDITED_CLASS_IMPORTS = {
     "srGERD",
     "srMaterial",
     "srMaterialIFace",
-    "srMeshModel",
     "srModel",
     "srModeler",
     "srScene",

@@ -263,7 +263,7 @@ srVector3T<float>* srMeshModel::getVertexNormal()
             vertex_normals_1e4.count = vertex_location_count_22c;
         }
     }
-    if ((control_state_390 & 4) != 0) {
+    if ((control_state_390.value & 4) != 0) {
         calculateVertexNormals();
     }
     return vertex_normals_1e4.data;
@@ -296,7 +296,7 @@ srVector4T<float>* srMeshModel::getPolyEq()
             poly_equations_134.count = polygon_count_230;
         }
     }
-    if ((control_state_390 & 2) != 0) {
+    if ((control_state_390.value & 2) != 0) {
         calculatePolygonNormals();
     }
     return poly_equations_134.data;
@@ -635,8 +635,6 @@ void srMeshModel::freeAll()
 // FUNCTION: SURRENDER 0x1003CF30
 srMeshModel::srMeshModel(long polygons, long vertices)
 {
-    control_state_390 = 0;
-    control_state_394 = 0;
     memset(static_cast<void*>(&tri_mesh_23c), 0, sizeof(tri_mesh_23c));
     reset(polygons, vertices);
     sort_bias_238 = 0.0f;
@@ -664,9 +662,9 @@ void srMeshModel::reset(long polygons, long vertices)
     polygon_count_230 = polygons;
     active_polygon_count_1fc = polygons;
     pass_count_228 = 1;
-    control_state_394 = 0;
-    control_state_394 |= 1;
-    control_state_394 |= 0x10;
+    control_state_394.value = 0;
+    control_state_394.value |= 1;
+    control_state_394.value |= 0x10;
 }
 
 // FUNCTION: SURRENDER 0x1003D320
@@ -687,7 +685,7 @@ srMeshModel& srMeshModel::operator=(const srMeshModel& other)
         control_state_390 = other.control_state_390;
         control_state_394 = other.control_state_394;
         pass_count_228 = other.pass_count_228;
-        control_state_390 |= 8;
+        control_state_390.value |= 8;
         bounds_minimum_200 = other.bounds_minimum_200;
         bounds_maximum_20c = other.bounds_maximum_20c;
         bounds_center_218 = other.bounds_center_218;
@@ -760,14 +758,14 @@ void srMeshModel::calculateBounds()
         }
         bounds_radius_224 = sqrtf(bounds_radius_224) * 1.00001f;
         updateAllClients(static_cast<Client::e_update>(0));
-        control_state_390 &= 0xfffffffe;
+        control_state_390.value &= 0xfffffffe;
     }
 }
 
 // FUNCTION: SURRENDER 0x1003E280
 void srMeshModel::calculatePolygonNormals()
 {
-    control_state_390 &= 0xfffffffd;
+    control_state_390.value &= 0xfffffffd;
     srVector4T<float>* equations = getPolyEq();
     srVector3i* polygons = getPolyVertex();
     srVector3T<float>* vertices = getVertexLoc();
@@ -789,10 +787,10 @@ void srMeshModel::calculatePolygonNormals()
 void srMeshModel::calculateVertexNormals()
 {
     if ((polygon_count_230 != 0) && (vertex_location_count_22c != 0)) {
-        if ((control_state_390 & 2) != 0) {
+        if ((control_state_390.value & 2) != 0) {
             calculatePolygonNormals();
         }
-        control_state_390 &= 0xfffffffb;
+        control_state_390.value &= 0xfffffffb;
         srVector4T<float>* equations = getPolyEq();
         srVector3T<float>* normals = getVertexNormal();
         srVector3i* polygons = getPolyVertex();
@@ -1034,7 +1032,7 @@ void srMeshModel::getTriMesh(TriMesh& mesh)
 // FUNCTION: SURRENDER 0x1003DC70
 const srMeshModel::TriMesh& srMeshModel::getTriMesh()
 {
-    if ((control_state_390 & 8) != 0) {
+    if ((control_state_390.value & 8) != 0) {
         updateTriMesh();
     }
     return tri_mesh_23c;
@@ -1047,7 +1045,7 @@ void srMeshModel::updateTriMesh()
     tri_mesh_23c.vertex_count_00 = vertex_location_count_22c;
     tri_mesh_23c.polygon_count_04 = polygon_count_230;
     tri_mesh_23c.pass_count_08 = pass_count_228;
-    tri_mesh_23c.control_flags_0c = control_state_394;
+    tri_mesh_23c.control_flags_0c = control_state_394.value;
     tri_mesh_23c.sort_bias_148 = sort_bias_238;
     tri_mesh_23c.poly_vertices_10 = getPolyVertex();
     tri_mesh_23c.poly_equations_14 = getPolyEq();
@@ -1080,7 +1078,7 @@ void srMeshModel::updateTriMesh()
     }
     tri_mesh_23c.active_polygons_14c = getActivePolygonTable(0);
     tri_mesh_23c.active_polygon_count_150 = active_polygon_count_1fc;
-    control_state_390 &= 0xfffffff7;
+    control_state_390.value &= 0xfffffff7;
 }
 
 // FUNCTION: SURRENDER 0x1003FDA0
@@ -1099,7 +1097,7 @@ void srMeshModel::setBounds(const srVector3T<float>& minimum, const srVector3T<f
 // FUNCTION: SURRENDER 0x1003FE40
 int srMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& maximum)
 {
-    if ((control_state_390 & 1) != 0) {
+    if ((control_state_390.value & 1) != 0) {
         calculateBounds();
     }
     minimum = bounds_minimum_200;
@@ -1110,7 +1108,7 @@ int srMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& m
 // FUNCTION: SURRENDER 0x1003FE90
 int srMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
 {
-    if ((control_state_390 & 1) != 0) {
+    if ((control_state_390.value & 1) != 0) {
         calculateBounds();
     }
     center = bounds_center_218;
@@ -1193,7 +1191,7 @@ srClass* srMeshModel::vInstance()
 // FUNCTION: SURRENDER 0x1003CEA0
 void srMeshModel::render(srGERD& renderer)
 {
-    if ((control_state_394 & 0x20) == 0) {
+    if ((control_state_394.value & 0x20) == 0) {
         srVector3T<float> center;
         float radius;
         getBoundingSphere(center, radius);
@@ -1201,7 +1199,7 @@ void srMeshModel::render(srGERD& renderer)
             return;
         }
     }
-    if ((control_state_394 & 0x10) == 0 && vertex_location_count_22c >= 8) {
+    if ((control_state_394.value & 0x10) == 0 && vertex_location_count_22c >= 8) {
         srVector3T<float> minimum;
         srVector3T<float> maximum;
         getBoundingBox(minimum, maximum);
@@ -1556,7 +1554,7 @@ void srMeshModel::dump(std::ostream& stream)
     stream << "  Sort bias: " << sort_bias_238 << '\n';
     stream.width(0x20);
     stream << "  Flags: ";
-    if (control_state_390 == 0) {
+    if (control_state_390.value == 0) {
         stream << "[NONE]";
     } else {
         stream << '[';
@@ -1564,7 +1562,7 @@ void srMeshModel::dump(std::ostream& stream)
         const char* names = s_flag_names_100a499c;
         const char* name = names;
         for (unsigned long bit = 0; bit < 0x20; ++bit) {
-            if ((control_state_390 & (1 << bit)) == 0) {
+            if ((control_state_390.value & (1 << bit)) == 0) {
                 if (name != 0) {
                     while (*name != 0 && *name != ',') {
                         ++name;
@@ -1597,7 +1595,7 @@ void srMeshModel::dump(std::ostream& stream)
     stream << '\n';
     stream.width(0x20);
     stream << "  Control flags: ";
-    if (control_state_394 == 0) {
+    if (control_state_394.value == 0) {
         stream << "[NONE]";
     } else {
         stream << '[';
@@ -1605,7 +1603,7 @@ void srMeshModel::dump(std::ostream& stream)
         const char* names = s_control_names_100a4998;
         const char* name = names;
         for (unsigned long bit = 0; bit < 0x20; ++bit) {
-            if ((control_state_394 & (1 << bit)) == 0) {
+            if ((control_state_394.value & (1 << bit)) == 0) {
                 if (name != 0) {
                     while (*name != 0 && *name != ',') {
                         ++name;
@@ -2393,40 +2391,17 @@ float srMeshModel::getSortBias() const
     return sort_bias_238;
 }
 
-// FUNCTION: SURRENDER 0x10041790
-void srMeshModel::setSortBias(float bias)
-{
-    sort_bias_238 = bias;
-    if ((control_state_390 & 8) == 0) {
-        control_state_390 |= 8;
-        control_state_390 |= 8;
-    }
-}
-
 // FUNCTION: SURRENDER 0x100417E0
 void srMeshModel::disable(e_control control)
 {
-    control_state_394 &= ~(1 << control);
-    if ((control_state_390 & 8) == 0) {
-        control_state_390 |= 8;
-        control_state_390 |= 8;
-    }
-}
-
-// FUNCTION: SURRENDER 0x10041830
-void srMeshModel::enable(e_control control)
-{
-    control_state_394 |= 1 << control;
-    if ((control_state_390 & 8) == 0) {
-        control_state_390 |= 8;
-        control_state_390 |= 8;
-    }
+    control_state_394.set(control, 0);
+    setDirty(static_cast<e_flags>(3));
 }
 
 // FUNCTION: SURRENDER 0x10041870
 int srMeshModel::isEnabled(e_control control) const
 {
-    return (control_state_394 & (1 << control)) != 0;
+    return (control_state_394.value & (1 << control)) != 0;
 }
 
 // FUNCTION: SURRENDER 0x10041890
@@ -2458,22 +2433,6 @@ long srMeshModel::getPolygonCount() const
 long srMeshModel::getVertexCount() const
 {
     return vertex_location_count_22c;
-}
-
-/* Retail expands setDirty(0..3) inline; flag 0 also runs updateAllClients. */
-// FUNCTION: SURRENDER 0x10041660
-void srMeshModel::setDirtyAll()
-{
-    setDirty(static_cast<e_flags>(0));
-    setDirty(static_cast<e_flags>(1));
-    setDirty(static_cast<e_flags>(2));
-    setDirty(static_cast<e_flags>(3));
-}
-
-// FUNCTION: SURRENDER 0x10041AF0
-const char* srMeshModel::sGetClassName()
-{
-    return "srMeshModel";
 }
 
 // SYNTHETIC: SURRENDER 0x1003FFB0

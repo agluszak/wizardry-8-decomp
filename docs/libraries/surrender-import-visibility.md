@@ -45,6 +45,12 @@ destructor and listed virtual members, plus `setExclusionMask`, but does not imp
 The consumer header defines `model()` as an accessor; a class-wide import made VC6 emit an
 unresolved `__imp_?model@srModelInstance` call in two runtime translation units.
 
+`srMeshModel` uses member-level imports for the symbols in Wiz8's SR import table. Its
+header-visible dirty and control methods are absent from that table. Class-wide import
+would turn an out-of-line `setDirty` emission in large consumer functions into an
+unresolved `__imp_?setDirty@srMeshModel` reference. The provider class remains exported
+whole to preserve its retail vector deleting destructor and vtable emission.
+
 ## Gate
 
 `tests/repository/test_surrender_import_visibility.py` freezes the audited class-wide import set, rejects consumer-import annotations in audited provider-only headers, locks the exact import count/spelling in mixed audited headers, keeps `srFStreamOpener` provider-only, and protects the proven inline `srCore` accessors. A PR that changes these visibility decisions must update the audit intentionally and explain the consumer/codegen evidence.

@@ -89,9 +89,9 @@ stMeshModel::stMeshModel(long polygons, long vertices)
             textures_3c[pass][side] = 0;
         }
     }
-    control_state_394 &= ~0x10UL;
-    if ((control_state_390 & 1) == 0) {
-        control_state_390 |= 9;
+    control_state_394.value &= ~0x10UL;
+    if ((control_state_390.value & 1) == 0) {
+        control_state_390.value |= 9;
     }
 }
 
@@ -146,7 +146,7 @@ srClass* stMeshModel::vInstance()
 // FUNCTION: WIZ8 0x00471dd0
 int stMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
 {
-    if ((control_state_390 & 1) != 0) {
+    if ((control_state_390.value & 1) != 0) {
         CalculateLinkedBounds();
     }
     center = bounds_center_218;
@@ -157,7 +157,7 @@ int stMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
 // FUNCTION: WIZ8 0x00471d80
 int stMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& maximum)
 {
-    if ((control_state_390 & 1) != 0) {
+    if ((control_state_390.value & 1) != 0) {
         CalculateLinkedBounds();
     }
     minimum = bounds_minimum_200;
