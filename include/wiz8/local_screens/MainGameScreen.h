@@ -395,7 +395,7 @@ static_assert(sizeof(W8LockInfoPanel) == 0x6c, "W8LockInfoPanel_size");
    panel's "released tumbler N" callback; the secondary W8TextControl::Listener
    at +0x04 (table 0x005eead0) receives the action-panel buttons. Process() at
    0x00586740 is the per-frame state machine ProcessLockInteractMode drives. */
-// VTABLE: WIZ8 0x005eead8
+// VTABLE: WIZ8 0x005eead8 W8LockTumblerPanelListener
 // VTABLE: WIZ8 0x005eead0 W8TextControl::Listener
 class W8LockInteraction : public W8LockTumblerPanelListener, public W8TextControl::Listener {
 public:
@@ -455,7 +455,7 @@ public:
     virtual void SelectTextEntry(int index) = 0;
 };
 
-// VTABLE: WIZ8 0x005eebd8
+// VTABLE: WIZ8 0x005eebd8 W8MainGameTextSelectionListener
 // VTABLE: WIZ8 0x005eebd0 W8TextControl::Listener
 class W8MainGameScreen : public W8MainGameTextSelectionListener, public W8TextControl::Listener {
 public:

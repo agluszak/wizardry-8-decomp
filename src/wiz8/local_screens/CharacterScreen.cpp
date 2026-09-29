@@ -118,7 +118,7 @@ unsigned int g_character_screen_region_set;
 // GLOBAL: WIZ8 0x0069c2e8
 W8CharacterScreen* g_character_screen;
 
-// VTABLE: WIZ8 0x005ef224 W8CharacterScreen
+// VTABLE: WIZ8 0x005ef224 W8CharacterPageHost
 // VTABLE: WIZ8 0x005ef21c W8TextControl::Listener
 // class W8CharacterScreen
 
