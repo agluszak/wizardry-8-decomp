@@ -10,10 +10,7 @@ class
 #endif
     srMemoryPool {
 public:
-    enum e_fit {
-        FIT_FIRST = 0,
-        FIT_BEST = 1
-    };
+    enum e_fit { FIT_FIRST = 0, FIT_BEST = 1 };
 
     srMemoryPool(void* memory, long size, long alignment);
     ~srMemoryPool();
@@ -47,8 +44,7 @@ private:
         int locked_10;
     };
 
-    static_assert(sizeof(Entry) == 0x14,
-                  "srMemoryPool_Entry_must_be_0x14");
+    static_assert(sizeof(Entry) == 0x14, "srMemoryPool_Entry_must_be_0x14");
 
     Entry* addEntry(Entry* previous, Entry* next);
     /* Retail inlines both helpers at every call site yet still exports the
@@ -57,8 +53,7 @@ private:
     // ?convertPtr@srMemoryPool@@ABEJPBX@Z
     long convertPtr(const void* allocation) const
     {
-        return static_cast<const char*>(allocation) -
-               static_cast<const char*>(memory_08);
+        return static_cast<const char*>(allocation) - static_cast<const char*>(memory_08);
     }
     void defrag(Entry* entry);
     Entry* find(long offset) const;
@@ -80,11 +75,10 @@ private:
     void* memory_08;
     long used_0c;
     long largest_free_10;
-    long alignment_14;
+    unsigned long alignment_14;
     Entry* first_free_18;
     Entry* allocations_1c[256];
     int largest_free_dirty_41c;
 };
 
-static_assert(sizeof(srMemoryPool) == 0x420,
-              "srMemoryPool_must_be_0x420");
+static_assert(sizeof(srMemoryPool) == 0x420, "srMemoryPool_must_be_0x420");

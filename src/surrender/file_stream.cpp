@@ -155,8 +155,8 @@ void srFileManager::addPath(const char* path)
     if (path != 0 && *path != '\0' && strlen(path) < 0x103) {
         char local_path[0x104];
         strcpy(local_path, path);
-        int length = strlen(local_path) - 1;
-        if (local_path[length] != '/') {
+        int length = strlen(local_path);
+        if (local_path[length - 1] != '/') {
             strcat(local_path, "/");
         }
         for (int index = 0; index < length; ++index) {

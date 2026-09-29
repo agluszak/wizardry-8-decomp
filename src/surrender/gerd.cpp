@@ -2947,8 +2947,9 @@ void srGERD::pushClipPlane(const srVector4T<float>& plane, e_clipMode mode)
         } else {
             state_390_.clip_mode1_mask_12e8_ &= ~bit;
         }
-        state_390_.clip_plane_count_12ec_ += 1;
     }
+    // Retail increments even when the plane limit skips insertion.
+    state_390_.clip_plane_count_12ec_ += 1;
 }
 
 // FUNCTION: SURRENDER 0x1001C1F0
@@ -3037,9 +3038,6 @@ void srGERD::setEnvironmentScaleFactor(float scale, float inverse_scale)
 void srGERD::pushVertexProcessor(srVertexProcessor& processor)
 {
     unsigned long count = vertex_processors_21b0_.count_08;
-    if (vertex_processors_21b0_.capacity <= count) {
-        vertex_processors_21b0_.setCapacity(vertex_processors_21b0_.capacity + 8 + count);
-    }
     vertex_processors_21b0_[count] = &processor;
     vertex_processors_21b0_.count_08 += 1;
 }
@@ -3990,8 +3988,8 @@ void srGERD::dumpDeviceList(std::ostream& stream)
 // FUNCTION: SURRENDER 0x10018870
 srGERD* srGERD::loadDeviceWithFileName(const char* filename, unsigned long device)
 {
-    /* Entry-point name table indexed by the missing-function error print
-       below; retail stores the six strings contiguously at 0x100993CC. */
+    /* Retail reads the six entry-point names from the same contiguous table
+       for lookup and the missing-function error print (0x100993CC). */
     static const char* const entry_names[] = {"srDDGetDriverApiVersion", "srDDGetDriverName",
                                               "srDDConfigureDriver",     "srDDGetDeviceCount",
                                               "srDDGetDeviceName",       "srDDInitDevice"};
@@ -4007,17 +4005,17 @@ srGERD* srGERD::loadDeviceWithFileName(const char* filename, unsigned long devic
         return 0;
     }
     srDDGetDriverApiVersionFn getDriverApiVersion = reinterpret_cast<srDDGetDriverApiVersionFn>(
-        srDynamicLibrary::getFunction(library, "srDDGetDriverApiVersion"));
+        srDynamicLibrary::getFunction(library, entry_names[0]));
     srDDGetDriverNameFn getDriverName = reinterpret_cast<srDDGetDriverNameFn>(
-        srDynamicLibrary::getFunction(library, "srDDGetDriverName"));
+        srDynamicLibrary::getFunction(library, entry_names[1]));
     srDDConfigureDriverFn configureDriver = reinterpret_cast<srDDConfigureDriverFn>(
-        srDynamicLibrary::getFunction(library, "srDDConfigureDriver"));
+        srDynamicLibrary::getFunction(library, entry_names[2]));
     srDDGetDeviceCountFn getDeviceCount = reinterpret_cast<srDDGetDeviceCountFn>(
-        srDynamicLibrary::getFunction(library, "srDDGetDeviceCount"));
+        srDynamicLibrary::getFunction(library, entry_names[3]));
     srDDGetDeviceNameFn getDeviceName = reinterpret_cast<srDDGetDeviceNameFn>(
-        srDynamicLibrary::getFunction(library, "srDDGetDeviceName"));
-    srDDInitDeviceFn initDevice = reinterpret_cast<srDDInitDeviceFn>(
-        srDynamicLibrary::getFunction(library, "srDDInitDevice"));
+        srDynamicLibrary::getFunction(library, entry_names[4]));
+    srDDInitDeviceFn initDevice =
+        reinterpret_cast<srDDInitDeviceFn>(srDynamicLibrary::getFunction(library, entry_names[5]));
     long missing = -1;
     if (getDriverApiVersion == 0) {
         missing = 0;
@@ -4042,9 +4040,10 @@ srGERD* srGERD::loadDeviceWithFileName(const char* filename, unsigned long devic
             srDynamicLibrary::free(library);
             return 0;
         }
-        char* key = new char[strlen(name) + 7];
+        char* key = new char[strlen(name) + 8];
         sprintf(key, "DD_%s", name);
-        for (long index = 0; index < (long)strlen(key); index++) {
+        long key_length = static_cast<long>(strlen(key));
+        for (long index = 0; index < key_length; index++) {
             key[index] = static_cast<char>(toupper(key[index]));
         }
         if (srConfig.get(key) != 0) {
@@ -4063,12 +4062,11 @@ srGERD* srGERD::loadDeviceWithFileName(const char* filename, unsigned long devic
                 srDynamicLibrary::free(library);
                 return 0;
             }
-            const char* device_name = getDeviceName(device);
             srDebugPrintf(5,
                           "srGERD::loadDeviceWithFileName() -- DD driver '%s' "
                           "(device %s) loaded succesfully.\n",
-                          filename, device_name);
-            return new srGERD(dd, library, device_name);
+                          filename, getDeviceName(device));
+            return new srGERD(dd, library, getDeviceName(device));
         }
         if (count == 0) {
             srDebugPrintf(0,
@@ -4983,10 +4981,8 @@ void srGERD::debugWrite(const char* text)
 // FUNCTION: SURRENDER 0x10018E60
 void srGERD::releaseAll()
 {
-    srGERD* gerd = getFirst();
-    while (gerd != 0) {
-        delete gerd;
-        gerd = getFirst();
+    while (getFirst() != 0) {
+        delete getFirst();
     }
 }
 

@@ -265,6 +265,9 @@ def vtable_command(
 
         target = target_for_program(settings.repo_dir, program)
         if build:
+            from ..source_index import write_source_index
+
+            write_source_index(settings)
             build_target(settings, target)
         result = compare_vtables(settings.repo_dir, target, class_filter)
         return result
@@ -290,6 +293,9 @@ def datacmp_command(
 
         target = target_for_program(settings.repo_dir, program)
         if build:
+            from ..source_index import write_source_index
+
+            write_source_index(settings)
             build_target(settings, target)
         result = compare_data(settings.repo_dir, target)
         return result
@@ -319,6 +325,9 @@ def address_command(
         if not queries:
             raise ValueError("pass one or more addresses")
         if build:
+            from ..source_index import write_source_index
+
+            write_source_index(settings)
             build_target(settings, target)
         result = translate_addresses(settings.repo_dir, target, queries)
         return result
