@@ -1145,7 +1145,7 @@ W8PartySelectionOptionPanel::W8PartySelectionOptionPanel()
     m_toggle_78 = new W8TextControl(this, 0xffffffff, 0x15b, top, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1);
     m_toggle_78->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
     if (g_settings.simplified_npc_interaction) {
-        m_toggle_78->ActivatePrimary(0);
+        m_toggle_78->EnableSecondaryState(0);
     }
 
     m_toggle_74 = new W8TextControl(this, 0xffffffff, 0x15b, 0xd6, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1);
@@ -1909,7 +1909,7 @@ void W8PartySelectionController::ApplyPartySelectionConfirmation(int, unsigned c
 {
     if (!accepted) {
         if (m_dialog_value_6c == 4) {
-            m_text_50->ActivateSecondary(0);
+            m_text_50->DisableSecondaryState(0);
         }
         return;
     }
