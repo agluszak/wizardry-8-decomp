@@ -106,7 +106,7 @@ void AttemptTrapDisarm(int level, int flag, char backfire);
 /* 0x005905F0: merge text onto a box's last used line, re-posting the combined
    line so wrapping, highlighting and the link counts rebuild; -1 picks the box
    the current game mode writes to. */
-void AppendToLastTextLine(const wchar_t* text, int text_box);
+void AppendToLastTextLine(const wchar_t* text, short text_box);
 /* 0x0069B7BC: wrapped line count of the notice ShowNotice last displayed;
    only maintained while game_status.quote_audit_2431 is raised. */
 extern int g_notice_line_count;

@@ -306,7 +306,7 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
     int us_event = event->usEvent;
     unsigned int target_slot = region->callback_id;
 
-    if (us_event < RIGHT_BUTTON_UP) {
+    if (us_event <= RIGHT_BUTTON_DOWN) {
         if (us_event == RIGHT_BUTTON_DOWN) {
             region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
             return 1;

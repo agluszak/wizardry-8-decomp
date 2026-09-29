@@ -566,7 +566,7 @@ unsigned char WorldCursorNodePartyVoice(int command, W8WorldCursorNode* node, in
         }
         if (*shown == 0) {
             *shown = 1;
-            slot = PickRandomPartySpeaker(event_type, -1);
+            slot = PickRandomPartySpeaker(event_type, 0xff);
             if (slot != -1) {
                 QueueCharacterEvent(g_status.buffers.Char + slot, event_type, 0,
                                     g_character_event_no_flags, g_character_event_full_volume);

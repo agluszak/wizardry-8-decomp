@@ -131,7 +131,7 @@ void StartBreathCycle(int party_slot, char force)
 /* Collect every occupied living slot other than `excluded_slot` whose
    character can actually speak `event_type`, then pick one at random. */
 // FUNCTION: WIZ8 0x0052FEE0
-int PickRandomPartySpeaker(unsigned int event_type, int excluded_slot)
+int PickRandomPartySpeaker(unsigned int event_type, unsigned char excluded_slot)
 {
     int eligible[8];
     unsigned int count = 0;

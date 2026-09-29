@@ -52,11 +52,16 @@ def hex_address(value: int | Any) -> str:
 
 
 def program_address(program: Any, text: str) -> Any:
-    value = program.getAddressFactory().getAddress(text)
-    if value is None:
-        value = (
-            program.getAddressFactory().getDefaultAddressSpace().getAddress(text.removeprefix("0x"))
-        )
+    try:
+        value = program.getAddressFactory().getAddress(text)
+        if value is None:
+            value = (
+                program.getAddressFactory()
+                .getDefaultAddressSpace()
+                .getAddress(text.removeprefix("0x"))
+            )
+    except Exception as error:  # Ghidra throws for malformed hex offsets.
+        raise ResolveError(f"invalid address: {text}") from error
     if value is None:
         raise ResolveError(f"invalid address: {text}")
     return value
