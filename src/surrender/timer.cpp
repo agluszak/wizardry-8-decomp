@@ -417,7 +417,7 @@ int srTimer::reset(int detect, int argument_1, int save)
                 }
                 strcat(m_cpu_ident, name);
             } else if (family > 7) {
-                sprintf(m_cpu_ident + strlen(m_cpu_ident), " x86 Family %d", family);
+                sprintf(m_cpu_ident + strlen(m_cpu_ident), "x86 Family %d", family);
                 if ((m_cpu_features & 0x800000) != 0) {
                     strcat(m_cpu_ident, "/MMX");
                 }

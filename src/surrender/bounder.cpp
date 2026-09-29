@@ -190,9 +190,9 @@ void srBounder::updateBounds()
             getChildBoundingBox(child);
         }
         if (bounds_13c_.state_28 == 1) {
-            bounds_13c_.center.x = (bounds_13c_.maximum.x + bounds_13c_.minimum.x) * 0.5f;
-            bounds_13c_.center.y = (bounds_13c_.maximum.y + bounds_13c_.minimum.y) * 0.5f;
-            bounds_13c_.center.z = (bounds_13c_.maximum.z + bounds_13c_.minimum.z) * 0.5f;
+            bounds_13c_.center.x = (bounds_13c_.maximum.x + bounds_13c_.minimum.x) * 0.5;
+            bounds_13c_.center.y = (bounds_13c_.maximum.y + bounds_13c_.minimum.y) * 0.5;
+            bounds_13c_.center.z = (bounds_13c_.maximum.z + bounds_13c_.minimum.z) * 0.5;
             float dx = bounds_13c_.minimum.x - bounds_13c_.center.x;
             float dy = bounds_13c_.minimum.y - bounds_13c_.center.y;
             float dz = bounds_13c_.minimum.z - bounds_13c_.center.z;
