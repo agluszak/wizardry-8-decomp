@@ -1,47 +1,89 @@
-# Difference patterns
+# Mismatch campaigns
 
-Use this reference for an unexplained difference in a focused comparison. Compare operands, widths,
-comparisons, control flow, memory effects, and calls (in the decompiled diff and, where it is unclear,
-in retail disassembly) before proposing a source correction. A difference or a smaller diff does not by
-itself establish which C++ was authored.
+Use this reference to turn a saved mismatch population into shared recovery work. The classifications
+below are descriptive. They do not prove equivalence, compiler lowering, or a source bug.
 
-| Signal | Evidence to check before changing source |
-| --- | --- |
-| Signed versus unsigned branches | Trace compared values, promotions, widths, and flags; correct a type only when that evidence supports it. |
-| Different operation or return width | Check producers, truncation/extension, and caller use; one `neg al` does not establish the return type. |
-| Changed call receiver or memory operand | Trace the canonical owner, field, layout, and ABI. |
-| Changed calls, stores, initialization, or cleanup | Check ordering dependencies, aliasing, object lifetime, and exceptional exits; fix demonstrated differences in effects. |
-| Repeated global loads versus a retained local | Check whether intervening calls or writes can change the value; preserve proven snapshot or reload semantics. |
+## Calls
 
-## Preserve source-level control flow
+For call-heavy differences, compare canonical direct-call identities rather than rendered names.
+Classify factual deltas:
 
-A guarded bottom-tested loop or machine countdown does not prove an authored `if` plus `do`/`while`.
-Keep a counted `for` when it expresses the recovered operation. Preserve the count's width,
-signedness, narrowing, and evaluation frequency; those may be behavioral facts even when loop shape
-is not. Do not add an index and a redundant remaining-iteration counter just to reproduce registers.
-Use `while` or `do` when the operation's semantics or available original source warrants it, not as
-a spelling experiment.
+- identical canonical call sequence;
+- one different canonical callee;
+- retail-only or recomp-only call;
+- same callees reordered;
+- unresolved/unpaired target;
+- helper call on one side and apparent expansion on the other;
+- same callee with receiver/argument differences.
 
-Likewise, register roles and stack slots do not prove a missing source block. A tail `jmp` versus
-`call`/`ret` does not by itself justify rewriting a return or adding a result local. Investigate
-supported ABI, lifetime, or call-site differences; do not manufacture scopes or expression variants.
-Unsigned `x != 0` and `x > 0` are equivalent for an ordinary integer value: interpret the flags and
-operands rather than changing between those spellings to chase `JE` versus `JBE`.
+Cluster by the actual call delta. A repeated `retail X -> recomp Y` across many callers is one
+declaration/identity/class-model investigation, not many caller fixes.
 
-## CRT intrinsics are not authored loops
+## Fields, widths and ABI
 
-Under `/O2` (implies `/Oi`), VC6 expands the narrow CRT operations `strlen`, `strcpy`, `strcat`,
-`strcmp`, `memcmp`, `memcpy`, `memset`, `_strset` as inline instructions — `repnz scasb` scans,
-`rep movsd`/`rep movsb` copies, `rep stosd`/`rep stosb` fills, `repz cmpsb` compares. An anonymous
-narrow scan/copy/compare loop in retail code is most likely one of those expansions, not an
-authored loop; check the instruction fingerprints in `docs/libraries/msvc6-runtime.md` (fixture:
-`docker/msvc600/probes/intrinsics_probe.cpp`) before writing a `while`/`for`. The wide-character
-twins are not intrinsics — expanded wide loops are authored code.
+Repeated offsets or access widths are high-value signals. Trace the receiver and all producers/consumers
+before editing the declaration.
 
-## Stop without inventing certainty
+Check:
 
-Test one supported source fact at a time. Revert demonstrated semantic or ABI regressions; a larger
-diff, reordered independent stores, or changed stack slots alone does not establish one.
-When no evidence-backed source correction remains, retain straightforward C++ and report the
-unresolved difference. Do not call it codegen-only or decompiler noise without supporting evidence.
-This stopping rule does not turn a difference into a `no-differences` result.
+- field offset and owning record;
+- byte/word/dword width and extension/truncation;
+- signed/unsigned branch behavior;
+- argument count and calling convention;
+- receiver presence/adjustment;
+- return production and caller consumption.
+
+Fix the canonical owner and its full consumer family. Do not repair caller sites with casts or local
+aliases.
+
+## Globals, literals and referenced data
+
+A different global identity, string, integer or floating constant is a logical difference until retail
+evidence explains it. Resolve duplicate globals and interior aliases at the global owner. Exhaust
+referenced-data and literal/address-only queues before spending time on noisy structural diffs.
+
+Relocated addresses and paired-object addresses may be presentation differences, but only the existing
+catalog/reference machinery may establish that correspondence.
+
+## Classes, templates and lifetime
+
+Audit constructor/destructor/copy/assignment/vtable/template/exception-frame differences by owner.
+Exception-frame changes can reflect real lifetime differences; do not dismiss them as compiler noise
+before checking construction, cleanup and exceptional exits.
+
+Compiler emissions stay compiler emissions. Follow source-fidelity and type-modeling rather than
+creating handwritten deleting destructors, FOLDED aliases or explicit template specializations to
+match emitted code.
+
+## Floating point
+
+Treat float/double storage, promotion, x87 rounding, accumulation precision, threshold constants,
+NaN handling and expression grouping as one dedicated family. VC6/x87 output is sensitive to apparently
+small source-type differences.
+
+Do not add broad floating-point normalization to Ghidriff.
+
+## Control and statement structure
+
+This is the residual bucket, not the first place to work. Before analyzing it, attach factual context:
+
+- canonical call sequence;
+- paired referenced globals/data;
+- literal/data findings;
+- ABI status;
+- class/template owner;
+- floating-point/lifecycle signals.
+
+Then distinguish predicate/operator changes, extra/missing guards, branch inversion, loop bounds,
+loop form, statement/store ordering, helper expansion and genuinely large structural changes.
+
+One reviewed equivalent extra guard does not justify a generic rule that extra guards are equivalent.
+
+## Representation-only candidates
+
+Generated temporary names, local declarations, commutative operand spelling and known Ghidra
+restructuring can be presentation. Record them so they leave the active source-recovery queue, but do
+not change source merely to make the text identical.
+
+When no source-level discrepancy remains established, keep faithful source and leave the comparison
+outcome as evidence rather than manufacturing a clean result.
