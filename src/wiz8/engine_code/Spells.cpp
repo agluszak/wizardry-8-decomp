@@ -832,7 +832,7 @@ int W8SpellVisual::QueryHostStateByKind(int kind)
 W8SpellVisual* SpawnSpellEffect(const srVector3T<float>* position, const char* resource_name,
                                 int power_level, int value, int flags)
 {
-    if (resource_name == 0 || resource_name[0] == '\0') {
+    if (resource_name == 0 || strlen(resource_name) == 0) {
         srAssertFail("pMLS && strlen(pMLS)", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
                      0x8b4, 0);
     }
@@ -887,7 +887,7 @@ W8SpellVisual* SpawnSpellEffect(const srVector3T<float>* position, const char* r
 // FUNCTION: WIZ8 0x004ad080
 W8SpellVisual* SpawnCameraSpellEffect(const char* name, int power_level, int value, int flags)
 {
-    if (name == 0 || name[0] == '\0') {
+    if (name == 0 || strlen(name) == 0) {
         srAssertFail("pMLS && strlen(pMLS)", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
                      0x879, 0);
     }
@@ -959,7 +959,7 @@ placed:
 W8SpellVisual* CreateMonsterSpellEffect(const char* mls_name, int power_level, W8Monster* monster,
                                         int value, int flags)
 {
-    if (mls_name == 0 || mls_name[0] == '\0') {
+    if (mls_name == 0 || strlen(mls_name) == 0) {
         srAssertFail("pMLS && strlen(pMLS)", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
                      0x8e9, 0);
     }
@@ -1036,7 +1036,7 @@ placed:
 W8SpellVisual* CreateAttachedSpellEffect(const char* mls_name, int power_level, W8Monster* parent,
                                          int value, int flags)
 {
-    if (mls_name == 0 || mls_name[0] == '\0') {
+    if (mls_name == 0 || strlen(mls_name) == 0) {
         srAssertFail("pMLS && strlen(pMLS)", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
                      0x93f, 0);
     }
@@ -1120,7 +1120,7 @@ W8SpellVisual* CreateAimedSpellEffect(const char* mls_name, int power_level,
                                       srVector3T<float>* position, srMatrix3T<float>* rotation,
                                       int value, int flags)
 {
-    if (mls_name == 0 || mls_name[0] == '\0') {
+    if (mls_name == 0 || strlen(mls_name) == 0) {
         srAssertFail("pMLS && strlen(pMLS)", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
                      0x991, 0);
     }

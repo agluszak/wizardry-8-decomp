@@ -22,7 +22,7 @@ from reccmp.project.detect import RecCmpProject, RecCmpTarget
 from reccmp.source import SourceIndexError
 from reccmp.types import ImageId
 
-from .config import Settings
+from .config import Settings, load_settings
 from .paths import atomic_json, atomic_write, sha256_file
 from .subprocesses import CommandFailure, resolve_executable, run
 
@@ -343,6 +343,19 @@ def _run_reccmp(
         "--ghidra-projects",
         repository / GHIDRA_PROJECTS,
     ]
+    if target == "WIZ8":
+        from .ghidra.workspace import resolve_seed_program
+
+        settings = load_settings()
+        assert settings is not None
+        argv.extend(
+            (
+                "--orig-ghidra-project",
+                settings.project_dir / f"{settings.project_name}.gpr",
+                "--orig-ghidra-program",
+                "/" + resolve_seed_program(settings, "wiz8"),
+            )
+        )
     for address in addresses:
         argv.extend(("--orig-address", f"{address:x}"))
     if side_by_side:
