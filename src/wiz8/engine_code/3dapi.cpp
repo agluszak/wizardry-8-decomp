@@ -1200,9 +1200,9 @@ unsigned char FindNearbyFreePosition(float radius, srVector3T<float>* position,
     float angle = 0.0f;
     float diameter = radius + radius;
     do {
-        candidate.x = diameter * sin(angle) + position->x;
-        candidate.y = position->y;
-        candidate.z = diameter * cos(angle) + position->z;
+        srVector3T<float> offset(0.0f, 0.0f, diameter);
+        offset.RotateAboutY(sin(angle), cos(angle));
+        candidate = offset + *position;
         srVector3T<float> unblocked = candidate;
 
         g_octree->TraceLineOfSight(position, &candidate, 1, -3, -3, 1, 0);

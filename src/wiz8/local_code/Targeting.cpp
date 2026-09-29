@@ -165,13 +165,13 @@ char GetTargetNoticeColor(const W8TargetSource* source, const W8CombatSlot* targ
 /* Whether a peer aiming at the just-applied target should drop that aim. */
 // FUNCTION: WIZ8 0x0053C490
 bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target,
-                                    W8TargetingContext context,
+                                    unsigned char in_combat,
                                     unsigned char action_targets_enemies)
 {
     bool source_hostile;
     bool target_hostile;
 
-    if (context == W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
+    if (in_combat == 0) {
         return 1;
     }
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
@@ -478,7 +478,7 @@ void AimAtGroundTarget(int party_slot)
 /* The three wrappers that set the party's own target rather than a
    combatant's, one per kind that names something. */
 // FUNCTION: WIZ8 0x00538d10
-void SetTargetToCharacter(int character_slot, W8TargetingContext context)
+void SetTargetToCharacter(int character_slot, unsigned char in_combat)
 {
     W8CombatSlot target;
 
@@ -487,11 +487,11 @@ void SetTargetToCharacter(int character_slot, W8TargetingContext context)
     target.iGroupID = BAD_INDEX;
     target.iType = W8_TARGET_KIND_CHARACTER;
     target.iChar = character_slot;
-    ApplyTarget(&target, context);
+    ApplyTarget(&target, in_combat);
 }
 
 // FUNCTION: WIZ8 0x00538d60
-void SetTargetToMonster(int monster_id, W8TargetingContext context)
+void SetTargetToMonster(int monster_id, unsigned char in_combat)
 {
     W8CombatSlot target;
 
@@ -500,11 +500,11 @@ void SetTargetToMonster(int monster_id, W8TargetingContext context)
     target.iGroupID = BAD_INDEX;
     target.iType = W8_TARGET_KIND_MONSTER;
     target.iMonsterID = monster_id;
-    ApplyTarget(&target, context);
+    ApplyTarget(&target, in_combat);
 }
 
 // FUNCTION: WIZ8 0x00538db0
-void SetTargetToGroup(int group_id, W8TargetingContext context)
+void SetTargetToGroup(int group_id, unsigned char in_combat)
 {
     W8CombatSlot target;
 
@@ -513,14 +513,14 @@ void SetTargetToGroup(int group_id, W8TargetingContext context)
     target.iChar = BAD_INDEX;
     target.iType = W8_TARGET_KIND_GROUP;
     target.iGroupID = group_id;
-    ApplyTarget(&target, context);
+    ApplyTarget(&target, in_combat);
 }
 
 /* Walk every party slot and every live monster: anyone already aiming at
-   `target` drops that aim when the applied context and their action say so. A
+   `target` drops that aim when the combat flag and their action say so. A
    monster target also clears its highlight bit before the walk. */
 // FUNCTION: WIZ8 0x00538E00
-void ApplyTarget(W8CombatSlot* target, W8TargetingContext context)
+void ApplyTarget(W8CombatSlot* target, unsigned char in_combat)
 {
     W8TargetSource source;
     W8PartySlotRow* row;
@@ -550,7 +550,7 @@ void ApplyTarget(W8CombatSlot* target, W8TargetingContext context)
             if (memcmp(&row->target_in_combat, target, sizeof(W8CombatSlot)) == 0) {
                 action_targets_enemies = CharacterActionTargetsEnemies(
                     character, row->action_03d, row->action_detail_041, &row->action_detail_045);
-                if (ShouldClearAimForAppliedTarget(&source, target, context,
+                if (ShouldClearAimForAppliedTarget(&source, target, in_combat,
                                                    action_targets_enemies) != 0) {
                     if (row->action_03d == W8_ACTION_PROTECT) {
                         DropCharacterFromRound(party_slot);
@@ -564,7 +564,7 @@ void ApplyTarget(W8CombatSlot* target, W8TargetingContext context)
             action_targets_enemies =
                 CharacterActionTargetsEnemies(character, row->pending_action, row->attack_mode[0],
                                               &row->pending_action_detail_015);
-            if (ShouldClearAimForAppliedTarget(&source, target, context, action_targets_enemies) !=
+            if (ShouldClearAimForAppliedTarget(&source, target, in_combat, action_targets_enemies) !=
                 0) {
                 RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0);
             }
@@ -578,7 +578,7 @@ void ApplyTarget(W8CombatSlot* target, W8TargetingContext context)
             action_targets_enemies =
                 MonsterActionTargetsEnemies(monster_info->action_kind, monster_info->action_detail,
                                             &monster_info->spell_power_level);
-            if (ShouldClearAimForAppliedTarget(&source, target, context, action_targets_enemies) !=
+            if (ShouldClearAimForAppliedTarget(&source, target, in_combat, action_targets_enemies) !=
                 0) {
                 ResetCombatSlot(&monster_info->Target);
             }

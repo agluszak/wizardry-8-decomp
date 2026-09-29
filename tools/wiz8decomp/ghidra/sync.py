@@ -315,7 +315,10 @@ def _apply_structured_signature(
 ) -> dict[str, Any]:
     from ghidra.program.model.listing import Function, ParameterImpl
     from ghidra.program.model.symbol import SourceType
+    from reccmp.ghidra.signature_provenance import record_signature_origin
 
+    # Mark before mutation so even a partially failed projection is not retail evidence.
+    record_signature_origin(program, function, "source-projection")
     wanted_cc = identity.calling_convention or ("__thiscall" if identity.has_this else None)
     existing = _stored_explicit_parameters(function, identity)
     parameters = [

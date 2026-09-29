@@ -31,9 +31,9 @@ struct W8NavigatorAttachment {
     srVector3T<float> position_28;
     srVector3T<float> position_34;
     srVector3T<float> position_40;
-    /* The vector type's new[]/delete[] overloads route this allocation to
-       srHeap; CopyPathFrom uses those operators while growth calls the heap
-       directly. */
+    /* The owned vector array uses the vector type's new[]/delete[] overloads,
+       which route allocation and release to srHeap. Growth retains the promoted
+       allocation count until the final 16-bit capacity store. */
     srVector3T<float>* position_4c;
     /* 0x00457530 releases this one with free while +0x4c goes back to srHeap,
        so the two allocations do not share an owner. */
@@ -59,7 +59,7 @@ struct W8NavigatorAttachment {
         srVector3T<float>* positions = position_4c;
         if (positions != 0) {
             position_4c = 0;
-            srHeap.free(positions);
+            delete[] positions;
         }
         unsigned short* values = path_values_50;
         if (values != 0) {
@@ -348,7 +348,7 @@ public:
 
     srVector3T<float> GetPosition();
     unsigned char UpdateTrackedPosition();                    /* 0x00454950 */
-    void UpdateNavigation004553A0(int value, char condition); /* 0x004553A0 */
+    void UpdateNavigation004553A0(unsigned char value, char condition); /* 0x004553A0 */
     void SetAngles(float angle);                              /* 0x004538F0 */
     void SetPitch(float pitch);                               /* 0x00453940 */
     float GetYaw();                                           /* 0x00453970 */

@@ -920,7 +920,7 @@ plain:
 }
 
 // FUNCTION: WIZ8 0x004f4990
-void W8TextControl::Redraw(int full_redraw)
+void W8TextControl::Redraw(unsigned char full_redraw)
 {
     if (!m_active || m_pPanel == 0) {
         return;
@@ -940,7 +940,7 @@ void W8TextControl::Redraw(int full_redraw)
 
     if (m_imageObject == -1 || m_imageFrame == -1) {
         if (m_textBuffer.HasBuffer()) {
-            m_textBuffer.RenderToTarget(text_state, static_cast<unsigned char>(full_redraw), -14);
+            m_textBuffer.RenderToTarget(text_state, full_redraw, -14);
         }
         return;
     }
@@ -950,7 +950,7 @@ void W8TextControl::Redraw(int full_redraw)
         sprite = m_disabledSprite;
         if (sprite == -1) {
             if (m_textBuffer.HasBuffer()) {
-                m_textBuffer.RenderToTarget(text_state, static_cast<unsigned char>(full_redraw),
+                m_textBuffer.RenderToTarget(text_state, full_redraw,
                                             -14);
             }
             ShadowVideoSurfaceRect(-14, m_pPanel->origin_x + m_left, m_pPanel->origin_y + m_top,
@@ -989,7 +989,7 @@ void W8TextControl::Redraw(int full_redraw)
     }
 
     if (m_textBuffer.HasBuffer()) {
-        m_textBuffer.RenderToTarget(text_state, static_cast<unsigned char>(full_redraw), -14);
+        m_textBuffer.RenderToTarget(text_state, full_redraw, -14);
     }
     m_dirty = false;
 }
@@ -1432,7 +1432,7 @@ public:
     /* Retail ICF folds this onto W8HorizontalRangeThumb's deleting destructor
        at 0x004f69b0. */
 
-    virtual void Redraw(int full_redraw) override;
+    virtual void Redraw(unsigned char full_redraw) override;
     void AdjustValue(int steps) override;
     virtual void OnMouseEnter(int event) override;
     virtual void OnMouseLeave(int event) override;
@@ -1756,9 +1756,9 @@ void W8VerticalRangeThumb::AdjustValue(int steps)
 }
 
 // FUNCTION: WIZ8 0x004f5f60
-void W8VerticalRangeThumb::Redraw(int full_redraw)
+void W8VerticalRangeThumb::Redraw(unsigned char full_redraw)
 {
-    if (!m_active || (static_cast<unsigned char>(full_redraw) == 0 && !m_dirty)) {
+    if (!m_active || (full_redraw == 0 && !m_dirty)) {
         return;
     }
     int left = m_pPanel->origin_x + m_left;
@@ -2096,9 +2096,9 @@ void W8HorizontalRangeThumb::OnMouseMove(int event)
 }
 
 // FUNCTION: WIZ8 0x004f5a80
-void W8HorizontalRangeThumb::Redraw(int full_redraw)
+void W8HorizontalRangeThumb::Redraw(unsigned char full_redraw)
 {
-    if (!m_active || ((unsigned char)full_redraw == 0 && !m_dirty)) {
+    if (!m_active || (full_redraw == 0 && !m_dirty)) {
         return;
     }
 

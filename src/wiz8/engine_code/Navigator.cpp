@@ -125,15 +125,14 @@ float W8NavigatorAttachment::MeasurePathLength()
 // FUNCTION: WIZ8 0x00456BD0
 void W8NavigatorAttachment::GrowPathStorage()
 {
-    unsigned short new_capacity = capacity_0a + 10;
-    srVector3T<float>* new_positions =
-        static_cast<srVector3T<float>*>(srHeap.allocate(new_capacity * sizeof(srVector3T<float>)));
+    int new_capacity = capacity_0a + 10;
+    srVector3T<float>* new_positions = new srVector3T<float>[new_capacity];
     unsigned int index;
 
     for (index = 0; index <= path_position_index_08; ++index) {
         new_positions[index] = position_4c[index];
     }
-    srHeap.free(position_4c);
+    delete[] position_4c;
     position_4c = new_positions;
 
     unsigned short* new_values =
@@ -144,13 +143,12 @@ void W8NavigatorAttachment::GrowPathStorage()
     }
     free(path_values_50);
     path_values_50 = new_values;
-    capacity_0a = new_capacity;
+    capacity_0a = static_cast<unsigned short>(new_capacity);
 }
 
 // FUNCTION: WIZ8 0x00451ec0
-W8Navigator::W8Navigator()
+W8Navigator::W8Navigator() : reactivated_09d(0)
 {
-    reactivated_09d = 0;
     navigation_mode_008 = 0;
     flags_00c = 0;
     collision_margin_010 = 0.0;
@@ -193,7 +191,7 @@ W8Navigator::W8Navigator()
     unknown_0bc = 0;
     linked_update_time_0b8 = 0;
     movement_0c0.Reset();
-    tracked_position_0a4.x = 0.0f;
+    tracked_position_0a4.SetZero();
     g_registered_navigators.Add(this);
     node_18c = new srNode(0);
 }
@@ -305,7 +303,7 @@ W8NavigatorAttachment::W8NavigatorAttachment()
     path_cursor_04 = 0;
     follow_offset_0c = 0;
     capacity_0a = 10;
-    position_4c = static_cast<srVector3T<float>*>(srHeap.allocate(10 * sizeof(srVector3T<float>)));
+    position_4c = new srVector3T<float>[10];
     path_values_50 = static_cast<unsigned short*>(malloc(capacity_0a * sizeof(unsigned short)));
     memset(path_values_50, 0, capacity_0a * sizeof(unsigned short));
     path_length_058 = 0;
@@ -326,7 +324,7 @@ W8NavigatorAttachment::W8NavigatorAttachment(const srVector3T<float>* from,
     path_cursor_04 = 1;
     follow_offset_0c = 0;
     capacity_0a = 10;
-    position_4c = static_cast<srVector3T<float>*>(srHeap.allocate(10 * sizeof(srVector3T<float>)));
+    position_4c = new srVector3T<float>[10];
     path_values_50 = static_cast<unsigned short*>(malloc(capacity_0a * sizeof(unsigned short)));
     memset(path_values_50, 0, capacity_0a * sizeof(unsigned short));
     path_length_058 = 0;
@@ -452,35 +450,18 @@ W8NavigatorMovementState::~W8NavigatorMovementState()
    registers itself, so it is a live navigator from birth. */
 // FUNCTION: WIZ8 0x00452220
 W8Navigator::W8Navigator(const W8Navigator& other)
+    : flags_00c(0), collision_margin_010(0.0), movement_target_018(0.0f, 0.0f, 0.0f),
+      movement_stopped_024(true), halted_025(false), movement_complete_026(true), padding_027(0),
+      position_028(0.0f, 0.0f, 0.0f), minimum_height_034(other.minimum_height_034),
+      maximum_height_038(other.maximum_height_038), position_03c(other.position_03c),
+      unknown_048(0), target_navigator_04c(0), target_last_position_050(0.0f, 0.0f, 0.0f),
+      linked_navigator_05c(0), unknown_060(0), unknown_064(0), path_ai_068(0),
+      radius_084(other.radius_084), active_088(true),
+      movement_callback_08c(other.movement_callback_08c), trace_mask_090(other.trace_mask_090),
+      unknown_094(other.unknown_094), unknown_098(0), reactivated_09d(other.reactivated_09d),
+      owned_object_0a0(0), tracked_distance_0b0(other.tracked_distance_0b0),
+      group_linked_0bd(other.group_linked_0bd)
 {
-    flags_00c = 0;
-    collision_margin_010 = 0.0;
-    movement_target_018.SetZero();
-    movement_stopped_024 = 1;
-    halted_025 = 0;
-    movement_complete_026 = 1;
-    padding_027 = 0;
-    position_028.SetZero();
-    minimum_height_034 = other.minimum_height_034;
-    maximum_height_038 = other.maximum_height_038;
-    position_03c = other.position_03c;
-    unknown_048 = 0;
-    target_navigator_04c = 0;
-    target_last_position_050.SetZero();
-    linked_navigator_05c = 0;
-    unknown_060 = 0;
-    unknown_064 = 0;
-    path_ai_068 = 0;
-    radius_084 = other.radius_084;
-    active_088 = 1;
-    movement_callback_08c = other.movement_callback_08c;
-    trace_mask_090 = other.trace_mask_090;
-    unknown_094 = other.unknown_094;
-    unknown_098 = 0;
-    reactivated_09d = other.reactivated_09d;
-    owned_object_0a0 = 0;
-    tracked_distance_0b0 = other.tracked_distance_0b0;
-    group_linked_0bd = other.group_linked_0bd;
     movement_0c0.collision_radius_0b0 = other.movement_0c0.collision_radius_0b0;
     movement_0c0.alternate_radius_0b4 = other.movement_0c0.alternate_radius_0b4;
     movement_0c0.height_offset_0b8 = other.movement_0c0.height_offset_0b8;
@@ -1879,8 +1860,9 @@ unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, ch
         radius_084 = movement_0c0.collision_radius_0b0;
         if ((flags_00c & 4) != 0 && (flags_00c & 1) != 0) {
             result = g_octree->PrepareNavigatorTarget(&movement_0c0, radius_084,
-                                                      target_navigator_04c->radius_084 +
-                                                          static_cast<float>(collision_margin_010));
+                                                      static_cast<float>(
+                                                          target_navigator_04c->radius_084 +
+                                                          collision_margin_010));
         } else {
             result = g_octree->PrepareNavigatorTarget(&movement_0c0, radius_084,
                                                       static_cast<float>(collision_margin_010));
@@ -2214,7 +2196,7 @@ void W8Navigator::CollectGroupNavigators(W8GrowableVector<W8Navigator*>* navigat
 }
 
 // FUNCTION: WIZ8 0x004553a0
-void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
+void W8Navigator::UpdateNavigation004553A0(unsigned char skip_movement, char slowed)
 {
     srVector3T<float> previous = movement_0c0.position_040;
     srVector3T<float> adjusted;
@@ -2243,7 +2225,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
         }
     }
 
-    if (static_cast<signed char>(skip_movement) != 0) {
+    if (skip_movement != 0) {
         return;
     }
     if (g_combat_inactive == 0 && movement_complete_026 != 0) {
@@ -2511,7 +2493,7 @@ int W8Navigator::ResolveMovement()
             (target == g_startup_world && target_motion > g_double_005ec150)) {
             target_last_position_050 = target->movement_0c0.position_040;
 
-            if (target->radius_084 + radius_084 + static_cast<float>(collision_margin_010) <
+            if (target->radius_084 + radius_084 + collision_margin_010 <
                 (target->movement_0c0.position_040 - movement_0c0.position_040).Length()) {
                 int index;
 
@@ -2581,56 +2563,23 @@ void W8OctreeTrace::Seed(const srVector3T<float>* from, const srVector3T<float>*
 {
     start_00 = *from;
     end_0c = *to;
-    step_18.x = end_0c.x - start_00.x;
-    step_18.y = end_0c.y - start_00.y;
-    step_18.z = end_0c.z - start_00.z;
-    float length = step_18.Length();
-    length_28 = length;
-    hit_limit_24 = length;
-    float scale = static_cast<float>(g_double_005ebc30) / length_28; /* the retail divisor is a
-        double constant folded onto a float ray */
-    step_18.x *= scale;
-    step_18.y *= scale;
-    step_18.z *= scale;
+    step_18 = end_0c - start_00;
+    length_28 = step_18.Length();
+    hit_limit_24 = length_28;
+    step_18 /= length_28;
     state_2c = 0;
 }
 
 // FUNCTION: WIZ8 0x00457640
 W8OctreeTrace::W8OctreeTrace(const srVector3T<float>* from, const srVector3T<float>* to)
 {
-    start_00 = *from;
-    end_0c = *to;
-    step_18.x = end_0c.x - start_00.x;
-    step_18.y = end_0c.y - start_00.y;
-    step_18.z = end_0c.z - start_00.z;
-    float length = step_18.Length();
-    length_28 = length;
-    hit_limit_24 = length;
-    float scale = static_cast<float>(g_double_005ebc30) / length_28; /* the retail divisor is a
-        double constant folded onto a float ray */
-    step_18.x *= scale;
-    step_18.y *= scale;
-    step_18.z *= scale;
-    state_2c = 0;
+    Seed(from, to);
 }
 
 // FUNCTION: WIZ8 0x00457700
 void W8OctreeTrace::Reseed(const srVector3T<float>* from, const srVector3T<float>* to)
 {
-    start_00 = *from;
-    end_0c = *to;
-    step_18.x = end_0c.x - start_00.x;
-    step_18.y = end_0c.y - start_00.y;
-    step_18.z = end_0c.z - start_00.z;
-    float length = step_18.Length();
-    length_28 = length;
-    hit_limit_24 = length;
-    float scale = static_cast<float>(g_double_005ebc30) / length_28; /* the retail divisor is a
-        double constant folded onto a float ray */
-    step_18.x *= scale;
-    step_18.y *= scale;
-    step_18.z *= scale;
-    state_2c = 0;
+    Seed(from, to);
 }
 
 // FUNCTION: WIZ8 0x004577c0

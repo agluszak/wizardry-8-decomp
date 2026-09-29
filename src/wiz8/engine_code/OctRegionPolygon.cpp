@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/OctBuildPreTree.h"
+#include "wiz8/engine_code/OctPreTree.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/float_constants.h"
 
@@ -38,7 +39,8 @@ unsigned char W8OctRegionPolygon::ContainsPoint004CFB30(const srVector3T<float>*
 /* Grow `*run` to (count + capacity) dwords when count lands on a capacity
    boundary, preserving existing entries. */
 // FUNCTION: WIZ8 0x004cfb70
-int CheckArrayLength(int** run, unsigned short count, unsigned short capacity)
+unsigned char W8OctPreTreeGeometry::CheckArrayLength(int** run, unsigned short count,
+                                                   unsigned short capacity)
 {
     if (count % capacity == 0) {
         unsigned short total = count + capacity;

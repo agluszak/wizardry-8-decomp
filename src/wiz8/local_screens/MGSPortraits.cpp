@@ -1342,7 +1342,7 @@ W8ConditionButton::~W8ConditionButton() {}
    the widget was already dirty. The icon is m_image_object_bc plus the
    per-condition offset the selector byte chooses. */
 // FUNCTION: WIZ8 0x00599210
-void W8ConditionButton::Redraw(int full_redraw)
+void W8ConditionButton::Redraw(unsigned char full_redraw)
 {
     bool dirty = m_dirty;
     int left;

@@ -310,7 +310,7 @@ public:
     }
 
     virtual ~W8PartySelectionListControl() override;
-    virtual void Redraw(int full_redraw) override;
+    virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnMouseMove(int event) override;
     virtual void OnLeftButtonUp(int event) override;
@@ -333,7 +333,7 @@ W8_ASSERT_BASE_END(W8PartySelectionListControl, W8RangeListener, m_visible_rows,
 W8PartySelectionListControl::~W8PartySelectionListControl() {}
 
 // FUNCTION: WIZ8 0x005bff60
-void W8PartySelectionListControl::Redraw(int full_redraw)
+void W8PartySelectionListControl::Redraw(unsigned char full_redraw)
 {
     if (m_active && (m_dirty || full_redraw)) {
         int left = m_pPanel->origin_x + m_left;
@@ -433,7 +433,7 @@ class W8PartySelectionCharacterRow : public W8TextControl {
 public:
     W8PartySelectionCharacterRow(Controls* panel, int top, int row);
     virtual ~W8PartySelectionCharacterRow() override;
-    virtual void Redraw(int full_redraw) override;
+    virtual void Redraw(unsigned char full_redraw) override;
     virtual void AdjustValue(int amount) override;
     virtual void OnRightButtonUp(int event) override;
     virtual void OnLeftButtonDoubleClick(int event) override;
@@ -511,7 +511,7 @@ class W8PartySelectionPartySlotRow : public W8TextControl {
 public:
     W8PartySelectionPartySlotRow(Controls* panel, int row);
     virtual ~W8PartySelectionPartySlotRow() override;
-    virtual void Redraw(int full_redraw) override;
+    virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnRightButtonUp(int event) override;
     virtual void OnLeftButtonDoubleClick(int event) override;
 
@@ -588,7 +588,7 @@ public:
     virtual void OnToggle(int value) override;
 
     void SetMode(int mode);
-    void SetSelection(int selection, int highlighted, int refresh);
+    void SetSelection(int selection, unsigned char highlighted, unsigned char refresh);
     void OpenNotification(const wchar_t* message, int kind, int value);
     void Setup();
     void InvalidatePartySelectionComposition();
@@ -678,9 +678,9 @@ W8PartySelectionCharacterRow::~W8PartySelectionCharacterRow() {}
 // W8PartySelectionCharacterRow::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005be9b0
-void W8PartySelectionCharacterRow::Redraw(int full_redraw)
+void W8PartySelectionCharacterRow::Redraw(unsigned char full_redraw)
 {
-    if (!m_active || (!(unsigned char)full_redraw && !m_dirty)) {
+    if (!m_active || (!full_redraw && !m_dirty)) {
         return;
     }
 
@@ -894,9 +894,9 @@ W8PartySelectionPartySlotRow::W8PartySelectionPartySlotRow(Controls* panel, int 
 W8PartySelectionPartySlotRow::~W8PartySelectionPartySlotRow() {}
 
 // FUNCTION: WIZ8 0x005bf280
-void W8PartySelectionPartySlotRow::Redraw(int full_redraw)
+void W8PartySelectionPartySlotRow::Redraw(unsigned char full_redraw)
 {
-    if (!m_active || (!(unsigned char)full_redraw && !m_dirty)) {
+    if (!m_active || (!full_redraw && !m_dirty)) {
         return;
     }
 
@@ -1584,7 +1584,7 @@ void W8PartySelectionController::SetMode(int mode)
 }
 
 // FUNCTION: WIZ8 0x005c1680
-void W8PartySelectionController::SetSelection(int selection, int party_slot, int refresh_other)
+void W8PartySelectionController::SetSelection(int selection, unsigned char party_slot, unsigned char refresh_other)
 {
     if (!party_slot) {
         if (m_mode == 0) {

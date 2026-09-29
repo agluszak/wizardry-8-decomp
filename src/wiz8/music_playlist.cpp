@@ -200,7 +200,7 @@ void ServiceMusicPlaylist(void)
 }
 
 // FUNCTION: WIZ8 0x0048FC10
-unsigned char StartMusicResource(const char* resource, int fade, int replace_current)
+unsigned char StartMusicResource(const char* resource, int fade, unsigned char replace_current)
 {
     char path[260];
 

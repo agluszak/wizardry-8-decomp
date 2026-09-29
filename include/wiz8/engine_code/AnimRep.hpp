@@ -8,10 +8,10 @@
 /* The 2D instance has a different sixteen-byte block at the same class offset. */
 struct W8ModelInstance2DRenderState {
     unsigned long render_depth;
-    short left;
-    short top;
-    short right;
-    short bottom;
+    unsigned short width;
+    unsigned short height;
+    short position_x;
+    short position_y;
     unsigned char display_state;
     /* 0x0d: enables the pulsing glow pass over mesh.materials_70[0]. */
     unsigned char glow_enabled_0d;

@@ -172,6 +172,10 @@ struct W8OctPreTreeGeometry {
     unsigned short max_face_count_20;
     unsigned char positional_22[2];
 
+    /* Grow an owned face-index run at capacity boundaries. Retail narrows
+       count + capacity to 16 bits before allocation and returns a byte. */
+    unsigned char CheckArrayLength(int** run, unsigned short count, unsigned short capacity);
+
     /* Frees the per-vertex polygon runs, both arrays and the owned +0x14
        buffer; the preprocessing driver runs it during cleanup. */
     void Release004CFC10();

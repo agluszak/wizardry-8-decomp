@@ -67,8 +67,8 @@ struct W8OctBuildTree {
     unsigned char InsertSurface(W8GDSurface* surface, unsigned long mode);
     unsigned char InsertSurfaceRecursive(W8OctSpatialState* working, W8GDSurface* surface,
                                          srVector3T<float>* plane_point, unsigned long mode);
-    int CollectObjectsAlongSegment(int** results, const srVector3T<float>* from,
-                                   const srVector3T<float>* to, float half_angle, float extent,
+    int CollectObjectsAlongSegment(W8GDSurface*** results, const srVector3T<float>* origin,
+                                   const srVector3T<float>* delta, float half_angle, float extent,
                                    unsigned short kind);
     /* Append `payload` to the node's `kind` link list, growing the tail and
        raising the leaf counter plus the tree's deepest-list watermark. */
@@ -106,6 +106,6 @@ static_assert(sizeof(W8CountedOctBuildNode) == 0x30, "W8CountedOctBuildNode004AF
 static_assert(sizeof(W8OctBuildTree) == 0xbc, "W8OctBuildTree_must_be_0xbc");
 
 extern const float g_float_005ec188;
-extern void* g_oct_build_scratch;
+extern W8GDSurface** g_oct_build_scratch;
 
 #endif

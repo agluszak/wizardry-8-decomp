@@ -15,12 +15,12 @@ public:
 
     T* entries_00;
     unsigned int external_storage_04;
-    unsigned int capacity_08;
-    unsigned int size_0c;
+    int capacity_08;
+    int size_0c;
 
     void Insert004675B0(const T* entry);
-    void SiftDown(unsigned int index);
-    void SiftUp(unsigned int index);
+    void SiftDown(int index);
+    void SiftUp(int index);
     T Delete();
 };
 
@@ -35,10 +35,10 @@ template <class T> void stHeap<T>::Insert004675B0(const T* entry)
     ++size_0c;
 }
 
-template <class T> void stHeap<T>::SiftDown(unsigned int index)
+template <class T> void stHeap<T>::SiftDown(int index)
 {
     T entry = entries_00[index];
-    unsigned int child = index * 2 + 1;
+    int child = index * 2 + 1;
     while (child < size_0c) {
         if (child + 1 < size_0c && entries_00[child + 1] <= entries_00[child]) {
             ++child;
@@ -53,11 +53,11 @@ template <class T> void stHeap<T>::SiftDown(unsigned int index)
     entries_00[index] = entry;
 }
 
-template <class T> void stHeap<T>::SiftUp(unsigned int index)
+template <class T> void stHeap<T>::SiftUp(int index)
 {
     T entry = entries_00[index];
     while (index != 0) {
-        unsigned int parent = (index - 1) >> 1;
+        int parent = (index - 1) >> 1;
         if (entries_00[parent] <= entry) {
             break;
         }

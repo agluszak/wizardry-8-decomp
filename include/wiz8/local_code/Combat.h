@@ -12,7 +12,7 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
                         W8ActionDetailBlock** out_detail); /* 0x004E77B0 */
 void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail,
                               const W8ActionDetailBlock* data, int notify); /* 0x004E8000 */
-void EndCombat(int mode);                                                   /* 0x004EA310 */
+void EndCombat(unsigned char mode);                                                   /* 0x004EA310 */
 void BeginCombatExecution(void);
 void AssignCombatPhases(void);
 void UpdateCombat(void);                            /* 0x004E8EA0 */
@@ -82,7 +82,8 @@ void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);
 /* 0x004E79A0: whether one party slot may switch to the given targeting
    context, in the two forms the target-refresh pass asks. */
-bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, int arg_3, int arg_4);
+bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned char arg_3,
+                          unsigned char arg_4);
 unsigned char TryCharacterAction(int party_slot, int action, char commit);
 void NotifyNearbyMonsters(int what);
 void CombatLog(const char* format, ...);

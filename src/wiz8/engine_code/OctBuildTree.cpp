@@ -13,7 +13,7 @@
 const float g_float_005ec188 = 1.000100016593933f;
 
 // GLOBAL: WIZ8 0x00659a48
-void* g_oct_build_scratch;
+W8GDSurface** g_oct_build_scratch;
 /* The running count of surfaces appended into the scratch buffer by the
    leaf collector. Saved and restored around nested collects. */
 // GLOBAL: WIZ8 0x00659a38
@@ -173,7 +173,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
         spatial_00.maximum_18.x = minimum->x + spatial_00.extent_04;
         spatial_00.maximum_18.y = minimum->y + spatial_00.extent_04;
         spatial_00.maximum_18.z = minimum->z + spatial_00.extent_04;
-        g_oct_build_scratch = malloc(40000);
+        g_oct_build_scratch = static_cast<W8GDSurface**>(malloc(40000));
         spatial_00.polygon_count_3c = 1;
         spatial_00.item_count_40 = 0;
         spatial_00.root_90 = 0;
@@ -348,12 +348,12 @@ void W8OctBuildTree::AppendLink(W8OctBuildNode* node, void* payload, short kind)
 }
 
 /* Segment query over the build tree: seed the caller's result array with the
-   shared scratch buffer, expand the segment's axis bounds by `extent`, then
+   shared scratch buffer, expand the origin-to-origin+delta bounds by `extent`, then
    walk the tree. `half_angle` is unused. Collected surfaces carry the 0x2000
    visit mark, which this clears before returning the count. */
 // FUNCTION: WIZ8 0x00446d80
-int W8OctBuildTree::CollectObjectsAlongSegment(int** results, const srVector3T<float>* from,
-                                               const srVector3T<float>* to, float half_angle,
+int W8OctBuildTree::CollectObjectsAlongSegment(W8GDSurface*** results, const srVector3T<float>* origin,
+                                               const srVector3T<float>* delta, float half_angle,
                                                float extent, unsigned short kind)
 {
     W8OctSpatialState state(&spatial_00);
@@ -362,7 +362,7 @@ int W8OctBuildTree::CollectObjectsAlongSegment(int** results, const srVector3T<f
     unsigned int index;
 
     if (*results == 0) {
-        *results = static_cast<int*>(g_oct_build_scratch);
+        *results = g_oct_build_scratch;
         g_oct_build_out = g_oct_build_scratch;
     } else {
         saved = g_oct_build_count;
@@ -370,17 +370,17 @@ int W8OctBuildTree::CollectObjectsAlongSegment(int** results, const srVector3T<f
     }
     g_oct_build_count = 0;
 
-    float length = to->Length();
+    float length = delta->Length();
     if (length > extent) {
         extent = length;
     }
     for (int axis = 0; axis < 3; ++axis) {
-        if ((&to->x)[axis] > g_float_005ebb34) {
-            bounds[axis] = (&from->x)[axis] - extent;
-            bounds[axis + 3] = extent + (&from->x)[axis] + (&to->x)[axis];
+        if ((&delta->x)[axis] > g_float_005ebb34) {
+            bounds[axis] = (&origin->x)[axis] - extent;
+            bounds[axis + 3] = extent + (&origin->x)[axis] + (&delta->x)[axis];
         } else {
-            bounds[axis] = (&from->x)[axis] - extent + (&to->x)[axis];
-            bounds[axis + 3] = extent + (&from->x)[axis];
+            bounds[axis] = (&origin->x)[axis] - extent + (&delta->x)[axis];
+            bounds[axis + 3] = extent + (&origin->x)[axis];
         }
     }
     state.depth_44 = 0;
@@ -397,8 +397,7 @@ int W8OctBuildTree::CollectObjectsAlongSegment(int** results, const srVector3T<f
     index = 0;
     if (count != 0) {
         do {
-            W8GDSurface* surface = reinterpret_cast< // reinterpret-ok: scratch slot stores surface*
-                W8GDSurface**>(*results)[index];
+            W8GDSurface* surface = (*results)[index];
             ++index;
             surface->flags_00 &= ~0x2000;
         } while (index < static_cast<unsigned int>(count));
@@ -484,7 +483,7 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
                 surface = static_cast<W8GDSurface*>(link->surface_00);
                 if ((surface->flags_00 & 0x2000) == 0) {
                     surface->flags_00 |= 0x2000;
-                    static_cast<W8GDSurface**>(g_oct_build_scratch)[g_oct_build_count] =
+                    g_oct_build_scratch[g_oct_build_count] =
                         static_cast<W8GDSurface*>(link->surface_00);
                     ++g_oct_build_count;
                     ++collected;
@@ -496,7 +495,7 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
                 for (link = node->links_00[4]; link != 0; link = link->next_04) {
                     surface = static_cast<W8GDSurface*>(link->surface_00);
                     index = 0;
-                    scan = static_cast<W8GDSurface**>(g_oct_build_scratch);
+                    scan = g_oct_build_scratch;
                     while (index < g_oct_build_count) {
                         if (*scan == surface) {
                             goto next_link_4;
@@ -504,7 +503,7 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
                         ++index;
                         ++scan;
                     }
-                    static_cast<W8GDSurface**>(g_oct_build_scratch)[g_oct_build_count] = surface;
+                    g_oct_build_scratch[g_oct_build_count] = surface;
                     ++g_oct_build_count;
                     ++second;
                 next_link_4:;
@@ -517,7 +516,7 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
                 for (link = node->links_00[7]; link != 0; link = link->next_04) {
                     surface = static_cast<W8GDSurface*>(link->surface_00);
                     index = 0;
-                    scan = static_cast<W8GDSurface**>(g_oct_build_scratch);
+                    scan = g_oct_build_scratch;
                     while (index < g_oct_build_count) {
                         if (*scan == surface) {
                             goto next_link_7;
@@ -525,7 +524,7 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
                         ++index;
                         ++scan;
                     }
-                    static_cast<W8GDSurface**>(g_oct_build_scratch)[g_oct_build_count] = surface;
+                    g_oct_build_scratch[g_oct_build_count] = surface;
                     ++g_oct_build_count;
                     ++collected;
                 next_link_7:;
@@ -545,7 +544,7 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
                  link != 0; link = link->next_04) {
                 if (CollectSurfacePredicate(static_cast<W8GDSurface*>(link->surface_00), 0xb) !=
                     0) {
-                    static_cast<W8GDSurface**>(g_oct_build_scratch)[g_oct_build_count] =
+                    g_oct_build_scratch[g_oct_build_count] =
                         static_cast<W8GDSurface*>(link->surface_00);
                     ++g_oct_build_count;
                     ++second;
@@ -555,7 +554,7 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
         }
         for (link = node->links_00[kind]; link != 0; link = link->next_04) {
             if (CollectSurfacePredicate(static_cast<W8GDSurface*>(link->surface_00), kind) != 0) {
-                static_cast<W8GDSurface**>(g_oct_build_scratch)[g_oct_build_count] =
+                g_oct_build_scratch[g_oct_build_count] =
                     static_cast<W8GDSurface*>(link->surface_00);
                 ++g_oct_build_count;
                 ++collected;
@@ -637,7 +636,7 @@ char CollectSurfacePredicate(W8GDSurface* surface, short kind)
     if (kind != 3) {
         if (g_oct_build_count != 0) {
             for (unsigned long index = 0; index < g_oct_build_count; ++index) {
-                if (surface == static_cast<W8GDSurface**>(g_oct_build_scratch)[index]) {
+                if (surface == g_oct_build_scratch[index]) {
                     return 0;
                 }
             }

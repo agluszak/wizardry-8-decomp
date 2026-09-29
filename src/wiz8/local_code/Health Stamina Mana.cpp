@@ -934,11 +934,6 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
     }
 }
 
-/* The five load categories and what each costs on top of an action's base
-   fatigue, as a percentage. */
-enum { W8_LOAD_CATEGORY_COUNT = 5 };
-static const int kLoadFatiguePercent[W8_LOAD_CATEGORY_COUNT] = {0, 0x19, 0x32, 100, 200};
-
 /* The band past which deep fatigue takes hold, and the band it lets go at. */
 enum { W8_FATIGUE_BAND_DEEP = 2, W8_FATIGUE_BAND_RECOVERED = 2 };
 
@@ -960,12 +955,31 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
         return;
     }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored                                                                   \
+    "-Wsometimes-uninitialized" // uninit-ok: retail's invalid-load assertion continues without assigning a percentage; that unresolved value still affects stamina
     if (scale_by_load) {
-        if ((unsigned int)character->load_category >= W8_LOAD_CATEGORY_COUNT) {
+        switch (character->load_category) {
+        case 0:
+            load_percent = 0;
+            break;
+        case 1:
+            load_percent = 0x19;
+            break;
+        case 2:
+            load_percent = 0x32;
+            break;
+        case 3:
+            load_percent = 100;
+            break;
+        case 4:
+            load_percent = 200;
+            break;
+        default:
             srAssertFail("FALSE", HEALTH_STAMINA_MANA_CPP, 813,
                          "FatigueCharacter: ERROR - Invalid load category");
+            break;
         }
-        load_percent = kLoadFatiguePercent[character->load_category];
         if (character->uiCondition[W8_CONDITION_LOAD_EASED] == 0) {
             if (character->enchantments[5].turns_08 != 0) {
                 load_percent += 0x19;
@@ -975,6 +989,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
         }
         amount += (load_percent * amount) / 100;
     }
+#pragma clang diagnostic pop
 
     if (amount < 0) {
         amount = 0;
@@ -1056,7 +1071,7 @@ unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
         break;
     case W8_ACTION_TURN_UNDEAD:
     case W8_ACTION_PRAY:
-        cost = g_status.buffers.Char[party_slot].uiStaminaMax / 5;
+        cost = static_cast<unsigned int>(g_status.buffers.Char[party_slot].uiStaminaMax) / 5;
         if (cost < 0x14) {
             cost = 0x14;
         }

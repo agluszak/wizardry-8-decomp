@@ -92,7 +92,7 @@ template <class T> void InsertionSortByKey(T* items, unsigned long* keys, int fi
 
 template <class T> void QuickSortByKey(T* items, unsigned long* keys, int first, int last)
 {
-    while (last - first > 8) {
+    if (last - first > 8) {
         unsigned long pivot = keys[last];
         int low = first - 1;
         int high = last;
@@ -121,12 +121,12 @@ template <class T> void QuickSortByKey(T* items, unsigned long* keys, int first,
         if (first < low - 1) {
             QuickSortByKey(items, keys, first, low - 1);
         }
-        first = low + 1;
-        if (last <= first) {
-            return;
+        if (low + 1 < last) {
+            QuickSortByKey(items, keys, low + 1, last);
         }
+    } else {
+        InsertionSortByKey(items, keys, first, last + 1);
     }
-    InsertionSortByKey(items, keys, first, last + 1);
 }
 
 template <class T> void SortByKey(T* items, unsigned long* keys, int count)
@@ -349,22 +349,14 @@ template <class Key, class Value> void W8HashTable<Key, Value>::Grow()
     W8HashEntry<Key, Value>* new_entries = new W8HashEntry<Key, Value>[capacity];
     int* new_buckets = new int[capacity];
 
-    W8HashEntry<Key, Value>* fill_entry = new_entries;
-    int* fill_bucket = new_buckets;
-    unsigned int remaining = capacity;
-    if ((int)capacity > 0) {
-        do {
-            fill_entry->next_index = -1;
-            *fill_bucket = -1;
-            --remaining;
-            ++fill_entry;
-            ++fill_bucket;
-        } while (remaining != 0);
+    for (int slot = 0; slot < static_cast<int>(capacity); ++slot) {
+        new_entries[slot].next_index = -1;
+        new_buckets[slot] = -1;
     }
 
     int used = 0;
     if (bucket_count != 0) {
-        for (int bucket = 0; bucket < (int)bucket_count; ++bucket) {
+        for (int bucket = 0; bucket < static_cast<int>(bucket_count); ++bucket) {
             int slot = bucket_heads[bucket];
             while (slot != -1) {
                 W8HashEntry<Key, Value>* source = entries + slot;
@@ -381,11 +373,8 @@ template <class Key, class Value> void W8HashTable<Key, Value>::Grow()
         delete[] entries;
     }
 
-    if (used < (int)capacity) {
-        for (int slot = used; slot < (int)capacity;) {
-            ++slot;
-            new_entries[slot - 1].next_index = slot;
-        }
+    for (int free_slot = used; free_slot < static_cast<int>(capacity); ++free_slot) {
+        new_entries[free_slot].next_index = free_slot + 1;
     }
     new_entries[capacity - 1].next_index = -1;
 

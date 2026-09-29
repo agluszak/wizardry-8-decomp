@@ -1596,7 +1596,7 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
     probe = 1;
     for (skill_id = W8_SKILL_FIRST_SPELLBOOK; skill_id < W8_SKILL_AFTER_SPELLBOOK; ++skill_id) {
         if ((probe & book) != 0) {
-            level = character->skills[skill_id].level;
+            level = character->skills[skill_id].points_02;
             if ((int)best_level < (int)level) {
                 best_skill = skill_id;
                 best_level = level;
@@ -3596,9 +3596,7 @@ void PrepareSpellTarget(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         } else {
             from = source->point;
         }
-        trace.x = target->point.x;
-        trace.y = target->point.y;
-        trace.z = target->point.z;
+        trace = target->point;
         g_octree->TraceLineOfSight(&from, &trace, 1, -3, -3, 1, 0);
         target->point = trace;
         saved = source->point;
@@ -3608,10 +3606,8 @@ void PrepareSpellTarget(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             target->point = from;
         } else if (TargetSourceIsMonster(source, 0)) {
             navigator = monster_info->p3D;
-            target->point.x = navigator->movement_0c0.position_040.x;
-            target->point.y =
-                navigator->movement_0c0.position_040.y + navigator->movement_0c0.height_offset_0b8;
-            target->point.z = navigator->movement_0c0.position_040.z;
+            target->point = navigator->movement_0c0.position_040;
+            target->point.y += navigator->movement_0c0.height_offset_0b8;
         } else {
             target->point = saved;
         }
@@ -3721,8 +3717,7 @@ void ScatterSpellPointTarget(int spell_id, W8TargetSource* source, W8CombatSlot*
     srVector3T<float> delta;
     W8MonsterInfo* monster_info;
     W8Navigator* navigator;
-    float range;
-    float distance;
+    double range;
     int attempt;
 
     range = CalcRangeDistance(g_spell_records[spell_id].range_category);
@@ -3749,20 +3744,10 @@ void ScatterSpellPointTarget(int spell_id, W8TargetSource* source, W8CombatSlot*
         }
         ++attempt;
     } while (attempt < 5);
-    delta.x = origin.x - point.x;
-    delta.y = origin.y - point.y;
-    delta.z = origin.z - point.z;
-    distance = delta.y * delta.y + delta.x * delta.x + delta.z * delta.z;
-    if (range < sqrtf(distance)) {
-        if (distance != static_cast<float>(g_zero_005ebb40)) {
-            range = range / sqrtf(distance);
-            delta.x *= range;
-            delta.y *= range;
-            delta.z = range * delta.z;
-        }
-        point.x = delta.x + origin.x;
-        point.y = delta.y + origin.y;
-        point.z = delta.z + origin.z;
+    delta = origin - point;
+    if (range < delta.Length()) {
+        delta.SetLength(range);
+        point = delta + origin;
     }
     target->point = point;
 }

@@ -778,7 +778,8 @@ bool CanCharReBreathe(int party_slot)
     if (!CharacterHasTrait(character, 0x1c)) {
         return false;
     }
-    return character->uiStaminaMax / 5 <= character->stamina;
+    return static_cast<int>(static_cast<unsigned int>(character->uiStaminaMax) / 5) <=
+           character->stamina;
 }
 
 /* Take one character out of the round: hand back whatever they were aiming at,
@@ -1067,7 +1068,7 @@ void SwitchCharacterTo(int party_slot, int action)
    and restore the main-game UI. The mode passes through to the end-of-combat
    monster pass and gates the world reset when zero. */
 // FUNCTION: WIZ8 0x004ea310
-void EndCombat(int mode)
+void EndCombat(unsigned char mode)
 {
     if (gXStatus.fPartyMovementMode != 0) {
         BeginFreeTurnPhase();
@@ -1438,7 +1439,8 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
 /* Whether a slot may switch to the given action context, optionally repairing
    the aim state first when the caller allows it. */
 // FUNCTION: WIZ8 0x004e79a0
-bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, int arg_3, int arg_4)
+bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned char arg_3,
+                          unsigned char arg_4)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 

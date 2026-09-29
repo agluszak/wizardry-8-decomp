@@ -875,7 +875,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
     W8GDSurface* surface;
     W8GDSurface* collisions[101];
     unsigned long* octree_hits;
-    int* geometry_hits;
+    W8GDSurface** geometry_hits;
     int hit_count;
     int collision_count;
     int attempt;
@@ -1031,9 +1031,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                 probe_position = camera_position;
                 for (index = 0; index < hit_count; ++index) {
                     if (octree_04 == 0) {
-                        surface =
-                            reinterpret_cast< // reinterpret-ok: geometry collect stores surface*
-                                W8GDSurface*>(geometry_hits[index]);
+                        surface = geometry_hits[index];
                     } else {
                         surface = &m_pSurfaces[octree_hits[index]];
                     }
@@ -1284,9 +1282,7 @@ bool W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
                                  char skip_flag, int mode)
 {
     bool hit = false;
-    float best_x;
-    float best_y;
-    float best_z;
+    srVector3T<float> best_contact;
 
     last_hit_surface_54 = 0;
     if (count != 0) {
@@ -1349,9 +1345,7 @@ bool W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
                         last_hit_surface_54 = surface->index_04;
                         hit = true;
                         trace->hit_limit_24 = hit_distance;
-                        best_y = contact.y;
-                        best_z = contact.z;
-                        best_x = contact.x;
+                        best_contact = contact;
                     }
                 }
             }
@@ -1364,9 +1358,7 @@ bool W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
             --remaining;
         } while (remaining != 0);
         if (hit != 0) {
-            trace->end_0c.x = best_x;
-            trace->end_0c.y = best_y;
-            trace->end_0c.z = best_z;
+            trace->end_0c = best_contact;
             trace->length_28 = trace->hit_limit_24;
             return hit;
         }
@@ -2807,7 +2799,7 @@ W8LevelDataRecord::W8LevelDataRecord() : interval_gate_c4()
     vector_88.SetZero();
     vector_94.SetZero();
     vector_a0.SetZero();
-    contact_normal_ac = srVector3T<float>();
+    contact_normal_ac.SetZero();
     contact_normal_scale_b8 = 0.0f;
     memset(padding_bc, 0, sizeof(padding_bc));
     contact_normal_scale_b8 = 1.0f;

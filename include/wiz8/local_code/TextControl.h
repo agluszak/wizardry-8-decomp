@@ -42,7 +42,7 @@ public:
     void GetTextOrigin(int* px, int* py);
     void Invalidate(unsigned char immediate);
     virtual void SetEnabled(bool enabled) override;
-    virtual void Redraw(int full_redraw) override;
+    virtual void Redraw(unsigned char full_redraw) override;
     void SetFlaggedRegionBounds(int left, int top, int right);
     virtual void AddLayoutFlags(unsigned int flags) override;
     virtual void SetAlternateTextEnabled(unsigned char enabled) override;

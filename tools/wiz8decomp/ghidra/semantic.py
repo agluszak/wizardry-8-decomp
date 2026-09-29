@@ -795,7 +795,9 @@ def _derive_pointer_expression(
     left, right = op.getInput(0), op.getInput(1)
     if same(node, left):
         other = _integer_expression(right, pointer_bits)
-        sign = -1 if mnemonic in {"INT_SUB", "PTRSUB"} else 1
+        # PTRSUB selects a structure subcomponent: Ghidra defines it as
+        # input0 + input1, where input1 is a byte offset, not subtraction.
+        sign = -1 if mnemonic == "INT_SUB" else 1
     elif mnemonic == "INT_ADD" and same(node, right):
         other = _integer_expression(left, pointer_bits)
         sign = 1
@@ -1051,6 +1053,7 @@ def field_accesses(
     root: str,
     *,
     profile: str = "analysis",
+    session: Any | None = None,
 ) -> dict[str, Any]:
     """`trace_accesses` for one function parameter, plus the call table.
 
@@ -1063,7 +1066,7 @@ def field_accesses(
     from .resolve import resolve_function
 
     function = resolve_function(program, argument)
-    high = _high_function(program, function, profile=profile)
+    high = _high_function(program, function, profile=profile, session=session)
     entry = str(function.getEntryPoint())
     stops: list[dict[str, Any]] = []
     try:

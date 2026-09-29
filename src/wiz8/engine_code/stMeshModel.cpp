@@ -54,20 +54,9 @@ static bool s_compressed_normal_table_ready;
 
 // FUNCTION: WIZ8 0x00470B00
 stMeshModel::stMeshModel(long polygons, long vertices)
-    : srClassSupport<stMeshModel, srMeshModel, false, 0x10003>(0, 0), next(0), previous(0),
-      flags_3a0(2), vertex_light_table_3b0(0), duplicate_on_reuse_3cc(1),
-      vertex_lighting_ready_3cd(0), frame_count(1), m_pVertexLoc(0), m_pVertexNormal(0),
-      m_pPolyNormal(0), compressed_vertex_locations(0), compressed_vertex_normals(0),
-      compressed_polygon_normals(0), skin_table_ids(5), skin_texture_tables(5), skin_table_names(5),
-      mapped_values(5), mapped_keys(5), last_decompress_release_tick_440(0),
-      vertex_compression_scale_444(0.0f), lerp_buffer_448(0), automap_polygons(0),
-      automap_polygon_count(0), automap_filter_active(0), skin_blanking_apt_458(0),
-      skin_blanking_apt_number_45c(0), skin_blanking_checked_460(0)
+    : srClassSupport<stMeshModel, srMeshModel, false, 0x10003>(0, 0), skin_table_ids(5),
+      skin_texture_tables(5), skin_table_names(5), mapped_values(5), mapped_keys(5)
 {
-    ambient_color_3a4.Set(-1.0f, -1.0f, -1.0f);
-    memset(padding_3ce, 0, sizeof(padding_3ce));
-    memset(padding_3ec, 0, sizeof(padding_3ec));
-
     if (!s_compressed_normal_table_ready) {
         for (int value = -128; value < 128; ++value) {
             float component = value * (1.0f / 127.0f);
@@ -81,18 +70,43 @@ stMeshModel::stMeshModel(long polygons, long vertices)
         s_compressed_normal_table_ready = true;
     }
 
+    memset(static_cast<void*>(&tri_mesh_23c), 0, sizeof(tri_mesh_23c));
     srMeshModel::reset(polygons, vertices);
+    sort_bias_238 = 0.0f;
 
     for (int pass = 0; pass < 4; ++pass) {
-        for (int side = 0; side < 2; ++side) {
+        int side;
+        for (side = 0; side < 2; ++side) {
             materials_1c[pass][side] = 0;
+        }
+        for (side = 0; side < 2; ++side) {
             textures_3c[pass][side] = 0;
         }
+        shaders_5c[pass] = srShader();
     }
+    duplicate_on_reuse_3cc = 1;
+    vertex_lighting_ready_3cd = false;
+    previous = 0;
+    next = 0;
+    flags_3a0 = 2;
+    ambient_color_3a4.Set(-1.0f, -1.0f, -1.0f);
+    frame_count = 1;
+    vertex_light_table_3b0 = 0;
+    compressed_vertex_locations = 0;
+    compressed_vertex_normals = 0;
+    compressed_polygon_normals = 0;
+    m_pVertexLoc = 0;
+    m_pVertexNormal = 0;
+    m_pPolyNormal = 0;
     control_state_394.value &= ~0x10UL;
-    if ((control_state_390.value & 1) == 0) {
-        control_state_390.value |= 9;
-    }
+    setDirty(static_cast<e_flags>(0));
+    lerp_buffer_448 = 0;
+    automap_polygons = 0;
+    automap_polygon_count = 0;
+    automap_filter_active = false;
+    skin_blanking_apt_458 = 0;
+    skin_blanking_apt_number_45c = 0;
+    skin_blanking_checked_460 = 0;
 }
 
 // SYNTHETIC: WIZ8 0x00470e90

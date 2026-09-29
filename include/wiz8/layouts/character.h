@@ -77,12 +77,11 @@ struct W8CharacterSkill {
     bool active_00; /* 0x00: skill slot in use */
     /* 0x01: ResetSkillContribution stores 1 here; no retail code reads it. */
     bool reset_flag_01;
-    /* 0x02: a second figure the spell-learning ceiling divides by ten, the
-       same way the resistances divide `level`. The two are distinct fields of
-       one skill, not one field read two ways. */
+    /* 0x02: invested points. Spellbook selection and skill-increase notices
+       read these; the spell-learning ceiling divides them by ten. */
     unsigned int points_02;
-    /* 0x06: the skill's current level. Resistance recalculation divides it by
-       ten for skills 28..33 and by five for skill 36, which is what places it. */
+    /* 0x06: current level after profession/modifier adjustments. Spell pricing
+       and resistance recalculation read this instead of the invested points. */
     unsigned int level;
     /* 0x0a: the attribute-derived base the level-up reset recomputes and the
        profession-skill assignment scales, before the spent points land on

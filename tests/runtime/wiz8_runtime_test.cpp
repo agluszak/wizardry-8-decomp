@@ -739,12 +739,11 @@ static bool EnterMainMenuFixture(RuntimeCase& test)
 {
     /* The menu wait polls a copied MainMenuCheck: product globals are read
        on the game thread, and the driver only sends the intro-dismiss key. */
-    unsigned int started = GetTickCount();
     W8BinkVideo* dismissed_video = 0;
     unsigned int dismissed_at = 0;
     MainMenuCheck check;
     memset(&check, 0, sizeof(check));
-    while (!check.ready && GetTickCount() - started < test.remaining_ms() && gfProgramIsRunning) {
+    while (!check.ready && test.remaining_ms() > 0 && gfProgramIsRunning) {
         if (!test.on_game_thread("main-menu", CheckMainMenuOnGameThread, &check, 5000)) {
             return false;
         }
@@ -760,6 +759,11 @@ static bool EnterMainMenuFixture(RuntimeCase& test)
         }
     }
     if (!check.ready) {
+        fprintf(stderr,
+                "runtime-test menu-frontier: screen=%d initialized=%d active=%d intro=%d "
+                "video=%p regions=%u remaining_ms=%lu\n",
+                check.screen, check.game_initialized, check.app_active, check.intro_screen,
+                check.video, check.region_enabled, test.remaining_ms());
         return test.fail("main-menu", "startup-timeout");
     }
     g_observation.menu_seen = 1;

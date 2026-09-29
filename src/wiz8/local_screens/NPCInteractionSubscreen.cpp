@@ -492,10 +492,9 @@ void ResetMainScreenStateBlock(void)
 }
 
 /* Forward a monster-script notice to the targeting layer unless the screen is
-   busy or this NPC kind suppresses it. The suppress flag travels as an int:
-   the body forwards the whole dword without masking. */
+   busy or this NPC kind suppresses it. */
 // FUNCTION: WIZ8 0x0056C590
-void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int suppress)
+void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, unsigned char suppress)
 {
     if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fCombatMode == 0 &&
         (npc->record->kind != 7 || GetFact(W8_FACT_ARNIKA_MYLES_MEET_ONCE) != 1)) {
@@ -510,7 +509,8 @@ void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int
    0x10/0x11 NPCs with fact 0xbf substitute their own notice line and raise
    the flag byte. */
 // FUNCTION: WIZ8 0x0056C5E0
-void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int suppress, int arg)
+void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, unsigned char suppress,
+                          unsigned char arg)
 {
     W8MonsterInfo* info;
     unsigned char flag;
@@ -522,7 +522,7 @@ void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int s
     if (info != 0 && info->highest_condition >= 0xf) {
         return;
     }
-    flag = static_cast<unsigned char>(suppress);
+    flag = suppress;
     if ((npc->name_style == W8_NPC_DRAZIC || npc->name_style == W8_NPC_RODAN) &&
         GetFact(W8_FACT_PEACE_ACHIEVED) != 0) {
         flag = 1;
@@ -534,7 +534,7 @@ void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int s
     g_pending_notice.flag = flag;
     g_pending_notice.npc = npc;
     g_pending_notice.line = line;
-    g_pending_notice.force = static_cast<unsigned char>(arg);
+    g_pending_notice.force = arg;
     if (item != 0) {
         g_pending_notice.item = *item;
     } else {
@@ -554,8 +554,8 @@ void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int s
    pausing the world, raising the dialogue flags and pointing the camera at
    the NPC's monster. */
 // FUNCTION: WIZ8 0x0056C6D0
-void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
-                              int force)
+void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, unsigned char flags,
+                              unsigned char force)
 {
     W8NpcInteractionState* state;
     W8MonsterInfo* info;
@@ -648,27 +648,25 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
 }
 
 // FUNCTION: WIZ8 0x0056CA60
-void BeginNpcDialogue(W8NpcState* npc, W8ItemInstance* item, int quote, int flags, int force)
+void BeginNpcDialogue(W8NpcState* npc, W8ItemInstance* item, int quote, unsigned char flags,
+                      unsigned char force)
 {
     BeginNpcDialogueInternal(npc, item, quote, flags, force);
 }
 
 /* Dispatch the queued NPC script notice: the item goes across only while it
-   still carries an id, and the flag pair at +0x14 travels as one dword. */
+   still carries an id. The two notice flags remain independent byte values. */
 // FUNCTION: WIZ8 0x0056CA90
 void DispatchPendingNpcScriptNotice(void)
 {
     W8ItemInstance* item;
-    int flags;
 
     item = 0;
     if (g_pending_notice.item.iItemNo != -1) {
         item = &g_pending_notice.item;
     }
-    flags = *reinterpret_cast<int*>(&g_pending_notice.flag); /* reinterpret-ok: the queued
-            flag/force bytes are dispatched to BeginNpcDialogueInternal as one packed dword */
-    BeginNpcDialogueInternal(g_pending_notice.npc, item, g_pending_notice.line, flags,
-                             (flags >> 8) & 0xff);
+    BeginNpcDialogueInternal(g_pending_notice.npc, item, g_pending_notice.line,
+                             g_pending_notice.flag, g_pending_notice.force);
 }
 
 /* Open the NPC dialogue panel. After the shared screen reset and the
@@ -839,8 +837,8 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
 /* Stage `npc` as the dialogue NPC: bind its monster's location, clear its
    transient flags, kick the script dialogue, refresh the name caption while
    the dialogue UI is already up, and pick the speaking character - the first
-   occupied row, overtaken by any occupied row with a higher skill-0x16
-   (communication) level. Every occupied portrait then takes target pose 1.
+   occupied row. The retail unsigned skill comparison starts at 0xffffffff,
+   so later rows do not replace it. Every occupied portrait then takes target pose 1.
    A stale disposition snapshot on the NPC drops its 0x1c flag. */
 // FUNCTION: WIZ8 0x0056D030
 void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
@@ -1181,7 +1179,7 @@ void ServiceNpcDialogue(void)
    text controls, restore the held item or target cursor, queue the parting
    character event and hand control back to the world. */
 // FUNCTION: WIZ8 0x0056E800
-void EndNpcDialogueSession(int param_1)
+void EndNpcDialogueSession(unsigned char param_1)
 {
     if (gXStatus.fNpcDialogueMode == 0) {
         return;
@@ -5272,7 +5270,7 @@ void SyncDialogueNpcState(void)
    Every occupied living character without a maxed condition practices
    communication (skill 0x16). */
 // FUNCTION: WIZ8 0x00577290
-void HandleNpcDialogueDeparture(int value)
+void HandleNpcDialogueDeparture(unsigned char value)
 {
     W8MonsterInfo* info;
     W8Character* character;
@@ -5461,7 +5459,7 @@ bool CanOpenNpcDialogue(void)
 }
 
 // FUNCTION: WIZ8 0x00577880
-unsigned char SetNpcDialoguePanelVisible(int value)
+unsigned char SetNpcDialoguePanelVisible(unsigned char value)
 {
     W8NpcDialogueTextController* controller;
     unsigned char expanded;

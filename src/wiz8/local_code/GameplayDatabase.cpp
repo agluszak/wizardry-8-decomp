@@ -307,7 +307,7 @@ unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
 unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
                                        W8MonsterRecord* records)
 {
-    char path[56];
+    char path[60];
     unsigned int bytes_read;
     int handle;
 

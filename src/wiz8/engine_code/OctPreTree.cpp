@@ -22,8 +22,6 @@
 
 #define OCTPRETREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPreTree.cpp"
 
-static char PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first, unsigned short last);
-
 /* Same 50.0f descent step Octree.cpp emits at 0x005EC02C; the linker folds the
    identical constants into one address. */
 static const float NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE = 50.0f;
@@ -999,9 +997,8 @@ unsigned long OctPreTree::SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeo
 
 /* First CreateSubMeshes phase: counts each region's polygons into its build
    record, allocates the polygon id run and refills it while tracking the
-   corner bounds, then checks every automesh cell hashed under the region id
-   overlaps those bounds.  The cell hash walk uses the table's single-fold
-   hash on purpose - the same folding the builder inserted with. */
+   corner bounds, then checks every automesh cell keyed by the region id
+   overlaps those bounds. */
 // FUNCTION: WIZ8 0x0046a790
 unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
 {
@@ -1036,7 +1033,7 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
                 return 0;
             }
             memset(record->polygon_ids_24, 0, record->polygon_count_1c * 4 + 8);
-            unsigned long found = 0;
+            unsigned short found = 0;
             if (spatial_000.polygon_count_3c > 1) {
                 for (unsigned long poly = 1; poly < spatial_000.polygon_count_3c; ++poly) {
                     if (game_data_3a4->polygons_0c[poly].region_32 == index) {
@@ -1080,23 +1077,21 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
         }
         unsigned short key = static_cast<unsigned short>(index);
         W8HashTable<unsigned short, unsigned long>* cells = automesh_cells_29c;
-        int slot = cells->bucket_heads[((key >> 10) ^ key) & (cells->bucket_count - 1)];
+        int slot = cells->FindNextEntry(&key, -1);
         while (slot != -1) {
-            if (cells->entries[slot].key == static_cast<short>(index)) {
-                unsigned long cell = cells->entries[slot].value;
-                float cell_x = ((cell >> 0x10) & 0xff) * spatial_000.region_grid_cell_54 +
-                               spatial_000.minimum_0c.x;
-                float cell_y = ((cell >> 8) & 0xff) * spatial_000.region_grid_cell_54 +
-                               spatial_000.minimum_0c.y;
-                float cell_z =
-                    (cell & 0xff) * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.z;
-                if (cell_x + spatial_000.region_grid_cell_54 < min_x || max_x < cell_x ||
-                    cell_y + spatial_000.region_grid_cell_54 < min_y || max_y < cell_y ||
-                    cell_z + spatial_000.region_grid_cell_54 < min_z || max_z < cell_z) {
-                    ReportBuildStatus(7, "AutoMesh has no vertices inside region.");
-                }
+            unsigned long cell = cells->entries[slot].value;
+            float cell_x = ((cell >> 0x10) & 0xff) * spatial_000.region_grid_cell_54 +
+                           spatial_000.minimum_0c.x;
+            float cell_y = ((cell >> 8) & 0xff) * spatial_000.region_grid_cell_54 +
+                           spatial_000.minimum_0c.y;
+            float cell_z =
+                (cell & 0xff) * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.z;
+            if (cell_x + spatial_000.region_grid_cell_54 < min_x || max_x < cell_x ||
+                cell_y + spatial_000.region_grid_cell_54 < min_y || max_y < cell_y ||
+                cell_z + spatial_000.region_grid_cell_54 < min_z || max_z < cell_z) {
+                ReportBuildStatus(7, "AutoMesh has no vertices inside region.");
             }
-            slot = cells->entries[slot].next_index;
+            slot = cells->FindNextEntry(&key, slot);
         }
     }
     return spatial_000.submesh_count_74;
@@ -1127,7 +1122,7 @@ void OctPreTree::VerifyPolygonRegions()
                 static_cast<unsigned int>((polygon->position_18.z - spatial_000.minimum_0c.z) /
                                           spatial_000.region_grid_cell_54);
             int node = DescendByMask(cell);
-            if (m_owned_09c[node].region_02 != static_cast<short>(polygon->region_32)) {
+            if (m_owned_09c[node].region_02 != polygon->region_32) {
                 char text[256];
                 sprintf(text, "Poly %d not found in correct region.\n", static_cast<int>(poly));
                 ReportBuildStatus(6, text);
@@ -1144,63 +1139,60 @@ void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBu
 {
     for (unsigned long mesh = 1; mesh < m_meshCount_1b4; ++mesh) {
         unsigned short key = static_cast<unsigned short>(mesh);
-        int slot = automesh_cells_29c
-                       ->bucket_heads[((key >> 10) ^ key) & (automesh_cells_29c->bucket_count - 1)];
+        int slot = automesh_cells_29c->FindNextEntry(&key, -1);
         while (slot != -1) {
-            if (automesh_cells_29c->entries[slot].key == static_cast<short>(mesh)) {
-                unsigned int cell[4];
-                unsigned long packed = automesh_cells_29c->entries[slot].value;
-                cell[0] = packed >> 0x18;
-                cell[1] = packed >> 0x10 & 0xff;
-                cell[2] = packed >> 8 & 0xff;
-                cell[3] = packed & 0xff;
-                float cell_x = cell[1] * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.x;
-                float cell_y = cell[2] * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.y;
-                float cell_z = cell[3] * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.z;
-                int node = DescendByMask(cell);
-                if (node != 0) {
-                    if (m_owned_09c[node].region_02 != static_cast<short>(mesh)) {
-                        ReportBuildStatus(7, "Region has wrong automesh.");
-                    }
-                    float min_x = g_float_005ec3c0;
-                    float min_y = 1e+06f;
-                    float min_z = 1e+06f;
-                    float max_x = -1e+06f;
-                    float max_y = -1e+06f;
-                    float max_z = -1e+06f;
-                    for (unsigned long link = mesh; link != 0; link = records[link].next_link_10) {
-                        W8OctSubmeshBuild* record = records + link;
-                        for (unsigned long i = 0; i < record->vertex_count_14; ++i) {
-                            float* position =
-                                &geometry->vertices_04[record->vertex_ids_20[i]].position_0c.x;
-                            if (max_x < position[0]) {
-                                max_x = position[0];
-                            }
-                            if (position[0] < min_x) {
-                                min_x = position[0];
-                            }
-                            if (max_y < position[1]) {
-                                max_y = position[1];
-                            }
-                            if (position[1] < min_y) {
-                                min_y = position[1];
-                            }
-                            if (max_z < position[2]) {
-                                max_z = position[2];
-                            }
-                            if (position[2] < min_z) {
-                                min_z = position[2];
-                            }
+            unsigned int cell[4];
+            unsigned long packed = automesh_cells_29c->entries[slot].value;
+            cell[0] = packed >> 0x18;
+            cell[1] = packed >> 0x10 & 0xff;
+            cell[2] = packed >> 8 & 0xff;
+            cell[3] = packed & 0xff;
+            float cell_x = cell[1] * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.x;
+            float cell_y = cell[2] * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.y;
+            float cell_z = cell[3] * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.z;
+            int node = DescendByMask(cell);
+            if (node != 0) {
+                if (m_owned_09c[node].region_02 != key) {
+                    ReportBuildStatus(7, "Region has wrong automesh.");
+                }
+                float min_x = g_float_005ec3c0;
+                float min_y = 1e+06f;
+                float min_z = 1e+06f;
+                float max_x = -1e+06f;
+                float max_y = -1e+06f;
+                float max_z = -1e+06f;
+                for (unsigned long link = mesh; link != 0; link = records[link].next_link_10) {
+                    W8OctSubmeshBuild* record = records + link;
+                    for (unsigned long i = 0; i < record->vertex_count_14; ++i) {
+                        float* position =
+                            &geometry->vertices_04[record->vertex_ids_20[i]].position_0c.x;
+                        if (max_x < position[0]) {
+                            max_x = position[0];
+                        }
+                        if (position[0] < min_x) {
+                            min_x = position[0];
+                        }
+                        if (max_y < position[1]) {
+                            max_y = position[1];
+                        }
+                        if (position[1] < min_y) {
+                            min_y = position[1];
+                        }
+                        if (max_z < position[2]) {
+                            max_z = position[2];
+                        }
+                        if (position[2] < min_z) {
+                            min_z = position[2];
                         }
                     }
-                    if (cell_x + spatial_000.region_grid_cell_54 < min_x || max_x < cell_x ||
-                        cell_y + spatial_000.region_grid_cell_54 < min_y || max_y < cell_y ||
-                        cell_z + spatial_000.region_grid_cell_54 < min_z || max_z < cell_z) {
-                        ReportBuildStatus(7, "AutoMesh has no vertices inside region.");
-                    }
+                }
+                if (cell_x + spatial_000.region_grid_cell_54 < min_x || max_x < cell_x ||
+                    cell_y + spatial_000.region_grid_cell_54 < min_y || max_y < cell_y ||
+                    cell_z + spatial_000.region_grid_cell_54 < min_z || max_z < cell_z) {
+                    ReportBuildStatus(7, "AutoMesh has no vertices inside region.");
                 }
             }
-            slot = automesh_cells_29c->entries[slot].next_index;
+            slot = automesh_cells_29c->FindNextEntry(&key, slot);
         }
     }
 }
@@ -1642,7 +1634,7 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
    quaternions disagree beyond the snap epsilon (unless they are the mirrored
    same rotation), or scaled-path tails drift. */
 // FUNCTION: WIZ8 0x0046c6a0
-static char PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first, unsigned short last)
+char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first, unsigned short last)
 {
     char count = anim->num_transforms_5a;
     if (count > 0) {

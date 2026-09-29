@@ -348,6 +348,7 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     s->movement_ui = gXStatus.fPartyMovementUi != 0;
     s->movement_budget = g_level_block != 0 ? g_level_block->move_budget_2dc : 0;
     s->round_active = g_combat_state != 0 ? g_combat_state->combat_over_000 : 0;
+    s->round_count = g_combat_state != 0 ? g_combat_state->round_count_004 : 0;
     s->party_action_status = g_combat_state != 0 ? g_combat_state->uiCurrentPartyActionStatus : 0;
     s->action_status = g_combat_state != 0 ? g_combat_state->eCombatActionStatus : 0;
     s->action_monster = g_combat_state != 0 && g_combat_state->pActionMonsterInfo != 0
@@ -360,6 +361,9 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     s->held_key_down = request->held_key != 0 && gfKeyState[request->held_key] != 0;
     s->application_active = gfApplicationActive != 0;
     s->window_has_focus = GetFocus() == ghWindow;
+    s->string_input_active = StringInputHasFocus() != 0;
+    s->os_key_down = request->held_key != 0 && (GetAsyncKeyState(request->held_key) & 0x8000) != 0;
+    s->keypad_left_down = gfKeyState[VK_NUMPAD4] != 0;
     s->taken_ms = GetTickCount();
 }
 
@@ -555,11 +559,14 @@ bool RuntimeCase::fail(const char* step, const char* reason)
                 "runtime-case %s: observed screen=%d pending=%d position=(%.2f %.2f %.2f) "
                 "yaw=%.3f combat=%u movement_ui=%u budget=%d input=%.2f world=%.2f "
                 "modal=%u world_blocked=%u render_flags=%02x held_key=%u held_down=%u "
-                "active=%u focus=%u snapshot_age_ms=%lu\n",
+                "active=%u focus=%u round=%u round_count=%u string_input=%u "
+                "os_key_down=%u keypad_left=%u snapshot_age_ms=%lu\n",
                 name_, s.screen, s.pending, s.position.x, s.position.y, s.position.z, s.yaw,
                 s.combat ? 1u : 0u, s.movement_ui ? 1u : 0u, s.movement_budget, s.input_motion,
                 s.world_motion, s.modal_owner_present, s.world_update_blocked, s.world_render_flags,
                 s.held_key, s.held_key_down, s.application_active, s.window_has_focus,
+                s.round_active, s.round_count, s.string_input_active ? 1u : 0u,
+                s.os_key_down ? 1u : 0u, s.keypad_left_down ? 1u : 0u,
                 GetTickCount() - s.taken_ms);
     } else {
         fprintf(stderr, "runtime-case %s: observed none\n", name_);

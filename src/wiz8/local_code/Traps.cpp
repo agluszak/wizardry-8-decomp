@@ -255,9 +255,6 @@ void SelectTrapType(Trigger* trigger)
     } while (g_trap_difficulty[type] > budget || g_trap_difficulty[type] + 4 < budget);
 }
 
-void DischargeTrapSpell(float x, float y, float z, int spell_id, unsigned int power_level,
-                        int num_targets); /* 0x005E3800 */
-
 // FUNCTION: WIZ8 0x005E3780
 void CompleteTrapDisarm(Trigger* trigger)
 {
@@ -276,7 +273,7 @@ void CompleteTrapDisarm(Trigger* trigger)
 }
 
 // FUNCTION: WIZ8 0x005E3800
-void DischargeTrapSpell(float x, float y, float z, int spell_id, unsigned int power_level,
+void DischargeTrapSpell(srVector3T<float> point, int spell_id, unsigned int power_level,
                         int num_targets)
 {
     int index;
@@ -290,9 +287,7 @@ void DischargeTrapSpell(float x, float y, float z, int spell_id, unsigned int po
     }
     ResetTargetSource(&source);
     source.iType = W8_TARGET_SOURCE_INDIRECT;
-    source.point.x = x;
-    source.point.y = y;
-    source.point.z = z;
+    source.point = point;
     if (GetSpellTargetType(spell_id, 0) == W8_TARGET_TYPE_POINT) {
         target.iType = W8_TARGET_KIND_PLACE;
         target.point = g_startup_world->GetPosition();
@@ -376,5 +371,5 @@ void ResolveSprungTrap(Trigger* trigger)
     }
     GetCameraPosition(&camera);
     g_octree->TraceLineOfSight(&camera, &point, 1, -3, -3, 1, 0);
-    DischargeTrapSpell(point.x, point.y, point.z, g_table_6504e8[type + 11], power, count);
+    DischargeTrapSpell(point, g_table_6504e8[type + 11], power, count);
 }

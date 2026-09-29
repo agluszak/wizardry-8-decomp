@@ -93,10 +93,8 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
         FileRead(handle, &frames, 1, 0);
         if (animation->pfKnownBBoxFrames == 0 && frames != 0) {
             animation->pfKnownBBoxFrames = static_cast<unsigned char*>(malloc(frames));
-            animation->pvecBoundMin = static_cast<srVector3T<float>*>(
-                srHeap.allocate(frames * sizeof(srVector3T<float>)));
-            animation->pvecBoundMax = static_cast<srVector3T<float>*>(
-                srHeap.allocate(frames * sizeof(srVector3T<float>)));
+            animation->pvecBoundMin = new srVector3T<float>[frames];
+            animation->pvecBoundMax = new srVector3T<float>[frames];
             if (animation->pfKnownBBoxFrames == 0 || animation->pvecBoundMin == 0 ||
                 animation->pvecBoundMax == 0) {
                 srAssertFail("pao->pfKnownBBoxFrames && pao->pvecBoundMin && "
@@ -378,10 +376,8 @@ W8AnimObj* CloneAnimObj(const W8AnimObj* source)
         }
         if (frames != 0) {
             copy->pfKnownBBoxFrames = static_cast<unsigned char*>(malloc(frames));
-            copy->pvecBoundMin = static_cast<srVector3T<float>*>(
-                srHeap.allocate(frames * sizeof(srVector3T<float>)));
-            copy->pvecBoundMax = static_cast<srVector3T<float>*>(
-                srHeap.allocate(frames * sizeof(srVector3T<float>)));
+            copy->pvecBoundMin = new srVector3T<float>[frames];
+            copy->pvecBoundMax = new srVector3T<float>[frames];
             for (index = 0; index < frames; ++index) {
                 copy->pfKnownBBoxFrames[index] = source->pfKnownBBoxFrames[index];
                 copy->pvecBoundMin[index] = source->pvecBoundMin[index];
@@ -448,9 +444,9 @@ unsigned char AnimObjGetBounds(W8AnimObj* animation, signed char list_index, uns
     if (animation->pfKnownBBoxFrames == 0) {
         animation->pfKnownBBoxFrames = static_cast<unsigned char*>(malloc(frames));
         animation->pvecBoundMin =
-            static_cast<srVector3T<float>*>(srHeap.allocate(frames * sizeof(srVector3T<float>)));
+            new srVector3T<float>[frames];
         animation->pvecBoundMax =
-            static_cast<srVector3T<float>*>(srHeap.allocate(frames * sizeof(srVector3T<float>)));
+            new srVector3T<float>[frames];
         if (animation->pfKnownBBoxFrames == 0 || animation->pvecBoundMin == 0 ||
             animation->pvecBoundMax == 0) {
             srAssertFail("pao->pfKnownBBoxFrames && pao->pvecBoundMin && "
@@ -668,10 +664,10 @@ void DestroyAnimObj(W8AnimObj* animation)
     }
 #pragma clang diagnostic pop
     if (animation->pvecBoundMin != 0) {
-        srHeap.free(animation->pvecBoundMin);
+        delete[] animation->pvecBoundMin;
     }
     if (animation->pvecBoundMax != 0) {
-        srHeap.free(animation->pvecBoundMax);
+        delete[] animation->pvecBoundMax;
     }
     free(animation);
 }

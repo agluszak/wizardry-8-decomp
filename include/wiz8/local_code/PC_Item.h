@@ -89,7 +89,7 @@ void UnequipUnusableItems(W8Character* character); /* 0x0051D960 */
 void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char refresh);
 void EmptyAllCarriedItems(W8Character* character);
 bool TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
-unsigned char GetItemSpell(const W8ItemInstance* item);
+int GetItemSpell(const W8ItemInstance* item);
 int GetItemSpellRange(const W8ItemInstance* item); /* 0x005207E0 */
 void ApplyIdentifyAttempt(W8ItemInstance* item, unsigned int strength,
                           unsigned int percent); /* 0x00520B40 */

@@ -98,6 +98,7 @@ public:
 
     unsigned long GetAnimationState(int mode);
     void DetonateMissileSpell();
+    void DestroyMissile(); /* 0x004A4180 */
     void AnnounceCollisionTarget(); /* 0x004A4AC0 */
     /* Switch the representation to its impact cycle, or end the flight when the
        missile has no such cycle. */
@@ -154,7 +155,6 @@ W8_ASSERT_BASE_OFFSET(W8Missile, W8Navigator, padding_004, 0x18);
 W8Missile* FireMissile(unsigned int missile_table_index, srVector3T<float>* source,
                        srVector3T<float>* target, float flight_speed, unsigned int trace_mask,
                        unsigned int block_released, float duration);
-void DestroyMissile(W8Missile* missile); /* 0x004A4180 */
 /* The world position `character_index`'s current hand fires a missile from:
    the camera's launch point swung to the wielding side. */
 void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<float>* position);

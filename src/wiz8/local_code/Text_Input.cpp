@@ -455,7 +455,7 @@ void Get16BitStringFromField(unsigned char index, wchar_t* text)
 }
 
 // FUNCTION: WIZ8 0x005D3D00
-unsigned char GetTextInputFieldLength(int index)
+unsigned char GetTextInputFieldLength(unsigned char index)
 {
     for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
         if (field->ubID == index)

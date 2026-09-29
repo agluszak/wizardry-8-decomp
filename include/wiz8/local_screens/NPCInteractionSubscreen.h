@@ -70,10 +70,9 @@ struct W8PendingNoticeLine {
 };
 
 /* 0x0068EE60: the NPC script notice queued between 0x0056C5E0 and its
-   DispatchPendingNpcScriptNotice dispatch. flag and force are stored as
-   independent bytes at +0x14/+0x15; the dispatch reloads +0x14 as one dword
-   for the BeginNpcDialogueInternal flags argument and takes force back out of
-   its high byte, leaving +0x16/+0x17 as dead tail bytes. */
+   DispatchPendingNpcScriptNotice dispatch. flag and force are independent
+   bytes at +0x14/+0x15. The dispatch's widened load does not establish a
+   packed source argument; the receiver consumes each flag as a byte. */
 struct W8PendingNotice {
     W8NpcState* npc;
     W8ItemInstance item;
@@ -365,10 +364,11 @@ static_assert(offsetof(W8NpcInteractionState, last_notice_npc_kind) == 0x264,
 
 extern W8NpcInteractionState* g_screen_state_00649f1c;
 
-void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int suppress);
-void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int suppress,
-                          int arg); /* 0x0056C5E0 */
-void FlushPendingNoticeLines(void); /* 0x005766B0 */
+void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line,
+                            unsigned char suppress);
+void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, unsigned char suppress,
+                          unsigned char arg); /* 0x0056C5E0 */
+void FlushPendingNoticeLines(void);           /* 0x005766B0 */
 /* 0x0056C520: zero W8NpcInteractionState, write its reset values, and reload the
    keyword lists through the loader below. */
 void ResetMainScreenStateBlock(void);
@@ -406,16 +406,16 @@ void DrawNpcQuoteBubble(void);                              /* 0x00576670 */
    list), 0x12/0x1e (price check) and 0x13 (keyword entry). */
 void LookAtDialogueNpc(void);        /* 0x005767F0 */
 void CloseNpcDialogueIfActive(void); /* 0x00576B80 */
-void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
-                              int force);   /* 0x0056C6D0 */
-void BeginScriptedWorldAction(void);        /* 0x00577520 */
-void CloseNpcDialogueLayout(void);          /* 0x00570A20 */
-void OpenNpcDialogueTranscriptLayout(void); /* 0x00570CF0 */
-void DispatchPendingNpcScriptNotice(void);  /* 0x0056CA90 */
+void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, unsigned char flags,
+                              unsigned char force); /* 0x0056C6D0 */
+void BeginScriptedWorldAction(void);                /* 0x00577520 */
+void CloseNpcDialogueLayout(void);                  /* 0x00570A20 */
+void OpenNpcDialogueTranscriptLayout(void);         /* 0x00570CF0 */
+void DispatchPendingNpcScriptNotice(void);          /* 0x0056CA90 */
 bool CanOpenNpcDialogue(void);
 bool IsNpcDialogueTextBoxActive577830(void);         /* 0x00577830 */
 bool IsNpcDialogueTextBoxActive(void);               /* 0x0056EFD0 */
-unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */
+unsigned char SetNpcDialoguePanelVisible(unsigned char value); /* 0x00577880 */
 bool ProcessPendingEvent(void);
 void SyncDialogueNpcStateAndMarkPending(void);
 void ClearMainGameTargetState(void);
@@ -427,8 +427,8 @@ void SyncNpcServiceButtons(int party_slot); /* 0x0056EE20 */
 unsigned char MainScreenControlRegionEvent(const InputAtom* event,
                                            struct W8Region* region); /* 0x0056F020 */
 void SwitchNpcDialogueLayout(int interact_id);                       /* 0x00570120 */
-void BeginNpcDialogue(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
-                      int force); /* 0x0056CA60 */
+void BeginNpcDialogue(W8NpcState* npc, W8ItemInstance* item, int quote, unsigned char flags,
+                      unsigned char force); /* 0x0056CA60 */
 unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item,
                                    unsigned char force);            /* 0x0056CAD0 */
 void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags);          /* 0x0056D030 */
@@ -440,7 +440,7 @@ void CloseNpcDialogueTranscriptLayout(void);                        /* 0x0057137
 void CloseNpcDialogueOptionLayout(void);                            /* 0x00572320 */
 void CloseNpcDialogueMode5Layout(void);                             /* 0x00573570 */
 void ShowNpcDialogueTopicMenu(void);                                /* 0x00570760 */
-void HandleNpcDialogueDeparture(int value);                         /* 0x00577290 */
+void HandleNpcDialogueDeparture(unsigned char value);               /* 0x00577290 */
 unsigned char HandleNpcDialogueItem(W8ItemInstance* item);          /* 0x00575810 */
 unsigned char AcceptNpcDialogueItem(W8NpcState* npc, W8ItemInstance* item,
                                     int mode); /* folded at 0x005B1740 */
@@ -471,7 +471,7 @@ void UpdateNpcDialogueSubMode(void);    /* 0x00571F60 */
 /* 0x00575390: restate the five transcript category buttons so only the
    active dialogue_category_filter's button shows its secondary state. */
 void SyncDialogueCategoryButtons(void);
-void EndNpcDialogueSession(int);
+void EndNpcDialogueSession(unsigned char);
 /* Whether an open NPC dialogue transcript covers the party slot's portrait:
    dialogue mode up, scripted_dialogue clear, the controller enabled, and its top
    edge above the slot's band. Portrait and character-update paths skip the

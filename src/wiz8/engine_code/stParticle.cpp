@@ -324,7 +324,7 @@ stParticle::stParticle(const stParticle& other)
     particle_positions_148 =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
     if (particle_positions_148 == 0) {
-        srAssertFail("pParticle", ST_PARTICLE_CPP, 0xda, 0);
+        srAssertFail("pLoc", ST_PARTICLE_CPP, 0xda, 0);
     }
     unsigned int i;
     for (i = 0; i < count; ++i) {
@@ -337,12 +337,12 @@ stParticle::stParticle(const stParticle& other)
     texcoords_164 = static_cast<srVector2T<float>*>(
         srHeap.allocate(vertex_count_158 * sizeof(srVector2T<float>)));
     if (texcoords_164 == 0) {
-        srAssertFail("pTexCoord", ST_PARTICLE_CPP, 0xe4, 0);
+        srAssertFail("vUV", ST_PARTICLE_CPP, 0xe4, 0);
     }
     vertex_positions_160 = static_cast<srVector3T<float>*>(
         srHeap.allocate(vertex_count_158 * sizeof(srVector3T<float>)));
     if (vertex_positions_160 == 0) {
-        srAssertFail("pVertex", ST_PARTICLE_CPP, 0xe5, 0);
+        srAssertFail("vLoc", ST_PARTICLE_CPP, 0xe5, 0);
     }
     triangles_168 =
         static_cast<srVector3i*>(srHeap.allocate(texture_frame_count_15c * sizeof(srVector3i)));

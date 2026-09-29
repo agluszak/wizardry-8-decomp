@@ -1753,7 +1753,7 @@ void ProcessMessageBoxQueue(void)
             }
             ClearMainGameTargetState();
             DismissNpcFromParty(party_slot, 0, false, true);
-            SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
+            SetTargetToCharacter(party_slot, 0);
             g_combat_state->npc_combat_script_pending[party_slot] = false;
         }
         break;

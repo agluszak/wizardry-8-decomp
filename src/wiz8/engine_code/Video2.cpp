@@ -269,9 +269,9 @@ int g_cursor_image_width;
 // GLOBAL: WIZ8 0x6596b8
 int g_cursor_image_height;
 // GLOBAL: WIZ8 0x00603c50
-double g_cursor_image_u_extent;
+double g_cursor_image_u_extent = 1.0;
 // GLOBAL: WIZ8 0x00603c58
-double g_cursor_image_v_extent;
+double g_cursor_image_v_extent = 1.0;
 // GLOBAL: WIZ8 0x6596bc
 int g_cursor_hotspot_x;
 // GLOBAL: WIZ8 0x6596c0
@@ -1534,7 +1534,8 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
     instance = new stModelInstance2D(parent);
     instance->setName("Video2DMakePolygonBrush");
     instance->SetModel(model);
-    instance->configure2D(static_cast<short>(width * 640.0), static_cast<short>(height * 480.0));
+    instance->configure2D(static_cast<unsigned short>(width * 640.0),
+                          static_cast<unsigned short>(height * 480.0));
     return instance;
 }
 
@@ -1578,8 +1579,8 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
 
     stModelInstance2D* instance = new stModelInstance2D(0);
     if (instance) {
-        instance->render_state_164.left = static_cast<short>(w);
-        instance->render_state_164.top = static_cast<short>(h);
+        instance->render_state_164.width = static_cast<unsigned short>(w);
+        instance->render_state_164.height = static_cast<unsigned short>(h);
         instance->setName("Video2DMakePolygonBrush");
         instance->SetModel(model);
         if (a5) {
@@ -2043,10 +2044,10 @@ static void InvalidateDirtyTile(int cell, unsigned int flags)
     stModelInstance2D* node = static_cast<stModelInstance2D*>(g_surface_nodes[cell]);
 
     if (node != 0) {
-        short position_x = node->render_state_164.right;
-        short position_y = node->render_state_164.bottom;
-        int columns = node->GetWidth00480EF0() >> 3;
-        int rows = node->GetHeight00480F70() >> 3;
+        short position_x = node->render_state_164.position_x;
+        short position_y = node->render_state_164.position_y;
+        int columns = node->GetScaledWidth() >> 3;
+        int rows = node->GetScaledHeight() >> 3;
 
         for (int index = 0; index != 0x12c0; ++index) {
             if (g_surface_nodes[index] == node) {
@@ -2993,9 +2994,9 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional)
         position_y -= fraction / height;
     }
 
-    int width = instance->GetWidth00480EF0() & 0xffff;
+    int width = instance->GetScaledWidth();
     double half_width = width * g_double_005ebe90 * g_double_005ebe80;
-    int height = instance->GetHeight00480F70() & 0xffff;
+    int height = instance->GetScaledHeight();
     double half_height = height * g_double_005ebe88 * g_double_005ebe80;
 
     srVector3T<double> location;
@@ -3009,8 +3010,8 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional)
     }
     node->setLocation(location);
     g_overlay_render_mode = 2;
-    instance->render_state_164.right = (short)x;
-    instance->render_state_164.bottom = (short)y;
+    instance->render_state_164.position_x = static_cast<short>(x);
+    instance->render_state_164.position_y = static_cast<short>(y);
 }
 
 /* Builds a square power-of-two polygon brush from a surface rectangle. The
@@ -3057,8 +3058,8 @@ srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_
             stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
             instance->render_state_164.display_state = static_cast<unsigned char>(g_active_page);
             instance->overlay_scene_flag_160 |= 1;
-            instance->render_state_164.left = static_cast<short>(size);
-            instance->render_state_164.top = static_cast<short>(size);
+            instance->render_state_164.width = static_cast<unsigned short>(size);
+            instance->render_state_164.height = static_cast<unsigned short>(size);
             PositionToolTipNode(node, rect[0], rect[1], 0);
             return node;
         }
@@ -3133,14 +3134,14 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
             if (width <= height) {
                 extent = height;
             }
-            instance->render_state_164.top = extent;
+            instance->render_state_164.height = extent;
             if (width <= height) {
                 width = height;
             }
         } else {
-            instance->render_state_164.top = height;
+            instance->render_state_164.height = height;
         }
-        instance->render_state_164.left = width;
+        instance->render_state_164.width = width;
     }
     /* Retail writes display_state even when the node factory returned null. */
     instance->render_state_164.display_state = 3;
@@ -3191,8 +3192,8 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
     shader.value = 0x2417;
     model->setShader(shader, 0);
 
-    instance->render_state_164.left = static_cast<short>(width);
-    instance->render_state_164.top = static_cast<short>(height);
+    instance->render_state_164.width = static_cast<unsigned short>(width);
+    instance->render_state_164.height = static_cast<unsigned short>(height);
     instance->render_state_164.display_state = 3;
     if (a4 != 0) {
         instance->setParent(g_scene_fullscreen, 1);
@@ -3230,7 +3231,7 @@ void VideoPositionToolTip(INT32 x, INT32 y)
         for (int index = 0; index < g_screen_transition_object_count; ++index) {
             srNode* node = static_cast<srNode*>(g_screen_transition_objects[index]);
             PositionToolTipNode(node, offset, y, 1);
-            offset += static_cast<stModelInstance2D*>(node)->GetWidth00480EF0() & 0xffff;
+            offset += static_cast<stModelInstance2D*>(node)->GetScaledWidth();
         }
         g_help_box_y = y;
         g_help_box_x = x;
@@ -3347,10 +3348,10 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
     if (node != 0) {
         stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
         instance->render_state_164.display_state = static_cast<unsigned char>(g_active_page);
-        instance->render_state_164.left = (short)(rect[2] - rect[0]);
-        instance->render_state_164.top = (short)(rect[3] - rect[1]);
-        instance->render_state_164.right = (short)rect[0];
-        instance->render_state_164.bottom = (short)rect[1];
+        instance->render_state_164.width = static_cast<unsigned short>(rect[2] - rect[0]);
+        instance->render_state_164.height = static_cast<unsigned short>(rect[3] - rect[1]);
+        instance->render_state_164.position_x = static_cast<short>(rect[0]);
+        instance->render_state_164.position_y = static_cast<short>(rect[1]);
         srVector3T<double> location;
         location.x = width * g_double_005ebe80 + left;
         location.y = g_double_005ebc30 - (height * g_double_005ebe80 + top);
@@ -3437,7 +3438,7 @@ void VideoToolTip(UINT16* text)
     for (int index = 0; index < g_screen_transition_object_count; ++index) {
         srNode* object = static_cast<srNode*>(g_screen_transition_objects[index]);
         PositionToolTipNode(object, offset, position_y, 1);
-        offset += static_cast<stModelInstance2D*>(object)->GetWidth00480EF0() & 0xffff;
+        offset += static_cast<stModelInstance2D*>(object)->GetScaledWidth();
     }
     g_help_box_x = position_x;
     g_help_box_y = position_y;

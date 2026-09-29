@@ -76,7 +76,7 @@ bool PathAIIsComplete(W8PathAI* path);
 unsigned int PathAIEntryCount(W8PathAI* path);
 void PathAISetValue(W8PathAI* path, float value);
 void PathAIAdvanceNormalized(W8PathAI* path, float amount);
-int PathAITick(W8PathAI* path, signed char direction);
+unsigned char PathAITick(W8PathAI* path, signed char direction);
 void PathAIPosition(W8PathAI* path, srVector3T<float>* value);
 void PathAISetLooping(W8PathAI* path, unsigned char value);
 void PathAISetScale(W8PathAI* path, float value);

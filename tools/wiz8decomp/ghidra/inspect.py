@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +31,34 @@ _INTERPRET_FORMATS = {"float": "<f", "u32": "<I", "i32": "<i", "u16": "<H", "i16
 _DEFAULT_WINDOW = 64
 _VFPTR_FIELD_NAMES = frozenset({"vfptr", "vptr", "vftable", "__vftable"})
 _VBPTR_FIELD_NAMES = frozenset({"vbptr", "vbtable", "__vbtable"})
+
+
+@contextmanager
+def open_saved_comparison_programs(summary: dict, manifest: dict):
+    """Read the existing private programs only when both binary hashes match."""
+    import pyghidra
+
+    project_path = Path(summary["inputs"]["ghidra_project"])
+    project = pyghidra.open_project(project_path, project_path.name, create=False)
+    try:
+        with ExitStack() as contexts:
+            programs = {}
+            for domain_file in project.getProjectData().getRootFolder().getFiles():
+                if str(domain_file.getContentType()) != "Program":
+                    continue
+                program = contexts.enter_context(
+                    pyghidra.program_context(project, "/" + str(domain_file.getName()))
+                )
+                for side in ("orig", "recomp"):
+                    if str(program.getExecutableSHA256()) == manifest[side]["sha256"]:
+                        programs[side] = program
+            if set(programs) != {"orig", "recomp"}:
+                raise ValueError(
+                    "saved private comparison programs no longer match this run's binary hashes"
+                )
+            yield programs
+    finally:
+        project.close()
 
 
 class DecompileSession:
@@ -895,6 +924,12 @@ def assemble_functions(
                 source = _source_attachment(identities, freshness, entry)
                 status = "ok"
                 error = None
+                if not program.getListing().getInstructions(function.getBody(), True).hasNext():
+                    status = "no-instructions"
+                    error = (
+                        "ProgramDB function body has no instruction units; "
+                        "raw bytes are not an assembly listing"
+                    )
             elif window is not None:
                 entry = window[0]
                 try:

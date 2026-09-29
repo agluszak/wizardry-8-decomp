@@ -90,7 +90,7 @@ public:
                            int render_arg_0, int render_arg_1, int background_sprite,
                            int normal_thumb_sprite, int hovered_thumb_sprite,
                            int disabled_thumb_sprite);
-    virtual void Redraw(int full_redraw) override;
+    virtual void Redraw(unsigned char full_redraw) override;
     void UpdatePixelPosition();
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override;

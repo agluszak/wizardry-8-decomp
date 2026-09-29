@@ -62,7 +62,7 @@ unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info);
 bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext context);
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
 void ClearPartySlotMonsterHighlights(unsigned int party_slot);
-void SetTargetToCharacter(int character_slot, W8TargetingContext context);
+void SetTargetToCharacter(int character_slot, unsigned char in_combat);
 
 void SetTargetingMode(int state);
 void SetMonsterHighlight(int party_slot, int location_id, char on);
@@ -81,21 +81,21 @@ void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource*
 W8TargetingContext ResolveTargetingContext(int party_slot, W8TargetingContext context);
 char TargetMatchesNeeded(W8CombatSlot* target, int needed);
 bool SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normalize);
-void SetTargetToMonster(int monster_id, W8TargetingContext context);
-void SetTargetToGroup(int group_id, W8TargetingContext context);
+void SetTargetToMonster(int monster_id, unsigned char in_combat);
+void SetTargetToGroup(int group_id, unsigned char in_combat);
 
 bool ClearMonsterCombatSlot(W8MonsterInfo* monster_info);
 
 /* 0x0053C630: fill the slot's point from where its target is. */
 bool ResolveTargetPoint(W8CombatSlot* target, char sight_probe);
 void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
-void ApplyTarget(W8CombatSlot* target, W8TargetingContext context); /* 0x00538E00 */
+void ApplyTarget(W8CombatSlot* target, unsigned char in_combat); /* 0x00538E00 */
 /* 0x0053C490: whether an actor aiming at `target` should drop that aim now
-   that `target` has been (re)applied. Out-of-combat contexts always clear;
+   that `target` has been (re)applied. An out-of-combat application always clears;
    otherwise the actor and the applied target must agree on hostility with the
    action's enemy-aimed flag. */
 bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target,
-                                    W8TargetingContext context,
+                                    unsigned char in_combat,
                                     unsigned char action_targets_enemies);
 bool IsTargetStillPresent(const W8CombatSlot* target);
 bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* group,

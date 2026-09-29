@@ -385,9 +385,9 @@ void ApplyWorldCursorInput(void)
         gp3DCursor->offset_18 += delta;
         gp3DCursor->position_28 = rotation.Transform(gp3DCursor->offset_18);
         node_location = g_world->dynamic_scene->getLocation();
-        gp3DCursor->position_28.x += node_location.x;
-        gp3DCursor->position_28.y += node_location.y;
-        gp3DCursor->position_28.z += node_location.z;
+        srVector3T<float> scene_location;
+        scene_location.SetFromDouble(&node_location);
+        gp3DCursor->position_28 += scene_location;
         if (gp3DCursor->track_ground_41 != 0) {
             if (gp3DCursor->position_28.y < saved_y) {
                 gp3DCursor->position_28.y = saved_y;

@@ -449,7 +449,7 @@ void UpdateWorldMissiles(W8World* world)
                 missile->UpdateNavigation004553A0(0, 0);
             } else {
                 world->missiles->RemoveAt(world->missiles->IndexOf(missile));
-                DestroyMissile(missile);
+                missile->DestroyMissile();
                 --index;
                 --count;
             }
@@ -768,7 +768,7 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
             end = end + *source;
             if (octree->TraceLineOfSight(source, &end, 0, -3, -3, 1, 0) != 0) {
                 end -= *source;
-                limit = static_cast<float>(sqrt(end.x * end.x + end.y * end.y + end.z * end.z));
+                limit = end.Length();
                 if (limit < g_float_005ebb38) {
                     limit = 1.0f;
                 }
@@ -1100,22 +1100,22 @@ void W8Missile::StartIfHostActive()
 
 /* Remove a missile's world lights and AI allocation, then release the object. */
 // FUNCTION: WIZ8 0x004a4180
-void DestroyMissile(W8Missile* missile)
+void W8Missile::DestroyMissile()
 {
-    if (missile->m_plsLights != 0) {
-        int count = missile->m_plsLights->GetCount();
+    if (m_plsLights != 0) {
+        int count = m_plsLights->GetCount();
 
         while (count != 0) {
-            stLight* light = missile->m_plsLights->RemoveAt(0);
+            stLight* light = m_plsLights->RemoveAt(0);
             WorldRemoveLight(g_world, light);
             --count;
         }
     }
-    if (missile->m_pAI != 0) {
-        free(missile->m_pAI);
-        missile->m_pAI = 0;
+    if (m_pAI != 0) {
+        free(m_pAI);
+        m_pAI = 0;
     }
-    delete missile;
+    delete this;
 }
 
 /* Delete every missile owned by one world, unlinking the vector entry before
@@ -1130,7 +1130,7 @@ void DestroyAllMissiles(W8World* world)
             srAssertFail("pMissile", MISSILE_CPP, 0x4ab, 0);
         }
         g_world->missiles->RemoveAt(g_world->missiles->IndexOf(missile));
-        DestroyMissile(missile);
+        missile->DestroyMissile();
     }
 }
 

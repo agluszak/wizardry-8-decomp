@@ -1427,16 +1427,21 @@ void SetMonsterSpellIcon(W8Monster* pMonster, int iIcon, char add)
 
 // FUNCTION: WIZ8 0x004AE6D0
 stSound3D::stSound3D(const char* name, srNode* parent)
-    : srClassSupport<stSound3D, srNode, 0, 0x1000b>(static_cast<srNode*>(0)), unknown_138(0),
-      sound_handle(-1), volume(0x7f), falloff(25000.0f), wave_name(0), auto_release(0)
+    : srClassSupport<stSound3D, srNode, 0, 0x1000b>(static_cast<srNode*>(0))
 {
     if (parent != 0) {
         setParent(parent, 0);
     }
+    wave_name = 0;
     if (name != 0) {
         wave_name = static_cast<char*>(malloc(strlen(name) + 1));
         strcpy(wave_name, name);
     }
+    unknown_138 = 0;
+    sound_handle = -1;
+    volume = 0x7f;
+    falloff = 25000.0f;
+    auto_release = 0;
     g_sound3d_instances.Add(this);
 }
 

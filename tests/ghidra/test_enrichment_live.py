@@ -97,3 +97,35 @@ def test_bind_class_this_does_not_enable_custom_storage(wiz8_program: Any) -> No
         # Applied, skipped (gated), or errored — never custom storage.
         assert result["applied"] + len(result["skipped"]) + len(result["errors"]) == 1
         raise RuntimeError("abort-test-transaction")
+
+
+def test_source_sync_does_not_create_independent_retail_signature(wiz8_program: Any) -> None:
+    """A deliberately wrong recovered Grow prototype cannot confirm its PDB twin."""
+    from types import SimpleNamespace
+
+    import pyghidra
+    from reccmp.ghidra.signature_provenance import independently_reviewed_signature
+    from wiz8decomp.ghidra.sync import _apply_signature
+
+    program = wiz8_program
+    address = program.getAddressFactory().getDefaultAddressSpace().getAddress(0x004ADDF0)
+    function = program.getFunctionManager().getFunctionAt(address)
+    assert function is not None
+    before = str(function.getSignature())
+    wrong_source = SimpleNamespace(
+        return_type="bool",
+        parameter_types=(),
+        has_this=True,
+        calling_convention="__thiscall",
+        is_variadic=False,
+    )
+    with (
+        pytest.raises(RuntimeError, match="abort-provenance-test"),
+        pyghidra.transaction(program, "test source signature provenance"),
+    ):
+        result = _apply_signature(program, function, wrong_source)
+        assert result == {"applied": True}
+        assert str(function.getReturnType().getName()) == "bool"
+        assert not independently_reviewed_signature(program, function)
+        raise RuntimeError("abort-provenance-test")
+    assert str(program.getFunctionManager().getFunctionAt(address).getSignature()) == before

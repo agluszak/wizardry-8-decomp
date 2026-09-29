@@ -16,7 +16,9 @@ struct GameplaySnapshot {
     int pending;
     bool combat;
     bool movement_ui;
+    /* +0 gates action execution; +1 separately gates command selection. */
     unsigned int round_active;
+    unsigned int round_count;
     unsigned int party_action_status;
     int action_status;
     int action_monster;
@@ -31,6 +33,9 @@ struct GameplaySnapshot {
     unsigned char held_key_down;
     unsigned char application_active;
     unsigned char window_has_focus;
+    bool string_input_active;
+    bool os_key_down;
+    bool keypad_left_down;
     /* GetTickCount() at capture time, for snapshot-age reporting. */
     unsigned long taken_ms;
 };

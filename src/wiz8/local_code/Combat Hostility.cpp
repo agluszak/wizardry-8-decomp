@@ -404,7 +404,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
     }
     group->hostility_set_at = g_status.world_clock;
     if (previous != 0) {
-        SetTargetToGroup(group->group_id, W8_TARGETING_CONTEXT_IN_COMBAT);
+        SetTargetToGroup(group->group_id, 1);
     }
     for (unsigned int index = 0; index < ILLength(group->monsters); ++index) {
         int location_id = IListGetAt(group->monsters, index);
@@ -457,7 +457,7 @@ void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
         RecountCombatMonsters();
     }
     if (previous != DISP_NEUTRAL) {
-        SetTargetToMonster(monster->location_id, W8_TARGETING_CONTEXT_IN_COMBAT);
+        SetTargetToMonster(monster->location_id, 1);
     }
     if (monster->fInCombat && monster->hp_current > 0 && monster->ubDisposition != DISP_NEUTRAL) {
         if (gXStatus.fCombatMode && g_combat_state->eCombatActionStatus != 1 &&

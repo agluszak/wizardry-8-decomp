@@ -128,7 +128,7 @@ class W8CharacterStatsRecordControl : public W8TextControl {
 public:
     W8CharacterStatsRecordControl(Controls* owner, int top, int height,
                                   const W8CharacterStatsRecord* record, int variant);
-    virtual void Redraw(int full_redraw) override;
+    virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnMouseEnter(int event) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnRightButtonUp(int event) override;
@@ -172,7 +172,7 @@ void W8CharacterStatsValue::SetRecord(const W8CharacterStatsRecord* record)
 
 /* Redraw the current record's name over the value control's own text. */
 // FUNCTION: WIZ8 0x005c9000
-void W8CharacterStatsValue::Redraw(int full_redraw)
+void W8CharacterStatsValue::Redraw(unsigned char full_redraw)
 {
     W8TextControl::Redraw(full_redraw);
     if (!m_active || m_pPanel == 0) {
@@ -237,7 +237,7 @@ W8CharacterStatsRecordControl::W8CharacterStatsRecordControl(Controls* owner, in
 
 /* Redraw the record's catalogue image over the entry's own background. */
 // FUNCTION: WIZ8 0x005c9220
-void W8CharacterStatsRecordControl::Redraw(int full_redraw)
+void W8CharacterStatsRecordControl::Redraw(unsigned char full_redraw)
 {
     W8TextControl::Redraw(full_redraw);
     if (!m_active || m_pPanel == 0) {

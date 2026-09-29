@@ -100,8 +100,7 @@ struct W8OctRegionPolygon;
 extern W8OctPreTreeVertex* g_gd_vertices;
 extern W8OctRegionPolygon* g_gd_polygons;
 
-char BuildPreprocessedFiles(const char* level_path);
-void ReportBuildStatus(int channel, const char* message);
+void ReportBuildStatus(short channel, const char* message);
 void ReportStartupMessage(const char* message);
 char* TrimAndLowercaseString(char* text);
 struct W8OctPreTreeVertex;

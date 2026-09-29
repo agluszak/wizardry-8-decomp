@@ -65,7 +65,7 @@ GDProp::~GDProp()
         free(m_pGDSurfaces);
     }
     if (m_pVertices != 0) {
-        srHeap.free(m_pVertices);
+        delete[] m_pVertices;
     }
     if (m_links_0c != 0) {
         free(m_links_0c);
@@ -108,10 +108,9 @@ void GDProp::PrepareGeometry(srModelInstance* instance)
     if (m_vertex_count_18 != vertex_count) {
         m_vertex_count_18 = vertex_count;
         if (m_pVertices != 0) {
-            srHeap.free(m_pVertices);
+            delete[] m_pVertices;
         }
-        m_pVertices = static_cast<srVector3T<float>*>(
-            srHeap.allocate(m_vertex_count_18 * sizeof(srVector3T<float>)));
+        m_pVertices = new srVector3T<float>[m_vertex_count_18];
         if (m_pVertices == 0) {
             srAssertFail("m_pVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0xae,
                          0);
@@ -204,11 +203,10 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
         if (attach == 0) {
             if (m_prop_number_02 != 0xffff) {
                 m_prop_number_02 = 0xffff;
-                pathing->SetConditionalPathFrame(m_path_handle_04, -1);
+                pathing->SetConditionalPathFrame(m_path_handle_04, 0xffff);
             }
         } else {
-            pathing->SetConditionalPathFrame(m_path_handle_04,
-                                             static_cast<short>(m_prop_number_02));
+            pathing->SetConditionalPathFrame(m_path_handle_04, m_prop_number_02);
             if (m_waypoint_count_0a != 0) {
                 pathing->CheckConditionalWayPtStatus(m_waypoint_count_0a, m_waypoints_10);
             }
@@ -513,8 +511,7 @@ void GDProp::ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim)
         }
     }
 
-    m_pVertices = static_cast<srVector3T<float>*>(
-        srHeap.allocate(m_vertex_count_18 * sizeof(srVector3T<float>)));
+    m_pVertices = new srVector3T<float>[m_vertex_count_18];
     m_pGDSurfaces = static_cast<W8GDSurface*>(malloc(m_surface_count_14 * sizeof(W8GDSurface)));
     if (m_pGDSurfaces == 0) {
         srAssertFail("m_pGDSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x364,

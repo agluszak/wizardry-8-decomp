@@ -118,7 +118,7 @@ enum { W8_CONDITION_SURVIVES_DEATH = 10 };
 /* Lifting a character's condition clears its duration and any state that
    condition alone maintained, then notifies dependents. */
 // FUNCTION: WIZ8 0x00523330
-void RemoveCharacterCondition(int party_slot, int condition, int announce)
+void RemoveCharacterCondition(int party_slot, int condition, unsigned char announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
@@ -185,7 +185,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             }
             break;
         case 0xd:
-            SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT);
+            SetTargetToCharacter(party_slot, 1);
             RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0);
             RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
             break;
@@ -743,7 +743,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
             if (condition == 9 || condition == 0xC) {
                 gXStatus.sight_refresh_pending_a03 = 1;
             } else if (condition == 0xd) {
-                SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT);
+                SetTargetToCharacter(party_slot, 1);
             }
         }
         handled = 1;
@@ -761,7 +761,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     if (condition == 0x12) {
         CharacterDies(party_slot);
     } else if (condition > 0x12) {
-        SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
+        SetTargetToCharacter(party_slot, 0);
     }
     if (old_highest != character->highest_condition) {
         QueueConditionChangeReaction(character);

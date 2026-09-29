@@ -592,7 +592,7 @@ void InvalidateLockInteractionPanels(void)
 }
 
 // FUNCTION: WIZ8 0x005854B0
-void W8LockTumbler::Redraw(int full_redraw)
+void W8LockTumbler::Redraw(unsigned char full_redraw)
 {
     int left;
     int top;
@@ -919,7 +919,7 @@ W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer_80()
         new W8TextControl(m_action_panel_18, 0xffffffff, 6, 6, 0, 0, 0x1b0, 0, 8, 10, 9, 10, 0xb);
     m_spell_button_20->m_listener = this;
     m_force_button_24 =
-        new W8TextControl(m_action_panel_18, 0xffffffff, 6, 0x24, 0, 0, 0x1b0, 0, 0, 2, 1, 2, 3);
+        new W8TextControl(m_action_panel_18, 0xffffffff, 0x24, 6, 0, 0, 0x1b0, 0, 0, 2, 1, 2, 3);
     m_force_button_24->m_listener = this;
     m_cancel_button_28 =
         new W8TextControl(m_action_panel_18, 0xffffffff, 6, 0x24, 0, 0, 0x1b0, 0, 4, 6, 5, 6, 7);
@@ -1492,7 +1492,7 @@ W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, in
 W8MainGameTextKeyHandler::~W8MainGameTextKeyHandler() {}
 
 // FUNCTION: WIZ8 0x00587ea0
-void W8MainGameTextKeyHandler::Redraw(int full_redraw)
+void W8MainGameTextKeyHandler::Redraw(unsigned char full_redraw)
 {
     int left;
     int top;
@@ -1684,7 +1684,7 @@ W8MainGameTextEntry::W8MainGameTextEntry(Controls* panel, int index)
 W8MainGameTextEntry::~W8MainGameTextEntry() {}
 
 // FUNCTION: WIZ8 0x005883c0
-void W8MainGameTextEntry::Redraw(int full_redraw)
+void W8MainGameTextEntry::Redraw(unsigned char full_redraw)
 {
     bool dirty = m_dirty;
     int image;
@@ -7744,7 +7744,7 @@ bool LoadCurrentLevelData(void)
         SetTargetCursor(W8_CURSOR_MAP_LOAD);
         g_world_cleanup_flag = true;
         UnloadSkyWorld();
-        loaded = UnloadLevel("MAP") != 0;
+        loaded = UnloadLevel("") != 0;
         g_world_cleanup_flag = false;
         UpdateHeldItemCursor();
     }
@@ -8874,7 +8874,7 @@ void OpenAssayDialog(W8ItemInstance* item, int character_slot)
    before handing off. The flag decides whether the pending payload carries
    the slot's character pointer. */
 // FUNCTION: WIZ8 0x00560E10
-void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag)
+void OpenCharacterScreenForPartySlot(unsigned int party_slot, unsigned char flag)
 {
     if (gXStatus.fNpcDialogueMode != 0) {
         CloseNpcDialogueForCamp();

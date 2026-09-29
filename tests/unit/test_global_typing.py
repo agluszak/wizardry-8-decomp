@@ -131,6 +131,9 @@ def test_strip_and_template_mapping() -> None:
     assert _strip_qualifiers("struct W8Character *") == "W8Character *"
     assert _strip_qualifiers("class W8ItemInstance *") == "W8ItemInstance *"
     assert _ghidra_type_name("srVector3T<float>") == "srVector3T[float]"
+    assert (
+        _ghidra_type_name("srHeapArray<srVector3T<float> >*") == "srHeapArray[srVector3T[float]]*"
+    )
     assert _ghidra_type_name("const W8Foo *") == "W8Foo *"
     assert _ghidra_type_name("struct W8Character *") == "W8Character *"
     assert (
