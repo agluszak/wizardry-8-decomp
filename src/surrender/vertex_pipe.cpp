@@ -592,6 +592,9 @@ void srVertexPipe::applyFog(const float* values)
     lazy_setup_mask_10 |= 0x10;
 }
 
+/* Retail copies the two owned allocations at +0x00/+0x04 verbatim. Assigning
+   two live pipes aliases their storage and leaves the old destination storage
+   behind; the function has no retail ownership repair. */
 // FUNCTION: SURRENDER 0x1002BB80
 srVertexPipe& srVertexPipe::operator=(const srVertexPipe& other)
 {
@@ -755,6 +758,9 @@ void srVertexPipe::setupDiffuse()
     }
 }
 
+/* Retail uses the whole-batch count and destination with a source offset by
+   sub_batch_offset_84. Later sub-batches can therefore overrun the source
+   scratch array; preserve that observed range contract. */
 // FUNCTION: SURRENDER 0x1002C0D0
 void srVertexPipe::setupDepthCue()
 {
@@ -790,9 +796,9 @@ void srVertexPipe::setupDepthCue()
     } else {
         if (count != 0) {
             if (maximum == 0.0f) {
-                vector_processor_98->_neg(depth_cue, dist, count);
+                srVectorProcessor::neg(depth_cue, dist, count);
             } else {
-                vector_processor_98->_sub(depth_cue, maximum, dist, count);
+                srVectorProcessor::sub(depth_cue, maximum, dist, count);
             }
         }
         float scale = 1.0f / (maximum - minimum);
