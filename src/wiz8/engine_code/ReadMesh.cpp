@@ -208,8 +208,8 @@ struct W8MeshStripBuilder {
 // TEMPLATE: WIZ8 0x00489B70
 // srClassSupport<srModel,srClass,1,8192>::sGetClassNode
 
-// TEMPLATE: WIZ8 0x00489BB0
-// W8GrowableVector<int>::W8GrowableVector
+// TEMPLATE: WIZ8 0x00489BB0 SYMBOL
+// ??0?$W8GrowableVector@H@@QAE@XZ
 
 // TEMPLATE: WIZ8 0x00489F50
 // W8GrowableVector<short>::~W8GrowableVector

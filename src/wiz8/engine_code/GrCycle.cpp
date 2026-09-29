@@ -1306,7 +1306,7 @@ W8GrowableVector<char*> g_grcycle_names;
 // W8GrowableVector<W8GrCycle*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004a9020
-// W8GrowableVector<W8GrCycle*>::`vector deleting destructor'
+// W8GrowableVector<W8GrCycle*>::`scalar deleting destructor' (companion table 0x005ECEE0)
 
 // TEMPLATE: WIZ8 0x004a9070
 // W8GrowableVector<W8GrCycle*>::~W8GrowableVector<W8GrCycle*>
