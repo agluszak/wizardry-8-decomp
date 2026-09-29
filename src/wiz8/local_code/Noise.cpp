@@ -77,14 +77,14 @@ void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, in
                 continue;
             }
         }
-        if (remaining <= info->sp_budget_bonus) {
+        if (remaining <= info->heard_noise_margin_2f5) {
             continue;
         }
         if (flag == 1) {
             MonsterGroupEnterCombat(group);
         }
         info->heard_noise_radius_43 = radius;
-        info->sp_budget_bonus = remaining;
+        info->heard_noise_margin_2f5 = remaining;
         info->heard_noise_position_37 = noise_position;
     }
 }

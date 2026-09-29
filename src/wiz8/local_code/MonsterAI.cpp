@@ -484,7 +484,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
     if (monster_info->pathing_cooldown_246 != 0) {
         --monster_info->pathing_cooldown_246;
         if (monster_info->pathing_cooldown_246 == 0) {
-            monster_info->sp_budget_bonus = 0;
+            monster_info->heard_noise_margin_2f5 = 0;
         }
         return 0;
     }

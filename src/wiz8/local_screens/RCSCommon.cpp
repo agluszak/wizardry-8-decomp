@@ -576,8 +576,7 @@ void UpdateRcsLevelUpPanel(void)
 {
     bool enabled = IsCharacterReadyToAdvance(giReviewCharSlot);
     if (!enabled || gXStatus.fCombatMode ||
-        (!g_status.buffers.XChar[giReviewCharSlot].weapon_swap_pending_105 &&
-         g_status.game_started) ||
+        (!g_status.buffers.XChar[giReviewCharSlot].portrait_advance_103 && g_status.game_started) ||
         gXStatus.fCampMode) {
         if (g_level_up_button->m_active) {
             g_level_up_button->SetActive(0);
