@@ -27,11 +27,14 @@ public:
     // FUNCTION: SURRENDER 0x10034BE0 SYMBOL
     // ??0srMaterialIFace@@QAE@XZ
     __declspec(dllexport) srMaterialIFace() {}
-    /* The copy constructor runs the default base construction plus
-       registration, not a base copy. */
+    /* The copy constructor runs the default base construction and registration,
+       then assigns from the source. */
     // FUNCTION: SURRENDER 0x10034C70 SYMBOL
     // ??0srMaterialIFace@@QAE@ABV0@@Z
-    __declspec(dllexport) srMaterialIFace(const srMaterialIFace&) {}
+    __declspec(dllexport) srMaterialIFace(const srMaterialIFace& other)
+    {
+        operator=(other);
+    }
     // FUNCTION: SURRENDER 0x10016310 SYMBOL
     // ??1srMaterialIFace@@UAE@XZ
     __declspec(dllexport) virtual ~srMaterialIFace() {}

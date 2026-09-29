@@ -586,7 +586,7 @@ void srLight::traverse(TraverseInfo& info)
     if (testFlag(FLAG_TERMINATE)) {
         return;
     }
-    if (testFlag(FLAG_DISABLE) || fabsf(intensity_1d0) <= 0.0001f) {
+    if (testFlag(FLAG_DISABLE) || fabs(intensity_1d0) <= 0.0001) {
         if (first_child_ != 0) {
             first_child_->traverse(info);
         }
