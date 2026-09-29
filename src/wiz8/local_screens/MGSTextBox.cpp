@@ -815,7 +815,7 @@ void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned ch
    highlight span and clock. With the merge mode off the text posts as a new
    line instead. A -1 box means the one the current game mode posts to. */
 // FUNCTION: WIZ8 0x005905F0
-void AppendToLastTextLine(const wchar_t* text, int text_box)
+void AppendToLastTextLine(const wchar_t* text, short text_box)
 {
     size_t length = wcslen(text);
     if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME &&
@@ -875,7 +875,7 @@ void AppendToLastTextLine(const wchar_t* text, int text_box)
     --*lines_used;
     ShowNotice(channel, merged, text_box, -1, 0);
     if (color != 0xff) {
-        HighlightTextBoxRange(color, start, stop, static_cast<short>(text_box));
+        HighlightTextBoxRange(color, start, stop, text_box);
     }
     if (link != 0) {
         W8MessageStorageRecord* last = &g_message_storage[text_box][*lines_used - 1];

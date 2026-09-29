@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-29.
+   Expose the released sound startup flag written by Wizardry video setup.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __SOUNDMAN_
 #define __SOUNDMAN_
 
@@ -7,6 +10,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+extern BOOLEAN gfEnableStartup;
 
 	// Sample status flags
 #define		SAMPLE_ALLOCATED			0x00000001

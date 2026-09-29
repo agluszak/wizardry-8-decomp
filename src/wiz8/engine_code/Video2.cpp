@@ -268,6 +268,10 @@ int g_cursor_height;
 int g_cursor_image_width;
 // GLOBAL: WIZ8 0x6596b8
 int g_cursor_image_height;
+// GLOBAL: WIZ8 0x00603c50
+double g_cursor_image_u_extent;
+// GLOBAL: WIZ8 0x00603c58
+double g_cursor_image_v_extent;
 // GLOBAL: WIZ8 0x6596bc
 int g_cursor_hotspot_x;
 // GLOBAL: WIZ8 0x6596c0
@@ -654,18 +658,18 @@ unsigned char InitializePrimaryDirectDrawSurface(void)
     HRESULT result;
 
     result = DirectDrawCreate(NULL, &g_direct_draw, NULL);
-    if (FAILED(result)) {
+    if (result != DD_OK) {
         return 0;
     }
     result = g_direct_draw->QueryInterface(
         IID_IDirectDraw2,
         // reinterpret-ok: COM QueryInterface returns the interface through void**
         reinterpret_cast<void**>(&g_direct_draw2));
-    if (FAILED(result)) {
+    if (result != DD_OK) {
         return 0;
     }
     result = g_direct_draw2->SetCooperativeLevel(NULL, DDSCL_NORMAL);
-    if (FAILED(result)) {
+    if (result != DD_OK) {
         return 0;
     }
 
@@ -683,14 +687,14 @@ unsigned char InitializePrimaryDirectDrawSurface(void)
     description.ddpfPixelFormat.dwBBitMask = gusBlueMask;
 
     result = g_direct_draw2->CreateSurface(&description, &g_primary_surface1, NULL);
-    if (FAILED(result)) {
+    if (result != DD_OK) {
         return 0;
     }
     result = g_primary_surface1->QueryInterface(
         IID_IDirectDrawSurface2,
         // reinterpret-ok: COM QueryInterface returns the interface through void**
         reinterpret_cast<void**>(&g_primary_surface));
-    if (FAILED(result)) {
+    if (result != DD_OK) {
         return 0;
     }
 
@@ -713,7 +717,6 @@ unsigned char InitializeVideoDevice(void)
     char line[10] = "";
     char driver_name[100];
     char* newline;
-    srStringTable devices;
 
     if (g_gerd) {
         return 1;
@@ -722,21 +725,26 @@ unsigned char InitializeVideoDevice(void)
     config = fopen("3DVideo.CFG", "r");
     if (config) {
         fgets(device, sizeof(device), config);
-        newline = strpbrk(device, "\r\n");
+        newline = strchr(device, '\r');
         if (newline) {
             *newline = '\0';
         }
-        if (fgets(line, sizeof(line), config)) {
-            g_screen_width = atoi(line);
+        newline = strchr(device, '\n');
+        if (newline) {
+            *newline = '\0';
         }
-        if (fgets(line, sizeof(line), config)) {
-            g_screen_height = atoi(line);
-        }
-        if (fgets(line, sizeof(line), config)) {
-            g_screen_depth = atoi(line);
-        }
+        fgets(line, sizeof(line), config);
+        g_screen_width = atoi(line);
+        fgets(line, sizeof(line), config);
+        g_screen_height = atoi(line);
+        fgets(line, sizeof(line), config);
+        g_screen_depth = atoi(line);
         fgets(sound_provider, sizeof(sound_provider), config);
-        newline = strpbrk(sound_provider, "\r\n");
+        newline = strchr(sound_provider, '\r');
+        if (newline) {
+            *newline = '\0';
+        }
+        newline = strchr(sound_provider, '\n');
         if (newline) {
             *newline = '\0';
         }
@@ -749,6 +757,7 @@ unsigned char InitializeVideoDevice(void)
                                 "DisableDetachedSecondaryDevices=1 DisableNonDisplayDevices=1");
     srConfig.set("DD_DIRECTX6", "DisablePrimaryHEL=1 DisableAttachedSecondaryDevices=1 "
                                 "DisableDetachedSecondaryDevices=1 DisableNonDisplayDevices=1");
+    srStringTable devices;
     sprintf(driver_name, "srDD_%s", device);
     devices.addString(driver_name);
     g_gerd = srGERD::loadDevice(devices, 0);
@@ -762,7 +771,9 @@ unsigned char InitializeVideoDevice(void)
     g_gerd->createContext(reinterpret_cast<unsigned long>(ghWindow));
     OpenRendererWindow();
     srAssertSetFunc(AssertFailureHandler);
-    if (_strnicmp(sound_provider, "none", 4) != 0) {
+    if (_strnicmp(sound_provider, "none", 4) == 0) {
+        gfEnableStartup = FALSE;
+    } else {
         Sound3DSetProvider(sound_provider);
     }
     InitializeVirtualFileImageImporters();
@@ -829,11 +840,7 @@ IDirectDrawSurface2* BeginVideoPresentation(void)
         g_gerd->closeWindow((srGERD::e_closeHint)1);
         g_gerd->deleteContext();
     }
-    if (g_direct_draw2->SetCooperativeLevel(ghWindow, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN) !=
-        DD_OK) {
-        NoOp();
-        return 0;
-    }
+    g_direct_draw2->SetCooperativeLevel(ghWindow, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN);
     if (g_direct_draw2->SetDisplayMode(640, 480, 16, 0, 0) != DD_OK) {
         NoOp();
         return 0;
@@ -1662,12 +1669,8 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height)
     if (!g_mouse_surface->resize(extent, extent)) {
         return FALSE;
     }
-    if (g_cursor_node_659694) {
-        g_cursor_node_659694->release();
-    }
-    if (g_cursor_texture) {
-        g_cursor_texture->release();
-    }
+    g_cursor_node_659694->release();
+    g_cursor_texture->release();
     mapping_scale = g_surface_scale / extent;
     g_cursor_node_659694 =
         MakePolygonBrush(g_cursor_scene, g_mouse_surface, extent / 640.0, extent / 480.0,
@@ -1686,8 +1689,7 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height)
 }
 
 /* Move the OS/system cursor when the hotspot changes, then resync the rendered
-   cursor. Unlike SetMouseCursorFromVideoObject this path refreshes through
-   SyncSystemCursor rather than PositionMouseCursor. */
+   cursor. */
 // FUNCTION: WIZ8 0x00427f00
 void SetMouseCursorHotspot(short hotspot_x, short hotspot_y)
 {
@@ -1725,12 +1727,14 @@ BOOLEAN SetMouseCursorFromVideoObject(UINT32 video_object, UINT16 region, INT16 
         x = g_cursor_width - offset_x + g_cursor_hotspot_x;
         y = g_cursor_height - offset_y + g_cursor_hotspot_y;
         MoveSystemCursor(x, y);
-        PositionMouseCursor(x, y, 1);
+        SyncSystemCursor();
         g_cursor_hotspot_x = offset_x;
         g_cursor_hotspot_y = offset_y;
     }
     g_cursor_image_width = properties.usWidth;
     g_cursor_image_height = properties.usHeight;
+    g_cursor_image_u_extent = g_cursor_image_width * g_double_005ebe90;
+    g_cursor_image_v_extent = g_cursor_image_height * g_double_005ebe88;
     g_mouse_surface->fill(0);
     return BlitVideoObjectToColorSurface(video_object, region, g_mouse_surface, 0, 0);
 }

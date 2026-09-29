@@ -96,7 +96,7 @@ void UpdateActivePartyMovement(void)
         g_level_block->move_budget_2e0 = g_level_block->move_budget_2dc;
     }
     if (g_settings.continuous_combat != 0) {
-        g_combat_state->party_movement_clock = SetCountdownClock(g_settings.combat_delay_ms);
+        g_combat_state->party_movement_clock = SetCountdownClock(1000);
     }
 
 check_completion:

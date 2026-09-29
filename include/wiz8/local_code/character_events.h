@@ -32,8 +32,8 @@ bool FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
 extern const int g_fact_check_event;
 
 /* True when no occupied party slot has an active portrait/voice record. */
-unsigned char PartyPortraitEventsIdle(void);                            /* 0x0052E590 */
-int PickRandomPartySpeaker(unsigned int event_type, int excluded_slot); /* 0x0052FEE0 */
+unsigned char PartyPortraitEventsIdle(void);                                      /* 0x0052E590 */
+int PickRandomPartySpeaker(unsigned int event_type, unsigned char excluded_slot); /* 0x0052FEE0 */
 W8CharacterEvent* ApplyItemEffectToRandomCharacter(unsigned int event_type, int excluded_slot,
                                                    unsigned int flags,
                                                    int queue_mode); /* 0x0052E5C0 */
