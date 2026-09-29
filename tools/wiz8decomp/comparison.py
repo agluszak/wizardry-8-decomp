@@ -69,6 +69,21 @@ def addresses_from_files(
     ]
 
 
+def all_source_addresses(repository: Path, target: str) -> list[int]:
+    """Select every recovered authored FUNCTION marker for one target."""
+
+    from .source_index import load_source_index
+
+    return sorted(
+        {
+            int(marker["address"])
+            for marker in load_source_index(repository)["markers"]
+            if marker["target"].upper() == target.upper()
+            and marker["marker_kind"] == "FUNCTION"
+        }
+    )
+
+
 def changed_files(repository: Path, since: str | None = None) -> list[Path]:
     """Select changed paths with jj locally and Git in plain CI checkouts."""
 

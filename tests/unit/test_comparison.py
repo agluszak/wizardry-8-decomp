@@ -554,3 +554,19 @@ def test_vtable_comparison_reports_unpaired_and_different_slots(tmp_path, monkey
             "recompiled": "Folded::Draw",
         }
     ]
+
+
+def test_all_source_addresses_selects_only_target_functions(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.load_source_index",
+        lambda _repository: {
+            "markers": [
+                {"target": "WIZ8", "marker_kind": "FUNCTION", "address": 0x401020},
+                {"target": "WIZ8", "marker_kind": "TEMPLATE", "address": 0x401010},
+                {"target": "SURRENDER", "marker_kind": "FUNCTION", "address": 0x10001000},
+                {"target": "WIZ8", "marker_kind": "FUNCTION", "address": 0x401000},
+            ]
+        },
+    )
+
+    assert comparison.all_source_addresses(tmp_path, "WIZ8") == [0x401000, 0x401020]

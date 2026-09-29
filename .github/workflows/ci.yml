@@ -278,9 +278,9 @@ jobs:
       needs.toolchain.result == 'success' &&
       (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 180
     outputs:
-      reccmp-status: ${{ steps.wiz8-checks.outputs.status }}
+      reccmp-status: ${{ steps.wiz8-status.outputs.status }}
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -356,15 +356,26 @@ jobs:
         if: github.event_name == 'pull_request'
         continue-on-error: true
         run: |
-          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}"
-          if ! git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD | \
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          git fetch --no-tags --depth=2 origin "$base_sha"
+          merge_base=""
+          for _ in 1 2 3 4 5; do
+            merge_base="$(git merge-base HEAD "$base_sha" 2>/dev/null || true)"
+            [[ -n "$merge_base" ]] && break
+            git fetch --no-tags --deepen=256 origin
+          done
+          if [[ -z "$merge_base" ]]; then
+            echo "Could not resolve PR merge base" >&2
+            exit 1
+          fi
+          if ! git diff --name-only "$merge_base" HEAD | \
             grep -Eq '^(src/wiz8/|src/sgp/|include/wiz8/|include/surrender/).*\.(c|cc|cpp|cxx|h|hpp|hxx)$'; then
             echo 'No changed WIZ8 C/C++ source; skipping function comparison.'
             exit 0
           fi
           # Differences are review material; the step fails only when a
           # comparison did not complete or a changed function is unpaired.
-          uv run wiz8 compare --changed --since "${{ github.event.pull_request.base.sha }}" --sxs
+          uv run wiz8 compare --changed --since "$merge_base" --sxs
       - name: Package WIZ8 comparison report
         if: github.event_name == 'pull_request' && always()
         run: |
@@ -380,13 +391,27 @@ jobs:
           # contain colons rejected by the artifact service.
           path: build/reports/compare/wiz8-report.tar.gz
           if-no-files-found: ignore
+      - name: Compare all recovered WIZ8 functions
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -uo pipefail
+          quality_status=0
+          uv run wiz8 compare --all-source || quality_status=$?
+          latest="build/reports/compare/wiz8/latest"
+          test -f "$latest/summary.json"
+          cp "$latest/summary.json" "$RUNNER_TEMP/wiz8-head-summary.json"
+          cp "$latest/WIZ8.ghidriff.md" "$RUNNER_TEMP/wiz8-head-ghidriff.md"
+          if (( quality_status != 0 )); then
+            echo "::notice::target-wide WIZ8 comparison contains unpaired/incomplete functions"
+          fi
       - name: Run WIZ8 checks
         id: wiz8-checks
         continue-on-error: true
         shell: bash
         run: |
           set -uo pipefail
-          status_json="$RUNNER_TEMP/reccmp-status.json"
+          status_json="$RUNNER_TEMP/wiz8-head-status.json"
           comparison_status=0
 
           if uv run wiz8 report status > "$status_json"; then
@@ -394,18 +419,11 @@ jobs:
           else
             comparison_status=1
           fi
-
-          if [[ -s "$status_json" ]]; then
-            status_row="$(
-              jq -c '.targets.WIZ8 | {state, source, pairing, original_functions, source_coverage, last_comparison}' "$status_json"
-            )"
-            printf 'status=%s\n' "$status_row" >> "$GITHUB_OUTPUT"
-          fi
-
           vtable_status=0
           datacmp_status=0
           uv run wiz8 vtable || vtable_status=$?
-          uv run wiz8 datacmp || datacmp_status=$?
+          uv run wiz8 datacmp > "$RUNNER_TEMP/wiz8-head-datacmp.json" || datacmp_status=$?
+          cat "$RUNNER_TEMP/wiz8-head-datacmp.json"
           if (( vtable_status != 0 || datacmp_status != 0 )); then
             echo "::warning::specialized WIZ8 comparison debt: vtable=$vtable_status datacmp=$datacmp_status"
           fi
@@ -431,6 +449,33 @@ jobs:
       - name: Fail if WIZ8 checks failed
         if: steps.wiz8-checks.outcome == 'failure'
         run: exit 1
+      - name: Compare WIZ8 merge base
+        if: github.event_name == 'pull_request'
+        run: |
+          bash .github/scripts/compare-reccmp-base.sh \
+            WIZ8 wiz8 match \
+            "${{ github.event.pull_request.base.sha }}" "$GITHUB_SHA" wiz8
+      - name: Summarize WIZ8 PR comparison
+        id: wiz8-status
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(
+            --target WIZ8
+            --head-status "$RUNNER_TEMP/wiz8-head-status.json"
+            --base-status "$RUNNER_TEMP/wiz8-base-status.json"
+          )
+          args+=(
+            --head-summary "$RUNNER_TEMP/wiz8-head-summary.json"
+            --base-summary "$RUNNER_TEMP/wiz8-base-summary.json"
+            --head-ghidriff "$RUNNER_TEMP/wiz8-head-ghidriff.md"
+            --base-ghidriff "$RUNNER_TEMP/wiz8-base-ghidriff.md"
+            --head-datacmp "$RUNNER_TEMP/wiz8-head-datacmp.json"
+            --base-datacmp "$RUNNER_TEMP/wiz8-base-datacmp.json"
+          )
+          uv run wiz8 report pr-comparison "${args[@]}" > "$RUNNER_TEMP/wiz8-pr-status.json"
+          printf 'status=%s\n' "$(jq -c . "$RUNNER_TEMP/wiz8-pr-status.json")" >> "$GITHUB_OUTPUT"
       - name: Remove plaintext licensed WIZ8 inputs
         if: always()
         run: |
@@ -545,9 +590,9 @@ jobs:
       needs.toolchain.result == 'success' &&
       (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 120
     outputs:
-      reccmp-status: ${{ steps.surrender-status.outputs.status }}
+      reccmp-status: ${{ steps.surrender-pr-status.outputs.status }}
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -616,13 +661,24 @@ jobs:
       - name: Compare changed SURRENDER functions
         if: github.event_name == 'pull_request'
         run: |
-          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}"
-          if ! git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD | \
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          git fetch --no-tags --depth=2 origin "$base_sha"
+          merge_base=""
+          for _ in 1 2 3 4 5; do
+            merge_base="$(git merge-base HEAD "$base_sha" 2>/dev/null || true)"
+            [[ -n "$merge_base" ]] && break
+            git fetch --no-tags --deepen=256 origin
+          done
+          if [[ -z "$merge_base" ]]; then
+            echo "Could not resolve PR merge base" >&2
+            exit 1
+          fi
+          if ! git diff --name-only "$merge_base" HEAD | \
             grep -Eq '^(src/surrender/|include/surrender/).*\.(c|cc|cpp|cxx|h|hpp|hxx)$'; then
             echo 'No changed SURRENDER C/C++ source; skipping function comparison.'
             exit 0
           fi
-          uv run wiz8 compare --changed --since "${{ github.event.pull_request.base.sha }}" \
+          uv run wiz8 compare --changed --since "$merge_base" \
             --program sr.dll --sxs
       - name: Package SURRENDER comparison report
         if: github.event_name == 'pull_request' && always()
@@ -637,10 +693,24 @@ jobs:
           name: surrender-comparison-report
           path: build/reports/compare/surrender-report.tar.gz
           if-no-files-found: ignore
+      - name: Compare all recovered SURRENDER functions
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -uo pipefail
+          quality_status=0
+          uv run wiz8 compare --all-source --program sr.dll || quality_status=$?
+          latest="build/reports/compare/surrender/latest"
+          test -f "$latest/summary.json"
+          cp "$latest/summary.json" "$RUNNER_TEMP/surrender-head-summary.json"
+          cp "$latest/SURRENDER.ghidriff.md" "$RUNNER_TEMP/surrender-head-ghidriff.md"
+          if (( quality_status != 0 )); then
+            echo "::notice::target-wide SURRENDER comparison contains unpaired/incomplete functions"
+          fi
       - name: Verify SURRENDER catalog
         id: surrender-status
         run: |
-          status_json="$RUNNER_TEMP/surrender-status.json"
+          status_json="$RUNNER_TEMP/surrender-head-status.json"
           uv run wiz8 report status > "$status_json"
           # error_count covers live reccmp diagnostics; unpaired_line_refs covers
           # the same "Failed to find function symbol" failures when the prepared
@@ -651,10 +721,39 @@ jobs:
             and .targets.SURRENDER.pairing.unpaired_line_refs == 0
           ' "$status_json" >/dev/null
           jq '.targets.SURRENDER' "$status_json"
-          status_row="$(
-            jq -c '.targets.SURRENDER | {state, source, pairing, original_functions, source_coverage, last_comparison}' "$status_json"
-          )"
-          printf 'status=%s\n' "$status_row" >> "$GITHUB_OUTPUT"
+          datacmp_status=0
+          uv run wiz8 datacmp --program sr.dll > "$RUNNER_TEMP/surrender-head-datacmp.json" || datacmp_status=$?
+          cat "$RUNNER_TEMP/surrender-head-datacmp.json"
+          if (( datacmp_status != 0 )); then
+            echo "::warning::SURRENDER datacmp reports differences"
+          fi
+      - name: Compare SURRENDER merge base
+        if: github.event_name == 'pull_request'
+        run: |
+          bash .github/scripts/compare-reccmp-base.sh \
+            SURRENDER sr.dll SURRENDER \
+            "${{ github.event.pull_request.base.sha }}" "$GITHUB_SHA" surrender
+      - name: Summarize SURRENDER PR comparison
+        id: surrender-pr-status
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(
+            --target SURRENDER
+            --head-status "$RUNNER_TEMP/surrender-head-status.json"
+            --base-status "$RUNNER_TEMP/surrender-base-status.json"
+          )
+          args+=(
+            --head-summary "$RUNNER_TEMP/surrender-head-summary.json"
+            --base-summary "$RUNNER_TEMP/surrender-base-summary.json"
+            --head-ghidriff "$RUNNER_TEMP/surrender-head-ghidriff.md"
+            --base-ghidriff "$RUNNER_TEMP/surrender-base-ghidriff.md"
+            --head-datacmp "$RUNNER_TEMP/surrender-head-datacmp.json"
+            --base-datacmp "$RUNNER_TEMP/surrender-base-datacmp.json"
+          )
+          uv run wiz8 report pr-comparison "${args[@]}" > "$RUNNER_TEMP/surrender-pr-status.json"
+          printf 'status=%s\n' "$(jq -c . "$RUNNER_TEMP/surrender-pr-status.json")" >> "$GITHUB_OUTPUT"
       - name: Remove plaintext licensed SURRENDER inputs
         if: always()
         run: rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" "$RUNNER_TEMP/wiz8-gog-download" config/local-inputs.yml
@@ -699,6 +798,10 @@ jobs:
       contents: read
       pull-requests: write
     steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Update PR comment
         env:
           GH_TOKEN: ${{ github.token }}
@@ -708,48 +811,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rows="$(
-            jq -cn \
-              --arg wiz8 "$WIZ8_STATUS" \
-              --arg surrender "$SURRENDER_STATUS" '
-                [
-                  (if $wiz8 != "" then {key: "WIZ8", value: ($wiz8 | fromjson)} else empty end),
-                  (if $surrender != "" then {key: "SURRENDER", value: ($surrender | fromjson)} else empty end)
-                ]
-              '
-          )"
-          test "$(jq 'length' <<<"$rows")" -gt 0
-
           comment="$RUNNER_TEMP/reccmp-status.md"
-          jq -nr --argjson rows "$rows" '
-            def pct:
-              if . == null then "n/a"
-              else (((. * 10000 | round) / 100) | tostring) + "%"
-              end;
-            def count($key): (.value.last_comparison[$key] // 0);
-            ($rows | map(select(.value.state == "comparison"))) as $comparison |
-            (
-              [
-                "<!-- wiz8-reccmp-status -->",
-                "### reccmp status",
-                "",
-                "_Only comparison lanes selected and completed for this CI run are included._",
-                "_Changed functions are decompiled and diffed with Ghidriff; the side-by-side report is in each lane comparison-report artifact. Differences are review material, not failures._",
-                "",
-                "| Target | Source functions | Coverage | Paired | Unpaired | Changed compared | Differences | No differences | Unpaired (changed) | Analysis failed |",
-                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
-              ]
-              + (
-                  $comparison
-                  | map(
-                      .value as $v
-                      | "| `\(.key)` | \($v.source.functions // 0) | \($v.source_coverage | pct) | \($v.pairing.paired) | \($v.pairing.unpaired) | \($v.last_comparison.requested // 0) | \(count("differences")) | \(count("no-differences")) | \(count("unpaired")) | \(count("analysis-failed")) |"
-                    )
-                )
-              + [""]
-            ) | join("\n")
-          ' > "$comment"
-          printf '\n_Updated from CI merge result `%s`._\n' "${GITHUB_SHA:0:12}" >> "$comment"
+          python3 .github/scripts/render-reccmp-comment.py > "$comment"
 
           marker='<!-- wiz8-reccmp-status -->'
           payload="$RUNNER_TEMP/reccmp-status-comment.json"

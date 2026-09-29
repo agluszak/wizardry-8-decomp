@@ -139,6 +139,11 @@ def compare_command(
         "--changed",
         help="Compare changed C/C++ files and consumers of changed headers, including template emissions.",
     ),
+    all_source: bool = typer.Option(
+        False,
+        "--all-source",
+        help="Compare every recovered FUNCTION marker for this target.",
+    ),
     since: Annotated[
         str | None,
         typer.Option("--since", help="With --changed, compare files changed since this revision."),
@@ -159,6 +164,7 @@ def compare_command(
     from ..build import build_target
     from ..comparison import (
         addresses_from_files,
+        all_source_addresses,
         changed_source_files,
         compare_selected,
         header_dependent_files,
@@ -173,9 +179,11 @@ def compare_command(
         target = target_for_program(settings.repo_dir, program)
         if since is not None and not changed:
             raise ValueError("--since requires --changed")
+        if all_source and (addresses or files or changed):
+            raise ValueError("--all-source cannot be combined with addresses, --file, or --changed")
         if ctx.args:
             raise ValueError("raw reccmp options are not accepted by selected comparison")
-        if addresses or files or changed:
+        if addresses or files or changed or all_source:
             if build:
                 # Building owns source-index refresh and product generation. Keep
                 # the comparison path below identical for both modes.
@@ -191,7 +199,11 @@ def compare_command(
                 selected_files.extend(changed_files)
                 if not selected_files and not addresses:
                     raise ValueError("no changed C/C++ files; no functions selected")
-            needs_index = bool(selected_files) or selectors_require_source_index(addresses or [])
+            needs_index = (
+                all_source
+                or bool(selected_files)
+                or selectors_require_source_index(addresses or [])
+            )
             index_stale = False
             if needs_index:
                 from ..source_index import warn_if_source_index_may_be_stale
@@ -219,13 +231,19 @@ def compare_command(
                 # is nothing to compare, which is not a failure.
                 result: dict[str, Any] = {"ok": True, "selected": 0, "functions": []}
             else:
-                selected = selected_addresses(
-                    settings.repo_dir,
-                    target,
-                    addresses or [],
-                    selected_files,
-                    include_templates=changed,
+                selected = (
+                    all_source_addresses(settings.repo_dir, target)
+                    if all_source
+                    else selected_addresses(
+                        settings.repo_dir,
+                        target,
+                        addresses or [],
+                        selected_files,
+                        include_templates=changed,
+                    )
                 )
+                if not selected:
+                    raise ValueError(f"no recovered FUNCTION markers for target {target}")
                 result = compare_selected(
                     settings.repo_dir,
                     target,
@@ -250,7 +268,7 @@ def compare_command(
                     ],
                 }
             return result
-        raise ValueError("select functions by address, --file, or --changed")
+        raise ValueError("select functions by address, --file, --changed, or --all-source")
 
     result = action()
     # Changed-header selections can contain thousands of functions. Their
