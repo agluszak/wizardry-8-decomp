@@ -1199,13 +1199,14 @@ void MonGen::SetEncounterTable(int index)
     }
 }
 
-/* Return the first table whose name starts with the complete caller string. */
+/* Return the first table whose name starts with the complete caller string,
+   ignoring case as the retail _strnicmp import does. */
 // FUNCTION: WIZ8 0x0048cca0
 int FindEncounterTableByName(const char* name)
 {
     for (int index = 0; index < g_encounter_tables.GetCount(); ++index) {
         W8EncounterTableRuntime* table = *g_encounter_tables.GetAt(index);
-        if (strncmp(table->name, name, strlen(name)) == 0) {
+        if (_strnicmp(table->name, name, strlen(name)) == 0) {
             return index;
         }
     }
