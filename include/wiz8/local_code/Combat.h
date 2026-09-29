@@ -5,8 +5,8 @@
 extern wchar_t g_combat_log_format[]; /* 0x00617664 */
 /* 0x0068506C: a friendly NPC's combat-entry script notice is still owed. */
 
-void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data, int a,
-                  int b); /* 0x004E7CC0 */
+void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data,
+                  bool defer_execution, int notify); /* 0x004E7CC0 */
 void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_action,
                         W8CombatSlot** out_target,
                         W8ActionDetailBlock** out_detail); /* 0x004E77B0 */
@@ -75,9 +75,9 @@ char CreateCharacterBreathEffect(int party_slot);
    lists plus every hostile monster; returns the action outcome code. */
 int ExecuteCharacterSpecialAttack(int party_slot);
 void ApplyPartyCombatAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data,
-                            int arg_5, int notify); /* 0x004E7EE0 */
-int IsPartyEngaged(void);                           /* 0x004E7E70 */
-int GetEngagementCount(void);                       /* 0x004ED2B0 */
+                            int notify); /* 0x004E7EE0 */
+int IsPartyEngaged(void);                /* 0x004E7E70 */
+int GetEngagementCount(void);            /* 0x004ED2B0 */
 void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);
 /* 0x004E79A0: whether one party slot may switch to the given targeting

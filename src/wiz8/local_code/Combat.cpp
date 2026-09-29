@@ -1165,7 +1165,7 @@ void EndCombat(int mode)
    dispatches the action's follow-up. */
 // FUNCTION: WIZ8 0x004e7cc0
 void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data,
-                  int arg_5, int arg_6)
+                  bool defer_execution, int notify)
 {
     W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
 
@@ -1178,12 +1178,12 @@ void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBl
         } else {
             memcpy(&row->pending_action_detail_015, data, sizeof(row->pending_action_detail_015));
         }
-        if (arg_5 == 0) {
+        if (!defer_execution) {
             ExecuteCharacterAction(party_slot);
         }
         ClearPartySlotMonsterHighlights(party_slot);
     } else {
-        ApplyPartyCombatAction(party_slot, action, detail, data, arg_5, arg_6);
+        ApplyPartyCombatAction(party_slot, action, detail, data, notify);
         switch (action) {
         case W8_ACTION_ATTACK:
         case W8_ACTION_BERSERK:
@@ -1218,14 +1218,14 @@ void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBl
    the action on the slot row and refresh targeting UI state. */
 // FUNCTION: WIZ8 0x004e7ee0
 void ApplyPartyCombatAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data,
-                            int arg_5, int notify)
+                            int notify)
 {
     unsigned int party_slot_index;
     W8Character* character;
     W8CombatCharacterRow* row;
 
     if (action != W8_ACTION_WALK && action != W8_ACTION_RUN) {
-        SetCharacterCombatAction(party_slot, action, detail, data, arg_5);
+        SetCharacterCombatAction(party_slot, action, detail, data, notify);
         return;
     }
     if (g_combat_state->combat_over_000 == 0 || g_combat_state->uiCurrentPartyActionStatus != 0) {
