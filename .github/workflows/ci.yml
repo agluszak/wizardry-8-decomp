@@ -636,12 +636,18 @@ jobs:
           fi
           uv run wiz8 compare --changed --since "${{ github.event.pull_request.base.sha }}" \
             --program sr.dll --sxs
+      - name: Package SURRENDER comparison report
+        if: github.event_name == 'pull_request' && always()
+        run: |
+          if [[ -d build/reports/compare/surrender ]]; then
+            tar -czf build/reports/compare/surrender-report.tar.gz -C build/reports/compare/surrender .
+          fi
       - name: Upload SURRENDER comparison report
         if: github.event_name == 'pull_request' && always()
         uses: actions/upload-artifact@v4
         with:
           name: surrender-comparison-report
-          path: build/reports/compare/surrender/
+          path: build/reports/compare/surrender-report.tar.gz
           if-no-files-found: ignore
       - name: Verify SURRENDER catalog
         id: surrender-status

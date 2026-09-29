@@ -8,12 +8,16 @@
 // VTABLE: SURRENDER 0x10077150 srModel::Client
 // VTABLE: SURRENDER 0x10077160 srClassSupport<srModelInstance, srNode, 0, 4352>
 // class srModelInstance
-class SR_DLL_IMPORT srModelInstance : public srClassSupport<srModelInstance, srNode, 0, 0x1100>,
-                                      public srModel::Client {
+class srModelInstance : public srClassSupport<srModelInstance, srNode, 0, 0x1100>,
+                        public srModel::Client {
 public:
+#if defined(SURRENDER_BUILD)
     SR_DLL_EXPORT srModelInstance(srNode* parent = 0);
+#else
+    SR_DLL_IMPORT srModelInstance(srNode* parent = 0);
+#endif
     srModelInstance(const srModelInstance& other);
-    srModelInstance& operator=(const srModelInstance& other);
+    SR_DLL_IMPORT srModelInstance& operator=(const srModelInstance& other);
 
 #if defined(SURRENDER_BUILD)
     static const char* sGetClassName();
@@ -24,12 +28,12 @@ public:
     }
 #endif
 
-    virtual void dump(std::ostream& stream) override;
-    virtual srClass* vInstance() override;
-    virtual void traverse(TraverseInfo& info) override;
-    virtual void process(const ProcessInfo& info, e_processType type) override;
-    virtual void getLocalBounds(BoundInfo& bounds) override;
-    virtual void updateClient(srModel::Client::e_update update) override;
+    SR_DLL_IMPORT virtual void dump(std::ostream& stream) override;
+    SR_DLL_IMPORT virtual srClass* vInstance() override;
+    SR_DLL_IMPORT virtual void traverse(TraverseInfo& info) override;
+    SR_DLL_IMPORT virtual void process(const ProcessInfo& info, e_processType type) override;
+    SR_DLL_IMPORT virtual void getLocalBounds(BoundInfo& bounds) override;
+    SR_DLL_IMPORT virtual void updateClient(srModel::Client::e_update update) override;
 
     void assignModel(srModel* model)
     {
@@ -95,7 +99,7 @@ public:
 #if defined(SURRENDER_BUILD)
     void setExclusionMask(unsigned long mask);
 #else
-    void setExclusionMask(unsigned long mask)
+    SR_DLL_IMPORT void setExclusionMask(unsigned long mask)
     {
         exclusion_mask_15c = mask;
     }
@@ -107,7 +111,7 @@ public:
     srFlags<int> alignment_flags_148;
 
 protected:
-    virtual ~srModelInstance() override;
+    SR_DLL_IMPORT virtual ~srModelInstance() override;
 
     srVector3T<float> align_axis_14c;
     float align_angle_158;

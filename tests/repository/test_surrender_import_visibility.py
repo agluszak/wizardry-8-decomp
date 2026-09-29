@@ -33,7 +33,6 @@ AUDITED_CLASS_IMPORTS = {
     "srMaterialIFace",
     "srMeshModel",
     "srModel",
-    "srModelInstance",
     "srModeler",
     "srScene",
     "srTexture",
@@ -80,6 +79,18 @@ PROVIDER_ONLY_HEADERS = {
 # Count the macro as well as checking the spelling so unrelated imports cannot
 # quietly accumulate beside the evidenced one.
 AUDITED_MIXED_MEMBER_IMPORTS = {
+    "srModelInstance.h": (
+        "SR_DLL_IMPORT srModelInstance(srNode* parent = 0);",
+        "SR_DLL_IMPORT srModelInstance& operator=(const srModelInstance& other);",
+        "SR_DLL_IMPORT virtual void dump(std::ostream& stream) override;",
+        "SR_DLL_IMPORT virtual srClass* vInstance() override;",
+        "SR_DLL_IMPORT virtual void traverse(TraverseInfo& info) override;",
+        "SR_DLL_IMPORT virtual void process(const ProcessInfo& info, e_processType type) override;",
+        "SR_DLL_IMPORT virtual void getLocalBounds(BoundInfo& bounds) override;",
+        "SR_DLL_IMPORT virtual void updateClient(srModel::Client::e_update update) override;",
+        "SR_DLL_IMPORT void setExclusionMask(unsigned long mask)",
+        "SR_DLL_IMPORT virtual ~srModelInstance() override;",
+    ),
     "srImporter.h": ("SR_DLL_IMPORT void exportSurface(",),
     "srPixelConvert.h": (
         "static SR_DLL_IMPORT void mapPixelFormat(e_surfaceType type, PixelFormat& format);",
