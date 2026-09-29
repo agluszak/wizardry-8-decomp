@@ -198,6 +198,8 @@ template <class Key, class Value> void srHashTable<Key, Value>::RemoveAt(int slo
 
 // TEMPLATE: SURRENDER 0x100279E0
 // srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::Grow
+// TEMPLATE: SURRENDER 0x10014750
+// srHashTable<srScheduler::Job*, srScheduler::QueueEntry*>::Grow
 template <class Key, class Value> void srHashTable<Key, Value>::Grow()
 {
     unsigned int capacity = bucket_count << 1;

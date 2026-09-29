@@ -251,8 +251,8 @@ void srConfig::removeAll()
     }
     if (index_18 != 0) {
         delete index_18;
-        index_18 = 0;
     }
+    index_18 = 0;
     entry_pool_04.release();
 }
 

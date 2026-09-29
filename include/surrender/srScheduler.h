@@ -3,6 +3,7 @@
 #include <windows.h>
 
 #include "srHeap.h"
+#include "srHash.h"
 
 class srScheduler {
 public:
@@ -38,18 +39,10 @@ private:
         long state_0c;
     };
 
-    struct LookupEntry {
-        long next_index_00;
-        Job* job_04;
-        QueueEntry* queue_entry_08;
-    };
-
     static_assert(sizeof(WorkerSlot) == 0x08, "srScheduler_WorkerSlot_must_be_0x08");
     static_assert(sizeof(QueueEntry) == 0x10, "srScheduler_QueueEntry_must_be_0x10");
-    static_assert(sizeof(LookupEntry) == 0x0c, "srScheduler_LookupEntry_must_be_0x0c");
-
-    /* doubles the lookup table (minimum 4) and rehashes. */
-    void growLookup();
+    static_assert(sizeof(srHashTable<Job*, QueueEntry*>) == 0x10,
+                  "srScheduler_lookup_table_must_be_0x10");
     /* starts a worker thread on the first idle slot when queued
        jobs outnumber busy workers. */
     void wakeWorker();
@@ -66,10 +59,7 @@ private:
     static void __cdecl workerEntry(void* argument);
 
     WorkerSlot workers_00[4];
-    long* lookup_buckets_20;
-    LookupEntry* lookup_entries_24;
-    long free_lookup_entry_28;
-    long lookup_capacity_2c;
+    srHashTable<Job*, QueueEntry*> lookup_20;
     QueueEntry* first_job_30;
     QueueEntry* last_job_34;
     long job_count_38;

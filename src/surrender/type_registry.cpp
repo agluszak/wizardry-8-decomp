@@ -278,8 +278,8 @@ struct srRegistry::ClassNode::IDIndex {
 
     InstanceLink* add(srRuntimeClass* instance)
     {
-        InstanceLink* link = insert(0, instance);
         unsigned long id = instance->getID();
+        InstanceLink* link = insert(0, instance);
         by_id_20.Insert(&id, &link);
         return link;
     }
@@ -444,7 +444,9 @@ void srRegistry::ClassNode::IDIndex::clearLinks()
         if (active_count_00 == 0) {
             clearBlocks();
         }
+        --list_count_1c;
     }
+    clearBlocks();
 }
 
 // FUNCTION: SURRENDER 0x10010A90
@@ -792,8 +794,8 @@ void srClass::performUpdates(double time)
             }
             update = next;
         }
+        _lastUpdateTime = time;
     }
-    _lastUpdateTime = time;
 }
 
 // FUNCTION: SURRENDER 0x1000E5E0

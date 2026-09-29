@@ -232,6 +232,39 @@ def test_compare_build_explicitly_refreshes_and_builds(tmp_path, monkeypatch) ->
         (["addr", "0x401000"], "translate_addresses"),
     ],
 )
+def test_inspection_build_refreshes_index_before_comparison(
+    tmp_path, monkeypatch, arguments, function_name
+) -> None:
+    from wiz8decomp import build, comparison, source_index
+
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
+    settings = SimpleNamespace(repo_dir=tmp_path)
+    events = []
+    monkeypatch.setattr(command_support, "settings", lambda: settings)
+    monkeypatch.setattr(source_index, "write_source_index", lambda _actual: events.append("index"))
+    monkeypatch.setattr(build, "build_target", lambda _actual, target: events.append("build"))
+    monkeypatch.setattr(
+        comparison,
+        function_name,
+        lambda *_args: events.append("compare") or {"ok": True},
+    )
+
+    result = CliRunner().invoke(app, [*arguments, "--build"])
+
+    assert result.exit_code == 0, result.output
+    assert events == ["index", "build", "compare"]
+
+
+@pytest.mark.parametrize(
+    "arguments,function_name",
+    [
+        (["vtable", "Widget"], "compare_vtables"),
+        (["datacmp"], "compare_data"),
+        (["addr", "0x401000"], "translate_addresses"),
+    ],
+)
 def test_inspection_commands_do_not_build_by_default(
     tmp_path, monkeypatch, arguments, function_name
 ) -> None:
@@ -346,7 +379,7 @@ def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:
 def test_pr_check_requires_lint_for_product_source(monkeypatch, changed, expects_lint) -> None:
     from wiz8decomp import build, comparison, config, merge_preservation
 
-    events = []
+    events: list[tuple[str, Path] | tuple[str]] = []
     repository = Path("/repo")
     monkeypatch.setattr(config, "repository_root", lambda: repository)
     monkeypatch.setattr(command_support, "settings", lambda: object())
@@ -370,7 +403,7 @@ def test_pr_check_requires_lint_for_product_source(monkeypatch, changed, expects
     result = CliRunner().invoke(app, ["pr-check"])
 
     assert result.exit_code == 0, result.output
-    expected = [("check", repository)]
+    expected: list[tuple[str, Path] | tuple[str]] = [("check", repository)]
     if expects_lint:
         expected.append(("lint",))
     assert events == expected
