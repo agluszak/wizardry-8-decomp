@@ -637,7 +637,7 @@ W8ControlsRect g_split_amount_text_bounds[3] = {
 };
 
 // GLOBAL: WIZ8 0x0064fc68
-W8ControlsRect g_split_amount_field_bounds = {0xbe, 0x35, 0xf4, 0x41};
+W8ScreenRect g_split_amount_field_bounds = {0xbe, 0x35, 0xf4, 0x41};
 
 // GLOBAL: WIZ8 0x0064fc78
 int g_split_amount_string_ids[3] = {265, 266, 267};
@@ -1142,12 +1142,20 @@ void W8SplitAmountDialog::SplitCancel(W8DialogButton* button)
 // FUNCTION: WIZ8 0x005da5c0
 void W8SplitAmountDialog::SplitActivateField(W8DialogButton* button)
 {
+    POINT mouse;
     POINT point;
 
     if (button != 0) {
         W8SplitAmountDialog* dialog = static_cast<W8SplitAmountDialog*>(button->m_owner_040);
-        SGPMouseGetPos(&point);
+        SGPMouseGetPos(&mouse);
         if (dialog->m_split_input_078 != 0) {
+            point.x = mouse.x - dialog->m_x;
+            point.y = mouse.y - dialog->m_y;
+            if (!ScreenPointInRect(&g_split_amount_field_bounds, &point)) {
+                return;
+            }
+            point.x -= g_split_amount_field_bounds.left;
+            point.y -= g_split_amount_field_bounds.top;
             dialog->m_split_input_078->SetActive(1, &point);
             dialog->m_active_field_7c = dialog->m_split_input_078;
         }

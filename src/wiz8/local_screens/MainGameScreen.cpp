@@ -1522,7 +1522,7 @@ void W8MainGameTextKeyHandler::Redraw(int full_redraw)
         if (line == m_selected_line_0b0) {
             colour = g_font_state_palettes[3];
         } else if (line == m_hover_line_0b4) {
-            colour = g_font_state_palettes[4];
+            colour = g_font_state_palettes[5];
         } else {
             colour = g_colour_68ee08;
         }
@@ -7063,9 +7063,10 @@ unsigned char PortraitOverlayHoverRegionEvent(const InputAtom* event, W8Region* 
                     g_level_block->tooltip_subject = slot;
                     g_level_block->tooltip_kind = 4;
                 }
-                if (gfLeftButtonState != 0) {
-                    g_level_block->portrait_overlay_party_slot = slot;
+                if (gfLeftButtonState == 0) {
+                    return 0;
                 }
+                g_level_block->portrait_overlay_party_slot = slot;
             } else {
                 if (g_level_block->tooltip_kind != 4 || g_level_block->tooltip_subject != -1) {
                     g_level_block->tooltip_pending = true;
@@ -7210,7 +7211,7 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
 {
     unsigned int us_event = event->usEvent;
 
-    if (us_event < RIGHT_BUTTON_UP) {
+    if (us_event <= RIGHT_BUTTON_DOWN) {
         if (us_event == RIGHT_BUTTON_DOWN) {
             region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
             return 1;

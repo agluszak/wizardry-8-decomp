@@ -363,7 +363,7 @@ void W8NavigatorMovementState::Reset()
     roll_enabled_075 = 0;
     vertical_velocity_078 = 0.0f;
     callback_threshold_058 = 10000.0f;
-    turn_rate_068 = 0.19634955f;
+    turn_rate_068 = 0.19634953f;
     boundary_enabled_076 = 1;
     target_location_id_010 = -1;
     movement_scale_060 = 1.0f;
@@ -876,11 +876,11 @@ unsigned short W8Navigator::SetMovementTargetToNavigator(W8Navigator* target, do
     }
     if (SetMovementTarget(&target->movement_0c0.position_040, 0) == 0) {
         if (g_combat_inactive == 0) {
-            navigation_mode_008 = 0;
+            flags_00c = 0;
             unknown_0bc = 1;
         }
     } else {
-        navigation_mode_008 = 5;
+        flags_00c = 5;
         result = 1;
         if (g_combat_inactive == 0) {
             result = static_cast<unsigned short>(movement_0c0.attachment_0ac->flags_00 & 7);
@@ -1743,7 +1743,7 @@ void W8Navigator::LinkGroupNavigator(W8Navigator* target, double, int)
                 if (movement_stopped_024 == 0) {
                     movement_stopped_024 = 1;
                     if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
-                        movement_0c0.target_yaw = NormalizeAngle(0.0f);
+                        movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
                     }
                 }
             }
