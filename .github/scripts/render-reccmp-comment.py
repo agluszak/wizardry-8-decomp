@@ -10,19 +10,19 @@ def load(name: str, target: str) -> tuple[str, dict] | None:
     return (target, json.loads(raw)) if raw else None
 
 
-def signed_count(value: int | float | None) -> str:
+def signed_count(value: float | None) -> str:
     if value is None:
         return "n/a"
     return f"{int(value):+d}"
 
 
-def count_with_delta(value: int | None, delta: int | float | None) -> str:
+def count_with_delta(value: int | None, delta: float | None) -> str:
     if value is None:
         return "n/a"
     return f"{value:,} ({signed_count(delta)})"
 
 
-def ratio_with_delta(value: float | None, delta: float | int | None) -> str:
+def ratio_with_delta(value: float | None, delta: float | None) -> str:
     if value is None:
         return "n/a"
     if delta is None:
@@ -75,9 +75,7 @@ if comparison_rows:
         "| Target | Compared | Avg similarity | Median | Exact/clean | Clean rate | "
         "Different | Code diffs | Referenced-data diffs | Fixed | Regressed | Analysis failed |"
     )
-    print(
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
-    )
+    print("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
     for target, comparison in comparison_rows:
         head = comparison["head"]
         delta = comparison["delta"]
@@ -107,7 +105,9 @@ if data_rows:
     print()
     print("#### datacmp")
     print()
-    print("| Target | Data objects | Matched | Match rate | Issues | Field differences | Raw-only issues |")
+    print(
+        "| Target | Data objects | Matched | Match rate | Issues | Field differences | Raw-only issues |"
+    )
     print("| --- | ---: | ---: | ---: | ---: | ---: | ---: |")
     for target, data in data_rows:
         head = data["head"]

@@ -124,6 +124,11 @@ def _strip_qualifiers(type_name: str) -> str:
             if text.startswith(prefix):
                 text = text[len(prefix) :].lstrip()
                 changed = True
+        for suffix in ("const", "volatile"):
+            match = re.search(rf"\b{suffix}\s*$", text)
+            if match:
+                text = text[: match.start()].rstrip()
+                changed = True
     return text
 
 

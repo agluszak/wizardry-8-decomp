@@ -560,8 +560,8 @@ srMatrix3T<T>* srMatrix3T<T>::SetRows(const srVector3T<T>& first, const srVector
 // srMatrix3T<float>::MultiplyBy
 template <class T> srMatrix3T<T>* srMatrix3T<T>::MultiplyBy(const srMatrix3T<T>& other)
 {
-    T result[9];
-    T* output = result;
+    srMatrix3T<T> result;
+    T* output = &result.vectors[0].x;
     const T* right = &other.vectors[0].x;
     const T* left = &vectors[0].x;
 
@@ -574,15 +574,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::MultiplyBy(const srMatrix3T<T>&
         output[index + 3] = x * left[3] + y * left[4] + z * left[5];
         output[index + 6] = x * left[6] + y * left[7] + z * left[8];
     }
-    vectors[0].x = result[0];
-    vectors[0].y = result[1];
-    vectors[0].z = result[2];
-    vectors[1].x = result[3];
-    vectors[1].y = result[4];
-    vectors[2].x = result[6];
-    vectors[1].z = result[5];
-    vectors[2].y = result[7];
-    vectors[2].z = result[8];
+    *this = result;
     return this;
 }
 

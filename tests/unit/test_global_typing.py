@@ -382,7 +382,7 @@ def test_resolve_data_type_wraps_each_trailing_star(monkeypatch) -> None:
     data_mod.PointerDataType = FakePointer
     monkeypatch.setitem(sys.modules, "ghidra.program.model.data", data_mod)
     program = SimpleNamespace(getDataTypeManager=lambda: None)
-    for spelling in ("char**", "wchar_t**", "char * *"):
+    for spelling in ("char**", "wchar_t**", "char * *", "const char *const *", "char *volatile *"):
         # wchar_t needs builtin — only test char** here for FakeBase.
         if "wchar" in spelling:
             continue

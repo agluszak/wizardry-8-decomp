@@ -323,7 +323,7 @@ public:
             count = 0;
         }
 
-        /* The preserving resize every accessor's grow path reaches: fresh
+        /* The shared resize used by the accessors: fresh
            Allocate() storage, a min(old,new) prefix copy only when
            `preserve` is set, the old table's full Release(), then the pair
            retargets. operator= and the copy-ctor pass preserve=1 on an
