@@ -39,7 +39,7 @@ public:
     unsigned char LoadDefaults(const char* path);
 
 private:
-    W8GrowableVector<MGSKeyBinding*> m_bindings;
+    W8Vector<MGSKeyBinding*> m_bindings;
     W8HashTable<unsigned int, MGSKeyBinding*> m_command_index;
 };
 

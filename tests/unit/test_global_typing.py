@@ -104,6 +104,25 @@ def test_named_data_type_resolves_nested_namespace_category() -> None:
     assert resolved.path == "/srCamera/Rect"
 
 
+def test_named_data_type_resolves_imported_pointer_template() -> None:
+    imported = "/W8Vector[MGSKeyBinding_#]"
+
+    class Manager:
+        def getDataType(self, path: str):
+            if path == imported:
+                return SimpleNamespace(path=path, getPathName=lambda: path)
+            return None
+
+    program = SimpleNamespace(
+        getDataTypeManager=lambda: Manager(),
+        getSymbolTable=lambda: SimpleNamespace(getNamespace=lambda *_a: None),
+        getGlobalNamespace=lambda: object(),
+    )
+    resolved = _named_data_type(program, "W8Vector[MGSKeyBinding*]")
+    assert resolved is not None
+    assert resolved.path == imported
+
+
 def test_needs_type_update() -> None:
     assert _needs_type_update(None, "int")
     assert _needs_type_update("undefined4", "int")

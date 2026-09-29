@@ -900,13 +900,13 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x005c3770
 // W8Vector<W8Character*>::`scalar deleting destructor'
 
-/* W8CharacterPage's member vector; its constructor stamps 0x005EF214 at
-   0x005AFDFC. */
-// VTABLE: WIZ8 0x005ef214
-// class W8GrowableVector<W8CharacterPageEntry*>
+/* W8CharacterPage's member vector stamps the base table at 0x005AFDD3,
+   then this derived table at 0x005AFDFC. */
+// VTABLE: WIZ8 0x005ef214 W8Vector<W8CharacterPageEntry*>
+// class W8Vector<W8CharacterPageEntry*>
 
 // SYNTHETIC: WIZ8 0x005b1bc0
-// W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor'
+// W8Vector<W8CharacterPageEntry*>::`scalar deleting destructor'
 
 /* Local Screens\CreditsScreen.cpp's g_credit_lines: the enter path
    news the vector and the element constructor allocates five 0x14-byte
@@ -1033,18 +1033,22 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x0055CBB0
 // W8GrowableVector<W8ChunkHead*>::`scalar deleting destructor'
 
-/* InputMapper.cpp span. */
-// VTABLE: WIZ8 0x005ee8f8
-// class W8GrowableVector_005EE8F8 (element type unresolved)
+/* MGSKeyboard's binding vector stamps the base table at 0x0055CFF4,
+   then the derived table at 0x0055D01B. */
+// VTABLE: WIZ8 0x005ee8f8 W8GrowableVector<MGSKeyBinding*>
+// class W8GrowableVector<MGSKeyBinding*>
+
+// VTABLE: WIZ8 0x005ee8f4 W8Vector<MGSKeyBinding*>
+// class W8Vector<MGSKeyBinding*>
 
 // TEMPLATE: WIZ8 0x0055DB60
-// W8GrowableVector::~W8GrowableVector for the 0x005EE8F8 table (InputMapper.cpp emission)
+// W8GrowableVector<MGSKeyBinding*>::~W8GrowableVector<MGSKeyBinding*>
 
 // SYNTHETIC: WIZ8 0x0055DDF0
-// `scalar deleting destructor' for the 0x005EE8F8 vector table
+// W8GrowableVector<MGSKeyBinding*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0055DE20
-// `scalar deleting destructor' for the 0x005EE8F8 vector table (second emission)
+// W8Vector<MGSKeyBinding*>::`scalar deleting destructor'
 
 /* AutomapScreen.cpp span. */
 // SYNTHETIC: WIZ8 0x005853F0
