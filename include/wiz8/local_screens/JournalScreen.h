@@ -17,6 +17,7 @@ public:
     virtual ~W8JournalPanel();
     virtual void Redraw() override;
     virtual void OnPrimary(W8TextControl* control) override;
+    void Refresh();
 
     W8TextControl* m_next_050;
     W8TextControl* m_previous_054;
@@ -40,8 +41,6 @@ static_assert(sizeof(W8JournalEntry) == 0x0c, "W8JournalEntry_size");
 
 // SYNTHETIC: WIZ8 0x005bd7d0
 // W8JournalPanel::`scalar deleting destructor'
-
-void RefreshJournalPanel(void);
 
 /* 0x0068de40: the fact journal, created lazily by the initializer below and
    appended to whenever a fact changes. */
