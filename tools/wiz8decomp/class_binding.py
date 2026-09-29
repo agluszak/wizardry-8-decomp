@@ -109,7 +109,7 @@ def ensure_ghidra_class(program: Any, owning_class: str) -> Any:
     for part in parent_parts:
         child = symbols.getNamespace(part, namespace)
         if child is None:
-            child = symbols.createNameSpace(part, namespace, SourceType.IMPORTED)
+            child = symbols.createNameSpace(namespace, part, SourceType.IMPORTED)
         namespace = child
     existing = symbols.getNamespace(class_name, namespace)
     if existing is not None:

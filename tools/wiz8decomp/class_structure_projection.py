@@ -170,6 +170,8 @@ def _find_named_structure(
     seen_paths: set[str] = set()
 
     for path in _identity_category_paths(name):
+        if "::" in name and _structure_path_tier(path, simple, name) > 1:
+            continue
         structure = _as_structure(manager.getDataType(path))
         if structure is None:
             continue
@@ -186,6 +188,8 @@ def _find_named_structure(
             continue
         path = str(structure.getPathName())
         if path.startswith("/wiz8/classes/") or path == "/wiz8/classes":
+            continue
+        if "::" in name and _structure_path_tier(path, simple, name) > 1:
             continue
         if asserted_size is not None and int(structure.getLength()) != asserted_size:
             continue
@@ -526,9 +530,13 @@ def apply_structure_projection(
         elif action == "bind-existing":
             ensure_ghidra_class(_program, owning)
             result = find_class_structure(_program, ensure_ghidra_class(_program, owning))
+            evidence_path = (row.get("source") or {}).get("path")
+            if result is None and evidence_path:
+                result = _as_structure(
+                    _program.getDataTypeManager().getDataType(str(evidence_path))
+                )
             if result is None:
                 return {**dict(row), "error": "missing-bound-structure"}
-            evidence_path = (row.get("source") or {}).get("path")
             if evidence_path and str(result.getPathName()) != str(evidence_path):
                 return {
                     **dict(row),
