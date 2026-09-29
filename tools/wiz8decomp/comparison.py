@@ -379,42 +379,56 @@ def compare_selected(
     rows = {int(row["orig"], 16): row for row in (summary or {}).get("functions", [])}
 
     header_emissions: dict[int, Any] = {}
-    missing_addresses = set(addresses) - rows.keys()
-    if classify_header_emissions and missing_addresses:
-        from .source_index import source_functions
+    unlinked_addresses = {
+        address
+        for address in addresses
+        if address not in rows or rows[address]["outcome"] == "unpaired"
+    }
+    if classify_header_emissions and unlinked_addresses:
+        from .source_index import load_source_index, source_functions
 
         model = source_functions(repository, target)
+        named_definitions: set[tuple[str, str]] | None = None
 
         def is_header_definition(address: int) -> bool:
+            nonlocal named_definitions
             marker = model[address]
+            if Path(marker.source_file).suffix.casefold() not in {".h", ".hpp", ".hxx", ".inl"}:
+                return False
             declaration = marker.declaration
-            return (
-                Path(marker.source_file).suffix.casefold() in {".h", ".hpp", ".hxx", ".inl"}
-                and declaration is not None
-                and declaration.is_definition
-            )
+            if declaration is not None:
+                return declaration.is_definition
+            if marker.marker_name is None:
+                return False
+            if named_definitions is None:
+                named_definitions = {
+                    (row["semantic_id"], row["source_file"])
+                    for row in load_source_index(repository)["declarations"]
+                    if row["target"] == target.upper() and row["is_definition"]
+                }
+            return (marker.marker_name, marker.source_file) in named_definitions
 
         header_emissions = {
             address: model[address]
-            for address in missing_addresses & model.keys()
+            for address in unlinked_addresses & model.keys()
             if is_header_definition(address)
         }
     functions: list[dict[str, Any]] = []
     for address in sorted(set(addresses)):
         row = rows.get(address)
-        if row is not None:
-            functions.append(_function_row(repository, target, row))
-        elif address in header_emissions:
+        if address in header_emissions:
             marker = header_emissions[address]
             functions.append(
                 {
                     "orig": f"0x{address:08x}",
                     "name": marker.name,
                     "outcome": "header-emission",
-                    "reason": "inline header body has no standalone linked symbol",
+                    "reason": "inline header body has no paired rebuild emission",
                     "source_file": marker.source_file,
                 }
             )
+        elif row is not None:
+            functions.append(_function_row(repository, target, row))
         else:
             functions.append({"orig": f"0x{address:08x}", "outcome": "missing"})
 

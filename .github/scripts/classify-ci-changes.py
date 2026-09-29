@@ -130,7 +130,11 @@ def classify(paths: Iterable[str]) -> dict[str, bool]:
 
         if path in _WIZ8_COMPARISON_FILES or _matches(path, _WIZ8_COMPARISON_PREFIXES):
             wiz8_compare = True
-            if path == "reccmp-project.yml" or path == "tools/wiz8decomp/reports/status.py":
+            if path in {
+                "reccmp-project.yml",
+                "tools/wiz8decomp/comparison.py",
+                "tools/wiz8decomp/reports/status.py",
+            }:
                 surrender = True
 
         if path.startswith("evidence/reviewed/wiz8/"):
