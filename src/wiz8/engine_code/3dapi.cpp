@@ -100,13 +100,6 @@ float g_float_00609c88 = 60.0f;
 // GLOBAL: WIZ8 0x00609c8c
 bool g_flag_00609c8c = true;
 
-// GLOBAL: WIZ8 0x006f0530
-bool g_shift_held;
-// GLOBAL: WIZ8 0x006f0531
-bool g_monster_combat_timer_enabled;
-// GLOBAL: WIZ8 0x006f0534
-bool g_modifier_held;
-
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)
 {
@@ -335,7 +328,7 @@ W8World* CreateWorld()
 void UpdateWorlds(void)
 {
     g_navigator_vertical_enabled =
-        !(g_monster_combat_timer_enabled && g_combat_state != 0 &&
+        !(gfKeyState[0x11] != 0 && g_combat_state != 0 &&
           (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0));
 
     {

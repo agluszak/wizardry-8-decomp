@@ -1282,7 +1282,7 @@ W8CampItemRange::W8CampItemRange()
 void W8CampItemRange::OnRangeChanged(W8RangeControl*)
 {
     g_camp_screen->item_scroll = m_range->m_value << 1;
-    if (g_monster_combat_timer_enabled) {
+    if (gfKeyState[0x11]) {
         g_camp_screen->redraw_flags |= 0x0fffffff;
         return;
     }
@@ -1658,7 +1658,7 @@ void DrawCampScreen(void)
     unsigned int index;
 
     NoOp();
-    if (!g_monster_combat_timer_enabled && state->item_icons_drawn_d50) {
+    if (!gfKeyState[0x11] && state->item_icons_drawn_d50) {
         state->redraw_flags |= 0xfffffff;
         state->item_icons_drawn_d50 = false;
     }
@@ -1706,7 +1706,7 @@ void DrawCampScreen(void)
         RefreshItemsTabPanel(0);
         RefreshCampSecondaryPanel(0);
         state->item_range->m_range->Redraw();
-        if (g_monster_combat_timer_enabled && state->dialog == 0) {
+        if (gfKeyState[0x11] && state->dialog == 0) {
             DrawCampItemIcons();
             state->item_icons_drawn_d50 = true;
         }
@@ -2464,7 +2464,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         return;
     }
     g_camp_screen->redraw_flags |= 0x1000;
-    if (g_monster_combat_timer_enabled) {
+    if (gfKeyState[0x11]) {
         g_camp_screen->redraw_flags |= 0x0fffffff;
     } else {
         if (origin == 0) {

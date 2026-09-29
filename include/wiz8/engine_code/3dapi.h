@@ -11,9 +11,6 @@ class srScene;
 
 extern bool g_renderer_ready;
 extern bool g_world_cleanup_flag;
-extern bool g_shift_held;
-extern bool g_monster_combat_timer_enabled;
-extern bool g_modifier_held;
 extern bool g_navigator_vertical_enabled;
 extern bool g_world_mesh_update_enabled;
 extern float g_float_00609c88;

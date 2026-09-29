@@ -2915,7 +2915,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
     if (event_type != 2 && event_type != 4) {
         return handled;
     }
-    if (g_monster_combat_timer_enabled != 0) {
+    if (gfKeyState[0x11] != 0) {
         if (key == 0x56) {
             HideWorldCursor();
             g_mipe_mode = 0xf;

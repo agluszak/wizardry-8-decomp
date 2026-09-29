@@ -243,8 +243,7 @@ unsigned char HandleMainGameInputEvent(const InputAtom* input)
         return 1;
     }
     if (GetFlag69DA6C() != 0) {
-        if (g_monster_combat_timer_enabled == 0 &&
-            HandleRecordModeKey(input, PromptRecordModeEntry) == 1) {
+        if (gfKeyState[0x11] == 0 && HandleRecordModeKey(input, PromptRecordModeEntry) == 1) {
             ApplyRecordModeLine();
             return 1;
         }
