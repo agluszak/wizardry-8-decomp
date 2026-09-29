@@ -234,10 +234,10 @@ void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* 
             case 0x28:
                 adjusted = static_cast<unsigned char>(slot->amount * 4 + 7);
                 AdjustByteByPercent(&adjusted, percent);
-                target->damage_reduction_adjustment += adjusted;
+                target->resistance_bonus_all += adjusted;
                 break;
             case 0x11:
-                target->out_of_formation = 1;
+                target->detect_secrets_46 = 1;
                 break;
             case 8:
                 AdjustByteByPercent(&adjusted, percent);

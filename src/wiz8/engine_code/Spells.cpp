@@ -712,8 +712,8 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
 
 // FUNCTION: WIZ8 0x004ABBB0
 W8SpellVisual::W8SpellVisual()
-    : mode_1d8(W8_SPELL_VISUAL_NONE), host(0), finished(0), flag_1e5(0), auto_release(1),
-      fixed_transform(0), scale_1e8(1.0f), location_id_1ec(0)
+    : mode_1d8(W8_SPELL_VISUAL_NONE), finished(0), flag_1e5(0), auto_release(1), fixed_transform(0),
+      scale_1e8(1.0f), location_id_1ec(0)
 {
     W8GrObject::kind_004 = 1;
     id_008 = IncrementValue60DFAC();
@@ -730,7 +730,6 @@ W8SpellVisual::~W8SpellVisual()
 {
     SetLights(0);
     delete host;
-    host = 0;
 
     int index = g_world->spell_visuals->IndexOf(this);
     if (index != -1) {

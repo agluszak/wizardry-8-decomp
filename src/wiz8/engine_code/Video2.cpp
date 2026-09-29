@@ -625,7 +625,7 @@ unsigned char CreateWizardryWindow(void)
     g_window_rect.bottom = g_window_rect.top + extent;
 
     if (!g_fullscreen) {
-        style = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+        style = WS_VISIBLE | (WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX);
         AdjustWindowRect(&g_window_rect, style, FALSE);
         ghWindow = CreateWindowExA(0, "Wizardry 8", "Wizardry 8", style, g_window_rect.left,
                                    g_window_rect.top, g_window_rect.right - g_window_rect.left,
@@ -3590,7 +3590,7 @@ void SetDisplayGamma(float value)
 }
 
 /* The option-4-suppressed variant of the render probe: with the positional
-   option forced off, draw the node between the dynamic scene's bracketing
+   option forced off, draw the node between the camera's bracketing
    passes, restore the option and return the sampled statistic. */
 // FUNCTION: WIZ8 0x00428830
 unsigned int MeasureNodeRenderWithoutPositionalOption(srNode* node)
@@ -3606,9 +3606,9 @@ unsigned int MeasureNodeRenderWithoutPositionalOption(srNode* node)
     g_gerd->beginFrame();
     srNode::lockSceneGraph();
     process.renderer = g_gerd;
-    g_world->dynamic_scene->process(process, static_cast<srNode::e_processType>(1));
+    g_world->camera->process(process, static_cast<srNode::e_processType>(1));
     node->process(process, static_cast<srNode::e_processType>(0));
-    g_world->dynamic_scene->process(process, static_cast<srNode::e_processType>(2));
+    g_world->camera->process(process, static_cast<srNode::e_processType>(2));
     srNode::unlockSceneGraph();
     g_gerd->endFrame();
     g_gerd->flushRenderers();
@@ -3635,7 +3635,7 @@ void BeginRenderProbe(void)
     g_gerd->endFrame();
 }
 
-/* Draw the node between the dynamic scene's bracketing passes and return the
+/* Draw the node between the camera's bracketing passes and return the
    renderer statistic the probe samples. */
 // FUNCTION: WIZ8 0x004289e0
 unsigned int MeasureNodeRender(srNode* node)
@@ -3648,9 +3648,9 @@ unsigned int MeasureNodeRender(srNode* node)
     g_gerd->beginFrame();
     srNode::lockSceneGraph();
     process.renderer = g_gerd;
-    g_world->dynamic_scene->process(process, static_cast<srNode::e_processType>(1));
+    g_world->camera->process(process, static_cast<srNode::e_processType>(1));
     node->process(process, static_cast<srNode::e_processType>(0));
-    g_world->dynamic_scene->process(process, static_cast<srNode::e_processType>(2));
+    g_world->camera->process(process, static_cast<srNode::e_processType>(2));
     srNode::unlockSceneGraph();
     g_gerd->endFrame();
     g_gerd->flushRenderers();

@@ -3203,7 +3203,7 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
             if (action == W8_ACTION_ATTACK || action == W8_ACTION_BERSERK) {
                 if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, 0)) {
                     AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
-                } else if (!TargetIsInPlay(party_slot, 2)) {
+                } else if (!TargetIsInPlay(party_slot, 2, W8_TARGETING_CONTEXT_IN_COMBAT)) {
                     RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
                 }
             }

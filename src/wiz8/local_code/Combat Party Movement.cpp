@@ -425,7 +425,7 @@ void CancelPartyMovement(void)
     }
     g_combat_state->uiNextPartyAction = 0;
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0) != 0) {
+        if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
             RefreshCombatTargetHighlights(party_slot,
                                           &g_status.buffers.XChar[party_slot].target_in_combat);
         }

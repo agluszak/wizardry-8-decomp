@@ -802,9 +802,8 @@ bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item)
     if (item != 0 && item->iItemNo != -1) {
         record = &g_item_records[item->iItemNo];
         if (record->spell_id != 0) {
-            needed =
-                GetTargetNeededForSpellFriendly(record->spell_id, ItemClassNormalizesTarget(record),
-                                                W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
+            needed = GetTargetNeededForSpellFriendly(
+                record->spell_id, ItemClassNormalizesTarget(record), W8_TARGETING_CONTEXT_CURRENT);
             if (needed == 2 && g_settings.autotarget_spells != 0) {
                 return 1;
             }
@@ -1559,16 +1558,19 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext contex
     case W8_TARGETING_CONTEXT_IN_COMBAT:
         return &row->target_in_combat;
     case W8_TARGETING_CONTEXT_SHARED:
+        return &gXStatus.shared_target;
     case W8_TARGETING_CONTEXT_SPELL:
         return &row->spell_target;
     case W8_TARGETING_CONTEXT_ITEM:
         return &row->item_target;
     case W8_TARGETING_CONTEXT_FIVE:
         return &row->target_context_5;
+    case W8_TARGETING_CONTEXT_DIALOGUE:
+        return 0;
     default:
         srAssertFail("FALSE", TARGETING_CPP, 0xc37, 0);
     }
-    return 0;
+    return &row->target_in_combat;
 }
 
 /* Replace a monster's current combat target with one monster id. The target

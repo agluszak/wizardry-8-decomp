@@ -971,10 +971,10 @@ unsigned char W8MissileRep::ReadCycleData(W8ReadLevelInfo* info, W8Missile* miss
    ordering is preserved because it is present explicitly in the product. */
 // FUNCTION: WIZ8 0x004A3C10
 W8Missile::W8Missile()
-    : missile_table_index_1d8(-1), m_pRep(0), flight_done_1e0(0), impacting_1e1(0),
-      block_released_1e2(1), gravity_1e3(0), align_camera_1e4(0), explode_ground_1e5(0),
-      align_explosion_1e6(0), flag_1e7(1), value_1e8(0), value_1ec(0), lifetime_1f0(15000.0f),
-      flags_1f4(0), retargeted_322(false)
+    : missile_table_index_1d8(-1), flight_done_1e0(0), impacting_1e1(0), block_released_1e2(1),
+      gravity_1e3(0), align_camera_1e4(0), explode_ground_1e5(0), align_explosion_1e6(0),
+      flag_1e7(1), value_1e8(0), value_1ec(0), lifetime_1f0(15000.0f), flags_1f4(0),
+      retargeted_322(false)
 {
     W8GrObject::kind_004 = 1;
     radius_084 = 1.0f;
@@ -1066,7 +1066,6 @@ W8Missile::~W8Missile()
 {
     SetLights(0);
     delete m_pRep;
-    m_pRep = 0;
     DetachMissileReferences(this);
     UnregisterGrCycle(this);
 }
