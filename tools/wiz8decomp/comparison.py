@@ -393,11 +393,13 @@ def compare_selected(
     *,
     side_by_side: bool = False,
     classify_header_emissions: bool = False,
+    classify_template_emissions: bool = False,
 ) -> dict[str, Any]:
     """Compare the selected functions with reccmp and summarize its results.
 
     Differences are review material, not failures. The selection fails when a
-    comparison did not complete, or a selected function has no counterpart."""
+    comparison did not complete, or a selected authored function has no counterpart.
+    Marker-only template non-emissions remain visible without failing the selection."""
     recmp_target = comparison_target(repository, target)
     warn_if_build_may_be_stale(repository, target, recmp_target)
     _manifest, summary = _run_reccmp(
@@ -406,6 +408,7 @@ def compare_selected(
     rows = {int(row["orig"], 16): row for row in (summary or {}).get("functions", [])}
 
     header_emissions: dict[int, Any] = {}
+    template_emissions: set[int] = set()
     unlinked_addresses = {
         address
         for address in addresses
@@ -440,6 +443,21 @@ def compare_selected(
             for address in unlinked_addresses & model.keys()
             if is_header_definition(address)
         }
+    if classify_template_emissions and unlinked_addresses:
+        from .source_index import load_source_index
+
+        template_addresses = {
+            int(marker["address"])
+            for marker in load_source_index(repository)["markers"]
+            if marker["target"].upper() == target.upper() and marker["marker_kind"] == "TEMPLATE"
+        }
+        template_emissions = {
+            address
+            for address in unlinked_addresses & template_addresses
+            if (row := rows.get(address)) is not None
+            and row["outcome"] == "unpaired"
+            and row["recomp"] is None
+        }
     functions: list[dict[str, Any]] = []
     for address in sorted(set(addresses)):
         row = rows.get(address)
@@ -454,6 +472,12 @@ def compare_selected(
                     "source_file": marker.source_file,
                 }
             )
+        elif address in template_emissions:
+            assert row is not None
+            emission = _function_row(repository, target, row)
+            emission["outcome"] = "template-non-emission"
+            emission["reason"] = "retail template emission has no paired rebuild emission"
+            functions.append(emission)
         elif row is not None:
             functions.append(_function_row(repository, target, row))
         else:
@@ -465,7 +489,8 @@ def compare_selected(
         "ok": counts["analysis-failed"] == 0 and counts["unpaired"] == 0 and counts["missing"] == 0,
         "selected": len(functions),
         "counts": {
-            outcome: counts[outcome] for outcome in (*_OUTCOMES, "header-emission", "missing")
+            outcome: counts[outcome]
+            for outcome in (*_OUTCOMES, "header-emission", "template-non-emission", "missing")
         },
         "report": {
             "summary": str((output / "summary.json").relative_to(repository))
