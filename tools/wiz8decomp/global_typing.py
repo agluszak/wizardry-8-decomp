@@ -149,6 +149,21 @@ def _named_data_type(program: Any, name: str) -> Any | None:
             f"/Demangler/{simple}",
         )
     )
+    # PDB imports encode a pointer template argument as ``T_#``. Resolve that
+    # spelling only after the exact source spelling, and only for one simple
+    # argument, so nested or ambiguous template identities remain unresolved.
+    template, bracket, argument = simple.partition("[")
+    if bracket and argument.endswith("]"):
+        element = argument[:-1].strip()
+        if (
+            element.endswith("*")
+            and "[" not in element
+            and "]" not in element
+            and "," not in element
+        ):
+            pointee = element[:-1].strip()
+            if pointee and " " not in pointee and "::" not in pointee:
+                candidates.append(f"/{template}[{pointee}_#]")
     seen: set[str] = set()
     for path in candidates:
         if path in seen or "//" in path or path.endswith("/"):

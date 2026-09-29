@@ -268,6 +268,8 @@ def test_build_freshness_warning_uses_input_mtimes(
     comparison.warn_if_build_may_be_stale(tmp_path, "WIZ8", target)
 
     assert ("comparison build may be stale" in caplog.text) is warns
+    if warns:
+        assert "newer input: reccmp-project.yml (+1 more)" in caplog.text
 
 
 def _products(tmp_path: Path, monkeypatch) -> None:

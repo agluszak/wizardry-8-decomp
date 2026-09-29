@@ -95,7 +95,7 @@ public:
     virtual void HandleInput(InputAtom* input); /* 0x005B1BE0 */
     virtual void Refresh();                     /* 0x005B1BF0 */
     virtual void Prepare();                     /* 0x005AFFA0 */
-    W8GrowableVector<W8CharacterPageEntry*> m_entries_04c;
+    W8Vector<W8CharacterPageEntry*> m_entries_04c;
     W8CharacterScreen* m_screen_05c;
     W8Character* m_character_060;
     W8CharacterCreationState* m_creation_state_064;

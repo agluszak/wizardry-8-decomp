@@ -273,10 +273,18 @@ def warn_if_build_may_be_stale(repository: Path, target: str, recmp_target: RecC
         for path in (repository / root).rglob("*")
         if path.suffix.lower() in _PRODUCT_INPUT_SUFFIXES
     )
-    if any(path.is_file() and path.stat().st_mtime_ns > built_at for path in candidates):
+    newer = sorted(
+        path.relative_to(repository).as_posix()
+        for path in candidates
+        if path.is_file() and path.stat().st_mtime_ns > built_at
+    )
+    if newer:
         LOGGER.warning(
             "comparison build may be stale; relevant inputs are newer than the current build\n"
-            "         run `uv run wiz8 build` for fresh comparison results"
+            "         newer input: %s%s\n"
+            "         run `uv run wiz8 build` for fresh comparison results",
+            newer[0],
+            f" (+{len(newer) - 1} more)" if len(newer) > 1 else "",
         )
 
 

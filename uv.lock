@@ -478,7 +478,7 @@ wheels = [
 [[package]]
 name = "reccmp"
 version = "0.1.7"
-source = { git = "https://github.com/agluszak/reccmp?rev=68408e8f5f20fa7387f808dd667e6679fc89f9c2#68408e8f5f20fa7387f808dd667e6679fc89f9c2" }
+source = { git = "https://github.com/agluszak/reccmp?rev=030fc4d65e960c03a3415659e40508f0efbc5851#030fc4d65e960c03a3415659e40508f0efbc5851" }
 dependencies = [
     { name = "capstone" },
     { name = "colorama" },
@@ -628,6 +628,6 @@ dev = [
     { name = "pyright", specifier = ">=1.1.403,<2" },
     { name = "pytest", specifier = ">=8.4,<10" },
     { name = "pytest-cov", specifier = ">=6.2,<8" },
-    { name = "reccmp", git = "https://github.com/agluszak/reccmp?rev=68408e8f5f20fa7387f808dd667e6679fc89f9c2" },
+    { name = "reccmp", git = "https://github.com/agluszak/reccmp?rev=030fc4d65e960c03a3415659e40508f0efbc5851" },
     { name = "ruff", specifier = ">=0.12,<1" },
 ]
