@@ -11,7 +11,6 @@
    store a dword at complete +0x13c; operator= copies that dword only.
    Allocation of the most-derived illuminator stops at 0x150: fog and light
    own the bytes that follow. */
-#pragma pack(push, 4)
 // VTABLE: SURRENDER 0x10077068 srVertexProcessor
 // VTABLE: SURRENDER 0x10077074 srClassSupport<srIlluminator, srNode, 0, 4608>
 // class srIlluminator
@@ -19,7 +18,7 @@ class SR_DLL_EXPORT srIlluminator : public srClassSupport<srIlluminator, srNode,
                                     public srVertexProcessor {
 public:
     SR_DLL_IMPORT srIlluminator(srNode* parent = 0);
-    SR_DLL_IMPORT srIlluminator(const srIlluminator& other);
+
     SR_DLL_IMPORT srIlluminator& operator=(const srIlluminator& other);
     static SR_DLL_IMPORT const char* sGetClassName();
     virtual SR_DLL_IMPORT void traverse(TraverseInfo& info) override;
@@ -39,9 +38,7 @@ public:
 
     unsigned long group_mask_13c;       /* 0x13c */
     srVector3T<float> eye_location_140; /* 0x140 */
-    unsigned char pad_14c_[4];          /* 0x14c: keep derived doubles at 0x150 */
 };
-#pragma pack(pop)
 
 static_assert((sizeof(srIlluminator) == 0x150), "srIlluminator_must_be_0x150");
 /* The secondary srVertexProcessor subobject sits at +0x138 (retail secondary

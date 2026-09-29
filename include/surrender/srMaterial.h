@@ -32,7 +32,7 @@ public:
     {
         reset();
     }
-    srMaterial(const srMaterial& other);
+
     static const char* sGetClassName();
 
     virtual void dump(std::ostream& stream) override;

@@ -607,7 +607,9 @@ def test_runtime_suite_selection_and_server_lifetime(
     monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *args: _registry())
 
     def run(executable, stage, environment, scenario, timeout_seconds, object_root, map_path):
-        assert timeout_seconds == 15
+        # The native executor allows 15 seconds for initialization and starts
+        # a fresh 15-second case deadline afterward; launch/teardown gets 60.
+        assert timeout_seconds == 90
         visited.append((scenario, stage))
         (stage / "scenario-output.tmp").write_text(scenario)
         return {"scenario": scenario, "teardown": 1}

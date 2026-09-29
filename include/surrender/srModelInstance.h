@@ -15,7 +15,7 @@ class SR_DLL_EXPORT srModelInstance : public srClassSupport<srModelInstance, srN
                                       public srModel::Client {
 public:
     SR_DLL_IMPORT srModelInstance(srNode* parent = 0);
-    srModelInstance(const srModelInstance& other);
+
     SR_DLL_IMPORT srModelInstance& operator=(const srModelInstance& other);
 
 #if defined(SURRENDER_BUILD)

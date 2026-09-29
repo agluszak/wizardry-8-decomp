@@ -37,7 +37,7 @@ public:
     };
 
     srModel();
-    srModel(const srModel& other);
+
     srModel& operator=(const srModel& other);
     friend class Client;
 

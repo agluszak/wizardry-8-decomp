@@ -70,7 +70,7 @@ public:
     enum e_notify { NOTIFY_POSITIONAL_0 = 0 };
 
     SR_DLL_IMPORT srNode(srNode* parent = 0);
-    SR_DLL_IMPORT srNode(const srNode& other);
+
     SR_DLL_IMPORT srNode& operator=(const srNode& other);
 
     static SR_DLL_IMPORT const char* sGetClassName();

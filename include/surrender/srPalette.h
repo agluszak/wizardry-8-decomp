@@ -185,7 +185,7 @@ public:
                                                         long color_count);
 
     SR_DLL_IMPORT srPalette(srARGB* colors = 0, long color_count = 1);
-    SR_DLL_IMPORT srPalette(const srPalette& other);
+
     SR_DLL_IMPORT srPalette& operator=(const srPalette& other);
 
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;

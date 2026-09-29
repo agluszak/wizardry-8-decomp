@@ -106,19 +106,11 @@ unsigned long srIlluminator::getGroupMask() const
     return group_mask_13c;
 }
 
-// FUNCTION: SURRENDER 0x1004CB20
-srIlluminator::srIlluminator(const srIlluminator& other)
-    : srClassSupport<srIlluminator, srNode, false, 0x1200>(static_cast<srNode*>(0))
-{
-    *this = other;
-    eye_location_140 = other.eye_location_140;
-}
+// SYNTHETIC: SURRENDER 0x1004CB20
+// srIlluminator::srIlluminator (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x1004C6E0
-srIlluminator::~srIlluminator()
-{
-    srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
-}
+srIlluminator::~srIlluminator() {}
 
 // SYNTHETIC: SURRENDER 0x1004CC20
 // srIlluminator default constructor closure

@@ -5,7 +5,6 @@
 /* SR.DLL exports both vtables and the complete lifecycle. Dump/assert strings
    name Fog start, Fog end and Density; ctor defaults density 0.5 and fogEnd
    1000.0. Wizardry writes these fields on the static and dynamic scene fogs. */
-#pragma pack(push, 4)
 // VTABLE: SURRENDER 0x10076FA8 srVertexProcessor
 // VTABLE: SURRENDER 0x10076FB4 srClassSupport<srIlluminator, srNode, 0, 4608>
 // class srFog
@@ -51,8 +50,6 @@ public:
     double fog_start_150; /* 0x150 */
     double fog_end_158;   /* 0x158 */
     float density_160;    /* 0x160 */
-    unsigned char pad_164_[4];
 };
-#pragma pack(pop)
 
 static_assert(sizeof(srFog) == 0x168, "srFog_must_be_0x168");

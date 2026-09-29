@@ -639,15 +639,8 @@ srClass* srPalette::vInstance()
    field copy to operator=, then retail overwrites the freshly allocated
    members with the source's pointers — sharing the source's color table and
    quantizer and leaking the copies operator= just made. */
-// FUNCTION: SURRENDER 0x10004EE0
-srPalette::srPalette(const srPalette& other) : srClassSupport<srPalette, srClass, 1, 0x2900>()
-{
-    *this = other;
-    flags_18 = other.flags_18;
-    colors_1c = other.colors_1c;
-    color_count_20 = other.color_count_20;
-    quantizer_24 = other.quantizer_24;
-}
+// SYNTHETIC: SURRENDER 0x10004EE0
+// srPalette::srPalette (implicit copy constructor)
 
 /* Sampler field offsets and behavior are fixed by the retail constructor
    (0x100067d0), discard (0x100068d0) and addColor (0x10006530). */

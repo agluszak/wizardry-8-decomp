@@ -66,6 +66,7 @@ set_source_files_properties(
     clipplane.cpp
     color_surface.cpp
     config.cpp
+    core.cpp
     debug.cpp
     debug_vp.cpp
     dynamic_library.cpp
@@ -81,10 +82,13 @@ set_source_files_properties(
     illuminator.cpp
     io_managers.cpp
     light.cpp
+    material.cpp
     mesh_model.cpp
+    model.cpp
     model_instance.cpp
     modeler.cpp
     mutex.cpp
+    node.cpp
     renderer.cpp
     scene.cpp
     stream.cpp

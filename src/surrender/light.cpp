@@ -61,39 +61,8 @@ srLight::srLight(srNode* parent, e_preset preset)
     }
 }
 
-// FUNCTION: SURRENDER 0x1004EAB0
-srLight::srLight(const srLight& other)
-    : srClassSupport<srLight, srIlluminator, false, 0x1220>(static_cast<srNode*>(0))
-{
-    *this = other;
-    attenuation_model_150 = other.attenuation_model_150;
-    near_start_158 = other.near_start_158;
-    near_end_160 = other.near_end_160;
-    far_start_168 = other.far_start_168;
-    far_end_170 = other.far_end_170;
-    scaled_near_start_178 = other.scaled_near_start_178;
-    scaled_far_end_17c = other.scaled_far_end_17c;
-    near_attenuation_180 = other.near_attenuation_180;
-    far_attenuation_184 = other.far_attenuation_184;
-    opengl_attenuation_188 = other.opengl_attenuation_188;
-    enable_flags_194 = other.enable_flags_194;
-    ambient_198 = other.ambient_198;
-    diffuse_1a4 = other.diffuse_1a4;
-    specular_1b0 = other.specular_1b0;
-    spot_direction_1bc = other.spot_direction_1bc;
-    spot_angle_1c8 = other.spot_angle_1c8;
-    spot_exponent_1cc = other.spot_exponent_1cc;
-    intensity_1d0 = other.intensity_1d0;
-    safe_range_1d4 = other.safe_range_1d4;
-    scaled_ambient_1d8 = other.scaled_ambient_1d8;
-    scaled_diffuse_1e8 = other.scaled_diffuse_1e8;
-    scaled_specular_1f8 = other.scaled_specular_1f8;
-    spot_direction_eye_208 = other.spot_direction_eye_208;
-    spot_cutoff_214 = other.spot_cutoff_214;
-    attenuation_range_218 = other.attenuation_range_218;
-    derived_flags_21c = other.derived_flags_21c;
-    channel_mask_220 = other.channel_mask_220;
-}
+// SYNTHETIC: SURRENDER 0x1004EAB0
+// srLight::srLight (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x1004DFB0
 srLight& srLight::operator=(const srLight& other)

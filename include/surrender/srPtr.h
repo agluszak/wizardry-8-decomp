@@ -9,11 +9,12 @@ public:
     /* Retail's copy path addrefs the source pointer then stores it — no
        release path exists on a fresh object (srGERD's implicit copy
        constructor at 0x1001B020 inlines exactly that sequence). */
-    srPtr(const srPtr& other) : pointer_(other.pointer_)
+    srPtr(const srPtr& other)
     {
-        if (pointer_ != 0) {
-            pointer_->addReference();
+        if (other.pointer_ != 0) {
+            other.pointer_->addReference();
         }
+        pointer_ = other.pointer_;
     }
     /* The scalar-array element-dtor emissions: mesh_model's materials_1c
        array uses the srPtr<srMaterialIFace> copy at 0x10042B00 while

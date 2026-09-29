@@ -12,7 +12,6 @@
    near/far ranges, OpenGL attenuation factors, safe range, spot, and the
    ambient/diffuse/specular coefficients. Ctor preset 0 sets enable flags
    0x12, preset 1 (Wizardry default) sets 0x10, preset 2 sets bit 0. */
-#pragma pack(push, 4)
 /* Two vtables: the primary srClassSupport table and the srVertexProcessor
    virtual-base sub-table. */
 // VTABLE: SURRENDER 0x100770B8 srVertexProcessor
@@ -45,7 +44,7 @@ public:
        inlined into 0x0049C2C0 - reaches this one as srLight(0, 1), so both
        parameters carry those defaults here. */
     SR_DLL_IMPORT srLight(srNode* parent = 0, e_preset preset = PRESET_POSITIONAL_1);
-    SR_DLL_IMPORT srLight(const srLight& other);
+
     SR_DLL_IMPORT srLight& operator=(const srLight& other);
 
     /* Pushed as the literal at 0x00606E48 wherever the registry chain runs,
@@ -113,11 +112,10 @@ public:
     SR_DLL_IMPORT float getSafeRange() const;
 
     e_attenuationModel attenuation_model_150; /* 0x150 */
-    unsigned char pad_154_[4];
-    double near_start_158; /* 0x158 */
-    double near_end_160;   /* 0x160 */
-    double far_start_168;  /* 0x168 */
-    double far_end_170;    /* 0x170 */
+    double near_start_158;                    /* 0x158 */
+    double near_end_160;                      /* 0x160 */
+    double far_start_168;                     /* 0x168 */
+    double far_end_170;                       /* 0x170 */
     /* Eye-space derived state filled by process(ProcessInfo): the near/far
        attenuation ranges rescaled by the model-view scale, their reciprocal
        slopes, the intensity-scaled colors, the eye-space spot direction and
@@ -147,8 +145,6 @@ public:
     float attenuation_range_218;              /* 0x218: scaled far end */
     unsigned long derived_flags_21c;          /* 0x21c */
     unsigned long channel_mask_220;           /* 0x220 */
-    unsigned char pad_224_[4];                /* 0x224 */
 };
-#pragma pack(pop)
 
 static_assert(sizeof(srLight) == 0x228, "srLight_must_be_0x228");

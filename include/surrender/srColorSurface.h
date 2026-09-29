@@ -1,6 +1,7 @@
 #pragma once
 
 #include "srColorSurfaceIFace.h"
+#include "srPalette.h"
 
 // VTABLE: SURRENDER 0x100773A0
 // class srClassSupport<srColorSurface, srColorSurfaceIFace, 0, 12560>
@@ -20,7 +21,7 @@ public:
                                  unsigned long width, unsigned long height, unsigned long pitch);
     SR_DLL_IMPORT srColorSurface(srPixelConvert::e_surfaceType type, void* data,
                                  unsigned long width, unsigned long height, unsigned long pitch);
-    SR_DLL_IMPORT srColorSurface(const srColorSurface& other);
+
     SR_DLL_IMPORT srColorSurface& operator=(const srColorSurface& other);
 
     static SR_DLL_IMPORT const char* sGetClassName();

@@ -22,18 +22,8 @@ srTextureFile::srTextureFile(const char* file_name, int cached)
     }
 }
 
-/* Retail delegates to operator= then overwrites the fresh members with a
-   raw memberwise copy of the source — file_name_58 is shared, not
-   re-duplicated. */
-// FUNCTION: SURRENDER 0x1005FF80
-srTextureFile::srTextureFile(const srTextureFile& other)
-{
-    *this = other;
-    cached_54 = other.cached_54;
-    file_name_58 = other.file_name_58;
-    surface_5c = other.surface_5c;
-    frame_handle_60 = other.frame_handle_60;
-}
+// SYNTHETIC: SURRENDER 0x1005FF80
+// srTextureFile::srTextureFile (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x1005F780
 srTextureFile& srTextureFile::operator=(const srTextureFile& other)

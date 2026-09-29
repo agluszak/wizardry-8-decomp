@@ -448,6 +448,16 @@ public:
         registry->registerInstance(sGetClassNode(), this);
     }
 
+    /* Retail's exported copies (srNode 0x10051AA0, srMeshModel 0x10041BF0)
+       default-construct Base, register this support layer and assign Derived
+       before the compiler copy-constructs Derived's members. This accesses
+       unconstructed derived state; retain that retail lifecycle ordering. */
+    srClassSupport(const Derived& other) : Base()
+    {
+        srCore.getRegistry()->registerInstance(sGetClassNode(), this);
+        *static_cast<Derived*>(this) = other;
+    }
+
 public:
     /* Forwarding constructors: scene-graph instantiations pass the canonical
        node parent, texture maps their color surface, and client-emitted

@@ -395,10 +395,7 @@ const char* srMaterial::sGetClassName()
 }
 
 // FUNCTION: SURRENDER 0x10016880
-srMaterial::~srMaterial()
-{
-    srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
-}
+srMaterial::~srMaterial() {}
 
 // FUNCTION: SURRENDER 0x100343C0
 srClass* srMaterial::vInstance()
@@ -406,16 +403,8 @@ srClass* srMaterial::vInstance()
     return new srMaterial;
 }
 
-// FUNCTION: SURRENDER 0x100344B0
-srMaterial::srMaterial(const srMaterial& other)
-{
-    srCore.getRegistry()->registerInstance(sGetClassNode(), this);
-    *this = other;
-    parms = other.parms;
-    operations_6c.value = other.operations_6c.value;
-    mapper_70 = other.mapper_70;
-    dirty_74 = other.dirty_74;
-}
+// SYNTHETIC: SURRENDER 0x100344B0
+// srMaterial::srMaterial (implicit copy constructor)
 
 // SYNTHETIC: SURRENDER 0x100345E0
 // srMaterial::`vector deleting destructor'

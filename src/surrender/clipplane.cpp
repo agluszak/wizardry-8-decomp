@@ -145,14 +145,8 @@ srClass* srClipPlane::vInstance()
     return 0;
 }
 
-// FUNCTION: SURRENDER 0x1004A1C0
-srClipPlane::srClipPlane(const srClipPlane& other)
-    : srClassSupport<srClipPlane, srNode, false, 0x1500>(static_cast<srNode*>(0))
-{
-    *this = other;
-    clip_type_ = other.clip_type_;
-    clip_plane_ = other.clip_plane_;
-}
+// SYNTHETIC: SURRENDER 0x1004A1C0
+// srClipPlane::srClipPlane (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x1004A2C0
 srClipPlane::~srClipPlane() {}
