@@ -98,7 +98,9 @@ def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypa
         "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
     )
     source = tmp_path / "new.cpp"
-    source.write_text("// FUNCTION: WIZ8 0x00401000\nvoid added() {}\n")
+    source.write_text(
+        "// FUNCTION: WIZ8 0x00401000\nvoid added() {}\n// TEMPLATE: WIZ8 0x00401020\n"
+    )
     (tmp_path / "build").mkdir()
     index = tmp_path / "build/source-index.json"
     stale = {"markers": []}
@@ -115,14 +117,20 @@ def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypa
                         "address": 0x401000,
                         "source_file": "new.cpp",
                         "target": "WIZ8",
-                    }
+                    },
+                    {
+                        "marker_kind": "TEMPLATE",
+                        "address": 0x401020,
+                        "source_file": "new.cpp",
+                        "target": "WIZ8",
+                    },
                 ],
             }
         )
     )
 
     def compare(_repo, _target, selected, ghidra_install_dir, **_kwargs):
-        assert selected == [0x401000]
+        assert selected == [0x401000, 0x401020]
         assert ghidra_install_dir == settings.ghidra_install_dir
         events.append("compare")
         return {

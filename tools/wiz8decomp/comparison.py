@@ -42,8 +42,14 @@ def parse_address(value: str) -> int:
     return address
 
 
-def addresses_from_files(repository: Path, target: str, paths: Iterable[Path]) -> list[int]:
-    """Select compiler-bound FUNCTION markers from the shared source index."""
+def addresses_from_files(
+    repository: Path,
+    target: str,
+    paths: Iterable[Path],
+    *,
+    include_templates: bool = False,
+) -> list[int]:
+    """Select compiler-bound functions, plus template emissions when requested."""
 
     from .source_index import load_source_index
 
@@ -53,7 +59,10 @@ def addresses_from_files(repository: Path, target: str, paths: Iterable[Path]) -
     return [
         int(marker["address"])
         for marker in load_source_index(repository)["markers"]
-        if marker["marker_kind"] == "FUNCTION"
+        if (
+            marker["marker_kind"] == "FUNCTION"
+            or (include_templates and marker["marker_kind"] == "TEMPLATE")
+        )
         and marker["target"].upper() == target.upper()
         and str((repository / marker["source_file"]).resolve()) in selected
     ]
@@ -99,12 +108,19 @@ def changed_source_files(repository: Path, since: str | None = None) -> list[Pat
 
 
 def selected_addresses(
-    repository: Path, target: str, raw: Iterable[str], paths: Iterable[Path]
+    repository: Path,
+    target: str,
+    raw: Iterable[str],
+    paths: Iterable[Path],
+    *,
+    include_templates: bool = False,
 ) -> list[int]:
     selected = set(_resolve_source_selectors(repository, target, raw)) if raw else set()
     paths = list(paths)
     if paths:
-        selected.update(addresses_from_files(repository, target, paths))
+        selected.update(
+            addresses_from_files(repository, target, paths, include_templates=include_templates)
+        )
     if not selected:
         raise ValueError("pass one or more addresses and/or --file source paths")
     return sorted(selected)
@@ -132,7 +148,8 @@ def header_dependent_files(settings: Settings, target: str, changed: Iterable[Pa
     marker_files = {
         marker["source_file"]
         for marker in index["markers"]
-        if marker["target"].upper() == target.upper() and marker["marker_kind"] == "FUNCTION"
+        if marker["target"].upper() == target.upper()
+        and marker["marker_kind"] in {"FUNCTION", "TEMPLATE"}
     }
     affected: set[str] = set()
     for unit in dependencies:
