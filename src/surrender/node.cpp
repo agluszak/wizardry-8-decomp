@@ -45,8 +45,9 @@ int srNode::isSceneGraphLocked()
 // FUNCTION: SURRENDER 0x10050390
 void srNode::notifyDependent()
 {
-    notifyParents(srFlags<e_notify>(0xffffffff));
-    notifyChildren(srFlags<e_notify>(0xffffffff));
+    const srFlags<e_notify> notifications(0xffffffff);
+    notifyParents(notifications);
+    notifyChildren(notifications);
 }
 
 // FUNCTION: SURRENDER 0x100503C0
@@ -99,7 +100,7 @@ void srNode::traverse(TraverseInfo& info)
     if (next_sibling_ != 0) {
         next_sibling_->traverse(info);
     }
-    if (testFlag(FLAG_TERMINATE) == 0 && first_child_ != 0) {
+    if ((flags_124.value & (1 << FLAG_TERMINATE)) == 0 && first_child_ != 0) {
         first_child_->traverse(info);
     }
 }
@@ -547,7 +548,7 @@ void srNode::setWSDirty()
 {
     /* The dirty fan-out to parents and children can rewrite the notification
        word, so retail saves the positional bit first and restores it after. */
-    int was_positional = testNotify(NOTIFY_POSITIONAL_0);
+    int was_positional = notifications_120.value & (1 << NOTIFY_POSITIONAL_0);
     notifyParents(srFlags<e_notify>(1));
     notifyChildren(srFlags<e_notify>(2));
     notifications_120.set(NOTIFY_POSITIONAL_0, was_positional);
@@ -1129,7 +1130,7 @@ srNode* srNode::findChild(const char* name) const
 // FUNCTION: SURRENDER 0x10050730
 srNode* srNode::findChildInternal(const char* name)
 {
-    if (strcmp(getName(), name) == 0) {
+    if (strcmp(name, getName()) == 0) {
         return this;
     }
     if (next_sibling_ != 0) {
@@ -1157,7 +1158,7 @@ srNode* srNode::findChildByNameAndType(const char* name, unsigned long class_id)
 // FUNCTION: SURRENDER 0x100507D0
 srNode* srNode::findChildByNameAndTypeInternal(const char* name, unsigned long class_id)
 {
-    if (strcmp(getName(), name) == 0 && matchClassID(class_id) != 0) {
+    if (strcmp(name, getName()) == 0 && matchClassID(class_id) != 0) {
         return this;
     }
     if (next_sibling_ != 0) {
@@ -1186,7 +1187,7 @@ srNode* srNode::findParent(const char* name) const
 srNode* srNode::findParentInternal(const char* name)
 {
     srNode* node = this;
-    while (strcmp(node->getName(), name) != 0) {
+    while (strcmp(name, node->getName()) != 0) {
         node = node->parent_;
         if (node == 0) {
             return 0;

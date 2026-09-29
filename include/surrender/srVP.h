@@ -260,10 +260,10 @@ public:
     virtual void _mulIndexed(srVector3* destination, const srVector3& constant,
                              const srVector3* indexed_source, const SRDWORD* indices,
                              SRDWORD count);
-    virtual void _mulIndexed(srVector4* destination, const srVector4* linear_source,
+    virtual void _mulIndexed(srVector4* destination, const srVector4& constant,
                              const srVector4* indexed_source, const SRDWORD* indices,
                              SRDWORD count);
-    virtual void _mulIndexed(srVector4* destination, const srVector4& constant,
+    virtual void _mulIndexed(srVector4* destination, const srVector4* linear_source,
                              const srVector4* indexed_source, const SRDWORD* indices,
                              SRDWORD count);
     virtual void _toInt(SRLONG* destination, const float* source, SRDWORD count);
