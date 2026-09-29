@@ -475,10 +475,12 @@ srPalette::srPalette(srARGB* colors, long color_count)
                     for (long blue = 0; blue < 6; ++blue) {
                         if (red != green || red != blue) {
                             colors_1c[index].alpha = 0xff;
-                            colors_1c[index].red = static_cast<unsigned char>(red * 0.2f * 255.0);
+                            colors_1c[index].red =
+                                static_cast<unsigned char>(srFloatToInt(red * 0.2f * 255.0));
                             colors_1c[index].green =
-                                static_cast<unsigned char>(green * 0.2f * 255.0);
-                            colors_1c[index].blue = static_cast<unsigned char>(blue * 0.2f * 255.0);
+                                static_cast<unsigned char>(srFloatToInt(green * 0.2f * 255.0));
+                            colors_1c[index].blue =
+                                static_cast<unsigned char>(srFloatToInt(blue * 0.2f * 255.0));
                             ++index;
                         }
                     }
@@ -487,9 +489,9 @@ srPalette::srPalette(srARGB* colors, long color_count)
             for (long gray = 0; gray < 0x2e; ++gray) {
                 double value = gray * 0.022222223f * 255.0;
                 colors_1c[0xd2 + gray].alpha = 0xff;
-                colors_1c[0xd2 + gray].red = static_cast<unsigned char>(value);
-                colors_1c[0xd2 + gray].green = static_cast<unsigned char>(value);
-                colors_1c[0xd2 + gray].blue = static_cast<unsigned char>(value);
+                colors_1c[0xd2 + gray].red = static_cast<unsigned char>(srFloatToInt(value));
+                colors_1c[0xd2 + gray].green = static_cast<unsigned char>(srFloatToInt(value));
+                colors_1c[0xd2 + gray].blue = static_cast<unsigned char>(srFloatToInt(value));
             }
         } else {
             double step = 0.0;
@@ -499,9 +501,9 @@ srPalette::srPalette(srARGB* colors, long color_count)
             for (long index = 0; index < color_count; ++index) {
                 double value = index * step * 255.0;
                 colors_1c[index].alpha = 0xff;
-                colors_1c[index].red = static_cast<unsigned char>(value);
-                colors_1c[index].green = static_cast<unsigned char>(value);
-                colors_1c[index].blue = static_cast<unsigned char>(value);
+                colors_1c[index].red = static_cast<unsigned char>(srFloatToInt(value));
+                colors_1c[index].green = static_cast<unsigned char>(srFloatToInt(value));
+                colors_1c[index].blue = static_cast<unsigned char>(srFloatToInt(value));
             }
         }
     } else if (0 < color_count * 4) {
@@ -814,12 +816,10 @@ void srPalette::Sampler::reallocColors(long new_capacity)
     /* Retail tests the first allocation and stores 0 on failure — a no-op
        check identical in shape to addSurface's pixels guard. The second
        allocation is never tested. */
-    if (new_colors == 0) {
-        new_colors = 0;
-    }
     long* new_links = static_cast<long*>(::operator new(new_capacity * sizeof(long)));
+    srARGB empty_color = {0, 0, 0, 0};
     for (long index = 0; index < new_capacity; ++index) {
-        new_colors[index].color = srARGB();
+        new_colors[index].color = empty_color;
         new_colors[index].count = 0;
         new_links[index] = -1;
     }
@@ -979,9 +979,6 @@ void srPalette::Sampler::addSurface(srColorSurfaceIFace& surface, long weight)
         /* Retail shape (0x1000644F): the allocation result is tested and 0 is
            stored on failure — a no-op null check; pixels then flows into
            getPixelRow regardless. */
-        if (pixels == 0) {
-            pixels = 0;
-        }
         for (long y = 0; y < height; ++y) {
             surface.getPixelRow(pixels, y, 0, width);
             addColors((const srARGB*)pixels, width,
