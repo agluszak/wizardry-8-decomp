@@ -104,22 +104,12 @@ void W8AnimRepBase::GetRotation(srMatrix3T<float>* rotation)
 
 // FUNCTION: WIZ8 0x004b53d0
 W8AnimRep::W8AnimRep()
+    : subcycle_064(0), pending_subcycle_066(0xffff), timer_068(0), active(0),
+      animation_playing_06d(0), frame_direction_06e(0), frame_method_06f(0),
+      animation_behaviour_070(0), pending_behaviour_071(-1), bounds_min_074(0.0f, 0.0f, 0.0f),
+      bounds_max_080(0.0f, 0.0f, 0.0f), bounds_extent_08c(0), value_090(0), first_frame_094(0xff),
+      last_frame_095(0xff)
 {
-    subcycle_064 = 0;
-    pending_subcycle_066 = 0xffff;
-    timer_068 = 0;
-    active = 0;
-    animation_playing_06d = 0;
-    frame_direction_06e = 0;
-    frame_method_06f = 0;
-    animation_behaviour_070 = 0;
-    pending_behaviour_071 = -1;
-    bounds_min_074.SetZero();
-    bounds_max_080.SetZero();
-    bounds_extent_08c = 0;
-    value_090 = 0;
-    first_frame_094 = 0xff;
-    last_frame_095 = 0xff;
     if (g_shared_timer_base == 0) {
         srAssertFail("gpsrTimer", "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp", 0x4e, 0);
     }
@@ -141,24 +131,17 @@ W8AnimRepBase* W8AnimRepBase::Clone()
    representation from the shared SurRender timer.  The source assertion names
    that global `gpsrTimer`. */
 // FUNCTION: WIZ8 0x004b54a0
-W8AnimRep::W8AnimRep(const W8AnimRep& other) : W8AnimRepBase(other)
+W8AnimRep::W8AnimRep(const W8AnimRep& other)
+    : W8AnimRepBase(other), subcycle_064(other.subcycle_064),
+      pending_subcycle_066(other.pending_subcycle_066), timer_068(other.timer_068),
+      active(other.active), animation_playing_06d(other.animation_playing_06d),
+      frame_direction_06e(other.frame_direction_06e), frame_method_06f(other.frame_method_06f),
+      animation_behaviour_070(other.animation_behaviour_070),
+      pending_behaviour_071(other.pending_behaviour_071), bounds_min_074(other.bounds_min_074),
+      bounds_max_080(other.bounds_max_080), bounds_extent_08c(other.bounds_extent_08c),
+      value_090(other.value_090), first_frame_094(other.first_frame_094),
+      last_frame_095(other.last_frame_095)
 {
-    subcycle_064 = other.subcycle_064;
-    pending_subcycle_066 = other.pending_subcycle_066;
-    timer_068 = other.timer_068;
-    active = other.active;
-    animation_playing_06d = other.animation_playing_06d;
-    frame_direction_06e = other.frame_direction_06e;
-    frame_method_06f = other.frame_method_06f;
-    animation_behaviour_070 = other.animation_behaviour_070;
-    pending_behaviour_071 = other.pending_behaviour_071;
-    bounds_min_074 = other.bounds_min_074;
-    bounds_max_080 = other.bounds_max_080;
-    bounds_extent_08c = other.bounds_extent_08c;
-    value_090 = other.value_090;
-    first_frame_094 = other.first_frame_094;
-    last_frame_095 = other.last_frame_095;
-
     if (g_shared_timer_base == 0) {
         srAssertFail("gpsrTimer", "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp", 100, 0);
     }
