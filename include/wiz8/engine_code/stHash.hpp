@@ -252,16 +252,26 @@ template <class Key, class Value> void W8HashTable<Key, Value>::Remove(const Key
 template <class Key, class Value>
 int W8HashTable<Key, Value>::FindNextEntry(const Key* key, int previous) const
 {
-    int slot;
     if (previous == -1) {
-        slot = bucket_heads[W8HashValue(*key) & (bucket_count - 1)];
-    } else {
-        slot = entries[previous].next_index;
+        Key wanted = *key;
+        int slot = bucket_heads[W8HashValue(wanted) & (bucket_count - 1)];
+        while (slot != -1) {
+            if (entries[slot].key == wanted) {
+                return slot;
+            }
+            slot = entries[slot].next_index;
+        }
+        return -1;
     }
-    while (slot != -1 && entries[slot].key != *key) {
+
+    int slot = entries[previous].next_index;
+    while (slot != -1) {
+        if (entries[slot].key == *key) {
+            return slot;
+        }
         slot = entries[slot].next_index;
     }
-    return slot;
+    return -1;
 }
 
 template <class Key, class Value>
