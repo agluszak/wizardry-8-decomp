@@ -724,9 +724,10 @@ def rewrite_compile_entry(
     if isinstance(arguments, list):
         rewritten["arguments"] = [rewrite_compile_token(str(token), roots) for token in arguments]
     elif "command" in rewritten:
-        rewritten["command"] = shlex.join(
+        rewritten["arguments"] = [
             rewrite_compile_token(token, roots) for token in shlex.split(str(rewritten["command"]))
-        )
+        ]
+        del rewritten["command"]
     return rewritten
 
 
@@ -949,6 +950,7 @@ def _collect_source_index(
     settings: Settings,
     *,
     force: bool = False,
+    jobs: int | None = None,
 ) -> SourceIndex:
     """Project adapter: host-path compile DB, then one reccmp collection."""
     cache = repository / "build" / "reccmp-source"
@@ -963,7 +965,7 @@ def _collect_source_index(
         clang="/usr/bin/clang-cl",
         # Each worker is one persistent collector (with the Docker wrapper,
         # one container) that takes jobs until none remain.
-        jobs=min(8, os.cpu_count() or 1),
+        jobs=jobs if jobs is not None else min(8, os.process_cpu_count() or 1),
         cache_dir=cache,
         force=force,
     )
@@ -1017,9 +1019,13 @@ def _source_index_result(document: dict[str, Any], *, cached: bool) -> dict[str,
     }
 
 
-def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, Any]:
+def write_source_index(
+    settings: Settings, *, force: bool = False, jobs: int | None = None
+) -> dict[str, Any]:
     from .build import LINT_BUILD_DIR, configure_clang
 
+    if jobs is not None and jobs < 1:
+        raise ValueError("source-index jobs must be positive")
     repository = settings.repo_dir.resolve()
     validate_synthetic_marker_blocks(repository)
     database = repository / LINT_BUILD_DIR / "compile_commands.json"
@@ -1048,7 +1054,7 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         )
         for target, source_roots in roots.items()
     }
-    index = _collect_source_index(repository, database, targets, settings, force=force)
+    index = _collect_source_index(repository, database, targets, settings, force=force, jobs=jobs)
     document = index.to_dict()
     header_declarations, dependencies = _source_index_projections(index)
     document["header_declarations"] = header_declarations
