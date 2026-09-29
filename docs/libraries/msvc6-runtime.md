@@ -40,7 +40,8 @@ Calling both outer entries "import thunks" hides a real distinction. The `operat
 read directly from the imported decorated export and is therefore ABI-backed. The delete wrapper
 is not imported under that name: its descriptive identity comes from its exact forwarding body and
 the compiler-generated destructor sites that call it. Both callable identities are source-marked;
-the IAT identities and their ownership meaning
+the IAT jumps carry `SYNTHETIC` markers because the linker emits them, while the
+local delete wrapper retains its `LIBRARY` marker. The IAT identities and their ownership meaning
 are reviewed separately in `evidence/reviewed/wiz8/allocator-layers.csv` because an IAT slot is data,
 not a function.
 

@@ -394,3 +394,11 @@ def test_iat_thunk_function_is_rejected(tmp_path: Path) -> None:
 
     assert [item["kind"] for item in violations] == ["iat-thunk-function"]
     assert violations[0]["address"] == "0x00405000"
+
+    _write_index(
+        tmp_path, [_marker(0x405000, "src/wiz8/Wrong.cpp", kind="LIBRARY", name="FakeThunk")]
+    )
+    assert [item["kind"] for item in source_oracle_violations(tmp_path)] == ["iat-thunk-library"]
+
+    _write_index(tmp_path, [_marker(0x405000, "src/wiz8/Emissions.cpp", kind="SYNTHETIC")])
+    assert source_oracle_violations(tmp_path) == []

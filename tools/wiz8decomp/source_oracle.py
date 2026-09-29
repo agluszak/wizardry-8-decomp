@@ -10,8 +10,7 @@ Proven evidence is point-wise first:
 * LIBRARY markers for CRT helpers and embedded zlib entry points;
 * strong reviewed claims (``sgp-source`` retained identities, ``fid`` CRT
   variants);
-* documented hard address ranges (zlib corpus, CRT startup/helper cluster,
-  post-CRT IAT thunk island);
+* documented hard address ranges (zlib corpus, CRT startup/helper cluster);
 * sized reviewed bodies (CRT helpers and named zlib entries);
 * ``config/reccmp/*.csv`` ``library`` rows for extension DLLs (IJG / Info-ZIP).
 
@@ -37,6 +36,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from .config import load_settings
 from .evidence.claims import load_claims
 from .evidence.io import parse_hex
 from .identity_lint import (
@@ -60,10 +60,8 @@ REJECTED_FID_ADDRESSES = frozenset({0x004146E0})
 # Reviewed body sizes: coverage is [start, start+size).
 ORACLE_BODY_SIZES: dict[int, tuple[str, int]] = {
     0x005E1C10: ("msvc-runtime", 12),
-    0x005E1C1C: ("msvc-runtime", 6),
     0x005E1C30: ("msvc-runtime", 104),
     0x005E1CA0: ("msvc-runtime", 52),
-    0x005E1CE0: ("msvc-runtime", 6),
     0x005E1CF0: ("msvc-runtime", 170),
     0x005E1DA0: ("msvc-runtime", 47),
     0x005E1DD0: ("msvc-runtime", 31),
@@ -145,7 +143,6 @@ ORACLE_FAMILIES: tuple[OracleFamily, ...] = (
         address_ranges=(
             (0x00401000, 0x004011DF),
             (0x005E1C10, 0x005E1F41),
-            (0x005E1F42, 0x005E22BF),
         ),
         library_marker_ownership=True,
         library_marker_remainder=True,
@@ -518,6 +515,11 @@ def _owner_detail(
 
 
 def _retail_pe_path(repo_dir: Path) -> Path | None:
+    settings = load_settings(require=False)
+    if settings is not None and settings.repo_dir.resolve() == repo_dir.resolve():
+        path = settings.work_dir / "variants/gog-base/Wiz8.exe"
+        if path.is_file():
+            return path
     candidates = (
         repo_dir / ".wiz8-work/extracted/gog-base/Wiz8.exe",
         repo_dir / ".wiz8-work/variants/gog-base/Wiz8.exe",
@@ -558,7 +560,8 @@ def _iat_thunk_violations(repo_dir: Path, index: Mapping[str, Any]) -> list[dict
     data = pe_path.read_bytes()
     violations: list[dict[str, Any]] = []
     for marker in index.get("markers", ()):
-        if str(marker.get("marker_kind") or "") != "FUNCTION":
+        kind = str(marker.get("marker_kind") or "")
+        if kind not in {"FUNCTION", "LIBRARY"}:
             continue
         if str(marker.get("target") or "") != "WIZ8":
             continue
@@ -572,15 +575,14 @@ def _iat_thunk_violations(repo_dir: Path, index: Mapping[str, Any]) -> list[dict
         source_file = str(marker.get("source_file") or "").replace("\\", "/")
         violations.append(
             {
-                "kind": "iat-thunk-function",
-                "family": "msvc-runtime",
+                "kind": "iat-thunk-function" if kind == "FUNCTION" else "iat-thunk-library",
+                "family": "linker",
                 "address": _format_address(address),
                 "source": source_file,
                 "line": int(marker.get("line") or 0),
                 "detail": (
-                    f"{source_file}:{marker.get('line')}: FUNCTION {_format_address(address)} "
-                    "is a six-byte import thunk (jmp [iat]); mark LIBRARY or leave unmarked, "
-                    "do not recover as a Wizardry body"
+                    f"{source_file}:{marker.get('line')}: {kind} {_format_address(address)} "
+                    "is a six-byte import thunk (jmp [iat]); mark SYNTHETIC or leave unmarked"
                 ),
             }
         )

@@ -1,19 +1,19 @@
 /*
- * Linker- and CRT-owned functions in the canonical executable. As in
- * imperialism-decomp, LIBRARY markers give reccmp address ownership without
- * pretending these bodies are first-party recovered source.
+ * CRT-owned functions and linker-generated import thunks in the canonical
+ * executable. LIBRARY marks retained CRT code; SYNTHETIC marks IAT jump stubs.
+ * Neither kind claims a first-party recovered body.
  */
 
 // LIBRARY: WIZ8 0x00401000
 // __WinMainCRTStartup
 
-// LIBRARY: WIZ8 0x0040115e
+// SYNTHETIC: WIZ8 0x0040115e
 // _XcptFilter
 
-// LIBRARY: WIZ8 0x00401164
+// SYNTHETIC: WIZ8 0x00401164
 // _initterm
 
-// LIBRARY: WIZ8 0x004011c0
+// SYNTHETIC: WIZ8 0x004011c0
 // _except_handler3
 
 // LIBRARY: WIZ8 0x005e1c30
@@ -28,13 +28,13 @@
 // LIBRARY: WIZ8 0x005e1c10
 // ??3@YAXPAX@Z
 
-// LIBRARY: WIZ8 0x005e1c1c
+// SYNTHETIC: WIZ8 0x005e1c1c
 // free_import_thunk
 
 // LIBRARY: WIZ8 0x005e1ca0
 // __allmul
 
-// LIBRARY: WIZ8 0x005e1ce0
+// SYNTHETIC: WIZ8 0x005e1ce0
 // operator_new_import_thunk
 
 // LIBRARY: WIZ8 0x005e1cf0
@@ -61,7 +61,7 @@
 // LIBRARY: WIZ8 0x004028c0
 // _wcsnicmp
 
-// LIBRARY: WIZ8 0x0041A810
+// SYNTHETIC: WIZ8 0x0041A810
 // _AIL_shutdown@0_import_thunk (MSS32.DLL)
 
 /* zlib 1.0.4 corpus in Wiz8.exe. Names come from docs/libraries/zlib-1.0.4.md;
@@ -101,10 +101,10 @@
 // SYNTHETIC: WIZ8 0x0040117f
 // NoOp (compiler-folded empty; called from __WinMainCRTStartup)
 
-// LIBRARY: WIZ8 0x004011c6
+// SYNTHETIC: WIZ8 0x004011c6
 // _controlfp_import_thunk (MSVCRT.DLL)
 
-// LIBRARY: WIZ8 0x004011cc
+// SYNTHETIC: WIZ8 0x004011cc
 // __dllonexit_import_thunk (MSVCRT.DLL)
 
 /* Remaining zlib 1.0.4 boundaries (docs/libraries/zlib-1.0.4.md); names are
@@ -224,64 +224,64 @@
 /* CRT tail and import thunks inside the documented msvc-runtime range
    (tools/wiz8decomp/source_oracle.py, docs/libraries/msvc6-runtime.md). */
 
-// LIBRARY: WIZ8 0x005e1c22
+// SYNTHETIC: WIZ8 0x005e1c22
 // ftol_import_thunk (MSVCRT.DLL)
 
-// LIBRARY: WIZ8 0x005e1cd4
+// SYNTHETIC: WIZ8 0x005e1cd4
 // calloc_import_thunk (MSVCRT.DLL)
 
-// LIBRARY: WIZ8 0x005e1ce6
+// SYNTHETIC: WIZ8 0x005e1ce6
 // _CIacos_import_thunk (MSVCRT.DLL)
 
-// LIBRARY: WIZ8 0x005e1d9a
+// SYNTHETIC: WIZ8 0x005e1d9a
 // purecall_import_thunk (MSVCRT.DLL)
 
-// LIBRARY: WIZ8 0x005e1f66
+// SYNTHETIC: WIZ8 0x005e1f66
 // _CIasin_import_thunk (MSVCRT.DLL)
 
-// LIBRARY: WIZ8 0x005e1f6c
+// SYNTHETIC: WIZ8 0x005e1f6c
 // _CIpow_import_thunk (MSVCRT.DLL)
 
-// LIBRARY: WIZ8 0x005e1fc0
+// SYNTHETIC: WIZ8 0x005e1fc0
 // srNode::processSignal_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e1fc6
+// SYNTHETIC: WIZ8 0x005e1fc6
 // srNode::updateBounds_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e1fcc
+// SYNTHETIC: WIZ8 0x005e1fcc
 // srNode::getLocalBounds_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e2062
+// SYNTHETIC: WIZ8 0x005e2062
 // srColorSurface::blit_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e207a
+// SYNTHETIC: WIZ8 0x005e207a
 // srColorSurface::setVLine_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e2080
+// SYNTHETIC: WIZ8 0x005e2080
 // srColorSurface::setHLine_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e2086
+// SYNTHETIC: WIZ8 0x005e2086
 // srColorSurface::fill_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e20a4
+// SYNTHETIC: WIZ8 0x005e20a4
 // srColorSurface::getDataPtr_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e20aa
+// SYNTHETIC: WIZ8 0x005e20aa
 // srColorSurface::setPalette_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e20f8
+// SYNTHETIC: WIZ8 0x005e20f8
 // srClass::verify_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e213a
+// SYNTHETIC: WIZ8 0x005e213a
 // srModel::updateAllClients_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e21b8
+// SYNTHETIC: WIZ8 0x005e21b8
 // srTimer::getUTime_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e21f4
+// SYNTHETIC: WIZ8 0x005e21f4
 // srNode::dump_import_thunk (SR.DLL)
 
-// LIBRARY: WIZ8 0x005e22b4
+// SYNTHETIC: WIZ8 0x005e22b4
 // DirectDrawCreate_import_thunk (DDRAW.DLL)
 
 // SYNTHETIC: WIZ8 0x005e1e59
