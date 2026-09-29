@@ -368,8 +368,6 @@ char g_sedexus_moaning_sound[] = "Data\\Sound\\Ambients\\Al_Sedexus Moaning.wav"
 // GLOBAL: WIZ8 0x00614b44
 wchar_t g_format_al_s[] = L"Al-%s";
 
-
-
 /* Local Code\NPC Scripting.cpp. The NPC-scripting flag gates the scripted
    monster state; the four accessors below are its only owners. */
 
@@ -2404,7 +2402,7 @@ unsigned char GetNpcQuoteText(W8NpcState* npc, int type, wchar_t* output)
     if (record->subquotes == 0) {
         return 0;
     }
-    swprintf(output, L"%S", record->subquotes[0]);
+    swprintf(output, g_format_S, record->subquotes[0]);
     return 1;
 }
 

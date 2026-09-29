@@ -211,7 +211,7 @@ void DrawJournalLine(const wchar_t* text, int column, int y, int palette, char c
     } else if (palette == 1) {
         SetFontObjectPalette16BPP(g_journal_font, g_journal_font_palette);
     }
-    gprintf(left + x, y, L"%s", text);
+    gprintf(left + x, y, g_format_s, text);
 }
 
 // FUNCTION: WIZ8 0x005bd860

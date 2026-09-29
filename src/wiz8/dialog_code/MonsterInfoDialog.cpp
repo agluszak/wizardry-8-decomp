@@ -22,6 +22,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/regions.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/utility.h"
@@ -525,7 +526,7 @@ void W8MonsterInfoDialog::Draw()
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
         INT16 width = StringPixLength(name, g_wiz_text_font_secondary);
-        gprintf(m_x + 0xe + (0x112 - width) / 2, m_y + 0x11, L"%s", name);
+        gprintf(m_x + 0xe + (0x112 - width) / 2, m_y + 0x11, g_format_s, name);
     }
     m_text_area_ec.Draw(0);
     m_scroll_bar_58.Draw(0);

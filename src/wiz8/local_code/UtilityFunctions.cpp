@@ -12,6 +12,7 @@
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -193,7 +194,7 @@ wchar_t* FormatWideString(const wchar_t* format, ...)
 // FUNCTION: WIZ8 0x00517ab0
 wchar_t* ConvertStringToWide(const char* string)
 {
-    swprintf(g_wide_string_buffer, L"%hs", string);
+    swprintf(g_wide_string_buffer, g_combat_log_format, string);
     return g_wide_string_buffer;
 }
 
@@ -227,7 +228,7 @@ wchar_t* FormatUnsignedIntegerWithCommas(wchar_t* output, unsigned int value)
                 wcscat(output, L",");
             }
             group_value = value / divisor;
-            swprintf(group, first_group ? L"%d" : L"%03d", group_value);
+            swprintf(group, first_group ? g_format_d : L"%03d", group_value);
             wcscat(output, group);
             value -= divisor * group_value;
             first_group = false;

@@ -308,7 +308,7 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
    saving throw. */
 // GLOBAL: WIZ8 0x006172a0
 int g_condition_resist_base[W8_CONDITION_COUNT] = {0, 1,  2,  3,  4,  4,  5,  6,  7,  8,
-                                                         9, 10, 12, 14, 16, 20, 18, 22, 24, 22};
+                                                   9, 10, 12, 14, 16, 20, 18, 22, 24, 22};
 
 /* The target's standing against one realm: a character's clamped total, a
    monster's own figure plus its gameplay-modifier bonus. The saving throw and
@@ -444,7 +444,7 @@ char InflictConditionOnTarget(W8CombatSlot* target, int condition_id, int realm,
                         magnitude = remaining;
                     } else {
                         if (announce != 0) {
-                            PostCharacterNotice(target->iChar, L"%s!",
+                            PostCharacterNotice(target->iChar, g_format_s_bang,
                                                 gppStringList[g_condition_notices[5 * 4 + 1]]);
                         }
                         return 1;

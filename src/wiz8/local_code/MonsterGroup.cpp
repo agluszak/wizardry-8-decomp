@@ -710,7 +710,7 @@ wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group)
     record = MonsterGroupGetRecord(monster_group);
     name_form = monster_group->member_count != W8_MONSTER_GROUP_SINGULAR;
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
-        swprintf(g_status.monster_name_buffer_2453, L"Al-%s",
+        swprintf(g_status.monster_name_buffer_2453, g_format_al_s,
                  g_status.buffers.Char[g_status.sedexus_party_slot_247f].name);
         return g_status.monster_name_buffer_2453;
     }
@@ -1609,7 +1609,7 @@ void ShowMonsterGroupInfoNotice(int group_id)
     record = MonsterDBFromSpecies(group->monster_id);
     name_form = group->member_count != W8_MONSTER_GROUP_SINGULAR;
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
-        swprintf(g_status.monster_name_buffer_2453, L"Al-%s",
+        swprintf(g_status.monster_name_buffer_2453, g_format_al_s,
                  g_status.buffers.Char[g_status.sedexus_party_slot_247f].name);
         name = g_status.monster_name_buffer_2453;
     } else if (group->alternate_name != 0) {

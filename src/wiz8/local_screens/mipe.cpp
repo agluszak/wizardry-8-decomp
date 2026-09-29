@@ -10,6 +10,7 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/dialog_code/AssayDialog.h"
+#include "wiz8/dialog_code/NpcDialog.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/3dapi.h"
@@ -2254,7 +2255,7 @@ void EditMonsterGeneratorName(unsigned short key)
     }
     ResetEditorStatusLine(-1);
     ShowNoticef(6, L"Enter the name for this generator:");
-    ShowNoticef(0xf, L"%S", g_mipe_state->generator->name);
+    ShowNoticef(0xf, g_format_S, g_mipe_state->generator->name);
 }
 
 /* Mode-0x1b key handler: the selected prop trigger's locks & traps editor.
