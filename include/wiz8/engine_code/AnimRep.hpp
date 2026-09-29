@@ -79,8 +79,10 @@ public:
     unsigned short pending_subcycle_066;
     /* Frame-advance timestamp; GrCycle subtracts it from the current time. */
     unsigned int timer_068;
-    unsigned char active;
-    unsigned char animation_playing_06d;
+    unsigned char
+        active; /* bool-byte-ok: SetSetting6C stores and GetSetting6C returns the caller's byte. */
+    unsigned char
+        animation_playing_06d; /* bool-byte-ok: copied directly from file-backed W8AnimObj byte. */
     /* Direction 1 advances and 3 reverses in GrCycle. Other direction codes
        also occur in monster completion checks, so this remains a byte. */
     unsigned char frame_direction_06e;
