@@ -141,11 +141,18 @@ def _declaration_address(lines: list[str], start: int, end: int) -> str | None:
     return None
 
 
-def _declaration_lines(repo_dir: Path, entry: dict[str, Any]) -> list[str] | None:
-    path = repo_dir / entry["source_file"]
-    if not path.is_file():
-        return None
-    return path.read_text(encoding="utf-8", errors="ignore").splitlines()
+def _declaration_lines(
+    repo_dir: Path, entry: dict[str, Any], source_lines: dict[str, list[str] | None]
+) -> list[str] | None:
+    source = entry["source_file"]
+    if source not in source_lines:
+        path = repo_dir / source
+        source_lines[source] = (
+            path.read_text(encoding="utf-8", errors="ignore").splitlines()
+            if path.is_file()
+            else None
+        )
+    return source_lines[source]
 
 
 def _unnamed_definition_violations(index: dict[str, Any]) -> list[dict[str, Any]]:
@@ -200,6 +207,7 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
     index = json.loads((repo_dir / "build/source-index.json").read_text(encoding="utf-8"))
     targets = project_targets(repo_dir)
     declarations_by_key = declarations_by_semantic_key(index)
+    source_lines: dict[str, list[str] | None] = {}
 
     def namespace(source_file: str, target: str | None = None) -> str:
         """The link namespace owning a claim. Markers carry their target;
@@ -244,7 +252,7 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
 
     address_declaration_keys: set[tuple[str, int, int]] = set()
     for entry in index["declarations"]:
-        lines = _declaration_lines(repo_dir, entry)
+        lines = _declaration_lines(repo_dir, entry, source_lines)
         if lines is None:
             continue
         address = _declaration_address(lines, entry["line"], entry["end_line"])
@@ -287,7 +295,9 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
             }
         )
 
-    violations.extend(_consumer_violations(repo_dir, index, claims, address_declaration_keys))
+    violations.extend(
+        _consumer_violations(repo_dir, index, claims, address_declaration_keys, source_lines)
+    )
     return violations
 
 
@@ -296,6 +306,7 @@ def _consumer_violations(
     index: dict[str, Any],
     claims: dict[tuple[str, str], list[dict[str, Any]]],
     address_declaration_keys: set[tuple[str, int, int]],
+    source_lines: dict[str, list[str] | None],
 ) -> list[dict[str, Any]]:
     """Callers must redeclare the canonical free function with its prototype."""
 
@@ -339,7 +350,7 @@ def _consumer_violations(
         prototype = _prototype(entry)
         if prototype == canonical_prototype:
             continue
-        lines = _declaration_lines(repo_dir, entry)
+        lines = _declaration_lines(repo_dir, entry, source_lines)
         if lines is None:
             continue
         window = lines[max(0, entry["line"] - 6) : entry["end_line"]]

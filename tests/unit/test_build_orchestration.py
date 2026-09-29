@@ -1,9 +1,56 @@
+import importlib
 import os
 from pathlib import Path
 
 import pytest
 from wiz8decomp import build
 from wiz8decomp.config import Settings
+
+
+@pytest.mark.parametrize("failure", [None, "pyright", "pytest"])
+def test_check_uses_completed_index_and_propagates_command_failures(
+    tmp_path: Path, monkeypatch, failure: str | None
+) -> None:
+    settings = _settings(tmp_path)
+    index = tmp_path / "build/source-index.json"
+    monkeypatch.setattr(build, "load_settings", lambda: settings)
+
+    def write_index(_settings):
+        index.parent.mkdir()
+        index.write_text("completed projection")
+        return {"path": str(index), "cached": False}
+
+    monkeypatch.setattr("wiz8decomp.source_index.write_source_index", write_index)
+    validators = {
+        "cast_lint": "validate_cast_markers",
+        "global_model": "validate_type_consistency",
+        "header_architecture": "validate_header_architecture",
+        "identity_lint": "validate_identity",
+        "linkage_lint": "validate_c_linkage",
+        "placement": "validate_source_placement",
+        "reccmp_lint": "validate_reccmp_annotations",
+        "source_model_lint": "validate_source_model",
+        "source_oracle": "validate_source_oracle_ownership",
+        "source_units": "validate_source_units",
+        "structural_lint": "validate_structures",
+        "surrender_exports": "validate_surrender_exports",
+        "template_model_lint": "validate_template_model",
+    }
+    for module, name in validators.items():
+        monkeypatch.setattr(importlib.import_module(f"wiz8decomp.{module}"), name, lambda *_: None)
+
+    def run(command, **_kwargs):
+        if command[0] == "pytest":
+            assert index.read_text() == "completed projection"
+        if command[0] == failure:
+            raise RuntimeError(f"failed {failure}")
+
+    monkeypatch.setattr(build, "run", run)
+    if failure is None:
+        assert build.check(tmp_path)["status"] == "passed"
+    else:
+        with pytest.raises(RuntimeError, match=f"failed {failure}"):
+            build.check(tmp_path)
 
 
 def _settings(repository: Path) -> Settings:

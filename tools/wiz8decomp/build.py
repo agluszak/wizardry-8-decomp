@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -1048,7 +1049,6 @@ def check(repository: Path) -> dict[str, Any]:
     cheap_commands = (
         ("format", ["ruff", "format", "--check", "."]),
         ("ruff", ["ruff", "check", "."]),
-        ("types", ["pyright"]),
     )
     gates: list[dict[str, str]] = []
     for name, command in cheap_commands:
@@ -1058,41 +1058,53 @@ def check(repository: Path) -> dict[str, Any]:
         timings_ms[name] = int((time.perf_counter() - started) * 1000)
         gates.append({"name": name, "status": "passed", "log": str(log)})
 
-    # The repository suite and later comparisons read this projection; its
-    # writer also validates synthetic markers and cross-TU declarations.
-    started = time.perf_counter()
-    source_index = write_source_index(settings)
-    timings_ms["source-index"] = int((time.perf_counter() - started) * 1000)
-    validators = (
-        ("source-units", lambda: validate_source_units(repository)),
-        ("header-architecture", lambda: validate_header_architecture(repository)),
-        ("type-consistency", lambda: validate_type_consistency(repository)),
-        ("reccmp", lambda: validate_reccmp_annotations(repository)),
-        ("template-model", lambda: validate_template_model(repository)),
-        ("source-model", lambda: validate_source_model(repository)),
-        ("casts", lambda: validate_cast_markers(repository)),
-        ("c-linkage", lambda: validate_c_linkage(repository)),
-        ("placement", lambda: validate_source_placement(settings)),
-        ("identities", lambda: validate_identity(repository)),
-        ("source-oracle", lambda: validate_source_oracle_ownership(repository)),
-        ("surrender-exports", lambda: validate_surrender_exports(repository)),
-        ("structures", lambda: validate_structures(repository)),
-    )
-    for name, action in validators:
+    def command_gate(name: str, command: list[str]) -> tuple[dict[str, str], int]:
         started = time.perf_counter()
-        action()
-        timings_ms[name] = int((time.perf_counter() - started) * 1000)
-        gates.append({"name": name, "status": "passed"})
+        log = Path("build/logs") / f"check-{name}.json"
+        run(command, cwd=repository, log_path=repository / log)
+        return {"name": name, "status": "passed", "log": str(log)}, int(
+            (time.perf_counter() - started) * 1000
+        )
 
-    tests_log = Path("build/logs/check-tests.json")
-    started = time.perf_counter()
-    run(
-        ["pytest", "tests/unit", "tests/repository"],
-        cwd=repository,
-        log_path=repository / tests_log,
-    )
-    timings_ms["tests"] = int((time.perf_counter() - started) * 1000)
-    gates.append({"name": "tests", "status": "passed", "log": str(tests_log)})
+    # Type checking can overlap indexing. Tests and validators both consume
+    # the completed projection and only start after its writer returns.
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        types = executor.submit(command_gate, "types", ["pyright"])
+        # The repository suite and later comparisons read this projection; its
+        # writer also validates synthetic markers and cross-TU declarations.
+        started = time.perf_counter()
+        source_index = write_source_index(settings)
+        timings_ms["source-index"] = int((time.perf_counter() - started) * 1000)
+        tests = executor.submit(
+            command_gate,
+            "tests",
+            ["pytest", "tests/unit", "tests/repository", "-m", "not integration"],
+        )
+        validators = (
+            ("source-units", lambda: validate_source_units(repository)),
+            ("header-architecture", lambda: validate_header_architecture(repository)),
+            ("type-consistency", lambda: validate_type_consistency(repository)),
+            ("reccmp", lambda: validate_reccmp_annotations(repository)),
+            ("template-model", lambda: validate_template_model(repository)),
+            ("source-model", lambda: validate_source_model(repository)),
+            ("casts", lambda: validate_cast_markers(repository)),
+            ("c-linkage", lambda: validate_c_linkage(repository)),
+            ("placement", lambda: validate_source_placement(settings)),
+            ("identities", lambda: validate_identity(repository)),
+            ("source-oracle", lambda: validate_source_oracle_ownership(repository)),
+            ("surrender-exports", lambda: validate_surrender_exports(repository)),
+            ("structures", lambda: validate_structures(repository)),
+        )
+        for name, action in validators:
+            started = time.perf_counter()
+            action()
+            timings_ms[name] = int((time.perf_counter() - started) * 1000)
+            gates.append({"name": name, "status": "passed"})
+
+        for future in (types, tests):
+            gate, elapsed = future.result()
+            gates.append(gate)
+            timings_ms[gate["name"]] = elapsed
     timings_ms["total"] = int((time.perf_counter() - check_started) * 1000)
     return {
         "status": "passed",

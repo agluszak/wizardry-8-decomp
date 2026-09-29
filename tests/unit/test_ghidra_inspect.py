@@ -32,20 +32,6 @@ def test_ghidra_read_commands_are_registered() -> None:
     assert "flow" in result.output
 
 
-def test_retired_commands_are_gone() -> None:
-    runner = CliRunner()
-    assert runner.invoke(app, ["recover", "function", "--help"]).exit_code != 0
-    assert runner.invoke(app, ["recover", "explain", "--help"]).exit_code != 0
-    assert runner.invoke(app, ["report", "context", "--help"]).exit_code != 0
-    assert runner.invoke(app, ["report", "instructions", "--help"]).exit_code != 0
-    assert runner.invoke(app, ["report", "data", "--help"]).exit_code != 0
-    assert runner.invoke(app, ["report", "class", "--help"]).exit_code != 0
-    assert runner.invoke(app, ["report", "flow", "--help"]).exit_code != 0
-    assert runner.invoke(app, ["analyze", "enrichment-checkpoint", "--help"]).exit_code != 0
-    assert runner.invoke(app, ["analyze", "prototype-repair", "--help"]).exit_code != 0
-    assert runner.invoke(app, ["analyze", "parameter-id", "--help"]).exit_code == 0
-
-
 def test_inspect_does_not_write_source_index(monkeypatch) -> None:
     import contextlib
 

@@ -32,7 +32,6 @@ from .source_units import (
     load_source_unit_document,
     mapped_repository_source_file,
     original_source_paths,
-    source_unit_records,
 )
 
 PLACED_ATTRIBUTIONS = frozenset({"direct", "bounded", "cross-build"})
@@ -44,7 +43,12 @@ class PlacementGateError(RuntimeError):
     """A recovered function sits in the wrong original translation unit."""
 
 
-def _expected_recovered_source(repo_dir: Path, unit: str) -> str | None:
+def _expected_recovered_source(
+    repo_dir: Path,
+    unit: str,
+    document: dict[str, Any] | None,
+    originals: dict[str, str],
+) -> str | None:
     """Map an original path onto a recovered original-tu file.
 
     A matching basename in an unresolved-fragment or compiler-emission file
@@ -54,12 +58,7 @@ def _expected_recovered_source(repo_dir: Path, unit: str) -> str | None:
     mapped = mapped_repository_source_file(repo_dir, unit)
     if mapped is None:
         return None
-    if not (repo_dir / CLASSIFICATION_PATH).is_file():
-        return mapped
-    try:
-        document = load_source_unit_document(repo_dir)
-        originals = original_source_paths(repo_dir)
-    except SourceUnitError:
+    if document is None:
         return mapped
     if classification_for(mapped, document, originals) != ORIGINAL_TU:
         return None
@@ -78,13 +77,19 @@ def placement_violations(
     function_markers = [marker for marker in markers if marker["marker_kind"] == "FUNCTION"]
     expected_by_unit: dict[str, str | None] = {}
     classes: dict[str, str] = {}
+    document = None
+    originals: dict[str, str] = {}
     if (repo_dir / CLASSIFICATION_PATH).is_file():
         try:
-            classes = {
-                path: record["class"] for path, record in source_unit_records(repo_dir).items()
-            }
+            document = load_source_unit_document(repo_dir)
+            originals = original_source_paths(repo_dir)
         except SourceUnitError:
-            classes = {}
+            document = None
+    if document is not None:
+        classes = {
+            source: classification_for(source, document, originals)
+            for source in {str(marker.get("source_file") or "") for marker in function_markers}
+        }
     for marker in function_markers:
         source_file = str(marker.get("source_file") or "")
         if source_file.casefold().endswith(_HEADER_SUFFIXES):
@@ -116,7 +121,7 @@ def placement_violations(
             )
             continue
         if unit not in expected_by_unit:
-            expected_by_unit[unit] = _expected_recovered_source(repo_dir, unit)
+            expected_by_unit[unit] = _expected_recovered_source(repo_dir, unit, document, originals)
         expected = expected_by_unit[unit]
         current_class = classes.get(source_file, "")
         if expected is None:

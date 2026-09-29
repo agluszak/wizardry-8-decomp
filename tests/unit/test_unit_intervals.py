@@ -49,6 +49,16 @@ def test_gap_between_units_keeps_both_neighbours_visible() -> None:
     assert owner["source_path"] == ""
     assert owner["previous_hard_unit"]["source_path"] == UNIT_A
     assert owner["next_hard_unit"]["source_path"] == UNIT_B
+    assert owner["nearest_anchors"]["previous"]["function"] == "00401000"
+    assert owner["nearest_anchors"]["next"]["function"] == "00401200"
+    assert layout.owner(0x400FFF)["nearest_anchors"] == {
+        "previous": None,
+        "next": {"function": "00401000", "source_path": UNIT_A, "line": None},
+    }
+    assert layout.owner(0x401201)["nearest_anchors"] == {
+        "previous": {"function": "00401200", "source_path": UNIT_B, "line": None},
+        "next": None,
+    }
 
 
 def test_two_units_in_one_function_are_inlined_or_conflicting() -> None:

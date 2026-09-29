@@ -372,8 +372,9 @@ def address_bound_identities(
         )
 
     seen_declarations: set[tuple[str, int, int]] = set()
+    source_lines: dict[str, list[str] | None] = {}
     for entry in document.get("declarations") or []:
-        lines = _declaration_lines(repository, entry)
+        lines = _declaration_lines(repository, entry, source_lines)
         if lines is None:
             continue
         address_text = _declaration_address(lines, entry["line"], entry["end_line"])
