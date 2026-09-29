@@ -40,6 +40,11 @@ Class-wide import is still correct where the consumer evidence reaches that far.
 
 `srBinIStream` uses member-level imports and inline constructor/destructor bodies; the repository gate rejects restoring its blanket class import. Only `srDebugVP` remains transitional while its dedicated recovery is outstanding.
 
+`srModelInstance` also uses member-level imports. Wiz8 imports its constructor, assignment,
+destructor and listed virtual members, plus `setExclusionMask`, but does not import `model()`.
+The consumer header defines `model()` as an accessor; a class-wide import made VC6 emit an
+unresolved `__imp_?model@srModelInstance` call in two runtime translation units.
+
 ## Gate
 
 `tests/repository/test_surrender_import_visibility.py` freezes the audited class-wide import set, rejects consumer-import annotations in audited provider-only headers, locks the exact import count/spelling in mixed audited headers, keeps `srFStreamOpener` provider-only, and protects the proven inline `srCore` accessors. A PR that changes these visibility decisions must update the audit intentionally and explain the consumer/codegen evidence.
