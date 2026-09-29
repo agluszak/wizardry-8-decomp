@@ -1448,7 +1448,7 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8Monster
     for (;;) {
         W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
-        budget = monster_info->sp_budget_bonus + record->sp_budget;
+        budget = monster_info->spell_points_2f9 + record->sp_budget;
         if (record->sp_budget == 0) {
             FormatDebugMessage(0, "DATA ERROR: Monster %ls casting spells with SP Budget of 0",
                                GetMonsterName(monster_info, 0, 0));
@@ -2169,7 +2169,7 @@ unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsign
     }
 
     record = GetMonsterDataForInfo(monster_info);
-    budget = monster_info->sp_budget_bonus + record->sp_budget;
+    budget = monster_info->spell_points_2f9 + record->sp_budget;
     if (record->sp_budget == 0) {
         FormatDebugMessage(0, "DATA ERROR: Monster %ls casting spells with SP Budget of 0",
                            GetMonsterName(monster_info, 0, 0));

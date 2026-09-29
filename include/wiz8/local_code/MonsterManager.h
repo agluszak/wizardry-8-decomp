@@ -390,7 +390,7 @@ struct W8MonsterInfo {
     int fatigue_band;                      /* 0x242: derived from stamina */
     /* 0x246: countdown set on pathing failure (0x14) or after a long stall
        (0x1e); each AI tick decrements it, and reaching zero clears
-       sp_budget_bonus. Also gates the face-party proximity check. */
+       heard_noise_margin_2f5. Also gates the face-party proximity check. */
     unsigned char pathing_cooldown_246;
     unsigned char attributes[W8_MONSTER_ATTR_COUNT]; /* 0x247: values clamped to 1..125 */
     unsigned char condition_binding_mask_24c;
@@ -442,12 +442,11 @@ struct W8MonsterInfo {
     /* 0x2f1: this script part's bound NPC slot in g_npc_states, released when
        the entry is destroyed. */
     int bound_npc_index;
-    /* 0x2f5: the monster's own contribution to the spell-point budget its
-       database record sets a base for; the power-level chooser adds the two
-       and reports a DATA ERROR when the base is zero. */
-    int sp_budget_bonus;
-    /* 0x2f9: the monster's live spell-point pool; the group-attack drain
-       halves each resisted amount off it. */
+    /* 0x2f5: remaining noise-hearing margin, refreshed by nearby sounds and
+       cleared when pathing cooldown expires. */
+    int heard_noise_margin_2f5;
+    /* 0x2f9: live spell-point pool; spell-budget calculations add it to the
+       database base, and group attacks drain it. */
     unsigned int spell_points_2f9;
     int control_state; /* 0x2fd: group-recomputed control state */
     unsigned char cycle17_state;
@@ -475,6 +474,10 @@ struct W8MonsterInfo {
 static_assert(sizeof(W8MonsterInfo) == 0x425, "W8MonsterInfo_size_must_be_0x425");
 static_assert(offsetof(W8MonsterInfo, modifiers_1db) == 0x1db,
               "W8MonsterInfo_modifiers_1db_offset");
+static_assert(offsetof(W8MonsterInfo, heard_noise_margin_2f5) == 0x2f5,
+              "W8MonsterInfo_heard_noise_margin_2f5_offset");
+static_assert(offsetof(W8MonsterInfo, spell_points_2f9) == 0x2f9,
+              "W8MonsterInfo_spell_points_2f9_offset");
 
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
 bool InitializeMonsterManagerState(void);

@@ -228,12 +228,10 @@ void SetNavigatorLinkMode(unsigned char mode)
             if (navigator->group_linked_0bd != 0) {
                 W8MonsterInfo* monster_info =
                     MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                        0x4fe, NAVIGATOR_CPP,
-                        navigator->movement_0c0.location_id_004, 1));
+                        0x4fe, NAVIGATOR_CPP, navigator->movement_0c0.location_id_004, 1));
                 if (monster_info->fActive != 0 && monster_info->monster_group_id != 0) {
                     W8MonsterGroup* group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
-                        0x508, NAVIGATOR_CPP,
-                        monster_info->monster_group_id, 1));
+                        0x508, NAVIGATOR_CPP, monster_info->monster_group_id, 1));
                     srVector3T<float> position = navigator->movement_0c0.position_040;
 
                     if ((group->fInCombat == 0 ||
@@ -900,7 +898,7 @@ bool W8Navigator::StartPatrol(const srVector3T<float>* home, float distance, flo
     while (navigator->linked_navigator_05c != 0) {
         navigator = navigator->linked_navigator_05c;
     }
-    navigator->navigation_mode_008 = 0;
+    navigator->flags_00c = 0;
     navigator->position_03c = *home;
     navigator->minimum_height_034 = distance;
     navigator->maximum_height_038 = variation;
@@ -1168,10 +1166,8 @@ W8Navigator* W8Navigator::ResolveBlockingNavigator(const srVector3T<float>* from
             return g_startup_world;
         }
         if (hit_location > 0) {
-            W8MonsterInfo* monster_info =
-                MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                    0x5d7, NAVIGATOR_CPP, hit_location,
-                    1));
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0x5d7, NAVIGATOR_CPP, hit_location, 1));
             if (monster_info->p3D != 0) {
                 return monster_info->p3D;
             }
@@ -1943,8 +1939,7 @@ void W8Navigator::AddPathPoint(const srVector3T<float>* position)
     if (path_ai_068 == 0) {
         path_ai_068 = CreateRecord(movement_0c0.location_id_004);
         if (path_ai_068 == 0) {
-            srAssertFail("pNavAI", NAVIGATOR_CPP, 0x6c7,
-                         0);
+            srAssertFail("pNavAI", NAVIGATOR_CPP, 0x6c7, 0);
         }
     }
     flags_00c &= 0x00ffffff;
@@ -2010,10 +2005,8 @@ void W8Navigator::SetFacingToward(const srVector3T<float>* target)
             UpdateFacing(1);
         }
         if (movement_0c0.location_id_004 != 0) {
-            W8MonsterInfo* monster_info =
-                MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                    0xa9d, NAVIGATOR_CPP,
-                    movement_0c0.location_id_004, 1));
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0xa9d, NAVIGATOR_CPP, movement_0c0.location_id_004, 1));
             if (monster_info->fInCombat != 0) {
                 monster_info->pCombat->sight_refresh_pending_151 = 1;
             }
@@ -2172,10 +2165,8 @@ void W8Navigator::AimAtPosition(const srVector3T<float>* target)
         }
 
         if (movement_0c0.location_id_004 != 0) {
-            W8MonsterInfo* monster_info =
-                MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                    0xa76, NAVIGATOR_CPP,
-                    movement_0c0.location_id_004, 1));
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0xa76, NAVIGATOR_CPP, movement_0c0.location_id_004, 1));
             if (monster_info->fInCombat != 0) {
                 monster_info->pCombat->sight_refresh_pending_151 = 1;
             }
