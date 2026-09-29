@@ -1011,7 +1011,7 @@ bool CurrentDialogueLineHasContent(void)
 {
     short text_box = g_status.text_line_cursor_1795;
 
-    return g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
+    return g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
            GetTextBoxLineCount(text_box);
 }
 
@@ -2139,7 +2139,7 @@ void RedrawTextBoxBody(unsigned char skip_invalidate)
     }
 
     if (g_level_block->action_panel_visible == 0 && g_level_block->mipe_editing_272 == 0) {
-        can_scroll_down = scroll + static_cast<unsigned int>(GetTextBoxVisibleLineCount()) <
+        can_scroll_down = scroll + static_cast<unsigned int>(W8_TEXT_BOX_VISIBLE_LINE_COUNT()) <
                           GetTextBoxLineCount(text_box);
         if (!can_scroll_down &&
             ClockIsTicking(g_message_storage[text_box][scroll + rows - 1].clock_08) == 0) {
@@ -2227,7 +2227,7 @@ void RedrawTextBoxScrollChrome(void)
         }
 
         line_count = GetTextBoxLineCount(text_box);
-        visible = GetTextBoxVisibleLineCount();
+        visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
         if (scroll + static_cast<unsigned int>(visible) < line_count) {
             if (g_level_block->dialogue_content_region == 0x59) {
                 g_level_block->dialogue_content_region = 0x5a;
@@ -2374,10 +2374,10 @@ void SelectTextBox(short text_box)
     bool can_scroll;
     if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
         g_level_block->dialogue_text_input->text_box != text_box) {
-        can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
+        can_scroll = g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
                      g_status.text_box_lines_shown_49a7[text_box];
     } else {
-        can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
+        can_scroll = g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
                      g_level_block->dialogue_text_input->line_count +
                          g_status.text_box_lines_shown_49a7[text_box];
     }
@@ -2387,10 +2387,10 @@ void SelectTextBox(short text_box)
     }
     if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
         g_level_block->dialogue_text_input->text_box != text_box) {
-        can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
+        can_scroll = g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
                      g_status.text_box_lines_shown_49a7[text_box];
     } else {
-        can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
+        can_scroll = g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
                      g_level_block->dialogue_text_input->line_count +
                          g_status.text_box_lines_shown_49a7[text_box];
     }
