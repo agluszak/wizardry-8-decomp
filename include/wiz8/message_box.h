@@ -41,6 +41,7 @@ union W8MessageBoxPayload {
     W8ExperienceNoticePayload* experience; /* extra: PORTRAIT_EXTRA; delete */
     int* level_up_slot;                    /* extra: LEVEL_UP party slot; delete */
 };
+static_assert(sizeof(W8MessageBoxPayload) == 0x04, "W8MessageBoxPayload_size");
 
 /* Queued NPC message kinds dispatched by ProcessMessageBoxQueue at 0x00526E90.
    W8_NPC_MSG_QUOTE lines are built by QueueNpcScriptLine; the command kinds are

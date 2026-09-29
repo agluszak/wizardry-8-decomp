@@ -37,6 +37,8 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from reccmp.source import SourceIndex
+
 from .class_binding import (
     ensure_ghidra_class,
     find_class_structure,
@@ -65,7 +67,7 @@ from .datatype_contracts import (
     unwrap_plain_typedefs,
     walk_datatype_refs,
 )
-from .source_index import SourceIndex, load_source_index
+from .source_index import load_source_index
 
 _SCHEMA = "wiz8.type-graph-projection-v1"
 
@@ -92,25 +94,24 @@ def plan_semantic_hash(plan: Mapping[str, Any]) -> str:
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
-def _asserted_size_classes(index: SourceIndex) -> dict[str, int]:
+def _asserted_size_classes(source_data: Mapping[str, Any], target: str) -> dict[str, int]:
     sizes: dict[str, int] = {}
-    for record in index.classes.values():
-        size = _source_size(record)
-        if size is not None and record.asserted_size:
-            sizes[str(record.qualified_name)] = size
+    for record in source_data.get("classes", []):
+        if record.get("target") == target and record.get("asserted_size"):
+            sizes[str(record["qualified_name"])] = int(record["asserted_size"])
     return sizes
 
 
 def _selected_identities(
+    source_data: Mapping[str, Any],
     repository: Path,
     target: str,
     *,
     class_names: Sequence[str] | None = None,
 ) -> list[str]:
-    index = SourceIndex.from_dict(load_source_index(repository))
     owning = set(_thiscall_owning_classes(repository, target))
-    sized = set(_asserted_size_classes(index))
-    selected = owning | sized
+    sized = set(_asserted_size_classes(source_data, target))
+    selected = {name for name in owning | sized if "<" not in name}
     if class_names is not None:
         wanted = {_simple_name(name) for name in class_names} | set(class_names)
         selected = {name for name in selected if name in wanted or _simple_name(name) in wanted}
@@ -229,10 +230,11 @@ def build_identity_map(
 ) -> dict[str, dict[str, Any]]:
     """Phase 1: class identity → bound / evidence / status (no field writes)."""
 
-    index = SourceIndex.from_dict(load_source_index(repository))
-    classes = _classes_by_name(index)
-    sizes = _asserted_size_classes(index)
-    selected = _selected_identities(repository, target, class_names=class_names)
+    source_data = load_source_index(repository)
+    index = SourceIndex.from_dict(source_data)
+    classes = _classes_by_name(index, target)
+    sizes = _asserted_size_classes(source_data, target)
+    selected = _selected_identities(source_data, repository, target, class_names=class_names)
     known = {_simple_name(name) for name in selected} | set(selected)
     source_identities = set(classes)
     identity: dict[str, dict[str, Any]] = {}
@@ -246,7 +248,7 @@ def build_identity_map(
         seen.add(owning)
         source_class = classes.get(owning) or classes.get(_simple_name(owning))
         asserted = (
-            _source_size(source_class) or sizes.get(owning) or sizes.get(_simple_name(owning))
+            sizes.get(owning) or sizes.get(_simple_name(owning)) or _source_size(source_class)
         )
         ghidra_class = (
             ensure_ghidra_class(program, owning)
@@ -638,7 +640,7 @@ def apply_type_graph_projection(
 
         if status == "create-opaque":
             size = int(row.get("asserted_size") or 0)
-            if size <= 1:
+            if size <= 0:
                 return {**dict(row), "error": "invalid-asserted-size"}
             result = _create_opaque(_program, owning, size)
             identity[owning] = {

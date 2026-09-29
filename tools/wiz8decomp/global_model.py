@@ -24,8 +24,23 @@ _SIZEOF_ASSERT = re.compile(
     r"static_assert\s*\(\s*sizeof\s*\(\s*([A-Za-z_][\w:]*)\s*\)\s*==\s*(0x[0-9a-fA-F]+|\d+)",
 )
 _ARRAY_EXTENT = re.compile(r"\[([^\]]*)\]")
+_LOCAL_DEFINE = re.compile(r"^\s*#\s*define\s+([A-Za-z_]\w*)(?:\s+(.+))?$")
+_LOCAL_UNDEF = re.compile(r"^\s*#\s*undef\s+([A-Za-z_]\w*)\b")
+_PREPROCESSOR_IF = re.compile(r"^\s*#\s*(?:if|ifdef|ifndef)\b")
+_PREPROCESSOR_ENDIF = re.compile(r"^\s*#\s*endif\b")
+_QUOTED_INCLUDE = re.compile(r'^\s*#\s*include\s+"([^"]+)"')
+_NUMERIC_CONSTANT = re.compile(r"\b([A-Za-z_]\w*)\s*=\s*(0[xX][0-9a-fA-F]+|\d+)\s*(?:,|}|$)")
 _DECL = re.compile(
     r"^(?P<prefix>.*?)(?P<name>[A-Za-z_]\w*)\s*(?P<arrays>(?:\[[^\]]*\])*)\s*(?:=|;)"
+)
+_DIRECT_INIT = re.compile(
+    r"^(?P<prefix>(?:static\s+)?[A-Za-z_]\w*(?:::[A-Za-z_]\w*)*<[^;]+>)\s+"
+    r"(?P<name>[A-Za-z_]\w*)\s*\([^;]*\)\s*;"
+)
+_CALLBACK_DECL = re.compile(
+    r"^(?P<result>(?:static\s+)?[A-Za-z_][\w:\s*<>]*)\(\s*\*\s*"
+    r"(?P<name>[A-Za-z_]\w*)(?P<arrays>(?:\[[^\]]*\])*)\s*\)\s*"
+    r"\((?P<args>[^)]*)\)\s*(?:=|;)"
 )
 _VTABLE_OR_FUNCTION = re.compile(r"^\s*//\s*(?:VTABLE|FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY):")
 _DOCUMENTED_ALIAS = re.compile(r"alias(?:es)?\s+(?:of|for)\b|no separate definition", re.IGNORECASE)
@@ -62,6 +77,31 @@ PRIMITIVE_SIZES = {
     "uint16_t": 2,
     "int32_t": 4,
     "uint32_t": 4,
+    # Accepted SGP/Win32 typedefs used as GLOBAL declaration elements.
+    "CHAR": 1,
+    "CHAR8": 1,
+    "TIMER": 4,
+    "HVOBJECT": 4,
+    "HVSURFACE": 4,
+    "LPDIRECTDRAW": 4,
+    "LPDIRECTDRAW2": 4,
+    "LPDIRECTDRAWSURFACE": 4,
+    "LPDIRECTDRAWSURFACE2": 4,
+    "HHOOK": 4,
+    "HINSTANCE": 4,
+    "HWND": 4,
+    "HANDLE": 4,
+    "H3DPOBJECT": 4,
+    "HDIGDRIVER": 4,
+    "HPROVIDER": 4,
+    "POINT": 8,
+    "WNDPROC": 4,
+}
+_TEMPLATE_DEFAULT_SIZES = {
+    "W8GrowableVector": 0x10,
+    "W8Vector": 0x10,
+    "srArray": 0x08,
+    "srHeapArray": 0x08,
 }
 
 # Win32 ABI-equivalent spellings of the same storage.
@@ -104,7 +144,8 @@ def known_type_sizes(repo_dir: Path) -> dict[str, int]:
             text = path.read_text(encoding="utf-8", errors="replace")
             for name, value in _SIZEOF_ASSERT.findall(text):
                 sizes[name] = _number(value)
-    sizes.setdefault("W8GrowableVector", 0x10)
+    for name, size in _TEMPLATE_DEFAULT_SIZES.items():
+        sizes.setdefault(name, size)
     return sizes
 
 
@@ -116,43 +157,51 @@ def _eval_extent(expression: str) -> int | None:
         tree = ast.parse(stripped, mode="eval")
     except SyntaxError:
         return None
-    allowed = (
-        ast.Expression,
-        ast.BinOp,
-        ast.UnaryOp,
-        ast.Constant,
-        ast.Mult,
-        ast.Add,
-        ast.Sub,
-        ast.FloorDiv,
-        ast.USub,
-        ast.UAdd,
-    )
-    if not all(isinstance(node, allowed) for node in ast.walk(tree)):
+
+    def evaluate(node: ast.expr) -> int | None:
+        if isinstance(node, ast.Constant) and type(node.value) is int:
+            return node.value
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+            value = evaluate(node.operand)
+            return (
+                (value if isinstance(node.op, ast.UAdd) else -value) if value is not None else None
+            )
+        if isinstance(node, ast.BinOp) and isinstance(
+            node.op, (ast.Add, ast.Sub, ast.Mult, ast.FloorDiv)
+        ):
+            left = evaluate(node.left)
+            right = evaluate(node.right)
+            if left is None or right is None:
+                return None
+            if isinstance(node.op, ast.Add):
+                return left + right
+            if isinstance(node.op, ast.Sub):
+                return left - right
+            if isinstance(node.op, ast.Mult):
+                return left * right
+            return left // right if right else None
         return None
-    try:
-        value = ast.literal_eval(stripped)
-    except (ValueError, SyntaxError):
-        if not isinstance(tree.body, ast.BinOp) or not isinstance(tree.body.op, ast.Mult):
-            return None
-        try:
-            value = ast.literal_eval(tree.body.left) * ast.literal_eval(tree.body.right)
-        except (ValueError, SyntaxError):
-            return None
-    return int(value) if isinstance(value, int) else None
+
+    return evaluate(tree.body)
 
 
 def _base_type_size(type_name: str, sizes: dict[str, int]) -> int | None:
     cleaned = re.sub(r"\s+", " ", type_name).strip()
     cleaned = re.sub(r"^(?:const|volatile|static|class|struct|enum)\s+", "", cleaned)
     cleaned = re.sub(r"\s+(?:const|volatile)$", "", cleaned)
-    if "*" in cleaned or "&" in cleaned:
-        return 4
-    template = re.match(r"^(W8GrowableVector|W8HashTable)\s*<", cleaned)
+    template_depth = 0
+    for char in cleaned:
+        if char == "<":
+            template_depth += 1
+        elif char == ">":
+            template_depth -= 1
+        elif char in "*&" and template_depth == 0:
+            return 4
+    template = re.match(
+        r"^(W8GrowableVector|W8Vector|W8HashTable|srArray|srHeapArray)\s*<", cleaned
+    )
     if template:
-        return sizes.get(
-            template.group(1), 0x10 if template.group(1) == "W8GrowableVector" else None
-        )
+        return sizes.get(template.group(1), _TEMPLATE_DEFAULT_SIZES.get(template.group(1)))
     return sizes.get(cleaned)
 
 
@@ -166,10 +215,246 @@ def _declaration_size(type_name: str, arrays: str, sizes: dict[str, int]) -> int
         return None
     size = element
     for extent in extents:
-        size *= extent or 0
-        if extent == 0:
+        if extent is None or extent <= 0:
             return None
+        size *= extent
     return size
+
+
+def _array_bound_names(arrays: str) -> set[str]:
+    return {
+        name
+        for bound in _ARRAY_EXTENT.findall(arrays)
+        for name in re.findall(r"\b[A-Za-z_]\w*\b", bound)
+    }
+
+
+def _replace_array_bound_names(arrays: str, values: dict[str, int]) -> str:
+    return _ARRAY_EXTENT.sub(
+        lambda match: (
+            "["
+            + re.sub(
+                r"\b[A-Za-z_]\w*\b",
+                lambda name: str(values.get(name.group(0), name.group(0))),
+                match.group(1),
+            )
+            + "]"
+        ),
+        arrays,
+    )
+
+
+def _local_numeric_array_bounds(lines: list[str], before: int, arrays: str) -> str:
+    """Resolve only unconditional same-file integer defines preceding a GLOBAL."""
+
+    names = _array_bound_names(arrays)
+    if not names:
+        return arrays
+    values: dict[str, int | None] = {}
+    depth = 0
+    for line in lines[:before]:
+        if _PREPROCESSOR_IF.match(line):
+            depth += 1
+            continue
+        if _PREPROCESSOR_ENDIF.match(line):
+            depth = max(0, depth - 1)
+            continue
+        defined = _LOCAL_DEFINE.match(line)
+        if defined and defined.group(1) in names:
+            value = (defined.group(2) or "").strip()
+            values[defined.group(1)] = (
+                _number(value)
+                if depth == 0 and re.fullmatch(r"(?:0[xX][0-9a-fA-F]+|\d+)", value)
+                else None
+            )
+        undefined = _LOCAL_UNDEF.match(line)
+        if undefined and undefined.group(1) in names:
+            values[undefined.group(1)] = None
+    return _replace_array_bound_names(
+        arrays, {name: value for name, value in values.items() if value is not None}
+    )
+
+
+def _header_integer_constants(path: Path) -> dict[str, int]:
+    """Read unconditional literal defines and enum members from one included header."""
+
+    content = path.read_text(encoding="utf-8", errors="replace")
+    lines = re.sub(r"/\*.*?\*/", "", content, flags=re.DOTALL).splitlines()
+    meaningful = [
+        line.strip() for line in lines if line.strip() and not line.lstrip().startswith("//")
+    ]
+    guard = None
+    if len(meaningful) > 1:
+        opening = re.fullmatch(r"#\s*ifndef\s+([A-Za-z_]\w*)", meaningful[0])
+        if opening and re.fullmatch(rf"#\s*define\s+{opening.group(1)}", meaningful[1]):
+            guard = opening.group(1)
+    values: dict[str, int] = {}
+    depth = 0
+    in_enum = False
+    for line in lines:
+        stripped = line.split("//", 1)[0].strip()
+        if guard and re.fullmatch(rf"#\s*ifndef\s+{guard}", stripped):
+            guard = None
+            continue
+        if _PREPROCESSOR_IF.match(stripped):
+            depth += 1
+            continue
+        if _PREPROCESSOR_ENDIF.match(stripped):
+            depth = max(0, depth - 1)
+            continue
+        if depth:
+            continue
+        defined = _LOCAL_DEFINE.match(stripped)
+        if defined:
+            value = (defined.group(2) or "").strip()
+            if re.fullmatch(r"(?:0[xX][0-9a-fA-F]+|\d+)", value):
+                values[defined.group(1)] = _number(value)
+            continue
+        if re.search(r"\benum\b[^;]*\{", stripped):
+            in_enum = True
+        if in_enum:
+            for name, value in _NUMERIC_CONSTANT.findall(stripped):
+                values[name] = _number(value)
+            if "}" in stripped:
+                in_enum = False
+    return values
+
+
+def _included_numeric_array_bounds(
+    repo_dir: Path,
+    source_file: Path,
+    lines: list[str],
+    before: int,
+    arrays: str,
+    header_cache: dict[Path, dict[str, int]],
+) -> str:
+    """Use unique literal constants from headers directly included before the declaration."""
+
+    names = _array_bound_names(arrays)
+    if not names:
+        return arrays
+    candidates: dict[str, set[int]] = defaultdict(set)
+    excluded: set[str] = set()
+    prefix = "\n".join(lines[:before])
+    for name in names:
+        if re.search(rf"\b{re.escape(name)}\s*=", prefix):
+            excluded.add(name)
+    depth = 0
+    for line in lines[:before]:
+        defined = _LOCAL_DEFINE.match(line)
+        undefined = _LOCAL_UNDEF.match(line)
+        mutator = defined if defined is not None else undefined
+        if mutator is not None:
+            excluded.add(mutator.group(1))
+        if _PREPROCESSOR_IF.match(line):
+            depth += 1
+            continue
+        if _PREPROCESSOR_ENDIF.match(line):
+            depth = max(0, depth - 1)
+            continue
+        if depth:
+            continue
+        included = _QUOTED_INCLUDE.match(line)
+        if included is None:
+            continue
+        spelling = included.group(1)
+        paths = [source_file.parent / spelling, repo_dir / "include" / spelling]
+        found = [path.resolve() for path in paths if path.is_file()]
+        if len(set(found)) != 1:
+            continue
+        path = found[0]
+        if path not in header_cache:
+            header_cache[path] = _header_integer_constants(path)
+        for name in names:
+            if name in header_cache[path]:
+                candidates[name].add(header_cache[path][name])
+    values = {
+        name: next(iter(observed))
+        for name, observed in candidates.items()
+        if len(observed) == 1 and name not in excluded
+    }
+    return _replace_array_bound_names(arrays, values)
+
+
+def _initializer_array_bound(lines: list[str], start: int) -> int | None:
+    """Count outer brace elements when the declaration has an inferred first bound."""
+
+    declaration = lines[start].split("//", 1)[0]
+    if re.search(r"\[\s*\](?:\s*\[[^\]]+\])*\s*=\s*\{", declaration) is None:
+        return None
+    source = "\n".join(lines[start : start + 512])
+    opening = source.find("{", source.find("="))
+    if opening < 0:
+        return None
+    braces = parentheses = brackets = 0
+    count = 0
+    element = False
+    quote = ""
+    escaped = False
+    line_comment = block_comment = False
+    for index in range(opening, min(len(source), opening + 131072)):
+        char = source[index]
+        following = source[index + 1] if index + 1 < len(source) else ""
+        if line_comment:
+            if char == "\n":
+                line_comment = False
+            continue
+        if block_comment:
+            if char == "*" and following == "/":
+                block_comment = False
+            continue
+        if quote:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = ""
+            continue
+        if char == "/" and following == "/":
+            line_comment = True
+            continue
+        if char == "/" and following == "*":
+            block_comment = True
+            continue
+        if char == "#" and not source[source.rfind("\n", 0, index) + 1 : index].strip():
+            # Conditional initializer branches do not give a unique bound.
+            return None
+        if char in "\"'":
+            quote = char
+            if braces == 1:
+                element = True
+            continue
+        if char == "{":
+            braces += 1
+            if braces == 2:
+                element = True
+        elif char == "}":
+            if braces == 1:
+                return count + int(element) if parentheses == brackets == 0 else None
+            braces -= 1
+        elif braces == 1:
+            if char == "(":
+                parentheses += 1
+            elif char == ")":
+                parentheses -= 1
+            elif char == "[":
+                # Designated initializers can set a sparse bound.
+                if not element and parentheses == 0:
+                    return None
+                brackets += 1
+            elif char == "]":
+                brackets -= 1
+            elif char == "," and parentheses == brackets == 0:
+                if not element:
+                    return None
+                count += 1
+                element = False
+            elif not char.isspace():
+                element = True
+            if parentheses < 0 or brackets < 0:
+                return None
+    return None
 
 
 def _strip_comments_and_qualifiers(line: str) -> str:
@@ -212,6 +497,7 @@ def parse_global_definitions(
     if sizes is None:
         sizes = known_type_sizes(repo_dir)
     definitions: list[dict[str, Any]] = []
+    header_cache: dict[Path, dict[str, int]] = {}
     roots = (repo_dir / "src", repo_dir / "include")
     for root in roots:
         if not root.is_dir():
@@ -239,7 +525,7 @@ def parse_global_definitions(
                     continue
                 comments, look, decl = scanned
                 window = " ".join(comments)
-                parsed = _DECL.match(decl)
+                parsed = _DECL.match(decl) or _DIRECT_INIT.match(decl) or _CALLBACK_DECL.match(decl)
                 if _extern_declaration(decl, parsed) or _DOCUMENTED_ALIAS.search(window):
                     index = look + 1
                     continue
@@ -263,15 +549,27 @@ def parse_global_definitions(
                     )
                     index = look + 1
                     continue
-                type_name = parsed.group("prefix").strip()
+                if parsed.re is _CALLBACK_DECL:
+                    type_name = f"{parsed.group('result').strip()} (*)({parsed.group('args')})"
+                else:
+                    type_name = parsed.group("prefix").strip()
                 name = parsed.group("name")
-                arrays = parsed.group("arrays") or ""
+                arrays = parsed.groupdict().get("arrays") or ""
+                numeric_arrays = _local_numeric_array_bounds(lines, look, arrays)
+                numeric_arrays = _included_numeric_array_bounds(
+                    repo_dir, path, lines, look, numeric_arrays, header_cache
+                )
+                if numeric_arrays.startswith("[]"):
+                    inferred = _initializer_array_bound(lines, look)
+                    if inferred is not None and inferred > 0:
+                        numeric_arrays = f"[{inferred}]" + numeric_arrays[2:]
                 definitions.append(
                     {
                         "name": name,
                         "address": address,
-                        "size": _declaration_size(type_name, arrays, sizes),
+                        "size": _declaration_size(type_name, numeric_arrays, sizes),
                         "type": (type_name + arrays).strip(),
+                        "projected_type": (type_name + numeric_arrays).strip(),
                         "source_file": relative,
                         "line": look + 1,
                         "target": target,

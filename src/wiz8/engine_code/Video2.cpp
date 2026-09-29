@@ -2915,23 +2915,26 @@ void SaveJpegScreenshot(void)
     srExtension::load("JPEGImporter", 0);
 
     srColorSurfaceIFace* surface = g_gerd->lockBuffer();
-    int screenshot_index = g_screenshot_index;
     if (surface != 0) {
         char filename[32];
         srSurfaceIOManager::ExportInfo options;
 
-        ++g_screenshot_index;
-        options.unknown_00 = 0;
-        options.unknown_04 = 1;
-        options.option_string = 0;
-        sprintf(filename, "Wiz8%5.5d.JPG", screenshot_index);
-        if (g_auto_capture == 0) {
-            surface_io_manager->exportSurface(filename, *surface, options);
-        } else {
+        if (g_auto_capture != 0) {
+            int screenshot_index = g_screenshot_index++;
+            options.unknown_00 = 0;
+            options.unknown_04 = 1;
             options.option_string = "QUALITY=0.35";
+            sprintf(filename, "Wiz8%5.5d.JPG", screenshot_index);
             PauseSharedGameTimers();
             surface_io_manager->exportSurface(filename, *surface, options);
             ResumeSharedGameTimers();
+        } else {
+            int screenshot_index = g_screenshot_index++;
+            sprintf(filename, "Wiz8%5.5d.JPG", screenshot_index);
+            options.unknown_00 = 0;
+            options.unknown_04 = 1;
+            options.option_string = 0;
+            surface_io_manager->exportSurface(filename, *surface, options);
         }
         g_gerd->unlockBuffer();
     }

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+from pathlib import Path
 from types import SimpleNamespace
 
 from wiz8decomp.datatype_contracts import (
@@ -11,9 +12,38 @@ from wiz8decomp.datatype_contracts import (
     structures_field_shape_agree,
 )
 from wiz8decomp.type_graph_projection import (
+    _asserted_size_classes,
+    _selected_identities,
     decide_field_action,
     plan_semantic_hash,
 )
+
+
+def test_asserted_sizes_are_scoped_to_target() -> None:
+    source_data = {
+        "classes": [
+            {"qualified_name": "W8WorldCursorState", "asserted_size": 224, "target": "WIZ8"},
+            {"qualified_name": "srMutex", "asserted_size": 24, "target": "SURRENDER"},
+        ]
+    }
+    assert _asserted_size_classes(source_data, "WIZ8") == {"W8WorldCursorState": 224}
+
+
+def test_template_records_are_excluded_from_ghidra_class_binding(monkeypatch) -> None:
+    from wiz8decomp import type_graph_projection as tgp
+
+    monkeypatch.setattr(
+        tgp,
+        "_thiscall_owning_classes",
+        lambda *_args: {"W8WorldCursorState": 1, "srHeapArray<unsigned long>": 1},
+    )
+    source_data = {
+        "classes": [
+            {"qualified_name": "W8WorldCursorState", "asserted_size": 224, "target": "WIZ8"},
+            {"qualified_name": "srHeapArray<unsigned long>", "asserted_size": 8, "target": "WIZ8"},
+        ]
+    }
+    assert _selected_identities(source_data, Path(), "WIZ8") == ["W8WorldCursorState"]
 
 
 class _FakeComponent:

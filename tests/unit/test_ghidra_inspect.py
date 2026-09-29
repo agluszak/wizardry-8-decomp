@@ -158,6 +158,38 @@ def test_source_prototype_mismatch_is_a_defect() -> None:
     assert "do not infer argument order from this C" in text
 
 
+def test_adjusted_this_is_not_an_explicit_source_argument() -> None:
+    from types import SimpleNamespace
+
+    from wiz8decomp.ghidra.inspect import _defects
+
+    receiver = SimpleNamespace(
+        getName=lambda: "this",
+        getVariableStorage=lambda: "ECX:4",
+        isAutoParameter=lambda: False,
+    )
+    row = SimpleNamespace(isAutoParameter=lambda: False)
+    identity = SimpleNamespace(
+        kind="definition",
+        semantic_id="member:OpenCampForSelectedMember",
+        has_this=True,
+        parameter_types=("int",),
+        calling_convention="__thiscall",
+    )
+    function = SimpleNamespace(
+        getParameters=lambda: [receiver, row],
+        getCallingConventionName=lambda: "__thiscall",
+    )
+    assert _defects(function, "", None, (identity,)) == []
+
+    extra = SimpleNamespace(isAutoParameter=lambda: False)
+    function.getParameters = lambda: [receiver, row, extra]
+    assert any(
+        defect["kind"] == "source-parameter-count-mismatch"
+        for defect in _defects(function, "", None, (identity,))
+    )
+
+
 def test_decompile_text_shows_code_not_json() -> None:
     from wiz8decomp.ghidra.inspect import format_decompile_text
 

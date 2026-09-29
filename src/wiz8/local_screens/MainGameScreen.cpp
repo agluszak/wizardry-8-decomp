@@ -264,13 +264,13 @@ wchar_t g_format_s[] = L"%s";
 // GLOBAL: WIZ8 0x00648170
 wchar_t g_format_d_s_paren_d_slash_d_slash_d[] = L"%d %s (%d/%d/%d)";
 
-// GLOBAL: WIZ8 0x00647f84
 #pragma bss_seg(".data")
+// GLOBAL: WIZ8 0x00647f84
 int g_monster_list_right = 0;
 #pragma bss_seg()
 
-// GLOBAL: WIZ8 0x00647f88
 #pragma bss_seg(".data")
+// GLOBAL: WIZ8 0x00647f88
 int g_monster_list_bottom = 0;
 #pragma bss_seg()
 
