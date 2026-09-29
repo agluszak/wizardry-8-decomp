@@ -215,11 +215,9 @@ void DrawJournalLine(const wchar_t* text, int column, int y, int palette, char c
 }
 
 // FUNCTION: WIZ8 0x005bd860
-void RefreshJournalPanel(void)
+void W8JournalPanel::Refresh()
 {
-    W8JournalPanel* panel = g_journal_panel;
-
-    if (!panel->m_alternate_mode_064) {
+    if (!m_alternate_mode_064) {
         int last_page = (g_journal_entries->count - 1) / 12;
         int page_count = last_page + 1;
         if (page_count != g_journal_page_count || g_journal_page < 0 ||
@@ -227,12 +225,12 @@ void RefreshJournalPanel(void)
             g_journal_page_count = page_count;
             g_journal_page = last_page;
         }
-        panel->m_next_050->SetEnabled(g_journal_page < last_page);
-        panel->m_previous_054->SetEnabled(g_journal_page > 0);
+        m_next_050->SetEnabled(g_journal_page < last_page);
+        m_previous_054->SetEnabled(g_journal_page > 0);
 
         wchar_t page_text[20];
         swprintf(page_text, g_journal_page_format, g_journal_page + 1, page_count);
-        panel->m_page_text_060->SetText(page_text, g_options_detail_font);
+        m_page_text_060->SetText(page_text, g_options_detail_font);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
         DrawJournalLine(gppStringList[0x6db], 0, 0x19, 0, 1);
         DrawJournalLine(gppStringList[0x6dc], 1, 0x19, 0, 1);
@@ -265,9 +263,9 @@ void RefreshJournalPanel(void)
             previous_level = entry->level;
         }
     } else {
-        panel->m_next_050->SetEnabled(0);
-        panel->m_previous_054->SetEnabled(0);
-        panel->m_page_text_060->SetText(g_journal_alternate_page, g_options_detail_font);
+        m_next_050->SetEnabled(0);
+        m_previous_054->SetEnabled(0);
+        m_page_text_060->SetText(g_journal_alternate_page, g_options_detail_font);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
         DrawJournalLine(gppStringList[0x6de], 0, 0x19, 0, 1);
         DrawJournalLine(gppStringList[0x6df], 1, 0x19, 0, 1);
@@ -297,7 +295,7 @@ void RefreshJournalPanel(void)
             }
         }
     }
-    panel->Invalidate(0);
+    Invalidate(0);
 }
 
 // VTABLE: WIZ8 0x005ef340 Controls
@@ -366,12 +364,12 @@ void W8JournalPanel::OnPrimary(W8TextControl* control)
     if (control == m_previous_054) {
         if (g_journal_page > 0) {
             --g_journal_page;
-            RefreshJournalPanel();
+            Refresh();
         }
     } else if (control == m_next_050) {
         if (g_journal_page < (g_journal_entries->count - 1) / 12) {
             ++g_journal_page;
-            RefreshJournalPanel();
+            Refresh();
         }
     } else if (control == m_close_058) {
         RequestScreenTransition();
@@ -389,7 +387,7 @@ void W8JournalPanel::OnPrimary(W8TextControl* control)
                 m_mode_05c->ActivateSecondary(1);
             }
         }
-        RefreshJournalPanel();
+        Refresh();
     }
 }
 
@@ -455,7 +453,7 @@ unsigned char JournalScreenEnter(void)
             g_journal_entries->Add(entry);
         }
     }
-    RefreshJournalPanel();
+    g_journal_panel->Refresh();
     DrawCatalogImageAndInvalidate(-14, 0x1b7, 0, 1, 0, 0x1b4, 2, 0);
     return 1;
 }
@@ -490,11 +488,11 @@ void JournalScreenFrame(void)
                 RequestScreenTransition();
             } else if (input.usParam == 0x25 && g_journal_page > 0) {
                 --g_journal_page;
-                RefreshJournalPanel();
+                g_journal_panel->Refresh();
             } else if (input.usParam == 0x27 &&
                        g_journal_page < (g_journal_entries->count - 1) / 12) {
                 ++g_journal_page;
-                RefreshJournalPanel();
+                g_journal_panel->Refresh();
             }
         }
     }
