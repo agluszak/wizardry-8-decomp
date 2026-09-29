@@ -1790,12 +1790,12 @@ unsigned char BoundsOverlapStrict(const srVector3T<float>* first, const srVector
            first[0].y < second[1].y && first[1].z > second[0].z && first[0].z < second[1].z;
 }
 
-/* Inclusive point containment for an axis-aligned box. */
+/* A point on the minimum face is inside; the maximum face is excluded. */
 // FUNCTION: WIZ8 0x0046d4d0
 bool PointInsideBoxBounds(const srVector3T<float>* bounds, const srVector3T<float>* point)
 {
-    return bounds[0].x <= point->x && point->x <= bounds[1].x && bounds[0].y <= point->y &&
-           point->y <= bounds[1].y && bounds[0].z <= point->z && point->z <= bounds[1].z;
+    return bounds[0].x <= point->x && point->x < bounds[1].x && bounds[0].y <= point->y &&
+           point->y < bounds[1].y && bounds[0].z <= point->z && point->z < bounds[1].z;
 }
 
 /* Test a triangle against an axis-aligned box.  The inexpensive containment

@@ -2188,20 +2188,17 @@ unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsign
    placed. */
 enum { W8_SPELL_LURE = 0x26 };
 
-/* Put the lure's two effects into the world. The first is the spell's own
-   resource a thousand units below where the spell landed; the second is the
-   named companion effect at the landing point itself, and only that one has
-   its mode set. Both are appended to whatever the cast hangs its effects off,
-   and an effect that failed to spawn is simply not appended. */
+/* Put the lure's two effects a thousand units below the target. The target
+   point itself moves down, so subsequent users see the lowered position.
+   Only the named companion effect has its mode set. */
 // FUNCTION: WIZ8 0x004fb360
-void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, const W8CombatSlot* target)
+void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, W8CombatSlot* target)
 {
     srVector3T<float> position;
     W8SpellVisual* effect;
 
-    position.x = target->point.x;
-    position.y = target->point.y - 1000.0f;
-    position.z = target->point.z;
+    target->point.y -= 1000.0f;
+    position = target->point;
 
     effect =
         SpawnSpellEffect(&position, g_spell_records[W8_SPELL_LURE].resource_name, argument, 0, 0);

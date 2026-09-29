@@ -743,7 +743,7 @@ unsigned char ReadMonsterPaths(W8ReadLevelInfo* pInfo, W8World* pWorld)
             }
             if (!active) {
                 group->members_active = 0;
-                monster->m_pRep->animation_playing_06d = 0;
+                monster->m_pRep->active = 0;
             }
             if (!update_representation) {
                 continue;

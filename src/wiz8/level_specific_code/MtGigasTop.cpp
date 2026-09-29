@@ -67,7 +67,8 @@ bool OnEwaxxTopDoor2Activated(Trigger* trigger)
         item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    return true;
+    g_trigger_feedback = 1;
+    return false;
 }
 
 /* Activation callback on painActivatorTrigger: rolls 1d40+30 health damage

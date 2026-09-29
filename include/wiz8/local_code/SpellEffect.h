@@ -186,6 +186,6 @@ void UpdateSpellEffects(void);
    that owns it. */
 void AbsorbMissileDamage(W8Missile* missile);
 void ReportSpellResult(W8SpellEffectEntry* effect);
-void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, const W8CombatSlot* target);
+void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, W8CombatSlot* target);
 
 #endif

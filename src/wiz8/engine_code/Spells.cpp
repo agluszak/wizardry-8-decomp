@@ -782,12 +782,12 @@ void W8SpellVisual::StartIfHostActive()
 /* Search backward from a subcycle for the first cycle this visual supports,
    seven cycles per group; -1 when none does. */
 // FUNCTION: WIZ8 0x004ac530
-int W8SpellVisual::FindSupportedCycle(signed char group, signed char subcycle)
+int W8SpellVisual::FindSupportedCycle(int group, int subcycle)
 {
-    for (signed char index = subcycle; index >= 0; --index) {
-        signed char cycle = static_cast<signed char>(group * SPELL_CYCLES_PER_GROUP + index);
+    for (int index = subcycle; index >= 0; --index) {
+        int cycle = group * SPELL_CYCLES_PER_GROUP + index;
 
-        if (IsCycleSupported(cycle)) {
+        if (IsCycleSupported(static_cast<signed char>(cycle))) {
             return cycle;
         }
     }

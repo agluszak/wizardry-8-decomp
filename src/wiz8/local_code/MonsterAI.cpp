@@ -2336,18 +2336,18 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, char e
 }
 
 /* Aim a monster that wants to get away. A summoning special-attack row aims
-   at where the party is standing instead of at anybody in it. */
+   at the monster's own position. */
 // FUNCTION: WIZ8 0x00534cb0
 unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterRecord* record)
 {
-    srVector3T<float> party;
+    srVector3T<float> position;
 
     if (g_special_attack_table[record->special_attack_kind_0e3][0] ==
         W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
-        GetCameraPosition(&party);
+        position = monster_info->p3D->GetPosition();
         ResetCombatSlot(&monster_info->Target);
         monster_info->Target.iType = W8_TARGET_KIND_PLACE;
-        monster_info->Target.point = party;
+        monster_info->Target.point = position;
         return 1;
     }
     return AimMonsterAtSpellTarget(monster_info, W8_AI_SPELL_PLACE) != 0;
