@@ -69,6 +69,38 @@ def status_command(
     cli.emit(status_report(settings))
 
 
+@app.command("pr-comparison")
+def pr_comparison_command(
+    target: Annotated[str, typer.Option("--target")],
+    head_status: Annotated[Path, typer.Option("--head-status")],
+    base_status: Annotated[Path, typer.Option("--base-status")],
+    head_summary: Annotated[Path | None, typer.Option("--head-summary")] = None,
+    base_summary: Annotated[Path | None, typer.Option("--base-summary")] = None,
+    head_ghidriff: Annotated[Path | None, typer.Option("--head-ghidriff")] = None,
+    base_ghidriff: Annotated[Path | None, typer.Option("--base-ghidriff")] = None,
+    head_datacmp: Annotated[Path | None, typer.Option("--head-datacmp")] = None,
+    base_datacmp: Annotated[Path | None, typer.Option("--base-datacmp")] = None,
+) -> None:
+    """Summarize PR-head comparison health and its change from the merge base."""
+
+    from .. import command_support as cli
+    from ..reports.comparison_delta import pr_comparison_report
+
+    cli.emit(
+        pr_comparison_report(
+            target,
+            head_status,
+            base_status,
+            head_summary_path=head_summary,
+            base_summary_path=base_summary,
+            head_ghidriff_path=head_ghidriff,
+            base_ghidriff_path=base_ghidriff,
+            head_datacmp_path=head_datacmp,
+            base_datacmp_path=base_datacmp,
+        )
+    )
+
+
 @app.command("surrender-frontier")
 def surrender_frontier_command(
     class_filter: str | None = typer.Option(
