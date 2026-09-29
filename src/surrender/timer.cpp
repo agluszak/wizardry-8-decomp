@@ -106,8 +106,8 @@ srTimer::srTimer(int argument_0, int argument_1, int argument_2)
 // srTimer::`vector deleting destructor'
 
 /* Retail copies the two 0x400 strings and the 13-byte CPU signature with
-   byte-at-a-time loops, not memcpy, and reloads kernel32 instead of sharing
-   the source's handle. */
+   byte-at-a-time loops, reloads kernel32, and omits +0x82c..+0x840
+   (including both conversion scales and CPU count). */
 // FUNCTION: SURRENDER 0x10060B90
 srTimer::srTimer(const srTimer& other)
 {
@@ -135,6 +135,8 @@ srTimer::srTimer(const srTimer& other)
     m_pause.hi = 0;
 }
 
+/* Assignment has the same +0x82c..+0x840 omission and reloads kernel32
+   without releasing any prior destination handle. */
 // FUNCTION: SURRENDER 0x10062480
 srTimer& srTimer::operator=(const srTimer& other)
 {
