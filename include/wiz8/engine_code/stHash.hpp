@@ -235,10 +235,10 @@ template <class Key, class Value> void W8HashTable<Key, Value>::Remove(const Key
     while (slot != -1) {
         W8HashEntry<Key, Value>* entry = entries + slot;
         if (entry->key == wanted) {
-            if (previous == -1) {
-                *bucket = entry->next_index;
-            } else {
+            if (previous != -1) {
                 entries[previous].next_index = entry->next_index;
+            } else {
+                *bucket = entry->next_index;
             }
             entry->next_index = free_head;
             free_head = slot;
@@ -325,10 +325,10 @@ template <class Key, class Value> void W8HashTable<Key, Value>::RemoveAt(int slo
 
     while (current != -1) {
         if (current == slot) {
-            if (previous == -1) {
-                *bucket = entries[current].next_index;
-            } else {
+            if (previous != -1) {
                 entries[previous].next_index = entries[current].next_index;
+            } else {
+                *bucket = entries[current].next_index;
             }
             entries[current].next_index = free_head;
             free_head = current;
