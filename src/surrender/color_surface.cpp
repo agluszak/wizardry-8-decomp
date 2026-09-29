@@ -623,13 +623,13 @@ void srColorSurfaceIFace::swapPixelRows(long x0, long y0, long x1, long y1, long
             }
             if (count > 0) {
                 long bytes = (pixel_format_30.bytes_per_pixel_minus_one + 1) * count;
-                unsigned char* buffer = (unsigned char*)srHeap.allocate(bytes * 2);
+                unsigned char* buffer = static_cast<unsigned char*>(::operator new(bytes * 2));
                 unsigned char* second = buffer + bytes;
                 getPixelRowRaw(buffer, y0, x0, x0 + count);
                 getPixelRowRaw(second, y1, x1, x1 + count);
                 setPixelRowRaw(buffer, y1, x1, x1 + count);
                 setPixelRowRaw(second, y0, x0, x0 + count);
-                srHeap.free(buffer);
+                ::operator delete(buffer);
             }
         }
     }
@@ -738,49 +738,47 @@ void srColorSurfaceIFace::adjustSaturation(double saturation)
             getPixelRow((unsigned long*)row, y, 0, width);
             unsigned char* pixel = row + 2;
             for (long x = 0; x < width; ++x) {
-                float luminance = pixel[0] * 0.003921569f * 0.2125f +
-                                  pixel[-1] * 0.003921569f * 0.7154f +
-                                  pixel[-2] * 0.003921569f * 0.0721f;
-                float channel = pixel[1] * 0.003921569f * 255.0f;
-                if (0.0f < channel) {
-                    if (255.0f <= channel) {
-                        channel = 255.0f;
+                float red = pixel[0] * 0.003921569f;
+                float green = pixel[-1] * 0.003921569f;
+                float blue = pixel[-2] * 0.003921569f;
+                float alpha = pixel[1] * 0.003921569f;
+                float luminance = red * 0.2125f + green * 0.7154f + blue * 0.0721f;
+                double channel = alpha * 255.0;
+                if (0.0 < channel) {
+                    if (255.0 <= channel) {
+                        channel = 255.0;
                     }
                 } else {
-                    channel = 0.0f;
+                    channel = 0.0;
                 }
-                float value =
-                    ((pixel[0] * 0.003921569f - luminance) * (float)saturation + luminance) *
-                    255.0f;
-                pixel[1] = (unsigned char)(int)(channel + 0.5f);
-                if (0.0f < value) {
-                    if (255.0f <= value) {
-                        value = 255.0f;
+                double value = ((red - luminance) * saturation + luminance) * 255.0;
+                pixel[1] = (unsigned char)srFloatToInt(channel);
+                if (0.0 < value) {
+                    if (255.0 <= value) {
+                        value = 255.0;
                     }
                 } else {
-                    value = 0.0f;
+                    value = 0.0;
                 }
-                channel = ((pixel[-1] * 0.003921569f - luminance) * (float)saturation + luminance) *
-                          255.0f;
-                pixel[0] = (unsigned char)(int)(value + 0.5f);
-                if (0.0f < channel) {
-                    if (255.0f <= channel) {
-                        channel = 255.0f;
+                channel = ((green - luminance) * saturation + luminance) * 255.0;
+                pixel[0] = (unsigned char)srFloatToInt(value);
+                if (0.0 < channel) {
+                    if (255.0 <= channel) {
+                        channel = 255.0;
                     }
                 } else {
-                    channel = 0.0f;
+                    channel = 0.0;
                 }
-                value = ((pixel[-2] * 0.003921569f - luminance) * (float)saturation + luminance) *
-                        255.0f;
-                pixel[-1] = (unsigned char)(int)(channel + 0.5f);
-                if (0.0f < value) {
-                    if (255.0f <= value) {
-                        value = 255.0f;
+                value = ((blue - luminance) * saturation + luminance) * 255.0;
+                pixel[-1] = (unsigned char)srFloatToInt(channel);
+                if (0.0 < value) {
+                    if (255.0 <= value) {
+                        value = 255.0;
                     }
                 } else {
-                    value = 0.0f;
+                    value = 0.0;
                 }
-                pixel[-2] = (unsigned char)(int)(value + 0.5f);
+                pixel[-2] = (unsigned char)srFloatToInt(value);
                 pixel += 4;
             }
             setPixelRow((const unsigned long*)row, y, 0, width);
@@ -801,12 +799,12 @@ void srColorSurfaceIFace::adjust(const srVector4T<float>& scale, const srVector4
     unsigned char lut[4][256];
     for (int channel = 0; channel < 4; ++channel) {
         for (int i = 0; i < 0x100; ++i) {
-            float value = scale_v[channel] * (offset_v[channel] * (i - 128.0f) + 128.0f) +
-                          gamma_v[channel] * 255.0f + 0.5f;
-            if (value <= 0.0f) {
-                value = 0.0f;
-            } else if (value >= 255.0f) {
-                value = 255.0f;
+            double value = scale_v[channel] * (offset_v[channel] * (i - 128.0) + 128.0) +
+                           gamma_v[channel] * 255.0 + 0.5;
+            if (value <= 0.0) {
+                value = 0.0;
+            } else if (value >= 255.0) {
+                value = 255.0;
             }
             lut[channel][i] = (unsigned char)(int)value;
         }
@@ -2358,13 +2356,13 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
                 long first = (long)ceil(center - support);
                 long last = (long)floor(center + support);
                 for (; first <= last; first++) {
-                    float weight = (float)source.filter_2c->getWeight(center - first);
-                    if (0.0f < weight) {
+                    double weight = source.filter_2c->getWeight(center - first);
+                    if (0.0 < weight) {
                         long index = source.getClampedX(first);
                         long* slot = (long*)entry[1] + entry[0] * 2;
                         entry[0] = entry[0] + 1;
                         slot[0] = index;
-                        *(float*)(slot + 1) = weight;
+                        *(float*)(slot + 1) = (float)weight;
                         total = weight + total;
                     }
                 }
@@ -2387,14 +2385,14 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
                 long first = (long)ceil(center - scaled_support);
                 long last = (long)floor(center + scaled_support);
                 for (; first <= last; first++) {
-                    float weight =
-                        (float)(source.filter_2c->getWeight((center - first) / inverse) / inverse);
-                    if (0.0f < weight) {
+                    double weight =
+                        source.filter_2c->getWeight((center - first) / inverse) / inverse;
+                    if (0.0 < weight) {
                         long index = source.getClampedX(first);
                         long* slot = (long*)entry[1] + entry[0] * 2;
                         entry[0] = entry[0] + 1;
                         slot[0] = index;
-                        *(float*)(slot + 1) = weight;
+                        *(float*)(slot + 1) = (float)weight;
                         total = weight + total;
                     }
                 }
@@ -2432,10 +2430,10 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
                     b = source_pixel[3] * weight + b;
                 }
                 unsigned char* pixel = (unsigned char*)&row[x];
-                pixel[3] = (unsigned char)(long)(a + 0.5f);
-                pixel[2] = (unsigned char)(long)(r + 0.5f);
-                pixel[1] = (unsigned char)(long)(g + 0.5f);
-                pixel[0] = (unsigned char)(long)(b + 0.5f);
+                pixel[3] = (unsigned char)srFloatToInt(a);
+                pixel[2] = (unsigned char)srFloatToInt(r);
+                pixel[1] = (unsigned char)srFloatToInt(g);
+                pixel[0] = (unsigned char)srFloatToInt(b);
             }
             setPixelRow(row, y, 0, width);
         }
@@ -2475,13 +2473,13 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
                 long first = (long)ceil(center - support);
                 long last = (long)floor(center + support);
                 for (; first <= last; first++) {
-                    float weight = (float)source.filter_2c->getWeight(center - first);
-                    if (0.0f < weight) {
+                    double weight = source.filter_2c->getWeight(center - first);
+                    if (0.0 < weight) {
                         long index = source.getClampedY(first);
                         long* slot = (long*)entry[1] + entry[0] * 2;
                         entry[0] = entry[0] + 1;
                         slot[0] = index;
-                        *(float*)(slot + 1) = weight;
+                        *(float*)(slot + 1) = (float)weight;
                         total = weight + total;
                     }
                 }
@@ -2504,14 +2502,14 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
                 long first = (long)ceil(center - scaled_support);
                 long last = (long)floor(center + scaled_support);
                 for (; first <= last; first++) {
-                    float weight =
-                        (float)(source.filter_2c->getWeight((center - first) / inverse) / inverse);
-                    if (0.0f < weight) {
+                    double weight =
+                        source.filter_2c->getWeight((center - first) / inverse) / inverse;
+                    if (0.0 < weight) {
                         long index = source.getClampedY(first);
                         long* slot = (long*)entry[1] + entry[0] * 2;
                         entry[0] = entry[0] + 1;
                         slot[0] = index;
-                        *(float*)(slot + 1) = weight;
+                        *(float*)(slot + 1) = (float)weight;
                         total = weight + total;
                     }
                 }
@@ -2549,10 +2547,10 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
                     b = source_pixel[3] * weight + b;
                 }
                 unsigned char* pixel = (unsigned char*)&column[y];
-                pixel[3] = (unsigned char)(long)(a + 0.5f);
-                pixel[2] = (unsigned char)(long)(r + 0.5f);
-                pixel[1] = (unsigned char)(long)(g + 0.5f);
-                pixel[0] = (unsigned char)(long)(b + 0.5f);
+                pixel[3] = (unsigned char)srFloatToInt(a);
+                pixel[2] = (unsigned char)srFloatToInt(r);
+                pixel[1] = (unsigned char)srFloatToInt(g);
+                pixel[0] = (unsigned char)srFloatToInt(b);
             }
             setPixelColumn(column, x, 0, height);
         }
@@ -2916,18 +2914,14 @@ void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source,
                                     }
                                     blend = source_pixel[3] * 0.00392156862745098 * blend;
                                     double inverse = 1.0 - blend;
-                                    dest_pixel[2] =
-                                        (unsigned char)(long)(dest_pixel[2] * inverse +
-                                                              source_pixel[2] * blend + 0.5);
-                                    dest_pixel[1] =
-                                        (unsigned char)(long)(dest_pixel[1] * inverse +
-                                                              source_pixel[1] * blend + 0.5);
-                                    dest_pixel[0] =
-                                        (unsigned char)(long)(dest_pixel[0] * inverse +
-                                                              source_pixel[0] * blend + 0.5);
-                                    dest_pixel[3] =
-                                        (unsigned char)(long)(blend * 255.0 +
-                                                              dest_pixel[3] * inverse + 0.5);
+                                    dest_pixel[2] = (unsigned char)srFloatToInt(
+                                        dest_pixel[2] * inverse + source_pixel[2] * blend);
+                                    dest_pixel[1] = (unsigned char)srFloatToInt(
+                                        dest_pixel[1] * inverse + source_pixel[1] * blend);
+                                    dest_pixel[0] = (unsigned char)srFloatToInt(
+                                        dest_pixel[0] * inverse + source_pixel[0] * blend);
+                                    dest_pixel[3] = (unsigned char)srFloatToInt(
+                                        blend * 255.0 + dest_pixel[3] * inverse);
                                 }
                             }
                             setPixelRow(row, y, x, dest_span + source_right);
@@ -2954,18 +2948,14 @@ void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source,
                                     } else {
                                         double blend = alpha_byte * 0.00392156862745098;
                                         double inverse = 1.0 - blend;
-                                        dest_pixel[2] =
-                                            (unsigned char)(long)(dest_pixel[2] * inverse +
-                                                                  source_pixel[2] * blend + 0.5);
-                                        dest_pixel[1] =
-                                            (unsigned char)(long)(dest_pixel[1] * inverse +
-                                                                  source_pixel[1] * blend + 0.5);
-                                        dest_pixel[0] =
-                                            (unsigned char)(long)(dest_pixel[0] * inverse +
-                                                                  source_pixel[0] * blend + 0.5);
-                                        dest_pixel[3] =
-                                            (unsigned char)(long)(blend * 255.0 +
-                                                                  dest_pixel[3] * inverse + 0.5);
+                                        dest_pixel[2] = (unsigned char)srFloatToInt(
+                                            dest_pixel[2] * inverse + source_pixel[2] * blend);
+                                        dest_pixel[1] = (unsigned char)srFloatToInt(
+                                            dest_pixel[1] * inverse + source_pixel[1] * blend);
+                                        dest_pixel[0] = (unsigned char)srFloatToInt(
+                                            dest_pixel[0] * inverse + source_pixel[0] * blend);
+                                        dest_pixel[3] = (unsigned char)srFloatToInt(
+                                            blend * 255.0 + dest_pixel[3] * inverse);
                                     }
                                 }
                             }
@@ -2986,18 +2976,14 @@ void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source,
                                     }
                                     blend = source_pixel[3] * 0.00392156862745098 * blend;
                                     double inverse = 1.0 - blend;
-                                    dest_pixel[2] =
-                                        (unsigned char)(long)(dest_pixel[2] * inverse +
-                                                              source_pixel[2] * blend + 0.5);
-                                    dest_pixel[1] =
-                                        (unsigned char)(long)(dest_pixel[1] * inverse +
-                                                              source_pixel[1] * blend + 0.5);
-                                    dest_pixel[0] =
-                                        (unsigned char)(long)(dest_pixel[0] * inverse +
-                                                              source_pixel[0] * blend + 0.5);
-                                    dest_pixel[3] =
-                                        (unsigned char)(long)(blend * 255.0 +
-                                                              dest_pixel[3] * inverse + 0.5);
+                                    dest_pixel[2] = (unsigned char)srFloatToInt(
+                                        dest_pixel[2] * inverse + source_pixel[2] * blend);
+                                    dest_pixel[1] = (unsigned char)srFloatToInt(
+                                        dest_pixel[1] * inverse + source_pixel[1] * blend);
+                                    dest_pixel[0] = (unsigned char)srFloatToInt(
+                                        dest_pixel[0] * inverse + source_pixel[0] * blend);
+                                    dest_pixel[3] = (unsigned char)srFloatToInt(
+                                        blend * 255.0 + dest_pixel[3] * inverse);
                                 }
                             }
                             setPixelRow(row, y, x, dest_span + source_right);
@@ -3143,9 +3129,6 @@ void srColorSurfaceIFace::magnify(srColorSurfaceIFace& source)
     long source_width = source.width_1c;
     if (width == source_width * 2 && height_20 == source_height * 2 && this != &source) {
         unsigned long* buffer = (unsigned long*)srHeap.allocate((source_width + width * 2) * 4);
-        if (buffer == 0) {
-            buffer = 0;
-        }
         unsigned long* even = buffer + source_width;
         unsigned long* odd = even + width;
         source.getPixelRow(buffer, 0, 0, source_width);

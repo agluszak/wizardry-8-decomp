@@ -4938,7 +4938,7 @@ void srGERD::initGlobalPalette()
 {
     float level = 0.0f;
     for (long i = 0; i < 0x100; ++i) {
-        unsigned char gray = (unsigned char)(long)(level * 255.0f + 0.5f);
+        unsigned char gray = (unsigned char)srFloatToInt(level * 255.0);
         global_palette_1b38_[i].blue = gray;
         global_palette_1b38_[i].green = gray;
         global_palette_1b38_[i].red = gray;
@@ -5913,10 +5913,10 @@ void srGERD::accumulate(e_accum operation, float scale)
         case ACCUM_ADD: {
             for (long y = 0; y < height; y++) {
                 for (long x = 0; x < width; x++) {
-                    row[x].red_00 = (short)(long)(row[x].red_00 * scale);
-                    row[x].green_02 = (short)(long)(row[x].green_02 * scale);
-                    row[x].blue_04 = (short)(long)(row[x].blue_04 * scale);
-                    row[x].alpha_06 = (short)(long)(row[x].alpha_06 * scale);
+                    row[x].red_00 = (short)srFloatToInt(row[x].red_00 * scale);
+                    row[x].green_02 = (short)srFloatToInt(row[x].green_02 * scale);
+                    row[x].blue_04 = (short)srFloatToInt(row[x].blue_04 * scale);
+                    row[x].alpha_06 = (short)srFloatToInt(row[x].alpha_06 * scale);
                 }
                 row += getWidth();
             }

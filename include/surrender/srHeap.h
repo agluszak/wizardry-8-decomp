@@ -59,6 +59,16 @@ inline long srFloatToInt(float value)
     return result;
 }
 
+inline long srFloatToInt(double value)
+{
+    long result;
+    __asm {
+        fld value
+        fistp result
+    }
+    return result;
+}
+
 class srHeap {
 public:
     SR_DLL_IMPORT srHeap();
