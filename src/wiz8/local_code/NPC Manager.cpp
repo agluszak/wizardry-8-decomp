@@ -2768,7 +2768,7 @@ unsigned char RestoreNpcMonster(W8NpcState* npc, const char* entity_name)
         if (FindEntityByName(entity_name, &position, 0, 0) == 0) {
             return 0;
         }
-        static_cast<W8Navigator*>(monster_info->p3D)->SetPosition(&position);
+        monster_info->p3D->SetPosition(&position);
         return 1;
     }
 }
@@ -2800,7 +2800,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
         if (GetLocationVarIDByName("CODESgtRubbleTeleport") == -1 ||
             GetLocationVarValueByName("CODESgtRubbleTeleport") == 0) {
             if (FindEntityByName("RubbleCovert", &position, 0, 0)) {
-                static_cast<W8Navigator*>(monster_info->p3D)->SetPosition(&position);
+                monster_info->p3D->SetPosition(&position);
                 if (GetLocationVarIDByName("CODESgtRubbleTeleport") == -1) {
                     CreateLocationVar("CODESgtRubbleTeleport", 1);
                 } else {
@@ -2819,7 +2819,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
         }
         if (GetLocationVarValueByName("CODESgtRubbleTeleport") == 1) {
             if (FindEntityByName("rubbleUnderWater", &position, 0, 0)) {
-                static_cast<W8Navigator*>(monster_info->p3D)->SetPosition(&position);
+                monster_info->p3D->SetPosition(&position);
                 SetTriggerVariableByName("CODESgtRubbleTeleport", 2);
             }
             npc->marked_e9 = 0;

@@ -497,7 +497,7 @@ void RefreshMonsterGroup(W8MonsterGroup* monster_group)
     }
     if (monster_group->leader_group_id == 0) {
         leader = GetMonsterByLocationID(monster_group->leader_location_id);
-        static_cast<W8Navigator*>(leader)->LinkGroupNavigator(0, 0.0, 0);
+        leader->LinkGroupNavigator(0, 0.0, 0);
     } else {
         W8MonsterGroup* leader_group = GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x480, MONSTER_GROUP_CPP, monster_group->leader_group_id, 1));
@@ -513,9 +513,8 @@ void RefreshMonsterGroup(W8MonsterGroup* monster_group)
         if (member != leader) {
             float member_radius;
             member->GetAnimationRadius(&member_radius);
-            static_cast<W8Navigator*>(member)->LinkGroupNavigator(
-                static_cast<W8Navigator*>(leader), leader_radius + leader_radius + member_radius,
-                0);
+            member->LinkGroupNavigator(static_cast<W8Navigator*>(leader),
+                                       leader_radius + leader_radius + member_radius, 0);
         }
     }
 }
