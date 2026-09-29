@@ -101,8 +101,9 @@ For recovery changes, run the marker-preservation audit after the final rebase/m
 uv run wiz8 report merge-preservation --base origin/main
 ```
 
-Every allowed loss/duplicate/demotion needs its actual evidence-backed reason; conflict resolution by
-itself is not a reason.
+The checker recognizes evidence-backed marker reclassification and globals absorbed into a known
+aggregate extent. Any remaining loss, duplicate or demotion must be resolved in the source model or
+the checker before publication; do not add preservation waivers.
 
 ## Publish
 

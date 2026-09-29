@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from wiz8decomp.merge_preservation import merge_preservation_report, parse_allowed
+from wiz8decomp.merge_preservation import merge_preservation_report
 
 
 def _commit(repo: Path, files: dict[str, str], message: str) -> str:
@@ -44,7 +44,7 @@ def test_function_definition_demoted_to_declaration_fails(tmp_path: Path) -> Non
     report = merge_preservation_report(tmp_path, base, head)
 
     assert report["status"] == "failed"
-    assert report["unexplained_demotions"] == ["FUNCTION WIZ8 0x00401000"]
+    assert report["demoted"][0]["identity"] == "FUNCTION WIZ8 0x00401000"
 
 
 def test_multiline_signature_demotion_fails(tmp_path: Path) -> None:
@@ -77,7 +77,7 @@ def test_multiline_signature_demotion_fails(tmp_path: Path) -> None:
     report = merge_preservation_report(tmp_path, base, head)
 
     assert report["status"] == "failed"
-    assert report["unexplained_demotions"] == ["FUNCTION WIZ8 0x00401000"]
+    assert report["demoted"][0]["identity"] == "FUNCTION WIZ8 0x00401000"
 
 
 def test_function_declaration_staying_a_declaration_passes(tmp_path: Path) -> None:
@@ -99,28 +99,105 @@ def test_function_declaration_staying_a_declaration_passes(tmp_path: Path) -> No
     assert report["demoted"] == []
 
 
-def test_demotion_may_be_allowed_with_a_reason(tmp_path: Path) -> None:
+
+def test_function_may_be_reclassified_as_synthetic(tmp_path: Path) -> None:
     _repo(tmp_path)
     base = _commit(
         tmp_path,
-        {"src/wiz8/foo.cpp": "// FUNCTION: WIZ8 0x00401000\nint Foo(void) { return 1; }\n"},
+        {"src/foo.cpp": "// FUNCTION: WIZ8 0x00401000\nint Foo(void) { return 1; }\n"},
         "base",
     )
     head = _commit(
         tmp_path,
-        {"src/wiz8/foo.cpp": "// FUNCTION: WIZ8 0x00401000\nint Foo(void);\n"},
+        {
+            "src/foo.cpp": (
+                "// SYNTHETIC: WIZ8 0x00401000\n"
+                "// compiler-owned teardown emission\n"
+            )
+        },
         "head",
     )
 
-    report = merge_preservation_report(
-        tmp_path,
-        base,
-        head,
-        allowed={("FUNCTION", "WIZ8", 0x401000, "demotion"): "moved to runtime stub"},
-    )
+    report = merge_preservation_report(tmp_path, base, head)
 
     assert report["status"] == "passed"
-    assert report["demoted"][0]["identity"] == "FUNCTION WIZ8 0x00401000"
+    assert report["lost"] == []
+    assert report["reclassified"][0]["replacement"] == "SYNTHETIC WIZ8 0x00401000"
+
+
+def test_function_may_be_reclassified_as_template(tmp_path: Path) -> None:
+    _repo(tmp_path)
+    base = _commit(
+        tmp_path,
+        {"src/foo.cpp": "// FUNCTION: WIZ8 0x00401000\nint Grow(void) { return 1; }\n"},
+        "base",
+    )
+    head = _commit(
+        tmp_path,
+        {"src/foo.cpp": "// TEMPLATE: WIZ8 0x00401000\n// Hash<int>::Grow\n"},
+        "head",
+    )
+
+    report = merge_preservation_report(tmp_path, base, head)
+
+    assert report["status"] == "passed"
+    assert report["reclassified"][0]["replacement"] == "TEMPLATE WIZ8 0x00401000"
+
+
+def test_global_may_be_reclassified_as_string(tmp_path: Path) -> None:
+    _repo(tmp_path)
+    base = _commit(
+        tmp_path,
+        {"src/foo.cpp": "// GLOBAL: WIZ8 0x00601000\nchar* g_file = \"foo.cpp\";\n"},
+        "base",
+    )
+    head = _commit(
+        tmp_path,
+        {"src/foo.cpp": "// STRING: WIZ8 0x00601000\n#define FILE_NAME \"foo.cpp\"\n"},
+        "head",
+    )
+
+    report = merge_preservation_report(tmp_path, base, head)
+
+    assert report["status"] == "passed"
+    assert report["reclassified"][0]["replacement"] == "STRING WIZ8 0x00601000"
+
+
+def test_interior_global_may_be_absorbed_by_known_aggregate_extent(tmp_path: Path) -> None:
+    _repo(tmp_path)
+    base = _commit(
+        tmp_path,
+        {"src/foo.cpp": "// GLOBAL: WIZ8 0x00601004\nint g_top;\n"},
+        "base",
+    )
+    head = _commit(
+        tmp_path,
+        {
+            "src/foo.cpp": (
+                "struct Rect { int left; int top; int right; int bottom; };\n"
+                'static_assert(sizeof(Rect) == 16, "Rect_size");\n'
+                "// GLOBAL: WIZ8 0x00601000\n"
+                "Rect g_rect;\n"
+            )
+        },
+        "head",
+    )
+
+    report = merge_preservation_report(tmp_path, base, head)
+
+    assert report["status"] == "passed"
+    assert report["lost"] == []
+    assert report["subsumed"] == [
+        {
+            "identity": "GLOBAL WIZ8 0x00601004",
+            "container": "GLOBAL WIZ8 0x00601000",
+            "name": "g_rect",
+            "offset": "0x4",
+            "size": 16,
+            "source_file": "src/foo.cpp",
+            "line": 4,
+        }
+    ]
 
 
 def test_global_definition_demoted_to_extern_fails(tmp_path: Path) -> None:
@@ -139,7 +216,7 @@ def test_global_definition_demoted_to_extern_fails(tmp_path: Path) -> None:
     report = merge_preservation_report(tmp_path, base, head)
 
     assert report["status"] == "failed"
-    assert report["unexplained_demotions"] == ["GLOBAL WIZ8 0x00601000"]
+    assert report["demoted"][0]["identity"] == "GLOBAL WIZ8 0x00601000"
 
 
 def test_current_tree_catches_uncommitted_loss(tmp_path: Path) -> None:
@@ -158,21 +235,18 @@ def test_current_tree_catches_uncommitted_loss(tmp_path: Path) -> None:
     assert revision["source_state"]["warning"]
 
 
-def test_function_stub_conflict_cannot_be_waived_as_loss(tmp_path: Path) -> None:
+def test_function_replaced_by_stub_fails(tmp_path: Path) -> None:
     _repo(tmp_path)
     body = "// FUNCTION: WIZ8 0x00401000\nint Foo() { return 1; }\n"
     base = _commit(tmp_path, {"src/foo.cpp": body}, "base")
     head = _commit(
-        tmp_path, {"src/stub.cpp": "// STUB: WIZ8 0x00401000\nint Stub() {}\n"}, "conflict"
+        tmp_path, {"src/stub.cpp": "// STUB: WIZ8 0x00401000\nint Stub() {}\n"}, "stub"
     )
-    report = merge_preservation_report(
-        tmp_path, base, head, parse_allowed(["WIZ8:FUNCTION:0x00401000:loss=withdrawal"])
-    )
-    assert report["status"] == "failed"
-    assert report["conflicts"] == [
-        {"target": "WIZ8", "address": "0x00401000", "kinds": ["FUNCTION", "STUB"]}
-    ]
 
+    report = merge_preservation_report(tmp_path, base, head)
+
+    assert report["status"] == "failed"
+    assert report["lost"][0]["identity"] == "FUNCTION WIZ8 0x00401000"
 
 def test_legacy_folded_annotation_is_not_a_merge_identity(tmp_path: Path) -> None:
     """Historical FOLDED annotations are comparison metadata, not source identities."""
@@ -233,7 +307,7 @@ def test_two_owning_claims_on_one_address_still_fail(tmp_path: Path) -> None:
     report = merge_preservation_report(tmp_path, head, head)
 
     assert report["status"] == "failed"
-    assert report["unexplained_duplicates"] == ["FUNCTION WIZ8 0x00401000"]
+    assert report["duplicates"][0]["identity"] == "FUNCTION WIZ8 0x00401000"
 
 
 def test_vtable_class_discriminator_is_not_an_alias(tmp_path: Path) -> None:
@@ -258,26 +332,8 @@ def test_vtable_class_discriminator_is_not_an_alias(tmp_path: Path) -> None:
     report = merge_preservation_report(tmp_path, head, head)
 
     assert report["status"] == "failed"
-    assert report["unexplained_duplicates"] == ["VTABLE WIZ8 0x00601000"]
+    assert report["duplicates"][0]["identity"] == "VTABLE WIZ8 0x00601000"
 
-
-def test_allow_is_scoped_to_target_kind_and_transition(tmp_path: Path) -> None:
-    _repo(tmp_path)
-    base = _commit(
-        tmp_path, {"src/foo.cpp": "// FUNCTION: DEMO 0x00401000\nint Foo() {}\n"}, "base"
-    )
-    head = _commit(
-        tmp_path, {"src/foo.cpp": "// FUNCTION: DEMO 0x00401000\nint Foo();\n"}, "demotion"
-    )
-    for selector in (
-        "WIZ8:FUNCTION:0x00401000:demotion",
-        "DEMO:GLOBAL:0x00401000:demotion",
-        "DEMO:FUNCTION:0x00401000:loss",
-    ):
-        report = merge_preservation_report(
-            tmp_path, base, head, parse_allowed([selector + "=reviewed"])
-        )
-        assert report["status"] == "failed"
 
 
 def test_base_ancestry_passes_when_base_is_ancestor(tmp_path: Path) -> None:

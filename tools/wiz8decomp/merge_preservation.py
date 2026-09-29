@@ -9,9 +9,11 @@ FUNCTION/GLOBAL definitions demoted to bare declarations, and removed
 FUNCTION addresses whose name is still referenced by the head tree
 (newly unresolved call targets).
 
-The comparison is textual and revision-based so it runs before a build and
-without a checkout switch. A loss is acceptable only when named on the
-command line with a reason; anything else fails.
+The comparison is revision-based so it runs without switching the checkout.
+Known source-model refinements are recognized directly: recovered functions may
+be reclassified as compiler/library emissions at the same retail address, and a
+former GLOBAL may be absorbed by the known extent of a larger GLOBAL object.
+Everything else remains a preservation failure; there is no waiver list.
 """
 
 from __future__ import annotations
@@ -20,18 +22,32 @@ import hashlib
 import io
 import re
 import subprocess
+import tempfile
 from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-MARKER_KINDS = ("FUNCTION", "GLOBAL", "VTABLE", "TEMPLATE", "SYNTHETIC", "LIBRARY", "STUB")
+MARKER_KINDS = (
+    "FUNCTION",
+    "GLOBAL",
+    "STRING",
+    "VTABLE",
+    "TEMPLATE",
+    "SYNTHETIC",
+    "LIBRARY",
+    "STUB",
+)
 IDENTITY_KINDS = frozenset({"FUNCTION", "GLOBAL", "VTABLE"})
+PRESERVING_RECLASSIFICATIONS = {
+    "FUNCTION": frozenset({"TEMPLATE", "SYNTHETIC", "LIBRARY"}),
+    "GLOBAL": frozenset({"STRING"}),
+}
 SOURCE_ROOTS = ("src", "include")
 SOURCE_SUFFIXES = (".c", ".cpp", ".h", ".hpp")
 
 _MARKER = re.compile(
-    r"^\s*//\s*(?P<kind>FUNCTION|GLOBAL|VTABLE|TEMPLATE|SYNTHETIC|LIBRARY|STUB):\s*"
+    r"^\s*//\s*(?P<kind>FUNCTION|GLOBAL|STRING|VTABLE|TEMPLATE|SYNTHETIC|LIBRARY|STUB):\s*"
     r"(?P<target>[A-Za-z0-9_]+)\s+(?P<address>0x[0-9A-Fa-f]+)\s*(?P<qualifier>\S*)",
 )
 _DECLARATOR = re.compile(r"([A-Za-z_]\w*(?:::[A-Za-z_]\w*)*)\s*(?:\(|=|;|\[)")
@@ -42,7 +58,6 @@ _DECLARATOR = re.compile(r"([A-Za-z_]\w*(?:::[A-Za-z_]\w*)*)\s*(?:\(|=|;|\[)")
 _FOLDED_QUALIFIER = "FOLDED"
 
 Identity = tuple[str, str, int]
-AllowedTransition = tuple[str, str, int, str]
 
 
 @lru_cache(maxsize=8)
@@ -214,7 +229,11 @@ def _owned_entity(lines: list[str], start: int, kind: str) -> tuple[str, str]:
     collected: list[str] = []
     for index in range(start, min(start + 12, len(lines))):
         stripped = lines[index].strip()
-        if not stripped or stripped.startswith("#"):
+        if not stripped:
+            continue
+        if stripped.startswith("#"):
+            if kind == "STRING":
+                return stripped, ""
             continue
         if stripped.startswith("//"):
             if kind in ("TEMPLATE", "SYNTHETIC") and not collected:
@@ -280,15 +299,42 @@ def _format_key(key: Identity) -> str:
     return f"{kind} {target} 0x{address:08X}"
 
 
+def _global_definitions_from_sources(sources: dict[str, str]) -> list[dict[str, Any]]:
+    """Run the repository's existing global-size model over an arbitrary Git tree."""
+
+    from .global_model import parse_global_definitions
+
+    with tempfile.TemporaryDirectory(prefix="wiz8-merge-preservation-") as directory:
+        root = Path(directory)
+        for name, content in sources.items():
+            path = root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8")
+        return parse_global_definitions(root)
+
+
+def _global_container(
+    definitions: list[dict[str, Any]], target: str, address: int
+) -> dict[str, Any] | None:
+    """Return the unique current GLOBAL whose known extent contains address."""
+
+    candidates = [
+        item
+        for item in definitions
+        if str(item.get("target") or "").upper() == target.upper()
+        and item.get("size")
+        and int(item["address"]) < address < int(item["address"]) + int(item["size"])
+    ]
+    return candidates[0] if len(candidates) == 1 else None
+
+
 def merge_preservation_report(
     repo_dir: Path,
     base: str,
     head: str | None = None,
-    allowed: dict[AllowedTransition, str] | None = None,
 ) -> dict[str, Any]:
     """Compare marker identities between ``base`` and ``head``."""
 
-    allowed = allowed or {}
     requested_head = head
     if head is None and (repo_dir / ".jj").is_dir():
         head = subprocess.run(
@@ -329,24 +375,69 @@ def merge_preservation_report(
         and all(item["form"] == "declaration" for item in after[key])
     ]
 
-    removed_function_names = {
+    after_kinds: dict[tuple[str, int], set[str]] = defaultdict(set)
+    for kind, target, address in after:
+        after_kinds[target, address].add(kind)
+
+    reclassified: list[dict[str, Any]] = []
+    unresolved_losses: list[Identity] = []
+    for key in removed:
+        kind, target, address = key
+        if kind not in IDENTITY_KINDS:
+            continue
+        kinds = after_kinds.get((target, address), set())
+        replacements = kinds & PRESERVING_RECLASSIFICATIONS.get(kind, frozenset())
+        if len(kinds) == 1 and len(replacements) == 1:
+            replacement = next(iter(replacements))
+            replacement_key = (replacement, target, address)
+            reclassified.append(
+                {
+                    "identity": _format_key(key),
+                    "replacement": _format_key(replacement_key),
+                    "owners": after[replacement_key],
+                }
+            )
+        else:
+            unresolved_losses.append(key)
+
+    global_definitions = (
+        _global_definitions_from_sources(head_sources)
+        if any(key[0] == "GLOBAL" for key in unresolved_losses)
+        else []
+    )
+    subsumed: list[dict[str, Any]] = []
+    lost: list[Identity] = []
+    for key in unresolved_losses:
+        kind, target, address = key
+        if kind == "GLOBAL":
+            container = _global_container(global_definitions, target, address)
+            if container is not None:
+                container_address = int(container["address"])
+                subsumed.append(
+                    {
+                        "identity": _format_key(key),
+                        "container": f"GLOBAL {target} 0x{container_address:08X}",
+                        "name": str(container.get("name") or ""),
+                        "offset": f"0x{address - container_address:X}",
+                        "size": int(container["size"]),
+                        "source_file": str(container.get("source_file") or ""),
+                        "line": int(container.get("line") or 0),
+                    }
+                )
+                continue
+        lost.append(key)
+
+    lost_function_names = {
         item["name"]
-        for key in removed
+        for key in lost
         if key[0] == "FUNCTION"
         for item in before[key]
         if item["name"]
     }
-    still_referenced = _references(head_sources, removed_function_names)
+    still_referenced = _references(head_sources, lost_function_names)
     unresolved = sorted(name for name, count in still_referenced.items() if count)
 
-    unexplained_losses = [
-        key for key in removed if key[0] in IDENTITY_KINDS and (*key, "loss") not in allowed
-    ]
-    unexplained_duplicates = [key for key in duplicates if (*key, "duplicate") not in allowed]
-    unexplained_demotions = [key for key in demoted if (*key, "demotion") not in allowed]
-    failed = bool(
-        unexplained_losses or unexplained_duplicates or unexplained_demotions or conflicts
-    )
+    failed = bool(lost or duplicates or demoted or conflicts)
 
     def describe(
         keys: list[Identity], source: dict[Identity, list[dict[str, str]]]
@@ -361,7 +452,7 @@ def merge_preservation_report(
         for kind in MARKER_KINDS
     }
     return {
-        "schema": "wiz8.merge-preservation-v1",
+        "schema": "wiz8.merge-preservation-v2",
         "base": base,
         "head": head or "working-tree",
         "source_state": {
@@ -389,6 +480,9 @@ def merge_preservation_report(
             }
             for key in changed
         ],
+        "reclassified": reclassified,
+        "subsumed": subsumed,
+        "lost": describe(lost, before),
         "duplicates": describe(duplicates, after),
         "conflicts": conflicts,
         "demoted": [
@@ -400,29 +494,4 @@ def merge_preservation_report(
             for key in demoted
         ],
         "newly_unresolved": unresolved,
-        "allowed": {
-            f"{target}:{kind}:0x{address:08X}:{transition}": reason
-            for (kind, target, address, transition), reason in sorted(allowed.items())
-        },
-        "unexplained_losses": [_format_key(key) for key in unexplained_losses],
-        "unexplained_duplicates": [_format_key(key) for key in unexplained_duplicates],
-        "unexplained_demotions": [_format_key(key) for key in unexplained_demotions],
     }
-
-
-def parse_allowed(values: list[str]) -> dict[AllowedTransition, str]:
-    """``TARGET:KIND:0xADDRESS:TRANSITION=reason`` command-line entries."""
-
-    allowed: dict[AllowedTransition, str] = {}
-    for value in values:
-        selector, separator, reason = value.partition("=")
-        parts = selector.split(":")
-        if not separator or not reason.strip() or len(parts) != 4:
-            raise ValueError(f"expected TARGET:KIND:0xADDRESS:TRANSITION=reason, got {value!r}")
-        target, kind, address, transition = parts
-        if not re.fullmatch(r"[A-Za-z0-9_]+", target) or kind not in IDENTITY_KINDS:
-            raise ValueError(f"invalid target/kind in {value!r}")
-        if transition not in {"loss", "duplicate", "demotion"}:
-            raise ValueError(f"invalid transition in {value!r}")
-        allowed[kind, target, int(address, 16), transition] = reason.strip()
-    return allowed
