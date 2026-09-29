@@ -122,7 +122,9 @@ def compare_command(
         typer.Option("--file", help="Compare every FUNCTION marker in this source file."),
     ] = None,
     changed: bool = typer.Option(
-        False, "--changed", help="Compare changed C/C++ files and consumers of changed headers."
+        False,
+        "--changed",
+        help="Compare changed C/C++ files and consumers of changed headers, including template emissions.",
     ),
     since: Annotated[
         str | None,
@@ -196,14 +198,20 @@ def compare_command(
             if (
                 changed
                 and not addresses
-                and not addresses_from_files(settings.repo_dir, target, selected_files)
+                and not addresses_from_files(
+                    settings.repo_dir, target, selected_files, include_templates=True
+                )
             ):
                 # Changed files without this target's FUNCTION markers: there
                 # is nothing to compare, which is not a failure.
                 result: dict[str, Any] = {"ok": True, "selected": 0, "functions": []}
             else:
                 selected = selected_addresses(
-                    settings.repo_dir, target, addresses or [], selected_files
+                    settings.repo_dir,
+                    target,
+                    addresses or [],
+                    selected_files,
+                    include_templates=changed,
                 )
                 result = compare_selected(
                     settings.repo_dir,

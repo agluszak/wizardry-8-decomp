@@ -83,6 +83,7 @@ def test_changed_header_selects_transitive_consumers_and_inline_bodies(
         strict=True,
     ):
         marker["source_file"] = source
+    index["markers"][1]["marker_kind"] = "TEMPLATE"
     index_path.write_text(json.dumps(index))
     index["translation_unit_dependencies"] = [
         {
@@ -115,7 +116,11 @@ def test_changed_header_selects_transitive_consumers_and_inline_bodies(
         tmp_path / "src/wiz8/markerless.cpp",
         tmp_path / "include/wiz8/inline.h",
     }
-    assert selected_addresses(tmp_path, "WIZ8", [], dependents) == [0x401000, 0x401020]
+    assert selected_addresses(tmp_path, "WIZ8", [], dependents) == [0x401000]
+    assert selected_addresses(tmp_path, "WIZ8", [], dependents, include_templates=True) == [
+        0x401000,
+        0x401020,
+    ]
 
 
 def test_cpp_only_change_needs_no_header_dependency_scan(
