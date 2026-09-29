@@ -1647,7 +1647,7 @@ void stMeshModel::FinalizeVertexFrame(int frame)
 // W8GrowableVector<srPtr<srTextureIFace>*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00474D90
-// W8GrowableVector<srPtr<srTextureIFace>*>::`vector deleting destructor'
+// W8GrowableVector<srPtr<srTextureIFace>*>::`scalar deleting destructor' (out-of-line destructor emission)
 
 // SYNTHETIC: WIZ8 0x00474DB0
 // W8GrowableVector<short>::`scalar deleting destructor'

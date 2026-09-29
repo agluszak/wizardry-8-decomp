@@ -39,7 +39,7 @@
 // srClassSupport<srTextureIFace,srClass,1,8448>::sGetClassNode
 
 // SYNTHETIC: WIZ8 0x00485A80
-// W8GrowableVector<srTextureIFace*>::`vector deleting destructor'
+// W8GrowableVector<srTextureIFace*>::`scalar deleting destructor' (companion table 0x005EC9BC)
 
 // SYNTHETIC: WIZ8 0x00485AB0
 // W8GrowableVector<srTextureIFace*>::`scalar deleting destructor'
@@ -132,7 +132,8 @@ void stTextureAnim::UpdateFrame004854B0()
 
     if (trigger_mode_70 == 1) {
         if (rand() / static_cast<float>(RAND_MAX) < probability_74) {
-            frame_58 = static_cast<int>(rand() / static_cast<float>(RAND_MAX) * textures_54->GetCount());
+            frame_58 =
+                static_cast<int>(rand() / static_cast<float>(RAND_MAX) * textures_54->GetCount());
         }
         return;
     }

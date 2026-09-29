@@ -370,11 +370,11 @@ class W8Navigator;
 // W8GrowableVector<W8Navigator*>::~W8GrowableVector<W8Navigator*>
 
 // SYNTHETIC: WIZ8 0x004561c0
-// W8GrowableVector<W8Navigator*>::`vector deleting destructor' (companion table 0x005EC328)
+// W8GrowableVector<W8Navigator*>::`scalar deleting destructor' (companion table 0x005EC328)
 
 /* ConstructWorldCollections builds the W8World collection vectors through
    W8Vector-derived construction tables; each specialization carries a second
-   lifecycle table whose scalar/vector deleting destructors and inline
+   lifecycle table whose scalar deleting destructors and inline
    teardowns are emitted in this unit. */
 // SYNTHETIC: WIZ8 0x00451b90
 // W8GrowableVector<Trigger*>::`scalar deleting destructor'
@@ -428,19 +428,19 @@ class W8Navigator;
 // W8Vector<W8SpellVisual*>::~W8Vector<W8SpellVisual*>
 
 // SYNTHETIC: WIZ8 0x00451b40
-// W8GrowableVector<W8World*>::`vector deleting destructor'
+// W8GrowableVector<W8World*>::`scalar deleting destructor' (companion table 0x005EC2BC)
 
 // SYNTHETIC: WIZ8 0x00446130
-// W8GrowableVector<int>::`vector deleting destructor' (Trigger.cpp table 0x005EC0E0)
+// W8GrowableVector<int>::`scalar deleting destructor' (Trigger.cpp table 0x005EC0E0)
 
 // SYNTHETIC: WIZ8 0x00446160
-// W8GrowableVector<W8EncounterScriptName*>::`vector deleting destructor'
+// W8GrowableVector<W8EncounterScriptName*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004461b0
 // W8GrowableVector<W8WorldItem*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00446200
-// W8GrowableVector<W8TriggerEvent*>::`vector deleting destructor' (companion table 0x005EC170)
+// W8GrowableVector<W8TriggerEvent*>::`scalar deleting destructor' (companion table 0x005EC170)
 
 /* stMeshModel.cpp's mesh-model registry at 0x00659CB8: the destructor at
    0x00470ED0 walks count 0x659CBC / data 0x659CC4 and unlinks the model. */
@@ -487,7 +487,7 @@ class W8Navigator;
 // W8GrowableVector<W8MonsterGroup*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0048ced0
-// W8GrowableVector<W8MonsterGroup*>::`vector deleting destructor'
+// W8GrowableVector<W8MonsterGroup*>::`scalar deleting destructor' (companion table 0x005ECA9C)
 
 // TEMPLATE: WIZ8 0x0048ce00
 // W8GrowableVector<W8MonsterGroup*>::~W8GrowableVector<W8MonsterGroup*>
@@ -505,7 +505,7 @@ class W8Navigator;
 // W8GrowableVector<W8EncounterTableRuntime*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0048cf20
-// W8GrowableVector<W8EncounterTableRuntime*>::`vector deleting destructor'
+// W8GrowableVector<W8EncounterTableRuntime*>::`scalar deleting destructor' (companion table 0x005ECAA4)
 
 // TEMPLATE: WIZ8 0x0048CF70
 // W8GrowableVector<unsigned short>::Grow
@@ -597,7 +597,7 @@ class W8Navigator;
 // class W8GrowableVector<W8GrowableVector<W8GrCycle*>*>
 
 // SYNTHETIC: WIZ8 0x004a8ef0
-// W8GrowableVector<W8GrowableVector<W8GrCycle*>*>::`vector deleting destructor'
+// W8GrowableVector<W8GrowableVector<W8GrCycle*>*>::`scalar deleting destructor' (companion table 0x005ECEE8)
 
 // TEMPLATE: WIZ8 0x004a8e70
 // W8GrowableVector<W8GrowableVector<W8GrCycle*>*>::W8GrowableVector
