@@ -400,7 +400,7 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
 // VTABLE: WIZ8 0x005ecde0 W8MissileRep
 // class W8MissileRep
 
-// VTABLE: WIZ8 0x005ece08 W8Missile
+// VTABLE: WIZ8 0x005ece08 W8GrObject
 // VTABLE: WIZ8 0x005ecdf4 W8Navigator
 // class W8Missile
 
