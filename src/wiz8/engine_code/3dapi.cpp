@@ -335,7 +335,7 @@ W8World* CreateWorld()
 void UpdateWorlds(void)
 {
     g_navigator_vertical_enabled =
-        !(gfKeyState[0x11] != 0 && g_combat_state != 0 &&
+        !(g_monster_combat_timer_enabled && g_combat_state != 0 &&
           (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0));
 
     {

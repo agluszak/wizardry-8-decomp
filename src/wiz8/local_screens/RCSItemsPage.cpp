@@ -2,6 +2,7 @@
 #include "wiz8/integer_constants.h"
 
 #include "wiz8/layouts/character.h"
+#include "wiz8/engine_code/3dapi.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/local_code/Combat.h"
@@ -68,7 +69,6 @@ int giCasterCharSlot;
 
 // GLOBAL: WIZ8 0x0069C424
 W8ItemInstance* g_split_item_source;
-
 
 // GLOBAL: WIZ8 0x0069c490
 unsigned int g_camp_secondary_region_set;
@@ -771,7 +771,7 @@ void SelectCampRealmTab(int tab)
     }
     g_camp_screen->item_scroll = 0;
     RebuildCampItemList();
-    if (gfKeyState[0x11] == 0) {
+    if (!g_monster_combat_timer_enabled) {
         g_camp_screen->item_redraw_flags |= 0x7fc00000;
         return;
     }

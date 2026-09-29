@@ -1282,7 +1282,7 @@ W8CampItemRange::W8CampItemRange()
 void W8CampItemRange::OnRangeChanged(W8RangeControl*)
 {
     g_camp_screen->item_scroll = m_range->m_value << 1;
-    if (gfKeyState[0x11]) {
+    if (g_monster_combat_timer_enabled) {
         g_camp_screen->redraw_flags |= 0x0fffffff;
         return;
     }
@@ -2464,7 +2464,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         return;
     }
     g_camp_screen->redraw_flags |= 0x1000;
-    if (gfKeyState[0x11] != 0) {
+    if (g_monster_combat_timer_enabled) {
         g_camp_screen->redraw_flags |= 0x0fffffff;
     } else {
         if (origin == 0) {
