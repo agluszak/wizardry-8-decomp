@@ -528,6 +528,10 @@ def compare_vtables(repository: Path, target: str, class_filter: str | None) -> 
             else "different"
             if SlotStatus.DIFFERENT in statuses
             else "unpaired"
+            if SlotStatus.UNPAIRED in statuses
+            else "code-equivalent"
+            if SlotStatus.CODE_EQUIVALENT in statuses
+            else "unpaired"
         )
         rows.append(
             {
@@ -555,13 +559,19 @@ def compare_vtables(repository: Path, target: str, class_filter: str | None) -> 
         "ok": counts["different"] == 0 and counts["unpaired"] == 0,
         "count": len(rows),
         "match_count": counts["match"],
+        "code_equivalent_count": counts["code-equivalent"],
+        "code_equivalent_slot_count": sum(
+            slot["status"] == SlotStatus.CODE_EQUIVALENT.value
+            for row in rows
+            for slot in row["slots"]
+        ),
         # A slot at a paired function other than retail's.
         "different_count": counts["different"],
         # Only slots at functions reccmp has not paired, typically bodies the
         # retail link folded (ICF); the comparison build links /OPT:NOICF.
         "unpaired_count": counts["unpaired"],
         "filter": class_filter,
-        "vtables": [row for row in rows if row["status"] != "match"],
+        "vtables": [row for row in rows if row["status"] not in ("match", "code-equivalent")],
     }
 
 
