@@ -545,27 +545,27 @@ public:
     void getEnvironmentScaleFactor(float& scale, float& inverse_scale);
     unsigned long getExclusionMask() const;
     void setExclusionMask(unsigned long mask);
-/* The pipeline's single-stage mask branch inlines this exported getter. */
-// FUNCTION: SURRENDER 0x1001BB70 SYMBOL
-// ?getMaxTextureStages@srGERD@@QBEJXZ
+    /* The pipeline's single-stage mask branch inlines this exported getter. */
+    // FUNCTION: SURRENDER 0x1001BB70 SYMBOL
+    // ?getMaxTextureStages@srGERD@@QBEJXZ
     long getMaxTextureStages() const
     {
         return device_40_.info_10_.max_texture_stages_28_;
     }
-// FUNCTION: SURRENDER 0x1001CF10 SYMBOL
-// ?getMaxPickStackDepth@srGERD@@QBEJXZ
+    // FUNCTION: SURRENDER 0x1001CF10 SYMBOL
+    // ?getMaxPickStackDepth@srGERD@@QBEJXZ
     long getMaxPickStackDepth() const
     {
         return 0x20;
     }
-// FUNCTION: SURRENDER 0x1001CF20 SYMBOL
-// ?getMaxModelviewStackDepth@srGERD@@QBEJXZ
+    // FUNCTION: SURRENDER 0x1001CF20 SYMBOL
+    // ?getMaxModelviewStackDepth@srGERD@@QBEJXZ
     long getMaxModelviewStackDepth() const
     {
         return 0x20;
     }
-// FUNCTION: SURRENDER 0x1001CF30 SYMBOL
-// ?getMaxProjectionStackDepth@srGERD@@QBEJXZ
+    // FUNCTION: SURRENDER 0x1001CF30 SYMBOL
+    // ?getMaxProjectionStackDepth@srGERD@@QBEJXZ
     long getMaxProjectionStackDepth() const
     {
         return 0x20;
@@ -720,24 +720,24 @@ public:
     static unsigned long sGetClassID();
     static void dumpDeviceList(std::ostream& stream);
 
-/* These ordinary methods are header-visible in Wiz8 call sites even
+    /* These ordinary methods are header-visible in Wiz8 call sites even
        though SR.DLL also exports out-of-line copies. */
-// FUNCTION: SURRENDER 0x1001BB80 SYMBOL
-// ?isPickStackEmpty@srGERD@@QBEHXZ
+    // FUNCTION: SURRENDER 0x1001BB80 SYMBOL
+    // ?isPickStackEmpty@srGERD@@QBEHXZ
     int isPickStackEmpty() const
     {
         return pick_176c_.pick_depth_280_ == 0;
     }
 
-// FUNCTION: SURRENDER 0x1001BAE0 SYMBOL
-// ?isEnabled@srGERD@@QBEHW4e_enable@1@@Z
+    // FUNCTION: SURRENDER 0x1001BAE0 SYMBOL
+    // ?isEnabled@srGERD@@QBEHW4e_enable@1@@Z
     int isEnabled(e_enable option) const
     {
         return (enable_flags_20_.value & (1UL << option)) != 0;
     }
 
-// FUNCTION: SURRENDER 0x1001BB90 SYMBOL
-// ?setCullMode@srGERD@@QAEXW4e_cullMode@1@@Z
+    // FUNCTION: SURRENDER 0x1001BB90 SYMBOL
+    // ?setCullMode@srGERD@@QAEXW4e_cullMode@1@@Z
     void setCullMode(e_cullMode mode)
     {
         if (state_390_.cull_mode_12b8_ != mode) {
@@ -746,10 +746,10 @@ public:
         }
     }
 
-/* Header inline that also emits the standalone retail 0x1001BB40 copy;
+    /* Header inline that also emits the standalone retail 0x1001BB40 copy;
        drawSorted calls the emission while drawImmediate inlines it. */
-// FUNCTION: SURRENDER 0x1001BB40 SYMBOL
-// ?setShader@srGERD@@QAEXABVsrShader@@@Z
+    // FUNCTION: SURRENDER 0x1001BB40 SYMBOL
+    // ?setShader@srGERD@@QAEXABVsrShader@@@Z
     void setShader(const srShader& shader)
     {
         if (shader_1ff8_.value != shader.value) {
@@ -758,16 +758,16 @@ public:
         }
     }
 
-// FUNCTION: SURRENDER 0x1001BEF0 SYMBOL
-// ?setVertexArrayMask@srGERD@@QAEXV?$srFlags@W4e_vertexArray@srRendererDefs@@@@@Z
+    // FUNCTION: SURRENDER 0x1001BEF0 SYMBOL
+    // ?setVertexArrayMask@srGERD@@QAEXV?$srFlags@W4e_vertexArray@srRendererDefs@@@@@Z
     void setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray> mask)
     {
         vertex_arrays_21c4_.mask_00 = mask;
         dirty_21c0_ |= 1;
     }
 
-// FUNCTION: SURRENDER 0x1001BEE0 SYMBOL
-// ?getVertexArrayMask@srGERD@@QBE?AV?$srFlags@W4e_vertexArray@srRendererDefs@@@@XZ
+    // FUNCTION: SURRENDER 0x1001BEE0 SYMBOL
+    // ?getVertexArrayMask@srGERD@@QBE?AV?$srFlags@W4e_vertexArray@srRendererDefs@@@@XZ
     srFlags<srRendererDefs::e_vertexArray> getVertexArrayMask() const
     {
         return vertex_arrays_21c4_.mask_00;
@@ -783,8 +783,8 @@ public:
     void setFogPointer(long components, srRendererDefs::e_type type, unsigned long stride,
                        const void* values);
 
-// FUNCTION: SURRENDER 0x1001BFD0 SYMBOL
-// ?setTexCoordPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXK@Z
+    // FUNCTION: SURRENDER 0x1001BFD0 SYMBOL
+    // ?setTexCoordPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXK@Z
     void setTexCoordPointer(long components, srRendererDefs::e_type type, unsigned long stride,
                             const void* values, unsigned long layer)
     {
@@ -796,8 +796,8 @@ public:
         dirty_21c0_ |= 1;
     }
 
-// FUNCTION: SURRENDER 0x1001BE90 SYMBOL
-// ?setVertexPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXJ@Z
+    // FUNCTION: SURRENDER 0x1001BE90 SYMBOL
+    // ?setVertexPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXJ@Z
     void setVertexPointer(long primitive, srRendererDefs::e_type type, unsigned long stride,
                           const void* values, long count)
     {
@@ -821,7 +821,7 @@ private:
         /* evaluateTexturePixelFormat copies the matched device format here. */
         srPixelConvert::PixelFormat pixel_format_0c;
         void* surface_data_20;
-        srPalette* palette_24;
+        srPtr<srPalette> palette_24;
         char* name_28;
         srDD::Texture device_2c;
         unsigned long unknown_a4;
@@ -1061,9 +1061,7 @@ private:
        only ctor-initialised scalar; its store lands between the clip-plane
        and inverse-modelview __ehvector_ctor calls. */
     struct State {
-        State() : scissor_flags_12f0_(0)
-        {
-        }
+        State() : scissor_flags_12f0_(0) {}
 
         /* Per-mode current matrices; pushMatrix indexes by mode. */
         srMatrix4T<float> matrix_current_00_[2];
@@ -1120,9 +1118,7 @@ private:
        over the block; pick_depth_280_ is the ctor-initialised scalar whose
        store lands right after the pick-stack __ehvector_ctor. */
     struct PickState {
-        PickState() : pick_depth_280_(0)
-        {
-        }
+        PickState() : pick_depth_280_(0) {}
 
         Pick pick_stack_00_[32];
         unsigned long pick_depth_280_;
@@ -1170,9 +1166,7 @@ private:
        emits no ehctor over that array — while enable_stack_104_ gets the
        sixteen-element srFlags __ehvector_ctor (element ctor 0x1001EF50). */
     struct EnvironmentState {
-        EnvironmentState() : environment_depth_100_(0), enable_depth_144_(0)
-        {
-        }
+        EnvironmentState() : environment_depth_100_(0), enable_depth_144_(0) {}
 
         Environment environment_stack_00_[16];
         unsigned long environment_depth_100_;
@@ -1276,13 +1270,12 @@ private:
     /* performPickTest's w-normalized {x,y,z,sign(w)} scratch per vertex;
        released by closeWindow. */
     srHeapBuffer<srVector4T<float> > pick_vertices_2230_;
-
-    /* Implicit memberwise copy constructor emitted by the class-level
-       provider dllexport; retail has no in-DLL call sites. */
-    // SYNTHETIC: SURRENDER 0x1001B020
-    // ??0srGERD@@QAE@ABV0@@Z
-
 };
+
+/* Implicit memberwise copy constructor emitted by the class-level
+   provider dllexport; retail has no in-DLL call sites. */
+// SYNTHETIC: SURRENDER 0x1001B020
+// ??0srGERD@@QAE@ABV0@@Z
 
 /* Retail 0x10027BF0: the three-word texture-set key hash; the interning
    cache inlines it for the lookup probe and calls this emission when

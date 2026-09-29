@@ -262,16 +262,7 @@ void srGERD::setTexture(srTextureIFace* texture, unsigned long layer)
     SectionAccess access(state_section_18_);
     if (layer < device_40_.info_10_.max_texture_stages_28_ &&
         texture_iface_1ffc_[layer] != texture) {
-        /* Retail keeps this redundant re-test (JZ on the same pair). */
-        if (texture != texture_iface_1ffc_[layer]) {
-            if (texture != 0) {
-                texture->addReference();
-            }
-            if (texture_iface_1ffc_[layer] != 0) {
-                texture_iface_1ffc_[layer]->release();
-            }
-            texture_iface_1ffc_[layer] = texture;
-        }
+        texture_iface_1ffc_[layer] = texture;
         changeTexture(texture, layer, 0);
         dirty_24_ |= 1 << (layer + 0xa);
     }
@@ -712,10 +703,7 @@ void srGERD::invalidateResidentTexture(Texture& texture)
 void srGERD::resetCurrentTexPointers()
 {
     for (unsigned long stage = 0; stage < device_40_.info_10_.max_texture_stages_28_; ++stage) {
-        if (texture_iface_1ffc_[stage] != 0) {
-            texture_iface_1ffc_[stage]->release();
-            texture_iface_1ffc_[stage] = 0;
-        }
+        texture_iface_1ffc_[stage] = 0;
         texture_slots_1f38_[stage] = 0;
     }
     dirty_24_ |= 0x400;
@@ -3359,10 +3347,7 @@ void srGERD::deleteTexture(Texture& texture)
     texture.next_04 = 0;
     texture.device_2c.deleted_70 = 0;
     releaseTextureSurfaceData(texture);
-    if (texture.palette_24 != 0) {
-        texture.palette_24->release();
-        texture.palette_24 = 0;
-    }
+    texture.palette_24 = 0;
     texture.id_08 = 0;
     texture.device_2c.flags_00 = 0;
     texture.device_2c.size_1c = 0;
@@ -3452,12 +3437,9 @@ srGERD::Texture* srGERD::allocTexture(unsigned long id)
     /* Retail zeroes 0xa4 bytes: the aligned/unaligned dword-and-byte fill is
        memset lowering; the trailing dword is the free-list link, already
        consumed above. */
-    memset(texture, 0, 0xa4);
+    memset(static_cast<void*>(texture), 0, 0xa4);
     texture->id_08 = id;
-    if (texture->palette_24 != 0) {
-        texture->palette_24->release();
-        texture->palette_24 = 0;
-    }
+    texture->palette_24 = 0;
     texture_lookup_2004_.Insert(&texture->id_08, &texture);
     texture->next_04 = texture_head_202c_;
     texture->prev_00 = 0;
@@ -4312,14 +4294,8 @@ void srGERD::closeWindow(e_closeHint hint)
         next_open_3c_ = 0;
         state_flags_28_ &= ~0x10UL;
         shader_1ff8_ = srShader();
-        if (texture_iface_1ffc_[0] != 0) {
-            texture_iface_1ffc_[0]->release();
-            texture_iface_1ffc_[0] = 0;
-        }
-        if (texture_iface_1ffc_[1] != 0) {
-            texture_iface_1ffc_[1]->release();
-            texture_iface_1ffc_[1] = 0;
-        }
+        texture_iface_1ffc_[0] = 0;
+        texture_iface_1ffc_[1] = 0;
         pick_vertices_2230_.release();
     }
 }
@@ -4433,14 +4409,8 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
             resetStatistics();
             dirty_24_ = 0xffffffff;
             initTexCache();
-            if (texture_iface_1ffc_[0] != 0) {
-                texture_iface_1ffc_[0]->release();
-                texture_iface_1ffc_[0] = 0;
-            }
-            if (texture_iface_1ffc_[1] != 0) {
-                texture_iface_1ffc_[1]->release();
-                texture_iface_1ffc_[1] = 0;
-            }
+            texture_iface_1ffc_[0] = 0;
+            texture_iface_1ffc_[1] = 0;
             shader_1ff8_ = srShader();
             if (device_40_.info_10_.max_texture_stages_28_ != 0) {
                 unsigned long stage = 0;
@@ -4692,15 +4662,8 @@ void srGERD::evaluateTexturePixelFormat(Texture& texture,
     texture.device_2c.format_index_30 = index;
     texture.pixel_format_0c = device_40_.texture_formats_320_[index];
     if (texture.pixel_format_0c.conversion_class == 3) {
-        if (dimensions.palette != 0) {
-            dimensions.palette->addReference();
-        }
-        if (texture.palette_24 != 0) {
-            texture.palette_24->release();
-        }
         texture.palette_24 = dimensions.palette;
-    } else if (texture.palette_24 != 0) {
-        texture.palette_24->release();
+    } else {
         texture.palette_24 = 0;
     }
     texture.device_2c.parameter_34 =
@@ -4796,10 +4759,7 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
     dimensions.compression = texture_state_1f5c_.default_compression_7c_;
     dimensions.width = 1;
     dimensions.height = 1;
-    if (dimensions.palette != 0) {
-        dimensions.palette->release();
-        dimensions.palette = 0;
-    }
+    dimensions.palette = 0;
     dimensions.format = *device_40_.texture_formats_320_;
     dimensions.filter = 0;
     dimensions.hints = 0;
@@ -4832,9 +4792,6 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
     result->device_2c.resident_data_68 = 0;
     result->device_2c.priority_14 = texture->getPriority();
     ++statistics_1a78_.textures_created_54;
-    if (dimensions.palette != 0) {
-        dimensions.palette->release();
-    }
     return result;
 }
 
@@ -4863,15 +4820,15 @@ void srGERD::setGlobalPalette(const srPalette& palette)
     if (palette.matchPalette(global_palette_1b38_, 0x100) != 0) {
         return;
     }
-    long count = palette.getPaletteSize();
+    unsigned long count = palette.getPaletteSize();
     if (count > 0x100) {
         count = 0x100;
     }
-    for (long i = 0; i < count; ++i) {
+    for (unsigned long i = 0; i < count; ++i) {
         global_palette_1b38_[i] = palette.getColor(i);
     }
     /* reinterpret-ok: the DD receives the palette entries as raw dwords. */
-    getDD()->setGlobalPalette(reinterpret_cast<unsigned long*>(global_palette_1b38_), 0x100);
+    getDD()->setGlobalPalette(reinterpret_cast<unsigned long*>(global_palette_1b38_), count);
 }
 
 // FUNCTION: SURRENDER 0x10017AA0
@@ -5331,12 +5288,14 @@ void srGERD::setDepthRange(double minimum, double maximum)
         minimum = 1.0;
     }
     state_390_.depth_min_1288_ = minimum;
-    if (maximum <= 0.0) {
-        state_390_.depth_max_1290_ = 0.0;
-    } else if (maximum < 1.0) {
-        state_390_.depth_max_1290_ = maximum;
+    if (maximum > 0.0) {
+        if (maximum < 1.0) {
+            state_390_.depth_max_1290_ = maximum;
+        } else {
+            state_390_.depth_max_1290_ = 1.0;
+        }
     } else {
-        state_390_.depth_max_1290_ = 1.0;
+        state_390_.depth_max_1290_ = 0.0;
     }
     dirty_24_ |= 0x100;
 }

@@ -325,23 +325,23 @@ void srMaterial::dump(std::ostream& stream)
     flags = stream.flags();
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     stream.width(0x20);
-    stream << "Ambient: " << '{' << parms.ambient.x << ',' << parms.ambient.y << ','
+    stream << "  Ambient: " << '{' << parms.ambient.x << ',' << parms.ambient.y << ','
            << parms.ambient.z << ',' << parms.ambient.w << '}' << '\n';
     stream.width(0x20);
-    stream << "Diffuse: " << '{' << parms.diffuse.x << ',' << parms.diffuse.y << ','
+    stream << "  Diffuse: " << '{' << parms.diffuse.x << ',' << parms.diffuse.y << ','
            << parms.diffuse.z << ',' << parms.diffuse.w << '}' << '\n';
     stream.width(0x20);
-    stream << "Emissive: " << '{' << parms.emissive.x << ',' << parms.emissive.y << ','
+    stream << "  Emissive: " << '{' << parms.emissive.x << ',' << parms.emissive.y << ','
            << parms.emissive.z << ',' << parms.emissive.w << '}' << '\n';
     stream.width(0x20);
-    stream << "Specular: " << '{' << parms.specular.x << ',' << parms.specular.y << ','
+    stream << "  Specular: " << '{' << parms.specular.x << ',' << parms.specular.y << ','
            << parms.specular.z << ',' << parms.specular.w << '}' << '\n';
     stream.width(0x20);
-    stream << "Shininess: " << parms.shininess << '\n';
+    stream << "  Shininess: " << parms.shininess << '\n';
     stream.width(0x20);
-    stream << "Translucency: " << parms.translucency << '\n';
+    stream << "  Translucency: " << parms.translucency << '\n';
     stream.width(0x20);
-    stream << "Op. Control Flags: ";
+    stream << "  Op. Control Flags: ";
     if (operations_6c.value == 0) {
         stream << "<NONE>";
     } else {
@@ -382,9 +382,9 @@ void srMaterial::dump(std::ostream& stream)
     }
     stream << '\n';
     stream.width(0x20);
-    stream << "Texture mapper: " << mapper_70 << '\n';
+    stream << "  Texture mapper: " << mapper_70 << '\n';
     stream.width(0x20);
-    stream << "Dirty: " << srBoolToString(dirty_74) << '\n';
+    stream << "  Dirty: " << srBoolToString(dirty_74) << '\n';
     stream.flags(flags & 0x7fff);
 }
 

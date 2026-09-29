@@ -195,7 +195,10 @@ void srVertexPipe::processVertexBuffer()
         lazy_setup_mask_10 |= 1 << srVertexProcessor::CHANNEL_Q1;
     }
     unsigned long packed = (mask >> 2) & 0xffffff7c;
-    packed |= ((mask >> 1) & 2) | ((mask & 0x10) != 0 ? 1 : 0);
+    packed |= ((mask >> 1) & 2) | ((mask & ((1 << srVertexProcessor::CHANNEL_DIFFUSE) |
+                                            (1 << srVertexProcessor::CHANNEL_ALPHA))) != 0
+                                       ? 1
+                                       : 0);
     vector_processor_98->_memcopy(vertex_array_78->packed_1c + batch_base_80 + sub_batch_offset_84,
                                   packed, vertex_count_88);
 }
