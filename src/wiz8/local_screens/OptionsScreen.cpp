@@ -206,18 +206,18 @@ W8OptionsInterfacePanel::W8OptionsInterfacePanel() : W8OptionsPanel(2) {}
 
 W8OptionsAudioPanel::W8OptionsAudioPanel() : W8OptionsPanel(3) {}
 
-// SYNTHETIC: WIZ8 0x005ACA40
+// SYNTHETIC: WIZ8 0x005ACCC0
 // W8OptionsAudioPanel::`scalar deleting destructor'
 
-// SYNTHETIC: WIZ8 0x005ACA60
+// SYNTHETIC: WIZ8 0x005ACCE0
 // W8OptionsAudioPanel::~W8OptionsAudioPanel
 
 W8OptionsGraphicsPanel::W8OptionsGraphicsPanel() : W8OptionsPanel(4) {}
 
-// SYNTHETIC: WIZ8 0x005ACCC0
+// SYNTHETIC: WIZ8 0x005ACA40
 // W8OptionsGraphicsPanel::`scalar deleting destructor'
 
-// SYNTHETIC: WIZ8 0x005ACCE0
+// SYNTHETIC: WIZ8 0x005ACA60
 // W8OptionsGraphicsPanel::~W8OptionsGraphicsPanel
 
 W8OptionsAdvancedGraphicsPanel::W8OptionsAdvancedGraphicsPanel() : W8OptionsPanel(5) {}
