@@ -384,12 +384,12 @@ bool MartensBluff1Teleporter(Trigger* pTrigger)
 
     if (GetLocationVarIDByName("TeleporterState") == -1) {
         CreateLocationVar("TeleporterState", 0);
-        state = Random(4) + 1;
+        state = 0;
     } else {
         state = GetLocationVarValueByName("TeleporterState");
-        if (state == 0) {
-            state = Random(4) + 1;
-        }
+    }
+    if (state == 0) {
+        state = Random(4) + 1;
     }
     switch (state - 1) {
     case 0:

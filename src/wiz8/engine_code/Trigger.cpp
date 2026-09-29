@@ -428,7 +428,7 @@ bool LoadTriggerRuntimeStates(int handle)
 bool Trigger::Save0043BE60(int hFile)
 {
     unsigned char version = 5;
-    unsigned char reserved[4];
+    int trigger_count = g_world->triggers->GetCount();
     bool header_ok;
     W8TriggerActionData* action_data;
     unsigned char has_action_data;
@@ -442,7 +442,7 @@ bool Trigger::Save0043BE60(int hFile)
         srAssertFail("hFile", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x183, 0);
     }
     header_ok = FileWrite(hFile, &version, sizeof(version), 0) &&
-                FileWrite(hFile, reserved, sizeof(reserved), 0) &&
+                FileWrite(hFile, &trigger_count, sizeof(trigger_count), 0) &&
                 FileWrite(hFile, name_01c, 0x80, 0) &&
                 FileWrite(hFile, &flags_0a0, sizeof(flags_0a0), 0) &&
                 FileWrite(hFile, &state_index, sizeof(state_index), 0) &&

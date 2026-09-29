@@ -48,6 +48,7 @@ BitArray::BitArray(unsigned int new_bit_count)
 // FUNCTION: WIZ8 0x0043ada0
 void BitArray::SetSize(unsigned int new_bit_count)
 {
+    int whole_words;
     unsigned int spill;
     unsigned int index;
 
@@ -56,9 +57,10 @@ void BitArray::SetSize(unsigned int new_bit_count)
     cursor_word = 0;
 
     if (bit_count != new_bit_count) {
-        spill = new_bit_count - W8_WHOLE_WORDS(new_bit_count) * W8_BITS_PER_WORD;
+        whole_words = W8_WHOLE_WORDS(new_bit_count);
+        spill = new_bit_count - whole_words * W8_BITS_PER_WORD;
         cursor_base = spill;
-        word_count = W8_WHOLE_WORDS(new_bit_count) + 1;
+        word_count = whole_words + 1;
         tail_mask = 0;
         cursor_bit = 0;
         while ((unsigned int)cursor_bit < spill) {
@@ -412,9 +414,10 @@ void BitArray::SetToComplementOf(BitArray& other)
 int BitArray::CountSetBits()
 {
     set_count = 0;
-    while (NextSetBit(1) != 0) {
+    int bit = NextSetBit(1);
+    while (bit != 0) {
         ++set_count;
-        NextSetBit(0);
+        bit = NextSetBit(0);
     }
     return set_count;
 }

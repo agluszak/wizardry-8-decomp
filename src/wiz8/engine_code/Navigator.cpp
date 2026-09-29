@@ -194,8 +194,8 @@ W8Navigator::W8Navigator()
     linked_update_time_0b8 = 0;
     movement_0c0.Reset();
     tracked_position_0a4.x = 0.0f;
-    node_18c = new srNode(0);
     g_registered_navigators.Add(this);
+    node_18c = new srNode(0);
 }
 
 /* The callback a navigator starts with: mark it and stop it dead. */
