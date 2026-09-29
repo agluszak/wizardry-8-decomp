@@ -713,7 +713,7 @@ void StageMonsterCastIcon(unsigned int party_slot, int realm, char alternate, in
         entry->auto_portrait_refresh = 1;
         entry->effect_icon_frame = -1;
     }
-    if (entry->combat_portrait_dirty == 0) {
+    if (entry->keyboard_menu_open == 0) {
         RequestRedraw(1 << (party_slot & 0x1f));
     }
     if (entry->damage_splat_active == 0) {

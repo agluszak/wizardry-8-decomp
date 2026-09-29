@@ -4799,12 +4799,12 @@ void SelectPartyCharacter(int party_slot)
 // FUNCTION: WIZ8 0x00561a20
 void RefreshSelectedPartyPortrait(unsigned int party_slot)
 {
-    if (g_level_block == 0 || g_level_block->main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
+    if (g_level_block->main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
         g_level_block->portrait_refresh_pending[party_slot] != 0) {
         return;
     }
     if (g_level_block->keyboard_menu_open != 0 &&
-        party_slot == static_cast<unsigned int>(g_selected_party_slot) &&
+        party_slot == static_cast<unsigned int>(GetValue64C1C8()) &&
         gXStatus.monster_manager_entries[party_slot].effect_icon_active == 0 &&
         gXStatus.monster_manager_entries[party_slot].damage_splat_active == 0) {
         if (gXStatus.monster_manager_entries[party_slot].quote.quote_handle == -1 ||
@@ -4840,7 +4840,7 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
     }
 
     if (g_main_game_mode == 3) {
-        if (gXStatus.dialogue_sync_pending_026 != 0) {
+        if (gXStatus.fNpcDialogueMode != 0) {
             EndNpcDialogueSession(0);
         }
     } else if (g_main_game_mode == 5) {

@@ -40,6 +40,7 @@ static MGSKeyName g_mgs_key_names[] = {
 // FUNCTION: WIZ8 0x0055D800
 unsigned char MGSKeyboard::LoadDefaults(const char* path)
 {
+    bool loaded_binding = false;
     int handle = FileOpen((char*)path, FILE_ACCESS_READ, 0);
     if (handle == 0) {
         srAssertFail("hFile", "C:\\Projects\\Wizardry 8\\Local Code\\InputMapper.cpp", 478,
@@ -103,7 +104,8 @@ unsigned char MGSKeyboard::LoadDefaults(const char* path)
         if (m_bindings.Add(binding) != -1) {
             m_command_index.Insert((const unsigned int*)&command, &binding);
         }
+        loaded_binding = true;
     }
     FileClose(handle);
-    return 1;
+    return loaded_binding;
 }

@@ -179,7 +179,7 @@ struct W8SpellRuntimeRecord {
     unsigned char divinity_spell; /* 0x11f */
     unsigned char psionics_spell; /* 0x120 */
     float effect_radius;          /* 0x121 */
-    unsigned char blocks_auto_power_in_combat;
+    unsigned char unknown_125;
     /* 0x126: a monster may cast the spell at all. MonsterOKToCastSpell reports
        a spell without it by name and asserts. */
     unsigned char monster_castable;
