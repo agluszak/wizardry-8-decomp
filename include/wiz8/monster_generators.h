@@ -66,4 +66,4 @@ extern int g_encounter_culling_time_seconds;
 extern const float g_generator_jitter_fraction;
 extern float g_encounter_culling_scale_fast;
 extern const float g_encounter_culling_rate;
-extern const float g_encounter_culling_distance;
+extern const double g_encounter_culling_distance;

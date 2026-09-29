@@ -279,43 +279,42 @@ unsigned int g_missile_table_count;
 // FUNCTION: WIZ8 0x004a5600
 unsigned char LoadMissileDatabase(void)
 {
-    char path[] = "Data\\Databases\\MissileTables.dbs";
     int allocated_count;
     unsigned int database_version;
     unsigned int index;
     int handle;
+    bool success;
 
     if (g_missile_table) {
         delete[] g_missile_table;
         g_missile_table = 0;
         g_missile_table_count = 0;
     }
-    handle = FileOpen(path, 0x41, 0);
-    if (!handle || !FileRead(handle, &allocated_count, 4, 0) ||
-        !FileRead(handle, &database_version, 4, 0)) {
-        if (handle) {
-            FileClose(handle);
-        }
+    handle = FileOpen("Data\\Databases\\MissileTables.dbs", 0x41, 0);
+    if (!handle) {
         return 0;
     }
+    success = FileRead(handle, &allocated_count, 4, 0) && FileRead(handle, &database_version, 4, 0);
     g_missile_table = new W8MissileTableRecord[allocated_count];
     if (!g_missile_table) {
-        FileClose(handle);
-        return 0;
+        srAssertFail("s_pMissileTable", MISSILE_CPP, 0x8d6, 0);
     }
     for (index = 0; index < static_cast<unsigned int>(allocated_count); ++index) {
-        if (!FileSeek(handle, 0x101, 4) ||
-            !FileRead(handle, &g_missile_table[index], sizeof(W8MissileTableRecord), 0)) {
-            delete[] g_missile_table;
-            g_missile_table = 0;
-            g_missile_table_count = 0;
-            FileClose(handle);
-            return 0;
+        if (!success) {
+            break;
         }
+        success = FileSeek(handle, 0x101, 4) &&
+                  FileRead(handle, &g_missile_table[index], sizeof(W8MissileTableRecord), 0);
     }
-    g_missile_table_count = allocated_count;
+    if (success) {
+        g_missile_table_count = allocated_count;
+    } else {
+        delete[] g_missile_table;
+        g_missile_table = 0;
+        g_missile_table_count = 0;
+    }
     FileClose(handle);
-    return 1;
+    return success;
 }
 
 /* Release the one allocation that owns every runtime missile-table row. */
