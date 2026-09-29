@@ -19,7 +19,6 @@ from typing import Any
 from .binary.coff_archive import named_iat_archive
 from .config import Settings, load_settings
 from .paths import atomic_write, compile_database_relative
-from .reccmp_data import write_wiz8_data_source
 from .subprocesses import resolve_executable, run
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
@@ -194,7 +193,6 @@ def prepare(settings: Settings) -> dict[str, Any]:
     sources = fetch_seed_sources(settings)
     runtime_toolchain = prepare_runtime_toolchain(settings)
     write_source_index(settings)
-    write_wiz8_data_source(settings.repo_dir)
     run(
         [
             "reccmp-project",

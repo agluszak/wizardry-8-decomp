@@ -5,8 +5,6 @@ targets:
       - src/wiz8
       - src/sgp
       - include/wiz8
-    data-sources:
-      - build/reccmp/wiz8-symbols.csv
     hash:
       sha256: 18a74ff61c65b8a2d4cfa11ffce82ad7fef022a94eaf0c2f217e479e981420d2
   SREXT_JPEGIMPORTER:
