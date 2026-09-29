@@ -659,11 +659,15 @@ def apply_type_graph_projection(
         if status == "bind-existing":
             ghidra_class = ensure_ghidra_class(_program, owning)
             result = find_class_structure(_program, ghidra_class)
+            evidence_path = row.get("evidence_path")
+            if result is None and evidence_path:
+                result = _as_structure(
+                    _program.getDataTypeManager().getDataType(str(evidence_path))
+                )
             if result is None:
                 return {**dict(row), "error": "missing-bound-structure"}
             if is_legacy_path(str(result.getPathName())):
                 return {**dict(row), "error": "bound-path-legacy"}
-            evidence_path = row.get("evidence_path")
             if evidence_path and str(result.getPathName()) != str(evidence_path):
                 return {
                     **dict(row),
