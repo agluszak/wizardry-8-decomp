@@ -1,117 +1,78 @@
 ---
 name: ghidra-analysis
-description: Inspect or edit the canonical Wizardry 8 Ghidra analysis, including functions, prototypes, data types, references, decompilation, and reviewed checkpoints.
+description: Inspect or edit canonical Wizardry 8 retail Ghidra analysis while preserving evidence provenance.
 ---
 
 # Ghidra analysis
 
-Use this skill when the task is about the retail analysis model itself: inspect instructions/P-code,
-references, functions, prototypes, storage, data types, vtables, or make an evidence-backed correction
-to the reviewed program. Source recovery and comparison remain in
-[matching-decomp](../matching-decomp/SKILL.md); source type/layout decisions belong in
-[type-modeling](../type-modeling/SKILL.md).
+Use this skill for the retail analysis model itself: instructions/P-code, references, functions,
+prototypes/storage, data types, vtables, or evidence-backed ProgramDB corrections.
 
-## Recovery preflight
+Source recovery lives in [matching-decomp](../matching-decomp/SKILL.md); source type/layout decisions
+live in [type-modeling](../type-modeling/SKILL.md).
 
-Before the first Ghidra-derived recovery step in a genuinely new task, or after switching/rebasing to a
-revision that changes `vendor/ghidra/exports/manifest.json` or a reviewed GZF, run:
+## Provenance boundary
+
+Ghidra stores facts from several origins. Keep them conceptually distinct:
+
+- retail-binary/manual reviewed facts;
+- Ghidra analysis inference;
+- recovered-source projection;
+- recomp PDB/compiler projection.
+
+A fact projected from current recovered source or recomp PDB into retail ProgramDB is useful for
+decompiler quality, but it is **not independent retail evidence** that can confirm the same source
+declaration. Agreement between source-projected retail ProgramDB and recomp PDB may be circular.
+
+When comparison preparation needs independently reviewed retail ABI/type evidence, require provenance
+that excludes current-source/PDB projection.
+
+Keep uncertain facts unknown. Parameter-ID or other heuristic inference is investigation material until
+independently established.
+
+## Ordinary reads
+
+Routine recovery usually needs only:
 
 ```sh
-uv run wiz8 doctor
+uv run wiz8 ghidra decompile ADDRESS...
+uv run wiz8 ghidra asm ADDRESS...
+uv run wiz8 ghidra sym ADDRESS...
+uv run wiz8 ghidra class NAME
+uv run wiz8 ghidra flow ADDRESS --root NAME
 ```
 
-Do not infer freshness from the program name, retail binary hash, an existing `ghidra-project/`, or the
-fact that `open_program()` can find a program. A checkout can retain an older live analysis after a
-newer reviewed GZF lands. `doctor` checks checkout ownership plus the reviewed-seed provenance recorded
-when the project was restored, and reports source-projection freshness separately. A current seed does
-not imply current source declarations have been projected. Doctor does not repair or replace analysis
-state. Project established source facts with `uv run wiz8 ghidra sync`.
+Batch related addresses. Reads do not compile, refresh the source index or synchronize ProgramDB.
 
-The Ghidra freshness states are intentional:
+Open native PyGhidra only when the existing read commands cannot answer the question. Use the
+checkout-owned project and native Program APIs; do not create scratch projects, daemons or generic
+query wrappers.
 
-- `not-restored` is safe: no live project exists yet and the canonical opener will restore the current
-  reviewed seed on first use;
-- `current` is safe: the live project records the reviewed GZF hash required by this revision;
-- `stale`, `untracked`, or `unknown` blocks retail-derived work. Do not continue analysis from that
-  project until its state is explicitly reconciled or refreshed.
+## Editing established facts
 
-A legacy project can therefore fail doctor even when it may happen to contain equivalent analysis: the
-point is that freshness is not provable. Do not silence or bypass that check. If live edits need to be
-preserved, follow [checkpoints](references/checkpoints.md). If there is no live work to preserve,
-replace the checkout-owned project only as an explicit state-management action rather than silently
-having doctor/opening code overwrite it.
+Apply only evidence-backed corrections in coherent transactions and save once. Correct the source owner
+as well when the established fact belongs in recovered C++.
 
-## Open the canonical program
+`uv run wiz8 ghidra sync` is the single established-source/evidence -> ProgramDB projection path.
+It improves analysis; it is not a retail-discovery oracle.
 
-For ordinary inspection or edits, use the existing checkout-owned project:
+Read [source import](references/source-import.md) only when synchronizing/regenerating source/PDB
+projection, [analysis enrichment](references/analysis-enrichment.md) for class/type projection, and
+[checkpoints](references/checkpoints.md) only when sharing/restoring reviewed GZF state.
 
-```python
-import pyghidra
-from wiz8decomp.config import load_settings
-from wiz8decomp.ghidra.env import open_program
+## Freshness
 
-settings = load_settings()
-with open_program(settings, "wiz8") as program:
-    ...
-```
+Run `uv run wiz8 doctor` before the first Ghidra-derived recovery step on a genuinely new base or
+after a revision changes the reviewed Ghidra manifest/checkpoint. `stale`, `untracked` or
+`unknown` live-project provenance blocks retail-derived conclusions until explicitly reconciled.
 
-Import `ghidra.*` / `java.*` only after the opener starts the JVM. Do not launch Ghidra manually,
-start a daemon, copy the project, create a scratch project, or share a live project between checkouts.
-Use `getFunctionAt()` for an entry and `getFunctionContaining()` for an interior address.
+A current reviewed seed and a current source projection are separate facts.
 
-Prefer native `Program` APIs for the unanswered question. Batch related reads in one session, keep
-native objects while computing, filter before printing, and put large listings/decompilations under
-`build/`. Do not invent a string-command query protocol, generic report schema, or JSON mirror of the
-program merely to access an API.
+## Efficiency
 
-## Decompile efficiently
+Reuse one decompiler session/interface for a related batch. After an analysis edit, flush/discard stale
+decompiler results and re-decompile only affected functions. Do not rerun whole-program analysis by
+default.
 
-Reuse one `DecompInterface` for a related batch. After an analysis edit, call `flushCache()`, discard
-old `DecompileResults`/`HighFunction` objects, and re-decompile only affected functions. Reopening the
-interface also drops its cache. Do not rerun whole-program analysis by default.
-
-A rooted high-level-flow result depends on the currently stored prototype: an empty result does not
-prove a parameter or field is unused and cannot reveal a parameter omitted from the model. Reconcile
-call sites, storage and instructions before changing a signature.
-
-## Edit established facts
-
-Apply only evidence-backed corrections. Use one native transaction for a coherent batch and save once:
-
-```python
-with pyghidra.transaction(program, "Correct reviewed analysis"):
-    # native Function/DataTypeManager/SymbolTable edits
-    ...
-program.save("Correct reviewed analysis", pyghidra.task_monitor())
-```
-
-`pyghidra.transaction` commits on normal exit and rolls back on an escaping exception. For speculative
-work, roll back instead of saving or cloning a project. Resolve existing data types by their actual
-paths; do not assume one category, silently duplicate conflicting structures, or use parser failures as
-a reason to add a wrapper API. `FunctionSignatureParser` is useful for ordinary declarations; custom
-storage, templates and unsupported C++ syntax should use native `Function`, `ParameterImpl` and
-`DataTypeManager` APIs directly.
-
-Keep uncertain facts unknown. When source and Ghidra disagree, retail/source evidence decides which
-owner is wrong; correct both owners when the fact is established. Do not repeatedly query a prototype
-already known to be false.
-
-## Analysis enrichment
-
-Whole-program decompiler quality comes from enriching the analysis database, not from pretty-printer
-tweaks. Follow [analysis enrichment](references/analysis-enrichment.md) for class-binding and
-projection rules. Apply established facts with `uv run wiz8 ghidra sync`. Score the exact live
-ProgramDB with `uv run wiz8 analyze decompiler-quality` before `ghidra seed refresh`.
-
-Routine recovery does not need this skill merely to obtain C, assembly, or symbol names; those reads
-are `uv run wiz8 ghidra decompile|asm|sym ADDRESS...`. They print compact text by default (`--json`
-keeps the structured result). Missing source metadata does not block native reads. Class layout and
-rooted P-code field flow are `ghidra class NAME` and `ghidra flow ADDRESS --root NAME`.
-
-## Checkpoints and bulk projection
-
-Ordinary analysis edits need `program.save`, not a GZF ritual. Read
-[checkpoints](references/checkpoints.md) only when sharing/restoring/reconciling reviewed Ghidra state.
-Read [source import](references/source-import.md) for `ghidra sync` and for full canonical
-regeneration from the rebuilt source/PDB. Those are state-management operations, not prerequisites
-for normal inspection or recovery.
+Decompiler output depends on the stored prototype and types. Missing high-level use is not evidence
+that a parameter/field does not exist.
