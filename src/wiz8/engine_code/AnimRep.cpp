@@ -176,29 +176,19 @@ W8AnimRep::~W8AnimRep() {}
 /* The abstract emitter host copies its stable settings, but starts with no
    selected emitter and the canonical 00 00 FF FF transient byte pattern. */
 // FUNCTION: WIZ8 0x004b5680
-W8EmitterHost::W8EmitterHost(const W8EmitterHost& other) : W8AnimRep(other)
+W8EmitterHost::W8EmitterHost(const W8EmitterHost& other)
+    : W8AnimRep(other), m_bLOD(other.m_bLOD), lod_range_09c(other.lod_range_09c),
+      lod_range_0a0(other.lod_range_0a0), current_cycle(0), current_subcycle(0),
+      forced_subcycle_0a6(-1), pending_cycle(-1), animation_radius_0a8(other.animation_radius_0a8)
 {
-    m_bLOD = other.m_bLOD;
-    lod_range_09c = other.lod_range_09c;
-    lod_range_0a0 = other.lod_range_0a0;
-    current_cycle = 0;
-    current_subcycle = 0;
-    forced_subcycle_0a6 = -1;
-    pending_cycle = -1;
-    animation_radius_0a8 = other.animation_radius_0a8;
 }
 
 // FUNCTION: WIZ8 0x004b5600
 W8EmitterHost::W8EmitterHost()
+    : m_bLOD(0), lod_range_09c(g_lod_range_default_0060e608),
+      lod_range_0a0(g_lod_range_default_0060e60c), current_cycle(0), current_subcycle(0),
+      forced_subcycle_0a6(-1), pending_cycle(-1), animation_radius_0a8(0)
 {
-    m_bLOD = 0;
-    lod_range_09c = g_lod_range_default_0060e608;
-    lod_range_0a0 = g_lod_range_default_0060e60c;
-    current_cycle = 0;
-    current_subcycle = 0;
-    forced_subcycle_0a6 = -1;
-    pending_cycle = -1;
-    animation_radius_0a8 = 0;
 }
 
 /* As above, 0x004B56F0 is the complete destructor and 0x004B5660 is its

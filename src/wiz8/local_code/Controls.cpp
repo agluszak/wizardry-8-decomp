@@ -2377,11 +2377,8 @@ void W8Widget::SetBoundsFromRect(const W8ControlsRect* bounds)
 
 // FUNCTION: WIZ8 0x004f5450
 W8ControlSelection::W8ControlSelection()
+    : m_value_4(0), m_value_8(0), m_selectedIndex(-1), m_selectionListener(0)
 {
-    m_value_4 = 0;
-    m_value_8 = 0;
-    m_selectedIndex = -1;
-    m_selectionListener = 0;
 }
 
 // FUNCTION: WIZ8 0x004f54b0

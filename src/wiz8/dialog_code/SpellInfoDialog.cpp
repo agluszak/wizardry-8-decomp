@@ -31,7 +31,7 @@ unsigned short g_spellbook_name_ids[4] = {791, 792, 793, 794};
 unsigned short g_spell_usage_name_ids[5] = {795, 797, 796, 796, 796};
 // GLOBAL: WIZ8 0x0060d4b4
 unsigned short g_spell_target_type_name_ids[11] = {798, 799, 800, 801, 802, 803,
-                                                         804, 805, 806, 807, 807};
+                                                   804, 805, 806, 807, 807};
 // GLOBAL: WIZ8 0x0060d4cc
 wchar_t g_spell_target_mark_fff4[] = {0xfff4, 0};
 // GLOBAL: WIZ8 0x0060d4d0
@@ -65,9 +65,9 @@ wchar_t g_format_d_d_s[] = L"%d-%d %s";
 // W8SpellInfoDialog::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005dbb60
-W8SpellInfoDialog::W8SpellInfoDialog(unsigned int spell) : m_spell_054(spell), m_timer_144(0.05f, 1)
+W8SpellInfoDialog::W8SpellInfoDialog(unsigned int spell)
+    : m_spell_054(spell), m_timer_144(0.05f, 1), m_animation_frame(0)
 {
-    m_animation_frame = 0;
     SetOrigin(0x9c, 0x5a);
     SetExtent(0x14a, 0x12c);
     SetBackground(g_spell_info_background_path, 0);

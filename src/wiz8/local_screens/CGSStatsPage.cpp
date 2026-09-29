@@ -143,9 +143,9 @@ static_assert(sizeof(W8CharacterStatsRecordControl) == 0xc4, "W8CharacterStatsRe
 // FUNCTION: WIZ8 0x005c8e70
 W8CharacterStatsValue::W8CharacterStatsValue(Controls* owner, int x, int y,
                                              const W8CharacterStatsRecord* default_record)
-    : W8TextControl(owner, 0xffffffff, x, y, 0, 0, 0x104, 0, 1, 1, 2, 2, 3)
+    : W8TextControl(owner, 0xffffffff, x, y, 0, 0, 0x104, 0, 1, 1, 2, 2, 3),
+      m_default_record_0bc(default_record)
 {
-    m_default_record_0bc = default_record;
     m_textBuffer.SetText(gppStringList[default_record->name_id_0c], g_options_detail_font);
     m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
     m_pressedTextOffset = 0;
