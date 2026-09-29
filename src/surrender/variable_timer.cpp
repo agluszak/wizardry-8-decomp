@@ -2,15 +2,6 @@
 
 #include "surrender/srVariableTimer.h"
 
-namespace {
-
-unsigned __int64 quadWord64(const srQuadWord& value)
-{
-    return ((unsigned __int64)value.hi << 0x20) | value.lo;
-}
-
-} // namespace
-
 // FUNCTION: SURRENDER 0x100632C0
 srVariableTimer::srVariableTimer(int a0, int a1, int a2, float multiplier, unsigned long step_size)
     : srTimer(a0, a1, a2)
@@ -195,8 +186,7 @@ unsigned long srVariableTimer::stepEnd()
     m_scaled_base += delta;
     m_pause.lo = 0;
     m_pause.hi = 0;
-    result = (unsigned long)(quadWord64(delta) * static_cast<unsigned long>(m_units_per_interval) /
-                             quadWord64(m_frequency));
+    result = ((delta * static_cast<unsigned int>(m_units_per_interval)) / m_frequency).lo;
     return result;
 }
 
@@ -272,33 +262,20 @@ void srVariableTimer::resetMultiplier()
 // FUNCTION: SURRENDER 0x10063FB0
 void srVariableTimer::stepBack(unsigned long steps)
 {
-    unsigned __int64 delta;
-    srQuadWord back;
-
-    delta = quadWord64(m_step_ticks) * steps;
-    back.lo = (unsigned long)delta;
-    back.hi = (unsigned long)(delta >> 0x20);
-    m_scaled_tick = m_scaled_tick - back;
+    m_scaled_tick = m_scaled_tick - m_step_ticks * static_cast<unsigned int>(steps);
 }
 
 // FUNCTION: SURRENDER 0x10063FE0
 void srVariableTimer::stepForward(unsigned long steps)
 {
-    unsigned __int64 delta;
-    srQuadWord forward;
-
-    delta = quadWord64(m_step_ticks) * steps;
-    forward.lo = (unsigned long)delta;
-    forward.hi = (unsigned long)(delta >> 0x20);
-    m_scaled_tick += forward;
+    m_scaled_tick += m_step_ticks * static_cast<unsigned int>(steps);
 }
 
 // FUNCTION: SURRENDER 0x10064010
 unsigned long srVariableTimer::getMsTime(e_timerReadControl control)
 {
     getUTime(control);
-    return (unsigned long)(quadWord64(m_scaled_tick - m_scaled_base) * 1000 /
-                           quadWord64(m_frequency));
+    return (((m_scaled_tick - m_scaled_base) * 1000u) / m_frequency).lo;
 }
 
 // FUNCTION: SURRENDER 0x10064070
@@ -314,14 +291,10 @@ unsigned long srVariableTimer::getUTime(srQuadWord& out, e_timerReadControl cont
 // FUNCTION: SURRENDER 0x100640E0
 char* srVariableTimer::getAscTime(char* buffer, e_timerReadControl control)
 {
-    unsigned __int64 units;
-    srQuadWord ticks;
-
     getUTime(control);
-    units = quadWord64(m_scaled_tick - m_scaled_base) *
-            static_cast<unsigned long>(m_units_per_interval) / quadWord64(m_frequency);
-    ticks.lo = (unsigned long)units;
-    ticks.hi = (unsigned long)(units >> 0x20);
+    srQuadWord ticks =
+        ((m_scaled_tick - m_scaled_base) * static_cast<unsigned int>(m_units_per_interval)) /
+        m_frequency;
     return srTimer::getAscTime(buffer, ticks);
 }
 

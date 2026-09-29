@@ -468,21 +468,23 @@ unsigned long srColorSurfaceIFace::getPixelRaw(long x, long y)
 // FUNCTION: SURRENDER 0x1005B1B0
 void srColorSurfaceIFace::setPixelRaw(long x, long y, unsigned long pixel)
 {
+    /* reinterpret-ok: the retail setter writes only the pixel word's low bytes
+       for each raw format before passing that same word to setPixelRowRaw. */
+    unsigned char* bytes = reinterpret_cast<unsigned char*>(&pixel);
     switch (pixel_format_30.bytes_per_pixel_minus_one) {
     case 0:
-        pixel = (unsigned char)pixel;
-        break;
+        bytes[0] = static_cast<unsigned char>(pixel);
         break;
     case 1:
-        pixel = (unsigned short)pixel;
-        break;
+        /* reinterpret-ok: a two-byte write into the raw pixel word. */
+        *reinterpret_cast<unsigned short*>(bytes) = static_cast<unsigned short>(pixel);
         break;
     case 2:
-        pixel = pixel & 0xffffff;
-        break;
+        bytes[0] = static_cast<unsigned char>(pixel);
+        bytes[1] = static_cast<unsigned char>(pixel >> 8);
+        bytes[2] = static_cast<unsigned char>(pixel >> 16);
         break;
     case 3:
-        break;
         break;
     }
     setPixelRowRaw(&pixel, y, x, x + 1);
@@ -2025,6 +2027,7 @@ void srColorSurface::fill(unsigned long pixel)
     long pitch = pitch_24;
     unsigned long width = width_1c;
     long height = height_20;
+    unsigned long rows = static_cast<unsigned long>(height);
     int bpp = pixel_format_30.bytes_per_pixel_minus_one;
     if (pitch == (long)((bpp + 1) * width)) {
         unsigned long count = height * width;
@@ -2063,7 +2066,7 @@ void srColorSurface::fill(unsigned long pixel)
     } else {
         switch (bpp) {
         case 0: {
-            for (long row = 0; row < height; ++row) {
+            for (unsigned long row = 0; row < rows; ++row) {
                 if (width != 0) {
                     srVectorProcessor::memcopy(data, (SRBYTE)raw, width);
                 }
@@ -2072,7 +2075,7 @@ void srColorSurface::fill(unsigned long pixel)
             break;
         }
         case 1: {
-            for (long row = 0; row < height; ++row) {
+            for (unsigned long row = 0; row < rows; ++row) {
                 unsigned long half = width >> 1;
                 if (half != 0) {
                     srVectorProcessor::copy((SRDWORD*)data, (raw << 0x10) | (raw & 0xffff), half);
@@ -2085,7 +2088,7 @@ void srColorSurface::fill(unsigned long pixel)
             break;
         }
         case 2: {
-            for (long row = 0; row < height; ++row) {
+            for (unsigned long row = 0; row < rows; ++row) {
                 unsigned char* out = data;
                 for (unsigned long i = 0; i < width; ++i) {
                     *(unsigned short*)out = (unsigned short)raw;
@@ -2097,7 +2100,7 @@ void srColorSurface::fill(unsigned long pixel)
             break;
         }
         case 3: {
-            for (long row = 0; row < height; ++row) {
+            for (unsigned long row = 0; row < rows; ++row) {
                 if (width != 0) {
                     srVectorProcessor::copy((SRDWORD*)data, raw, width);
                 }
