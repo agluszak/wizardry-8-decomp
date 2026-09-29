@@ -471,7 +471,7 @@ void ProcessNpcScriptingFrame(void)
     char dialogue_ready;
     int environment;
     int party_slot;
-    int selected_party_member;
+    int sedexus_party_slot;
     SOUNDPARMS local_sound_parms;
 
     if ((g_npc_scripting.sedexus_capture_pending != 0 ||
@@ -486,18 +486,18 @@ void ProcessNpcScriptingFrame(void)
                 (STR)g_sedexus_moaning_sound, &local_sound_parms));
         } else {
             ClearMainGameTargetState();
-            selected_party_member = g_status.selected_party_member_2434;
+            sedexus_party_slot = g_status.sedexus_party_slot_247f;
             for (party_slot = 0; party_slot < 8; ++party_slot) {
                 W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
                 character = &g_status.buffers.Char[party_slot];
                 if (row->fOccupied != 0 &&
                     ((character->hp_current > 0 || character->highest_condition < 0x12) &&
-                     party_slot != selected_party_member)) {
+                     party_slot != sedexus_party_slot)) {
                     RemoveCharacterCondition(party_slot, 0x11, 0);
-                    selected_party_member = g_status.selected_party_member_2434;
+                    sedexus_party_slot = g_status.sedexus_party_slot_247f;
                 }
             }
-            character = &g_status.buffers.Char[selected_party_member];
+            character = &g_status.buffers.Char[sedexus_party_slot];
             if (character->gender == W8_GENDER_MALE) {
                 QueueCharacterEvent(character, g_effect_005ee634, 0, g_character_event_no_flags,
                                     g_character_event_full_volume);

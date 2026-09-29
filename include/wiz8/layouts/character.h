@@ -386,13 +386,12 @@ static_assert(sizeof(W8Character) == 0x1862, "W8Character_must_be_0x1862");
 
 struct W8SkillAttributes {
     int category;
-    /* 0x04/0x08: the two governing attributes averaged into the skill's
-       base_level_0a. */
-    int attribute_1_04;
-    int attribute_2_08;
-    /* 0x0c: a third attribute listed in the stat-info dialog when it
-       differs from attribute_2_08. */
-    int attribute_3_0c;
+    /* 0x04: used by Wiz7 skill import eligibility; its source name is unknown. */
+    int field_04;
+    /* 0x08/0x0c: governing attributes averaged into base_level_0a and
+       listed in the stat-info dialog. */
+    int attribute_1_08;
+    int attribute_2_0c;
 };
 
 #pragma pack(pop)

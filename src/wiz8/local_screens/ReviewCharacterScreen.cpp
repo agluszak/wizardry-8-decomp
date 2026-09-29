@@ -1096,7 +1096,7 @@ void W8CampCharacterInfo::SetCombatView(bool enabled)
 // FUNCTION: WIZ8 0x005b3470
 void W8CampCharacterInfo::OnPrimary(W8TextControl* control)
 {
-    SetCombatView(control == m_button_058);
+    SetCombatView(control == m_button_054);
 }
 
 // GLOBAL: WIZ8 0x0061e798

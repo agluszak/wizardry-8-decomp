@@ -757,7 +757,7 @@ void W8CharacterStatsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
     m_screen_05c->UpdateNavigation(this);
     if (m_character_060->attributes[entry->m_id_02c].value >= 100) {
         for (int skill = 0x22; skill < 0x29; ++skill) {
-            if (g_skill_attributes[skill].category == static_cast<int>(entry->m_id_02c) &&
+            if (g_skill_attributes[skill].attribute_1_08 == static_cast<int>(entry->m_id_02c) &&
                 m_character_060->skills[skill].active_00 != 0) {
                 m_screen_05c->ShowDescription(entry->m_id_02c, skill);
             }

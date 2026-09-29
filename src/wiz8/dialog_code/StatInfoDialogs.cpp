@@ -237,10 +237,10 @@ unsigned char W8SkillInfoDialog::PopulateText()
     textarea_0e8.AddEntry(gppStringList[0x156], &g_empty_wide_string, 10, 0xf, 0);
     W8SkillAttributes* skill = &g_skill_attributes[m_skill_148];
     textarea_0e8.AddEntry(
-        0, gppStringList[g_character_description_first_ids[skill->attribute_2_08]], 10, 0xf, 0);
-    if (skill->attribute_2_08 != skill->attribute_3_0c) {
+        0, gppStringList[g_character_description_first_ids[skill->attribute_1_08]], 10, 0xf, 0);
+    if (skill->attribute_1_08 != skill->attribute_2_0c) {
         textarea_0e8.AddEntry(
-            0, gppStringList[g_character_description_first_ids[skill->attribute_3_0c]], 10, 0xf, 0);
+            0, gppStringList[g_character_description_first_ids[skill->attribute_2_0c]], 10, 0xf, 0);
     }
     if (m_first_14c != 0) {
         textarea_0e8.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);

@@ -467,8 +467,8 @@ void ResetCharacterAttributes(W8Character* character)
         UnequipUnusableItems(character);
     }
     for (index = 0; index < 0x29; ++index) {
-        int first = g_skill_attributes[index].attribute_1_04;
-        int second = g_skill_attributes[index].attribute_2_08;
+        int first = g_skill_attributes[index].attribute_1_08;
+        int second = g_skill_attributes[index].attribute_2_0c;
         character->skills[index].base_level_0a =
             (character->attributes[first].value + character->attributes[second].value) >> 1;
     }
@@ -586,8 +586,8 @@ void ApplySkillChange(W8Character* character, int skill_id)
 void InitializeSkillBaseLevels(W8Character* character)
 {
     for (int index = 0; index < 0x29; ++index) {
-        int first = g_skill_attributes[index].attribute_1_04;
-        int second = g_skill_attributes[index].attribute_2_08;
+        int first = g_skill_attributes[index].attribute_1_08;
+        int second = g_skill_attributes[index].attribute_2_0c;
         character->skills[index].base_level_0a =
             (character->attributes[first].value + character->attributes[second].value) >> 1;
     }
