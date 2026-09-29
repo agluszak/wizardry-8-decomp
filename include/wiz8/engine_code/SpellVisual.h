@@ -55,7 +55,7 @@ public:
     virtual void StartIfHostActive(); /* 0x004ABDC0 */
     /* Search backward from a subcycle for the first cycle this visual
        supports; returns -1 when none does. */
-    virtual int FindSupportedCycle(signed char group, signed char subcycle);
+    virtual int FindSupportedCycle(int group, int subcycle);
     /* Kind-indexed query over the emitter host's current state; only ever
        called with kind 7 by StartIfHostActive. */
     int QueryHostStateByKind(int kind);

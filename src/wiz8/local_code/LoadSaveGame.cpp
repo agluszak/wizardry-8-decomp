@@ -2029,11 +2029,13 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
                 if (tag == W8_SAVE_TAG_CHAR) {
                     destination->CopyCurrentChunkFrom(source);
                 } else if (tag == W8_SAVE_TAG_LVLS) {
+                    source->OpenGroup();
                     source->Read(&level, 4, 0);
                     if (level != g_status.current_level) {
                         source->RewindCurrentChunk();
                         destination->CopyCurrentChunkFrom(source);
                     }
+                    source->ReleaseGroup();
                 }
             }
             source->SkipCurrentChunk();

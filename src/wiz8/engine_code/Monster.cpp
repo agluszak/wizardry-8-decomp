@@ -1534,7 +1534,7 @@ void W8Monster::Update()
                     }
                     m_pRep->frame_direction_06e = 1;
                     m_pRep->pending_behaviour_071 = 1;
-                    m_pRep->active = 1;
+                    m_pRep->animation_playing_06d = 1;
                     m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_subcycle_066 = 0;
                 }
@@ -1551,7 +1551,7 @@ void W8Monster::Update()
                     } else {
                         m_pRep->pending_cycle = 1;
                     }
-                    m_pRep->active = 1;
+                    m_pRep->animation_playing_06d = 1;
                     m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_subcycle_066 = 0;
                 }
@@ -1560,7 +1560,7 @@ void W8Monster::Update()
                 if (Query(7) != 0) {
                     m_pRep->pending_cycle = 1;
                     m_pRep->frame_direction_06e = 1;
-                    m_pRep->active = 1;
+                    m_pRep->animation_playing_06d = 1;
                     m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_behaviour_071 = 3;
                     m_pRep->pending_subcycle_066 = 0;
@@ -1588,7 +1588,7 @@ void W8Monster::Update()
                                 static_cast<unsigned short>(Query(0) - 1);
                             flags_1dc |= W8_MONSTER_KEEP_FRAME_DIRECTION;
                         }
-                        m_pRep->active = 1;
+                        m_pRep->animation_playing_06d = 1;
                         m_pRep->timer_068 =
                             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     }
@@ -1608,7 +1608,7 @@ void W8Monster::Update()
                         m_pRep->pending_behaviour_071 = 1;
                         m_pRep->pending_subcycle_066 = 0;
                     }
-                    m_pRep->active = 1;
+                    m_pRep->animation_playing_06d = 1;
                     m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                 }
                 break;
@@ -1620,7 +1620,7 @@ void W8Monster::Update()
                     } else {
                         m_pRep->pending_cycle = 4;
                     }
-                    m_pRep->active = 1;
+                    m_pRep->animation_playing_06d = 1;
                     m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_behaviour_071 = 3;
                     m_pRep->pending_subcycle_066 = 0;
@@ -1629,7 +1629,7 @@ void W8Monster::Update()
             case 0:
                 if (Query(7) != 0) {
                     m_pRep->pending_cycle = 1;
-                    m_pRep->active = 1;
+                    m_pRep->animation_playing_06d = 1;
                     m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_behaviour_071 = 3;
                     m_pRep->pending_subcycle_066 = 0;
@@ -2069,7 +2069,7 @@ void W8Monster::ProcessScript()
                     int cycle = ParseMonsterCycleName(token, &subcycle);
                     if (cycle != -1) {
                         m_pRep->pending_cycle = (signed char)cycle;
-                        m_pRep->active = 1;
+                        m_pRep->animation_playing_06d = 1;
                         m_pRep->timer_068 =
                             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                         SetSubCycle(0);
@@ -2142,7 +2142,7 @@ void W8Monster::ProcessScript()
             case MONSCR_DIE:
                 m_pRep->pending_behaviour_071 = 1;
                 m_pRep->pending_cycle = 0x15;
-                m_pRep->active = 1;
+                m_pRep->animation_playing_06d = 1;
                 m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                 SetSubCycle(0);
                 break;
