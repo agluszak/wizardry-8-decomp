@@ -490,6 +490,9 @@ jobs:
             product-wiz8-runtime-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
       - name: Install Python dependencies
         run: uv sync --frozen
+      - name: Check runtime stub linker integration
+        run: uv run pytest -q tests/unit/test_runtime_stubs.py -m integration
+
       - name: Prepare licensed WIZ8 inputs
         uses: ./.github/actions/prepare-licensed-inputs
         with:

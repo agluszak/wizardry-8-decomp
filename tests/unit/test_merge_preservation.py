@@ -99,7 +99,6 @@ def test_function_declaration_staying_a_declaration_passes(tmp_path: Path) -> No
     assert report["demoted"] == []
 
 
-
 def test_function_may_be_reclassified_as_synthetic(tmp_path: Path) -> None:
     _repo(tmp_path)
     base = _commit(
@@ -109,12 +108,7 @@ def test_function_may_be_reclassified_as_synthetic(tmp_path: Path) -> None:
     )
     head = _commit(
         tmp_path,
-        {
-            "src/foo.cpp": (
-                "// SYNTHETIC: WIZ8 0x00401000\n"
-                "// compiler-owned teardown emission\n"
-            )
-        },
+        {"src/foo.cpp": ("// SYNTHETIC: WIZ8 0x00401000\n// compiler-owned teardown emission\n")},
         "head",
     )
 
@@ -148,12 +142,12 @@ def test_global_may_be_reclassified_as_string(tmp_path: Path) -> None:
     _repo(tmp_path)
     base = _commit(
         tmp_path,
-        {"src/foo.cpp": "// GLOBAL: WIZ8 0x00601000\nchar* g_file = \"foo.cpp\";\n"},
+        {"src/foo.cpp": '// GLOBAL: WIZ8 0x00601000\nchar* g_file = "foo.cpp";\n'},
         "base",
     )
     head = _commit(
         tmp_path,
-        {"src/foo.cpp": "// STRING: WIZ8 0x00601000\n#define FILE_NAME \"foo.cpp\"\n"},
+        {"src/foo.cpp": '// STRING: WIZ8 0x00601000\n#define FILE_NAME "foo.cpp"\n'},
         "head",
     )
 
@@ -239,14 +233,13 @@ def test_function_replaced_by_stub_fails(tmp_path: Path) -> None:
     _repo(tmp_path)
     body = "// FUNCTION: WIZ8 0x00401000\nint Foo() { return 1; }\n"
     base = _commit(tmp_path, {"src/foo.cpp": body}, "base")
-    head = _commit(
-        tmp_path, {"src/stub.cpp": "// STUB: WIZ8 0x00401000\nint Stub() {}\n"}, "stub"
-    )
+    head = _commit(tmp_path, {"src/foo.cpp": "// STUB: WIZ8 0x00401000\nint Stub() {}\n"}, "stub")
 
     report = merge_preservation_report(tmp_path, base, head)
 
     assert report["status"] == "failed"
     assert report["lost"][0]["identity"] == "FUNCTION WIZ8 0x00401000"
+
 
 def test_legacy_folded_annotation_is_not_a_merge_identity(tmp_path: Path) -> None:
     """Historical FOLDED annotations are comparison metadata, not source identities."""
@@ -333,7 +326,6 @@ def test_vtable_class_discriminator_is_not_an_alias(tmp_path: Path) -> None:
 
     assert report["status"] == "failed"
     assert report["duplicates"][0]["identity"] == "VTABLE WIZ8 0x00601000"
-
 
 
 def test_base_ancestry_passes_when_base_is_ancestor(tmp_path: Path) -> None:

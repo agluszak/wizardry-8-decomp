@@ -428,11 +428,7 @@ def merge_preservation_report(
         lost.append(key)
 
     lost_function_names = {
-        item["name"]
-        for key in lost
-        if key[0] == "FUNCTION"
-        for item in before[key]
-        if item["name"]
+        item["name"] for key in lost if key[0] == "FUNCTION" for item in before[key] if item["name"]
     }
     still_referenced = _references(head_sources, lost_function_names)
     unresolved = sorted(name for name, count in still_referenced.items() if count)

@@ -47,6 +47,7 @@ _WIZ8_RUNTIME_PREFIXES = (
     "tools/wiz8decomp/debug/",
 )
 _WIZ8_RUNTIME_FILES = {
+    "tests/unit/test_runtime_stubs.py",
     "tools/wiz8decomp/runtime.py",
     "tools/wiz8decomp/runtime_stubs.py",
 }

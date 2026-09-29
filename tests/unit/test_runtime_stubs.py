@@ -31,7 +31,7 @@ from wiz8decomp.runtime_stubs import (
 )
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
-HAVE_TOOLCHAIN = shutil.which("docker") is not None and shutil.which("wine") is not None
+HAVE_TOOLCHAIN = shutil.which("docker") is not None
 
 
 def test_function_identity_counts_function_pointer_parameter() -> None:
@@ -282,7 +282,8 @@ def test_resolve_stubs_reports_all_unmapped_callables(monkeypatch) -> None:
     assert "SecondCaller.cpp.obj" in message
 
 
-@pytest.mark.skipif(not HAVE_TOOLCHAIN, reason="docker and wine are required")
+@pytest.mark.integration
+@pytest.mark.skipif(not HAVE_TOOLCHAIN, reason="the VC6 Docker image is required")
 def test_generated_coff_thunks_link_and_trap(tmp_path: Path) -> None:
     probe = tmp_path / "probe"
     probe.mkdir()
@@ -320,6 +321,14 @@ def test_generated_coff_thunks_link_and_trap(tmp_path: Path) -> None:
     # The fixture directory is bind-mounted directly; Docker's daemon sees host
     # paths, so a pytest temporary directory works without touching build/.
     mount = f"{probe}:/probe"
+    script = r"""set -e
+wine 'C:\msvc\VC98\Bin\CL.EXE' /nologo 'Z:\probe\callers.cpp' 'Z:\probe\support.cpp' 'Z:\probe\runtime_stubs.obj' '/FeZ:\probe\probe.exe'
+set +e
+for argument in 0 1 2; do
+    wine 'Z:\probe\probe.exe' "$argument" > "/probe/trap-$argument.log" 2>&1
+    printf '%s' "$?" > "/probe/trap-$argument.code"
+done
+"""
     compile_result = subprocess.run(
         [
             "docker",
@@ -330,13 +339,11 @@ def test_generated_coff_thunks_link_and_trap(tmp_path: Path) -> None:
             "none",
             "--volume",
             mount,
+            "--entrypoint",
+            "bash",
             VC6_IMAGE,
-            r"C:\msvc\VC98\Bin\CL.EXE",
-            "/nologo",
-            r"Z:\probe\callers.cpp",
-            r"Z:\probe\support.cpp",
-            r"Z:\probe\runtime_stubs.obj",
-            "/FeZ:\\probe\\probe.exe",
+            "-c",
+            script,
         ],
         capture_output=True,
         text=True,
@@ -345,20 +352,13 @@ def test_generated_coff_thunks_link_and_trap(tmp_path: Path) -> None:
     )
     assert compile_result.returncode == 0, compile_result.stdout + compile_result.stderr
     assert "/FORCE" not in compile_result.stdout + compile_result.stderr
-    executable = probe / "probe.exe"
-    assert executable.is_file()
+    assert (probe / "probe.exe").is_file()
 
     expected = {"0": (10, "TRAP cdecl"), "1": (11, "TRAP stdcall"), "2": (12, "TRAP thiscall")}
     for argument, (code, line) in expected.items():
-        run = subprocess.run(
-            ["wine", str(executable), argument],
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=120,
-        )
-        assert run.returncode == code, run.stdout + run.stderr
-        assert line in run.stdout
+        output = (probe / f"trap-{argument}.log").read_text()
+        assert int((probe / f"trap-{argument}.code").read_text()) == code, output
+        assert line in output
 
 
 def test_compiled_probe_has_no_forced_unresolved_reference() -> None:

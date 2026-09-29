@@ -647,6 +647,7 @@ def source_oracle_violations(
         )
 
     seen_placeholders: set[tuple[str, int, str, int]] = set()
+    source_lines: dict[str, list[str] | None] = {}
     for declaration in source_index.get("declarations", ()):
         qualified = str(declaration.get("qualified_name") or "")
         name = _last_component(qualified)
@@ -655,7 +656,7 @@ def source_oracle_violations(
         source_file = str(declaration.get("source_file") or "").replace("\\", "/")
         if _family_for_source(source_file, families) is not None:
             continue
-        lines = _declaration_lines(repo_dir, declaration)
+        lines = _declaration_lines(repo_dir, declaration, source_lines)
         if lines is None:
             continue
         address_token = _declaration_address(

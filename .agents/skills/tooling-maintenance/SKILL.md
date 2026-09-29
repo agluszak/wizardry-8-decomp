@@ -124,6 +124,13 @@ paths, revision, inputs and result paths; reread when the task or instructions a
 
 ## Verification
 
+`wiz8 check` / `pr-check` run unit and repository tests excluding `integration`. Real VC6
+link/trap checks run explicitly with `uv run pytest tests/unit/test_runtime_stubs.py -m integration`
+and in runtime CI; live Ghidra tests belong in `tests/ghidra`, which has its own CI lane.
+Keep external-tool integration coverage there rather than duplicating it in the fast suite.
+Check runs type checking alongside indexing, then tests alongside read-only validators after the
+completed index is available. All lane failures still propagate; successful gates are not omitted.
+
 Use the smallest checks that exercise the changed owner:
 
 - Python helper/CLI logic: focused unit tests plus ruff/pyright for the touched area.

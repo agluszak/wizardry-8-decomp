@@ -28,6 +28,7 @@ one function, but it never shrinks or grows an interval.
 
 from __future__ import annotations
 
+import bisect
 import csv
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
@@ -348,6 +349,12 @@ class TranslationUnitLayout:
         self.unit_anchors = tuple(
             sorted([*native, *accepted_cross], key=lambda a: (a.function, a.source_path))
         )
+        assertions: dict[int, UnitAnchor] = {}
+        for anchor in self.unit_anchors:
+            if anchor.evidence == ASSERTION:
+                assertions.setdefault(anchor.function, anchor)
+        self._assertions = tuple(assertions.values())
+        self._assertion_entries = tuple(assertions)
         self.conflicts = _conflicting_functions(self.unit_anchors)
         self.anchors_by_function = _group_by_function(self.unit_anchors)
         self.anchors_by_unit = _group_by_unit(
@@ -370,8 +377,6 @@ class TranslationUnitLayout:
         return self._interval_at(entry)[1]
 
     def _interval_at(self, entry: int) -> tuple[int, TranslationUnitInterval | None]:
-        import bisect
-
         index = bisect.bisect_right(self.interval_lowers, entry) - 1
         if index >= 0:
             interval = self.intervals[index]
@@ -450,15 +455,14 @@ class TranslationUnitLayout:
         }
 
     def _nearest_assertion_anchor(self, entry: int, *, before: bool) -> dict[str, Any] | None:
-        candidates = [
-            anchor
-            for anchor in self.unit_anchors
-            if anchor.evidence == ASSERTION
-            and (anchor.function < entry if before else anchor.function > entry)
-        ]
-        if not candidates:
+        index = (
+            bisect.bisect_left(self._assertion_entries, entry) - 1
+            if before
+            else bisect.bisect_right(self._assertion_entries, entry)
+        )
+        if not 0 <= index < len(self._assertions):
             return None
-        anchor = (max if before else min)(candidates, key=lambda item: item.function)
+        anchor = self._assertions[index]
         return {
             "function": _address(anchor.function),
             "source_path": anchor.source_path,
