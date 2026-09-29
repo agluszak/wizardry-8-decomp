@@ -486,8 +486,6 @@ void MonsterForward453690(W8Monster* monster, const srVector3T<float>* argument)
 void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value);             /* 0x004C5FD0 */
 void MonsterForward4531A0(void);
 
-void SetMonsterHighlightColour(W8Monster* monster, float r, float g, float b, float a);
-
 void SetMonsterPartySlotMarker(int party_slot, int location_id, char on);
 void MonsterForwardReferencePosition(W8Monster* monster, char alternate); /* 0x004C6240 */
 void NotifyMonsterHighlight(int party_slot, int location_id, int on);

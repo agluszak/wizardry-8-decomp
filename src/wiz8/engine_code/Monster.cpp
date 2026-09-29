@@ -4584,17 +4584,6 @@ void MonsterSetHighlightColour(W8Monster* monster, srVector4T<float> block)
     }
 }
 
-/* Highlight tint call sites pass four floats as one render-state block. */
-void SetMonsterHighlightColour(W8Monster* monster, float red, float green, float blue, float alpha)
-{
-    srVector4T<float> block;
-    block.x = red;
-    block.y = green;
-    block.z = blue;
-    block.w = alpha;
-    MonsterSetHighlightColour(monster, block);
-}
-
 /* The engine object a monster holds at 0x0c, or nothing when there is no
    monster to ask. */
 // FUNCTION: WIZ8 0x004c5b30

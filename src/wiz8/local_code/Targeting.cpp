@@ -831,7 +831,9 @@ void TintHighlightedMonster(W8Monster* monster, int tint)
         r = 1.0f;
         a = 1.0f;
     }
-    SetMonsterHighlightColour(monster, r, g, b, a);
+    srVector4T<float> block;
+    block.Set(r, g, b, a);
+    MonsterSetHighlightColour(monster, block);
 }
 
 /* Raise or lower one character's bit in a monster's highlight mask, and tell
@@ -1305,6 +1307,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
     int index = MonsterGetIndexByLocationID(0x68d, TARGETING_CPP, location_id, 0);
     W8MonsterInfo* monster_info;
     W8Monster* monster;
+    srVector4T<float> block;
     bool valid = false;
 
     if (index == BAD_INDEX) {
@@ -1314,7 +1317,8 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
     monster = monster_info->p3D;
 
     if (highlight == 0) {
-        SetMonsterHighlightColour(monster, 0.0f, 0.0f, 0.0f, 0.0f);
+        block.Set(0.0f, 0.0f, 0.0f, 0.0f);
+        MonsterSetHighlightColour(monster, block);
         return 0;
     }
 
@@ -1326,14 +1330,16 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
     CombatAllowsLiveGroups();
 
     if (valid == 0) {
-        SetMonsterHighlightColour(monster, 1.0f, 0.0f, 0.0f, 1.0f);
+        block.Set(1.0f, 0.0f, 0.0f, 1.0f);
+        MonsterSetHighlightColour(monster, block);
         if (g_modal_owner == 0 && gXStatus.iCurrentCursor == W8_CURSOR_VALID_TARGET) {
             UpdateHeldItemCursor();
         }
         return 0;
     }
 
-    SetMonsterHighlightColour(monster, 0.0f, 1.0f, 0.0f, 1.0f);
+    block.Set(0.0f, 1.0f, 0.0f, 1.0f);
+    MonsterSetHighlightColour(monster, block);
     if (g_modal_owner == 0 && gXStatus.iTargetingMode == 0 && IsScreenIdle() &&
         gXStatus.iCurrentCursor != W8_CURSOR_INVALID_TARGET) {
         SetTargetCursor(W8_CURSOR_VALID_TARGET);
@@ -1458,7 +1464,9 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
         position = monster->GetPosition();
         if (radius < (*centre - position).Length() - monster->radius_084) {
             if (highlighting != 0) {
-                SetMonsterHighlightColour(monster, 0.0f, 0.0f, 0.0f, 0.0f);
+                srVector4T<float> block;
+                block.Set(0.0f, 0.0f, 0.0f, 0.0f);
+                MonsterSetHighlightColour(monster, block);
             }
             continue;
         }
@@ -2004,7 +2012,9 @@ void RefreshSpellTargetHighlightsAtRange(void)
             memcpy(channels, &monster->m_pRep->highlight_colour_04c, sizeof(channels));
             if (channels[0] != g_float_005ebb34 || channels[1] != g_float_005ebb34 ||
                 channels[2] != g_float_005ebb34 || channels[3] != g_float_005ebb34) {
-                SetMonsterHighlightColour(monster, 0.0f, 0.0f, 0.0f, 0.0f);
+                srVector4T<float> block;
+                block.Set(0.0f, 0.0f, 0.0f, 0.0f);
+                MonsterSetHighlightColour(monster, block);
             }
         }
         monster_info = GetNextMonsterInfo(0);
@@ -2038,7 +2048,9 @@ void HighlightSpellTargetsAtCachedPosition(void)
     for (int index = 0; index < markers.GetCount(); ++index) {
         W8Monster* monster = GetMonsterByLocationID(*markers.GetAt(index));
 
-        SetMonsterHighlightColour(monster, 0.0f, 1.0f, 0.0f, 1.0f);
+        srVector4T<float> block;
+        block.Set(0.0f, 1.0f, 0.0f, 1.0f);
+        MonsterSetHighlightColour(monster, block);
     }
 }
 
@@ -2827,6 +2839,7 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
     W8ActionDetailBlock* detail_block;
     int picked;
     int previous;
+    srVector4T<float> block;
 
     if (ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT) != 0) {
         ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
@@ -2860,14 +2873,16 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
 
     previous = PickNextTargetableGroupMember(party_slot, group);
     if (previous != BAD_INDEX) {
-        SetMonsterHighlightColour(GetMonsterByLocationID(previous), 0.0f, 0.0f, 0.0f, 0.0f);
+        block.Set(0.0f, 0.0f, 0.0f, 0.0f);
+        MonsterSetHighlightColour(GetMonsterByLocationID(previous), block);
     }
 
     group->highlighted_member = picked;
 
     picked = PickNextTargetableGroupMember(party_slot, group);
     if (picked != BAD_INDEX) {
-        SetMonsterHighlightColour(GetMonsterByLocationID(picked), 1.0f, 1.0f, 1.0f, 1.0f);
+        block.Set(1.0f, 1.0f, 1.0f, 1.0f);
+        MonsterSetHighlightColour(GetMonsterByLocationID(picked), block);
     }
     g_level_block->pick_changed_154 = 1;
 
