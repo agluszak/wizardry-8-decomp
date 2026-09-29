@@ -371,6 +371,50 @@ def test_incomplete_comparison_fails_the_selection(tmp_path, monkeypatch, outcom
     assert result["counts"][outcome] == 1
 
 
+def test_changed_comparison_reports_template_non_emission_without_hiding_function_gap(
+    tmp_path, monkeypatch
+):
+    _products(tmp_path, monkeypatch)
+    template = _row(0x401000, "unpaired")
+    template["recomp"] = None
+    function = _row(0x402000, "unpaired")
+    function["recomp"] = None
+    _fake_reccmp(monkeypatch, [template, function])
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.load_source_index",
+        lambda *_args: {
+            "markers": [
+                {"target": "WIZ8", "marker_kind": "TEMPLATE", "address": 0x401000},
+                {"target": "WIZ8", "marker_kind": "FUNCTION", "address": 0x402000},
+            ]
+        },
+    )
+
+    result = compare_selected(
+        tmp_path,
+        "WIZ8",
+        [0x401000, 0x402000],
+        Path("/opt/ghidra"),
+        classify_template_emissions=True,
+    )
+
+    assert result["ok"] is False
+    assert result["counts"]["template-non-emission"] == 1
+    assert result["counts"]["unpaired"] == 1
+    assert [row["outcome"] for row in result["functions"]] == [
+        "template-non-emission",
+        "unpaired",
+    ]
+    template_only = compare_selected(
+        tmp_path,
+        "WIZ8",
+        [0x401000],
+        Path("/opt/ghidra"),
+        classify_template_emissions=True,
+    )
+    assert template_only["ok"] is True
+
+
 def test_compare_selected_marks_addresses_reccmp_does_not_know_missing(tmp_path, monkeypatch):
     _products(tmp_path, monkeypatch)
     _fake_reccmp(monkeypatch, [])

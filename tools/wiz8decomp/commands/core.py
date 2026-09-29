@@ -220,6 +220,7 @@ def compare_command(
                     settings.ghidra_install_dir,
                     side_by_side=side_by_side,
                     classify_header_emissions=needs_index,
+                    classify_template_emissions=changed,
                 )
             if changed:
                 baseline = since or "working-copy parent"
