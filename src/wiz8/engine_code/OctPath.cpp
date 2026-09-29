@@ -667,6 +667,21 @@ static inline void PositionToPathPoint(const W8PathingService* pathing,
     }
 }
 
+/* Retail also packs the converted coordinates into a path-cell key before
+   conditionally returning the individual coordinates to its caller. */
+static inline unsigned int PositionToPathKey(const W8PathingService* pathing,
+                                             const srVector3T<float>* position, int* cell)
+{
+    int x = static_cast<int>((position->x - pathing->level_bounds[0]) / pathing->grid_scale_01c);
+    int z = static_cast<int>((position->z - pathing->level_bounds[2]) / pathing->grid_scale_01c);
+    unsigned int key = static_cast<unsigned int>(z) * 0x10000 + static_cast<unsigned int>(x);
+    if (cell != 0) {
+        cell[0] = x;
+        cell[1] = z;
+    }
+    return key;
+}
+
 /* Offer every flagged surface to the path builder.
 
    Surfaces are 0x28 bytes apart and the walk starts at index one, so entry zero
@@ -3066,9 +3081,7 @@ unsigned char W8PathingService::GetNeighborSlideDirection(const srVector3T<float
     range = cell_count_024 * 2;
     in_range = 0;
     height = static_cast<int>((position->y - level_bounds[1]) / span_020) + 1;
-    cell[0] = static_cast<int>((position->x - level_bounds[0]) / grid_scale_01c);
-    cell[1] = static_cast<int>((position->z - level_bounds[2]) / grid_scale_01c);
-    key = cell[1] * 0x10000 + cell[0];
+    key = PositionToPathKey(this, position, cell);
     index = m_pPathValues_064;
     value = 0;
     slot = index->bucket_heads[((key >> 10 ^ key) >> 10 ^ key) & (index->bucket_count - 1)];
@@ -3642,16 +3655,15 @@ unsigned int W8PathingService::FindPathCell(srVector3T<float>* position, unsigne
                                             unsigned char adjust)
 {
     int path_height = static_cast<int>((position->y - level_bounds[1]) / span_020) + 1;
-    unsigned int source_x =
-        static_cast<unsigned int>((position->x - level_bounds[0]) / grid_scale_01c);
-    unsigned int source_z =
-        static_cast<unsigned int>((position->z - level_bounds[2]) / grid_scale_01c);
+    int source_cell[2];
+    unsigned int key = PositionToPathKey(this, position, source_cell);
+    unsigned int source_x = source_cell[0];
+    unsigned int source_z = source_cell[1];
     unsigned int selected_x = source_x;
     unsigned int selected_z = source_z;
     unsigned int selected_key = 0;
     unsigned int selected_height = 0;
     float closest_distance = 10000000.0f;
-    unsigned int key = source_z * 0x10000 + source_x;
     int slot = m_pPathValues_064->FindNextEntry(&key, -1);
 
     while (slot != -1) {
@@ -3744,11 +3756,8 @@ unsigned char W8PathingService::SnapWaypointPosition(srVector3T<float>* position
     unsigned int height =
         static_cast<unsigned int>(static_cast<int>(((position->y - level_bounds[1]) / span_020))) +
         1;
-    unsigned int cell_x = static_cast<unsigned int>(
-        static_cast<int>(((position->x - level_bounds[0]) / grid_scale_01c)));
-    unsigned int cell_z = static_cast<unsigned int>(
-        static_cast<int>(((position->z - level_bounds[2]) / grid_scale_01c)));
-    unsigned int key = cell_z * 0x10000 + cell_x;
+    int cell[2];
+    unsigned int key = PositionToPathKey(this, position, cell);
     unsigned int matched_height = height;
     bool found = false;
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
@@ -3773,8 +3782,8 @@ unsigned char W8PathingService::SnapWaypointPosition(srVector3T<float>* position
 
     if (snap_to_cell != 0 && found != 0) {
         position->y = (matched_height - 1) * span_020 + level_bounds[1];
-        position->x = (cell_x + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
-        position->z = (cell_z + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+        position->x = (cell[0] + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
+        position->z = (cell[1] + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
     }
     return found;
 }
@@ -3792,11 +3801,8 @@ unsigned char W8PathingService::TestPathCellClearance(srVector3T<float>* positio
     unsigned int height =
         static_cast<unsigned int>(static_cast<int>(((position->y - level_bounds[1]) / span_020))) +
         1;
-    unsigned int cell_x = static_cast<unsigned int>(
-        static_cast<int>(((position->x - level_bounds[0]) / grid_scale_01c)));
-    unsigned int cell_z = static_cast<unsigned int>(
-        static_cast<int>(((position->z - level_bounds[2]) / grid_scale_01c)));
-    unsigned int key = cell_z * 0x10000 + cell_x;
+    int cell[2];
+    unsigned int key = PositionToPathKey(this, position, cell);
     unsigned int packed = 0;
     unsigned int matched_height = height;
     bool found = false;
@@ -3826,8 +3832,8 @@ unsigned char W8PathingService::TestPathCellClearance(srVector3T<float>* positio
     }
     if (snap_to_cell != 0) {
         position->y = (matched_height - 1) * span_020 + level_bounds[1];
-        position->x = (cell_x + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
-        position->z = (cell_z + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+        position->x = (cell[0] + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
+        position->z = (cell[1] + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
     }
 
     float direction = g_float_005ebb34;
@@ -3849,11 +3855,8 @@ unsigned char W8PathingService::SnapToLowerPathCell(srVector3T<float>* position,
     unsigned int height =
         static_cast<unsigned int>(static_cast<int>(((position->y - level_bounds[1]) / span_020))) +
         1;
-    unsigned int cell_x = static_cast<unsigned int>(
-        static_cast<int>(((position->x - level_bounds[0]) / grid_scale_01c)));
-    unsigned int cell_z = static_cast<unsigned int>(
-        static_cast<int>(((position->z - level_bounds[2]) / grid_scale_01c)));
-    unsigned int key = cell_z * 0x10000 + cell_x;
+    int cell[2];
+    unsigned int key = PositionToPathKey(this, position, cell);
     unsigned int matched_height = 0;
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
     W8HashEntry<unsigned int, unsigned int>* entries = index->entries;
@@ -3878,8 +3881,8 @@ unsigned char W8PathingService::SnapToLowerPathCell(srVector3T<float>* position,
 
     if (found != 0) {
         position->y = (matched_height - 1) * span_020 + level_bounds[1];
-        position->x = (cell_x + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
-        position->z = (cell_z + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+        position->x = (cell[0] + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
+        position->z = (cell[1] + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
     }
     return found;
 }
@@ -4361,9 +4364,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
 
     span_blocked_23c = 0;
     int cell[2];
-    cell[0] = static_cast<int>((source->x - level_bounds[0]) / grid_scale_01c);
-    cell[1] = static_cast<int>((source->z - level_bounds[2]) / grid_scale_01c);
-    unsigned int cell_key = cell[1] * 0x10000 + cell[0];
+    unsigned int cell_key = PositionToPathKey(this, source, cell);
     int destination_x = static_cast<int>((destination->x - level_bounds[0]) / grid_scale_01c);
     int destination_z = static_cast<int>((destination->z - level_bounds[2]) / grid_scale_01c);
     unsigned int destination_key = destination_z * 0x10000 + destination_x;
