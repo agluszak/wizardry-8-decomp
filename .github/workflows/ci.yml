@@ -65,8 +65,8 @@ jobs:
           fi
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
             git fetch --no-tags --depth=2 origin \
-              "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" \
-              "+refs/pull/${{ github.event.pull_request.number }}/head:refs/remotes/origin/pr-head"
+              "+${{ github.event.pull_request.base.sha }}:refs/remotes/origin/$GITHUB_BASE_REF" \
+              "+${{ github.event.pull_request.head.sha }}:refs/remotes/origin/pr-head"
             base="refs/remotes/origin/$GITHUB_BASE_REF"
             head="refs/remotes/origin/pr-head"
           elif [[ "$GITHUB_EVENT_NAME" == "push" && "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]]; then
@@ -179,8 +179,8 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           git fetch --no-tags --depth=2 origin \
-            "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" \
-            "+refs/pull/${{ github.event.pull_request.number }}/head:refs/remotes/origin/pr-head"
+            "+${{ github.event.pull_request.base.sha }}:refs/remotes/origin/$GITHUB_BASE_REF" \
+            "+${{ github.event.pull_request.head.sha }}:refs/remotes/origin/pr-head"
       - name: Fetch push comparison baseline
         if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
         run: git fetch --no-tags --depth=1 origin "${{ github.event.before }}"
@@ -202,8 +202,8 @@ jobs:
           for _ in 1 2 3 4 5; do
             if git merge-base "$pr_head" "origin/$GITHUB_BASE_REF" >/dev/null 2>&1; then break; fi
             git fetch --no-tags --deepen=256 origin \
-              "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" \
-              "+refs/pull/${{ github.event.pull_request.number }}/head:$pr_head"
+              "+${{ github.event.pull_request.base.sha }}:refs/remotes/origin/$GITHUB_BASE_REF" \
+              "+${{ github.event.pull_request.head.sha }}:$pr_head"
           done
           uv run wiz8 report merge-preservation --base "origin/$GITHUB_BASE_REF" --head "$pr_head"
       - name: Install host analysis tools
