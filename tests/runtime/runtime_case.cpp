@@ -55,7 +55,7 @@ void MoveScenarioMouse(int client_x, int client_y)
 }
 
 /* Region sets live on the game thread; this predicate may only run inside
-   game-thread callbacks (FindFreeSpotOnGameThread below). */
+   game-thread callbacks (PrepareScenarioInputOnGameThread below). */
 bool PointHitsEnabledRegion(int x, int y)
 {
     unsigned short px = static_cast<unsigned short>(x);
@@ -87,9 +87,15 @@ struct FreeSpotQuery {
 /* The private display parks the pointer at the window centre, which sits on
    the Load Game item. The scan for a point outside every enabled region
    must inspect live region state, so it runs on the game thread and copies
-   one {x, y} back; the driver only sends the OS move. */
-static void FindFreeSpotOnGameThread(void* opaque)
+   one {x, y} back. Keyboard focus is restored on that window-owning thread
+   before the driver injects input. */
+static void PrepareScenarioInputOnGameThread(void* opaque)
 {
+    SetForegroundWindow(ghWindow);
+    SetActiveWindow(ghWindow);
+    if (GetFocus() != ghWindow) {
+        SetFocus(ghWindow);
+    }
     FreeSpotQuery* query = static_cast<FreeSpotQuery*>(opaque);
     const int width = query->width;
     const int height = query->height;
@@ -142,7 +148,7 @@ void ParkMouseOutsideActiveRegions()
     query.x = width - 1;
     query.y = 0;
     query.found = 0;
-    if (!RunOnGameThread(FindFreeSpotOnGameThread, &query, 3000)) {
+    if (!RunOnGameThread(PrepareScenarioInputOnGameThread, &query, 3000)) {
         /* An unresponsive executor is a reported sync event, not permission
            to walk live regions from the driver thread. The blind corner
            move is the same fallback a scan that finds no free spot uses. */
@@ -242,8 +248,9 @@ void SendScenarioKeyHeld(unsigned short key, unsigned char release)
     INPUT event;
     memset(&event, 0, sizeof(event));
     event.type = INPUT_KEYBOARD;
-    event.ki.wVk = key;
     event.ki.wScan = static_cast<WORD>(MapVirtualKey(key, 0));
+    /* KEYEVENTF_SCANCODE is not named by the pinned VC6 SDK. */
+    event.ki.dwFlags = 0x0008;
     if (IsExtendedScenarioKey(key)) {
         event.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
     }
@@ -351,6 +358,8 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     s->world_render_flags = g_level_block != 0 ? g_level_block->world_render_flags : 0;
     s->held_key = request->held_key;
     s->held_key_down = request->held_key != 0 && gfKeyState[request->held_key] != 0;
+    s->application_active = gfApplicationActive != 0;
+    s->window_has_focus = GetFocus() == ghWindow;
     s->taken_ms = GetTickCount();
 }
 
@@ -546,11 +555,12 @@ bool RuntimeCase::fail(const char* step, const char* reason)
                 "runtime-case %s: observed screen=%d pending=%d position=(%.2f %.2f %.2f) "
                 "yaw=%.3f combat=%u movement_ui=%u budget=%d input=%.2f world=%.2f "
                 "modal=%u world_blocked=%u render_flags=%02x held_key=%u held_down=%u "
-                "snapshot_age_ms=%lu\n",
+                "active=%u focus=%u snapshot_age_ms=%lu\n",
                 name_, s.screen, s.pending, s.position.x, s.position.y, s.position.z, s.yaw,
                 s.combat ? 1u : 0u, s.movement_ui ? 1u : 0u, s.movement_budget, s.input_motion,
                 s.world_motion, s.modal_owner_present, s.world_update_blocked, s.world_render_flags,
-                s.held_key, s.held_key_down, GetTickCount() - s.taken_ms);
+                s.held_key, s.held_key_down, s.application_active, s.window_has_focus,
+                GetTickCount() - s.taken_ms);
     } else {
         fprintf(stderr, "runtime-case %s: observed none\n", name_);
     }

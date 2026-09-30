@@ -29,6 +29,8 @@ struct GameplaySnapshot {
     /* gfKeyState[held_key] sampled on the game thread when held_key != 0. */
     unsigned short held_key;
     unsigned char held_key_down;
+    unsigned char application_active;
+    unsigned char window_has_focus;
     /* GetTickCount() at capture time, for snapshot-age reporting. */
     unsigned long taken_ms;
 };

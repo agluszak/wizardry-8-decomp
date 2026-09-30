@@ -33,6 +33,7 @@ public:
         Entry* previous;
         Entry* next;
     };
+    static_assert(sizeof(Entry) == 0x10, "srConfig_Entry_must_be_0x10");
 
     struct Index;
 

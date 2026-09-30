@@ -343,6 +343,9 @@ jobs:
       - name: Install pinned Ghidra
         if: github.event_name == 'pull_request'
         uses: ./.github/actions/install-ghidra
+      - name: Restore reviewed WIZ8 checkpoint
+        if: github.event_name == 'pull_request'
+        run: uv run wiz8 ghidra restore
       - name: Restore reccmp Ghidra analysis
         if: github.event_name == 'pull_request'
         uses: actions/cache@v4
@@ -357,12 +360,12 @@ jobs:
         continue-on-error: true
         run: |
           base_sha="${{ github.event.pull_request.base.sha }}"
-          git fetch --no-tags --depth=2 origin "$base_sha"
+          git fetch --no-tags --depth=2 origin "$GITHUB_SHA" "$base_sha"
           merge_base=""
           for _ in 1 2 3 4 5; do
             merge_base="$(git merge-base HEAD "$base_sha" 2>/dev/null || true)"
             [[ -n "$merge_base" ]] && break
-            git fetch --no-tags --deepen=256 origin
+            git fetch --no-tags --deepen=256 origin "$GITHUB_SHA" "$base_sha"
           done
           if [[ -z "$merge_base" ]]; then
             echo "Could not resolve PR merge base" >&2
@@ -391,17 +394,21 @@ jobs:
           # contain colons rejected by the artifact service.
           path: build/reports/compare/wiz8-report.tar.gz
           if-no-files-found: ignore
-      - name: Compare all recovered WIZ8 functions
+      - name: Capture selected WIZ8 comparison
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
           set -uo pipefail
           quality_status=0
-          uv run wiz8 compare --all-source || quality_status=$?
           latest="build/reports/compare/wiz8/latest"
+          # Source PRs already produced the selected report above. Only
+          # tooling-only changes without a source selection need a full run.
+          if [[ ! -f "$latest/summary.json" ]]; then
+            uv run wiz8 compare --all-source || quality_status=$?
+          fi
           test -f "$latest/summary.json"
           cp "$latest/summary.json" "$RUNNER_TEMP/wiz8-head-summary.json"
-          cp "$latest/WIZ8.ghidriff.md" "$RUNNER_TEMP/wiz8-head-ghidriff.md"
+          cp "$latest/json/WIZ8.ghidriff.json" "$RUNNER_TEMP/wiz8-head-ghidriff.json"
           if (( quality_status != 0 )); then
             echo "::notice::target-wide WIZ8 comparison contains unpaired/incomplete functions"
           fi
@@ -469,8 +476,8 @@ jobs:
           args+=(
             --head-summary "$RUNNER_TEMP/wiz8-head-summary.json"
             --base-summary "$RUNNER_TEMP/wiz8-base-summary.json"
-            --head-ghidriff "$RUNNER_TEMP/wiz8-head-ghidriff.md"
-            --base-ghidriff "$RUNNER_TEMP/wiz8-base-ghidriff.md"
+            --head-ghidriff "$RUNNER_TEMP/wiz8-head-ghidriff.json"
+            --base-ghidriff "$RUNNER_TEMP/wiz8-base-ghidriff.json"
             --head-datacmp "$RUNNER_TEMP/wiz8-head-datacmp.json"
             --base-datacmp "$RUNNER_TEMP/wiz8-base-datacmp.json"
           )
@@ -650,6 +657,9 @@ jobs:
       - name: Install pinned Ghidra
         if: github.event_name == 'pull_request'
         uses: ./.github/actions/install-ghidra
+      - name: Restore reviewed SURRENDER checkpoint
+        if: github.event_name == 'pull_request'
+        run: uv run wiz8 ghidra restore --program sr.dll
       - name: Restore reccmp Ghidra analysis
         if: github.event_name == 'pull_request'
         uses: actions/cache@v4
@@ -662,12 +672,12 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           base_sha="${{ github.event.pull_request.base.sha }}"
-          git fetch --no-tags --depth=2 origin "$base_sha"
+          git fetch --no-tags --depth=2 origin "$GITHUB_SHA" "$base_sha"
           merge_base=""
           for _ in 1 2 3 4 5; do
             merge_base="$(git merge-base HEAD "$base_sha" 2>/dev/null || true)"
             [[ -n "$merge_base" ]] && break
-            git fetch --no-tags --deepen=256 origin
+            git fetch --no-tags --deepen=256 origin "$GITHUB_SHA" "$base_sha"
           done
           if [[ -z "$merge_base" ]]; then
             echo "Could not resolve PR merge base" >&2
@@ -693,17 +703,19 @@ jobs:
           name: surrender-comparison-report
           path: build/reports/compare/surrender-report.tar.gz
           if-no-files-found: ignore
-      - name: Compare all recovered SURRENDER functions
+      - name: Capture selected SURRENDER comparison
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
           set -uo pipefail
           quality_status=0
-          uv run wiz8 compare --all-source --program sr.dll || quality_status=$?
           latest="build/reports/compare/surrender/latest"
+          if [[ ! -f "$latest/summary.json" ]]; then
+            uv run wiz8 compare --all-source --program sr.dll || quality_status=$?
+          fi
           test -f "$latest/summary.json"
           cp "$latest/summary.json" "$RUNNER_TEMP/surrender-head-summary.json"
-          cp "$latest/SURRENDER.ghidriff.md" "$RUNNER_TEMP/surrender-head-ghidriff.md"
+          cp "$latest/json/SURRENDER.ghidriff.json" "$RUNNER_TEMP/surrender-head-ghidriff.json"
           if (( quality_status != 0 )); then
             echo "::notice::target-wide SURRENDER comparison contains unpaired/incomplete functions"
           fi
@@ -747,8 +759,8 @@ jobs:
           args+=(
             --head-summary "$RUNNER_TEMP/surrender-head-summary.json"
             --base-summary "$RUNNER_TEMP/surrender-base-summary.json"
-            --head-ghidriff "$RUNNER_TEMP/surrender-head-ghidriff.md"
-            --base-ghidriff "$RUNNER_TEMP/surrender-base-ghidriff.md"
+            --head-ghidriff "$RUNNER_TEMP/surrender-head-ghidriff.json"
+            --base-ghidriff "$RUNNER_TEMP/surrender-base-ghidriff.json"
             --head-datacmp "$RUNNER_TEMP/surrender-head-datacmp.json"
             --base-datacmp "$RUNNER_TEMP/surrender-base-datacmp.json"
           )

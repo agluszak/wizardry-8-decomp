@@ -253,6 +253,8 @@ struct srRegistry::ClassNode::IDIndex {
         InstanceLink* previous_08;
         unsigned long unused_0c;
     };
+    static_assert(sizeof(InstanceLink) == 0x10,
+                  "srRegistry_ClassNode_IDIndex_InstanceLink_must_be_0x10");
 
     IDIndex()
         : active_count_00(0), free_04(0), block_count_10(0), first_14(0), last_18(0),

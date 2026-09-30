@@ -14,8 +14,8 @@ static const char* flag_names;
 // FUNCTION: SURRENDER 0x10047D60
 std::ostream& operator<<(std::ostream& stream, const srCamera::Rect& rectangle)
 {
-    stream << '{' << rectangle.left << ',' << rectangle.bottom << "},{" << rectangle.right << ','
-           << rectangle.top << '}';
+    stream << "{{" << rectangle.left << ',' << rectangle.bottom << "},{" << rectangle.right << ','
+           << rectangle.top << "}}";
     return stream;
 }
 

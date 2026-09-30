@@ -10,7 +10,7 @@ prefix="$6"
 
 head_summary="$RUNNER_TEMP/$prefix-head-summary.json"
 base_summary="$RUNNER_TEMP/$prefix-base-summary.json"
-base_ghidriff="$RUNNER_TEMP/$prefix-base-ghidriff.md"
+base_ghidriff="$RUNNER_TEMP/$prefix-base-ghidriff.json"
 base_status="$RUNNER_TEMP/$prefix-base-status.json"
 base_datacmp="$RUNNER_TEMP/$prefix-base-datacmp.json"
 
@@ -22,7 +22,7 @@ trap restore_head EXIT
 merge_base="$(git merge-base "$head_sha" "$base_sha" || true)"
 if [[ -z "$merge_base" ]]; then
   for _ in 1 2 3 4 5; do
-    git fetch --no-tags --deepen=256 origin
+    git fetch --no-tags --deepen=256 origin "$head_sha" "$base_sha"
     merge_base="$(git merge-base "$head_sha" "$base_sha" || true)"
     [[ -n "$merge_base" ]] && break
   done
@@ -47,7 +47,7 @@ if [[ -s "$head_summary" ]]; then
       exit "$compare_status"
     fi
     cp "$latest/summary.json" "$base_summary"
-    cp "$latest/$target.ghidriff.md" "$base_ghidriff"
+    cp "$latest/json/$target.ghidriff.json" "$base_ghidriff"
     if (( compare_status != 0 )); then
       echo "::notice::merge-base comparison has unpaired/incomplete selected functions"
     fi
