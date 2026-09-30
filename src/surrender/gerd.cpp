@@ -37,28 +37,6 @@ srGERD* srGERD::first;
 // GLOBAL: SURRENDER 0x100A4784
 srGERD* srGERD::firstOpen;
 
-/* The retail EH funclet at 0x10010660 proves a scoped guard whose dtor releases
-   the renderers critical section; every renderer-list function enters it
-   once per lock acquisition. */
-namespace {
-
-class SectionAccess {
-public:
-    SectionAccess(srCriticalSection* section) : section_(section)
-    {
-        section_->getAccess();
-    }
-    ~SectionAccess()
-    {
-        section_->releaseAccess();
-    }
-
-private:
-    srCriticalSection* section_;
-};
-
-} // namespace
-
 // FUNCTION: SURRENDER 0x1001EEA0
 srGERD::TexturePool::TexturePool() : count_00(0), free_04(0), pool_count_10(0) {}
 
@@ -259,7 +237,7 @@ void srGERD::setTextureReduction(long reduction)
 // FUNCTION: SURRENDER 0x10017AC0
 void srGERD::setTexture(srTextureIFace* texture, unsigned long layer)
 {
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if (layer < device_40_.info_10_.max_texture_stages_28_ &&
         texture_iface_1ffc_[layer] != texture) {
         texture_iface_1ffc_[layer] = texture;
@@ -305,7 +283,7 @@ long srGERD::getDisplayMode(unsigned long width, unsigned long height, unsigned 
 // FUNCTION: SURRENDER 0x1001AAF0
 void srGERD::getStatistics(Statistics& statistics)
 {
-    SectionAccess access(renderers_section_14_);
+    srCriticalSectionAccess access(renderers_section_14_);
     statistics_1a78_.value_34 = 0;
     statistics_1a78_.value_3c = 0;
     statistics_1a78_.value_30 = 0;
@@ -346,7 +324,7 @@ void srGERD::resetStatistics()
 {
     memset(&statistics_1a78_, 0, sizeof(statistics_1a78_));
     getDD()->resetStatistics();
-    SectionAccess access(renderers_section_14_);
+    srCriticalSectionAccess access(renderers_section_14_);
     for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
         while (entry->busy_0c != 0) {
             srThread::yield(0);
@@ -737,7 +715,7 @@ void srGERD::markTextureAsDeleted(Texture& texture)
 // FUNCTION: SURRENDER 0x10018390
 void srGERD::invalidateTextureByFrameHandle(unsigned long handle)
 {
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if (handle != 0 && texture_hash_enabled_2044_) {
         Texture* texture = texture_lookup_2004_.Lookup(&handle);
         if (texture != 0) {
@@ -750,7 +728,7 @@ void srGERD::invalidateTextureByFrameHandle(unsigned long handle)
 void srGERD::invalidateResidentTextures()
 {
     flushImmediateRenderers();
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     Texture* texture = texture_head_202c_;
     while (texture != 0) {
         Texture* next = texture->next_04;
@@ -764,7 +742,7 @@ void srGERD::invalidateResidentTextures()
 void srGERD::invalidateResidentTexture(srTextureIFace* texture)
 {
     flushImmediateRenderers();
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if (texture != 0) {
         unsigned long handle = texture->getTextureFrameHandle();
         Texture* found = texture_lookup_2004_.Lookup(&handle);
@@ -777,7 +755,7 @@ void srGERD::invalidateResidentTexture(srTextureIFace* texture)
 // FUNCTION: SURRENDER 0x10017EC0
 void srGERD::setTextureCacheSize(unsigned long bytes)
 {
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     texture_cache_size_2038_ = bytes;
     if (bytes != 0 && bytes < texture_cache_used_2034_) {
         releaseTextureMemory(texture_cache_used_2034_ - bytes);
@@ -788,7 +766,7 @@ void srGERD::setTextureCacheSize(unsigned long bytes)
 void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, long y, long width,
                                 long height)
 {
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if (isWindowOpen() == 0) {
         return;
     }
@@ -858,7 +836,7 @@ void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, lo
 // FUNCTION: SURRENDER 0x10018480
 void srGERD::invalidateTextureCache()
 {
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if (texture_hash_enabled_2044_) {
         Texture* texture = texture_head_202c_;
         while (texture != 0) {
@@ -965,7 +943,7 @@ void srGERD::flushRenderers()
     if (srThread::getHandle() == owner_thread_1c_) {
         flushImmediateRenderers();
         flushSort();
-        SectionAccess access(renderers_section_14_);
+        srCriticalSectionAccess access(renderers_section_14_);
         for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
             while (entry->busy_0c != 0) {
                 srThread::yield(0);
@@ -979,7 +957,7 @@ void srGERD::flushRenderers()
 void srGERD::flushSort()
 {
     if (srThread::getHandle() == owner_thread_1c_) {
-        SectionAccess access(renderers_section_14_);
+        srCriticalSectionAccess access(renderers_section_14_);
         for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
             if (entry->renderer_08->sorted_d8_ == 1) {
                 while (entry->busy_0c != 0) {
@@ -995,7 +973,7 @@ void srGERD::flushSort()
 void srGERD::flushImmediateRenderers()
 {
     if (srThread::getHandle() == owner_thread_1c_) {
-        SectionAccess access(renderers_section_14_);
+        srCriticalSectionAccess access(renderers_section_14_);
         for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
             if (entry->renderer_08->sorted_d8_ == 0) {
                 while (entry->busy_0c != 0) {
@@ -1010,7 +988,7 @@ void srGERD::flushImmediateRenderers()
 // FUNCTION: SURRENDER 0x10019BF0
 srGERD::RendererEntry* srGERD::createRenderer(int sorted)
 {
-    SectionAccess access(renderers_section_14_);
+    srCriticalSectionAccess access(renderers_section_14_);
     Renderer::Parameters parameters;
     parameters.gerd = this;
     parameters.sorted = sorted != 0;
@@ -1036,7 +1014,7 @@ srGERD::Renderer* srGERD::lockRenderer()
         sorted = 1;
     }
     for (;;) {
-        SectionAccess access(renderers_section_14_);
+        srCriticalSectionAccess access(renderers_section_14_);
         flushNonBusyRenderers();
         for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
             if (entry->busy_0c == 0 && entry->renderer_08->sorted_d8_ == sorted) {
@@ -1059,7 +1037,7 @@ srGERD::Renderer* srGERD::_lockRenderer(RendererEntry* entry)
 // FUNCTION: SURRENDER 0x10019D90
 void srGERD::unlockRenderer(Renderer* renderer, int submit)
 {
-    SectionAccess access(renderers_section_14_);
+    srCriticalSectionAccess access(renderers_section_14_);
     for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
         if (entry->renderer_08 == renderer) {
             entry->busy_0c = 0;
@@ -1076,7 +1054,7 @@ void srGERD::unlockRenderer(Renderer* renderer, int submit)
 void srGERD::flushNonBusyRenderers()
 {
     if (srThread::getHandle() == owner_thread_1c_) {
-        SectionAccess access(renderers_section_14_);
+        srCriticalSectionAccess access(renderers_section_14_);
         for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
             if (entry->busy_0c == 0 && entry->renderer_08->isBatchFull() != 0) {
                 entry->renderer_08->submit();
@@ -3186,32 +3164,10 @@ void srGERD::getEyeSpaceBounds(srVector3T<float>& center, float& radius,
     radius = object_radius * state_390_.max_modelview_scale_13b8_;
 }
 
-namespace {
-
-/* RAII state-lock guard: applyDrawStateChanges carries an EH funclet that
-   releases the section on unwind, matching an object of this shape. */
-class GerdAccess {
-public:
-    GerdAccess(srCriticalSection* critical_section) : critical_section_(critical_section)
-    {
-        critical_section_->getAccess();
-    }
-
-    ~GerdAccess()
-    {
-        critical_section_->releaseAccess();
-    }
-
-private:
-    srCriticalSection* critical_section_;
-};
-
-} // namespace
-
 // FUNCTION: SURRENDER 0x1001B570
 void srGERD::applyDrawStateChanges()
 {
-    GerdAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if ((dirty_24_ & 0x200) != 0) {
         getDD()->setFogColor(fog_color_1fe8_);
     }
@@ -3871,7 +3827,7 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
 // FUNCTION: SURRENDER 0x1001EB20
 void srGERD::dumpTextureCache(std::ostream& stream)
 {
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if (!texture_hash_enabled_2044_) {
         srStreamPrintf(stream, "Texture cache hibernating\n");
         return;
@@ -4166,7 +4122,7 @@ void srGERD::deleteContext()
 // FUNCTION: SURRENDER 0x10019EB0
 void srGERD::deleteRenderers()
 {
-    SectionAccess access(renderers_section_14_);
+    srCriticalSectionAccess access(renderers_section_14_);
     while (renderers_10_ != 0) {
         RendererEntry* next = renderers_10_->next_04;
         delete renderers_10_->renderer_08;
@@ -4228,7 +4184,7 @@ void srGERD::unlockBuffer()
 // FUNCTION: SURRENDER 0x1001A5F0
 void srGERD::closeWindow(e_closeHint hint)
 {
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if (isWindowOpen() != 0) {
         state_flags_28_ |= 0x10;
         flush();
@@ -4322,7 +4278,7 @@ srGERD::e_error srGERD::openWindow(long mode)
 // FUNCTION: SURRENDER 0x1001A290
 srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
 {
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if ((unsigned long)info.width_08 > (unsigned long)info.window_width_00 ||
         (unsigned long)info.height_0c > (unsigned long)info.window_height_04) {
         return static_cast<e_error>(2);
@@ -4686,7 +4642,7 @@ long srGERD::getMaxTextureAspectRatio() const
 // FUNCTION: SURRENDER 0x10017960
 void srGERD::setGlobalPalette(const srPalette& palette)
 {
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if (palette.matchPalette(global_palette_1b38_, 0x100) != 0) {
         return;
     }
@@ -4724,7 +4680,7 @@ void srGERD::invalidateResidentPalette(srPalette* palette)
 // FUNCTION: SURRENDER 0x10017D00
 int srGERD::isTextureCached(srTextureIFace* texture) const
 {
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if (texture != 0) {
         unsigned long handle = texture->getTextureFrameHandle();
         return texture_lookup_2004_.Lookup(&handle) != 0;
@@ -4735,7 +4691,7 @@ int srGERD::isTextureCached(srTextureIFace* texture) const
 // FUNCTION: SURRENDER 0x10017DD0
 int srGERD::isTextureResident(srTextureIFace* texture) const
 {
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if (texture != 0 && isWindowOpen() != 0) {
         unsigned long handle = texture->getTextureFrameHandle();
         Texture* resident = texture_lookup_2004_.Lookup(&handle);
@@ -4750,7 +4706,7 @@ int srGERD::isTextureResident(srTextureIFace* texture) const
 // FUNCTION: SURRENDER 0x10017F70
 int srGERD::getTextureInfo(srTextureIFace* texture, TextureInfo& info)
 {
-    SectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section_18_);
     if (isWindowOpen() == 0) {
         return 0;
     }

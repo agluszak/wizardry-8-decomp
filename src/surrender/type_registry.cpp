@@ -22,24 +22,6 @@ unsigned long hashName(const char* name)
     }
     return hash;
 }
-
-class RegistryAccess {
-public:
-    explicit RegistryAccess(srCriticalSection* critical_section)
-        : critical_section_(critical_section)
-    {
-        critical_section_->getAccess();
-    }
-
-    // FUNCTION: SURRENDER 0x10010660
-    ~RegistryAccess()
-    {
-        critical_section_->releaseAccess();
-    }
-
-private:
-    srCriticalSection* critical_section_;
-};
 } // namespace
 
 struct srRegistry::ClassNode::NameIndex {
@@ -891,7 +873,7 @@ srRegistry::ClassNode* srClass::getClassNode() const
 srRegistry::srRegistry()
     : root_00(0), class_index_04(0), valid_08(0), critical_section_0c(new srCriticalSection)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     class_index_04 = new ClassIndex;
     root_00 = new ClassNode(0, "root", 0);
     unsigned long root_id = 0;
@@ -902,14 +884,14 @@ srRegistry::srRegistry()
 // FUNCTION: SURRENDER 0x1000EA40
 unsigned long srRegistry::getClassID(ClassNode* node)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return node->getClassID();
 }
 
 // FUNCTION: SURRENDER 0x1000EAA0
 const char* srRegistry::getClassName(ClassNode* node)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return node->class_name_14;
 }
 
@@ -917,7 +899,7 @@ const char* srRegistry::getClassName(ClassNode* node)
 srRegistry::~srRegistry()
 {
     {
-        RegistryAccess access(critical_section_0c);
+        srCriticalSectionAccess access(critical_section_0c);
         delete root_00;
         root_00 = 0;
         delete class_index_04;
@@ -942,7 +924,7 @@ srRegistry& srRegistry::operator=(const srRegistry& other)
 // FUNCTION: SURRENDER 0x1000EBD0
 srRegistry::ClassNode* srRegistry::getClassNode(unsigned long class_id)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return class_id == 0 ? 0 : class_index_04->Lookup(&class_id);
 }
 
@@ -950,7 +932,7 @@ srRegistry::ClassNode* srRegistry::getClassNode(unsigned long class_id)
 srRegistry::ClassNode* srRegistry::registerClass(const char* class_name, ClassNode* parent,
                                                  unsigned long class_id, int register_instances)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     ClassNode* node = class_index_04->Lookup(&class_id);
     if (node == 0) {
         srDebugPrintf(0xfe, "srRegistry::registerClass() - registering %s (ID 0x%x)\n", class_name,
@@ -966,7 +948,7 @@ srRegistry::ClassNode* srRegistry::registerClass(const char* class_name, ClassNo
 // FUNCTION: SURRENDER 0x1000ED40
 void srRegistry::dumpClassHierarchy(std::ostream& stream)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     for (ClassNode::ChildLink* link = root_00->first_child_04; link != root_00->child_end_08;
          link = link->next_04) {
         link->node_00->dump(stream, 0);
@@ -977,7 +959,7 @@ void srRegistry::dumpClassHierarchy(std::ostream& stream)
 srRegistry::ClassNode* srRegistry::addToTree(ClassNode* parent, const char* class_name,
                                              unsigned long class_id)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     ClassNode* node = new ClassNode(parent, class_name, class_id);
     class_index_04->Insert(&class_id, &node);
     return node;
@@ -986,7 +968,7 @@ srRegistry::ClassNode* srRegistry::addToTree(ClassNode* parent, const char* clas
 // FUNCTION: SURRENDER 0x1000EEA0
 void srRegistry::dumpInstanceNames(ClassNode* node, std::ostream& stream, int indent)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     // c-style-cast-ok: find(node, 0) is ambiguous between the id and
     // relative_to overloads; the original spelled the null pointer cast
     for (srRuntimeClass* instance = find(node, (srRuntimeClass*)0); instance != 0;
@@ -1002,14 +984,14 @@ void srRegistry::dumpInstanceNames(ClassNode* node, std::ostream& stream, int in
 // FUNCTION: SURRENDER 0x1000EFB0
 void srRegistry::registerInstance(ClassNode* node, srRuntimeClass* instance)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     node->registerInstance(instance);
 }
 
 // FUNCTION: SURRENDER 0x1000F010
 void srRegistry::refreshInstance(ClassNode* node, srRuntimeClass* instance)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     node->refreshInstance(instance);
 }
 
@@ -1017,7 +999,7 @@ void srRegistry::refreshInstance(ClassNode* node, srRuntimeClass* instance)
 srRuntimeClass* srRegistry::find(ClassNode* node, const char* name,
                                  const srRuntimeClass* relative_to)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return node->findByName(node, name, 0, relative_to);
 }
 
@@ -1025,35 +1007,35 @@ srRuntimeClass* srRegistry::find(ClassNode* node, const char* name,
 srRuntimeClass* srRegistry::findExact(ClassNode* node, const char* name,
                                       const srRuntimeClass* relative_to)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return node->findByName(node, name, 1, relative_to);
 }
 
 // FUNCTION: SURRENDER 0x1000F150
 srRuntimeClass* srRegistry::find(ClassNode* node, unsigned long id)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return node->findByID(node, id, 0);
 }
 
 // FUNCTION: SURRENDER 0x1000F1B0
 srRuntimeClass* srRegistry::findExact(ClassNode* node, unsigned long id)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return node->findByID(node, id, 1);
 }
 
 // FUNCTION: SURRENDER 0x1000F210
 void srRegistry::unregisterInstance(ClassNode* node, srRuntimeClass* instance)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     node->unregisterInstance(instance);
 }
 
 // FUNCTION: SURRENDER 0x1000F270
 int srRegistry::isDerivedOrSame(ClassNode* base, ClassNode* derived)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     int result = 0;
     if (base != 0 && derived != 0) {
         result = base->isDerivedOrSame(derived);
@@ -1064,28 +1046,28 @@ int srRegistry::isDerivedOrSame(ClassNode* base, ClassNode* derived)
 // FUNCTION: SURRENDER 0x1000F2F0
 srRuntimeClass* srRegistry::findExact(ClassNode* node, const srRuntimeClass* relative_to)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return node->findRelative(node, 1, relative_to);
 }
 
 // FUNCTION: SURRENDER 0x1000F350
 srRuntimeClass* srRegistry::find(ClassNode* node, const srRuntimeClass* relative_to)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return node->findRelative(node, 0, relative_to);
 }
 
 // FUNCTION: SURRENDER 0x1000F3B0
 srRegistry::ClassNode* srRegistry::getRootClass()
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return root_00->first_child_04->node_00;
 }
 
 // FUNCTION: SURRENDER 0x1000F3E0
 srRegistry::ClassNode* srRegistry::getChildClass(ClassNode* parent, ClassNode* child)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     ClassNode::ChildLink* link = parent->first_child_04;
     ClassNode* result = 0;
     if (child == 0) {
@@ -1113,21 +1095,21 @@ int srRegistry::checkValidity()
 // FUNCTION: SURRENDER 0x1000F460
 long srRegistry::getNumberOfInstances(ClassNode* node, int exact)
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return node->getNumberOfInstances(exact);
 }
 
 // FUNCTION: SURRENDER 0x1000F4C0
 unsigned long srRegistry::allocateID()
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return next_instance_id++;
 }
 
 // FUNCTION: SURRENDER 0x100105C0
 srRegistry::ClassNode* srRegistry::getRootNode()
 {
-    RegistryAccess access(critical_section_0c);
+    srCriticalSectionAccess access(critical_section_0c);
     return root_00;
 }
 
