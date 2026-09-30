@@ -561,9 +561,8 @@ srMaterialIFace& srMaterialIFace::operator=(const srMaterialIFace& other)
     return *this;
 }
 
-/* The srMaterialIFace constructors live in the class declaration; retail
-   emitted standalone copies in this TU at 0x10034BE0/0x10034C70 while folding
-   the same bodies into callers. */
+// SYNTHETIC: SURRENDER 0x10034C70
+// srMaterialIFace::srMaterialIFace (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x10034DB0
 std::ostream& operator<<(std::ostream& stream, const srShader& shader)

@@ -13,7 +13,10 @@ from pathlib import Path
 REPOSITORY = Path(__file__).resolve().parents[2]
 SURRENDER_HEADERS = REPOSITORY / "include" / "surrender"
 
-CLASS_IMPORT_RE = re.compile(r"\bclass\s+SR_DLL_IMPORT\s+(?:SR_DLL_EXPORT\s+)?([A-Za-z_]\w*)")
+CLASS_IMPORT_RE = re.compile(
+    r"\bclass\s+(?:__declspec\s*\(\s*novtable\s*\)\s+)?"
+    r"SR_DLL_IMPORT\s+(?:SR_DLL_EXPORT\s+)?([A-Za-z_]\w*)"
+)
 COMMENT_RE = re.compile(r"//[^\n]*|/\*.*?\*/", re.DOTALL)
 
 # Audited class-wide imports. Removing one is just as ABI-significant as adding

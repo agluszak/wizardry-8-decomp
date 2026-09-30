@@ -492,3 +492,29 @@ and primary-template assignment express these lifetimes; no manual constructor
 loop or temporary key is needed. Texture-cache initialization/closure use the
 same clear-and-grow operation (`0x10028200`, `0x10028460`). Keep the surrounding
 default-texture deletion and pool/list reset order.
+
+The texture/material interfaces extend the same support-copy model. Their
+copy emissions (`0x1005F660`, `0x10034C70`) perform default `srClass`
+construction, support registration and containing-class assignment, with no
+remaining interface members. `srTexture` (`0x1005F150`) then copy-constructs
+its members after the support layer's assignment. Its embedded palette pointer
+is retained and stored without releasing a pre-existing member value at that
+stage. A handwritten containing constructor would default-construct the
+pointer before its body and incorrectly replace this lifetime with assignment.
+Keep implicit copies and preserve the support layer's access to unconstructed
+derived state. The retail export bundles cover these classes' lifecycle and
+ordinary members; provider class export supplies implicit emissions without
+invented source uses. Consumer import spelling remains separately evidenced.
+These three abstract classes use `novtable`: their default/copy constructors
+and complete destructors install only the support/base vtables, and retail
+exports no own-class vtable for them. This avoids inventing three provider
+exports and extra construction/destruction vptr writes.
+
+Current VC6 implicit derived-copy builds select `srClassSupport(const Derived&)`
+and reproduce the retail support lifecycle reviewed at `0x10051AA0` and
+`0x10041BF0`. Do not replace that
+converting constructor with a template-self copy constructor merely from
+modern overload-resolution expectations. The surface-interface copy
+(`0x1005A120`) also has a byte copy at `+0x19` whose member identity remains
+unresolved; it does not establish a four-byte array copy or an invented empty
+class boundary. Its recovered explicit body remains pending that model.
