@@ -553,16 +553,6 @@ static void* copyMemory(void* destination, const void* source, long size)
     return destination;
 }
 
-/* srArray<Sampler::Symbol>::release — the shared teardown sr.dll emits out of
-   line; reached from inlined setCapacity/operator[] expansions. */
-// TEMPLATE: SURRENDER 0x100027D0
-// srArray<srHuffman::Sampler::Symbol>::release
-
-/* srArray<Sampler::Symbol>::setCapacity — called out of line by insert's
-   existing-symbol path (operator[] grow check). */
-// TEMPLATE: SURRENDER 0x10002AC0
-// srArray<srHuffman::Sampler::Symbol>::setCapacity
-
 /* srHashTable<unsigned long,int>::Grow — called out of line from AllocateEntry
    inside insert's inlined Insert. */
 // TEMPLATE: SURRENDER 0x10002BA0

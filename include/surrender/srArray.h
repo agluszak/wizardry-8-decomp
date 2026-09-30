@@ -11,6 +11,8 @@ template <class T> class srArray {
 public:
     // TEMPLATE: SURRENDER 0x10027CE0
     // srArray<float>::srArray
+    // TEMPLATE: SURRENDER 0x100569A0
+    // srArray<srNode::TraverseInfo::Entry>::srArray
     inline srArray() : data(0), capacity(0) {}
 
     /* The reserve form retail emits out of line for the srGERD::Renderer
@@ -53,6 +55,8 @@ public:
        sr.dll imports no vector delete emission at all. */
     // TEMPLATE: SURRENDER 0x10026F10
     // srArray<float>::~srArray
+    // TEMPLATE: SURRENDER 0x10012C60
+    // srArray<srConfig::Entry*>::~srArray<srConfig::Entry*>
     inline ~srArray()
     {
         release();
@@ -72,6 +76,10 @@ public:
     // srArray<unsigned long>::release
     // TEMPLATE: SURRENDER 0x1003BE80
     // srArray<srModeler::Triangle>::release
+    // TEMPLATE: SURRENDER 0x100027D0
+    // srArray<srHuffman::Sampler::Symbol>::release
+    // TEMPLATE: SURRENDER 0x10004080
+    // srArray<char*>::release
     inline void release()
     {
         delete[] data;
@@ -113,6 +121,14 @@ public:
     // srArray<srVertexArray>::setCapacity
     // TEMPLATE: SURRENDER 0x10045030
     // srArray<srTriMeshPipeline::Pass>::setCapacity
+    // TEMPLATE: SURRENDER 0x10002AC0
+    // srArray<srHuffman::Sampler::Symbol>::setCapacity
+    // TEMPLATE: SURRENDER 0x1004A430
+    // srArray<srNode*>::setCapacity
+    // TEMPLATE: SURRENDER 0x1004A4A0
+    // srArray<srNode::TraverseInfo::Entry>::setCapacity
+    // TEMPLATE: SURRENDER 0x10012EA0
+    // srArray<srConfig::Entry*>::setCapacity
     void setCapacity(unsigned long new_capacity);
 
     // TEMPLATE: SURRENDER 0x10026F50
@@ -133,11 +149,10 @@ public:
     unsigned long capacity;
 };
 
-/* Out-of-class with auto-inlining disabled so the instantiations emit as
-   standalone calls the way retail callers reach them: srModeler's accessors
-   inline operator[]'s grow check then CALL 0x1003BCF0 rather than inlining
-   the allocation loop. */
-#pragma auto_inline(off)
+/* Ordinary header-visible primary-template definitions. Retail emits
+   standalone growth bodies and also expands them in callers: for example,
+   srArray<unsigned long>::operator[] (0x10027120) contains the allocation,
+   preserving copy and release implemented by setCapacity (0x10027650). */
 template <class T> void srArray<T>::reserve(unsigned long count)
 {
     release();
@@ -168,7 +183,6 @@ template <class T> void srArray<T>::setCapacity(unsigned long new_capacity)
         capacity = new_capacity;
     }
 }
-#pragma auto_inline(on)
 
 /* The separately proved srHeap-backed family has both preserving exact-size
    storage and a scratch-buffer operation that discards old contents when it
