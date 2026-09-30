@@ -259,6 +259,3 @@ inline srInlineString& srInlineString::operator+=(const char* suffix)
     }
     return *this;
 }
-
-// TEMPLATE: SURRENDER 0x10004080
-// srArray<char*>::release

@@ -178,12 +178,6 @@ srClipPlane::~srClipPlane() {}
 // SYNTHETIC: SURRENDER 0x1004A410
 // srClassSupport<srClipPlane,srNode,0,5376>::`scalar deleting destructor'
 
-// TEMPLATE: SURRENDER 0x1004A430
-// srArray<srNode*>::setCapacity
-
-// TEMPLATE: SURRENDER 0x1004A4A0
-// srArray<srNode::TraverseInfo::Entry>::setCapacity
-
 // SYNTHETIC: SURRENDER 0x1004A530
 // std::ios_base::Init global static-init block
 

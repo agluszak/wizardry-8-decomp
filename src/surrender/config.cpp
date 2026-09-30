@@ -716,12 +716,6 @@ void srConfig::Index::resize(long bucket_count)
     }
 }
 
-// TEMPLATE: SURRENDER 0x10012C60
-// srArray<srConfig::Entry*>::~srArray<srConfig::Entry*>
-
-// TEMPLATE: SURRENDER 0x10012EA0
-// srArray<srConfig::Entry*>::setCapacity
-
 // GLOBAL: SURRENDER 0x100A45C8
 class srConfig srConfig;
 
