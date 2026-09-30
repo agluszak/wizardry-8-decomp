@@ -13,7 +13,7 @@ def _pair(address: str, retail: list[str], rebuild: list[str]) -> dict:
 
 
 def test_allocator_substitution_is_reported() -> None:
-    """The srHeapArray<int> growth that allocated with operator new and freed on srHeap."""
+    """The old mixed-family growth bug allocated on CRT instead of srHeap."""
     ghidriff = {
         "functions": {
             "modified": [
@@ -50,7 +50,6 @@ def test_a_side_without_allocator_calls_is_not_a_disagreement() -> None:
     ghidriff = {"functions": {"modified": [_pair("0x1", [], ["operator_new"])]}}
 
     assert allocator_call_disagreements(ghidriff) == {}
-
 
 
 def test_allocator_operations_are_compared_independently() -> None:

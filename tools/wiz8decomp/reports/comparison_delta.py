@@ -69,7 +69,7 @@ def _allocator_operations(called: list[str]) -> dict[str, list[str]]:
             operation, family = "free", "crt"
         elif _CRT_RESIZE.search(name):
             operation, family = "resize", "crt"
-        if operation is not None:
+        if operation is not None and family is not None:
             operations.setdefault(operation, set()).add(family)
     return {operation: sorted(families) for operation, families in operations.items()}
 
