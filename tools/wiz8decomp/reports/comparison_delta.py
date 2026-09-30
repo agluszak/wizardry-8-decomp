@@ -28,9 +28,7 @@ def _similarities(summary: dict[str, Any], ghidriff: str) -> list[float]:
     therefore have code similarity 1.0.
     """
 
-    analyzed = [
-        row for row in summary.get("functions", ()) if row.get("outcome") in _ANALYZED
-    ]
+    analyzed = [row for row in summary.get("functions", ()) if row.get("outcome") in _ANALYZED]
     ratios = [float(match.group("ratio")) for match in _RATIO_ROW.finditer(ghidriff)]
     code_differences = sum(bool(row.get("code_diff")) for row in analyzed)
     if len(ratios) < code_differences:
@@ -57,14 +55,10 @@ def comparison_metrics(summary: dict[str, Any], ghidriff: str) -> dict[str, Any]
         "clean_rate": clean / analyzed if analyzed else None,
         "differences": outcomes["differences"],
         "code_differences": sum(
-            bool(row.get("code_diff"))
-            for row in functions
-            if row.get("outcome") in _ANALYZED
+            bool(row.get("code_diff")) for row in functions if row.get("outcome") in _ANALYZED
         ),
         "data_differences": sum(
-            bool(row.get("data"))
-            for row in functions
-            if row.get("outcome") in _ANALYZED
+            bool(row.get("data")) for row in functions if row.get("outcome") in _ANALYZED
         ),
         "unpaired": outcomes["unpaired"],
         "analysis_failed": outcomes["analysis-failed"],
@@ -126,12 +120,10 @@ def _metric_delta(head: dict[str, Any], base: dict[str, Any]) -> dict[str, Any]:
 
 def _transitions(head: dict[str, Any], base: dict[str, Any]) -> dict[str, int]:
     current = {
-        int(row["orig"], 16): str(row.get("outcome") or "")
-        for row in head.get("functions", ())
+        int(row["orig"], 16): str(row.get("outcome") or "") for row in head.get("functions", ())
     }
     previous = {
-        int(row["orig"], 16): str(row.get("outcome") or "")
-        for row in base.get("functions", ())
+        int(row["orig"], 16): str(row.get("outcome") or "") for row in base.get("functions", ())
     }
     common = current.keys() & previous.keys()
     return {
@@ -144,16 +136,13 @@ def _transitions(head: dict[str, Any], base: dict[str, Any]) -> dict[str, int]:
             for address in common
         ),
         "newly_paired": sum(
-            previous[address] == "unpaired" and current[address] in _ANALYZED
-            for address in common
+            previous[address] == "unpaired" and current[address] in _ANALYZED for address in common
         ),
         "newly_unpaired": sum(
-            previous[address] in _ANALYZED and current[address] == "unpaired"
-            for address in common
+            previous[address] in _ANALYZED and current[address] == "unpaired" for address in common
         ),
         "new_analysis_failures": sum(
-            current[address] == "analysis-failed"
-            and previous[address] != "analysis-failed"
+            current[address] == "analysis-failed" and previous[address] != "analysis-failed"
             for address in common
         ),
         "head_only": len(current.keys() - previous.keys()),

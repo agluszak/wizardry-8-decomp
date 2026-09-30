@@ -78,8 +78,7 @@ def all_source_addresses(repository: Path, target: str) -> list[int]:
         {
             int(marker["address"])
             for marker in load_source_index(repository)["markers"]
-            if marker["target"].upper() == target.upper()
-            and marker["marker_kind"] == "FUNCTION"
+            if marker["target"].upper() == target.upper() and marker["marker_kind"] == "FUNCTION"
         }
     )
 

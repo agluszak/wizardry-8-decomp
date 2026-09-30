@@ -820,15 +820,10 @@ void srNode::getWorldSpaceRotation(srMatrix3T<double>& rotation) const
     rotation.vectors[2].Set(world_transform_90.rows[2].x, world_transform_90.rows[2].y,
                             world_transform_90.rows[2].z);
     srVector3T<double> scale = getWorldSpaceScale();
-    rotation.vectors[0].x /= scale.x;
-    rotation.vectors[1].x /= scale.x;
-    rotation.vectors[2].x /= scale.x;
-    rotation.vectors[0].y /= scale.y;
-    rotation.vectors[1].y /= scale.y;
-    rotation.vectors[2].y /= scale.y;
-    rotation.vectors[0].z /= scale.z;
-    rotation.vectors[1].z /= scale.z;
-    rotation.vectors[2].z /= scale.z;
+    srVector3T<double> inverse_scale(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z);
+    rotation.vectors[0] *= inverse_scale;
+    rotation.vectors[1] *= inverse_scale;
+    rotation.vectors[2] *= inverse_scale;
 }
 
 // FUNCTION: SURRENDER 0x10055110
@@ -1012,11 +1007,7 @@ void srNode::setWorldSpaceLocation(const srVector3T<double>& location)
         srMatrix4T<double> parent_world;
         parent_->getWorldSpaceMatrix(parent_world);
         srMatrix4T<double> inverse;
-        inverse.AdjugateFrom(&parent_world.vectors[0].x);
-        double determinant = parent_world.Det();
-        if (determinant != 1.0) {
-            inverse.Scale(1.0 / determinant);
-        }
+        inverse.Inverse(parent_world);
         location_60 = inverse.TransformPoint(location);
     }
     setWSDirty();
@@ -1345,11 +1336,7 @@ void srNode::setWorldSpaceRotation(const srMatrix3T<double>& rotation)
         srMatrix4T<double> parent_world;
         parent_->getWorldSpaceMatrix(parent_world);
         srMatrix4T<double> inverse;
-        inverse.AdjugateFrom(&parent_world.vectors[0].x);
-        double determinant = parent_world.Det();
-        if (determinant != 1.0) {
-            inverse.Scale(1.0 / determinant);
-        }
+        inverse.Inverse(parent_world);
         srMatrix4T<double> local = inverse;
         local.MultiplyBy(world);
         rotation_18.vectors[0].Set(local.vectors[0].x, local.vectors[0].y, local.vectors[0].z);
@@ -1380,11 +1367,7 @@ void srNode::setWorldSpaceMatrix(const srMatrix4T<double>& matrix)
         srMatrix4T<double> parent_world;
         parent_->getWorldSpaceMatrix(parent_world);
         srMatrix4T<double> inverse;
-        inverse.AdjugateFrom(&parent_world.vectors[0].x);
-        double determinant = parent_world.Det();
-        if (determinant != 1.0) {
-            inverse.Scale(1.0 / determinant);
-        }
+        inverse.Inverse(parent_world);
         local = inverse;
         local.MultiplyBy(matrix);
     }

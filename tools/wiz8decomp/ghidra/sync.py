@@ -526,10 +526,11 @@ def synchronize(
             steps.append({"step": "vbtables", "result": {"error": str(exc)}})
             conflicts.append(failure)
 
-        iat_plan = collect_surrender_iat_plan(settings.repo_dir, program)
-        _record_step(
-            steps, conflicts, "surrender-iat", apply_surrender_iat_typing(program, iat_plan)
-        )
+        if target == "WIZ8":
+            iat_plan = collect_surrender_iat_plan(settings.repo_dir, program)
+            _record_step(
+                steps, conflicts, "surrender-iat", apply_surrender_iat_typing(program, iat_plan)
+            )
 
         global_plan = collect_global_typing_plan(settings.repo_dir, program, target=target)
         _record_step(steps, conflicts, "globals", apply_global_typing(program, global_plan))
@@ -537,10 +538,11 @@ def synchronize(
         callback_plan = collect_callback_typing_plan(program)
         _record_step(steps, conflicts, "callbacks", apply_callback_typing(program, callback_plan))
 
-        cosmic_plan = collect_cosmic_forge_plan(settings.repo_dir, program)
-        _record_step(
-            steps, conflicts, "cosmic-forge", apply_cosmic_forge_globals(program, cosmic_plan)
-        )
+        if target == "WIZ8":
+            cosmic_plan = collect_cosmic_forge_plan(settings.repo_dir, program)
+            _record_step(
+                steps, conflicts, "cosmic-forge", apply_cosmic_forge_globals(program, cosmic_plan)
+            )
 
         attribute_plan = collect_function_attribute_plan(settings.repo_dir, program, target=target)
         _record_step(

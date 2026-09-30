@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from wiz8decomp.reports.comparison_delta import (
     comparison_metrics,
     datacmp_metrics,
