@@ -739,21 +739,9 @@ void srGERD::invalidateTextureByFrameHandle(unsigned long handle)
 {
     SectionAccess access(state_section_18_);
     if (handle != 0 && texture_hash_enabled_2044_) {
-        long index =
-            texture_lookup_2004_
-                .bucket_heads[srHashValue(handle) & (texture_lookup_2004_.bucket_count - 1)];
-        if (index != -1) {
-            srHashEntry<unsigned long, Texture*>* entries = texture_lookup_2004_.entries;
-            while (entries[index].key != handle) {
-                index = entries[index].next_index;
-                if (index == -1) {
-                    return;
-                }
-            }
-            Texture* texture = entries[index].value;
-            if (texture != 0) {
-                invalidateTexture(*texture);
-            }
+        Texture* texture = texture_lookup_2004_.Lookup(&handle);
+        if (texture != 0) {
+            invalidateTexture(*texture);
         }
     }
 }
@@ -779,21 +767,9 @@ void srGERD::invalidateResidentTexture(srTextureIFace* texture)
     SectionAccess access(state_section_18_);
     if (texture != 0) {
         unsigned long handle = texture->getTextureFrameHandle();
-        long index =
-            texture_lookup_2004_
-                .bucket_heads[srHashValue(handle) & (texture_lookup_2004_.bucket_count - 1)];
-        if (index != -1) {
-            srHashEntry<unsigned long, Texture*>* entries = texture_lookup_2004_.entries;
-            while (entries[index].key != handle) {
-                index = entries[index].next_index;
-                if (index == -1) {
-                    return;
-                }
-            }
-            Texture* found = entries[index].value;
-            if (found != 0) {
-                invalidateResidentTexture(*found);
-            }
+        Texture* found = texture_lookup_2004_.Lookup(&handle);
+        if (found != 0) {
+            invalidateResidentTexture(*found);
         }
     }
 }
@@ -817,19 +793,7 @@ void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, lo
         return;
     }
     unsigned long handle = texture->getTextureFrameHandle();
-    long index = texture_lookup_2004_
-                     .bucket_heads[srHashValue(handle) & (texture_lookup_2004_.bucket_count - 1)];
-    if (index == -1) {
-        return;
-    }
-    srHashEntry<unsigned long, Texture*>* entries = texture_lookup_2004_.entries;
-    while (entries[index].key != handle) {
-        index = entries[index].next_index;
-        if (index == -1) {
-            return;
-        }
-    }
-    Texture* resident = entries[index].value;
+    Texture* resident = texture_lookup_2004_.Lookup(&handle);
     if (resident != 0 && resident->device_2c.first_level_28 <= (unsigned long)mipmap &&
         (unsigned long)mipmap <= resident->device_2c.last_level_2c) {
         srTextureIFace::PartialRequest request;
@@ -4461,53 +4425,7 @@ void srGERD::closeTexCache()
         markTextureAsDeleted(*texture_default_2030_);
         deleteTexture(*texture_default_2030_);
         texture_default_2030_ = 0;
-        if (texture_lookup_2004_.bucket_count != 0) {
-            delete[] texture_lookup_2004_.bucket_heads;
-            delete[] texture_lookup_2004_.entries;
-        }
-        texture_lookup_2004_.bucket_count = 0;
-        texture_lookup_2004_.bucket_heads = 0;
-        texture_lookup_2004_.entries = 0;
-        texture_lookup_2004_.free_head = -1;
-        srHashEntry<unsigned long, Texture*>* entries = new srHashEntry<unsigned long, Texture*>[4];
-        int* buckets = new int[4];
-        long live = 0;
-        for (long i = 0; i < 4; i++) {
-            entries[i].next_index = -1;
-            buckets[i] = -1;
-        }
-        if (texture_lookup_2004_.bucket_count != 0) {
-            for (long bucket = 0; bucket < (long)texture_lookup_2004_.bucket_count; bucket++) {
-                long index = texture_lookup_2004_.bucket_heads[bucket];
-                while (index != -1) {
-                    srHashEntry<unsigned long, Texture*>* entry =
-                        texture_lookup_2004_.entries + index;
-                    entries[live].key = entry->key;
-                    unsigned long hashed =
-                        ((entry->key >> 10 & 0xc00) ^ (entry->key & 0xc00)) >> 10 ^
-                        (entry->key & 3);
-                    entries[live].value = entry->value;
-                    entries[live].next_index = buckets[hashed];
-                    buckets[hashed] = live;
-                    index = entry->next_index;
-                    live++;
-                }
-            }
-            delete[] texture_lookup_2004_.bucket_heads;
-            delete[] texture_lookup_2004_.entries;
-        }
-        if (live < 4) {
-            long slot = live;
-            do {
-                slot++;
-                entries[slot - 1].next_index = slot;
-            } while (slot < 4);
-        }
-        entries[3].next_index = -1;
-        texture_lookup_2004_.bucket_heads = buckets;
-        texture_lookup_2004_.free_head = live;
-        texture_lookup_2004_.entries = entries;
-        texture_lookup_2004_.bucket_count = 4;
+        texture_lookup_2004_.Clear();
         texture_pool_2014_.release();
         texture_deleted_2028_ = 0;
         texture_head_202c_ = 0;
@@ -4520,53 +4438,7 @@ void srGERD::closeTexCache()
 void srGERD::initTexCache()
 {
     if (texture_hash_enabled_2044_ == 0) {
-        if (texture_lookup_2004_.bucket_count != 0) {
-            delete[] texture_lookup_2004_.bucket_heads;
-            delete[] texture_lookup_2004_.entries;
-        }
-        texture_lookup_2004_.bucket_count = 0;
-        texture_lookup_2004_.bucket_heads = 0;
-        texture_lookup_2004_.entries = 0;
-        texture_lookup_2004_.free_head = -1;
-        srHashEntry<unsigned long, Texture*>* entries = new srHashEntry<unsigned long, Texture*>[4];
-        int* buckets = new int[4];
-        long live = 0;
-        for (long i = 0; i < 4; i++) {
-            entries[i].next_index = -1;
-            buckets[i] = -1;
-        }
-        if (texture_lookup_2004_.bucket_count != 0) {
-            for (long bucket = 0; bucket < (long)texture_lookup_2004_.bucket_count; bucket++) {
-                long index = texture_lookup_2004_.bucket_heads[bucket];
-                while (index != -1) {
-                    srHashEntry<unsigned long, Texture*>* entry =
-                        texture_lookup_2004_.entries + index;
-                    entries[live].key = entry->key;
-                    unsigned long hashed =
-                        ((entry->key >> 10 & 0xc00) ^ (entry->key & 0xc00)) >> 10 ^
-                        (entry->key & 3);
-                    entries[live].value = entry->value;
-                    entries[live].next_index = buckets[hashed];
-                    buckets[hashed] = live;
-                    index = entry->next_index;
-                    live++;
-                }
-            }
-            delete[] texture_lookup_2004_.bucket_heads;
-            delete[] texture_lookup_2004_.entries;
-        }
-        if (live < 4) {
-            long slot = live;
-            do {
-                slot++;
-                entries[slot - 1].next_index = slot;
-            } while (slot < 4);
-        }
-        entries[3].next_index = -1;
-        texture_lookup_2004_.bucket_heads = buckets;
-        texture_lookup_2004_.free_head = live;
-        texture_lookup_2004_.entries = entries;
-        texture_lookup_2004_.bucket_count = 4;
+        texture_lookup_2004_.Clear();
         texture_head_202c_ = 0;
         texture_deleted_2028_ = 0;
         texture_cache_used_2034_ = 0;
@@ -4855,21 +4727,7 @@ int srGERD::isTextureCached(srTextureIFace* texture) const
     SectionAccess access(state_section_18_);
     if (texture != 0) {
         unsigned long handle = texture->getTextureFrameHandle();
-        long index =
-            texture_lookup_2004_
-                .bucket_heads[srHashValue(handle) & (texture_lookup_2004_.bucket_count - 1)];
-        if (index != -1) {
-            srHashEntry<unsigned long, Texture*>* entries = texture_lookup_2004_.entries;
-            do {
-                if (entries[index].key == handle) {
-                    if (entries[index].value != 0) {
-                        return 1;
-                    }
-                    break;
-                }
-                index = entries[index].next_index;
-            } while (index != -1);
-        }
+        return texture_lookup_2004_.Lookup(&handle) != 0;
     }
     return 0;
 }
@@ -4880,22 +4738,10 @@ int srGERD::isTextureResident(srTextureIFace* texture) const
     SectionAccess access(state_section_18_);
     if (texture != 0 && isWindowOpen() != 0) {
         unsigned long handle = texture->getTextureFrameHandle();
-        long index =
-            texture_lookup_2004_
-                .bucket_heads[srHashValue(handle) & (texture_lookup_2004_.bucket_count - 1)];
-        if (index != -1) {
-            srHashEntry<unsigned long, Texture*>* entries = texture_lookup_2004_.entries;
-            do {
-                if (entries[index].key == handle) {
-                    Texture* resident = entries[index].value;
-                    if (resident != 0 && resident->device_2c.resident_data_68 != 0 &&
-                        resident->device_2c.resident_size_6c != 0) {
-                        return 1;
-                    }
-                    break;
-                }
-                index = entries[index].next_index;
-            } while (index != -1);
+        Texture* resident = texture_lookup_2004_.Lookup(&handle);
+        if (resident != 0 && resident->device_2c.resident_data_68 != 0 &&
+            resident->device_2c.resident_size_6c != 0) {
+            return 1;
         }
     }
     return 0;
@@ -4909,24 +4755,13 @@ int srGERD::getTextureInfo(srTextureIFace* texture, TextureInfo& info)
         return 0;
     }
     unsigned long handle = texture->getTextureFrameHandle();
-    long index = texture_lookup_2004_
-                     .bucket_heads[srHashValue(handle) & (texture_lookup_2004_.bucket_count - 1)];
-    if (index != -1) {
-        srHashEntry<unsigned long, Texture*>* entries = texture_lookup_2004_.entries;
-        while (entries[index].key != handle) {
-            index = entries[index].next_index;
-            if (index == -1) {
-                return 0;
-            }
-        }
-        Texture* resident = entries[index].value;
-        if (resident != 0) {
-            info.pixel_format_00 = resident->pixel_format_0c;
-            info.width_14 = resident->device_2c.width_20;
-            info.height_18 = resident->device_2c.height_24;
-            info.last_level_1c = resident->device_2c.last_level_2c;
-            return 1;
-        }
+    Texture* resident = texture_lookup_2004_.Lookup(&handle);
+    if (resident != 0) {
+        info.pixel_format_00 = resident->pixel_format_0c;
+        info.width_14 = resident->device_2c.width_20;
+        info.height_18 = resident->device_2c.height_24;
+        info.last_level_1c = resident->device_2c.last_level_2c;
+        return 1;
     }
     return 0;
 }

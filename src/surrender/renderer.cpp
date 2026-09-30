@@ -223,25 +223,13 @@ void srGERD::Renderer::getStatistics(unsigned long* statistics)
 unsigned long srGERD::Renderer::TextureSetCache::intern(const TextureSetKey& key)
 {
     srHashTable<TextureSetKey, unsigned long>* map = map_00;
-    int slot = map->bucket_heads[srHashValue(key) & (map->bucket_count - 1)];
-    while (slot != -1) {
-        srHashEntry<TextureSetKey, unsigned long>* entry = map->entries + slot;
-        if (entry->key.texture0_00 == key.texture0_00 &&
-            entry->key.texture1_04 == key.texture1_04 &&
-            entry->key.shader_08.value == key.shader_08.value) {
-            return entry->value;
-        }
-        slot = entry->next_index;
+    int slot = map->FindNextEntry(&key, -1);
+    if (slot != -1) {
+        return map->entries[slot].value;
     }
 
     unsigned long index = count_0c;
-    slot = map->AllocateEntry();
-    srHashEntry<TextureSetKey, unsigned long>* entry = map->entries + slot;
-    entry->key = key;
-    entry->value = index;
-    unsigned int bucket = srHashValue(key) & (map->bucket_count - 1);
-    entry->next_index = map->bucket_heads[bucket];
-    map->bucket_heads[bucket] = slot;
+    map->Insert(&key, &index);
 
     TextureSet& set = sets_04[index];
     set.texture0_00 = key.texture0_00;

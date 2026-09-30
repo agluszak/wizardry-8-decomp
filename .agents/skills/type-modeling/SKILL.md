@@ -65,6 +65,34 @@ vtable slots, adjustor thunks and affected receivers.
 
 Compiler-generated deleting destructors are marker-only `SYNTHETIC`; do not hand-write them.
 
+Recover copy construction by subobject lifetime before interpreting its calls:
+
+1. Attribute base copy construction, including the constructor variant actually called.
+2. Attribute member copy construction in declaration order; use exception/unwind cleanup to locate
+   the start of each completed lifetime. A member copy constructor can internally default-construct
+   and assign (as `srArray` does); its `operator=` call does not establish `*this = other` in the
+   containing constructor.
+3. Only then identify operations belonging to the containing constructor body. Prefer implicit copy
+   construction/assignment if ordinary base/member operations explain the entire body. An explicit
+   implementation needs positive evidence of additional authored behavior, such as resetting a
+   member, choosing another base constructor, extra logic, or a containing-class assignment call
+   established by its actual receiver and subobject state.
+
+Represent construction in initializer lists and assignment to already-live objects in the body.
+Initialization follows declaration order, regardless of initializer-list spelling; investigate layout
+or member identity when retail lifetime order disagrees. Check base/template owners before adding
+derived registration, unregistration, destruction, clone or copy logic. An empty derived destructor
+can be correct when members and bases supply all cleanup. Preserve established shallow pointer copying,
+aliasing and unsafe ownership rather than inferring a deep copy from modern design rules.
+
+An implicit non-template emitted special member normally has a marker-only `SYNTHETIC` identity;
+template emissions belong at the primary template owner. Class export is emission evidence, not proof
+of an authored declaration or a fixed set of VC6 implicit emissions. Use decorated exports, real uses,
+member structure and emitted code together. Do not hand-declare an exported implicit special member
+or invent a fake use to force its emission. Keep unresolved emission gaps explicit. Distinguish default,
+capacity, copy and other constructor overloads by symbols/calls even when their lowered bodies resemble
+one another; do not normalize their identities together.
+
 ## External ABI and packing
 
 Preserve proven calling conventions, packing and vendor interface shapes. Consumer/provider declarations

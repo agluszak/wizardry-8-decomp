@@ -85,10 +85,9 @@ public:
 
 template <class Key, class Value> Value srHashTable<Key, Value>::Lookup(const Key* key) const
 {
-    Key wanted = *key;
-    int slot = bucket_heads[srHashValue(wanted) & (bucket_count - 1)];
+    int slot = bucket_heads[srHashValue(*key) & (bucket_count - 1)];
     while (slot != -1) {
-        if (entries[slot].key == wanted) {
+        if (entries[slot].key == *key) {
             return entries[slot].value;
         }
         slot = entries[slot].next_index;
@@ -115,10 +114,9 @@ template <class Key, class Value>
 void srHashTable<Key, Value>::Insert(const Key* key, const Value* value)
 {
     int slot = AllocateEntry();
-    Key stored = *key;
-    unsigned int bucket = srHashValue(stored) & (bucket_count - 1);
+    unsigned int bucket = srHashValue(*key) & (bucket_count - 1);
 
-    entries[slot].key = stored;
+    entries[slot].key = *key;
     entries[slot].value = *value;
     entries[slot].next_index = bucket_heads[bucket];
     bucket_heads[bucket] = slot;
@@ -126,14 +124,13 @@ void srHashTable<Key, Value>::Insert(const Key* key, const Value* value)
 
 template <class Key, class Value> void srHashTable<Key, Value>::Remove(const Key* key)
 {
-    Key wanted = *key;
-    int* bucket = bucket_heads + (srHashValue(wanted) & (bucket_count - 1));
+    int* bucket = bucket_heads + (srHashValue(*key) & (bucket_count - 1));
     int slot = *bucket;
     int previous = -1;
 
     while (slot != -1) {
         srHashEntry<Key, Value>* entry = entries + slot;
-        if (entry->key == wanted) {
+        if (entry->key == *key) {
             if (previous == -1) {
                 *bucket = entry->next_index;
             } else {
@@ -151,14 +148,13 @@ template <class Key, class Value> void srHashTable<Key, Value>::Remove(const Key
 template <class Key, class Value>
 void srHashTable<Key, Value>::Remove(const Key* key, const Value* value)
 {
-    Key wanted = *key;
-    int* bucket = bucket_heads + (srHashValue(wanted) & (bucket_count - 1));
+    int* bucket = bucket_heads + (srHashValue(*key) & (bucket_count - 1));
     int slot = *bucket;
     int previous = -1;
 
     while (slot != -1) {
         srHashEntry<Key, Value>* entry = entries + slot;
-        if (entry->key == wanted && entry->value == *value) {
+        if (entry->key == *key && entry->value == *value) {
             if (previous == -1) {
                 *bucket = entry->next_index;
             } else {
@@ -175,8 +171,7 @@ void srHashTable<Key, Value>::Remove(const Key* key, const Value* value)
 
 template <class Key, class Value> void srHashTable<Key, Value>::RemoveAt(int slot)
 {
-    Key wanted = entries[slot].key;
-    int* bucket = bucket_heads + (srHashValue(wanted) & (bucket_count - 1));
+    int* bucket = bucket_heads + (srHashValue(entries[slot].key) & (bucket_count - 1));
     int current = *bucket;
     int previous = -1;
 
@@ -210,22 +205,14 @@ template <class Key, class Value> void srHashTable<Key, Value>::Grow()
     srHashEntry<Key, Value>* new_entries = new srHashEntry<Key, Value>[capacity];
     int* new_buckets = new int[capacity];
 
-    srHashEntry<Key, Value>* fill_entry = new_entries;
-    int* fill_bucket = new_buckets;
-    unsigned int remaining = capacity;
-    if ((int)capacity > 0) {
-        do {
-            fill_entry->next_index = -1;
-            *fill_bucket = -1;
-            --remaining;
-            ++fill_entry;
-            ++fill_bucket;
-        } while (remaining != 0);
+    for (int slot = 0; slot < static_cast<int>(capacity); ++slot) {
+        new_entries[slot].next_index = -1;
+        new_buckets[slot] = -1;
     }
 
     int used = 0;
     if (bucket_count != 0) {
-        for (int bucket = 0; bucket < (int)bucket_count; ++bucket) {
+        for (int bucket = 0; bucket < static_cast<int>(bucket_count); ++bucket) {
             int slot = bucket_heads[bucket];
             while (slot != -1) {
                 srHashEntry<Key, Value>* source = entries + slot;
@@ -242,11 +229,8 @@ template <class Key, class Value> void srHashTable<Key, Value>::Grow()
         delete[] entries;
     }
 
-    if (used < (int)capacity) {
-        for (int slot = used; slot < (int)capacity;) {
-            ++slot;
-            new_entries[slot - 1].next_index = slot;
-        }
+    for (int free_slot = used; free_slot < static_cast<int>(capacity); ++free_slot) {
+        new_entries[free_slot].next_index = free_slot + 1;
     }
     new_entries[capacity - 1].next_index = -1;
 

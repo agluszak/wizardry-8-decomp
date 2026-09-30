@@ -473,3 +473,22 @@ form. `srDebugVP` (`0x10077960`) forwards these through `0x1006F190` and
 `0x1006F100`, respectively. Its statistics indices are reversed (141/140), and the
 constant form omits the constant pointer from alignment tracking. Keep these quirks;
 source-projected function names must not reverse the interface slots.
+
+The renderer texture-set cache insertion at `0x10024280` hashes the supplied
+key by reference and assigns its three words into the allocated entry. It does
+not copy-construct a temporary key or call the `srShader` copy constructor.
+Keep borrowed-key lookup/insertion/removal in the primary `srHashTable`; scalar
+and pointer instantiations otherwise conceal the extra lifetime introduced by
+a local key copy. Texture-set equality compares both texture pointers and the
+shader value. Its stored index can be zero, so interning tests entry presence
+with `FindNextEntry`, rather than testing a `Lookup` result for truth.
+
+The texture-set and scheduler growth bodies (`0x100279E0`, `0x10014750`)
+establish unsigned doubling/minimum-four capacity arithmetic and signed
+iteration bounds. Growth initializes bucket heads and entry links, rehashes
+live entries, then links the unused suffix. Texture-set entry allocation also
+initializes each embedded shader before those links. Ordinary array allocation
+and primary-template assignment express these lifetimes; no manual constructor
+loop or temporary key is needed. Texture-cache initialization/closure use the
+same clear-and-grow operation (`0x10028200`, `0x10028460`). Keep the surrounding
+default-texture deletion and pool/list reset order.
