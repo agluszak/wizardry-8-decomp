@@ -132,14 +132,13 @@ void srNode::getLocalBounds(BoundInfo& bounds)
 srNode& srNode::operator=(const srNode& other)
 {
     if (this != &other) {
-        sceneGraphCSect.getAccess();
+        srCriticalSectionAccess access(&sceneGraphCSect);
         srClass::operator=(other);
         flags_124.value = other.flags_124.value;
         location_60 = other.location_60;
         scale_78 = other.scale_78;
         rotation_18 = other.rotation_18;
         notifyDependent();
-        sceneGraphCSect.releaseAccess();
     }
     return *this;
 }
@@ -194,7 +193,7 @@ srNode::srNode(srNode* parent)
     if (s_flag_names_100a4a00 == 0) {
         s_flag_names_100a4a00 = "DISABLE,TERMINATE,GLOBAL,IGNORE_TRANSFORM";
     }
-    sceneGraphCSect.getAccess();
+    srCriticalSectionAccess access(&sceneGraphCSect);
     next_sibling_ = 0;
     previous_sibling_ = 0;
     parent_ = 0;
@@ -205,7 +204,6 @@ srNode::srNode(srNode* parent)
     scale_78.Set(1.0, 1.0, 1.0);
     notifications_120.value = 0;
     setParent(parent, 0);
-    sceneGraphCSect.releaseAccess();
 }
 
 /* Destroying a node detaches it and deletes its whole child list through the
@@ -214,12 +212,11 @@ srNode::srNode(srNode* parent)
 // FUNCTION: SURRENDER 0x10050E20
 srNode::~srNode()
 {
-    sceneGraphCSect.getAccess();
+    srCriticalSectionAccess access(&sceneGraphCSect);
     unlink();
     while (first_child_ != 0) {
         delete first_child_;
     }
-    sceneGraphCSect.releaseAccess();
 }
 
 /* Reparenting under the scene-graph lock; preserve_world_transform decomposes
@@ -229,13 +226,11 @@ srNode::~srNode()
 // FUNCTION: SURRENDER 0x10050F00
 int srNode::setParent(srNode* parent, int preserve_world_transform)
 {
-    sceneGraphCSect.getAccess();
+    srCriticalSectionAccess access(&sceneGraphCSect);
     if (parent == this) {
-        sceneGraphCSect.releaseAccess();
         return 0;
     }
     if (parent != 0 && isParentOf(*parent)) {
-        sceneGraphCSect.releaseAccess();
         return 0;
     }
     if (preserve_world_transform != 0) {
@@ -298,7 +293,6 @@ int srNode::setParent(srNode* parent, int preserve_world_transform)
     if (testNotify(static_cast<e_notify>(1)) != 0) {
         updateTransformation();
     }
-    sceneGraphCSect.releaseAccess();
     return 1;
 }
 

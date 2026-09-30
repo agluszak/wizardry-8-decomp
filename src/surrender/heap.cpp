@@ -8,28 +8,6 @@
 
 #pragma intrinsic(memset)
 
-namespace {
-
-// RAII critical-section guard: free() and freeAll() carry an EH funclet that
-// runs LeaveCriticalSection on unwind, matching an object of this shape.
-class HeapAccess {
-public:
-    HeapAccess(srCriticalSection* critical_section) : critical_section_(critical_section)
-    {
-        critical_section_->getAccess();
-    }
-
-    ~HeapAccess()
-    {
-        critical_section_->releaseAccess();
-    }
-
-private:
-    srCriticalSection* critical_section_;
-};
-
-} // namespace
-
 // FUNCTION: SURRENDER 0x100359C0
 srHeap::srHeap()
 {
@@ -121,7 +99,7 @@ void srHeap::releaseBlock(Block* block)
 // FUNCTION: SURRENDER 0x10035BB0
 void srHeap::freeAll()
 {
-    HeapAccess access(critical_section_b0);
+    srCriticalSectionAccess access(critical_section_b0);
     if (current_block_84 != 0) {
         releaseBlock(current_block_84);
     }
@@ -161,7 +139,7 @@ void srHeap::freeAll()
 // FUNCTION: SURRENDER 0x10035CB0
 void srHeap::dump(std::ostream& stream)
 {
-    HeapAccess access(critical_section_b0);
+    srCriticalSectionAccess access(critical_section_b0);
     unsigned long total = 0;
     Block* block;
     for (block = block_list_88; block != 0; block = block->next_08) {
@@ -453,16 +431,21 @@ unsigned long srHeap::msize(void* allocation)
     // reinterpret-ok: allocation tag byte immediately preceding the user area.
     unsigned char tag = *(static_cast<unsigned char*>(allocation) - 1);
     switch (tag) {
-    case 0xfe:
-        lock->releaseAccess();
+    case 0xfe: {
         // reinterpret-ok: pooled chunks carry their 0x20-byte header
         // immediately before the user pointer.
-        return (reinterpret_cast<Chunk*>(allocation) - 1)->size_04;
-    case 0xff:
+        unsigned long size = (reinterpret_cast<Chunk*>(allocation) - 1)->size_04;
         lock->releaseAccess();
+        return size;
+    }
+    case 0xff: {
         // reinterpret-ok: system allocations carry their block pointer five
         // bytes under the user pointer.
-        return (*reinterpret_cast<Block**>(static_cast<char*>(allocation) - 5))->allocation_size_04;
+        unsigned long size =
+            (*reinterpret_cast<Block**>(static_cast<char*>(allocation) - 5))->allocation_size_04;
+        lock->releaseAccess();
+        return size;
+    }
     default:
         lock->releaseAccess();
         return (tag << 4 | 0xf) + 1;
@@ -518,7 +501,7 @@ void* srHeap::allocate(unsigned long size)
 void srHeap::free(void* allocation)
 {
     if (allocation != 0) {
-        HeapAccess access(critical_section_b0);
+        srCriticalSectionAccess access(critical_section_b0);
         // reinterpret-ok: allocation tag byte immediately preceding the user
         // area.
         unsigned char* tag = reinterpret_cast<unsigned char*>(allocation) - 1;
