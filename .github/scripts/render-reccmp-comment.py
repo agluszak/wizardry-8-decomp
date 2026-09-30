@@ -102,6 +102,47 @@ if comparison_rows:
         "Exact code and data-only differences contribute 100% code similarity._"
     )
 
+allocator_rows = [
+    (target, comparison["allocator_families"])
+    for target, comparison in comparison_rows
+    if comparison.get("allocator_families") and comparison["allocator_families"]["new"]
+]
+if allocator_rows:
+    print()
+    print("#### New allocator-family disagreements")
+    print()
+    print(
+        "_Both sides allocate, but through different families (SurRender heap vs CRT). "
+        "Storage allocated by one and released by the other corrupts the heap._"
+    )
+    print()
+    print("| Target | Function | Retail | Rebuild |")
+    print("| --- | --- | --- | --- |")
+    for target, allocators in allocator_rows:
+        for entry in allocators["new"][:20]:
+            print(
+                f"| `{target}` | `{entry['orig']}` {entry['name']} "
+                f"| {', '.join(entry['retail'])} | {', '.join(entry['rebuild'])} |"
+            )
+
+blast_rows = [
+    (target, comparison["header_blast_radius"])
+    for target, comparison in comparison_rows
+    if comparison.get("header_blast_radius")
+]
+if blast_rows:
+    print()
+    print("#### Regressions by changed header")
+    print()
+    print("| Target | Header | Newly different | Examples |")
+    print("| --- | --- | ---: | --- |")
+    for target, groups in blast_rows:
+        for group in groups[:10]:
+            examples = ", ".join(f"`{item['name']}`" for item in group["representatives"][:3])
+            print(
+                f"| `{target}` | `{group['header']}` | {group['newly_different']:,} | {examples} |"
+            )
+
 data_rows = [(target, row["datacmp"]) for target, row in rows if row.get("datacmp")]
 if data_rows:
     print()

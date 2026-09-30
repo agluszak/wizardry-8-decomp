@@ -52,14 +52,11 @@ public:
     int isEnabled(e_enable option) const;
     void render(srGERD& renderer, class srCamera* camera);
     void resetStatistics();
-#if defined(SURRENDER_BUILD)
-    static const char* sGetClassName();
-#else
+    // FUNCTION: SURRENDER 0x10056C10
     static const char* sGetClassName()
     {
         return "srScene";
     }
-#endif
     /* The overlay builders expand these component stores at every call site.
        They are the ordinary header-visible SurRender setters, not a Wizardry
        aggregate helper around the scene object. The provider still exports

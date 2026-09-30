@@ -160,11 +160,10 @@ struct W8NavigatorMovementState {
     float vertical_base_07c;
     float vertical_amplitude_080;
     float vertical_phase_084;
-    /* Reset installs the identity basis here. The constructor starts all
-       three at zero before the owner calls Reset. */
-    srVector3T<float> vector_088;
-    srVector3T<float> vector_094;
-    srVector3T<float> vector_0a0;
+    /* Reset installs the identity here; the constructor starts every row at
+       zero before the owner calls Reset. MeasurePathDistance copies it as
+       one 36-byte object (0x0045333F). */
+    srMatrix3T<float> basis_088;
     W8NavigatorAttachment* attachment_0ac;
     /* Collision/path radius, initialized to 500 by the outer navigator and
        scaled with the navigator in SetScale. */
@@ -274,12 +273,8 @@ static_assert(offsetof(W8NavigatorMovementState, vertical_amplitude_080) == 0x80
               "W8NavigatorMovementState_vertical_amplitude_080");
 static_assert(offsetof(W8NavigatorMovementState, vertical_phase_084) == 0x84,
               "W8NavigatorMovementState_vertical_phase_084");
-static_assert(offsetof(W8NavigatorMovementState, vector_088) == 0x88,
-              "W8NavigatorMovementState_vector_088");
-static_assert(offsetof(W8NavigatorMovementState, vector_094) == 0x94,
-              "W8NavigatorMovementState_vector_094");
-static_assert(offsetof(W8NavigatorMovementState, vector_0a0) == 0xa0,
-              "W8NavigatorMovementState_vector_0a0");
+static_assert(offsetof(W8NavigatorMovementState, basis_088) == 0x88,
+              "W8NavigatorMovementState_basis_088");
 static_assert(offsetof(W8NavigatorMovementState, attachment_0ac) == 0xac,
               "W8NavigatorMovementState_attachment_0ac");
 static_assert(offsetof(W8NavigatorMovementState, collision_radius_0b0) == 0xb0,

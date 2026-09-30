@@ -214,30 +214,73 @@ void UpdateSubMenuButton(int index)
     }
     switch (index) {
     case 0:
-        g_submenu_buttons_69b8b0[0]->SetEnabled(gXStatus.fCombatMode == 0);
+        if (gXStatus.fCombatMode != 0) {
+            g_submenu_buttons_69b8b0[0]->SetEnabled(0);
+        } else {
+            g_submenu_buttons_69b8b0[0]->SetEnabled(1);
+        }
         break;
     case 1:
-        g_submenu_buttons_69b8b0[1]->SetEnabled(gXStatus.fCombatMode == 0);
+        if (gXStatus.fCombatMode != 0) {
+            g_submenu_buttons_69b8b0[1]->SetEnabled(0);
+        } else {
+            g_submenu_buttons_69b8b0[1]->SetEnabled(1);
+        }
         break;
     case 2:
-        g_submenu_buttons_69b8b0[2]->SetEnabled(gXStatus.fCombatMode == 0);
-        if (g_submenu_buttons_69b8b0[2]->IsPressed() != (g_status.search_mode != 0)) {
-            g_submenu_buttons_69b8b0[2]->SetPressed(g_status.search_mode != 0);
+        if (gXStatus.fCombatMode != 0) {
+            g_submenu_buttons_69b8b0[2]->SetEnabled(0);
+        } else {
+            g_submenu_buttons_69b8b0[2]->SetEnabled(1);
+        }
+        /* Two armed, not one `IsPressed() != (mode != 0)`. The retail tests the
+           mode first and then branches on IsPressed in each arm, giving two
+           IsPressed and two SetPressed calls for this case alone
+           (0x00594E92/0x00594EA7 under search_mode, 0x00594EAE/0x00594EC3
+           under its negation). */
+        if (g_status.search_mode != 0) {
+            if (g_submenu_buttons_69b8b0[2]->IsPressed() == 0) {
+                g_submenu_buttons_69b8b0[2]->SetPressed(1);
+            }
+        } else {
+            if (g_submenu_buttons_69b8b0[2]->IsPressed() != 0) {
+                g_submenu_buttons_69b8b0[2]->SetPressed(0);
+            }
         }
         break;
     case 3:
-        g_submenu_buttons_69b8b0[3]->SetEnabled(IsPartySlotEligible(g_status.selected_character) !=
-                                                0);
-        if (g_submenu_buttons_69b8b0[3]->IsPressed() != (gXStatus.fItemSelectMode != 0)) {
-            g_submenu_buttons_69b8b0[3]->SetPressed(gXStatus.fItemSelectMode != 0);
+        if (IsPartySlotEligible(g_status.selected_character) == 0) {
+            g_submenu_buttons_69b8b0[3]->SetEnabled(0);
+            break;
+        }
+        g_submenu_buttons_69b8b0[3]->SetEnabled(1);
+        /* As case 2, with fItemSelectMode: 0x00594F07/0x00594F1C then
+           0x00594F23/0x00594F38. */
+        if (gXStatus.fItemSelectMode != 0) {
+            if (g_submenu_buttons_69b8b0[3]->IsPressed() == 0) {
+                g_submenu_buttons_69b8b0[3]->SetPressed(1);
+            }
+        } else {
+            if (g_submenu_buttons_69b8b0[3]->IsPressed() != 0) {
+                g_submenu_buttons_69b8b0[3]->SetPressed(0);
+            }
         }
         break;
     case 4:
         g_submenu_buttons_69b8b0[4]->SetEnabled(
             IsPartySlotEligible(g_status.selected_character) != 0 &&
             CharacterHasCastableSpell(&g_status.buffers.Char[g_status.selected_character]) != 0);
-        if (g_submenu_buttons_69b8b0[4]->IsPressed() != (gXStatus.fSpellCastMode != 0)) {
-            g_submenu_buttons_69b8b0[4]->SetPressed(gXStatus.fSpellCastMode != 0);
+        /* As case 2, with fSpellCastMode: 0x00594FA0/0x00594FB5 then
+           0x00594FBC/0x00594FCD. This case's SetEnabled stays a single call -
+           the retail's `? :` collapses into one at 0x00594F8C. */
+        if (gXStatus.fSpellCastMode != 0) {
+            if (g_submenu_buttons_69b8b0[4]->IsPressed() == 0) {
+                g_submenu_buttons_69b8b0[4]->SetPressed(1);
+            }
+        } else {
+            if (g_submenu_buttons_69b8b0[4]->IsPressed() != 0) {
+                g_submenu_buttons_69b8b0[4]->SetPressed(0);
+            }
         }
         break;
     case 5:
@@ -248,10 +291,18 @@ void UpdateSubMenuButton(int index)
         }
         break;
     case 7:
-        g_submenu_buttons_69b8b0[7]->SetEnabled(gXStatus.fCombatMode == 0);
+        if (gXStatus.fCombatMode != 0) {
+            g_submenu_buttons_69b8b0[7]->SetEnabled(0);
+        } else {
+            g_submenu_buttons_69b8b0[7]->SetEnabled(1);
+        }
         break;
     case 8:
-        g_submenu_buttons_69b8b0[8]->SetEnabled(gXStatus.fCombatMode != 0);
+        if (gXStatus.fCombatMode != 0) {
+            g_submenu_buttons_69b8b0[8]->SetEnabled(1);
+        } else {
+            g_submenu_buttons_69b8b0[8]->SetEnabled(0);
+        }
         break;
     }
 }

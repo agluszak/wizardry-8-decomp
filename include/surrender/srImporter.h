@@ -20,10 +20,12 @@ class
 #endif
     srSurfaceIOManager : public srIOManager {
 public:
+    /* Retail callers build the import options as a single zeroed dword:
+       srPalette::Sampler::addSurface reuses the dead name argument slot and
+       srTextureFile::loadSurface reserves one dword local. ExportInfo keeps
+       the wider triple (Wizardry's SaveJpegScreenshot proves {0,1,"QUALITY=..."}). */
     struct ImportInfo {
         unsigned long unknown_00;
-        unsigned long unknown_04;
-        const char* option_string;
     };
 
     struct ExportInfo {
@@ -69,7 +71,7 @@ public:
 
 };
 
-static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x0c), "srSurfaceImportInfo_must_be_0x0c");
+static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x04), "srSurfaceImportInfo_must_be_0x04");
 static_assert((sizeof(srSurfaceIOManager::ExportInfo) == 0x0c), "srSurfaceExportInfo_must_be_0x0c");
 
 /* Retail exports the full implicit lifecycle sweep for the importer/exporter

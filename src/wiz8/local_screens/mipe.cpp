@@ -204,9 +204,14 @@ void ToggleMipePanel(void)
     }
 
     int selection = g_mipe_table_row + g_mipe_table_base;
-    unsigned int monster_index = 0;
+    /* Both scans below compare their index against the database count as
+       signed, which is this file's established reading of those counts - see
+       the static_cast<int> on the same two members throughout. The retail
+       agrees: 0x0057D9E3 cmp esi,eax; jl and 0x0057DA1C test esi,esi; jle
+       for the monsters, 0x0057DA5A cmp eax,esi; jl for the items. */
+    int monster_index = 0;
     int visible = 0;
-    while (monster_index < gXStatus.uiMonstersInDatabase) {
+    while (monster_index < static_cast<int>(gXStatus.uiMonstersInDatabase)) {
         W8MipeMonsterEntry* entry =
             static_cast<W8MipeMonsterEntry*>(PLGet(g_mipe_monster_entries, monster_index));
         if (entry->kind == g_mipe_category && entry->selectable != 0) {
@@ -217,7 +222,7 @@ void ToggleMipePanel(void)
         }
         ++monster_index;
     }
-    if (monster_index == gXStatus.uiMonstersInDatabase) {
+    if (monster_index == static_cast<int>(gXStatus.uiMonstersInDatabase)) {
         g_mipe_monster_index = 0;
     } else {
         W8MonsterRecord record;
@@ -225,9 +230,9 @@ void ToggleMipePanel(void)
         g_mipe_monster_index = record.editor_index_1c1;
     }
 
-    unsigned int item_index = 0;
+    int item_index = 0;
     visible = 0;
-    while (item_index < gXStatus.uiItemsInDatabase) {
+    while (item_index < static_cast<int>(gXStatus.uiItemsInDatabase)) {
         if (g_item_records[item_index].equip_class == g_mipe_category &&
             g_item_records[item_index].editor_excluded_0cb == 0) {
             if (visible == selection) {
@@ -237,7 +242,7 @@ void ToggleMipePanel(void)
         }
         ++item_index;
     }
-    if (item_index == gXStatus.uiItemsInDatabase) {
+    if (item_index == static_cast<int>(gXStatus.uiItemsInDatabase)) {
         item_index = 0;
     }
     g_mipe_item_index = static_cast<short>(item_index);

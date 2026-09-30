@@ -623,11 +623,18 @@ unsigned char PreprocessLevel(int handle, char* stem)
                                                      level->nProps, 1);
                     build_tree->spatial_00.root_90->RearrangeNodePolys(
                         0, build_tree->spatial_00.depth_44);
-                    for (i = 0; i < static_cast<int>(geometry.vertex_count_00); ++i) {
-                        vertices[i].visited_0a = 0;
+                    /* Both of these walk their count unsigned - the retail
+                       guards with jbe at 0x00493D24 and 0x00493D45 and closes
+                       each with jc at 0x00493D3B and 0x00493D5C - so the index
+                       is unsigned and the static_cast<int> that was here made
+                       the guard a jle. A scoped index, because i is int and the
+                       surrounding loops compare it signed. */
+                    unsigned int index;
+                    for (index = 0; index < geometry.vertex_count_00; ++index) {
+                        vertices[index].visited_0a = 0;
                     }
-                    for (i = 0; i < static_cast<int>(geometry.polygon_count_08); ++i) {
-                        geometry.polygons_0c[i].visited_31 = false;
+                    for (index = 0; index < geometry.polygon_count_08; ++index) {
+                        geometry.polygons_0c[index].visited_31 = false;
                     }
                     ReportBuildStatus(6, "\nCompiling OctPreTree --------------------------\n");
                     tree = build_tree->BuildOctPreTree();

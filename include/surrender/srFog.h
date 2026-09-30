@@ -15,18 +15,16 @@ public:
     SR_DLL_IMPORT srFog(srNode* parent = 0);
     SR_DLL_IMPORT srFog(const srFog& other);
     SR_DLL_IMPORT srFog& operator=(const srFog& other);
-#if defined(SURRENDER_BUILD)
-    static const char* sGetClassName();
-#else
     /* Header-visible like srLight's: the client getClassName emission
-       (0x00484710) returns the consumer literal directly, and the consumer
-       import table has no entry. The provider still exports its own copy from
-       fog.cpp. */
+       (0x00484710) returns the consumer literal directly, the consumer import
+       table has no entry, and provider TUs inline the same literal inside the
+       srClassSupport registrations. The provider still exports an out-of-line
+       copy. */
+    // FUNCTION: SURRENDER 0x1004C1A0
     static const char* sGetClassName()
     {
         return "srFog";
     }
-#endif
     SR_DLL_IMPORT void setDensity(float density);
     SR_DLL_IMPORT float getDensity() const;
     SR_DLL_IMPORT void setRange(double start, double end);

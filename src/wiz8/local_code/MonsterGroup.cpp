@@ -1129,14 +1129,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     if (announce_spawn != 0 && g_dev_mode != 0) {
         int registry_after = GetUsedPageFileBytes();
         const wchar_t* verb = count == 1 ? L"appears" : L"appear";
-        const wchar_t* name = record->name_00;
-
-        if (group->alternate_name == 0) {
-            name += (group->member_count != 1) + 2;
-        } else if (group->member_count != 1) {
-            name += 1;
-        }
-        ShowNoticef(9, L"%d %s %s nearby! (%dK)", count, name, verb,
+        ShowNoticef(9, L"%d %s %s nearby! (%dK)", count, GetMonsterGroupName(group), verb,
                     (registry_after - registry_before) >> 10);
     }
 

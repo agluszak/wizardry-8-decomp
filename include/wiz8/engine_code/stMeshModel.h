@@ -78,9 +78,9 @@ public:
     int vertex_light_table_3b0;
     /* m_pVertLights: per-vertex static lighting, zero-filled on demand; table
        -1 selects vertex_light_table_3b0. */
-    srHeapArray<srVector3T<float> > vertex_lights_3b4[2];
+    srHeapBuffer<srVector3T<float> > vertex_lights_3b4[2];
     /* Per-vertex sunlight intensity, filled with 1.0f on demand. */
-    srHeapArray<float> vertex_sunlight_3c4;
+    srHeapBuffer<float> vertex_sunlight_3c4;
     unsigned char duplicate_on_reuse_3cc;
     /* Set once both vertex lights and sunlight exist. */
     bool vertex_lighting_ready_3cd;
@@ -123,7 +123,7 @@ extern W8GrowableVector<stMeshModel*> g_mesh_models; /* 0x00659CB8 */
 extern int g_decompressed_mesh_bytes; /* 0x0065A0E8 */
 /* Scratch active-polygon indices filled by software backface cull in
    RenderTriMeshWithEquations when an equation table is supplied. */
-extern srHeapArray<unsigned long> g_software_cull_active_polygons; /* 0x00659CE0 */
+extern srHeapBuffer<unsigned long> g_software_cull_active_polygons; /* 0x00659CE0 */
 
 /* True when all three components of the vector are zero; the vertex-lighting
    code uses it to decide between a plain copy and a per-vertex offset. */

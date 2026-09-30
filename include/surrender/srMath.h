@@ -28,6 +28,16 @@ public:
     srVector2T<T>() {}
     srVector2T<T>(T source_0, T source_1) : x(source_0), y(source_1) {}
 
+    void* operator new[](unsigned int size)
+    {
+        return srHeap.allocate(size);
+    }
+
+    void operator delete[](void* allocation)
+    {
+        srHeap.free(allocation);
+    }
+
     srVector2T<T>* Set(T source_0, T source_1)
     {
         x = source_0;
@@ -109,9 +119,14 @@ public:
 
     void SetZero();
     srVector3T<T>* Set(double source_0, double source_1, double source_2);
-    srVector3T<T>& operator=(const srVector3T<double>& source)
+    /* Cross-precision assign as a member template: it never suppresses the
+       implicit same-type copy, so srVector3T<double> assigns stay the trivial
+       rep movsd retail emits. */
+    template <class U> srVector3T<T>& operator=(const srVector3T<U>& source)
     {
-        SetFromDouble(&source);
+        x = (T)source.x;
+        y = (T)source.y;
+        z = (T)source.z;
         return *this;
     }
     srVector3T<T>& operator=(T value)
@@ -439,6 +454,16 @@ public:
        scalar construction inlines the empty body away. */
     srVector4T<T>();
 
+    void* operator new[](unsigned int size)
+    {
+        return srHeap.allocate(size);
+    }
+
+    void operator delete[](void* allocation)
+    {
+        srHeap.free(allocation);
+    }
+
     srVector4T<T>* Set(T source_0, T source_1, T source_2, T source_3);
     T Length() const;
     /* srMeshModel::verify asserts t.pEq[i].isValid()/t.DCG[p][i].isValid()/
@@ -580,15 +605,9 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::MultiplyBy(const srMatrix3T<T>&
 
 template <class T> void srMatrix3T<T>::SetIdentity()
 {
-    vectors[0].x = (T)1;
-    vectors[0].y = (T)0;
-    vectors[0].z = (T)0;
-    vectors[1].x = (T)0;
-    vectors[1].y = (T)1;
-    vectors[1].z = (T)0;
-    vectors[2].x = (T)0;
-    vectors[2].y = (T)0;
-    vectors[2].z = (T)1;
+    vectors[0] = srVector3T<T>((T)1, (T)0, (T)0);
+    vectors[1] = srVector3T<T>((T)0, (T)1, (T)0);
+    vectors[2] = srVector3T<T>((T)0, (T)0, (T)1);
 }
 
 /* Row-wise equality: the keyframe slerps compare the current and next
@@ -604,21 +623,11 @@ template <class T> bool srMatrix3T<T>::operator==(const srMatrix3T<T>& other) co
 // srMatrix3T<float>::RotateAboutY
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double sine, double cosine)
 {
-    srVector3T<T> basis[3];
     srMatrix3T<T> rotation;
 
-    basis[0].x = (T)cosine;
-    basis[0].y = (T)0;
-    basis[0].z = (T)sine;
-    basis[1].x = (T)0;
-    basis[1].y = (T)1;
-    basis[1].z = (T)0;
-    basis[2].x = (T)-sine;
-    basis[2].y = (T)0;
-    basis[2].z = (T)cosine;
-    rotation.vectors[0] = basis[0];
-    rotation.vectors[1] = basis[1];
-    rotation.vectors[2] = basis[2];
+    rotation.SetRows(srVector3T<T>((T)cosine, (T)0, (T)sine),
+                     srVector3T<T>((T)0, (T)1, (T)0),
+                     srVector3T<T>((T)-sine, (T)0, (T)cosine));
     MultiplyBy(rotation);
     return this;
 }
@@ -627,42 +636,22 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double sine, doubl
 // srMatrix3T<float>::RotateAboutX
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double sine, double cosine)
 {
-    srVector3T<T> basis[3];
     srMatrix3T<T> rotation;
 
-    basis[0].x = (T)1;
-    basis[0].y = (T)0;
-    basis[0].z = (T)0;
-    basis[1].x = (T)0;
-    basis[1].y = (T)cosine;
-    basis[1].z = (T)-sine;
-    basis[2].x = (T)0;
-    basis[2].y = (T)sine;
-    basis[2].z = (T)cosine;
-    rotation.vectors[0] = basis[0];
-    rotation.vectors[1] = basis[1];
-    rotation.vectors[2] = basis[2];
+    rotation.SetRows(srVector3T<T>((T)1, (T)0, (T)0),
+                     srVector3T<T>((T)0, (T)cosine, (T)-sine),
+                     srVector3T<T>((T)0, (T)sine, (T)cosine));
     MultiplyBy(rotation);
     return this;
 }
 
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double sine, double cosine)
 {
-    srVector3T<T> basis[3];
     srMatrix3T<T> rotation;
 
-    basis[0].x = (T)cosine;
-    basis[0].y = (T)-sine;
-    basis[0].z = (T)0;
-    basis[1].x = (T)sine;
-    basis[1].y = (T)cosine;
-    basis[1].z = (T)0;
-    basis[2].x = (T)0;
-    basis[2].y = (T)0;
-    basis[2].z = (T)1;
-    rotation.vectors[0] = basis[0];
-    rotation.vectors[1] = basis[1];
-    rotation.vectors[2] = basis[2];
+    rotation.SetRows(srVector3T<T>((T)cosine, (T)-sine, (T)0),
+                     srVector3T<T>((T)sine, (T)cosine, (T)0),
+                     srVector3T<T>((T)0, (T)0, (T)1));
     MultiplyBy(rotation);
     return this;
 }
@@ -670,7 +659,6 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double sine, doubl
 // srMatrix3T<float>::RotateAboutY
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double angle)
 {
-    srVector3T<T> basis[3];
     srMatrix3T<T> rotation;
     T cosine;
     T sine;
@@ -678,18 +666,9 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double angle)
     if (angle != 0.0) {
         cosine = (T)cos(angle);
         sine = (T)sin(angle);
-        basis[0].x = cosine;
-        basis[0].y = (T)0;
-        basis[0].z = sine;
-        basis[1].x = (T)0;
-        basis[1].y = (T)1;
-        basis[1].z = (T)0;
-        basis[2].x = -sine;
-        basis[2].y = (T)0;
-        basis[2].z = cosine;
-        rotation.vectors[0] = basis[0];
-        rotation.vectors[1] = basis[1];
-        rotation.vectors[2] = basis[2];
+        rotation.SetRows(srVector3T<T>(cosine, (T)0, sine),
+                         srVector3T<T>((T)0, (T)1, (T)0),
+                         srVector3T<T>(-sine, (T)0, cosine));
         MultiplyBy(rotation);
     }
     return this;
@@ -698,7 +677,6 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double angle)
 // srMatrix3T<float>::RotateAboutX
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
 {
-    srVector3T<T> basis[3];
     srMatrix3T<T> rotation;
     T cosine;
     T sine;
@@ -706,18 +684,9 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
     if (angle != 0.0) {
         cosine = (T)cos(angle);
         sine = (T)sin(angle);
-        basis[0].x = (T)1;
-        basis[0].y = (T)0;
-        basis[0].z = (T)0;
-        basis[1].x = (T)0;
-        basis[1].y = cosine;
-        basis[1].z = -sine;
-        basis[2].x = (T)0;
-        basis[2].y = sine;
-        basis[2].z = cosine;
-        rotation.vectors[0] = basis[0];
-        rotation.vectors[1] = basis[1];
-        rotation.vectors[2] = basis[2];
+        rotation.SetRows(srVector3T<T>((T)1, (T)0, (T)0),
+                         srVector3T<T>((T)0, cosine, -sine),
+                         srVector3T<T>((T)0, sine, cosine));
         MultiplyBy(rotation);
     }
     return this;
@@ -727,7 +696,6 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
 // srMatrix3T<float>::RotateAboutZ
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double angle)
 {
-    srVector3T<T> basis[3];
     srMatrix3T<T> rotation;
     T cosine;
     T sine;
@@ -735,18 +703,9 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double angle)
     if (angle != 0.0) {
         cosine = (T)cos(angle);
         sine = (T)sin(angle);
-        basis[0].x = cosine;
-        basis[0].y = -sine;
-        basis[0].z = (T)0;
-        basis[1].x = sine;
-        basis[1].y = cosine;
-        basis[1].z = (T)0;
-        basis[2].x = (T)0;
-        basis[2].y = (T)0;
-        basis[2].z = (T)1;
-        rotation.vectors[0] = basis[0];
-        rotation.vectors[1] = basis[1];
-        rotation.vectors[2] = basis[2];
+        rotation.SetRows(srVector3T<T>(cosine, -sine, (T)0),
+                         srVector3T<T>(sine, cosine, (T)0),
+                         srVector3T<T>((T)0, (T)0, (T)1));
         MultiplyBy(rotation);
     }
     return this;
@@ -760,7 +719,6 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double angle)
 template <class T>
 srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double angle, const srVector3T<T>& axis)
 {
-    srVector3T<T> basis[3];
     srMatrix3T<T> rotation;
     double sine;
     double cosine;
@@ -770,18 +728,15 @@ srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double angle, const srVector3T<T>
         cosine = cos(angle);
         sine = sin(angle);
         one_minus_cosine = 1.0 - cosine;
-        basis[0].x = (T)(axis.x * axis.x + ((T)1 - axis.x * axis.x) * cosine);
-        basis[0].y = (T)(axis.x * axis.y * one_minus_cosine - axis.z * sine);
-        basis[0].z = (T)(axis.x * axis.z * one_minus_cosine + axis.y * sine);
-        basis[1].x = (T)(axis.y * axis.x * one_minus_cosine + axis.z * sine);
-        basis[1].y = (T)(axis.y * axis.y + ((T)1 - axis.y * axis.y) * cosine);
-        basis[1].z = (T)(axis.y * axis.z * one_minus_cosine - axis.x * sine);
-        basis[2].x = (T)(axis.z * axis.x * one_minus_cosine - axis.y * sine);
-        basis[2].y = (T)(axis.z * axis.y * one_minus_cosine + axis.x * sine);
-        basis[2].z = (T)(axis.z * axis.z + ((T)1 - axis.z * axis.z) * cosine);
-        rotation.vectors[0] = basis[0];
-        rotation.vectors[1] = basis[1];
-        rotation.vectors[2] = basis[2];
+        rotation.vectors[0].x = (T)(axis.x * axis.x + ((T)1 - axis.x * axis.x) * cosine);
+        rotation.vectors[0].y = (T)(axis.x * axis.y * one_minus_cosine - axis.z * sine);
+        rotation.vectors[0].z = (T)(axis.x * axis.z * one_minus_cosine + axis.y * sine);
+        rotation.vectors[1].x = (T)(axis.y * axis.x * one_minus_cosine + axis.z * sine);
+        rotation.vectors[1].y = (T)(axis.y * axis.y + ((T)1 - axis.y * axis.y) * cosine);
+        rotation.vectors[1].z = (T)(axis.y * axis.z * one_minus_cosine - axis.x * sine);
+        rotation.vectors[2].x = (T)(axis.z * axis.x * one_minus_cosine - axis.y * sine);
+        rotation.vectors[2].y = (T)(axis.z * axis.y * one_minus_cosine + axis.x * sine);
+        rotation.vectors[2].z = (T)(axis.z * axis.z + ((T)1 - axis.z * axis.z) * cosine);
         MultiplyBy(rotation);
     }
     return this;
@@ -793,22 +748,18 @@ template <class T>
 srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double sine, double cosine,
                                                const srVector3T<T>& axis)
 {
-    srVector3T<T> basis[3];
     srMatrix3T<T> rotation;
     T one_minus_cosine = (T)1 - (T)cosine;
 
-    basis[0].x = axis.x * axis.x + ((T)1 - axis.x * axis.x) * (T)cosine;
-    basis[0].y = axis.x * axis.y * one_minus_cosine - axis.z * (T)sine;
-    basis[0].z = axis.x * axis.z * one_minus_cosine + axis.y * (T)sine;
-    basis[1].x = axis.y * axis.x * one_minus_cosine + axis.z * (T)sine;
-    basis[1].y = axis.y * axis.y + ((T)1 - axis.y * axis.y) * (T)cosine;
-    basis[1].z = axis.y * axis.z * one_minus_cosine - axis.x * (T)sine;
-    basis[2].x = axis.z * axis.x * one_minus_cosine - axis.y * (T)sine;
-    basis[2].y = axis.z * axis.y * one_minus_cosine + axis.x * (T)sine;
-    basis[2].z = axis.z * axis.z + ((T)1 - axis.z * axis.z) * (T)cosine;
-    rotation.vectors[0] = basis[0];
-    rotation.vectors[1] = basis[1];
-    rotation.vectors[2] = basis[2];
+    rotation.vectors[0].x = axis.x * axis.x + ((T)1 - axis.x * axis.x) * (T)cosine;
+    rotation.vectors[0].y = axis.x * axis.y * one_minus_cosine - axis.z * (T)sine;
+    rotation.vectors[0].z = axis.x * axis.z * one_minus_cosine + axis.y * (T)sine;
+    rotation.vectors[1].x = axis.y * axis.x * one_minus_cosine + axis.z * (T)sine;
+    rotation.vectors[1].y = axis.y * axis.y + ((T)1 - axis.y * axis.y) * (T)cosine;
+    rotation.vectors[1].z = axis.y * axis.z * one_minus_cosine - axis.x * (T)sine;
+    rotation.vectors[2].x = axis.z * axis.x * one_minus_cosine - axis.y * (T)sine;
+    rotation.vectors[2].y = axis.z * axis.y * one_minus_cosine + axis.x * (T)sine;
+    rotation.vectors[2].z = axis.z * axis.z + ((T)1 - axis.z * axis.z) * (T)cosine;
     MultiplyBy(rotation);
     return this;
 }
@@ -885,26 +836,28 @@ public:
     srVector4T<T> vectors[4];
 };
 
-/* Row-major 4×4 multiply-assign: result.row_i.j = row_i · other.column_j.
+/* Row-major 4×4 multiply-assign in place: each row's old components feed all
+   four new components, so the row reads hoist into temps before the stores.
    Retail emits the double instantiation out-of-line for the srNode
    world-space setters. */
 // TEMPLATE: SURRENDER 0x10055A60
 // srMatrix4T<double>::MultiplyBy
 template <class T> srMatrix4T<T>* srMatrix4T<T>::MultiplyBy(const srMatrix4T<T>& other)
 {
-    srMatrix4T<T> result;
     for (int index = 0; index != 4; ++index) {
-        const srVector4T<T>& row = vectors[index];
-        result.vectors[index].Set(row.x * other.vectors[0].x + row.y * other.vectors[1].x +
-                                      row.z * other.vectors[2].x + row.w * other.vectors[3].x,
-                                  row.x * other.vectors[0].y + row.y * other.vectors[1].y +
-                                      row.z * other.vectors[2].y + row.w * other.vectors[3].y,
-                                  row.x * other.vectors[0].z + row.y * other.vectors[1].z +
-                                      row.z * other.vectors[2].z + row.w * other.vectors[3].z,
-                                  row.x * other.vectors[0].w + row.y * other.vectors[1].w +
-                                      row.z * other.vectors[2].w + row.w * other.vectors[3].w);
+        T x = vectors[index].x;
+        T y = vectors[index].y;
+        T z = vectors[index].z;
+        T w = vectors[index].w;
+        vectors[index].x = x * other.vectors[0].x + y * other.vectors[1].x +
+                           z * other.vectors[2].x + w * other.vectors[3].x;
+        vectors[index].y = x * other.vectors[0].y + y * other.vectors[1].y +
+                           z * other.vectors[2].y + w * other.vectors[3].y;
+        vectors[index].z = x * other.vectors[0].z + y * other.vectors[1].z +
+                           z * other.vectors[2].z + w * other.vectors[3].z;
+        vectors[index].w = x * other.vectors[0].w + y * other.vectors[1].w +
+                           z * other.vectors[2].w + w * other.vectors[3].w;
     }
-    *this = result;
     return this;
 }
 
@@ -1245,6 +1198,22 @@ public:
 
 class srVector3i {
 public:
+    /* User-provided trivial constructor like srVector2T's: retail's
+       srArray<srVector3i>::setCapacity (0x100275B0) emits the new[]
+       result select and element-count bound after srHeap::allocate, which
+       only appears when the element type is not POD. */
+    srVector3i() {}
+
+    void* operator new[](unsigned int size)
+    {
+        return srHeap.allocate(size);
+    }
+
+    void operator delete[](void* allocation)
+    {
+        srHeap.free(allocation);
+    }
+
     int x;
     int y;
     int z;

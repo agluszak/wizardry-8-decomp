@@ -331,11 +331,6 @@ void AutoSmoother::smooth()
    0x10076C90 (pi + pi / pi * 2.0 in retail emission). */
 static const double pi = 3.141592653589793;
 
-/* This unit's definition of srShader's copy (see srShader.h): inline here so
-   the Triangle/Polygon implicit copies expand it per shader element. */
-// FUNCTION: SURRENDER 0x1003B930
-inline srShader::srShader(const srShader& other) : value(other.value) {}
-
 // SYNTHETIC: SURRENDER 0x100380C0
 // srModeler::`vector deleting destructor'
 

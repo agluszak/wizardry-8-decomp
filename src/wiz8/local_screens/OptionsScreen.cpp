@@ -268,7 +268,7 @@ void W8OptionsSaveLoadPanel::Populate()
 
     if (m_panel == 11) {
         m_delete_button =
-            new W8TextControl(this, 0xffffffff, 0xd, 0x1b0, 0, 0, 0xf8, 0, 0, 2, 1, -1, -1);
+            new W8TextControl(this, 0xffffffff, 0xd, 0x1b0, 0, 0, 0xf8, 0, 6, 8, 7, -1, -1);
         m_delete_button->m_listener = this;
     } else {
         m_delete_button = 0;
@@ -724,8 +724,7 @@ W8OptionsButton::~W8OptionsButton() {}
 // FUNCTION: WIZ8 0x005a7c70
 void W8OptionsButton::Redraw(unsigned char full_redraw)
 {
-    if (m_active && (full_redraw != 0 || m_dirty) &&
-        m_textBuffer.HasBuffer()) {
+    if (m_active && (full_redraw != 0 || m_dirty) && m_textBuffer.HasBuffer()) {
         if (m_enabled) {
             int font_state;
             if ((m_stateFlags & g_W8TextControlStatePressed) != 0) {
@@ -1839,8 +1838,8 @@ void W8OptionsPanel::AddChoices(int label, int count, const int* choices, int* v
 // FUNCTION: WIZ8 0x005a7590
 void W8OptionsMenuButton::Redraw(unsigned char full_redraw)
 {
-    if ((full_redraw != 0 || m_dirty) &&
-        (m_stateFlags & g_W8TextControlStateSecondary) != 0 && m_item_id_0bc != -1) {
+    if ((full_redraw != 0 || m_dirty) && (m_stateFlags & g_W8TextControlStateSecondary) != 0 &&
+        m_item_id_0bc != -1) {
         DrawCatalogImageAndInvalidate(-14, 0xf0, 0, m_item_id_0bc, 12, 15, 2, 0);
     }
     W8TextControl::Redraw(full_redraw);

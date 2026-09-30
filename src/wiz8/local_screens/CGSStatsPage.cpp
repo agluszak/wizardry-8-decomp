@@ -469,7 +469,7 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
             }
         }
     } else {
-        for (unsigned int index = 0; index < m_count_008; ++index) {
+        for (int index = 0; index < m_count_008; ++index) {
             if (control == m_subpanel_entries_02c[index]) {
                 control->OnMouseLeave(0);
                 SetValue(index);
@@ -689,14 +689,14 @@ void W8CharacterStatsPage::HandleInput(InputAtom* input)
     }
     W8CharacterStatsRow* row = m_profession_row_07c;
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
-        unsigned int index = 0;
+        int index = 0;
         while (index < row->m_count_008) {
-            if (row->m_subpanel_entries_02c[index]->m_active) {
+            if (row->m_subpanel_entries_02c[index]->m_alternateTextEnabled) {
                 goto next_profession;
             }
             ++index;
         }
-        if (!row->m_value_control_024->m_active) {
+        if (!row->m_value_control_024->m_alternateTextEnabled) {
             row->m_subpanel_028->SetEnabled(0);
             row->m_subpanel_028->EnableRegionSet(0);
             row->m_value_control_024->DisableSecondaryState(1);
@@ -708,14 +708,14 @@ void W8CharacterStatsPage::HandleInput(InputAtom* input)
 next_profession:
     row = m_race_row_080;
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
-        unsigned int index = 0;
+        int index = 0;
         while (index < row->m_count_008) {
-            if (row->m_subpanel_entries_02c[index]->m_active) {
+            if (row->m_subpanel_entries_02c[index]->m_alternateTextEnabled) {
                 goto next_race;
             }
             ++index;
         }
-        if (!row->m_value_control_024->m_active) {
+        if (!row->m_value_control_024->m_alternateTextEnabled) {
             row->m_subpanel_028->SetEnabled(0);
             row->m_subpanel_028->EnableRegionSet(0);
             row->m_value_control_024->DisableSecondaryState(1);
@@ -727,14 +727,14 @@ next_profession:
 next_race:
     row = m_gender_row_084;
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
-        unsigned int index = 0;
+        int index = 0;
         while (index < row->m_count_008) {
-            if (row->m_subpanel_entries_02c[index]->m_active) {
+            if (row->m_subpanel_entries_02c[index]->m_alternateTextEnabled) {
                 return;
             }
             ++index;
         }
-        if (!row->m_value_control_024->m_active) {
+        if (!row->m_value_control_024->m_alternateTextEnabled) {
             row->m_subpanel_028->SetEnabled(0);
             row->m_subpanel_028->EnableRegionSet(0);
             row->m_value_control_024->DisableSecondaryState(1);

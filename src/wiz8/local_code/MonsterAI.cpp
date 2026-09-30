@@ -1380,7 +1380,9 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
     int stat_max = 0;
     unsigned int* condition_turns = 0;
     W8Enchantment* enchantments = 0;
-    unsigned int index;
+    /* 0x00532EE3 and 0x00532F38 test the marker count signed and 0x00532F89
+       compares the index signed. */
+    int index;
     unsigned int duration;
 
     if (GetSpellTargetType(spell_id, 0) == W8_TARGET_TYPE_POINT) {
@@ -1409,7 +1411,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
                 monster_info, GetMonsterDataForInfo(monster_info), spell_id);
             PopulateSpellTargetMarkers(spell_id, power_level, &source, combat_slot,
                                        &monster_markers, &party_markers, 0);
-            for (index = 0; index < (unsigned int)party_markers.GetCount(); ++index) {
+            for (index = 0; index < party_markers.GetCount(); ++index) {
                 ++total;
                 ResetCombatSlot(&probe);
                 probe.iType = W8_TARGET_KIND_CHARACTER;
@@ -1418,7 +1420,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
                     ++valid;
                 }
             }
-            for (index = 0; index < (unsigned int)monster_markers.GetCount(); ++index) {
+            for (index = 0; index < monster_markers.GetCount(); ++index) {
                 ++total;
                 ResetCombatSlot(&probe);
                 probe.iType = W8_TARGET_KIND_MONSTER;
@@ -1797,7 +1799,8 @@ unsigned char SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell
     W8GrowableVector<int> monster_markers;
     W8GrowableVector<int> party_markers;
     W8TargetSource source;
-    unsigned int index;
+    /* 0x005331B5 tests the marker count signed. */
+    int index;
     W8MonsterInfo* target;
     unsigned int power_level;
 
@@ -1809,7 +1812,7 @@ unsigned char SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell
         ChooseMonsterSpellPowerLevel(monster_info, GetMonsterDataForInfo(monster_info), spell_id);
     PopulateSpellTargetMarkers(spell_id, power_level, &source, combat_slot, &monster_markers,
                                &party_markers, 0);
-    for (index = 0; index < (unsigned int)monster_markers.GetCount(); ++index) {
+    for (index = 0; index < monster_markers.GetCount(); ++index) {
         target = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x9de, MONSTER_AI_CPP, *monster_markers.GetAt(index), 1));
         if (target->ubDisposition == DISP_NEUTRAL) {

@@ -64,7 +64,7 @@ public:
     long mesh_index_17c;
     unsigned int frame_index_180;
     int damage_stage_184;
-    srHeapArray<int> damage_stage_tables_188;
+    srHeapBuffer<int> damage_stage_tables_188;
     int highlight_pass_mode_190;
     srVector3T<float> light_scale_194;
     bool diffuse_scale_enabled_1a0;

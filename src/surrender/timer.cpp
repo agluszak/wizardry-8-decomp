@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <mmsystem.h>
+#include <ostream>
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

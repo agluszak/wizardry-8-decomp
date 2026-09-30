@@ -701,27 +701,28 @@ void srVertexPipe::applyDiffuseLight(const srVector4T<float>& light)
 /* The indexed diffuse-source helper setupDiffuse reaches through the record's
    colors/kind pair: kind 0 selects ARGB, 1 vector3 and 2 vector4 copyIndexed. */
 // FUNCTION: SURRENDER 0x1002BF20
-static void copyDiffuseColors(const srVertexPipe::Record& record, srVector4T<float>* destination,
-                              const unsigned long* indices, unsigned long count)
+void srVertexPipe::Record::ColorSource::copyDiffuseColors(srVector4T<float>* destination,
+                                                        const unsigned long* indices,
+                                                        unsigned long count) const
 {
-    if (record.colors_0c == 0) {
+    if (colors_00 == 0) {
         if (count * 4 != 0) {
             srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(destination), 0, count * 4);
         }
         return;
     }
-    if (record.color_kind_10 == 0) {
-        srVectorProcessor::copyIndexed(destination, static_cast<const srARGB*>(record.colors_0c),
+    if (kind_04 == 0) {
+        srVectorProcessor::copyIndexed(destination, static_cast<const srARGB*>(colors_00),
                                        indices, count);
         return;
     }
-    if (record.color_kind_10 == 1) {
-        srVectorProcessor::copyIndexed(destination, static_cast<const srVector3*>(record.colors_0c),
+    if (kind_04 == 1) {
+        srVectorProcessor::copyIndexed(destination, static_cast<const srVector3*>(colors_00),
                                        indices, count);
         return;
     }
-    if (record.color_kind_10 == 2) {
-        srVectorProcessor::copyIndexed(destination, static_cast<const srVector4*>(record.colors_0c),
+    if (kind_04 == 2) {
+        srVectorProcessor::copyIndexed(destination, static_cast<const srVector4*>(colors_00),
                                        indices, count);
     }
 }
@@ -746,8 +747,8 @@ void srVertexPipe::setupDiffuse()
                 srVectorProcessor::copy(diffuse, color, vertex_count_88);
             }
         } else {
-            copyDiffuseColors(*current_record_74, diffuse, avt_70 + sub_batch_offset_84,
-                              vertex_count_88);
+            current_record_74->color_source_0c.copyDiffuseColors(
+                diffuse, avt_70 + sub_batch_offset_84, vertex_count_88);
             if ((((color.x != 0.0f) || (color.y != 0.0f)) ||
                  ((color.z != 0.0f) || (color.w != 0.0f))) &&
                 (vertex_count_88 != 0)) {
@@ -831,18 +832,6 @@ void srVertexPipe::setupDepthCue()
 unsigned long srVertexPipe::getExclusionMask() const
 {
     return input_6c->exclusion_mask_34;
-}
-
-// FUNCTION: SURRENDER 0x1002C310
-void srVertexPipe::disableChannel(srVertexProcessor::e_channel channel)
-{
-    channel_mask_0c &= ~(1u << channel);
-}
-
-// FUNCTION: SURRENDER 0x1002C330
-void srVertexPipe::enableChannel(srVertexProcessor::e_channel channel)
-{
-    channel_mask_0c |= 1u << channel;
 }
 
 // FUNCTION: SURRENDER 0x1002C350
@@ -1060,4 +1049,4 @@ void* srVertexPipe::getUserArray(unsigned long index)
 }
 
 // TEMPLATE: SURRENDER 0x1002C860
-// srHeapArray<T>::release emission
+// srHeapBuffer<T>::release emission

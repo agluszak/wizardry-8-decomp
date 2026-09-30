@@ -492,6 +492,10 @@ jobs:
             --head-datacmp "$RUNNER_TEMP/wiz8-head-datacmp.json"
             --base-datacmp "$RUNNER_TEMP/wiz8-base-datacmp.json"
           )
+          # Group regressions by the shared headers the PR changed.
+          if merge_base="$(git merge-base HEAD "${{ github.event.pull_request.base.sha }}" 2>/dev/null)"; then
+            args+=(--since "$merge_base")
+          fi
           uv run wiz8 report pr-comparison "${args[@]}" > "$RUNNER_TEMP/wiz8-pr-status.json"
           printf 'status=%s\n' "$(jq -c . "$RUNNER_TEMP/wiz8-pr-status.json")" >> "$GITHUB_OUTPUT"
       - name: Remove plaintext licensed WIZ8 inputs
@@ -776,6 +780,10 @@ jobs:
             --head-datacmp "$RUNNER_TEMP/surrender-head-datacmp.json"
             --base-datacmp "$RUNNER_TEMP/surrender-base-datacmp.json"
           )
+          # Group regressions by the shared headers the PR changed.
+          if merge_base="$(git merge-base HEAD "${{ github.event.pull_request.base.sha }}" 2>/dev/null)"; then
+            args+=(--since "$merge_base")
+          fi
           uv run wiz8 report pr-comparison "${args[@]}" > "$RUNNER_TEMP/surrender-pr-status.json"
           printf 'status=%s\n' "$(jq -c . "$RUNNER_TEMP/surrender-pr-status.json")" >> "$GITHUB_OUTPUT"
       - name: Remove plaintext licensed SURRENDER inputs

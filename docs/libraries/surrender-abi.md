@@ -389,9 +389,14 @@ is a folded emission rather than evidence for a separate `W8OwnedPtr` class or
 one particular element type. The template marker records the retail identity
 without inventing a separate authored class for that folded helper.
 
-`srHeapArray` is a different family. Its `0x004701d0` teardown calls
-`srHeap.free`, and its preserving and scratch growth paths have different
-allocation and copy rules. It cannot share `srArray`'s scalar-delete owner.
+`srArray` is also the heap-backed vector-stream array: its storage goes
+through `new T[]`/`delete[]`, and the SurRender vector value classes declare
+`operator new[]`/`delete[]` on `srHeap`. `0x004701d0` (unconditional
+`srHeap.free`) is `srArray<srVector3T<float> >::release`, and the vector
+emissions differ from the scalar ones only by the heap calls and the `new[]`
+result select. The raw heap family is `srHeapBuffer`: `srHeap.allocate` on
+bytes, no element construction, and a pointer-checked release (`0x004741b0`),
+with scratch (`ensure`) and preserving (`setCapacity`) growth.
 
 The Wiz8 and SurRender hash headers have the same four-word table, chained
 entries/free list, initial four buckets, doubling growth, key mixing, lookup,

@@ -36,9 +36,9 @@ W8GrowableVector<stMeshModel*> g_mesh_models;
 int g_decompressed_mesh_bytes;
 
 /* Active-polygon scratch for the optional software backface pass in
-   RenderTriMeshWithEquations. Layout matches srHeapArray<ulong>. */
+   RenderTriMeshWithEquations. Layout matches srHeapBuffer<ulong>. */
 // GLOBAL: WIZ8 0x00659ce0
-srHeapArray<unsigned long> g_software_cull_active_polygons;
+srHeapBuffer<unsigned long> g_software_cull_active_polygons;
 
 /* Byte budget for the decompressed per-frame caches; AllocateFrameBuffers
    reclaims least-recently-used frames past it. */
@@ -494,7 +494,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                 if (needed == 0) {
                     g_software_cull_active_polygons.release();
                 } else {
-                    unsigned long* replacement = srHeapArray<unsigned long>::allocate(needed);
+                    unsigned long* replacement = srHeapBuffer<unsigned long>::allocate(needed);
                     if (g_software_cull_active_polygons.data != 0 &&
                         g_software_cull_active_polygons.capacity != 0) {
                         unsigned long copy_count = g_software_cull_active_polygons.capacity;
@@ -1558,7 +1558,7 @@ srVector3T<float>* stMeshModel::GetVertexLights(char initialize, int table)
     if (table == -1) {
         table = vertex_light_table_3b0;
     }
-    srHeapArray<srVector3T<float> >& lights = vertex_lights_3b4[table];
+    srHeapBuffer<srVector3T<float> >& lights = vertex_lights_3b4[table];
     if (lights.data == 0 && initialize) {
         lights.setCapacity(vertex_location_count_22c, 0);
         srVector3T<float> zero(0.0f, 0.0f, 0.0f);
@@ -1612,29 +1612,29 @@ void stMeshModel::FinalizeVertexFrame(int frame)
 // srArray<srTriMeshPipeline::Pass>::setCapacity
 
 // TEMPLATE: WIZ8 0x00475240
-// srHeapArray<srVertexProcessor*>::ensure (folded four-byte-element instantiations)
+// srHeapBuffer<srVertexProcessor*>::ensure (folded four-byte-element instantiations)
 
 // TEMPLATE: WIZ8 0x004741b0
-// srHeapArray<T>::release (null-checked; four-byte-element instantiations)
+// srHeapBuffer<T>::release (null-checked; four-byte-element instantiations)
 
 /* Further primary-template emissions in this TU: the preserving setCapacity
    overloads, the unconditional release for the twelve-byte-element vector
    array, member vector dtors/deleting destructors, and the copy machinery the
    srClassSupport clone reaches. */
 // TEMPLATE: WIZ8 0x004700D0
-// srHeapArray<srVector3T<float> >::setCapacity (element-constructing emission)
+// srArray<srVector3T<float> >::setCapacity
 
 // TEMPLATE: WIZ8 0x004701D0
-// srHeapArray<srVector3T<float> >::release (unconditional-free emission)
+// srArray<srVector3T<float> >::release
 
 // TEMPLATE: WIZ8 0x004744A0
-// srHeapArray<srVector3T<float> >::setCapacity (preserving two-argument emission)
+// srHeapBuffer<srVector3T<float> >::setCapacity (preserving two-argument emission)
 
 // TEMPLATE: WIZ8 0x004747D0
-// srHeapArray<srVector3T<float> >::allocate
+// srHeapBuffer<srVector3T<float> >::allocate
 
 // TEMPLATE: WIZ8 0x00474650
-// srHeapArray<float>::setCapacity (preserving two-argument emission)
+// srHeapBuffer<float>::setCapacity (preserving two-argument emission)
 
 // TEMPLATE: WIZ8 0x00474790
 // srVector3T<float> elementwise copy (clone member-copy emission)

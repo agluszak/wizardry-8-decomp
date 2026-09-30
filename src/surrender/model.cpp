@@ -2,6 +2,8 @@
 
 #include "surrender/srCore.h"
 
+#include <ostream>
+
 // FUNCTION: SURRENDER 0x1003C2F0
 srModel::Client::Client()
 {
@@ -128,14 +130,6 @@ srModel::Client* srModel::getFirstClient() const
 {
     return first_client_18;
 }
-
-#if defined(SURRENDER_BUILD)
-// FUNCTION: SURRENDER 0x1003C6F0
-const char* srModel::sGetClassName()
-{
-    return "srModel";
-}
-#endif
 
 // TEMPLATE: SURRENDER 0x1003C630
 // srClassSupport<srModel,srClass,1,8192>::getClassID

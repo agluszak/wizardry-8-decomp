@@ -1658,54 +1658,6 @@ void UpdateMainGameButtons(void)
     g_options_disk_button_69b8e4->Draw();
     UpdateCombatStanceButtons();
     UpdateRoofButtons();
-    if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fSpellCastMode == 0 &&
-        gXStatus.fItemSelectMode == 0 && gXStatus.fLockInteractMode == 0 &&
-        gXStatus.fTrapInteractMode == 0) {
-        W8DialogButton* draw;
-        bool arrow_enabled;
-
-        arrow_enabled = g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS;
-        if (arrow_enabled) {
-            g_layout_arrow_buttons_69b884[0]->SetEnabled(1);
-        } else {
-            g_layout_arrow_buttons_69b884[0]->SetEnabled(0);
-        }
-        g_layout_arrow_buttons_69b884[2]->SetEnabled(arrow_enabled);
-        if (g_level_block->radar_map_visible == 0) {
-            g_layout_arrow_buttons_69b884[3]->SetVisible(1);
-            g_layout_arrow_buttons_69b884[0]->SetVisible(0);
-            draw = g_layout_arrow_buttons_69b884[3];
-        } else {
-            g_layout_arrow_buttons_69b884[0]->SetVisible(1);
-            g_layout_arrow_buttons_69b884[3]->SetVisible(0);
-            draw = g_layout_arrow_buttons_69b884[0];
-        }
-        draw->Draw();
-        if (g_level_block->action_panel_visible == 0) {
-            g_layout_arrow_buttons_69b884[4]->SetVisible(1);
-            g_layout_arrow_buttons_69b884[1]->SetVisible(0);
-            draw = g_layout_arrow_buttons_69b884[4];
-        } else {
-            g_layout_arrow_buttons_69b884[1]->SetVisible(1);
-            g_layout_arrow_buttons_69b884[4]->SetVisible(0);
-            draw = g_layout_arrow_buttons_69b884[1];
-        }
-        draw->Draw();
-        if (g_level_block->formation_board_visible == 0) {
-            g_layout_arrow_buttons_69b884[5]->SetVisible(1);
-            g_layout_arrow_buttons_69b884[2]->SetVisible(0);
-            g_layout_arrow_buttons_69b884[5]->Draw();
-            return;
-        }
-        g_layout_arrow_buttons_69b884[2]->SetVisible(1);
-        g_layout_arrow_buttons_69b884[5]->SetVisible(0);
-        g_layout_arrow_buttons_69b884[2]->Draw();
-        return;
-    }
-    for (button = g_layout_arrow_buttons_69b884; button < &g_layout_arrow_buttons_69b884[6];
-         ++button) {
-        (*button)->SetVisible(0);
-    }
 }
 
 /* While the combat-end submenu is up and the cursor has left its row band,

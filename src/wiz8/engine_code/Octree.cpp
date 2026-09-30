@@ -85,10 +85,10 @@ void W8Octree::UpdatePathVisualization()
         if (cursor.y != g_float_005ebb34 || cursor.y != g_float_005ebb34 ||
             cursor.z != g_float_005ebb34) {
             srVector3T<float> point = cursor;
-            pathing_180->UpdatePathVisualization(&point, &camera_dof_1cc);
+            pathing_180->UpdatePathVisualization(&point, &view_1c0.camera_dof_0c);
             return;
         }
-        pathing_180->UpdatePathVisualization(&camera_location_1c0, &camera_dof_1cc);
+        pathing_180->UpdatePathVisualization(&view_1c0.camera_location_00, &view_1c0.camera_dof_0c);
     }
 }
 
@@ -202,24 +202,24 @@ void W8Octree::UpdateCameraVisibility()
         return;
     }
 
-    far_clip_200 = static_cast<float>(WorldGetFarClip(world));
-    world->camera->getLocation(camera_location_1c0);
-    horizontal_fov_1f0 = static_cast<float>(world->camera->getHorizontalFOV());
-    vertical_fov_1f4 = static_cast<float>(world->camera->getVerticalFOV());
+    view_1c0.far_clip_40 = static_cast<float>(WorldGetFarClip(world));
+    world->camera->getLocation(view_1c0.camera_location_00);
+    view_1c0.horizontal_fov_30 = static_cast<float>(world->camera->getHorizontalFOV());
+    view_1c0.vertical_fov_34 = static_cast<float>(world->camera->getVerticalFOV());
 
     srMatrix3T<float> rotation;
     world->camera->getRotation(rotation);
-    rotation_column_1d8.x = rotation.vectors[0].x;
-    rotation_column_1d8.y = rotation.vectors[1].x;
-    rotation_column_1d8.z = rotation.vectors[2].x;
-    rotation_column_1e4.x = rotation.vectors[0].y;
-    rotation_column_1e4.y = rotation.vectors[1].y;
-    rotation_column_1e4.z = rotation.vectors[2].y;
+    view_1c0.rotation_column_18.x = rotation.vectors[0].x;
+    view_1c0.rotation_column_18.y = rotation.vectors[1].x;
+    view_1c0.rotation_column_18.z = rotation.vectors[2].x;
+    view_1c0.rotation_column_24.x = rotation.vectors[0].y;
+    view_1c0.rotation_column_24.y = rotation.vectors[1].y;
+    view_1c0.rotation_column_24.z = rotation.vectors[2].y;
 
     srVector3T<double> dof = world->camera->getWorldSpaceDOF();
-    camera_dof_1cc = dof;
-    horizontal_fov_cosine_1f8 = static_cast<float>(cos(horizontal_fov_1f0));
-    vertical_fov_cosine_1fc = static_cast<float>(cos(vertical_fov_1f4));
+    view_1c0.camera_dof_0c = dof;
+    view_1c0.horizontal_fov_cosine_38 = static_cast<float>(cos(view_1c0.horizontal_fov_30));
+    view_1c0.vertical_fov_cosine_3c = static_cast<float>(cos(view_1c0.vertical_fov_34));
     m_owned_190->ClearAll();
     m_projected_regions_15c->ClearAll();
     UpdateVisibility();
@@ -302,7 +302,7 @@ void W8Octree::UpdateVisibility()
     }
     m_projected_regions_valid_16a = false;
     m_positional_16b = 0;
-    CollectVisibleRegions(&camera_location_1c0, m_visible_cells_204, 0, 1);
+    CollectVisibleRegions(&view_1c0.camera_location_00, view_1c0.visible_cells_44, 0, 1);
     CollectVisibleCells();
     if (pathing_180 != 0) {
         srVector3T<float> dof;
@@ -311,9 +311,9 @@ void W8Octree::UpdateVisibility()
            twice and x is never examined. */
         if (dof.y != g_float_005ebb34 || dof.y != g_float_005ebb34 || dof.z != g_float_005ebb34) {
             srVector3T<float> probe = dof;
-            pathing_180->UpdatePathVisualization(&probe, &camera_dof_1cc);
+            pathing_180->UpdatePathVisualization(&probe, &view_1c0.camera_dof_0c);
         } else {
-            pathing_180->UpdatePathVisualization(&camera_location_1c0, &camera_dof_1cc);
+            pathing_180->UpdatePathVisualization(&view_1c0.camera_location_00, &view_1c0.camera_dof_0c);
         }
     }
     if (m_projected_regions_valid_16a != 0) {
@@ -420,7 +420,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
     unsigned int limit = spatial_000.region_cells_per_axis_50 - 1;
 
     int first[3];
-    int last[3];
+    unsigned int last[3];
     int axis;
     for (axis = 0; axis < 3; ++axis) {
         first[axis] =
@@ -431,19 +431,23 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
             first[axis] = 0;
         }
         last[axis] =
-            static_cast<int>(((&point->x)[axis] + radius - (&spatial_000.minimum_0c.x)[axis]) /
-                             spatial_000.region_grid_cell_54) +
+            static_cast<unsigned int>(((&point->x)[axis] + radius -
+                                       (&spatial_000.minimum_0c.x)[axis]) /
+                                      spatial_000.region_grid_cell_54) +
             1;
-        if (limit < static_cast<unsigned int>(last[axis])) {
+        if (limit < last[axis]) {
             last[axis] = limit;
         }
     }
 
     m_current_regions_160->ClearAll();
-    int cell[3];
-    for (cell[0] = first[0]; cell[0] <= last[0]; ++cell[0]) {
-        for (cell[1] = first[1]; cell[1] <= last[1]; ++cell[1]) {
-            for (cell[2] = first[2]; cell[2] <= last[2]; ++cell[2]) {
+    /* last and cell are unsigned, and the region loops compare them as such:
+       0x0042FB3C, 0x0042FB51 and 0x0042FB5E are all jbe, not jle. first stays
+       signed because it is the one clamped against zero above. */
+    unsigned int cell[3];
+    for (cell[0] = static_cast<unsigned int>(first[0]); cell[0] <= last[0]; ++cell[0]) {
+        for (cell[1] = static_cast<unsigned int>(first[1]); cell[1] <= last[1]; ++cell[1]) {
+            for (cell[2] = static_cast<unsigned int>(first[2]); cell[2] <= last[2]; ++cell[2]) {
                 unsigned int masked_cell[4];
                 masked_cell[0] = level_mask;
                 masked_cell[1] = cell[0];
@@ -780,7 +784,7 @@ unsigned char W8Octree::CollectVisibleRegions(srVector3T<float>* location, int* 
 // FUNCTION: WIZ8 0x004301c0
 void W8Octree::MarkVisibleRegions()
 {
-    float radius = far_clip_200;
+    float radius = view_1c0.far_clip_40;
     float radius_squared = radius * radius;
 
     for (int index = 1; index < spatial_000.region_count_46; ++index) {
@@ -790,15 +794,15 @@ void W8Octree::MarkVisibleRegions()
             !m_projected_regions_15c->Test(volume->region_bit_0c)) {
             continue;
         }
-        srVector3T<float> delta = camera_location_1c0 - volume->points_1c[0];
+        srVector3T<float> delta = view_1c0.camera_location_00 - volume->points_1c[0];
 
         if (delta.LengthSquared() >= radius_squared) {
             continue;
         }
-        bool visible = PointInsideFrustum(&volume->points_1c[0], m_frustum_planes_21c);
+        bool visible = PointInsideFrustum(&volume->points_1c[0], view_1c0.frustum_planes_5c);
 
         for (int point = 1; !visible && point < 9; ++point) {
-            visible = PointInsideFrustum(&volume->points_1c[point], m_frustum_planes_21c);
+            visible = PointInsideFrustum(&volume->points_1c[point], view_1c0.frustum_planes_5c);
         }
         if (visible != 0 && volume->region_bit_0c != 0) {
             m_current_regions_160->Set(volume->region_bit_0c);
@@ -811,26 +815,26 @@ void W8Octree::MarkVisibleRegions()
 // FUNCTION: WIZ8 0x004302e0
 void W8Octree::BuildFrustumPlanes()
 {
-    float fov = horizontal_fov_1f0 * g_float_005ebc7c;
+    float fov = view_1c0.horizontal_fov_30 * g_float_005ebc7c;
     float extent = spatial_000.max_region_radius_60;
-    float far_clip = far_clip_200;
+    float far_clip = view_1c0.far_clip_40;
     float backoff = extent / sin(fov);
     float ratio = extent / cos(fov);
     double tangent = tan(fov);
-    double tangent_vertical = tan(vertical_fov_1f4 * g_float_005ebc7c);
+    double tangent_vertical = tan(view_1c0.vertical_fov_34 * g_float_005ebc7c);
     srVector3T<float> corners[8];
 
-    m_frustum_planes_21c[4].w = 0.0f;
-    m_frustum_planes_21c[5].w = 0.0f;
+    view_1c0.frustum_planes_5c[4].w = 0.0f;
+    view_1c0.frustum_planes_5c[5].w = 0.0f;
     for (int axis = 0; axis < 3; ++axis) {
-        float dof = (&camera_dof_1cc.x)[axis];
-        float column1 = (&rotation_column_1d8.x)[axis];
-        float column2 = (&rotation_column_1e4.x)[axis];
+        float dof = (&view_1c0.camera_dof_0c.x)[axis];
+        float column1 = (&view_1c0.rotation_column_18.x)[axis];
+        float column2 = (&view_1c0.rotation_column_24.x)[axis];
         float w = far_clip * dof;
         float a = (tangent * far_clip + ratio) * column1;
         float b = (tangent_vertical * far_clip + ratio) * column2;
 
-        (&corners[0].x)[axis] = (&camera_location_1c0.x)[axis] - backoff * dof;
+        (&corners[0].x)[axis] = (&view_1c0.camera_location_00.x)[axis] - backoff * dof;
         (&corners[1].x)[axis] = a;
         (&corners[2].x)[axis] = b;
         (&corners[3].x)[axis] = w;
@@ -838,21 +842,21 @@ void W8Octree::BuildFrustumPlanes()
         (&corners[5].x)[axis] = (w + b) + a;
         (&corners[6].x)[axis] = (w - a) - b;
         (&corners[7].x)[axis] = (w + a) - b;
-        (&corners[4].x)[axis] += (&camera_location_1c0.x)[axis];
-        (&corners[5].x)[axis] += (&camera_location_1c0.x)[axis];
-        (&corners[6].x)[axis] += (&camera_location_1c0.x)[axis];
-        (&corners[7].x)[axis] += (&camera_location_1c0.x)[axis];
-        (&m_frustum_planes_21c[4].normal.x)[axis] = dof;
-        m_frustum_planes_21c[4].w -= dof * (&corners[0].x)[axis];
-        (&m_frustum_planes_21c[5].normal.x)[axis] = -dof;
-        m_frustum_planes_21c[5].w -= -dof * (&corners[4].x)[axis];
+        (&corners[4].x)[axis] += (&view_1c0.camera_location_00.x)[axis];
+        (&corners[5].x)[axis] += (&view_1c0.camera_location_00.x)[axis];
+        (&corners[6].x)[axis] += (&view_1c0.camera_location_00.x)[axis];
+        (&corners[7].x)[axis] += (&view_1c0.camera_location_00.x)[axis];
+        (&view_1c0.frustum_planes_5c[4].normal.x)[axis] = dof;
+        view_1c0.frustum_planes_5c[4].w -= dof * (&corners[0].x)[axis];
+        (&view_1c0.frustum_planes_5c[5].normal.x)[axis] = -dof;
+        view_1c0.frustum_planes_5c[5].w -= -dof * (&corners[4].x)[axis];
     }
-    BuildPlaneFromPoints(&m_frustum_planes_21c[0], &corners[0], &corners[5], &corners[4]);
-    BuildPlaneFromPoints(&m_frustum_planes_21c[1], &corners[0], &corners[4], &corners[6]);
-    BuildPlaneFromPoints(&m_frustum_planes_21c[2], &corners[0], &corners[7], &corners[5]);
-    BuildPlaneFromPoints(&m_frustum_planes_21c[3], &corners[0], &corners[6], &corners[7]);
+    BuildPlaneFromPoints(&view_1c0.frustum_planes_5c[0], &corners[0], &corners[5], &corners[4]);
+    BuildPlaneFromPoints(&view_1c0.frustum_planes_5c[1], &corners[0], &corners[4], &corners[6]);
+    BuildPlaneFromPoints(&view_1c0.frustum_planes_5c[2], &corners[0], &corners[7], &corners[5]);
+    BuildPlaneFromPoints(&view_1c0.frustum_planes_5c[3], &corners[0], &corners[6], &corners[7]);
     for (int index = 0; index < 6; ++index) {
-        m_frustum_planes_21c[index].w += spatial_000.region_grid_cell_54;
+        view_1c0.frustum_planes_5c[index].w += spatial_000.region_grid_cell_54;
     }
 }
 
@@ -871,12 +875,12 @@ void W8Octree::CollectVisibleCells()
     BuildFrustumPlanes();
     MarkVisibleRegions();
     short radius = static_cast<short>(
-        (static_cast<int>((far_clip_200 / spatial_000.region_grid_cell_54)) + 1));
+        (static_cast<int>((view_1c0.far_clip_40 / spatial_000.region_grid_cell_54)) + 1));
     short center[3];
 
     for (int axis = 0; axis < 3; ++axis) {
         center[axis] = static_cast<short>(
-            static_cast<int>((((&camera_location_1c0.x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
+            static_cast<int>((((&view_1c0.camera_location_00.x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
                               spatial_000.region_grid_cell_54)));
     }
     unsigned int region_base = m_region_mask_140;
@@ -904,7 +908,7 @@ void W8Octree::CollectVisibleCells()
                               offset;
                     point.z = cell_z * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.z +
                               offset;
-                    if (PointInsideFrustum(&point, m_frustum_planes_21c) == 0) {
+                    if (PointInsideFrustum(&point, view_1c0.frustum_planes_5c) == 0) {
                         continue;
                     }
                 }
@@ -1193,16 +1197,16 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
     W8World* world = GetWorld();
     W8Vector<stModelInstance*> meshes(5);
     W8GrowableVector<int> cells;
-    camera_location_1c0 = *point;
-    far_clip_200 = spatial_000.extent_04;
+    view_1c0.camera_location_00 = *point;
+    view_1c0.far_clip_40 = spatial_000.extent_04;
     char text[104];
     sprintf(text, "Sample point: %f, %f, %f, Links Found: ", point->x, point->y, point->z);
     NoOp();
     srVector3T<double> location;
     location.SetFromFloat(point);
     world->camera->setLocation(location);
-    horizontal_fov_1f0 = static_cast<float>(world->camera->getHorizontalFOV());
-    vertical_fov_1f4 = static_cast<float>(world->camera->getVerticalFOV());
+    view_1c0.horizontal_fov_30 = static_cast<float>(world->camera->getHorizontalFOV());
+    view_1c0.vertical_fov_34 = static_cast<float>(world->camera->getVerticalFOV());
     if (region_key == 0) {
         region_key = RegionKeyForPoint(point);
     }
@@ -1213,15 +1217,15 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
     }
     m_projected_regions_valid_16a = false;
     short samples = static_cast<short>(static_cast<int>(
-        g_camera_angle_period_005ec014 / horizontal_fov_1f0 + g_camera_snap_epsilon));
-    if (samples * horizontal_fov_1f0 < g_float_005ec010) {
+        g_camera_angle_period_005ec014 / view_1c0.horizontal_fov_30 + g_camera_snap_epsilon));
+    if (samples * view_1c0.horizontal_fov_30 < g_float_005ec010) {
         ++samples;
     }
     if (samples > 0) {
         double cos_tilt = cos(g_double_005ec008);
         double sin_tilt = sin(g_double_005ec008);
         for (int direction = 0; direction < samples; ++direction) {
-            float angle = direction * horizontal_fov_1f0;
+            float angle = direction * view_1c0.horizontal_fov_30;
             srMatrix3T<float> frame;
             frame.vectors[0].x = 1.0f;
             frame.vectors[0].y = 0.0f;
@@ -1241,18 +1245,18 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
             tilt.SetRows(tilt_first, tilt_second, tilt_third);
             frame.MultiplyBy(tilt);
             world->camera->setRotation(frame);
-            rotation_column_1d8.x = frame.vectors[0].x;
+            view_1c0.rotation_column_18.x = frame.vectors[0].x;
             srVector3T<float> unit;
             unit.Set(1.0, 0.0, 0.0);
-            rotation_column_1d8.y = DotProduct(frame.vectors[1], unit);
-            rotation_column_1d8.z = DotProduct(frame.vectors[2], unit);
+            view_1c0.rotation_column_18.y = DotProduct(frame.vectors[1], unit);
+            view_1c0.rotation_column_18.z = DotProduct(frame.vectors[2], unit);
             float right_y = frame.vectors[0].y;
             unit.Set(0.0, 1.0, 0.0);
-            rotation_column_1e4.x = right_y;
-            rotation_column_1e4.y = DotProduct(frame.vectors[1], unit);
-            rotation_column_1e4.z = DotProduct(frame.vectors[2], unit);
+            view_1c0.rotation_column_24.x = right_y;
+            view_1c0.rotation_column_24.y = DotProduct(frame.vectors[1], unit);
+            view_1c0.rotation_column_24.z = DotProduct(frame.vectors[2], unit);
             srVector3T<double> dof = world->camera->getWorldSpaceDOF();
-            camera_dof_1cc = dof;
+            view_1c0.camera_dof_0c = dof;
             m_current_regions_160->ClearAll();
             CollectVisibleCells();
             int bit = m_current_regions_160->NextSetBit(1);
@@ -3930,23 +3934,19 @@ void W8Octree::Reset()
     m_gd_result_count_1b8 = 0;
     m_aulGDObjs = 0;
 
-    camera_location_1c0.SetZero();
-    camera_dof_1cc.SetZero();
-    rotation_column_1d8.SetZero();
-    rotation_column_1e4.SetZero();
-    horizontal_fov_1f0 = 0.0f;
-    vertical_fov_1f4 = 0.0f;
-    horizontal_fov_cosine_1f8 = 0.0f;
-    vertical_fov_cosine_1fc = 0.0f;
-    far_clip_200 = 0.0f;
-    memset(m_visible_cells_204, 0, sizeof(m_visible_cells_204));
-    for (int plane = 0; plane < 6; ++plane) {
-        m_frustum_planes_21c[plane].normal.SetZero();
-        m_frustum_planes_21c[plane].w = 0.0f;
-    }
-    for (int index = 0; index < 6; ++index) {
-        m_padding_27c[index] = 0;
-    }
+    memset(&view_1c0, 0, sizeof(view_1c0));
+    /* 0x0042D1F1 then re-zeroes the four bounds inline, which
+       Reset0046CDC0 above already did through the callee. */
+    spatial_000.clipped_minimum_24.SetZero();
+    spatial_000.clipped_maximum_30.SetZero();
+    spatial_000.working_minimum_78.SetZero();
+    spatial_000.working_maximum_84.SetZero();
+    m_padding_27c[0] = 0;
+    m_padding_27c[1] = 0;
+    m_padding_27c[2] = 0;
+    m_padding_27c[3] = 0;
+    m_padding_27c[4] = 0;
+    m_padding_27c[5] = 0;
     m_visibility_suspended_294 = false;
     m_reset_visibility_168 = 0;
     m_projected_regions_valid_16a = false;

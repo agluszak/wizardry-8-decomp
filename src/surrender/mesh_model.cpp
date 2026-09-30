@@ -598,14 +598,17 @@ void srMeshModel::calculateVertexNormals()
         srVector3i* polygons = getPolyVertex();
         unsigned long* shade_indices = getVertexShadeIndex(0);
         if (shade_indices == 0) {
-            srVectorProcessor::copy((SRDWORD*)normals, 0, vertex_location_count_22c * 3);
+            fillConstant((unsigned long*)normals, 0, vertex_location_count_22c * 3);
             for (long polygon = 0; polygon < polygon_count_230; polygon++) {
-                for (long corner = 0; corner < 3; corner++) {
-                    srVector3T<float>* normal = normals + ((long*)polygons)[polygon * 3 + corner];
-                    normal->x = equations[polygon].x + normal->x;
-                    normal->y = equations[polygon].y + normal->y;
-                    normal->z = equations[polygon].z + normal->z;
-                }
+                normals[polygons[polygon].x].x += equations[polygon].x;
+                normals[polygons[polygon].x].y += equations[polygon].y;
+                normals[polygons[polygon].x].z += equations[polygon].z;
+                normals[polygons[polygon].y].x += equations[polygon].x;
+                normals[polygons[polygon].y].y += equations[polygon].y;
+                normals[polygons[polygon].y].z += equations[polygon].z;
+                normals[polygons[polygon].z].x += equations[polygon].x;
+                normals[polygons[polygon].z].y += equations[polygon].y;
+                normals[polygons[polygon].z].z += equations[polygon].z;
             }
         } else {
             srVector3T<float>* smooth =
@@ -615,13 +618,15 @@ void srMeshModel::calculateVertexNormals()
                 srVectorProcessor::copy((SRDWORD*)smooth, 0, count);
             }
             for (long polygon = 0; polygon < polygon_count_230; polygon++) {
-                for (long corner = 0; corner < 3; corner++) {
-                    srVector3T<float>* normal =
-                        smooth + shade_indices[((long*)polygons)[polygon * 3 + corner]];
-                    normal->x = normal->x + equations[polygon].x;
-                    normal->y = normal->y + equations[polygon].y;
-                    normal->z = normal->z + equations[polygon].z;
-                }
+                smooth[shade_indices[polygons[polygon].x]].x += equations[polygon].x;
+                smooth[shade_indices[polygons[polygon].x]].y += equations[polygon].y;
+                smooth[shade_indices[polygons[polygon].x]].z += equations[polygon].z;
+                smooth[shade_indices[polygons[polygon].y]].x += equations[polygon].x;
+                smooth[shade_indices[polygons[polygon].y]].y += equations[polygon].y;
+                smooth[shade_indices[polygons[polygon].y]].z += equations[polygon].z;
+                smooth[shade_indices[polygons[polygon].z]].x += equations[polygon].x;
+                smooth[shade_indices[polygons[polygon].z]].y += equations[polygon].y;
+                smooth[shade_indices[polygons[polygon].z]].z += equations[polygon].z;
             }
             if (vertex_location_count_22c != 0) {
                 srVectorProcessor::copyIndexed(normals, smooth, shade_indices,
@@ -2291,4 +2296,4 @@ long srMeshModel::getVertexCount() const
 // member copy-assignment emission
 
 // TEMPLATE: SURRENDER 0x10043F90
-// srHeapArray<T>::ensure emission
+// srHeapBuffer<T>::ensure emission

@@ -7851,37 +7851,63 @@ void ApplyPendingTooltip(void)
     if (GetTickCount() - g_level_block->tooltip_since < 0x33) {
         return;
     }
+    /* Each pending slot folds its bit into redraw_flags rather than calling
+       RequestRedraw, and only while the main game screen owns the block. The
+       retail makes no RequestRedraw call here at all: its only direct call is
+       RefreshFormationBoard, and every slot does
+       `if (g_current_screen_state.id == 7) g_level_block->redraw_flags |= 1 << slot;`
+       (0x00569D06 cmp dword ptr [0x0068ec78],edx with edx = 7, then
+       0x00569D0E test eax,eax, then 0x00569D19 or dword ptr [eax+0xf4],edi).
+       Eight separate RequestRedraw calls is what this used to be, and the null
+       test on the block pointer is in the retail too. */
     if (g_level_block->highlight_override != -1) {
-        RequestRedraw(1u << (g_level_block->highlight_override & 0x1f));
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 1u << (g_level_block->highlight_override & 0x1f);
+        }
         g_level_block->highlight_override = -1;
     }
     if (g_level_block->party_slots_170[0] != -1) {
-        RequestRedraw(1u << (g_level_block->party_slots_170[0] & 0x1f));
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 1u << (g_level_block->party_slots_170[0] & 0x1f);
+        }
         g_level_block->party_slots_170[0] = -1;
     }
     if (g_level_block->party_slots_170[1] != -1) {
-        RequestRedraw(1u << (g_level_block->party_slots_170[1] & 0x1f));
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 1u << (g_level_block->party_slots_170[1] & 0x1f);
+        }
         g_level_block->party_slots_170[1] = -1;
     }
     if (g_level_block->party_slots_170[2] != -1) {
-        RequestRedraw(1u << (g_level_block->party_slots_170[2] & 0x1f));
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 1u << (g_level_block->party_slots_170[2] & 0x1f);
+        }
         g_level_block->party_slots_170[2] = -1;
     }
     if (g_level_block->party_slots_170[3] != -1) {
-        RequestRedraw(1u << (g_level_block->party_slots_170[3] & 0x1f));
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 1u << (g_level_block->party_slots_170[3] & 0x1f);
+        }
         g_level_block->party_slots_170[3] = -1;
     }
     if (g_level_block->party_slots_170[5] != -1) {
-        RequestRedraw(1u << (g_level_block->party_slots_170[5] & 0x1f));
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 1u << (g_level_block->party_slots_170[5] & 0x1f);
+        }
         g_level_block->party_slots_170[5] = -1;
     }
     if (g_level_block->formation_highlight_party_slot != -1) {
-        RequestRedraw(1u << (g_level_block->formation_highlight_party_slot & 0x1f));
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |=
+                1u << (g_level_block->formation_highlight_party_slot & 0x1f);
+        }
         g_level_block->formation_highlight_party_slot = -1;
         refresh_formation = true;
     }
     if (g_level_block->tooltip_subject != -1) {
-        RequestRedraw(1u << (g_level_block->tooltip_subject & 0x1f));
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 1u << (g_level_block->tooltip_subject & 0x1f);
+        }
         switch (g_level_block->tooltip_kind) {
         case 0:
             g_level_block->highlight_override = g_level_block->tooltip_subject;

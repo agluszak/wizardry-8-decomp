@@ -2373,10 +2373,11 @@ unsigned char LoadGame(const char* slot_name)
     }
     chunks.Close();
     for (box = 0; box < 4; ++box) {
-        for (index = 0; index < static_cast<int>(g_status.text_box_lines_shown_49a7[box]);
-             ++index) {
-            g_message_storage[box][index].clock_08 =
-                SetCountdownClock(g_message_storage[box][index].clock_ticking_0c);
+        /* 0x00512BA6 tests the member unsigned, so this loop has its own
+           unsigned counter rather than the function's signed `index`. */
+        for (unsigned int line = 0; line < g_status.text_box_lines_shown_49a7[box]; ++line) {
+            g_message_storage[box][line].clock_08 =
+                SetCountdownClock(g_message_storage[box][line].clock_ticking_0c);
         }
     }
     gXStatus.gameplay_timer->Restart();

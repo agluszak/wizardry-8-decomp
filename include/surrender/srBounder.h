@@ -16,7 +16,11 @@ public:
 
     srBounder& operator=(const srBounder& other);
 
-    static const char* sGetClassName();
+    // FUNCTION: SURRENDER 0x1004B070
+    static const char* sGetClassName()
+    {
+        return "srBounder";
+    }
 
     virtual void dump(std::ostream& stream) override;
     virtual ~srBounder() override;

@@ -2,6 +2,7 @@
 
 #include <windows.h>
 
+#include "srCriticalSection.h"
 #include "srHeap.h"
 #include "srHash.h"
 
@@ -64,7 +65,7 @@ private:
     QueueEntry* last_job_34;
     long job_count_38;
     long worker_count_3c;
-    CRITICAL_SECTION* critical_section_40;
+    srCriticalSection* critical_section_40;
 };
 
 static_assert(sizeof(srScheduler) == 0x44, "srScheduler_must_be_0x44");

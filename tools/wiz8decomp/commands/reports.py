@@ -121,11 +121,33 @@ def pr_comparison_command(
     base_ghidriff: Annotated[Path | None, typer.Option("--base-ghidriff")] = None,
     head_datacmp: Annotated[Path | None, typer.Option("--head-datacmp")] = None,
     base_datacmp: Annotated[Path | None, typer.Option("--base-datacmp")] = None,
+    since: Annotated[
+        str | None,
+        typer.Option(
+            "--since",
+            help="Merge base: group regressions by the headers changed since it.",
+        ),
+    ] = None,
 ) -> None:
     """Summarize PR-head comparison health and its change from the merge base."""
 
     from .. import command_support as cli
     from ..reports.comparison_delta import pr_comparison_report
+
+    header_dependents = None
+    if since is not None:
+        from ..comparison import changed_files, header_dependent_files
+
+        settings = cli.settings()
+        repository = settings.repo_dir.resolve()
+        header_dependents = {}
+        for path in changed_files(repository, since):
+            if path.suffix.lower() not in {".h", ".hpp", ".hxx"} or not path.is_file():
+                continue
+            files = header_dependent_files(settings, target, [path]) + [path]
+            header_dependents[path.resolve().relative_to(repository).as_posix()] = {
+                str(file.resolve()) for file in files
+            }
 
     cli.emit(
         pr_comparison_report(
@@ -138,6 +160,7 @@ def pr_comparison_command(
             base_ghidriff_path=base_ghidriff,
             head_datacmp_path=head_datacmp,
             base_datacmp_path=base_datacmp,
+            header_dependents=header_dependents,
         )
     )
 

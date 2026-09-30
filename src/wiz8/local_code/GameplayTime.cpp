@@ -1026,8 +1026,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         goto after_early;
     }
     if ((monster->linked_navigator_05c == 0 && monster->halted_025 == 0) &&
-        (static_cast<signed char>(monster_info->movement_stall_ticks_254) > 1 ||
-         monster->movement_stopped_024 == 0)) {
+        (monster_info->movement_stall_ticks_254 > 1 || monster->movement_stopped_024 == 0)) {
         srVector3T<float> location;
         srVector3T<float> previous;
         srVector3T<float> delta;
@@ -1147,7 +1146,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                 monster_info->pathing_cooldown_246 = 0;
             }
         }
-        if (static_cast<signed char>(monster_info->movement_stall_ticks_254) > 0) {
+        if (monster_info->movement_stall_ticks_254 > 0) {
             ++monster_info->movement_stall_ticks_254;
         }
         monster_info->movement_watch_position[0] = static_cast<int>(monster_info->position_17.x);
@@ -1155,21 +1154,51 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         monster_info->movement_watch_position[2] = static_cast<int>(monster_info->position_17.z);
     }
 
-after_early:
-    {
-        unsigned int amount = monster_info->modifiers_1db.damage_per_minute;
+    /* The monster alternates between a looking spell and a pause; each timer
+       counts down in minutes and, on expiry, rolls the other around half the
+       monster's configured duration or frequency (never 0). */
+    if (monster_info->look_timer_302 != 0) {
+        if (minutes < monster_info->look_timer_302) {
+            monster_info->look_timer_302 -= static_cast<unsigned char>(minutes);
+        } else {
+            float duration = monster_info->p3D->look_duration_2cc;
 
-        if (amount != 0) {
-            W8TargetSource source;
-
-            amount *= minutes;
-            if (monster_info->fInCombat != 0) {
-                amount += amount >> 1;
+            monster_info->look_timer_302 = 0;
+            monster_info->look_timer_303 = static_cast<unsigned char>(
+                Random(static_cast<unsigned int>(duration)) + static_cast<int>(duration) / 2);
+            if (monster_info->look_timer_303 == 0) {
+                monster_info->look_timer_303 = 1;
             }
-            ResetTargetSource(&source);
-            ApplyDamageToMonster(monster_info, amount, &source, 1, gXStatus.fCombatMode, 0, 0, 0);
+        }
+    } else if (monster_info->look_timer_303 != 0) {
+        if (minutes < monster_info->look_timer_303) {
+            monster_info->look_timer_303 -= static_cast<unsigned char>(minutes);
+        } else {
+            float frequency = monster_info->p3D->look_frequency_2c8;
+
+            monster_info->look_timer_303 = 0;
+            monster_info->look_timer_302 = static_cast<unsigned char>(
+                Random(static_cast<unsigned int>(frequency)) + static_cast<int>(frequency) / 2);
+            if (monster_info->look_timer_302 == 0) {
+                monster_info->look_timer_302 = 1;
+            }
         }
     }
+
+after_early: {
+    unsigned int amount = monster_info->modifiers_1db.damage_per_minute;
+
+    if (amount != 0) {
+        W8TargetSource source;
+
+        amount *= minutes;
+        if (monster_info->fInCombat != 0) {
+            amount += amount >> 1;
+        }
+        ResetTargetSource(&source);
+        ApplyDamageToMonster(monster_info, amount, &source, 1, gXStatus.fCombatMode, 0, 0, 0);
+    }
+}
     if (monster_info->uiCondition[2] != 0) {
         frost_condition = true;
     }

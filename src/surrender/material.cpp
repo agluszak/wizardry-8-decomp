@@ -7,6 +7,8 @@
 #include "surrender/srVP.h"
 #include "surrender/srVectorProcessor.h"
 
+#include <ostream>
+
 /* Comma-separated operation names srMaterial::dump walks while printing the
    operations_6c bits. Retail .data holds a zero-initialized pointer here; no
    in-range provider code ever stores to it, so the source spelling stays
@@ -165,6 +167,7 @@ void srMaterial::postProcess(srVertexPipe& pipe)
     unsigned long operations;
     unsigned long vertex_count;
     unsigned long blend;
+    srVector4T<float>* color;
     float* channel;
 
     if (mapper_70 != 0) {
@@ -190,11 +193,10 @@ void srMaterial::postProcess(srVertexPipe& pipe)
                     if ((pipe.lazy_setup_mask_10 & 4) == 0) {
                         pipe.setupSpecular();
                     }
-                    channel =
-                        reinterpret_cast<float*>(pipe.vertex_array_78->specular_08 +
-                                                 pipe.batch_base_80 + pipe.sub_batch_offset_84);
+                    color = pipe.vertex_array_78->specular_08 + pipe.batch_base_80 +
+                            pipe.sub_batch_offset_84;
                     if (vertex_count != 0) {
-                        srVectorProcessor::vp->_mul(channel, channel,
+                        srVectorProcessor::vp->_mul(color, color,
                                                     static_cast<float*>(pipe.scratch_00) + 0x200 +
                                                         pipe.sub_batch_offset_84,
                                                     vertex_count);
@@ -213,11 +215,10 @@ void srMaterial::postProcess(srVertexPipe& pipe)
                     if ((pipe.lazy_setup_mask_10 & 2) == 0) {
                         pipe.setupDiffuse();
                     }
-                    channel =
-                        reinterpret_cast<float*>(pipe.vertex_array_78->diffuse_04 +
-                                                 pipe.batch_base_80 + pipe.sub_batch_offset_84);
+                    color = pipe.vertex_array_78->diffuse_04 + pipe.batch_base_80 +
+                            pipe.sub_batch_offset_84;
                     if (vertex_count != 0) {
-                        srVectorProcessor::vp->_mul(channel, channel,
+                        srVectorProcessor::vp->_mul(color, color,
                                                     static_cast<float*>(pipe.scratch_00) + 0x200 +
                                                         pipe.sub_batch_offset_84,
                                                     vertex_count);
@@ -242,10 +243,10 @@ channels_done:
             if ((pipe.lazy_setup_mask_10 & 2) == 0) {
                 pipe.setupDiffuse();
             }
-            channel = reinterpret_cast<float*>(pipe.vertex_array_78->diffuse_04 +
-                                               pipe.batch_base_80 + pipe.sub_batch_offset_84);
+            color =
+                pipe.vertex_array_78->diffuse_04 + pipe.batch_base_80 + pipe.sub_batch_offset_84;
             if (vertex_count != 0) {
-                srVectorProcessor::vp->_mul(channel, channel,
+                srVectorProcessor::vp->_mul(color, color,
                                             static_cast<float*>(pipe.scratch_00) + 0x200 +
                                                 pipe.sub_batch_offset_84,
                                             vertex_count);
@@ -260,10 +261,10 @@ channels_done:
             if ((pipe.lazy_setup_mask_10 & 4) == 0) {
                 pipe.setupSpecular();
             }
-            channel = reinterpret_cast<float*>(pipe.vertex_array_78->specular_08 +
-                                               pipe.batch_base_80 + pipe.sub_batch_offset_84);
+            color =
+                pipe.vertex_array_78->specular_08 + pipe.batch_base_80 + pipe.sub_batch_offset_84;
             if (vertex_count != 0) {
-                srVectorProcessor::vp->_mul(channel, channel,
+                srVectorProcessor::vp->_mul(color, color,
                                             static_cast<float*>(pipe.scratch_00) + 0x200 +
                                                 pipe.sub_batch_offset_84,
                                             vertex_count);

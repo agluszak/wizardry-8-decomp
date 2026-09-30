@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <iosfwd>
 
 #include "srArray.h"
 #include "srHeap.h"

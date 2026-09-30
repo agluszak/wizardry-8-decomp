@@ -89,9 +89,12 @@ set_source_files_properties(
     modeler.cpp
     mutex.cpp
     node.cpp
+    palette.cpp
     renderer.cpp
     scene.cpp
+    scheduler.cpp
     stream.cpp
+    string_table.cpp
     texture.cpp
     texture_file.cpp
     texture_map.cpp

@@ -282,6 +282,28 @@ static_assert(sizeof(W8OctPreTreeLeaf) == 0x28, "W8OctPreTreeLeaf_must_be_0x28")
    W8GrowableVector<W8SpellDamageReport_#>, i.e. compiler template material,
    not object polymorphism; the same holds for the emitted vector machinery
    next to W8OctPreTree and W8OctBuildTree. */
+/* The camera snapshot and visibility frustum W8Octree keeps for one frame.
+   Reset (0x0042D1D6) clears the whole record with one 47-dword rep stosd,
+   from the camera location through the last frustum plane's w at +0x27B of
+   the owner. `W8OctreeView` is a provisional spelling. */
+struct W8OctreeView {
+    srVector3T<float> camera_location_00;
+    srVector3T<float> camera_dof_0c;
+    srVector3T<float> rotation_column_18;
+    srVector3T<float> rotation_column_24;
+    float horizontal_fov_30;
+    float vertical_fov_34;
+    float horizontal_fov_cosine_38;
+    float vertical_fov_cosine_3c;
+    float far_clip_40;
+    int visible_cells_44[6];
+    /* The six frustum planes 0x004302E0 builds; 0x0046D880 tests a point
+       against all six. */
+    W8Plane frustum_planes_5c[6];
+};
+
+static_assert(sizeof(W8OctreeView) == 0xbc, "W8OctreeView_must_be_0xbc");
+
 class W8Octree {
 public:
     W8Octree(const char* path, W8GameData** game_data);
@@ -581,19 +603,7 @@ public:
     unsigned long m_meshCount_1b4;
     unsigned long m_gd_result_count_1b8;
     unsigned long* m_aulGDObjs; /* 0x1bc */
-    srVector3T<float> camera_location_1c0;
-    srVector3T<float> camera_dof_1cc;
-    srVector3T<float> rotation_column_1d8;
-    srVector3T<float> rotation_column_1e4;
-    float horizontal_fov_1f0;
-    float vertical_fov_1f4;
-    float horizontal_fov_cosine_1f8;
-    float vertical_fov_cosine_1fc;
-    float far_clip_200;
-    int m_visible_cells_204[6];
-    /* The six frustum planes 0x004302E0 builds; 0x0046D880 tests a point
-       against all six. */
-    W8Plane m_frustum_planes_21c[6]; /* 0x21c */
+    W8OctreeView view_1c0;
     unsigned long m_padding_27c[6];
     bool m_visibility_suspended_294;
     unsigned char m_padding_295;

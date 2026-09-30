@@ -676,7 +676,10 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
 }
 
 /* Route one queued input atom to the forced region, the current hot region,
-   or the first enabled region under the event's mouse position. */
+   or the first enabled region under the event's mouse position. Retail carries
+   three copies of the dispatch tail (0x004F1B41 for the region-set scan,
+   0x004F1C4C and 0x004F1D34 for the current and captured regions); each runs
+   the callback, plays the optional sound and returns the callback result. */
 // FUNCTION: WIZ8 0x004f1910
 unsigned char DispatchRegionInput(const InputAtom* event)
 {
@@ -936,8 +939,7 @@ void DisableRegionSetInput(unsigned int region_set_index)
             }
             last_region = g_region_sets[region_set_index].last_region;
             g_regions[region_index].flags =
-                (g_regions[region_index].flags & 0xfff3) |
-                W8_REGION_INPUT_DISABLED;
+                (g_regions[region_index].flags & 0xfff3) | W8_REGION_INPUT_DISABLED;
             ++region_index;
         } while (region_index <= last_region);
     }

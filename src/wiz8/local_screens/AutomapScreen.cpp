@@ -1585,7 +1585,7 @@ void LightAutomapCell(const srVector3T<float>* position)
 {
     W8Vector<stModelInstance*> instances(5);
     srArray<float> distances;
-    srHeapArray<srVector3T<float> > vertices;
+    srArray<srVector3T<float> > vertices;
     float range = g_automap_range;
 
     if (g_world->octree->CollectModelsNearPoint(&instances, position, range, 0, 0) != 0) {

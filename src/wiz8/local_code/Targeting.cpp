@@ -164,15 +164,14 @@ char GetTargetNoticeColor(const W8TargetSource* source, const W8CombatSlot* targ
 
 /* Whether a peer aiming at the just-applied target should drop that aim. */
 // FUNCTION: WIZ8 0x0053C490
-bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target,
-                                    unsigned char in_combat,
-                                    unsigned char action_targets_enemies)
+bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target, bool in_combat,
+                                    bool action_targets_enemies)
 {
     bool source_hostile;
     bool target_hostile;
 
-    if (in_combat == 0) {
-        return 1;
+    if (!in_combat) {
+        return true;
     }
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
         if (source->iChar == BAD_INDEX) {
@@ -208,9 +207,9 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
         return 0;
     }
     if (source_hostile == target_hostile) {
-        return action_targets_enemies != 0;
+        return action_targets_enemies;
     }
-    return action_targets_enemies == 0;
+    return !action_targets_enemies;
 }
 
 /* The faction names, thirty bytes apart, in the same order as the faction ids.
@@ -478,7 +477,7 @@ void AimAtGroundTarget(int party_slot)
 /* The three wrappers that set the party's own target rather than a
    combatant's, one per kind that names something. */
 // FUNCTION: WIZ8 0x00538d10
-void SetTargetToCharacter(int character_slot, unsigned char in_combat)
+void SetTargetToCharacter(int character_slot, bool in_combat)
 {
     W8CombatSlot target;
 
@@ -491,7 +490,7 @@ void SetTargetToCharacter(int character_slot, unsigned char in_combat)
 }
 
 // FUNCTION: WIZ8 0x00538d60
-void SetTargetToMonster(int monster_id, unsigned char in_combat)
+void SetTargetToMonster(int monster_id, bool in_combat)
 {
     W8CombatSlot target;
 
@@ -504,7 +503,7 @@ void SetTargetToMonster(int monster_id, unsigned char in_combat)
 }
 
 // FUNCTION: WIZ8 0x00538db0
-void SetTargetToGroup(int group_id, unsigned char in_combat)
+void SetTargetToGroup(int group_id, bool in_combat)
 {
     W8CombatSlot target;
 
@@ -520,13 +519,13 @@ void SetTargetToGroup(int group_id, unsigned char in_combat)
    `target` drops that aim when the combat flag and their action say so. A
    monster target also clears its highlight bit before the walk. */
 // FUNCTION: WIZ8 0x00538E00
-void ApplyTarget(W8CombatSlot* target, unsigned char in_combat)
+void ApplyTarget(W8CombatSlot* target, bool in_combat)
 {
     W8TargetSource source;
     W8PartySlotRow* row;
     W8Character* character;
     W8MonsterInfo* monster_info;
-    unsigned char action_targets_enemies;
+    bool action_targets_enemies;
     int party_slot;
 
     if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -564,8 +563,8 @@ void ApplyTarget(W8CombatSlot* target, unsigned char in_combat)
             action_targets_enemies =
                 CharacterActionTargetsEnemies(character, row->pending_action, row->attack_mode[0],
                                               &row->pending_action_detail_015);
-            if (ShouldClearAimForAppliedTarget(&source, target, in_combat, action_targets_enemies) !=
-                0) {
+            if (ShouldClearAimForAppliedTarget(&source, target, in_combat,
+                                               action_targets_enemies) != 0) {
                 RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0);
             }
         }
@@ -578,8 +577,8 @@ void ApplyTarget(W8CombatSlot* target, unsigned char in_combat)
             action_targets_enemies =
                 MonsterActionTargetsEnemies(monster_info->action_kind, monster_info->action_detail,
                                             &monster_info->spell_power_level);
-            if (ShouldClearAimForAppliedTarget(&source, target, in_combat, action_targets_enemies) !=
-                0) {
+            if (ShouldClearAimForAppliedTarget(&source, target, in_combat,
+                                               action_targets_enemies) != 0) {
                 ResetCombatSlot(&monster_info->Target);
             }
         }
@@ -1950,9 +1949,20 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
             }
         }
 
-        for (int highlight_index = 0; highlight_index < entry->highlighted_monsters.GetCount();
-             ++highlight_index) {
-            SetMonsterHighlight(party_slot, *entry->highlighted_monsters.GetAt(highlight_index), 1);
+        /* The retail guards the count unsigned and then loops against it
+           signed: 0x0053AAD2 test eax,eax; jbe 0x0053ABF9 for the guard, then
+           0x0053AADA cmp edi,eax; jge 0x0053AAF9 for the back-edge, off the
+           same hoisted [ebx+4]. Two comparisons over one value, so the guard
+           and the bound cannot be the same expression: GetCount() returns int,
+           which would make the guard a jle. Same two-expressions-one-value
+           shape as SetMonsterCondition and LoadSurfacePixels. */
+        unsigned int count = entry->highlighted_monsters.GetCount();
+        if (count > 0) {
+            for (int highlight_index = 0; highlight_index < static_cast<int>(count);
+                 ++highlight_index) {
+                SetMonsterHighlight(party_slot, *entry->highlighted_monsters.GetAt(highlight_index),
+                                    1);
+            }
         }
         return;
     }
@@ -3664,8 +3674,8 @@ void UpdateSlotMonsterHighlights(int party_slot, char enable)
                 unsigned char flag = MonsterGetHighlightMask(monster);
                 srVector4T<float> block;
                 if (enable != 0 && (flag & (1 << (party_slot & 0x1f))) != 0) {
-                    block.x = 1.0f;
-                    block.y = 0.0f;
+                    block.x = 0.0f;
+                    block.y = 1.0f;
                     block.z = 0.0f;
                     block.w = 1.0f;
                 } else {

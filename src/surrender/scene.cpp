@@ -9,11 +9,7 @@
 #include "surrender/srHeap.h"
 #include "surrender/srTimer.h"
 
-// FUNCTION: SURRENDER 0x10056C10
-const char* srScene::sGetClassName()
-{
-    return "srScene";
-}
+#include <ostream>
 
 // FUNCTION: SURRENDER 0x10056F90
 srScene::~srScene() {}

@@ -46,8 +46,19 @@ public:
     SR_DLL_IMPORT void applyFog(const float* values);
     SR_DLL_IMPORT void copyDiffuseToSpecular();
     SR_DLL_IMPORT void copySpecularToDiffuse();
-    SR_DLL_IMPORT void disableChannel(srVertexProcessor::e_channel channel);
-    SR_DLL_IMPORT void enableChannel(srVertexProcessor::e_channel channel);
+    /* Retail inlines the mask updates into srMaterial::preProcess/postProcess
+       while still emitting the exported standalone copies, so the bodies live
+       in the header with provider-side dllexport. */
+    // FUNCTION: SURRENDER 0x1002C310
+    SR_DLL_EXPORT inline void disableChannel(srVertexProcessor::e_channel channel)
+    {
+        channel_mask_0c &= ~(1u << channel);
+    }
+    // FUNCTION: SURRENDER 0x1002C330
+    SR_DLL_EXPORT inline void enableChannel(srVertexProcessor::e_channel channel)
+    {
+        channel_mask_0c |= 1u << channel;
+    }
     SR_DLL_IMPORT const unsigned long* getAVT() const;
     SR_DLL_IMPORT float* getAlpha();
     SR_DLL_IMPORT srFlags<srVertexProcessor::e_channel> getChannelMask() const;
@@ -81,14 +92,22 @@ public:
        bit0 vertex colors present, bit1 indexed specular into diffuse,
        bit2 indexed specular into specular, bit3 indexed alpha, bits4/5
        indexed ST0/ST1, bit6 per-vertex material table. channels_04 is the
-       shader's channel-disable mask; color_kind_10 selects the ARGB/vector3/
-       vector4 copyIndexed source for colors_0c. */
+       shader's channel-disable mask; color_source_0c.kind_04 selects the
+       ARGB/vector3/vector4 copyIndexed source for color_source_0c.colors_00. */
     struct Record {
         unsigned long flags_00;
         unsigned long channels_04;
         srMaterialIFace* material_08;
-        const void* colors_0c;
-        unsigned long color_kind_10;
+        /* The colors/kind pair is a member object: copyDiffuseColors is a
+           member call (retail loads ECX = record+0xc at the call site). */
+        struct ColorSource {
+            const void* colors_00;
+            unsigned long kind_04;
+
+            void copyDiffuseColors(srVector4T<float>* destination,
+                                   const unsigned long* indices, unsigned long count) const;
+        };
+        ColorSource color_source_0c;
         const srVector4T<float>* specular_source_14;
         const srVector4T<float>* specular_source_18;
         const float* alpha_source_1c;

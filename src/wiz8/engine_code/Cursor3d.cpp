@@ -147,7 +147,7 @@ void InitializeWorldCursor(void)
             gp3DCursor->light_24->ambient_198.Set(0.0f, 0.0f, 0.0f);
             gp3DCursor->light_24->diffuse_1a4.Set(1.0f, 1.0f, 1.0f);
             gp3DCursor->light_24->specular_1b0.Set(0.0f, 0.0f, 0.0f);
-            gp3DCursor->light_24->setLocation(0.0, 1000.0, 0.0);
+            gp3DCursor->light_24->setLocation(1000.0, 0.0, 0.0);
             if (gp3DCursor->particle_04 != 0) {
                 material = SR_NEW(srMaterial);
                 colour.Set(0.0f, 0.0f, 0.0f, 1.0f);

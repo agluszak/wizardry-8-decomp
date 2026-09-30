@@ -49,16 +49,14 @@ public:
 
     /* Pushed as the literal at 0x00606E48 wherever the registry chain runs,
        never called through SR.DLL's import table, so this level's name is
-       header-visible unlike srNode's and srIlluminator's. The provider still
-       exports its own copy from light.cpp. */
-#if defined(SURRENDER_BUILD)
-    static const char* sGetClassName();
-#else
+       header-visible unlike srNode's and srIlluminator's. Provider TUs
+       inline the literal inside the srClassSupport registrations; the
+       provider still exports an out-of-line copy. */
+    // FUNCTION: SURRENDER 0x1004E8F0
     static const char* sGetClassName()
     {
         return "srLight";
     }
-#endif
 
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
 

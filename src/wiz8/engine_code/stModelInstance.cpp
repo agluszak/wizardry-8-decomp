@@ -26,7 +26,7 @@ extern float g_light_scale_0060bfe0;
 /* Scratch vertex store shared by every highlight shell submission; grown
    on demand and kept between frames. */
 // GLOBAL: WIZ8 0x0065A148
-srHeapArray<srVector3T<float> >* g_vertex_scratch;
+srHeapBuffer<srVector3T<float> >* g_vertex_scratch;
 
 // VTABLE: WIZ8 0x005ec89c srClassSupport<srModelInstance, class srNode, 0, 4352>
 // VTABLE: WIZ8 0x005ec88c srModel::Client
@@ -129,7 +129,7 @@ int stModelInstance::AddDamageStage(const char* name)
     }
 
     int stage = damage_stage_tables_188.capacity;
-    damage_stage_tables_188.setCapacity(stage + 1);
+    damage_stage_tables_188.setCapacity(stage + 1, 1);
 
     int base_table = stage > 0 ? damage_stage_tables_188.data[0] : -1;
     damage_stage_tables_188.data[stage] = mesh->CreateSkinTable(name, base_table);
@@ -150,7 +150,7 @@ int stModelInstance::AddExistingDamageStage(const char* name)
     }
 
     int stage = damage_stage_tables_188.capacity;
-    damage_stage_tables_188.setCapacity(stage + 1);
+    damage_stage_tables_188.setCapacity(stage + 1, 1);
     damage_stage_tables_188.data[stage] = table;
     return stage;
 }
@@ -787,22 +787,13 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     ((mesh.textures_90[0][0] != 0) &&
                      (_strnicmp("blank", mesh.textures_90[0][0]->getName(), 5) != 0))) {
                     if (g_vertex_scratch == 0) {
-                        g_vertex_scratch = new srHeapArray<srVector3T<float> >;
+                        g_vertex_scratch = new srHeapBuffer<srVector3T<float> >;
                     }
                     /* Retail expresses the scratch grow as vertex_count*3
                        floats but stores it as the vec3 element capacity. */
                     unsigned long needed = mesh.vertex_count_00 * 3 * sizeof(float);
-                    if (g_vertex_scratch->capacity < needed &&
-                        g_vertex_scratch->capacity != needed) {
-                        if (needed == 0) {
-                            g_vertex_scratch->release();
-                        } else {
-                            srVector3T<float>* replacement =
-                                srHeapArray<srVector3T<float> >::allocate(needed);
-                            g_vertex_scratch->release();
-                            g_vertex_scratch->data = replacement;
-                            g_vertex_scratch->capacity = needed;
-                        }
+                    if (g_vertex_scratch->capacity < needed) {
+                        g_vertex_scratch->setCapacity(needed, 0);
                     }
 
                     const srVector3T<float>* poly_normals = 0;

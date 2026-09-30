@@ -1,3 +1,4 @@
+#include <ostream>
 #include <string.h>
 
 #include "surrender/srStatisticsManager.h"

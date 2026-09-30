@@ -97,8 +97,8 @@ public:
     /* Slot 1 / complete destructor at 0x004752F0. */
     virtual ~srTriMeshPipeline();
 
-    srHeapArray<srVertexProcessor*> vertex_processors_04;
-    srHeapArray<unsigned long> culler_scratch_0c;
+    srHeapBuffer<srVertexProcessor*> vertex_processors_04;
+    srHeapBuffer<unsigned long> culler_scratch_0c;
     Record* current_record_14;
     Pass* current_pass_18;
     unsigned long triangle_count_1c;

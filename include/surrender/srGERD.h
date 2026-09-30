@@ -172,7 +172,7 @@ public:
            pointers; reset() (0x10024620) always clears the count and only
            frees when asked. */
         struct IndexBatch {
-            srHeapArray<srVector3i> triangles_00;
+            srArray<srVector3i> triangles_00;
             srArray<unsigned long> texture_set_08;
             srArray<unsigned long> sort_key_10;
             srArray<unsigned long> aux_18;
@@ -191,10 +191,10 @@ public:
            +0x00/+0x08/+0x10 streams bind to diffuse/specular/eye locations
            in that order. */
         struct VertexArrays {
-            srHeapArray<srVector4T<float> > diffuse_00;
-            srHeapArray<srVector4T<float> > specular_08;
-            srHeapArray<srVector4T<float> > positions_10;
-            srHeapArray<srVector2T<float> > st_18[2];
+            srArray<srVector4T<float> > diffuse_00;
+            srArray<srVector4T<float> > specular_08;
+            srArray<srVector4T<float> > positions_10;
+            srArray<srVector2T<float> > st_18[2];
             srArray<float> q_28[2];
             srArray<unsigned char> packed_38;
             /* isBatchFull compares this signed against batch_limit_dc_. */
@@ -254,7 +254,7 @@ public:
         void resetStatistics();
         void getStatistics(unsigned long* statistics);
 
-        /* The checked-free srHeapBuffer family, not srHeapArray: ~Renderer
+        /* The checked-free srHeapBuffer family, not srArray: ~Renderer
            null-checks before freeing these streams. bytes_00_ grows by 1-byte
            elements, dwords_08_ and remap_10_ by 4-byte elements (the ensure
            emissions at 0x100271D0/0x10027280 multiply by the element size). */

@@ -35,12 +35,12 @@ def test_template_records_are_excluded_from_ghidra_class_binding(monkeypatch) ->
     monkeypatch.setattr(
         tgp,
         "_thiscall_owning_classes",
-        lambda *_args: {"W8WorldCursorState": 1, "srHeapArray<unsigned long>": 1},
+        lambda *_args: {"W8WorldCursorState": 1, "srHeapBuffer<unsigned long>": 1},
     )
     source_data = {
         "classes": [
             {"qualified_name": "W8WorldCursorState", "asserted_size": 224, "target": "WIZ8"},
-            {"qualified_name": "srHeapArray<unsigned long>", "asserted_size": 8, "target": "WIZ8"},
+            {"qualified_name": "srHeapBuffer<unsigned long>", "asserted_size": 8, "target": "WIZ8"},
         ]
     }
     assert _selected_identities(source_data, Path(), "WIZ8") == ["W8WorldCursorState"]

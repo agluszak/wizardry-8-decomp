@@ -5236,12 +5236,15 @@ void W8PathingService::BuildSearchVisualization()
     srVector3T<float>* vertices = model->getVertexLoc();
     model->getActivePolygonTable(1);
     srVector3i* polygons = model->getPolyVertex();
-    unsigned int node_count = search_node_count_0cc;
+    /* 0x0045D3BD tests this bound signed even though search_node_count_0cc is
+       stored unsigned. */
+    int node_count = search_node_count_0cc;
 
     if (node_count > 2000) {
         node_count = 2000;
     }
-    for (unsigned int node_index = 1; node_index < node_count; ++node_index) {
+    /* 0x0045D3AD decrements the bound and 0x0045D3BF tests it signed. */
+    for (int node_index = 1; node_index < node_count; ++node_index) {
         W8PathSearchNode* node = &m_owned_0c8[node_index];
         unsigned int vertex_index = 500 + (node_index - 1) * 5;
         unsigned int polygon_index = 600 + (node_index - 1) * 4;
@@ -5286,8 +5289,10 @@ void W8PathingService::BuildSearchVisualization()
     }
 
     unsigned long* active_polygons = model->getActivePolygonTable(1);
-    unsigned long active_count = node_count > 1 ? (node_count - 1) * 4 : 0;
-    for (unsigned long index = 0; index < active_count; ++index) {
+    /* 0x0045D3BF tests this bound with JLE after computing it as
+       4 * (node_count - 1), so it is a signed count and not an unsigned one. */
+    long active_count = node_count > 1 ? (node_count - 1) * 4 : 0;
+    for (long index = 0; index < active_count; ++index) {
         active_polygons[index] = index + 600;
     }
     model->setActivePolygonCount(active_count);

@@ -23,8 +23,15 @@ public:
     class SR_DLL_EXPORT Quantizer {
     public:
         Quantizer();
+        /* Inline in the exported class: updateQuantizer (0x10004240) carries
+           the body at its new-expression while the standalone copy is still
+           exported. */
+        // FUNCTION: SURRENDER 0x10004B40
         Quantizer(srARGB* colors, long color_count, unsigned char* duplicates,
-                  unsigned char red_bits, unsigned char green_bits, unsigned char blue_bits);
+                  unsigned char red_bits, unsigned char green_bits, unsigned char blue_bits)
+        {
+            setPalette(colors, color_count, duplicates, red_bits, green_bits, blue_bits);
+        }
         Quantizer(const Quantizer& other);
         ~Quantizer();
 

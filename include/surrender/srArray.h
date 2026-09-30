@@ -1,18 +1,34 @@
 #pragma once
 
+/* The delete[] paths need the throw() operator delete <new> declares; without
+   it every owner destructor gains an unwind state retail does not have. */
+#include <new>
+
 #include "srHeap.h"
 
 /* SurRender's ordinary two-word growable-array boundary. Repeated
    instantiations prove the {data, capacity} layout, indexed growth rule,
    element construction, assignment, and teardown. `srArray` is a provisional
    spelling because the closed SDK's identifier did not survive; the primary
-   template and its operations are compiler- and retail-proved. */
+   template and its operations are compiler- and retail-proved.
+
+   Storage goes through new T[] and delete[], so the element type chooses the
+   allocator. Scalar and pointer elements use the CRT; the vector value
+   classes declare operator new[]/delete[] on srHeap, so the renderer's vertex
+   and triangle streams and Wiz8's transformed-vertex arrays are this same
+   template on the SurRender heap. Their emissions differ from the scalar ones
+   only by the heap calls and the new[] result select a non-POD element adds
+   (srArray<srVector4T<float> >::setCapacity 0x10027390 against
+   srArray<float>::setCapacity 0x100274E0; the vec2 constructor 0x10027CD0 is
+   byte-identical to srArray<float>'s at 0x10027CE0). */
 template <class T> class srArray {
 public:
     // TEMPLATE: SURRENDER 0x10027CE0
     // srArray<float>::srArray
     // TEMPLATE: SURRENDER 0x100569A0
     // srArray<srNode::TraverseInfo::Entry>::srArray
+    // TEMPLATE: SURRENDER 0x10027CD0
+    // srArray<srVector2T<float> >::srArray
     inline srArray() : data(0), capacity(0) {}
 
     /* The reserve form retail emits out of line for the srGERD::Renderer
@@ -23,6 +39,8 @@ public:
     // srArray<unsigned char>::srArray
     // TEMPLATE: SURRENDER 0x10027090
     // srArray<unsigned long>::srArray
+    // TEMPLATE: SURRENDER 0x10026E00
+    // srArray<srVector4T<float> >::srArray
     inline explicit srArray(unsigned long reserve_capacity) : data(0), capacity(0)
     {
         if (reserve_capacity != 0) {
@@ -46,6 +64,8 @@ public:
        element constructor, matching retail. */
     // TEMPLATE: SURRENDER 0x10038120
     // srArray<srModeler::Triangle>::reserve
+    // TEMPLATE: SURRENDER 0x10027330
+    // srArray<srVector4T<float> >::reserve
     void reserve(unsigned long count);
 
     /* Retail's canonical emissions (srArray<srNode*>::setCapacity at
@@ -57,6 +77,8 @@ public:
     // srArray<float>::~srArray
     // TEMPLATE: SURRENDER 0x10012C60
     // srArray<srConfig::Entry*>::~srArray<srConfig::Entry*>
+    // TEMPLATE: SURRENDER 0x10026EA0
+    // srArray<srVector2T<float> >::~srArray
     inline ~srArray()
     {
         release();
@@ -80,6 +102,10 @@ public:
     // srArray<srHuffman::Sampler::Symbol>::release
     // TEMPLATE: SURRENDER 0x10004080
     // srArray<char*>::release
+    // TEMPLATE: SURRENDER 0x10026E50
+    // srArray<srVector4T<float> >::release
+    // TEMPLATE: SURRENDER 0x10026EC0
+    // srArray<srVector2T<float> >::release
     inline void release()
     {
         delete[] data;
@@ -129,6 +155,12 @@ public:
     // srArray<srNode::TraverseInfo::Entry>::setCapacity
     // TEMPLATE: SURRENDER 0x10012EA0
     // srArray<srConfig::Entry*>::setCapacity
+    // TEMPLATE: SURRENDER 0x10027390
+    // srArray<srVector4T<float> >::setCapacity
+    // TEMPLATE: SURRENDER 0x10027440
+    // srArray<srVector2T<float> >::setCapacity
+    // TEMPLATE: SURRENDER 0x100275B0
+    // srArray<srVector3i>::setCapacity
     void setCapacity(unsigned long new_capacity);
 
     // TEMPLATE: SURRENDER 0x10026F50
@@ -137,13 +169,13 @@ public:
     // srArray<unsigned long>::operator[]
     // TEMPLATE: SURRENDER 0x10044E30
     // srArray<srTriMeshPipeline::Record>::operator[]
-    inline T& operator[](unsigned long index)
-    {
-        if (index >= capacity) {
-            setCapacity(capacity + 8 + index);
-        }
-        return data[index];
-    }
+    // TEMPLATE: SURRENDER 0x10026E70
+    // srArray<srVector4T<float> >::operator[]
+    // TEMPLATE: SURRENDER 0x10026EE0
+    // srArray<srVector2T<float> >::operator[]
+    // TEMPLATE: SURRENDER 0x10027060
+    // srArray<srVector3i>::operator[]
+    T& operator[](unsigned long index);
 
     T* data;
     unsigned long capacity;
@@ -162,7 +194,7 @@ template <class T> void srArray<T>::reserve(unsigned long count)
     }
 }
 
-template <class T> void srArray<T>::setCapacity(unsigned long new_capacity)
+template <class T> inline void srArray<T>::setCapacity(unsigned long new_capacity)
 {
     if (capacity != new_capacity) {
         T* replacement = 0;
@@ -184,198 +216,32 @@ template <class T> void srArray<T>::setCapacity(unsigned long new_capacity)
     }
 }
 
-/* The separately proved srHeap-backed family has both preserving exact-size
-   storage and a scratch-buffer operation that discards old contents when it
-   grows. `srHeapArray` is a provisional spelling, not a per-element wrapper or
-   specialization. Its constructor invokes ensure(0); retail retains that call
-   even for an empty request. */
-template <class T> class srHeapArray {
-public:
-    // TEMPLATE: SURRENDER 0x10027CD0
-    // srHeapArray<srVector2T<float> >::srHeapArray
-    inline srHeapArray() : data(0), capacity(0)
-    {
-        ensure(0);
+/* Out of line: the renderer calls it even for element 0 (drawImmediate,
+   expandTriangles), while srArray<unsigned long>::operator[] (0x10027120)
+   carries setCapacity expanded inside it. */
+template <class T> T& srArray<T>::operator[](unsigned long index)
+{
+    if (index >= capacity) {
+        setCapacity(capacity + 8 + index);
     }
+    return data[index];
+}
 
-    /* The reserve form retail emits out of line for the srGERD::Renderer
-       vertex streams (srHeapArray<srVector4T<float>> at 0x10026E00):
-       conditional exact-size storage through reserve(), never the scaled
-       ensure or preserving setCapacity. */
-    // TEMPLATE: SURRENDER 0x10026E00
-    // srHeapArray<srVector4T<float> >::srHeapArray
-    inline explicit srHeapArray(unsigned long reserve_count) : data(0), capacity(0)
-    {
-        if (reserve_count != 0) {
-            reserve(reserve_count);
-        }
-    }
-
-    /* Free-then-allocate exact storage without preserving contents; the
-       reserve constructor reaches it (retail 0x10027330 for the vec4
-       stream). */
-    // TEMPLATE: SURRENDER 0x10027330
-    // srHeapArray<srVector4T<float> >::reserve
-    inline void reserve(unsigned long count)
-    {
-        release();
-        if (count > 0) {
-            capacity = count;
-            data = allocate(count);
-        }
-    }
-
-    // TEMPLATE: SURRENDER 0x10026EA0
-    // srHeapArray<srVector2T<float> >::~srHeapArray
-    inline ~srHeapArray()
-    {
-        release();
-    }
-
-    /* The canonical emission at 0x004701D0 frees unconditionally; srHeap.free
-       accepts a null pointer. */
-    // TEMPLATE: SURRENDER 0x10026E50
-    // srHeapArray<srVector4T<float> >::release
-    // TEMPLATE: SURRENDER 0x10026EC0
-    // srHeapArray<srVector2T<float> >::release
-    inline void release()
-    {
-        srHeap.free(data);
-        data = 0;
-        capacity = 0;
-    }
-
-    static inline T* allocate(unsigned long count)
-    {
-        return static_cast<T*>(srHeap.allocate(count * sizeof(T)));
-    }
-
-    inline srHeapArray& operator=(const srHeapArray& other)
-    {
-        if (this != &other) {
-            release();
-            if (other.capacity != 0) {
-                setCapacity(other.capacity);
-                for (unsigned long index = 0; index < capacity; ++index) {
-                    data[index] = other.data[index];
-                }
-            }
-        }
-        return *this;
-    }
-
-    /* The preserving single-argument grow `operator[]` reaches; retail emits
-       it out of line at 0x004700D0 for the automap scratch array and inlines
-       the same shape at 0x00580C76: it allocates raw storage through
-       srHeap.allocate like release() and the other members, then the old
-       storage is released unconditionally — no element construction. */
-    // TEMPLATE: SURRENDER 0x10027390
-    // srHeapArray<srVector4T<float> >::setCapacity
-    // TEMPLATE: SURRENDER 0x10027440
-    // srHeapArray<srVector2T<float> >::setCapacity
-    // TEMPLATE: SURRENDER 0x100275B0
-    // srHeapArray<srVector3i>::setCapacity
-    inline void setCapacity(unsigned long new_capacity)
-    {
-        if (capacity != new_capacity) {
-            T* replacement = 0;
-            if (new_capacity > 0) {
-                replacement = allocate(new_capacity);
-                if (data != 0 && capacity > 0) {
-                    unsigned long copy_count = capacity;
-                    if (copy_count >= new_capacity) {
-                        copy_count = new_capacity;
-                    }
-                    for (unsigned long index = 0; index < copy_count; ++index) {
-                        replacement[index] = data[index];
-                    }
-                }
-            }
-            release();
-            data = replacement;
-            capacity = new_capacity;
-        }
-    }
-
-    /* `preserve` copies the overlapping prefix of the old contents into the
-       new storage; callers that refill the whole array pass 0. Retail's
-       GetVertexLights inlines this overload (0x0047211A): it allocates raw
-       storage and null-checks the old buffer before freeing, so the new
-       elements are never constructed here. */
-    inline void setCapacity(unsigned long new_capacity, int preserve)
-    {
-        if (capacity != new_capacity) {
-            if (new_capacity > 0) {
-                T* replacement = allocate(new_capacity);
-                if (data != 0 && capacity > 0 && preserve) {
-                    unsigned long copy_count = capacity;
-                    if (copy_count >= new_capacity) {
-                        copy_count = new_capacity;
-                    }
-                    for (unsigned long index = 0; index < copy_count; ++index) {
-                        replacement[index] = data[index];
-                    }
-                }
-                if (data != 0) {
-                    srHeap.free(data);
-                }
-                data = replacement;
-                capacity = new_capacity;
-            } else {
-                release();
-            }
-        }
-    }
-
-    inline T* ensure(unsigned long needed)
-    {
-        T* result = data;
-        if (needed > capacity) {
-            if (result != 0) {
-                srHeap.free(result);
-            }
-            data = 0;
-            capacity = 0;
-
-            if (needed != 0) {
-                needed = static_cast<unsigned long>((needed + 4) * 1.1);
-            }
-            capacity = needed;
-            if (needed > 0) {
-                data = static_cast<T*>(srHeap.allocate(needed * sizeof(T)));
-            }
-            result = data;
-        }
-        return result;
-    }
-
-    /* Lazy indexed access grows by eight slots like srArray's. */
-    // TEMPLATE: SURRENDER 0x10026E70
-    // srHeapArray<srVector4T<float> >::operator[]
-    // TEMPLATE: SURRENDER 0x10026EE0
-    // srHeapArray<srVector2T<float> >::operator[]
-    // TEMPLATE: SURRENDER 0x10027060
-    // srHeapArray<srVector3i>::operator[]
-    inline T& operator[](unsigned long index)
-    {
-        if (index >= capacity) {
-            setCapacity(capacity + 8 + index);
-        }
-        return data[index];
-    }
-
-    T* data;
-    unsigned long capacity;
-};
-
-/* The Renderer's scratch buffers share the {data, capacity} pair, srHeap
-   storage and the 1.1-slack ensure grow, but teardown null-checks the
-   pointer: ~Renderer inlines `if (data != 0) srHeap.free(data); {0,0}` for
-   the byte, dword and stq streams while the vertex streams use srHeapArray's
-   unconditional release, and the eharray destructor at 0x10027300 emits the
-   same check. `srHeapBuffer` is a provisional spelling like its siblings. */
+/* Raw SurRender-heap storage: allocate and free are srHeap calls on bytes,
+   no element is constructed, and teardown tests the pointer before freeing.
+   This is the scratch and cache family - the Renderer's byte, dword and stq
+   streams, the pipeline's vertex-processor and culler lists, stMeshModel's
+   per-vertex light tables and Wiz8's damage-stage and TGA buffers - as
+   against srArray, whose element type picks the allocator. Every release
+   emission is the checked form (0x100271A0, 0x10027250, 0x1002C860 and
+   0x1001EF80 in sr.dll; 0x004741B0 in Wiz8, which is also the element
+   destructor stMeshModel's constructor hands the eh-vector constructor for
+   its two light tables). `srHeapBuffer` is a provisional spelling. */
 template <class T> class srHeapBuffer {
 public:
+    /* The constructor runs ensure(0). srGERD::Renderer::Renderer keeps the
+       call for its byte and dword streams (0x10024929, 0x1002493B); the
+       TexCoordQ emission expands it to nothing. */
     // TEMPLATE: SURRENDER 0x10024AD0
     // srHeapBuffer<srGERD::Renderer::TexCoordQ>::srHeapBuffer
     inline srHeapBuffer() : data(0), capacity(0)
@@ -390,8 +256,6 @@ public:
         release();
     }
 
-    /* Unlike srHeapArray::release this tests the pointer first, matching the
-       checked-free teardowns ~Renderer and Renderer::reset emit inline. */
     inline void release()
     {
         if (data != 0) {
@@ -412,9 +276,8 @@ public:
         return static_cast<T*>(srHeap.allocate(count * sizeof(T)));
     }
 
-    /* The same scaled grow srHeapArray::ensure emits, routed through the
-       checked release (retail 0x100271D0 for unsigned char, 0x10027280 for
-       unsigned long). */
+    /* Scratch grow: discard the old contents and allocate with 1.1 slack
+       (retail 0x100271D0 for unsigned char, 0x10027280 for unsigned long). */
     // TEMPLATE: SURRENDER 0x100271D0
     // srHeapBuffer<unsigned char>::ensure
     // TEMPLATE: SURRENDER 0x10027280
@@ -436,9 +299,39 @@ public:
         return result;
     }
 
+    /* Exact-size grow. `preserve` copies the overlapping prefix of the old
+       contents; callers that refill the whole array pass 0. Retail emits it
+       out of line for stMeshModel's light tables (0x004744A0 for srVector3T,
+       0x00474650 for float), GetVertexLights inlines it (0x0047211A), and
+       stModelInstance::AddDamageStage (0x00480560) inlines it for the int
+       damage-stage table with preserve folded to 1, there calling the checked
+       release 0x004741B0 where the other emissions expand it. */
+    inline void setCapacity(unsigned long new_capacity, int preserve)
+    {
+        if (capacity != new_capacity) {
+            if (new_capacity > 0) {
+                T* replacement = allocate(new_capacity);
+                if (data != 0 && capacity > 0 && preserve) {
+                    unsigned long copy_count = capacity;
+                    if (copy_count >= new_capacity) {
+                        copy_count = new_capacity;
+                    }
+                    for (unsigned long index = 0; index < copy_count; ++index) {
+                        replacement[index] = data[index];
+                    }
+                }
+                release();
+                data = replacement;
+                capacity = new_capacity;
+            } else {
+                release();
+            }
+        }
+    }
+
     T* data;
     unsigned long capacity;
 };
 
 static_assert(sizeof(srArray<unsigned long>) == 0x08, "srArray_must_be_0x08");
-static_assert(sizeof(srHeapArray<unsigned long>) == 0x08, "srHeapArray_must_be_0x08");
+static_assert(sizeof(srHeapBuffer<unsigned long>) == 0x08, "srHeapBuffer_must_be_0x08");

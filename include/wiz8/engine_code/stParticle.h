@@ -15,7 +15,9 @@ public:
     {
         return "stParticle";
     }
-    stParticle(srNode* parent, unsigned int count); /* 0x00497AF0 */
+    /* 0x00497C57 compares count signed, while particle_count_180 is stored and
+       compared unsigned, so the parameter is not the member's type. */
+    stParticle(srNode* parent, int count); /* 0x00497AF0 */
     stParticle(const stParticle& other);            /* 0x00498180 */
     void SetActive(unsigned char active);
     void SetTraversalEnabled(unsigned char enabled);

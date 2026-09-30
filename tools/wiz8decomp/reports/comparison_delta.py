@@ -3,12 +3,20 @@
 from __future__ import annotations
 
 import json
+import re
 import statistics
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
 _ANALYZED = frozenset({"differences", "no-differences"})
+
+# Callee names Ghidriff records for each side, import thunks included
+# ("SR.DLL::srHeap::free", "operator_new", "__3_YAXPAX_Z").
+_SRHEAP_ALLOCATOR = re.compile(r"srHeap(?:::|_+)(?:allocate|free)|_(?:allocate|free)_srHeap")
+_CRT_ALLOCATOR = re.compile(
+    r"(?:^|::)operator_?(?:new|delete)|^_+[23]_YA|\?\?[23]@|(?:^|::)_?(?:malloc|free)$"
+)
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -36,6 +44,79 @@ def _similarities(summary: dict[str, Any], ghidriff: dict[str, Any]) -> list[flo
             return None
         similarities.append(ratios[pair])
     return similarities
+
+
+def _allocator_families(called: list[str]) -> list[str]:
+    families = set()
+    for name in called:
+        if _SRHEAP_ALLOCATOR.search(name):
+            families.add("srHeap")
+        elif _CRT_ALLOCATOR.search(name):
+            families.add("crt")
+    return sorted(families)
+
+
+def allocator_disagreements(ghidriff: dict[str, Any]) -> dict[int, dict[str, Any]]:
+    """Paired functions whose two sides call different allocator families.
+
+    A container that allocates through one heap and frees through another
+    corrupts it, and the rebuilt side shows it as a callee change: retail calls
+    srHeap::allocate where the rebuild calls operator new, or the reverse.
+    A side that calls no allocator at all usually reached one through a helper
+    the other side inlined, so only functions where both sides allocate are
+    compared. Keyed by retail address; the facts are Ghidriff's own callee
+    lists.
+    """
+    result = {}
+    for function in ghidriff["functions"]["modified"]:
+        retail = _allocator_families(function["old"].get("called") or [])
+        rebuild = _allocator_families(function["new"].get("called") or [])
+        if retail and rebuild and retail != rebuild:
+            address = int(function["old"]["address"], 16)
+            result[address] = {
+                "orig": f"{address:#x}",
+                "name": function["old"]["name"],
+                "retail": retail,
+                "rebuild": rebuild,
+            }
+    return result
+
+
+def header_blast_radius(
+    head: dict[str, Any], base: dict[str, Any], dependents: dict[str, set[str]]
+) -> list[dict[str, Any]]:
+    """Clean-to-differing transitions grouped by the changed header they depend on.
+
+    `dependents` maps each changed header to the repository-relative source
+    files whose markers it can affect (its dependent translation units and the
+    header itself). A function counts under every changed header it depends on.
+    """
+    previous = {int(row["orig"], 16): row for row in base.get("functions", ())}
+    regressed = []
+    for row in head.get("functions", ()):
+        before = previous.get(int(row["orig"], 16))
+        if (
+            before is not None
+            and before.get("outcome") == "no-differences"
+            and row.get("outcome") == "differences"
+            and row.get("source")
+        ):
+            regressed.append(row)
+    groups = []
+    for header, files in sorted(dependents.items()):
+        members = [row for row in regressed if row["source"]["path"] in files]
+        if members:
+            groups.append(
+                {
+                    "header": header,
+                    "newly_different": len(members),
+                    "representatives": [
+                        {"orig": row["orig"], "name": row["name"]} for row in members[:10]
+                    ],
+                }
+            )
+    groups.sort(key=lambda group: (-group["newly_different"], group["header"]))
+    return groups
 
 
 def comparison_metrics(summary: dict[str, Any], ghidriff: dict[str, Any]) -> dict[str, Any]:
@@ -159,6 +240,7 @@ def pr_comparison_report(
     base_ghidriff_path: Path | None = None,
     head_datacmp_path: Path | None = None,
     base_datacmp_path: Path | None = None,
+    header_dependents: dict[str, set[str]] | None = None,
 ) -> dict[str, Any]:
     head_project = _project_metrics(_read_json(head_status_path), target)
     base_project = _project_metrics(_read_json(base_status_path), target)
@@ -208,12 +290,27 @@ def pr_comparison_report(
     if head_summary.get("target") != target or base_summary.get("target") != target:
         raise ValueError("comparison summary target does not match requested target")
 
-    head_metrics = comparison_metrics(head_summary, _read_json(head_ghidriff_path))
-    base_metrics = comparison_metrics(base_summary, _read_json(base_ghidriff_path))
+    head_ghidriff = _read_json(head_ghidriff_path)
+    base_ghidriff = _read_json(base_ghidriff_path)
+    head_metrics = comparison_metrics(head_summary, head_ghidriff)
+    base_metrics = comparison_metrics(base_summary, base_ghidriff)
+    head_allocators = allocator_disagreements(head_ghidriff)
+    base_allocators = allocator_disagreements(base_ghidriff)
     report["comparison"] = {
         "head": head_metrics,
         "base": base_metrics,
         "delta": _metric_delta(head_metrics, base_metrics),
         "transitions": _transitions(head_summary, base_summary),
+        "allocator_families": {
+            "head": len(head_allocators),
+            "base": len(base_allocators),
+            "new": [
+                head_allocators[address]
+                for address in sorted(head_allocators.keys() - base_allocators.keys())
+            ],
+        },
+        "header_blast_radius": header_blast_radius(head_summary, base_summary, header_dependents)
+        if header_dependents is not None
+        else None,
     }
     return report

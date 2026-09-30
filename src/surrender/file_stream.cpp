@@ -11,6 +11,7 @@
 #include "surrender/srSystem.h"
 #include "surrender/srVectorProcessor.h"
 
+#include <ostream>
 #include <share.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -574,8 +575,8 @@ void srBinFStream::mopen(const char* path, e_mode mode, int search_paths)
             char extension[_MAX_EXT];
             srSystem::splitPath(path, drive, directory, filename, extension);
             char full_name[_MAX_PATH];
-            strncpy(full_name, directory, _MAX_PATH);
-            strncat(full_name, filename, _MAX_PATH);
+            strncpy(full_name, directory, _MAX_DIR);
+            strncat(full_name, filename, _MAX_FNAME);
             srFileManager* manager = srCore.getFileManager();
             for (srFileManager::Path* search = manager->getFirstPath(); search != 0;
                  search = search->getNext()) {

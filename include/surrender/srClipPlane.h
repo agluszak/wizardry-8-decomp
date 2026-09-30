@@ -32,17 +32,15 @@ public:
 
     srClipPlane& operator=(const srClipPlane& other);
 
-#if defined(SURRENDER_BUILD)
-    static const char* sGetClassName();
-#else
     /* Header-visible like srFog's and srCamera's: the consumer import table
-       has no entry, so the client emission returns the literal directly. The
-       provider still exports its own copy from clipplane.cpp. */
+       has no entry, so the client emission returns the literal directly, and
+       provider TUs inline the same literal inside the srClassSupport
+       registrations. The provider still exports an out-of-line copy. */
+    // FUNCTION: SURRENDER 0x1004A150
     static const char* sGetClassName()
     {
         return "srClipPlane";
     }
-#endif
 
     virtual void dump(std::ostream& stream) override;
     virtual ~srClipPlane() override;

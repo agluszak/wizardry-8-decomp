@@ -165,8 +165,10 @@ void ResetMessageStorage(void)
                 record->entries_18 = PLCreate();
             } else {
                 W8PList* entries = record->entries_18;
-                unsigned int count = PLLength(entries);
-                unsigned int entry;
+                /* 0x0058FF14 tests the entry count signed and 0x0058FF2A
+                   compares the index signed. */
+                int count = PLLength(entries);
+                int entry;
                 for (entry = 0; entry < count; ++entry) {
                     free(PLGet(entries, entry));
                 }

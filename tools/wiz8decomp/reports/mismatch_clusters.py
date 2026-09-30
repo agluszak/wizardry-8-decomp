@@ -29,6 +29,10 @@ _CALL = re.compile(r"\b([A-Za-z_$][\w$:]*)\s*\(")
 _TYPES = re.compile(
     r"\b(?:undefined[1248]?|u?int|u?short|u?long|char|byte|bool|float|double|void|signed|unsigned)\b"
 )
+# A data identity is a link-time table or vtable address. Ghidra prints the
+# store as `target = &NAME;`, so the right-hand side is a single symbol.
+_IDENTITY_STORE = re.compile(r"^&([A-Za-z_$][\w$]*(?:::[A-Za-z_$][\w$]*)*)$")
+_IDENTITY_NAME = re.compile(r"vftable|vtable|^PTR_|^DAT_|^PAIRED_DATA_|table", re.IGNORECASE)
 _SIGNALS = {
     "exception-frame": r"ExceptionList|unwind|try_level|EH_|catch|exception",
     "lifecycle": r"vftable|vtable|~|destructor|constructor|scalar_deleting",
@@ -125,6 +129,101 @@ def text_fingerprints(old: list[str], new: list[str]) -> set[tuple[str, str, str
     return result
 
 
+def identity_store_deltas(old: list[str], new: list[str]) -> set[tuple[str, str, str]]:
+    """Table/vtable addresses stored on one side's changed lines only.
+
+    A construction-phase or companion table the other side never installs is a
+    class-model or layout disagreement, not a text difference. Each image names
+    its own tables, so a store the other side makes at the same point in the same
+    order under a different name is reported as `renamed` and a store with no
+    counterpart position as `missing`. The report records which; it does not
+    decide which name or count is correct.
+    """
+
+    def stored(lines: list[str]) -> list[str]:
+        found: list[str] = []
+        for line in lines:
+            _, separator, right = line.partition("=")
+            if not separator:
+                continue
+            match = _IDENTITY_STORE.match(right.strip().rstrip(";").strip())
+            if match and _IDENTITY_NAME.search(match.group(1)):
+                found.append(match.group(1))
+        return found
+
+    left, right = stored(old), stored(new)
+    result = set()
+    for side, own, other in (("retail", left, right), ("rebuild", right, left)):
+        for index, name in enumerate(own):
+            if name in other:
+                continue
+            result.add((side, name, "renamed" if index < len(other) else "missing"))
+    return result
+
+
+_INFERRED_SIGNATURE_SOURCES = frozenset({"ANALYSIS", "DEFAULT"})
+
+
+def _signature_inferred(callee: dict) -> str | None:
+    """Which side of a callee width disagreement is only Ghidra's inference.
+
+    Ghidra derives a callee's return storage and parameter widths from the code
+    it decompiled, and the two images do not render the same source the same
+    way: a `bool` function whose returns are `return 0;` and `return 1;` can come
+    out `AL:1` on one side and `EAX:4` on the other without either binary
+    disagreeing. Where either side's private signature carries `ANALYSIS` or
+    `DEFAULT` provenance the width is the decompiler's, not a declaration, and
+    the report says which side so the observation is not read as an ABI defect.
+
+    `GetItemSpell` and `W8PathingService::TestWaypointSpan` are the two read by
+    hand: both retail epilogues are `XOR EAX,EAX` followed by `MOV AL,...` or
+    `SETZ AL`, so both return one byte and our declared `int` and `unsigned
+    char` are correct.
+    """
+    sides = []
+    for side in ("orig", "recomp"):
+        source = callee["private_comparison"][side].get("signature_source")
+        if source in _INFERRED_SIGNATURE_SOURCES:
+            sides.append(f"{side}:{source}")
+    return ",".join(sides) or None
+
+
+def _unresolved_call_shape(delta: dict) -> str:
+    """How a call delta with an unpaired callee still differs, from reccmp's own opcodes.
+
+    `call_delta` files any function with an unpaired callee under
+    `unresolved-target` and returns before it can say which side has the extra
+    call, because a callee missing from the manifest may be ICF'd away or simply
+    not paired yet, and a delta across one is not trustworthy. That is the
+    right call for the delta, but it leaves the category content-free: a
+    function whose only interesting difference is one call lands in the same
+    bucket as one with no difference at all.
+
+    So this reads the removed and added call counts straight out of the opcodes
+    reccmp already computed and does not re-derive the classification. It is a
+    triage order over a population the category deliberately refuses to judge,
+    not a second opinion about whether the delta is real.
+    """
+    deltas = delta.get("deltas") or []
+    if not deltas:
+        return "unresolved-no-call-delta"
+    removed = sum(len(entry["retail"]) for entry in deltas)
+    added = sum(len(entry["rebuild"]) for entry in deltas)
+    if added == 0:
+        return "unresolved-retail-only-calls"
+    if removed == 0:
+        return "unresolved-rebuild-only-calls"
+    return "unresolved-calls-both-sides"
+
+
+def _census_row(calls: dict[int, dict], address: int) -> dict | None:
+    """The call-census row for a function, or None when either side is unresolved."""
+    row = calls.get(address)
+    if row is None or any(row.get(side, {}).get("calls") is None for side in ("orig", "recomp")):
+        return None
+    return row
+
+
 def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
     from ..source_index import warn_if_source_index_may_be_stale
 
@@ -211,6 +310,7 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
     groups: dict[tuple, set[int]] = defaultdict(set)
     rows = {}
     categories = Counter()
+    unresolved_shapes = Counter()
     for function in summary["functions"]:
         if function["outcome"] != "differences":
             continue
@@ -221,11 +321,11 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
             name for name, pattern in _SIGNALS.items() if re.search(pattern, text, re.IGNORECASE)
         }
         shape = broad_shape(old, new)
+        call_row = _census_row(calls, address)
         for key in field_callers.get(address, []):
             groups[key].add(address)
             signals.add("field-width" if key[4] and key[5] else "field-offset")
         for identity in signature_callers.get(address, []):
-            signals.add("signature-abi")
             observation = signature_observations[identity]
             groups[
                 (
@@ -234,35 +334,40 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
                     tuple(observation["private_discrepancies"]),
                 )
             ].add(address)
+            inferred = _signature_inferred(observation)
+            if inferred:
+                signals.add(f"signature-inferred-{inferred.replace(':', '-')}")
+            else:
+                signals.add("signature-abi")
+        if any(re.match(r"^[\w *]+\([^;]*\)$", line) for line in old + new):
+            # A changed line that reads as a declaration. This matches casts and
+            # locals as readily as signatures, so it is recorded on its own
+            # signal rather than counted as a callee-signature fact.
+            signals.add("declaration-shaped-line")
         if shape in {"generated names only", "declarations only"}:
             signals.add("representation")
         if function["data"]:
             signals.add("referenced-data")
             for finding in function["data"]:
                 groups[("referenced-data", json.dumps(finding, sort_keys=True))].add(address)
-        if any(re.match(r"^[\w *]+\([^;]*\)$", line) for line in old + new):
-            signals.add("signature-abi")
         if len(old) + len(new) > 100:
             signals.add("large-structural")
         if old != new and Counter(old) == Counter(new):
             signals.add("statement-order")
         delta = None
-        observation = calls.get(address)
-        if observation and all(
-            observation[side]["calls"] is not None for side in ("orig", "recomp")
-        ):
-            delta = call_delta(observation["orig"]["calls"], observation["recomp"]["calls"])
+        if call_row is not None:
+            delta = call_delta(call_row["orig"]["calls"], call_row["recomp"]["calls"])
             categories[delta["category"]] += 1
+            if delta["category"] == "unresolved-target":
+                unresolved_shapes[_unresolved_call_shape(delta)] += 1
             if delta["deltas"]:
                 signals.add("call-target")
             elif shape == "calls differ":
                 signals.add("call-arguments")
             delta["helper_expansion_candidates"] = []
             for helper_side, expanded_side in (("orig", "recomp"), ("recomp", "orig")):
-                helper_sequence = [call["identity"] for call in observation[helper_side]["calls"]]
-                expanded_sequence = [
-                    call["identity"] for call in observation[expanded_side]["calls"]
-                ]
+                helper_sequence = [call["identity"] for call in call_row[helper_side]["calls"]]
+                expanded_sequence = [call["identity"] for call in call_row[expanded_side]["calls"]]
                 for position, identity in enumerate(helper_sequence):
                     body = target_bodies.get((helper_side, identity))
                     if body is None or not body["calls"]:
@@ -273,8 +378,16 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
                         helper_sequence[:position] + body_sequence + helper_sequence[position + 1 :]
                         == expanded_sequence
                     ):
+                        # The helper identity belongs in the key: one shared
+                        # body sequence otherwise groups unrelated helpers that
+                        # happen to call the same callees in the same order.
                         groups[
-                            ("helper-direct-call-expansion", helper_side, tuple(body_sequence))
+                            (
+                                "helper-direct-call-expansion",
+                                helper_side,
+                                identity,
+                                tuple(body_sequence),
+                            )
                         ].add(address)
                         delta["helper_expansion_candidates"].append(
                             {
@@ -292,6 +405,9 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
             categories["unavailable-sequence"] += 1
         for fingerprint in text_fingerprints(old, new):
             groups[fingerprint].add(address)
+        for side, identity, shape in identity_store_deltas(old, new):
+            signals.add("data-identity")
+            groups[("one-sided-identity-store", side, shape, identity)].add(address)
         rows[address] = {
             **function,
             "marker_kinds": sorted(markers.get(address, {"unknown"})),
@@ -299,7 +415,7 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
             "historical_bucket": historical.get(address),
             "signals": sorted(signals),
             "call_delta": delta,
-            "call_observation": observation,
+            "call_observation": call_row,
             "source_signature": source_signatures.get(address),
             "recomp_decorated_symbol": symbols.get(address),
             "callee_signature_observations": signature_callers.get(address, []),
@@ -312,6 +428,16 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
             continue
         covered.update(addresses)
         members = [rows[address] for address in sorted(addresses)]
+        if key[0] == "direct-call-delta":
+            callees = {
+                identity: callee_names.get(identity) for delta in key[1:] for identity in delta
+            }
+        elif key[0] == "callee-signature-observation":
+            callees = {key[1]: callee_names.get(key[1])}
+        elif key[0] == "helper-direct-call-expansion":
+            callees = {key[2]: callee_names.get(key[2])}
+        else:
+            callees = {}
         clusters.append(
             {
                 "key": list(key),
@@ -320,16 +446,7 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
                 if key[0] == "callee-signature-observation"
                 else None,
                 "field_observation": field_observations.get(key),
-                "callees": {
-                    identity: callee_names.get(identity)
-                    for delta in key[1:]
-                    if isinstance(delta, tuple)
-                    for identity in delta
-                }
-                if key[0] == "direct-call-delta"
-                else {key[1]: callee_names.get(key[1])}
-                if key[0] == "callee-signature-observation"
-                else {},
+                "callees": callees,
                 "representatives": [row["orig"] for row in members[:5]],
                 "source_files": sorted({row["source"]["path"] for row in members if row["source"]}),
                 "owners": sorted(
@@ -362,9 +479,36 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
             cluster["key"][0] == "field-access-observation" for cluster in clusters
         ),
         "call_categories": dict(categories),
+        # `unresolved-target` is one bucket for every function with an unpaired
+        # callee, which hides which side has the extra call. These counts say so
+        # without re-deciding whether the delta is trustworthy.
+        "unresolved_call_shapes": dict(unresolved_shapes),
+        "one_sided_identity_stores": sum(
+            cluster["key"][0] == "one-sided-identity-store" for cluster in clusters
+        ),
         "helper_expansion_candidates": sum(
             bool(row["call_delta"] and row["call_delta"].get("helper_expansion_candidates"))
             for row in rows.values()
+        ),
+        "callee_signature_observations": sum(
+            any(name.startswith("signature-inferred-") for name in row["signals"])
+            or "signature-abi" in row["signals"]
+            for row in rows.values()
+        ),
+        "callee_signature_observations_from_inference": sum(
+            any(name.startswith("signature-inferred-") for name in row["signals"])
+            for row in rows.values()
+        ),
+        "functions_with_a_declaration_shaped_changed_line": sum(
+            "declaration-shaped-line" in row["signals"] for row in rows.values()
+        ),
+        "signature_inference_sides": dict(
+            Counter(
+                name
+                for row in rows.values()
+                for name in row["signals"]
+                if name.startswith("signature-inferred-")
+            )
         ),
         "broad_shapes": dict(Counter(row["broad_shape"] for row in rows.values())),
     }

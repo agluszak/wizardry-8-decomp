@@ -4,6 +4,8 @@
 #include "surrender/srGERD.h"
 #include "surrender/srPixelConvert.h"
 
+#include <ostream>
+
 // GLOBAL: SURRENDER 0x100A4A20
 // Lazy e_flag names, "GENERATESURFACE_FAILURE,DIRTY_DEFAULTS"
 static const char* s_flag_names_100a4a20;

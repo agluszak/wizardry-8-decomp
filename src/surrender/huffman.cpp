@@ -556,12 +556,12 @@ static void* copyMemory(void* destination, const void* source, long size)
 /* srHashTable<unsigned long,int>::Grow — called out of line from AllocateEntry
    inside insert's inlined Insert. */
 // TEMPLATE: SURRENDER 0x10002BA0
-// srHashTable<unsigned long,int>::Grow
+// srHashTableBase<unsigned long,int>::Grow
 
 /* srHashTable<unsigned long,Compressor::Node*>::Grow — called out of line from
    AllocateEntry inside setupPath's inlined Insert. */
 // TEMPLATE: SURRENDER 0x10002CF0
-// srHashTable<unsigned long,srHuffman::Compressor::Node*>::Grow
+// srHashTableBase<unsigned long,srHuffman::Compressor::Node*>::Grow
 
 // SYNTHETIC: SURRENDER 0x10002B40
 // member pointer-pair destructor emission (EH unwind)
