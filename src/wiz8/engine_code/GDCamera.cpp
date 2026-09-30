@@ -166,8 +166,6 @@ void OffsetPositionByYawPitch(float distance, srVector3T<float>* position, float
 // FUNCTION: WIZ8 0x00476140
 GDCamera::GDCamera()
 {
-    srVector3T<float> temporary;
-    srVector3T<float> final_temporary;
     srMatrix3T<float>* first_matrix = &m_pitch_rotation;
     srMatrix3T<float>* second_matrix = &m_yaw_rotation;
     float pitch;
@@ -189,10 +187,7 @@ GDCamera::GDCamera()
     }
     m_pitch = pitch;
 
-    temporary.Set(1.0f, 0.0f, 0.0f);
-    first_matrix->vectors[0] = temporary;
-    first_matrix->vectors[1] = *temporary.Set(0.0, 1.0, 0.0);
-    first_matrix->vectors[2] = *temporary.Set(0.0, 0.0, 1.0);
+    first_matrix->SetIdentity();
     if (pitch != g_zero_005ebb40) {
         first_matrix->RotateAboutX(sin(pitch), cos(pitch));
     }
@@ -207,9 +202,7 @@ GDCamera::GDCamera()
     }
     m_yaw = angle;
 
-    second_matrix->vectors[0] = *temporary.Set(1.0, 0.0, 0.0);
-    second_matrix->vectors[1] = *temporary.Set(0.0, 1.0, 0.0);
-    second_matrix->vectors[2] = *final_temporary.Set(0.0, 0.0, 1.0);
+    second_matrix->SetIdentity();
     if (angle != g_zero_005ebb40) {
         second_matrix->RotateAboutY(sin(angle), cos(angle));
     }

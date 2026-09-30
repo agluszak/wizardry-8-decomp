@@ -3215,9 +3215,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                         origin = source->point;
                         direction = target->point - origin;
                         direction.SetLength(1.0);
-                        local_90.vectors[0] = *axis.Set(1.0, 0.0, 0.0);
-                        local_90.vectors[1] = *axis.Set(0.0, 1.0, 0.0);
-                        local_90.vectors[2] = *axis.Set(0.0, 0.0, 1.0);
+                        local_90.SetIdentity();
                         yaw = atan2(direction.x, direction.z);
                         local_90.RotateAboutY(yaw);
                         direction = local_90.TransformTransposed(direction);

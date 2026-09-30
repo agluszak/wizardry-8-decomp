@@ -3317,13 +3317,11 @@ void SetMainGameMode(int mode)
                          g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
                          g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
         if (g_level_block->dialogue_y_224 <
-                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top) &&
-            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-            g_level_block->redraw_flags |= 0x100;
+                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
+            RequestRedraw(0x100);
         }
-        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
-            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-            g_level_block->redraw_flags |= 0x800;
+        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
+            RequestRedraw(0x800);
         }
         break;
     }
@@ -3480,9 +3478,7 @@ update_screen:
                 MonsterForward453160();
                 ResetLevelDataVectors();
             }
-            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block) {
-                g_level_block->redraw_flags |= 0x8000;
-            }
+            RequestRedraw(0x8000);
         }
         if (!ProcessDialogInput(g_modal_owner)) {
             ClearActiveRegionIfMatches(0x138);
@@ -3493,9 +3489,7 @@ update_screen:
                 g_pending_main_game_dialog->m_dirty_flags |= 1;
                 g_pending_main_game_dialog = 0;
             }
-            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block) {
-                g_level_block->redraw_flags |= 0x8000;
-            }
+            RequestRedraw(0x8000);
             ResumeMainGameWorld();
         }
     }
@@ -3892,13 +3886,11 @@ void OnLeaveGameConfirmClosed(W8DialogBase* dialog)
                          g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
                          g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
         if (g_level_block->dialogue_y_224 <
-                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top) &&
-            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-            g_level_block->redraw_flags |= 0x100;
+                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
+            RequestRedraw(0x100);
         }
-        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
-            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-            g_level_block->redraw_flags |= 0x800;
+        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
+            RequestRedraw(0x800);
         }
         break;
     }
@@ -3981,9 +3973,8 @@ void ApplyMainGameRedrawFlags(void)
         RefreshCombatEffectHud();
         RequestRedraw(0x8000);
         for (party_slot = 0; party_slot < 8; ++party_slot) {
-            if (g_level_block->portrait_refresh_pending[party_slot] != 0 &&
-                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-                g_level_block->redraw_flags |= 1U << (party_slot & 0x1f);
+            if (g_level_block->portrait_refresh_pending[party_slot] != 0) {
+                RequestRedraw(1U << (party_slot & 0x1f));
             }
         }
     }
@@ -4345,9 +4336,7 @@ void RefreshTrackedPortraitOverlay(void)
     }
 }
 
-/* Two callers of that with a fixed bit each, written out rather than
-   forwarding - which is what shows the mask is a compile-time constant at
-   every one of its callers. */
+/* Request the party portion of the main-game redraw. */
 // FUNCTION: WIZ8 0x00565420
 void RequestRedrawParty(void)
 {
@@ -6082,7 +6071,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 (region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 g_level_block->portrait_overlay_party_slot = slot;
                 if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-                    g_level_block->redraw_flags |= 0x8000;
+                    RequestRedraw(0x8000);
                     return 1;
                 }
             }
@@ -6109,14 +6098,14 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                         g_main_game_mode = 0;
                         return 1;
                     }
-                    g_level_block->redraw_flags |= 0x8000;
+                    RequestRedraw(0x8000);
                     if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
                         return 1;
                     }
                     if (g_level_block == 0) {
                         return 1;
                     }
-                    g_level_block->redraw_flags |= 0xff;
+                    RequestRedraw(0xff);
                 } else if (IsNpcDialogueCursorActive() == 0) {
                     if (targeting != 0) {
                         if (aim_ok != 0) {
@@ -6169,9 +6158,9 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 }
             }
             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-                g_level_block->redraw_flags |= 1 << (slot & 0x1f);
+                RequestRedraw(1 << (slot & 0x1f));
                 if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-                    g_level_block->redraw_flags |= 0x200000;
+                    RequestRedraw(0x200000);
                     return 1;
                 }
             }
@@ -6317,10 +6306,10 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     g_level_block->portrait_overlay_party_slot = -1;
                     DismissHighlightOverlay();
                     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-                        g_level_block->redraw_flags |= 0x8000;
+                        RequestRedraw(0x8000);
                         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                             g_level_block != 0) {
-                            g_level_block->redraw_flags |= 0xff;
+                            RequestRedraw(0xff);
                             return 0;
                         }
                     }
@@ -6432,7 +6421,7 @@ unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event, W8Region* 
                             g_level_block->condition_orb_party_slot = slot;
                             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                                 g_level_block != 0) {
-                                g_level_block->redraw_flags |= 0x8000;
+                                RequestRedraw(0x8000);
                             }
                         }
                         EnableRegionHelpFlag(region);
@@ -6517,7 +6506,7 @@ unsigned char PortraitEnchantmentOrbRegionEvent(const InputAtom* event, W8Region
                             g_level_block->enchantment_orb_party_slot = slot;
                             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                                 g_level_block != 0) {
-                                g_level_block->redraw_flags |= 0x8000;
+                                RequestRedraw(0x8000);
                             }
                         }
                         EnableRegionHelpFlag(region);
@@ -6580,9 +6569,8 @@ unsigned char PortraitAssaySidebarRegionEvent(const InputAtom* event, W8Region* 
         g_level_block->portrait_assay_hover_mode = 3;
     }
 
-    if (previous_mode != g_level_block->portrait_assay_hover_mode &&
-        g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-        g_level_block->redraw_flags |= 1 << (slot & 0x1f);
+    if (previous_mode != g_level_block->portrait_assay_hover_mode) {
+        RequestRedraw(1 << (slot & 0x1f));
     }
 
     us_event = event->usEvent;
@@ -6845,13 +6833,11 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
                                  0);
                 if (g_level_block->dialogue_y_224 <
                         static_cast<unsigned int>(
-                            g_viewport_modes[g_level_block->camera_mode_100].top) &&
-                    g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-                    g_level_block->redraw_flags |= 0x100;
+                            g_viewport_modes[g_level_block->camera_mode_100].top)) {
+                    RequestRedraw(0x100);
                 }
-                if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
-                    g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-                    g_level_block->redraw_flags |= 0x800;
+                if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
+                    RequestRedraw(0x800);
                 }
             }
         open_automap:
@@ -7474,8 +7460,7 @@ void ApplyPendingTooltip(void)
     }
     if (g_level_block->formation_highlight_party_slot != -1) {
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-            g_level_block->redraw_flags |=
-                1u << (g_level_block->formation_highlight_party_slot & 0x1f);
+            RequestRedraw(1u << (g_level_block->formation_highlight_party_slot & 0x1f));
         }
         g_level_block->formation_highlight_party_slot = -1;
         refresh_formation = true;
@@ -8486,13 +8471,11 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, unsigned char flag
                          g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
                          g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224, 0);
         if (g_level_block->dialogue_y_224 <
-                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top) &&
-            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-            g_level_block->redraw_flags |= 0x100;
+                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
+            RequestRedraw(0x100);
         }
-        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
-            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-            g_level_block->redraw_flags |= 0x800;
+        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
+            RequestRedraw(0x800);
         }
     }
 done:
@@ -8612,13 +8595,11 @@ void ClearHighlightOverlayRegion(void)
                          g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
                          g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
         if (g_level_block->dialogue_y_224 <
-                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top) &&
-            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-            g_level_block->redraw_flags |= 0x100;
+                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
+            RequestRedraw(0x100);
         }
-        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
-            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-            g_level_block->redraw_flags |= 0x800;
+        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
+            RequestRedraw(0x800);
         }
     }
 }
@@ -9391,13 +9372,11 @@ void ResetMainGameMode(void)
                          g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
                          g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224, 0);
         if (g_level_block->dialogue_y_224 <
-                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top) &&
-            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-            g_level_block->redraw_flags |= 0x100;
+                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
+            RequestRedraw(0x100);
         }
-        if (0x166 < g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224 &&
-            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-            g_level_block->redraw_flags |= 0x800;
+        if (0x166 < g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224) {
+            RequestRedraw(0x800);
         }
         break;
     }

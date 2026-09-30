@@ -526,6 +526,7 @@ def compare_selected(
             functions.append({"orig": f"0x{address:08x}", "outcome": "missing"})
 
     counts = Counter(row["outcome"] for row in functions)
+    retries = [row for row in functions if row.get("inline_callees")]
     output = report_directory(repository, target).resolve()
     return {
         "ok": counts["analysis-failed"] == 0 and counts["unpaired"] == 0 and counts["missing"] == 0,
@@ -533,6 +534,14 @@ def compare_selected(
         "counts": {
             outcome: counts[outcome]
             for outcome in (*_OUTCOMES, "header-emission", "template-non-emission", "missing")
+        },
+        "inlining": {
+            "retried": len(retries),
+            "normal_no_differences": sum(row.get("normal_diff") == [] for row in retries),
+            "normalized_no_differences": sum(
+                row.get("inline_normalized_diff") == [] for row in retries
+            ),
+            "analysis_failed": sum(row["outcome"] == "analysis-failed" for row in retries),
         },
         "report": {
             "summary": str((output / "summary.json").relative_to(repository))

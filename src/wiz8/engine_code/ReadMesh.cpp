@@ -41,36 +41,22 @@ void ReadMeshTransform(int file, srVector3T<float>* location, srMatrix3T<float>*
                        srVector3T<float>* scale)
 {
     float angle;
-    float axis_x;
-    float axis_y;
-    float axis_z;
+    srVector3T<float> axis;
 
-    FileRead(file, location, sizeof(*location), 0);
+    FileRead(file, &location->x, sizeof(location->x), 0);
+    FileRead(file, &location->y, sizeof(location->y), 0);
+    FileRead(file, &location->z, sizeof(location->z), 0);
     FileRead(file, &angle, sizeof(angle), 0);
-    FileRead(file, &axis_x, sizeof(axis_x), 0);
-    FileRead(file, &axis_y, sizeof(axis_y), 0);
-    FileRead(file, &axis_z, sizeof(axis_z), 0);
+    FileRead(file, &axis.x, sizeof(axis.x), 0);
+    FileRead(file, &axis.y, sizeof(axis.y), 0);
+    FileRead(file, &axis.z, sizeof(axis.z), 0);
 
     rotation->SetIdentity();
-    if (angle != 0.0f) {
-        const float cosine = cos(angle);
-        const float sine = sin(angle);
-        const float one_minus_cosine = 1.0f - cosine;
-        srMatrix3T<float> axis_rotation;
+    rotation->RotateAroundAxis(angle, axis);
 
-        axis_rotation.vectors[0].x = axis_x * axis_x + (1.0f - axis_x * axis_x) * cosine;
-        axis_rotation.vectors[0].y = axis_y * axis_x * one_minus_cosine - axis_z * sine;
-        axis_rotation.vectors[0].z = axis_z * axis_x * one_minus_cosine + axis_y * sine;
-        axis_rotation.vectors[1].x = axis_z * axis_x * one_minus_cosine + axis_y * sine;
-        axis_rotation.vectors[1].y = axis_y * axis_y + (1.0f - axis_y * axis_y) * cosine;
-        axis_rotation.vectors[1].z = axis_z * axis_y * one_minus_cosine - axis_x * sine;
-        axis_rotation.vectors[2].x = axis_x * axis_z * one_minus_cosine - axis_y * sine;
-        axis_rotation.vectors[2].y = axis_y * axis_z * one_minus_cosine + axis_x * sine;
-        axis_rotation.vectors[2].z = axis_z * axis_z + (1.0f - axis_z * axis_z) * cosine;
-        rotation->MultiplyBy(axis_rotation);
-    }
-
-    FileRead(file, scale, sizeof(*scale), 0);
+    FileRead(file, &scale->x, sizeof(scale->x), 0);
+    FileRead(file, &scale->y, sizeof(scale->y), 0);
+    FileRead(file, &scale->z, sizeof(scale->z), 0);
 }
 
 /* The material reader retains its three parallel result tables together with

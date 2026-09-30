@@ -196,7 +196,6 @@ float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int
     W8Prop* prop;
     srVector3T<float> direction;
     srVector3T<float> position;
-    srVector3T<float> basis;
     srMatrix3T<float> rotation;
     float advance;
     float pitch;
@@ -237,13 +236,7 @@ float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int
                 pitch = GetElevationAngle(&representation->location_004, out);
                 yaw = GetHeadingAngle(&representation->location_004, out);
                 missile = record->missile_0c;
-                rotation.vectors[0].x = 1.0f;
-                rotation.vectors[0].y = 0.0f;
-                rotation.vectors[0].z = 0.0f;
-                basis.Set(0.0, 1.0, 0.0);
-                rotation.vectors[1] = basis;
-                basis.Set(0.0, 0.0, 1.0);
-                rotation.vectors[2] = basis;
+                rotation.SetIdentity();
                 if (yaw != 0.0) {
                     rotation.RotateAboutY(sin(yaw), cos(yaw));
                 }

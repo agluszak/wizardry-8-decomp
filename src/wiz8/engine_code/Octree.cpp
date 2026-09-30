@@ -1226,23 +1226,11 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
         for (int direction = 0; direction < samples; ++direction) {
             float angle = direction * view_1c0.horizontal_fov_30;
             srMatrix3T<float> frame;
-            frame.vectors[0].x = 1.0f;
-            frame.vectors[0].y = 0.0f;
-            frame.vectors[0].z = 0.0f;
-            frame.vectors[1].Set(0.0, 1.0, 0.0);
-            frame.vectors[2].Set(0.0, 0.0, 1.0);
+            frame.SetIdentity();
             if (angle != g_zero_005ebb40) {
                 frame.RotateAboutY(sin(angle), cos(angle));
             }
-            srVector3T<float> tilt_first;
-            srVector3T<float> tilt_second;
-            srVector3T<float> tilt_third;
-            tilt_third.Set(0.0, sin_tilt, cos_tilt);
-            tilt_second.Set(0.0, cos_tilt, -sin_tilt);
-            tilt_first.Set(1.0, 0.0, 0.0);
-            srMatrix3T<float> tilt;
-            tilt.SetRows(tilt_first, tilt_second, tilt_third);
-            frame.MultiplyBy(tilt);
+            frame.RotateAboutX(sin_tilt, cos_tilt);
             world->camera->setRotation(frame);
             view_1c0.rotation_column_18.x = frame.vectors[0].x;
             srVector3T<float> unit;

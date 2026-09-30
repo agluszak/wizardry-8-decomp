@@ -485,33 +485,12 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, unsigne
         ring = 1;
     }
 
-    rotation.vectors[0].x = 1.0f;
-    rotation.vectors[0].y = 0.0f;
-    rotation.vectors[1].x = 0.0f;
-    rotation.vectors[1].y = 1.0f;
-    rotation.vectors[2].x = 0.0f;
-    rotation.vectors[2].y = 0.0f;
+    rotation.SetIdentity();
     double angle = g_double_005eecd8 * g_float_005ebcf8 * (0x168 - g_status.party_facing);
-    rotation.vectors[0].z = 0.0f;
-    rotation.vectors[1].z = 0.0f;
-    rotation.vectors[2].z = 1.0f;
     if (angle != g_zero_005ebb40) {
-        srVector3T<float> first;
-        srVector3T<float> second;
-        srVector3T<float> third;
-        srMatrix3T<float> heading;
-        float cosine = (float)cos(angle);
-        float sine;
-
-        third.y = 0.0f;
-        second.x = 0.0f;
-        second.y = 1.0f;
-        second.z = 0.0f;
-        sine = (float)sin(angle);
-        third.x = -sine;
-        third.z = cosine;
-        first.Set((double)cosine, 0.0, (double)sine);
-        rotation.MultiplyBy(*heading.SetRows(first, second, third));
+        float cosine = static_cast<float>(cos(angle));
+        float sine = static_cast<float>(sin(angle));
+        rotation.RotateAboutY(sine, cosine);
     }
 
     delta->Transform(rotation);

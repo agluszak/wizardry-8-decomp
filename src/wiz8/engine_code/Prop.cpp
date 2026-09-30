@@ -135,7 +135,7 @@ W8PropRepresentation::~W8PropRepresentation()
     for (index = 0; index < slots.count; ++index) {
         delete *slots.GetAt(index);
     }
-    slots.count = 0;
+    slots.Clear();
     if (animation != 0) {
         DestroyAnimObj(animation);
         animation = 0;

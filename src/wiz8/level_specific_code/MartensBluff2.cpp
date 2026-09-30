@@ -154,7 +154,6 @@ bool TriggerArrowTrap(Trigger* pTrigger)
     srVector3T<float> position;
     srVector3T<float> offset;
     srVector3T<float> direction;
-    srVector3T<float> row;
     srMatrix3T<float> rotation;
     float angle;
     W8Missile* missile;
@@ -165,12 +164,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
     effect.magnitude.sides = 6;
     if (FindEntityByName("Arrowlauncher1", &position, &angle, &direction)) {
         offset.Set(0.0, 0.0, 15000.0);
-        row.Set(1.0, 0.0, 0.0);
-        rotation.vectors[0] = row;
-        row.Set(0.0, 1.0, 0.0);
-        rotation.vectors[1] = row;
-        row.Set(0.0, 0.0, 1.0);
-        rotation.vectors[2] = row;
+        rotation.SetIdentity();
         if (angle != 0.0) {
             rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
         }
@@ -182,12 +176,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
     }
     if (FindEntityByName("Arrowlauncher2", &position, &angle, &direction)) {
         offset.Set(0.0, 0.0, 15000.0);
-        row.Set(1.0, 0.0, 0.0);
-        rotation.vectors[0] = row;
-        row.Set(0.0, 1.0, 0.0);
-        rotation.vectors[1] = row;
-        row.Set(0.0, 0.0, 1.0);
-        rotation.vectors[2] = row;
+        rotation.SetIdentity();
         if (angle != 0.0) {
             rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
         }
@@ -199,12 +188,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
     }
     if (FindEntityByName("Arrowlauncher3", &position, &angle, &direction)) {
         offset.Set(0.0, 0.0, 15000.0);
-        row.Set(1.0, 0.0, 0.0);
-        rotation.vectors[0] = row;
-        row.Set(0.0, 1.0, 0.0);
-        rotation.vectors[1] = row;
-        row.Set(0.0, 0.0, 1.0);
-        rotation.vectors[2] = row;
+        rotation.SetIdentity();
         if (angle != 0.0) {
             rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
         }
@@ -248,7 +232,6 @@ void MartensBluff2Spikeball(int command)
     srVector3T<float> position;
     srVector3T<float> offset;
     srVector3T<float> direction;
-    srVector3T<float> row;
     srMatrix3T<float> rotation;
     float angle;
     W8Missile* missile;
@@ -291,12 +274,7 @@ void MartensBluff2Spikeball(int command)
             effect.magnitude.sides = 6;
             if (FindEntityByName("Spikeball-launcher1", &position, &angle, &direction)) {
                 offset.Set(0.0, 0.0, 15000.0);
-                row.Set(1.0, 0.0, 0.0);
-                rotation.vectors[0] = row;
-                row.Set(0.0, 1.0, 0.0);
-                rotation.vectors[1] = row;
-                row.Set(0.0, 0.0, 1.0);
-                rotation.vectors[2] = row;
+                rotation.SetIdentity();
                 if (angle != 0.0) {
                     rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
                 }
@@ -308,12 +286,7 @@ void MartensBluff2Spikeball(int command)
             }
             if (FindEntityByName("Spikeball-launcher2", &position, &angle, &direction)) {
                 offset.Set(0.0, 0.0, 15000.0);
-                row.Set(1.0, 0.0, 0.0);
-                rotation.vectors[0] = row;
-                row.Set(0.0, 1.0, 0.0);
-                rotation.vectors[1] = row;
-                row.Set(0.0, 0.0, 1.0);
-                rotation.vectors[2] = row;
+                rotation.SetIdentity();
                 if (angle != 0.0) {
                     rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
                 }
@@ -325,12 +298,7 @@ void MartensBluff2Spikeball(int command)
             }
             if (FindEntityByName("Spikeball-launcher3", &position, &angle, &direction)) {
                 offset.Set(0.0, 0.0, 15000.0);
-                row.Set(1.0, 0.0, 0.0);
-                rotation.vectors[0] = row;
-                row.Set(0.0, 1.0, 0.0);
-                rotation.vectors[1] = row;
-                row.Set(0.0, 0.0, 1.0);
-                rotation.vectors[2] = row;
+                rotation.SetIdentity();
                 if (angle != 0.0) {
                     rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
                 }
@@ -342,12 +310,7 @@ void MartensBluff2Spikeball(int command)
             }
             if (FindEntityByName("Spikeball-launcher4", &position, &angle, &direction)) {
                 offset.Set(0.0, 0.0, 15000.0);
-                row.Set(1.0, 0.0, 0.0);
-                rotation.vectors[0] = row;
-                row.Set(0.0, 1.0, 0.0);
-                rotation.vectors[1] = row;
-                row.Set(0.0, 0.0, 1.0);
-                rotation.vectors[2] = row;
+                rotation.SetIdentity();
                 if (angle != 0.0) {
                     rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
                 }

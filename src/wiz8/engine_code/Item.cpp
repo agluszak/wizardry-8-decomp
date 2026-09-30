@@ -288,15 +288,7 @@ void W8Item::UpdateAnimation()
         m_pRep->GetRotation(&rotation);
         double cosine = cos(-0.1963495375);
         double sine = sin(-0.1963495375);
-        srVector3T<float> first;
-        srVector3T<float> second;
-        srVector3T<float> third;
-        first.Set(cosine, 0.0, sine);
-        second.Set(0.0, 1.0, 0.0);
-        third.Set(-sine, 0.0, cosine);
-        srMatrix3T<float> step;
-        step.SetRows(first, second, third);
-        rotation.MultiplyBy(step);
+        rotation.RotateAboutY(sine, cosine);
         srNode* mesh = rep->m_psrMesh;
         m_pRep->SetRotation004B88D0(&rotation);
         if (mesh->first_child_ == 0) {
@@ -374,15 +366,7 @@ void W8Item::SetYaw(float angle)
     if (yaw != 0.0) {
         double cosine = cos(yaw);
         double sine = sin(yaw);
-        srVector3T<float> first;
-        srVector3T<float> second;
-        srVector3T<float> third;
-        first.Set(cosine, 0.0, sine);
-        second.Set(0.0, 1.0, 0.0);
-        third.Set(-sine, 0.0, cosine);
-        srMatrix3T<float> step;
-        step.SetRows(first, second, third);
-        rotation.MultiplyBy(step);
+        rotation.RotateAboutY(sine, cosine);
     }
     srNode* mesh = static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
     m_pRep->SetRotation004B88D0(&rotation);

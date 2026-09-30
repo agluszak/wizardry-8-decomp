@@ -337,6 +337,7 @@ def test_compare_selected_runs_reccmp_for_the_selected_addresses(tmp_path, monke
     # Differences are review material, not failures.
     assert result["ok"] is True
     assert result["counts"]["differences"] == 1
+    assert result["inlining"]["retried"] == 0
     [row] = result["functions"]
     assert row["outcome"] == "differences"
     assert row["code_diff"]["lines"] == 2
@@ -358,6 +359,12 @@ def test_comparison_keeps_normal_and_inline_diff_artifacts(tmp_path, monkeypatch
     result = compare_selected(tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"))
     [row] = result["functions"]
     assert row["outcome"] == outcome
+    assert result["inlining"] == {
+        "retried": 1,
+        "normal_no_differences": 0,
+        "normalized_no_differences": int(not inline_diff),
+        "analysis_failed": 0,
+    }
     assert (tmp_path / row["normal_diff"]["artifact"]).read_text() == "".join(normal)
     if inline_diff:
         assert row["inline_normalized_diff"] == row["code_diff"]
@@ -365,6 +372,25 @@ def test_comparison_keeps_normal_and_inline_diff_artifacts(tmp_path, monkeypatch
     else:
         assert row["inline_normalized_diff"] == []
         assert "code_diff" not in row
+
+
+def test_inline_summary_keeps_failed_retry_distinct_from_clean(tmp_path, monkeypatch):
+    _products(tmp_path, monkeypatch)
+    raw = {
+        **_row(0x401000, "analysis-failed"),
+        "normal_diff": [],
+        "inline_normalized_diff": None,
+        "inline_callees": ["0x402000"],
+    }
+    _fake_reccmp(monkeypatch, [raw])
+    result = compare_selected(tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"))
+    assert result["ok"] is False
+    assert result["inlining"] == {
+        "retried": 1,
+        "normal_no_differences": 1,
+        "normalized_no_differences": 0,
+        "analysis_failed": 1,
+    }
 
 
 def test_focused_comparison_preserves_previous_report_and_diff(tmp_path, monkeypatch):

@@ -216,18 +216,9 @@ template <class T> T W8GrowableVector<T>::RemoveAt(int position)
 
 template <class T> void W8GrowableVector<T>::RemoveAtAndDelete(int position)
 {
-    int index;
-    T entry;
-
-    if (position < count && position >= 0) {
-        entry = data[position];
-        for (index = position; index < count - 1; ++index) {
-            data[index] = data[index + 1];
-        }
-        --count;
-        delete entry;
-    }
+    delete RemoveAt(position);
 }
+
 template <class T> unsigned char W8GrowableVector<T>::Remove(T entry)
 {
     int index = 0;
