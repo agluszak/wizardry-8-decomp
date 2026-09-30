@@ -110,6 +110,16 @@ public:
             srTextureIFace* texture0_00;
             srTextureIFace* texture1_04;
             srShader shader_08;
+
+            bool operator==(const TextureSetKey& other) const
+            {
+                return texture0_00 == other.texture0_00 && texture1_04 == other.texture1_04 &&
+                       shader_08.value == other.shader_08.value;
+            }
+            bool operator!=(const TextureSetKey& other) const
+            {
+                return !(*this == other);
+            }
         };
         struct TextureSet {
             srTextureIFace* texture0_00;

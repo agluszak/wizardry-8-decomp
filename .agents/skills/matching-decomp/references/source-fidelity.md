@@ -3,6 +3,32 @@
 These rules apply to Wizardry/SurRender source recovery. Read this reference before changing
 recovered source; compiler and comparison evidence never override its source-model constraints.
 
+## Special members, construction and inlining
+
+Prefer implicit compiler-generated copy constructors and assignments when retail is fully explained
+by ordinary base/member special-member operations in declaration order. Before recovering a
+handwritten copy constructor, attribute every call/store to the relevant subobject lifetime: a member
+copy constructor may itself default-construct and call assignment. Use initializer lists for actual
+base/member construction; body assignment requires an already-live object. Conflicting lifetime and
+declaration order calls for investigating the class model, not rearranging initializers. Do not
+duplicate lifecycle behavior supplied by bases/templates, including registration and cleanup. Preserve
+established shallow or unsafe copying; modern Rule-of-Three reasoning is not original-source evidence.
+See [type-modeling lifecycle guidance](../../type-modeling/SKILL.md#classes-and-lifecycle) for the
+subobject procedure and emission boundaries.
+
+Recover shared helpers/templates before reproducing their lowered bodies at callers. Inlining is a
+source/visibility claim: an expanded body alone does not prove `inline`; repeated expansions suggest
+a shared owner, and a standalone emission plus expanded uses is consistent with header-visible source.
+A call/inline disagreement does not justify `__forceinline`, `__declspec(noinline)`, `#pragma auto_inline`
+or optimizer pragmas. Investigate header/TU visibility, template ownership and source structure first;
+let VC6 choose unless independent evidence establishes stronger authored control. Existing pragma-based
+sites are not precedent. A complete record computed then copied should first suggest a typed value
+temporary and ordinary assignment, such as `Matrix result; ...; *this = result;`, rather than invented
+scalar scratch storage or field-by-field lowering. Distinct overloads remain distinct source functions;
+similar emitted bodies do not merge their symbol/call identities.
+
+## Other source-model constraints
+
 - **Reconstruct first; investigate remaining differences afterwards.** Recovery has two distinct
   phases. First recover the most plausible authored circa-2000 C++ and VC6 ABI: behavior, types,
   ownership, object layout, abstractions, source placement and header/TU visibility. During
@@ -119,4 +145,3 @@ recovered source; compiler and comparison evidence never override its source-mod
   pretending `STR8`/`char*` was original. Wizardry text declarations use `char*`/`wchar_t*`;
   the cast at an SGP call is the documented boundary.
 - Never use `unsigned char`/`UINT8` for a character merely because it is one byte.
-
