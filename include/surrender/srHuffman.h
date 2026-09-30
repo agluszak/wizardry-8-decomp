@@ -14,7 +14,7 @@
    Decompressor 0x51c.
 
    Retail exports every defined member of each nested class, including the
-   private helpers (AAE access codes) and Sampler's user-defined copy
+   private helpers (AAE access codes) and Sampler's implicit copy
    operations, so the classes are dllexport-ed when building the provider
    (the same convention as srDebugDD). Members whose bodies sit here are the
    ones Wiz8 never imports: compressSymbol is inlined by BitArray::Save, and
@@ -97,9 +97,7 @@ public:
         };
 
         SR_DLL_IMPORT Sampler();
-        SR_DLL_IMPORT Sampler(const Sampler& other);
         SR_DLL_IMPORT ~Sampler();
-        SR_DLL_IMPORT Sampler& operator=(const Sampler& other);
         SR_DLL_IMPORT void insert(unsigned long symbol);
         SR_DLL_IMPORT unsigned long getNumSymbols() const;
         SR_DLL_IMPORT unsigned long getSymbolValue(unsigned long index) const;

@@ -35,6 +35,7 @@ def actionable_diagnostics(stdout: str, stderr: str, *, limit: int = 20) -> list
     seen: set[str] = set()
     markers = (
         "error C",
+        "error LNK",
         "fatal error",
         " error:",
         "FAILED:",

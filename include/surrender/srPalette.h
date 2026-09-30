@@ -20,14 +20,13 @@ public:
        are evidenced by updateQuantizer (0x10004240) and the exported
        Quantizer methods. Two-level lookup: lut_rg[(g<<8)|r] selects a palette
        row, lut_rgb[(row<<8)|b] yields the index. */
-    class Quantizer {
+    class SR_DLL_EXPORT Quantizer {
     public:
         Quantizer();
         Quantizer(srARGB* colors, long color_count, unsigned char* duplicates,
                   unsigned char red_bits, unsigned char green_bits, unsigned char blue_bits);
         Quantizer(const Quantizer& other);
         ~Quantizer();
-        Quantizer& operator=(const Quantizer& other);
 
         void setPalette(srARGB* colors, long color_count, unsigned char* duplicates,
                         unsigned char red_bits, unsigned char green_bits, unsigned char blue_bits);
@@ -128,7 +127,7 @@ public:
        5-5-5 color space. Level arrays hold 8^level nodes for levels 0-4;
        level-4 children index the sparse 15-bit leaf-bucket map. Leaf bucket
        nodes own 0x10-byte Leaf records {color, weight, error}. */
-    class Optimizer {
+    class SR_DLL_EXPORT Optimizer {
     public:
         struct PaletteInfo {
             const Sampler::ColorEntry* colors; /* 0x00 */
@@ -138,8 +137,6 @@ public:
             const unsigned char* mask_flags;   /* 0x10 */
             long mask_count;                   /* 0x14 */
         };
-
-        Optimizer& operator=(const Optimizer& other);
 
         static srPalette* createOptimalPalette(const PaletteInfo& info);
 

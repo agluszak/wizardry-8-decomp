@@ -446,6 +446,27 @@ object extents and member offsets without source byte arrays. Retail lifecycle
 unwind frames in the core/node/model/material translation units establish `/GX`; their
 build settings must preserve member/base cleanup rather than compiling with `/GX-`.
 
+The Huffman sampler copy at `0x100014F0` completes its hash member before
+entering the array member's copy construction. The handwritten default-member
+construction followed by assignment gave that array a completed lifetime too
+early. Its existing primary `srArray` copy constructor supplies default
+initialization followed by assignment; the sampler's ordinary implicit copy
+uses that constructor in member order. Hash copying remains shallow while the
+array copies its storage. Do not repair the resulting shared hash ownership.
+Wiz8 imports the sampler's default constructor, destructor and `insert`, but
+does not statically import its copy constructor or assignment.
+
+The palette optimizer has only static operations and nested records. VC6 emits
+its ordinary empty-class assignment as the byte copy at `0x10004B90`; an empty
+handwritten assignment incorrectly omitted that compiler-owned operation.
+Quantizer assignment copies the established `0x21918`-byte member payload,
+including the raw `lut_row` pointer. The redundant leading-byte copies in
+palette sampler/quantizer lifecycle bodies do not establish another field,
+union or base. Their original helper/base structure remains unresolved. VC6
+class export alone does not emit the quantizer's trivial implicit copy
+constructor; retain its recovered constructor until a real source use or
+stronger member model explains that emission, rather than inventing a use.
+
 The retail `srVP_generic` table at `0x100776B0` establishes the vector4 indexed
 multiply slots: `+0x1C8` is linear-source multiplication and `+0x1CC` is the constant
 form. `srDebugVP` (`0x10077960`) forwards these through `0x1006F190` and
