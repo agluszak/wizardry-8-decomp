@@ -78,6 +78,8 @@ public:
 
 static_assert(sizeof(srPixelConvert::PixelFormat) == 0x14,
               "srPixelConvert_PixelFormat_must_be_0x14");
+static_assert(sizeof(srPixelConvert::ConversionInfo) == 0x14,
+              "srPixelConvert_ConversionInfo_must_be_0x14");
 
 /* Builds the conversion lookup tables (channel expansion/reduction ramps,
    dither cube, channel weights, decode/grayscale palettes) at library init. */

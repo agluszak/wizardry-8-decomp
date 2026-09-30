@@ -89,3 +89,4 @@ private:
 };
 
 static_assert((sizeof(srCamera) == 0x188), "srCamera_must_be_0x188");
+static_assert(sizeof(srCamera::Rect) == 0x20, "srCamera_Rect_must_be_0x20");

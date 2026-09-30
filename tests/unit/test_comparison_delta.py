@@ -14,6 +14,7 @@ from wiz8decomp.reports.comparison_delta import (
 def _row(address: int, outcome: str, *, code: bool = False, data: bool = False) -> dict:
     return {
         "orig": hex(address),
+        "recomp": hex(0x10000 + address),
         "outcome": outcome,
         "code_diff": ["-old", "+new"] if code else [],
         "data": [{"kind": "object-contents"}] if data else [],
@@ -29,6 +30,37 @@ def _summary(*rows: dict) -> dict:
     }
 
 
+def _ghidriff(*pairs: tuple[int, float]) -> dict:
+    return {
+        "functions": {
+            "modified": [
+                {
+                    "old": {"address": hex(address)},
+                    "new": {"address": hex(0x10000 + address)},
+                    "ratio": ratio,
+                }
+                for address, ratio in pairs
+            ]
+        }
+    }
+
+
+def test_missing_ratio_does_not_invent_clean_similarity() -> None:
+    summary = _summary(_row(1, "no-differences"), _row(2, "differences", code=True))
+    metrics = comparison_metrics(summary, _ghidriff((3, 0.9)))
+    assert metrics["average_similarity"] is None
+    assert metrics["median_similarity"] is None
+    assert metrics["clean"] == 1
+    assert metrics["code_differences"] == 1
+
+
+def test_duplicate_ratio_pairs_are_rejected() -> None:
+    with pytest.raises(ValueError, match="duplicate function pairs"):
+        comparison_metrics(
+            _summary(_row(1, "differences", code=True)), _ghidriff((1, 0.8), (1, 0.9))
+        )
+
+
 def test_comparison_metrics_use_ghidriff_ratio_and_exact_matches() -> None:
     summary = _summary(
         _row(1, "no-differences"),
@@ -36,13 +68,7 @@ def test_comparison_metrics_use_ghidriff_ratio_and_exact_matches() -> None:
         _row(3, "differences", data=True),
         _row(4, "unpaired"),
     )
-    markdown = """
-| Key | value |
-| --- | --- |
-| ratio | 0.80 |
-"""
-
-    metrics = comparison_metrics(summary, markdown)
+    metrics = comparison_metrics(summary, _ghidriff((2, 0.8)))
 
     assert metrics["analyzed"] == 3
     assert metrics["average_similarity"] == pytest.approx((1.0 + 0.8 + 1.0) / 3)
@@ -125,10 +151,10 @@ def test_pr_report_contains_project_and_comparison_deltas(tmp_path: Path) -> Non
         ),
         encoding="utf-8",
     )
-    head_md = tmp_path / "head.md"
-    base_md = tmp_path / "base.md"
-    head_md.write_text("| ratio | 0.90 |\n", encoding="utf-8")
-    base_md.write_text("| ratio | 0.80 |\n| ratio | 0.60 |\n", encoding="utf-8")
+    head_md = tmp_path / "head.json"
+    base_md = tmp_path / "base.json"
+    head_md.write_text(json.dumps(_ghidriff((2, 0.9))), encoding="utf-8")
+    base_md.write_text(json.dumps(_ghidriff((1, 0.8), (2, 0.6))), encoding="utf-8")
 
     report = pr_comparison_report(
         "WIZ8",

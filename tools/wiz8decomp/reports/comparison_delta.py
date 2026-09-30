@@ -3,44 +3,42 @@
 from __future__ import annotations
 
 import json
-import re
 import statistics
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
 _ANALYZED = frozenset({"differences", "no-differences"})
-_RATIO_ROW = re.compile(
-    r"^\|\s*ratio\s*\|\s*(?P<ratio>(?:0(?:\.\d+)?|1(?:\.0+)?))\s*\|\s*$",
-    re.MULTILINE,
-)
 
 
 def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _similarities(summary: dict[str, Any], ghidriff: str) -> list[float]:
-    """Ghidriff ratios for modified functions plus implicit 1.0 exact matches.
+def _similarities(summary: dict[str, Any], ghidriff: dict[str, Any]) -> list[float] | None:
+    """Read Ghidriff facts by exact pairs; missing facts leave aggregates unknown."""
+    ratios: dict[tuple[int, int], float] = {}
+    for function in ghidriff["functions"]["modified"]:
+        pair = (int(function["old"]["address"], 16), int(function["new"]["address"], 16))
+        if pair in ratios:
+            raise ValueError("Ghidriff report has duplicate function pairs")
+        ratios[pair] = float(function["ratio"])
 
-    reccmp filters the Ghidriff markdown to functions whose final outcome is
-    `differences`. Functions that analyze cleanly and data-only differences
-    therefore have code similarity 1.0.
-    """
-
-    analyzed = [row for row in summary.get("functions", ()) if row.get("outcome") in _ANALYZED]
-    ratios = [float(match.group("ratio")) for match in _RATIO_ROW.finditer(ghidriff)]
-    code_differences = sum(bool(row.get("code_diff")) for row in analyzed)
-    if len(ratios) < code_differences:
-        raise ValueError(
-            "Ghidriff report has fewer similarity rows than functions with code differences"
-        )
-    if len(ratios) > len(analyzed):
-        raise ValueError("Ghidriff report has more similarity rows than analyzed functions")
-    return ratios + [1.0] * (len(analyzed) - len(ratios))
+    similarities = []
+    for row in summary.get("functions", ()):
+        if row.get("outcome") not in _ANALYZED:
+            continue
+        if not row.get("code_diff"):
+            similarities.append(1.0)
+            continue
+        pair = (int(row["orig"], 16), int(row["recomp"], 16))
+        if pair not in ratios:
+            return None
+        similarities.append(ratios[pair])
+    return similarities
 
 
-def comparison_metrics(summary: dict[str, Any], ghidriff: str) -> dict[str, Any]:
+def comparison_metrics(summary: dict[str, Any], ghidriff: dict[str, Any]) -> dict[str, Any]:
     functions = list(summary.get("functions", ()))
     outcomes = Counter(str(row.get("outcome") or "") for row in functions)
     analyzed = outcomes["differences"] + outcomes["no-differences"]
@@ -210,12 +208,8 @@ def pr_comparison_report(
     if head_summary.get("target") != target or base_summary.get("target") != target:
         raise ValueError("comparison summary target does not match requested target")
 
-    head_metrics = comparison_metrics(
-        head_summary, head_ghidriff_path.read_text(encoding="utf-8", errors="replace")
-    )
-    base_metrics = comparison_metrics(
-        base_summary, base_ghidriff_path.read_text(encoding="utf-8", errors="replace")
-    )
+    head_metrics = comparison_metrics(head_summary, _read_json(head_ghidriff_path))
+    base_metrics = comparison_metrics(base_summary, _read_json(base_ghidriff_path))
     report["comparison"] = {
         "head": head_metrics,
         "base": base_metrics,

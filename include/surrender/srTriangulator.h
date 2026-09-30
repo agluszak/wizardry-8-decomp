@@ -29,6 +29,8 @@ public:
 
             Node* node_00;
         };
+        static_assert(sizeof(ListIterator) == 0x04,
+                      "srTriangulator_CircularList_ListIterator_must_be_0x04");
 
         CircularList(int count);
         ~CircularList();

@@ -71,6 +71,8 @@ if comparison_rows:
     print()
     print("#### Function quality")
     print()
+    print("Function quality covers the compared selection; catalog counts cover the full targets.")
+    print()
     print(
         "| Target | Compared | Avg similarity | Median | Exact/clean | Clean rate | "
         "Different | Code diffs | Referenced-data diffs | Fixed | Regressed | Analysis failed |"

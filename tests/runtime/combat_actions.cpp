@@ -875,9 +875,24 @@ bool MovePartyNearTarget(RuntimeCase& test, float nearest_engaged_distance)
     return true;
 }
 
+static void StartCombatRoundOnGameThread(void* opaque)
+{
+    bool* active = static_cast<bool*>(opaque);
+    DispatchMGSCommand(W8_MGS_COMMAND_START_COMBAT_ROUND);
+    *active = g_combat_state != 0 && g_combat_state->combat_over_000 != 0;
+}
+
 bool StartCombatRound(RuntimeCase& test, const char* step)
 {
-    return test.tap(W8_MGS_COMMAND_START_COMBAT_ROUND, step);
+    bool active = false;
+    if (!test.on_game_thread(step, StartCombatRoundOnGameThread, &active, 3000)) {
+        return false;
+    }
+    if (!active) {
+        return test.fail(step, "round-start-not-consumed");
+    }
+    test.step(step);
+    return true;
 }
 
 bool WaitRoundActive(RuntimeCase& test, HostileSnapshotQuery& query, unsigned long budget_ms,
@@ -999,8 +1014,12 @@ static bool RoundInactive(const GameplaySnapshot& state, void*)
 bool CombatRoundtripCase(RuntimeCase& test)
 {
     RT_REQUIRE(test, RequestCombatMode(test, true, 3000));
-    RT_REQUIRE(test, test.tap(W8_MGS_COMMAND_PARTY_WALK, "combat-walk"));
-    RT_REQUIRE(test, test.wait_until("combat-action-queued", 3000, CombatMovementUiShown, 0));
+    {
+        HeldCommand walk(test, W8_MGS_COMMAND_PARTY_WALK);
+        RT_REQUIRE(test, walk.begin());
+        RT_REQUIRE(test,
+                   test.wait_until("combat-action-queued", 3000, CombatMovementUiShown, 0, &walk));
+    }
     RT_REQUIRE(test, MovePartyInCombat(test, W8_MGS_COMMAND_MOVE_FORWARD));
     test.step("combat-party-moved");
     /* START_COMBAT_ROUND finishes the live movement action through

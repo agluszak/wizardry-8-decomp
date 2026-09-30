@@ -288,6 +288,10 @@ public:
         unsigned long texture_stages_e0_;
     };
     static_assert(sizeof(Renderer) == 0xe4, "srGERD_Renderer_must_be_0xe4");
+    static_assert(sizeof(Renderer::Parameters) == 0x10, "srGERD_Renderer_Parameters_must_be_0x10");
+    static_assert(sizeof(Renderer::TextureSetKey) == 0x0c,
+                  "srGERD_Renderer_TextureSetKey_must_be_0x0c");
+    static_assert(sizeof(Renderer::IndexWrite) == 0x10, "srGERD_Renderer_IndexWrite_must_be_0x10");
 
     /* errStrings literal order at 0x100993A4. */
     enum e_error {
