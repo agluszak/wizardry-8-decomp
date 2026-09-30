@@ -165,9 +165,6 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
 
-static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster_species);
-static __inline W8MonsterRecord* GetMonsterDataForInfoInline(W8MonsterInfo* monster_info);
-
 /* Materialize one inactive script record in the world. Existing engine
    Monsters are reattached without rebuilding their representation; absent or
    reset ones are activated first and choose either the birth cycle or a random
@@ -187,7 +184,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         return;
     }
 
-    record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+    record = MonsterDBFromSpecies(monster_info->monster_species);
     if (monster_info->p3D == 0 || monster_info->p3D->IsPendingFinalize() != 0) {
         registry_before = GetUsedPageFileBytes();
         ActivateMonster(monster_info, 0);
@@ -236,8 +233,8 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
             ShowNoticef(7, L"(%dK)",
                         static_cast<unsigned int>(registry_after - registry_before) >> 10);
         }
-        InitializeMonsterRangeCapabilities(
-            monster_info, MonsterDBFromSpeciesInline(monster_info->monster_species));
+        InitializeMonsterRangeCapabilities(monster_info,
+                                           MonsterDBFromSpecies(monster_info->monster_species));
     }
 
     WorldGetCameraLocation(GetWorld(), &camera_position);
@@ -292,7 +289,7 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
         return;
     }
 
-    record = GetMonsterDataForInfoInline(monster_info);
+    record = GetMonsterDataForInfo(monster_info);
     context.world_00 = GetWorld();
     context.bitmap_directory_04 = 0;
     context.directory_08 = "Data\\Monsters";
@@ -548,7 +545,8 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
     return 0;
 }
 
-static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster_species)
+// FUNCTION: WIZ8 0x004e57c0
+W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species)
 {
     W8MonsterRecord* record;
 
@@ -570,29 +568,18 @@ static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster
     return record;
 }
 
-static __inline W8MonsterRecord* GetMonsterDataForInfoInline(W8MonsterInfo* monster_info)
+// FUNCTION: WIZ8 0x004e5720
+W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info)
 {
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
     }
-    return MonsterDBFromSpeciesInline(monster_info->monster_species);
+    return MonsterDBFromSpecies(monster_info->monster_species);
 }
 
-// FUNCTION: WIZ8 0x004e5720
-W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info)
-{
-    return GetMonsterDataForInfoInline(monster_info);
-}
-
-// FUNCTION: WIZ8 0x004e57c0
-W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species)
-{
-    return MonsterDBFromSpeciesInline(monster_species);
-}
-
-static __inline W8MonsterInfo* MonsterInfoFromIDInline(int caller_line, const char* caller_file,
-                                                       int location_id,
-                                                       unsigned char assert_on_failure)
+// FUNCTION: WIZ8 0x004e5840
+W8MonsterInfo* MonsterInfoFromID(int caller_line, const char* caller_file, int location_id,
+                                 unsigned char assert_on_failure)
 {
     W8MonsterInfo* monster = 0;
     unsigned int index;
@@ -609,13 +596,6 @@ static __inline W8MonsterInfo* MonsterInfoFromIDInline(int caller_line, const ch
     return monster;
 }
 
-// FUNCTION: WIZ8 0x004e5840
-W8MonsterInfo* MonsterInfoFromID(int caller_line, const char* caller_file, int location_id,
-                                 unsigned char assert_on_failure)
-{
-    return MonsterInfoFromIDInline(caller_line, caller_file, location_id, assert_on_failure);
-}
-
 // FUNCTION: WIZ8 0x004e58b0
 W8MonsterRecord* GetMonsterDataByLocationID(int location_id)
 {
@@ -627,7 +607,7 @@ W8MonsterRecord* GetMonsterDataByLocationID(int location_id)
     if (monster == 0) {
         return 0;
     }
-    return MonsterDBFromSpeciesInline(monster->monster_species);
+    return MonsterDBFromSpecies(monster->monster_species);
 }
 
 // FUNCTION: WIZ8 0x004e5950
@@ -659,7 +639,7 @@ float GetMonsterCombatMoveRange(W8MonsterInfo* monster_info)
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
     }
-    record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+    record = MonsterDBFromSpecies(monster_info->monster_species);
     if (record == 0) {
         srAssertFail("pMonsterDB", MONSTER_MANAGER_CPP, 0x66a, 0);
     }
@@ -716,7 +696,7 @@ int GetMonsterCycleFallbackValue(unsigned int monster_species)
 {
     W8MonsterRecord* record;
 
-    record = MonsterDBFromSpeciesInline(monster_species);
+    record = MonsterDBFromSpecies(monster_species);
     if (record == 0) {
         return -1;
     }
@@ -769,10 +749,7 @@ void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
         int attribute_index;
         int value;
 
-        if (monster_info == 0) {
-            srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
-        }
-        record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+        record = GetMonsterDataForInfo(monster_info);
         value = record->attribute_values_d1[monster_attribute];
         attribute_index = 0;
 
@@ -1001,10 +978,7 @@ void InitializeMonsterRuntimeStats(void)
         W8MonsterRecord* record;
         int value;
 
-        if (monster_info == 0) {
-            srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
-        }
-        record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+        record = GetMonsterDataForInfo(monster_info);
         value = RollDice(&record->hit_points_d6);
         monster_info->uiHPMax = value;
         monster_info->hp_current = value;
@@ -1023,10 +997,7 @@ void InitializeMonsterRuntimeStats(void)
         W8MonsterRecord* record;
         int value;
 
-        if (monster_info == 0) {
-            srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
-        }
-        record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+        record = GetMonsterDataForInfo(monster_info);
         value = RollDice(&record->hit_points_d6);
         monster_info->uiHPMax = value;
         monster_info->hp_current = value;
@@ -1055,7 +1026,7 @@ float CalculateMonsterScale(W8MonsterInfo* monster_info)
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
     }
-    W8MonsterRecord* record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+    W8MonsterRecord* record = MonsterDBFromSpecies(monster_info->monster_species);
     int minimum_hp = record->hit_points_d6.base + record->hit_points_d6.count;
     int maximum_hp =
         record->hit_points_d6.base + record->hit_points_d6.count * record->hit_points_d6.sides;
@@ -1663,9 +1634,7 @@ void ProcessMonsterManagerFrame(void)
 
 /* The display name for one monster. Three things decide it.
  
-   Without a record the species' cached database row is fetched, which is the
-   same body GetMonsterDataForInfo is, inlined here - both of its assertions
-   appear in this function at their own source lines.
+   Without a record, GetMonsterDataForInfo fetches the species' cached database row.
  
    One record id is special-cased entirely: it is shown as a party character's
    name with a prefix, formatted into a shared buffer.
@@ -1681,10 +1650,7 @@ wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
     W8MonsterGroup* monster_group;
 
     if (record == 0) {
-        if (monster_info == 0) {
-            srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
-        }
-        record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+        record = GetMonsterDataForInfo(monster_info);
     }
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
         swprintf(g_status.monster_name_buffer_2453, g_format_al_s,
@@ -1756,10 +1722,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         W8MonsterRecord* record;
         W8NpcState* npc;
 
-        if (monster_info == 0) {
-            srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
-        }
-        record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+        record = GetMonsterDataForInfo(monster_info);
         if ((record->flags_0d0 & 1) != 0) {
             npc = GetNpcStateByKind(record->npc_kind_0cd);
             if (npc != 0 && npc->record->has_group != 0) {
@@ -1776,10 +1739,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         int best_party_slot;
         int monster_level;
 
-        if (monster_info == 0) {
-            srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
-        }
-        record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+        record = GetMonsterDataForInfo(monster_info);
         monster_level = record->display_level_251;
         health_knowledge = GetBestPartySkillLevel(0x15, &best_party_slot);
         if (static_cast<int>(average_party_level) < monster_level) {

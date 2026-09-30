@@ -71,7 +71,7 @@ const char* g_spell_cycle_names[28] = {
 // GLOBAL: WIZ8 0x0065BE20
 W8SpellVisual* g_target_cone_visual;
 
-static __inline int MinimumCasterLevel(int spell_level)
+static inline int MinimumCasterLevel(int spell_level)
 {
     switch (spell_level) {
     case 2:

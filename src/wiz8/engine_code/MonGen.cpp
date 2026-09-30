@@ -1007,7 +1007,7 @@ void MonGen::Reset()
 
 /* Loads the generator's marker from Data\\Items3D\\Bitmaps and hands it over.
    Written once because the arm path and the reload below both compile it. */
-static __inline void LoadMonsterGeneratorMarkerInline(MonGen* generator)
+static inline void LoadMonsterGeneratorMarker(MonGen* generator)
 {
     W8ReadLevelInfo context;
     W8Item* marker = 0;
@@ -1046,7 +1046,7 @@ void MonGen::SetActive(unsigned char active, W8Item* node)
     }
     flags |= W8_MONGEN_ARMED;
     if (marker_item == 0) {
-        LoadMonsterGeneratorMarkerInline(this);
+        LoadMonsterGeneratorMarker(this);
     }
     marker_item->AttachMesh(g_world);
 }
@@ -1154,28 +1154,16 @@ void MonGen::SetState(const srVector3T<float>* state)
 /* Reloads the generator's marker and then applies an armed state to it. The
    marker load is unconditional here - unlike the arm path, which only loads one
    when the generator has none - so this is what replaces a marker rather than
-   what installs the first. The state application afterwards is the same body
-   SetActive is, inlined, including its own conditional second load. */
+   what installs the first. SetActive then applies the requested state, including its own conditional
+   second load. */
 // FUNCTION: WIZ8 0x0048b850
 void MonGen::Reload(int unused, unsigned char active)
 {
     (void)unused;
-    LoadMonsterGeneratorMarkerInline(this);
-    if (((flags >> 2) & 1) == active) {
-        return;
-    }
-    if (active == 0) {
-        flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
-        if (marker_item != 0) {
-            marker_item->DetachMesh(g_world);
-        }
-        return;
-    }
-    flags |= W8_MONGEN_ARMED;
-    if (marker_item == 0) {
-        LoadMonsterGeneratorMarkerInline(this);
-    }
-    marker_item->AttachMesh(g_world);
+    LoadMonsterGeneratorMarker(this);
+    /* SetActive never reads its second argument. Its value at this retail
+       expansion is unrecoverable; zero represents the unused argument. */
+    SetActive(active, 0);
 }
 
 // FUNCTION: WIZ8 0x0048cc30

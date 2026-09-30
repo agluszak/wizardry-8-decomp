@@ -1151,10 +1151,12 @@ int GetItemSpellPresentation(const W8ItemDatabaseRecord* record)
 /* Several early exits (empty quantity-kind notices, blocked casting aid,
    casting-aid power reduced to zero) never assign `used`; retail returned
    the unset local. Preserve that read. */
-// FUNCTION: WIZ8 0x0051dde0
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized" // uninit-ok: retail returns the unset used byte on rejected/spent-item paths; callers observe that indeterminate result.
-#pragma clang diagnostic ignored "-Wuninitialized" // uninit-ok: retail returns the unset used byte on rejected/spent-item paths; callers observe that indeterminate result.
+#pragma clang diagnostic ignored                                                                   \
+    "-Wsometimes-uninitialized" // uninit-ok: retail returns the unset used byte on rejected/spent-item paths; callers observe that indeterminate result.
+#pragma clang diagnostic ignored                                                                   \
+    "-Wuninitialized" // uninit-ok: retail returns the unset used byte on rejected/spent-item paths; callers observe that indeterminate result.
+// FUNCTION: WIZ8 0x0051dde0
 unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_uses)
 {
     const W8ItemDatabaseRecord* record = &g_item_records[item->iItemNo];
@@ -1372,7 +1374,6 @@ bool CanItemLeaveItsSlot(const W8ItemInstance* item)
 char MergeItems(W8Character* character, W8ItemInstance* destination)
 {
     W8ItemInstance* held = &g_status.item_in_hand_235b;
-    W8ItemInstance shifted[500];
     W8ItemInstance created;
     const W8ItemDatabaseRecord* recipe;
     W8ItemInstance* result_destination;
@@ -1431,11 +1432,7 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
                         RemoveCharacterItem(character, held, 1);
                     }
                 } else {
-                    /* EmptyItemRecord(held, character, 1), expanded in place. */
-                    gXStatus.held_item_source = -1;
-                    gXStatus.held_item_origin = 0xff;
-                    gXStatus.held_item_slot = 0xffff;
-                    ClearHeldItemDisplay();
+                    EmptyItemRecord(held, character, 1);
                 }
 
                 if (g_item_records[destination->iItemNo].quantity_kind == 1) {
@@ -1443,46 +1440,7 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
                         RemoveCharacterItem(character, destination, 1);
                     }
                 } else {
-                    /* EmptyItemRecord(destination, character, 1), expanded in place. */
-                    if (destination == held) {
-                        gXStatus.held_item_source = -1;
-                        gXStatus.held_item_origin = 0xff;
-                        gXStatus.held_item_slot = 0xffff;
-                        ClearHeldItemDisplay();
-                    } else {
-                        memset(destination, 0, sizeof(*destination));
-                        destination->iItemNo = -1;
-                        RefreshAfterItemRecordChange(destination, character, 1);
-                    }
-                    if (destination >= g_status.party_item_pool_0021 &&
-                        destination <= &g_status.party_item_pool_0021[499]) {
-                        for (index = 0; index < g_status.party_item_count_1791; ++index) {
-                            if (destination == &g_status.party_item_pool_0021[index]) {
-                                /* RemovePartyPoolEntry(index), expanded in place. */
-                                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
-                                    index < g_status.party_item_count_1791) {
-                                    memcpy(&shifted[index],
-                                           &g_status.party_item_pool_0021[index + 1],
-                                           (g_status.party_item_count_1791 - index - 1) *
-                                               sizeof(W8ItemInstance));
-                                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
-                                           (g_status.party_item_count_1791 - index - 1) *
-                                               sizeof(W8ItemInstance));
-                                    memset(
-                                        &g_status
-                                             .party_item_pool_0021[g_status.party_item_count_1791 -
-                                                                   1],
-                                        0, sizeof(W8ItemInstance));
-                                    g_status
-                                        .party_item_pool_0021[g_status.party_item_count_1791 - 1]
-                                        .iItemNo = -1;
-                                    --g_status.party_item_count_1791;
-                                    RedistributePartyEncumbrance();
-                                }
-                                break;
-                            }
-                        }
-                    }
+                    EmptyItemRecord(destination, character, 1);
                 }
 
                 ReplaceOrCreateItem(&created, result_item_id, 0, 0, 0);
@@ -1495,21 +1453,7 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
                     for (index = 0; index < g_status.party_item_count_1791; ++index) {
                         if (result_destination == &g_status.party_item_pool_0021[index] &&
                             g_status.party_item_count_1791 < 500) {
-                            /* InsertItemIntoPartyPool(&created, index), expanded in place. */
-                            if (g_status.party_item_count_1791 != index) {
-                                memcpy(&shifted[index], &g_status.party_item_pool_0021[index],
-                                       (g_status.party_item_count_1791 - index) *
-                                           sizeof(W8ItemInstance));
-                                memcpy(&g_status.party_item_pool_0021[index + 1], &shifted[index],
-                                       (g_status.party_item_count_1791 - index) *
-                                           sizeof(W8ItemInstance));
-                            }
-                            memset(&g_status.party_item_pool_0021[index], 0,
-                                   sizeof(W8ItemInstance));
-                            g_status.party_item_pool_0021[index].iItemNo = -1;
-                            CopyItemInstance(&g_status.party_item_pool_0021[index], &created, 0, 1);
-                            ++g_status.party_item_count_1791;
-                            RedistributePartyEncumbrance();
+                            InsertItemIntoPartyPool(&created, index);
                         }
                     }
                 } else {
@@ -1914,7 +1858,6 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
 unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
                                          unsigned char party_first)
 {
-    W8ItemInstance shifted[500];
     unsigned char stored;
 
     if (g_status.game_started == 0) {
@@ -1961,19 +1904,7 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
     if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
         for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
             if (item == &g_status.party_item_pool_0021[index]) {
-                /* RemovePartyPoolEntry(index), expanded in place. */
-                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
-                    index < g_status.party_item_count_1791) {
-                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
-                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
-                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
-                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
-                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
-                           sizeof(W8ItemInstance));
-                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
-                    --g_status.party_item_count_1791;
-                    RedistributePartyEncumbrance();
-                }
+                RemovePartyPoolEntry(index);
                 break;
             }
         }
@@ -2117,7 +2048,6 @@ void AddPartyGold(int amount, char announce)
 void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximum_quantity,
                          unsigned char force_identified, unsigned char mark_special)
 {
-    W8ItemInstance shifted[500];
     unsigned int index;
 
     if ((unsigned int)item_id >= gXStatus.uiItemsInDatabase) {
@@ -2141,19 +2071,7 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
     if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
         for (index = 0; index < g_status.party_item_count_1791; ++index) {
             if (item == &g_status.party_item_pool_0021[index]) {
-                /* RemovePartyPoolEntry(index), expanded in place. */
-                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
-                    index < g_status.party_item_count_1791) {
-                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
-                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
-                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
-                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
-                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
-                           sizeof(W8ItemInstance));
-                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
-                    --g_status.party_item_count_1791;
-                    RedistributePartyEncumbrance();
-                }
+                RemovePartyPoolEntry(index);
                 break;
             }
         }
@@ -2959,7 +2877,6 @@ bool MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
 void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Character* character,
                       unsigned char refresh)
 {
-    W8ItemInstance shifted[500];
     unsigned int held_character = (unsigned int)-1;
     unsigned char held_origin = 0xff;
     unsigned short held_slot = 0xffff;
@@ -2997,19 +2914,7 @@ void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Cha
     if (source >= g_status.party_item_pool_0021 && source <= &g_status.party_item_pool_0021[499]) {
         for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
             if (source == &g_status.party_item_pool_0021[index]) {
-                /* RemovePartyPoolEntry(index), expanded in place. */
-                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
-                    index < g_status.party_item_count_1791) {
-                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
-                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
-                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
-                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
-                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
-                           sizeof(W8ItemInstance));
-                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
-                    --g_status.party_item_count_1791;
-                    RedistributePartyEncumbrance();
-                }
+                RemovePartyPoolEntry(index);
                 break;
             }
         }
@@ -3233,7 +3138,6 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
 // FUNCTION: WIZ8 0x00520070
 void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char refresh)
 {
-    W8ItemInstance shifted[500];
 
     if (item == &g_status.item_in_hand_235b) {
         gXStatus.held_item_source = -1;
@@ -3249,108 +3153,24 @@ void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char
     if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
         for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
             if (item == &g_status.party_item_pool_0021[index]) {
-                /* RemovePartyPoolEntry(index), expanded in place. */
-                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
-                    index < g_status.party_item_count_1791) {
-                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
-                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
-                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
-                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
-                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
-                           sizeof(W8ItemInstance));
-                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
-                    --g_status.party_item_count_1791;
-                    RedistributePartyEncumbrance();
-                }
+                RemovePartyPoolEntry(index);
                 break;
             }
         }
     }
 }
 
-/* Empty every item record a character carries. The per-record helper
-   0x00520070 was expanded at both loops, so this body repeats its logic
-   rather than calling it. */
+/* Empty every equipped and backpack item record a character carries. */
 // FUNCTION: WIZ8 0x00520310
 void EmptyAllCarriedItems(W8Character* character)
 {
-    W8ItemInstance shifted[500];
     unsigned int index;
 
     for (index = 0; index < 12; ++index) {
-        W8ItemInstance* item = &character->EquippedItem[index];
-        if (item == &g_status.item_in_hand_235b) {
-            gXStatus.held_item_source = -1;
-            gXStatus.held_item_origin = 0xff;
-            gXStatus.held_item_slot = 0xffff;
-            ClearHeldItemDisplay();
-        } else {
-            memset(item, 0, sizeof(*item));
-            item->iItemNo = -1;
-            RefreshAfterItemRecordChange(item, character, 1);
-        }
-
-        if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
-            for (unsigned int position = 0; position < g_status.party_item_count_1791; ++position) {
-                if (item == &g_status.party_item_pool_0021[position]) {
-                    /* RemovePartyPoolEntry(position), expanded in place. */
-                    if (g_status.party_item_pool_0021[position].iItemNo == -1 &&
-                        position < g_status.party_item_count_1791) {
-                        memcpy(&shifted[position], &g_status.party_item_pool_0021[position + 1],
-                               (g_status.party_item_count_1791 - position - 1) *
-                                   sizeof(W8ItemInstance));
-                        memcpy(&g_status.party_item_pool_0021[position], &shifted[position],
-                               (g_status.party_item_count_1791 - position - 1) *
-                                   sizeof(W8ItemInstance));
-                        memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1],
-                               0, sizeof(W8ItemInstance));
-                        g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo =
-                            -1;
-                        --g_status.party_item_count_1791;
-                        RedistributePartyEncumbrance();
-                    }
-                    break;
-                }
-            }
-        }
+        EmptyItemRecord(&character->EquippedItem[index], character, 1);
     }
-
     for (index = 0; index < 8; ++index) {
-        W8ItemInstance* item = &character->backpack[index];
-        if (item == &g_status.item_in_hand_235b) {
-            gXStatus.held_item_source = -1;
-            gXStatus.held_item_origin = 0xff;
-            gXStatus.held_item_slot = 0xffff;
-            ClearHeldItemDisplay();
-        } else {
-            memset(item, 0, sizeof(*item));
-            item->iItemNo = -1;
-            RefreshAfterItemRecordChange(item, character, 1);
-        }
-
-        if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
-            for (unsigned int position = 0; position < g_status.party_item_count_1791; ++position) {
-                if (item == &g_status.party_item_pool_0021[position]) {
-                    /* RemovePartyPoolEntry(position), expanded in place. */
-                    if (g_status.party_item_pool_0021[position].iItemNo == -1 &&
-                        position < g_status.party_item_count_1791) {
-                        memcpy(&shifted[position], &g_status.party_item_pool_0021[position + 1],
-                               (g_status.party_item_count_1791 - position - 1) *
-                                   sizeof(W8ItemInstance));
-                        memcpy(&g_status.party_item_pool_0021[position], &shifted[position],
-                               (g_status.party_item_count_1791 - position - 1) *
-                                   sizeof(W8ItemInstance));
-                        memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1],
-                               0, sizeof(W8ItemInstance));
-                        g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo =
-                            -1;
-                        --g_status.party_item_count_1791;
-                        RedistributePartyEncumbrance();
-                    }
-                    break;
-                }
-            }
-        }
+        EmptyItemRecord(&character->backpack[index], character, 1);
     }
 }
 
@@ -3632,7 +3452,6 @@ char InsertItemIntoPartyPool(W8ItemInstance* item, int index)
 // FUNCTION: WIZ8 0x00521ef0
 bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char skip_stacking)
 {
-    W8ItemInstance shifted[500];
     wchar_t* display_name = FormatItemDisplayName(item, 1);
     unsigned char partially_merged = 0;
     unsigned int index = 0;
@@ -3656,16 +3475,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char 
             return false;
         }
         index = 0;
-        if (g_status.party_item_count_1791 != 0) {
-            unsigned int bytes = g_status.party_item_count_1791 * sizeof(W8ItemInstance);
-            memcpy(shifted, g_status.party_item_pool_0021, bytes);
-            memcpy(&g_status.party_item_pool_0021[1], shifted, bytes);
-        }
-        memset(&g_status.party_item_pool_0021[0], 0, sizeof(W8ItemInstance));
-        g_status.party_item_pool_0021[0].iItemNo = -1;
-        CopyItemInstance(&g_status.party_item_pool_0021[0], item, 0, 1);
-        ++g_status.party_item_count_1791;
-        RedistributePartyEncumbrance();
+        InsertItemIntoPartyPool(item, 0);
         stored = true;
     }
 
@@ -3914,7 +3724,6 @@ void StagePartySlotItemUse(int party_slot, W8ItemInstance* item, const W8CombatS
 // FUNCTION: WIZ8 0x0051e760
 void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_3)
 {
-    W8ItemInstance shifted[500];
     int item_id = item->iItemNo;
 
     if (item_id == -1) {
@@ -3959,19 +3768,7 @@ void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_
     if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
         for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
             if (item == &g_status.party_item_pool_0021[index]) {
-                /* RemovePartyPoolEntry(index), expanded in place. */
-                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
-                    index < g_status.party_item_count_1791) {
-                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
-                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
-                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
-                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
-                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
-                           sizeof(W8ItemInstance));
-                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
-                    --g_status.party_item_count_1791;
-                    RedistributePartyEncumbrance();
-                }
+                RemovePartyPoolEntry(index);
                 break;
             }
         }

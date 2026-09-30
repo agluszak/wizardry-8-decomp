@@ -270,21 +270,7 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
 
     if (working->extent_04 <= working->cell_size_08) {
         W8OctBuildNode* node = working->root_90;
-        ++node->leaf_kind_2a;
-        if (deepest_link_list_b8 < node->leaf_kind_2a) {
-            deepest_link_list_b8 = node->leaf_kind_2a;
-        }
-
-        W8OctBuildLink*& head = node->links_00[(short)mode];
-        if (head == 0) {
-            head = link_lists_9c->GetNewLink(surface);
-        } else {
-            W8OctBuildLink* tail = head;
-            while (tail->next_04 != 0) {
-                tail = tail->next_04;
-            }
-            tail->next_04 = link_lists_9c->GetNewLink(surface);
-        }
+        AppendLink(node, surface, static_cast<short>(mode));
         inserted = 1;
     } else {
         float half_extent = working->extent_04 * g_float_005ebc7c;
@@ -352,7 +338,8 @@ void W8OctBuildTree::AppendLink(W8OctBuildNode* node, void* payload, short kind)
    walk the tree. `half_angle` is unused. Collected surfaces carry the 0x2000
    visit mark, which this clears before returning the count. */
 // FUNCTION: WIZ8 0x00446d80
-int W8OctBuildTree::CollectObjectsAlongSegment(W8GDSurface*** results, const srVector3T<float>* origin,
+int W8OctBuildTree::CollectObjectsAlongSegment(W8GDSurface*** results,
+                                               const srVector3T<float>* origin,
                                                const srVector3T<float>* delta, float half_angle,
                                                float extent, unsigned short kind)
 {

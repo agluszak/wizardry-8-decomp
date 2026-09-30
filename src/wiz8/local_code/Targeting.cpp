@@ -837,7 +837,8 @@ void TintHighlightedMonster(W8Monster* monster, int tint)
 /* Raise or lower one character's bit in a monster's highlight mask, and tell
    whatever draws it. Retail inlines this where ClearTargetHighlights clears a
    single target or a group and calls the out-of-line copy elsewhere. */
-inline void SetMonsterHighlightInline(int party_slot, int location_id, char on)
+// FUNCTION: WIZ8 0x00539630
+void SetMonsterHighlight(int party_slot, int location_id, char on)
 {
     int index = MonsterGetIndexByLocationID(1879, TARGETING_CPP, location_id, 0);
     W8MonsterInfo* monster_info;
@@ -862,12 +863,6 @@ inline void SetMonsterHighlightInline(int party_slot, int location_id, char on)
     }
     MonsterSetHighlightMask(monster, mask & ~bit);
     NotifyMonsterHighlight(party_slot, location_id, 0);
-}
-
-// FUNCTION: WIZ8 0x00539630
-void SetMonsterHighlight(int party_slot, int location_id, char on)
-{
-    SetMonsterHighlightInline(party_slot, location_id, on);
 }
 
 /* The location id of the nearest live monster whose current model instance is
@@ -1371,7 +1366,7 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
     }
 
     if (target->iType == W8_TARGET_KIND_MONSTER && target->iMonsterID != BAD_INDEX) {
-        SetMonsterHighlightInline(party_slot, target->iMonsterID, 0);
+        SetMonsterHighlight(party_slot, target->iMonsterID, 0);
     }
 
     if (target->iType == W8_TARGET_KIND_GROUP && target->iGroupID != BAD_INDEX) {
@@ -1382,7 +1377,7 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
             W8MonsterGroup* group = GetMonsterGroupByListIndex(group_list_index);
 
             for (index = 0; index < ILLength(group->monsters); ++index) {
-                SetMonsterHighlightInline(party_slot, IListGetAt(group->monsters, index), 0);
+                SetMonsterHighlight(party_slot, IListGetAt(group->monsters, index), 0);
             }
         }
     }

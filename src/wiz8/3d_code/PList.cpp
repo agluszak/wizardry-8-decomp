@@ -14,7 +14,6 @@
 W8PList* PLCreate(void)
 {
     W8PList* ppl;
-    void** data;
 
     ppl = (W8PList*)malloc(sizeof(W8PList));
     if (!ppl) {
@@ -23,21 +22,7 @@ W8PList* PLCreate(void)
     ppl->iNumUsed = 0;
     ppl->data = 0;
 
-    /* PListInit is inlined here. */
-    if (!ppl) {
-        srAssertFail("ppl", PLIST_CPP, 0x56, 0);
-    }
-    if (ppl->iNumUsed != 0) {
-        srAssertFail("ppl->iNumUsed==0", PLIST_CPP, 0x58, 0);
-    }
-    if (ppl->data) {
-        free(ppl->data);
-    }
-    data = (void**)malloc(10 * sizeof(void*));
-    ppl->data = data;
-    ppl->capacity = 10;
-    ppl->iNumUsed = 0;
-    if (!data) {
+    if (!PListInit(ppl)) {
         free(ppl);
         return 0;
     }
@@ -68,15 +53,10 @@ unsigned char PListInit(W8PList* ppl)
 // FUNCTION: WIZ8 0x005e23e0
 unsigned char PLDestroy(W8PList* ppl)
 {
-    /* The second assertion is PListFreeData's, retained after inlining. */
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x77, 0);
-        srAssertFail("ppl", PLIST_CPP, 0x8e, 0);
     }
-    if (ppl->data) {
-        free(ppl->data);
-        ppl->data = 0;
-    }
+    PListFreeData(ppl);
     free(ppl);
     return 1;
 }
@@ -130,24 +110,7 @@ int PListInsert(W8PList* ppl, int position, void* pEntry)
         srAssertFail("ppl", PLIST_CPP, 0xc1, 0);
     }
     if (position > ppl->iNumUsed) {
-        if (ppl->iNumUsed >= ppl->capacity) {
-            if (!ppl) {
-                srAssertFail("ppl", PLIST_CPP, 0x1d6, 0);
-            }
-            pTemp = (void**)malloc((ppl->capacity + 5) * sizeof(void*));
-            if (!pTemp) {
-                srAssertFail("pTemp", PLIST_CPP, 0x1d9, 0);
-            }
-            for (index = 0; index < ppl->iNumUsed; ++index) {
-                pTemp[index] = ppl->data[index];
-            }
-            free(ppl->data);
-            ppl->data = pTemp;
-            ppl->capacity += 5;
-        }
-        ppl->data[ppl->iNumUsed] = pEntry;
-        ++ppl->iNumUsed;
-        return ppl->iNumUsed - 1;
+        return PLAdoptAppend(ppl, pEntry);
     }
     if (ppl->iNumUsed >= ppl->capacity) {
         if (!ppl) {
@@ -185,29 +148,13 @@ void PListClear(W8PList* ppl)
 void* PListRemove(W8PList* ppl, void* pEntry)
 {
     int index;
-    int shift_index;
-    void* removed;
 
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x16f, 0);
     }
     for (index = 0; index < ppl->iNumUsed; ++index) {
         if (ppl->data[index] == pEntry) {
-            if (!ppl) {
-                srAssertFail("ppl", PLIST_CPP, 0x18a, 0);
-            }
-            if (index >= ppl->iNumUsed) {
-                srAssertFail("iPosition < ppl->iNumUsed", PLIST_CPP, 0x18b, 0);
-            }
-            removed = ppl->data[index];
-            for (shift_index = index; shift_index < ppl->iNumUsed - 1; ++shift_index) {
-                ppl->data[shift_index] = ppl->data[shift_index + 1];
-            }
-            --ppl->iNumUsed;
-            if (static_cast<double>(ppl->iNumUsed) / ppl->capacity < 0.5 && !ppl) {
-                srAssertFail("ppl", PLIST_CPP, 0x1f8, 0);
-            }
-            return removed;
+            return PLRemoveAt(ppl, index);
         }
     }
     return 0;

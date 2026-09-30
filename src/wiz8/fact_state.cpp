@@ -53,7 +53,7 @@ void PostNewGameLoad(void)
    into a local and print it beside the fact's symbolic name. Written as an
    inline helper rather than four times, so the shared wide buffer stays a
    single local. */
-static __inline unsigned char CheckFactLogged(int fact_id)
+static inline unsigned char CheckFactLogged(int fact_id)
 {
     unsigned char value;
     wchar_t text[10];

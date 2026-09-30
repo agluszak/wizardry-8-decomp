@@ -297,6 +297,8 @@ private:
     void UpdateArrowStates();
     /* 0x005DDEE0: enable accept when the split is nonzero and affordable. */
     void UpdateAcceptButton();
+    /* Shared refresh for the numeric-field and split-count callbacks. */
+    void UpdateTotals();
     /* 0x005DE120: numeric-field and Enter/Escape handling for ProcessInput. */
     unsigned char HandleInputEvent(const InputAtom* input);
 

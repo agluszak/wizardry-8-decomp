@@ -1729,8 +1729,7 @@ void srTriMeshPipeline::Flush00475510()
     flushing_8c = 0;
 }
 
-/* Bind a renderer and rebuild the current slot. Retail duplicates the prepare
-   body rather than calling PrepareSlot. */
+/* Bind a renderer and rebuild the current slot through PrepareSlot. */
 // FUNCTION: WIZ8 0x004753F0
 void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
 {
@@ -1753,20 +1752,7 @@ void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
     pass_value_7c = 0;
     material_80 = srCore.getMaterial();
 
-    current_record_14 = &records_94[slot_count_84];
-    current_pass_18 = &passes_9c[slot_count_84];
-
-    current_record_14->flags_00 = 0;
-    current_record_14->disable_mask_04 = 0;
-    current_record_14->material_08 = material_80;
-    current_pass_18->texture_00 = texture_78;
-    current_pass_18->pass_value_04 = pass_value_7c;
-    current_pass_18->flags_08.value = shader_74.value;
-    current_pass_18->texture_array_0c = 0;
-    current_pass_18->texture_array_10 = 0;
-    current_pass_18->shader_14 = 0;
-    current_pass_18->st_18 = 0;
-    current_pass_18->poly_uv_1c = 0;
+    PrepareSlot();
 }
 
 srTriMeshPipeline::srTriMeshPipeline()

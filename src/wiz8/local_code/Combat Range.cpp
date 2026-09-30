@@ -1253,11 +1253,6 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
     int candidates[8];
     int* next = candidates;
     int count = 0;
-    W8Character* character;
-    int kind;
-    int action;
-    W8ActionDetailBlock* detail;
-    int range;
     for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
         if (slot == party_slot || g_status.buffers.XChar[slot].fOccupied == 0 ||
             g_status.buffers.Char[slot].hp_current == 0 ||
@@ -1269,44 +1264,9 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
             if (!CanHandReachTarget(party_slot, hand)) {
                 continue;
             }
-            /* The body of CharacterActionReachesSlot(party_slot, hand, slot, 0), which
-               retail inlines here rather than calling. */
-            if (static_cast<char>(party_slot) == slot) {
-                goto accept;
-            }
-            character = &g_status.buffers.Char[party_slot];
-            ChooseCombatAction(party_slot, 0, &kind, &action, 0, &detail);
-            switch (kind) {
-            case W8_ACTION_ATTACK:
-            case W8_ACTION_BERSERK:
-                range = GetCharAttackRange(character, hand);
-                break;
-            case W8_ACTION_BREATHE:
-                goto accept;
-            case W8_ACTION_PROTECT:
-                goto screened;
-            case W8_ACTION_CAST_SPELL:
-                if (action == 0) {
-                    continue;
-                }
-                range = g_spell_records[action].range_category;
-                break;
-            case W8_ACTION_USE_ITEM:
-                range = GetItemSpellRange(detail->item_use.item);
-                break;
-            default:
+            if (!CharacterActionReachesSlot(party_slot, hand, slot, 0)) {
                 continue;
             }
-            if (range == W8_RANGE_NONE) {
-                continue;
-            }
-            if (range == W8_RANGE_TOUCH) {
-            screened:
-                if (FrontRankScreens(party_slot, slot)) {
-                    continue;
-                }
-            }
-        accept:
             ++count;
             *next = slot;
             ++next;

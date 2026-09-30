@@ -300,9 +300,8 @@ void DestroyGameplayObjects(void)
     }
 }
 
-/* The new-game reset. It repeats ResetGameStatus's status-block cycle inline
-   rather than calling it; retail: that duplication is the authored body, not a
-   missing helper. It then clears the item in hand and the carried pool, and
+/* The new-game reset. ResetGameStatus replaces the status buffers, then this
+   clears the item in hand and the carried pool, and
    grants the starting items. The pool and the id list are both walked by
    address against the symbol that follows them, not by index. */
 // FUNCTION: WIZ8 0x0054b100
@@ -313,25 +312,7 @@ void ResetForNewGame(void)
     unsigned int* id;
     unsigned int index;
 
-    if (g_status.buffers.Char) {
-        free(g_status.buffers.Char);
-        g_status.buffers.Char = 0;
-    }
-    if (g_status.buffers.XChar) {
-        free(g_status.buffers.XChar);
-        g_status.buffers.XChar = 0;
-    }
-    memset(&g_status, 0, sizeof(g_status));
-    g_status.buffers.Char =
-        static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
-    if (g_status.buffers.Char) {
-        g_status.buffers.XChar =
-            static_cast<W8PartySlotRow*>(malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
-        if (g_status.buffers.XChar) {
-            memset(g_status.buffers.Char, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
-            memset(g_status.buffers.XChar, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
-        }
-    }
+    ResetGameStatus(1);
     ReleaseMessageStorage();
     EmptyItemRecord(&g_status.item_in_hand_235b, 0, 1);
     slot = g_status.party_item_pool_0021;

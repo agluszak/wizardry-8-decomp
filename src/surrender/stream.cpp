@@ -5,90 +5,6 @@
 
 #include <string.h>
 
-/* TU-local srInlineString methods. Retail expands the constructor, copy
-   assignment, destructor, find and erase inline in this unit while init,
-   reset and operator+ stay callable emissions owned by sibling units (init
-   at 0x10004150, reset at 0x10012C80, operator+ at 0x10012CB0).
-   replace/insert/operator+= are this unit's own emissions. */
-
-inline srInlineString::srInlineString()
-{
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-}
-
-inline srInlineString::srInlineString(const char* source)
-{
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-    if (source != 0) {
-        operator=(source);
-    }
-}
-
-inline srInlineString::srInlineString(const srInlineString& source)
-{
-    init();
-    if (source.data_ != 0) {
-        operator=(source);
-    }
-}
-
-inline srInlineString::~srInlineString()
-{
-    if (data_ != inline_) {
-        srHeap.free(data_);
-    }
-    init();
-}
-
-inline srInlineString& srInlineString::operator=(const srInlineString& source)
-{
-    init();
-    if (source.data_ != 0 && *source.data_ != '\0') {
-        size_ = strlen(source.data_) + 1;
-        data_ = static_cast<char*>(srHeap.allocate(size_));
-        strcpy(data_, source.data_);
-    }
-    return *this;
-}
-
-inline srInlineString& srInlineString::operator=(const char* source)
-{
-    if (data_ != inline_) {
-        srHeap.free(data_);
-    }
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-    if (source == 0 || *source == '\0') {
-        return *this;
-    }
-    size_ = strlen(source) + 1;
-    data_ = static_cast<char*>(srHeap.allocate(size_));
-    strcpy(data_, source);
-    return *this;
-}
-
-inline long srInlineString::find(const srInlineString& needle, unsigned long offset) const
-{
-    const char* found = strstr(data_ + offset, needle.data_);
-    if (found != 0) {
-        return static_cast<long>(found - data_);
-    }
-    return -1;
-}
-
-inline void srInlineString::erase(unsigned long begin, unsigned long end)
-{
-    if (begin != end) {
-        strncpy(data_ + begin, data_ + end, size_ - end);
-        size_ = strlen(data_) + 1;
-    }
-}
-
 // FUNCTION: SURRENDER 0x100309C0
 srBinIMStream::srBinIMStream(const void* data, unsigned long size)
 {
@@ -1006,24 +922,6 @@ void srInlineString::insert(const srInlineString& text, unsigned long position)
         result += right.data();
     }
     *this = result;
-}
-
-// FUNCTION: SURRENDER 0x10032E30
-srInlineString& srInlineString::operator+=(const char* suffix)
-{
-    if (suffix != 0 && *suffix != '\0') {
-        unsigned long needed = strlen(suffix) + size_;
-        char* buffer = static_cast<char*>(srHeap.allocate(needed));
-        strcpy(buffer, data_);
-        strcpy(buffer + size_ - 1, suffix);
-        if (data_ != inline_) {
-            srHeap.free(data_);
-        }
-        size_ = needed;
-        inline_[0] = '\0';
-        data_ = buffer;
-    }
-    return *this;
 }
 
 /* The retail emission is a bare ret; ours still stores the vftable before

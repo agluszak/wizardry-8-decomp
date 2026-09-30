@@ -15,7 +15,6 @@
 W8IList* ILCreate(void)
 {
     W8IList* pls;
-    int* data;
 
     pls = (W8IList*)malloc(sizeof(W8IList));
     if (!pls) {
@@ -24,19 +23,7 @@ W8IList* ILCreate(void)
     pls->iNumUsed = 0;
     pls->data = 0;
 
-    /* IListInit inlined; its own null assertion at line 100 survives as a
-       second test because the two stores above separate the two checks. */
-    if (!pls) {
-        srAssertFail("pls", ILIST_CPP, 0x64, 0);
-    }
-    if (pls->data) {
-        free(pls->data);
-    }
-    data = (int*)malloc(10 * sizeof(int));
-    pls->data = data;
-    pls->capacity = 10;
-    pls->iNumUsed = 0;
-    if (!data) {
+    if (!IListInit(pls)) {
         free(pls);
         return 0;
     }
@@ -69,14 +56,10 @@ unsigned char IListInit(W8IList* pls)
 // FUNCTION: WIZ8 0x005e2a00
 unsigned char ILDestroy(W8IList* pls)
 {
-    /* The 0x9a assertion is IListFreeData's, inlined here; VC6 merges the two
-       null tests into one. */
     if (!pls) {
         srAssertFail("pls", ILIST_CPP, 0x83, 0);
-        srAssertFail("pls", ILIST_CPP, 0x9a, 0);
     }
-    free(pls->data);
-    pls->data = 0;
+    IListFreeData(pls);
     free(pls);
     return 1;
 }

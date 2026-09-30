@@ -301,19 +301,18 @@ void UpdateEnvironment(void)
     }
 }
 
-/* The same component clamp is expanded at every red, green and blue write in
-   all four table bodies below; it is source structure shared by those bodies,
-   not an optimizer-control annotation. */
-#define CLAMP_ENVIRONMENT_COMPONENT(component)                                                     \
-    do {                                                                                           \
-        if (0.0f < (component)) {                                                                  \
-            if (1.0f <= (component)) {                                                             \
-                (component) = 1.0f;                                                                \
-            }                                                                                      \
-        } else {                                                                                   \
-            (component) = 0.0f;                                                                    \
-        }                                                                                          \
-    } while (0)
+/* Repeated component clamps share one helper. Preserve the comparison order:
+   a NaN component follows the nonpositive branch and becomes zero. */
+static inline void ClampEnvironmentComponent(float& component)
+{
+    if (0.0f < component) {
+        if (1.0f <= component) {
+            component = 1.0f;
+        }
+    } else {
+        component = 0.0f;
+    }
+}
 
 // FUNCTION: WIZ8 0x00482F90
 BOOLEAN ReadLightColourTable(int hFile)
@@ -330,9 +329,9 @@ BOOLEAN ReadLightColourTable(int hFile)
         g_environment_colours_65ad98[index].x = components[index * 3] * (1.0f / 255.0f);
         g_environment_colours_65ad98[index].y = components[index * 3 + 1] * (1.0f / 255.0f);
         g_environment_colours_65ad98[index].z = components[index * 3 + 2] * (1.0f / 255.0f);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].x);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].y);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].z);
+        ClampEnvironmentComponent(g_environment_colours_65ad98[index].x);
+        ClampEnvironmentComponent(g_environment_colours_65ad98[index].y);
+        ClampEnvironmentComponent(g_environment_colours_65ad98[index].z);
     }
     return 1;
 }
@@ -352,9 +351,9 @@ BOOLEAN ReadEnvironmentColourTable(int hFile)
         g_environment_colours_65a178[index].x = components[index * 3] * (1.0f / 255.0f);
         g_environment_colours_65a178[index].y = components[index * 3 + 1] * (1.0f / 255.0f);
         g_environment_colours_65a178[index].z = components[index * 3 + 2] * (1.0f / 255.0f);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].x);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].y);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].z);
+        ClampEnvironmentComponent(g_environment_colours_65a178[index].x);
+        ClampEnvironmentComponent(g_environment_colours_65a178[index].y);
+        ClampEnvironmentComponent(g_environment_colours_65a178[index].z);
     }
     return 1;
 }
@@ -368,16 +367,16 @@ void BuildEnvironmentColourRamp(void)
     for (index = 0; index < 128; ++index) {
         value = index * (1.0f / 127.0f);
         g_environment_colours_65a178[index] = value;
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].x);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].y);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].z);
+        ClampEnvironmentComponent(g_environment_colours_65a178[index].x);
+        ClampEnvironmentComponent(g_environment_colours_65a178[index].y);
+        ClampEnvironmentComponent(g_environment_colours_65a178[index].z);
     }
     for (; index < 256; ++index) {
         value = (255 - index) * (1.0f / 127.0f);
         g_environment_colours_65a178[index] = value;
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].x);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].y);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].z);
+        ClampEnvironmentComponent(g_environment_colours_65a178[index].x);
+        ClampEnvironmentComponent(g_environment_colours_65a178[index].y);
+        ClampEnvironmentComponent(g_environment_colours_65a178[index].z);
     }
 }
 
@@ -392,18 +391,18 @@ void BuildLightColourRamp(void)
         g_environment_colours_65ad98[index].x = value;
         g_environment_colours_65ad98[index].y = value;
         g_environment_colours_65ad98[index].z = value;
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].x);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].y);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].z);
+        ClampEnvironmentComponent(g_environment_colours_65ad98[index].x);
+        ClampEnvironmentComponent(g_environment_colours_65ad98[index].y);
+        ClampEnvironmentComponent(g_environment_colours_65ad98[index].z);
     }
     for (; index < 256; ++index) {
         value = (255 - index) * (1.0f / 127.0f);
         g_environment_colours_65ad98[index].x = value;
         g_environment_colours_65ad98[index].y = value;
         g_environment_colours_65ad98[index].z = value;
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].x);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].y);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].z);
+        ClampEnvironmentComponent(g_environment_colours_65ad98[index].x);
+        ClampEnvironmentComponent(g_environment_colours_65ad98[index].y);
+        ClampEnvironmentComponent(g_environment_colours_65ad98[index].z);
     }
 }
 

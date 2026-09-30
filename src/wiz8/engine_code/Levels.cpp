@@ -240,7 +240,7 @@ unsigned char GetLevelLocationCode(int level_id, char* location_code)
 // as a separate lookup helper inlined into its one caller: after inlining, VC6
 // substitutes the body but does not propagate the returned value's range, so the
 // caller's guards survive even though the search can only yield 0..46.
-static __inline int LevelFindIDByLocationCode(const char* location_code)
+static inline int LevelFindIDByLocationCode(const char* location_code)
 {
     int level_id;
 

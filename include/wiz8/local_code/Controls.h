@@ -69,7 +69,7 @@ struct Controls {
        it answers element zero rather than failing, which is what the canonical
        `p = m_ppControls; if (i < m_nControls) p += i;` compiles from and why
        the guard shows up once per use rather than once per loop. */
-    __inline W8Widget* ControlAt(int index)
+    inline W8Widget* ControlAt(int index)
     {
         return *m_controls.GetAt(index);
     }

@@ -63,7 +63,7 @@ char g_format_string_buffer[200];
 // GLOBAL: WIZ8 0x00689FD0
 wchar_t g_wide_string_buffer[4096];
 
-static __inline int UtilityIntegerPower(int base, unsigned int exponent)
+static inline int UtilityIntegerPower(int base, unsigned int exponent)
 {
     int result;
 
@@ -274,7 +274,8 @@ char* TitleCaseString(char* string)
     return string;
 }
 
-static inline float NormalizeAngleInline(float angle)
+// FUNCTION: WIZ8 0x00517c60
+float NormalizeAngle(float angle)
 {
     if (!_finite(angle)) {
         srAssertFail("_finite(flAngle)",
@@ -291,17 +292,11 @@ static inline float NormalizeAngleInline(float angle)
     return angle;
 }
 
-// FUNCTION: WIZ8 0x00517c60
-float NormalizeAngle(float angle)
-{
-    return NormalizeAngleInline(angle);
-}
-
 // FUNCTION: WIZ8 0x00517ce0
 float ShortestAngleDistance(float first, float second)
 {
-    float forward = NormalizeAngleInline(first - second);
-    float backward = NormalizeAngleInline(second - first);
+    float forward = NormalizeAngle(first - second);
+    float backward = NormalizeAngle(second - first);
 
     return forward < backward ? forward : backward;
 }
