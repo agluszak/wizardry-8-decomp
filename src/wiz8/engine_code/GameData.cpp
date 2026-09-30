@@ -553,6 +553,9 @@ void W8EnvironRecord::SetScaledMotion(const srVector3T<float>* motion)
     vector_24.x = motion->x * inv_scale;
     vector_24.y = motion->y * inv_scale;
     vector_24.z = motion->z * inv_scale;
+    /* 0x00421843 raises the airborne flag with the vector, so the record counts
+       as airborne from the frame the scaled motion is stored. */
+    airborne_05 = 1;
 }
 
 // FUNCTION: WIZ8 0x00421850
@@ -2800,8 +2803,10 @@ W8LevelDataRecord::W8LevelDataRecord() : interval_gate_c4()
     vector_94.SetZero();
     vector_a0.SetZero();
     contact_normal_ac.SetZero();
-    contact_normal_scale_b8 = 0.0f;
-    memset(padding_bc, 0, sizeof(padding_bc));
+    /* 0x0041FDEF clears the whole 12-byte group from contact_normal_scale_b8
+       through padding_bc in one run before raising the scale, so the scale's own
+       zero is part of that run rather than a separate dead store. */
+    memset(&contact_normal_scale_b8, 0, sizeof(contact_normal_scale_b8) + sizeof(padding_bc));
     contact_normal_scale_b8 = 1.0f;
     g_level_override = 0;
 }

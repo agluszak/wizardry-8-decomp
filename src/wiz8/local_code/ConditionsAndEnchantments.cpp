@@ -513,7 +513,11 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         if (monster_info->fActive != 0) {
             MonsterInfoSetMotionless(monster_info, monster_info->highest_condition < 0xE ? 0 : 1);
         }
-        if (old_duration == 0 && condition != 0 && condition <= 0x12) {
+        /* The retail's mangled signature keeps condition an int, but 0x00523D8A
+           tests it and 0x00523D8F bounds it unsigned, which is the same cast the
+           three later uses of condition in this function already carry. */
+        unsigned int condition_index = static_cast<unsigned int>(condition);
+        if (old_duration == 0 && condition_index != 0 && condition_index <= 0x12) {
             SetMonsterSpellIcon(monster_info->p3D, condition - 1, 1);
         }
         if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(target, 0) != 0 &&

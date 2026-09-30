@@ -1026,7 +1026,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         goto after_early;
     }
     if ((monster->linked_navigator_05c == 0 && monster->halted_025 == 0) &&
-        (static_cast<signed char>(monster_info->movement_stall_ticks_254) > 1 ||
+        (monster_info->movement_stall_ticks_254 > 1 ||
          monster->movement_stopped_024 == 0)) {
         srVector3T<float> location;
         srVector3T<float> previous;
@@ -1147,7 +1147,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                 monster_info->pathing_cooldown_246 = 0;
             }
         }
-        if (static_cast<signed char>(monster_info->movement_stall_ticks_254) > 0) {
+        if (monster_info->movement_stall_ticks_254 > 0) {
             ++monster_info->movement_stall_ticks_254;
         }
         monster_info->movement_watch_position[0] = static_cast<int>(monster_info->position_17.x);

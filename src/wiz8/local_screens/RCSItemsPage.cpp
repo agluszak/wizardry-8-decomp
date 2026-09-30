@@ -1478,11 +1478,19 @@ void UpdateItemsRealmTabs(void)
 // FUNCTION: WIZ8 0x005b98c0
 void DisableItemsRealmTabs(void)
 {
+    int remaining;
     int index;
 
-    for (index = 0; index < 7; ++index) {
+    /* 0x005B98C7 counts the seven realm tabs down in their own register rather
+       than bounding the tab pointer; 0x005B9F14 and 0x005B9F74 do the same for
+       the two page tabs. */
+    index = 0;
+    remaining = 7;
+    do {
         g_camp_realm_tabs[index]->SetActive(0);
-    }
+        ++index;
+        --remaining;
+    } while (remaining != 0);
 }
 
 /* The top secondary panel: the Items/Character info page tabs, the help line,
@@ -1581,13 +1589,18 @@ int CreateCampSecondaryPanel(void)
 // FUNCTION: WIZ8 0x005b9f00
 void EnableCampSecondaryPanel(void)
 {
+    int remaining;
     int index;
 
     g_camp_secondary_panel->EnableRegionSet(1);
-    for (index = 0; index < 2; ++index) {
+    index = 0;
+    remaining = 2;
+    do {
         g_camp_page_tabs[index]->SetActive(1);
         g_camp_page_tabs[index]->SetEnabled(1);
-    }
+        ++index;
+        --remaining;
+    } while (remaining != 0);
     if (g_camp_screen->item_mode == 0) {
         SetCampInfoPageMode(0);
         return;
@@ -1598,10 +1611,15 @@ void EnableCampSecondaryPanel(void)
 // FUNCTION: WIZ8 0x005b9f60
 void DisableCampSecondaryPanel(void)
 {
+    int remaining;
     int index;
 
     g_camp_secondary_panel->EnableRegionSet(0);
-    for (index = 0; index < 2; ++index) {
+    index = 0;
+    remaining = 2;
+    do {
         g_camp_page_tabs[index]->SetActive(0);
-    }
+        ++index;
+        --remaining;
+    } while (remaining != 0);
 }

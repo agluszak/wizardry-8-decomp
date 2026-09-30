@@ -1950,9 +1950,20 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
             }
         }
 
-        for (int highlight_index = 0; highlight_index < entry->highlighted_monsters.GetCount();
-             ++highlight_index) {
-            SetMonsterHighlight(party_slot, *entry->highlighted_monsters.GetAt(highlight_index), 1);
+        /* The retail guards the count unsigned and then loops against it
+           signed: 0x0053AAD2 test eax,eax; jbe 0x0053ABF9 for the guard, then
+           0x0053AADA cmp edi,eax; jge 0x0053AAF9 for the back-edge, off the
+           same hoisted [ebx+4]. Two comparisons over one value, so the guard
+           and the bound cannot be the same expression: GetCount() returns int,
+           which would make the guard a jle. Same two-expressions-one-value
+           shape as SetMonsterCondition and LoadSurfacePixels. */
+        unsigned int count = entry->highlighted_monsters.GetCount();
+        if (count > 0) {
+            for (int highlight_index = 0; highlight_index < static_cast<int>(count);
+                 ++highlight_index) {
+                SetMonsterHighlight(party_slot, *entry->highlighted_monsters.GetAt(highlight_index),
+                                    1);
+            }
         }
         return;
     }

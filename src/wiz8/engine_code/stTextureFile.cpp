@@ -56,8 +56,14 @@ void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface, const W8Tg
     unsigned int carry = 0;
     unsigned int scratch_size = rle ? file_bpp << 7 : header->width * file_bpp;
 
+    /* data_size is FileGetSize - FileGetPos, so it can be negative, and
+       capacity is an unsigned long. The retail compares the two as signed
+       (0x0047BD87 cmp eax,esi; jge) but then tests data_size > 0 unsigned
+       (0x0047BD8B test esi,esi; jbe), so the two uses differ in class and the
+       signed one carries a cast. Casting only data_size would leave the
+       comparison unsigned, because capacity converts to unsigned to meet it. */
     unsigned int data_size = FileGetSize(handle) - FileGetPos(handle);
-    if (g_tga_file_data.capacity < data_size) {
+    if (static_cast<int>(g_tga_file_data.capacity) < static_cast<int>(data_size)) {
         g_tga_file_data.setCapacity(data_size, 1);
     }
     unsigned char* file_data = g_tga_file_data.data;
@@ -423,11 +429,13 @@ void stTextureFile::getMipmapData(MultiRequest& request)
         return;
     }
 
-    long level = request.mipmap_level;
+    /* 0x0047CA85 and 0x0047CAAB compare the level against last_level_04
+       unsigned, and last_level_04 is already unsigned in the request record. */
+    unsigned long level = static_cast<unsigned long>(request.mipmap_level);
     if (request.destinations[level] != 0) {
         request.destinations[level]->copy(*surface_5c);
     }
-    for (++level; level <= static_cast<long>(request.last_level_04); ++level) {
+    for (++level; level <= request.last_level_04; ++level) {
         if (request.destinations[level] != 0 && request.destinations[level - 1] != 0) {
             request.destinations[level]->copy(*request.destinations[level - 1]);
         }

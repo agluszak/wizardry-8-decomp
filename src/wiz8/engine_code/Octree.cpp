@@ -420,7 +420,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
     unsigned int limit = spatial_000.region_cells_per_axis_50 - 1;
 
     int first[3];
-    int last[3];
+    unsigned int last[3];
     int axis;
     for (axis = 0; axis < 3; ++axis) {
         first[axis] =
@@ -431,19 +431,23 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
             first[axis] = 0;
         }
         last[axis] =
-            static_cast<int>(((&point->x)[axis] + radius - (&spatial_000.minimum_0c.x)[axis]) /
-                             spatial_000.region_grid_cell_54) +
+            static_cast<unsigned int>(((&point->x)[axis] + radius -
+                                       (&spatial_000.minimum_0c.x)[axis]) /
+                                      spatial_000.region_grid_cell_54) +
             1;
-        if (limit < static_cast<unsigned int>(last[axis])) {
+        if (limit < last[axis]) {
             last[axis] = limit;
         }
     }
 
     m_current_regions_160->ClearAll();
-    int cell[3];
-    for (cell[0] = first[0]; cell[0] <= last[0]; ++cell[0]) {
-        for (cell[1] = first[1]; cell[1] <= last[1]; ++cell[1]) {
-            for (cell[2] = first[2]; cell[2] <= last[2]; ++cell[2]) {
+    /* last and cell are unsigned, and the region loops compare them as such:
+       0x0042FB3C, 0x0042FB51 and 0x0042FB5E are all jbe, not jle. first stays
+       signed because it is the one clamped against zero above. */
+    unsigned int cell[3];
+    for (cell[0] = static_cast<unsigned int>(first[0]); cell[0] <= last[0]; ++cell[0]) {
+        for (cell[1] = static_cast<unsigned int>(first[1]); cell[1] <= last[1]; ++cell[1]) {
+            for (cell[2] = static_cast<unsigned int>(first[2]); cell[2] <= last[2]; ++cell[2]) {
                 unsigned int masked_cell[4];
                 masked_cell[0] = level_mask;
                 masked_cell[1] = cell[0];
@@ -3930,23 +3934,22 @@ void W8Octree::Reset()
     m_gd_result_count_1b8 = 0;
     m_aulGDObjs = 0;
 
-    camera_location_1c0.SetZero();
-    camera_dof_1cc.SetZero();
-    rotation_column_1d8.SetZero();
-    rotation_column_1e4.SetZero();
-    horizontal_fov_1f0 = 0.0f;
-    vertical_fov_1f4 = 0.0f;
-    horizontal_fov_cosine_1f8 = 0.0f;
-    vertical_fov_cosine_1fc = 0.0f;
-    far_clip_200 = 0.0f;
-    memset(m_visible_cells_204, 0, sizeof(m_visible_cells_204));
-    for (int plane = 0; plane < 6; ++plane) {
-        m_frustum_planes_21c[plane].normal.SetZero();
-        m_frustum_planes_21c[plane].w = 0.0f;
-    }
-    for (int index = 0; index < 6; ++index) {
-        m_padding_27c[index] = 0;
-    }
+    /* 0x0042D1D6 zeroes the whole camera block in one 47-dword rep stosd, from
+       camera_location_1c0 through the last frustum plane's w at +0x27B. The
+       named members below are exactly that range. */
+    memset(&camera_location_1c0, 0, 0xbc);
+    /* 0x0042D1F1 then re-zeroes the four bounds inline, which
+       Reset0046CDC0 above already did through the callee. */
+    spatial_000.clipped_minimum_24.SetZero();
+    spatial_000.clipped_maximum_30.SetZero();
+    spatial_000.working_minimum_78.SetZero();
+    spatial_000.working_maximum_84.SetZero();
+    m_padding_27c[0] = 0;
+    m_padding_27c[1] = 0;
+    m_padding_27c[2] = 0;
+    m_padding_27c[3] = 0;
+    m_padding_27c[4] = 0;
+    m_padding_27c[5] = 0;
     m_visibility_suspended_294 = false;
     m_reset_visibility_168 = 0;
     m_projected_regions_valid_16a = false;

@@ -188,54 +188,72 @@ wchar_t g_format_s_colon_d_s_colon_d[] = L"%s: %d, %s: %d";
 void ReleaseCampActionPanel(void)
 {
     Controls* panel = g_camp_action_panel;
+    W8TextControl** control;
+    int remaining;
+
     if (panel != 0) {
         delete panel;
         g_camp_action_panel = 0;
     }
-    W8TextControl** control = g_camp_action_buttons;
+    /* 0x005B9246 counts the two camp action buttons down in their own register
+       instead of bounding the row pointer, and 0x005B9786 and 0x005B9EC6 do
+       the same for the seven realm tabs and the two page tabs. */
+    control = g_camp_action_buttons;
+    remaining = 2;
     do {
         if (*control != 0) {
             delete *control;
             *control = 0;
         }
         ++control;
-    } while (control < g_camp_action_buttons + 2);
+        --remaining;
+    } while (remaining != 0);
 }
 
 // FUNCTION: WIZ8 0x005B9760
 void ReleaseItemsTabPanel(void)
 {
     Controls* panel = g_camp_realm_tab_panel;
+    W8TextControl** control;
+    int remaining;
+
     if (panel != 0) {
         delete panel;
         g_camp_realm_tab_panel = 0;
     }
-    W8TextControl** control = g_camp_realm_tabs;
+    control = g_camp_realm_tabs;
+    remaining = 7;
     do {
         if (*control != 0) {
             delete *control;
             *control = 0;
         }
         ++control;
-    } while (control < g_camp_realm_tabs + 7);
+        --remaining;
+    } while (remaining != 0);
 }
 
 // FUNCTION: WIZ8 0x005B9EA0
 void ReleaseCampSecondaryPanel(void)
 {
     Controls* panel = g_camp_secondary_panel;
+    W8TextControl** control;
+    int remaining;
+
     if (panel != 0) {
         delete panel;
         g_camp_secondary_panel = 0;
     }
-    W8TextControl** control = g_camp_page_tabs;
+    control = g_camp_page_tabs;
+    remaining = 2;
     do {
         if (*control != 0) {
             delete *control;
             *control = 0;
         }
         ++control;
-    } while (control < g_camp_page_tabs + 2);
+        --remaining;
+    } while (remaining != 0);
 }
 
 // FUNCTION: WIZ8 0x005b9ef0

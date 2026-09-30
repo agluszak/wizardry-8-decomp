@@ -311,11 +311,15 @@ void DrawWorldCursorNodeLabel(W8WorldCursorNode* entry)
                           static_cast<unsigned char>(FontDestWrap));
         SetFont(g_smfnt_font);
         SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
-        for (int index = 0; index < 3; ++index) {
+        /* 0x0048DDC6 walks the three cube numbers with an ascending pointer and
+           its own countdown at 0x0048DE1B, so the loop keeps a trip counter
+           instead of bounding itself on the shared index. */
+        for (int index = 0, remaining = 3; remaining != 0; --remaining) {
             wchar_t text[20];
             swprintf(text, g_format_d, entry->numbers_0c[index]);
             gprintf_buffer(data, surface->getPitch(), g_smfnt_font, 0,
                            GetFontHeight(g_smfnt_font) * index, text);
+            ++index;
         }
         texture->invalidate();
         RestoreFontSettings();

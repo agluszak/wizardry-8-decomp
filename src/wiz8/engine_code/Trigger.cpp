@@ -1528,15 +1528,20 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         _strupr(trigger->name_01c);
         _strupr(recipients);
 
-        trigger->surface_id = -1;
         if (version > 1) {
             char surface_id[0x40];
+            int id = -1;
+
             FileRead(handle, &minimum_range, 4, 0);
             FileRead(handle, surface_id, sizeof(surface_id), 0);
-            if (surface_id[0] == 0 && world->m_owned_04c != 0 &&
-                world->m_owned_04c->geometry_index_00 != 0) {
-                trigger->surface_id = atoi(surface_id + 1);
+            if (surface_id[0] == 0) {
+                if (world->m_owned_04c != 0) {
+                    id = atoi(surface_id + 1);
+                }
+            } else {
+                id = -1;
             }
+            trigger->surface_id = id;
         }
         if (version > 2) {
             unsigned char has_action_data;
@@ -2941,8 +2946,9 @@ void Trigger::Run(int source)
 
             if ((flags_0a0 & W8_TRIGGER_ANIMATE_STATES) != 0) {
                 W8AnimObj* animation;
-                unsigned int count;
-                unsigned int index;
+                /* 0x0043E4C3 tests the AnimObjListCount result signed. */
+                int count;
+                int index;
 
                 if (m_pProp == 0 || m_bRepType != 2) {
                     srAssertFail("m_pProp && m_bRepType == TRIGGER_REP_PROP",

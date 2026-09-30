@@ -356,24 +356,36 @@ static unsigned char CreateFormationPanel(void)
 // FUNCTION: WIZ8 0x005b2150
 void OpenFormationPanel(void)
 {
+    int remaining;
     int index;
 
     if (g_formation_panel != 0) {
         g_formation_panel = 0;
     }
-    for (index = 0; index < 15; ++index) {
+    /* 0x005B2164 and 0x005B2190 count the fifteen cell slots and the three
+       action buttons down in their own registers instead of bounding the
+       element pointer, so neither sweep fuses its trip count. */
+    index = 0;
+    remaining = 15;
+    do {
         if (g_formation_cell_controls[index] != 0) {
             g_formation_cell_controls[index] = 0;
         }
         if (g_formation_cell_overlays[index] != 0) {
             g_formation_cell_overlays[index] = 0;
         }
-    }
-    for (index = 0; index < 3; ++index) {
+        ++index;
+        --remaining;
+    } while (remaining != 0);
+    index = 0;
+    remaining = 3;
+    do {
         if (g_formation_action_buttons[index] != 0) {
             g_formation_action_buttons[index] = 0;
         }
-    }
+        ++index;
+        --remaining;
+    } while (remaining != 0);
     if (CreateFormationPanel() != 0) {
         g_formation_active_cell = -1;
         g_formation_drag_cell = -1;

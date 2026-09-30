@@ -675,12 +675,18 @@ unsigned int HandleTextInput(const InputAtom* input)
             return 1;
         }
         if (gfHiliteMode == 0) {
+            /* 0x005D5D0C returns from inside the guard without repositioning the
+               cursor, so gParkingPos keeps the value it had for the longer
+               string. The retail's one SetTextInputCursor call in this function
+               is on the highlighted path below. */
             if (gubCursorPos < gpActive->ubStrLen) {
-                memmove(gpActive->szString + gubCursorPos, gpActive->szString + gubCursorPos + 1,
-                        (gpActive->ubStrLen - gubCursorPos) * sizeof(wchar_t));
+                unsigned char index = gubCursorPos;
+                do {
+                    gpActive->szString[index] = gpActive->szString[index + 1];
+                    ++index;
+                } while (index < gpActive->ubStrLen);
                 --gpActive->ubStrLen;
             }
-            SetTextInputCursor(gubCursorPos);
             return 1;
         }
         gfHiliteMode = false;

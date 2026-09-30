@@ -676,11 +676,19 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
 }
 
 /* Route one queued input atom to the forced region, the current hot region,
-   or the first enabled region under the event's mouse position. */
+   or to every enabled region under the event's mouse position.
+
+   The region-set scan keeps the per-region work inside its own loop rather than
+   jumping to a shared tail: 0x004F1B41 runs the help/tooltip work, the button
+   switch, the region's callback and the button sound for each region the point
+   is inside, and only returns early when the event selected no sound. 0x004F1C4C
+   and 0x004F1D34 hold the same work for the current and captured regions, where
+   it does return. A single shared tail would dispatch a button event to only the
+   first region that contains the point. */
 // FUNCTION: WIZ8 0x004f1910
 unsigned char DispatchRegionInput(const InputAtom* event)
 {
-    unsigned int region_index = g_captured_region_index;
+    unsigned int region_index;
     unsigned int set_index;
     int sound_id = -1;
     unsigned short x = static_cast<unsigned short>(event->uiParam) + g_cursor_hotspot_x;
@@ -695,70 +703,120 @@ unsigned char DispatchRegionInput(const InputAtom* event)
     }
 #endif
 
-    if (region_index != 0) {
-        goto dispatch;
-    }
+    if (g_captured_region_index == 0) {
+        if (g_current_region_index == 0 ||
+            RegionContainsPoint(g_current_region_index, x, y) == 0) {
+            for (set_index = 0; set_index < g_region_set_count; ++set_index) {
+                W8RegionSet* set = &g_region_sets[set_index];
+                if (set->enabled != 1 || set->first_region > set->last_region) {
+                    continue;
+                }
+                for (region_index = set->first_region; region_index <= set->last_region;
+                     ++region_index) {
+                    int scan_sound_id = -1;
+                    unsigned char handled;
+                    W8Region* region;
 
-    region_index = g_current_region_index;
-    if (region_index != 0 && RegionContainsPoint(region_index, x, y)) {
-        goto dispatch;
-    }
+                    if (RegionContainsPoint(region_index, x, y) == 0) {
+                        continue;
+                    }
+                    region = &g_regions[region_index];
+                    if (region->help_enabled != 0 &&
+                        (g_settings.tooltips_enabled != 0 ||
+                         g_region_help_force_enabled != 0) &&
+                        event->usEvent != MOUSE_POS) {
+                        if ((region->flags & W8_REGION_HELP_SHOWN) != 0) {
+                            VideoRemoveToolTip();
+                            region->flags &= ~W8_REGION_HELP_SHOWN;
+                        }
+                        if (region->help_enabled != 0 &&
+                            (g_settings.tooltips_enabled != 0 ||
+                             g_region_help_force_enabled != 0)) {
+                            g_region_help_clock = SetCountdownClock(g_region_help_delay);
+                        }
+                    }
 
-    for (set_index = 0; set_index < g_region_set_count; ++set_index) {
-        W8RegionSet* set = &g_region_sets[set_index];
-        if (set->enabled != 1 || set->first_region > set->last_region) {
-            continue;
+                    switch (event->usEvent) {
+                    case LEFT_BUTTON_DOWN:
+                    case RIGHT_BUTTON_DOWN:
+                        scan_sound_id = 2;
+                        break;
+                    case LEFT_BUTTON_UP:
+                        if ((g_regions[g_current_region_index].flags &
+                             W8_REGION_LEFT_BUTTON_HELD) != 0) {
+                            scan_sound_id = 3;
+                        }
+                        break;
+                    case RIGHT_BUTTON_UP:
+                        if ((g_regions[g_current_region_index].flags &
+                             W8_REGION_RIGHT_BUTTON_HELD) != 0) {
+                            scan_sound_id = 3;
+                        }
+                        break;
+                    }
+#ifdef WIZ8_RUNTIME_TESTS
+                    unsigned long scan_callback = 0;
+                    memcpy(&scan_callback, &region->callback, sizeof(scan_callback));
+                    RuntimeObserve(RUNTIME_REGION_ACTIVATED, region_index, scan_callback,
+                                   region->callback_id);
+#endif
+                    handled = region->callback(event, region);
+                    if (scan_sound_id == -1) {
+                        return handled;
+                    }
+                    PlayButtonSound(scan_sound_id);
+                }
+            }
+            return 0;
         }
-        for (region_index = set->first_region; region_index <= set->last_region; ++region_index) {
-            if (RegionContainsPoint(region_index, x, y)) {
-                goto dispatch;
+        region_index = g_current_region_index;
+    } else {
+        region_index = g_captured_region_index;
+    }
+
+    {
+        W8Region* region = &g_regions[region_index];
+        if (region->help_enabled != 0 &&
+            (g_settings.tooltips_enabled != 0 || g_region_help_force_enabled != 0) &&
+            event->usEvent != MOUSE_POS) {
+            if ((region->flags & W8_REGION_HELP_SHOWN) != 0) {
+                VideoRemoveToolTip();
+                region->flags &= ~W8_REGION_HELP_SHOWN;
+            }
+            if (region->help_enabled != 0 &&
+                (g_settings.tooltips_enabled != 0 || g_region_help_force_enabled != 0)) {
+                g_region_help_clock = SetCountdownClock(g_region_help_delay);
             }
         }
-    }
-    return 0;
 
-dispatch:
-    W8Region* region = &g_regions[region_index];
-    if (region->help_enabled != 0 &&
-        (g_settings.tooltips_enabled != 0 || g_region_help_force_enabled != 0) &&
-        event->usEvent != MOUSE_POS) {
-        if ((region->flags & W8_REGION_HELP_SHOWN) != 0) {
-            VideoRemoveToolTip();
-            region->flags &= ~W8_REGION_HELP_SHOWN;
+        switch (event->usEvent) {
+        case LEFT_BUTTON_DOWN:
+        case RIGHT_BUTTON_DOWN:
+            sound_id = 2;
+            break;
+        case LEFT_BUTTON_UP:
+            if ((g_regions[g_current_region_index].flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+                sound_id = 3;
+            }
+            break;
+        case RIGHT_BUTTON_UP:
+            if ((g_regions[g_current_region_index].flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
+                sound_id = 3;
+            }
+            break;
         }
-        if (region->help_enabled != 0 &&
-            (g_settings.tooltips_enabled != 0 || g_region_help_force_enabled != 0)) {
-            g_region_help_clock = SetCountdownClock(g_region_help_delay);
-        }
-    }
-
-    switch (event->usEvent) {
-    case LEFT_BUTTON_DOWN:
-    case RIGHT_BUTTON_DOWN:
-        sound_id = 2;
-        break;
-    case LEFT_BUTTON_UP:
-        if ((g_regions[g_current_region_index].flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            sound_id = 3;
-        }
-        break;
-    case RIGHT_BUTTON_UP:
-        if ((g_regions[g_current_region_index].flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
-            sound_id = 3;
-        }
-        break;
-    }
-
 #ifdef WIZ8_RUNTIME_TESTS
-    unsigned long callback_address = 0;
-    memcpy(&callback_address, &region->callback, sizeof(callback_address));
-    RuntimeObserve(RUNTIME_REGION_ACTIVATED, region_index, callback_address, region->callback_id);
+        unsigned long callback_address = 0;
+        memcpy(&callback_address, &region->callback, sizeof(callback_address));
+        RuntimeObserve(RUNTIME_REGION_ACTIVATED, region_index, callback_address,
+                       region->callback_id);
 #endif
-    unsigned char handled = region->callback(event, region);
-    if (sound_id != -1) {
-        PlayButtonSound(sound_id);
+        unsigned char handled = region->callback(event, region);
+        if (sound_id != -1) {
+            PlayButtonSound(sound_id);
+        }
+        return handled;
     }
-    return handled;
 }
 
 /* Raises the help box for one region, taking a stale one down first. The

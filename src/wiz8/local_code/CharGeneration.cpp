@@ -447,9 +447,10 @@ void DetermineEligibleProfessions(W8Character* character, W8CharacterCreationSta
 {
     int attribute;
 
-    for (unsigned int profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
+    /* 0x00557416 compares the loop counter against 15 with a signed jump. */
+    for (int profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
         eligibility[profession] = 1;
-        if (profession == static_cast<unsigned int>(character->iProfession)) {
+        if (profession == character->iProfession) {
             eligibility[profession] = 1;
         } else if (profession == W8_PROFESSION_VALKYRIE && character->gender != W8_GENDER_FEMALE) {
             eligibility[W8_PROFESSION_VALKYRIE] = 0;

@@ -1011,9 +1011,10 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     }
     BeginScriptedWorldAction();
     int eligible_slots[8];
-    int eligible_count = 0;
+    /* 0x00508F08 and 0x00508F58 test the eligible count unsigned. */
+    unsigned int eligible_count = 0;
     int slot;
-    int index;
+    unsigned int index;
     int pick;
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];

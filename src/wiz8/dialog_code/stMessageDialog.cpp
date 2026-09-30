@@ -84,6 +84,8 @@ void W8MessageDialogBase::SetMessage(const wchar_t* message, int line_count,
                                      unsigned char wrap_message, int maximum_width,
                                      int maximum_height)
 {
+    /* 0x005D2950 compares the line counter unsigned; the signed compare in
+       this function is the width clamp at 0x005D295E, and `width` carries it. */
     unsigned int index;
 
     if (!message) {
@@ -112,12 +114,13 @@ void W8MessageDialogBase::SetMessage(const wchar_t* message, int line_count,
     m_show_confirm = confirmation;
     allow_cancel = cancel;
     if (size_to_message) {
-        unsigned int width = 0;
+        /* 0x005D295E clamps the width with a signed compare. */
+        int width = 0;
         int height;
 
         for (index = 0; index < m_line_count; ++index) {
             short line_width = StringPixLength(m_lines[index], g_dialog_font_64fde8);
-            if (width < static_cast<unsigned int>(line_width)) {
+            if (width < line_width) {
                 width = line_width;
             }
         }
@@ -133,7 +136,7 @@ void W8MessageDialogBase::SetMessage(const wchar_t* message, int line_count,
         if (height < GetFontHeight(g_dialog_font_64fde8) * 7) {
             height = GetFontHeight(g_dialog_font_64fde8) * 7;
         }
-        if (maximum_width && maximum_width < static_cast<int>(width)) {
+        if (maximum_width && maximum_width < width) {
             width = maximum_width;
         }
         if (maximum_height && maximum_height < height) {
@@ -142,7 +145,7 @@ void W8MessageDialogBase::SetMessage(const wchar_t* message, int line_count,
         int old_width = m_width;
         int old_height = m_height;
         SetExtent(width, height);
-        SetOrigin(m_x + (old_width - static_cast<int>(width)) / 2, m_y + (old_height - height) / 2);
+        SetOrigin(m_x + (old_width - width) / 2, m_y + (old_height - height) / 2);
     }
 }
 
@@ -154,9 +157,12 @@ unsigned int W8MessageDialogBase::WrapMessage(const wchar_t* message)
     wchar_t* line;
     unsigned int line_index = 0;
     unsigned int words_on_line = 0;
-    int line_width = 0;
+    /* 0x005D2BE8 sign-extends the word width into EAX, adds the running total and
+       bounds it against m_width with JBE at 0x005D2BF2, so the running total is
+       the unsigned operand. */
+    unsigned int line_width = 0;
     int space_width = StringPixLength(const_cast<wchar_t*>(L" "), g_dialog_font_64fde8);
-    int maximum_width = m_width + 0xf;
+    unsigned int maximum_width = static_cast<unsigned int>(m_width) + 0xf;
     unsigned int index;
 
     remaining = new wchar_t[wcslen(message) + 1];
@@ -199,7 +205,7 @@ unsigned int W8MessageDialogBase::WrapMessage(const wchar_t* message)
     }
 
     int word_width = StringPixLength(remaining, g_dialog_font_64fde8);
-    if (line_width + word_width > m_width) {
+    if (line_width + word_width > static_cast<unsigned int>(m_width)) {
         ++line_index;
         wcscpy(lines[line_index], remaining);
     } else {

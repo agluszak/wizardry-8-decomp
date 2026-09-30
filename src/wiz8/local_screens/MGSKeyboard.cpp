@@ -720,6 +720,7 @@ void OpenKeyboardMenuForSlot(int slot)
 // FUNCTION: WIZ8 0x00592E60
 inline void CloseKeyboardMenu(void)
 {
+    int remaining;
     int index;
 
     gXStatus.monster_manager_entries[g_selected_party_slot].keyboard_menu_open = 0;
@@ -747,12 +748,19 @@ inline void CloseKeyboardMenu(void)
         delete g_keyboard_menu_panel;
         g_keyboard_menu_panel = 0;
     }
-    for (index = 0; index < 13; ++index) {
+    /* 0x00592F51 walks the thirteen row pointers with an ascending index and a
+       separate countdown, so the teardown keeps its own trip counter instead of
+       a fused pointer bound. RefreshKeyboardMenuRows uses the same shape. */
+    index = 0;
+    remaining = 13;
+    do {
         if (g_keyboard_menu_rows[index] != 0) {
             delete g_keyboard_menu_rows[index];
             g_keyboard_menu_rows[index] = 0;
         }
-    }
+        ++index;
+        --remaining;
+    } while (remaining != 0);
     RequestRedraw(1 << g_selected_party_slot);
 }
 

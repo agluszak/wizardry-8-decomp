@@ -4872,7 +4872,12 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
     }
     }
     if (quote != 0) {
-        for (unsigned int index = 0; index < quote->entry_count; ++index) {
+        /* index is int, not unsigned int: entry_count is an unsigned short,
+           which promotes to int here, and the retail tests the count signed
+           (0x00576521 mov ax,word ptr [ecx+0x9]; 0x00576525 test eax,eax;
+           jle 0x00576543). An unsigned index would make the comparison
+           unsigned and lose that. */
+        for (int index = 0; index < quote->entry_count; ++index) {
             if (quote->entries[index].kind_00 == 0x13 || quote->entries[index].kind_00 == 5) {
                 flush_notices = true;
             }

@@ -469,7 +469,7 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
             }
         }
     } else {
-        for (unsigned int index = 0; index < m_count_008; ++index) {
+        for (int index = 0; index < m_count_008; ++index) {
             if (control == m_subpanel_entries_02c[index]) {
                 control->OnMouseLeave(0);
                 SetValue(index);
@@ -689,7 +689,7 @@ void W8CharacterStatsPage::HandleInput(InputAtom* input)
     }
     W8CharacterStatsRow* row = m_profession_row_07c;
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
-        unsigned int index = 0;
+        int index = 0;
         while (index < row->m_count_008) {
             if (row->m_subpanel_entries_02c[index]->m_active) {
                 goto next_profession;
@@ -708,7 +708,7 @@ void W8CharacterStatsPage::HandleInput(InputAtom* input)
 next_profession:
     row = m_race_row_080;
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
-        unsigned int index = 0;
+        int index = 0;
         while (index < row->m_count_008) {
             if (row->m_subpanel_entries_02c[index]->m_active) {
                 goto next_race;
@@ -727,7 +727,7 @@ next_profession:
 next_race:
     row = m_gender_row_084;
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
-        unsigned int index = 0;
+        int index = 0;
         while (index < row->m_count_008) {
             if (row->m_subpanel_entries_02c[index]->m_active) {
                 return;

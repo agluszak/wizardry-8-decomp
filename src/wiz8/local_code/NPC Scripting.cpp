@@ -2642,7 +2642,9 @@ void EndScriptedPortraitPick(int party_slot)
 {
     W8ItemInstance* found;
     W8Character* character;
-    unsigned int slot;
+    /* 0x00529EDC compares the slot counter as slot - 7 against 8 with a
+       signed jump, so the counter is not unsigned. */
+    int slot;
     bool other_gender_present;
 
     if (gXStatus.scripted_scene_19b7 == 0) {

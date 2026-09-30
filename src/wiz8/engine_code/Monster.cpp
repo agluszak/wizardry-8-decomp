@@ -1013,12 +1013,17 @@ W8MonsterRep::W8MonsterRep()
       random_idle_600(0), special_movement_601(0), idle_playback_scale_604(10.0f),
       random_idle_fps_min(0), random_idle_fps_max(0), left_handed_610(0), monster_light_624(0)
 {
-    int index;
-
+    /* 0x004BEA4A writes the eight slots individually and the count last; a
+       counted loop over them is not what the retail emits. */
+    objects_5c8[0] = 0;
+    objects_5c8[1] = 0;
+    objects_5c8[2] = 0;
+    objects_5c8[3] = 0;
+    objects_5c8[4] = 0;
+    objects_5c8[5] = 0;
+    objects_5c8[6] = 0;
+    objects_5c8[7] = 0;
     icon_count_5c4 = 0;
-    for (index = 0; index < 8; ++index) {
-        objects_5c8[index] = 0;
-    }
 }
 
 /* Read one animation/subcycle into the Monster representation.  The current
@@ -1114,12 +1119,18 @@ W8MonsterRep::W8MonsterRep(const W8MonsterRep& other)
       monster_light_624(0)
 {
     signed char cycle;
-    int index;
 
+    /* 0x004BEBD8 writes the eight slots individually and the count last, like
+       the default constructor. */
+    objects_5c8[0] = 0;
+    objects_5c8[1] = 0;
+    objects_5c8[2] = 0;
+    objects_5c8[3] = 0;
+    objects_5c8[4] = 0;
+    objects_5c8[5] = 0;
+    objects_5c8[6] = 0;
+    objects_5c8[7] = 0;
     icon_count_5c4 = 0;
-    for (index = 0; index < 8; ++index) {
-        objects_5c8[index] = 0;
-    }
     for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
         CopyCycle(cycle, &other, cycle);
     }

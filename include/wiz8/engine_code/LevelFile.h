@@ -383,6 +383,9 @@ struct W8LevelFileLODMesh {
     W8LevelFileFrame* pFrames;
 };
 
+/* One element of W8LevelFileAnimObj::pMorphs_56, of which there are
+   num_anims_01. Not to be confused with the AnimObj record itself, which is
+   0x5f bytes and holds these at +0x56. */
 struct W8LevelFileMorph { /* 0x6 */
     unsigned char channel_00;
     unsigned char num_frames_01;
@@ -406,6 +409,12 @@ struct W8LevelFileBounds { /* 0x18 */
    W8AnimObj (0x4c, AnimObj.h). */
 struct W8LevelFileAnimObj { /* 0x5f */
     char version_00;
+    /* The four byte counts below are not interchangeable. The retail reads
+       each with a one-byte FileRead and then sign-extends two of them:
+       num_anims_01 with movsx at 0x004D3B5B and 0x004D3B88, num_anim_lights_4c
+       with movsx at 0x004D3C9E, and num_transforms_5a with movsx at
+       0x004D40CE, but num_bound_box_47 is masked with and eax,0xff at
+       0x004D3BCD and so is unsigned. */
     char num_anims_01; /* animation group count; also morph count */
     char animation_playing_02;
     char frame_method_03;
@@ -422,7 +431,14 @@ struct W8LevelFileAnimObj { /* 0x5f */
     char* abHowMany;                      /* 0x43: num_anims_01 channel bytes */
     unsigned char num_bound_box_47;       /* version_00 > 6 */
     W8LevelFileBounds* pBoundBox;         /* 0x48: num_bound_box_47 * 0x18 */
-    unsigned char num_anim_lights_4c;     /* version_00 > 7 */
+    /* version_00 > 7. The count is a signed char, and this is the only one of
+       the four counts here that is: ReadAnimObjFile sign-extends it with
+       movsx at 0x004D3C9E, 0x004D3CC4 and 0x004D3D0B, and tests it signed
+       with jle at 0x004D3CE3; WriteAnimObjFile does the same with jle at
+       0x004D46B3 and movsx at 0x004D46CF. By contrast num_bound_box_47 is
+       masked with and eax,0xff at 0x004D3BCD and num_transforms_5a is a
+       plain char, so the three are not interchangeable. */
+    signed char num_anim_lights_4c;
     W8LevelFileAnimLight* pAnimLights_4d; /* num_anim_lights_4c * 0x25 */
     unsigned char has_path_ai_51;         /* version_00 > 8 && path_lists_06 == 0 */
     W8LevelFilePathAI* pPathAI_52;

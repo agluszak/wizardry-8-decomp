@@ -193,6 +193,12 @@ W8Navigator::W8Navigator() : reactivated_09d(0)
     movement_0c0.Reset();
     tracked_position_0a4.SetZero();
     g_registered_navigators.Add(this);
+    /* 0x004520A4 re-zeroes the movement target, the eight-byte collision margin
+       and the target link immediately before the node allocation, so the retail
+       constructor initialises that group twice. */
+    movement_target_018.SetZero();
+    collision_margin_010 = 0.0;
+    target_navigator_04c = 0;
     node_18c = new srNode(0);
 }
 
@@ -1024,63 +1030,72 @@ srVector3T<float>* W8Navigator::AdjustPosition(srVector3T<float>* result,
                                                const srVector3T<float>* previous)
 {
     float acceleration_scale = 0.25f;
-    if (movement_0c0.location_id_004 == 0 || navigation_mode_008 == 4) {
+    if (movement_0c0.location_id_004 == 0) {
         *result = *current;
         return result;
     }
-    srVector3T<float> probe = *current;
-    probe.y += g_world_scale;
-    bool hit;
-    float ground = g_octree->SettleToGround(&probe, &hit, 1, 500.0f);
-    if (hit == 0) {
-        movement_0c0.velocity_034.SetZero();
-        if (g_combat_inactive == 0) {
-            ClearMovement();
-        }
-        *result = *previous;
-        return result;
-    }
-    if (g_octree->current_prop < 0) {
-        movement_0c0.position_adjusted_0c8 = 0;
-    } else {
-        movement_0c0.position_adjusted_0c8 = 1;
-        acceleration_scale = 0.5f;
-    }
-    if (current->y - ground > NAVIGATOR_MAXIMUM_DROP &&
-        (previous->x != probe.x || previous->z != probe.z)) {
-        movement_0c0.velocity_034.SetZero();
-        if (g_combat_inactive == 0) {
-            ClearMovement();
-        }
-        *result = *previous;
-        return result;
-    }
-    if (current->y - ground > g_startup_near_limit) {
-        srVector3T<float> falling = *current;
-        float distance;
-        if (g_combat_inactive == 0) {
-            movement_0c0.vertical_velocity_078 += g_game_time_accumulator->GetFrameDelta() *
-                                                  g_settings.monster_movement_speed *
-                                                  g_navigator_gravity * acceleration_scale;
-            distance = movement_0c0.vertical_velocity_078 *
-                       g_game_time_accumulator->GetFrameDelta() * g_settings.monster_movement_speed;
-        } else {
-            movement_0c0.vertical_velocity_078 +=
-                g_game_time_accumulator->GetFrameDelta() * g_navigator_gravity * acceleration_scale;
-            distance =
-                movement_0c0.vertical_velocity_078 * g_game_time_accumulator->GetFrameDelta();
-        }
-        falling.y -= distance;
-        if (falling.y >= ground) {
-            position_dirty_09c = 1;
-            *result = falling;
+    /* 0x0045445D skips the whole settle-and-drop body when navigation_mode_008 is
+       4 and falls into the shared stop path below, so the mode test guards the
+       body rather than sharing the location-id early return. */
+    if (navigation_mode_008 != 4) {
+        srVector3T<float> probe = *current;
+        probe.y += g_world_scale;
+        bool hit;
+        float ground = g_octree->SettleToGround(&probe, &hit, 1, 500.0f);
+        if (hit != 0) {
+            if (g_octree->current_prop < 0) {
+                movement_0c0.position_adjusted_0c8 = 0;
+            } else {
+                movement_0c0.position_adjusted_0c8 = 1;
+                acceleration_scale = 0.5f;
+            }
+            if (current->y - ground <= NAVIGATOR_MAXIMUM_DROP ||
+                (previous->x == probe.x && previous->z == probe.z)) {
+                if (g_startup_near_limit < current->y - ground) {
+                    srVector3T<float> falling = *current;
+                    float distance;
+                    if (g_combat_inactive == 0) {
+                        movement_0c0.vertical_velocity_078 +=
+                            g_game_time_accumulator->GetFrameDelta() *
+                            g_settings.monster_movement_speed * g_navigator_gravity *
+                            acceleration_scale;
+                        distance = movement_0c0.vertical_velocity_078 *
+                                   g_game_time_accumulator->GetFrameDelta() *
+                                   g_settings.monster_movement_speed;
+                    } else {
+                        movement_0c0.vertical_velocity_078 +=
+                            g_game_time_accumulator->GetFrameDelta() * g_navigator_gravity *
+                            acceleration_scale;
+                        distance =
+                            movement_0c0.vertical_velocity_078 * g_game_time_accumulator->GetFrameDelta();
+                    }
+                    falling.y -= distance;
+                    if (falling.y >= ground) {
+                        position_dirty_09c = 1;
+                        *result = falling;
+                        return result;
+                    }
+                }
+                movement_0c0.vertical_velocity_078 = 0.0f;
+                position_dirty_09c = 0;
+            } else {
+                movement_0c0.velocity_034.SetZero();
+                if (g_combat_inactive == 0) {
+                    ClearMovement();
+                }
+                *result = *previous;
+                return result;
+            }
+            probe.y = ground;
+            *result = probe;
             return result;
         }
     }
-    movement_0c0.vertical_velocity_078 = 0.0f;
-    position_dirty_09c = 0;
-    probe.y = ground;
-    *result = probe;
+    movement_0c0.velocity_034.SetZero();
+    if (g_combat_inactive == 0) {
+        ClearMovement();
+    }
+    *result = *previous;
     return result;
 }
 
@@ -1167,9 +1182,14 @@ double W8Navigator::MeasurePathDistance(const srVector3T<float>* target, float m
 
     movement.CopySettingsFrom(movement_0c0);
     movement.target_location_id_010 = location_id;
-    movement.vector_088 = movement_0c0.vector_088;
-    movement.vector_094 = movement_0c0.vector_094;
-    movement.vector_0a0 = movement_0c0.vector_0a0;
+    /* 0x0045333F copies the three basis vectors as one 36-byte group with a
+       countdown loop; three separate assignments lower to nine straight-line
+       moves instead. The group is the three contiguous srVector3T<float>. */
+    float* basis = &movement.vector_088.x;
+    const float* source = &movement_0c0.vector_088.x;
+    for (int count = 9; count != 0; --count) {
+        *basis++ = *source++;
+    }
     movement.position_040 = movement_0c0.position_040;
     movement.target_position_04c = *target;
     attachment.InitializeSegment(&movement_0c0.position_040, target);
@@ -2305,8 +2325,12 @@ void W8Navigator::UpdateNavigation004553A0(unsigned char skip_movement, char slo
 
     case 9:
         if (target_navigator_04c != 0) {
-            movement_result = g_octree->AdvanceNavigator(&movement_0c0, radius_084,
-                                                         static_cast<float>(collision_margin_010));
+            /* 0x004559A2 takes the separation from the linked navigator, not
+               from this navigator's collision margin: FLD dword ptr [EAX+0x84]
+               with EAX loaded from +0x5c. The load is unguarded in the retail
+               and stays that way here. */
+            movement_result = g_octree->AdvanceNavigator(
+                &movement_0c0, radius_084, linked_navigator_05c->radius_084);
             if (movement_result == 1 ||
                 (movement_result == 3 &&
                  LinkToNavigator(target_navigator_04c, collision_margin_010) == 0)) {
