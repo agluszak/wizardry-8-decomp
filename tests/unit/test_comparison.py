@@ -343,6 +343,30 @@ def test_compare_selected_runs_reccmp_for_the_selected_addresses(tmp_path, monke
     assert (tmp_path / row["code_diff"]["artifact"]).read_text() == "".join(diff)
 
 
+@pytest.mark.parametrize("inline_diff", [[], ["-return 1;\n", "+return 2;\n"]])
+def test_comparison_keeps_normal_and_inline_diff_artifacts(tmp_path, monkeypatch, inline_diff):
+    _products(tmp_path, monkeypatch)
+    normal = ["-return *a;\n", "+return GetFoo(a);\n"]
+    outcome = "differences" if inline_diff else "no-differences"
+    raw = {
+        **_row(0x401000, outcome, inline_diff),
+        "normal_diff": normal,
+        "inline_normalized_diff": inline_diff,
+        "inline_callees": ["0x402000"],
+    }
+    _fake_reccmp(monkeypatch, [raw])
+    result = compare_selected(tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"))
+    [row] = result["functions"]
+    assert row["outcome"] == outcome
+    assert (tmp_path / row["normal_diff"]["artifact"]).read_text() == "".join(normal)
+    if inline_diff:
+        assert row["inline_normalized_diff"] == row["code_diff"]
+        assert (tmp_path / row["code_diff"]["artifact"]).read_text() == "".join(inline_diff)
+    else:
+        assert row["inline_normalized_diff"] == []
+        assert "code_diff" not in row
+
+
 def test_focused_comparison_preserves_previous_report_and_diff(tmp_path, monkeypatch):
     _products(tmp_path, monkeypatch)
     root = tmp_path / "build/reports/compare/wiz8"

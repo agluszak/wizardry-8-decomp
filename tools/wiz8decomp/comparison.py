@@ -403,13 +403,22 @@ def _run_reccmp(
 
 
 def _function_row(repository: Path, target: str, row: dict[str, Any]) -> dict[str, Any]:
-    """reccmp's result for one function, with its code diff moved to a file."""
-    result = {key: value for key, value in row.items() if key != "code_diff"}
-    diff = row["code_diff"]
-    if diff:
-        path = report_directory(repository, target).resolve() / f"{int(row['orig'], 16):08x}.diff"
+    """Keep both comparison passes available without printing their whole diffs."""
+    diff_fields = {"code_diff", "normal_diff", "inline_normalized_diff"}
+    result = {key: value for key, value in row.items() if key not in diff_fields}
+    for key in sorted(diff_fields & row.keys()):
+        diff = row[key]
+        if not diff:
+            if key != "code_diff":
+                result[key] = diff
+            continue
+        suffix = ".normal" if key == "normal_diff" and row.get("inline_callees") else ""
+        path = (
+            report_directory(repository, target).resolve()
+            / f"{int(row['orig'], 16):08x}{suffix}.diff"
+        )
         atomic_write(path, "".join(diff))
-        result["code_diff"] = {
+        result[key] = {
             "lines": sum(
                 1 for line in diff if line[:1] in "+-" and not line.startswith(("+++", "---"))
             ),
