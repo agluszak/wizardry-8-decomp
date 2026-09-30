@@ -13,7 +13,7 @@ char AddTextInputField(int left, int top, int width, int height, int priority, c
                        unsigned char capacity, short input_type,
                        unsigned char use_inactive_text_field_color);
 void RemoveTextInputField(int index);
-unsigned char GetTextInputFieldLength(int index);
+unsigned char GetTextInputFieldLength(unsigned char index);
 void SetActiveField(char index);
 short GetActiveTextInputField(void);
 void SetInputFieldStringWith16BitString(unsigned char field, wchar_t* text);

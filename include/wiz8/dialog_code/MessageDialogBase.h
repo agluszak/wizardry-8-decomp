@@ -26,9 +26,10 @@ public:
 
     /* Called on this object from outside the class by the Please Wait screen,
        which is what puts it here rather than under protected. */
-    void SetMessage(const wchar_t* message, int line_count, int characters_per_line,
-                    int confirmation, int cancel, int size_to_message, int wrap_message,
-                    int maximum_width, int maximum_height); /* 0x005D2800 */
+    void SetMessage(const wchar_t* message, int line_count, unsigned short characters_per_line,
+                    unsigned char confirmation, unsigned char cancel, unsigned char size_to_message,
+                    unsigned char wrap_message, int maximum_width,
+                    int maximum_height); /* 0x005D2800 */
     /* The party-selection screen calls this centering helper on a freshly
        allocated base dialog, so it is part of the public surface rather than
        a derived-only helper. */

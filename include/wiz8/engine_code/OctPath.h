@@ -128,8 +128,7 @@ struct W8PathSurface {
     unsigned short parent_10;
     unsigned char padding_12[0x02];
     /* Monotonic visit stamp: patrol selection picks the smallest value, and
-       the mover writes the game-time tick (or accumulated distance) as each
-       waypoint is consumed. */
+       both mover paths write elapsed game time as each waypoint is consumed. */
     unsigned int visit_stamp_14;
     /* A* heuristic: distance to the goal scaled by g_float_005ec394, cached by
        FindPath while the surface is open. */
@@ -196,7 +195,7 @@ static_assert(sizeof(GDPropCondPaths) == 0x44, "GDPropCondPaths_must_be_0x44");
    three-component shape of the octree walker, but only X and Z participate in
    its Bresenham step; the remaining slots are zeroed by the builder. */
 struct W8PathGridWalk {
-    int cell_00[2];    /* 0x00: starting X/Z path cells */
+    int cell_00[2];    /* 0x00: destination X/Z path cells */
     int padding_08;    /* 0x08: zero */
     int step_0c[2];    /* 0x0c: +1 or -1 per axis */
     int padding_14;    /* 0x14: zero */
@@ -212,12 +211,14 @@ struct W8PathGridWalk {
 
 static_assert(sizeof(W8PathGridWalk) == 0x40, "W8PathGridWalk_must_be_0x40");
 
-/* One of the fixed probe volumes assembled by 0x004656A0. The matcher at
-   0x00465970 proves the tag, outer and inner radii, and center. */
+/* One of the fixed probe volumes assembled by 0x004656A0. The outer radius
+   is the navigator's collision radius; the inner bound is its distance from
+   the movement search origin. The player entry leaves the inner bound
+   untouched. 0x00465970 tests candidates against these bounds and center. */
 struct W8PathProbeVolume {
     unsigned int tag_00;
     float outer_radius_04;
-    float inner_radius_08;
+    float inner_radius_08; /* Initial distance from the search origin, not a body radius. */
     srVector3T<float> center_0c;
 };
 
@@ -293,7 +294,7 @@ public:
     void LinkEdges(GDProp* prop);    /* 0x004600B0 */
     void CheckConditionalWayPtStatus(unsigned short count, unsigned short* waypoints);
     void CheckConditionalLinkStatus(unsigned short count, unsigned short* edges);
-    void SetConditionalPathFrame(unsigned int path_handle, short frame);
+    void SetConditionalPathFrame(unsigned int path_handle, unsigned short frame);
     unsigned int FindConditionalPathValue(unsigned int key, unsigned int value);
     void
     LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
@@ -311,16 +312,16 @@ public:
                                  float separation);
     void UpdateConditionalPathFlags(unsigned int path_handle, unsigned short frame,
                                     unsigned int flags);
-    int ProcessSearchNodeProps(unsigned int node_index, unsigned char first_only);
+    int ProcessSearchNodeProps(unsigned short node_index, unsigned char first_only);
     unsigned int CollectPathProbes(W8NavigatorMovementState* movement, float radius);
     unsigned short PlanMovement(W8NavigatorMovementState* movement, float radius, float separation);
     unsigned short PlanMovementToPosition(W8NavigatorMovementState* movement,
                                           const srVector3T<float>* target, float radius,
                                           float separation);
-    float UpdateSearchNodeScore(unsigned int node, const srVector3T<float>* position, float minimum,
+    float UpdateSearchNodeScore(unsigned short node, const srVector3T<float>* position, float minimum,
                                 float maximum);
     unsigned short ResolveSearchNodeCollisions(W8NavigatorMovementState* movement,
-                                               unsigned int node, float radius, float separation);
+                                               unsigned short node, float radius, float separation);
     unsigned char TestSearchPositionVisibility(const srVector3T<float>* position,
                                                W8NavigatorMovementState* movement);
     unsigned short ConfigureMovementSearch(W8NavigatorMovementState* movement, int target_location,
@@ -384,7 +385,7 @@ public:
                                        srVector3T<float>* direction);
     /* A* from the attachment's start to its destination over the surface
        graph; returns the destination surface index, zero when unreachable. */
-    unsigned int FindPath(W8NavigatorAttachment* attachment, unsigned int flags);
+    unsigned short FindPath(W8NavigatorAttachment* attachment, unsigned int flags);
     /* Depth-first patrol search from `waypoint`: accumulates per-link path
        costs against the randomized patrol_distance target, tracking the
        argmin-key fallback nodes, and returns the reached endpoint or zero.
@@ -425,7 +426,7 @@ public:
        header, and the level name the octree already owns. */
     void ConfigureForLevel(int size, float grid_scale, int path_clearance,
                            const srVector3T<float>* bounds, const char* name); /* 0x00458A50 */
-    unsigned char Load00458CE0(int handle);                                    /* 0x00458CE0 */
+    unsigned char ReadPathNodes(int handle);                                  /* 0x00458CE0 */
     unsigned char WritePathNodes(unsigned int handle);
     unsigned char SaveWaypointSnapshot(unsigned char force);
     unsigned char WriteWaypointFile();

@@ -8,6 +8,47 @@ import typer
 app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
 
 
+@app.command("field-uses")
+def field_uses_command(
+    owners: Annotated[list[str], typer.Argument(help="Exact modeled type names or paths.")],
+    program: Annotated[str, typer.Option("--program")] = "wiz8",
+    directory: Annotated[Path | None, typer.Option(help="Saved comparison directory.")] = None,
+) -> None:
+    """Census retail field uses by owner; reads Ghidra and saved comparisons."""
+    from .. import command_support as cli
+    from ..comparison import report_directory
+    from ..ghidra.env import open_program
+    from ..ghidra.field_uses import field_uses
+    from ..source_index import target_for_program
+
+    settings = cli.settings()
+    target = target_for_program(settings.repo_dir, program)
+    saved = directory or report_directory(settings.repo_dir, target)
+    with open_program(settings, program) as live:
+        payload = field_uses(live, settings.repo_dir, owners, saved)
+    cli.emit(payload)
+
+
+@app.command("signature-census")
+def signature_census_command(
+    program: Annotated[str, typer.Option("--program")] = "wiz8",
+    directory: Annotated[Path | None, typer.Option(help="Saved comparison directory.")] = None,
+) -> None:
+    """Join callee signatures and provenance; never rebuilds or compares binaries."""
+    from .. import command_support as cli
+    from ..comparison import report_directory
+    from ..ghidra.env import open_program
+    from ..ghidra.signature_census import signature_census
+    from ..source_index import target_for_program
+
+    settings = cli.settings()
+    target = target_for_program(settings.repo_dir, program)
+    saved = directory or report_directory(settings.repo_dir, target)
+    with open_program(settings, program) as live:
+        payload = signature_census(live, settings.repo_dir, saved)
+    cli.emit(payload)
+
+
 @app.command("compare")
 def comparison_command(
     addresses: Annotated[
@@ -287,3 +328,18 @@ def placement_outliers_command(
             min_peers=min_peers,
         )
     )
+
+
+@app.command("mismatch-clusters")
+def mismatch_clusters_command(
+    directory: Annotated[
+        Path | None, typer.Option("--directory", help="Existing WIZ8 comparison report directory.")
+    ] = None,
+) -> None:
+    """Cluster existing Ghidriff differences and catalog direct-call observations."""
+    from .. import command_support as cli
+    from ..comparison import report_directory
+    from ..reports.mismatch_clusters import mismatch_clusters
+
+    repository = cli.settings().repo_dir
+    cli.emit(mismatch_clusters(repository, directory or report_directory(repository, "WIZ8")))

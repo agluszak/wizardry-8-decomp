@@ -549,7 +549,7 @@ void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
 // FUNCTION: WIZ8 0x0050f700
 void DetachMonsterGroup(W8MonsterGroup* monster_group)
 {
-    SetTargetToGroup(monster_group->group_id, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
+    SetTargetToGroup(monster_group->group_id, 0);
     monster_group->members_active = 0;
 }
 
@@ -1159,7 +1159,7 @@ bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_i
     void* removed;
 
     if (monster_group->members_active != 0) {
-        SetTargetToGroup(monster_group->group_id, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
+        SetTargetToGroup(monster_group->group_id, 0);
         monster_group->members_active = 0;
     }
     if (monster_group->leader_group_id == 0) {

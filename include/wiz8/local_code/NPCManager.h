@@ -47,7 +47,7 @@ W8Monster* GetNpcMonster(W8NpcState* npc);
 void ChooseNewGameStartLocation(int* level, int* entrance);                         /* 0x005092F0 */
 void SelectStartNpcGreeting(void);                                                  /* 0x00509560 */
 int SelectNewGameStartLevel(void);                                                  /* 0x00509750 */
-void BindNpcToMonster(unsigned char value, int enabled, int location_id);           /* 0x00509CD0 */
+void BindNpcToMonster(unsigned char value, unsigned char enabled, int location_id); /* 0x00509CD0 */
 bool RecruitNpcIntoParty(W8NpcState* npc);                                          /* 0x0050B160 */
 int DismissNpcFromParty(int party_slot, int unused, bool skip_spawn, bool neutral); /* 0x0050B590 */
 void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character);              /* 0x0050DDC0 */

@@ -303,7 +303,9 @@ def _ghidra_type_name(type_name: str) -> str:
     while True:
         updated = _TEMPLATE.sub(r"[\1]", text)
         if updated == text:
-            return text
+            # C++98 separates nested closing angles (``> >``); that spacing
+            # is not part of Ghidra's corresponding template type name.
+            return re.sub(r"\s+(?=\])", "", text)
         text = updated
 
 

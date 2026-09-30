@@ -176,7 +176,7 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                                      "ReadWGDList: Could not allocate vertices.");
                     }
                     memcpy(m_pVertices, old_vertices, m_iNumVertices * sizeof(srVector3T<float>));
-                    srHeap.free(old_vertices);
+                    delete[] old_vertices;
                     m_pSurfaces = static_cast<W8GDSurface*>(
                         malloc((m_iNumSurfaces + face_count) * sizeof(W8GDSurface)));
                     if (m_pSurfaces == 0) {
@@ -504,7 +504,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
                          0x263, "AddTriggerPlane: Couldn't allocate trigger surfaces.");
         }
         m_pTrigVertices =
-            static_cast<srVector3T<float>*>(srHeap.allocate(1000 * sizeof(srVector3T<float>)));
+            new srVector3T<float>[1000];
         if (m_pTrigVertices == 0) {
             srAssertFail("m_pTrigVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x265, "AddTriggerPlane: Couldn't allocate trigger vertices.");
@@ -588,7 +588,7 @@ void W8GameData::AddLevelPlane(W8LevelFilePlane* plane)
                          0x2c3, "AddTriggerPlane: Couldn't allocate trigger surfaces.");
         }
         m_pTrigVertices =
-            static_cast<srVector3T<float>*>(srHeap.allocate(1000 * sizeof(srVector3T<float>)));
+            new srVector3T<float>[1000];
         if (m_pTrigVertices == 0) {
             srAssertFail("m_pTrigVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x2c5, "AddTriggerPlane: Couldn't allocate trigger vertices.");
@@ -659,8 +659,7 @@ void W8GameData::IntegrateTriggers()
     }
 
     int combined_vertex_count = m_iNumVertices + m_iNumTrigVertices;
-    srVector3T<float>* combined_vertices = static_cast<srVector3T<float>*>(
-        srHeap.allocate((combined_vertex_count + 1) * sizeof(srVector3T<float>)));
+    srVector3T<float>* combined_vertices = new srVector3T<float>[combined_vertex_count + 1];
     if (combined_vertices == 0) {
         srAssertFail("pNewVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x31b,
                      "IntegrateTriggers: Couldn't allocate new vertex array.");
@@ -669,8 +668,8 @@ void W8GameData::IntegrateTriggers()
     memcpy(combined_vertices + m_iNumVertices, m_pTrigVertices,
            m_iNumTrigVertices * sizeof(srVector3T<float>));
     m_iNumVertices = combined_vertex_count;
-    srHeap.free(m_pVertices);
-    srHeap.free(m_pTrigVertices);
+    delete[] m_pVertices;
+    delete[] m_pTrigVertices;
     integrated_surface_count_34 = m_iNumTrigSurfaces;
     m_pVertices = combined_vertices;
     m_pTrigVertices = 0;
@@ -703,8 +702,7 @@ void W8GameData::IntegrateTriggers()
 void W8GameData::IntegrateTriggerGeometry()
 {
     if (m_iNumTrigVertices != 0) {
-        srVector3T<float>* new_vertices = static_cast<srVector3T<float>*>(
-            srHeap.allocate((m_iNumTrigVertices + 1 + m_iNumVertices) * sizeof(srVector3T<float>)));
+        srVector3T<float>* new_vertices = new srVector3T<float>[m_iNumTrigVertices + 1 + m_iNumVertices];
         if (new_vertices == 0) {
             srAssertFail("pNewVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x351, "IntegrateTriggers: Couldn't allocate new vertex array.");
@@ -713,8 +711,8 @@ void W8GameData::IntegrateTriggerGeometry()
         memcpy(new_vertices + m_iNumVertices, m_pTrigVertices,
                m_iNumTrigVertices * sizeof(srVector3T<float>));
         m_iNumVertices += m_iNumTrigVertices;
-        srHeap.free(m_pVertices);
-        srHeap.free(m_pTrigVertices);
+        delete[] m_pVertices;
+        delete[] m_pTrigVertices;
         m_pTrigVertices = 0;
         m_iNumTrigVertices = 0;
         integrated_surface_count_34 = m_iNumTrigSurfaces;
@@ -770,7 +768,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
                          0x3b0, "AddTriggerPlane: Couldn't allocate trigger surfaces.");
         }
         m_pTrigVertices =
-            static_cast<srVector3T<float>*>(srHeap.allocate(1000 * sizeof(srVector3T<float>)));
+            new srVector3T<float>[1000];
         if (m_pTrigVertices == 0) {
             srAssertFail("m_pTrigVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x3b2, "AddTriggerPlane: Couldn't allocate trigger vertices.");
@@ -968,7 +966,7 @@ void W8GameData::ReadProcessedGameData(int handle)
     bits_5c = new BitArray(m_iNumTriggers);
 
     m_pVertices =
-        static_cast<srVector3T<float>*>(srHeap.allocate((m_iNumVertices * 3 + 6) * sizeof(float)));
+        new srVector3T<float>[m_iNumVertices + 2];
     if (m_pVertices == 0) {
         srAssertFail("m_pVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x483,
                      "ReadProcessedGameData: Couldn't allocate vertices.");
@@ -1274,7 +1272,7 @@ W8GameData::~W8GameData()
         delete geometry_index_00;
     }
     if (m_pVertices != 0) {
-        srHeap.free(m_pVertices);
+        delete[] m_pVertices;
     }
     if (m_pSurfaces != 0) {
         free(m_pSurfaces);
@@ -1390,8 +1388,7 @@ void W8GameData::CompileGameData()
         }
         memset(cond_polys, 0, m_iNumCondPolys * sizeof(int));
     }
-    srVector3T<float>* new_vertices = static_cast<srVector3T<float>*>(
-        srHeap.allocate(m_iNumVertices * sizeof(srVector3T<float>)));
+    srVector3T<float>* new_vertices = new srVector3T<float>[m_iNumVertices];
     if (new_vertices == 0) {
         ReportBuildStatus(7, "CompileGameData: Couldn't allocate New vertex list.");
     }
@@ -1581,7 +1578,7 @@ void W8GameData::CompileGameData()
     trigger_surface_base_2c_00 = m_iNumSurfaces;
     m_iNumSurfaces = polygon_count;
     free(weld_records);
-    srHeap.free(m_pVertices);
+    delete[] m_pVertices;
     free(m_pSurfaces);
     if (m_iNumCondPolys != 0) {
         free(m_piCondPolys);

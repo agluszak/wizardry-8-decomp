@@ -884,7 +884,7 @@ void DropHeldItem(int arg_1)
 
     double amplitude = g_double_005ed7a8 * g_float_005ebcf8;
     double pitch = amplitude * g_float_005ebc28 + amplitude * cursor.z * g_float_005ebf4c;
-    double base = cos(pitch) * g_double_005ec030;
+    float base = static_cast<float>(cos(pitch) * g_double_005ec030);
     double yaw = amplitude * cursor.y * g_float_005ebf48;
 
     srVector3T<float> direction;

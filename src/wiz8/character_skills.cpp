@@ -75,7 +75,7 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
     *length += 1;
     text[*length] = L' ';
     *length += 1;
-    skill_level = character->skills[skill_id].level;
+    skill_level = character->skills[skill_id].points_02;
     if (skill_id == g_profession_bonus_skills[character->iProfession]) {
         skill_level = (skill_level * 0x7d) / 100;
     }
@@ -278,7 +278,8 @@ void CheatDeathRevive(int party_slot)
     if (g_combat_state != 0 && g_combat_state->characters[party_slot].cheat_death_used == 0) {
         character->hp_current =
             (Random(static_cast<unsigned int>(ScaleValueByProfessionLevel(
-                 character, W8_TRAIT_CHEAT_DEATH, character->uiHPMax * g_float_005ebc7c))) +
+                 character, W8_TRAIT_CHEAT_DEATH,
+                 static_cast<unsigned int>(character->uiHPMax) * g_float_005ebc7c))) +
              0x32) *
             character->uiHPMax / 100;
         g_combat_state->characters[party_slot].cheat_death_used = true;

@@ -35,9 +35,11 @@ public:
 
     virtual void SetEnabled(bool enabled);
     /* Slots 2 and 5..17 share the retail ret-4 no-op at 0x005B1BE0.
-       These are default hooks, not missing implementations. */
+       These are default hooks, not missing implementations. Redraw's force
+       flag is consumed as a byte by the concrete overrides; forwarding a
+       full stack slot does not widen that parameter. */
     // FUNCTION: WIZ8 0x005b1be0
-    virtual void Redraw(int) {}
+    virtual void Redraw(unsigned char) {}
     virtual void SetBounds(int left, int top, int right, int bottom);
     virtual void SetBoundsFromRect(const W8ControlsRect* bounds);
     virtual void AddLayoutFlags(unsigned int) {}

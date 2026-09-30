@@ -86,9 +86,9 @@ can be correct when members and bases supply all cleanup. Preserve established s
 aliasing and unsafe ownership rather than inferring a deep copy from modern design rules.
 
 An implicit non-template emitted special member normally has a marker-only `SYNTHETIC` identity;
-template emissions belong at the primary template owner. Class export is emission evidence, not proof
-of an authored declaration or a fixed set of VC6 implicit emissions. Use decorated exports, real uses,
-member structure and emitted code together. Do not hand-declare an exported implicit special member
+template emissions have `TEMPLATE` markers at the primary template owner. Class export is emission
+evidence, not proof of an authored declaration or a fixed set of VC6 implicit emissions. Use decorated
+exports, real uses, member structure and emitted code together. Do not hand-declare an exported implicit special member
 or invent a fake use to force its emission. Keep unresolved emission gaps explicit. Distinguish default,
 capacity, copy and other constructor overloads by symbols/calls even when their lowered bodies resemble
 one another; do not normalize their identities together.

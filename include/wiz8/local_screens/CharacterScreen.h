@@ -135,7 +135,7 @@ class W8CharacterStatsValue : public W8TextControl {
 public:
     W8CharacterStatsValue(Controls* owner, int x, int y,
                           const W8CharacterStatsRecord* default_record);
-    virtual void Redraw(int full_redraw) override;
+    virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnRightButtonUp(int event) override;
     void SetRecord(const W8CharacterStatsRecord* record);
 

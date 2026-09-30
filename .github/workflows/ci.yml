@@ -286,6 +286,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 2
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -347,8 +348,9 @@ jobs:
         if: github.event_name == 'pull_request'
         run: uv run wiz8 ghidra restore
       - name: Restore reccmp Ghidra analysis
+        id: wiz8-analysis-cache
         if: github.event_name == 'pull_request'
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: build/reccmp-ghidra
           key: reccmp-ghidra-v1-${{ runner.os }}-${{ hashFiles('uv.lock') }}-${{ github.sha }}
@@ -462,6 +464,15 @@ jobs:
           bash .github/scripts/compare-reccmp-base.sh \
             WIZ8 wiz8 match \
             "${{ github.event.pull_request.base.sha }}" "$GITHUB_SHA" wiz8
+      # Preserve completed analysis even if downstream PR-summary reporting fails.
+      - name: Save completed WIZ8 analysis
+        if: >-
+          github.event_name == 'pull_request' &&
+          steps.wiz8-analysis-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/reccmp-ghidra
+          key: ${{ steps.wiz8-analysis-cache.outputs.cache-primary-key }}
       - name: Summarize WIZ8 PR comparison
         id: wiz8-status
         if: github.event_name == 'pull_request'
@@ -605,6 +616,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 2
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:

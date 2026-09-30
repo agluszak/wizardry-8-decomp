@@ -99,8 +99,8 @@ public:
 
     srClass* vInstance() override;                                      /* 0x00481E30 */
     void process(const ProcessInfo& info, e_processType type) override; /* 0x00480920 */
-    int GetWidth00480EF0();                                             /* 0x00480EF0 */
-    int GetHeight00480F70();                                            /* 0x00480F70 */
+    unsigned short GetScaledWidth();                                    /* 0x00480EF0 */
+    unsigned short GetScaledHeight();                                   /* 0x00480F70 */
     void SetGlowEnabled(unsigned char enable);                          /* 0x00480EB0 */
     void SetGlowColors(srVector4T<float>* first, srVector4T<float>* second);
 
@@ -108,14 +108,14 @@ public:
     {
         return render_state_164.display_state;
     }
-    void configure2D(short width, short height)
+    void configure2D(unsigned short width, unsigned short height)
     {
         overlay_scene_flag_160 = 0;
         render_state_164.render_depth = 2000;
-        render_state_164.left = width;
-        render_state_164.top = height;
-        render_state_164.right = 0;
-        render_state_164.bottom = 0;
+        render_state_164.width = width;
+        render_state_164.height = height;
+        render_state_164.position_x = 0;
+        render_state_164.position_y = 0;
         render_state_164.display_state = 0;
         render_state_164.glow_enabled_0d = 0;
         vector_174 = 0;

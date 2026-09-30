@@ -200,7 +200,9 @@ static_assert(offsetof(W8CombatCharacterRow, saved_attack_value) == 0x38,
    +0x18, 0xd4 apart. Only what a ported body reaches is named, and only where
    the use establishes a meaning. */
 struct W8CombatState {
-    unsigned char combat_over_000; /* 0x000: raised when combat ends; inverse of round_active_001 */
+    /* 0x000: raised by BeginCombatExecution and cleared at the round
+       boundary. Gates actor scheduling; not the end-of-combat flag. */
+    unsigned char combat_over_000;
     /* 0x001: set when combat begins and when continuous combat resumes;
        cleared at the round boundary while continuous_combat is off. Gates
        party movement and the combat-sensitive UI panels. */

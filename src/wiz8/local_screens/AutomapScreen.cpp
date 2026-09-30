@@ -1791,15 +1791,13 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
             int screen_y = (int)((1.0f - (note->position.y - bottom) / g_automap_zoom) * -435.0f);
             int marker_width;
             if (note == g_automap_editing_note) {
-                marker_width = static_cast<int>(
-                    static_cast<unsigned short>(g_automap_text_marker->GetWidth00480EF0()) * 0.22);
+                marker_width = static_cast<int>(g_automap_text_marker->GetScaledWidth() * 0.22);
             } else {
-                marker_width = static_cast<int>((1.0f / (g_automap_zoom * 0.00004f)) * 0.44f *
-                                                static_cast<double>(static_cast<unsigned short>(
-                                                    g_automap_text_marker->GetWidth00480EF0())) *
-                                                0.5f);
+                marker_width = static_cast<int>(
+                    (1.0f / (g_automap_zoom * 0.00004f)) * 0.44f *
+                    static_cast<double>(g_automap_text_marker->GetScaledWidth()) * 0.5f);
             }
-            g_automap_text_marker->GetHeight00480F70();
+            g_automap_text_marker->GetScaledHeight();
             W8ScreenRect rect;
             rect.top =
                 (0x20 - screen_y) - ((unsigned)GetFontHeight(g_wiz_text_font_secondary) >> 1);
@@ -2125,16 +2123,15 @@ void RenderAutomapMarkers(void)
         float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f;
         srVector3T<double> scale(factor, factor, factor);
         g_class_68f29c->setScale(scale);
-        if (static_cast<unsigned short>(g_class_68f29c->GetHeight00480F70()) < 1) {
+        if (g_class_68f29c->GetScaledHeight() < 1) {
             g_class_68f29c->setScale(srVector3T<double>(1.0, 1.0, 1.0));
-            factor = g_float_005ebb38 / (g_class_68f29c->GetHeight00480F70() & 0xffff);
+            factor = g_float_005ebb38 / g_class_68f29c->GetScaledHeight();
             scale.Set(factor, factor, factor);
             g_class_68f29c->setScale(scale);
         }
-        unsigned int width = g_class_68f29c->GetWidth00480EF0();
-        unsigned int height = g_class_68f29c->GetHeight00480F70();
-        PositionToolTipNode(g_class_68f29c, x - ((width & 0xffff) >> 1),
-                            y - ((height & 0xffff) >> 1), 0);
+        unsigned short width = g_class_68f29c->GetScaledWidth();
+        unsigned short height = g_class_68f29c->GetScaledHeight();
+        PositionToolTipNode(g_class_68f29c, x - (width >> 1), y - (height >> 1), 0);
         g_class_68f29c->setRotation(0.0, 0.0, -static_cast<double>(GetCameraYawRadians()));
         g_class_68f29c->clearFlag(srNode::FLAG_DISABLE);
         g_class_68f29c->setParent(0, 1);
@@ -2176,10 +2173,10 @@ void RenderAutomapMarkers(void)
                 marker = CreateAutomapMonsterMarker(0);
                 break;
             }
-            unsigned int width = marker->GetWidth00480EF0();
-            x -= (width & 0xffff) >> 1;
-            unsigned int height = marker->GetHeight00480F70();
-            y -= (height & 0xffff) >> 1;
+            unsigned short width = marker->GetScaledWidth();
+            x -= width >> 1;
+            unsigned short height = marker->GetScaledHeight();
+            y -= height >> 1;
             marker->setParent(g_scene_fullscreen, 1);
             PositionToolTipNode(marker, x, y, 0);
         }
@@ -2214,10 +2211,9 @@ void RenderAutomapMarkers(void)
             int y = 0x20 - static_cast<int>((1.0f - (location.z - top) / g_automap_zoom) * -435.0f);
             stModelInstance2D* marker = CreateAutomapItemMarker(world_item->item.iItemNo);
             if (marker != 0) {
-                unsigned int width = marker->GetWidth00480EF0();
-                unsigned int height = marker->GetHeight00480F70();
-                PositionToolTipNode(marker, x - ((width & 0xffff) >> 1),
-                                    y - ((height & 0xffff) >> 1), 0);
+                unsigned short width = marker->GetScaledWidth();
+                unsigned short height = marker->GetScaledHeight();
+                PositionToolTipNode(marker, x - (width >> 1), y - (height >> 1), 0);
                 marker->setParent(g_scene_fullscreen, 1);
             }
         }
@@ -2252,19 +2248,19 @@ void RenderAutomapMarkers(void)
             if (note == g_automap_editing_note)
                 marker->setScale(srVector3T<double>(0.22f, 0.22f, 0.22f));
             if (marker != 0) {
-                unsigned int width = marker->GetWidth00480EF0();
-                x -= (width & 0xffff) >> 1;
-                unsigned int height = marker->GetHeight00480F70();
-                y -= (height & 0xffff) >> 1;
+                unsigned short width = marker->GetScaledWidth();
+                x -= width >> 1;
+                unsigned short height = marker->GetScaledHeight();
+                y -= height >> 1;
                 PositionToolTipNode(marker, x, y, 0);
                 marker->setParent(g_scene_fullscreen, 1);
                 if (note->layer == g_automap_layer && note->text != 0 &&
                     (g_automap_page == 0 || note == g_automap_hovered_note ||
                      note == g_automap_editing_note)) {
-                    height = marker->GetHeight00480F70();
-                    y += ((height & 0xffff) >> 1) - ((font_height & 0xffff) >> 1);
-                    width = marker->GetWidth00480EF0();
-                    x += (width & 0xffff) + 2;
+                    height = marker->GetScaledHeight();
+                    y += (height >> 1) - ((font_height & 0xffff) >> 1);
+                    width = marker->GetScaledWidth();
+                    x += width + 2;
                     gprintfDirty(x, y, note->text);
                     if (note == g_automap_editing_note) {
                         marker->setScale(srVector3T<double>(0.22f, 0.22f, 0.22f));
@@ -2320,9 +2316,9 @@ stModelInstance2D* CreateAutomapItemMarker(int item_id)
     first.Set(0.0f, 0.0f, 0.25f, 1.0f);
     marker->SetGlowColors(&first, &second);
     marker->setRenderDepth(2000);
-    if ((marker->GetHeight00480F70() & 0xffff) * factor < g_float_005ebb38) {
+    if (marker->GetScaledHeight() * factor < g_float_005ebb38) {
         marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
-        factor = g_float_005ebb38 / (marker->GetHeight00480F70() & 0xffff);
+        factor = g_float_005ebb38 / marker->GetScaledHeight();
         marker->setScale(srVector3T<double>(factor, factor, factor));
         return marker;
     }
@@ -2375,9 +2371,9 @@ stModelInstance2D* CreateAutomapMonsterMarker(int type)
        folds 0.44 * 0.85 into a single constant. */
     float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f;
     factor *= 0.85f;
-    if ((marker->GetHeight00480F70() & 0xffff) * factor < g_float_005ebb38) {
+    if (marker->GetScaledHeight() * factor < g_float_005ebb38) {
         marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
-        factor = g_float_005ebb38 / (marker->GetHeight00480F70() & 0xffff);
+        factor = g_float_005ebb38 / marker->GetScaledHeight();
         marker->setScale(srVector3T<double>(factor, factor, factor));
     } else {
         marker->setScale(srVector3T<double>(factor, factor, factor));
@@ -2397,9 +2393,9 @@ stModelInstance2D* CreateAutomapTextMarker(void)
     *marker = *g_automap_text_marker;
     g_releasable_68f1f4->Add(marker);
     float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f * g_float_005ebc7c;
-    if ((marker->GetHeight00480F70() & 0xffff) * factor < g_float_005ebb38) {
+    if (marker->GetScaledHeight() * factor < g_float_005ebb38) {
         marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
-        factor = g_float_005ebb38 / (marker->GetHeight00480F70() & 0xffff);
+        factor = g_float_005ebb38 / marker->GetScaledHeight();
         marker->setScale(srVector3T<double>(factor, factor, factor));
     } else {
         marker->setScale(srVector3T<double>(factor, factor, factor));

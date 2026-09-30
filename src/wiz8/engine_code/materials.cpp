@@ -247,9 +247,9 @@ short g_status_cursor;
 // GLOBAL: WIZ8 0x0065BD48
 int g_progress_total;
 // GLOBAL: WIZ8 0x0065BD4C
-int g_progress_done;
+unsigned int g_progress_done;
 // GLOBAL: WIZ8 0x0065BD50
-int g_progress_mark;
+unsigned int g_progress_mark;
 // GLOBAL: WIZ8 0x0065BD54
 FILE* g_log_file;
 
@@ -272,10 +272,9 @@ int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry);
 unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* stem);
 int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
                  unsigned char* classify);
-void OctBuildOptions(char* stem);
 
 // FUNCTION: WIZ8 0x00492E60
-char BuildPreprocessedFiles(const char* level_path)
+char W8Octree::BuildPreprocessedFiles(const char* level_path)
 {
     char level_name[1024];
     char stem[1024];
@@ -891,7 +890,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
 }
 
 // FUNCTION: WIZ8 0x00497690
-void ReportBuildStatus(int channel, const char* message)
+void ReportBuildStatus(short channel, const char* message)
 {
     char line[120];
 
@@ -934,7 +933,7 @@ void ReportBuildStatus(int channel, const char* message)
     case 1:
         ++g_progress_done;
         if (g_progress_mark + 10 <
-            static_cast<int>((g_progress_done * 100.0f / g_progress_total))) {
+            static_cast<unsigned int>((g_progress_done * 100.0f / g_progress_total))) {
             g_progress_mark += 10;
             sprintf(line, "  %d%% Complete \r", g_progress_mark);
             ReportStartupMessage(line);
@@ -1913,7 +1912,7 @@ int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int
    toggle keys and the six numeric editors, then prints the preprocessing banner
    line and restores the saved light direction. */
 // FUNCTION: WIZ8 0x00496CD0
-void OctBuildOptions(char* stem)
+void W8Octree::OctBuildOptions(char* stem)
 {
     bool done = g_build_level_links;
     EnvironmentColour colour_saved;

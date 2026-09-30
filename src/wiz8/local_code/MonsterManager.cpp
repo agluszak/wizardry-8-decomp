@@ -1309,7 +1309,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         --gXStatus.active_monster_count;
         if (gXStatus.fCombatMode != 0) {
             RefreshAllSight();
-            SetTargetToMonster(monster_info->location_id, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
+            SetTargetToMonster(monster_info->location_id, 0);
             RefreshFlaggedMainGameState();
             RecountCombatMonsters();
             if (g_combat_state->pActionMonsterInfo == monster_info) {

@@ -51,15 +51,11 @@ void W8AnimRep::SetFrameMethod(signed char method)
    not touched by the canonical constructor. */
 // FUNCTION: WIZ8 0x004b87c0
 W8AnimRepBase::W8AnimRepBase(const W8AnimRepBase& other)
+    : location_004(other.location_004), local_location_010(other.local_location_010),
+      parent_location_01c(other.parent_location_01c), rotation_028(other.rotation_028),
+      highlight_colour_04c(other.highlight_colour_04c), instance_scale_05c(1.0f), flag_060(false),
+      apply_instance_scale_061(0)
 {
-    location_004 = other.location_004;
-    local_location_010 = other.local_location_010;
-    parent_location_01c = other.parent_location_01c;
-    rotation_028 = other.rotation_028;
-    highlight_colour_04c = other.highlight_colour_04c;
-    instance_scale_05c = 1.0f;
-    flag_060 = false;
-    apply_instance_scale_061 = 0;
 }
 
 /* Store the representation's local location, then rebuild the world location

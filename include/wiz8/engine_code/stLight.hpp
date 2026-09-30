@@ -1,6 +1,7 @@
 #pragma once
 
 #include "surrender/srLight.h"
+#include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 
 #include <stddef.h>
@@ -12,6 +13,7 @@ extern unsigned int g_light_update_flags;
 
 class stLightDefinition {
 public:
+    stLightDefinition() : type_04(0) {}
     virtual ~stLightDefinition();
     virtual stLightDefinition* Clone() const = 0;
     virtual bool IsEnabledForSubcycle(unsigned char subcycle) = 0;
@@ -30,28 +32,25 @@ public:
     {
         type_04 = 1;
     }
-    stParametricLightDefinition(const stParametricLightDefinition& other)
-    {
-        type_04 = 1;
-        flags_08 = other.flags_08;
-        flicker_chance_0c = other.flicker_chance_0c;
-        color_10 = other.color_10;
-        color_to_1c.x = other.color_to_1c.x;
-        color_to_1c.y = other.color_to_1c.y;
-        color_to_1c.z = other.color_to_1c.z;
-        intensity_28 = other.intensity_28;
-        intensity_to_2c = other.intensity_to_2c;
-        period_30 = other.period_30;
-        rate_34 = other.rate_34;
-        path_speed_38 = other.path_speed_38;
-        subcycle_min_3c = other.subcycle_min_3c;
-        subcycle_max_40 = other.subcycle_max_40;
-    }
-
     // FUNCTION: WIZ8 0x004A2140
     virtual stLightDefinition* Clone() const override
     {
-        return new stParametricLightDefinition(*this);
+        stParametricLightDefinition* copy = new stParametricLightDefinition;
+        if (copy == 0) {
+            srAssertFail("pNew", "..\\Engine Code\\Include\\stLight.hpp", 0x56, 0);
+        }
+        copy->flags_08 = flags_08;
+        copy->flicker_chance_0c = flicker_chance_0c;
+        copy->color_10 = color_10;
+        copy->color_to_1c = color_to_1c;
+        copy->intensity_28 = intensity_28;
+        copy->intensity_to_2c = intensity_to_2c;
+        copy->period_30 = period_30;
+        copy->rate_34 = rate_34;
+        copy->path_speed_38 = path_speed_38;
+        copy->subcycle_min_3c = subcycle_min_3c;
+        copy->subcycle_max_40 = subcycle_max_40;
+        return copy;
     }
 
     // FUNCTION: WIZ8 0x004A21E0
@@ -113,9 +112,7 @@ static_assert(offsetof(stParametricLightDefinition, subcycle_max_40) == 0x40,
 // VTABLE: WIZ8 0x005ecda0
 class stKeyframedLightDefinition : public stLightDefinition {
 public:
-    stKeyframedLightDefinition()
-        : values_08(5), values_18(5), values_28(5), values_38(5), keyframe_index_48(0),
-          time_4c(0.0f)
+    stKeyframedLightDefinition() : keyframe_index_48(0), time_4c(0.0f)
     {
         type_04 = 2;
     }

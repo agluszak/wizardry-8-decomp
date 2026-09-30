@@ -3266,9 +3266,9 @@ void BuildCharacterTargetList(int party_slot, int action, W8PList* out_list)
     }
 }
 
-/* The monster twin: candidates for the monster's next target. Every live
-   party member other than the aimed character, then the monster itself and
-   every other reachable in-combat monster other than the aimed one. */
+/* The monster twin: candidates for the monster's next target. Retail's
+   monster exclusion compares the aimed id with the acting monster's own id,
+   rather than the candidate's id (0x005441aa..0x005441b2). */
 // FUNCTION: WIZ8 0x00544010
 void BuildMonsterTargetList(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                             unsigned int attack, W8PList* out_list)
@@ -3292,7 +3292,7 @@ void BuildMonsterTargetList(W8MonsterInfo* monster_info, W8MonsterRecord* record
                                         candidate->location_id);
             } else {
                 if ((monster_info->Target.iType == W8_TARGET_KIND_MONSTER &&
-                     monster_info->Target.iMonsterID == candidate->location_id) ||
+                     monster_info->Target.iMonsterID == monster_info->location_id) ||
                     MonsterAttackReachesMonster(monster_info, record, attack, candidate) == 0) {
                     ++monster_list_index;
                     continue;
@@ -3438,14 +3438,10 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         index = MonsterGetIndexByLocationID(0x134f, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         monster = monster_info->p3D;
-        target_position.x = monster->movement_0c0.position_040.x;
-        target_position.z = monster->movement_0c0.position_040.z;
-        target_position.y =
-            monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
+        target_position = monster->movement_0c0.position_040;
+        target_position.y += monster->movement_0c0.height_offset_0b8;
     } else if (target->iType == W8_TARGET_KIND_PLACE) {
-        target_position.x = target->point.x;
-        target_position.y = target->point.y;
-        target_position.z = target->point.z;
+        target_position = target->point;
     } else {
         srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0x1358,
                      "FireMissileSourceToTarget: Unknown target type");

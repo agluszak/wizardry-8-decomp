@@ -565,7 +565,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::MultiplyBy(const srMatrix3T<T>&
     const T* right = &other.vectors[0].x;
     const T* left = &vectors[0].x;
 
-    for (int index = 0; index != 3; ++index) {
+    for (int index = 0; index < 3; ++index) {
         T x = right[index];
         T y = right[index + 3];
         T z = right[index + 6];

@@ -220,10 +220,10 @@ stModelInstance2D::stModelInstance2D(srNode* parent)
     : srClassSupport<stModelInstance2D, srModelInstance, false, 0x10005>(static_cast<srNode*>(0))
 {
     render_state_164.display_state = 0;
-    render_state_164.left = 0;
-    render_state_164.top = 0;
-    render_state_164.right = 0;
-    render_state_164.bottom = 0;
+    render_state_164.width = 0;
+    render_state_164.height = 0;
+    render_state_164.position_x = 0;
+    render_state_164.position_y = 0;
     overlay_scene_flag_160 = 0;
     render_state_164.glow_enabled_0d = 0;
     render_state_164.render_depth = 2000;
@@ -258,10 +258,10 @@ stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
 {
     srModelInstance::operator=(other);
     render_state_164.display_state = other.render_state_164.display_state;
-    render_state_164.left = other.render_state_164.left;
-    render_state_164.top = other.render_state_164.top;
-    render_state_164.right = other.render_state_164.right;
-    render_state_164.bottom = other.render_state_164.bottom;
+    render_state_164.width = other.render_state_164.width;
+    render_state_164.height = other.render_state_164.height;
+    render_state_164.position_x = other.render_state_164.position_x;
+    render_state_164.position_y = other.render_state_164.position_y;
     overlay_scene_flag_160 = other.overlay_scene_flag_160;
     if (other.parent_ != 0) {
         setParent(other.parent_, 1);
@@ -387,9 +387,6 @@ render_mesh:
     renderer->popMatrix();
 }
 
-/* Scaled 2D extent used by the tooltip and cursor placement code. A unit
-   scale returns the stored screen extent directly; otherwise the matching
-   axis scale from the node is applied and truncated. */
 /* Disabling the glow releases the retained glow material; the render-state
    byte at 0x0d is the glow pass's enable flag. */
 // FUNCTION: WIZ8 0x00480EB0
@@ -402,27 +399,30 @@ void stModelInstance2D::SetGlowEnabled(unsigned char enable)
     render_state_164.glow_enabled_0d = enable;
 }
 
+/* Scaled 2D extent used by the tooltip and cursor placement code. A unit
+   scale returns the stored screen extent directly; otherwise the matching
+   axis scale from the node is applied and truncated. */
 // FUNCTION: WIZ8 0x00480EF0
-int stModelInstance2D::GetWidth00480EF0()
+unsigned short stModelInstance2D::GetScaledWidth()
 {
     srVector3T<double> scale = getScale();
     float scale_z = static_cast<float>(scale.z);
     if (scale.x == 1.0f && scale.y == 1.0f && scale_z == 1.0f) {
-        return render_state_164.left;
+        return render_state_164.width;
     }
-    return (int)(render_state_164.left * scale.x);
+    return static_cast<unsigned short>(render_state_164.width * scale.x);
 }
 
 // FUNCTION: WIZ8 0x00480F70
-int stModelInstance2D::GetHeight00480F70()
+unsigned short stModelInstance2D::GetScaledHeight()
 {
     srVector3T<double> scale = getScale();
     float scale_y = static_cast<float>(scale.y);
     float scale_z = static_cast<float>(scale.z);
     if (scale.x == 1.0f && scale_y == 1.0f && scale_z == 1.0f) {
-        return render_state_164.top;
+        return render_state_164.height;
     }
-    return static_cast<int>(render_state_164.top * scale_z);
+    return static_cast<unsigned short>(render_state_164.height * scale_z);
 }
 
 /* Lazily allocate the two glow-color vectors and copy the supplied pair; the

@@ -626,7 +626,7 @@ inline W8OptionsSaveRow::W8OptionsSaveRow(Controls* owner, int top, unsigned cha
 W8OptionsSaveRow::~W8OptionsSaveRow() {}
 
 // FUNCTION: WIZ8 0x005a77b0
-void W8OptionsSaveRow::Redraw(int full_redraw)
+void W8OptionsSaveRow::Redraw(unsigned char full_redraw)
 {
     if (!m_active || (full_redraw == 0 && !m_dirty)) {
         return;
@@ -722,9 +722,9 @@ W8OptionsButton::~W8OptionsButton() {}
 // W8OptionsButton::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005a7c70
-void W8OptionsButton::Redraw(int full_redraw)
+void W8OptionsButton::Redraw(unsigned char full_redraw)
 {
-    if (m_active && (static_cast<unsigned char>(full_redraw) != 0 || m_dirty) &&
+    if (m_active && (full_redraw != 0 || m_dirty) &&
         m_textBuffer.HasBuffer()) {
         if (m_enabled) {
             int font_state;
@@ -735,7 +735,7 @@ void W8OptionsButton::Redraw(int full_redraw)
             }
             m_textBuffer.SetFontStateIndex(font_state);
         }
-        m_textBuffer.RenderToTarget(0, static_cast<unsigned char>(full_redraw), -14);
+        m_textBuffer.RenderToTarget(0, full_redraw, -14);
         m_dirty = false;
     }
 }
@@ -1719,9 +1719,9 @@ void W8OptionsSlider::OnMouseMove(int event)
 }
 
 // FUNCTION: WIZ8 0x005a7f90
-void W8OptionsSlider::Redraw(int full_redraw)
+void W8OptionsSlider::Redraw(unsigned char full_redraw)
 {
-    if (m_active && (static_cast<unsigned char>(full_redraw) != 0 || m_dirty)) {
+    if (m_active && (full_redraw != 0 || m_dirty)) {
         W8HorizontalRangeThumb::Redraw(full_redraw);
         if (m_enabled && m_pixelPosition > 13) {
             int left = m_pPanel->origin_x + m_left;
@@ -1837,9 +1837,9 @@ void W8OptionsPanel::AddChoices(int label, int count, const int* choices, int* v
 }
 
 // FUNCTION: WIZ8 0x005a7590
-void W8OptionsMenuButton::Redraw(int full_redraw)
+void W8OptionsMenuButton::Redraw(unsigned char full_redraw)
 {
-    if ((static_cast<unsigned char>(full_redraw) != 0 || m_dirty) &&
+    if ((full_redraw != 0 || m_dirty) &&
         (m_stateFlags & g_W8TextControlStateSecondary) != 0 && m_item_id_0bc != -1) {
         DrawCatalogImageAndInvalidate(-14, 0xf0, 0, m_item_id_0bc, 12, 15, 2, 0);
     }

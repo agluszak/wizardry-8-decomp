@@ -1,5 +1,6 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-09-30.
    Reconstruct Wizardry archive initialization, mapping, and patch lookup.
+   Restore retail sequential-scan flags for library and stream handles.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
@@ -266,7 +267,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	CHAR8		zTempPath[ SGPFILENAME_LEN ];
 
 	//open the library for reading ( if it exists )
-	hFile = CreateFile( pLibraryName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL );
+	hFile = CreateFile( pLibraryName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL );
 	if( hFile == INVALID_HANDLE_VALUE )
 	{
 		//if it failed finding the file on the hard drive, and the file can be on the cdrom
@@ -276,7 +277,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 			sprintf( zTempPath, "%s%s", gzCdDirectory, pLibraryName );
 
 			//look on the cdrom
-			hFile = CreateFile( zTempPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL );
+			hFile = CreateFile( zTempPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL );
 			if( hFile == INVALID_HANDLE_VALUE )
 			{
 				UINT32 uiLastError = GetLastError();
@@ -447,14 +448,14 @@ HANDLE OpenLibraryStream00412F10(HWFILE file)
     DWORD error_id;
 
     handle = CreateFile(gGameLibaries[library_id].sLibraryName, GENERIC_READ,
-        FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL);
+        FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
     if (handle == INVALID_HANDLE_VALUE) {
         if (!gGameLibaries[library_id].fOnCDrom) {
             return INVALID_HANDLE_VALUE;
         }
         sprintf(path, "%s%s", gzCdDirectory, gGameLibaries[library_id].sLibraryName);
         handle = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL,
-            OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL);
+            OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
         if (handle == INVALID_HANDLE_VALUE) {
             error_id = GetLastError();
             FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, error_id, 0,

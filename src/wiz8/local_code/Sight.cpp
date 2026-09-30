@@ -171,15 +171,11 @@ bool CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target, W8Visibi
     }
     target_record = GetMonsterDataForInfo(target);
     source_monster = source->p3D;
-    observer_position.x = source_monster->movement_0c0.position_040.x;
-    observer_position.y = source_monster->movement_0c0.position_040.y +
-                          source_monster->movement_0c0.height_offset_0b8;
-    observer_position.z = source_monster->movement_0c0.position_040.z;
+    observer_position = source_monster->movement_0c0.position_040;
+    observer_position.y += source_monster->movement_0c0.height_offset_0b8;
     target_monster = target->p3D;
-    target_position.x = target_monster->movement_0c0.position_040.x;
-    target_position.y = target_monster->movement_0c0.position_040.y +
-                        target_monster->movement_0c0.height_offset_0b8;
-    target_position.z = target_monster->movement_0c0.position_040.z;
+    target_position = target_monster->movement_0c0.position_040;
+    target_position.y += target_monster->movement_0c0.height_offset_0b8;
     observer_yaw = source_monster->GetYaw();
     if (target->fInCombat == 0) {
         penalty_modifier = target_record->camouflage_248;
@@ -473,7 +469,7 @@ const float g_sight_threat_scale = 0.6667f;
    nonzero is the player pass, which refreshes the party-facing record, stamps
    the notice and fade state, and ends in the player-to-monster flag pass. */
 // FUNCTION: WIZ8 0x005049c0
-void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_bounds)
+void UpdateMonsterSight(W8MonsterInfo* monster_info, unsigned char direction, unsigned char use_bounds)
 {
     W8MonsterRecord* record;
     W8Monster* monster;
@@ -738,7 +734,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
             if (monster_info->party_threat.sight_state_04 != W8_SIGHT_UNSEEN) {
                 use_bounds = 1;
             }
-            monster_info->party_threat.use_bounds_24 = static_cast<unsigned char>(use_bounds);
+            monster_info->party_threat.use_bounds_24 = use_bounds;
             seen_by_party = monster->IsVisibleToPlayer(use_bounds) != 0;
             monster_info->party_threat.visible_to_player_25 = seen_by_party ? 1 : 0;
             if (seen_by_party) {

@@ -70,7 +70,7 @@ public:
                              int line_count, const unsigned short* line_string_ids,
                              unsigned int* region_set);
     virtual ~W8MainGameTextKeyHandler() override;
-    virtual void Redraw(int full_redraw) override;
+    virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnMouseMove(int event) override;
     virtual void AdjustValue(int steps) override;
@@ -101,7 +101,7 @@ class W8MainGameTextEntry : public W8TextControl {
 public:
     W8MainGameTextEntry(Controls* panel, int index);
     virtual ~W8MainGameTextEntry() override;
-    virtual void Redraw(int full_redraw) override;
+    virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnMouseEnter(int event) override;
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override;
@@ -305,9 +305,9 @@ public:
           m_pin_height_40(0x22), m_listener_44(0)
     {
     }
-    virtual void Redraw(int full_redraw) override; /* 0x005854B0 */
-    virtual void OnMouseEnter(int event) override; /* 0x00585610 */
-    virtual void OnMouseLeave(int event) override; /* 0x00585650 */
+    virtual void Redraw(unsigned char full_redraw) override; /* 0x005854B0 */
+    virtual void OnMouseEnter(int event) override;           /* 0x00585610 */
+    virtual void OnMouseLeave(int event) override;           /* 0x00585650 */
     /* Retail folds this with W8HorizontalRangeThumb::OnMouseEnter at 0x004F58C0. */
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override; /* 0x00585690 */
@@ -653,7 +653,7 @@ short GetMainGameViewportMode(void);                                     /* 0x00
 void CloseMainGameOverlays(void);                                        /* 0x00569570 */
 void SetRadarMapVisible(unsigned char visible);                          /* 0x00568EB0 */
 void SetActionPanelVisible(unsigned char visible);                       /* 0x00569120 */
-void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag); /* 0x00560E10 */
+void OpenCharacterScreenForPartySlot(unsigned int party_slot, unsigned char flag); /* 0x00560E10 */
 void RebuildNpcTradeItemList(bool scroll_to_top);
 /* 0x005ADAA0: the trade-stock index behind a visible NPC item row. */
 int ResolveNpcTradeStockIndex(int index);

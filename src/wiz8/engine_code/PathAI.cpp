@@ -31,7 +31,7 @@ unsigned char PathAIUpdate(W8AIRecord* record, signed char direction)
     }
     switch (record->kind_00) {
     case 0:
-        return static_cast<unsigned char>(PathAITick(static_cast<W8PathAI*>(record), direction));
+        return PathAITick(static_cast<W8PathAI*>(record), direction);
     case 1:
         return 0;
     case 3:
@@ -80,8 +80,7 @@ bool LoadPathAI(W8PathAI** output, int handle)
             srAssertFail("pPathAI->pRotations", PATH_AI_CPP, 0x104, 0);
         }
         if (path->version_01 == 2) {
-            path->scales_18 = static_cast<srVector3T<float>*>(
-                srHeap.allocate(point_count * sizeof(srVector3T<float>)));
+            path->scales_18 = new srVector3T<float>[point_count];
             if (path->scales_18 == 0) {
                 srAssertFail("pPathAI->pvecScales", PATH_AI_CPP, 0x10a, 0);
             }
@@ -176,7 +175,7 @@ void DestroyPathAI(W8PathAI* path)
             free(path->rotations_14);
         }
         if (path->scales_18 != 0) {
-            srHeap.free(path->scales_18);
+            delete[] path->scales_18;
         }
         free(path);
     }
@@ -207,7 +206,7 @@ void DestroyOwnedPathAI(W8PathAI* path)
             free(path->rotations_14);
         }
         if (path->scales_18 != 0) {
-            srHeap.free(path->scales_18);
+            delete[] path->scales_18;
         }
         free(path);
     }
@@ -276,7 +275,7 @@ W8PathAI* ClonePathAI(const W8PathAI* source)
     copy->scales_18 = 0;
     if (source->scales_18 != 0) {
         copy->scales_18 =
-            static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
+            new srVector3T<float>[count];
         for (index = 0; index < count; ++index) {
             copy->scales_18[index] = source->scales_18[index];
         }
@@ -535,7 +534,7 @@ void PathAIAdvanceNormalized(W8PathAI* path, float amount)
 }
 
 // FUNCTION: WIZ8 0x004aa1f0
-int PathAITick(W8PathAI* path, signed char direction)
+unsigned char PathAITick(W8PathAI* path, signed char direction)
 {
     DWORD now;
     unsigned int elapsed;

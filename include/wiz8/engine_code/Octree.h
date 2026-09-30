@@ -20,6 +20,7 @@ class PrePathing;
 class OctMeshModel;
 struct CondPathNode;
 struct W8LevelFile;
+struct W8LevelFileAnimObj;
 struct W8PreProp;
 struct W8World;
 struct W8GameData;
@@ -284,6 +285,10 @@ static_assert(sizeof(W8OctPreTreeLeaf) == 0x28, "W8OctPreTreeLeaf_must_be_0x28")
 class W8Octree {
 public:
     W8Octree(const char* path, W8GameData** game_data);
+    /* Preprocessing calls retain this receiver even when a body uses only
+       global build state. */
+    char BuildPreprocessedFiles(const char* level_path);
+    void OctBuildOptions(char* stem);
     void Reset();
     void Initialize(const W8OctFileHeader* header);
     ~W8Octree();
@@ -308,13 +313,13 @@ public:
        sentinel. */
     void UnregisterLocationObjects(unsigned int location_id);          /* 0x0042E650 */
     void UnregisterLocationObject(unsigned int location_id, int kind); /* 0x0042E880 */
-    /* Collect object ids of `kind` from every cell under the `from`-`to`
-       segment grown by `extent` (the extent also takes the segment length as
-       a floor). `*results` carries the destination buffer in and out; a null
+    /* Collect object ids of `kind` under the segment from `origin` to
+       `origin + delta`, grown by `extent` (also at least the delta length).
+       `*results` carries the destination buffer in and out; a null
        incoming buffer selects the internal m_aulGDObjs store. Returns the
        entry count. */
-    int CollectObjectsAlongSegment(unsigned long** results, const srVector3T<float>* from,
-                                   const srVector3T<float>* to, float extent,
+    int CollectObjectsAlongSegment(unsigned long** results, const srVector3T<float>* origin,
+                                   const srVector3T<float>* delta, float extent,
                                    unsigned short kind); /* 0x0042ED60 */
     /* Kind-12 box query; `exclusion` 0 maps to none. */
     unsigned int QueryLocationsInBox(unsigned long** results, const srVector3T<float>* lower,
@@ -675,6 +680,7 @@ public:
        0 clear, 1 blocked, 3 clear but prop ids were recorded in m_lBlocks_328. */
     char TestPathPropBounds(const srVector3T<float>* minimum, const srVector3T<float>* maximum);
     int CreatePathProps(W8LevelFile* level, W8PreProp** preprops);
+    char PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first, unsigned short last);
 };
 
 static_assert(sizeof(OctPreTree) == 0x3bc, "OctPreTree_must_be_0x3bc");

@@ -79,8 +79,9 @@ void W8MessageDialogBase::Draw()
 
 // FUNCTION: WIZ8 0x005d2800
 void W8MessageDialogBase::SetMessage(const wchar_t* message, int line_count,
-                                     int characters_per_line, int confirmation, int cancel,
-                                     int size_to_message, int wrap_message, int maximum_width,
+                                     unsigned short characters_per_line, unsigned char confirmation,
+                                     unsigned char cancel, unsigned char size_to_message,
+                                     unsigned char wrap_message, int maximum_width,
                                      int maximum_height)
 {
     unsigned int index;
@@ -108,8 +109,8 @@ void W8MessageDialogBase::SetMessage(const wchar_t* message, int line_count,
         }
     }
     m_line_count = line_count;
-    m_show_confirm = static_cast<unsigned char>(confirmation);
-    allow_cancel = static_cast<unsigned char>(cancel);
+    m_show_confirm = confirmation;
+    allow_cancel = cancel;
     if (size_to_message) {
         unsigned int width = 0;
         int height;

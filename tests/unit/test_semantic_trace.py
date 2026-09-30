@@ -430,7 +430,7 @@ def test_negative_pointer_adjustment_is_signed_at_pointer_width() -> None:
     assert store["effective_address"]["constant"] == -16
 
 
-def test_ptrsub_preserves_negative_pointer_adjustment() -> None:
+def test_ptrsub_adds_structure_member_byte_offset() -> None:
     this = _Node("register", 4)
     adjusted = _Node("unique", 0x110)
     _Op("PTRSUB", [this, _const(0x10)], adjusted, 0x1210)
@@ -445,8 +445,8 @@ def test_ptrsub_preserves_negative_pointer_adjustment() -> None:
         access for access in trace_accesses([this.handle()], "this") if access["kind"] == "store"
     )
 
-    assert store["offset"] == "-0x10"
-    assert store["effective_address"]["constant"] == -16
+    assert store["offset"] == "0x10"
+    assert store["effective_address"]["constant"] == 16
 
 
 def test_access_widths_and_receiver_identities_stay_separate() -> None:

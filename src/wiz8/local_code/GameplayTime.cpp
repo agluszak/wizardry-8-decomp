@@ -477,13 +477,13 @@ void RebuildCharacterRegenRates(W8Character* character)
     float rate;
     int realm;
 
-    rate = (character->uiHPMax * 0.4f + 20.0f) * 0.0041666669f;
+    rate = (static_cast<unsigned int>(character->uiHPMax) * 0.4f + 20.0f) * 0.0041666669f;
     character->health_regen_rate_0b69 = rate;
     if (character->bonus_1770.boost_health_regen != 0) {
         character->health_regen_rate_0b69 = rate * 1.5f;
     }
 
-    rate = (character->uiStaminaMax * 0.9f + 20.0f) * 0.0041666669f;
+    rate = (static_cast<unsigned int>(character->uiStaminaMax) * 0.9f + 20.0f) * 0.0041666669f;
     character->stamina_regen_rate_0b71 = rate;
     if (character->bonus_1770.boost_stamina_regen != 0) {
         character->stamina_regen_rate_0b71 = rate * 1.5f;
@@ -494,7 +494,8 @@ void RebuildCharacterRegenRates(W8Character* character)
             character->spell_regen_rates_0b79[realm * 2] = 0.0f;
             continue;
         }
-        rate = (character->sp_max[realm] * 0.65f + 20.0f) * 0.0041666669f;
+        rate =
+            (static_cast<unsigned int>(character->sp_max[realm]) * 0.65f + 20.0f) * 0.0041666669f;
         character->spell_regen_rates_0b79[realm * 2] = rate;
         if (character->bonus_1770.boost_spell_regen != 0) {
             character->spell_regen_rates_0b79[realm * 2] = rate * 1.5f;
@@ -967,7 +968,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
    the per-turn regeneration and fatigue bookkeeping, condition, enchantment
    and effect countdowns, and finally the combat effect slots. */
 // FUNCTION: WIZ8 0x00503990
-void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_3)
+void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned char arg_3)
 {
     W8MonsterRecord* record;
     W8Monster* monster;
@@ -977,7 +978,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
     if (monster_info->fInCombat != 0) {
         W8CombatSlot target;
         target.iType = static_cast<W8TargetKind>(3);
-        target.iChar = monster_info->location_id;
+        target.iMonsterID = monster_info->location_id;
         TickCombatEffectSlots(monster_info->pCombat->effect_slots_3e, &target);
         goto after_early;
     }
@@ -1154,20 +1155,21 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
         monster_info->movement_watch_position[2] = static_cast<int>(monster_info->position_17.z);
     }
 
-after_early: {
-    unsigned int amount = monster_info->modifiers_1db.damage_per_minute;
+after_early:
+    {
+        unsigned int amount = monster_info->modifiers_1db.damage_per_minute;
 
-    if (amount != 0) {
-        W8TargetSource source;
+        if (amount != 0) {
+            W8TargetSource source;
 
-        amount *= minutes;
-        if (monster_info->fInCombat != 0) {
-            amount += amount >> 1;
+            amount *= minutes;
+            if (monster_info->fInCombat != 0) {
+                amount += amount >> 1;
+            }
+            ResetTargetSource(&source);
+            ApplyDamageToMonster(monster_info, amount, &source, 1, gXStatus.fCombatMode, 0, 0, 0);
         }
-        ResetTargetSource(&source);
-        ApplyDamageToMonster(monster_info, amount, &source, 1, gXStatus.fCombatMode, 0, 0, 0);
     }
-}
     if (monster_info->uiCondition[2] != 0) {
         frost_condition = true;
     }

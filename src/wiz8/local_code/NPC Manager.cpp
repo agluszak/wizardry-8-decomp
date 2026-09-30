@@ -1509,7 +1509,7 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
    database entry allows it. The dialogue path instead finds the existing state
    by its database kind and only refreshes its presence fields. */
 // FUNCTION: WIZ8 0x00509cd0
-void BindNpcToMonster(unsigned char npc_id, int has_monster, int location_id)
+void BindNpcToMonster(unsigned char npc_id, unsigned char has_monster, int location_id)
 {
     W8NpcState* npc = 0;
     W8MonsterInfo* monster_info = 0;

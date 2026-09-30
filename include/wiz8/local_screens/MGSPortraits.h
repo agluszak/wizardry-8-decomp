@@ -29,7 +29,7 @@ public:
     {
     }
     virtual ~W8ConditionButton() override;
-    virtual void Redraw(int full_redraw) override;
+    virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override;

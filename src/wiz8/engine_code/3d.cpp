@@ -1004,7 +1004,7 @@ void __stdcall SetOctreeGameData(W8GameData* value)
 // FUNCTION: WIZ8 0x0046d880
 bool PointInsideFrustum(const srVector3T<float>* point, const W8Plane* planes)
 {
-    for (int index = 0; index < 6; ++index) {
+    for (short index = 0; index < 6; ++index) {
         float distance = SignedPlaneDistance(planes[index], *point);
 
         if (distance < g_float_005ebb34) {

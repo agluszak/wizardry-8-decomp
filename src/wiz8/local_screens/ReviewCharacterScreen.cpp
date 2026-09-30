@@ -2737,7 +2737,7 @@ void BeginEndgameSequence(void)
 {
     int fade_to_black = 0;
     int fade_code = 0x5dc;
-    int endgame_variant = 0;
+    char endgame_variant = 0;
 
     g_status.endgame_started_49c0 = 1;
     UpdateHeldItemCursor();

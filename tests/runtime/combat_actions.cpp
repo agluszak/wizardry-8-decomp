@@ -967,7 +967,7 @@ static bool MovePartyInCombat(RuntimeCase& test, int command)
     if (!held.begin()) {
         return test.fail("combat-walk", "binding-missing");
     }
-    if (!test.tap(W8_MGS_COMMAND_START_COMBAT_ROUND, "combat-round")) {
+    if (!StartCombatRound(test, "combat-round")) {
         return false;
     }
     bool moved = false;
@@ -1024,8 +1024,11 @@ bool CombatRoundtripCase(RuntimeCase& test)
     test.step("combat-party-moved");
     /* START_COMBAT_ROUND finishes the live movement action through
        BeginFreeTurnPhase. */
-    RT_REQUIRE(test, test.tap(W8_MGS_COMMAND_START_COMBAT_ROUND, "combat-round"));
-    RT_REQUIRE(test, test.wait_until("combat-round", 5000, RoundInactive, 0));
+    {
+        HeldCommand finish(test, W8_MGS_COMMAND_START_COMBAT_ROUND);
+        RT_REQUIRE(test, finish.begin());
+        RT_REQUIRE(test, test.wait_until("combat-round", 5000, RoundInactive, 0, &finish));
+    }
     RT_REQUIRE(test, RequestCombatMode(test, false, 3000));
     return true;
 }

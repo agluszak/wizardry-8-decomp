@@ -37,7 +37,7 @@ public:
     W8CharacterSpellList(Controls* owner, int x, int y, W8CharacterSpellEntry* entries,
                          unsigned int* region_set);
     virtual ~W8CharacterSpellList() override;
-    virtual void Redraw(int force) override;
+    virtual void Redraw(unsigned char force) override;
     virtual void OnMouseEnter(int event) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnMouseMove(int event) override;
@@ -102,7 +102,7 @@ void W8CharacterSpellList::SetEntryCount(int count)
 }
 
 // FUNCTION: WIZ8 0x005c7ef0
-void W8CharacterSpellList::Redraw(int force)
+void W8CharacterSpellList::Redraw(unsigned char force)
 {
     if (m_active && (m_dirty || force)) {
         int left = m_left + m_pPanel->origin_x;

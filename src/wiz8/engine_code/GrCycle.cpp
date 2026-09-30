@@ -527,7 +527,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
                 event->position_0c = source_event->position_0c;
                 event->rotation_18 = source_event->rotation_18;
                 if (event->m_pstParticles == 0) {
-                    srAssertFail("pstParticle",
+                    srAssertFail("m_pstParticles",
                                  "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x66, 0);
                 }
             }

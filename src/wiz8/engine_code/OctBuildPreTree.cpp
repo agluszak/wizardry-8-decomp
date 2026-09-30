@@ -498,6 +498,9 @@ unsigned char OctBuildPreTree::UpdateRegionForGeometry(const srVector3T<float>* 
    leaf. The temporary child record carries the exact subcell bounds into the
    recursive call. */
 // FUNCTION: WIZ8 0x004b07e0
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized" // uninit-ok: retail tests the unset intersects byte for modes other than 5/6; that value controls region-map updates.
+#pragma clang diagnostic ignored "-Wuninitialized" // uninit-ok: retail tests the unset intersects byte for modes other than 5/6; that value controls region-map updates.
 unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* spatial,
                                                const srVector3T<float>* geometry, short value,
                                                short mode)
@@ -521,9 +524,8 @@ unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* spatial,
                     child.minimum_0c.z = z * child.extent_04 + spatial->minimum_0c.z;
                     child.maximum_18.z = child.minimum_0c.z + child.extent_04;
 
-                    /* Retail read this uninitialised for modes outside 5/6;
-                       deterministic zero models that defect path. */
-                    unsigned char intersects = 0;
+                    /* Retail leaves this unset for modes outside 5/6. */
+                    unsigned char intersects;
                     if (mode == 6) {
                         intersects = PointInsideBoxBounds(&child.minimum_0c, geometry);
                     } else if (mode == 5) {
@@ -568,6 +570,7 @@ unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* spatial,
     }
     return changed;
 }
+#pragma clang diagnostic pop
 
 #pragma pack(push, 1)
 /* One 0x6a record in the .cub region file: a dword copied to the volume's
@@ -788,7 +791,7 @@ unsigned char OctBuildPreTree::AssignPolygonRegions(W8OctPreTreeGeometry* geomet
             for (int corner = 0; corner != 3; ++corner) {
                 W8OctPreTreeVertex* vertex =
                     &geometry->vertices_04[poly->vertices_34[corner]->vertex_index_04];
-                CheckArrayLength(&vertex->face_indices_44, vertex->face_count_40, 5);
+                geometry->CheckArrayLength(&vertex->face_indices_44, vertex->face_count_40, 5);
                 vertex->face_indices_44[vertex->face_count_40] = polygon;
                 ++vertex->face_count_40;
             }
@@ -1058,8 +1061,7 @@ unsigned short OctBuildPreTree::BuildRegions()
         srAssertFail("m_pulRegPaths", OCT_BUILD_PRE_TREE_CPP, 0x6f1, 0);
     }
 
-    m_psrvRegCenters = static_cast<srVector3T<float>*>(srHeap.allocate(
-        (level_count + 2 + spatial_00.region_id_bound_58) * sizeof(srVector3T<float>)));
+    m_psrvRegCenters = new srVector3T<float>[level_count + 2 + spatial_00.region_id_bound_58];
     if (m_psrvRegCenters == 0) {
         srAssertFail("m_psrvRegCenters", OCT_BUILD_PRE_TREE_CPP, 0x6f3, 0);
     }
@@ -1090,7 +1092,7 @@ unsigned short OctBuildPreTree::BuildRegions()
     AssignRegionFromSurfaces(&working);
     ValidatePolygonRegions();
 
-    srHeap.free(m_psrvRegCenters);
+    delete[] m_psrvRegCenters;
     m_psrvRegCenters = 0;
     if (region_bits_f8 != 0) {
         delete region_bits_f8;

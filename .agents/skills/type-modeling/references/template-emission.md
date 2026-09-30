@@ -22,10 +22,12 @@ record pointers/references is ordinary C++ inheritance and does not by itself in
 disagreement. Type erasure through `void*`/byte pointers, `reinterpret_cast` between unrelated
 records, or other provenance-hiding conversions remain model debt.
 
-Never hand-write a scalar- or vector-deleting destructor. Declare an ordinary virtual destructor and
-use typed `delete` or `delete[]`; VC6 owns the deleting wrapper. Mark the wrapper with `SYNTHETIC` and
-no declaration/body. Give a separately emitted ordinary destructor its own `FUNCTION` marker and a
-template destructor emission its own `TEMPLATE` marker. When retail emits no standalone ordinary
+Never hand-write a scalar- or vector-deleting destructor. Use ordinary virtual destruction and typed
+`delete` or `delete[]`; VC6 owns the deleting wrapper. Mark the wrapper with `SYNTHETIC` and no
+declaration/body. A separately emitted authored ordinary destructor has a `FUNCTION` marker;
+an implicit non-template destructor normally has a marker-only `SYNTHETIC` identity. Template
+destructor emissions have `TEMPLATE` markers at their canonical owner. Do not add an explicit
+special-member declaration merely to force emission. When retail emits no standalone ordinary
 destructor, do not invent an address for one.
 
 A deleting destructor, construction-phase table, final vptr write, or zero-storage lifecycle body is

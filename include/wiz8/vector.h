@@ -51,7 +51,7 @@ public:
     {
         delete[] data;
     }
-    W8GrowableVector& operator=(const W8GrowableVector& other);
+    int operator=(const W8GrowableVector& other);
 
     int Grow(int minimum_capacity)
     {
@@ -129,10 +129,13 @@ public:
         if (count + 1 > capacity && !Grow(capacity + 5)) {
             return 0;
         }
-        for (index = count; index > position; --index) {
-            data[index] = data[index - 1];
+        index = position;
+        if (position < count) {
+            for (index = count; index > position && index >= 0; --index) {
+                data[index] = data[index - 1];
+            }
         }
-        data[position] = value;
+        data[index] = value;
         ++count;
         return 1;
     }
@@ -178,14 +181,13 @@ public:
     T* data;      /* 0x0c */
 }; /* 0x10 in the 32-bit target */
 
-template <class T>
-W8GrowableVector<T>& W8GrowableVector<T>::operator=(const W8GrowableVector<T>& other)
+template <class T> int W8GrowableVector<T>::operator=(const W8GrowableVector<T>& other)
 {
     int index;
 
     count = 0;
     if (other.count > capacity && !Grow(other.count)) {
-        return *this;
+        return 0;
     }
     for (index = 0; index < other.count; ++index) {
         data[index] = other.data[index];
@@ -193,7 +195,7 @@ W8GrowableVector<T>& W8GrowableVector<T>::operator=(const W8GrowableVector<T>& o
     if (count <= other.count) {
         count = other.count;
     }
-    return *this;
+    return 1;
 }
 
 template <class T> T W8GrowableVector<T>::RemoveAt(int position)

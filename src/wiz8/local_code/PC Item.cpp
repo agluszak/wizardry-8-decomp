@@ -1150,9 +1150,11 @@ int GetItemSpellPresentation(const W8ItemDatabaseRecord* record)
    stays -1 when nothing was attempted. */
 /* Several early exits (empty quantity-kind notices, blocked casting aid,
    casting-aid power reduced to zero) never assign `used`; retail returned
-   whatever the VC6 stack slot held, so a deterministic zero models those
-   not-used paths. */
+   the unset local. Preserve that read. */
 // FUNCTION: WIZ8 0x0051dde0
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized" // uninit-ok: retail returns the unset used byte on rejected/spent-item paths; callers observe that indeterminate result.
+#pragma clang diagnostic ignored "-Wuninitialized" // uninit-ok: retail returns the unset used byte on rejected/spent-item paths; callers observe that indeterminate result.
 unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_uses)
 {
     const W8ItemDatabaseRecord* record = &g_item_records[item->iItemNo];
@@ -1163,7 +1165,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
     int event_type;
     int fatigue_cost = -1;
     W8TargetSource target;
-    unsigned char used = 0;
+    unsigned char used;
 
     if (!CanCharacterUseItem(character, item->iItemNo)) {
         PostCharacterNotice(party_slot, gppStringList[0x164], GetItemDisplayName(item));
@@ -1325,6 +1327,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
     *out_uses = fatigue_cost;
     return used;
 }
+#pragma clang diagnostic pop
 
 /* Whether the item worn in one slot may be taken off. A binding that has not
    yet been announced holds it in place, unless the slot is not a real
@@ -2209,7 +2212,7 @@ void BindEquippedItem(W8Character* character, int equip_slot)
 /* The spell an item carries, with both bounds on the item id asserted - the
    second names the database count as gXStatus.uiItemsInDatabase. */
 // FUNCTION: WIZ8 0x00520880
-unsigned char GetItemSpell(const W8ItemInstance* item)
+int GetItemSpell(const W8ItemInstance* item)
 {
     if (item == 0) {
         return 0;

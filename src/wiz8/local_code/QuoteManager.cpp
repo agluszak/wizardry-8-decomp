@@ -2007,7 +2007,8 @@ int UpdateCharacterEventState(void)
    for the animated form the frame blitter runs first, and the death,
    in-combat or exhausted state adds the darkened overlay. */
 // FUNCTION: WIZ8 0x0052eb00
-void RenderPartyPortrait(int portrait, int left, int top, int flags, int value, int party_slot)
+void RenderPartyPortrait(int portrait, int left, int top, int flags, unsigned char value,
+                         int party_slot)
 {
     DrawCatalogImage(-0xe, 0x12, portrait, 0, left, top, flags | 0x200, 0);
     if (party_slot == -1) {
