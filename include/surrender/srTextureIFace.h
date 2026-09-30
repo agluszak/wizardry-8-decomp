@@ -10,7 +10,8 @@ class srFilter;
 class srTexture;
 class stSurface2D;
 
-class SR_DLL_IMPORT srTextureIFace : public srClassSupport<srTextureIFace, srClass, true, 0x2100> {
+class __declspec(novtable) SR_DLL_IMPORT SR_DLL_EXPORT srTextureIFace
+    : public srClassSupport<srTextureIFace, srClass, true, 0x2100> {
 public:
     /* srGERD::setTextureDefaultCompression remaps DEFAULT (4) to 0; the
        srTexture ctor seeds Dimensions::compression with DEFAULT. */
@@ -90,20 +91,14 @@ public:
 
     // FUNCTION: SURRENDER 0x1005F5B0 SYMBOL
     // ?sGetClassName@srTextureIFace@@SAPBDXZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     static const char* sGetClassName()
     {
         return "srTextureIFace";
     }
 
-    /* The interface owns the full lifecycle: the constructors run the
-       srClassSupport registration chain, the copy constructor delegates to
-       the assignment guard, and the destructor unregisters through the
-       support base. */
+    /* The support base supplies construction, copy registration/assignment
+       and teardown. */
     srTextureIFace();
-    srTextureIFace(const srTextureIFace& other);
     srTextureIFace& operator=(const srTextureIFace& other);
     virtual ~srTextureIFace() override;
 

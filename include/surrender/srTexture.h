@@ -3,12 +3,10 @@
 #include "srPixelConvert.h"
 #include "srTextureIFace.h"
 
-class SR_DLL_IMPORT srTexture : public srClassSupport<srTexture, srTextureIFace, false, 0x2110> {
+class __declspec(novtable) SR_DLL_IMPORT SR_DLL_EXPORT srTexture
+    : public srClassSupport<srTexture, srTextureIFace, false, 0x2110> {
 public:
     static const char* sGetClassName();
-    /* Retail's copy constructor calls operator= and leaves memberwise
-       re-copies to the compiler's copy-ctor fixup emission. */
-    srTexture(const srTexture& other);
     srTexture& operator=(const srTexture& other);
     virtual void dump(std::ostream& stream) override;
     virtual unsigned long getTextureFrameHandle() override;
