@@ -1,9 +1,61 @@
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 
-from wiz8decomp.merge_preservation import merge_preservation_report
+import pytest
+import yaml
+from wiz8decomp.merge_preservation import base_ancestry_report, merge_preservation_report
+
+
+@pytest.mark.parametrize("job", ["scope", "repository"])
+def test_pr_event_revisions_survive_main_advancing(tmp_path: Path, job: str) -> None:
+    upstream = _repo(tmp_path / "upstream")
+    path = "src/surrender/node.cpp"
+    base = _commit(upstream, {path: "int value = 0;\n"}, "base")
+    head = _commit(upstream, {path: "int value = 1;\n"}, "PR head")
+    subprocess.run(["git", "-C", str(upstream), "update-ref", "refs/pull/1/head", head], check=True)
+    subprocess.run(["git", "-C", str(upstream), "checkout", "-q", base], check=True)
+    merged = _commit(upstream, {path: "int value = 1;\n"}, "squash merge")
+    subprocess.run(
+        ["git", "-C", str(upstream), "update-ref", "refs/heads/main", merged], check=True
+    )
+    runner = _repo(tmp_path / "runner")
+    subprocess.run(
+        ["git", "-C", str(runner), "remote", "add", "origin", upstream.as_uri()], check=True
+    )
+    root = Path(__file__).resolve().parents[2]
+    workflow = yaml.safe_load((root / ".github/workflows/ci.yml").read_text())
+    step_name = "Classify changed paths" if job == "scope" else "Fetch PR comparison baseline"
+    step = next(s for s in workflow["jobs"][job]["steps"] if s["name"] == step_name)
+    script = step["run"].replace("${{ github.event.pull_request.base.sha }}", base)
+    script = script.replace("${{ github.event.pull_request.head.sha }}", head)
+    script = script.replace("${{ github.event.pull_request.number }}", "1")
+    classifier = runner / ".github/scripts/classify-ci-changes.py"
+    classifier.parent.mkdir(parents=True)
+    classifier.write_text((root / ".github/scripts/classify-ci-changes.py").read_text())
+    output = tmp_path / "output"
+    subprocess.run(
+        ["bash", "-e", "-c", script],
+        cwd=runner,
+        env={
+            **os.environ,
+            "GITHUB_EVENT_NAME": "pull_request",
+            "GITHUB_BASE_REF": "main",
+            "RUNNER_TEMP": str(tmp_path),
+            "GITHUB_OUTPUT": str(output),
+        },
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    report = base_ancestry_report(runner, "origin/main", "origin/pr-head")
+    assert report["status"] == "passed"
+    assert report["base"] == base
+    assert report["head"] == head
+    if job == "scope":
+        assert "surrender=true" in output.read_text()
 
 
 def _commit(repo: Path, files: dict[str, str], message: str) -> str:
