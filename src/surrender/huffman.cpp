@@ -77,12 +77,8 @@ inline unsigned long srHuffman::BitIStream::getDWord(long position)
 
 /* Retail copies table_00 memberwise and assigns symbols_10 through
    srArray::operator=. */
-// FUNCTION: SURRENDER 0x100014F0
-srHuffman::Sampler::Sampler(const Sampler& other) : table_00(other.table_00)
-{
-    symbols_10 = other.symbols_10;
-    count_18 = other.count_18;
-}
+// SYNTHETIC: SURRENDER 0x100014F0
+// srHuffman::Sampler copy constructor (implicit)
 
 // FUNCTION: SURRENDER 0x100015C0
 inline unsigned long srHuffman::BitIStream::getByte(long position)
@@ -96,14 +92,8 @@ inline unsigned long srHuffman::BitIStream::getByte(long position)
 }
 
 /* Retail assigns table_00 memberwise and symbols_10 through srArray::operator=. */
-// FUNCTION: SURRENDER 0x10001630
-srHuffman::Sampler& srHuffman::Sampler::operator=(const Sampler& other)
-{
-    table_00 = other.table_00;
-    symbols_10 = other.symbols_10;
-    count_18 = other.count_18;
-    return *this;
-}
+// SYNTHETIC: SURRENDER 0x10001630
+// srHuffman::Sampler::operator= (implicit)
 
 // FUNCTION: SURRENDER 0x100016D0
 srHuffman::BitOStream::BitOStream(srBinOStream& stream)
