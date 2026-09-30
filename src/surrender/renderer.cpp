@@ -321,28 +321,26 @@ void srGERD::Renderer::VertexArrays::alloc(srVertexArray& arrays, unsigned long 
             packed_38.setCapacity(packed_38.capacity + 8 + needed);
         }
 
-        unsigned long first = capacity_44;
-        unsigned long added = needed - first;
-        /* reinterpret-ok: the dword copy is the shader-agnostic byte fill the
+        unsigned long added = needed - capacity_44;
+        /* reinterpret-ok: the dword fill is the shader-agnostic byte fill the
            vector processor exposes for 0x10-stride records. */
-        srVectorProcessor::copy(reinterpret_cast<unsigned long*>(&diffuse_00[first]), 0, added * 4);
+        fillConstant(reinterpret_cast<unsigned long*>(&diffuse_00[capacity_44]), 0, added * 4);
         /* reinterpret-ok: as above. */
-        srVectorProcessor::copy(reinterpret_cast<unsigned long*>(&specular_08[first]), 0,
-                                added * 4);
+        fillConstant(reinterpret_cast<unsigned long*>(&specular_08[capacity_44]), 0, added * 4);
         srVector4T<float> eye_default;
         eye_default.Set(0.0f, 0.0f, 0.0f, 1.0f);
         if (added != 0) {
-            srVectorProcessor::copy(&positions_10[first], eye_default, added);
+            srVectorProcessor::copy(&positions_10[capacity_44], eye_default, added);
         }
         /* reinterpret-ok: 1.0f's bit pattern goes in through the dword
            fill. */
-        srVectorProcessor::copy(reinterpret_cast<unsigned long*>(&q_28[0][first]), 0x3f800000,
-                                added);
+        srVectorProcessor::copy(reinterpret_cast<unsigned long*>(&q_28[0][capacity_44]),
+                                0x3f800000, added);
         /* reinterpret-ok: as above. */
-        srVectorProcessor::copy(reinterpret_cast<unsigned long*>(&q_28[1][first]), 0x3f800000,
-                                added);
-        srVectorProcessor::copy(&st_18[0][first], srVector2T<float>(0.0f, 0.0f), added);
-        srVectorProcessor::copy(&st_18[1][first], srVector2T<float>(0.0f, 0.0f), added);
+        srVectorProcessor::copy(reinterpret_cast<unsigned long*>(&q_28[1][capacity_44]),
+                                0x3f800000, added);
+        srVectorProcessor::copy(&st_18[0][capacity_44], srVector2T<float>(0.0f, 0.0f), added);
+        srVectorProcessor::copy(&st_18[1][capacity_44], srVector2T<float>(0.0f, 0.0f), added);
         capacity_44 = needed;
     }
     bind(arrays, count_40);
@@ -402,13 +400,14 @@ void srGERD::Renderer::assignTextureSets(unsigned long* texture_set, const unsig
     if (pass->shader_14 != 0) {
         mask |= 4;
     }
-    unsigned long set = texture_sets_44_.intern(key);
     if (mask == 0) {
+        unsigned long set = texture_sets_44_.intern(key);
         if (count != 0) {
             srVectorProcessor::copy(texture_set, set, count);
         }
         return;
     }
+    unsigned long set = texture_sets_44_.intern(key);
     unsigned long done = 0;
     while (done < count) {
         unsigned long chunk = count - done;
@@ -501,40 +500,45 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
     const srTriMeshPipeline::Pass* passes =
         static_cast<const srTriMeshPipeline::Pass*>(input.passes_18);
     unsigned long record = 0;
-    while (record < input.record_count_04 && passes[record].poly_uv_1c == 0) {
+    unsigned long done;
+    while (record < input.record_count_04) {
+        if (passes[record].poly_uv_1c != 0) {
+            goto dedup;
+        }
         record++;
     }
-    if (record == input.record_count_04) {
-        /* Flat path: gather the chunk once, then replicate it per record
-           with the record's vertex offset. */
-        for (unsigned long done = 0; done < input.triangle_count_00; done += 0x100) {
-            unsigned long chunk = input.triangle_count_00 - done;
-            if (chunk > 0x100) {
-                chunk = 0x100;
-            }
-            if (input.position_is_float3_1c == 0) {
-                gatherIndexedTriangles(write.triangles_00 + done, input.triangles_10,
-                                       input.indices_0c + done, input.vertices_14, first_vertex_c0_,
-                                       chunk);
-            } else {
-                gatherTriangles(write.triangles_00 + done, input.triangles_10,
-                                input.indices_0c + done, first_vertex_c0_, chunk);
-            }
-            if (sorted != 0) {
-                const srVector4T<float>* positions = &vertices_78_.positions_10[0];
-                sortKeys(write.sort_key_08 + done, write.triangles_00 + done, positions,
-                         reinterpret_cast<const float&>(input.value_24), chunk);
-                for (unsigned long replica = 1; replica < input.record_count_04; replica++) {
-                    offsetIndices(write.sort_key_08 + input.triangle_count_00 * replica + done,
-                                  write.sort_key_08 + done, replica, chunk);
-                }
-            }
+    /* Flat path: gather the chunk once, then replicate it per record
+       with the record's vertex offset. */
+    for (done = 0; done < input.triangle_count_00; done += 0x100) {
+        unsigned long chunk = input.triangle_count_00 - done;
+        if (chunk > 0x100) {
+            chunk = 0x100;
+        }
+        if (input.position_is_float3_1c == 0) {
+            gatherIndexedTriangles(write.triangles_00 + done, input.triangles_10,
+                                   input.indices_0c + done, input.vertices_14, first_vertex_c0_,
+                                   chunk);
+        } else {
+            gatherTriangles(write.triangles_00 + done, input.triangles_10,
+                            input.indices_0c + done, first_vertex_c0_, chunk);
+        }
+        if (sorted != 0) {
+            const srVector4T<float>* positions = &vertices_78_.positions_10[0];
+            sortKeys(write.sort_key_08 + done, write.triangles_00 + done, positions,
+                     reinterpret_cast<const float&>(input.value_24), chunk);
             for (unsigned long replica = 1; replica < input.record_count_04; replica++) {
-                offsetTriangles(write.triangles_00 + input.triangle_count_00 * replica + done,
-                                write.triangles_00 + done, replica * input.vertex_count_08, chunk);
+                offsetIndices(write.sort_key_08 + input.triangle_count_00 * replica + done,
+                              write.sort_key_08 + done, replica, chunk);
             }
         }
-    } else {
+        for (unsigned long replica = 1; replica < input.record_count_04; replica++) {
+            offsetTriangles(write.triangles_00 + input.triangle_count_00 * replica + done,
+                            write.triangles_00 + done, replica * input.vertex_count_08, chunk);
+        }
+    }
+    goto tail;
+dedup:
+    {
         /* Dedup path: any pass with a poly-UV corner table reuses the
            designated source corner's vertex and allocates fresh slots for
            the others; remap_10_ carries six dwords per triangle — the new
@@ -589,31 +593,37 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
                 if (new_count != 0) {
                     srVertexArray arrays;
                     vertices_78_.alloc(arrays, new_count);
-                    srVector4T<float>* diffuse = &vertices_78_.diffuse_00[0];
-                    srVector4T<float>* specular = &vertices_78_.specular_08[0];
-                    srVector4T<float>* positions = &vertices_78_.positions_10[0];
-                    srVector2T<float>* st0 = &vertices_78_.st_18[0][0];
-                    srVector2T<float>* st1 = &vertices_78_.st_18[1][0];
-                    float* q0 = &vertices_78_.q_28[0][0];
-                    float* q1 = &vertices_78_.q_28[1][0];
-                    unsigned char* packed = &vertices_78_.packed_38[0];
-                    srVectorProcessor::copyIndexed(positions + base, positions, remap, new_count);
-                    srVectorProcessor::copyIndexed(diffuse + base, diffuse, remap, new_count);
-                    srVectorProcessor::copyIndexed(specular + base, specular, remap, new_count);
-                    srVectorProcessor::copyIndexed(st1 + base, st1, remap, new_count);
+                    arrays.diffuse_04 = &vertices_78_.diffuse_00[0];
+                    arrays.specular_08 = &vertices_78_.specular_08[0];
+                    arrays.eye_locations_00 = &vertices_78_.positions_10[0];
+                    arrays.st0_0c = &vertices_78_.st_18[0][0];
+                    arrays.st1_10 = &vertices_78_.st_18[1][0];
+                    arrays.q0_14 = &vertices_78_.q_28[0][0];
+                    arrays.q1_18 = &vertices_78_.q_28[1][0];
+                    arrays.packed_1c = &vertices_78_.packed_38[0];
+                    srVectorProcessor::copyIndexed(arrays.eye_locations_00 + base,
+                                                   arrays.eye_locations_00, remap, new_count);
+                    srVectorProcessor::copyIndexed(arrays.diffuse_04 + base, arrays.diffuse_04,
+                                                   remap, new_count);
+                    srVectorProcessor::copyIndexed(arrays.specular_08 + base, arrays.specular_08,
+                                                   remap, new_count);
+                    srVectorProcessor::copyIndexed(arrays.st1_10 + base, arrays.st1_10, remap,
+                                                   new_count);
                     /* reinterpret-ok: the q stream is a dword stream to the
                        indexed copy. */
-                    srVectorProcessor::copyIndexed(reinterpret_cast<unsigned long*>(q1 + base),
-                                                   reinterpret_cast<const unsigned long*>(q1),
-                                                   remap, new_count);
+                    srVectorProcessor::copyIndexed(
+                        reinterpret_cast<unsigned long*>(arrays.q1_18 + base),
+                        reinterpret_cast<const unsigned long*>(arrays.q1_18), remap, new_count);
                     for (unsigned long index = 0; index < new_count; index++) {
-                        packed[base + index] = packed[remap[index]];
+                        arrays.packed_1c[base + index] = arrays.packed_1c[remap[index]];
                     }
-                    srVectorProcessor::copyIndexed(st0 + base, pass.st_18, corner_remap, new_count);
+                    srVectorProcessor::copyIndexed(arrays.st0_0c + base, pass.st_18, corner_remap,
+                                                   new_count);
                     /* reinterpret-ok: 1.0f's bit pattern fills the q0
                        stream. */
-                    srVectorProcessor::copy(reinterpret_cast<unsigned long*>(q0 + base), 0x3f800000,
-                                            new_count);
+                    srVectorProcessor::copy(
+                        reinterpret_cast<unsigned long*>(arrays.q0_14 + base), 0x3f800000,
+                        new_count);
                 }
                 if (sorted != 0) {
                     const srVector4T<float>* positions = &vertices_78_.positions_10[0];
@@ -638,6 +648,7 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
             written += input.triangle_count_00;
         }
     }
+tail:
     unsigned long texture_set_offset = 0;
     for (record = 0; record < input.record_count_04; record++) {
         assignTextureSets(write.texture_set_04 + texture_set_offset, input.indices_0c,
@@ -1074,11 +1085,11 @@ static void markTransitions(unsigned long* output, const unsigned long* indices,
                             unsigned long initialized)
 {
     if (initialized == 0 && count != 0) {
-        fillConstant(output, 0, count);
+        srVectorProcessor::copy(output, 0, count);
     }
     unsigned long previous = table[indices[0]];
     output[0] |= bit;
-    unsigned long index = 1;
+    unsigned long index = 0;
     for (; index < (count & ~3UL); index += 4) {
         unsigned long value = table[indices[index]];
         if (value != previous) {

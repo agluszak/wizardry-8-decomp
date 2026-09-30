@@ -477,7 +477,9 @@ void srNode::setScale(double scale)
 }
 
 // FUNCTION: SURRENDER 0x10051A90
-void srNode::checkTransformation() const
+/* Inline at every retail call site: the dirty check folds into each getter and
+   the out-of-line body survives only for the export. */
+inline void srNode::checkTransformation() const
 {
     if ((notifications_120.value & 2) != 0) {
         updateTransformation();
@@ -1320,30 +1322,52 @@ void srNode::setWorldSpaceRotation(const srMatrix3T<double>& rotation)
         rotation_18 = rotation;
     } else {
         srMatrix4T<double> world;
-        world.vectors[0].Set(rotation.vectors[0].x * scale_78.x, rotation.vectors[0].y * scale_78.y,
-                             rotation.vectors[0].z * scale_78.z, 0.0);
-        world.vectors[1].Set(rotation.vectors[1].x * scale_78.x, rotation.vectors[1].y * scale_78.y,
-                             rotation.vectors[1].z * scale_78.z, 0.0);
-        world.vectors[2].Set(rotation.vectors[2].x * scale_78.x, rotation.vectors[2].y * scale_78.y,
-                             rotation.vectors[2].z * scale_78.z, 0.0);
-        world.vectors[3].Set(0.0, 0.0, 0.0, 1.0);
-        srMatrix4T<double> parent_world;
-        parent_->getWorldSpaceMatrix(parent_world);
+        world.vectors[0].x = rotation.vectors[0].x * scale_78.x;
+        world.vectors[0].y = rotation.vectors[0].y * scale_78.y;
+        world.vectors[0].z = rotation.vectors[0].z * scale_78.z;
+        world.vectors[0].w = 0.0;
+        world.vectors[1].x = rotation.vectors[1].x * scale_78.x;
+        world.vectors[1].y = rotation.vectors[1].y * scale_78.y;
+        world.vectors[1].z = rotation.vectors[1].z * scale_78.z;
+        world.vectors[1].w = 0.0;
+        world.vectors[2].x = rotation.vectors[2].x * scale_78.x;
+        world.vectors[2].y = rotation.vectors[2].y * scale_78.y;
+        world.vectors[2].z = rotation.vectors[2].z * scale_78.z;
+        world.vectors[2].w = 0.0;
+        world.vectors[3].x = 0.0;
+        world.vectors[3].y = 0.0;
+        world.vectors[3].z = 0.0;
+        world.vectors[3].w = 1.0;
+        srMatrix4T<double> local;
+        parent_->getWorldSpaceMatrix(local);
+        local.vectors[0].w = 0.0;
+        local.vectors[1].w = 0.0;
+        local.vectors[2].w = 0.0;
+        local.vectors[3].w = 1.0;
         srMatrix4T<double> inverse;
-        inverse.Inverse(parent_world);
-        srMatrix4T<double> local = inverse;
+        inverse.Inverse(local);
+        local = inverse;
         local.MultiplyBy(world);
-        rotation_18.vectors[0].Set(local.vectors[0].x, local.vectors[0].y, local.vectors[0].z);
-        rotation_18.vectors[1].Set(local.vectors[1].x, local.vectors[1].y, local.vectors[1].z);
-        rotation_18.vectors[2].Set(local.vectors[2].x, local.vectors[2].y, local.vectors[2].z);
-        srVector3T<double> column_x(rotation_18.vectors[0].x, rotation_18.vectors[1].x,
-                                    rotation_18.vectors[2].x);
-        srVector3T<double> column_y(rotation_18.vectors[0].y, rotation_18.vectors[1].y,
-                                    rotation_18.vectors[2].y);
-        srVector3T<double> column_z(rotation_18.vectors[0].z, rotation_18.vectors[1].z,
-                                    rotation_18.vectors[2].z);
-        srVector3T<double> inverse_scale(1.0 / column_x.Length(), 1.0 / column_y.Length(),
-                                         1.0 / column_z.Length());
+        srMatrix3T<double> result;
+        result.SetRows(srVector3T<double>(local.vectors[0].x, local.vectors[0].y,
+                                          local.vectors[0].z),
+                       srVector3T<double>(local.vectors[1].x, local.vectors[1].y,
+                                          local.vectors[1].z),
+                       srVector3T<double>(local.vectors[2].x, local.vectors[2].y,
+                                          local.vectors[2].z));
+        rotation_18 = result;
+        srVector3T<double> column_x;
+        srVector3T<double> column_y;
+        srVector3T<double> column_z;
+        column_z = srVector3T<double>(rotation_18.vectors[0].z, rotation_18.vectors[1].z,
+                                      rotation_18.vectors[2].z);
+        column_y = srVector3T<double>(rotation_18.vectors[0].y, rotation_18.vectors[1].y,
+                                      rotation_18.vectors[2].y);
+        column_x = srVector3T<double>(rotation_18.vectors[0].x, rotation_18.vectors[1].x,
+                                      rotation_18.vectors[2].x);
+        srVector3T<double> inverse_scale;
+        inverse_scale.Set(1.0 / column_x.Length(), 1.0 / column_y.Length(),
+                          1.0 / column_z.Length());
         rotation_18.vectors[0] *= inverse_scale;
         rotation_18.vectors[1] *= inverse_scale;
         rotation_18.vectors[2] *= inverse_scale;
@@ -1358,25 +1382,33 @@ void srNode::setWorldSpaceMatrix(const srMatrix4T<double>& matrix)
     if (parent_ == 0) {
         local = matrix;
     } else {
-        srMatrix4T<double> parent_world;
-        parent_->getWorldSpaceMatrix(parent_world);
+        parent_->getWorldSpaceMatrix(local);
         srMatrix4T<double> inverse;
-        inverse.Inverse(parent_world);
+        inverse.Inverse(local);
         local = inverse;
         local.MultiplyBy(matrix);
     }
-    rotation_18.vectors[0].Set(local.vectors[0].x, local.vectors[0].y, local.vectors[0].z);
-    rotation_18.vectors[1].Set(local.vectors[1].x, local.vectors[1].y, local.vectors[1].z);
-    rotation_18.vectors[2].Set(local.vectors[2].x, local.vectors[2].y, local.vectors[2].z);
-    location_60.Set(local.vectors[0].w, local.vectors[1].w, local.vectors[2].w);
-    srVector3T<double> column_x(rotation_18.vectors[0].x, rotation_18.vectors[1].x,
-                                rotation_18.vectors[2].x);
-    srVector3T<double> column_y(rotation_18.vectors[0].y, rotation_18.vectors[1].y,
-                                rotation_18.vectors[2].y);
-    srVector3T<double> column_z(rotation_18.vectors[0].z, rotation_18.vectors[1].z,
-                                rotation_18.vectors[2].z);
+    srMatrix3T<double> result;
+    result.SetRows(srVector3T<double>(local.vectors[0].x, local.vectors[0].y,
+                                      local.vectors[0].z),
+                   srVector3T<double>(local.vectors[1].x, local.vectors[1].y,
+                                      local.vectors[1].z),
+                   srVector3T<double>(local.vectors[2].x, local.vectors[2].y,
+                                      local.vectors[2].z));
+    rotation_18 = result;
+    location_60 = srVector3T<double>(local.vectors[0].w, local.vectors[1].w, local.vectors[2].w);
+    srVector3T<double> column_x;
+    srVector3T<double> column_y;
+    srVector3T<double> column_z;
+    column_z = srVector3T<double>(rotation_18.vectors[0].z, rotation_18.vectors[1].z,
+                                  rotation_18.vectors[2].z);
+    column_y = srVector3T<double>(rotation_18.vectors[0].y, rotation_18.vectors[1].y,
+                                  rotation_18.vectors[2].y);
+    column_x = srVector3T<double>(rotation_18.vectors[0].x, rotation_18.vectors[1].x,
+                                  rotation_18.vectors[2].x);
     scale_78.Set(column_x.Length(), column_y.Length(), column_z.Length());
-    srVector3T<double> inverse_scale(1.0 / scale_78.x, 1.0 / scale_78.y, 1.0 / scale_78.z);
+    srVector3T<double> inverse_scale;
+    inverse_scale.Set(1.0 / scale_78.x, 1.0 / scale_78.y, 1.0 / scale_78.z);
     rotation_18.vectors[0] *= inverse_scale;
     rotation_18.vectors[1] *= inverse_scale;
     rotation_18.vectors[2] *= inverse_scale;
@@ -1499,6 +1531,9 @@ void srNode::rollAt(const srNode* target, double amount)
 // SYNTHETIC: SURRENDER 0x100502F0
 // srNode::sceneGraphCSect global atexit registrar
 
+// TEMPLATE: SURRENDER 0x100553E0
+// srVector3T<double>::srVector3T
+
 // TEMPLATE: SURRENDER 0x100553F0
 // srVector3T<double>::Set
 
@@ -1542,7 +1577,7 @@ void srNode::rollAt(const srNode* target, double amount)
 // srClassSupport<srNode, srClass, true, 0x1000>::sGetClassNode
 
 // TEMPLATE: SURRENDER 0x100557A0
-// srMatrix3T<double>::RotateAboutZ(double angle)
+// srMatrix3T<double>::RotateAboutX(double angle)
 
 // TEMPLATE: SURRENDER 0x10055930
 // srMatrix3T<double>::MultiplyBy

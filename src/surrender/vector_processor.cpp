@@ -1,5 +1,6 @@
 #include "surrender/srVectorProcessor.h"
 
+#include <ostream>
 #include <stdio.h>
 
 #include "surrender/srCore.h"

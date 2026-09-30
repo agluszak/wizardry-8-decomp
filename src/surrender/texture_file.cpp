@@ -1,5 +1,6 @@
 #include "surrender/srTextureFile.h"
 
+#include <ostream>
 #include <string.h>
 
 #include "surrender/srCore.h"
@@ -44,12 +45,6 @@ srTextureFile::~srTextureFile()
 {
     invalidate();
     setFileName(0);
-}
-
-// FUNCTION: SURRENDER 0x1005FF10
-const char* srTextureFile::sGetClassName()
-{
-    return "srTextureFile";
 }
 
 // FUNCTION: SURRENDER 0x1005FF20
@@ -107,9 +102,23 @@ void srTextureFile::loadSurface()
     }
     if (file_name_58 != 0) {
         surface_5c = 0;
-        srSurfaceIOManager::ImportInfo info;
-        info.unknown_00 = 0;
-        surface_5c = srCore.getSurfaceIOManager()->importSurface(file_name_58, info);
+        try {
+            srSurfaceIOManager::ImportInfo info;
+            info.unknown_00 = 0;
+            surface_5c = srCore.getSurfaceIOManager()->importSurface(file_name_58, info);
+        }
+        catch (const srIOManager::Error&) {
+            texture_flags_ |= 1 << FLAG_GENERATESURFACE_FAILURE;
+            surface_5c = 0;
+        }
+        catch (...) {
+            texture_flags_ |= 1 << FLAG_GENERATESURFACE_FAILURE;
+            surface_5c = 0;
+        }
+        if (surface_5c != 0) {
+            setupDefaultValues();
+            surface_5c->setFilter(getFilter());
+        }
     }
 }
 

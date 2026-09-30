@@ -6,6 +6,8 @@
 #include "surrender/srVectorProcessor.h"
 #include "surrender/srVertexPipe.h"
 
+#include <ostream>
+
 // FUNCTION: SURRENDER 0x1004C0E0
 void srFog::setDensity(float density)
 {
@@ -38,12 +40,6 @@ void srFog::getRange(double& start, double& end)
 {
     start = fog_start_150;
     end = fog_end_158;
-}
-
-// FUNCTION: SURRENDER 0x1004C1A0
-const char* srFog::sGetClassName()
-{
-    return "srFog";
 }
 
 // FUNCTION: SURRENDER 0x1004B6F0

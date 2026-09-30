@@ -41,14 +41,11 @@ public:
     srModel& operator=(const srModel& other);
     friend class Client;
 
-#if defined(SURRENDER_BUILD)
-    static const char* sGetClassName();
-#else
+    // FUNCTION: SURRENDER 0x1003C6F0
     static const char* sGetClassName()
     {
         return "srModel";
     }
-#endif
 
     virtual void dump(std::ostream& stream) override;
 

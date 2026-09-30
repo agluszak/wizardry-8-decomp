@@ -52,10 +52,6 @@ void srGERD::TexturePool::release()
     count_00 = 0;
 }
 
-// FUNCTION: SURRENDER 0x100199F0 SYMBOL
-// ??0srShader@@QAE@XZ
-srShader::srShader() : value(0x0100241b) {}
-
 // FUNCTION: SURRENDER 0x10019A00 SYMBOL
 // ??0MatrixStack@srGERD@@QAE@XZ
 srGERD::MatrixStack::MatrixStack() : depth_800(0) {}
@@ -1555,10 +1551,13 @@ void srGERD::rotate(double angle, const srVector3T<double>& axis)
     double length_sq = axis.x * axis.x + axis.y * axis.y + axis.z * axis.z;
     if (length_sq != 0.0) {
         srMatrix4T<double> rotation;
-        srVector3T<double> unit_axis = axis;
+        srVector3T<double> unit_axis;
         if (length_sq != 1.0) {
             double inverse = 1.0 / sqrt(length_sq);
-            unit_axis.Set(axis.x * inverse, axis.y * inverse, axis.z * inverse);
+            unit_axis =
+                srVector3T<double>(axis.x * inverse, axis.y * inverse, axis.z * inverse);
+        } else {
+            unit_axis = axis;
         }
         double sine = sin(angle);
         double cosine = cos(angle);
@@ -2377,15 +2376,7 @@ void srGERD::classifyMatrix(e_matrixMode mode)
         }
         state_390_.modelview_scale_type_13b4_ = srMatrix4T<float>::SCALE_TYPE_POSITIONAL_2;
         state_390_.max_modelview_scale_13b8_ = (float)sqrt(length0);
-        if (modelview == inverse) {
-            inverse->Invert();
-        } else {
-            inverse->AdjugateFrom(&modelview->vectors[0].x);
-            float det = inverse->Det();
-            if (det != 1.0f) {
-                inverse->Scale(1.0f / det);
-            }
-        }
+        inverse->Inverse(*modelview);
         srMatrix4T<float> normalized = *modelview;
         normalized.vectors[0].x *= inv0;
         normalized.vectors[0].y *= inv1;
@@ -2400,11 +2391,7 @@ void srGERD::classifyMatrix(e_matrixMode mode)
         normalized.vectors[3].y *= inv1;
         normalized.vectors[3].z *= inv2;
         srMatrix4T<float> adjugate;
-        adjugate.AdjugateFrom(&normalized.vectors[0].x);
-        float det = adjugate.Det();
-        if (det != 1.0f) {
-            adjugate.Scale(1.0f / det);
-        }
+        adjugate.Inverse(normalized);
         state_390_.normal_matrix_1374_.vectors[0].x = adjugate.vectors[0].x;
         state_390_.normal_matrix_1374_.vectors[0].y = adjugate.vectors[1].x;
         state_390_.normal_matrix_1374_.vectors[0].z = adjugate.vectors[2].x;
@@ -3708,8 +3695,8 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
             stream << "two (triple-buffered)" << std::endl;
         }
         stream << "Swap interval      : " << display_1758_.swap_interval_0c_ << std::endl;
-        stream << "Gamma              : {" << display_1758_.gamma_00_.x << ","
-               << display_1758_.gamma_00_.y << "," << display_1758_.gamma_00_.z << "}" << std::endl;
+        stream << "Gamma              : " << '{' << display_1758_.gamma_00_.x << ','
+               << display_1758_.gamma_00_.y << ',' << display_1758_.gamma_00_.z << '}' << std::endl;
     }
     if ((info.value & INFO_STATISTICS) != 0) {
         Statistics statistics = statistics_19f8_;
@@ -5746,7 +5733,10 @@ void srGERD::accumulate(e_accum operation, float scale)
 }
 
 // TEMPLATE: SURRENDER 0x10023700
-// srVector3T<double>::Set
+// srVector3T<double>::srVector3T(double,double,double)
+
+// TEMPLATE: SURRENDER 0x10023730
+// srVector4T<double>::srVector4T
 
 // SYNTHETIC: SURRENDER 0x1001B4F0
 // srGERD scalar deleting destructor
@@ -5871,11 +5861,11 @@ void srGERD::accumulate(e_accum operation, float scale)
 // TEMPLATE: SURRENDER 0x10023740
 // srMatrix4T<float>::Scale
 
-// SYNTHETIC: SURRENDER 0x100237E0
-// empty callable emission (no-arg thiscall reached from classifyMatrix/updateBounds)
+// TEMPLATE: SURRENDER 0x100237E0
+// srMatrix4T<float>::Det
 
 // TEMPLATE: SURRENDER 0x10023910
-// srMatrix4T<float>::MultiplyBy emission
+// srMatrix4T<float>::AdjugateFrom
 
 // TEMPLATE: SURRENDER 0x100296C0
 // srArray<srGERD::Texture*>::reserve emission

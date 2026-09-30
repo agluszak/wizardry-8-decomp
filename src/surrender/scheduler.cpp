@@ -11,10 +11,7 @@ static void yieldOneMillisecond();
 // FUNCTION: SURRENDER 0x10013D70
 srScheduler::srScheduler()
 {
-    critical_section_40 = new CRITICAL_SECTION;
-    if (critical_section_40 != 0) {
-        InitializeCriticalSection(critical_section_40);
-    }
+    critical_section_40 = new srCriticalSection;
     first_job_30 = 0;
     last_job_34 = 0;
     job_count_38 = 0;
@@ -41,17 +38,16 @@ srScheduler::~srScheduler()
         }
     }
     if (critical_section_40 != 0) {
-        EnterCriticalSection(critical_section_40);
-        LeaveCriticalSection(critical_section_40);
-        DeleteCriticalSection(critical_section_40);
-        operator delete(critical_section_40);
+        critical_section_40->getAccess();
+        critical_section_40->releaseAccess();
+        delete critical_section_40;
     }
 }
 
 // FUNCTION: SURRENDER 0x10013EE0
 void srScheduler::queue(Job& job)
 {
-    EnterCriticalSection(critical_section_40);
+    srCriticalSectionAccess access(critical_section_40);
     QueueEntry* entry = new QueueEntry;
     entry->job_00 = &job;
     entry->next_04 = 0;
@@ -68,38 +64,37 @@ void srScheduler::queue(Job& job)
     Job* key = &job;
     lookup_20.Insert(&key, &entry);
     wakeWorker();
-    LeaveCriticalSection(critical_section_40);
 }
 
 // FUNCTION: SURRENDER 0x10014060
 void srScheduler::cancel(Job& job)
 {
-    EnterCriticalSection(critical_section_40);
+    critical_section_40->getAccess();
     Job* key = &job;
     QueueEntry* entry = lookup_20.Lookup(&key);
     if (entry != 0 && entry->state_0c != 2) {
         if (entry->state_0c == 0) {
             entry->job_00->cancel();
             removeQueueEntry(entry);
-            LeaveCriticalSection(critical_section_40);
+            critical_section_40->releaseAccess();
             return;
         }
-        LeaveCriticalSection(critical_section_40);
+        critical_section_40->releaseAccess();
         waitForJob(&job);
         return;
     }
-    LeaveCriticalSection(critical_section_40);
+    critical_section_40->releaseAccess();
 }
 
 // FUNCTION: SURRENDER 0x10014110
 void srScheduler::finish(Job& job)
 {
-    EnterCriticalSection(critical_section_40);
+    critical_section_40->getAccess();
     Job* key = &job;
     QueueEntry* entry = lookup_20.Lookup(&key);
     if (entry != 0 && entry->state_0c != 2) {
         if (entry->state_0c != 0) {
-            LeaveCriticalSection(critical_section_40);
+            critical_section_40->releaseAccess();
             waitForJob(&job);
             return;
         }
@@ -116,29 +111,34 @@ void srScheduler::finish(Job& job)
             entry->next_04->previous_08 = entry->previous_08;
         }
         entry->state_0c = 1;
-        LeaveCriticalSection(critical_section_40);
-        queued->execute();
-        EnterCriticalSection(critical_section_40);
+        critical_section_40->releaseAccess();
+        try {
+            queued->execute();
+        }
+        catch (...) {
+            throw;
+        }
+        critical_section_40->getAccess();
         entry->state_0c = 2;
         delete entry;
         job_count_38 -= 1;
-        LeaveCriticalSection(critical_section_40);
+        critical_section_40->releaseAccess();
         return;
     }
-    LeaveCriticalSection(critical_section_40);
+    critical_section_40->releaseAccess();
 }
 
 // FUNCTION: SURRENDER 0x10014310
 void srScheduler::cancelAll()
 {
-    EnterCriticalSection(critical_section_40);
+    critical_section_40->getAccess();
     QueueEntry* entry = first_job_30;
     while (entry != 0) {
         entry->job_00->cancel();
         removeQueueEntry(first_job_30);
         entry = first_job_30;
     }
-    LeaveCriticalSection(critical_section_40);
+    critical_section_40->releaseAccess();
     finishAll();
 }
 
@@ -146,9 +146,9 @@ void srScheduler::cancelAll()
 void srScheduler::finishAll()
 {
     while (true) {
-        EnterCriticalSection(critical_section_40);
+        critical_section_40->getAccess();
         long count = job_count_38;
-        LeaveCriticalSection(critical_section_40);
+        critical_section_40->releaseAccess();
         if (count == 0) {
             break;
         }
@@ -159,17 +159,17 @@ void srScheduler::finishAll()
 // FUNCTION: SURRENDER 0x100142F0
 long srScheduler::getJobCount() const
 {
-    CRITICAL_SECTION* section = critical_section_40;
-    EnterCriticalSection(section);
+    srCriticalSection* section = critical_section_40;
+    section->getAccess();
     long count = job_count_38;
-    LeaveCriticalSection(section);
+    section->releaseAccess();
     return count;
 }
 
 // FUNCTION: SURRENDER 0x100143A0
 void srScheduler::removeQueueEntry(QueueEntry* entry)
 {
-    EnterCriticalSection(critical_section_40);
+    srCriticalSectionAccess access(critical_section_40);
     Job* job = entry->job_00;
     lookup_20.Remove(&job, &entry);
     if (entry->previous_08 == 0) {
@@ -184,16 +184,15 @@ void srScheduler::removeQueueEntry(QueueEntry* entry)
     }
     delete entry;
     job_count_38 -= 1;
-    LeaveCriticalSection(critical_section_40);
 }
 
 // FUNCTION: SURRENDER 0x100144B0
 long srScheduler::executeNextJob()
 {
-    EnterCriticalSection(critical_section_40);
+    critical_section_40->getAccess();
     QueueEntry* entry = first_job_30;
     if (entry == 0) {
-        LeaveCriticalSection(critical_section_40);
+        critical_section_40->releaseAccess();
         return 0;
     }
     if (entry->previous_08 == 0) {
@@ -207,22 +206,27 @@ long srScheduler::executeNextJob()
         entry->next_04->previous_08 = entry->previous_08;
     }
     entry->state_0c = 1;
-    LeaveCriticalSection(critical_section_40);
-    entry->job_00->execute();
-    EnterCriticalSection(critical_section_40);
+    critical_section_40->releaseAccess();
+    try {
+        entry->job_00->execute();
+    }
+    catch (...) {
+        throw;
+    }
+    critical_section_40->getAccess();
     Job* job = entry->job_00;
     entry->state_0c = 2;
     lookup_20.Remove(&job, &entry);
     delete entry;
     job_count_38 -= 1;
-    LeaveCriticalSection(critical_section_40);
+    critical_section_40->releaseAccess();
     return 1;
 }
 
 // FUNCTION: SURRENDER 0x10014620
 void srScheduler::wakeWorker()
 {
-    EnterCriticalSection(critical_section_40);
+    srCriticalSectionAccess access(critical_section_40);
     if (job_count_38 != 0) {
         int busy = 0;
         for (int index = 0; index < worker_count_3c; ++index) {
@@ -240,7 +244,6 @@ void srScheduler::wakeWorker()
             }
         }
     }
-    LeaveCriticalSection(critical_section_40);
 }
 
 // FUNCTION: SURRENDER 0x100146E0
@@ -260,9 +263,9 @@ void __cdecl srScheduler::workerEntry(void* argument)
 void srScheduler::waitForJob(Job* job)
 {
     while (true) {
-        EnterCriticalSection(critical_section_40);
+        critical_section_40->getAccess();
         bool pending = lookup_20.Lookup(&job) != 0;
-        LeaveCriticalSection(critical_section_40);
+        critical_section_40->releaseAccess();
         if (!pending) {
             return;
         }

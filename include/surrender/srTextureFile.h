@@ -25,7 +25,11 @@ public:
 
     srTextureFile& operator=(const srTextureFile& other);
 
-    static const char* sGetClassName();
+    // FUNCTION: SURRENDER 0x1005FF10
+    static const char* sGetClassName()
+    {
+        return "srTextureFile";
+    }
 
     const char* getFileName() const;
     void setFileName(const char* file_name);

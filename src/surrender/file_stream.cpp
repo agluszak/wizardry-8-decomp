@@ -11,6 +11,7 @@
 #include "surrender/srSystem.h"
 #include "surrender/srVectorProcessor.h"
 
+#include <ostream>
 #include <share.h>
 #include <stdio.h>
 #include <stdlib.h>

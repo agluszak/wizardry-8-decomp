@@ -2,6 +2,8 @@
 
 #include "surrender/srVariableTimer.h"
 
+#include <ostream>
+
 // FUNCTION: SURRENDER 0x100632C0
 srVariableTimer::srVariableTimer(int a0, int a1, int a2, float multiplier, unsigned long step_size)
     : srTimer(a0, a1, a2)

@@ -3,6 +3,7 @@
 #include "surrender/srPalette.h"
 
 #include <new>
+#include <ostream>
 #include <stdlib.h>
 #include <string.h>
 
@@ -412,13 +413,7 @@ void srPalette::updateQuantizer()
     if (quantizer_24 != 0) {
         srHeap.free(quantizer_24);
     }
-    Quantizer* quantizer = static_cast<Quantizer*>(srHeap.allocate(0x21918));
-    if (quantizer != 0) {
-        quantizer->setPalette(colors_1c, color_count_20, 0, '\b', '\b', '\b');
-        quantizer_24 = quantizer;
-    } else {
-        quantizer_24 = 0;
-    }
+    quantizer_24 = new Quantizer(colors_1c, color_count_20, 0, '\b', '\b', '\b');
 }
 
 // FUNCTION: SURRENDER 0x10004300
@@ -436,7 +431,7 @@ srPalette::srPalette(srARGB* colors, long color_count)
     : srClassSupport<srPalette, srClass, 1, 0x2900>()
 {
     flags_18 = 0;
-    colors_1c = static_cast<srARGB*>(srHeap.allocate(color_count * 4));
+    colors_1c = new srARGB[color_count];
     color_count_20 = color_count;
     quantizer_24 = 0;
     if (colors == 0) {
@@ -516,7 +511,7 @@ srPalette& srPalette::operator=(const srPalette& other)
     color_count_20 = other.color_count_20;
     colors_1c = 0;
     if (0 < color_count_20) {
-        colors_1c = static_cast<srARGB*>(srHeap.allocate(color_count_20 * 4));
+        colors_1c = new srARGB[color_count_20];
         for (long index = 0; index < color_count_20; ++index) {
             colors_1c[index] = other.colors_1c[index];
         }
@@ -776,13 +771,13 @@ void srPalette::Sampler::discard()
 // FUNCTION: SURRENDER 0x10006630
 void srPalette::Sampler::reallocColors(long new_capacity)
 {
-    ColorEntry* new_colors =
-        static_cast<ColorEntry*>(::operator new(new_capacity * sizeof(ColorEntry)));
+    ColorEntry* new_colors = new ColorEntry[new_capacity];
     /* Retail tests the first allocation and stores 0 on failure — a no-op
        check identical in shape to addSurface's pixels guard. The second
        allocation is never tested. */
-    long* new_links = static_cast<long*>(::operator new(new_capacity * sizeof(long)));
-    srARGB empty_color = {0, 0, 0, 0};
+    long* new_links = new long[new_capacity];
+    srARGB empty_color;
+    memset(&empty_color, 0, sizeof(empty_color));
     for (long index = 0; index < new_capacity; ++index) {
         new_colors[index].color = empty_color;
         new_colors[index].count = 0;
@@ -918,8 +913,6 @@ void srPalette::Sampler::addSurface(const char* name, long weight)
     if ((name != 0) && (*name != '\0')) {
         srSurfaceIOManager::ImportInfo options;
         options.unknown_00 = 0;
-        options.unknown_04 = 0;
-        options.option_string = 0;
         srColorSurfaceIFace* surface = srCore.getSurfaceIOManager()->importSurface(name, options);
         if (surface != 0) {
             addSurface(*surface, weight);
@@ -939,8 +932,8 @@ void srPalette::Sampler::addSurface(srColorSurfaceIFace& surface, long weight)
         samples = 1;
     }
     if (sample_factor == 1.0) {
-        unsigned long* pixels = static_cast<unsigned long*>(
-            srHeap.allocate(width * 4)); /* reinterpret-ok: raw pixel row storage */
+        unsigned long* pixels =
+            (unsigned long*)new srARGB[width]; /* reinterpret-ok: raw pixel row storage */
         /* Retail shape (0x1000644F): the allocation result is tested and 0 is
            stored on failure — a no-op null check; pixels then flows into
            getPixelRow regardless. */
@@ -1115,14 +1108,13 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
         return 0;
     }
 
-    HashEntry** buckets = static_cast<HashEntry**>(::operator new(0x20000));
-    HashEntry* entries =
-        static_cast<HashEntry*>(::operator new(info.color_count * sizeof(HashEntry)));
-    HashEntry** rehash = static_cast<HashEntry**>(::operator new(0x20000));
-    srARGB* palette_colors = static_cast<srARGB*>(srHeap.allocate(info.palette_size * 4));
+    HashEntry** buckets = new HashEntry*[0x8000];
+    HashEntry* entries = new HashEntry[info.color_count];
+    HashEntry** rehash = new HashEntry*[0x8000];
+    srARGB* palette_colors = new srARGB[info.palette_size];
     /* The retail epilogue frees palette_colors, two node pools and the five
        level arrays — lut is never deleted. Proven retail leak. */
-    LUT* lut = static_cast<LUT*>(::operator new(sizeof(LUT)));
+    LUT* lut = new LUT;
     memset(palette_colors, 0, info.palette_size * 4);
     memset(buckets, 0, 0x20000);
     memset(rehash, 0, 0x20000);
@@ -1172,9 +1164,9 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
         }
     }
 
-    Node* leaf_pool = static_cast<Node*>(::operator new(leaf_nodes * sizeof(Node)));
-    Leaf* leaves = static_cast<Leaf*>(::operator new(distinct * sizeof(Leaf)));
-    Node** leaf_map = static_cast<Node**>(::operator new(0x20000));
+    Node* leaf_pool = new Node[leaf_nodes];
+    Leaf* leaves = new Leaf[distinct];
+    Node** leaf_map = new Node*[0x8000];
     memset(leaf_map, 0, 0x20000);
 
     unsigned long dominant_color = 0;
@@ -1233,17 +1225,12 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     ::operator delete(buckets);
 
     static const unsigned long level_node_counts[] = {1, 8, 0x40, 0x200, 0x1000, 0x8000};
-    Node* levels[4];
-    Node* root;
+    Node* levels[5];
     for (long level = 4; level >= 0; --level) {
         long dim = 1 << level;
-        Node* nodes = static_cast<Node*>(::operator new(level_node_counts[level] * sizeof(Node)));
+        Node* nodes = new Node[level_node_counts[level]];
+        levels[level] = nodes;
         memset(nodes, 0, level_node_counts[level] * sizeof(Node));
-        if (level == 0) {
-            root = nodes;
-        } else {
-            levels[level - 1] = nodes;
-        }
         for (long z = 0; z < dim; ++z) {
             for (long y = 0; y < dim; ++y) {
                 Node* node = nodes + (z * dim + y) * dim;
@@ -1275,7 +1262,7 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
                         if (level == 4) {
                             link = leaf_map[child_index];
                         } else {
-                            link = levels[level] + child_index;
+                            link = levels[level + 1] + child_index;
                         }
                         if ((link != 0) && (link->leaf_count == 0)) {
                             link = 0;
@@ -1319,7 +1306,7 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     }
 
     if (info.mask_count < 1) {
-        root->color = dominant_color;
+        levels[0]->color = dominant_color;
     } else {
         long limit = info.palette_size;
         if (info.mask_count < limit) {
@@ -1329,26 +1316,24 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
             if (info.mask_flags[index] != 0) {
                 palette_colors[index] = info.mask_colors[index];
                 setupLUT(*lut, palette_colors[index]);
-                findOptimalColor(root, *lut);
+                findOptimalColor(levels[0], *lut);
             }
         }
     }
     for (index = 0; index < info.palette_size; ++index) {
         if ((info.mask_flags == 0) || (info.mask_count <= index) || (info.mask_flags[index] == 0)) {
             palette_colors[index] =
-                reinterpret_cast<srARGB&>(root->color); /* reinterpret-ok: packed color dword */
+                reinterpret_cast<srARGB&>(levels[0]->color); /* reinterpret-ok: packed color dword */
             setupLUT(*lut, palette_colors[index]);
-            findOptimalColor(root, *lut);
+            findOptimalColor(levels[0], *lut);
         }
     }
 
-    srPalette* palette =
-        new (srHeap.allocate(sizeof(srPalette))) srPalette(palette_colors, info.palette_size);
+    srPalette* palette = new srPalette(palette_colors, info.palette_size);
     srHeap.free(palette_colors);
     ::operator delete(leaf_pool);
     ::operator delete(leaves);
-    ::operator delete(root);
-    for (index = 0; index < 4; ++index) {
+    for (index = 0; index < 5; ++index) {
         ::operator delete(levels[index]);
     }
     return palette;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <new>
+
 #include "srHeap.h"
 
 /* SurRender's ordinary two-word growable-array boundary. Repeated
@@ -213,7 +215,9 @@ public:
 
     /* Free-then-allocate exact storage without preserving contents; the
        reserve constructor reaches it (retail 0x10027330 for the vec4
-       stream). */
+       stream). Element construction goes through new T[]: retail emits the
+       new[] result select after srHeap::allocate, so the class element
+       types' class-scoped operator new[] owns the heap routing. */
     // TEMPLATE: SURRENDER 0x10027330
     // srHeapArray<srVector4T<float> >::reserve
     inline void reserve(unsigned long count)
@@ -221,7 +225,7 @@ public:
         release();
         if (count > 0) {
             capacity = count;
-            data = allocate(count);
+            data = new T[count];
         }
     }
 
@@ -280,7 +284,7 @@ public:
         if (capacity != new_capacity) {
             T* replacement = 0;
             if (new_capacity > 0) {
-                replacement = allocate(new_capacity);
+                replacement = new T[new_capacity];
                 if (data != 0 && capacity > 0) {
                     unsigned long copy_count = capacity;
                     if (copy_count >= new_capacity) {

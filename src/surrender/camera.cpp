@@ -4,6 +4,8 @@
 #include "surrender/srGERD.h"
 #include "surrender/srHeap.h"
 
+#include <ostream>
+
 /* Per-class flag-name table: unlike srNode's lazily assigned list, retail
    leaves this global zero-initialized for srCamera, so dump prints numeric
    bit indices. Retail references absolute 0x100A49BC, a slot inside the
@@ -95,12 +97,6 @@ void srCamera::processPush(srGERD* renderer)
     renderer->pushEnvironment();
     renderer->setEnvironmentRange(environment_near_178, environment_far_17c);
     renderer->setEnvironmentScaleFactor(environment_near_scale_180, environment_far_scale_184);
-}
-
-// FUNCTION: SURRENDER 0x10048020
-const char* srCamera::sGetClassName()
-{
-    return "srCamera";
 }
 
 // FUNCTION: SURRENDER 0x10048030

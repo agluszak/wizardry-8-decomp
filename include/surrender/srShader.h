@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <iosfwd>
 
 #include "srHeap.h"
 
@@ -15,20 +15,30 @@ SR_DLL_IMPORT std::ostream& operator<<(std::ostream& stream, const srShader& sha
    TEXTURING_DISABLE, DITHER_ENABLE. */
 class srShader {
 public:
-    /* Out-of-line in both images: the gerd.cpp unit emits the provider copy
-       (0x100199F0) that all other provider units call, and Video2.cpp emits
-       the consumer copy (0x00424A40); retail expands the default word inline
-       only inside getShaderDisableMask. */
-    srShader();
+    /* Provider-visible body: retail inlines the default word wherever the
+       body is seen in provider units (srMeshModel::getShader's out-of-range
+       path folds the construction into a single return-store). The standalone
+       emission at 0x100199F0 is the folded copy provider callers that do not
+       inline share. Consumer builds see the declaration only: these ctors
+       were never exported, so Wiz8 units define their own copies. */
+#if defined(SURRENDER_BUILD)
+    // FUNCTION: SURRENDER 0x100199F0 SYMBOL
+    // ??0srShader@@QAE@XZ
+    srShader() : value(0x0100241b) {}
 
-    /* User-declared: retail emits the nested srModeler::Triangle/Polygon
-       implicit copy constructors (0x10037C10, 0x10037CF0), which VC6
-       generates only when a member's copy is nontrivial. Like the default
-       constructor, each image defines it in one unit: modeler.cpp inlines it
-       into those copies and emits the callable copy the provider's by-value
-       arguments use; Wiz8's GameData.cpp defines the copy its setShader
-       callers use. */
+    /* User-declared and provider-visible: retail inlines the four-byte member
+       copy inside srMeshModel::getShader and the implicit
+       srModeler::Triangle/Polygon copies, while units that do not inline emit
+       a shared folded copy (0x1003B930 for the provider, 0x00424A40 in Wiz8's
+       Video2.cpp). Keeping it user-declared preserves the nontrivial copy
+       that forces those implicit copies to exist. */
+    // FUNCTION: SURRENDER 0x1003B930
+    // ??0srShader@@QAE@ABV0@@Z
+    srShader(const srShader& other) : value(other.value) {}
+#else
+    srShader();
     srShader(const srShader& other);
+#endif
 
     enum e_pass {
         PASS_NEVER = 0,

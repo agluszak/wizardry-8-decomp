@@ -3,6 +3,8 @@
 #include "surrender/srGERD.h"
 #include "surrender/srTypeRegistry.h"
 
+#include <ostream>
+
 // FUNCTION: SURRENDER 0x10049B90
 srClipPlane::srClipPlane(srNode* parent)
     : srClassSupport<srClipPlane, srNode, false, 0x1500>(static_cast<srNode*>(0))
@@ -127,12 +129,6 @@ void srClipPlane::getClipPlane(srVector4T<float>& plane) const
 srVector4T<float> srClipPlane::getClipPlane() const
 {
     return clip_plane_;
-}
-
-// FUNCTION: SURRENDER 0x1004A150
-const char* srClipPlane::sGetClassName()
-{
-    return "srClipPlane";
 }
 
 // FUNCTION: SURRENDER 0x1004A160

@@ -22,6 +22,20 @@ public:
        row, lut_rgb[(row<<8)|b] yields the index. */
     class SR_DLL_EXPORT Quantizer {
     public:
+        /* updateQuantizer's retail emission (0x10004240) allocates the
+           0x21918-byte object through srHeap::allocate under an unwind frame:
+           scalar operator new routes through the SurRender heap like the
+           srRuntimeClass family. */
+        void* operator new(unsigned int size)
+        {
+            return srHeap.allocate(size);
+        }
+
+        void operator delete(void* allocation)
+        {
+            srHeap.free(allocation);
+        }
+
         Quantizer();
         Quantizer(srARGB* colors, long color_count, unsigned char* duplicates,
                   unsigned char red_bits, unsigned char green_bits, unsigned char blue_bits);

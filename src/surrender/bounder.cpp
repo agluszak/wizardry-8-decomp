@@ -3,6 +3,8 @@
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
 
+#include <ostream>
+
 // FUNCTION: SURRENDER 0x1004a5a0
 srBounder::srBounder(srNode* parent)
     : srClassSupport<srBounder, srNode, false, 0x1600>(static_cast<srNode*>(0))
@@ -22,12 +24,6 @@ srBounder::~srBounder() {}
 srClass* srBounder::vInstance()
 {
     return new srBounder(static_cast<srNode*>(0));
-}
-
-// FUNCTION: SURRENDER 0x1004b070
-const char* srBounder::sGetClassName()
-{
-    return "srBounder";
 }
 
 // FUNCTION: SURRENDER 0x1004b1a0
@@ -126,9 +122,13 @@ void srBounder::traverse(TraverseInfo& info)
             if (bounds_13c_.state_28 == 1) {
                 applyWorldSpaceMatrix(*renderer);
                 if (renderer->testBoundingSphere(bounds_13c_.center, bounds_13c_.radius) ==
-                        srGERD::VISIBILITY_POSITIONAL_0 ||
-                    renderer->testBoundingBox(bounds_13c_.minimum, bounds_13c_.maximum) ==
-                        srGERD::VISIBILITY_POSITIONAL_0) {
+                    srGERD::VISIBILITY_POSITIONAL_0) {
+                    renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
+                    renderer->popMatrix();
+                    return;
+                }
+                if (renderer->testBoundingBox(bounds_13c_.minimum, bounds_13c_.maximum) ==
+                    srGERD::VISIBILITY_POSITIONAL_0) {
                     renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
                     renderer->popMatrix();
                     return;

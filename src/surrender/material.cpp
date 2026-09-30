@@ -7,6 +7,8 @@
 #include "surrender/srVP.h"
 #include "surrender/srVectorProcessor.h"
 
+#include <ostream>
+
 /* Comma-separated operation names srMaterial::dump walks while printing the
    operations_6c bits. Retail .data holds a zero-initialized pointer here; no
    in-range provider code ever stores to it, so the source spelling stays
