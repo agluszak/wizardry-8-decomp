@@ -13,10 +13,17 @@ _ANALYZED = frozenset({"differences", "no-differences"})
 
 # Callee names Ghidriff records for each side, import thunks included
 # ("SR.DLL::srHeap::free", "operator_new", "__3_YAXPAX_Z").
-_SRHEAP_ALLOCATOR = re.compile(r"srHeap(?:::|_+)(?:allocate|free)|_(?:allocate|free)_srHeap")
-_CRT_ALLOCATOR = re.compile(
-    r"(?:^|::)operator_?(?:new|delete)|^_+[23]_YA|\?\?[23]@|(?:^|::)_?(?:malloc|free)$"
+# Keep operation and family separate: a function may legitimately touch more
+# than one allocator family, and a call census does not prove pointer ownership.
+_SRHEAP_ALLOCATE = re.compile(r"srHeap(?:::|_+)allocate|_allocate_srHeap")
+_SRHEAP_FREE = re.compile(r"srHeap(?:::|_+)free|_free_srHeap")
+_CRT_ALLOCATE = re.compile(
+    r"(?:^|::)operator_?new|^_+2_YA|\?\?2@|(?:^|::)_?(?:malloc|calloc)$"
 )
+_CRT_FREE = re.compile(
+    r"(?:^|::)operator_?delete|^_+3_YA|\?\?3@|(?:^|::)_?free$"
+)
+_CRT_RESIZE = re.compile(r"(?:^|::)_?realloc$")
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -46,38 +53,52 @@ def _similarities(summary: dict[str, Any], ghidriff: dict[str, Any]) -> list[flo
     return similarities
 
 
-def _allocator_families(called: list[str]) -> list[str]:
-    families = set()
+def _allocator_operations(called: list[str]) -> dict[str, list[str]]:
+    """Direct allocator call families grouped by operation."""
+    operations: dict[str, set[str]] = {}
     for name in called:
-        if _SRHEAP_ALLOCATOR.search(name):
-            families.add("srHeap")
-        elif _CRT_ALLOCATOR.search(name):
-            families.add("crt")
-    return sorted(families)
+        operation = None
+        family = None
+        if _SRHEAP_ALLOCATE.search(name):
+            operation, family = "allocate", "srHeap"
+        elif _SRHEAP_FREE.search(name):
+            operation, family = "free", "srHeap"
+        elif _CRT_ALLOCATE.search(name):
+            operation, family = "allocate", "crt"
+        elif _CRT_FREE.search(name):
+            operation, family = "free", "crt"
+        elif _CRT_RESIZE.search(name):
+            operation, family = "resize", "crt"
+        if operation is not None:
+            operations.setdefault(operation, set()).add(family)
+    return {operation: sorted(families) for operation, families in operations.items()}
 
 
-def allocator_disagreements(ghidriff: dict[str, Any]) -> dict[int, dict[str, Any]]:
-    """Paired functions whose two sides call different allocator families.
+def allocator_call_disagreements(
+    ghidriff: dict[str, Any],
+) -> dict[tuple[int, str], dict[str, Any]]:
+    """Direct allocator operations whose observed families differ between sides.
 
-    A container that allocates through one heap and frees through another
-    corrupts it, and the rebuilt side shows it as a callee change: retail calls
-    srHeap::allocate where the rebuild calls operator new, or the reverse.
-    A side that calls no allocator at all usually reached one through a helper
-    the other side inlined, so only functions where both sides allocate are
-    compared. Keyed by retail address; the facts are Ghidriff's own callee
-    lists.
+    Compare only an operation present on both sides. If one side reaches an
+    allocator through a helper while the other inlines it, the call census does
+    not contain enough information to compare that operation. Likewise this is
+    a call-graph triage signal, not pointer provenance: it does not claim that
+    an allocation and free in the same function operate on the same storage.
     """
     result = {}
     for function in ghidriff["functions"]["modified"]:
-        retail = _allocator_families(function["old"].get("called") or [])
-        rebuild = _allocator_families(function["new"].get("called") or [])
-        if retail and rebuild and retail != rebuild:
-            address = int(function["old"]["address"], 16)
-            result[address] = {
+        retail = _allocator_operations(function["old"].get("called") or [])
+        rebuild = _allocator_operations(function["new"].get("called") or [])
+        address = int(function["old"]["address"], 16)
+        for operation in sorted(retail.keys() & rebuild.keys()):
+            if retail[operation] == rebuild[operation]:
+                continue
+            result[(address, operation)] = {
                 "orig": f"{address:#x}",
                 "name": function["old"]["name"],
-                "retail": retail,
-                "rebuild": rebuild,
+                "operation": operation,
+                "retail": retail[operation],
+                "rebuild": rebuild[operation],
             }
     return result
 
@@ -294,19 +315,19 @@ def pr_comparison_report(
     base_ghidriff = _read_json(base_ghidriff_path)
     head_metrics = comparison_metrics(head_summary, head_ghidriff)
     base_metrics = comparison_metrics(base_summary, base_ghidriff)
-    head_allocators = allocator_disagreements(head_ghidriff)
-    base_allocators = allocator_disagreements(base_ghidriff)
+    head_allocators = allocator_call_disagreements(head_ghidriff)
+    base_allocators = allocator_call_disagreements(base_ghidriff)
     report["comparison"] = {
         "head": head_metrics,
         "base": base_metrics,
         "delta": _metric_delta(head_metrics, base_metrics),
         "transitions": _transitions(head_summary, base_summary),
-        "allocator_families": {
+        "allocator_calls": {
             "head": len(head_allocators),
             "base": len(base_allocators),
             "new": [
-                head_allocators[address]
-                for address in sorted(head_allocators.keys() - base_allocators.keys())
+                head_allocators[key]
+                for key in sorted(head_allocators.keys() - base_allocators.keys())
             ],
         },
         "header_blast_radius": header_blast_radius(head_summary, base_summary, header_dependents)

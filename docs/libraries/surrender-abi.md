@@ -398,6 +398,14 @@ result select. The raw heap family is `srHeapBuffer`: `srHeap.allocate` on
 bytes, no element construction, and a pointer-checked release (`0x004741b0`),
 with scratch (`ensure`) and preserving (`setCapacity`) growth.
 
+Allocation syntax follows the recovered lifetime model, not whichever call
+happens to match locally. A class-specific `operator new[]`/`delete[]` is a
+class-wide claim and is introduced only when the reviewed array-emission census
+for that class agrees; one allocation site is not enough. Conversely, direct
+`srHeap.allocate`/`free` remains direct only for storage with no evidenced
+element construction/destruction. Different `srArray<T>` instantiations
+reaching different heaps are not evidence for separate container templates.
+
 The Wiz8 and SurRender hash headers have the same four-word table, chained
 entries/free list, initial four buckets, doubling growth, key mixing, lookup,
 insertion, removal, and bucket rebuild. Both allocate entry and bucket arrays

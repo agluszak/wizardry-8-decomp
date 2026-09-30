@@ -1,7 +1,9 @@
 #pragma once
 
-/* The delete[] paths need the throw() operator delete <new> declares; without
-   it every owner destructor gains an unwind state retail does not have. */
+/* VC6 needs the throw() operator delete declaration from <new> for these
+   delete[] expressions; without that declaration, owner destructors gain
+   unwind states retail does not have. The exact original include path is not
+   recoverable, but the declaration environment is. */
 #include <new>
 
 #include "srHeap.h"
@@ -12,11 +14,13 @@
    spelling because the closed SDK's identifier did not survive; the primary
    template and its operations are compiler- and retail-proved.
 
-   Storage goes through new T[] and delete[], so the element type chooses the
-   allocator. Scalar and pointer elements use the CRT; the vector value
-   classes declare operator new[]/delete[] on srHeap, so the renderer's vertex
-   and triangle streams and Wiz8's transformed-vertex arrays are this same
-   template on the SurRender heap. Their emissions differ from the scalar ones
+   Storage goes through new T[] and delete[], so source-level element lifetime
+   stays in this template while a class-specific allocation operator may choose
+   the underlying heap. The reviewed scalar and pointer instantiations use the
+   CRT; the reviewed vector value instantiations use class operator
+   new[]/delete[] on srHeap. The renderer's vertex and triangle streams and
+   Wiz8's transformed-vertex arrays are therefore this same template. Their
+   emissions differ from the scalar ones
    only by the heap calls and the new[] result select a non-POD element adds
    (srArray<srVector4T<float> >::setCapacity 0x10027390 against
    srArray<float>::setCapacity 0x100274E0; the vec2 constructor 0x10027CD0 is

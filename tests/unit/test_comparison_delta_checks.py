@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from wiz8decomp.reports.comparison_delta import allocator_disagreements, header_blast_radius
+from wiz8decomp.reports.comparison_delta import allocator_call_disagreements, header_blast_radius
 
 
 def _pair(address: str, retail: list[str], rebuild: list[str]) -> dict:
@@ -26,12 +26,13 @@ def test_allocator_substitution_is_reported() -> None:
         }
     }
 
-    assert allocator_disagreements(ghidriff) == {
-        0x480560: {
+    assert allocator_call_disagreements(ghidriff) == {
+        (0x480560, "allocate"): {
             "orig": "0x480560",
             "name": "f0x480560",
+            "operation": "allocate",
             "retail": ["srHeap"],
-            "rebuild": ["crt", "srHeap"],
+            "rebuild": ["crt"],
         }
     }
 
@@ -41,14 +42,58 @@ def test_srheap_free_is_not_read_as_the_crt_free() -> None:
         "functions": {"modified": [_pair("0x1", ["SR.DLL::srHeap::free"], ["srHeap::free"])]}
     }
 
-    assert allocator_disagreements(ghidriff) == {}
+    assert allocator_call_disagreements(ghidriff) == {}
 
 
 def test_a_side_without_allocator_calls_is_not_a_disagreement() -> None:
     """One side reaches the allocator through a helper the other inlined."""
     ghidriff = {"functions": {"modified": [_pair("0x1", [], ["operator_new"])]}}
 
-    assert allocator_disagreements(ghidriff) == {}
+    assert allocator_call_disagreements(ghidriff) == {}
+
+
+
+def test_allocator_operations_are_compared_independently() -> None:
+    ghidriff = {
+        "functions": {
+            "modified": [
+                _pair(
+                    "0x2",
+                    ["SR.DLL::srHeap::allocate", "operator_delete"],
+                    ["operator_new", "SR.DLL::srHeap::free"],
+                )
+            ]
+        }
+    }
+
+    assert allocator_call_disagreements(ghidriff) == {
+        (0x2, "allocate"): {
+            "orig": "0x2",
+            "name": "f0x2",
+            "operation": "allocate",
+            "retail": ["srHeap"],
+            "rebuild": ["crt"],
+        },
+        (0x2, "free"): {
+            "orig": "0x2",
+            "name": "f0x2",
+            "operation": "free",
+            "retail": ["crt"],
+            "rebuild": ["srHeap"],
+        },
+    }
+
+
+def test_matching_mixed_allocator_families_are_not_reported() -> None:
+    calls = [
+        "SR.DLL::srHeap::allocate",
+        "operator_new",
+        "SR.DLL::srHeap::free",
+        "operator_delete",
+    ]
+    ghidriff = {"functions": {"modified": [_pair("0x3", calls, calls)]}}
+
+    assert allocator_call_disagreements(ghidriff) == {}
 
 
 def test_header_blast_radius_groups_regressions_by_dependent_header() -> None:
