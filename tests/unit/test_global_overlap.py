@@ -17,6 +17,33 @@ def _write(repo: Path, relative: str, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def test_qualified_static_members_keep_owner_out_of_storage_type(tmp_path: Path) -> None:
+    _write(
+        tmp_path,
+        "src/surrender/globals.cpp",
+        "// GLOBAL: SURRENDER 0x100a4778\nint srCore::initialized;\n"
+        "// GLOBAL: SURRENDER 0x1009c714\n"
+        'const char* srTimer::default_storage = "hkcu:SOFTWARE/Hybrid";\n'
+        "// GLOBAL: SURRENDER 0x100a8a30\nchar srTimer::RegKeyName[0x400];\n"
+        "// GLOBAL: SURRENDER 0x100a45b0\n"
+        "srClass::Update* srClass::_firstUpdate;\n"
+        "// GLOBAL: SURRENDER 0x100a1aa8\nint srPalette::Quantizer::initialized = 0;\n"
+        "// GLOBAL: SURRENDER 0x100a8a31\nunsigned char interior;\n",
+    )
+    definitions = parse_global_definitions(tmp_path)
+    by_address = {row["address"]: row for row in definitions}
+    for address, name, storage_type, size in (
+        (0x100A4778, "initialized", "int", 4),
+        (0x1009C714, "default_storage", "const char*", 4),
+        (0x100A8A30, "RegKeyName", "char[0x400]", 0x400),
+        (0x100A45B0, "_firstUpdate", "srClass::Update*", 4),
+        (0x100A1AA8, "initialized", "int", 4),
+    ):
+        row = by_address[address]
+        assert (row["name"], row["type"], row["size"]) == (name, storage_type, size)
+    assert any(row["container"] == "RegKeyName" for row in overlapping_globals(definitions))
+
+
 def test_exact_start_collision(tmp_path: Path) -> None:
     _write(
         tmp_path,

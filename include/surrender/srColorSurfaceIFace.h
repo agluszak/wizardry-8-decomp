@@ -15,7 +15,8 @@ struct W8TgaHeader;
 // VTABLE: SURRENDER 0x10076708
 // class srClassSupport<srColorSurfaceIFace, srClass, 1, 12544>
 
-class srColorSurfaceIFace : public srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100> {
+class __declspec(novtable) srColorSurfaceIFace
+    : public srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100> {
 public:
     struct Rectangle {
         long left;
