@@ -31,7 +31,8 @@ _PREPROCESSOR_ENDIF = re.compile(r"^\s*#\s*endif\b")
 _QUOTED_INCLUDE = re.compile(r'^\s*#\s*include\s+"([^"]+)"')
 _NUMERIC_CONSTANT = re.compile(r"\b([A-Za-z_]\w*)\s*=\s*(0[xX][0-9a-fA-F]+|\d+)\s*(?:,|}|$)")
 _DECL = re.compile(
-    r"^(?P<prefix>.*?)(?P<name>[A-Za-z_]\w*)\s*(?P<arrays>(?:\[[^\]]*\])*)\s*(?:=|;)"
+    r"^(?P<prefix>.*?)(?:[A-Za-z_]\w*::)*(?P<name>[A-Za-z_]\w*)\s*"
+    r"(?P<arrays>(?:\[[^\]]*\])*)\s*(?:=|;)"
 )
 _DIRECT_INIT = re.compile(
     r"^(?P<prefix>(?:static\s+)?[A-Za-z_]\w*(?:::[A-Za-z_]\w*)*<[^;]+>)\s+"

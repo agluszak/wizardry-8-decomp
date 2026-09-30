@@ -94,6 +94,8 @@ struct FormatEntry {
     FormatEntry* next;
 };
 
+static_assert(sizeof(FormatEntry) == 0x20, "srPixelConvert_FormatEntry_must_be_0x20");
+
 /* Lookup tables built by initPixelTables(): n-bit channel expansion
    (round(i * 255 / (2^n - 1))), 8-bit channel reduction, the ordered-dither
    bias cube, the packed-chroma decode table and the fixed-point channel

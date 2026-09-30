@@ -518,3 +518,14 @@ modern overload-resolution expectations. The surface-interface copy
 (`0x1005A120`) also has a byte copy at `+0x19` whose member identity remains
 unresolved; it does not establish a four-byte array copy or an invented empty
 class boundary. Its recovered explicit body remains pending that model.
+
+`srColorSurfaceIFace` also uses `novtable`. Its default constructor
+(`0x100571F0`), copy constructor (`0x1005A120`) and complete destructor
+(`0x10021260`) install only the support-phase table at `0x10076708`.
+Independent retail table bytes identify slot 3 as the exported `srClass::dump`
+at `0x1000E620`, rather than the interface override at `0x1005AE10`; this is
+not a source-projected table-name inference. Preserve the existing member
+import/export declarations and unresolved copy model. The constructor also
+zeros the clamp word at `+0x28` before clearing the complete field block;
+whether that reflects a flag-wrapper constructor or scalar initialization
+remains unresolved.
