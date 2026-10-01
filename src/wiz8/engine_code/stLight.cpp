@@ -33,7 +33,7 @@
 // GLOBAL: WIZ8 0x0060bfdc
 unsigned int g_light_update_flags = 1;
 
-/* rand() normalization to a 0..1 flicker probability; only Update0049C960
+/* rand() normalization to a 0..1 flicker probability; only Update
    uses it. */
 // GLOBAL: WIZ8 0x005ec1e4
 const float g_float_005ec1e4 = 3.0518509447574615e-05f;
@@ -184,7 +184,7 @@ void stLight::SetDefinitionTime(float time)
    elapsed seconds times the path rate exceed one whole step, wrapping or
    ping-ponging at the ends. */
 // FUNCTION: WIZ8 0x0049C960
-void stLight::Update0049C960()
+void stLight::Update()
 {
     if (m_definition_234 != 0 && m_definition_234->type_04 == 2) {
         stKeyframedLightDefinition* definition =
@@ -407,7 +407,7 @@ void stLight::Update0049C960()
    of counters, while the other forms restore intensity and an optional
    colour. */
 // FUNCTION: WIZ8 0x0049D070
-void stLight::Reset0049D070()
+void stLight::Reset()
 {
     if (m_definition_234 != 0) {
         if (m_definition_234->type_04 == 2) {
