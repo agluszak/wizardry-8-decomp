@@ -115,10 +115,13 @@ public:
     // SYNTHETIC: SURRENDER 0x10030C50
     // srBinIMStream::operator=
 
-    /* The retail emission is a bare ret while the vbase destructor owns the
-       table stores; consumers expand it inline rather than calling the import. */
-    // FUNCTION: SURRENDER 0x10030CE0
+    /* Provider destruction is compiler-generated; consumers retain the
+       evidenced header-visible empty body. */
+    // SYNTHETIC: SURRENDER 0x10030CE0
+    // srBinIMStream::~srBinIMStream
+#if !defined(SURRENDER_BUILD)
     virtual ~srBinIMStream() override {}
+#endif
 
     virtual SR_DLL_IMPORT unsigned long getSize() override;
     virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position,
