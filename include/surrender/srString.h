@@ -14,24 +14,11 @@
    srInlineString is a provisional identifier: no decorated export or retail
    string names the class.
 
-   Each product carries this class in the translation unit that uses it, and
-   each TU owns its definitions. Wiz8.exe emits its copies inside the
-   VirtualFileBinIStream translation unit (0x0047CDD0-0x0047D48F, the class's
-   only .text reach): there the ctors and destructor expand inline at call
-   sites while find/erase/insert/operator+=/operator+ are plain out-of-line
-   member functions defined in that unit. srEXT_Unzip.dll instead calls every
-   method out-of-line - even the trivial default constructor - and its
-   (const char*) constructor contains a spelled-out copy of the assignment
-   rather than delegating to it, its reference assignment delegates where
-   Wiz8's performs release-then-copy, and its copy constructor copies inline
-   where Wiz8's delegates to the reference assignment - which proves the two
-   products do not share the same method bodies. Only the members below are
-   identical in both products. */
+   Product variants have independently evidenced behavior. Wizardry and the
+   unzip extension retain their product-owned definitions; SurRender's
+   cross-TU expansions share the canonical provider definitions below. */
 struct srInlineString {
-    /* Bare empty-state construction - the retail expansions write the three
-       fields directly rather than calling init. The SurRender translation
-       units keep the spelling as a TU-local inline copy; there is no shared
-       strong emission. */
+    /* Empty-state construction shared by the provider translation units. */
     srInlineString();
     srInlineString(const char* source);
     srInlineString(const srInlineString& source);
@@ -96,3 +83,91 @@ struct srInlineString {
 static_assert((sizeof(srInlineString) == 0x0c), "srInlineString_must_be_0x0c");
 
 srInlineString operator+(const srInlineString& left, const srInlineString& right);
+
+#if defined(SURRENDER_BUILD)
+/* Retail expands these methods across config, stream, string-table and
+   dynamic-library TUs and also retains standalone emissions. */
+inline srInlineString::srInlineString()
+{
+    init();
+}
+
+inline srInlineString::srInlineString(const char* source)
+{
+    init();
+    operator=(source);
+}
+
+inline srInlineString::srInlineString(const srInlineString& source)
+{
+    init();
+    if (source.data_ != 0) {
+        operator=(source);
+    }
+}
+
+// FUNCTION: SURRENDER 0x100040A0
+inline srInlineString::~srInlineString()
+{
+    reset();
+}
+
+// FUNCTION: SURRENDER 0x100040D0
+inline srInlineString& srInlineString::operator=(const char* source)
+{
+    reset();
+    if (source == 0 || *source == '\0') {
+        return *this;
+    }
+    size_ = strlen(source) + 1;
+    data_ = static_cast<char*>(srHeap.allocate(size_));
+    strcpy(data_, source);
+    return *this;
+}
+
+inline srInlineString& srInlineString::operator=(const srInlineString& source)
+{
+    init();
+    if (source.data_ != 0 && *source.data_ != '\0') {
+        size_ = strlen(source.data_) + 1;
+        data_ = static_cast<char*>(srHeap.allocate(size_));
+        strcpy(data_, source.data_);
+    }
+    return *this;
+}
+
+inline void srInlineString::erase(unsigned long begin, unsigned long end)
+{
+    if (begin != end) {
+        strncpy(data_ + begin, data_ + end, size_ - end);
+        size_ = strlen(data_) + 1;
+    }
+}
+
+// FUNCTION: SURRENDER 0x10032E30 SYMBOL
+// ?operator+=@srInlineString@@QAEAAV1@PBD@Z
+inline srInlineString& srInlineString::operator+=(const char* suffix)
+{
+    if (suffix != 0 && *suffix != '\0') {
+        const unsigned long needed = strlen(suffix) + size_;
+        char* buffer = static_cast<char*>(srHeap.allocate(needed));
+        strcpy(buffer, data_);
+        strcpy(buffer + size_ - 1, suffix);
+        reset();
+        size_ = needed;
+        data_ = buffer;
+    }
+    return *this;
+}
+
+// FUNCTION: SURRENDER 0x100467E0 SYMBOL
+// ?find@srInlineString@@QBEJABV1@K@Z
+inline long srInlineString::find(const srInlineString& needle, unsigned long offset) const
+{
+    const char* found = strstr(data_ + offset, needle.data_);
+    if (found != 0) {
+        return static_cast<long>(found - data_);
+    }
+    return -1;
+}
+#endif
