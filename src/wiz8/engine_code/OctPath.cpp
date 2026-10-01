@@ -3987,8 +3987,7 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
     W8PathGridWalk walk;
     int directions[2];
 
-    cell[0] = static_cast<int>((from->x - level_bounds[0]) / grid_scale_01c);
-    cell[1] = static_cast<int>((from->z - level_bounds[2]) / grid_scale_01c);
+    PositionToPathKey(this, from, cell);
     walk_from.x = from->x;
     walk_from.y = from->z;
     walk_to.x = to->x;
@@ -4430,8 +4429,7 @@ float W8PathingService::CompareDirectionalClearance(const srVector3T<float>* pos
     }
 
     int cell[2];
-    cell[0] = static_cast<int>((position->x - level_bounds[0]) / grid_scale_01c);
-    cell[1] = static_cast<int>((position->z - level_bounds[2]) / grid_scale_01c);
+    PositionToPathKey(this, position, cell);
     unsigned int height =
         static_cast<unsigned int>(static_cast<int>(((position->y - level_bounds[1]) / span_020))) +
         1;
