@@ -334,19 +334,7 @@ void FaceCameraToSelection(int party_slot)
     heading = g_status.party_facing +
               static_cast<unsigned char>(g_status.formation.positions[party_slot].facing) *
                   W8_DEGREES_PER_QUADRANT;
-    if (heading == g_status.party_heading) {
-        return;
-    }
-    g_status.party_heading = heading;
-    UpdateFormationCompass();
-    if (static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN == heading) {
-        return;
-    }
-    if (g_settings.camera_rotation_style) {
-        TurnCameraToDegrees(static_cast<float>(heading));
-    } else {
-        SetCameraYawDegrees(static_cast<float>(heading));
-    }
+    TurnPartyToImmediate(heading, g_settings.camera_rotation_style);
 }
 
 /* Face one position the way the rules say it should, unless the rules have no
