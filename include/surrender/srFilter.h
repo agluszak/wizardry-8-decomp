@@ -6,29 +6,21 @@
 // class srFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srFilter {
 public:
-    /* The trivial base members are defined inline. Retail emitted each as a
-       real export while still folding it into the derived constructors/
-       destructors, which is why those bodies are a single vtable store with
-       no base call. The member dllexport marks keep the header bodies for
-       that folding while still emitting the exported standalone copies. */
-    // FUNCTION: SURRENDER 0x10003300
+    /* The class-level export emits the trivial default constructor, copy
+       constructor and assignment operator. They are compiler-generated:
+       srFilter has no data members, and the retail bodies contain no authored
+       work. The destructor remains explicit because it establishes the
+       hierarchy's virtual destructor. */
+    // SYNTHETIC: SURRENDER 0x10003300
     // ??0srFilter@@QAE@XZ
-    srFilter() {}
-
-    // FUNCTION: SURRENDER 0x10003310
+    // SYNTHETIC: SURRENDER 0x10003310
     // ??0srFilter@@QAE@ABV0@@Z
-    srFilter(const srFilter& other) {}
+    // SYNTHETIC: SURRENDER 0x10003330
+    // ??4srFilter@@QAEAAV0@ABV0@@Z
 
     // FUNCTION: SURRENDER 0x100032B0
     // ??1srFilter@@UAE@XZ
     virtual ~srFilter() {}
-
-    // FUNCTION: SURRENDER 0x10003330
-    // ??4srFilter@@QAEAAV0@ABV0@@Z
-    srFilter& operator=(const srFilter& other)
-    {
-        return *this;
-    }
 
     virtual const char* getName() const = 0;
     virtual double getWeight(double value) const = 0;
@@ -39,10 +31,17 @@ public:
 // class srBoxFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srBoxFilter : public srFilter {
 public:
-    srBoxFilter();
-    srBoxFilter(const srBoxFilter& other);
-    virtual ~srBoxFilter() override;
-    srBoxFilter& operator=(const srBoxFilter& other);
+    /* No derived state: default/copy construction, assignment and destruction
+       are the compiler-generated srFilter operations plus the derived vptr
+       store. Class-level dllexport emits the standalone retail symbols. */
+    // SYNTHETIC: SURRENDER 0x10003480
+    // srBoxFilter::srBoxFilter()
+    // SYNTHETIC: SURRENDER 0x100034A0
+    // srBoxFilter::srBoxFilter(const srBoxFilter&)
+    // SYNTHETIC: SURRENDER 0x10003520
+    // srBoxFilter::operator=
+    // SYNTHETIC: SURRENDER 0x10003530
+    // srBoxFilter::~srBoxFilter
 
     virtual const char* getName() const override;
     virtual double getWeight(double value) const override;
@@ -53,10 +52,17 @@ public:
 // class srBellFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srBellFilter : public srFilter {
 public:
-    srBellFilter();
-    srBellFilter(const srBellFilter& other);
-    virtual ~srBellFilter() override;
-    srBellFilter& operator=(const srBellFilter& other);
+    /* No derived state: default/copy construction, assignment and destruction
+       are the compiler-generated srFilter operations plus the derived vptr
+       store. Class-level dllexport emits the standalone retail symbols. */
+    // SYNTHETIC: SURRENDER 0x100035E0
+    // srBellFilter::srBellFilter()
+    // SYNTHETIC: SURRENDER 0x100035F0
+    // srBellFilter::srBellFilter(const srBellFilter&)
+    // SYNTHETIC: SURRENDER 0x10003600
+    // srBellFilter::operator=
+    // SYNTHETIC: SURRENDER 0x10003610
+    // srBellFilter::~srBellFilter
 
     virtual const char* getName() const override;
     virtual double getWeight(double value) const override;
@@ -67,10 +73,17 @@ public:
 // class srBSplineFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srBSplineFilter : public srFilter {
 public:
-    srBSplineFilter();
-    srBSplineFilter(const srBSplineFilter& other);
-    virtual ~srBSplineFilter() override;
-    srBSplineFilter& operator=(const srBSplineFilter& other);
+    /* No derived state: default/copy construction, assignment and destruction
+       are the compiler-generated srFilter operations plus the derived vptr
+       store. Class-level dllexport emits the standalone retail symbols. */
+    // SYNTHETIC: SURRENDER 0x10003780
+    // srBSplineFilter::srBSplineFilter()
+    // SYNTHETIC: SURRENDER 0x10003790
+    // srBSplineFilter::srBSplineFilter(const srBSplineFilter&)
+    // SYNTHETIC: SURRENDER 0x100037A0
+    // srBSplineFilter::operator=
+    // SYNTHETIC: SURRENDER 0x100037B0
+    // srBSplineFilter::~srBSplineFilter
 
     virtual const char* getName() const override;
     virtual double getWeight(double value) const override;
@@ -81,10 +94,17 @@ public:
 // class srTriangleFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srTriangleFilter : public srFilter {
 public:
-    srTriangleFilter();
-    srTriangleFilter(const srTriangleFilter& other);
-    virtual ~srTriangleFilter() override;
-    srTriangleFilter& operator=(const srTriangleFilter& other);
+    /* No derived state: default/copy construction, assignment and destruction
+       are the compiler-generated srFilter operations plus the derived vptr
+       store. Class-level dllexport emits the standalone retail symbols. */
+    // SYNTHETIC: SURRENDER 0x100036B0
+    // srTriangleFilter::srTriangleFilter()
+    // SYNTHETIC: SURRENDER 0x100036C0
+    // srTriangleFilter::srTriangleFilter(const srTriangleFilter&)
+    // SYNTHETIC: SURRENDER 0x100036D0
+    // srTriangleFilter::operator=
+    // SYNTHETIC: SURRENDER 0x100036E0
+    // srTriangleFilter::~srTriangleFilter
 
     virtual const char* getName() const override;
     virtual double getWeight(double value) const override;
