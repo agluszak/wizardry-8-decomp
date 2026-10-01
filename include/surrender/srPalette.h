@@ -32,8 +32,12 @@ public:
         {
             setPalette(colors, color_count, duplicates, red_bits, green_bits, blue_bits);
         }
-        Quantizer(const Quantizer& other);
-        ~Quantizer();
+        /* The class export emits the memberwise copy constructor and
+           trivial destructor. */
+        // SYNTHETIC: SURRENDER 0x10004D00
+        // srPalette::Quantizer::Quantizer(const Quantizer&)
+        // SYNTHETIC: SURRENDER 0x10004B80
+        // srPalette::Quantizer::~Quantizer
 
         void setPalette(srARGB* colors, long color_count, unsigned char* duplicates,
                         unsigned char red_bits, unsigned char green_bits, unsigned char blue_bits);
