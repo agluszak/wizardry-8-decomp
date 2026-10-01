@@ -3835,7 +3835,7 @@ void W8Octree::Reset()
 {
     g_octree_storage_ = 0;
     g_octree_state = 0;
-    spatial_000.Reset0046CDC0();
+    spatial_000.Reset();
     m_owned_09c = 0;
     m_owned_0a0 = 0;
     m_leaf_grid_dim_z_0ac = 0;
@@ -3904,7 +3904,7 @@ void W8Octree::Reset()
 
     memset(&view_1c0, 0, sizeof(view_1c0));
     /* 0x0042D1F1 then re-zeroes the four bounds inline, which
-       Reset0046CDC0 above already did through the callee. */
+       Reset above already did through the callee. */
     spatial_000.clipped_minimum_24.SetZero();
     spatial_000.clipped_maximum_30.SetZero();
     spatial_000.working_minimum_78.SetZero();
