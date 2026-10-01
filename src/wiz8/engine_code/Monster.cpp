@@ -3582,7 +3582,7 @@ void W8Monster::SetCycle(signed char cycle)
             stLight* light = *lights->GetAt(index);
 
             light->setParent(g_world->dynamic_scene, 1);
-            light->Reset0049D070();
+            light->Reset();
             if (light->definition() != 0) {
                 g_world->lights_to_update->Add(light);
             }
