@@ -350,8 +350,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
 
 /* Bake the dynamic scene's light children into every not-yet-lit model
    instance under one static-scene subtree. render_flags_178 bit 1 is the instance's
-   own lit marker; the first-child chain store is the same typed walk
-   SetModelInstanceChainExclusionMask performs. */
+   own lit marker; the child-chain exclusion update uses the shared helper. */
 // FUNCTION: WIZ8 0x0046F410
 unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
 {
@@ -364,10 +363,7 @@ unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
             srNode* lights = dynamic_scene->first_child_;
             if ((instance->render_flags_178 & 2) == 0) {
                 instance->render_flags_178 |= 2;
-                for (srModelInstance* chain = instance; chain != 0;
-                     chain = static_cast<srModelInstance*>(chain->first_child_)) {
-                    chain->setExclusionMask(1);
-                }
+                SetModelInstanceChainExclusionMask(instance, 1);
                 BakeInstanceVertexLighting(instance, lights, 1);
             }
         }
@@ -376,7 +372,7 @@ unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
 }
 
 /* Bake dynamic-scene lights into one not-yet-lit model instance. render_flags_178
-   bit 1 is the lit marker; the first-child walk matches SetModelInstanceChainExclusionMask. */
+   bit 1 is the lit marker. */
 // FUNCTION: WIZ8 0x0046F4A0
 unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance, srNode* dynamic_scene)
 {
@@ -384,10 +380,7 @@ unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance, srNo
 
     if ((instance->render_flags_178 & 2) == 0) {
         instance->render_flags_178 |= 2;
-        for (srModelInstance* chain = instance; chain != 0;
-             chain = static_cast<srModelInstance*>(chain->first_child_)) {
-            chain->setExclusionMask(1);
-        }
+        SetModelInstanceChainExclusionMask(instance, 1);
         BakeInstanceVertexLighting(instance, lights, 1);
     }
     return 1;
