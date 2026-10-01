@@ -554,11 +554,7 @@ void AutomapSelectEraseToolButton(void)
 void AutomapCyclePageButton(void)
 {
     g_automap_page = (g_automap_page + 1) % 3;
-    g_automap_buttons[5]->SetVisible(g_automap_page == 0);
-    g_automap_buttons[6]->SetVisible(g_automap_page == 1);
-    g_automap_buttons[7]->SetVisible(g_automap_page == 2);
-    g_automap_buttons[g_automap_page + 5]->m_dirty = true;
-    g_automap_buttons[g_automap_page + 5]->Draw();
+    UpdateAutomapPageButtons();
     g_automap_redraw = true;
 }
 
@@ -2564,11 +2560,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         return 1;
     case 0x20:
         g_automap_page = (g_automap_page + 1) % 3;
-        g_automap_buttons[5]->SetVisible(g_automap_page == 0);
-        g_automap_buttons[6]->SetVisible(g_automap_page == 1);
-        g_automap_buttons[7]->SetVisible(g_automap_page == 2);
-        g_automap_buttons[g_automap_page + 5]->m_dirty = true;
-        g_automap_buttons[g_automap_page + 5]->Draw();
+        UpdateAutomapPageButtons();
         g_automap_redraw = true;
         return 1;
     case 0x23:

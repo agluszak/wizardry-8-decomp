@@ -1394,15 +1394,7 @@ void SyncNpcServiceButtons(int party_slot)
                 CharacterHasServiceItem(character));
             g_screen_state_00649f1c->dialogue_text_11c->W8Widget::Invalidate(1);
         } else if (g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
-            ResetNpcDialogueItemEditor();
-            g_screen_state_00649f1c->dialogue_text_124->DisableSecondaryState(1);
-            g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_fontStateIndex = -1;
-            g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_geometryDirty = 1;
-            g_screen_state_00649f1c->dialogue_text_120->EnableSecondaryState(1);
-            g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_fontStateIndex = 3;
-            g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_geometryDirty = 1;
-            RebuildNpcTradeItemList(1);
-            g_screen_state_00649f1c->trade_pc_items = 1;
+            SelectNpcTradeMode1();
             UpdateNpcDialogueSubMode();
         }
     }

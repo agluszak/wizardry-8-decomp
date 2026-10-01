@@ -183,16 +183,7 @@ unsigned char OpenUseItemSelectView(int slot)
         SetViewportMode(GetMainGameViewportMode());
     }
     g_value_69b988 = mode;
-    RegionSetEnable(0x14);
-    EnableRegionInput(0x52);
-    EnableRegionInput(0x53);
-    EnableRegionInput(0x54);
-    EnableRegionInput(0x55);
-    g_level_block->action_panel_visible = 1;
-    DisableRegionInput(0x59);
-    DisableRegionInput(0x56);
-    DisableRegionInput(0x57);
-    DisableRegionInput(0x58);
+    RestoreSpellCastingRegions();
     RegionSetEnable(0x1a);
     SelectTextBox(2);
     ResetEditorStatusLine(-1);
@@ -314,12 +305,7 @@ void RefreshUseItemSelectionForSlot(int party_slot)
         } else {
             ResetEditorStatusLine(2);
             g_use_item_select_controls[3]->SetEnabled(1);
-            if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
-                                           g_W8TextControlStateSecondary) == 0) {
-                g_use_item_select_controls[3]->EnableSecondaryState(1);
-                g_use_item_select_controls[3]->Invalidate(0);
-            }
-            g_use_item_select_flags |= 1;
+            UseItemSelectFilterToggle();
             g_use_item_list_count = 0;
             g_selected_use_item_line = -1;
             AppendUseItemListEntry(&g_status.item_in_hand_235b, &g_status.item_in_hand_235b, 0);
@@ -576,12 +562,7 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
         return;
     }
     g_use_item_select_controls[3]->SetEnabled(1);
-    if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
-                                   g_W8TextControlStateSecondary) == 0) {
-        g_use_item_select_controls[3]->EnableSecondaryState(1);
-        g_use_item_select_controls[3]->Invalidate(0);
-    }
-    g_use_item_select_flags |= 1;
+    UseItemSelectFilterToggle();
     g_use_item_list_count = 0;
     g_selected_use_item_line = -1;
     pass = 0;

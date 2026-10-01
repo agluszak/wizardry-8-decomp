@@ -537,13 +537,7 @@ void ToggleRadarMapZoom(void)
         RefreshRadarMap();
         return;
     }
-    float radius = g_startup_world->radius_084;
-
-    g_radar_zoomed = false;
-    g_radar_map_scale = 2.0f;
-    g_radar_inner_radius = radius;
-    g_radar_outer_radius = CalcRangeDistance(W8_RANGE_EXTREME) + radius;
-    RefreshRadarMap();
+    ZoomRadarMapOut();
 }
 
 // FUNCTION: WIZ8 0x005a3410

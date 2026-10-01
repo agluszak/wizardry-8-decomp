@@ -194,15 +194,7 @@ void UpdateMonsterGroups(char staggered)
     }
     ++g_monster_group_tick;
     if (staggered == 0) {
-        if (gXStatus.fCombatMode == 0 || gXStatus.sight_refresh_pending_a03 != 0) {
-            if (gXStatus.sight_refresh_pending_a03 != 0) {
-                gXStatus.sight_refresh_pending_a03 = 0;
-            }
-            RefreshOutwardSightForAllMonsters();
-            if (gXStatus.fCombatMode != 0 && g_combat_state->round_count_004 == 0) {
-                CheckMonsterGroupsEnterCombat();
-            }
-        }
+        UpdateMonsterSight();
     }
     WorldGetCameraLocation(GetWorld(), &camera_position);
     for (group_list_index = 0; group_list_index < PLLength(gXStatus.plsMonsterGroupList);

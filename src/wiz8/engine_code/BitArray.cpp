@@ -371,11 +371,7 @@ void BitArray::SetToComplementOf(BitArray& other)
     unsigned int last_mask;
     unsigned int index;
 
-    memset(puiIndex, 0, word_count * sizeof(unsigned int));
-    set_count = 0;
-    cursor_base = 0;
-    cursor_bit = 0;
-    cursor_word = 0;
+    ClearAll();
 
     shared = word_count;
     if (other.word_count <= word_count) {

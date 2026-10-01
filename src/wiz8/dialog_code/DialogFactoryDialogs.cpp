@@ -715,26 +715,7 @@ void W8SplitAmountDialog::DestroyControls()
 // FUNCTION: WIZ8 0x005d9930
 W8SplitAmountDialog::~W8SplitAmountDialog()
 {
-    int index;
-
-    W8DialogBase::DestroyControls();
-    for (index = 0; index < 6; ++index) {
-        if (m_buttons_054[index] != 0) {
-            delete m_buttons_054[index];
-            m_buttons_054[index] = 0;
-        }
-    }
-    for (index = 0; index < 3; ++index) {
-        if (m_text_buffers_06c[index] != 0) {
-            delete m_text_buffers_06c[index];
-            m_text_buffers_06c[index] = 0;
-        }
-    }
-    if (m_split_input_078 != 0) {
-        NoOp();
-        delete m_split_input_078;
-        m_split_input_078 = 0;
-    }
+    DestroyControls();
 }
 
 /* The split-item dialog. Three text buffers show the running totals, the

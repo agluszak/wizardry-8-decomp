@@ -303,16 +303,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     }
     gpSCSV->saved_game_mode = mode;
     CreateSpellCastingViewControls();
-    RegionSetEnable(0x14);
-    EnableRegionInput(0x52);
-    EnableRegionInput(0x53);
-    EnableRegionInput(0x54);
-    EnableRegionInput(0x55);
-    g_level_block->action_panel_visible = 1;
-    DisableRegionInput(0x59);
-    DisableRegionInput(0x56);
-    DisableRegionInput(0x57);
-    DisableRegionInput(0x58);
+    RestoreSpellCastingRegions();
     RegionSetEnable(0x19);
     SelectTextBox(2);
     ResetEditorStatusLine(-1);

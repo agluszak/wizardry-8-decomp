@@ -338,17 +338,7 @@ void UpdateWorlds(void)
         }
     }
 
-    if (g_renderer_ready != 0 && g_world_mesh_update_enabled != 0) {
-        if (g_world->octree != 0) {
-            UpdateWorldOctree(g_world);
-        } else if (g_world->m_owned_06c != 0) {
-            ++g_world->m_owned_06c->dirty;
-            UpdateWorldMeshFromQuads(g_world);
-        }
-        RepositionAmbientSounds(g_world);
-        RequestRefreshPartyState();
-        g_renderer_ready = false;
-    }
+    UpdateWorldMeshAfterLoad();
 
     UpdateTimedTriggerEvents();
     UpdateShakeEffects();

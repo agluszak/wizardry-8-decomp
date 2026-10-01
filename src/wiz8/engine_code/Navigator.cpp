@@ -2467,17 +2467,7 @@ int W8Navigator::ResolveMovement()
     } else {
         movement_0c0.attachment_0ac->flags_00 &= ~0x10000;
         flags_00c &= 0xff000000;
-        SetMovementStopped();
-        PathAIClearOwned(path_ai_068);
-        movement_0c0.velocity_034.SetZero();
-        if ((movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0) {
-            flags_00c &= 0xff000000;
-        } else {
-            flags_00c = 0;
-        }
-        movement_0c0.attachment_0ac->RecordPosition(&movement_0c0.position_040);
-        g_octree->QueueOctreeKind13(movement_0c0.location_id_004, &movement_0c0.position_040);
-        movement_complete_026 = 1;
+        ClearMovement();
     }
     return 0;
 }

@@ -516,16 +516,7 @@ W8CharacterStatsRow::W8CharacterStatsRow()
 void W8CharacterStatsPage::Activate()
 {
     EnableRegionSet(1);
-    UpdateRowValues();
-    if (m_character_060->iRace != -1 || m_character_060->iProfession != -1) {
-        for (int index = 0; index < m_entries_04c.count; ++index) {
-            if (!m_rows_initialized_089) {
-                m_entries_04c.data[index]->SetEnabled(1);
-            }
-            m_entries_04c.data[index]->UpdateButtons();
-        }
-        m_rows_initialized_089 = true;
-    }
+    Refresh();
     for (int index = 0; index < 5; ++index) {
         m_attribute_controls_08c[index]->SetActive(1);
         m_attribute_controls_08c[index]->SetEnabled(1);
@@ -786,16 +777,7 @@ void W8CharacterStatsPage::OnRowValueChanged(W8CharacterStatsRow* row, int value
     }
     m_dirty_06d = 1;
     m_screen_05c->UpdateNavigation(this);
-    UpdateRowValues();
-    if (m_character_060->iRace != -1 || m_character_060->iProfession != -1) {
-        for (int index = 0; index < m_entries_04c.count; ++index) {
-            if (!m_rows_initialized_089) {
-                m_entries_04c.data[index]->SetEnabled(1);
-            }
-            m_entries_04c.data[index]->UpdateButtons();
-        }
-        m_rows_initialized_089 = true;
-    }
+    Refresh();
 }
 
 /* A row opened its record list: park the row and attribute controls so the

@@ -1121,18 +1121,13 @@ void ShadeStatusBarGap(int length, int left, int top)
 // FUNCTION: WIZ8 0x0059BAD0
 void ReleasePortraitControls(void)
 {
-    RegionSetDisable(5);
-    W8TextControl** control = g_portrait_controls;
-    do {
-        (*control)->SetActive(0);
-        ++control;
-    } while (control < g_portrait_controls + 8);
+    DisablePortraitControls();
     Controls* panel = g_panel_69b940;
     if (panel != 0) {
         delete panel;
         g_panel_69b940 = 0;
     }
-    control = g_portrait_controls;
+    W8TextControl** control = g_portrait_controls;
     do {
         if (*control != 0) {
             delete *control;
@@ -1442,14 +1437,7 @@ void CreateConditionButtons(void)
         ++uiSlot;
     } while (control < g_condition_buttons + 8);
 
-    RegionSetDisable(6);
-    g_condition_buttons_panel->SetEnabled(false);
-    if (g_level_block->condition_highlight_party_slot != -1) {
-        g_level_block->condition_highlight_party_slot = -1;
-        DismissHighlightOverlay();
-        RequestRedraw(0x8000);
-        RequestRedraw(0xff);
-    }
+    DisableConditionButtons();
 }
 
 /* Forward left-button and hover events to the portrait level-up control for

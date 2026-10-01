@@ -123,22 +123,7 @@ W8AssayDialog::W8AssayDialog(W8ItemInstance* item, W8Character* character)
 // FUNCTION: WIZ8 0x005d7090
 W8AssayDialog::~W8AssayDialog()
 {
-    int index;
-
-    W8DialogBase::DestroyControls();
-    m_scroll_bar.DestroyControls();
-    for (index = 0; index < W8_ASSAY_BUTTON_COUNT; ++index) {
-        if (m_buttons[index] != 0) {
-            delete m_buttons[index];
-            m_buttons[index] = 0;
-        }
-    }
-    for (index = 0; index < W8_ASSAY_TEXT_BUFFER_COUNT; ++index) {
-        if (m_text_buffers[index] != 0) {
-            delete m_text_buffers[index];
-            m_text_buffers[index] = 0;
-        }
-    }
+    DestroyControls();
     NoOp();
 }
 
@@ -369,8 +354,9 @@ unsigned char W8AssayDialog::PopulateText()
     }
     if (record->property_075 != 0) {
         m_text_area.AddEntry(gppStringList[0x8e9],
-                             gppStringList[g_item_use_messages[W8_ITEM_PROPERTY_MESSAGE_FIRST + record->property_075]], 10, 0xf,
-                             0);
+                             gppStringList[g_item_use_messages[W8_ITEM_PROPERTY_MESSAGE_FIRST +
+                                                               record->property_075]],
+                             10, 0xf, 0);
     }
     switch (record->equip_class) {
     case 0:

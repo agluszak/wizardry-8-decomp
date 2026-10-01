@@ -950,8 +950,7 @@ void W8TextControl::Redraw(unsigned char full_redraw)
         sprite = m_disabledSprite;
         if (sprite == -1) {
             if (m_textBuffer.HasBuffer()) {
-                m_textBuffer.RenderToTarget(text_state, full_redraw,
-                                            -14);
+                m_textBuffer.RenderToTarget(text_state, full_redraw, -14);
             }
             ShadowVideoSurfaceRect(-14, m_pPanel->origin_x + m_left, m_pPanel->origin_y + m_top,
                                    m_pPanel->origin_x + m_right, m_pPanel->origin_y + m_bottom);
@@ -1442,21 +1441,7 @@ public:
     void SetRangePosition(float position)
     {
         m_position = position;
-        if (m_position < m_minimumPosition) {
-            m_position = m_minimumPosition;
-        }
-        if (m_maximumPosition < m_position) {
-            m_position = m_maximumPosition;
-        }
-        m_pixelPosition =
-            (int)(((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
-                  m_trackLength);
-        if (m_pPanel != 0) {
-            m_dirty = true;
-            m_pPanel->m_fLayoutDirty = 1;
-            RequestRedraw(0x80000000);
-            RequestRedraw(0x80000000);
-        }
+        ClampPositionAndInvalidate();
     }
 
 protected:

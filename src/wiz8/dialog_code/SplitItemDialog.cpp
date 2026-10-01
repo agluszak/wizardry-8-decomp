@@ -104,39 +104,7 @@ W8SplitItemDialog::W8SplitItemDialog(int kind, W8ItemInstance* item, int count)
 // FUNCTION: WIZ8 0x005DD030
 W8SplitItemDialog::~W8SplitItemDialog()
 {
-    int index;
-    int count;
-
-    W8DialogBase::DestroyControls();
-    count = 0;
-    if (m_kind_0cc == 0) {
-        count = 8;
-    } else if (m_kind_0cc <= 2) {
-        count = 10;
-    }
-    for (index = 0; index < count; ++index) {
-        if (m_buttons_054[index] != 0) {
-            delete m_buttons_054[index];
-            m_buttons_054[index] = 0;
-        }
-    }
-    count = 0;
-    if (m_kind_0cc == 0) {
-        count = 10;
-    } else if (m_kind_0cc <= 2) {
-        count = 14;
-    }
-    for (index = 0; index < count; ++index) {
-        if (m_texts_07c[index] != 0) {
-            delete m_texts_07c[index];
-            m_texts_07c[index] = 0;
-        }
-    }
-    if (m_count_input_0b4 != 0) {
-        NoOp();
-        delete m_count_input_0b4;
-        m_count_input_0b4 = 0;
-    }
+    DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005DD130

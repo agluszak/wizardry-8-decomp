@@ -1426,19 +1426,7 @@ W8PartySelectionController::~W8PartySelectionController()
 void W8PartySelectionController::SetMode(int mode)
 {
     m_mode = mode;
-    m_redraw_backdrop_14 = true;
-
-    m_range->Invalidate(0);
-    m_control_2c->Invalidate(0);
-    m_control_30->Invalidate(0);
-    m_character_panel_20->Invalidate(0);
-    m_panel_34->Invalidate(0);
-    m_control_24->Invalidate(0);
-    m_control_28->Invalidate(0);
-    m_panel_38->Invalidate(0);
-    m_panel_3c->Invalidate(0);
-
-    m_text_buffer_60->m_geometryDirty = true;
+    InvalidatePartySelectionComposition();
     m_panel_3c->SetEnabled(1);
     m_panel_3c->EnableRegionSet(1);
     m_control_28->SetEnabled(1);
@@ -1584,7 +1572,8 @@ void W8PartySelectionController::SetMode(int mode)
 }
 
 // FUNCTION: WIZ8 0x005c1680
-void W8PartySelectionController::SetSelection(int selection, unsigned char party_slot, unsigned char refresh_other)
+void W8PartySelectionController::SetSelection(int selection, unsigned char party_slot,
+                                              unsigned char refresh_other)
 {
     if (!party_slot) {
         if (m_mode == 0) {

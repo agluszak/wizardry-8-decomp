@@ -129,12 +129,7 @@ void W8MaterialMapper::process(srVertexPipe& pipe)
 // FUNCTION: WIZ8 0x004823B0
 void ClearEnvironmentObjects(void)
 {
-    g_sky_gradient_animations[0] = 0;
-    g_sky_gradient_animations[1] = 0;
-    g_sky_gradient_animations[2] = 0;
-    g_sun_prop = 0;
-    g_moon_prop = 0;
-    g_celestial_orbit_radius = -1.0f;
+    ResetEnvironment();
     if (g_environment_object_0065b9b0 != 0) {
         g_environment_object_0065b9b0->release();
     }
@@ -458,16 +453,7 @@ void SetSkyEnabled(bool enabled)
         g_environment_object_0065b9b0->density_160 = 1.0f;
         g_environment_object_0065b9b4->density_160 = 1.0f;
 
-        if (g_environment_object_0065b9b0 != 0 && g_world != 0) {
-            g_environment_object_0065b9b0->fog_end_158 =
-                WorldGetFarClip(g_world) * g_world->environment_range_end_018;
-            g_environment_object_0065b9b0->fog_start_150 =
-                WorldGetFarClip(g_world) * g_world->environment_range_start_014;
-            g_environment_object_0065b9b4->fog_start_150 =
-                WorldGetFarClip(g_world) * g_world->environment_range_start_014;
-            g_environment_object_0065b9b4->fog_end_158 =
-                WorldGetFarClip(g_world) * g_world->environment_range_end_018;
-        }
+        RefreshFogRanges();
 
         PublishLightDirection(&g_light_direction);
         if (g_world == 0 || g_world->camera == 0) {
@@ -544,20 +530,7 @@ void EnableSky(void)
 {
     SetSkyEnabled(1);
     g_sky_enabled = 1;
-    if (g_environment_time_enabled != 0) {
-        unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
-        if (elapsed != 0) {
-            AdvanceEnvironmentTime(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-        }
-    }
-    unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
-    if (phase != static_cast<unsigned int>(g_last_light_phase)) {
-        g_light_direction = g_environment_colours_65ad98[phase];
-        PublishLightDirection(&g_environment_colours_65ad98[phase]);
-        g_last_light_phase = static_cast<int>(phase);
-    }
+    UpdateEnvironmentLight();
 }
 
 // GLOBAL: WIZ8 0x0060a3b0
