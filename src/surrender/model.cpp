@@ -73,9 +73,6 @@ srModel::srModel()
     first_client_18 = 0;
 }
 
-// SYNTHETIC: SURRENDER 0x1003C7B0
-// srModel::srModel (implicit copy constructor)
-
 // FUNCTION: SURRENDER 0x1003C500
 srModel& srModel::operator=(const srModel& other)
 {
