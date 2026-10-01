@@ -11,9 +11,6 @@
 #include "surrender/srVectorProcessor.h"
 #include "surrender/srVertexPipe.h"
 
-// FUNCTION: SURRENDER 0x1004ED70
-srLight::~srLight() {}
-
 /* Derived-state bit meanings recovered from process/isActive: bit0 = pushed
    as an active vertex processor this frame, bit1 = spotlight cone active,
    bit2 = directional, bit3 = OpenGL attenuation active, bit4 = constant-only
