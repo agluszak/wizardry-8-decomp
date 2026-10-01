@@ -341,15 +341,14 @@ jobs:
         run: uv run wiz8 build match
       - name: Index WIZ8 source
         run: uv run wiz8 analyze source-index
+      # Pull requests compare changed functions; main runs the licensed
+      # comparison tests. Both need Ghidra and the reccmp analysis.
       - name: Install pinned Ghidra
-        if: github.event_name == 'pull_request'
         uses: ./.github/actions/install-ghidra
       - name: Restore reviewed WIZ8 checkpoint
-        if: github.event_name == 'pull_request'
         run: uv run wiz8 ghidra restore
       - name: Restore reccmp Ghidra analysis
         id: wiz8-analysis-cache
-        if: github.event_name == 'pull_request'
         uses: actions/cache/restore@v4
         with:
           path: build/reccmp-ghidra
@@ -469,9 +468,7 @@ jobs:
             "${{ github.event.pull_request.base.sha }}" "$GITHUB_SHA" wiz8
       # Preserve completed analysis even if downstream PR-summary reporting fails.
       - name: Save completed WIZ8 analysis
-        if: >-
-          github.event_name == 'pull_request' &&
-          steps.wiz8-analysis-cache.outputs.cache-hit != 'true'
+        if: steps.wiz8-analysis-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: build/reccmp-ghidra

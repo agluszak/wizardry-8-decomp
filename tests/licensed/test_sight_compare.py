@@ -18,4 +18,5 @@ def test_sight_functions_compare_as_recovered_functions() -> None:
     payload = json.loads(result.stdout)
     names = {entry["name"] for entry in payload["functions"]}
     assert names == {"CanMonsterSeeMonster", "ComputeSightThreshold"}
-    assert payload["missing"] == 0
+    assert payload["ok"]
+    assert payload["counts"]["missing"] == 0
