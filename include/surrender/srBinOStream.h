@@ -21,10 +21,22 @@ class
 #endif
     srBinOStream : public virtual srBinStream {
 public:
+    /* No own state: SR.DLL emits the compiler-generated virtual-base
+       lifecycle; consumers import the standalone symbols. */
+    // SYNTHETIC: SURRENDER 0x10032020
+    // srBinOStream::srBinOStream()
+    // SYNTHETIC: SURRENDER 0x10032060
+    // srBinOStream::srBinOStream(const srBinOStream&)
+    // SYNTHETIC: SURRENDER 0x100320C0
+    // srBinOStream::operator=
+    // SYNTHETIC: SURRENDER 0x100302B0
+    // srBinOStream::~srBinOStream
+#if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srBinOStream();
     SR_DLL_IMPORT srBinOStream(const srBinOStream& stream);
     virtual SR_DLL_IMPORT ~srBinOStream() override;
     SR_DLL_IMPORT srBinOStream& operator=(const srBinOStream& stream);
+#endif
 
     SR_DLL_IMPORT srBinOStream& putChar(char value);
     SR_DLL_IMPORT srBinOStream& putDWord(unsigned long value);
@@ -64,13 +76,21 @@ class
     srBinOMStream : public srBinOStream {
 public:
     SR_DLL_IMPORT srBinOMStream();
-    SR_DLL_IMPORT srBinOMStream(const srBinOMStream& stream);
-    virtual SR_DLL_IMPORT ~srBinOMStream() override;
-
+    /* Copy construction and destruction are ordinary member lifecycle; the
+       default constructor remains authored because it initializes stream state. */
+    // SYNTHETIC: SURRENDER 0x10031120
+    // srBinOMStream::srBinOMStream(const srBinOMStream&)
+    // SYNTHETIC: SURRENDER 0x10031330
+    // srBinOMStream::~srBinOMStream
     /* Implicit assignment: retail emits it via the class-level dllexport as a
        memberwise copy (the srArray assignment owns the buffer reallocation). */
     // SYNTHETIC: SURRENDER 0x10031250
     // srBinOMStream::operator=
+#if !defined(SURRENDER_BUILD)
+    SR_DLL_IMPORT srBinOMStream(const srBinOMStream& stream);
+    virtual SR_DLL_IMPORT ~srBinOMStream() override;
+    SR_DLL_IMPORT srBinOMStream& operator=(const srBinOMStream& stream);
+#endif
 
     SR_DLL_IMPORT void* getPtr();
     virtual SR_DLL_IMPORT unsigned long getSize() override;
