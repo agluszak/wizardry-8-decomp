@@ -580,7 +580,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
 
         for (int side = 1; side >= 0; --side) {
             if ((mesh.control_flags_0c & (1u << side)) != 0) {
-                srTriMeshPipeline* pipeline = srTriMeshPipeline::Get004750A0(&renderer);
+                srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
                 // reinterpret-ok: sort bias is stored as float bits in extra_40
                 pipeline->extra_40 = *reinterpret_cast<const unsigned long*>(&mesh.sort_bias_148);
                 pipeline->triangles_34 = mesh.poly_vertices_10;
@@ -655,7 +655,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                         if (g_inverted_depth_render != 0) {
                             shader.value = (shader.value & 0xfffffffeUL) | 6UL;
                         }
-                        pipeline->SetFlags004752C0(shader);
+                        pipeline->SetFlags(shader);
                     } else {
                         pipeline->current_pass_18->shader_14 = mesh.poly_shaders_100[pass];
                     }
@@ -1692,7 +1692,7 @@ void stMeshModel::FinalizeVertexFrame(int frame)
 /* Mirror the active shader onto both the pipeline and the current Pass record
    selected at +0x18. */
 // FUNCTION: WIZ8 0x004752C0
-void srTriMeshPipeline::SetFlags004752C0(srShader shader)
+void srTriMeshPipeline::SetFlags(srShader shader)
 {
     shader_74 = shader;
     current_pass_18->flags_08 = shader;
@@ -1720,7 +1720,7 @@ void srTriMeshPipeline::PrepareSlot()
 }
 
 // FUNCTION: WIZ8 0x00475510
-void srTriMeshPipeline::Flush00475510()
+void srTriMeshPipeline::Flush()
 {
     flushing_8c = 1;
     if (slot_count_84 > 0) {
@@ -1731,7 +1731,7 @@ void srTriMeshPipeline::Flush00475510()
 
 /* Bind a renderer and rebuild the current slot through PrepareSlot. */
 // FUNCTION: WIZ8 0x004753F0
-void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
+void srTriMeshPipeline::Reset(srGERD* renderer)
 {
     slot_count_84 = 0;
     renderer_88 = renderer;
@@ -1761,8 +1761,8 @@ srTriMeshPipeline::srTriMeshPipeline()
     shader_74.value = 0;
     vertex_pipe_90 = new srVertexPipe();
     flushing_8c = 0;
-    Reset004753F0(0);
-    Flush00475510();
+    Reset(0);
+    Flush();
 }
 
 // FUNCTION: WIZ8 0x004752F0
@@ -2020,7 +2020,7 @@ void srTriMeshPipeline::FlushSlots()
 /* Lazy singleton: construct once against the imported pipe static, then bind
    the caller's renderer and rebuild the current slot. */
 // FUNCTION: WIZ8 0x004750A0
-srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
+srTriMeshPipeline* srTriMeshPipeline::Get(srGERD* renderer)
 {
     srTriMeshPipeline* pipeline;
 
