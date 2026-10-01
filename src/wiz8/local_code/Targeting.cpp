@@ -2216,36 +2216,8 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
         return 0;
     }
 
-    action_context = W8_TARGETING_CONTEXT_DIALOGUE;
-    resolved = context;
-    if (resolved == W8_TARGETING_CONTEXT_CURRENT) {
-        resolved = GetCurrentTargetingContext(party_slot);
-    }
-    switch (resolved) {
-    case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
-        action_context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT;
-        break;
-    case W8_TARGETING_CONTEXT_IN_COMBAT:
-        action_context = W8_TARGETING_CONTEXT_IN_COMBAT;
-        break;
-    case W8_TARGETING_CONTEXT_SHARED:
-        action_context = W8_TARGETING_CONTEXT_SHARED;
-        break;
-    case W8_TARGETING_CONTEXT_SPELL:
-        action_context = W8_TARGETING_CONTEXT_SPELL;
-        break;
-    case W8_TARGETING_CONTEXT_ITEM:
-        action_context = W8_TARGETING_CONTEXT_ITEM;
-        break;
-    case W8_TARGETING_CONTEXT_FIVE:
-        action_context = W8_TARGETING_CONTEXT_FIVE;
-        break;
-    case W8_TARGETING_CONTEXT_DIALOGUE:
-        break;
-    default:
-        srAssertFail("FALSE", TARGETING_CPP, 0xc5b, 0);
-        break;
-    }
+    resolved = ResolveTargetingContext(party_slot, context);
+    action_context = resolved;
     ChooseCombatAction(party_slot, action_context, &kind, &action, &target, &detail_block);
     if (target == 0) {
         srAssertFail("pTarget", TARGETING_CPP, 0xfc, 0);
@@ -2357,23 +2329,7 @@ bool TargetIsInPlay(int party_slot, int hand, W8TargetingContext context)
     int action;
     int needed;
 
-    resolved = context;
-    if (resolved == W8_TARGETING_CONTEXT_CURRENT) {
-        resolved = GetCurrentTargetingContext(party_slot);
-    }
-    switch (resolved) {
-    case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
-    case W8_TARGETING_CONTEXT_IN_COMBAT:
-    case W8_TARGETING_CONTEXT_SHARED:
-    case W8_TARGETING_CONTEXT_SPELL:
-    case W8_TARGETING_CONTEXT_ITEM:
-    case W8_TARGETING_CONTEXT_FIVE:
-    case W8_TARGETING_CONTEXT_DIALOGUE:
-        break;
-    default:
-        srAssertFail("FALSE", TARGETING_CPP, 0xc5b, 0);
-        break;
-    }
+    resolved = ResolveTargetingContext(party_slot, context);
     ChooseCombatAction(party_slot, resolved, &kind, &action, &target, &detail_block);
     switch (kind) {
     case 0:
