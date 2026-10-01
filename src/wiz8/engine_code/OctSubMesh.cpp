@@ -14,7 +14,7 @@
 
 #include <stdlib.h>
 
-/* Engine Code\OctSubMesh.cpp. Read0049E9A0 at 0x0049E9A0 asserts this unit
+/* Engine Code\OctSubMesh.cpp. Read at 0x0049E9A0 asserts this unit
    (lines 0x1ad and 0x1d2); the constructor and destructor immediately before
    it are the preceding attribution gap and stay here provisionally. */
 
@@ -90,7 +90,7 @@ OctMeshModel::~OctMeshModel()
 }
 
 // FUNCTION: WIZ8 0x0049E5D0
-bool OctMeshModel::Write0049E5D0(int hFile)
+bool OctMeshModel::Write(int hFile)
 {
     unsigned char success;
     unsigned char write_result;
@@ -204,7 +204,7 @@ bool OctMeshModel::Write0049E5D0(int hFile)
 }
 
 // FUNCTION: WIZ8 0x0049E9A0
-stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
+stMeshModel* OctMeshModel::Read(int file, srMaterialIFace** materials,
                                         srTextureIFace** textures, unsigned long* render_flags,
                                         stMeshModel** meshes, int material_count)
 {
