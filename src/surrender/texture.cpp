@@ -453,24 +453,6 @@ const char* srTextureIFace::getTextureName()
     return getName();
 }
 
-// FUNCTION: SURRENDER 0x1005F5E0
-srTextureIFace::srTextureIFace() {}
-
-// SYNTHETIC: SURRENDER 0x1005F660
-// srTextureIFace::srTextureIFace (implicit copy constructor)
-
-// FUNCTION: SURRENDER 0x1005F5C0
-srTextureIFace& srTextureIFace::operator=(const srTextureIFace& other)
-{
-    if (this != &other) {
-        srClass::operator=(other);
-    }
-    return *this;
-}
-
-// FUNCTION: SURRENDER 0x1005F3E0
-srTextureIFace::~srTextureIFace() {}
-
 // TEMPLATE: SURRENDER 0x1005F470
 // srClassSupport<srTextureIFace, srClass, true, 0x2100>::sGetClassNode
 
