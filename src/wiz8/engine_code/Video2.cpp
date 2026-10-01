@@ -1440,9 +1440,7 @@ void GetWorldColour(EnvironmentColour* colour)
         }
         return;
     }
-    colour->x = 0.0f;
-    colour->y = 0.0f;
-    colour->z = 0.0f;
+    colour->SetZero();
 }
 
 // FUNCTION: WIZ8 0x00428e20

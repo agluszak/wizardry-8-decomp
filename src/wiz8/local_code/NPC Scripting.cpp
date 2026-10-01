@@ -2768,9 +2768,7 @@ void NpcScriptHenchmanArrives(W8Monster* monster)
             }
         }
     }
-    origin.x = 0.0f;
-    origin.y = 0.0f;
-    origin.z = 0.0f;
+    origin.SetZero();
     monster->SetPosition(&origin);
     monster->flags_1dc |= W8_MONSTER_PARKED;
 }
@@ -2783,9 +2781,7 @@ void NpcScriptHenchmanDeparted(W8Monster* monster)
     srVector3T<float> origin;
 
     monster->flags_1dc |= W8_MONSTER_PARKED;
-    origin.x = 0.0f;
-    origin.y = 0.0f;
-    origin.z = 0.0f;
+    origin.SetZero();
     monster->SetPosition(&origin);
 }
 

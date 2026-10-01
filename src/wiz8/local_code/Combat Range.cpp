@@ -1322,9 +1322,7 @@ void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float
     if (kind == 1) {
         if (monster->GetProjectilePosition(out) != 0) {
             srVector3T<float> position = monster->GetPosition();
-            out->x -= position.x;
-            out->y -= position.y;
-            out->z -= position.z;
+            *out -= position;
             return;
         }
     } else {
@@ -1333,9 +1331,7 @@ void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float
         }
         if (monster->GetSpellPosition(out) != 0) {
             srVector3T<float> position = monster->GetPosition();
-            out->x -= position.x;
-            out->y -= position.y;
-            out->z -= position.z;
+            *out -= position;
             return;
         }
     }

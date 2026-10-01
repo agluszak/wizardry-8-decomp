@@ -582,9 +582,7 @@ void BeginWorldLightingFade(float duration)
             intensity = static_cast<float>(g_zero_005ebb40);
         }
         if (world->static_scene == 0) {
-            colour.x = 0.0f;
-            colour.y = 0.0f;
-            colour.z = 0.0f;
+            colour.SetZero();
             SaturateColor(&colour);
             ApplyEnvironmentColour(world, intensity, &colour);
         } else {
@@ -602,9 +600,7 @@ void BeginWorldLightingFade(float duration)
                 intensity = static_cast<float>(g_zero_005ebb40);
             }
             if (world->static_scene == 0) {
-                colour.x = 0.0f;
-                colour.y = 0.0f;
-                colour.z = 0.0f;
+                colour.SetZero();
                 SaturateColor(&colour);
                 ApplyEnvironmentColour(world, intensity, &colour);
             } else {
@@ -671,9 +667,7 @@ void UpdateEnvironmentLighting(void)
         intensity = static_cast<float>(g_zero_005ebb40);
     }
     if (world->static_scene == 0) {
-        colour.x = 0.0f;
-        colour.y = 0.0f;
-        colour.z = 0.0f;
+        colour.SetZero();
         SaturateColor(&colour);
         ApplyEnvironmentColour(world, intensity, &colour);
     } else {
@@ -691,9 +685,7 @@ void UpdateEnvironmentLighting(void)
             secondary = static_cast<float>(g_zero_005ebb40);
         }
         if (world->static_scene == 0) {
-            colour.x = 0.0f;
-            colour.y = 0.0f;
-            colour.z = 0.0f;
+            colour.SetZero();
             SaturateColor(&colour);
             ApplyEnvironmentColour(world, secondary, &colour);
         } else {

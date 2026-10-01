@@ -654,7 +654,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             AgeAllMonsterSight();
         }
         for (int index = g_spell_effects.GetCount() - 1; index >= 0; --index) {
-            delete g_spell_effects.RemoveAt(index);
+            g_spell_effects.RemoveAtAndDelete(index);
         }
     } else {
         W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();

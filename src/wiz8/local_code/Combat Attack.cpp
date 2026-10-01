@@ -1504,7 +1504,6 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
     unsigned int* condition_turns;
     W8SpellDamageReport* entry;
     unsigned short* notice;
-    int index;
     unsigned int condition;
 
     if (report->condition_counts[W8_CONDITION_DEAD] > 0) {
@@ -1577,13 +1576,7 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
         }
     }
     while (report->reports.count > 0) {
-        entry = report->reports.data[0];
-        if (report->reports.count > 0) {
-            for (index = 0; index < report->reports.count - 1; ++index) {
-                report->reports.data[index] = report->reports.data[index + 1];
-            }
-            --report->reports.count;
-        }
+        entry = report->reports.RemoveAt(0);
         if (entry != NULL) {
             if (entry->kind == 1) {
                 PostCharacterNotice(entry->value, g_format_s_bang,
@@ -2032,7 +2025,6 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
 {
     unsigned int* condition_turns;
     W8SpellDamageReport* entry;
-    int index;
     unsigned int condition;
 
     if (report->condition_counts[W8_CONDITION_DEAD] > 0) {
@@ -2101,13 +2093,7 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
         }
     }
     while (report->reports.count > 0) {
-        entry = report->reports.data[0];
-        if (report->reports.count > 0) {
-            for (index = 0; index < report->reports.count - 1; ++index) {
-                report->reports.data[index] = report->reports.data[index + 1];
-            }
-            --report->reports.count;
-        }
+        entry = report->reports.RemoveAt(0);
         if (entry != NULL) {
             if (entry->kind == 1) {
                 PostCharacterNotice(entry->value, g_format_s_bang,

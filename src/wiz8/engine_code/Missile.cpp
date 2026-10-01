@@ -345,9 +345,7 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
     double sine;
 
     GetCameraPosition(&camera);
-    position->x = 0.0f;
-    position->y = 0.0f;
-    position->z = 0.0f;
+    position->SetZero();
     if ((character_index & 1) == 0) {
         position->x = 75.0f;
     } else {

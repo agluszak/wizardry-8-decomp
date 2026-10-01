@@ -519,9 +519,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
                     model->getBoundingSphere(center, sphere_radius);
                     srVector3T<float> prop_position;
                     m_papProps[bit - 1]->GetPosition0044E2C0(&prop_position);
-                    center.x += prop_position.x;
-                    center.y += prop_position.y;
-                    center.z += prop_position.z;
+                    center += prop_position;
                     sphere_radius += radius;
                     if ((center.x - point->x) * (center.x - point->x) +
                             (center.y - point->y) * (center.y - point->y) +
@@ -2561,9 +2559,7 @@ no_probes:;
                         float monster_radius = monster->radius_084;
                         if (distance < monster_radius) {
                             direction = *to - *from;
-                            double length2 = static_cast<double>((direction.x * direction.x +
-                                                                  direction.y * direction.y +
-                                                                  direction.z * direction.z));
+                            double length2 = static_cast<double>((direction.LengthSquared()));
                             offset = direction;
                             if (length2 != g_zero_005ebb40) {
                                 offset *= (sqrt(length2) - sqrt(monster_radius * monster_radius -
@@ -2577,8 +2573,7 @@ no_probes:;
                                     best_index = index;
                                 }
                             } else {
-                                best = sqrt(offset.x * offset.x + offset.y * offset.y +
-                                            offset.z * offset.z);
+                                best = sqrt(offset.LengthSquared());
                                 best_index = index;
                             }
                         }

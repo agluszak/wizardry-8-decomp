@@ -1418,9 +1418,7 @@ unsigned int LightPendingAutomapCells(unsigned int max_count)
             }
             if (g_bits_68f288->Test(bit) != 0) {
                 srVector3T<float> cell;
-                cell.x = 0.0f;
-                cell.y = 0.0f;
-                cell.z = 0.0f;
+                cell.SetZero();
                 if (g_block_68f280 != 0 || bit < static_cast<unsigned int>(g_automap_cell_count)) {
                     unsigned int key = static_cast<unsigned int*>(g_block_68f280)[bit];
                     float half = g_float_64b914 * g_float_005ebc7c;
@@ -1489,9 +1487,7 @@ void UpdateAutomapBounds(void)
                 }
                 if (g_bits_68f288->Test(bit) != 0) {
                     srVector3T<float> cell;
-                    cell.x = 0.0f;
-                    cell.y = 0.0f;
-                    cell.z = 0.0f;
+                    cell.SetZero();
                     if (g_block_68f280 != 0 ||
                         bit < static_cast<unsigned int>(g_automap_cell_count)) {
                         unsigned int key = static_cast<unsigned int*>(g_block_68f280)[bit];

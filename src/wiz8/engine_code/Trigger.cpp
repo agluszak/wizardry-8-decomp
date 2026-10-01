@@ -2199,9 +2199,7 @@ Trigger::Trigger()
 
     flags_0a0 |= W8_TRIGGER_ON;
     name_01c[0] = 0;
-    position_118.x = 0.0f;
-    position_118.y = 0.0f;
-    position_118.z = 0.0f;
+    position_118.SetZero();
     action_data_128[0] = 0;
     item_group_seed_354 = GetTickCount() + Random(30000);
     gold_358 = 0;

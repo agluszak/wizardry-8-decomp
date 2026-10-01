@@ -388,7 +388,7 @@ unsigned char W8Chunk::OpenChunk(unsigned int chunk_id, unsigned char grouped)
 // FUNCTION: WIZ8 0x0055c930
 unsigned char W8Chunk::ReleaseCurrentChunk()
 {
-    delete m_heads.RemoveAt(m_heads.count - 1);
+    m_heads.RemoveAtAndDelete(m_heads.count - 1);
     if (m_fWriting) {
         int end = FileGetPos(m_hFile);
         int payload = m_offsets.RemoveAt(m_offsets.count - 1);

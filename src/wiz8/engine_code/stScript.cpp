@@ -106,7 +106,7 @@ void stScript::Clear004CF690()
         }
     }
     while (labels.GetCount() != 0) {
-        delete labels.RemoveAt(0);
+        labels.RemoveAtAndDelete(0);
     }
 }
 

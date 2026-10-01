@@ -355,9 +355,7 @@ void UpdateRadarBlips(void)
                 center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
                            (bounds_min.y + bounds_max.y) * g_double_005ebe80,
                            (bounds_min.z + bounds_max.z) * g_double_005ebe80);
-                position.x += center.x;
-                position.y += center.y;
-                position.z += center.z;
+                position += center;
                 party = g_startup_world->GetPosition();
                 delta = position - party;
                 if ((detect_all != 0 || ((rep->flags >> 3) & 1) != 0 ||

@@ -166,7 +166,7 @@ int W8PartySelectionCharacterCollection::FindPartySlot(int index)
 void W8PartySelectionCharacterCollection::DeleteAt(int index)
 {
     if (index >= 0 && index < characters.count) {
-        delete characters.RemoveAt(index);
+        characters.RemoveAtAndDelete(index);
     } else {
         delete static_cast<W8Character*>(0);
     }
@@ -1225,7 +1225,7 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
 {
     m_mode_4c = mode;
     while (m_entries_7c.count > 0) {
-        delete m_entries_7c.RemoveAt(m_entries_7c.count - 1);
+        m_entries_7c.RemoveAtAndDelete(m_entries_7c.count - 1);
     }
     for (int index = 0; index < m_controls.count; ++index) {
         ControlAt(index)->SetActive(mode == 0);
@@ -1387,7 +1387,7 @@ W8PartySelectionOptionPanel::~W8PartySelectionOptionPanel()
 {
     DestroyAllControls();
     while (m_entries_7c.count > 0) {
-        delete m_entries_7c.RemoveAt(m_entries_7c.count - 1);
+        m_entries_7c.RemoveAtAndDelete(m_entries_7c.count - 1);
     }
 }
 

@@ -1172,7 +1172,7 @@ W8MonsterRep::~W8MonsterRep()
         light_lists[cycle].Clear();
     }
     while (linked_runtime_objects_614.GetCount() != 0) {
-        delete linked_runtime_objects_614.RemoveAt(0);
+        linked_runtime_objects_614.RemoveAtAndDelete(0);
     }
     delete monster_light_624;
     delete[] name_5c0;

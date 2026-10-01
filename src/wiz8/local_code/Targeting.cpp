@@ -2989,12 +2989,8 @@ bool IsMonsterVisibleWithinDistance(W8Monster* monster, const srVector3T<float>*
         center = monster->movement_0c0.position_040;
         center.y += monster->movement_0c0.height_offset_0b8;
         projected = monster->GetPosition();
-        minimum.x += projected.x;
-        minimum.y += projected.y;
-        minimum.z += projected.z;
-        maximum.x += projected.x;
-        maximum.y += projected.y;
-        maximum.z += projected.z;
+        minimum += projected;
+        maximum += projected;
         input.SetFromFloat(&center);
         if (g_world->camera->project(projected, input) !=
             srCamera::PROJECTION_RESULT_POSITIONAL_0) {

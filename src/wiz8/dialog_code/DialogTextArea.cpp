@@ -347,7 +347,7 @@ void W8DialogTextArea::RemoveEntry(unsigned int index)
             m_state_5d_entry = -1;
         if ((*m_all_lines_01c.GetAt(index))->m_selected)
             m_selected_visible_entry = -1;
-        delete m_all_lines_01c.RemoveAt(index);
+        m_all_lines_01c.RemoveAtAndDelete(index);
         if (m_first_visible_entry != 0 &&
             static_cast<unsigned int>(m_all_lines_01c.count) <=
                 static_cast<unsigned int>(m_first_visible_entry) &&
@@ -509,7 +509,7 @@ W8DialogTextArea::~W8DialogTextArea()
 
     if (m_all_lines_01c.GetCount() > 0) {
         for (index = m_all_lines_01c.GetCount() - 1; index >= 0; --index) {
-            delete m_all_lines_01c.RemoveAt(index);
+            m_all_lines_01c.RemoveAtAndDelete(index);
         }
     }
 }

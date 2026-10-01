@@ -1119,9 +1119,7 @@ bool SphereInsideFrustum(const srVector3T<float>* point, float radius, const W8P
     bool inside = true;
 
     for (short plane = 0; plane < 6 && inside != 0; ++plane) {
-        if (point->x * planes[plane].normal.x + point->y * planes[plane].normal.y +
-                point->z * planes[plane].normal.z + planes[plane].w <
-            -radius) {
+        if (DotProduct(*point, planes[plane].normal) + planes[plane].w < -radius) {
             inside = 0;
         }
     }

@@ -258,12 +258,8 @@ void stMeshModel::CalculateLinkedBounds()
 // FUNCTION: WIZ8 0x00473190
 void stMeshModel::GetFrameBounds(int frame, srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
-    minimum->x = 0;
-    minimum->y = 0;
-    minimum->z = 0;
-    maximum->x = 0;
-    maximum->y = 0;
-    maximum->z = 0;
+    minimum->SetZero();
+    maximum->SetZero();
     if (m_pVertexLoc != 0 && vertex_location_count_22c != 0 &&
         static_cast<unsigned int>(frame) < frame_count) {
         srVector3T<float>* vertices = m_pVertexLoc[frame];
@@ -488,27 +484,8 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
         } else if (poly_equations != 0) {
             renderer.setCullMode(srGERD::CULL_FRONT);
 
-            if (g_software_cull_active_polygons.capacity !=
-                static_cast<unsigned long>(mesh.polygon_count_04)) {
-                unsigned long needed = static_cast<unsigned long>(mesh.polygon_count_04);
-                if (needed == 0) {
-                    g_software_cull_active_polygons.release();
-                } else {
-                    unsigned long* replacement = srHeapBuffer<unsigned long>::allocate(needed);
-                    if (g_software_cull_active_polygons.data != 0 &&
-                        g_software_cull_active_polygons.capacity != 0) {
-                        unsigned long copy_count = g_software_cull_active_polygons.capacity;
-                        if (needed < copy_count) {
-                            copy_count = needed;
-                        }
-                        CopyUlongBuffer(replacement, g_software_cull_active_polygons.data,
-                                        copy_count);
-                    }
-                    g_software_cull_active_polygons.release();
-                    g_software_cull_active_polygons.data = replacement;
-                    g_software_cull_active_polygons.capacity = needed;
-                }
-            }
+            g_software_cull_active_polygons.setCapacity(
+                static_cast<unsigned long>(mesh.polygon_count_04), 1);
 
             srMatrix4T<float> inverse_model_view;
             renderer.getInverseModelViewMatrix(inverse_model_view);

@@ -662,9 +662,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
             g_startup_world->SetPitch(pitch);
             if (world->m_owned_04c->ApplyCameraMotion(flags, &camera_position, &delta,
                                                       &motion_saved) != 0) {
-                camera_position.x += delta.x;
-                camera_position.y += delta.y;
-                camera_position.z += delta.z;
+                camera_position += delta;
                 navigator_position.x = camera_position.x;
                 navigator_position.y = camera_position.y - g_default_world_height;
                 navigator_position.z = camera_position.z;

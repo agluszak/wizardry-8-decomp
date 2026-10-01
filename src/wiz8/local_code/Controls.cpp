@@ -2130,7 +2130,7 @@ void Controls::DestroyAllControls()
 
     if (index > 0) {
         while (--index, index >= 0) {
-            delete m_controls.RemoveAt(index);
+            m_controls.RemoveAtAndDelete(index);
         }
     }
 }

@@ -521,13 +521,13 @@ void W8CharacterEventQueue::DestroyAllEvents()
 {
     CompleteAllActiveEvents();
     while (npc_deferred_events.count > 0) {
-        delete npc_deferred_events.RemoveAt(0);
+        npc_deferred_events.RemoveAtAndDelete(0);
     }
     while (pending_events.count > 0) {
-        delete pending_events.RemoveAt(0);
+        pending_events.RemoveAtAndDelete(0);
     }
     while (vector_00.count > 0) {
-        delete vector_00.RemoveAt(0);
+        vector_00.RemoveAtAndDelete(0);
     }
 }
 
@@ -1352,7 +1352,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
             }
             for (index = conflict_count - 1; index >= 0; --index) {
                 if (conflict_indices[index] != -1) {
-                    delete pending_events.RemoveAt(conflict_indices[index]);
+                    pending_events.RemoveAtAndDelete(conflict_indices[index]);
                 }
             }
         }

@@ -181,9 +181,7 @@ void InitializeWorldCursor(void)
             if (gp3DCursor != 0) {
                 GetCameraPosition(&camera_position);
                 if (gp3DCursor->detached_50 == 0) {
-                    gp3DCursor->offset_18.x += camera_position.x;
-                    gp3DCursor->offset_18.y += camera_position.y;
-                    gp3DCursor->offset_18.z += camera_position.z;
+                    gp3DCursor->offset_18 += camera_position;
                 }
                 gp3DCursor->detached_50 = 1;
             }

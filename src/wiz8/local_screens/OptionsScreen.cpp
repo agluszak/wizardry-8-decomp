@@ -163,7 +163,7 @@ W8OptionsPanelSet::W8OptionsPanelSet()
 W8OptionsPanelSet::~W8OptionsPanelSet()
 {
     for (int index = m_panels_010.count - 1; index >= 0; --index) {
-        delete m_panels_010.RemoveAt(index);
+        m_panels_010.RemoveAtAndDelete(index);
     }
 }
 
@@ -891,10 +891,7 @@ void W8OptionsKeyboardPanel::OnSelectionChanged(W8ControlSelection*, int selecte
         return;
     }
 
-    W8Widget** control = m_controls.data;
-    if (selected < m_controls.count) {
-        control += selected;
-    }
+    W8Widget** control = m_controls.GetAt(selected);
     m_captured_button = static_cast<W8OptionsKeyButton*>(*control);
     g_options_screen->m_key_capture = this;
 }
@@ -1377,7 +1374,7 @@ W8OptionsScreen::~W8OptionsScreen()
     int index;
     SelectPanel(-1, 1);
     for (index = m_save_slots.count - 1; index >= 0; --index) {
-        delete m_save_slots.RemoveAt(index);
+        m_save_slots.RemoveAtAndDelete(index);
     }
     delete m_controls_024;
     delete m_menu_set_028;
@@ -1759,10 +1756,10 @@ W8OptionsPanel::~W8OptionsPanel()
     int index;
     DestroyAllControls();
     for (index = m_text_buffers_058.count - 1; index >= 0; --index) {
-        delete m_text_buffers_058.RemoveAt(index);
+        m_text_buffers_058.RemoveAtAndDelete(index);
     }
     for (index = m_option_selections.count - 1; index >= 0; --index) {
-        delete m_option_selections.RemoveAt(index);
+        m_option_selections.RemoveAtAndDelete(index);
     }
 }
 

@@ -848,9 +848,7 @@ void W8GameData::CreateGDEnviron(const W8GDSurface* surface, float scale)
         environ_record->gravity_y_14 = -g_navigator_gravity;
         environ_record->gravity_z_18 = 0;
         environ_record->motion_factor_20 = 1.0f;
-        environ_record->vector_24.x = 0.0f;
-        environ_record->vector_24.y = 0.0f;
-        environ_record->vector_24.z = 0.0f;
+        environ_record->vector_24.SetZero();
         environ_record->motion_step_1c = 0.05f;
         environ_record->world_height_30 = g_default_world_height;
         environ_record->forward_scale_34 =
@@ -1042,9 +1040,7 @@ void W8GameData::ReadProcessedGameData(int handle)
             environ_record->gravity_z_18 = 0;
             environ_record->motion_step_1c = 0.05f;
             environ_record->motion_factor_20 = 1.0f;
-            environ_record->vector_24.x = 0.0f;
-            environ_record->vector_24.y = 0.0f;
-            environ_record->vector_24.z = 0.0f;
+            environ_record->vector_24.SetZero();
             environ_record->world_height_30 = g_default_world_height;
             environ_record->forward_scale_34 =
                 g_camera_level_forward_scale * g_navigator_linked_radius_scale;
@@ -1143,9 +1139,7 @@ W8GameData::W8GameData(int handle, bool secondary)
             environ_record->gravity_z_18 = 0;
             environ_record->motion_step_1c = 0.05f;
             environ_record->motion_factor_20 = 1.0f;
-            environ_record->vector_24.x = 0.0f;
-            environ_record->vector_24.y = 0.0f;
-            environ_record->vector_24.z = 0.0f;
+            environ_record->vector_24.SetZero();
             environ_record->world_height_30 = g_default_world_height;
             environ_record->forward_scale_34 =
                 g_camera_level_forward_scale * g_navigator_linked_radius_scale;

@@ -1275,9 +1275,7 @@ int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsi
                 polygon->degenerate_30 = 1;
             }
             if (polygon->degenerate_30 == 0) {
-                normal.x = 0.0f;
-                normal.y = 0.0f;
-                normal.z = 0.0f;
+                normal.SetZero();
                 int step = 2;
                 for (corner = 0; corner < 3; ++corner) {
                     const W8OctPreTreeVertex* prev = vertices + vertex_index[(step - 1) % 3];
@@ -1291,7 +1289,7 @@ int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsi
                     normal.z += (prev->original_position_54.y - next->original_position_54.y) *
                                 cur->original_position_54.x;
                 }
-                length = sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+                length = sqrt(normal.LengthSquared());
                 normal.x /= length;
                 normal.y /= length;
                 normal.z /= length;
@@ -1320,9 +1318,7 @@ int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsi
                 for (corner = 0; corner < 3; ++corner) {
                     current = vertices + vertex_index[corner];
                     if (current->normal_count_18 != 0) {
-                        length = sqrt(current->normal_24.x * current->normal_24.x +
-                                      current->normal_24.y * current->normal_24.y +
-                                      current->normal_24.z * current->normal_24.z);
+                        length = sqrt(current->normal_24.LengthSquared());
                         if ((current->normal_24.z / length) * normal.z +
                                 (current->normal_24.y / length) * normal.y +
                                 (current->normal_24.x / length) * normal.x <
@@ -1363,9 +1359,7 @@ int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsi
                             vertex_index[corner] = mesh->num_vertices_04;
                             ++mesh->num_vertices_04;
                             created->flags_00 |= 2;
-                            created->normal_24.x = 0.0f;
-                            created->normal_24.y = 0.0f;
-                            created->normal_24.z = 0.0f;
+                            created->normal_24.SetZero();
                             created->normal_count_18 = 0;
                         } else {
                             vertex_index[corner] = found - 1;

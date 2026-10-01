@@ -158,9 +158,7 @@ void OffsetPositionByYawPitch(float distance, srVector3T<float>* position, float
         rotation.MultiplyBy(axis);
     }
     step = rotation.Transform(forward);
-    position->x += step.x;
-    position->y += step.y;
-    position->z += step.z;
+    *position += step;
 }
 
 // FUNCTION: WIZ8 0x00476140

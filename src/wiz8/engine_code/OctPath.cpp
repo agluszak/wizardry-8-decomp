@@ -5296,9 +5296,7 @@ void W8PathingService::GetWaypointVisualizationColor(unsigned short waypoint,
                                                      srVector3T<float>* color)
 {
     if ((m_pSurfaces_048[waypoint].flags_00 & 0x20) != 0) {
-        color->x = 0.0f;
-        color->y = 0.0f;
-        color->z = 0.0f;
+        color->SetZero();
         return;
     }
     if (waypoint == start_waypoint_1d4) {

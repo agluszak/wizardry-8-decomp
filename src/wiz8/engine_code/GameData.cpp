@@ -905,9 +905,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
 
     level = g_level_data;
     level->flags &= ~3u;
-    level->vector_64.x += level->vector_58.x;
-    level->vector_64.y += level->vector_58.y;
-    level->vector_64.z += level->vector_58.z;
+    level->vector_64 += level->vector_58;
     level->vector_94.Set(level->vector_58.x * level->camera_scale_14,
                          level->vector_58.y * level->camera_scale_14,
                          level->vector_58.z * level->camera_scale_14);
@@ -973,9 +971,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
     level->secondary_contact_prop_id = -1;
     level->primary_contact_prop_id = -1;
     level->flags &= ~2u;
-    level->contact_normal_ac.x = 0.0f;
-    level->contact_normal_ac.y = 0.0f;
-    level->contact_normal_ac.z = 0.0f;
+    level->contact_normal_ac.SetZero();
     collision_count = -1;
     level->contact_facing_1c = 0.0f;
     first_pass = 1;
@@ -1252,9 +1248,7 @@ bool W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag, cha
             srVector3T<float> end = trace->end_0c;
             srVector3T<float> delta;
             prop->GetDelta(&delta, &start);
-            end.x -= delta.x;
-            end.y -= delta.y;
-            end.z -= delta.z;
+            end -= delta;
             W8OctreeTrace prop_trace(&start, &end);
             hit = TestTraceResult(gd_prop->m_surface_count_14, 0, &prop_trace, skip_flag, 0);
             if (hit != 0) {
@@ -1307,20 +1301,13 @@ bool W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
                   (mode != 1 ||
                    (static_cast<int>(surface->chance_44) < 100 &&
                     static_cast<int>(surface->chance_44) < static_cast<int>(Random(100)))))) &&
-                surface->plane_24.normal.x * trace->step_18.x +
-                        surface->plane_24.normal.y * trace->step_18.y +
-                        surface->plane_24.normal.z * trace->step_18.z <=
-                    g_float_005ebb34) {
-                float hit_distance = surface->plane_24.normal.x * trace->start_00.x +
-                                     surface->plane_24.normal.y * trace->start_00.y +
-                                     surface->plane_24.normal.z * trace->start_00.z +
-                                     surface->plane_24.w;
+                DotProduct(surface->plane_24.normal, trace->step_18) <= g_float_005ebb34) {
+                float hit_distance =
+                    DotProduct(surface->plane_24.normal, trace->start_00) + surface->plane_24.w;
                 if (hit_distance <= trace->hit_limit_24 && g_float_005ebb34 < hit_distance) {
                     srVector3T<float> contact;
                     if (g_float_005ebb38 <= hit_distance) {
-                        float back = surface->plane_24.normal.x * trace->end_0c.x +
-                                     surface->plane_24.normal.y * trace->end_0c.y +
-                                     surface->plane_24.normal.z * trace->end_0c.z +
+                        float back = DotProduct(surface->plane_24.normal, trace->end_0c) +
                                      surface->plane_24.w;
                         if (g_float_005ebb38 <= back) {
                             goto next;
@@ -1634,8 +1621,7 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
         return 0;
     }
     srVector3T<float> end = point + *direction;
-    float dist_start = point.x * plane_24.normal.x + point.y * plane_24.normal.y +
-                       point.z * plane_24.normal.z + plane_24.w;
+    float dist_start = DotProduct(point, plane_24.normal) + plane_24.w;
     if (special == 0 && dist_start < g_float_005ebb34) {
         return 0;
     }
@@ -1643,8 +1629,7 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
     if ((flags & 4) == 0 && special == 0) {
         limit = contact_margin_40 - (g_float_005ebb38 - fabsf(normal.y)) * g_float_005ebc8c;
     }
-    float dist_end = end.x * plane_24.normal.x + end.y * plane_24.normal.y +
-                     end.z * plane_24.normal.z + plane_24.w;
+    float dist_end = DotProduct(end, plane_24.normal) + plane_24.w;
     if (special != 0) {
         if (dist_end * dist_start > g_camera_snap_epsilon) {
             if (contact_margin_40 < g_float_005ebb38 || dist_end < g_float_005ebb34) {
@@ -1866,8 +1851,7 @@ unsigned char W8GDSurface::ClampHitToEdge(const srVector3T<float>* point,
     if (nearest_dist > *limit) {
         return 0;
     }
-    float offset = -(point->x * plane_24.normal.x + point->y * plane_24.normal.y +
-                     point->z * plane_24.normal.z + plane_24.w);
+    float offset = -(DotProduct(*point, plane_24.normal) + plane_24.w);
     srVector3T<float> projected;
     projected.x = plane_24.normal.x * offset + point->x;
     projected.y = plane_24.normal.y * offset + point->y;
@@ -1963,10 +1947,8 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
     }
     float adjusted_d = plane_distance - distance_34;
     W8LevelDataRecord* level = g_level_data;
-    if (level->primary_contact_prop_id > -1 && normal.x * level->contact_normal_ac.x +
-                                                       normal.y * level->contact_normal_ac.y +
-                                                       normal.z * level->contact_normal_ac.z <
-                                                   g_float_005ebcb8) {
+    if (level->primary_contact_prop_id > -1 &&
+        DotProduct(normal, level->contact_normal_ac) < g_float_005ebcb8) {
         level->flags |= 2;
     }
     flags_00 |= 8;
@@ -1994,9 +1976,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
     if (normal.z * s_entry_direction_00652d50.z + normal.y * s_entry_direction_00652d50.y +
             s_entry_direction_00652d50.x * normal.x <
         g_float_005ebcb4) {
-        direction->x = 0.0f;
-        direction->y = 0.0f;
-        direction->z = 0.0f;
+        direction->SetZero();
         g_environ->vector_24 = 0.0f;
         return 0;
     }
@@ -2011,9 +1991,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
     slide_unit.Normalize();
     float approach = DotProduct(slide_unit, s_entry_direction_00652d50);
     if (fabsf(approach) < g_camera_snap_epsilon) {
-        direction->x = 0.0f;
-        direction->y = 0.0f;
-        direction->z = 0.0f;
+        direction->SetZero();
         return 0;
     }
     if (approach >= g_float_005ebc90) {
@@ -2070,9 +2048,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
             }
             if (DotProduct(s_second_normal_00652d68 + s_first_normal_00652d80, normal) <
                 g_camera_snap_epsilon) {
-                direction->x = 0.0f;
-                direction->y = 0.0f;
-                direction->z = 0.0f;
+                direction->SetZero();
                 return 0;
             }
             if (crossed != 0) {
@@ -2083,9 +2059,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
                 float ahead_a = DotProduct(crease_a, s_entry_direction_00652d50);
                 float ahead_b = DotProduct(crease_b, s_entry_direction_00652d50);
                 if (ahead_a < g_camera_snap_epsilon && ahead_b < g_camera_snap_epsilon) {
-                    direction->x = 0.0f;
-                    direction->y = 0.0f;
-                    direction->z = 0.0f;
+                    direction->SetZero();
                     return 0;
                 }
                 if (ahead_b <= ahead_a) {
@@ -2116,9 +2090,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
             }
         } else if (crossed != 0) {
             if (DotProduct(crease_a, s_entry_direction_00652d50) < g_camera_snap_epsilon) {
-                direction->x = 0.0f;
-                direction->y = 0.0f;
-                direction->z = 0.0f;
+                direction->SetZero();
                 return 0;
             }
             ProjectVectorOntoVector(&slide, &crease_a);
@@ -3053,9 +3025,7 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
         scaled_camera_forward_7c.y = camera_forward_4c.y * camera_scale_14;
         scaled_camera_forward_7c.z = camera_forward_4c.z * camera_scale_14;
         allow_override = UpdateFootstepFromMotion() != 0;
-        camera_forward_4c.x -= g_environ->vector_24.x;
-        camera_forward_4c.y -= g_environ->vector_24.y;
-        camera_forward_4c.z -= g_environ->vector_24.z;
+        camera_forward_4c -= g_environ->vector_24;
         projected = vector_58;
         gravity.Set(g_environ->gravity_x_10, g_environ->gravity_y_14, g_environ->gravity_z_18);
         ProjectVectorOntoVector(&projected, &gravity);
