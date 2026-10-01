@@ -2632,7 +2632,6 @@ void PurgeInactiveSceneInstances(srScene* scene)
     while (node) {
         srNode* next = node->next_sibling_;
         unsigned long class_id = node->getClassID();
-        srModelInstance* instance = static_cast<srModelInstance*>(node);
         unsigned char display_state = 0;
         if (class_id == 0x10004) {
             display_state = static_cast<stModelInstance*>(node)->displayState();
@@ -2640,22 +2639,7 @@ void PurgeInactiveSceneInstances(srScene* scene)
             display_state = static_cast<stModelInstance2D*>(node)->displayState();
         }
         if ((class_id == 0x10004 || class_id == 0x10005) && display_state != 3) {
-            int index;
-            for (index = 0; index != 0x12c0; ++index) {
-                if (g_surface_nodes[index] == node) {
-                    g_surface_nodes[index] = 0;
-                    g_tile_dirty_flags[index] = 0;
-                }
-            }
-            if (instance->getModel()) {
-                srMeshModel* model = static_cast<srMeshModel*>(instance->getModel());
-                if (model) {
-                    srTextureIFace* texture = model->getTexture(0, 0);
-                    if (texture)
-                        texture->invalidate();
-                }
-            }
-            node->release();
+            ReleaseSurfaceNode(node);
         }
         node = next;
     }
