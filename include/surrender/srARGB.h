@@ -23,9 +23,9 @@ public:
        which only appears when the element type is not POD. */
     srARGB() {}
 
-    /* Pixel-row arrays allocate through the SurRender heap like the vector
-       value classes: every color-surface row buffer emits
-       srHeap::allocate followed by the new[] result select. */
+    /* This is a class-wide allocation contract, not a local codegen device:
+       every reviewed srARGB[] color-surface row-buffer site routes through
+       srHeap and carries the same new[] lowering. */
     void* operator new[](unsigned int size)
     {
         return srHeap.allocate(size);

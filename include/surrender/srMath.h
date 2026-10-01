@@ -20,6 +20,11 @@ inline int srFinite(double value)
  * The callable float bodies in Wiz8.exe are ordinary emissions of these
  * primary templates. They do not establish separately authored float
  * specializations.
+ *
+ * Array allocation is a class-wide contract, not a per-call shaping device.
+ * The reviewed array-emission census for the vector value classes that declare
+ * operator new[]/delete[] below routes through srHeap. Do not infer such an
+ * operator for another type from one allocation site.
  */
 template <class T> class srMatrix3T;
 
