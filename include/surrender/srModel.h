@@ -42,6 +42,8 @@ public:
 
     srModel();
 
+    // SYNTHETIC: SURRENDER 0x1003C7B0
+    // srModel::srModel(const srModel&)
     srModel& operator=(const srModel& other);
     friend class Client;
 
