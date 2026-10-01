@@ -677,21 +677,7 @@ void BeginWorldLightingFade(float duration)
         }
 
         direction = g_light_direction;
-        if (direction.x <= g_float_005ebb34) {
-            direction.x = 0.0f;
-        } else if (direction.x >= g_float_005ebb38) {
-            direction.x = 1.0f;
-        }
-        if (direction.y <= g_float_005ebb34) {
-            direction.y = 0.0f;
-        } else if (direction.y >= g_float_005ebb38) {
-            direction.y = 1.0f;
-        }
-        if (direction.z <= g_float_005ebb34) {
-            direction.z = 0.0f;
-        } else if (direction.z >= g_float_005ebb38) {
-            direction.z = 1.0f;
-        }
+        SaturateColor(&direction);
         PublishLightDirection(&direction);
         return;
     }
@@ -782,21 +768,7 @@ void UpdateEnvironmentLighting(void)
     direction.x = g_light_direction.x * scale;
     direction.y = g_light_direction.y * scale;
     direction.z = g_light_direction.z * scale;
-    if (direction.x <= g_float_005ebb34) {
-        direction.x = 0.0f;
-    } else if (direction.x >= g_float_005ebb38) {
-        direction.x = 1.0f;
-    }
-    if (direction.y <= g_float_005ebb34) {
-        direction.y = 0.0f;
-    } else if (direction.y >= g_float_005ebb38) {
-        direction.y = 1.0f;
-    }
-    if (direction.z <= g_float_005ebb34) {
-        direction.z = 0.0f;
-    } else if (direction.z >= g_float_005ebb38) {
-        direction.z = 1.0f;
-    }
+    SaturateColor(&direction);
     PublishLightDirection(&direction);
 
     if (intensity == g_float_005ebb34) {
@@ -969,22 +941,7 @@ srVector3T<float>* __fastcall ScaleColourAndSaturate(srVector3T<float>* colour, 
     colour->y = y;
     float z = colour->z * (float)scale;
     colour->z = z;
-    if (x <= g_float_005ebb34) {
-        colour->x = 0.0f;
-    } else if (x >= g_float_005ebb38) {
-        colour->x = 1.0f;
-    }
-    if (y <= g_float_005ebb34) {
-        colour->y = 0.0f;
-    } else if (y >= g_float_005ebb38) {
-        colour->y = 1.0f;
-    }
-    if (z <= g_float_005ebb34) {
-        colour->z = 0.0f;
-    } else if (z >= g_float_005ebb38) {
-        colour->z = 1.0f;
-    }
-    return colour;
+    return SaturateColor(colour);
 }
 
 /* Push one day-phase colour and intensity into the world's static scene, every
