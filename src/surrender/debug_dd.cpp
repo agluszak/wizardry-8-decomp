@@ -76,9 +76,6 @@ srDebugDD::srDebugDD(srDD* device)
     resetInternalStatistics();
 }
 
-// FUNCTION: SURRENDER 0x10016D60
-srDebugDD::~srDebugDD() {}
-
 // FUNCTION: SURRENDER 0x10016D70
 srDebugDD::ScopeTimer::ScopeTimer(srDebugDD* owner, e_command command)
 {
