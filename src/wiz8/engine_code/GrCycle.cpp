@@ -742,12 +742,12 @@ void W8GrCycle::UpdateLights()
                     light->setParent(g_world->dynamic_scene, 0);
                     light->m_path_index_248 = 0;
                     light->m_path_direction_250 = 1;
-                    light->Reset0049D070();
+                    light->Reset();
                 }
             }
         } else if (definition->type_04 == 2) {
             if (representation->subcycle_064 == 0 || wrapped_1bc != 0) {
-                light->Reset0049D070();
+                light->Reset();
             }
             light->SetDefinitionTime(representation->subcycle_064 + frame_fraction_1d4);
             if (definition->IsEnabledForSubcycle(0) == 0) {
