@@ -89,7 +89,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
                                short extent_mode)
     : spatial_00(0)
 {
-    spatial_00.Reset0046CDC0();
+    spatial_00.Reset();
     link_lists_9c = 0;
     leaf_polygon_count_a0 = 0;
     gd_surface_count_a4 = 0;
