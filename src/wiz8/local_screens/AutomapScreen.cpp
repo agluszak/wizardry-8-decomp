@@ -268,20 +268,6 @@ bool HasAutomapLayer(int layer)
     return layer >= 0 && layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0;
 }
 
-namespace {
-
-/* Pack a grid position into the record table's cell key: eleven bits of z,
-   then eleven of x, then ten of y, each scaled to grid cells. */
-inline unsigned int PackAutomapCell(const srVector3T<float>& position)
-{
-    return ((static_cast<unsigned int>(position.z / g_float_64b914) & 0x7ff) |
-            static_cast<unsigned int>(position.x / g_float_64b914) << 11)
-               << 10 |
-           (static_cast<unsigned int>(position.y / g_float_64b914) & 0x3ff);
-}
-
-} // namespace
-
 /* Full-screen automap background: arm on left-down, dismiss on left-up. */
 // FUNCTION: WIZ8 0x00581790
 unsigned char AutomapBackgroundRegionEvent(const InputAtom* event, W8Region* region)
@@ -362,14 +348,14 @@ void ResetAutomapView(void)
     srVector3T<float> relative(camera.x - g_automap_grid_origin.x,
                                camera.y - g_automap_grid_origin.y,
                                camera.z - g_automap_grid_origin.z);
-    unsigned int key = PackAutomapCell(relative);
+    unsigned int key = AutomapNodeKey(&relative);
     int cell = g_record_68f284->Lookup(&key);
     if (cell > 1) {
         g_bits_68f288->Set(cell - 1);
         return;
     }
     relative.y = camera.y + g_float_64b914 - g_automap_grid_origin.y;
-    key = PackAutomapCell(relative);
+    key = AutomapNodeKey(&relative);
     cell = g_record_68f284->Lookup(&key);
     if (cell > 1) {
         g_bits_68f288->Set(cell - 1);
@@ -385,7 +371,7 @@ bool AutomapHasCellAt(const srVector3T<float>* position)
     srVector3T<float> relative(position->x - g_automap_grid_origin.x,
                                position->y - g_automap_grid_origin.y,
                                position->z - g_automap_grid_origin.z);
-    unsigned int key = PackAutomapCell(relative);
+    unsigned int key = AutomapNodeKey(&relative);
     int cell = g_record_68f284->Lookup(&key);
     if (cell > 1) {
         if (!g_bits_68f288->Set(cell - 1)) {
@@ -394,7 +380,7 @@ bool AutomapHasCellAt(const srVector3T<float>* position)
         return 0;
     }
     relative.y = position->y + g_float_64b914 - g_automap_grid_origin.y;
-    key = PackAutomapCell(relative);
+    key = AutomapNodeKey(&relative);
     cell = g_record_68f284->Lookup(&key);
     if (cell > 1) {
         if (!g_bits_68f288->Set(cell - 1)) {
@@ -2769,8 +2755,7 @@ unsigned char ReadAutomapNodes(int hFile)
 }
 
 /* Pack a world position into an automap node key: eleven bits of z, then
-   eleven of x, then ten of y, each scaled to grid cells. ResetAutomapView
-   spells the same expression inline on the origin-relative position. */
+   eleven of x, then ten of y, each scaled to grid cells. */
 // FUNCTION: WIZ8 0x005852B0
 unsigned int AutomapNodeKey(const srVector3T<float>* position)
 {
