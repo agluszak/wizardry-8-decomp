@@ -759,7 +759,7 @@ void WorldUpdateLights(W8World* world)
 
     for (int index = 0; index < count; ++index) {
         stLight** light = world->lights_to_update->GetAt(index);
-        (*light)->Update0049C960();
+        (*light)->Update();
     }
 }
 
