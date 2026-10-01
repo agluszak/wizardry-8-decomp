@@ -581,7 +581,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
                 PlayButtonSound(1);
                 g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
                 previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
-                g_region_help_force_enabled = 0;
+                SetRegionHelpForceEnabled(0);
             }
             if (previous_index != region_index) {
                 region->flags |= W8_REGION_MOUSE_ENTER;
@@ -613,7 +613,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
         }
         PlayButtonSound(1);
         g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
-        g_region_help_force_enabled = 0;
+        SetRegionHelpForceEnabled(0);
         previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
     }
     g_hover_region_index = g_current_region_index;
@@ -658,7 +658,7 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
                 }
                 g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
                 previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
-                g_region_help_force_enabled = 0;
+                SetRegionHelpForceEnabled(0);
                 g_hover_region_index = 0;
                 g_current_region_index = 0;
             }
@@ -852,7 +852,7 @@ void ActivateDialogRegion(unsigned int region_index)
         }
         g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
         g_regions[g_hover_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
-        g_region_help_force_enabled = 0;
+        SetRegionHelpForceEnabled(0);
         g_hover_region_index = 0;
     }
     g_regions[g_captured_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
@@ -1173,7 +1173,7 @@ void ClearHotRegion(void)
                 g_regions[region_index].flags &= ~W8_REGION_HELP_SHOWN;
             }
             g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
-            g_region_help_force_enabled = 0;
+            SetRegionHelpForceEnabled(0);
             g_regions[g_current_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
             g_current_region_index = 0;
         }
@@ -1252,6 +1252,6 @@ void ResetRegions(void)
     g_current_region_index = 0;
     g_hover_region_index = 0;
     g_captured_region_index = 0;
-    g_region_help_force_enabled = 0;
+    SetRegionHelpForceEnabled(0);
     g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
 }

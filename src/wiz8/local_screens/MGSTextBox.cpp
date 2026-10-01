@@ -206,7 +206,7 @@ void ResetEditorStatusLine(short line)
     g_level_block->text_content_region = 0x56;
     g_level_block->dialogue_content_region = 0x59;
     g_level_block->dialogue_text_input_open = 0;
-    RequestRedraw(W8_REDRAW_TEXT_BOX);
+    RedrawTextBox();
 }
 
 // FUNCTION: WIZ8 0x0058af60
@@ -587,14 +587,14 @@ int GetTextSlot1E8(int index)
 void ClearTextSlot1D8(int index)
 {
     g_level_block->text_slots_1d8[index] = -1;
-    RequestRedraw(W8_REDRAW_TEXT_BOX);
+    RedrawTextBox();
 }
 
 // FUNCTION: WIZ8 0x0058fa30
 void ClearTextSlot1E8(int index)
 {
     g_level_block->text_slots_1e8[index] = -1;
-    RequestRedraw(W8_REDRAW_TEXT_BOX);
+    RedrawTextBox();
 }
 
 /* Ask for the text box to be redrawn without changing anything. */
@@ -1054,7 +1054,7 @@ void AdvanceNoticeLine(short text_box)
                             GetTextBoxVisibleLineCount());
         }
     }
-    RequestRedraw(W8_REDRAW_TEXT_BOX);
+    RedrawTextBox();
 }
 
 // FUNCTION: WIZ8 0x0058bbc0
@@ -1089,7 +1089,7 @@ void ScrollTextBoxTo(int line)
             (g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
              count + input_lines) +
             0x59;
-        RequestRedraw(W8_REDRAW_TEXT_BOX);
+        RedrawTextBox();
     }
 }
 
@@ -1119,7 +1119,7 @@ void ScrollTextBoxUp(int lines)
     if (current == 0) {
         g_level_block->text_content_region = 0x56;
     }
-    RequestRedraw(W8_REDRAW_TEXT_BOX);
+    RedrawTextBox();
 }
 
 // FUNCTION: WIZ8 0x0058C060
@@ -1149,7 +1149,7 @@ void ScrollTextBoxDown(int lines)
     if (current + visible >= count) {
         g_level_block->dialogue_content_region = 0x59;
     }
-    RequestRedraw(W8_REDRAW_TEXT_BOX);
+    RedrawTextBox();
 }
 
 /* Draw the dormant typed-dialogue editor's caret: a vertical bar on the row
@@ -1597,7 +1597,7 @@ unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Regi
     if (current != previous) {
         g_level_block->text_content_region = current != 0 ? 0x57 : 0x56;
         g_level_block->dialogue_content_region = current + visible_lines < line_count ? 0x5a : 0x59;
-        RequestRedraw(W8_REDRAW_TEXT_BOX);
+        RedrawTextBox();
     }
     g_level_block->text_scroll_drag_idle = 0;
     return 1;
@@ -1642,7 +1642,7 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
         }
         if (g_level_block->text_lines[text_box] == 0) {
             g_level_block->text_content_region = 0x56;
-            RequestRedraw(W8_REDRAW_TEXT_BOX);
+            RedrawTextBox();
             return 1;
         }
     } else {
@@ -1654,11 +1654,11 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
                 if ((region->flags & W8_REGION_MOUSE_ENTER) != 0 &&
                     g_level_block->text_lines[text_box] != 0) {
                     g_level_block->text_content_region = 0x58;
-                    RequestRedraw(W8_REDRAW_TEXT_BOX);
+                    RedrawTextBox();
                 }
             } else if (g_level_block->text_lines[text_box] != 0) {
                 g_level_block->text_content_region = 0x57;
-                RequestRedraw(W8_REDRAW_TEXT_BOX);
+                RedrawTextBox();
                 return 0;
             }
             return 0;
@@ -1687,7 +1687,7 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
             g_level_block->text_content_region = 0x56;
         }
     }
-    RequestRedraw(W8_REDRAW_TEXT_BOX);
+    RedrawTextBox();
     return 1;
 }
 
@@ -1727,13 +1727,13 @@ unsigned char TextBoxScrollDownRegionEvent(const InputAtom* event, W8Region* reg
                 if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
                     if (g_level_block->text_lines[text_box] + visible < count) {
                         g_level_block->dialogue_content_region = 0x5b;
-                        RequestRedraw(W8_REDRAW_TEXT_BOX);
+                        RedrawTextBox();
                     }
                 }
             } else {
                 if (g_level_block->text_lines[text_box] + visible < count) {
                     g_level_block->dialogue_content_region = 0x5a;
-                    RequestRedraw(W8_REDRAW_TEXT_BOX);
+                    RedrawTextBox();
                     return 0;
                 }
             }
@@ -1766,14 +1766,13 @@ unsigned char TextBoxBodyRegionEvent(const InputAtom* event, W8Region* region)
                 }
                 unsigned int current = g_level_block->text_lines[text_box];
                 if (current != previous) {
-                    if (current + GetTextBoxVisibleLineCount() <
-                        GetTextBoxLineCount(text_box)) {
+                    if (current + GetTextBoxVisibleLineCount() < GetTextBoxLineCount(text_box)) {
                         g_level_block->dialogue_content_region = 0x5a;
                     }
                     if (g_level_block->text_lines[text_box] == 0) {
                         g_level_block->text_content_region = 0x56;
                     }
-                    RequestRedraw(W8_REDRAW_TEXT_BOX);
+                    RedrawTextBox();
                 }
             }
         }
@@ -1813,7 +1812,7 @@ unsigned char TextBoxChannelTabRegionEvent(const InputAtom* event, W8Region* reg
 
     g_status.text_line_cursor_1795 = static_cast<short>(region->callback_id);
     region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-    RequestRedraw(W8_REDRAW_TEXT_BOX);
+    RedrawTextBox();
 
     short text_box = g_status.text_line_cursor_1795;
     if (g_level_block->text_lines[text_box] == 0) {
@@ -1881,7 +1880,7 @@ unsigned char HandleDialogueTextInput(const InputAtom* input_event)
             ShowNotice(input->notice_channel, input->text, input->text_box, input->wrap_width, 0);
         }
         ReleaseDialogueTextInput();
-        RequestRedraw(W8_REDRAW_TEXT_BOX);
+        RedrawTextBox();
         return 1;
     case 0x20:
         InsertDialogueTextCharacter(L' ');
@@ -2360,7 +2359,7 @@ void SetKnockKnockTarget(int target, int /*flag*/, int /*backfire*/)
 void SelectTextBox(short text_box)
 {
     g_status.text_line_cursor_1795 = text_box;
-    RequestRedraw(W8_REDRAW_TEXT_BOX);
+    RedrawTextBox();
     if (g_level_block->text_lines[text_box] != 0) {
         g_level_block->text_content_region = 0x57;
     } else {
@@ -2411,7 +2410,7 @@ void SelectTextSlot1D8(int line, int index)
                 --record;
             }
             g_level_block->text_slots_1d8[index] = line;
-            RequestRedraw(W8_REDRAW_TEXT_BOX);
+            RedrawTextBox();
         }
     }
 }
@@ -2444,7 +2443,7 @@ void SelectTextSlot1E8(int line, int index)
                 --record;
             }
             g_level_block->text_slots_1e8[index] = line;
-            RequestRedraw(W8_REDRAW_TEXT_BOX);
+            RedrawTextBox();
         }
     }
 }

@@ -312,8 +312,8 @@ unsigned char ReadWorldLights(W8World* world, int hFile)
                         srAssertFail("fSuccess", READ_LEVEL_CPP, 532, 0);
                     }
                     path->discrete_mode_1c = 1;
-                    path->animated_3a = 0;
-                    path->speed = definition->path_speed_38;
+                    PathAISetAnimated(path, 0);
+                    PathAISetScale(path, definition->path_speed_38);
                 }
             }
         }

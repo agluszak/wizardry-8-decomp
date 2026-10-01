@@ -202,7 +202,7 @@ unsigned char OpenUseItemSelectView(int slot)
     memset(g_use_item_list, 0, sizeof(g_use_item_list));
     g_use_item_select_controls[7]->SetEnabled(0);
     RequestRedraw(0x200);
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
     RequestRedraw(0x1000);
     g_use_item_owner_index = -1;
     RefreshUseItemSelectionForSlot(slot);
@@ -249,7 +249,7 @@ void CloseUseItemSelectView(void)
         gXStatus.fItemSelectMode = false;
         ApplyMainGameModeFlag(g_value_69b988, 1);
         RequestRedraw(0x200);
-        RequestRedraw(0x100);
+        RequestRedrawCombatBar();
         RequestRedraw(0x1000);
         ResumeMainGameWorld();
         gXStatus.item_drag_active = 0;
@@ -564,7 +564,7 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
             ScrollTextBoxTo(0);
             pass++;
         } while (pass < 2);
-        g_use_item_select_panels[1]->Invalidate(0);
+        RedrawPanel69B998();
         return;
     }
     character = &g_status.buffers.Char[slot];
@@ -582,7 +582,7 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
         pass++;
     } while (pass < 2);
     ScrollTextBoxTo(0);
-    g_use_item_select_panels[1]->Invalidate(0);
+    RedrawPanel69B998();
 }
 
 /* Append one item to the use-item list under the active filter. Pass 0 takes

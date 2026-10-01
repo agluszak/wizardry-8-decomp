@@ -216,8 +216,8 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
                 srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x1c5, 0);
             }
             path->discrete_mode_1c = 1;
-            path->animated_3a = 0;
-            path->speed = animation->playback_scale_08;
+            PathAISetAnimated(path, 0);
+            PathAISetScale(path, animation->playback_scale_08);
             animation->path_24 = path;
             animation->frame_count_16 = static_cast<unsigned char>(path->nodes_0c->count);
         }
@@ -278,8 +278,8 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
                 }
                 PListInsert(animation->paths_34[channel], entry, path);
                 path->discrete_mode_1c = 1;
-                path->animated_3a = 0;
-                path->speed = animation->playback_scale_08;
+                PathAISetAnimated(path, 0);
+                PathAISetScale(path, animation->playback_scale_08);
                 animation->frame_count_16 = static_cast<unsigned char>(path->nodes_0c->count);
             }
         }
@@ -443,10 +443,8 @@ unsigned char AnimObjGetBounds(W8AnimObj* animation, signed char list_index, uns
     }
     if (animation->pfKnownBBoxFrames == 0) {
         animation->pfKnownBBoxFrames = static_cast<unsigned char*>(malloc(frames));
-        animation->pvecBoundMin =
-            new srVector3T<float>[frames];
-        animation->pvecBoundMax =
-            new srVector3T<float>[frames];
+        animation->pvecBoundMin = new srVector3T<float>[frames];
+        animation->pvecBoundMax = new srVector3T<float>[frames];
         if (animation->pfKnownBBoxFrames == 0 || animation->pvecBoundMin == 0 ||
             animation->pvecBoundMax == 0) {
             srAssertFail("pao->pfKnownBBoxFrames && pao->pvecBoundMin && "

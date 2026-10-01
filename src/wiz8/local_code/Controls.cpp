@@ -752,8 +752,7 @@ inline void W8TextControl::InvalidateCore(unsigned char immediate)
         if (immediate) {
             m_pPanel->Invalidate(0);
         } else {
-            m_pPanel->m_fLayoutDirty = 1;
-            RequestRedraw(0x80000000);
+            m_pPanel->InvalidateLayout();
         }
         RequestRedraw(0x80000000);
     }
@@ -1585,8 +1584,7 @@ inline void W8VerticalRangeThumb::ClampPositionAndInvalidate()
               m_trackLength);
     if (m_pPanel != 0) {
         m_dirty = true;
-        m_pPanel->m_fLayoutDirty = 1;
-        RequestRedraw(0x80000000);
+        m_pPanel->InvalidateLayout();
         RequestRedraw(0x80000000);
     }
 }
@@ -1703,8 +1701,7 @@ void W8VerticalRangeThumb::OnMouseMove(int event)
     bool hovered = (m_pixelPosition <= y && y <= m_pixelPosition + m_thumbHeight);
     if (hovered != m_hovered && m_pPanel != 0) {
         m_dirty = true;
-        m_pPanel->m_fLayoutDirty = 1;
-        RequestRedraw(0x80000000);
+        m_pPanel->InvalidateLayout();
         RequestRedraw(0x80000000);
     }
     m_hovered = hovered;
@@ -1888,8 +1885,7 @@ inline void W8HorizontalRangeThumb::InvalidateThumb()
 {
     if (m_pPanel != 0) {
         m_dirty = true;
-        m_pPanel->m_fLayoutDirty = 1;
-        RequestRedraw(0x80000000);
+        m_pPanel->InvalidateLayout();
         RequestRedraw(0x80000000);
     }
 }
@@ -2008,8 +2004,7 @@ void W8VerticalRangeThumb::OnMouseLeave(int event)
                 RequestRedraw(0x80000000);
                 return;
             }
-            m_pPanel->m_fLayoutDirty = 1;
-            RequestRedraw(0x80000000);
+            m_pPanel->InvalidateLayout();
             RequestRedraw(0x80000000);
         }
     }
@@ -2028,8 +2023,7 @@ void W8HorizontalRangeThumb::OnMouseLeave(int event)
                 RequestRedraw(0x80000000);
                 return;
             }
-            m_pPanel->m_fLayoutDirty = 1;
-            RequestRedraw(0x80000000);
+            m_pPanel->InvalidateLayout();
             RequestRedraw(0x80000000);
         }
     }
@@ -2291,8 +2285,7 @@ void W8Widget::Invalidate(unsigned char immediate)
             RequestRedraw(0x80000000);
             return;
         }
-        m_pPanel->m_fLayoutDirty = 1;
-        RequestRedraw(0x80000000);
+        m_pPanel->InvalidateLayout();
         RequestRedraw(0x80000000);
     }
 }

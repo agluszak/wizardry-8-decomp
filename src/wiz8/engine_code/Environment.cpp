@@ -138,7 +138,7 @@ void ClearEnvironmentObjects(void)
     }
     g_environment_object_0065b9b0 = 0;
     g_environment_object_0065b9b4 = 0;
-    g_environment_lights.count = 0;
+    g_environment_lights.Clear();
 }
 
 /* Advance the authoritative game clock and place the two celestial props on

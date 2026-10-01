@@ -163,7 +163,7 @@ void W8CharacterPageEntry::Redraw()
 // FUNCTION: WIZ8 0x005afbf0
 void W8CharacterPageEntry::SetLabelFontState(int state)
 {
-    m_label_014->m_fontStateIndex = state;
+    m_label_014->SetFontStateIndex(state);
 }
 
 // FUNCTION: WIZ8 0x005afc00

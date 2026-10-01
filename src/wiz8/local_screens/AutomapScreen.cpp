@@ -2138,7 +2138,7 @@ void RenderAutomapMarkers(void)
             unsigned short height = marker->GetScaledHeight();
             y -= height >> 1;
             marker->setParent(g_scene_fullscreen, 1);
-            PositionToolTipNode(marker, x, y, 0);
+            Position2DNodeUnsnapped(marker, x, y);
         }
     }
     for (W8WorldItem* world_item = GetNextWorldItem(1); world_item != 0;
@@ -2212,7 +2212,7 @@ void RenderAutomapMarkers(void)
                 x -= width >> 1;
                 unsigned short height = marker->GetScaledHeight();
                 y -= height >> 1;
-                PositionToolTipNode(marker, x, y, 0);
+                Position2DNodeUnsnapped(marker, x, y);
                 marker->setParent(g_scene_fullscreen, 1);
                 if (note->layer == g_automap_layer && note->text != 0 &&
                     (g_automap_page == 0 || note == g_automap_hovered_note ||

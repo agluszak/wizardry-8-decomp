@@ -125,8 +125,8 @@ void EnsureRadarMapOverlay(void)
         bounds.right = 0x80;
         bounds.bottom = 0x1c2;
         g_radar_backdrop = CreateSpriteFromVideoSurface(-0xe, &bounds, 0, 0, 1);
-        PositionToolTipNode(g_radar_backdrop, 0x17, 0x166, 0);
-        g_radar_backdrop->render_state_164.display_state = 4;
+        Position2DNodeUnsnapped(g_radar_backdrop, 0x17, 0x166);
+        SetModelInstance2DDisplayState(g_radar_backdrop, 4);
     }
 }
 
@@ -285,14 +285,14 @@ void RefreshRadarMap(void)
     MakeVSurfaceFromVObject(handle, 0, &compass_surface);
 
     g_radar_compass = CreateSpriteFromSurface(compass_surface, 0, 1, 0, 1);
-    PositionToolTipNode(g_radar_compass, 0x1e, 0x167, 0);
-    g_radar_compass->render_state_164.display_state = 4;
+    Position2DNodeUnsnapped(g_radar_compass, 0x1e, 0x167);
+    SetModelInstance2DDisplayState(g_radar_compass, 4);
     g_radar_frame = CreateSpriteFromSurface(frame_surface, 0, 1, 0, 1);
-    PositionToolTipNode(g_radar_frame, 0x1e, 0x167, 0);
-    g_radar_frame->render_state_164.display_state = 4;
+    Position2DNodeUnsnapped(g_radar_frame, 0x1e, 0x167);
+    SetModelInstance2DDisplayState(g_radar_frame, 4);
     g_radar_map = CreateSpriteFromSurface(map_surface, 0, 1, 0, 1);
-    PositionToolTipNode(g_radar_map, 0x1e, 0x167, 0);
-    g_radar_map->render_state_164.display_state = 4;
+    Position2DNodeUnsnapped(g_radar_map, 0x1e, 0x167);
+    SetModelInstance2DDisplayState(g_radar_map, 4);
 
     for (sector = 0; sector < 18; ++sector) {
         srVector4T<float> color;
@@ -520,7 +520,7 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, unsigne
         top = (int)(g_float_005eece8 - scale * delta->z);
     }
     stModelInstance2D* blip = AcquireRadarBlip(ring + group * 3, lit);
-    PositionToolTipNode(blip, left, top, 0);
+    Position2DNodeUnsnapped(blip, left, top);
     return 1;
 }
 

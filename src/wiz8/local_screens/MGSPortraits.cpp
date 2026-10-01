@@ -1247,7 +1247,7 @@ void UpdatePortraitAdvanceButtons(void)
             g_status.buffers.XChar[slot].portrait_advance_103 != 0) {
             if (!(*control)->m_active) {
                 (*control)->SetActive(true);
-                g_panel_69b940->Invalidate(0);
+                RedrawPanel69B940();
             }
         } else if ((*control)->m_active) {
             (*control)->SetActive(false);

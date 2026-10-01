@@ -1346,7 +1346,7 @@ void ResetNpcStates(void)
             delete npc->character;
             delete npc;
         }
-        g_npc_states->count = 0;
+        g_npc_states->Clear();
     }
     for (npc_id = 0; npc_id < gXStatus.uiNpcsInDatabase; ++npc_id) {
         if (g_npc_records[npc_id].monster_bound_054 == 0) {
@@ -1375,7 +1375,7 @@ void ReleaseNpcStates(void)
                 delete npc;
             }
         }
-        g_npc_states->count = 0;
+        g_npc_states->Clear();
     }
     delete g_npc_states;
     g_npc_states = 0;
@@ -1751,7 +1751,7 @@ void LoadNpcStates(W8Chunk* chunks)
             delete npc->character;
             delete npc;
         }
-        g_npc_states->count = 0;
+        g_npc_states->Clear();
     }
     chunks->Read(&version, 1, 0);
     chunks->Read(&count, 4, 0);

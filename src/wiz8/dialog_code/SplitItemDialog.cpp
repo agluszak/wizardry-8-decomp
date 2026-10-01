@@ -380,7 +380,7 @@ void W8SplitItemDialog::Draw()
             m_buttons_054[index]->m_dirty = true;
         }
         for (index = 0; index < text_count; ++index) {
-            m_texts_07c[index]->m_geometryDirty = 1;
+            m_texts_07c[index]->SetGeometryDirty();
         }
         m_count_input_0b4->m_dirty = true;
         m_count_input_0b4->m_button->m_dirty = true;
@@ -460,11 +460,11 @@ void W8SplitItemDialog::UpdateCostLabels()
     swprintf(text, g_format_d, remaining_price);
     m_texts_07c[11]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[8]->m_dirty = true;
-    m_texts_07c[11]->m_geometryDirty = 1;
+    m_texts_07c[11]->SetGeometryDirty();
     swprintf(text, g_format_d, split_price);
     m_texts_07c[13]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[9]->m_dirty = true;
-    m_texts_07c[13]->m_geometryDirty = 1;
+    m_texts_07c[13]->SetGeometryDirty();
 }
 
 // FUNCTION: WIZ8 0x005DDE60
@@ -527,7 +527,7 @@ void W8SplitItemDialog::UpdateTotals()
     swprintf(text, g_format_d, m_remaining_0bc);
     m_texts_07c[2]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[2]->m_dirty = true;
-    m_texts_07c[2]->m_geometryDirty = 1;
+    m_texts_07c[2]->SetGeometryDirty();
     m_count_input_0b4->SetValue(split_count_0c0);
     m_buttons_054[3]->m_dirty = true;
     m_count_input_0b4->m_dirty = true;
@@ -536,12 +536,12 @@ void W8SplitItemDialog::UpdateTotals()
              (double)(GetItemUnitWeight(m_item_0d0) * m_remaining_0bc) * g_float_005ed8b8);
     m_texts_07c[7]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[4]->m_dirty = true;
-    m_texts_07c[7]->m_geometryDirty = 1;
+    m_texts_07c[7]->SetGeometryDirty();
     swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(m_item_0d0) * split_count_0c0) * g_float_005ed8b8);
     m_texts_07c[9]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[5]->m_dirty = true;
-    m_texts_07c[9]->m_geometryDirty = 1;
+    m_texts_07c[9]->SetGeometryDirty();
     UpdateCostLabels();
 }
 

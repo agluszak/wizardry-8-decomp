@@ -255,7 +255,7 @@ void W8CharacterStatsRecordControl::OnMouseEnter(int event)
 {
     W8TextControl::OnMouseEnter(event);
     if (m_active && m_enabled) {
-        m_textBuffer.m_fontStateIndex = 0xd;
+        m_textBuffer.SetFontStateIndex(0xd);
     }
 }
 
@@ -264,7 +264,7 @@ void W8CharacterStatsRecordControl::OnMouseLeave(int event)
 {
     W8TextControl::OnMouseLeave(event);
     if (m_active) {
-        m_textBuffer.m_fontStateIndex = -1;
+        m_textBuffer.SetFontStateIndex(-1);
         Invalidate(0);
     }
 }

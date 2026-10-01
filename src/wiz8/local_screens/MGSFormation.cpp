@@ -134,11 +134,11 @@ void RefreshFormationBoard(void)
     MakeVSurfaceFromVObject(video_object, 0, &compass_image);
     DrawFormationSlotMarkers(board_image);
     g_level_block->formation_compass_sprite = CreateSpriteFromSurface(compass_image, 0, 1, 0, 1);
-    PositionToolTipNode(g_level_block->formation_compass_sprite, 0x207, 0x167, 0);
-    g_level_block->formation_compass_sprite->render_state_164.display_state = 4;
+    Position2DNodeUnsnapped(g_level_block->formation_compass_sprite, 0x207, 0x167);
+    SetModelInstance2DDisplayState(g_level_block->formation_compass_sprite, 4);
     g_level_block->formation_board_sprite = CreateSpriteFromSurface(board_image, 0, 1, 0, 1);
-    PositionToolTipNode(g_level_block->formation_board_sprite, 0x207, 0x167, 0);
-    g_level_block->formation_board_sprite->render_state_164.display_state = 4;
+    Position2DNodeUnsnapped(g_level_block->formation_board_sprite, 0x207, 0x167);
+    SetModelInstance2DDisplayState(g_level_block->formation_board_sprite, 4);
     UpdateFormationCompass();
 }
 

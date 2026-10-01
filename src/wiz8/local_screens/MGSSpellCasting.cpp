@@ -314,7 +314,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     gpSCSV->selected_spell_index = -1;
     SelectSpellCastingCharacter(party_slot);
     RequestRedraw(0x200);
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
     RequestRedraw(0x1000);
     PauseMainGameWorld();
     gpSCSV->override_spell_104 = 0;
@@ -350,7 +350,7 @@ void CloseSpellCastingView(void)
         gXStatus.fSpellCastMode = false;
         ApplyMainGameModeFlag(gpSCSV->saved_game_mode, 1);
         RequestRedraw(0x200);
-        RequestRedraw(0x100);
+        RequestRedrawCombatBar();
         RequestRedraw(0x1000);
         location_id = gpSCSV->location_id;
         interact_id = gpSCSV->interact_id;

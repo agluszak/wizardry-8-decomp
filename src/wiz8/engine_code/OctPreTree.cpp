@@ -1082,8 +1082,8 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
             unsigned long cell = cells->entries[slot].value;
             float cell_x = ((cell >> 0x10) & 0xff) * spatial_000.region_grid_cell_54 +
                            spatial_000.minimum_0c.x;
-            float cell_y = ((cell >> 8) & 0xff) * spatial_000.region_grid_cell_54 +
-                           spatial_000.minimum_0c.y;
+            float cell_y =
+                ((cell >> 8) & 0xff) * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.y;
             float cell_z =
                 (cell & 0xff) * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.z;
             if (cell_x + spatial_000.region_grid_cell_54 < min_x || max_x < cell_x ||
@@ -1213,7 +1213,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
     srVector3T<float> node;
 
     object_registry = new W8OctreeObjectRegistry;
-    g_octree_game_data = game_data;
+    SetOctreeGameData(game_data);
     delete m_owned_194;
     m_owned_194 = new BitArray(spatial_000.item_count_40 + 0x14);
     pre_pathing_2a0 = new PrePathing;
@@ -1318,7 +1318,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
     free(preprops);
     delete object_registry;
     object_registry = 0;
-    g_octree_game_data = 0;
+    SetOctreeGameData(0);
     return 1;
 }
 
@@ -1634,7 +1634,8 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
    quaternions disagree beyond the snap epsilon (unless they are the mirrored
    same rotation), or scaled-path tails drift. */
 // FUNCTION: WIZ8 0x0046c6a0
-char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first, unsigned short last)
+char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first,
+                                  unsigned short last)
 {
     char count = anim->num_transforms_5a;
     if (count > 0) {

@@ -418,7 +418,7 @@ int OpenLockInteraction(Trigger* trigger)
     SelectTextBox(2);
     ResetEditorStatusLine(-1);
     ResetLevelDataVectors();
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
     RequestRedraw(0x1000);
     if (gXStatus.fLockInteract == 0) {
         event = ApplyItemEffectToRandomCharacter(g_lock_notice_event, -1, g_event_flag_005ed8e8,
@@ -500,7 +500,7 @@ void EndLockInteractMode(char suspend)
     SelectTextBox(0);
     ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_current), 1);
     RequestRedraw(0x200);
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
     RequestRedraw(0x1000);
 }
 
@@ -1010,7 +1010,7 @@ void W8LockInteraction::Process()
         SelectTextBox(0);
         ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_current), 1);
         RequestRedraw(0x200);
-        RequestRedraw(0x100);
+        RequestRedrawCombatBar();
         RequestRedraw(0x1000);
         return;
     }
@@ -1086,7 +1086,7 @@ void W8LockInteraction::Process()
         SelectTextBox(0);
         ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_current), 1);
         RequestRedraw(0x200);
-        RequestRedraw(0x100);
+        RequestRedrawCombatBar();
         RequestRedraw(0x1000);
         OpenUseItemSelectView(g_status.selected_character);
         return;
@@ -2227,7 +2227,7 @@ void W8MainGameScreen::Update()
         SelectTextBox(0);
         ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_saved), 1);
         RequestRedraw(0x200);
-        RequestRedraw(0x100);
+        RequestRedrawCombatBar();
         RequestRedraw(0x1000);
         return;
     }
@@ -2291,7 +2291,7 @@ void W8MainGameScreen::Update()
         SelectTextBox(0);
         ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_saved), 1);
         RequestRedraw(0x200);
-        RequestRedraw(0x100);
+        RequestRedrawCombatBar();
         RequestRedraw(0x1000);
         return;
     case 4:
@@ -2500,7 +2500,7 @@ void W8MainGameScreen::CastTrapSpell()
     SelectTextBox(0);
     ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_saved), 1);
     RequestRedraw(0x200);
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
     RequestRedraw(0x1000);
     BeginSpellCast(spell, -1, -1);
 }
@@ -2522,7 +2522,7 @@ void W8MainGameScreen::UseTrapItem()
     SelectTextBox(0);
     ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_saved), 1);
     RequestRedraw(0x200);
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
     RequestRedraw(0x1000);
     OpenUseItemSelectView(g_status.selected_character);
 }
@@ -2580,7 +2580,7 @@ int OpenTrapInteraction(Trigger* trigger)
     SelectTextBox(2);
     ResetEditorStatusLine(-1);
     ResetLevelDataVectors();
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
     RequestRedraw(0x1000);
     if (gXStatus.fTrapInteract != 0) {
         screen = g_main_game_screen;
@@ -2659,7 +2659,7 @@ void EndTrapInteractMode(char suspend)
     SelectTextBox(0);
     ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_saved), 1);
     RequestRedraw(0x200);
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
     RequestRedraw(0x1000);
 }
 
@@ -5807,7 +5807,7 @@ void SyncMainGameModeRegions(void)
         }
         g_level_block->refresh_party_panel = 1;
     }
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
 }
 
 /* Clear whatever the screen was waiting on and hand the tenth reason to the
@@ -6569,7 +6569,7 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
                 if (g_level_block->dialogue_y_224 <
                     static_cast<unsigned int>(
                         g_viewport_modes[g_level_block->camera_mode_100].top)) {
-                    RequestRedraw(0x100);
+                    RequestRedrawCombatBar();
                 }
                 if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
                     RequestRedraw(0x800);
@@ -8252,7 +8252,7 @@ void ClearHighlightOverlayRegion(void)
                          g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
         if (g_level_block->dialogue_y_224 <
             static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
-            RequestRedraw(0x100);
+            RequestRedrawCombatBar();
         }
         if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
             RequestRedraw(0x800);
@@ -9034,7 +9034,7 @@ void CreateSurpriseFade(void)
     color.z = 0.0f;
     color.w = 0.0f;
     g_surprise_fade_node = CreateColoredPolygonSprite(0x280, 0x1e0, &color, 1);
-    PositionToolTipNode(g_surprise_fade_node, 0, 0, 0);
+    Position2DNodeUnsnapped(g_surprise_fade_node, 0, 0);
     shader = static_cast<srMeshModel*>(g_surprise_fade_node->getModel())->getShader(0);
     shader.value = (shader.value & ~0x6040) | 0xa0;
     static_cast<srMeshModel*>(g_surprise_fade_node->getModel())->setShader(shader, 0);

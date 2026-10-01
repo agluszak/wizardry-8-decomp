@@ -408,12 +408,12 @@ void ClearKeywordLists(void)
             for (word_index = 0; word_index < entry->count; ++word_index) {
                 free(*entry->GetAt(word_index));
             }
-            entry->count = 0;
+            entry->Clear();
             delete entry;
         }
         delete file;
     }
-    g_keyword_lists.count = 0;
+    g_keyword_lists.Clear();
     g_keyword_lists_loaded = false;
 }
 
@@ -806,7 +806,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
             }
         }
     }
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
     RequestRedraw(0x1000);
     if (g_mouselook_active != 0) {
         EnableCursorScene();
@@ -1148,10 +1148,10 @@ void ServiceNpcDialogue(void)
         g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_flag_4c != 0 &&
         GetTickCount() - g_trade_highlight_tick > 500) {
         g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_flag_4c = false;
-        g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_geometryDirty = 1;
+        g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetGeometryDirty();
         g_screen_state_00649f1c->dialogue_text_16c->Invalidate(0);
         g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.m_flag_4c = false;
-        g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.m_geometryDirty = 1;
+        g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.SetGeometryDirty();
         g_screen_state_00649f1c->dialogue_text_198->Invalidate(0);
     }
 }
@@ -1239,7 +1239,7 @@ void EndNpcDialogueSession(unsigned char param_1)
     for (i = 0; i < 39; i++) {
         delete control[i];
     }
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
     RequestRedraw(0x1000);
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); index++) {
         ClearMonsterEffect2DE(MonsterGetScriptPartByLocationIndex(index));
@@ -1834,8 +1834,8 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
                            0x7d, g_wiz_text_font_secondary);
         g_screen_state_00649f1c->dialogue_text_19c->m_textBuffer.SetText(text,
                                                                          g_wiz_text_font_secondary);
-        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_fontStateIndex = 1;
-        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
+        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetFontStateIndex(1);
+        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetGeometryDirty();
         switch (g_screen_state_00649f1c->trade_mode) {
         case W8_NPC_TRADE_BUY:
             if (g_status.party_gold < static_cast<unsigned int>(CalculateNpcTradeStackPrice(
@@ -1843,8 +1843,8 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
                                           g_screen_state_00649f1c->trade_item->iItemNo, 1,
                                           g_screen_state_00649f1c->trade_quantity,
                                           g_screen_state_00649f1c->trade_item->identified))) {
-                g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_fontStateIndex = 0;
-                g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
+                g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetFontStateIndex(0);
+                g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetGeometryDirty();
             }
             swprintf(price_text, L"%dg",
                      CalculateNpcTradeStackPrice(g_screen_state_00649f1c->dialogue_npc,
@@ -1856,8 +1856,8 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
             wants_item = NpcAcceptsTradeItem(g_screen_state_00649f1c->dialogue_npc,
                                              g_screen_state_00649f1c->trade_item);
             if (wants_item == 0) {
-                g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_fontStateIndex = 0;
-                g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
+                g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetFontStateIndex(0);
+                g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetGeometryDirty();
             }
             int price = CalculateNpcTradeStackPrice(
                 g_screen_state_00649f1c->dialogue_npc, g_screen_state_00649f1c->trade_item->iItemNo,
@@ -1882,8 +1882,8 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
     }
     if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE && index == 0) {
         g_screen_state_00649f1c->dialogue_text_1a0->SetEnabled(1);
-        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_fontStateIndex = 1;
-        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
+        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetFontStateIndex(1);
+        g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetGeometryDirty();
         g_screen_state_00649f1c->dialogue_text_188->SetEnabled(1);
         g_screen_state_00649f1c->dialogue_text_19c->m_textBuffer.SetText(gppStringList[0x72d],
                                                                          g_wiz_text_font_secondary);
@@ -1917,8 +1917,8 @@ void ResetNpcDialogueItemEditor(void)
     g_screen_state_00649f1c->dialogue_text_188->SetEnabled(0);
     g_screen_state_00649f1c->selected_trade_row = -1;
     g_screen_state_00649f1c->trade_quantity = 1;
-    g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_fontStateIndex = -1;
-    g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
+    g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetFontStateIndex(-1);
+    g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetGeometryDirty();
 }
 
 /* Retire the current dialogue layout, then open the layout `interact_id`
@@ -2707,18 +2707,18 @@ void UpdateNpcDialogueSubMode(void)
          g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE)) {
         if (g_screen_state_00649f1c->trade_pc_items != 0) {
             g_screen_state_00649f1c->dialogue_text_124->DisableSecondaryState(1);
-            g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_fontStateIndex = -1;
-            g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_geometryDirty = 1;
+            g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetFontStateIndex(-1);
+            g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetGeometryDirty();
             g_screen_state_00649f1c->dialogue_text_120->EnableSecondaryState(1);
-            g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_fontStateIndex = 3;
-            g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_geometryDirty = 1;
+            g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetFontStateIndex(3);
+            g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetGeometryDirty();
         } else {
             g_screen_state_00649f1c->dialogue_text_120->DisableSecondaryState(1);
-            g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_fontStateIndex = -1;
-            g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_geometryDirty = 1;
+            g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetFontStateIndex(-1);
+            g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetGeometryDirty();
             g_screen_state_00649f1c->dialogue_text_124->EnableSecondaryState(1);
-            g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_fontStateIndex = 3;
-            g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_geometryDirty = 1;
+            g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetFontStateIndex(3);
+            g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetGeometryDirty();
         }
         g_screen_state_00649f1c->pending_trade_toggle = 0;
     }
@@ -2800,11 +2800,11 @@ void SelectNpcTradeMode1(void)
 {
     ResetNpcDialogueItemEditor();
     g_screen_state_00649f1c->dialogue_text_124->DisableSecondaryState(1);
-    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_fontStateIndex = -1;
-    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_geometryDirty = 1;
+    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetFontStateIndex(-1);
+    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetGeometryDirty();
     g_screen_state_00649f1c->dialogue_text_120->EnableSecondaryState(1);
-    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_fontStateIndex = 3;
-    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_geometryDirty = 1;
+    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetFontStateIndex(3);
+    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetGeometryDirty();
     RebuildNpcTradeItemList(1);
     g_screen_state_00649f1c->trade_pc_items = 1;
 }
@@ -2814,11 +2814,11 @@ void SelectNpcTradeMode0(void)
 {
     ResetNpcDialogueItemEditor();
     g_screen_state_00649f1c->dialogue_text_120->DisableSecondaryState(1);
-    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_fontStateIndex = -1;
-    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_geometryDirty = 1;
+    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetFontStateIndex(-1);
+    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetGeometryDirty();
     g_screen_state_00649f1c->dialogue_text_124->EnableSecondaryState(1);
-    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_fontStateIndex = 3;
-    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_geometryDirty = 1;
+    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetFontStateIndex(3);
+    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetGeometryDirty();
     RebuildNpcTradeItemList(1);
     g_screen_state_00649f1c->trade_pc_items = 0;
 }
@@ -2878,8 +2878,8 @@ void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog)
     }
     g_screen_state_00649f1c->trade_gold = static_cast<W8SplitAmountDialog*>(dialog)->m_taken_084;
     g_screen_state_00649f1c->dialogue_text_1a0->SetEnabled(1);
-    g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_fontStateIndex = 1;
-    g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
+    g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetFontStateIndex(1);
+    g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.SetGeometryDirty();
     g_screen_state_00649f1c->dialogue_text_188->SetEnabled(1);
     g_screen_state_00649f1c->dialogue_text_19c->m_textBuffer.SetText(gppStringList[0x72d],
                                                                      g_wiz_text_font_secondary);
@@ -3082,12 +3082,10 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
                         g_screen_state_00649f1c->trade_quantity = entry->item.stack_count;
                     } else if (entry->item.stack_count != 0) {
                         g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_flag_4c = true;
-                        g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_geometryDirty =
-                            1;
+                        g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetGeometryDirty();
                         g_screen_state_00649f1c->dialogue_text_16c->Invalidate(0);
                         g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.m_flag_4c = true;
-                        g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.m_geometryDirty =
-                            1;
+                        g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.SetGeometryDirty();
                         g_screen_state_00649f1c->dialogue_text_198->Invalidate(0);
                         g_trade_highlight_tick = GetTickCount();
                     }
@@ -3098,10 +3096,10 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
                     g_screen_state_00649f1c->trade_quantity = 1;
                 } else if (entry->item.stack_count != 0) {
                     g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_flag_4c = true;
-                    g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_geometryDirty = 1;
+                    g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.SetGeometryDirty();
                     g_screen_state_00649f1c->dialogue_text_16c->Invalidate(0);
                     g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.m_flag_4c = true;
-                    g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.m_geometryDirty = 1;
+                    g_screen_state_00649f1c->dialogue_text_198->m_textBuffer.SetGeometryDirty();
                     g_screen_state_00649f1c->dialogue_text_198->Invalidate(0);
                     g_trade_highlight_tick = GetTickCount();
                 }
@@ -4076,7 +4074,7 @@ void ClearNpcDialogueTranscript(void)
     for (int index = 0; index < g_screen_state_00649f1c->dialogue_transcript.count; ++index) {
         free(*g_screen_state_00649f1c->dialogue_transcript.GetAt(index));
     }
-    g_screen_state_00649f1c->dialogue_transcript.count = 0;
+    g_screen_state_00649f1c->dialogue_transcript.Clear();
 }
 
 // FUNCTION: WIZ8 0x005750D0
@@ -4091,7 +4089,7 @@ unsigned char LoadNpcDialogueTranscript(unsigned int file)
     for (index = 0; index < g_screen_state_00649f1c->dialogue_transcript.count; ++index) {
         free(*g_screen_state_00649f1c->dialogue_transcript.GetAt(index));
     }
-    g_screen_state_00649f1c->dialogue_transcript.count = 0;
+    g_screen_state_00649f1c->dialogue_transcript.Clear();
     FileRead(file, &version, 1, &bytes_read);
     FileRead(file, &record_count, 4, &bytes_read);
     for (index = 0; index < record_count; ++index) {

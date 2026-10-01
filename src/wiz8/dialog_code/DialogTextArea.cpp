@@ -258,7 +258,7 @@ unsigned char W8DialogTextArea::SetEntryState5D(int index)
         W8DialogTextEntry* entry = *m_visible_lines_02c.GetAt(index);
         if (entry->m_state_5d != 1) {
             entry->m_state_5d = 1;
-            entry->m_geometryDirty = 1;
+            entry->SetGeometryDirty();
         }
         m_state_5d_entry = index;
         selection_dirty_03e = 1;
@@ -276,7 +276,7 @@ unsigned char W8DialogTextArea::ClearEntryState5D()
         W8DialogTextEntry* entry = *m_visible_lines_02c.GetAt(m_state_5d_entry);
         if (entry->m_state_5d) {
             entry->m_state_5d = 0;
-            entry->m_geometryDirty = 1;
+            entry->SetGeometryDirty();
         }
         selection_dirty_03e = 1;
         m_state_5d_entry = -1;
@@ -310,7 +310,7 @@ void W8DialogTextArea::SetEntryState60(int index, unsigned char state)
     W8DialogTextEntry* entry = *m_all_lines_01c.GetAt(index);
     if (entry->m_state_60 != state) {
         entry->m_state_60 = state;
-        entry->m_geometryDirty = 1;
+        entry->SetGeometryDirty();
     }
     selection_dirty_03e = 1;
 }

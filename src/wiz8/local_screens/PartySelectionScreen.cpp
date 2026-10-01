@@ -115,11 +115,11 @@ W8PartySelectionCharacterCollection::~W8PartySelectionCharacterCollection()
             delete character;
         }
     }
-    characters.count = 0;
+    characters.Clear();
     for (index = 0; index < names.count; ++index) {
         delete names.data[index];
     }
-    names.count = 0;
+    names.Clear();
 }
 
 // FUNCTION: WIZ8 0x005be4b0
@@ -2097,7 +2097,7 @@ unsigned char PartySelectionScreenEnter(void)
                 delete character;
             }
         }
-        collection->characters.count = 0;
+        collection->characters.Clear();
         W8PartySlotRow* rows = g_status.buffers.XChar;
         for (int slot = 2; slot < 8; ++slot) {
             if (rows[slot].fOccupied) {
@@ -2117,7 +2117,7 @@ unsigned char PartySelectionScreenEnter(void)
                     delete character;
                 }
             }
-            collection->characters.count = 0;
+            collection->characters.Clear();
             W8PartySlotRow* rows = g_status.buffers.XChar;
             for (int slot = 2; slot < 8; ++slot) {
                 if (rows[slot].fOccupied) {

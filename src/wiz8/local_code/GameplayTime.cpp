@@ -597,7 +597,7 @@ void AdvanceTimedEffects(unsigned int minutes)
     }
 
     if (party_changed) {
-        RequestRedraw(0x100);
+        RequestRedrawCombatBar();
     }
     if (combat_changed) {
         RequestRedraw(0x8000);

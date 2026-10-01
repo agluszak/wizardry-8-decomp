@@ -299,7 +299,7 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
         g_navigator_position_changed = 1;
     }
     if (g_mouselook_manual != 0) {
-        g_gd_camera->SetManualControlActive(1);
+        BeginManualCameraControl();
     }
     g_gd_camera->ApplyPitchInput(pitch_input);
     g_gd_camera->ApplyYawInput(yaw_input);
@@ -2471,7 +2471,7 @@ void W8GameData::ReleaseLevelData()
         delete g_game_time_accumulator;
     }
     g_game_time_accumulator = 0;
-    g_octree_game_data = 0;
+    SetOctreeGameData(0);
     if (g_flag_00652dcc != 0) {
         g_flag_00652dcc = false;
     }

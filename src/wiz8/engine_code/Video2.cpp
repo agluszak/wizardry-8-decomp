@@ -355,7 +355,7 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
     status.dwLength = sizeof(status);
     GlobalMemoryStatus(&status);
     g_world_pick_enabled = 1;
-    g_current_model_instance = 0;
+    SetPickedModelInstance(0);
     g_fps_frame_count = 0;
     g_fps_window_tick = GetTickCount();
     g_overlay_page_counters[0] = 0;
@@ -400,8 +400,7 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
             PurgeInactiveSceneInstances(g_scene_prerender1);
             PurgeInactiveSceneInstances(g_scene_overlay1);
             InvalidateRegion(0, 0, 0x280, 0x1e0, 0);
-            g_paired_render_mode = 2;
-            g_overlay_render_mode = 2;
+            SetRendererModePair();
         }
     }
 done:
@@ -894,8 +893,7 @@ unsigned char VideoResizeWindow(void)
     if (g_gerd->openWindow() == static_cast<srGERD::e_error>(3)) {
         return 0;
     }
-    g_paired_render_mode = 2;
-    g_overlay_render_mode = 2;
+    SetRendererModePair();
     ResetTransientRenderScenes();
     g_flush_pending = true;
     return 1;
@@ -992,8 +990,7 @@ unsigned char RestoreVideoManager(void)
             PurgeInactiveSceneInstances(g_scene_prerender1);
             PurgeInactiveSceneInstances(g_scene_overlay1);
             InvalidateRegion(0, 0, 0x280, 0x1e0, 0);
-            g_paired_render_mode = 2;
-            g_overlay_render_mode = 2;
+            SetRendererModePair();
         }
     }
     return 0;
@@ -1250,7 +1247,7 @@ void RenderFrame(void)
             g_gerd->pushPick(pick);
             RenderScene(g_world->static_scene, g_world->camera, &g_viewport_6595e8.left, 1);
             g_gerd->popPick(pick);
-            g_current_model_instance = pick.selected_model_0c;
+            SetPickedModelInstance(pick.selected_model_0c);
             ResolvePickedProp(g_world);
         }
 #ifdef WIZ8_RUNTIME_TESTS
@@ -1474,7 +1471,7 @@ void SetWorldModelPickingEnabled(char enabled)
 {
     g_world_pick_enabled = enabled;
     if (enabled == 0) {
-        g_current_model_instance = 0;
+        SetPickedModelInstance(0);
     }
 }
 
@@ -1736,7 +1733,7 @@ BOOLEAN SetMouseCursorFromVideoObject(UINT32 video_object, UINT16 region, INT16 
     g_cursor_image_height = properties.usHeight;
     g_cursor_image_u_extent = g_cursor_image_width * g_double_005ebe90;
     g_cursor_image_v_extent = g_cursor_image_height * g_double_005ebe88;
-    g_mouse_surface->fill(0);
+    ClearMouseSurface();
     return BlitVideoObjectToColorSurface(video_object, region, g_mouse_surface, 0, 0);
 }
 
@@ -1971,7 +1968,7 @@ unsigned char InitializeMouseCursorScene(void)
     if (!g_mouse_surface) {
         return 0;
     }
-    g_mouse_surface->fill(0);
+    ClearMouseSurface();
     if (g_cursor_texture) {
         g_cursor_texture->release();
     }
@@ -2480,7 +2477,7 @@ unsigned char InitializeMouseSurface(void)
         return 0;
     }
     g_mouse_surface->setFilter(&srBoxFilter);
-    g_mouse_surface->fill(0);
+    ClearMouseSurface();
     return 1;
 }
 
@@ -2714,10 +2711,9 @@ unsigned char EnableCursorScene(void)
 void ReleaseObject(srClass* object)
 {
     if ((static_cast<stModelInstance2D*>(object)->overlay_scene_flag_160 & 1) != 0) {
-        g_overlay_render_mode = 2;
+        SetOverlayRenderMode();
     } else {
-        g_paired_render_mode = 2;
-        g_overlay_render_mode = 2;
+        SetRendererModePair();
     }
     object->release();
 }
@@ -2729,10 +2725,9 @@ void RotateNodeInDegrees(srNode* node, int degrees)
 {
     node->setRotation(0.0, 0.0, 3.141592653589793 * g_float_005ebcf8 * degrees);
     if ((static_cast<stModelInstance2D*>(node)->overlay_scene_flag_160 & 1) != 0) {
-        g_overlay_render_mode = 2;
+        SetOverlayRenderMode();
     } else {
-        g_paired_render_mode = 2;
-        g_overlay_render_mode = 2;
+        SetRendererModePair();
     }
 }
 
@@ -2746,7 +2741,7 @@ void SetOverlayRenderMode(void)
 void SetRendererModePair(void)
 {
     g_paired_render_mode = 2;
-    g_overlay_render_mode = 2;
+    SetOverlayRenderMode();
 }
 
 /* Install a texture (often an stTextureAnim) on the mouse-cursor mesh. A null
@@ -3009,7 +3004,7 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional)
         location.y = g_double_005ebf40 - (half_height + position_y) * g_double_005ebf40;
     }
     node->setLocation(location);
-    g_overlay_render_mode = 2;
+    SetOverlayRenderMode();
     instance->render_state_164.position_x = static_cast<short>(x);
     instance->render_state_164.position_y = static_cast<short>(y);
 }
@@ -3125,7 +3120,7 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
         node = Video2DRectToPolygon(source_rect, pixels, static_cast<int>(pitch), g_scene_user, a5);
         g_paired_render_mode = 2;
     }
-    g_overlay_render_mode = 2;
+    SetOverlayRenderMode();
     UnLockVideoSurface(static_cast<UINT32>(target));
     instance = static_cast<stModelInstance2D*>(node);
     if (instance != 0) {
@@ -3144,7 +3139,7 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
         instance->render_state_164.width = width;
     }
     /* Retail writes display_state even when the node factory returned null. */
-    instance->render_state_164.display_state = 3;
+    SetModelInstance2DDisplayState(instance, 3);
     return instance;
 }
 
@@ -3194,7 +3189,7 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
 
     instance->render_state_164.width = static_cast<unsigned short>(width);
     instance->render_state_164.height = static_cast<unsigned short>(height);
-    instance->render_state_164.display_state = 3;
+    SetModelInstance2DDisplayState(instance, 3);
     if (a4 != 0) {
         instance->setParent(g_scene_fullscreen, 1);
     }

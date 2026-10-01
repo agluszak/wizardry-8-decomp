@@ -3712,7 +3712,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
     }
 
 finish:
-    g_octree_game_data = 0;
+    SetOctreeGameData(0);
     *game_data = 0;
     if (fSuccess != 0 && header.gd_surface_stream_len_86 != 0) {
         pGameData = new W8GameData(hOctFile, false);
@@ -3732,7 +3732,7 @@ finish:
         g_octree = this;
         pGameData->octree_04 = this;
         *game_data = pGameData;
-        g_octree_game_data = pGameData;
+        SetOctreeGameData(pGameData);
         m_region_links_ready_169 = ReadRegionLinkFile(m_owned_0c0);
         LoadPointFiles(m_owned_0c0);
         if (pathing_180 != 0) {

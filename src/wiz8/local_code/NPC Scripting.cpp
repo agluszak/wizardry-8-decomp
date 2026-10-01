@@ -478,7 +478,7 @@ void ProcessNpcScriptingFrame(void)
          g_npc_scripting.sedexus_release_pending != 0) &&
         ((environment = GetEnvironmentValue(), environment == 0) ||
          (environment = GetEnvironmentValue(), environment == 2))) {
-        g_npc_scripting.scripted_scene_active = 0;
+        ClearScriptedSceneActive();
         if (g_npc_scripting.sedexus_release_pending == 0) {
             memset(&local_sound_parms, 0xff, sizeof(SOUNDPARMS));
             g_sedexus_sound_handle = static_cast<int>(SoundPlayStreamedFile(
@@ -2584,7 +2584,7 @@ void BeginNpcScriptedScene(void)
 {
     int party_slot;
 
-    g_npc_scripting.scripted_scene_active = 1;
+    SetScriptedSceneActive();
     ResetLevelDataVectors();
     gXStatus.scripted_scene_19b7 = 1;
     SetTargetingMode(1);
@@ -2627,7 +2627,7 @@ void EndScriptedPortraitPick(int party_slot)
             DisableRegionInput(slot + 0x5a);
         }
     }
-    g_npc_scripting.scripted_scene_active = 0;
+    ClearScriptedSceneActive();
     gXStatus.scripted_scene_19b7 = 0;
     other_gender_present = false;
     SetFact(0x1c0, 0, 0);
@@ -2681,7 +2681,7 @@ void BeginSedexusCapture(void)
 {
     unsigned int party_slot;
 
-    g_npc_scripting.scripted_scene_active = 1;
+    SetScriptedSceneActive();
     BeginScriptedWorldAction();
     g_npc_scripting.sedexus_capture_pending = 1;
     g_npc_scripting.sedexus_capture_active = 1;
@@ -2724,7 +2724,7 @@ void ResolveSedexusCapture(void)
             }
         }
     }
-    g_npc_scripting.scripted_scene_active = 1;
+    SetScriptedSceneActive();
     g_npc_scripting.sedexus_release_pending = 1;
     BeginWorldLightingFade(1000.0f);
     trigger = FindTriggerByName("al-seduxusgate");
