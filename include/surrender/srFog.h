@@ -14,10 +14,14 @@ public:
 
     SR_DLL_IMPORT srFog(srNode* parent = 0);
     SR_DLL_IMPORT srFog(const srFog& other);
-    /* Copy assignment is the implicit srIlluminator assignment followed by
-       the three fog fields; class-level export supplies the standalone copy. */
+    /* Provider-side copy assignment is implicit: srIlluminator assignment
+       followed by the three fog fields. Wiz8 imports the standalone symbol,
+       so the consumer keeps only the dllimport declaration. */
     // SYNTHETIC: SURRENDER 0x1004BCA0
     // srFog::operator=
+#if !defined(SURRENDER_BUILD)
+    SR_DLL_IMPORT srFog& operator=(const srFog& other);
+#endif
     /* Header-visible like srLight's: the client getClassName emission
        (0x00484710) returns the consumer literal directly, the consumer import
        table has no entry, and provider TUs inline the same literal inside the
