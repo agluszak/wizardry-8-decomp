@@ -191,23 +191,21 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
     return 1;
 }
 
-/* The screen's one drawn frame: the level's own backdrop, the progress bar's
-   two pieces and the caption. The frame handler emits it from two places - the
-   parked path and the ordinary path - and the retail body carries both copies,
-   which is why it is written out at each site rather than factored here. */
-#define PLEASE_WAIT_SCREEN_DRAW()                                                                  \
-    do {                                                                                           \
-        int backdrop = static_cast<unsigned int>(g_load_descriptor->parameter) < W8_LEVEL_COUNT    \
-                           ? g_level_backdrops[g_load_descriptor->parameter]                       \
-                           : 0xe4;                                                                 \
-        DrawCatalogImage(-14, backdrop, 0, 0, 0, 0, 2, 0);                                         \
-        DrawCatalogImage(-14, 0x1de, 0, 0, 0, 0x1be, 2, 0);                                        \
-        SetFont(g_level_load_font);                                                                \
-        gprintf(0x6a, 0x1c7, (unsigned short*)"%", /* c-style-cast-ok: SGP UINT16* format */       \
-                g_load_descriptor->caption);                                                       \
-        DrawCatalogImage(-14, 0x1dd, 0, g_load_descriptor->caption_y, 0, 0x185, 2, 0);             \
-        ResetTransientRenderScenes();                                                              \
-    } while (0)
+/* Draw the loading screen's backdrop, progress frame and caption. Retail
+   expands this helper at both frame-handler call sites. */
+static inline void DrawPleaseWaitScreen()
+{
+    int backdrop = static_cast<unsigned int>(g_load_descriptor->parameter) < W8_LEVEL_COUNT
+                       ? g_level_backdrops[g_load_descriptor->parameter]
+                       : 0xe4;
+    DrawCatalogImage(-14, backdrop, 0, 0, 0, 0, 2, 0);
+    DrawCatalogImage(-14, 0x1de, 0, 0, 0, 0x1be, 2, 0);
+    SetFont(g_level_load_font);
+    gprintf(0x6a, 0x1c7, (unsigned short*)"%", /* c-style-cast-ok: SGP UINT16* format */
+            g_load_descriptor->caption);
+    DrawCatalogImage(-14, 0x1dd, 0, g_load_descriptor->caption_y, 0, 0x185, 2, 0);
+    ResetTransientRenderScenes();
+}
 
 /* The frame handler, and the body whose five assertions name this unit.
    Two passes in one: while the screen is parked on a missing disc it polls the
@@ -229,7 +227,7 @@ void PleaseWaitScreenFrame(void)
                     RequestScreenTransition();
                     return;
                 }
-                PLEASE_WAIT_SCREEN_DRAW();
+                DrawPleaseWaitScreen();
                 RenderFrame();
                 return;
             }
@@ -273,7 +271,7 @@ void PleaseWaitScreenFrame(void)
         }
     }
 
-    PLEASE_WAIT_SCREEN_DRAW();
+    DrawPleaseWaitScreen();
     RenderFrame();
     RenderFrame();
     DisableCursorScene();
