@@ -555,8 +555,7 @@ bool IsMonsterGroupLive(W8MonsterGroup* monster_group)
     return 0;
 }
 
-/* Walk plsMonsterGroupList and return the Nth live combat group. The live
-   filter is the same as IsMonsterGroupLive; retail inlines those tests. */
+/* Walk plsMonsterGroupList and return the Nth live combat group. */
 // FUNCTION: WIZ8 0x00510ac0
 W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index)
 {
@@ -567,8 +566,7 @@ W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index)
     if (count != 0) {
         do {
             group = GetMonsterGroupByListIndex(group_list_index);
-            if (group->members_active != 0 && group->fInCombat != 0 && group->member_count > 0 &&
-                (group->ubDisposition == 1 || CombatAllowsLiveGroups() != 0)) {
+            if (IsMonsterGroupLive(group)) {
                 if (index == 0) {
                     return group;
                 }
