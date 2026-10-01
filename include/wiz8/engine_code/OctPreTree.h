@@ -41,7 +41,7 @@ struct W8OctSpatialState {
     explicit W8OctSpatialState(const W8OctSpatialState* source = 0);
     ~W8OctSpatialState();
 
-    void Reset0046CDC0();
+    void Reset();
     void GetClippedBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
     void GetWorkingBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
     void SetWorkingBounds(const srVector3T<float>* minimum, const srVector3T<float>* maximum);
