@@ -2849,25 +2849,7 @@ void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Cha
         GetOriginOfCharacterItem(held_character, source, &held_origin, &held_slot);
     }
 
-    if (source == &g_status.item_in_hand_235b) {
-        gXStatus.held_item_source = -1;
-        gXStatus.held_item_origin = 0xff;
-        gXStatus.held_item_slot = 0xffff;
-        ClearHeldItemDisplay();
-    } else {
-        memset(source, 0, sizeof(*source));
-        source->iItemNo = -1;
-        RefreshAfterItemRecordChange(source, character, refresh);
-    }
-
-    if (source >= g_status.party_item_pool_0021 && source <= &g_status.party_item_pool_0021[499]) {
-        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
-            if (source == &g_status.party_item_pool_0021[index]) {
-                RemovePartyPoolEntry(index);
-                break;
-            }
-        }
-    }
+    EmptyItemRecord(source, character, refresh);
 
     RefreshAfterItemRecordChange(destination, character, refresh);
     if (destination == &g_status.item_in_hand_235b) {
@@ -3703,25 +3685,7 @@ void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_
         }
     }
 
-    if (item == &g_status.item_in_hand_235b) {
-        gXStatus.held_item_source = -1;
-        gXStatus.held_item_origin = 0xff;
-        gXStatus.held_item_slot = 0xffff;
-        ClearHeldItemDisplay();
-    } else {
-        memset(item, 0, sizeof(*item));
-        item->iItemNo = -1;
-        RefreshAfterItemRecordChange(item, character, 1);
-    }
-
-    if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
-        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
-            if (item == &g_status.party_item_pool_0021[index]) {
-                RemovePartyPoolEntry(index);
-                break;
-            }
-        }
-    }
+    EmptyItemRecord(item, character, 1);
 }
 
 /* The same pairing as EquipMatchingPartnerItem, but for the items that carry a
