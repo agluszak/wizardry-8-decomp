@@ -52,8 +52,11 @@ print(
 print()
 print("#### Function recovery")
 print()
-print("| Target | Recovered | Retail | Recovery | Paired | Unpaired |")
-print("| --- | ---: | ---: | ---: | ---: | ---: |")
+print(
+    "| Target | Recovered | Retail | Recovery | Paired | Unpaired source bodies "
+    "| Name-ref non-emissions |"
+)
+print("| --- | ---: | ---: | ---: | ---: | ---: | ---: |")
 for target, row in rows:
     project = row["project"]
     head, delta = project["head"], project["delta"]
@@ -63,7 +66,8 @@ for target, row in rows:
         f"| {count_with_delta(head.get('original_functions'), delta.get('original_functions'))} "
         f"| {ratio_with_delta(head.get('source_coverage'), delta.get('source_coverage'))} "
         f"| {count_with_delta(head['paired'], delta.get('paired'))} "
-        f"| {count_with_delta(head['unpaired'], delta.get('unpaired'))} |"
+        f"| {count_with_delta(head.get('unpaired_source_bodies'), delta.get('unpaired_source_bodies'))} "
+        f"| {count_with_delta(head.get('name_ref_non_emissions'), delta.get('name_ref_non_emissions'))} |"
     )
 
 comparison_rows = [(target, row["comparison"]) for target, row in rows if row.get("comparison")]
@@ -150,22 +154,31 @@ if allocator_rows:
                 f"| {', '.join(entry['rebuild'])} |"
             )
 
-blast_rows = [
-    (target, comparison["header_blast_radius"])
+candidate_rows = [
+    (target, comparison["header_candidates"])
     for target, comparison in comparison_rows
-    if comparison.get("header_blast_radius")
+    if comparison.get("header_candidates") and comparison["header_candidates"]["groups"]
 ]
-if blast_rows:
+if candidate_rows:
     print()
-    print("#### Regressions by changed header")
+    print("#### Regressions in files directly including changed headers")
     print()
-    print("| Target | Header | Newly different | Examples |")
+    print(
+        "_Regressions grouped by the set of changed headers their marker file includes "
+        "directly. These are review candidates, not causes._"
+    )
+    print()
+    print("| Target | Changed headers | Newly different | Examples |")
     print("| --- | --- | ---: | --- |")
-    for target, groups in blast_rows:
-        for group in groups[:10]:
+    for target, candidates in candidate_rows:
+        for group in candidates["groups"][:10]:
+            headers = ", ".join(f"`{header}`" for header in group["headers"])
             examples = ", ".join(f"`{item['name']}`" for item in group["representatives"][:3])
+            print(f"| `{target}` | {headers} | {group['newly_different']:,} | {examples} |")
+        if candidates["without_direct_changed_header"]:
             print(
-                f"| `{target}` | `{group['header']}` | {group['newly_different']:,} | {examples} |"
+                f"| `{target}` | _no direct changed include_ "
+                f"| {candidates['without_direct_changed_header']:,} | |"
             )
 
 data_rows = [(target, row["datacmp"]) for target, row in rows if row.get("datacmp")]

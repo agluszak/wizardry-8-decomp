@@ -11,6 +11,7 @@ prefix="$6"
 head_summary="$RUNNER_TEMP/$prefix-head-summary.json"
 base_summary="$RUNNER_TEMP/$prefix-base-summary.json"
 base_ghidriff="$RUNNER_TEMP/$prefix-base-ghidriff.json"
+base_direct_calls="$RUNNER_TEMP/$prefix-base-direct-calls.json"
 base_status="$RUNNER_TEMP/$prefix-base-status.json"
 base_datacmp="$RUNNER_TEMP/$prefix-base-datacmp.json"
 
@@ -48,6 +49,9 @@ if [[ -s "$head_summary" ]]; then
     fi
     cp "$latest/summary.json" "$base_summary"
     cp "$latest/json/$target.ghidriff.json" "$base_ghidriff"
+    if [[ -f "$latest/direct-calls.json" ]]; then
+      cp "$latest/direct-calls.json" "$base_direct_calls"
+    fi
     if (( compare_status != 0 )); then
       echo "::notice::merge-base comparison has unpaired/incomplete selected functions"
     fi
