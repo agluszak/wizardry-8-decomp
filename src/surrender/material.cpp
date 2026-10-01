@@ -553,9 +553,6 @@ const char* srMaterialIFace::sGetClassName()
     return "srMaterialIFace";
 }
 
-// SYNTHETIC: SURRENDER 0x10034C70
-// srMaterialIFace::srMaterialIFace (implicit copy constructor)
-
 // FUNCTION: SURRENDER 0x10034DB0
 std::ostream& operator<<(std::ostream& stream, const srShader& shader)
 {
