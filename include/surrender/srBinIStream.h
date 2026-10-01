@@ -36,6 +36,7 @@ public:
     // srBinIStream::operator=
     // SYNTHETIC: SURRENDER 0x1002EF30
     // srBinIStream::~srBinIStream
+
 #if !defined(SURRENDER_BUILD)
     srBinIStream() {}
     SR_DLL_IMPORT srBinIStream(const srBinIStream& stream);
@@ -119,6 +120,7 @@ public:
        evidenced header-visible empty body. */
     // SYNTHETIC: SURRENDER 0x10030CE0
     // srBinIMStream::~srBinIMStream
+
 #if !defined(SURRENDER_BUILD)
     virtual ~srBinIMStream() override {}
 #endif

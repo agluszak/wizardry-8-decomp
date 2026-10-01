@@ -31,6 +31,7 @@ public:
     // srBinOStream::operator=
     // SYNTHETIC: SURRENDER 0x100302B0
     // srBinOStream::~srBinOStream
+
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srBinOStream();
     SR_DLL_IMPORT srBinOStream(const srBinOStream& stream);
@@ -82,10 +83,12 @@ public:
     // srBinOMStream::srBinOMStream(const srBinOMStream&)
     // SYNTHETIC: SURRENDER 0x10031330
     // srBinOMStream::~srBinOMStream
+
     /* Implicit assignment: retail emits it via the class-level dllexport as a
        memberwise copy (the srArray assignment owns the buffer reallocation). */
     // SYNTHETIC: SURRENDER 0x10031250
     // srBinOMStream::operator=
+
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srBinOMStream(const srBinOMStream& stream);
     virtual SR_DLL_IMPORT ~srBinOMStream() override;

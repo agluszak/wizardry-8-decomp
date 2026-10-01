@@ -30,6 +30,7 @@ public:
     // srIOManager::srIOManager(const srIOManager&)
     // SYNTHETIC: SURRENDER 0x1002CDD0
     // srIOManager::operator=
+
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srIOManager(const srIOManager& manager);
     SR_DLL_IMPORT srIOManager& operator=(const srIOManager& manager);

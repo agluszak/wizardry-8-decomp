@@ -316,6 +316,39 @@ srPalette::Quantizer::Quantizer()
     color_count = 0;
 }
 
+// FUNCTION: SURRENDER 0x10004B80
+srPalette::Quantizer::~Quantizer() {}
+
+// FUNCTION: SURRENDER 0x10004D00
+srPalette::Quantizer::Quantizer(const Quantizer& other)
+{
+    long index;
+    for (index = 0; index < 0x10000; ++index) {
+        lut_rg[index] = other.lut_rg[index];
+    }
+    for (index = 0; index < 0x10000; ++index) {
+        lut_rgb[index] = other.lut_rgb[index];
+    }
+    for (index = 0; index < 0x100; ++index) {
+        palette[index] = other.palette[index];
+    }
+    for (index = 0; index < 0x100; ++index) {
+        duplicate[index] = other.duplicate[index];
+    }
+    color_count = other.color_count;
+    red_bits = other.red_bits;
+    green_bits = other.green_bits;
+    blue_bits = other.blue_bits;
+    for (index = 0; index < 0x100; ++index) {
+        entries[index] = other.entries[index];
+    }
+    entry_count = other.entry_count;
+    lut_row = other.lut_row;
+    for (index = 0; index < 0x100; ++index) {
+        rg_dist[index] = other.rg_dist[index];
+    }
+}
+
 // SYNTHETIC: SURRENDER 0x10004DD0
 // srPalette::Quantizer::operator= (implicit)
 

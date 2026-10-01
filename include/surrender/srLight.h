@@ -65,6 +65,7 @@ public:
        0x1004ED70 emission is the compiler-generated destructor. */
     // SYNTHETIC: SURRENDER 0x1004ED70
     // srLight::~srLight
+
 #if !defined(SURRENDER_BUILD)
     virtual ~srLight() override {}
 #endif

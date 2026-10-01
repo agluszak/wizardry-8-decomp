@@ -17,12 +17,8 @@ _ANALYZED = frozenset({"differences", "no-differences"})
 # than one allocator family, and a call census does not prove pointer ownership.
 _SRHEAP_ALLOCATE = re.compile(r"srHeap(?:::|_+)allocate|_allocate_srHeap")
 _SRHEAP_FREE = re.compile(r"srHeap(?:::|_+)free|_free_srHeap")
-_CRT_ALLOCATE = re.compile(
-    r"(?:^|::)operator_?new|^_+2_YA|\?\?2@|(?:^|::)_?(?:malloc|calloc)$"
-)
-_CRT_FREE = re.compile(
-    r"(?:^|::)operator_?delete|^_+3_YA|\?\?3@|(?:^|::)_?free$"
-)
+_CRT_ALLOCATE = re.compile(r"(?:^|::)operator_?new|^_+2_YA|\?\?2@|(?:^|::)_?(?:malloc|calloc)$")
+_CRT_FREE = re.compile(r"(?:^|::)operator_?delete|^_+3_YA|\?\?3@|(?:^|::)_?free$")
 _CRT_RESIZE = re.compile(r"(?:^|::)_?realloc$")
 
 

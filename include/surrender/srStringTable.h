@@ -18,6 +18,7 @@ public:
        copy of this class. */
     // SYNTHETIC: SURRENDER 0x10003AC0
     // srStringTable::srStringTable(const srStringTable&)
+
     ~srStringTable();
     srStringTable& operator=(const srStringTable& other);
     char* operator[](int index);

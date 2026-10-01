@@ -19,6 +19,7 @@ public:
        so the consumer keeps only the dllimport declaration. */
     // SYNTHETIC: SURRENDER 0x1004BCA0
     // srFog::operator=
+
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srFog& operator=(const srFog& other);
 #endif

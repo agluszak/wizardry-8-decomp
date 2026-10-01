@@ -24,6 +24,7 @@ public:
     // srMaterialIFace::srMaterialIFace(const srMaterialIFace&)
     // SYNTHETIC: SURRENDER 0x10016310
     // srMaterialIFace::~srMaterialIFace
+
 #if !defined(SURRENDER_BUILD)
     srMaterialIFace();
     virtual ~srMaterialIFace();
@@ -33,6 +34,7 @@ public:
        dllimport declaration. */
     // SYNTHETIC: SURRENDER 0x10034D80
     // srMaterialIFace::operator=
+
 #if !defined(SURRENDER_BUILD)
     srMaterialIFace& operator=(const srMaterialIFace& other);
 #endif

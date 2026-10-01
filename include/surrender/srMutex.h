@@ -14,6 +14,7 @@ public:
     // srMutex::srMutex(const srMutex&)
     // SYNTHETIC: SURRENDER 0x100458F0
     // srMutex::operator=
+
     virtual ~srMutex();
 
     int accessAvailable();

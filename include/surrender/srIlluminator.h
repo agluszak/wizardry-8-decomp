@@ -32,6 +32,7 @@ public:
        Wiz8 imports the standalone public destructor. */
     // SYNTHETIC: SURRENDER 0x1004C6E0
     // srIlluminator::~srIlluminator
+
 #if !defined(SURRENDER_BUILD)
     virtual SR_DLL_IMPORT ~srIlluminator() override;
 #endif

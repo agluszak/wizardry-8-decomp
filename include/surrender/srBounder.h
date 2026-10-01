@@ -25,6 +25,7 @@ public:
     /* Empty derived destruction is the implicit srNode-base teardown. */
     // SYNTHETIC: SURRENDER 0x1004B2E0
     // srBounder::~srBounder
+
     virtual void dump(std::ostream& stream) override;
     virtual srClass* vInstance() override;
     virtual void traverse(TraverseInfo& info) override;

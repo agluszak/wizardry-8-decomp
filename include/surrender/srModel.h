@@ -26,6 +26,7 @@ public:
         // srModel::Client::Client(const Client&)
         // SYNTHETIC: SURRENDER 0x1003C750
         // srModel::Client::operator=
+
         virtual ~Client();
         virtual void setModel(srModel* model);
         virtual void updateClient(e_update update);
@@ -44,6 +45,7 @@ public:
 
     // SYNTHETIC: SURRENDER 0x1003C7B0
     // srModel::srModel(const srModel&)
+
     srModel& operator=(const srModel& other);
     friend class Client;
 

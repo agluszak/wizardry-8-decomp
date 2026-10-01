@@ -34,6 +34,7 @@ public:
     // srFileManager::srFileManager(const srFileManager&)
     // SYNTHETIC: SURRENDER 0x100163E0
     // srFileManager::operator=
+
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srFileManager(const srFileManager& other);
     SR_DLL_IMPORT srFileManager& operator=(const srFileManager& other);

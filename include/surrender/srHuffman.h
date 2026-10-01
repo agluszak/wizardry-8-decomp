@@ -101,6 +101,7 @@ public:
            imports the standalone destructor, so only the consumer declares it. */
         // SYNTHETIC: SURRENDER 0x100016F0
         // srHuffman::Sampler::~Sampler
+
 #if !defined(SURRENDER_BUILD)
         SR_DLL_IMPORT ~Sampler();
 #endif
