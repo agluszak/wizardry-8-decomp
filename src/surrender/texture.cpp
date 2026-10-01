@@ -59,12 +59,6 @@ const char* srTexture::sGetClassName()
     return "srTexture";
 }
 
-/* Retail delegates to operator= then overwrites the fresh members with a
-   memberwise copy of the source — srTextureIFace::Dimensions copies its
-   srPtr<srPalette> with copy-constructor semantics (addref, no release). */
-// SYNTHETIC: SURRENDER 0x1005F150
-// srTexture::srTexture (implicit copy constructor)
-
 // FUNCTION: SURRENDER 0x1005E440
 srTexture::srTexture()
 {

@@ -129,7 +129,7 @@ int stModelInstance::AddDamageStage(const char* name)
     }
 
     int stage = damage_stage_tables_188.capacity;
-    damage_stage_tables_188.setCapacity(stage + 1);
+    damage_stage_tables_188.setCapacity(stage + 1, 1);
 
     int base_table = stage > 0 ? damage_stage_tables_188.data[0] : -1;
     damage_stage_tables_188.data[stage] = mesh->CreateSkinTable(name, base_table);
@@ -150,7 +150,7 @@ int stModelInstance::AddExistingDamageStage(const char* name)
     }
 
     int stage = damage_stage_tables_188.capacity;
-    damage_stage_tables_188.setCapacity(stage + 1);
+    damage_stage_tables_188.setCapacity(stage + 1, 1);
     damage_stage_tables_188.data[stage] = table;
     return stage;
 }
