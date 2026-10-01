@@ -3133,7 +3133,6 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
     W8CombatSlot char_target;
     W8Dice dice;
     W8MonsterInfo* monster_info;
-    W8MonsterInfo* notice_info;
     W8MonsterRecord* monster_record;
     unsigned int difficulty;
     unsigned int amount;
@@ -3141,7 +3140,6 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
     unsigned int condition_turns;
     unsigned int resisted_total;
     unsigned int hit_count;
-    unsigned int monster_index;
     int power;
     int percent;
     int duration_base;
@@ -3378,8 +3376,6 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
     int cost;
     W8Character* character;
     W8MonsterInfo* monster_info;
-    W8MonsterInfo* notice_info;
-    unsigned int monster_index;
     W8ItemInstance* item;
     W8EffectSlot* slot;
 
