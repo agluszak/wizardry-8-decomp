@@ -924,17 +924,6 @@ void srInlineString::insert(const srInlineString& text, unsigned long position)
     *this = result;
 }
 
-/* The retail emission is a bare ret; ours still stores the vftable before
-   returning, the same destructor-vptr gap ~srBinIStream records. */
-// FUNCTION: SURRENDER 0x10016850
-srFStreamOpener::~srFStreamOpener() {}
-
-// FUNCTION: SURRENDER 0x10032450
-srFStreamOpener& srFStreamOpener::operator=(const srFStreamOpener& other)
-{
-    return *this;
-}
-
 // FUNCTION: SURRENDER 0x10032380
 const char* srFStreamOpener::getDescription() const
 {
