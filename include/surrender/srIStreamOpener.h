@@ -96,8 +96,12 @@ public:
     // FUNCTION: SURRENDER 0x10032440
     // ??0srFStreamOpener@@QAE@XZ
     srFStreamOpener() {}
-    virtual ~srFStreamOpener() override;
-    srFStreamOpener& operator=(const srFStreamOpener& other);
+    /* The private copy declaration below suppresses the missing retail copy
+       constructor; assignment and destruction are otherwise compiler-owned. */
+    // SYNTHETIC: SURRENDER 0x10032450
+    // srFStreamOpener::operator=
+    // SYNTHETIC: SURRENDER 0x10016850
+    // srFStreamOpener::~srFStreamOpener
 
     virtual srBinIStream* open(const char* path) override;
     virtual const char* getDescription() const override;
