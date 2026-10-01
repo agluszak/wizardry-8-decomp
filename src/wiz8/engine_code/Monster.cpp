@@ -2009,7 +2009,7 @@ void W8Monster::ProcessScript()
                 if (_stricmp(token, "home") == 0) {
                     position = formation;
                 } else if (_stricmp(token, "off_camera") == 0) {
-                    position.x = position.y = position.z = -10000000.0f;
+                    position = -10000000.0f;
                 } else if (FindEntityByName(token, &position, 0, 0) == 0) {
                     break;
                 }
@@ -2035,7 +2035,7 @@ void W8Monster::ProcessScript()
                 if (_stricmp(token, "home") == 0) {
                     position = formation;
                 } else if (_stricmp(token, "off_camera") == 0) {
-                    position.x = position.y = position.z = -10000000.0f;
+                    position = -10000000.0f;
                 } else if (FindEntityByName(token, &position, 0, 0) == 0) {
                     break;
                 }
@@ -2116,7 +2116,7 @@ void W8Monster::ProcessScript()
                 if (_stricmp(token, "home") == 0) {
                     target = formation;
                 } else if (_stricmp(token, "off_camera") == 0) {
-                    target.x = target.y = target.z = -10000000.0f;
+                    target = -10000000.0f;
                 } else if (FindEntityByName(token, &target, 0, 0) == 0) {
                     break;
                 }
@@ -2142,7 +2142,7 @@ void W8Monster::ProcessScript()
                     if (_stricmp(token, "home") == 0) {
                         position = formation;
                     } else if (_stricmp(token, "off_camera") == 0) {
-                        position.x = position.y = position.z = -10000000.0f;
+                        position = -10000000.0f;
                     } else if (FindEntityByName(token, &position, 0, 0) == 0) {
                         break;
                     }
@@ -2424,7 +2424,7 @@ void W8Monster::ProcessScript()
                     if (_stricmp(token, "home") == 0) {
                         position = formation;
                     } else if (_stricmp(token, "off_camera") == 0) {
-                        position.x = position.y = position.z = -10000000.0f;
+                        position = -10000000.0f;
                     } else if (FindEntityByName(token, &position, 0, 0) == 0) {
                         continue;
                     }
@@ -3229,11 +3229,7 @@ srModelInstance* W8MonsterRep::SetCycleFrameLod(signed char cycle, signed char f
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
 
-    if (subcycle < selected_cycle->GetCount()) {
-        animation_slot = selected_cycle->data + subcycle;
-    } else {
-        animation_slot = selected_cycle->data;
-    }
+    animation_slot = selected_cycle->GetAt(subcycle);
     animation = *animation_slot;
     if (animation->path_lists_05 == 0) {
         return AnimObjDispatch(animation, lod, frame);
@@ -3296,9 +3292,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         float scale_y = static_cast<float>(source_scale.y) * scale_y_1ec;
         float scale_z = static_cast<float>(source_scale.z);
         srVector3T<double> scale;
-        scale.x = source_scale.x;
-        scale.y = (double)scale_y;
-        scale.z = (double)scale_z;
+        scale.Set(source_scale.x, scale_y, scale_z);
         model->setScale(scale);
         scale_y_1ec -= g_float_005ebc3c;
     }
@@ -3420,11 +3414,7 @@ unsigned int W8MonsterRep::ApplyEmitterSetting(signed char cycle)
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
 
-    if (current_subcycle < selected_cycle->GetCount()) {
-        animation_slot = selected_cycle->data + current_subcycle;
-    } else {
-        animation_slot = selected_cycle->data;
-    }
+    animation_slot = selected_cycle->GetAt(current_subcycle);
     animation = *animation_slot;
     if (animation == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp", 0x2de, 0);

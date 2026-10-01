@@ -96,9 +96,7 @@ bool LoadPathAI(W8PathAI** output, int handle)
             FileRead(handle, &point->x, 4, 0);
             FileRead(handle, &point->y, 4, 0);
             FileRead(handle, &point->z, 4, 0);
-            point->x = static_cast<float>(point->x * g_double_005ec150);
-            point->y = static_cast<float>(point->y * g_double_005ec150);
-            point->z = static_cast<float>(point->z * g_double_005ec150);
+            *point *= g_double_005ec150;
             PathAIAddPoint(path, point);
 
             FileRead(handle, &angle, 4, 0);
@@ -274,8 +272,7 @@ W8PathAI* ClonePathAI(const W8PathAI* source)
     }
     copy->scales_18 = 0;
     if (source->scales_18 != 0) {
-        copy->scales_18 =
-            new srVector3T<float>[count];
+        copy->scales_18 = new srVector3T<float>[count];
         for (index = 0; index < count; ++index) {
             copy->scales_18[index] = source->scales_18[index];
         }

@@ -277,10 +277,8 @@ void GDCamera::ApplyRotationMatrix(srMatrix3T<float>* rotation, W8LevelDataRecor
             context->camera_forward_4c.Set(forward_x * g_camera_level_forward_scale,
                                            forward_y * g_camera_level_forward_scale,
                                            forward_z * g_camera_level_forward_scale);
-            context->scaled_camera_forward_7c.Set(
-                context->camera_forward_4c.x * context->camera_scale_14,
-                context->camera_forward_4c.y * context->camera_scale_14,
-                context->camera_forward_4c.z * context->camera_scale_14);
+            context->scaled_camera_forward_7c =
+                context->camera_forward_4c * context->camera_scale_14;
         }
 
         if (forward_y > g_float_005ebb38) {

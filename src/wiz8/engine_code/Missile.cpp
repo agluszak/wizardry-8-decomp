@@ -746,7 +746,7 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
         missile->SetPitch(pitch);
         octree = g_world->octree;
         if (octree != 0) {
-            end.Set(direction.x * duration, direction.y * duration, direction.z * duration);
+            end = direction * duration;
             end = end + *source;
             if (octree->TraceLineOfSight(source, &end, 0, -3, -3, 1, 0) != 0) {
                 end -= *source;

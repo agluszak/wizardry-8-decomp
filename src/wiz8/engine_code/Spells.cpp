@@ -303,9 +303,9 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
             srVector3T<float> monster_position = monster->GetPosition();
 
             monster->GetAnimationBounds(&minimum, &maximum);
-            position.x = monster_position.x;
-            position.y = monster_position.y + (maximum.y - minimum.y) * g_float_005ebc7c;
-            position.z = monster_position.z;
+            position.Set(monster_position.x,
+                         monster_position.y + (maximum.y - minimum.y) * g_float_005ebc7c,
+                         monster_position.z);
             SetPosition004A6DF0(&position);
         }
     } else if (mode_1d8 == W8_SPELL_VISUAL_CONE) {

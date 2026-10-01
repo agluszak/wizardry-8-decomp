@@ -528,7 +528,7 @@ void GDProp::ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim)
             node = transform->pathAI_06.pScaledPaths[frame];
         } else {
             node.path = transform->pathAI_06.pPaths[frame];
-            node.scale.x = node.scale.y = node.scale.z = 1.0f;
+            node.scale = 1.0f;
         }
         TransformMeshGeometry(&node, &transform->LODMesh_02.pFrames->mesh_01);
     }
@@ -555,18 +555,14 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
     if (node->path.angle_0c != g_zero_005ebb40) {
         rotation.RotateAroundAxis(sin(node->path.angle_0c), cos(node->path.angle_0c), axis);
     }
-    translation.Set(node->path.position_00.x * g_double_005ec150,
-                    node->path.position_00.y * g_double_005ec150,
-                    node->path.position_00.z * g_double_005ec150);
+    translation = node->path.position_00 * g_double_005ec150;
 
     if ((mesh->flags_0c & 1) != 0 && (mesh->flags_0c & 2) != 0) {
         factor = mesh->lod_scale_58 * g_world_scale;
     } else {
         factor = static_cast<float>(g_double_005ec150);
     }
-    scale.x = node->scale.x * factor;
-    scale.y = node->scale.y * factor;
-    scale.z = node->scale.z * factor;
+    scale = node->scale * factor;
 
     matrix.SetRotation(rotation);
     matrix.SetTranslation(translation);

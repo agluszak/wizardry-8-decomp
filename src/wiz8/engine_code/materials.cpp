@@ -503,9 +503,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                         sun_count = 1;
                         for (i = 0; i < static_cast<int>(light_total); ++i) {
                             src_light = lights + i;
-                            src_light->position_08.x = src_light->position_08.x * g_world_scale;
-                            src_light->position_08.y = src_light->position_08.y * g_world_scale;
-                            src_light->position_08.z = src_light->position_08.z * g_world_scale;
+                            src_light->position_08 *= g_world_scale;
                             src_light->colour_14.x = src_light->colour_14.x * g_world_scale;
                             strcpy(name, src_light->name_28);
                             name[19] = 0;
@@ -1603,8 +1601,7 @@ int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight*
     srVector3T<float> position;
     srVector3T<float> corner;
 
-    position.Set(prop->position_03.x * g_world_scale, prop->position_03.y * g_world_scale,
-                 prop->position_03.z * g_world_scale);
+    position = prop->position_03 * g_world_scale;
     if (tree->SegmentClear(&light->position_08, &position)) {
         return 1;
     }
@@ -2260,10 +2257,9 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
             concrete->parms.shininess = 1.0f;
             concrete->dirty_74 = 1;
 
-            concrete->parms.diffuse.x = source->diffuse_0d5[0];
-            concrete->parms.diffuse.y = source->diffuse_0d5[1];
-            concrete->parms.diffuse.z = source->diffuse_0d5[2];
-            concrete->parms.diffuse.w = source->opacity_0fd == 0.0f ? 0.7f : source->opacity_0fd;
+            concrete->parms.diffuse.Set(source->diffuse_0d5[0], source->diffuse_0d5[1],
+                                        source->diffuse_0d5[2],
+                                        source->opacity_0fd == 0.0f ? 0.7f : source->opacity_0fd);
             concrete->dirty_74 = 1;
             concrete->setOpacity(source->opacity_0fd == 0.0f ? 0.7f : source->opacity_0fd);
 

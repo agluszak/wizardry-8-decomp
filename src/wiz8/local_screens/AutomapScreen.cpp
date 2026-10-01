@@ -1288,9 +1288,9 @@ void ResetAutomapZoom(void)
 unsigned char ZoomAutomapIn(const srVector3T<float>* point)
 {
     srVector3T<float> position;
-    position.x = (point->x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x;
-    position.y = g_automap_top_y;
-    position.z = g_automap_position.z - (point->y - g_float_005ebc7c) * g_automap_zoom;
+    position.Set((point->x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x,
+                 g_automap_top_y,
+                 g_automap_position.z - (point->y - g_float_005ebc7c) * g_automap_zoom);
 
     srVector3T<float> from;
     srVector3T<float> to;

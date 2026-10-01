@@ -393,10 +393,7 @@ void W8Item::SetHighlight(bool enabled)
             alpha = 1.0f;
         }
     }
-    rep->highlight_colour_04c.x = 0.0f;
-    rep->highlight_colour_04c.y = green;
-    rep->highlight_colour_04c.z = blue;
-    rep->highlight_colour_04c.w = alpha;
+    rep->highlight_colour_04c.Set(0.0f, green, blue, alpha);
 }
 
 // FUNCTION: WIZ8 0x0049FF40

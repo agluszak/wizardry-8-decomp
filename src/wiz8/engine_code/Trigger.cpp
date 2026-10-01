@@ -1202,9 +1202,8 @@ void W8TriggerEvent::Update()
                                           axis);
             }
 
-            transformed.x = DotProduct(rotation.vectors[1], target);
-            transformed.y = DotProduct(rotation.vectors[2], target);
-            transformed.z = DotProduct(axis, target);
+            transformed.Set(DotProduct(rotation.vectors[1], target),
+                            DotProduct(rotation.vectors[2], target), DotProduct(axis, target));
             FireMissile(static_cast<unsigned int>(trigger_030->m_lData1), &source, &transformed, 0,
                         1, 1, 50000.0f);
         }
@@ -1735,9 +1734,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         unsigned char looping = 0;
         unsigned char shared = 0;
 
-        region_center.x = region_center.y = region_center.z = 0.0f;
-        region_min.x = region_min.y = region_min.z = 0.0f;
-        region_max.x = region_max.y = region_max.z = 0.0f;
+        region_center = 0.0f;
+        region_min = 0.0f;
+        region_max = 0.0f;
 
         FileRead(handle, &version, 1, 0);
         FileRead(handle, &volume_min, 4, 0);

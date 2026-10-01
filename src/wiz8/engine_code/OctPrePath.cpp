@@ -150,9 +150,7 @@ int PrePathing::SnapNamedPositions(W8LevelFileNamedPosition* positions, int coun
     if (count != 0) {
         named_positions_250 = new srVector3T<float>[count];
         for (int i = 0; i < named_position_count_24c; ++i) {
-            named_positions_250[i].Set(positions[i].position_81.x * g_world_scale,
-                                       positions[i].position_81.y * g_world_scale,
-                                       positions[i].position_81.z * g_world_scale);
+            named_positions_250[i] = positions[i].position_81 * g_world_scale;
             octree->SnapToGround(&named_positions_250[i], 0);
         }
     }

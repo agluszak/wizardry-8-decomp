@@ -372,10 +372,9 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
                      g_camera_angle_period_005ec014)));
         float base_weight = g_float_005ebb38 - glow_weight;
         srVector4T<float> emissive;
-        emissive.x = vector_174->x * base_weight + vector_178->x * glow_weight;
-        emissive.y = vector_174->y * base_weight + vector_178->y * glow_weight;
-        emissive.z = vector_174->z * base_weight + vector_178->z * glow_weight;
-        emissive.w = g_float_005ebb38;
+        emissive.Set(vector_174->x * base_weight + vector_178->x * glow_weight,
+                     vector_174->y * base_weight + vector_178->y * glow_weight,
+                     vector_174->z * base_weight + vector_178->z * glow_weight, g_float_005ebb38);
         m_pGlowMaterial->setEmissive(emissive);
         mesh.materials_70[0][0] = m_pGlowMaterial;
         mesh.shaders_b0[0].value = (mesh.shaders_b0[0].value & ~srShader::MASK_GRADIENT_MODULATE) |
@@ -641,13 +640,11 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
 
     srVector4T<float> light;
     if (model->vertex_lighting_ready_3cd == 0) {
-        light.w = 1.0f;
-        light.x =
-            (ambient_color.x * light_scale_194.x + g_environment_offset.x) * g_light_scale_0060bfe0;
-        light.y =
-            (ambient_color.y * light_scale_194.y + g_environment_offset.y) * g_light_scale_0060bfe0;
-        light.z =
-            (ambient_color.z * light_scale_194.z + g_environment_offset.z) * g_light_scale_0060bfe0;
+        light.Set(
+            (ambient_color.x * light_scale_194.x + g_environment_offset.x) * g_light_scale_0060bfe0,
+            (ambient_color.y * light_scale_194.y + g_environment_offset.y) * g_light_scale_0060bfe0,
+            (ambient_color.z * light_scale_194.z + g_environment_offset.z) * g_light_scale_0060bfe0,
+            1.0f);
     } else {
         light.Set(0.0f, 0.0f, 0.0f, 0.0f);
     }

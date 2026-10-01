@@ -2757,15 +2757,10 @@ void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callb
         SetFullscreenSceneLast(1);
     }
     if (fade_to_black != 0) {
-        color.x = 1.0f;
-        color.y = 1.0f;
-        color.z = 1.0f;
+        color.Set(1.0f, 1.0f, 1.0f, 1.0f);
     } else {
-        color.x = 0.0f;
-        color.y = 0.0f;
-        color.z = 0.0f;
+        color.Set(0.0f, 0.0f, 0.0f, 1.0f);
     }
-    color.w = 1.0f;
     g_fade_overlay = CreateColoredPolygonSprite(0x280, 0x1e0, &color, 1);
     Position2DNodeUnsnapped(g_fade_overlay, 0, 0);
     shader = static_cast<srMeshModel*>(g_fade_overlay->getModel())->getShader(0);

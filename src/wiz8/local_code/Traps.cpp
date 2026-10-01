@@ -333,11 +333,7 @@ void ResolveSprungTrap(Trigger* trigger)
     srVector3T<float> maximum;
 
     devices = trigger->lock_state.difficulty;
-    if (devices > 7) {
-        devices = 7;
-    } else if (devices < 1) {
-        devices = 1;
-    }
+    ClampInteger(&devices, 1, 7);
     type = trigger->lock_state.device_id;
     if (Random(2) == 0) {
         trigger->CompleteItemInteraction();

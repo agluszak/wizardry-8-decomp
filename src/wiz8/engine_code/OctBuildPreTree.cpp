@@ -1679,9 +1679,9 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
                     for (int y = 0; y != 2; ++y) {
                         for (int z = 0; z != 2; ++z) {
                             srVector3T<float> corner;
-                            corner.x = x == 0 ? minimum.x : maximum.x;
-                            corner.y = y == 0 ? minimum.y : maximum.y;
-                            corner.z = z == 0 ? minimum.z : maximum.z;
+                            corner.Set(x == 0 ? minimum.x : maximum.x,
+                                       y == 0 ? minimum.y : maximum.y,
+                                       z == 0 ? minimum.z : maximum.z);
 
                             bool corner_mapped = false;
                             for (unsigned short region_index = 1;

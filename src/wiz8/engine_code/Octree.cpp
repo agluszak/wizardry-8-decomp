@@ -1233,9 +1233,8 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
             view_1c0.rotation_column_18.z = DotProduct(frame.vectors[2], unit);
             float right_y = frame.vectors[0].y;
             unit.Set(0.0, 1.0, 0.0);
-            view_1c0.rotation_column_24.x = right_y;
-            view_1c0.rotation_column_24.y = DotProduct(frame.vectors[1], unit);
-            view_1c0.rotation_column_24.z = DotProduct(frame.vectors[2], unit);
+            view_1c0.rotation_column_24.Set(right_y, DotProduct(frame.vectors[1], unit),
+                                            DotProduct(frame.vectors[2], unit));
             srVector3T<double> dof = world->camera->getWorldSpaceDOF();
             view_1c0.camera_dof_0c = dof;
             m_current_regions_160->ClearAll();
@@ -1728,8 +1727,8 @@ int W8Octree::CountBadRegionMeshLinks(W8OctSpatialState* spatial)
                     stMeshModel* model = static_cast<stMeshModel*>(mesh->getModel());
                     srVector3T<float> minimum;
                     srVector3T<float> maximum;
-                    minimum.x = minimum.y = minimum.z = 1.0e7f;
-                    maximum.x = maximum.y = maximum.z = -1.0e7f;
+                    minimum = 1.0e7f;
+                    maximum = -1.0e7f;
                     for (; model != 0; model = model->next) {
                         srVector3T<float> box_minimum;
                         srVector3T<float> box_maximum;

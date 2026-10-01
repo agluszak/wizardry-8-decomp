@@ -456,11 +456,7 @@ void ResetCharacterAttributes(W8Character* character)
     for (index = 0; index < 7; ++index) {
         int value =
             character->bonus_1770.attribute_adjustments[index] + character->attributes[index].value;
-        if (value > 0x7d) {
-            value = 0x7d;
-        } else if (value < 1) {
-            value = 1;
-        }
+        ClampInteger(&value, 1, 0x7d);
         character->attributes[index].effective = value;
         UnequipUnusableItems(character);
     }
@@ -491,11 +487,7 @@ void ResetCharacterSkills(W8Character* character)
             value += bonus;
         }
         value += character->bonus_1770.skill_bonus_13[index];
-        if (value > 0x7d) {
-            value = 0x7d;
-        } else if (value < 0) {
-            value = 0;
-        }
+        ClampInteger(&value, 0, 0x7d);
         character->skills[index].level = value;
         UnequipUnusableItems(character);
     }
@@ -537,11 +529,7 @@ void ApplyAttributeChange(W8Character* character, int attribute)
     }
     int effective = character->bonus_1770.attribute_adjustments[attribute] +
                     static_cast<int>(character->attributes[attribute].value);
-    if (effective > 0x7d) {
-        effective = 0x7d;
-    } else if (effective < 1) {
-        effective = 1;
-    }
+    ClampInteger(&effective, 1, 0x7d);
     character->attributes[attribute].effective = effective;
     UnequipUnusableItems(character);
     RecalculateCharacterDerivedStats(character);
@@ -567,11 +555,7 @@ void ApplySkillChange(W8Character* character, int skill_id)
         level += bonus;
     }
     level += character->bonus_1770.skill_bonus_13[skill_id];
-    if (level > 0x7d) {
-        level = 0x7d;
-    } else if (level < 0) {
-        level = 0;
-    }
+    ClampInteger(&level, 0, 0x7d);
     character->skills[skill_id].level = level;
     UnequipUnusableItems(character);
     RecalculateCharacterDerivedStats(character);
@@ -699,11 +683,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                     level += bonus;
                 }
                 level += character->bonus_1770.skill_bonus_13[skill_id];
-                if (level > 0x7d) {
-                    level = 0x7d;
-                } else if (level < 0) {
-                    level = 0;
-                }
+                ClampInteger(&level, 0, 0x7d);
                 skill->level = level;
                 UnequipUnusableItems(character);
                 RecalculateCharacterDerivedStats(character);

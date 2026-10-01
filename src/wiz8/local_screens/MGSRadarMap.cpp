@@ -158,14 +158,10 @@ static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit)
             int group = sector - sector % 3;
 
             icon->SetGlowEnabled(1);
-            second.w = 1.0f;
-            first.w = 1.0f;
-            second.x = g_radar_blip_colors[group + 2][0];
-            second.y = g_radar_blip_colors[group + 2][1];
-            second.z = g_radar_blip_colors[group + 2][2];
-            first.x = g_radar_blip_colors[group][0];
-            first.y = g_radar_blip_colors[group][1];
-            first.z = g_radar_blip_colors[group][2];
+            second.Set(g_radar_blip_colors[group + 2][0], g_radar_blip_colors[group + 2][1],
+                       g_radar_blip_colors[group + 2][2], 1.0f);
+            first.Set(g_radar_blip_colors[group][0], g_radar_blip_colors[group][1],
+                      g_radar_blip_colors[group][2], 1.0f);
             icon->SetGlowColors(&first, &second);
             icon->render_state_164.render_depth = 1000;
         }
@@ -298,10 +294,8 @@ void RefreshRadarMap(void)
         srVector4T<float> color;
         stModelInstance2D* icon;
 
-        color.x = g_radar_blip_colors[sector][0];
-        color.y = g_radar_blip_colors[sector][1];
-        color.z = g_radar_blip_colors[sector][2];
-        color.w = 1.0f;
+        color.Set(g_radar_blip_colors[sector][0], g_radar_blip_colors[sector][1],
+                  g_radar_blip_colors[sector][2], 1.0f);
         icon = CreateColoredPolygonSprite(2, 2, &color, 0);
         g_radar_icon_pools[sector].Add(icon);
         icon->overlay_scene_flag_160 |= 1;

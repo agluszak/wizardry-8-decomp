@@ -210,8 +210,7 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x120,
                                      "Error reading vertex from WGD file.");
                     }
-                    m_pVertices[index].Set(vertex.x * g_world_scale, vertex.y * g_world_scale,
-                                           vertex.z * g_world_scale);
+                    m_pVertices[index] = vertex * g_world_scale;
                     if (index == m_iNumVertices) {
                         minimum_08.x = vertex.x;
                         maximum_14.x = vertex.x;
@@ -600,9 +599,7 @@ void W8GameData::AddLevelPlane(W8LevelFilePlane* plane)
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x2cc, 0);
     }
     for (index = 0; index < 4; ++index) {
-        m_pTrigVertices[m_iNumTrigVertices].Set(vertices[index].x * g_world_scale,
-                                                vertices[index].y * g_world_scale,
-                                                vertices[index].z * g_world_scale);
+        m_pTrigVertices[m_iNumTrigVertices] = vertices[index] * g_world_scale;
         ++m_iNumTrigVertices;
     }
 

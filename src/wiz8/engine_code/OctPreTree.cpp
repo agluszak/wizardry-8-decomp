@@ -588,14 +588,11 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                             unsigned long id = record->polygon_ids_24[polygon];
                             m_aulPolyLookup[id] = model_index * 0x10000 + polygon;
                             model->poly_textures_28[polygon] = geometry->polygons_0c[id].texture_28;
-                            model->poly_equations_34[polygon].x =
-                                geometry->polygons_0c[id].plane_08.normal.x;
-                            model->poly_equations_34[polygon].y =
-                                geometry->polygons_0c[id].plane_08.normal.y;
-                            model->poly_equations_34[polygon].z =
-                                geometry->polygons_0c[id].plane_08.normal.z;
-                            model->poly_equations_34[polygon].w =
-                                geometry->polygons_0c[id].plane_08.w;
+                            model->poly_equations_34[polygon].Set(
+                                geometry->polygons_0c[id].plane_08.normal.x,
+                                geometry->polygons_0c[id].plane_08.normal.y,
+                                geometry->polygons_0c[id].plane_08.normal.z,
+                                geometry->polygons_0c[id].plane_08.w);
                         }
                         model->material_index_0c =
                             geometry->vertices_04[record->vertex_ids_20[0]].material_1c;
@@ -905,7 +902,7 @@ static_assert(sizeof(W8OctUvPoolEntry) == 0xc, "W8OctUvPoolEntry_must_be_0xc");
    deduplicates uvs through the pool and emits the corner-to-uv index
    triplets plus the final srVector2 map.  Returns the uv count. */
 // TEMPLATE: WIZ8 0x0046a490
-// srVector3T<float>::operator=
+// srVector3T<float>::operator=(class srVector3T<float> const &)
 
 // FUNCTION: WIZ8 0x0046a4b0
 unsigned long OctPreTree::SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeometry* geometry)

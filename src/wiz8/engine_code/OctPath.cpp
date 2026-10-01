@@ -2659,8 +2659,8 @@ float W8PathingService::UpdateSearchNodeScore(unsigned short node_index,
    directionally conflicting overlaps return the retail collision state. */
 // FUNCTION: WIZ8 0x00465130
 unsigned short W8PathingService::ResolveSearchNodeCollisions(W8NavigatorMovementState* movement,
-                                                             unsigned short node_index, float radius,
-                                                             float separation)
+                                                             unsigned short node_index,
+                                                             float radius, float separation)
 {
     unsigned short result = 0;
     if (explicit_target_09c != 0) {
@@ -4905,10 +4905,9 @@ stModelInstance* W8PathingService::BuildPathVisualization()
         unsigned short source_index = static_cast<unsigned short>(next - 1);
         W8PathSurface* source = &m_pSurfaces_048[source_index];
         srVector3T<float> marker_color;
-        srVector3T<float> marker_scale(
-            (source->flags_00 >> 12) * g_double_005ec378,
-            (source->flags_00 >> 12) * 0.5,
-            (source->flags_00 >> 12) * g_double_005ec378);
+        srVector3T<float> marker_scale((source->flags_00 >> 12) * g_double_005ec378,
+                                       (source->flags_00 >> 12) * 0.5,
+                                       (source->flags_00 >> 12) * g_double_005ec378);
         int marker_vertex = marker_count * 5;
 
         rendered_waypoints_05c->SetAndGrow(source_index);
@@ -5281,26 +5280,18 @@ void W8PathingService::GetWaypointVisualizationColor(unsigned short waypoint,
         return;
     }
     if (waypoint == start_waypoint_1d4) {
-        color->x = 1.0f;
-        color->y = 1.0f;
-        color->z = 0.0f;
+        color->Set(1.0f, 1.0f, 0.0f);
         return;
     }
     if (waypoint != destination_waypoint_1d6) {
-        color->x = 0.0f;
-        color->y = 0.0f;
-        color->z = 1.0f;
+        color->Set(0.0f, 0.0f, 1.0f);
         return;
     }
     if (path_direction_valid_1da != 0) {
-        color->x = 0.0f;
-        color->y = 1.0f;
-        color->z = 0.0f;
+        color->Set(0.0f, 1.0f, 0.0f);
         return;
     }
-    color->x = 1.0f;
-    color->y = 0.0f;
-    color->z = 0.0f;
+    color->Set(1.0f, 0.0f, 0.0f);
 }
 
 /* Create the fixed-capacity editor mesh shared by waypoint and edge drawing.

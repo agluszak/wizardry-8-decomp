@@ -319,9 +319,8 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     /* Retail indexes material ambient at +0x28; that is
                        srMaterial::parms.ambient on the concrete type. */
                     material = static_cast<srMaterial*>(getMaterial(0, static_cast<e_side>(0)));
-                    ambient_rgb.x = material->parms.ambient.x;
-                    ambient_rgb.y = material->parms.ambient.y;
-                    ambient_rgb.z = material->parms.ambient.z;
+                    ambient_rgb.Set(material->parms.ambient.x, material->parms.ambient.y,
+                                    material->parms.ambient.z);
                     count = vertex_location_count_22c;
                     scaled.x = ambient_rgb.x * ambient_color_3a4.x;
                     scaled.y = ambient_rgb.y * ambient_color_3a4.y;
@@ -397,9 +396,8 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     material_iface = vertex_materials[index];
                     if (material_iface != 0) {
                         material = static_cast<srMaterial*>(material_iface);
-                        scaled.x = material->parms.ambient.x;
-                        scaled.y = material->parms.ambient.y;
-                        scaled.z = material->parms.ambient.z;
+                        scaled.Set(material->parms.ambient.x, material->parms.ambient.y,
+                                   material->parms.ambient.z);
                         if (run != 0) {
                             if (IsZeroVector(&scaled) == 0) {
                                 srVectorProcessor::mul(dig + index, scaled, dig + index,

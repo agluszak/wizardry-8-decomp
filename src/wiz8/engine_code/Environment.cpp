@@ -910,10 +910,7 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
             double brightness = g_double_005ebc30 -
                                 fabs(g_status.game_time_ms - g_double_005ec990) * g_double_005ec988;
 
-            material->parms.ambient.x = static_cast<float>(brightness);
-            material->parms.ambient.y = static_cast<float>(brightness);
-            material->parms.ambient.z = static_cast<float>(brightness);
-            material->parms.ambient.w = static_cast<float>(brightness);
+            material->parms.ambient = static_cast<float>(brightness);
             material->parms.diffuse.w =
                 static_cast<float>(brightness * g_double_005ebf40 + g_double_005ec980);
 
