@@ -1017,15 +1017,8 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target, i
                                      source_character, duration, announce_condition) == 0;
     }
 
-    if (resolved != 0 && announce_resistance != 0 && g_settings.verbose_combat_messages != 0) {
-        if (target->iType == W8_TARGET_KIND_MONSTER) {
-            unsigned int monster_index =
-                MonsterGetIndexByLocationID(0xeae, MAGIC_EFFECTS_CPP, target->iMonsterID, 1);
-            PostMonsterNotice(MonsterGetScriptPartByLocationIndex(monster_index),
-                              gppStringList[0x1b3]);
-        } else {
-            PostCharacterNotice(target->iChar, gppStringList[0x1b3]);
-        }
+    if (resolved != 0 && announce_resistance != 0) {
+        AnnounceEffectResisted(target);
     }
     return resolved;
 }
@@ -2307,14 +2300,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
                 if (verbose == 0) {
                     continue;
                 }
-                if (target.iType == W8_TARGET_KIND_MONSTER) {
-                    PostMonsterNotice(
-                        MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                            0xeae, MAGIC_EFFECTS_CPP, target.iMonsterID, 1)),
-                        gppStringList[0x1b3]);
-                } else {
-                    PostCharacterNotice(target.iChar, gppStringList[0x1b3]);
-                }
+                AnnounceEffectResisted(&target);
                 resisted = 1;
             }
             if (resisted == 0) {
@@ -2379,14 +2365,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
                 if (verbose == 0) {
                     continue;
                 }
-                if (target.iType == W8_TARGET_KIND_MONSTER) {
-                    PostMonsterNotice(
-                        MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                            0xeae, MAGIC_EFFECTS_CPP, target.iMonsterID, 1)),
-                        gppStringList[0x1b3]);
-                } else {
-                    PostCharacterNotice(target.iChar, gppStringList[0x1b3]);
-                }
+                AnnounceEffectResisted(&target);
                 resisted = 1;
             }
             if (resisted == 0) {
@@ -2784,15 +2763,7 @@ void ApplyCharmToMonsterTarget(W8SpellEffectEntry* effect)
         return;
     }
     if (TargetResistsCondition(target, 4, effect->definition.power_level, 0) != 0) {
-        if (g_settings.verbose_combat_messages != 0) {
-            if (target->iType == W8_TARGET_KIND_MONSTER) {
-                PostMonsterNotice(MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                                      0xeae, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
-                                  gppStringList[0x1b3]);
-            } else {
-                PostCharacterNotice(target->iChar, gppStringList[0x1b3]);
-            }
-        }
+        AnnounceEffectResisted(target);
         return;
     }
     magnitude = effect->definition.duration_scale * 7;
