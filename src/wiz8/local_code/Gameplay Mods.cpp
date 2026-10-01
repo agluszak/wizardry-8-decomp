@@ -84,13 +84,7 @@ void RebuildPartyEffectBlock(void)
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
             W8Character* character = &g_status.buffers.Char[party_slot];
-
-            memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
-            ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
-            ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
-            if (character->fInParty != 0) {
-                ApplyModifierBlock(&character->bonus_1770, &g_status.party_modifiers_22e3);
-            }
+            RebuildCharacterModifierBlock(character);
             RecalculateCharacterDerivedStats(character);
         }
     }
