@@ -559,43 +559,6 @@ void srSurfaceIOManager::exportSurface(const char* path, srBinOStream& stream,
     throw Error("srSurfaceIOManager::exportSurface() - given filename is NULL or empty");
 }
 
-// FUNCTION: SURRENDER 0x100050F0
-srSurfaceIOManager::srSurfaceIOManager() {}
-
-// FUNCTION: SURRENDER 0x10016470
-srHierarchyIOManager::srHierarchyIOManager() {}
-
-// FUNCTION: SURRENDER 0x10016530
-srHierarchyIOManager::srHierarchyIOManager(const srHierarchyIOManager& other) : srIOManager(other)
-{
-}
-
-// FUNCTION: SURRENDER 0x10016570
-srHierarchyIOManager& srHierarchyIOManager::operator=(const srHierarchyIOManager& other)
-{
-    srIOManager::operator=(other);
-    return *this;
-}
-
-// FUNCTION: SURRENDER 0x100165B0
-srHierarchyIOManager::~srHierarchyIOManager() {}
-
-// FUNCTION: SURRENDER 0x10016980
-srModelIOManager::srModelIOManager() {}
-
-// FUNCTION: SURRENDER 0x10016A40
-srModelIOManager::srModelIOManager(const srModelIOManager& other) : srIOManager(other) {}
-
-// FUNCTION: SURRENDER 0x10016A80
-srModelIOManager& srModelIOManager::operator=(const srModelIOManager& other)
-{
-    srIOManager::operator=(other);
-    return *this;
-}
-
-// FUNCTION: SURRENDER 0x10016AC0
-srModelIOManager::~srModelIOManager() {}
-
 /* The IO-manager units emit the deleting-destructor wrappers and the
    material class-support registrations they reference. */
 // SYNTHETIC: SURRENDER 0x100165C0
