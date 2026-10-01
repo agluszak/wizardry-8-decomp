@@ -553,15 +553,6 @@ const char* srMaterialIFace::sGetClassName()
     return "srMaterialIFace";
 }
 
-// FUNCTION: SURRENDER 0x10034D80
-srMaterialIFace& srMaterialIFace::operator=(const srMaterialIFace& other)
-{
-    if (&other != this) {
-        srClass::operator=(other);
-    }
-    return *this;
-}
-
 // SYNTHETIC: SURRENDER 0x10034C70
 // srMaterialIFace::srMaterialIFace (implicit copy constructor)
 
