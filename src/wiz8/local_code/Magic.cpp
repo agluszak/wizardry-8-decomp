@@ -515,17 +515,13 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
 {
     int party_slot = CharacterPointerToPartySlot(character);
     W8ActionDetailBlock notify;
-    W8PartySlotRow* row;
 
     notify.spell.power_level = power_level;
     notify.spell.unused = 0;
     ChooseAction(party_slot, 7, spell_id, &notify, 0, 1);
 
-    row = &g_status.buffers.XChar[party_slot];
-    row->spell_detail.spell.power_level = power_level;
-    row->spell_id = spell_id;
-    row->spell_detail.spell.unused = 0;
-    row->spell_target = *GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
+    SetPartySlotSpell(party_slot, spell_id, power_level,
+                      GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT));
 }
 
 /* Whether one party slot's recorded spell target is still a target it could
