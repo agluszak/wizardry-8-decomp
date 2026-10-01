@@ -186,10 +186,7 @@ void UpdateGameClock(int elapsed)
         return;
     }
     if (gXStatus.surprise_unengaged != 0 && AnyCharacterEngaged() && gXStatus.surprise_phase == 1) {
-        SetViewDistance(12.0f);
-        SetNavigatorLinkMode(0);
-        g_game_time_accumulator->ResetDurationScale();
-        ResetMonsterGeneratorTimers();
+        ResetSight();
         ReverseSurpriseFade();
         gXStatus.surprise_phase = 2;
         ReleaseMarkedNpcBindings();
@@ -293,10 +290,7 @@ void UpdateSurpriseMode(void)
     case 1:
         if (gXStatus.surprise_unengaged == 0 &&
             static_cast<unsigned int>(g_status.world_clock) >= gXStatus.surprise_deadline_turns) {
-            SetViewDistance(12.0f);
-            SetNavigatorLinkMode(0);
-            g_game_time_accumulator->ResetDurationScale();
-            ResetMonsterGeneratorTimers();
+            ResetSight();
             UpdateEnvironmentLight();
             RefreshEnvironment();
             ReverseSurpriseFade();
@@ -338,10 +332,7 @@ void AcknowledgeSurprise(void)
 void ResolveSurpriseHold(void)
 {
     if (gXStatus.surprise_phase == 1) {
-        SetViewDistance(12.0f);
-        SetNavigatorLinkMode(0);
-        g_game_time_accumulator->ResetDurationScale();
-        ResetMonsterGeneratorTimers();
+        ResetSight();
         ReverseSurpriseFade();
         gXStatus.surprise_phase = 2;
         ReleaseMarkedNpcBindings();
@@ -397,10 +388,7 @@ void RestoreSurpriseView(void)
 {
     gXStatus.fSurprisePossible = false;
     gXStatus.surprise_unengaged = 0;
-    SetViewDistance(12.0f);
-    SetNavigatorLinkMode(0);
-    g_game_time_accumulator->ResetDurationScale();
-    ResetMonsterGeneratorTimers();
+    ResetSight();
     DestroySurpriseFade();
 }
 

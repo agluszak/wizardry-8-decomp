@@ -3270,9 +3270,7 @@ void SetMainGameMode(int mode)
 {
     switch (g_main_game_mode) {
     case 3:
-        if (gXStatus.fNpcDialogueMode != 0) {
-            EndNpcDialogueSession(0);
-        }
+        CloseNpcDialogueIfActive();
         break;
     case 5:
         CloseMessageBox();
@@ -3318,33 +3316,7 @@ unsigned char ProcessMainGameInput(void)
                 break;
             default:
                 if (HandleDialogueTextInput(&input) == 0 && HandleMainGameInputEvent(&input) == 0) {
-                    if (g_main_game_mode == 3) {
-                        if (gXStatus.fNpcDialogueMode != 0) {
-                            EndNpcDialogueSession(0);
-                        }
-                    } else if (g_main_game_mode == 5) {
-                        CloseMessageBox();
-                    } else if (g_main_game_mode == 6) {
-                        DismissHighlightOverlay();
-                    }
-                    g_main_game_mode = 0;
-                    if (IsMessageBoxActive()) {
-                        CloseMessageBox();
-                    }
-                    if (gXStatus.fCombatMode == 0) {
-                        if (AnyCharacterActive() && gXStatus.party_moving == 0) {
-                            AutoSaveIfAllowed(1);
-                        }
-                    } else {
-                        EndCombat(1);
-                    }
-                    if (gXStatus.fSurprisePossible != 0) {
-                        RestoreSurpriseView();
-                    }
-                    g_status.game_started = 0;
-                    ClearHeldItemDisplay();
-                    RequestScreenTransition();
-                    SetPrimarySurfaceTextureHint2Enabled(0);
+                    ResetMainGameMode();
                     return 1;
                 }
                 break;
@@ -4451,9 +4423,7 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
     }
 
     if (g_main_game_mode == 3) {
-        if (gXStatus.fNpcDialogueMode != 0) {
-            EndNpcDialogueSession(0);
-        }
+        CloseNpcDialogueIfActive();
     } else if (g_main_game_mode == 5) {
         CloseMessageBox();
     } else if (g_main_game_mode == 6) {
@@ -4507,20 +4477,7 @@ void DismissHighlightOverlay(void)
 // FUNCTION: WIZ8 0x00563FC0
 void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int min_width)
 {
-    if (g_main_game_mode == 3) {
-        if (gXStatus.fNpcDialogueMode != 0) {
-            EndNpcDialogueSession(0);
-        }
-    } else if (g_main_game_mode == 5) {
-        CloseMessageBox();
-    } else if (g_main_game_mode == 6) {
-        if (g_level_block->highlight_graphic != 0) {
-            ReleaseObject(g_level_block->highlight_graphic);
-            g_level_block->highlight_graphic = 0;
-        }
-        ClearHighlightOverlayRegion();
-    }
-    g_main_game_mode = 6;
+    SetMainGameMode(6);
 
     wchar_t* name = g_status.buffers.Char[party_slot].name;
     int width = StringPixLength(name, g_wiz_text_font);
@@ -6032,9 +5989,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 g_pending_screen_state.parameter_4 = 0;
                 if (g_main_game_mode == 3) {
                     g_pending_screen_state.parameter_2 = slot;
-                    if (gXStatus.fNpcDialogueMode != 0) {
-                        EndNpcDialogueSession(0);
-                    }
+                    CloseNpcDialogueIfActive();
                 } else if (g_main_game_mode == 5) {
                     g_pending_screen_state.parameter_2 = slot;
                     CloseMessageBox();
@@ -6087,9 +6042,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 g_pending_screen_state.parameter_4 = 0;
                 if (g_main_game_mode == 3) {
                     g_pending_screen_state.parameter_2 = slot;
-                    if (gXStatus.fNpcDialogueMode != 0) {
-                        EndNpcDialogueSession(0);
-                    }
+                    CloseNpcDialogueIfActive();
                 } else if (g_main_game_mode == 5) {
                     g_pending_screen_state.parameter_2 = slot;
                     CloseMessageBox();
@@ -6184,9 +6137,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 g_pending_screen_state.parameter_4 = 0;
                 if (g_main_game_mode == 3) {
                     g_pending_screen_state.parameter_2 = slot;
-                    if (gXStatus.fNpcDialogueMode != 0) {
-                        EndNpcDialogueSession(0);
-                    }
+                    CloseNpcDialogueIfActive();
                 } else if (g_main_game_mode == 5) {
                     g_pending_screen_state.parameter_2 = slot;
                     CloseMessageBox();
@@ -6636,9 +6587,7 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
         }
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
             if (g_main_game_mode == 3) {
-                if (gXStatus.fNpcDialogueMode != 0) {
-                    EndNpcDialogueSession(0);
-                }
+                CloseNpcDialogueIfActive();
             } else if (g_main_game_mode == 5) {
                 CloseMessageBox();
             } else if (g_main_game_mode == 6) {
@@ -6771,10 +6720,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
             UpdateWorldViewCursor(event, needed);
             return 1;
         }
-        SetCombatSelection(-1);
-        SetCombatTarget(-1);
-        SetCombatAction(-1);
-        SetTargetCursor(GetTargetingCursorForState(0));
+        ClearCombatSelection();
         return 1;
     }
     if (us_event == RIGHT_BUTTON_DOWN) {
@@ -7124,20 +7070,7 @@ bool IsScreenIdle(void)
 // FUNCTION: WIZ8 0x00561480
 void OpenAutomapScreen(void)
 {
-    switch (g_main_game_mode) {
-    case 3:
-        if (gXStatus.fNpcDialogueMode != 0) {
-            EndNpcDialogueSession(0);
-        }
-        break;
-    case 5:
-        CloseMessageBox();
-        break;
-    case 6:
-        DismissHighlightOverlay();
-        break;
-    }
-    g_main_game_mode = 0;
+    SetMainGameMode(0);
     SetPendingScreenState(W8_SCREEN_AUTOMAP);
 }
 
@@ -8266,36 +8199,7 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, unsigned char flag
     g_pending_screen_state.parameter_3 = g_status.buffers.Char + party_slot;
     g_pending_screen_state.parameter_4 =
         flag != 0 ? static_cast<W8Character*>(g_pending_screen_state.parameter_3) : 0;
-    if (g_main_game_mode == 3) {
-        if (gXStatus.fNpcDialogueMode != 0) {
-            EndNpcDialogueSession(0);
-        }
-    } else if (g_main_game_mode == 5) {
-        CloseMessageBox();
-    } else if (g_main_game_mode == 6) {
-        if (g_level_block->highlight_graphic != 0) {
-            ReleaseObject(g_level_block->highlight_graphic);
-            g_level_block->highlight_graphic = 0;
-            if (g_main_game_mode != 6) {
-                goto done;
-            }
-        }
-        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
-                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224);
-        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
-                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224, 0);
-        if (g_level_block->dialogue_y_224 <
-            static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
-            RequestRedraw(0x100);
-        }
-        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
-            RequestRedraw(0x800);
-        }
-    }
-done:
-    g_main_game_mode = 0;
+    SetMainGameMode(0);
     SetPendingScreenState(6);
     if (gXStatus.fLockInteractMode != 0) {
         EndLockInteractMode(1);

@@ -1704,11 +1704,7 @@ unsigned char InitializeSpellDatabase(void)
     int allocation_count;
     unsigned int database_version;
 
-    if (g_spell_records != 0) {
-        delete[] g_spell_records;
-        g_spell_records = 0;
-        g_spell_database_version = 0;
-    }
+    ReleaseSpellDatabase();
     handle = FileOpen("Data\\Databases\\SpellTables.dbs", 0x41, 0);
     if (handle == 0) {
         return 0;

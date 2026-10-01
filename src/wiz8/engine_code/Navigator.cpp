@@ -1741,13 +1741,7 @@ void W8Navigator::ResetMovementAndGroupState()
         if (flags_00c == 0) {
             movement_0c0.attachment_0ac->InitializeSegment(&movement_0c0.position_040,
                                                            &movement_0c0.position_040);
-            if (movement_stopped_024 == 0) {
-                int mode = navigation_mode_008;
-                movement_stopped_024 = 1;
-                if (mode != 5 && mode != 6) {
-                    movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
-                }
-            }
+            SetMovementStopped();
         }
         if (g_combat_inactive != 0) {
             linked_update_time_0b8 = 0;

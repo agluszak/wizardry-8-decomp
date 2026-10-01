@@ -4935,8 +4935,7 @@ void CloseNpcDialogueForCamp(void)
 // FUNCTION: WIZ8 0x00577220
 void SyncDialogueNpcStateAndMarkPending(void)
 {
-    BeginNpcDialogueInternal(g_screen_state_00649f1c->dialogue_npc, 0, -1, 0, 1);
-    g_screen_state_00649f1c->pending_layout = g_screen_state_00649f1c->previous_dialogue_layout;
+    SyncDialogueNpcState();
     g_screen_state_00649f1c->pending_trade_toggle = 1;
 }
 

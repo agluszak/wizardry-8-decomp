@@ -172,9 +172,7 @@ unsigned char OpenUseItemSelectView(int slot)
     if (g_level_block->combat_end_notification != -1) {
         DestroySubMenuControls();
     }
-    if (gXStatus.fNpcDialogueMode != 0) {
-        EndNpcDialogueSession(0);
-    }
+    CloseNpcDialogueIfActive();
     CloseMainGameOverlays();
     mode = g_settings.main_ui_mode;
     if (mode == W8_MAIN_UI_MODE_RADAR) {
@@ -351,17 +349,7 @@ void RefreshUseItemSelectionForSlot(int party_slot)
         return;
     }
     g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
-    if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
-                                   g_W8TextControlStateSecondary) != 0) {
-        if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
-                                       g_W8TextControlStateSecondary) != 0) {
-            g_use_item_select_scroll_buttons[1]->DisableSecondaryState(0);
-            g_use_item_select_scroll_buttons[1]->Invalidate(0);
-        }
-        RebuildUseItemSelectList(0, 0);
-        return;
-    }
-    g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
+    UseItemSelectScrollUp();
 }
 
 // FUNCTION: WIZ8 0x0059CF30

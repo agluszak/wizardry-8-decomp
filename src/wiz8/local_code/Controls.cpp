@@ -419,13 +419,7 @@ W8TextBuffer::W8TextBuffer(const W8ControlsRect* bounds, const wchar_t* text, in
     m_geometryDirty = 0;
     m_lineHeight = 0;
     m_alternateRenderer = 0;
-    m_layoutMode = layout_mode;
-    if ((m_layoutMode & 7) == 0) {
-        m_layoutMode |= 2;
-    }
-    if ((m_layoutMode & 0x38) == 0) {
-        m_layoutMode |= 8;
-    }
+    SetLayoutMode(layout_mode);
     m_renderMode = render_mode;
     m_fontStateIndex = -1;
     m_flag_4c = false;

@@ -932,16 +932,6 @@ void ReleaseWorldCursorNodes(void)
     while (g_world_cursor_nodes.count != 0) {
         W8WorldCursorNode* entry = g_world_cursor_nodes.data[0];
 
-        if (entry != 0) {
-            if (entry->pUserdata != 0) {
-                free(entry->pUserdata);
-                entry->pUserdata = 0;
-            }
-            entry->size_1c = 0;
-            entry->node_04->setParent(0, 1);
-            entry->node_04->release();
-            g_world_cursor_nodes.Remove(entry);
-            delete entry;
-        }
+        DestroyWorldCursorCube(entry);
     }
 }

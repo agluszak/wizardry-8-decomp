@@ -772,9 +772,7 @@ unsigned char AutomapScreenEnter(void)
         SetAutomapToolCursor(g_automap_tool);
         SetAutomapButtonMode(0);
     } else {
-        g_automap_position.x = g_automap_saved_camera.position.x;
-        g_automap_position.z = g_automap_saved_camera.position.z;
-        SetAutomapCameraPoint(&g_automap_position);
+        RestoreAutomapCameraPosition();
     }
     return 1;
 }
@@ -2532,11 +2530,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         }
         return 1;
     case 0xd: {
-        srVector3T<float> center;
-        center.x = 0.5f;
-        center.y = 0.5f;
-        center.z = 0.0f;
-        ZoomAutomapIn(&center);
+        AutomapZoomInButton();
         return 1;
     }
     case 0x1b:
@@ -2559,14 +2553,10 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         RefreshMouseCursorTexture();
         return 1;
     case 0x20:
-        g_automap_page = (g_automap_page + 1) % 3;
-        UpdateAutomapPageButtons();
-        g_automap_redraw = true;
+        AutomapCyclePageButton();
         return 1;
     case 0x23:
-        g_automap_position.x = g_automap_saved_camera.position.x;
-        g_automap_position.z = g_automap_saved_camera.position.z;
-        SetAutomapCameraPoint(&g_automap_position);
+        RestoreAutomapCameraPosition();
         break;
     case 0x24: {
         g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;

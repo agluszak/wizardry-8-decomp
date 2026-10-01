@@ -363,27 +363,7 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
 
     m_target_pitch_09c = pitch;
     m_target_angle_098 = angle;
-    if (gXStatus.fNpcDialogueMode == 0) {
-        if ((m_state_000 & 1) != 0) {
-            return;
-        }
-        W8IntervalGate* timer = m_manual_input_timer;
-        if (timer->IsFinished() == 0) {
-            timer->PollElapsedIntervals();
-        }
-        if (timer->IsFinished() == 0) {
-            return;
-        }
-    }
-
-    m_target_pitch_09c = pitch;
-    m_target_angle_098 = angle;
-    m_state_000 = 0x80;
-    m_transition_active = 0;
-    SetYaw(angle);
-    SetPitch(pitch);
-    m_pitch_velocity_0ac = 0.0f;
-    m_angle_velocity_0a8 = 0.0f;
+    SetOrientationImmediate(pitch, angle);
 }
 
 // FUNCTION: WIZ8 0x00476C30

@@ -519,9 +519,7 @@ W8CharacterEventQueue::~W8CharacterEventQueue()
 // FUNCTION: WIZ8 0x0052db80
 void W8CharacterEventQueue::DestroyAllEvents()
 {
-    while (active_events.count > 0) {
-        active_events.RemoveAt(0)->Complete();
-    }
+    CompleteAllActiveEvents();
     while (npc_deferred_events.count > 0) {
         delete npc_deferred_events.RemoveAt(0);
     }

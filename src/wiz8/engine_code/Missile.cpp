@@ -278,11 +278,7 @@ unsigned char LoadMissileDatabase(void)
     int handle;
     bool success;
 
-    if (g_missile_table) {
-        delete[] g_missile_table;
-        g_missile_table = 0;
-        g_missile_table_count = 0;
-    }
+    ReleaseMissileDatabase();
     handle = FileOpen("Data\\Databases\\MissileTables.dbs", 0x41, 0);
     if (!handle) {
         return 0;

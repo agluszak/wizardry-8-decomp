@@ -3618,13 +3618,7 @@ void AimItemUseAtCurrentTarget(W8Character* character, W8ItemInstance* item)
     detail.item_use.item = item;
     detail.item_use.kind = -1;
     W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
-    W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
-
-    row->item_detail.item_use.kind = -1;
-    row->item_detail.item_use.item = item;
-    row->item_target = *target;
-    row->item_id_0c9 = item->iItemNo;
-    GetOriginOfCharacterItem(party_slot, item, &row->item_origin, &row->item_slot);
+    StagePartySlotItemUse(party_slot, item, target);
     if (g_item_records[item->iItemNo].spell_id == 0x17) {
         ChooseAction(party_slot, W8_ACTION_USE_ITEM, -1, &detail, 1, 1);
         OpenCharacterScreenForPartySlot(CharacterPointerToPartySlot(character), 1);
