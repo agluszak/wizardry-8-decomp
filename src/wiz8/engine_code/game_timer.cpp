@@ -225,8 +225,7 @@ void W8GameTimer::SetDuration(float duration)
 void W8GameTimer::SetMode(int mode)
 {
     m_clock_mode = mode;
-    m_start = ReadClock();
-    m_end = m_start + m_duration;
+    Restart();
 }
 
 // FUNCTION: WIZ8 0x00439d80

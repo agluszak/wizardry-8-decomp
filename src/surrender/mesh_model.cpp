@@ -1995,25 +1995,7 @@ srTriMeshPipeline* srTriMeshPipeline::Get(srGERD* renderer)
     }
 
     pipeline = pipe;
-    pipeline->renderer_88 = renderer;
-    pipeline->slot_count_84 = 0;
-    pipeline->flags_28 = 0;
-    pipeline->flags_28 |= 1;
-    pipeline->flags_28 |= 2;
-    pipeline->triangle_count_1c = 0;
-    pipeline->active_triangles_2c = 0;
-    pipeline->projected_vertices_30 = 0;
-    pipeline->triangles_34 = 0;
-    pipeline->vertex_count_20 = 0;
-    pipeline->positions_38 = 0;
-    pipeline->vertex_extras_3c = 0;
-    pipeline->bounds_state_6c = 0;
-    pipeline->extra_40 = 0;
-    pipeline->shader_74.value = 0x0100241b;
-    pipeline->texture_78 = 0;
-    pipeline->pass_value_7c = 0;
-    pipeline->material_80 = srCore.getMaterial();
-    pipeline->PrepareSlot();
+    pipeline->Reset004753F0(renderer);
     return pipe;
 }
 

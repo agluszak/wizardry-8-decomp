@@ -170,14 +170,7 @@ void UpdateGameClock(int elapsed)
                 ShowNoticef(0xc, gppStringList[0x790], 8);
             }
             SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
-            gXStatus.character_event_queue->CompleteAllActiveEvents();
-            for (unsigned int slot = 0; slot < 8; ++slot) {
-                if (g_status.buffers.XChar[slot].fOccupied != 0) {
-                    SetPortraitTargetPose(&gXStatus.monster_manager_entries[slot], 2);
-                }
-            }
-            DisableMenuButtonBanks();
-            RequestRedraw(0xff);
+            BeginSurprise();
             gXStatus.fSurprisePossible = true;
             EnableRegionInput(0x137);
             ActivateDialogRegion(0x137);
@@ -193,10 +186,7 @@ void UpdateGameClock(int elapsed)
         return;
     }
     if (gXStatus.surprise_unengaged != 0 && AnyCharacterEngaged() && gXStatus.surprise_phase == 1) {
-        SetViewDistance(12.0f);
-        SetNavigatorLinkMode(0);
-        g_game_time_accumulator->ResetDurationScale();
-        ResetMonsterGeneratorTimers();
+        ResetSight();
         ReverseSurpriseFade();
         gXStatus.surprise_phase = 2;
         ReleaseMarkedNpcBindings();
@@ -235,14 +225,7 @@ void RequestCamp(void)
             ShowNoticef(0xc, gppStringList[0x790], 8);
         }
         SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
-        gXStatus.character_event_queue->CompleteAllActiveEvents();
-        for (unsigned int slot = 0; slot < 8; ++slot) {
-            if (g_status.buffers.XChar[slot].fOccupied != 0) {
-                SetPortraitTargetPose(&gXStatus.monster_manager_entries[slot], 2);
-            }
-        }
-        DisableMenuButtonBanks();
-        RequestRedraw(0xff);
+        BeginSurprise();
         gXStatus.fSurprisePossible = true;
         EnableRegionInput(0x137);
         ActivateDialogRegion(0x137);
@@ -307,10 +290,7 @@ void UpdateSurpriseMode(void)
     case 1:
         if (gXStatus.surprise_unengaged == 0 &&
             static_cast<unsigned int>(g_status.world_clock) >= gXStatus.surprise_deadline_turns) {
-            SetViewDistance(12.0f);
-            SetNavigatorLinkMode(0);
-            g_game_time_accumulator->ResetDurationScale();
-            ResetMonsterGeneratorTimers();
+            ResetSight();
             UpdateEnvironmentLight();
             RefreshEnvironment();
             ReverseSurpriseFade();
@@ -342,16 +322,7 @@ void AcknowledgeSurprise(void)
         ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
         return;
     }
-    if (gXStatus.surprise_phase == 1) {
-        SetViewDistance(12.0f);
-        SetNavigatorLinkMode(0);
-        g_game_time_accumulator->ResetDurationScale();
-        ResetMonsterGeneratorTimers();
-        ReverseSurpriseFade();
-        gXStatus.surprise_phase = 2;
-        ReleaseMarkedNpcBindings();
-        StartLevelMusic(1, 1);
-    }
+    ResolveSurpriseHold();
 }
 
 /* While a surprise sequence is holding, end it for combat: restore the view,
@@ -361,10 +332,7 @@ void AcknowledgeSurprise(void)
 void ResolveSurpriseHold(void)
 {
     if (gXStatus.surprise_phase == 1) {
-        SetViewDistance(12.0f);
-        SetNavigatorLinkMode(0);
-        g_game_time_accumulator->ResetDurationScale();
-        ResetMonsterGeneratorTimers();
+        ResetSight();
         ReverseSurpriseFade();
         gXStatus.surprise_phase = 2;
         ReleaseMarkedNpcBindings();
@@ -420,10 +388,7 @@ void RestoreSurpriseView(void)
 {
     gXStatus.fSurprisePossible = false;
     gXStatus.surprise_unengaged = 0;
-    SetViewDistance(12.0f);
-    SetNavigatorLinkMode(0);
-    g_game_time_accumulator->ResetDurationScale();
-    ResetMonsterGeneratorTimers();
+    ResetSight();
     DestroySurpriseFade();
 }
 
@@ -632,7 +597,7 @@ void AdvanceTimedEffects(unsigned int minutes)
     }
 
     if (party_changed) {
-        RequestRedraw(0x100);
+        RequestRedrawCombatBar();
     }
     if (combat_changed) {
         RequestRedraw(0x8000);
@@ -1033,9 +998,9 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         unsigned char cycle;
 
         MonsterGetLocation(monster, &location);
-        previous.x = static_cast<float>(monster_info->movement_watch_position[0]);
-        previous.y = static_cast<float>(monster_info->movement_watch_position[1]);
-        previous.z = static_cast<float>(monster_info->movement_watch_position[2]);
+        previous.Set(static_cast<float>(monster_info->movement_watch_position[0]),
+                     static_cast<float>(monster_info->movement_watch_position[1]),
+                     static_cast<float>(monster_info->movement_watch_position[2]));
         monster_info->position_17.y = location.y;
         cycle = monster_info->movement_stall_ticks_254;
         delta = location - previous;

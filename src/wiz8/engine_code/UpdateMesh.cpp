@@ -64,9 +64,7 @@ static void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, lon
     long edge1_x = cam_x + static_cast<long>(direction.x / cell_size);
     long edge1_y = cam_y + static_cast<long>(direction.z / cell_size);
 
-    direction.x = 0.0f;
-    direction.y = 0.0f;
-    direction.z = world->render_range_78;
+    direction.Set(0.0f, 0.0f, world->render_range_78);
     work = rotation;
     angle = g_float_00609c88 * g_float_005ed168;
     if (angle != 0.0) {

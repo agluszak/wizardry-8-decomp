@@ -334,19 +334,7 @@ void FaceCameraToSelection(int party_slot)
     heading = g_status.party_facing +
               static_cast<unsigned char>(g_status.formation.positions[party_slot].facing) *
                   W8_DEGREES_PER_QUADRANT;
-    if (heading == g_status.party_heading) {
-        return;
-    }
-    g_status.party_heading = heading;
-    UpdateFormationCompass();
-    if (static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN == heading) {
-        return;
-    }
-    if (g_settings.camera_rotation_style) {
-        TurnCameraToDegrees(static_cast<float>(heading));
-    } else {
-        SetCameraYawDegrees(static_cast<float>(heading));
-    }
+    TurnPartyToImmediate(heading, g_settings.camera_rotation_style);
 }
 
 /* Face one position the way the rules say it should, unless the rules have no
@@ -754,14 +742,7 @@ void RebuildPartyStatus(W8PartyFormationState* status)
 int IsMonsterFacingParty(W8MonsterInfo* monster_info)
 {
     srVector3T<float> party_position = g_startup_world->GetPosition();
-    srVector3T<float> monster_position = monster_info->p3D->GetPosition();
-    float bearing = NormalizeAngle(GetHeadingAngle(&monster_position, &party_position));
-    float facing = monster_info->p3D->GetYaw();
-
-    if (fabsf(bearing - facing) <= g_facing_tolerance_005ebcf4) {
-        return 1;
-    }
-    return 0;
+    return IsPartyLookingAt(monster_info, party_position);
 }
 
 /* Whether the first monster faces the second, inside the usual tolerance. */
@@ -769,14 +750,7 @@ int IsMonsterFacingParty(W8MonsterInfo* monster_info)
 int IsMonsterFacingMonster(W8MonsterInfo* first, W8MonsterInfo* second)
 {
     srVector3T<float> second_position = second->p3D->GetPosition();
-    srVector3T<float> first_position = first->p3D->GetPosition();
-    float bearing = NormalizeAngle(GetHeadingAngle(&first_position, &second_position));
-    float facing = first->p3D->GetYaw();
-
-    if (fabsf(bearing - facing) <= g_facing_tolerance_005ebcf4) {
-        return 1;
-    }
-    return 0;
+    return IsPartyLookingAt(first, second_position);
 }
 
 /* Whether the second monster is looking away from the first, measured the
@@ -797,23 +771,15 @@ int IsMonsterLookingAwayFrom(W8MonsterInfo* first, W8MonsterInfo* second)
 
 /* The monster's bearing off the camera direction folded into one of the four
    screen sides - the same 0..3 facing values the formation positions carry.
-   The three checks below expand the same switch, which is why all of them
-   carry the one assert line. */
+   The facing checks use GetQuadrantForPosition and share the same
+   invalid-quadrant assertion. */
 // FUNCTION: WIZ8 0x00555960
 bool IsCharacterFacingMonster(int party_slot, W8MonsterInfo* monster_info)
 {
-    srVector3T<float> camera_position;
     srVector3T<float> monster_position = monster_info->p3D->GetPosition();
     signed char side;
-    int angle;
 
-    GetCameraPosition(&camera_position);
-    angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&camera_position, &monster_position)));
-    angle -= g_status.party_facing;
-    if (angle < 0) {
-        angle += 0x168;
-    }
-    switch (((angle + 0x2d) % 0x168) / 0x5a) {
+    switch (GetQuadrantForPosition(monster_position)) {
     case 0:
         side = 0;
         break;
@@ -837,18 +803,10 @@ bool IsCharacterFacingMonster(int party_slot, W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x00555820
 void TurnCharacterTowardMonster(int party_slot, W8MonsterInfo* monster_info)
 {
-    srVector3T<float> camera_position;
     srVector3T<float> monster_position = monster_info->p3D->GetPosition();
     signed char side;
-    int angle;
 
-    GetCameraPosition(&camera_position);
-    angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&camera_position, &monster_position)));
-    angle -= g_status.party_facing;
-    if (angle < 0) {
-        angle += 0x168;
-    }
-    switch (((angle + 0x2d) % 0x168) / 0x5a) {
+    switch (GetQuadrantForPosition(monster_position)) {
     case 0:
         side = 0;
         break;
@@ -876,19 +834,11 @@ void TurnCharacterTowardMonster(int party_slot, W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x00555c60
 int IsMonsterBehindCharacter(W8MonsterInfo* monster_info, int party_slot)
 {
-    srVector3T<float> camera_position;
     srVector3T<float> monster_position = monster_info->p3D->GetPosition();
     signed char side;
-    int angle;
     int difference;
 
-    GetCameraPosition(&camera_position);
-    angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&camera_position, &monster_position)));
-    angle -= g_status.party_facing;
-    if (angle < 0) {
-        angle += 0x168;
-    }
-    switch (((angle + 0x2d) % 0x168) / 0x5a) {
+    switch (GetQuadrantForPosition(monster_position)) {
     case 0:
         side = 0;
         break;
@@ -945,16 +895,7 @@ void FaceCharacterTowardCombatTarget(int party_slot, W8CombatSlot* target)
         return;
     }
     if (has_position) {
-        srVector3T<float> camera_position;
-        GetCameraPosition(&camera_position);
-        int angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&camera_position, &position)));
-        angle -= g_status.party_facing;
-        if (angle < 0) {
-            angle += W8_DEGREES_PER_TURN;
-        }
-        int quadrant =
-            ((angle + W8_DEGREES_PER_QUADRANT / 2) % W8_DEGREES_PER_TURN) / W8_DEGREES_PER_QUADRANT;
-        switch (quadrant) {
+        switch (GetQuadrantForPosition(position)) {
         case 0:
             facing = 0;
             break;

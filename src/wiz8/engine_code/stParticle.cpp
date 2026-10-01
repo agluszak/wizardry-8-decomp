@@ -228,14 +228,10 @@ stParticle::stParticle(srNode* parent, int count)
 
         particle_positions_148[i] = 0.0f;
 
-        texcoords_164[vertex].x = 0.0f;
-        texcoords_164[vertex].y = 0.0f;
-        texcoords_164[vertex + 1].x = 1.0f;
-        texcoords_164[vertex + 1].y = 0.0f;
-        texcoords_164[vertex + 2].x = 1.0f;
-        texcoords_164[vertex + 2].y = 1.0f;
-        texcoords_164[vertex + 3].x = 0.0f;
-        texcoords_164[vertex + 3].y = 1.0f;
+        texcoords_164[vertex].SetZero();
+        texcoords_164[vertex + 1].Set(1.0f, 0.0f);
+        texcoords_164[vertex + 2].Set(1.0f, 1.0f);
+        texcoords_164[vertex + 3].Set(0.0f, 1.0f);
     }
 
     for (unsigned int v = 0; v < vertex_count_158; ++v) {

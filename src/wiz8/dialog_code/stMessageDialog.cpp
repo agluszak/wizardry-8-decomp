@@ -143,10 +143,7 @@ void W8MessageDialogBase::SetMessage(const wchar_t* message, int line_count,
         if (maximum_height && maximum_height < height) {
             height = maximum_height;
         }
-        int old_width = m_width;
-        int old_height = m_height;
-        SetExtent(width, height);
-        SetOrigin(m_x + (old_width - width) / 2, m_y + (old_height - height) / 2);
+        SetClientExtent(width, height);
     }
 }
 

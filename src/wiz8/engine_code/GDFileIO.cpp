@@ -210,9 +210,8 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x120,
                                      "Error reading vertex from WGD file.");
                     }
-                    m_pVertices[index].x = vertex.x * g_world_scale;
-                    m_pVertices[index].y = vertex.y * g_world_scale;
-                    m_pVertices[index].z = vertex.z * g_world_scale;
+                    m_pVertices[index].Set(vertex.x * g_world_scale, vertex.y * g_world_scale,
+                                           vertex.z * g_world_scale);
                     if (index == m_iNumVertices) {
                         minimum_08.x = vertex.x;
                         maximum_14.x = vertex.x;
@@ -275,9 +274,8 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                     } else {
                         surface->flags_00 = 0;
                     }
-                    surface->plane_24.normal.x = header.plane_0c[0];
-                    surface->plane_24.normal.y = header.plane_0c[1];
-                    surface->plane_24.normal.z = header.plane_0c[2];
+                    surface->plane_24.normal.Set(header.plane_0c[0], header.plane_0c[1],
+                                                 header.plane_0c[2]);
                     float largest = static_cast<float>(fabs(surface->plane_24.normal.x));
                     unsigned int axis = 0;
                     if (largest < static_cast<float>(fabs(surface->plane_24.normal.y))) {
@@ -302,14 +300,11 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                         record[1] = index;
                         record[0] = 0;
                         record[2] = extended.group_00;
-                        name_index = 0;
-                        while (name_index < m_iNumNames && record[0] == 0) {
-                            if (strcmp(m_ppNames[name_index], extended.name_04) == 0) {
-                                record[0] = name_index + 1;
-                            }
-                            ++name_index;
-                        }
-                        if (record[0] == 0) {
+                        int existing_name = FindPointerByName(extended.name_04);
+                        if (existing_name != -1) {
+                            record[0] = existing_name;
+                        } else {
+                            name_index = m_iNumNames;
                             m_ppNames[name_index] = static_cast<char*>(malloc(0x40));
                             if (m_ppNames[name_index] == 0) {
                                 srAssertFail("m_ppNames[i2]",
@@ -458,7 +453,7 @@ void W8GameData::CompileGDInterfaces(const int* records, int count)
 }
 
 /* Answers the 1-based ordinal of the name-table entry matching `name`,
-   else -1. ReadWGDList keeps the same search inline instead of calling this. */
+   else -1. */
 // FUNCTION: WIZ8 0x004482A0
 int W8GameData::FindPointerByName(const char* name)
 {
@@ -503,8 +498,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
             srAssertFail("m_pTrigSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x263, "AddTriggerPlane: Couldn't allocate trigger surfaces.");
         }
-        m_pTrigVertices =
-            new srVector3T<float>[1000];
+        m_pTrigVertices = new srVector3T<float>[1000];
         if (m_pTrigVertices == 0) {
             srAssertFail("m_pTrigVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x265, "AddTriggerPlane: Couldn't allocate trigger vertices.");
@@ -587,8 +581,7 @@ void W8GameData::AddLevelPlane(W8LevelFilePlane* plane)
             srAssertFail("m_pTrigSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x2c3, "AddTriggerPlane: Couldn't allocate trigger surfaces.");
         }
-        m_pTrigVertices =
-            new srVector3T<float>[1000];
+        m_pTrigVertices = new srVector3T<float>[1000];
         if (m_pTrigVertices == 0) {
             srAssertFail("m_pTrigVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x2c5, "AddTriggerPlane: Couldn't allocate trigger vertices.");
@@ -607,9 +600,9 @@ void W8GameData::AddLevelPlane(W8LevelFilePlane* plane)
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x2cc, 0);
     }
     for (index = 0; index < 4; ++index) {
-        m_pTrigVertices[m_iNumTrigVertices].x = vertices[index].x * g_world_scale;
-        m_pTrigVertices[m_iNumTrigVertices].y = vertices[index].y * g_world_scale;
-        m_pTrigVertices[m_iNumTrigVertices].z = vertices[index].z * g_world_scale;
+        m_pTrigVertices[m_iNumTrigVertices].Set(vertices[index].x * g_world_scale,
+                                                vertices[index].y * g_world_scale,
+                                                vertices[index].z * g_world_scale);
         ++m_iNumTrigVertices;
     }
 
@@ -702,7 +695,8 @@ void W8GameData::IntegrateTriggers()
 void W8GameData::IntegrateTriggerGeometry()
 {
     if (m_iNumTrigVertices != 0) {
-        srVector3T<float>* new_vertices = new srVector3T<float>[m_iNumTrigVertices + 1 + m_iNumVertices];
+        srVector3T<float>* new_vertices =
+            new srVector3T<float>[m_iNumTrigVertices + 1 + m_iNumVertices];
         if (new_vertices == 0) {
             srAssertFail("pNewVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x351, "IntegrateTriggers: Couldn't allocate new vertex array.");
@@ -767,8 +761,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
             srAssertFail("m_pTrigSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x3b0, "AddTriggerPlane: Couldn't allocate trigger surfaces.");
         }
-        m_pTrigVertices =
-            new srVector3T<float>[1000];
+        m_pTrigVertices = new srVector3T<float>[1000];
         if (m_pTrigVertices == 0) {
             srAssertFail("m_pTrigVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x3b2, "AddTriggerPlane: Couldn't allocate trigger vertices.");
@@ -788,12 +781,10 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
     }
     vertex_base = m_iNumTrigVertices;
     for (index = 0; index < 36; ++index) {
-        m_pTrigVertices[m_iNumTrigVertices].x =
-            static_cast<float>(vertices[index].x * g_double_005ec150);
-        m_pTrigVertices[m_iNumTrigVertices].y =
-            static_cast<float>(vertices[index].y * g_double_005ec150);
-        m_pTrigVertices[m_iNumTrigVertices].z =
-            static_cast<float>(vertices[index].z * g_double_005ec150);
+        m_pTrigVertices[m_iNumTrigVertices].Set(
+            static_cast<float>(vertices[index].x * g_double_005ec150),
+            static_cast<float>(vertices[index].y * g_double_005ec150),
+            static_cast<float>(vertices[index].z * g_double_005ec150));
         ++m_iNumTrigVertices;
     }
     for (index = 0; index < 12; ++index) {
@@ -853,9 +844,7 @@ void W8GameData::CreateGDEnviron(const W8GDSurface* surface, float scale)
         environ_record->gravity_y_14 = -g_navigator_gravity;
         environ_record->gravity_z_18 = 0;
         environ_record->motion_factor_20 = 1.0f;
-        environ_record->vector_24.x = 0.0f;
-        environ_record->vector_24.y = 0.0f;
-        environ_record->vector_24.z = 0.0f;
+        environ_record->vector_24.SetZero();
         environ_record->motion_step_1c = 0.05f;
         environ_record->world_height_30 = g_default_world_height;
         environ_record->forward_scale_34 =
@@ -965,8 +954,7 @@ void W8GameData::ReadProcessedGameData(int handle)
     bits_58 = new BitArray(m_iNumTriggers);
     bits_5c = new BitArray(m_iNumTriggers);
 
-    m_pVertices =
-        new srVector3T<float>[m_iNumVertices + 2];
+    m_pVertices = new srVector3T<float>[m_iNumVertices + 2];
     if (m_pVertices == 0) {
         srAssertFail("m_pVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x483,
                      "ReadProcessedGameData: Couldn't allocate vertices.");
@@ -1048,9 +1036,7 @@ void W8GameData::ReadProcessedGameData(int handle)
             environ_record->gravity_z_18 = 0;
             environ_record->motion_step_1c = 0.05f;
             environ_record->motion_factor_20 = 1.0f;
-            environ_record->vector_24.x = 0.0f;
-            environ_record->vector_24.y = 0.0f;
-            environ_record->vector_24.z = 0.0f;
+            environ_record->vector_24.SetZero();
             environ_record->world_height_30 = g_default_world_height;
             environ_record->forward_scale_34 =
                 g_camera_level_forward_scale * g_navigator_linked_radius_scale;
@@ -1149,9 +1135,7 @@ W8GameData::W8GameData(int handle, bool secondary)
             environ_record->gravity_z_18 = 0;
             environ_record->motion_step_1c = 0.05f;
             environ_record->motion_factor_20 = 1.0f;
-            environ_record->vector_24.x = 0.0f;
-            environ_record->vector_24.y = 0.0f;
-            environ_record->vector_24.z = 0.0f;
+            environ_record->vector_24.SetZero();
             environ_record->world_height_30 = g_default_world_height;
             environ_record->forward_scale_34 =
                 g_camera_level_forward_scale * g_navigator_linked_radius_scale;
@@ -1167,7 +1151,7 @@ W8GameData::W8GameData(int handle, bool secondary)
         delete old_level;
         g_level_data = 0;
     }
-    g_octree_game_data = this;
+    SetOctreeGameData(this);
 }
 
 /* Build the processed level's spatial index once and publish every surface
@@ -1330,7 +1314,7 @@ W8GameData::~W8GameData()
         free(m_ppEnvirons);
         m_ppEnvirons = 0;
     }
-    g_octree_game_data = 0;
+    SetOctreeGameData(0);
 }
 
 static char ShareSurfaceEdge(W8GDSurface* first, W8GDSurface* second, srVector3T<float>* vertices);

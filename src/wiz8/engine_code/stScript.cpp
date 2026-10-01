@@ -92,16 +92,7 @@ srClass* stScript::vInstance()
 // FUNCTION: WIZ8 0x004CF260
 stScript::~stScript()
 {
-    while (lines.GetCount() != 0) {
-        stScriptLine* line = lines.RemoveAt(0);
-        if (line != 0) {
-            free(line->text);
-            delete line;
-        }
-    }
-    while (labels.GetCount() != 0) {
-        delete labels.RemoveAt(0);
-    }
+    Clear004CF690();
 }
 
 // FUNCTION: WIZ8 0x004CF690
@@ -115,7 +106,7 @@ void stScript::Clear004CF690()
         }
     }
     while (labels.GetCount() != 0) {
-        delete labels.RemoveAt(0);
+        labels.RemoveAtAndDelete(0);
     }
 }
 

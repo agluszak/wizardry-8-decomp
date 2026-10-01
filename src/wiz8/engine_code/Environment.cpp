@@ -129,12 +129,7 @@ void W8MaterialMapper::process(srVertexPipe& pipe)
 // FUNCTION: WIZ8 0x004823B0
 void ClearEnvironmentObjects(void)
 {
-    g_sky_gradient_animations[0] = 0;
-    g_sky_gradient_animations[1] = 0;
-    g_sky_gradient_animations[2] = 0;
-    g_sun_prop = 0;
-    g_moon_prop = 0;
-    g_celestial_orbit_radius = -1.0f;
+    ResetEnvironment();
     if (g_environment_object_0065b9b0 != 0) {
         g_environment_object_0065b9b0->release();
     }
@@ -143,7 +138,7 @@ void ClearEnvironmentObjects(void)
     }
     g_environment_object_0065b9b0 = 0;
     g_environment_object_0065b9b4 = 0;
-    g_environment_lights.count = 0;
+    g_environment_lights.Clear();
 }
 
 /* Advance the authoritative game clock and place the two celestial props on
@@ -253,43 +248,10 @@ void UpdateEnvironment(void)
     }
     if (g_environment_lighting_mode == 2) {
         if (g_sky_enabled != 0) {
-            unsigned long now = GetTickCount();
-            unsigned long elapsed =
-                now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
-            if (elapsed != 0) {
-                AdvanceEnvironmentTime(
-                    static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-            }
-            unsigned int phase =
-                ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
-            if (phase != static_cast<unsigned int>(g_last_light_phase)) {
-                g_light_direction = g_environment_colours_65ad98[phase];
-                PublishLightDirection(&g_environment_colours_65ad98[phase]);
-                g_last_light_phase = static_cast<int>(phase);
-            }
+            UpdateEnvironmentLight();
         }
         if (g_environment_colour_refresh != 0) {
-            if (g_environment_time_enabled != 0) {
-                unsigned long now = GetTickCount();
-                unsigned long elapsed =
-                    now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
-                if (elapsed != 0) {
-                    AdvanceEnvironmentTime(
-                        static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-                }
-            }
-            unsigned int phase =
-                ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
-            if (phase != static_cast<unsigned int>(g_last_environment_colour_phase)) {
-                EnvironmentColour colour = g_environment_colours_65a178[phase];
-                if (g_world == 0) {
-                    srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
-                    srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
-                }
-                ApplyEnvironmentColour(g_world, g_world->environment_intensity_024, &colour);
-                g_last_environment_colour_phase = static_cast<int>(phase);
-                return;
-            }
+            RefreshEnvironment();
         }
     } else {
         unsigned long now = GetTickCount();
@@ -458,16 +420,7 @@ void SetSkyEnabled(bool enabled)
         g_environment_object_0065b9b0->density_160 = 1.0f;
         g_environment_object_0065b9b4->density_160 = 1.0f;
 
-        if (g_environment_object_0065b9b0 != 0 && g_world != 0) {
-            g_environment_object_0065b9b0->fog_end_158 =
-                WorldGetFarClip(g_world) * g_world->environment_range_end_018;
-            g_environment_object_0065b9b0->fog_start_150 =
-                WorldGetFarClip(g_world) * g_world->environment_range_start_014;
-            g_environment_object_0065b9b4->fog_start_150 =
-                WorldGetFarClip(g_world) * g_world->environment_range_start_014;
-            g_environment_object_0065b9b4->fog_end_158 =
-                WorldGetFarClip(g_world) * g_world->environment_range_end_018;
-        }
+        RefreshFogRanges();
 
         PublishLightDirection(&g_light_direction);
         if (g_world == 0 || g_world->camera == 0) {
@@ -544,20 +497,7 @@ void EnableSky(void)
 {
     SetSkyEnabled(1);
     g_sky_enabled = 1;
-    if (g_environment_time_enabled != 0) {
-        unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
-        if (elapsed != 0) {
-            AdvanceEnvironmentTime(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-        }
-    }
-    unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
-    if (phase != static_cast<unsigned int>(g_last_light_phase)) {
-        g_light_direction = g_environment_colours_65ad98[phase];
-        PublishLightDirection(&g_environment_colours_65ad98[phase]);
-        g_last_light_phase = static_cast<int>(phase);
-    }
+    UpdateEnvironmentLight();
 }
 
 // GLOBAL: WIZ8 0x0060a3b0
@@ -579,11 +519,7 @@ void RefreshEnvironment(void)
     unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
     if (phase != static_cast<unsigned int>(g_last_environment_colour_phase)) {
         EnvironmentColour colour = g_environment_colours_65a178[phase];
-        if (g_world == 0) {
-            srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
-            srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
-        }
-        ApplyEnvironmentColour(g_world, g_world->environment_intensity_024, &colour);
+        SetWorldEnvironmentColour(g_world, colour);
         g_last_environment_colour_phase = static_cast<int>(phase);
     }
 }
@@ -646,9 +582,7 @@ void BeginWorldLightingFade(float duration)
             intensity = static_cast<float>(g_zero_005ebb40);
         }
         if (world->static_scene == 0) {
-            colour.x = 0.0f;
-            colour.y = 0.0f;
-            colour.z = 0.0f;
+            colour.SetZero();
             SaturateColor(&colour);
             ApplyEnvironmentColour(world, intensity, &colour);
         } else {
@@ -666,9 +600,7 @@ void BeginWorldLightingFade(float duration)
                 intensity = static_cast<float>(g_zero_005ebb40);
             }
             if (world->static_scene == 0) {
-                colour.x = 0.0f;
-                colour.y = 0.0f;
-                colour.z = 0.0f;
+                colour.SetZero();
                 SaturateColor(&colour);
                 ApplyEnvironmentColour(world, intensity, &colour);
             } else {
@@ -677,21 +609,7 @@ void BeginWorldLightingFade(float duration)
         }
 
         direction = g_light_direction;
-        if (direction.x <= g_float_005ebb34) {
-            direction.x = 0.0f;
-        } else if (direction.x >= g_float_005ebb38) {
-            direction.x = 1.0f;
-        }
-        if (direction.y <= g_float_005ebb34) {
-            direction.y = 0.0f;
-        } else if (direction.y >= g_float_005ebb38) {
-            direction.y = 1.0f;
-        }
-        if (direction.z <= g_float_005ebb34) {
-            direction.z = 0.0f;
-        } else if (direction.z >= g_float_005ebb38) {
-            direction.z = 1.0f;
-        }
+        SaturateColor(&direction);
         PublishLightDirection(&direction);
         return;
     }
@@ -749,9 +667,7 @@ void UpdateEnvironmentLighting(void)
         intensity = static_cast<float>(g_zero_005ebb40);
     }
     if (world->static_scene == 0) {
-        colour.x = 0.0f;
-        colour.y = 0.0f;
-        colour.z = 0.0f;
+        colour.SetZero();
         SaturateColor(&colour);
         ApplyEnvironmentColour(world, intensity, &colour);
     } else {
@@ -769,9 +685,7 @@ void UpdateEnvironmentLighting(void)
             secondary = static_cast<float>(g_zero_005ebb40);
         }
         if (world->static_scene == 0) {
-            colour.x = 0.0f;
-            colour.y = 0.0f;
-            colour.z = 0.0f;
+            colour.SetZero();
             SaturateColor(&colour);
             ApplyEnvironmentColour(world, secondary, &colour);
         } else {
@@ -782,21 +696,7 @@ void UpdateEnvironmentLighting(void)
     direction.x = g_light_direction.x * scale;
     direction.y = g_light_direction.y * scale;
     direction.z = g_light_direction.z * scale;
-    if (direction.x <= g_float_005ebb34) {
-        direction.x = 0.0f;
-    } else if (direction.x >= g_float_005ebb38) {
-        direction.x = 1.0f;
-    }
-    if (direction.y <= g_float_005ebb34) {
-        direction.y = 0.0f;
-    } else if (direction.y >= g_float_005ebb38) {
-        direction.y = 1.0f;
-    }
-    if (direction.z <= g_float_005ebb34) {
-        direction.z = 0.0f;
-    } else if (direction.z >= g_float_005ebb38) {
-        direction.z = 1.0f;
-    }
+    SaturateColor(&direction);
     PublishLightDirection(&direction);
 
     if (intensity == g_float_005ebb34) {
@@ -969,22 +869,7 @@ srVector3T<float>* __fastcall ScaleColourAndSaturate(srVector3T<float>* colour, 
     colour->y = y;
     float z = colour->z * (float)scale;
     colour->z = z;
-    if (x <= g_float_005ebb34) {
-        colour->x = 0.0f;
-    } else if (x >= g_float_005ebb38) {
-        colour->x = 1.0f;
-    }
-    if (y <= g_float_005ebb34) {
-        colour->y = 0.0f;
-    } else if (y >= g_float_005ebb38) {
-        colour->y = 1.0f;
-    }
-    if (z <= g_float_005ebb34) {
-        colour->z = 0.0f;
-    } else if (z >= g_float_005ebb38) {
-        colour->z = 1.0f;
-    }
-    return colour;
+    return SaturateColor(colour);
 }
 
 /* Push one day-phase colour and intensity into the world's static scene, every

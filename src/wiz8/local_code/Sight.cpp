@@ -138,13 +138,7 @@ void RefreshAllSight(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
-        UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 1, 0);
-    }
-    if (gXStatus.fCombatMode != 0) {
-        RefreshFlaggedMainGameState();
-        RefreshAllPartyTargets();
-    }
+    RefreshOutwardSightForAllMonsters();
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 0, 0);
     }
@@ -469,7 +463,8 @@ const float g_sight_threat_scale = 0.6667f;
    nonzero is the player pass, which refreshes the party-facing record, stamps
    the notice and fade state, and ends in the player-to-monster flag pass. */
 // FUNCTION: WIZ8 0x005049c0
-void UpdateMonsterSight(W8MonsterInfo* monster_info, unsigned char direction, unsigned char use_bounds)
+void UpdateMonsterSight(W8MonsterInfo* monster_info, unsigned char direction,
+                        unsigned char use_bounds)
 {
     W8MonsterRecord* record;
     W8Monster* monster;

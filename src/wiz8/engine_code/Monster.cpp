@@ -1172,7 +1172,7 @@ W8MonsterRep::~W8MonsterRep()
         light_lists[cycle].Clear();
     }
     while (linked_runtime_objects_614.GetCount() != 0) {
-        delete linked_runtime_objects_614.RemoveAt(0);
+        linked_runtime_objects_614.RemoveAtAndDelete(0);
     }
     delete monster_light_624;
     delete[] name_5c0;
@@ -1899,9 +1899,9 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
                 srVector3T<float> local = vertices[vertex] * m_pRep->scale_5f0;
                 srVector3T<float> rotated = rotation.Transform(local);
                 srVector3T<float> owner_position = GetPosition();
-                position->x = rotated.x + owner_position.x;
-                position->y = rotated.y + owner_position.y + movement_0c0.vertical_base_07c;
-                position->z = rotated.z + owner_position.z;
+                position->Set(rotated.x + owner_position.x,
+                              rotated.y + owner_position.y + movement_0c0.vertical_base_07c,
+                              rotated.z + owner_position.z);
                 return 1;
             }
         }
@@ -3046,17 +3046,7 @@ void UpdateNearestMonsterGroupMembers()
 float W8Monster::GetDistanceToPlayer()
 {
     srVector3T<float> position = GetPosition();
-    srVector3T<float> player_position;
-    float distance;
-
-    GetCameraPosition(&player_position);
-    player_position.y -= g_default_world_height;
-    distance = (position - player_position).Length() - movement_0c0.alternate_radius_0b4 -
-               g_startup_world->movement_0c0.alternate_radius_0b4;
-    if (distance < g_float_005ebb34) {
-        distance = g_float_005ebb34;
-    }
-    return distance;
+    return GetPointDistanceToPlayer(position);
 }
 
 // FUNCTION: WIZ8 0x004c7d50
@@ -3668,13 +3658,9 @@ unsigned char W8Monster::GetAnimationBounds(srVector3T<float>* minimum, srVector
 
     result = W8GrCycle::GetAnimationBounds(minimum, maximum);
     scale = m_pRep->scale_5f0;
-    minimum->x *= scale;
-    minimum->y *= scale;
-    minimum->z *= scale;
+    *minimum *= scale;
     scale = m_pRep->scale_5f0;
-    maximum->x *= scale;
-    maximum->y *= scale;
-    maximum->z *= scale;
+    *maximum *= scale;
     return result;
 }
 

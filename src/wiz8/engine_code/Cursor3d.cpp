@@ -181,9 +181,7 @@ void InitializeWorldCursor(void)
             if (gp3DCursor != 0) {
                 GetCameraPosition(&camera_position);
                 if (gp3DCursor->detached_50 == 0) {
-                    gp3DCursor->offset_18.x += camera_position.x;
-                    gp3DCursor->offset_18.y += camera_position.y;
-                    gp3DCursor->offset_18.z += camera_position.z;
+                    gp3DCursor->offset_18 += camera_position;
                 }
                 gp3DCursor->detached_50 = 1;
             }
@@ -193,25 +191,13 @@ void InitializeWorldCursor(void)
                                             (minimum.y + maximum.y) * g_double_005ebe80,
                                             (minimum.z + maximum.z) * g_double_005ebe80);
             gp3DCursor->probe_offsets_60[0] = maximum;
-            gp3DCursor->probe_offsets_60[1].x = minimum.x;
-            gp3DCursor->probe_offsets_60[1].y = maximum.y;
-            gp3DCursor->probe_offsets_60[1].z = maximum.z;
-            gp3DCursor->probe_offsets_60[2].x = minimum.x;
-            gp3DCursor->probe_offsets_60[2].y = maximum.y;
-            gp3DCursor->probe_offsets_60[2].z = minimum.z;
-            gp3DCursor->probe_offsets_60[3].x = maximum.x;
-            gp3DCursor->probe_offsets_60[3].y = maximum.y;
-            gp3DCursor->probe_offsets_60[3].z = minimum.z;
-            gp3DCursor->probe_offsets_60[4].x = maximum.x;
-            gp3DCursor->probe_offsets_60[4].y = minimum.y;
-            gp3DCursor->probe_offsets_60[4].z = maximum.z;
-            gp3DCursor->probe_offsets_60[5].x = minimum.x;
-            gp3DCursor->probe_offsets_60[5].y = minimum.y;
-            gp3DCursor->probe_offsets_60[5].z = maximum.z;
+            gp3DCursor->probe_offsets_60[1].Set(minimum.x, maximum.y, maximum.z);
+            gp3DCursor->probe_offsets_60[2].Set(minimum.x, maximum.y, minimum.z);
+            gp3DCursor->probe_offsets_60[3].Set(maximum.x, maximum.y, minimum.z);
+            gp3DCursor->probe_offsets_60[4].Set(maximum.x, minimum.y, maximum.z);
+            gp3DCursor->probe_offsets_60[5].Set(minimum.x, minimum.y, maximum.z);
             gp3DCursor->probe_offsets_60[6] = minimum;
-            gp3DCursor->probe_offsets_60[7].x = maximum.x;
-            gp3DCursor->probe_offsets_60[7].y = minimum.y;
-            gp3DCursor->probe_offsets_60[7].z = minimum.z;
+            gp3DCursor->probe_offsets_60[7].Set(maximum.x, minimum.y, minimum.z);
             UpdateWorldCursorPlacement();
             if (g_dev_mode != 0 && (gfKeyState[0x10] != 0 || gfKeyState[0x11] != 0)) {
                 g_cursor_pick_latch = true;
@@ -356,9 +342,9 @@ void ApplyWorldCursorInput(void)
     if (gp3DCursor->enabled_40 == 0) {
         srAssertFail("gp3DCursor->fEnabled", CURSOR3D_CPP, 0x189, 0);
     }
-    delta.x = gp3DCursor->input_delta_0c.x * g_float_005ebc88;
-    delta.y = gp3DCursor->input_delta_0c.y * g_float_005ebc88;
-    delta.z = gp3DCursor->input_delta_0c.z * g_float_005ebc88;
+    delta.Set(gp3DCursor->input_delta_0c.x * g_float_005ebc88,
+              gp3DCursor->input_delta_0c.y * g_float_005ebc88,
+              gp3DCursor->input_delta_0c.z * g_float_005ebc88);
     gp3DCursor->input_delta_0c.x = 0;
     gp3DCursor->input_delta_0c.y = 0;
     gp3DCursor->input_delta_0c.z = 0;
@@ -375,9 +361,7 @@ void ApplyWorldCursorInput(void)
         }
     }
     if (gp3DCursor->detached_50 == 0) {
-        lifted.x = delta.x;
-        lifted.y = delta.y + g_float_005ebc64;
-        lifted.z = delta.z;
+        lifted.Set(delta.x, delta.y + g_float_005ebc64, delta.z);
         if (gp3DCursor->range_44 > g_float_005ebb34 && gp3DCursor->range_44 < lifted.Length()) {
             delta.SetLength(gp3DCursor->range_44);
         }
@@ -636,11 +620,7 @@ void UpdateWorldCursor(void)
                 if (gp3DCursor->footprint_mode_c0 == 0 ||
                     g_octree->TestBoxOccupied(&box_min, &box_max) == 0) {
                     AimAtPlace(g_status.selected_character);
-                    if (gp3DCursor != 0) {
-                        ReleaseWorldCursor();
-                    } else {
-                        InitializeWorldCursor();
-                    }
+                    ToggleWorldCursor();
                     return;
                 }
             }
@@ -853,15 +833,13 @@ int ResolveWorldCursorTarget(srVector3T<float>* position)
         if (best <= g_octree->SettleToGround(&probe, 0, 1, 500.0f)) {
             best = g_octree->SettleToGround(&probe, 0, 1, 500.0f);
         }
-        probe.x = cursor->offset_c4.x + position->x;
-        probe.y = position->y;
-        probe.z = cursor->offset_d0.z + position->z;
+        probe.Set(cursor->offset_c4.x + position->x, position->y,
+                  cursor->offset_d0.z + position->z);
         if (best <= g_octree->SettleToGround(&probe, 0, 1, 500.0f)) {
             best = g_octree->SettleToGround(&probe, 0, 1, 500.0f);
         }
-        probe.x = cursor->offset_d0.x + position->x;
-        probe.y = position->y;
-        probe.z = cursor->offset_c4.z + position->z;
+        probe.Set(cursor->offset_d0.x + position->x, position->y,
+                  cursor->offset_c4.z + position->z);
         if (best <= g_octree->SettleToGround(&probe, 0, 1, 500.0f)) {
             best = g_octree->SettleToGround(&probe, 0, 1, 500.0f);
         }

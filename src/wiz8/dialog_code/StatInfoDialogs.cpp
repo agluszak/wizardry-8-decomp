@@ -55,8 +55,7 @@ W8StatInfoDialogBase::W8StatInfoDialogBase()
 // FUNCTION: WIZ8 0x005DF940
 W8StatInfoDialogBase::~W8StatInfoDialogBase()
 {
-    scrollbar_054.DestroyControls();
-    W8DialogBase::DestroyControls();
+    W8StatInfoDialogBase::DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005df9d0
@@ -193,8 +192,7 @@ W8AttributeInfoDialog::W8AttributeInfoDialog(unsigned int uiIndex)
 // FUNCTION: WIZ8 0x005dfd20
 W8AttributeInfoDialog::~W8AttributeInfoDialog()
 {
-    scrollbar_054.DestroyControls();
-    W8DialogBase::DestroyControls();
+    W8StatInfoDialogBase::DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005dfe40
@@ -218,22 +216,13 @@ W8SkillInfoDialog::W8SkillInfoDialog(unsigned int skill, unsigned char first, un
 // FUNCTION: WIZ8 0x005dff10
 W8SkillInfoDialog::~W8SkillInfoDialog()
 {
-    scrollbar_054.DestroyControls();
-    W8DialogBase::DestroyControls();
+    W8StatInfoDialogBase::DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005dffa0
 unsigned char W8SkillInfoDialog::PopulateText()
 {
-    W8ControlsRect bounds;
-    bounds.left = m_x + 0x11;
-    bounds.top = m_y + 0x26;
-    bounds.right = m_x + 0x11f;
-    bounds.bottom = m_y + 0xdf;
-    textarea_0e8.Configure(&bounds, g_wiz_text_font_secondary, 0);
-    textarea_0e8.SetEntrySpacing(0);
-    textarea_0e8.AddEntry(gppStringList[0x155], gppStringList[m_detail_id_144], 10, 0xf, 0);
-    textarea_0e8.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    W8StatInfoDialogBase::PopulateText();
     textarea_0e8.AddEntry(gppStringList[0x156], &g_empty_wide_string, 10, 0xf, 0);
     W8SkillAttributes* skill = &g_skill_attributes[m_skill_148];
     textarea_0e8.AddEntry(
@@ -274,6 +263,5 @@ W8SecondaryAttributeInfoDialog::W8SecondaryAttributeInfoDialog(unsigned int uiIn
 // FUNCTION: WIZ8 0x005e0230
 W8SecondaryAttributeInfoDialog::~W8SecondaryAttributeInfoDialog()
 {
-    scrollbar_054.DestroyControls();
-    W8DialogBase::DestroyControls();
+    W8StatInfoDialogBase::DestroyControls();
 }

@@ -519,17 +519,15 @@ W8CharacterEventQueue::~W8CharacterEventQueue()
 // FUNCTION: WIZ8 0x0052db80
 void W8CharacterEventQueue::DestroyAllEvents()
 {
-    while (active_events.count > 0) {
-        active_events.RemoveAt(0)->Complete();
-    }
+    CompleteAllActiveEvents();
     while (npc_deferred_events.count > 0) {
-        delete npc_deferred_events.RemoveAt(0);
+        npc_deferred_events.RemoveAtAndDelete(0);
     }
     while (pending_events.count > 0) {
-        delete pending_events.RemoveAt(0);
+        pending_events.RemoveAtAndDelete(0);
     }
     while (vector_00.count > 0) {
-        delete vector_00.RemoveAt(0);
+        vector_00.RemoveAtAndDelete(0);
     }
 }
 
@@ -1309,7 +1307,6 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
     W8CharacterEvent* entry;
     W8CharacterEvent* baseline;
     int index;
-    int scan;
     int conflict_count;
     int* conflict_indices;
     int remaining_conflicts;
@@ -1354,7 +1351,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
             }
             for (index = conflict_count - 1; index >= 0; --index) {
                 if (conflict_indices[index] != -1) {
-                    delete pending_events.RemoveAt(conflict_indices[index]);
+                    pending_events.RemoveAtAndDelete(conflict_indices[index]);
                 }
             }
         }
@@ -1405,12 +1402,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
             }
         }
 
-        for (scan = 0; scan < pending_events.count; ++scan) {
-            if (pending_events.data[scan] == entry) {
-                pending_events.RemoveAt(scan);
-                return;
-            }
-        }
+        pending_events.Remove(entry);
         return;
     }
 }

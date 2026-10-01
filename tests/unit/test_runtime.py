@@ -1,4 +1,5 @@
 import subprocess
+import threading
 import time
 from contextlib import nullcontext
 from pathlib import Path
@@ -669,6 +670,8 @@ def test_runtime_suite_workers_get_private_prefixes(tmp_path: Path, monkeypatch)
     settings = _settings(tmp_path)
     scenarios = ("main-menu-startup", "split-stack")
     prefixes = []
+    # Keep both jobs active so the queue exercises both worker prefixes.
+    both_workers = threading.Barrier(2, timeout=10)
     monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
     monkeypatch.setattr(
         "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
@@ -681,6 +684,7 @@ def test_runtime_suite_workers_get_private_prefixes(tmp_path: Path, monkeypatch)
 
     def run(executable, stage, environment, scenario, timeout_seconds, object_root, map_path):
         prefixes.append(environment["WINEPREFIX"])
+        both_workers.wait()
         return {"scenario": scenario, "teardown": 1}
 
     monkeypatch.setattr("wiz8decomp.runtime._run_runtime_scenario", run)

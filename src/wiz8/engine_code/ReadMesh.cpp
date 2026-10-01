@@ -974,9 +974,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
                          0);
         }
         for (int index = 0; index < vertex_count; ++index) {
-            vertices[index].x *= 500.0f;
-            vertices[index].y *= 500.0f;
-            vertices[index].z *= 500.0f;
+            vertices[index] *= 500.0f;
         }
     } else {
         unsigned char compression_type;

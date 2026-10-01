@@ -702,26 +702,7 @@ void W8SplitAmountDialog::DestroyControls()
 // FUNCTION: WIZ8 0x005d9930
 W8SplitAmountDialog::~W8SplitAmountDialog()
 {
-    int index;
-
-    W8DialogBase::DestroyControls();
-    for (index = 0; index < 6; ++index) {
-        if (m_buttons_054[index] != 0) {
-            delete m_buttons_054[index];
-            m_buttons_054[index] = 0;
-        }
-    }
-    for (index = 0; index < 3; ++index) {
-        if (m_text_buffers_06c[index] != 0) {
-            delete m_text_buffers_06c[index];
-            m_text_buffers_06c[index] = 0;
-        }
-    }
-    if (m_split_input_078 != 0) {
-        NoOp();
-        delete m_split_input_078;
-        m_split_input_078 = 0;
-    }
+    DestroyControls();
 }
 
 /* The split-item dialog. Three text buffers show the running totals, the
@@ -869,7 +850,7 @@ void W8SplitAmountDialog::Draw()
             m_buttons_054[index]->m_dirty = true;
         }
         for (index = 0; index < 3; ++index) {
-            m_text_buffers_06c[index]->m_geometryDirty = 1;
+            m_text_buffers_06c[index]->SetGeometryDirty();
         }
         W8DialogNumericInput* numeric = m_split_input_078;
         numeric->m_dirty = true;
@@ -905,11 +886,11 @@ void W8SplitAmountDialog::UpdateTextBuffers()
     swprintf(text, g_format_d, m_remaining_080);
     m_text_buffers_06c[2]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[2]->m_dirty = true;
-    m_text_buffers_06c[2]->m_geometryDirty = 1;
+    m_text_buffers_06c[2]->SetGeometryDirty();
     if (m_remaining_080 < 0) {
-        m_text_buffers_06c[2]->m_fontStateIndex = 0;
+        m_text_buffers_06c[2]->SetFontStateIndex(0);
     } else {
-        m_text_buffers_06c[2]->m_fontStateIndex = -1;
+        m_text_buffers_06c[2]->SetFontStateIndex(-1);
     }
     m_split_input_078->SetValue(m_taken_084);
     m_buttons_054[3]->m_dirty = true;

@@ -798,18 +798,7 @@ void SetSoundEffectsVolume(unsigned char volume)
                 sound->UpdatePosition(&position);
             }
         }
-        SoundServiceRandom();
-        SoundServiceStreams();
-        count = static_cast<int>(PLLength(world->plsAmbientSounds));
-        for (index = 0; index < count; ++index) {
-            W8AmbientSound* sound =
-                static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
-            if (sound != 0) {
-                sound->Service(0);
-                sound->UpdateFade();
-            }
-        }
-        Update3DSounds();
+        UpdateAmbientSounds(world);
     }
 }
 
@@ -828,97 +817,13 @@ bool IsSoundEffectsMuted(void)
 // FUNCTION: WIZ8 0x0047ae90
 void SetSoundEffectsMuted(unsigned char muted)
 {
-    W8World* world;
-    int count;
-    int index;
-
     if (muted != 0) {
         if (g_settings.muted_sound_effects_volume == 0xff) {
             g_settings.muted_sound_effects_volume = g_settings.sound_effects_volume;
-            g_settings.sound_effects_volume = 0;
-            SoundSetDefaultVolume(0);
-            if (g_world != 0 && g_world->plsAmbientSounds != 0) {
-                count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
-                for (index = 0; index < count; ++index) {
-                    W8AmbientSound* sound =
-                        static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
-                    if (sound != 0) {
-                        if (sound->sound_handle != -1) {
-                            unsigned int adjusted =
-                                (sound->volume_max * g_settings.sound_effects_volume) / 0x7f;
-                            sound->target_volume = adjusted;
-                            sound->current_volume = adjusted;
-                            SoundSetVolume(sound->sound_handle, adjusted);
-                        }
-                        sound->in_range = 0;
-                    }
-                }
-                Update3DSounds();
-            }
-            world = GetWorld();
-            if (world != 0) {
-                SoundServiceRandom();
-                count = static_cast<int>(PLLength(world->plsAmbientSounds));
-                for (index = 0; index < count; ++index) {
-                    W8AmbientSound* sound =
-                        static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
-                    if (sound != 0) {
-                        srVector3T<float> position;
-                        GetCameraPosition(&position);
-                        sound->UpdatePosition(&position);
-                    }
-                }
-                UpdateAmbientSounds(world);
-                return;
-            }
+            SetSoundEffectsVolume(0);
         }
     } else if (g_settings.muted_sound_effects_volume != 0xff) {
-        g_settings.sound_effects_volume = g_settings.muted_sound_effects_volume;
-        SoundSetDefaultVolume(g_settings.muted_sound_effects_volume);
-        if (g_world != 0 && g_world->plsAmbientSounds != 0) {
-            count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
-            for (index = 0; index < count; ++index) {
-                W8AmbientSound* sound =
-                    static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
-                if (sound != 0) {
-                    if (sound->sound_handle != -1) {
-                        unsigned int adjusted =
-                            (sound->volume_max * g_settings.sound_effects_volume) / 0x7f;
-                        sound->target_volume = adjusted;
-                        sound->current_volume = adjusted;
-                        SoundSetVolume(sound->sound_handle, adjusted);
-                    }
-                    sound->in_range = 0;
-                }
-            }
-            Update3DSounds();
-        }
-        world = GetWorld();
-        if (world != 0) {
-            SoundServiceRandom();
-            count = static_cast<int>(PLLength(world->plsAmbientSounds));
-            for (index = 0; index < count; ++index) {
-                W8AmbientSound* sound =
-                    static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
-                if (sound != 0) {
-                    srVector3T<float> position;
-                    GetCameraPosition(&position);
-                    sound->UpdatePosition(&position);
-                }
-            }
-            SoundServiceRandom();
-            SoundServiceStreams();
-            count = static_cast<int>(PLLength(world->plsAmbientSounds));
-            for (index = 0; index < count; ++index) {
-                W8AmbientSound* sound =
-                    static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
-                if (sound != 0) {
-                    sound->Service(0);
-                    sound->UpdateFade();
-                }
-            }
-            Update3DSounds();
-        }
+        SetSoundEffectsVolume(g_settings.muted_sound_effects_volume);
         g_settings.muted_sound_effects_volume = 0xff;
     }
 }

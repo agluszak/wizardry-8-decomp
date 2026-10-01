@@ -228,15 +228,8 @@ bool CharacterHasTrait(const W8Character* character, int trait)
     return false;
 }
 
-/* Scale a trait's flat value by the character's level in their current
-   profession: full value above twenty levels, sixty percent at zero and two
-   percent per level in between. The trait id is carried by the call but the
-   body never reads it. */
-// FUNCTION: WIZ8 0x005479b0
-float ScaleValueByProfessionLevel(W8Character* character, int, float base)
+static inline float ScaleValueByLevel(unsigned int level, float base)
 {
-    unsigned int level = character->profession_levels[character->iProfession];
-
     if (level > 0x14) {
         return base;
     }
@@ -244,18 +237,22 @@ float ScaleValueByProfessionLevel(W8Character* character, int, float base)
     return scaled * g_movement_speed_step;
 }
 
+/* Scale a trait's flat value by the character's level in their current
+   profession: full value above twenty levels, sixty percent at zero and two
+   percent per level in between. The trait id is carried by the call but the
+   body never reads it. */
+// FUNCTION: WIZ8 0x005479b0
+float ScaleValueByProfessionLevel(W8Character* character, int, float base)
+{
+    return ScaleValueByLevel(character->profession_levels[character->iProfession], base);
+}
+
 /* The monster-record counterpart: the flat value scaled by the record's
    effective level with the same full-value-above-twenty curve. */
 // FUNCTION: WIZ8 0x00547a00
 float ScaleValueByMonsterLevel(W8MonsterRecord* record, int, float base)
 {
-    unsigned int level = record->effective_level_24f;
-
-    if (level > 0x14) {
-        return base;
-    }
-    float scaled = (level * 2.0f + 60.0f) * base;
-    return scaled * g_movement_speed_step;
+    return ScaleValueByLevel(record->effective_level_24f, base);
 }
 
 /* The Valkyrie cheat-death trait fires instead of death while the character

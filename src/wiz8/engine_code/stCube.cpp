@@ -103,14 +103,10 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     (void)unused;
     srModeler::Vertex* vertices = polygon.vertices_30;
 
-    vertices[0].uv_c0[0].x = 1.0f;
-    vertices[0].uv_c0[0].y = 1.0f;
-    vertices[1].uv_c0[0].x = 0.0f;
-    vertices[1].uv_c0[0].y = 1.0f;
-    vertices[2].uv_c0[0].x = 0.0f;
-    vertices[2].uv_c0[0].y = 0.0f;
-    vertices[3].uv_c0[0].x = 1.0f;
-    vertices[3].uv_c0[0].y = 0.0f;
+    vertices[0].uv_c0[0].Set(1.0f, 1.0f);
+    vertices[1].uv_c0[0].Set(0.0f, 1.0f);
+    vertices[2].uv_c0[0].SetZero();
+    vertices[3].uv_c0[0].Set(1.0f, 0.0f);
 
     srVector3T<float> npp(-0.5f, 1.0f, 0.5f);
     srVector3T<float> ppp(0.5f, 1.0f, 0.5f);
@@ -218,14 +214,7 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     entry->node_04 = instance;
 
     for (int index = 0; index < 3; ++index) {
-        if (entry != 0) {
-            entry->numbers_0c[index] = 0;
-            if (entry->pUserdata != 0) {
-                free(entry->pUserdata);
-                entry->pUserdata = 0;
-            }
-            entry->size_1c = 0;
-        }
+        SetWorldCursorNodeParameter(entry, index, 0);
     }
 
     unsigned long packed;
@@ -932,16 +921,6 @@ void ReleaseWorldCursorNodes(void)
     while (g_world_cursor_nodes.count != 0) {
         W8WorldCursorNode* entry = g_world_cursor_nodes.data[0];
 
-        if (entry != 0) {
-            if (entry->pUserdata != 0) {
-                free(entry->pUserdata);
-                entry->pUserdata = 0;
-            }
-            entry->size_1c = 0;
-            entry->node_04->setParent(0, 1);
-            entry->node_04->release();
-            g_world_cursor_nodes.Remove(entry);
-            delete entry;
-        }
+        DestroyWorldCursorCube(entry);
     }
 }

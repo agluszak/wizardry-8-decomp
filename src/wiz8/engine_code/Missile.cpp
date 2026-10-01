@@ -211,9 +211,8 @@ float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int
     record->missile_0c->GetVelocity(&direction);
     *out = direction;
     position = record->missile_0c->GetPosition();
-    out->x = position.x + direction.x * advance;
-    out->y = position.y + direction.y * advance;
-    out->z = position.z + direction.z * advance;
+    out->Set(position.x + direction.x * advance, position.y + direction.y * advance,
+             position.z + direction.z * advance);
     if (g_world->octree != 0 &&
         (entity = g_world->octree->TraceAgainstProps(&position, out, 0, 0)) != 0) {
         record->limit_18 = 1.0f;
@@ -278,11 +277,7 @@ unsigned char LoadMissileDatabase(void)
     int handle;
     bool success;
 
-    if (g_missile_table) {
-        delete[] g_missile_table;
-        g_missile_table = 0;
-        g_missile_table_count = 0;
-    }
+    ReleaseMissileDatabase();
     handle = FileOpen("Data\\Databases\\MissileTables.dbs", 0x41, 0);
     if (!handle) {
         return 0;
@@ -349,9 +344,7 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
     double sine;
 
     GetCameraPosition(&camera);
-    position->x = 0.0f;
-    position->y = 0.0f;
-    position->z = 0.0f;
+    position->SetZero();
     if ((character_index & 1) == 0) {
         position->x = 75.0f;
     } else {
@@ -363,9 +356,7 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
     if (angle != 0.0) {
         cosine = cos(angle);
         sine = sin(angle);
-        third.y = 0.0f;
-        third.x = static_cast<float>(-sine);
-        third.z = static_cast<float>(cosine);
+        third.Set(static_cast<float>(-sine), 0.0f, static_cast<float>(cosine));
         second.Set(0.0, 1.0, 0.0);
         first.Set(cosine, 0.0, sine);
         step.SetRows(first, second, third);
@@ -375,9 +366,7 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
     if (angle != 0.0) {
         cosine = cos(angle);
         sine = sin(angle);
-        third.x = 0.0f;
-        third.y = static_cast<float>(sine);
-        third.z = static_cast<float>(cosine);
+        third.Set(0.0f, static_cast<float>(sine), static_cast<float>(cosine));
         second.Set(0.0, cosine, -sine);
         first.Set(1.0, 0.0, 0.0);
         step.SetRows(first, second, third);

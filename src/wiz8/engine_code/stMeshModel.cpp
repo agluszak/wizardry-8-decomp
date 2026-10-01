@@ -125,12 +125,7 @@ stMeshModel::~stMeshModel()
         RemoveSkinTable(0);
     }
     if ((flags_3a0 & 4) != 0) {
-        for (int index = 0; index < g_mesh_models.count; ++index) {
-            if (g_mesh_models.data[index] == this) {
-                g_mesh_models.RemoveAt(index);
-                break;
-            }
-        }
+        g_mesh_models.Remove(this);
     }
     if (lerp_buffer_448 != 0) {
         srHeap.free(lerp_buffer_448);
@@ -258,12 +253,8 @@ void stMeshModel::CalculateLinkedBounds()
 // FUNCTION: WIZ8 0x00473190
 void stMeshModel::GetFrameBounds(int frame, srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
-    minimum->x = 0;
-    minimum->y = 0;
-    minimum->z = 0;
-    maximum->x = 0;
-    maximum->y = 0;
-    maximum->z = 0;
+    minimum->SetZero();
+    maximum->SetZero();
     if (m_pVertexLoc != 0 && vertex_location_count_22c != 0 &&
         static_cast<unsigned int>(frame) < frame_count) {
         srVector3T<float>* vertices = m_pVertexLoc[frame];
@@ -488,27 +479,8 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
         } else if (poly_equations != 0) {
             renderer.setCullMode(srGERD::CULL_FRONT);
 
-            if (g_software_cull_active_polygons.capacity !=
-                static_cast<unsigned long>(mesh.polygon_count_04)) {
-                unsigned long needed = static_cast<unsigned long>(mesh.polygon_count_04);
-                if (needed == 0) {
-                    g_software_cull_active_polygons.release();
-                } else {
-                    unsigned long* replacement = srHeapBuffer<unsigned long>::allocate(needed);
-                    if (g_software_cull_active_polygons.data != 0 &&
-                        g_software_cull_active_polygons.capacity != 0) {
-                        unsigned long copy_count = g_software_cull_active_polygons.capacity;
-                        if (needed < copy_count) {
-                            copy_count = needed;
-                        }
-                        CopyUlongBuffer(replacement, g_software_cull_active_polygons.data,
-                                        copy_count);
-                    }
-                    g_software_cull_active_polygons.release();
-                    g_software_cull_active_polygons.data = replacement;
-                    g_software_cull_active_polygons.capacity = needed;
-                }
-            }
+            g_software_cull_active_polygons.setCapacity(
+                static_cast<unsigned long>(mesh.polygon_count_04), 1);
 
             srMatrix4T<float> inverse_model_view;
             renderer.getInverseModelViewMatrix(inverse_model_view);
@@ -1285,27 +1257,27 @@ unsigned char stMeshModel::DecompressFrame(int frame, unsigned char flags,
     if (flags & 1) {
         for (int index = 0; index < vertex_location_count_22c; ++index) {
             const short* source = &compressed_vertex_locations[frame][index * 3];
-            destination[index].x = source[0] * vertex_compression_scale_444;
-            destination[index].y = source[1] * vertex_compression_scale_444;
-            destination[index].z = source[2] * vertex_compression_scale_444;
+            destination[index].Set(source[0] * vertex_compression_scale_444,
+                                   source[1] * vertex_compression_scale_444,
+                                   source[2] * vertex_compression_scale_444);
         }
         return 1;
     }
     if (flags & 2) {
         for (int index = 0; index < vertex_location_count_22c; ++index) {
             const unsigned char* source = &compressed_vertex_normals[frame][index * 3];
-            destination[index].x = s_compressed_normal_table[source[0]];
-            destination[index].y = s_compressed_normal_table[source[1]];
-            destination[index].z = s_compressed_normal_table[source[2]];
+            destination[index].Set(s_compressed_normal_table[source[0]],
+                                   s_compressed_normal_table[source[1]],
+                                   s_compressed_normal_table[source[2]]);
         }
         return 1;
     }
     if (flags & 4) {
         for (int index = 0; index < polygon_count_230; ++index) {
             const unsigned char* source = &compressed_polygon_normals[frame][index * 3];
-            destination[index].x = s_compressed_normal_table[source[0]];
-            destination[index].y = s_compressed_normal_table[source[1]];
-            destination[index].z = s_compressed_normal_table[source[2]];
+            destination[index].Set(s_compressed_normal_table[source[0]],
+                                   s_compressed_normal_table[source[1]],
+                                   s_compressed_normal_table[source[2]]);
         }
         return 1;
     }
@@ -1524,9 +1496,7 @@ void stMeshModel::ComputeFrameNormals(int frame)
     srVectorProcessor::normalize(vnorm, vnorm, 1.0f, vertex_location_count_22c);
     for (int vertex = 0; vertex < vertex_location_count_22c; ++vertex) {
         if (vnorm[vertex].x == 0.0f && vnorm[vertex].y == 0.0f && vnorm[vertex].z == 0.0f) {
-            vnorm[vertex].x = 1e-6f;
-            vnorm[vertex].y = 1e-6f;
-            vnorm[vertex].z = 1e-6f;
+            vnorm[vertex].Set(1e-6f, 1e-6f, 1e-6f);
         }
     }
     srVectorProcessor::mul(&vnorm->x, 127.0f, &vnorm->x, vertex_location_count_22c * 3);
@@ -2033,25 +2003,7 @@ srTriMeshPipeline* srTriMeshPipeline::Get(srGERD* renderer)
     }
 
     pipeline = pipe;
-    pipeline->renderer_88 = renderer;
-    pipeline->slot_count_84 = 0;
-    pipeline->flags_28 = 0;
-    pipeline->flags_28 |= 1;
-    pipeline->flags_28 |= 2;
-    pipeline->triangle_count_1c = 0;
-    pipeline->active_triangles_2c = 0;
-    pipeline->projected_vertices_30 = 0;
-    pipeline->triangles_34 = 0;
-    pipeline->vertex_count_20 = 0;
-    pipeline->positions_38 = 0;
-    pipeline->vertex_extras_3c = 0;
-    pipeline->bounds_state_6c = 0;
-    pipeline->extra_40 = 0;
-    pipeline->shader_74.value = 0x0100241b;
-    pipeline->texture_78 = 0;
-    pipeline->pass_value_7c = 0;
-    pipeline->material_80 = srCore.getMaterial();
-    pipeline->PrepareSlot();
+    pipeline->Reset004753F0(renderer);
     return pipe;
 }
 /* Retail ICF folds this empty thiscall onto W8OptionsGraphicsPanel::OnDragEnd

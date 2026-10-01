@@ -71,7 +71,19 @@ const char* g_spell_cycle_names[28] = {
 // GLOBAL: WIZ8 0x0065BE20
 W8SpellVisual* g_target_cone_visual;
 
-static inline int MinimumCasterLevel(int spell_level)
+// FUNCTION: WIZ8 0x004ac9d0
+W8SpellTargetType GetSpellTargetType(int spell_id, unsigned char normalize_single_target)
+{
+    W8SpellTargetType target_type = g_spell_records[spell_id].target_type;
+
+    if (target_type == W8_TARGET_TYPE_ALLY && normalize_single_target) {
+        target_type = W8_TARGET_TYPE_CASTER;
+    }
+    return target_type;
+}
+
+// FUNCTION: WIZ8 0x004acb40
+int MinimumCasterLevelForSpellLevel(int spell_level)
 {
     switch (spell_level) {
     case 2:
@@ -91,27 +103,10 @@ static inline int MinimumCasterLevel(int spell_level)
     }
 }
 
-// FUNCTION: WIZ8 0x004ac9d0
-W8SpellTargetType GetSpellTargetType(int spell_id, unsigned char normalize_single_target)
-{
-    W8SpellTargetType target_type = g_spell_records[spell_id].target_type;
-
-    if (target_type == W8_TARGET_TYPE_ALLY && normalize_single_target) {
-        target_type = W8_TARGET_TYPE_CASTER;
-    }
-    return target_type;
-}
-
-// FUNCTION: WIZ8 0x004acb40
-int MinimumCasterLevelForSpellLevel(int spell_level)
-{
-    return MinimumCasterLevel(spell_level);
-}
-
 // FUNCTION: WIZ8 0x004acba0
 int GetMinimumCasterLevelForSpell(int spell_id)
 {
-    return MinimumCasterLevel(g_spell_records[spell_id].spell_level);
+    return MinimumCasterLevelForSpellLevel(g_spell_records[spell_id].spell_level);
 }
 
 /* The emitter record a spell's visual hangs off. */
@@ -1593,9 +1588,9 @@ void Update3DSounds()
                         if (angle != g_zero_005ebb40) {
                             rotation.RotateAboutY(sin(angle), cos(angle));
                         }
-                        offset.x = (float)world.x - listener.x;
-                        offset.y = (float)world.y - listener.y;
-                        offset.z = (float)world.z - listener.z;
+                        offset.Set(static_cast<float>(world.x) - listener.x,
+                                   static_cast<float>(world.y) - listener.y,
+                                   static_cast<float>(world.z) - listener.z);
                         transformed = rotation.Transform(offset);
                         Sound3DSetPosition(sound->sound_handle, transformed.x, transformed.y,
                                            transformed.z);
@@ -1709,11 +1704,7 @@ unsigned char InitializeSpellDatabase(void)
     int allocation_count;
     unsigned int database_version;
 
-    if (g_spell_records != 0) {
-        delete[] g_spell_records;
-        g_spell_records = 0;
-        g_spell_database_version = 0;
-    }
+    ReleaseSpellDatabase();
     handle = FileOpen("Data\\Databases\\SpellTables.dbs", 0x41, 0);
     if (handle == 0) {
         return 0;

@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "surrender/srDebug.h"
+#include "surrender/srHash.h"
 #include "surrender/srString.h"
 
 namespace {
@@ -19,10 +20,6 @@ inline unsigned long hashName(const char* name)
     return hash;
 }
 
-inline unsigned long hashInteger(unsigned long value)
-{
-    return ((value >> 10) ^ value) >> 10 ^ value;
-}
 } // namespace
 
 /* srConfig's private index: a name-hash node table plus an Entry*-keyed side
@@ -102,9 +99,7 @@ struct srConfig::Index {
                     for (int old = heads_00[bucket]; old != -1; old = records_04[old].next_00) {
                         records[used].key_04 = records_04[old].key_04;
                         int next_bucket =
-                            // reinterpret-ok: the side map hashes the key's
-                            // address bits.
-                            hashInteger(reinterpret_cast<unsigned long>(records[used].key_04)) &
+                            srHashValue(records[used].key_04) &
                             (count - 1);
                         records[used].value_08 = records_04[old].value_08;
                         records[used].next_00 = heads[next_bucket];
@@ -544,8 +539,7 @@ void srConfig::Index::EntryMap::insert(Entry*& key, NameEntry*& value)
     records_04[record].key_04 = key;
     records_04[record].value_08 = value;
     unsigned long bucket =
-        // reinterpret-ok: the side map hashes the key's address bits.
-        hashInteger(reinterpret_cast<unsigned long>(key)) & (count_0c - 1);
+        srHashValue(key) & (count_0c - 1);
     records_04[record].next_00 = heads_00[bucket];
     heads_00[bucket] = record;
 }
@@ -554,8 +548,7 @@ void srConfig::Index::EntryMap::insert(Entry*& key, NameEntry*& value)
 void srConfig::Index::EntryMap::erase(Entry*& key)
 {
     unsigned long bucket =
-        // reinterpret-ok: the side map hashes the key's address bits.
-        hashInteger(reinterpret_cast<unsigned long>(key)) & (count_0c - 1);
+        srHashValue(key) & (count_0c - 1);
     int* link = &heads_00[bucket];
     int record = *link;
     if (record != -1) {
@@ -625,10 +618,7 @@ void srConfig::Index::resize(long bucket_count)
 
                     int record = by_entry_00.allocRecord();
                     unsigned long sub_bucket =
-                        // reinterpret-ok: the side map hashes the entry's
-                        // address bits.
-                        hashInteger(reinterpret_cast<unsigned long>(old_node->entry_10)) &
-                        (by_entry_00.count_0c - 1);
+                        srHashValue(old_node->entry_10) & (by_entry_00.count_0c - 1);
                     by_entry_00.records_04[record].key_04 = old_node->entry_10;
                     by_entry_00.records_04[record].value_08 = node;
                     by_entry_00.records_04[record].next_00 = by_entry_00.heads_00[sub_bucket];

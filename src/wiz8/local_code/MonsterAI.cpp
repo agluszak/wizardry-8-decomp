@@ -194,15 +194,7 @@ void UpdateMonsterGroups(char staggered)
     }
     ++g_monster_group_tick;
     if (staggered == 0) {
-        if (gXStatus.fCombatMode == 0 || gXStatus.sight_refresh_pending_a03 != 0) {
-            if (gXStatus.sight_refresh_pending_a03 != 0) {
-                gXStatus.sight_refresh_pending_a03 = 0;
-            }
-            RefreshOutwardSightForAllMonsters();
-            if (gXStatus.fCombatMode != 0 && g_combat_state->round_count_004 == 0) {
-                CheckMonsterGroupsEnterCombat();
-            }
-        }
+        UpdateMonsterSight();
     }
     WorldGetCameraLocation(GetWorld(), &camera_position);
     for (group_list_index = 0; group_list_index < PLLength(gXStatus.plsMonsterGroupList);
@@ -597,9 +589,8 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 break;
             }
             case 4:
-                monster->move_direction_2bc.x = monster->direction_x_2b0;
-                monster->move_direction_2bc.y = monster->direction_y_2b4;
-                monster->move_direction_2bc.z = monster->direction_z_2b8;
+                monster->move_direction_2bc.Set(monster->direction_x_2b0, monster->direction_y_2b4,
+                                                monster->direction_z_2b8);
                 mode = 0xa;
                 changed = true;
                 break;

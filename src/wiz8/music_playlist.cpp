@@ -62,16 +62,10 @@ void SetMusicMuted(unsigned char muted)
     if (muted != 0) {
         if (g_settings.muted_music_volume == 0xff) {
             g_settings.muted_music_volume = g_settings.music_volume;
-            g_settings.music_volume = 0;
-            if (g_music_sample_handle != -1) {
-                SoundSetVolume(g_music_sample_handle, 0);
-            }
+            SetMusicVolume(0);
         }
     } else if (g_settings.muted_music_volume != 0xff) {
-        g_settings.music_volume = g_settings.muted_music_volume;
-        if (g_music_sample_handle != -1) {
-            SoundSetVolume(g_music_sample_handle, g_settings.muted_music_volume);
-        }
+        SetMusicVolume(g_settings.muted_music_volume);
         g_settings.muted_music_volume = 0xff;
     }
 }

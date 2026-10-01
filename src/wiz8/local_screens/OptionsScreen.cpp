@@ -163,7 +163,7 @@ W8OptionsPanelSet::W8OptionsPanelSet()
 W8OptionsPanelSet::~W8OptionsPanelSet()
 {
     for (int index = m_panels_010.count - 1; index >= 0; --index) {
-        delete m_panels_010.RemoveAt(index);
+        m_panels_010.RemoveAtAndDelete(index);
     }
 }
 
@@ -302,9 +302,7 @@ void W8OptionsSaveLoadPanel::Populate()
 // FUNCTION: WIZ8 0x005aaac0
 void W8OptionsSaveLoadPanel::SetActive(unsigned char active)
 {
-    EnableRegionSet(active);
-    SetEnabled(active);
-    Invalidate(0);
+    W8OptionsPanel::SetActive(active);
     if (active != 0 && g_options_screen->m_text_editor == 0 && m_panel == 12 &&
         m_selection.m_selectedIndex == 0 && m_current_04c == 0) {
         OnEditSaveName(m_rows.data[0]);
@@ -552,9 +550,7 @@ void W8OptionsSaveLoadPanel::LoadSelectedSave()
     int selected_slot = m_current_04c * 5 + 1 + m_selection.m_selectedIndex;
     W8SaveSlot* slot = *g_options_screen->m_save_slots.GetAt(selected_slot);
     if (slot->version_major + slot->version_minor * 0.1f + slot->version_patch * 0.01f <= 1.24f) {
-        wcsncpy(g_options_last_save_name, slot->name, 0x40);
-        reinterpret_cast<char*>(g_options_last_save_name)[0x7e] =
-            0; // reinterpret-ok: raw byte view of the wide name buffer
+        SetLastSaveName(slot->name);
         if (g_status.game_started != 0) {
             ClearHeldItemDisplay();
         }
@@ -582,9 +578,7 @@ void W8OptionsSaveLoadPanel::SaveSelectedSave()
         g_options_screen->ShowNotification(this, 0, 0x82e, 0);
         return;
     }
-    wcsncpy(g_options_last_save_name, slot->name, 0x40);
-    reinterpret_cast<char*>(g_options_last_save_name)[0x7e] =
-        0; // reinterpret-ok: raw byte view of the wide name buffer
+    SetLastSaveName(slot->name);
     RequestScreenTransition();
     g_pending_screen_state.mode = 2;
     strcpy(g_pending_screen_state.name, ConvertWideStringToString(slot->name));
@@ -897,10 +891,7 @@ void W8OptionsKeyboardPanel::OnSelectionChanged(W8ControlSelection*, int selecte
         return;
     }
 
-    W8Widget** control = m_controls.data;
-    if (selected < m_controls.count) {
-        control += selected;
-    }
+    W8Widget** control = m_controls.GetAt(selected);
     m_captured_button = static_cast<W8OptionsKeyButton*>(*control);
     g_options_screen->m_key_capture = this;
 }
@@ -908,9 +899,7 @@ void W8OptionsKeyboardPanel::OnSelectionChanged(W8ControlSelection*, int selecte
 // FUNCTION: WIZ8 0x005abd90
 void W8OptionsKeyboardPanel::SetActive(unsigned char active)
 {
-    EnableRegionSet(active);
-    SetEnabled(active);
-    Invalidate(0);
+    W8OptionsPanel::SetActive(active);
     if (active != 0) {
         int count = m_controls.count - 1;
         for (int index = 0; index < count; ++index) {
@@ -1385,7 +1374,7 @@ W8OptionsScreen::~W8OptionsScreen()
     int index;
     SelectPanel(-1, 1);
     for (index = m_save_slots.count - 1; index >= 0; --index) {
-        delete m_save_slots.RemoveAt(index);
+        m_save_slots.RemoveAtAndDelete(index);
     }
     delete m_controls_024;
     delete m_menu_set_028;
@@ -1767,10 +1756,10 @@ W8OptionsPanel::~W8OptionsPanel()
     int index;
     DestroyAllControls();
     for (index = m_text_buffers_058.count - 1; index >= 0; --index) {
-        delete m_text_buffers_058.RemoveAt(index);
+        m_text_buffers_058.RemoveAtAndDelete(index);
     }
     for (index = m_option_selections.count - 1; index >= 0; --index) {
-        delete m_option_selections.RemoveAt(index);
+        m_option_selections.RemoveAtAndDelete(index);
     }
 }
 

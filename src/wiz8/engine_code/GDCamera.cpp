@@ -135,9 +135,7 @@ void OffsetPositionByYawPitch(float distance, srVector3T<float>* position, float
     float cosine;
     float sine;
 
-    forward.z = distance;
-    forward.x = 0.0f;
-    forward.y = 0.0f;
+    forward.Set(0.0f, 0.0f, distance);
     rotation.SetIdentity();
     if (yaw != g_zero_005ebb40) {
         cosine = static_cast<float>(cos(yaw));
@@ -158,9 +156,7 @@ void OffsetPositionByYawPitch(float distance, srVector3T<float>* position, float
         rotation.MultiplyBy(axis);
     }
     step = rotation.Transform(forward);
-    position->x += step.x;
-    position->y += step.y;
-    position->z += step.z;
+    *position += step;
 }
 
 // FUNCTION: WIZ8 0x00476140
@@ -278,15 +274,13 @@ void GDCamera::ApplyRotationMatrix(srMatrix3T<float>* rotation, W8LevelDataRecor
     if (forward_x != g_float_005ebb34 || forward_y != g_float_005ebb34 ||
         forward_z != g_float_005ebb38) {
         if (context != 0) {
-            context->camera_forward_4c.x = forward_x * g_camera_level_forward_scale;
-            context->camera_forward_4c.y = forward_y * g_camera_level_forward_scale;
-            context->camera_forward_4c.z = forward_z * g_camera_level_forward_scale;
-            context->scaled_camera_forward_7c.x =
-                context->camera_forward_4c.x * context->camera_scale_14;
-            context->scaled_camera_forward_7c.y =
-                context->camera_forward_4c.y * context->camera_scale_14;
-            context->scaled_camera_forward_7c.z =
-                context->camera_forward_4c.z * context->camera_scale_14;
+            context->camera_forward_4c.Set(forward_x * g_camera_level_forward_scale,
+                                           forward_y * g_camera_level_forward_scale,
+                                           forward_z * g_camera_level_forward_scale);
+            context->scaled_camera_forward_7c.Set(
+                context->camera_forward_4c.x * context->camera_scale_14,
+                context->camera_forward_4c.y * context->camera_scale_14,
+                context->camera_forward_4c.z * context->camera_scale_14);
         }
 
         if (forward_y > g_float_005ebb38) {
@@ -363,27 +357,7 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
 
     m_target_pitch_09c = pitch;
     m_target_angle_098 = angle;
-    if (gXStatus.fNpcDialogueMode == 0) {
-        if ((m_state_000 & 1) != 0) {
-            return;
-        }
-        W8IntervalGate* timer = m_manual_input_timer;
-        if (timer->IsFinished() == 0) {
-            timer->PollElapsedIntervals();
-        }
-        if (timer->IsFinished() == 0) {
-            return;
-        }
-    }
-
-    m_target_pitch_09c = pitch;
-    m_target_angle_098 = angle;
-    m_state_000 = 0x80;
-    m_transition_active = 0;
-    SetYaw(angle);
-    SetPitch(pitch);
-    m_pitch_velocity_0ac = 0.0f;
-    m_angle_velocity_0a8 = 0.0f;
+    SetOrientationImmediate(pitch, angle);
 }
 
 // FUNCTION: WIZ8 0x00476C30

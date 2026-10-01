@@ -64,16 +64,6 @@ char g_format_string_buffer[200];
 // GLOBAL: WIZ8 0x00689FD0
 wchar_t g_wide_string_buffer[4096];
 
-static inline int UtilityIntegerPower(int base, unsigned int exponent)
-{
-    int result;
-
-    for (result = 1; exponent > 0; --exponent) {
-        result *= base;
-    }
-    return result;
-}
-
 // FUNCTION: WIZ8 0x00517950
 void SetDice(W8Dice* dice, unsigned char count, unsigned char sides, short base)
 {
@@ -219,7 +209,7 @@ wchar_t* FormatUnsignedIntegerWithCommas(wchar_t* output, unsigned int value)
     do {
         unsigned int threshold;
 
-        divisor = UtilityIntegerPower(10, exponent);
+        divisor = IntegerPower(10, exponent);
         threshold = exponent > 0 ? divisor : 0;
 
         if (value >= threshold) {

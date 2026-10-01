@@ -1081,12 +1081,8 @@ bool IsWorldItemWithinReach(W8Item* owner, const srVector3T<float>* from, float 
     srVector3T<float> delta(position.x - from->x, position.y - from->y, position.z - from->z);
     if (delta.LengthSquared() < radius * radius) {
         owner->GetCachedLocalBounds(&lower, &upper);
-        lower.x += position.x;
-        lower.y += position.y;
-        lower.z += position.z;
-        upper.x += position.x;
-        upper.y += position.y;
-        upper.z += position.z;
+        lower += position;
+        upper += position;
         if (ShowTargetMarker(&eye, &lower, &upper)) {
             return 1;
         }
@@ -1126,12 +1122,8 @@ bool AnyWorldItemVisible(void)
                                     position.z - camera.z);
             if (delta.Length() < static_cast<float>(g_double_005ec030)) {
                 item->p3D->GetCachedLocalBounds(&lower, &upper);
-                lower.x += position.x;
-                lower.y += position.y;
-                lower.z += position.z;
-                upper.x += position.x;
-                upper.y += position.y;
-                upper.z += position.z;
+                lower += position;
+                upper += position;
                 if (ShowTargetMarker(&eye, &lower, &upper) != 0) {
                     return 1;
                 }
@@ -1148,12 +1140,8 @@ bool AnyWorldItemVisible(void)
                                     position.z - camera.z);
             if (delta.Length() < static_cast<float>(g_double_005ec030)) {
                 item->p3D->GetCachedLocalBounds(&lower, &upper);
-                lower.x += position.x;
-                lower.y += position.y;
-                lower.z += position.z;
-                upper.x += position.x;
-                upper.y += position.y;
-                upper.z += position.z;
+                lower += position;
+                upper += position;
                 if (ShowTargetMarker(&eye, &lower, &upper) != 0) {
                     g_last_visible_world_item = index;
                     return 1;
@@ -1181,9 +1169,7 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
     }
 
     previous_y = item->position.y;
-    probe.x = item->position.x;
-    probe.z = item->position.z;
-    probe.y = previous_y + g_world_scale;
+    probe.Set(item->position.x, previous_y + g_world_scale, item->position.z);
     dt = g_game_time_accumulator->GetFrameDelta();
     if (g_camera_snap_epsilon < item->vertical_velocity_35) {
         probe.y = dt * item->vertical_velocity_35 + probe.y;
@@ -1236,9 +1222,7 @@ unsigned char SettleWorldItem(W8WorldItem* item)
     bool hit;
     int sector;
 
-    start.x = item->position.x;
-    start.z = item->position.z;
-    start.y = item->position.y + g_world_scale;
+    start.Set(item->position.x, item->position.y + g_world_scale, item->position.z);
 
     item->flags &= ~2u;
     item->vertical_velocity_35 = 0.0f;

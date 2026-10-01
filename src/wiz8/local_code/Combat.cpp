@@ -1313,10 +1313,7 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
     }
     if (action_kind != previous_action && g_combat_state->combat_over_000 != 0 &&
         row->dead_34 == 0) {
-        row->phase += g_combat_state->round_counter - row->phase_clock_stamp;
-        ClampUnsignedInteger(&row->phase, g_combat_state->round_counter, 100);
-        RoundPhaseToStep(&row->phase, g_combat_state->round_counter);
-        row->phase_clock_stamp = g_combat_state->round_counter;
+        CatchUpCombatActor(row);
     }
     RequestRedraw(1 << (party_slot & 0x1f));
     g_level_block->pick_changed_154 = 0;
@@ -2761,9 +2758,7 @@ char CreateCharacterBreathEffect(int party_slot)
     }
     FaceCharacterTowardCombatTarget(party_slot, target);
     GetCameraPosition(&camera);
-    aim.x = target->point.x - camera.x;
-    aim.y = target->point.y - camera.y;
-    aim.z = target->point.z - camera.z;
+    aim = target->point - camera;
     direction = aim;
     aim.SetLength(1.0);
     rotation.SetIdentity();

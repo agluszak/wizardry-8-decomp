@@ -69,9 +69,7 @@ void W8Octree::GetPathSurfaceNormal(const srVector3T<float>* position, srVector3
         pathing_180->GetPathSurfaceNormal(position, normal);
         return;
     }
-    normal->x = 0.0f;
-    normal->y = 1.0f;
-    normal->z = 0.0f;
+    normal->Set(0.0f, 1.0f, 0.0f);
 }
 
 // FUNCTION: WIZ8 0x00434170
@@ -209,12 +207,10 @@ void W8Octree::UpdateCameraVisibility()
 
     srMatrix3T<float> rotation;
     world->camera->getRotation(rotation);
-    view_1c0.rotation_column_18.x = rotation.vectors[0].x;
-    view_1c0.rotation_column_18.y = rotation.vectors[1].x;
-    view_1c0.rotation_column_18.z = rotation.vectors[2].x;
-    view_1c0.rotation_column_24.x = rotation.vectors[0].y;
-    view_1c0.rotation_column_24.y = rotation.vectors[1].y;
-    view_1c0.rotation_column_24.z = rotation.vectors[2].y;
+    view_1c0.rotation_column_18.Set(rotation.vectors[0].x, rotation.vectors[1].x,
+                                    rotation.vectors[2].x);
+    view_1c0.rotation_column_24.Set(rotation.vectors[0].y, rotation.vectors[1].y,
+                                    rotation.vectors[2].y);
 
     srVector3T<double> dof = world->camera->getWorldSpaceDOF();
     view_1c0.camera_dof_0c = dof;
@@ -519,9 +515,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
                     model->getBoundingSphere(center, sphere_radius);
                     srVector3T<float> prop_position;
                     m_papProps[bit - 1]->GetPosition0044E2C0(&prop_position);
-                    center.x += prop_position.x;
-                    center.y += prop_position.y;
-                    center.z += prop_position.z;
+                    center += prop_position;
                     sphere_radius += radius;
                     if ((center.x - point->x) * (center.x - point->x) +
                             (center.y - point->y) * (center.y - point->y) +
@@ -1666,12 +1660,11 @@ unsigned char W8Octree::UpdateWorldTrace()
         cell[axis] = static_cast<int>(
             (((&camera.x)[axis] - (&spatial_000.minimum_0c.x)[axis]) / spatial_000.node_extent_70));
     }
-    minimum.x = cell[0] * spatial_000.node_extent_70 + spatial_000.minimum_0c.x;
-    minimum.y = cell[1] * spatial_000.node_extent_70 + spatial_000.minimum_0c.y;
-    minimum.z = cell[2] * spatial_000.node_extent_70 + spatial_000.minimum_0c.z;
-    maximum.x = minimum.x + spatial_000.node_extent_70;
-    maximum.y = minimum.y + spatial_000.node_extent_70;
-    maximum.z = minimum.z + spatial_000.node_extent_70;
+    minimum.Set(cell[0] * spatial_000.node_extent_70 + spatial_000.minimum_0c.x,
+                cell[1] * spatial_000.node_extent_70 + spatial_000.minimum_0c.y,
+                cell[2] * spatial_000.node_extent_70 + spatial_000.minimum_0c.z);
+    maximum.Set(minimum.x + spatial_000.node_extent_70, minimum.y + spatial_000.node_extent_70,
+                minimum.z + spatial_000.node_extent_70);
     unsigned long* packed = PackColourToLong(&color, 0.0, 1.0, 0.0, 0.0);
     DrawWorldBox(g_world, minimum, maximum, *packed);
     return 1;
@@ -2561,9 +2554,7 @@ no_probes:;
                         float monster_radius = monster->radius_084;
                         if (distance < monster_radius) {
                             direction = *to - *from;
-                            double length2 = static_cast<double>((direction.x * direction.x +
-                                                                  direction.y * direction.y +
-                                                                  direction.z * direction.z));
+                            double length2 = static_cast<double>((direction.LengthSquared()));
                             offset = direction;
                             if (length2 != g_zero_005ebb40) {
                                 offset *= (sqrt(length2) - sqrt(monster_radius * monster_radius -
@@ -2577,8 +2568,7 @@ no_probes:;
                                     best_index = index;
                                 }
                             } else {
-                                best = sqrt(offset.x * offset.x + offset.y * offset.y +
-                                            offset.z * offset.z);
+                                best = sqrt(offset.LengthSquared());
                                 best_index = index;
                             }
                         }
@@ -3203,9 +3193,7 @@ unsigned long* W8Octree::CollectPolygonsNearPoint(srVector3T<float>* center, flo
         }
         if (m_aulGDObjs[index] != 0) {
             srVector3T<float> normal;
-            normal.x = plane->x;
-            normal.y = plane->y;
-            normal.z = plane->z;
+            normal.Set(plane->x, plane->y, plane->z);
             const srVector3i* poly_vertex = model->getPolyVertex() + (m_aulGDObjs[index] & 0xffff);
             const srVector3T<float>* vertices = model->getVertexLoc();
             srVector3T<float> triangle[3];
@@ -3712,7 +3700,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
     }
 
 finish:
-    g_octree_game_data = 0;
+    SetOctreeGameData(0);
     *game_data = 0;
     if (fSuccess != 0 && header.gd_surface_stream_len_86 != 0) {
         pGameData = new W8GameData(hOctFile, false);
@@ -3732,7 +3720,7 @@ finish:
         g_octree = this;
         pGameData->octree_04 = this;
         *game_data = pGameData;
-        g_octree_game_data = pGameData;
+        SetOctreeGameData(pGameData);
         m_region_links_ready_169 = ReadRegionLinkFile(m_owned_0c0);
         LoadPointFiles(m_owned_0c0);
         if (pathing_180 != 0) {
@@ -4267,27 +4255,8 @@ void W8Octree::VisitPointCopy(unsigned short location_id, srVector3T<float>* pos
 // FUNCTION: WIZ8 0x0042e650
 void W8Octree::UnregisterLocationObjects(unsigned int location_id)
 {
-    W8OctreeIndex* by_object = object_registry->by_object;
-    W8OctreeIndex* by_cell = object_registry->by_cell;
-    unsigned int id = (location_id + 1) & 0xffff;
-    unsigned int object_key = PackOctreeObjectKey(W8_OCTREE_KIND_LOCATION, id);
-    int slot = by_object->FindNextEntry(&object_key, -1);
-    while (slot != -1) {
-        unsigned int cell_key = static_cast<unsigned int>(by_object->entries[slot].value);
-        int object_value = static_cast<int>(object_key);
-        by_object->RemoveAt(slot);
-        by_cell->Remove(&cell_key, &object_value);
-        slot = by_object->FindNextEntry(&object_key, slot);
-    }
-    object_key = PackOctreeObjectKey(W8_OCTREE_KIND_NAVIGATOR, id);
-    slot = by_object->FindNextEntry(&object_key, -1);
-    while (slot != -1) {
-        unsigned int cell_key = static_cast<unsigned int>(by_object->entries[slot].value);
-        int object_value = static_cast<int>(object_key);
-        by_object->RemoveAt(slot);
-        by_cell->Remove(&cell_key, &object_value);
-        slot = by_object->FindNextEntry(&object_key, slot);
-    }
+    UnregisterLocationObject(location_id, W8_OCTREE_KIND_LOCATION);
+    UnregisterLocationObject(location_id, W8_OCTREE_KIND_NAVIGATOR);
 }
 
 /* Remove the registered pairings for one (location, kind) object key — used
@@ -4956,15 +4925,12 @@ float PointToSegmentDistance2D(srVector2T<float>* point, const srVector2T<float>
     if (clamp_point != 0) {
         if (static_cast<float>(g_zero_005ebb40) <= t) {
             if (static_cast<float>(g_double_005ebc30) < t) {
-                point->x = to->x;
-                point->y = to->y;
+                *point = *to;
             } else {
-                point->x = dx * t + from->x;
-                point->y = dy * t + from->y;
+                point->Set(dx * t + from->x, dy * t + from->y);
             }
         } else {
-            point->x = from->x;
-            point->y = from->y;
+            *point = *from;
         }
     }
     if (out_t != 0) {
@@ -5092,13 +5058,9 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
     if (proximity_check != 0) {
         float expand = spacing * g_float_005ec048;
         srVector3T<float> low;
-        low.x = position->x - expand;
-        low.y = position->y - expand;
-        low.z = position->z - expand;
+        low.Set(position->x - expand, position->y - expand, position->z - expand);
         srVector3T<float> high;
-        high.x = expand + position->x;
-        high.y = expand + position->y;
-        high.z = expand + position->z;
+        high.Set(expand + position->x, expand + position->y, expand + position->z);
         candidates = static_cast<unsigned long*>(operator new(0x400));
         monsters = static_cast<unsigned int>(QueryObjects(
             &candidates, &low, &high, W8_OCTREE_KIND_LOCATION, -1)); /* c-style-cast-ok:
@@ -5232,13 +5194,9 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     if (first_only != 0) {
         float expand = radius * g_float_005ec048;
         srVector3T<float> low;
-        low.x = source->x - expand;
-        low.y = source->y - expand;
-        low.z = source->z - expand;
+        low.Set(source->x - expand, source->y - expand, source->z - expand);
         srVector3T<float> high;
-        high.x = expand + source->x;
-        high.y = expand + source->y;
-        high.z = expand + source->z;
+        high.Set(expand + source->x, expand + source->y, expand + source->z);
         candidates = static_cast<unsigned long*>(operator new(0x400));
         monsters = static_cast<unsigned int>(QueryObjects(
             &candidates, &low, &high, W8_OCTREE_KIND_LOCATION, -1)); /* c-style-cast-ok:

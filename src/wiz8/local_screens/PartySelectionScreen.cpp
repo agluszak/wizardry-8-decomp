@@ -115,11 +115,11 @@ W8PartySelectionCharacterCollection::~W8PartySelectionCharacterCollection()
             delete character;
         }
     }
-    characters.count = 0;
+    characters.Clear();
     for (index = 0; index < names.count; ++index) {
         delete names.data[index];
     }
-    names.count = 0;
+    names.Clear();
 }
 
 // FUNCTION: WIZ8 0x005be4b0
@@ -166,7 +166,7 @@ int W8PartySelectionCharacterCollection::FindPartySlot(int index)
 void W8PartySelectionCharacterCollection::DeleteAt(int index)
 {
     if (index >= 0 && index < characters.count) {
-        delete characters.RemoveAt(index);
+        characters.RemoveAtAndDelete(index);
     } else {
         delete static_cast<W8Character*>(0);
     }
@@ -1225,7 +1225,7 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
 {
     m_mode_4c = mode;
     while (m_entries_7c.count > 0) {
-        delete m_entries_7c.RemoveAt(m_entries_7c.count - 1);
+        m_entries_7c.RemoveAtAndDelete(m_entries_7c.count - 1);
     }
     for (int index = 0; index < m_controls.count; ++index) {
         ControlAt(index)->SetActive(mode == 0);
@@ -1387,7 +1387,7 @@ W8PartySelectionOptionPanel::~W8PartySelectionOptionPanel()
 {
     DestroyAllControls();
     while (m_entries_7c.count > 0) {
-        delete m_entries_7c.RemoveAt(m_entries_7c.count - 1);
+        m_entries_7c.RemoveAtAndDelete(m_entries_7c.count - 1);
     }
 }
 
@@ -1426,19 +1426,7 @@ W8PartySelectionController::~W8PartySelectionController()
 void W8PartySelectionController::SetMode(int mode)
 {
     m_mode = mode;
-    m_redraw_backdrop_14 = true;
-
-    m_range->Invalidate(0);
-    m_control_2c->Invalidate(0);
-    m_control_30->Invalidate(0);
-    m_character_panel_20->Invalidate(0);
-    m_panel_34->Invalidate(0);
-    m_control_24->Invalidate(0);
-    m_control_28->Invalidate(0);
-    m_panel_38->Invalidate(0);
-    m_panel_3c->Invalidate(0);
-
-    m_text_buffer_60->m_geometryDirty = true;
+    InvalidatePartySelectionComposition();
     m_panel_3c->SetEnabled(1);
     m_panel_3c->EnableRegionSet(1);
     m_control_28->SetEnabled(1);
@@ -1584,7 +1572,8 @@ void W8PartySelectionController::SetMode(int mode)
 }
 
 // FUNCTION: WIZ8 0x005c1680
-void W8PartySelectionController::SetSelection(int selection, unsigned char party_slot, unsigned char refresh_other)
+void W8PartySelectionController::SetSelection(int selection, unsigned char party_slot,
+                                              unsigned char refresh_other)
 {
     if (!party_slot) {
         if (m_mode == 0) {
@@ -2108,7 +2097,7 @@ unsigned char PartySelectionScreenEnter(void)
                 delete character;
             }
         }
-        collection->characters.count = 0;
+        collection->characters.Clear();
         W8PartySlotRow* rows = g_status.buffers.XChar;
         for (int slot = 2; slot < 8; ++slot) {
             if (rows[slot].fOccupied) {
@@ -2128,7 +2117,7 @@ unsigned char PartySelectionScreenEnter(void)
                     delete character;
                 }
             }
-            collection->characters.count = 0;
+            collection->characters.Clear();
             W8PartySlotRow* rows = g_status.buffers.XChar;
             for (int slot = 2; slot < 8; ++slot) {
                 if (rows[slot].fOccupied) {

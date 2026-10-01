@@ -1,5 +1,10 @@
 FROM debian:trixie-20260824-slim@sha256:d7e12182ce18b85b93007c1dedf31f2d29e01ccf3182cc4017c709b6259bc132 AS toolchain
 
+# Use QEMU only on hosts that cannot execute Linux i386 ELF binaries.
+ARG WIZ8_EMULATE_I386=0
+COPY wine-runner.sh /usr/local/bin/wiz8-wine
+COPY qemu-wine-preloader.sh /usr/local/libexec/qemu-wine-preloader
+
 ARG MSVC_REPOSITORY=https://github.com/archaic-msvc/msvc600_sp5.git
 ARG MSVC_REF=b0b07e29108e2695eb0274c2a377a7b7d7326150
 
@@ -12,9 +17,16 @@ RUN dpkg --add-architecture i386 \
       wget \
       wine \
       wine32 \
+ && if [ "${WIZ8_EMULATE_I386}" = 1 ]; then \
+      apt-get install -y --no-install-recommends qemu-user wine64 wine32-preloader; \
+      mv /usr/lib/wine/wine-preloader /usr/lib/wine/wine-preloader.real; \
+      install -m 0755 /usr/local/libexec/qemu-wine-preloader /usr/lib/wine/wine-preloader; \
+    fi \
+ && chmod +x /usr/local/bin/wiz8-wine \
  && rm -rf /var/lib/apt/lists/*
 
-ENV WINEARCH=win32 \
+ENV WIZ8_EMULATE_I386=${WIZ8_EMULATE_I386} \
+    WINEARCH=win32 \
     WINEDEBUG=-all \
     WINEPREFIX=/root/.wine \
     INCLUDE="C:\\msvc\\VC98\\Include;C:\\msvc\\VC98\\MFC\\Include;C:\\msvc\\VC98\\ATL\\Include" \
@@ -25,7 +37,7 @@ ENV WINEARCH=win32 \
     WINEPATH="C:\\cmake\\bin;C:\\msvc\\Common\\MSDev98\\Bin;C:\\msvc\\VC98\\Bin" \
     WIZ8_REDUNDANT_CAST_LINES="*"
 
-RUN wineboot --init || true
+RUN /usr/local/bin/wiz8-wine wineboot --init || true
 
 # Pin the complete compiler tree. The selected SP5 linker is 6.0.8447, the
 # build recorded by the canonical Wizardry 8 executable's Rich header.
@@ -57,17 +69,28 @@ RUN wget -O /tmp/jom.zip \
 # prefix. Keep Linux analysis/build packages out of this image.
 FROM debian:trixie-20260824-slim@sha256:d7e12182ce18b85b93007c1dedf31f2d29e01ccf3182cc4017c709b6259bc132 AS product
 
+ARG WIZ8_EMULATE_I386=0
+COPY wine-runner.sh /usr/local/bin/wiz8-wine
+COPY qemu-wine-preloader.sh /usr/local/libexec/qemu-wine-preloader
+
 RUN dpkg --add-architecture i386 \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
       ca-certificates \
       wine \
       wine32 \
+ && if [ "${WIZ8_EMULATE_I386}" = 1 ]; then \
+      apt-get install -y --no-install-recommends qemu-user wine64 wine32-preloader; \
+      mv /usr/lib/wine/wine-preloader /usr/lib/wine/wine-preloader.real; \
+      install -m 0755 /usr/local/libexec/qemu-wine-preloader /usr/lib/wine/wine-preloader; \
+    fi \
+ && chmod +x /usr/local/bin/wiz8-wine \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=toolchain /root/.wine /root/.wine
 
-ENV WINEARCH=win32 \
+ENV WIZ8_EMULATE_I386=${WIZ8_EMULATE_I386} \
+    WINEARCH=win32 \
     WINEDEBUG=-all \
     WINEPREFIX=/root/.wine \
     INCLUDE="C:\\msvc\\VC98\\Include;C:\\msvc\\VC98\\MFC\\Include;C:\\msvc\\VC98\\ATL\\Include" \
@@ -78,7 +101,7 @@ ENV WINEARCH=win32 \
     WINEPATH="C:\\cmake\\bin;C:\\msvc\\Common\\MSDev98\\Bin;C:\\msvc\\VC98\\Bin" \
     WIZ8_REDUNDANT_CAST_LINES="*"
 
-ENTRYPOINT ["/usr/bin/wine"]
+ENTRYPOINT ["/usr/local/bin/wiz8-wine"]
 
 # Repository analysis adds native Clang/LLVM and the custom clang-tidy plugin.
 FROM product AS analysis
@@ -190,4 +213,4 @@ RUN cmake \
       /tmp/wiz8-clang-tidy-plugin/bool_test.log \
  && rm -rf /tmp/wiz8-clang-tidy-plugin
 
-ENTRYPOINT ["/usr/bin/wine"]
+ENTRYPOINT ["/usr/local/bin/wiz8-wine"]

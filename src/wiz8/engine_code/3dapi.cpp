@@ -338,17 +338,7 @@ void UpdateWorlds(void)
         }
     }
 
-    if (g_renderer_ready != 0 && g_world_mesh_update_enabled != 0) {
-        if (g_world->octree != 0) {
-            UpdateWorldOctree(g_world);
-        } else if (g_world->m_owned_06c != 0) {
-            ++g_world->m_owned_06c->dirty;
-            UpdateWorldMeshFromQuads(g_world);
-        }
-        RepositionAmbientSounds(g_world);
-        RequestRefreshPartyState();
-        g_renderer_ready = false;
-    }
+    UpdateWorldMeshAfterLoad();
 
     UpdateTimedTriggerEvents();
     UpdateShakeEffects();
@@ -672,21 +662,15 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
             g_startup_world->SetPitch(pitch);
             if (world->m_owned_04c->ApplyCameraMotion(flags, &camera_position, &delta,
                                                       &motion_saved) != 0) {
-                camera_position.x += delta.x;
-                camera_position.y += delta.y;
-                camera_position.z += delta.z;
-                navigator_position.x = camera_position.x;
-                navigator_position.y = camera_position.y - g_default_world_height;
-                navigator_position.z = camera_position.z;
+                camera_position += delta;
+                navigator_position.Set(camera_position.x,
+                                       camera_position.y - g_default_world_height,
+                                       camera_position.z);
                 if (world->camera_light != 0) {
-                    render_position.x = camera_position.x;
-                    render_position.y = camera_position.y;
-                    render_position.z = camera_position.z;
+                    render_position.SetFromFloat(&camera_position);
                     static_cast<srNode*>(world->camera_light)->setLocation(render_position);
                 }
-                render_position.x = camera_position.x;
-                render_position.y = camera_position.y;
-                render_position.z = camera_position.z;
+                render_position.SetFromFloat(&camera_position);
                 static_cast<srNode*>(world->camera)->setLocation(render_position);
                 g_startup_world->SetPositionInternal(&navigator_position);
                 dx = camera_position.x - s_last_automap_refresh_position.x;
@@ -725,9 +709,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
                 {
                     srVector3T<double> location = world->camera->getLocation();
                     srVector3T<float> party_point;
-                    party_point.x = static_cast<float>(location.x);
-                    party_point.y = static_cast<float>(location.y);
-                    party_point.z = static_cast<float>(location.z);
+                    party_point.SetFromDouble(&location);
                     PlacePartyAtPoint(&party_point);
                 }
                 world->camera->getRotation(path_rotation);
@@ -816,9 +798,7 @@ void SetWorldScenePosition(W8World* world, const srVector3T<float>* location)
         srAssertFail("pWorld", THREE_D_API_CPP, 1043, 0);
     }
 
-    position.x = location->x;
-    position.y = location->y;
-    position.z = location->z;
+    position = *location;
     if (world->camera != 0) {
         render_position.SetFromFloat(&position);
         static_cast<srNode*>(world->camera)->setLocation(render_position);
@@ -888,16 +868,12 @@ void WorldSetCameraLocation(W8World* world, const srVector3T<float>* location)
         srAssertFail("pWorld", THREE_D_API_CPP, 0x422, 0);
     }
     if (world->camera != 0) {
-        position.x = location->x;
-        position.y = location->y;
-        position.z = location->z;
+        position.SetFromFloat(location);
         world->camera->setLocation(position);
         PlacePartyAtPoint(location);
     }
     if (world->camera_light != 0) {
-        position.x = location->x;
-        position.y = location->y;
-        position.z = location->z;
+        position.SetFromFloat(location);
         world->camera_light->setLocation(position);
     }
 }
@@ -918,20 +894,14 @@ void SetWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraSta
         if (state == 0) {
             srAssertFail("CamPos", THREE_D_API_CPP, 0x444, 0);
         }
-        location.x = state->position.x;
-        location.y = state->position.y;
-        location.z = state->position.z;
+        location = state->position;
         if (world->camera != 0) {
-            position.x = location.x;
-            position.y = location.y;
-            position.z = location.z;
+            position.SetFromFloat(&location);
             ((srNode*)world->camera)->setLocation(position);
             PlacePartyAtPoint(&location);
         }
         if (world->camera_light != 0) {
-            position.x = location.x;
-            position.y = location.y;
-            position.z = location.z;
+            position.SetFromFloat(&location);
             ((srNode*)world->camera_light)->setLocation(position);
         }
         world->camera->getRotation(rotation);
@@ -961,9 +931,7 @@ void RestoreWorldCameraState(W8World* world, W8World* source_world, W8WorldCamer
     }
     SetWorldCameraState(world, source_world, state);
     world->camera->getLocation(camera_location);
-    navigator_position.x = (float)camera_location.x;
-    navigator_position.y = (float)camera_location.y;
-    navigator_position.z = (float)camera_location.z;
+    navigator_position.SetFromDouble(&camera_location);
     g_startup_world->SetAngles(GetCameraYawInDegrees());
     g_startup_world->SetPitch(GetCameraPitchInDegrees());
     navigator_position.y -= g_default_world_height;
@@ -1097,9 +1065,7 @@ bool FindEntityByName(const char* name, srVector3T<float>* position, float* angl
                 *angle = entry->angle;
             }
             if (direction != 0) {
-                direction->x = entry->direction_090.x;
-                direction->y = entry->direction_090.y;
-                direction->z = entry->direction_090.z;
+                *direction = entry->direction_090;
             }
             return true;
         }

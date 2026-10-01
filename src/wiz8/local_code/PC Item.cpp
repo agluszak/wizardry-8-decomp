@@ -1818,15 +1818,9 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
         srAssertFail("fCHAR_OCCUPIED(uiChar)", PC_ITEM_CPP, 0x195, 0);
     }
 
-    /* The same chain StoreItemWithCharacterOrParty later factors out for the
-       rest of the file; here and in the general form below it is written out. */
     if (IsPartySlotEligible(uiChar) != 0) {
         W8Character* character = &g_status.buffers.Char[uiChar];
-        if (!stored && AddItemToCharacter(character, item, 0, 1, 0)) {
-            stored = 1;
-        } else if (AddItemToParty(item, 1, 0)) {
-            stored = 1;
-        } else if (stored && AddItemToCharacter(character, item, 0, 1, 0)) {
+        if (StoreItemWithCharacterOrParty(character, item, party_first, 1, 0)) {
             stored = 1;
         }
     } else if (stored) {
@@ -1877,38 +1871,13 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
         }
     } else {
         W8Character* character = &g_status.buffers.Char[uiChar];
-        if (!party_first && AddItemToCharacter(character, item, 0, 1, 0)) {
-            stored = 1;
-        } else if (AddItemToParty(item, 1, 0)) {
-            stored = 1;
-        } else if (!party_first) {
-            return 0;
-        } else if (AddItemToCharacter(character, item, 0, 1, 0)) {
-            stored = 1;
-        } else {
+        stored = StoreItemWithCharacterOrParty(character, item, party_first, 1, 0);
+        if (!stored) {
             return 0;
         }
     }
 
-    if (item == &g_status.item_in_hand_235b) {
-        gXStatus.held_item_source = -1;
-        gXStatus.held_item_origin = 0xff;
-        gXStatus.held_item_slot = 0xffff;
-        ClearHeldItemDisplay();
-    } else {
-        memset(item, 0, sizeof(*item));
-        item->iItemNo = -1;
-        RefreshAfterItemRecordChange(item, 0, 1);
-    }
-
-    if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
-        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
-            if (item == &g_status.party_item_pool_0021[index]) {
-                RemovePartyPoolEntry(index);
-                break;
-            }
-        }
-    }
+    EmptyItemRecord(item, 0, 1);
     return stored;
 }
 
@@ -2048,8 +2017,6 @@ void AddPartyGold(int amount, char announce)
 void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximum_quantity,
                          unsigned char force_identified, unsigned char mark_special)
 {
-    unsigned int index;
-
     if ((unsigned int)item_id >= gXStatus.uiItemsInDatabase) {
         srAssertFail(
             "uiItemNo < gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 564,
@@ -2057,25 +2024,7 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
                 String("InitNewItem: error, invalid item # %ld specified", item_id)));
     }
 
-    if (item == &g_status.item_in_hand_235b) {
-        gXStatus.held_item_source = -1;
-        gXStatus.held_item_origin = 0xff;
-        gXStatus.held_item_slot = 0xffff;
-        ClearHeldItemDisplay();
-    } else {
-        memset(item, 0, sizeof(*item));
-        item->iItemNo = -1;
-        RefreshAfterItemRecordChange(item, 0, 1);
-    }
-
-    if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
-        for (index = 0; index < g_status.party_item_count_1791; ++index) {
-            if (item == &g_status.party_item_pool_0021[index]) {
-                RemovePartyPoolEntry(index);
-                break;
-            }
-        }
-    }
+    EmptyItemRecord(item, 0, 1);
 
     item->iItemNo = item_id;
     const W8ItemDatabaseRecord* record = &g_item_records[item_id];
@@ -2900,25 +2849,7 @@ void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Cha
         GetOriginOfCharacterItem(held_character, source, &held_origin, &held_slot);
     }
 
-    if (source == &g_status.item_in_hand_235b) {
-        gXStatus.held_item_source = -1;
-        gXStatus.held_item_origin = 0xff;
-        gXStatus.held_item_slot = 0xffff;
-        ClearHeldItemDisplay();
-    } else {
-        memset(source, 0, sizeof(*source));
-        source->iItemNo = -1;
-        RefreshAfterItemRecordChange(source, character, refresh);
-    }
-
-    if (source >= g_status.party_item_pool_0021 && source <= &g_status.party_item_pool_0021[499]) {
-        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
-            if (source == &g_status.party_item_pool_0021[index]) {
-                RemovePartyPoolEntry(index);
-                break;
-            }
-        }
-    }
+    EmptyItemRecord(source, character, refresh);
 
     RefreshAfterItemRecordChange(destination, character, refresh);
     if (destination == &g_status.item_in_hand_235b) {
@@ -3687,13 +3618,7 @@ void AimItemUseAtCurrentTarget(W8Character* character, W8ItemInstance* item)
     detail.item_use.item = item;
     detail.item_use.kind = -1;
     W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
-    W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
-
-    row->item_detail.item_use.kind = -1;
-    row->item_detail.item_use.item = item;
-    row->item_target = *target;
-    row->item_id_0c9 = item->iItemNo;
-    GetOriginOfCharacterItem(party_slot, item, &row->item_origin, &row->item_slot);
+    StagePartySlotItemUse(party_slot, item, target);
     if (g_item_records[item->iItemNo].spell_id == 0x17) {
         ChooseAction(party_slot, W8_ACTION_USE_ITEM, -1, &detail, 1, 1);
         OpenCharacterScreenForPartySlot(CharacterPointerToPartySlot(character), 1);
@@ -3754,25 +3679,7 @@ void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_
         }
     }
 
-    if (item == &g_status.item_in_hand_235b) {
-        gXStatus.held_item_source = -1;
-        gXStatus.held_item_origin = 0xff;
-        gXStatus.held_item_slot = 0xffff;
-        ClearHeldItemDisplay();
-    } else {
-        memset(item, 0, sizeof(*item));
-        item->iItemNo = -1;
-        RefreshAfterItemRecordChange(item, character, 1);
-    }
-
-    if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
-        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
-            if (item == &g_status.party_item_pool_0021[index]) {
-                RemovePartyPoolEntry(index);
-                break;
-            }
-        }
-    }
+    EmptyItemRecord(item, character, 1);
 }
 
 /* The same pairing as EquipMatchingPartnerItem, but for the items that carry a
@@ -4036,29 +3943,7 @@ void EmptyBackpackSlot(W8Character* character, int slot)
         return;
     }
 
-    W8ItemInstance* item = &character->backpack[slot];
-    if (item == &g_status.item_in_hand_235b) {
-        gXStatus.held_item_source = -1;
-        gXStatus.held_item_origin = 0xff;
-        gXStatus.held_item_slot = 0xffff;
-        ClearHeldItemDisplay();
-    } else {
-        memset(item, 0, sizeof(*item));
-        item->iItemNo = -1;
-        RefreshAfterItemRecordChange(item, character, 1);
-    }
-
-    W8ItemInstance* pool = g_status.party_item_pool_0021;
-    if (item < pool || item > &pool[499]) {
-        return;
-    }
-    unsigned int count = g_status.party_item_count_1791;
-    for (unsigned int index = 0; index < count; ++index) {
-        if (&pool[index] == item) {
-            RemovePartyPoolEntry(index);
-            return;
-        }
-    }
+    EmptyItemRecord(&character->backpack[slot], character, 1);
 }
 
 /* Empty one entry of the packed party pool by index and close the hole.
@@ -4070,19 +3955,7 @@ void EmptyPartyPoolEntry(int index)
         return;
     }
 
-    W8ItemInstance* item = &g_status.party_item_pool_0021[index];
-    if (item == &g_status.item_in_hand_235b) {
-        gXStatus.held_item_source = -1;
-        gXStatus.held_item_origin = 0xff;
-        gXStatus.held_item_slot = 0xffff;
-        ClearHeldItemDisplay();
-    } else {
-        memset(item, 0, sizeof(*item));
-        item->iItemNo = -1;
-        RefreshAfterItemRecordChange(item, 0, 1);
-    }
-
-    RemovePartyPoolEntry(static_cast<unsigned int>(index));
+    EmptyItemRecord(&g_status.party_item_pool_0021[index], 0, 1);
 }
 
 /* The whole-party counterpart of FindCharacterItemByDatabaseKind: the item in
@@ -4248,10 +4121,7 @@ unsigned char RemovePartyItemByID(int item_id, char remove_all)
     bool removed = false;
 
     if (g_status.item_in_cursor && g_status.item_in_hand_235b.iItemNo == item_id) {
-        gXStatus.held_item_source = -1;
-        gXStatus.held_item_origin = 0xff;
-        gXStatus.held_item_slot = 0xffff;
-        ClearHeldItemDisplay();
+        EmptyItemRecord(&g_status.item_in_hand_235b, 0, 1);
         if (!remove_all) {
             return 1;
         }
@@ -4269,26 +4139,7 @@ unsigned char RemovePartyItemByID(int item_id, char remove_all)
             continue;
         }
 
-        if (found == &g_status.item_in_hand_235b) {
-            gXStatus.held_item_source = -1;
-            gXStatus.held_item_origin = 0xff;
-            gXStatus.held_item_slot = 0xffff;
-            ClearHeldItemDisplay();
-        } else {
-            memset(found, 0, sizeof(*found));
-            found->iItemNo = -1;
-            RefreshAfterItemRecordChange(found, character, 1);
-        }
-
-        if (found >= pool && found <= &pool[499]) {
-            unsigned int count = g_status.party_item_count_1791;
-            for (unsigned int index = 0; index < count; ++index) {
-                if (&pool[index] == found) {
-                    RemovePartyPoolEntry(index);
-                    break;
-                }
-            }
-        }
+        EmptyItemRecord(found, character, 1);
 
         if (!remove_all) {
             return 1;

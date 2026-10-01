@@ -170,48 +170,21 @@ void ReleaseHitSoundDatabase(void)
     }
 }
 
-/* Look up a weapon-class/target-material impact sound.  Missing
+/* Look up a weapon-class/target-material impact sound. Missing
    weapon-specific entries inherit weapon class zero; out-of-range indices use
-   the retail "HIT" fallback.  The buffer comes back writable because
+   the retail "HIT" fallback. The buffer comes back writable because
    PlayCombatSound may append a variant digit. */
-/* The impact lookup shared by the emitted body below and by the sibling
-   callers, where retail folds it inline. */
-static inline char* LookupMaterialImpactSound(int weapon_class, int target_material)
+// FUNCTION: WIZ8 0x00549EB0
+char* GetMaterialImpactSound(int weapon_class, int target_material)
 {
-    char* sound;
-
     if (weapon_class < 0 || weapon_class >= 28 || target_material < 0 || target_material >= 12) {
         return const_cast<char*>("HIT");
     }
-    sound = g_material_impact_sounds[weapon_class][target_material];
+    char* sound = g_material_impact_sounds[weapon_class][target_material];
     if (sound == 0) {
         sound = g_material_impact_sounds[0][target_material];
     }
     return sound;
-}
-
-// FUNCTION: WIZ8 0x00549EB0
-char* GetMaterialImpactSound(int weapon_class, int target_material)
-{
-    return LookupMaterialImpactSound(weapon_class, target_material);
-}
-
-/* The two missile/monster siblings spell the same lookup as three leaves
-   that each call PlayCombatSound rather than sharing one tail call. */
-static inline void PlayMaterialImpactSound(int weapon_class, int target_material, int volume)
-{
-    char* sound;
-
-    if (weapon_class < 0 || weapon_class >= 28 || target_material < 0 || target_material >= 12) {
-        PlayCombatSound(const_cast<char*>("HIT"), 1, 1, volume);
-        return;
-    }
-    sound = g_material_impact_sounds[weapon_class][target_material];
-    if (sound) {
-        PlayCombatSound(sound, 1, 1, volume);
-    } else {
-        PlayCombatSound(g_material_impact_sounds[0][target_material], 1, 1, volume);
-    }
 }
 
 /* The equipment slot covering one armour-class hit location, then the item
@@ -283,7 +256,7 @@ void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlo
     } else {
         srAssertFail("FALSE", COMBAT_SOUND_CPP, 415, "MakePCHitSound : Unknown target type");
     }
-    PlayCombatSound(LookupMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
+    PlayCombatSound(GetMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
 }
 
 // FUNCTION: WIZ8 0x0054A0E0
@@ -304,7 +277,7 @@ void MakePCHitSound(W8Missile* missile, W8CombatSlot* target, int hit_location, 
     } else {
         srAssertFail("FALSE", COMBAT_SOUND_CPP, 465, "MakePCHitSound : Unknown target type");
     }
-    PlayMaterialImpactSound(weapon_class, target_material, volume);
+    PlayCombatSound(GetMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
 }
 
 // FUNCTION: WIZ8 0x0054A270
@@ -333,5 +306,5 @@ void MakeMonsterHitSound(const W8MonsterAttack* attack, W8CombatSlot* target, in
     } else {
         srAssertFail("FALSE", COMBAT_SOUND_CPP, 504, "MakePCHitSound : Unknown target type");
     }
-    PlayMaterialImpactSound(weapon_class, target_material, volume);
+    PlayCombatSound(GetMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
 }

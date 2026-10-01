@@ -125,8 +125,8 @@ void EnsureRadarMapOverlay(void)
         bounds.right = 0x80;
         bounds.bottom = 0x1c2;
         g_radar_backdrop = CreateSpriteFromVideoSurface(-0xe, &bounds, 0, 0, 1);
-        PositionToolTipNode(g_radar_backdrop, 0x17, 0x166, 0);
-        g_radar_backdrop->render_state_164.display_state = 4;
+        Position2DNodeUnsnapped(g_radar_backdrop, 0x17, 0x166);
+        SetModelInstance2DDisplayState(g_radar_backdrop, 4);
     }
 }
 
@@ -285,14 +285,14 @@ void RefreshRadarMap(void)
     MakeVSurfaceFromVObject(handle, 0, &compass_surface);
 
     g_radar_compass = CreateSpriteFromSurface(compass_surface, 0, 1, 0, 1);
-    PositionToolTipNode(g_radar_compass, 0x1e, 0x167, 0);
-    g_radar_compass->render_state_164.display_state = 4;
+    Position2DNodeUnsnapped(g_radar_compass, 0x1e, 0x167);
+    SetModelInstance2DDisplayState(g_radar_compass, 4);
     g_radar_frame = CreateSpriteFromSurface(frame_surface, 0, 1, 0, 1);
-    PositionToolTipNode(g_radar_frame, 0x1e, 0x167, 0);
-    g_radar_frame->render_state_164.display_state = 4;
+    Position2DNodeUnsnapped(g_radar_frame, 0x1e, 0x167);
+    SetModelInstance2DDisplayState(g_radar_frame, 4);
     g_radar_map = CreateSpriteFromSurface(map_surface, 0, 1, 0, 1);
-    PositionToolTipNode(g_radar_map, 0x1e, 0x167, 0);
-    g_radar_map->render_state_164.display_state = 4;
+    Position2DNodeUnsnapped(g_radar_map, 0x1e, 0x167);
+    SetModelInstance2DDisplayState(g_radar_map, 4);
 
     for (sector = 0; sector < 18; ++sector) {
         srVector4T<float> color;
@@ -355,9 +355,7 @@ void UpdateRadarBlips(void)
                 center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
                            (bounds_min.y + bounds_max.y) * g_double_005ebe80,
                            (bounds_min.z + bounds_max.z) * g_double_005ebe80);
-                position.x += center.x;
-                position.y += center.y;
-                position.z += center.z;
+                position += center;
                 party = g_startup_world->GetPosition();
                 delta = position - party;
                 if ((detect_all != 0 || ((rep->flags >> 3) & 1) != 0 ||
@@ -392,9 +390,7 @@ void UpdateRadarBlips(void)
                     center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
                                (bounds_min.y + bounds_max.y) * g_double_005ebe80,
                                (bounds_min.z + bounds_max.z) * g_double_005ebe80);
-                    position.x = center.x + info->party_threat.camera_position_0c.x;
-                    position.y = center.y + info->party_threat.camera_position_0c.y;
-                    position.z = center.z + info->party_threat.camera_position_0c.z;
+                    position = center + info->party_threat.camera_position_0c;
                     party = g_startup_world->GetPosition();
                     delta = position - party;
                     float distance = delta.Length();
@@ -420,9 +416,7 @@ void UpdateRadarBlips(void)
                            (bounds_min.y + bounds_max.y) * g_double_005ebe80,
                            (bounds_min.z + bounds_max.z) * g_double_005ebe80);
                 party = monster->GetPosition();
-                position.x = center.x + party.x;
-                position.y = center.y + party.y;
-                position.z = center.z + party.z;
+                position = center + party;
                 party = g_startup_world->GetPosition();
                 delta = position - party;
                 float distance = delta.Length();
@@ -451,13 +445,11 @@ void UpdateRadarBlips(void)
     while (missile != 0) {
         if (missile->impacting_1e1 == 0) {
             missile->GetAnimationBounds(&bounds_min, &bounds_max);
-            center.x = (bounds_min.x + bounds_max.x) * g_double_005ebe80;
-            center.y = (bounds_min.y + bounds_max.y) * g_double_005ebe80;
-            center.z = (bounds_min.z + bounds_max.z) * g_double_005ebe80;
+            center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
+                       (bounds_min.y + bounds_max.y) * g_double_005ebe80,
+                       (bounds_min.z + bounds_max.z) * g_double_005ebe80);
             party = missile->GetPosition();
-            position.x = center.x + party.x;
-            position.y = center.y + party.y;
-            position.z = center.z + party.z;
+            position = center + party;
             party = g_startup_world->GetPosition();
             delta = position - party;
             if (delta.Length() < g_radar_outer_radius) {
@@ -520,7 +512,7 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, unsigne
         top = (int)(g_float_005eece8 - scale * delta->z);
     }
     stModelInstance2D* blip = AcquireRadarBlip(ring + group * 3, lit);
-    PositionToolTipNode(blip, left, top, 0);
+    Position2DNodeUnsnapped(blip, left, top);
     return 1;
 }
 
@@ -537,13 +529,7 @@ void ToggleRadarMapZoom(void)
         RefreshRadarMap();
         return;
     }
-    float radius = g_startup_world->radius_084;
-
-    g_radar_zoomed = false;
-    g_radar_map_scale = 2.0f;
-    g_radar_inner_radius = radius;
-    g_radar_outer_radius = CalcRangeDistance(W8_RANGE_EXTREME) + radius;
-    RefreshRadarMap();
+    ZoomRadarMapOut();
 }
 
 // FUNCTION: WIZ8 0x005a3410

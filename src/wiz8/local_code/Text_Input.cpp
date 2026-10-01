@@ -183,28 +183,7 @@ void InitTextInputMode(void)
 // FUNCTION: WIZ8 0x005D3520
 void InitTextInputModeWithScheme(int mode)
 {
-    if (gpTextInputHead != 0) {
-        STACKTEXTINPUTNODE* session = (STACKTEXTINPUTNODE*)malloc(sizeof(STACKTEXTINPUTNODE));
-        session->head = gpTextInputHead;
-        session->pColors = pColors;
-        session->next = pInputStack;
-        pInputStack = session;
-        for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
-            if (field->fEnabled != 0) {
-                MSYS_DisableRegion(&field->region);
-                field->fEnabled = 0;
-            }
-        }
-        gpActive = 0;
-    }
-    gpTextInputHead = 0;
-    pColors = (TextInputColors*)malloc(sizeof(TextInputColors));
-    gfTextInputMode = true;
-    gfEditingText = false;
-    pColors->fBevelling = false;
-    pColors->fUseDisabledAutoShade = true;
-    pColors->usCursorColor = Get16BPPColor(0x0a0a0a);
-    gubVisibleStart = 0;
+    InitTextInputMode();
     SetTextInputScheme(mode);
 }
 
@@ -420,12 +399,7 @@ void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
                 swprintf(field->szString, &g_empty_wide_string);
             }
             gfHiliteMode = false;
-            gubCursorPos = 0;
-            if (gpActive != 0) {
-                gubParkingPos = CalculateCursorPos(
-                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10, 0,
-                    gpActive->szString, &gsCursorX, &guiVisibleCount);
-            }
+            SetTextInputCursor(0);
             return;
         }
         field = field->next;

@@ -726,14 +726,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
             ReleaseMonsterConditionBindings(monster_info);
             if (forced_cleanup == 0) {
                 monster_info->death_processed_253 = 1;
-                if (monster_info->p3D->IsDying() == 0) {
-                    StartMonsterCycle(monster_info, 0x15, 1);
-                    DeactivateMonster(monster_info);
-                    RecordMonsterKill(monster_info, 1);
-                    RemoveMonster(MonsterGetIndexByLocationID(0x31f, MONSTER_MANAGER_CPP,
-                                                              monster_info->location_id, 1),
-                                  0);
-                }
+                MonsterStartsDying(monster_info, 1);
             }
         }
     }
@@ -968,47 +961,35 @@ W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double 
     return nearest;
 }
 
+static inline void InitializeMonsterRuntimeStatsFor(W8MonsterInfo* monster_info)
+{
+    W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+    int value = RollDice(&record->hit_points_d6);
+    monster_info->uiHPMax = value;
+    monster_info->hp_current = value;
+    value = RollDice(&record->runtime_stat_da);
+    monster_info->stamina_max = value;
+    monster_info->stamina = value;
+    monster_info->fatigue_band = CalculateMonsterFatigueBand(value, value);
+    monster_info->scale_24f = CalculateMonsterScale(monster_info);
+    MonsterSetScale(monster_info->p3D, monster_info->scale_24f);
+    ApplyMonsterRepresentationScale(monster_info->p3D);
+    RefreshMonsterStandingHeight(monster_info->p3D);
+}
+
 // FUNCTION: WIZ8 0x004e6370
 void InitializeMonsterRuntimeStats(void)
 {
     unsigned int index;
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, index);
-        W8MonsterRecord* record;
-        int value;
-
-        record = GetMonsterDataForInfo(monster_info);
-        value = RollDice(&record->hit_points_d6);
-        monster_info->uiHPMax = value;
-        monster_info->hp_current = value;
-        value = RollDice(&record->runtime_stat_da);
-        monster_info->stamina_max = value;
-        monster_info->stamina = value;
-        monster_info->fatigue_band = CalculateMonsterFatigueBand(value, value);
-        monster_info->scale_24f = CalculateMonsterScale(monster_info);
-        MonsterSetScale(monster_info->p3D, monster_info->scale_24f);
-        ApplyMonsterRepresentationScale(monster_info->p3D);
-        RefreshMonsterStandingHeight(monster_info->p3D);
+        InitializeMonsterRuntimeStatsFor(
+            static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index)));
     }
 
     for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsUnbornMonsterList, index);
-        W8MonsterRecord* record;
-        int value;
-
-        record = GetMonsterDataForInfo(monster_info);
-        value = RollDice(&record->hit_points_d6);
-        monster_info->uiHPMax = value;
-        monster_info->hp_current = value;
-        value = RollDice(&record->runtime_stat_da);
-        monster_info->stamina_max = value;
-        monster_info->stamina = value;
-        monster_info->fatigue_band = CalculateMonsterFatigueBand(value, value);
-        monster_info->scale_24f = CalculateMonsterScale(monster_info);
-        MonsterSetScale(monster_info->p3D, monster_info->scale_24f);
-        ApplyMonsterRepresentationScale(monster_info->p3D);
-        RefreshMonsterStandingHeight(monster_info->p3D);
+        InitializeMonsterRuntimeStatsFor(
+            static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, index)));
     }
 }
 
