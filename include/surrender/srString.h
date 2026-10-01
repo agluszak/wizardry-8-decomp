@@ -145,7 +145,7 @@ inline void srInlineString::erase(unsigned long begin, unsigned long end)
 }
 
 // FUNCTION: SURRENDER 0x10032E30 SYMBOL
-// ?operator+=@srInlineString@@QAEAAV1@PBD@Z
+// ??YsrInlineString@@QAEAAU0@PBD@Z
 inline srInlineString& srInlineString::operator+=(const char* suffix)
 {
     if (suffix != 0 && *suffix != '\0') {
@@ -161,7 +161,7 @@ inline srInlineString& srInlineString::operator+=(const char* suffix)
 }
 
 // FUNCTION: SURRENDER 0x100467E0 SYMBOL
-// ?find@srInlineString@@QBEJABV1@K@Z
+// ?find@srInlineString@@QBEJABU1@K@Z
 inline long srInlineString::find(const srInlineString& needle, unsigned long offset) const
 {
     const char* found = strstr(data_ + offset, needle.data_);
