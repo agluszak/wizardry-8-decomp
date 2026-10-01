@@ -147,30 +147,6 @@ unsigned long srBinOMStream::vwrite(const void* source, unsigned long size)
     return 0;
 }
 
-// FUNCTION: SURRENDER 0x10031120
-srBinOMStream::srBinOMStream(const srBinOMStream& other) : srBinOStream(other)
-{
-    buffer_08 = other.buffer_08;
-    position_10 = other.position_10;
-    size_14 = other.size_14;
-}
-
-// FUNCTION: SURRENDER 0x10031330
-srBinOMStream::~srBinOMStream() {}
-
-// FUNCTION: SURRENDER 0x10032020
-srBinOStream::srBinOStream() {}
-
-// FUNCTION: SURRENDER 0x10032060
-srBinOStream::srBinOStream(const srBinOStream& stream) : srBinStream(stream) {}
-
-// FUNCTION: SURRENDER 0x100320C0
-srBinOStream& srBinOStream::operator=(const srBinOStream& stream)
-{
-    srBinStream::operator=(stream);
-    return *this;
-}
-
 // FUNCTION: SURRENDER 0x10031490
 srBinIStream& srBinIStream::read(void* destination, unsigned long size)
 {
