@@ -1,4 +1,5 @@
 #include "wiz8/layouts/screen_state.h"
+#include "wiz8/sgp_text.h"
 #include "wiz8/fonts.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/local_screens/MGSTextBox.h"
@@ -137,7 +138,7 @@ unsigned char InitializeMenuFonts(void)
 #define LOAD_FONT(destination, filename)                                                           \
     strcpy(path, filename);                                                                        \
     destination = LoadFontFile(                                                                    \
-        reinterpret_cast<UINT8*>(path) /* reinterpret-ok: SGP API declared UINT8* for text */)
+        Wiz8ToSgpText(path))
 
     LOAD_FONT(g_large_font, "Data\\Fonts\\LargeFont.sti");
     LOAD_FONT(g_small_font, "Data\\Fonts\\SmallFont.sti");
