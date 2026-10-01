@@ -480,7 +480,7 @@ srPalette::srPalette(srARGB* colors, long color_count)
 srPalette::~srPalette()
 {
     if (colors_1c != 0) {
-        srHeap.free(colors_1c);
+        delete[] colors_1c;
         colors_1c = 0;
     }
     if (quantizer_24 != 0) {
@@ -496,7 +496,7 @@ srPalette& srPalette::operator=(const srPalette& other)
         return *this;
     }
     if (colors_1c != 0) {
-        srHeap.free(colors_1c);
+        delete[] colors_1c;
         colors_1c = 0;
     }
     if (quantizer_24 != 0) {
@@ -753,10 +753,10 @@ void srPalette::Sampler::discard()
         buckets[index] = -1;
     }
     if (colors != 0) {
-        ::operator delete(colors);
+        delete[] colors;
     }
     if (links != 0) {
-        ::operator delete(links);
+        delete[] links;
     }
     color_count = 0;
     sample_count = 0;
@@ -785,8 +785,8 @@ void srPalette::Sampler::reallocColors(long new_capacity)
             new_colors[index] = colors[index];
             new_links[index] = links[index];
         }
-        ::operator delete(colors);
-        ::operator delete(links);
+        delete[] colors;
+        delete[] links;
     }
     colors = new_colors;
     links = new_links;
@@ -929,17 +929,16 @@ void srPalette::Sampler::addSurface(srColorSurfaceIFace& surface, long weight)
         samples = 1;
     }
     if (sample_factor == 1.0) {
-        unsigned long* pixels =
-            (unsigned long*)new srARGB[width]; /* reinterpret-ok: raw pixel row storage */
+        srARGB* pixels = new srARGB[width];
         /* Retail shape (0x1000644F): the allocation result is tested and 0 is
            stored on failure — a no-op null check; pixels then flows into
            getPixelRow regardless. */
         for (long y = 0; y < height; ++y) {
-            surface.getPixelRow(pixels, y, 0, width);
-            addColors((const srARGB*)pixels, width,
-                      weight); /* reinterpret-ok: packed pixel rows are srARGB */
+            /* reinterpret-ok: the surface API exchanges packed srARGB rows as dwords */
+            surface.getPixelRow(reinterpret_cast<unsigned long*>(pixels), y, 0, width);
+            addColors(pixels, width, weight);
         }
-        srHeap.free(pixels);
+        delete[] pixels;
         return;
     }
     for (; samples > 0; --samples) {
@@ -1217,9 +1216,9 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
         }
     }
 
-    ::operator delete(rehash);
-    ::operator delete(entries);
-    ::operator delete(buckets);
+    delete[] rehash;
+    delete[] entries;
+    delete[] buckets;
 
     static const unsigned long level_node_counts[] = {1, 8, 0x40, 0x200, 0x1000, 0x8000};
     Node* levels[5];
@@ -1292,7 +1291,7 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
         }
     }
 
-    ::operator delete(leaf_map);
+    delete[] leaf_map;
 
     for (index = 0; index < 0x200; ++index) {
         float delta = index - 256.0f;
@@ -1327,11 +1326,11 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     }
 
     srPalette* palette = new srPalette(palette_colors, info.palette_size);
-    srHeap.free(palette_colors);
-    ::operator delete(leaf_pool);
-    ::operator delete(leaves);
+    delete[] palette_colors;
+    delete[] leaf_pool;
+    delete[] leaves;
     for (index = 0; index < 5; ++index) {
-        ::operator delete(levels[index]);
+        delete[] levels[index];
     }
     return palette;
 }
