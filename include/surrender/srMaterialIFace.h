@@ -29,9 +29,14 @@ public:
     srMaterialIFace();
     virtual ~srMaterialIFace();
 #endif
-    /* Retail exports the out-of-line assignment (srMaterial.cpp TU); it only
-       forwards the srClass base assignment. */
+    /* Provider assignment is the implicit srClassSupport/base assignment.
+       Wiz8 imports the standalone symbol, so the consumer keeps only the
+       dllimport declaration. */
+    // SYNTHETIC: SURRENDER 0x10034D80
+    // srMaterialIFace::operator=
+#if !defined(SURRENDER_BUILD)
     srMaterialIFace& operator=(const srMaterialIFace& other);
+#endif
 
     virtual void getMaterialInfo(srVertexProcessor::MaterialInfo& info) = 0;
     virtual void preProcess(srVertexPipe& pipe) = 0;
