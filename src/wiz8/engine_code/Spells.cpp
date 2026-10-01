@@ -71,7 +71,19 @@ const char* g_spell_cycle_names[28] = {
 // GLOBAL: WIZ8 0x0065BE20
 W8SpellVisual* g_target_cone_visual;
 
-static inline int MinimumCasterLevel(int spell_level)
+// FUNCTION: WIZ8 0x004ac9d0
+W8SpellTargetType GetSpellTargetType(int spell_id, unsigned char normalize_single_target)
+{
+    W8SpellTargetType target_type = g_spell_records[spell_id].target_type;
+
+    if (target_type == W8_TARGET_TYPE_ALLY && normalize_single_target) {
+        target_type = W8_TARGET_TYPE_CASTER;
+    }
+    return target_type;
+}
+
+// FUNCTION: WIZ8 0x004acb40
+int MinimumCasterLevelForSpellLevel(int spell_level)
 {
     switch (spell_level) {
     case 2:
@@ -91,27 +103,10 @@ static inline int MinimumCasterLevel(int spell_level)
     }
 }
 
-// FUNCTION: WIZ8 0x004ac9d0
-W8SpellTargetType GetSpellTargetType(int spell_id, unsigned char normalize_single_target)
-{
-    W8SpellTargetType target_type = g_spell_records[spell_id].target_type;
-
-    if (target_type == W8_TARGET_TYPE_ALLY && normalize_single_target) {
-        target_type = W8_TARGET_TYPE_CASTER;
-    }
-    return target_type;
-}
-
-// FUNCTION: WIZ8 0x004acb40
-int MinimumCasterLevelForSpellLevel(int spell_level)
-{
-    return MinimumCasterLevel(spell_level);
-}
-
 // FUNCTION: WIZ8 0x004acba0
 int GetMinimumCasterLevelForSpell(int spell_id)
 {
-    return MinimumCasterLevel(g_spell_records[spell_id].spell_level);
+    return MinimumCasterLevelForSpellLevel(g_spell_records[spell_id].spell_level);
 }
 
 /* The emitter record a spell's visual hangs off. */
