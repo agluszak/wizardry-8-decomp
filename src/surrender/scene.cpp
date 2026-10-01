@@ -11,9 +11,6 @@
 
 #include <ostream>
 
-// FUNCTION: SURRENDER 0x10056F90
-srScene::~srScene() {}
-
 // FUNCTION: SURRENDER 0x10056BB0
 srClass* srScene::vInstance()
 {
