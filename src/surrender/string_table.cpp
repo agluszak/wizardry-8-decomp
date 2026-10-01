@@ -73,15 +73,6 @@ srStringTable& srStringTable::operator=(const srStringTable& other)
     return *this;
 }
 
-/* Retail copy construction assigns strings_00 through srArray::operator=;
-   the element pointers are copied shallowly. */
-// FUNCTION: SURRENDER 0x10003AC0
-srStringTable::srStringTable(const srStringTable& other)
-{
-    strings_00 = other.strings_00;
-    count_08 = other.count_08;
-}
-
 // FUNCTION: SURRENDER 0x10003B40
 void srStringTable::addSeparatedStrings(const char* strings, const char* separators,
                                         int append_slash)
