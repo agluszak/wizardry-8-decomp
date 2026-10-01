@@ -1184,39 +1184,33 @@ void DestroyMainGameInterfaceButtons(void)
     }
 }
 
-/* Re-enable the button banks the surprise sequence took down: submenu scroll
-   arrows, the options disk, roof buttons and the layout arrows. */
-// FUNCTION: WIZ8 0x00598c10
-void EnableMenuButtonBanks(void)
+static inline void SetMenuButtonBanksEnabled(bool enabled)
 {
     int i;
     for (i = 0; i < 2; ++i) {
-        g_submenu_scroll_buttons_69b858[i]->SetEnabled(1);
+        g_submenu_scroll_buttons_69b858[i]->SetEnabled(enabled);
     }
-    g_options_disk_button_69b8e4->SetEnabled(1);
+    g_options_disk_button_69b8e4->SetEnabled(enabled);
     for (i = 0; i < 3; ++i) {
-        g_roof_buttons_69b8d8[i]->SetEnabled(1);
+        g_roof_buttons_69b8d8[i]->SetEnabled(enabled);
     }
     for (i = 0; i < 6; ++i) {
-        g_layout_arrow_buttons_69b884[i]->SetEnabled(1);
+        g_layout_arrow_buttons_69b884[i]->SetEnabled(enabled);
     }
+}
+
+/* Re-enable the button banks the surprise sequence took down. */
+// FUNCTION: WIZ8 0x00598c10
+void EnableMenuButtonBanks(void)
+{
+    SetMenuButtonBanksEnabled(true);
 }
 
 /* Disable the same button banks while the surprise sequence runs. */
 // FUNCTION: WIZ8 0x00598c70
 void DisableMenuButtonBanks(void)
 {
-    int i;
-    for (i = 0; i < 2; ++i) {
-        g_submenu_scroll_buttons_69b858[i]->SetEnabled(0);
-    }
-    g_options_disk_button_69b8e4->SetEnabled(0);
-    for (i = 0; i < 3; ++i) {
-        g_roof_buttons_69b8d8[i]->SetEnabled(0);
-    }
-    for (i = 0; i < 6; ++i) {
-        g_layout_arrow_buttons_69b884[i]->SetEnabled(0);
-    }
+    SetMenuButtonBanksEnabled(false);
 }
 
 // FUNCTION: WIZ8 0x00598CD0
