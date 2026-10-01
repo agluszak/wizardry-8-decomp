@@ -12,26 +12,10 @@ srModel::Client::Client()
     next_0c = 0;
 }
 
-// FUNCTION: SURRENDER 0x1003C710
-srModel::Client::Client(const Client& other) : model_04(other.model_04)
-{
-    previous_08 = other.previous_08;
-    next_0c = other.next_0c;
-}
-
 // FUNCTION: SURRENDER 0x1003C350
 srModel::Client::~Client()
 {
     setModel(0);
-}
-
-// FUNCTION: SURRENDER 0x1003C750
-srModel::Client& srModel::Client::operator=(const Client& other)
-{
-    model_04 = other.model_04;
-    previous_08 = other.previous_08;
-    next_0c = other.next_0c;
-    return *this;
 }
 
 // FUNCTION: SURRENDER 0x1003C3B0
