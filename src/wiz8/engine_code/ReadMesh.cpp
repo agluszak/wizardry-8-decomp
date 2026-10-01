@@ -1186,7 +1186,7 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
             UpdatePleaseWaitLoadFrame();
         }
         stMeshModel* model =
-            reader.Read0049E9A0(info->hFile, g_multi_mesh_materials, g_multi_mesh_textures,
+            reader.Read(info->hFile, g_multi_mesh_materials, g_multi_mesh_textures,
                                 g_multi_mesh_render_flags, meshes, g_read_mesh_material_count);
         meshes[g_read_mesh_index] = model;
         model->setDirty(static_cast<srMeshModel::e_flags>(0));
