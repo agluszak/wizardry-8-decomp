@@ -7,6 +7,10 @@ class __declspec(novtable) SR_DLL_IMPORT SR_DLL_EXPORT srTexture
     : public srClassSupport<srTexture, srTextureIFace, false, 0x2110> {
 public:
     static const char* sGetClassName();
+    /* The implicit copy constructor uses member copy-construction semantics;
+       in particular Dimensions' srPtr palette is addref'd as a fresh member. */
+    // SYNTHETIC: SURRENDER 0x1005F150
+    // srTexture::srTexture(const srTexture&)
     srTexture& operator=(const srTexture& other);
     virtual void dump(std::ostream& stream) override;
     virtual unsigned long getTextureFrameHandle() override;
