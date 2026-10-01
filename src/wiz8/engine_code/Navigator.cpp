@@ -812,20 +812,6 @@ void W8Navigator::ResetPathAI()
     }
 }
 
-void W8Navigator::configureStartupRange(float range)
-{
-    radius_084 = range;
-    trace_mask_090 = 1;
-    movement_0c0.collision_radius_0b0 = range;
-    movement_0c0.alternate_radius_0b4 = range;
-}
-
-void W8Navigator::configureStartupDepth(float near_depth, float far_depth)
-{
-    movement_0c0.height_offset_0b8 = near_depth;
-    movement_0c0.secondary_height_offset_0bc = far_depth;
-}
-
 // GLOBAL: WIZ8 0x005ec2f4
 const float g_navigator_default_turn_rate = 4.398229598999023f;
 

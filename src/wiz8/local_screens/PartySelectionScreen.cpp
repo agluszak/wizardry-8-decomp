@@ -661,7 +661,7 @@ bool PartySelectionInReviewMode(void)
     return g_party_selection_controller->m_mode == 1;
 }
 
-W8PartySelectionCharacterRow::W8PartySelectionCharacterRow(Controls* panel, int top, int row)
+inline W8PartySelectionCharacterRow::W8PartySelectionCharacterRow(Controls* panel, int top, int row)
     : W8TextControl(panel, 0xffffffff, 0, top, 0, 0, 0xfb, 0, 0, 1, 2, 1, -1), m_row(row),
       m_character_index(0), m_selection_listener(0)
 {

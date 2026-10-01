@@ -46,7 +46,7 @@ float g_celestial_orbit_radius = -1.0f;
 // GLOBAL: WIZ8 0x0065AD78
 EnvironmentColour g_light_direction;
 
-static float normalized_colour(unsigned int component)
+static inline float normalized_colour(unsigned int component)
 {
     return component * (1.0f / 255.0f);
 }

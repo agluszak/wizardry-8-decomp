@@ -1272,7 +1272,7 @@ void W8CampCharacterInfo::Redraw()
     }
 }
 
-W8CampItemRange::W8CampItemRange()
+inline W8CampItemRange::W8CampItemRange()
 {
     m_range = new W8RangeControl(0x263, 0xc1, 0x275, 0x1a1, &g_camp_item_region_set);
     m_range->SetEnabled(1);

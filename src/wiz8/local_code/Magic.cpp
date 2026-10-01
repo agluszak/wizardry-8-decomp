@@ -1042,7 +1042,7 @@ enum { W8_SKILL_SPELL_LEARNING = 0x14 };
 /* Which spellbooks a spell belongs to, as the mask the profession table is
    tested against. A spell in no book at all answers nothing, which is what
    makes the test below a membership test rather than a comparison. */
-static unsigned char SpellbookMaskForSpell(int spell_id)
+static inline unsigned char SpellbookMaskForSpell(int spell_id)
 {
     return static_cast<unsigned char>((g_spell_records[spell_id].wizardry_spell != 0) |
                            (g_spell_records[spell_id].psionics_spell != 0 ? W8_SPELLBOOK_PSIONICS

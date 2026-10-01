@@ -338,8 +338,20 @@ public:
     unsigned char CheckNavigatorCollision(const srVector3T<float>* from,
                                           const srVector3T<float>* to);
 
-    void configureStartupRange(float range);
-    void configureStartupDepth(float near_depth, float far_depth);
+    /* No retail emission: the startup world and the copy constructor expand
+       both setters in place. */
+    void configureStartupRange(float range)
+    {
+        radius_084 = range;
+        trace_mask_090 = 1;
+        movement_0c0.collision_radius_0b0 = range;
+        movement_0c0.alternate_radius_0b4 = range;
+    }
+    void configureStartupDepth(float near_depth, float far_depth)
+    {
+        movement_0c0.height_offset_0b8 = near_depth;
+        movement_0c0.secondary_height_offset_0bc = far_depth;
+    }
 
     srVector3T<float> GetPosition();
     unsigned char UpdateTrackedPosition();                    /* 0x00454950 */

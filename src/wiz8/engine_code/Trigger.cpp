@@ -829,7 +829,7 @@ bool LoadTriggerActionData(int handle)
 // VTABLE: WIZ8 0x005ec12c
 // class W8TriggerEvent
 
-W8TriggerEvent::W8TriggerEvent()
+inline W8TriggerEvent::W8TriggerEvent()
     : action_004(-1), timer_008(), m_pCountdown(0), trigger_030(0), repeat_034(0), completed_035(0)
 {
 }
@@ -859,7 +859,9 @@ static_assert(sizeof(W8TriggerShakeEvent) == 0x44, "W8TriggerShakeEvent_must_be_
 /* Retail ICF folds this class's deleting destructor onto W8TriggerEvent's
    retained body at 0x00440980; there is no distinct retail emission to mark. */
 
-W8TriggerShakeEvent::W8TriggerShakeEvent() : effect_038(0), intensity_03c(1), reverse_040(0) {}
+inline W8TriggerShakeEvent::W8TriggerShakeEvent() : effect_038(0), intensity_03c(1), reverse_040(0)
+{
+}
 
 // GLOBAL: WIZ8 0x006599a0
 srVector3T<float> g_trigger_camera;
@@ -1341,7 +1343,7 @@ void SetTriggerVariableByName(const char* name, int value)
 // VTABLE: WIZ8 0x005ec138
 // class W8TriggerActionData
 
-W8TriggerActionData::W8TriggerActionData() : type_004(-1) {}
+inline W8TriggerActionData::W8TriggerActionData() : type_004(-1) {}
 
 // SYNTHETIC: WIZ8 0x0043c7f0
 // W8TriggerActionData::`scalar deleting destructor'

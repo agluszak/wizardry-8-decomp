@@ -60,7 +60,7 @@ void PlayCombatSound(char* sound_name, unsigned int variant_count, bool store_ha
     }
 }
 
-static void TrimHitSoundLine(char* line)
+static inline void TrimHitSoundLine(char* line)
 {
     char* comment = strchr(line, '*');
     size_t length;
@@ -74,7 +74,7 @@ static void TrimHitSoundLine(char* line)
     }
 }
 
-static char* DuplicateHitSound(const char* source)
+static inline char* DuplicateHitSound(const char* source)
 {
     char* copy = static_cast<char*>(malloc(strlen(source) + 1));
     if (copy) {

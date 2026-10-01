@@ -561,7 +561,7 @@ unsigned int FatigueArmorPenalty(int fatigue_band)
 /* Turn a pool fraction into a band. The same ladder decides a character's
    fatigue band and a monster's, from the percentage of the pool that is
    missing rather than the part that is left. */
-static int FatigueBandFromMissing(int missing_percent)
+static inline int FatigueBandFromMissing(int missing_percent)
 {
     if (missing_percent < W8_FATIGUE_BAND_1) {
         return 0;
