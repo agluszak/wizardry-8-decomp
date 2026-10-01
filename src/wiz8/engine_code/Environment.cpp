@@ -248,43 +248,10 @@ void UpdateEnvironment(void)
     }
     if (g_environment_lighting_mode == 2) {
         if (g_sky_enabled != 0) {
-            unsigned long now = GetTickCount();
-            unsigned long elapsed =
-                now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
-            if (elapsed != 0) {
-                AdvanceEnvironmentTime(
-                    static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-            }
-            unsigned int phase =
-                ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
-            if (phase != static_cast<unsigned int>(g_last_light_phase)) {
-                g_light_direction = g_environment_colours_65ad98[phase];
-                PublishLightDirection(&g_environment_colours_65ad98[phase]);
-                g_last_light_phase = static_cast<int>(phase);
-            }
+            UpdateEnvironmentLight();
         }
         if (g_environment_colour_refresh != 0) {
-            if (g_environment_time_enabled != 0) {
-                unsigned long now = GetTickCount();
-                unsigned long elapsed =
-                    now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
-                if (elapsed != 0) {
-                    AdvanceEnvironmentTime(
-                        static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-                }
-            }
-            unsigned int phase =
-                ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
-            if (phase != static_cast<unsigned int>(g_last_environment_colour_phase)) {
-                EnvironmentColour colour = g_environment_colours_65a178[phase];
-                if (g_world == 0) {
-                    srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
-                    srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
-                }
-                ApplyEnvironmentColour(g_world, g_world->environment_intensity_024, &colour);
-                g_last_environment_colour_phase = static_cast<int>(phase);
-                return;
-            }
+            RefreshEnvironment();
         }
     } else {
         unsigned long now = GetTickCount();
@@ -552,11 +519,7 @@ void RefreshEnvironment(void)
     unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
     if (phase != static_cast<unsigned int>(g_last_environment_colour_phase)) {
         EnvironmentColour colour = g_environment_colours_65a178[phase];
-        if (g_world == 0) {
-            srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
-            srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
-        }
-        ApplyEnvironmentColour(g_world, g_world->environment_intensity_024, &colour);
+        SetWorldEnvironmentColour(g_world, colour);
         g_last_environment_colour_phase = static_cast<int>(phase);
     }
 }

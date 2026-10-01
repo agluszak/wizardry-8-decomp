@@ -265,8 +265,7 @@ void SetNavigatorLinkMode(unsigned char mode)
         for (int index = 0; index < g_registered_navigators.GetCount(); ++index) {
             W8Navigator* navigator = *g_registered_navigators.GetAt(index);
 
-            navigator->halted_025 = 1;
-            navigator->movement_0c0.velocity_034.SetZero();
+            NavigatorDefaultCallback(navigator);
             navigator->group_linked_0bd = 0;
         }
     }
@@ -278,8 +277,7 @@ void StopAllNavigators(void)
     int count = g_registered_navigators.GetCount();
     for (int index = 0; index < count; ++index) {
         W8Navigator* navigator = *g_registered_navigators.GetAt(index);
-        navigator->halted_025 = 1;
-        navigator->movement_0c0.velocity_034.SetZero();
+        NavigatorDefaultCallback(navigator);
     }
 }
 
@@ -1936,12 +1934,10 @@ void W8Navigator::SetFacingToward(const srVector3T<float>* target)
     current.y += movement_0c0.height_offset_0b8;
     if (target->x != current.x || target->y != current.y || target->z != current.z) {
         float angle = GetHeadingAngle(&current, target);
-        movement_0c0.yaw = NormalizeAngle(angle);
-        movement_0c0.target_yaw = NormalizeAngle(angle);
+        SetAngles(angle);
         if (navigation_mode_008 == 2 || navigation_mode_008 == 3) {
             angle = -GetElevationAngle(&current, target);
-            movement_0c0.pitch_020 = NormalizeAngle(angle);
-            movement_0c0.target_pitch_024 = NormalizeAngle(angle);
+            SetPitch(angle);
         } else if (navigation_mode_008 == 5 || navigation_mode_008 == 6) {
             UpdateFacing(1);
         }

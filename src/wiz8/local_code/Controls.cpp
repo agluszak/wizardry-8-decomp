@@ -1488,11 +1488,7 @@ W8RangeControl::W8RangeControl(int left, int top, int right, int bottom,
 {
     int height = bottom - top;
 
-    if (*shared_region_set == 0) {
-        *shared_region_set = CreateRegionSet();
-    }
-    m_uiRegionSetId = *shared_region_set;
-    ResetRegionSet(m_uiRegionSetId);
+    AcquireRegionSet(shared_region_set);
 
     m_decrement =
         new W8RangeButton(this, 0xffffffff, 0, 0, 0x10, 0x10, 0x86, 0, 0, 2, 1, 2, 3, 0, this);

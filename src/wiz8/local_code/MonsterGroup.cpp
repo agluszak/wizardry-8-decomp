@@ -1136,8 +1136,7 @@ bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_i
     void* removed;
 
     if (monster_group->members_active != 0) {
-        SetTargetToGroup(monster_group->group_id, 0);
-        monster_group->members_active = 0;
+        DetachMonsterGroup(monster_group);
     }
     if (monster_group->leader_group_id == 0) {
         if (monster_group->encounter_registered != 0) {

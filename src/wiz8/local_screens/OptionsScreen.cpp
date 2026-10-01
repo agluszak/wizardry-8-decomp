@@ -302,9 +302,7 @@ void W8OptionsSaveLoadPanel::Populate()
 // FUNCTION: WIZ8 0x005aaac0
 void W8OptionsSaveLoadPanel::SetActive(unsigned char active)
 {
-    EnableRegionSet(active);
-    SetEnabled(active);
-    Invalidate(0);
+    W8OptionsPanel::SetActive(active);
     if (active != 0 && g_options_screen->m_text_editor == 0 && m_panel == 12 &&
         m_selection.m_selectedIndex == 0 && m_current_04c == 0) {
         OnEditSaveName(m_rows.data[0]);
@@ -908,9 +906,7 @@ void W8OptionsKeyboardPanel::OnSelectionChanged(W8ControlSelection*, int selecte
 // FUNCTION: WIZ8 0x005abd90
 void W8OptionsKeyboardPanel::SetActive(unsigned char active)
 {
-    EnableRegionSet(active);
-    SetEnabled(active);
-    Invalidate(0);
+    W8OptionsPanel::SetActive(active);
     if (active != 0) {
         int count = m_controls.count - 1;
         for (int index = 0; index < count; ++index) {
