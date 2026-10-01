@@ -1003,7 +1003,7 @@ void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
     double scale = height;
     renderer.scale(scale, scale, scale);
 
-    srTriMeshPipeline* pipeline = srTriMeshPipeline::Get004750A0(&renderer);
+    srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
     pipeline->triangle_count_1c = g_shadow_mesh->polygon_count_04;
     pipeline->triangles_34 = g_shadow_mesh->poly_vertices_10;
     pipeline->vertex_count_20 = g_shadow_mesh->vertex_count_00;
@@ -1015,7 +1015,7 @@ void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
     pipeline->current_pass_18->texture_array_10 = 0;
     pipeline->material_80 = g_shadow_mesh->materials_70[0][0];
     pipeline->current_record_14->material_08 = pipeline->material_80;
-    pipeline->SetFlags004752C0(g_shadow_mesh->shaders_b0[0]);
+    pipeline->SetFlags(g_shadow_mesh->shaders_b0[0]);
     pipeline->current_record_14 = &pipeline->records_94[++pipeline->slot_count_84];
     pipeline->current_pass_18 = &pipeline->passes_9c[pipeline->slot_count_84];
     pipeline->current_record_14->flags_00 = 0;
