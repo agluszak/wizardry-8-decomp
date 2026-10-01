@@ -3533,7 +3533,7 @@ void ClearSlotTargeting(int party_slot)
 // FUNCTION: WIZ8 0x0053bc90
 W8TargetingContext GetCombatActionContext(int party_slot)
 {
-    return GetCombatActionContext(party_slot);
+    return ResolveTargetingContext(party_slot, GetCurrentTargetingContext(party_slot));
 }
 
 /* Raise or clear the party slot's highlight bit on every active monster.
