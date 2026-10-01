@@ -721,24 +721,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
             attack_block.duration_per_power = g_spell_records[spell_id].duration_044;
             for (index = 0; index < 12; ++index) {
                 if (g_being_effect_slot_spells[index] == spell_id) {
-                    duration = attack_block.duration_per_power * attack_block.duration_scale +
-                               attack_block.duration_base;
-                    if (duration != 9999) {
-                        ++duration;
-                        switch (Random(4)) {
-                        case 0:
-                            if (duration > 1) {
-                                ++duration;
-                            }
-                            break;
-                        case 1:
-                            if (duration < 3) {
-                                ++duration;
-                            }
-                            break;
-                        }
-                        AdjustIntegerByPercent(&duration, attack_block.percent);
-                    }
+                    duration = RollEffectDuration(&attack_block);
                     effect_slot = &summon->effect_slots_10f[index];
                     if (effect_slot->active == 0 || effect_slot->effect_id != spell_id) {
                         SetMonsterSpellIcon(summon->p3D, g_effect_visual_table[spell_id][1], 1);
@@ -757,24 +740,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
             spell_id = tier == 1 ? 0x3d : 0x38;
             attack_block.duration_base = g_spell_records[spell_id].duration_per_level_04d;
             attack_block.duration_per_power = g_spell_records[spell_id].duration_044;
-            duration = attack_block.duration_per_power * attack_block.duration_scale +
-                       attack_block.duration_base;
-            if (duration != 9999) {
-                ++duration;
-                switch (Random(4)) {
-                case 0:
-                    if (duration > 1) {
-                        ++duration;
-                    }
-                    break;
-                case 1:
-                    if (duration < 3) {
-                        ++duration;
-                    }
-                    break;
-                }
-                AdjustIntegerByPercent(&duration, attack_block.percent);
-            }
+            duration = RollEffectDuration(&attack_block);
             switch (spell_id) {
             case 0x13:
                 slot = 1;
@@ -1083,27 +1049,9 @@ void ApplyConditionToTargets(W8SpellEffectEntry* effect, int condition)
 // FUNCTION: WIZ8 0x0054e610
 void ApplyRandomAfflictionToTarget(W8SpellEffectEntry* effect)
 {
-    unsigned int duration;
     unsigned int roll;
 
-    duration = effect->definition.duration_per_power * effect->definition.duration_scale +
-               effect->definition.duration_base;
-    if (duration != 9999) {
-        ++duration;
-        switch (Random(4)) {
-        case 0:
-            if (duration > 1) {
-                ++duration;
-            }
-            break;
-        case 1:
-            if (duration < 3) {
-                ++duration;
-            }
-            break;
-        }
-        AdjustIntegerByPercent(&duration, effect->definition.percent);
-    }
+    RollEffectDuration(&effect->definition);
     if (effect->target.iType != W8_TARGET_KIND_CHARACTER) {
         srAssertFail("(pQueue->Target.iType == TARGET_TYPE_CHAR)", MAGIC_EFFECTS_CPP, 0x5ee, 0);
     }
@@ -2053,24 +2001,7 @@ void ApplyCombatEffectSlot(W8SpellEffectEntry* effect)
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", MAGIC_EFFECTS_CPP, 0x329, 0);
     }
-    duration = effect->definition.duration_per_power * effect->definition.duration_scale +
-               effect->definition.duration_base;
-    if (duration != 9999) {
-        ++duration;
-        switch (Random(4)) {
-        case 0:
-            if (duration > 1) {
-                ++duration;
-            }
-            break;
-        case 1:
-            if (duration < 3) {
-                ++duration;
-            }
-            break;
-        }
-        AdjustIntegerByPercent(&duration, effect->definition.percent);
-    }
+    duration = RollEffectDuration(&effect->definition);
     if (TargetSourceIsCharacter(&effect->Source, 1) != 0) {
         source_character = effect->Source.iChar;
     }
@@ -2157,24 +2088,7 @@ void ApplyDefenseEffectSlot(W8SpellEffectEntry* effect)
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", MAGIC_EFFECTS_CPP, 0x3c5, 0);
     }
-    duration = effect->definition.duration_per_power * effect->definition.duration_scale +
-               effect->definition.duration_base;
-    if (duration != 9999) {
-        ++duration;
-        switch (Random(4)) {
-        case 0:
-            if (duration > 1) {
-                ++duration;
-            }
-            break;
-        case 1:
-            if (duration < 3) {
-                ++duration;
-            }
-            break;
-        }
-        AdjustIntegerByPercent(&duration, effect->definition.percent);
-    }
+    duration = RollEffectDuration(&effect->definition);
     slot_index = 0;
     table = g_combat_effect_slot_spells_and_cast_success;
     while (spell_id != *table) {
@@ -2246,25 +2160,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
     verbose = g_settings.verbose_combat_messages;
     TargetSourceIsCharacter(&effect->Source, 1);
     for (index = 0; index < effect->target_indices_0f0.GetCount(); ++index) {
-        unsigned int duration =
-            effect->definition.duration_per_power * effect->definition.duration_scale +
-            effect->definition.duration_base;
-        if (duration != 9999) {
-            ++duration;
-            switch (Random(4)) {
-            case 0:
-                if (duration > 1) {
-                    ++duration;
-                }
-                break;
-            case 1:
-                if (duration < 3) {
-                    ++duration;
-                }
-                break;
-            }
-            AdjustIntegerByPercent(&duration, effect->definition.percent);
-        }
+        unsigned int duration = RollEffectDuration(&effect->definition);
         party_slot = *effect->target_indices_0f0.GetAt(index);
         if (party_slot == -1) {
             srAssertFail("iChar != -1", MAGIC_EFFECTS_CPP, 0x8ca, 0);
@@ -2290,10 +2186,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
             }
         } else {
             char resisted;
-            magnitude = RollDice(&effect->definition.magnitude);
-            if (magnitude != 9999) {
-                AdjustIntegerByPercent(&magnitude, effect->definition.percent);
-            }
+            magnitude = RollEffectMagnitude(&effect->definition);
             ReduceMagnitudeByResistance(&magnitude, &target, realm, power_level);
             resisted = 0;
             if (magnitude == 0) {
@@ -2310,25 +2203,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
         }
     }
     for (index = 0; index < effect->monster_ids_0e0.GetCount(); ++index) {
-        unsigned int duration =
-            effect->definition.duration_per_power * effect->definition.duration_scale +
-            effect->definition.duration_base;
-        if (duration != 9999) {
-            ++duration;
-            switch (Random(4)) {
-            case 0:
-                if (duration > 1) {
-                    ++duration;
-                }
-                break;
-            case 1:
-                if (duration < 3) {
-                    ++duration;
-                }
-                break;
-            }
-            AdjustIntegerByPercent(&duration, effect->definition.percent);
-        }
+        unsigned int duration = RollEffectDuration(&effect->definition);
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x907, MAGIC_EFFECTS_CPP, *effect->monster_ids_0e0.GetAt(index), 1));
         if (monster_info == 0) {
@@ -2355,10 +2230,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
             }
         } else {
             char resisted;
-            magnitude = RollDice(&effect->definition.magnitude);
-            if (magnitude != 9999) {
-                AdjustIntegerByPercent(&magnitude, effect->definition.percent);
-            }
+            magnitude = RollEffectMagnitude(&effect->definition);
             ReduceMagnitudeByResistance(&magnitude, &target, realm, power_level);
             resisted = 0;
             if (magnitude == 0) {
@@ -2427,10 +2299,7 @@ void DamageTargetsAndReport(W8SpellEffectEntry* effect)
         if (monster_info == 0) {
             srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0xb3a, 0);
         }
-        magnitude = RollDice(&effect->definition.magnitude);
-        if (magnitude != 9999) {
-            AdjustIntegerByPercent(&magnitude, effect->definition.percent);
-        }
+        magnitude = RollEffectMagnitude(&effect->definition);
         ApplyEffectAndAnnounce(&magnitude, &target, g_spell_records[effect->kind].realm,
                                effect->definition.power_level);
         if (magnitude != 0) {
@@ -3167,8 +3036,8 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                         if (rolls_damage != 0) {
                             amount = RollDice(&dice);
                             AdjustIntegerByPercent(&amount, percent);
-                            ApplyEffectAndAnnounce(
-                                &amount, &char_target, g_spell_records[spell_id].realm, difficulty);
+                            ApplyEffectAndAnnounce(&amount, &char_target,
+                                                   g_spell_records[spell_id].realm, difficulty);
                             if (amount != 0) {
                                 ApplyDamageToCharacter(party_slot, amount, 0, 1, 0, 0, 0);
                                 resisted_total += amount;
@@ -3728,10 +3597,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
                 if (iChar == -1) {
                     srAssertFail("iChar != -1", MAGIC_EFFECTS_CPP, 0x88a, 0);
                 }
-                amount = RollDice(&effect->definition.magnitude);
-                if (amount != 9999) {
-                    AdjustIntegerByPercent(&amount, effect->definition.percent);
-                }
+                amount = RollEffectMagnitude(&effect->definition);
                 RestoreCharacterSpellPointsEvenly(iChar, amount);
             }
         }

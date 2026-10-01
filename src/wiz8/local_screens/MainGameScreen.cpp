@@ -3317,7 +3317,7 @@ void SetMainGameMode(int mode)
                          g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
                          g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
         if (g_level_block->dialogue_y_224 <
-                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
+            static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
             RequestRedraw(0x100);
         }
         if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
@@ -3862,54 +3862,7 @@ void OnLeaveGameConfirmClosed(W8DialogBase* dialog)
     if (GetDialogResult(dialog) == 0) {
         return;
     }
-    switch (g_main_game_mode) {
-    case 3:
-        if (gXStatus.fNpcDialogueMode != 0) {
-            EndNpcDialogueSession(0);
-        }
-        break;
-    case 5:
-        CloseMessageBox();
-        break;
-    case 6:
-        if (g_level_block->highlight_graphic != 0) {
-            ReleaseObject(g_level_block->highlight_graphic);
-            g_level_block->highlight_graphic = 0;
-            if (g_main_game_mode != 6) {
-                break;
-            }
-        }
-        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                         g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                         g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
-        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                         g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                         g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
-        if (g_level_block->dialogue_y_224 <
-                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
-            RequestRedraw(0x100);
-        }
-        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
-            RequestRedraw(0x800);
-        }
-        break;
-    }
-    g_main_game_mode = 0;
-    if (IsMessageBoxActive()) {
-        CloseMessageBox();
-    }
-    if (gXStatus.fCombatMode != 0) {
-        EndCombat(1);
-    } else if (AnyCharacterActive() && gXStatus.party_moving == 0) {
-        AutoSaveIfAllowed(1);
-    }
-    if (gXStatus.fSurprisePossible != 0) {
-        RestoreSurpriseView();
-    }
-    g_status.game_started = 0;
-    ClearHeldItemDisplay();
-    RequestScreenTransition();
-    SetPrimarySurfaceTextureHint2Enabled(0);
+    ResetMainGameMode();
 }
 
 // FUNCTION: WIZ8 0x00560c30
@@ -6832,8 +6785,8 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
                                  g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228,
                                  0);
                 if (g_level_block->dialogue_y_224 <
-                        static_cast<unsigned int>(
-                            g_viewport_modes[g_level_block->camera_mode_100].top)) {
+                    static_cast<unsigned int>(
+                        g_viewport_modes[g_level_block->camera_mode_100].top)) {
                     RequestRedraw(0x100);
                 }
                 if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
@@ -8471,7 +8424,7 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, unsigned char flag
                          g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
                          g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224, 0);
         if (g_level_block->dialogue_y_224 <
-                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
+            static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
             RequestRedraw(0x100);
         }
         if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
@@ -8595,7 +8548,7 @@ void ClearHighlightOverlayRegion(void)
                          g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
                          g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
         if (g_level_block->dialogue_y_224 <
-                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
+            static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
             RequestRedraw(0x100);
         }
         if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166) {
@@ -9348,40 +9301,7 @@ stModelInstance2D* g_surprise_fade_node;
 // FUNCTION: WIZ8 0x00560C60
 void ResetMainGameMode(void)
 {
-    switch (g_main_game_mode) {
-    case 3:
-        if (gXStatus.fNpcDialogueMode != 0) {
-            EndNpcDialogueSession(0);
-        }
-        break;
-    case 5:
-        CloseMessageBox();
-        break;
-    case 6:
-        if (g_level_block->highlight_graphic != 0) {
-            ReleaseObject(g_level_block->highlight_graphic);
-            g_level_block->highlight_graphic = 0;
-            if (g_main_game_mode != 6) {
-                goto mode_reset;
-            }
-        }
-        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
-                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224);
-        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
-                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224, 0);
-        if (g_level_block->dialogue_y_224 <
-                static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode_100].top)) {
-            RequestRedraw(0x100);
-        }
-        if (0x166 < g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224) {
-            RequestRedraw(0x800);
-        }
-        break;
-    }
-mode_reset:
-    g_main_game_mode = 0;
+    SetMainGameMode(0);
     if (IsMessageBoxActive()) {
         CloseMessageBox();
     }

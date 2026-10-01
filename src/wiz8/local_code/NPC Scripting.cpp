@@ -1297,21 +1297,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
                         LookAtDialogueNpc();
                     }
                 } else {
-                    g_staged_short = g_npc_scripting.staging_restore.staged_short_49e;
-                    g_staged_flag = g_npc_scripting.quote_active;
-                    g_staged_value_68c3c8 = g_npc_scripting.staging_restore.finished_quote_index;
-                    g_npc_scripting.restore_staged_session = 1;
-                    g_staged_value_68c3d8 = g_npc_scripting.script_file;
-                    g_staged_npc = g_npc_scripting.npc;
-                    g_staged_value_68c3c4 = g_npc_scripting.staging_restore.current_quote_index;
-                    if (target->has_monster == 0) {
-                        BindNpcToMonster(target->name_style, 0, -1);
-                    }
-                    g_npc_scripting.staging_restore.staged_short_49e = 0;
-                    g_npc_scripting.quote_active = 0;
-                    g_npc_scripting.staging_restore.finished_quote_index = -1;
-                    g_npc_scripting.script_file = target->script_file;
-                    g_npc_scripting.npc = target;
+                    BeginNpcScriptDialogue(target, 1);
                 }
                 line = new W8MessageBoxLine;
                 memset(line, 0, sizeof(W8MessageBoxLine));
@@ -1338,21 +1324,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
                         LookAtDialogueNpc();
                     }
                 } else {
-                    g_staged_short = g_npc_scripting.staging_restore.staged_short_49e;
-                    g_staged_flag = g_npc_scripting.quote_active;
-                    g_staged_value_68c3c8 = g_npc_scripting.staging_restore.finished_quote_index;
-                    g_npc_scripting.restore_staged_session = 1;
-                    g_staged_value_68c3d8 = g_npc_scripting.script_file;
-                    g_staged_npc = g_npc_scripting.npc;
-                    g_staged_value_68c3c4 = g_npc_scripting.staging_restore.current_quote_index;
-                    if (target->has_monster == 0) {
-                        BindNpcToMonster(target->name_style, 0, -1);
-                    }
-                    g_npc_scripting.staging_restore.staged_short_49e = 0;
-                    g_npc_scripting.quote_active = 0;
-                    g_npc_scripting.staging_restore.finished_quote_index = -1;
-                    g_npc_scripting.script_file = target->script_file;
-                    g_npc_scripting.npc = target;
+                    BeginNpcScriptDialogue(target, 1);
                     SetNpcDialoguePanelVisible(0);
                 }
                 line = new W8MessageBoxLine;

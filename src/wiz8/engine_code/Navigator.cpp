@@ -975,12 +975,7 @@ follow_path:
             }
         }
     } else {
-        if (movement_stopped_024 == 0) {
-            movement_stopped_024 = 1;
-            if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
-                movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
-            }
-        }
+        SetMovementStopped();
         AimAtPosition(&camera);
     }
 }
@@ -1000,12 +995,7 @@ unsigned char W8Navigator::UpdateLinkedPosition()
                                             1, &position, 1, 0, 0, 5, 1) == 0) {
             return 0;
         }
-        if (movement_stopped_024 == 0) {
-            movement_stopped_024 = 1;
-            if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
-                movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
-            }
-        }
+        SetMovementStopped();
     } else {
         position = linked_navigator_05c->movement_0c0.position_040;
         if (movement_stopped_024 != 0) {
@@ -1683,22 +1673,7 @@ unsigned short W8Navigator::ConfigureMovementToNavigator(W8Navigator* target, fl
         probe_result);
     target_last_position_050 = target->movement_0c0.position_040;
     if (result == 0) {
-        if (movement_stopped_024 == 0) {
-            movement_stopped_024 = 1;
-            if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
-                movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
-            }
-        }
-        PathAIClearOwned(path_ai_068);
-        movement_0c0.velocity_034.SetZero();
-        if ((movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0) {
-            flags_00c &= 0xff000000;
-        } else {
-            flags_00c = 0;
-        }
-        movement_0c0.attachment_0ac->RecordPosition(&movement_0c0.position_040);
-        g_octree->QueueOctreeKind13(movement_0c0.location_id_004, &movement_0c0.position_040);
-        movement_complete_026 = 1;
+        ClearMovement();
         flags_00c = 0;
         unknown_0bc = 1;
         return 0;
@@ -1732,12 +1707,7 @@ void W8Navigator::LinkGroupNavigator(W8Navigator* target, double, int)
             if (flags_00c == 0) {
                 movement_0c0.attachment_0ac->InitializeSegment(&movement_0c0.position_040,
                                                                &movement_0c0.position_040);
-                if (movement_stopped_024 == 0) {
-                    movement_stopped_024 = 1;
-                    if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
-                        movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
-                    }
-                }
+                SetMovementStopped();
             }
         }
     } else {
@@ -1882,22 +1852,7 @@ unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, ch
         radius_084 = movement_0c0.alternate_radius_0b4;
     }
     if (result == 0) {
-        if (movement_stopped_024 == 0) {
-            movement_stopped_024 = 1;
-            if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
-                movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
-            }
-        }
-        PathAIClearOwned(path_ai_068);
-        movement_0c0.velocity_034.SetZero();
-        if ((movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0) {
-            flags_00c &= 0xff000000;
-        } else {
-            flags_00c = 0;
-        }
-        movement_0c0.attachment_0ac->RecordPosition(&movement_0c0.position_040);
-        g_octree->QueueOctreeKind13(movement_0c0.location_id_004, &movement_0c0.position_040);
-        movement_complete_026 = 1;
+        ClearMovement();
     } else if (movement_stopped_024 != 0) {
         movement_complete_026 = 0;
         movement_stopped_024 = 0;
@@ -2053,12 +2008,7 @@ void W8Navigator::SetPositionInternal(const srVector3T<float>* position)
 // FUNCTION: WIZ8 0x004537e0
 void W8Navigator::ClearMovement()
 {
-    if (movement_stopped_024 == 0) {
-        movement_stopped_024 = 1;
-        if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
-            movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
-        }
-    }
+    SetMovementStopped();
 
     PathAIClearOwned(path_ai_068);
     movement_0c0.velocity_034.SetZero();
@@ -2324,23 +2274,7 @@ void W8Navigator::UpdateNavigation004553A0(unsigned char skip_movement, char slo
             if (movement_result == 1 ||
                 (movement_result == 3 &&
                  LinkToNavigator(target_navigator_04c, collision_margin_010) == 0)) {
-                if (movement_stopped_024 == 0) {
-                    movement_stopped_024 = 1;
-                    if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
-                        movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
-                    }
-                }
-                PathAIClearOwned(path_ai_068);
-                movement_0c0.velocity_034.SetZero();
-                if ((movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0) {
-                    flags_00c &= 0xff000000;
-                } else {
-                    flags_00c = 0;
-                }
-                movement_0c0.attachment_0ac->RecordPosition(&movement_0c0.position_040);
-                g_octree->QueueOctreeKind13(movement_0c0.location_id_004,
-                                            &movement_0c0.position_040);
-                movement_complete_026 = 1;
+                ClearMovement();
             }
         }
         break;
@@ -2355,12 +2289,7 @@ void W8Navigator::UpdateNavigation004553A0(unsigned char skip_movement, char slo
                         movement_0c0.position_040.z);
                 if (delta.Length() < radius_084 * g_navigator_linked_radius_scale +
                                          linked_navigator_05c->radius_084) {
-                    if (movement_stopped_024 == 0) {
-                        movement_stopped_024 = 1;
-                        if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
-                            movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
-                        }
-                    }
+                    SetMovementStopped();
                     break;
                 }
             }
@@ -2393,22 +2322,7 @@ void W8Navigator::UpdateNavigation004553A0(unsigned char skip_movement, char slo
         unsigned int previous_flags = flags_00c;
         flags_00c &= 0xff7fffff;
         if (flags_00c == 0) {
-            if (movement_stopped_024 == 0) {
-                movement_stopped_024 = 1;
-                if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
-                    movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
-                }
-            }
-            PathAIClearOwned(path_ai_068);
-            movement_0c0.velocity_034.SetZero();
-            if ((movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0) {
-                flags_00c &= 0xff000000;
-            } else {
-                flags_00c = 0;
-            }
-            movement_0c0.attachment_0ac->RecordPosition(&movement_0c0.position_040);
-            g_octree->QueueOctreeKind13(movement_0c0.location_id_004, &movement_0c0.position_040);
-            movement_complete_026 = 1;
+            ClearMovement();
         } else {
             movement_0c0.active_rank_00c = movement_0c0.leadership_rank_008;
             movement_0c0.target_location_id_010 = -1;

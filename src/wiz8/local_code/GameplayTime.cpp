@@ -170,14 +170,7 @@ void UpdateGameClock(int elapsed)
                 ShowNoticef(0xc, gppStringList[0x790], 8);
             }
             SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
-            gXStatus.character_event_queue->CompleteAllActiveEvents();
-            for (unsigned int slot = 0; slot < 8; ++slot) {
-                if (g_status.buffers.XChar[slot].fOccupied != 0) {
-                    SetPortraitTargetPose(&gXStatus.monster_manager_entries[slot], 2);
-                }
-            }
-            DisableMenuButtonBanks();
-            RequestRedraw(0xff);
+            BeginSurprise();
             gXStatus.fSurprisePossible = true;
             EnableRegionInput(0x137);
             ActivateDialogRegion(0x137);
@@ -235,14 +228,7 @@ void RequestCamp(void)
             ShowNoticef(0xc, gppStringList[0x790], 8);
         }
         SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
-        gXStatus.character_event_queue->CompleteAllActiveEvents();
-        for (unsigned int slot = 0; slot < 8; ++slot) {
-            if (g_status.buffers.XChar[slot].fOccupied != 0) {
-                SetPortraitTargetPose(&gXStatus.monster_manager_entries[slot], 2);
-            }
-        }
-        DisableMenuButtonBanks();
-        RequestRedraw(0xff);
+        BeginSurprise();
         gXStatus.fSurprisePossible = true;
         EnableRegionInput(0x137);
         ActivateDialogRegion(0x137);
