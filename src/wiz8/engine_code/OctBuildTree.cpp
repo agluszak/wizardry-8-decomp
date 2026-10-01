@@ -312,8 +312,7 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
 }
 
 /* Append `payload` to the node's `kind` link list: bump the leaf counter and
-   the tree watermark, then either extend the tail or seed the head. The same
-   body is inlined inside InsertSurfaceRecursive's leaf path. */
+   the tree watermark, then either extend the tail or seed the head. */
 // FUNCTION: WIZ8 0x00446d00
 void W8OctBuildTree::AppendLink(W8OctBuildNode* node, void* payload, short kind)
 {
