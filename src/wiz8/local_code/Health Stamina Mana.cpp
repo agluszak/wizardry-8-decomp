@@ -247,9 +247,9 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
 }
 
 /* Spend spell points from one realm. Spending more than is left is a caller
-   error rather than something to clamp. Retail inlines this into the drains
-   below and keeps an out-of-line copy for other units. */
-inline void SpendRealmSpellPoints(int party_slot, int realm, int amount)
+   error rather than something to clamp. */
+// FUNCTION: WIZ8 0x0052b480
+void SpendCharacterSpellPoints(int party_slot, int realm, int amount)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
@@ -261,12 +261,6 @@ inline void SpendRealmSpellPoints(int party_slot, int realm, int amount)
         character->iSPLeft[realm] -= amount;
         RequestPartySlotRedraw(party_slot);
     }
-}
-
-// FUNCTION: WIZ8 0x0052b480
-void SpendCharacterSpellPoints(int party_slot, int realm, int amount)
-{
-    SpendRealmSpellPoints(party_slot, realm, amount);
 }
 
 /* Give spell points back to one realm, never past its ceiling. */
@@ -710,7 +704,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
             if (static_cast<unsigned int>(character->iSPLeft[realm]) <= remaining) {
                 taken = character->iSPLeft[realm];
             }
-            SpendRealmSpellPoints(party_slot, realm, taken);
+            SpendCharacterSpellPoints(party_slot, realm, taken);
             if (announce) {
                 ShowNoticef(8, gppStringList[0x263], amount,
                             gppStringList[g_realm_message_offsets[realm]]);
@@ -1123,7 +1117,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
     if (amount == 0) {
         return;
     }
-    SpendRealmSpellPoints(party_slot, realm, amount);
+    SpendCharacterSpellPoints(party_slot, realm, amount);
     if (announce) {
         ShowNoticef(8, gppStringList[0x263], amount, gppStringList[g_realm_message_offsets[realm]]);
     }
