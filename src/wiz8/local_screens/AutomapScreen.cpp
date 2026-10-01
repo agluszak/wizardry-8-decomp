@@ -1883,8 +1883,9 @@ unsigned char GetAutomapPositionUnderCursor(srVector3T<float>* position)
         } else {
             height = g_automap_grid_min.y;
         }
-        position->Set((point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x, height,
-                      g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom);
+        position->y = height;
+        position->x = (point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x;
+        position->z = g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom;
         return 1;
     }
     return 0;

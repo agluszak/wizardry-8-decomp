@@ -2181,9 +2181,13 @@ void SelectNpcDialogueExit(void)
 
 static inline void SyncNpcDialogueTranscriptScrollButtons()
 {
-    int enabled = g_screen_state_00649f1c->npc_dialogue_controller_1b0->IsExpanded() != 0;
-    g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(enabled);
-    g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(enabled);
+    if (g_screen_state_00649f1c->npc_dialogue_controller_1b0->IsExpanded()) {
+        g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
+        g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(1);
+    } else {
+        g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(0);
+        g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(0);
+    }
 }
 
 // FUNCTION: WIZ8 0x00570CF0

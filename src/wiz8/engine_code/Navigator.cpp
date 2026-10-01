@@ -2475,7 +2475,9 @@ W8OctreeTrace::W8OctreeTrace()
 {
     start_00.SetZero();
     end_0c.SetZero();
-    step_18.SetZero();
+    step_18.z = 0.0f;
+    step_18.y = 0.0f;
+    step_18.x = 0.0f;
     length_28 = 0.0f;
     state_2c = 0;
     hit_limit_24 = 1.0e20f;
