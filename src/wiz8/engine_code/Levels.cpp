@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/3dapi.h"
 #include "LibraryDataBase.h"
 #include "wiz8/engine_code/GameData.h"
@@ -371,7 +372,7 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
     material->setMapper(&g_material_mapper);
 
     for (srNode* node = sky_world->level->first_child_; node != 0; node = node->next_sibling_) {
-        if (node->getClassID() == 0x10004) {
+        if (node->getClassID() == stModelInstance::CLASS_ID) {
             srModelInstance* instance = static_cast<srModelInstance*>(node);
             srMeshModel* mesh = static_cast<srMeshModel*>(instance->getModel());
 
@@ -585,8 +586,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
 
             trigger->GetPosition(&trigger_position);
             position = trigger_position;
-            position.y =
-                SettlePositionToGround(&trigger_position, 0) + g_default_world_height;
+            position.y = SettlePositionToGround(&trigger_position, 0) + g_default_world_height;
             if (fabs(position.y - trigger_position.y) > g_position_height_epsilon) {
                 position.y = trigger_position.y;
             }

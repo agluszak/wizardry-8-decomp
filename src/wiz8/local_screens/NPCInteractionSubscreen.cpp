@@ -4503,13 +4503,15 @@ void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data)
 void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
                               int quote_id, unsigned int font_palette)
 {
-    SetNpcQuoteBubbleVisible(visible, text, quote, quote_id, font_palette, 0, 0, -1);
+    W8MessageBoxPayload payload;
+    payload.text = 0;
+    SetNpcQuoteBubbleVisible(visible, text, quote, quote_id, font_palette, 0, payload, -1);
 }
 
 // FUNCTION: WIZ8 0x00576060
 void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
                               int quote_id, unsigned int font_palette, unsigned char notice_kind,
-                              void* payload, int npc_kind)
+                              W8MessageBoxPayload payload, int npc_kind)
 {
     if (visible == g_screen_state_00649f1c->quote_visible) {
         return;
@@ -4565,7 +4567,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
             g_screen_state_00649f1c->pending_notice_lines.Add(line);
         }
         g_screen_state_00649f1c->quote_notice_kind = notice_kind;
-        g_screen_state_00649f1c->quote_notice_payload.raw = payload;
+        g_screen_state_00649f1c->quote_notice_payload = payload;
         if (g_screen_state_00649f1c->quote_notice_kind == 3) {
             SoundPlay(reinterpret_cast<STR>(const_cast<char*>( // reinterpret-ok: SGP text ABI
                           "Data\\Sound\\Misc\\GainLevel.wav")),

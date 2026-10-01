@@ -970,7 +970,7 @@ void AdvanceNpcTimers(unsigned int elapsed)
 // FUNCTION: WIZ8 0x0050CA80
 void ProcessNpcPendingEvents(void)
 {
-    unsigned char all_clear = 1; // bool-byte-ok: retail byte flag
+    bool all_clear = true;
 
     if (gXStatus.fCombatMode == 0 && gXStatus.fSurprisePossible == 0) {
         if (g_status.infatuation_pending_2446 != 0) {
@@ -1082,7 +1082,7 @@ void ProcessNpcPendingEvents(void)
                     } else if (character->highest_condition == 0x11 ||
                                character->highest_condition == 0x10 ||
                                character->highest_condition == 0xf) {
-                        all_clear = 0;
+                        all_clear = false;
                         npc->incapacitated_e8 = 1;
                     }
                 }

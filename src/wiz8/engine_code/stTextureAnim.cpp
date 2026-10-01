@@ -266,7 +266,7 @@ unsigned char stTextureAnim::Prepare()
 {
     srTextureIFace* texture = *textures_54->GetAt(0);
 
-    if (texture != 0 && texture->getClassID() == 0x10001) {
+    if (texture != 0 && texture->getClassID() == stTextureFile::CLASS_ID) {
         texture->getTextureFrameHandle();
         return static_cast<stTextureFile*>(texture)->hasAlpha();
     }

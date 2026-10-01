@@ -1218,7 +1218,7 @@ void DrawDialogueTextInputLines(int x, int y, unsigned int first_line)
     bool clipped = false;
 
     if (input->first_line_prefix != 0 && first_line == 0) {
-        gprintf(x, y, const_cast<wchar_t*>(g_format_s), input->first_line_prefix);
+        gprintf(x, y, Wiz8ToSgpWideText(g_format_s), input->first_line_prefix);
         x += StringPixLength(input->first_line_prefix, g_level_block->text_box_font);
     }
     if (line < input->line_count - 1) {
@@ -1226,7 +1226,7 @@ void DrawDialogueTextInputLines(int x, int y, unsigned int first_line)
             wchar_t* next = input->text + input->line_offsets[line + 1];
             wchar_t saved = *next;
             *next = 0;
-            gprintf(x, y, const_cast<wchar_t*>(g_format_s), string);
+            gprintf(x, y, Wiz8ToSgpWideText(g_format_s), string);
             int width = StringPixLength(string, g_level_block->text_box_font);
             if (max_width < width) {
                 max_width = StringPixLength(string, g_level_block->text_box_font);
@@ -1245,7 +1245,7 @@ void DrawDialogueTextInputLines(int x, int y, unsigned int first_line)
         } while (line < input->line_count - 1);
     }
     if (!clipped) {
-        gprintf(x, y, const_cast<wchar_t*>(g_format_s), string);
+        gprintf(x, y, Wiz8ToSgpWideText(g_format_s), string);
         ++line;
         int width = StringPixLength(string, g_level_block->text_box_font);
         if (max_width < width) {

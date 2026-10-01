@@ -1,3 +1,4 @@
+#include "wiz8/sgp_text.h"
 #include "line.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/MGSFormation.h"
@@ -1516,7 +1517,7 @@ void W8MainGameTextKeyHandler::Redraw(unsigned char full_redraw)
             colour = g_colour_68ee08;
         }
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, colour);
-        gprintf(left, top, const_cast<wchar_t*>(g_format_s),
+        gprintf(left, top, Wiz8ToSgpWideText(g_format_s),
                 gppStringList[m_line_string_ids_0ac[line]]);
         top += 0xe;
     }
@@ -4105,7 +4106,7 @@ void DrawMainGameScreen(void)
             ClearSurfaceRect(0xdc, 0x1e, 0x154, 0x26);
             SetFont(g_smfnt_font);
             SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
-            gprintfDirty(0xdc, 0x1e, const_cast<UINT16*>(g_format_mouselook_angles),
+            gprintfDirty(0xdc, 0x1e, Wiz8ToSgpWideText(g_format_mouselook_angles),
                          g_mouselook_pending_pitch, g_mouselook_pending_yaw);
         }
         if (GetTickCount() - g_level_block->tick_274 > 499) {
@@ -4127,7 +4128,7 @@ void DrawMainGameScreen(void)
         }
         if (g_node_cull_pending != 0) {
             for (node = g_world->level->first_child_; node != 0; node = node->next_sibling_) {
-                if (node->getClassID() == 0x10004) {
+                if (node->getClassID() == stModelInstance::CLASS_ID) {
                     node->clearFlag(srNode::FLAG_DISABLE);
                 }
             }
@@ -4135,7 +4136,7 @@ void DrawMainGameScreen(void)
         RenderFrame();
         if (g_node_cull_pending != 0) {
             for (node = g_world->level->first_child_; node != 0; node = node->next_sibling_) {
-                if (node->getClassID() == 0x10004) {
+                if (node->getClassID() == stModelInstance::CLASS_ID) {
                     if (MeasureNodeRenderWithoutPositionalOption(node) == 0) {
                         node->setFlag(srNode::FLAG_DISABLE);
                     } else {
@@ -4273,7 +4274,7 @@ void RedrawCombatMonsterList(void)
                         }
                     }
                     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, palette);
-                    gprintfDirty(0xfa, row_y, const_cast<UINT16*>(g_format_s), scratch_text);
+                    gprintfDirty(0xfa, row_y, Wiz8ToSgpWideText(g_format_s), scratch_text);
                     row_y += 0xb;
                     ++live_row_count;
                     if (max_text_width < static_cast<unsigned int>(text_width)) {
@@ -4553,7 +4554,7 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
     int font_height = GetFontHeight(g_wiz_text_font);
     int name_width = StringPixLength(name, g_wiz_text_font);
     gprintf(left + static_cast<int>(panel_width >> 1) - name_width / 2,
-            (0xc - font_height) / 2 + top + 6, const_cast<wchar_t*>(g_format_s), name);
+            (0xc - font_height) / 2 + top + 6, Wiz8ToSgpWideText(g_format_s), name);
     SetFontObjectPalette16BPP(g_wiz_text_font, g_font_palette_wiz_text);
 
     row_y_pos = top + 0x12;
@@ -4675,8 +4676,8 @@ void DrawPortraitVitalsOverlay(int party_slot)
              character->uiHPMax);
     unsigned int value_center = (text_width - label_width) >> 1;
     width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
-    gprintf(value_center - width / 2 + text_x + label_width, row_y,
-            const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
+    gprintf(value_center - width / 2 + text_x + label_width, row_y, Wiz8ToSgpWideText(g_format_s),
+            g_level_block->text_paint_scratch_000);
     row_y += 0x12;
 
     swprintf(g_level_block->text_paint_scratch_000, g_format_s_colon, gppStringList[0x283]);
@@ -4684,8 +4685,8 @@ void DrawPortraitVitalsOverlay(int party_slot)
     swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d, character->stamina,
              character->uiStaminaMax);
     width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
-    gprintf(value_center - width / 2 + text_x + label_width, row_y,
-            const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
+    gprintf(value_center - width / 2 + text_x + label_width, row_y, Wiz8ToSgpWideText(g_format_s),
+            g_level_block->text_paint_scratch_000);
     row_y += 0x12;
 
     for (realm = 0; realm < 6; ++realm) {
@@ -4697,7 +4698,7 @@ void DrawPortraitVitalsOverlay(int party_slot)
         int text_y = (0x12 - GetFontHeight(g_wiz_text_font)) / 2 + row_y;
         width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
         gprintf(value_center - width / 2 + text_x + label_width, text_y,
-                const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
+                Wiz8ToSgpWideText(g_format_s), g_level_block->text_paint_scratch_000);
         row_y += 0x12;
     }
 }
@@ -4748,7 +4749,7 @@ void DrawPortraitConditionOverlay(int party_slot)
                      gppStringList[g_condition_notices[condition * 4]]);
             int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
             gprintf((((text_width - 0x1aU) >> 1) - width / 2) + 0x1a + text_x, row_y,
-                    const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
+                    Wiz8ToSgpWideText(g_format_s), g_level_block->text_paint_scratch_000);
             row_y += 0x12;
         }
     }
@@ -4831,7 +4832,7 @@ void DrawPortraitStatusOverlay(int party_slot)
                      gppStringList[g_condition_notices[condition * 4]]);
             int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
             gprintf(((text_width >> 1) - width / 2) + 0x1a + text_x, row_y,
-                    const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
+                    Wiz8ToSgpWideText(g_format_s), g_level_block->text_paint_scratch_000);
             row_y += 0x12;
             ++rows_drawn;
         }
@@ -4842,7 +4843,7 @@ void DrawPortraitStatusOverlay(int party_slot)
                      character->enchantments[slot].power_00);
             int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
             gprintf((((text_width - width) + 0x1a) >> 1) + text_x, row_y,
-                    const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
+                    Wiz8ToSgpWideText(g_format_s), g_level_block->text_paint_scratch_000);
             return;
         }
         if (character->enchantments[slot].turns_08 != 0) {
@@ -4852,7 +4853,7 @@ void DrawPortraitStatusOverlay(int party_slot)
                      character->enchantments[slot].power_00);
             int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
             gprintf(((text_width >> 1) - width / 2) + 0x1a + text_x, row_y,
-                    const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
+                    Wiz8ToSgpWideText(g_format_s), g_level_block->text_paint_scratch_000);
             row_y += 0x12;
             ++rows_drawn;
         }
@@ -4906,7 +4907,7 @@ void DrawPortraitEnchantmentOverlay(int party_slot)
                      character->enchantments[slot].power_00);
             int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font);
             gprintf((((text_width - 0x1aU) >> 1) - width / 2) + 0x1a + text_x, row_y,
-                    const_cast<wchar_t*>(g_format_s), g_level_block->text_paint_scratch_000);
+                    Wiz8ToSgpWideText(g_format_s), g_level_block->text_paint_scratch_000);
             row_y += 0x12;
         }
     }

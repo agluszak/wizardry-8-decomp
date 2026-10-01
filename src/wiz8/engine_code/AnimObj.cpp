@@ -1,3 +1,4 @@
+#include "wiz8/compat/debug_heap.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/PathAI.h"
@@ -726,7 +727,8 @@ srModelInstance* AnimObjDispatch(W8AnimObj* animation, signed char list_index, u
     }
     if (animation->path_lists_05 == 0) {
         entry = animation->entries_18[list_index];
-        if (entry != (W8AniMesh*)0xdddddddd && entry != 0) {
+        // reinterpret-ok: VC6 debug CRT freed-block poison is compared as a pointer; never dereferenced.
+        if (entry != reinterpret_cast<W8AniMesh*>(WIZ8_DEBUG_FREED_HEAP_PATTERN) && entry != 0) {
             entry->list_index_28 = list_index;
             return GetAniMeshFrame(entry, value);
         }

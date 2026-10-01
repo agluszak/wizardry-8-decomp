@@ -1,3 +1,4 @@
+#include "wiz8/sgp_text.h"
 #include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
@@ -1276,7 +1277,7 @@ void DrawSubMenuCharacterAction(void)
     swprintf(text, L"%s - %s", character->name,
              gppStringList[g_profession_name_message_ids[character->iProfession]]);
     gprintf((0xb9 - StringPixLength(text, g_smfnt_font)) / 2 + 0x157, 0x1c6,
-            const_cast<UINT16*>(g_format_s), text);
+            Wiz8ToSgpWideText(g_format_s), text);
     if (gXStatus.fCombatMode != 1) {
         if (character->highest_condition == 0) {
             return;

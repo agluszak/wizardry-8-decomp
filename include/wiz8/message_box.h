@@ -26,14 +26,13 @@ static_assert(sizeof(W8SkillNoticePayload) == 0x11, "W8SkillNoticePayload_size")
 
 /* The tagged dword payloads carried at W8MessageBoxLine::payload_10 and
    ::extra. Which member is live is selected by the line's `type` (or by the
-   quote-bubble notice kind the payload is handed to); `raw` covers any
-   still-unresolved kind. */
+   quote-bubble notice kind the payload is handed to). Empty payloads carry
+   a null text pointer. */
 // union-ok: W8MessageBoxLine::type selects the live member; producers store one member per kind and consumers delete the owned one, so the variants share storage with mutually exclusive lifecycles.
 union W8MessageBoxPayload {
-    void* raw;
     /* Owned wide text (delete[]) for the PORTRAIT_*, SKILL_NOTICES and
-       LEVEL_UP kinds; a null-vs-non-null flag for FINISH_ACTION and
-       RESET_LEVEL_STATE. */
+       LEVEL_UP kinds. FINISH_ACTION and RESET_LEVEL_STATE use argument
+       as their zero/nonzero flag. */
     wchar_t* text;
     W8ItemInstance* item;                  /* payload_10: REMOVE_SCRIPT_ITEM */
     int argument;                          /* payload_10: QueueNpcMessageLine tag */
@@ -155,5 +154,6 @@ static_assert(offsetof(W8MessageBoxLine, suppress_entries) == 0x18,
 static_assert(offsetof(W8MessageBoxLine, extra) == 0x1c, "W8MessageBoxLine_extra");
 static_assert(offsetof(W8MessageBoxLine, npc) == 0x20, "W8MessageBoxLine_npc");
 
-void AddMessageBoxLine(W8NpcMessageKind kind, wchar_t* text, void* extra);
+void AddMessageBoxLine(W8NpcMessageKind kind, W8MessageBoxPayload payload,
+                       W8MessageBoxPayload extra);
 bool IsMessageBoxLineQueueEmpty(void);

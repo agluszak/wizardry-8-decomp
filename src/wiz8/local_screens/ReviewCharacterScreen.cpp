@@ -1,3 +1,4 @@
+#include "wiz8/sgp_text.h"
 #include "soundman.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_code/Magic.h"
@@ -293,18 +294,18 @@ void DrawCampSpellPages(void)
         if (character->skill_unlocks[0x1c + realm] != 0) {
             DrawCatalogImageAndInvalidate(-14, 0x140, 0, 3, left, top, 2, 0);
             SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
-            gprintf(left + 0x1b, top + 8, const_cast<wchar_t*>(g_format_s_0064dd28),
+            gprintf(left + 0x1b, top + 8, Wiz8ToSgpWideText(g_format_s_0064dd28),
                     gppStringList[0x8c7]);
             gprintf(left + 0x72, top + 8, gppStringList[0x8c9]);
             SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
             width = StringPixLengthArg(g_wiz_text_font_secondary, wcslen(gppStringList[0x8c7]) + 2,
-                                       const_cast<UINT16*>(g_format_s_colon), gppStringList[0x8c7]);
-            gprintf(left + 0x1b + width, top + 8, const_cast<wchar_t*>(g_format_d_0064dd20),
+                                       Wiz8ToSgpWideText(g_format_s_colon), gppStringList[0x8c7]);
+            gprintf(left + 0x1b + width, top + 8, Wiz8ToSgpWideText(g_format_d_0064dd20),
                     character->skills[0x1c + realm].level);
             width = StringPixLengthArg(
-                g_wiz_text_font_secondary, 7, const_cast<UINT16*>(g_format_d_slash_d),
+                g_wiz_text_font_secondary, 7, Wiz8ToSgpWideText(g_format_d_slash_d),
                 GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
-            gprintf(left + 0xc8 - width, top + 8, const_cast<wchar_t*>(g_format_d_slash_d),
+            gprintf(left + 0xc8 - width, top + 8, Wiz8ToSgpWideText(g_format_d_slash_d),
                     GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
             visible = character->skill_unlocks[0x1c + realm];
             if (visible >= 8) {
@@ -327,12 +328,12 @@ void DrawCampSpellPages(void)
                     palette = g_font_state_palettes[0];
                 }
                 SetFontObjectPalette16BPP(g_wiz_text_font_secondary, palette);
-                width = StringPixLengthArg(g_wiz_text_font_secondary, 3,
-                                           const_cast<UINT16*>(g_format_3d),
-                                           g_spell_records[spell_id].spell_point_cost);
-                gprintf(left + 0x1c, row_top, const_cast<wchar_t*>(g_format_s),
+                width =
+                    StringPixLengthArg(g_wiz_text_font_secondary, 3, Wiz8ToSgpWideText(g_format_3d),
+                                       g_spell_records[spell_id].spell_point_cost);
+                gprintf(left + 0x1c, row_top, Wiz8ToSgpWideText(g_format_s),
                         g_spell_records[spell_id].display_name);
-                gprintf(left + 0xb1 - width, row_top, const_cast<wchar_t*>(g_format_d_0064dd20),
+                gprintf(left + 0xb1 - width, row_top, Wiz8ToSgpWideText(g_format_d_0064dd20),
                         g_spell_records[spell_id].spell_point_cost);
                 row_top += 0xd;
             }
@@ -422,9 +423,9 @@ void DrawCampResistances(void)
             DrawCatalogImageAndInvalidate(-14, 0x143, 0, 2, left + 0x18, top + 4, 2, 0);
         }
         SetClippingRect(&saved_clip);
-        width = StringPixLengthArg(g_wiz_text_font_secondary, 5, const_cast<UINT16*>(g_format_d),
+        width = StringPixLengthArg(g_wiz_text_font_secondary, 5, Wiz8ToSgpWideText(g_format_d),
                                    character->resistances[index].total);
-        gprintf(left + 0x93 - width, top + 3, const_cast<wchar_t*>(g_format_d),
+        gprintf(left + 0x93 - width, top + 3, Wiz8ToSgpWideText(g_format_d),
                 character->resistances[index].total);
     }
 }

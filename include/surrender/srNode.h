@@ -65,7 +65,7 @@ public:
         FLAG_IGNORE_TRANSFORM = 3
     };
 
-    /* Dump walks +0x120 with DAT_100a4a04; that pointer is unset on disk, so
+    /* Dump walks +0x120 with the dump-format pointer at 0x100a4a04; that pointer is unset on disk, so
        dump prints numeric bit indices. Wizardry does not call setNotify. */
     enum e_notify { NOTIFY_POSITIONAL_0 = 0 };
 

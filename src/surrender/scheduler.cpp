@@ -114,8 +114,7 @@ void srScheduler::finish(Job& job)
         critical_section_40->releaseAccess();
         try {
             queued->execute();
-        }
-        catch (...) {
+        } catch (...) {
             throw;
         }
         critical_section_40->getAccess();
@@ -209,8 +208,7 @@ long srScheduler::executeNextJob()
     critical_section_40->releaseAccess();
     try {
         entry->job_00->execute();
-    }
-    catch (...) {
+    } catch (...) {
         throw;
     }
     critical_section_40->getAccess();
@@ -249,9 +247,9 @@ void srScheduler::wakeWorker()
 // FUNCTION: SURRENDER 0x100146E0
 void __cdecl srScheduler::workerEntry(void* argument)
 {
-    // reinterpret-ok: thread-proc ABI; the argument is the WorkerSlot passed
+    // The thread argument is the WorkerSlot passed
     // to srThread::begin in wakeWorker.
-    WorkerSlot* slot = reinterpret_cast<WorkerSlot*>(argument);
+    WorkerSlot* slot = static_cast<WorkerSlot*>(argument);
     while (slot->scheduler_04->executeNextJob() != 0) {
         srThread::yield(0);
     }

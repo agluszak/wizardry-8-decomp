@@ -1,3 +1,4 @@
+#include "wiz8/sgp_text.h"
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
 #include "surrender/srMaterial.h"
@@ -1999,7 +2000,7 @@ void W8Octree::OctBuildOptions(char* stem)
                     ++length;
                 }
                 wide[line][length] = 0;
-                gprintfDirty(1, 0x184 + line * 0xd, const_cast<UINT16*>(g_format_s), wide[line]);
+                gprintfDirty(1, 0x184 + line * 0xd, Wiz8ToSgpWideText(g_format_s), wide[line]);
             }
             InvalidateRegion(0, 0x183, 0x27f, 0x1df, 4);
             while (DequeueEvent(&atom) == 0) {
@@ -2123,7 +2124,7 @@ accepted:
         ++length;
     }
     wide[1][length] = 0;
-    gprintfDirty(1, 0x184, const_cast<UINT16*>(g_format_s), wide[1]);
+    gprintfDirty(1, 0x184, Wiz8ToSgpWideText(g_format_s), wide[1]);
     InvalidateRegion(0, 0x183, 0x27f, 0x1df, 4);
     RenderFrame();
     RenderFrame();
@@ -2187,7 +2188,7 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
             return 0;
         }
 
-        if ((*texture)->getClassID() == 0x10001 &&
+        if ((*texture)->getClassID() == stTextureFile::CLASS_ID &&
             static_cast<stTextureFile*>(*texture)->hasAlpha()) {
             has_alpha = 1;
         }

@@ -1,3 +1,4 @@
+#include "wiz8/sgp_text.h"
 /* Local Screens\RCSStatsPage.cpp - the review character screen's stats pages.
 
    Retail retains no path string for this unit; the official demo carries two
@@ -243,13 +244,13 @@ void DrawCampStatsPage(void)
         wchar_t* text = gppStringList[0x937];
         gprintf(g_camp_stats_origin_x + 10 +
                     ((0x11f - StringPixLength(text, g_wiz_text_font_secondary)) >> 1),
-                g_camp_stats_origin_y + 10, const_cast<wchar_t*>(g_format_s), text);
+                g_camp_stats_origin_y + 10, Wiz8ToSgpWideText(g_format_s), text);
         int row_y = 0xbf;
         for (index = 0; index < 7; ++index) {
             wchar_t* label = gppStringList[g_attribute_label_ids[index]];
             gprintf(g_camp_stats_origin_x + 10 +
                         ((0x7b - StringPixLength(label, g_wiz_text_font_secondary)) >> 1),
-                    row_y - 0xa6 + g_camp_stats_origin_y, const_cast<wchar_t*>(g_format_s), label);
+                    row_y - 0xa6 + g_camp_stats_origin_y, Wiz8ToSgpWideText(g_format_s), label);
             unsigned int effective = g_review_character->attributes[index].effective;
             unsigned int base = g_review_character->attributes[index].value;
             int gained;
@@ -287,24 +288,24 @@ void DrawCampStatsPage(void)
                 DrawCatalogImageAndInvalidate(-0xe, 0x143, 0, 2, 0x88, row_y, 2, 0);
             }
             SetClippingRect(&saved_clip);
-            swprintf(g_camp_screen->caption, const_cast<wchar_t*>(g_format_d), effective);
+            swprintf(g_camp_screen->caption, g_format_d, effective);
             gprintf(
                 g_camp_stats_origin_x + 0x108 +
                     ((0x21 - StringPixLength(g_camp_screen->caption, g_wiz_text_font_secondary)) >>
                      1),
-                row_y - 0xa6 + g_camp_stats_origin_y, const_cast<wchar_t*>(g_format_s),
+                row_y - 0xa6 + g_camp_stats_origin_y, Wiz8ToSgpWideText(g_format_s),
                 g_camp_screen->caption);
             row_y += 0xe;
         }
         text = gppStringList[0x938];
         gprintf(g_camp_stats_origin_x + 10 +
                     ((0x11f - StringPixLength(text, g_wiz_text_font_secondary)) >> 1),
-                g_camp_stats_origin_y + 0x8d, const_cast<wchar_t*>(g_format_s), text);
-        swprintf(g_camp_screen->caption, const_cast<wchar_t*>(g_format_s_space_s),
+                g_camp_stats_origin_y + 0x8d, Wiz8ToSgpWideText(g_format_s), text);
+        swprintf(g_camp_screen->caption, g_format_s_space_s,
                  gppStringList[g_character_skill_name_ids
                                    [g_profession_bonus_skills[g_review_character->iProfession]]],
                  gppStringList[0x8c5]);
-        gprintf(0x10, 0x142, const_cast<wchar_t*>(g_format_s), g_camp_screen->caption);
+        gprintf(0x10, 0x142, Wiz8ToSgpWideText(g_format_s), g_camp_screen->caption);
         int trait_count = 0;
         char traits[0x20];
         for (index = 0; index < 0x20; ++index) {
@@ -319,7 +320,7 @@ void DrawCampStatsPage(void)
         int trait_y = step + 0x14e;
         for (index = 0; index < 0x20; ++index) {
             if (traits[index] != 0) {
-                gprintf(0x10, trait_y, const_cast<wchar_t*>(g_format_s),
+                gprintf(0x10, trait_y, Wiz8ToSgpWideText(g_format_s),
                         gppStringList[g_character_trait_name_ids[index]]);
                 trait_y += step + 0xc;
             }
@@ -327,7 +328,7 @@ void DrawCampStatsPage(void)
         text = gppStringList[0x939];
         gprintf(g_camp_stats_origin_x + 0x13b +
                     ((0x13b - StringPixLength(text, g_wiz_text_font_secondary)) >> 1),
-                g_camp_stats_origin_y + 10, const_cast<wchar_t*>(g_format_s), text);
+                g_camp_stats_origin_y + 10, Wiz8ToSgpWideText(g_format_s), text);
         g_camp_screen->stats_controls->Invalidate(0);
         g_camp_screen->stats_range->m_range->Invalidate(0);
     }
@@ -612,7 +613,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
     int line = *line_out;
     if (entry->kind == 0) {
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
-        gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_space_s),
+        gprintf(0x15e, line * 0xe + 0xbf, Wiz8ToSgpWideText(g_format_s_space_s),
                 gppStringList[0x8d1], gppStringList[g_condition_notices[entry->index * 4]]);
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
         int next = line + 1;
@@ -638,7 +639,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
         gprintf(0x15e, line * 0xe + 0xbf, L"%s %s (%d)", gppStringList[0x8d4],
                 gppStringList[g_condition_notices[entry->index + 100]], entry->enchantment);
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
-        gprintf(0x15e, (line + 1) * 0xe + 0xbf, const_cast<wchar_t*>(g_format_d_s), entry->turns,
+        gprintf(0x15e, (line + 1) * 0xe + 0xbf, Wiz8ToSgpWideText(g_format_d_s), entry->turns,
                 gppStringList[0x8d3]);
         *line_out = line + 3;
         return;
@@ -646,7 +647,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
         W8ItemDatabaseRecord* record =
             &g_item_records[g_review_character->EquippedItem[entry->index].iItemNo];
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
-        gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s),
+        gprintf(0x15e, line * 0xe + 0xbf, Wiz8ToSgpWideText(g_format_s),
                 GetItemDisplayName(&g_review_character->EquippedItem[entry->index]));
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
         int next = line + 1;
@@ -662,8 +663,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
                 wcscpy(g_camp_screen->caption, &g_empty_wide_string);
                 wcscat(g_camp_screen->caption, gppStringList[g_damage_type_name_ids[index]]);
                 wcscat(g_camp_screen->caption, L" ");
-                swprintf(value_text, const_cast<wchar_t*>(g_format_d_percent),
-                         record->missile_values_050[index]);
+                swprintf(value_text, g_format_d_percent, record->missile_values_050[index]);
                 wcscat(g_camp_screen->caption, value_text);
                 if (index == 2) {
                     wcscat(g_camp_screen->caption, L" (");
@@ -671,7 +671,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
                     swprintf(value_text, L" %d)", record->missile_magnitude_060);
                     wcscat(g_camp_screen->caption, value_text);
                 }
-                gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_colon_s),
+                gprintf(0x15e, line * 0xe + 0xbf, Wiz8ToSgpWideText(g_format_s_colon_s),
                         gppStringList[0x8d6], g_camp_screen->caption);
                 ++line;
             }
@@ -682,7 +682,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
             ++line;
         }
         if (record->slays_kind_061 != 0xff) {
-            gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_colon_s),
+            gprintf(0x15e, line * 0xe + 0xbf, Wiz8ToSgpWideText(g_format_s_colon_s),
                     gppStringList[0x8d8],
                     gppStringList[g_special_category_name_ids[record->slays_kind_061]]);
             ++line;
@@ -924,17 +924,17 @@ void DrawCampSkillsPage(void)
                 SetFontObjectPalette16BPP(g_wiz_text_font_secondary, palette);
                 short width = StringPixLength(gppStringList[g_character_skill_name_ids[skill]],
                                               g_wiz_text_font_secondary);
-                gprintf((0x6b - width) / 2 + 2 + left, top + 1, const_cast<wchar_t*>(g_format_s),
+                gprintf((0x6b - width) / 2 + 2 + left, top + 1, Wiz8ToSgpWideText(g_format_s),
                         gppStringList[g_character_skill_name_ids[skill]]);
                 palette = g_colour_68ee08;
                 if (value->improved_12 != 0) {
                     palette = g_font_state_palettes[1];
                 }
                 SetFontObjectPalette16BPP(g_wiz_text_font_secondary, palette);
-                short value_width = StringPixLengthArg(
-                    g_wiz_text_font_secondary, 3, const_cast<wchar_t*>(g_format_d), value->level);
+                short value_width = StringPixLengthArg(g_wiz_text_font_secondary, 3,
+                                                       Wiz8ToSgpWideText(g_format_d), value->level);
                 gprintfDirty((0x24 - value_width) / 2 + 0xee + left, top + 1,
-                             const_cast<wchar_t*>(g_format_d), value->level);
+                             Wiz8ToSgpWideText(g_format_d), value->level);
                 SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
                 SetObjectShade(g_wiz_text_font_secondary_object, 4);
                 ++category_count[category];

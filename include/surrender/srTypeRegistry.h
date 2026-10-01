@@ -35,8 +35,7 @@ public:
             ChildLink* first_04;
             ChildLink* last_08;
 
-            ChildList()
-                : first_04(new ChildLink), last_08(first_04)
+            ChildList() : first_04(new ChildLink), last_08(first_04)
             {
                 first_04->next_04 = 0;
                 first_04->previous_08 = 0;
@@ -445,6 +444,7 @@ class srClassSupport : public Base {
 public:
     typedef Derived RegistryClass;
     typedef srClientSupport<Derived, ClassID> ClientType;
+    enum { CLASS_ID = ClassID };
 
     static srRegistry::ClassNode* sGetClassNode()
     {

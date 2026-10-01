@@ -123,7 +123,12 @@ void FlushDeferredSkillNotices(void)
             have_line = 1;
             if (count == 8) {
                 extra->count = 8;
-                AddMessageBoxLine(W8_NPC_MSG_SKILL_NOTICES, text, extra);
+                W8MessageBoxPayload skill_notices_payload;
+                skill_notices_payload.text = text;
+                W8MessageBoxPayload skill_notices_extra;
+                skill_notices_extra.skill_notices = extra;
+                AddMessageBoxLine(W8_NPC_MSG_SKILL_NOTICES, skill_notices_payload,
+                                  skill_notices_extra);
                 count = 0;
                 length = 0;
                 have_line = 0;
@@ -138,7 +143,11 @@ void FlushDeferredSkillNotices(void)
         delete extra;
     } else {
         extra->count = static_cast<signed char>(count);
-        AddMessageBoxLine(W8_NPC_MSG_SKILL_NOTICES, text, extra);
+        W8MessageBoxPayload skill_notices_payload;
+        skill_notices_payload.text = text;
+        W8MessageBoxPayload skill_notices_extra;
+        skill_notices_extra.skill_notices = extra;
+        AddMessageBoxLine(W8_NPC_MSG_SKILL_NOTICES, skill_notices_payload, skill_notices_extra);
     }
     for (slot = 0; slot < 8; ++slot) {
         memset(&gXStatus.monster_manager_entries[slot].skill_notice_pending[0], 0, W8_SKILL_COUNT);
@@ -720,7 +729,12 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                     extra->count = 1;
                     extra->party_slots[0] = static_cast<signed char>(slot);
                     extra->skills[0] = static_cast<signed char>(skill_id);
-                    AddMessageBoxLine(W8_NPC_MSG_SKILL_NOTICES, text, extra);
+                    W8MessageBoxPayload skill_notices_payload;
+                    skill_notices_payload.text = text;
+                    W8MessageBoxPayload skill_notices_extra;
+                    skill_notices_extra.skill_notices = extra;
+                    AddMessageBoxLine(W8_NPC_MSG_SKILL_NOTICES, skill_notices_payload,
+                                      skill_notices_extra);
                     return;
                 }
                 gXStatus.monster_manager_entries[slot].skill_notice_pending[skill_id] = 1;

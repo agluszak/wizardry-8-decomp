@@ -281,7 +281,7 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
     header.extent_02 = spatial_000.extent_04;
     header.cell_size_06 = spatial_000.cell_size_08;
     header.node_extent_0a = spatial_000.node_extent_70;
-    header.version_00 = 0x22;
+    header.version_00 = W8OctFileHeader::VERSION;
     for (int axis = 0; axis < 3; ++axis) {
         (&header.bounds_0e[0].x)[axis] = (&spatial_000.minimum_0c.x)[axis];
         (&header.bounds_0e[1].x)[axis] = (&spatial_000.maximum_18.x)[axis];

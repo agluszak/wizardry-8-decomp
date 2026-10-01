@@ -10,7 +10,7 @@ from ..ghidra.unit_intervals import TranslationUnitLayout, assertion_anchors, re
 from ..source_index import load_source_index, source_functions
 from ..source_units import UNRESOLVED_FRAGMENT, source_unit_records
 
-_PLACEHOLDER = re.compile(r"^Function[0-9A-Fa-f]{6,8}$")
+_PLACEHOLDER = re.compile(r"^Function[0-9A-Fa-f]{6,9}$")
 _ADDRESS_SUFFIX = re.compile(r"[A-Za-z_][A-Za-z0-9_:<>]*[0-9A-Fa-f]{6,8}$")
 _SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
 
@@ -842,27 +842,26 @@ def _stale_recovery_claims(repository: Path, functions: dict[int, Any]) -> list[
     return rows
 
 
-def _unresolved_declarations(index: dict[str, Any]) -> list[dict[str, Any]]:
-    definitions = {
-        str(item.get("semantic_id") or "")
-        for item in index.get("declarations", [])
-        if item.get("is_definition")
-    }
+def _unresolved_functions(index: dict[str, Any], target: str | None = None) -> list[dict[str, Any]]:
+    """A recovered body does not resolve an address-shaped source identity."""
+
     rows: dict[str, dict[str, Any]] = {}
     for item in index.get("declarations", []):
         name = str(item.get("qualified_name") or "")
         semantic_id = str(item.get("semantic_id") or "")
-        if not _PLACEHOLDER.fullmatch(name) or semantic_id in definitions:
+        if not _PLACEHOLDER.fullmatch(name.rsplit("::", 1)[-1]):
             continue
-        rows.setdefault(
-            semantic_id,
-            {
+        if target is not None and item.get("target") != target.upper():
+            continue
+        key = f"{item.get('target', '')}:{semantic_id}"
+        if key not in rows or item.get("is_definition"):
+            rows[key] = {
                 "name": name,
                 "semantic_id": semantic_id,
                 "source_file": str(item.get("source_file") or ""),
                 "line": int(item.get("line") or 0),
-            },
-        )
+                "is_definition": bool(item.get("is_definition")),
+            }
     return sorted(rows.values(), key=lambda row: (row["name"], row["source_file"], row["line"]))
 
 
@@ -870,9 +869,9 @@ def semantic_name_opportunity_report(repository: Path) -> dict[str, Any]:
     """Rank unresolved placeholder names by their checked-in call-site footprint."""
 
     index = load_source_index(repository)
-    candidates = _unresolved_declarations(index)
+    candidates = _unresolved_functions(index)
     sources = []
-    for root_name in ("include/wiz8", "src/wiz8"):
+    for root_name in ("include/wiz8", "src/wiz8", "include/surrender", "src/surrender"):
         root = repository / root_name
         sources.extend(
             path.read_text(encoding="utf-8", errors="replace")
@@ -944,7 +943,7 @@ def semantic_debt_report(
     provisional.sort(key=lambda row: (-row["function_count"], row["source_file"]))
 
     source_shaping = _source_shaping_directives(repository, target)
-    unresolved = _unresolved_declarations(index)
+    unresolved = _unresolved_functions(index, target)
     stale = _stale_recovery_claims(repository, functions)
     sources = _wiz8_sources(repository) if target.upper() == "WIZ8" else {}
     usage = _Usage(sources) if sources else None
@@ -972,11 +971,11 @@ def semantic_debt_report(
     empty_special = _empty_special_members(index, sources) if sources else []
     base_assignments = _explicit_base_assignments(index, sources) if sources else []
     return {
-        "schema": "wiz8.semantic-debt-v1",
+        "schema": "wiz8.semantic-debt-v2",
         "non_gating": True,
         "summary": {
             "unresolved_fragments": len(fragment_paths),
-            "unresolved_function_declarations": len(unresolved),
+            "unresolved_function_identities": len(unresolved),
             "address_suffixed_names": len(suffixed),
             "source_shaping_directives": len(source_shaping),
             "provisional_tu_placements": len(provisional),
@@ -996,7 +995,7 @@ def semantic_debt_report(
             "explicit_base_assignments": len(base_assignments),
         },
         "unresolved_fragments": provisional,
-        "unresolved_function_declarations": unresolved,
+        "unresolved_function_identities": unresolved,
         "address_suffixed_names": suffixed,
         "source_shaping_directives": source_shaping,
         "provisional_tu_placements": provisional,

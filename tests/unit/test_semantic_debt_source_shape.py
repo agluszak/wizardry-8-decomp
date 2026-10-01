@@ -5,7 +5,32 @@ from wiz8decomp.reports.semantic_debt import (
     _duplicate_layouts,
     _enum_literal_arguments,
     _source_shaping_directives,
+    _unresolved_functions,
 )
+
+
+def test_placeholder_body_remains_debt_and_definition_owns_the_location() -> None:
+    declaration = {
+        "qualified_name": "Function100035620",
+        "semantic_id": "allocator",
+        "source_file": "include/surrender/allocator.h",
+        "line": 3,
+        "target": "SURRENDER",
+        "is_definition": False,
+    }
+    definition = {
+        **declaration,
+        "source_file": "src/surrender/global_recycler.cpp",
+        "line": 54,
+        "is_definition": True,
+    }
+    resolved = {**definition, "qualified_name": "AllocateRecyclerStorage", "semantic_id": "named"}
+    for entries in ([declaration, definition], [definition, declaration]):
+        rows = _unresolved_functions({"declarations": [*entries, resolved]}, "SURRENDER")
+        assert len(rows) == 1
+        assert rows[0]["source_file"] == definition["source_file"]
+        assert rows[0]["is_definition"] is True
+        assert _unresolved_functions({"declarations": entries}, "WIZ8") == []
 
 
 def test_source_shaping_directives_are_target_scoped_and_ignore_plain_inline(

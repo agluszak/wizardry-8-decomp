@@ -1,3 +1,4 @@
+#include "wiz8/compat/debug_heap.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/engine_code/GameData.h"
@@ -1243,7 +1244,8 @@ unsigned char LoadMonster(W8Chunk* chunk)
             return 0;
         }
         IListAdd(monster_group->monsters, monster_info->location_id);
-        if (static_cast<unsigned int>(monster_group->leader_location_id) == 0xcdcdcdcdU ||
+        if (static_cast<unsigned int>(monster_group->leader_location_id) ==
+                WIZ8_DEBUG_UNINITIALIZED_HEAP_PATTERN ||
             static_cast<unsigned int>(monster_group->leader_location_id) <
                 static_cast<unsigned int>(monster_info->location_id)) {
             monster_group->leader_location_id = monster_info->location_id;
