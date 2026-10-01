@@ -844,7 +844,8 @@ public:
 /* Row-major 4×4 multiply-assign in place: each row's old components feed all
    four new components, so the row reads hoist into temps before the stores.
    Retail emits the double instantiation out-of-line for the srNode
-   world-space setters. */
+   world-space setters. Retail stores each finished row into this before
+   reading other for the next row, so other must not alias this. */
 // TEMPLATE: SURRENDER 0x10055A60
 // srMatrix4T<double>::MultiplyBy
 template <class T> srMatrix4T<T>* srMatrix4T<T>::MultiplyBy(const srMatrix4T<T>& other)
