@@ -685,9 +685,6 @@ unsigned long srBinIOFStream::tell()
     return ptell();
 }
 
-// FUNCTION: SURRENDER 0x100302B0
-srBinOStream::~srBinOStream() {}
-
 // FUNCTION: SURRENDER 0x10030330
 srBinOFStream::srBinOFStream(const char* path)
 {
