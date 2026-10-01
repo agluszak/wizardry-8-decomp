@@ -677,13 +677,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
     } else {
         sprintf(voice_dir, "NPCs");
     }
-    if (g_npc_scripting.npc->is_grouped != 0 && g_npc_script_event_active == 0) {
-        sprintf(voice_stem, "RPC_%s", GetNpcDisplayName(g_npc_scripting.npc));
-    } else if (g_npc_scripting.npc->record->voice_script_2ea != 0) {
-        sprintf(voice_stem, "VOC_%s", GetNpcDisplayName(g_npc_scripting.npc));
-    } else {
-        sprintf(voice_stem, "NPC_%s", GetNpcDisplayName(g_npc_scripting.npc));
-    }
+    FormatNpcVoiceSoundPath(g_npc_scripting.npc, voice_stem);
     sprintf(voice_path, "Data\\Sound\\%s\\%s\\%s_%03d", voice_dir, voice_stem, voice_stem,
             g_npc_scripting.staging_restore.current_quote_index);
     if (subquote_index > 0) {

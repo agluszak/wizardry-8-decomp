@@ -466,8 +466,8 @@ W8Navigator::W8Navigator(const W8Navigator& other)
 {
     movement_0c0.collision_radius_0b0 = other.movement_0c0.collision_radius_0b0;
     movement_0c0.alternate_radius_0b4 = other.movement_0c0.alternate_radius_0b4;
-    movement_0c0.height_offset_0b8 = other.movement_0c0.height_offset_0b8;
-    movement_0c0.secondary_height_offset_0bc = other.movement_0c0.secondary_height_offset_0bc;
+    configureStartupDepth(other.movement_0c0.height_offset_0b8,
+                          other.movement_0c0.secondary_height_offset_0bc);
     movement_0c0.vertical_offset_0c0 = other.movement_0c0.vertical_offset_0c0;
     movement_0c0.scale_0c4 = other.movement_0c0.scale_0c4;
     minimum_06c = other.minimum_06c;
@@ -555,8 +555,7 @@ void W8Navigator::SetNavigationMode(int mode)
         /* Falls into mode four's body: the retail block ends where mode four's
            jump-table entry lands. */
     case 4:
-        movement_0c0.pitch_enabled_074 = 0;
-        movement_0c0.roll_enabled_075 = 0;
+        SetPitchRollEnabled(0, 0);
         break;
     case 2:
     case 3:
@@ -564,15 +563,13 @@ void W8Navigator::SetNavigationMode(int mode)
         path = CreateRecord(0);
         PathAISetAnimated(path, 1);
         SetPathAI(path);
-        movement_0c0.pitch_enabled_074 = 1;
-        movement_0c0.roll_enabled_075 = 0;
+        SetPitchRollEnabled(1, 0);
         break;
     case 6:
         path = CreateRecord(0);
         PathAISetAnimated(path, 1);
         SetPathAI(path);
-        movement_0c0.pitch_enabled_074 = 1;
-        movement_0c0.roll_enabled_075 = 1;
+        SetPitchRollEnabled(1, 1);
         break;
     default:
         break;

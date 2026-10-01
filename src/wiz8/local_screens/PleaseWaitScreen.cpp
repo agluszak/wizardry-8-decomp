@@ -13,6 +13,7 @@
 #include "wiz8/local_screens/PleaseWaitScreen.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/dialog_code/MessageDialogBase.h"
+#include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/LoadSaveGame.h"
@@ -182,7 +183,7 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
             }
             wchar_t* message =
                 FormatWideString(L"%s%d", gppStringList[0x6ee], GetLevelCdNumber(level));
-            g_swap_disc_dialog->SetMessage(message, 1, 0x32, 1, 1, 1, 0, 0, 0);
+            SetDialogPrompt(g_swap_disc_dialog, message, 0, 0);
             EnableCursorScene();
             return 0;
         }

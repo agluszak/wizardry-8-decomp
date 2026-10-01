@@ -665,8 +665,8 @@ void DispatchPendingNpcScriptNotice(void)
     if (g_pending_notice.item.iItemNo != -1) {
         item = &g_pending_notice.item;
     }
-    BeginNpcDialogueInternal(g_pending_notice.npc, item, g_pending_notice.line,
-                             g_pending_notice.flag, g_pending_notice.force);
+    BeginNpcDialogue(g_pending_notice.npc, item, g_pending_notice.line, g_pending_notice.flag,
+                     g_pending_notice.force);
 }
 
 /* Open the NPC dialogue panel. After the shared screen reset and the

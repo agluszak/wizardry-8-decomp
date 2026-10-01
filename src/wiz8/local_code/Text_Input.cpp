@@ -399,12 +399,7 @@ void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
                 swprintf(field->szString, &g_empty_wide_string);
             }
             gfHiliteMode = false;
-            gubCursorPos = 0;
-            if (gpActive != 0) {
-                gubParkingPos = CalculateCursorPos(
-                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10, 0,
-                    gpActive->szString, &gsCursorX, &guiVisibleCount);
-            }
+            SetTextInputCursor(0);
             return;
         }
         field = field->next;

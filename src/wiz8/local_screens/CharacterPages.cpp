@@ -108,11 +108,7 @@ void W8CharacterPageEntry::SetContent(unsigned int id, const wchar_t* label, uns
         m_help_010->DisableRegionHelp();
     else
         m_help_010->EnableRegionHelp(help_id);
-    m_enabled_03a = 1;
-    m_increment_008->SetActive(1);
-    m_decrement_00c->SetActive(1);
-    m_help_010->SetActive(1);
-    MarkDirty();
+    SetEnabled(1);
     UpdateButtons();
     MarkDirty();
 }
@@ -276,9 +272,7 @@ void W8CharacterPage::Invalidate(const W8ControlsRect* rect)
     Controls::Invalidate(rect);
     for (int index = 0; index < m_entries_04c.count; ++index) {
         W8CharacterPageEntry* entry = *m_entries_04c.GetAt(index);
-        entry->m_decrement_00c->Invalidate(0);
-        entry->m_increment_008->Invalidate(0);
-        entry->m_dirty_039 = 1;
+        entry->MarkDirty();
     }
 }
 

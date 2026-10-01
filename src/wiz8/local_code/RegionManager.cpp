@@ -1042,9 +1042,7 @@ void UpdateRegionHelp(void)
 // FUNCTION: WIZ8 0x004f2750
 void SetRegionHelpText(const wchar_t* text)
 {
-    if (g_default_help_text != 0) {
-        delete[] g_default_help_text;
-    }
+    ReleasePointer689B40();
     if (text != 0) {
         g_default_help_text = new wchar_t[wcslen(text) + 1];
         wcscpy(g_default_help_text, text);

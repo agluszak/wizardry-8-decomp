@@ -550,9 +550,7 @@ void W8OptionsSaveLoadPanel::LoadSelectedSave()
     int selected_slot = m_current_04c * 5 + 1 + m_selection.m_selectedIndex;
     W8SaveSlot* slot = *g_options_screen->m_save_slots.GetAt(selected_slot);
     if (slot->version_major + slot->version_minor * 0.1f + slot->version_patch * 0.01f <= 1.24f) {
-        wcsncpy(g_options_last_save_name, slot->name, 0x40);
-        reinterpret_cast<char*>(g_options_last_save_name)[0x7e] =
-            0; // reinterpret-ok: raw byte view of the wide name buffer
+        SetLastSaveName(slot->name);
         if (g_status.game_started != 0) {
             ClearHeldItemDisplay();
         }
@@ -580,9 +578,7 @@ void W8OptionsSaveLoadPanel::SaveSelectedSave()
         g_options_screen->ShowNotification(this, 0, 0x82e, 0);
         return;
     }
-    wcsncpy(g_options_last_save_name, slot->name, 0x40);
-    reinterpret_cast<char*>(g_options_last_save_name)[0x7e] =
-        0; // reinterpret-ok: raw byte view of the wide name buffer
+    SetLastSaveName(slot->name);
     RequestScreenTransition();
     g_pending_screen_state.mode = 2;
     strcpy(g_pending_screen_state.name, ConvertWideStringToString(slot->name));

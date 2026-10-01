@@ -218,14 +218,7 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     entry->node_04 = instance;
 
     for (int index = 0; index < 3; ++index) {
-        if (entry != 0) {
-            entry->numbers_0c[index] = 0;
-            if (entry->pUserdata != 0) {
-                free(entry->pUserdata);
-                entry->pUserdata = 0;
-            }
-            entry->size_1c = 0;
-        }
+        SetWorldCursorNodeParameter(entry, index, 0);
     }
 
     unsigned long packed;

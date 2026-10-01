@@ -726,14 +726,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
             ReleaseMonsterConditionBindings(monster_info);
             if (forced_cleanup == 0) {
                 monster_info->death_processed_253 = 1;
-                if (monster_info->p3D->IsDying() == 0) {
-                    StartMonsterCycle(monster_info, 0x15, 1);
-                    DeactivateMonster(monster_info);
-                    RecordMonsterKill(monster_info, 1);
-                    RemoveMonster(MonsterGetIndexByLocationID(0x31f, MONSTER_MANAGER_CPP,
-                                                              monster_info->location_id, 1),
-                                  0);
-                }
+                MonsterStartsDying(monster_info, 1);
             }
         }
     }

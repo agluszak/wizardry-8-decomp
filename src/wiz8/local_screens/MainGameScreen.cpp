@@ -432,8 +432,7 @@ int OpenLockInteraction(Trigger* trigger)
         gXStatus.fLockInteract = false;
         return 1;
     }
-    g_lock_interaction->m_tumbler_panel_10->EnableRegionSet(1);
-    g_lock_interaction->m_action_panel_18->EnableRegionSet(1);
+    g_lock_interaction->EnablePanels(1);
     g_lock_interaction->m_tumbler_panel_10->Invalidate(0);
     g_lock_interaction->m_info_panel_14->RefreshInfo();
     g_lock_interaction->m_action_panel_18->Invalidate(0);
@@ -489,8 +488,7 @@ void EndLockInteractMode(char suspend)
     W8LockInteraction* interaction = g_lock_interaction;
     gXStatus.fLockInteractMode = false;
     if (suspend != 0) {
-        interaction->m_tumbler_panel_10->EnableRegionSet(0);
-        interaction->m_action_panel_18->EnableRegionSet(0);
+        interaction->EnablePanels(0);
         gXStatus.fLockInteract = true;
     } else {
         if (g_lock_interaction != 0) {
@@ -1433,8 +1431,7 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
 // FUNCTION: WIZ8 0x005874D0
 void W8LockInteraction::BeginUnlock()
 {
-    m_tumbler_panel_10->EnableRegionSet(0);
-    m_action_panel_18->EnableRegionSet(0);
+    EnablePanels(0);
     m_state_34 = 8;
     m_timer_80.SetDuration(1.0f);
     m_timer_80.Restart();
@@ -3011,16 +3008,7 @@ void W8NpcDialogueTextController::RestoreTranscriptEntries()
     if (g_screen_state_00649f1c->dialogue_transcript.count == 0) {
         g_screen_state_00649f1c->dialogue_category_filter = W8_DIALOGUE_CATEGORY_ALL;
         controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
-        controller->text_area.SetCategoryFilter(g_screen_state_00649f1c->dialogue_category_filter);
-        controller->Collapse();
-        controller->Expand();
-        if (g_screen_state_00649f1c->npc_dialogue_controller_1b0->scroll_height == 0xff) {
-            g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
-            g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(1);
-        } else {
-            g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(0);
-            g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(0);
-        }
+        controller->SetTranscriptCategoryFilter(g_screen_state_00649f1c->dialogue_category_filter);
         SyncDialogueCategoryButtons();
         AddTranscriptEntry(L" [No Keywords]", W8_DIALOGUE_CATEGORY_ALL, 0);
     }
@@ -6001,21 +5989,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 }
                 g_main_game_mode = 0;
                 SetPendingScreenState(W8_SCREEN_CAMP);
-                if (gXStatus.fLockInteractMode != 0) {
-                    EndLockInteractMode(1);
-                }
-                if (gXStatus.fTrapInteractMode != 0) {
-                    EndTrapInteractMode(1);
-                }
-                if (gXStatus.fSpellCastMode != 0) {
-                    CloseSpellCastingView();
-                }
-                if (gXStatus.fItemSelectMode != 0) {
-                    CloseUseItemSelectView();
-                }
-                if (gXStatus.fReviewCharacterMode != 0) {
-                    CloseFormationPanel();
-                }
+                UpdateScreenOverlays(1);
                 SetPrimarySurfaceTextureHint2Enabled(0);
                 return 1;
             }
@@ -6149,21 +6123,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 }
                 g_main_game_mode = 0;
                 SetPendingScreenState(W8_SCREEN_CAMP);
-                if (gXStatus.fLockInteractMode != 0) {
-                    EndLockInteractMode(1);
-                }
-                if (gXStatus.fTrapInteractMode != 0) {
-                    EndTrapInteractMode(1);
-                }
-                if (gXStatus.fSpellCastMode != 0) {
-                    CloseSpellCastingView();
-                }
-                if (gXStatus.fItemSelectMode != 0) {
-                    CloseUseItemSelectView();
-                }
-                if (gXStatus.fReviewCharacterMode != 0) {
-                    CloseFormationPanel();
-                }
+                UpdateScreenOverlays(1);
                 SetPrimarySurfaceTextureHint2Enabled(0);
                 return 1;
             }
@@ -8201,21 +8161,7 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, unsigned char flag
         flag != 0 ? static_cast<W8Character*>(g_pending_screen_state.parameter_3) : 0;
     SetMainGameMode(0);
     SetPendingScreenState(6);
-    if (gXStatus.fLockInteractMode != 0) {
-        EndLockInteractMode(1);
-    }
-    if (gXStatus.fTrapInteractMode != 0) {
-        EndTrapInteractMode(1);
-    }
-    if (gXStatus.fSpellCastMode != 0) {
-        CloseSpellCastingView();
-    }
-    if (gXStatus.fItemSelectMode != 0) {
-        CloseUseItemSelectView();
-    }
-    if (gXStatus.fReviewCharacterMode != 0) {
-        CloseFormationPanel();
-    }
+    UpdateScreenOverlays(1);
     SetPrimarySurfaceTextureHint2Enabled(0);
 }
 

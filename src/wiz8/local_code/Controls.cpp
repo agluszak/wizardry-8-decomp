@@ -1005,10 +1005,7 @@ void W8TextControl::SetBounds(int left, int top, int right, int bottom)
     short measured_width;
     short measured_height;
 
-    m_left = left;
-    m_top = top;
-    m_right = right;
-    m_bottom = bottom;
+    W8Widget::SetBounds(left, top, right, bottom);
     if (m_pPanel != 0) {
         if (m_region != -1) {
             SetRegionBounds(m_region, (unsigned short)((short)left + (short)m_pPanel->origin_x),
@@ -2331,10 +2328,7 @@ void W8Widget::SetBounds(int left, int top, int right, int bottom)
 // FUNCTION: WIZ8 0x004f6960
 void W8Widget::SetBoundsFromRect(const W8ControlsRect* bounds)
 {
-    m_left = bounds->left;
-    m_top = bounds->top;
-    m_right = bounds->right;
-    m_bottom = bounds->bottom;
+    W8Widget::SetBounds(bounds->left, bounds->top, bounds->right, bounds->bottom);
 }
 
 /* Selection controller: the listener occupies +0, the text-control pointer

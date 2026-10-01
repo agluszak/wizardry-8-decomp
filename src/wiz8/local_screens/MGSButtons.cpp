@@ -329,96 +329,28 @@ void SubMenuSelectEquip(void)
 // FUNCTION: WIZ8 0x00596940
 void SubMenuOpenUseItemView(void)
 {
-    int index;
-
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count_69b87e = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows_69b8ec[index] != 0) {
-            delete g_submenu_rows_69b8ec[index];
-            g_submenu_rows_69b8ec[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
     OpenUseItemSelectView(g_status.selected_character);
 }
 
 // FUNCTION: WIZ8 0x005969D0
 void SubMenuUseRecordedItem(void)
 {
-    int index;
-
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count_69b87e = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows_69b8ec[index] != 0) {
-            delete g_submenu_rows_69b8ec[index];
-            g_submenu_rows_69b8ec[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
     StartCharacterItemUse(g_status.selected_character);
 }
 
 // FUNCTION: WIZ8 0x00596A60
 void SubMenuOpenSpellView(void)
 {
-    int index;
-
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count_69b87e = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows_69b8ec[index] != 0) {
-            delete g_submenu_rows_69b8ec[index];
-            g_submenu_rows_69b8ec[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
     OpenSpellCastingView(g_status.selected_character);
 }
 
 // FUNCTION: WIZ8 0x00596AF0
 void SubMenuCastRecordedSpell(void)
 {
-    int index;
-
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count_69b87e = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows_69b8ec[index] != 0) {
-            delete g_submenu_rows_69b8ec[index];
-            g_submenu_rows_69b8ec[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
     StartCharacterSpellCast(g_status.selected_character, 0);
 }
 

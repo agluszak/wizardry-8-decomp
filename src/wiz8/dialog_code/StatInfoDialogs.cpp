@@ -55,8 +55,7 @@ W8StatInfoDialogBase::W8StatInfoDialogBase()
 // FUNCTION: WIZ8 0x005DF940
 W8StatInfoDialogBase::~W8StatInfoDialogBase()
 {
-    scrollbar_054.DestroyControls();
-    W8DialogBase::DestroyControls();
+    W8StatInfoDialogBase::DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005df9d0
@@ -193,8 +192,7 @@ W8AttributeInfoDialog::W8AttributeInfoDialog(unsigned int uiIndex)
 // FUNCTION: WIZ8 0x005dfd20
 W8AttributeInfoDialog::~W8AttributeInfoDialog()
 {
-    scrollbar_054.DestroyControls();
-    W8DialogBase::DestroyControls();
+    W8StatInfoDialogBase::DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005dfe40
@@ -218,8 +216,7 @@ W8SkillInfoDialog::W8SkillInfoDialog(unsigned int skill, unsigned char first, un
 // FUNCTION: WIZ8 0x005dff10
 W8SkillInfoDialog::~W8SkillInfoDialog()
 {
-    scrollbar_054.DestroyControls();
-    W8DialogBase::DestroyControls();
+    W8StatInfoDialogBase::DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005dffa0
@@ -274,6 +271,5 @@ W8SecondaryAttributeInfoDialog::W8SecondaryAttributeInfoDialog(unsigned int uiIn
 // FUNCTION: WIZ8 0x005e0230
 W8SecondaryAttributeInfoDialog::~W8SecondaryAttributeInfoDialog()
 {
-    scrollbar_054.DestroyControls();
-    W8DialogBase::DestroyControls();
+    W8StatInfoDialogBase::DestroyControls();
 }

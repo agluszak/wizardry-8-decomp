@@ -451,8 +451,7 @@ void AimAtPlace(int actor)
     target.iType = W8_TARGET_KIND_PLACE;
     GetWorldCursorTargetPosition(&position);
     AimAtTarget(actor, &target, W8_TARGETING_CONTEXT_CURRENT);
-    gXStatus.target_markers.Clear();
-    RequestRefreshPartyState();
+    ClearTargetMarker();
 }
 
 /* Aim at the ground point the camera is looking at, the world-cursor-free
@@ -1820,8 +1819,7 @@ void SelectSpellCastingPartySlot(int party_slot)
     ResetCombatSlot(&target);
     AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_SHARED);
     SetTargetingMode(0);
-    gXStatus.target_markers.Clear();
-    RequestRefreshPartyState();
+    ClearTargetMarker();
 }
 
 /* Commit the shared spell target into the selected character's active action
@@ -3174,8 +3172,7 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context)
             block = GetTargetBlockForContext(actor, W8_TARGETING_CONTEXT_CURRENT);
             CanPartySlotParticipate(actor);
             int needed;
-            if (GetCombatActionContext(actor) ==
-                W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
+            if (GetCombatActionContext(actor) == W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
                 needed = 0;
             } else {
                 int action;
