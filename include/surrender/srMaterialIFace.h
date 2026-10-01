@@ -20,6 +20,8 @@ public:
        lifecycle. Wiz8 imports the standalone public symbols. */
     // SYNTHETIC: SURRENDER 0x10034BE0
     // srMaterialIFace::srMaterialIFace()
+    // SYNTHETIC: SURRENDER 0x10034C70
+    // srMaterialIFace::srMaterialIFace(const srMaterialIFace&)
     // SYNTHETIC: SURRENDER 0x10016310
     // srMaterialIFace::~srMaterialIFace
 #if !defined(SURRENDER_BUILD)
