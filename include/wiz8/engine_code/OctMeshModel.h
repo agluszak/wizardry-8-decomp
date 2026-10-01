@@ -16,10 +16,10 @@ class OctMeshModel {
 public:
     OctMeshModel();  /* 0x0049E4C0 */
     ~OctMeshModel(); /* 0x0049E500 */
-    stMeshModel* Read0049E9A0(int file, srMaterialIFace** materials, srTextureIFace** textures,
+    stMeshModel* Read(int file, srMaterialIFace** materials, srTextureIFace** textures,
                               unsigned long* render_flags, stMeshModel** meshes,
                               int material_count);
-    bool Write0049E5D0(int hFile); /* 0x0049E5D0 */
+    bool Write(int hFile); /* 0x0049E5D0 */
 
     short version_00;
     short padding_02;
