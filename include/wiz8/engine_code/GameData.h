@@ -56,7 +56,7 @@ struct W8LevelDataRecord {
        constructor writes 1.0f). Remaining 8 bytes stay unresolved. */
     srVector3T<float> contact_normal_ac; /* 0xac */
     float contact_normal_scale_b8;       /* 0xb8 */
-    unsigned char padding_bc[8];         /* 0xbc */
+    unsigned char unknown_bc[8];         /* 0xbc */
     W8IntervalGate interval_gate_c4;     /* 0xc4 */
     bool flag_ec;                        /* 0xec */
     bool flag_ed;                        /* 0xed */
