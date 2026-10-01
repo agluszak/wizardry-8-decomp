@@ -1,7 +1,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/local_screens/MGSTextBox.h"
-#include "wiz8/sgp_wide_text.h"
+#include "wiz8/sgp_text.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
