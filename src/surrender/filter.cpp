@@ -21,21 +21,6 @@ const char* srBoxFilter::getName() const
     return "box filter";
 }
 
-// FUNCTION: SURRENDER 0x10003480
-srBoxFilter::srBoxFilter() {}
-
-// FUNCTION: SURRENDER 0x100034A0
-srBoxFilter::srBoxFilter(const class srBoxFilter& other) {}
-
-// FUNCTION: SURRENDER 0x10003520
-class srBoxFilter& srBoxFilter::operator=(const class srBoxFilter& other)
-{
-    return *this;
-}
-
-// FUNCTION: SURRENDER 0x10003530
-srBoxFilter::~srBoxFilter() {}
-
 // FUNCTION: SURRENDER 0x10003340
 double srTriangleFilter::getWeight(double value) const
 {
@@ -65,21 +50,6 @@ const char* srTriangleFilter::getName() const
 {
     return "triangle filter";
 }
-
-// FUNCTION: SURRENDER 0x100036B0
-srTriangleFilter::srTriangleFilter() {}
-
-// FUNCTION: SURRENDER 0x100036C0
-srTriangleFilter::srTriangleFilter(const class srTriangleFilter& other) {}
-
-// FUNCTION: SURRENDER 0x100036D0
-class srTriangleFilter& srTriangleFilter::operator=(const class srTriangleFilter& other)
-{
-    return *this;
-}
-
-// FUNCTION: SURRENDER 0x100036E0
-srTriangleFilter::~srTriangleFilter() {}
 
 // FUNCTION: SURRENDER 0x10003410
 double srBellFilter::getWeight(double value) const
@@ -111,21 +81,6 @@ const char* srBellFilter::getName() const
     return "bell-curve filter";
 }
 
-// FUNCTION: SURRENDER 0x100035E0
-srBellFilter::srBellFilter() {}
-
-// FUNCTION: SURRENDER 0x100035F0
-srBellFilter::srBellFilter(const class srBellFilter& other) {}
-
-// FUNCTION: SURRENDER 0x10003600
-class srBellFilter& srBellFilter::operator=(const class srBellFilter& other)
-{
-    return *this;
-}
-
-// FUNCTION: SURRENDER 0x10003610
-srBellFilter::~srBellFilter() {}
-
 // FUNCTION: SURRENDER 0x100034B0
 double srBSplineFilter::getWeight(double value) const
 {
@@ -156,21 +111,6 @@ const char* srBSplineFilter::getName() const
 {
     return "B-Spline filter";
 }
-
-// FUNCTION: SURRENDER 0x10003780
-srBSplineFilter::srBSplineFilter() {}
-
-// FUNCTION: SURRENDER 0x10003790
-srBSplineFilter::srBSplineFilter(const class srBSplineFilter& other) {}
-
-// FUNCTION: SURRENDER 0x100037A0
-class srBSplineFilter& srBSplineFilter::operator=(const class srBSplineFilter& other)
-{
-    return *this;
-}
-
-// FUNCTION: SURRENDER 0x100037B0
-srBSplineFilter::~srBSplineFilter() {}
 
 // GLOBAL: SURRENDER 0x100A0290
 class srTriangleFilter srTriangleFilter;
