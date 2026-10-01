@@ -729,20 +729,9 @@ int GetTargetNeededForCurrentAction(int party_slot)
     int action;
     int detail;
 
-    context = GetCurrentTargetingContext(party_slot);
-    switch (context) {
-    case W8_TARGETING_CONTEXT_IN_COMBAT:
-    case W8_TARGETING_CONTEXT_SHARED:
-    case W8_TARGETING_CONTEXT_SPELL:
-    case W8_TARGETING_CONTEXT_ITEM:
-    case W8_TARGETING_CONTEXT_FIVE:
-    case W8_TARGETING_CONTEXT_DIALOGUE:
-        break;
-    case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
+    context = GetCombatActionContext(party_slot);
+    if (context == W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
         return 0;
-    default:
-        srAssertFail("FALSE", TARGETING_CPP, 0xc5b, 0);
-        break;
     }
     ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
                        &detail_block);
