@@ -14,7 +14,10 @@ public:
 
     SR_DLL_IMPORT srFog(srNode* parent = 0);
     SR_DLL_IMPORT srFog(const srFog& other);
-    SR_DLL_IMPORT srFog& operator=(const srFog& other);
+    /* Copy assignment is the implicit srIlluminator assignment followed by
+       the three fog fields; class-level export supplies the standalone copy. */
+    // SYNTHETIC: SURRENDER 0x1004BCA0
+    // srFog::operator=
     /* Header-visible like srLight's: the client getClassName emission
        (0x00484710) returns the consumer literal directly, the consumer import
        table has no entry, and provider TUs inline the same literal inside the
