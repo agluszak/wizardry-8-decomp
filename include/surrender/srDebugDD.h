@@ -19,7 +19,9 @@ class
     srDebugDD : public srDD {
 public:
     srDebugDD(srDD* device);
-    virtual ~srDebugDD() override;
+    /* The empty derived destructor is implicit; srDD owns the base teardown. */
+    // SYNTHETIC: SURRENDER 0x10016D60
+    // srDebugDD::~srDebugDD
 
     /* Implicit copy constructor/assignment emitted via the class-level
        dllexport. The copy constructor stores the vtable last; the assignment
