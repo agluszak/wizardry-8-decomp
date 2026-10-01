@@ -514,7 +514,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
                     float sphere_radius;
                     model->getBoundingSphere(center, sphere_radius);
                     srVector3T<float> prop_position;
-                    m_papProps[bit - 1]->GetPosition0044E2C0(&prop_position);
+                    m_papProps[bit - 1]->GetPosition(&prop_position);
                     center += prop_position;
                     sphere_radius += radius;
                     if ((center.x - point->x) * (center.x - point->x) +

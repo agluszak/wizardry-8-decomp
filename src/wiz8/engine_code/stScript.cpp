@@ -111,7 +111,7 @@ void stScript::Clear()
 }
 
 // FUNCTION: WIZ8 0x004CF3B0
-unsigned char stScript::Load004CF3B0(const char* path)
+unsigned char stScript::Load(const char* path)
 {
     unsigned char more = 1;
     int source_line = 0;

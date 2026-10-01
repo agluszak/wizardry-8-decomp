@@ -1772,7 +1772,7 @@ unsigned char W8Monster::SetScript(const char* script_name, unsigned char reset_
         strcat(path, script_name);
         script_238 = new stScript;
         if (script_238 != 0) {
-            if (script_238->Load004CF3B0(path) != 0) {
+            if (script_238->Load(path) != 0) {
                 script_238->setName(script_name);
                 script_238->autoRelease();
             } else {

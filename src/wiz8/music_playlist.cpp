@@ -245,7 +245,7 @@ unsigned char StartMusicResource(const char* resource, int fade, unsigned char r
     g_music_state_60aaec = 0;
     g_music_state_60aaf0 = 0;
     g_music_playlist->Clear();
-    g_music_playlist->Load004CF3B0(path);
+    g_music_playlist->Load(path);
 
     if (g_music_playlist->lines.GetCount() == 0) {
         return 0;

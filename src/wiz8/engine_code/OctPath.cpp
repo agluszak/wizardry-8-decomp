@@ -1095,7 +1095,7 @@ unsigned char W8PathingService::TestAttachmentHopDoor(W8NavigatorAttachment* att
                         Trigger* trigger = prop->GetGDPropValue24();
                         if (trigger != 0) {
                             srVector3T<float> position;
-                            prop->GetPosition0044E2C0(&position);
+                            prop->GetPosition(&position);
                             float distance = (position - center).LengthSquared();
                             if (distance < nearest_distance) {
                                 nearest_distance = distance;
@@ -4779,7 +4779,7 @@ void W8PathingService::ActivateMovementTrigger(W8NavigatorMovementState* movemen
             if (prop->GetSetting6C() != 0 && trigger != 0 &&
                 (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0) {
                 srVector3T<float> center;
-                prop->GetPosition0044E2C0(&center);
+                prop->GetPosition(&center);
                 srVector3T<float> difference = center - midpoint;
                 double distance = difference.LengthSquared();
                 if (distance < nearest_distance) {

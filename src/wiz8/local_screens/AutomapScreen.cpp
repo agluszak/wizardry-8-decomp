@@ -712,7 +712,7 @@ unsigned char AutomapScreenEnter(void)
     EnableCursorScene();
     SetScaledViewport00425C90(12, 32, 467, 467);
     UpdateAutomapBounds();
-    if (script.Load004CF3B0("Data\\Automap\\MapFilters.txt")) {
+    if (script.Load("Data\\Automap\\MapFilters.txt")) {
         W8Vector<char*> excluded_textures(5);
         int line = 0;
         int section = -1;

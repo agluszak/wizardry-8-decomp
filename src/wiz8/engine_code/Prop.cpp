@@ -206,7 +206,7 @@ W8Prop* FindPropByName(W8World* world, const char* name)
 }
 
 // FUNCTION: WIZ8 0x0044e2c0
-void W8Prop::GetPosition0044E2C0(srVector3T<float>* out)
+void W8Prop::GetPosition(srVector3T<float>* out)
 {
     if (AnimationIsRunning(Rep()->animation) == 1) {
         *out = position_02c;
@@ -1337,11 +1337,11 @@ void W8Prop::RunMissileTrigger(W8AIMissile* record)
     }
 }
 
-/* Mirror of GetPosition0044E2C0: while the rep node reports itself current
+/* Mirror of GetPosition: while the rep node reports itself current
    the position is stored in position_02c, otherwise it goes through the rep
    node's own location. */
 // FUNCTION: WIZ8 0x0044e310
-void W8Prop::SetPosition0044E310(srVector3T<float>* position)
+void W8Prop::SetPosition(srVector3T<float>* position)
 {
     if (AnimationIsRunning(Rep()->animation) == 1) {
         position_02c = *position;
