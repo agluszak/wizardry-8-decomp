@@ -109,12 +109,6 @@ srClass* srCamera::vInstance()
     return 0;
 }
 
-// SYNTHETIC: SURRENDER 0x10048090
-// srCamera::srCamera (implicit copy constructor)
-
-// FUNCTION: SURRENDER 0x100481F0
-srCamera::~srCamera() {}
-
 // FUNCTION: SURRENDER 0x100482E0
 void srCamera::processPop(srGERD* renderer)
 {
@@ -127,24 +121,6 @@ void srCamera::processPop(srGERD* renderer)
 
 // SYNTHETIC: SURRENDER 0x10048310
 // srCamera::`vector deleting destructor'
-
-// FUNCTION: SURRENDER 0x10048370
-srCamera& srCamera::operator=(const srCamera& other)
-{
-    if (this != &other) {
-        srNode::operator=(other);
-        view_plane_140 = other.view_plane_140;
-        view_plane_distance_160 = other.view_plane_distance_160;
-        near_clip_168 = other.near_clip_168;
-        far_clip_170 = other.far_clip_170;
-        flags_138.value = other.flags_138.value;
-        environment_near_178 = other.environment_near_178;
-        environment_far_17c = other.environment_far_17c;
-        environment_near_scale_180 = other.environment_near_scale_180;
-        environment_far_scale_184 = other.environment_far_scale_184;
-    }
-    return *this;
-}
 
 // FUNCTION: SURRENDER 0x10048430
 double srCamera::getAspectRatio() const
