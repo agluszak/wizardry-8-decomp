@@ -985,7 +985,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     renderer->setCullMode(srGERD::CULL_FRONT);
     renderer->setPickKey(0);
 
-    srTriMeshPipeline* pipeline = srTriMeshPipeline::Get004750A0(renderer);
+    srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(renderer);
 
     /* Three array/count pairs: the index pairs rebuilt above, the polygon
        index list, and the transformed vertex positions. */
@@ -1019,7 +1019,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     pipeline->material_80 = retained_14c;
     pipeline->current_record_14->material_08 = retained_14c;
 
-    pipeline->SetFlags004752C0(render_flags_150);
+    pipeline->SetFlags(render_flags_150);
 
     if (texcoords_164 != 0) {
         pipeline->current_record_14->st0_20 = texcoords_164;
