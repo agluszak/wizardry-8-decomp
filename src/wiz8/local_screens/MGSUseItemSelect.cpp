@@ -390,8 +390,8 @@ void RedrawPanel69B998(void)
 }
 
 /* fItemSelectMode per-frame update: keep the scroll buttons synced, run the
-   dirty panels' redraw pass, then re-check the pending commit — the same
-   sequence CommitSelectedItemUse performs, inlined here by VC6. */
+   dirty panels' redraw pass, then re-check the pending commit through the
+   shared helper. */
 // FUNCTION: WIZ8 0x0059CF50
 void UpdateUseItemSelect(unsigned char active)
 {
