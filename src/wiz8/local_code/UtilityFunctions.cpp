@@ -1,4 +1,5 @@
 #include "wiz8/utility.h"
+#include "wiz8/sgp_text.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
@@ -609,14 +610,11 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     }
     g_message_box_background_image = LoadGenericButtonImages(
         0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
-            const_cast<char*>(DEFAULT_GENERIC_BUTTON_OFF)),
+        Wiz8ToSgpText(DEFAULT_GENERIC_BUTTON_OFF),
         0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
-            const_cast<char*>(DEFAULT_GENERIC_BUTTON_ON)),
+        Wiz8ToSgpText(DEFAULT_GENERIC_BUTTON_ON),
         0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
-            const_cast<char*>("Data\\Dialogs\\DialogBackground.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogBackground.STI"),
         0, 0, 0);
     int yloc = (0x1e0 - height) / 2;
     g_message_box_background_button = CreateTextButton(
@@ -629,7 +627,7 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     if (has_accept) {
         strcpy(filename, "Data\\Message Box\\Ok.sti");
         g_message_box_accept_image = LoadButtonImage(
-            reinterpret_cast<unsigned char*>(filename), // reinterpret-ok: SGP image API
+            Wiz8ToSgpText(filename),
             0, 1, 2, 3, 4);
         if (g_message_box_accept_image < 0) {
             return false;
@@ -646,7 +644,7 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     if (has_cancel) {
         strcpy(filename, "Data\\Message Box\\Cancel.sti");
         g_message_box_cancel_image = LoadButtonImage(
-            reinterpret_cast<unsigned char*>(filename), // reinterpret-ok: SGP image API
+            Wiz8ToSgpText(filename),
             0, 1, 2, 3, 4);
         if (g_message_box_cancel_image < 0) {
             return false;
