@@ -1911,9 +1911,7 @@ unsigned char W8PathingService::CanReachSearchNode(const srVector3T<float>* posi
     bool blocked = false;
 
     while (1) {
-        int cell_x = static_cast<int>((probe.x - level_bounds[0]) / grid_scale_01c);
-        int cell_z = static_cast<int>((probe.z - level_bounds[2]) / grid_scale_01c);
-        unsigned int key = cell_z * 0x10000 + cell_x;
+        unsigned int key = PositionToPathKey(this, &probe, 0);
         unsigned int node_index = visited->Lookup(&key);
 
         if (static_cast<unsigned short>(node_index) == target_node || blocked != 0) {
@@ -2231,14 +2229,14 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         }
     }
 
-    int root_x = static_cast<int>((start.x - level_bounds[0]) / grid_scale_01c);
-    int root_z = static_cast<int>((start.z - level_bounds[2]) / grid_scale_01c);
+    int root_cell[2];
+    unsigned int root_key = PositionToPathKey(this, &start, root_cell);
     unsigned short root_index = AllocateSearchNode();
     W8PathSearchNode* root = &m_owned_0c8[root_index];
     root->flags_00 = 0;
     root->node_index_02 = root_index;
-    root->cell_x_04 = static_cast<unsigned short>(root_x);
-    root->cell_z_06 = static_cast<unsigned short>(root_z);
+    root->cell_x_04 = static_cast<unsigned short>(root_cell[0]);
+    root->cell_z_06 = static_cast<unsigned short>(root_cell[1]);
     root->path_height_08 =
         static_cast<unsigned short>(static_cast<int>((start.y - level_bounds[1]) / span_020) + 1);
     root->parent_node_0a = 0;
@@ -2247,7 +2245,6 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     root->distance_14 = target_distance;
     root->position_20 = start;
 
-    unsigned int root_key = root_z * 0x10000 + root_x;
     int root_value = root_index;
     visited->Insert(&root_key, &root_value);
 
@@ -3523,9 +3520,7 @@ void W8PathingService::ConfigureForLevel(int size, float grid_scale, int path_cl
 // FUNCTION: WIZ8 0x00459c00
 unsigned int W8PathingService::ClassifyWaypoint(const srVector3T<float>* position)
 {
-    int cell_x = static_cast<int>((position->x - level_bounds[0]) / grid_scale_01c);
-    int cell_z = static_cast<int>((position->z - level_bounds[2]) / grid_scale_01c);
-    unsigned int key = cell_z * 0x10000 + cell_x;
+    unsigned int key = PositionToPathKey(this, position, 0);
     unsigned int result = 0;
 
     if (key != 0) {
@@ -4186,9 +4181,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
     span_blocked_23c = 0;
     int cell[2];
     unsigned int cell_key = PositionToPathKey(this, source, cell);
-    int destination_x = static_cast<int>((destination->x - level_bounds[0]) / grid_scale_01c);
-    int destination_z = static_cast<int>((destination->z - level_bounds[2]) / grid_scale_01c);
-    unsigned int destination_key = destination_z * 0x10000 + destination_x;
+    unsigned int destination_key = PositionToPathKey(this, destination, 0);
     waypoint_neighbor_mask_0a0 = 0;
 
     W8HashTable<unsigned int, unsigned int>* path_index = m_pPathValues_064;
@@ -4657,9 +4650,7 @@ unsigned short W8PathingService::FindWaypoint(const srVector3T<float>* position,
 // FUNCTION: WIZ8 0x0045b5a0
 void W8PathingService::SnapPathHeight(srVector3T<float>* position)
 {
-    int cell_x = static_cast<int>((position->x - level_bounds[0]) / grid_scale_01c);
-    int cell_z = static_cast<int>((position->z - level_bounds[2]) / grid_scale_01c);
-    unsigned int key = cell_z * 0x10000 + cell_x;
+    unsigned int key = PositionToPathKey(this, position, 0);
 
     if (key == 0) {
         return;
@@ -5102,9 +5093,8 @@ void W8PathingService::DrawPathPosition(srVector3T<float> position, unsigned cha
         return;
     }
 
-    int root_x = static_cast<int>((position.x - level_bounds[0]) / grid_scale_01c);
-    int root_z = static_cast<int>((position.z - level_bounds[2]) / grid_scale_01c);
-    unsigned int root_key = root_z * 0x10000 + root_x;
+    int root_cell[2];
+    unsigned int root_key = PositionToPathKey(this, &position, root_cell);
     if (root_key == g_path_visualization_cell) {
         return;
     }
@@ -5119,8 +5109,8 @@ void W8PathingService::DrawPathPosition(srVector3T<float> position, unsigned cha
     W8PathSearchNode* root = &m_owned_0c8[root_index];
     root->flags_00 = 0;
     root->node_index_02 = root_index;
-    root->cell_x_04 = static_cast<unsigned short>(root_x);
-    root->cell_z_06 = static_cast<unsigned short>(root_z);
+    root->cell_x_04 = static_cast<unsigned short>(root_cell[0]);
+    root->cell_z_06 = static_cast<unsigned short>(root_cell[1]);
     root->path_height_08 = static_cast<unsigned short>(
         static_cast<int>((position.y - level_bounds[1]) / span_020) + 1);
     root->parent_node_0a = 0;
