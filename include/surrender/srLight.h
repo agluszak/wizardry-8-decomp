@@ -61,14 +61,11 @@ public:
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
 
 public:
-    /* Header-visible for the same reason srIlluminator's is: 0x0049C430
-       expands it rather than calling an import. The inline body expands to
-       the srClassSupport registry teardown, which is SR.DLL's out-of-line
-       emission at 0x1004ED70. Retail exports the destructor under its public
-       spelling. */
-#if defined(SURRENDER_BUILD)
-    virtual SR_DLL_IMPORT ~srLight() override;
-#else
+    /* Wiz8 expands this empty derived level inline; SR.DLL's standalone
+       0x1004ED70 emission is the compiler-generated destructor. */
+    // SYNTHETIC: SURRENDER 0x1004ED70
+    // srLight::~srLight
+#if !defined(SURRENDER_BUILD)
     virtual ~srLight() override {}
 #endif
 
