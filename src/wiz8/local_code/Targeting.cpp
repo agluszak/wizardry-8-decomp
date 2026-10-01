@@ -729,25 +729,7 @@ int GetTargetNeededForCurrentAction(int party_slot)
     int action;
     int detail;
 
-    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
-        g_level_block->selection_kind != -1) {
-        if (g_level_block->selection_kind == 7 && g_level_block->selection_settled != 0) {
-            context = W8_TARGETING_CONTEXT_SPELL;
-        } else if (g_level_block->selection_kind == 8 && g_level_block->selection_settled != 0) {
-            context = W8_TARGETING_CONTEXT_ITEM;
-        } else {
-            context = W8_TARGETING_CONTEXT_DIALOGUE;
-        }
-    } else if (party_slot == g_status.selected_character &&
-               (gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0)) {
-        context = W8_TARGETING_CONTEXT_SHARED;
-    } else {
-        context = gXStatus.fCombatMode != 0 ? W8_TARGETING_CONTEXT_IN_COMBAT
-                                            : W8_TARGETING_CONTEXT_OUT_OF_COMBAT;
-    }
-    if (context == W8_TARGETING_CONTEXT_CURRENT) {
-        context = GetCurrentTargetingContext(party_slot);
-    }
+    context = GetCurrentTargetingContext(party_slot);
     switch (context) {
     case W8_TARGETING_CONTEXT_IN_COMBAT:
     case W8_TARGETING_CONTEXT_SHARED:
@@ -1479,8 +1461,7 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
    with either overlay up gets the shared context, and otherwise it is simply
    whether a fight is on.
 
-   Everything below carries this body inline rather than calling it, which is
-   why the same fifteen-odd instructions open three of them. */
+   Callers use this canonical source helper; retail may inline it per site. */
 // FUNCTION: WIZ8 0x0053bc10
 W8TargetingContext GetCurrentTargetingContext(int party_slot)
 {
@@ -2289,24 +2270,8 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
 
     action_context = W8_TARGETING_CONTEXT_DIALOGUE;
     resolved = context;
-    if (context == W8_TARGETING_CONTEXT_CURRENT) {
-        if (g_current_screen_state.id == 7 && g_level_block != 0 &&
-            g_level_block->selection_kind != -1) {
-            if (g_level_block->selection_kind == W8_ACTION_CAST_SPELL &&
-                g_level_block->selection_settled != 0) {
-                resolved = W8_TARGETING_CONTEXT_SPELL;
-            } else if (g_level_block->selection_kind == W8_ACTION_USE_ITEM &&
-                       g_level_block->selection_settled != 0) {
-                resolved = W8_TARGETING_CONTEXT_ITEM;
-            } else {
-                resolved = W8_TARGETING_CONTEXT_DIALOGUE;
-            }
-        } else if (party_slot == g_status.selected_character &&
-                   (gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0)) {
-            resolved = W8_TARGETING_CONTEXT_SHARED;
-        } else {
-            resolved = (W8TargetingContext)(gXStatus.fCombatMode != 0);
-        }
+    if (resolved == W8_TARGETING_CONTEXT_CURRENT) {
+        resolved = GetCurrentTargetingContext(party_slot);
     }
     if (resolved == W8_TARGETING_CONTEXT_CURRENT) {
         resolved = GetCurrentTargetingContext(party_slot);
@@ -2448,24 +2413,8 @@ bool TargetIsInPlay(int party_slot, int hand, W8TargetingContext context)
     int needed;
 
     resolved = context;
-    if (context == W8_TARGETING_CONTEXT_CURRENT) {
-        if (g_current_screen_state.id == 7 && g_level_block != 0 &&
-            g_level_block->selection_kind != -1) {
-            if (g_level_block->selection_kind == W8_ACTION_CAST_SPELL &&
-                g_level_block->selection_settled != 0) {
-                resolved = W8_TARGETING_CONTEXT_SPELL;
-            } else if (g_level_block->selection_kind == W8_ACTION_USE_ITEM &&
-                       g_level_block->selection_settled != 0) {
-                resolved = W8_TARGETING_CONTEXT_ITEM;
-            } else {
-                resolved = W8_TARGETING_CONTEXT_DIALOGUE;
-            }
-        } else if (party_slot == g_status.selected_character &&
-                   (gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0)) {
-            resolved = W8_TARGETING_CONTEXT_SHARED;
-        } else {
-            resolved = (W8TargetingContext)(gXStatus.fCombatMode != 0);
-        }
+    if (resolved == W8_TARGETING_CONTEXT_CURRENT) {
+        resolved = GetCurrentTargetingContext(party_slot);
     }
     switch (resolved) {
     case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
