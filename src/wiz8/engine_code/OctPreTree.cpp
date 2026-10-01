@@ -1702,7 +1702,7 @@ char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first
 // FUNCTION: WIZ8 0x0046ccc0
 W8OctSpatialState::W8OctSpatialState(const W8OctSpatialState* source)
 {
-    Reset0046CDC0();
+    Reset();
     level_kind_6c = 1;
     if (source != 0) {
         for (int axis = 0; axis != 3; ++axis) {
@@ -1739,7 +1739,7 @@ W8OctSpatialState::W8OctSpatialState(const W8OctSpatialState* source)
 }
 
 // FUNCTION: WIZ8 0x0046cdc0
-void W8OctSpatialState::Reset0046CDC0()
+void W8OctSpatialState::Reset()
 {
     memset(static_cast<void*>(this), 0, sizeof(*this));
 }
