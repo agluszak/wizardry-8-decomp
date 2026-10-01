@@ -737,9 +737,7 @@ static unsigned char HandleMipeMonsterCreateKey(unsigned short key)
                 monster_group); /* reinterpret-ok: retail stores the null group pointer as the count sentinel */
             return 1;
         }
-        formation.x = anchor.x;
-        formation.y = anchor.y;
-        formation.z = anchor.z;
+        formation = anchor;
         SetMonsterGroupFormation(monster_group, &formation);
         monster_group->group_state[0x6d] = g_mipe_state->creation_method_30;
     }

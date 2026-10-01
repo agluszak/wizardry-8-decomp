@@ -471,10 +471,7 @@ srClass* stModelInstance::vInstance()
 stModelInstance::stModelInstance(srNode* parent)
     : srClassSupport<stModelInstance, srModelInstance, false, 0x10004>(static_cast<srNode*>(0))
 {
-    highlight_colour_164.x = 0.0f;
-    highlight_colour_164.y = 0.0f;
-    highlight_colour_164.z = 0.0f;
-    highlight_colour_164.w = 0.0f;
+    highlight_colour_164.Set(0.0f, 0.0f, 0.0f, 0.0f);
     render_flags_178 = 0;
     mesh_index_17c = -1;
     frame_index_180 = 0;
@@ -496,10 +493,7 @@ stModelInstance::stModelInstance(srNode* parent)
 stModelInstance& stModelInstance::operator=(const stModelInstance& other)
 {
     srModelInstance::operator=(other);
-    highlight_colour_164.x = 0.0f;
-    highlight_colour_164.y = 0.0f;
-    highlight_colour_164.z = 0.0f;
-    highlight_colour_164.w = 0.0f;
+    highlight_colour_164.Set(0.0f, 0.0f, 0.0f, 0.0f);
     render_flags_178 = other.render_flags_178;
     mesh_index_17c = other.mesh_index_17c;
     frame_index_180 = other.frame_index_180;
@@ -655,10 +649,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         light.z =
             (ambient_color.z * light_scale_194.z + g_environment_offset.z) * g_light_scale_0060bfe0;
     } else {
-        light.x = 0.0f;
-        light.y = 0.0f;
-        light.z = 0.0f;
-        light.w = 0.0f;
+        light.Set(0.0f, 0.0f, 0.0f, 0.0f);
     }
     renderer.setAmbientLight(light);
 
@@ -830,9 +821,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     float expand = static_cast<float>(
                         (radius * getScale().y * g_double_005ec8d0 + g_double_005ebc30) * factor);
                     srVector3T<float> offsets;
-                    offsets.x = expand;
-                    offsets.y = expand;
-                    offsets.z = expand;
+                    offsets = expand;
 
                     if (mesh.vertex_count_00 != 0) {
                         if (offsets.x == g_float_005ebb34 && offsets.y == g_float_005ebb34 &&

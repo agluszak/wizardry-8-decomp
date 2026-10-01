@@ -1163,9 +1163,7 @@ void RenderFrame(void)
 
     if (g_trigger_action_active && GetWorld() != 0) {
         GetCameraPosition(&saved_world_position);
-        shifted_world_position.x = saved_world_position.x + g_trigger_action_scene_offset.x;
-        shifted_world_position.y = saved_world_position.y + g_trigger_action_scene_offset.y;
-        shifted_world_position.z = saved_world_position.z + g_trigger_action_scene_offset.z;
+        shifted_world_position = saved_world_position + g_trigger_action_scene_offset;
         SetWorldScenePosition(GetWorld(), &shifted_world_position);
     }
     if (g_world != 0) {
@@ -3165,10 +3163,7 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
     material->autoRelease();
     material->setEmissive(*color);
     srVector4T<float> zero;
-    zero.x = 0.0f;
-    zero.y = 0.0f;
-    zero.z = 0.0f;
-    zero.w = 0.0f;
+    zero.Set(0.0f, 0.0f, 0.0f, 0.0f);
     material->setDiffuse(zero);
     material->setSpecular(zero);
     material->parms.shininess = 1.0f;

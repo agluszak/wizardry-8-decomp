@@ -226,9 +226,7 @@ unsigned char W8OctBuildTree::InsertSurface(W8GDSurface* surface, unsigned long 
         if (LoadSurfaceVertices(vertices, surface->vertex_indices_18) == 0) {
             plane = 0;
         } else {
-            plane_point.x = surface->plane_24.normal.x;
-            plane_point.y = surface->plane_24.normal.y;
-            plane_point.z = surface->plane_24.normal.z;
+            plane_point = surface->plane_24.normal;
         }
     }
     if (TestSpatialTriangle(&spatial_00.minimum_0c, vertices, plane) == 0) {

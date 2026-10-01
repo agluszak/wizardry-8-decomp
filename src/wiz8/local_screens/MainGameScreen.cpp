@@ -9029,10 +9029,7 @@ void CreateSurpriseFade(void)
     srVector4T<float> color;
 
     SetFullscreenSceneLast(0);
-    color.x = 0.0f;
-    color.y = 0.0f;
-    color.z = 0.0f;
-    color.w = 0.0f;
+    color.Set(0.0f, 0.0f, 0.0f, 0.0f);
     g_surprise_fade_node = CreateColoredPolygonSprite(0x280, 0x1e0, &color, 1);
     Position2DNodeUnsnapped(g_surprise_fade_node, 0, 0);
     shader = static_cast<srMeshModel*>(g_surprise_fade_node->getModel())->getShader(0);

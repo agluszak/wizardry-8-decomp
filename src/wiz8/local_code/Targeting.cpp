@@ -1921,8 +1921,7 @@ void RefreshSpellTargetHighlightsAtRange(void)
     W8MonsterInfo* monster_info;
 
     GetCameraForwardPoint00421150(GetRangeConstant5EC35C(), &position);
-    if (position.x == gXStatus.target_position.x && position.y == gXStatus.target_position.y &&
-        position.z == gXStatus.target_position.z) {
+    if ((position == gXStatus.target_position)) {
         return;
     }
 
@@ -3061,10 +3060,7 @@ void UpdateTargetMarkerHighlight(void)
         monster = GetMonsterByLocationID(location_id);
         point = gXStatus.target_position;
         if (monster->HasLineOfSightFromPoint(point) != 0) {
-            block.x = 0.0f;
-            block.y = 1.0f;
-            block.z = 0.0f;
-            block.w = 1.0f;
+            block.Set(0.0f, 1.0f, 0.0f, 1.0f);
             MonsterSetHighlightColour(monster, block);
             return;
         }
@@ -3085,20 +3081,11 @@ void HighlightPickedGroupMember(int party_slot, W8MonsterGroup* group, int color
     if (location_id != -1) {
         W8Monster* monster = GetMonsterByLocationID(location_id);
         if (color == 0) {
-            block.x = 0.0f;
-            block.y = 0.0f;
-            block.z = 0.0f;
-            block.w = 0.0f;
+            block.Set(0.0f, 0.0f, 0.0f, 0.0f);
         } else if (color == 1) {
-            block.x = 0.0f;
-            block.y = 1.0f;
-            block.z = 0.0f;
-            block.w = 1.0f;
+            block.Set(0.0f, 1.0f, 0.0f, 1.0f);
         } else if (color == 2) {
-            block.x = 1.0f;
-            block.y = 0.0f;
-            block.z = 0.0f;
-            block.w = 1.0f;
+            block.Set(1.0f, 0.0f, 0.0f, 1.0f);
         }
         MonsterSetHighlightColour(monster, block);
     }
@@ -3209,20 +3196,11 @@ void ModifyGroupColor(int group_id, int color)
     }
     W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
     if (color == 0) {
-        block.x = 0.0f;
-        block.y = 0.0f;
-        block.z = 0.0f;
-        block.w = 0.0f;
+        block.Set(0.0f, 0.0f, 0.0f, 0.0f);
     } else if (color == 1) {
-        block.x = 0.0f;
-        block.y = 1.0f;
-        block.z = 0.0f;
-        block.w = 1.0f;
+        block.Set(0.0f, 1.0f, 0.0f, 1.0f);
     } else if (color == 2) {
-        block.x = 1.0f;
-        block.y = 0.0f;
-        block.z = 0.0f;
-        block.w = 1.0f;
+        block.Set(1.0f, 0.0f, 0.0f, 1.0f);
     }
     for (unsigned int index = 0; index < ILLength(group->monsters); ++index) {
         W8Monster* monster = GetMonsterByLocationID(IListGetAt(group->monsters, index));
@@ -3488,15 +3466,9 @@ void UpdateSlotMonsterHighlights(int party_slot, char enable)
                 unsigned char flag = MonsterGetHighlightMask(monster);
                 srVector4T<float> block;
                 if (enable != 0 && (flag & (1 << (party_slot & 0x1f))) != 0) {
-                    block.x = 0.0f;
-                    block.y = 1.0f;
-                    block.z = 0.0f;
-                    block.w = 1.0f;
+                    block.Set(0.0f, 1.0f, 0.0f, 1.0f);
                 } else {
-                    block.x = 0.0f;
-                    block.y = 0.0f;
-                    block.z = 0.0f;
-                    block.w = 0.0f;
+                    block.Set(0.0f, 0.0f, 0.0f, 0.0f);
                 }
                 MonsterSetHighlightColour(monster, block);
             }

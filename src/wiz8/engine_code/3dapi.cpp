@@ -667,14 +667,10 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
                 navigator_position.y = camera_position.y - g_default_world_height;
                 navigator_position.z = camera_position.z;
                 if (world->camera_light != 0) {
-                    render_position.x = camera_position.x;
-                    render_position.y = camera_position.y;
-                    render_position.z = camera_position.z;
+                    render_position.SetFromFloat(&camera_position);
                     static_cast<srNode*>(world->camera_light)->setLocation(render_position);
                 }
-                render_position.x = camera_position.x;
-                render_position.y = camera_position.y;
-                render_position.z = camera_position.z;
+                render_position.SetFromFloat(&camera_position);
                 static_cast<srNode*>(world->camera)->setLocation(render_position);
                 g_startup_world->SetPositionInternal(&navigator_position);
                 dx = camera_position.x - s_last_automap_refresh_position.x;
@@ -804,9 +800,7 @@ void SetWorldScenePosition(W8World* world, const srVector3T<float>* location)
         srAssertFail("pWorld", THREE_D_API_CPP, 1043, 0);
     }
 
-    position.x = location->x;
-    position.y = location->y;
-    position.z = location->z;
+    position = *location;
     if (world->camera != 0) {
         render_position.SetFromFloat(&position);
         static_cast<srNode*>(world->camera)->setLocation(render_position);
@@ -876,16 +870,12 @@ void WorldSetCameraLocation(W8World* world, const srVector3T<float>* location)
         srAssertFail("pWorld", THREE_D_API_CPP, 0x422, 0);
     }
     if (world->camera != 0) {
-        position.x = location->x;
-        position.y = location->y;
-        position.z = location->z;
+        position.SetFromFloat(location);
         world->camera->setLocation(position);
         PlacePartyAtPoint(location);
     }
     if (world->camera_light != 0) {
-        position.x = location->x;
-        position.y = location->y;
-        position.z = location->z;
+        position.SetFromFloat(location);
         world->camera_light->setLocation(position);
     }
 }
@@ -906,20 +896,14 @@ void SetWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraSta
         if (state == 0) {
             srAssertFail("CamPos", THREE_D_API_CPP, 0x444, 0);
         }
-        location.x = state->position.x;
-        location.y = state->position.y;
-        location.z = state->position.z;
+        location = state->position;
         if (world->camera != 0) {
-            position.x = location.x;
-            position.y = location.y;
-            position.z = location.z;
+            position.SetFromFloat(&location);
             ((srNode*)world->camera)->setLocation(position);
             PlacePartyAtPoint(&location);
         }
         if (world->camera_light != 0) {
-            position.x = location.x;
-            position.y = location.y;
-            position.z = location.z;
+            position.SetFromFloat(&location);
             ((srNode*)world->camera_light)->setLocation(position);
         }
         world->camera->getRotation(rotation);
@@ -1085,9 +1069,7 @@ bool FindEntityByName(const char* name, srVector3T<float>* position, float* angl
                 *angle = entry->angle;
             }
             if (direction != 0) {
-                direction->x = entry->direction_090.x;
-                direction->y = entry->direction_090.y;
-                direction->z = entry->direction_090.z;
+                *direction = entry->direction_090;
             }
             return true;
         }

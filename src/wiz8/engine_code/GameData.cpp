@@ -673,9 +673,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
                 }
             }
             prop->GetDelta(&prop_delta, position);
-            adjusted_direction.x = direction->x - prop_delta.x;
-            adjusted_direction.y = direction->y - prop_delta.y;
-            adjusted_direction.z = direction->z - prop_delta.z;
+            adjusted_direction = *direction - prop_delta;
             probe = *position;
             if (adjusted_direction.x != g_float_005ebb34 ||
                 adjusted_direction.y != g_float_005ebb34 ||
@@ -689,18 +687,14 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
                 surface = &gd_prop->m_pGDSurfaces[surface_index];
                 surface->hit_plane_38 = 0;
                 if (direction_zero != 0) {
-                    test_direction.x = surface->plane_24.normal.x;
-                    test_direction.y = surface->plane_24.normal.y;
-                    test_direction.z = surface->plane_24.normal.z;
+                    test_direction = surface->plane_24.normal;
                 }
                 if (surface->TestSegment(&probe, &test_direction, &hit_distance,
                                          gd_prop->m_pVertices) != 0) {
                     if (hit_distance < *nearest_distance) {
                         *nearest_distance = hit_distance;
                         hit_point = probe;
-                        scratch->x = prop_delta.x;
-                        scratch->y = prop_delta.y;
-                        scratch->z = prop_delta.z;
+                        *scratch = prop_delta;
                         nearest_surface = surface;
                         hit_prop_id = objects[index];
                     }
@@ -711,9 +705,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
         level = g_level_data;
     }
     if (nearest_surface != 0) {
-        s_prop_hit_plane_00652d90.normal.x = nearest_surface->plane_24.normal.x;
-        s_prop_hit_plane_00652d90.normal.y = nearest_surface->plane_24.normal.y;
-        s_prop_hit_plane_00652d90.normal.z = nearest_surface->plane_24.normal.z;
+        s_prop_hit_plane_00652d90.normal = nearest_surface->plane_24.normal;
         s_prop_hit_plane_00652d90.w = nearest_surface->plane_24.w;
         slope = nearest_surface->slope_48;
         projected.Set(scratch->x, scratch->y, scratch->z);
@@ -756,9 +748,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
         }
         s_prop_hit_plane_00652d90.w -= along_length;
         nearest_surface->hit_plane_38 = &s_prop_hit_plane_00652d90;
-        position->x = hit_point.x + scratch->x;
-        position->y = hit_point.y + scratch->y;
-        position->z = hit_point.z + scratch->z;
+        *position = hit_point + *scratch;
     }
     return nearest_surface;
 }
@@ -849,9 +839,7 @@ unsigned char W8GameData::ProbeMonstersAlongMotion(srVector3T<float>* direction,
                     adjustment.z = dz * scale;
                 }
                 hit = 1;
-                direction->x = adjustment.x + direction->x;
-                direction->y = adjustment.y + direction->y;
-                direction->z = adjustment.z + direction->z;
+                *direction = adjustment + *direction;
             }
         }
     }
@@ -1252,9 +1240,7 @@ bool W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag, cha
             W8OctreeTrace prop_trace(&start, &end);
             hit = TestTraceResult(gd_prop->m_surface_count_14, 0, &prop_trace, skip_flag, 0);
             if (hit != 0) {
-                end.x = prop_trace.end_0c.x + delta.x;
-                end.y = prop_trace.end_0c.y + delta.y;
-                end.z = prop_trace.end_0c.z + delta.z;
+                end = prop_trace.end_0c + delta;
                 trace->Reseed(&start, &end);
             }
         }
@@ -1606,9 +1592,7 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
     srVector3T<float> unit_dir = *direction;
     unit_dir.Normalize();
     srVector3T<float> normal;
-    normal.x = plane_24.normal.x;
-    normal.y = plane_24.normal.y;
-    normal.z = plane_24.normal.z;
+    normal = plane_24.normal;
     float segment_length = direction->Length();
     if (segment_length < g_float_005ebc90) {
         if (special == 0) {
@@ -1935,14 +1919,10 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
     srVector3T<float> normal;
     float plane_distance;
     if (override_plane == 0) {
-        normal.x = plane_24.normal.x;
-        normal.y = plane_24.normal.y;
-        normal.z = plane_24.normal.z;
+        normal = plane_24.normal;
         plane_distance = plane_24.w;
     } else {
-        normal.x = override_plane->normal.x;
-        normal.y = override_plane->normal.y;
-        normal.z = override_plane->normal.z;
+        normal = override_plane->normal;
         plane_distance = override_plane->w;
     }
     float adjusted_d = plane_distance - distance_34;
@@ -2178,9 +2158,7 @@ unsigned char W8GDSurface::ApplyEnvironContact(srVector3T<float>* direction)
     level->sound_environment_0c = footstep_surface_3c;
     level->sound_environment_alt_0d = footstep_material_3d;
     srVector3T<float> normal;
-    normal.x = plane_24.normal.x;
-    normal.y = plane_24.normal.y;
-    normal.z = plane_24.normal.z;
+    normal = plane_24.normal;
     float factor = g_environ->motion_factor_20;
     srVector3T<float> slide = g_environ->vector_24 * g_environ->scale_0c;
     srVector3T<float> unit = slide;
@@ -3018,9 +2996,7 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
         scaled_camera_forward_7c.SetZero();
         footstep_accumulator_10 = 1800.0f;
     } else {
-        camera_forward_4c.x = vector_64.x - vector_58.x;
-        camera_forward_4c.y = vector_64.y - vector_58.y;
-        camera_forward_4c.z = vector_64.z - vector_58.z;
+        camera_forward_4c = vector_64 - vector_58;
         scaled_camera_forward_7c.x = camera_forward_4c.x * camera_scale_14;
         scaled_camera_forward_7c.y = camera_forward_4c.y * camera_scale_14;
         scaled_camera_forward_7c.z = camera_forward_4c.z * camera_scale_14;

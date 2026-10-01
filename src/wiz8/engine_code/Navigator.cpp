@@ -1496,9 +1496,7 @@ unsigned char W8NavigatorAttachment::AdvancePositionWithDirection(srVector3T<flo
             break;
         }
         srVector3T<float>* waypoint = &position_4c[path_cursor_04];
-        direction->x = waypoint->x - position->x;
-        direction->y = waypoint->y - position->y;
-        direction->z = waypoint->z - position->z;
+        *direction = *waypoint - *position;
         float length = direction->Length();
         if (g_zero_005ebb40 < length) {
             float scale = static_cast<float>(g_double_005ebc30 / length);

@@ -1302,9 +1302,7 @@ int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsi
                 offset *= g_float_005ec1a8;
                 axis = 0;
                 largest = 0.0f;
-                polygon->plane_08.normal.x = normal.x;
-                polygon->plane_08.normal.y = normal.y;
-                polygon->plane_08.normal.z = normal.z;
+                polygon->plane_08.normal = normal;
                 for (corner = 0; corner < 3; ++corner) {
                     float component = (&polygon->plane_08.normal.x)[corner];
                     if (largest < fabs(component)) {
@@ -1330,9 +1328,7 @@ int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsi
                 if (opposing == 0) {
                     for (corner = 0; corner < 3; ++corner) {
                         current = vertices + vertex_index[corner];
-                        current->normal_24.x = normal.x + current->normal_24.x;
-                        current->normal_24.y = normal.y + current->normal_24.y;
-                        current->normal_24.z = normal.z + current->normal_24.z;
+                        current->normal_24 = normal + current->normal_24;
                         ++current->normal_count_18;
                     }
                 }
@@ -1368,9 +1364,7 @@ int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsi
                             polygon->vertices_34[corner] = vertices + vertex_index[corner];
                         }
                         current = vertices + vertex_index[corner];
-                        current->normal_24.x = normal.x + current->normal_24.x;
-                        current->normal_24.y = normal.y + current->normal_24.y;
-                        current->normal_24.z = normal.z + current->normal_24.z;
+                        current->normal_24 = normal + current->normal_24;
                         ++current->normal_count_18;
                     }
                     if ((materials[face->material_index].shader_flags_116 & 1) != 0) {

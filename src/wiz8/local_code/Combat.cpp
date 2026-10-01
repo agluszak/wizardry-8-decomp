@@ -2758,9 +2758,7 @@ char CreateCharacterBreathEffect(int party_slot)
     }
     FaceCharacterTowardCombatTarget(party_slot, target);
     GetCameraPosition(&camera);
-    aim.x = target->point.x - camera.x;
-    aim.y = target->point.y - camera.y;
-    aim.z = target->point.z - camera.z;
+    aim = target->point - camera;
     direction = aim;
     aim.SetLength(1.0);
     rotation.SetIdentity();

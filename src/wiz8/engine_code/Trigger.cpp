@@ -1187,9 +1187,7 @@ void W8TriggerEvent::Update()
             srVector3T<float> axis;
             srMatrix3T<float> rotation;
 
-            source.x = trigger_030->position_118.x;
-            source.y = trigger_030->position_118.y;
-            source.z = trigger_030->position_118.z;
+            source = trigger_030->position_118;
             target = source;
             target.z += 100.0f;
 
@@ -1411,9 +1409,7 @@ void Trigger::RunLinkedTriggers()
 void Trigger::SetPosition004416F0(srVector3T<float>* position)
 {
     flags_0a0 |= W8_TRIGGER_POSITIONED;
-    position_118.x = position->x;
-    position_118.y = position->y;
-    position_118.z = position->z;
+    position_118 = *position;
     if (rep_item_114 != 0 && m_bRepType == 1) {
         rep_item_114->SetLocation0049F720(position);
         rep_item_114->ApplyRepTransform();
@@ -2123,9 +2119,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 // FUNCTION: WIZ8 0x00441750
 void Trigger::GetPosition(srVector3T<float>* position) const
 {
-    position->x = position_118.x;
-    position->y = position_118.y;
-    position->z = position_118.z;
+    *position = position_118;
 }
 
 // FUNCTION: WIZ8 0x00441780
@@ -2541,13 +2535,9 @@ void Trigger::RunDestination(const char* destination)
     if (!named_entity) {
         Trigger* target = FindTriggerByName(destination);
 
-        destination_position.x = target->position_118.x;
-        destination_position.y = target->position_118.y;
-        destination_position.z = target->position_118.z;
+        destination_position = target->position_118;
         angle = target->angle_0fc;
-        destination_direction.x = target->direction_100.x;
-        destination_direction.y = target->direction_100.y;
-        destination_direction.z = target->direction_100.z;
+        destination_direction = target->direction_100;
     } else {
         angle = 0.0f;
     }

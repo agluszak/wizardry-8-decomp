@@ -1427,9 +1427,7 @@ unsigned int LightPendingAutomapCells(unsigned int max_count)
                     cell.z = ((key >> 10) & 0x7ff) * g_float_64b914 + half;
                 }
                 srVector3T<float> position;
-                position.x = cell.x + g_automap_grid_origin.x;
-                position.y = cell.y + g_automap_grid_origin.y;
-                position.z = cell.z + g_automap_grid_origin.z;
+                position = cell + g_automap_grid_origin;
                 if (g_bits_68f28c->Test(bit) == 0) {
                     g_bits_68f28c->Set(bit);
                     LightAutomapCell(&position);
@@ -1497,9 +1495,7 @@ void UpdateAutomapBounds(void)
                         cell.z = ((key >> 10) & 0x7ff) * g_float_64b914 + half;
                     }
                     srVector3T<float> position;
-                    position.x = cell.x + g_automap_grid_origin.x;
-                    position.y = cell.y + g_automap_grid_origin.y;
-                    position.z = cell.z + g_automap_grid_origin.z;
+                    position = cell + g_automap_grid_origin;
                     if (position.x <= g_automap_bounds_min.x) {
                         g_automap_bounds_min.x = position.x;
                     }

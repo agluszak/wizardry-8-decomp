@@ -390,9 +390,7 @@ void UpdateRadarBlips(void)
                     center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
                                (bounds_min.y + bounds_max.y) * g_double_005ebe80,
                                (bounds_min.z + bounds_max.z) * g_double_005ebe80);
-                    position.x = center.x + info->party_threat.camera_position_0c.x;
-                    position.y = center.y + info->party_threat.camera_position_0c.y;
-                    position.z = center.z + info->party_threat.camera_position_0c.z;
+                    position = center + info->party_threat.camera_position_0c;
                     party = g_startup_world->GetPosition();
                     delta = position - party;
                     float distance = delta.Length();
@@ -418,9 +416,7 @@ void UpdateRadarBlips(void)
                            (bounds_min.y + bounds_max.y) * g_double_005ebe80,
                            (bounds_min.z + bounds_max.z) * g_double_005ebe80);
                 party = monster->GetPosition();
-                position.x = center.x + party.x;
-                position.y = center.y + party.y;
-                position.z = center.z + party.z;
+                position = center + party;
                 party = g_startup_world->GetPosition();
                 delta = position - party;
                 float distance = delta.Length();
@@ -453,9 +449,7 @@ void UpdateRadarBlips(void)
             center.y = (bounds_min.y + bounds_max.y) * g_double_005ebe80;
             center.z = (bounds_min.z + bounds_max.z) * g_double_005ebe80;
             party = missile->GetPosition();
-            position.x = center.x + party.x;
-            position.y = center.y + party.y;
-            position.z = center.z + party.z;
+            position = center + party;
             party = g_startup_world->GetPosition();
             delta = position - party;
             if (delta.Length() < g_radar_outer_radius) {
