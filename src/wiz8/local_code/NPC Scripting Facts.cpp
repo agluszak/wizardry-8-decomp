@@ -95,7 +95,6 @@ void HandleFactChange(int fact_id, unsigned char value)
     W8CameraShakeEffect* shake;
     SOUNDPARMS sound;
     srVector3T<float> position;
-    wchar_t display_value[10];
     unsigned char fact_value;
     unsigned int added;
     int location_id;
@@ -176,16 +175,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         return;
     case 0x37:
-        fact_value = EvaluateFact(0x36);
-        if (g_status.log_fact_checks_3120) {
-            if (fact_value == 0) {
-                wcscpy(display_value, L"FALSE");
-            } else {
-                wcscpy(display_value, L"TRUE");
-            }
-            ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x36].symbolic_name,
-                        display_value);
-        }
+        fact_value = GetFact(0x36);
         if (fact_value == 0 && FindEntityByName("Brekek", &position, 0, 0) != 0) {
             SpawnMonsters(0x131, 1, &position, 1, 1, 1, 0);
         }
@@ -377,16 +367,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        fact_value = EvaluateFact(0xd1);
-        if (g_status.log_fact_checks_3120) {
-            if (fact_value == 0) {
-                wcscpy(display_value, L"FALSE");
-            } else {
-                wcscpy(display_value, L"TRUE");
-            }
-            ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0xd1].symbolic_name,
-                        display_value);
-        }
+        fact_value = GetFact(0xd1);
         if (fact_value != 0) {
             SetFact(0xe2, 1, 0);
         }
@@ -677,16 +658,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         position.y = 3516.0f;
         position.z = 36936.0f;
         CameraLookAt(&position);
-        fact_value = EvaluateFact(0x177);
-        if (g_status.log_fact_checks_3120) {
-            if (fact_value == 0) {
-                wcscpy(display_value, L"FALSE");
-            } else {
-                wcscpy(display_value, L"TRUE");
-            }
-            ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x177].symbolic_name,
-                        display_value);
-        }
+        fact_value = GetFact(0x177);
         if (fact_value == 0) {
             trigger_name = "TR2ShipTrigger";
         } else {
@@ -971,27 +943,9 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
             npc->spawned_04 = 1;
             if (npc->name_style == 0x18) {
                 wchar_t display_value[16];
-                unsigned char fact_ok = EvaluateFact(0xc1);
-                if (g_status.log_fact_checks_3120 != 0) {
-                    if (fact_ok) {
-                        wcscpy(display_value, L"TRUE");
-                    } else {
-                        wcscpy(display_value, L"FALSE");
-                    }
-                    ShowNoticef(5, L"Checking fact %S which is %s",
-                                g_fact_records[0xc1].symbolic_name, display_value);
-                }
+                unsigned char fact_ok = GetFact(0xc1);
                 if (fact_ok == 0) {
-                    fact_ok = EvaluateFact(0xdb);
-                    if (g_status.log_fact_checks_3120 != 0) {
-                        if (fact_ok) {
-                            wcscpy(display_value, L"TRUE");
-                        } else {
-                            wcscpy(display_value, L"FALSE");
-                        }
-                        ShowNoticef(5, L"Checking fact %S which is %s",
-                                    g_fact_records[0xdb].symbolic_name, display_value);
-                    }
+                    fact_ok = GetFact(0xdb);
                     if (fact_ok == 0) {
                         npc->spawned_04 = 0;
                     }
@@ -1063,7 +1017,6 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     }
 }
 
-
 /* Scripted kill reactions keyed by monster record id: facts and faction
    changes for the special kills, the Rattkin breeder location-variable count,
    and the 0x22b cleanup that clears the victim's condition and queues the
@@ -1072,7 +1025,6 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
 void MonsterKilled(int record_id, int killer_party_slot)
 {
     unsigned char value;
-    wchar_t display_value[10];
 
     if (record_id == 0x131) {
         SetFact(0x36, 1, 0);
@@ -1093,16 +1045,7 @@ void MonsterKilled(int record_id, int killer_party_slot)
         SetFactionDispositionBand(7, 0);
     } else {
         if (record_id == 0x22b) {
-            value = EvaluateFact(0x1be);
-            if (g_status.log_fact_checks_3120 != 0) {
-                if (value != 0) {
-                    wcscpy(display_value, L"TRUE");
-                } else {
-                    wcscpy(display_value, L"FALSE");
-                }
-                ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x1be].symbolic_name,
-                            display_value);
-            }
+            value = GetFact(0x1be);
             if (value != 0) {
                 SetFact(0x2a6, 0, 0);
             }

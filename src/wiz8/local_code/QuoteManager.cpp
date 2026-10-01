@@ -1307,7 +1307,6 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
     W8CharacterEvent* entry;
     W8CharacterEvent* baseline;
     int index;
-    int scan;
     int conflict_count;
     int* conflict_indices;
     int remaining_conflicts;
@@ -1403,12 +1402,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
             }
         }
 
-        for (scan = 0; scan < pending_events.count; ++scan) {
-            if (pending_events.data[scan] == entry) {
-                pending_events.RemoveAt(scan);
-                return;
-            }
-        }
+        pending_events.Remove(entry);
         return;
     }
 }

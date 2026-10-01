@@ -125,12 +125,7 @@ stMeshModel::~stMeshModel()
         RemoveSkinTable(0);
     }
     if ((flags_3a0 & 4) != 0) {
-        for (int index = 0; index < g_mesh_models.count; ++index) {
-            if (g_mesh_models.data[index] == this) {
-                g_mesh_models.RemoveAt(index);
-                break;
-            }
-        }
+        g_mesh_models.Remove(this);
     }
     if (lerp_buffer_448 != 0) {
         srHeap.free(lerp_buffer_448);
