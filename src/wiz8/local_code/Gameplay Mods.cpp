@@ -318,13 +318,7 @@ void RebuildEquipmentAndDerivedStats(W8Character* character)
 {
     memset(&character->equipment_bonus_1709, 0, sizeof(W8GameplayModifierBlock));
     AccumulateEquipmentModifiers(character, &character->equipment_bonus_1709);
-
-    memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
-    ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
-    ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
-    if (character->fInParty != 0) {
-        ApplyModifierBlock(&character->bonus_1770, &g_status.party_modifiers_22e3);
-    }
+    RebuildCharacterModifierBlock(character);
     RecalculateCharacterDerivedStats(character);
 }
 
@@ -334,18 +328,7 @@ void RebuildEquipmentAndDerivedStats(W8Character* character)
 // FUNCTION: WIZ8 0x0050e5c0
 void RebuildEquipmentAndDerivedStatsForSlot(int party_slot)
 {
-    W8Character* character = &g_status.buffers.Char[party_slot];
-
-    memset(&character->equipment_bonus_1709, 0, sizeof(W8GameplayModifierBlock));
-    AccumulateEquipmentModifiers(character, &character->equipment_bonus_1709);
-
-    memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
-    ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
-    ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
-    if (character->fInParty != 0) {
-        ApplyModifierBlock(&character->bonus_1770, &g_status.party_modifiers_22e3);
-    }
-    RecalculateCharacterDerivedStats(character);
+    RebuildEquipmentAndDerivedStats(&g_status.buffers.Char[party_slot]);
 }
 
 /* Rebuild one party member's condition/enchantment modifier block from the
@@ -362,13 +345,7 @@ void RebuildConditionsAndDerivedStats(int party_slot)
                             &character->condition_modifiers_16a2);
     ApplyEnchantmentModifiers(character->enchantments, &character->condition_modifiers_16a2);
     ApplyBoundNpcPenalty(character, &character->condition_modifiers_16a2);
-
-    memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
-    ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
-    ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
-    if (character->fInParty != 0) {
-        ApplyModifierBlock(&character->bonus_1770, &g_status.party_modifiers_22e3);
-    }
+    RebuildCharacterModifierBlock(character);
     RecalculateCharacterDerivedStats(character);
 }
 
