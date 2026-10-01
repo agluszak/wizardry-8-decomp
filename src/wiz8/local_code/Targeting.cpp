@@ -365,7 +365,7 @@ void AimAtMonsterLocation(int party_slot, int location_id, int allow_single_targ
 
     if (CanTargetMonster(party_slot, location_id, allow_single_target, 1)) {
         needed = -1;
-        if (ResolveTargetingContext(party_slot, GetCurrentTargetingContext(party_slot)) != 0) {
+        if (GetCombatActionContext(party_slot) != 0) {
             ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
                                &detail_block);
             needed = GetTargetNeededForAction(action, detail, detail_block);
@@ -1688,7 +1688,6 @@ void RevalidateSelectedTarget(int party_slot)
 {
     W8CombatSlot* target;
     W8ActionDetailBlock* detail_block;
-    W8TargetingContext context;
     int needed;
     int action;
     int detail;
@@ -1701,9 +1700,8 @@ void RevalidateSelectedTarget(int party_slot)
         return;
     }
     target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
-    context = GetCurrentTargetingContext(party_slot);
     needed = W8_TARGET_KIND_NONE;
-    if (ResolveTargetingContext(party_slot, context) != 0) {
+    if (GetCombatActionContext(party_slot) != 0) {
         ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
                            &detail_block);
         switch (action) {
@@ -2104,7 +2102,7 @@ bool CanPartySlotParticipate(int party_slot)
 W8TargetingContext GetValidatedTargetingContext(int party_slot, W8TargetingContext context)
 {
     if (context == W8_TARGETING_CONTEXT_CURRENT) {
-        context = ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
+        context = GetCombatActionContext(party_slot);
     }
     switch (context) {
     case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
@@ -2150,7 +2148,7 @@ bool CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
         return 0;
     }
 
-    if (ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT) == 0) {
+    if (GetCombatActionContext(party_slot) == 0) {
         needed = 0;
     } else {
         ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
@@ -2443,7 +2441,7 @@ bool CanTargetMonster(int party_slot, int location_id, int allow_single_target, 
         return 0;
     }
 
-    if (ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT) == 0) {
+    if (GetCombatActionContext(party_slot) == 0) {
         needed = 0;
         if (gXStatus.fCombatMode != 0) {
             return 0;
@@ -2746,7 +2744,7 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
     int previous;
     srVector4T<float> block;
 
-    if (ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT) != 0) {
+    if (GetCombatActionContext(party_slot) != 0) {
         ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
                            &detail_block);
         if (GetTargetNeededForAction(action, detail, detail_block) == 5) {
@@ -2860,14 +2858,12 @@ void CycleToNextTarget(int party_slot)
     W8CombatSlot target;
     W8TargetSource source;
     W8ActionDetailBlock* detail_block;
-    W8TargetingContext context;
     int action;
     int detail;
     int pick;
     bool pick_group = false;
 
-    context = GetCurrentTargetingContext(party_slot);
-    if (ResolveTargetingContext(party_slot, context) != 0) {
+    if (GetCombatActionContext(party_slot) != 0) {
         ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
                            &detail_block);
         switch (action) {
@@ -3198,7 +3194,7 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context)
         *block = *target;
         if (context != W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
             if (CharacterCanSwitchTo(actor, resolved, 0, 0) &&
-                ResolveTargetingContext(actor, GetCurrentTargetingContext(actor)) == resolved) {
+                GetCombatActionContext(actor) == resolved) {
                 RefreshCombatTargetHighlights(actor, target);
             }
             RequestPartySlotRedraw(actor);
@@ -3233,7 +3229,7 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context)
             block = GetTargetBlockForContext(actor, W8_TARGETING_CONTEXT_CURRENT);
             CanPartySlotParticipate(actor);
             int needed;
-            if (ResolveTargetingContext(actor, GetCurrentTargetingContext(actor)) ==
+            if (GetCombatActionContext(actor) ==
                 W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
                 needed = 0;
             } else {
@@ -3537,7 +3533,7 @@ void ClearSlotTargeting(int party_slot)
 // FUNCTION: WIZ8 0x0053bc90
 W8TargetingContext GetCombatActionContext(int party_slot)
 {
-    return ResolveTargetingContext(party_slot, GetCurrentTargetingContext(party_slot));
+    return GetCombatActionContext(party_slot);
 }
 
 /* Raise or clear the party slot's highlight bit on every active monster.
