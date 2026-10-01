@@ -1818,15 +1818,9 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
         srAssertFail("fCHAR_OCCUPIED(uiChar)", PC_ITEM_CPP, 0x195, 0);
     }
 
-    /* The same chain StoreItemWithCharacterOrParty later factors out for the
-       rest of the file; here and in the general form below it is written out. */
     if (IsPartySlotEligible(uiChar) != 0) {
         W8Character* character = &g_status.buffers.Char[uiChar];
-        if (!stored && AddItemToCharacter(character, item, 0, 1, 0)) {
-            stored = 1;
-        } else if (AddItemToParty(item, 1, 0)) {
-            stored = 1;
-        } else if (stored && AddItemToCharacter(character, item, 0, 1, 0)) {
+        if (StoreItemWithCharacterOrParty(character, item, party_first, 1, 0)) {
             stored = 1;
         }
     } else if (stored) {
@@ -1877,15 +1871,8 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
         }
     } else {
         W8Character* character = &g_status.buffers.Char[uiChar];
-        if (!party_first && AddItemToCharacter(character, item, 0, 1, 0)) {
-            stored = 1;
-        } else if (AddItemToParty(item, 1, 0)) {
-            stored = 1;
-        } else if (!party_first) {
-            return 0;
-        } else if (AddItemToCharacter(character, item, 0, 1, 0)) {
-            stored = 1;
-        } else {
+        stored = StoreItemWithCharacterOrParty(character, item, party_first, 1, 0);
+        if (!stored) {
             return 0;
         }
     }
