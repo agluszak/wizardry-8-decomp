@@ -618,10 +618,7 @@ void srConfig::Index::resize(long bucket_count)
 
                     int record = by_entry_00.allocRecord();
                     unsigned long sub_bucket =
-                        // reinterpret-ok: the side map hashes the entry's
-                        // address bits.
-                        srHashValue(old_node->entry_10) &
-                        (by_entry_00.count_0c - 1);
+                        srHashValue(old_node->entry_10) & (by_entry_00.count_0c - 1);
                     by_entry_00.records_04[record].key_04 = old_node->entry_10;
                     by_entry_00.records_04[record].value_08 = node;
                     by_entry_00.records_04[record].next_00 = by_entry_00.heads_00[sub_bucket];
