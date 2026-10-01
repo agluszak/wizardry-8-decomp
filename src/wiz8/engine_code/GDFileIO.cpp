@@ -302,14 +302,11 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                         record[1] = index;
                         record[0] = 0;
                         record[2] = extended.group_00;
-                        name_index = 0;
-                        while (name_index < m_iNumNames && record[0] == 0) {
-                            if (strcmp(m_ppNames[name_index], extended.name_04) == 0) {
-                                record[0] = name_index + 1;
-                            }
-                            ++name_index;
-                        }
-                        if (record[0] == 0) {
+                        int existing_name = FindPointerByName(extended.name_04);
+                        if (existing_name != -1) {
+                            record[0] = existing_name;
+                        } else {
+                            name_index = m_iNumNames;
                             m_ppNames[name_index] = static_cast<char*>(malloc(0x40));
                             if (m_ppNames[name_index] == 0) {
                                 srAssertFail("m_ppNames[i2]",
@@ -458,7 +455,7 @@ void W8GameData::CompileGDInterfaces(const int* records, int count)
 }
 
 /* Answers the 1-based ordinal of the name-table entry matching `name`,
-   else -1. ReadWGDList keeps the same search inline instead of calling this. */
+   else -1. */
 // FUNCTION: WIZ8 0x004482A0
 int W8GameData::FindPointerByName(const char* name)
 {
