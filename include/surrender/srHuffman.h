@@ -97,7 +97,9 @@ public:
         };
 
         SR_DLL_IMPORT Sampler();
-        SR_DLL_IMPORT ~Sampler();
+        /* Member teardown is entirely the implicit hash/array destruction. */
+        // SYNTHETIC: SURRENDER 0x100016F0
+        // srHuffman::Sampler::~Sampler
         SR_DLL_IMPORT void insert(unsigned long symbol);
         SR_DLL_IMPORT unsigned long getNumSymbols() const;
         SR_DLL_IMPORT unsigned long getSymbolValue(unsigned long index) const;
