@@ -917,17 +917,9 @@ static inline unsigned int FindDialogueTextLine(const W8DialogueTextState* input
     return line;
 }
 
-/* Expands at call sites that retail inlines; 0x00590900 is the out-of-line
-   emission for the few retail CALL sites. */
 /* Retail returns 7 when the text box is in a multi-line mode (spell / item /
-   camp / NPC dialogue with the transcript collapsed); otherwise 1. */
-#define W8_TEXT_BOX_VISIBLE_LINE_COUNT()                                                           \
-    (((gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->text_box_collapsed == 0) &&      \
-      (gXStatus.fSpellCastMode != 0 || gXStatus.fNpcDialogueMode != 0 ||                           \
-       gXStatus.fItemSelectMode != 0 || gXStatus.fCampMode != 0))                                  \
-         ? 7                                                                                       \
-         : 1)
-
+   camp / NPC dialogue with the transcript collapsed); otherwise 1. The image
+   retains this out-of-line emission while VC6 inlines it at other callers. */
 // FUNCTION: WIZ8 0x00590900
 int GetTextBoxVisibleLineCount(void)
 {
@@ -1015,7 +1007,7 @@ bool CurrentDialogueLineHasContent(void)
 {
     short text_box = g_status.text_line_cursor_1795;
 
-    return g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
+    return g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
            GetTextBoxLineCount(text_box);
 }
 
@@ -1059,7 +1051,7 @@ void AdvanceNoticeLine(short text_box)
             }
         } else if (!IsNpcDialogueTextBoxActive577830()) {
             ScrollTextBoxTo(GetTextBoxLineCount(g_status.text_line_cursor_1795) -
-                            W8_TEXT_BOX_VISIBLE_LINE_COUNT());
+                            GetTextBoxVisibleLineCount());
         }
     }
     RequestRedraw(W8_REDRAW_TEXT_BOX);
@@ -1077,7 +1069,7 @@ void ScrollTextBoxTo(int line)
         input_lines = g_level_block->dialogue_text_input->line_count;
     }
     unsigned int count = g_status.text_box_lines_shown_49a7[text_box];
-    unsigned int visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
+    unsigned int visible = GetTextBoxVisibleLineCount();
     if (input_lines + count <= visible) {
         return;
     }
@@ -1094,7 +1086,7 @@ void ScrollTextBoxTo(int line)
     if (g_level_block->text_lines[text_box] != previous) {
         g_level_block->text_content_region = (g_level_block->text_lines[text_box] != 0) + 0x56;
         g_level_block->dialogue_content_region =
-            (g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
+            (g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
              count + input_lines) +
             0x59;
         RequestRedraw(W8_REDRAW_TEXT_BOX);
@@ -1121,7 +1113,7 @@ void ScrollTextBoxUp(int lines)
     if (current == previous) {
         return;
     }
-    if (current + W8_TEXT_BOX_VISIBLE_LINE_COUNT() < GetTextBoxLineCount(text_box)) {
+    if (current + GetTextBoxVisibleLineCount() < GetTextBoxLineCount(text_box)) {
         g_level_block->dialogue_content_region = 0x5a;
     }
     if (current == 0) {
@@ -1135,7 +1127,7 @@ void ScrollTextBoxDown(int lines)
 {
     short text_box = g_status.text_line_cursor_1795;
     unsigned int count = GetTextBoxLineCount(text_box);
-    unsigned int visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
+    unsigned int visible = GetTextBoxVisibleLineCount();
     unsigned int previous = g_level_block->text_lines[text_box];
     if (previous + visible >= count) {
         return;
@@ -1432,7 +1424,7 @@ static void RewrapDialogueTextFromLine(unsigned int line)
                 g_level_block->dialogue_text_input->line_offsets[line] &&
             !IsNpcDialogueTextBoxActive577830()) {
             ScrollTextBoxTo(GetTextBoxLineCount(g_status.text_line_cursor_1795) -
-                            W8_TEXT_BOX_VISIBLE_LINE_COUNT());
+                            GetTextBoxVisibleLineCount());
         }
         ++line;
     } while (true);
@@ -1572,7 +1564,7 @@ unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Regi
     }
 
     short text_box = g_status.text_line_cursor_1795;
-    unsigned int visible_lines = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
+    unsigned int visible_lines = GetTextBoxVisibleLineCount();
     unsigned int line_count = GetTextBoxLineCount(text_box);
     if (line_count <= visible_lines) {
         return 0;
@@ -1688,7 +1680,7 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
         if (current == previous) {
             return 1;
         }
-        if (current + W8_TEXT_BOX_VISIBLE_LINE_COUNT() < GetTextBoxLineCount(text_box)) {
+        if (current + GetTextBoxVisibleLineCount() < GetTextBoxLineCount(text_box)) {
             g_level_block->dialogue_content_region = 0x5a;
         }
         if (g_level_block->text_lines[text_box] == 0) {
@@ -1703,7 +1695,7 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
 unsigned char TextBoxScrollDownRegionEvent(const InputAtom* event, W8Region* region)
 {
     short text_box = g_status.text_line_cursor_1795;
-    unsigned int visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
+    unsigned int visible = GetTextBoxVisibleLineCount();
     unsigned int count = GetTextBoxLineCount(text_box);
     if (g_level_block->text_lines[text_box] + visible >= count) {
         PushButtonSoundScheme(0, 1);
@@ -1774,7 +1766,7 @@ unsigned char TextBoxBodyRegionEvent(const InputAtom* event, W8Region* region)
                 }
                 unsigned int current = g_level_block->text_lines[text_box];
                 if (current != previous) {
-                    if (current + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
+                    if (current + GetTextBoxVisibleLineCount() <
                         GetTextBoxLineCount(text_box)) {
                         g_level_block->dialogue_content_region = 0x5a;
                     }
@@ -2143,7 +2135,7 @@ void RedrawTextBoxBody(unsigned char skip_invalidate)
     }
 
     if (g_level_block->action_panel_visible == 0 && g_level_block->mipe_editing_272 == 0) {
-        can_scroll_down = scroll + static_cast<unsigned int>(W8_TEXT_BOX_VISIBLE_LINE_COUNT()) <
+        can_scroll_down = scroll + static_cast<unsigned int>(GetTextBoxVisibleLineCount()) <
                           GetTextBoxLineCount(text_box);
         if (!can_scroll_down &&
             ClockIsTicking(g_message_storage[text_box][scroll + rows - 1].clock_08) == 0) {
@@ -2231,7 +2223,7 @@ void RedrawTextBoxScrollChrome(void)
         }
 
         line_count = GetTextBoxLineCount(text_box);
-        visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
+        visible = GetTextBoxVisibleLineCount();
         if (scroll + static_cast<unsigned int>(visible) < line_count) {
             if (g_level_block->dialogue_content_region == 0x59) {
                 g_level_block->dialogue_content_region = 0x5a;
@@ -2378,10 +2370,10 @@ void SelectTextBox(short text_box)
     bool can_scroll;
     if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
         g_level_block->dialogue_text_input->text_box != text_box) {
-        can_scroll = g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
+        can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
                      g_status.text_box_lines_shown_49a7[text_box];
     } else {
-        can_scroll = g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
+        can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
                      g_level_block->dialogue_text_input->line_count +
                          g_status.text_box_lines_shown_49a7[text_box];
     }
@@ -2391,10 +2383,10 @@ void SelectTextBox(short text_box)
     }
     if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
         g_level_block->dialogue_text_input->text_box != text_box) {
-        can_scroll = g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
+        can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
                      g_status.text_box_lines_shown_49a7[text_box];
     } else {
-        can_scroll = g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
+        can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
                      g_level_block->dialogue_text_input->line_count +
                          g_status.text_box_lines_shown_49a7[text_box];
     }
