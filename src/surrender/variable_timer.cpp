@@ -234,9 +234,6 @@ double srVariableTimer::getTime(e_timerReadControl control)
     return (m_scaled_tick - m_scaled_base) * m_seconds_per_tick;
 }
 
-// FUNCTION: SURRENDER 0x10063F40
-srVariableTimer::~srVariableTimer() {}
-
 // FUNCTION: SURRENDER 0x10063F70
 int srVariableTimer::is_stepping() const
 {
