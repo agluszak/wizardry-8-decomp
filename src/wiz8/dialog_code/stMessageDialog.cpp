@@ -1,4 +1,5 @@
 #include "wiz8/dialog_code/MessageDialogBase.h"
+#include "wiz8/sgp_text.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/ButtonUserData.h"
 #include "wiz8/sr_api.h"
@@ -240,14 +241,11 @@ int W8MessageDialogBase::CreateControls()
     if (m_edge_image == -1) {
         m_edge_image = LoadGenericButtonImages(
             0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
+            Wiz8ToSgpText("Data\\Dialogs\\DialogEdge.STI"),
             0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
+            Wiz8ToSgpText("Data\\Dialogs\\DialogEdge.STI"),
             0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                m_background_path),
+            Wiz8ToSgpText(m_background_path),
             static_cast<short>(m_background_flags), 0, 0);
         if (m_edge_image == -1) {
             return m_error = 3;
@@ -260,8 +258,7 @@ int W8MessageDialogBase::CreateControls()
                          static_cast<short>(m_height - 0x12), 0x8004, 0x7e, 0, 0);
 
     m_confirm_image = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"),
         3, 0, 1, 2, 2);
     if (m_confirm_image != -1) {
         m_confirm_button =
@@ -269,8 +266,7 @@ int W8MessageDialogBase::CreateControls()
                               MessageDialogConfirmCallback);
     }
     m_cancel_image = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"),
         7, 4, 5, 6, 6);
     if (m_cancel_image != -1) {
         m_cancel_button =
