@@ -59,7 +59,7 @@ W8LevelDataRecord* g_level_data;
 unsigned char g_mouselook_manual;
 
 // FUNCTION: WIZ8 0x00420bd0
-float SettlePositionToGround00420BD0(const srVector3T<float>* position, bool* hit)
+float SettlePositionToGround(const srVector3T<float>* position, bool* hit)
 {
     srVector3T<float> candidate = *position;
     if (g_octree_game_data != 0 && g_octree_game_data->octree_04 != 0) {
@@ -827,8 +827,7 @@ unsigned char W8GameData::ProbeMonstersAlongMotion(srVector3T<float>* direction,
                 }
                 length_squared = dz * dz + dx * dx;
                 adjustment.Set(dx, dy, dz);
-                // reinterpret-ok: retail zeros the push y spill after storing dy
-                *reinterpret_cast<unsigned int*>(&adjustment.y) = 0;
+                adjustment.y = 0.0f;
                 if (length_squared != static_cast<float>(g_zero_005ebb40)) {
                     scale = -(push * horizontal) / sqrtf(length_squared);
                     adjustment.x = dx * scale;

@@ -1698,7 +1698,7 @@ void srTriMeshPipeline::Reset(srGERD* renderer)
     positions_38 = 0;
     vertex_extras_3c = 0;
     bounds_state_6c = 0;
-    extra_40 = 0;
+    sort_bias_40 = 0.0f;
     shader_74.value = 0x0100241b;
     texture_78 = 0;
     pass_value_7c = 0;
@@ -1970,7 +1970,7 @@ void srTriMeshPipeline::FlushSlots()
             render_input.passes_18 = &passes_9c[0];
             render_input.position_is_float3_1c = culler_output.linear_14 == 0;
             render_input.project_clip_near_20 = &project_clip_near;
-            render_input.value_24 = extra_40;
+            render_input.sort_bias_24 = sort_bias_40;
             renderer->render(render_input);
             renderer_88->unlockRenderer(renderer, 0);
         }
@@ -2018,8 +2018,7 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
         for (long side = 1; side >= 0; --side) {
             if ((mesh.control_flags_0c & (1u << side)) != 0) {
                 srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
-                // reinterpret-ok: sort bias is stored as float bits in extra_40
-                pipeline->extra_40 = *reinterpret_cast<const unsigned long*>(&mesh.sort_bias_148);
+                pipeline->sort_bias_40 = mesh.sort_bias_148;
                 pipeline->triangles_34 = mesh.poly_vertices_10;
                 pipeline->triangle_count_1c = static_cast<unsigned long>(mesh.polygon_count_04);
                 pipeline->positions_38 = mesh.positions_38;

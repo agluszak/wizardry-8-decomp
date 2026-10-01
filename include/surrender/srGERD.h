@@ -80,7 +80,7 @@ public:
             const void* passes_18;
             int position_is_float3_1c;
             const srMatrix4T<float>* project_clip_near_20;
-            unsigned long value_24;
+            float sort_bias_24;
         };
 
         /* createRenderer packs this record on the stack for the ctor

@@ -117,7 +117,7 @@ public:
        not a reason to widen the fields. */
     const srVector3T<float>* positions_38;
     const void* vertex_extras_3c;
-    unsigned long extra_40;
+    float sort_bias_40;
     srVector3T<float> bounds_minimum_44;
     srVector3T<float> bounds_maximum_50;
     srVector3T<float> bounds_center_5c;

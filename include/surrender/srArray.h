@@ -333,10 +333,11 @@ public:
         }
     }
 
-    /* stModelInstance::operator= at WIZ8 0x0047EDF0 releases existing storage,
-       allocates the source capacity, and copies each table index. This is the
-       one assigned srHeapBuffer member; keep the raw heap allocator and checked
-       release used by that retail path. */
+    /* Deep assignment: release, allocate the source capacity, copy each
+       element. Two independent retail owners assign these buffers this way:
+       stModelInstance::operator= (WIZ8 0x0047EDF0) for its damage-stage
+       table and stMeshModel's vClone (WIZ8 0x00474200) for both light
+       tables. */
     inline srHeapBuffer& operator=(const srHeapBuffer& other)
     {
         if (this != &other) {

@@ -522,7 +522,7 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
             if (sorted != 0) {
                 const srVector4T<float>* positions = &vertices_78_.positions_10[0];
                 sortKeys(write.sort_key_08 + done, write.triangles_00 + done, positions,
-                         reinterpret_cast<const float&>(input.value_24), chunk);
+                         input.sort_bias_24, chunk);
                 for (unsigned long replica = 1; replica < input.record_count_04; replica++) {
                     offsetIndices(write.sort_key_08 + input.triangle_count_00 * replica + done,
                                   write.sort_key_08 + done, replica, chunk);
@@ -622,7 +622,7 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
                 if (sorted != 0) {
                     const srVector4T<float>* positions = &vertices_78_.positions_10[0];
                     sortKeys(write.sort_key_08 + written, write.triangles_00 + written, positions,
-                             reinterpret_cast<const float&>(input.value_24),
+                             input.sort_bias_24,
                              input.triangle_count_00);
                 }
                 free_vertex = base + new_count;
@@ -633,9 +633,7 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
                 if (sorted != 0) {
                     const srVector4T<float>* positions = &vertices_78_.positions_10[0];
                     sortKeys(write.sort_key_08 + written, write.triangles_00 + written,
-                             /* reinterpret-ok: sort bias arrives as float
-                                bits in value_24. */
-                             positions, reinterpret_cast<const float&>(input.value_24),
+                             positions, input.sort_bias_24,
                              input.triangle_count_00);
                 }
             }
