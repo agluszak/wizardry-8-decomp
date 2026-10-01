@@ -1330,9 +1330,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
    handled separately because each has its own way of naming its monsters.
 
    Clearing a monster drops this slot's bit out of the monster's own highlight
-   mask, so a monster several slots are highlighting stays lit for the rest;
-   the original carries that body inline at both places rather than calling
-   it. */
+   mask, so a monster several slots are highlighting stays lit for the rest. */
 // FUNCTION: WIZ8 0x0053ac30
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
 {
@@ -1352,16 +1350,7 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
     }
 
     if (target->iType == W8_TARGET_KIND_GROUP && target->iGroupID != BAD_INDEX) {
-        unsigned int group_list_index =
-            GetMonsterGroupIndexByID(0x5da, TARGETING_CPP, target->iGroupID, 0);
-
-        if (group_list_index != 0xffffffff) {
-            W8MonsterGroup* group = GetMonsterGroupByListIndex(group_list_index);
-
-            for (index = 0; index < ILLength(group->monsters); ++index) {
-                SetMonsterHighlight(party_slot, IListGetAt(group->monsters, index), 0);
-            }
-        }
+        SetGroupHighlight(party_slot, target->iGroupID, 0);
     }
 }
 
@@ -1909,21 +1898,7 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
                                        &scratch, 0);
         }
 
-        for (unsigned int monster_list_index = 0;
-             monster_list_index < PLLength(gXStatus.plsMonsterList); ++monster_list_index) {
-            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-            W8Monster* monster = monster_info->p3D;
-
-            if (monster_info->fActive != 0 && monster != 0) {
-                unsigned char flags = MonsterGetHighlightMask(monster);
-                unsigned char bit = static_cast<unsigned char>(1 << (party_slot & 31));
-
-                if ((flags & bit) != 0) {
-                    MonsterSetHighlightMask(monster, static_cast<unsigned char>(flags & ~bit));
-                    NotifyMonsterHighlight(party_slot, monster_info->location_id, 0);
-                }
-            }
-        }
+        ClearPartySlotMonsterHighlights(party_slot);
 
         /* The retail guards the count unsigned and then loops against it
            signed: 0x0053AAD2 test eax,eax; jbe 0x0053ABF9 for the guard, then
@@ -1944,36 +1919,11 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
     }
 
     if (target->iType == W8_TARGET_KIND_MONSTER && target->iMonsterID != BAD_INDEX) {
-        unsigned int monster_index =
-            MonsterGetIndexByLocationID(0x757, TARGETING_CPP, target->iMonsterID, 0);
-
-        if (monster_index != 0xffffffff) {
-            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            W8Monster* monster = monster_info->p3D;
-
-            if (monster == 0) {
-                srAssertFail("pMonster", TARGETING_CPP, 0x760, 0);
-            }
-            unsigned char flags = MonsterGetHighlightMask(monster);
-            unsigned char bit = static_cast<unsigned char>(1 << (party_slot & 31));
-
-            MonsterSetHighlightMask(monster, static_cast<unsigned char>(flags | bit));
-            NotifyMonsterHighlight(party_slot, target->iMonsterID, 1);
-        }
+        SetMonsterHighlight(party_slot, target->iMonsterID, 1);
     }
 
     if (target->iType == W8_TARGET_KIND_GROUP && target->iGroupID != BAD_INDEX) {
-        unsigned int group_index =
-            GetMonsterGroupIndexByID(0x5da, TARGETING_CPP, target->iGroupID, 0);
-
-        if (group_index != 0xffffffff) {
-            W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
-
-            for (unsigned int member_index = 0; member_index < ILLength(group->monsters);
-                 ++member_index) {
-                SetMonsterHighlight(party_slot, IListGetAt(group->monsters, member_index), 1);
-            }
-        }
+        SetGroupHighlight(party_slot, target->iGroupID, 1);
     }
 }
 
@@ -3567,18 +3517,7 @@ bool ItemUseNeedsTarget(int party_slot)
 // FUNCTION: WIZ8 0x0053b050
 void ClearSlotTargeting(int party_slot)
 {
-    W8PList* monster_list = gXStatus.plsMonsterList;
-    for (unsigned int index = 0; index < PLLength(monster_list); ++index) {
-        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
-        W8Monster* monster = monster_info->p3D;
-        if (monster_info->fActive != 0 && monster != 0) {
-            unsigned char flag = MonsterGetHighlightMask(monster);
-            if ((flag & (1 << (party_slot & 0x1f))) != 0) {
-                MonsterSetHighlightMask(monster, ~(1 << (party_slot & 0x1f)) & flag);
-                NotifyMonsterHighlight(party_slot, monster_info->location_id, 0);
-            }
-        }
-    }
+    ClearPartySlotMonsterHighlights(party_slot);
     gXStatus.iTargetingMode = 0;
     if (gXStatus.iCurrentCursor != -1) {
         SetTargetCursor(-1);
