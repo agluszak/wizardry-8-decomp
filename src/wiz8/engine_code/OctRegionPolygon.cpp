@@ -12,9 +12,7 @@
 unsigned char W8OctRegionPolygon::InsideFrustumPlanes(const W8Plane* planes) const
 {
     for (short plane = 0; plane < 6; ++plane) {
-        float distance = planes[plane].normal.x * position_18.x +
-                         planes[plane].normal.y * position_18.y +
-                         planes[plane].normal.z * position_18.z + planes[plane].w;
+        float distance = DotProduct(planes[plane].normal, position_18) + planes[plane].w;
         if (distance < g_float_005ebb34) {
             return 0;
         }
@@ -40,7 +38,7 @@ unsigned char W8OctRegionPolygon::ContainsPoint004CFB30(const srVector3T<float>*
    boundary, preserving existing entries. */
 // FUNCTION: WIZ8 0x004cfb70
 unsigned char W8OctPreTreeGeometry::CheckArrayLength(int** run, unsigned short count,
-                                                   unsigned short capacity)
+                                                     unsigned short capacity)
 {
     if (count % capacity == 0) {
         unsigned short total = count + capacity;

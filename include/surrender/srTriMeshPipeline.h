@@ -69,12 +69,12 @@ public:
     static_assert(sizeof(Record) == 0x5c, "srTriMeshPipeline_Record_must_be_0x5c");
     static_assert(sizeof(Pass) == 0x20, "srTriMeshPipeline_Pass_must_be_0x20");
 
-    static srTriMeshPipeline* Get004750A0(srGERD* renderer);
+    static srTriMeshPipeline* Get(srGERD* renderer);
     /* By value, not by reference: 0x004994D0 reserves a four-byte argument
        slot and constructs the flag object straight into it. */
-    void SetFlags004752C0(srShader shader);
-    void Reset004753F0(srGERD* renderer);
-    void Flush00475510();
+    void SetFlags(srShader shader);
+    void Reset(srGERD* renderer);
+    void Flush();
     void PrepareSlot();
 
     /* The guarded header-visible boundary expands at the stParticle call
@@ -97,8 +97,8 @@ public:
     /* Slot 1 / complete destructor at 0x004752F0. */
     virtual ~srTriMeshPipeline();
 
-    srHeapArray<srVertexProcessor*> vertex_processors_04;
-    srHeapArray<unsigned long> culler_scratch_0c;
+    srHeapBuffer<srVertexProcessor*> vertex_processors_04;
+    srHeapBuffer<unsigned long> culler_scratch_0c;
     Record* current_record_14;
     Pass* current_pass_18;
     unsigned long triangle_count_1c;
@@ -117,7 +117,7 @@ public:
        not a reason to widen the fields. */
     const srVector3T<float>* positions_38;
     const void* vertex_extras_3c;
-    unsigned long extra_40;
+    float sort_bias_40;
     srVector3T<float> bounds_minimum_44;
     srVector3T<float> bounds_maximum_50;
     srVector3T<float> bounds_center_5c;

@@ -68,10 +68,8 @@ class
 public:
     srBinIFStream();
     srBinIFStream(const char* path);
-    virtual ~srBinIFStream() override;
-
-    /* The retail emission is a bare ret while the vbase destructor owns the
-       table stores; the body is defined in stream.cpp. */
+    /* Empty complete destruction is compiler-generated; the existing
+       synthetic vtordisp/vbase emissions below describe its ABI lowering. */
 
     void open(const char* path);
     virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
@@ -109,10 +107,8 @@ class
 public:
     srBinIOFStream();
     srBinIOFStream(const char* path);
-    virtual ~srBinIOFStream() override;
-
-    /* The retail emission is a bare ret while the vbase destructor owns the
-       table stores; the body is defined in stream.cpp. */
+    /* Empty complete destruction is compiler-generated; the existing
+       synthetic vtordisp/vbase emissions below describe its ABI lowering. */
 
     void open(const char* path);
     virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
@@ -154,10 +150,8 @@ class
 public:
     srBinOFStream();
     srBinOFStream(const char* path);
-    virtual ~srBinOFStream() override;
-
-    /* The retail emission is a bare ret while the vbase destructor owns the
-       table stores; the body is defined in stream.cpp. */
+    // SYNTHETIC: SURRENDER 0x100308C0
+    // srBinOFStream::~srBinOFStream
 
     void open(const char* path);
     virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;

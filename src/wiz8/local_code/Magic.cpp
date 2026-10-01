@@ -515,17 +515,13 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
 {
     int party_slot = CharacterPointerToPartySlot(character);
     W8ActionDetailBlock notify;
-    W8PartySlotRow* row;
 
     notify.spell.power_level = power_level;
     notify.spell.unused = 0;
     ChooseAction(party_slot, 7, spell_id, &notify, 0, 1);
 
-    row = &g_status.buffers.XChar[party_slot];
-    row->spell_detail.spell.power_level = power_level;
-    row->spell_id = spell_id;
-    row->spell_detail.spell.unused = 0;
-    row->spell_target = *GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
+    SetPartySlotSpell(party_slot, spell_id, power_level,
+                      GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT));
 }
 
 /* Whether one party slot's recorded spell target is still a target it could
@@ -843,7 +839,7 @@ void FinishSpellEffect(W8SpellEffectEntry* effect)
             W8NavigatorMovementState* movement = &monster_info->p3D->movement_0c0;
             position = movement->position_040;
             position.y += movement->height_offset_0b8;
-            position.y = SettlePositionToGround00420BD0(&position, 0);
+            position.y = SettlePositionToGround(&position, 0);
             PostMonsterNotice(monster_info, gppStringList[0x195]);
         } else {
             GetCameraPosition(&position);
@@ -3123,9 +3119,9 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             missile_index = g_spell_records[spell_id].missile_index_140;
             if (GetSpellTargetType(spell_id, 0) == 6) {
                 ResetCombatSlot(&point_target);
-                point_target.point.x = target->point.x;
-                point_target.point.z = target->point.z;
-                point_target.point.y = g_default_world_height * g_float_005ebc7c + target->point.y;
+                point_target.point.Set(target->point.x,
+                                       g_default_world_height * g_float_005ebc7c + target->point.y,
+                                       target->point.z);
                 point_target.iType = W8_TARGET_KIND_PLACE;
                 missile = FireMissileSourceToTarget(missile_index, source, &point_target, &block, 1,
                                                     0xffffffff, 9999);
@@ -3179,7 +3175,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                         visual =
                             SpawnSpellEffect(&point, g_spell_records[0x76].resource_name, 1, 0, 0);
                     } else {
-                        GetCameraForwardPoint00421150(1.0, &forward_point);
+                        GetCameraForwardPoint(1.0, &forward_point);
                         forward_point.y -= g_default_world_height;
                         visual = SpawnSpellEffect(&forward_point,
                                                   g_spell_records[0x76].resource_name, 2, 0, 0);
@@ -3215,9 +3211,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                         origin = source->point;
                         direction = target->point - origin;
                         direction.SetLength(1.0);
-                        local_90.vectors[0] = *axis.Set(1.0, 0.0, 0.0);
-                        local_90.vectors[1] = *axis.Set(0.0, 1.0, 0.0);
-                        local_90.vectors[2] = *axis.Set(0.0, 0.0, 1.0);
+                        local_90.SetIdentity();
                         yaw = atan2(direction.x, direction.z);
                         local_90.RotateAboutY(yaw);
                         direction = local_90.TransformTransposed(direction);
@@ -3738,7 +3732,7 @@ void ScatterSpellPointTarget(int spell_id, W8TargetSource* source, W8CombatSlot*
             (Random(0x7d1) - g_monster_poster_max_distance) * range * g_double_005ec8d0 + origin.z);
         point.y = Random(0x3e9) * range * g_double_005ec8d0 + origin.y;
         g_octree->TraceLineOfSight(&origin, &point, 1, -3, -3, 1, 0);
-        point.y = SettlePositionToGround00420BD0(&point, 0);
+        point.y = SettlePositionToGround(&point, 0);
         if (point.y != g_ground_settle_fail) {
             break;
         }
@@ -4067,9 +4061,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         }
         break;
     case 6:
-        trace.x = target_point.x;
-        trace.y = target_point.y - g_float_005ebc64;
-        trace.z = target_point.z;
+        trace.Set(target_point.x, target_point.y - g_float_005ebc64, target_point.z);
         radius = (g_spell_records[spell_id].radius_per_level_127 * power_level +
                   g_spell_records[spell_id].effect_radius) *
                  g_world_scale;

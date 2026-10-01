@@ -827,10 +827,8 @@ unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
     chunks->Write(&record_version, 4, 0);
     if (info->fActive != 0) {
         MonsterGetLocation(info->p3D, &location);
-        location.y = SettlePositionToGround00420BD0(&location, 0);
-        info->position_17.x = location.x;
-        info->position_17.y = location.y;
-        info->position_17.z = location.z;
+        location.y = SettlePositionToGround(&location, 0);
+        info->position_17 = location;
         info->derived_23 = MonsterGetAngleD4(info->p3D);
     }
     record_size = sizeof(*info);
@@ -883,9 +881,7 @@ unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
             chunks->Write(&point.x + component, 4, 0);
         }
     }
-    point.x = monster->direction_x_2b0;
-    point.y = monster->direction_y_2b4;
-    point.z = monster->direction_z_2b8;
+    point.Set(monster->direction_x_2b0, monster->direction_y_2b4, monster->direction_z_2b8);
     for (component = 0; component < 3; ++component) {
         chunks->Write(&point.x + component, 4, 0);
     }
@@ -1442,7 +1438,7 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
         item->saved_marker = 1;
         if (item->fActive != 0) {
             srVector3T<float> position;
-            item->p3D->m_pRep->GetLocation004B8890(&position);
+            item->p3D->m_pRep->GetLocation(&position);
             item->position = position;
             item->entity_flags = static_cast<W8ItemRep*>(item_info->p3D->m_pRep)->flags;
         }
@@ -2373,10 +2369,11 @@ unsigned char LoadGame(const char* slot_name)
     }
     chunks.Close();
     for (box = 0; box < 4; ++box) {
-        for (index = 0; index < static_cast<int>(g_status.text_box_lines_shown_49a7[box]);
-             ++index) {
-            g_message_storage[box][index].clock_08 =
-                SetCountdownClock(g_message_storage[box][index].clock_ticking_0c);
+        /* 0x00512BA6 tests the member unsigned, so this loop has its own
+           unsigned counter rather than the function's signed `index`. */
+        for (unsigned int line = 0; line < g_status.text_box_lines_shown_49a7[box]; ++line) {
+            g_message_storage[box][line].clock_08 =
+                SetCountdownClock(g_message_storage[box][line].clock_ticking_0c);
         }
     }
     gXStatus.gameplay_timer->Restart();

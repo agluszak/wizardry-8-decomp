@@ -419,13 +419,7 @@ W8TextBuffer::W8TextBuffer(const W8ControlsRect* bounds, const wchar_t* text, in
     m_geometryDirty = 0;
     m_lineHeight = 0;
     m_alternateRenderer = 0;
-    m_layoutMode = layout_mode;
-    if ((m_layoutMode & 7) == 0) {
-        m_layoutMode |= 2;
-    }
-    if ((m_layoutMode & 0x38) == 0) {
-        m_layoutMode |= 8;
-    }
+    SetLayoutMode(layout_mode);
     m_renderMode = render_mode;
     m_fontStateIndex = -1;
     m_flag_4c = false;
@@ -758,8 +752,7 @@ inline void W8TextControl::InvalidateCore(unsigned char immediate)
         if (immediate) {
             m_pPanel->Invalidate(0);
         } else {
-            m_pPanel->m_fLayoutDirty = 1;
-            RequestRedraw(0x80000000);
+            m_pPanel->InvalidateLayout();
         }
         RequestRedraw(0x80000000);
     }
@@ -950,8 +943,7 @@ void W8TextControl::Redraw(unsigned char full_redraw)
         sprite = m_disabledSprite;
         if (sprite == -1) {
             if (m_textBuffer.HasBuffer()) {
-                m_textBuffer.RenderToTarget(text_state, full_redraw,
-                                            -14);
+                m_textBuffer.RenderToTarget(text_state, full_redraw, -14);
             }
             ShadowVideoSurfaceRect(-14, m_pPanel->origin_x + m_left, m_pPanel->origin_y + m_top,
                                    m_pPanel->origin_x + m_right, m_pPanel->origin_y + m_bottom);
@@ -1012,10 +1004,7 @@ void W8TextControl::SetBounds(int left, int top, int right, int bottom)
     short measured_width;
     short measured_height;
 
-    m_left = left;
-    m_top = top;
-    m_right = right;
-    m_bottom = bottom;
+    W8Widget::SetBounds(left, top, right, bottom);
     if (m_pPanel != 0) {
         if (m_region != -1) {
             SetRegionBounds(m_region, (unsigned short)((short)left + (short)m_pPanel->origin_x),
@@ -1442,21 +1431,7 @@ public:
     void SetRangePosition(float position)
     {
         m_position = position;
-        if (m_position < m_minimumPosition) {
-            m_position = m_minimumPosition;
-        }
-        if (m_maximumPosition < m_position) {
-            m_position = m_maximumPosition;
-        }
-        m_pixelPosition =
-            (int)(((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
-                  m_trackLength);
-        if (m_pPanel != 0) {
-            m_dirty = true;
-            m_pPanel->m_fLayoutDirty = 1;
-            RequestRedraw(0x80000000);
-            RequestRedraw(0x80000000);
-        }
+        ClampPositionAndInvalidate();
     }
 
 protected:
@@ -1509,11 +1484,7 @@ W8RangeControl::W8RangeControl(int left, int top, int right, int bottom,
 {
     int height = bottom - top;
 
-    if (*shared_region_set == 0) {
-        *shared_region_set = CreateRegionSet();
-    }
-    m_uiRegionSetId = *shared_region_set;
-    ResetRegionSet(m_uiRegionSetId);
+    AcquireRegionSet(shared_region_set);
 
     m_decrement =
         new W8RangeButton(this, 0xffffffff, 0, 0, 0x10, 0x10, 0x86, 0, 0, 2, 1, 2, 3, 0, this);
@@ -1613,8 +1584,7 @@ inline void W8VerticalRangeThumb::ClampPositionAndInvalidate()
               m_trackLength);
     if (m_pPanel != 0) {
         m_dirty = true;
-        m_pPanel->m_fLayoutDirty = 1;
-        RequestRedraw(0x80000000);
+        m_pPanel->InvalidateLayout();
         RequestRedraw(0x80000000);
     }
 }
@@ -1731,8 +1701,7 @@ void W8VerticalRangeThumb::OnMouseMove(int event)
     bool hovered = (m_pixelPosition <= y && y <= m_pixelPosition + m_thumbHeight);
     if (hovered != m_hovered && m_pPanel != 0) {
         m_dirty = true;
-        m_pPanel->m_fLayoutDirty = 1;
-        RequestRedraw(0x80000000);
+        m_pPanel->InvalidateLayout();
         RequestRedraw(0x80000000);
     }
     m_hovered = hovered;
@@ -1916,8 +1885,7 @@ inline void W8HorizontalRangeThumb::InvalidateThumb()
 {
     if (m_pPanel != 0) {
         m_dirty = true;
-        m_pPanel->m_fLayoutDirty = 1;
-        RequestRedraw(0x80000000);
+        m_pPanel->InvalidateLayout();
         RequestRedraw(0x80000000);
     }
 }
@@ -2036,8 +2004,7 @@ void W8VerticalRangeThumb::OnMouseLeave(int event)
                 RequestRedraw(0x80000000);
                 return;
             }
-            m_pPanel->m_fLayoutDirty = 1;
-            RequestRedraw(0x80000000);
+            m_pPanel->InvalidateLayout();
             RequestRedraw(0x80000000);
         }
     }
@@ -2056,8 +2023,7 @@ void W8HorizontalRangeThumb::OnMouseLeave(int event)
                 RequestRedraw(0x80000000);
                 return;
             }
-            m_pPanel->m_fLayoutDirty = 1;
-            RequestRedraw(0x80000000);
+            m_pPanel->InvalidateLayout();
             RequestRedraw(0x80000000);
         }
     }
@@ -2164,7 +2130,7 @@ void Controls::DestroyAllControls()
 
     if (index > 0) {
         while (--index, index >= 0) {
-            delete m_controls.RemoveAt(index);
+            m_controls.RemoveAtAndDelete(index);
         }
     }
 }
@@ -2319,8 +2285,7 @@ void W8Widget::Invalidate(unsigned char immediate)
             RequestRedraw(0x80000000);
             return;
         }
-        m_pPanel->m_fLayoutDirty = 1;
-        RequestRedraw(0x80000000);
+        m_pPanel->InvalidateLayout();
         RequestRedraw(0x80000000);
     }
 }
@@ -2356,10 +2321,7 @@ void W8Widget::SetBounds(int left, int top, int right, int bottom)
 // FUNCTION: WIZ8 0x004f6960
 void W8Widget::SetBoundsFromRect(const W8ControlsRect* bounds)
 {
-    m_left = bounds->left;
-    m_top = bounds->top;
-    m_right = bounds->right;
-    m_bottom = bounds->bottom;
+    W8Widget::SetBounds(bounds->left, bounds->top, bounds->right, bounds->bottom);
 }
 
 /* Selection controller: the listener occupies +0, the text-control pointer

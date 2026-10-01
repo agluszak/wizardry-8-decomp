@@ -27,8 +27,12 @@ public:
 
     srScene& operator=(const srScene& other);
 
+    /* The empty derived destructor is compiler-generated; srNode owns the
+       actual teardown. */
+    // SYNTHETIC: SURRENDER 0x10056F90
+    // srScene::~srScene
+
     virtual void dump(std::ostream& stream) override;
-    virtual ~srScene() override;
     virtual srClass* vInstance() override;
     virtual void traverse(TraverseInfo& info) override;
     virtual void process(const ProcessInfo& info, e_processType type) override;
@@ -52,14 +56,11 @@ public:
     int isEnabled(e_enable option) const;
     void render(srGERD& renderer, class srCamera* camera);
     void resetStatistics();
-#if defined(SURRENDER_BUILD)
-    static const char* sGetClassName();
-#else
+    // FUNCTION: SURRENDER 0x10056C10
     static const char* sGetClassName()
     {
         return "srScene";
     }
-#endif
     /* The overlay builders expand these component stores at every call site.
        They are the ordinary header-visible SurRender setters, not a Wizardry
        aggregate helper around the scene object. The provider still exports

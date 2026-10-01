@@ -30,22 +30,26 @@ public:
 
     srClipPlane(srNode* parent = 0);
 
-    srClipPlane& operator=(const srClipPlane& other);
+    /* The class export emits the ordinary copy construction, assignment and
+       destruction of the srNode base plus clip fields. */
+    // SYNTHETIC: SURRENDER 0x1004A1C0
+    // srClipPlane::srClipPlane(const srClipPlane&)
+    // SYNTHETIC: SURRENDER 0x10049C90
+    // srClipPlane::operator=
+    // SYNTHETIC: SURRENDER 0x1004A2C0
+    // srClipPlane::~srClipPlane
 
-#if defined(SURRENDER_BUILD)
-    static const char* sGetClassName();
-#else
     /* Header-visible like srFog's and srCamera's: the consumer import table
-       has no entry, so the client emission returns the literal directly. The
-       provider still exports its own copy from clipplane.cpp. */
+       has no entry, so the client emission returns the literal directly, and
+       provider TUs inline the same literal inside the srClassSupport
+       registrations. The provider still exports an out-of-line copy. */
+    // FUNCTION: SURRENDER 0x1004A150
     static const char* sGetClassName()
     {
         return "srClipPlane";
     }
-#endif
 
     virtual void dump(std::ostream& stream) override;
-    virtual ~srClipPlane() override;
     virtual srClass* vInstance() override;
     virtual void traverse(TraverseInfo& info) override;
     virtual void process(const ProcessInfo& info, e_processType type) override;

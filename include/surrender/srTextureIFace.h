@@ -96,11 +96,16 @@ public:
         return "srTextureIFace";
     }
 
-    /* The support base supplies construction, copy registration/assignment
-       and teardown. */
-    srTextureIFace();
-    srTextureIFace& operator=(const srTextureIFace& other);
-    virtual ~srTextureIFace() override;
+    /* No state beyond srClassSupport: the class export emits the complete
+       compiler-generated lifecycle. */
+    // SYNTHETIC: SURRENDER 0x1005F5E0
+    // srTextureIFace::srTextureIFace()
+    // SYNTHETIC: SURRENDER 0x1005F660
+    // srTextureIFace::srTextureIFace(const srTextureIFace&)
+    // SYNTHETIC: SURRENDER 0x1005F5C0
+    // srTextureIFace::operator=
+    // SYNTHETIC: SURRENDER 0x1005F3E0
+    // srTextureIFace::~srTextureIFace
 
     /* Slot 8. Slot 6 is srClass::vInstance; slot 7 is clone. srTextureFile's
        17-slot vftable (0 through 16) is this interface exactly. */

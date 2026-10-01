@@ -27,10 +27,7 @@ W8AnimRepBase::W8AnimRepBase()
     local_location_010.SetZero();
     parent_location_01c.SetZero();
     rotation_028.SetIdentity();
-    highlight_colour_04c.x = 0.0f;
-    highlight_colour_04c.y = 0.0f;
-    highlight_colour_04c.z = 0.0f;
-    highlight_colour_04c.w = 0.0f;
+    highlight_colour_04c.Set(0.0f, 0.0f, 0.0f, 0.0f);
     instance_scale_05c = 1.0f;
     flag_060 = false;
     apply_instance_scale_061 = 0;
@@ -62,32 +59,26 @@ W8AnimRepBase::W8AnimRepBase(const W8AnimRepBase& other)
    from its parent location.  The three floating-point additions establish
    these as vectors rather than opaque twelve-byte values. */
 // FUNCTION: WIZ8 0x004b8850
-void W8AnimRepBase::SetLocation004B8850(const srVector3T<float>* location)
+void W8AnimRepBase::SetLocation(const srVector3T<float>* location)
 {
-    local_location_010.x = location->x;
-    local_location_010.y = location->y;
-    local_location_010.z = location->z;
+    local_location_010 = *location;
     location_004 = parent_location_01c + local_location_010;
 }
 
 // FUNCTION: WIZ8 0x004b8890
-void W8AnimRepBase::GetLocation004B8890(srVector3T<float>* location) const
+void W8AnimRepBase::GetLocation(srVector3T<float>* location) const
 {
-    location->x = location_004.x;
-    location->y = location_004.y;
-    location->z = location_004.z;
+    *location = location_004;
 }
 
 // FUNCTION: WIZ8 0x004b88b0
 void W8AnimRepBase::GetLocalLocation(srVector3T<float>* location) const
 {
-    location->x = local_location_010.x;
-    location->y = local_location_010.y;
-    location->z = local_location_010.z;
+    *location = local_location_010;
 }
 
 // FUNCTION: WIZ8 0x004b88d0
-void W8AnimRepBase::SetRotation004B88D0(const srMatrix3T<float>* rotation)
+void W8AnimRepBase::SetRotation(const srMatrix3T<float>* rotation)
 {
     rotation_028 = *rotation;
 }

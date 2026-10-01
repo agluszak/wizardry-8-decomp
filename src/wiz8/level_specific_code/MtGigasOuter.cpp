@@ -106,9 +106,9 @@ bool OnCrankTriggerActivated(Trigger* trigger)
                          0x3ed, 0);
         }
         prop = pFlagTrigger->m_pProp;
-        prop->GetPosition0044E2C0(&position);
+        prop->GetPosition(&position);
         position.y = LIFT_PARKED_Y;
-        prop->SetPosition0044E310(&position);
+        prop->SetPosition(&position);
         SetTriggerVariableByName("FlagPosition", 1000);
         ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x290, 0, 0, 0);
         SetItemCursor(0);
@@ -164,7 +164,7 @@ void ControlLiftGate(int command)
                          0x3ed, 0);
         }
         g_lift_prop = pFlagTrigger->m_pProp;
-        g_lift_prop->GetPosition0044E2C0(&position);
+        g_lift_prop->GetPosition(&position);
         if (value < 100) {
             g_master_functions->Add(ControlLiftGate);
             if (g_lift_gate != 0) {
@@ -185,7 +185,7 @@ void ControlLiftGate(int command)
                 position.y = LIFT_PARKED_Y;
             }
         }
-        g_lift_prop->SetPosition0044E310(&position);
+        g_lift_prop->SetPosition(&position);
         return;
     }
     if (g_lift_gate != 0) {
@@ -199,9 +199,9 @@ void ControlLiftGate(int command)
             SetTriggerVariableByName("FlagPosition", 100);
             g_flag_006834dc = true;
         }
-        g_lift_prop->GetPosition0044E2C0(&position);
+        g_lift_prop->GetPosition(&position);
         position.y = (g_float_005ebb38 - progress) * (LIFT_TOP_Y - LIFT_BOTTOM_Y) + LIFT_BOTTOM_Y;
-        g_lift_prop->SetPosition0044E310(&position);
+        g_lift_prop->SetPosition(&position);
     } else {
         g_flag_006834dc = true;
     }

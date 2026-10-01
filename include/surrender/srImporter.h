@@ -20,10 +20,12 @@ class
 #endif
     srSurfaceIOManager : public srIOManager {
 public:
+    /* Retail callers build the import options as a single zeroed dword:
+       srPalette::Sampler::addSurface reuses the dead name argument slot and
+       srTextureFile::loadSurface reserves one dword local. ExportInfo keeps
+       the wider triple (Wizardry's SaveJpegScreenshot proves {0,1,"QUALITY=..."}). */
     struct ImportInfo {
         unsigned long unknown_00;
-        unsigned long unknown_04;
-        const char* option_string;
     };
 
     struct ExportInfo {
@@ -35,10 +37,10 @@ public:
     class SurfaceImporter;
     class SurfaceExporter;
 
-    /* The default constructor is a real emission, not a marker-only helper:
-       retail calls srIOManager's constructor and then installs this vftable
-       (0x100050F0), exactly as the two sibling managers do. */
-    srSurfaceIOManager();
+    /* The default constructor is the implicit srIOManager construction plus
+       the derived vftable store, emitted by the class-level export. */
+    // SYNTHETIC: SURRENDER 0x100050F0
+    // srSurfaceIOManager::srSurfaceIOManager()
 
     /* Provider-side entry (0x1002DCD0); no consumer import evidence, so it
        stays unannotated. */
@@ -69,7 +71,7 @@ public:
 
 };
 
-static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x0c), "srSurfaceImportInfo_must_be_0x0c");
+static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x04), "srSurfaceImportInfo_must_be_0x04");
 static_assert((sizeof(srSurfaceIOManager::ExportInfo) == 0x0c), "srSurfaceExportInfo_must_be_0x0c");
 
 /* Retail exports the full implicit lifecycle sweep for the importer/exporter
@@ -135,10 +137,16 @@ public:
     class HierarchyImporter;
     class HierarchyExporter;
 
-    srHierarchyIOManager();
-    srHierarchyIOManager(const srHierarchyIOManager& other);
-    srHierarchyIOManager& operator=(const srHierarchyIOManager& other);
-    virtual ~srHierarchyIOManager();
+    /* No state beyond srIOManager: class-level dllexport emits the complete
+       compiler-generated lifecycle. */
+    // SYNTHETIC: SURRENDER 0x10016470
+    // srHierarchyIOManager::srHierarchyIOManager()
+    // SYNTHETIC: SURRENDER 0x10016530
+    // srHierarchyIOManager::srHierarchyIOManager(const srHierarchyIOManager&)
+    // SYNTHETIC: SURRENDER 0x10016570
+    // srHierarchyIOManager::operator=
+    // SYNTHETIC: SURRENDER 0x100165B0
+    // srHierarchyIOManager::~srHierarchyIOManager
 
     void importHierarchy(const char* path, const ImportInfo& options);
     void exportHierarchy(const char* path, const ExportInfo& options);
@@ -156,9 +164,8 @@ class
 #endif
     __declspec(novtable) srHierarchyIOManager::HierarchyImporter : public srIOManager::Importer {
 public:
-    // FUNCTION: SURRENDER 0x100164B0
-    // ??0HierarchyImporter@srHierarchyIOManager@@QAE@XZ
-    HierarchyImporter() {}
+    // SYNTHETIC: SURRENDER 0x100164B0
+    // HierarchyImporter::HierarchyImporter()
 
     /* Implicit copy ctor/assignment/destructor emitted via the class-level
        dllexport. */
@@ -211,10 +218,16 @@ public:
     class ModelImporter;
     class ModelExporter;
 
-    srModelIOManager();
-    srModelIOManager(const srModelIOManager& other);
-    srModelIOManager& operator=(const srModelIOManager& other);
-    virtual ~srModelIOManager();
+    /* No state beyond srIOManager: class-level dllexport emits the complete
+       compiler-generated lifecycle. */
+    // SYNTHETIC: SURRENDER 0x10016980
+    // srModelIOManager::srModelIOManager()
+    // SYNTHETIC: SURRENDER 0x10016A40
+    // srModelIOManager::srModelIOManager(const srModelIOManager&)
+    // SYNTHETIC: SURRENDER 0x10016A80
+    // srModelIOManager::operator=
+    // SYNTHETIC: SURRENDER 0x10016AC0
+    // srModelIOManager::~srModelIOManager
 
     srModel* importModel(const char* path, const ImportInfo& options);
     void exportModel(const char* path, srModel& model, const ExportInfo& options);
@@ -230,9 +243,8 @@ class
 #endif
     __declspec(novtable) srModelIOManager::ModelImporter : public srIOManager::Importer {
 public:
-    // FUNCTION: SURRENDER 0x100169C0
-    // ??0ModelImporter@srModelIOManager@@QAE@XZ
-    ModelImporter() {}
+    // SYNTHETIC: SURRENDER 0x100169C0
+    // ModelImporter::ModelImporter()
 
     /* Implicit copy ctor/assignment/destructor emitted via the class-level
        dllexport. */

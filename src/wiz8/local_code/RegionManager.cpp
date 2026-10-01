@@ -581,7 +581,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
                 PlayButtonSound(1);
                 g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
                 previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
-                g_region_help_force_enabled = 0;
+                SetRegionHelpForceEnabled(0);
             }
             if (previous_index != region_index) {
                 region->flags |= W8_REGION_MOUSE_ENTER;
@@ -613,7 +613,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
         }
         PlayButtonSound(1);
         g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
-        g_region_help_force_enabled = 0;
+        SetRegionHelpForceEnabled(0);
         previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
     }
     g_hover_region_index = g_current_region_index;
@@ -658,7 +658,7 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
                 }
                 g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
                 previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
-                g_region_help_force_enabled = 0;
+                SetRegionHelpForceEnabled(0);
                 g_hover_region_index = 0;
                 g_current_region_index = 0;
             }
@@ -676,7 +676,10 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
 }
 
 /* Route one queued input atom to the forced region, the current hot region,
-   or the first enabled region under the event's mouse position. */
+   or the first enabled region under the event's mouse position. Retail carries
+   three copies of the dispatch tail (0x004F1B41 for the region-set scan,
+   0x004F1C4C and 0x004F1D34 for the current and captured regions); each runs
+   the callback, plays the optional sound and returns the callback result. */
 // FUNCTION: WIZ8 0x004f1910
 unsigned char DispatchRegionInput(const InputAtom* event)
 {
@@ -849,7 +852,7 @@ void ActivateDialogRegion(unsigned int region_index)
         }
         g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
         g_regions[g_hover_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
-        g_region_help_force_enabled = 0;
+        SetRegionHelpForceEnabled(0);
         g_hover_region_index = 0;
     }
     g_regions[g_captured_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
@@ -936,8 +939,7 @@ void DisableRegionSetInput(unsigned int region_set_index)
             }
             last_region = g_region_sets[region_set_index].last_region;
             g_regions[region_index].flags =
-                (g_regions[region_index].flags & 0xfff3) |
-                W8_REGION_INPUT_DISABLED;
+                (g_regions[region_index].flags & 0xfff3) | W8_REGION_INPUT_DISABLED;
             ++region_index;
         } while (region_index <= last_region);
     }
@@ -1040,9 +1042,7 @@ void UpdateRegionHelp(void)
 // FUNCTION: WIZ8 0x004f2750
 void SetRegionHelpText(const wchar_t* text)
 {
-    if (g_default_help_text != 0) {
-        delete[] g_default_help_text;
-    }
+    ReleasePointer689B40();
     if (text != 0) {
         g_default_help_text = new wchar_t[wcslen(text) + 1];
         wcscpy(g_default_help_text, text);
@@ -1173,7 +1173,7 @@ void ClearHotRegion(void)
                 g_regions[region_index].flags &= ~W8_REGION_HELP_SHOWN;
             }
             g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
-            g_region_help_force_enabled = 0;
+            SetRegionHelpForceEnabled(0);
             g_regions[g_current_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
             g_current_region_index = 0;
         }
@@ -1252,6 +1252,6 @@ void ResetRegions(void)
     g_current_region_index = 0;
     g_hover_region_index = 0;
     g_captured_region_index = 0;
-    g_region_help_force_enabled = 0;
+    SetRegionHelpForceEnabled(0);
     g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
 }

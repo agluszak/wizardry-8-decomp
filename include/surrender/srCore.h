@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <iosfwd>
 
 #include "srFileManager.h"
 #include "srGlobalRecycler.h"

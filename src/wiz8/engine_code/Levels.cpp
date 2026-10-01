@@ -240,7 +240,7 @@ unsigned char GetLevelLocationCode(int level_id, char* location_code)
 // as a separate lookup helper inlined into its one caller: after inlining, VC6
 // substitutes the body but does not propagate the returned value's range, so the
 // caller's guards survive even though the search can only yield 0..46.
-static __inline int LevelFindIDByLocationCode(const char* location_code)
+static inline int LevelFindIDByLocationCode(const char* location_code)
 {
     int level_id;
 
@@ -586,7 +586,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             trigger->GetPosition(&trigger_position);
             position = trigger_position;
             position.y =
-                SettlePositionToGround00420BD0(&trigger_position, 0) + g_default_world_height;
+                SettlePositionToGround(&trigger_position, 0) + g_default_world_height;
             if (fabs(position.y - trigger_position.y) > g_position_height_epsilon) {
                 position.y = trigger_position.y;
             }
@@ -596,9 +596,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
                 srVector3T<float> axis;
                 srMatrix3T<float> rotation;
 
-                axis.x = trigger->direction_100.x;
-                axis.y = trigger->direction_100.y;
-                axis.z = trigger->direction_100.z;
+                axis = trigger->direction_100;
                 rotation.SetIdentity();
                 if (trigger->angle_0fc != 0.0f) {
                     rotation.RotateAroundAxis(sin(trigger->angle_0fc), cos(trigger->angle_0fc),
@@ -654,7 +652,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             AgeAllMonsterSight();
         }
         for (int index = g_spell_effects.GetCount() - 1; index >= 0; --index) {
-            delete g_spell_effects.RemoveAt(index);
+            g_spell_effects.RemoveAtAndDelete(index);
         }
     } else {
         W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();

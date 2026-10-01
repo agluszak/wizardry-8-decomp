@@ -9,11 +9,13 @@ class SR_DLL_EXPORT srMutex {
 public:
     srMutex();
     /* Retail's copies-then-vftable emission is the implicit special-member
-       lowering; the authored bodies below produce the same memberwise copies
-       with the provider-added vftable store in its own slot. */
-    srMutex(const srMutex& mutex);
+       lowering. Class-level dllexport emits both standalone copies. */
+    // SYNTHETIC: SURRENDER 0x100458D0
+    // srMutex::srMutex(const srMutex&)
+    // SYNTHETIC: SURRENDER 0x100458F0
+    // srMutex::operator=
+
     virtual ~srMutex();
-    srMutex& operator=(const srMutex& mutex);
 
     int accessAvailable();
     void getAccess();

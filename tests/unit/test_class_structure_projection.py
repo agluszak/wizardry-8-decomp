@@ -67,16 +67,16 @@ def test_global_template_type_is_selected_from_trusted_layout(tmp_path: Path, mo
     source = tmp_path / "src/wiz8/globals.cpp"
     source.parent.mkdir(parents=True)
     source.write_text(
-        "// GLOBAL: WIZ8 0x00650000\nsrHeapArray<unsigned char> g_blob;\n",
+        "// GLOBAL: WIZ8 0x00650000\nsrHeapBuffer<unsigned char> g_blob;\n",
         encoding="utf-8",
     )
     record = SimpleNamespace(
-        qualified_name="srHeapArray<unsigned char>", layout_trusted=True, size=8
+        qualified_name="srHeapBuffer<unsigned char>", layout_trusted=True, size=8
     )
     index = SimpleNamespace(classes={Key(): record})
     monkeypatch.setattr(csp, "source_functions", lambda *_a: {})
     assert csp._referenced_template_classes(tmp_path, "WIZ8", index) == {
-        "srHeapArray<unsigned char>": 1
+        "srHeapBuffer<unsigned char>": 1
     }
 
 

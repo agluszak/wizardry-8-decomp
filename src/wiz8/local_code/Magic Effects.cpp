@@ -502,22 +502,14 @@ void AnnounceEffectResisted(W8CombatSlot* target)
 }
 
 /* Apply an effect and say so if it did not take. Only a zero result counts as
-   shrugged off; the announcement is the same body as its neighbour written out
-   again rather than called. */
+   shrugged off. */
 // FUNCTION: WIZ8 0x00552340
 void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, int realm, int power_level)
 {
     ReduceMagnitudeByResistance(result, target, realm, power_level);
-    if (*result != 0 || g_settings.verbose_combat_messages == 0) {
-        return;
+    if (*result == 0) {
+        AnnounceEffectResisted(target);
     }
-    if (target->iType == W8_TARGET_KIND_MONSTER) {
-        PostMonsterNotice(MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                              3758, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
-                          gppStringList[0x1b3]);
-        return;
-    }
-    PostCharacterNotice(target->iChar, gppStringList[0x1b3]);
 }
 
 /* Which of the seven display slots one condition owns. Anything not among the
@@ -729,24 +721,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
             attack_block.duration_per_power = g_spell_records[spell_id].duration_044;
             for (index = 0; index < 12; ++index) {
                 if (g_being_effect_slot_spells[index] == spell_id) {
-                    duration = attack_block.duration_per_power * attack_block.duration_scale +
-                               attack_block.duration_base;
-                    if (duration != 9999) {
-                        ++duration;
-                        switch (Random(4)) {
-                        case 0:
-                            if (duration > 1) {
-                                ++duration;
-                            }
-                            break;
-                        case 1:
-                            if (duration < 3) {
-                                ++duration;
-                            }
-                            break;
-                        }
-                        AdjustIntegerByPercent(&duration, attack_block.percent);
-                    }
+                    duration = RollEffectDuration(&attack_block);
                     effect_slot = &summon->effect_slots_10f[index];
                     if (effect_slot->active == 0 || effect_slot->effect_id != spell_id) {
                         SetMonsterSpellIcon(summon->p3D, g_effect_visual_table[spell_id][1], 1);
@@ -765,24 +740,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
             spell_id = tier == 1 ? 0x3d : 0x38;
             attack_block.duration_base = g_spell_records[spell_id].duration_per_level_04d;
             attack_block.duration_per_power = g_spell_records[spell_id].duration_044;
-            duration = attack_block.duration_per_power * attack_block.duration_scale +
-                       attack_block.duration_base;
-            if (duration != 9999) {
-                ++duration;
-                switch (Random(4)) {
-                case 0:
-                    if (duration > 1) {
-                        ++duration;
-                    }
-                    break;
-                case 1:
-                    if (duration < 3) {
-                        ++duration;
-                    }
-                    break;
-                }
-                AdjustIntegerByPercent(&duration, attack_block.percent);
-            }
+            duration = RollEffectDuration(&attack_block);
             switch (spell_id) {
             case 0x13:
                 slot = 1;
@@ -1025,15 +983,8 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target, i
                                      source_character, duration, announce_condition) == 0;
     }
 
-    if (resolved != 0 && announce_resistance != 0 && g_settings.verbose_combat_messages != 0) {
-        if (target->iType == W8_TARGET_KIND_MONSTER) {
-            unsigned int monster_index =
-                MonsterGetIndexByLocationID(0xeae, MAGIC_EFFECTS_CPP, target->iMonsterID, 1);
-            PostMonsterNotice(MonsterGetScriptPartByLocationIndex(monster_index),
-                              gppStringList[0x1b3]);
-        } else {
-            PostCharacterNotice(target->iChar, gppStringList[0x1b3]);
-        }
+    if (resolved != 0 && announce_resistance != 0) {
+        AnnounceEffectResisted(target);
     }
     return resolved;
 }
@@ -1098,27 +1049,9 @@ void ApplyConditionToTargets(W8SpellEffectEntry* effect, int condition)
 // FUNCTION: WIZ8 0x0054e610
 void ApplyRandomAfflictionToTarget(W8SpellEffectEntry* effect)
 {
-    unsigned int duration;
     unsigned int roll;
 
-    duration = effect->definition.duration_per_power * effect->definition.duration_scale +
-               effect->definition.duration_base;
-    if (duration != 9999) {
-        ++duration;
-        switch (Random(4)) {
-        case 0:
-            if (duration > 1) {
-                ++duration;
-            }
-            break;
-        case 1:
-            if (duration < 3) {
-                ++duration;
-            }
-            break;
-        }
-        AdjustIntegerByPercent(&duration, effect->definition.percent);
-    }
+    RollEffectDuration(&effect->definition);
     if (effect->target.iType != W8_TARGET_KIND_CHARACTER) {
         srAssertFail("(pQueue->Target.iType == TARGET_TYPE_CHAR)", MAGIC_EFFECTS_CPP, 0x5ee, 0);
     }
@@ -1504,19 +1437,8 @@ void ApplyDamageToTargets(W8SpellEffectEntry* effect)
         magnitude = RollEffectMagnitude(&effect->definition);
         target.iType = W8_TARGET_KIND_CHARACTER;
         target.iChar = character_index;
-        ReduceMagnitudeByResistance(&magnitude, &target, realm, power_level);
-        if (magnitude == 0) {
-            if (g_settings.verbose_combat_messages != 0) {
-                if (target.iType == W8_TARGET_KIND_MONSTER) {
-                    unsigned int monster_index =
-                        MonsterGetIndexByLocationID(0xeae, MAGIC_EFFECTS_CPP, target.iMonsterID, 1);
-                    monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-                    PostMonsterNotice(monster_info, gppStringList[0x1b3]);
-                } else {
-                    PostCharacterNotice(target.iChar, gppStringList[0x1b3]);
-                }
-            }
-        } else {
+        ApplyEffectAndAnnounce(&magnitude, &target, realm, power_level);
+        if (magnitude != 0) {
             if (verbose == 0) {
                 result = &effect->result_126;
             } else {
@@ -1535,18 +1457,8 @@ void ApplyDamageToTargets(W8SpellEffectEntry* effect)
         magnitude = RollEffectMagnitude(&effect->definition);
         target.iType = W8_TARGET_KIND_MONSTER;
         target.iMonsterID = monster_info->location_id;
-        ReduceMagnitudeByResistance(&magnitude, &target, realm, power_level);
+        ApplyEffectAndAnnounce(&magnitude, &target, realm, power_level);
         if (magnitude == 0) {
-            if (g_settings.verbose_combat_messages != 0) {
-                if (target.iType == W8_TARGET_KIND_MONSTER) {
-                    monster_index =
-                        MonsterGetIndexByLocationID(0xeae, MAGIC_EFFECTS_CPP, target.iMonsterID, 1);
-                    monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-                    PostMonsterNotice(monster_info, gppStringList[0x1b3]);
-                } else {
-                    PostCharacterNotice(target.iChar, gppStringList[0x1b3]);
-                }
-            }
             monster_info->p3D->SpawnDamageNumber(magnitude);
         } else {
             if (verbose == 0) {
@@ -1594,17 +1506,7 @@ void DrainTargetsLife(W8SpellEffectEntry* effect)
         magnitude = RollEffectMagnitude(&effect->definition);
         target.iType = W8_TARGET_KIND_CHARACTER;
         target.iChar = character_index;
-        ReduceMagnitudeByResistance(&magnitude, &target, realm, power_level);
-        if (magnitude == 0 && g_settings.verbose_combat_messages != 0) {
-            if (target.iType == W8_TARGET_KIND_MONSTER) {
-                unsigned int monster_index =
-                    MonsterGetIndexByLocationID(0xeae, MAGIC_EFFECTS_CPP, target.iMonsterID, 1);
-                monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-                PostMonsterNotice(monster_info, gppStringList[0x1b3]);
-            } else {
-                PostCharacterNotice(target.iChar, gppStringList[0x1b3]);
-            }
-        }
+        ApplyEffectAndAnnounce(&magnitude, &target, realm, power_level);
         if (g_status.buffers.Char[character_index].hp_current <= magnitude) {
             magnitude = g_status.buffers.Char[character_index].hp_current;
         }
@@ -1628,17 +1530,7 @@ void DrainTargetsLife(W8SpellEffectEntry* effect)
         magnitude = RollEffectMagnitude(&effect->definition);
         target.iType = W8_TARGET_KIND_MONSTER;
         target.iMonsterID = monster_info->location_id;
-        ReduceMagnitudeByResistance(&magnitude, &target, realm, power_level);
-        if (magnitude == 0 && g_settings.verbose_combat_messages != 0) {
-            if (target.iType == W8_TARGET_KIND_MONSTER) {
-                monster_index =
-                    MonsterGetIndexByLocationID(0xeae, MAGIC_EFFECTS_CPP, target.iMonsterID, 1);
-                monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-                PostMonsterNotice(monster_info, gppStringList[0x1b3]);
-            } else {
-                PostCharacterNotice(target.iChar, gppStringList[0x1b3]);
-            }
-        }
+        ApplyEffectAndAnnounce(&magnitude, &target, realm, power_level);
         if (monster_info->hp_current <= magnitude) {
             magnitude = monster_info->hp_current;
         }
@@ -2109,24 +2001,7 @@ void ApplyCombatEffectSlot(W8SpellEffectEntry* effect)
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", MAGIC_EFFECTS_CPP, 0x329, 0);
     }
-    duration = effect->definition.duration_per_power * effect->definition.duration_scale +
-               effect->definition.duration_base;
-    if (duration != 9999) {
-        ++duration;
-        switch (Random(4)) {
-        case 0:
-            if (duration > 1) {
-                ++duration;
-            }
-            break;
-        case 1:
-            if (duration < 3) {
-                ++duration;
-            }
-            break;
-        }
-        AdjustIntegerByPercent(&duration, effect->definition.percent);
-    }
+    duration = RollEffectDuration(&effect->definition);
     if (TargetSourceIsCharacter(&effect->Source, 1) != 0) {
         source_character = effect->Source.iChar;
     }
@@ -2213,24 +2088,7 @@ void ApplyDefenseEffectSlot(W8SpellEffectEntry* effect)
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", MAGIC_EFFECTS_CPP, 0x3c5, 0);
     }
-    duration = effect->definition.duration_per_power * effect->definition.duration_scale +
-               effect->definition.duration_base;
-    if (duration != 9999) {
-        ++duration;
-        switch (Random(4)) {
-        case 0:
-            if (duration > 1) {
-                ++duration;
-            }
-            break;
-        case 1:
-            if (duration < 3) {
-                ++duration;
-            }
-            break;
-        }
-        AdjustIntegerByPercent(&duration, effect->definition.percent);
-    }
+    duration = RollEffectDuration(&effect->definition);
     slot_index = 0;
     table = g_combat_effect_slot_spells_and_cast_success;
     while (spell_id != *table) {
@@ -2302,25 +2160,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
     verbose = g_settings.verbose_combat_messages;
     TargetSourceIsCharacter(&effect->Source, 1);
     for (index = 0; index < effect->target_indices_0f0.GetCount(); ++index) {
-        unsigned int duration =
-            effect->definition.duration_per_power * effect->definition.duration_scale +
-            effect->definition.duration_base;
-        if (duration != 9999) {
-            ++duration;
-            switch (Random(4)) {
-            case 0:
-                if (duration > 1) {
-                    ++duration;
-                }
-                break;
-            case 1:
-                if (duration < 3) {
-                    ++duration;
-                }
-                break;
-            }
-            AdjustIntegerByPercent(&duration, effect->definition.percent);
-        }
+        unsigned int duration = RollEffectDuration(&effect->definition);
         party_slot = *effect->target_indices_0f0.GetAt(index);
         if (party_slot == -1) {
             srAssertFail("iChar != -1", MAGIC_EFFECTS_CPP, 0x8ca, 0);
@@ -2346,24 +2186,14 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
             }
         } else {
             char resisted;
-            magnitude = RollDice(&effect->definition.magnitude);
-            if (magnitude != 9999) {
-                AdjustIntegerByPercent(&magnitude, effect->definition.percent);
-            }
+            magnitude = RollEffectMagnitude(&effect->definition);
             ReduceMagnitudeByResistance(&magnitude, &target, realm, power_level);
             resisted = 0;
             if (magnitude == 0) {
                 if (verbose == 0) {
                     continue;
                 }
-                if (target.iType == W8_TARGET_KIND_MONSTER) {
-                    PostMonsterNotice(
-                        MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                            0xeae, MAGIC_EFFECTS_CPP, target.iMonsterID, 1)),
-                        gppStringList[0x1b3]);
-                } else {
-                    PostCharacterNotice(target.iChar, gppStringList[0x1b3]);
-                }
+                AnnounceEffectResisted(&target);
                 resisted = 1;
             }
             if (resisted == 0) {
@@ -2373,25 +2203,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
         }
     }
     for (index = 0; index < effect->monster_ids_0e0.GetCount(); ++index) {
-        unsigned int duration =
-            effect->definition.duration_per_power * effect->definition.duration_scale +
-            effect->definition.duration_base;
-        if (duration != 9999) {
-            ++duration;
-            switch (Random(4)) {
-            case 0:
-                if (duration > 1) {
-                    ++duration;
-                }
-                break;
-            case 1:
-                if (duration < 3) {
-                    ++duration;
-                }
-                break;
-            }
-            AdjustIntegerByPercent(&duration, effect->definition.percent);
-        }
+        unsigned int duration = RollEffectDuration(&effect->definition);
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x907, MAGIC_EFFECTS_CPP, *effect->monster_ids_0e0.GetAt(index), 1));
         if (monster_info == 0) {
@@ -2418,24 +2230,14 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
             }
         } else {
             char resisted;
-            magnitude = RollDice(&effect->definition.magnitude);
-            if (magnitude != 9999) {
-                AdjustIntegerByPercent(&magnitude, effect->definition.percent);
-            }
+            magnitude = RollEffectMagnitude(&effect->definition);
             ReduceMagnitudeByResistance(&magnitude, &target, realm, power_level);
             resisted = 0;
             if (magnitude == 0) {
                 if (verbose == 0) {
                     continue;
                 }
-                if (target.iType == W8_TARGET_KIND_MONSTER) {
-                    PostMonsterNotice(
-                        MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                            0xeae, MAGIC_EFFECTS_CPP, target.iMonsterID, 1)),
-                        gppStringList[0x1b3]);
-                } else {
-                    PostCharacterNotice(target.iChar, gppStringList[0x1b3]);
-                }
+                AnnounceEffectResisted(&target);
                 resisted = 1;
             }
             if (resisted == 0) {
@@ -2482,20 +2284,9 @@ void DamageTargetsAndReport(W8SpellEffectEntry* effect)
         target.iType = W8_TARGET_KIND_CHARACTER;
         target.iChar = party_slot;
         magnitude = RollDice(&effect->definition.magnitude);
-        ReduceMagnitudeByResistance(&magnitude, &target, g_spell_records[effect->kind].realm,
-                                    effect->definition.power_level);
-        if (magnitude == 0) {
-            if (g_settings.verbose_combat_messages != 0) {
-                if (target.iType == W8_TARGET_KIND_MONSTER) {
-                    PostMonsterNotice(
-                        MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                            0xeae, MAGIC_EFFECTS_CPP, target.iMonsterID, 1)),
-                        gppStringList[0x1b3]);
-                } else {
-                    PostCharacterNotice(target.iChar, gppStringList[0x1b3]);
-                }
-            }
-        } else {
+        ApplyEffectAndAnnounce(&magnitude, &target, g_spell_records[effect->kind].realm,
+                               effect->definition.power_level);
+        if (magnitude != 0) {
             DamageCharacter(party_slot, magnitude, verbose);
             total += magnitude;
             ++hits;
@@ -2508,24 +2299,10 @@ void DamageTargetsAndReport(W8SpellEffectEntry* effect)
         if (monster_info == 0) {
             srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0xb3a, 0);
         }
-        magnitude = RollDice(&effect->definition.magnitude);
-        if (magnitude != 9999) {
-            AdjustIntegerByPercent(&magnitude, effect->definition.percent);
-        }
-        ReduceMagnitudeByResistance(&magnitude, &target, g_spell_records[effect->kind].realm,
-                                    effect->definition.power_level);
-        if (magnitude == 0) {
-            if (g_settings.verbose_combat_messages != 0) {
-                if (target.iType == W8_TARGET_KIND_MONSTER) {
-                    PostMonsterNotice(
-                        MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                            0xeae, MAGIC_EFFECTS_CPP, target.iMonsterID, 1)),
-                        gppStringList[0x1b3]);
-                } else {
-                    PostCharacterNotice(target.iChar, gppStringList[0x1b3]);
-                }
-            }
-        } else {
+        magnitude = RollEffectMagnitude(&effect->definition);
+        ApplyEffectAndAnnounce(&magnitude, &target, g_spell_records[effect->kind].realm,
+                               effect->definition.power_level);
+        if (magnitude != 0) {
             ApplyDamageToMonster(monster_info, magnitude, &effect->Source, 0, verbose != 0, 0,
                                  verbose != 0 ? 0 : result, 0);
             total += magnitude;
@@ -2725,12 +2502,8 @@ void ApplyMonsterControlToNearbyMonsters(W8SpellEffectEntry* effect)
     far_clip = static_cast<float>(WorldGetFarClip(GetWorld()));
     center = effect->target.point;
     center.y += g_default_world_height * g_float_005ebc7c;
-    lower.x = center.x - far_clip;
-    lower.y = center.y - far_clip;
-    lower.z = center.z - far_clip;
-    upper.x = center.x + far_clip;
-    upper.y = center.y + far_clip;
-    upper.z = center.z + far_clip;
+    lower.Set(center.x - far_clip, center.y - far_clip, center.z - far_clip);
+    upper.Set(center.x + far_clip, center.y + far_clip, center.z + far_clip);
     location_ids = static_cast<unsigned long*>(operator new(0x400));
     count = g_octree->QueryLocationsInBox(&location_ids, &lower, &upper, 0);
     for (index = 0; index < count; ++index) {
@@ -2855,15 +2628,7 @@ void ApplyCharmToMonsterTarget(W8SpellEffectEntry* effect)
         return;
     }
     if (TargetResistsCondition(target, 4, effect->definition.power_level, 0) != 0) {
-        if (g_settings.verbose_combat_messages != 0) {
-            if (target->iType == W8_TARGET_KIND_MONSTER) {
-                PostMonsterNotice(MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                                      0xeae, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
-                                  gppStringList[0x1b3]);
-            } else {
-                PostCharacterNotice(target->iChar, gppStringList[0x1b3]);
-            }
-        }
+        AnnounceEffectResisted(target);
         return;
     }
     magnitude = effect->definition.duration_scale * 7;
@@ -3142,20 +2907,9 @@ void TickRadiusBlastEffectSlots(W8EffectSlot* effect_slots)
                 amount = RollDice(&dice);
                 target.iType = W8_TARGET_KIND_MONSTER;
                 target.iMonsterID = monster_info->location_id;
-                ReduceMagnitudeByResistance(&amount, &target, g_spell_records[62].realm,
-                                            effect_slots->amount * 3);
-                if (amount == 0) {
-                    if (g_settings.verbose_combat_messages != 0) {
-                        if (target.iType == W8_TARGET_KIND_MONSTER) {
-                            monster_index = MonsterGetIndexByLocationID(0xeae, MAGIC_EFFECTS_CPP,
-                                                                        target.iMonsterID, 1);
-                            monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-                            PostMonsterNotice(monster_info, gppStringList[0x1b3]);
-                        } else {
-                            PostCharacterNotice(target.iChar, gppStringList[0x1b3]);
-                        }
-                    }
-                } else {
+                ApplyEffectAndAnnounce(&amount, &target, g_spell_records[62].realm,
+                                       effect_slots->amount * 3);
+                if (amount != 0) {
                     ApplyDamageToMonster(monster_info, amount, &source, 0, verbose != 0, 0,
                                          verbose == 0 ? &local_result : 0, 0);
                 }
@@ -3215,7 +2969,6 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
     W8CombatSlot char_target;
     W8Dice dice;
     W8MonsterInfo* monster_info;
-    W8MonsterInfo* notice_info;
     W8MonsterRecord* monster_record;
     unsigned int difficulty;
     unsigned int amount;
@@ -3223,7 +2976,6 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
     unsigned int condition_turns;
     unsigned int resisted_total;
     unsigned int hit_count;
-    unsigned int monster_index;
     int power;
     int percent;
     int duration_base;
@@ -3280,22 +3032,8 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                         if (rolls_damage != 0) {
                             amount = RollDice(&dice);
                             AdjustIntegerByPercent(&amount, percent);
-                            ReduceMagnitudeByResistance(
-                                &amount, &char_target, g_spell_records[spell_id].realm, difficulty);
-                            if (amount == 0) {
-                                if (g_settings.verbose_combat_messages != 0) {
-                                    if (char_target.iType == W8_TARGET_KIND_MONSTER) {
-                                        monster_index = MonsterGetIndexByLocationID(
-                                            0xeae, MAGIC_EFFECTS_CPP, char_target.iMonsterID, 1);
-                                        notice_info =
-                                            MonsterGetScriptPartByLocationIndex(monster_index);
-                                        PostMonsterNotice(notice_info, gppStringList[0x1b3]);
-                                    } else {
-                                        PostCharacterNotice(char_target.iChar,
-                                                            gppStringList[0x1b3]);
-                                    }
-                                }
-                            }
+                            ApplyEffectAndAnnounce(&amount, &char_target,
+                                                   g_spell_records[spell_id].realm, difficulty);
                             if (amount != 0) {
                                 ApplyDamageToCharacter(party_slot, amount, 0, 1, 0, 0, 0);
                                 resisted_total += amount;
@@ -3370,20 +3108,8 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                 if (rolls_damage != 0) {
                     amount = RollDice(&dice);
                     AdjustIntegerByPercent(&amount, percent);
-                    ReduceMagnitudeByResistance(&amount, target, g_spell_records[spell_id].realm,
-                                                difficulty);
-                    if (amount == 0) {
-                        if (g_settings.verbose_combat_messages != 0) {
-                            if (target->iType == W8_TARGET_KIND_MONSTER) {
-                                monster_index = MonsterGetIndexByLocationID(
-                                    0xeae, MAGIC_EFFECTS_CPP, target->iMonsterID, 1);
-                                notice_info = MonsterGetScriptPartByLocationIndex(monster_index);
-                                PostMonsterNotice(notice_info, gppStringList[0x1b3]);
-                            } else {
-                                PostCharacterNotice(target->iChar, gppStringList[0x1b3]);
-                            }
-                        }
-                    }
+                    ApplyEffectAndAnnounce(&amount, target, g_spell_records[spell_id].realm,
+                                           difficulty);
                     if (amount != 0) {
                         ApplyDamageToMonster(monster_info, amount, &source, 0, 1, 0, 0, 0);
                         if (spell_id == 0x50) {
@@ -3486,8 +3212,6 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
     int cost;
     W8Character* character;
     W8MonsterInfo* monster_info;
-    W8MonsterInfo* notice_info;
-    unsigned int monster_index;
     W8ItemInstance* item;
     W8EffectSlot* slot;
 
@@ -3869,10 +3593,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
                 if (iChar == -1) {
                     srAssertFail("iChar != -1", MAGIC_EFFECTS_CPP, 0x88a, 0);
                 }
-                amount = RollDice(&effect->definition.magnitude);
-                if (amount != 9999) {
-                    AdjustIntegerByPercent(&amount, effect->definition.percent);
-                }
+                amount = RollEffectMagnitude(&effect->definition);
                 RestoreCharacterSpellPointsEvenly(iChar, amount);
             }
         }

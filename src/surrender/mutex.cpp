@@ -1,20 +1,5 @@
 #include "surrender/srMutex.h"
 
-// FUNCTION: SURRENDER 0x100458D0
-srMutex::srMutex(const srMutex& mutex)
-{
-    handle_04 = mutex.handle_04;
-    access_count_08 = mutex.access_count_08;
-}
-
-// FUNCTION: SURRENDER 0x100458F0
-srMutex& srMutex::operator=(const srMutex& mutex)
-{
-    handle_04 = mutex.handle_04;
-    access_count_08 = mutex.access_count_08;
-    return *this;
-}
-
 // SYNTHETIC: SURRENDER 0x10045930
 // srMutex::`vector deleting destructor'
 

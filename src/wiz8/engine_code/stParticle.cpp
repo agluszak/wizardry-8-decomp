@@ -164,7 +164,7 @@ void LoadParticleStates(int handle)
 }
 
 // FUNCTION: WIZ8 0x00497AF0
-stParticle::stParticle(srNode* parent, unsigned int count)
+stParticle::stParticle(srNode* parent, int count)
     : srClassSupport<stParticle, srNode, 0, 0x10009>(static_cast<srNode*>(0))
 {
     persisted_192 = 0;
@@ -198,7 +198,10 @@ stParticle::stParticle(srNode* parent, unsigned int count)
 
     particle_positions_148 =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
-    unsigned int i;
+    /* 0x00497C57 and 0x00498360 test the count parameter signed, while every
+       comparison against the stored particle_count_180 (0x00497D6C, 0x00497E74)
+       and vertex_count_158 (0x00497EA8) is unsigned. */
+    int i;
     for (i = 0; i < count; ++i) {
         particle_positions_148[i] = 0.0f;
     }
@@ -225,18 +228,14 @@ stParticle::stParticle(srNode* parent, unsigned int count)
 
         particle_positions_148[i] = 0.0f;
 
-        texcoords_164[vertex].x = 0.0f;
-        texcoords_164[vertex].y = 0.0f;
-        texcoords_164[vertex + 1].x = 1.0f;
-        texcoords_164[vertex + 1].y = 0.0f;
-        texcoords_164[vertex + 2].x = 1.0f;
-        texcoords_164[vertex + 2].y = 1.0f;
-        texcoords_164[vertex + 3].x = 0.0f;
-        texcoords_164[vertex + 3].y = 1.0f;
+        texcoords_164[vertex].SetZero();
+        texcoords_164[vertex + 1].Set(1.0f, 0.0f);
+        texcoords_164[vertex + 2].Set(1.0f, 1.0f);
+        texcoords_164[vertex + 3].Set(0.0f, 1.0f);
     }
 
-    for (i = 0; i < vertex_count_158; ++i) {
-        alphas_174[i] = 1.0f;
+    for (unsigned int v = 0; v < vertex_count_158; ++v) {
+        alphas_174[v] = 1.0f;
     }
 
     emitting_1a0 = 1;
@@ -299,7 +298,9 @@ stParticle::stParticle(const stParticle& other)
     emission_gap_270 = other.emission_gap_270;
     size_scale_278 = other.size_scale_278;
 
-    unsigned int count = other.particle_count_180;
+    /* The copied count is compared signed at 0x00498360 even though the member
+       it comes from is stored and compared unsigned. */
+    int count = other.particle_count_180;
     if (count == 0) {
         return;
     }
@@ -326,7 +327,10 @@ stParticle::stParticle(const stParticle& other)
     if (particle_positions_148 == 0) {
         srAssertFail("pLoc", ST_PARTICLE_CPP, 0xda, 0);
     }
-    unsigned int i;
+    /* 0x00497C57 and 0x00498360 test the count parameter signed, while every
+       comparison against the stored particle_count_180 (0x00497D6C, 0x00497E74)
+       and vertex_count_158 (0x00497EA8) is unsigned. */
+    int i;
     for (i = 0; i < count; ++i) {
         particle_positions_148[i] = 0.0f;
     }
@@ -367,8 +371,8 @@ stParticle::stParticle(const stParticle& other)
         texcoords_164[vertex + 2].Set(1.0f, 1.0f);
         texcoords_164[vertex + 3].Set(0.0f, 1.0f);
     }
-    for (i = 0; i < vertex_count_158; ++i) {
-        alphas_174[i] = 1.0f;
+    for (unsigned int v = 0; v < vertex_count_158; ++v) {
+        alphas_174[v] = 1.0f;
     }
 
     emission_limit_184 = other.emission_limit_184;
@@ -977,7 +981,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     renderer->setCullMode(srGERD::CULL_FRONT);
     renderer->setPickKey(0);
 
-    srTriMeshPipeline* pipeline = srTriMeshPipeline::Get004750A0(renderer);
+    srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(renderer);
 
     /* Three array/count pairs: the index pairs rebuilt above, the polygon
        index list, and the transformed vertex positions. */
@@ -1011,7 +1015,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     pipeline->material_80 = retained_14c;
     pipeline->current_record_14->material_08 = retained_14c;
 
-    pipeline->SetFlags004752C0(render_flags_150);
+    pipeline->SetFlags(render_flags_150);
 
     if (texcoords_164 != 0) {
         pipeline->current_record_14->st0_20 = texcoords_164;

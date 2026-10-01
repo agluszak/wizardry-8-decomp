@@ -303,16 +303,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     }
     gpSCSV->saved_game_mode = mode;
     CreateSpellCastingViewControls();
-    RegionSetEnable(0x14);
-    EnableRegionInput(0x52);
-    EnableRegionInput(0x53);
-    EnableRegionInput(0x54);
-    EnableRegionInput(0x55);
-    g_level_block->action_panel_visible = 1;
-    DisableRegionInput(0x59);
-    DisableRegionInput(0x56);
-    DisableRegionInput(0x57);
-    DisableRegionInput(0x58);
+    RestoreSpellCastingRegions();
     RegionSetEnable(0x19);
     SelectTextBox(2);
     ResetEditorStatusLine(-1);
@@ -323,7 +314,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     gpSCSV->selected_spell_index = -1;
     SelectSpellCastingCharacter(party_slot);
     RequestRedraw(0x200);
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
     RequestRedraw(0x1000);
     PauseMainGameWorld();
     gpSCSV->override_spell_104 = 0;
@@ -359,7 +350,7 @@ void CloseSpellCastingView(void)
         gXStatus.fSpellCastMode = false;
         ApplyMainGameModeFlag(gpSCSV->saved_game_mode, 1);
         RequestRedraw(0x200);
-        RequestRedraw(0x100);
+        RequestRedrawCombatBar();
         RequestRedraw(0x1000);
         location_id = gpSCSV->location_id;
         interact_id = gpSCSV->interact_id;

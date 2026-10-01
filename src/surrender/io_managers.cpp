@@ -10,28 +10,6 @@
 #include "surrender/srImporter.h"
 #include "surrender/srString.h"
 
-/* TU-local srInlineString copies like file_stream.cpp's: this unit's stream
-   copy machinery references them and sibling units own the callable
-   emissions. */
-inline srInlineString::srInlineString(const srInlineString& source)
-{
-    init();
-    if (source.data_ != 0) {
-        operator=(source);
-    }
-}
-
-inline srInlineString& srInlineString::operator=(const srInlineString& source)
-{
-    init();
-    if (source.data_ != 0 && *source.data_ != '\0') {
-        size_ = strlen(source.data_) + 1;
-        data_ = static_cast<char*>(srHeap.allocate(size_));
-        strcpy(data_, source.data_);
-    }
-    return *this;
-}
-
 // FUNCTION: SURRENDER 0x1002CB10
 const char* srIOManager::Error::getDescription()
 {
@@ -86,20 +64,6 @@ srIOManager::~srIOManager()
         --importers_04_.count_00;
     }
     delete importers_04_.first_04;
-}
-
-// FUNCTION: SURRENDER 0x1002CD90
-srIOManager::srIOManager(const srIOManager& manager)
-    : importers_04_(manager.importers_04_), exporters_10_(manager.exporters_10_)
-{
-}
-
-// FUNCTION: SURRENDER 0x1002CDD0
-srIOManager& srIOManager::operator=(const srIOManager& manager)
-{
-    importers_04_ = manager.importers_04_;
-    exporters_10_ = manager.exporters_10_;
-    return *this;
 }
 
 // FUNCTION: SURRENDER 0x1002D1C0
@@ -580,43 +544,6 @@ void srSurfaceIOManager::exportSurface(const char* path, srBinOStream& stream,
     }
     throw Error("srSurfaceIOManager::exportSurface() - given filename is NULL or empty");
 }
-
-// FUNCTION: SURRENDER 0x100050F0
-srSurfaceIOManager::srSurfaceIOManager() {}
-
-// FUNCTION: SURRENDER 0x10016470
-srHierarchyIOManager::srHierarchyIOManager() {}
-
-// FUNCTION: SURRENDER 0x10016530
-srHierarchyIOManager::srHierarchyIOManager(const srHierarchyIOManager& other) : srIOManager(other)
-{
-}
-
-// FUNCTION: SURRENDER 0x10016570
-srHierarchyIOManager& srHierarchyIOManager::operator=(const srHierarchyIOManager& other)
-{
-    srIOManager::operator=(other);
-    return *this;
-}
-
-// FUNCTION: SURRENDER 0x100165B0
-srHierarchyIOManager::~srHierarchyIOManager() {}
-
-// FUNCTION: SURRENDER 0x10016980
-srModelIOManager::srModelIOManager() {}
-
-// FUNCTION: SURRENDER 0x10016A40
-srModelIOManager::srModelIOManager(const srModelIOManager& other) : srIOManager(other) {}
-
-// FUNCTION: SURRENDER 0x10016A80
-srModelIOManager& srModelIOManager::operator=(const srModelIOManager& other)
-{
-    srIOManager::operator=(other);
-    return *this;
-}
-
-// FUNCTION: SURRENDER 0x10016AC0
-srModelIOManager::~srModelIOManager() {}
 
 /* The IO-manager units emit the deleting-destructor wrappers and the
    material class-support registrations they reference. */

@@ -92,20 +92,11 @@ srClass* stScript::vInstance()
 // FUNCTION: WIZ8 0x004CF260
 stScript::~stScript()
 {
-    while (lines.GetCount() != 0) {
-        stScriptLine* line = lines.RemoveAt(0);
-        if (line != 0) {
-            free(line->text);
-            delete line;
-        }
-    }
-    while (labels.GetCount() != 0) {
-        delete labels.RemoveAt(0);
-    }
+    Clear();
 }
 
 // FUNCTION: WIZ8 0x004CF690
-void stScript::Clear004CF690()
+void stScript::Clear()
 {
     while (lines.GetCount() != 0) {
         stScriptLine* line = lines.RemoveAt(0);
@@ -115,12 +106,12 @@ void stScript::Clear004CF690()
         }
     }
     while (labels.GetCount() != 0) {
-        delete labels.RemoveAt(0);
+        labels.RemoveAtAndDelete(0);
     }
 }
 
 // FUNCTION: WIZ8 0x004CF3B0
-unsigned char stScript::Load004CF3B0(const char* path)
+unsigned char stScript::Load(const char* path)
 {
     unsigned char more = 1;
     int source_line = 0;

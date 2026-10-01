@@ -247,9 +247,9 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
 }
 
 /* Spend spell points from one realm. Spending more than is left is a caller
-   error rather than something to clamp. Retail inlines this into the drains
-   below and keeps an out-of-line copy for other units. */
-inline void SpendRealmSpellPoints(int party_slot, int realm, int amount)
+   error rather than something to clamp. */
+// FUNCTION: WIZ8 0x0052b480
+void SpendCharacterSpellPoints(int party_slot, int realm, int amount)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
@@ -261,12 +261,6 @@ inline void SpendRealmSpellPoints(int party_slot, int realm, int amount)
         character->iSPLeft[realm] -= amount;
         RequestPartySlotRedraw(party_slot);
     }
-}
-
-// FUNCTION: WIZ8 0x0052b480
-void SpendCharacterSpellPoints(int party_slot, int realm, int amount)
-{
-    SpendRealmSpellPoints(party_slot, realm, amount);
 }
 
 /* Give spell points back to one realm, never past its ceiling. */
@@ -304,7 +298,6 @@ void DrainPartySpellPoints(int arg_1, int arg_2)
 void RestorePartySpellPoints(int amount)
 {
     int party_slot;
-    int realm;
     int granted;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
@@ -313,10 +306,7 @@ void RestorePartySpellPoints(int amount)
             g_status.buffers.Char[party_slot].hp_current != 0) {
             granted = amount;
             if (amount < 0) {
-                granted = 0;
-                for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-                    granted += g_status.buffers.Char[party_slot].sp_max[realm];
-                }
+                granted = SumCharacterSpellPoints(&g_status.buffers.Char[party_slot]);
             }
             RestoreCharacterSpellPointsEvenly(party_slot, granted);
         }
@@ -710,7 +700,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
             if (static_cast<unsigned int>(character->iSPLeft[realm]) <= remaining) {
                 taken = character->iSPLeft[realm];
             }
-            SpendRealmSpellPoints(party_slot, realm, taken);
+            SpendCharacterSpellPoints(party_slot, realm, taken);
             if (announce) {
                 ShowNoticef(8, gppStringList[0x263], amount,
                             gppStringList[g_realm_message_offsets[realm]]);
@@ -1123,7 +1113,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
     if (amount == 0) {
         return;
     }
-    SpendRealmSpellPoints(party_slot, realm, amount);
+    SpendCharacterSpellPoints(party_slot, realm, amount);
     if (announce) {
         ShowNoticef(8, gppStringList[0x263], amount, gppStringList[g_realm_message_offsets[realm]]);
     }
@@ -1401,16 +1391,9 @@ unsigned int FindPartySlotWithLowestSpellPoints(void)
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 &&
             character->highest_condition < W8_CONDITION_DEAD) {
-            unsigned int pool_max = 0;
-            for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-                pool_max += character->sp_max[realm];
-            }
+            unsigned int pool_max = SumCharacterSpellPoints(character);
             if (pool_max > 0) {
-                int pool_left = 0;
-                for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-                    int left = character->iSPLeft[realm];
-                    pool_left += left & ((left <= 0) - 1);
-                }
+                int pool_left = SumCharacterSpellPointsLeft(character);
                 unsigned int percent = (unsigned int)(pool_left * 100) / pool_max;
                 if (percent < best_percent) {
                     best_percent = percent;

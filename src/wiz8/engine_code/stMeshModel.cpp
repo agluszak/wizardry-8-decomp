@@ -36,9 +36,9 @@ W8GrowableVector<stMeshModel*> g_mesh_models;
 int g_decompressed_mesh_bytes;
 
 /* Active-polygon scratch for the optional software backface pass in
-   RenderTriMeshWithEquations. Layout matches srHeapArray<ulong>. */
+   RenderTriMeshWithEquations. Layout matches srHeapBuffer<ulong>. */
 // GLOBAL: WIZ8 0x00659ce0
-srHeapArray<unsigned long> g_software_cull_active_polygons;
+srHeapBuffer<unsigned long> g_software_cull_active_polygons;
 
 /* Byte budget for the decompressed per-frame caches; AllocateFrameBuffers
    reclaims least-recently-used frames past it. */
@@ -125,12 +125,7 @@ stMeshModel::~stMeshModel()
         RemoveSkinTable(0);
     }
     if ((flags_3a0 & 4) != 0) {
-        for (int index = 0; index < g_mesh_models.count; ++index) {
-            if (g_mesh_models.data[index] == this) {
-                g_mesh_models.RemoveAt(index);
-                break;
-            }
-        }
+        g_mesh_models.Remove(this);
     }
     if (lerp_buffer_448 != 0) {
         srHeap.free(lerp_buffer_448);
@@ -258,12 +253,8 @@ void stMeshModel::CalculateLinkedBounds()
 // FUNCTION: WIZ8 0x00473190
 void stMeshModel::GetFrameBounds(int frame, srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
-    minimum->x = 0;
-    minimum->y = 0;
-    minimum->z = 0;
-    maximum->x = 0;
-    maximum->y = 0;
-    maximum->z = 0;
+    minimum->SetZero();
+    maximum->SetZero();
     if (m_pVertexLoc != 0 && vertex_location_count_22c != 0 &&
         static_cast<unsigned int>(frame) < frame_count) {
         srVector3T<float>* vertices = m_pVertexLoc[frame];
@@ -488,27 +479,8 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
         } else if (poly_equations != 0) {
             renderer.setCullMode(srGERD::CULL_FRONT);
 
-            if (g_software_cull_active_polygons.capacity !=
-                static_cast<unsigned long>(mesh.polygon_count_04)) {
-                unsigned long needed = static_cast<unsigned long>(mesh.polygon_count_04);
-                if (needed == 0) {
-                    g_software_cull_active_polygons.release();
-                } else {
-                    unsigned long* replacement = srHeapArray<unsigned long>::allocate(needed);
-                    if (g_software_cull_active_polygons.data != 0 &&
-                        g_software_cull_active_polygons.capacity != 0) {
-                        unsigned long copy_count = g_software_cull_active_polygons.capacity;
-                        if (needed < copy_count) {
-                            copy_count = needed;
-                        }
-                        CopyUlongBuffer(replacement, g_software_cull_active_polygons.data,
-                                        copy_count);
-                    }
-                    g_software_cull_active_polygons.release();
-                    g_software_cull_active_polygons.data = replacement;
-                    g_software_cull_active_polygons.capacity = needed;
-                }
-            }
+            g_software_cull_active_polygons.setCapacity(
+                static_cast<unsigned long>(mesh.polygon_count_04), 1);
 
             srMatrix4T<float> inverse_model_view;
             renderer.getInverseModelViewMatrix(inverse_model_view);
@@ -580,9 +552,8 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
 
         for (int side = 1; side >= 0; --side) {
             if ((mesh.control_flags_0c & (1u << side)) != 0) {
-                srTriMeshPipeline* pipeline = srTriMeshPipeline::Get004750A0(&renderer);
-                // reinterpret-ok: sort bias is stored as float bits in extra_40
-                pipeline->extra_40 = *reinterpret_cast<const unsigned long*>(&mesh.sort_bias_148);
+                srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
+                pipeline->sort_bias_40 = mesh.sort_bias_148;
                 pipeline->triangles_34 = mesh.poly_vertices_10;
                 pipeline->triangle_count_1c = static_cast<unsigned long>(mesh.polygon_count_04);
                 pipeline->positions_38 = mesh.positions_38;
@@ -655,7 +626,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                         if (g_inverted_depth_render != 0) {
                             shader.value = (shader.value & 0xfffffffeUL) | 6UL;
                         }
-                        pipeline->SetFlags004752C0(shader);
+                        pipeline->SetFlags(shader);
                     } else {
                         pipeline->current_pass_18->shader_14 = mesh.poly_shaders_100[pass];
                     }
@@ -1285,27 +1256,27 @@ unsigned char stMeshModel::DecompressFrame(int frame, unsigned char flags,
     if (flags & 1) {
         for (int index = 0; index < vertex_location_count_22c; ++index) {
             const short* source = &compressed_vertex_locations[frame][index * 3];
-            destination[index].x = source[0] * vertex_compression_scale_444;
-            destination[index].y = source[1] * vertex_compression_scale_444;
-            destination[index].z = source[2] * vertex_compression_scale_444;
+            destination[index].Set(source[0] * vertex_compression_scale_444,
+                                   source[1] * vertex_compression_scale_444,
+                                   source[2] * vertex_compression_scale_444);
         }
         return 1;
     }
     if (flags & 2) {
         for (int index = 0; index < vertex_location_count_22c; ++index) {
             const unsigned char* source = &compressed_vertex_normals[frame][index * 3];
-            destination[index].x = s_compressed_normal_table[source[0]];
-            destination[index].y = s_compressed_normal_table[source[1]];
-            destination[index].z = s_compressed_normal_table[source[2]];
+            destination[index].Set(s_compressed_normal_table[source[0]],
+                                   s_compressed_normal_table[source[1]],
+                                   s_compressed_normal_table[source[2]]);
         }
         return 1;
     }
     if (flags & 4) {
         for (int index = 0; index < polygon_count_230; ++index) {
             const unsigned char* source = &compressed_polygon_normals[frame][index * 3];
-            destination[index].x = s_compressed_normal_table[source[0]];
-            destination[index].y = s_compressed_normal_table[source[1]];
-            destination[index].z = s_compressed_normal_table[source[2]];
+            destination[index].Set(s_compressed_normal_table[source[0]],
+                                   s_compressed_normal_table[source[1]],
+                                   s_compressed_normal_table[source[2]]);
         }
         return 1;
     }
@@ -1524,9 +1495,7 @@ void stMeshModel::ComputeFrameNormals(int frame)
     srVectorProcessor::normalize(vnorm, vnorm, 1.0f, vertex_location_count_22c);
     for (int vertex = 0; vertex < vertex_location_count_22c; ++vertex) {
         if (vnorm[vertex].x == 0.0f && vnorm[vertex].y == 0.0f && vnorm[vertex].z == 0.0f) {
-            vnorm[vertex].x = 1e-6f;
-            vnorm[vertex].y = 1e-6f;
-            vnorm[vertex].z = 1e-6f;
+            vnorm[vertex].Set(1e-6f, 1e-6f, 1e-6f);
         }
     }
     srVectorProcessor::mul(&vnorm->x, 127.0f, &vnorm->x, vertex_location_count_22c * 3);
@@ -1558,7 +1527,7 @@ srVector3T<float>* stMeshModel::GetVertexLights(char initialize, int table)
     if (table == -1) {
         table = vertex_light_table_3b0;
     }
-    srHeapArray<srVector3T<float> >& lights = vertex_lights_3b4[table];
+    srHeapBuffer<srVector3T<float> >& lights = vertex_lights_3b4[table];
     if (lights.data == 0 && initialize) {
         lights.setCapacity(vertex_location_count_22c, 0);
         srVector3T<float> zero(0.0f, 0.0f, 0.0f);
@@ -1612,29 +1581,29 @@ void stMeshModel::FinalizeVertexFrame(int frame)
 // srArray<srTriMeshPipeline::Pass>::setCapacity
 
 // TEMPLATE: WIZ8 0x00475240
-// srHeapArray<srVertexProcessor*>::ensure (folded four-byte-element instantiations)
+// srHeapBuffer<srVertexProcessor*>::ensure (folded four-byte-element instantiations)
 
 // TEMPLATE: WIZ8 0x004741b0
-// srHeapArray<T>::release (null-checked; four-byte-element instantiations)
+// srHeapBuffer<T>::release (null-checked; four-byte-element instantiations)
 
 /* Further primary-template emissions in this TU: the preserving setCapacity
    overloads, the unconditional release for the twelve-byte-element vector
    array, member vector dtors/deleting destructors, and the copy machinery the
    srClassSupport clone reaches. */
 // TEMPLATE: WIZ8 0x004700D0
-// srHeapArray<srVector3T<float> >::setCapacity (element-constructing emission)
+// srArray<srVector3T<float> >::setCapacity
 
 // TEMPLATE: WIZ8 0x004701D0
-// srHeapArray<srVector3T<float> >::release (unconditional-free emission)
+// srArray<srVector3T<float> >::release
 
 // TEMPLATE: WIZ8 0x004744A0
-// srHeapArray<srVector3T<float> >::setCapacity (preserving two-argument emission)
+// srHeapBuffer<srVector3T<float> >::setCapacity (preserving two-argument emission)
 
 // TEMPLATE: WIZ8 0x004747D0
-// srHeapArray<srVector3T<float> >::allocate
+// srHeapBuffer<srVector3T<float> >::allocate
 
 // TEMPLATE: WIZ8 0x00474650
-// srHeapArray<float>::setCapacity (preserving two-argument emission)
+// srHeapBuffer<float>::setCapacity (preserving two-argument emission)
 
 // TEMPLATE: WIZ8 0x00474790
 // srVector3T<float> elementwise copy (clone member-copy emission)
@@ -1692,7 +1661,7 @@ void stMeshModel::FinalizeVertexFrame(int frame)
 /* Mirror the active shader onto both the pipeline and the current Pass record
    selected at +0x18. */
 // FUNCTION: WIZ8 0x004752C0
-void srTriMeshPipeline::SetFlags004752C0(srShader shader)
+void srTriMeshPipeline::SetFlags(srShader shader)
 {
     shader_74 = shader;
     current_pass_18->flags_08 = shader;
@@ -1720,7 +1689,7 @@ void srTriMeshPipeline::PrepareSlot()
 }
 
 // FUNCTION: WIZ8 0x00475510
-void srTriMeshPipeline::Flush00475510()
+void srTriMeshPipeline::Flush()
 {
     flushing_8c = 1;
     if (slot_count_84 > 0) {
@@ -1729,10 +1698,9 @@ void srTriMeshPipeline::Flush00475510()
     flushing_8c = 0;
 }
 
-/* Bind a renderer and rebuild the current slot. Retail duplicates the prepare
-   body rather than calling PrepareSlot. */
+/* Bind a renderer and rebuild the current slot through PrepareSlot. */
 // FUNCTION: WIZ8 0x004753F0
-void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
+void srTriMeshPipeline::Reset(srGERD* renderer)
 {
     slot_count_84 = 0;
     renderer_88 = renderer;
@@ -1747,26 +1715,13 @@ void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
     positions_38 = 0;
     vertex_extras_3c = 0;
     bounds_state_6c = 0;
-    extra_40 = 0;
+    sort_bias_40 = 0.0f;
     shader_74.value = 0x0100241b;
     texture_78 = 0;
     pass_value_7c = 0;
     material_80 = srCore.getMaterial();
 
-    current_record_14 = &records_94[slot_count_84];
-    current_pass_18 = &passes_9c[slot_count_84];
-
-    current_record_14->flags_00 = 0;
-    current_record_14->disable_mask_04 = 0;
-    current_record_14->material_08 = material_80;
-    current_pass_18->texture_00 = texture_78;
-    current_pass_18->pass_value_04 = pass_value_7c;
-    current_pass_18->flags_08.value = shader_74.value;
-    current_pass_18->texture_array_0c = 0;
-    current_pass_18->texture_array_10 = 0;
-    current_pass_18->shader_14 = 0;
-    current_pass_18->st_18 = 0;
-    current_pass_18->poly_uv_1c = 0;
+    PrepareSlot();
 }
 
 srTriMeshPipeline::srTriMeshPipeline()
@@ -1775,8 +1730,8 @@ srTriMeshPipeline::srTriMeshPipeline()
     shader_74.value = 0;
     vertex_pipe_90 = new srVertexPipe();
     flushing_8c = 0;
-    Reset004753F0(0);
-    Flush00475510();
+    Reset(0);
+    Flush();
 }
 
 // FUNCTION: WIZ8 0x004752F0
@@ -2016,7 +1971,7 @@ void srTriMeshPipeline::FlushSlots()
             render_input.passes_18 = &passes_9c[0];
             render_input.position_is_float3_1c = culler_output.linear_14 == 0;
             render_input.project_clip_near_20 = &project_clip_near;
-            render_input.value_24 = extra_40;
+            render_input.sort_bias_24 = sort_bias_40;
             renderer->render(render_input);
             renderer_88->unlockRenderer(renderer, 0);
         }
@@ -2034,7 +1989,7 @@ void srTriMeshPipeline::FlushSlots()
 /* Lazy singleton: construct once against the imported pipe static, then bind
    the caller's renderer and rebuild the current slot. */
 // FUNCTION: WIZ8 0x004750A0
-srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
+srTriMeshPipeline* srTriMeshPipeline::Get(srGERD* renderer)
 {
     srTriMeshPipeline* pipeline;
 
@@ -2047,25 +2002,7 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
     }
 
     pipeline = pipe;
-    pipeline->renderer_88 = renderer;
-    pipeline->slot_count_84 = 0;
-    pipeline->flags_28 = 0;
-    pipeline->flags_28 |= 1;
-    pipeline->flags_28 |= 2;
-    pipeline->triangle_count_1c = 0;
-    pipeline->active_triangles_2c = 0;
-    pipeline->projected_vertices_30 = 0;
-    pipeline->triangles_34 = 0;
-    pipeline->vertex_count_20 = 0;
-    pipeline->positions_38 = 0;
-    pipeline->vertex_extras_3c = 0;
-    pipeline->bounds_state_6c = 0;
-    pipeline->extra_40 = 0;
-    pipeline->shader_74.value = 0x0100241b;
-    pipeline->texture_78 = 0;
-    pipeline->pass_value_7c = 0;
-    pipeline->material_80 = srCore.getMaterial();
-    pipeline->PrepareSlot();
+    pipeline->Reset(renderer);
     return pipe;
 }
 /* Retail ICF folds this empty thiscall onto W8OptionsGraphicsPanel::OnDragEnd

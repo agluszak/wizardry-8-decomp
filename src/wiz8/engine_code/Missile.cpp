@@ -128,7 +128,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
         rotation.SetIdentity();
         rotation.RotateAboutY(yaw);
         rotation.RotateAboutX(pitch);
-        missile->m_pRep->SetRotation004B88D0(&rotation);
+        missile->m_pRep->SetRotation(&rotation);
         return 1;
     }
     position = missile->GetPosition();
@@ -153,7 +153,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
         }
     }
     record->elapsed_14 = advance + record->elapsed_14;
-    missile->SetPosition004A6DF0(&out);
+    missile->SetCyclePosition(&out);
     if (missile->CheckNavigatorCollision(&position, &out) == 0 && missile->align_camera_1e4 != 0) {
         pitch = ElevationToTargetCPP(&out);
         yaw = HeadingToTargetCPP(&out);
@@ -164,7 +164,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
         if (pitch != 0.0) {
             rotation.RotateAboutX(sin(pitch), cos(pitch));
         }
-        missile->m_pRep->SetRotation004B88D0(&rotation);
+        missile->m_pRep->SetRotation(&rotation);
     }
     if (advance + record->elapsed_14 <= missile->duration_1f8) {
         if (record->limit_18 > 0.0f && record->limit_18 < advance + record->elapsed_14 &&
@@ -196,7 +196,6 @@ float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int
     W8Prop* prop;
     srVector3T<float> direction;
     srVector3T<float> position;
-    srVector3T<float> basis;
     srMatrix3T<float> rotation;
     float advance;
     float pitch;
@@ -212,9 +211,8 @@ float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int
     record->missile_0c->GetVelocity(&direction);
     *out = direction;
     position = record->missile_0c->GetPosition();
-    out->x = position.x + direction.x * advance;
-    out->y = position.y + direction.y * advance;
-    out->z = position.z + direction.z * advance;
+    out->Set(position.x + direction.x * advance, position.y + direction.y * advance,
+             position.z + direction.z * advance);
     if (g_world->octree != 0 &&
         (entity = g_world->octree->TraceAgainstProps(&position, out, 0, 0)) != 0) {
         record->limit_18 = 1.0f;
@@ -237,20 +235,14 @@ float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int
                 pitch = GetElevationAngle(&representation->location_004, out);
                 yaw = GetHeadingAngle(&representation->location_004, out);
                 missile = record->missile_0c;
-                rotation.vectors[0].x = 1.0f;
-                rotation.vectors[0].y = 0.0f;
-                rotation.vectors[0].z = 0.0f;
-                basis.Set(0.0, 1.0, 0.0);
-                rotation.vectors[1] = basis;
-                basis.Set(0.0, 0.0, 1.0);
-                rotation.vectors[2] = basis;
+                rotation.SetIdentity();
                 if (yaw != 0.0) {
                     rotation.RotateAboutY(sin(yaw), cos(yaw));
                 }
                 if (pitch != 0.0) {
                     rotation.RotateAboutX(sin(pitch), cos(pitch));
                 }
-                missile->m_pRep->SetRotation004B88D0(&rotation);
+                missile->m_pRep->SetRotation(&rotation);
                 missile->SetTargetYaw(yaw);
                 missile->SetTargetPitch(pitch);
             }
@@ -285,11 +277,7 @@ unsigned char LoadMissileDatabase(void)
     int handle;
     bool success;
 
-    if (g_missile_table) {
-        delete[] g_missile_table;
-        g_missile_table = 0;
-        g_missile_table_count = 0;
-    }
+    ReleaseMissileDatabase();
     handle = FileOpen("Data\\Databases\\MissileTables.dbs", 0x41, 0);
     if (!handle) {
         return 0;
@@ -356,9 +344,7 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
     double sine;
 
     GetCameraPosition(&camera);
-    position->x = 0.0f;
-    position->y = 0.0f;
-    position->z = 0.0f;
+    position->SetZero();
     if ((character_index & 1) == 0) {
         position->x = 75.0f;
     } else {
@@ -370,9 +356,7 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
     if (angle != 0.0) {
         cosine = cos(angle);
         sine = sin(angle);
-        third.y = 0.0f;
-        third.x = static_cast<float>(-sine);
-        third.z = static_cast<float>(cosine);
+        third.Set(static_cast<float>(-sine), 0.0f, static_cast<float>(cosine));
         second.Set(0.0, 1.0, 0.0);
         first.Set(cosine, 0.0, sine);
         step.SetRows(first, second, third);
@@ -382,9 +366,7 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
     if (angle != 0.0) {
         cosine = cos(angle);
         sine = sin(angle);
-        third.x = 0.0f;
-        third.y = static_cast<float>(sine);
-        third.z = static_cast<float>(cosine);
+        third.Set(0.0f, static_cast<float>(sine), static_cast<float>(cosine));
         second.Set(0.0, cosine, -sine);
         first.Set(1.0, 0.0, 0.0);
         step.SetRows(first, second, third);
@@ -755,11 +737,11 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
         }
         direction.Transform(rotation);
         missile->SetVelocity(&direction);
-        missile->SetPosition004A6DF0(source);
+        missile->SetCyclePosition(source);
         aim.SetIdentity();
         aim.RotateAboutY(heading);
         aim.RotateAboutX(pitch);
-        missile->m_pRep->SetRotation004B88D0(&aim);
+        missile->m_pRep->SetRotation(&aim);
         missile->SetAngles(heading);
         missile->SetPitch(pitch);
         octree = g_world->octree;
@@ -1406,7 +1388,7 @@ void W8Missile::EnterImpactCycle()
             representation->pending_behaviour_071 = 1;
             impacting_1e1 = 1;
             if (explode_ground_1e5 != 0) {
-                representation->location_004.y = SettlePositionToGround00420BD0(&position, 0);
+                representation->location_004.y = SettlePositionToGround(&position, 0);
             }
         }
     } else {

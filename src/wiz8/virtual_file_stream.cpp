@@ -56,9 +56,7 @@ W8VirtualFileBinIStream::W8VirtualFileBinIStream(const char* path) : m_hFile(0)
 
 inline srInlineString::srInlineString(const char* source)
 {
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
+    reset();
     if (source != 0) {
         operator=(source);
     }
@@ -66,9 +64,7 @@ inline srInlineString::srInlineString(const char* source)
 
 inline srInlineString::srInlineString(const srInlineString& source)
 {
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
+    reset();
     if (source.data_ != 0) {
         operator=(source);
     }
@@ -76,9 +72,7 @@ inline srInlineString::srInlineString(const srInlineString& source)
 
 inline srInlineString::srInlineString(const srInlineString& source, long begin, long end)
 {
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
+    reset();
     char* temporary = static_cast<char*>(srHeap.allocate(end - begin + 2));
     strncpy(temporary, source.data_ + begin, end - begin);
     temporary[end - begin] = '\0';
@@ -126,12 +120,7 @@ inline srInlineString& srInlineString::operator=(const srInlineString& source)
 // FUNCTION: WIZ8 0x0047CE00
 srInlineString& srInlineString::operator=(const char* source)
 {
-    if (data_ != inline_) {
-        srHeap.free(data_);
-    }
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
+    release();
     if (source == 0 || *source == '\0') {
         return *this;
     }
@@ -191,10 +180,7 @@ srInlineString& srInlineString::operator+=(const char* suffix)
     char* combined = static_cast<char*>(srHeap.allocate(combined_size));
     strcpy(combined, data_);
     strcpy(combined + size_ - 1, suffix);
-    if (data_ != inline_) {
-        srHeap.free(data_);
-    }
-    inline_[0] = '\0';
+    release();
     size_ = combined_size;
     data_ = combined;
     return *this;
@@ -230,10 +216,7 @@ srInlineString operator+(const srInlineString& left, const srInlineString& right
     char* combined = static_cast<char*>(srHeap.allocate(combined_size));
     strcpy(combined, result.data());
     strcpy(combined + result.size() - 1, right.data());
-    if (result.data_ != result.inline_) {
-        srHeap.free(result.data_);
-    }
-    result.inline_[0] = '\0';
+    result.release();
     result.size_ = combined_size;
     result.data_ = combined;
     return result;

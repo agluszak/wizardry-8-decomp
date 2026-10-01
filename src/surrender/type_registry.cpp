@@ -4,6 +4,7 @@
 #include "surrender/srDebug.h"
 #include "surrender/srHash.h"
 
+#include <ostream>
 #include <string.h>
 
 /* The assert strings carry the original build tree's __FILE__ expansions,
@@ -14,7 +15,7 @@
 namespace {
 unsigned long next_instance_id = 1;
 
-unsigned long hashName(const char* name)
+inline unsigned long hashName(const char* name)
 {
     unsigned long hash = 0;
     for (unsigned long index = 0; name[index] != '\0'; ++index) {
@@ -74,6 +75,9 @@ struct srRegistry::ClassNode::NameIndex {
 
         NameEntry* entry = free_14;
         free_14 = entry->next_00;
+        /* Retail clears the popped entry's link before reconfiguring it
+           (0x1000F97B), even though the bucket push below overwrites it. */
+        entry->next_00 = 0;
         unsigned long bucket = hashName(name) & (bucket_count_20 - 1);
         entry->bucket_08 = bucket;
         entry->name_0c = name;
@@ -176,6 +180,9 @@ private:
                     for (NameEntry* entry = buckets_18[bucket]; entry != 0;
                          entry = entry->next_00) {
                         const char* name = entry->name_0c;
+                        if (free_14 == 0) {
+                            resize(bucket_count_20 * 2);
+                        }
                         NameEntry* reused = free_14;
                         free_14 = reused->next_00;
                         unsigned long new_bucket = hashName(name) & (bucket_count_20 - 1);
@@ -244,11 +251,13 @@ struct srRegistry::ClassNode::IDIndex {
     {
     }
 
-    /* Retail ~ClassNode (0x1000F73C-0x1000F77D) tears an IDIndex down as
-       authored cleanup, not through a destructor: it destroys by_id_20
-       first, runs the link and block teardown, then frees the object
-       through operator delete. No implicit srHashTable member teardown
-       follows, so this sequence cannot be an ~IDIndex destructor body. */
+    /* Retail ~IDIndex (0x100109F0) is a callable body invoked by delete
+       expressions, so its definition sits out-of-line below the struct. */
+    ~IDIndex();
+
+    /* Standalone full teardown (0x10010670): drains the link list, clears
+       the block pool, then runs the destructor in place. Retail never
+       calls it — ~ClassNode performs the same steps manually. */
     void destroy();
 
     void* operator new(unsigned int size)
@@ -304,15 +313,20 @@ struct srRegistry::ClassNode::IDIndex {
     {
         InstanceLink* link = first_14;
         if (relative_to != 0) {
-            while (link != 0 && link->instance_00 != relative_to) {
+            while (link != 0) {
+                srRuntimeClass* instance = link->instance_00;
                 link = link->next_04;
-            }
-            if (link != 0) {
-                link = link->next_04;
+                if (instance == relative_to) {
+                    break;
+                }
             }
         }
         return link;
     }
+
+    /* ~ClassNode tears an IDIndex down in place (by_id_20 release,
+       clearLinks, delete) rather than through a single call. */
+    friend class srRegistry::ClassNode;
 
 private:
     /* Retail emits insert as a callable body (0x100107E0), so its definition
@@ -321,8 +335,10 @@ private:
 
     void allocateBlock()
     {
-        unsigned long count = active_count_00 < 2 ? 1 : active_count_00;
-        if (count > 0x100) {
+        /* Retail compares signed (0xff < (int)count) and clamps counts
+           at 0x100, not above it. */
+        int count = active_count_00 < 2 ? 1 : active_count_00;
+        if (count > 0xff) {
             count = 0x100;
         }
         InstanceLink* block =
@@ -331,7 +347,7 @@ private:
         unsigned long index = block_count_10;
         block_count_10 = index + 1;
         blocks_08[index] = block;
-        for (unsigned long i = 0; i < count; ++i) {
+        for (int i = 0; i < count; ++i) {
             block[i].free_00 = &block[i + 1];
         }
         block[count - 1].free_00 = 0;
@@ -356,24 +372,14 @@ private:
     InstanceLink* first_14;
     InstanceLink* last_18;
     unsigned long list_count_1c;
-    /* Manually destroyed by the owner (see destroy()): teardown through an
-       ordinary destructor would make the compiler emit a second by_id_20
-       destruction after the body, which retail does not have. */
-    srHashTable<unsigned long, InstanceLink*> by_id_20;
+    /* Dtorless: ~IDIndex (0x100109F0) runs no hash teardown, and ~ClassNode
+       (0x1000F73C-0x1000F759) releases the two arrays before the link/block
+       teardown. */
+    srHashTableBase<unsigned long, InstanceLink*> by_id_20;
 };
 
 static_assert(sizeof(srRegistry::ClassNode::IDIndex) == 0x30,
               "srRegistry_ClassNode_IDIndex_must_be_0x30");
-
-// FUNCTION: SURRENDER 0x10010670
-void srRegistry::ClassNode::IDIndex::destroy()
-{
-    // member-dtor-ok: retail ~ClassNode destroys by_id_20 in place before the
-    // pooled link/block teardown at 0x1000F73C; no ~IDIndex body exists there.
-    by_id_20.~srHashTable();
-    clearLinks();
-    clearBlocks();
-}
 
 // FUNCTION: SURRENDER 0x100107E0
 srRegistry::ClassNode::IDIndex::InstanceLink*
@@ -407,6 +413,18 @@ srRegistry::ClassNode::IDIndex::insert(InstanceLink* after, srRuntimeClass*& ins
     return link;
 }
 
+// FUNCTION: SURRENDER 0x10010A90
+void srRegistry::ClassNode::IDIndex::clearBlocks()
+{
+    for (unsigned long index = 0; index < block_count_10; ++index) {
+        srHeap.free(blocks_08[index]);
+    }
+    blocks_08.release();
+    free_04 = 0;
+    block_count_10 = 0;
+    active_count_00 = 0;
+}
+
 // FUNCTION: SURRENDER 0x100108E0
 void srRegistry::ClassNode::IDIndex::clearLinks()
 {
@@ -422,27 +440,43 @@ void srRegistry::ClassNode::IDIndex::clearLinks()
         } else {
             link->next_04->previous_08 = link->previous_08;
         }
-        --active_count_00;
-        link->free_00 = free_04;
-        free_04 = link;
-        if (active_count_00 == 0) {
-            clearBlocks();
+        /* Retail guards the unlink bookkeeping with link != 0 even though
+           link was just taken from the non-null first_14. */
+        if (link != 0) {
+            --active_count_00;
+            link->free_00 = free_04;
+            free_04 = link;
+            if (active_count_00 == 0) {
+                clearBlocks();
+            }
         }
         --list_count_1c;
     }
     clearBlocks();
 }
 
-// FUNCTION: SURRENDER 0x10010A90
-void srRegistry::ClassNode::IDIndex::clearBlocks()
+// TEMPLATE: SURRENDER 0x10010BD0
+// srHashTableBase<unsigned long, srRegistry::ClassNode::IDIndex::InstanceLink*>::Grow
+
+/* member-dtor-ok: the body is clearBlocks and the implicit ~srArray member
+   teardown releases blocks_08 again; by_id_20 is a dtorless srHashTableBase so no
+   hash teardown follows; ~ClassNode (0x1000F772) and the delete-expression
+   unwind funclets call it. */
+// FUNCTION: SURRENDER 0x100109F0
+srRegistry::ClassNode::IDIndex::~IDIndex()
 {
-    for (unsigned long index = 0; index < block_count_10; ++index) {
-        srHeap.free(blocks_08[index]);
-    }
-    blocks_08.release();
-    free_04 = 0;
-    block_count_10 = 0;
-    active_count_00 = 0;
+    clearBlocks();
+}
+
+// FUNCTION: SURRENDER 0x10010670
+void srRegistry::ClassNode::IDIndex::destroy()
+{
+    clearLinks();
+    clearBlocks();
+    // member-dtor-ok: retail 0x10010670 runs clearBlocks and then repeats the
+    // ~IDIndex body plus its member teardown inline — the authored op is an
+    // in-place destructor call on a live index.
+    this->~IDIndex();
 }
 
 struct srRegistry::ClassIndex : srHashTable<unsigned long, srRegistry::ClassNode*> {};
@@ -717,17 +751,21 @@ void srClass::setUpdate(UpdateCallBack callback, double interval)
                 return;
             }
 
-            if (update_14->previous_18 != 0) {
-                update_14->previous_18->next_1c = update_14->next_1c;
+            /* Retail re-tests update_14 after the reuse-early-return and runs
+               the unlink plus delete only inside that second guard. */
+            if (update_14 != 0) {
+                if (update_14->previous_18 != 0) {
+                    update_14->previous_18->next_1c = update_14->next_1c;
+                }
+                if (update_14->next_1c != 0) {
+                    update_14->next_1c->previous_18 = update_14->previous_18;
+                }
+                if (update_14 == _firstUpdate) {
+                    _firstUpdate = update_14->next_1c;
+                }
+                delete update_14;
+                update_14 = 0;
             }
-            if (update_14->next_1c != 0) {
-                update_14->next_1c->previous_18 = update_14->previous_18;
-            }
-            if (update_14 == _firstUpdate) {
-                _firstUpdate = update_14->next_1c;
-            }
-            delete update_14;
-            update_14 = 0;
         }
 
         if (callback != 0) {
@@ -869,10 +907,13 @@ srRegistry::ClassNode* srClass::getClassNode() const
     return sGetClassNode();
 }
 
+/* Retail 0x1000E910 assigns every member in the body: the critical section
+   new runs before the access guard is taken, and root_00/class_index_04/
+   valid_08 are never zero-initialized ahead of it. */
 // FUNCTION: SURRENDER 0x1000E910
 srRegistry::srRegistry()
-    : root_00(0), class_index_04(0), valid_08(0), critical_section_0c(new srCriticalSection)
 {
+    critical_section_0c = new srCriticalSection;
     srCriticalSectionAccess access(critical_section_0c);
     class_index_04 = new ClassIndex;
     root_00 = new ClassNode(0, "root", 0);
@@ -906,7 +947,14 @@ srRegistry::~srRegistry()
         class_index_04 = 0;
         valid_08 = 0;
     }
-    delete critical_section_0c;
+    /* Retail drains the lock once more before destroying the section, all
+       under one null check (0x1000EB66-0x1000EB7E): getAccess/releaseAccess
+       complete before DeleteCriticalSection runs. */
+    if (critical_section_0c != 0) {
+        critical_section_0c->getAccess();
+        critical_section_0c->releaseAccess();
+        delete critical_section_0c;
+    }
 }
 
 /* Retail 0x1000EBA0 is a memberwise copy of root_00, class_index_04,
@@ -925,7 +973,10 @@ srRegistry& srRegistry::operator=(const srRegistry& other)
 srRegistry::ClassNode* srRegistry::getClassNode(unsigned long class_id)
 {
     srCriticalSectionAccess access(critical_section_0c);
-    return class_id == 0 ? 0 : class_index_04->Lookup(&class_id);
+    if (class_id == 0) {
+        return 0;
+    }
+    return class_index_04->Lookup(&class_id);
 }
 
 // FUNCTION: SURRENDER 0x1000EC60
@@ -949,7 +1000,7 @@ srRegistry::ClassNode* srRegistry::registerClass(const char* class_name, ClassNo
 void srRegistry::dumpClassHierarchy(std::ostream& stream)
 {
     srCriticalSectionAccess access(critical_section_0c);
-    for (ClassNode::ChildLink* link = root_00->first_child_04; link != root_00->child_end_08;
+    for (ClassNode::ChildLink* link = root_00->children_00.first_04; link != root_00->children_00.last_08;
          link = link->next_04) {
         link->node_00->dump(stream, 0);
     }
@@ -1036,11 +1087,10 @@ void srRegistry::unregisterInstance(ClassNode* node, srRuntimeClass* instance)
 int srRegistry::isDerivedOrSame(ClassNode* base, ClassNode* derived)
 {
     srCriticalSectionAccess access(critical_section_0c);
-    int result = 0;
     if (base != 0 && derived != 0) {
-        result = base->isDerivedOrSame(derived);
+        return base->isDerivedOrSame(derived);
     }
-    return result;
+    return 0;
 }
 
 // FUNCTION: SURRENDER 0x1000F2F0
@@ -1061,23 +1111,23 @@ srRuntimeClass* srRegistry::find(ClassNode* node, const srRuntimeClass* relative
 srRegistry::ClassNode* srRegistry::getRootClass()
 {
     srCriticalSectionAccess access(critical_section_0c);
-    return root_00->first_child_04->node_00;
+    return root_00->children_00.first_04->node_00;
 }
 
 // FUNCTION: SURRENDER 0x1000F3E0
 srRegistry::ClassNode* srRegistry::getChildClass(ClassNode* parent, ClassNode* child)
 {
     srCriticalSectionAccess access(critical_section_0c);
-    ClassNode::ChildLink* link = parent->first_child_04;
+    ClassNode::ChildLink* link = parent->children_00.first_04;
     ClassNode* result = 0;
     if (child == 0) {
-        if (link != parent->child_end_08) {
+        if (link != parent->children_00.last_08) {
             result = link->node_00;
         }
-    } else if (link != parent->child_end_08) {
-        while (link->node_00 != child || link->next_04 == parent->child_end_08) {
+    } else if (link != parent->children_00.last_08) {
+        while (link->node_00 != child || link->next_04 == parent->children_00.last_08) {
             link = link->next_04;
-            if (link == parent->child_end_08) {
+            if (link == parent->children_00.last_08) {
                 return 0;
             }
         }
@@ -1115,10 +1165,8 @@ srRegistry::ClassNode* srRegistry::getRootNode()
 
 // FUNCTION: SURRENDER 0x1000F580
 srRegistry::ClassNode::ClassNode(ClassNode* parent, const char* class_name, unsigned long class_id)
-    : child_count_00(0), first_child_04(new ChildLink), child_end_08(first_child_04)
+    : children_00()
 {
-    first_child_04->next_04 = 0;
-    first_child_04->previous_08 = 0;
     initialize(parent, class_name, class_id);
 }
 
@@ -1136,18 +1184,18 @@ void srRegistry::ClassNode::initialize(ClassNode* parent, const char* class_name
     instance_count_28 = 0;
     if (parent != 0) {
         ChildLink* link = new ChildLink;
-        link->next_04 = parent->first_child_04;
+        link->next_04 = parent->children_00.first_04;
         link->node_00 = this;
-        link->previous_08 = parent->first_child_04->previous_08;
+        link->previous_08 = parent->children_00.first_04->previous_08;
         if (link->previous_08 == 0) {
-            parent->first_child_04 = link;
+            parent->children_00.first_04 = link;
         } else {
             link->previous_08->next_04 = link;
         }
         if (link->next_04 != 0) {
             link->next_04->previous_08 = link;
         }
-        ++parent->child_count_00;
+        ++parent->children_00.count_00;
         inherited_named_instances_1c = parent->getNameIndex();
         inherited_instances_by_id_24 = parent->getIDIndex();
     }
@@ -1156,29 +1204,19 @@ void srRegistry::ClassNode::initialize(ClassNode* parent, const char* class_name
 // FUNCTION: SURRENDER 0x1000F670
 srRegistry::ClassNode::~ClassNode()
 {
-    for (ChildLink* link = first_child_04; link != child_end_08; link = link->next_04) {
+    for (ChildLink* link = children_00.first_04; link != children_00.last_08;
+         link = link->next_04) {
         delete link->node_00;
     }
     delete named_instances_18;
-    /* Retail runs IDIndex teardown explicitly (see IDIndex::destroy) and
-       frees the object through operator delete rather than delete. */
-    if (instances_by_id_20 != 0) {
-        instances_by_id_20->destroy();
-        IDIndex::operator delete(instances_by_id_20);
+    /* Retail releases by_id_20's storage manually — srHashTableBase has no
+       destructor — then unlinks and deletes the index object. */
+    IDIndex* index = instances_by_id_20;
+    if (index != 0) {
+        index->by_id_20.Release();
+        index->clearLinks();
+        delete index;
     }
-    while (first_child_04 != child_end_08) {
-        ChildLink* link = first_child_04;
-        first_child_04 = link->next_04;
-        if (link->previous_08 != 0) {
-            link->previous_08->next_04 = link->next_04;
-        }
-        if (link->next_04 != 0) {
-            link->next_04->previous_08 = link->previous_08;
-        }
-        delete link;
-        --child_count_00;
-    }
-    delete child_end_08;
 }
 
 // FUNCTION: SURRENDER 0x1000F7E0
@@ -1209,7 +1247,7 @@ void srRegistry::ClassNode::dump(std::ostream& stream, int indent)
     for (i = indent; i != 0; i--) {
         stream << ' ';
     }
-    stream << "Num children: " << child_count_00 << '\n';
+    stream << "Num children: " << children_00.count_00 << '\n';
     for (i = indent; i != 0; i--) {
         stream << ' ';
     }
@@ -1218,7 +1256,7 @@ void srRegistry::ClassNode::dump(std::ostream& stream, int indent)
         stream << ' ';
     }
     stream << "Nearest parent hash: " << inherited_named_instances_1c << '\n';
-    for (ChildLink* link = first_child_04; link != child_end_08; link = link->next_04) {
+    for (ChildLink* link = children_00.first_04; link != children_00.last_08; link = link->next_04) {
         link->node_00->dump(stream, indent + 2);
     }
 }
@@ -1298,14 +1336,17 @@ srRuntimeClass* srRegistry::ClassNode::findByName(ClassNode* requested_class, co
         if (exact != 0) {
             return 0;
         }
-        ChildLink* child = first_child_04;
-        if (relative_to != 0 && child != child_end_08) {
-            do {
+        ChildLink* child = children_00.first_04;
+        if (relative_to != 0) {
+            while (child != children_00.last_08) {
                 srRuntimeClass* hit = child->node_00->findByName(requested_class, name, 0, 0);
-                while (hit != 0 && hit != relative_to) {
+                while (hit != 0) {
+                    if (hit == relative_to) {
+                        break;
+                    }
                     hit = child->node_00->findByName(requested_class, name, 0, hit);
                 }
-                if (hit != 0) {
+                if (hit == relative_to) {
                     found = child->node_00->findByName(requested_class, name, 0, relative_to);
                     if (found != 0) {
                         return found;
@@ -1314,18 +1355,15 @@ srRuntimeClass* srRegistry::ClassNode::findByName(ClassNode* requested_class, co
                     break;
                 }
                 child = child->next_04;
-            } while (child != child_end_08);
+            }
         }
-        if (child == child_end_08) {
-            return 0;
-        }
-        do {
+        while (child != children_00.last_08) {
             found = child->node_00->findByName(requested_class, name, 0, 0);
             if (found != 0) {
                 return found;
             }
             child = child->next_04;
-        } while (child != child_end_08);
+        }
         return 0;
     }
 
@@ -1355,17 +1393,20 @@ srRuntimeClass* srRegistry::ClassNode::findRelative(ClassNode* requested_class, 
     IDIndex* index = getIDIndex();
     if (index == 0) {
         if (exact == 0) {
-            ChildLink* child = first_child_04;
+            ChildLink* child = children_00.first_04;
             if (relative_to != 0) {
-                if (child == child_end_08) {
+                if (child == children_00.last_08) {
                     return 0;
                 }
                 do {
                     srRuntimeClass* hit = child->node_00->findRelative(requested_class, 0, 0);
-                    while (hit != 0 && hit != relative_to) {
+                    while (hit != 0) {
+                        if (hit == relative_to) {
+                            break;
+                        }
                         hit = child->node_00->findRelative(requested_class, 0, hit);
                     }
-                    if (hit != 0) {
+                    if (hit == relative_to) {
                         srRuntimeClass* found =
                             child->node_00->findRelative(requested_class, 0, relative_to);
                         if (found != 0) {
@@ -1375,9 +1416,9 @@ srRuntimeClass* srRegistry::ClassNode::findRelative(ClassNode* requested_class, 
                         break;
                     }
                     child = child->next_04;
-                } while (child != child_end_08);
+                } while (child != children_00.last_08);
             }
-            while (child != child_end_08) {
+            while (child != children_00.last_08) {
                 srRuntimeClass* found = child->node_00->findRelative(requested_class, 0, 0);
                 if (found != 0) {
                     return found;
@@ -1414,7 +1455,7 @@ srRuntimeClass* srRegistry::ClassNode::findByID(ClassNode* requested_class, unsi
     IDIndex* index = getIDIndex();
     if (index == 0) {
         if (exact == 0) {
-            for (ChildLink* child = first_child_04; child != child_end_08; child = child->next_04) {
+            for (ChildLink* child = children_00.first_04; child != children_00.last_08; child = child->next_04) {
                 srRuntimeClass* found = child->node_00->findByID(requested_class, id, 0);
                 if (found != 0) {
                     return found;
@@ -1424,14 +1465,18 @@ srRuntimeClass* srRegistry::ClassNode::findByID(ClassNode* requested_class, unsi
         return 0;
     }
 
-    srRuntimeClass* found = index->find(id);
-    if (found == 0) {
-        return 0;
-    }
-    ClassNode* found_class = found->getClassNode();
-    if (exact != 0 ? requested_class->isSame(found_class)
-                   : requested_class->isDerivedOrSame(found_class)) {
-        return found;
+    IDIndex::InstanceLink* link = index->by_id_20.Lookup(&id);
+    if (link != 0) {
+        srRuntimeClass* found = link->instance_00;
+        if (exact == 0) {
+            if (requested_class->isDerivedOrSame(found->getClassNode())) {
+                return found;
+            }
+        } else {
+            if (requested_class->isSame(found->getClassNode())) {
+                return found;
+            }
+        }
     }
     return 0;
 }
@@ -1465,7 +1510,7 @@ long srRegistry::ClassNode::getNumberOfInstances(int exact) const
     }
 
     long children = 0;
-    for (ChildLink* child = first_child_04; child != child_end_08; child = child->next_04) {
+    for (ChildLink* child = children_00.first_04; child != children_00.last_08; child = child->next_04) {
         children += child->node_00->getNumberOfInstances(0);
     }
     return instance_count_28 - children;
@@ -1520,50 +1565,53 @@ long srClass::getReferenceCount() const
 // SYNTHETIC: SURRENDER 0x10010640
 // std::_Winit global atexit registrar
 
-/* Retail 0x10010780 drains the {child_count_00, first_child_04, child_end_08}
-   sentinel list embedded at ClassNode+0x00, freeing each ChildLink through
-   operator delete; the only callers are exception-unwind funclets. No
-   authored member corresponds to it: ~ClassNode walks the same links inline. */
-// SYNTHETIC: SURRENDER 0x10010780
-// srRegistry::ClassNode child-link list teardown (EH-unwind emission)
+/* Retail 0x10010780 drains the {count_00, first_04, last_08} sentinel list
+   embedded at ClassNode+0x00, freeing each ChildLink through operator delete;
+   the only callers are exception-unwind funclets. It is the out-of-line
+   emission of ClassNode::ChildList's destructor. */
 
-/* Not clearBlocks (0x10010A90): this body expands clearBlocks and then
-   destroys blocks_08, and ~ClassNode (0x1000F772) and two unwind funclets
-   call it. Its authored identity is unresolved. */
-// SYNTHETIC: SURRENDER 0x100109F0
-// srRegistry::ClassNode::IDIndex block teardown with blocks_08 destruction
+/* member-dtor-ok: ~IDIndex (retail 0x100109F0) — the body is clearBlocks and
+   the implicit ~srArray member teardown releases blocks_08 again; by_id_20
+   is a dtorless srHashTableBase so no hash teardown follows; ~ClassNode (0x1000F772)
+   and the delete-expression unwind funclets call it. */
 
+/* Funclet-invoked on this+8 during the IDIndex constructor unwind: the
+   blocks_08 member destructor. */
 // TEMPLATE: SURRENDER 0x10010B40
-// srArray<srRegistry::ClassNode::IDIndex::InstanceLink*>::release
+// srArray<srRegistry::ClassNode::IDIndex::InstanceLink*>::~srArray
 
 // TEMPLATE: SURRENDER 0x10010B60
 // srArray<srRegistry::ClassNode::IDIndex::InstanceLink*>::setCapacity
 
-// TEMPLATE: SURRENDER 0x10010BD0
-// srHashTable<unsigned long, srRegistry::ClassNode::IDIndex::InstanceLink*>::Grow
-
 // TEMPLATE: SURRENDER 0x10010D20
-// srHashTable<unsigned long, srRegistry::ClassNode*>::Grow
+// srHashTableBase<unsigned long, srRegistry::ClassNode*>::Grow
 
 // TEMPLATE: SURRENDER 0x10011270
 // srHashTable<Key, Value>::~srHashTable
 
 // TEMPLATE: SURRENDER 0x100112A0
-// srHashTable<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Lookup
+// srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Lookup
 
 /* Retail calls this Remove emission for by_instance_00 from the unregister
    and refresh paths; the by_id_20 Remove is inlined at its call sites. */
 // TEMPLATE: SURRENDER 0x100112F0
-// srHashTable<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Remove
+// srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Remove
 
 // TEMPLATE: SURRENDER 0x10011380
-// srHashTable<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Clear
+// srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Clear
 
+/* Called on the fresh NameIndex's by_instance_00 from the instance-index
+   setup path (0x1000F82D) and from the inlined AllocateEntry inside the
+   register path (0x1000FC5E). */
 // TEMPLATE: SURRENDER 0x100114D0
-// srHashTable<unsigned long, srRegistry::ClassNode::IDIndex::InstanceLink*>::Grow
+// srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Grow
 
+/* AllocateEntry emits standalone for by_instance_00: its body is the
+   free_head == -1 guard, the inlined Grow, then the free-slot pop. Called
+   from the inherited-instance population loop (0x1000F9F6) and resize's
+   reinsert path (0x100111B4). */
 // TEMPLATE: SURRENDER 0x10011620
-// srHashTable<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Grow
+// srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::AllocateEntry
 
 // SYNTHETIC: SURRENDER 0x1000E2D0
 // srClass scalar deleting destructor

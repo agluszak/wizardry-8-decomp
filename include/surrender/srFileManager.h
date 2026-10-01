@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <iosfwd>
 
 #include "srHeap.h"
 
@@ -28,9 +28,18 @@ public:
     };
 
     SR_DLL_IMPORT srFileManager();
+    /* Provider copy/assignment are the implicit first_path_04 pointer copy.
+       Consumers retain the imported standalone declarations. */
+    // SYNTHETIC: SURRENDER 0x100163C0
+    // srFileManager::srFileManager(const srFileManager&)
+    // SYNTHETIC: SURRENDER 0x100163E0
+    // srFileManager::operator=
+
+#if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srFileManager(const srFileManager& other);
-    virtual SR_DLL_IMPORT ~srFileManager();
     SR_DLL_IMPORT srFileManager& operator=(const srFileManager& other);
+#endif
+    virtual SR_DLL_IMPORT ~srFileManager();
 
     SR_DLL_IMPORT void addPath(const char* path);
     SR_DLL_IMPORT void dump(std::ostream& stream);

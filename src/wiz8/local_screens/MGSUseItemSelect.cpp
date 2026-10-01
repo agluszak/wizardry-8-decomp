@@ -172,9 +172,7 @@ unsigned char OpenUseItemSelectView(int slot)
     if (g_level_block->combat_end_notification != -1) {
         DestroySubMenuControls();
     }
-    if (gXStatus.fNpcDialogueMode != 0) {
-        EndNpcDialogueSession(0);
-    }
+    CloseNpcDialogueIfActive();
     CloseMainGameOverlays();
     mode = g_settings.main_ui_mode;
     if (mode == W8_MAIN_UI_MODE_RADAR) {
@@ -183,16 +181,7 @@ unsigned char OpenUseItemSelectView(int slot)
         SetViewportMode(GetMainGameViewportMode());
     }
     g_value_69b988 = mode;
-    RegionSetEnable(0x14);
-    EnableRegionInput(0x52);
-    EnableRegionInput(0x53);
-    EnableRegionInput(0x54);
-    EnableRegionInput(0x55);
-    g_level_block->action_panel_visible = 1;
-    DisableRegionInput(0x59);
-    DisableRegionInput(0x56);
-    DisableRegionInput(0x57);
-    DisableRegionInput(0x58);
+    RestoreSpellCastingRegions();
     RegionSetEnable(0x1a);
     SelectTextBox(2);
     ResetEditorStatusLine(-1);
@@ -213,7 +202,7 @@ unsigned char OpenUseItemSelectView(int slot)
     memset(g_use_item_list, 0, sizeof(g_use_item_list));
     g_use_item_select_controls[7]->SetEnabled(0);
     RequestRedraw(0x200);
-    RequestRedraw(0x100);
+    RequestRedrawCombatBar();
     RequestRedraw(0x1000);
     g_use_item_owner_index = -1;
     RefreshUseItemSelectionForSlot(slot);
@@ -260,7 +249,7 @@ void CloseUseItemSelectView(void)
         gXStatus.fItemSelectMode = false;
         ApplyMainGameModeFlag(g_value_69b988, 1);
         RequestRedraw(0x200);
-        RequestRedraw(0x100);
+        RequestRedrawCombatBar();
         RequestRedraw(0x1000);
         ResumeMainGameWorld();
         gXStatus.item_drag_active = 0;
@@ -314,12 +303,7 @@ void RefreshUseItemSelectionForSlot(int party_slot)
         } else {
             ResetEditorStatusLine(2);
             g_use_item_select_controls[3]->SetEnabled(1);
-            if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
-                                           g_W8TextControlStateSecondary) == 0) {
-                g_use_item_select_controls[3]->EnableSecondaryState(1);
-                g_use_item_select_controls[3]->Invalidate(0);
-            }
-            g_use_item_select_flags |= 1;
+            UseItemSelectFilterToggle();
             g_use_item_list_count = 0;
             g_selected_use_item_line = -1;
             AppendUseItemListEntry(&g_status.item_in_hand_235b, &g_status.item_in_hand_235b, 0);
@@ -365,17 +349,7 @@ void RefreshUseItemSelectionForSlot(int party_slot)
         return;
     }
     g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
-    if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
-                                   g_W8TextControlStateSecondary) != 0) {
-        if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
-                                       g_W8TextControlStateSecondary) != 0) {
-            g_use_item_select_scroll_buttons[1]->DisableSecondaryState(0);
-            g_use_item_select_scroll_buttons[1]->Invalidate(0);
-        }
-        RebuildUseItemSelectList(0, 0);
-        return;
-    }
-    g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
+    UseItemSelectScrollUp();
 }
 
 // FUNCTION: WIZ8 0x0059CF30
@@ -390,12 +364,11 @@ void RedrawPanel69B998(void)
 }
 
 /* fItemSelectMode per-frame update: keep the scroll buttons synced, run the
-   dirty panels' redraw pass, then re-check the pending commit — the same
-   sequence CommitSelectedItemUse performs, inlined here by VC6. */
+   dirty panels' redraw pass, then re-check the pending commit through the
+   shared helper. */
 // FUNCTION: WIZ8 0x0059CF50
 void UpdateUseItemSelect(unsigned char active)
 {
-    W8Character* character;
     bool panel_dirty;
     int i;
 
@@ -417,21 +390,7 @@ void UpdateUseItemSelect(unsigned char active)
             }
         }
     }
-    if (g_value_69b9a0 != 0 && CanUseItemForAction(g_status.selected_character, g_value_69b9a0) &&
-        IsItemTargetOfNeededKind(g_status.selected_character, g_value_69b9a0)) {
-        character = &g_status.buffers.Char[g_status.selected_character];
-        if (g_value_69b9a0 != 0) {
-            g_use_item_commit_active = 1;
-            CommitSelectedSpellTarget();
-            g_use_item_commit_active = 0;
-            AimItemUseAtCurrentTarget(character, g_value_69b9a0);
-            if (g_value_69b9a0 != 0 && g_value_69b9a0->iItemNo != -1 &&
-                GetItemSpell(g_value_69b9a0) == 0x17) {
-                return;
-            }
-            CloseUseItemSelectView();
-        }
-    }
+    CommitSelectedItemUse();
 }
 
 /* Keep the scroll buttons' enabled and secondary states in step with the
@@ -591,12 +550,7 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
         return;
     }
     g_use_item_select_controls[3]->SetEnabled(1);
-    if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
-                                   g_W8TextControlStateSecondary) == 0) {
-        g_use_item_select_controls[3]->EnableSecondaryState(1);
-        g_use_item_select_controls[3]->Invalidate(0);
-    }
-    g_use_item_select_flags |= 1;
+    UseItemSelectFilterToggle();
     g_use_item_list_count = 0;
     g_selected_use_item_line = -1;
     pass = 0;
@@ -610,7 +564,7 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
             ScrollTextBoxTo(0);
             pass++;
         } while (pass < 2);
-        g_use_item_select_panels[1]->Invalidate(0);
+        RedrawPanel69B998();
         return;
     }
     character = &g_status.buffers.Char[slot];
@@ -628,7 +582,7 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
         pass++;
     } while (pass < 2);
     ScrollTextBoxTo(0);
-    g_use_item_select_panels[1]->Invalidate(0);
+    RedrawPanel69B998();
 }
 
 /* Append one item to the use-item list under the active filter. Pass 0 takes

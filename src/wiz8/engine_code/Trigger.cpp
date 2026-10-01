@@ -1187,9 +1187,7 @@ void W8TriggerEvent::Update()
             srVector3T<float> axis;
             srMatrix3T<float> rotation;
 
-            source.x = trigger_030->position_118.x;
-            source.y = trigger_030->position_118.y;
-            source.z = trigger_030->position_118.z;
+            source = trigger_030->position_118;
             target = source;
             target.z += 100.0f;
 
@@ -1408,12 +1406,10 @@ void Trigger::RunLinkedTriggers()
 /* Store the trigger position and flag the representation dirty; an item
    representation is moved and re-transformed in place. */
 // FUNCTION: WIZ8 0x004416f0
-void Trigger::SetPosition004416F0(srVector3T<float>* position)
+void Trigger::SetPosition(srVector3T<float>* position)
 {
     flags_0a0 |= W8_TRIGGER_POSITIONED;
-    position_118.x = position->x;
-    position_118.y = position->y;
-    position_118.z = position->z;
+    position_118 = *position;
     if (rep_item_114 != 0 && m_bRepType == 1) {
         rep_item_114->SetLocation0049F720(position);
         rep_item_114->ApplyRepTransform();
@@ -1528,15 +1524,24 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         _strupr(trigger->name_01c);
         _strupr(recipients);
 
-        trigger->surface_id = -1;
         if (version > 1) {
             char surface_id[0x40];
+            int id = -1;
+
             FileRead(handle, &minimum_range, 4, 0);
             FileRead(handle, surface_id, sizeof(surface_id), 0);
-            if (surface_id[0] == 0 && world->m_owned_04c != 0 &&
-                world->m_owned_04c->geometry_index_00 != 0) {
-                trigger->surface_id = atoi(surface_id + 1);
+            /* The id is the four characters after a leading NUL: retail stores
+               a terminator at surface_id[5] before atoi, and tests the world
+               geometry without a null check on its owner. */
+            if (surface_id[0] == 0) {
+                if (world->m_owned_04c->geometry_index_00 != 0) {
+                    surface_id[5] = 0;
+                    id = atoi(surface_id + 1);
+                }
+            } else {
+                id = -1;
             }
+            trigger->surface_id = id;
         }
         if (version > 2) {
             unsigned char has_action_data;
@@ -1627,9 +1632,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, trigger->representation_vectors_0cc,
                      sizeof(trigger->representation_vectors_0cc), 0);
             for (int vector = 0; vector < 4; ++vector) {
-                trigger->representation_vectors_0cc[vector].x *= 500.0f;
-                trigger->representation_vectors_0cc[vector].y *= 500.0f;
-                trigger->representation_vectors_0cc[vector].z *= 500.0f;
+                trigger->representation_vectors_0cc[vector] *= 500.0f;
             }
         }
         if (version > 2) {
@@ -1669,9 +1672,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                     for (int index = 0; index < 36; ++index) {
                         FileRead(handle, &legacy_vertices[index], sizeof(legacy_vertices[index]),
                                  0);
-                        legacy_vertices[index].x *= 500.0f;
-                        legacy_vertices[index].y *= 500.0f;
-                        legacy_vertices[index].z *= 500.0f;
+                        legacy_vertices[index] *= 500.0f;
                     }
                     FileRead(handle, &legacy_flags[0], 1, 0);
                     FileRead(handle, &legacy_flags[1], 1, 0);
@@ -1680,9 +1681,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         }
 
         trigger->trigger_kind_018 = 2;
-        trigger->position_118.x = x * 500.0f;
-        trigger->position_118.y = y * 500.0f;
-        trigger->position_118.z = z * 500.0f;
+        trigger->position_118.Set(x * 500.0f, y * 500.0f, z * 500.0f);
         trigger->range_maximum_0a8 = range * 500.0f;
         trigger->m_bRepType = 3;
         trigger->action_value = value_ac;
@@ -1774,15 +1773,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         if (version > 4) {
             FileRead(handle, &shared, 1, 0);
         }
-        position.x *= 500.0f;
-        position.y *= 500.0f;
-        position.z *= 500.0f;
-        region_u.x *= 500.0f;
-        region_u.y *= 500.0f;
-        region_u.z *= 500.0f;
-        region_v.x *= 500.0f;
-        region_v.y *= 500.0f;
-        region_v.z *= 500.0f;
+        position *= 500.0f;
+        region_u *= 500.0f;
+        region_v *= 500.0f;
         radius *= 500.0f;
         AddAmbientSound(world, optional_name, &config, &position, &region_u, &region_v, volume_min,
                         volume_max, speed_min, speed_max, time_min, time_max, radius,
@@ -2004,17 +1997,13 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 FileRead(handle, &trigger->position_118, sizeof(srVector3T<float>), 0);
                 FileRead(handle, &trigger->angle_0fc, 4, 0);
                 FileRead(handle, &trigger->direction_100, sizeof(srVector3T<float>), 0);
-                trigger->position_118.x *= 500.0f;
-                trigger->position_118.y *= 500.0f;
-                trigger->position_118.z *= 500.0f;
+                trigger->position_118 *= 500.0f;
                 trigger->flags_0a0 |= W8_TRIGGER_POSITIONED;
             } else if (representation_kind == 2) {
                 FileRead(handle, trigger->representation_vectors_0cc,
                          sizeof(trigger->representation_vectors_0cc), 0);
                 for (int vector = 0; vector < 4; ++vector) {
-                    trigger->representation_vectors_0cc[vector].x *= 500.0f;
-                    trigger->representation_vectors_0cc[vector].y *= 500.0f;
-                    trigger->representation_vectors_0cc[vector].z *= 500.0f;
+                    trigger->representation_vectors_0cc[vector] *= 500.0f;
                 }
             }
             unsigned char has_legacy_action;
@@ -2045,9 +2034,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 FileRead(handle, &count, 1, 0);
                 for (int index = 0; index < 36; ++index) {
                     FileRead(handle, &legacy_vertices[index], sizeof(legacy_vertices[index]), 0);
-                    legacy_vertices[index].x *= 500.0f;
-                    legacy_vertices[index].y *= 500.0f;
-                    legacy_vertices[index].z *= 500.0f;
+                    legacy_vertices[index] *= 500.0f;
                 }
                 FileRead(handle, &legacy_flags[0], 1, 0);
                 FileRead(handle, &legacy_flags[1], 1, 0);
@@ -2114,9 +2101,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 // FUNCTION: WIZ8 0x00441750
 void Trigger::GetPosition(srVector3T<float>* position) const
 {
-    position->x = position_118.x;
-    position->y = position_118.y;
-    position->z = position_118.z;
+    *position = position_118;
 }
 
 // FUNCTION: WIZ8 0x00441780
@@ -2190,9 +2175,7 @@ Trigger::Trigger()
 
     flags_0a0 |= W8_TRIGGER_ON;
     name_01c[0] = 0;
-    position_118.x = 0.0f;
-    position_118.y = 0.0f;
-    position_118.z = 0.0f;
+    position_118.SetZero();
     action_data_128[0] = 0;
     item_group_seed_354 = GetTickCount() + Random(30000);
     gold_358 = 0;
@@ -2534,13 +2517,9 @@ void Trigger::RunDestination(const char* destination)
     if (!named_entity) {
         Trigger* target = FindTriggerByName(destination);
 
-        destination_position.x = target->position_118.x;
-        destination_position.y = target->position_118.y;
-        destination_position.z = target->position_118.z;
+        destination_position = target->position_118;
         angle = target->angle_0fc;
-        destination_direction.x = target->direction_100.x;
-        destination_direction.y = target->direction_100.y;
-        destination_direction.z = target->direction_100.z;
+        destination_direction = target->direction_100;
     } else {
         angle = 0.0f;
     }
@@ -2824,7 +2803,8 @@ void Trigger::Run(int source)
             if (action_data != 0 && (action_data->flags_008 & 4) != 0 &&
                 action_data->item_00a != -1) {
                 if (FindItemOnParty(action_data->item_00a, 0, 0, 2, 0) == 0) {
-                    return;
+                    ShowNoticef(3, L"Your party doesn't have required key.");
+                    break;
                 }
                 action_data->flags_008 &= ~4;
             }
@@ -2895,7 +2875,8 @@ void Trigger::Run(int source)
             if (action_data != 0 && (action_data->flags_008 & 4) != 0 &&
                 action_data->item_00a != -1) {
                 if (FindItemOnParty(action_data->item_00a, 0, 0, 2, 0) == 0) {
-                    return;
+                    ShowNoticef(3, L"Your party doesn't have required key.");
+                    break;
                 }
                 action_data->flags_008 &= ~4;
             }
@@ -2941,8 +2922,9 @@ void Trigger::Run(int source)
 
             if ((flags_0a0 & W8_TRIGGER_ANIMATE_STATES) != 0) {
                 W8AnimObj* animation;
-                unsigned int count;
-                unsigned int index;
+                /* 0x0043E4C3 tests the AnimObjListCount result signed. */
+                int count;
+                int index;
 
                 if (m_pProp == 0 || m_bRepType != 2) {
                     srAssertFail("m_pProp && m_bRepType == TRIGGER_REP_PROP",

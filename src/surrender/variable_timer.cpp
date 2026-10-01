@@ -2,6 +2,8 @@
 
 #include "surrender/srVariableTimer.h"
 
+#include <ostream>
+
 // FUNCTION: SURRENDER 0x100632C0
 srVariableTimer::srVariableTimer(int a0, int a1, int a2, float multiplier, unsigned long step_size)
     : srTimer(a0, a1, a2)
@@ -231,9 +233,6 @@ double srVariableTimer::getTime(e_timerReadControl control)
     getUTime(control);
     return (m_scaled_tick - m_scaled_base) * m_seconds_per_tick;
 }
-
-// FUNCTION: SURRENDER 0x10063F40
-srVariableTimer::~srVariableTimer() {}
 
 // FUNCTION: SURRENDER 0x10063F70
 int srVariableTimer::is_stepping() const

@@ -70,6 +70,8 @@ public:
         vp->_copy(destination, constant, count);
     }
 
+    // FUNCTION: SURRENDER 0x1005CC60 SYMBOL
+    // ?copyIndexed@srVectorProcessor@@SAXPAKPBK1K@Z
     static inline void copyIndexed(SRDWORD* destination, const SRDWORD* source,
                                    const SRDWORD* indices, SRDWORD count)
     {
@@ -84,8 +86,6 @@ public:
 
     /* srVertexPipe's record paths dispatch the vertex4 sources through the
        three-vector4 copyIndexed overloads at vtable +0x84/+0x88/+0x8c. */
-    // FUNCTION: SURRENDER 0x1005CC60 SYMBOL
-    // ?copyIndexed@srVectorProcessor@@SAXPAV?$srVector4T@M@@PBVsrARGB@@PBKK@Z
     static inline void copyIndexed(srVector4* destination, const srARGB* source,
                                    const SRDWORD* indices, SRDWORD count)
     {

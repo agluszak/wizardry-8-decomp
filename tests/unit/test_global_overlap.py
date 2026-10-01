@@ -74,7 +74,7 @@ def test_constructed_and_callback_globals_keep_type_and_extent(tmp_path: Path) -
         "// GLOBAL: WIZ8 0x00650020\n"
         "void (*g_callbacks[16])(void) = {};\n"
         "// GLOBAL: WIZ8 0x00650060\n"
-        "srHeapArray<unsigned char> g_bytes;\n",
+        "srHeapBuffer<unsigned char> g_bytes;\n",
     )
 
     definitions = {row["name"]: row for row in parse_global_definitions(tmp_path)}

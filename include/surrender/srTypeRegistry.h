@@ -4,7 +4,7 @@
 // ClientType retains the evidenced self-support specialization and allocation.
 #define SR_NEW(Type) new Type::ClientType
 
-#include <iostream>
+#include <iosfwd>
 #include <windows.h>
 
 #include "srCore.h"
@@ -24,6 +24,42 @@ public:
             ClassNode* node_00;
             ChildLink* next_04;
             ChildLink* previous_08;
+        };
+
+        /* The child list is a single member object at offset 0: the
+           constructor's unwind funclet destroys {count, first, last} on
+           this+0 when initialize() throws, and ~ClassNode's state-0 region
+           covers the whole body while the list teardown runs at the end. */
+        struct ChildList {
+            unsigned long count_00;
+            ChildLink* first_04;
+            ChildLink* last_08;
+
+            ChildList()
+                : first_04(new ChildLink), last_08(first_04)
+            {
+                first_04->next_04 = 0;
+                first_04->previous_08 = 0;
+                count_00 = 0;
+            }
+
+            // FUNCTION: SURRENDER 0x10010780
+            ~ChildList()
+            {
+                while (first_04 != last_08) {
+                    ChildLink* link = first_04;
+                    first_04 = link->next_04;
+                    if (link->previous_08 != 0) {
+                        link->previous_08->next_04 = link->next_04;
+                    }
+                    if (link->next_04 != 0) {
+                        link->next_04->previous_08 = link->previous_08;
+                    }
+                    delete link;
+                    --count_00;
+                }
+                delete first_04;
+            }
         };
 
     public:
@@ -63,9 +99,7 @@ public:
             srHeap.free(node);
         }
 
-        unsigned long child_count_00;
-        ChildLink* first_child_04;
-        ChildLink* child_end_08;
+        ChildList children_00;
         ClassNode* parent_0c;
         unsigned long class_id_10;
         const char* class_name_14;

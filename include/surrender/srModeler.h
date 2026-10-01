@@ -83,7 +83,10 @@ public:
         void interpolate(const Vertex& first, const Vertex& second, float fraction);
         int operator==(const Vertex& other) const;
         int operator!=(const Vertex& other) const;
-        Vertex& operator=(const Vertex& other);
+
+        /* Class-level dllexport emits the memberwise assignment. */
+        // SYNTHETIC: SURRENDER 0x10038730
+        // srModeler::Vertex::operator=
 
         /* stCube.cpp writes the modelled position and the first of the eight
            UV slots the Polygon constructor layout-initializes at +0xC0. */

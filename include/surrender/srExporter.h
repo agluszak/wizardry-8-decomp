@@ -32,9 +32,8 @@ class
 #endif
     __declspec(novtable) srHierarchyIOManager::HierarchyExporter : public srIOManager::Exporter {
 public:
-    // FUNCTION: SURRENDER 0x100164F0
-    // ??0HierarchyExporter@srHierarchyIOManager@@QAE@XZ
-    HierarchyExporter() {}
+    // SYNTHETIC: SURRENDER 0x100164F0
+    // HierarchyExporter::HierarchyExporter()
 
     /* Implicit copy ctor/assignment/destructor emitted via the class-level
        dllexport. */
@@ -55,9 +54,8 @@ class
 #endif
     __declspec(novtable) srModelIOManager::ModelExporter : public srIOManager::Exporter {
 public:
-    // FUNCTION: SURRENDER 0x10016A00
-    // ??0ModelExporter@srModelIOManager@@QAE@XZ
-    ModelExporter() {}
+    // SYNTHETIC: SURRENDER 0x10016A00
+    // ModelExporter::ModelExporter()
 
     /* Implicit copy ctor/assignment/destructor emitted via the class-level
        dllexport. */

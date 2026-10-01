@@ -117,18 +117,7 @@ void RefreshFormationBoard(void)
     if (g_level_block->formation_board_visible == 0) {
         return;
     }
-    if (g_level_block->formation_board_sprite != 0) {
-        ReleaseObject(g_level_block->formation_board_sprite);
-        g_level_block->formation_board_sprite = 0;
-    }
-    if (g_level_block->formation_compass_sprite != 0) {
-        ReleaseObject(g_level_block->formation_compass_sprite);
-        g_level_block->formation_compass_sprite = 0;
-    }
-    if (g_level_block->formation_overlay_sprite != 0) {
-        ReleaseObject(g_level_block->formation_overlay_sprite);
-        g_level_block->formation_overlay_sprite = 0;
-    }
+    ReleaseFormationBoard();
     if (g_level_block->formation_board_alternate == 0) {
         video_object = GetCatalogVideoObjectHandle(0x99, 0);
     } else {
@@ -145,16 +134,12 @@ void RefreshFormationBoard(void)
     MakeVSurfaceFromVObject(video_object, 0, &compass_image);
     DrawFormationSlotMarkers(board_image);
     g_level_block->formation_compass_sprite = CreateSpriteFromSurface(compass_image, 0, 1, 0, 1);
-    PositionToolTipNode(g_level_block->formation_compass_sprite, 0x207, 0x167, 0);
-    g_level_block->formation_compass_sprite->render_state_164.display_state = 4;
+    Position2DNodeUnsnapped(g_level_block->formation_compass_sprite, 0x207, 0x167);
+    SetModelInstance2DDisplayState(g_level_block->formation_compass_sprite, 4);
     g_level_block->formation_board_sprite = CreateSpriteFromSurface(board_image, 0, 1, 0, 1);
-    PositionToolTipNode(g_level_block->formation_board_sprite, 0x207, 0x167, 0);
-    g_level_block->formation_board_sprite->render_state_164.display_state = 4;
-    if (g_level_block->formation_compass_sprite != 0) {
-        RotateNodeInDegrees(g_level_block->formation_compass_sprite,
-                            g_status.party_facing - g_status.party_heading + 0x168);
-    }
-    SetRendererModePair();
+    Position2DNodeUnsnapped(g_level_block->formation_board_sprite, 0x207, 0x167);
+    SetModelInstance2DDisplayState(g_level_block->formation_board_sprite, 4);
+    UpdateFormationCompass();
 }
 
 /* Rotate the compass needle to party_facing - party_heading. */
@@ -497,14 +482,7 @@ static void AcceptFormationChanges(void)
     }
     RefreshFormationBoard();
     RefreshRadarMap();
-    DestroyFormationPanel();
-    gXStatus.fReviewCharacterMode = false;
-    UpdateHeldItemCursor();
-    RegionSetDisable(0x1b);
-    RequestRedraw(0x200);
-    ClearSurfaceRect(0xd6, 0x3c, 0x1ab, 0x12f);
-    InvalidateRegion(0xd6, 0x3c, 0x1ab, 0x12f, 0);
-    ResumeMainGameWorld();
+    CloseFormationPanel();
 }
 
 /* The reset button: throw the staged edits away and rebuild the cells. */
@@ -669,22 +647,9 @@ static void BeginFormationDrag(const InputAtom*)
     POINT point;
     unsigned short region;
     unsigned int video_object;
-    int index;
     int sprite;
 
-    if (CanHoldFormationPlace(g_formation_cell_slots[g_formation_active_cell]) != 0) {
-        for (index = 0; index < 15; ++index) {
-            W8TextControl* control = g_formation_cell_controls[index];
-
-            if (index == g_formation_active_cell) {
-                control->EnableSecondaryState(0);
-            } else if ((control->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
-                control->DisableSecondaryState(0);
-                g_formation_cell_overlays[index]->Invalidate(0);
-            }
-        }
-        SelectPartyCharacter(g_formation_cell_slots[g_formation_active_cell]);
-    }
+    SelectFormationCell();
     g_formation_cell_controls[g_formation_active_cell]->DisableSecondaryState(0);
     g_formation_drag_slot = g_formation_cell_slots[g_formation_active_cell];
     g_formation_drag_cell = g_formation_active_cell;

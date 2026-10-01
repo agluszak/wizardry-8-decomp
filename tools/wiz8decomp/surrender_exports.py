@@ -181,3 +181,55 @@ def validate_surrender_exports(repository: Path) -> dict[str, Any]:
         "established": len(established),
         "evidence": len(evidence),
     }
+
+
+def built_export_disagreements(
+    built: dict[str, int], evidence: dict[str, dict[str, str]]
+) -> list[str]:
+    """Named exports of a built sr.dll that retail does not have, lacks, or numbers differently.
+
+    sr.def is only part of the provider surface: every member of a dllexport
+    class is exported too, so an inline member added to an exported class
+    widens the table without touching sr.def. The linker numbers exports by
+    name, so one extra name early in the order renumbers everything after it.
+    """
+    problems = [
+        f"not a retail export: @{built[name]} {name}"
+        for name in sorted(built.keys() - evidence.keys())
+    ]
+    problems.extend(
+        f"retail export not built: @{evidence[name]['ordinal']} {name}"
+        for name in sorted(evidence.keys() - built.keys())
+    )
+    problems.extend(
+        f"@{built[name]} {name}: retail ordinal {evidence[name]['ordinal']}"
+        for name in sorted(built.keys() & evidence.keys())
+        if built[name] != int(evidence[name]["ordinal"])
+    )
+    return problems
+
+
+def validate_built_surrender_exports(repository: Path, dll: Path) -> dict[str, Any]:
+    """Fail when a built sr.dll's export table differs from the reviewed retail one."""
+
+    import pefile
+
+    pe = pefile.PE(str(dll), fast_load=True)
+    pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY["IMAGE_DIRECTORY_ENTRY_EXPORT"]])
+    directory = getattr(pe, "DIRECTORY_ENTRY_EXPORT", None)
+    built = {
+        symbol.name.decode("ascii"): symbol.ordinal
+        for symbol in (directory.symbols if directory else [])
+        if symbol.name
+    }
+    evidence = _evidence_exports(repository)
+    problems = built_export_disagreements(built, evidence)
+    if problems:
+        shown = problems[:40]
+        more = len(problems) - len(shown)
+        raise SurrenderExportsError(
+            f"built {dll.name} export table disagrees with reviewed retail evidence:\n  "
+            + "\n  ".join(shown)
+            + (f"\n  ... and {more} more" if more else "")
+        )
+    return {"ok": True, "gate": "built-surrender-exports", "exports": len(built)}

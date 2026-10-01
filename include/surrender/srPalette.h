@@ -23,8 +23,12 @@ public:
     class SR_DLL_EXPORT Quantizer {
     public:
         Quantizer();
+        // FUNCTION: SURRENDER 0x10004B40
         Quantizer(srARGB* colors, long color_count, unsigned char* duplicates,
-                  unsigned char red_bits, unsigned char green_bits, unsigned char blue_bits);
+                  unsigned char red_bits, unsigned char green_bits, unsigned char blue_bits)
+        {
+            setPalette(colors, color_count, duplicates, red_bits, green_bits, blue_bits);
+        }
         Quantizer(const Quantizer& other);
         ~Quantizer();
 
@@ -141,7 +145,21 @@ public:
         static srPalette* createOptimalPalette(const PaletteInfo& info);
 
     private:
+        /* User-provided trivial constructors: retail createOptimalPalette
+           (0x10005690) emits the new[] null select and element-count bound
+           for the hash-entry and leaf arrays, which only appears for
+           non-POD elements. */
+        struct HashEntry {
+            HashEntry() {}
+
+            HashEntry* next;
+            unsigned long color;
+            long count;
+        };
+
         struct Leaf {
+            Leaf() {}
+
             unsigned long color;
             long weight;
             double error;

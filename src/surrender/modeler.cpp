@@ -331,11 +331,6 @@ void AutoSmoother::smooth()
    0x10076C90 (pi + pi / pi * 2.0 in retail emission). */
 static const double pi = 3.141592653589793;
 
-/* This unit's definition of srShader's copy (see srShader.h): inline here so
-   the Triangle/Polygon implicit copies expand it per shader element. */
-// FUNCTION: SURRENDER 0x1003B930
-inline srShader::srShader(const srShader& other) : value(other.value) {}
-
 // SYNTHETIC: SURRENDER 0x100380C0
 // srModeler::`vector deleting destructor'
 
@@ -447,28 +442,6 @@ void srModeler::Vertex::interpolate(const Vertex& first, const Vertex& second, f
         }
     }
     shade_index_0c = 0;
-}
-
-// FUNCTION: SURRENDER 0x10038730
-srModeler::Vertex& srModeler::Vertex::operator=(const Vertex& other)
-{
-    if (this != &other) {
-        for (int pass = 0; pass < 4; ++pass) {
-            dig_60[pass] = other.dig_60[pass];
-            dcg_30[pass] = other.dcg_30[pass];
-            scg_90[pass] = other.scg_90[pass];
-            weights_100[pass] = other.weights_100[pass];
-            for (int side = 0; side < 2; ++side) {
-                materials_10[pass][side] = other.materials_10[pass][side];
-            }
-            for (int layer = 0; layer < 2; ++layer) {
-                uv_c0[pass * 2 + layer] = other.uv_c0[pass * 2 + layer];
-            }
-        }
-        shade_index_0c = other.shade_index_0c;
-        position_00 = other.position_00;
-    }
-    return *this;
 }
 
 // FUNCTION: SURRENDER 0x10038B50

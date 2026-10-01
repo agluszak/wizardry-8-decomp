@@ -26,17 +26,23 @@ class
 #endif
     srBinIStream : public virtual srBinStream {
 public:
-    /* The Wiz8 stream-adapter constructor expands this body inline instead of
-       calling the imported emission. */
-    // FUNCTION: SURRENDER 0x10031C40
+    /* SR.DLL's lifecycle is compiler-generated. Wiz8 keeps the header-visible
+       default/destructor and imports the copy/assignment emissions. */
+    // SYNTHETIC: SURRENDER 0x10031C40
+    // srBinIStream::srBinIStream()
+    // SYNTHETIC: SURRENDER 0x10031C80
+    // srBinIStream::srBinIStream(const srBinIStream&)
+    // SYNTHETIC: SURRENDER 0x10031CE0
+    // srBinIStream::operator=
+    // SYNTHETIC: SURRENDER 0x1002EF30
+    // srBinIStream::~srBinIStream
+
+#if !defined(SURRENDER_BUILD)
     srBinIStream() {}
     SR_DLL_IMPORT srBinIStream(const srBinIStream& stream);
-
-    /* The retail emission is a bare ret; the srBinStream subobject destructor
-       owns the vbase table store. */
-    // FUNCTION: SURRENDER 0x1002EF30
     virtual ~srBinIStream() override {}
     SR_DLL_IMPORT srBinIStream& operator=(const srBinIStream& stream);
+#endif
 
     SR_DLL_IMPORT unsigned short getChar();
     SR_DLL_IMPORT unsigned long getDWord();
@@ -110,10 +116,14 @@ public:
     // SYNTHETIC: SURRENDER 0x10030C50
     // srBinIMStream::operator=
 
-    /* The retail emission is a bare ret while the vbase destructor owns the
-       table stores; consumers expand it inline rather than calling the import. */
-    // FUNCTION: SURRENDER 0x10030CE0
+    /* Provider destruction is compiler-generated; consumers retain the
+       evidenced header-visible empty body. */
+    // SYNTHETIC: SURRENDER 0x10030CE0
+    // srBinIMStream::~srBinIMStream
+
+#if !defined(SURRENDER_BUILD)
     virtual ~srBinIMStream() override {}
+#endif
 
     virtual SR_DLL_IMPORT unsigned long getSize() override;
     virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position,

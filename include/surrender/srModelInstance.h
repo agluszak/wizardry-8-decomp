@@ -18,14 +18,11 @@ public:
 
     SR_DLL_IMPORT srModelInstance& operator=(const srModelInstance& other);
 
-#if defined(SURRENDER_BUILD)
-    static const char* sGetClassName();
-#else
+    // FUNCTION: SURRENDER 0x1004FFE0
     static const char* sGetClassName()
     {
         return "srModelInstance";
     }
-#endif
 
     SR_DLL_IMPORT virtual void dump(std::ostream& stream) override;
     SR_DLL_IMPORT virtual srClass* vInstance() override;

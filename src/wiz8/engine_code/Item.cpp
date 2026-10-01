@@ -72,7 +72,7 @@ void W8Item::ApplyRepTransform()
                      0);
     }
     mesh = static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
-    m_pRep->GetLocation004B8890(&location);
+    m_pRep->GetLocation(&location);
     widened.SetFromFloat(&location);
     mesh->setLocation(widened);
     m_pRep->GetRotation(&rotation);
@@ -102,7 +102,7 @@ void W8Item::AttachMesh(W8World* world)
         mesh->clearFlag(srNode::FLAG_DISABLE);
     }
     mesh->setParent(world->dynamic_scene, 0);
-    m_pRep->GetLocation004B8890(&location);
+    m_pRep->GetLocation(&location);
     m_pRep->GetRotation(&rotation);
     child = mesh->first_child_;
     if (child == 0) {
@@ -142,7 +142,7 @@ unsigned int W8ItemRep::SetFlags(unsigned int mask, bool enabled)
 // FUNCTION: WIZ8 0x0049F720
 void W8Item::SetLocation0049F720(const srVector3T<float>* location)
 {
-    m_pRep->SetLocation004B8850(location);
+    m_pRep->SetLocation(location);
 }
 
 /* Whether the item's radar-blip timer is still ticking. */
@@ -288,17 +288,9 @@ void W8Item::UpdateAnimation()
         m_pRep->GetRotation(&rotation);
         double cosine = cos(-0.1963495375);
         double sine = sin(-0.1963495375);
-        srVector3T<float> first;
-        srVector3T<float> second;
-        srVector3T<float> third;
-        first.Set(cosine, 0.0, sine);
-        second.Set(0.0, 1.0, 0.0);
-        third.Set(-sine, 0.0, cosine);
-        srMatrix3T<float> step;
-        step.SetRows(first, second, third);
-        rotation.MultiplyBy(step);
+        rotation.RotateAboutY(sine, cosine);
         srNode* mesh = rep->m_psrMesh;
-        m_pRep->SetRotation004B88D0(&rotation);
+        m_pRep->SetRotation(&rotation);
         if (mesh->first_child_ == 0) {
             mesh->setRotation(rotation);
         } else {
@@ -331,12 +323,8 @@ void W8Item::UpdateAnimation()
 unsigned char W8Item::GetCachedLocalBounds(srVector3T<float>* lower, srVector3T<float>* upper)
 {
     W8ItemRep* rep = static_cast<W8ItemRep*>(m_pRep);
-    lower->x = rep->bounds_minimum.x;
-    lower->y = rep->bounds_minimum.y;
-    lower->z = rep->bounds_minimum.z;
-    upper->x = rep->bounds_maximum.x;
-    upper->y = rep->bounds_maximum.y;
-    upper->z = rep->bounds_maximum.z;
+    *lower = rep->bounds_minimum;
+    *upper = rep->bounds_maximum;
     return true;
 }
 
@@ -360,7 +348,7 @@ unsigned char W8Item::GetSearchPosition(srVector3T<float>* location)
     if (GetCachedLocalBounds(&lower, &upper) == 0) {
         return 0;
     }
-    m_pRep->GetLocation004B8890(location);
+    m_pRep->GetLocation(location);
     location->y += (upper.y - lower.y) * g_item_bounds_vertical_factor;
     return 1;
 }
@@ -374,18 +362,10 @@ void W8Item::SetYaw(float angle)
     if (yaw != 0.0) {
         double cosine = cos(yaw);
         double sine = sin(yaw);
-        srVector3T<float> first;
-        srVector3T<float> second;
-        srVector3T<float> third;
-        first.Set(cosine, 0.0, sine);
-        second.Set(0.0, 1.0, 0.0);
-        third.Set(-sine, 0.0, cosine);
-        srMatrix3T<float> step;
-        step.SetRows(first, second, third);
-        rotation.MultiplyBy(step);
+        rotation.RotateAboutY(sine, cosine);
     }
     srNode* mesh = static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
-    m_pRep->SetRotation004B88D0(&rotation);
+    m_pRep->SetRotation(&rotation);
     if (mesh->first_child_ == 0) {
         mesh->setRotation(rotation);
     } else {
@@ -484,7 +464,7 @@ bool GetItemWorldBounds(W8Item* item, srVector3T<float>* lower, srVector3T<float
     }
     item->GetCachedLocalBounds(lower, upper);
     srVector3T<float> location;
-    item->m_pRep->GetLocation004B8890(&location);
+    item->m_pRep->GetLocation(&location);
     *lower += location;
     *upper += location;
     return true;

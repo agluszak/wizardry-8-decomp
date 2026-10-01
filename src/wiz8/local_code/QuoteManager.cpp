@@ -519,17 +519,15 @@ W8CharacterEventQueue::~W8CharacterEventQueue()
 // FUNCTION: WIZ8 0x0052db80
 void W8CharacterEventQueue::DestroyAllEvents()
 {
-    while (active_events.count > 0) {
-        active_events.RemoveAt(0)->Complete();
-    }
+    CompleteAllActiveEvents();
     while (npc_deferred_events.count > 0) {
-        delete npc_deferred_events.RemoveAt(0);
+        npc_deferred_events.RemoveAtAndDelete(0);
     }
     while (pending_events.count > 0) {
-        delete pending_events.RemoveAt(0);
+        pending_events.RemoveAtAndDelete(0);
     }
     while (vector_00.count > 0) {
-        delete vector_00.RemoveAt(0);
+        vector_00.RemoveAtAndDelete(0);
     }
 }
 
@@ -1116,19 +1114,18 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
 // FUNCTION: WIZ8 0x0052E160
 void W8CharacterEventQueue::RestartFollowUpClock(W8CharacterEvent* entry)
 {
-    int flags = follow_up_flags;
-    unsigned int type = entry->event_type;
-    int duration;
-
-    if ((flags & 1) == 0 || type < 14 || type >= 16) {
-        return;
+    /* 0x0052E163 tests bit 0 first and only reads entry->event_type at 0x0052E16A
+       once that passes, so the range test stays in the condition rather than
+       being hoisted into a local. 0x0052E17D jumps to the long clock when bit 1
+       is clear, which puts the short clock in the taken arm, and each arm keeps
+       its own store to follow_up_clock. */
+    if ((follow_up_flags & 1) && entry->event_type > 13 && entry->event_type < 16) {
+        if (follow_up_flags & 2) {
+            follow_up_clock = SetCountdownClock(Random(6000) + 2000);
+        } else {
+            follow_up_clock = SetCountdownClock(Random(60000) + 300000);
+        }
     }
-    if ((flags & 2) == 0) {
-        duration = Random(60000) + 300000;
-    } else {
-        duration = Random(6000) + 2000;
-    }
-    follow_up_clock = SetCountdownClock(duration);
 }
 
 /* Advances the ambient follow-up exchange once the environment allows it.
@@ -1310,7 +1307,6 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
     W8CharacterEvent* entry;
     W8CharacterEvent* baseline;
     int index;
-    int scan;
     int conflict_count;
     int* conflict_indices;
     int remaining_conflicts;
@@ -1355,7 +1351,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
             }
             for (index = conflict_count - 1; index >= 0; --index) {
                 if (conflict_indices[index] != -1) {
-                    delete pending_events.RemoveAt(conflict_indices[index]);
+                    pending_events.RemoveAtAndDelete(conflict_indices[index]);
                 }
             }
         }
@@ -1406,12 +1402,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
             }
         }
 
-        for (scan = 0; scan < pending_events.count; ++scan) {
-            if (pending_events.data[scan] == entry) {
-                pending_events.RemoveAt(scan);
-                return;
-            }
-        }
+        pending_events.Remove(entry);
         return;
     }
 }

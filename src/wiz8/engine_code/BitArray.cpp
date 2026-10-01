@@ -268,20 +268,10 @@ bool BitArray::Set(unsigned int bit)
 // FUNCTION: WIZ8 0x0043b3d0
 bool BitArray::SetAndGrow(unsigned int bit)
 {
-    unsigned int mask;
-    unsigned int* word;
-
     if (bit > bit_count) {
         Grow(bit + W8_BITARRAY_GROWTH_SLACK, bit + W8_BITARRAY_GROWTH_SLACK);
     }
-    mask = 1 << (bit & 0x1f);
-    word = &puiIndex[bit >> 5];
-    if ((mask & *word) != 0) {
-        return true;
-    }
-    ++set_count;
-    *word |= mask;
-    return false;
+    return Set(bit);
 }
 
 /* Raise every bit, including the ones past the end in the last word - the
@@ -381,11 +371,7 @@ void BitArray::SetToComplementOf(BitArray& other)
     unsigned int last_mask;
     unsigned int index;
 
-    memset(puiIndex, 0, word_count * sizeof(unsigned int));
-    set_count = 0;
-    cursor_base = 0;
-    cursor_bit = 0;
-    cursor_word = 0;
+    ClearAll();
 
     shared = word_count;
     if (other.word_count <= word_count) {

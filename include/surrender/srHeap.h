@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <iosfwd>
 #include <string.h>
 #include <windows.h>
 
@@ -27,20 +27,25 @@
 
 /* The SDK's zero fill pre-aligns the destination to an 8-byte boundary:
    VC6 lowers each site to a head memset + dword-body memset split rather
-   than the single rep stosd a plain memset produces. Inlined everywhere;
+   than the single rep stosd a plain memset produces. Fills shorter than the
+   alignment head, and empty fills, skip the split; the signed size tests
+   fold away at constant-size sites (createOptimalPalette 0x10005690 keeps
+   them for its variable palette and node-level fills). Inlined everywhere;
    no standalone emission exists in retail. */
-inline void srZeroMemory(void* destination, unsigned long size)
+inline void srZeroMemory(void* destination, long size)
 {
-    /* reinterpret-ok: raw address alignment is storage the type system
-       cannot express. */
-    unsigned long misalign = reinterpret_cast<unsigned long>(destination) & 7;
-    if (misalign != 0) {
-        unsigned long head = 8 - misalign;
-        memset(destination, 0, head);
-        /* reinterpret-ok: byte-granular advance past the head fill. */
-        memset(reinterpret_cast<unsigned char*>(destination) + head, 0, size - head);
-    } else {
-        memset(destination, 0, size);
+    if (size > 0) {
+        /* reinterpret-ok: raw address alignment is storage the type system
+           cannot express. */
+        unsigned long misalign = reinterpret_cast<unsigned long>(destination) & 7;
+        if (size >= 8 && misalign != 0) {
+            unsigned long head = 8 - misalign;
+            memset(destination, 0, head);
+            /* reinterpret-ok: byte-granular advance past the head fill. */
+            memset(reinterpret_cast<unsigned char*>(destination) + head, 0, size - head);
+        } else {
+            memset(destination, 0, size);
+        }
     }
 }
 

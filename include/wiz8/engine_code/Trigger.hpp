@@ -200,7 +200,7 @@ public:
     bool Save0043BE60(int hFile);
     bool Load0043C1B0(int hFile, char version);
     void RunLinkedTriggers();
-    void SetPosition004416F0(srVector3T<float>* position);
+    void SetPosition(srVector3T<float>* position);
     void FinishAction();
     void GetPosition(srVector3T<float>* position) const;
     bool CanRunLinkedTriggers();

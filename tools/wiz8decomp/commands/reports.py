@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Annotated
 
@@ -110,6 +111,18 @@ def status_command(
     cli.emit(status_report(settings))
 
 
+_INCLUDE = re.compile(r'^\s*#\s*include\s*[<"]([^>"]+)[>"]', re.MULTILINE)
+
+
+def _includes_directly(source: Path, header: str) -> bool:
+    """Whether `source` names repository header `header` in an #include line."""
+    text = source.read_text(encoding="utf-8", errors="replace")
+    return any(
+        header.endswith("/" + included.replace("\\", "/").lstrip("./"))
+        for included in _INCLUDE.findall(text)
+    )
+
+
 @app.command("pr-comparison")
 def pr_comparison_command(
     target: Annotated[str, typer.Option("--target")],
@@ -121,11 +134,36 @@ def pr_comparison_command(
     base_ghidriff: Annotated[Path | None, typer.Option("--base-ghidriff")] = None,
     head_datacmp: Annotated[Path | None, typer.Option("--head-datacmp")] = None,
     base_datacmp: Annotated[Path | None, typer.Option("--base-datacmp")] = None,
+    head_direct_calls: Annotated[Path | None, typer.Option("--head-direct-calls")] = None,
+    base_direct_calls: Annotated[Path | None, typer.Option("--base-direct-calls")] = None,
+    since: Annotated[
+        str | None,
+        typer.Option(
+            "--since",
+            help="Merge base: group regressions by the changed headers their files include directly.",
+        ),
+    ] = None,
 ) -> None:
     """Summarize PR-head comparison health and its change from the merge base."""
 
     from .. import command_support as cli
     from ..reports.comparison_delta import pr_comparison_report
+
+    header_includers = None
+    if since is not None:
+        from ..comparison import changed_files, header_dependent_files
+
+        settings = cli.settings()
+        repository = settings.repo_dir.resolve()
+        header_includers = {}
+        for path in changed_files(repository, since):
+            if path.suffix.lower() not in {".h", ".hpp", ".hxx"} or not path.is_file():
+                continue
+            header = path.resolve().relative_to(repository).as_posix()
+            dependents = header_dependent_files(settings, target, [path])
+            header_includers[header] = {str(path.resolve())} | {
+                str(file.resolve()) for file in dependents if _includes_directly(file, header)
+            }
 
     cli.emit(
         pr_comparison_report(
@@ -138,6 +176,9 @@ def pr_comparison_command(
             base_ghidriff_path=base_ghidriff,
             head_datacmp_path=head_datacmp,
             base_datacmp_path=base_datacmp,
+            head_direct_calls_path=head_direct_calls,
+            base_direct_calls_path=base_direct_calls,
+            header_includers=header_includers,
         )
     )
 

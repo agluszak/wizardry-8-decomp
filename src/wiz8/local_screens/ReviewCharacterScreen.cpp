@@ -632,7 +632,7 @@ void DrawCampCharacterInfo(void)
 
     if (state->item_mode != 0) {
         state->character_info->Invalidate(0);
-        g_camp_secondary_panel->Invalidate(0);
+        InvalidateCampPanel();
         return;
     }
     DrawCatalogImageAndInvalidate(-14, 0x114, 0, 0, 0x136, 0, 2, 0);
@@ -729,7 +729,7 @@ void DrawCampCharacterInfo(void)
     swprintf(state->caption, g_format_d, character->armor_class_average);
     DrawRcsText(state->caption, 0x18d, 0x8e, 0x2c,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-    g_camp_secondary_panel->Invalidate(0);
+    InvalidateCampPanel();
 }
 
 /* The eight backpack cells under the character block, flag bits 1..8 of
@@ -1043,7 +1043,7 @@ void RefreshItemsTabPanel(char invalidate)
 void RefreshCampSecondaryPanel(char invalidate)
 {
     if (invalidate != 0) {
-        g_camp_secondary_panel->Invalidate(0);
+        InvalidateCampPanel();
     }
     g_camp_secondary_panel->Redraw();
 }
@@ -1477,8 +1477,7 @@ unsigned char CampScreenEnter(void)
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(g_camp_screen->caption, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
-        g_camp_screen->dialog = dialog;
-        ActivateDialogRegion(0x138);
+        DisplayCampDialog(dialog);
     }
     g_camp_screen->redraw_flags |= 0x0fffffff;
     ResetTransientRenderScenes();
@@ -1533,8 +1532,7 @@ void CampScreenFrame(void)
                             dialog->SetClientExtent(250, 200);
                             dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                             SetDialogDestroyCallback(dialog, 0);
-                            g_camp_screen->dialog = dialog;
-                            ActivateDialogRegion(0x138);
+                            DisplayCampDialog(dialog);
                         } else {
                             QueueCharacterEvent(g_camp_character, g_effect_005ee6ec, 0,
                                                 g_effect_argument_005ed8cc,
@@ -1555,8 +1553,7 @@ void CampScreenFrame(void)
                 dialog->SetClientExtent(250, 200);
                 dialog->SetMessage(gppStringList[0x832], 1, 50, 1, 1, 1, 1, 0, 350);
                 SetDialogDestroyCallback(dialog, OnQuitGameDialogClosed);
-                g_camp_screen->dialog = dialog;
-                ActivateDialogRegion(0x138);
+                DisplayCampDialog(dialog);
             }
         }
     }
@@ -1637,8 +1634,7 @@ void DismissSelectedPartyCharacter(void)
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
-        g_camp_screen->dialog = dialog;
-        ActivateDialogRegion(0x138);
+        DisplayCampDialog(dialog);
         return;
     }
     if (IsMessageBoxActive()) {
@@ -1983,8 +1979,7 @@ void ShowCampNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int con
     dialog->SetClientExtent(0xfa, 200);
     dialog->SetMessage(text, 1, 0x32, confirmation, cancel, 1, 1, 0, 0x15e);
     SetDialogDestroyCallback(dialog, callback);
-    g_camp_screen->dialog = dialog;
-    ActivateDialogRegion(0x138);
+    DisplayCampDialog(dialog);
 }
 
 /* The shared click handler for the camp item regions: a backpack slot arrives
@@ -2056,8 +2051,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
-        g_camp_screen->dialog = dialog;
-        ActivateDialogRegion(0x138);
+        DisplayCampDialog(dialog);
         return;
     }
     character = &g_status.buffers.Char[giReviewCharSlot];
@@ -2067,8 +2061,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
-        g_camp_screen->dialog = dialog;
-        ActivateDialogRegion(0x138);
+        DisplayCampDialog(dialog);
         return;
     }
     if (character->uiCondition[0xe] != 0 && (origin == 1 || origin == 0)) {
@@ -2077,8 +2070,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
-        g_camp_screen->dialog = dialog;
-        ActivateDialogRegion(0x138);
+        DisplayCampDialog(dialog);
         return;
     }
     if (character->uiCondition[W8_CONDITION_HOSTILE] != 0 && (origin == 1 || origin == 0)) {
@@ -2087,8 +2079,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
-        g_camp_screen->dialog = dialog;
-        ActivateDialogRegion(0x138);
+        DisplayCampDialog(dialog);
         return;
     }
     if (character->highest_condition >= W8_CONDITION_HOSTILE && origin != 2 &&
@@ -2098,8 +2089,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
-        g_camp_screen->dialog = dialog;
-        ActivateDialogRegion(0x138);
+        DisplayCampDialog(dialog);
         return;
     }
 
@@ -2210,8 +2200,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                     dialog->SetClientExtent(250, 200);
                     dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                     SetDialogDestroyCallback(dialog, 0);
-                    g_camp_screen->dialog = dialog;
-                    ActivateDialogRegion(0x138);
+                    DisplayCampDialog(dialog);
                 }
                 return;
             }
@@ -2233,8 +2222,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
             dialog->SetClientExtent(250, 200);
             dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
             SetDialogDestroyCallback(dialog, 0);
-            g_camp_screen->dialog = dialog;
-            ActivateDialogRegion(0x138);
+            DisplayCampDialog(dialog);
             if (item->bound != 0) {
                 return;
             }
@@ -2293,8 +2281,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                             dialog->SetClientExtent(250, 200);
                             dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                             SetDialogDestroyCallback(dialog, 0);
-                            g_camp_screen->dialog = dialog;
-                            ActivateDialogRegion(0x138);
+                            DisplayCampDialog(dialog);
                         }
                     } else if (InsertItemIntoPartyPool(&g_status.item_in_hand_235b, slot_index) !=
                                0) {
@@ -2306,8 +2293,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                         dialog->SetClientExtent(250, 200);
                         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                         SetDialogDestroyCallback(dialog, 0);
-                        g_camp_screen->dialog = dialog;
-                        ActivateDialogRegion(0x138);
+                        DisplayCampDialog(dialog);
                     }
                 } else if (slot_index < g_status.party_item_count_1791) {
                     /* An empty hand picks the clicked pool row up. */
@@ -2351,8 +2337,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                             dialog->SetClientExtent(250, 200);
                             dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                             SetDialogDestroyCallback(dialog, 0);
-                            g_camp_screen->dialog = dialog;
-                            ActivateDialogRegion(0x138);
+                            DisplayCampDialog(dialog);
                             if (paired->bound != 0) {
                                 return;
                             }
@@ -2392,8 +2377,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                     dialog->SetClientExtent(250, 200);
                                     dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                                     SetDialogDestroyCallback(dialog, 0);
-                                    g_camp_screen->dialog = dialog;
-                                    ActivateDialogRegion(0x138);
+                                    DisplayCampDialog(dialog);
                                     return;
                                 }
                             }
@@ -2403,8 +2387,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                 dialog->SetClientExtent(250, 200);
                                 dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                                 SetDialogDestroyCallback(dialog, 0);
-                                g_camp_screen->dialog = dialog;
-                                ActivateDialogRegion(0x138);
+                                DisplayCampDialog(dialog);
                                 return;
                             }
                             SwapItemInstances(item, &g_status.item_in_hand_235b, g_review_character,
@@ -2433,8 +2416,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                         dialog->SetClientExtent(250, 200);
                         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                         SetDialogDestroyCallback(dialog, 0);
-                        g_camp_screen->dialog = dialog;
-                        ActivateDialogRegion(0x138);
+                        DisplayCampDialog(dialog);
                     }
                 }
             }
@@ -2564,8 +2546,7 @@ bool ResolvePendingCampCharacter(bool force)
         dialog->SetClientExtent(0xfa, 200);
         dialog->SetMessage(text, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);
-        g_camp_screen->dialog = dialog;
-        ActivateDialogRegion(0x138);
+        DisplayCampDialog(dialog);
         return 0;
     }
     return 1;
@@ -2643,8 +2624,7 @@ bool IsCampActionAllowed(int party_slot)
     dialog->SetClientExtent(0xfa, 200);
     dialog->SetMessage(message, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
     SetDialogDestroyCallback(dialog, 0);
-    g_camp_screen->dialog = dialog;
-    ActivateDialogRegion(0x138);
+    DisplayCampDialog(dialog);
     return 0;
 }
 
@@ -2787,7 +2767,7 @@ void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callb
     }
     color.w = 1.0f;
     g_fade_overlay = CreateColoredPolygonSprite(0x280, 0x1e0, &color, 1);
-    PositionToolTipNode(g_fade_overlay, 0, 0, 0);
+    Position2DNodeUnsnapped(g_fade_overlay, 0, 0);
     shader = static_cast<srMeshModel*>(g_fade_overlay->getModel())->getShader(0);
     if (fade_to_black == 0) {
         shader.value = (shader.value & ~0x6040) | 0xa0;

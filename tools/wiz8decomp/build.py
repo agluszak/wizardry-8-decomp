@@ -469,6 +469,7 @@ def build_target(
     settings: Settings, target: str = "match", jobs: int | None = None
 ) -> dict[str, Any]:
     started = time.perf_counter()
+    build_started_wall = time.time()
     phases: dict[str, int] = {}
 
     def mark(name: str, origin: float) -> float:
@@ -525,10 +526,18 @@ def build_target(
             cwd=settings.repo_dir,
             log_path=settings.repo_dir / "build" / "logs" / "product-build.json",
         )
-        mark("compile_link_ms", tick)
+        tick = mark("compile_link_ms", tick)
+        exports: dict[str, Any] | None = None
+        provider = build.build_dir / "sr.dll"
+        if provider.is_file() and provider.stat().st_mtime >= build_started_wall:
+            from .surrender_exports import validate_built_surrender_exports
+
+            exports = validate_built_surrender_exports(settings.repo_dir, provider)
+            mark("exports_ms", tick)
         return {
             "status": "ok",
             "target": resolved_target,
+            "exports": exports,
             "log": str(Path("build/logs/product-build.json")),
             "phases_ms": phases,
             "total_ms": int((time.perf_counter() - started) * 1000),

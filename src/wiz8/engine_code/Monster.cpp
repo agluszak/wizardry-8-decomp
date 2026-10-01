@@ -1013,12 +1013,17 @@ W8MonsterRep::W8MonsterRep()
       random_idle_600(0), special_movement_601(0), idle_playback_scale_604(10.0f),
       random_idle_fps_min(0), random_idle_fps_max(0), left_handed_610(0), monster_light_624(0)
 {
-    int index;
-
+    /* 0x004BEA4A writes the eight slots individually and the count last; a
+       counted loop over them is not what the retail emits. */
+    objects_5c8[0] = 0;
+    objects_5c8[1] = 0;
+    objects_5c8[2] = 0;
+    objects_5c8[3] = 0;
+    objects_5c8[4] = 0;
+    objects_5c8[5] = 0;
+    objects_5c8[6] = 0;
+    objects_5c8[7] = 0;
     icon_count_5c4 = 0;
-    for (index = 0; index < 8; ++index) {
-        objects_5c8[index] = 0;
-    }
 }
 
 /* Read one animation/subcycle into the Monster representation.  The current
@@ -1114,12 +1119,18 @@ W8MonsterRep::W8MonsterRep(const W8MonsterRep& other)
       monster_light_624(0)
 {
     signed char cycle;
-    int index;
 
+    /* 0x004BEBD8 writes the eight slots individually and the count last, like
+       the default constructor. */
+    objects_5c8[0] = 0;
+    objects_5c8[1] = 0;
+    objects_5c8[2] = 0;
+    objects_5c8[3] = 0;
+    objects_5c8[4] = 0;
+    objects_5c8[5] = 0;
+    objects_5c8[6] = 0;
+    objects_5c8[7] = 0;
     icon_count_5c4 = 0;
-    for (index = 0; index < 8; ++index) {
-        objects_5c8[index] = 0;
-    }
     for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
         CopyCycle(cycle, &other, cycle);
     }
@@ -1161,7 +1172,7 @@ W8MonsterRep::~W8MonsterRep()
         light_lists[cycle].Clear();
     }
     while (linked_runtime_objects_614.GetCount() != 0) {
-        delete linked_runtime_objects_614.RemoveAt(0);
+        linked_runtime_objects_614.RemoveAtAndDelete(0);
     }
     delete monster_light_624;
     delete[] name_5c0;
@@ -1359,8 +1370,8 @@ W8Monster::~W8Monster()
 // FUNCTION: WIZ8 0x004ca840
 void W8Monster::SetPosition(const srVector3T<float>* position)
 {
-    GetRepresentation()->SetLocation004B8850(position);
-    m_pRep->SetLocation004B8850(position);
+    GetRepresentation()->SetLocation(position);
+    m_pRep->SetLocation(position);
     SetPositionInternal(position);
     position_dirty_09c = 1;
 }
@@ -1761,7 +1772,7 @@ unsigned char W8Monster::SetScript(const char* script_name, unsigned char reset_
         strcat(path, script_name);
         script_238 = new stScript;
         if (script_238 != 0) {
-            if (script_238->Load004CF3B0(path) != 0) {
+            if (script_238->Load(path) != 0) {
                 script_238->setName(script_name);
                 script_238->autoRelease();
             } else {
@@ -1888,9 +1899,9 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
                 srVector3T<float> local = vertices[vertex] * m_pRep->scale_5f0;
                 srVector3T<float> rotated = rotation.Transform(local);
                 srVector3T<float> owner_position = GetPosition();
-                position->x = rotated.x + owner_position.x;
-                position->y = rotated.y + owner_position.y + movement_0c0.vertical_base_07c;
-                position->z = rotated.z + owner_position.z;
+                position->Set(rotated.x + owner_position.x,
+                              rotated.y + owner_position.y + movement_0c0.vertical_base_07c,
+                              rotated.z + owner_position.z);
                 return 1;
             }
         }
@@ -3035,17 +3046,7 @@ void UpdateNearestMonsterGroupMembers()
 float W8Monster::GetDistanceToPlayer()
 {
     srVector3T<float> position = GetPosition();
-    srVector3T<float> player_position;
-    float distance;
-
-    GetCameraPosition(&player_position);
-    player_position.y -= g_default_world_height;
-    distance = (position - player_position).Length() - movement_0c0.alternate_radius_0b4 -
-               g_startup_world->movement_0c0.alternate_radius_0b4;
-    if (distance < g_float_005ebb34) {
-        distance = g_float_005ebb34;
-    }
-    return distance;
+    return GetPointDistanceToPlayer(position);
 }
 
 // FUNCTION: WIZ8 0x004c7d50
@@ -3269,7 +3270,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
 
     position = movement_0c0.position_040;
     position.y += movement_0c0.vertical_offset_0c0;
-    GetRepresentation()->SetLocation004B8850(&position);
+    GetRepresentation()->SetLocation(&position);
 
     rotation.SetIdentity();
     {
@@ -3287,7 +3288,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
     if (movement_0c0.roll_028 != g_float_005ebb34) {
         rotation.RotateAboutZ(static_cast<double>(movement_0c0.roll_028));
     }
-    m_pRep->SetRotation004B88D0(&rotation);
+    m_pRep->SetRotation(&rotation);
 
     if ((flags_1dc & W8_MONSTER_SCALING_Y) != 0) {
         model = GetCurrentModelInstance();
@@ -3571,7 +3572,7 @@ void W8Monster::SetCycle(signed char cycle)
             stLight* light = *lights->GetAt(index);
 
             light->setParent(g_world->dynamic_scene, 1);
-            light->Reset0049D070();
+            light->Reset();
             if (light->definition() != 0) {
                 g_world->lights_to_update->Add(light);
             }
@@ -3657,13 +3658,9 @@ unsigned char W8Monster::GetAnimationBounds(srVector3T<float>* minimum, srVector
 
     result = W8GrCycle::GetAnimationBounds(minimum, maximum);
     scale = m_pRep->scale_5f0;
-    minimum->x *= scale;
-    minimum->y *= scale;
-    minimum->z *= scale;
+    *minimum *= scale;
     scale = m_pRep->scale_5f0;
-    maximum->x *= scale;
-    maximum->y *= scale;
-    maximum->z *= scale;
+    *maximum *= scale;
     return result;
 }
 
@@ -4244,7 +4241,7 @@ bool MonsterUsesCurrentModelInstance(W8GrCycle* cycle)
 // FUNCTION: WIZ8 0x004c5730
 void MonsterGetLocation(W8Monster* monster, srVector3T<float>* location)
 {
-    monster->m_pRep->GetLocation004B8890(location);
+    monster->m_pRep->GetLocation(location);
 }
 
 // FUNCTION: WIZ8 0x004c5750
@@ -4310,7 +4307,7 @@ void MonsterSetFacing(W8Monster* monster, float angle)
         rotation.RotateAboutZ(sin(angle), cos(angle));
     }
 
-    monster->m_pRep->SetRotation004B88D0(&rotation);
+    monster->m_pRep->SetRotation(&rotation);
 }
 
 // FUNCTION: WIZ8 0x004c5e80
@@ -4520,39 +4517,15 @@ void W8Monster::GetMappedPosition(srVector3T<float>* position)
    reachable from a free declaration. The receiver is the monster's Navigator
    base at +0x18. */
 
-/* Copies a position into a local and hands the local on. The monster argument
-   is dead beyond its own null check - the callee never receives it - which is
-   the same shape the other guarded forwarders here take, except that what
-   survives the guard is the copy rather than the object.
-   The copy goes through the FPU one component at a time - `fld dword` then
-   `fstp dword` per component - rather than as the three integer moves VC6
-   emits for a plain three-float assignment, which is what this body still gets
-   and the whole of its remaining difference. That shape is the signature of
-   srVector3T<float>::Set expanded inline: its parameters are
-   doubles, so each float round-trips through the FPU instead of being copied
-   as bits. The image carries both an out-of-line COMDAT copy of that setter at
-   0x00421680 and this inlined expansion, which is the multiple-translation-unit
-   visibility the inlining policy asks for before a body moves into a header.
-
-   That was measured rather than argued. Defining the setter in srMath.h and
-   calling it here reproduces the copy exactly - the three fld/fstp pairs land
-   instruction for instruction, leaving only a register choice and one
-   scheduling swap - and takes this body from 0.375 to 0.8125. It also stops
-   VC6 emitting the out-of-line copy at all, because this is the only call site
-   in the tree and it inlines: 0x00421680 goes from exact to missing. The
-   inlining policy requires the bundle to improve without regressing an exact
-   boundary, so the trade is refused and the out-of-line definition stays.
-   Hand-spelling the conversion does not work either - `(float)(double)f` is
-   value-preserving, so VC6 folds it straight back to the integer copy.
-   Reproducing both emissions needs a second call site that does not inline,
-   which is not decidable from this one; the filed bead tracks it. */
+/* Keep the position copy through the shared double-argument vector setter:
+   retail 0x004C5A4F-0x004C5A63 round-trips each component through the FPU. */
 // FUNCTION: WIZ8 0x004c5a40
 void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position)
 {
     srVector3T<float> local;
 
     if (monster != 0) {
-        local = *position;
+        local.Set(position->x, position->y, position->z);
         monster->SelectLOD(&local);
     }
 }

@@ -55,8 +55,7 @@ W8MonsterInfoDialog::W8MonsterInfoDialog(int location_id) : m_location_id(locati
 // FUNCTION: WIZ8 0x005d5f00
 W8MonsterInfoDialog::~W8MonsterInfoDialog()
 {
-    m_scroll_bar_58.DestroyControls();
-    W8DialogBase::DestroyControls();
+    W8MonsterInfoDialog::DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005d5f90

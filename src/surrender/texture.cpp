@@ -4,6 +4,8 @@
 #include "surrender/srGERD.h"
 #include "surrender/srPixelConvert.h"
 
+#include <ostream>
+
 // GLOBAL: SURRENDER 0x100A4A20
 // Lazy e_flag names, "GENERATESURFACE_FAILURE,DIRTY_DEFAULTS"
 static const char* s_flag_names_100a4a20;
@@ -56,12 +58,6 @@ const char* srTexture::sGetClassName()
 {
     return "srTexture";
 }
-
-/* Retail delegates to operator= then overwrites the fresh members with a
-   memberwise copy of the source — srTextureIFace::Dimensions copies its
-   srPtr<srPalette> with copy-constructor semantics (addref, no release). */
-// SYNTHETIC: SURRENDER 0x1005F150
-// srTexture::srTexture (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x1005E440
 srTexture::srTexture()
@@ -450,24 +446,6 @@ const char* srTextureIFace::getTextureName()
 {
     return getName();
 }
-
-// FUNCTION: SURRENDER 0x1005F5E0
-srTextureIFace::srTextureIFace() {}
-
-// SYNTHETIC: SURRENDER 0x1005F660
-// srTextureIFace::srTextureIFace (implicit copy constructor)
-
-// FUNCTION: SURRENDER 0x1005F5C0
-srTextureIFace& srTextureIFace::operator=(const srTextureIFace& other)
-{
-    if (this != &other) {
-        srClass::operator=(other);
-    }
-    return *this;
-}
-
-// FUNCTION: SURRENDER 0x1005F3E0
-srTextureIFace::~srTextureIFace() {}
 
 // TEMPLATE: SURRENDER 0x1005F470
 // srClassSupport<srTextureIFace, srClass, true, 0x2100>::sGetClassNode

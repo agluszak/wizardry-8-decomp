@@ -110,12 +110,12 @@ public:
        position minus the home position into `out`; otherwise `out` is zeroed.
        `point` is accepted but never read. */
     char GetDelta(srVector3T<float>* out, const srVector3T<float>* point); /* 0x0044E130 */
-    /* The prop's position for external queries: position_02c when the rep
-       node reports itself current, else the rep node's own position. */
-    void GetPosition0044E2C0(srVector3T<float>* out); /* 0x0044E2C0 */
-    /* Mirror of GetPosition0044E2C0: writes `position` back to the rep node's
-       position when the rep is current, else through SetLocation004B8850. */
-    void SetPosition0044E310(srVector3T<float>* position); /* 0x0044E310 */
+    /* The prop's position for external queries: position_02c while its
+       animation runs, else the rep node's location. */
+    void GetPosition(srVector3T<float>* out); /* 0x0044E2C0 */
+    /* Mirror of GetPosition: stores `position` in position_02c while the
+       animation runs, else moves the rep node through SetLocation. */
+    void SetPosition(srVector3T<float>* position); /* 0x0044E310 */
     /* Whether trigger_18 exists and carries the action-message flag. */
     bool TriggerHasActionMessage(); /* 0x0044E360 */
     /* Whether trigger_18 exists and takes an item (required_item_id >= 0 or a

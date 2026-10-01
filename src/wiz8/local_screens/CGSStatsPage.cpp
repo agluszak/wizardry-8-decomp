@@ -255,7 +255,7 @@ void W8CharacterStatsRecordControl::OnMouseEnter(int event)
 {
     W8TextControl::OnMouseEnter(event);
     if (m_active && m_enabled) {
-        m_textBuffer.m_fontStateIndex = 0xd;
+        m_textBuffer.SetFontStateIndex(0xd);
     }
 }
 
@@ -264,7 +264,7 @@ void W8CharacterStatsRecordControl::OnMouseLeave(int event)
 {
     W8TextControl::OnMouseLeave(event);
     if (m_active) {
-        m_textBuffer.m_fontStateIndex = -1;
+        m_textBuffer.SetFontStateIndex(-1);
         Invalidate(0);
     }
 }
@@ -469,7 +469,7 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
             }
         }
     } else {
-        for (unsigned int index = 0; index < m_count_008; ++index) {
+        for (int index = 0; index < m_count_008; ++index) {
             if (control == m_subpanel_entries_02c[index]) {
                 control->OnMouseLeave(0);
                 SetValue(index);
@@ -516,16 +516,7 @@ W8CharacterStatsRow::W8CharacterStatsRow()
 void W8CharacterStatsPage::Activate()
 {
     EnableRegionSet(1);
-    UpdateRowValues();
-    if (m_character_060->iRace != -1 || m_character_060->iProfession != -1) {
-        for (int index = 0; index < m_entries_04c.count; ++index) {
-            if (!m_rows_initialized_089) {
-                m_entries_04c.data[index]->SetEnabled(1);
-            }
-            m_entries_04c.data[index]->UpdateButtons();
-        }
-        m_rows_initialized_089 = true;
-    }
+    Refresh();
     for (int index = 0; index < 5; ++index) {
         m_attribute_controls_08c[index]->SetActive(1);
         m_attribute_controls_08c[index]->SetEnabled(1);
@@ -689,14 +680,14 @@ void W8CharacterStatsPage::HandleInput(InputAtom* input)
     }
     W8CharacterStatsRow* row = m_profession_row_07c;
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
-        unsigned int index = 0;
+        int index = 0;
         while (index < row->m_count_008) {
-            if (row->m_subpanel_entries_02c[index]->m_active) {
+            if (row->m_subpanel_entries_02c[index]->m_alternateTextEnabled) {
                 goto next_profession;
             }
             ++index;
         }
-        if (!row->m_value_control_024->m_active) {
+        if (!row->m_value_control_024->m_alternateTextEnabled) {
             row->m_subpanel_028->SetEnabled(0);
             row->m_subpanel_028->EnableRegionSet(0);
             row->m_value_control_024->DisableSecondaryState(1);
@@ -708,14 +699,14 @@ void W8CharacterStatsPage::HandleInput(InputAtom* input)
 next_profession:
     row = m_race_row_080;
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
-        unsigned int index = 0;
+        int index = 0;
         while (index < row->m_count_008) {
-            if (row->m_subpanel_entries_02c[index]->m_active) {
+            if (row->m_subpanel_entries_02c[index]->m_alternateTextEnabled) {
                 goto next_race;
             }
             ++index;
         }
-        if (!row->m_value_control_024->m_active) {
+        if (!row->m_value_control_024->m_alternateTextEnabled) {
             row->m_subpanel_028->SetEnabled(0);
             row->m_subpanel_028->EnableRegionSet(0);
             row->m_value_control_024->DisableSecondaryState(1);
@@ -727,14 +718,14 @@ next_profession:
 next_race:
     row = m_gender_row_084;
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
-        unsigned int index = 0;
+        int index = 0;
         while (index < row->m_count_008) {
-            if (row->m_subpanel_entries_02c[index]->m_active) {
+            if (row->m_subpanel_entries_02c[index]->m_alternateTextEnabled) {
                 return;
             }
             ++index;
         }
-        if (!row->m_value_control_024->m_active) {
+        if (!row->m_value_control_024->m_alternateTextEnabled) {
             row->m_subpanel_028->SetEnabled(0);
             row->m_subpanel_028->EnableRegionSet(0);
             row->m_value_control_024->DisableSecondaryState(1);
@@ -786,16 +777,7 @@ void W8CharacterStatsPage::OnRowValueChanged(W8CharacterStatsRow* row, int value
     }
     m_dirty_06d = 1;
     m_screen_05c->UpdateNavigation(this);
-    UpdateRowValues();
-    if (m_character_060->iRace != -1 || m_character_060->iProfession != -1) {
-        for (int index = 0; index < m_entries_04c.count; ++index) {
-            if (!m_rows_initialized_089) {
-                m_entries_04c.data[index]->SetEnabled(1);
-            }
-            m_entries_04c.data[index]->UpdateButtons();
-        }
-        m_rows_initialized_089 = true;
-    }
+    Refresh();
 }
 
 /* A row opened its record list: park the row and attribute controls so the

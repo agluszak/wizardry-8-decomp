@@ -73,15 +73,6 @@ srStringTable& srStringTable::operator=(const srStringTable& other)
     return *this;
 }
 
-/* Retail copy construction assigns strings_00 through srArray::operator=;
-   the element pointers are copied shallowly. */
-// FUNCTION: SURRENDER 0x10003AC0
-srStringTable::srStringTable(const srStringTable& other)
-{
-    strings_00 = other.strings_00;
-    count_08 = other.count_08;
-}
-
 // FUNCTION: SURRENDER 0x10003B40
 void srStringTable::addSeparatedStrings(const char* strings, const char* separators,
                                         int append_slash)
@@ -163,99 +154,4 @@ void srStringTable::addSeparatedStrings(const char* strings, const char* separat
         }
         buffer.erase(0, piece_end + 1);
     }
-}
-
-/* TU-local srInlineString expansions, the same convention as file_stream:
-   this unit inlines construction, the destructor, assignment, find, erase
-   and operator+= while init, reset and operator+ stay callable emissions
-   owned by sibling units (init at 0x10004150, reset at 0x10012C80,
-   operator+ at 0x10012CB0). addSeparatedStrings' operator+= tail is the
-   caller this unit keeps for the init emission, the destructor copy its
-   EH unwind funclets call sits at 0x100040A0, and the const char*
-   assignment it emits for the buffer/needle/piece copies sits at
-   0x100040D0. */
-
-// FUNCTION: SURRENDER 0x10004150 SYMBOL
-// ?init@srInlineString@@QAEXXZ
-
-inline srInlineString::srInlineString()
-{
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-}
-
-inline srInlineString::srInlineString(const char* source)
-{
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-    if (source != 0) {
-        operator=(source);
-    }
-}
-
-// FUNCTION: SURRENDER 0x100040A0 SYMBOL
-// ??1srInlineString@@QAE@XZ
-inline srInlineString::~srInlineString()
-{
-    if (data_ != inline_) {
-        srHeap.free(data_);
-    }
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-}
-
-// FUNCTION: SURRENDER 0x100040D0 SYMBOL
-// ??4srInlineString@@QAEAAU0@PBD@Z
-inline srInlineString& srInlineString::operator=(const char* source)
-{
-    if (data_ != inline_) {
-        srHeap.free(data_);
-    }
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-    if (source == 0 || *source == '\0') {
-        return *this;
-    }
-    size_ = strlen(source) + 1;
-    data_ = static_cast<char*>(srHeap.allocate(size_));
-    strcpy(data_, source);
-    return *this;
-}
-
-inline long srInlineString::find(const srInlineString& needle, unsigned long offset) const
-{
-    const char* found = strstr(data_ + offset, needle.data_);
-    if (found != 0) {
-        return static_cast<long>(found - data_);
-    }
-    return -1;
-}
-
-inline void srInlineString::erase(unsigned long begin, unsigned long end)
-{
-    if (begin != end) {
-        strncpy(data_ + begin, data_ + end, size_ - end);
-        size_ = strlen(data_) + 1;
-    }
-}
-
-inline srInlineString& srInlineString::operator+=(const char* suffix)
-{
-    if (suffix != 0 && *suffix != '\0') {
-        const unsigned long needed = strlen(suffix) + size_;
-        char* buffer = static_cast<char*>(srHeap.allocate(needed));
-        strcpy(buffer, data_);
-        strcpy(buffer + size_ - 1, suffix);
-        if (data_ != inline_) {
-            srHeap.free(data_);
-        }
-        init();
-        size_ = needed;
-        data_ = buffer;
-    }
-    return *this;
 }

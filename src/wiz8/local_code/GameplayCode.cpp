@@ -140,21 +140,11 @@ int CountActiveCharacters(void)
     return count;
 }
 
-/* Whether anybody is. The same count, narrowed to a yes or no. */
+/* Whether anybody is. */
 // FUNCTION: WIZ8 0x004eeec0
 bool AnyCharacterActive(void)
 {
-    int count = 0;
-    int party_slot;
-
-    for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
-            g_status.buffers.Char[party_slot].hp_current != 0 &&
-            g_status.buffers.Char[party_slot].highest_condition < 0x12) {
-            ++count;
-        }
-    }
-    return count != 0;
+    return CountActiveCharacters() != 0;
 }
 
 /* Walk a character up to a level from scratch, recomputing the experience goal

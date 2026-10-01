@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import csv
 import hashlib
 import json
 import re
@@ -25,22 +24,13 @@ _TOKEN = re.compile(
     r'"(?:[^"\\]|\\.)*"|\b0x[0-9a-f]+\b|\b\d+(?:\.\d*)?\b|[A-Za-z_$][\w$]*|->|::|==|!=|<=|>=|&&|\|\||[^\s]',
     re.IGNORECASE,
 )
-_CALL = re.compile(r"\b([A-Za-z_$][\w$:]*)\s*\(")
 _TYPES = re.compile(
     r"\b(?:undefined[1248]?|u?int|u?short|u?long|char|byte|bool|float|double|void|signed|unsigned)\b"
 )
-_SIGNALS = {
-    "exception-frame": r"ExceptionList|unwind|try_level|EH_|catch|exception",
-    "lifecycle": r"vftable|vtable|~|destructor|constructor|scalar_deleting",
-    "container-template": r"W8(?:Growable)?Vector|W8Hash|srArray|template|<[^;]+>::",
-    "floating-point": r"\b(?:float|double|float10|ROUND|NAN|SQRT)\b|\d+\.\d+",
-    "folding-noop": r"NoOp|compiler_folded|folded_empty",
-    "field-offset": r"->|\+\s*0x[0-9a-f]+",
-    "field-width": r"\b(?:byte|ushort|undefined[1248])\s*\*",
-    "signedness": r"\b(?:unsigned|signed|uint|ushort|sbyte)\b",
-    "global-identity": r"\b(?:g_|DAT_|PAIRED_DATA_)\w+",
-    "predicate": r"\b(?:if|while)\s*\(|<=|>=|==|!=",
-}
+# A data identity is a link-time table or vtable address. Ghidra prints the
+# store as `target = &NAME;`, so the right-hand side is a single symbol.
+_IDENTITY_STORE = re.compile(r"^&([A-Za-z_$][\w$]*(?:::[A-Za-z_$][\w$]*)*)$")
+_IDENTITY_NAME = re.compile(r"vftable|vtable|^PTR_|^DAT_|^PAIRED_DATA_|table", re.IGNORECASE)
 
 
 def changed_lines(row: dict) -> tuple[list[str], list[str]]:
@@ -54,34 +44,6 @@ def changed_lines(row: dict) -> tuple[list[str], list[str]]:
             elif text.startswith("+") and not text.startswith("+++"):
                 added.append(text[1:].strip())
     return removed, added
-
-
-def broad_shape(old: list[str], new: list[str]) -> str:
-    def generated(lines):
-        return [_GENERATED.sub("GENERATED", line) for line in lines]
-
-    left, right = generated(old), generated(new)
-    if not old and not new:
-        return "data only"
-    if left == right:
-        return "generated names only"
-    if [_LITERAL.sub("LITERAL", line) for line in left] == [
-        _LITERAL.sub("LITERAL", line) for line in right
-    ]:
-        return "literal or address only"
-    if [_TYPES.sub("TYPE", line) for line in left] == [_TYPES.sub("TYPE", line) for line in right]:
-        return "types or casts only"
-    if all(re.fullmatch(r"[\w *]+;", line) for line in old + new):
-        return "declarations only"
-    old_calls = [
-        m for line in old for m in _CALL.findall(line) if m not in {"if", "while", "for", "switch"}
-    ]
-    new_calls = [
-        m for line in new for m in _CALL.findall(line) if m not in {"if", "while", "for", "switch"}
-    ]
-    if old_calls != new_calls:
-        return "calls differ"
-    return "control or statement structure"
 
 
 def text_fingerprints(old: list[str], new: list[str]) -> set[tuple[str, str, str]]:
@@ -125,6 +87,46 @@ def text_fingerprints(old: list[str], new: list[str]) -> set[tuple[str, str, str
     return result
 
 
+def identity_store_deltas(old: list[str], new: list[str]) -> set[tuple[str, str, str]]:
+    """Table/vtable addresses stored on one side's changed lines only.
+
+    A construction-phase or companion table the other side never installs is a
+    class-model or layout disagreement, not a text difference. Each image names
+    its own tables, so a store the other side makes at the same point in the same
+    order under a different name is reported as `renamed` and a store with no
+    counterpart position as `missing`. The report records which; it does not
+    decide which name or count is correct.
+    """
+
+    def stored(lines: list[str]) -> list[str]:
+        found: list[str] = []
+        for line in lines:
+            _, separator, right = line.partition("=")
+            if not separator:
+                continue
+            match = _IDENTITY_STORE.match(right.strip().rstrip(";").strip())
+            if match and _IDENTITY_NAME.search(match.group(1)):
+                found.append(match.group(1))
+        return found
+
+    left, right = stored(old), stored(new)
+    result = set()
+    for side, own, other in (("retail", left, right), ("rebuild", right, left)):
+        for index, name in enumerate(own):
+            if name in other:
+                continue
+            result.add((side, name, "renamed" if index < len(other) else "missing"))
+    return result
+
+
+def _census_row(calls: dict[int, dict], address: int) -> dict | None:
+    """The call-census row for a function, or None when either side is unresolved."""
+    row = calls.get(address)
+    if row is None or any(row.get(side, {}).get("calls") is None for side in ("orig", "recomp")):
+        return None
+    return row
+
+
 def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
     from ..source_index import warn_if_source_index_may_be_stale
 
@@ -143,7 +145,6 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
     if census["manifest_sha256"] != digest:
         raise ValueError("call census and comparison use different catalogs")
     calls = {int(row["address"], 16): row for row in census["functions"]}
-    target_bodies = {(row["image"], row["identity"]): row for row in census["targets"]}
     index = json.loads((repository / "build/source-index.json").read_text())
     declarations = {
         (row["target"], row["semantic_id"], row.get("unit_id")): row
@@ -165,17 +166,6 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
     callee_names.update(
         {f"{obj['image']}:{int(obj['addr'], 16):#x}": obj["name"] for obj in manifest["unpaired"]}
     )
-    # Retain the historical mutually exclusive census as a separate observation.
-    # Its labels are not silently promoted to a fresh classification.
-    historical = {}
-    bucket_file = directory / "remaining-buckets.tsv"
-    if bucket_file.is_file():
-        with bucket_file.open() as stream:
-            historical = {
-                int(row["retail address"], 16): row
-                for row in csv.DictReader(stream, delimiter="\t")
-            }
-    signature_observations = {}
     field_observations = {}
     field_callers: dict[int, list[tuple]] = defaultdict(list)
     field_path = directory / "field-uses.json"
@@ -195,6 +185,7 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
             field_observations[key] = observation
             for member in observation["functions"]:
                 field_callers[int(member, 16)].append(key)
+    signature_observations = {}
     signature_callers: dict[int, list[str]] = defaultdict(list)
     signature_path = directory / "signature-census.json"
     if signature_path.is_file():
@@ -210,22 +201,19 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
                 signature_callers[int(caller, 16)].append(identity)
     groups: dict[tuple, set[int]] = defaultdict(set)
     rows = {}
-    categories = Counter()
+    categories: Counter = Counter()
+    inline: Counter = Counter()
     for function in summary["functions"]:
         if function["outcome"] != "differences":
             continue
         address = int(function["orig"], 16)
         old, new = changed_lines(function)
-        text = "\n".join(old + new)
-        signals = {
-            name for name, pattern in _SIGNALS.items() if re.search(pattern, text, re.IGNORECASE)
-        }
-        shape = broad_shape(old, new)
+        signals = set()
+        call_row = _census_row(calls, address)
         for key in field_callers.get(address, []):
             groups[key].add(address)
             signals.add("field-width" if key[4] and key[5] else "field-offset")
         for identity in signature_callers.get(address, []):
-            signals.add("signature-abi")
             observation = signature_observations[identity]
             groups[
                 (
@@ -234,72 +222,41 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
                     tuple(observation["private_discrepancies"]),
                 )
             ].add(address)
-        if shape in {"generated names only", "declarations only"}:
-            signals.add("representation")
+            signals.add("callee-signature")
         if function["data"]:
             signals.add("referenced-data")
             for finding in function["data"]:
                 groups[("referenced-data", json.dumps(finding, sort_keys=True))].add(address)
-        if any(re.match(r"^[\w *]+\([^;]*\)$", line) for line in old + new):
-            signals.add("signature-abi")
-        if len(old) + len(new) > 100:
-            signals.add("large-structural")
-        if old != new and Counter(old) == Counter(new):
-            signals.add("statement-order")
+        if function.get("inline_callees"):
+            signals.add("inline-retry")
+            inline["retried"] += 1
+            for callee in function["inline_callees"]:
+                groups[("inline-retried-callee", f"pair:{int(callee, 16):#x}")].add(address)
         delta = None
-        observation = calls.get(address)
-        if observation and all(
-            observation[side]["calls"] is not None for side in ("orig", "recomp")
-        ):
-            delta = call_delta(observation["orig"]["calls"], observation["recomp"]["calls"])
+        if call_row is not None:
+            delta = call_delta(call_row["orig"]["calls"], call_row["recomp"]["calls"])
             categories[delta["category"]] += 1
             if delta["deltas"]:
                 signals.add("call-target")
-            elif shape == "calls differ":
-                signals.add("call-arguments")
-            delta["helper_expansion_candidates"] = []
-            for helper_side, expanded_side in (("orig", "recomp"), ("recomp", "orig")):
-                helper_sequence = [call["identity"] for call in observation[helper_side]["calls"]]
-                expanded_sequence = [
-                    call["identity"] for call in observation[expanded_side]["calls"]
-                ]
-                for position, identity in enumerate(helper_sequence):
-                    body = target_bodies.get((helper_side, identity))
-                    if body is None or not body["calls"]:
-                        continue
-                    body_calls = body["calls"]
-                    body_sequence = [call["identity"] for call in body_calls]
-                    if (
-                        helper_sequence[:position] + body_sequence + helper_sequence[position + 1 :]
-                        == expanded_sequence
-                    ):
-                        groups[
-                            ("helper-direct-call-expansion", helper_side, tuple(body_sequence))
-                        ].add(address)
-                        delta["helper_expansion_candidates"].append(
-                            {
-                                "helper_side": helper_side,
-                                "helper": identity,
-                                "name": body["name"],
-                                "observation": "replacing this call with its native direct-call sequence reproduces the other side's sequence",
-                            }
-                        )
             for change in delta["deltas"]:
                 groups[
                     ("direct-call-delta", tuple(change["retail"]), tuple(change["rebuild"]))
                 ].add(address)
         else:
             categories["unavailable-sequence"] += 1
-        for fingerprint in text_fingerprints(old, new):
+        token_deltas = text_fingerprints(old, new)
+        for fingerprint in token_deltas:
             groups[fingerprint].add(address)
+        for side, identity, shape in identity_store_deltas(old, new):
+            signals.add("data-identity")
+            groups[("one-sided-identity-store", side, shape, identity)].add(address)
         rows[address] = {
             **function,
             "marker_kinds": sorted(markers.get(address, {"unknown"})),
-            "broad_shape": shape,
-            "historical_bucket": historical.get(address),
             "signals": sorted(signals),
+            "token_deltas": sorted(token_deltas),
             "call_delta": delta,
-            "call_observation": observation,
+            "call_observation": call_row,
             "source_signature": source_signatures.get(address),
             "recomp_decorated_symbol": symbols.get(address),
             "callee_signature_observations": signature_callers.get(address, []),
@@ -312,6 +269,14 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
             continue
         covered.update(addresses)
         members = [rows[address] for address in sorted(addresses)]
+        if key[0] == "direct-call-delta":
+            callees = {
+                identity: callee_names.get(identity) for delta in key[1:] for identity in delta
+            }
+        elif key[0] in {"callee-signature-observation", "inline-retried-callee"}:
+            callees = {key[1]: callee_names.get(key[1])}
+        else:
+            callees = {}
         clusters.append(
             {
                 "key": list(key),
@@ -320,16 +285,7 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
                 if key[0] == "callee-signature-observation"
                 else None,
                 "field_observation": field_observations.get(key),
-                "callees": {
-                    identity: callee_names.get(identity)
-                    for delta in key[1:]
-                    if isinstance(delta, tuple)
-                    for identity in delta
-                }
-                if key[0] == "direct-call-delta"
-                else {key[1]: callee_names.get(key[1])}
-                if key[0] == "callee-signature-observation"
-                else {},
+                "callees": callees,
                 "representatives": [row["orig"] for row in members[:5]],
                 "source_files": sorted({row["source"]["path"] for row in members if row["source"]}),
                 "owners": sorted(
@@ -349,24 +305,12 @@ def mismatch_clusters(repository: Path, directory: Path) -> dict[str, Any]:
                 if row["outcome"] == "unpaired"
             )
         ),
-        "generated_presentation_candidates": sum(
-            "representation" in row["signals"] for row in rows.values()
-        ),
         "functions_in_repeated_clusters": len(covered),
         "unclassified_differing": len(rows.keys() - covered),
         "clusters": len(clusters),
-        "signature_callee_clusters": sum(
-            cluster["key"][0] == "callee-signature-observation" for cluster in clusters
-        ),
-        "field_access_clusters": sum(
-            cluster["key"][0] == "field-access-observation" for cluster in clusters
-        ),
         "call_categories": dict(categories),
-        "helper_expansion_candidates": sum(
-            bool(row["call_delta"] and row["call_delta"].get("helper_expansion_candidates"))
-            for row in rows.values()
-        ),
-        "broad_shapes": dict(Counter(row["broad_shape"] for row in rows.values())),
+        "inline_retried_differing": inline["retried"],
+        "signals": dict(Counter(tag for row in rows.values() for tag in row["signals"])),
     }
     output = directory / "mismatch-clusters.json"
     atomic_json(

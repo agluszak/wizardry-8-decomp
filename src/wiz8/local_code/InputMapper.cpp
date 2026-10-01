@@ -98,7 +98,7 @@ unsigned char MGSKeyboard::LoadDefaults(const char* path)
 
         int old_index = FindBinding(command);
         if (old_index != -1) {
-            delete m_bindings.RemoveAt(old_index);
+            m_bindings.RemoveAtAndDelete(old_index);
             m_command_index.Remove((const unsigned int*)&command);
         }
         if (m_bindings.Add(binding) != -1) {

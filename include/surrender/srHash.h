@@ -33,24 +33,16 @@ template <class Key, class Value> struct srHashEntry {
     Value value;
 };
 
-template <class Key, class Value> class srHashTable {
+/* Storage and algorithms without ownership. srRegistry's per-class ID index
+   embeds one directly: ~IDIndex (0x100109F0) runs no hash teardown and
+   ~ClassNode frees the two arrays through Release() before deleting the
+   index, so that member's type has no destructor. The owning table adds only
+   the destructor. `srHashTableBase` is a provisional spelling. */
+template <class Key, class Value> class srHashTableBase {
 public:
-    // TEMPLATE: SURRENDER 0x10027840
-    // srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::srHashTable
-    srHashTable() : bucket_heads(0), entries(0), free_head(-1), bucket_count(0)
+    srHashTableBase() : bucket_heads(0), entries(0), free_head(-1), bucket_count(0)
     {
         Grow();
-    }
-    // TEMPLATE: SURRENDER 0x10027860
-    // srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::~srHashTable
-    ~srHashTable()
-    {
-        if (bucket_heads != 0) {
-            delete[] bucket_heads;
-        }
-        if (entries != 0) {
-            delete[] entries;
-        }
     }
 
     Value Lookup(const Key* key) const;
@@ -62,8 +54,18 @@ public:
     void Grow();
     int AllocateEntry();
 
+    void Release()
+    {
+        if (bucket_heads != 0) {
+            delete[] bucket_heads;
+        }
+        if (entries != 0) {
+            delete[] entries;
+        }
+    }
+
     // TEMPLATE: SURRENDER 0x10027890
-    // srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::Clear
+    // srHashTableBase<srGERD::Renderer::TextureSetKey, unsigned long>::Clear
     void Clear()
     {
         if (bucket_count != 0) {
@@ -83,7 +85,20 @@ public:
     unsigned int bucket_count;
 };
 
-template <class Key, class Value> Value srHashTable<Key, Value>::Lookup(const Key* key) const
+template <class Key, class Value> class srHashTable : public srHashTableBase<Key, Value> {
+public:
+    // TEMPLATE: SURRENDER 0x10027840
+    // srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::srHashTable
+    srHashTable() {}
+    // TEMPLATE: SURRENDER 0x10027860
+    // srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::~srHashTable
+    ~srHashTable()
+    {
+        this->Release();
+    }
+};
+
+template <class Key, class Value> Value srHashTableBase<Key, Value>::Lookup(const Key* key) const
 {
     int slot = bucket_heads[srHashValue(*key) & (bucket_count - 1)];
     while (slot != -1) {
@@ -96,7 +111,7 @@ template <class Key, class Value> Value srHashTable<Key, Value>::Lookup(const Ke
 }
 
 template <class Key, class Value>
-int srHashTable<Key, Value>::FindNextEntry(const Key* key, int previous) const
+int srHashTableBase<Key, Value>::FindNextEntry(const Key* key, int previous) const
 {
     int slot;
     if (previous == -1) {
@@ -111,7 +126,7 @@ int srHashTable<Key, Value>::FindNextEntry(const Key* key, int previous) const
 }
 
 template <class Key, class Value>
-void srHashTable<Key, Value>::Insert(const Key* key, const Value* value)
+void srHashTableBase<Key, Value>::Insert(const Key* key, const Value* value)
 {
     int slot = AllocateEntry();
     unsigned int bucket = srHashValue(*key) & (bucket_count - 1);
@@ -122,7 +137,7 @@ void srHashTable<Key, Value>::Insert(const Key* key, const Value* value)
     bucket_heads[bucket] = slot;
 }
 
-template <class Key, class Value> void srHashTable<Key, Value>::Remove(const Key* key)
+template <class Key, class Value> void srHashTableBase<Key, Value>::Remove(const Key* key)
 {
     int* bucket = bucket_heads + (srHashValue(*key) & (bucket_count - 1));
     int slot = *bucket;
@@ -146,7 +161,7 @@ template <class Key, class Value> void srHashTable<Key, Value>::Remove(const Key
 }
 
 template <class Key, class Value>
-void srHashTable<Key, Value>::Remove(const Key* key, const Value* value)
+void srHashTableBase<Key, Value>::Remove(const Key* key, const Value* value)
 {
     int* bucket = bucket_heads + (srHashValue(*key) & (bucket_count - 1));
     int slot = *bucket;
@@ -169,7 +184,7 @@ void srHashTable<Key, Value>::Remove(const Key* key, const Value* value)
     }
 }
 
-template <class Key, class Value> void srHashTable<Key, Value>::RemoveAt(int slot)
+template <class Key, class Value> void srHashTableBase<Key, Value>::RemoveAt(int slot)
 {
     int* bucket = bucket_heads + (srHashValue(entries[slot].key) & (bucket_count - 1));
     int current = *bucket;
@@ -192,10 +207,10 @@ template <class Key, class Value> void srHashTable<Key, Value>::RemoveAt(int slo
 }
 
 // TEMPLATE: SURRENDER 0x100279E0
-// srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::Grow
+// srHashTableBase<srGERD::Renderer::TextureSetKey, unsigned long>::Grow
 // TEMPLATE: SURRENDER 0x10014750
-// srHashTable<srScheduler::Job*, srScheduler::QueueEntry*>::Grow
-template <class Key, class Value> void srHashTable<Key, Value>::Grow()
+// srHashTableBase<srScheduler::Job*, srScheduler::QueueEntry*>::Grow
+template <class Key, class Value> void srHashTableBase<Key, Value>::Grow()
 {
     unsigned int capacity = bucket_count << 1;
     if (capacity < 4) {
@@ -240,7 +255,7 @@ template <class Key, class Value> void srHashTable<Key, Value>::Grow()
     bucket_heads = new_buckets;
 }
 
-template <class Key, class Value> int srHashTable<Key, Value>::AllocateEntry()
+template <class Key, class Value> int srHashTableBase<Key, Value>::AllocateEntry()
 {
     if (free_head == -1) {
         Grow();

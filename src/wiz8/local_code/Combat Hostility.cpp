@@ -260,8 +260,8 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
 /* Whether a party action aims at enemies: the four melee kinds do, as do
    spells (and item-spells) whose target type sits in the enemy band. */
 // FUNCTION: WIZ8 0x00547310
-unsigned char CharacterActionTargetsEnemies(W8Character* character, int action_kind,
-                                            int action_detail, W8ActionDetailBlock* detail)
+bool CharacterActionTargetsEnemies(W8Character* character, int action_kind, int action_detail,
+                                   W8ActionDetailBlock* detail)
 {
     W8ItemInstance* item;
     unsigned char spell_id;
@@ -272,7 +272,7 @@ unsigned char CharacterActionTargetsEnemies(W8Character* character, int action_k
     case W8_ACTION_BERSERK:
     case W8_ACTION_BREATHE:
     case W8_ACTION_TURN_UNDEAD:
-        return 1;
+        return true;
     case W8_ACTION_CAST_SPELL:
         if (action_detail > 0x95) {
             srAssertFail("iType < SPELL_COUNT",
@@ -281,7 +281,7 @@ unsigned char CharacterActionTargetsEnemies(W8Character* character, int action_k
         if (action_detail != 3 && action_detail != 0x29) {
             target_type = GetSpellTargetType(action_detail, 0);
             if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
-                return 1;
+                return true;
             }
         }
         break;
@@ -298,26 +298,26 @@ unsigned char CharacterActionTargetsEnemies(W8Character* character, int action_k
                 if (spell_id != 3 && spell_id != 0x29) {
                     target_type = GetSpellTargetType(spell_id, 0);
                     if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
-                        return 1;
+                        return true;
                     }
                 }
             }
         }
         break;
     }
-    return 0;
+    return false;
 }
 
 /* Monster actions 0 and 3 always count as enemy-aimed; action 2 is a spell id. */
 // FUNCTION: WIZ8 0x00547440
-unsigned char MonsterActionTargetsEnemies(int action_kind, int action_detail,
-                                          unsigned int* spell_power_level)
+bool MonsterActionTargetsEnemies(int action_kind, int action_detail,
+                                 unsigned int* spell_power_level)
 {
     int target_type;
 
     switch (action_kind) {
     case 0:
-        return 1;
+        return true;
     case 2:
         if (action_detail > 0x95) {
             srAssertFail("iType < SPELL_COUNT",
@@ -326,14 +326,14 @@ unsigned char MonsterActionTargetsEnemies(int action_kind, int action_detail,
         if (action_detail != 3 && action_detail != 0x29) {
             target_type = GetSpellTargetType(action_detail, 0);
             if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
-                return 1;
+                return true;
             }
         }
-        return 0;
+        return false;
     case 3:
-        return 1;
+        return true;
     default:
-        return 0;
+        return false;
     }
 }
 
@@ -368,7 +368,7 @@ unsigned short g_group_hostility_notice_ids[3] = {511, 512, 513};
 
 // GLOBAL: WIZ8 0x0061ec14
 int g_monster_special_attack_name_ids[12] = {0,    1598, 1599, 1600, 1601, 1602,
-                                                   1603, 1604, 1605, 1606, 1607, 1608};
+                                             1603, 1604, 1605, 1606, 1607, 1608};
 
 // FUNCTION: WIZ8 0x00547540
 void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, char recurse)

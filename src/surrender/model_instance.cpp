@@ -4,6 +4,8 @@
 #include "surrender/srDebug.h"
 #include "surrender/srGERD.h"
 
+#include <ostream>
+
 // FUNCTION: SURRENDER 0x1004F920
 srModelInstance::srModelInstance(srNode* parent)
     : srClassSupport<srModelInstance, srNode, 0, 0x1100>(static_cast<srNode*>(0))
@@ -43,12 +45,6 @@ srModelInstance::~srModelInstance() {}
 srClass* srModelInstance::vInstance()
 {
     return new srModelInstance(static_cast<srNode*>(0));
-}
-
-// FUNCTION: SURRENDER 0x1004FFE0
-const char* srModelInstance::sGetClassName()
-{
-    return "srModelInstance";
 }
 
 // FUNCTION: SURRENDER 0x1004F3A0

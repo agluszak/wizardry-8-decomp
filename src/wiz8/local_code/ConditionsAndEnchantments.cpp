@@ -513,7 +513,11 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         if (monster_info->fActive != 0) {
             MonsterInfoSetMotionless(monster_info, monster_info->highest_condition < 0xE ? 0 : 1);
         }
-        if (old_duration == 0 && condition != 0 && condition <= 0x12) {
+        /* The retail's mangled signature keeps condition an int, but 0x00523D8A
+           tests it and 0x00523D8F bounds it unsigned, which is the same cast the
+           three later uses of condition in this function already carry. */
+        unsigned int condition_index = static_cast<unsigned int>(condition);
+        if (old_duration == 0 && condition_index != 0 && condition_index <= 0x12) {
             SetMonsterSpellIcon(monster_info->p3D, condition - 1, 1);
         }
         if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(target, 0) != 0 &&
@@ -738,7 +742,6 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     old_highest = character->highest_condition;
     old_duration = character->uiCondition[condition];
     if (old_duration < (unsigned int)duration) {
-        character->uiCondition[condition] = duration;
         if (old_duration == 0) {
             if (condition == 9 || condition == 0xC) {
                 gXStatus.sight_refresh_pending_a03 = 1;
@@ -746,13 +749,14 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
                 SetTargetToCharacter(party_slot, 1);
             }
         }
+        character->uiCondition[condition] = duration;
+        RecomputeCharacterHighestCondition(party_slot);
         handled = 1;
     } else {
         handled = 0;
     }
     if ((unsigned int)character->condition_argument < (unsigned int)argument) {
         character->condition_argument = argument;
-        handled = 1;
     }
     RebuildConditionsAndDerivedStats(party_slot);
     if (handled == 0) {
@@ -760,7 +764,8 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     }
     if (condition == 0x12) {
         CharacterDies(party_slot);
-    } else if (condition > 0x12) {
+    }
+    if (condition >= 0x12) {
         SetTargetToCharacter(party_slot, 0);
     }
     if (old_highest != character->highest_condition) {
@@ -771,7 +776,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
             PostCharacterNotice(party_slot, gppStringList[0x1d5]);
         } else {
             PostCharacterNotice(party_slot, L"%s!",
-                                gppStringList[g_condition_notices[condition * 4]]);
+                                gppStringList[g_condition_notices[condition * 4 + 1]]);
         }
     }
     if ((party_slot < 0 || party_slot > 7 || row->fOccupied == 0 || character->hp_current == 0 ||

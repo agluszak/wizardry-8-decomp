@@ -555,9 +555,9 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
     if (node->path.angle_0c != g_zero_005ebb40) {
         rotation.RotateAroundAxis(sin(node->path.angle_0c), cos(node->path.angle_0c), axis);
     }
-    translation.x = node->path.position_00.x * g_double_005ec150;
-    translation.y = node->path.position_00.y * g_double_005ec150;
-    translation.z = node->path.position_00.z * g_double_005ec150;
+    translation.Set(node->path.position_00.x * g_double_005ec150,
+                    node->path.position_00.y * g_double_005ec150,
+                    node->path.position_00.z * g_double_005ec150);
 
     if ((mesh->flags_0c & 1) != 0 && (mesh->flags_0c & 2) != 0) {
         factor = mesh->lod_scale_58 * g_world_scale;

@@ -77,8 +77,7 @@ W8SpellInfoDialog::W8SpellInfoDialog(unsigned int spell)
 // FUNCTION: WIZ8 0x005dbc50
 W8SpellInfoDialog::~W8SpellInfoDialog()
 {
-    m_scroll_bar_058.DestroyControls();
-    W8DialogBase::DestroyControls();
+    W8SpellInfoDialog::DestroyControls();
     NoOp();
 }
 

@@ -51,8 +51,10 @@ public:
     virtual void OnRightButtonUp() override;
     virtual void OnMouseWheel(int delta) override;
 
-private:
+protected:
     virtual unsigned char PopulateText();
+
+private:
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
     /* Renders one text line at a dialog-relative rectangle through a scratch
        W8TextBuffer. */

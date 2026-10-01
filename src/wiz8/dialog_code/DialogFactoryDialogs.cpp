@@ -1,4 +1,5 @@
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
+#include "wiz8/sgp_text.h"
 #include "wiz8/dialog_code/ButtonUserData.h"
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/dialog_code/DialogInterface.h"
@@ -222,14 +223,11 @@ int W8ListBoxDialog::CreateControls()
     }
     m_inlay_image_0f8 = LoadGenericButtonImages(
         0,
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogEdge.STI"),
         0,
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogEdge.STI"),
         0,
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            m_background_path),
+        Wiz8ToSgpText(m_background_path),
         static_cast<short>(m_background_flags), 0, 0);
     m_text_button_08c = CreateTextButton(
         m_text, g_dialog_font_64fde8, g_dialog_font_foreground, g_dialog_font_background,
@@ -250,14 +248,11 @@ int W8ListBoxDialog::CreateControls()
     SpecifyButtonMultiColorFont(m_text_button_08c, g_dialog_font_enabled);
     m_inlay_image_094 = LoadGenericButtonImages(
         0,
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogInlay.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogInlay.STI"),
         0,
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogInlay.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogInlay.STI"),
         0,
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogBackground_dark.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogBackground_dark.STI"),
         0, 3, 3);
     if (m_inlay_image_094 == -1) {
         m_error = 4;
@@ -276,39 +271,34 @@ int W8ListBoxDialog::CreateControls()
     }
     SetButtonUserDataPointer(m_area_button_098, this);
     m_up_image_0a0 = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogUpArrow.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogUpArrow.STI"),
         3, 0, 1, 2, 2);
     if (m_up_image_0a0 != -1) {
         m_up_button_09c =
             QuickCreateButton(m_up_image_0a0, 0, 0, 4, 0x7e, UpButtonCallback, UpButtonCallback);
     }
     m_down_image_0a8 = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogDownArrow.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogDownArrow.STI"),
         3, 0, 1, 2, 2);
     if (m_down_image_0a8 != -1) {
         m_down_button_0a4 = QuickCreateButton(m_down_image_0a8, 0, 0, 4, 0x7e, DownButtonCallback,
                                               DownButtonCallback);
     }
     m_slider_image_0b0 = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogSlideBar.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogSlideBar.STI"),
         -1, 0, -1, -1, -1);
     if (m_slider_image_0b0 != -1) {
         m_slider_button_0ac = QuickCreateButton(m_slider_image_0b0, 0, 0, 4, 0x7d, 0, 0);
     }
     m_ok_image_0c0 = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"),
         3, 0, 1, 2, 2);
     if (m_ok_image_0c0 != -1) {
         m_ok_button_0bc =
             QuickCreateButton(m_ok_image_0c0, 0, 0, 4, 0x7f, OkButtonCallback, OkButtonCallback);
     }
     m_cancel_image_0d8 = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"),
         7, 4, 5, 6, 6);
     if (m_cancel_image_0d8 != -1) {
         m_cancel_button_0d4 = QuickCreateButton(m_cancel_image_0d8, 0, 0, 4, 0x7f,
@@ -325,14 +315,11 @@ int W8ListBoxDialog::CreateControls()
         SetButtonUserDataPointer(m_cancel_button_0d4, this);
         m_inlay_image_0b4 = LoadGenericButtonImages(
             0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>("Data\\Dialogs\\DialogInlay.STI")),
+            Wiz8ToSgpText("Data\\Dialogs\\DialogInlay.STI"),
             0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>("Data\\Dialogs\\DialogInlay.STI")),
+            Wiz8ToSgpText("Data\\Dialogs\\DialogInlay.STI"),
             0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>("Data\\Dialogs\\DialogBackground_dark.STI")),
+            Wiz8ToSgpText("Data\\Dialogs\\DialogBackground_dark.STI"),
             0, 3, 3);
         if (m_inlay_image_0b4 != -1) {
             m_third_text_button_0b8 =
@@ -715,26 +702,7 @@ void W8SplitAmountDialog::DestroyControls()
 // FUNCTION: WIZ8 0x005d9930
 W8SplitAmountDialog::~W8SplitAmountDialog()
 {
-    int index;
-
-    W8DialogBase::DestroyControls();
-    for (index = 0; index < 6; ++index) {
-        if (m_buttons_054[index] != 0) {
-            delete m_buttons_054[index];
-            m_buttons_054[index] = 0;
-        }
-    }
-    for (index = 0; index < 3; ++index) {
-        if (m_text_buffers_06c[index] != 0) {
-            delete m_text_buffers_06c[index];
-            m_text_buffers_06c[index] = 0;
-        }
-    }
-    if (m_split_input_078 != 0) {
-        NoOp();
-        delete m_split_input_078;
-        m_split_input_078 = 0;
-    }
+    DestroyControls();
 }
 
 /* The split-item dialog. Three text buffers show the running totals, the
@@ -882,7 +850,7 @@ void W8SplitAmountDialog::Draw()
             m_buttons_054[index]->m_dirty = true;
         }
         for (index = 0; index < 3; ++index) {
-            m_text_buffers_06c[index]->m_geometryDirty = 1;
+            m_text_buffers_06c[index]->SetGeometryDirty();
         }
         W8DialogNumericInput* numeric = m_split_input_078;
         numeric->m_dirty = true;
@@ -918,11 +886,11 @@ void W8SplitAmountDialog::UpdateTextBuffers()
     swprintf(text, g_format_d, m_remaining_080);
     m_text_buffers_06c[2]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[2]->m_dirty = true;
-    m_text_buffers_06c[2]->m_geometryDirty = 1;
+    m_text_buffers_06c[2]->SetGeometryDirty();
     if (m_remaining_080 < 0) {
-        m_text_buffers_06c[2]->m_fontStateIndex = 0;
+        m_text_buffers_06c[2]->SetFontStateIndex(0);
     } else {
-        m_text_buffers_06c[2]->m_fontStateIndex = -1;
+        m_text_buffers_06c[2]->SetFontStateIndex(-1);
     }
     m_split_input_078->SetValue(m_taken_084);
     m_buttons_054[3]->m_dirty = true;

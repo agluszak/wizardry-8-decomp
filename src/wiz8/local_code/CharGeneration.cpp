@@ -284,7 +284,7 @@ void RecomputeAttributeLimits(W8Character* character, W8CharacterCreationState* 
     }
 
     ClampAttributesToBudget(character, creation_state);
-    if (creation_state->attribute_points_total > 0) {
+    if (creation_state->attribute_points_remaining > 0) {
         for (index = 0; index < 7; ++index) {
             if (creation_state->attribute_values_008[index] <
                 creation_state->attribute_limits_028[index]) {
@@ -447,9 +447,10 @@ void DetermineEligibleProfessions(W8Character* character, W8CharacterCreationSta
 {
     int attribute;
 
-    for (unsigned int profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
+    /* 0x00557416 compares the loop counter against 15 with a signed jump. */
+    for (int profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
         eligibility[profession] = 1;
-        if (profession == static_cast<unsigned int>(character->iProfession)) {
+        if (profession == character->iProfession) {
             eligibility[profession] = 1;
         } else if (profession == W8_PROFESSION_VALKYRIE && character->gender != W8_GENDER_FEMALE) {
             eligibility[W8_PROFESSION_VALKYRIE] = 0;

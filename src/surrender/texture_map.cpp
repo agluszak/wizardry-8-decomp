@@ -2,6 +2,8 @@
 
 #include "surrender/srHeap.h"
 
+#include <ostream>
+
 // FUNCTION: SURRENDER 0x10060270
 srTextureMap::srTextureMap(srColorSurfaceIFace* surface)
 {

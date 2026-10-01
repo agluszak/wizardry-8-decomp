@@ -225,31 +225,11 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
                 srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x101, 0);
                 return false;
             }
-            unsigned int steps = 0;
-            switch (g_spell_records[spell_id].range_category) {
-            case W8_RANGE_NONE:
-                steps = 0;
-                break;
-            case W8_RANGE_TOUCH:
-                steps = 2;
-                break;
-            case W8_RANGE_SHORT:
-                steps = 4;
-                break;
-            case W8_RANGE_LONG:
-                steps = 0x19;
-                break;
-            case W8_RANGE_EXTREME:
-                steps = 0x32;
-                break;
-            default:
-                srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
-                             "CalcRangeDistance: ERROR - Invalid range category");
-            }
+
             trace = true;
             camera.y -= g_default_world_height;
             point.y -= g_float_005ebc64;
-            distance = steps * g_world_scale;
+            distance = CalcRangeDistance(g_spell_records[spell_id].range_category);
         }
         float dx = point.x - camera.x;
         float dz = point.z - camera.z;
@@ -552,24 +532,18 @@ bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster, W8RangeCatego
 
 /* Whether the monster's attack `attack` reaches anyone at all; `hostile_only`
    counts only those it is hostile to. In combat with berserk_015 set the
-   hostile filter is forced on. Party members are tested inline; other monsters
-   defer to MonsterAttackReachesMonster. */
+   hostile filter is forced on. Party members and other monsters defer to the corresponding
+   MonsterAttackReachesCharacter/Monster helpers. */
 // FUNCTION: WIZ8 0x00519c00
 unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack,
                                          char hostile_only)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     char disposition_needed;
-    char crossable;
     int party_slot;
-    int sight_index;
-    int action_kind;
     unsigned int index;
     unsigned int count;
-    unsigned int steps;
-    W8RangeCategory range;
     W8MonsterInfo* other;
-    W8MonsterRecord* attack_record;
 
     if (monster_info->fInCombat == 0 || monster_info->pCombat->berserk_015 == 0) {
         disposition_needed = hostile_only;
@@ -593,88 +567,8 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
         if (MonsterVsCharDisposition(party_slot, monster_info) != disposition_needed) {
             continue;
         }
-        if (monster_info->player_visibility.sight_state_04 != W8_SIGHT_SEEN) {
-            continue;
-        }
-
-        action_kind = monster_info->action_kind;
-        if (action_kind == 0) {
-            attack_record = GetMonsterDataForInfo(monster_info);
-            if (attack_record->attacks[attack].range_category < W8_RANGE_LONG ||
-                attack_record->attacks[attack].range_category > W8_RANGE_EXTREME) {
-                sight_index = 0;
-            } else {
-                sight_index = GetSightCondition37A(monster_info);
-            }
-        } else if (action_kind == 2) {
-            sight_index = GetSightCondition37CIndex(monster_info);
-        } else if (action_kind == 3) {
-            sight_index = 2;
-        } else {
-            sight_index = 0;
-        }
-        if (monster_info->player_visibility.los_flags_05[sight_index] == 0) {
-            continue;
-        }
-
-        switch (monster_info->action_kind) {
-        case 0:
-            if (attack >= W8_MAX_MONSTER_ATTACKS) {
-                srAssertFail("uiAttack < MAX_MONSTER_ATTACKS", COMBAT_RANGE_CPP, 0x3b5, 0);
-            }
-            if (record->attacks[attack].fHasAttack == 0) {
-                srAssertFail("pMonsterDB->Attack[uiAttack].fHasAttack", COMBAT_RANGE_CPP, 0x3b6, 0);
-            }
-            range = static_cast<W8RangeCategory>(record->attacks[attack].range_category);
-            break;
-        case 2:
-            range = g_spell_records[monster_info->action_detail].range_category;
-            break;
-        case 3:
-            range = W8_RANGE_LONG;
-            break;
-        case 8:
-            range = W8_RANGE_TOUCH;
-            break;
-        default:
-            range = W8_RANGE_NONE;
-            break;
-        }
-        if (range == W8_RANGE_NONE) {
-            continue;
-        }
-        if (gXStatus.fCombatMode != 0 && range >= W8_RANGE_TOUCH && range < W8_RANGE_LONG) {
-            for (crossable = CountRowsBetween(party_slot, monster_info); crossable != 0;
-                 --crossable) {
-                if (range == W8_RANGE_TOUCH) {
-                    range = W8_RANGE_NONE;
-                    break;
-                }
-                range = static_cast<W8RangeCategory>(static_cast<int>(range) - 1);
-            }
-        }
-        if (range != W8_RANGE_NONE) {
-            steps = 0;
-            switch (range) {
-            case W8_RANGE_TOUCH:
-                steps = 2;
-                break;
-            case W8_RANGE_SHORT:
-                steps = 4;
-                break;
-            case W8_RANGE_LONG:
-                steps = 25;
-                break;
-            case W8_RANGE_EXTREME:
-                steps = 50;
-                break;
-            default:
-                srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
-                             "CalcRangeDistance: ERROR - Invalid range category");
-            }
-            if (monster_info->p3D->GetDistanceToPlayer() <= steps * g_world_scale) {
-                return 1;
-            }
+        if (MonsterAttackReachesCharacter(monster_info, record, attack, party_slot)) {
+            return 1;
         }
     }
 
@@ -702,7 +596,6 @@ bool MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8MonsterRecord*
 {
     int sight_index;
     int action_kind;
-    unsigned int steps;
     W8RangeCategory range;
     char crossable;
     W8MonsterRecord* attack_record;
@@ -768,25 +661,9 @@ bool MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8MonsterRecord*
     if (range == W8_RANGE_NONE) {
         return 0;
     }
-    steps = 0;
-    switch (range) {
-    case W8_RANGE_TOUCH:
-        steps = 2;
-        break;
-    case W8_RANGE_SHORT:
-        steps = 4;
-        break;
-    case W8_RANGE_LONG:
-        steps = 25;
-        break;
-    case W8_RANGE_EXTREME:
-        steps = 50;
-        break;
-    default:
-        srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
-                     "CalcRangeDistance: ERROR - Invalid range category");
-    }
-    if (monster_info->p3D->GetDistanceToPlayer() <= steps * g_world_scale) {
+
+    float distance = CalcRangeDistance(range);
+    if (monster_info->p3D->GetDistanceToPlayer() <= distance) {
         return 1;
     }
     return 0;
@@ -802,7 +679,6 @@ bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* r
     W8VisibilityRecord* visibility;
     int sight_index;
     int action_kind;
-    unsigned int steps;
     W8RangeCategory range;
     W8MonsterRecord* attack_record;
 
@@ -865,25 +741,9 @@ bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* r
     if (range == W8_RANGE_NONE) {
         return 0;
     }
-    steps = 0;
-    switch (range) {
-    case W8_RANGE_TOUCH:
-        steps = 2;
-        break;
-    case W8_RANGE_SHORT:
-        steps = 4;
-        break;
-    case W8_RANGE_LONG:
-        steps = 25;
-        break;
-    case W8_RANGE_EXTREME:
-        steps = 50;
-        break;
-    default:
-        srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
-                     "CalcRangeDistance: ERROR - Invalid range category");
-    }
-    if (monster_info->p3D->GetDistanceToMonster(target->p3D) <= steps * g_world_scale) {
+
+    float distance = CalcRangeDistance(range);
+    if (monster_info->p3D->GetDistanceToMonster(target->p3D) <= distance) {
         return 1;
     }
     return 0;
@@ -1034,29 +894,7 @@ float CalcRangeDistance(W8RangeCategory range_category)
 // FUNCTION: WIZ8 0x0051AA30
 float CalcRangeDistance(int range_category, W8TargetSource* source)
 {
-    unsigned int steps = 0;
-
-    switch (range_category) {
-    case W8_RANGE_NONE:
-        steps = 0;
-        break;
-    case W8_RANGE_TOUCH:
-        steps = 2;
-        break;
-    case W8_RANGE_SHORT:
-        steps = 4;
-        break;
-    case W8_RANGE_LONG:
-        steps = 25;
-        break;
-    case W8_RANGE_EXTREME:
-        steps = 50;
-        break;
-    default:
-        srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
-                     "CalcRangeDistance: ERROR - Invalid range category");
-    }
-    float distance = steps * g_world_scale;
+    float distance = CalcRangeDistance(static_cast<W8RangeCategory>(range_category));
     if (TargetSourceIsCharacter(source, 0)) {
         return g_startup_world->movement_0c0.alternate_radius_0b4 + distance;
     }
@@ -1077,29 +915,7 @@ float CalcRangeDistance(int range_category, W8TargetSource* source)
 // FUNCTION: WIZ8 0x0051AB50
 float CalcRangeDistanceFromParty(W8RangeCategory range_category)
 {
-    unsigned int steps = 0;
-
-    switch (range_category) {
-    case W8_RANGE_NONE:
-        steps = 0;
-        break;
-    case W8_RANGE_TOUCH:
-        steps = 2;
-        break;
-    case W8_RANGE_SHORT:
-        steps = 4;
-        break;
-    case W8_RANGE_LONG:
-        steps = 25;
-        break;
-    case W8_RANGE_EXTREME:
-        steps = 50;
-        break;
-    default:
-        srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
-                     "CalcRangeDistance: ERROR - Invalid range category");
-    }
-    return steps * g_world_scale + g_startup_world->movement_0c0.collision_radius_0b0;
+    return CalcRangeDistance(range_category) + g_startup_world->movement_0c0.collision_radius_0b0;
 }
 
 /* Shrink a short-range category by the formation rows CountRowsBetween says
@@ -1253,11 +1069,6 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
     int candidates[8];
     int* next = candidates;
     int count = 0;
-    W8Character* character;
-    int kind;
-    int action;
-    W8ActionDetailBlock* detail;
-    int range;
     for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
         if (slot == party_slot || g_status.buffers.XChar[slot].fOccupied == 0 ||
             g_status.buffers.Char[slot].hp_current == 0 ||
@@ -1269,44 +1080,9 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
             if (!CanHandReachTarget(party_slot, hand)) {
                 continue;
             }
-            /* The body of CharacterActionReachesSlot(party_slot, hand, slot, 0), which
-               retail inlines here rather than calling. */
-            if (static_cast<char>(party_slot) == slot) {
-                goto accept;
-            }
-            character = &g_status.buffers.Char[party_slot];
-            ChooseCombatAction(party_slot, 0, &kind, &action, 0, &detail);
-            switch (kind) {
-            case W8_ACTION_ATTACK:
-            case W8_ACTION_BERSERK:
-                range = GetCharAttackRange(character, hand);
-                break;
-            case W8_ACTION_BREATHE:
-                goto accept;
-            case W8_ACTION_PROTECT:
-                goto screened;
-            case W8_ACTION_CAST_SPELL:
-                if (action == 0) {
-                    continue;
-                }
-                range = g_spell_records[action].range_category;
-                break;
-            case W8_ACTION_USE_ITEM:
-                range = GetItemSpellRange(detail->item_use.item);
-                break;
-            default:
+            if (!CharacterActionReachesSlot(party_slot, hand, slot, 0)) {
                 continue;
             }
-            if (range == W8_RANGE_NONE) {
-                continue;
-            }
-            if (range == W8_RANGE_TOUCH) {
-            screened:
-                if (FrontRankScreens(party_slot, slot)) {
-                    continue;
-                }
-            }
-        accept:
             ++count;
             *next = slot;
             ++next;
@@ -1540,15 +1316,11 @@ int FindNearestVisibleGroupMonster(W8MonsterInfo* monster_info, int group_id, in
 // FUNCTION: WIZ8 0x0051b320
 void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float>* out)
 {
-    out->x = 0.0f;
-    out->y = monster->movement_0c0.height_offset_0b8;
-    out->z = 0.0f;
+    out->Set(0.0f, monster->movement_0c0.height_offset_0b8, 0.0f);
     if (kind == 1) {
         if (monster->GetProjectilePosition(out) != 0) {
             srVector3T<float> position = monster->GetPosition();
-            out->x -= position.x;
-            out->y -= position.y;
-            out->z -= position.z;
+            *out -= position;
             return;
         }
     } else {
@@ -1557,9 +1329,7 @@ void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float
         }
         if (monster->GetSpellPosition(out) != 0) {
             srVector3T<float> position = monster->GetPosition();
-            out->x -= position.x;
-            out->y -= position.y;
-            out->z -= position.z;
+            *out -= position;
             return;
         }
     }

@@ -62,16 +62,10 @@ void SetMusicMuted(unsigned char muted)
     if (muted != 0) {
         if (g_settings.muted_music_volume == 0xff) {
             g_settings.muted_music_volume = g_settings.music_volume;
-            g_settings.music_volume = 0;
-            if (g_music_sample_handle != -1) {
-                SoundSetVolume(g_music_sample_handle, 0);
-            }
+            SetMusicVolume(0);
         }
     } else if (g_settings.muted_music_volume != 0xff) {
-        g_settings.music_volume = g_settings.muted_music_volume;
-        if (g_music_sample_handle != -1) {
-            SoundSetVolume(g_music_sample_handle, g_settings.muted_music_volume);
-        }
+        SetMusicVolume(g_settings.muted_music_volume);
         g_settings.muted_music_volume = 0xff;
     }
 }
@@ -250,8 +244,8 @@ unsigned char StartMusicResource(const char* resource, int fade, unsigned char r
     g_music_state_60aae8 = 0;
     g_music_state_60aaec = 0;
     g_music_state_60aaf0 = 0;
-    g_music_playlist->Clear004CF690();
-    g_music_playlist->Load004CF3B0(path);
+    g_music_playlist->Clear();
+    g_music_playlist->Load(path);
 
     if (g_music_playlist->lines.GetCount() == 0) {
         return 0;

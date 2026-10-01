@@ -1504,7 +1504,6 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
     unsigned int* condition_turns;
     W8SpellDamageReport* entry;
     unsigned short* notice;
-    int index;
     unsigned int condition;
 
     if (report->condition_counts[W8_CONDITION_DEAD] > 0) {
@@ -1577,13 +1576,7 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
         }
     }
     while (report->reports.count > 0) {
-        entry = report->reports.data[0];
-        if (report->reports.count > 0) {
-            for (index = 0; index < report->reports.count - 1; ++index) {
-                report->reports.data[index] = report->reports.data[index + 1];
-            }
-            --report->reports.count;
-        }
+        entry = report->reports.RemoveAt(0);
         if (entry != NULL) {
             if (entry->kind == 1) {
                 PostCharacterNotice(entry->value, g_format_s_bang,
@@ -2032,7 +2025,6 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
 {
     unsigned int* condition_turns;
     W8SpellDamageReport* entry;
-    int index;
     unsigned int condition;
 
     if (report->condition_counts[W8_CONDITION_DEAD] > 0) {
@@ -2101,13 +2093,7 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
         }
     }
     while (report->reports.count > 0) {
-        entry = report->reports.data[0];
-        if (report->reports.count > 0) {
-            for (index = 0; index < report->reports.count - 1; ++index) {
-                report->reports.data[index] = report->reports.data[index + 1];
-            }
-            --report->reports.count;
-        }
+        entry = report->reports.RemoveAt(0);
         if (entry != NULL) {
             if (entry->kind == 1) {
                 PostCharacterNotice(entry->value, g_format_s_bang,
@@ -3484,10 +3470,10 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
             position_ok = missile_type;
         }
         if (position_ok == 0) {
-            source_position.x = monster->movement_0c0.position_040.x;
-            source_position.z = monster->movement_0c0.position_040.z;
-            source_position.y =
-                monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
+            source_position.Set(monster->movement_0c0.position_040.x,
+                                monster->movement_0c0.position_040.y +
+                                    monster->movement_0c0.height_offset_0b8,
+                                monster->movement_0c0.position_040.z);
             MonsterGetAnimationRadius(monster, &radius);
             pitch = GetElevationAngle(&source_position, &target_position);
             yaw = GetHeadingAngle(&source_position, &target_position);
@@ -3682,9 +3668,7 @@ void ScatterMissileAimPoint(const srVector3T<float>* from, srVector3T<float>* to
         sy = sy * static_cast<float>(magnitude);
         sz = sz * static_cast<float>(magnitude);
     }
-    to->x = dx + sx + from->x;
-    to->y = dy + sy + from->y;
-    to->z = sz + dz + from->z;
+    to->Set(dx + sx + from->x, dy + sy + from->y, sz + dz + from->z);
 }
 
 /* Starts a party member's attack action: validates the hand's attack count and

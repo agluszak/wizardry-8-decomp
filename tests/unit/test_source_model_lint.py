@@ -93,6 +93,46 @@ def _marker(
     }
 
 
+@pytest.mark.parametrize("root", ["src/wiz8", "include/wiz8", "src/surrender", "include/surrender"])
+@pytest.mark.parametrize(
+    ("source", "kind"),
+    [
+        ("__forceinline int Foo() { return 1; }", "forceinline"),
+        ("__declspec(noinline) void Foo();", "noinline"),
+        ("#pragma auto_inline(off)", "inline-control-pragma"),
+        ("#pragma inline_depth(255)", "inline-control-pragma"),
+        ("#pragma inline_recursion(on)", "inline-control-pragma"),
+        ("int FooInline();", "codegen-inline-name"),
+        ("void Caller() { FooInline(); }", "codegen-inline-name"),
+    ],
+)
+def test_inlining_controls_are_forbidden_in_all_recovered_roots(
+    tmp_path: Path, root: str, source: str, kind: str
+) -> None:
+    repository = _index(tmp_path)
+    path = repository / root / "example.h"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("// inline-control-ok: cannot waive this rule\n" + source + "\n")
+    violations = source_model_violations(repository)
+    assert [(item["kind"], item["line"]) for item in violations] == [(kind, 2)]
+
+
+def test_ordinary_inline_and_non_source_text_remain_legal(tmp_path: Path) -> None:
+    repository = _index(tmp_path)
+    (repository / "src/wiz8/example.cpp").write_text(
+        """// __forceinline FooInline __declspec(noinline)
+/* #pragma inline_depth(255) */
+const char* message = "FooInline __forceinline";
+static inline int CheckFactLogged(int id) { return id; }
+struct srInlineString {};
+"""
+    )
+    vendor = repository / "vendor/example.h"
+    vendor.parent.mkdir()
+    vendor.write_text("__forceinline void VendorInline();\n")
+    assert validate_source_model(repository)["ok"] is True
+
+
 def test_function_marker_cannot_claim_class_template_emission(tmp_path: Path) -> None:
     declaration = _definition(
         "W8GrowableVector<int>::Grow",

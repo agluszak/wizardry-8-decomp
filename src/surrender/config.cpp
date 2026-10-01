@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "surrender/srDebug.h"
+#include "surrender/srHash.h"
 #include "surrender/srString.h"
 
 namespace {
@@ -19,10 +20,6 @@ inline unsigned long hashName(const char* name)
     return hash;
 }
 
-inline unsigned long hashInteger(unsigned long value)
-{
-    return ((value >> 10) ^ value) >> 10 ^ value;
-}
 } // namespace
 
 /* srConfig's private index: a name-hash node table plus an Entry*-keyed side
@@ -102,9 +99,7 @@ struct srConfig::Index {
                     for (int old = heads_00[bucket]; old != -1; old = records_04[old].next_00) {
                         records[used].key_04 = records_04[old].key_04;
                         int next_bucket =
-                            // reinterpret-ok: the side map hashes the key's
-                            // address bits.
-                            hashInteger(reinterpret_cast<unsigned long>(records[used].key_04)) &
+                            srHashValue(records[used].key_04) &
                             (count - 1);
                         records[used].value_08 = records_04[old].value_08;
                         records[used].next_00 = heads[next_bucket];
@@ -468,15 +463,8 @@ int srConfig::exists(const char* name) const
     return node != 0 && node->entry_10 != 0;
 }
 
-/* The provider TU's own copies of the srInlineString methods append needs.
-   Retail shows VC6's per-site inline lottery plainly: append's
-   `previous = existing` expands operator= inline but keeps a call to this
-   unit's reset emission (0x10012C80). The sibling unit's callable emissions -
-   operator= at 0x100040D0 and init at 0x10004150 - belong to that unit's
-   recovery, not this file. */
-
-/* The provider's callable init emission - retail expansions call it from
-   destructor and copy-constructor tails, so it is deliberately not inline. */
+/* Provider empty-state initialization, shared by the header-defined methods. */
+// FUNCTION: SURRENDER 0x10004150
 void srInlineString::init()
 {
     inline_[0] = '\0';
@@ -493,61 +481,7 @@ void srInlineString::reset()
     if (data_ != inline_) {
         srHeap.free(data_);
     }
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-}
-
-inline srInlineString::srInlineString()
-{
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-}
-
-inline srInlineString::srInlineString(const char* source)
-{
     init();
-    operator=(source);
-}
-
-inline srInlineString::srInlineString(const srInlineString& source)
-{
-    init();
-    if (source.data_ != 0) {
-        operator=(source);
-    }
-}
-
-inline srInlineString::~srInlineString()
-{
-    reset();
-}
-
-inline srInlineString& srInlineString::operator=(const char* source)
-{
-    reset();
-    if (source == 0 || *source == '\0') {
-        return *this;
-    }
-    size_ = strlen(source) + 1;
-    data_ = static_cast<char*>(srHeap.allocate(size_));
-    strcpy(data_, source);
-    return *this;
-}
-
-/* The provider's copy-assign reinitializes instead of destroying first;
-   retail's operator+ emission shows the init call inside the copy
-   constructor expansion. */
-inline srInlineString& srInlineString::operator=(const srInlineString& source)
-{
-    init();
-    if (source.data_ != 0 && *source.data_ != '\0') {
-        size_ = strlen(source.data_) + 1;
-        data_ = static_cast<char*>(srHeap.allocate(size_));
-        strcpy(data_, source.data_);
-    }
-    return *this;
 }
 
 // FUNCTION: SURRENDER 0x10012CB0
@@ -559,10 +493,7 @@ srInlineString operator+(const srInlineString& left, const srInlineString& right
         char* combined = static_cast<char*>(srHeap.allocate(combined_size));
         strcpy(combined, result.data_);
         strcpy(combined + result.size_ - 1, right.data_);
-        if (result.data_ != result.inline_) {
-            srHeap.free(result.data_);
-        }
-        result.inline_[0] = '\0';
+        result.reset();
         result.size_ = combined_size;
         result.data_ = combined;
     }
@@ -608,8 +539,7 @@ void srConfig::Index::EntryMap::insert(Entry*& key, NameEntry*& value)
     records_04[record].key_04 = key;
     records_04[record].value_08 = value;
     unsigned long bucket =
-        // reinterpret-ok: the side map hashes the key's address bits.
-        hashInteger(reinterpret_cast<unsigned long>(key)) & (count_0c - 1);
+        srHashValue(key) & (count_0c - 1);
     records_04[record].next_00 = heads_00[bucket];
     heads_00[bucket] = record;
 }
@@ -618,8 +548,7 @@ void srConfig::Index::EntryMap::insert(Entry*& key, NameEntry*& value)
 void srConfig::Index::EntryMap::erase(Entry*& key)
 {
     unsigned long bucket =
-        // reinterpret-ok: the side map hashes the key's address bits.
-        hashInteger(reinterpret_cast<unsigned long>(key)) & (count_0c - 1);
+        srHashValue(key) & (count_0c - 1);
     int* link = &heads_00[bucket];
     int record = *link;
     if (record != -1) {
@@ -689,10 +618,7 @@ void srConfig::Index::resize(long bucket_count)
 
                     int record = by_entry_00.allocRecord();
                     unsigned long sub_bucket =
-                        // reinterpret-ok: the side map hashes the entry's
-                        // address bits.
-                        hashInteger(reinterpret_cast<unsigned long>(old_node->entry_10)) &
-                        (by_entry_00.count_0c - 1);
+                        srHashValue(old_node->entry_10) & (by_entry_00.count_0c - 1);
                     by_entry_00.records_04[record].key_04 = old_node->entry_10;
                     by_entry_00.records_04[record].value_08 = node;
                     by_entry_00.records_04[record].next_00 = by_entry_00.heads_00[sub_bucket];

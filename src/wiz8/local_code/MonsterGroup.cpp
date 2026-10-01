@@ -439,9 +439,9 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
    fails and reports that, which is why the loop is a do/while on the result
    rather than a counted walk.
  
-   The despawn below compiles this same walk five more times over, at the same
-   source line, so it is written once as an inline and called from both. */
-static __inline unsigned char RemoveAllGroupMembersInline(W8MonsterGroup* monster_group)
+   The despawn paths and the standalone emission share this canonical body. */
+// FUNCTION: WIZ8 0x0050f5d0
+unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
 {
     unsigned int index;
     bool removed;
@@ -453,21 +453,13 @@ static __inline unsigned char RemoveAllGroupMembersInline(W8MonsterGroup* monste
         if (static_cast<int>(index) < 0) {
             return 1;
         }
-        /* The list read lands in a local before either constant is pushed:
-           written as a nested call, VC6 pushes both `1`s ahead of it and eight
-           bytes come out in the wrong order at every site this inlines into. */
+
         location_id = IListGetAt(monster_group->monsters, index);
         removed = 1;
         removed = RemoveMonster(
             MonsterGetIndexByLocationID(0x119, MONSTER_GROUP_CPP, location_id, 1), removed);
     } while (removed != 0);
     return 0;
-}
-
-// FUNCTION: WIZ8 0x0050f5d0
-unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
-{
-    return RemoveAllGroupMembersInline(monster_group);
 }
 
 /* Brings every member of a group into the world. Front to back, and the list
@@ -523,9 +515,9 @@ void RefreshMonsterGroup(W8MonsterGroup* monster_group)
    monster. All four ally slots are walked and the empty ones skipped, so the
    array is fixed-size rather than terminated.
  
-   The link repair below compiles the same walk again at the same source line,
-   so it is written once as an inline and called from both. */
-static __inline void RefreshMonsterGroupAndAlliesInline(W8MonsterGroup* monster_group)
+   The link-repair path calls the same canonical body. */
+// FUNCTION: WIZ8 0x005106d0
+void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
 {
     int index;
 
@@ -537,12 +529,6 @@ static __inline void RefreshMonsterGroupAndAlliesInline(W8MonsterGroup* monster_
         }
     }
     GetMonsterByLocationID(monster_group->leader_location_id)->PropagateGroupPosition();
-}
-
-// FUNCTION: WIZ8 0x005106d0
-void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
-{
-    RefreshMonsterGroupAndAlliesInline(monster_group);
 }
 
 /* Detaches a group from whatever is tracking it and marks it no longer loaded. */
@@ -569,8 +555,7 @@ bool IsMonsterGroupLive(W8MonsterGroup* monster_group)
     return 0;
 }
 
-/* Walk plsMonsterGroupList and return the Nth live combat group. The live
-   filter is the same as IsMonsterGroupLive; retail inlines those tests. */
+/* Walk plsMonsterGroupList and return the Nth live combat group. */
 // FUNCTION: WIZ8 0x00510ac0
 W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index)
 {
@@ -581,8 +566,7 @@ W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index)
     if (count != 0) {
         do {
             group = GetMonsterGroupByListIndex(group_list_index);
-            if (group->members_active != 0 && group->fInCombat != 0 && group->member_count > 0 &&
-                (group->ubDisposition == 1 || CombatAllowsLiveGroups() != 0)) {
+            if (IsMonsterGroupLive(group)) {
                 if (index == 0) {
                     return group;
                 }
@@ -757,12 +741,12 @@ void DespawnMonsterGroup(W8MonsterGroup* monster_group)
 
     for (index = 0; index < W8_MONSTER_GROUP_ALLY_COUNT; ++index) {
         if (monster_group->allied_group_ids[index] != 0) {
-            RemoveAllGroupMembersInline(GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+            RemoveAllGroupMembers(GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                 0x536, MONSTER_GROUP_CPP, monster_group->allied_group_ids[index], 1)));
             monster_group->allied_group_ids[index] = 0;
         }
     }
-    RemoveAllGroupMembersInline(monster_group);
+    RemoveAllGroupMembers(monster_group);
 }
 
 /* Brings a freshly loaded group's members into the world and marks the group
@@ -944,7 +928,7 @@ void RepairMonsterGroupLeaderLinks(void)
             }
         }
         if (monster_group->leader_group_id == 0) {
-            RefreshMonsterGroupAndAlliesInline(monster_group);
+            RefreshMonsterGroupAndAllies(monster_group);
         }
     }
 }
@@ -955,7 +939,7 @@ void RepairMonsterGroupLeaderLinks(void)
  
    Written as an inline because 0x0050F4A0 and 0x0050FC20 both compile it, at the
    same two source lines. */
-static __inline W8MonsterGroup* UnlinkMonsterGroupFromLeaderInline(W8MonsterGroup* monster_group)
+static inline W8MonsterGroup* UnlinkMonsterGroupFromLeader(W8MonsterGroup* monster_group)
 {
     W8MonsterGroup* current;
     W8MonsterGroup* previous_leader;
@@ -1002,7 +986,7 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* m
     if (monster_group->encounter_registered != 0 && monster_group->leader_group_id == 0) {
         UnregisterActiveEncounterGroup(monster_group);
     }
-    RefreshMonsterGroup(UnlinkMonsterGroupFromLeaderInline(monster_group));
+    RefreshMonsterGroup(UnlinkMonsterGroupFromLeader(monster_group));
     if (leader != 0) {
         for (slot = 0; slot < W8_MONSTER_GROUP_ALLY_COUNT; ++slot) {
             if (leader->allied_group_ids[slot] == 0) {
@@ -1129,14 +1113,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     if (announce_spawn != 0 && g_dev_mode != 0) {
         int registry_after = GetUsedPageFileBytes();
         const wchar_t* verb = count == 1 ? L"appears" : L"appear";
-        const wchar_t* name = record->name_00;
-
-        if (group->alternate_name == 0) {
-            name += (group->member_count != 1) + 2;
-        } else if (group->member_count != 1) {
-            name += 1;
-        }
-        ShowNoticef(9, L"%d %s %s nearby! (%dK)", count, name, verb,
+        ShowNoticef(9, L"%d %s %s nearby! (%dK)", count, GetMonsterGroupName(group), verb,
                     (registry_after - registry_before) >> 10);
     }
 
@@ -1159,8 +1136,7 @@ bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_i
     void* removed;
 
     if (monster_group->members_active != 0) {
-        SetTargetToGroup(monster_group->group_id, 0);
-        monster_group->members_active = 0;
+        DetachMonsterGroup(monster_group);
     }
     if (monster_group->leader_group_id == 0) {
         if (monster_group->encounter_registered != 0) {
@@ -1168,7 +1144,7 @@ bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_i
         }
         ElectAlliedLeaderGroup(monster_group, monster_info);
     } else {
-        RefreshMonsterGroup(UnlinkMonsterGroupFromLeaderInline(monster_group));
+        RefreshMonsterGroup(UnlinkMonsterGroupFromLeader(monster_group));
     }
     if (ILDestroy(monster_group->monsters) != 0) {
         group_list_index =

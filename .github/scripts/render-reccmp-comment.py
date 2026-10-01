@@ -52,8 +52,11 @@ print(
 print()
 print("#### Function recovery")
 print()
-print("| Target | Recovered | Retail | Recovery | Paired | Unpaired |")
-print("| --- | ---: | ---: | ---: | ---: | ---: |")
+print(
+    "| Target | Recovered | Retail | Recovery | Paired | Unpaired source bodies "
+    "| Name-ref non-emissions |"
+)
+print("| --- | ---: | ---: | ---: | ---: | ---: | ---: |")
 for target, row in rows:
     project = row["project"]
     head, delta = project["head"], project["delta"]
@@ -63,7 +66,8 @@ for target, row in rows:
         f"| {count_with_delta(head.get('original_functions'), delta.get('original_functions'))} "
         f"| {ratio_with_delta(head.get('source_coverage'), delta.get('source_coverage'))} "
         f"| {count_with_delta(head['paired'], delta.get('paired'))} "
-        f"| {count_with_delta(head['unpaired'], delta.get('unpaired'))} |"
+        f"| {count_with_delta(head.get('unpaired_source_bodies'), delta.get('unpaired_source_bodies'))} "
+        f"| {count_with_delta(head.get('name_ref_non_emissions'), delta.get('name_ref_non_emissions'))} |"
     )
 
 comparison_rows = [(target, row["comparison"]) for target, row in rows if row.get("comparison")]
@@ -101,6 +105,81 @@ if comparison_rows:
         "_Similarity is Ghidriff's normalized, signature-ignored code ratio. "
         "Exact code and data-only differences contribute 100% code similarity._"
     )
+
+if comparison_rows:
+    print()
+    print("#### Inline normalization")
+    print()
+    print(
+        "_Functions whose Ghidriff retry substituted asymmetrically inlined callees. "
+        "Their reported outcome and diff are the retry's; retry failures fall back to "
+        "analysis failure._"
+    )
+    print()
+    print("| Target | Retries | Normalized clean | Still different | Retry failures |")
+    print("| --- | ---: | ---: | ---: | ---: |")
+    for target, comparison in comparison_rows:
+        head = comparison["head"]
+        delta = comparison["delta"]
+        print(
+            f"| `{target}` "
+            f"| {count_with_delta(head.get('inline_retries'), delta.get('inline_retries'))} "
+            f"| {count_with_delta(head.get('inline_normalized_clean'), delta.get('inline_normalized_clean'))} "
+            f"| {count_with_delta(head.get('inline_still_different'), delta.get('inline_still_different'))} "
+            f"| {count_with_delta(head.get('inline_retry_failures'), delta.get('inline_retry_failures'))} |"
+        )
+
+allocator_rows = [
+    (target, comparison["allocator_calls"])
+    for target, comparison in comparison_rows
+    if comparison.get("allocator_calls") and comparison["allocator_calls"]["new"]
+]
+if allocator_rows:
+    print()
+    print("#### New allocator call-family disagreements")
+    print()
+    print(
+        "_For the same direct allocator operation, both sides call an allocator but the "
+        "observed families differ. This is a call-graph triage signal, not pointer-proven "
+        "ownership or proof that storage crosses heaps._"
+    )
+    print()
+    print("| Target | Function | Operation | Retail | Rebuild |")
+    print("| --- | --- | --- | --- | --- |")
+    for target, allocators in allocator_rows:
+        for entry in allocators["new"][:20]:
+            print(
+                f"| `{target}` | `{entry['orig']}` {entry['name']} "
+                f"| {entry['operation']} | {', '.join(entry['retail'])} "
+                f"| {', '.join(entry['rebuild'])} |"
+            )
+
+candidate_rows = [
+    (target, comparison["header_candidates"])
+    for target, comparison in comparison_rows
+    if comparison.get("header_candidates") and comparison["header_candidates"]["groups"]
+]
+if candidate_rows:
+    print()
+    print("#### Regressions in files directly including changed headers")
+    print()
+    print(
+        "_Regressions grouped by the set of changed headers their marker file includes "
+        "directly. These are review candidates, not causes._"
+    )
+    print()
+    print("| Target | Changed headers | Newly different | Examples |")
+    print("| --- | --- | ---: | --- |")
+    for target, candidates in candidate_rows:
+        for group in candidates["groups"][:10]:
+            headers = ", ".join(f"`{header}`" for header in group["headers"])
+            examples = ", ".join(f"`{item['name']}`" for item in group["representatives"][:3])
+            print(f"| `{target}` | {headers} | {group['newly_different']:,} | {examples} |")
+        if candidates["without_direct_changed_header"]:
+            print(
+                f"| `{target}` | _no direct changed include_ "
+                f"| {candidates['without_direct_changed_header']:,} | |"
+            )
 
 data_rows = [(target, row["datacmp"]) for target, row in rows if row.get("datacmp")]
 if data_rows:

@@ -109,9 +109,6 @@ unsigned long srIlluminator::getGroupMask() const
 // SYNTHETIC: SURRENDER 0x1004CB20
 // srIlluminator::srIlluminator (implicit copy constructor)
 
-// FUNCTION: SURRENDER 0x1004C6E0
-srIlluminator::~srIlluminator() {}
-
 // SYNTHETIC: SURRENDER 0x1004CC20
 // srIlluminator default constructor closure
 

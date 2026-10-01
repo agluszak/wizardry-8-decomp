@@ -163,7 +163,7 @@ void DrainInputEventQueue(void)
 void MGSKeyboard::Clear()
 {
     for (int index = m_bindings.count - 1; index >= 0; --index) {
-        delete m_bindings.RemoveAt(index);
+        m_bindings.RemoveAtAndDelete(index);
     }
     m_command_index.Clear();
 }
@@ -184,7 +184,7 @@ unsigned char MGSKeyboard::Load(int handle, unsigned char clear)
         int old_index = FindBinding(binding->command);
         if (old_index != -1) {
             unsigned int command = binding->command;
-            delete m_bindings.RemoveAt(old_index);
+            m_bindings.RemoveAtAndDelete(old_index);
             m_command_index.Remove(&command);
         }
         if (m_bindings.Add(binding) != -1) {

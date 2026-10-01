@@ -59,9 +59,7 @@ bool Monastery2MicroDoor2(Trigger* pTrigger)
     srVector3T<float> position;
     W8WorldItem* item;
 
-    position.x = 13085.0f;
-    position.y = -80.0f;
-    position.z = -49440.0f;
+    position.Set(13085.0f, -80.0f, -49440.0f);
     item = SpawnItem(0x2d7, &position, 3, 1);
     if (item != 0) {
         ActivateItem(item);

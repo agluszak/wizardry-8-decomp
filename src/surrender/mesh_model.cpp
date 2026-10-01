@@ -598,14 +598,17 @@ void srMeshModel::calculateVertexNormals()
         srVector3i* polygons = getPolyVertex();
         unsigned long* shade_indices = getVertexShadeIndex(0);
         if (shade_indices == 0) {
-            srVectorProcessor::copy((SRDWORD*)normals, 0, vertex_location_count_22c * 3);
+            fillConstant((unsigned long*)normals, 0, vertex_location_count_22c * 3);
             for (long polygon = 0; polygon < polygon_count_230; polygon++) {
-                for (long corner = 0; corner < 3; corner++) {
-                    srVector3T<float>* normal = normals + ((long*)polygons)[polygon * 3 + corner];
-                    normal->x = equations[polygon].x + normal->x;
-                    normal->y = equations[polygon].y + normal->y;
-                    normal->z = equations[polygon].z + normal->z;
-                }
+                normals[polygons[polygon].x].x += equations[polygon].x;
+                normals[polygons[polygon].x].y += equations[polygon].y;
+                normals[polygons[polygon].x].z += equations[polygon].z;
+                normals[polygons[polygon].y].x += equations[polygon].x;
+                normals[polygons[polygon].y].y += equations[polygon].y;
+                normals[polygons[polygon].y].z += equations[polygon].z;
+                normals[polygons[polygon].z].x += equations[polygon].x;
+                normals[polygons[polygon].z].y += equations[polygon].y;
+                normals[polygons[polygon].z].z += equations[polygon].z;
             }
         } else {
             srVector3T<float>* smooth =
@@ -615,13 +618,15 @@ void srMeshModel::calculateVertexNormals()
                 srVectorProcessor::copy((SRDWORD*)smooth, 0, count);
             }
             for (long polygon = 0; polygon < polygon_count_230; polygon++) {
-                for (long corner = 0; corner < 3; corner++) {
-                    srVector3T<float>* normal =
-                        smooth + shade_indices[((long*)polygons)[polygon * 3 + corner]];
-                    normal->x = normal->x + equations[polygon].x;
-                    normal->y = normal->y + equations[polygon].y;
-                    normal->z = normal->z + equations[polygon].z;
-                }
+                smooth[shade_indices[polygons[polygon].x]].x += equations[polygon].x;
+                smooth[shade_indices[polygons[polygon].x]].y += equations[polygon].y;
+                smooth[shade_indices[polygons[polygon].x]].z += equations[polygon].z;
+                smooth[shade_indices[polygons[polygon].y]].x += equations[polygon].x;
+                smooth[shade_indices[polygons[polygon].y]].y += equations[polygon].y;
+                smooth[shade_indices[polygons[polygon].y]].z += equations[polygon].z;
+                smooth[shade_indices[polygons[polygon].z]].x += equations[polygon].x;
+                smooth[shade_indices[polygons[polygon].z]].y += equations[polygon].y;
+                smooth[shade_indices[polygons[polygon].z]].z += equations[polygon].z;
             }
             if (vertex_location_count_22c != 0) {
                 srVectorProcessor::copyIndexed(normals, smooth, shade_indices,
@@ -1653,8 +1658,8 @@ inline srTriMeshPipeline::srTriMeshPipeline()
     flags_28 = 0;
     vertex_pipe_90 = new srVertexPipe();
     flushing_8c = 0;
-    Reset004753F0(0);
-    Flush00475510();
+    Reset(0);
+    Flush();
 }
 
 // FUNCTION: SURRENDER 0x100440A0
@@ -1670,16 +1675,15 @@ srTriMeshPipeline::~srTriMeshPipeline()
 // srTriMeshPipeline::`scalar deleting destructor'
 
 // FUNCTION: SURRENDER 0x10044070
-void srTriMeshPipeline::SetFlags004752C0(srShader shader)
+void srTriMeshPipeline::SetFlags(srShader shader)
 {
     shader_74 = shader;
     current_pass_18->flags_08 = shader;
 }
 
-/* Bind a renderer and rebuild the current slot. Retail duplicates the prepare
-   body rather than calling PrepareSlot. */
+/* Bind a renderer and rebuild the current slot through PrepareSlot. */
 // FUNCTION: SURRENDER 0x100441A0
-void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
+void srTriMeshPipeline::Reset(srGERD* renderer)
 {
     slot_count_84 = 0;
     renderer_88 = renderer;
@@ -1694,30 +1698,17 @@ void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
     positions_38 = 0;
     vertex_extras_3c = 0;
     bounds_state_6c = 0;
-    extra_40 = 0;
+    sort_bias_40 = 0.0f;
     shader_74.value = 0x0100241b;
     texture_78 = 0;
     pass_value_7c = 0;
     material_80 = srCore.getMaterial();
 
-    current_record_14 = &records_94[slot_count_84];
-    current_pass_18 = &passes_9c[slot_count_84];
-
-    current_record_14->flags_00 = 0;
-    current_record_14->disable_mask_04 = 0;
-    current_record_14->material_08 = material_80;
-    current_pass_18->texture_00 = texture_78;
-    current_pass_18->pass_value_04 = pass_value_7c;
-    current_pass_18->flags_08.value = shader_74.value;
-    current_pass_18->texture_array_0c = 0;
-    current_pass_18->texture_array_10 = 0;
-    current_pass_18->shader_14 = 0;
-    current_pass_18->st_18 = 0;
-    current_pass_18->poly_uv_1c = 0;
+    PrepareSlot();
 }
 
 // FUNCTION: SURRENDER 0x100442B0
-void srTriMeshPipeline::Flush00475510()
+void srTriMeshPipeline::Flush()
 {
     flushing_8c = 1;
     if (slot_count_84 > 0) {
@@ -1979,7 +1970,7 @@ void srTriMeshPipeline::FlushSlots()
             render_input.passes_18 = &passes_9c[0];
             render_input.position_is_float3_1c = culler_output.linear_14 == 0;
             render_input.project_clip_near_20 = &project_clip_near;
-            render_input.value_24 = extra_40;
+            render_input.sort_bias_24 = sort_bias_40;
             renderer->render(render_input);
             renderer_88->unlockRenderer(renderer, 0);
         }
@@ -1991,7 +1982,7 @@ void srTriMeshPipeline::FlushSlots()
 /* Lazy singleton: construct once against the imported pipe static, then bind
    the caller's renderer and rebuild the current slot. */
 // FUNCTION: SURRENDER 0x10043E00
-srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
+srTriMeshPipeline* srTriMeshPipeline::Get(srGERD* renderer)
 {
     srTriMeshPipeline* pipeline;
 
@@ -2004,25 +1995,7 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
     }
 
     pipeline = pipe;
-    pipeline->renderer_88 = renderer;
-    pipeline->slot_count_84 = 0;
-    pipeline->flags_28 = 0;
-    pipeline->flags_28 |= 1;
-    pipeline->flags_28 |= 2;
-    pipeline->triangle_count_1c = 0;
-    pipeline->active_triangles_2c = 0;
-    pipeline->projected_vertices_30 = 0;
-    pipeline->triangles_34 = 0;
-    pipeline->vertex_count_20 = 0;
-    pipeline->positions_38 = 0;
-    pipeline->vertex_extras_3c = 0;
-    pipeline->bounds_state_6c = 0;
-    pipeline->extra_40 = 0;
-    pipeline->shader_74.value = 0x0100241b;
-    pipeline->texture_78 = 0;
-    pipeline->pass_value_7c = 0;
-    pipeline->material_80 = srCore.getMaterial();
-    pipeline->PrepareSlot();
+    pipeline->Reset(renderer);
     return pipe;
 }
 
@@ -2044,9 +2017,8 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
         long material_side;
         for (long side = 1; side >= 0; --side) {
             if ((mesh.control_flags_0c & (1u << side)) != 0) {
-                srTriMeshPipeline* pipeline = srTriMeshPipeline::Get004750A0(&renderer);
-                // reinterpret-ok: sort bias is stored as float bits in extra_40
-                pipeline->extra_40 = *reinterpret_cast<const unsigned long*>(&mesh.sort_bias_148);
+                srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
+                pipeline->sort_bias_40 = mesh.sort_bias_148;
                 pipeline->triangles_34 = mesh.poly_vertices_10;
                 pipeline->triangle_count_1c = static_cast<unsigned long>(mesh.polygon_count_04);
                 pipeline->positions_38 = mesh.positions_38;
@@ -2128,7 +2100,7 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                     }
 
                     if (mesh.poly_shaders_100[pass] == 0) {
-                        pipeline->SetFlags004752C0(mesh.shaders_b0[pass]);
+                        pipeline->SetFlags(mesh.shaders_b0[pass]);
                     } else {
                         pipeline->current_pass_18->shader_14 = mesh.poly_shaders_100[pass];
                     }
@@ -2291,4 +2263,4 @@ long srMeshModel::getVertexCount() const
 // member copy-assignment emission
 
 // TEMPLATE: SURRENDER 0x10043F90
-// srHeapArray<T>::ensure emission
+// srHeapBuffer<T>::ensure emission

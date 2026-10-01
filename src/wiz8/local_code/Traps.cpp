@@ -362,12 +362,12 @@ void ResolveSprungTrap(Trigger* trigger)
                      0x3ed, 0);
     }
     if (trigger->m_pProp == 0) {
-        GetCameraForwardPoint00421150(1000.0f, &point);
+        GetCameraForwardPoint(1000.0f, &point);
     } else {
         trigger->m_pProp->PlayRepAnimation(&minimum, &maximum);
-        point.x = (minimum.x + maximum.x) * g_double_005ebe80;
-        point.y = (minimum.y + maximum.y) * g_double_005ebe80;
-        point.z = (minimum.z + maximum.z) * g_double_005ebe80;
+        point.Set((minimum.x + maximum.x) * g_double_005ebe80,
+                  (minimum.y + maximum.y) * g_double_005ebe80,
+                  (minimum.z + maximum.z) * g_double_005ebe80);
     }
     GetCameraPosition(&camera);
     g_octree->TraceLineOfSight(&camera, &point, 1, -3, -3, 1, 0);

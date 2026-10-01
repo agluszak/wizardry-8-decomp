@@ -49,28 +49,24 @@ public:
 
     /* Pushed as the literal at 0x00606E48 wherever the registry chain runs,
        never called through SR.DLL's import table, so this level's name is
-       header-visible unlike srNode's and srIlluminator's. The provider still
-       exports its own copy from light.cpp. */
-#if defined(SURRENDER_BUILD)
-    static const char* sGetClassName();
-#else
+       header-visible unlike srNode's and srIlluminator's. Provider TUs
+       inline the literal inside the srClassSupport registrations; the
+       provider still exports an out-of-line copy. */
+    // FUNCTION: SURRENDER 0x1004E8F0
     static const char* sGetClassName()
     {
         return "srLight";
     }
-#endif
 
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
 
 public:
-    /* Header-visible for the same reason srIlluminator's is: 0x0049C430
-       expands it rather than calling an import. The inline body expands to
-       the srClassSupport registry teardown, which is SR.DLL's out-of-line
-       emission at 0x1004ED70. Retail exports the destructor under its public
-       spelling. */
-#if defined(SURRENDER_BUILD)
-    virtual SR_DLL_IMPORT ~srLight() override;
-#else
+    /* Wiz8 expands this empty derived level inline; SR.DLL's standalone
+       0x1004ED70 emission is the compiler-generated destructor. */
+    // SYNTHETIC: SURRENDER 0x1004ED70
+    // srLight::~srLight
+
+#if !defined(SURRENDER_BUILD)
     virtual ~srLight() override {}
 #endif
 

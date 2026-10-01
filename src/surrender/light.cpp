@@ -4,20 +4,12 @@
 #include "surrender/srLight.h"
 
 #include <math.h>
+#include <ostream>
 
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
 #include "surrender/srVectorProcessor.h"
 #include "surrender/srVertexPipe.h"
-
-// FUNCTION: SURRENDER 0x1004E8F0
-const char* srLight::sGetClassName()
-{
-    return "srLight";
-}
-
-// FUNCTION: SURRENDER 0x1004ED70
-srLight::~srLight() {}
 
 /* Derived-state bit meanings recovered from process/isActive: bit0 = pushed
    as an active vertex processor this frame, bit1 = spotlight cone active,

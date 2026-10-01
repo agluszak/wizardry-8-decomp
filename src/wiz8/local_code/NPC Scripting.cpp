@@ -478,7 +478,7 @@ void ProcessNpcScriptingFrame(void)
          g_npc_scripting.sedexus_release_pending != 0) &&
         ((environment = GetEnvironmentValue(), environment == 0) ||
          (environment = GetEnvironmentValue(), environment == 2))) {
-        g_npc_scripting.scripted_scene_active = 0;
+        ClearScriptedSceneActive();
         if (g_npc_scripting.sedexus_release_pending == 0) {
             memset(&local_sound_parms, 0xff, sizeof(SOUNDPARMS));
             g_sedexus_sound_handle = static_cast<int>(SoundPlayStreamedFile(
@@ -677,13 +677,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
     } else {
         sprintf(voice_dir, "NPCs");
     }
-    if (g_npc_scripting.npc->is_grouped != 0 && g_npc_script_event_active == 0) {
-        sprintf(voice_stem, "RPC_%s", GetNpcDisplayName(g_npc_scripting.npc));
-    } else if (g_npc_scripting.npc->record->voice_script_2ea != 0) {
-        sprintf(voice_stem, "VOC_%s", GetNpcDisplayName(g_npc_scripting.npc));
-    } else {
-        sprintf(voice_stem, "NPC_%s", GetNpcDisplayName(g_npc_scripting.npc));
-    }
+    FormatNpcVoiceSoundPath(g_npc_scripting.npc, voice_stem);
     sprintf(voice_path, "Data\\Sound\\%s\\%s\\%s_%03d", voice_dir, voice_stem, voice_stem,
             g_npc_scripting.staging_restore.current_quote_index);
     if (subquote_index > 0) {
@@ -1297,21 +1291,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
                         LookAtDialogueNpc();
                     }
                 } else {
-                    g_staged_short = g_npc_scripting.staging_restore.staged_short_49e;
-                    g_staged_flag = g_npc_scripting.quote_active;
-                    g_staged_value_68c3c8 = g_npc_scripting.staging_restore.finished_quote_index;
-                    g_npc_scripting.restore_staged_session = 1;
-                    g_staged_value_68c3d8 = g_npc_scripting.script_file;
-                    g_staged_npc = g_npc_scripting.npc;
-                    g_staged_value_68c3c4 = g_npc_scripting.staging_restore.current_quote_index;
-                    if (target->has_monster == 0) {
-                        BindNpcToMonster(target->name_style, 0, -1);
-                    }
-                    g_npc_scripting.staging_restore.staged_short_49e = 0;
-                    g_npc_scripting.quote_active = 0;
-                    g_npc_scripting.staging_restore.finished_quote_index = -1;
-                    g_npc_scripting.script_file = target->script_file;
-                    g_npc_scripting.npc = target;
+                    BeginNpcScriptDialogue(target, 1);
                 }
                 line = new W8MessageBoxLine;
                 memset(line, 0, sizeof(W8MessageBoxLine));
@@ -1338,21 +1318,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
                         LookAtDialogueNpc();
                     }
                 } else {
-                    g_staged_short = g_npc_scripting.staging_restore.staged_short_49e;
-                    g_staged_flag = g_npc_scripting.quote_active;
-                    g_staged_value_68c3c8 = g_npc_scripting.staging_restore.finished_quote_index;
-                    g_npc_scripting.restore_staged_session = 1;
-                    g_staged_value_68c3d8 = g_npc_scripting.script_file;
-                    g_staged_npc = g_npc_scripting.npc;
-                    g_staged_value_68c3c4 = g_npc_scripting.staging_restore.current_quote_index;
-                    if (target->has_monster == 0) {
-                        BindNpcToMonster(target->name_style, 0, -1);
-                    }
-                    g_npc_scripting.staging_restore.staged_short_49e = 0;
-                    g_npc_scripting.quote_active = 0;
-                    g_npc_scripting.staging_restore.finished_quote_index = -1;
-                    g_npc_scripting.script_file = target->script_file;
-                    g_npc_scripting.npc = target;
+                    BeginNpcScriptDialogue(target, 1);
                     SetNpcDialoguePanelVisible(0);
                 }
                 line = new W8MessageBoxLine;
@@ -2618,7 +2584,7 @@ void BeginNpcScriptedScene(void)
 {
     int party_slot;
 
-    g_npc_scripting.scripted_scene_active = 1;
+    SetScriptedSceneActive();
     ResetLevelDataVectors();
     gXStatus.scripted_scene_19b7 = 1;
     SetTargetingMode(1);
@@ -2642,7 +2608,9 @@ void EndScriptedPortraitPick(int party_slot)
 {
     W8ItemInstance* found;
     W8Character* character;
-    unsigned int slot;
+    /* 0x00529EDC compares the slot counter as slot - 7 against 8 with a
+       signed jump, so the counter is not unsigned. */
+    int slot;
     bool other_gender_present;
 
     if (gXStatus.scripted_scene_19b7 == 0) {
@@ -2659,7 +2627,7 @@ void EndScriptedPortraitPick(int party_slot)
             DisableRegionInput(slot + 0x5a);
         }
     }
-    g_npc_scripting.scripted_scene_active = 0;
+    ClearScriptedSceneActive();
     gXStatus.scripted_scene_19b7 = 0;
     other_gender_present = false;
     SetFact(0x1c0, 0, 0);
@@ -2713,7 +2681,7 @@ void BeginSedexusCapture(void)
 {
     unsigned int party_slot;
 
-    g_npc_scripting.scripted_scene_active = 1;
+    SetScriptedSceneActive();
     BeginScriptedWorldAction();
     g_npc_scripting.sedexus_capture_pending = 1;
     g_npc_scripting.sedexus_capture_active = 1;
@@ -2756,7 +2724,7 @@ void ResolveSedexusCapture(void)
             }
         }
     }
-    g_npc_scripting.scripted_scene_active = 1;
+    SetScriptedSceneActive();
     g_npc_scripting.sedexus_release_pending = 1;
     BeginWorldLightingFade(1000.0f);
     trigger = FindTriggerByName("al-seduxusgate");
@@ -2800,9 +2768,7 @@ void NpcScriptHenchmanArrives(W8Monster* monster)
             }
         }
     }
-    origin.x = 0.0f;
-    origin.y = 0.0f;
-    origin.z = 0.0f;
+    origin.SetZero();
     monster->SetPosition(&origin);
     monster->flags_1dc |= W8_MONSTER_PARKED;
 }
@@ -2815,9 +2781,7 @@ void NpcScriptHenchmanDeparted(W8Monster* monster)
     srVector3T<float> origin;
 
     monster->flags_1dc |= W8_MONSTER_PARKED;
-    origin.x = 0.0f;
-    origin.y = 0.0f;
-    origin.z = 0.0f;
+    origin.SetZero();
     monster->SetPosition(&origin);
 }
 

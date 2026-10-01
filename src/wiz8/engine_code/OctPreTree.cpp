@@ -240,9 +240,9 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
                         continue;
                     }
                     front = front / (back + front) * trace->length_28;
-                    contact.x = trace->step_18.x * front + trace->start_00.x;
-                    contact.y = trace->step_18.y * front + trace->start_00.y;
-                    contact.z = trace->step_18.z * front + trace->start_00.z;
+                    contact.Set(trace->step_18.x * front + trace->start_00.x,
+                                trace->step_18.y * front + trace->start_00.y,
+                                trace->step_18.z * front + trace->start_00.z);
                 } else {
                     contact = trace->start_00;
                 }
@@ -988,8 +988,7 @@ unsigned long OctPreTree::SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeo
         return 0;
     }
     for (unsigned long uv = 0; uv < uv_count; ++uv) {
-        record->uv_map_30[uv].x = table[uv].u;
-        record->uv_map_30[uv].y = table[uv].v;
+        record->uv_map_30[uv].Set(table[uv].u, table[uv].v);
     }
     free(table);
     return uv_count;
@@ -1082,8 +1081,8 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
             unsigned long cell = cells->entries[slot].value;
             float cell_x = ((cell >> 0x10) & 0xff) * spatial_000.region_grid_cell_54 +
                            spatial_000.minimum_0c.x;
-            float cell_y = ((cell >> 8) & 0xff) * spatial_000.region_grid_cell_54 +
-                           spatial_000.minimum_0c.y;
+            float cell_y =
+                ((cell >> 8) & 0xff) * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.y;
             float cell_z =
                 (cell & 0xff) * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.z;
             if (cell_x + spatial_000.region_grid_cell_54 < min_x || max_x < cell_x ||
@@ -1213,7 +1212,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
     srVector3T<float> node;
 
     object_registry = new W8OctreeObjectRegistry;
-    g_octree_game_data = game_data;
+    SetOctreeGameData(game_data);
     delete m_owned_194;
     m_owned_194 = new BitArray(spatial_000.item_count_40 + 0x14);
     pre_pathing_2a0 = new PrePathing;
@@ -1318,7 +1317,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
     free(preprops);
     delete object_registry;
     object_registry = 0;
-    g_octree_game_data = 0;
+    SetOctreeGameData(0);
     return 1;
 }
 
@@ -1634,7 +1633,8 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
    quaternions disagree beyond the snap epsilon (unless they are the mirrored
    same rotation), or scaled-path tails drift. */
 // FUNCTION: WIZ8 0x0046c6a0
-char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first, unsigned short last)
+char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first,
+                                  unsigned short last)
 {
     char count = anim->num_transforms_5a;
     if (count > 0) {
@@ -1702,7 +1702,7 @@ char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first
 // FUNCTION: WIZ8 0x0046ccc0
 W8OctSpatialState::W8OctSpatialState(const W8OctSpatialState* source)
 {
-    Reset0046CDC0();
+    Reset();
     level_kind_6c = 1;
     if (source != 0) {
         for (int axis = 0; axis != 3; ++axis) {
@@ -1739,7 +1739,7 @@ W8OctSpatialState::W8OctSpatialState(const W8OctSpatialState* source)
 }
 
 // FUNCTION: WIZ8 0x0046cdc0
-void W8OctSpatialState::Reset0046CDC0()
+void W8OctSpatialState::Reset()
 {
     memset(static_cast<void*>(this), 0, sizeof(*this));
 }
@@ -1747,23 +1747,15 @@ void W8OctSpatialState::Reset0046CDC0()
 // FUNCTION: WIZ8 0x0046cdf0
 void W8OctSpatialState::GetWorkingBounds(srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
-    minimum->x = working_minimum_78.x;
-    minimum->y = working_minimum_78.y;
-    minimum->z = working_minimum_78.z;
-    maximum->x = working_maximum_84.x;
-    maximum->y = working_maximum_84.y;
-    maximum->z = working_maximum_84.z;
+    *minimum = working_minimum_78;
+    *maximum = working_maximum_84;
 }
 
 // FUNCTION: WIZ8 0x0046ce30
 void W8OctSpatialState::GetClippedBounds(srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
-    minimum->x = clipped_minimum_24.x;
-    minimum->y = clipped_minimum_24.y;
-    minimum->z = clipped_minimum_24.z;
-    maximum->x = clipped_maximum_30.x;
-    maximum->y = clipped_maximum_30.y;
-    maximum->z = clipped_maximum_30.z;
+    *minimum = clipped_minimum_24;
+    *maximum = clipped_maximum_30;
 }
 
 // FUNCTION: WIZ8 0x0046cdd0

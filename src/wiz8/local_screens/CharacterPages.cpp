@@ -108,17 +108,9 @@ void W8CharacterPageEntry::SetContent(unsigned int id, const wchar_t* label, uns
         m_help_010->DisableRegionHelp();
     else
         m_help_010->EnableRegionHelp(help_id);
-    m_enabled_03a = 1;
-    m_increment_008->SetActive(1);
-    m_decrement_00c->SetActive(1);
-    m_help_010->SetActive(1);
-    m_decrement_00c->Invalidate(0);
-    m_increment_008->Invalidate(0);
-    m_dirty_039 = 1;
+    SetEnabled(1);
     UpdateButtons();
-    m_decrement_00c->Invalidate(0);
-    m_increment_008->Invalidate(0);
-    m_dirty_039 = 1;
+    MarkDirty();
 }
 
 // FUNCTION: WIZ8 0x005afc20
@@ -126,9 +118,7 @@ void W8CharacterPageEntry::SetIncrementAllowed(bool allowed)
 {
     m_increment_allowed_03b = allowed;
     UpdateButtons();
-    m_decrement_00c->Invalidate(0);
-    m_increment_008->Invalidate(0);
-    m_dirty_039 = 1;
+    MarkDirty();
 }
 
 // FUNCTION: WIZ8 0x005afa90
@@ -138,9 +128,7 @@ void W8CharacterPageEntry::SetEnabled(bool enabled)
     m_increment_008->SetActive(enabled);
     m_decrement_00c->SetActive(enabled);
     m_help_010->SetActive(enabled);
-    m_decrement_00c->Invalidate(0);
-    m_increment_008->Invalidate(0);
-    m_dirty_039 = 1;
+    MarkDirty();
 }
 
 // FUNCTION: WIZ8 0x005afae0
@@ -175,7 +163,7 @@ void W8CharacterPageEntry::Redraw()
 // FUNCTION: WIZ8 0x005afbf0
 void W8CharacterPageEntry::SetLabelFontState(int state)
 {
-    m_label_014->m_fontStateIndex = state;
+    m_label_014->SetFontStateIndex(state);
 }
 
 // FUNCTION: WIZ8 0x005afc00
@@ -215,9 +203,7 @@ void W8CharacterPageEntry::OnPrimary(W8TextControl* control)
             m_listener_004->AdjustEntry(this, -1);
     }
     UpdateButtons();
-    m_decrement_00c->Invalidate(0);
-    m_increment_008->Invalidate(0);
-    m_dirty_039 = 1;
+    MarkDirty();
 }
 
 // FUNCTION: WIZ8 0x005afcb0
@@ -227,16 +213,12 @@ void W8CharacterPageEntry::OnSecondary(W8TextControl* control)
         if (m_listener_004 != 0)
             m_listener_004->AdjustEntry(this, 5);
         UpdateButtons();
-        m_decrement_00c->Invalidate(0);
-        m_increment_008->Invalidate(0);
-        m_dirty_039 = 1;
+        MarkDirty();
     } else if (control == m_decrement_00c) {
         if (m_listener_004 != 0)
             m_listener_004->AdjustEntry(this, -5);
         UpdateButtons();
-        m_decrement_00c->Invalidate(0);
-        m_increment_008->Invalidate(0);
-        m_dirty_039 = 1;
+        MarkDirty();
     } else if (m_listener_004 != 0) {
         m_listener_004->ShowEntryInfo(this);
     }
@@ -290,9 +272,7 @@ void W8CharacterPage::Invalidate(const W8ControlsRect* rect)
     Controls::Invalidate(rect);
     for (int index = 0; index < m_entries_04c.count; ++index) {
         W8CharacterPageEntry* entry = *m_entries_04c.GetAt(index);
-        entry->m_decrement_00c->Invalidate(0);
-        entry->m_increment_008->Invalidate(0);
-        entry->m_dirty_039 = 1;
+        entry->MarkDirty();
     }
 }
 

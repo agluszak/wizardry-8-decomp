@@ -183,28 +183,7 @@ void InitTextInputMode(void)
 // FUNCTION: WIZ8 0x005D3520
 void InitTextInputModeWithScheme(int mode)
 {
-    if (gpTextInputHead != 0) {
-        STACKTEXTINPUTNODE* session = (STACKTEXTINPUTNODE*)malloc(sizeof(STACKTEXTINPUTNODE));
-        session->head = gpTextInputHead;
-        session->pColors = pColors;
-        session->next = pInputStack;
-        pInputStack = session;
-        for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
-            if (field->fEnabled != 0) {
-                MSYS_DisableRegion(&field->region);
-                field->fEnabled = 0;
-            }
-        }
-        gpActive = 0;
-    }
-    gpTextInputHead = 0;
-    pColors = (TextInputColors*)malloc(sizeof(TextInputColors));
-    gfTextInputMode = true;
-    gfEditingText = false;
-    pColors->fBevelling = false;
-    pColors->fUseDisabledAutoShade = true;
-    pColors->usCursorColor = Get16BPPColor(0x0a0a0a);
-    gubVisibleStart = 0;
+    InitTextInputMode();
     SetTextInputScheme(mode);
 }
 
@@ -420,12 +399,7 @@ void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
                 swprintf(field->szString, &g_empty_wide_string);
             }
             gfHiliteMode = false;
-            gubCursorPos = 0;
-            if (gpActive != 0) {
-                gubParkingPos = CalculateCursorPos(
-                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10, 0,
-                    gpActive->szString, &gsCursorX, &guiVisibleCount);
-            }
+            SetTextInputCursor(0);
             return;
         }
         field = field->next;
@@ -675,12 +649,18 @@ unsigned int HandleTextInput(const InputAtom* input)
             return 1;
         }
         if (gfHiliteMode == 0) {
+            /* 0x005D5D0C returns from inside the guard without repositioning the
+               cursor, so gParkingPos keeps the value it had for the longer
+               string. The retail's one SetTextInputCursor call in this function
+               is on the highlighted path below. */
             if (gubCursorPos < gpActive->ubStrLen) {
-                memmove(gpActive->szString + gubCursorPos, gpActive->szString + gubCursorPos + 1,
-                        (gpActive->ubStrLen - gubCursorPos) * sizeof(wchar_t));
+                unsigned char index = gubCursorPos;
+                do {
+                    gpActive->szString[index] = gpActive->szString[index + 1];
+                    ++index;
+                } while (index < gpActive->ubStrLen);
                 --gpActive->ubStrLen;
             }
-            SetTextInputCursor(gubCursorPos);
             return 1;
         }
         gfHiliteMode = false;

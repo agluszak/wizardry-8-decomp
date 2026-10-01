@@ -402,8 +402,10 @@ struct W8MonsterInfo {
     bool death_processed_253;
     /* 0x254: movement-stall tick counter - incremented each watch tick while
        the monster is unlinked, floored at 2 on pathing failure, reset when
-       the watch cycle clears. Compared as signed char at the read sites. */
-    unsigned char movement_stall_ticks_254;
+       the watch cycle clears. Signed: 0x005312B4 loads the byte next to the
+       constant 2 and jumps with JGE, so the floor test is a signed one and the
+       declaration has to be signed for the compiler to emit it. */
+    signed char movement_stall_ticks_254;
     /* 0x255: monster AI mode in the low nibble (0..8), bit 0x80 marks a
        pending decision write, bit 0x10 set on load. */
     unsigned char ai_mode_255;

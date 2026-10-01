@@ -3,6 +3,7 @@
 #include "surrender/srPalette.h"
 
 #include <new>
+#include <ostream>
 #include <stdlib.h>
 #include <string.h>
 
@@ -309,14 +310,6 @@ void srPalette::Quantizer::quantize(unsigned char* indices, const srARGB* colors
     }
 }
 
-// FUNCTION: SURRENDER 0x10004B40
-srPalette::Quantizer::Quantizer(srARGB* colors, long color_count, unsigned char* duplicates,
-                                unsigned char red_bits, unsigned char green_bits,
-                                unsigned char blue_bits)
-{
-    setPalette(colors, color_count, duplicates, red_bits, green_bits, blue_bits);
-}
-
 // FUNCTION: SURRENDER 0x10004B70
 srPalette::Quantizer::Quantizer()
 {
@@ -412,13 +405,12 @@ void srPalette::updateQuantizer()
     if (quantizer_24 != 0) {
         srHeap.free(quantizer_24);
     }
-    Quantizer* quantizer = static_cast<Quantizer*>(srHeap.allocate(0x21918));
-    if (quantizer != 0) {
-        quantizer->setPalette(colors_1c, color_count_20, 0, '\b', '\b', '\b');
-        quantizer_24 = quantizer;
-    } else {
-        quantizer_24 = 0;
-    }
+    /* Retail (0x10004240) takes the storage straight from srHeap::allocate
+       and runs the inlined constructor under an unwind state. Quantizer is
+       exported without any operator new/delete, so the heap routing is at
+       the new-expression, not a class allocator. */
+    quantizer_24 = new (srHeap.allocate(sizeof(Quantizer)))
+        Quantizer(colors_1c, color_count_20, 0, '\b', '\b', '\b');
 }
 
 // FUNCTION: SURRENDER 0x10004300
@@ -433,10 +425,9 @@ void srPalette::update()
    ramp for the rest of the 256. A non-cube count gets a linear ramp. */
 // FUNCTION: SURRENDER 0x10004310
 srPalette::srPalette(srARGB* colors, long color_count)
-    : srClassSupport<srPalette, srClass, 1, 0x2900>()
+    : srClassSupport<srPalette, srClass, 1, 0x2900>(), flags_18(0)
 {
-    flags_18 = 0;
-    colors_1c = static_cast<srARGB*>(srHeap.allocate(color_count * 4));
+    colors_1c = new srARGB[color_count];
     color_count_20 = color_count;
     quantizer_24 = 0;
     if (colors == 0) {
@@ -446,24 +437,25 @@ srPalette::srPalette(srARGB* colors, long color_count)
                 for (long green = 0; green < 6; ++green) {
                     for (long blue = 0; blue < 6; ++blue) {
                         if (red != green || red != blue) {
-                            colors_1c[index].alpha = 0xff;
-                            colors_1c[index].red =
+                            srARGB& color = colors_1c[index++];
+                            color.alpha = static_cast<unsigned char>(srFloatToInt(255.0));
+                            color.red =
                                 static_cast<unsigned char>(srFloatToInt(red * 0.2f * 255.0));
-                            colors_1c[index].green =
+                            color.green =
                                 static_cast<unsigned char>(srFloatToInt(green * 0.2f * 255.0));
-                            colors_1c[index].blue =
+                            color.blue =
                                 static_cast<unsigned char>(srFloatToInt(blue * 0.2f * 255.0));
-                            ++index;
                         }
                     }
                 }
             }
             for (long gray = 0; gray < 0x2e; ++gray) {
+                srARGB& color = colors_1c[0xd2 + gray];
+                color.alpha = static_cast<unsigned char>(srFloatToInt(255.0));
                 double value = gray * 0.022222223f * 255.0;
-                colors_1c[0xd2 + gray].alpha = 0xff;
-                colors_1c[0xd2 + gray].red = static_cast<unsigned char>(srFloatToInt(value));
-                colors_1c[0xd2 + gray].green = static_cast<unsigned char>(srFloatToInt(value));
-                colors_1c[0xd2 + gray].blue = static_cast<unsigned char>(srFloatToInt(value));
+                color.red = static_cast<unsigned char>(srFloatToInt(value));
+                color.green = static_cast<unsigned char>(srFloatToInt(value));
+                color.blue = static_cast<unsigned char>(srFloatToInt(value));
             }
         } else {
             double step = 0.0;
@@ -471,11 +463,12 @@ srPalette::srPalette(srARGB* colors, long color_count)
                 step = 1.0 / (color_count - 1);
             }
             for (long index = 0; index < color_count; ++index) {
+                srARGB& color = colors_1c[index];
                 double value = index * step * 255.0;
-                colors_1c[index].alpha = 0xff;
-                colors_1c[index].red = static_cast<unsigned char>(srFloatToInt(value));
-                colors_1c[index].green = static_cast<unsigned char>(srFloatToInt(value));
-                colors_1c[index].blue = static_cast<unsigned char>(srFloatToInt(value));
+                color.alpha = static_cast<unsigned char>(srFloatToInt(255.0));
+                color.red = static_cast<unsigned char>(srFloatToInt(value));
+                color.green = static_cast<unsigned char>(srFloatToInt(value));
+                color.blue = static_cast<unsigned char>(srFloatToInt(value));
             }
         }
     } else if (0 < color_count * 4) {
@@ -488,7 +481,7 @@ srPalette::srPalette(srARGB* colors, long color_count)
 srPalette::~srPalette()
 {
     if (colors_1c != 0) {
-        srHeap.free(colors_1c);
+        delete[] colors_1c;
         colors_1c = 0;
     }
     if (quantizer_24 != 0) {
@@ -504,7 +497,7 @@ srPalette& srPalette::operator=(const srPalette& other)
         return *this;
     }
     if (colors_1c != 0) {
-        srHeap.free(colors_1c);
+        delete[] colors_1c;
         colors_1c = 0;
     }
     if (quantizer_24 != 0) {
@@ -516,7 +509,7 @@ srPalette& srPalette::operator=(const srPalette& other)
     color_count_20 = other.color_count_20;
     colors_1c = 0;
     if (0 < color_count_20) {
-        colors_1c = static_cast<srARGB*>(srHeap.allocate(color_count_20 * 4));
+        colors_1c = new srARGB[color_count_20];
         for (long index = 0; index < color_count_20; ++index) {
             colors_1c[index] = other.colors_1c[index];
         }
@@ -761,10 +754,10 @@ void srPalette::Sampler::discard()
         buckets[index] = -1;
     }
     if (colors != 0) {
-        ::operator delete(colors);
+        delete[] colors;
     }
     if (links != 0) {
-        ::operator delete(links);
+        delete[] links;
     }
     color_count = 0;
     sample_count = 0;
@@ -776,13 +769,13 @@ void srPalette::Sampler::discard()
 // FUNCTION: SURRENDER 0x10006630
 void srPalette::Sampler::reallocColors(long new_capacity)
 {
-    ColorEntry* new_colors =
-        static_cast<ColorEntry*>(::operator new(new_capacity * sizeof(ColorEntry)));
+    ColorEntry* new_colors = new ColorEntry[new_capacity];
     /* Retail tests the first allocation and stores 0 on failure — a no-op
        check identical in shape to addSurface's pixels guard. The second
        allocation is never tested. */
-    long* new_links = static_cast<long*>(::operator new(new_capacity * sizeof(long)));
-    srARGB empty_color = {0, 0, 0, 0};
+    long* new_links = new long[new_capacity];
+    srARGB empty_color;
+    memset(&empty_color, 0, sizeof(empty_color));
     for (long index = 0; index < new_capacity; ++index) {
         new_colors[index].color = empty_color;
         new_colors[index].count = 0;
@@ -793,8 +786,8 @@ void srPalette::Sampler::reallocColors(long new_capacity)
             new_colors[index] = colors[index];
             new_links[index] = links[index];
         }
-        ::operator delete(colors);
-        ::operator delete(links);
+        delete[] colors;
+        delete[] links;
     }
     colors = new_colors;
     links = new_links;
@@ -918,8 +911,6 @@ void srPalette::Sampler::addSurface(const char* name, long weight)
     if ((name != 0) && (*name != '\0')) {
         srSurfaceIOManager::ImportInfo options;
         options.unknown_00 = 0;
-        options.unknown_04 = 0;
-        options.option_string = 0;
         srColorSurfaceIFace* surface = srCore.getSurfaceIOManager()->importSurface(name, options);
         if (surface != 0) {
             addSurface(*surface, weight);
@@ -939,17 +930,16 @@ void srPalette::Sampler::addSurface(srColorSurfaceIFace& surface, long weight)
         samples = 1;
     }
     if (sample_factor == 1.0) {
-        unsigned long* pixels = static_cast<unsigned long*>(
-            srHeap.allocate(width * 4)); /* reinterpret-ok: raw pixel row storage */
+        srARGB* pixels = new srARGB[width];
         /* Retail shape (0x1000644F): the allocation result is tested and 0 is
            stored on failure — a no-op null check; pixels then flows into
            getPixelRow regardless. */
         for (long y = 0; y < height; ++y) {
-            surface.getPixelRow(pixels, y, 0, width);
-            addColors((const srARGB*)pixels, width,
-                      weight); /* reinterpret-ok: packed pixel rows are srARGB */
+            /* reinterpret-ok: the surface API exchanges packed srARGB rows as dwords */
+            surface.getPixelRow(reinterpret_cast<unsigned long*>(pixels), y, 0, width);
+            addColors(pixels, width, weight);
         }
-        srHeap.free(pixels);
+        delete[] pixels;
         return;
     }
     for (; samples > 0; --samples) {
@@ -1104,28 +1094,21 @@ void srPalette::Optimizer::findOptimalColor(Node* node, const LUT& lut)
 // FUNCTION: SURRENDER 0x10005690
 srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
 {
-    struct HashEntry {
-        HashEntry* next;
-        unsigned long color;
-        long count;
-    };
-
     if ((info.colors == 0) || (info.color_count < 1) || (info.palette_size < 1) ||
         ((info.mask_count != 0) && ((info.mask_flags == 0) || (info.mask_colors == 0)))) {
         return 0;
     }
 
-    HashEntry** buckets = static_cast<HashEntry**>(::operator new(0x20000));
-    HashEntry* entries =
-        static_cast<HashEntry*>(::operator new(info.color_count * sizeof(HashEntry)));
-    HashEntry** rehash = static_cast<HashEntry**>(::operator new(0x20000));
-    srARGB* palette_colors = static_cast<srARGB*>(srHeap.allocate(info.palette_size * 4));
+    HashEntry** buckets = new HashEntry*[0x8000];
+    HashEntry* entries = new HashEntry[info.color_count];
+    HashEntry** rehash = new HashEntry*[0x8000];
+    srARGB* palette_colors = new srARGB[info.palette_size];
     /* The retail epilogue frees palette_colors, two node pools and the five
        level arrays — lut is never deleted. Proven retail leak. */
-    LUT* lut = static_cast<LUT*>(::operator new(sizeof(LUT)));
-    memset(palette_colors, 0, info.palette_size * 4);
-    memset(buckets, 0, 0x20000);
-    memset(rehash, 0, 0x20000);
+    LUT* lut = new LUT;
+    srZeroMemory(palette_colors, info.palette_size * 4);
+    srZeroMemory(buckets, 0x20000);
+    srZeroMemory(rehash, 0x20000);
 
     long distinct = 0;
     HashEntry* entry = entries;
@@ -1133,9 +1116,10 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     for (index = 0; index < info.color_count; ++index) {
         long weight = info.colors[index].count;
         if (weight > 0) {
-            unsigned long color = reinterpret_cast<const unsigned long&>(
-                                      info.colors[index].color) /* reinterpret-ok: packed dword */
-                                  | 0xff000000;
+            srARGB opaque = info.colors[index].color;
+            opaque.alpha = 0xff;
+            unsigned long color =
+                reinterpret_cast<unsigned long&>(opaque); /* reinterpret-ok: packed dword */
             unsigned long bucket =
                 ((color & 0x1f0000) >> 6) + ((color & 0x1f00) >> 3) + (color & 0x1f);
             HashEntry* link;
@@ -1172,10 +1156,10 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
         }
     }
 
-    Node* leaf_pool = static_cast<Node*>(::operator new(leaf_nodes * sizeof(Node)));
-    Leaf* leaves = static_cast<Leaf*>(::operator new(distinct * sizeof(Leaf)));
-    Node** leaf_map = static_cast<Node**>(::operator new(0x20000));
-    memset(leaf_map, 0, 0x20000);
+    Node* leaf_pool = new Node[leaf_nodes];
+    Leaf* leaves = new Leaf[distinct];
+    Node** leaf_map = new Node*[0x8000];
+    srZeroMemory(leaf_map, 0x20000);
 
     unsigned long dominant_color = 0;
     long dominant_weight = 0;
@@ -1228,22 +1212,17 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
         }
     }
 
-    ::operator delete(rehash);
-    ::operator delete(entries);
-    ::operator delete(buckets);
+    delete[] rehash;
+    delete[] entries;
+    delete[] buckets;
 
     static const unsigned long level_node_counts[] = {1, 8, 0x40, 0x200, 0x1000, 0x8000};
-    Node* levels[4];
-    Node* root;
+    Node* levels[5];
     for (long level = 4; level >= 0; --level) {
         long dim = 1 << level;
-        Node* nodes = static_cast<Node*>(::operator new(level_node_counts[level] * sizeof(Node)));
-        memset(nodes, 0, level_node_counts[level] * sizeof(Node));
-        if (level == 0) {
-            root = nodes;
-        } else {
-            levels[level - 1] = nodes;
-        }
+        Node* nodes = new Node[level_node_counts[level]];
+        levels[level] = nodes;
+        srZeroMemory(nodes, level_node_counts[level] * sizeof(Node));
         for (long z = 0; z < dim; ++z) {
             for (long y = 0; y < dim; ++y) {
                 Node* node = nodes + (z * dim + y) * dim;
@@ -1275,7 +1254,7 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
                         if (level == 4) {
                             link = leaf_map[child_index];
                         } else {
-                            link = levels[level] + child_index;
+                            link = levels[level + 1] + child_index;
                         }
                         if ((link != 0) && (link->leaf_count == 0)) {
                             link = 0;
@@ -1308,7 +1287,7 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
         }
     }
 
-    ::operator delete(leaf_map);
+    delete[] leaf_map;
 
     for (index = 0; index < 0x200; ++index) {
         float delta = index - 256.0f;
@@ -1319,7 +1298,7 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     }
 
     if (info.mask_count < 1) {
-        root->color = dominant_color;
+        levels[0]->color = dominant_color;
     } else {
         long limit = info.palette_size;
         if (info.mask_count < limit) {
@@ -1329,27 +1308,25 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
             if (info.mask_flags[index] != 0) {
                 palette_colors[index] = info.mask_colors[index];
                 setupLUT(*lut, palette_colors[index]);
-                findOptimalColor(root, *lut);
+                findOptimalColor(levels[0], *lut);
             }
         }
     }
     for (index = 0; index < info.palette_size; ++index) {
         if ((info.mask_flags == 0) || (info.mask_count <= index) || (info.mask_flags[index] == 0)) {
-            palette_colors[index] =
-                reinterpret_cast<srARGB&>(root->color); /* reinterpret-ok: packed color dword */
+            palette_colors[index] = reinterpret_cast<srARGB&>(
+                levels[0]->color); /* reinterpret-ok: packed color dword */
             setupLUT(*lut, palette_colors[index]);
-            findOptimalColor(root, *lut);
+            findOptimalColor(levels[0], *lut);
         }
     }
 
-    srPalette* palette =
-        new (srHeap.allocate(sizeof(srPalette))) srPalette(palette_colors, info.palette_size);
-    srHeap.free(palette_colors);
-    ::operator delete(leaf_pool);
-    ::operator delete(leaves);
-    ::operator delete(root);
-    for (index = 0; index < 4; ++index) {
-        ::operator delete(levels[index]);
+    srPalette* palette = new srPalette(palette_colors, info.palette_size);
+    delete[] palette_colors;
+    delete[] leaf_pool;
+    delete[] leaves;
+    for (index = 0; index < 5; ++index) {
+        delete[] levels[index];
     }
     return palette;
 }

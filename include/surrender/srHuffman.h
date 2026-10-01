@@ -97,7 +97,14 @@ public:
         };
 
         SR_DLL_IMPORT Sampler();
+        /* Provider teardown is the implicit hash/array destruction. Wiz8
+           imports the standalone destructor, so only the consumer declares it. */
+        // SYNTHETIC: SURRENDER 0x100016F0
+        // srHuffman::Sampler::~Sampler
+
+#if !defined(SURRENDER_BUILD)
         SR_DLL_IMPORT ~Sampler();
+#endif
         SR_DLL_IMPORT void insert(unsigned long symbol);
         SR_DLL_IMPORT unsigned long getNumSymbols() const;
         SR_DLL_IMPORT unsigned long getSymbolValue(unsigned long index) const;

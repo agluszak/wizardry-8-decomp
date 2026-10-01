@@ -26,7 +26,7 @@ extern float g_light_scale_0060bfe0;
 /* Scratch vertex store shared by every highlight shell submission; grown
    on demand and kept between frames. */
 // GLOBAL: WIZ8 0x0065A148
-srHeapArray<srVector3T<float> >* g_vertex_scratch;
+srHeapBuffer<srVector3T<float> >* g_vertex_scratch;
 
 // VTABLE: WIZ8 0x005ec89c srClassSupport<srModelInstance, class srNode, 0, 4352>
 // VTABLE: WIZ8 0x005ec88c srModel::Client
@@ -129,7 +129,7 @@ int stModelInstance::AddDamageStage(const char* name)
     }
 
     int stage = damage_stage_tables_188.capacity;
-    damage_stage_tables_188.setCapacity(stage + 1);
+    damage_stage_tables_188.setCapacity(stage + 1, 1);
 
     int base_table = stage > 0 ? damage_stage_tables_188.data[0] : -1;
     damage_stage_tables_188.data[stage] = mesh->CreateSkinTable(name, base_table);
@@ -150,7 +150,7 @@ int stModelInstance::AddExistingDamageStage(const char* name)
     }
 
     int stage = damage_stage_tables_188.capacity;
-    damage_stage_tables_188.setCapacity(stage + 1);
+    damage_stage_tables_188.setCapacity(stage + 1, 1);
     damage_stage_tables_188.data[stage] = table;
     return stage;
 }
@@ -471,10 +471,7 @@ srClass* stModelInstance::vInstance()
 stModelInstance::stModelInstance(srNode* parent)
     : srClassSupport<stModelInstance, srModelInstance, false, 0x10004>(static_cast<srNode*>(0))
 {
-    highlight_colour_164.x = 0.0f;
-    highlight_colour_164.y = 0.0f;
-    highlight_colour_164.z = 0.0f;
-    highlight_colour_164.w = 0.0f;
+    highlight_colour_164.Set(0.0f, 0.0f, 0.0f, 0.0f);
     render_flags_178 = 0;
     mesh_index_17c = -1;
     frame_index_180 = 0;
@@ -496,10 +493,7 @@ stModelInstance::stModelInstance(srNode* parent)
 stModelInstance& stModelInstance::operator=(const stModelInstance& other)
 {
     srModelInstance::operator=(other);
-    highlight_colour_164.x = 0.0f;
-    highlight_colour_164.y = 0.0f;
-    highlight_colour_164.z = 0.0f;
-    highlight_colour_164.w = 0.0f;
+    highlight_colour_164.Set(0.0f, 0.0f, 0.0f, 0.0f);
     render_flags_178 = other.render_flags_178;
     mesh_index_17c = other.mesh_index_17c;
     frame_index_180 = other.frame_index_180;
@@ -655,10 +649,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         light.z =
             (ambient_color.z * light_scale_194.z + g_environment_offset.z) * g_light_scale_0060bfe0;
     } else {
-        light.x = 0.0f;
-        light.y = 0.0f;
-        light.z = 0.0f;
-        light.w = 0.0f;
+        light.Set(0.0f, 0.0f, 0.0f, 0.0f);
     }
     renderer.setAmbientLight(light);
 
@@ -787,22 +778,13 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     ((mesh.textures_90[0][0] != 0) &&
                      (_strnicmp("blank", mesh.textures_90[0][0]->getName(), 5) != 0))) {
                     if (g_vertex_scratch == 0) {
-                        g_vertex_scratch = new srHeapArray<srVector3T<float> >;
+                        g_vertex_scratch = new srHeapBuffer<srVector3T<float> >;
                     }
                     /* Retail expresses the scratch grow as vertex_count*3
                        floats but stores it as the vec3 element capacity. */
                     unsigned long needed = mesh.vertex_count_00 * 3 * sizeof(float);
-                    if (g_vertex_scratch->capacity < needed &&
-                        g_vertex_scratch->capacity != needed) {
-                        if (needed == 0) {
-                            g_vertex_scratch->release();
-                        } else {
-                            srVector3T<float>* replacement =
-                                srHeapArray<srVector3T<float> >::allocate(needed);
-                            g_vertex_scratch->release();
-                            g_vertex_scratch->data = replacement;
-                            g_vertex_scratch->capacity = needed;
-                        }
+                    if (g_vertex_scratch->capacity < needed) {
+                        g_vertex_scratch->setCapacity(needed, 0);
                     }
 
                     const srVector3T<float>* poly_normals = 0;
@@ -839,9 +821,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     float expand = static_cast<float>(
                         (radius * getScale().y * g_double_005ec8d0 + g_double_005ebc30) * factor);
                     srVector3T<float> offsets;
-                    offsets.x = expand;
-                    offsets.y = expand;
-                    offsets.z = expand;
+                    offsets = expand;
 
                     if (mesh.vertex_count_00 != 0) {
                         if (offsets.x == g_float_005ebb34 && offsets.y == g_float_005ebb34 &&
@@ -938,24 +918,12 @@ void BuildShadowMesh()
             triangles[1].z = 5;
             srVector3T<float>* positions = static_cast<srVector3T<float>*>(srHeap.allocate(0x48));
             g_shadow_mesh->positions_38 = positions;
-            positions[0].x = -250.0f;
-            positions[0].y = 250.0f;
-            positions[0].z = 0.0f;
-            positions[1].x = 0.0f;
-            positions[1].y = -250.0f;
-            positions[1].z = 0.0f;
-            positions[2].x = 250.0f;
-            positions[2].y = 250.0f;
-            positions[2].z = 0.0f;
-            positions[3].x = 0.0f;
-            positions[3].y = 250.0f;
-            positions[3].z = -250.0f;
-            positions[4].x = 0.0f;
-            positions[4].y = -250.0f;
-            positions[4].z = 0.0f;
-            positions[5].x = 0.0f;
-            positions[5].y = 250.0f;
-            positions[5].z = 250.0f;
+            positions[0].Set(-250.0f, 250.0f, 0.0f);
+            positions[1].Set(0.0f, -250.0f, 0.0f);
+            positions[2].Set(250.0f, 250.0f, 0.0f);
+            positions[3].Set(0.0f, 250.0f, -250.0f);
+            positions[4].Set(0.0f, -250.0f, 0.0f);
+            positions[5].Set(0.0f, 250.0f, 250.0f);
             g_shadow_mesh->normals_3c = 0;
             g_shadow_mesh->control_flags_0c = 0;
             g_shadow_mesh->control_flags_0c |= 0x10;
@@ -1012,7 +980,7 @@ void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
     double scale = height;
     renderer.scale(scale, scale, scale);
 
-    srTriMeshPipeline* pipeline = srTriMeshPipeline::Get004750A0(&renderer);
+    srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
     pipeline->triangle_count_1c = g_shadow_mesh->polygon_count_04;
     pipeline->triangles_34 = g_shadow_mesh->poly_vertices_10;
     pipeline->vertex_count_20 = g_shadow_mesh->vertex_count_00;
@@ -1024,7 +992,7 @@ void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
     pipeline->current_pass_18->texture_array_10 = 0;
     pipeline->material_80 = g_shadow_mesh->materials_70[0][0];
     pipeline->current_record_14->material_08 = pipeline->material_80;
-    pipeline->SetFlags004752C0(g_shadow_mesh->shaders_b0[0]);
+    pipeline->SetFlags(g_shadow_mesh->shaders_b0[0]);
     pipeline->current_record_14 = &pipeline->records_94[++pipeline->slot_count_84];
     pipeline->current_pass_18 = &pipeline->passes_9c[pipeline->slot_count_84];
     pipeline->current_record_14->flags_00 = 0;

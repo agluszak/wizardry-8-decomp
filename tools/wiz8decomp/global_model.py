@@ -109,7 +109,7 @@ _TEMPLATE_DEFAULT_SIZES = {
     "W8GrowableVector": 0x10,
     "W8Vector": 0x10,
     "srArray": 0x08,
-    "srHeapArray": 0x08,
+    "srHeapBuffer": 0x08,
 }
 
 # Win32 ABI-equivalent spellings of the same storage.
@@ -213,7 +213,7 @@ def _base_type_size(type_name: str, sizes: dict[str, int]) -> int | None:
         elif char in "*&" and template_depth == 0:
             return 4
     template = re.match(
-        r"^(W8GrowableVector|W8Vector|W8HashTable|srArray|srHeapArray)\s*<", cleaned
+        r"^(W8GrowableVector|W8Vector|W8HashTable|srArray|srHeapBuffer)\s*<", cleaned
     )
     if template:
         return sizes.get(template.group(1), _TEMPLATE_DEFAULT_SIZES.get(template.group(1)))

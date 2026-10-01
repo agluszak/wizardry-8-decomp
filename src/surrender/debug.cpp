@@ -1,5 +1,6 @@
 #include "surrender/srDebug.h"
 
+#include <ostream>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>

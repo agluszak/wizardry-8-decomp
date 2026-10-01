@@ -16,22 +16,28 @@ class __declspec(novtable) SR_DLL_IMPORT SR_DLL_EXPORT srMaterialIFace
     : public srClassSupport<srMaterialIFace, srClass, true, 0x2200> {
 public:
     static const char* sGetClassName();
-    /* Retail exports the lifecycle bundle, with header-visible construction
-       and destruction also expanded in derived callers. */
-#if defined(SURRENDER_BUILD)
-    // FUNCTION: SURRENDER 0x10034BE0 SYMBOL
-    // ??0srMaterialIFace@@QAE@XZ
-    srMaterialIFace() {}
-    // FUNCTION: SURRENDER 0x10016310 SYMBOL
-    // ??1srMaterialIFace@@UAE@XZ
-    virtual ~srMaterialIFace() {}
-#else
+    /* Provider construction/destruction are the implicit srClassSupport
+       lifecycle. Wiz8 imports the standalone public symbols. */
+    // SYNTHETIC: SURRENDER 0x10034BE0
+    // srMaterialIFace::srMaterialIFace()
+    // SYNTHETIC: SURRENDER 0x10034C70
+    // srMaterialIFace::srMaterialIFace(const srMaterialIFace&)
+    // SYNTHETIC: SURRENDER 0x10016310
+    // srMaterialIFace::~srMaterialIFace
+
+#if !defined(SURRENDER_BUILD)
     srMaterialIFace();
     virtual ~srMaterialIFace();
 #endif
-    /* Retail exports the out-of-line assignment (srMaterial.cpp TU); it only
-       forwards the srClass base assignment. */
+    /* Provider assignment is the implicit srClassSupport/base assignment.
+       Wiz8 imports the standalone symbol, so the consumer keeps only the
+       dllimport declaration. */
+    // SYNTHETIC: SURRENDER 0x10034D80
+    // srMaterialIFace::operator=
+
+#if !defined(SURRENDER_BUILD)
     srMaterialIFace& operator=(const srMaterialIFace& other);
+#endif
 
     virtual void getMaterialInfo(srVertexProcessor::MaterialInfo& info) = 0;
     virtual void preProcess(srVertexPipe& pipe) = 0;

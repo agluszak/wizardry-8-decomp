@@ -4,6 +4,7 @@ These checks cover constructs that should never be reintroduced once the typed
 source model can express them directly:
 
 * compiler/template output must remain emission provenance, not authored bodies;
+* calls and shared helpers belong to source; inlining belongs to the compiler;
 * literal byte offsets into repository-typed objects must use named fields;
 * recovered callables must use real declarations, not inline function-pointer
   reinterpret casts;
@@ -29,7 +30,8 @@ from .source_index import (
 from .source_units import load_source_unit_document
 
 _WIZ8_ROOTS = ("src/wiz8", "include/wiz8")
-_CPP_SUFFIXES = frozenset({".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
+_RECOVERED_ROOTS = (*_WIZ8_ROOTS, "src/surrender", "include/surrender")
+_CPP_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
 _MARKER_ONLY_KINDS = frozenset({"SYNTHETIC", "LIBRARY"})
 
 _NOISE = re.compile(
@@ -75,6 +77,17 @@ _SCALAR_DELETE = re.compile(
     r"\bdelete\s+(?!\[)\s*(?:(?:this|[A-Za-z_][A-Za-z0-9_]*)\s*->\s*)?"
     r"(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*;"
 )
+_INLINE_CONTROLS = (
+    ("forceinline", re.compile(r"\b__forceinline\b")),
+    ("noinline", re.compile(r"\b__declspec\s*\(\s*noinline\s*\)")),
+    (
+        "inline-control-pragma",
+        re.compile(
+            r"^[ \t]*#\s*pragma\s+(?:auto_inline|inline_depth|inline_recursion)\b", re.MULTILINE
+        ),
+    ),
+    ("codegen-inline-name", re.compile(r"\b[A-Za-z_][A-Za-z0-9_]*Inline\b")),
+)
 
 
 class SourceModelGateError(RuntimeError):
@@ -88,9 +101,9 @@ def _mask_cpp_noise(source: str) -> str:
     return _NOISE.sub(mask, source)
 
 
-def _source_files(repository: Path) -> list[Path]:
+def _source_files(repository: Path, roots: tuple[str, ...] = _WIZ8_ROOTS) -> list[Path]:
     files: list[Path] = []
-    for root_name in _WIZ8_ROOTS:
+    for root_name in roots:
         root = repository / root_name
         if not root.is_dir():
             continue
@@ -100,6 +113,24 @@ def _source_files(repository: Path) -> list[Path]:
             if path.is_file() and path.suffix.casefold() in _CPP_SUFFIXES
         )
     return sorted(set(files))
+
+
+def _inline_control_violations(repository: Path) -> list[dict[str, Any]]:
+    violations: list[dict[str, Any]] = []
+    for path in _source_files(repository, _RECOVERED_ROOTS):
+        source = path.read_text(encoding="utf-8", errors="ignore")
+        masked = _mask_cpp_noise(source)
+        for kind, pattern in _INLINE_CONTROLS:
+            for match in pattern.finditer(masked):
+                violations.append(
+                    {
+                        "kind": kind,
+                        "file": path.relative_to(repository).as_posix(),
+                        "line": _line(source, match.start()),
+                        "detail": _snippet(source, match.start(), match.end()),
+                    }
+                )
+    return violations
 
 
 def _line(source: str, offset: int) -> int:
@@ -281,6 +312,7 @@ def source_model_violations(repository: Path) -> list[dict[str, Any]]:
         *_typed_raw_offset_violations(repository),
         *_callable_cast_violations(repository),
         *_scalar_delete_violations(repository),
+        *_inline_control_violations(repository),
     ]
 
 
@@ -302,5 +334,6 @@ def validate_source_model(repository: Path) -> dict[str, Any]:
             "typed-object-raw-offsets",
             "callable-reinterpret-casts",
             "scalar-delete-of-array-allocation",
+            "compiler-owned-inlining",
         ],
     }

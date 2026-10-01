@@ -24,10 +24,16 @@ public:
 
     srCamera(srNode* parent = 0);
 
-    srCamera& operator=(const srCamera& other);
+    /* Copy construction, assignment and destruction are the ordinary
+       srNode-base/member special members emitted by the class export. */
+    // SYNTHETIC: SURRENDER 0x10048090
+    // srCamera::srCamera(const srCamera&)
+    // SYNTHETIC: SURRENDER 0x100481F0
+    // srCamera::~srCamera
+    // SYNTHETIC: SURRENDER 0x10048370
+    // srCamera::operator=
 
     virtual void dump(std::ostream& stream) override;
-    virtual ~srCamera() override;
     virtual srClass* vInstance() override;
     virtual void process(const ProcessInfo& info, e_processType type) override;
 
@@ -48,18 +54,16 @@ public:
     e_projectionResult project(srVector3T<float>& output, const srVector3T<double>& input);
     void setProjectionType(e_project projection);
     void normalizeViewPlane();
-#if defined(SURRENDER_BUILD)
-    static const char* sGetClassName();
-#else
-    /* Header-visible like srFog's: the client getClassName/getClassNode
+    /* Header-visible on both sides: the client getClassName/getClassNode
        emissions (0x0042A020, 0x0042A030) read the consumer literal
-       s_srCamera_0060445c directly, and the consumer import table has no
-       entry. The provider still exports its own copy from camera.cpp. */
+       s_srCamera_0060445c directly, the consumer import table has no entry,
+       and provider TUs inline the same literal inside the srClassSupport
+       registrations. The provider still exports an out-of-line copy. */
+    // FUNCTION: SURRENDER 0x10048020
     static const char* sGetClassName()
     {
         return "srCamera";
     }
-#endif
     void setEnvironmentScale(float near_scale, float far_scale);
     void setFocalLength(double focal_length, double aspect_ratio);
     void setFOV(double field_of_view, double aspect_ratio);

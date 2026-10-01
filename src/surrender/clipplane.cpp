@@ -3,6 +3,8 @@
 #include "surrender/srGERD.h"
 #include "surrender/srTypeRegistry.h"
 
+#include <ostream>
+
 // FUNCTION: SURRENDER 0x10049B90
 srClipPlane::srClipPlane(srNode* parent)
     : srClassSupport<srClipPlane, srNode, false, 0x1500>(static_cast<srNode*>(0))
@@ -15,17 +17,6 @@ srClipPlane::srClipPlane(srNode* parent)
     if (parent != 0) {
         setParent(parent, 0);
     }
-}
-
-// FUNCTION: SURRENDER 0x10049C90
-srClipPlane& srClipPlane::operator=(const srClipPlane& other)
-{
-    if (this != &other) {
-        srNode::operator=(other);
-        clip_type_ = other.clip_type_;
-        clip_plane_ = other.clip_plane_;
-    }
-    return *this;
 }
 
 // FUNCTION: SURRENDER 0x10049CE0
@@ -129,12 +120,6 @@ srVector4T<float> srClipPlane::getClipPlane() const
     return clip_plane_;
 }
 
-// FUNCTION: SURRENDER 0x1004A150
-const char* srClipPlane::sGetClassName()
-{
-    return "srClipPlane";
-}
-
 // FUNCTION: SURRENDER 0x1004A160
 srClass* srClipPlane::vInstance()
 {
@@ -144,12 +129,6 @@ srClass* srClipPlane::vInstance()
     }
     return 0;
 }
-
-// SYNTHETIC: SURRENDER 0x1004A1C0
-// srClipPlane::srClipPlane (implicit copy constructor)
-
-// FUNCTION: SURRENDER 0x1004A2C0
-srClipPlane::~srClipPlane() {}
 
 // TEMPLATE: SURRENDER 0x10049F40
 // srClassSupport<srClipPlane,srNode,0,5376>::getClassID

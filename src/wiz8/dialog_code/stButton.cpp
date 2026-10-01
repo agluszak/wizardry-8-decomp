@@ -1,4 +1,5 @@
 #include "wiz8/dialog_code/DialogBase.h"
+#include "wiz8/sgp_text.h"
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/dialog_code/ButtonUserData.h"
 #include "wiz8/local_code/ButtonSound.h"
@@ -268,8 +269,7 @@ unsigned char W8DialogButton::Configure(const char* image_path, int gray_frame,
                                         W8DialogButtonCallback double_click_callback)
 {
     m_image_018 = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>(image_path)),
+        Wiz8ToSgpText(image_path),
         gray_frame, off_normal_frame, off_hover_frame, on_normal_frame, on_hover_frame);
     if (m_image_018 != -1) {
         m_button_01c = QuickCreateButton(m_image_018, 0, 0, BUTTON_NO_TOGGLE, priority,

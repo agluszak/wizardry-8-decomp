@@ -583,7 +583,7 @@ void UpdateRcsLevelUpPanel(void)
         }
     } else if (!g_level_up_button->m_active) {
         g_level_up_button->SetActive(1);
-        g_level_up_panel->Invalidate(0);
+        RedrawRcsLevelUpPanel();
     }
     g_level_up_panel->Redraw();
 }
@@ -735,7 +735,7 @@ void UpdateRcsDismissPanel(void)
         gXStatus.fCampMode == 0) {
         if (!g_dismiss_button->m_active) {
             g_dismiss_button->SetActive(1);
-            g_dismiss_panel->Invalidate(0);
+            RedrawRcsDismissPanel();
         }
     } else if (g_dismiss_button->m_active) {
         g_dismiss_button->SetActive(0);
@@ -871,8 +871,8 @@ void DrawCampHeader(void)
             DrawCatalogImage(-14, 0x116, 0, 0, 0xa4, 0xc, 2, 0);
         }
         if (gXStatus.fCombatMode == 0) {
-            g_level_up_panel->Invalidate(0);
-            g_dismiss_panel->Invalidate(0);
+            RedrawRcsLevelUpPanel();
+            RedrawRcsDismissPanel();
         }
         if (character->highest_condition == 0) {
             DrawCatalogImage(-14, 0x2f, 0, 0, 0xa5, 0xe, 2, 0);
@@ -1056,9 +1056,9 @@ void DrawCampVitals(void)
     text =
         new W8TextBuffer(&bounds, 0, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 0, 4);
     if (g_status.game_started == 0) {
-        text->m_fontStateIndex = 8;
+        text->SetFontStateIndex(8);
     } else {
-        text->m_fontStateIndex = g_status.buffers.XChar[giReviewCharSlot].party_order_index;
+        text->SetFontStateIndex(g_status.buffers.XChar[giReviewCharSlot].party_order_index);
     }
     text->SetText(
         gppStringList[g_profession_name_message_ids[g_review_character->iProfession + 0x10]],
@@ -1070,7 +1070,7 @@ void DrawCampVitals(void)
         bounds.top = 0x49;
         bounds.bottom = 0x51;
         text->SetLayoutBounds(&bounds, 1, 0);
-        text->m_fontStateIndex = -1;
+        text->SetFontStateIndex(-1);
         formatted = FormatWideString(g_format_d, g_review_character->hp_current);
         text->SetText(formatted, g_smfnt_font);
         text->RenderToTarget(0, 0, -14);

@@ -1364,12 +1364,8 @@ void OctBuildPreTree::FinalizeRegionMapping()
     W8BoundingBox* region_bounds =
         static_cast<W8BoundingBox*>(malloc(final_region_count * sizeof(W8BoundingBox)));
     for (unsigned short region = 0; region < final_region_count; ++region) {
-        region_bounds[region].minimum.x = 1000000.0f;
-        region_bounds[region].minimum.y = 1000000.0f;
-        region_bounds[region].minimum.z = 1000000.0f;
-        region_bounds[region].maximum.x = -1000000.0f;
-        region_bounds[region].maximum.y = -1000000.0f;
-        region_bounds[region].maximum.z = -1000000.0f;
+        region_bounds[region].minimum.Set(1000000.0f, 1000000.0f, 1000000.0f);
+        region_bounds[region].maximum.Set(-1000000.0f, -1000000.0f, -1000000.0f);
     }
 
     for (unsigned long polygon_index = 1; polygon_index < game_data_134->polygon_count_08;
@@ -1582,15 +1578,14 @@ void OctBuildPreTree::ValidateRegionBounds(const W8BoundingBox* region_bounds)
         while ((entry = region_path_map_124->FindNextEntry(&region, entry)) != -1) {
             unsigned long path = region_path_map_124->entries[entry].value;
             srVector3T<float> minimum;
-            minimum.x =
-                ((path >> 16) & 0xff) * spatial_00.region_grid_cell_54 + spatial_00.minimum_0c.x;
-            minimum.y =
-                ((path >> 8) & 0xff) * spatial_00.region_grid_cell_54 + spatial_00.minimum_0c.y;
-            minimum.z = (path & 0xff) * spatial_00.region_grid_cell_54 + spatial_00.minimum_0c.z;
+            minimum.Set(
+                ((path >> 16) & 0xff) * spatial_00.region_grid_cell_54 + spatial_00.minimum_0c.x,
+                ((path >> 8) & 0xff) * spatial_00.region_grid_cell_54 + spatial_00.minimum_0c.y,
+                (path & 0xff) * spatial_00.region_grid_cell_54 + spatial_00.minimum_0c.z);
             srVector3T<float> maximum;
-            maximum.x = minimum.x + spatial_00.region_grid_cell_54;
-            maximum.y = minimum.y + spatial_00.region_grid_cell_54;
-            maximum.z = minimum.z + spatial_00.region_grid_cell_54;
+            maximum.Set(minimum.x + spatial_00.region_grid_cell_54,
+                        minimum.y + spatial_00.region_grid_cell_54,
+                        minimum.z + spatial_00.region_grid_cell_54);
 
             W8OctBuildNode* node = FindNode(path);
             if (node != 0) {
@@ -1643,7 +1638,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
         for (unsigned short region_index = 1; region_index < spatial_00.region_count_46;
              ++region_index) {
             W8OctRegionVolume* volume = spatial_00.owned_5c + region_index;
-            if (volume->ContainsPoint0049E460(&position) != 0) {
+            if (volume->ContainsPoint(&position) != 0) {
                 unsigned short region = volume->region_04;
                 bool present = false;
                 int entry = -1;
@@ -1692,7 +1687,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
                             for (unsigned short region_index = 1;
                                  region_index < spatial_00.region_count_46; ++region_index) {
                                 W8OctRegionVolume* volume = spatial_00.owned_5c + region_index;
-                                if (volume->ContainsPoint0049E460(&corner) != 0) {
+                                if (volume->ContainsPoint(&corner) != 0) {
                                     unsigned short region = volume->region_04;
                                     bool present = false;
                                     int entry = -1;
@@ -1792,10 +1787,9 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
                     for (int y = 0; y != 2; ++y) {
                         for (int z = 0; z != 2; ++z) {
                             srVector3T<float> corner;
-                            corner.x = bounds[x].x * g_world_scale;
-                            corner.y = bounds[y].y * g_world_scale;
-                            corner.z = bounds[z].z * g_world_scale;
-                            if (volume->ContainsPoint0049E460(&corner) != 0) {
+                            corner.Set(bounds[x].x * g_world_scale, bounds[y].y * g_world_scale,
+                                       bounds[z].z * g_world_scale);
+                            if (volume->ContainsPoint(&corner) != 0) {
                                 unsigned short region = volume->region_04;
                                 bool present = false;
                                 int entry = -1;
@@ -1818,12 +1812,8 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
         }
 
         srVector3T<float> aggregate[2];
-        aggregate[0].x = 1000000.0f;
-        aggregate[0].y = 1000000.0f;
-        aggregate[0].z = 1000000.0f;
-        aggregate[1].x = -1000000.0f;
-        aggregate[1].y = -1000000.0f;
-        aggregate[1].z = -1000000.0f;
+        aggregate[0].Set(1000000.0f, 1000000.0f, 1000000.0f);
+        aggregate[1].Set(-1000000.0f, -1000000.0f, -1000000.0f);
         for (unsigned char bounds_index = 0; bounds_index < record.anim_obj_53.num_bound_box_47;
              ++bounds_index) {
             const srVector3T<float>* bounds =

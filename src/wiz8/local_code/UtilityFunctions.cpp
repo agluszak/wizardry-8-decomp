@@ -1,4 +1,5 @@
 #include "wiz8/utility.h"
+#include "wiz8/sgp_text.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
@@ -62,16 +63,6 @@ bool g_message_box_accepted;
 char g_format_string_buffer[200];
 // GLOBAL: WIZ8 0x00689FD0
 wchar_t g_wide_string_buffer[4096];
-
-static __inline int UtilityIntegerPower(int base, unsigned int exponent)
-{
-    int result;
-
-    for (result = 1; exponent > 0; --exponent) {
-        result *= base;
-    }
-    return result;
-}
 
 // FUNCTION: WIZ8 0x00517950
 void SetDice(W8Dice* dice, unsigned char count, unsigned char sides, short base)
@@ -218,7 +209,7 @@ wchar_t* FormatUnsignedIntegerWithCommas(wchar_t* output, unsigned int value)
     do {
         unsigned int threshold;
 
-        divisor = UtilityIntegerPower(10, exponent);
+        divisor = IntegerPower(10, exponent);
         threshold = exponent > 0 ? divisor : 0;
 
         if (value >= threshold) {
@@ -274,7 +265,8 @@ char* TitleCaseString(char* string)
     return string;
 }
 
-static inline float NormalizeAngleInline(float angle)
+// FUNCTION: WIZ8 0x00517c60
+float NormalizeAngle(float angle)
 {
     if (!_finite(angle)) {
         srAssertFail("_finite(flAngle)",
@@ -291,17 +283,11 @@ static inline float NormalizeAngleInline(float angle)
     return angle;
 }
 
-// FUNCTION: WIZ8 0x00517c60
-float NormalizeAngle(float angle)
-{
-    return NormalizeAngleInline(angle);
-}
-
 // FUNCTION: WIZ8 0x00517ce0
 float ShortestAngleDistance(float first, float second)
 {
-    float forward = NormalizeAngleInline(first - second);
-    float backward = NormalizeAngleInline(second - first);
+    float forward = NormalizeAngle(first - second);
+    float backward = NormalizeAngle(second - first);
 
     return forward < backward ? forward : backward;
 }
@@ -614,14 +600,11 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     }
     g_message_box_background_image = LoadGenericButtonImages(
         0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
-            const_cast<char*>(DEFAULT_GENERIC_BUTTON_OFF)),
+        Wiz8ToSgpText(DEFAULT_GENERIC_BUTTON_OFF),
         0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
-            const_cast<char*>(DEFAULT_GENERIC_BUTTON_ON)),
+        Wiz8ToSgpText(DEFAULT_GENERIC_BUTTON_ON),
         0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
-            const_cast<char*>("Data\\Dialogs\\DialogBackground.STI")),
+        Wiz8ToSgpText("Data\\Dialogs\\DialogBackground.STI"),
         0, 0, 0);
     int yloc = (0x1e0 - height) / 2;
     g_message_box_background_button = CreateTextButton(
@@ -634,7 +617,7 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     if (has_accept) {
         strcpy(filename, "Data\\Message Box\\Ok.sti");
         g_message_box_accept_image = LoadButtonImage(
-            reinterpret_cast<unsigned char*>(filename), // reinterpret-ok: SGP image API
+            Wiz8ToSgpText(filename),
             0, 1, 2, 3, 4);
         if (g_message_box_accept_image < 0) {
             return false;
@@ -651,7 +634,7 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     if (has_cancel) {
         strcpy(filename, "Data\\Message Box\\Cancel.sti");
         g_message_box_cancel_image = LoadButtonImage(
-            reinterpret_cast<unsigned char*>(filename), // reinterpret-ok: SGP image API
+            Wiz8ToSgpText(filename),
             0, 1, 2, 3, 4);
         if (g_message_box_cancel_image < 0) {
             return false;

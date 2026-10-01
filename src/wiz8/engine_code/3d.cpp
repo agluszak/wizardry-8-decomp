@@ -350,8 +350,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
 
 /* Bake the dynamic scene's light children into every not-yet-lit model
    instance under one static-scene subtree. render_flags_178 bit 1 is the instance's
-   own lit marker; the first-child chain store is the same typed walk
-   SetModelInstanceChainExclusionMask performs. */
+   own lit marker; the child-chain exclusion update uses the shared helper. */
 // FUNCTION: WIZ8 0x0046F410
 unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
 {
@@ -361,22 +360,14 @@ unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
         }
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
-            srNode* lights = dynamic_scene->first_child_;
-            if ((instance->render_flags_178 & 2) == 0) {
-                instance->render_flags_178 |= 2;
-                for (srModelInstance* chain = instance; chain != 0;
-                     chain = static_cast<srModelInstance*>(chain->first_child_)) {
-                    chain->setExclusionMask(1);
-                }
-                BakeInstanceVertexLighting(instance, lights, 1);
-            }
+            BakeInstanceVertexLightingIfNeeded(instance, dynamic_scene);
         }
     }
     return 1;
 }
 
 /* Bake dynamic-scene lights into one not-yet-lit model instance. render_flags_178
-   bit 1 is the lit marker; the first-child walk matches SetModelInstanceChainExclusionMask. */
+   bit 1 is the lit marker. */
 // FUNCTION: WIZ8 0x0046F4A0
 unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance, srNode* dynamic_scene)
 {
@@ -384,10 +375,7 @@ unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance, srNo
 
     if ((instance->render_flags_178 & 2) == 0) {
         instance->render_flags_178 |= 2;
-        for (srModelInstance* chain = instance; chain != 0;
-             chain = static_cast<srModelInstance*>(chain->first_child_)) {
-            chain->setExclusionMask(1);
-        }
+        SetModelInstanceChainExclusionMask(instance, 1);
         BakeInstanceVertexLighting(instance, lights, 1);
     }
     return 1;
@@ -759,7 +747,7 @@ void WorldUpdateLights(W8World* world)
 
     for (int index = 0; index < count; ++index) {
         stLight** light = world->lights_to_update->GetAt(index);
-        (*light)->Update0049C960();
+        (*light)->Update();
     }
 }
 
@@ -1131,9 +1119,7 @@ bool SphereInsideFrustum(const srVector3T<float>* point, float radius, const W8P
     bool inside = true;
 
     for (short plane = 0; plane < 6 && inside != 0; ++plane) {
-        if (point->x * planes[plane].normal.x + point->y * planes[plane].normal.y +
-                point->z * planes[plane].normal.z + planes[plane].w <
-            -radius) {
+        if (DotProduct(*point, planes[plane].normal) + planes[plane].w < -radius) {
             inside = 0;
         }
     }

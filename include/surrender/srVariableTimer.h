@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <iosfwd>
 
 #include "srTimer.h"
 
@@ -15,7 +15,9 @@ public:
                     float multiplier = 1.0f, unsigned long step_size = 0x1e);
     srVariableTimer(const srTimer& timer);
     srVariableTimer(const srVariableTimer& timer);
-    virtual ~srVariableTimer() override;
+    /* Base srTimer destruction is the entire derived teardown. */
+    // SYNTHETIC: SURRENDER 0x10063F40
+    // srVariableTimer::~srVariableTimer
 
     srVariableTimer& operator=(const srTimer& timer);
     srVariableTimer& operator=(const srVariableTimer& timer);

@@ -182,7 +182,7 @@ void W8Chunk::Close()
             int position = FileGetPos(m_hFile);
             int count;
 
-            FileSeek(m_hFile, m_offsets.data[m_offsets.count - 1], FILE_SEEK_FROM_START);
+            RewindCurrentChunk();
             count = m_group_progress.RemoveAt(m_group_progress.count - 1);
             Write(&count, sizeof(count), 0);
             FileSeek(m_hFile, position, FILE_SEEK_FROM_START);
@@ -305,7 +305,7 @@ unsigned char W8Chunk::ReleaseGroup()
         int position = FileGetPos(m_hFile);
         int count;
 
-        FileSeek(m_hFile, m_offsets.data[m_offsets.count - 1], FILE_SEEK_FROM_START);
+        RewindCurrentChunk();
         count = m_group_progress.RemoveAt(m_group_progress.count - 1);
         Write(&count, sizeof(count), &transferred);
         FileSeek(m_hFile, position, FILE_SEEK_FROM_START);
@@ -388,7 +388,7 @@ unsigned char W8Chunk::OpenChunk(unsigned int chunk_id, unsigned char grouped)
 // FUNCTION: WIZ8 0x0055c930
 unsigned char W8Chunk::ReleaseCurrentChunk()
 {
-    delete m_heads.RemoveAt(m_heads.count - 1);
+    m_heads.RemoveAtAndDelete(m_heads.count - 1);
     if (m_fWriting) {
         int end = FileGetPos(m_hFile);
         int payload = m_offsets.RemoveAt(m_offsets.count - 1);

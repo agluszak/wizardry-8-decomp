@@ -21,8 +21,13 @@ source/visibility claim: an expanded body alone does not prove `inline`; repeate
 a shared owner, and a standalone emission plus expanded uses is consistent with header-visible source.
 A call/inline disagreement does not justify `__forceinline`, `__declspec(noinline)`, `#pragma auto_inline`
 or optimizer pragmas. Investigate header/TU visibility, template ownership and source structure first;
-let VC6 choose unless independent evidence establishes stronger authored control. Existing pragma-based
-sites are not precedent. A complete record computed then copied should first suggest a typed value
+let VC6 choose. Recovered source expresses calls and shared helpers; the compiler owns inlining.
+Each logical function has one canonical body: callers must not paste that body or use parallel
+`FooInline` helpers and forwarding `Foo` definitions. Cross-TU expansions may establish a
+header-visible canonical definition; TU-local helpers belong before their users. Ordinary `inline`
+is legal. The whole-tree source-model gate forbids `__forceinline`, `__declspec(noinline)`,
+inline-control pragmas and identifiers ending in `Inline`, without comment waivers.
+A complete record computed then copied should first suggest a typed value
 temporary and ordinary assignment, such as `Matrix result; ...; *this = result;`, rather than invented
 scalar scratch storage or field-by-field lowering. Distinct overloads remain distinct source functions;
 similar emitted bodies do not merge their symbol/call identities.
@@ -59,8 +64,8 @@ similar emitted bodies do not merge their symbol/call identities.
   and record it instead.
 - Source-shaping compiler controls are source claims, not matching knobs. Do not add `__forceinline`,
   noinline attributes, per-function optimizer pragmas or equivalent controls merely to change generated
-  code. They require positive source/oracle evidence or strong independent evidence about authored
-  visibility/control. Existing suspicious sites are recovery debt, not precedent.
+  code. The forbidden inlining controls above have no source-model exception. Existing suspicious
+  sites are recovery debt, not precedent.
 - Never promote compiler output into an authored source construct. A concrete template emission proves
   only that the primary template was instantiated for those arguments; it never proves an explicit
   specialization or explicit instantiation. Likewise an inlined copy does not prove manual inlining,

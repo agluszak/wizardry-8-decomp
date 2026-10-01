@@ -11,97 +11,11 @@
 #include "surrender/srSystem.h"
 #include "surrender/srVectorProcessor.h"
 
+#include <ostream>
 #include <share.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/* TU-local srInlineString expansions: this unit inlines the constructor, copy
-   assignment, destructor, find and erase while init, reset and operator+ stay
-   callable emissions owned by sibling units (init at 0x10004150, reset at
-   0x10012C80, operator+ at 0x10012CB0). The const char* assignment is inline
-   here too - setPath expands it while insert keeps a call to the sibling
-   unit's callable emission at 0x100040D0. */
-
-inline srInlineString::srInlineString()
-{
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-}
-
-inline srInlineString::srInlineString(const char* source)
-{
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-    if (source != 0) {
-        operator=(source);
-    }
-}
-
-inline srInlineString::srInlineString(const srInlineString& source)
-{
-    init();
-    if (source.data_ != 0) {
-        operator=(source);
-    }
-}
-
-inline srInlineString::~srInlineString()
-{
-    if (data_ != inline_) {
-        srHeap.free(data_);
-    }
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-}
-
-inline srInlineString& srInlineString::operator=(const srInlineString& source)
-{
-    init();
-    if (source.data_ != 0 && *source.data_ != '\0') {
-        size_ = strlen(source.data_) + 1;
-        data_ = static_cast<char*>(srHeap.allocate(size_));
-        strcpy(data_, source.data_);
-    }
-    return *this;
-}
-
-inline srInlineString& srInlineString::operator=(const char* source)
-{
-    if (data_ != inline_) {
-        srHeap.free(data_);
-    }
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-    if (source == 0 || *source == '\0') {
-        return *this;
-    }
-    size_ = strlen(source) + 1;
-    data_ = static_cast<char*>(srHeap.allocate(size_));
-    strcpy(data_, source);
-    return *this;
-}
-
-inline long srInlineString::find(const srInlineString& needle, unsigned long offset) const
-{
-    const char* found = strstr(data_ + offset, needle.data_);
-    if (found != 0) {
-        return static_cast<long>(found - data_);
-    }
-    return -1;
-}
-
-inline void srInlineString::erase(unsigned long begin, unsigned long end)
-{
-    if (begin != end) {
-        strncpy(data_ + begin, data_ + end, size_ - end);
-        size_ = strlen(data_) + 1;
-    }
-}
-
 // SYNTHETIC: SURRENDER 0x10016410
 // srFileManager::`vector deleting destructor'
 
@@ -300,20 +214,10 @@ srFileManager::srFileManager()
     first_path_04 = 0;
 }
 
-// FUNCTION: SURRENDER 0x100163C0
-srFileManager::srFileManager(const srFileManager& other) : first_path_04(other.first_path_04) {}
-
 // FUNCTION: SURRENDER 0x1002E750
 srFileManager::~srFileManager()
 {
     setPath(0);
-}
-
-// FUNCTION: SURRENDER 0x100163E0
-srFileManager& srFileManager::operator=(const srFileManager& other)
-{
-    first_path_04 = other.first_path_04;
-    return *this;
 }
 
 namespace {
@@ -574,8 +478,8 @@ void srBinFStream::mopen(const char* path, e_mode mode, int search_paths)
             char extension[_MAX_EXT];
             srSystem::splitPath(path, drive, directory, filename, extension);
             char full_name[_MAX_PATH];
-            strncpy(full_name, directory, _MAX_PATH);
-            strncat(full_name, filename, _MAX_PATH);
+            strncpy(full_name, directory, _MAX_DIR);
+            strncat(full_name, filename, _MAX_FNAME);
             srFileManager* manager = srCore.getFileManager();
             for (srFileManager::Path* search = manager->getFirstPath(); search != 0;
                  search = search->getNext()) {
@@ -660,8 +564,6 @@ unsigned long srBinFStream::ptell()
 // FUNCTION: SURRENDER 0x1002F6B0
 srBinIFStream::srBinIFStream() {}
 
-srBinIFStream::~srBinIFStream() {}
-
 // FUNCTION: SURRENDER 0x1002F760
 srBinIFStream::srBinIFStream(const char* path)
 {
@@ -710,8 +612,6 @@ unsigned long srBinIFStream::tell()
 
 // FUNCTION: SURRENDER 0x1002FC40
 srBinIOFStream::srBinIOFStream() {}
-
-srBinIOFStream::~srBinIOFStream() {}
 
 // FUNCTION: SURRENDER 0x1002FD20
 srBinIOFStream::srBinIOFStream(const char* path)
@@ -771,9 +671,6 @@ unsigned long srBinIOFStream::tell()
     return ptell();
 }
 
-// FUNCTION: SURRENDER 0x100302B0
-srBinOStream::~srBinOStream() {}
-
 // FUNCTION: SURRENDER 0x10030330
 srBinOFStream::srBinOFStream(const char* path)
 {
@@ -818,9 +715,6 @@ unsigned long srBinOFStream::tell()
 {
     return ptell();
 }
-
-// FUNCTION: SURRENDER 0x100308C0
-srBinOFStream::~srBinOFStream() {}
 
 /* srFileManager's implicit deleting destructor is emitted in this unit with
    the Path members. */

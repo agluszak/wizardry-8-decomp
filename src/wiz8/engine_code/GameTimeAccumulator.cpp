@@ -43,8 +43,7 @@ void W8GameTimeAccumulator::SetDurationScale(float scale)
     }
     m_scale_24 = 2.0f / scale;
     m_duration = (int)(scale * m_duration_seconds * 10000.0f);
-    m_start = ReadClock();
-    m_end = m_start + m_duration;
+    Restart();
     m_frame_delta_28 = 0.0f;
 }
 
@@ -55,8 +54,7 @@ void W8GameTimeAccumulator::ResetDurationScale()
     m_scale_24 = 2.0f;
     m_duration_scale = 1.0f;
     m_duration = (int)(m_duration_seconds * 10000.0f);
-    m_start = ReadClock();
-    m_end = m_start + m_duration;
+    Restart();
     m_frame_delta_28 = 0.0f;
 }
 

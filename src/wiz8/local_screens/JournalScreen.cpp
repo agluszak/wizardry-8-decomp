@@ -1,4 +1,5 @@
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/sgp_text.h"
 #include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/engine_code/Video2.h"
@@ -401,8 +402,7 @@ void W8JournalPanel::OnPrimary(W8TextControl* control)
 unsigned char JournalScreenInitialize(void)
 {
     g_journal_font =
-        LoadFontFile(reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Journal\\journal_font.sti")));
+        LoadFontFile(Wiz8ToSgpText("Data\\Journal\\journal_font.sti"));
     g_journal_font_original_palette = GetFontObjectPalette16BPP(g_journal_font);
     g_journal_font_palette = CopyCatalogImagePalette16BPP(0x1b9, 0);
     return 1;

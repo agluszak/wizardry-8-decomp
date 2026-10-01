@@ -388,17 +388,7 @@ void BeginFreeTurnPhase(void)
     CheckMonsterGroupsEnterCombat();
     CompletePartyMovementTurns();
     NotifyNearbyMonsters(0);
-    /* The tail is UpdatePartyMovementControl written out again rather than
-       called, which is why this body is twice the size of a forwarder. */
-    if ((g_combat_state->uiCurrentPartyAction == 0 ||
-         g_combat_state->uiCurrentPartyActionStatus == W8_ACTION_STATUS_FINISHED) &&
-        g_combat_state->uiNextPartyAction == 0) {
-        ReleasePartyMovement();
-        return;
-    }
-    g_level_block->move_budget_2dc = 100;
-    g_level_block->move_budget_2e0 = 100;
-    InvalidatePartyMovementPanel();
+    UpdatePartyMovementControl();
 }
 
 /* Cancel the pending movement action. An action that is already entering its
@@ -420,17 +410,7 @@ void CancelPartyMovement(void)
     if (g_combat_state->uiNextPartyAction == 0) {
         return;
     }
-    if (gXStatus.fCombatMode == 0) {
-        srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 0x1d6, 0);
-    }
-    g_combat_state->uiNextPartyAction = 0;
-    for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
-            RefreshCombatTargetHighlights(party_slot,
-                                          &g_status.buffers.XChar[party_slot].target_in_combat);
-        }
-    }
-    UpdatePartyMovementControl();
+    ClearPendingPartyMovement(-1);
 }
 
 /* Interrupt a move that has entered its first phase. Bring every unfinished
@@ -495,23 +475,7 @@ void StartPartyMovementAction004EFC00(void)
         ShowNotice(8, gppStringList[0x21b], -1, -1, 0);
         gXStatus.party_move_distance = 0.0f;
     }
-    if (g_combat_state->uiCurrentPartyAction == 1 || g_combat_state->uiCurrentPartyAction == 2) {
-        if (GetLevelDataFlag6() != 0 && g_combat_state->uiCurrentPartyActionStatus == 2) {
-            ShowNotice(8, gppStringList[0x21d], -1, -1, 0);
-        }
-        SoundPlay("Data\\Sound\\Misc\\Movement_Bar_Pop_Up.wav", 0);
-        ClearLevelDataFlag6();
-        if (g_combat_state->uiCurrentPartyAction == 2) {
-            SetLevelDataFlag8();
-        }
-        EnableFreeTurnButton();
-        InvalidatePartyMovementPanel();
-        if (g_settings.continuous_combat != 0) {
-            g_combat_state->party_movement_clock = SetCountdownClock(1000);
-        }
-        TurnPartyTo(g_status.party_heading);
-    }
-    g_combat_state->uiCurrentPartyActionStatus = 1;
+    FinishPartyMovementAction();
     g_combat_state->passive_round_a55 = 0;
 }
 

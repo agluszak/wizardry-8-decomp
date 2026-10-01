@@ -1,3 +1,4 @@
+#include <ostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -291,27 +292,6 @@ srFileManager* srCore::getFileManager() const
 srTexture* srCore::getTexture() const
 {
     return texture_174;
-}
-
-/* TU-local srInlineString copy constructor: like file_stream.cpp's copies,
-   this unit's implicit stream copy machinery needs a callable emission. */
-inline srInlineString::srInlineString(const srInlineString& source)
-{
-    init();
-    if (source.data_ != 0) {
-        operator=(source);
-    }
-}
-
-inline srInlineString& srInlineString::operator=(const srInlineString& source)
-{
-    init();
-    if (source.data_ != 0 && *source.data_ != '\0') {
-        size_ = strlen(source.data_) + 1;
-        data_ = static_cast<char*>(srHeap.allocate(size_));
-        strcpy(data_, source.data_);
-    }
-    return *this;
 }
 
 /* The provider's process-wide core object; its constructor body is still

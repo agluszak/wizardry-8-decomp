@@ -49,32 +49,25 @@ void __cdecl readBGR24MMX(const srPixelConvert::ConversionInfo& info);
    expansion tables, packIntensity routes the luma ramps plus optional
    alpha. */
 static void packIntensity16(unsigned short* dest, const srARGB* source,
-                            const unsigned char* alpha_lut,
-                            const unsigned char* intensity_lut,
+                            const unsigned char* alpha_lut, const unsigned char* intensity_lut,
                             unsigned char alpha_shift, unsigned char intensity_shift,
                             unsigned long count, int has_alpha);
 static void packIntensity24(unsigned char* dest, const srARGB* source,
-                            const unsigned char* alpha_lut,
-                            const unsigned char* intensity_lut,
+                            const unsigned char* alpha_lut, const unsigned char* intensity_lut,
                             unsigned char alpha_shift, unsigned char intensity_shift,
                             unsigned long count, int has_alpha);
 static void packIntensity32(unsigned long* dest, const srARGB* source,
-                            const unsigned char* alpha_lut,
-                            const unsigned char* intensity_lut,
+                            const unsigned char* alpha_lut, const unsigned char* intensity_lut,
                             unsigned char alpha_shift, unsigned char intensity_shift,
                             unsigned long count, int has_alpha);
-static void pack8(unsigned char* dest, const srARGB* source,
-                  const unsigned char* const* luts, const unsigned char* shifts,
-                  unsigned long count, int has_alpha);
-static void pack16(unsigned short* dest, const srARGB* source,
-                   const unsigned char* const* luts, const unsigned char* shifts,
-                   unsigned long count, int has_alpha);
-static void pack24(unsigned char* dest, const srARGB* source,
-                   const unsigned char* const* luts, const unsigned char* shifts,
-                   unsigned long count, int has_alpha);
-static void pack32(unsigned long* dest, const srARGB* source,
-                   const unsigned char* const* luts, const unsigned char* shifts,
-                   unsigned long count, int has_alpha);
+static void pack8(unsigned char* dest, const srARGB* source, const unsigned char* const* luts,
+                  const unsigned char* shifts, unsigned long count, int has_alpha);
+static void pack16(unsigned short* dest, const srARGB* source, const unsigned char* const* luts,
+                   const unsigned char* shifts, unsigned long count, int has_alpha);
+static void pack24(unsigned char* dest, const srARGB* source, const unsigned char* const* luts,
+                   const unsigned char* shifts, unsigned long count, int has_alpha);
+static void pack32(unsigned long* dest, const srARGB* source, const unsigned char* const* luts,
+                   const unsigned char* shifts, unsigned long count, int has_alpha);
 static void unpack16(unsigned long* dest, const unsigned short* source,
                      const unsigned char* const* luts, const unsigned char* shifts,
                      const unsigned long* masks, unsigned long count);
@@ -181,12 +174,12 @@ int formats_initialized;
    identity table. */
 // GLOBAL: SURRENDER 0x1009832C
 const unsigned char* const channel_expand[] = {
-    lutExpand1, lutExpand2, lutExpand4,  lutExpand8,  lutExpand16,
+    lutExpand1,  lutExpand2,  lutExpand4,   lutExpand8,  lutExpand16,
     lutExpand32, lutExpand64, lutExpand128, lutIdentity,
 };
 // GLOBAL: SURRENDER 0x10098350
 const unsigned char* const channel_reduce[] = {
-    lutZero,   lutReduce2,  lutReduce4,  lutReduce8,  lutReduce16,
+    lutZero,     lutReduce2,  lutReduce4,   lutReduce8,  lutReduce16,
     lutReduce32, lutReduce64, lutReduce128, lutIdentity,
 };
 
@@ -232,10 +225,8 @@ void __cdecl initPixelTables(void)
         for (int a = 0; a < 4; ++a) {
             for (int b = 0; b < 4; ++b) {
                 for (int c = 0; c < 4; ++c) {
-                    lutDither[level][a][b][c] =
-                        static_cast<long>((ditherKernel[a][b][c] - 3.5f) * (255.0f / 7.0f) /
-                                              (1 << level) +
-                                          0.5f);
+                    lutDither[level][a][b][c] = static_cast<long>(
+                        (ditherKernel[a][b][c] - 3.5f) * (255.0f / 7.0f) / (1 << level) + 0.5f);
                 }
             }
         }
@@ -661,18 +652,16 @@ void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info)
         unsigned char* dest = static_cast<unsigned char*>(info.dest);
         for (unsigned long i = info.count; i != 0; --i, ++source) {
             srARGB pixel = *source;
-            srVector3T<float> rgb((float)pixel.red, (float)pixel.green,
-                                  (float)pixel.blue);
-            srVector3T<float> yuv(DotProduct(rgbToYUV[0], rgb),
-                                  DotProduct(rgbToYUV[1], rgb),
+            srVector3T<float> rgb((float)pixel.red, (float)pixel.green, (float)pixel.blue);
+            srVector3T<float> yuv(DotProduct(rgbToYUV[0], rgb), DotProduct(rgbToYUV[1], rgb),
                                   DotProduct(rgbToYUV[2], rgb));
             int y = srFloatToInt(yuv.x);
             int u = srFloatToInt(yuv.y);
             int v = srFloatToInt(yuv.z);
             unsigned long index = luts[1][(u >> 8) & 0xff] << shifts[1];
             dest[index] = luts[0][(y >> 16) & 0xff] << shifts[0] |
-                          luts[3][pixel.alpha] << shifts[3] |
-                          luts[2][v & 0xff] << shifts[2] | index;
+                          luts[3][pixel.alpha] << shifts[3] | luts[2][v & 0xff] << shifts[2] |
+                          index;
         }
         return;
     }
@@ -680,18 +669,16 @@ void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info)
         unsigned short* dest = static_cast<unsigned short*>(info.dest);
         for (unsigned long i = info.count; i != 0; --i, ++source) {
             srARGB pixel = *source;
-            srVector3T<float> rgb((float)pixel.red, (float)pixel.green,
-                                  (float)pixel.blue);
-            srVector3T<float> yuv(DotProduct(rgbToYUV[0], rgb),
-                                  DotProduct(rgbToYUV[1], rgb),
+            srVector3T<float> rgb((float)pixel.red, (float)pixel.green, (float)pixel.blue);
+            srVector3T<float> yuv(DotProduct(rgbToYUV[0], rgb), DotProduct(rgbToYUV[1], rgb),
                                   DotProduct(rgbToYUV[2], rgb));
             int y = srFloatToInt(yuv.x);
             int u = srFloatToInt(yuv.y);
             int v = srFloatToInt(yuv.z);
             unsigned long index = luts[1][(u >> 8) & 0xff] << shifts[1];
             dest[index] = luts[0][(y >> 16) & 0xff] << shifts[0] |
-                          luts[3][pixel.alpha] << shifts[3] |
-                          luts[2][v & 0xff] << shifts[2] | index;
+                          luts[3][pixel.alpha] << shifts[3] | luts[2][v & 0xff] << shifts[2] |
+                          index;
         }
         return;
     }
@@ -699,10 +686,8 @@ void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info)
         unsigned char* dest = static_cast<unsigned char*>(info.dest);
         for (unsigned long i = info.count; i != 0; --i, ++source) {
             srARGB pixel = *source;
-            srVector3T<float> rgb((float)pixel.red, (float)pixel.green,
-                                  (float)pixel.blue);
-            srVector3T<float> yuv(DotProduct(rgbToYUV[0], rgb),
-                                  DotProduct(rgbToYUV[1], rgb),
+            srVector3T<float> rgb((float)pixel.red, (float)pixel.green, (float)pixel.blue);
+            srVector3T<float> yuv(DotProduct(rgbToYUV[0], rgb), DotProduct(rgbToYUV[1], rgb),
                                   DotProduct(rgbToYUV[2], rgb));
             int y = srFloatToInt(yuv.x);
             int u = srFloatToInt(yuv.y);
@@ -722,18 +707,16 @@ void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info)
         unsigned long* dest = static_cast<unsigned long*>(info.dest);
         for (unsigned long i = info.count; i != 0; --i, ++source) {
             srARGB pixel = *source;
-            srVector3T<float> rgb((float)pixel.red, (float)pixel.green,
-                                  (float)pixel.blue);
-            srVector3T<float> yuv(DotProduct(rgbToYUV[0], rgb),
-                                  DotProduct(rgbToYUV[1], rgb),
+            srVector3T<float> rgb((float)pixel.red, (float)pixel.green, (float)pixel.blue);
+            srVector3T<float> yuv(DotProduct(rgbToYUV[0], rgb), DotProduct(rgbToYUV[1], rgb),
                                   DotProduct(rgbToYUV[2], rgb));
             int y = srFloatToInt(yuv.x);
             int u = srFloatToInt(yuv.y);
             int v = srFloatToInt(yuv.z);
             unsigned long index = luts[1][(u >> 8) & 0xff] << shifts[1];
             dest[index] = luts[0][(y >> 16) & 0xff] << shifts[0] |
-                          luts[3][pixel.alpha] << shifts[3] |
-                          luts[2][v & 0xff] << shifts[2] | index;
+                          luts[3][pixel.alpha] << shifts[3] | luts[2][v & 0xff] << shifts[2] |
+                          index;
         }
         return;
     }
@@ -767,19 +750,15 @@ void __cdecl readYUV(const srPixelConvert::ConversionInfo& info)
     unsigned long* dest = static_cast<unsigned long*>(info.dest);
     switch (format->bytes_per_pixel_minus_one) {
     case 0: {
-        const unsigned char* source =
-            static_cast<const unsigned char*>(info.source);
+        const unsigned char* source = static_cast<const unsigned char*>(info.source);
         for (unsigned long i = 0; i < info.count; i++) {
             unsigned long pixel = source[i];
-            srVector3T<float> yuv(
-                (float)luts[0][(pixel >> shifts[0]) & masks[0]],
-                (float)luts[1][(pixel >> shifts[1]) & masks[1]],
-                (float)luts[2][(pixel >> shifts[2]) & masks[2]]);
-            srVector3T<float> rgb(DotProduct(yuvToRGB[0], yuv),
-                                  DotProduct(yuvToRGB[1], yuv),
+            srVector3T<float> yuv((float)luts[0][(pixel >> shifts[0]) & masks[0]],
+                                  (float)luts[1][(pixel >> shifts[1]) & masks[1]],
+                                  (float)luts[2][(pixel >> shifts[2]) & masks[2]]);
+            srVector3T<float> rgb(DotProduct(yuvToRGB[0], yuv), DotProduct(yuvToRGB[1], yuv),
                                   DotProduct(yuvToRGB[2], yuv));
-            unsigned long index =
-                luts[1][(pixel >> shifts[1]) & masks[1]];
+            unsigned long index = luts[1][(pixel >> shifts[1]) & masks[1]];
             dest[index] = luts[3][(pixel >> shifts[3]) & masks[3]] << 24 |
                           clampChannel(rgb.x) << 16 | clampChannel(rgb.y) << 8 |
                           clampChannel(rgb.z);
@@ -787,19 +766,15 @@ void __cdecl readYUV(const srPixelConvert::ConversionInfo& info)
         return;
     }
     case 1: {
-        const unsigned short* source =
-            static_cast<const unsigned short*>(info.source);
+        const unsigned short* source = static_cast<const unsigned short*>(info.source);
         for (unsigned long i = 0; i < info.count; i++) {
             unsigned long pixel = source[i];
-            srVector3T<float> yuv(
-                (float)luts[0][(pixel >> shifts[0]) & masks[0]],
-                (float)luts[1][(pixel >> shifts[1]) & masks[1]],
-                (float)luts[2][(pixel >> shifts[2]) & masks[2]]);
-            srVector3T<float> rgb(DotProduct(yuvToRGB[0], yuv),
-                                  DotProduct(yuvToRGB[1], yuv),
+            srVector3T<float> yuv((float)luts[0][(pixel >> shifts[0]) & masks[0]],
+                                  (float)luts[1][(pixel >> shifts[1]) & masks[1]],
+                                  (float)luts[2][(pixel >> shifts[2]) & masks[2]]);
+            srVector3T<float> rgb(DotProduct(yuvToRGB[0], yuv), DotProduct(yuvToRGB[1], yuv),
                                   DotProduct(yuvToRGB[2], yuv));
-            unsigned long index =
-                luts[1][(pixel >> shifts[1]) & masks[1]];
+            unsigned long index = luts[1][(pixel >> shifts[1]) & masks[1]];
             dest[index] = luts[3][(pixel >> shifts[3]) & masks[3]] << 24 |
                           clampChannel(rgb.x) << 16 | clampChannel(rgb.y) << 8 |
                           clampChannel(rgb.z);
@@ -807,23 +782,18 @@ void __cdecl readYUV(const srPixelConvert::ConversionInfo& info)
         return;
     }
     case 2: {
-        const unsigned char* source =
-            static_cast<const unsigned char*>(info.source);
+        const unsigned char* source = static_cast<const unsigned char*>(info.source);
         for (unsigned long i = 0; i < info.count; i++) {
             /* reinterpret-ok: 24-bit source records load their high two
                bytes as a word plus the low byte separately. */
             unsigned long pixel =
-                *reinterpret_cast<const unsigned short*>(source + 1) * 0x100 +
-                source[0];
-            srVector3T<float> yuv(
-                (float)luts[0][(pixel >> shifts[0]) & masks[0]],
-                (float)luts[1][(pixel >> shifts[1]) & masks[1]],
-                (float)luts[2][(pixel >> shifts[2]) & masks[2]]);
-            srVector3T<float> rgb(DotProduct(yuvToRGB[0], yuv),
-                                  DotProduct(yuvToRGB[1], yuv),
+                *reinterpret_cast<const unsigned short*>(source + 1) * 0x100 + source[0];
+            srVector3T<float> yuv((float)luts[0][(pixel >> shifts[0]) & masks[0]],
+                                  (float)luts[1][(pixel >> shifts[1]) & masks[1]],
+                                  (float)luts[2][(pixel >> shifts[2]) & masks[2]]);
+            srVector3T<float> rgb(DotProduct(yuvToRGB[0], yuv), DotProduct(yuvToRGB[1], yuv),
                                   DotProduct(yuvToRGB[2], yuv));
-            unsigned long index =
-                luts[1][(pixel >> shifts[1]) & masks[1]];
+            unsigned long index = luts[1][(pixel >> shifts[1]) & masks[1]];
             dest[index] = luts[3][(pixel >> shifts[3]) & masks[3]] << 24 |
                           clampChannel(rgb.x) << 16 | clampChannel(rgb.y) << 8 |
                           clampChannel(rgb.z);
@@ -832,19 +802,15 @@ void __cdecl readYUV(const srPixelConvert::ConversionInfo& info)
         return;
     }
     case 3: {
-        const unsigned long* source =
-            static_cast<const unsigned long*>(info.source);
+        const unsigned long* source = static_cast<const unsigned long*>(info.source);
         for (unsigned long i = 0; i < info.count; i++) {
             unsigned long pixel = source[i];
-            srVector3T<float> yuv(
-                (float)luts[0][(pixel >> shifts[0]) & masks[0]],
-                (float)luts[1][(pixel >> shifts[1]) & masks[1]],
-                (float)luts[2][(pixel >> shifts[2]) & masks[2]]);
-            srVector3T<float> rgb(DotProduct(yuvToRGB[0], yuv),
-                                  DotProduct(yuvToRGB[1], yuv),
+            srVector3T<float> yuv((float)luts[0][(pixel >> shifts[0]) & masks[0]],
+                                  (float)luts[1][(pixel >> shifts[1]) & masks[1]],
+                                  (float)luts[2][(pixel >> shifts[2]) & masks[2]]);
+            srVector3T<float> rgb(DotProduct(yuvToRGB[0], yuv), DotProduct(yuvToRGB[1], yuv),
                                   DotProduct(yuvToRGB[2], yuv));
-            unsigned long index =
-                luts[1][(pixel >> shifts[1]) & masks[1]];
+            unsigned long index = luts[1][(pixel >> shifts[1]) & masks[1]];
             dest[index] = luts[3][(pixel >> shifts[3]) & masks[3]] << 24 |
                           clampChannel(rgb.x) << 16 | clampChannel(rgb.y) << 8 |
                           clampChannel(rgb.z);
@@ -873,11 +839,9 @@ void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
             unsigned long color = source[i] & 0xffffff;
             /* reinterpret-ok: quantize reads the packed BGR bytes of the
                color; the palette index function ignores alpha. */
-            unsigned char index =
-                info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
-            dest[i] = static_cast<unsigned char>(
-                index << index_shift |
-                alpha_lut[source[i] >> 24] << alpha_shift);
+            unsigned char index = info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
+            dest[i] = static_cast<unsigned char>(index << index_shift | alpha_lut[source[i] >> 24]
+                                                                            << alpha_shift);
         }
         return;
     }
@@ -887,11 +851,9 @@ void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
             unsigned long color = source[i] & 0xffffff;
             /* reinterpret-ok: quantize reads the packed BGR bytes of the
                color; the palette index function ignores alpha. */
-            unsigned char index =
-                info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
-            dest[i] = static_cast<unsigned short>(
-                index << index_shift |
-                alpha_lut[source[i] >> 24] << alpha_shift);
+            unsigned char index = info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
+            dest[i] = static_cast<unsigned short>(index << index_shift | alpha_lut[source[i] >> 24]
+                                                                             << alpha_shift);
         }
         return;
     }
@@ -901,10 +863,8 @@ void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
             unsigned long color = source[i];
             /* reinterpret-ok: quantize reads the packed BGR bytes of the
                color; the palette index function ignores alpha. */
-            unsigned char index =
-                info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
-            unsigned long pixel = index << index_shift |
-                                  alpha_lut[source[i] >> 24] << alpha_shift;
+            unsigned char index = info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
+            unsigned long pixel = index << index_shift | alpha_lut[source[i] >> 24] << alpha_shift;
             dest[0] = static_cast<unsigned char>(pixel);
             dest[1] = static_cast<unsigned char>(pixel >> 8);
             dest[2] = static_cast<unsigned char>(pixel >> 16);
@@ -918,10 +878,8 @@ void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
             unsigned long color = source[i];
             /* reinterpret-ok: quantize reads the packed BGR bytes of the
                color; the palette index function ignores alpha. */
-            unsigned char index =
-                info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
-            dest[i] = index << index_shift |
-                      alpha_lut[source[i] >> 24] << alpha_shift;
+            unsigned char index = info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
+            dest[i] = index << index_shift | alpha_lut[source[i] >> 24] << alpha_shift;
         }
     }
     }
@@ -940,8 +898,8 @@ void __cdecl readIndexed(const srPixelConvert::ConversionInfo& info)
     const unsigned char* alpha_lut = channel_expand[format->alpha_bits];
     /* reinterpret-ok: palette entries are packed srARGB dwords; only the low
        24 color bits carry over, the alpha byte comes from the packed pixel. */
-    const unsigned long* palette = reinterpret_cast<const unsigned long*>(
-        info.palette->getPaletteDataPtr());
+    const unsigned long* palette =
+        reinterpret_cast<const unsigned long*>(info.palette->getPaletteDataPtr());
     unsigned long* dest = static_cast<unsigned long*>(info.dest);
     unsigned long count = info.count;
     switch (format->bytes_per_pixel_minus_one) {
@@ -950,8 +908,7 @@ void __cdecl readIndexed(const srPixelConvert::ConversionInfo& info)
         for (unsigned long i = 0; i < count; i++) {
             unsigned long pixel = source[i];
             dest[i] = (palette[(pixel >> index_shift) & index_mask] & 0xffffff) |
-                      static_cast<unsigned long>(
-                          alpha_lut[(pixel >> alpha_shift) & alpha_mask])
+                      static_cast<unsigned long>(alpha_lut[(pixel >> alpha_shift) & alpha_mask])
                           << 24;
         }
         return;
@@ -961,8 +918,7 @@ void __cdecl readIndexed(const srPixelConvert::ConversionInfo& info)
         for (unsigned long i = 0; i < count; i++) {
             unsigned long pixel = source[i];
             dest[i] = (palette[(pixel >> index_shift) & index_mask] & 0xffffff) |
-                      static_cast<unsigned long>(
-                          alpha_lut[(pixel >> alpha_shift) & alpha_mask])
+                      static_cast<unsigned long>(alpha_lut[(pixel >> alpha_shift) & alpha_mask])
                           << 24;
         }
         return;
@@ -972,8 +928,7 @@ void __cdecl readIndexed(const srPixelConvert::ConversionInfo& info)
         for (unsigned long i = 0; i < count; i++) {
             unsigned long pixel = source[0] | source[1] << 8 | source[2] << 16;
             dest[i] = (palette[(pixel >> index_shift) & index_mask] & 0xffffff) |
-                      static_cast<unsigned long>(
-                          alpha_lut[(pixel >> alpha_shift) & alpha_mask])
+                      static_cast<unsigned long>(alpha_lut[(pixel >> alpha_shift) & alpha_mask])
                           << 24;
             source += 3;
         }
@@ -984,8 +939,7 @@ void __cdecl readIndexed(const srPixelConvert::ConversionInfo& info)
         for (unsigned long i = 0; i < count; i++) {
             unsigned long pixel = source[i];
             dest[i] = (palette[(pixel >> index_shift) & index_mask] & 0xffffff) |
-                      static_cast<unsigned long>(
-                          alpha_lut[(pixel >> alpha_shift) & alpha_mask])
+                      static_cast<unsigned long>(alpha_lut[(pixel >> alpha_shift) & alpha_mask])
                           << 24;
         }
     }
@@ -1003,65 +957,63 @@ void __cdecl writeIntensity(const srPixelConvert::ConversionInfo& info)
     const unsigned char* alpha_lut = channel_reduce[format->alpha_bits];
     int has_alpha = format->alpha_bits != 0;
     const srARGB* source = static_cast<const srARGB*>(info.source);
+    srARGB pixel;
     unsigned long count = info.count;
     switch (format->bytes_per_pixel_minus_one) {
     case 0: {
         unsigned char* dest = static_cast<unsigned char*>(info.dest);
         unsigned long i = 0;
         if (has_alpha != 0) {
-            for (; i + 2 <= count; i += 2) {
-                unsigned long luma = (lutRamp54[source[i].red] +
-                                      lutRamp183[source[i].green] +
-                                      lutRamp18[source[i].blue]) >> 8;
-                dest[i] = intensity_lut[luma] << format->red_shift |
-                          alpha_lut[source[i].alpha] << format->alpha_shift;
-                luma = (lutRamp54[source[i + 1].red] +
-                        lutRamp183[source[i + 1].green] +
-                        lutRamp18[source[i + 1].blue]) >> 8;
-                dest[i + 1] = intensity_lut[luma] << format->red_shift |
-                              alpha_lut[source[i + 1].alpha] << format->alpha_shift;
+            for (; i < (count & ~1UL); i += 2) {
+                pixel = source[i];
+                unsigned long luma =
+                    (lutRamp54[pixel.red] + lutRamp183[pixel.green] + lutRamp18[pixel.blue]) >> 8;
+                dest[i] = intensity_lut[luma] << format->red_shift | alpha_lut[pixel.alpha]
+                                                                         << format->alpha_shift;
+                pixel = source[i + 1];
+                luma =
+                    (lutRamp54[pixel.red] + lutRamp183[pixel.green] + lutRamp18[pixel.blue]) >> 8;
+                dest[i + 1] = intensity_lut[luma] << format->red_shift | alpha_lut[pixel.alpha]
+                                                                             << format->alpha_shift;
             }
             for (; i < count; i++) {
-                unsigned long luma = (lutRamp54[source[i].red] +
-                                      lutRamp183[source[i].green] +
-                                      lutRamp18[source[i].blue]) >> 8;
-                dest[i] = intensity_lut[luma] << format->red_shift |
-                          alpha_lut[source[i].alpha] << format->alpha_shift;
+                pixel = source[i];
+                unsigned long luma =
+                    (lutRamp54[pixel.red] + lutRamp183[pixel.green] + lutRamp18[pixel.blue]) >> 8;
+                dest[i] = intensity_lut[luma] << format->red_shift | alpha_lut[pixel.alpha]
+                                                                         << format->alpha_shift;
             }
         } else {
-            for (; i + 2 <= count; i += 2) {
-                unsigned long luma = (lutRamp54[source[i].red] +
-                                      lutRamp183[source[i].green] +
-                                      lutRamp18[source[i].blue]) >> 8;
+            for (; i < (count & ~1UL); i += 2) {
+                pixel = source[i];
+                unsigned long luma =
+                    (lutRamp54[pixel.red] + lutRamp183[pixel.green] + lutRamp18[pixel.blue]) >> 8;
                 dest[i] = intensity_lut[luma] << format->red_shift;
-                luma = (lutRamp54[source[i + 1].red] +
-                        lutRamp183[source[i + 1].green] +
-                        lutRamp18[source[i + 1].blue]) >> 8;
+                pixel = source[i + 1];
+                luma =
+                    (lutRamp54[pixel.red] + lutRamp183[pixel.green] + lutRamp18[pixel.blue]) >> 8;
                 dest[i + 1] = intensity_lut[luma] << format->red_shift;
             }
             for (; i < count; i++) {
-                unsigned long luma = (lutRamp54[source[i].red] +
-                                      lutRamp183[source[i].green] +
-                                      lutRamp18[source[i].blue]) >> 8;
+                pixel = source[i];
+                unsigned long luma =
+                    (lutRamp54[pixel.red] + lutRamp183[pixel.green] + lutRamp18[pixel.blue]) >> 8;
                 dest[i] = intensity_lut[luma] << format->red_shift;
             }
         }
         return;
     }
     case 1:
-        packIntensity16(static_cast<unsigned short*>(info.dest), source, alpha_lut,
-                        intensity_lut, format->alpha_shift, format->red_shift, count,
-                        has_alpha);
+        packIntensity16(static_cast<unsigned short*>(info.dest), source, alpha_lut, intensity_lut,
+                        format->alpha_shift, format->red_shift, count, has_alpha);
         return;
     case 2:
-        packIntensity24(static_cast<unsigned char*>(info.dest), source, alpha_lut,
-                        intensity_lut, format->alpha_shift, format->red_shift, count,
-                        has_alpha);
+        packIntensity24(static_cast<unsigned char*>(info.dest), source, alpha_lut, intensity_lut,
+                        format->alpha_shift, format->red_shift, count, has_alpha);
         return;
     case 3:
-        packIntensity32(static_cast<unsigned long*>(info.dest), source, alpha_lut,
-                        intensity_lut, format->alpha_shift, format->red_shift, count,
-                        has_alpha);
+        packIntensity32(static_cast<unsigned long*>(info.dest), source, alpha_lut, intensity_lut,
+                        format->alpha_shift, format->red_shift, count, has_alpha);
     }
 }
 
@@ -1087,10 +1039,10 @@ void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
                 lutGray[intensity_lut[(pixel >> format->red_shift) & intensity_mask]];
             /* reinterpret-ok: the gray table entry is a packed BGRA pixel read
                as a dword so the expanded alpha can be ORed into byte 3. */
-            dest[i] = *reinterpret_cast<const unsigned long*>(gray) |
-                      static_cast<unsigned long>(
-                          alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
-                          << 24;
+            dest[i] =
+                *reinterpret_cast<const unsigned long*>(gray) |
+                static_cast<unsigned long>(alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
+                    << 24;
         }
         return;
     }
@@ -1102,10 +1054,10 @@ void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
                 lutGray[intensity_lut[(pixel >> format->red_shift) & intensity_mask]];
             /* reinterpret-ok: the gray table entry is a packed BGRA pixel read
                as a dword so the expanded alpha can be ORed into byte 3. */
-            dest[i] = *reinterpret_cast<const unsigned long*>(gray) |
-                      static_cast<unsigned long>(
-                          alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
-                          << 24;
+            dest[i] =
+                *reinterpret_cast<const unsigned long*>(gray) |
+                static_cast<unsigned long>(alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
+                    << 24;
         }
         return;
     }
@@ -1120,10 +1072,10 @@ void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
                 lutGray[intensity_lut[(pixel >> format->red_shift) & intensity_mask]];
             /* reinterpret-ok: the gray table entry is a packed BGRA pixel read
                as a dword so the expanded alpha can be ORed into byte 3. */
-            dest[i] = *reinterpret_cast<const unsigned long*>(gray) |
-                      static_cast<unsigned long>(
-                          alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
-                          << 24;
+            dest[i] =
+                *reinterpret_cast<const unsigned long*>(gray) |
+                static_cast<unsigned long>(alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
+                    << 24;
             source += 3;
         }
         return;
@@ -1136,10 +1088,10 @@ void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
                 lutGray[intensity_lut[(pixel >> format->red_shift) & intensity_mask]];
             /* reinterpret-ok: the gray table entry is a packed BGRA pixel read
                as a dword so the expanded alpha can be ORed into byte 3. */
-            dest[i] = *reinterpret_cast<const unsigned long*>(gray) |
-                      static_cast<unsigned long>(
-                          alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
-                          << 24;
+            dest[i] =
+                *reinterpret_cast<const unsigned long*>(gray) |
+                static_cast<unsigned long>(alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
+                    << 24;
         }
     }
     }
@@ -1163,20 +1115,17 @@ void __cdecl writeRGB(const srPixelConvert::ConversionInfo& info)
     const srARGB* source = static_cast<const srARGB*>(info.source);
     switch (format->bytes_per_pixel_minus_one) {
     case 0:
-        pack8(static_cast<unsigned char*>(info.dest), source, luts, shifts,
-              info.count, has_alpha);
+        pack8(static_cast<unsigned char*>(info.dest), source, luts, shifts, info.count, has_alpha);
         return;
     case 1:
-        pack16(static_cast<unsigned short*>(info.dest), source, luts, shifts,
-               info.count, has_alpha);
+        pack16(static_cast<unsigned short*>(info.dest), source, luts, shifts, info.count,
+               has_alpha);
         return;
     case 2:
-        pack24(static_cast<unsigned char*>(info.dest), source, luts, shifts,
-               info.count, has_alpha);
+        pack24(static_cast<unsigned char*>(info.dest), source, luts, shifts, info.count, has_alpha);
         return;
     case 3:
-        pack32(static_cast<unsigned long*>(info.dest), source, luts, shifts,
-               info.count, has_alpha);
+        pack32(static_cast<unsigned long*>(info.dest), source, luts, shifts, info.count, has_alpha);
     }
 }
 
@@ -1204,7 +1153,7 @@ void __cdecl readRGB(const srPixelConvert::ConversionInfo& info)
     case 0: {
         const unsigned char* source = static_cast<const unsigned char*>(info.source);
         unsigned long i = 0;
-        for (; i + 4 <= info.count; i += 4) {
+        for (; i < (info.count & ~3UL); i += 4) {
             unsigned long pixel = source[i];
             dest[i] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
                       luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
@@ -1236,16 +1185,16 @@ void __cdecl readRGB(const srPixelConvert::ConversionInfo& info)
         return;
     }
     case 1:
-        unpack16(dest, static_cast<const unsigned short*>(info.source), luts, shifts,
-                 masks, info.count);
+        unpack16(dest, static_cast<const unsigned short*>(info.source), luts, shifts, masks,
+                 info.count);
         return;
     case 2:
-        unpack24(dest, static_cast<const unsigned char*>(info.source), luts, shifts,
-                 masks, info.count);
+        unpack24(dest, static_cast<const unsigned char*>(info.source), luts, shifts, masks,
+                 info.count);
         return;
     case 3:
-        unpack32(dest, static_cast<const unsigned long*>(info.source), luts, shifts,
-                 masks, info.count);
+        unpack32(dest, static_cast<const unsigned long*>(info.source), luts, shifts, masks,
+                 info.count);
     }
 }
 
@@ -1302,16 +1251,14 @@ void __cdecl readBGRA(const srPixelConvert::ConversionInfo& info)
 void __cdecl writeBGRX(const srPixelConvert::ConversionInfo& info)
 {
     srVectorProcessor::bitwiseAnd(static_cast<SRDWORD*>(info.dest),
-                                  static_cast<const SRDWORD*>(info.source), 0xffffff,
-                                  info.count);
+                                  static_cast<const SRDWORD*>(info.source), 0xffffff, info.count);
 }
 
 // FUNCTION: SURRENDER 0x1000A9E0
 void __cdecl readBGRX(const srPixelConvert::ConversionInfo& info)
 {
     srVectorProcessor::bitwiseOr(static_cast<SRDWORD*>(info.dest),
-                                 static_cast<const SRDWORD*>(info.source), 0xff000000,
-                                 info.count);
+                                 static_cast<const SRDWORD*>(info.source), 0xff000000, info.count);
 }
 
 /* format_table[0x17] write/read: rotate each BGRA pixel one byte lane so
@@ -1366,22 +1313,24 @@ void __cdecl writeRGB555(const srPixelConvert::ConversionInfo& info)
     unsigned short* dest = static_cast<unsigned short*>(info.dest);
     const srARGB* source = static_cast<const srARGB*>(info.source);
     unsigned long i = 0;
-    for (; i + 4 <= info.count; i += 4) {
-        dest[i] = lutReduce32[source[i].red] << 10 | lutReduce32[source[i].green] << 5 |
-                  lutReduce32[source[i].blue];
-        dest[i + 1] = lutReduce32[source[i + 1].red] << 10 |
-                      lutReduce32[source[i + 1].green] << 5 |
-                      lutReduce32[source[i + 1].blue];
-        dest[i + 2] = lutReduce32[source[i + 2].red] << 10 |
-                      lutReduce32[source[i + 2].green] << 5 |
-                      lutReduce32[source[i + 2].blue];
-        dest[i + 3] = lutReduce32[source[i + 3].red] << 10 |
-                      lutReduce32[source[i + 3].green] << 5 |
-                      lutReduce32[source[i + 3].blue];
+    for (; i < (info.count & ~3UL); i += 4) {
+        srARGB pixel = source[i];
+        dest[i] =
+            lutReduce32[pixel.red] << 10 | lutReduce32[pixel.green] << 5 | lutReduce32[pixel.blue];
+        pixel = source[i + 1];
+        dest[i + 1] =
+            lutReduce32[pixel.red] << 10 | lutReduce32[pixel.green] << 5 | lutReduce32[pixel.blue];
+        pixel = source[i + 2];
+        dest[i + 2] =
+            lutReduce32[pixel.red] << 10 | lutReduce32[pixel.green] << 5 | lutReduce32[pixel.blue];
+        pixel = source[i + 3];
+        dest[i + 3] =
+            lutReduce32[pixel.red] << 10 | lutReduce32[pixel.green] << 5 | lutReduce32[pixel.blue];
     }
     for (; i < info.count; i++) {
-        dest[i] = lutReduce32[source[i].red] << 10 | lutReduce32[source[i].green] << 5 |
-                  lutReduce32[source[i].blue];
+        srARGB pixel = source[i];
+        dest[i] =
+            lutReduce32[pixel.red] << 10 | lutReduce32[pixel.green] << 5 | lutReduce32[pixel.blue];
     }
 }
 
@@ -1391,7 +1340,7 @@ void __cdecl readRGB555(const srPixelConvert::ConversionInfo& info)
     unsigned long* dest = static_cast<unsigned long*>(info.dest);
     const unsigned short* source = static_cast<const unsigned short*>(info.source);
     unsigned long i = 0;
-    for (; i + 4 <= info.count; i += 4) {
+    for (; i < (info.count & ~3UL); i += 4) {
         unsigned long pixel = source[i];
         dest[i] = 0xff000000 | lutExpand32[pixel >> 10] << 16 |
                   lutExpand32[pixel >> 5 & 0x1f] << 8 | lutExpand32[pixel & 0x1f];
@@ -2324,122 +2273,126 @@ void __cdecl writeBGR24MMX(const srPixelConvert::ConversionInfo& info)
    records. The luma index sums the fixed-point channel weight ramps. */
 // FUNCTION: SURRENDER 0x1000BAD0
 static void packIntensity16(unsigned short* dest, const srARGB* source,
-                            const unsigned char* alpha_lut,
-                            const unsigned char* intensity_lut,
+                            const unsigned char* alpha_lut, const unsigned char* intensity_lut,
                             unsigned char alpha_shift, unsigned char intensity_shift,
                             unsigned long count, int has_alpha)
 {
+    srARGB pixel;
     unsigned long i = 0;
     if (has_alpha == 0) {
-        for (; i + 2 <= count; i += 2) {
-            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
-                                     lutRamp183[source[i].green] +
-                                     lutRamp18[source[i].blue]) >> 8]
+        for (; i < (count & ~1UL); i += 2) {
+            pixel = source[i];
+            dest[i] = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                     lutRamp18[pixel.blue]) >>
+                                    8]
                       << intensity_shift;
-            dest[i + 1] = intensity_lut[(lutRamp54[source[i + 1].red] +
-                                         lutRamp183[source[i + 1].green] +
-                                         lutRamp18[source[i + 1].blue]) >> 8]
+            pixel = source[i + 1];
+            dest[i + 1] = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                         lutRamp18[pixel.blue]) >>
+                                        8]
                           << intensity_shift;
         }
         for (; i < count; i++) {
-            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
-                                     lutRamp183[source[i].green] +
-                                     lutRamp18[source[i].blue]) >> 8]
+            pixel = source[i];
+            dest[i] = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                     lutRamp18[pixel.blue]) >>
+                                    8]
                       << intensity_shift;
         }
     } else {
-        for (; i + 2 <= count; i += 2) {
-            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
-                                     lutRamp183[source[i].green] +
-                                     lutRamp18[source[i].blue]) >> 8]
+        for (; i < (count & ~1UL); i += 2) {
+            pixel = source[i];
+            dest[i] = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                     lutRamp18[pixel.blue]) >>
+                                    8]
                           << intensity_shift |
-                      alpha_lut[source[i].alpha] << alpha_shift;
-            dest[i + 1] = intensity_lut[(lutRamp54[source[i + 1].red] +
-                                         lutRamp183[source[i + 1].green] +
-                                         lutRamp18[source[i + 1].blue]) >> 8]
+                      alpha_lut[pixel.alpha] << alpha_shift;
+            pixel = source[i + 1];
+            dest[i + 1] = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                         lutRamp18[pixel.blue]) >>
+                                        8]
                               << intensity_shift |
-                          alpha_lut[source[i + 1].alpha] << alpha_shift;
+                          alpha_lut[pixel.alpha] << alpha_shift;
         }
         for (; i < count; i++) {
-            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
-                                     lutRamp183[source[i].green] +
-                                     lutRamp18[source[i].blue]) >> 8]
+            pixel = source[i];
+            dest[i] = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                     lutRamp18[pixel.blue]) >>
+                                    8]
                           << intensity_shift |
-                      alpha_lut[source[i].alpha] << alpha_shift;
+                      alpha_lut[pixel.alpha] << alpha_shift;
         }
     }
 }
 
 // FUNCTION: SURRENDER 0x1000BD60
 static void packIntensity24(unsigned char* dest, const srARGB* source,
-                            const unsigned char* alpha_lut,
-                            const unsigned char* intensity_lut,
+                            const unsigned char* alpha_lut, const unsigned char* intensity_lut,
                             unsigned char alpha_shift, unsigned char intensity_shift,
                             unsigned long count, int has_alpha)
 {
+    srARGB pixel;
     unsigned long i = 0;
     if (has_alpha == 0) {
-        for (; i + 2 <= count; i += 2) {
-            unsigned long value = intensity_lut[(lutRamp54[source[i].red] +
-                                                 lutRamp183[source[i].green] +
-                                                 lutRamp18[source[i].blue]) >> 8]
+        for (; i < (count & ~1UL); i += 2) {
+            pixel = source[i];
+            unsigned long value = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                                 lutRamp18[pixel.blue]) >>
+                                                8]
                                   << intensity_shift;
             /* reinterpret-ok: the 24-bit pixel record stores its low word plus
                high byte separately. */
-            *reinterpret_cast<unsigned short*>(dest) =
-                static_cast<unsigned short>(value);
+            *reinterpret_cast<unsigned short*>(dest) = static_cast<unsigned short>(value);
             dest[2] = static_cast<unsigned char>(value >> 16);
-            value = intensity_lut[(lutRamp54[source[i + 1].red] +
-                                   lutRamp183[source[i + 1].green] +
-                                   lutRamp18[source[i + 1].blue]) >> 8]
+            pixel = source[i + 1];
+            value = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                   lutRamp18[pixel.blue]) >>
+                                  8]
                     << intensity_shift;
-            *reinterpret_cast<unsigned short*>(dest + 3) =
-                static_cast<unsigned short>(value);
+            *reinterpret_cast<unsigned short*>(dest + 3) = static_cast<unsigned short>(value);
             dest[5] = static_cast<unsigned char>(value >> 16);
             dest += 6;
         }
         for (; i < count; i++) {
-            unsigned long value = intensity_lut[(lutRamp54[source[i].red] +
-                                                 lutRamp183[source[i].green] +
-                                                 lutRamp18[source[i].blue]) >> 8]
+            pixel = source[i];
+            unsigned long value = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                                 lutRamp18[pixel.blue]) >>
+                                                8]
                                   << intensity_shift;
-            *reinterpret_cast<unsigned short*>(dest) =
-                static_cast<unsigned short>(value);
+            *reinterpret_cast<unsigned short*>(dest) = static_cast<unsigned short>(value);
             dest[2] = static_cast<unsigned char>(value >> 16);
             dest += 3;
         }
     } else {
-        for (; i + 2 <= count; i += 2) {
-            unsigned long value =
-                intensity_lut[(lutRamp54[source[i].red] +
-                               lutRamp183[source[i].green] +
-                               lutRamp18[source[i].blue]) >> 8]
-                    << intensity_shift |
-                alpha_lut[source[i].alpha] << alpha_shift;
+        for (; i < (count & ~1UL); i += 2) {
+            pixel = source[i];
+            unsigned long value = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                                 lutRamp18[pixel.blue]) >>
+                                                8]
+                                      << intensity_shift |
+                                  alpha_lut[pixel.alpha] << alpha_shift;
             /* reinterpret-ok: the 24-bit pixel record stores its low word plus
                high byte separately. */
-            *reinterpret_cast<unsigned short*>(dest) =
-                static_cast<unsigned short>(value);
+            *reinterpret_cast<unsigned short*>(dest) = static_cast<unsigned short>(value);
             dest[2] = static_cast<unsigned char>(value >> 16);
-            value = intensity_lut[(lutRamp54[source[i + 1].red] +
-                                   lutRamp183[source[i + 1].green] +
-                                   lutRamp18[source[i + 1].blue]) >> 8]
+            pixel = source[i + 1];
+            value = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                   lutRamp18[pixel.blue]) >>
+                                  8]
                         << intensity_shift |
-                    alpha_lut[source[i + 1].alpha] << alpha_shift;
-            *reinterpret_cast<unsigned short*>(dest + 3) =
-                static_cast<unsigned short>(value);
+                    alpha_lut[pixel.alpha] << alpha_shift;
+            *reinterpret_cast<unsigned short*>(dest + 3) = static_cast<unsigned short>(value);
             dest[5] = static_cast<unsigned char>(value >> 16);
             dest += 6;
         }
         for (; i < count; i++) {
-            unsigned long value =
-                intensity_lut[(lutRamp54[source[i].red] +
-                               lutRamp183[source[i].green] +
-                               lutRamp18[source[i].blue]) >> 8]
-                    << intensity_shift |
-                alpha_lut[source[i].alpha] << alpha_shift;
-            *reinterpret_cast<unsigned short*>(dest) =
-                static_cast<unsigned short>(value);
+            pixel = source[i];
+            unsigned long value = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                                 lutRamp18[pixel.blue]) >>
+                                                8]
+                                      << intensity_shift |
+                                  alpha_lut[pixel.alpha] << alpha_shift;
+            *reinterpret_cast<unsigned short*>(dest) = static_cast<unsigned short>(value);
             dest[2] = static_cast<unsigned char>(value >> 16);
             dest += 3;
         }
@@ -2448,48 +2401,54 @@ static void packIntensity24(unsigned char* dest, const srARGB* source,
 
 // FUNCTION: SURRENDER 0x1000C0A0
 static void packIntensity32(unsigned long* dest, const srARGB* source,
-                            const unsigned char* alpha_lut,
-                            const unsigned char* intensity_lut,
+                            const unsigned char* alpha_lut, const unsigned char* intensity_lut,
                             unsigned char alpha_shift, unsigned char intensity_shift,
                             unsigned long count, int has_alpha)
 {
+    srARGB pixel;
     unsigned long i = 0;
     if (has_alpha == 0) {
-        for (; i + 2 <= count; i += 2) {
-            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
-                                     lutRamp183[source[i].green] +
-                                     lutRamp18[source[i].blue]) >> 8]
+        for (; i < (count & ~1UL); i += 2) {
+            pixel = source[i];
+            dest[i] = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                     lutRamp18[pixel.blue]) >>
+                                    8]
                       << intensity_shift;
-            dest[i + 1] = intensity_lut[(lutRamp54[source[i + 1].red] +
-                                         lutRamp183[source[i + 1].green] +
-                                         lutRamp18[source[i + 1].blue]) >> 8]
+            pixel = source[i + 1];
+            dest[i + 1] = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                         lutRamp18[pixel.blue]) >>
+                                        8]
                           << intensity_shift;
         }
         for (; i < count; i++) {
-            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
-                                     lutRamp183[source[i].green] +
-                                     lutRamp18[source[i].blue]) >> 8]
+            pixel = source[i];
+            dest[i] = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                     lutRamp18[pixel.blue]) >>
+                                    8]
                       << intensity_shift;
         }
     } else {
-        for (; i + 2 <= count; i += 2) {
-            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
-                                     lutRamp183[source[i].green] +
-                                     lutRamp18[source[i].blue]) >> 8]
+        for (; i < (count & ~1UL); i += 2) {
+            pixel = source[i];
+            dest[i] = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                     lutRamp18[pixel.blue]) >>
+                                    8]
                           << intensity_shift |
-                      alpha_lut[source[i].alpha] << alpha_shift;
-            dest[i + 1] = intensity_lut[(lutRamp54[source[i + 1].red] +
-                                         lutRamp183[source[i + 1].green] +
-                                         lutRamp18[source[i + 1].blue]) >> 8]
+                      alpha_lut[pixel.alpha] << alpha_shift;
+            pixel = source[i + 1];
+            dest[i + 1] = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                         lutRamp18[pixel.blue]) >>
+                                        8]
                               << intensity_shift |
-                          alpha_lut[source[i + 1].alpha] << alpha_shift;
+                          alpha_lut[pixel.alpha] << alpha_shift;
         }
         for (; i < count; i++) {
-            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
-                                     lutRamp183[source[i].green] +
-                                     lutRamp18[source[i].blue]) >> 8]
+            pixel = source[i];
+            dest[i] = intensity_lut[(lutRamp54[pixel.red] + lutRamp183[pixel.green] +
+                                     lutRamp18[pixel.blue]) >>
+                                    8]
                           << intensity_shift |
-                      alpha_lut[source[i].alpha] << alpha_shift;
+                      alpha_lut[pixel.alpha] << alpha_shift;
         }
     }
 }
@@ -2497,199 +2456,178 @@ static void packIntensity32(unsigned long* dest, const srARGB* source,
 /* Generic write kernels: 32-bit BGRA source packed through the channel
    reduction luts into 8/16/24/32-bit records. */
 // FUNCTION: SURRENDER 0x1000C350
-static void pack8(unsigned char* dest, const srARGB* source,
-                  const unsigned char* const* luts, const unsigned char* shifts,
-                  unsigned long count, int has_alpha)
+static void pack8(unsigned char* dest, const srARGB* source, const unsigned char* const* luts,
+                  const unsigned char* shifts, unsigned long count, int has_alpha)
 {
+    srARGB pixel;
     unsigned long i = 0;
     if (has_alpha == 0) {
-        for (; i + 4 <= count; i += 4) {
-            dest[i] = luts[0][source[i].red] << shifts[0] |
-                      luts[1][source[i].green] << shifts[1] |
-                      luts[2][source[i].blue] << shifts[2];
-            dest[i + 1] = luts[0][source[i + 1].red] << shifts[0] |
-                          luts[1][source[i + 1].green] << shifts[1] |
-                          luts[2][source[i + 1].blue] << shifts[2];
-            dest[i + 2] = luts[0][source[i + 2].red] << shifts[0] |
-                          luts[1][source[i + 2].green] << shifts[1] |
-                          luts[2][source[i + 2].blue] << shifts[2];
-            dest[i + 3] = luts[0][source[i + 3].red] << shifts[0] |
-                          luts[1][source[i + 3].green] << shifts[1] |
-                          luts[2][source[i + 3].blue] << shifts[2];
+        for (; i < (count & ~3UL); i += 4) {
+            pixel = source[i];
+            dest[i] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                      luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 1];
+            dest[i + 1] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 2];
+            dest[i + 2] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 3];
+            dest[i + 3] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[2][pixel.blue] << shifts[2];
         }
         for (; i < count; i++) {
-            dest[i] = luts[0][source[i].red] << shifts[0] |
-                      luts[1][source[i].green] << shifts[1] |
-                      luts[2][source[i].blue] << shifts[2];
+            pixel = source[i];
+            dest[i] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                      luts[2][pixel.blue] << shifts[2];
         }
     } else {
-        for (; i + 4 <= count; i += 4) {
-            dest[i] = luts[0][source[i].red] << shifts[0] |
-                      luts[1][source[i].green] << shifts[1] |
-                      luts[3][source[i].alpha] << shifts[3] |
-                      luts[2][source[i].blue] << shifts[2];
-            dest[i + 1] = luts[0][source[i + 1].red] << shifts[0] |
-                          luts[1][source[i + 1].green] << shifts[1] |
-                          luts[3][source[i + 1].alpha] << shifts[3] |
-                          luts[2][source[i + 1].blue] << shifts[2];
-            dest[i + 2] = luts[0][source[i + 2].red] << shifts[0] |
-                          luts[1][source[i + 2].green] << shifts[1] |
-                          luts[3][source[i + 2].alpha] << shifts[3] |
-                          luts[2][source[i + 2].blue] << shifts[2];
-            dest[i + 3] = luts[0][source[i + 3].red] << shifts[0] |
-                          luts[1][source[i + 3].green] << shifts[1] |
-                          luts[3][source[i + 3].alpha] << shifts[3] |
-                          luts[2][source[i + 3].blue] << shifts[2];
+        for (; i < (count & ~3UL); i += 4) {
+            pixel = source[i];
+            dest[i] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                      luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 1];
+            dest[i + 1] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 2];
+            dest[i + 2] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 3];
+            dest[i + 3] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
         }
         for (; i < count; i++) {
-            dest[i] = luts[0][source[i].red] << shifts[0] |
-                      luts[1][source[i].green] << shifts[1] |
-                      luts[3][source[i].alpha] << shifts[3] |
-                      luts[2][source[i].blue] << shifts[2];
+            pixel = source[i];
+            dest[i] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                      luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
         }
     }
 }
 
 // FUNCTION: SURRENDER 0x1000C800
-static void pack16(unsigned short* dest, const srARGB* source,
-                   const unsigned char* const* luts, const unsigned char* shifts,
-                   unsigned long count, int has_alpha)
+static void pack16(unsigned short* dest, const srARGB* source, const unsigned char* const* luts,
+                   const unsigned char* shifts, unsigned long count, int has_alpha)
 {
+    srARGB pixel;
     unsigned long i = 0;
     if (has_alpha == 0) {
-        for (; i + 4 <= count; i += 4) {
-            dest[i] = luts[0][source[i].red] << shifts[0] |
-                      luts[1][source[i].green] << shifts[1] |
-                      luts[2][source[i].blue] << shifts[2];
-            dest[i + 1] = luts[0][source[i + 1].red] << shifts[0] |
-                          luts[1][source[i + 1].green] << shifts[1] |
-                          luts[2][source[i + 1].blue] << shifts[2];
-            dest[i + 2] = luts[0][source[i + 2].red] << shifts[0] |
-                          luts[1][source[i + 2].green] << shifts[1] |
-                          luts[2][source[i + 2].blue] << shifts[2];
-            dest[i + 3] = luts[0][source[i + 3].red] << shifts[0] |
-                          luts[1][source[i + 3].green] << shifts[1] |
-                          luts[2][source[i + 3].blue] << shifts[2];
+        for (; i < (count & ~3UL); i += 4) {
+            pixel = source[i];
+            dest[i] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                      luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 1];
+            dest[i + 1] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 2];
+            dest[i + 2] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 3];
+            dest[i + 3] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[2][pixel.blue] << shifts[2];
         }
         for (; i < count; i++) {
-            dest[i] = luts[0][source[i].red] << shifts[0] |
-                      luts[1][source[i].green] << shifts[1] |
-                      luts[2][source[i].blue] << shifts[2];
+            pixel = source[i];
+            dest[i] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                      luts[2][pixel.blue] << shifts[2];
         }
     } else {
-        for (; i + 4 <= count; i += 4) {
-            dest[i] = luts[0][source[i].red] << shifts[0] |
-                      luts[1][source[i].green] << shifts[1] |
-                      luts[3][source[i].alpha] << shifts[3] |
-                      luts[2][source[i].blue] << shifts[2];
-            dest[i + 1] = luts[0][source[i + 1].red] << shifts[0] |
-                          luts[1][source[i + 1].green] << shifts[1] |
-                          luts[3][source[i + 1].alpha] << shifts[3] |
-                          luts[2][source[i + 1].blue] << shifts[2];
-            dest[i + 2] = luts[0][source[i + 2].red] << shifts[0] |
-                          luts[1][source[i + 2].green] << shifts[1] |
-                          luts[3][source[i + 2].alpha] << shifts[3] |
-                          luts[2][source[i + 2].blue] << shifts[2];
-            dest[i + 3] = luts[0][source[i + 3].red] << shifts[0] |
-                          luts[1][source[i + 3].green] << shifts[1] |
-                          luts[3][source[i + 3].alpha] << shifts[3] |
-                          luts[2][source[i + 3].blue] << shifts[2];
+        for (; i < (count & ~3UL); i += 4) {
+            pixel = source[i];
+            dest[i] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                      luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 1];
+            dest[i + 1] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 2];
+            dest[i + 2] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 3];
+            dest[i + 3] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
         }
         for (; i < count; i++) {
-            dest[i] = luts[0][source[i].red] << shifts[0] |
-                      luts[1][source[i].green] << shifts[1] |
-                      luts[3][source[i].alpha] << shifts[3] |
-                      luts[2][source[i].blue] << shifts[2];
+            pixel = source[i];
+            dest[i] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                      luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
         }
     }
 }
 
 // FUNCTION: SURRENDER 0x1000CC90
-static void pack24(unsigned char* dest, const srARGB* source,
-                   const unsigned char* const* luts, const unsigned char* shifts,
-                   unsigned long count, int has_alpha)
+static void pack24(unsigned char* dest, const srARGB* source, const unsigned char* const* luts,
+                   const unsigned char* shifts, unsigned long count, int has_alpha)
 {
+    srARGB pixel;
     unsigned long i = 0;
     if (has_alpha == 0) {
-        for (; i + 4 <= count; i += 4) {
-            unsigned long value = luts[0][source[i].red] << shifts[0] |
-                                  luts[1][source[i].green] << shifts[1] |
-                                  luts[2][source[i].blue] << shifts[2];
+        for (; i < (count & ~3UL); i += 4) {
+            pixel = source[i];
+            unsigned long value = luts[0][pixel.red] << shifts[0] |
+                                  luts[1][pixel.green] << shifts[1] |
+                                  luts[2][pixel.blue] << shifts[2];
             /* reinterpret-ok: the 24-bit pixel record stores its low word plus
                high byte separately. */
-            *reinterpret_cast<unsigned short*>(dest) =
-                static_cast<unsigned short>(value);
+            *reinterpret_cast<unsigned short*>(dest) = static_cast<unsigned short>(value);
             dest[2] = static_cast<unsigned char>(value >> 16);
-            value = luts[0][source[i + 1].red] << shifts[0] |
-                    luts[1][source[i + 1].green] << shifts[1] |
-                    luts[2][source[i + 1].blue] << shifts[2];
-            *reinterpret_cast<unsigned short*>(dest + 3) =
-                static_cast<unsigned short>(value);
+            pixel = source[i + 1];
+            value = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                    luts[2][pixel.blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest + 3) = static_cast<unsigned short>(value);
             dest[5] = static_cast<unsigned char>(value >> 16);
-            value = luts[0][source[i + 2].red] << shifts[0] |
-                    luts[1][source[i + 2].green] << shifts[1] |
-                    luts[2][source[i + 2].blue] << shifts[2];
-            *reinterpret_cast<unsigned short*>(dest + 6) =
-                static_cast<unsigned short>(value);
+            pixel = source[i + 2];
+            value = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                    luts[2][pixel.blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest + 6) = static_cast<unsigned short>(value);
             dest[8] = static_cast<unsigned char>(value >> 16);
-            value = luts[0][source[i + 3].red] << shifts[0] |
-                    luts[1][source[i + 3].green] << shifts[1] |
-                    luts[2][source[i + 3].blue] << shifts[2];
-            *reinterpret_cast<unsigned short*>(dest + 9) =
-                static_cast<unsigned short>(value);
+            pixel = source[i + 3];
+            value = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                    luts[2][pixel.blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest + 9) = static_cast<unsigned short>(value);
             dest[11] = static_cast<unsigned char>(value >> 16);
             dest += 12;
         }
         for (; i < count; i++) {
-            unsigned long value = luts[0][source[i].red] << shifts[0] |
-                                  luts[1][source[i].green] << shifts[1] |
-                                  luts[2][source[i].blue] << shifts[2];
-            *reinterpret_cast<unsigned short*>(dest) =
-                static_cast<unsigned short>(value);
+            pixel = source[i];
+            unsigned long value = luts[0][pixel.red] << shifts[0] |
+                                  luts[1][pixel.green] << shifts[1] |
+                                  luts[2][pixel.blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest) = static_cast<unsigned short>(value);
             dest[2] = static_cast<unsigned char>(value >> 16);
             dest += 3;
         }
     } else {
-        for (; i + 4 <= count; i += 4) {
-            unsigned long value = luts[0][source[i].red] << shifts[0] |
-                                  luts[1][source[i].green] << shifts[1] |
-                                  luts[3][source[i].alpha] << shifts[3] |
-                                  luts[2][source[i].blue] << shifts[2];
+        for (; i < (count & ~3UL); i += 4) {
+            pixel = source[i];
+            unsigned long value =
+                luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
             /* reinterpret-ok: the 24-bit pixel record stores its low word plus
                high byte separately. */
-            *reinterpret_cast<unsigned short*>(dest) =
-                static_cast<unsigned short>(value);
+            *reinterpret_cast<unsigned short*>(dest) = static_cast<unsigned short>(value);
             dest[2] = static_cast<unsigned char>(value >> 16);
-            value = luts[0][source[i + 1].red] << shifts[0] |
-                    luts[1][source[i + 1].green] << shifts[1] |
-                    luts[3][source[i + 1].alpha] << shifts[3] |
-                    luts[2][source[i + 1].blue] << shifts[2];
-            *reinterpret_cast<unsigned short*>(dest + 3) =
-                static_cast<unsigned short>(value);
+            pixel = source[i + 1];
+            value = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                    luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest + 3) = static_cast<unsigned short>(value);
             dest[5] = static_cast<unsigned char>(value >> 16);
-            value = luts[0][source[i + 2].red] << shifts[0] |
-                    luts[1][source[i + 2].green] << shifts[1] |
-                    luts[3][source[i + 2].alpha] << shifts[3] |
-                    luts[2][source[i + 2].blue] << shifts[2];
-            *reinterpret_cast<unsigned short*>(dest + 6) =
-                static_cast<unsigned short>(value);
+            pixel = source[i + 2];
+            value = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                    luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest + 6) = static_cast<unsigned short>(value);
             dest[8] = static_cast<unsigned char>(value >> 16);
-            value = luts[0][source[i + 3].red] << shifts[0] |
-                    luts[1][source[i + 3].green] << shifts[1] |
-                    luts[3][source[i + 3].alpha] << shifts[3] |
-                    luts[2][source[i + 3].blue] << shifts[2];
-            *reinterpret_cast<unsigned short*>(dest + 9) =
-                static_cast<unsigned short>(value);
+            pixel = source[i + 3];
+            value = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                    luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest + 9) = static_cast<unsigned short>(value);
             dest[11] = static_cast<unsigned char>(value >> 16);
             dest += 12;
         }
         for (; i < count; i++) {
-            unsigned long value = luts[0][source[i].red] << shifts[0] |
-                                  luts[1][source[i].green] << shifts[1] |
-                                  luts[3][source[i].alpha] << shifts[3] |
-                                  luts[2][source[i].blue] << shifts[2];
-            *reinterpret_cast<unsigned short*>(dest) =
-                static_cast<unsigned short>(value);
+            pixel = source[i];
+            unsigned long value =
+                luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest) = static_cast<unsigned short>(value);
             dest[2] = static_cast<unsigned char>(value >> 16);
             dest += 3;
         }
@@ -2697,55 +2635,50 @@ static void pack24(unsigned char* dest, const srARGB* source,
 }
 
 // FUNCTION: SURRENDER 0x1000D280
-static void pack32(unsigned long* dest, const srARGB* source,
-                   const unsigned char* const* luts, const unsigned char* shifts,
-                   unsigned long count, int has_alpha)
+static void pack32(unsigned long* dest, const srARGB* source, const unsigned char* const* luts,
+                   const unsigned char* shifts, unsigned long count, int has_alpha)
 {
+    srARGB pixel;
     unsigned long i = 0;
     if (has_alpha == 0) {
-        for (; i + 4 <= count; i += 4) {
-            dest[i] = luts[0][source[i].red] << shifts[0] |
-                      luts[1][source[i].green] << shifts[1] |
-                      luts[2][source[i].blue] << shifts[2];
-            dest[i + 1] = luts[0][source[i + 1].red] << shifts[0] |
-                          luts[1][source[i + 1].green] << shifts[1] |
-                          luts[2][source[i + 1].blue] << shifts[2];
-            dest[i + 2] = luts[0][source[i + 2].red] << shifts[0] |
-                          luts[1][source[i + 2].green] << shifts[1] |
-                          luts[2][source[i + 2].blue] << shifts[2];
-            dest[i + 3] = luts[0][source[i + 3].red] << shifts[0] |
-                          luts[1][source[i + 3].green] << shifts[1] |
-                          luts[2][source[i + 3].blue] << shifts[2];
+        for (; i < (count & ~3UL); i += 4) {
+            pixel = source[i];
+            dest[i] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                      luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 1];
+            dest[i + 1] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 2];
+            dest[i + 2] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 3];
+            dest[i + 3] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[2][pixel.blue] << shifts[2];
         }
         for (; i < count; i++) {
-            dest[i] = luts[0][source[i].red] << shifts[0] |
-                      luts[1][source[i].green] << shifts[1] |
-                      luts[2][source[i].blue] << shifts[2];
+            pixel = source[i];
+            dest[i] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                      luts[2][pixel.blue] << shifts[2];
         }
     } else {
-        for (; i + 4 <= count; i += 4) {
-            dest[i] = luts[0][source[i].red] << shifts[0] |
-                      luts[1][source[i].green] << shifts[1] |
-                      luts[3][source[i].alpha] << shifts[3] |
-                      luts[2][source[i].blue] << shifts[2];
-            dest[i + 1] = luts[0][source[i + 1].red] << shifts[0] |
-                          luts[1][source[i + 1].green] << shifts[1] |
-                          luts[3][source[i + 1].alpha] << shifts[3] |
-                          luts[2][source[i + 1].blue] << shifts[2];
-            dest[i + 2] = luts[0][source[i + 2].red] << shifts[0] |
-                          luts[1][source[i + 2].green] << shifts[1] |
-                          luts[3][source[i + 2].alpha] << shifts[3] |
-                          luts[2][source[i + 2].blue] << shifts[2];
-            dest[i + 3] = luts[0][source[i + 3].red] << shifts[0] |
-                          luts[1][source[i + 3].green] << shifts[1] |
-                          luts[3][source[i + 3].alpha] << shifts[3] |
-                          luts[2][source[i + 3].blue] << shifts[2];
+        for (; i < (count & ~3UL); i += 4) {
+            pixel = source[i];
+            dest[i] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                      luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 1];
+            dest[i + 1] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 2];
+            dest[i + 2] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
+            pixel = source[i + 3];
+            dest[i + 3] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                          luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
         }
         for (; i < count; i++) {
-            dest[i] = luts[0][source[i].red] << shifts[0] |
-                      luts[1][source[i].green] << shifts[1] |
-                      luts[3][source[i].alpha] << shifts[3] |
-                      luts[2][source[i].blue] << shifts[2];
+            pixel = source[i];
+            dest[i] = luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
+                      luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
         }
     }
 }
@@ -2758,7 +2691,7 @@ static void unpack16(unsigned long* dest, const unsigned short* source,
                      const unsigned long* masks, unsigned long count)
 {
     unsigned long i = 0;
-    for (; i + 4 <= count; i += 4) {
+    for (; i < (count & ~3UL); i += 4) {
         unsigned long pixel = source[i];
         dest[i] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
                   luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
@@ -2795,7 +2728,7 @@ static void unpack24(unsigned long* dest, const unsigned char* source,
                      const unsigned long* masks, unsigned long count)
 {
     unsigned long i = 0;
-    for (; i + 4 <= count; i += 4) {
+    for (; i < (count & ~3UL); i += 4) {
         /* reinterpret-ok: 24-bit source records load their high two bytes as a
            word plus the low byte separately. */
         unsigned long pixel =
@@ -2804,20 +2737,17 @@ static void unpack24(unsigned long* dest, const unsigned char* source,
                   luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
                   luts[2][(pixel >> shifts[2]) & masks[2]] |
                   luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
-        pixel = *reinterpret_cast<const unsigned short*>(source + 4) * 0x100 +
-                source[3];
+        pixel = *reinterpret_cast<const unsigned short*>(source + 4) * 0x100 + source[3];
         dest[i + 1] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
                       luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
                       luts[2][(pixel >> shifts[2]) & masks[2]] |
                       luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
-        pixel = *reinterpret_cast<const unsigned short*>(source + 7) * 0x100 +
-                source[6];
+        pixel = *reinterpret_cast<const unsigned short*>(source + 7) * 0x100 + source[6];
         dest[i + 2] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
                       luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
                       luts[2][(pixel >> shifts[2]) & masks[2]] |
                       luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
-        pixel = *reinterpret_cast<const unsigned short*>(source + 10) * 0x100 +
-                source[9];
+        pixel = *reinterpret_cast<const unsigned short*>(source + 10) * 0x100 + source[9];
         dest[i + 3] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
                       luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
                       luts[2][(pixel >> shifts[2]) & masks[2]] |
@@ -2841,7 +2771,7 @@ static void unpack32(unsigned long* dest, const unsigned long* source,
                      const unsigned long* masks, unsigned long count)
 {
     unsigned long i = 0;
-    for (; i + 4 <= count; i += 4) {
+    for (; i < (count & ~3UL); i += 4) {
         unsigned long pixel = source[i];
         dest[i] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
                   luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |

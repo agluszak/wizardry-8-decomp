@@ -1,4 +1,5 @@
 #include "wiz8/float_constants.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/Monster.h"
@@ -33,7 +34,7 @@
 // GLOBAL: WIZ8 0x0060bfdc
 unsigned int g_light_update_flags = 1;
 
-/* rand() normalization to a 0..1 flicker probability; only Update0049C960
+/* rand() normalization to a 0..1 flicker probability; only Update
    uses it. */
 // GLOBAL: WIZ8 0x005ec1e4
 const float g_float_005ec1e4 = 3.0518509447574615e-05f;
@@ -184,7 +185,7 @@ void stLight::SetDefinitionTime(float time)
    elapsed seconds times the path rate exceed one whole step, wrapping or
    ping-ponging at the ends. */
 // FUNCTION: WIZ8 0x0049C960
-void stLight::Update0049C960()
+void stLight::Update()
 {
     if (m_definition_234 != 0 && m_definition_234->type_04 == 2) {
         stKeyframedLightDefinition* definition =
@@ -242,9 +243,7 @@ void stLight::Update0049C960()
             if (g_float_005ebb38 < blue) {
                 blue = 1.0f;
             }
-            diffuse_1a4.x = red;
-            diffuse_1a4.y = green;
-            diffuse_1a4.z = blue;
+            diffuse_1a4.Set(red, green, blue);
             return;
         }
         intensity_1d0 = g_float_005ebb34;
@@ -304,9 +303,7 @@ void stLight::Update0049C960()
                 if (g_float_005ebb38 < blue) {
                     blue = 1.0f;
                 }
-                diffuse_1a4.x = red;
-                diffuse_1a4.y = green;
-                diffuse_1a4.z = blue;
+                diffuse_1a4.Set(red, green, blue);
                 m_level_time_23c = seconds;
             }
         }
@@ -336,9 +333,7 @@ void stLight::Update0049C960()
                     if (g_float_005ebb38 < blue) {
                         blue = 1.0f;
                     }
-                    diffuse_1a4.x = red;
-                    diffuse_1a4.y = green;
-                    diffuse_1a4.z = blue;
+                    diffuse_1a4.Set(red, green, blue);
                 }
                 m_level_time_23c = seconds;
             }
@@ -407,7 +402,7 @@ void stLight::Update0049C960()
    of counters, while the other forms restore intensity and an optional
    colour. */
 // FUNCTION: WIZ8 0x0049D070
-void stLight::Reset0049D070()
+void stLight::Reset()
 {
     if (m_definition_234 != 0) {
         if (m_definition_234->type_04 == 2) {
@@ -552,15 +547,9 @@ srClass* stLight::vInstance()
 
 /* Test a point against the six inward-facing planes of one region volume. */
 // FUNCTION: WIZ8 0x0049e460
-unsigned char W8OctRegionVolume::ContainsPoint0049E460(const srVector3T<float>* point) const
+unsigned char W8OctRegionVolume::ContainsPoint(const srVector3T<float>* point) const
 {
-    for (short plane = 0; plane < 6; ++plane) {
-        float distance = SignedPlaneDistance(planes_88[plane], *point);
-        if (distance < g_float_005ebb34) {
-            return 0;
-        }
-    }
-    return 1;
+    return PointInsideFrustum(point, planes_88);
 }
 
 // SYNTHETIC: WIZ8 0x004A2200

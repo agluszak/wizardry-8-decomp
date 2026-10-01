@@ -16,10 +16,17 @@ public:
 
     srBounder& operator=(const srBounder& other);
 
-    static const char* sGetClassName();
+    // FUNCTION: SURRENDER 0x1004B070
+    static const char* sGetClassName()
+    {
+        return "srBounder";
+    }
+
+    /* Empty derived destruction is the implicit srNode-base teardown. */
+    // SYNTHETIC: SURRENDER 0x1004B2E0
+    // srBounder::~srBounder
 
     virtual void dump(std::ostream& stream) override;
-    virtual ~srBounder() override;
     virtual srClass* vInstance() override;
     virtual void traverse(TraverseInfo& info) override;
     virtual void process(const ProcessInfo& info, e_processType type) override;
