@@ -2374,6 +2374,13 @@ void SelectNpcDialogueExit(void)
     OpenNpcDialogueOptionLayout();
 }
 
+static inline void SyncNpcDialogueTranscriptScrollButtons()
+{
+    int enabled = g_screen_state_00649f1c->npc_dialogue_controller_1b0->IsExpanded() != 0;
+    g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(enabled);
+    g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(enabled);
+}
+
 // FUNCTION: WIZ8 0x00570CF0
 void OpenNpcDialogueTranscriptLayout(void)
 {
@@ -2464,13 +2471,7 @@ void OpenNpcDialogueTranscriptLayout(void)
     g_screen_state_00649f1c->npc_dialogue_controller_1b0->SetTranscriptSorted(
         g_screen_state_00649f1c->transcript_sorted);
     g_screen_state_00649f1c->npc_dialogue_controller_1b0->Expand();
-    if (g_screen_state_00649f1c->npc_dialogue_controller_1b0->IsExpanded()) {
-        g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
-        g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(1);
-    } else {
-        g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(0);
-        g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(0);
-    }
+    SyncNpcDialogueTranscriptScrollButtons();
     SyncDialogueCategoryButtons();
     if (g_screen_state_00649f1c->transcript_sorted != 0) {
         g_screen_state_00649f1c->dialogue_sort_button->EnableSecondaryState(1);
@@ -2670,13 +2671,7 @@ void AddNpcDialogueKeyword(wchar_t* text, signed char category, int play_chime)
             controller->Expand();
         }
         controller->Invalidate(0);
-        if (g_screen_state_00649f1c->npc_dialogue_controller_1b0->IsExpanded()) {
-            g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
-            g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(1);
-        } else {
-            g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(0);
-            g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(0);
-        }
+        SyncNpcDialogueTranscriptScrollButtons();
     }
 }
 
@@ -2686,13 +2681,7 @@ void RefreshNpcDialogueTranscript(void)
     g_screen_state_00649f1c->npc_dialogue_controller_1b0->RemoveSelectedTranscriptEntry();
     g_screen_state_00649f1c->npc_dialogue_controller_1b0->Collapse();
     g_screen_state_00649f1c->npc_dialogue_controller_1b0->Expand();
-    if (g_screen_state_00649f1c->npc_dialogue_controller_1b0->IsExpanded()) {
-        g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
-        g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(1);
-    } else {
-        g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(0);
-        g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(0);
-    }
+    SyncNpcDialogueTranscriptScrollButtons();
 }
 
 // FUNCTION: WIZ8 0x00571920
@@ -5026,13 +5015,7 @@ void SetNpcDialogueHidden(char value)
         g_screen_state_00649f1c->npc_dialogue_controller_1b0->SetEnabled(1);
         g_screen_state_00649f1c->npc_dialogue_panel_1b4->SetEnabled(1);
         g_screen_state_00649f1c->npc_dialogue_controller_1b0->Expand();
-        if (g_screen_state_00649f1c->npc_dialogue_controller_1b0->IsExpanded()) {
-            g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
-            g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(1);
-        } else {
-            g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(0);
-            g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(0);
-        }
+        SyncNpcDialogueTranscriptScrollButtons();
         SetInputFieldBlocksMouseCallback(0, 0);
         g_screen_state_00649f1c->dialogue_text_110->SetEnabled(1);
         g_screen_state_00649f1c->dialogue_text_114->SetEnabled(1);
@@ -5467,7 +5450,6 @@ bool CanOpenNpcDialogue(void)
 unsigned char SetNpcDialoguePanelVisible(unsigned char value)
 {
     W8NpcDialogueTextController* controller;
-    unsigned char expanded;
 
     if (gXStatus.fNpcDialogueMode != 0 && g_screen_state_00649f1c->scripted_dialogue == 0 &&
         g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
@@ -5495,14 +5477,7 @@ unsigned char SetNpcDialoguePanelVisible(unsigned char value)
         g_screen_state_00649f1c->npc_dialogue_panel_1b4->SetEnabled(1);
         controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
         controller->Expand();
-        controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
-        expanded = controller->IsExpanded();
-        if (expanded == 0) {
-            g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(0);
-        } else {
-            g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
-        }
-        g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(expanded != 0);
+        SyncNpcDialogueTranscriptScrollButtons();
         RequestRedraw(0x200);
         g_screen_state_00649f1c->dialogue_panel_hidden = 0;
         return 1;
