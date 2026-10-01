@@ -17,9 +17,6 @@ srBounder::srBounder(srNode* parent)
     setNotify(NOTIFY_POSITIONAL_0);
 }
 
-// FUNCTION: SURRENDER 0x1004b2e0
-srBounder::~srBounder() {}
-
 // FUNCTION: SURRENDER 0x1004b080
 srClass* srBounder::vInstance()
 {
