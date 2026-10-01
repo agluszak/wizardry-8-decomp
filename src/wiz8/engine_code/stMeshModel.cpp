@@ -2003,7 +2003,7 @@ srTriMeshPipeline* srTriMeshPipeline::Get(srGERD* renderer)
     }
 
     pipeline = pipe;
-    pipeline->Reset004753F0(renderer);
+    pipeline->Reset(renderer);
     return pipe;
 }
 /* Retail ICF folds this empty thiscall onto W8OptionsGraphicsPanel::OnDragEnd
