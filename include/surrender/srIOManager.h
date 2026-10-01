@@ -24,8 +24,16 @@ public:
     friend class Importer;
     friend class Exporter;
 
+    /* Provider copy/assignment are the implicit memberwise copies of the two
+       typed registration lists. Consumers retain the imported declarations. */
+    // SYNTHETIC: SURRENDER 0x1002CD90
+    // srIOManager::srIOManager(const srIOManager&)
+    // SYNTHETIC: SURRENDER 0x1002CDD0
+    // srIOManager::operator=
+#if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srIOManager(const srIOManager& manager);
     SR_DLL_IMPORT srIOManager& operator=(const srIOManager& manager);
+#endif
 
     SR_DLL_IMPORT void dump();
     SR_DLL_IMPORT const char* getExtension(const char* path);
@@ -111,9 +119,8 @@ class
 #endif
     __declspec(novtable) srIOManager::Importer {
 public:
-    // FUNCTION: SURRENDER 0x1002CC80
-    // ??0Importer@srIOManager@@QAE@XZ
-    Importer() {}
+    // SYNTHETIC: SURRENDER 0x1002CC80
+    // srIOManager::Importer::Importer()
 
     virtual const char* getTypeName() const = 0;
 
@@ -142,9 +149,8 @@ class
 #endif
     __declspec(novtable) srIOManager::Exporter {
 public:
-    // FUNCTION: SURRENDER 0x1002CCB0
-    // ??0Exporter@srIOManager@@QAE@XZ
-    Exporter() {}
+    // SYNTHETIC: SURRENDER 0x1002CCB0
+    // srIOManager::Exporter::Exporter()
 
     virtual const char* getTypeName() const = 0;
 
