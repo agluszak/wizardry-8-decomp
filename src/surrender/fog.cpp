@@ -166,18 +166,6 @@ srFog::srFog(srNode* parent) : srIlluminator(0)
     density_160 = 0.5f;
 }
 
-// FUNCTION: SURRENDER 0x1004BCA0
-srFog& srFog::operator=(const srFog& other)
-{
-    if (this != &other) {
-        srIlluminator::operator=(other);
-        density_160 = other.density_160;
-        fog_start_150 = other.fog_start_150;
-        fog_end_158 = other.fog_end_158;
-    }
-    return *this;
-}
-
 // FUNCTION: SURRENDER 0x1004BD00
 void srFog::dump(std::ostream& stream)
 {
