@@ -105,9 +105,6 @@ srHuffman::BitOStream::BitOStream(srBinOStream& stream)
     buffered_50 = 0;
 }
 
-// FUNCTION: SURRENDER 0x100016F0
-srHuffman::Sampler::~Sampler() {}
-
 // FUNCTION: SURRENDER 0x10001730
 srHuffman::BitOStream::~BitOStream()
 {
