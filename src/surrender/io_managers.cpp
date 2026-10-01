@@ -10,6 +10,28 @@
 #include "surrender/srImporter.h"
 #include "surrender/srString.h"
 
+/* TU-local srInlineString copies like file_stream.cpp's: this unit's stream
+   copy machinery references them and sibling units own the callable
+   emissions. */
+inline srInlineString::srInlineString(const srInlineString& source)
+{
+    init();
+    if (source.data_ != 0) {
+        operator=(source);
+    }
+}
+
+inline srInlineString& srInlineString::operator=(const srInlineString& source)
+{
+    init();
+    if (source.data_ != 0 && *source.data_ != '\0') {
+        size_ = strlen(source.data_) + 1;
+        data_ = static_cast<char*>(srHeap.allocate(size_));
+        strcpy(data_, source.data_);
+    }
+    return *this;
+}
+
 // FUNCTION: SURRENDER 0x1002CB10
 const char* srIOManager::Error::getDescription()
 {

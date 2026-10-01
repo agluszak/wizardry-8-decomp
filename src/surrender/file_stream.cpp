@@ -16,6 +16,93 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+/* TU-local srInlineString expansions: this unit inlines the constructor, copy
+   assignment, destructor, find and erase while init, reset and operator+ stay
+   callable emissions owned by sibling units (init at 0x10004150, reset at
+   0x10012C80, operator+ at 0x10012CB0). The const char* assignment is inline
+   here too - setPath expands it while insert keeps a call to the sibling
+   unit's callable emission at 0x100040D0. */
+
+inline srInlineString::srInlineString()
+{
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+}
+
+inline srInlineString::srInlineString(const char* source)
+{
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+    if (source != 0) {
+        operator=(source);
+    }
+}
+
+inline srInlineString::srInlineString(const srInlineString& source)
+{
+    init();
+    if (source.data_ != 0) {
+        operator=(source);
+    }
+}
+
+inline srInlineString::~srInlineString()
+{
+    if (data_ != inline_) {
+        srHeap.free(data_);
+    }
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+}
+
+inline srInlineString& srInlineString::operator=(const srInlineString& source)
+{
+    init();
+    if (source.data_ != 0 && *source.data_ != '\0') {
+        size_ = strlen(source.data_) + 1;
+        data_ = static_cast<char*>(srHeap.allocate(size_));
+        strcpy(data_, source.data_);
+    }
+    return *this;
+}
+
+inline srInlineString& srInlineString::operator=(const char* source)
+{
+    if (data_ != inline_) {
+        srHeap.free(data_);
+    }
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+    if (source == 0 || *source == '\0') {
+        return *this;
+    }
+    size_ = strlen(source) + 1;
+    data_ = static_cast<char*>(srHeap.allocate(size_));
+    strcpy(data_, source);
+    return *this;
+}
+
+inline long srInlineString::find(const srInlineString& needle, unsigned long offset) const
+{
+    const char* found = strstr(data_ + offset, needle.data_);
+    if (found != 0) {
+        return static_cast<long>(found - data_);
+    }
+    return -1;
+}
+
+inline void srInlineString::erase(unsigned long begin, unsigned long end)
+{
+    if (begin != end) {
+        strncpy(data_ + begin, data_ + end, size_ - end);
+        size_ = strlen(data_) + 1;
+    }
+}
+
 // SYNTHETIC: SURRENDER 0x10016410
 // srFileManager::`vector deleting destructor'
 

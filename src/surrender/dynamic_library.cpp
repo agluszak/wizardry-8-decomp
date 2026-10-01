@@ -9,6 +9,54 @@
 
 #include "surrender/srString.h"
 
+/* TU-local srInlineString expansions: the constructors and destructor expand
+   through the sibling units' callable emissions (init at 0x10004150,
+   operator= at 0x100040D0, reset at 0x10012C80, operator+ at 0x10012CB0)
+   while this unit owns find's callable emission at 0x100467E0. */
+
+inline srInlineString::srInlineString()
+{
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+}
+
+inline srInlineString::srInlineString(const char* source)
+{
+    init();
+    if (source != 0) {
+        operator=(source);
+    }
+}
+
+inline srInlineString::srInlineString(const srInlineString& source)
+{
+    init();
+    if (source.data_ != 0) {
+        operator=(source.data_);
+    }
+}
+
+inline srInlineString::~srInlineString()
+{
+    if (data_ != inline_) {
+        srHeap.free(data_);
+    }
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+}
+
+// FUNCTION: SURRENDER 0x100467E0
+long srInlineString::find(const srInlineString& needle, unsigned long offset) const
+{
+    const char* found = strstr(data_ + offset, needle.data_);
+    if (found != 0) {
+        return static_cast<long>(found - data_);
+    }
+    return -1;
+}
+
 namespace {
 
 /* Retail returns an srInlineString by value: the name is canonicalized by
