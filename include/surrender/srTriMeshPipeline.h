@@ -69,12 +69,12 @@ public:
     static_assert(sizeof(Record) == 0x5c, "srTriMeshPipeline_Record_must_be_0x5c");
     static_assert(sizeof(Pass) == 0x20, "srTriMeshPipeline_Pass_must_be_0x20");
 
-    static srTriMeshPipeline* Get004750A0(srGERD* renderer);
+    static srTriMeshPipeline* Get(srGERD* renderer);
     /* By value, not by reference: 0x004994D0 reserves a four-byte argument
        slot and constructs the flag object straight into it. */
-    void SetFlags004752C0(srShader shader);
-    void Reset004753F0(srGERD* renderer);
-    void Flush00475510();
+    void SetFlags(srShader shader);
+    void Reset(srGERD* renderer);
+    void Flush();
     void PrepareSlot();
 
     /* The guarded header-visible boundary expands at the stParticle call
