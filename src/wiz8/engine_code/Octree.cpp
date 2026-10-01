@@ -69,9 +69,7 @@ void W8Octree::GetPathSurfaceNormal(const srVector3T<float>* position, srVector3
         pathing_180->GetPathSurfaceNormal(position, normal);
         return;
     }
-    normal->x = 0.0f;
-    normal->y = 1.0f;
-    normal->z = 0.0f;
+    normal->Set(0.0f, 1.0f, 0.0f);
 }
 
 // FUNCTION: WIZ8 0x00434170
@@ -209,12 +207,10 @@ void W8Octree::UpdateCameraVisibility()
 
     srMatrix3T<float> rotation;
     world->camera->getRotation(rotation);
-    view_1c0.rotation_column_18.x = rotation.vectors[0].x;
-    view_1c0.rotation_column_18.y = rotation.vectors[1].x;
-    view_1c0.rotation_column_18.z = rotation.vectors[2].x;
-    view_1c0.rotation_column_24.x = rotation.vectors[0].y;
-    view_1c0.rotation_column_24.y = rotation.vectors[1].y;
-    view_1c0.rotation_column_24.z = rotation.vectors[2].y;
+    view_1c0.rotation_column_18.Set(rotation.vectors[0].x, rotation.vectors[1].x,
+                                    rotation.vectors[2].x);
+    view_1c0.rotation_column_24.Set(rotation.vectors[0].y, rotation.vectors[1].y,
+                                    rotation.vectors[2].y);
 
     srVector3T<double> dof = world->camera->getWorldSpaceDOF();
     view_1c0.camera_dof_0c = dof;
@@ -1664,12 +1660,11 @@ unsigned char W8Octree::UpdateWorldTrace()
         cell[axis] = static_cast<int>(
             (((&camera.x)[axis] - (&spatial_000.minimum_0c.x)[axis]) / spatial_000.node_extent_70));
     }
-    minimum.x = cell[0] * spatial_000.node_extent_70 + spatial_000.minimum_0c.x;
-    minimum.y = cell[1] * spatial_000.node_extent_70 + spatial_000.minimum_0c.y;
-    minimum.z = cell[2] * spatial_000.node_extent_70 + spatial_000.minimum_0c.z;
-    maximum.x = minimum.x + spatial_000.node_extent_70;
-    maximum.y = minimum.y + spatial_000.node_extent_70;
-    maximum.z = minimum.z + spatial_000.node_extent_70;
+    minimum.Set(cell[0] * spatial_000.node_extent_70 + spatial_000.minimum_0c.x,
+                cell[1] * spatial_000.node_extent_70 + spatial_000.minimum_0c.y,
+                cell[2] * spatial_000.node_extent_70 + spatial_000.minimum_0c.z);
+    maximum.Set(minimum.x + spatial_000.node_extent_70, minimum.y + spatial_000.node_extent_70,
+                minimum.z + spatial_000.node_extent_70);
     unsigned long* packed = PackColourToLong(&color, 0.0, 1.0, 0.0, 0.0);
     DrawWorldBox(g_world, minimum, maximum, *packed);
     return 1;
@@ -3198,9 +3193,7 @@ unsigned long* W8Octree::CollectPolygonsNearPoint(srVector3T<float>* center, flo
         }
         if (m_aulGDObjs[index] != 0) {
             srVector3T<float> normal;
-            normal.x = plane->x;
-            normal.y = plane->y;
-            normal.z = plane->z;
+            normal.Set(plane->x, plane->y, plane->z);
             const srVector3i* poly_vertex = model->getPolyVertex() + (m_aulGDObjs[index] & 0xffff);
             const srVector3T<float>* vertices = model->getVertexLoc();
             srVector3T<float> triangle[3];
@@ -4932,15 +4925,12 @@ float PointToSegmentDistance2D(srVector2T<float>* point, const srVector2T<float>
     if (clamp_point != 0) {
         if (static_cast<float>(g_zero_005ebb40) <= t) {
             if (static_cast<float>(g_double_005ebc30) < t) {
-                point->x = to->x;
-                point->y = to->y;
+                *point = *to;
             } else {
-                point->x = dx * t + from->x;
-                point->y = dy * t + from->y;
+                point->Set(dx * t + from->x, dy * t + from->y);
             }
         } else {
-            point->x = from->x;
-            point->y = from->y;
+            *point = *from;
         }
     }
     if (out_t != 0) {
@@ -5068,13 +5058,9 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
     if (proximity_check != 0) {
         float expand = spacing * g_float_005ec048;
         srVector3T<float> low;
-        low.x = position->x - expand;
-        low.y = position->y - expand;
-        low.z = position->z - expand;
+        low.Set(position->x - expand, position->y - expand, position->z - expand);
         srVector3T<float> high;
-        high.x = expand + position->x;
-        high.y = expand + position->y;
-        high.z = expand + position->z;
+        high.Set(expand + position->x, expand + position->y, expand + position->z);
         candidates = static_cast<unsigned long*>(operator new(0x400));
         monsters = static_cast<unsigned int>(QueryObjects(
             &candidates, &low, &high, W8_OCTREE_KIND_LOCATION, -1)); /* c-style-cast-ok:
@@ -5208,13 +5194,9 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     if (first_only != 0) {
         float expand = radius * g_float_005ec048;
         srVector3T<float> low;
-        low.x = source->x - expand;
-        low.y = source->y - expand;
-        low.z = source->z - expand;
+        low.Set(source->x - expand, source->y - expand, source->z - expand);
         srVector3T<float> high;
-        high.x = expand + source->x;
-        high.y = expand + source->y;
-        high.z = expand + source->z;
+        high.Set(expand + source->x, expand + source->y, expand + source->z);
         candidates = static_cast<unsigned long*>(operator new(0x400));
         monsters = static_cast<unsigned int>(QueryObjects(
             &candidates, &low, &high, W8_OCTREE_KIND_LOCATION, -1)); /* c-style-cast-ok:

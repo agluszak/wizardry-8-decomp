@@ -663,9 +663,9 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
             if (world->m_owned_04c->ApplyCameraMotion(flags, &camera_position, &delta,
                                                       &motion_saved) != 0) {
                 camera_position += delta;
-                navigator_position.x = camera_position.x;
-                navigator_position.y = camera_position.y - g_default_world_height;
-                navigator_position.z = camera_position.z;
+                navigator_position.Set(camera_position.x,
+                                       camera_position.y - g_default_world_height,
+                                       camera_position.z);
                 if (world->camera_light != 0) {
                     render_position.SetFromFloat(&camera_position);
                     static_cast<srNode*>(world->camera_light)->setLocation(render_position);
@@ -709,9 +709,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
                 {
                     srVector3T<double> location = world->camera->getLocation();
                     srVector3T<float> party_point;
-                    party_point.x = static_cast<float>(location.x);
-                    party_point.y = static_cast<float>(location.y);
-                    party_point.z = static_cast<float>(location.z);
+                    party_point.SetFromDouble(&location);
                     PlacePartyAtPoint(&party_point);
                 }
                 world->camera->getRotation(path_rotation);
@@ -933,9 +931,7 @@ void RestoreWorldCameraState(W8World* world, W8World* source_world, W8WorldCamer
     }
     SetWorldCameraState(world, source_world, state);
     world->camera->getLocation(camera_location);
-    navigator_position.x = (float)camera_location.x;
-    navigator_position.y = (float)camera_location.y;
-    navigator_position.z = (float)camera_location.z;
+    navigator_position.SetFromDouble(&camera_location);
     g_startup_world->SetAngles(GetCameraYawInDegrees());
     g_startup_world->SetPitch(GetCameraPitchInDegrees());
     navigator_position.y -= g_default_world_height;

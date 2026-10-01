@@ -998,9 +998,9 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         unsigned char cycle;
 
         MonsterGetLocation(monster, &location);
-        previous.x = static_cast<float>(monster_info->movement_watch_position[0]);
-        previous.y = static_cast<float>(monster_info->movement_watch_position[1]);
-        previous.z = static_cast<float>(monster_info->movement_watch_position[2]);
+        previous.Set(static_cast<float>(monster_info->movement_watch_position[0]),
+                     static_cast<float>(monster_info->movement_watch_position[1]),
+                     static_cast<float>(monster_info->movement_watch_position[2]));
         monster_info->position_17.y = location.y;
         cycle = monster_info->movement_stall_ticks_254;
         delta = location - previous;

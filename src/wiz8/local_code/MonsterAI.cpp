@@ -589,9 +589,8 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 break;
             }
             case 4:
-                monster->move_direction_2bc.x = monster->direction_x_2b0;
-                monster->move_direction_2bc.y = monster->direction_y_2b4;
-                monster->move_direction_2bc.z = monster->direction_z_2b8;
+                monster->move_direction_2bc.Set(monster->direction_x_2b0, monster->direction_y_2b4,
+                                                monster->direction_z_2b8);
                 mode = 0xa;
                 changed = true;
                 break;

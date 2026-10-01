@@ -654,9 +654,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        position.x = 53550.0f;
-        position.y = 3516.0f;
-        position.z = 36936.0f;
+        position.Set(53550.0f, 3516.0f, 36936.0f);
         CameraLookAt(&position);
         fact_value = GetFact(0x177);
         if (fact_value == 0) {

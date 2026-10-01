@@ -3396,18 +3396,18 @@ void DragSelectionWithCursor(void)
     GetWorldCursorPosition(&cursor);
     if (g_mipe_state->trigger != 0) {
         g_mipe_state->trigger->GetPosition(&position);
-        moved.x = cursor.x - g_mipe_state->drag_anchor.x + position.x;
-        moved.y = cursor.y - g_mipe_state->drag_anchor.y + position.y;
-        moved.z = cursor.z - g_mipe_state->drag_anchor.z + position.z;
+        moved.Set(cursor.x - g_mipe_state->drag_anchor.x + position.x,
+                  cursor.y - g_mipe_state->drag_anchor.y + position.y,
+                  cursor.z - g_mipe_state->drag_anchor.z + position.z);
         g_mipe_state->trigger->SetPosition004416F0(&moved);
     } else {
         for (index = 0; index < static_cast<int>(ILLength(&g_mipe_state->monster_ids)); ++index) {
             info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                 0x114c, MIPE_CPP, IListGetAt(&g_mipe_state->monster_ids, index), 1));
             MonsterGetLocalLocation(info->p3D, &position);
-            moved.x = cursor.x - g_mipe_state->drag_anchor.x + position.x;
-            moved.y = cursor.y - g_mipe_state->drag_anchor.y + position.y;
-            moved.z = cursor.z - g_mipe_state->drag_anchor.z + position.z;
+            moved.Set(cursor.x - g_mipe_state->drag_anchor.x + position.x,
+                      cursor.y - g_mipe_state->drag_anchor.y + position.y,
+                      cursor.z - g_mipe_state->drag_anchor.z + position.z);
             info->p3D->SetPosition004A6DF0(&moved);
         }
     }

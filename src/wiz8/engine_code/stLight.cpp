@@ -243,9 +243,7 @@ void stLight::Update0049C960()
             if (g_float_005ebb38 < blue) {
                 blue = 1.0f;
             }
-            diffuse_1a4.x = red;
-            diffuse_1a4.y = green;
-            diffuse_1a4.z = blue;
+            diffuse_1a4.Set(red, green, blue);
             return;
         }
         intensity_1d0 = g_float_005ebb34;
@@ -305,9 +303,7 @@ void stLight::Update0049C960()
                 if (g_float_005ebb38 < blue) {
                     blue = 1.0f;
                 }
-                diffuse_1a4.x = red;
-                diffuse_1a4.y = green;
-                diffuse_1a4.z = blue;
+                diffuse_1a4.Set(red, green, blue);
                 m_level_time_23c = seconds;
             }
         }
@@ -337,9 +333,7 @@ void stLight::Update0049C960()
                     if (g_float_005ebb38 < blue) {
                         blue = 1.0f;
                     }
-                    diffuse_1a4.x = red;
-                    diffuse_1a4.y = green;
-                    diffuse_1a4.z = blue;
+                    diffuse_1a4.Set(red, green, blue);
                 }
                 m_level_time_23c = seconds;
             }

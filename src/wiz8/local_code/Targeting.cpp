@@ -3296,10 +3296,10 @@ int CollectConeMonsterTargets(const W8TargetSource* source, const srVector3T<flo
                 (monster_info->ubDisposition == disposition || disposition == 3)) {
                 W8Monster* monster = monster_info->p3D;
                 srVector3T<float> point;
-                point.x = monster->movement_0c0.position_040.x;
-                point.y =
-                    monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
-                point.z = monster->movement_0c0.position_040.z;
+                point.Set(monster->movement_0c0.position_040.x,
+                          monster->movement_0c0.position_040.y +
+                              monster->movement_0c0.height_offset_0b8,
+                          monster->movement_0c0.position_040.z);
                 if (TargetInRangeAndArcs(&point, monster->radius_084, eye, radius, heading,
                                          elevation) != 0 &&
                     SourceCanSeeMonster(source, monster_info, 1, sight_flag) != 0) {

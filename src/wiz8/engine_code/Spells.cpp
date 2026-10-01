@@ -1588,9 +1588,9 @@ void Update3DSounds()
                         if (angle != g_zero_005ebb40) {
                             rotation.RotateAboutY(sin(angle), cos(angle));
                         }
-                        offset.x = (float)world.x - listener.x;
-                        offset.y = (float)world.y - listener.y;
-                        offset.z = (float)world.z - listener.z;
+                        offset.Set(static_cast<float>(world.x) - listener.x,
+                                   static_cast<float>(world.y) - listener.y,
+                                   static_cast<float>(world.z) - listener.z);
                         transformed = rotation.Transform(offset);
                         Sound3DSetPosition(sound->sound_handle, transformed.x, transformed.y,
                                            transformed.z);

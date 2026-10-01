@@ -881,9 +881,7 @@ unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
             chunks->Write(&point.x + component, 4, 0);
         }
     }
-    point.x = monster->direction_x_2b0;
-    point.y = monster->direction_y_2b4;
-    point.z = monster->direction_z_2b8;
+    point.Set(monster->direction_x_2b0, monster->direction_y_2b4, monster->direction_z_2b8);
     for (component = 0; component < 3; ++component) {
         chunks->Write(&point.x + component, 4, 0);
     }

@@ -150,9 +150,9 @@ int PrePathing::SnapNamedPositions(W8LevelFileNamedPosition* positions, int coun
     if (count != 0) {
         named_positions_250 = new srVector3T<float>[count];
         for (int i = 0; i < named_position_count_24c; ++i) {
-            named_positions_250[i].x = positions[i].position_81.x * g_world_scale;
-            named_positions_250[i].y = positions[i].position_81.y * g_world_scale;
-            named_positions_250[i].z = positions[i].position_81.z * g_world_scale;
+            named_positions_250[i].Set(positions[i].position_81.x * g_world_scale,
+                                       positions[i].position_81.y * g_world_scale,
+                                       positions[i].position_81.z * g_world_scale);
             octree->SnapToGround(&named_positions_250[i], 0);
         }
     }
@@ -542,9 +542,9 @@ unsigned char PrePathing::CreateAutomapNodes(W8LevelFile* level)
             }
             W8PrePathNode* node = path_node_list_240[i];
             srVector3T<float> position;
-            position.y = (node->level_flags & 0xffff) * span_020;
-            position.x = (node->cell & 0xffff) * grid_scale_01c;
-            position.z = (node->cell >> 0x10) * grid_scale_01c;
+            position.Set((node->cell & 0xffff) * grid_scale_01c,
+                         (node->level_flags & 0xffff) * span_020,
+                         (node->cell >> 0x10) * grid_scale_01c);
             unsigned int key = AutomapNodeKey(&position);
             if (used_keys.FindNextEntry(&key, -1) == -1) {
                 node_keys.Add(key);

@@ -85,9 +85,7 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
     }
     g_camera_path_active = 0;
     rotation.SetIdentity();
-    target.x = 0.0f;
-    target.y = 0.0f;
-    target.z = 1.0f;
+    target.Set(0.0f, 0.0f, 1.0f);
     world->camera->getRotation(rotation);
     ApplyCameraRotation(&rotation);
     path->active_14 = 0;

@@ -2348,11 +2348,10 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
             node->base_score_0c = vertical;
             node->path_cost_10 = path_cost;
             node->clearance_18 = clearance;
-            node->position_20.x =
-                (node->cell_x_04 + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
-            node->position_20.y = (node->path_height_08 - 1) * span_020 + level_bounds[1];
-            node->position_20.z =
-                (node->cell_z_06 + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+            node->position_20.Set(
+                (node->cell_x_04 + g_float_005ebc7c) * grid_scale_01c + level_bounds[0],
+                (node->path_height_08 - 1) * span_020 + level_bounds[1],
+                (node->cell_z_06 + g_float_005ebc7c) * grid_scale_01c + level_bounds[2]);
 
             unsigned short collision =
                 ResolveSearchNodeCollisions(movement, node_index, radius, separation);
@@ -3626,9 +3625,9 @@ unsigned int W8PathingService::FindPathCell(srVector3T<float>* position, unsigne
     }
 
     if (adjust != 0 && found) {
-        position->y = (selected_height - 1) * span_020 + level_bounds[1];
-        position->x = (selected_x + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
-        position->z = (selected_z + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+        position->Set((selected_x + g_float_005ebc7c) * grid_scale_01c + level_bounds[0],
+                      (selected_height - 1) * span_020 + level_bounds[1],
+                      (selected_z + g_float_005ebc7c) * grid_scale_01c + level_bounds[2]);
     }
     if (cell != 0) {
         cell[0] = selected_x;
@@ -3670,9 +3669,9 @@ unsigned char W8PathingService::SnapWaypointPosition(srVector3T<float>* position
     }
 
     if (snap_to_cell != 0 && found != 0) {
-        position->y = (matched_height - 1) * span_020 + level_bounds[1];
-        position->x = (cell[0] + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
-        position->z = (cell[1] + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+        position->Set((cell[0] + g_float_005ebc7c) * grid_scale_01c + level_bounds[0],
+                      (matched_height - 1) * span_020 + level_bounds[1],
+                      (cell[1] + g_float_005ebc7c) * grid_scale_01c + level_bounds[2]);
     }
     return found;
 }
@@ -3714,9 +3713,9 @@ unsigned char W8PathingService::TestPathCellClearance(srVector3T<float>* positio
         return 0;
     }
     if (snap_to_cell != 0) {
-        position->y = (matched_height - 1) * span_020 + level_bounds[1];
-        position->x = (cell[0] + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
-        position->z = (cell[1] + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+        position->Set((cell[0] + g_float_005ebc7c) * grid_scale_01c + level_bounds[0],
+                      (matched_height - 1) * span_020 + level_bounds[1],
+                      (cell[1] + g_float_005ebc7c) * grid_scale_01c + level_bounds[2]);
     }
 
     float direction = g_float_005ebb34;
@@ -3761,9 +3760,9 @@ unsigned char W8PathingService::SnapToLowerPathCell(srVector3T<float>* position,
     }
 
     if (found != 0) {
-        position->y = (matched_height - 1) * span_020 + level_bounds[1];
-        position->x = (cell[0] + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
-        position->z = (cell[1] + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+        position->Set((cell[0] + g_float_005ebc7c) * grid_scale_01c + level_bounds[0],
+                      (matched_height - 1) * span_020 + level_bounds[1],
+                      (cell[1] + g_float_005ebc7c) * grid_scale_01c + level_bounds[2]);
     }
     return found;
 }
@@ -3817,9 +3816,7 @@ void W8PathingService::ProbeWaypointArc(const srVector3T<float>* from, const srV
 
     direction = *to - *from;
     radius = direction.Length();
-    arc.x = -direction.z;
-    arc.y = 0.0f;
-    arc.z = direction.x;
+    arc.Set(-direction.z, 0.0f, direction.x);
 
     for (iteration = 0; iteration < 50000; ++iteration) {
         srVector3T<float> probe;
@@ -3829,9 +3826,7 @@ void W8PathingService::ProbeWaypointArc(const srVector3T<float>* from, const srV
         probe = *from + arc;
         ProbeWaypointSegment(from, &probe);
 
-        step.x = arc.z;
-        step.y = arc.y;
-        step.z = -arc.x;
+        step.Set(arc.z, arc.y, -arc.x);
         step.SetLength(grid_scale_01c);
         arc += step;
 
@@ -3982,12 +3977,9 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
     int directions[2];
 
     PositionToPathKey(this, from, cell);
-    walk_from.x = from->x;
-    walk_from.y = from->z;
-    walk_to.x = to->x;
-    walk_to.y = to->z;
-    origin.x = level_bounds[0];
-    origin.y = level_bounds[2];
+    walk_from.Set(from->x, from->z);
+    walk_to.Set(to->x, to->z);
+    origin.Set(level_bounds[0], level_bounds[2]);
     BuildPathGridWalk(&walk_from, &walk_to, &origin, &walk);
     GetPathGridStepDirections(&walk, directions);
 
@@ -4038,9 +4030,9 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
                 srVector3T<float> position;
                 unsigned int initial_cost;
 
-                position.x = (cell[0] + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
-                position.y = (height - 1) * span_020 + level_bounds[1];
-                position.z = (cell[1] + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+                position.Set((cell[0] + g_float_005ebc7c) * grid_scale_01c + level_bounds[0],
+                             (height - 1) * span_020 + level_bounds[1],
+                             (cell[1] + g_float_005ebc7c) * grid_scale_01c + level_bounds[2]);
 
                 initial_cost = static_cast<unsigned int>(
                     static_cast<int>(((position - *to).Length() * g_double_005ec3b0)));
@@ -4227,12 +4219,9 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
     srVector2T<float> origin;
     W8PathGridWalk walk;
     int directions[2];
-    walk_source.x = source->x;
-    walk_source.y = source->z;
-    walk_destination.x = destination->x;
-    walk_destination.y = destination->z;
-    origin.x = level_bounds[0];
-    origin.y = level_bounds[2];
+    walk_source.Set(source->x, source->z);
+    walk_destination.Set(destination->x, destination->z);
+    origin.Set(level_bounds[0], level_bounds[2]);
     BuildPathGridWalk(&walk_source, &walk_destination, &origin, &walk);
     GetPathGridStepDirections(&walk, directions);
 
@@ -5170,12 +5159,10 @@ void W8PathingService::DrawPathPosition(srVector3T<float> position, unsigned cha
                     node->cell_z_06 = static_cast<unsigned short>(neighbor_z);
                     node->path_height_08 = static_cast<unsigned short>(path_value & 0xffff);
                     node->parent_node_0a = static_cast<unsigned short>(best_node);
-                    node->position_20.x =
-                        (node->cell_x_04 + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
-                    node->position_20.y =
-                        (node->path_height_08 - 1) * span_020 + level_bounds[1];
-                    node->position_20.z =
-                        (node->cell_z_06 + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+                    node->position_20.Set(
+                        (node->cell_x_04 + g_float_005ebc7c) * grid_scale_01c + level_bounds[0],
+                        (node->path_height_08 - 1) * span_020 + level_bounds[1],
+                        (node->cell_z_06 + g_float_005ebc7c) * grid_scale_01c + level_bounds[2]);
                     node->score_1c = (node->position_20 - position).Length();
                     if (node->score_1c < g_path_search_visualization_limit) {
                         W8PathHeapEntry pending;
@@ -5406,9 +5393,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization()
 
     srVector3T<float>* colors = model->getVertexDIG(0, 1);
     for (index = 0; index < 5; ++index) {
-        colors[index].x = 1.0f;
-        colors[index].y = 0.0f;
-        colors[index].z = 0.0f;
+        colors[index].Set(1.0f, 0.0f, 0.0f);
     }
     for (index = 5; index < 500; ++index) {
         colors[index].Set(0.0, 0.0, 1.0);
@@ -5452,12 +5437,10 @@ short W8PathingService::CollectPathVisualization(const srVector3T<float>* positi
 
     srVector3T<float> lower;
     srVector3T<float> upper;
-    lower.x = position->x - g_float_005ec35c;
-    lower.y = position->y - g_float_005ec2f8;
-    lower.z = position->z - g_float_005ec35c;
-    upper.x = position->x + g_float_005ec35c;
-    upper.y = position->y + g_float_005ec2f8;
-    upper.z = position->z + g_float_005ec35c;
+    lower.Set(position->x - g_float_005ec35c, position->y - g_float_005ec2f8,
+              position->z - g_float_005ec35c);
+    upper.Set(position->x + g_float_005ec35c, position->y + g_float_005ec2f8,
+              position->z + g_float_005ec35c);
     query_count =
         g_octree->QueryObjects(&query_results, &lower, &upper, W8_OCTREE_KIND_WAYPOINT, -1);
 
@@ -5481,12 +5464,10 @@ short W8PathingService::CollectPathVisualization(const srVector3T<float>* positi
     }
 
     query_results = 0;
-    lower.x = position->x - g_float_005ec384;
-    lower.y = position->y - g_float_005ec35c;
-    lower.z = position->z - g_float_005ec384;
-    upper.x = position->x + g_float_005ec384;
-    upper.y = position->y + g_float_005ec35c;
-    upper.z = position->z + g_float_005ec384;
+    lower.Set(position->x - g_float_005ec384, position->y - g_float_005ec35c,
+              position->z - g_float_005ec384);
+    upper.Set(position->x + g_float_005ec384, position->y + g_float_005ec35c,
+              position->z + g_float_005ec384);
     query_count =
         g_octree->QueryObjects(&query_results, &lower, &upper, W8_OCTREE_KIND_WAYPOINT, -1);
 
@@ -5609,12 +5590,12 @@ void W8PathingService::SetWaypointLinkFlags(unsigned short waypoint, unsigned in
                                          direction);
         if (accepted != 0) {
             surface = m_pSurfaces_048 + waypoint;
-            lower.x = surface->position_04.x - g_float_005ec388;
-            lower.y = surface->position_04.y - g_float_005ec260;
-            lower.z = surface->position_04.z - g_float_005ec388;
-            upper.x = surface->position_04.x + g_float_005ec388;
-            upper.y = surface->position_04.y + g_float_005ec260;
-            upper.z = surface->position_04.z + g_float_005ec388;
+            lower.Set(surface->position_04.x - g_float_005ec388,
+                      surface->position_04.y - g_float_005ec260,
+                      surface->position_04.z - g_float_005ec388);
+            upper.Set(surface->position_04.x + g_float_005ec388,
+                      surface->position_04.y + g_float_005ec260,
+                      surface->position_04.z + g_float_005ec388);
             count =
                 g_octree->QueryObjects(&objects, &lower, &upper, W8_OCTREE_KIND_WAYPOINT, waypoint);
             if (count != 0) {
@@ -5886,9 +5867,7 @@ unsigned char W8PathingService::HasDirectionalWaypointLink(unsigned short source
     destination_distance = destination_direction.Length();
     srVector2T<float> destination_horizontal(destination_direction.x, destination_direction.z);
     destination_horizontal.Normalize();
-    destination_direction.x = destination_horizontal.x;
-    destination_direction.y = 0.0f;
-    destination_direction.z = destination_horizontal.y;
+    destination_direction.Set(destination_horizontal.x, 0.0f, destination_horizontal.y);
 
     edge_index = source_surface->first_edge_24;
     while (edge_index != 0) {
@@ -5909,9 +5888,7 @@ unsigned char W8PathingService::HasDirectionalWaypointLink(unsigned short source
             srVector2T<float> neighbor_horizontal(neighbor_direction.x, neighbor_direction.z);
 
             neighbor_horizontal.Normalize();
-            neighbor_direction.x = neighbor_horizontal.x;
-            neighbor_direction.y = 0.0f;
-            neighbor_direction.z = neighbor_horizontal.y;
+            neighbor_direction.Set(neighbor_horizontal.x, 0.0f, neighbor_horizontal.y);
 
             second_edge_index = neighbor->first_edge_24;
             while (second_edge_index != 0) {

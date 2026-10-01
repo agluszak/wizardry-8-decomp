@@ -141,9 +141,7 @@ void MonsterLight::Update0049D990(const srVector3T<float>* position)
     }
 
     srVector3T<double> location;
-    location.x = position->x;
-    location.y = position->y + m_vertical_offset_228;
-    location.z = position->z;
+    location.Set(position->x, position->y + m_vertical_offset_228, position->z);
     setLocation(location);
 }
 

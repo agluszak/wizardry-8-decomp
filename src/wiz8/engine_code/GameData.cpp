@@ -550,9 +550,7 @@ bool g_environ_ground_latch;
 void W8EnvironRecord::SetScaledMotion(const srVector3T<float>* motion)
 {
     double inv_scale = g_double_005ebc30 / scale_0c;
-    vector_24.x = motion->x * inv_scale;
-    vector_24.y = motion->y * inv_scale;
-    vector_24.z = motion->z * inv_scale;
+    vector_24.Set(motion->x * inv_scale, motion->y * inv_scale, motion->z * inv_scale);
     /* 0x00421843 raises the airborne flag with the vector, so the record counts
        as airborne from the frame the scaled motion is stored. */
     airborne_05 = 1;
@@ -828,9 +826,7 @@ unsigned char W8GameData::ProbeMonstersAlongMotion(srVector3T<float>* direction,
                     push = g_monster_motion_push;
                 }
                 length_squared = dz * dz + dx * dx;
-                adjustment.x = dx;
-                adjustment.y = dy;
-                adjustment.z = dz;
+                adjustment.Set(dx, dy, dz);
                 // reinterpret-ok: retail zeros the push y spill after storing dy
                 *reinterpret_cast<unsigned int*>(&adjustment.y) = 0;
                 if (length_squared != static_cast<float>(g_zero_005ebb40)) {
@@ -939,9 +935,9 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
     }
 
     environ_delta = level->vector_a0;
-    camera_position.x = adjusted_position.x;
-    camera_position.y = (g_world_scale - g_environ->world_height_30) + adjusted_position.y;
-    camera_position.z = adjusted_position.z;
+    camera_position.Set(adjusted_position.x,
+                        (g_world_scale - g_environ->world_height_30) + adjusted_position.y,
+                        adjusted_position.z);
     motion_delta = environ_delta;
     adjusted_position.y = camera_position.y;
 
@@ -1048,9 +1044,9 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
             } else {
                 g_environment_motion_active = nearest_surface->ResolveCollision(
                     &camera_position, &hit_position, &motion_delta, collision_count);
-                probe_position.x = (camera_position.x + motion_delta.x) - adjusted_position.x;
-                probe_position.y = (camera_position.y + motion_delta.y) - adjusted_position.y;
-                probe_position.z = (camera_position.z + motion_delta.z) - adjusted_position.z;
+                probe_position.Set((camera_position.x + motion_delta.x) - adjusted_position.x,
+                                   (camera_position.y + motion_delta.y) - adjusted_position.y,
+                                   (camera_position.z + motion_delta.z) - adjusted_position.z);
                 if (collision_count < 0) {
                     collision_count = 0;
                 }
@@ -1136,9 +1132,8 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
             }
 
             scale = static_cast<float>(g_double_005ebc30) / g_level_data->camera_scale_14;
-            level->vector_64.x = environ_delta.x * scale;
-            level->vector_64.y = environ_delta.y * scale;
-            level->vector_64.z = environ_delta.z * scale;
+            level->vector_64.Set(environ_delta.x * scale, environ_delta.y * scale,
+                                 environ_delta.z * scale);
             level->vector_a0 = environ_delta;
             if (g_environment_motion_active == 0) {
                 if ((g_level_data->flags & 4) != 0 && forced_exit == 0) {
@@ -1165,9 +1160,9 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
             return g_environment_motion_active;
         }
 
-        environ_delta.x = (camera_position.x + motion_delta.x) - adjusted_position.x;
-        environ_delta.y = (camera_position.y + motion_delta.y) - adjusted_position.y;
-        environ_delta.z = (camera_position.z + motion_delta.z) - adjusted_position.z;
+        environ_delta.Set((camera_position.x + motion_delta.x) - adjusted_position.x,
+                          (camera_position.y + motion_delta.y) - adjusted_position.y,
+                          (camera_position.z + motion_delta.z) - adjusted_position.z);
         camera_position = adjusted_position;
         if (0 < collision_count) {
             for (index = 0; index < collision_count; ++index) {
@@ -1302,9 +1297,9 @@ bool W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
                         if (g_float_005ebb38 <= back || trace->hit_limit_24 < trace->length_28) {
                             hit_distance =
                                 (hit_distance / (back + hit_distance)) * trace->length_28;
-                            contact.x = trace->step_18.x * hit_distance + trace->start_00.x;
-                            contact.y = trace->step_18.y * hit_distance + trace->start_00.y;
-                            contact.z = trace->step_18.z * hit_distance + trace->start_00.z;
+                            contact.Set(trace->step_18.x * hit_distance + trace->start_00.x,
+                                        trace->step_18.y * hit_distance + trace->start_00.y,
+                                        trace->step_18.z * hit_distance + trace->start_00.z);
                         } else {
                             contact = trace->end_0c;
                             hit_distance = trace->length_28;
@@ -1481,20 +1476,17 @@ stModelInstance* W8GameData::CreateTraceModel()
             selected.Set(vertex + 1);
             selected.Set(vertex + 2);
         }
-        texcoords[vertex].x = 0.0f;
-        texcoords[vertex].y = 0.0f;
+        texcoords[vertex].SetZero();
         vertex_materials[vertex] = g_oct_mesh_default_material;
         poly_vertices[index].x = vertex;
         shade_indices[vertex] = vertex;
         vertex_locs[vertex] = m_pVertices[surface->vertex_indices_18[0]];
-        texcoords[vertex + 1].x = 0.0f;
-        texcoords[vertex + 1].y = 0.0f;
+        texcoords[vertex + 1].SetZero();
         vertex_materials[vertex + 1] = g_oct_mesh_default_material;
         poly_vertices[index].y = vertex + 1;
         shade_indices[vertex + 1] = vertex + 1;
         vertex_locs[vertex + 1] = m_pVertices[surface->vertex_indices_18[1]];
-        texcoords[vertex + 2].x = 0.0f;
-        texcoords[vertex + 2].y = 0.0f;
+        texcoords[vertex + 2].SetZero();
         vertex_materials[vertex + 2] = g_oct_mesh_default_material;
         poly_vertices[index].z = vertex + 2;
         shade_indices[vertex + 2] = vertex + 2;
@@ -1515,9 +1507,8 @@ stModelInstance* W8GameData::CreateTraceModel()
                 dig[i].Normalize();
             }
         } else {
-            dig[i].x = normals[i].x * g_float_005ebc78 + g_float_005ebc78;
-            dig[i].y = 0.0f;
-            dig[i].z = normals[i].z * g_float_005ebc78 + g_float_005ebc78;
+            dig[i].Set(normals[i].x * g_float_005ebc78 + g_float_005ebc78, 0.0f,
+                       normals[i].z * g_float_005ebc78 + g_float_005ebc78);
             float length = dig[i].Length();
             if (g_double_005ebc70 <= length) {
                 if (length < 0.3) {
@@ -1837,9 +1828,8 @@ unsigned char W8GDSurface::ClampHitToEdge(const srVector3T<float>* point,
     }
     float offset = -(DotProduct(*point, plane_24.normal) + plane_24.w);
     srVector3T<float> projected;
-    projected.x = plane_24.normal.x * offset + point->x;
-    projected.y = plane_24.normal.y * offset + point->y;
-    projected.z = plane_24.normal.z * offset + point->z;
+    projected.Set(plane_24.normal.x * offset + point->x, plane_24.normal.y * offset + point->y,
+                  plane_24.normal.z * offset + point->z);
     float edge_dist =
         PointToSegmentDistance(&projected, vertices + vertex_indices_18[nearest_edge],
                                vertices + vertex_indices_18[(nearest_edge + 1) % 3], 0, 0);
@@ -1963,9 +1953,8 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
     double inv_length = g_double_005ebc30 / direction_length;
     unit.Set(direction->x * inv_length, direction->y * inv_length, direction->z * inv_length);
     srVector3T<float> slide;
-    slide.x = normal.x * distance_34 + direction->x;
-    slide.y = normal.y * distance_34 + direction->y;
-    slide.z = normal.z * distance_34 + direction->z;
+    slide.Set(normal.x * distance_34 + direction->x, normal.y * distance_34 + direction->y,
+              normal.z * distance_34 + direction->z);
     ApplyEnvironContact(&slide);
     srVector3T<float> slide_unit = slide;
     slide_unit.Normalize();
@@ -2835,9 +2824,8 @@ unsigned char W8LevelDataRecord::ApplySavedMotionMatrix(unsigned char prior_fast
         vector_70.SetZero();
     }
     vector_40 = saved->Transform(vector_40);
-    vector_70.x = vector_40.x * camera_scale_14;
-    vector_70.y = vector_40.y * camera_scale_14;
-    vector_70.z = vector_40.z * camera_scale_14;
+    vector_70.Set(vector_40.x * camera_scale_14, vector_40.y * camera_scale_14,
+                  vector_40.z * camera_scale_14);
     if (IntegrateCameraForward() == 0) {
         return 0;
     }
@@ -2884,9 +2872,8 @@ unsigned char W8LevelDataRecord::ApplySavedMotionMatrix(unsigned char prior_fast
         }
     }
     vector_64.y = vertical;
-    vector_a0.x = vector_64.x * camera_scale_14;
-    vector_a0.y = vector_64.y * camera_scale_14;
-    vector_a0.z = vector_64.z * camera_scale_14;
+    vector_a0.Set(vector_64.x * camera_scale_14, vector_64.y * camera_scale_14,
+                  vector_64.z * camera_scale_14);
     return prior_fast;
 }
 
@@ -2976,15 +2963,13 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
             if (fast_move == 0) {
                 if (g_camera_level_forward_scale < length) {
                     vector_64.SetLength(g_camera_level_forward_scale);
-                    vector_a0.x = vector_64.x * camera_scale_14;
-                    vector_a0.y = vector_64.y * camera_scale_14;
-                    vector_a0.z = vector_64.z * camera_scale_14;
+                    vector_a0.Set(vector_64.x * camera_scale_14, vector_64.y * camera_scale_14,
+                                  vector_64.z * camera_scale_14);
                 }
             } else if (g_camera_default_forward_scale < length) {
                 vector_64.SetLength(g_camera_default_forward_scale);
-                vector_a0.x = vector_64.x * camera_scale_14;
-                vector_a0.y = vector_64.y * camera_scale_14;
-                vector_a0.z = vector_64.z * camera_scale_14;
+                vector_a0.Set(vector_64.x * camera_scale_14, vector_64.y * camera_scale_14,
+                              vector_64.z * camera_scale_14);
             }
         }
     }
@@ -2997,9 +2982,9 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
         footstep_accumulator_10 = 1800.0f;
     } else {
         camera_forward_4c = vector_64 - vector_58;
-        scaled_camera_forward_7c.x = camera_forward_4c.x * camera_scale_14;
-        scaled_camera_forward_7c.y = camera_forward_4c.y * camera_scale_14;
-        scaled_camera_forward_7c.z = camera_forward_4c.z * camera_scale_14;
+        scaled_camera_forward_7c.Set(camera_forward_4c.x * camera_scale_14,
+                                     camera_forward_4c.y * camera_scale_14,
+                                     camera_forward_4c.z * camera_scale_14);
         allow_override = UpdateFootstepFromMotion() != 0;
         camera_forward_4c -= g_environ->vector_24;
         projected = vector_58;

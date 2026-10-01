@@ -318,19 +318,15 @@ void ResetAutomapView(void)
         g_automap_range = 10000.0f;
     }
     if (g_octree == 0) {
-        g_automap_grid_min.x = -250000.0f;
-        g_automap_grid_min.y = -250000.0f;
-        g_automap_grid_min.z = -250000.0f;
-        g_automap_grid_max.x = 250000.0f;
-        g_automap_grid_max.y = 250000.0f;
-        g_automap_grid_max.z = 250000.0f;
+        g_automap_grid_min.Set(-250000.0f, -250000.0f, -250000.0f);
+        g_automap_grid_max.Set(250000.0f, 250000.0f, 250000.0f);
     } else {
         g_octree->spatial_000.GetClippedBounds(&g_automap_grid_min, &g_automap_grid_max);
     }
     g_automap_grid_origin = g_automap_grid_min;
-    g_automap_grid_center.x = (g_automap_grid_min.x + g_automap_grid_max.x) * g_float_005ebc7c;
-    g_automap_grid_center.y = 0.0f;
-    g_automap_grid_center.z = (g_automap_grid_min.z + g_automap_grid_max.z) * g_float_005ebc7c;
+    g_automap_grid_center.Set((g_automap_grid_min.x + g_automap_grid_max.x) * g_float_005ebc7c,
+                              0.0f,
+                              (g_automap_grid_min.z + g_automap_grid_max.z) * g_float_005ebc7c);
     g_automap_bounds_dirty = true;
     float span_x = g_automap_grid_max.x - g_automap_grid_min.x;
     float span_z = g_automap_grid_max.z - g_automap_grid_min.z;
@@ -451,9 +447,7 @@ void CreateAutomapButtons(void)
 void AutomapZoomInButton(void)
 {
     srVector3T<float> center;
-    center.x = 0.5f;
-    center.y = 0.5f;
-    center.z = 0.0f;
+    center.Set(0.5f, 0.5f, 0.0f);
     ZoomAutomapIn(&center);
 }
 
@@ -1263,9 +1257,9 @@ void ResetAutomapZoom(void)
 {
     g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
     srVector3T<float> position;
-    position.x = (g_automap_bounds_min.x + g_automap_bounds_max.x) * 0.5;
-    position.y = (g_automap_bounds_min.y + g_automap_bounds_max.y) * 0.5;
-    position.z = (g_automap_bounds_min.z + g_automap_bounds_max.z) * 0.5;
+    position.Set((g_automap_bounds_min.x + g_automap_bounds_max.x) * 0.5,
+                 (g_automap_bounds_min.y + g_automap_bounds_max.y) * 0.5,
+                 (g_automap_bounds_min.z + g_automap_bounds_max.z) * 0.5);
     position.y = g_automap_top_y;
     SetAutomapCameraPoint(&position);
     int tool = g_automap_tool;
@@ -1422,9 +1416,9 @@ unsigned int LightPendingAutomapCells(unsigned int max_count)
                 if (g_block_68f280 != 0 || bit < static_cast<unsigned int>(g_automap_cell_count)) {
                     unsigned int key = static_cast<unsigned int*>(g_block_68f280)[bit];
                     float half = g_float_64b914 * g_float_005ebc7c;
-                    cell.x = (key >> 0x15) * g_float_64b914 + half;
-                    cell.y = (key & 0x3ff) * g_float_64b914 + half;
-                    cell.z = ((key >> 10) & 0x7ff) * g_float_64b914 + half;
+                    cell.Set((key >> 0x15) * g_float_64b914 + half,
+                             (key & 0x3ff) * g_float_64b914 + half,
+                             ((key >> 10) & 0x7ff) * g_float_64b914 + half);
                 }
                 srVector3T<float> position;
                 position = cell + g_automap_grid_origin;
@@ -1490,9 +1484,9 @@ void UpdateAutomapBounds(void)
                         bit < static_cast<unsigned int>(g_automap_cell_count)) {
                         unsigned int key = static_cast<unsigned int*>(g_block_68f280)[bit];
                         float half = g_float_64b914 * g_float_005ebc7c;
-                        cell.x = (key >> 0x15) * g_float_64b914 + half;
-                        cell.y = (key & 0x3ff) * g_float_64b914 + half;
-                        cell.z = ((key >> 10) & 0x7ff) * g_float_64b914 + half;
+                        cell.Set((key >> 0x15) * g_float_64b914 + half,
+                                 (key & 0x3ff) * g_float_64b914 + half,
+                                 ((key >> 10) & 0x7ff) * g_float_64b914 + half);
                     }
                     srVector3T<float> position;
                     position = cell + g_automap_grid_origin;
@@ -1889,9 +1883,8 @@ unsigned char GetAutomapPositionUnderCursor(srVector3T<float>* position)
         } else {
             height = g_automap_grid_min.y;
         }
-        position->y = height;
-        position->x = (point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x;
-        position->z = g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom;
+        position->Set((point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x, height,
+                      g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom);
         return 1;
     }
     return 0;
@@ -2375,10 +2368,9 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
                     *g_automap_layers.GetAt(layer) != 0) {
                     (*g_automap_layers.GetAt(layer))->getLocationY();
                 }
-                g_automap_editing_note->position.x =
-                    (point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x;
-                g_automap_editing_note->position.y =
-                    g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom;
+                g_automap_editing_note->position.Set(
+                    (point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x,
+                    g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom);
                 g_automap_redraw = true;
             }
         }

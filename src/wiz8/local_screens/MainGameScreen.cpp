@@ -6773,12 +6773,12 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
             } else {
                 extent_index = g_spell_power_extent_index[gpSCSV->iSpellPower];
             }
-            minimum.x = static_cast<float>(g_world_cursor_extent_table[extent_index * 6]);
-            minimum.y = static_cast<float>(g_world_cursor_extent_table[extent_index * 6 + 1]);
-            minimum.z = static_cast<float>(g_world_cursor_extent_table[extent_index * 6 + 2]);
-            maximum.x = static_cast<float>(g_world_cursor_extent_table[extent_index * 6 + 3]);
-            maximum.y = static_cast<float>(g_world_cursor_extent_table[extent_index * 6 + 4]);
-            maximum.z = static_cast<float>(g_world_cursor_extent_table[extent_index * 6 + 5]);
+            minimum.Set(static_cast<float>(g_world_cursor_extent_table[extent_index * 6]),
+                        static_cast<float>(g_world_cursor_extent_table[extent_index * 6 + 1]),
+                        static_cast<float>(g_world_cursor_extent_table[extent_index * 6 + 2]));
+            maximum.Set(static_cast<float>(g_world_cursor_extent_table[extent_index * 6 + 3]),
+                        static_cast<float>(g_world_cursor_extent_table[extent_index * 6 + 4]),
+                        static_cast<float>(g_world_cursor_extent_table[extent_index * 6 + 5]));
             SetWorldCursorExtents(&minimum, &maximum);
         }
     } else if (gXStatus.iTargetingMode == 4 ||

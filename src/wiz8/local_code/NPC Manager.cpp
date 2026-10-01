@@ -1176,9 +1176,9 @@ void SelectStartNpcGreeting(void)
                 return;
             }
             monster = monster_info->p3D;
-            head.x = monster->movement_0c0.position_040.x;
-            head.y = monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
-            head.z = monster->movement_0c0.position_040.z;
+            head.Set(monster->movement_0c0.position_040.x,
+                     monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8,
+                     monster->movement_0c0.position_040.z);
             g_gd_camera->LookAt(&head, 0);
             return;
         }

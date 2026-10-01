@@ -103,14 +103,10 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     (void)unused;
     srModeler::Vertex* vertices = polygon.vertices_30;
 
-    vertices[0].uv_c0[0].x = 1.0f;
-    vertices[0].uv_c0[0].y = 1.0f;
-    vertices[1].uv_c0[0].x = 0.0f;
-    vertices[1].uv_c0[0].y = 1.0f;
-    vertices[2].uv_c0[0].x = 0.0f;
-    vertices[2].uv_c0[0].y = 0.0f;
-    vertices[3].uv_c0[0].x = 1.0f;
-    vertices[3].uv_c0[0].y = 0.0f;
+    vertices[0].uv_c0[0].Set(1.0f, 1.0f);
+    vertices[1].uv_c0[0].Set(0.0f, 1.0f);
+    vertices[2].uv_c0[0].SetZero();
+    vertices[3].uv_c0[0].Set(1.0f, 0.0f);
 
     srVector3T<float> npp(-0.5f, 1.0f, 0.5f);
     srVector3T<float> ppp(0.5f, 1.0f, 0.5f);

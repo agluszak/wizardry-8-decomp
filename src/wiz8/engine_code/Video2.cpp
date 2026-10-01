@@ -1495,9 +1495,7 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
     srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y, mapping_width,
                                    mapping_height, mapping_x, mapping_y);
     g_modeler_65963c->planarMap(0, 0, mapping);
-    scale.x = static_cast<float>(width);
-    scale.y = static_cast<float>(height);
-    scale.z = 1.0f;
+    scale.Set(static_cast<float>(width), static_cast<float>(height), 1.0f);
     g_modeler_65963c->scale(scale);
     g_modeler_65963c->convert(*model, 1);
     g_modeler_65963c->discard();
@@ -1554,9 +1552,7 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
                                    g_float_005ebb38 - (step + step),
                                    g_float_005ebb38 - (step + step), step, step);
     g_modeler_65963c->planarMap(0, 0, mapping);
-    scale.x = static_cast<float>(width);
-    scale.y = static_cast<float>(height);
-    scale.z = 1.0f;
+    scale.Set(static_cast<float>(width), static_cast<float>(height), 1.0f);
     g_modeler_65963c->scale(scale);
     g_modeler_65963c->convert(*model, 1);
     g_modeler_65963c->discard();
@@ -1846,9 +1842,8 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
 // FUNCTION: WIZ8 0x004282F0
 void GetCursorScaledPosition(srVector3T<float>* position)
 {
-    position->x = (g_cursor_hotspot_x + g_cursor_width) * g_scale_x_5ebb1c;
-    position->z = 0.0f;
-    position->y = (g_cursor_hotspot_y + g_cursor_height) * g_scale_y_5ebb20;
+    position->Set((g_cursor_hotspot_x + g_cursor_width) * g_scale_x_5ebb1c,
+                  (g_cursor_hotspot_y + g_cursor_height) * g_scale_y_5ebb20, 0.0f);
 }
 
 /* Keep the rendered cursor synchronized with the OS cursor. In windowed mode
@@ -3152,9 +3147,7 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
 
     g_modeler_65963c->createGrid(1, 1);
     srVector3T<float> scale;
-    scale.x = static_cast<float>(scale_x);
-    scale.y = static_cast<float>(scale_y);
-    scale.z = 1.0f;
+    scale.Set(static_cast<float>(scale_x), static_cast<float>(scale_y), 1.0f);
     g_modeler_65963c->scale(scale);
     g_modeler_65963c->convert(*model, 1);
     g_modeler_65963c->discard();
@@ -3341,9 +3334,8 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
         instance->render_state_164.position_x = static_cast<short>(rect[0]);
         instance->render_state_164.position_y = static_cast<short>(rect[1]);
         srVector3T<double> location;
-        location.x = width * g_double_005ebe80 + left;
-        location.y = g_double_005ebc30 - (height * g_double_005ebe80 + top);
-        location.z = -0.0001;
+        location.Set(width * g_double_005ebe80 + left,
+                     g_double_005ebc30 - (height * g_double_005ebe80 + top), -0.0001);
         node->setLocation(location);
         instance->setName("Video2DRectToPolygon");
     }
@@ -3856,9 +3848,7 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, unsig
                                    extent_w, extent_h);
     g_modeler_65963c->planarMap(0, 0, mapping);
     srVector3T<float> scale;
-    scale.x = width;
-    scale.y = height;
-    scale.z = 1.0f;
+    scale.Set(width, height, 1.0f);
     g_modeler_65963c->scale(scale);
     g_modeler_65963c->convert(*model, 1);
     g_modeler_65963c->discard();

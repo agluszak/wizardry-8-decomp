@@ -1169,9 +1169,7 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
     }
 
     previous_y = item->position.y;
-    probe.x = item->position.x;
-    probe.z = item->position.z;
-    probe.y = previous_y + g_world_scale;
+    probe.Set(item->position.x, previous_y + g_world_scale, item->position.z);
     dt = g_game_time_accumulator->GetFrameDelta();
     if (g_camera_snap_epsilon < item->vertical_velocity_35) {
         probe.y = dt * item->vertical_velocity_35 + probe.y;
@@ -1224,9 +1222,7 @@ unsigned char SettleWorldItem(W8WorldItem* item)
     bool hit;
     int sector;
 
-    start.x = item->position.x;
-    start.z = item->position.z;
-    start.y = item->position.y + g_world_scale;
+    start.Set(item->position.x, item->position.y + g_world_scale, item->position.z);
 
     item->flags &= ~2u;
     item->vertical_velocity_35 = 0.0f;

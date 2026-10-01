@@ -210,9 +210,8 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x120,
                                      "Error reading vertex from WGD file.");
                     }
-                    m_pVertices[index].x = vertex.x * g_world_scale;
-                    m_pVertices[index].y = vertex.y * g_world_scale;
-                    m_pVertices[index].z = vertex.z * g_world_scale;
+                    m_pVertices[index].Set(vertex.x * g_world_scale, vertex.y * g_world_scale,
+                                           vertex.z * g_world_scale);
                     if (index == m_iNumVertices) {
                         minimum_08.x = vertex.x;
                         maximum_14.x = vertex.x;
@@ -275,9 +274,8 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                     } else {
                         surface->flags_00 = 0;
                     }
-                    surface->plane_24.normal.x = header.plane_0c[0];
-                    surface->plane_24.normal.y = header.plane_0c[1];
-                    surface->plane_24.normal.z = header.plane_0c[2];
+                    surface->plane_24.normal.Set(header.plane_0c[0], header.plane_0c[1],
+                                                 header.plane_0c[2]);
                     float largest = static_cast<float>(fabs(surface->plane_24.normal.x));
                     unsigned int axis = 0;
                     if (largest < static_cast<float>(fabs(surface->plane_24.normal.y))) {
@@ -602,9 +600,9 @@ void W8GameData::AddLevelPlane(W8LevelFilePlane* plane)
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x2cc, 0);
     }
     for (index = 0; index < 4; ++index) {
-        m_pTrigVertices[m_iNumTrigVertices].x = vertices[index].x * g_world_scale;
-        m_pTrigVertices[m_iNumTrigVertices].y = vertices[index].y * g_world_scale;
-        m_pTrigVertices[m_iNumTrigVertices].z = vertices[index].z * g_world_scale;
+        m_pTrigVertices[m_iNumTrigVertices].Set(vertices[index].x * g_world_scale,
+                                                vertices[index].y * g_world_scale,
+                                                vertices[index].z * g_world_scale);
         ++m_iNumTrigVertices;
     }
 
@@ -783,12 +781,10 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
     }
     vertex_base = m_iNumTrigVertices;
     for (index = 0; index < 36; ++index) {
-        m_pTrigVertices[m_iNumTrigVertices].x =
-            static_cast<float>(vertices[index].x * g_double_005ec150);
-        m_pTrigVertices[m_iNumTrigVertices].y =
-            static_cast<float>(vertices[index].y * g_double_005ec150);
-        m_pTrigVertices[m_iNumTrigVertices].z =
-            static_cast<float>(vertices[index].z * g_double_005ec150);
+        m_pTrigVertices[m_iNumTrigVertices].Set(
+            static_cast<float>(vertices[index].x * g_double_005ec150),
+            static_cast<float>(vertices[index].y * g_double_005ec150),
+            static_cast<float>(vertices[index].z * g_double_005ec150));
         ++m_iNumTrigVertices;
     }
     for (index = 0; index < 12; ++index) {

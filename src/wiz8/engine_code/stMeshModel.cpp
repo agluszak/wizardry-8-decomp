@@ -1257,27 +1257,27 @@ unsigned char stMeshModel::DecompressFrame(int frame, unsigned char flags,
     if (flags & 1) {
         for (int index = 0; index < vertex_location_count_22c; ++index) {
             const short* source = &compressed_vertex_locations[frame][index * 3];
-            destination[index].x = source[0] * vertex_compression_scale_444;
-            destination[index].y = source[1] * vertex_compression_scale_444;
-            destination[index].z = source[2] * vertex_compression_scale_444;
+            destination[index].Set(source[0] * vertex_compression_scale_444,
+                                   source[1] * vertex_compression_scale_444,
+                                   source[2] * vertex_compression_scale_444);
         }
         return 1;
     }
     if (flags & 2) {
         for (int index = 0; index < vertex_location_count_22c; ++index) {
             const unsigned char* source = &compressed_vertex_normals[frame][index * 3];
-            destination[index].x = s_compressed_normal_table[source[0]];
-            destination[index].y = s_compressed_normal_table[source[1]];
-            destination[index].z = s_compressed_normal_table[source[2]];
+            destination[index].Set(s_compressed_normal_table[source[0]],
+                                   s_compressed_normal_table[source[1]],
+                                   s_compressed_normal_table[source[2]]);
         }
         return 1;
     }
     if (flags & 4) {
         for (int index = 0; index < polygon_count_230; ++index) {
             const unsigned char* source = &compressed_polygon_normals[frame][index * 3];
-            destination[index].x = s_compressed_normal_table[source[0]];
-            destination[index].y = s_compressed_normal_table[source[1]];
-            destination[index].z = s_compressed_normal_table[source[2]];
+            destination[index].Set(s_compressed_normal_table[source[0]],
+                                   s_compressed_normal_table[source[1]],
+                                   s_compressed_normal_table[source[2]]);
         }
         return 1;
     }
@@ -1496,9 +1496,7 @@ void stMeshModel::ComputeFrameNormals(int frame)
     srVectorProcessor::normalize(vnorm, vnorm, 1.0f, vertex_location_count_22c);
     for (int vertex = 0; vertex < vertex_location_count_22c; ++vertex) {
         if (vnorm[vertex].x == 0.0f && vnorm[vertex].y == 0.0f && vnorm[vertex].z == 0.0f) {
-            vnorm[vertex].x = 1e-6f;
-            vnorm[vertex].y = 1e-6f;
-            vnorm[vertex].z = 1e-6f;
+            vnorm[vertex].Set(1e-6f, 1e-6f, 1e-6f);
         }
     }
     srVectorProcessor::mul(&vnorm->x, 127.0f, &vnorm->x, vertex_location_count_22c * 3);

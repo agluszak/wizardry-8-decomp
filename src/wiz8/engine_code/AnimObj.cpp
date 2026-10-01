@@ -565,12 +565,8 @@ void TransformBounds(const srMatrix3T<float>* rotation, const srVector3T<float>*
                 float tz = (transformed.z + translation->z) * scale->z;
 
                 if (i == 0 && j == 0 && k == 0) {
-                    maximum->x = tx;
-                    maximum->y = ty;
-                    maximum->z = tz;
-                    minimum->x = tx;
-                    minimum->y = ty;
-                    minimum->z = tz;
+                    maximum->Set(tx, ty, tz);
+                    minimum->Set(tx, ty, tz);
                 } else {
                     if (tx < minimum->x) {
                         minimum->x = tx;

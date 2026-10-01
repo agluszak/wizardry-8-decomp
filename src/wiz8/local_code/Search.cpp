@@ -171,16 +171,13 @@ void W8Searchable::GetPosition(srVector3T<float>* position)
             world_item->p3D->GetSearchPosition(position);
             return;
         }
-        position->x = world_item->position.x;
-        position->y = world_item->position.y + g_octree_cell_scale;
-        position->z = world_item->position.z;
+        position->Set(world_item->position.x, world_item->position.y + g_octree_cell_scale,
+                      world_item->position.z);
         return;
     }
     if (cursor_node != 0) {
         if (cursor_node->GetLocation0048D050(position) == 0) {
-            position->x = 3.4028235e+38f;
-            position->y = 3.4028235e+38f;
-            position->z = 3.4028235e+38f;
+            position->Set(3.4028235e+38f, 3.4028235e+38f, 3.4028235e+38f);
         }
         return;
     }
@@ -193,9 +190,9 @@ void W8Searchable::GetPosition(srVector3T<float>* position)
             srVector3T<float> minimum;
             srVector3T<float> maximum;
             trigger->m_pProp->PlayRepAnimation(&minimum, &maximum);
-            position->x = (minimum.x + maximum.x) * g_double_005ebe80;
-            position->y = (minimum.y + maximum.y) * g_double_005ebe80;
-            position->z = (minimum.z + maximum.z) * g_double_005ebe80;
+            position->Set((minimum.x + maximum.x) * g_double_005ebe80,
+                          (minimum.y + maximum.y) * g_double_005ebe80,
+                          (minimum.z + maximum.z) * g_double_005ebe80);
         }
     }
 }

@@ -2502,12 +2502,8 @@ void ApplyMonsterControlToNearbyMonsters(W8SpellEffectEntry* effect)
     far_clip = static_cast<float>(WorldGetFarClip(GetWorld()));
     center = effect->target.point;
     center.y += g_default_world_height * g_float_005ebc7c;
-    lower.x = center.x - far_clip;
-    lower.y = center.y - far_clip;
-    lower.z = center.z - far_clip;
-    upper.x = center.x + far_clip;
-    upper.y = center.y + far_clip;
-    upper.z = center.z + far_clip;
+    lower.Set(center.x - far_clip, center.y - far_clip, center.z - far_clip);
+    upper.Set(center.x + far_clip, center.y + far_clip, center.z + far_clip);
     location_ids = static_cast<unsigned long*>(operator new(0x400));
     count = g_octree->QueryLocationsInBox(&location_ids, &lower, &upper, 0);
     for (index = 0; index < count; ++index) {

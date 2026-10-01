@@ -1899,9 +1899,9 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
                 srVector3T<float> local = vertices[vertex] * m_pRep->scale_5f0;
                 srVector3T<float> rotated = rotation.Transform(local);
                 srVector3T<float> owner_position = GetPosition();
-                position->x = rotated.x + owner_position.x;
-                position->y = rotated.y + owner_position.y + movement_0c0.vertical_base_07c;
-                position->z = rotated.z + owner_position.z;
+                position->Set(rotated.x + owner_position.x,
+                              rotated.y + owner_position.y + movement_0c0.vertical_base_07c,
+                              rotated.z + owner_position.z);
                 return 1;
             }
         }
@@ -3658,13 +3658,9 @@ unsigned char W8Monster::GetAnimationBounds(srVector3T<float>* minimum, srVector
 
     result = W8GrCycle::GetAnimationBounds(minimum, maximum);
     scale = m_pRep->scale_5f0;
-    minimum->x *= scale;
-    minimum->y *= scale;
-    minimum->z *= scale;
+    *minimum *= scale;
     scale = m_pRep->scale_5f0;
-    maximum->x *= scale;
-    maximum->y *= scale;
-    maximum->z *= scale;
+    *maximum *= scale;
     return result;
 }
 

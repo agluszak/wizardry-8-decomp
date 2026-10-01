@@ -240,9 +240,9 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
                         continue;
                     }
                     front = front / (back + front) * trace->length_28;
-                    contact.x = trace->step_18.x * front + trace->start_00.x;
-                    contact.y = trace->step_18.y * front + trace->start_00.y;
-                    contact.z = trace->step_18.z * front + trace->start_00.z;
+                    contact.Set(trace->step_18.x * front + trace->start_00.x,
+                                trace->step_18.y * front + trace->start_00.y,
+                                trace->step_18.z * front + trace->start_00.z);
                 } else {
                     contact = trace->start_00;
                 }
@@ -988,8 +988,7 @@ unsigned long OctPreTree::SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeo
         return 0;
     }
     for (unsigned long uv = 0; uv < uv_count; ++uv) {
-        record->uv_map_30[uv].x = table[uv].u;
-        record->uv_map_30[uv].y = table[uv].v;
+        record->uv_map_30[uv].Set(table[uv].u, table[uv].v);
     }
     free(table);
     return uv_count;

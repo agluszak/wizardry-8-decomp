@@ -102,8 +102,8 @@ void W8NormalTexcoordMapper::process(srVertexPipe& pipe)
     count = pipe.getVertexCount();
     srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations_34 += count;
     for (index = 0; index < count; ++index) {
-        coordinates[index].x = (normals[index].x + g_float_005ebb38) * g_float_005ebc7c;
-        coordinates[index].y = (normals[index].y + g_float_005ebb38) * g_float_005ebc7c;
+        coordinates[index].Set((normals[index].x + g_float_005ebb38) * g_float_005ebc7c,
+                               (normals[index].y + g_float_005ebb38) * g_float_005ebc7c);
     }
 }
 
@@ -409,21 +409,14 @@ unsigned char PreprocessLevel(int handle, char* stem)
         vertices = static_cast<W8OctPreTreeVertex*>(malloc(mesh->num_vertices_04 * 0xc0));
         if (vertices != 0) {
             memset(vertices, 0, mesh->num_vertices_04 * 0xc0);
-            minimum.x = 1e7f;
-            minimum.y = 1e7f;
-            minimum.z = 1e7f;
-            maximum.x = -1e7f;
-            maximum.y = -1e7f;
-            maximum.z = -1e7f;
+            minimum.Set(1e7f, 1e7f, 1e7f);
+            maximum.Set(-1e7f, -1e7f, -1e7f);
             redundant = 0;
             for (i = 1; i < mesh->num_vertices_04; ++i) {
                 const float* source = mesh->pstVertices + (i - 1) * 3;
-                vertices[i].position_0c.x = source[0] * g_world_scale;
-                vertices[i].position_0c.y = source[1] * g_world_scale;
-                vertices[i].position_0c.z = source[2] * g_world_scale;
-                vertices[i].original_position_54.x = source[0];
-                vertices[i].original_position_54.y = source[1];
-                vertices[i].original_position_54.z = source[2];
+                vertices[i].position_0c.Set(source[0] * g_world_scale, source[1] * g_world_scale,
+                                            source[2] * g_world_scale);
+                vertices[i].original_position_54.Set(source[0], source[1], source[2]);
                 vertices[i].visited_0a = 0;
                 for (j = 0; j < 3; ++j) {
                     float v = (&vertices[i].position_0c.x)[j];
@@ -1374,9 +1367,7 @@ int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsi
                         back->vertices_34[0] = vertices + vertex_index[1];
                         back->vertices_34[1] = vertices + vertex_index[0];
                         back->vertices_34[2] = vertices + vertex_index[2];
-                        back->plane_08.normal.x *= g_negative_one;
-                        back->plane_08.normal.y *= g_negative_one;
-                        back->plane_08.normal.z *= g_negative_one;
+                        back->plane_08.normal *= g_negative_one;
                         back->plane_08.w *= g_negative_one;
                         back->face_48.vertices[0] = vertex_index[1];
                         back->face_48.vertices[1] = vertex_index[0];
@@ -1612,9 +1603,8 @@ int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight*
     srVector3T<float> position;
     srVector3T<float> corner;
 
-    position.x = prop->position_03.x * g_world_scale;
-    position.y = prop->position_03.y * g_world_scale;
-    position.z = prop->position_03.z * g_world_scale;
+    position.Set(prop->position_03.x * g_world_scale, prop->position_03.y * g_world_scale,
+                 prop->position_03.z * g_world_scale);
     if (tree->SegmentClear(&light->position_08, &position)) {
         return 1;
     }
@@ -1628,9 +1618,7 @@ int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight*
                 for (corner_y = 0; corner_y < 2; ++corner_y) {
                     float y = bounds[corner_y * 3 + 1] * g_world_scale;
                     for (corner_z = 0; corner_z < 2; ++corner_z) {
-                        corner.z = bounds[corner_z * 3 + 2] * g_world_scale;
-                        corner.x = x;
-                        corner.y = y;
+                        corner.Set(x, y, bounds[corner_z * 3 + 2] * g_world_scale);
                         if (tree->SegmentClear(&light->position_08, &corner)) {
                             return 1;
                         }

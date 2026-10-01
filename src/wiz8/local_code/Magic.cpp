@@ -3119,9 +3119,9 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             missile_index = g_spell_records[spell_id].missile_index_140;
             if (GetSpellTargetType(spell_id, 0) == 6) {
                 ResetCombatSlot(&point_target);
-                point_target.point.x = target->point.x;
-                point_target.point.z = target->point.z;
-                point_target.point.y = g_default_world_height * g_float_005ebc7c + target->point.y;
+                point_target.point.Set(target->point.x,
+                                       g_default_world_height * g_float_005ebc7c + target->point.y,
+                                       target->point.z);
                 point_target.iType = W8_TARGET_KIND_PLACE;
                 missile = FireMissileSourceToTarget(missile_index, source, &point_target, &block, 1,
                                                     0xffffffff, 9999);
@@ -4061,9 +4061,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         }
         break;
     case 6:
-        trace.x = target_point.x;
-        trace.y = target_point.y - g_float_005ebc64;
-        trace.z = target_point.z;
+        trace.Set(target_point.x, target_point.y - g_float_005ebc64, target_point.z);
         radius = (g_spell_records[spell_id].radius_per_level_127 * power_level +
                   g_spell_records[spell_id].effect_radius) *
                  g_world_scale;

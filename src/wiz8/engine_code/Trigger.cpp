@@ -1632,9 +1632,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, trigger->representation_vectors_0cc,
                      sizeof(trigger->representation_vectors_0cc), 0);
             for (int vector = 0; vector < 4; ++vector) {
-                trigger->representation_vectors_0cc[vector].x *= 500.0f;
-                trigger->representation_vectors_0cc[vector].y *= 500.0f;
-                trigger->representation_vectors_0cc[vector].z *= 500.0f;
+                trigger->representation_vectors_0cc[vector] *= 500.0f;
             }
         }
         if (version > 2) {
@@ -1674,9 +1672,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                     for (int index = 0; index < 36; ++index) {
                         FileRead(handle, &legacy_vertices[index], sizeof(legacy_vertices[index]),
                                  0);
-                        legacy_vertices[index].x *= 500.0f;
-                        legacy_vertices[index].y *= 500.0f;
-                        legacy_vertices[index].z *= 500.0f;
+                        legacy_vertices[index] *= 500.0f;
                     }
                     FileRead(handle, &legacy_flags[0], 1, 0);
                     FileRead(handle, &legacy_flags[1], 1, 0);
@@ -1685,9 +1681,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         }
 
         trigger->trigger_kind_018 = 2;
-        trigger->position_118.x = x * 500.0f;
-        trigger->position_118.y = y * 500.0f;
-        trigger->position_118.z = z * 500.0f;
+        trigger->position_118.Set(x * 500.0f, y * 500.0f, z * 500.0f);
         trigger->range_maximum_0a8 = range * 500.0f;
         trigger->m_bRepType = 3;
         trigger->action_value = value_ac;
@@ -1779,15 +1773,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         if (version > 4) {
             FileRead(handle, &shared, 1, 0);
         }
-        position.x *= 500.0f;
-        position.y *= 500.0f;
-        position.z *= 500.0f;
-        region_u.x *= 500.0f;
-        region_u.y *= 500.0f;
-        region_u.z *= 500.0f;
-        region_v.x *= 500.0f;
-        region_v.y *= 500.0f;
-        region_v.z *= 500.0f;
+        position *= 500.0f;
+        region_u *= 500.0f;
+        region_v *= 500.0f;
         radius *= 500.0f;
         AddAmbientSound(world, optional_name, &config, &position, &region_u, &region_v, volume_min,
                         volume_max, speed_min, speed_max, time_min, time_max, radius,
@@ -2009,17 +1997,13 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 FileRead(handle, &trigger->position_118, sizeof(srVector3T<float>), 0);
                 FileRead(handle, &trigger->angle_0fc, 4, 0);
                 FileRead(handle, &trigger->direction_100, sizeof(srVector3T<float>), 0);
-                trigger->position_118.x *= 500.0f;
-                trigger->position_118.y *= 500.0f;
-                trigger->position_118.z *= 500.0f;
+                trigger->position_118 *= 500.0f;
                 trigger->flags_0a0 |= W8_TRIGGER_POSITIONED;
             } else if (representation_kind == 2) {
                 FileRead(handle, trigger->representation_vectors_0cc,
                          sizeof(trigger->representation_vectors_0cc), 0);
                 for (int vector = 0; vector < 4; ++vector) {
-                    trigger->representation_vectors_0cc[vector].x *= 500.0f;
-                    trigger->representation_vectors_0cc[vector].y *= 500.0f;
-                    trigger->representation_vectors_0cc[vector].z *= 500.0f;
+                    trigger->representation_vectors_0cc[vector] *= 500.0f;
                 }
             }
             unsigned char has_legacy_action;
@@ -2050,9 +2034,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 FileRead(handle, &count, 1, 0);
                 for (int index = 0; index < 36; ++index) {
                     FileRead(handle, &legacy_vertices[index], sizeof(legacy_vertices[index]), 0);
-                    legacy_vertices[index].x *= 500.0f;
-                    legacy_vertices[index].y *= 500.0f;
-                    legacy_vertices[index].z *= 500.0f;
+                    legacy_vertices[index] *= 500.0f;
                 }
                 FileRead(handle, &legacy_flags[0], 1, 0);
                 FileRead(handle, &legacy_flags[1], 1, 0);

@@ -83,10 +83,9 @@ void W8GroundShadowMapper::process(srVertexPipe& pipe)
         float dz = vertex->z - center_z_14;
         float dx = vertex->x - center_x_18;
         srVector2T<float> coordinate;
-        coordinate.x =
-            dz * transform_04.vectors[0].x + dx * transform_04.vectors[0].y + g_float_005ebc7c;
-        coordinate.y =
-            dx * transform_04.vectors[1].x + dz * transform_04.vectors[1].y + g_float_005ebc7c;
+        coordinate.Set(
+            dz * transform_04.vectors[0].x + dx * transform_04.vectors[0].y + g_float_005ebc7c,
+            dx * transform_04.vectors[1].x + dz * transform_04.vectors[1].y + g_float_005ebc7c);
         ++index;
         *output++ = coordinate;
     } while (--count != 0);
@@ -206,10 +205,10 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
     saved_offset = renderer->getPolygonOffset();
     renderer->setPolygonOffset(2);
 
-    g_ground_shadow_material_parameters.transform_04.vectors[0].x = g_float_005ebc7c / width_140;
-    g_ground_shadow_material_parameters.transform_04.vectors[0].y = 0;
-    g_ground_shadow_material_parameters.transform_04.vectors[1].x = 0;
-    g_ground_shadow_material_parameters.transform_04.vectors[1].y = g_float_005ebc7c / depth_13c;
+    g_ground_shadow_material_parameters.transform_04.vectors[0].Set(g_float_005ebc7c / width_140,
+                                                                    0);
+    g_ground_shadow_material_parameters.transform_04.vectors[1].Set(0,
+                                                                    g_float_005ebc7c / depth_13c);
     cosine = cos(-angle_138);
     sine = sin(-angle_138);
     rotation.vectors[0].Set(cosine, -sine);

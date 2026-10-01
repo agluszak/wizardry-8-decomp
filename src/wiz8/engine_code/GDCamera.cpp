@@ -135,9 +135,7 @@ void OffsetPositionByYawPitch(float distance, srVector3T<float>* position, float
     float cosine;
     float sine;
 
-    forward.z = distance;
-    forward.x = 0.0f;
-    forward.y = 0.0f;
+    forward.Set(0.0f, 0.0f, distance);
     rotation.SetIdentity();
     if (yaw != g_zero_005ebb40) {
         cosine = static_cast<float>(cos(yaw));
@@ -276,15 +274,13 @@ void GDCamera::ApplyRotationMatrix(srMatrix3T<float>* rotation, W8LevelDataRecor
     if (forward_x != g_float_005ebb34 || forward_y != g_float_005ebb34 ||
         forward_z != g_float_005ebb38) {
         if (context != 0) {
-            context->camera_forward_4c.x = forward_x * g_camera_level_forward_scale;
-            context->camera_forward_4c.y = forward_y * g_camera_level_forward_scale;
-            context->camera_forward_4c.z = forward_z * g_camera_level_forward_scale;
-            context->scaled_camera_forward_7c.x =
-                context->camera_forward_4c.x * context->camera_scale_14;
-            context->scaled_camera_forward_7c.y =
-                context->camera_forward_4c.y * context->camera_scale_14;
-            context->scaled_camera_forward_7c.z =
-                context->camera_forward_4c.z * context->camera_scale_14;
+            context->camera_forward_4c.Set(forward_x * g_camera_level_forward_scale,
+                                           forward_y * g_camera_level_forward_scale,
+                                           forward_z * g_camera_level_forward_scale);
+            context->scaled_camera_forward_7c.Set(
+                context->camera_forward_4c.x * context->camera_scale_14,
+                context->camera_forward_4c.y * context->camera_scale_14,
+                context->camera_forward_4c.z * context->camera_scale_14);
         }
 
         if (forward_y > g_float_005ebb38) {

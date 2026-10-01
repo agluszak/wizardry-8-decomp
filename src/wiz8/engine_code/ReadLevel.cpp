@@ -906,12 +906,10 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->emission_mode_1b0 = 1;
         } else {
             particle->emission_mode_1b0 = 2;
-            particle->minimum_1d0.x = -record.spread_x_06c * 250.0f;
-            particle->minimum_1d0.y = -record.spread_y_070 * 250.0f;
-            particle->minimum_1d0.z = 0.0f;
-            particle->maximum_1dc.x = record.spread_x_06c * 250.0f;
-            particle->maximum_1dc.y = record.spread_y_070 * 250.0f;
-            particle->maximum_1dc.z = record.spread_z_074 * g_world_scale;
+            particle->minimum_1d0.Set(-record.spread_x_06c * 250.0f, -record.spread_y_070 * 250.0f,
+                                      0.0f);
+            particle->maximum_1dc.Set(record.spread_x_06c * 250.0f, record.spread_y_070 * 250.0f,
+                                      record.spread_z_074 * g_world_scale);
         }
 
         if (record.direction_mode == 0) {

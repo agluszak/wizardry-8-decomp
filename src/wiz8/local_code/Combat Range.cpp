@@ -1316,9 +1316,7 @@ int FindNearestVisibleGroupMonster(W8MonsterInfo* monster_info, int group_id, in
 // FUNCTION: WIZ8 0x0051b320
 void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float>* out)
 {
-    out->x = 0.0f;
-    out->y = monster->movement_0c0.height_offset_0b8;
-    out->z = 0.0f;
+    out->Set(0.0f, monster->movement_0c0.height_offset_0b8, 0.0f);
     if (kind == 1) {
         if (monster->GetProjectilePosition(out) != 0) {
             srVector3T<float> position = monster->GetPosition();

@@ -445,9 +445,9 @@ void UpdateRadarBlips(void)
     while (missile != 0) {
         if (missile->impacting_1e1 == 0) {
             missile->GetAnimationBounds(&bounds_min, &bounds_max);
-            center.x = (bounds_min.x + bounds_max.x) * g_double_005ebe80;
-            center.y = (bounds_min.y + bounds_max.y) * g_double_005ebe80;
-            center.z = (bounds_min.z + bounds_max.z) * g_double_005ebe80;
+            center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
+                       (bounds_min.y + bounds_max.y) * g_double_005ebe80,
+                       (bounds_min.z + bounds_max.z) * g_double_005ebe80);
             party = missile->GetPosition();
             position = center + party;
             party = g_startup_world->GetPosition();

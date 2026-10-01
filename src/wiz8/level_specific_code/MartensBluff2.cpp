@@ -521,9 +521,9 @@ void MartensBluff2MonsterCrusher(int command)
             crusher_upper.x = upper.x;
             g_crusher_excluded = 0;
             g_crusher_excluded_flag = false;
-            centre.x = (crusher_lower.x + crusher_upper.x) * g_double_005ebe80;
-            centre.y = (crusher_lower.y + crusher_upper.y) * g_double_005ebe80;
-            centre.z = (crusher_lower.z + crusher_upper.z) * g_double_005ebe80;
+            centre.Set((crusher_lower.x + crusher_upper.x) * g_double_005ebe80,
+                       (crusher_lower.y + crusher_upper.y) * g_double_005ebe80,
+                       (crusher_lower.z + crusher_upper.z) * g_double_005ebe80);
             if (command != 2) {
                 g_crusher_sound = CreateAndPlaySoundNode(
                     "Data\\Sound\\Ambients\\Hydraulics Squisher Loop.wav", centre, 0.7f, 30.0f, 1);
