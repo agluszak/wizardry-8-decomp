@@ -691,7 +691,8 @@ void srColorSurfaceIFace::addNoise(double amplitude, int monochrome)
     if (magnitude != 0) {
         long height = height_20;
         long width = width_1c;
-        unsigned char* row = (unsigned char*)new srARGB[width];
+        srARGB* row_colors = new srARGB[width];
+        unsigned char* row = (unsigned char*)row_colors;
         for (long y = 0; y < height; ++y) {
             getPixelRow((unsigned long*)row, y, 0, width);
             if (monochrome == 0) {
@@ -726,7 +727,7 @@ void srColorSurfaceIFace::addNoise(double amplitude, int monochrome)
             }
             setPixelRow((const unsigned long*)row, y, 0, width);
         }
-        srHeap.free(row);
+        delete[] row_colors;
     }
 }
 
@@ -736,7 +737,8 @@ void srColorSurfaceIFace::adjustSaturation(double saturation)
     if (saturation != 1.0) {
         long height = height_20;
         long width = width_1c;
-        unsigned char* row = (unsigned char*)new srARGB[width];
+        srARGB* row_colors = new srARGB[width];
+        unsigned char* row = (unsigned char*)row_colors;
         for (long y = 0; y < height; ++y) {
             getPixelRow((unsigned long*)row, y, 0, width);
             unsigned char* pixel = row + 2;
@@ -786,7 +788,7 @@ void srColorSurfaceIFace::adjustSaturation(double saturation)
             }
             setPixelRow((const unsigned long*)row, y, 0, width);
         }
-        srHeap.free(row);
+        delete[] row_colors;
     }
 }
 
@@ -812,7 +814,8 @@ void srColorSurfaceIFace::adjust(const srVector4T<float>& scale, const srVector4
             lut[channel][i] = (unsigned char)(int)value;
         }
     }
-    unsigned char* row = (unsigned char*)new srARGB[width];
+    srARGB* row_colors = new srARGB[width];
+    unsigned char* row = (unsigned char*)row_colors;
     for (long y = 0; y < height; ++y) {
         getPixelRow((unsigned long*)row, y, 0, width);
         for (long x = 0; x < width; ++x) {
@@ -824,7 +827,7 @@ void srColorSurfaceIFace::adjust(const srVector4T<float>& scale, const srVector4
         }
         setPixelRow((const unsigned long*)row, y, 0, width);
     }
-    srHeap.free(row);
+    delete[] row_colors;
 }
 
 // FUNCTION: SURRENDER 0x1005B040
@@ -832,7 +835,8 @@ void srColorSurfaceIFace::remapPixels(const srARGB& from, const srARGB& to)
 {
     long width = width_1c;
     long height = height_20;
-    unsigned long* row = (unsigned long*)new srARGB[width];
+    srARGB* row_colors = new srARGB[width];
+    unsigned long* row = (unsigned long*)row_colors;
     for (long y = 0; y < height; ++y) {
         getPixelRow(row, y, 0, width);
         long replaced = 0;
@@ -846,7 +850,7 @@ void srColorSurfaceIFace::remapPixels(const srARGB& from, const srARGB& to)
             setPixelRow(row, y, 0, width);
         }
     }
-    srHeap.free(row);
+    delete[] row_colors;
 }
 
 // FUNCTION: SURRENDER 0x10059690
@@ -861,8 +865,10 @@ void srColorSurfaceIFace::scaleFast(srColorSurfaceIFace& source)
         return;
     }
     long* column_map = new long[width];
-    unsigned long* source_row = (unsigned long*)new srARGB[source_width];
-    unsigned long* row = (unsigned long*)new srARGB[width];
+    srARGB* source_row_colors = new srARGB[source_width];
+    unsigned long* source_row = (unsigned long*)source_row_colors;
+    srARGB* row_colors = new srARGB[width];
+    unsigned long* row = (unsigned long*)row_colors;
     for (long x = 0; x < width; x++) {
         column_map[x] = source.getClampedX((long)((float)x * source_width / width));
     }
@@ -878,8 +884,8 @@ void srColorSurfaceIFace::scaleFast(srColorSurfaceIFace& source)
         setPixelRow(row, y, 0, width);
     }
     delete[] column_map;
-    srHeap.free(source_row);
-    srHeap.free(row);
+    delete[] source_row_colors;
+    delete[] row_colors;
 }
 
 // FUNCTION: SURRENDER 0x10059420
@@ -889,7 +895,8 @@ void srColorSurfaceIFace::flipColorChannels(srARGB::e_index first, srARGB::e_ind
         first != second) {
         long height = height_20;
         long width = width_1c;
-        unsigned char* row = (unsigned char*)new srARGB[width];
+        srARGB* row_colors = new srARGB[width];
+        unsigned char* row = (unsigned char*)row_colors;
         for (long y = 0; y < height; ++y) {
             getPixelRow((unsigned long*)row, y, 0, width);
             for (long x = 0; x < width; ++x) {
@@ -900,7 +907,7 @@ void srColorSurfaceIFace::flipColorChannels(srARGB::e_index first, srARGB::e_ind
             }
             setPixelRow((const unsigned long*)row, y, 0, width);
         }
-        srHeap.free(row);
+        delete[] row_colors;
     }
 }
 
@@ -911,7 +918,8 @@ void srColorSurfaceIFace::copyColorChannel(srARGB::e_index destination, srARGB::
         destination != source) {
         long height = height_20;
         long width = width_1c;
-        unsigned char* row = (unsigned char*)new srARGB[width];
+        srARGB* row_colors = new srARGB[width];
+        unsigned char* row = (unsigned char*)row_colors;
         for (long y = 0; y < height; ++y) {
             getPixelRow((unsigned long*)row, y, 0, width);
             for (long x = 0; x < width; ++x) {
@@ -920,7 +928,7 @@ void srColorSurfaceIFace::copyColorChannel(srARGB::e_index destination, srARGB::
             }
             setPixelRow((const unsigned long*)row, y, 0, width);
         }
-        srHeap.free(row);
+        delete[] row_colors;
     }
 }
 
@@ -930,12 +938,13 @@ void srColorSurfaceIFace::copyNoScaling(srColorSurfaceIFace& source)
     if (this != &source) {
         long height = source.height_20;
         long width = source.width_1c;
-        unsigned long* row = (unsigned long*)new srARGB[width];
+        srARGB* row_colors = new srARGB[width];
+        unsigned long* row = (unsigned long*)row_colors;
         for (long y = 0; y < height; y++) {
             source.getPixelRow(row, y, 0, width);
             setPixelRow(row, y, 0, width);
         }
-        srHeap.free(row);
+        delete[] row_colors;
     }
 }
 
@@ -945,7 +954,8 @@ void srColorSurfaceIFace::getChannelStatistics(srStat& statistics, srARGB::e_ind
     long height = height_20;
     long width = width_1c;
     if ((int)channel >= 0 && (int)channel < 4) {
-        unsigned char* row = (unsigned char*)new srARGB[width];
+        srARGB* row_colors = new srARGB[width];
+        unsigned char* row = (unsigned char*)row_colors;
         int* histogram = new int[0x100];
         int* bin = histogram;
         int i;
@@ -993,7 +1003,7 @@ void srColorSurfaceIFace::getChannelStatistics(srStat& statistics, srARGB::e_ind
                 break;
             }
         }
-        srHeap.free(row);
+        delete[] row_colors;
         delete[] histogram;
     }
 }
@@ -2505,9 +2515,12 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
         double support = source.filter_2c->getSupport();
         double scale = (double)width / source_width;
         long* counts = new long[width * 2];
-        unsigned long* source_row = (unsigned long*)new srARGB[source_width];
-        unsigned long* row = (unsigned long*)new srARGB[width];
-        float* channels = (float*)new srVector4T<float>[source_width];
+        srARGB* source_row_colors = new srARGB[source_width];
+        unsigned long* source_row = (unsigned long*)source_row_colors;
+        srARGB* row_colors = new srARGB[width];
+        unsigned long* row = (unsigned long*)row_colors;
+        srVector4T<float>* channel_vectors = new srVector4T<float>[source_width];
+        float* channels = (float*)channel_vectors;
         char* storage;
         if (1.0 <= scale) {
             long entries = 1 - (long)(support * -2.0);
@@ -2602,9 +2615,9 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
             }
             setPixelRow(row, y, 0, width);
         }
-        srHeap.free(channels);
-        srHeap.free(source_row);
-        srHeap.free(row);
+        delete[] channel_vectors;
+        delete[] source_row_colors;
+        delete[] row_colors;
         delete[] counts;
         delete[] storage;
         return;
@@ -2622,9 +2635,12 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
         double support = source.filter_2c->getSupport();
         double scale = height / (double)source_height;
         long* counts = new long[height * 2];
-        unsigned long* source_column = (unsigned long*)new srARGB[source_height];
-        unsigned long* column = (unsigned long*)new srARGB[height];
-        float* channels = (float*)new srVector4T<float>[source_height];
+        srARGB* source_column_colors = new srARGB[source_height];
+        unsigned long* source_column = (unsigned long*)source_column_colors;
+        srARGB* column_colors = new srARGB[height];
+        unsigned long* column = (unsigned long*)column_colors;
+        srVector4T<float>* channel_vectors = new srVector4T<float>[source_height];
+        float* channels = (float*)channel_vectors;
         char* storage;
         if (1.0 <= scale) {
             long entries = 1 - (long)(support * -2.0);
@@ -2719,9 +2735,9 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
             }
             setPixelColumn(column, x, 0, height);
         }
-        srHeap.free(channels);
-        srHeap.free(source_column);
-        srHeap.free(column);
+        delete[] channel_vectors;
+        delete[] source_column_colors;
+        delete[] column_colors;
         delete[] counts;
         delete[] storage;
         return;
@@ -2776,8 +2792,8 @@ void srColorSurfaceIFace::blit(long x, long y, srColorSurfaceIFace& source, long
                     (source_x < dest_span + right) &&
                     ((source_y < (y - source_y) + bottom) && (source_y <= y))) {
                     long span = right - source_x;
-                    unsigned long* temp =
-                        (unsigned long*)new srARGB[(bottom - source_y) * span];
+                    srARGB* temp_colors = new srARGB[(bottom - source_y) * span];
+                    unsigned long* temp = (unsigned long*)temp_colors;
                     if (source_y < bottom) {
                         long row;
                         for (row = source_y; row < bottom; row++) {
@@ -2789,16 +2805,17 @@ void srColorSurfaceIFace::blit(long x, long y, srColorSurfaceIFace& source, long
                             y = y + 1;
                         }
                     }
-                    srHeap.free(temp);
+                    delete[] temp_colors;
                     return;
                 }
-                unsigned long* temp = (unsigned long*)new srARGB[right - source_x];
+                srARGB* temp_colors = new srARGB[right - source_x];
+                unsigned long* temp = (unsigned long*)temp_colors;
                 for (; source_y < bottom; source_y++) {
                     source.getPixelRow(temp, source_y, source_x, right);
                     setPixelRow(temp, y, x, dest_span + right);
                     y = y + 1;
                 }
-                srHeap.free(temp);
+                delete[] temp_colors;
             }
         }
     }
@@ -3058,8 +3075,10 @@ void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source,
                         ((source_y < source_bottom + (y - source_y)) && (source_y <= y))) {
                         long rows = source_bottom - source_y;
                         long span = source_right - source_x;
-                        unsigned long* temp = (unsigned long*)new srARGB[rows * span];
-                        unsigned long* row = (unsigned long*)new srARGB[span];
+                        srARGB* temp_colors = new srARGB[rows * span];
+                        unsigned long* temp = (unsigned long*)temp_colors;
+                        srARGB* row_colors = new srARGB[span];
+                        unsigned long* row = (unsigned long*)row_colors;
                         long r;
                         for (r = source_y; r < source_bottom; r++) {
                             source.getPixelRow(temp + (r - source_y) * span, r, source_x,
@@ -3092,13 +3111,15 @@ void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source,
                             setPixelRow(row, y, x, dest_span + source_right);
                             y = y + 1;
                         }
-                        srHeap.free(temp);
-                        srHeap.free(row);
+                        delete[] temp_colors;
+                        delete[] row_colors;
                         return;
                     }
                     long span = source_right - source_x;
-                    unsigned long* source_row = (unsigned long*)new srARGB[span];
-                    unsigned long* row = (unsigned long*)new srARGB[span];
+                    srARGB* source_row_colors = new srARGB[span];
+                    unsigned long* source_row = (unsigned long*)source_row_colors;
+                    srARGB* row_colors = new srARGB[span];
+                    unsigned long* row = (unsigned long*)row_colors;
                     if (alpha == 1.0) {
                         for (; source_y < source_bottom; source_y++) {
                             getPixelRow(row, y, x, dest_span + source_right);
@@ -3155,8 +3176,8 @@ void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source,
                             y = y + 1;
                         }
                     }
-                    srHeap.free(source_row);
-                    srHeap.free(row);
+                    delete[] source_row_colors;
+                    delete[] row_colors;
                 }
             }
         }
@@ -3256,7 +3277,8 @@ void srColorSurfaceIFace::minify(srColorSurfaceIFace& source)
     long source_width = source.width_1c;
     if (((width == (unsigned long)(source_width / 2)) && (height == source.height_20 / 2)) &&
         (this != &source)) {
-        unsigned long* buffer = (unsigned long*)new srARGB[width + source_width * 2];
+        srARGB* buffer_colors = new srARGB[width + source_width * 2];
+        unsigned long* buffer = (unsigned long*)buffer_colors;
         unsigned long* second = buffer + source_width;
         unsigned long* row = buffer + source_width * 2;
         if ((srCore.getTimer()->m_cpu_features & 0x800000) == 0) {
@@ -3282,7 +3304,7 @@ void srColorSurfaceIFace::minify(srColorSurfaceIFace& source)
                 setPixelRow(row, y, 0, width);
             }
         }
-        srHeap.free(buffer);
+        delete[] buffer_colors;
     }
 }
 
@@ -3293,7 +3315,8 @@ void srColorSurfaceIFace::magnify(srColorSurfaceIFace& source)
     long width = width_1c;
     long source_width = source.width_1c;
     if (width == source_width * 2 && height_20 == source_height * 2 && this != &source) {
-        unsigned long* buffer = (unsigned long*)new srARGB[source_width + width * 2];
+        srARGB* buffer_colors = new srARGB[source_width + width * 2];
+        unsigned long* buffer = (unsigned long*)buffer_colors;
         unsigned long* even = buffer + source_width;
         unsigned long* odd = even + width;
         source.getPixelRow(buffer, 0, 0, source_width);
@@ -3323,7 +3346,7 @@ void srColorSurfaceIFace::magnify(srColorSurfaceIFace& source)
             odd = swap;
         }
         setPixelRow(even, height_20 - 1, 0, width);
-        srHeap.free(buffer);
+        delete[] buffer_colors;
     }
 }
 
