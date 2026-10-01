@@ -2223,9 +2223,6 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
     if (resolved == W8_TARGETING_CONTEXT_CURRENT) {
         resolved = GetCurrentTargetingContext(party_slot);
     }
-    if (resolved == W8_TARGETING_CONTEXT_CURRENT) {
-        resolved = GetCurrentTargetingContext(party_slot);
-    }
     switch (resolved) {
     case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
         action_context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT;
