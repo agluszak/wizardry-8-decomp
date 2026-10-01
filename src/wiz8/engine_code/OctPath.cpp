@@ -170,7 +170,7 @@ static unsigned char LoadPathParameters();
 // srMatrix3T<float>::Transform (return-by-value emission)
 
 // TEMPLATE: WIZ8 0x004675B0
-// stHeap<W8PathHeapEntry>::Insert004675B0
+// stHeap<W8PathHeapEntry>::Insert
 
 // TEMPLATE: WIZ8 0x00467910
 // stHeap<W8PathHeapEntry>::SiftDown
@@ -1216,7 +1216,7 @@ unsigned short W8PathingService::FindPath(W8NavigatorAttachment* attachment, uns
                                 entry.node_00 = usNextNode;
                                 entry.priority_04 =
                                     static_cast<unsigned int>(surfaces[current].remaining_cost_20);
-                                handle->heap_00->Insert004675B0(&entry);
+                                handle->heap_00->Insert(&entry);
                                 handle->root_node_04 = handle->heap_00->entries_00[0].node_00;
                             }
                         } else {
@@ -1239,7 +1239,7 @@ unsigned short W8PathingService::FindPath(W8NavigatorAttachment* attachment, uns
                                     entry.node_00 = usNextNode;
                                     entry.priority_04 = static_cast<unsigned int>(
                                         m_pSurfaces_048[current].remaining_cost_20);
-                                    handle->heap_00->Insert004675B0(&entry);
+                                    handle->heap_00->Insert(&entry);
                                     handle->root_node_04 = handle->heap_00->entries_00[0].node_00;
                                 }
                                 ReduceWaypointCosts(usNextNode, reduction);
@@ -2265,7 +2265,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     W8PathHeapEntry entry;
     entry.node_00 = root_index;
     entry.priority_04 = static_cast<unsigned int>(root->score_1c);
-    heap->Insert004675B0(&entry);
+    heap->Insert(&entry);
     path_heap_06c->root_node_04 = heap->entries_00[0].node_00;
 
     unsigned int best_node = path_heap_06c->root_node_04;
@@ -2319,7 +2319,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
                     existing->flags_00 &= 0xfbff;
                     entry.node_00 = existing->node_index_02;
                     entry.priority_04 = static_cast<unsigned int>(existing->score_1c);
-                    heap->Insert004675B0(&entry);
+                    heap->Insert(&entry);
                     path_heap_06c->root_node_04 = heap->entries_00[0].node_00;
                 }
                 continue;
@@ -2391,7 +2391,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
             }
             entry.node_00 = node->node_index_02;
             entry.priority_04 = static_cast<unsigned int>(node->score_1c);
-            heap->Insert004675B0(&entry);
+            heap->Insert(&entry);
             path_heap_06c->root_node_04 = heap->entries_00[0].node_00;
         }
 
@@ -3436,7 +3436,7 @@ W8PathingService::W8PathingService()
     edge_node_count_008 = 0;
     m_ulNumWayPoints = 0;
     m_ulNumWayPtLinks = 0;
-    m_padding_014 = 0;
+    m_unknown_014 = 0;
     m_removed_edge_count_018 = 0;
     m_pSurfaces_048 = 0;
     m_pEdges_04c = 0;
@@ -3944,12 +3944,12 @@ void W8PathingService::BuildPathGridWalk(const srVector2T<float>* from, const sr
     walk->error_28 = error_delta;
     walk->error_2c = error;
     walk->cell_00[1] = destination[1] / cell_size;
-    walk->padding_08 = 0;
-    walk->padding_14 = 0;
-    walk->padding_20 = 0;
-    walk->padding_34[0] = 0;
-    walk->padding_34[1] = 0;
-    walk->padding_34[2] = 0;
+    walk->unknown_08 = 0;
+    walk->unknown_14 = 0;
+    walk->unknown_20 = 0;
+    walk->unknown_34[0] = 0;
+    walk->unknown_34[1] = 0;
+    walk->unknown_34[2] = 0;
 }
 
 /* Walk every horizontal path cell crossed by a short waypoint segment.
@@ -4791,7 +4791,7 @@ void W8PathingService::ActivateMovementTrigger(W8NavigatorMovementState* movemen
     }
 
     if (selected != 0) {
-        selected->Activate00444750();
+        selected->Activate();
     }
 }
 
@@ -5102,7 +5102,7 @@ void W8PathingService::DrawPathPosition(srVector3T<float> position, unsigned cha
     W8PathHeapEntry root_entry;
     root_entry.node_00 = root_index;
     root_entry.priority_04 = static_cast<unsigned int>(root->score_1c);
-    heap->Insert004675B0(&root_entry);
+    heap->Insert(&root_entry);
     path_heap_06c->root_node_04 = heap->entries_00[0].node_00;
 
     unsigned int best_node = root_index;
@@ -5168,7 +5168,7 @@ void W8PathingService::DrawPathPosition(srVector3T<float> position, unsigned cha
                         W8PathHeapEntry pending;
                         pending.node_00 = node->node_index_02;
                         pending.priority_04 = static_cast<unsigned int>(node->score_1c);
-                        heap->Insert004675B0(&pending);
+                        heap->Insert(&pending);
                         path_heap_06c->root_node_04 = heap->entries_00[0].node_00;
                     } else {
                         --search_node_count_0cc;

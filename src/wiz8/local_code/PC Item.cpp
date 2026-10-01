@@ -504,7 +504,7 @@ wchar_t* FormatItemDisplayName(const W8ItemInstance* item, unsigned char include
     }
 
     if (include_quantity && item->stack_count > 1) {
-        swprintf(g_item_display_name_buffer, L"%s (%d)", name, (unsigned int)item->stack_count);
+        swprintf(g_item_display_name_buffer, L"%s (%d)", name, static_cast<unsigned int>(item->stack_count));
     } else {
         swprintf(g_item_display_name_buffer, L"%s", name);
     }
@@ -706,19 +706,19 @@ char GetItemMergeKind(int item_id, short* related_kind)
 // FUNCTION: WIZ8 0x0051c8f0
 bool CompatiblePartnerItems(int ranged_item_id, int other_item_id)
 {
-    if ((unsigned int)ranged_item_id >= gXStatus.uiItemsInDatabase) {
+    if (static_cast<unsigned int>(ranged_item_id) >= gXStatus.uiItemsInDatabase) {
         srAssertFail("uiRangedItem < gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 0x3fd,
                      FormatString("CompatiblePartnerItems: ERROR - Illegal RANGED item index %d",
                                   ranged_item_id));
     }
-    if ((unsigned int)other_item_id >= gXStatus.uiItemsInDatabase) {
+    if (static_cast<unsigned int>(other_item_id) >= gXStatus.uiItemsInDatabase) {
         srAssertFail("uiOtherItem < gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 0x3fe,
                      FormatString("CompatiblePartnerItems: ERROR - Illegal OTHER item index %d",
                                   other_item_id));
     }
 
-    short ranged_name = (short)g_item_records[ranged_item_id].unidentified_name_index;
-    short other_name = (short)g_item_records[other_item_id].unidentified_name_index;
+    short ranged_name = static_cast<short>(g_item_records[ranged_item_id].unidentified_name_index);
+    short other_name = static_cast<short>(g_item_records[other_item_id].unidentified_name_index);
 
     switch (ranged_name) {
     case 0xb:
@@ -919,14 +919,14 @@ bool CanCharacterUseItem(const W8Character* character, int item_id)
 
     for (index = 0; index < 2; ++index) {
         if (record->attribute_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
-            character->attributes[(signed char)record->attribute_requirements[index].stat_id]
+            character->attributes[static_cast<signed char>(record->attribute_requirements[index].stat_id)]
                     .effective < record->attribute_requirements[index].minimum) {
             return false;
         }
     }
     for (index = 0; index < 2; ++index) {
         if (record->skill_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
-            character->skills[(signed char)record->skill_requirements[index].stat_id].level <
+            character->skills[static_cast<signed char>(record->skill_requirements[index].stat_id)].level <
                 record->skill_requirements[index].minimum) {
             return false;
         }
@@ -1650,7 +1650,7 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
     for (backpack_index = 0; backpack_index < 8; ++backpack_index) {
         if (item == &character->backpack[backpack_index]) {
             *origin = 0;
-            *slot = (unsigned short)backpack_index;
+            *slot = static_cast<unsigned short>(backpack_index);
             return;
         }
     }
@@ -1660,7 +1660,7 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
     for (; equipped_index < 12; ++equipped_index, ++cursor) {
         if (item == cursor) {
             *origin = 1;
-            *slot = (unsigned short)equipped_index;
+            *slot = static_cast<unsigned short>(equipped_index);
             return;
         }
     }
@@ -1668,7 +1668,7 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
     for (pool_index = 0; pool_index < g_status.party_item_count_1791; ++pool_index) {
         if (item == &g_status.party_item_pool_0021[pool_index]) {
             *origin = 2;
-            *slot = (unsigned short)pool_index;
+            *slot = static_cast<unsigned short>(pool_index);
             return;
         }
     }
@@ -2017,7 +2017,7 @@ void AddPartyGold(int amount, char announce)
 void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximum_quantity,
                          unsigned char force_identified, unsigned char mark_special)
 {
-    if ((unsigned int)item_id >= gXStatus.uiItemsInDatabase) {
+    if (static_cast<unsigned int>(item_id) >= gXStatus.uiItemsInDatabase) {
         srAssertFail(
             "uiItemNo < gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 564,
             reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
@@ -2035,8 +2035,8 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
             srAssertFail("uiMAX_DICE(pMulti) < 256", PC_ITEM_CPP, 578, 0);
         }
         unsigned char quantity = maximum_quantity
-                                     ? (unsigned char)maximum
-                                     : (unsigned char)RollDice(&record->initial_quantity);
+                                     ? static_cast<unsigned char>(maximum)
+                                     : static_cast<unsigned char>(RollDice(&record->initial_quantity));
         if (record->quantity_kind == 1) {
             item->stack_count = quantity;
         } else if (record->quantity_kind >= 2 && record->quantity_kind <= 4) {
@@ -2255,11 +2255,11 @@ void AddItemUses(W8ItemInstance* item, char uses)
     int maximum = MaximumQuantity(item->iItemNo);
 
     item->uses_or_charges = total;
-    if ((int)(unsigned int)total < maximum) {
+    if (static_cast<int>(static_cast<unsigned int>(total)) < maximum) {
         item->uses_or_charges = total;
         return;
     }
-    item->uses_or_charges = (unsigned char)maximum;
+    item->uses_or_charges = static_cast<unsigned char>(maximum);
 }
 
 /* Pour one item's uses into another and take that many off the source, one at
@@ -2281,7 +2281,7 @@ void MergeItemUses(W8Character* character, W8ItemInstance* into, W8ItemInstance*
     if (available <= moved) {
         moved = available;
     }
-    into->uses_or_charges += (char)moved;
+    into->uses_or_charges += static_cast<char>(moved);
     for (; moved != 0; --moved) {
         RemoveCharacterItem(character, from, 0);
     }
@@ -2600,7 +2600,7 @@ bool TryIdentifyItemFor(W8Character* character, W8ItemInstance* item)
         return 0;
     }
 
-    strength = (char)(character->skills[W8_SKILL_IDENTIFY].level / 6);
+    strength = static_cast<char>(character->skills[W8_SKILL_IDENTIFY].level / 6);
     if (static_cast<char>(g_item_records[item->iItemNo].identify_difficulty) > strength) {
         return 0;
     }
@@ -2826,7 +2826,7 @@ bool MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
 void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Character* character,
                       unsigned char refresh)
 {
-    unsigned int held_character = (unsigned int)-1;
+    unsigned int held_character = static_cast<unsigned int>(-1);
     unsigned char held_origin = 0xff;
     unsigned short held_slot = 0xffff;
 
@@ -3453,17 +3453,17 @@ void UnequipUnusableItems(W8Character* character)
 
         for (index = 0; index < 2; ++index) {
             if (record->attribute_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
-                character->attributes[(signed char)record->attribute_requirements[index].stat_id]
+                character->attributes[static_cast<signed char>(record->attribute_requirements[index].stat_id)]
                         .effective < record->attribute_requirements[index].minimum) {
                 message_id = g_character_description_first_ids
-                    [(signed char)record->attribute_requirements[index].stat_id];
+                    [static_cast<signed char>(record->attribute_requirements[index].stat_id)];
                 unmet = true;
                 break;
             }
         }
         for (index = 0; !unmet && index < 2; ++index) {
             if (record->skill_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
-                character->skills[(signed char)record->skill_requirements[index].stat_id].level <
+                character->skills[static_cast<signed char>(record->skill_requirements[index].stat_id)].level <
                     record->skill_requirements[index].minimum) {
                 message_id = g_character_skill_name_ids[static_cast<signed char>(
                     record->skill_requirements[index].stat_id)];

@@ -1067,9 +1067,9 @@ void W8CharacterPersonalityPage::Activate()
     EnableRegionSet(1);
     m_prepared_06c = 1;
     InitTextInputModeWithScheme(1);
-    AddTextInputField(origin_x + 0x97, origin_y + 0xab, 0x106, 0x10, 0x7f,
+    AddTextInputField(m_bounds.left + 0x97, m_bounds.top + 0xab, 0x106, 0x10, 0x7f,
                       m_character_060->name_part_2, 0x27, 0xf, 1);
-    AddTextInputField(origin_x + 0x97, origin_y + 0xc7, 0x106, 0x10, 0x7f, m_character_060->name, 9,
+    AddTextInputField(m_bounds.left + 0x97, m_bounds.top + 0xc7, 0x106, 0x10, 0x7f, m_character_060->name, 9,
                       0xf, 1);
     if (GetTextInputFieldLength(0) == 0)
         SetActiveField(0);
@@ -1177,7 +1177,7 @@ void W8CharacterPersonalityPage::Redraw()
         if (elapsed > 0) {
             m_animation_frame_0f8 = (m_animation_frame_0f8 + elapsed) % 3;
             DrawCatalogImageAndInvalidate(-14, 0x105, 0, m_animation_frame_0f8 + 2,
-                                          origin_x + 0x156, origin_y + 0x137, 2, 0);
+                                          m_bounds.left + 0x156, m_bounds.top + 0x137, 2, 0);
         }
     }
 
@@ -1191,50 +1191,50 @@ void W8CharacterPersonalityPage::Redraw()
         W8TextBuffer text;
         W8ControlsRect bounds;
 
-        bounds.left = origin_x + 0x2c;
-        bounds.right = origin_x + 100;
-        bounds.top = origin_y + 0x19;
-        bounds.bottom = origin_y + 0x31;
+        bounds.left = m_bounds.left + 0x2c;
+        bounds.right = m_bounds.left + 100;
+        bounds.top = m_bounds.top + 0x19;
+        bounds.bottom = m_bounds.top + 0x31;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0xee], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
-        bounds.top = origin_y + 0x67;
-        bounds.bottom = origin_y + 0x7f;
+        bounds.top = m_bounds.top + 0x67;
+        bounds.bottom = m_bounds.top + 0x7f;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0xf0], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
-        bounds.left = origin_x + 0x160;
-        bounds.right = origin_x + 0x198;
+        bounds.left = m_bounds.left + 0x160;
+        bounds.right = m_bounds.left + 0x198;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0xf1], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
-        bounds.top = origin_y + 0x19;
-        bounds.bottom = origin_y + 0x31;
+        bounds.top = m_bounds.top + 0x19;
+        bounds.bottom = m_bounds.top + 0x31;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0xef], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
-        bounds.left = origin_x + 0x24;
-        bounds.right = origin_x + 0x92;
-        bounds.top = origin_y + 0xaa;
-        bounds.bottom = origin_y + 0xbc;
+        bounds.left = m_bounds.left + 0x24;
+        bounds.right = m_bounds.left + 0x92;
+        bounds.top = m_bounds.top + 0xaa;
+        bounds.bottom = m_bounds.top + 0xbc;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x84], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
-        bounds.top = origin_y + 0xc6;
-        bounds.bottom = origin_y + 0xd8;
+        bounds.top = m_bounds.top + 0xc6;
+        bounds.bottom = m_bounds.top + 0xd8;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x85], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
-        bounds.left = origin_x + 0x18;
-        bounds.top = origin_y + 0xee;
-        bounds.right = origin_x + 0x1a8;
-        bounds.bottom = origin_y + 0xfa;
+        bounds.left = m_bounds.left + 0x18;
+        bounds.top = m_bounds.top + 0xee;
+        bounds.right = m_bounds.left + 0x1a8;
+        bounds.bottom = m_bounds.top + 0xfa;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x86], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
@@ -1242,9 +1242,9 @@ void W8CharacterPersonalityPage::Redraw()
         int index = 0;
         for (const unsigned short* message_id = g_personality_message_ids;
              message_id < g_personality_message_ids + 9; ++message_id, ++index) {
-            bounds.left = (index % 3) * 0x80 + 0x30 + origin_x;
+            bounds.left = (index % 3) * 0x80 + 0x30 + m_bounds.left;
             bounds.right = bounds.left + 0x80;
-            bounds.top = origin_y + 0x106 + (index / 3) * 0xe;
+            bounds.top = m_bounds.top + 0x106 + (index / 3) * 0xe;
             bounds.bottom = bounds.top + 0xe;
             text.SetLayoutBounds(&bounds, 1, 1);
             text.SetLayoutMode(g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft);
@@ -1252,17 +1252,17 @@ void W8CharacterPersonalityPage::Redraw()
             text.RenderToTarget(0, 1, -14);
         }
 
-        bounds.top = origin_y + 0x13f;
-        bounds.bottom = origin_y + 0x14d;
-        bounds.left = origin_x + 0x29;
-        bounds.right = origin_x + 0x69;
+        bounds.top = m_bounds.top + 0x13f;
+        bounds.bottom = m_bounds.top + 0x14d;
+        bounds.left = m_bounds.left + 0x29;
+        bounds.right = m_bounds.left + 0x69;
         text.SetLayoutMode(g_W8TextBufferAlignCenter | g_W8TextBufferAlignTop);
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x8d], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
-        bounds.top = origin_y + 0x15c;
-        bounds.bottom = origin_y + 0x16a;
+        bounds.top = m_bounds.top + 0x15c;
+        bounds.bottom = m_bounds.top + 0x16a;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x8e], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
@@ -1274,7 +1274,7 @@ void W8CharacterPersonalityPage::Redraw()
 
     if (m_portrait_dirty_0fe) {
         DrawCatalogImageAndInvalidate(-14, 0x11, m_character_060->portrait_index, 0,
-                                      origin_x + 0x86, origin_y + 5, 0, 0);
+                                      m_bounds.left + 0x86, m_bounds.top + 5, 0, 0);
         m_portrait_dirty_0fe = false;
     }
 
@@ -1284,10 +1284,10 @@ void W8CharacterPersonalityPage::Redraw()
         W8CharacterEvent element(m_character_060, g_effect_005ee588, 0, g_character_event_no_flags,
                                  g_character_event_full_volume);
 
-        bounds.top = origin_y + 0x13a;
-        bounds.bottom = origin_y + 0x16a;
-        bounds.left = origin_x + 0x70;
-        bounds.right = origin_x + 0x150;
+        bounds.top = m_bounds.top + 0x13a;
+        bounds.bottom = m_bounds.top + 0x16a;
+        bounds.left = m_bounds.left + 0x70;
+        bounds.right = m_bounds.left + 0x150;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(element.GetQuoteText(), g_wiz_text_font_secondary);
         text.FillBounds(0x8000);
@@ -1472,12 +1472,12 @@ void W8CharacterSkillsPage::Redraw()
             if (category != 4 || m_show_fifth_category_075) {
                 DrawCatalogImage(
                     -14, 0x144, 0, static_cast<short>(g_character_page2_category_frames[category]),
-                    origin_x + g_character_page2_category_geometry[category][0] - 0x16,
-                    origin_y + g_character_page2_category_geometry[category][1] - 3, 2, 0);
+                    m_bounds.left + g_character_page2_category_geometry[category][0] - 0x16,
+                    m_bounds.top + g_character_page2_category_geometry[category][1] - 3, 2, 0);
             }
         }
         if (!m_show_fifth_category_075) {
-            DrawCatalogImage(-14, 0x108, 0, 1, origin_x, origin_y + 0x118, 2, 0);
+            DrawCatalogImage(-14, 0x108, 0, 1, m_bounds.left, m_bounds.top + 0x118, 2, 0);
         }
     }
 

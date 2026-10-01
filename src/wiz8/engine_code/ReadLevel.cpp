@@ -1183,7 +1183,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
 
     g_environment_offset = environment_offset;
     prop_count = PLLength(world->plsProps);
-    for (index = 0; index < (int)prop_count; ++index) {
+    for (index = 0; index < static_cast<int>(prop_count); ++index) {
         W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
         W8AnimObj* animation = prop->Rep()->animation;
 
@@ -1202,7 +1202,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
                         SetModelInstanceChainExclusionMask(instance, 4);
                     }
 
-                    srMaterialIFace* material_iface = mesh->getMaterial(0, (srMeshModel::e_side)0);
+                    srMaterialIFace* material_iface = mesh->getMaterial(0, static_cast<srMeshModel::e_side>(0));
                     if (material_iface != 0) {
                         srMaterial* material = static_cast<srMaterial*>(material_iface);
                         srMaterial* copy = static_cast<srMaterial*>(material->clone());
@@ -1214,7 +1214,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
                         copy->parms.emissive.y += g_environment_offset.y;
                         copy->parms.emissive.z += g_environment_offset.z;
                         copy->dirty_74 = 1;
-                        mesh->setMaterial(copy, 0, (srMeshModel::e_side)0);
+                        mesh->setMaterial(copy, 0, static_cast<srMeshModel::e_side>(0));
                     }
                 }
             }

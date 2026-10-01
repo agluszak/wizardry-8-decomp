@@ -657,7 +657,7 @@ static void BeginFormationDrag(const InputAtom*)
     SGPMouseGetPos(&point);
     ClearMouseSurface();
     sprite = g_formation_cell_controls[g_formation_drag_cell]->m_alternatePressedSprite;
-    region = GetCatalogVideoObjectYOffset(0x9f) + (short)sprite;
+    region = GetCatalogVideoObjectYOffset(0x9f) + static_cast<short>(sprite);
     video_object = GetCatalogVideoObjectHandle(0x9f, 0);
     SetMouseCursorFromVideoObject(video_object, region, 0x10, 0x10);
     DrawCatalogImage(-0xd, 0xa0, 0,

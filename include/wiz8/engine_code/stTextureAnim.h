@@ -27,15 +27,15 @@ public:
 
     void SetFrame(int frame);
     void AddTexture(srTextureIFace* texture);
-    int IsFinished00485730() const;
-    unsigned char Prepare004857B0();
+    int IsFinished() const;
+    unsigned char Prepare();
     virtual void setupDefaultValues() override; /* 0x00485760 */
 
 protected:
     virtual ~stTextureAnim() override; /* 0x00485290 */
 
 public:
-    void UpdateFrame004854B0();
+    void UpdateFrame();
 
     W8GrowableVector<srTextureIFace*>* textures_54;
     int frame_58;

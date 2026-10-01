@@ -1068,7 +1068,7 @@ bool W8Octree::ReadRegionLinkFile(const char* level_name)
         return 0;
     }
 
-    keys = static_cast<unsigned int*>(malloc(count * 4));
+    keys = static_cast<unsigned int*>(malloc(count * sizeof(unsigned int)));
     values = static_cast<unsigned short*>(malloc(count * 2));
     if (keys == 0 || values == 0) {
         FileClose(file);
@@ -1591,7 +1591,7 @@ BOOLEAN W8Octree::SaveRegionLinks(char* path)
     if (file == 0) {
         goto cleanup;
     }
-    keys = static_cast<unsigned int*>(malloc(capacity * 4));
+    keys = static_cast<unsigned int*>(malloc(capacity * sizeof(unsigned int)));
     values = static_cast<unsigned short*>(malloc(capacity * 2));
     if (keys == 0 || values == 0) {
         result = 0;
@@ -3396,7 +3396,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
 
     limit = m_leaf_grid_dim_x_0a4 * m_leaf_grid_dim_y_0a8 * m_leaf_grid_dim_z_0ac;
     if (fLoaded != 0 && limit < 250000) {
-        m_owned_0b0 = static_cast<unsigned long*>(malloc(limit * 4));
+        m_owned_0b0 = static_cast<unsigned long*>(malloc(limit * sizeof(unsigned long)));
         if (m_owned_0b0 == 0) {
             strcpy(acMessage, "ReadOctFile: Couldn't allocate Leaf grid.");
             goto finish;
@@ -3540,8 +3540,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                     srAssertFail("(i2 < 10000)", OCTREE_CPP, 0x179,
                                                                  0);
                                                 }
-                                                g_octree_storage_ =
-                                                    static_cast<unsigned int*>(malloc(limit * 4));
+                                                g_octree_storage_ = static_cast<unsigned int*>(
+                                                    malloc(limit * sizeof(unsigned int)));
                                                 if (g_octree_storage_ == 0) {
                                                     fLoaded = 0;
                                                     strcpy(acMessage,
@@ -3837,7 +3837,7 @@ void W8Octree::Reset()
     m_gd_surface_stream_len_124 = 0;
     m_trigger_count_128 = 0;
     m_region_list_len_138 = 0;
-    m_padding_13c = 0;
+    m_unknown_13c = 0;
     m_owned_0d0 = 0;
     m_aulPolyLookup = 0;
     m_owned_12c = 0;
@@ -3897,19 +3897,19 @@ void W8Octree::Reset()
     spatial_000.clipped_maximum_30.SetZero();
     spatial_000.working_minimum_78.SetZero();
     spatial_000.working_maximum_84.SetZero();
-    m_padding_27c[0] = 0;
-    m_padding_27c[1] = 0;
-    m_padding_27c[2] = 0;
-    m_padding_27c[3] = 0;
-    m_padding_27c[4] = 0;
-    m_padding_27c[5] = 0;
+    m_unknown_27c[0] = 0;
+    m_unknown_27c[1] = 0;
+    m_unknown_27c[2] = 0;
+    m_unknown_27c[3] = 0;
+    m_unknown_27c[4] = 0;
+    m_unknown_27c[5] = 0;
     m_visibility_suspended_294 = false;
     m_reset_visibility_168 = 0;
     m_projected_regions_valid_16a = false;
     m_region_links_ready_169 = false;
     m_region_links_dirty_16c = false;
     m_points_dirty_16d = false;
-    m_padding_299 = 0;
+    m_unknown_299 = 0;
     m_sun_count_296 = 0;
     prop_sun_base_184 = 0;
     m_pPropSunBits = 0;
@@ -3930,12 +3930,12 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
         spatial_000.cell_size_08 = header->cell_size_06;
         spatial_000.node_extent_70 = header->node_extent_0a;
 
-        m_padding_27c[0] = 0;
-        m_padding_27c[1] = 0;
-        m_padding_27c[2] = 0;
-        m_padding_27c[3] = 0;
-        m_padding_27c[4] = 0;
-        m_padding_27c[5] = 0;
+        m_unknown_27c[0] = 0;
+        m_unknown_27c[1] = 0;
+        m_unknown_27c[2] = 0;
+        m_unknown_27c[3] = 0;
+        m_unknown_27c[4] = 0;
+        m_unknown_27c[5] = 0;
         for (axis = 0; axis < 3; ++axis) {
             (&spatial_000.minimum_0c.x)[axis] = (&header->bounds_0e[0].x)[axis];
             (&spatial_000.maximum_18.x)[axis] = (&header->bounds_0e[1].x)[axis];
@@ -4853,7 +4853,7 @@ bool ReadVector4Array(int file, srVector4T<float>* values, int count)
 }
 
 // FUNCTION: WIZ8 0x004374E0
-bool ReadVector3Array004374E0(int file, srVector3T<float>* values, int count)
+bool ReadVector3Array(int file, srVector3T<float>* values, int count)
 {
     return FileRead(file, values, count * sizeof(srVector3T<float>), 0) & 1;
 }

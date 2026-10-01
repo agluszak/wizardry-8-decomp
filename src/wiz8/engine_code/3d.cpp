@@ -707,7 +707,7 @@ void WorldRemoveLight(W8World* world, stLight* light)
 // FUNCTION: WIZ8 0x0046E300
 void ConfigureWorldLight(srLight* light, float range)
 {
-    light->far_end_170 = (double)range;
+    light->far_end_170 = static_cast<double>(range);
     light->near_start_158 = 0.0;
     light->near_end_160 = 0.0;
     light->far_start_168 = 0.0;
@@ -728,9 +728,9 @@ void WorldUpdateProps(W8World* world)
         srAssertFail("pWorld && pWorld->plsProps", "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp",
                      0x158, 0);
     }
-    count = (int)PLLength(world->plsProps);
+    count = static_cast<int>(PLLength(world->plsProps));
     for (index = 0; index < count; index++) {
-        prop = (W8Prop*)PLGet(world->plsProps, index);
+        prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
         if (prop) {
             prop->DetachAnimationInstances(world);
             prop->UpdatePropAnimation();

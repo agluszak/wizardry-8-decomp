@@ -164,7 +164,7 @@ unsigned char stModelInstance::ReplaceDamageStageTexture(int stage, const char* 
 
     if (replacement != 0) {
         if (replacement->getClassID() == stTextureAnim::CLASS_ID) {
-            static_cast<stTextureAnim*>(replacement)->Prepare004857B0();
+            static_cast<stTextureAnim*>(replacement)->Prepare();
         }
         replacement->getClassID();
     }
@@ -343,7 +343,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         translation.Set(transformed_location.x, transformed_location.y, transformed_location.z);
         renderer->translate(translation);
         if (align_angle_158 != g_float_005ebb34) {
-            renderer->rotate((double)align_angle_158, align_axis_14c);
+            renderer->rotate(static_cast<double>(align_angle_158), align_axis_14c);
         }
         renderer->scale(world_scale.x * basis_x, world_scale.y * basis_y,
                         -(world_scale.z * basis_z));

@@ -57,7 +57,7 @@ public:
     W8CameraShakeEffect(const W8CameraShakeEffect& other);  /* 0x004AE000 */
     /* Per-frame evaluation: answers whether the effect is still active and
        reports how much it contributes this frame. */
-    unsigned char Evaluate004AE4E0(const srVector3T<float>* position, float* out_amount);
+    unsigned char Evaluate(const srVector3T<float>* position, float* out_amount);
 
     unsigned int flags_00;         /* 0x00 */
     float intensity_04;            /* 0x04 */

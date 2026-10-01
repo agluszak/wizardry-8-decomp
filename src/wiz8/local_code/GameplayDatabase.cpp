@@ -104,7 +104,7 @@ unsigned char InitializeItemDatabase(void)
         FileClose(handle);
         return 0;
     }
-    g_item_records = (W8ItemDatabaseRecord*)malloc(gXStatus.uiItemsInDatabase * 0x10d);
+    g_item_records = static_cast<W8ItemDatabaseRecord*>(malloc(gXStatus.uiItemsInDatabase * 0x10d));
     if (!g_item_records) {
         return 0;
     }
@@ -141,13 +141,13 @@ unsigned char InitializeItemTables(void)
         return 0;
     }
     if (gXStatus.uiItemTableCategories) {
-        g_item_table_category_names = (char**)malloc(gXStatus.uiItemTableCategories * 4);
+        g_item_table_category_names = static_cast<char**>(malloc(gXStatus.uiItemTableCategories * 4));
         if (!g_item_table_category_names) {
             return 0;
         }
         memset(g_item_table_category_names, 0, gXStatus.uiItemTableCategories * 4);
         for (index = 0; index < gXStatus.uiItemTableCategories; ++index) {
-            g_item_table_category_names[index] = (char*)malloc(0x100);
+            g_item_table_category_names[index] = static_cast<char*>(malloc(0x100));
             FileRead(handle, g_item_table_category_names[index], 0x100, &transferred);
         }
     }
@@ -156,13 +156,13 @@ unsigned char InitializeItemTables(void)
         return 0;
     }
     if (gXStatus.uiItemTablesInDatabase) {
-        g_item_tables = (W8ItemTableRecord**)malloc(gXStatus.uiItemTablesInDatabase * 4);
+        g_item_tables = static_cast<W8ItemTableRecord**>(malloc(gXStatus.uiItemTablesInDatabase * 4));
         if (!g_item_tables) {
             return 0;
         }
         memset(g_item_tables, 0, gXStatus.uiItemTablesInDatabase * 4);
         for (index = 0; index < gXStatus.uiItemTablesInDatabase; ++index) {
-            g_item_tables[index] = (W8ItemTableRecord*)malloc(0x1f1);
+            g_item_tables[index] = static_cast<W8ItemTableRecord*>(malloc(0x1f1));
             memset(g_item_tables[index], 0, 0x1f1);
             if (!g_item_tables[index]) {
                 return 0;

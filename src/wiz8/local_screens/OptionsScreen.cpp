@@ -84,19 +84,19 @@ unsigned int g_options_menu_region_set;
 unsigned int g_options_page_region_set;
 
 // GLOBAL: WIZ8 0x0064d0b8
-int g_options_menu_rows[8][18] = {
-    {1, 20, 51, 69, 137, -1, -1, -1, -1, 16, 194, 0, 0, 0, 2, 1, -1, -1},
-    {4, 90, 72, 117, 117, 217, 72, 244, 117, 16, 220, 0, 0, 3, 5, 4, -1, -1},
-    {3, 132, 29, 201, 102, -1, -1, -1, -1, 16, 246, 0, 0, 6, 8, 7, -1, -1},
-    {2, 124, 141, 194, 172, -1, -1, -1, -1, 16, 272, 0, 0, 9, 11, 10, -1, -1},
-    {0, -1, -1, -1, -1, -1, -1, -1, -1, 7, 322, 0, 0, 12, 14, 13, -1, 25},
-    {0, -1, -1, -1, -1, -1, -1, -1, -1, 7, 360, 0, 0, 15, 17, 16, -1, 24},
-    {0, -1, -1, -1, -1, -1, -1, -1, -1, 7, 398, 0, 0, 18, 20, 19, -1, -1},
-    {0, -1, -1, -1, -1, -1, -1, -1, -1, 7, 436, 0, 0, 21, 23, 22, -1, -1}};
+W8OptionsMenuRow g_options_menu_rows[8] = {
+    {1, {{20, 51, 69, 137}, {-1, -1, -1, -1}}, {16, 194, 0, 0}, {0, 2, 1, -1, -1}},
+    {4, {{90, 72, 117, 117}, {217, 72, 244, 117}}, {16, 220, 0, 0}, {3, 5, 4, -1, -1}},
+    {3, {{132, 29, 201, 102}, {-1, -1, -1, -1}}, {16, 246, 0, 0}, {6, 8, 7, -1, -1}},
+    {2, {{124, 141, 194, 172}, {-1, -1, -1, -1}}, {16, 272, 0, 0}, {9, 11, 10, -1, -1}},
+    {0, {{-1, -1, -1, -1}, {-1, -1, -1, -1}}, {7, 322, 0, 0}, {12, 14, 13, -1, 25}},
+    {0, {{-1, -1, -1, -1}, {-1, -1, -1, -1}}, {7, 360, 0, 0}, {15, 17, 16, -1, 24}},
+    {0, {{-1, -1, -1, -1}, {-1, -1, -1, -1}}, {7, 398, 0, 0}, {18, 20, 19, -1, -1}},
+    {0, {{-1, -1, -1, -1}, {-1, -1, -1, -1}}, {7, 436, 0, 0}, {21, 23, 22, -1, -1}}};
 
 // GLOBAL: WIZ8 0x0064d078
-int g_options_panel_ranges[8][2] = {{0, 2},   {3, 3},   {4, 5}, {6, 10},
-                                    {11, 11}, {12, 12}, {0, 0}, {0, 0}};
+W8OptionsPanelRange g_options_panel_ranges[8] = {{0, 2},   {3, 3},   {4, 5}, {6, 10},
+                                                 {11, 11}, {12, 12}, {0, 0}, {0, 0}};
 // GLOBAL: WIZ8 0x0064d730
 int g_options_difficulty_labels[3] = {0x7f8, 0x7f9, 0x7fa};
 // GLOBAL: WIZ8 0x0064d73c
@@ -630,8 +630,8 @@ void W8OptionsSaveRow::Redraw(unsigned char full_redraw)
         return;
     }
 
-    int x = m_pPanel->origin_x + m_left;
-    int y = m_pPanel->origin_y + m_top;
+    int x = m_pPanel->m_bounds.left + m_left;
+    int y = m_pPanel->m_bounds.top + m_top;
     if (m_save->screenshot.capture_result == 0) {
         DrawCatalogImage(-14, 0xf6, 0, 0, x + 6, y + 6, 2, 0);
     } else {
@@ -675,8 +675,8 @@ void W8OptionsSaveRow::OnLeftButtonUp(int event)
         (m_stateFlags & g_W8TextControlStateSecondary) != 0) {
         POINT point;
         SGPMouseGetPos(&point);
-        point.x -= m_pPanel->origin_x + m_left;
-        point.y -= m_pPanel->origin_y + m_top;
+        point.x -= m_pPanel->m_bounds.left + m_left;
+        point.y -= m_pPanel->m_bounds.top + m_top;
         if (m_save_mode != 0 && point.x >= 0x5c && point.y >= 0x33 && m_save_listener != 0) {
             m_save_listener->OnEditSaveName(this);
         }
@@ -828,8 +828,8 @@ void W8OptionsKeyboardPanel::Populate()
     m_selection.m_selectionListener = this;
 
     W8OptionsKeyboardPage& page = g_options_keyboard_pages[m_panel - 6];
-    W8ControlsRect title_bounds = {origin_x + 30, origin_y + m_content_top_050, right - 30,
-                                   origin_y + m_content_top_050 + 22};
+    W8ControlsRect title_bounds = {m_bounds.left + 30, m_bounds.top + m_content_top_050, m_bounds.right - 30,
+                                   m_bounds.top + m_content_top_050 + 22};
     W8TextBuffer* title =
         new W8TextBuffer(&title_bounds, gppStringList[page.title], g_options_detail_font,
                          g_W8TextBufferAlignTop | g_W8TextBufferAlignCenter, 4);
@@ -843,8 +843,8 @@ void W8OptionsKeyboardPanel::Populate()
 
     W8OptionsKeyRow* row = g_options_key_rows + first;
     for (;;) {
-        W8ControlsRect label_bounds = {origin_x + 20, origin_y + m_content_top_050, right,
-                                       origin_y + m_content_top_050 + 22};
+        W8ControlsRect label_bounds = {m_bounds.left + 20, m_bounds.top + m_content_top_050, m_bounds.right,
+                                       m_bounds.top + m_content_top_050 + 22};
         W8TextBuffer* label =
             new W8TextBuffer(&label_bounds, gppStringList[row->label], g_options_detail_font,
                              g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4);
@@ -860,7 +860,7 @@ void W8OptionsKeyboardPanel::Populate()
         if (binding == page.last_binding) {
             wchar_t* reset_text = gppStringList[0x833];
             short text_width = StringPixLength(reset_text, g_options_detail_font);
-            int left = (right - (text_width + 20) - origin_x) / 2;
+            int left = (m_bounds.right - (text_width + 20) - m_bounds.left) / 2;
             W8OptionsButton* reset =
                 new W8OptionsButton(this, left, 0x18e, left + text_width + 20, 0x1a4, reset_text);
             reset->m_listener = this;
@@ -1314,7 +1314,7 @@ void W8OptionsAdvancedGraphicsPanel::Populate()
 void W8OptionsUnavailablePanel::Populate()
 {
     m_content_top_050 += 44;
-    W8ControlsRect bounds = {origin_x + 30, origin_y + m_content_top_050, right - 30, bottom};
+    W8ControlsRect bounds = {m_bounds.left + 30, m_bounds.top + m_content_top_050, m_bounds.right - 30, m_bounds.bottom};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[m_message], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignCenter, 4);
     m_text_buffers_058.Add(text);
@@ -1345,7 +1345,7 @@ void W8OptionsScreen::CreateControls()
     m_controls_024->AcquireRegionSet(&g_options_menu_region_set);
     for (int index = 0; index < 8; ++index) {
         W8OptionsMenuButton* button =
-            new W8OptionsMenuButton(m_controls_024, g_options_menu_rows[index]);
+            new W8OptionsMenuButton(m_controls_024, &g_options_menu_rows[index]);
         if (index == 7) {
             button->m_primaryActivationCallback = RequestScreenTransition;
         } else if (index == 6) {
@@ -1407,8 +1407,8 @@ void W8OptionsScreen::SelectPanel(int selected, unsigned char notify)
         if (m_panel_038[selected] == 0) {
             m_panel_038[selected] = new W8OptionsPanelSet();
             W8OptionsPanelSet* created = m_panel_038[m_selected_panel_020];
-            for (int index = g_options_panel_ranges[m_selected_panel_020][0];
-                 index <= g_options_panel_ranges[m_selected_panel_020][1]; ++index) {
+            for (int index = g_options_panel_ranges[m_selected_panel_020].first;
+                 index <= g_options_panel_ranges[m_selected_panel_020].last; ++index) {
                 W8OptionsPanel* panel = CreateOptionsPanel(index, &created->m_compact_layout,
                                                            &created->m_hide_navigation);
                 panel->Populate();
@@ -1623,22 +1623,25 @@ void W8OptionsValues::TransferSettings()
    button's owner panel, registers the button's listener subobject, and picks
    up the shared layout flag. */
 // FUNCTION: WIZ8 0x005a7370
-W8OptionsMenuButton::W8OptionsMenuButton(Controls* owner, const int* row)
-    : W8TextControl(owner, 0xffffffff, row[9], row[10], row[11], row[12], 0xef, 0, row[13], row[14],
-                    row[15], row[16], row[17])
+W8OptionsMenuButton::W8OptionsMenuButton(Controls* owner, const W8OptionsMenuRow* row)
+    : W8TextControl(owner, 0xffffffff, row->bounds.left, row->bounds.top, row->bounds.right,
+                    row->bounds.bottom, 0xef, 0, row->image_indices[0], row->image_indices[1],
+                    row->image_indices[2], row->image_indices[3], row->image_indices[4])
 {
-    m_item_id_0bc = row[0];
+    m_item_id_0bc = row->item_id;
 
-    if (row[1] != -1) {
-        W8TextControl* control = new W8TextControl(m_pPanel, 0xffffffff, row[1], row[2], row[3],
-                                                   row[4], -1, -1, -1, -1, -1, -1, -1);
+    if (row->child_bounds[0].left != -1) {
+        W8TextControl* control = new W8TextControl(
+            m_pPanel, 0xffffffff, row->child_bounds[0].left, row->child_bounds[0].top,
+            row->child_bounds[0].right, row->child_bounds[0].bottom, -1, -1, -1, -1, -1, -1, -1);
         control->m_listener = this;
         control->AddLayoutFlags(g_W8TextControlLayoutMask);
     }
 
-    if (row[5] != -1) {
-        W8TextControl* control = new W8TextControl(m_pPanel, 0xffffffff, row[5], row[6], row[7],
-                                                   row[8], -1, -1, -1, -1, -1, -1, -1);
+    if (row->child_bounds[1].left != -1) {
+        W8TextControl* control = new W8TextControl(
+            m_pPanel, 0xffffffff, row->child_bounds[1].left, row->child_bounds[1].top,
+            row->child_bounds[1].right, row->child_bounds[1].bottom, -1, -1, -1, -1, -1, -1, -1);
         control->m_listener = this;
         control->AddLayoutFlags(g_W8TextControlLayoutMask);
     }
@@ -1712,8 +1715,8 @@ void W8OptionsSlider::Redraw(unsigned char full_redraw)
     if (m_active && (full_redraw != 0 || m_dirty)) {
         W8HorizontalRangeThumb::Redraw(full_redraw);
         if (m_enabled && m_pixelPosition > 13) {
-            int left = m_pPanel->origin_x + m_left;
-            int top = m_pPanel->origin_y + m_top;
+            int left = m_pPanel->m_bounds.left + m_left;
+            int top = m_pPanel->m_bounds.top + m_top;
             unsigned short color = Get16BPPColor(0x00ff00);
             int end = m_pixelPosition < 74 ? m_pixelPosition - 1 : 73;
             ColorFillVideoSurfaceArea(-14, left + 13, top + 7, left + end, top + 9, color);
@@ -1769,8 +1772,8 @@ W8OptionsPanel::~W8OptionsPanel()
 // FUNCTION: WIZ8 0x005a84e0
 W8OptionsCheckbox* W8OptionsPanel::AddCheckbox(int label, int* value)
 {
-    W8ControlsRect bounds = {origin_x + 20, origin_y + m_content_top_050, right,
-                             origin_y + m_content_top_050 + 22};
+    W8ControlsRect bounds = {m_bounds.left + 20, m_bounds.top + m_content_top_050, m_bounds.right,
+                             m_bounds.top + m_content_top_050 + 22};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[label], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4);
     m_text_buffers_058.Add(text);
@@ -1782,8 +1785,8 @@ W8OptionsCheckbox* W8OptionsPanel::AddCheckbox(int label, int* value)
 // FUNCTION: WIZ8 0x005a8670
 W8TextControl* W8OptionsPanel::AddChoiceButton(int label)
 {
-    W8ControlsRect bounds = {origin_x, origin_y + m_content_top_050, origin_x + 0x147,
-                             origin_y + m_content_top_050 + 22};
+    W8ControlsRect bounds = {m_bounds.left, m_bounds.top + m_content_top_050, m_bounds.left + 0x147,
+                             m_bounds.top + m_content_top_050 + 22};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[label], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignRight, 4);
     m_text_buffers_058.Add(text);
@@ -1797,8 +1800,8 @@ W8TextControl* W8OptionsPanel::AddChoiceButton(int label)
 // FUNCTION: WIZ8 0x005a8800
 W8OptionsSlider* W8OptionsPanel::AddSlider(int label, float* value, unsigned char alternate)
 {
-    W8ControlsRect bounds = {origin_x + 20, origin_y + m_content_top_050, right,
-                             origin_y + m_content_top_050 + 22};
+    W8ControlsRect bounds = {m_bounds.left + 20, m_bounds.top + m_content_top_050, m_bounds.right,
+                             m_bounds.top + m_content_top_050 + 22};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[label], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4);
     m_text_buffers_058.Add(text);
@@ -1810,8 +1813,8 @@ W8OptionsSlider* W8OptionsPanel::AddSlider(int label, float* value, unsigned cha
 // FUNCTION: WIZ8 0x005a8980
 void W8OptionsPanel::AddChoices(int label, int count, const int* choices, int* value)
 {
-    W8ControlsRect bounds = {origin_x + 20, origin_y + m_content_top_050, right,
-                             origin_y + m_content_top_050 + 22};
+    W8ControlsRect bounds = {m_bounds.left + 20, m_bounds.top + m_content_top_050, m_bounds.right,
+                             m_bounds.top + m_content_top_050 + 22};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[label], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4);
     m_text_buffers_058.Add(text);
@@ -1873,8 +1876,8 @@ W8OptionsPanel::W8OptionsPanel(int region_index)
     short width;
     short height;
     GetCatalogImageSize(0xf2, 0, 0, &width, &height);
-    right = origin_x + (unsigned short)width;
-    bottom = origin_y + (unsigned short)height;
+    m_bounds.right = m_bounds.left + static_cast<unsigned short>(width);
+    m_bounds.bottom = m_bounds.top + static_cast<unsigned short>(height);
 }
 
 /* The menu set builds itself from the shared options font: its panel bounds
@@ -1890,8 +1893,8 @@ W8OptionsMenuSet::W8OptionsMenuSet(unsigned int* shared_region_set)
     short width;
     short height;
     GetCatalogImageSize(0xf3, 0, 0, &width, &height);
-    right = origin_x + (unsigned short)width;
-    bottom = origin_y + (unsigned short)height;
+    m_bounds.right = m_bounds.left + static_cast<unsigned short>(width);
+    m_bounds.bottom = m_bounds.top + static_cast<unsigned short>(height);
 
     m_previous_058 = new W8TextControl(this, 0xffffffff, 3, 3, 0, 0, 0xf4, 0, 0, 2, 1, -1, 3);
     m_previous_058->m_listener = this;
@@ -1899,9 +1902,7 @@ W8OptionsMenuSet::W8OptionsMenuSet(unsigned int* shared_region_set)
     m_next_054 = new W8TextControl(this, 0xffffffff, 0x11f, 3, 0, 0, 0xf4, 0, 4, 6, 5, -1, 7);
     m_next_054->m_listener = this;
 
-    // reinterpret-ok: retail passes the panel's contiguous origin_x/origin_y/right/bottom
-    // ints as the bounds rect; Controls does not yet model them as one W8ControlsRect
-    m_page_text_05c = new W8TextBuffer(reinterpret_cast<W8ControlsRect*>(&origin_x),
+    m_page_text_05c = new W8TextBuffer(&m_bounds,
                                        &g_empty_wide_string, g_options_detail_font,
                                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle, 4);
 }
@@ -1976,11 +1977,11 @@ void W8OptionsMenuSet::UpdateMenuSet()
     int current;
     int count;
 
-    bounds.left = origin_x;
-    bounds.top = origin_y;
-    bounds.right = right;
-    bounds.bottom = bottom;
-    int height = bottom - origin_y;
+    bounds.left = m_bounds.left;
+    bounds.top = m_bounds.top;
+    bounds.right = m_bounds.right;
+    bounds.bottom = m_bounds.bottom;
+    int height = m_bounds.bottom - m_bounds.top;
     if (m_pMenuSet == 0) {
         srAssertFail("m_pMenuSet", "C:\\Projects\\Wizardry 8\\Local Screens\\OptionsScreen.cpp",
                      0x5c9, 0);

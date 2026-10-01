@@ -140,7 +140,7 @@ void AccumulateEquipmentModifiers(W8Character* character, W8GameplayModifierBloc
         } else if (value > 0x7c) {
             value = 0x7d;
         }
-        equipment_bonus->resistance_bonus[index] = (signed char)value;
+        equipment_bonus->resistance_bonus[index] = static_cast<signed char>(value);
     }
 }
 

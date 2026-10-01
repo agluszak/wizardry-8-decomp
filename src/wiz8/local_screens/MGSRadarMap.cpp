@@ -260,7 +260,7 @@ void RefreshRadarMap(void)
 
             if (row->fOccupied != 0 && position->bQuadrant != -1) {
                 int cell = position->bQuadrant * 3 + position->bQuadrantSlot;
-                DrawCatalogImage((int)map_surface, 0xa5, 0, row->party_order_index,
+                DrawCatalogImage(static_cast<int>(map_surface), 0xa5, 0, row->party_order_index,
                                  g_radar_cell_offsets[cell][0], g_radar_cell_offsets[cell][1], 2,
                                  0);
             }
@@ -497,8 +497,8 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, unsigne
         } else {
             scale = g_radar_map_scale / distance;
         }
-        left = (int)(scale * delta->x) + 0x4b;
-        top = 0x194 - (int)(scale * delta->z);
+        left = static_cast<int>(scale * delta->x) + 0x4b;
+        top = 0x194 - static_cast<int>(scale * delta->z);
     } else {
         float scale = g_radar_map_scale + (distance - g_radar_inner_radius) *
                                               (g_float_005eecf0 - g_radar_map_scale) /
@@ -508,8 +508,8 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, unsigne
             scale = g_float_005eecf0;
         }
         scale /= distance;
-        left = (int)(scale * delta->x + g_float_005eecec);
-        top = (int)(g_float_005eece8 - scale * delta->z);
+        left = static_cast<int>(scale * delta->x + g_float_005eecec);
+        top = static_cast<int>(g_float_005eece8 - scale * delta->z);
     }
     stModelInstance2D* blip = AcquireRadarBlip(ring + group * 3, lit);
     Position2DNodeUnsnapped(blip, left, top);

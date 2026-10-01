@@ -157,7 +157,7 @@ bool g_keyword_lists_loaded;
 /* 0x0068F0F9: the keyword subsystem's active flag, written absolutely by the
    screen reset and by the keyword panel helpers. */
 // GLOBAL: WIZ8 0x0068F0F9
-bool g_flag_68f0f9;
+bool g_pending_notice_queued;
 /* 0x0068EE58: empty wide string used to clear dialogue editor text. */
 // GLOBAL: WIZ8 0x0068EE58
 wchar_t g_wchar_0068ee58[4];
@@ -212,15 +212,15 @@ void W8NpcTypedDialoguePanel::Redraw()
     }
     if (m_fDirty) {
         if (m_renderTarget != -1) {
-            DrawCatalogImage(-14, m_renderTarget, m_renderArg_1c, m_renderArg_20, origin_x,
-                             origin_y, 2, 0);
+            DrawCatalogImage(-14, m_renderTarget, m_renderArg_1c, m_renderArg_20, m_bounds.left,
+                             m_bounds.top, 2, 0);
         }
         DrawCatalogImage(-14, 0x1a9, 0, 0x10, 0x1df,
                          g_screen_state_00649f1c->where_is_query ? 0x19b : 0x18b, 2, 0);
         if (m_fWholeAreaDirty) {
             if (m_renderTarget != -1) {
-                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20, origin_x,
-                                           origin_y, 2);
+                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20, m_bounds.left,
+                                           m_bounds.top, 2);
             }
         } else {
             InvalidateRegion(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right,
@@ -280,12 +280,12 @@ void W8NpcDialogueOptionsPanel::Redraw()
                                      W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX
                                  ? m_value_4c
                                  : m_renderArg_20,
-                             origin_x, origin_y, 2, 0);
+                             m_bounds.left, m_bounds.top, 2, 0);
         }
         if (m_fWholeAreaDirty) {
             if (m_renderTarget != -1) {
-                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20, origin_x,
-                                           origin_y, 2);
+                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20, m_bounds.left,
+                                           m_bounds.top, 2);
             }
         } else {
             InvalidateRegion(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right,
@@ -480,14 +480,14 @@ void ResetMainScreenStateBlock(void)
 {
     int unset = -1;
 
-    memset(static_cast<void*>(g_screen_state_00649f1c), 0, sizeof(W8NpcInteractionState));
+    memset(g_screen_state_00649f1c, 0, sizeof(W8NpcInteractionState));
     g_screen_state_00649f1c->dialogue_category_filter = unset;
     g_screen_state_00649f1c->transcript_sorted = 0;
     g_screen_state_00649f1c->pending_trade_toggle = 0;
     g_screen_state_00649f1c->selected_trade_row = unset;
     g_screen_state_00649f1c->trade_pc_items = 1;
     g_status.selected_party_member_2434 = 0xff;
-    g_flag_68f0f9 = false;
+    g_pending_notice_queued = false;
     ReloadKeywordLists();
 }
 
@@ -528,7 +528,7 @@ void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, unsig
         flag = 1;
         line = npc->name_style == W8_NPC_DRAZIC ? 0x23 : 0x1d;
     }
-    if (g_flag_68f0f9 != 0) {
+    if (g_pending_notice_queued != 0) {
         return;
     }
     g_pending_notice.flag = flag;
@@ -541,7 +541,7 @@ void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, unsig
         EmptyItemRecord(&g_pending_notice.item, 0, 1);
     }
     QueueNpcMessageLine(W8_NPC_MSG_DISPATCH_PENDING_NOTICE, 0);
-    g_flag_68f0f9 = true;
+    g_pending_notice_queued = true;
 }
 
 /* The NPC notice and dialogue dispatcher. Talking to a healer NPC (name
@@ -566,7 +566,7 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
     int condition;
     srVector3T<float> position;
 
-    g_flag_68f0f9 = false;
+    g_pending_notice_queued = false;
     g_screen_state_00649f1c->transcript_open_count = 0;
     if (npc->name_style == 0xf || npc->name_style == 0x12) {
         characters = g_status.buffers.Char;
@@ -4483,7 +4483,8 @@ void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data)
                 monster_info->effect_2de * 0.01f * g_screen_state_00649f1c->pending_price_204);
         }
         g_screen_state_00649f1c->pending_price_204 -=
-            GetBestPartySkillLevel(0x16, 0) * g_screen_state_00649f1c->pending_price_204 / 500;
+            GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0) *
+            g_screen_state_00649f1c->pending_price_204 / 500;
         if (g_screen_state_00649f1c->pending_price_204 < 1) {
             g_screen_state_00649f1c->pending_price_204 = 1;
         }

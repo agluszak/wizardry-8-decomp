@@ -606,7 +606,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                             cycle = NormalizeAttackMode(cycle);
                         }
                         if (*monster == 0 ||
-                            (*monster)->IsCycleSupported((signed char)cycle) == 0 ||
+                            (*monster)->IsCycleSupported(static_cast<signed char>(cycle)) == 0 ||
                             GetRenderOptionState(0xe) != 0) {
                             float animation_scale = -1.0f;
                             sscanf(line, "%s %s %f", command, argument, &animation_scale);
@@ -820,7 +820,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
     if (movement_rate < 0.1f)
         movement_rate = 2.0f;
     (*monster)->SetValue120(movement_rate);
-    (*monster)->SetTurnRate(rotation_rate * (float)g_double_005ec318);
+    (*monster)->SetTurnRate(rotation_rate * static_cast<float>(g_double_005ec318));
 
     int navigation_mode = 1;
     if (flies != 0)
@@ -854,7 +854,7 @@ unsigned short ChooseDifferentMonsterDirection(unsigned short previous_direction
     unsigned short direction;
 
     for (;;) {
-        direction = (unsigned short)Random(6);
+        direction = static_cast<unsigned short>(Random(6));
         if (direction > 3) {
             direction = 0;
         }
@@ -915,8 +915,8 @@ void W8Monster::RandomizeAppearanceAndMotion()
                                    Random(1000) * g_float_005ec128 +
                                m_pRep->random_idle_fps_min;
 
-        for (subcycle = 0; subcycle < (signed char)m_pRep->animations[1].GetCount(); ++subcycle) {
-            int animation_index = (signed char)subcycle;
+        for (subcycle = 0; subcycle < static_cast<signed char>(m_pRep->animations[1].GetCount()); ++subcycle) {
+            int animation_index = static_cast<signed char>(subcycle);
             W8AnimObj* animation;
             float scale = playback_scale + m_pRep->idle_playback_scale_604;
 
@@ -995,7 +995,7 @@ int ParseMonsterCycleName(const char* name, signed char* subcycle)
     if (subcycle != 0) {
         *subcycle = 1;
         int suffix = g_cycle_names[cycle].prefix_length;
-        if ((int)strlen(name) > suffix && name[suffix] >= '0' && name[suffix] <= '9') {
+        if (static_cast<int>(strlen(name)) > suffix && name[suffix] >= '0' && name[suffix] <= '9') {
             /* The retail atoi offset uses the search index even after a fallback. */
             *subcycle = static_cast<signed char>(atoi(name + g_cycle_names[index].prefix_length));
         }
@@ -1522,9 +1522,9 @@ void W8Monster::Update()
         }
 
         if (monster_info == 0) {
-            UpdateNavigation004553A0(0, 0);
+            UpdateNavigation(0, 0);
         } else {
-            UpdateNavigation004553A0(monster_info->highest_condition >= 0x0e,
+            UpdateNavigation(monster_info->highest_condition >= 0x0e,
                                      monster_info->uiCondition[5] != 0);
         }
 
@@ -1703,7 +1703,7 @@ unsigned char W8Monster::EvaluateScriptCondition(const char* expression)
     if (argument_list != 0) {
         argument = strtok(argument_list + 1, ",)");
         while (argument != 0) {
-            parameters.Add((float)atof(argument));
+            parameters.Add(static_cast<float>(atof(argument)));
             argument = strtok(0, ",)");
         }
         *argument_list = 0;
@@ -1734,7 +1734,7 @@ unsigned char W8Monster::EvaluateScriptCondition(const char* expression)
                          FormatString("Monscr %s line %d: RANDOM expects 1 parameter",
                                       script_238->getName(), script_line_23c));
         }
-        if (Chance((unsigned int)*parameters.GetAt(0)) != 0) {
+        if (Chance(static_cast<unsigned int>(*parameters.GetAt(0))) != 0) {
             return 1;
         }
     }
@@ -1874,7 +1874,7 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
     animation = *animations->GetAt(subcycle);
 
     if (mapped_index == 5) {
-        dispatch_value = (int)flags_1dc;
+        dispatch_value = static_cast<int>(flags_1dc);
     } else if (mapped_index == 6) {
         dispatch_value = navigation_mode_008;
     } else {
@@ -2079,7 +2079,7 @@ void W8Monster::ProcessScript()
                 if (token != 0) {
                     int cycle = ParseMonsterCycleName(token, &subcycle);
                     if (cycle != -1) {
-                        m_pRep->pending_cycle = (signed char)cycle;
+                        m_pRep->pending_cycle = static_cast<signed char>(cycle);
                         m_pRep->animation_playing_06d = 1;
                         m_pRep->timer_068 =
                             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
@@ -2108,7 +2108,7 @@ void W8Monster::ProcessScript()
                 if (token == 0) {
                     break;
                 }
-                unsigned int owner = (unsigned int)atoi(token);
+                unsigned int owner = static_cast<unsigned int>(atoi(token));
                 token = strtok(0, " \t");
                 if (token == 0) {
                     break;
@@ -2198,7 +2198,7 @@ void W8Monster::ProcessScript()
                     if (monster_info != 0) {
                         unsigned int group_index = GetMonsterGroupIndexByID(
                             0x1b90, MONSTER_CPP, monster_info->monster_group_id, 0);
-                        if (group_index != (unsigned int)-1) {
+                        if (group_index != static_cast<unsigned int>(-1)) {
                             W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
                             if (group != 0) {
                                 SetMonsterGroupHostility(group, disposition, 0);
@@ -2259,8 +2259,8 @@ void W8Monster::ProcessScript()
                 break;
             case MONSCR_DELAY:
                 token = strtok(0, " \t");
-                if (token != 0 && (float)atof(token) != 0.0f) {
-                    timer_254.SetDuration((float)atof(token) * g_float_005ec128);
+                if (token != 0 && static_cast<float>(atof(token)) != 0.0f) {
+                    timer_254.SetDuration(static_cast<float>(atof(token)) * g_float_005ec128);
                     timer_254.Restart();
                     script_wait_240 = MONSCR_DELAY;
                 }
@@ -2340,8 +2340,8 @@ void W8Monster::ProcessScript()
                 if (sound_334 != 0) {
                     srVector3T<float> position = GetPosition();
                     sound_334->volume = value;
-                    sound_334->setLocation((double)position.x, (double)position.y,
-                                           (double)position.z);
+                    sound_334->setLocation(static_cast<double>(position.x), static_cast<double>(position.y),
+                                           static_cast<double>(position.z));
                     if (distance != 0.0f)
                         sound_334->falloff = distance;
                     if (sound_334->Play(0, 0) == 0) {
@@ -2391,9 +2391,9 @@ void W8Monster::ProcessScript()
                     if (direction != -1) {
                         double angle = (direction - MONSCR_EAST) * g_monster_script_direction_step;
                         order_mode_28e = 4;
-                        direction_x_2b0 = (float)cos(angle) * g_double_005ec150;
+                        direction_x_2b0 = static_cast<float>(cos(angle)) * g_double_005ec150;
                         direction_y_2b4 = 0.0f;
-                        direction_z_2b8 = (float)sin(angle) * g_double_005ec150;
+                        direction_z_2b8 = static_cast<float>(sin(angle)) * g_double_005ec150;
                     }
                 }
                 break;
@@ -2454,13 +2454,13 @@ void W8Monster::ProcessScript()
             case MONSCR_LOOKABOUT:
                 token = strtok(0, " \t");
                 if (token != 0) {
-                    look_frequency_2c8 = (float)atoi(token);
+                    look_frequency_2c8 = static_cast<float>(atoi(token));
                     if (monster_info != 0) {
-                        monster_info->look_timer_302 = (unsigned char)atoi(token);
+                        monster_info->look_timer_302 = static_cast<unsigned char>(atoi(token));
                     }
                     token = strtok(0, " \t");
                     if (token != 0) {
-                        look_duration_2cc = (float)atoi(token);
+                        look_duration_2cc = static_cast<float>(atoi(token));
                     }
                 }
                 break;
@@ -2504,7 +2504,7 @@ bool W8Monster::CanContinueScript()
         }
         break;
     case 2:
-        if ((float)fabs(movement_0c0.target_yaw - movement_0c0.yaw) >=
+        if (static_cast<float>(fabs(movement_0c0.target_yaw - movement_0c0.yaw)) >=
             g_camera_transition_epsilon) {
             return 0;
         }
@@ -2579,7 +2579,7 @@ bool W8Monster::IsWithinWorldRange()
         srVector3T<float> reference = g_startup_world->GetPosition();
         srVector3T<float> delta = reference - position;
 
-        return delta.LengthSquared() <= (float)far_clip * (float)far_clip;
+        return delta.LengthSquared() <= static_cast<float>(far_clip) * static_cast<float>(far_clip);
     }
 }
 
@@ -3086,7 +3086,7 @@ float W8Monster::GetPointDistanceToMonster(W8Monster* monster, srVector3T<float>
     float delta_x = point.x - position.x;
     float delta_y = point.y - position.y;
     float delta_z = point.z - position.z;
-    float distance = (float)sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z) -
+    float distance = static_cast<float>(sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z)) -
                      movement_0c0.alternate_radius_0b4 - monster->movement_0c0.alternate_radius_0b4;
 
     if (distance < g_float_005ebb34) {
@@ -3117,7 +3117,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
             return 0;
         }
     } else {
-        if (IsCycleInterruptable((signed char)Query(6)) == 0 && Query(7) == 0) {
+        if (IsCycleInterruptable(static_cast<signed char>(Query(6))) == 0 && Query(7) == 0) {
             return 0;
         }
         if (cycle == 0x15 && monster_info->monster_species == 0x199 && Query(2) == 0) {
@@ -3143,7 +3143,7 @@ unsigned char W8Monster::IsCycleInterruptable(signed char cycle)
         return 1;
     }
     if (m_pRep->animation_playing_06d == 0) {
-        current_cycle = (signed char)Query(6);
+        current_cycle = static_cast<signed char>(Query(6));
         pending_cycle = m_pRep->pending_cycle;
         if (pending_cycle != -1 && CanEnterCycle(pending_cycle) != 0) {
             pending_name = g_cycle_names[pending_cycle].name;
@@ -3215,7 +3215,7 @@ unsigned char W8MonsterRep::GetNumSubsPerCycle(signed char bCycle)
     if (bCycle == -1) {
         bCycle = current_cycle;
     }
-    return (unsigned char)animations[bCycle].GetCount();
+    return static_cast<unsigned char>(animations[bCycle].GetCount());
 }
 
 /* Select the active AnimObj for a cycle and dispatch the requested LOD/frame.
@@ -3297,8 +3297,8 @@ void W8Monster::UpdateRepresentation(W8World* world)
         float scale_z = static_cast<float>(source_scale.z);
         srVector3T<double> scale;
         scale.x = source_scale.x;
-        scale.y = (double)scale_y;
-        scale.z = (double)scale_z;
+        scale.y = static_cast<double>(scale_y);
+        scale.z = static_cast<double>(scale_z);
         model->setScale(scale);
         scale_y_1ec -= g_float_005ebc3c;
     }
@@ -3315,7 +3315,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
             unsigned short frame;
             mouth_frame_clock = GetTickCount();
             do {
-                frame = (unsigned short)Random(6);
+                frame = static_cast<unsigned short>(Random(6));
                 if (frame > 3) {
                     frame = 0;
                 }
@@ -3343,7 +3343,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
             SetModelInstanceChainExclusionMask(model, 4);
         }
         if (m_pRep->monster_light_624 != 0) {
-            m_pRep->monster_light_624->Update0049D990(&position);
+            m_pRep->monster_light_624->Update(&position);
         }
         if (enabled_1bd == 0) {
             enabled_1bd = true;
@@ -3355,7 +3355,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
                 }
             }
             if (m_pRep->monster_light_624 != 0) {
-                m_pRep->monster_light_624->SetVisible0049D970(1);
+                m_pRep->monster_light_624->SetVisible(1);
             }
         }
     } else if (enabled_1bd != 0) {
@@ -3368,7 +3368,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
             }
         }
         if (m_pRep->monster_light_624 != 0) {
-            m_pRep->monster_light_624->SetVisible0049D970(0);
+            m_pRep->monster_light_624->SetVisible(0);
         }
     }
 }
@@ -3508,7 +3508,7 @@ void W8Monster::SetCycle(signed char cycle)
         subcycle = 0;
     } else if (m_pRep->forced_subcycle_0a6 == -1 || count <= m_pRep->forced_subcycle_0a6) {
         if ((flags_1dc & W8_MONSTER_KEEP_SUBCYCLE) == 0) {
-            subcycle = (signed char)(GetTickCount() % count);
+            subcycle = static_cast<signed char>(GetTickCount() % count);
         } else {
             flags_1dc &= ~W8_MONSTER_KEEP_SUBCYCLE;
             subcycle = m_pRep->current_subcycle;
@@ -3595,7 +3595,7 @@ void W8Monster::SetCycle(signed char cycle)
         }
     }
     if (m_pRep->monster_light_624 != 0) {
-        m_pRep->monster_light_624->SetVisible0049D970(enabled_1bd);
+        m_pRep->monster_light_624->SetVisible(enabled_1bd);
     }
 
     g_monster_model_instances.Clear();
@@ -3630,7 +3630,7 @@ signed char W8Monster::GetTotalAnimationCount()
     int cycle;
 
     for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
-        total += (signed char)m_pRep->animations[cycle].GetCount();
+        total += static_cast<signed char>(m_pRep->animations[cycle].GetCount());
     }
     return total;
 }
@@ -3744,7 +3744,7 @@ void W8Monster::UpdateAttachedObjects()
                 location.y += representation->standing_height_5ec +
                               distance_scale * g_monster_attachment_vertical_scale;
 
-                item->SetLocation0049F720(&location);
+                item->SetLocation(&location);
                 mesh = item->GetMesh();
                 mesh_scale = distance_scale * g_monster_attachment_scales[attachment_layout - 1];
                 widened_scale = mesh_scale;
@@ -3763,8 +3763,8 @@ void W8Monster::UpdateAttachedObjects()
     {
         int group = 0;
 
-        while (index < (int)linked_count) {
-            int chunk_count = (int)linked_count - index;
+        while (index < static_cast<int>(linked_count)) {
+            int chunk_count = static_cast<int>(linked_count) - index;
             int chunk_index;
             float group_height;
 
@@ -3793,7 +3793,7 @@ void W8Monster::UpdateAttachedObjects()
                 location.y += representation->standing_height_5ec +
                               distance_scale * g_monster_linked_vertical_scale;
 
-                item->SetLocation0049F720(&location);
+                item->SetLocation(&location);
                 mesh = item->GetMesh();
                 mesh_scale = distance_scale * g_monster_attachment_scales[chunk_count - 1];
                 widened = mesh_scale;
@@ -3821,7 +3821,7 @@ void W8Monster::UpdateAttachedObjects()
                 *representation->linked_runtime_objects_614.GetAt(poster_index);
             srVector3T<double> location = poster->getLocation();
             srVector3T<float> poster_position(
-                (float)location.x, (float)location.y + vertical_offset, (float)location.z);
+                static_cast<float>(location.x), static_cast<float>(location.y) + vertical_offset, static_cast<float>(location.z));
 
             if ((poster_position - mapped_position).Length() <=
                 static_cast<float>(g_monster_poster_max_distance)) {
@@ -3874,7 +3874,7 @@ int W8Monster::Query(int query)
         result = m_pRep->subcycle_064;
         break;
     case 5:
-        result = m_pRep->ApplyEmitterSetting(m_pRep->current_cycle) != (unsigned int)-1;
+        result = m_pRep->ApplyEmitterSetting(m_pRep->current_cycle) != static_cast<unsigned int>(-1);
         break;
     case 6:
         result = m_pRep->current_cycle;
@@ -4152,7 +4152,7 @@ void W8Monster::UpdateShakeEvents(unsigned char previous_frame)
 
         if (particle->start_frame_264 != -1 && particle->end_frame_268 != -1 &&
             particle->start_frame_264 != particle->end_frame_268) {
-            if ((unsigned int)previous_frame == (unsigned int)particle->start_frame_264) {
+            if (static_cast<unsigned int>(previous_frame) == static_cast<unsigned int>(particle->start_frame_264)) {
                 if (enabled_1bd != 0) {
                     particle->SetActive(1);
                     particle->emission_count_188 = 0;
@@ -4208,7 +4208,7 @@ void MonsterSetLocationId(W8Monster* monster, int value)
         srAssertFail("pMonster", "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp", 0x125f, 0);
     }
     monster->location_id_1e4 = value;
-    monster->movement_0c0.location_id_004 = (unsigned short)value;
+    monster->movement_0c0.location_id_004 = static_cast<unsigned short>(value);
     if (monster->m_plsSoundEvents != 0) {
         count = monster->m_plsSoundEvents->GetCount();
         index = 0;
@@ -4409,7 +4409,7 @@ unsigned char MonsterIsAnimating(W8Monster* monster)
 void MonsterSetPendingCycle(W8Monster* monster, int cycle)
 {
     if (monster != 0 && (monster->flags_1dc & W8_MONSTER_SCRIPT_WAIT) == 0) {
-        monster->m_pRep->pending_cycle = (signed char)cycle;
+        monster->m_pRep->pending_cycle = static_cast<signed char>(cycle);
     }
 }
 
@@ -4871,7 +4871,7 @@ void W8Monster::CollectModelInstances(W8GrowableVector<stModelInstance*>* instan
     for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
         int subcycle;
 
-        for (subcycle = 0; subcycle < m_pRep->GetNumSubsPerCycle((signed char)cycle); ++subcycle) {
+        for (subcycle = 0; subcycle < m_pRep->GetNumSubsPerCycle(static_cast<signed char>(cycle)); ++subcycle) {
             W8GrowableVector<W8AnimObj*>* cycle_animations = &m_pRep->animations[cycle];
             W8AnimObj* animation;
 

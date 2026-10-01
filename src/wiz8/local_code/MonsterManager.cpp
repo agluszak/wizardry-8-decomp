@@ -490,7 +490,7 @@ unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_fil
     }
 
     for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
-        monster = (W8MonsterInfo*)PLGet(gXStatus.plsUnbornMonsterList, index);
+        monster = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, index));
         if (monster->location_id == location_id) {
             return index + 10000;
         }
@@ -516,7 +516,7 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
             srAssertFail("uiMonsterListIndex < (UINT32) PLLength(gXStatus.plsMonsterList)",
                          MONSTER_MANAGER_CPP, 0x5da, 0);
         }
-        result = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, monster_list_index);
+        result = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, monster_list_index));
         if (result != 0) {
             return result;
         }
@@ -529,7 +529,7 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
                 "(uiMonsterListIndex-10000) < (UINT32) PLLength(gXStatus.plsUnbornMonsterList)",
                 MONSTER_MANAGER_CPP, 0x5d1, 0);
         }
-        result = (W8MonsterInfo*)PLGet(gXStatus.plsUnbornMonsterList, monster_list_index - 10000);
+        result = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, monster_list_index - 10000));
         if (result != 0) {
             return result;
         }
@@ -555,7 +555,7 @@ W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species)
     }
     record = gXStatus.monster_record_cache[monster_species];
     if (record == 0) {
-        record = (W8MonsterRecord*)malloc(sizeof(W8MonsterRecord));
+        record = static_cast<W8MonsterRecord*>(malloc(sizeof(W8MonsterRecord)));
         if (record == 0) {
             return 0;
         }
@@ -675,9 +675,9 @@ W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator)
     if (reset_iterator != 0) {
         g_monster_info_iterator_index = 0;
     }
-    if (g_monster_info_iterator_index < (int)PLLength(gXStatus.plsMonsterList)) {
+    if (g_monster_info_iterator_index < static_cast<int>(PLLength(gXStatus.plsMonsterList))) {
         index = g_monster_info_iterator_index++;
-        result = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, index);
+        result = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
     }
     return result;
 }
@@ -938,7 +938,7 @@ W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double 
     unsigned int index;
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, index);
+        W8MonsterInfo* monster_info = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
         double distance = DistanceBetweenPositions(position, monster_info->p3D->GetPosition());
 
         if (distance < nearest_distance &&
@@ -949,7 +949,7 @@ W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double 
     }
 
     for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsUnbornMonsterList, index);
+        W8MonsterInfo* monster_info = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, index));
         double distance = DistanceBetweenPositions(position, monster_info->p3D->GetPosition());
 
         if (distance < nearest_distance &&
@@ -1722,7 +1722,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
 
         record = GetMonsterDataForInfo(monster_info);
         monster_level = record->display_level_251;
-        health_knowledge = GetBestPartySkillLevel(0x15, &best_party_slot);
+        health_knowledge = GetBestPartySkillLevel(W8_SKILL_MYTHOLOGY, &best_party_slot);
         if (static_cast<int>(average_party_level) < monster_level) {
             float adjusted_knowledge = health_knowledge -
                                        (monster_level - average_party_level) * g_float_005ec52c +

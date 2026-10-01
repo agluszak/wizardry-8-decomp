@@ -396,9 +396,9 @@ bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
     }
 
     profession = character->iProfession;
-    if (skill_id != (unsigned int)g_profession_bonus_skills[profession]) {
+    if (skill_id != static_cast<unsigned int>(g_profession_bonus_skills[profession])) {
         for (index = 0; index < 4; ++index) {
-            if (skill_id == (unsigned int)g_profession_skills[profession][index]) {
+            if (skill_id == static_cast<unsigned int>(g_profession_skills[profession][index])) {
                 return true;
             }
         }
@@ -484,7 +484,7 @@ void ResetCharacterSkills(W8Character* character)
     for (index = 0; index < 0x29; ++index) {
         int value = character->skills[index].points_02;
         if (index == static_cast<unsigned int>(g_profession_bonus_skills[character->iProfession])) {
-            unsigned int bonus = (unsigned int)(value * 0x19) / 100;
+            unsigned int bonus = static_cast<unsigned int>(value * 0x19) / 100;
             if (bonus == 0) {
                 bonus = 1;
             }

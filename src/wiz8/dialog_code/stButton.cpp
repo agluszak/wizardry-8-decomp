@@ -186,7 +186,7 @@ W8DialogButton::W8DialogButton()
     m_off_hover_frame = -1;
     m_on_normal_frame = -1;
     m_on_hover_frame = -1;
-    m_live_dialog_count = g_dword_69ca28;
+    m_live_dialog_count = g_live_dialog_count;
 }
 
 // FUNCTION: WIZ8 0x005db260
@@ -322,7 +322,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
     if (left_callback == 0 && right_callback == 0 && move_callback == 0) {
         return;
     }
-    if (self->m_live_dialog_count != g_dword_69ca28) {
+    if (self->m_live_dialog_count != g_live_dialog_count) {
         return;
     }
     if ((reason & MSYS_CALLBACK_REASON_LBUTTON_DOUBLECLICK) != 0 &&

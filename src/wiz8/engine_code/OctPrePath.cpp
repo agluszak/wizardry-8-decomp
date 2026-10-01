@@ -103,8 +103,9 @@ PrePathing::PrePathing()
     owned_248 = 0;
     cell_map_254 = 0;
     named_positions_250 = 0;
-    node_chunks_258[0] = static_cast<W8PrePathNode*>(malloc(0x3e80));
-    memset(node_chunks_258[0], 0, 0x3e80);
+    node_chunks_258[0] =
+        static_cast<W8PrePathNode*>(malloc(W8_PREPATH_NODES_PER_CHUNK * sizeof(W8PrePathNode)));
+    memset(node_chunks_258[0], 0, W8_PREPATH_NODES_PER_CHUNK * sizeof(W8PrePathNode));
     chunk_index_11f8 = 0;
     chunk_node_count_11fc = 0;
 }
@@ -167,11 +168,13 @@ W8PrePathNode* PrePathing::GetPathNode()
         if (1000 <= static_cast<unsigned int>(chunk_index_11f8)) {
             ReportBuildStatus(7, "There are over one million path nodes required for this level!");
         }
-        node_chunks_258[chunk_index_11f8] = static_cast<W8PrePathNode*>(malloc(0x3e80));
+        node_chunks_258[chunk_index_11f8] =
+            static_cast<W8PrePathNode*>(malloc(W8_PREPATH_NODES_PER_CHUNK * sizeof(W8PrePathNode)));
         if (node_chunks_258[chunk_index_11f8] == 0) {
             ReportBuildStatus(7, "PrePathing::GetPathNode -- Could not allocate path nodes.");
         }
-        memset(node_chunks_258[chunk_index_11f8], 0, 0x3e80);
+        memset(node_chunks_258[chunk_index_11f8], 0,
+               W8_PREPATH_NODES_PER_CHUNK * sizeof(W8PrePathNode));
         chunk_node_count_11fc = 0;
     }
     W8PrePathNode* node = node_chunks_258[chunk_index_11f8] + chunk_node_count_11fc;

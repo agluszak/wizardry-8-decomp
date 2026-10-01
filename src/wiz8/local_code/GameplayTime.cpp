@@ -1006,11 +1006,11 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         delta = location - previous;
         monster_info->position_17.x = location.x;
         monster_info->position_17.z = location.z;
-        if ((signed char)cycle > 1) {
+        if (static_cast<signed char>(cycle) > 1) {
             bool cycle_cleared = false;
             bool flags_cleared = false;
 
-            if ((signed char)cycle < 4) {
+            if (static_cast<signed char>(cycle) < 4) {
                 bool cleared = false;
 
                 if (delta.Length() < 500.0f) {

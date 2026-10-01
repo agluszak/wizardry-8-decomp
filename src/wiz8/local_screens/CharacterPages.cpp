@@ -60,8 +60,8 @@ W8CharacterPageEntry::W8CharacterPageEntry(Controls* owner, int x, int y, bool c
     : m_listener_004(0), m_first_020(0), m_second_024(0), m_third_028(0), m_id_02c(-1),
       m_draw_background_038(compact), m_dirty_039(1), m_enabled_03a(0), m_increment_allowed_03b(1)
 {
-    m_x_030 = owner->origin_x + x;
-    m_y_034 = owner->origin_y + y;
+    m_x_030 = owner->m_bounds.left + x;
+    m_y_034 = owner->m_bounds.top + y;
     int split = m_x_030 + (compact ? 0x6d : 0x78);
     W8ControlsRect bounds = {m_x_030 + 5, m_y_034 + 1, split, m_y_034 + 0xd};
     m_label_014 = new W8TextBuffer(&bounds, 0, 0, 0, 4);
@@ -75,7 +75,7 @@ W8CharacterPageEntry::W8CharacterPageEntry(Controls* owner, int x, int y, bool c
     m_second_text_01c = new W8TextBuffer(&bounds, 0, 0, 0, 4);
     m_second_text_01c->SetLayoutMode(g_W8TextBufferAlignRight);
 
-    int relative_split = split - owner->origin_x;
+    int relative_split = split - owner->m_bounds.left;
     m_decrement_00c = new W8TextControl(owner, 0xffffffff, relative_split + 0x1b, y + 1, 0, 0,
                                         0x10a, 0, 0x19, 0x1b, 0x1a, 0x1d, 0x1c);
     m_decrement_00c->AddLayoutFlags(0x100);

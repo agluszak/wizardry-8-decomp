@@ -424,14 +424,14 @@ void W8SplitItemDialog::UpdateCostLabels()
         return;
     }
     if (m_kind_0cc == 1) {
-        stack.stack_count = (unsigned char)split_count_0c0;
+        stack.stack_count = static_cast<unsigned char>(split_count_0c0);
         if (split_count_0c0 == 0) {
             split_price = 0;
         } else {
             split_price =
                 CalculateTradeStackPrice(g_screen_state_00649f1c->dialogue_npc, &stack, 0);
         }
-        stack.stack_count = (unsigned char)m_remaining_0bc;
+        stack.stack_count = static_cast<unsigned char>(m_remaining_0bc);
         if (m_remaining_0bc == 0) {
             remaining_price = 0;
         } else {
@@ -439,14 +439,14 @@ void W8SplitItemDialog::UpdateCostLabels()
                 CalculateTradeStackPrice(g_screen_state_00649f1c->dialogue_npc, &stack, 0);
         }
     } else if (m_kind_0cc == 2) {
-        stack.stack_count = (unsigned char)split_count_0c0;
+        stack.stack_count = static_cast<unsigned char>(split_count_0c0);
         if (split_count_0c0 == 0) {
             split_price = 0;
         } else {
             split_price =
                 CalculateTradeStackPrice(g_screen_state_00649f1c->dialogue_npc, &stack, 1);
         }
-        stack.stack_count = (unsigned char)m_remaining_0bc;
+        stack.stack_count = static_cast<unsigned char>(m_remaining_0bc);
         if (m_remaining_0bc == 0) {
             remaining_price = 0;
         } else {
@@ -493,7 +493,7 @@ void W8SplitItemDialog::UpdateAcceptButton()
     bool can_accept;
 
     stack = *m_item_0d0;
-    stack.stack_count = (unsigned char)split_count_0c0;
+    stack.stack_count = static_cast<unsigned char>(split_count_0c0);
     can_accept = split_count_0c0 != 0;
     switch (m_kind_0cc) {
     case 1:
@@ -533,12 +533,12 @@ void W8SplitItemDialog::UpdateTotals()
     m_count_input_0b4->m_dirty = true;
     m_count_input_0b4->m_button->m_dirty = true;
     swprintf(text, g_assay_format_1f,
-             (double)(GetItemUnitWeight(m_item_0d0) * m_remaining_0bc) * g_float_005ed8b8);
+             static_cast<double>(GetItemUnitWeight(m_item_0d0) * m_remaining_0bc) * g_float_005ed8b8);
     m_texts_07c[7]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[4]->m_dirty = true;
     m_texts_07c[7]->SetGeometryDirty();
     swprintf(text, g_assay_format_1f,
-             (double)(GetItemUnitWeight(m_item_0d0) * split_count_0c0) * g_float_005ed8b8);
+             static_cast<double>(GetItemUnitWeight(m_item_0d0) * split_count_0c0) * g_float_005ed8b8);
     m_texts_07c[9]->SetText(text, g_wiz_text_font_secondary);
     m_buttons_054[5]->m_dirty = true;
     m_texts_07c[9]->SetGeometryDirty();

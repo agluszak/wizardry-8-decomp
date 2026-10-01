@@ -65,12 +65,12 @@ stMeshModel::stMeshModel(long polygons, long vertices)
             } else if (component > 1.0f) {
                 component = 1.0f;
             }
-            s_compressed_normal_table[(unsigned char)value] = component;
+            s_compressed_normal_table[static_cast<unsigned char>(value)] = component;
         }
         s_compressed_normal_table_ready = true;
     }
 
-    memset(static_cast<void*>(&tri_mesh_23c), 0, sizeof(tri_mesh_23c));
+    memset(&tri_mesh_23c, 0, sizeof(tri_mesh_23c));
     srMeshModel::reset(polygons, vertices);
     sort_bias_238 = 0.0f;
 
@@ -1500,17 +1500,17 @@ void stMeshModel::ComputeFrameNormals(int frame)
     }
     srVectorProcessor::mul(&vnorm->x, 127.0f, &vnorm->x, vertex_location_count_22c * 3);
     for (int index = 0; index < vertex_location_count_22c; ++index) {
-        compressed_vertex_normals[frame][index * 3] = (char)vnorm[index].x;
-        compressed_vertex_normals[frame][index * 3 + 1] = (char)vnorm[index].y;
-        compressed_vertex_normals[frame][index * 3 + 2] = (char)vnorm[index].z;
+        compressed_vertex_normals[frame][index * 3] = static_cast<char>(vnorm[index].x);
+        compressed_vertex_normals[frame][index * 3 + 1] = static_cast<char>(vnorm[index].y);
+        compressed_vertex_normals[frame][index * 3 + 2] = static_cast<char>(vnorm[index].z);
     }
 
     srVectorProcessor::normalize(pnorm, pnorm, 1.0f, polygon_count_230);
     srVectorProcessor::mul(&pnorm->x, 127.0f, &pnorm->x, polygon_count_230 * 3);
     for (int polygon = 0; polygon < polygon_count_230; ++polygon) {
-        compressed_polygon_normals[frame][polygon * 3] = (char)pnorm[polygon].x;
-        compressed_polygon_normals[frame][polygon * 3 + 1] = (char)pnorm[polygon].y;
-        compressed_polygon_normals[frame][polygon * 3 + 2] = (char)pnorm[polygon].z;
+        compressed_polygon_normals[frame][polygon * 3] = static_cast<char>(pnorm[polygon].x);
+        compressed_polygon_normals[frame][polygon * 3 + 1] = static_cast<char>(pnorm[polygon].y);
+        compressed_polygon_normals[frame][polygon * 3 + 2] = static_cast<char>(pnorm[polygon].z);
     }
 
     delete[] pnorm;

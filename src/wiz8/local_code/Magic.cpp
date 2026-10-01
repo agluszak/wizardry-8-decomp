@@ -1044,7 +1044,7 @@ enum { W8_SKILL_SPELL_LEARNING = 0x14 };
    makes the test below a membership test rather than a comparison. */
 static unsigned char SpellbookMaskForSpell(int spell_id)
 {
-    return (unsigned char)((g_spell_records[spell_id].wizardry_spell != 0) |
+    return static_cast<unsigned char>((g_spell_records[spell_id].wizardry_spell != 0) |
                            (g_spell_records[spell_id].psionics_spell != 0 ? W8_SPELLBOOK_PSIONICS
                                                                           : W8_SPELLBOOK_NONE) |
                            (g_spell_records[spell_id].divinity_spell != 0 ? W8_SPELLBOOK_DIVINITY
@@ -1147,7 +1147,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
             level_ceiling = spell_level;
             break;
         }
-        if ((int)(spell_level - 1) < 0) {
+        if (static_cast<int>(spell_level - 1) < 0) {
             break;
         }
     }
@@ -1160,7 +1160,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
         1;
     ceiling = skill_ceiling < level_ceiling ? skill_ceiling : level_ceiling;
 
-    return (char)(1 - (ceiling < (unsigned int)g_spell_records[spell_id].spell_level));
+    return static_cast<char>(1 - (ceiling < static_cast<unsigned int>(g_spell_records[spell_id].spell_level)));
 }
 
 /* 0x0068C09C: the loaded message table, one wide string per entry. Bodies
@@ -1379,7 +1379,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     int spell_id;
     unsigned char normalize;
 
-    if ((signed char)row->item_origin < 0 || (short)row->item_slot < 0) {
+    if (static_cast<signed char>(row->item_origin) < 0 || static_cast<short>(row->item_slot) < 0) {
         return false;
     }
 
@@ -1449,7 +1449,7 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8Monster
             FormatDebugMessage(0, "DATA ERROR: Monster %ls casting spells with SP Budget of 0",
                                GetMonsterName(monster_info, 0, 0));
         }
-        if ((int)budget < 0) {
+        if (static_cast<int>(budget) < 0) {
             budget = 0;
         }
 
@@ -1462,7 +1462,7 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8Monster
 
         if (cost > budget) {
             unsigned int shortfall = (cost * 70 - budget * 70) / cost;
-            if ((int)shortfall >= 0 && ((int)shortfall >= 0x65 || shortfall >= 9)) {
+            if (static_cast<int>(shortfall) >= 0 && (static_cast<int>(shortfall) >= 0x65 || shortfall >= 9)) {
                 break;
             }
         }
@@ -1593,17 +1593,17 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
     for (skill_id = W8_SKILL_FIRST_SPELLBOOK; skill_id < W8_SKILL_AFTER_SPELLBOOK; ++skill_id) {
         if ((probe & book) != 0) {
             level = character->skills[skill_id].points_02;
-            if ((int)best_level < (int)level) {
+            if (static_cast<int>(best_level) < static_cast<int>(level)) {
                 best_skill = skill_id;
                 best_level = level;
             }
             if (prefer_unlocked != 0 && character->skills[skill_id].active_00 != 0 &&
-                (int)unlocked_level < (int)level) {
+                static_cast<int>(unlocked_level) < static_cast<int>(level)) {
                 unlocked_skill = skill_id;
                 unlocked_level = level;
             }
         }
-        probe = (unsigned char)(probe << 1);
+        probe = static_cast<unsigned char>(probe << 1);
     }
 
     if (prefer_unlocked != 0 && unlocked_skill != 0xffffffff && best_skill != unlocked_skill) {
@@ -1628,9 +1628,9 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
             needed = (g_combat_effect_slot_spells_and_cast_success[6 + band] * power_level) / 7;
             if (skill_figure < needed) {
                 failure = (needed * 70 - skill_figure * 70) / needed;
-                if ((int)failure < 0) {
+                if (static_cast<int>(failure) < 0) {
                     failure = 0;
-                } else if ((int)failure > 100) {
+                } else if (static_cast<int>(failure) > 100) {
                     failure = 100;
                 }
             } else {
@@ -1692,7 +1692,7 @@ unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned i
         (character->skills[skill].level +
          character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm].level * 4) /
         5;
-    chance = GetSpellFailureChance(skill_figure, spell_id, (int)power_level);
+    chance = GetSpellFailureChance(skill_figure, spell_id, static_cast<int>(power_level));
 
     shortfall = GetMinimumCasterLevelForSpell(spell_id) -
                 GetTotalCasterLevel(character, SpellbookMaskForSpell(spell_id), 1) - 1 +
@@ -1722,7 +1722,7 @@ unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned i
    high power level on a many-dice spell wraps rather than growing. */
 static inline int AverageEffectAtPower(W8Dice dice, unsigned int power_level)
 {
-    unsigned char count = (unsigned char)(dice.count * (unsigned char)power_level);
+    unsigned char count = static_cast<unsigned char>(dice.count * static_cast<unsigned char>(power_level));
 
     return static_cast<int>(
         ((dice.base + count * dice.sides) + static_cast<float>(dice.base + count)) * 0.5f);
@@ -1827,7 +1827,7 @@ unsigned int ChoosePowerLevelForDuration(W8Character* character, int spell_id,
 
     for (power_level = 1; power_level < 8; ++power_level) {
         if (character->iSPLeft[realm] <
-            (int)(g_spell_records[spell_id].spell_point_cost * power_level)) {
+            static_cast<int>(g_spell_records[spell_id].spell_point_cost * power_level)) {
             return best_power;
         }
 
@@ -1951,13 +1951,13 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
             break;
         case W8_SPELL_CURE_GROUP_A:
             worst = conditions[4];
-            if (worst <= (unsigned int)conditions[6]) {
+            if (worst <= static_cast<unsigned int>(conditions[6])) {
                 worst = conditions[6];
             }
-            if (worst <= (unsigned int)conditions[15]) {
+            if (worst <= static_cast<unsigned int>(conditions[15])) {
                 worst = conditions[15];
             }
-            if (worst <= (unsigned int)conditions[12]) {
+            if (worst <= static_cast<unsigned int>(conditions[12])) {
                 worst = conditions[12];
             }
             power_level = ChoosePowerLevelForDuration(caster, spell_id, worst);
@@ -1973,10 +1973,10 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
             break;
         case W8_SPELL_CURE_GROUP_B:
             worst = conditions[11];
-            if (worst <= (unsigned int)conditions[13]) {
+            if (worst <= static_cast<unsigned int>(conditions[13])) {
                 worst = conditions[13];
             }
-            if (worst <= (unsigned int)conditions[15]) {
+            if (worst <= static_cast<unsigned int>(conditions[15])) {
                 worst = conditions[15];
             }
             power_level = ChoosePowerLevelForDuration(caster, spell_id, worst);
@@ -2170,10 +2170,10 @@ unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsign
         FormatDebugMessage(0, "DATA ERROR: Monster %ls casting spells with SP Budget of 0",
                            GetMonsterName(monster_info, 0, 0));
     }
-    if ((int)budget < 0) {
+    if (static_cast<int>(budget) < 0) {
         budget = 0;
     }
-    failure = GetSpellFailureChance(budget, spell_id, (int)power_level);
+    failure = GetSpellFailureChance(budget, spell_id, static_cast<int>(power_level));
 
     CastSpellFromSource(spell_id, &source, &monster_info->Target, power_level, 0, failure, 0,
                         &result, 0, 0, 0);

@@ -297,7 +297,7 @@ unsigned char AutomapBackgroundRegionEvent(const InputAtom* event, W8Region* reg
 void ResetAutomapView(void)
 {
     if (g_automap_state == 0) {
-        g_automap_state = (W8AutomapState*)malloc(sizeof(W8AutomapState));
+        g_automap_state = static_cast<W8AutomapState*>(malloc(sizeof(W8AutomapState)));
         if (g_automap_state == 0) {
             srAssertFail("gpAMSV", "C:\\Projects\\Wizardry 8\\Local Screens\\AutomapScreen.cpp",
                          0x8b5, 0);
@@ -1230,7 +1230,7 @@ void SetAutomapLayer(int layer)
         g_automap_near_clip = 1.0f;
     } else {
         float height =
-            g_automap_position.y - (float)(*g_automap_layers.GetAt(layer))->getLocation().y;
+            g_automap_position.y - static_cast<float>((*g_automap_layers.GetAt(layer))->getLocation().y);
         if (height < 1.0f) {
             g_automap_near_clip = 1.0f;
         } else {
@@ -1268,7 +1268,7 @@ void ResetAutomapZoom(void)
     }
     SetMouseCursorFromVideoObject(
         GetCatalogVideoObjectHandle(tool + 0x14b, 0), GetCatalogVideoObjectYOffset(tool + 0x14b),
-        (short)g_automap_cursor_offsets[tool][0], (short)g_automap_cursor_offsets[tool][1]);
+        static_cast<short>(g_automap_cursor_offsets[tool][0]), static_cast<short>(g_automap_cursor_offsets[tool][1]));
     gXStatus.iCurrentCursor = 7;
     RefreshMouseCursorTexture();
     if (g_automap_buttons != 0) {
@@ -1306,7 +1306,7 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
         ground = g_automap_grid_min.y;
         if (g_automap_layers.count != 0 && 1 < g_automap_layers.count &&
             *g_automap_layers.GetAt(1) != 0) {
-            ground = (float)(*g_automap_layers.GetAt(1))->getLocationY();
+            ground = static_cast<float>((*g_automap_layers.GetAt(1))->getLocationY());
         }
     } else {
         ground = to.y;
@@ -1345,7 +1345,7 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
     }
     SetMouseCursorFromVideoObject(
         GetCatalogVideoObjectHandle(tool + 0x14b, 0), GetCatalogVideoObjectYOffset(tool + 0x14b),
-        (short)g_automap_cursor_offsets[tool][0], (short)g_automap_cursor_offsets[tool][1]);
+        static_cast<short>(g_automap_cursor_offsets[tool][0]), static_cast<short>(g_automap_cursor_offsets[tool][1]));
     gXStatus.iCurrentCursor = 7;
     RefreshMouseCursorTexture();
     return 1;
@@ -1634,10 +1634,10 @@ void RenderAutomapFrame(void)
                 SetResidentTexturePolicy(3);
                 float half = g_automap_zoom * g_float_005ebc7c;
                 srCamera::Rect view;
-                view.left = (double)-half;
-                view.bottom = (double)-half;
-                view.right = (double)half;
-                view.top = (double)half;
+                view.left = static_cast<double>(-half);
+                view.bottom = static_cast<double>(-half);
+                view.right = static_cast<double>(half);
+                view.top = static_cast<double>(half);
                 g_world->camera->setViewPlane(view, static_cast<double>(g_automap_near_clip));
                 g_world->camera->setClipRange(g_automap_near_clip, 1500000.0);
                 RenderWorldToSurface(g_automap_surface, &g_automap_viewport, 0);
@@ -1712,9 +1712,9 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
         *g_automap_layers.GetAt(layer) == 0) {
         floor_y = g_automap_grid_min.y;
     } else if (layer < g_automap_layers.count) {
-        floor_y = (float)g_automap_layers.data[layer]->getLocationY();
+        floor_y = static_cast<float>(g_automap_layers.data[layer]->getLocationY());
     } else {
-        floor_y = (float)(*g_automap_layers.data)->getLocationY();
+        floor_y = static_cast<float>((*g_automap_layers.data)->getLocationY());
     }
     int index = 0;
     if (0 < g_automap_layers.count) {
@@ -1733,8 +1733,8 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
         float bottom = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
         if (left <= note->position.x && note->position.x <= left + g_automap_zoom &&
             bottom <= note->position.y && note->position.y <= bottom + g_automap_zoom) {
-            int screen_x = (int)((note->position.x - left) / g_automap_zoom * -455.0f);
-            int screen_y = (int)((1.0f - (note->position.y - bottom) / g_automap_zoom) * -435.0f);
+            int screen_x = static_cast<int>((note->position.x - left) / g_automap_zoom * -455.0f);
+            int screen_y = static_cast<int>((1.0f - (note->position.y - bottom) / g_automap_zoom) * -435.0f);
             int marker_width;
             if (note == g_automap_editing_note) {
                 marker_width = static_cast<int>(g_automap_text_marker->GetScaledWidth() * 0.22);
@@ -2411,7 +2411,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
                 g_automap_tool = 0;
                 SetMouseCursorFromVideoObject(
                     GetCatalogVideoObjectHandle(0x14b, 0), GetCatalogVideoObjectYOffset(0x14b),
-                    (short)g_automap_cursor_offsets[0][0], (short)g_automap_cursor_offsets[0][1]);
+                    static_cast<short>(g_automap_cursor_offsets[0][0]), static_cast<short>(g_automap_cursor_offsets[0][1]));
                 gXStatus.iCurrentCursor = 7;
                 RefreshMouseCursorTexture();
             }
@@ -2433,7 +2433,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
                 g_automap_tool = 0;
                 SetMouseCursorFromVideoObject(
                     GetCatalogVideoObjectHandle(0x14b, 0), GetCatalogVideoObjectYOffset(0x14b),
-                    (short)g_automap_cursor_offsets[0][0], (short)g_automap_cursor_offsets[0][1]);
+                    static_cast<short>(g_automap_cursor_offsets[0][0]), static_cast<short>(g_automap_cursor_offsets[0][1]));
                 gXStatus.iCurrentCursor = 7;
                 RefreshMouseCursorTexture();
             }
@@ -2447,7 +2447,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
         g_automap_tool = 0;
         SetMouseCursorFromVideoObject(
             GetCatalogVideoObjectHandle(0x14b, 0), GetCatalogVideoObjectYOffset(0x14b),
-            (short)g_automap_cursor_offsets[0][0], (short)g_automap_cursor_offsets[0][1]);
+            static_cast<short>(g_automap_cursor_offsets[0][0]), static_cast<short>(g_automap_cursor_offsets[0][1]));
         gXStatus.iCurrentCursor = 7;
         RefreshMouseCursorTexture();
     }
@@ -2553,8 +2553,8 @@ unsigned char HandleAutomapKey(const InputAtom* input)
     set_tool_cursor:
         SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool, 0),
                                       GetCatalogVideoObjectYOffset(tool),
-                                      (short)g_automap_cursor_offsets[g_automap_tool][0],
-                                      (short)g_automap_cursor_offsets[g_automap_tool][1]);
+                                      static_cast<short>(g_automap_cursor_offsets[g_automap_tool][0]),
+                                      static_cast<short>(g_automap_cursor_offsets[g_automap_tool][1]));
         gXStatus.iCurrentCursor = 7;
         RefreshMouseCursorTexture();
         return 1;

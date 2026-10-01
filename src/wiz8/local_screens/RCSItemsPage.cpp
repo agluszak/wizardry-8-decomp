@@ -456,7 +456,7 @@ void SplitStackDialogResult(W8DialogBase* dialog)
     }
     count = static_cast<W8SplitItemDialog*>(dialog)->split_count_0c0;
     remaining = g_split_item_source->stack_count - static_cast<unsigned char>(count);
-    carried = (unsigned char)count;
+    carried = static_cast<unsigned char>(count);
     if (count == 0) {
         return;
     }
@@ -509,7 +509,7 @@ void SplitStackDialogResult(W8DialogBase* dialog)
             carried = g_status.item_in_hand_235b.stack_count;
         } else {
             split = *g_split_item_source;
-            split.stack_count = (unsigned char)count;
+            split.stack_count = static_cast<unsigned char>(count);
             g_split_item_source->stack_count = remaining;
             CopyItemInstance(&g_status.item_in_hand_235b, &split, 0, 1);
             gXStatus.held_item_source = giReviewCharSlot;
@@ -865,7 +865,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
     if (item->iItemNo == -1 &&
         (g_status.item_in_cursor == 0 || g_camp_screen->entry_mode == 1 ||
          CanEquipItemInSlot(g_review_character, g_status.item_in_hand_235b.iItemNo,
-                            (unsigned char)slot, 1) == 0 ||
+                            static_cast<unsigned char>(slot), 1) == 0 ||
          CanCharacterUseItem(g_review_character, g_status.item_in_hand_235b.iItemNo) == 0)) {
         PushButtonSoundScheme(0, 1);
     }
@@ -885,7 +885,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
             HandleCampItemClick(item, slot, 1);
             delay = g_settings.tooltip_delay_ms;
-            if ((unsigned int)delay > 300) {
+            if (static_cast<unsigned int>(delay) > 300) {
                 delay = 300;
             }
             SetRegionHelpDelay(delay);
@@ -915,7 +915,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
                 UpdateItemCursorForState(1, item, 0);
                 EnableRegionHelpFlag(region);
                 delay = g_settings.tooltip_delay_ms;
-                if ((unsigned int)delay > 300) {
+                if (static_cast<unsigned int>(delay) > 300) {
                     delay = 300;
                 }
                 SetRegionHelpDelay(delay);
@@ -1131,7 +1131,7 @@ void SetItemTooltip(W8ItemInstance* item, W8Region* region)
     const W8ItemDatabaseRecord* record;
 
     delay = g_settings.tooltip_delay_ms;
-    if ((unsigned int)delay > 300) {
+    if (static_cast<unsigned int>(delay) > 300) {
         delay = 300;
     }
     SetRegionHelpDelay(delay);
@@ -1533,18 +1533,18 @@ int CreateCampSecondaryPanel(void)
     if (g_camp_help_text == 0) {
         return 0;
     }
-    left = 0x1c2 - panel->origin_x;
-    right = 0x20e - panel->origin_x;
-    top = 0x3a - panel->origin_y;
+    left = 0x1c2 - panel->m_bounds.left;
+    right = 0x20e - panel->m_bounds.left;
+    top = 0x3a - panel->m_bounds.top;
     for (index = 0; index < 7; ++index) {
         g_camp_stat_labels[index] =
             new W8CampInfoLabel(panel, -1, left, top, right, top + 0xc, -1, -1, -1, -1, -1, -1, -1);
         g_camp_stat_labels[index]->EnableRegionHelp(0x958);
         top += 0xe;
     }
-    left = 0x144 - panel->origin_x;
-    right = 0x1b9 - panel->origin_x;
-    top = -panel->origin_y;
+    left = 0x144 - panel->m_bounds.left;
+    right = 0x1b9 - panel->m_bounds.left;
+    top = -panel->m_bounds.top;
     g_camp_info_labels[0] = new W8CampInfoLabel(panel, -1, left, top + 0x3a, right, top + 0x46, -1,
                                                 -1, -1, -1, -1, -1, -1);
     g_camp_info_labels[1] = new W8CampInfoLabel(panel, -1, left, top + 0x48, right, top + 0x54, -1,

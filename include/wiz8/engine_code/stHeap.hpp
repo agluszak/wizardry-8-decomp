@@ -18,13 +18,13 @@ public:
     int capacity_08;
     int size_0c;
 
-    void Insert004675B0(const T* entry);
+    void Insert(const T* entry);
     void SiftDown(int index);
     void SiftUp(int index);
     T Delete();
 };
 
-template <class T> void stHeap<T>::Insert004675B0(const T* entry)
+template <class T> void stHeap<T>::Insert(const T* entry)
 {
     if (size_0c >= capacity_08) {
         srAssertFail("heapsize < maxheapsize", "..\\Engine Code\\Include\\stHeap.hpp", 0xe1,

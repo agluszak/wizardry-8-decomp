@@ -84,7 +84,7 @@ struct W8World {
     srModelInstance* update_mesh_source;
     float render_range_74;
     float render_range_78;
-    unsigned char m_padding_07c[0x20];
+    unsigned char m_unknown_07c[0x20];
     W8PList m_list_09c;
     W8PList m_lights_0a8;
     W8Vector<W8SpellVisual*>* spell_visuals;
@@ -95,7 +95,7 @@ struct W8World {
     W8Vector<Trigger*>* triggers;
     W8Vector<stParticle*>* particles;
     W8Vector<W8NamedPosition*>* named_positions;
-    unsigned char m_padding_0d4[8];
+    unsigned char m_unknown_0d4[8];
 };
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");

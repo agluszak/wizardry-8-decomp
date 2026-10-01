@@ -107,7 +107,7 @@ Trigger* FindTriggerByName(const char* name)
     char* uppercase_name;
     Trigger* trigger = 0;
 
-    uppercase_name = (char*)malloc(strlen(name) + 1);
+    uppercase_name = static_cast<char*>(malloc(strlen(name) + 1));
     if (uppercase_name != 0) {
         strcpy(uppercase_name, name);
         _strupr(uppercase_name);
@@ -425,7 +425,7 @@ bool LoadTriggerRuntimeStates(int handle)
    attached, with its flag bits packed and the timed-event delay resolved from
    the live event queue. Returns whether the header went out completely. */
 // FUNCTION: WIZ8 0x0043BE60
-bool Trigger::Save0043BE60(int hFile)
+bool Trigger::Save(int hFile)
 {
     unsigned char version = 5;
     int trigger_count = g_world->triggers->GetCount();
@@ -495,7 +495,7 @@ bool Trigger::Save0043BE60(int hFile)
             if (m_lData1 != 0 && m_pEvent != 0 && g_timed_events.IndexOf(m_pEvent) != -1) {
                 float progress = m_pEvent->timer_008.GetProgress();
                 if (progress <= g_float_005ec124) {
-                    progress_delay = (unsigned int)m_pEvent->timer_008.GetProgress();
+                    progress_delay = static_cast<unsigned int>(m_pEvent->timer_008.GetProgress());
                 } else {
                     progress_delay = 64000;
                 }
@@ -523,7 +523,7 @@ bool Trigger::Save0043BE60(int hFile)
    of the trailing block is present; a type-10 action payload rebuilds its
    action data and re-queues the delayed timed event from the saved progress. */
 // FUNCTION: WIZ8 0x0043c1b0
-bool Trigger::Load0043C1B0(int hFile, char version)
+bool Trigger::Load(int hFile, char version)
 {
     bool header_ok;
     unsigned char has_action_data;
@@ -713,7 +713,7 @@ bool LoadWorldTriggers(W8World* world, int hFile)
             Trigger* trigger = *world->triggers->GetAt(index);
 
             ++index;
-            if (!header_ok || !trigger->Load0043C1B0(hFile, tag)) {
+            if (!header_ok || !trigger->Load(hFile, tag)) {
                 return false;
             }
             header_ok = true;
@@ -730,7 +730,7 @@ bool LoadWorldTriggers(W8World* world, int hFile)
             }
             trigger = FindTriggerByName(name);
             if (trigger != 0) {
-                if (!header_ok || !trigger->Load0043C1B0(hFile, tag)) {
+                if (!header_ok || !trigger->Load(hFile, tag)) {
                     header_ok = false;
                 } else {
                     header_ok = true;
@@ -739,7 +739,7 @@ bool LoadWorldTriggers(W8World* world, int hFile)
             } else {
                 Trigger* scratch = new Trigger;
 
-                scratch->Load0043C1B0(hFile, tag);
+                scratch->Load(hFile, tag);
                 delete scratch;
                 ++index;
             }
@@ -758,7 +758,7 @@ void SaveWorldTriggers(W8World* world, int hFile)
     W8GrowableVector<Trigger*>* triggers = world->triggers;
 
     for (int index = 0; index < triggers->GetCount(); ++index) {
-        if (!(*triggers->GetAt(index))->Save0043BE60(hFile)) {
+        if (!(*triggers->GetAt(index))->Save(hFile)) {
             return;
         }
     }
@@ -1025,7 +1025,7 @@ void Trigger::CompleteItemInteraction()
    immediate path sets the running flag around Run so nested activation sees
    it; the timed path only touches clocks for events still queued. */
 // FUNCTION: WIZ8 0x00444750
-void Trigger::Activate00444750()
+void Trigger::Activate()
 {
     W8TriggerActionData* action_data = m_pActionData;
     if (action_data != 0 && action_data->type_004 == 10 &&
@@ -1411,7 +1411,7 @@ void Trigger::SetPosition(srVector3T<float>* position)
     flags_0a0 |= W8_TRIGGER_POSITIONED;
     position_118 = *position;
     if (rep_item_114 != 0 && m_bRepType == 1) {
-        rep_item_114->SetLocation0049F720(position);
+        rep_item_114->SetLocation(position);
         rep_item_114->ApplyRepTransform();
     }
 }
@@ -2554,7 +2554,7 @@ void Trigger::GenerateItemGroup()
 
     srand(item_group_seed_354);
     table_id = FindItemTableByName(inline_action_data_24c);
-    if (table_id == (unsigned int)-1) {
+    if (table_id == static_cast<unsigned int>(-1)) {
         return;
     }
 
@@ -2760,7 +2760,7 @@ void Trigger::Run(int source)
                                  0x5fa, 0);
                 }
                 m_pEvent->trigger_030 = this;
-                m_pEvent->action_004 = (short)action_230;
+                m_pEvent->action_004 = static_cast<short>(action_230);
                 m_pEvent->timer_008.SetDuration(0.5f);
             } else {
                 if (g_timed_events.IndexOf(m_pEvent) != -1) {
@@ -2831,7 +2831,7 @@ void Trigger::Run(int source)
                 m_pEvent = new W8TriggerEvent;
                 m_pEvent->trigger_030 = this;
                 m_pEvent->action_004 = 2;
-                m_pEvent->timer_008.SetDuration(m_lData1 < 0 ? 10.0f : (float)m_lData1);
+                m_pEvent->timer_008.SetDuration(m_lData1 < 0 ? 10.0f : static_cast<float>(m_lData1));
                 m_pEvent->timer_008.Restart();
                 m_pEvent->repeat_034 = 1;
                 g_timed_events.Add(m_pEvent);
@@ -3212,7 +3212,7 @@ void Trigger::Run(int source)
             return;
         }
         monster_id = atoi(m_pacRecipients);
-        for (index = 0; index < (int)PLLength(gXStatus.plsMonsterGroupList); ++index) {
+        for (index = 0; index < static_cast<int>(PLLength(gXStatus.plsMonsterGroupList)); ++index) {
             group = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupList, index));
             if (group->monster_id == monster_id) {
                 int location_id = IListGetAt(group->monsters, 0);
@@ -3251,7 +3251,7 @@ void Trigger::Run(int source)
                              0x7c4, 0);
             }
             event->trigger_030 = this;
-            event->action_004 = (short)action_230;
+            event->action_004 = static_cast<short>(action_230);
             event->timer_008.SetDuration(m_lData2 == -1 ? 0.07f : m_lData2 * 0.001f);
             event->timer_008.Restart();
             event->intensity_03c = m_lData1 == -1 ? 800 : m_lData1;
@@ -3327,10 +3327,10 @@ void Trigger::Run(int source)
     case 0x2b: {
         if (uses_remaining != 0 || m_lData1 == -1) {
             if (action_230 == 0x25) {
-                RestorePartyStaminaByDice(0, 0, (short)m_lData3);
+                RestorePartyStaminaByDice(0, 0, static_cast<short>(m_lData3));
                 PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
             } else if (action_230 == 0x26) {
-                HealPartyByDice(0, 0, (short)m_lData3);
+                HealPartyByDice(0, 0, static_cast<short>(m_lData3));
                 PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
             } else if (action_230 == 0x27) {
                 RestorePartySpellPoints(m_lData3);
@@ -3350,8 +3350,8 @@ void Trigger::Run(int source)
                     spell_id = 0x2a;
                 }
                 PointCastSpell(
-                    srVector3T<float>((float)position.x, (float)position.y, (float)position.z),
-                    spell_id, (unsigned int)m_lData3);
+                    srVector3T<float>(static_cast<float>(position.x), static_cast<float>(position.y), static_cast<float>(position.z)),
+                    spell_id, static_cast<unsigned int>(m_lData3));
                 if (action_230 == 0x2b) {
                     RemoveAllConditionsFromParty();
                 }
@@ -3370,7 +3370,7 @@ void Trigger::Run(int source)
                     srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                                  0x84c, 0);
                 }
-                m_pEvent->action_004 = (short)action_230;
+                m_pEvent->action_004 = static_cast<short>(action_230);
                 m_pEvent->timer_008.SetDuration(m_lData2 * 720.0f);
                 m_pEvent->timer_008.Restart();
                 m_pEvent->trigger_030 = this;
@@ -3418,7 +3418,7 @@ void Trigger::Run(int source)
                 srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                              0x883, 0);
             }
-            m_pEvent->action_004 = (short)action_230;
+            m_pEvent->action_004 = static_cast<short>(action_230);
             m_pEvent->timer_008.SetDuration(duration);
             m_pEvent->timer_008.Restart();
             m_pEvent->trigger_030 = this;
@@ -3448,7 +3448,7 @@ void Trigger::Run(int source)
                 srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                              0x8a4, 0);
             }
-            m_pEvent->action_004 = (short)action_230;
+            m_pEvent->action_004 = static_cast<short>(action_230);
             m_pEvent->timer_008.SetDuration(m_lData1 * 0.001f);
             m_pEvent->timer_008.Restart();
             m_pEvent->trigger_030 = this;
@@ -3577,7 +3577,7 @@ void Trigger::Run(int source)
         }
         g_timed_events.Add(m_pEvent);
         m_pEvent->trigger_030 = this;
-        m_pEvent->action_004 = (short)action_230;
+        m_pEvent->action_004 = static_cast<short>(action_230);
         delete m_pEvent->m_pCountdown;
         m_pEvent->m_pCountdown = new W8GameTimer;
         if (m_pEvent->m_pCountdown == 0) {
@@ -3597,10 +3597,10 @@ void Trigger::Run(int source)
             return;
         }
         count = AnimObjValue(m_pProp->Rep()->animation, 2);
-        if ((int)count <= m_lData1) {
+        if (static_cast<int>(count) <= m_lData1) {
             return;
         }
-        m_pProp->SetSetting66((char)m_lData1);
+        m_pProp->SetSetting66(static_cast<char>(m_lData1));
         break;
     }
 
@@ -3608,7 +3608,7 @@ void Trigger::Run(int source)
         if (m_pProp == 0 || m_lData1 < 0) {
             return;
         }
-        m_pProp->SetAnimationSpeed((float)m_lData1);
+        m_pProp->SetAnimationSpeed(static_cast<float>(m_lData1));
         break;
 
     case 0x4a: {
@@ -3620,7 +3620,7 @@ void Trigger::Run(int source)
         while (recipient != 0) {
             W8Prop* prop = FindPropByName(g_world, NextTriggerRecipient(&recipient));
             if (prop != 0) {
-                prop->SetAnimationSpeed((float)m_lData1);
+                prop->SetAnimationSpeed(static_cast<float>(m_lData1));
             }
         }
         break;

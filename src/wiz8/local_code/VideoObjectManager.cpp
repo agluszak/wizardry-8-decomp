@@ -890,7 +890,7 @@ unsigned short* CopyCatalogImagePalette16BPP(int object, int frame)
     if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xaf, 0);
     }
-    palette = (unsigned short*)malloc(0x200);
+    palette = static_cast<unsigned short*>(malloc(0x200));
     if (!palette) {
         return 0;
     }
@@ -989,7 +989,7 @@ void InvalidateCatalogImageRect(int object, int frame, int image, int left, int 
 void DrawCatalogImageAndInvalidate(int target, int object, int frame, int image, int left, int top,
                                    int mode, int flags)
 {
-    DrawCatalogImage(target, object, frame, (short)image, left, top, mode, flags);
+    DrawCatalogImage(target, object, frame, static_cast<short>(image), left, top, mode, flags);
     InvalidateCatalogImageRect(object, frame, image, left, top, mode == 2);
 }
 

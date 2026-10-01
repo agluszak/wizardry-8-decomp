@@ -450,7 +450,7 @@ unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
     char oct_path[1020];
     char pvl_path[1020];
 
-    if ((unsigned int)level >= 57) {
+    if (static_cast<unsigned int>(level) >= 57) {
         srAssertFail("ulLevel < TEST_LEVEL_COUNT",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp", 237, 0);
     }

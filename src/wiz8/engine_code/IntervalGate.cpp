@@ -49,8 +49,8 @@ unsigned int W8IntervalGate::PollElapsedIntervals()
         return 1;
     }
     unsigned int intervals =
-        (unsigned int)(ReadClock() - m_start) / (unsigned int)(m_end - m_start);
-    if ((int)intervals > 0) {
+        static_cast<unsigned int>(ReadClock() - m_start) / static_cast<unsigned int>(m_end - m_start);
+    if (static_cast<int>(intervals) > 0) {
         if ((m_flags & 2) != 0) {
             m_finished = 1;
             return intervals;
@@ -70,7 +70,7 @@ BOOLEAN W8IntervalGate::Load(int handle)
     BOOLEAN loaded = FileRead(handle, &m_duration_seconds, sizeof(m_duration_seconds), 0);
     if (loaded != 0) {
         m_start = ReadClock();
-        m_duration = (int)(m_duration_seconds * m_duration_scale * 10000.0f);
+        m_duration = static_cast<int>(m_duration_seconds * m_duration_scale * 10000.0f);
         m_end = m_start + m_duration;
     }
     return loaded;

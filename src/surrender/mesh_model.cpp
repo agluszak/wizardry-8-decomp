@@ -440,7 +440,7 @@ void srMeshModel::freeAll()
 // FUNCTION: SURRENDER 0x1003CF30
 srMeshModel::srMeshModel(long polygons, long vertices)
 {
-    memset(static_cast<void*>(&tri_mesh_23c), 0, sizeof(tri_mesh_23c));
+    memset(&tri_mesh_23c, 0, sizeof(tri_mesh_23c));
     reset(polygons, vertices);
     sort_bias_238 = 0.0f;
     for (long pass = 0; pass < 4; ++pass) {
@@ -848,7 +848,7 @@ const srMeshModel::TriMesh& srMeshModel::getTriMesh()
 // FUNCTION: SURRENDER 0x1003DC90
 void srMeshModel::updateTriMesh()
 {
-    memset(static_cast<void*>(&tri_mesh_23c), 0, sizeof(TriMesh));
+    memset(&tri_mesh_23c, 0, sizeof(TriMesh));
     tri_mesh_23c.vertex_count_00 = vertex_location_count_22c;
     tri_mesh_23c.polygon_count_04 = polygon_count_230;
     tri_mesh_23c.pass_count_08 = pass_count_228;

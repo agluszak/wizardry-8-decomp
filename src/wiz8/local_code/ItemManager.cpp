@@ -78,7 +78,7 @@ extern const double g_double_005ed7c0 = -2500.0;
 /* 0x0064A1CD: when set, skip activating world items that already carry flag
    bit 0. */
 // GLOBAL: WIZ8 0x0064a1cd
-unsigned char g_byte_0064a1cd = 1;
+unsigned char g_hide_invisible_items = 1;
 
 // FUNCTION: WIZ8 0x004f69f0
 bool InitializeItemManagerState()
@@ -183,7 +183,7 @@ int FindItemTableByName(const char* name)
 {
     int index;
 
-    for (index = 0; index < (int)gXStatus.uiItemTablesInDatabase; ++index) {
+    for (index = 0; index < static_cast<int>(gXStatus.uiItemTablesInDatabase); ++index) {
         if (_stricmp(name, g_item_tables[index]->name) == 0) {
             return index;
         }
@@ -254,7 +254,7 @@ int GenerateItemsFromTable(W8GrowableVector<W8WorldItem*>* output_items, unsigne
         }
     }
 
-    if (candidates.GetCount() < (int)maximum_items && g_item_tables[table_id]->level_scaled != 0) {
+    if (candidates.GetCount() < static_cast<int>(maximum_items) && g_item_tables[table_id]->level_scaled != 0) {
         candidates.Clear();
         for (entry_index = 0; entry_index < 40; ++entry_index) {
             if (g_item_tables[table_id]->entries[entry_index].selector_00 != 0) {
@@ -321,7 +321,7 @@ int FindItemRecordByName(const char* name)
     int index;
     const char* internal_name;
 
-    for (index = 0; index < (int)gXStatus.uiItemsInDatabase; ++index) {
+    for (index = 0; index < static_cast<int>(gXStatus.uiItemsInDatabase); ++index) {
         internal_name = g_item_records[index].internal_name;
         if (internal_name[0] == 0) {
             if (_stricmp(ConvertWideStringToString(g_item_records[index].display_name), name) ==
@@ -346,9 +346,9 @@ W8WorldItem* GetNextWorldItem(char restart)
         g_world_item_cursor = 0;
     }
     index = g_world_item_cursor;
-    if ((unsigned int)index < PLLength(gXStatus.plsItemList)) {
+    if (static_cast<unsigned int>(index) < PLLength(gXStatus.plsItemList)) {
         ++g_world_item_cursor;
-        return (W8WorldItem*)PLGet(gXStatus.plsItemList, index);
+        return static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, index));
     }
     return 0;
 }
@@ -420,7 +420,7 @@ bool ItemInfoIsWorldPersistent(const W8WorldItem* item)
 // FUNCTION: WIZ8 0x004f9210
 W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item)
 {
-    W8ItemInstance* copy = (W8ItemInstance*)malloc(0xc);
+    W8ItemInstance* copy = static_cast<W8ItemInstance*>(malloc(0xc));
 
     if (copy == 0) {
         return 0;
@@ -451,7 +451,7 @@ W8WorldItem* ItemInfo(unsigned int item_list_index)
         srAssertFail("uiItemListIndex < (UINT32) PLLength(gXStatus.plsItemList)", ITEM_MANAGER_CPP,
                      961, 0);
     }
-    item = (W8WorldItem*)PLGet(gXStatus.plsItemList, item_list_index);
+    item = static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, item_list_index));
     if (item == 0) {
         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 965,
                      FormatString("ItemInfo: ERROR - PLGet failed, index %d, pList %d",
@@ -706,7 +706,7 @@ void ActivateItem(W8WorldItem* item)
         item->p3D->LightRadarBlip();
     }
     position = item->position;
-    item->p3D->SetLocation0049F720(&position);
+    item->p3D->SetLocation(&position);
     item->p3D->SetYaw(static_cast<float>(Random(0x168) * 2 * g_camera_pi * g_double_005ed7b0));
     static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags |= item->entity_flags;
     item->p3D->AttachMesh(GetWorld());
@@ -846,7 +846,7 @@ void UpdateNearbyWorldItems(void)
         }
         if (item->fActive == 0) {
             if (DistanceBetweenPoints(&item->position, &camera) < g_float_005ed7b8) {
-                if (g_byte_0064a1cd != 0) {
+                if (g_hide_invisible_items != 0) {
                     if (item == 0) {
                         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x3e6, 0);
                     }
@@ -1026,7 +1026,7 @@ unsigned char ReleaseItemLists(void)
         srAssertFail("gXStatus.plsItemList != NULL", ITEM_MANAGER_CPP, 0x126, 0);
     }
     count = PLLength(gXStatus.plsItemList);
-    while ((int)count >= 1) {
+    while (static_cast<int>(count) >= 1) {
         W8WorldItem* item;
 
         count = PLLength(gXStatus.plsItemList);
@@ -1206,7 +1206,7 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
     }
 
     if (item->p3D != 0) {
-        item->p3D->SetLocation0049F720(&probe);
+        item->p3D->SetLocation(&probe);
     }
     item->position = probe;
     return 1;
@@ -1243,7 +1243,7 @@ unsigned char SettleWorldItem(W8WorldItem* item)
         item->sector_id = sector;
     }
     if (item->p3D != 0) {
-        item->p3D->SetLocation0049F720(&start);
+        item->p3D->SetLocation(&start);
     }
     item->position = start;
     return 1;
@@ -1270,7 +1270,7 @@ void RebuildAllWorldItemInstances(void)
 W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* position,
                              int entity_flags, unsigned char add_to_world)
 {
-    W8WorldItem* result = (W8WorldItem*)malloc(sizeof(W8WorldItem));
+    W8WorldItem* result = static_cast<W8WorldItem*>(malloc(sizeof(W8WorldItem)));
 
     if (result == 0) {
         return 0;

@@ -602,8 +602,8 @@ int SelectNpcQuoteResponse(W8NpcQuoteEntry* entry)
         index = 1;
     }
     while (index < entry->sub_entry_count) {
-        expected = (unsigned char)entry->sub_entries[index + 1]
-                       .operand_00 /* c-style-cast-ok: packed byte operand */;
+        expected = static_cast<unsigned char>(entry->sub_entries[index + 1]
+                       .operand_00) /* c-style-cast-ok: packed byte operand */;
         if (GetFact(entry->sub_entries[index].operand_00) != expected) {
             return -1;
         }

@@ -60,7 +60,7 @@ stLight::stLight(srNode* parent)
     m_position_228.SetZero();
     m_level_240 = 0;
     m_definition_234 = 0;
-    m_padding_238 = 0;
+    m_unknown_238 = 0;
     m_level_time_23c = m_path_time_24c = GetTickCount() * 0.001f;
 }
 
@@ -94,7 +94,7 @@ stLight& stLight::operator=(const stLight& other)
     } else {
         m_definition_234 = 0;
     }
-    m_padding_238 = other.m_padding_238;
+    m_unknown_238 = other.m_unknown_238;
     m_direction_239 = other.m_direction_239;
     if (other.m_owned_244 != 0) {
         m_owned_244 = ClonePathAI(other.m_owned_244);

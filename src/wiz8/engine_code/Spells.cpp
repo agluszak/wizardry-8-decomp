@@ -387,7 +387,7 @@ void UpdateWorldSpellVisuals(W8World* world)
             if (visual->finished == 0 || visual->auto_release == 0) {
                 visual->StartIfHostActive();
                 visual->UpdateRepresentation(world);
-                visual->UpdateNavigation004553A0(0, 0);
+                visual->UpdateNavigation(0, 0);
             } else {
                 world->spell_visuals->RemoveAt(world->spell_visuals->IndexOf(visual));
                 if (visual->m_plsLights != 0) {
@@ -682,7 +682,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
                     break;
                 }
             }
-            if (*visual != 0 && (*visual)->IsCycleSupported((signed char)index)) {
+            if (*visual != 0 && (*visual)->IsCycleSupported(static_cast<signed char>(index))) {
                 sprintf(wave_path, "Data\\Spells\\Sounds\\%s.WAV", pac_value);
                 event = CreateSoundEvent(sound_type, index, frame, 0, wave_path,
                                          _stricmp(loop_name, "LOOP") == 0);
@@ -865,7 +865,7 @@ W8SpellVisual* SpawnSpellEffect(const srVector3T<float>* position, const char* r
     }
     if (visual != 0) {
         visual->mode_1d8 = W8_SPELL_VISUAL_EXPLOSION;
-        visual->host->pending_cycle = (signed char)cycle;
+        visual->host->pending_cycle = static_cast<signed char>(cycle);
         visual->host->billboard_378 = 1;
         visual->effect_value_1f0 = value;
         visual->flags_1f4 = flags;
@@ -926,7 +926,7 @@ placed:
         float pitch;
 
         visual->mode_1d8 = W8_SPELL_VISUAL_FLASH;
-        visual->host->pending_cycle = (signed char)cycle;
+        visual->host->pending_cycle = static_cast<signed char>(cycle);
         visual->effect_value_1f0 = value;
         visual->flags_1f4 = flags;
         GetCameraPosition(&position);
@@ -1072,7 +1072,7 @@ placed:
         srVector3T<float> position;
 
         visual->mode_1d8 = W8_SPELL_VISUAL_CONE;
-        visual->host->pending_cycle = (signed char)cycle;
+        visual->host->pending_cycle = static_cast<signed char>(cycle);
         visual->effect_value_1f0 = value;
         visual->flags_1f4 = flags;
         if (parent != 0) {
@@ -1577,9 +1577,9 @@ void Update3DSounds()
                     float angle;
                     unsigned int volume;
 
-                    to_listener.Set(listener.x - (float)world.x, listener.y - (float)world.y,
-                                    listener.z - (float)world.z);
-                    distance = (float)sqrt(DotProduct(to_listener, to_listener));
+                    to_listener.Set(listener.x - static_cast<float>(world.x), listener.y - static_cast<float>(world.y),
+                                    listener.z - static_cast<float>(world.z));
+                    distance = static_cast<float>(sqrt(DotProduct(to_listener, to_listener)));
                     if (sound->falloff <= distance) {
                         SoundSetVolume(sound->sound_handle, 0);
                     } else {
@@ -1626,7 +1626,7 @@ void ClearMonsterSpellIcons(W8Monster* monster)
     W8PList* list = rep->spell_icons_5e8;
     if (list != 0) {
         unsigned int count = PLLength(list);
-        for (int index = 0; index < (int)count; ++index) {
+        for (int index = 0; index < static_cast<int>(count); ++index) {
             W8MonsterSpellIcon* entry = static_cast<W8MonsterSpellIcon*>(PLGet(list, index));
             if (entry == 0) {
                 srAssertFail("pSpellMI", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x81b,

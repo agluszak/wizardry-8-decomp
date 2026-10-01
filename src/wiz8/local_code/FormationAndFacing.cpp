@@ -294,7 +294,7 @@ unsigned int TurnPartyTo(unsigned int degrees)
         unsigned int camera_yaw = static_cast<unsigned int>(GetCameraYawDegrees());
         previous = camera_yaw / W8_DEGREES_PER_TURN;
         if (camera_yaw % W8_DEGREES_PER_TURN != degrees) {
-            SetCameraYawDegrees((float)degrees);
+            SetCameraYawDegrees(static_cast<float>(degrees));
         }
     }
     return previous;
@@ -310,13 +310,13 @@ void TurnPartyToImmediate(unsigned int degrees, char snap)
     }
     g_status.party_heading = degrees;
     UpdateFormationCompass();
-    if ((unsigned int)GetCameraYawDegrees() % W8_DEGREES_PER_TURN == degrees) {
+    if (static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN == degrees) {
         return;
     }
     if (snap) {
-        TurnCameraToDegrees((float)degrees);
+        TurnCameraToDegrees(static_cast<float>(degrees));
     } else {
-        SetCameraYawDegrees((float)degrees);
+        SetCameraYawDegrees(static_cast<float>(degrees));
     }
 }
 
@@ -574,7 +574,7 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, signed cha
             srAssertFail("pFormation->ubQuadrantOccupants[bNewQuadrant] < MAX_CHARS_PER_QUADRANT",
                          FORMATION_CPP, 0x19e, 0);
         }
-        *occupant = (signed char)slot;
+        *occupant = static_cast<signed char>(slot);
         ++formation->ubQuadrantOccupants[new_row];
         if (update_facing != 0) {
             switch (new_row) {

@@ -362,7 +362,7 @@ bool IsPartyCharacterPointer(const W8Character* character)
 // FUNCTION: WIZ8 0x00517f60
 void AdjustByteByPercent(unsigned char* value, unsigned int percent)
 {
-    *value = (unsigned char)(((percent + 100) * *value + 50) / 100);
+    *value = static_cast<unsigned char>(((percent + 100) * *value + 50) / 100);
 }
 
 // FUNCTION: WIZ8 0x00517f90

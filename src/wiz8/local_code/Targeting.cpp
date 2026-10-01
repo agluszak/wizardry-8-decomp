@@ -778,7 +778,7 @@ bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item)
             }
         }
     }
-    return TargetMatchesNeeded(target, (char)needed);
+    return TargetMatchesNeeded(target, static_cast<char>(needed));
 }
 
 /* Tint one monster for whoever is highlighting it. Three tints are named -
@@ -824,7 +824,7 @@ void SetMonsterHighlight(int party_slot, int location_id, char on)
         srAssertFail("pMonster", TARGETING_CPP, 1888, 0);
     }
 
-    bit = (unsigned char)(1 << (party_slot & 0x1f));
+    bit = static_cast<unsigned char>(1 << (party_slot & 0x1f));
     unsigned char mask = MonsterGetHighlightMask(monster);
     if (on) {
         MonsterSetHighlightMask(monster, mask | bit);
@@ -939,7 +939,7 @@ void SetGroupHighlight(int party_slot, int group_id, char on)
         if (monster == 0) {
             srAssertFail("pMonster", TARGETING_CPP, 1888, 0);
         }
-        bit = (unsigned char)(1 << (party_slot & 0x1f));
+        bit = static_cast<unsigned char>(1 << (party_slot & 0x1f));
         unsigned char mask = MonsterGetHighlightMask(monster);
         if (on == 0) {
             MonsterSetHighlightMask(monster, mask & ~bit);
@@ -980,7 +980,7 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
         } else {
             tint = 0;
         }
-        HighlightMonsterAsTarget(monster_info->location_id, owner, (char)tint);
+        HighlightMonsterAsTarget(monster_info->location_id, owner, static_cast<char>(tint));
     }
 }
 
@@ -1010,10 +1010,10 @@ int CompareMonsterTargetCandidates(const void* left, const void* right)
     const W8MonsterTargetCandidate* a = (const W8MonsterTargetCandidate*)left;
     const W8MonsterTargetCandidate* b = (const W8MonsterTargetCandidate*)right;
 
-    if ((unsigned int)a->state_04 < (unsigned int)b->state_04) {
+    if (static_cast<unsigned int>(a->state_04) < static_cast<unsigned int>(b->state_04)) {
         return -1;
     }
-    if ((unsigned int)a->state_04 > (unsigned int)b->state_04) {
+    if (static_cast<unsigned int>(a->state_04) > static_cast<unsigned int>(b->state_04)) {
         return 1;
     }
     if (a->in_reach != 0 && b->in_reach == 0) {
@@ -1089,7 +1089,7 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
         return BAD_INDEX;
     }
     candidates =
-        (W8MonsterTargetCandidate*)malloc(monster_count * sizeof(W8MonsterTargetCandidate));
+        static_cast<W8MonsterTargetCandidate*>(malloc(monster_count * sizeof(W8MonsterTargetCandidate)));
     if (candidates == 0) {
         return BAD_INDEX;
     }
@@ -1115,8 +1115,8 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
         if (GetBestMonsterAttackRange(record, 1) != -1) {
             unsigned int quadrant = GetMonsterQuadrant(monster_info) & 0xff;
 
-            if ((unsigned char)quadrant == 2 ||
-                (!AnyoneStandsAhead((unsigned char)quadrant) && AnyoneStandsAhead(4))) {
+            if (static_cast<unsigned char>(quadrant) == 2 ||
+                (!AnyoneStandsAhead(static_cast<unsigned char>(quadrant)) && AnyoneStandsAhead(4))) {
                 next->in_reach = 1;
             }
         }
@@ -1134,7 +1134,7 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
             srAssertFail("pMonsterInfo->uiHPMax > 0", TARGETING_CPP, 0xeac, 0);
         }
         next->hp_current = monster_info->hp_current;
-        next->same_group = (unsigned char)(monster_info->monster_group_id == group_id);
+        next->same_group = static_cast<unsigned char>(monster_info->monster_group_id == group_id);
         next->distance = monster_info->p3D->GetDistanceToPlayer();
 
         ++found;
@@ -1326,7 +1326,7 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
     unsigned int index;
 
     if (slot->highlighted_monsters.GetCount() > 0) {
-        for (index = 0; index < (unsigned int)slot->highlighted_monsters.GetCount(); ++index) {
+        for (index = 0; index < static_cast<unsigned int>(slot->highlighted_monsters.GetCount()); ++index) {
             SetMonsterHighlight(party_slot, *slot->highlighted_monsters.GetAt(index), 0);
         }
         slot->highlighted_monsters.Clear();
@@ -2258,7 +2258,7 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
                 new_target.iGroupID = -1;
                 new_target.iType = W8_TARGET_KIND_MONSTER;
                 new_target.iMonsterID = selected;
-                AimAtTarget(party_slot, &new_target, (W8TargetingContext)arg);
+                AimAtTarget(party_slot, &new_target, static_cast<W8TargetingContext>(arg));
                 result = 1;
                 if (arg != 0) {
                     StartBreathCycle(party_slot, 0);
@@ -2287,7 +2287,7 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
         new_target.iChar = -1;
         new_target.iGroupID = -1;
         new_target.iType = W8_TARGET_KIND_NONE;
-        AimAtTarget(party_slot, &new_target, (W8TargetingContext)arg);
+        AimAtTarget(party_slot, &new_target, static_cast<W8TargetingContext>(arg));
     }
     if (gXStatus.fCombatMode != 0 && action_context == W8_TARGETING_CONTEXT_IN_COMBAT &&
         target->iType != previous_kind) {
@@ -2474,7 +2474,7 @@ bool SlotHasAnyValidTarget(int party_slot)
         break;
     case 5:
         for (other_slot = 0; other_slot < 8; ++other_slot) {
-            if (other_slot == (unsigned int)party_slot) {
+            if (other_slot == static_cast<unsigned int>(party_slot)) {
                 continue;
             }
             memset(&target, 0, sizeof(target));
@@ -2583,7 +2583,7 @@ struct W8GroupMemberByAngle {
 // FUNCTION: WIZ8 0x005383e0
 int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int current)
 {
-    unsigned int count = (unsigned int)candidates->GetCount();
+    unsigned int count = static_cast<unsigned int>(candidates->GetCount());
     W8GroupMemberByAngle* sorted;
     srVector3T<float> party;
     unsigned int index;
@@ -2594,7 +2594,7 @@ int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int cu
     }
     GetCameraPosition(&party);
 
-    sorted = (W8GroupMemberByAngle*)malloc(count * sizeof(W8GroupMemberByAngle));
+    sorted = static_cast<W8GroupMemberByAngle*>(malloc(count * sizeof(W8GroupMemberByAngle)));
     if (sorted == 0) {
         srAssertFail("pSortBuffer != NULL", TARGETING_CPP, 0x499, 0);
     }
@@ -2606,7 +2606,7 @@ int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int cu
         srVector3T<float> position = monster_info->p3D->GetPosition();
 
         sorted[index].location_id = location_id;
-        sorted[index].angle = (int)NormalizeAngle(GetHeadingAngle(&party, &position));
+        sorted[index].angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&party, &position)));
     }
     qsort(sorted, count, sizeof(W8GroupMemberByAngle), CompareSignedAscending);
 
@@ -3018,7 +3018,7 @@ bool AnyMonsterVisible(void)
     int count;
     int index;
 
-    limit = (float)WorldGetFarClip(GetWorld()) * g_float_005ec3b8;
+    limit = static_cast<float>(WorldGetFarClip(GetWorld())) * g_float_005ec3b8;
     if (g_world == 0 || g_world->camera == 0) {
         return 0;
     }
@@ -3033,7 +3033,7 @@ bool AnyMonsterVisible(void)
         }
     }
     for (index = 0; index < count; ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, index);
+        W8MonsterInfo* monster_info = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
 
         if (monster_info->p3D != 0 &&
             IsMonsterVisibleWithinDistance(monster_info->p3D, &camera, limit) != 0) {

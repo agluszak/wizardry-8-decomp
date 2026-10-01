@@ -3342,7 +3342,7 @@ srGERD::Texture* srGERD::allocTexture(unsigned long id)
     /* Retail zeroes 0xa4 bytes: the aligned/unaligned dword-and-byte fill is
        memset lowering; the trailing dword is the free-list link, already
        consumed above. */
-    memset(static_cast<void*>(texture), 0, 0xa4);
+    memset(texture, 0, 0xa4);
     texture->id_08 = id;
     texture->palette_24 = 0;
     texture_lookup_2004_.Insert(&texture->id_08, &texture);

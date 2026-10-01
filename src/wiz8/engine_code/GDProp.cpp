@@ -236,7 +236,7 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
     if (m_list_54 != 0) {
         unsigned int count = PLLength(m_list_54);
         for (unsigned int index = 0; index < count; ++index) {
-            W8WorldItem* item = static_cast<W8WorldItem*>(PLGet(m_list_54, (int)index));
+            W8WorldItem* item = static_cast<W8WorldItem*>(PLGet(m_list_54, static_cast<int>(index)));
             if (item != 0) {
                 SetWorldItemFlag02(item, 1);
             }
@@ -467,7 +467,7 @@ void RemoveItemFromSector(int sector, W8WorldItem* item)
 // FUNCTION: WIZ8 0x004B7BA0
 unsigned char GDProp::HasListEntries()
 {
-    if (m_list_54 != 0 && (int)PLLength(m_list_54) > 0) {
+    if (m_list_54 != 0 && static_cast<int>(PLLength(m_list_54)) > 0) {
         return 1;
     }
     return 0;

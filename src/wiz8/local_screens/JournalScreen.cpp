@@ -313,8 +313,8 @@ W8JournalPanel::W8JournalPanel(unsigned int* region_set)
 
     AcquireRegionSet(region_set);
     GetCatalogImageSize(0xf3, 0, 0, &width, &height);
-    right = origin_x + static_cast<unsigned short>(width);
-    bottom = origin_y + static_cast<unsigned short>(height);
+    m_bounds.right = m_bounds.left + static_cast<unsigned short>(width);
+    m_bounds.bottom = m_bounds.top + static_cast<unsigned short>(height);
 
     m_previous_054 = new W8TextControl(this, 0xffffffff, 3, 3, 0, 0, 0xf4, 0, 0, 2, 1, -1, 3);
     m_previous_054->m_listener = this;
@@ -322,7 +322,7 @@ W8JournalPanel::W8JournalPanel(unsigned int* region_set)
     m_next_050 = new W8TextControl(this, 0xffffffff, 0x11f, 3, 0, 0, 0xf4, 0, 4, 6, 5, -1, 7);
     m_next_050->m_listener = this;
 
-    W8ControlsRect bounds = {origin_x, origin_y, right, bottom};
+    W8ControlsRect bounds = {m_bounds.left, m_bounds.top, m_bounds.right, m_bounds.bottom};
     m_page_text_060 = new W8TextBuffer(&bounds, &g_empty_wide_string, g_options_detail_font,
                                        g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
 

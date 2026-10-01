@@ -78,6 +78,390 @@ def _source_shaping_directives(repository: Path, target: str) -> list[dict[str, 
     return rows
 
 
+_WIZ8_ROOTS = ("include/wiz8", "src/wiz8")
+_COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.DOTALL)
+_STRING = re.compile(r'"(?:\\.|[^"\\\n])*"')
+_IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+_ADDRESS_STORAGE = re.compile(r"(?:^|_)(?:0x)?[0-9A-Fa-f]{5,8}$")
+_OFFSET_STORAGE = re.compile(
+    r"^(?:m_)?(?:field|offset|off|dword|word|byte|flag|float|ptr)_[0-9A-Fa-f]{1,4}$"
+)
+_UNKNOWN_STORAGE = re.compile(r"^(?:m_)?(?:unknown|unk)_[0-9A-Fa-f]+")
+_PADDING_STORAGE = re.compile(r"^(?:m_)?(?:padding|pad)_[0-9A-Fa-f]+")
+_WRITE_AFTER = r"\s*(?:[-+*/%&|^]|<<|>>)?=(?!=)|\s*(?:\+\+|--)"
+_WRITE_BEFORE = r"(?:\+\+|--)\s*(?:[A-Za-z_][A-Za-z0-9_]*\s*(?:->|\.)\s*)*"
+_INITIALIZER = r"[:,]\s*"
+_CAST_ESCAPES = ("reinterpret-ok", "c-style-cast-ok")
+
+
+def _wiz8_sources(repository: Path) -> dict[str, str]:
+    sources: dict[str, str] = {}
+    for root_name in _WIZ8_ROOTS:
+        root = repository / root_name
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.is_file() and path.suffix.casefold() in _SOURCE_SUFFIXES:
+                sources[path.relative_to(repository).as_posix()] = path.read_text(
+                    encoding="utf-8", errors="replace"
+                )
+    return sources
+
+
+_LAYOUT_ASSERTION = re.compile(
+    r"^.*\b(?:static_assert|offsetof|W8_ASSERT_\w*OFFSET)\b.*$", re.MULTILINE
+)
+
+
+def _code_only(text: str) -> str:
+    """Comment- and string-free code, without layout assertions."""
+
+    return _LAYOUT_ASSERTION.sub("", _STRING.sub('""', _COMMENT.sub(" ", text)))
+
+
+class _Usage:
+    """Name-level identifier occurrences in comment-free WIZ8 source.
+
+    Occurrence counts are by spelling: distinct records sharing one member
+    name are aggregated, so counts bound rather than attribute usage."""
+
+    def __init__(self, sources: dict[str, str]):
+        self.code = {path: _code_only(text) for path, text in sources.items()}
+        self.counts: dict[str, dict[str, int]] = {}
+        for path, code in self.code.items():
+            for match in _IDENTIFIER.finditer(code):
+                per_file = self.counts.setdefault(match.group(0), {})
+                per_file[path] = per_file.get(path, 0) + 1
+
+    def __call__(self, name: str, declarations: int) -> dict[str, Any]:
+        per_file = self.counts.get(name, {})
+        token = re.escape(name)
+        writes = re.compile(
+            rf"\b{token}\b(?:\s*\[[^\]]*\])*(?:{_WRITE_AFTER})|{_WRITE_BEFORE}\b{token}\b|"
+            rf"{_INITIALIZER}\b{token}\s*\("
+        )
+        write_count = sum(len(writes.findall(self.code[path])) for path in per_file)
+        references = max(sum(per_file.values()) - declarations, 0)
+        return {
+            "references": references,
+            "writes": min(write_count, references),
+            "reads": max(references - write_count, 0),
+            "source_files": sorted(per_file),
+        }
+
+
+def _storage_kind(name: str) -> str | None:
+    leaf = name.rsplit("::", 1)[-1]
+    if _PADDING_STORAGE.match(leaf):
+        return "padding"
+    if _UNKNOWN_STORAGE.match(leaf):
+        return "unknown"
+    if _OFFSET_STORAGE.match(leaf):
+        return "offset"
+    if _ADDRESS_STORAGE.search(leaf):
+        return "address"
+    return None
+
+
+def _wiz8_path(path: str) -> bool:
+    return path.startswith(tuple(f"{root}/" for root in _WIZ8_ROOTS))
+
+
+def _storage_debt(index: dict[str, Any], usage: _Usage) -> dict[str, list[dict[str, Any]]]:
+    """Globals and members whose identifiers still encode address/offset/unknown."""
+
+    globals_by_name: dict[str, dict[str, Any]] = {}
+    for variable in index.get("variables", []):
+        name = str(variable.get("qualified_name") or "")
+        path = str(variable.get("source_file") or "")
+        kind = _storage_kind(name)
+        if variable.get("target") != "WIZ8" or "::" in name or kind is None:
+            continue
+        if not _wiz8_path(path):
+            continue
+        row = globals_by_name.setdefault(
+            name,
+            {"name": name, "kind": kind, "type": variable.get("type"), "declarations": []},
+        )
+        location = f"{path}:{variable.get('line')}"
+        if location not in row["declarations"]:
+            row["declarations"].append(location)
+    global_rows = [
+        {**row, **usage(row["name"], len(row["declarations"]))} for row in globals_by_name.values()
+    ]
+
+    members: dict[str, dict[str, Any]] = {}
+    seen_records: set[str] = set()
+    for record in index.get("classes", []):
+        record_name = str(record.get("qualified_name") or "")
+        if record_name in seen_records:
+            continue
+        seen_records.add(record_name)
+        for field in record.get("fields", []):
+            name = str(field.get("name") or "")
+            path = str(field.get("source_file") or "")
+            kind = _storage_kind(name)
+            if kind is None or not _wiz8_path(path):
+                continue
+            row = members.setdefault(name, {"name": name, "kind": kind, "fields": []})
+            row["fields"].append(
+                {
+                    "record": record_name,
+                    "offset": field.get("offset"),
+                    "type": field.get("type"),
+                    "location": f"{path}:{field.get('line')}",
+                }
+            )
+    member_rows = [{**row, **usage(row["name"], len(row["fields"]))} for row in members.values()]
+    padding_accessed = [
+        row for row in member_rows if row["kind"] == "padding" and row["references"] > 0
+    ]
+    order = lambda row: (-row["references"], -row["writes"], row["name"])
+    return {
+        "address_named_globals": sorted(global_rows, key=order),
+        "address_named_members": sorted(
+            (row for row in member_rows if row["kind"] != "padding"), key=order
+        ),
+        "accessed_padding_members": sorted(padding_accessed, key=order),
+    }
+
+
+def _void_storage(index: dict[str, Any]) -> list[dict[str, Any]]:
+    """Project-owned members typed ``void*``: candidate typed holes."""
+
+    rows: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for record in index.get("classes", []):
+        record_name = str(record.get("qualified_name") or "")
+        if record_name in seen:
+            continue
+        seen.add(record_name)
+        for field in record.get("fields", []):
+            path = str(field.get("source_file") or "")
+            spelling = re.sub(r"\s+", "", str(field.get("type") or ""))
+            if not _wiz8_path(path) or not spelling.startswith("void*"):
+                continue
+            rows.append(
+                {
+                    "record": record_name,
+                    "field": field.get("name"),
+                    "type": field.get("type"),
+                    "offset": field.get("offset"),
+                    "location": f"{path}:{field.get('line')}",
+                }
+            )
+    rows.sort(key=lambda row: (row["location"], row["field"] or ""))
+    return rows
+
+
+_REINTERPRET_TARGET = re.compile(r"\breinterpret_cast<\s*(?:const\s+)?([A-Za-z_][\w:]*)")
+
+
+def _cast_escapes(sources: dict[str, str], owned_types: set[str]) -> list[dict[str, Any]]:
+    """Files ranked by reviewed cast escapes, owned-type reinterpretations first.
+
+    A reinterpret_cast whose target is a repository-owned record is the
+    strongest type-model candidate: both representations are ours to fix."""
+
+    rows = []
+    for path, text in sources.items():
+        counts = {marker: text.count(marker) for marker in _CAST_ESCAPES}
+        total = sum(counts.values())
+        if not total:
+            continue
+        owned = sorted(
+            {name for name in _REINTERPRET_TARGET.findall(_code_only(text)) if name in owned_types}
+        )
+        rows.append(
+            {
+                "source_file": path,
+                "total": total,
+                **counts,
+                "owned_reinterpret_targets": owned,
+            }
+        )
+    rows.sort(
+        key=lambda row: (-len(row["owned_reinterpret_targets"]), -row["total"], row["source_file"])
+    )
+    return rows
+
+
+_ENUM_PARAMETER = re.compile(r"^enum\s+([A-Za-z_][\w:]*)$")
+_INTEGER_LITERAL = re.compile(r"^(?:0[xX][0-9A-Fa-f]+|\d+)$")
+
+
+def _enum_literal_arguments(index: dict[str, Any], sources: dict[str, str]) -> list[dict[str, Any]]:
+    """Integer literals passed where the callee's declared parameter is an enum."""
+
+    enum_positions: dict[str, set[int]] = {}
+    for item in index.get("declarations", []):
+        name = str(item.get("qualified_name") or "").rpartition("::")[2]
+        for position, parameter in enumerate(item.get("parameter_types") or []):
+            if _ENUM_PARAMETER.match(str(parameter)):
+                enum_positions.setdefault(name, set()).add(position)
+    if not enum_positions:
+        return []
+    call = re.compile(r"\b(" + "|".join(map(re.escape, sorted(enum_positions))) + r")\s*\(")
+    rows: list[dict[str, Any]] = []
+    for path, text in sources.items():
+        code = _code_only(text)
+        for match in call.finditer(code):
+            depth, start, arguments = 1, match.end(), []
+            position = start
+            while position < len(code) and depth:
+                char = code[position]
+                if char in "([{":
+                    depth += 1
+                elif char in ")]}":
+                    depth -= 1
+                if (char == "," and depth == 1) or depth == 0:
+                    arguments.append(code[start:position].strip())
+                    start = position + 1
+                position += 1
+            for argument_index in enum_positions[match.group(1)]:
+                if argument_index < len(arguments) and _INTEGER_LITERAL.match(
+                    arguments[argument_index]
+                ):
+                    rows.append(
+                        {
+                            "location": f"{path}:{code.count(chr(10), 0, match.start()) + 1}",
+                            "callee": match.group(1),
+                            "argument": argument_index,
+                            "literal": arguments[argument_index],
+                        }
+                    )
+    rows.sort(key=lambda row: (row["callee"], row["location"]))
+    return rows
+
+
+_NARRATION_EVIDENCE = re.compile(
+    r"0x[0-9A-Fa-f]{4,}|retail|bug|\bUB\b|undefined|evidence|unresolved|owner|lifetime"
+    r"|ABI|layout|assert|TODO|unknown|why|because|despite|emits?|inlin|ICF|thunk",
+    re.IGNORECASE,
+)
+_FUNCTION_HEAD = re.compile(r"^[A-Za-z_][\w:<>,*&~ ]*\([^;]*\)\s*(?:const\s*)?\{?\s*$")
+_NARRATION_MIN_COMMENT_LINES = 3
+_NARRATION_MAX_BODY_LINES = 12
+
+
+def _narration_candidates(sources: dict[str, str]) -> list[dict[str, Any]]:
+    """Multi-line comments over short functions that cite no evidence.
+
+    These usually paraphrase the visible body; comments that mention retail
+    behaviour, addresses, ownership, layout or unresolved decisions are kept
+    out of the queue."""
+
+    rows: list[dict[str, Any]] = []
+    for path, text in sources.items():
+        if not path.endswith((".c", ".cpp")):
+            continue
+        lines = text.splitlines()
+        for start, end, comment in _comment_regions(lines):
+            if end - start < _NARRATION_MIN_COMMENT_LINES or _NARRATION_EVIDENCE.search(comment):
+                continue
+            head = end - 1
+            while head < len(lines) and (
+                not lines[head].strip() or lines[head].lstrip().startswith("//")
+            ):
+                head += 1
+            if head >= len(lines) or not _FUNCTION_HEAD.match(lines[head].strip()):
+                continue
+            depth, opened, finish = 0, False, head
+            for finish in range(head, min(len(lines), head + _NARRATION_MAX_BODY_LINES + 2)):
+                depth += lines[finish].count("{") - lines[finish].count("}")
+                opened = opened or "{" in lines[finish]
+                if opened and depth <= 0:
+                    break
+            else:
+                continue
+            if not opened or depth > 0:
+                continue
+            rows.append(
+                {
+                    "location": f"{path}:{start}",
+                    "comment_lines": end - start,
+                    "function": lines[head].strip(),
+                    "body_lines": finish - head + 1,
+                }
+            )
+    rows.sort(key=lambda row: (-row["comment_lines"], row["location"]))
+    return rows
+
+
+_DUPLICATE_MIN_FIELDS = 3
+
+
+def _duplicate_layouts(index: dict[str, Any]) -> list[dict[str, Any]]:
+    """Distinct repository records with identical field type/offset sequences.
+
+    Identical layouts are only candidates: two owners may legitimately share a
+    shape. They are where independently reconstructed copies of one original
+    abstraction tend to hide."""
+
+    groups: dict[tuple[Any, ...], dict[str, str]] = {}
+    for record in index.get("classes", []):
+        fields = record.get("fields") or []
+        if len(fields) < _DUPLICATE_MIN_FIELDS or record.get("bases"):
+            continue
+        name = str(record.get("qualified_name") or "")
+        path = str(fields[0].get("source_file") or "")
+        if "<" in name or not _wiz8_path(path):
+            continue
+        key = tuple((field.get("type"), field.get("offset"), field.get("size")) for field in fields)
+        groups.setdefault(key, {})[name] = f"{path}:{fields[0].get('line')}"
+    rows = [
+        {"field_count": len(key), "records": dict(sorted(members.items()))}
+        for key, members in groups.items()
+        if len(members) > 1
+    ]
+    rows.sort(key=lambda row: (-row["field_count"], sorted(row["records"])))
+    return rows
+
+
+_SIZE_ASSERTION = re.compile(
+    r"static_assert\(\s*sizeof\(\s*([A-Za-z_][\w:]*)\s*\)\s*==\s*(0[xX][0-9A-Fa-f]+|\d+)"
+)
+_BYTE_STRIDE = re.compile(
+    r"\bmalloc\(\s*(0[xX][0-9A-Fa-f]+)\s*\)"
+    r"|\*\s*(0[xX][0-9A-Fa-f]+)\b(?!\s*\.)"
+    r"|\bmem(?:set|cpy|move)\([^;]*,\s*(0[xX][0-9A-Fa-f]+)\s*\)"
+)
+_MIN_STRIDE_RECORD_SIZE = 0x10
+_MAX_STRIDE_CANDIDATES = 2
+
+
+def _byte_strides(sources: dict[str, str]) -> list[dict[str, Any]]:
+    """Byte literals in allocation/stride positions equal to an asserted record size."""
+
+    sizes: dict[int, set[str]] = {}
+    for text in sources.values():
+        for name, size in _SIZE_ASSERTION.findall(text):
+            value = int(size, 0)
+            if value >= _MIN_STRIDE_RECORD_SIZE:
+                sizes.setdefault(value, set()).add(name)
+    rows: list[dict[str, Any]] = []
+    for path, text in sources.items():
+        if not path.endswith((".c", ".cpp")):
+            continue
+        code = _STRING.sub(
+            '""', _COMMENT.sub(lambda match: re.sub(r"[^\n]", " ", match.group(0)), text)
+        )
+        for match in _BYTE_STRIDE.finditer(code):
+            literal = next(group for group in match.groups() if group)
+            types = sizes.get(int(literal, 0))
+            if not types or len(types) > _MAX_STRIDE_CANDIDATES:
+                continue
+            rows.append(
+                {
+                    "location": f"{path}:{code.count(chr(10), 0, match.start()) + 1}",
+                    "literal": literal,
+                    "candidate_types": sorted(types),
+                }
+            )
+    rows.sort(key=lambda row: (len(row["candidate_types"]), row["location"]))
+    return rows
+
+
 def _comment_regions(lines: list[str]) -> list[tuple[int, int, str]]:
     """Return (start_line, end_line, text) for ``/* */`` blocks and ``//`` runs.
 
@@ -291,6 +675,26 @@ def semantic_debt_report(
     source_shaping = _source_shaping_directives(repository, target)
     unresolved = _unresolved_declarations(index)
     stale = _stale_recovery_claims(repository, functions)
+    sources = _wiz8_sources(repository) if target.upper() == "WIZ8" else {}
+    storage = (
+        _storage_debt(index, _Usage(sources))
+        if sources
+        else {
+            "address_named_globals": [],
+            "address_named_members": [],
+            "accessed_padding_members": [],
+        }
+    )
+    void_storage = _void_storage(index) if sources else []
+    owned_types = {
+        str(record.get("qualified_name") or "").rpartition("::")[2]
+        for record in index.get("classes", [])
+    }
+    cast_escapes = _cast_escapes(sources, owned_types)
+    enum_literals = _enum_literal_arguments(index, sources) if sources else []
+    narration = _narration_candidates(sources)
+    duplicate_layouts = _duplicate_layouts(index) if sources else []
+    byte_strides = _byte_strides(sources)
     return {
         "schema": "wiz8.semantic-debt-v1",
         "non_gating": True,
@@ -301,6 +705,15 @@ def semantic_debt_report(
             "source_shaping_directives": len(source_shaping),
             "provisional_tu_placements": len(provisional),
             "stale_recovery_claims": len(stale),
+            "address_named_globals": len(storage["address_named_globals"]),
+            "address_named_members": len(storage["address_named_members"]),
+            "accessed_padding_members": len(storage["accessed_padding_members"]),
+            "void_storage_members": len(void_storage),
+            "cast_escape_sites": sum(row["total"] for row in cast_escapes),
+            "byte_strides_matching_record_sizes": len(byte_strides),
+            "enum_parameters_passed_literals": len(enum_literals),
+            "narration_candidates": len(narration),
+            "duplicate_record_layouts": len(duplicate_layouts),
         },
         "unresolved_fragments": provisional,
         "unresolved_function_declarations": unresolved,
@@ -308,4 +721,11 @@ def semantic_debt_report(
         "source_shaping_directives": source_shaping,
         "provisional_tu_placements": provisional,
         "stale_recovery_claims": stale,
+        **storage,
+        "void_storage_members": void_storage,
+        "cast_escapes": cast_escapes,
+        "byte_strides_matching_record_sizes": byte_strides,
+        "enum_parameters_passed_literals": enum_literals,
+        "narration_candidates": narration,
+        "duplicate_record_layouts": duplicate_layouts,
     }

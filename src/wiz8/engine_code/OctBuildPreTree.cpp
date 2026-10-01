@@ -241,8 +241,8 @@ OctBuildPreTree::OctBuildPreTree(float leaf_size, srVector3T<float>* minimum,
     mesh_linking_f4 = 1;
     use_owned_nodes_b4 = 1;
     game_data_134 = 0;
-    padding_138 = 0;
-    padding_13c = 0;
+    unknown_138 = 0;
+    unknown_13c = 0;
     deepest_link_list_b8 = 0;
     memset(level_counts_c4, 0, sizeof(level_counts_c4));
     path_capacity_bc = path_capacity;
@@ -1083,7 +1083,7 @@ unsigned short OctBuildPreTree::BuildRegions()
     for (unsigned long polygon = 1; polygon < game_data_134->polygon_count_08; ++polygon) {
         if (game_data_134->polygons_0c[polygon].region_32 == 0) {
             char message[252];
-            sprintf(message, "Poly %d not found in ANY region.\n", (int)polygon);
+            sprintf(message, "Poly %d not found in ANY region.\n", static_cast<int>(polygon));
             ReportBuildStatus(6, message);
         }
     }
@@ -1140,7 +1140,7 @@ void OctBuildPreTree::AssignInitialRegions(const W8OctSpatialState* spatial)
         for (unsigned long index = 0; index < g_poly_list_count; ++index) {
             W8OctRegionPolygon* polygon = static_cast<W8OctRegionPolygon*>(g_poly_list[index]);
             if (polygon->region_32 == 0 &&
-                polygon->ContainsPoint004CFB30(&spatial->minimum_0c) != 0) {
+                polygon->ContainsPoint(&spatial->minimum_0c) != 0) {
                 ++contained_count;
                 polygon->region_32 = spatial_00.region_id_bound_58;
             }
@@ -1176,10 +1176,10 @@ void OctBuildPreTree::AssignInitialRegions(const W8OctSpatialState* spatial)
     }
 
     unsigned long path = spatial->node_index_94;
-    int high = ((int)(signed char)(path >> 23) & ~1) + 1;
-    int x_base = (int)(signed char)(path >> 15) & ~1;
-    int y_base = (int)(signed char)(path >> 7) & ~1;
-    signed char z_base = (signed char)((signed char)path << 1);
+    int high = (static_cast<int>(static_cast<signed char>(path >> 23)) & ~1) + 1;
+    int x_base = static_cast<int>(static_cast<signed char>(path >> 15)) & ~1;
+    int y_base = static_cast<int>(static_cast<signed char>(path >> 7)) & ~1;
+    signed char z_base = static_cast<signed char>(static_cast<signed char>(path) << 1);
     short child_index = 0;
     for (int x = 0; x != 2; ++x) {
         for (int y = 0; y != 2; ++y) {
@@ -1210,8 +1210,8 @@ W8OctBuildNode* OctBuildPreTree::FindNode(unsigned int path)
 {
     W8OctBuildNode* node = spatial_00.root_90;
     unsigned int active_levels = path >> 24;
-    unsigned char x = (unsigned char)(path >> 16);
-    unsigned char y = (unsigned char)(path >> 8);
+    unsigned char x = static_cast<unsigned char>(path >> 16);
+    unsigned char y = static_cast<unsigned char>(path >> 8);
     unsigned int z = path & 0xff;
     for (unsigned int level = 0x80; node != 0 && level != 0; level >>= 1) {
         if ((active_levels & level) != 0) {
@@ -1332,8 +1332,8 @@ unsigned char OctBuildPreTree::MergeRegion(W8OctBuildNode* node, const int* cell
     }
 
     neighbor_center =
-        (node_center * (double)moved_count + neighbor_center * (double)neighbor_count) /
-        (double)(moved_count + neighbor_count);
+        (node_center * static_cast<double>(moved_count) + neighbor_center * static_cast<double>(neighbor_count)) /
+        static_cast<double>(moved_count + neighbor_count);
     return 1;
 }
 
@@ -1383,8 +1383,8 @@ void OctBuildPreTree::FinalizeRegionMapping()
         region = polygon.region_32;
         if (region >= final_region_count) {
             char message[256];
-            sprintf(message, "Polygon %d in invalid submesh %d\n", (int)polygon_index,
-                    (unsigned int)region);
+            sprintf(message, "Polygon %d in invalid submesh %d\n", static_cast<int>(polygon_index),
+                    static_cast<unsigned int>(region));
             ReportBuildStatus(6, message);
         }
 
@@ -1560,7 +1560,7 @@ void OctBuildPreTree::ValidatePolygonRegions()
 
         if (!found) {
             char message[256];
-            sprintf(message, "Poly %d not found in correct region.\n", (int)polygon_index);
+            sprintf(message, "Poly %d not found in correct region.\n", static_cast<int>(polygon_index));
             ReportBuildStatus(6, message);
         }
     }
@@ -1573,7 +1573,7 @@ void OctBuildPreTree::ValidateRegionBounds(const W8BoundingBox* region_bounds)
 {
     for (unsigned long region_index = 1; region_index < spatial_00.submesh_count_74;
          ++region_index) {
-        unsigned short region = (unsigned short)region_index;
+        unsigned short region = static_cast<unsigned short>(region_index);
         int entry = -1;
         while ((entry = region_path_map_124->FindNextEntry(&region, entry)) != -1) {
             unsigned long path = region_path_map_124->entries[entry].value;
@@ -1630,7 +1630,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
         }
 
         ++particle_number;
-        short particle_value = (short)particle_number;
+        short particle_value = static_cast<short>(particle_number);
         srVector3T<float> position;
         position = particle.location * g_world_scale;
 
@@ -1773,7 +1773,7 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
 
     for (int record_index = 0; record_index < record_count; ++record_index) {
         const W8LevelFileProp& record = records[record_index];
-        short value = (short)(base_index + 1 + record_index);
+        short value = static_cast<short>(base_index + 1 + record_index);
         bool mapped = false;
 
         for (unsigned short region_index = 1; region_index < spatial_00.region_count_46;
@@ -1848,7 +1848,7 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
         mesh_prop_lookup_110 =
             static_cast<unsigned short*>(malloc(region_count * sizeof(unsigned short)));
         for (unsigned long region_value = 1; region_value < region_count; ++region_value) {
-            unsigned short region = (unsigned short)region_value;
+            unsigned short region = static_cast<unsigned short>(region_value);
             mesh_prop_lookup_110[region_value] = 0;
             int entry = -1;
             bool first = true;
@@ -1956,8 +1956,8 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree()
     tree->spatial_000.cell_size_08 = spatial_00.cell_size_08;
     tree->spatial_000.owned_5c = spatial_00.owned_5c;
     tree->game_data_3a4 = game_data_134;
-    tree->padding_3a8 = padding_138;
-    tree->padding_3ac = padding_13c;
+    tree->unknown_3a8 = unknown_138;
+    tree->unknown_3ac = unknown_13c;
     tree->deepest_link_list_3b0 = deepest_link_list_b8;
     tree->spatial_000.item_count_40 = spatial_00.item_count_40;
     tree->spatial_000.polygon_count_3c = spatial_00.polygon_count_3c;
@@ -1979,7 +1979,7 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree()
     tree->polygon_cursor_3a0 = 1;
     tree->m_region_list_len_138 = 1;
     tree->m_gd_surface_stream_len_124 = 1;
-    tree->m_padding_13c = 0;
+    tree->m_unknown_13c = 0;
     tree->m_trigger_count_128 = 0;
 
     W8OctBuildNode* root = spatial_00.root_90;
@@ -1992,7 +1992,7 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree()
 
     for (int grid_axis = 0; grid_axis != 3; ++grid_axis) {
         (&tree->m_leaf_grid_dim_x_0a4)[grid_axis] =
-            (int)(((&tree->spatial_000.clipped_maximum_30.x)[grid_axis] -
+            static_cast<int>(((&tree->spatial_000.clipped_maximum_30.x)[grid_axis] -
                    (&tree->spatial_000.clipped_minimum_24.x)[grid_axis]) /
                   tree->spatial_000.node_extent_70) +
             1;

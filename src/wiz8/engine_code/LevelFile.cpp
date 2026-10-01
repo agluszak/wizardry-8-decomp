@@ -296,7 +296,7 @@ BOOLEAN WriteLevelFile(int hFile, int hFileIn, W8LevelFile* pLevel)
         return FALSE;
     }
     ok = 1;
-    for (i = 0; i < (short)iCount; ++i) {
+    for (i = 0; i < static_cast<short>(iCount); ++i) {
         W8MaterialRecord* pTexture = pLevel->pTextures + i;
         ok = FileWrite(hFile, pTexture, 0x11a, 0);
         if (pTexture->version_00 >= 4) {
@@ -556,7 +556,7 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
         fSuccess &= FileRead(hFile, &pMesh->lod_mode_40, 1, 0);
         fSuccess &= FileRead(hFile, &pMesh->num_lods_42, 2, 0);
         if ((pMesh->flags_0c & 2) == 0) {
-            float** pLods = static_cast<float**>(malloc(pMesh->num_lods_42 * 4));
+            float** pLods = static_cast<float**>(malloc(pMesh->num_lods_42 * sizeof(float*)));
             if (pLods == 0) {
                 return FALSE;
             }
@@ -575,7 +575,7 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
             if (pMesh->lod_mode_40 >= 2) {
                 FileRead(hFile, &pMesh->lod_scale_58, 4, 0);
             }
-            short** pLods = static_cast<short**>(malloc(pMesh->num_lods_42 * 4));
+            short** pLods = static_cast<short**>(malloc(pMesh->num_lods_42 * sizeof(short*)));
             if (pLods == 0) {
                 return FALSE;
             }
@@ -593,13 +593,14 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
         }
     }
     if ((pMesh->flags_0c & 4) != 0) {
-        pMesh->pstCompFaces =
-            static_cast<W8LevelFileCompressedFace*>(malloc(pMesh->num_faces_08 * 0x21));
+        pMesh->pstCompFaces = static_cast<W8LevelFileCompressedFace*>(
+            malloc(pMesh->num_faces_08 * sizeof(W8LevelFileCompressedFace)));
         if (pMesh->pstCompFaces == 0) {
             srAssertFail("pMesh->pstCompFaces", LEVELFILE_CPP, 0x2a7, 0);
         }
-        memset(pMesh->pstCompFaces, 0, pMesh->num_faces_08 * 0x21);
-        return FileRead(hFile, pMesh->pstCompFaces, pMesh->num_faces_08 * 0x21, 0);
+        memset(pMesh->pstCompFaces, 0, pMesh->num_faces_08 * sizeof(W8LevelFileCompressedFace));
+        return FileRead(hFile, pMesh->pstCompFaces,
+                        pMesh->num_faces_08 * sizeof(W8LevelFileCompressedFace), 0);
     }
     pMesh->pstFaces = static_cast<W8ReadMeshFace*>(malloc(pMesh->num_faces_08 * 0x52));
     if (pMesh->pstFaces == 0) {
@@ -686,7 +687,8 @@ BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh)
         if (pMesh->pstCompFaces == 0) {
             srAssertFail("pMesh->pstCompFaces", LEVELFILE_CPP, 799, 0);
         }
-        unsigned char ok = FileWrite(hFile, pMesh->pstCompFaces, pMesh->num_faces_08 * 0x21, 0);
+        unsigned char ok = FileWrite(hFile, pMesh->pstCompFaces,
+                                     pMesh->num_faces_08 * sizeof(W8LevelFileCompressedFace), 0);
         free(pMesh->pstCompFaces);
         return ok;
     }
@@ -830,7 +832,8 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         FileRead(hFile, &pTrigger->version_00, 1, 0) && FileRead(hFile, &pTrigger->type_01, 1, 0);
     switch (pTrigger->type_01) {
     case 1: {
-        W8LevelFileSwitch* pSwitch = static_cast<W8LevelFileSwitch*>(malloc(0x271));
+        W8LevelFileSwitch* pSwitch =
+            static_cast<W8LevelFileSwitch*>(malloc(sizeof(W8LevelFileSwitch)));
         if (pSwitch == 0) {
             srAssertFail("pSwitch", LEVELFILE_CPP, 0x3f8, 0);
         }
@@ -886,7 +889,8 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         return fSuccess;
     }
     case 2: {
-        W8LevelFileInvisible* pInvis = static_cast<W8LevelFileInvisible*>(malloc(0x241));
+        W8LevelFileInvisible* pInvis =
+            static_cast<W8LevelFileInvisible*>(malloc(sizeof(W8LevelFileInvisible)));
         if (pInvis == 0) {
             srAssertFail("pInvis", LEVELFILE_CPP, 0x42f, 0);
         }
@@ -908,7 +912,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 pInvis->name_1b, pInvis->recipients_9b)));
         if (pInvis->version_00 > 1) {
             fSuccess &= FileRead(hFile, &pInvis->plane_flag_19b, 1, 0);
-            pInvis->pPlane_19c = static_cast<W8LevelFilePlane*>(malloc(0x30));
+            pInvis->pPlane_19c = static_cast<W8LevelFilePlane*>(malloc(sizeof(W8LevelFilePlane)));
             if (pInvis->pPlane_19c == 0) {
                 srAssertFail("pInvis->pPlane", LEVELFILE_CPP, 0x441, 0);
             }
@@ -930,8 +934,8 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
             if (pInvis->has_legacy_geometry_236 != 0) {
                 fSuccess &= FileRead(hFile, &pInvis->geometry_kind_238, 1, 0);
                 if (pInvis->field_237 == 2) {
-                    W8LevelFileLinkedRecord* pRecord =
-                        static_cast<W8LevelFileLinkedRecord*>(malloc(0x1bb));
+                    W8LevelFileLinkedRecord* pRecord = static_cast<W8LevelFileLinkedRecord*>(
+                        malloc(sizeof(W8LevelFileLinkedRecord)));
                     unsigned char okRecord = 0;
                     if (pRecord != 0) {
                         okRecord = FileRead(hFile, &pRecord->kind_00, 1, 0);
@@ -959,7 +963,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         return fSuccess;
     }
     case 3: {
-        W8LevelFileSound* pSound = static_cast<W8LevelFileSound*>(malloc(0x170));
+        W8LevelFileSound* pSound = static_cast<W8LevelFileSound*>(malloc(sizeof(W8LevelFileSound)));
         if (pSound == 0) {
             srAssertFail("pSound", LEVELFILE_CPP, 0x46c, 0);
         }
@@ -1264,7 +1268,8 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         if (pSuper->door_85e.kind_00 == 1) {
             fSuccess = ReadDoorTriggerFile(hFile, &pSuper->door_85e);
         } else if (pSuper->door_85e.kind_00 == 2) {
-            W8LevelFileLinkedRecord* pRecord = static_cast<W8LevelFileLinkedRecord*>(malloc(0x1bb));
+            W8LevelFileLinkedRecord* pRecord =
+                static_cast<W8LevelFileLinkedRecord*>(malloc(sizeof(W8LevelFileLinkedRecord)));
             unsigned char ok = 0;
             if (pRecord != 0) {
                 ok = FileRead(hFile, &pRecord->kind_00, 1, 0);
@@ -1406,7 +1411,7 @@ BOOLEAN WriteSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
 // FUNCTION: WIZ8 0x004D3540
 BOOLEAN ReadDoorTriggerFile(int hFile, W8LevelFileDoorRef* pDoor)
 {
-    W8LevelFileDoor* pDoorRec = static_cast<W8LevelFileDoor*>(malloc(0x99));
+    W8LevelFileDoor* pDoorRec = static_cast<W8LevelFileDoor*>(malloc(sizeof(W8LevelFileDoor)));
     if (pDoorRec == 0) {
         return 0;
     }
@@ -1463,15 +1468,16 @@ BOOLEAN ReadPathAIFile(int hFile, W8LevelFilePathAI* pPathAI)
     fSuccess &= FileRead(hFile, &pPathAI->path_count_0a, 4, 0);
     if (pPathAI->scaled_01 == 2) {
         if (pPathAI->path_count_0a != 0) {
-            pPathAI->pScaledPaths =
-                static_cast<W8LevelFileScaledPathNode*>(malloc(pPathAI->path_count_0a * 0x28));
+            pPathAI->pScaledPaths = static_cast<W8LevelFileScaledPathNode*>(
+                malloc(pPathAI->path_count_0a * sizeof(W8LevelFileScaledPathNode)));
             if (pPathAI->pScaledPaths == 0) {
                 srAssertFail("pPathAI->pScaledPaths", LEVELFILE_CPP, 0x732, 0);
             }
             fSuccess &= FileRead(hFile, pPathAI->pScaledPaths, pPathAI->path_count_0a * 0x28, 0);
         }
     } else if (pPathAI->path_count_0a != 0) {
-        pPathAI->pPaths = static_cast<W8LevelFilePathNode*>(malloc(pPathAI->path_count_0a * 0x1c));
+        pPathAI->pPaths = static_cast<W8LevelFilePathNode*>(
+            malloc(pPathAI->path_count_0a * sizeof(W8LevelFilePathNode)));
         if (pPathAI->pPaths == 0) {
             srAssertFail("pPathAI->pPaths", LEVELFILE_CPP, 0x73d, 0);
         }
@@ -1555,8 +1561,8 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
     if (pAnimObj->version_00 >= 7) {
         fSuccess &= FileRead(hFile, &pAnimObj->num_bound_box_47, 1, 0);
         if (pAnimObj->num_bound_box_47 != 0) {
-            pAnimObj->pBoundBox =
-                static_cast<W8LevelFileBounds*>(malloc(pAnimObj->num_bound_box_47 * 0x18));
+            pAnimObj->pBoundBox = static_cast<W8LevelFileBounds*>(
+                malloc(pAnimObj->num_bound_box_47 * sizeof(W8LevelFileBounds)));
             if (pAnimObj->pBoundBox == 0) {
                 srAssertFail("pAnimObj->pBoundBox", LEVELFILE_CPP, 0x7b3, 0);
             }
@@ -1623,19 +1629,20 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                     if (pMorph->num_frames_01 != 0) {
                         usFrame = 0;
                         do {
-                            W8LevelFileFrame* pFrame = pMorph->LODMesh_02.pFrames + (short)usFrame;
+                            W8LevelFileFrame* pFrame = pMorph->LODMesh_02.pFrames + static_cast<short>(usFrame);
                             fSuccess &= FileRead(hFile, &pFrame->flags_00, 1, 0) &
                                         ReadMeshFile(hFile, &pFrame->mesh_01) &
                                         FileRead(hFile, &pFrame->num_textures_5d, 2, 0);
                             if (pFrame->num_textures_5d != 0) {
                                 pFrame->pTextures_5f = static_cast<W8MaterialRecord*>(
-                                    malloc(pFrame->num_textures_5d * 0x12a));
+                                    malloc(pFrame->num_textures_5d * sizeof(W8MaterialRecord)));
                                 if (pFrame->pTextures_5f == 0) {
                                     srAssertFail(
                                         "pAnimObj->pMorphs[i].LODMesh.pFrames[i2].pTextures",
                                         LEVELFILE_CPP, 0x7f9, 0);
                                 }
-                                memset(pFrame->pTextures_5f, 0, pFrame->num_textures_5d * 0x12a);
+                                memset(pFrame->pTextures_5f, 0,
+                                       pFrame->num_textures_5d * sizeof(W8MaterialRecord));
                                 unsigned char fTextures = 1;
                                 for (j = 0; j < pFrame->num_textures_5d; ++j) {
                                     W8MaterialRecord* pTexture = pFrame->pTextures_5f + j;
@@ -1657,7 +1664,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                 usFrame = pMorph->num_frames_01;
                             }
                             ++usFrame;
-                        } while ((short)usFrame < (short)pMorph->num_frames_01);
+                        } while (static_cast<short>(usFrame) < static_cast<short>(pMorph->num_frames_01));
                     }
                 }
             }
@@ -1695,19 +1702,20 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                             if ((pFrame->num_textures_5d < 0) || (pFrame->num_textures_5d > 500)) {
                                 sprintf(g_level_file_error,
                                         "Invalid number of materials in mesh (%d materials).\n",
-                                        (int)pFrame->num_textures_5d);
+                                        static_cast<int>(pFrame->num_textures_5d));
                                 ReportBuildStatus(7, g_level_file_error);
                                 return FALSE;
                             }
                             if (pFrame->num_textures_5d != 0) {
                                 pFrame->pTextures_5f = static_cast<W8MaterialRecord*>(
-                                    malloc(pFrame->num_textures_5d * 0x12a));
+                                    malloc(pFrame->num_textures_5d * sizeof(W8MaterialRecord)));
                                 if (pFrame->pTextures_5f == 0) {
                                     srAssertFail(
                                         "pAnimObj->pTransforms[i].LODMesh.pFrames[i2].pTextures",
                                         LEVELFILE_CPP, 0x82e, 0);
                                 }
-                                memset(pFrame->pTextures_5f, 0, pFrame->num_textures_5d * 0x12a);
+                                memset(pFrame->pTextures_5f, 0,
+                                       pFrame->num_textures_5d * sizeof(W8MaterialRecord));
                                 unsigned char fTextures = 1;
                                 for (j = 0; j < pFrame->num_textures_5d; ++j) {
                                     W8MaterialRecord* pTexture = pFrame->pTextures_5f + j;
@@ -1725,7 +1733,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                 }
                             }
                             ++iFrame;
-                        } while (iFrame < (short)pTransform->num_frames_01);
+                        } while (iFrame < static_cast<short>(pTransform->num_frames_01));
                     }
                 }
                 fSuccess &= ReadPathAIFile(hFile, &pTransform->pathAI_06);
@@ -1824,7 +1832,7 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                     }
                     usFrame = 0;
                     do {
-                        W8LevelFileFrame* pFrame = pMorph->LODMesh_02.pFrames + (short)usFrame;
+                        W8LevelFileFrame* pFrame = pMorph->LODMesh_02.pFrames + static_cast<short>(usFrame);
                         fSuccess &= FileWrite(hFile, &pFrame->flags_00, 1, 0) &
                                     WriteMeshFile(hFile, &pFrame->mesh_01) &
                                     FileWrite(hFile, &pFrame->num_textures_5d, 2, 0);
@@ -1856,7 +1864,7 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                             usFrame = pMorph->num_frames_01;
                         }
                         ++usFrame;
-                    } while ((short)usFrame < (short)pMorph->num_frames_01);
+                    } while (static_cast<short>(usFrame) < static_cast<short>(pMorph->num_frames_01));
                     free(pMorph->LODMesh_02.pFrames);
                     pMorph->LODMesh_02.pFrames = 0;
                 }
@@ -1911,7 +1919,7 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                             pFrame->pTextures_5f = 0;
                         }
                         ++iFrame;
-                    } while (iFrame < (short)pTransform->num_frames_01);
+                    } while (iFrame < static_cast<short>(pTransform->num_frames_01));
                     free(pTransform->LODMesh_02.pFrames);
                     pTransform->LODMesh_02.pFrames = 0;
                 }
@@ -1970,7 +1978,7 @@ W8LevelFileProp* ReadPropsFile(int hFile, int count)
                         reinterpret_cast< // reinterpret-ok: String returns a logging buffer
                             const char*>( // reinterpret-ok: String returns a logging buffer
                             String("Could not allocate %d segments for prop '%s'!",
-                                   (int)pProp->num_frame_pos_b7, pProp->name_13)));
+                                   static_cast<int>(pProp->num_frame_pos_b7), pProp->name_13)));
                 }
                 fSuccess &= FileRead(hFile, pProp->usFrame_Pos, pProp->num_frame_pos_b7 << 2, 0);
             }

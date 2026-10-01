@@ -77,7 +77,7 @@ BOOLEAN WriteVector4Array(int file, const srVector4T<float>* values, int count);
 BOOLEAN WriteVector3Array(int file, const srVector3T<float>* values, int count);
 BOOLEAN WriteVector2Array(int file, const srVector2T<float>* values, int count);
 bool ReadVector4Array(int file, srVector4T<float>* values, int count);
-bool ReadVector3Array004374E0(int file, srVector3T<float>* values, int count);
+bool ReadVector3Array(int file, srVector3T<float>* values, int count);
 bool ReadVector2Array(int file, srVector2T<float>* values, int count);
 /* Distance from `point` to the `from`-`to` segment, shared by the trace
    resolver and the GameData surface walk. When `clamp_point` is set the
@@ -103,14 +103,14 @@ char SphereNearBounds(const srVector3T<float>* point, float radius,
    cast at the call-site boundary. */
 inline bool ReadVectorArray(int file, srVector3i* values, int count)
 {
-    return ReadVector3Array004374E0(
+    return ReadVector3Array(
         file, reinterpret_cast<srVector3T<float>*>(values), /* reinterpret-ok: the
             float reader's raw 12-byte record is the index-triple record */
         count);
 }
 inline bool ReadVectorArray(int file, srVector3T<float>* values, int count)
 {
-    return ReadVector3Array004374E0(file, values, count);
+    return ReadVector3Array(file, values, count);
 }
 inline bool ReadVectorArray(int file, srVector4T<float>* values, int count)
 {
@@ -556,7 +556,7 @@ public:
     unsigned short* m_owned_130;
     unsigned long m_trace_skip_flag_134;
     unsigned long m_region_list_len_138;
-    unsigned long m_padding_13c;
+    unsigned long m_unknown_13c;
     /* The leaf-level mask: VerifyPolygonRegions rebuilds it as
        (1 << leaf_level_52) - 1 and the packed-cell writers emit it as the top
        byte of each (mask<<24 | x<<16 | y<<8 | z) key. */
@@ -604,7 +604,7 @@ public:
     unsigned long m_gd_result_count_1b8;
     unsigned long* m_aulGDObjs; /* 0x1bc */
     W8OctreeView view_1c0;
-    unsigned long m_padding_27c[6];
+    unsigned long m_unknown_27c[6];
     bool m_visibility_suspended_294;
     unsigned char m_padding_295;
     /* The build's directional-sun count: the driver stores the light total
@@ -612,7 +612,7 @@ public:
        sizes the per-sun vertex light arrays from it. */
     unsigned short m_sun_count_296;
     unsigned char m_padding_298;
-    unsigned char m_padding_299;
+    unsigned char m_unknown_299;
     unsigned char m_padding_29a[2];
 };
 
@@ -649,8 +649,8 @@ public:
     int m_lBlocks_328[30];
     unsigned long polygon_cursor_3a0;
     W8OctPreTreeGeometry* game_data_3a4;
-    unsigned long padding_3a8;
-    unsigned long padding_3ac;
+    unsigned long unknown_3a8;
+    unsigned long unknown_3ac;
     unsigned long deepest_link_list_3b0;
     /* Path-node grid pitch: BuildPathLists sets it to m_region_cell_178 * 2. */
     float path_node_extent_3b4;

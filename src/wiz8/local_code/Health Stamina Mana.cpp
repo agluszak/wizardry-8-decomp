@@ -1011,7 +1011,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
                                 g_character_event_full_volume);
             character->deep_fatigue_applied = 1;
         }
-        if ((unsigned int)character->fatigue_band < W8_FATIGUE_BAND_RECOVERED) {
+        if (static_cast<unsigned int>(character->fatigue_band) < W8_FATIGUE_BAND_RECOVERED) {
             character->deep_fatigue_applied = 0;
         }
     }
@@ -1104,7 +1104,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
         return;
     }
 
-    if ((int)available < 0) {
+    if (static_cast<int>(available) < 0) {
         return;
     }
     if (amount >= available) {
@@ -1208,7 +1208,7 @@ void RecalculateCharacterHitPoints(W8Character* character)
         }
     }
 
-    hit_points = (int)(total + 0.5) + character->hp_adjustment;
+    hit_points = static_cast<int>(total + 0.5) + character->hp_adjustment;
     if (hit_points < 1) {
         hit_points = 1;
     }
@@ -1239,7 +1239,7 @@ void RecalculateCharacterStamina(W8Character* character)
 {
     unsigned int previous = character->uiStaminaMax;
     unsigned int value =
-        (unsigned int)(((character->attributes[0].effective + character->attributes[2].effective +
+        static_cast<unsigned int>(((character->attributes[0].effective + character->attributes[2].effective +
                          character->attributes[3].effective) *
                         (1.0f / 3.0f)) *
                            (character->uiExpLevel * g_float_005ed8b8 + g_environment_near_scale) +
@@ -1254,7 +1254,7 @@ void RecalculateCharacterStamina(W8Character* character)
     if (value != previous) {
         character->stamina += value - previous;
     }
-    int fatigue = 100 - (int)((unsigned int)character->stamina * 100 / value);
+    int fatigue = 100 - static_cast<int>(static_cast<unsigned int>(character->stamina) * 100 / value);
     if (fatigue < 0x32) {
         character->fatigue_band = 0;
         return;
@@ -1314,7 +1314,7 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
     }
     qsort(realm_skills, 4, 4, CompareUnsignedDescending);
 
-    float weighted = (float)(realm_skills[0] + (realm_skills[1] >> 1) + (realm_skills[2] >> 2) +
+    float weighted = static_cast<float>(realm_skills[0] + (realm_skills[1] >> 1) + (realm_skills[2] >> 2) +
                              (realm_skills[3] >> 3));
     if (weighted > 125.0f) {
         weighted = 125.0f;
@@ -1323,7 +1323,7 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
     for (index = 0; index < 6; ++index) {
         int old = character->sp_max[index];
         unsigned int learned = character->skill_unlocks[0x1c + index];
-        int computed = (int)(((weighted + character->skills[0x1c + index].level * 3 +
+        int computed = static_cast<int>(((weighted + character->skills[0x1c + index].level * 3 +
                                character->attributes[2].effective) *
                               g_float_005ecbb4) *
                                  (learned + character->uiExpLevel + 1) +
@@ -1394,7 +1394,7 @@ unsigned int FindPartySlotWithLowestSpellPoints(void)
             unsigned int pool_max = SumCharacterSpellPoints(character);
             if (pool_max > 0) {
                 int pool_left = SumCharacterSpellPointsLeft(character);
-                unsigned int percent = (unsigned int)(pool_left * 100) / pool_max;
+                unsigned int percent = static_cast<unsigned int>(pool_left * 100) / pool_max;
                 if (percent < best_percent) {
                     best_percent = percent;
                     best_slot = slot;

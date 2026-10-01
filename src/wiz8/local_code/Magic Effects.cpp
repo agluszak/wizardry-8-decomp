@@ -2882,7 +2882,7 @@ void TickRadiusBlastEffectSlots(W8EffectSlot* effect_slots)
 
     verbose = g_settings.verbose_combat_messages;
     ResetTargetSource(&source);
-    memset(static_cast<void*>(&local_result), 0, sizeof(local_result));
+    memset(&local_result, 0, sizeof(local_result));
     memset(&target, 0, sizeof(target));
     remaining = 9;
     do {
@@ -3721,7 +3721,7 @@ void ApplyDiceDamageToCharacter(int party_slot, W8TargetSource* source, W8Enchan
     if (enchantment->power_00 == 0) {
         return;
     }
-    memset(static_cast<void*>(&result), 0, sizeof(result));
+    memset(&result, 0, sizeof(result));
     dice = g_spell_records[0x1b].effect_dice;
     dice.count = static_cast<unsigned char>(enchantment->power_00) * dice.count;
     amount = ApplyCharacterDamageReduction(&g_status.buffers.Char[party_slot], RollDice(&dice));

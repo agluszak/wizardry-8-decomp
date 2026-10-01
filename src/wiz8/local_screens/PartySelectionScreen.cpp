@@ -336,10 +336,10 @@ W8PartySelectionListControl::~W8PartySelectionListControl() {}
 void W8PartySelectionListControl::Redraw(unsigned char full_redraw)
 {
     if (m_active && (m_dirty || full_redraw)) {
-        int left = m_pPanel->origin_x + m_left;
-        int top = m_pPanel->origin_y + m_top;
-        int right = m_pPanel->origin_x + m_right;
-        int bottom = m_pPanel->origin_y + m_bottom;
+        int left = m_pPanel->m_bounds.left + m_left;
+        int top = m_pPanel->m_bounds.top + m_top;
+        int right = m_pPanel->m_bounds.left + m_right;
+        int bottom = m_pPanel->m_bounds.top + m_bottom;
 
         InvalidateRegion(left, top, right, bottom, 0);
         BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
@@ -374,7 +374,7 @@ void W8PartySelectionListControl::Redraw(unsigned char full_redraw)
 void W8PartySelectionListControl::OnMouseLeave(int event)
 {
     m_hovered = -1;
-    Invalidate((unsigned char)event);
+    Invalidate(static_cast<unsigned char>(event));
 }
 
 // FUNCTION: WIZ8 0x005c00e0
@@ -382,7 +382,7 @@ void W8PartySelectionListControl::OnMouseMove(int)
 {
     POINT point;
     SGPMouseGetPos(&point);
-    int hovered = (point.x - m_pPanel->origin_y - m_top) / 0x0e + m_first_visible;
+    int hovered = (point.x - m_pPanel->m_bounds.top - m_top) / 0x0e + m_first_visible;
     if (hovered != m_hovered) {
         m_hovered = hovered;
         Invalidate(0);
@@ -394,10 +394,10 @@ void W8PartySelectionListControl::OnLeftButtonUp(int event)
 {
     POINT point;
     SGPMouseGetPos(&point);
-    int selection = (point.y - m_pPanel->origin_y - m_top) / 0x0e + m_first_visible;
+    int selection = (point.y - m_pPanel->m_bounds.top - m_top) / 0x0e + m_first_visible;
     if (selection != m_selection) {
         m_selection = selection;
-        Invalidate((unsigned char)event);
+        Invalidate(static_cast<unsigned char>(event));
         if (m_listener) {
             m_listener->OnSelectionChanged(this, m_selection);
         }
@@ -649,8 +649,8 @@ void RefreshPartySelectionPortrait(unsigned int party_slot)
         (g_portrait_descriptors[portrait].render_mode == 2 && row->m_row % 2 != 0)) {
         flags = 0x1002;
     }
-    BlitPartyPortraitAnimation(portrait, panel->origin_x + row->m_left,
-                               panel->origin_y + row->m_top, flags, row->m_row + 2, 0);
+    BlitPartyPortraitAnimation(portrait, panel->m_bounds.left + row->m_left,
+                               panel->m_bounds.top + row->m_top, flags, row->m_row + 2, 0);
 }
 
 /* Whether the party selector is in its review-existing-character mode; the
@@ -687,8 +687,8 @@ void W8PartySelectionCharacterRow::Redraw(unsigned char full_redraw)
     W8TextControl::Redraw(full_redraw);
     W8Character* character =
         g_party_selection_character_collection->GetCharacter(m_character_index);
-    int left = m_pPanel->origin_x + m_left;
-    int top = m_pPanel->origin_y + m_top;
+    int left = m_pPanel->m_bounds.left + m_left;
+    int top = m_pPanel->m_bounds.top + m_top;
     DrawCatalogImage(-14, 0x13, character->portrait_index, 0, left + 2, top + 2, 2, 0);
     if (character->fInParty) {
         ShadowVideoSurfaceRect(-14, left + 2, top + 2, left + 0x2e, top + 0x25);
@@ -740,8 +740,8 @@ W8PartySelectionCharacterPanel::W8PartySelectionCharacterPanel()
     : Controls(), m_range_7c(0), m_selected_row(0)
 {
     AcquireRegionSet(&g_party_selection_character_region_set);
-    origin_x = 0x148;
-    origin_y = 0x31;
+    m_bounds.left = 0x148;
+    m_bounds.top = 0x31;
 
     int top = 0;
     for (int row = 0; row < 6; ++row) {
@@ -900,12 +900,12 @@ void W8PartySelectionPartySlotRow::Redraw(unsigned char full_redraw)
         return;
     }
 
-    int left = m_pPanel->origin_x + m_left;
-    int top = m_pPanel->origin_y + m_top;
+    int left = m_pPanel->m_bounds.left + m_left;
+    int top = m_pPanel->m_bounds.top + m_top;
     W8Character* character = 0;
     if (!g_status.buffers.XChar[m_row + 2].fOccupied) {
-        ColorFillVideoSurfaceArea(-14, left, top, m_pPanel->origin_x + m_right,
-                                  m_pPanel->origin_y + m_bottom, 0x8000);
+        ColorFillVideoSurfaceArea(-14, left, top, m_pPanel->m_bounds.left + m_right,
+                                  m_pPanel->m_bounds.top + m_bottom, 0x8000);
     } else {
         character = &g_status.buffers.Char[m_row + 2];
         int portrait = character->portrait_index;
@@ -1133,8 +1133,8 @@ W8PartySelectionOptionPanel::W8PartySelectionOptionPanel()
     short width;
     short height;
     GetCatalogImageSize(0x102, 0, 0, &width, &height);
-    right = origin_x + (unsigned short)width;
-    bottom = origin_y + (unsigned short)height;
+    m_bounds.right = m_bounds.left + static_cast<unsigned short>(width);
+    m_bounds.bottom = m_bounds.top + static_cast<unsigned short>(height);
 
     int top = 0x13;
     for (int index = 0; index < 3; ++index) {
@@ -1155,8 +1155,8 @@ W8PartySelectionOptionPanel::W8PartySelectionOptionPanel()
     m_toggle_74->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
 
     GetCatalogImageSize(0x102, 0, 1, &m_image_width_94, &m_image_height_96);
-    m_render_left_8c = origin_x + 0x18 + (0x160 - (unsigned short)m_image_width_94) / 2;
-    m_render_top_90 = origin_y + 0x80;
+    m_render_left_8c = m_bounds.left + 0x18 + (0x160 - static_cast<unsigned short>(m_image_width_94)) / 2;
+    m_render_top_90 = m_bounds.top + 0x80;
 }
 
 // FUNCTION: WIZ8 0x005c0560
@@ -1231,13 +1231,13 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
         ControlAt(index)->SetActive(mode == 0);
     }
 
-    W8ControlsRect bounds = {origin_x + 0x22, origin_y + 0x12, origin_x + 0x16e, origin_y + 0x171};
+    W8ControlsRect bounds = {m_bounds.left + 0x22, m_bounds.top + 0x12, m_bounds.left + 0x16e, m_bounds.top + 0x171};
 
     if (mode == 0) {
         m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x7f7], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4));
 
-        bounds.right = origin_x + 0x155;
+        bounds.right = m_bounds.left + 0x155;
         m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x7f8], g_options_detail_font,
                                           g_W8TextBufferAlignRight | g_W8TextBufferAlignTop, 4));
         bounds.top += 0x16;
@@ -1247,7 +1247,7 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
         m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x7fa], g_options_detail_font,
                                           g_W8TextBufferAlignRight | g_W8TextBufferAlignTop, 4));
 
-        bounds.right = origin_x + 0x16e;
+        bounds.right = m_bounds.left + 0x16e;
         bounds.top += 0x2c;
         m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x80b], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4));
@@ -1285,8 +1285,8 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
         return;
     }
 
-    bounds.left = origin_x + 0x2c;
-    bounds.right = origin_x + 0x164;
+    bounds.left = m_bounds.left + 0x2c;
+    bounds.right = m_bounds.left + 0x164;
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[0x6d1], g_options_detail_font,
                                           g_W8TextBufferAlignCenter | g_W8TextBufferAlignTop, 4);
     text->SetLineHeight(0x16);
@@ -1704,7 +1704,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
     if (control == m_text_54) {
         switch (m_mode) {
         case 0:
-            if ((unsigned int)CountActiveCharacters() < 6) {
+            if (static_cast<unsigned int>(CountActiveCharacters()) < 6) {
                 OpenNotification(FormatWideString(gppStringList[0x6d9], CountActiveCharacters()), 1,
                                  3);
                 return;
@@ -1718,7 +1718,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
         case 2:
             g_settings.difficulty = m_control_30->m_options_50.m_selectedIndex;
             g_settings.simplified_npc_interaction =
-                (unsigned char)(m_control_30->m_toggle_78->m_stateFlags &
+                static_cast<unsigned char>(m_control_30->m_toggle_78->m_stateFlags &
                                 g_W8TextControlStateSecondary);
             if ((m_control_30->m_toggle_74->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
                 SetMode(3);
@@ -1821,8 +1821,8 @@ void W8PartySelectionController::OnDecision(W8PartySelectionInputHandler*, unsig
 // FUNCTION: WIZ8 0x005c1ea0
 void W8PartySelectionController::OnToggle(int value)
 {
-    if ((char)m_text_54->m_enabled != (char)value) {
-        m_text_54->SetEnabled((unsigned char)value);
+    if (static_cast<char>(m_text_54->m_enabled) != static_cast<char>(value)) {
+        m_text_54->SetEnabled(static_cast<unsigned char>(value));
         m_text_54->Invalidate(0);
     }
 }

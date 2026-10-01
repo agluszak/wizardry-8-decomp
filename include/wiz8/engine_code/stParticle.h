@@ -32,7 +32,7 @@ public:
     void SubmitToRenderer(srGERD* renderer);
     /* The per-particle age/cull/move step and billboard-corner expansion used
        by the submitted batch. Their retail names remain unavailable. */
-    void Update00499FA0();                         /* 0x00499FA0 */
+    void Update();                         /* 0x00499FA0 */
     void PrepareRenderer(srMatrix4T<float>& view); /* 0x00498DD0 */
     srShader GetRenderFlags() const;
     unsigned char ReplaceTexture(const char* old_name, srTextureIFace* replacement);

@@ -336,7 +336,7 @@ unsigned int FindFreePartySlot(unsigned int first, unsigned int last)
             return slot;
         }
     }
-    return (unsigned int)-1;
+    return static_cast<unsigned int>(-1);
 }
 
 /* Recompute the eight-band ladder over the character's level in their current
@@ -1026,7 +1026,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
             }
         }
     }
-    if ((int)slot < 0) {
+    if (static_cast<int>(slot) < 0) {
         return -1;
     }
 

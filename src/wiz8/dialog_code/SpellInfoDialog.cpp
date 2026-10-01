@@ -136,7 +136,7 @@ void W8SpellInfoDialog::Draw()
     m_text_area_0ec.Draw(0);
     m_scroll_bar_058.Draw(0);
     m_button_0a4.Draw();
-    steps = (int)m_timer_144.GetProgress();
+    steps = static_cast<int>(m_timer_144.GetProgress());
     if (steps > 0) {
         realm = g_spell_records[m_spell_054].realm;
         animation = &g_spell_realm_animations[realm];
@@ -173,7 +173,7 @@ unsigned char W8SpellInfoDialog::PopulateText()
 
     record = &g_spell_records[m_spell_054];
     text[0] = L'\0';
-    spellbook_mask = (unsigned int)(record->wizardry_spell != 0) |
+    spellbook_mask = static_cast<unsigned int>(record->wizardry_spell != 0) |
                      (record->divinity_spell != 0 ? W8_SPELLBOOK_DIVINITY : W8_SPELLBOOK_NONE) |
                      (record->alchemy_spell != 0 ? W8_SPELLBOOK_ALCHEMY : W8_SPELLBOOK_NONE) |
                      (record->psionics_spell != 0 ? W8_SPELLBOOK_PSIONICS : W8_SPELLBOOK_NONE);
@@ -215,9 +215,9 @@ unsigned char W8SpellInfoDialog::PopulateText()
             m_text_area_0ec.AddEntry(
                 gppStringList[0x120],
                 FormatWideString(g_format_d_d_s,
-                                 record->effect_dice.count + (int)record->effect_dice.base,
+                                 record->effect_dice.count + static_cast<int>(record->effect_dice.base),
                                  record->effect_dice.sides * record->effect_dice.count +
-                                     (int)record->effect_dice.base,
+                                     static_cast<int>(record->effect_dice.base),
                                  gppStringList[0x121]),
                 10, 0xf, 0);
         }

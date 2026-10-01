@@ -156,7 +156,7 @@ W8Navigator::W8Navigator() : reactivated_09d(0)
     halted_025 = 0;
     movement_complete_026 = 1;
     position_dirty_09c = 0;
-    padding_027 = 0;
+    unknown_027 = 0;
     position_028.SetZero();
     position_03c.SetZero();
     unknown_048 = 0;
@@ -389,7 +389,7 @@ W8NavigatorMovementState::W8NavigatorMovementState()
     target_pitch_024 = 0.0f;
     roll_028 = 0.0f;
     target_roll_02c = 0.0f;
-    padding_030 = 0.0f;
+    unknown_030 = 0.0f;
     velocity_034.SetZero();
     position_040.SetZero();
     target_position_04c.SetZero();
@@ -452,7 +452,7 @@ W8NavigatorMovementState::~W8NavigatorMovementState()
 // FUNCTION: WIZ8 0x00452220
 W8Navigator::W8Navigator(const W8Navigator& other)
     : flags_00c(0), collision_margin_010(0.0), movement_target_018(0.0f, 0.0f, 0.0f),
-      movement_stopped_024(true), halted_025(false), movement_complete_026(true), padding_027(0),
+      movement_stopped_024(true), halted_025(false), movement_complete_026(true), unknown_027(0),
       position_028(0.0f, 0.0f, 0.0f), minimum_height_034(other.minimum_height_034),
       maximum_height_038(other.maximum_height_038), position_03c(other.position_03c),
       unknown_048(0), target_navigator_04c(0), target_last_position_050(0.0f, 0.0f, 0.0f),
@@ -2126,7 +2126,7 @@ void W8Navigator::CollectGroupNavigators(W8GrowableVector<W8Navigator*>* navigat
 }
 
 // FUNCTION: WIZ8 0x004553a0
-void W8Navigator::UpdateNavigation004553A0(unsigned char skip_movement, char slowed)
+void W8Navigator::UpdateNavigation(unsigned char skip_movement, char slowed)
 {
     srVector3T<float> previous = movement_0c0.position_040;
     srVector3T<float> adjusted;

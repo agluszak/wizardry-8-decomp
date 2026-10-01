@@ -427,8 +427,8 @@ void SetSkyEnabled(bool enabled)
             return;
         }
         g_world->camera->setEnvironmentRange(
-            (float)WorldGetFarClip(g_world) * g_world->environment_range_start_014,
-            (float)WorldGetFarClip(g_world) * g_world->environment_range_end_018);
+            static_cast<float>(WorldGetFarClip(g_world)) * g_world->environment_range_start_014,
+            static_cast<float>(WorldGetFarClip(g_world)) * g_world->environment_range_end_018);
         return;
     }
 
@@ -447,7 +447,7 @@ void SetSkyEnabled(bool enabled)
     if (g_world == 0 || g_world->camera == 0) {
         return;
     }
-    g_world->camera->setEnvironmentRange(0.0f, (float)WorldGetFarClip(g_world));
+    g_world->camera->setEnvironmentRange(0.0f, static_cast<float>(WorldGetFarClip(g_world)));
 }
 
 /* The far plane the world is drawn to. */
@@ -863,11 +863,11 @@ const double g_double_005ec990 = 43200000.0;
 // FUNCTION: WIZ8 0x00483d70
 srVector3T<float>* __fastcall ScaleColourAndSaturate(srVector3T<float>* colour, double scale)
 {
-    float x = colour->x * (float)scale;
+    float x = colour->x * static_cast<float>(scale);
     colour->x = x;
-    float y = colour->y * (float)scale;
+    float y = colour->y * static_cast<float>(scale);
     colour->y = y;
-    float z = colour->z * (float)scale;
+    float z = colour->z * static_cast<float>(scale);
     colour->z = z;
     return SaturateColor(colour);
 }
@@ -892,7 +892,7 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
         stLight* light = *g_environment_lights.GetAt(index);
         srVector3T<float> scaled(colour->x, colour->y, colour->z);
 
-        scaled *= (double)intensity;
+        scaled *= static_cast<double>(intensity);
         SaturateColor(&scaled);
         light->ambient_198 = scaled;
     }

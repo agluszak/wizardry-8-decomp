@@ -15,7 +15,7 @@ W8PList* PLCreate(void)
 {
     W8PList* ppl;
 
-    ppl = (W8PList*)malloc(sizeof(W8PList));
+    ppl = static_cast<W8PList*>(malloc(sizeof(W8PList)));
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x37, 0);
     }
@@ -43,7 +43,7 @@ unsigned char PListInit(W8PList* ppl)
     if (ppl->data) {
         free(ppl->data);
     }
-    ppl->data = (void**)malloc(10 * sizeof(void*));
+    ppl->data = static_cast<void**>(malloc(10 * sizeof(void*)));
     created = ppl->data != 0;
     ppl->capacity = 10;
     ppl->iNumUsed = 0;
@@ -84,7 +84,7 @@ int PLAdoptAppend(W8PList* ppl, void* pEntry)
         if (!ppl) {
             srAssertFail("ppl", PLIST_CPP, 0x1d6, 0);
         }
-        pTemp = (void**)malloc((ppl->capacity + 5) * sizeof(void*));
+        pTemp = static_cast<void**>(malloc((ppl->capacity + 5) * sizeof(void*)));
         if (!pTemp) {
             srAssertFail("pTemp", PLIST_CPP, 0x1d9, 0);
         }
@@ -116,7 +116,7 @@ int PListInsert(W8PList* ppl, int position, void* pEntry)
         if (!ppl) {
             srAssertFail("ppl", PLIST_CPP, 0x1d6, 0);
         }
-        pTemp = (void**)malloc((ppl->capacity + 5) * sizeof(void*));
+        pTemp = static_cast<void**>(malloc((ppl->capacity + 5) * sizeof(void*)));
         if (!pTemp) {
             srAssertFail("pTemp", PLIST_CPP, 0x1d9, 0);
         }

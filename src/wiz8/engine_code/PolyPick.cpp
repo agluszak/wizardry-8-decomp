@@ -215,7 +215,7 @@ unsigned char BoundsOverlap(const srVector3T<float>* first_minimum,
 unsigned char ProjectPointThroughCamera(const srVector3T<float>* position)
 {
     srVector3T<float> projected;
-    srVector3T<double> input((double)position->x, (double)position->y, (double)position->z);
+    srVector3T<double> input(static_cast<double>(position->x), static_cast<double>(position->y), static_cast<double>(position->z));
 
     return g_world->camera->project(projected, input) == srCamera::PROJECTION_RESULT_POSITIONAL_0;
 }

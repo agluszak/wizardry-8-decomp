@@ -45,10 +45,7 @@ struct Controls {
     bool m_fDirty;       /* 0x05 */
     bool m_fLayoutDirty; /* 0x06 */
     unsigned char pad_07;
-    int origin_x;               /* 0x08: widget rectangles are relative to this */
-    int origin_y;               /* 0x0c */
-    int right;                  /* 0x10: panel bounds propagated to children */
-    int bottom;                 /* 0x14 */
+    W8ControlsRect m_bounds;    /* 0x08: widget rectangles are relative to its origin */
     int m_renderTarget;         /* 0x18: -1 skips target-backed drawing */
     int m_renderArg_1c;         /* 0x1c: forwarded with the target */
     int m_renderArg_20;         /* 0x20: forwarded with the target */

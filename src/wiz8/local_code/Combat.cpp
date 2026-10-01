@@ -191,7 +191,7 @@ unsigned char StartCombat(int surprise)
     if (g_combat_state == 0) {
         return 0;
     }
-    memset(static_cast<void*>(g_combat_state), 0, sizeof(W8CombatState));
+    memset(g_combat_state, 0, sizeof(W8CombatState));
     g_combat_state->round_count_004 = 0;
     g_combat_state->combat_result_00c = 0;
     g_combat_state->experience_pool_010 = 0;

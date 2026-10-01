@@ -122,7 +122,7 @@ void stTextureAnim::AddTexture(srTextureIFace* texture)
 }
 
 // FUNCTION: WIZ8 0x004854B0
-void stTextureAnim::UpdateFrame004854B0()
+void stTextureAnim::UpdateFrame()
 {
     int elapsed_frames;
 
@@ -152,7 +152,7 @@ void stTextureAnim::UpdateFrame004854B0()
         return;
     }
 
-    elapsed_frames = (int)((GetTickCount() - frame_tick_6c) * frame_rate_68 * g_float_005ec128);
+    elapsed_frames = static_cast<int>((GetTickCount() - frame_tick_6c) * frame_rate_68 * g_float_005ec128);
     if (animation_mode_60 == 0) {
         int frame = (direction_5c * elapsed_frames) % textures_54->GetCount();
         if (frame < frame_58) {
@@ -184,7 +184,7 @@ void stTextureAnim::UpdateFrame004854B0()
 }
 
 // FUNCTION: WIZ8 0x00485730
-int stTextureAnim::IsFinished00485730() const
+int stTextureAnim::IsFinished() const
 {
     if (animation_mode_60 != 2) {
         return 0;
@@ -201,7 +201,7 @@ int stTextureAnim::IsFinished00485730() const
 // FUNCTION: WIZ8 0x004856F0
 unsigned long stTextureAnim::getTextureFrameHandle()
 {
-    UpdateFrame004854B0();
+    UpdateFrame();
     if ((texture_flags_ & (1UL << FLAG_DIRTY_DEFAULTS)) != 0) {
         setupDefaultValues();
     }
@@ -262,7 +262,7 @@ void stTextureAnim::setupDefaultValues()
 }
 
 // FUNCTION: WIZ8 0x004857B0
-unsigned char stTextureAnim::Prepare004857B0()
+unsigned char stTextureAnim::Prepare()
 {
     srTextureIFace* texture = *textures_54->GetAt(0);
 

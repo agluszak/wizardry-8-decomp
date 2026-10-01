@@ -15,7 +15,7 @@
 #include <string.h>
 
 // GLOBAL: WIZ8 0x0069CA28
-int g_dword_69ca28;
+int g_live_dialog_count;
 
 // FUNCTION: WIZ8 0x005dc7a0
 W8DialogBase::W8DialogBase()
@@ -39,7 +39,7 @@ W8DialogBase::W8DialogBase()
     m_keep_open = true;
     m_destroy_callback = 0;
     m_user_data = 0;
-    ++g_dword_69ca28;
+    ++g_live_dialog_count;
     m_right_button_down = 0;
 }
 
@@ -52,7 +52,7 @@ W8DialogBase::~W8DialogBase()
         m_destroy_callback(this);
     }
     DestroyControls();
-    --g_dword_69ca28;
+    --g_live_dialog_count;
 }
 
 // FUNCTION: WIZ8 0x005dc890

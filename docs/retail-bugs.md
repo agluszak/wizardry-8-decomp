@@ -14,6 +14,7 @@ Behavior that only looks odd, or an unmatched recompiled body, is not an entry.
 
 | Function | Address | Defect | Evidence |
 | --- | --- | --- | --- |
+| `ClearNpcMessageQueue` | `0x00524C50` | After freeing the queued message lines it zeroes the whole `W8NpcScriptingState`, clobbering the vfptrs and data pointers of the embedded `message_lines` and `pending_script_values` vectors; `pending_script_values` storage leaks. | `MOV ECX,0x33` / `MOV EDI,0x68C430` / `REP STOSD` (`0x00524C7E`-`0x00524C94`) clears `0xCC` bytes from the start of `g_npc_scripting`. |
 | `CountItemOnCharacter` | `0x005211A0` | A matching backpack slot adds the stack count of the *equipped* slot with the same index, not its own. | The backpack loop compares `[edx]` (`backpack[slot].iItemNo`, from character offset `0x1029`) but reads the count from `[edx - 0xC8]`, which is offset `0xF61 + 12*slot`: `EquippedItem[slot].stack_count`. |
 | `GetFact` / `SetFact` | `0x00506280` / `0x005061A0` | The range check is `fact_id > 1000`, so id 1000 passes. It reads and writes one past the 1000-entry `g_fact_values`, into `g_npc_name_buffer[0]`. | The bound constant is 1000 and `g_fact_values` ends exactly at `g_npc_name_buffer`. |
 | `TrimAndLowercaseString` | `0x00497940` | The trailing-space check looks at `text[length]`, the terminator, so trailing spaces are never trimmed. | The first trailing test is `cmp byte ptr [text + length], 0x20` (`0x0049796E`), the terminator, so the trim loop never starts. |

@@ -178,7 +178,7 @@ struct W8OctPreTreeGeometry {
 
     /* Frees the per-vertex polygon runs, both arrays and the owned +0x14
        buffer; the preprocessing driver runs it during cleanup. */
-    void Release004CFC10();
+    void Release();
 };
 
 /* The 0x34-byte per-submesh build record SplitMeshes partitions polygons and

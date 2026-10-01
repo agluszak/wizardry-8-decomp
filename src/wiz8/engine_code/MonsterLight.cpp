@@ -107,7 +107,7 @@ void MonsterLight::SetRange(float range)
 }
 
 // FUNCTION: WIZ8 0x0049D970
-void MonsterLight::SetVisible0049D970(char visible)
+void MonsterLight::SetVisible(char visible)
 {
     if (visible != 0) {
         clearFlag(srNode::FLAG_DISABLE);
@@ -117,7 +117,7 @@ void MonsterLight::SetVisible0049D970(char visible)
 }
 
 // FUNCTION: WIZ8 0x0049D990
-void MonsterLight::Update0049D990(const srVector3T<float>* position)
+void MonsterLight::Update(const srVector3T<float>* position)
 {
     float elapsed = g_game_time_accumulator->GetElapsed() - m_start_time_244;
 

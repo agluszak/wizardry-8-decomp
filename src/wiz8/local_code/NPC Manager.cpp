@@ -220,7 +220,7 @@ bool NpcKnowsFact(W8NpcState* npc, unsigned int fact)
         if (npc->known_facts[slot] == 0) {
             return false;
         }
-        if ((unsigned int)npc->known_facts[slot] == fact) {
+        if (static_cast<unsigned int>(npc->known_facts[slot]) == fact) {
             return true;
         }
     }
@@ -515,7 +515,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
     memset(character, 0, sizeof(*character));
     memset(row, 0, sizeof(*row));
     /* Retail clears all 0x118 bytes, including the embedded vector's vfptr. */
-    memset(static_cast<void*>(&gXStatus.monster_manager_entries[party_slot]), 0,
+    memset(&gXStatus.monster_manager_entries[party_slot], 0,
            sizeof(W8MonsterManagerEntry));
     row->npc_index = -1;
     if (npc->character->highest_condition != 18 && !skip_spawn) {
@@ -1391,7 +1391,7 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
         if (released != 0 && released->binding_unavailable != 0) {
             g_npc_states->InsertAt(index, npc);
             g_npc_states->Remove(released);
-            npc->partner_index_2c = (unsigned char)index;
+            npc->partner_index_2c = static_cast<unsigned char>(index);
             return npc;
         }
     }
@@ -1399,7 +1399,7 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
         npc->partner_index_2c = 0xff;
         return npc;
     }
-    npc->partner_index_2c = (unsigned char)(g_npc_states->count - 1);
+    npc->partner_index_2c = static_cast<unsigned char>(g_npc_states->count - 1);
     return npc;
 }
 
@@ -1518,13 +1518,13 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
     }
     for (index = 0; index < 12; ++index) {
         if (source->equipment_present[index] != 0 && source->equipment_ids[index] != 0xffff) {
-            ReplaceOrCreateItem(&item, (short)source->equipment_ids[index], 1, 1, 0);
+            ReplaceOrCreateItem(&item, static_cast<short>(source->equipment_ids[index]), 1, 1, 0);
             character->EquippedItem[index] = item;
         }
     }
     for (index = 0; index < 8; ++index) {
         if (source->backpack_present[index] != 0 && source->backpack_ids[index] != 0xffff) {
-            ReplaceOrCreateItem(&item, (short)source->backpack_ids[index], 1, 1, 0);
+            ReplaceOrCreateItem(&item, static_cast<short>(source->backpack_ids[index]), 1, 1, 0);
             character->backpack[index] = item;
         }
     }
@@ -1559,7 +1559,7 @@ void InitializeNpcItemTable(W8NpcState* npc)
     unsigned int index;
 
     memset(npc->item_ids_30, 0xff, sizeof(npc->item_ids_30));
-    if (npc->record->item_table_id >= (int)gXStatus.uiItemTablesInDatabase) {
+    if (npc->record->item_table_id >= static_cast<int>(gXStatus.uiItemTablesInDatabase)) {
         return;
     }
     if (npc->record->item_table_id == 0) {
@@ -1810,10 +1810,10 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         npc->talk_cooldown_active = 1;
         npc->talk_cooldown_clock = g_status.world_clock;
         if (scale < 1) {
-            level = static_cast<int>(GetBestPartySkillLevel(0x16, &kind));
+            level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, &kind));
             quotient = -scale / 5;
         } else {
-            level = static_cast<int>(GetBestPartySkillLevel(0x16, &kind));
+            level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, &kind));
             quotient = scale / 5;
         }
         delta = scale + level * quotient / 100;
@@ -1871,10 +1871,10 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         }
         scale = npc->record->charm_scale_5d;
         if (scale < 1) {
-            level = static_cast<int>(GetBestPartySkillLevel(0x16, &value));
+            level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, &value));
             quotient = -scale / 5;
         } else {
-            level = static_cast<int>(GetBestPartySkillLevel(0x16, &value));
+            level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, &value));
             quotient = scale / 5;
         }
         delta = scale + level * quotient / 100;
@@ -1910,7 +1910,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         unsigned int adjusted;
 
         SpendPartyGold(gold);
-        level = static_cast<int>(GetBestPartySkillLevel(0x16, 0));
+        level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0));
         adjusted = gold + level * (static_cast<int>(gold & 0xffff) / 5) / 100;
         if (static_cast<int>(npc->trade_pool_ca - (adjusted & 0xffff)) < 0) {
             npc->trade_pool_ca = 0;
@@ -1938,7 +1938,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         int level;
         unsigned int adjusted;
 
-        level = static_cast<int>(GetBestPartySkillLevel(0x16, 0));
+        level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0));
         adjusted = price + level * (static_cast<int>(price & 0xffff) / 5) / 100;
         if (static_cast<int>(npc->trade_pool_ca - (adjusted & 0xffff)) < 0) {
             npc->trade_pool_ca = 0;
@@ -2244,7 +2244,7 @@ void UpdateNpcEvents(void)
             partner = 0;
             for (int search = 0; search < g_npc_states->GetCount(); ++search) {
                 W8NpcState* candidate = *g_npc_states->GetAt(search);
-                if ((unsigned int)candidate->record->kind == kind) {
+                if (static_cast<unsigned int>(candidate->record->kind) == kind) {
                     partner = candidate;
                     break;
                 }

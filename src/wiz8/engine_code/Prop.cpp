@@ -195,7 +195,7 @@ W8Prop* FindPropByName(W8World* world, const char* name)
     if (world != 0 && name != 0) {
         unsigned int count = PLLength(world->plsProps);
 
-        for (index = 0; index < (int)count; ++index) {
+        for (index = 0; index < static_cast<int>(count); ++index) {
             W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
             if (prop->m_name != 0 && _stricmp(prop->m_name, name) == 0) {
                 return prop;
@@ -519,7 +519,7 @@ unsigned char W8PropRepresentation::AdvanceAnimationSegment()
     frame_direction_06e = 1;
     animation_playing_06d = 1;
     subcycle_064 = first_frame_094;
-    return (unsigned char)segment;
+    return static_cast<unsigned char>(segment);
 }
 
 /* The same toggle reached through the prop rather than through the member. */
@@ -936,7 +936,7 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
         return false;
     }
     if (notify) {
-        owner->Activate00444750();
+        owner->Activate();
     }
     return true;
 }
@@ -974,16 +974,16 @@ void W8Prop::ApplyAnimationFrame()
     }
 
     count = AnimObjListCount(static_cast<W8PropRepresentation*>(m_pRep)->animation, 2);
-    for (index = 0; index < (int)count; ++index) {
+    for (index = 0; index < static_cast<int>(count); ++index) {
         srModelInstance* mesh = AnimObjDispatchList(
-            static_cast<W8PropRepresentation*>(m_pRep)->animation, 2, (signed char)index);
+            static_cast<W8PropRepresentation*>(m_pRep)->animation, 2, static_cast<signed char>(index));
         W8PathAI* path;
 
         if (mesh == 0) {
             srAssertFail("psrMesh", PROP_CPP, 0x56f, 0);
         }
         path = AnimObjListEntry(static_cast<W8PropRepresentation*>(m_pRep)->animation, 2,
-                                (signed char)index);
+                                static_cast<signed char>(index));
         if (path != 0) {
             srVector3T<float> location;
 
@@ -1550,7 +1550,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
         }
         if (version > 5) {
             FileRead(hFile, &flag_bits, 4, 0);
-            prop->flags_1c |= (unsigned int)flag_bits;
+            prop->flags_1c |= static_cast<unsigned int>(flag_bits);
         }
         if (version > 6) {
             char* buffer = new char[0x40];

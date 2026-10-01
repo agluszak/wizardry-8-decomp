@@ -111,7 +111,7 @@ struct W8SpellEffectEntry {
         applied_125 = false;
         /* The retail rep-stosd zeroes the whole result block, including the
            reports vector's freshly assigned vftable at 0x17e. */
-        memset(static_cast<void*>(&result_126), 0, sizeof(result_126));
+        memset(&result_126, 0, sizeof(result_126));
     }
     ~W8SpellEffectEntry(); /* 0x0042BAC0 */
 

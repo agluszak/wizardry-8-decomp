@@ -155,7 +155,7 @@ unsigned int ChooseAttackMode(unsigned int attack_modes)
     unsigned int seen = 0;
     unsigned int mode = 0;
 
-    if ((short)attack_modes == 0) {
+    if (static_cast<short>(attack_modes) == 0) {
         srAssertFail("fsAttackModes != 0", COMBAT_ATTACK_CPP, 3557, 0);
     }
 
@@ -1587,7 +1587,7 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
             free(entry);
         }
     }
-    memset(static_cast<void*>(report), 0, sizeof(*report));
+    memset(report, 0, sizeof(*report));
 }
 
 /* Resolve one queued swing of the monster's attack: rolls the hit chance and
@@ -1676,7 +1676,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         CombatLog("TO HIT: Chance %d, Rolled %d (fumble %d%%)", to_hit, roll, fumble_chance);
         if (guaranteed_hit == 0 && fumbled != 0) {
             if (verbose == 0) {
-                memset(static_cast<void*>(&local_report), 0, sizeof(local_report));
+                memset(&local_report, 0, sizeof(local_report));
                 report = &local_report;
             }
             unsigned int choices = PLLength(fumble_list);
@@ -1742,7 +1742,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             goto invalid_target;
         }
         if (verbose == 0 && source.target_diverted != 0) {
-            memset(static_cast<void*>(&local_report), 0, sizeof(local_report));
+            memset(&local_report, 0, sizeof(local_report));
             report = &local_report;
         }
         ResolveGuardianInterception(&source, &g_combat_state->TargetHit);
@@ -2104,7 +2104,7 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
             free(entry);
         }
     }
-    memset(static_cast<void*>(report), 0, sizeof(*report));
+    memset(report, 0, sizeof(*report));
 }
 
 /* Begin one of the monster's attacks for the round: validate the state, rate
@@ -2126,7 +2126,7 @@ char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     if (combat == 0) {
         srAssertFail("pCmbt != NULL", COMBAT_ATTACK_CPP, 0x6f8, 0);
     }
-    memset(static_cast<void*>(&g_combat_state->attack_report), 0, sizeof(W8SpellEffectResult));
+    memset(&g_combat_state->attack_report, 0, sizeof(W8SpellEffectResult));
     if (combat->attacks_per_round == 0) {
         FormatDebugMessage(
             1, "ERROR: Monster ID %d is starting attack with 0 of %d attacks remaining!",
@@ -2897,7 +2897,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
     if (result == NULL) {
         accumulator = NULL;
     } else {
-        memset(static_cast<void*>(&local), 0, sizeof(local));
+        memset(&local, 0, sizeof(local));
         accumulator = &local;
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
@@ -3698,7 +3698,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     character = &g_status.buffers.Char[party_slot];
     row = &g_combat_state->characters[party_slot];
     party_row = &g_status.buffers.XChar[party_slot];
-    memset(static_cast<void*>(&g_combat_state->attack_report), 0, sizeof(W8SpellEffectResult));
+    memset(&g_combat_state->attack_report, 0, sizeof(W8SpellEffectResult));
     if (static_cast<unsigned int>(row->current_hand) >= 2) {
         srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 0x66, 0);
     }
@@ -4043,7 +4043,7 @@ int ResolveCharacterAttack(int party_slot)
             CombatLog("TO HIT: Chance %d, Rolled %d (fumble %d%%)", to_hit, roll, fumble_chance);
             if (guaranteed_hit == 0 && fumbled != 0) {
                 if (verbose == 0) {
-                    memset(static_cast<void*>(&local_report), 0, sizeof(local_report));
+                    memset(&local_report, 0, sizeof(local_report));
                     report = &local_report;
                 }
                 unsigned int choices = PLLength(fumble_list);
@@ -4110,7 +4110,7 @@ int ResolveCharacterAttack(int party_slot)
                 return 3;
             }
             if (verbose == 0 && source.target_diverted != 0) {
-                memset(static_cast<void*>(&local_report), 0, sizeof(local_report));
+                memset(&local_report, 0, sizeof(local_report));
                 report = &local_report;
             }
             ResolveGuardianInterception(&source, &g_combat_state->TargetHit);

@@ -7,6 +7,7 @@
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/dialog_code/NotificationDialog.h"
 #include "wiz8/local_code/Controls.h"
+#include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/vector.h"
 #include "wiz8/text_input.h"
@@ -370,6 +371,23 @@ W8_ASSERT_BASE_END(W8OptionsKeyboardPanel, W8DialogCloseListener, m_panel, 0x84)
    W8OptionsSaveRowListener at +0x84 and W8ControlSelectionListener at +0x88. */
 W8_ASSERT_BASE_END(W8OptionsSaveLoadPanel, W8ControlSelectionListener, m_panel, 0x88);
 
+/* One row of the main options menu table: the menu item id, two optional
+   child text controls (left == -1 when absent), the button bounds, and the
+   button's W8TextControl image indices. */
+struct W8OptionsMenuRow {
+    int item_id;
+    W8ControlsRect child_bounds[2];
+    W8ControlsRect bounds;
+    int image_indices[5];
+};
+static_assert(sizeof(W8OptionsMenuRow) == 0x48, "W8OptionsMenuRow_must_be_0x48");
+
+/* Inclusive range of CreateOptionsPanel indices shown by one menu item. */
+struct W8OptionsPanelRange {
+    int first;
+    int last;
+};
+
 /* The 0xc0-byte menu-row class constructed at 0x005A7370.  It is a concrete
    W8TextControl with an independent listener subobject and a source-table item
    id; the two optional child controls are owned by the base Controls panel. */
@@ -377,7 +395,7 @@ W8_ASSERT_BASE_END(W8OptionsSaveLoadPanel, W8ControlSelectionListener, m_panel, 
 // VTABLE: WIZ8 0x005eed34 W8TextControl::Listener
 class W8OptionsMenuButton : public W8TextControl, public W8TextControl::Listener {
 public:
-    W8OptionsMenuButton(Controls* owner, const int* row);
+    W8OptionsMenuButton(Controls* owner, const W8OptionsMenuRow* row);
     virtual ~W8OptionsMenuButton() override;
     virtual void Redraw(unsigned char full_redraw) override;
     virtual void EnableSecondaryState(unsigned char immediate) override;

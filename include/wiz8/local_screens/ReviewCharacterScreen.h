@@ -6,6 +6,7 @@
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/RCSStatsPage.h"
 #include "input.h"
+#include "Container.h"
 
 class W8DialogBase;
 struct Controls;
@@ -105,7 +106,7 @@ struct W8CampScreenState {
     int effect_last_visible;
     int effect_visible_lines;
     int effect_scroll;      /* 0xd2c */
-    void* effect_list;      /* 0xd30: HLIST of W8CampEffectEntry rows */
+    HLIST effect_list;      /* 0xd30: W8CampEffectEntry rows */
     int selected_spell_row; /* 0xd34 */
     unsigned char unknown_d38[7];
     unsigned char entry_mode;

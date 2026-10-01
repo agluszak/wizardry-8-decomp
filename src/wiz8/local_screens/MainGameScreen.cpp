@@ -604,10 +604,10 @@ void W8LockTumbler::Redraw(unsigned char full_redraw)
     if (!full_redraw && !m_dirty) {
         return;
     }
-    left = m_left + m_pPanel->origin_x;
-    right = m_right + m_pPanel->origin_x;
-    top = m_top + m_pPanel->origin_y;
-    bottom = m_bottom + m_pPanel->origin_y;
+    left = m_left + m_pPanel->m_bounds.left;
+    right = m_right + m_pPanel->m_bounds.left;
+    top = m_top + m_pPanel->m_bounds.top;
+    bottom = m_bottom + m_pPanel->m_bounds.top;
     InvalidateRegion(left - 3, top, right + 3, bottom, 0);
     ColorFillVideoSurfaceArea(-0xe, left, top, right, top + 0x24, 0x8000);
     ColorFillVideoSurfaceArea(-0xe, left - 3, top + 0x24, right + 3, bottom, 0x8000);
@@ -772,10 +772,10 @@ W8LockInfoPanel::W8LockInfoPanel(int tumbler_count) : Controls(0x17, 0x166, 0, 0
     W8ControlsRect bounds;
 
     m_tumbler_count_4c = tumbler_count;
-    bounds.left = origin_x + 0x25;
-    bounds.top = origin_y + 7;
-    bounds.right = origin_x + 0xb4;
-    bounds.bottom = origin_y + 0x11;
+    bounds.left = m_bounds.left + 0x25;
+    bounds.top = m_bounds.top + 7;
+    bounds.right = m_bounds.left + 0xb4;
+    bounds.bottom = m_bounds.top + 0x11;
     m_text_050 =
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
@@ -790,10 +790,10 @@ W8LockInfoPanel::W8LockInfoPanel(int tumbler_count) : Controls(0x17, 0x166, 0, 0
     bounds.bottom += 0xe;
     m_text_064 = new W8TextBuffer(&bounds, gppStringList[0x7ab], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
-    bounds.left = origin_x + 0x98;
-    bounds.top = origin_y + 0x15;
-    bounds.right = origin_x + 0xb5;
-    bounds.bottom = origin_y + 0x1f;
+    bounds.left = m_bounds.left + 0x98;
+    bounds.top = m_bounds.top + 0x15;
+    bounds.right = m_bounds.left + 0xb5;
+    bounds.bottom = m_bounds.top + 0x1f;
     m_text_058 =
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
@@ -1457,8 +1457,8 @@ W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, in
                                                    const unsigned short* line_string_ids,
                                                    unsigned int* region_set)
     : W8Widget(panel, 0xffffffff, left, top, right - 0x13, bottom),
-      m_range_038(panel->origin_x - 0x12 + right, panel->origin_y + top, right + panel->origin_x,
-                  panel->origin_y + bottom, region_set)
+      m_range_038(panel->m_bounds.left - 0x12 + right, panel->m_bounds.top + top, right + panel->m_bounds.left,
+                  panel->m_bounds.top + bottom, region_set)
 {
     m_line_count_0a4 = line_count;
     m_visible_lines_0a8 = (bottom - top) / 0xe;
@@ -1497,10 +1497,10 @@ void W8MainGameTextKeyHandler::Redraw(unsigned char full_redraw)
     if (!m_dirty && full_redraw == 0) {
         return;
     }
-    left = m_pPanel->origin_x + m_left;
-    top = m_pPanel->origin_y + m_top;
-    right = m_pPanel->origin_x + m_right;
-    bottom = m_pPanel->origin_y + m_bottom;
+    left = m_pPanel->m_bounds.left + m_left;
+    top = m_pPanel->m_bounds.top + m_top;
+    right = m_pPanel->m_bounds.left + m_right;
+    bottom = m_pPanel->m_bounds.top + m_bottom;
     InvalidateRegion(left, top, right, bottom, 0);
     BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
     SetFont(g_wiz_text_font_secondary);
@@ -1529,7 +1529,7 @@ void W8MainGameTextKeyHandler::Redraw(unsigned char full_redraw)
 void W8MainGameTextKeyHandler::OnMouseLeave(int event)
 {
     m_hover_line_0b4 = -1;
-    Invalidate((unsigned char)event);
+    Invalidate(static_cast<unsigned char>(event));
 }
 
 // FUNCTION: WIZ8 0x00588010
@@ -1539,7 +1539,7 @@ void W8MainGameTextKeyHandler::OnMouseMove(int)
     int line;
 
     SGPMouseGetPos(&point);
-    line = (point.y - m_pPanel->origin_y - m_top) / 0xe + m_first_visible_line_0b8;
+    line = (point.y - m_pPanel->m_bounds.top - m_top) / 0xe + m_first_visible_line_0b8;
     if (line != m_hover_line_0b4) {
         m_hover_line_0b4 = line;
         Invalidate(0);
@@ -1566,7 +1566,7 @@ void W8MainGameTextKeyHandler::OnLeftButtonUp(int)
     POINT point;
 
     SGPMouseGetPos(&point);
-    SetSelectedLine((point.y - m_pPanel->origin_y - m_top) / 0xe + m_first_visible_line_0b8);
+    SetSelectedLine((point.y - m_pPanel->m_bounds.top - m_top) / 0xe + m_first_visible_line_0b8);
 }
 
 // FUNCTION: WIZ8 0x00588100
@@ -1688,8 +1688,8 @@ void W8MainGameTextEntry::Redraw(unsigned char full_redraw)
         return;
     }
     image = m_image_b8;
-    left = m_pPanel->origin_x + m_left;
-    top = m_pPanel->origin_y + m_top;
+    left = m_pPanel->m_bounds.left + m_left;
+    top = m_pPanel->m_bounds.top + m_top;
     if (image == 0) {
         DrawCatalogImage(-14, 0x1b3, 0, 2, left, top, 2, 0);
     } else if (image == 1) {
@@ -1746,10 +1746,10 @@ W8MainGameTextPanel::W8MainGameTextPanel()
     m_key_handler_074 = new W8MainGameTextKeyHandler(
         this, 0x8e, 5, 0x10f, 0x59, 0xf, g_value_0061e9ec, &g_main_game_text_key_region_set);
     m_key_handler_074->m_range_listener_0bc = this;
-    m_text_bounds_0b8.left = origin_x + 0xc;
-    m_text_bounds_0b8.top = origin_y + 0x29;
-    m_text_bounds_0b8.right = origin_x + 0x84;
-    m_text_bounds_0b8.bottom = origin_y + 0x33;
+    m_text_bounds_0b8.left = m_bounds.left + 0xc;
+    m_text_bounds_0b8.top = m_bounds.top + 0x29;
+    m_text_bounds_0b8.right = m_bounds.left + 0x84;
+    m_text_bounds_0b8.bottom = m_bounds.top + 0x33;
     m_text_buffer_0c8.SetLayoutBounds(&m_text_bounds_0b8, 1, 1);
     EnableRegionSet(1);
     m_key_handler_074->m_range_038.EnableRegionSet(1);
@@ -1818,7 +1818,7 @@ void W8MainGameTextPanel::Redraw()
         if (frame >= 7) {
             frame = 12 - frame;
         }
-        DrawCatalogImageAndInvalidate(-14, 0x1b4, 0, frame, origin_x + 1, origin_y + 2, 2, 0);
+        DrawCatalogImageAndInvalidate(-14, 0x1b4, 0, frame, m_bounds.left + 1, m_bounds.top + 2, 2, 0);
         m_target_marker_pending_141 = 0;
     }
 }
@@ -1871,10 +1871,10 @@ W8MainGameStatusPanel::W8MainGameStatusPanel() : Controls(0x17, 0x166, 0, 0, 0x1
 {
     W8ControlsRect bounds;
 
-    bounds.left = origin_x + 0x25;
-    bounds.top = origin_y + 7;
-    bounds.right = origin_x + 0xb4;
-    bounds.bottom = origin_y + 0x11;
+    bounds.left = m_bounds.left + 0x25;
+    bounds.top = m_bounds.top + 7;
+    bounds.right = m_bounds.left + 0xb4;
+    bounds.bottom = m_bounds.top + 0x11;
     m_text_04c =
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
@@ -1889,10 +1889,10 @@ W8MainGameStatusPanel::W8MainGameStatusPanel() : Controls(0x17, 0x166, 0, 0, 0x1
     bounds.bottom += 0xe;
     m_text_060 = new W8TextBuffer(&bounds, gppStringList[0x7b0], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
-    bounds.left = origin_x + 0x98;
-    bounds.top = origin_y + 0x15;
-    bounds.right = origin_x + 0xb5;
-    bounds.bottom = origin_y + 0x1f;
+    bounds.left = m_bounds.left + 0x98;
+    bounds.top = m_bounds.top + 0x15;
+    bounds.right = m_bounds.left + 0xb5;
+    bounds.bottom = m_bounds.top + 0x1f;
     m_text_054 =
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
@@ -1959,7 +1959,7 @@ void W8MainGameStatusPanel::RefreshStatusTexts()
         figure = (character->skills[figure].level +
                   character->skills[0x1c + g_spell_records[0x12].realm].level * 4) /
                  5;
-        if ((int)figure >= 0) {
+        if (static_cast<int>(figure) >= 0) {
             m_text_064->SetFontStateIndex(-1);
             m_text_064->SetText(FormatWideString(g_format_d_percent, figure),
                                 g_wiz_text_font_secondary);
@@ -1990,7 +1990,7 @@ int GetPartySlotSkill10Level(int slot)
     if (character->skills[10].active_00 == 0 && character->skills[10].level == 0) {
         return -1;
     }
-    return (int)character->skills[10].level;
+    return static_cast<int>(character->skills[10].level);
 }
 
 // FUNCTION: WIZ8 0x005890e0
@@ -2094,7 +2094,7 @@ void W8MainGameScreen::SelectTextEntry(int index)
         m_disarm_state_018 = 4;
         duration = (Random(0x18) + 0x32) * g_movement_speed_step;
     } else {
-        roll = (int)Random(0x64);
+        roll = static_cast<int>(Random(0x64));
         if (roll < (chance * chance) / 100) {
             m_column_filled_03c[index] = 1;
             m_disarm_state_018 = 2;
@@ -2174,7 +2174,7 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     } else if (chance > 0x63) {
         chance = 0x63;
     }
-    roll = (int)Random(0x64);
+    roll = static_cast<int>(Random(0x64));
     if (roll < chance) {
         m_disarm_state_018 = 1;
         duration = 1.0f;
@@ -2234,7 +2234,7 @@ void W8MainGameScreen::Update()
 
     panel = m_text_panel_00c;
     if (panel->m_target_changed_140 != 0) {
-        elapsed = (int)panel->m_timer_118.GetProgress();
+        elapsed = static_cast<int>(panel->m_timer_118.GetProgress());
         if (elapsed != 0) {
             panel->m_marker_anim_time_13c += elapsed;
             panel->m_target_marker_pending_141 = 1;
@@ -2428,7 +2428,7 @@ void W8MainGameScreen::ApplyInspectSuccess()
         chance = 0x63;
     }
     for (column = 0; column < 8; ++column) {
-        roll = (int)Random(0x64);
+        roll = static_cast<int>(Random(0x64));
         if (roll < chance) {
             m_slot_columns_04c[m_selected_character_01c][column] =
                 GetTable650434Entry(m_device_id_034, column);
@@ -2467,7 +2467,7 @@ void W8MainGameScreen::CastTrapSpell()
         figure = (character->skills[book].level +
                   character->skills[0x1c + g_spell_records[0x27].realm].level * 4) /
                  5;
-        if ((int)figure >= 0) {
+        if (static_cast<int>(figure) >= 0) {
             ready = 1;
         }
     }
@@ -2480,7 +2480,7 @@ void W8MainGameScreen::CastTrapSpell()
         figure = (character->skills[book].level +
                   character->skills[0x1c + g_spell_records[0x12].realm].level * 4) /
                  5;
-        if ((int)figure < 0) {
+        if (static_cast<int>(figure) < 0) {
             return;
         }
     }
@@ -2719,23 +2719,23 @@ void W8NpcDialogueTextController::Redraw()
         force = was_dirty != 0;
         if (force) {
             DrawCatalogImageAndInvalidate(-0xe, m_renderTarget, m_renderArg_1c, m_renderArg_20,
-                                          origin_x, origin_y, 2, 0);
+                                          m_bounds.left, m_bounds.top, 2, 0);
             m_fDirty = 0;
         }
         if (line_image != -1 && margin_image != -1) {
             if (visible == 1 && was_dirty != 0) {
                 height = line_height;
-                top = (origin_y - height) + margin;
+                top = (m_bounds.top - height) + margin;
                 if (height < scroll_height) {
                     do {
                         DrawCatalogImageAndInvalidate(-0xe, m_renderTarget, m_renderArg_1c,
-                                                      line_image, origin_x, top, 2, 0);
+                                                      line_image, m_bounds.left, top, 2, 0);
                         top -= line_height;
                         height += line_height;
                     } while (height < scroll_height);
                 }
                 DrawCatalogImageAndInvalidate(-0xe, m_renderTarget, m_renderArg_1c, margin_image,
-                                              origin_x, (line_height - margin) + top, 2, 0);
+                                              m_bounds.left, (line_height - margin) + top, 2, 0);
                 force = 1;
             } else if (force == 0 && m_fLayoutDirty == 0) {
                 return;
@@ -2791,7 +2791,7 @@ unsigned char W8NpcDialogueTextController::IsSlotPortraitTranscriptCovered(unsig
     int top;
 
     if (visible == 1) {
-        top = ((1 - scroll_height / line_height) * line_height - margin) + origin_y;
+        top = ((1 - scroll_height / line_height) * line_height - margin) + m_bounds.top;
         switch (party_slot) {
         case 1:
             if (top < 0x67) {
@@ -2822,10 +2822,10 @@ void W8NpcDialogueTextController::Collapse()
     int top;
 
     visible = 0;
-    top = (origin_y - (scroll_height / line_height) * line_height) - margin;
-    ClearSurfaceRect(origin_x, top, right, bottom);
+    top = (m_bounds.top - (scroll_height / line_height) * line_height) - margin;
+    ClearSurfaceRect(m_bounds.left, top, m_bounds.right, m_bounds.bottom);
     Invalidate(0);
-    InvalidateRegion(origin_x, top, right, bottom, 0);
+    InvalidateRegion(m_bounds.left, top, m_bounds.right, m_bounds.bottom, 0);
     if (top < 0x67) {
         RequestRedraw(2);
         RequestRedraw(8);
@@ -2842,9 +2842,9 @@ void W8NpcDialogueTextController::Collapse()
         RequestRedraw(0x80);
     }
     scroll_height = line_height;
-    bounds.left = origin_x + 6;
-    bounds.right = origin_x + 0x7c;
-    bounds.bottom = origin_y + 0x12;
+    bounds.left = m_bounds.left + 6;
+    bounds.right = m_bounds.left + 0x7c;
+    bounds.bottom = m_bounds.top + 0x12;
     bounds.top = bounds.bottom - line_height;
     text_area.Configure(&bounds, g_wiz_text_font_secondary,
                         g_W8TextBufferAlignLeft | g_W8TextBufferAlignCenter |
@@ -2867,9 +2867,9 @@ void W8NpcDialogueTextController::Expand()
     if (text_height >= 0xff) {
         text_height = 0xff;
     }
-    bounds.left = origin_x + 6;
-    bounds.right = origin_x + 0x7c;
-    bounds.bottom = origin_y + 0x12;
+    bounds.left = m_bounds.left + 6;
+    bounds.right = m_bounds.left + 0x7c;
+    bounds.bottom = m_bounds.top + 0x12;
     bounds.top = bounds.bottom - text_height;
     scroll_height = text_height;
     text_area.Configure(&bounds, g_wiz_text_font_secondary,
@@ -2891,9 +2891,9 @@ void W8NpcDialogueTextController::ClearBackground()
 {
     int top;
 
-    top = ((1 - scroll_height / line_height) * line_height - margin) + origin_y;
-    ClearSurfaceRect(origin_x, top, right, bottom);
-    InvalidateRegion(origin_x, top, right, bottom, 0);
+    top = ((1 - scroll_height / line_height) * line_height - margin) + m_bounds.top;
+    ClearSurfaceRect(m_bounds.left, top, m_bounds.right, m_bounds.bottom);
+    InvalidateRegion(m_bounds.left, top, m_bounds.right, m_bounds.bottom, 0);
     if (top < 0x67) {
         RequestRedraw(2);
         RequestRedraw(8);
@@ -7923,7 +7923,7 @@ unsigned char HitTestPartyPortrait(const InputAtom* event)
 
     while (g_status.buffers.XChar[slot].fOccupied == 0 ||
            (g_level_block->hover_region != region &&
-            g_level_block->hover_region != (unsigned int)(slot + 0x5a))) {
+            g_level_block->hover_region != static_cast<unsigned int>(slot + 0x5a))) {
         region += 6;
         ++slot;
         if (region > 0x53) {

@@ -176,7 +176,7 @@ void W8Searchable::GetPosition(srVector3T<float>* position)
         return;
     }
     if (cursor_node != 0) {
-        if (cursor_node->GetLocation0048D050(position) == 0) {
+        if (cursor_node->GetLocation(position) == 0) {
             position->Set(3.4028235e+38f, 3.4028235e+38f, 3.4028235e+38f);
         }
         return;

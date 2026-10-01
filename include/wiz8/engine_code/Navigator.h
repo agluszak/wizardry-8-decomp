@@ -141,7 +141,7 @@ struct W8NavigatorMovementState {
     float target_pitch_024;
     float roll_028;
     float target_roll_02c;
-    float padding_030;
+    float unknown_030;
     srVector3T<float> velocity_034;
     srVector3T<float> position_040;
     srVector3T<float> target_position_04c;
@@ -343,7 +343,7 @@ public:
 
     srVector3T<float> GetPosition();
     unsigned char UpdateTrackedPosition();                    /* 0x00454950 */
-    void UpdateNavigation004553A0(unsigned char value, char condition); /* 0x004553A0 */
+    void UpdateNavigation(unsigned char value, char condition); /* 0x004553A0 */
     void SetAngles(float angle);                              /* 0x004538F0 */
     void SetPitch(float pitch);                               /* 0x00453940 */
     float GetYaw();                                           /* 0x00453970 */
@@ -437,7 +437,7 @@ public:
        reports motion actually halting. */
     bool halted_025;
     bool movement_complete_026;
-    unsigned char padding_027;
+    unsigned char unknown_027;
     srVector3T<float> position_028;
     float minimum_height_034;
     float maximum_height_038;

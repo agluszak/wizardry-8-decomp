@@ -174,53 +174,54 @@ static void CreateSpellCastingViewControls(void)
                                                -1, g_spell_realm_animations[5].frame_count);
 
     panel = gpSCSV->panels[2];
-    gpSCSV->power_pips[0] =
+    gpSCSV->power_controls[0] =
         new W8TextControl(panel, 0x91, 0x38, 2, 0x47, 0x11, 0x192, 0, 0, 2, 1, 4, 3);
-    gpSCSV->power_pips[1] =
+    gpSCSV->power_controls[1] =
         new W8TextControl(panel, 0x92, 0x48, 4, 0x59, 0x15, 0x192, 0, 6, 8, 7, 10, 9);
-    gpSCSV->power_pips[2] =
+    gpSCSV->power_controls[2] =
         new W8TextControl(panel, 0x93, 0x56, 0x10, 0x69, 0x23, 0x192, 0, 0xc, 0xe, 0xd, 0x10, 0xf);
-    gpSCSV->power_pips[3] = new W8TextControl(panel, 0x94, 0x5b, 0x23, 0x70, 0x38, 0x192, 0, 0x12,
-                                              0x14, 0x13, 0x16, 0x15);
-    gpSCSV->power_pips[4] = new W8TextControl(panel, 0x95, 0x52, 0x38, 0x69, 0x4f, 0x192, 0, 0x18,
-                                              0x1a, 0x19, 0x1c, 0x1b);
-    gpSCSV->power_pips[5] = new W8TextControl(panel, 0x96, 0x3a, 0x41, 0x53, 0x5a, 0x192, 0, 0x1e,
-                                              0x20, 0x1f, 0x22, 0x21);
-    gpSCSV->power_pips[6] = new W8TextControl(panel, 0x97, 0x1f, 0x3a, 0x3a, 0x55, 0x192, 0, 0x24,
-                                              0x26, 0x25, 0x28, 0x27);
-    gpSCSV->power_pips[7] = new W8TextControl(panel, 0x98, 0x10, 0x1f, 0x2d, 0x3c, 0x192, 0, 0x30,
-                                              0x32, 0x31, 0x34, 0x33);
-    gpSCSV->power_pips[8] = new W8TextControl(panel, 0x99, 0x10, 0x1f, 0x2d, 0x3c, 0x192, 0, 0x2a,
-                                              0x2a, 0x2b, 0x2b, 0x2d);
-    gpSCSV->power_pips[0]->SetFlaggedRegionBounds(0x3f, 9, 7);
-    gpSCSV->power_pips[1]->SetFlaggedRegionBounds(0x50, 0xc, 8);
-    gpSCSV->power_pips[2]->SetFlaggedRegionBounds(0x5f, 0x19, 9);
-    gpSCSV->power_pips[3]->SetFlaggedRegionBounds(0x65, 0x2d, 10);
-    gpSCSV->power_pips[4]->SetFlaggedRegionBounds(0x5d, 0x43, 0xb);
-    gpSCSV->power_pips[5]->SetFlaggedRegionBounds(0x46, 0x4d, 0xc);
-    gpSCSV->power_pips[6]->SetFlaggedRegionBounds(0x2c, 0x47, 0xd);
-    gpSCSV->power_pips[7]->SetFlaggedRegionBounds(0x1e, 0x2d, 0xe);
-    gpSCSV->power_pips[8]->SetFlaggedRegionBounds(0x1e, 0x2d, 0xe);
-    for (index = 0; index < 9; ++index) {
-        gpSCSV->power_pips[index]->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    gpSCSV->power_controls[3] = new W8TextControl(panel, 0x94, 0x5b, 0x23, 0x70, 0x38, 0x192, 0,
+                                                  0x12, 0x14, 0x13, 0x16, 0x15);
+    gpSCSV->power_controls[4] = new W8TextControl(panel, 0x95, 0x52, 0x38, 0x69, 0x4f, 0x192, 0,
+                                                  0x18, 0x1a, 0x19, 0x1c, 0x1b);
+    gpSCSV->power_controls[5] = new W8TextControl(panel, 0x96, 0x3a, 0x41, 0x53, 0x5a, 0x192, 0,
+                                                  0x1e, 0x20, 0x1f, 0x22, 0x21);
+    gpSCSV->power_controls[6] = new W8TextControl(panel, 0x97, 0x1f, 0x3a, 0x3a, 0x55, 0x192, 0,
+                                                  0x24, 0x26, 0x25, 0x28, 0x27);
+    gpSCSV->power_controls[7] = new W8TextControl(panel, 0x98, 0x10, 0x1f, 0x2d, 0x3c, 0x192, 0,
+                                                  0x30, 0x32, 0x31, 0x34, 0x33);
+    gpSCSV->power_controls[8] = new W8TextControl(panel, 0x99, 0x10, 0x1f, 0x2d, 0x3c, 0x192, 0,
+                                                  0x2a, 0x2a, 0x2b, 0x2b, 0x2d);
+    gpSCSV->power_controls[0]->SetFlaggedRegionBounds(0x3f, 9, 7);
+    gpSCSV->power_controls[1]->SetFlaggedRegionBounds(0x50, 0xc, 8);
+    gpSCSV->power_controls[2]->SetFlaggedRegionBounds(0x5f, 0x19, 9);
+    gpSCSV->power_controls[3]->SetFlaggedRegionBounds(0x65, 0x2d, 10);
+    gpSCSV->power_controls[4]->SetFlaggedRegionBounds(0x5d, 0x43, 0xb);
+    gpSCSV->power_controls[5]->SetFlaggedRegionBounds(0x46, 0x4d, 0xc);
+    gpSCSV->power_controls[6]->SetFlaggedRegionBounds(0x2c, 0x47, 0xd);
+    gpSCSV->power_controls[7]->SetFlaggedRegionBounds(0x1e, 0x2d, 0xe);
+    gpSCSV->power_controls[8]->SetFlaggedRegionBounds(0x1e, 0x2d, 0xe);
+    for (index = 0; index < W8_SPELL_POWER_PIP_COUNT; ++index) {
+        gpSCSV->power_controls[index]->AddLayoutFlags(g_W8TextControlLayoutToggle);
     }
-    gpSCSV->power_pips[0]->m_primaryActivationCallback = SelectSpellPowerPip0;
-    gpSCSV->power_pips[1]->m_primaryActivationCallback = SelectSpellPowerPip1;
-    gpSCSV->power_pips[2]->m_primaryActivationCallback = SelectSpellPowerPip2;
-    gpSCSV->power_pips[3]->m_primaryActivationCallback = SelectSpellPowerPip3;
-    gpSCSV->power_pips[4]->m_primaryActivationCallback = SelectSpellPowerPip4;
-    gpSCSV->power_pips[5]->m_primaryActivationCallback = SelectSpellPowerPip5;
-    gpSCSV->power_pips[6]->m_primaryActivationCallback = SelectSpellPowerPip6;
-    gpSCSV->power_pips[7]->m_primaryActivationCallback = SelectSpellPowerPip7;
-    gpSCSV->power_pips[8]->m_primaryActivationCallback = SelectSpellPowerPip8;
+    gpSCSV->power_controls[0]->m_primaryActivationCallback = SelectSpellPowerPip0;
+    gpSCSV->power_controls[1]->m_primaryActivationCallback = SelectSpellPowerPip1;
+    gpSCSV->power_controls[2]->m_primaryActivationCallback = SelectSpellPowerPip2;
+    gpSCSV->power_controls[3]->m_primaryActivationCallback = SelectSpellPowerPip3;
+    gpSCSV->power_controls[4]->m_primaryActivationCallback = SelectSpellPowerPip4;
+    gpSCSV->power_controls[5]->m_primaryActivationCallback = SelectSpellPowerPip5;
+    gpSCSV->power_controls[6]->m_primaryActivationCallback = SelectSpellPowerPip6;
+    gpSCSV->power_controls[7]->m_primaryActivationCallback = SelectSpellPowerPip7;
+    gpSCSV->power_controls[8]->m_primaryActivationCallback = SelectSpellPowerPip8;
 
-    gpSCSV->spell_name =
+    gpSCSV->power_controls[W8_SPELL_NAME_CONTROL] =
         new W8TextControl(panel, 0x9a, 0xe, 10, 0x30, 0x18, -1, -1, -1, -1, -1, -1, -1);
-    gpSCSV->spell_name->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle |
-                                                   g_W8TextBufferAlignCenter);
-    gpSCSV->cancel_button =
+    gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetLayoutMode(
+        g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
+    gpSCSV->power_controls[W8_SPELL_CANCEL_CONTROL] =
         new W8TextControl(panel, 0x9b, 0x96, 6, 0xb1, 0x21, 0x8e, 0, 4, -1, 5, 6, 7);
-    gpSCSV->cancel_button->m_primaryActivationCallback = ResetSpellCastingSelection;
+    gpSCSV->power_controls[W8_SPELL_CANCEL_CONTROL]->m_primaryActivationCallback =
+        ResetSpellCastingSelection;
 
     gpSCSV->panels[0]->SetEnabled(true);
     gpSCSV->panels[1]->SetEnabled(true);
@@ -254,16 +255,16 @@ static void ReleaseSpellCastingViewControls(void)
             delete gpSCSV->realm_icons[index];
         }
     }
-    for (index = 0; index < 9; ++index) {
-        if (gpSCSV->power_pips[index] != 0) {
-            delete gpSCSV->power_pips[index];
+    for (index = 0; index < W8_SPELL_POWER_PIP_COUNT; ++index) {
+        if (gpSCSV->power_controls[index] != 0) {
+            delete gpSCSV->power_controls[index];
         }
     }
-    if (gpSCSV->spell_name != 0) {
-        delete gpSCSV->spell_name;
+    if (gpSCSV->power_controls[W8_SPELL_NAME_CONTROL] != 0) {
+        delete gpSCSV->power_controls[W8_SPELL_NAME_CONTROL];
     }
-    if (gpSCSV->cancel_button != 0) {
-        delete gpSCSV->cancel_button;
+    if (gpSCSV->power_controls[W8_SPELL_CANCEL_CONTROL] != 0) {
+        delete gpSCSV->power_controls[W8_SPELL_CANCEL_CONTROL];
     }
 }
 
@@ -471,8 +472,8 @@ static void UpdateSpellPowerPips(void)
     unsigned int rating;
 
     if (gpSCSV->uiPowerLevels == 0 || gpSCSV->iSpellPowerClass == 3) {
-        for (pip = 0; pip < 9; ++pip) {
-            gpSCSV->power_pips[pip]->SetEnabled(0);
+        for (pip = 0; pip < W8_SPELL_POWER_PIP_COUNT; ++pip) {
+            gpSCSV->power_controls[pip]->SetEnabled(0);
         }
     } else {
         RefreshSpellPowerPip(7);
@@ -483,28 +484,28 @@ static void UpdateSpellPowerPips(void)
             }
             if (gpSCSV->uiPowerLevels < 7) {
                 for (pip = gpSCSV->uiPowerLevels; pip < 7; ++pip) {
-                    gpSCSV->power_pips[pip]->SetEnabled(0);
+                    gpSCSV->power_controls[pip]->SetEnabled(0);
                 }
             }
-            gpSCSV->power_pips[7]->SetActive(0);
-            gpSCSV->power_pips[8]->SetActive(0);
+            gpSCSV->power_controls[7]->SetActive(0);
+            gpSCSV->power_controls[8]->SetActive(0);
         } else if (gpSCSV->iSpellPowerClass == 1) {
-            gpSCSV->power_pips[7]->SetActive(gXStatus.fCombatMode == 0);
+            gpSCSV->power_controls[7]->SetActive(gXStatus.fCombatMode == 0);
             for (pip = 0; pip < gpSCSV->uiPowerLevels; ++pip) {
                 RefreshSpellPowerPip(pip);
             }
             if (gpSCSV->uiPowerLevels < 7) {
                 for (pip = gpSCSV->uiPowerLevels; pip < 7; ++pip) {
-                    gpSCSV->power_pips[pip]->SetEnabled(0);
+                    gpSCSV->power_controls[pip]->SetEnabled(0);
                 }
             }
-            gpSCSV->power_pips[8]->SetActive(0);
+            gpSCSV->power_controls[8]->SetActive(0);
         } else if (gpSCSV->iSpellPowerClass == 2) {
             for (pip = 0; pip < 7; ++pip) {
-                gpSCSV->power_pips[pip]->SetEnabled(0);
+                gpSCSV->power_controls[pip]->SetEnabled(0);
             }
-            gpSCSV->power_pips[8]->SetActive(1);
-            gpSCSV->power_pips[7]->SetActive(0);
+            gpSCSV->power_controls[8]->SetActive(1);
+            gpSCSV->power_controls[7]->SetActive(0);
         }
     }
     if (gpSCSV->iSpellPowerClass == 2) {
@@ -513,20 +514,20 @@ static void UpdateSpellPowerPips(void)
                 if (gpSCSV->uiSpellToCast == 0) {
                     srAssertFail("gpSCSV->uiSpellToCast != SPELL_NONE", SPELLCASTING_CPP, 0x338, 0);
                 }
-                gpSCSV->power_pips[pip]->SetEnabled(0);
+                gpSCSV->power_controls[pip]->SetEnabled(0);
                 rating = GetSpellCastRating(gpSCSV->caster, gpSCSV->uiSpellToCast, pip + 1);
-                gpSCSV->power_pips[pip]->m_disabledSprite = (pip + rating * 9) * 6;
+                gpSCSV->power_controls[pip]->m_disabledSprite = (pip + rating * 9) * 6;
             }
         }
         if (gpSCSV->uiPowerLevels < 7) {
             for (pip = gpSCSV->uiPowerLevels; pip < 7; ++pip) {
-                gpSCSV->power_pips[pip]->m_disabledSprite = pip * 6 + 3;
+                gpSCSV->power_controls[pip]->m_disabledSprite = pip * 6 + 3;
             }
             return;
         }
     } else {
         for (pip = 0; pip < 7; ++pip) {
-            gpSCSV->power_pips[pip]->m_disabledSprite = pip * 6 + 3;
+            gpSCSV->power_controls[pip]->m_disabledSprite = pip * 6 + 3;
         }
     }
 }
@@ -549,19 +550,19 @@ static void RefreshSpellPowerPip(int pip)
     } else {
         level = pip + 1;
     }
-    gpSCSV->power_pips[pip]->SetEnabled(1);
+    gpSCSV->power_controls[pip]->SetEnabled(1);
     rating = GetSpellCastRating(gpSCSV->caster, gpSCSV->uiSpellToCast, level);
     frame = (pip + rating * 9) * 6;
-    control = gpSCSV->power_pips[pip];
+    control = gpSCSV->power_controls[pip];
     control->m_normalSprite = frame;
     if (pip == 8) {
-        gpSCSV->power_pips[8]->m_alternateNormalSprite = frame;
+        gpSCSV->power_controls[8]->m_alternateNormalSprite = frame;
     } else {
         control->m_alternateNormalSprite = frame + 1;
     }
     control->m_pressedSprite = frame + 2;
     if (pip == 8) {
-        gpSCSV->power_pips[8]->m_alternatePressedSprite = frame + 2;
+        gpSCSV->power_controls[8]->m_alternatePressedSprite = frame + 2;
     } else {
         control->m_alternatePressedSprite = frame + 4;
     }
@@ -949,24 +950,26 @@ void SelectSpellPowerPip7(void)
 {
     int pip;
 
-    if (static_cast<unsigned char>(gpSCSV->power_pips[7]->m_stateFlags &
+    if (static_cast<unsigned char>(gpSCSV->power_controls[7]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
         for (pip = 0; pip < 7; ++pip) {
-            W8TextControl* control = gpSCSV->power_pips[pip];
+            W8TextControl* control = gpSCSV->power_controls[pip];
             if (control->m_enabled) {
                 control->DisableSecondaryState(0);
             }
         }
-        gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
-        gpSCSV->spell_name->m_textBuffer.SetText(L"?", g_wiz_text_font_secondary);
+        gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetRenderMode(4);
+        gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetText(
+            L"?", g_wiz_text_font_secondary);
         gpSCSV->iSpellPower = 7;
-        gpSCSV->spell_name->Invalidate(1);
+        gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(1);
         return;
     }
-    gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
-    gpSCSV->spell_name->m_textBuffer.SetText(&g_empty_wide_string, g_wiz_text_font_secondary);
+    gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetRenderMode(4);
+    gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetText(&g_empty_wide_string,
+                                                                        g_wiz_text_font_secondary);
     gpSCSV->iSpellPower = -1;
-    gpSCSV->spell_name->Invalidate(1);
+    gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(1);
 }
 
 /* The max-power pip: while its secondary state is lit it prices the name
@@ -974,16 +977,17 @@ void SelectSpellPowerPip7(void)
 // FUNCTION: WIZ8 0x005A0660
 void SelectSpellPowerPip8(void)
 {
-    if (static_cast<unsigned char>(gpSCSV->power_pips[8]->m_stateFlags &
+    if (static_cast<unsigned char>(gpSCSV->power_controls[8]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
-        gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
-        gpSCSV->spell_name->m_textBuffer.SetText(L"?", g_wiz_text_font_secondary);
+        gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetRenderMode(4);
+        gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetText(
+            L"?", g_wiz_text_font_secondary);
         gpSCSV->iSpellPower = 7;
-        gpSCSV->spell_name->Invalidate(1);
+        gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(1);
         return;
     }
-    gpSCSV->power_pips[8]->EnableSecondaryState(0);
-    gpSCSV->spell_name->Invalidate(1);
+    gpSCSV->power_controls[8]->EnableSecondaryState(0);
+    gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(1);
 }
 
 /* Records the chosen power level: pips through the level light, pips above it
@@ -996,27 +1000,28 @@ void SelectSpellPowerLevel(int power_level)
 
     gpSCSV->panels[2]->Invalidate(0);
     if (power_level == -1 ||
-        (static_cast<unsigned char>(gpSCSV->power_pips[power_level]->m_stateFlags &
+        (static_cast<unsigned char>(gpSCSV->power_controls[power_level]->m_stateFlags &
                                     g_W8TextControlStateSecondary) == 0 &&
          gpSCSV->iSpellPower == power_level)) {
         for (pip = 0; pip < 7; ++pip) {
-            gpSCSV->power_pips[pip]->DisableSecondaryState(0);
+            gpSCSV->power_controls[pip]->DisableSecondaryState(0);
         }
         gpSCSV->iSpellPower = -1;
         if (gpSCSV->iSpellPowerClass == 2) {
-            gpSCSV->power_pips[8]->EnableSecondaryState(0);
-            if (static_cast<unsigned char>(gpSCSV->power_pips[8]->m_stateFlags &
+            gpSCSV->power_controls[8]->EnableSecondaryState(0);
+            if (static_cast<unsigned char>(gpSCSV->power_controls[8]->m_stateFlags &
                                            g_W8TextControlStateSecondary) == 0) {
-                gpSCSV->power_pips[8]->EnableSecondaryState(0);
+                gpSCSV->power_controls[8]->EnableSecondaryState(0);
             } else {
-                gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
-                gpSCSV->spell_name->m_textBuffer.SetText(L"?", g_wiz_text_font_secondary);
+                gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetRenderMode(4);
+                gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetText(
+                    L"?", g_wiz_text_font_secondary);
                 gpSCSV->iSpellPower = 7;
             }
-            gpSCSV->spell_name->Invalidate(1);
+            gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(1);
             return;
         }
-        gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
+        gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetRenderMode(4);
         if (gpSCSV->iSpellPowerClass == 3) {
             text = FormatWideString(g_format_d,
                                     g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
@@ -1027,20 +1032,21 @@ void SelectSpellPowerLevel(int power_level)
         gpSCSV->iSpellPower = power_level;
         if (power_level >= 0) {
             for (pip = 0; pip <= power_level; ++pip) {
-                gpSCSV->power_pips[pip]->EnableSecondaryState(0);
+                gpSCSV->power_controls[pip]->EnableSecondaryState(0);
             }
         }
         if (power_level + 1 < 8) {
             for (pip = power_level + 1; pip < 8; ++pip) {
-                gpSCSV->power_pips[pip]->DisableSecondaryState(0);
+                gpSCSV->power_controls[pip]->DisableSecondaryState(0);
             }
         }
-        gpSCSV->spell_name->m_textBuffer.SetRenderMode(4);
+        gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetRenderMode(4);
         text = FormatWideString(g_format_d,
                                 (power_level + 1) *
                                     g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
     }
-    gpSCSV->spell_name->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
+    gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetText(text,
+                                                                        g_wiz_text_font_secondary);
 }
 
 /* Hover preview for a power pip: clears the spell-name plate and shows the
@@ -1055,13 +1061,13 @@ void PreviewSpellPowerPipHover(int power_level)
 
     if (power_level < 7) {
         if ((gpSCSV->iSpellPowerClass == 0 || gpSCSV->iSpellPowerClass == 1) &&
-            (power_level == -1 || (gpSCSV->power_pips[power_level]->m_active != 0 &&
-                                   gpSCSV->power_pips[power_level]->m_enabled != 0))) {
-            spell_name = gpSCSV->spell_name;
+            (power_level == -1 || (gpSCSV->power_controls[power_level]->m_active != 0 &&
+                                   gpSCSV->power_controls[power_level]->m_enabled != 0))) {
+            spell_name = gpSCSV->power_controls[W8_SPELL_NAME_CONTROL];
             panel = gpSCSV->panels[2];
             ColorFillVideoSurfaceArea(
-                -0xe, spell_name->m_left + panel->origin_x, spell_name->m_top + panel->origin_y,
-                spell_name->m_right + panel->origin_x, spell_name->m_bottom + panel->origin_y,
+                -0xe, spell_name->m_left + panel->m_bounds.left, spell_name->m_top + panel->m_bounds.top,
+                spell_name->m_right + panel->m_bounds.left, spell_name->m_bottom + panel->m_bounds.top,
                 Get16BPPColor(0x10101));
             spell_name->Invalidate(0);
             if (power_level != -1) {
@@ -1192,8 +1198,7 @@ unsigned char SpellRealmButtonRegionEvent(const InputAtom* event, W8Region* regi
     return 0;
 }
 
-/* Power-pip / cancel-button region callback. callback_id indexes the contiguous
-   control pointers from power_pips[0] (ids 0..8 and cancel at 10). While
+/* Power-pip / cancel-button region callback (ids 0..8 and 10). While
    input_blocked_570 is set the handler swallows input. */
 // FUNCTION: WIZ8 0x005A0E50
 unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region)
@@ -1208,14 +1213,14 @@ unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region)
     us_event = event->usEvent;
     if (us_event <= LEFT_BUTTON_REPEAT) {
         if (us_event == LEFT_BUTTON_REPEAT || us_event == LEFT_BUTTON_DOWN) {
-            (&gpSCSV->power_pips[0])[region->callback_id]->OnLeftButtonDown(0);
+            gpSCSV->power_controls[region->callback_id]->OnLeftButtonDown(0);
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
             return 1;
         }
         if (us_event == LEFT_BUTTON_UP) {
-            (&gpSCSV->power_pips[0])[region->callback_id]->OnLeftButtonUp(0);
+            gpSCSV->power_controls[region->callback_id]->OnLeftButtonUp(0);
             callback_id = region->callback_id;
-            if (callback_id < 7 && ((&gpSCSV->power_pips[0])[callback_id]->m_stateFlags &
+            if (callback_id < 7 && (gpSCSV->power_controls[callback_id]->m_stateFlags &
                                     g_W8TextControlStateSecondary) == 0) {
                 PreviewSpellPowerPipHover(callback_id);
             }
@@ -1227,12 +1232,12 @@ unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region)
     } else if (us_event == MOUSE_POS) {
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
             PreviewSpellPowerPipHover(-1);
-            (&gpSCSV->power_pips[0])[region->callback_id]->OnMouseLeave(0);
+            gpSCSV->power_controls[region->callback_id]->OnMouseLeave(0);
             return 1;
         }
         if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
             PreviewSpellPowerPipHover(region->callback_id);
-            (&gpSCSV->power_pips[0])[region->callback_id]->OnMouseEnter(0);
+            gpSCSV->power_controls[region->callback_id]->OnMouseEnter(0);
             return 1;
         }
     }

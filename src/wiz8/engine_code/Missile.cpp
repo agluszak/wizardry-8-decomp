@@ -91,7 +91,7 @@ W8AIMissile* CopyAIMissile(const W8AIMissile* source)
     copy->last_half_tick_10 = source->last_half_tick_10;
     copy->elapsed_14 = source->elapsed_14;
     copy->limit_18 = source->limit_18;
-    copy->padding_1c = source->padding_1c;
+    copy->unknown_1c = source->unknown_1c;
     return copy;
 }
 
@@ -428,7 +428,7 @@ void UpdateWorldMissiles(W8World* world)
             if (missile->flight_done_1e0 == 0 || missile->block_released_1e2 == 0) {
                 missile->StartIfHostActive();
                 missile->UpdateRepresentation(world);
-                missile->UpdateNavigation004553A0(0, 0);
+                missile->UpdateNavigation(0, 0);
             } else {
                 world->missiles->RemoveAt(world->missiles->IndexOf(missile));
                 missile->DestroyMissile();
@@ -978,7 +978,7 @@ W8Missile::W8Missile()
     }
 
     memset(&definition_1fc, 0, sizeof(definition_1fc));
-    memset(static_cast<void*>(&result_280), 0, 0xa2);
+    memset(&result_280, 0, sizeof(result_280));
     ResetCombatSlot(&combat_slot_260);
 }
 
@@ -1003,7 +1003,7 @@ W8Missile::W8Missile(const W8Missile& other)
     m_pRep = static_cast<W8MissileRep*>(other.m_pRep->Clone());
 
     memset(&definition_1fc, 0, sizeof(definition_1fc));
-    memset(static_cast<void*>(&result_280), 0, 0xa2);
+    memset(&result_280, 0, sizeof(result_280));
     ResetCombatSlot(&combat_slot_260);
 }
 

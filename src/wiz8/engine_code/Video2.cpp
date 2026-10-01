@@ -836,7 +836,7 @@ IDirectDrawSurface2* BeginVideoPresentation(void)
 
     if (g_gerd != 0) {
         g_flush_pending = false;
-        g_gerd->closeWindow((srGERD::e_closeHint)1);
+        g_gerd->closeWindow(static_cast<srGERD::e_closeHint>(1));
         g_gerd->deleteContext();
     }
     g_direct_draw2->SetCooperativeLevel(ghWindow, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN);
@@ -956,7 +956,7 @@ void SuspendVideoManager(void)
         g_video_active = 0;
         if (g_gerd) {
             g_flush_pending = false;
-            g_gerd->closeWindow((srGERD::e_closeHint)0);
+            g_gerd->closeWindow(static_cast<srGERD::e_closeHint>(0));
         }
         if (!g_fullscreen) {
             GetWindowRect(ghWindow, &g_window_rect);
@@ -2094,7 +2094,7 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
            <= 0 rather than < 1: the two are the same test and VC6 encodes them
            differently, setle against setl. */
         clipped_left = left <= 0 ? 0 : left;
-        if ((int)clipped_left > 0x27f) {
+        if (static_cast<int>(clipped_left) > 0x27f) {
             clipped_left = 0x280;
         }
         top = top <= 0 ? 0 : top;
@@ -2113,7 +2113,7 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
         } else {
             bottom = 0x1e0;
         }
-        if ((int)(clipped_right - clipped_left) > 0 && bottom - top > 0) {
+        if (static_cast<int>(clipped_right - clipped_left) > 0 && bottom - top > 0) {
             if (clipped_right - clipped_left == 0x280 && bottom - top == 0x1e0) {
                 g_page_full_redraw[g_active_page] = 1;
             }
@@ -2124,12 +2124,12 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
                 cell_flags |= 2;
             }
             for (; top < bottom; top = top + 8) {
-                if ((int)clipped_left < (int)clipped_right) {
+                if (static_cast<int>(clipped_left) < static_cast<int>(clipped_right)) {
                     x = clipped_left;
                     do {
                         InvalidateDirtyTile(static_cast<int>(x) / 8 + (top / 8) * 0x50, cell_flags);
                         x += 8;
-                    } while ((int)x < (int)clipped_right);
+                    } while (static_cast<int>(x) < static_cast<int>(clipped_right));
                 }
             }
         }
@@ -2256,11 +2256,11 @@ void SetViewport(int left, int top, int right, int bottom)
         plane.left = fractional_left * (view.right - view.left) + view.left;
         plane.right = fractional_right * (view.right - view.left) + view.left;
         plane.bottom =
-            (double)((g_double_005ebc30 - fractional_bottom) * (float)(view.top - view.bottom) +
-                     (float)view.bottom);
+            static_cast<double>((g_double_005ebc30 - fractional_bottom) * static_cast<float>(view.top - view.bottom) +
+                     static_cast<float>(view.bottom));
         plane.top =
-            (double)((g_double_005ebc30 - fractional_top) * (float)(view.top - view.bottom) +
-                     (float)view.bottom);
+            static_cast<double>((g_double_005ebc30 - fractional_top) * static_cast<float>(view.top - view.bottom) +
+                     static_cast<float>(view.bottom));
 
         g_world->camera->setViewPlane(plane, 1.0);
         if (g_world_659ab8 != 0) {
@@ -2430,7 +2430,7 @@ void PresentMenuOverlayFrame(void)
     FlushDirtyTiles();
     g_gerd->beginFrame();
     process.renderer = g_gerd;
-    g_surface_node->process(process, (srNode::e_processType)0);
+    g_surface_node->process(process, static_cast<srNode::e_processType>(0));
     g_gerd->flushRenderers();
     g_gerd->endFrame();
 }
@@ -2796,13 +2796,13 @@ bool HasEnoughFreeDiskSpace(void)
     if (extended != NULL) {
         GetDiskFreeSpaceExA(NULL, (PULARGE_INTEGER)&available, (PULARGE_INTEGER)&capacity,
                             (PULARGE_INTEGER)&free_bytes);
-        megabytes = (unsigned int)(free_bytes.QuadPart / 0x100000);
+        megabytes = static_cast<unsigned int>(free_bytes.QuadPart / 0x100000);
         enough = megabytes >= 0x100;
         return enough;
     }
     GetDiskFreeSpaceA(NULL, &sectors_per_cluster, &bytes_per_sector, &free_clusters,
                       &total_clusters);
-    megabytes = (unsigned int)((__int64)sectors_per_cluster * bytes_per_sector * free_clusters /
+    megabytes = static_cast<unsigned int>((__int64)sectors_per_cluster * bytes_per_sector * free_clusters /
                                0x400 / 0x400);
     enough = megabytes >= 0x100;
     return enough;
@@ -2954,10 +2954,10 @@ const double g_double_005ebf40 = 0.75;
 void __fastcall PackColourBytes(unsigned char* colour, double red, double green, double blue,
                                 double alpha)
 {
-    colour[3] = (int)(red * g_double_005ebf60);
-    colour[2] = (int)(green * g_double_005ebf60);
-    colour[1] = (int)(blue * g_double_005ebf60);
-    colour[0] = (int)(alpha * g_double_005ebf60);
+    colour[3] = static_cast<int>(red * g_double_005ebf60);
+    colour[2] = static_cast<int>(green * g_double_005ebf60);
+    colour[1] = static_cast<int>(blue * g_double_005ebf60);
+    colour[0] = static_cast<int>(alpha * g_double_005ebf60);
 }
 
 /* Places one tooltip node at a screen position in normalized coordinates.
@@ -3237,9 +3237,9 @@ unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* so
     int width = (rect[2] > 0x27f ? 0x280 : rect[2]) - rect[0];
     int height = (rect[3] > 0x1df ? 0x1e0 : rect[3]) - rect[1];
     UINT16* dest = (UINT16*)surface->getDataPtr();
-    UINT32 dest_pitch = (UINT32)surface->getPitch();
+    UINT32 dest_pitch = static_cast<UINT32>(surface->getPitch());
     UINT16* src = (UINT16*)source;
-    UINT32 src_pitch = (UINT32)source_pitch;
+    UINT32 src_pitch = static_cast<UINT32>(source_pitch);
     int right = width + 1;
     int bottom = height + 1;
 
@@ -3309,7 +3309,7 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
     }
 
     srColorSurface* surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555,
-                                                     (unsigned long)extent, (unsigned long)extent);
+                                                     static_cast<unsigned long>(extent), static_cast<unsigned long>(extent));
     if (surface == 0) {
         return 0;
     }
@@ -3367,7 +3367,7 @@ void VideoToolTip(UINT16* text)
     if (buffer == 0) {
         return;
     }
-    g_help_box_width = (int)buffer->m_maxLineWidth + 4;
+    g_help_box_width = static_cast<int>(buffer->m_maxLineWidth) + 4;
     g_help_box_height = GetFontHeight(g_font10arial) * buffer->m_lineCount + 2;
     surface->fill(0);
     void* data = surface->getDataPtr();

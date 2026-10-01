@@ -879,7 +879,7 @@ struct W8ProcessedGameDataHeader {
     int trigger_count_38;
     int cond_poly_count_3c;
     int environ_count_40;
-    unsigned char padding_44[0x24];
+    unsigned char reserved_44[0x24];
 };
 
 static_assert(sizeof(W8ProcessedGameDataHeader) == 0x68, "W8ProcessedGameDataHeader_must_be_0x68");
@@ -1692,7 +1692,7 @@ unsigned char W8GameData::WriteGameData(int handle)
     header.trigger_count_38 = m_iNumTriggers;
     header.cond_poly_count_3c = m_iNumCondPolys;
     header.environ_count_40 = m_iNumEnvirons;
-    memset(header.padding_44, 0, sizeof(header.padding_44));
+    memset(header.reserved_44, 0, sizeof(header.reserved_44));
 
     if (handle == 0) {
         ReportBuildStatus(7, "WriteGameData: File not open.\n");
