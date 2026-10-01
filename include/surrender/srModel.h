@@ -20,9 +20,13 @@ public:
         enum e_update {};
 
         Client();
-        Client(const Client& other);
+        /* Copy construction/assignment are plain memberwise srPtr/links copies;
+           the custom destructor remains because it detaches from the model. */
+        // SYNTHETIC: SURRENDER 0x1003C710
+        // srModel::Client::Client(const Client&)
+        // SYNTHETIC: SURRENDER 0x1003C750
+        // srModel::Client::operator=
         virtual ~Client();
-        Client& operator=(const Client& other);
         virtual void setModel(srModel* model);
         virtual void updateClient(e_update update);
         virtual srModel* getModel() const;
