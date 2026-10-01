@@ -8,34 +8,10 @@ from pathlib import Path
 
 from wiz8decomp.reports.mismatch_clusters import (
     _census_row,
-    _signature_inferred,
-    _unresolved_call_shape,
-    broad_shape,
     identity_store_deltas,
     mismatch_clusters,
     text_fingerprints,
 )
-
-
-def _callee(orig_source: str, recomp_source: str) -> dict:
-    return {
-        "private_comparison": {
-            "orig": {"signature_source": orig_source},
-            "recomp": {"signature_source": recomp_source},
-        }
-    }
-
-
-def test_signature_inferred_names_the_ghidra_side_that_inferred() -> None:
-    assert _signature_inferred(_callee("ANALYSIS", "ANALYSIS")) == "orig:ANALYSIS,recomp:ANALYSIS"
-    assert _signature_inferred(_callee("USER_DEFINED", "ANALYSIS")) == "recomp:ANALYSIS"
-    assert _signature_inferred(_callee("ANALYSIS", "USER_DEFINED")) == "orig:ANALYSIS"
-    assert _signature_inferred(_callee("USER_DEFINED", "DEFAULT")) == "recomp:DEFAULT"
-
-
-def test_signature_inferred_is_absent_when_neither_side_inferred() -> None:
-    assert _signature_inferred(_callee("USER_DEFINED", "USER_DEFINED")) is None
-    assert _signature_inferred(_callee("IMPORTED", "USER_DEFINED")) is None
 
 
 def _caller_row(*, orig_calls, recomp_calls, orig_size, recomp_size) -> dict:
@@ -103,15 +79,6 @@ def test_identity_store_deltas_ignores_non_identity_right_hand_sides() -> None:
     old = ["iVar0 = &local_buffer;", "puVar0 = g_scratch_buffer;"]
 
     assert identity_store_deltas(old, ["iVar0 = 1;", "puVar0 = g_scratch_buffer;"]) == set()
-
-
-def test_broad_shape_keeps_generated_and_literal_distinctions() -> None:
-    assert broad_shape(["iVar0 = 1;"], ["iVar1 = 1;"]) == "generated names only"
-    assert broad_shape(["iVar0 = 1;"], ["iVar0 = 2;"]) == "literal or address only"
-    assert broad_shape(["iVar0 = (undefined4)uVar1;"], ["iVar0 = (uint)uVar1;"]) == (
-        "types or casts only"
-    )
-    assert broad_shape(["F();"], ["G();"]) == "calls differ"
 
 
 def test_text_fingerprints_pair_a_single_token_change_only() -> None:
@@ -200,34 +167,6 @@ def _minimal_report(tmp_path: Path, *, field_uses: bool, tag: str = "report") ->
     return directory
 
 
-def test_unresolved_call_shape_says_which_side_has_the_extra_call() -> None:
-    """`unresolved-target` is one bucket for every unpaired callee.
-
-    The shape is read from reccmp's own opcodes so the population stays a
-    triage order; these are the counts that bucket was hiding.
-    """
-    both = {"deltas": [{"retail": ["a"], "rebuild": ["b"]}]}
-    retail_only = {"deltas": [{"retail": ["a", "b"], "rebuild": []}]}
-    rebuild_only = {"deltas": [{"retail": [], "rebuild": ["a", "b"]}]}
-
-    assert _unresolved_call_shape(both) == "unresolved-calls-both-sides"
-    assert _unresolved_call_shape(retail_only) == "unresolved-retail-only-calls"
-    assert _unresolved_call_shape(rebuild_only) == "unresolved-rebuild-only-calls"
-    assert _unresolved_call_shape({"deltas": []}) == "unresolved-no-call-delta"
-    assert _unresolved_call_shape({}) == "unresolved-no-call-delta"
-
-
-def test_unresolved_call_shape_sums_across_several_opcodes() -> None:
-    delta = {
-        "deltas": [
-            {"retail": ["a"], "rebuild": []},
-            {"retail": ["b"], "rebuild": ["c"]},
-        ]
-    }
-
-    assert _unresolved_call_shape(delta) == "unresolved-calls-both-sides"
-
-
 def test_mismatch_clusters_runs_without_the_optional_censuses(tmp_path: Path) -> None:
     """A bare comparison directory has no field-uses.json or signature-census.
 
@@ -242,7 +181,8 @@ def test_mismatch_clusters_runs_without_the_optional_censuses(tmp_path: Path) ->
     report = json.loads((directory / "mismatch-clusters.json").read_text())
 
     assert result["metrics"]["differences"] == 1
-    assert [row["signals"] for row in report["functions"]] == [["predicate"]]
+    assert [row["signals"] for row in report["functions"]] == [[]]
+    assert [row["token_deltas"] for row in report["functions"]] == [[["predicate", "==", "!="]]]
 
 
 def test_mismatch_clusters_agrees_with_and_without_the_field_census(

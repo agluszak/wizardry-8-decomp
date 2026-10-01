@@ -34,8 +34,7 @@ ENV WIZ8_EMULATE_I386=${WIZ8_EMULATE_I386} \
     COMSPEC="C:\\windows\\system32\\cmd.exe" \
     TMP="Z:\\out\\tmp" \
     TEMP="Z:\\out\\tmp" \
-    WINEPATH="C:\\cmake\\bin;C:\\msvc\\Common\\MSDev98\\Bin;C:\\msvc\\VC98\\Bin" \
-    WIZ8_REDUNDANT_CAST_LINES="*"
+    WINEPATH="C:\\cmake\\bin;C:\\msvc\\Common\\MSDev98\\Bin;C:\\msvc\\VC98\\Bin"
 
 RUN /usr/local/bin/wiz8-wine wineboot --init || true
 
@@ -98,8 +97,7 @@ ENV WIZ8_EMULATE_I386=${WIZ8_EMULATE_I386} \
     COMSPEC="C:\\windows\\system32\\cmd.exe" \
     TMP="Z:\\out\\tmp" \
     TEMP="Z:\\out\\tmp" \
-    WINEPATH="C:\\cmake\\bin;C:\\msvc\\Common\\MSDev98\\Bin;C:\\msvc\\VC98\\Bin" \
-    WIZ8_REDUNDANT_CAST_LINES="*"
+    WINEPATH="C:\\cmake\\bin;C:\\msvc\\Common\\MSDev98\\Bin;C:\\msvc\\VC98\\Bin"
 
 ENTRYPOINT ["/usr/local/bin/wiz8-wine"]
 

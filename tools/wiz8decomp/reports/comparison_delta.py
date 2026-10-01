@@ -142,6 +142,7 @@ def comparison_metrics(summary: dict[str, Any], ghidriff: dict[str, Any]) -> dic
     analyzed = outcomes["differences"] + outcomes["no-differences"]
     similarities = _similarities(summary, ghidriff)
     clean = outcomes["no-differences"]
+    retried = [row for row in functions if row.get("inline_callees")]
     return {
         "requested": int(summary.get("requested") or len(functions)),
         "analyzed": analyzed,
@@ -161,6 +162,10 @@ def comparison_metrics(summary: dict[str, Any], ghidriff: dict[str, Any]) -> dic
         "unidentified_references": sum(
             int(row.get("unidentified_references") or 0) for row in functions
         ),
+        "inline_retries": len(retried),
+        "inline_normalized_clean": sum(row.get("outcome") == "no-differences" for row in retried),
+        "inline_still_different": sum(row.get("outcome") == "differences" for row in retried),
+        "inline_retry_failures": sum(row.get("inline_normalized_diff") is None for row in retried),
     }
 
 

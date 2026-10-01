@@ -79,6 +79,29 @@ def test_comparison_metrics_use_ghidriff_ratio_and_exact_matches() -> None:
     assert metrics["unpaired"] == 1
 
 
+def test_comparison_metrics_count_inline_retries_by_retry_outcome() -> None:
+    clean = {**_row(1, "no-differences"), "inline_callees": ["0x9"], "inline_normalized_diff": []}
+    different = {
+        **_row(2, "differences", code=True),
+        "inline_callees": ["0x9"],
+        "inline_normalized_diff": ["-old", "+new"],
+    }
+    failed = {
+        **_row(3, "analysis-failed"),
+        "inline_callees": ["0x9"],
+        "inline_normalized_diff": None,
+    }
+    ordinary = {**_row(4, "differences", code=True), "inline_callees": []}
+    metrics = comparison_metrics(
+        _summary(clean, different, failed, ordinary), _ghidriff((2, 0.9), (4, 0.8))
+    )
+
+    assert metrics["inline_retries"] == 3
+    assert metrics["inline_normalized_clean"] == 1
+    assert metrics["inline_still_different"] == 1
+    assert metrics["inline_retry_failures"] == 1
+
+
 def test_pr_report_contains_project_and_comparison_deltas(tmp_path: Path) -> None:
     head_status = {
         "targets": {

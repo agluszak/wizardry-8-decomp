@@ -102,6 +102,29 @@ if comparison_rows:
         "Exact code and data-only differences contribute 100% code similarity._"
     )
 
+if comparison_rows:
+    print()
+    print("#### Inline normalization")
+    print()
+    print(
+        "_Functions whose Ghidriff retry substituted asymmetrically inlined callees. "
+        "Their reported outcome and diff are the retry's; retry failures fall back to "
+        "analysis failure._"
+    )
+    print()
+    print("| Target | Retries | Normalized clean | Still different | Retry failures |")
+    print("| --- | ---: | ---: | ---: | ---: |")
+    for target, comparison in comparison_rows:
+        head = comparison["head"]
+        delta = comparison["delta"]
+        print(
+            f"| `{target}` "
+            f"| {count_with_delta(head.get('inline_retries'), delta.get('inline_retries'))} "
+            f"| {count_with_delta(head.get('inline_normalized_clean'), delta.get('inline_normalized_clean'))} "
+            f"| {count_with_delta(head.get('inline_still_different'), delta.get('inline_still_different'))} "
+            f"| {count_with_delta(head.get('inline_retry_failures'), delta.get('inline_retry_failures'))} |"
+        )
+
 allocator_rows = [
     (target, comparison["allocator_calls"])
     for target, comparison in comparison_rows
