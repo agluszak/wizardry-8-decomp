@@ -342,16 +342,7 @@ void AcknowledgeSurprise(void)
         ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
         return;
     }
-    if (gXStatus.surprise_phase == 1) {
-        SetViewDistance(12.0f);
-        SetNavigatorLinkMode(0);
-        g_game_time_accumulator->ResetDurationScale();
-        ResetMonsterGeneratorTimers();
-        ReverseSurpriseFade();
-        gXStatus.surprise_phase = 2;
-        ReleaseMarkedNpcBindings();
-        StartLevelMusic(1, 1);
-    }
+    ResolveSurpriseHold();
 }
 
 /* While a surprise sequence is holding, end it for combat: restore the view,
