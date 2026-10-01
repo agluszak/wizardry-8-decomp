@@ -1608,9 +1608,6 @@ void srDebugVP::_srGetClipFlags(SRBYTE* destination, const srVector4* source, SR
     processor_444->_srGetClipFlags(destination, source, count);
 }
 
-// FUNCTION: SURRENDER 0x1006FCA0
-srDebugVP::~srDebugVP() {}
-
 // SYNTHETIC: SURRENDER 0x1006FCC0
 // std::ios_base::Init global static-init block
 
