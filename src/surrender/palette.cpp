@@ -425,9 +425,8 @@ void srPalette::update()
    ramp for the rest of the 256. A non-cube count gets a linear ramp. */
 // FUNCTION: SURRENDER 0x10004310
 srPalette::srPalette(srARGB* colors, long color_count)
-    : srClassSupport<srPalette, srClass, 1, 0x2900>()
+    : srClassSupport<srPalette, srClass, 1, 0x2900>(), flags_18(0)
 {
-    flags_18 = 0;
     colors_1c = new srARGB[color_count];
     color_count_20 = color_count;
     quantizer_24 = 0;
@@ -438,24 +437,25 @@ srPalette::srPalette(srARGB* colors, long color_count)
                 for (long green = 0; green < 6; ++green) {
                     for (long blue = 0; blue < 6; ++blue) {
                         if (red != green || red != blue) {
-                            colors_1c[index].alpha = 0xff;
-                            colors_1c[index].red =
+                            srARGB& color = colors_1c[index++];
+                            color.alpha = static_cast<unsigned char>(srFloatToInt(255.0));
+                            color.red =
                                 static_cast<unsigned char>(srFloatToInt(red * 0.2f * 255.0));
-                            colors_1c[index].green =
+                            color.green =
                                 static_cast<unsigned char>(srFloatToInt(green * 0.2f * 255.0));
-                            colors_1c[index].blue =
+                            color.blue =
                                 static_cast<unsigned char>(srFloatToInt(blue * 0.2f * 255.0));
-                            ++index;
                         }
                     }
                 }
             }
             for (long gray = 0; gray < 0x2e; ++gray) {
+                srARGB& color = colors_1c[0xd2 + gray];
+                color.alpha = static_cast<unsigned char>(srFloatToInt(255.0));
                 double value = gray * 0.022222223f * 255.0;
-                colors_1c[0xd2 + gray].alpha = 0xff;
-                colors_1c[0xd2 + gray].red = static_cast<unsigned char>(srFloatToInt(value));
-                colors_1c[0xd2 + gray].green = static_cast<unsigned char>(srFloatToInt(value));
-                colors_1c[0xd2 + gray].blue = static_cast<unsigned char>(srFloatToInt(value));
+                color.red = static_cast<unsigned char>(srFloatToInt(value));
+                color.green = static_cast<unsigned char>(srFloatToInt(value));
+                color.blue = static_cast<unsigned char>(srFloatToInt(value));
             }
         } else {
             double step = 0.0;
@@ -463,11 +463,12 @@ srPalette::srPalette(srARGB* colors, long color_count)
                 step = 1.0 / (color_count - 1);
             }
             for (long index = 0; index < color_count; ++index) {
+                srARGB& color = colors_1c[index];
                 double value = index * step * 255.0;
-                colors_1c[index].alpha = 0xff;
-                colors_1c[index].red = static_cast<unsigned char>(srFloatToInt(value));
-                colors_1c[index].green = static_cast<unsigned char>(srFloatToInt(value));
-                colors_1c[index].blue = static_cast<unsigned char>(srFloatToInt(value));
+                color.alpha = static_cast<unsigned char>(srFloatToInt(255.0));
+                color.red = static_cast<unsigned char>(srFloatToInt(value));
+                color.green = static_cast<unsigned char>(srFloatToInt(value));
+                color.blue = static_cast<unsigned char>(srFloatToInt(value));
             }
         }
     } else if (0 < color_count * 4) {
@@ -1093,12 +1094,6 @@ void srPalette::Optimizer::findOptimalColor(Node* node, const LUT& lut)
 // FUNCTION: SURRENDER 0x10005690
 srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
 {
-    struct HashEntry {
-        HashEntry* next;
-        unsigned long color;
-        long count;
-    };
-
     if ((info.colors == 0) || (info.color_count < 1) || (info.palette_size < 1) ||
         ((info.mask_count != 0) && ((info.mask_flags == 0) || (info.mask_colors == 0)))) {
         return 0;
@@ -1111,9 +1106,9 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     /* The retail epilogue frees palette_colors, two node pools and the five
        level arrays — lut is never deleted. Proven retail leak. */
     LUT* lut = new LUT;
-    memset(palette_colors, 0, info.palette_size * 4);
-    memset(buckets, 0, 0x20000);
-    memset(rehash, 0, 0x20000);
+    srZeroMemory(palette_colors, info.palette_size * 4);
+    srZeroMemory(buckets, 0x20000);
+    srZeroMemory(rehash, 0x20000);
 
     long distinct = 0;
     HashEntry* entry = entries;
@@ -1121,9 +1116,10 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     for (index = 0; index < info.color_count; ++index) {
         long weight = info.colors[index].count;
         if (weight > 0) {
-            unsigned long color = reinterpret_cast<const unsigned long&>(
-                                      info.colors[index].color) /* reinterpret-ok: packed dword */
-                                  | 0xff000000;
+            srARGB opaque = info.colors[index].color;
+            opaque.alpha = 0xff;
+            unsigned long color =
+                reinterpret_cast<unsigned long&>(opaque); /* reinterpret-ok: packed dword */
             unsigned long bucket =
                 ((color & 0x1f0000) >> 6) + ((color & 0x1f00) >> 3) + (color & 0x1f);
             HashEntry* link;
@@ -1163,7 +1159,7 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     Node* leaf_pool = new Node[leaf_nodes];
     Leaf* leaves = new Leaf[distinct];
     Node** leaf_map = new Node*[0x8000];
-    memset(leaf_map, 0, 0x20000);
+    srZeroMemory(leaf_map, 0x20000);
 
     unsigned long dominant_color = 0;
     long dominant_weight = 0;
@@ -1226,7 +1222,7 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
         long dim = 1 << level;
         Node* nodes = new Node[level_node_counts[level]];
         levels[level] = nodes;
-        memset(nodes, 0, level_node_counts[level] * sizeof(Node));
+        srZeroMemory(nodes, level_node_counts[level] * sizeof(Node));
         for (long z = 0; z < dim; ++z) {
             for (long y = 0; y < dim; ++y) {
                 Node* node = nodes + (z * dim + y) * dim;

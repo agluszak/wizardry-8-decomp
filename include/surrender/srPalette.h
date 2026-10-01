@@ -145,7 +145,21 @@ public:
         static srPalette* createOptimalPalette(const PaletteInfo& info);
 
     private:
+        /* User-provided trivial constructors: retail createOptimalPalette
+           (0x10005690) emits the new[] null select and element-count bound
+           for the hash-entry and leaf arrays, which only appears for
+           non-POD elements. */
+        struct HashEntry {
+            HashEntry() {}
+
+            HashEntry* next;
+            unsigned long color;
+            long count;
+        };
+
         struct Leaf {
+            Leaf() {}
+
             unsigned long color;
             long weight;
             double error;
