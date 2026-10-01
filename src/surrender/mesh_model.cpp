@@ -1658,8 +1658,8 @@ inline srTriMeshPipeline::srTriMeshPipeline()
     flags_28 = 0;
     vertex_pipe_90 = new srVertexPipe();
     flushing_8c = 0;
-    Reset004753F0(0);
-    Flush00475510();
+    Reset(0);
+    Flush();
 }
 
 // FUNCTION: SURRENDER 0x100440A0
@@ -1675,7 +1675,7 @@ srTriMeshPipeline::~srTriMeshPipeline()
 // srTriMeshPipeline::`scalar deleting destructor'
 
 // FUNCTION: SURRENDER 0x10044070
-void srTriMeshPipeline::SetFlags004752C0(srShader shader)
+void srTriMeshPipeline::SetFlags(srShader shader)
 {
     shader_74 = shader;
     current_pass_18->flags_08 = shader;
@@ -1683,7 +1683,7 @@ void srTriMeshPipeline::SetFlags004752C0(srShader shader)
 
 /* Bind a renderer and rebuild the current slot through PrepareSlot. */
 // FUNCTION: SURRENDER 0x100441A0
-void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
+void srTriMeshPipeline::Reset(srGERD* renderer)
 {
     slot_count_84 = 0;
     renderer_88 = renderer;
@@ -1708,7 +1708,7 @@ void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
 }
 
 // FUNCTION: SURRENDER 0x100442B0
-void srTriMeshPipeline::Flush00475510()
+void srTriMeshPipeline::Flush()
 {
     flushing_8c = 1;
     if (slot_count_84 > 0) {
@@ -1982,7 +1982,7 @@ void srTriMeshPipeline::FlushSlots()
 /* Lazy singleton: construct once against the imported pipe static, then bind
    the caller's renderer and rebuild the current slot. */
 // FUNCTION: SURRENDER 0x10043E00
-srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
+srTriMeshPipeline* srTriMeshPipeline::Get(srGERD* renderer)
 {
     srTriMeshPipeline* pipeline;
 
@@ -2035,7 +2035,7 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
         long material_side;
         for (long side = 1; side >= 0; --side) {
             if ((mesh.control_flags_0c & (1u << side)) != 0) {
-                srTriMeshPipeline* pipeline = srTriMeshPipeline::Get004750A0(&renderer);
+                srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
                 // reinterpret-ok: sort bias is stored as float bits in extra_40
                 pipeline->extra_40 = *reinterpret_cast<const unsigned long*>(&mesh.sort_bias_148);
                 pipeline->triangles_34 = mesh.poly_vertices_10;
@@ -2119,7 +2119,7 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                     }
 
                     if (mesh.poly_shaders_100[pass] == 0) {
-                        pipeline->SetFlags004752C0(mesh.shaders_b0[pass]);
+                        pipeline->SetFlags(mesh.shaders_b0[pass]);
                     } else {
                         pipeline->current_pass_18->shader_14 = mesh.poly_shaders_100[pass];
                     }
