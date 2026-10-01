@@ -1,4 +1,5 @@
 #include "wiz8/float_constants.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/Monster.h"
@@ -554,13 +555,7 @@ srClass* stLight::vInstance()
 // FUNCTION: WIZ8 0x0049e460
 unsigned char W8OctRegionVolume::ContainsPoint0049E460(const srVector3T<float>* point) const
 {
-    for (short plane = 0; plane < 6; ++plane) {
-        float distance = SignedPlaneDistance(planes_88[plane], *point);
-        if (distance < g_float_005ebb34) {
-            return 0;
-        }
-    }
-    return 1;
+    return PointInsideFrustum(point, planes_88);
 }
 
 // SYNTHETIC: WIZ8 0x004A2200

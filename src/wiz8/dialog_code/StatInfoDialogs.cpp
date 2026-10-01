@@ -222,15 +222,7 @@ W8SkillInfoDialog::~W8SkillInfoDialog()
 // FUNCTION: WIZ8 0x005dffa0
 unsigned char W8SkillInfoDialog::PopulateText()
 {
-    W8ControlsRect bounds;
-    bounds.left = m_x + 0x11;
-    bounds.top = m_y + 0x26;
-    bounds.right = m_x + 0x11f;
-    bounds.bottom = m_y + 0xdf;
-    textarea_0e8.Configure(&bounds, g_wiz_text_font_secondary, 0);
-    textarea_0e8.SetEntrySpacing(0);
-    textarea_0e8.AddEntry(gppStringList[0x155], gppStringList[m_detail_id_144], 10, 0xf, 0);
-    textarea_0e8.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    W8StatInfoDialogBase::PopulateText();
     textarea_0e8.AddEntry(gppStringList[0x156], &g_empty_wide_string, 10, 0xf, 0);
     W8SkillAttributes* skill = &g_skill_attributes[m_skill_148];
     textarea_0e8.AddEntry(

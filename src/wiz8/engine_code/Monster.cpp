@@ -3046,17 +3046,7 @@ void UpdateNearestMonsterGroupMembers()
 float W8Monster::GetDistanceToPlayer()
 {
     srVector3T<float> position = GetPosition();
-    srVector3T<float> player_position;
-    float distance;
-
-    GetCameraPosition(&player_position);
-    player_position.y -= g_default_world_height;
-    distance = (position - player_position).Length() - movement_0c0.alternate_radius_0b4 -
-               g_startup_world->movement_0c0.alternate_radius_0b4;
-    if (distance < g_float_005ebb34) {
-        distance = g_float_005ebb34;
-    }
-    return distance;
+    return GetPointDistanceToPlayer(position);
 }
 
 // FUNCTION: WIZ8 0x004c7d50

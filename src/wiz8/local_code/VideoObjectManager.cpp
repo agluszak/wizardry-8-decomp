@@ -895,12 +895,7 @@ unsigned short* CopyCatalogImagePalette16BPP(int object, int frame)
         return 0;
     }
     EnsureCatalogFrameLoaded(object, frame);
-    if (!gfVideoObjectsInit) {
-        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xe6, 0);
-    }
-    EnsureCatalogFrameLoaded(object, frame);
-    if (!CopyVideoObjectPalette16BPP(
-            g_video_frames_62c430[g_video_slots[object].first_frame + frame].handle, palette)) {
+    if (!CopyVideoObjectPalette16BPP(GetCatalogVideoObjectHandle(object, frame), palette)) {
         return 0;
     }
     return palette;

@@ -249,13 +249,7 @@ W8ProfessionInfoDialog::~W8ProfessionInfoDialog() {}
 // FUNCTION: WIZ8 0x005DF250
 unsigned char W8ProfessionInfoDialog::PopulateText()
 {
-    W8ControlsRect bounds;
-    bounds.left = m_x + 0xa2;
-    bounds.top = m_y + 0x29;
-    bounds.right = m_x + 0x151;
-    bounds.bottom = m_y + 0xe1;
-    m_text_area_118.Configure(&bounds, g_wiz_text_font_secondary, 0);
-    m_text_area_118.SetEntrySpacing(0);
+    W8ProfRaceInfoDialogBase::PopulateText();
     m_text_area_118.AddEntry(gppStringList[0x153], gppStringList[m_uiDetailId], 10, 0xf, 0);
     m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
     m_text_area_118.AddEntry(gppStringList[0x14d], &g_empty_wide_string, 10, 0xf, 0);
@@ -346,13 +340,7 @@ W8RaceInfoDialog::~W8RaceInfoDialog() {}
 // FUNCTION: WIZ8 0x005DF6F0
 unsigned char W8RaceInfoDialog::PopulateText()
 {
-    W8ControlsRect bounds;
-    bounds.left = m_x + 0xa2;
-    bounds.top = m_y + 0x29;
-    bounds.right = m_x + 0x151;
-    bounds.bottom = m_y + 0xe1;
-    m_text_area_118.Configure(&bounds, g_wiz_text_font_secondary, 0);
-    m_text_area_118.SetEntrySpacing(0);
+    W8ProfRaceInfoDialogBase::PopulateText();
     m_text_area_118.AddEntry(gppStringList[0x153], gppStringList[m_uiDetailId], 10, 0xf, 0);
     m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
     m_text_area_118.AddEntry(gppStringList[0x14d], &g_empty_wide_string, 10, 0xf, 0);

@@ -742,14 +742,7 @@ void RebuildPartyStatus(W8PartyFormationState* status)
 int IsMonsterFacingParty(W8MonsterInfo* monster_info)
 {
     srVector3T<float> party_position = g_startup_world->GetPosition();
-    srVector3T<float> monster_position = monster_info->p3D->GetPosition();
-    float bearing = NormalizeAngle(GetHeadingAngle(&monster_position, &party_position));
-    float facing = monster_info->p3D->GetYaw();
-
-    if (fabsf(bearing - facing) <= g_facing_tolerance_005ebcf4) {
-        return 1;
-    }
-    return 0;
+    return IsPartyLookingAt(monster_info, party_position);
 }
 
 /* Whether the first monster faces the second, inside the usual tolerance. */
@@ -757,14 +750,7 @@ int IsMonsterFacingParty(W8MonsterInfo* monster_info)
 int IsMonsterFacingMonster(W8MonsterInfo* first, W8MonsterInfo* second)
 {
     srVector3T<float> second_position = second->p3D->GetPosition();
-    srVector3T<float> first_position = first->p3D->GetPosition();
-    float bearing = NormalizeAngle(GetHeadingAngle(&first_position, &second_position));
-    float facing = first->p3D->GetYaw();
-
-    if (fabsf(bearing - facing) <= g_facing_tolerance_005ebcf4) {
-        return 1;
-    }
-    return 0;
+    return IsPartyLookingAt(first, second_position);
 }
 
 /* Whether the second monster is looking away from the first, measured the

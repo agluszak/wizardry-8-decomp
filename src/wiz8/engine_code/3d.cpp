@@ -360,12 +360,7 @@ unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
         }
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
-            srNode* lights = dynamic_scene->first_child_;
-            if ((instance->render_flags_178 & 2) == 0) {
-                instance->render_flags_178 |= 2;
-                SetModelInstanceChainExclusionMask(instance, 1);
-                BakeInstanceVertexLighting(instance, lights, 1);
-            }
+            BakeInstanceVertexLightingIfNeeded(instance, dynamic_scene);
         }
     }
     return 1;

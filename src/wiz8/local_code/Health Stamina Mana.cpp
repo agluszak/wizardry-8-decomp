@@ -298,7 +298,6 @@ void DrainPartySpellPoints(int arg_1, int arg_2)
 void RestorePartySpellPoints(int amount)
 {
     int party_slot;
-    int realm;
     int granted;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
@@ -307,10 +306,7 @@ void RestorePartySpellPoints(int amount)
             g_status.buffers.Char[party_slot].hp_current != 0) {
             granted = amount;
             if (amount < 0) {
-                granted = 0;
-                for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-                    granted += g_status.buffers.Char[party_slot].sp_max[realm];
-                }
+                granted = SumCharacterSpellPoints(&g_status.buffers.Char[party_slot]);
             }
             RestoreCharacterSpellPointsEvenly(party_slot, granted);
         }
@@ -1395,16 +1391,9 @@ unsigned int FindPartySlotWithLowestSpellPoints(void)
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 &&
             character->highest_condition < W8_CONDITION_DEAD) {
-            unsigned int pool_max = 0;
-            for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-                pool_max += character->sp_max[realm];
-            }
+            unsigned int pool_max = SumCharacterSpellPoints(character);
             if (pool_max > 0) {
-                int pool_left = 0;
-                for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-                    int left = character->iSPLeft[realm];
-                    pool_left += left & ((left <= 0) - 1);
-                }
+                int pool_left = SumCharacterSpellPointsLeft(character);
                 unsigned int percent = (unsigned int)(pool_left * 100) / pool_max;
                 if (percent < best_percent) {
                     best_percent = percent;
