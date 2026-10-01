@@ -547,7 +547,7 @@ srClass* stLight::vInstance()
 
 /* Test a point against the six inward-facing planes of one region volume. */
 // FUNCTION: WIZ8 0x0049e460
-unsigned char W8OctRegionVolume::ContainsPoint0049E460(const srVector3T<float>* point) const
+unsigned char W8OctRegionVolume::ContainsPoint(const srVector3T<float>* point) const
 {
     return PointInsideFrustum(point, planes_88);
 }

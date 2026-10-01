@@ -1370,8 +1370,8 @@ W8Monster::~W8Monster()
 // FUNCTION: WIZ8 0x004ca840
 void W8Monster::SetPosition(const srVector3T<float>* position)
 {
-    GetRepresentation()->SetLocation004B8850(position);
-    m_pRep->SetLocation004B8850(position);
+    GetRepresentation()->SetLocation(position);
+    m_pRep->SetLocation(position);
     SetPositionInternal(position);
     position_dirty_09c = 1;
 }
@@ -3270,7 +3270,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
 
     position = movement_0c0.position_040;
     position.y += movement_0c0.vertical_offset_0c0;
-    GetRepresentation()->SetLocation004B8850(&position);
+    GetRepresentation()->SetLocation(&position);
 
     rotation.SetIdentity();
     {
@@ -3288,7 +3288,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
     if (movement_0c0.roll_028 != g_float_005ebb34) {
         rotation.RotateAboutZ(static_cast<double>(movement_0c0.roll_028));
     }
-    m_pRep->SetRotation004B88D0(&rotation);
+    m_pRep->SetRotation(&rotation);
 
     if ((flags_1dc & W8_MONSTER_SCALING_Y) != 0) {
         model = GetCurrentModelInstance();
@@ -4241,7 +4241,7 @@ bool MonsterUsesCurrentModelInstance(W8GrCycle* cycle)
 // FUNCTION: WIZ8 0x004c5730
 void MonsterGetLocation(W8Monster* monster, srVector3T<float>* location)
 {
-    monster->m_pRep->GetLocation004B8890(location);
+    monster->m_pRep->GetLocation(location);
 }
 
 // FUNCTION: WIZ8 0x004c5750
@@ -4307,7 +4307,7 @@ void MonsterSetFacing(W8Monster* monster, float angle)
         rotation.RotateAboutZ(sin(angle), cos(angle));
     }
 
-    monster->m_pRep->SetRotation004B88D0(&rotation);
+    monster->m_pRep->SetRotation(&rotation);
 }
 
 // FUNCTION: WIZ8 0x004c5e80

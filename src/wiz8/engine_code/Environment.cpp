@@ -191,10 +191,10 @@ void AdvanceEnvironmentTime(int elapsed)
     W8Prop* moving = day ? g_sun_prop : g_moon_prop;
     W8Prop* opposite = day ? g_moon_prop : g_sun_prop;
     if (moving != 0) {
-        moving->Rep()->SetLocation004B8850(&position);
+        moving->Rep()->SetLocation(&position);
     }
     if (opposite != 0) {
-        opposite->Rep()->SetLocation004B8850(&g_celestial_origin);
+        opposite->Rep()->SetLocation(&g_celestial_origin);
     }
 
     unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
@@ -1031,8 +1031,8 @@ void InitializeLevelEnvironment(void)
             srVector3T<float> sun;
             srVector3T<float> moon;
 
-            g_sun_prop->m_pRep->GetLocation004B8890(&sun);
-            g_moon_prop->m_pRep->GetLocation004B8890(&moon);
+            g_sun_prop->m_pRep->GetLocation(&sun);
+            g_moon_prop->m_pRep->GetLocation(&moon);
             srVector3T<float> delta = sun - moon;
             srVector3T<float> midpoint = (sun + moon) * 0.5;
             g_celestial_orbit_radius = delta.Length() * 0.5f;

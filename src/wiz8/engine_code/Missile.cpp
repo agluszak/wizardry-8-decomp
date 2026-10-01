@@ -128,7 +128,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
         rotation.SetIdentity();
         rotation.RotateAboutY(yaw);
         rotation.RotateAboutX(pitch);
-        missile->m_pRep->SetRotation004B88D0(&rotation);
+        missile->m_pRep->SetRotation(&rotation);
         return 1;
     }
     position = missile->GetPosition();
@@ -153,7 +153,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
         }
     }
     record->elapsed_14 = advance + record->elapsed_14;
-    missile->SetPosition004A6DF0(&out);
+    missile->SetCyclePosition(&out);
     if (missile->CheckNavigatorCollision(&position, &out) == 0 && missile->align_camera_1e4 != 0) {
         pitch = ElevationToTargetCPP(&out);
         yaw = HeadingToTargetCPP(&out);
@@ -164,7 +164,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
         if (pitch != 0.0) {
             rotation.RotateAboutX(sin(pitch), cos(pitch));
         }
-        missile->m_pRep->SetRotation004B88D0(&rotation);
+        missile->m_pRep->SetRotation(&rotation);
     }
     if (advance + record->elapsed_14 <= missile->duration_1f8) {
         if (record->limit_18 > 0.0f && record->limit_18 < advance + record->elapsed_14 &&
@@ -242,7 +242,7 @@ float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int
                 if (pitch != 0.0) {
                     rotation.RotateAboutX(sin(pitch), cos(pitch));
                 }
-                missile->m_pRep->SetRotation004B88D0(&rotation);
+                missile->m_pRep->SetRotation(&rotation);
                 missile->SetTargetYaw(yaw);
                 missile->SetTargetPitch(pitch);
             }
@@ -737,11 +737,11 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
         }
         direction.Transform(rotation);
         missile->SetVelocity(&direction);
-        missile->SetPosition004A6DF0(source);
+        missile->SetCyclePosition(source);
         aim.SetIdentity();
         aim.RotateAboutY(heading);
         aim.RotateAboutX(pitch);
-        missile->m_pRep->SetRotation004B88D0(&aim);
+        missile->m_pRep->SetRotation(&aim);
         missile->SetAngles(heading);
         missile->SetPitch(pitch);
         octree = g_world->octree;
@@ -1388,7 +1388,7 @@ void W8Missile::EnterImpactCycle()
             representation->pending_behaviour_071 = 1;
             impacting_1e1 = 1;
             if (explode_ground_1e5 != 0) {
-                representation->location_004.y = SettlePositionToGround00420BD0(&position, 0);
+                representation->location_004.y = SettlePositionToGround(&position, 0);
             }
         }
     } else {

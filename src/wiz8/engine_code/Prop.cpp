@@ -212,7 +212,7 @@ void W8Prop::GetPosition0044E2C0(srVector3T<float>* out)
         *out = position_02c;
         return;
     }
-    m_pRep->GetLocation004B8890(out);
+    m_pRep->GetLocation(out);
 }
 
 // FUNCTION: WIZ8 0x0044e270
@@ -1130,7 +1130,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
         if (Rep()->animation->path_24 != 0) {
             PathAIApply(Rep()->animation->path_24, instance);
         } else {
-            Rep()->GetLocation004B8890(&rep_position);
+            Rep()->GetLocation(&rep_position);
             Rep()->GetRotation(&rep_rotation);
             node = instance->first_child_;
             if (node == 0) {
@@ -1347,7 +1347,7 @@ void W8Prop::SetPosition0044E310(srVector3T<float>* position)
         position_02c = *position;
         return;
     }
-    m_pRep->SetLocation004B8850(position);
+    m_pRep->SetLocation(position);
 }
 
 // FUNCTION: WIZ8 0x0044e360

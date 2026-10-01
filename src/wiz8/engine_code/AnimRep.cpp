@@ -59,14 +59,14 @@ W8AnimRepBase::W8AnimRepBase(const W8AnimRepBase& other)
    from its parent location.  The three floating-point additions establish
    these as vectors rather than opaque twelve-byte values. */
 // FUNCTION: WIZ8 0x004b8850
-void W8AnimRepBase::SetLocation004B8850(const srVector3T<float>* location)
+void W8AnimRepBase::SetLocation(const srVector3T<float>* location)
 {
     local_location_010 = *location;
     location_004 = parent_location_01c + local_location_010;
 }
 
 // FUNCTION: WIZ8 0x004b8890
-void W8AnimRepBase::GetLocation004B8890(srVector3T<float>* location) const
+void W8AnimRepBase::GetLocation(srVector3T<float>* location) const
 {
     *location = location_004;
 }
@@ -78,7 +78,7 @@ void W8AnimRepBase::GetLocalLocation(srVector3T<float>* location) const
 }
 
 // FUNCTION: WIZ8 0x004b88d0
-void W8AnimRepBase::SetRotation004B88D0(const srMatrix3T<float>* rotation)
+void W8AnimRepBase::SetRotation(const srMatrix3T<float>* rotation)
 {
     rotation_028 = *rotation;
 }

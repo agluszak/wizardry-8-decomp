@@ -72,7 +72,7 @@ void W8Item::ApplyRepTransform()
                      0);
     }
     mesh = static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
-    m_pRep->GetLocation004B8890(&location);
+    m_pRep->GetLocation(&location);
     widened.SetFromFloat(&location);
     mesh->setLocation(widened);
     m_pRep->GetRotation(&rotation);
@@ -102,7 +102,7 @@ void W8Item::AttachMesh(W8World* world)
         mesh->clearFlag(srNode::FLAG_DISABLE);
     }
     mesh->setParent(world->dynamic_scene, 0);
-    m_pRep->GetLocation004B8890(&location);
+    m_pRep->GetLocation(&location);
     m_pRep->GetRotation(&rotation);
     child = mesh->first_child_;
     if (child == 0) {
@@ -142,7 +142,7 @@ unsigned int W8ItemRep::SetFlags(unsigned int mask, bool enabled)
 // FUNCTION: WIZ8 0x0049F720
 void W8Item::SetLocation0049F720(const srVector3T<float>* location)
 {
-    m_pRep->SetLocation004B8850(location);
+    m_pRep->SetLocation(location);
 }
 
 /* Whether the item's radar-blip timer is still ticking. */
@@ -290,7 +290,7 @@ void W8Item::UpdateAnimation()
         double sine = sin(-0.1963495375);
         rotation.RotateAboutY(sine, cosine);
         srNode* mesh = rep->m_psrMesh;
-        m_pRep->SetRotation004B88D0(&rotation);
+        m_pRep->SetRotation(&rotation);
         if (mesh->first_child_ == 0) {
             mesh->setRotation(rotation);
         } else {
@@ -348,7 +348,7 @@ unsigned char W8Item::GetSearchPosition(srVector3T<float>* location)
     if (GetCachedLocalBounds(&lower, &upper) == 0) {
         return 0;
     }
-    m_pRep->GetLocation004B8890(location);
+    m_pRep->GetLocation(location);
     location->y += (upper.y - lower.y) * g_item_bounds_vertical_factor;
     return 1;
 }
@@ -365,7 +365,7 @@ void W8Item::SetYaw(float angle)
         rotation.RotateAboutY(sine, cosine);
     }
     srNode* mesh = static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
-    m_pRep->SetRotation004B88D0(&rotation);
+    m_pRep->SetRotation(&rotation);
     if (mesh->first_child_ == 0) {
         mesh->setRotation(rotation);
     } else {
@@ -464,7 +464,7 @@ bool GetItemWorldBounds(W8Item* item, srVector3T<float>* lower, srVector3T<float
     }
     item->GetCachedLocalBounds(lower, upper);
     srVector3T<float> location;
-    item->m_pRep->GetLocation004B8890(&location);
+    item->m_pRep->GetLocation(&location);
     *lower += location;
     *upper += location;
     return true;

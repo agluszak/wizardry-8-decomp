@@ -132,7 +132,7 @@ public:
        This typed view supplies animation, particles, lights, and model state;
        neither base constructs or deletes that pointer. */
     virtual W8EmitterHost* GetRepresentation() = 0;
-    void SetPosition004A6DF0(srVector3T<float>* position);
+    void SetCyclePosition(srVector3T<float>* position);
     /* Registry-wide lookups answered from this cycle's identity. */
     const char* GetRegisteredName() const;     /* 0x004A8650 */
     bool IsSoleRegisteredCycleForName() const; /* 0x004A8700 */

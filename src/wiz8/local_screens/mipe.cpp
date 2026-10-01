@@ -1338,7 +1338,7 @@ void HandleWaypointKey(unsigned short key)
         context.world_00 = GetWorld();
         LoadMonsterCycle(&context, "waypoint", &monster, -1, 1);
         GetWorldCursorPosition(&position);
-        monster->SetPosition004A6DF0(&position);
+        monster->SetCyclePosition(&position);
         world = GetWorld();
         AddMonsterToWorld(world, monster);
         world = GetWorld();
@@ -3399,7 +3399,7 @@ void DragSelectionWithCursor(void)
         moved.Set(cursor.x - g_mipe_state->drag_anchor.x + position.x,
                   cursor.y - g_mipe_state->drag_anchor.y + position.y,
                   cursor.z - g_mipe_state->drag_anchor.z + position.z);
-        g_mipe_state->trigger->SetPosition004416F0(&moved);
+        g_mipe_state->trigger->SetPosition(&moved);
     } else {
         for (index = 0; index < static_cast<int>(ILLength(&g_mipe_state->monster_ids)); ++index) {
             info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
@@ -3408,7 +3408,7 @@ void DragSelectionWithCursor(void)
             moved.Set(cursor.x - g_mipe_state->drag_anchor.x + position.x,
                       cursor.y - g_mipe_state->drag_anchor.y + position.y,
                       cursor.z - g_mipe_state->drag_anchor.z + position.z);
-            info->p3D->SetPosition004A6DF0(&moved);
+            info->p3D->SetCyclePosition(&moved);
         }
     }
     g_mipe_state->drag_anchor = cursor;

@@ -827,7 +827,7 @@ unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
     chunks->Write(&record_version, 4, 0);
     if (info->fActive != 0) {
         MonsterGetLocation(info->p3D, &location);
-        location.y = SettlePositionToGround00420BD0(&location, 0);
+        location.y = SettlePositionToGround(&location, 0);
         info->position_17 = location;
         info->derived_23 = MonsterGetAngleD4(info->p3D);
     }
@@ -1438,7 +1438,7 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
         item->saved_marker = 1;
         if (item->fActive != 0) {
             srVector3T<float> position;
-            item->p3D->m_pRep->GetLocation004B8890(&position);
+            item->p3D->m_pRep->GetLocation(&position);
             item->position = position;
             item->entity_flags = static_cast<W8ItemRep*>(item_info->p3D->m_pRep)->flags;
         }

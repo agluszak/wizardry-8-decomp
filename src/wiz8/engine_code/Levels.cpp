@@ -586,7 +586,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             trigger->GetPosition(&trigger_position);
             position = trigger_position;
             position.y =
-                SettlePositionToGround00420BD0(&trigger_position, 0) + g_default_world_height;
+                SettlePositionToGround(&trigger_position, 0) + g_default_world_height;
             if (fabs(position.y - trigger_position.y) > g_position_height_epsilon) {
                 position.y = trigger_position.y;
             }

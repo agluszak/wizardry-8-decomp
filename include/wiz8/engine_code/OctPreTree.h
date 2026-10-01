@@ -29,7 +29,7 @@ struct W8OctRegionVolume {
     srVector3T<float> points_1c[9];
     W8Plane planes_88[6];
 
-    unsigned char ContainsPoint0049E460(const srVector3T<float>* point) const;
+    unsigned char ContainsPoint(const srVector3T<float>* point) const;
 };
 
 /* A reusable, non-polymorphic 0x9c spatial record.  Octree.cpp constructs one

@@ -34,10 +34,10 @@ public:
     virtual ~W8AnimRepBase() {}
     virtual W8AnimRepBase* Clone();
 
-    void SetLocation004B8850(const srVector3T<float>* location);
-    void GetLocation004B8890(srVector3T<float>* location) const;
+    void SetLocation(const srVector3T<float>* location);
+    void GetLocation(srVector3T<float>* location) const;
     void GetLocalLocation(srVector3T<float>* location) const;
-    void SetRotation004B88D0(const srMatrix3T<float>* rotation);
+    void SetRotation(const srMatrix3T<float>* rotation);
     void GetRotation(srMatrix3T<float>* rotation);
 
 public:

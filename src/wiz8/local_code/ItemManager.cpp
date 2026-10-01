@@ -756,7 +756,7 @@ void DeactivateWorldItem(W8WorldItem* item)
         g_level_block->selected_item = -1;
     }
 
-    item->p3D->m_pRep->GetLocation004B8890(&position);
+    item->p3D->m_pRep->GetLocation(&position);
     item->position = position;
     item->entity_flags = static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags;
 
@@ -859,7 +859,7 @@ void UpdateNearbyWorldItems(void)
         } else {
             srVector3T<float> location;
 
-            item->p3D->m_pRep->GetLocation004B8890(&location);
+            item->p3D->m_pRep->GetLocation(&location);
             if (DistanceBetweenPoints(&location, &camera) > g_float_005ec360) {
                 DeactivateWorldItem(item);
             }
@@ -1075,7 +1075,7 @@ bool IsWorldItemWithinReach(W8Item* owner, const srVector3T<float>* from, float 
     srVector3T<float> upper;
     srVector3T<float> eye;
 
-    owner->m_pRep->GetLocation004B8890(&position);
+    owner->m_pRep->GetLocation(&position);
     GetCameraPosition(&eye);
 
     srVector3T<float> delta(position.x - from->x, position.y - from->y, position.z - from->z);
@@ -1116,7 +1116,7 @@ bool AnyWorldItemVisible(void)
         W8WorldItem* item =
             static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, g_last_visible_world_item));
         if (item->p3D != 0) {
-            item->p3D->m_pRep->GetLocation004B8890(&position);
+            item->p3D->m_pRep->GetLocation(&position);
             GetCameraPosition(&eye);
             srVector3T<float> delta(position.x - camera.x, position.y - camera.y,
                                     position.z - camera.z);
@@ -1134,7 +1134,7 @@ bool AnyWorldItemVisible(void)
         W8WorldItem* item = static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, index));
 
         if (item->p3D != 0) {
-            item->p3D->m_pRep->GetLocation004B8890(&position);
+            item->p3D->m_pRep->GetLocation(&position);
             GetCameraPosition(&eye);
             srVector3T<float> delta(position.x - camera.x, position.y - camera.y,
                                     position.z - camera.z);

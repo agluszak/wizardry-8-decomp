@@ -362,7 +362,7 @@ void ResolveSprungTrap(Trigger* trigger)
                      0x3ed, 0);
     }
     if (trigger->m_pProp == 0) {
-        GetCameraForwardPoint00421150(1000.0f, &point);
+        GetCameraForwardPoint(1000.0f, &point);
     } else {
         trigger->m_pProp->PlayRepAnimation(&minimum, &maximum);
         point.Set((minimum.x + maximum.x) * g_double_005ebe80,

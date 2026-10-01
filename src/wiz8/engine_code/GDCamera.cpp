@@ -113,7 +113,7 @@ void GetCameraForwardPoint00421100(float distance, srVector3T<float>* output)
 }
 
 // FUNCTION: WIZ8 0x00421150
-void GetCameraForwardPoint00421150(float distance, srVector3T<float>* output)
+void GetCameraForwardPoint(float distance, srVector3T<float>* output)
 {
     g_gd_camera->GetForwardPoint(distance, output);
 }

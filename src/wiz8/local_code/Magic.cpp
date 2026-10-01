@@ -839,7 +839,7 @@ void FinishSpellEffect(W8SpellEffectEntry* effect)
             W8NavigatorMovementState* movement = &monster_info->p3D->movement_0c0;
             position = movement->position_040;
             position.y += movement->height_offset_0b8;
-            position.y = SettlePositionToGround00420BD0(&position, 0);
+            position.y = SettlePositionToGround(&position, 0);
             PostMonsterNotice(monster_info, gppStringList[0x195]);
         } else {
             GetCameraPosition(&position);
@@ -3175,7 +3175,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                         visual =
                             SpawnSpellEffect(&point, g_spell_records[0x76].resource_name, 1, 0, 0);
                     } else {
-                        GetCameraForwardPoint00421150(1.0, &forward_point);
+                        GetCameraForwardPoint(1.0, &forward_point);
                         forward_point.y -= g_default_world_height;
                         visual = SpawnSpellEffect(&forward_point,
                                                   g_spell_records[0x76].resource_name, 2, 0, 0);
@@ -3732,7 +3732,7 @@ void ScatterSpellPointTarget(int spell_id, W8TargetSource* source, W8CombatSlot*
             (Random(0x7d1) - g_monster_poster_max_distance) * range * g_double_005ec8d0 + origin.z);
         point.y = Random(0x3e9) * range * g_double_005ec8d0 + origin.y;
         g_octree->TraceLineOfSight(&origin, &point, 1, -3, -3, 1, 0);
-        point.y = SettlePositionToGround00420BD0(&point, 0);
+        point.y = SettlePositionToGround(&point, 0);
         if (point.y != g_ground_settle_fail) {
             break;
         }

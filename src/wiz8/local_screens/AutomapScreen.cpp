@@ -2088,7 +2088,7 @@ void RenderAutomapMarkers(void)
         W8Monster* monster = info->p3D;
         srVector3T<float> location;
         location = 0.0f;
-        monster->m_pRep->GetLocation004B8890(&location);
+        monster->m_pRep->GetLocation(&location);
         for (int layer = 0; layer < g_automap_layers.count; ++layer) {
             if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
                 *g_automap_layers.GetAt(layer) != 0 &&

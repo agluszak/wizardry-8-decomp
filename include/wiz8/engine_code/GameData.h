@@ -338,7 +338,7 @@ void GetLevelSoundEnvironment(char* environment, char* secondary);
 /* 0x00420BD0: settle a world point onto the octree ground through the
    GameData geometry index; the false branch reports the input height and
    clears the caller's hit byte. */
-float SettlePositionToGround00420BD0(const srVector3T<float>* position, bool* hit);
+float SettlePositionToGround(const srVector3T<float>* position, bool* hit);
 /* 0x00420C30: same ground-settle query with a fixed 500-unit probe range,
    returning the resulting height. */
 float SettlePositionToGround00420C30(srVector3T<float>* position, bool* hit);

@@ -116,7 +116,7 @@ W8MonsterGroup* SpawnMonsters(int monster_id, int count, srVector3T<float>* posi
     srVector3T<float> position_copy;
 
     if (settle != 0) {
-        position->y = SettlePositionToGround00420BD0(position, 0);
+        position->y = SettlePositionToGround(position, 0);
     }
     position_copy = *position;
     group = CreateGroup(monster_id, count, &position_copy, a, b, settle);
@@ -228,7 +228,7 @@ unsigned char DispatchWorldCursorNodeCommand(W8MonsterInfo* info, int command, .
     } else {
         position = info->p3D->GetPosition();
     }
-    position.y = SettlePositionToGround00420BD0(&position, 0) + g_float_005ec3f8;
+    position.y = SettlePositionToGround(&position, 0) + g_float_005ec3f8;
     node = FindWorldCursorNodeAtPoint(0, &position);
     if (command == 4) {
         context = va_arg(arguments, int);

@@ -181,7 +181,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                         continue;
                     }
                     nav.y = anchor.y + 2000.0f;
-                    nav.y = SettlePositionToGround00420BD0(&nav, 0);
+                    nav.y = SettlePositionToGround(&nav, 0);
                     srVector3T<float> cam(nav.x, nav.y + g_default_world_height, nav.z);
                     WorldSetCameraLocation(GetWorld659AB8(), &cam);
                     g_startup_world->SetPositionInternal(&nav);
@@ -681,7 +681,7 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
                 continue;
             }
             nav.y = anchor.y + 2000.0f;
-            nav.y = SettlePositionToGround00420BD0(&nav, 0);
+            nav.y = SettlePositionToGround(&nav, 0);
             /* SettleFrom-above lands on the highest floor under the start
                point; a raised ledge or roof leaves the party out of every
                band, so only accept landings near the monster's own level. */

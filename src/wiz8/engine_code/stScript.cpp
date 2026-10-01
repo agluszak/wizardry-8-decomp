@@ -92,11 +92,11 @@ srClass* stScript::vInstance()
 // FUNCTION: WIZ8 0x004CF260
 stScript::~stScript()
 {
-    Clear004CF690();
+    Clear();
 }
 
 // FUNCTION: WIZ8 0x004CF690
-void stScript::Clear004CF690()
+void stScript::Clear()
 {
     while (lines.GetCount() != 0) {
         stScriptLine* line = lines.RemoveAt(0);

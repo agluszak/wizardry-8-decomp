@@ -1638,7 +1638,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
         for (unsigned short region_index = 1; region_index < spatial_00.region_count_46;
              ++region_index) {
             W8OctRegionVolume* volume = spatial_00.owned_5c + region_index;
-            if (volume->ContainsPoint0049E460(&position) != 0) {
+            if (volume->ContainsPoint(&position) != 0) {
                 unsigned short region = volume->region_04;
                 bool present = false;
                 int entry = -1;
@@ -1687,7 +1687,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
                             for (unsigned short region_index = 1;
                                  region_index < spatial_00.region_count_46; ++region_index) {
                                 W8OctRegionVolume* volume = spatial_00.owned_5c + region_index;
-                                if (volume->ContainsPoint0049E460(&corner) != 0) {
+                                if (volume->ContainsPoint(&corner) != 0) {
                                     unsigned short region = volume->region_04;
                                     bool present = false;
                                     int entry = -1;
@@ -1789,7 +1789,7 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
                             srVector3T<float> corner;
                             corner.Set(bounds[x].x * g_world_scale, bounds[y].y * g_world_scale,
                                        bounds[z].z * g_world_scale);
-                            if (volume->ContainsPoint0049E460(&corner) != 0) {
+                            if (volume->ContainsPoint(&corner) != 0) {
                                 unsigned short region = volume->region_04;
                                 bool present = false;
                                 int entry = -1;

@@ -114,7 +114,7 @@ public:
        node reports itself current, else the rep node's own position. */
     void GetPosition0044E2C0(srVector3T<float>* out); /* 0x0044E2C0 */
     /* Mirror of GetPosition0044E2C0: writes `position` back to the rep node's
-       position when the rep is current, else through SetLocation004B8850. */
+       position when the rep is current, else through SetLocation. */
     void SetPosition0044E310(srVector3T<float>* position); /* 0x0044E310 */
     /* Whether trigger_18 exists and carries the action-message flag. */
     bool TriggerHasActionMessage(); /* 0x0044E360 */

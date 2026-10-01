@@ -1113,7 +1113,7 @@ unsigned int W8Octree::RegionKeyForPoint(const srVector3T<float>* point)
             if (region != 0) {
                 return region;
             }
-            if (spatial_000.owned_5c[index].ContainsPoint0049E460(point) != 0) {
+            if (spatial_000.owned_5c[index].ContainsPoint(point) != 0) {
                 region = index;
             }
             ++index;
@@ -5093,7 +5093,7 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
                 candidate.y = source.y + g_world_scale;
                 candidate.z = (ring + jitter_ring) * cos_step + source.z +
                               (jitter_column + *column_offset) * sin_step;
-                float ground = SettlePositionToGround00420BD0(&candidate, 0);
+                float ground = SettlePositionToGround(&candidate, 0);
                 float height = candidate.y - ground;
                 if (g_double_005ebc30 <= fabsf(height) && fabsf(height) <= g_double_005ec038 &&
                     (flatten_y != 0 || fabsf(height) <= g_double_005ec030)) {
@@ -5184,7 +5184,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     float sin_radius = radius * sin_angle;
     float neg_cos_radius = -cos_radius;
     source->y += g_world_scale;
-    float ground = SettlePositionToGround00420BD0(source, 0);
+    float ground = SettlePositionToGround(source, 0);
     float height = source->y - ground;
     if (g_double_005ebc30 <= fabsf(height) && fabsf(height) <= g_double_005ec038 &&
         (settle_any_height != 0 || fabsf(height) <= g_double_005ec030)) {
@@ -5241,7 +5241,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
                             candidate.y = source->y + g_world_scale;
                             candidate.z = (i + jitter_i) * cos_radius + source->z +
                                           (jitter_j + j) * sin_radius;
-                            ground = SettlePositionToGround00420BD0(&candidate, 0);
+                            ground = SettlePositionToGround(&candidate, 0);
                             height = candidate.y - ground;
                             if (g_double_005ebc30 <= fabsf(height) &&
                                 fabsf(height) <= g_double_005ec038 &&

@@ -1406,7 +1406,7 @@ void Trigger::RunLinkedTriggers()
 /* Store the trigger position and flag the representation dirty; an item
    representation is moved and re-transformed in place. */
 // FUNCTION: WIZ8 0x004416f0
-void Trigger::SetPosition004416F0(srVector3T<float>* position)
+void Trigger::SetPosition(srVector3T<float>* position)
 {
     flags_0a0 |= W8_TRIGGER_POSITIONED;
     position_118 = *position;

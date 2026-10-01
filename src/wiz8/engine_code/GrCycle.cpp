@@ -584,12 +584,12 @@ W8GrCycle::~W8GrCycle()
 }
 
 // FUNCTION: WIZ8 0x004a6df0
-void W8GrCycle::SetPosition004A6DF0(srVector3T<float>* position)
+void W8GrCycle::SetCyclePosition(srVector3T<float>* position)
 
 {
     W8EmitterHost* representation = GetRepresentation();
 
-    representation->SetLocation004B8850(position);
+    representation->SetLocation(position);
     SetPositionInternal(position);
     return;
 }
@@ -976,7 +976,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         srVector3T<float> origin;
 
         if (AnimationIsRunning(animation) == 1) {
-            pRep->GetLocation004B8890(&origin);
+            pRep->GetLocation(&origin);
         } else {
             vecPos = movement_0c0.position_040;
             origin = vecPos;

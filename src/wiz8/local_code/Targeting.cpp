@@ -467,7 +467,7 @@ void AimAtGroundTarget(int party_slot)
     target.iChar = BAD_INDEX;
     target.iGroupID = BAD_INDEX;
     target.iType = W8_TARGET_KIND_PLACE;
-    GetCameraForwardPoint00421150(GetRangeConstant5EC35C(), &position);
+    GetCameraForwardPoint(GetRangeConstant5EC35C(), &position);
     target.point = position;
     AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
     StartBreathCycle(party_slot, 0);
@@ -1920,7 +1920,7 @@ void RefreshSpellTargetHighlightsAtRange(void)
     srVector3T<float> position;
     W8MonsterInfo* monster_info;
 
-    GetCameraForwardPoint00421150(GetRangeConstant5EC35C(), &position);
+    GetCameraForwardPoint(GetRangeConstant5EC35C(), &position);
     if ((position == gXStatus.target_position)) {
         return;
     }

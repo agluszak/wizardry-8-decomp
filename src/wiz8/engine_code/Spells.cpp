@@ -275,7 +275,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         float pitch;
 
         GetCameraPosition(&position);
-        SetPosition004A6DF0(&position);
+        SetCyclePosition(&position);
         rotation.SetIdentity();
         angle = GetCameraYawRadians() - g_monster_rotation_offset;
         if (angle != g_zero_005ebb40) {
@@ -306,14 +306,14 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
             position.x = monster_position.x;
             position.y = monster_position.y + (maximum.y - minimum.y) * g_float_005ebc7c;
             position.z = monster_position.z;
-            SetPosition004A6DF0(&position);
+            SetCyclePosition(&position);
         }
     } else if (mode_1d8 == W8_SPELL_VISUAL_CONE) {
         GetCurrentModelInstance();
         if (fixed_transform == 0) {
             GetCameraPosition(&camera_position);
             if (location_id_1ec == 0) {
-                SetPosition004A6DF0(&camera_position);
+                SetCyclePosition(&camera_position);
                 g_gd_camera->GetRotationMatrix(&rotation);
                 apply_rotation = true;
             } else {
@@ -321,7 +321,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
 
                 if (monster != 0) {
                     if (monster->Query(6) == 0x19 && monster->GetSpellPosition(&position) != 0) {
-                        SetPosition004A6DF0(&position);
+                        SetCyclePosition(&position);
                     }
 
                     rotation.SetIdentity();
@@ -340,7 +340,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
     }
 
     if (apply_rotation) {
-        host->SetRotation004B88D0(&rotation);
+        host->SetRotation(&rotation);
     }
 
     if (host->billboard_378 != 0) {
@@ -355,7 +355,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         if (angle != g_zero_005ebb40) {
             billboard.RotateAboutY(sin(angle), cos(angle));
         }
-        host->SetRotation004B88D0(&billboard);
+        host->SetRotation(&billboard);
     }
 
     srModelInstance* instance = GetCurrentModelInstance();
@@ -930,7 +930,7 @@ placed:
         visual->effect_value_1f0 = value;
         visual->flags_1f4 = flags;
         GetCameraPosition(&position);
-        visual->SetPosition004A6DF0(&position);
+        visual->SetCyclePosition(&position);
         rotation.SetIdentity();
         angle = GetCameraYawRadians() - g_monster_rotation_offset;
         if (angle != g_zero_005ebb40) {
@@ -940,7 +940,7 @@ placed:
         if (pitch != g_zero_005ebb40) {
             rotation.RotateAboutX(sin(pitch), cos(pitch));
         }
-        visual->host->SetRotation004B88D0(&rotation);
+        visual->host->SetRotation(&rotation);
     }
     return visual;
 }
@@ -1010,7 +1010,7 @@ placed:
         monster->GetAnimationBounds(&minimum, &maximum);
         position = monster->GetPosition();
         position.y += (maximum.y - minimum.y) * g_float_005ebc7c;
-        visual->SetPosition004A6DF0(&position);
+        visual->SetCyclePosition(&position);
         height = maximum.y - minimum.y;
         width = maximum.x - minimum.x;
         if (height <= width) {
@@ -1092,14 +1092,14 @@ placed:
             if (parent->GetSpellPosition(&position) == 0) {
                 parent->GetMappedPosition(&position);
             }
-            visual->SetPosition004A6DF0(&position);
+            visual->SetCyclePosition(&position);
         } else {
             srMatrix3T<float> rotation;
 
             GetCameraPosition(&position);
             g_gd_camera->GetRotationMatrix(&rotation);
-            visual->SetPosition004A6DF0(&position);
-            visual->host->SetRotation004B88D0(&rotation);
+            visual->SetCyclePosition(&position);
+            visual->host->SetRotation(&rotation);
         }
     }
     return visual;
@@ -1157,8 +1157,8 @@ placed:
         visual->host->pending_cycle = static_cast<signed char>(cycle);
         visual->effect_value_1f0 = value;
         visual->flags_1f4 = flags;
-        visual->SetPosition004A6DF0(position);
-        visual->host->SetRotation004B88D0(rotation);
+        visual->SetCyclePosition(position);
+        visual->host->SetRotation(rotation);
         visual->fixed_transform = 1;
     }
     return visual;
