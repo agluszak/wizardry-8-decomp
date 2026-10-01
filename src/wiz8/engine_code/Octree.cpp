@@ -36,6 +36,7 @@
 #include "wiz8/monster_generators.h"
 #include "wiz8/utility.h"
 #include "wiz8/world_cursor.h"
+#include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stParticle.h"
@@ -1499,13 +1500,13 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     unsigned int camera_count = PLLength(world->plsCameras);
     if (!aborted && world->plsCameras != 0 && camera_count != 0) {
         for (int camera_index = 0; camera_index < static_cast<int>(camera_count); ++camera_index) {
-            W8WorldCameraEntry* entry =
-                static_cast<W8WorldCameraEntry*>(PLGet(world->plsCameras, camera_index));
-            if (entry != 0 && entry->path != 0) {
-                for (int node_index = 0; node_index < entry->path->nodes_0c->GetCount();
+            W8CameraPath* entry =
+                static_cast<W8CameraPath*>(PLGet(world->plsCameras, camera_index));
+            if (entry != 0 && entry->path_18 != 0) {
+                for (int node_index = 0; node_index < entry->path_18->nodes_0c->GetCount();
                      ++node_index) {
                     unsigned int key =
-                        SampleRegionLinks(*entry->path->nodes_0c->GetAt(node_index), 1, 1, 0);
+                        SampleRegionLinks(*entry->path_18->nodes_0c->GetAt(node_index), 1, 1, 0);
                     RecordRegionMeshLinks(key);
                 }
             }

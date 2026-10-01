@@ -518,7 +518,7 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
 
     notify.spell.power_level = power_level;
     notify.spell.unused = 0;
-    ChooseAction(party_slot, 7, spell_id, &notify, 0, 1);
+    ChooseAction(party_slot, W8_ACTION_CAST_SPELL, spell_id, &notify, 0, 1);
 
     SetPartySlotSpell(party_slot, spell_id, power_level,
                       GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT));
@@ -551,7 +551,7 @@ void StartCharacterBreathAttack(int party_slot)
     if (!CanCharReBreathe(party_slot)) {
         srAssertFail("CanCharReBreathe(uiChar)", MAGIC_CPP, 5320, 0);
     }
-    ChooseAction(party_slot, 2, -1, 0, 0, 1);
+    ChooseAction(party_slot, W8_ACTION_BREATHE, -1, 0, 0, 1);
     AimAtTarget(party_slot, &row->target_context_5, W8_TARGETING_CONTEXT_CURRENT);
     if (IsSpellTargetStillValidIn(party_slot, 0x77, W8_TARGETING_CONTEXT_FIVE)) {
         StartBreathCycle(party_slot, 0);
@@ -949,7 +949,7 @@ void StartCharacterSpellCast(int party_slot, int power_level)
         named.spell.unused = 0;
         target = &named;
     }
-    ChooseAction(party_slot, 7, row->spell_id, target, 0, 1);
+    ChooseAction(party_slot, W8_ACTION_CAST_SPELL, row->spell_id, target, 0, 1);
     AimAtTarget(party_slot, &saved_target, W8_TARGETING_CONTEXT_CURRENT);
 
     if (IsSpellTargetStillValidIn(party_slot, row->spell_id, W8_TARGETING_CONTEXT_SPELL)) {
@@ -971,7 +971,7 @@ void StartCharacterItemUse(int party_slot)
     if (gXStatus.fCombatMode == 0) {
         AimAtTarget(party_slot, &row->item_target, W8_TARGETING_CONTEXT_CURRENT);
     }
-    ChooseAction(party_slot, 8, -1, &row->item_detail, 0, 1);
+    ChooseAction(party_slot, W8_ACTION_USE_ITEM, -1, &row->item_detail, 0, 1);
     AimAtTarget(party_slot, &saved_target, W8_TARGETING_CONTEXT_CURRENT);
     FindCharacterItemAt(party_slot, row->item_origin, row->item_slot);
 
@@ -3766,9 +3766,9 @@ void CheckSpellBackfire(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         if (target->iType == W8_TARGET_KIND_CHARACTER && target->iChar == source->iChar) {
             return;
         }
-        if (CharacterHasTrait(character, 7)) {
+        if (CharacterHasTrait(character, W8_TRAIT_EFFECTIVE_WHILE_BLIND)) {
             if (Random(100) < static_cast<unsigned int>(static_cast<int>(
-                                  ScaleValueByProfessionLevel(character, 7, 50.0)))) {
+                                  ScaleValueByProfessionLevel(character, W8_TRAIT_EFFECTIVE_WHILE_BLIND, 50.0)))) {
                 return;
             }
         }

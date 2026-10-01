@@ -3,6 +3,7 @@
 #include <wchar.h>
 
 #include "surrender/srMath.h"
+#include "wiz8/layouts/targeting.h"
 
 class W8Monster;
 struct W8Character;
@@ -27,7 +28,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
    monster from its location id. Retail callers pass a third argument the
    body never reads. */
 void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int arg_3);
-unsigned int CharacterActionFatigueCost(int party_slot, int action_kind);
+unsigned int CharacterActionFatigueCost(int party_slot, W8ActionKind action_kind);
 void DamageCharacter(int party_slot, unsigned int damage, char announce); /* 0x0052B7E0 */
 void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amount,
                                     char announce); /* 0x0052B6D0 */

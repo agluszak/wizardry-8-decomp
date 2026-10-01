@@ -515,10 +515,10 @@ void DestroyWorldCollections(W8World* world)
 
     if (world->plsCameras != 0) {
         while (PLLength(world->plsCameras) != 0) {
-            W8WorldCameraEntry* entry =
-                static_cast<W8WorldCameraEntry*>(PLGet(world->plsCameras, 0));
+            W8CameraPath* entry =
+                static_cast<W8CameraPath*>(PLGet(world->plsCameras, 0));
             PLRemoveAt(world->plsCameras, 0);
-            DestroyPathAI(entry->path);
+            DestroyPathAI(entry->path_18);
             free(entry);
         }
         PLDestroy(world->plsCameras);

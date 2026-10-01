@@ -2152,7 +2152,7 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
             W8ItemInstance* item = 0;
             signed char origin = static_cast<signed char>(party_row->item_origin);
             short item_slot = static_cast<short>(party_row->item_slot);
-            if (party_row->fOccupied != 0 && party_row->pending_action == 8 && origin != -1 &&
+            if (party_row->fOccupied != 0 && party_row->pending_action == W8_ACTION_USE_ITEM && origin != -1 &&
                 item_slot != -1) {
                 item = FindCharacterItemAt(slot, static_cast<unsigned char>(origin),
                                            static_cast<unsigned short>(item_slot));

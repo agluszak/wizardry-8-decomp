@@ -573,7 +573,7 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
             }
             if (gXStatus.fCombatMode != 0 && IsEquippableItemClass(item) == 0 &&
                 (g_combat_state->equip_phase_a50 == 0 ||
-                 g_status.buffers.XChar[giReviewCharSlot].pending_action != 9)) {
+                 g_status.buffers.XChar[giReviewCharSlot].pending_action != W8_ACTION_EQUIP)) {
                 return;
             }
             SetTargetCursor(GetTargetingCursorForState(flag));

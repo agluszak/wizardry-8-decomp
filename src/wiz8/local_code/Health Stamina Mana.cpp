@@ -140,7 +140,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
 
     applied = character->hp_current;
     if (applied <= amount) {
-        if (CharacterHasTrait(character, 2) != 0 &&
+        if (CharacterHasTrait(character, W8_TRAIT_CHEAT_DEATH) != 0 &&
             character->uiCondition[W8_CONDITION_EXHAUSTED] < 7) {
             CheatDeathRevive(party_slot);
             RecordCharacterDamage(party_slot, amount);
@@ -1023,7 +1023,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
    stamina with a floor, and the rest are free. A character who tires twice as
    fast pays double. */
 // FUNCTION: WIZ8 0x0052b2f0
-unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
+unsigned int CharacterActionFatigueCost(int party_slot, W8ActionKind action_kind)
 {
     unsigned int cost = 0;
     W8CombatCharacterRow* combat_row = &g_combat_state->characters[party_slot];
@@ -1157,7 +1157,7 @@ void CharacterDies(int party_slot)
             g_combat_state->eCombatActionStatus = 0;
             g_combat_state->iActionChar = -1;
         }
-        row->pending_action = -1;
+        row->pending_action = W8_ACTION_NONE;
         g_combat_state->characters[party_slot].phase = 0;
         g_combat_state->characters[party_slot].dead_34 = 1;
         DropCharacterFromRound(party_slot);

@@ -70,7 +70,7 @@ void RebuildPartyEffectBlock(void)
     while (slot_byte <= 0x82f) {
         W8Character* character = &g_status.buffers.Char[active];
         if (g_status.buffers.XChar[active].fOccupied != 0 && character->hp_current != 0 &&
-            character->highest_condition == 0 && CharacterHasTrait(character, 10) != 0) {
+            character->highest_condition == 0 && CharacterHasTrait(character, W8_TRAIT_CAMP_RECOVERY_BONUS) != 0) {
             break;
         }
         slot_byte += 0x106;
@@ -421,12 +421,12 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
             target->attribute_adjustments[1] -= 0x32;
             break;
         case 0xc:
-            if (character == 0 || CharacterHasTrait(character, 7) == 0) {
+            if (character == 0 || CharacterHasTrait(character, W8_TRAIT_EFFECTIVE_WHILE_BLIND) == 0) {
                 target->attribute_adjustments[6] -= 0x32;
                 target->out_of_formation = 1;
             } else {
                 target->attribute_adjustments[6] +=
-                    static_cast<signed char>(ScaleValueByProfessionLevel(character, 7, 50.0f)) -
+                    static_cast<signed char>(ScaleValueByProfessionLevel(character, W8_TRAIT_EFFECTIVE_WHILE_BLIND, 50.0f)) -
                     0x32;
             }
             break;

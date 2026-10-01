@@ -119,6 +119,7 @@ static_assert(sizeof(W8ActionDetailBlock) == 0x08, "W8ActionDetailBlock_size");
    move kinds, which ApplyPartyCombatAction routes away from the action
    record. */
 enum W8ActionKind {
+    W8_ACTION_NONE = -1,
     W8_ACTION_ATTACK = 0,
     W8_ACTION_BERSERK = 1,
     W8_ACTION_BREATHE = 2,

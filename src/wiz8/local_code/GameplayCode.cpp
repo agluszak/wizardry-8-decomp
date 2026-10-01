@@ -788,7 +788,7 @@ void CalcArmorClasses(W8Character* character)
     int location_slot = 0;
     if (gXStatus.fCombatMode) {
         unsigned int slot = CharacterPointerToPartySlot(character);
-        defensive_action = TryCharacterAction(slot, 4, 0) || TryCharacterAction(slot, 5, 0);
+        defensive_action = TryCharacterAction(slot, W8_ACTION_DEFEND, 0) || TryCharacterAction(slot, W8_ACTION_PROTECT, 0);
     }
 
     unsigned int index;
@@ -807,7 +807,7 @@ void CalcArmorClasses(W8Character* character)
     }
 
     if (character->highest_condition <= 0x11) {
-        if (CharacterHasTrait(character, 0x16)) {
+        if (CharacterHasTrait(character, W8_TRAIT_FAERIE_BASE_ARMOR_CLASS)) {
             character->armor_class_components[0] += 2;
         }
         unsigned int speed = character->attributes[5].effective;

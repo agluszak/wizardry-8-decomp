@@ -36,6 +36,7 @@
 #include "surrender/srCamera.h"
 #include "surrender/srGERD.h"
 #include "surrender/srScene.h"
+#include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/local_screens/AutomapScreen.h"
@@ -764,7 +765,7 @@ unsigned char ReadWorldCameras(W8ReadLevelInfo* pInfo, W8World* pWorld)
     unsigned char has_scale;
     float scale;
     unsigned char success;
-    W8WorldCameraEntry* entry;
+    W8CameraPath* entry;
 
     if (pInfo == 0 || (pInfo->hFile == 0 | pWorld == 0)) {
         return 0;
@@ -778,27 +779,27 @@ unsigned char ReadWorldCameras(W8ReadLevelInfo* pInfo, W8World* pWorld)
     }
 
     for (index = 0; index < count; ++index) {
-        entry = static_cast<W8WorldCameraEntry*>(malloc(sizeof(W8WorldCameraEntry)));
+        entry = static_cast<W8CameraPath*>(malloc(sizeof(W8CameraPath)));
         if (entry == 0) {
             return 0;
         }
-        memset(entry, 0, sizeof(W8WorldCameraEntry));
+        memset(entry, 0, sizeof(W8CameraPath));
         FileRead(pInfo->hFile, &positional_0, sizeof(positional_0), 0);
         FileRead(pInfo->hFile, &positional_1, sizeof(positional_1), 0);
         FileRead(pInfo->hFile, &has_scale, sizeof(has_scale), 0);
-        FileRead(pInfo->hFile, entry->positional_00, sizeof(entry->positional_00), 0);
+        FileRead(pInfo->hFile, entry->name_00, sizeof(entry->name_00), 0);
         if (has_scale > 0) {
             FileRead(pInfo->hFile, &scale, sizeof(scale), 0);
         } else {
             scale = 15.0f;
         }
 
-        entry->path = 0;
-        success = success && LoadPathAI(&entry->path, pInfo->hFile);
-        PathAIEnableTimedMode(entry->path);
+        entry->path_18 = 0;
+        success = success && LoadPathAI(&entry->path_18, pInfo->hFile);
+        PathAIEnableTimedMode(entry->path_18);
         PLAdoptAppend(pWorld->plsCameras, entry);
-        entry->path->entry_index_10 = index;
-        PathAISetScale(entry->path, scale);
+        entry->path_18->entry_index_10 = index;
+        PathAISetScale(entry->path_18, scale);
     }
     return 1;
 }

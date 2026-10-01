@@ -688,7 +688,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     if (condition == W8_CONDITION_POISONED && argument == 0) {
         return 0;
     }
-    if (condition == 0x12 && CharacterHasTrait(character, 2) != 0 &&
+    if (condition == 0x12 && CharacterHasTrait(character, W8_TRAIT_CHEAT_DEATH) != 0 &&
         character->uiCondition[17] < 7) {
         CheatDeathRevive(party_slot);
         return 0;
@@ -713,7 +713,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     }
     switch (condition) {
     case 6:
-        if (CharacterHasTrait(character, 3) != 0) {
+        if (CharacterHasTrait(character, W8_TRAIT_FEARLESS) != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x180]);
             return 0;
         }
@@ -733,7 +733,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         }
         /* fall through */
     case 0xd:
-        if (CharacterHasTrait(character, 0xe) != 0) {
+        if (CharacterHasTrait(character, W8_TRAIT_MENTAL_CONDITION_IMMUNITY) != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x181]);
             return 0;
         }

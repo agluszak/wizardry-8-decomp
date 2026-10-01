@@ -1152,7 +1152,7 @@ int GetTargetArmorClassModifier(W8CombatSlot* target, unsigned int attack_mode)
                     modifier -= component;
                 }
             }
-            if (GetEngagementCount() == 0 && TryCharacterAction(target->iChar, 6, 0) != 0) {
+            if (GetEngagementCount() == 0 && TryCharacterAction(target->iChar, W8_ACTION_PRAY, 0) != 0) {
                 modifier -= 4;
             }
             distracted = GetEngagementCount() == 2;
@@ -2539,8 +2539,8 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
         int engaged = GetEngagementCount();
         out_of_formation = target->bonus_1770.out_of_formation;
         bVar10 = engaged == 2;
-        target_exposed = TryCharacterAction(g_combat_state->TargetHit.iChar, 4, 1) != 0 ||
-                         TryCharacterAction(g_combat_state->TargetHit.iChar, 5, 1) != 0;
+        target_exposed = TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_DEFEND, 1) != 0 ||
+                         TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_PROTECT, 1) != 0;
     }
 
     unsigned int dice_count = 1;
@@ -2549,7 +2549,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
             dice_count = 2;
         }
         if (g_combat_state->natural_attack_9a5 != 0) {
-            int chance = static_cast<int>(ScaleValueByProfessionLevel(pPC, 9, 100.0f));
+            int chance = static_cast<int>(ScaleValueByProfessionLevel(pPC, W8_TRAIT_BACKSTAB, 100.0f));
             unsigned int roll = Random(100);
             int extra = 0;
             if (roll + 15 < static_cast<unsigned int>(chance)) {
@@ -2789,8 +2789,8 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
         int engaged = GetEngagementCount();
         out_of_formation = target->bonus_1770.out_of_formation;
         bVar10 = engaged == 2;
-        target_exposed = TryCharacterAction(g_combat_state->TargetHit.iChar, 4, 1) != 0 ||
-                         TryCharacterAction(g_combat_state->TargetHit.iChar, 5, 1) != 0;
+        target_exposed = TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_DEFEND, 1) != 0 ||
+                         TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_PROTECT, 1) != 0;
     } else {
         if (g_combat_state->TargetHit.iMonsterID == -1) {
             srAssertFail("gpCombat->TargetHit.iMonsterID != BAD_INDEX", COMBAT_ATTACK_CPP, 0xd48,
@@ -3742,7 +3742,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     }
     row->uiSwingsRemaining = Random(character->Hand[hand].swings) + 1;
     range = GetCharAttackRange(character, hand);
-    if (CharacterHasTrait(character, 9) != 0 && range <= W8_RANGE_TOUCH &&
+    if (CharacterHasTrait(character, W8_TRAIT_BACKSTAB) != 0 && range <= W8_RANGE_TOUCH &&
         (character->Hand[hand].weapon_skill == 0 || character->Hand[hand].weapon_skill == 4)) {
         g_combat_state->natural_attack_9a5 = 1;
     }

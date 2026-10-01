@@ -201,7 +201,7 @@ bool CanSelectRcsPartySlot(int ui_slot)
         if (!g_combat_state->equip_phase_a50) {
             return false;
         }
-        if (g_status.buffers.XChar[ui_slot].pending_action != 9) {
+        if (g_status.buffers.XChar[ui_slot].pending_action != W8_ACTION_EQUIP) {
             return false;
         }
     }
@@ -1304,7 +1304,7 @@ void RefreshCampItemActions(unsigned char invalidate)
                 }
                 if (gXStatus.fCombatMode == 0 ||
                     (g_combat_state->equip_phase_a50 != 0 &&
-                     g_status.buffers.XChar[giReviewCharSlot].pending_action == 9)) {
+                     g_status.buffers.XChar[giReviewCharSlot].pending_action == W8_ACTION_EQUIP)) {
                     control->SetEnabled(1);
                     continue;
                 }
@@ -1339,7 +1339,7 @@ void RefreshCampItemActions(unsigned char invalidate)
                 continue;
             case 5:
                 control->SetEnabled(IsPartySlotEligible(giReviewCharSlot) != 0 &&
-                                    CharacterHasTrait(g_review_character, 0xd) != 0);
+                                    CharacterHasTrait(g_review_character, W8_TRAIT_REMOVE_CURSED_ITEMS) != 0);
                 continue;
             case 6:
                 if (g_review_character->spell_learned[0x17] != 1) {

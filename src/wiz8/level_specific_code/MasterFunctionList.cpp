@@ -308,7 +308,7 @@ unsigned char WorldCursorNodeShowMessageOnce(int command, W8WorldCursorNode* nod
         g_status.party_modifiers_22e3.detect_secrets_46 == 0) {
         for (slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
             if (g_status.buffers.XChar[slot].fOccupied != 0 &&
-                CharacterHasTrait(g_status.buffers.Char + slot, 0xc)) {
+                CharacterHasTrait(g_status.buffers.Char + slot, W8_TRAIT_SEARCH)) {
                 goto command_check;
             }
         }

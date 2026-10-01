@@ -5035,6 +5035,8 @@ void FallbackFromUnreachableAction(int party_slot)
             }
         }
         break;
+    default:
+        break;
     }
 }
 

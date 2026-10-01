@@ -425,6 +425,7 @@ _BYTE_STRIDE = re.compile(
     r"\bmalloc\(\s*(0[xX][0-9A-Fa-f]+)\s*\)"
     r"|\*\s*(0[xX][0-9A-Fa-f]+)\b(?!\s*\.)"
     r"|\bmem(?:set|cpy|move)\([^;]*,\s*(0[xX][0-9A-Fa-f]+)\s*\)"
+    r"|\b(?:FileRead|FileWrite|fread|fwrite)\([^;,]*,[^;,]*,\s*(0[xX][0-9A-Fa-f]+)\s*,"
 )
 _MIN_STRIDE_RECORD_SIZE = 0x10
 _MAX_STRIDE_CANDIDATES = 2
@@ -459,6 +460,276 @@ def _byte_strides(sources: dict[str, str]) -> list[dict[str, Any]]:
                 }
             )
     rows.sort(key=lambda row: (len(row["candidate_types"]), row["location"]))
+    return rows
+
+
+_GENERIC_WORDS = frozenset(
+    [
+        "m",
+        "g",
+        "s",
+        "field",
+        "value",
+        "unknown",
+        "unk",
+        "flag",
+        "flags",
+        "byte",
+        "bytes",
+        "dword",
+        "word",
+        "float",
+        "int",
+        "ptr",
+        "data",
+        "var",
+        "bits",
+        "short",
+        "long",
+        "double",
+    ]
+)
+_STORAGE_WORDS = frozenset(
+    [
+        "field",
+        "value",
+        "unknown",
+        "unk",
+        "flag",
+        "byte",
+        "dword",
+        "word",
+        "float",
+        "int",
+        "ptr",
+        "data",
+        "var",
+        "bits",
+        "short",
+        "long",
+        "double",
+    ]
+)
+_HEX_PART = re.compile(r"^(?:0x)?[0-9A-Fa-f]*[0-9][0-9A-Fa-f]*$")
+_MARKER_COMMENT = re.compile(
+    r"^//\s*(?:GLOBAL|LIBRARY|FUNCTION|SYNTHETIC|STRING|VTABLE|TEMPLATE|LINE)\b"
+)
+_COMMENT_STOP_WORDS = frozenset(
+    [
+        "the",
+        "and",
+        "for",
+        "this",
+        "that",
+        "from",
+        "with",
+        "when",
+        "only",
+        "each",
+        "used",
+        "retail",
+        "stored",
+        "into",
+        "than",
+        "then",
+        "also",
+        "have",
+        "does",
+        "were",
+        "which",
+        "while",
+    ]
+)
+
+
+def _placeholder_identifier(name: str) -> bool:
+    """True when every word of ``name`` is a storage placeholder or an address/offset."""
+
+    parts = [part for part in name.rsplit("::", 1)[-1].split("_") if part]
+    words = [part.lower() for part in parts if not _HEX_PART.match(part)]
+    return all(word in _GENERIC_WORDS for word in words) and (
+        not words or any(word in _STORAGE_WORDS for word in words)
+    )
+
+
+def _adjacent_comment(lines: list[str], line: int) -> str:
+    """Words of the trailing or immediately preceding authored comment."""
+
+    if not 0 < line <= len(lines):
+        return ""
+    trailing = re.search(r"/\*(.*?)\*/|//(.*)$", lines[line - 1])
+    text = (trailing.group(1) or trailing.group(2) or "") if trailing else ""
+    if not text.strip():
+        for previous in reversed(lines[max(line - 4, 0) : line - 1]):
+            stripped = previous.strip()
+            if _MARKER_COMMENT.match(stripped):
+                continue
+            if stripped.startswith(("//", "/*", "*")) or stripped.endswith("*/"):
+                text = stripped
+            break
+    words = re.sub(r"0x[0-9A-Fa-f]+|[^A-Za-z ]", " ", text).lower().split()
+    return " ".join(word for word in words if len(word) > 3 and word not in _COMMENT_STOP_WORDS)
+
+
+def _known_semantics_bad_spelling(
+    index: dict[str, Any], sources: dict[str, str], usage: _Usage
+) -> list[dict[str, Any]]:
+    """Placeholder-named storage whose adjacent comment already states a meaning."""
+
+    lines = {path: text.split("\n") for path, text in sources.items()}
+    candidates: dict[tuple[str, str], dict[str, Any]] = {}
+
+    def consider(kind: str, owner: str, name: str, path: str, line: int, type_: Any) -> None:
+        if (
+            not _wiz8_path(path)
+            or _PADDING_STORAGE.match(name)
+            or not _placeholder_identifier(name)
+        ):
+            return
+        comment = _adjacent_comment(lines.get(path, []), line)
+        if comment:
+            candidates.setdefault(
+                (owner, name),
+                {
+                    "kind": kind,
+                    "name": f"{owner}::{name}" if owner else name,
+                    "type": type_,
+                    "location": f"{path}:{line}",
+                    "comment": comment,
+                    "identifier": name,
+                },
+            )
+
+    for variable in index.get("variables", []):
+        name = str(variable.get("qualified_name") or "")
+        if variable.get("target") == "WIZ8" and "::" not in name:
+            consider(
+                "global",
+                "",
+                name,
+                str(variable.get("source_file") or ""),
+                int(variable.get("line") or 0),
+                variable.get("type"),
+            )
+    for record in index.get("classes", []):
+        for field in record.get("fields", []):
+            consider(
+                "member",
+                str(record.get("qualified_name") or ""),
+                str(field.get("name") or ""),
+                str(field.get("source_file") or ""),
+                int(field.get("line") or 0),
+                field.get("type"),
+            )
+    rows = []
+    for row in candidates.values():
+        identifier = row.pop("identifier")
+        rows.append({**row, **usage(identifier, 1)})
+    rows.sort(key=lambda row: (-row["references"], row["name"]))
+    return rows
+
+
+def _external_single_unit_definitions(index: dict[str, Any], usage: _Usage) -> list[dict[str, Any]]:
+    """Externally linked free functions/globals referenced only from their defining file.
+
+    Static linkage still needs proof that no import/export, marker-established
+    cross-unit caller or retail symbol requires external visibility."""
+
+    rows: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    entities = [
+        (item, "function")
+        for item in index.get("declarations", [])
+        if item.get("semantic_kind") == "free_function" and item.get("is_definition")
+    ] + [
+        (item, "global")
+        for item in index.get("variables", [])
+        if item.get("target") == "WIZ8" and item.get("definition_kind") == "definition"
+    ]
+    for item, kind in entities:
+        name = str(item.get("qualified_name") or "")
+        path = str(item.get("source_file") or "")
+        if (
+            "::" in name
+            or name in seen
+            or item.get("linkage") != "external"
+            or not path.startswith("src/wiz8/")
+        ):
+            continue
+        files = set(usage.counts.get(name, {}))
+        if files != {path}:
+            continue
+        seen.add(name)
+        rows.append({"kind": kind, "name": name, "location": f"{path}:{item.get('line')}"})
+    rows.sort(key=lambda row: row["location"])
+    return rows
+
+
+_EMPTY_BODY = re.compile(r"\)\s*(?::[^{;]*)?\{\s*\}")
+
+
+def _empty_special_members(index: dict[str, Any], sources: dict[str, str]) -> list[dict[str, Any]]:
+    """Hand-written empty constructors/destructors in WIZ8 source.
+
+    An empty authored body is faithful when a declaration requires it; one that
+    only claims an implicit emission should be a marker-only SYNTHETIC."""
+
+    rows: list[dict[str, Any]] = []
+    for item in index.get("declarations", []):
+        path = str(item.get("source_file") or "")
+        if (
+            item.get("semantic_kind") not in {"constructor", "destructor"}
+            or not item.get("is_definition")
+            or not _wiz8_path(path)
+            or path not in sources
+        ):
+            continue
+        start, end = int(item.get("line") or 0), int(item.get("end_line") or 0)
+        body = "\n".join(sources[path].split("\n")[start - 1 : end])
+        body = _COMMENT.sub(" ", body)
+        if _EMPTY_BODY.search(body) and "(" in body:
+            initialized = bool(re.search(r"\)\s*:", body))
+            rows.append(
+                {
+                    "name": item.get("qualified_name"),
+                    "kind": item.get("semantic_kind"),
+                    "location": f"{path}:{start}",
+                    "has_initializer_list": initialized,
+                }
+            )
+    rows.sort(key=lambda row: row["location"])
+    return rows
+
+
+_BASE_ASSIGNMENT = re.compile(r"\b([A-Za-z_]\w*)::operator=\s*\(")
+
+
+def _explicit_base_assignments(
+    index: dict[str, Any], sources: dict[str, str]
+) -> list[dict[str, Any]]:
+    """Authored assignment operators that call a base assignment explicitly."""
+
+    rows: list[dict[str, Any]] = []
+    for item in index.get("declarations", []):
+        path = str(item.get("source_file") or "")
+        name = str(item.get("qualified_name") or "")
+        if not name.endswith("::operator=") or not item.get("is_definition"):
+            continue
+        if not _wiz8_path(path) or path not in sources:
+            continue
+        start, end = int(item.get("line") or 0), int(item.get("end_line") or 0)
+        body = _COMMENT.sub(" ", "\n".join(sources[path].split("\n")[start:end]))
+        bases = sorted(set(_BASE_ASSIGNMENT.findall(body)))
+        if bases:
+            rows.append(
+                {
+                    "name": name,
+                    "location": f"{path}:{start}",
+                    "base_assignments": bases,
+                    "member_assignments": len(re.findall(r"\bother\.\w+", body)),
+                }
+            )
+    rows.sort(key=lambda row: row["location"])
     return rows
 
 
@@ -676,9 +947,10 @@ def semantic_debt_report(
     unresolved = _unresolved_declarations(index)
     stale = _stale_recovery_claims(repository, functions)
     sources = _wiz8_sources(repository) if target.upper() == "WIZ8" else {}
+    usage = _Usage(sources) if sources else None
     storage = (
-        _storage_debt(index, _Usage(sources))
-        if sources
+        _storage_debt(index, usage)
+        if usage
         else {
             "address_named_globals": [],
             "address_named_members": [],
@@ -695,6 +967,10 @@ def semantic_debt_report(
     narration = _narration_candidates(sources)
     duplicate_layouts = _duplicate_layouts(index) if sources else []
     byte_strides = _byte_strides(sources)
+    bad_spelling = _known_semantics_bad_spelling(index, sources, usage) if usage else []
+    single_unit = _external_single_unit_definitions(index, usage) if usage else []
+    empty_special = _empty_special_members(index, sources) if sources else []
+    base_assignments = _explicit_base_assignments(index, sources) if sources else []
     return {
         "schema": "wiz8.semantic-debt-v1",
         "non_gating": True,
@@ -714,6 +990,10 @@ def semantic_debt_report(
             "enum_parameters_passed_literals": len(enum_literals),
             "narration_candidates": len(narration),
             "duplicate_record_layouts": len(duplicate_layouts),
+            "known_semantics_bad_spelling": len(bad_spelling),
+            "external_single_unit_definitions": len(single_unit),
+            "empty_special_members": len(empty_special),
+            "explicit_base_assignments": len(base_assignments),
         },
         "unresolved_fragments": provisional,
         "unresolved_function_declarations": unresolved,
@@ -728,4 +1008,8 @@ def semantic_debt_report(
         "enum_parameters_passed_literals": enum_literals,
         "narration_candidates": narration,
         "duplicate_record_layouts": duplicate_layouts,
+        "known_semantics_bad_spelling": bad_spelling,
+        "external_single_unit_definitions": single_unit,
+        "empty_special_members": empty_special,
+        "explicit_base_assignments": base_assignments,
     }

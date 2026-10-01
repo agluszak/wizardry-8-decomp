@@ -449,7 +449,7 @@ void ResetPartySlotRow(int slot)
     row->fOccupied = 1;
     row->spell_id = 0;
     row->queued_action = 0xff;
-    SetSlotAction(slot, 0, -1);
+    SetSlotAction(slot, W8_ACTION_ATTACK, -1);
 }
 
 /* Both buffers are cleared only after both allocations succeed, so a failed

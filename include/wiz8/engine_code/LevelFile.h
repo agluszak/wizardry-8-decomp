@@ -172,8 +172,8 @@ struct W8LevelFileTriggerHotSpot { /* 0x85: has_hotspot_858 != 0 payload */
 
 /* Serialized camera waypoint: the .pvl camera section
    (ReadWorldCameras) reads the same head before its PathAI; the
-   leading ints and the 0x14-byte span feed W8WorldCameraEntry's positional
-   fields and stay unresolved there too. */
+   0x14-byte span is the W8CameraPath name; the two leading ints stay
+   unresolved. */
 struct W8LevelFileCamera {
     int positional_00;
     int positional_04;

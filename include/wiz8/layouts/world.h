@@ -24,12 +24,6 @@ class stParticle;
 struct W8PathAI;
 struct W8GameData;
 
-struct W8WorldCameraEntry {
-    unsigned char positional_00[0x14];
-    unsigned char positional_14[4];
-    W8PathAI* path;
-};
-
 /* The 0x3c-byte CamPos record GetWorldCameraState writes and
    RestoreWorldCameraState reads (3dapi.cpp, assertions pWorld / CamPos).
    Two six-float records follow the point: pitch at +0x0c and yaw/angle at
@@ -46,8 +40,6 @@ struct W8WorldCameraState {
     W8CameraAngleRecord yaw;
 };
 static_assert(sizeof(W8WorldCameraState) == 0x3c, "W8WorldCameraState_size");
-
-static_assert(sizeof(W8WorldCameraEntry) == 0x1c, "W8WorldCameraEntry_must_be_0x1c");
 
 /* Engine Code\3dapi.cpp. CreateWorld allocates and zeroes exactly 0xdc bytes;
    the list/vector setup and teardown routines prove the owned fields below. */

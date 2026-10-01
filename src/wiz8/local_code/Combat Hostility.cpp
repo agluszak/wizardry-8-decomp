@@ -477,7 +477,7 @@ void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
 // FUNCTION: WIZ8 0x00547bf0
 unsigned char CanPartySlotTurnUndead(int party_slot)
 {
-    if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], 0x11) || g_combat_state == 0 ||
+    if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], W8_TRAIT_TURN_UNDEAD) || g_combat_state == 0 ||
         g_combat_state->characters[party_slot].turn_undead_used) {
         return 0;
     }
@@ -536,7 +536,7 @@ int TurnUndead(int party_slot, int* out_cost, char check)
     }
     CastSpellFromSource(0x81, &source, &target, spell_power, 0, 0, 0, 0, 0, 0, &monsters);
     if (out_cost != 0) {
-        *out_cost = CharacterActionFatigueCost(party_slot, 3);
+        *out_cost = CharacterActionFatigueCost(party_slot, W8_ACTION_TURN_UNDEAD);
     }
     return monsters.count;
 }
@@ -544,7 +544,7 @@ int TurnUndead(int party_slot, int* out_cost, char check)
 // FUNCTION: WIZ8 0x00547f40
 unsigned char CanPartySlotPray(int party_slot)
 {
-    if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], 0xb) || g_combat_state == 0 ||
+    if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], W8_TRAIT_PRAY) || g_combat_state == 0 ||
         g_combat_state->characters[party_slot].pray_used) {
         return 0;
     }
@@ -611,7 +611,7 @@ int CharacterPrayAction(int party_slot)
     source.aim_resolved_1a = true;
     ResetCombatSlot(&target);
     PostCharacterNotice(party_slot, gppStringList[0x174]);
-    cost = CharacterActionFatigueCost(party_slot, 6);
+    cost = CharacterActionFatigueCost(party_slot, W8_ACTION_PRAY);
     if (character->stamina < static_cast<int>(cost) &&
         character->stamina < static_cast<int>(Random(cost))) {
         PostCharacterNotice(party_slot, gppStringList[0x175]);
