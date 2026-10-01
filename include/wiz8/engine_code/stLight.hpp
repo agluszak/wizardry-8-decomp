@@ -186,9 +186,9 @@ public:
     virtual void traverse(srNode::TraverseInfo& info) override; /* 0x0049C7A0 */
     virtual void process(const srNode::ProcessInfo& info,
                          srNode::e_processType type) override; /* 0x0049C8D0 */
-    void Reset0049D070();                                      /* 0x0049D070 */
+    void Reset();                                      /* 0x0049D070 */
     void SetDefinitionTime(float time);                        /* 0x0049C940 */
-    void Update0049C960();                                     /* 0x0049C960 */
+    void Update();                                     /* 0x0049C960 */
 
     float positionalX() const
     {
