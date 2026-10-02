@@ -65,8 +65,6 @@ bool W8NpcDialogueTextController::HandleScrollUpCommand(unsigned int command)
     return false;
 }
 
-/* Return the requested screen id, falling back to the state at the top of the
-   return stack when there is no explicit pending state. */
 // FUNCTION: WIZ8 0x0055EC10
 int GetPendingScreenState(void)
 {
@@ -102,8 +100,6 @@ unsigned char IsScreenTransitionPending(void)
     return 1;
 }
 
-/* Route one redraw bit to the active camp or main-game screen state. The slot
-   travels as an int: the body only ever reads its low byte for the shift. */
 // FUNCTION: WIZ8 0x0055EE30
 void RequestPartySlotRedraw(int bit)
 {
@@ -114,9 +110,6 @@ void RequestPartySlotRedraw(int bit)
     }
 }
 
-/* Refresh one party slot's on-screen presentation for the active screen:
-   character and party-selection forward into their own helpers; camp marks
-   the review panels dirty; main game redraws the portrait overlay. */
 // FUNCTION: WIZ8 0x0055EC90
 void RefreshPartySlotDisplay(unsigned int party_slot)
 {
@@ -196,9 +189,6 @@ int GetTextInputCursor(void)
     return W8_CURSOR_TEXT_INPUT;
 }
 
-/* Install a named cursor, or restore the held-item / default cursor when the
-   caller passes W8_CURSOR_NONE (-1). Unchanged ids are ignored; a new id resets
-   the frame and applies through ApplyCurrentCursor. */
 // FUNCTION: WIZ8 0x0055EE70
 void SetTargetCursor(int cursor)
 {
@@ -267,10 +257,6 @@ void UpdateHeldItemCursor(void)
     }
 }
 
-/* Drive the mouse cursor from gXStatus.iCurrentCursor against the main-game
-   resource-slot table: resize, install the slot's texture anim, select the
-   current frame, and refresh the hotspot. Multi-frame cursors also arm the
-   animation countdown. */
 // FUNCTION: WIZ8 0x0055F080
 void ApplyCurrentCursor(void)
 {
@@ -347,7 +333,6 @@ void SetItemCursor(int item_id)
     }
 }
 
-/* Dispatch one already-built notice line to the camp or main-game dialog. */
 // FUNCTION: WIZ8 0x0055F260
 void ShowNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation, int cancel)
 {
@@ -361,9 +346,6 @@ void ShowNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirm
     }
 }
 
-/* Default the live main-game level block after ResetMainGameScreenState: clear
-   selection and text-box state, arm the timers, size the text regions, and
-   reset message storage. */
 // FUNCTION: WIZ8 0x0055F2C0
 void InitializeMainGameLevelBlock(void)
 {
