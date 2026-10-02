@@ -127,6 +127,12 @@ list(REMOVE_ITEM WIZ8_SOURCE_FILES ${WIZ8_INSTRUMENTABLE_SOURCE_FILES})
 # unit) but almost never a callee from another unit, which is auto-inlining's
 # reach. Static helpers retail never emits are expanded and dropped; functions
 # retail emits standalone have external linkage.
+# Retail calls stMaterial's emitted constructor from CreateDefaultMaterial;
+# /Ob2 expands it there and leaves the imported srMaterial constructor
+# unresolved in the runtime link, so this unit keeps /Ob1.
+set_source_files_properties(
+    "${PROJECT_SOURCE_DIR}/src/wiz8/engine_code/materials.cpp"
+    PROPERTIES COMPILE_OPTIONS /Ob1)
 add_library(wiz8_recovered_objects OBJECT ${WIZ8_SOURCE_FILES})
 target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
 target_compile_options(wiz8_recovered_objects PRIVATE /Ob2)

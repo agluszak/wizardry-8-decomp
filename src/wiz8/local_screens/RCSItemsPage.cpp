@@ -1348,6 +1348,24 @@ int CreateCampActionPanel(void)
     return 0;
 }
 
+// FUNCTION: WIZ8 0x005B9220
+void ReleaseCampActionPanel(void)
+{
+    Controls* panel = g_camp_action_panel;
+    if (panel != 0) {
+        delete panel;
+        g_camp_action_panel = 0;
+    }
+    W8TextControl** control = g_camp_action_buttons;
+    do {
+        if (*control != 0) {
+            delete *control;
+            *control = 0;
+        }
+        ++control;
+    } while (control < g_camp_action_buttons + 2);
+}
+
 // FUNCTION: WIZ8 0x005b9270
 void EnableCampActionButtons(void)
 {
@@ -1373,6 +1391,15 @@ void DisableCampActionButtons(void)
 {
     g_camp_action_buttons[0]->SetActive(0);
     g_camp_action_buttons[1]->SetActive(0);
+}
+
+// FUNCTION: WIZ8 0x005b9330
+void RefreshCampActionPanel(char invalidate)
+{
+    if (invalidate != 0) {
+        g_camp_action_panel->Invalidate(0);
+    }
+    g_camp_action_panel->Redraw();
 }
 
 /* The right-hand panel of seven tabs: the six realm filters and the pool sort
@@ -1425,6 +1452,24 @@ int CreateItemsTabPanel(void)
         }
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x005B9760
+void ReleaseItemsTabPanel(void)
+{
+    Controls* panel = g_camp_realm_tab_panel;
+    if (panel != 0) {
+        delete panel;
+        g_camp_realm_tab_panel = 0;
+    }
+    W8TextControl** control = g_camp_realm_tabs;
+    do {
+        if (*control != 0) {
+            delete *control;
+            *control = 0;
+        }
+        ++control;
+    } while (control < g_camp_realm_tabs + 7);
 }
 
 /* Realm tab activation state: every tab is active and enabled while the game
@@ -1483,6 +1528,15 @@ void DisableItemsRealmTabs(void)
     for (index = 0; index < 7; ++index) {
         g_camp_realm_tabs[index]->SetActive(0);
     }
+}
+
+// FUNCTION: WIZ8 0x005b98e0
+void RefreshItemsTabPanel(char invalidate)
+{
+    if (invalidate != 0) {
+        g_camp_realm_tab_panel->Invalidate(0);
+    }
+    g_camp_realm_tab_panel->Redraw();
 }
 
 /* The top secondary panel: the Items/Character info page tabs, the help line,
@@ -1578,6 +1632,30 @@ int CreateCampSecondaryPanel(void)
     return 1;
 }
 
+// FUNCTION: WIZ8 0x005B9EA0
+void ReleaseCampSecondaryPanel(void)
+{
+    Controls* panel = g_camp_secondary_panel;
+    if (panel != 0) {
+        delete panel;
+        g_camp_secondary_panel = 0;
+    }
+    W8TextControl** control = g_camp_page_tabs;
+    do {
+        if (*control != 0) {
+            delete *control;
+            *control = 0;
+        }
+        ++control;
+    } while (control < g_camp_page_tabs + 2);
+}
+
+// FUNCTION: WIZ8 0x005b9ef0
+void InvalidateCampPanel(void)
+{
+    g_camp_secondary_panel->Invalidate(0);
+}
+
 // FUNCTION: WIZ8 0x005b9f00
 void EnableCampSecondaryPanel(void)
 {
@@ -1604,4 +1682,13 @@ void DisableCampSecondaryPanel(void)
     for (index = 0; index < 2; ++index) {
         g_camp_page_tabs[index]->SetActive(0);
     }
+}
+
+// FUNCTION: WIZ8 0x005b9f90
+void RefreshCampSecondaryPanel(char invalidate)
+{
+    if (invalidate != 0) {
+        InvalidateCampPanel();
+    }
+    g_camp_secondary_panel->Redraw();
 }
