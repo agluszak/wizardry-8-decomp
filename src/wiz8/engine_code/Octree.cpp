@@ -3771,14 +3771,14 @@ int CheckLevelAssetSet(const char* level_path)
     if (FileExists(const_cast<char*>(level_path)) != 0 && FileExists(pvl_path) != 0 &&
         (file = FileOpen(const_cast<char*>(level_path), 1, 0)) != 0 &&
         FileRead(file, &version, 2, 0) != 0) {
-        if (version < 0x22) {
+        if (version < W8OctFileHeader::VERSION) {
             if (g_octree_disabled != 0) {
                 return -1;
             }
             rebuild = 1;
             FileClose(file);
         } else {
-            if (version > 0x22) {
+            if (version > W8OctFileHeader::VERSION) {
                 FileClose(file);
                 ShutdownWithErrorBox(
                     "EXE OUT OF DATE: Program is older than File version--There is a new "

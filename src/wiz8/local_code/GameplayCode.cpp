@@ -102,8 +102,8 @@ int g_character_table[480] = {
 
 // GLOBAL: WIZ8 0x006172F0
 static W8Dice g_unarmed_damage_dice[12] = {{0, 1, 2}, {0, 1, 3}, {0, 2, 2}, {0, 2, 3},
-                                                 {0, 2, 4}, {0, 3, 3}, {1, 3, 3}, {2, 3, 3},
-                                                 {0, 3, 5}, {0, 4, 4}, {2, 4, 4}, {4, 4, 4}};
+                                           {0, 2, 4}, {0, 3, 3}, {1, 3, 3}, {2, 3, 3},
+                                           {0, 3, 5}, {0, 4, 4}, {2, 4, 4}, {4, 4, 4}};
 
 /* Whether any monster is engaged with the party right now: in combat, in the
    engaged state, still alive and not yet on its way out. */
@@ -289,7 +289,11 @@ void RefreshLevelUpReadyNotices(void)
                         swprintf(text + length + 3, gppStringList[0x773], text);
                         extra = static_cast<int*>(operator new(4));
                         *extra = party_slot;
-                        AddMessageBoxLine(W8_NPC_MSG_LEVEL_UP, text, extra);
+                        W8MessageBoxPayload level_up_payload;
+                        level_up_payload.text = text;
+                        W8MessageBoxPayload level_up_extra;
+                        level_up_extra.level_up_slot = extra;
+                        AddMessageBoxLine(W8_NPC_MSG_LEVEL_UP, level_up_payload, level_up_extra);
                         QueueNpcMessageLine(W8_NPC_MSG_PARTY_MEMBER_EVENT, party_slot);
                     } else {
                         *ready_flag = 1;
@@ -1204,5 +1208,9 @@ void AwardPartyExperience(int amount, int alternate_message)
     W8ExperienceNoticePayload* payload = new W8ExperienceNoticePayload;
     payload->amount = amount;
     payload->alternate_message = static_cast<unsigned char>(alternate_message);
-    AddMessageBoxLine(W8_NPC_MSG_PORTRAIT_EXTRA, text, payload);
+    W8MessageBoxPayload portrait_extra_payload;
+    portrait_extra_payload.text = text;
+    W8MessageBoxPayload portrait_extra_extra;
+    portrait_extra_extra.experience = payload;
+    AddMessageBoxLine(W8_NPC_MSG_PORTRAIT_EXTRA, portrait_extra_payload, portrait_extra_extra);
 }

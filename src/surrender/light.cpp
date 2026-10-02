@@ -297,7 +297,7 @@ void srLight::process(const ProcessInfo& info, e_processType type)
     }
     renderer->popMatrix();
     if ((derived_flags_21c & 0x1) != 0) {
-        renderer->pushVertexProcessor(*static_cast<srVertexProcessor*>(this));
+        renderer->pushVertexProcessor(*this);
     }
 }
 

@@ -48,10 +48,10 @@ void srGlobalRecycler::setLimit(unsigned long limit)
     limit_88 = limit;
 }
 
-/* __stdcall adapter wrapping the thiscall srHeap::allocate member; only
-   allocate() below calls it, so its authored spelling stays unresolved. */
+/* TU-local heap adapter used by the recycler allocation paths. Retail takes
+   size from the stack, loads the global heap into ECX, and returns with RET 4. */
 // FUNCTION: SURRENDER 0x10035620
-static void* __stdcall Function100035620(unsigned long size)
+static void* __stdcall AllocateRecyclerStorage(unsigned long size)
 {
     return srHeap.allocate(size);
 }
@@ -98,7 +98,7 @@ srGlobalRecycler::~srGlobalRecycler()
 void* srGlobalRecycler::allocate(unsigned long size)
 {
     if (size < 0x4000) {
-        return Function100035620(size);
+        return AllocateRecyclerStorage(size);
     }
     RecyclerAccess access(&critical_section_8c.critical_section_00);
     if ((used_mask_80 & 0xffff) != 0xffff) {
@@ -126,7 +126,7 @@ void* srGlobalRecycler::allocate(unsigned long size)
         }
         freeEntry(smallest);
         if (rounded + cached_bytes_84 <= limit_88) {
-            void* allocation = Function100035620(rounded);
+            void* allocation = AllocateRecyclerStorage(rounded);
             entries_00[smallest].allocation = allocation;
             entries_00[smallest].size = rounded;
             cached_bytes_84 += rounded;
@@ -134,7 +134,7 @@ void* srGlobalRecycler::allocate(unsigned long size)
             return entries_00[smallest].allocation;
         }
     }
-    return Function100035620(size);
+    return AllocateRecyclerStorage(size);
 }
 
 // SYNTHETIC: SURRENDER 0x100358D0

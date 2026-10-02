@@ -739,7 +739,7 @@ void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* exclu
         automap_polygons = 0;
     }
     automap_polygon_count = 0;
-    automap_polygons = new unsigned int[polygon_count_230];
+    automap_polygons = new unsigned long[polygon_count_230];
     automap_filter_active = 1;
     srPtr<srTextureIFace>* texture = getPolyTexture(0, 0, 0);
     if (texture) {
@@ -793,17 +793,14 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
         }
     }
 
-    unsigned int* list;
+    unsigned long* list;
     unsigned char checked;
     if (index >= 0) {
         if (skin_blanking_apt_458 == 0) {
             *count_out = 0;
             return 0;
         }
-        /* The blanking vectors store polygon-index lists as int*; the public
-           table type is unsigned long. */
-        // reinterpret-ok: int* storage reinterpreted as the polygon-index list type
-        list = reinterpret_cast<unsigned int*>(*skin_blanking_apt_458->GetAt(index));
+        list = *skin_blanking_apt_458->GetAt(index);
         *count_out = *skin_blanking_apt_number_45c->GetAt(index);
         checked = *skin_blanking_checked_460->GetAt(index);
     } else {
@@ -812,8 +809,7 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
         checked = automap_filter_active;
     }
     if (list != 0) {
-        // reinterpret-ok: unsigned int index list returned as the public unsigned long* type
-        return reinterpret_cast<unsigned long*>(list);
+        return list;
     }
     if (checked != 0 || flag == 0) {
         *count_out = 0;
@@ -821,7 +817,7 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
     }
 
     *count_out = 0;
-    unsigned int* fresh = new unsigned int[polygon_count_230];
+    unsigned long* fresh = new unsigned long[polygon_count_230];
     srPtr<srTextureIFace>* textures = 0;
     if (index < 0) {
         automap_filter_active = 1;
@@ -859,12 +855,10 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
                 automap_polygons = fresh;
                 automap_polygon_count = *count_out;
             } else {
-                // reinterpret-ok: unsigned int index list stored as the vector's int* element
-                skin_blanking_apt_458->SetAt(index, reinterpret_cast<int*>(fresh));
+                skin_blanking_apt_458->SetAt(index, fresh);
                 skin_blanking_apt_number_45c->SetAt(index, *count_out);
             }
-            // reinterpret-ok: unsigned int index list returned as the public unsigned long* type
-            return reinterpret_cast<unsigned long*>(fresh);
+            return fresh;
         }
     }
     delete[] fresh;
@@ -1176,7 +1170,7 @@ int stMeshModel::CreateSkinTable(const char* name, int base_table)
     skin_table_names.Add(copied_name);
 
     if (skin_blanking_apt_458 == 0) {
-        skin_blanking_apt_458 = new W8GrowableVector<int*>;
+        skin_blanking_apt_458 = new W8GrowableVector<unsigned long*>;
         if (skin_blanking_apt_458 == 0) {
             srAssertFail("m_plsSkinBlankingAPT",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x5cd, 0);
@@ -1218,7 +1212,7 @@ void stMeshModel::RemoveSkinTable(int index)
     skin_table_names.RemoveAt(index);
     skin_table_ids.RemoveAt(index);
 
-    int* apt = *skin_blanking_apt_458->GetAt(index);
+    unsigned long* apt = *skin_blanking_apt_458->GetAt(index);
     if (apt != 0) {
         delete apt;
     }
@@ -1641,7 +1635,7 @@ void stMeshModel::FinalizeVertexFrame(int frame)
 // W8GrowableVector<W8VectorElement005EC514*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00474E60
-// W8GrowableVector<int*>::`scalar deleting destructor'
+// W8GrowableVector<unsigned long*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00474E90
 // W8GrowableVector<int>::`scalar deleting destructor'

@@ -106,11 +106,11 @@ public:
     /* m_pLerpBuffer: interpolation scratch for GetVertexLocations; an srHeap
        allocation that is not counted in g_decompressed_mesh_bytes. */
     srVector3T<float>* lerp_buffer_448;
-    unsigned int* automap_polygons;     /* 0x44c */
+    unsigned long* automap_polygons;    /* 0x44c */
     unsigned int automap_polygon_count; /* 0x450 */
     bool automap_filter_active;         /* 0x454 */
     unsigned char padding_455[3];
-    W8GrowableVector<int*>* skin_blanking_apt_458;
+    W8GrowableVector<unsigned long*>* skin_blanking_apt_458;
     W8GrowableVector<int>* skin_blanking_apt_number_45c;
     W8GrowableVector<unsigned char>* skin_blanking_checked_460;
 };

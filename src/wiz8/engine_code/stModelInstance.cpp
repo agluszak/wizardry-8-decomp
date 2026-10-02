@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/stTextureFile.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/stTextureAnim.h"
@@ -178,7 +179,7 @@ unsigned char stModelInstance::ReplaceDamageStageTexture(int stage, const char* 
 
         for (int polygon = 0; polygon < mesh->polygon_count_230; ++polygon) {
             srTextureIFace* texture = textures[polygon].get();
-            if (texture == 0 || (texture->getClassID() != 0x10001 &&
+            if (texture == 0 || (texture->getClassID() != stTextureFile::CLASS_ID &&
                                  texture->getClassID() != stTextureAnim::CLASS_ID)) {
                 continue;
             }

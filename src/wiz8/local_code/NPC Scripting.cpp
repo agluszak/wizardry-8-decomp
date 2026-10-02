@@ -754,9 +754,11 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
                          display_text);
                 wcscpy(display_text, prefixed_text);
             }
+            W8MessageBoxPayload payload;
+            payload.text = 0;
             SetNpcQuoteBubbleVisible(1, display_text, 0,
-                                     g_npc_scripting.staging_restore.current_quote_index, -1, 0, 0,
-                                     g_npc_scripting.npc->partner_index_2c);
+                                     g_npc_scripting.staging_restore.current_quote_index, -1, 0,
+                                     payload, g_npc_scripting.npc->partner_index_2c);
         }
         memset(&voice_parms, 0xff, sizeof(voice_parms));
         voice_parms.uiVolume = g_settings.voice_volume * 70 / 100;
@@ -1024,7 +1026,12 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                     SetFact(entry->operand_01, entry->operand_05, 0);
                     break;
                 case 8:
-                    AddMessageBoxLine(W8_NPC_MSG_CLOSE_DIALOGUE, 0, 0);
+                    W8MessageBoxPayload close_dialogue_payload;
+                    close_dialogue_payload.text = 0;
+                    W8MessageBoxPayload close_dialogue_extra;
+                    close_dialogue_extra.text = 0;
+                    AddMessageBoxLine(W8_NPC_MSG_CLOSE_DIALOGUE, close_dialogue_payload,
+                                      close_dialogue_extra);
                     for (index = 0; index < g_npc_scripting.message_lines.GetCount(); index++) {
                         line = *g_npc_scripting.message_lines.GetAt(index);
                         if (line->type == W8_NPC_MSG_SHOW_DIALOGUE_PANEL) {
@@ -1063,12 +1070,13 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                             if (target->is_grouped == 0) {
                                 ClearMainGameTargetState();
                             } else {
-                                AddMessageBoxLine(
-                                    W8_NPC_MSG_GROUP_ACTION,
-                                    reinterpret_cast<wchar_t*>(static_cast<int>(
-                                        target
-                                            ->group_index)), /* reinterpret-ok: tagged int in text/argument dword */
-                                    0);
+                                W8MessageBoxPayload group_action_payload;
+                                group_action_payload.argument =
+                                    static_cast<int>(target->group_index);
+                                W8MessageBoxPayload group_action_extra;
+                                group_action_extra.text = 0;
+                                AddMessageBoxLine(W8_NPC_MSG_GROUP_ACTION, group_action_payload,
+                                                  group_action_extra);
                             }
                         }
                     }
@@ -1078,8 +1086,8 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                     memset(line, 0, sizeof(W8MessageBoxLine));
                     line->quote_index = -1;
                     line->type = W8_NPC_MSG_CLOSE_RESUME_NPC;
-                    line->payload_10.raw = 0;
-                    line->extra.raw = 0;
+                    line->payload_10.text = 0;
+                    line->extra.text = 0;
                     line->npc = g_npc_scripting.npc;
                     g_npc_scripting.message_lines.Add(line);
                     finished = true;
@@ -1095,12 +1103,13 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                         g_world_action_quote_max <
                             g_npc_scripting.staging_restore.current_quote_index) {
                         BeginScriptedWorldAction();
-                        AddMessageBoxLine(
-                            W8_NPC_MSG_GROUP_ACTION,
-                            reinterpret_cast<wchar_t*>(static_cast<int>(
-                                g_npc_scripting.npc
-                                    ->group_index)), /* reinterpret-ok: tagged int in text/argument dword */
-                            0);
+                        W8MessageBoxPayload group_action_payload;
+                        group_action_payload.argument =
+                            static_cast<int>(g_npc_scripting.npc->group_index);
+                        W8MessageBoxPayload group_action_extra;
+                        group_action_extra.text = 0;
+                        AddMessageBoxLine(W8_NPC_MSG_GROUP_ACTION, group_action_payload,
+                                          group_action_extra);
                     }
                     break;
                 case 21: {
@@ -1124,7 +1133,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                     line->quote_index = -1;
                     line->type = W8_NPC_MSG_PARTY_SPEAKER_EVENT;
                     line->payload_10.argument = event_type;
-                    line->extra.raw = 0;
+                    line->extra.text = 0;
                     line->npc = g_npc_scripting.npc;
                     g_npc_scripting.message_lines.Add(line);
                 } break;
@@ -1686,7 +1695,7 @@ void ProcessMessageBoxQueue(void)
             delete skill_changes;
         } else {
             g_npc_scripting.portrait_message_active = true;
-            SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1, 2, line->extra.raw, -1);
+            SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1, 2, line->extra, -1);
             g_npc_scripting.message_duration_ms =
                 ComputePortraitMessageDuration(line->payload_10.text);
             g_npc_scripting.message_started_at = GetTickCount();
@@ -1725,7 +1734,7 @@ void ProcessMessageBoxQueue(void)
         break;
     case W8_NPC_MSG_PORTRAIT_EXTRA:
         g_npc_scripting.portrait_message_active = true;
-        SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1, 1, line->extra.raw, -1);
+        SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1, 1, line->extra, -1);
         g_npc_scripting.message_duration_ms = ComputePortraitMessageDuration(line->payload_10.text);
         g_npc_scripting.message_started_at = GetTickCount();
         delete[] line->payload_10.text;
@@ -1739,7 +1748,7 @@ void ProcessMessageBoxQueue(void)
             delete[] line->payload_10.text;
         } else {
             g_npc_scripting.portrait_message_active = true;
-            SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1, 3, line->extra.raw, -1);
+            SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1, 3, line->extra, -1);
             g_npc_scripting.message_duration_ms =
                 ComputePortraitMessageDuration(line->payload_10.text);
             g_npc_scripting.message_started_at = GetTickCount();
@@ -2124,7 +2133,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_FINISH_ACTION:
-        if (line->payload_10.raw == 0) {
+        if (line->payload_10.argument == 0) {
             ClearMainGameTargetState();
         } else {
             BeginScriptedWorldAction();
@@ -2132,7 +2141,7 @@ void ProcessMessageBoxQueue(void)
         break;
     case W8_NPC_MSG_RESET_LEVEL_STATE:
         if (gXStatus.fCombatMode == 0 || gXStatus.fPartyMovementMode != 0) {
-            if (line->payload_10.raw == 0) {
+            if (line->payload_10.argument == 0) {
                 ClearLevelDataFlag6();
             } else {
                 ResetLevelDataVectors();
@@ -2269,27 +2278,26 @@ void QueueNpcMessageLine(W8NpcMessageKind kind, int argument)
     line->quote_index = -1;
     line->type = kind;
     line->payload_10.argument = argument;
-    line->extra.raw = 0;
+    line->extra.text = 0;
     line->npc = g_npc_scripting.npc;
 
     g_npc_scripting.message_lines.Add(line);
 }
 
 // FUNCTION: WIZ8 0x00528a80
-void AddMessageBoxLine(W8NpcMessageKind kind, wchar_t* text, void* extra)
+void AddMessageBoxLine(W8NpcMessageKind kind, W8MessageBoxPayload payload,
+                       W8MessageBoxPayload extra)
 {
     W8MessageBoxLine* line = new W8MessageBoxLine;
 
     memset(line, 0, sizeof(W8MessageBoxLine));
     line->quote_index = -1;
     line->type = kind;
-    line->payload_10.text = text;
-    line->extra.raw = extra;
+    line->payload_10 = payload;
+    line->extra = extra;
     line->npc = g_npc_scripting.npc;
 
-    if (g_npc_scripting.message_lines.Add(line) < 0) {
-        delete line;
-    }
+    g_npc_scripting.message_lines.Add(line);
 }
 
 /* Resolve the player's reply text to the script line it selects. The current
@@ -2557,13 +2565,26 @@ void ShowString(wchar_t* text)
     wchar_t* copy = new wchar_t[0x200];
     wcscpy(copy, text);
     if (GetLevelDataFlag6() == 0) {
-        AddMessageBoxLine(W8_NPC_MSG_RESET_LEVEL_STATE,
-                          reinterpret_cast<wchar_t*>(1), // reinterpret-ok: tagged storage
-                          0);
+        W8MessageBoxPayload reset_level_state_payload;
+        reset_level_state_payload.argument = 1;
+        W8MessageBoxPayload reset_level_state_extra;
+        reset_level_state_extra.text = 0;
+        AddMessageBoxLine(W8_NPC_MSG_RESET_LEVEL_STATE, reset_level_state_payload,
+                          reset_level_state_extra);
     }
-    AddMessageBoxLine(W8_NPC_MSG_PORTRAIT_MESSAGE, copy, 0);
+    W8MessageBoxPayload portrait_message_payload;
+    portrait_message_payload.text = copy;
+    W8MessageBoxPayload portrait_message_extra;
+    portrait_message_extra.text = 0;
+    AddMessageBoxLine(W8_NPC_MSG_PORTRAIT_MESSAGE, portrait_message_payload,
+                      portrait_message_extra);
     if (GetLevelDataFlag6() == 0) {
-        AddMessageBoxLine(W8_NPC_MSG_RESET_LEVEL_STATE, 0, 0);
+        W8MessageBoxPayload reset_level_state_payload;
+        reset_level_state_payload.argument = 0;
+        W8MessageBoxPayload reset_level_state_extra;
+        reset_level_state_extra.text = 0;
+        AddMessageBoxLine(W8_NPC_MSG_RESET_LEVEL_STATE, reset_level_state_payload,
+                          reset_level_state_extra);
     }
 }
 // FUNCTION: WIZ8 0x00529BC0

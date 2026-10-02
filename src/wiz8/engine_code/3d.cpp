@@ -119,7 +119,7 @@ void FinalizeStaticScene(srScene* scene)
     srNode* node;
 
     for (node = scene->first_child_; node != 0; node = node->next_sibling_) {
-        if (node->getClassID() == 0x1220) {
+        if (node->getClassID() == srLight::CLASS_ID) {
             static_cast<srIlluminator*>(node)->setGroupMask(1);
         }
     }
@@ -248,7 +248,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
 
         srNode* light_node = lights;
         while (light_node != 0) {
-            if (light_node->getClassID() == 0x10006 &&
+            if (light_node->getClassID() == stLight::CLASS_ID &&
                 _strnicmp(light_node->getName(), "Sun", 3) != 0) {
                 stLight* light = static_cast<stLight*>(light_node);
                 srVector3T<float> attenuation = light->opengl_attenuation_188;
@@ -358,7 +358,7 @@ unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
         if (node->first_child_ != 0) {
             FinalizeWorldScenes(node->first_child_, dynamic_scene);
         }
-        if (node->getClassID() == 0x10004) {
+        if (node->getClassID() == stModelInstance::CLASS_ID) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
             BakeInstanceVertexLightingIfNeeded(instance, dynamic_scene);
         }
@@ -812,7 +812,7 @@ void SetSceneMeshShaderBit3(srNode* node, int argument)
 {
     srShader shader;
     for (; node != 0; node = node->next_sibling_) {
-        if (node->getClassID() == 0x10004) {
+        if (node->getClassID() == stModelInstance::CLASS_ID) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
             for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel()); mesh != 0;
                  mesh = mesh->next) {
@@ -851,7 +851,7 @@ void SetSceneMeshShaderLowBits(srNode* node, int argument)
 {
     srShader shader;
     for (; node != 0; node = node->next_sibling_) {
-        if (node->getClassID() == 0x10004) {
+        if (node->getClassID() == stModelInstance::CLASS_ID) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
             for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel()); mesh != 0;
                  mesh = mesh->next) {

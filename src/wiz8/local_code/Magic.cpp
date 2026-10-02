@@ -2840,7 +2840,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
         } else {
             if (g_settings.difficulty != 2) {
                 srAssertFail("FALSE", MAGIC_CPP, 0x14e8, 0);
-                goto LAB_004faa0f;
+                goto finish_difficulty_adjustment;
             }
             morale = 0x28;
         }
@@ -2849,7 +2849,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
             chance = (((0x32 - morale) + threshold) * chance * 2) / 100;
         }
     }
-LAB_004faa0f:
+finish_difficulty_adjustment:
     if (spell_id == 0x4a && aim->iType == W8_TARGET_KIND_CHARACTER && aim->iChar == party_slot) {
         chance += 0x32;
     }

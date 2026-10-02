@@ -47,7 +47,7 @@ void srIlluminator::process(const ProcessInfo& info, e_processType type)
         eye_location_140.y = location.y;
         eye_location_140.z = location.z;
         renderer->popMatrix();
-        renderer->pushVertexProcessor(*static_cast<srVertexProcessor*>(this));
+        renderer->pushVertexProcessor(*this);
         return;
     }
     if (type == 2 || type == 4) {

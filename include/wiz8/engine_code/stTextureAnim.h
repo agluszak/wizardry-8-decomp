@@ -5,8 +5,6 @@
 
 class stTextureAnim : public srClassSupport<stTextureAnim, srTexture, 0, 0x10000> {
 public:
-    enum { CLASS_ID = 0x10000 };
-
     static const char* sGetClassName()
     {
         return "stTextureAnim";

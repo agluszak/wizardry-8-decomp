@@ -2561,7 +2561,7 @@ void ApplyMonsterControlToNearbyMonsters(W8SpellEffectEntry* effect)
 char RevealItemBindingsToTarget(W8SpellEffectEntry* effect)
 {
     unsigned char verbose;
-    char applied; // bool-byte-ok: accumulates byte & of cure results
+    char applied; // bool-byte-ok: forwards the unnormalized byte-valued cure result
     int result;
 
     verbose = g_settings.verbose_combat_messages;
@@ -3199,7 +3199,8 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
     srVector3T<float> point;
     char* sound_name;
     char* path;
-    unsigned char applied; // bool-byte-ok: accumulates byte & of cure results
+    unsigned char
+        applied; // bool-byte-ok: bitwise intersection of byte-valued cure results; normalization changes values
     unsigned int level;
     unsigned int amount;
     int count;

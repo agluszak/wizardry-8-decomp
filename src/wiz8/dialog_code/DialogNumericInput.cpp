@@ -1,3 +1,4 @@
+#include "wiz8/sgp_text.h"
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_screens/CharacterScreen.h"
@@ -105,7 +106,7 @@ void W8DialogNumericInput::Draw(unsigned char force)
     if (text_x <= m_bounds.left) {
         text_x = m_bounds.left;
     }
-    gprintfDirty(text_x, text_y, const_cast<wchar_t*>(g_format_s), g_numeric_input_text);
+    gprintfDirty(text_x, text_y, Wiz8ToSgpWideText(g_format_s), g_numeric_input_text);
     if (m_active != 0 && m_caret != -1) {
         int caret_x =
             m_bounds.right - StringPixLength(g_numeric_input_text + length - m_caret, m_font) - 1;

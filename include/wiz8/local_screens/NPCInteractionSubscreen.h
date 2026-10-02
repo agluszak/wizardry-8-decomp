@@ -399,8 +399,8 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
                               int quote_id, unsigned int font_palette); /* 0x00576030 */
 void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
                               int quote_id, unsigned int font_palette, unsigned char notice_kind,
-                              void* payload, int npc_kind); /* 0x00576060 */
-void DrawNpcQuoteBubble(void);                              /* 0x00576670 */
+                              W8MessageBoxPayload payload, int npc_kind); /* 0x00576060 */
+void DrawNpcQuoteBubble(void);                                            /* 0x00576670 */
 /* 0x00575E60: OpenNpcDialog — the modal request is the script's
    W8NpcQuoteEntry itself; the dialog discriminates kind_00 0x05 (option
    list), 0x12/0x1e (price check) and 0x13 (keyword entry). */
@@ -413,8 +413,8 @@ void CloseNpcDialogueLayout(void);                  /* 0x00570A20 */
 void OpenNpcDialogueTranscriptLayout(void);         /* 0x00570CF0 */
 void DispatchPendingNpcScriptNotice(void);          /* 0x0056CA90 */
 bool CanOpenNpcDialogue(void);
-bool IsNpcDialogueTextBoxActive577830(void);         /* 0x00577830 */
-bool IsNpcDialogueTextBoxActive(void);               /* 0x0056EFD0 */
+bool IsNpcDialogueTextBoxActive577830(void);                   /* 0x00577830 */
+bool IsNpcDialogueTextBoxActive(void);                         /* 0x0056EFD0 */
 unsigned char SetNpcDialoguePanelVisible(unsigned char value); /* 0x00577880 */
 bool ProcessPendingEvent(void);
 void SyncDialogueNpcStateAndMarkPending(void);

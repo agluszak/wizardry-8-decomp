@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/stTextureFile.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/engine_code/game_timer.h"
@@ -1144,7 +1145,8 @@ void stParticle::SetActive(unsigned char active)
 unsigned char stParticle::ReplaceTexture(const char* old_name, srTextureIFace* replacement)
 {
     if (texture_154 != 0 &&
-        (texture_154->getClassID() == 0x10001 || texture_154->getClassID() == 0x10000) &&
+        (texture_154->getClassID() == stTextureFile::CLASS_ID ||
+         texture_154->getClassID() == stTextureAnim::CLASS_ID) &&
         _stricmp(texture_154->getName(), old_name) == 0) {
         SetTexture(replacement);
         return 1;
