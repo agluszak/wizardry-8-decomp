@@ -172,11 +172,6 @@ void UpdateMonsterSight(void)
     }
 }
 
-/* The per-frame monster group pass. When `staggered` is set the sight block
-   is left to UpdateMonsterSight and the maintenance below is spread across
-   the group list a fifth at a time, with a full-distance check every
-   twentieth frame; groups further than twice the far clip are detached and
-   groups close enough get their members loaded. */
 // FUNCTION: WIZ8 0x00530150
 void UpdateMonsterGroups(char staggered)
 {
@@ -250,11 +245,6 @@ void UpdateMonsterGroups(char staggered)
     }
 }
 
-/* How aware the group is of the party: zero while the global gates say the
-   group cannot react or its representative record is untargetable, one the
-   moment any live member's party-visibility state is one, and two while the
-   best state a live member reports is two. Members with no live entry, a
-   dying body, no hit points or a condition at 0x0c or higher do not count. */
 // FUNCTION: WIZ8 0x00530470
 unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
 {
@@ -290,13 +280,6 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
     return result;
 }
 
-/* The real-time AI decision for one monster. The `engage` call form is the
-   trigger path: while sight is overridden and the monster still has its
-   ambush flag set it moves to within its longest out-of-reach attack band of
-   the party and activates its group. Otherwise the disposition picks
-   a mode: the scripted-orders helper for dispositions zero and two, a
-   hit-point retreat check for one. The chosen mode is committed through
-   ApplyMonsterRTAIDecision when it differs from what ai_mode_255 already holds. */
 // FUNCTION: WIZ8 0x00530560
 void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
 {
@@ -422,11 +405,6 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
     }
 }
 
-/* The orders-driven half of the real-time decision. A monster that should
-   face the party and can see it takes mode 0xa straight away; a group with a
-   downed member takes nothing. A latched mode keeps running until its patrol
-   point is reached, a fresh look-around delay just counts down, and a heard
-   noise is investigated while the path to it still looks cheap enough. */
 // FUNCTION: WIZ8 0x005308C0
 char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 {
@@ -604,10 +582,6 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
     return changed;
 }
 
-/* Carry out the real-time mode ChooseMonsterRTAIMode picked. Each case does
-   the movement or aiming that mode needs; when a mode cannot run the decision
-   is folded back to zero so ai_mode_255 records what actually happened. Bit 0x80
-   of the decision rides in alongside the mode and only case 6 consumes it. */
 // FUNCTION: WIZ8 0x00530f10
 void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decision)
 {
@@ -774,7 +748,6 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
     monster_info->ai_mode_255 ^= (monster_info->ai_mode_255 ^ decision) & 0xf;
 }
 
-/* Throw away the queue of actions a monster's AI had decided on. */
 // FUNCTION: WIZ8 0x00532330
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info)
 {
@@ -785,7 +758,6 @@ void DestroyMonsterActionQueue(W8MonsterInfo* monster_info)
     }
 }
 
-/* Run the decision over every monster that is in the fight and still alive. */
 // FUNCTION: WIZ8 0x005314f0
 void UpdateAllMonsterAI(void)
 {
@@ -807,14 +779,6 @@ enum { W8_MONSTER_CYCLE_SPELL = 0x19 };
 // GLOBAL: WIZ8 0x0068d524
 static bool g_spell_cycle_error_reported;
 
-/* Decide what one monster does this round. A monster taken out of the fight
-   by its worst condition, or told to give up, stands down and ends its turn.
-   Otherwise it rolls to hold back, and if not, a monster that is not yet
-   engaged either holds or gives up by its record. An engaged monster with a
-   usable ranged attack and the party out of reach closes in (or backs off
-   when hurt); otherwise it rolls to flee and to cast, weighs its attacks, and
-   only then settles for closing in, backing off or holding. Whatever it
-   settles on is checked, and a group that has given up holds instead. */
 // FUNCTION: WIZ8 0x00531540
 void UpdateMonsterAI(W8MonsterInfo* monster_info)
 {
@@ -938,12 +902,6 @@ validate:
     }
 }
 
-/* Whether a hostile group still has a member able to engage the party. Only
-   hostile groups can; of those, the group engages when a live member has a
-   visible target, and a member counts when it can attack, cast one of its
-   spells, flee, or - for a touch/short attack with the party close - reach
-   the party along the waypoints. The waypoint probe runs once, against the
-   group's named member, and is reused for the rest of the sweep. */
 // FUNCTION: WIZ8 0x00531920
 bool MonsterGroupCanEngage(W8MonsterGroup* monster_group)
 {
@@ -1024,11 +982,6 @@ members:
     return 0;
 }
 
-/* The percentage chance the monster chooses the advance action this round. A
-   badly hurt NPC-disposition monster always presses on, a monster already
-   committed keeps advancing until an enemy is inside short range, and a
-   record without an explicit advance chance advances unless its behavior byte
-   says otherwise. */
 // FUNCTION: WIZ8 0x00531c00
 unsigned int MonsterAdvanceChance(W8MonsterInfo* monster_info, W8MonsterRecord* record)
 {
@@ -1060,17 +1013,6 @@ unsigned int MonsterAdvanceChance(W8MonsterInfo* monster_info, W8MonsterRecord* 
     return result;
 }
 
-/* Refill the monster's pending-action queue with everything it may do this
-   round. A fresh pick first rolls the cooperative sweep, queueing a kind-8
-   entry for every character and other monster the monster has an attack on,
-   and returns early when any of them stuck; a behavior-2 record may then add
-   the kind-1 wait action. The rest enumerates attack candidates: each usable
-   attack contributes one kind-0 entry per set attack-mode bit for every
-   eligible character and monster target. `target_locked` keeps only the
-   stored target; `attack_locked` keeps only the committed attack and always
-   sweeps every target. A character's evasion skill roll keeps attacks off it
-   but flags the slot, and each flagged slot may practice that skill at the
-   end. */
 // FUNCTION: WIZ8 0x00531CE0
 void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, char attack_locked)
 {
@@ -1233,10 +1175,6 @@ targets_chosen:
     }
 }
 
-/* Add one decided action to a monster's queue. The third field only carries a
-   value for the plain attack, and which of the two target fields the target
-   goes in depends on what kind of target it is. Each entry gets a random tie
-   break so two equal decisions do not always resolve the same way. */
 // FUNCTION: WIZ8 0x00532360
 void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action_detail,
                         int attack_index, W8TargetKind target_kind, int target_value)
@@ -1263,10 +1201,6 @@ void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action
     PLAdoptAppend(monster_info->pCombat->plsCombatActionList, entry);
 }
 
-/* Build the monster's list of possible actions and take one of them at
-   random into its action fields and target. Committing a plain attack also
-   commits its attack index and, when asked, restages the round's attack
-   counts; a wait action keeps only its detail word. */
 // FUNCTION: WIZ8 0x005323F0
 unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, int arg_3,
                                         char set_attack_rate)
@@ -1304,10 +1238,6 @@ unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, 
     return 1;
 }
 
-/* Whether the monster may cast the spell now: the record allows monsters to
-   cast it, nothing is blocking the cast, the special cases for spell 0x3c
-   and fire spells under camera sway pass, and `needs_target` also demands a
-   target to aim at. */
 // FUNCTION: WIZ8 0x00532550
 bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, char needs_target)
 {
@@ -1339,8 +1269,6 @@ bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, char need
     return 1;
 }
 
-/* Pick where the spell lands: collect every slot the spell may be cast at
-   and take one at random into the monster's stored target. */
 // FUNCTION: WIZ8 0x005326F0
 bool AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id)
 {
@@ -2058,12 +1986,6 @@ bool CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id)
     return 1;
 }
 
-/* The in-combat sweep: refreshes what each monster can see, then drops combat
-   for groups that have nothing left to fight. A neutral group stays only
-   while a reinforcement is near; a hostile group leaves when no live member
-   has a visible enemy, and - when the leader cannot reach - when the nearest
-   member sits outside the leader's reach with nothing the group can engage.
-   Once no group still has a member fighting, every group leaves at once. */
 // FUNCTION: WIZ8 0x00534300
 void CheckMonsterGroupsLeaveCombat(void)
 {
@@ -2189,8 +2111,6 @@ bool MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_only)
     return 1;
 }
 
-/* Whether any live member of the group has a visible target; the arguments
-   forward to MonsterHasVisibleTarget. */
 // FUNCTION: WIZ8 0x005347A0
 bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only, int hostility,
                                   int within_reach)
@@ -2507,11 +2427,6 @@ bool PartyHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id)
     return valid != 0 && ((eligible + 1U) >> 1) <= valid;
 }
 
-/* Whether a live hostile monster already fighting stands nearer to one of
-   the group's members than to the party: such a reinforcement keeps a
-   neutral group out of the leave sweep and brings it into combat. The group
-   only counts members already flagged or whose record cannot idle, and only
-   while an encounter list exists. */
 // FUNCTION: WIZ8 0x00534FC0
 bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
 {
@@ -2638,10 +2553,6 @@ bool MonsterSpellHasPartyTarget(W8MonsterInfo* monster_info, int spell_id, W8Com
     return party_markers.GetCount() > 0;
 }
 
-/* The out-of-combat sweep: refreshes sight, alerts the faction groups of
-   every group already fighting, then enters combat for the groups that
-   should - promoting a neutral group's disposition when its record says the
-   encounter turns it hostile. */
 // FUNCTION: WIZ8 0x005354E0
 void CheckMonsterGroupsEnterCombat(void)
 {
@@ -2673,10 +2584,6 @@ void CheckMonsterGroupsEnterCombat(void)
     }
 }
 
-/* Whether a group outside combat should join it. Neutral groups need a
-   reinforcement; hostile ones need a member with a visible non-neutral
-   target inside the leader's reach, the leader itself close enough to walk
-   to the party, or a rendered member already near the party. */
 // FUNCTION: WIZ8 0x005355D0
 bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
 {
