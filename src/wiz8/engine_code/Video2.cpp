@@ -2200,7 +2200,7 @@ void FlushDirtyTiles(void)
 /* Scale a 640x480 design-space rect onto the GERD viewport and remember it;
    no-ops when the stored bounds already match. */
 // FUNCTION: WIZ8 0x00425C90
-void SetScaledViewport00425C90(int left, int top, int right, int bottom)
+void SetAutomapScaledViewport(int left, int top, int right, int bottom)
 {
     if (left == g_viewport_6595e8.left && top == g_viewport_6595e8.top &&
         right == g_viewport_6595e8.right && bottom == g_viewport_6595e8.bottom) {
@@ -3879,7 +3879,7 @@ void DrawColorSurface(srColorSurface* surface, int x, int y)
 }
 
 // FUNCTION: WIZ8 0x00425DA0
-void SetScaledViewport00425DA0(int left, int top, int right, int bottom)
+void SetWorldScaledViewport(int left, int top, int right, int bottom)
 {
     if (left == g_viewport_6595e8.left && top == g_viewport_6595e8.top &&
         right == g_viewport_6595e8.right && bottom == g_viewport_6595e8.bottom) {
