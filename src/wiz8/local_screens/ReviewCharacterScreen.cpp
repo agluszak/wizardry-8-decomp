@@ -1441,7 +1441,7 @@ unsigned char CampScreenEnter(void)
         if (g_combat_state->equip_pending_a51 == 1) {
             for (int slot = 0; slot < 8; ++slot) {
                 if (g_status.buffers.XChar[slot].fOccupied && IsPartySlotEligible(slot) &&
-                    g_status.buffers.XChar[slot].pending_action == 9) {
+                    g_status.buffers.XChar[slot].pending_action == W8_ACTION_EQUIP) {
                     swprintf(g_camp_screen->caption, L"%s %s", g_status.buffers.Char[slot].name,
                              gppStringList[0x919]);
                     goto show_equip_message;
@@ -1451,7 +1451,7 @@ unsigned char CampScreenEnter(void)
             unsigned char count = 0;
             for (int slot = 0; slot < 8; ++slot) {
                 if (g_status.buffers.XChar[slot].fOccupied && IsPartySlotEligible(slot) &&
-                    g_status.buffers.XChar[slot].pending_action == 9) {
+                    g_status.buffers.XChar[slot].pending_action == W8_ACTION_EQUIP) {
                     ++count;
                     if (count == 1) {
                         swprintf(g_camp_screen->caption, L"%s", g_status.buffers.Char[slot].name);
@@ -2136,7 +2136,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         target.pPCItem = item;
         StartBreathCycle(party_slot, 0);
         W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
-        if (row->pending_action == 8 &&
+        if (row->pending_action == W8_ACTION_USE_ITEM &&
             g_item_records[row->pending_action_detail_015.item_use.item->iItemNo].spell_id ==
                 0x17) {
             reidentify = 1;

@@ -328,7 +328,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
             }
         }
         if (MonsterApproachStartupNavigator(monster_info->p3D,
-                                            CalcRangeDistance((W8RangeCategory)best_range) *
+                                            CalcRangeDistance(static_cast<W8RangeCategory>(best_range)) *
                                                 g_float_005ec390) == 0) {
             return;
         }
@@ -509,7 +509,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 if (radius >= g_int_00617ae8) {
                     radius = g_int_00617ae8;
                 }
-                range = (float)radius;
+                range = static_cast<float>(radius);
                 position = monster->GetPosition();
                 if (g_octree->TestNoiseLineOfSight(&position, &noise_position, &range, &hops) !=
                         0 &&
@@ -527,9 +527,9 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 
                 mode = 0xa;
                 angle = (Random(0x168) << 1) * g_camera_pi * g_double_005ed7b0;
-                monster->move_direction_2bc.x = (float)(cos(angle) * g_double_005ec150);
+                monster->move_direction_2bc.x = static_cast<float>(cos(angle) * g_double_005ec150);
                 monster->move_direction_2bc.y = 0.0f;
-                monster->move_direction_2bc.z = (float)(sin(angle) * g_double_005ec150);
+                monster->move_direction_2bc.z = static_cast<float>(sin(angle) * g_double_005ec150);
             } else {
                 mode = 0;
             }
@@ -571,7 +571,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 if (monster->order_mode_28e == 2) {
                     next = monster->patrol_index_2ac + 1;
                     if (next < count) {
-                        monster->patrol_index_2ac = (signed char)next;
+                        monster->patrol_index_2ac = static_cast<signed char>(next);
                     } else {
                         monster->patrol_index_2ac = 0;
                     }
@@ -579,11 +579,11 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                     monster->patrol_index_2ac = 0;
                 } else if ((monster_info->ai_mode_255 & 0xf) == 7) {
                     do {
-                        next = (signed char)Random(count);
+                        next = static_cast<signed char>(Random(count));
                     } while (next == monster->patrol_index_2ac);
-                    monster->patrol_index_2ac = (signed char)next;
+                    monster->patrol_index_2ac = static_cast<signed char>(next);
                 } else {
-                    monster->patrol_index_2ac = (signed char)Random(count);
+                    monster->patrol_index_2ac = static_cast<signed char>(Random(count));
                 }
                 changed = true;
                 break;
@@ -600,7 +600,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
     if (mode != static_cast<char>(monster_info->ai_mode_255)) {
         changed = true;
     }
-    *decision = (unsigned char)mode;
+    *decision = static_cast<unsigned char>(mode);
     return changed;
 }
 
@@ -637,7 +637,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
             }
         }
         if (MonsterApproachStartupNavigator(
-                monster, CalcRangeDistance((W8RangeCategory)best_range) * g_float_005ec390) == 1) {
+                monster, CalcRangeDistance(static_cast<W8RangeCategory>(best_range)) * g_float_005ec390) == 1) {
             if (IsSightRangeOverridden()) {
                 monster_group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                     0x315, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
@@ -1187,7 +1187,7 @@ targets_chosen:
         }
         if (scan_chars != 0 &&
             monster_info->player_visibility.los_flags_05[RangeCategoryUsesSightCondition(
-                monster_info, (W8RangeCategory)record->attacks[attack].range_category)] != 0) {
+                monster_info, static_cast<W8RangeCategory>(record->attacks[attack].range_category))] != 0) {
             for (index = char_lo; index < char_hi; ++index) {
                 if (g_status.buffers.XChar[index].fOccupied != 0 &&
                     g_status.buffers.Char[index].hp_current != 0 &&
@@ -1241,7 +1241,7 @@ targets_chosen:
 void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action_detail,
                         int attack_index, W8TargetKind target_kind, int target_value)
 {
-    W8MonsterAction* entry = (W8MonsterAction*)malloc(0x30);
+    W8MonsterAction* entry = static_cast<W8MonsterAction*>(malloc(0x30));
 
     if (entry == 0) {
         return;
@@ -1259,7 +1259,7 @@ void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action
     } else if (target_kind == W8_TARGET_KIND_MONSTER) {
         entry->target.iMonsterID = target_value;
     }
-    entry->tie_break = (unsigned char)Random(100) + 1;
+    entry->tie_break = static_cast<unsigned char>(Random(100)) + 1;
     PLAdoptAppend(monster_info->pCombat->plsCombatActionList, entry);
 }
 

@@ -241,7 +241,7 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     swprintf(character->name, g_combat_log_format, TitleCaseString(imported->name_000));
     wcscpy(character->name_part_2, character->name);
     character->iRace = imported->race_237;
-    character->gender = (W8Gender)imported->gender_238;
+    character->gender = static_cast<W8Gender>(imported->gender_238);
     switch (imported->profession_239) {
     default:
         profession = W8_PROFESSION_FIGHTER;
@@ -288,7 +288,7 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     }
     character->iProfession = profession;
     CalcCharacterTableValue(character);
-    level = (unsigned short)imported->level_024;
+    level = static_cast<unsigned short>(imported->level_024);
     if (imported->level_024 > 0) {
         level = 1;
     }
@@ -537,17 +537,17 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                 if (item_index != -1) {
                     if (item_index != 0x128) {
                         if (g_item_records[item_index].unidentified_name_index == 0x84 ||
-                            4999 < (int)g_item_records[item_index].value) {
+                            4999 < static_cast<int>(g_item_records[item_index].value)) {
                             source++;
                             continue;
                         }
-                        if (2999 < (int)g_item_records[item_index].value) {
+                        if (2999 < static_cast<int>(g_item_records[item_index].value)) {
                             candidates[0][counts[0]] = *source;
                             ++counts[0];
                             source++;
                             continue;
                         }
-                        if (999 < (int)g_item_records[item_index].value) {
+                        if (999 < static_cast<int>(g_item_records[item_index].value)) {
                             candidates[1][counts[1]] = *source;
                             ++counts[1];
                             source++;
@@ -557,7 +557,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                     ReplaceOrCreateItem(&item, item_index, 1, 1, 1);
                     if (g_item_records[item_index].binds_on_equip == 0) {
                         StoreItemWithCharacterOrParty(character, &item, 0, 0,
-                                                      (unsigned int)(slot == 0));
+                                                      static_cast<unsigned int>(slot == 0));
                     } else {
                         AddItemToCharacter(character, &item, 0, 0, 0);
                     }
@@ -810,7 +810,7 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
             break;
         case 0x14:
             base_value =
-                ((unsigned int)(imported->skills[0x1b] + imported->skills[0x18] * 4) * 0x14) / 100;
+                (static_cast<unsigned int>(imported->skills[0x1b] + imported->skills[0x18] * 4) * 0x14) / 100;
             break;
         case 0x17:
         case 0x23:
@@ -856,7 +856,7 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
         if (0x17 < skill_id && skill_id < 0x1c) {
             if (character->iProfession == 0xc && (skill_id == 0x1a || skill_id == 0x1b) &&
                 base_value == 0) {
-                base_value = ((unsigned int)(imported->skills[0x20] + imported->skills[0x1e])) / 2;
+                base_value = (static_cast<unsigned int>(imported->skills[0x20] + imported->skills[0x1e])) / 2;
             }
             unlocks = 0;
             for (i = 0x1c; i < 0x22; ++i) {

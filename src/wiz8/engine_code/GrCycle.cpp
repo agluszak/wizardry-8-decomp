@@ -138,7 +138,7 @@ void TriggerShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects, int cy
     for (index = 0; index < effects->GetCount(); ++index) {
         W8CameraShakeEffect* effect = *effects->GetAt(index);
 
-        if (effect->cycle_3c == cycle && effect->frame_40 == (int)frame &&
+        if (effect->cycle_3c == cycle && effect->frame_40 == static_cast<int>(frame) &&
             effect->subcycle_44 == subcycle) {
             if ((effect->flags_00 & 1) == 0) {
                 g_shake_effects->Add(effect);
@@ -196,7 +196,7 @@ void UpdateShakeEffects()
         for (int index = 0; index < g_shake_effects->GetCount(); ++index) {
             W8CameraShakeEffect* effect = *g_shake_effects->GetAt(index);
             float amount;
-            if (effect->Evaluate004AE4E0(&camera, &amount) == 0) {
+            if (effect->Evaluate(&camera, &amount) == 0) {
                 g_shake_effects->RemoveAt(index);
                 --index;
                 effect->flags_00 &= ~1u;
@@ -227,7 +227,7 @@ void UpdateShakeEffects()
 /* Bit 2 gates the distance test, bit 3 selects the quadratic falloff, bit 4
    fades out with the remaining time and bit 5 fades in. */
 // FUNCTION: WIZ8 0x004AE4E0
-unsigned char W8CameraShakeEffect::Evaluate004AE4E0(const srVector3T<float>* position,
+unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position,
                                                     float* out_amount)
 {
     float progress = timer_18.GetProgress();
@@ -617,7 +617,7 @@ void W8GrCycle::TickAnimation(float scale)
 
             rate = GetCurrentAnimationScale() * scale;
             progress = elapsed * rate * g_float_005ec128;
-            frames = (int)progress;
+            frames = static_cast<int>(progress);
             frame_fraction_1d4 = progress - frames;
 
             if (frames != 0) {
@@ -672,7 +672,7 @@ unsigned char W8GrCycle::ApplyPendingCycle()
             signed char subcycle_count = GetNumSubCycles();
             W8EmitterHost* current = GetRepresentation();
 
-            if ((int)subcycle < (int)subcycle_count) {
+            if (static_cast<int>(subcycle) < static_cast<int>(subcycle_count)) {
                 current->subcycle_064 = subcycle;
             }
             representation->pending_subcycle_066 = 0xffff;
@@ -1093,9 +1093,9 @@ void W8GrCycle::UpdateParticleAttachments()
 
     current_model_instance_1a8->getRotation(rotation);
     scale = current_model_instance_1a8->getScale();
-    scale_x = (float)scale.x;
-    scale_y = (float)scale.y;
-    scale_z = (float)scale.z;
+    scale_x = static_cast<float>(scale.x);
+    scale_y = static_cast<float>(scale.y);
+    scale_z = static_cast<float>(scale.z);
 
     for (index = 0; index < count; ++index) {
         W8GrCycleParticleAttachment* attachment = *m_plsParticles->GetAt(index);
@@ -1530,7 +1530,7 @@ int FindMappedIndexInMeshChain(stMeshModel** mesh, int key)
 
     current = *mesh;
     while (current != 0) {
-        result = current->FindMappedIndex((short)key);
+        result = current->FindMappedIndex(static_cast<short>(key));
         if (result != -1) {
             break;
         }

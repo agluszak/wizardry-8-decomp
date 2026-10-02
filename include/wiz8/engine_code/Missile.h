@@ -36,7 +36,7 @@ struct W8AIMissile : W8AIRecord {
     int last_half_tick_10;
     float elapsed_14;
     float limit_18;
-    unsigned char padding_1c;
+    unsigned char unknown_1c;
     unsigned char padding_1d[3];
 };
 

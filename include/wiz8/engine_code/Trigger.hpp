@@ -196,9 +196,9 @@ public:
     void UpdateActionAnimation();
     void CommitActionResult(bool apply_state_changes);
     void CompleteItemInteraction();
-    void Activate00444750();
-    bool Save0043BE60(int hFile);
-    bool Load0043C1B0(int hFile, char version);
+    void Activate();
+    bool Save(int hFile);
+    bool Load(int hFile, char version);
     void RunLinkedTriggers();
     void SetPosition(srVector3T<float>* position);
     void FinishAction();

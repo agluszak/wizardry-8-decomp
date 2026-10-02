@@ -782,7 +782,7 @@ void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned ch
     if (!(line->wString != 0)) {
         srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x263, 0);
     }
-    if (g_level_block->text_lines[8 + text_box] == (unsigned int)-1) {
+    if (g_level_block->text_lines[8 + text_box] == static_cast<unsigned int>(-1)) {
         return;
     }
     if (g_level_block->text_lines[8 + text_box] == 0) {
@@ -804,7 +804,7 @@ void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned ch
             previous->highlight_stop = stop;
             return;
         }
-        previous->highlight_stop = (unsigned char)wcslen(previous->wString);
+        previous->highlight_stop = static_cast<unsigned char>(wcslen(previous->wString));
         line->highlight_start = 0;
     }
     line->highlight_stop = stop - g_level_block->text_lines[8 + text_box];

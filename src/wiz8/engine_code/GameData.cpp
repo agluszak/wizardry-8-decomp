@@ -2742,9 +2742,9 @@ W8LevelDataRecord::W8LevelDataRecord() : interval_gate_c4()
     vector_a0.SetZero();
     contact_normal_ac.SetZero();
     /* 0x0041FDEF clears the whole 12-byte group from contact_normal_scale_b8
-       through padding_bc in one run before raising the scale, so the scale's own
+       through unknown_bc in one run before raising the scale, so the scale's own
        zero is part of that run rather than a separate dead store. */
-    memset(&contact_normal_scale_b8, 0, sizeof(contact_normal_scale_b8) + sizeof(padding_bc));
+    memset(&contact_normal_scale_b8, 0, sizeof(contact_normal_scale_b8) + sizeof(unknown_bc));
     contact_normal_scale_b8 = 1.0f;
     g_level_override = 0;
 }

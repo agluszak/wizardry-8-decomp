@@ -23,7 +23,7 @@
 // FUNCTION: WIZ8 0x004a01a0
 W8AnimObj* CreateAnimObj()
 {
-    W8AnimObj* animation = (W8AnimObj*)malloc(sizeof(W8AnimObj));
+    W8AnimObj* animation = static_cast<W8AnimObj*>(malloc(sizeof(W8AnimObj)));
 
     if (animation == 0) {
         srAssertFail("pao", ANIM_OBJ_CPP, 0x24, 0);
@@ -84,7 +84,7 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
     if (!success) {
         srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x117, 0);
     }
-    for (index = 0; index < (signed char)animation->group_count; ++index) {
+    for (index = 0; index < static_cast<signed char>(animation->group_count); ++index) {
         success = success && FileRead(handle, &channel_bytes[index], 1, 0);
     }
 
@@ -115,7 +115,7 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
         unsigned char light_count;
         srVector3T<float> color(1.0f, 1.0f, 1.0f);
         FileRead(handle, &light_count, 1, 0);
-        for (index = 0; index < (signed char)light_count; ++index) {
+        for (index = 0; index < static_cast<signed char>(light_count); ++index) {
             unsigned char light_version;
             unsigned char definition_kind = 0;
             unsigned char ignored;
@@ -229,7 +229,7 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
 
     if (animation->path_lists_05 == 0) {
         int mesh_index;
-        for (mesh_index = 0; mesh_index < (signed char)animation->group_count; ++mesh_index) {
+        for (mesh_index = 0; mesh_index < static_cast<signed char>(animation->group_count); ++mesh_index) {
             W8AniMesh* mesh = CreateAniMesh();
             signed char channel = 0;
 
@@ -247,7 +247,7 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
             animation->meshes_28[index] = PLCreate();
             animation->paths_34[index] = PLCreate();
         }
-        for (group = 0; group < (signed char)animation->group_count; ++group) {
+        for (group = 0; group < static_cast<signed char>(animation->group_count); ++group) {
             signed char entry_count;
             int entry;
             success = FileRead(handle, &entry_count, 1, 0);
@@ -314,7 +314,7 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
 // FUNCTION: WIZ8 0x004a0320
 W8AnimObj* CloneAnimObj(const W8AnimObj* source)
 {
-    W8AnimObj* copy = (W8AnimObj*)malloc(sizeof(W8AnimObj));
+    W8AnimObj* copy = static_cast<W8AnimObj*>(malloc(sizeof(W8AnimObj)));
     int index;
     int entry;
     int count;
@@ -348,7 +348,7 @@ W8AnimObj* CloneAnimObj(const W8AnimObj* source)
     for (index = 0; index < 3; ++index) {
         if (source->meshes_28[index] != 0) {
             copy->meshes_28[index] = PLCreate();
-            count = (int)PLLength(source->meshes_28[index]);
+            count = static_cast<int>(PLLength(source->meshes_28[index]));
             for (entry = 0; entry < count; ++entry) {
                 PLAdoptAppend(copy->meshes_28[index], CopyAniMesh(static_cast<W8AniMesh*>(
                                                           PLGet(source->meshes_28[index], entry))));
@@ -358,7 +358,7 @@ W8AnimObj* CloneAnimObj(const W8AnimObj* source)
     for (index = 0; index < 3; ++index) {
         if (source->paths_34[index] != 0) {
             copy->paths_34[index] = PLCreate();
-            count = (int)PLLength(source->paths_34[index]);
+            count = static_cast<int>(PLLength(source->paths_34[index]));
             for (entry = 0; entry < count; ++entry) {
                 PLAdoptAppend(copy->paths_34[index], ClonePathAI(static_cast<W8PathAI*>(
                                                          PLGet(source->paths_34[index], entry))));
@@ -452,7 +452,7 @@ unsigned char AnimObjGetBounds(W8AnimObj* animation, signed char list_index, uns
                          ANIM_OBJ_CPP, 0x31e, 0);
         }
         memset(animation->pfKnownBBoxFrames, 0, frames);
-        for (index = 0; (unsigned int)index < frames; ++index) {
+        for (index = 0; static_cast<unsigned int>(index) < frames; ++index) {
             animation->pvecBoundMin[index] = 0.0f;
             animation->pvecBoundMax[index] = 0.0f;
         }
@@ -470,7 +470,7 @@ unsigned char AnimObjGetBounds(W8AnimObj* animation, signed char list_index, uns
     }
     GetAniMeshBounds(static_cast<W8AniMesh*>(PLGet(animation->meshes_28[list_index], 0)), minimum,
                      maximum);
-    for (index = 0; (unsigned int)index < count; ++index) {
+    for (index = 0; static_cast<unsigned int>(index) < count; ++index) {
         if (index != 0) {
             GetAniMeshBounds(
                 static_cast<W8AniMesh*>(PLGet(animation->meshes_28[list_index], index)),
@@ -630,27 +630,27 @@ void DestroyAnimObj(W8AnimObj* animation)
             W8PList* paths;
 
             if (meshes != 0) {
-                count = (int)PLLength(meshes);
+                count = static_cast<int>(PLLength(meshes));
                 for (entry = 0; entry < count; ++entry) {
                     W8AniMesh* mesh = static_cast<W8AniMesh*>(PLGet(meshes, entry));
 
                     if (mesh != 0) {
                         DestroyAniMesh(mesh);
                     }
-                    count = (int)PLLength(meshes);
+                    count = static_cast<int>(PLLength(meshes));
                 }
                 PLDestroy(meshes);
             }
             paths = animation->paths_34[index];
             if (paths != 0) {
-                count = (int)PLLength(paths);
+                count = static_cast<int>(PLLength(paths));
                 for (entry = 0; entry < count; ++entry) {
                     W8PathAI* path = static_cast<W8PathAI*>(PLGet(paths, entry));
 
                     if (path != 0) {
                         DestroyPathAI(path);
                     }
-                    count = (int)PLLength(paths);
+                    count = static_cast<int>(PLLength(paths));
                 }
                 PLDestroy(paths);
             }

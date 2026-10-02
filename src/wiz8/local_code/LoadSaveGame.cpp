@@ -1108,7 +1108,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
     int index;
     char is_encounter = 0;
 
-    group = (W8MonsterGroup*)malloc(sizeof(W8MonsterGroup));
+    group = static_cast<W8MonsterGroup*>(malloc(sizeof(W8MonsterGroup)));
     if (group == 0) {
         return 0;
     }
@@ -1465,7 +1465,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
     W8WorldItem* item;
     unsigned int done;
 
-    item = (W8WorldItem*)malloc(sizeof(W8WorldItem));
+    item = static_cast<W8WorldItem*>(malloc(sizeof(W8WorldItem)));
     while (item != 0) {
         if (first == 0) {
             first = item;
@@ -1491,7 +1491,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
         if (item->next == 0) {
             return first;
         }
-        item = (W8WorldItem*)malloc(sizeof(W8WorldItem));
+        item = static_cast<W8WorldItem*>(malloc(sizeof(W8WorldItem)));
     }
     return 0;
 }
@@ -2152,7 +2152,7 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
             W8ItemInstance* item = 0;
             signed char origin = static_cast<signed char>(party_row->item_origin);
             short item_slot = static_cast<short>(party_row->item_slot);
-            if (party_row->fOccupied != 0 && party_row->pending_action == 8 && origin != -1 &&
+            if (party_row->fOccupied != 0 && party_row->pending_action == W8_ACTION_USE_ITEM && origin != -1 &&
                 item_slot != -1) {
                 item = FindCharacterItemAt(slot, static_cast<unsigned char>(origin),
                                            static_cast<unsigned short>(item_slot));

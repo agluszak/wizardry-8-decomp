@@ -365,7 +365,7 @@ void ApplyProfessionMinimumAttributes(W8Character* character,
             if (character->uiExpLevel > 1) {
                 int minimum = g_profession_attribute_minimums[character->iProfession].values[index];
                 int value = creation_state->attribute_values_008[index];
-                while (character->attributes[index].value - value < (unsigned int)minimum) {
+                while (character->attributes[index].value - value < static_cast<unsigned int>(minimum)) {
                     creation_state->attribute_values_008[index] = value - 1;
                     --creation_state->attribute_points_total;
                     ++creation_state->attribute_baselines_048[index];
@@ -467,10 +467,10 @@ void DetermineEligibleProfessions(W8Character* character, W8CharacterCreationSta
                 eligibility[profession] = 0;
             }
             for (attribute = 0; attribute < 7; ++attribute) {
-                if ((unsigned int)(creation_state->attribute_limits_028[attribute] -
+                if (static_cast<unsigned int>(creation_state->attribute_limits_028[attribute] -
                                    creation_state->attribute_values_008[attribute]) +
                         character->attributes[attribute].value <
-                    (unsigned int)g_profession_attribute_minimums[profession].values[attribute]) {
+                    static_cast<unsigned int>(g_profession_attribute_minimums[profession].values[attribute])) {
                     eligibility[profession] = 0;
                     break;
                 }
@@ -754,7 +754,7 @@ void RebuildSkillAllocations(W8Character* character, W8CharacterCreationState* c
     }
     int step = 0x3c / count;
     if (creation_state->attribute_points_total < 0) {
-        step -= (unsigned int)(creation_state->attribute_points_total * step * -2) / 100;
+        step -= static_cast<unsigned int>(creation_state->attribute_points_total * step * -2) / 100;
     }
 
     for (index = 0; index < 4; ++index) {

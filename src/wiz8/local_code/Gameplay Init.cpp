@@ -259,7 +259,7 @@ void ResetGameStatus(unsigned char release)
 // FUNCTION: WIZ8 0x0054afd0
 void InitializeGameplayRuntimeObjects(void)
 {
-    memset(static_cast<void*>(&gXStatus), 0, sizeof(gXStatus));
+    memset(&gXStatus, 0, sizeof(gXStatus));
     gXStatus.character_event_queue = new W8CharacterEventQueue();
     gXStatus.gameplay_timer = new W8GameTimer(300.0f, 0);
 }
@@ -388,7 +388,7 @@ void ResetGameplaySlot(unsigned int slot)
     W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[slot];
     int tier;
 
-    memset(static_cast<void*>(record), 0, sizeof(W8MonsterManagerEntry));
+    memset(record, 0, sizeof(W8MonsterManagerEntry));
     record->portrait_event_active = 0;
     record->voice_sound_handle = -1;
     record->previous_portrait_frame = -1;
@@ -449,7 +449,7 @@ void ResetPartySlotRow(int slot)
     row->fOccupied = 1;
     row->spell_id = 0;
     row->queued_action = 0xff;
-    SetSlotAction(slot, 0, -1);
+    SetSlotAction(slot, W8_ACTION_ATTACK, -1);
 }
 
 /* Both buffers are cleared only after both allocations succeed, so a failed

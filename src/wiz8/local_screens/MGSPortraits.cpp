@@ -1522,10 +1522,10 @@ void UpdateConditionButtons(void)
                 button->Invalidate(0);
                 if (g_level_block->portrait_refresh_pending[slot] == 0 &&
                     entry->keyboard_menu_open == 0) {
-                    ClearSurfaceRect(button->m_left + g_condition_buttons_panel->origin_x,
-                                     button->m_top + g_condition_buttons_panel->origin_y,
-                                     button->m_right + g_condition_buttons_panel->origin_x,
-                                     button->m_bottom + g_condition_buttons_panel->origin_y);
+                    ClearSurfaceRect(button->m_left + g_condition_buttons_panel->m_bounds.left,
+                                     button->m_top + g_condition_buttons_panel->m_bounds.top,
+                                     button->m_right + g_condition_buttons_panel->m_bounds.left,
+                                     button->m_bottom + g_condition_buttons_panel->m_bounds.top);
                 }
                 if (g_level_block->condition_highlight_party_slot == slot) {
                     g_level_block->condition_highlight_party_slot = -1;

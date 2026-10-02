@@ -1006,11 +1006,11 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         delta = location - previous;
         monster_info->position_17.x = location.x;
         monster_info->position_17.z = location.z;
-        if ((signed char)cycle > 1) {
+        if (static_cast<signed char>(cycle) > 1) {
             bool cycle_cleared = false;
             bool flags_cleared = false;
 
-            if ((signed char)cycle < 4) {
+            if (static_cast<signed char>(cycle) < 4) {
                 bool cleared = false;
 
                 if (delta.Length() < 500.0f) {
@@ -1420,10 +1420,10 @@ void RegenCharacterStamina(int party_slot, unsigned int elapsed)
     if (frost != 0) {
         scale *= g_navigator_vertical_phase_step;
     }
-    if (CharacterHasTrait(character, 0)) {
+    if (CharacterHasTrait(character, W8_TRAIT_STAMINA_REGENERATION)) {
         if (scale == g_float_005ebb34) {
             if (gXStatus.fCombatMode != 0) {
-                scale = ScaleValueByProfessionLevel(character, 0, 3.3f);
+                scale = ScaleValueByProfessionLevel(character, W8_TRAIT_STAMINA_REGENERATION, 3.3f);
             }
         } else {
             scale *= g_float_005ec3b8;

@@ -45,7 +45,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
         character->uiExpLevel = 0x32;
     }
     for (index = 0; index < 0xf; ++index) {
-        if ((unsigned int)character->profession_levels[index] > 0x32) {
+        if (static_cast<unsigned int>(character->profession_levels[index]) > 0x32) {
             character->profession_levels[index] = 0x32;
         }
     }
@@ -90,7 +90,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
     character->total_carried_weight = character->party_weight_share + character->inventory_weight;
 
     unsigned int load =
-        (unsigned int)(character->total_carried_weight * 100) / character->carrying_capacity;
+        static_cast<unsigned int>(character->total_carried_weight * 100) / character->carrying_capacity;
     if (load < 0x32) {
         character->load_category = W8_LOAD_NONE;
     } else if (load < 0x46) {
@@ -122,7 +122,7 @@ bool RecalculateCarryingCapacity(W8Character* character)
                character->attributes[W8_ATTRIBUTE_STRENGTH].effective * 2;
     unsigned int capacity = base * 0xc;
     if (CharacterHasTrait(character, W8_TRAIT_FAERIE_REDUCED_CARRY_CAPACITY)) {
-        capacity = (unsigned int)(base * 0x18) / 3;
+        capacity = static_cast<unsigned int>(base * 0x18) / 3;
     }
     character->carrying_capacity = capacity;
     return previous != capacity;
@@ -191,7 +191,7 @@ void RedistributePartyEncumbrance(void)
     }
 
     for (party_weight >>= 1; party_weight != 0; --party_weight) {
-        unsigned int best_slot = (unsigned int)-1;
+        unsigned int best_slot = static_cast<unsigned int>(-1);
         float best_ratio = -999999.0f;
         for (slot = 0; slot < 8; ++slot) {
             W8Character* character = &characters[slot];
@@ -201,7 +201,7 @@ void RedistributePartyEncumbrance(void)
                 best_slot = slot;
             }
         }
-        if (best_slot == (unsigned int)-1) {
+        if (best_slot == static_cast<unsigned int>(-1)) {
             return;
         }
         W8Character* character = &characters[best_slot];

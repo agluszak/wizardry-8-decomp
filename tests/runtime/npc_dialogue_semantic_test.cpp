@@ -14,7 +14,7 @@
    - the spacer kind is consumed with no case and no effect;
    - CLOSE_DIALOGUE sets g_flag_6109f0 while the dialogue stays closed;
    - DISPATCH_PENDING_NOTICE hands the staged record to
-     BeginNpcDialogueInternal, which clears g_flag_68f0f9, opens dialogue mode
+     BeginNpcDialogueInternal, which clears g_pending_notice_queued, opens dialogue mode
      and appends the notice's quote line;
    - an emptied queue flips g_message_queue_idle back on.
 
@@ -107,7 +107,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     saved_script_npc = g_npc_scripting.npc;
     saved_screen = g_screen_state_00649f1c;
     saved_notice = g_pending_notice;
-    saved_flag_68f0f9 = g_flag_68f0f9;
+    saved_flag_68f0f9 = g_pending_notice_queued;
     saved_flag_6109f0 = g_flag_6109f0;
     saved_flag_006840bc = gXStatus.world_update_blocked;
     saved_queue_idle = g_message_queue_idle;
@@ -125,7 +125,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     gXStatus.fNpcDialogueMode = 0;
     gXStatus.fPartyMovementUi = 0;
     g_flag_6109f0 = 0;
-    g_flag_68f0f9 = 1;
+    g_pending_notice_queued = 1;
     g_message_queue_idle = 1;
 
     g_pending_notice.npc = fake_npc;
@@ -157,7 +157,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
 
     ProcessMessageBoxQueue(); /* DISPATCH_PENDING_NOTICE */
     result->notice_dispatched =
-        g_flag_68f0f9 == 0 && gXStatus.fNpcDialogueMode != 0 && fake_screen->scripted_dialogue != 0;
+        g_pending_notice_queued == 0 && gXStatus.fNpcDialogueMode != 0 && fake_screen->scripted_dialogue != 0;
     tail = 0;
     if (g_npc_scripting.message_lines.GetCount() == 2) {
         tail = *g_npc_scripting.message_lines.GetAt(1);
@@ -198,7 +198,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     g_npc_scripting.npc = saved_script_npc;
     g_screen_state_00649f1c = saved_screen;
     g_pending_notice = saved_notice;
-    g_flag_68f0f9 = saved_flag_68f0f9;
+    g_pending_notice_queued = saved_flag_68f0f9;
     g_flag_6109f0 = saved_flag_6109f0;
     gXStatus.world_update_blocked = saved_flag_006840bc;
     g_message_queue_idle = saved_queue_idle;

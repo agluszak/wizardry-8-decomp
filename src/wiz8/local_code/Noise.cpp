@@ -48,7 +48,7 @@ void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, in
         }
         W8MonsterRecord* record = GetMonsterDataForInfo(info);
         srVector3T<float> monster_position = info->p3D->GetPosition();
-        int remaining = radius - (int)(monster_position - noise_position).Length();
+        int remaining = radius - static_cast<int>((monster_position - noise_position).Length());
         if (remaining <= 0) {
             continue;
         }
@@ -66,7 +66,7 @@ void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, in
             }
         }
         if (flag == 1 && gXStatus.fCombatMode != 0) {
-            float range = (float)radius;
+            float range = static_cast<float>(radius);
             int hops;
             if (g_octree->TestNoiseLineOfSight(&monster_position, &noise_position, &range, &hops) ==
                 0) {

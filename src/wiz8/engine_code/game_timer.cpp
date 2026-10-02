@@ -86,7 +86,7 @@ void ResumeSharedGameTimers(void)
         float duration = timer->m_duration_scale * timer->m_duration_seconds * g_float_005ec0a8;
         int start = sample - timer->m_start;
         timer->m_start = start;
-        timer->m_duration = (int)duration;
+        timer->m_duration = static_cast<int>(duration);
         timer->m_end = start + timer->m_duration;
     }
 }
@@ -157,7 +157,7 @@ W8GameTimer::W8GameTimer()
             double frequency;
 
             if (timer->m_frequency != 0.0) {
-                frequency = (double)timer->m_frequency;
+                frequency = static_cast<double>(timer->m_frequency);
             } else {
                 frequency = 1.0;
             }
@@ -207,7 +207,7 @@ W8GameTimer::W8GameTimer(float duration, unsigned char raw_time)
     ++g_shared_timer_refs;
     m_start = ReadClock();
     m_duration_seconds = duration;
-    m_duration = (int)(duration * 10000.0f);
+    m_duration = static_cast<int>(duration * 10000.0f);
     m_end = m_start + m_duration;
 }
 
@@ -217,7 +217,7 @@ void W8GameTimer::SetDuration(float duration)
     if (duration > 0.0f) {
         m_duration_seconds = duration;
     }
-    m_duration = (int)(m_duration_scale * m_duration_seconds * 10000.0f);
+    m_duration = static_cast<int>(m_duration_scale * m_duration_seconds * 10000.0f);
     m_end = m_start + m_duration;
 }
 
@@ -243,7 +243,7 @@ void W8GameTimer::SetDurationScale(float scale)
         m_flags |= 0x10;
     }
     float progress = GetProgress();
-    m_duration = (int)(m_duration_seconds * m_duration_scale * 10000.0f);
+    m_duration = static_cast<int>(m_duration_seconds * m_duration_scale * 10000.0f);
     SetProgress(progress);
 }
 
@@ -253,7 +253,7 @@ void W8GameTimer::ResetDurationScale()
     m_flags &= ~0x10;
     m_duration_scale = 1.0f;
     float progress = GetProgress();
-    m_duration = (int)(m_duration_seconds * m_duration_scale * 10000.0f);
+    m_duration = static_cast<int>(m_duration_seconds * m_duration_scale * 10000.0f);
     SetProgress(progress);
 }
 
@@ -265,7 +265,7 @@ float W8GameTimer::GetProgress()
     int end = m_end;
     float progress = static_cast<unsigned int>(sample - start) /
                      static_cast<float>(static_cast<unsigned int>(end - start));
-    int completed = (int)progress;
+    int completed = static_cast<int>(progress);
 
     if (completed != 0 && completed > 0) {
         m_start = (completed - 1) * m_duration + end;
@@ -295,7 +295,7 @@ BOOLEAN W8GameTimer::Load(int handle)
     BOOLEAN loaded = FileRead(handle, &progress, sizeof(progress), 0);
     loaded |= FileRead(handle, &m_duration_scale, sizeof(m_duration_scale), 0);
     if (loaded != 0) {
-        m_duration = (int)(m_duration_seconds * m_duration_scale * 10000.0f);
+        m_duration = static_cast<int>(m_duration_seconds * m_duration_scale * 10000.0f);
         m_end = m_start + m_duration;
         unsigned int sample = ReadClock();
         unsigned int elapsed =

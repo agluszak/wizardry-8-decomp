@@ -178,8 +178,8 @@ void W8CharacterStatsValue::Redraw(unsigned char full_redraw)
     if (!m_active || m_pPanel == 0) {
         return;
     }
-    int left = m_pPanel->origin_x + m_left + 2;
-    int top = m_pPanel->origin_y + m_top + 1;
+    int left = m_pPanel->m_bounds.left + m_left + 2;
+    int top = m_pPanel->m_bounds.top + m_top + 1;
     const W8CharacterStatsRecord* record = m_record_0b8;
     unsigned int image = m_enabled ? record->image_enabled_04 : record->image_disabled_08;
     DrawCatalogImage(-14, record->object_00, 0, image, left, top, 2, 0);
@@ -243,8 +243,8 @@ void W8CharacterStatsRecordControl::Redraw(unsigned char full_redraw)
     if (!m_active || m_pPanel == 0) {
         return;
     }
-    int left = m_pPanel->origin_x + m_left + 2;
-    int top = m_pPanel->origin_y + m_text_offset_0c0 + m_top + 1;
+    int left = m_pPanel->m_bounds.left + m_left + 2;
+    int top = m_pPanel->m_bounds.top + m_text_offset_0c0 + m_top + 1;
     const W8CharacterStatsRecord* record = m_record_0b8;
     unsigned int image = m_enabled ? record->image_enabled_04 : record->image_disabled_08;
     DrawCatalogImage(-14, record->object_00, 0, image, left, top, 2, 0);
@@ -287,8 +287,8 @@ void W8CharacterStatsRow::Initialize(Controls* owner, unsigned int* region_set, 
 {
     m_table_018 = table;
     m_count_008 = static_cast<unsigned short>(count);
-    m_x_00c = owner->origin_x + x;
-    m_y_010 = owner->origin_y + y;
+    m_x_00c = owner->m_bounds.left + x;
+    m_y_010 = owner->m_bounds.top + y;
     m_region_set_014 = region_set;
     if (count == 0) {
         srAssertFail("usItemsInList", CGS_STATS_PAGE_CPP, 0x1d6, 0);
@@ -321,7 +321,7 @@ void W8CharacterStatsRow::BuildSubpanel()
 {
     if (m_subpanel_028 == 0) {
         m_subpanel_028 = new Controls(m_x_00c + 0x9e, m_y_010 + 1, m_x_00c + 0x11c,
-                                      m_y_010 + 5 + (unsigned int)m_count_008 * 0x16, -1, 0, -1);
+                                      m_y_010 + 5 + static_cast<unsigned int>(m_count_008) * 0x16, -1, 0, -1);
         m_subpanel_028->AcquireRegionSet(m_region_set_014);
         m_subpanel_entries_02c = new W8TextControl*[m_count_008];
 
@@ -417,7 +417,7 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
     } else if (control == m_increment_020) {
         int previous = m_index_004;
         int index = previous + 1;
-        if (index < (int)(unsigned int)m_count_008) {
+        if (index < static_cast<int>(static_cast<unsigned int>(m_count_008))) {
             const W8CharacterStatsRecord* record = &m_table_018[index];
             do {
                 if (record->enabled_0e != 0) {
@@ -433,7 +433,7 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
                 }
                 ++index;
                 ++record;
-            } while (index < (int)(unsigned int)m_count_008);
+            } while (index < static_cast<int>(static_cast<unsigned int>(m_count_008)));
         }
         index = 0;
         if (previous > 0) {
@@ -998,8 +998,8 @@ void W8CharacterStatsPage::Redraw()
 {
     bool redraw = static_cast<unsigned char>(m_fEnabled && m_fDirty);
     W8TextBuffer text;
-    int left = origin_x;
-    int top = origin_y;
+    int left = m_bounds.left;
+    int top = m_bounds.top;
     W8CharacterPage::Redraw();
     if (redraw) {
         W8ControlsRect bounds;

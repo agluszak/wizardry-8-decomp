@@ -341,7 +341,7 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index)
         if (group_list_index >= PLLength(gXStatus.plsMonsterGroupList)) {
             return 0;
         }
-        result = (W8MonsterGroup*)PLGet(gXStatus.plsMonsterGroupList, group_list_index);
+        result = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupList, group_list_index));
         if (result != 0) {
             return result;
         }
@@ -353,8 +353,8 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index)
             PLLength(gXStatus.plsMonsterGroupEncounterList)) {
             return 0;
         }
-        result = (W8MonsterGroup*)PLGet(gXStatus.plsMonsterGroupEncounterList,
-                                        group_list_index - W8_ENCOUNTER_GROUP_INDEX_BIAS);
+        result = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupEncounterList,
+                                        group_list_index - W8_ENCOUNTER_GROUP_INDEX_BIAS));
         if (result != 0) {
             return result;
         }
@@ -385,7 +385,7 @@ unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, 
     }
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterGroupEncounterList); ++index) {
-        group = (W8MonsterGroup*)PLGet(gXStatus.plsMonsterGroupEncounterList, index);
+        group = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupEncounterList, index));
         if (group->group_id == group_id) {
             return index + W8_ENCOUNTER_GROUP_INDEX_BIAS;
         }

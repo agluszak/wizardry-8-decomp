@@ -138,7 +138,7 @@ unsigned char InitializeGame(void)
     if (!InitializeMusicPlaylist()) {
         return 0;
     }
-    ok = (unsigned char)(0x4000000 < GetTotalPhysicalMemory());
+    ok = static_cast<unsigned char>(0x4000000 < GetTotalPhysicalMemory());
     g_texture_cache_enabled = ok;
     return 1;
 }

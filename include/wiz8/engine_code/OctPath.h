@@ -196,17 +196,17 @@ static_assert(sizeof(GDPropCondPaths) == 0x44, "GDPropCondPaths_must_be_0x44");
    its Bresenham step; the remaining slots are zeroed by the builder. */
 struct W8PathGridWalk {
     int cell_00[2];    /* 0x00: destination X/Z path cells */
-    int padding_08;    /* 0x08: zero */
+    int unknown_08;    /* 0x08: zero */
     int step_0c[2];    /* 0x0c: +1 or -1 per axis */
-    int padding_14;    /* 0x14: zero */
+    int unknown_14;    /* 0x14: zero */
     int major_axis_18; /* 0x18: 0 for X, 1 for Z */
     int minor_axis_1c; /* 0x1c: (major + 1) % 2 */
-    int padding_20;    /* 0x20: zero */
+    int unknown_20;    /* 0x20: zero */
     int count_24;      /* 0x24: cells to visit */
     int error_28;      /* 0x28 */
     int error_2c;      /* 0x2c */
     int cell_size_30;  /* 0x30 */
-    int padding_34[3]; /* 0x34: zero */
+    int unknown_34[3]; /* 0x34: zero */
 };
 
 static_assert(sizeof(W8PathGridWalk) == 0x40, "W8PathGridWalk_must_be_0x40");
@@ -447,7 +447,7 @@ public:
     /* ReadOctFile tests this beside waypoint_editing_1c8 before settling a portal. */
     unsigned int m_ulNumWayPoints;  /* 0x0c */
     unsigned int m_ulNumWayPtLinks; /* 0x10 */
-    int m_padding_014;
+    int m_unknown_014;
     /* Incremented for each edge removed by the waypoint editor; never read. */
     int m_removed_edge_count_018;
     /* The grid divisor both linking walks divide by. */
@@ -577,6 +577,8 @@ struct W8PrePathNode {
 
 static_assert(sizeof(W8PrePathNode) == 0x10, "W8PrePathNode_must_be_0x10");
 
+enum { W8_PREPATH_NODES_PER_CHUNK = 1000 };
+
 /* OctPrePath.cpp's 0x1204-byte build-time pathing service ("PrePathing" in its
    own assertions): its constructor runs the W8PathingService constructor then
    initialises scratch state through +0x1200, and the pre-tree stores it at
@@ -590,8 +592,8 @@ public:
        snaps it to the ground through `octree`. */
     int SnapNamedPositions(W8LevelFileNamedPosition* positions, int count,
                            unsigned int min_component_percent, OctPreTree* octree);
-    /* Hands out the next 0x10-byte path-node record, allocating a new
-       0x3e80-byte chunk (1000 records) when the current one fills. */
+    /* Hands out the next path-node record, allocating a new chunk when the
+       current one fills. */
     W8PrePathNode* GetPathNode();
     unsigned char BuildPathList(W8PrePathNode* nodes, W8HashTable<unsigned int, int>* cell_map);
     unsigned char LinkPathNodes();
@@ -607,8 +609,8 @@ public:
     int named_position_count_24c;
     srVector3T<float>* named_positions_250;
     W8HashTable<unsigned int, int>* cell_map_254;
-    /* Embedded chunk table: each slot is a malloc'd 0x3e80-byte run of
-       0x10-byte path-node records. The constructor fills slot 0, and the
+    /* Embedded chunk table: each slot is a malloc'd run of
+       W8_PREPATH_NODES_PER_CHUNK path-node records. The constructor fills slot 0, and the
        destructor frees every slot through chunk_index_11f8 inclusive. */
     W8PrePathNode* node_chunks_258[0x3e8];
     int chunk_index_11f8;

@@ -69,7 +69,7 @@ static void TrimHitSoundLine(char* line)
         *comment = '\0';
     }
     length = strlen(line);
-    while (length && isspace((unsigned char)line[length - 1])) {
+    while (length && isspace(static_cast<unsigned char>(line[length - 1]))) {
         line[--length] = '\0';
     }
 }

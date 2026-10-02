@@ -155,7 +155,7 @@ void RemoveCharacterCondition(int party_slot, int condition, unsigned char annou
             if (found_character == 0) {
                 found_character = FindPartyMemberWithLowestResistance4();
             }
-            if (CharacterPointerToPartySlot(found_character) == (unsigned int)party_slot &&
+            if (CharacterPointerToPartySlot(found_character) == static_cast<unsigned int>(party_slot) &&
                 !FindItemOnCharacter(found_character, 0x239, 0, 0, 0)) {
                 return;
             }
@@ -535,7 +535,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
             monster_info->condition_target_304 = *target;
         }
     }
-    if ((unsigned int)argument > (unsigned int)monster_info->condition_argument) {
+    if (static_cast<unsigned int>(argument) > static_cast<unsigned int>(monster_info->condition_argument)) {
         monster_info->condition_argument = argument;
         handled = 1;
     }
@@ -543,10 +543,10 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
     if (handled == 0) {
         return;
     }
-    if ((unsigned int)condition >= 0xD) {
+    if (static_cast<unsigned int>(condition) >= 0xD) {
         ResetCombatSlot(&monster_info->Target);
     }
-    if ((unsigned int)condition >= 0x12) {
+    if (static_cast<unsigned int>(condition) >= 0x12) {
         MonsterStartsDying(monster_info, announce);
         return;
     }
@@ -688,7 +688,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     if (condition == W8_CONDITION_POISONED && argument == 0) {
         return 0;
     }
-    if (condition == 0x12 && CharacterHasTrait(character, 2) != 0 &&
+    if (condition == 0x12 && CharacterHasTrait(character, W8_TRAIT_CHEAT_DEATH) != 0 &&
         character->uiCondition[17] < 7) {
         CheatDeathRevive(party_slot);
         return 0;
@@ -713,7 +713,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     }
     switch (condition) {
     case 6:
-        if (CharacterHasTrait(character, 3) != 0) {
+        if (CharacterHasTrait(character, W8_TRAIT_FEARLESS) != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x180]);
             return 0;
         }
@@ -733,7 +733,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         }
         /* fall through */
     case 0xd:
-        if (CharacterHasTrait(character, 0xe) != 0) {
+        if (CharacterHasTrait(character, W8_TRAIT_MENTAL_CONDITION_IMMUNITY) != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x181]);
             return 0;
         }
@@ -741,7 +741,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     }
     old_highest = character->highest_condition;
     old_duration = character->uiCondition[condition];
-    if (old_duration < (unsigned int)duration) {
+    if (old_duration < static_cast<unsigned int>(duration)) {
         if (old_duration == 0) {
             if (condition == 9 || condition == 0xC) {
                 gXStatus.sight_refresh_pending_a03 = 1;
@@ -755,7 +755,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     } else {
         handled = 0;
     }
-    if ((unsigned int)character->condition_argument < (unsigned int)argument) {
+    if (static_cast<unsigned int>(character->condition_argument) < static_cast<unsigned int>(argument)) {
         character->condition_argument = argument;
     }
     RebuildConditionsAndDerivedStats(party_slot);

@@ -736,12 +736,12 @@ inline void CloseKeyboardMenu(void)
     RegionSetDisable(0x26);
     DisableRegionSetInput(0x26);
     if (g_level_block->portrait_refresh_pending[g_selected_party_slot] == 0) {
-        ClearSurfaceRect(g_keyboard_menu_panel->origin_x, g_keyboard_menu_panel->origin_y,
-                         g_keyboard_menu_panel->origin_x + 0x52,
-                         g_keyboard_menu_panel->origin_y + 0x4a);
-        InvalidateRegion(g_keyboard_menu_panel->origin_x, g_keyboard_menu_panel->origin_y,
-                         g_keyboard_menu_panel->origin_x + 0x52,
-                         g_keyboard_menu_panel->origin_y + 0x4a, 0);
+        ClearSurfaceRect(g_keyboard_menu_panel->m_bounds.left, g_keyboard_menu_panel->m_bounds.top,
+                         g_keyboard_menu_panel->m_bounds.left + 0x52,
+                         g_keyboard_menu_panel->m_bounds.top + 0x4a);
+        InvalidateRegion(g_keyboard_menu_panel->m_bounds.left, g_keyboard_menu_panel->m_bounds.top,
+                         g_keyboard_menu_panel->m_bounds.left + 0x52,
+                         g_keyboard_menu_panel->m_bounds.top + 0x4a, 0);
     }
     if (g_keyboard_menu_panel != 0) {
         delete g_keyboard_menu_panel;
@@ -840,9 +840,9 @@ void EnableKeyboardMenuInput(void)
 // FUNCTION: WIZ8 0x00593300
 bool KeyboardMenuContainsCursor(void)
 {
-    return IsCursorInRectangle(g_keyboard_menu_panel->origin_x, g_keyboard_menu_panel->origin_y,
-                               g_keyboard_menu_panel->origin_x + 0x52,
-                               g_keyboard_menu_panel->origin_y + 0x4a);
+    return IsCursorInRectangle(g_keyboard_menu_panel->m_bounds.left, g_keyboard_menu_panel->m_bounds.top,
+                               g_keyboard_menu_panel->m_bounds.left + 0x52,
+                               g_keyboard_menu_panel->m_bounds.top + 0x4a);
 }
 
 // FUNCTION: WIZ8 0x00593360

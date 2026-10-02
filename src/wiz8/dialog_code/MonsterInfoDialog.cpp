@@ -147,7 +147,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     if (monster_info->summoned_2da == 1) {
         knowledge = 0x7d;
     } else {
-        knowledge = GetBestPartySkillLevel(0x15, &best_party_slot);
+        knowledge = GetBestPartySkillLevel(W8_SKILL_MYTHOLOGY, &best_party_slot);
         if (static_cast<int>(average_level) < monster_level) {
             float adjusted_knowledge =
                 knowledge - (monster_level - average_level) * g_float_005ec52c + g_float_005ebc7c;

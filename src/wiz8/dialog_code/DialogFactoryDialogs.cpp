@@ -115,7 +115,7 @@ int W8ListBoxDialog::GetVisibleLineCount()
         return 0;
     }
     return GetButtonHeight(m_area_button_098) /
-           (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8);
+           static_cast<int>(static_cast<unsigned int>(GetFontHeight(g_dialog_font_64fde8)));
 }
 
 // FUNCTION: WIZ8 0x005CCB80
@@ -474,11 +474,11 @@ void W8ListBoxDialog::Draw()
     int height = -6 - GetButtonY(m_text_button_08c) - GetButtonHeight(m_text_button_08c) +
                  GetButtonY(m_second_text_button_090);
     unsigned int visible_lines;
-    if (m_lines_054.GetCount() < height / (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8)) {
+    if (m_lines_054.GetCount() < height / static_cast<int>(static_cast<unsigned int>(GetFontHeight(g_dialog_font_64fde8)))) {
         m_scrollable = false;
         visible_lines = m_lines_054.GetCount();
     } else {
-        int rows = height / (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8);
+        int rows = height / static_cast<int>(static_cast<unsigned int>(GetFontHeight(g_dialog_font_64fde8)));
         if (m_lines_054.GetCount() > rows) {
             width = width + (-7 - GetButtonWidth(m_up_button_09c));
             m_scrollable = true;
@@ -525,23 +525,23 @@ void W8ListBoxDialog::Draw()
     GetButtonArea(m_area_button_098, &rect);
     SaveFontSettings();
     SetFontDestBuffer(-0xe, rect.iLeft + 3, rect.iTop + 3, rect.iRight - 3, rect.iBottom - 3, 0);
-    if (m_lines_054.GetCount() <= (int)(visible_lines + m_first_visible_line_0f0)) {
+    if (m_lines_054.GetCount() <= static_cast<int>(visible_lines + m_first_visible_line_0f0)) {
         visible_lines = m_lines_054.GetCount() - m_first_visible_line_0f0;
     }
-    for (index = 0; index < (int)visible_lines; ++index) {
+    for (index = 0; index < static_cast<int>(visible_lines); ++index) {
         line = m_first_visible_line_0f0 + index;
         wchar_t* text = *m_lines_054.GetAt(line);
         if (line == m_selected_line_0f4) {
             ColorFillVideoSurfaceArea(
                 -0xe, m_x + 3 + dx,
-                m_y + (unsigned int)GetFontHeight(g_dialog_font_64fde8) * index + 2 + dy,
+                m_y + static_cast<unsigned int>(GetFontHeight(g_dialog_font_64fde8)) * index + 2 + dy,
                 width + m_x - 3 + dx,
-                (unsigned int)GetFontHeight(g_dialog_font_64fde8) + m_y +
-                    (unsigned int)GetFontHeight(g_dialog_font_64fde8) * index + dy,
+                static_cast<unsigned int>(GetFontHeight(g_dialog_font_64fde8)) + m_y +
+                    static_cast<unsigned int>(GetFontHeight(g_dialog_font_64fde8)) * index + dy,
                 Get16BPPColor(m_fill_colour_088));
         }
         gprintf(m_x + 3 + dx,
-                (unsigned int)GetFontHeight(g_dialog_font_64fde8) * index + m_y + 2 + dy, text);
+                static_cast<unsigned int>(GetFontHeight(g_dialog_font_64fde8)) * index + m_y + 2 + dy, text);
     }
     RestoreFontSettings();
 }

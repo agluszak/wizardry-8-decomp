@@ -324,7 +324,7 @@ char AddTextInputField(int left, int top, int width, int height, int priority, c
         field->ubStrLen = 0;
         swprintf(field->szString, &g_empty_wide_string);
     } else {
-        field->ubStrLen = (unsigned char)wcslen(text);
+        field->ubStrLen = static_cast<unsigned char>(wcslen(text));
         swprintf(field->szString, text);
     }
     field->ubMaxChars = capacity;
@@ -342,9 +342,9 @@ char AddTextInputField(int left, int top, int width, int height, int priority, c
     field->fUserField = false;
     field->fEnabled = 1;
     field->fBlockMouseCallbacks = 0;
-    MSYS_DefineRegion(&field->region, (unsigned short)left, (unsigned short)top,
-                      (unsigned short)(left + width), (unsigned short)(top + height),
-                      (signed char)priority, MSYS_NO_CURSOR, MouseMovedInTextRegionCallback,
+    MSYS_DefineRegion(&field->region, static_cast<unsigned short>(left), static_cast<unsigned short>(top),
+                      static_cast<unsigned short>(left + width), static_cast<unsigned short>(top + height),
+                      static_cast<signed char>(priority), MSYS_NO_CURSOR, MouseMovedInTextRegionCallback,
                       MouseClickedInTextRegionCallback);
     MSYS_SetRegionUserData(&field->region, 0, field->ubID);
     field->fUseInactiveTextFieldColor = use_inactive_text_field_color;
@@ -392,7 +392,7 @@ void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
                    calls wcsncpy(szString, text, ubMaxChars) with no separate
                    max-length assertion or terminator store in this function.
                    This differs from the SFI source oracle. */
-                field->ubStrLen = (unsigned char)wcslen(text);
+                field->ubStrLen = static_cast<unsigned char>(wcslen(text));
                 wcsncpy(field->szString, text, field->ubMaxChars);
             } else if (!field->fUserField) {
                 field->ubStrLen = 0;
@@ -719,7 +719,7 @@ unsigned int HandleTextInput(const InputAtom* input)
 
     default: {
         unsigned int character =
-            TranslateKeyToCharacter((unsigned short)input->usParam, input->usKeyState);
+            TranslateKeyToCharacter(static_cast<unsigned short>(input->usParam), input->usKeyState);
         if (character == 0)
             return 1;
         if (character == 0x25 || character == 0x5c)
@@ -747,9 +747,9 @@ unsigned int HandleTextInput(const InputAtom* input)
             }
         }
 
-        unsigned short input_type = (unsigned short)gpActive->usInputType;
+        unsigned short input_type = static_cast<unsigned short>(gpActive->usInputType);
         if (input_type > 0x0fff) {
-            HandleExclusiveInput((unsigned short)character);
+            HandleExclusiveInput(static_cast<unsigned short>(character));
             return 1;
         }
         if (character == L' ' && (input_type & 4) != 0) {
@@ -761,25 +761,25 @@ unsigned int HandleTextInput(const InputAtom* input)
             return 1;
         }
         if (character >= L'0' && character <= L'9' && (input_type & 1) != 0) {
-            AddChar((unsigned short)character);
+            AddChar(static_cast<unsigned short>(character));
             return 1;
         }
         if ((input_type & 2) != 0) {
-            if (IsUppercaseWideChar((unsigned short)character) != 0) {
+            if (IsUppercaseWideChar(static_cast<unsigned short>(character)) != 0) {
                 if ((input_type & 0x20) != 0)
                     character = ToLowercaseWideChar(character);
-                AddChar((unsigned short)character);
+                AddChar(static_cast<unsigned short>(character));
                 return 1;
             }
-            if (IsLowercaseWideChar((unsigned short)character) != 0) {
+            if (IsLowercaseWideChar(static_cast<unsigned short>(character)) != 0) {
                 if ((input_type & 0x10) != 0)
                     character = ToUppercaseWideChar(character);
-                AddChar((unsigned short)character);
+                AddChar(static_cast<unsigned short>(character));
                 return 1;
             }
         }
-        if ((input_type & 8) != 0 && IsPunctuationWideChar((unsigned short)character) != 0) {
-            AddChar((unsigned short)character);
+        if ((input_type & 8) != 0 && IsPunctuationWideChar(static_cast<unsigned short>(character)) != 0) {
+            AddChar(static_cast<unsigned short>(character));
         }
         return 1;
     }
@@ -809,7 +809,7 @@ void HandleExclusiveInput(unsigned short character)
             }
             if (IsUppercaseWideChar(character) == 0)
                 return;
-            AddChar((unsigned short)ToLowercaseWideChar(character));
+            AddChar(static_cast<unsigned short>(ToLowercaseWideChar(character)));
             return;
         }
         if (character >= L'0' && character <= L'9')
@@ -1001,7 +1001,7 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
                 int count = 1;
                 int previous_width = width / 2;
                 do {
-                    position = (unsigned char)(position + 1);
+                    position = static_cast<unsigned char>(position + 1);
                     ++count;
                     width = StringPixLengthArg(pColors->usFont, count, field->szString + start);
                     int midpoint = (width - previous_width) / 2 + previous_width;
@@ -1077,7 +1077,7 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
                 do {
                     if (field->ubStrLen <= position)
                         break;
-                    position = (unsigned char)(position + 1);
+                    position = static_cast<unsigned char>(position + 1);
                     ++count;
                     width = StringPixLengthArg(pColors->usFont, count, field->szString + start);
                     int midpoint = (width - previous_width) / 2 + previous_width;
@@ -1127,7 +1127,7 @@ void RenderActiveTextField(void)
         return;
 
     if (gfLeftButtonState != 0) {
-        if ((int)gusMouseXPos < field->region.RegionTopLeftX) {
+        if (static_cast<int>(gusMouseXPos) < field->region.RegionTopLeftX) {
             if (gubCursorPos != 0) {
                 --gubCursorPos;
                 gubParkingPos = CalculateCursorPos(
@@ -1136,7 +1136,7 @@ void RenderActiveTextField(void)
             }
             if (gfHiliteMode != 0)
                 gubStartHilite = gubVisibleStart;
-        } else if (field->region.RegionBottomRightX < (int)gusMouseXPos) {
+        } else if (field->region.RegionBottomRightX < static_cast<int>(gusMouseXPos)) {
             if (gubCursorPos < field->ubStrLen) {
                 ++gubCursorPos;
                 gubParkingPos = CalculateCursorPos(
@@ -1144,7 +1144,7 @@ void RenderActiveTextField(void)
                     gubCursorPos, field->szString, &gsCursorX, &guiVisibleCount);
             }
             if (gfHiliteMode != 0)
-                gubEndHilite = (unsigned char)(guiVisibleCount + gubVisibleStart);
+                gubEndHilite = static_cast<unsigned char>(guiVisibleCount + gubVisibleStart);
         }
     }
 
@@ -1177,8 +1177,8 @@ void RenderActiveTextField(void)
     for (size_t index = 0; index < guiVisibleCount; ++index) {
         short prefix = StringPixLengthArg(pColors->usFont, index, visible);
         unsigned char background;
-        if (has_selection && (int)(selection_first - gubParkingPos) <= (int)index &&
-            (int)index < (int)(selection_last - gubParkingPos)) {
+        if (has_selection && static_cast<int>(selection_first - gubParkingPos) <= static_cast<int>(index) &&
+            static_cast<int>(index) < static_cast<int>(selection_last - gubParkingPos)) {
             SetFontForeground(pColors->ubHiForeColor);
             SetFontShadow(pColors->ubHiShadowColor);
             background = pColors->ubHiBackColor;
@@ -1297,7 +1297,7 @@ unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text, int*
 {
     wchar_t buffer[512];
     if (cursor < gubVisibleStart)
-        gubVisibleStart = (unsigned char)cursor;
+        gubVisibleStart = static_cast<unsigned char>(cursor);
 
     unsigned int start = gubVisibleStart;
     wcscpy(buffer, text + start);
@@ -1313,7 +1313,7 @@ unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text, int*
             ++start;
             measured = StringPixLength(suffix, pColors->usFont);
         } while (width < measured);
-        retained_start = (unsigned char)start;
+        retained_start = static_cast<unsigned char>(start);
 
         if (gubVisibleStart < start) {
             wcscpy(buffer, text + start);
@@ -1395,7 +1395,7 @@ void SelectAllText(void)
         const wchar_t* character = field->szString + position;
         do {
             if (*character == L' ') {
-                first = (unsigned char)(scan + 1);
+                first = static_cast<unsigned char>(scan + 1);
                 break;
             }
             --scan;
@@ -1403,10 +1403,10 @@ void SelectAllText(void)
         } while (scan != 0);
     }
 
-    unsigned char last = (unsigned char)wcslen(field->szString);
+    unsigned char last = static_cast<unsigned char>(wcslen(field->szString));
     for (unsigned int scan = position + 1; scan < wcslen(field->szString); ++scan) {
         if (field->szString[scan] == L' ') {
-            last = (unsigned char)scan;
+            last = static_cast<unsigned char>(scan);
             break;
         }
     }

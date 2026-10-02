@@ -1021,7 +1021,7 @@ static inline void LoadMonsterGeneratorMarker(MonGen* generator)
     }
     generator->marker_item = marker;
     if (marker != 0) {
-        marker->SetLocation0049F720(&generator->spawn_position_0c);
+        marker->SetLocation(&generator->spawn_position_0c);
         marker->ApplyRepTransform();
     }
 }
@@ -1146,7 +1146,7 @@ void MonGen::SetState(const srVector3T<float>* state)
 {
     spawn_position_0c = *state;
     if (marker_item != 0) {
-        marker_item->SetLocation0049F720(state);
+        marker_item->SetLocation(state);
         marker_item->ApplyRepTransform();
     }
 }

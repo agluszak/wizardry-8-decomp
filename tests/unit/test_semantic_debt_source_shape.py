@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from wiz8decomp.reports.semantic_debt import _source_shaping_directives
+from wiz8decomp.reports.semantic_debt import (
+    _byte_strides,
+    _duplicate_layouts,
+    _enum_literal_arguments,
+    _source_shaping_directives,
+)
 
 
 def test_source_shaping_directives_are_target_scoped_and_ignore_plain_inline(
@@ -35,3 +40,149 @@ int tuned() { return 4; }
     ]
     assert {row["source_file"] for row in rows} == {"src/wiz8/model.cpp"}
     assert all(row["status"] == "investigation_candidate" for row in rows)
+
+
+def test_storage_debt_ranks_address_named_storage_and_accessed_padding(tmp_path: Path) -> None:
+    from wiz8decomp.reports.semantic_debt import _storage_debt, _Usage, _void_storage
+
+    sources = {
+        "src/wiz8/a.cpp": (
+            "int g_dword_69ca28;\n"
+            "/* g_dword_69ca28 is mentioned only in prose */\n"
+            "void Make() { ++g_dword_69ca28; }\n"
+            "void Kill() { --g_dword_69ca28; }\n"
+            "int Count() { return g_dword_69ca28; }\n"
+            "Light::Light() : m_padding_238(0) {}\n"
+            "void Copy(Light* l) { l->m_padding_238 = 1; }\n"
+        ),
+        "include/wiz8/a.h": "struct Light { int m_padding_238; int m_padding_23c; void* list; };\n",
+    }
+    index = {
+        "variables": [
+            {
+                "qualified_name": "g_dword_69ca28",
+                "target": "WIZ8",
+                "source_file": "src/wiz8/a.cpp",
+                "line": 1,
+                "type": "int",
+            },
+            {
+                "qualified_name": "g_live_count",
+                "target": "WIZ8",
+                "source_file": "src/wiz8/a.cpp",
+                "line": 1,
+                "type": "int",
+            },
+        ],
+        "classes": [
+            {
+                "qualified_name": "Light",
+                "fields": [
+                    {
+                        "name": "m_padding_238",
+                        "source_file": "include/wiz8/a.h",
+                        "line": 3,
+                        "offset": 0x238,
+                        "type": "int",
+                    },
+                    {
+                        "name": "m_padding_23c",
+                        "source_file": "include/wiz8/a.h",
+                        "line": 4,
+                        "offset": 0x23C,
+                        "type": "int",
+                    },
+                    {
+                        "name": "list",
+                        "source_file": "include/wiz8/a.h",
+                        "line": 5,
+                        "offset": 0x240,
+                        "type": "void *",
+                    },
+                ],
+            }
+        ],
+    }
+
+    storage = _storage_debt(index, _Usage(sources))
+
+    (counter,) = storage["address_named_globals"]
+    assert counter["name"] == "g_dword_69ca28"
+    assert (counter["references"], counter["writes"], counter["reads"]) == (3, 2, 1)
+    (padding,) = storage["accessed_padding_members"]
+    assert padding["name"] == "m_padding_238"
+    assert padding["writes"] == 2
+    assert [row["field"] for row in _void_storage(index)] == ["list"]
+
+
+def test_byte_strides_report_literals_equal_to_asserted_record_sizes() -> None:
+    sources = {
+        "include/wiz8/record.h": 'static_assert(sizeof(W8Record) == 0x1c, "size");\n',
+        "src/wiz8/record.cpp": (
+            "void f(int count) {\n"
+            "    p = malloc(0x1c);\n"
+            "    q = malloc(count * 0x1c);\n"
+            "    // r = malloc(0x1c);\n"
+            "    memset(p, 0, 0x1c);\n"
+            "    s = malloc(count * 4);\n"
+            "}\n"
+        ),
+    }
+
+    rows = _byte_strides(sources)
+
+    assert [row["location"] for row in rows] == [
+        "src/wiz8/record.cpp:2",
+        "src/wiz8/record.cpp:3",
+        "src/wiz8/record.cpp:5",
+    ]
+    assert all(row["candidate_types"] == ["W8Record"] for row in rows)
+
+
+def test_enum_literal_arguments_report_literals_at_enum_parameters() -> None:
+    index = {
+        "declarations": [
+            {"qualified_name": "W8Thing::SetMode", "parameter_types": ["int", "enum W8Mode"]},
+        ]
+    }
+    sources = {
+        "src/wiz8/thing.cpp": (
+            "void f(W8Thing* t) {\n"
+            "    t->SetMode(3, 2);\n"
+            "    t->SetMode(3, W8_MODE_IDLE);\n"
+            "    // t->SetMode(1, 1);\n"
+            "}\n"
+        )
+    }
+
+    rows = _enum_literal_arguments(index, sources)
+
+    assert rows == [
+        {"location": "src/wiz8/thing.cpp:2", "callee": "SetMode", "argument": 1, "literal": "2"}
+    ]
+
+
+def test_duplicate_layouts_group_identical_unrelated_records() -> None:
+    def record(name: str, path: str) -> dict[str, object]:
+        fields = [
+            {"type": "int", "offset": offset, "size": 4, "source_file": path, "line": 1}
+            for offset in (0, 4, 8, 12)
+        ]
+        return {"qualified_name": name, "bases": [], "fields": fields}
+
+    index = {
+        "classes": [
+            record("W8RectA", "include/wiz8/a.h"),
+            record("W8RectB", "include/wiz8/b.h"),
+            record("W8Derived", "include/wiz8/c.h") | {"bases": ["W8RectA"]},
+        ]
+    }
+
+    rows = _duplicate_layouts(index)
+
+    assert rows == [
+        {
+            "field_count": 4,
+            "records": {"W8RectA": "include/wiz8/a.h:1", "W8RectB": "include/wiz8/b.h:1"},
+        }
+    ]

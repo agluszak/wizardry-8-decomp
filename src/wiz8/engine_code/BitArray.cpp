@@ -27,7 +27,7 @@ BitArray::BitArray(unsigned int new_bit_count)
     cursor_base = new_bit_count - whole_words * W8_BITS_PER_WORD;
     word_count = whole_words + 1;
     tail_mask = 0;
-    for (cursor_bit = 0; (unsigned int)cursor_bit < cursor_base; ++cursor_bit) {
+    for (cursor_bit = 0; static_cast<unsigned int>(cursor_bit) < cursor_base; ++cursor_bit) {
         tail_mask |= 1 << cursor_bit;
     }
 
@@ -35,16 +35,13 @@ BitArray::BitArray(unsigned int new_bit_count)
     cursor_bit = 0;
     cursor_word = 0;
     set_count = 0;
-    puiIndex = (unsigned int*)malloc(word_count * sizeof(unsigned int));
+    puiIndex = static_cast<unsigned int*>(malloc(word_count * sizeof(unsigned int)));
     if (puiIndex == 0) {
         srAssertFail("puiIndex", BITARRAY_CPP, 59, "BitArray: Couldn't allocate bit index.");
     }
     memset(puiIndex, 0, word_count * sizeof(unsigned int));
 }
 
-/* Reallocate to hold this many bits and clear every one of them. The tail mask
-   is rebuilt from the bits that spill past the last whole word; asking for the
-   size it already has skips straight to the clear. */
 // FUNCTION: WIZ8 0x0043ada0
 void BitArray::SetSize(unsigned int new_bit_count)
 {
@@ -63,7 +60,7 @@ void BitArray::SetSize(unsigned int new_bit_count)
         word_count = whole_words + 1;
         tail_mask = 0;
         cursor_bit = 0;
-        while ((unsigned int)cursor_bit < spill) {
+        while (static_cast<unsigned int>(cursor_bit) < spill) {
             tail_mask |= 1 << cursor_bit;
             ++cursor_bit;
         }
@@ -73,7 +70,7 @@ void BitArray::SetSize(unsigned int new_bit_count)
         }
         puiIndex = 0;
         if (new_bit_count != 0) {
-            puiIndex = (unsigned int*)malloc(word_count * sizeof(unsigned int));
+            puiIndex = static_cast<unsigned int*>(malloc(word_count * sizeof(unsigned int)));
             if (puiIndex == 0) {
                 srAssertFail("puiIndex", BITARRAY_CPP, 89,
                              "BitArray: Couldn't allocate bit index.");
@@ -85,17 +82,12 @@ void BitArray::SetSize(unsigned int new_bit_count)
     memset(puiIndex, 0, word_count * sizeof(unsigned int));
 }
 
-/* The owning destructor. Only the index buffer needs explicit cleanup;
-   all other members are values. */
 // FUNCTION: WIZ8 0x0043ad90
 BitArray::~BitArray()
 {
     free(puiIndex);
 }
 
-/* Take on another array's bits. The source is resized to this array's bit
-   count first, which clears it - so this copies a freshly sized array's zeroed
-   words and then its count. */
 // FUNCTION: WIZ8 0x0043ae80
 void BitArray::CopyFrom(BitArray& other)
 {
@@ -242,8 +234,6 @@ unsigned char BitArray::Save(int handle)
     return 1;
 }
 
-/* Raise one bit, answering whether it was already up. A bit past the end is
-   refused. */
 // FUNCTION: WIZ8 0x0043b390
 bool BitArray::Set(unsigned int bit)
 {
@@ -263,8 +253,6 @@ bool BitArray::Set(unsigned int bit)
     return false;
 }
 
-/* The same, except a bit past the end grows the array to reach it rather than
-   being refused. */
 // FUNCTION: WIZ8 0x0043b3d0
 bool BitArray::SetAndGrow(unsigned int bit)
 {
@@ -288,7 +276,6 @@ bool BitArray::SetAll()
     return true;
 }
 
-/* Lower one bit, answering whether it had been up. */
 // FUNCTION: WIZ8 0x0043b450
 bool BitArray::Clear(unsigned int bit)
 {
@@ -307,7 +294,6 @@ bool BitArray::Clear(unsigned int bit)
     return false;
 }
 
-/* Lower every bit and rewind the cursor. */
 // FUNCTION: WIZ8 0x0043b490
 void BitArray::ClearAll()
 {
@@ -318,7 +304,6 @@ void BitArray::ClearAll()
     cursor_word = 0;
 }
 
-/* Whether one bit is up. */
 // FUNCTION: WIZ8 0x0043b620
 bool BitArray::Test(unsigned int bit)
 {
@@ -345,7 +330,6 @@ bool BitArray::IntersectWith(BitArray& other)
     return true;
 }
 
-/* Take on every bit the other array has, over the same shared extent. */
 // FUNCTION: WIZ8 0x0043b510
 bool BitArray::UnionWith(BitArray& other)
 {
@@ -425,7 +409,7 @@ int BitArray::NextSetBit(char restart)
 
     while (cursor_base < bit_count) {
         if (puiIndex[cursor_word] != 0) {
-            while ((unsigned int)cursor_bit < W8_BITS_PER_WORD) {
+            while (static_cast<unsigned int>(cursor_bit) < W8_BITS_PER_WORD) {
                 if ((puiIndex[cursor_word] & (1 << (cursor_bit & 0x1f))) != 0) {
                     ++cursor_bit;
                     return cursor_base + cursor_bit;
@@ -467,7 +451,7 @@ void BitArray::Grow(unsigned int wanted_bits, unsigned int new_bit_count)
         tail_mask |= 1 << index;
     }
 
-    pulNewArray = (unsigned int*)malloc(new_word_count * sizeof(unsigned int));
+    pulNewArray = static_cast<unsigned int*>(malloc(new_word_count * sizeof(unsigned int)));
     if (pulNewArray == 0) {
         srAssertFail("pulNewArray", BITARRAY_CPP, 741,
                      "BitArray Expansion: Couldn't allocate bit index.");

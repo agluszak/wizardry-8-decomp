@@ -761,7 +761,7 @@ W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, char cl
     for (attack = 0; attack < W8_MAX_MONSTER_ATTACKS; ++attack) {
         if (record->attacks[attack].fHasAttack != 0) {
             category = record->attacks[attack].range_category;
-            if ((close_quarters_only == 0 || category < W8_RANGE_LONG) && (int)category > best) {
+            if ((close_quarters_only == 0 || category < W8_RANGE_LONG) && static_cast<int>(category) > best) {
                 best = static_cast<W8RangeCategory>(category);
             }
         }
@@ -1041,7 +1041,7 @@ bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
     if (from_row == 4 || to_row == 4) {
         return false;
     }
-    rows_apart = from_row - (signed char)to_row;
+    rows_apart = from_row - static_cast<signed char>(to_row);
     if (rows_apart < 0) {
         rows_apart = -rows_apart;
     }

@@ -25,7 +25,7 @@ void* g_oct_build_out;
 
 char CollectSurfacePredicate(W8GDSurface* surface, short kind);
 
-W8OctBuildLinkLists::W8OctBuildLinkLists() : m_usCurrent(0), padding_02(0)
+W8OctBuildLinkLists::W8OctBuildLinkLists() : m_usCurrent(0), unknown_02(0)
 {
     for (int index = 0; index != 100; ++index) {
         m_apLinkLists[index] = 0;
@@ -62,7 +62,7 @@ W8OctBuildLink* W8OctBuildLinkLists::GetNewLink(void* surface)
 // FUNCTION: WIZ8 0x00446330
 W8OctBuildNode::W8OctBuildNode()
 {
-    memset(static_cast<void*>(this), 0, 10 * sizeof(unsigned long));
+    memset(this, 0, 10 * sizeof(unsigned long));
     leaf_kind_2a = 0;
     region_28 = 0;
     provisional_region_2c = 0;
@@ -72,7 +72,7 @@ W8OctBuildNode::W8OctBuildNode()
 W8OctBuildNode::~W8OctBuildNode()
 {
     if (leaf_kind_2a != 0) {
-        memset(static_cast<void*>(this), 0, 10 * sizeof(unsigned long));
+        memset(this, 0, 10 * sizeof(unsigned long));
         return;
     }
     for (int child = 0; child != 8; ++child) {
@@ -95,12 +95,12 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
     gd_surface_count_a4 = 0;
     leaf_count_a8 = 0;
     max_leaf_regions_ac = 0;
-    padding_ae = 0;
+    unknown_ae = 0;
     region_assignments_b0 = 0;
     use_owned_nodes_b4 = 0;
-    padding_b5[0] = 0;
-    padding_b5[1] = 0;
-    padding_b5[2] = 0;
+    unknown_b5[0] = 0;
+    unknown_b5[1] = 0;
+    unknown_b5[2] = 0;
     deepest_link_list_b8 = 0;
 
     if (leaf_size < g_float_005ebc64) {
@@ -222,7 +222,7 @@ unsigned char W8OctBuildTree::InsertSurface(W8GDSurface* surface, unsigned long 
     srVector3T<float> plane_point;
     srVector3T<float>* plane = &plane_point;
 
-    if ((short)mode == 3) {
+    if (static_cast<short>(mode) == 3) {
         if (LoadSurfaceVertices(vertices, surface->vertex_indices_18) == 0) {
             plane = 0;
         } else {

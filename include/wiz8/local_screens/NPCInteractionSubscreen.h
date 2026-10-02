@@ -420,7 +420,7 @@ bool ProcessPendingEvent(void);
 void SyncDialogueNpcStateAndMarkPending(void);
 void ClearMainGameTargetState(void);
 /* 0x0068F0F9: a script notice is staged in g_pending_notice */
-extern bool g_flag_68f0f9;
+extern bool g_pending_notice_queued;
 void SyncNpcServiceButtons(int party_slot); /* 0x0056EE20 */
 /* Forward mouse events to W8NpcInteractionState control slots indexed by
    callback_id from dialogue_text_10c (ids 1..37, 39; id 0x27 is ignored). */

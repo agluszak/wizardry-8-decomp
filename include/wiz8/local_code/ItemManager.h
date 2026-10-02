@@ -7,9 +7,9 @@ struct W8WorldItem;
 struct W8ItemInstance;
 struct W8MonsterInfo;
 
-/* 0x0064A1CD: debug-only "show invisible items in blue" toggle flipped by
-   MIPE's item-create 'A' key. */
-extern unsigned char g_byte_0064a1cd;
+/* 0x0064A1CD: when set, world items flagged invisible are not activated;
+   MIPE's item-create 'A' key toggles it ("hidden" versus "blue"). */
+extern unsigned char g_hide_invisible_items;
 
 W8WorldItem* ItemInfo(unsigned int item_list_index);
 void DeactivateWorldItem(W8WorldItem* item); /* 0x004F70D0 */

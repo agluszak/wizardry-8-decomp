@@ -264,7 +264,7 @@ unsigned char PopulateNpcStock(W8NpcState* npc)
     for (rule_index = 0; rule_index < rule_count; ++rule_index) {
         rule = static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, rule_index));
         item_id = rule->item_id;
-        if (item_id < (int)gXStatus.uiItemsInDatabase) {
+        if (item_id < static_cast<int>(gXStatus.uiItemsInDatabase)) {
             persistent = rule->persistent;
             added = 0;
             if (rule->quantity != 0) {
@@ -826,7 +826,7 @@ int CalculateNpcTradeStackPrice(W8NpcState* npc, int item_id, int mode, unsigned
 int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode)
 {
     int stack_value = GetItemStackValue(item);
-    unsigned int skill = GetBestPartySkillLevel(0x16, 0);
+    unsigned int skill = GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0);
     W8NpcDatabaseRecord* record = npc->record;
     float scale = skill * 0.002f;
     if (scale > fabs(record->sell_price_factor - record->buy_price_factor) * 0.5) {

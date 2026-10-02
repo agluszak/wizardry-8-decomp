@@ -140,7 +140,7 @@ unsigned int W8ItemRep::SetFlags(unsigned int mask, bool enabled)
 
 /* Forward a new item location to the representation owned at +0x14. */
 // FUNCTION: WIZ8 0x0049F720
-void W8Item::SetLocation0049F720(const srVector3T<float>* location)
+void W8Item::SetLocation(const srVector3T<float>* location)
 {
     m_pRep->SetLocation(location);
 }

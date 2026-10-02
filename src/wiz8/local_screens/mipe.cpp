@@ -311,7 +311,7 @@ static void ShowMipeItemStatus(void)
     ShowNoticef(6, L"OR type C to change what item to place.  ");
     ShowNoticef(3, L"How many: %d", g_mipe_count);
     ShowNoticef(0xf, &g_empty_wide_string);
-    if (g_byte_0064a1cd == 0) {
+    if (g_hide_invisible_items == 0) {
         line = L"A - All invisible items  will be blue.";
         palette = 3;
     } else {
@@ -936,8 +936,8 @@ static unsigned char HandleMipeItemCreateKey(unsigned short key)
         ShowMipeItemStatus();
         break;
     case 0x41:
-        show_invisible = g_byte_0064a1cd == 0;
-        g_byte_0064a1cd = show_invisible;
+        show_invisible = g_hide_invisible_items == 0;
+        g_hide_invisible_items = show_invisible;
         for (item_index = 0; item_index < PLLength(gXStatus.plsItemList); ++item_index) {
             world_item = ItemInfo(item_index);
             if (ItemHasFlags(world_item, 1) != 0) {

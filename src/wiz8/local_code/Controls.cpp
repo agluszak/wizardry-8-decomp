@@ -78,10 +78,10 @@ Controls::Controls()
     m_fEnabled = 0;
     m_fDirty = 0;
     m_fLayoutDirty = 0;
-    origin_x = 0;
-    origin_y = 0;
-    right = 0;
-    bottom = 0;
+    m_bounds.left = 0;
+    m_bounds.top = 0;
+    m_bounds.right = 0;
+    m_bounds.bottom = 0;
     m_dirtyRect.left = -1;
     m_fWholeAreaDirty = 1;
     m_uiRegionSetId = 0;
@@ -91,16 +91,16 @@ Controls::Controls()
 Controls::Controls(int left, int top, int right_bound, int bottom_bound, int render_target,
                    int render_arg_1c, int render_arg_20)
 {
-    origin_x = left;
-    right = right_bound;
+    m_bounds.left = left;
+    m_bounds.right = right_bound;
     m_fEnabled = 0;
     m_fDirty = 0;
     m_fLayoutDirty = 0;
     m_renderTarget = render_target;
     m_renderArg_1c = render_arg_1c;
     m_renderArg_20 = render_arg_20;
-    origin_y = top;
-    bottom = bottom_bound;
+    m_bounds.top = top;
+    m_bounds.bottom = bottom_bound;
     m_dirtyRect.left = -1;
     m_fWholeAreaDirty = 1;
     m_uiRegionSetId = 0;
@@ -178,13 +178,13 @@ void W8Widget::SetPanel(Controls* panel)
     if (m_region != -1) {
         SetRegionBounds(m_region,
                         static_cast<unsigned short>(static_cast<short>(m_left) +
-                                                    static_cast<short>(m_pPanel->origin_x)),
+                                                    static_cast<short>(m_pPanel->m_bounds.left)),
                         static_cast<unsigned short>(static_cast<short>(m_top) +
-                                                    static_cast<short>(m_pPanel->origin_y)),
+                                                    static_cast<short>(m_pPanel->m_bounds.top)),
                         static_cast<unsigned short>(static_cast<short>(m_right) +
-                                                    static_cast<short>(m_pPanel->origin_x)),
+                                                    static_cast<short>(m_pPanel->m_bounds.left)),
                         static_cast<unsigned short>(static_cast<short>(m_bottom) +
-                                                    static_cast<short>(m_pPanel->origin_y)));
+                                                    static_cast<short>(m_pPanel->m_bounds.top)));
     }
 }
 
@@ -228,12 +228,12 @@ W8Widget::W8Widget(Controls* owner, unsigned int region, int left, int top, int 
     m_top = top;
     m_bottom = bottom;
     if (region != 0xffffffff) {
-        origin_y = owner->origin_y;
-        origin_x = owner->origin_x;
-        SetRegionBounds(region, (unsigned short)((short)origin_x + (short)left),
-                        (unsigned short)((short)origin_y + (short)top),
-                        (unsigned short)((short)right + (short)origin_x),
-                        (unsigned short)((short)bottom + (short)origin_y));
+        origin_y = owner->m_bounds.top;
+        origin_x = owner->m_bounds.left;
+        SetRegionBounds(region, static_cast<unsigned short>(static_cast<short>(origin_x) + static_cast<short>(left)),
+                        static_cast<unsigned short>(static_cast<short>(origin_y) + static_cast<short>(top)),
+                        static_cast<unsigned short>(static_cast<short>(right) + static_cast<short>(origin_x)),
+                        static_cast<unsigned short>(static_cast<short>(bottom) + static_cast<short>(origin_y)));
         DisableRegionInput(m_region);
     }
 
@@ -242,7 +242,7 @@ W8Widget::W8Widget(Controls* owner, unsigned int region, int left, int top, int 
     if (holder->m_uiRegionSetId != 0 && m_region == -1) {
         taken = AddRegionToSet(holder->m_uiRegionSetId);
         SetRegion(taken);
-        SetRegionCallback(taken, DispatchControlRegionEvent, (unsigned short)index);
+        SetRegionCallback(taken, DispatchControlRegionEvent, static_cast<unsigned short>(index));
         SetRegionOwner(taken, holder);
     }
 }
@@ -343,12 +343,12 @@ void W8Widget::SetRegion(unsigned int region)
     if (region != 0xffffffff) {
         holder = m_pPanel;
         if (holder != 0) {
-            origin_y = holder->origin_y;
-            origin_x = holder->origin_x;
-            SetRegionBounds(region, (unsigned short)((short)m_left + (short)origin_x),
-                            (unsigned short)((short)m_top + (short)origin_y),
-                            (unsigned short)((short)m_right + (short)origin_x),
-                            (unsigned short)((short)m_bottom + (short)origin_y));
+            origin_y = holder->m_bounds.top;
+            origin_x = holder->m_bounds.left;
+            SetRegionBounds(region, static_cast<unsigned short>(static_cast<short>(m_left) + static_cast<short>(origin_x)),
+                            static_cast<unsigned short>(static_cast<short>(m_top) + static_cast<short>(origin_y)),
+                            static_cast<unsigned short>(static_cast<short>(m_right) + static_cast<short>(origin_x)),
+                            static_cast<unsigned short>(static_cast<short>(m_bottom) + static_cast<short>(origin_y)));
         }
     }
     bound = m_region;
@@ -498,18 +498,18 @@ void W8TextBuffer::UpdateLayout()
         while (*break_at != L'\0') {
             *break_at = L'\0';
             short word_width = StringPixLength(line, m_font);
-            if ((unsigned int)((int)word_width + accumulated_width) < available_width) {
-                accumulated_width += (int)separator_width + (int)word_width;
+            if (static_cast<unsigned int>(static_cast<int>(word_width) + accumulated_width) < available_width) {
+                accumulated_width += static_cast<int>(separator_width) + static_cast<int>(word_width);
                 previous_break = break_at;
             } else {
                 if (previous_break != 0) {
                     *previous_break = L'\n';
                 }
-                unsigned int completed_width = accumulated_width - (int)separator_width;
+                unsigned int completed_width = accumulated_width - static_cast<int>(separator_width);
                 if (m_maxLineWidth < completed_width) {
                     m_maxLineWidth = completed_width;
                 }
-                accumulated_width = (int)separator_width + (int)word_width;
+                accumulated_width = static_cast<int>(separator_width) + static_cast<int>(word_width);
                 previous_break = 0;
                 ++m_lineCount;
             }
@@ -519,7 +519,7 @@ void W8TextBuffer::UpdateLayout()
             break_at = line + span;
         }
         short final_width = StringPixLength(line, m_font);
-        unsigned int total_width = (int)final_width + accumulated_width;
+        unsigned int total_width = static_cast<int>(final_width) + accumulated_width;
         if (available_width <= total_width) {
             if (previous_break != 0) {
                 *previous_break = L'\n';
@@ -527,7 +527,7 @@ void W8TextBuffer::UpdateLayout()
             if (m_maxLineWidth < accumulated_width) {
                 m_maxLineWidth = accumulated_width;
             }
-            total_width = (int)separator_width + (int)final_width;
+            total_width = static_cast<int>(separator_width) + static_cast<int>(final_width);
             ++m_lineCount;
         }
         if (m_maxLineWidth < total_width) {
@@ -820,8 +820,8 @@ W8TextControl::W8TextControl(Controls* panel, unsigned int region, int left, int
     }
     SetBounds(left, top, right, bottom);
 
-    m_textBuffer.SetLayoutBounds(panel->origin_x + left, panel->origin_y + top,
-                                 panel->origin_x + right, panel->origin_y + bottom);
+    m_textBuffer.SetLayoutBounds(panel->m_bounds.left + left, panel->m_bounds.top + top,
+                                 panel->m_bounds.left + right, panel->m_bounds.top + bottom);
     if (m_textBuffer.HasBuffer()) {
         m_textBuffer.UpdateLayout();
     }
@@ -859,9 +859,9 @@ void W8TextControl::GetTextOrigin(int* px, int* py)
         srAssertFail("m_pPanel != NULL", "C:\\Projects\\Wizardry 8\\Local Code\\Controls.cpp",
                      0x739, 0);
     }
-    *px = m_pPanel->origin_x;
+    *px = m_pPanel->m_bounds.left;
     measured = &m_measured_w;
-    *py = m_pPanel->origin_y;
+    *py = m_pPanel->m_bounds.top;
     width = *measured;
     if (width == -1 || m_measured_h == -1) {
         if (m_imageObject == -1 || m_imageFrame == -1) {
@@ -900,11 +900,11 @@ void W8TextControl::GetTextOrigin(int* px, int* py)
             goto aligned;
         }
     }
-    x = m_right - (int)width;
+    x = m_right - static_cast<int>(width);
 
 aligned:
     *px = *px + x;
-    *py = *py + ((m_bottom - (int)m_measured_h) - m_top) / 2 + m_top;
+    *py = *py + ((m_bottom - static_cast<int>(m_measured_h)) - m_top) / 2 + m_top;
     return;
 
 plain:
@@ -945,8 +945,8 @@ void W8TextControl::Redraw(unsigned char full_redraw)
             if (m_textBuffer.HasBuffer()) {
                 m_textBuffer.RenderToTarget(text_state, full_redraw, -14);
             }
-            ShadowVideoSurfaceRect(-14, m_pPanel->origin_x + m_left, m_pPanel->origin_y + m_top,
-                                   m_pPanel->origin_x + m_right, m_pPanel->origin_y + m_bottom);
+            ShadowVideoSurfaceRect(-14, m_pPanel->m_bounds.left + m_left, m_pPanel->m_bounds.top + m_top,
+                                   m_pPanel->m_bounds.left + m_right, m_pPanel->m_bounds.top + m_bottom);
             m_dirty = false;
             return;
         }
@@ -968,8 +968,8 @@ void W8TextControl::Redraw(unsigned char full_redraw)
             short width;
             short height;
             GetCatalogImageSize(m_imageObject, m_imageFrame, sprite, &width, &height);
-            int x_inset = m_left - m_right + (unsigned short)width;
-            int y_inset = m_top - m_bottom + (unsigned short)height;
+            int x_inset = m_left - m_right + static_cast<unsigned short>(width);
+            int y_inset = m_top - m_bottom + static_cast<unsigned short>(height);
             if (x_inset > 0) {
                 x += x_inset / 2;
             }
@@ -991,10 +991,10 @@ void W8TextControl::SetBoundsFromRect(const W8ControlsRect* bounds)
 {
     SetBounds(bounds->left, bounds->top, bounds->right, bounds->bottom);
     if (m_region != -1 && m_pPanel != 0) {
-        SetRegionBounds(m_region, (unsigned short)((short)bounds->left + (short)m_pPanel->origin_x),
-                        (unsigned short)((short)bounds->top + (short)m_pPanel->origin_y),
-                        (unsigned short)((short)bounds->right + (short)m_pPanel->origin_x),
-                        (unsigned short)((short)bounds->bottom + (short)m_pPanel->origin_y));
+        SetRegionBounds(m_region, static_cast<unsigned short>(static_cast<short>(bounds->left) + static_cast<short>(m_pPanel->m_bounds.left)),
+                        static_cast<unsigned short>(static_cast<short>(bounds->top) + static_cast<short>(m_pPanel->m_bounds.top)),
+                        static_cast<unsigned short>(static_cast<short>(bounds->right) + static_cast<short>(m_pPanel->m_bounds.left)),
+                        static_cast<unsigned short>(static_cast<short>(bounds->bottom) + static_cast<short>(m_pPanel->m_bounds.top)));
     }
 }
 
@@ -1007,23 +1007,23 @@ void W8TextControl::SetBounds(int left, int top, int right, int bottom)
     W8Widget::SetBounds(left, top, right, bottom);
     if (m_pPanel != 0) {
         if (m_region != -1) {
-            SetRegionBounds(m_region, (unsigned short)((short)left + (short)m_pPanel->origin_x),
-                            (unsigned short)((short)top + (short)m_pPanel->origin_y),
-                            (unsigned short)((short)right + (short)m_pPanel->origin_x),
-                            (unsigned short)((short)bottom + (short)m_pPanel->origin_y));
+            SetRegionBounds(m_region, static_cast<unsigned short>(static_cast<short>(left) + static_cast<short>(m_pPanel->m_bounds.left)),
+                            static_cast<unsigned short>(static_cast<short>(top) + static_cast<short>(m_pPanel->m_bounds.top)),
+                            static_cast<unsigned short>(static_cast<short>(right) + static_cast<short>(m_pPanel->m_bounds.left)),
+                            static_cast<unsigned short>(static_cast<short>(bottom) + static_cast<short>(m_pPanel->m_bounds.top)));
         }
         if ((m_flags_38 & 2) != 0) {
-            int absolute_left = m_pPanel->origin_x + left;
-            int absolute_top = m_pPanel->origin_y + top;
-            int absolute_right = m_pPanel->origin_x + right;
-            int absolute_bottom = m_pPanel->origin_y + bottom;
+            int absolute_left = m_pPanel->m_bounds.left + left;
+            int absolute_top = m_pPanel->m_bounds.top + top;
+            int absolute_right = m_pPanel->m_bounds.left + right;
+            int absolute_bottom = m_pPanel->m_bounds.top + bottom;
             if (m_imageObject != -1 && m_imageFrame != -1) {
                 GetCatalogImageSize(m_imageObject, m_imageFrame, m_normalSprite, &measured_width,
                                     &measured_height);
                 if ((m_flags_38 & 4) != 0) {
-                    absolute_left += 2 + (unsigned short)measured_width;
+                    absolute_left += 2 + static_cast<unsigned short>(measured_width);
                 } else {
-                    absolute_right -= 2 + (unsigned short)measured_width;
+                    absolute_right -= 2 + static_cast<unsigned short>(measured_width);
                 }
             }
             m_textBuffer.SetLayoutBounds(absolute_left, absolute_top, absolute_right,
@@ -1046,7 +1046,7 @@ void W8TextControl::Invalidate(unsigned char immediate)
 void W8TextControl::SetFlaggedRegionBounds(int left, int top, int right)
 {
     if (m_region != -1 && m_pPanel != 0 && RegionHasFlags(m_region, 2)) {
-        SetRegionBounds(m_region, m_pPanel->origin_x + left, m_pPanel->origin_y + top, right, 0);
+        SetRegionBounds(m_region, m_pPanel->m_bounds.left + left, m_pPanel->m_bounds.top + top, right, 0);
     }
 }
 
@@ -1058,17 +1058,17 @@ void W8TextControl::AddLayoutFlags(unsigned int flags)
 
     m_flags_38 |= flags;
     if (m_pPanel != 0 && (m_flags_38 & 2) != 0) {
-        int absolute_left = m_pPanel->origin_x + m_left;
-        int absolute_top = m_pPanel->origin_y + m_top;
-        int absolute_right = m_pPanel->origin_x + m_right;
-        int absolute_bottom = m_pPanel->origin_y + m_bottom;
+        int absolute_left = m_pPanel->m_bounds.left + m_left;
+        int absolute_top = m_pPanel->m_bounds.top + m_top;
+        int absolute_right = m_pPanel->m_bounds.left + m_right;
+        int absolute_bottom = m_pPanel->m_bounds.top + m_bottom;
         if (m_imageObject != -1 && m_imageFrame != -1) {
             GetCatalogImageSize(m_imageObject, m_imageFrame, m_normalSprite, &measured_width,
                                 &measured_height);
             if ((m_flags_38 & 4) != 0) {
-                absolute_left += 2 + (unsigned short)measured_width;
+                absolute_left += 2 + static_cast<unsigned short>(measured_width);
             } else {
-                absolute_right -= 2 + (unsigned short)measured_width;
+                absolute_right -= 2 + static_cast<unsigned short>(measured_width);
             }
         }
         m_textBuffer.SetLayoutBounds(absolute_left, absolute_top, absolute_right, absolute_bottom);
@@ -1083,8 +1083,8 @@ void W8TextControl::AddLayoutFlags(unsigned int flags)
 void W8TextControl::RemoveLayoutFlags(unsigned int flags)
 {
     if ((flags & 2) != 0 && m_pPanel != 0) {
-        m_textBuffer.SetLayoutBounds(m_pPanel->origin_x + m_left, m_pPanel->origin_y + m_top,
-                                     m_pPanel->origin_x + m_right, m_pPanel->origin_y + m_bottom);
+        m_textBuffer.SetLayoutBounds(m_pPanel->m_bounds.left + m_left, m_pPanel->m_bounds.top + m_top,
+                                     m_pPanel->m_bounds.left + m_right, m_pPanel->m_bounds.top + m_bottom);
         if (m_textBuffer.HasBuffer()) {
             m_textBuffer.UpdateLayout();
         }
@@ -1137,7 +1137,7 @@ void W8TextControl::OnMouseEnter(int event)
     }
 
     SetAlternateTextEnabled(1);
-    InvalidateCore((unsigned char)event);
+    InvalidateCore(static_cast<unsigned char>(event));
 }
 
 // FUNCTION: WIZ8 0x004f4e00
@@ -1167,20 +1167,20 @@ void W8TextControl::OnMouseLeave(int event)
             return;
         }
         SetAlternateTextEnabled(0);
-        InvalidateCore((unsigned char)event);
+        InvalidateCore(static_cast<unsigned char>(event));
         return;
     }
 
     if (m_alternatePressedSprite != -1 ||
         (m_alternateNormalSprite != -1 && (m_flags_38 & 0x10) != 0)) {
         SetAlternateTextEnabled(0);
-        InvalidateCore((unsigned char)event);
+        InvalidateCore(static_cast<unsigned char>(event));
     }
     if ((m_stateFlags & 2) != 0) {
         return;
     }
     m_stateFlags &= ~g_W8TextControlStatePressed;
-    InvalidateCore((unsigned char)event);
+    InvalidateCore(static_cast<unsigned char>(event));
 }
 
 // FUNCTION: WIZ8 0x004f4f70
@@ -1204,12 +1204,12 @@ void W8TextControl::OnLeftButtonDown(int event)
     if ((m_flags_38 & 1) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         if (m_imageObject != -1 && m_imageFrame != -1) {
-            InvalidateCore((unsigned char)event);
+            InvalidateCore(static_cast<unsigned char>(event));
         }
     } else if ((m_stateFlags & 1) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         if ((m_flags_38 & 0x10) == 0) {
-            InvalidateCore((unsigned char)event);
+            InvalidateCore(static_cast<unsigned char>(event));
         }
     }
 
@@ -1259,17 +1259,17 @@ void W8TextControl::OnLeftButtonUp(int event)
 
     if ((m_flags_38 & 1) == 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
-        InvalidateCore((unsigned char)event);
+        InvalidateCore(static_cast<unsigned char>(event));
     } else if ((m_stateFlags & 2) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         m_stateFlags |= g_W8TextControlStateSecondary;
         if ((m_flags_38 & 0x10) != 0) {
-            InvalidateCore((unsigned char)event);
+            InvalidateCore(static_cast<unsigned char>(event));
         }
     } else if ((m_flags_38 & 8) == 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
         m_stateFlags &= ~g_W8TextControlStateSecondary;
-        InvalidateCore((unsigned char)event);
+        InvalidateCore(static_cast<unsigned char>(event));
     }
 
     m_textBuffer.SetGeometryDirty();
@@ -1374,8 +1374,8 @@ void W8TextControl::ActivateSecondary(int)
 // FUNCTION: WIZ8 0x004f53b0
 void W8TextControl::UpdateTextBounds(int left, int top, int right, int bottom)
 {
-    W8ControlsRect absolute = {m_pPanel->origin_x + left, m_pPanel->origin_y + top,
-                               m_pPanel->origin_x + right, m_pPanel->origin_y + bottom};
+    W8ControlsRect absolute = {m_pPanel->m_bounds.left + left, m_pPanel->m_bounds.top + top,
+                               m_pPanel->m_bounds.left + right, m_pPanel->m_bounds.top + bottom};
     m_textBuffer.SetLayoutBounds(&absolute, 1, 0);
     if (m_textBuffer.HasBuffer()) {
         m_textBuffer.UpdateLayout();
@@ -1580,7 +1580,7 @@ inline void W8VerticalRangeThumb::ClampPositionAndInvalidate()
         m_position = m_maximumPosition;
     }
     m_pixelPosition =
-        (int)(((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
+        static_cast<int>(((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
               m_trackLength);
     if (m_pPanel != 0) {
         m_dirty = true;
@@ -1626,16 +1626,16 @@ W8VerticalRangeThumb::W8VerticalRangeThumb(W8RangeControl* range, int left, int 
     m_maximumPosition = 1.0f;
     m_position = 0.0f;
     GetCatalogImageSize(render_arg, 0, normal_sprite, &width, &height);
-    if (right - left < (unsigned short)width) {
-        m_right = m_left + (unsigned short)width;
+    if (right - left < static_cast<unsigned short>(width)) {
+        m_right = m_left + static_cast<unsigned short>(width);
         m_drawOffsetX = 0;
     } else {
         m_right = right;
-        m_drawOffsetX = right - (unsigned short)width - left;
+        m_drawOffsetX = right - static_cast<unsigned short>(width) - left;
     }
     SetRegion(m_region);
-    m_thumbHeight = (unsigned short)height;
-    m_trackLength = bottom - (unsigned short)height - top;
+    m_thumbHeight = static_cast<unsigned short>(height);
+    m_trackLength = bottom - static_cast<unsigned short>(height) - top;
     m_range = range;
 }
 
@@ -1646,7 +1646,7 @@ void W8VerticalRangeThumb::OnLeftButtonDown(int event)
     if (m_enabled) {
         POINT cursor;
         SGPMouseGetPos(&cursor);
-        int y = cursor.y - m_pPanel->origin_y - m_top;
+        int y = cursor.y - m_pPanel->m_bounds.top - m_top;
         if (!m_hovered) {
             m_hovered = true;
             m_position = ((y - m_thumbHeight / 2) / static_cast<float>(m_trackLength)) *
@@ -1680,7 +1680,7 @@ void W8VerticalRangeThumb::OnMouseMove(int event)
 
     POINT cursor;
     SGPMouseGetPos(&cursor);
-    int y = cursor.y - m_pPanel->origin_y - m_top;
+    int y = cursor.y - m_pPanel->m_bounds.top - m_top;
     if (m_dragging) {
         int half_height = m_thumbHeight / 2;
         if (y <= half_height) {
@@ -1730,10 +1730,10 @@ void W8VerticalRangeThumb::Redraw(unsigned char full_redraw)
     if (!m_active || (full_redraw == 0 && !m_dirty)) {
         return;
     }
-    int left = m_pPanel->origin_x + m_left;
-    int top = m_pPanel->origin_y + m_top;
-    int right = m_pPanel->origin_x + m_right;
-    int bottom = m_pPanel->origin_y + m_bottom;
+    int left = m_pPanel->m_bounds.left + m_left;
+    int top = m_pPanel->m_bounds.top + m_top;
+    int right = m_pPanel->m_bounds.left + m_right;
+    int bottom = m_pPanel->m_bounds.top + m_bottom;
     InvalidateRegion(left, top, right, bottom, 0);
     ColorFillVideoSurfaceArea(-14, left, top, right, bottom, 0x8000);
 
@@ -1747,8 +1747,8 @@ void W8VerticalRangeThumb::Redraw(unsigned char full_redraw)
         sprite = m_normalSprite;
     }
     DrawCatalogImage(-14, m_renderArg, m_renderArg38, sprite,
-                     m_pPanel->origin_x + m_drawOffsetX + m_left,
-                     m_pPanel->origin_y + m_pixelPosition + m_top, 2, 0);
+                     m_pPanel->m_bounds.left + m_drawOffsetX + m_left,
+                     m_pPanel->m_bounds.top + m_pixelPosition + m_top, 2, 0);
 }
 
 // FUNCTION: WIZ8 0x004f6050
@@ -1899,7 +1899,7 @@ inline void W8HorizontalRangeThumb::ClampPositionAndInvalidate()
         m_position = m_maximumPosition;
     }
     m_pixelPosition =
-        (int)(((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
+        static_cast<int>(((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
               m_trackLength);
     InvalidateThumb();
 }
@@ -1928,12 +1928,12 @@ W8HorizontalRangeThumb::W8HorizontalRangeThumb(Controls* panel, unsigned int reg
     m_position = 0.0f;
     m_listener = 0;
     GetCatalogImageSize(render_arg_0, render_arg_1, background_sprite, &width, &height);
-    m_right = (unsigned short)width + m_left;
-    m_bottom = m_top + (unsigned short)height;
+    m_right = static_cast<unsigned short>(width) + m_left;
+    m_bottom = m_top + static_cast<unsigned short>(height);
     SetRegion(m_region);
     GetCatalogImageSize(m_renderArg0, m_renderArg1, m_normalThumbSprite, &width, &height);
-    m_thumbWidth = (unsigned short)width;
-    m_trackLength = (m_right - m_left) - (unsigned short)width;
+    m_thumbWidth = static_cast<unsigned short>(width);
+    m_trackLength = (m_right - m_left) - static_cast<unsigned short>(width);
 }
 
 // FUNCTION: WIZ8 0x004f5710
@@ -1949,7 +1949,7 @@ void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
     if (m_enabled) {
         POINT cursor;
         SGPMouseGetPos(&cursor);
-        int x = cursor.x - m_pPanel->origin_x - m_left;
+        int x = cursor.x - m_pPanel->m_bounds.left - m_left;
         if (!m_hovered) {
             m_hovered = true;
             m_position = ((x - m_thumbWidth / 2) / static_cast<float>(m_trackLength)) *
@@ -2038,7 +2038,7 @@ void W8HorizontalRangeThumb::OnMouseMove(int event)
 
     POINT cursor;
     SGPMouseGetPos(&cursor);
-    int x = cursor.x - m_pPanel->origin_x - m_left;
+    int x = cursor.x - m_pPanel->m_bounds.left - m_left;
     if (m_dragging) {
         if (x < 0 || m_trackLength + m_thumbWidth / 2 < x) {
             return;
@@ -2068,8 +2068,8 @@ void W8HorizontalRangeThumb::Redraw(unsigned char full_redraw)
         return;
     }
 
-    int x = m_pPanel->origin_x + m_left;
-    int y = m_pPanel->origin_y + m_top;
+    int x = m_pPanel->m_bounds.left + m_left;
+    int y = m_pPanel->m_bounds.top + m_top;
     DrawCatalogImageAndInvalidate(-14, m_renderArg0, m_renderArg1, m_backgroundSprite, x, y, 2, 0);
 
     int sprite;
@@ -2200,13 +2200,13 @@ void Controls::Redraw()
     }
     if (m_fDirty) {
         if (m_renderTarget != -1) {
-            DrawCatalogImage(-14, m_renderTarget, m_renderArg_1c, m_renderArg_20, origin_x,
-                             origin_y, 2, 0);
+            DrawCatalogImage(-14, m_renderTarget, m_renderArg_1c, m_renderArg_20, m_bounds.left,
+                             m_bounds.top, 2, 0);
         }
         if (m_fWholeAreaDirty) {
             if (m_renderTarget != -1) {
-                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20, origin_x,
-                                           origin_y, 2);
+                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20, m_bounds.left,
+                                           m_bounds.top, 2);
             }
         } else {
             InvalidateRegion(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right,
@@ -2233,10 +2233,10 @@ void Controls::SetBounds(int left, int top, int new_right, int new_bottom)
 {
     int index;
 
-    origin_x = left;
-    origin_y = top;
-    right = new_right;
-    bottom = new_bottom;
+    m_bounds.left = left;
+    m_bounds.top = top;
+    m_bounds.right = new_right;
+    m_bounds.bottom = new_bottom;
     for (index = 0; index < m_controls.count; ++index) {
         ControlAt(index)->SetBounds(ControlAt(index)->m_left, ControlAt(index)->m_top,
                                     ControlAt(index)->m_right, ControlAt(index)->m_bottom);

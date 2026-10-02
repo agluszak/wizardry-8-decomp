@@ -551,7 +551,7 @@ unsigned char PathAITick(W8PathAI* path, signed char direction)
             if (path->timed_3c != 0) {
                 PathAIAdvanceNormalized(path, elapsed * g_float_005ec128);
             } else {
-                point_count = (float)path->nodes_0c->count;
+                point_count = static_cast<float>(path->nodes_0c->count);
                 PathAIAdvanceByDistance(path, path->total_length / point_count * path->speed *
                                                   elapsed * g_float_005ec128);
             }
@@ -569,7 +569,7 @@ unsigned char PathAITick(W8PathAI* path, signed char direction)
         }
         path->position += amount;
         if (path->position >= g_float_005ebb34) {
-            point_count = (float)path->nodes_0c->count;
+            point_count = static_cast<float>(path->nodes_0c->count);
             if (path->position < point_count) {
                 path->last_update_tick = now;
                 return 1;
@@ -624,7 +624,7 @@ void PathAIPosition(W8PathAI* path, srVector3T<float>* value)
     }
 
     index = path->point_index;
-    if ((unsigned int)index < (unsigned int)(path->nodes_0c->count - 1)) {
+    if (static_cast<unsigned int>(index) < static_cast<unsigned int>(path->nodes_0c->count - 1)) {
         second = *path->nodes_0c->GetAt(index + 1);
         first = *path->nodes_0c->GetAt(index);
         first_weight = g_float_005ebb38 - path->interpolation_fraction;
@@ -761,7 +761,7 @@ W8PathAI* CreateRecord(int unused)
 {
     W8PathAI* path;
 
-    path = (W8PathAI*)malloc(sizeof(W8PathAI));
+    path = static_cast<W8PathAI*>(malloc(sizeof(W8PathAI)));
     if (!path) {
         return 0;
     }

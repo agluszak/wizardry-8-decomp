@@ -51,7 +51,7 @@
 /* Copy the node's world location out; the searchable position resolver treats
    a missing node chain as unresolvable. */
 // FUNCTION: WIZ8 0x0048d050
-unsigned char W8WorldCursorNode::GetLocation0048D050(srVector3T<float>* position)
+unsigned char W8WorldCursorNode::GetLocation(srVector3T<float>* position)
 {
     if (node_04 != 0) {
         node_04->getLocation(*position);
@@ -185,10 +185,10 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     unsigned long pixel;
     unsigned char* bytes =
         reinterpret_cast<unsigned char*>(&pixel); // reinterpret-ok: packed colour storage
-    bytes[3] = (unsigned char)255.0;
-    bytes[2] = (unsigned char)0.0;
-    bytes[1] = (unsigned char)0.0;
-    bytes[0] = (unsigned char)127.5;
+    bytes[3] = static_cast<unsigned char>(255.0);
+    bytes[2] = static_cast<unsigned char>(0.0);
+    bytes[1] = static_cast<unsigned char>(0.0);
+    bytes[0] = static_cast<unsigned char>(127.5);
     surface->fill(pixel);
     surface->setFilter(&srBoxFilter);
 

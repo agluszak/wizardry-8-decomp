@@ -1325,7 +1325,7 @@ void DrawSubMenuCharacterAction(void)
                     width = StringPixLength(text, g_smfnt_font);
                     separator = StringPixLength(L"/)", g_smfnt_font);
                     trailing = StringPixLength(second, g_smfnt_font);
-                    if ((unsigned int)(trailing + width + separator) < 0xb9) {
+                    if (static_cast<unsigned int>(trailing + width + separator) < 0xb9) {
                         wcscat(text, L"/");
                         wcscat(text, second);
                     }
@@ -1596,7 +1596,7 @@ void UpdateSubMenuAutoClose(void)
     int right;
     W8TextControl** row;
 
-    left = gpSubMenuPanel->origin_x;
+    left = gpSubMenuPanel->m_bounds.left;
     switch (g_submenu_entry_count_69b87e) {
     case 0:
     case 1:
@@ -1613,8 +1613,8 @@ void UpdateSubMenuAutoClose(void)
     case 5:
         right = left + 0x67;
     }
-    if (IsCursorInRectangle(left, gpSubMenuPanel->origin_y, right,
-                            gpSubMenuPanel->origin_y + 0x1c) == 0) {
+    if (IsCursorInRectangle(left, gpSubMenuPanel->m_bounds.top, right,
+                            gpSubMenuPanel->m_bounds.top + 0x1c) == 0) {
     check_clock:
         if (g_submenu_flag_69b8d4 == 0) {
             g_submenu_clock_69b880 = SetCountdownClock(500);

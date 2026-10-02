@@ -30,7 +30,7 @@ W8GameTimeAccumulator::W8GameTimeAccumulator()
     m_elapsed_ticks_2c = 0;
     m_elapsed_30 = 0;
     m_duration_scale = 1.0f;
-    m_duration = (int)(m_duration_seconds * 10000.0f);
+    m_duration = static_cast<int>(m_duration_seconds * 10000.0f);
     m_end = m_duration;
 }
 
@@ -42,7 +42,7 @@ void W8GameTimeAccumulator::SetDurationScale(float scale)
         m_flags |= 0x10;
     }
     m_scale_24 = 2.0f / scale;
-    m_duration = (int)(scale * m_duration_seconds * 10000.0f);
+    m_duration = static_cast<int>(scale * m_duration_seconds * 10000.0f);
     Restart();
     m_frame_delta_28 = 0.0f;
 }
@@ -53,7 +53,7 @@ void W8GameTimeAccumulator::ResetDurationScale()
     m_flags &= ~0x10;
     m_scale_24 = 2.0f;
     m_duration_scale = 1.0f;
-    m_duration = (int)(m_duration_seconds * 10000.0f);
+    m_duration = static_cast<int>(m_duration_seconds * 10000.0f);
     Restart();
     m_frame_delta_28 = 0.0f;
 }

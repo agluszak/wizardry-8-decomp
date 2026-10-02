@@ -48,7 +48,7 @@ struct W8OctRegionPolygon {
     /* Tests the polygon's representative point against six frustum planes;
        inside means every plane distance is non-negative. */
     unsigned char InsideFrustumPlanes(const W8Plane* planes) const;
-    unsigned char ContainsPoint004CFB30(const srVector3T<float>* bounds) const;
+    unsigned char ContainsPoint(const srVector3T<float>* bounds) const;
 };
 
 static_assert(sizeof(W8OctRegionPolygon) == 0x74, "W8OctRegionPolygon_must_be_0x74");
@@ -150,8 +150,8 @@ struct OctBuildPreTree : W8OctBuildTree {
     W8HashTable<unsigned short, short>* inside_region_map_12c;
     W8HashTable<unsigned short, short>* overlap_region_map_130;
     W8OctPreTreeGeometry* game_data_134;
-    unsigned long padding_138;
-    unsigned long padding_13c;
+    unsigned long unknown_138;
+    unsigned long unknown_13c;
 };
 
 static_assert(sizeof(OctBuildPreTree) == 0x140, "OctBuildPreTree_must_be_0x140");

@@ -21,7 +21,7 @@ class W8SpellVisual;
    targeting code are named. */
 struct W8PartySlotRow {
     bool fOccupied; /* 0x00: gStatus.XChar[slot].fOccupied assertion spelling */
-    int pending_action;
+    W8ActionKind pending_action;
     int attack_mode[4];
     /* 0x15: the pending action's own two-word block, the same shape a chosen
        action carries. ChooseCombatAction returns it for the out-of-combat
@@ -31,11 +31,11 @@ struct W8PartySlotRow {
     /* 0x3d: the action chosen for the in-combat context, its detail word, and
        the action's own two-word block. A use-item action holds the aimed item
        in the block's item member. */
-    int action_03d;
+    W8ActionKind action_03d;
     int action_detail_041;
     W8ActionDetailBlock action_detail_045;
     W8CombatSlot target_in_combat;
-    int action_kind;
+    W8ActionKind action_kind;
     int action_detail;
     int spell_id;
     /* The spell's two-word detail block: power level plus an unused second

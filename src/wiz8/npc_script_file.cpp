@@ -80,7 +80,7 @@ unsigned char ReadNpcScriptQuote(int handle, W8NpcScriptQuote* record)
 
     if (record->subquotes != 0) {
         FileRead(handle, record, 1, &transferred);
-        record->subquotes = static_cast<char**>(malloc(record->subquote_count * 4));
+        record->subquotes = static_cast<char**>(malloc(record->subquote_count * sizeof(char*)));
         for (index = 0; index < record->subquote_count; ++index) {
             FileRead(handle, &length, 2, &transferred);
             if (transferred != 2) {

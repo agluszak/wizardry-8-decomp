@@ -234,7 +234,7 @@ float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<floa
         float sight_factor =
             static_cast<float>(static_cast<int>(perception_attribute) - penalty_source * 2);
         float sight_ratio = (viewing_distance - distance) / distance;
-        sight_percent = (int)(sight_factor * sight_ratio);
+        sight_percent = static_cast<int>(sight_factor * sight_ratio);
     }
     if (penalty_modifier != 0) {
         if (skip_field_of_view == 0) {

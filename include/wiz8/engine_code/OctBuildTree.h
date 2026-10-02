@@ -16,7 +16,7 @@ struct W8OctBuildLinkLists {
     W8OctBuildLink* GetNewLink(void* surface);
 
     unsigned short m_usCurrent;
-    unsigned short padding_02;
+    unsigned short unknown_02;
     W8OctBuildLink* m_apLinkLists[100];
     unsigned short m_ausLinkCounts[100];
 };
@@ -92,10 +92,10 @@ struct W8OctBuildTree {
     unsigned long gd_surface_count_a4;
     unsigned long leaf_count_a8;
     unsigned short max_leaf_regions_ac;
-    unsigned short padding_ae;
+    unsigned short unknown_ae;
     unsigned long region_assignments_b0;
     unsigned char use_owned_nodes_b4;
-    unsigned char padding_b5[3];
+    unsigned char unknown_b5[3];
     unsigned long deepest_link_list_b8;
 };
 

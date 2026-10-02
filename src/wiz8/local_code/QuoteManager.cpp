@@ -824,8 +824,8 @@ unsigned char W8CharacterEvent::Dispatch()
             IsConditionMet(event_type) == 0) {
             goto finish_without_dispatch;
         }
-        if (event_type != (unsigned int)g_special_event_0068c578 &&
-            event_type != (unsigned int)g_special_event_0068c508) {
+        if (event_type != static_cast<unsigned int>(g_special_event_0068c578) &&
+            event_type != static_cast<unsigned int>(g_special_event_0068c508)) {
             if (character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
                 QueueCharacterEvent(character, g_special_event_0068c508, 0, 1, 0x7f);
                 return 0;
@@ -1230,14 +1230,14 @@ int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
 void W8CharacterEventQueue::SetEventCharacterMask(unsigned int event_type, unsigned int party_slot,
                                                   bool enabled)
 {
-    unsigned char mask = (unsigned char)(1 << (party_slot & 31));
+    unsigned char mask = static_cast<unsigned char>(1 << (party_slot & 31));
 
     unsigned int mask_index;
     if (!MapEventTypeToDescriptorIndex(event_type, &mask_index)) {
         return;
     }
     if (!enabled) {
-        event_character_masks[mask_index] &= (unsigned char)~mask;
+        event_character_masks[mask_index] &= static_cast<unsigned char>(~mask);
     } else {
         event_character_masks[mask_index] |= mask;
     }
@@ -1257,12 +1257,12 @@ bool W8CharacterEventQueue::HasEventCharacter(unsigned int event_type, unsigned 
 unsigned char W8CharacterEventQueue::TryAdjustQueuedEvent(W8CharacterEvent* entry)
 {
     if (entry == 0 || active_event_type == -1 ||
-        entry->event_type != (unsigned int)active_event_type) {
+        entry->event_type != static_cast<unsigned int>(active_event_type)) {
         return 1;
     }
 
     unsigned int party_slot = CharacterPointerToPartySlot(entry->character);
-    if (party_slot == (unsigned int)active_party_slot) {
+    if (party_slot == static_cast<unsigned int>(active_party_slot)) {
         return 1;
     }
 
@@ -1386,7 +1386,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
                     return;
                 }
                 if (entry->dispatch_delay_ms != 0 && GetTickCount() - entry->dispatch_delay_start <=
-                                                         (unsigned int)entry->dispatch_delay_ms) {
+                                                         static_cast<unsigned int>(entry->dispatch_delay_ms)) {
                     return;
                 }
                 pending_events.RemoveAt(index);

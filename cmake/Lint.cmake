@@ -97,7 +97,10 @@ function(wiz8_configure_lint_target target)
     target_compile_options(${target} PRIVATE
         /W4 ${WIZ8_CLANG_COMPAT_FLAGS} ${WIZ8_RECOVERED_SUPPRESSIONS})
     if(NOT WIZ8_FULL_DIAGNOSTICS)
-        target_compile_options(${target} PRIVATE -Werror)
+        # Retail block-clears and block-copies some records holding vfptrs
+        # (docs/retail-bugs.md); those diagnostics stay visible, uncast.
+        target_compile_options(${target} PRIVATE -Werror
+            -Wno-error=dynamic-class-memaccess -Wno-error=nontrivial-memcall)
     endif()
     target_compile_options(${target} PRIVATE ${WIZ8_RECOVERY_WARNINGS})
 endfunction()

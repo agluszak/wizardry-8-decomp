@@ -86,8 +86,8 @@ void W8CharacterSpellList::SetEntryCount(int count)
 {
     if (!m_range) {
         m_range = new W8RangeControl(
-            m_pPanel->origin_x + m_x + 0xb8, m_pPanel->origin_y + m_y + 0x1a,
-            m_pPanel->origin_x + m_x + 0xca, m_pPanel->origin_y + m_y + 0x78, m_region_set);
+            m_pPanel->m_bounds.left + m_x + 0xb8, m_pPanel->m_bounds.top + m_y + 0x1a,
+            m_pPanel->m_bounds.left + m_x + 0xca, m_pPanel->m_bounds.top + m_y + 0x78, m_region_set);
         m_range->m_listener = this;
     }
     m_range->Invalidate(0);
@@ -105,10 +105,10 @@ void W8CharacterSpellList::SetEntryCount(int count)
 void W8CharacterSpellList::Redraw(unsigned char force)
 {
     if (m_active && (m_dirty || force)) {
-        int left = m_left + m_pPanel->origin_x;
-        int top = m_top + m_pPanel->origin_y;
-        int right = m_right + m_pPanel->origin_x;
-        int bottom = m_bottom + m_pPanel->origin_y;
+        int left = m_left + m_pPanel->m_bounds.left;
+        int top = m_top + m_pPanel->m_bounds.top;
+        int right = m_right + m_pPanel->m_bounds.left;
+        int bottom = m_bottom + m_pPanel->m_bounds.top;
         InvalidateRegion(left, top, right, bottom, 0);
         BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
         int y = top + 1;
@@ -159,7 +159,7 @@ void W8CharacterSpellList::OnMouseMove(int)
 {
     POINT mouse;
     SGPMouseGetPos(&mouse);
-    int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 + m_scroll_offset + m_first_entry;
+    int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry > m_first_entry + m_entry_count)
         entry = -1;
     if (entry != m_hovered_entry) {
@@ -173,7 +173,7 @@ void W8CharacterSpellList::OnLeftButtonDown(int)
 {
     POINT mouse;
     SGPMouseGetPos(&mouse);
-    int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 + m_scroll_offset + m_first_entry;
+    int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
         PushButtonSoundScheme(0, 1);
     }
@@ -184,7 +184,7 @@ void W8CharacterSpellList::OnRightButtonDown(int)
 {
     POINT mouse;
     SGPMouseGetPos(&mouse);
-    int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 + m_scroll_offset + m_first_entry;
+    int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
         PushButtonSoundScheme(0, 1);
     }
@@ -195,7 +195,7 @@ void W8CharacterSpellList::OnLeftButtonUp(int event)
 {
     POINT mouse;
     SGPMouseGetPos(&mouse);
-    int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 + m_scroll_offset + m_first_entry;
+    int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
         PushButtonSoundScheme(0, 1);
         return;
@@ -212,7 +212,7 @@ void W8CharacterSpellList::OnRightButtonUp(int)
 {
     POINT mouse;
     SGPMouseGetPos(&mouse);
-    int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 + m_scroll_offset + m_first_entry;
+    int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
         PushButtonSoundScheme(0, 1);
         return;
@@ -347,8 +347,8 @@ void W8CharacterSpellsPage::Redraw()
                 continue;
             }
             text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
-            bounds.left = origin_x + 0x29 + (realm % 2) * 0xd7;
-            bounds.top = origin_y + 0x0f + (realm / 2) * 0x82;
+            bounds.left = m_bounds.left + 0x29 + (realm % 2) * 0xd7;
+            bounds.top = m_bounds.top + 0x0f + (realm / 2) * 0x82;
             bounds.right = bounds.left + 0x3c;
             bounds.bottom = bounds.top + 0x0e;
             text.SetLayoutBounds(&bounds, 1, 1);
@@ -392,8 +392,8 @@ void W8CharacterSpellsPage::Redraw()
             if (!m_screen_05c->HasDialog() || realm < 2) {
                 DrawCatalogImageAndInvalidate(-14, animation.image, 0,
                                               m_animation_frames_608[realm],
-                                              origin_x + 0x0f + (realm % 2) * 0xd7,
-                                              origin_y + 0x0a + (realm / 2) * 0x82, 2, 0);
+                                              m_bounds.left + 0x0f + (realm % 2) * 0xd7,
+                                              m_bounds.top + 0x0a + (realm / 2) * 0x82, 2, 0);
             }
         }
     }

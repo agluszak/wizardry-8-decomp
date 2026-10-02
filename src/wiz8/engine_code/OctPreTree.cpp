@@ -55,8 +55,8 @@ OctPreTree* g_oct_pre_tree = 0;
 OctPreTree::OctPreTree() : W8Octree(0, 0)
 {
     game_data_3a4 = 0;
-    padding_3a8 = 0;
-    padding_3ac = 0;
+    unknown_3a8 = 0;
+    unknown_3ac = 0;
     deepest_link_list_3b0 = 0;
     m_region_cell_178 = 0.0f;
     path_node_extent_3b4 = 0;
@@ -1741,7 +1741,7 @@ W8OctSpatialState::W8OctSpatialState(const W8OctSpatialState* source)
 // FUNCTION: WIZ8 0x0046cdc0
 void W8OctSpatialState::Reset()
 {
-    memset(static_cast<void*>(this), 0, sizeof(*this));
+    memset(this, 0, sizeof(*this));
 }
 
 // FUNCTION: WIZ8 0x0046cdf0
@@ -1819,7 +1819,7 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
             maximum[axis] < vertex_values[2][axis]) {
             return 0;
         }
-        if (g_float_005ec414 < (float)fabs(normal[axis]) &&
+        if (g_float_005ec414 < static_cast<float>(fabs(normal[axis])) &&
             minimum[axis] <= vertex_values[0][axis] && vertex_values[0][axis] <= maximum[axis]) {
             near_axis = 1;
         }
@@ -1871,7 +1871,7 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
             float face = side == 0 ? minimum[face_axis] : maximum[face_axis];
 
             for (short edge = 0; edge < 3; ++edge) {
-                if ((float)g_double_005ebc70 < (float)fabs(edge_delta[edge][face_axis])) {
+                if (static_cast<float>(g_double_005ebc70) < static_cast<float>(fabs(edge_delta[edge][face_axis]))) {
                     float amount =
                         (face - edge_start[edge][face_axis]) / edge_delta[edge][face_axis];
                     if (g_float_005ebb34 <= amount && amount <= g_float_005ebb38) {
@@ -1897,7 +1897,7 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
                                   intersection[1][1] - intersection[0][1]};
                 short rectangle_axes[2] = {first_axis, second_axis};
                 for (short coordinate = 0; coordinate < 2; ++coordinate) {
-                    if (g_float_005ebc90 < (float)fabs(delta[coordinate])) {
+                    if (g_float_005ebc90 < static_cast<float>(fabs(delta[coordinate]))) {
                         short other = coordinate == 0 ? 1 : 0;
                         for (short edge_side = 0; edge_side < 2; ++edge_side) {
                             float boundary = edge_side == 0 ? minimum[rectangle_axes[coordinate]]

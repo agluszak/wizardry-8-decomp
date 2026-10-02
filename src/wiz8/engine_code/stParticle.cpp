@@ -560,7 +560,7 @@ void stParticle::DeactivateParticle(unsigned int index)
 }
 
 // FUNCTION: WIZ8 0x00499FA0
-void stParticle::Update00499FA0()
+void stParticle::Update()
 {
     unsigned int now = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     if (now - last_emitted_at_274 < emission_gap_270) {
@@ -588,7 +588,7 @@ void stParticle::Update00499FA0()
         srVector3T<float> node_location;
         getLocation(node_location);
 
-        double elapsed = (double)elapsed_ticks;
+        double elapsed = static_cast<double>(elapsed_ticks);
         srVector3T<float> acceleration_step = acceleration_1f4 * (elapsed * g_double_005ec8d0);
 
         unsigned int index;
@@ -622,8 +622,8 @@ void stParticle::Update00499FA0()
                     }
                 } else {
                     stTextureAnim* animation = texture_frames_178[index * 2];
-                    animation->UpdateFrame004854B0();
-                    if (animation->IsFinished00485730() != 0) {
+                    animation->UpdateFrame();
+                    if (animation->IsFinished() != 0) {
                         particle_active_194[index] = 0;
                         update_flags_250 |= 2;
                         --active_particle_count_18c;
@@ -716,12 +716,12 @@ void stParticle::Update00499FA0()
         }
 
         if (has_acceleration_1a8 == 1) {
-            srVector3T<float> acceleration = (acceleration_1f4 * (double)lag) / 1000.0;
+            srVector3T<float> acceleration = (acceleration_1f4 * static_cast<double>(lag)) / 1000.0;
             velocities_198[particle_index] += acceleration;
         }
 
         srVector3T<float> displacement = velocities_198[particle_index];
-        displacement *= (double)lag;
+        displacement *= static_cast<double>(lag);
         displacement /= 1000.0;
         InitializeParticlePosition(&particle_positions_148[particle_index]);
         particle_positions_148[particle_index] += displacement;
@@ -825,7 +825,7 @@ void stParticle::PrepareRenderer(srMatrix4T<float>& view)
 
         float scale = static_cast<float>(particle_size_140) * size_scale_278;
         offsets[index] =
-            srVector3T<float>(transformed.x, transformed.y, transformed.z) * (double)scale;
+            srVector3T<float>(transformed.x, transformed.y, transformed.z) * static_cast<double>(scale);
     }
 
     if (flutter_mode_1c0 == 0) {
@@ -905,7 +905,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
         position = located;
     }
 
-    Update00499FA0();
+    Update();
 
     if (emission_limit_184 != 0 && emission_count_188 >= emission_limit_184) {
         emitting_1a0 = 0;

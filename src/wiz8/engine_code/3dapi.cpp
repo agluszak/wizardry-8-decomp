@@ -258,7 +258,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
 
     world->m_owned_06c = 0;
     world->update_mesh_source = 0;
-    memset(world->m_padding_07c, 0, 0x10);
+    memset(world->m_unknown_07c, 0, 0x10);
 
     int handle = FileOpen(level_path, FILE_ACCESS_READ | FILE_OPEN_EXISTING, FALSE);
     if (handle == 0) {
@@ -273,7 +273,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     /* ReadLevel failure is assertion-only in the canonical body. LoadWorld
        still performs the mesh update and returns success. */
 
-    world->m_padding_0d4[0] = 0;
+    world->m_unknown_0d4[0] = 0;
     if (world->octree != 0) {
         UpdateWorldOctree(world);
     } else if (world->m_owned_06c != 0) {
@@ -427,9 +427,9 @@ void SetCameraSwayMode(srCamera* camera, int mode)
     if (mode != 0) {
         if (mode > 0) {
             g_camera_base_horizontal_fov =
-                (float)(camera->getHorizontalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
+                static_cast<float>(camera->getHorizontalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
             g_camera_base_vertical_fov =
-                (float)(camera->getVerticalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
+                static_cast<float>(camera->getVerticalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
             if (!g_camera_sway_active) {
                 g_camera_sway_horizontal_phase = 0.0f;
                 g_camera_sway_vertical_phase = 0.0f;
@@ -515,10 +515,10 @@ void DestroyWorldCollections(W8World* world)
 
     if (world->plsCameras != 0) {
         while (PLLength(world->plsCameras) != 0) {
-            W8WorldCameraEntry* entry =
-                static_cast<W8WorldCameraEntry*>(PLGet(world->plsCameras, 0));
+            W8CameraPath* entry =
+                static_cast<W8CameraPath*>(PLGet(world->plsCameras, 0));
             PLRemoveAt(world->plsCameras, 0);
-            DestroyPathAI(entry->path);
+            DestroyPathAI(entry->path_18);
             free(entry);
         }
         PLDestroy(world->plsCameras);
@@ -777,9 +777,9 @@ void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location)
         srAssertFail("pWorld", THREE_D_API_CPP, 1014, 0);
     }
     if (world->camera != 0) {
-        location->x = (float)world->camera->getLocationX();
-        location->y = (float)world->camera->getLocationY();
-        location->z = (float)world->camera->getLocationZ();
+        location->x = static_cast<float>(world->camera->getLocationX());
+        location->y = static_cast<float>(world->camera->getLocationY());
+        location->z = static_cast<float>(world->camera->getLocationZ());
         return;
     }
     location->SetZero();
@@ -948,9 +948,9 @@ void GetWorldCameraState(W8World* world, W8WorldCameraState* state)
             srAssertFail("CamPos", THREE_D_API_CPP, 0x488, 0);
         }
         if (world->camera != 0) {
-            state->position.x = (float)world->camera->getLocationX();
-            state->position.y = (float)world->camera->getLocationY();
-            state->position.z = (float)world->camera->getLocationZ();
+            state->position.x = static_cast<float>(world->camera->getLocationX());
+            state->position.y = static_cast<float>(world->camera->getLocationY());
+            state->position.z = static_cast<float>(world->camera->getLocationZ());
         } else {
             state->position.SetZero();
         }
@@ -963,9 +963,9 @@ void GetWorldCameraState(W8World* world, W8WorldCameraState* state)
 // FUNCTION: WIZ8 0x00450750
 void WorldGetCameraLocation(W8World* world, srVector3T<float>* location)
 {
-    location->x = (float)world->camera->getLocationX();
-    location->y = (float)world->camera->getLocationY();
-    location->z = (float)world->camera->getLocationZ();
+    location->x = static_cast<float>(world->camera->getLocationX());
+    location->y = static_cast<float>(world->camera->getLocationY());
+    location->z = static_cast<float>(world->camera->getLocationZ());
 }
 
 /* The second world, read straight out of the global with no guard. Its type is

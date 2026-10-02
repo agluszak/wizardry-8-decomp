@@ -519,12 +519,11 @@ def main() -> None:
             env=environment,
             check=False,
         )
-        if result.returncode != 0:
-            raise SystemExit(result.returncode)
-
         diagnostics = _bool_diagnostics(Path(facts), environment.get(FILTER_ENV, ""))
         for diagnostic in diagnostics:
             print(_render_bool_diagnostic(diagnostic), file=sys.stderr)
+        if result.returncode != 0:
+            raise SystemExit(result.returncode)
         if any(diagnostic.proven for diagnostic in diagnostics):
             raise SystemExit(1)
 

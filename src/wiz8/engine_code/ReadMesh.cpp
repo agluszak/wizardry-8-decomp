@@ -221,7 +221,7 @@ static void SortGroupsByKey(unsigned long* order, unsigned long* keys, unsigned 
 {
     unsigned int index;
     unsigned int start = 0;
-    for (index = 1; index < (unsigned long)count; ++index) {
+    for (index = 1; index < static_cast<unsigned long>(count); ++index) {
         if (groups[index] != groups[index - 1]) {
             SortByKey(order + start, keys + start, index - start);
             start = index;
@@ -231,7 +231,7 @@ static void SortGroupsByKey(unsigned long* order, unsigned long* keys, unsigned 
 
     int group = 0;
     groups[0] = 0;
-    for (index = 1; index < (unsigned long)count; ++index) {
+    for (index = 1; index < static_cast<unsigned long>(count); ++index) {
         if (keys[index] != keys[index - 1]) {
             ++group;
         }
@@ -341,10 +341,10 @@ W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
         order->polygons = new unsigned long[info->polygon_count];
         order->vertices = new unsigned long[info->vertex_count];
     }
-    for (index = 0; index < (unsigned long)info->polygon_count; ++index) {
+    for (index = 0; index < static_cast<unsigned long>(info->polygon_count); ++index) {
         order->polygons[index] = index;
     }
-    for (index = 0; index < (unsigned long)info->vertex_count; ++index) {
+    for (index = 0; index < static_cast<unsigned long>(info->vertex_count); ++index) {
         order->vertices[index] = index;
     }
     if ((flags & 1) == 0 && (flags & 2) == 0) {
@@ -371,9 +371,9 @@ W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
         }
 
         if ((flags & 4) != 0) {
-            for (unsigned int start = 0; start < (unsigned long)info->polygon_count;) {
+            for (unsigned int start = 0; start < static_cast<unsigned long>(info->polygon_count);) {
                 unsigned int end = start;
-                while (end < (unsigned long)info->polygon_count &&
+                while (end < static_cast<unsigned long>(info->polygon_count) &&
                        polygon_groups[end] == polygon_groups[start]) {
                     ++end;
                 }
@@ -441,11 +441,11 @@ W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
         srVector3T<int>* remapped = new srVector3T<int>[info->polygon_count];
         int* inverse = new int[info->vertex_count];
         unsigned long* first_use = new unsigned long[info->vertex_count];
-        for (index = 0; index < (unsigned long)info->vertex_count; ++index) {
+        for (index = 0; index < static_cast<unsigned long>(info->vertex_count); ++index) {
             inverse[order->vertices[index]] = index;
             first_use[index] = 0;
         }
-        for (polygon = 0; polygon < (unsigned long)info->polygon_count; ++polygon) {
+        for (polygon = 0; polygon < static_cast<unsigned long>(info->polygon_count); ++polygon) {
             const int* source = &info->polygon_vertices[order->polygons[polygon]].x;
             int* destination = &remapped[polygon].x;
             for (int corner = 0; corner < 3; ++corner) {
@@ -453,7 +453,7 @@ W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
             }
         }
         unsigned int used = 0;
-        for (polygon = 0; polygon < (unsigned long)info->polygon_count; ++polygon) {
+        for (polygon = 0; polygon < static_cast<unsigned long>(info->polygon_count); ++polygon) {
             const int* corners = &remapped[polygon].x;
             for (int corner = 0; corner < 3; ++corner) {
                 if (first_use[corners[corner]] == 0) {
@@ -463,7 +463,7 @@ W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
         }
 
         unsigned int start = 0;
-        for (index = 1; index < (unsigned long)info->vertex_count; ++index) {
+        for (index = 1; index < static_cast<unsigned long>(info->vertex_count); ++index) {
             if (vertex_groups[index] != vertex_groups[index - 1]) {
                 SortByKey(order->vertices + start, first_use + start, index - start);
                 start = index;
@@ -502,7 +502,7 @@ void OptimizeMeshOrder(srMeshModel* model, unsigned long flags)
     info.polygon_vertices = model->getPolyVertex();
     info.vertex_locations = model->getVertexLoc();
 
-    for (unsigned int pass = 0; pass < (unsigned long)model->pass_count_228; ++pass) {
+    for (unsigned int pass = 0; pass < static_cast<unsigned long>(model->pass_count_228); ++pass) {
         if (model->getPolyShader(pass, 0) != 0 && info.polygon_key_count < 4) {
             info.polygon_keys[info.polygon_key_count++] = model->getPolyShader(pass, 1);
         }
@@ -512,10 +512,10 @@ void OptimizeMeshOrder(srMeshModel* model, unsigned long flags)
             }
         }
         for (int side = 0; side < 2; ++side) {
-            if (model->getVertexMaterial(pass, (srMeshModel::e_side)side, 0) != 0 &&
+            if (model->getVertexMaterial(pass, static_cast<srMeshModel::e_side>(side), 0) != 0 &&
                 info.vertex_key_count < 4) {
                 info.vertex_keys[info.vertex_key_count++] =
-                    model->getVertexMaterial(pass, (srMeshModel::e_side)side, 1);
+                    model->getVertexMaterial(pass, static_cast<srMeshModel::e_side>(side), 1);
             }
         }
     }

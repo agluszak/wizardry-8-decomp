@@ -9,6 +9,13 @@ class W8TextControl;
 struct Controls;
 struct W8Character;
 
+enum {
+    W8_SPELL_POWER_PIP_COUNT = 9,
+    W8_SPELL_NAME_CONTROL = 9,
+    W8_SPELL_CANCEL_CONTROL = 10,
+    W8_SPELL_POWER_CONTROL_COUNT = 11
+};
+
 /* The spell-casting view state gpSCSV, a 0xc5c-byte block malloc'd when the
    view opens. The member spellings come from this file's assertion strings;
    the rest are unresolved. */
@@ -30,9 +37,8 @@ struct W8SpellCastingView {
     Controls* panels[3];             /* 0x504 */
     W8TextControl* realm_buttons[6]; /* 0x510 */
     W8TextControl* realm_icons[6];   /* 0x528 */
-    W8TextControl* power_pips[9];    /* 0x540 */
-    W8TextControl* spell_name;       /* 0x564 */
-    W8TextControl* cancel_button;    /* 0x568 */
+    /* 0x540: indexed by region callback id. */
+    W8TextControl* power_controls[W8_SPELL_POWER_CONTROL_COUNT];
     W8MainUiMode saved_game_mode;    /* 0x56c */
     bool input_blocked_570;          /* 0x570 */
     unsigned char pad_571[3];

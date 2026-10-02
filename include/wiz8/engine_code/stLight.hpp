@@ -219,7 +219,7 @@ public:
        independent displacement loads. */
     srVector3T<float> m_position_228;    /* 0x228 */
     stLightDefinition* m_definition_234; /* 0x234: owned */
-    unsigned char m_padding_238;         /* 0x238 */
+    unsigned char m_unknown_238;         /* 0x238 */
     /* Oscillation direction: zero sweeps intensity down, nonzero sweeps up. */
     unsigned char m_direction_239;
     /* Raised by light-toggle triggers; the save path serializes the names of

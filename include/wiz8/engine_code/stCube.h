@@ -23,7 +23,7 @@ public:
     virtual ~W8WorldCursorNode() {}
     /* 0x0048D050: copy the node's world location out; answers 0 when the node
        chain is absent. */
-    unsigned char GetLocation0048D050(srVector3T<float>* position);
+    unsigned char GetLocation(srVector3T<float>* position);
     srNode* node_04; /* 0x04 */
     unsigned int value_08;
     int numbers_0c[3];      /* 0x0c, 0x10, 0x14 */

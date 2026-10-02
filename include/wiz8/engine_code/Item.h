@@ -44,7 +44,7 @@ struct W8Item : public W8GrObject {
     void ApplyRepTransform();
     void AttachMesh(W8World* world);
     void UpdateAnimation();
-    void SetLocation0049F720(const srVector3T<float>* location);
+    void SetLocation(const srVector3T<float>* location);
     srNode* GetMesh();
     /* Model-local cached bounds. GetItemWorldBounds translates them by the
        representation's location without rotating them. */

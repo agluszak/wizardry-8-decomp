@@ -5,18 +5,18 @@
 extern wchar_t g_combat_log_format[]; /* 0x00617664 */
 /* 0x0068506C: a friendly NPC's combat-entry script notice is still owed. */
 
-void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data,
+void ChooseAction(int party_slot, W8ActionKind action, int detail, const W8ActionDetailBlock* data,
                   bool defer_execution, int notify); /* 0x004E7CC0 */
 void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_action,
                         W8CombatSlot** out_target,
                         W8ActionDetailBlock** out_detail); /* 0x004E77B0 */
-void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail,
+void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int action_detail,
                               const W8ActionDetailBlock* data, int notify); /* 0x004E8000 */
 void EndCombat(unsigned char mode);                                                   /* 0x004EA310 */
 void BeginCombatExecution(void);
 void AssignCombatPhases(void);
 void UpdateCombat(void);                            /* 0x004E8EA0 */
-void SwitchCharacterTo(int party_slot, int action); /* 0x004ED390 */
+void SwitchCharacterTo(int party_slot, W8ActionKind action); /* 0x004ED390 */
 void ApplyCombatEndEffects(void);                   /* 0x004EA1F0 */
 bool CombatHasContinuingEffects(void);              /* 0x004ED550 */
 /* 0x004ED460: whether continuous-combat stance may advance past the pending
@@ -74,7 +74,7 @@ char CreateCharacterBreathEffect(int party_slot);
 /* 0x004EBFE0: the character's committed breath attack against the marker
    lists plus every hostile monster; returns the action outcome code. */
 int ExecuteCharacterSpecialAttack(int party_slot);
-void ApplyPartyCombatAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data,
+void ApplyPartyCombatAction(int party_slot, W8ActionKind action, int detail, const W8ActionDetailBlock* data,
                             int notify); /* 0x004E7EE0 */
 int IsPartyEngaged(void);                /* 0x004E7E70 */
 int GetEngagementCount(void);            /* 0x004ED2B0 */
@@ -84,7 +84,7 @@ void DropCharacterFromRound(int party_slot);
    context, in the two forms the target-refresh pass asks. */
 bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned char arg_3,
                           unsigned char arg_4);
-unsigned char TryCharacterAction(int party_slot, int action, char commit);
+unsigned char TryCharacterAction(int party_slot, W8ActionKind action, char commit);
 void NotifyNearbyMonsters(int what);
 void CombatLog(const char* format, ...);
 void BeginCombatRound(void);
@@ -94,7 +94,7 @@ void EndMonsterAttack(W8MonsterInfo* monster_info); /* 0x004EB7F0 */
    the attack starts; `alternate` picks the immediate versus animated turn. */
 void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, char alternate);
 void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info);
-void SetSlotAction(int party_slot, int action_kind, int action_detail);
+void SetSlotAction(int party_slot, W8ActionKind action_kind, int action_detail);
 bool CanCharReBreathe(int party_slot);
 unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target); /* 0x004ECE00 */
 short GetCombatActionProgress(int* out_total);                      /* 0x004EC610 */

@@ -496,10 +496,11 @@ unsigned char PreprocessLevel(int handle, char* stem)
                     short light_total = level->nLights;
                     last_sun = -1;
                     if (light_total != 0) {
-                        lights = static_cast<W8LevelFileLight*>(malloc(light_total * 0x44));
-                        memcpy(lights, level->pLights, light_total * 0x44);
-                        sun_map = static_cast<int*>(malloc(light_total * 4));
-                        memset(sun_map, 0, light_total * 4);
+                        lights = static_cast<W8LevelFileLight*>(
+                            malloc(light_total * sizeof(W8LevelFileLight)));
+                        memcpy(lights, level->pLights, light_total * sizeof(W8LevelFileLight));
+                        sun_map = static_cast<int*>(malloc(light_total * sizeof(int)));
+                        memset(sun_map, 0, light_total * sizeof(int));
                         sun_count = 1;
                         for (i = 0; i < static_cast<int>(light_total); ++i) {
                             src_light = lights + i;
@@ -857,7 +858,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                         FileClose(file);
                     }
                     ReportStartupMessage("Cleaning up preprocessing data...");
-                    geometry.Release004CFC10();
+                    geometry.Release();
                     if (g_gd_polygons != 0) {
                         free(g_gd_polygons);
                     }
@@ -1785,13 +1786,13 @@ int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int
         return 0;
     }
     memset(texture_names, 0, count << 9);
-    material_lookup = static_cast<int*>(malloc(count * 4));
+    material_lookup = static_cast<int*>(malloc(count * sizeof(int)));
     if (material_lookup == 0) {
         ReportBuildStatus(7, "MaterialSort: Could not allocate piMatLookup\n");
         return 0;
     }
     memset(material_lookup, 0, count * 4);
-    texture_lookup = static_cast<int*>(malloc(count * 4));
+    texture_lookup = static_cast<int*>(malloc(count * sizeof(int)));
     if (texture_lookup == 0) {
         ReportBuildStatus(7, "MaterialSort: Could not allocate piTextLookup\n");
         return 0;
@@ -2193,7 +2194,7 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
         if ((*texture)->getClassID() == stTextureAnim::CLASS_ID) {
             stTextureAnim* animation = static_cast<stTextureAnim*>(*texture);
 
-            if (animation->Prepare004857B0()) {
+            if (animation->Prepare()) {
                 has_alpha = 1;
             }
             if (source->version_00 > 3 && source->texture_modes_11a[texture_index] > 0.0f) {

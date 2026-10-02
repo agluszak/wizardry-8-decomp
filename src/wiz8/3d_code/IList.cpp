@@ -16,7 +16,7 @@ W8IList* ILCreate(void)
 {
     W8IList* pls;
 
-    pls = (W8IList*)malloc(sizeof(W8IList));
+    pls = static_cast<W8IList*>(malloc(sizeof(W8IList)));
     if (!pls) {
         srAssertFail("pls", ILIST_CPP, 0x45, 0);
     }
@@ -46,7 +46,7 @@ unsigned char IListInit(W8IList* pls)
        Comparing in the return statement instead makes VC6 compute the value
        early into CL and widen it; a byte local assigned here reproduces the
        original's split between testing and materialising. */
-    pls->data = (int*)malloc(10 * sizeof(int));
+    pls->data = static_cast<int*>(malloc(10 * sizeof(int)));
     created = pls->data != 0;
     pls->capacity = 10;
     pls->iNumUsed = 0;
@@ -86,7 +86,7 @@ int IListAdd(W8IList* pls, int value)
         if (!pls) {
             srAssertFail("pls", ILIST_CPP, 0x1db, 0);
         }
-        pTemp = (int*)malloc((pls->capacity + 5) * sizeof(int));
+        pTemp = static_cast<int*>(malloc((pls->capacity + 5) * sizeof(int)));
         if (!pTemp) {
             srAssertFail("pTemp", ILIST_CPP, 0x1de, 0);
         }

@@ -23,7 +23,7 @@ unsigned char W8OctRegionPolygon::InsideFrustumPlanes(const W8Plane* planes) con
 /* Test the polygon's representative point against an inclusive axis-aligned
    box. The method's original translation-unit owner is not yet proved. */
 // FUNCTION: WIZ8 0x004cfb30
-unsigned char W8OctRegionPolygon::ContainsPoint004CFB30(const srVector3T<float>* bounds) const
+unsigned char W8OctRegionPolygon::ContainsPoint(const srVector3T<float>* bounds) const
 {
     for (short axis = 0; axis < 3; ++axis) {
         float value = (&position_18.x)[axis];
@@ -42,11 +42,11 @@ unsigned char W8OctPreTreeGeometry::CheckArrayLength(int** run, unsigned short c
 {
     if (count % capacity == 0) {
         unsigned short total = count + capacity;
-        int* grown = static_cast<int*>(malloc(total * 4));
+        int* grown = static_cast<int*>(malloc(total * sizeof(int)));
         if (grown != 0) {
-            memset(grown, 0, total * 4);
+            memset(grown, 0, total * sizeof(*grown));
             if (*run != 0) {
-                memcpy(grown, *run, count * 4);
+                memcpy(grown, *run, count * sizeof(*grown));
                 free(*run);
             }
             *run = grown;
@@ -62,7 +62,7 @@ unsigned char W8OctPreTreeGeometry::CheckArrayLength(int** run, unsigned short c
    freed once when it changes), the vertex and polygon arrays themselves, and
    the owned +0x14 buffer. */
 // FUNCTION: WIZ8 0x004cfc10
-void W8OctPreTreeGeometry::Release004CFC10()
+void W8OctPreTreeGeometry::Release()
 {
     if (vertices_04 != 0) {
         int* last_faces = vertices_04[1].face_indices_44;

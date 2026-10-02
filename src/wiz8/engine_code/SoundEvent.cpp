@@ -224,7 +224,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
                 int variant;
                 int attempts = 0;
                 do {
-                    variant = (int)Random(4) + 1;
+                    variant = static_cast<int>(Random(4)) + 1;
                     ++attempts;
                     if (variant != g_previous_footstep_variant) {
                         break;
