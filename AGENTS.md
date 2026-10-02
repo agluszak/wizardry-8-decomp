@@ -23,6 +23,10 @@ does not prove equivalence or original spelling, and a differing decompilation d
   duplicate declarations, wrappers, aliases, invented unions or local byte-offset tricks.
 - Compiler output is not authored source. ICF, storage reuse, widened copies, inlining, template
   emissions, thunks and deleting destructors do not establish source aliases or handwritten helpers.
+  A template emission establishes only what its machine body actually distinguishes: an ABI-equivalent
+  constructor/destructor/helper does not prove the original template arguments or source spelling.
+  Recover template argument types from typed producers/consumers, element lifetimes, sizes, overloads
+  or independent original symbols; never add casts merely to satisfy an emission label.
 - Preserve established retail bugs/UB. Do not add guards, initialization or safer behavior merely
   because the recovered code looks suspicious.
 - Search existing source and accepted oracles before declaring a new abstraction or implementation.
