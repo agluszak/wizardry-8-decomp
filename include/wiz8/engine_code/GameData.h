@@ -341,7 +341,7 @@ void GetLevelSoundEnvironment(char* environment, char* secondary);
 float SettlePositionToGround(const srVector3T<float>* position, bool* hit);
 /* 0x00420C30: same ground-settle query with a fixed 500-unit probe range,
    returning the resulting height. */
-float SettlePositionToGround00420C30(srVector3T<float>* position, bool* hit);
+float SettlePositionToGroundMutable(srVector3T<float>* position, bool* hit);
 
 void ClearLevelDataFlags5To7(void); /* 0x0041F0C0 */
 srCamera* CreateOrSetGameCamera(srNode* parent, srCamera* camera);
