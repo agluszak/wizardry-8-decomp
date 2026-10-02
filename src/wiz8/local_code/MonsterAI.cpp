@@ -264,7 +264,7 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
     unsigned char result;
 
     result = 0;
-    if (g_status.world_suspended_2390 != 0 || GetFlag68F105() != 0) {
+    if (g_status.world_suspended_2390 != 0 || IsMipeActive() != 0) {
         return 0;
     }
     monster_info = MonsterInfoFromID(0xf0, MONSTER_AI_CPP, monster_group->leader_location_id, 1);
