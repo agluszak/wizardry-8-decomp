@@ -105,11 +105,8 @@ bool FindItemOnCharacter(W8Character* character, int item_id, W8ItemInstance** f
    held the match through the second output. */
 bool FindItemOnParty(int item_id, W8ItemInstance** found, W8Character** found_character,
                      int include_backpack, const W8ItemInstance* resume_after); /* 0x00521060 */
-/* 0x00521240: the whole-party item count; the pool joins the scan when the
-   caller asks for it. */
 unsigned int CountItemOnParty(int item_id, W8ItemInstance** found, W8Character** first_holder,
                               int include_backpack);
-/* 0x00521360: whether every occupied party slot carries one item. */
 bool EveryCharacterHasItem(int item_id, int include_backpack);
 unsigned int GetItemUnitWeight(const W8ItemInstance* item);
 unsigned int GetItemStackWeight(const W8ItemInstance* item);
@@ -138,8 +135,6 @@ void MergeItemUses(W8Character* character, W8ItemInstance* into, W8ItemInstance*
 void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item);
 void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_character,
                                     W8Character* character);
-/* How many of one item a character holds, counting a stack as its count and
-   anything else as one, and optionally reporting the first slot it is in. */
 int CountItemOnCharacter(W8Character* character, int item_id, W8ItemInstance** first,
                          int include_backpack);
 /* 0x005223A0: move the departing character's soul-bound equipment to the
@@ -179,8 +174,6 @@ bool ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
 bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item, char party_first,
                                    int arg_4, int arg_5); /* 0x0051C280 */
 bool ItemHasHiddenProperties(int item_id);                /* 0x00520750 */
-/* Find the first equipped, or optionally carried, item with a matching
-   unidentified database name kind. */
 char FindCharacterItemByDatabaseKind(W8Character* character, short item_kind, W8ItemInstance** out,
                                      int include_backpack);
 
@@ -204,8 +197,6 @@ enum W8ItemOrigin {
 };
 
 void BindCharacterItems(int party_slot, int arg_2); /* 0x0051D2C0 */
-/* Whether an item is bound to whoever is wearing it, which is what stops it
-   being taken off or swapped away. */
 bool IsItemBoundToWearer(const W8ItemInstance* item); /* 0x0051D180 */
 W8ItemInstance* FindCharacterItemAt(int party_slot, unsigned char origin,
                                     unsigned short slot); /* 0x00522180 */
@@ -270,7 +261,5 @@ char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
                           W8DialogDestroyCallback callback);
 bool CharacterHasServiceItem(W8Character* character);  /* 0x00522D40 */
 int CountUsableCharacterItems(W8Character* character); /* 0x0051F870 */
-/* 0x0051BF40: take gold from the party, clamping at zero. */
 void SpendPartyGold(unsigned int amount);
-/* Add recharge uses to a stackable item (hourly tick, item 0x266). */
 void AddItemUses(W8ItemInstance* item, char uses);
