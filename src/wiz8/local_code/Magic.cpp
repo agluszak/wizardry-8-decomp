@@ -387,7 +387,7 @@ const float g_ground_settle_fail = -1000000.0f;
 /* Debug switch: when set, every cast except 0x76 fizzles on a forced 100
    percent failure chance. */
 // GLOBAL: WIZ8 0x00689b68
-bool g_flag_00689b68;
+bool g_force_spell_failure;
 /* Whether every queued effect still has time left on it. */
 // FUNCTION: WIZ8 0x00500e50
 bool AllSpellEffectsStillRunning(void)
@@ -1044,13 +1044,13 @@ enum { W8_SKILL_SPELL_LEARNING = 0x14 };
    makes the test below a membership test rather than a comparison. */
 static unsigned char SpellbookMaskForSpell(int spell_id)
 {
-    return static_cast<unsigned char>((g_spell_records[spell_id].wizardry_spell != 0) |
-                           (g_spell_records[spell_id].psionics_spell != 0 ? W8_SPELLBOOK_PSIONICS
-                                                                          : W8_SPELLBOOK_NONE) |
-                           (g_spell_records[spell_id].divinity_spell != 0 ? W8_SPELLBOOK_DIVINITY
-                                                                          : W8_SPELLBOOK_NONE) |
-                           (g_spell_records[spell_id].alchemy_spell != 0 ? W8_SPELLBOOK_ALCHEMY
-                                                                         : W8_SPELLBOOK_NONE));
+    return static_cast<unsigned char>(
+        (g_spell_records[spell_id].wizardry_spell != 0) |
+        (g_spell_records[spell_id].psionics_spell != 0 ? W8_SPELLBOOK_PSIONICS
+                                                       : W8_SPELLBOOK_NONE) |
+        (g_spell_records[spell_id].divinity_spell != 0 ? W8_SPELLBOOK_DIVINITY
+                                                       : W8_SPELLBOOK_NONE) |
+        (g_spell_records[spell_id].alchemy_spell != 0 ? W8_SPELLBOOK_ALCHEMY : W8_SPELLBOOK_NONE));
 }
 
 /* Recount the learned spells into the six per-realm slots (0x1c..0x21 of
@@ -1160,7 +1160,8 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
         1;
     ceiling = skill_ceiling < level_ceiling ? skill_ceiling : level_ceiling;
 
-    return static_cast<char>(1 - (ceiling < static_cast<unsigned int>(g_spell_records[spell_id].spell_level)));
+    return static_cast<char>(
+        1 - (ceiling < static_cast<unsigned int>(g_spell_records[spell_id].spell_level)));
 }
 
 /* 0x0068C09C: the loaded message table, one wide string per entry. Bodies
@@ -1462,7 +1463,8 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8Monster
 
         if (cost > budget) {
             unsigned int shortfall = (cost * 70 - budget * 70) / cost;
-            if (static_cast<int>(shortfall) >= 0 && (static_cast<int>(shortfall) >= 0x65 || shortfall >= 9)) {
+            if (static_cast<int>(shortfall) >= 0 &&
+                (static_cast<int>(shortfall) >= 0x65 || shortfall >= 9)) {
                 break;
             }
         }
@@ -1722,7 +1724,8 @@ unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned i
    high power level on a many-dice spell wraps rather than growing. */
 static inline int AverageEffectAtPower(W8Dice dice, unsigned int power_level)
 {
-    unsigned char count = static_cast<unsigned char>(dice.count * static_cast<unsigned char>(power_level));
+    unsigned char count =
+        static_cast<unsigned char>(dice.count * static_cast<unsigned char>(power_level));
 
     return static_cast<int>(
         ((dice.base + count * dice.sides) + static_cast<float>(dice.base + count)) * 0.5f);
@@ -2964,14 +2967,14 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         caster_slot = -1;
     }
     source->fBackfire = 0;
-    if (g_flag_00689b68 != 0 && spell_id != 0x76) {
+    if (g_force_spell_failure != 0 && spell_id != 0x76) {
         forced = true;
         failure_chance = 100;
     }
     if (g_spell_records[spell_id].realm == 0 && g_camera_sway_active) {
         failure_chance = 100;
     }
-    if (quiet && g_flag_00689b68 == 0) {
+    if (quiet && g_force_spell_failure == 0) {
         failure_chance /= 2;
     }
     CombatLog("Chance of FAILURE: %d", failure_chance);
@@ -3767,8 +3770,9 @@ void CheckSpellBackfire(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             return;
         }
         if (CharacterHasTrait(character, W8_TRAIT_EFFECTIVE_WHILE_BLIND)) {
-            if (Random(100) < static_cast<unsigned int>(static_cast<int>(
-                                  ScaleValueByProfessionLevel(character, W8_TRAIT_EFFECTIVE_WHILE_BLIND, 50.0)))) {
+            if (Random(100) <
+                static_cast<unsigned int>(static_cast<int>(ScaleValueByProfessionLevel(
+                    character, W8_TRAIT_EFFECTIVE_WHILE_BLIND, 50.0)))) {
                 return;
             }
         }

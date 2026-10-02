@@ -55,11 +55,11 @@
    FindPropByName independently proves that +0x20 is the owned prop name.
    Unresolved members and the gaps between them remain positional. */
 
-/* This byte is reset before the world Prop update and set when a collidable
-   Prop rebuilds its pathing geometry.  Its three retail references establish
-   the process-wide storage; no broader state model is yet proved. */
+/* Reset before the world Prop update; set when a Prop whose animation
+   behaviour is 1 rebuilds its pathing geometry.  GameData keeps the world
+   updating while it is set. */
 // GLOBAL: WIZ8 0x00659A64
-unsigned char g_byte_00659a64;
+bool g_animated_prop_present;
 
 #define PROP_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp"
 
@@ -975,8 +975,9 @@ void W8Prop::ApplyAnimationFrame()
 
     count = AnimObjListCount(static_cast<W8PropRepresentation*>(m_pRep)->animation, 2);
     for (index = 0; index < static_cast<int>(count); ++index) {
-        srModelInstance* mesh = AnimObjDispatchList(
-            static_cast<W8PropRepresentation*>(m_pRep)->animation, 2, static_cast<signed char>(index));
+        srModelInstance* mesh =
+            AnimObjDispatchList(static_cast<W8PropRepresentation*>(m_pRep)->animation, 2,
+                                static_cast<signed char>(index));
         W8PathAI* path;
 
         if (mesh == 0) {
@@ -1318,7 +1319,7 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
                                   Rep()->footstep_material_0c1);
         }
         if (Rep()->animation_behaviour_070 == 1) {
-            g_byte_00659a64 = 1;
+            g_animated_prop_present = true;
         }
     }
     return m_gd_prop->m_surface_count_14;

@@ -522,7 +522,7 @@ static unsigned char ReadWorldClipPlanes(W8ReadLevelInfo* pInfo, W8World* pWorld
 
 // FUNCTION: WIZ8 0x004BC5E0
 static unsigned char ReadWorldProps(W8ReadLevelInfo* pInfo, W8World* pWorld,
-                             unsigned char mark_model_instances)
+                                    unsigned char mark_model_instances)
 {
     /* CollectModelInstances appends. The canonical body deliberately keeps
        this one vector across the complete prop loop. */
@@ -826,7 +826,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
 
         FileRead(pInfo->hFile, &version, sizeof(version), 0);
         if (version == 4) {
-            FileRead(pInfo->hFile, &record, 0x225, 0);
+            FileRead(pInfo->hFile, &record, sizeof(record), 0);
         } else if (version == 3) {
             FileRead(pInfo->hFile, &record, 0x21d, 0);
             record.start_frame_21d = -1;
@@ -988,7 +988,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
 
 // FUNCTION: WIZ8 0x004BDC90
 static unsigned char ReadNamedPositions(W8ReadLevelInfo* pInfo,
-                                 W8GrowableVector<W8NamedPosition*>* named_positions)
+                                        W8GrowableVector<W8NamedPosition*>* named_positions)
 {
     int hFile;
     int count;
@@ -1203,7 +1203,8 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
                         SetModelInstanceChainExclusionMask(instance, 4);
                     }
 
-                    srMaterialIFace* material_iface = mesh->getMaterial(0, static_cast<srMeshModel::e_side>(0));
+                    srMaterialIFace* material_iface =
+                        mesh->getMaterial(0, static_cast<srMeshModel::e_side>(0));
                     if (material_iface != 0) {
                         srMaterial* material = static_cast<srMaterial*>(material_iface);
                         srMaterial* copy = static_cast<srMaterial*>(material->clone());

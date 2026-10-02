@@ -294,11 +294,18 @@ def _enum_literal_arguments(index: dict[str, Any], sources: dict[str, str]) -> l
     """Integer literals passed where the callee's declared parameter is an enum."""
 
     enum_positions: dict[str, set[int]] = {}
+    plain_positions: dict[str, set[int]] = {}
     for item in index.get("declarations", []):
         name = str(item.get("qualified_name") or "").rpartition("::")[2]
         for position, parameter in enumerate(item.get("parameter_types") or []):
-            if _ENUM_PARAMETER.match(str(parameter)):
-                enum_positions.setdefault(name, set()).add(position)
+            positions = enum_positions if _ENUM_PARAMETER.match(str(parameter)) else plain_positions
+            positions.setdefault(name, set()).add(position)
+    # Calls are matched by unqualified name, so a position that is an enum in
+    # one same-named declaration and plain in another is ambiguous.
+    for name in list(enum_positions):
+        enum_positions[name] -= plain_positions.get(name, set())
+        if not enum_positions[name]:
+            del enum_positions[name]
     if not enum_positions:
         return []
     call = re.compile(r"\b(" + "|".join(map(re.escape, sorted(enum_positions))) + r")\s*\(")
@@ -422,10 +429,9 @@ _SIZE_ASSERTION = re.compile(
     r"static_assert\(\s*sizeof\(\s*([A-Za-z_][\w:]*)\s*\)\s*==\s*(0[xX][0-9A-Fa-f]+|\d+)"
 )
 _BYTE_STRIDE = re.compile(
-    r"\bmalloc\(\s*(0[xX][0-9A-Fa-f]+)\s*\)"
-    r"|\*\s*(0[xX][0-9A-Fa-f]+)\b(?!\s*\.)"
-    r"|\bmem(?:set|cpy|move)\([^;]*,\s*(0[xX][0-9A-Fa-f]+)\s*\)"
-    r"|\b(?:FileRead|FileWrite|fread|fwrite)\([^;,]*,[^;,]*,\s*(0[xX][0-9A-Fa-f]+)\s*,"
+    r"\bmalloc\((?:[^;()]*\*)?\s*(0[xX][0-9A-Fa-f]+)\s*\)"
+    r"|\bmem(?:set|cpy|move)\([^;]*,(?:[^;,()]*\*)?\s*(0[xX][0-9A-Fa-f]+)\s*\)"
+    r"|\b(?:FileRead|FileWrite|fread|fwrite)\([^;,]*,[^;,]*,(?:[^;,()]*\*)?\s*(0[xX][0-9A-Fa-f]+)\s*,"
 )
 _MIN_STRIDE_RECORD_SIZE = 0x10
 _MAX_STRIDE_CANDIDATES = 2

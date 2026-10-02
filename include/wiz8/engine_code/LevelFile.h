@@ -44,7 +44,7 @@ struct W8LevelFileFramePosition {
     unsigned short tag;
 };
 
-/* Same serialized layout as W8CompressedReadMeshFace (ReadMesh.h). */
+/* Compressed mesh face; ReadMesh expands these into W8ReadMeshFace. */
 struct W8LevelFileCompressedFace { /* 0x21 */
     unsigned short vertex_indices_00[3];
     srVector2T<float> texture_coordinates_06[3];
@@ -608,7 +608,7 @@ struct W8LevelFile {
     int num_automap_nodes_6b1;
     unsigned long* automap_nodes_6b5; /* num_automap_nodes_6b1 * 4 */
     unsigned char unknown_6b9[4];
-    int field_6bd; /* FileGetPos result on read */
+    int read_end_position_6bd; /* FileGetPos result on read */
     int num_switch_triggers_6c1;
     W8LevelFileSwitch* switch_triggers_6c5[1000];
     int num_invisible_planes_1665;

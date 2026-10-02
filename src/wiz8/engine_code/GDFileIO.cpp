@@ -959,7 +959,8 @@ void W8GameData::ReadProcessedGameData(int handle)
         srAssertFail("m_pVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x483,
                      "ReadProcessedGameData: Couldn't allocate vertices.");
     }
-    if (FileRead(handle, m_pVertices, m_iNumVertices * 0xc, &bytes_read) == 0) {
+    if (FileRead(handle, m_pVertices, m_iNumVertices * sizeof(srVector3T<float>), &bytes_read) ==
+        0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x487,
                      "ReadProcessedGameData: Couldn't read vertices.\n");
     }
@@ -970,7 +971,7 @@ void W8GameData::ReadProcessedGameData(int handle)
         srAssertFail("m_pSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x48c,
                      "ReadProcessedGameData: Couldn't allocate pSurfaces.");
     }
-    if (FileRead(handle, m_pSurfaces, m_iNumSurfaces * 0x4c, &bytes_read) == 0) {
+    if (FileRead(handle, m_pSurfaces, m_iNumSurfaces * sizeof(W8GDSurface), &bytes_read) == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x490,
                      "ReadProcessedGameData: Couldn't read Surface info.");
     }
@@ -982,7 +983,8 @@ void W8GameData::ReadProcessedGameData(int handle)
             srAssertFail("m_pInterfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x497, "ReadProcessedGameData: Couldn't allocate switch interface info.");
         }
-        if (FileRead(handle, m_pInterfaces, m_iNumInterfaces * 0xc, &bytes_read) == 0) {
+        if (FileRead(handle, m_pInterfaces, m_iNumInterfaces * sizeof(W8GDInterface),
+                     &bytes_read) == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x49a,
                          "ReadProcessedGameData: Couldn't read switch interface info.");
         }
@@ -995,7 +997,8 @@ void W8GameData::ReadProcessedGameData(int handle)
             srAssertFail("m_pStates", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4a2,
                          "ReadProcessedGameData: Couldn't allocate switch state info.");
         }
-        if (FileRead(handle, m_pStates, m_iNumStates * 0xc, &bytes_read) == 0) {
+        if (FileRead(handle, m_pStates, m_iNumStates * sizeof(W8GDInterfaceState), &bytes_read) ==
+            0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4a5,
                          "ReadProcessedGameData: Couldn't read switch state info.");
         }
@@ -1044,7 +1047,7 @@ void W8GameData::ReadProcessedGameData(int handle)
             environ_record->momentum_scale_3c = g_default_motion_limit;
             environ_record->value_40 = 1.0f;
             m_ppEnvirons[index] = environ_record;
-            if (FileRead(handle, environ_record, 0x44, &bytes_read) == 0) {
+            if (FileRead(handle, environ_record, sizeof(*environ_record), &bytes_read) == 0) {
                 srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                              0x4c2, "ReadProcessedGameData: Couldn't read GD_Environ.");
             }
@@ -1698,23 +1701,25 @@ unsigned char W8GameData::WriteGameData(int handle)
         ReportBuildStatus(7, "WriteGameData: File not open.\n");
         return 0;
     }
-    if (FileWrite(handle, &header, 0x68, 0) == 0) {
+    if (FileWrite(handle, &header, sizeof(header), 0) == 0) {
         ReportBuildStatus(7, "WriteGameData: Couldn't write GameData info.\n");
         return 0;
     }
-    if (FileWrite(handle, m_pVertices, m_iNumVertices * 0xc, 0) == 0) {
+    if (FileWrite(handle, m_pVertices, m_iNumVertices * sizeof(srVector3T<float>), 0) == 0) {
         ReportBuildStatus(7, "WriteGameData: Couldn't write vertex info.\n");
         return 0;
     }
-    if (FileWrite(handle, m_pSurfaces, m_iNumSurfaces * 0x4c, 0) == 0) {
+    if (FileWrite(handle, m_pSurfaces, m_iNumSurfaces * sizeof(W8GDSurface), 0) == 0) {
         ReportBuildStatus(7, "WriteGameData: Couldn't write Surface info.\n");
         return 0;
     }
-    if (m_iNumInterfaces != 0 && FileWrite(handle, m_pInterfaces, m_iNumInterfaces * 0xc, 0) == 0) {
+    if (m_iNumInterfaces != 0 &&
+        FileWrite(handle, m_pInterfaces, m_iNumInterfaces * sizeof(W8GDInterface), 0) == 0) {
         ReportBuildStatus(7, "WriteGameData: Couldn't write switch interface info.\n");
         return 0;
     }
-    if (m_iNumStates != 0 && FileWrite(handle, m_pStates, m_iNumStates * 0xc, 0) == 0) {
+    if (m_iNumStates != 0 &&
+        FileWrite(handle, m_pStates, m_iNumStates * sizeof(W8GDInterfaceState), 0) == 0) {
         ReportBuildStatus(7, "WriteGameData: Couldn't write switch state info.\n");
         return 0;
     }
@@ -1724,7 +1729,7 @@ unsigned char W8GameData::WriteGameData(int handle)
     }
     if (m_iNumEnvirons != 0) {
         for (index = 0; index < m_iNumEnvirons; ++index) {
-            if (FileWrite(handle, m_ppEnvirons[index], 0x44, 0) == 0) {
+            if (FileWrite(handle, m_ppEnvirons[index], sizeof(W8EnvironRecord), 0) == 0) {
                 ReportBuildStatus(7, "WriteGameData: Couldn't write GD_Environ.\n");
                 return 0;
             }

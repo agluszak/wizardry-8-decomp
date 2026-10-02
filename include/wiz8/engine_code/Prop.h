@@ -17,7 +17,7 @@ class Trigger;
 class W8Prop;
 struct W8AIMissile;
 
-extern unsigned char g_byte_00659a64;
+extern bool g_animated_prop_present;
 
 /* One two-byte animation-slot record: the frame the segment selects and the
    tag that names it.  LoadProp reads each as a serialized short and
@@ -116,7 +116,7 @@ public:
     /* Mirror of GetPosition: stores `position` in position_02c while the
        animation runs, else moves the rep node through SetLocation. */
     void SetPosition(srVector3T<float>* position); /* 0x0044E310 */
-    bool TriggerHasActionMessage(); /* 0x0044E360 */
+    bool TriggerHasActionMessage();                /* 0x0044E360 */
     /* Whether trigger_18 exists and takes an item (required_item_id >= 0 or a
        type-10 action payload naming item_00a). */
     bool TriggerRequiresItem(); /* 0x0044E380 */

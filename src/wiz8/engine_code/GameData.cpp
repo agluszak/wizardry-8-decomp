@@ -376,7 +376,7 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
     level = g_level_data;
     level_flags = level->flags;
     if ((((level_flags & W8_LEVEL_FLAG_6) != 0 && (level_flags & W8_LEVEL_FLAG_4) != 0) &&
-         ((level_flags & W8_LEVEL_FLAG_0) == 0 && g_byte_00659a64 == 0)) ||
+         ((level_flags & W8_LEVEL_FLAG_0) == 0 && !g_animated_prop_present)) ||
         (g_game_time_accumulator->m_flags & 0x10) != 0) {
         return 0;
     }
