@@ -69,10 +69,10 @@ W8GrowableVector<W8SoundEvent*> g_sound_event_candidates(5);
 // W8GrowableVector<W8SoundEvent*>::W8GrowableVector
 
 // GLOBAL: WIZ8 0x00683418
-int g_selected_sound_event;
+static int g_selected_sound_event;
 
 // GLOBAL: WIZ8 0x0061095c
-int g_last_sound_event = 0x1869f;
+static int g_last_sound_event = 0x1869f;
 
 // GLOBAL: WIZ8 0x00683420
 static int g_previous_footstep_variant;

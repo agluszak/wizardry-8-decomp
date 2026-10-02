@@ -48,31 +48,31 @@
    PerfumeBox, StoneIdol, BlueFlowers, SquisherControls, DoorControls). */
 
 // GLOBAL: WIZ8 0x00613828
-bool g_idol_gas_armed = true;
+static bool g_idol_gas_armed = true;
 // GLOBAL: WIZ8 0x0068352D
-bool g_crusher_excluded_flag;
+static bool g_crusher_excluded_flag;
 // GLOBAL: WIZ8 0x0068352E
-bool g_crusher_active;
+static bool g_crusher_active;
 // GLOBAL: WIZ8 0x00683530
-W8IntervalGate* g_spikeball_gate;
+static W8IntervalGate* g_spikeball_gate;
 // GLOBAL: WIZ8 0x00683534
-int g_spikeball_count;
+static int g_spikeball_count;
 // GLOBAL: WIZ8 0x00683538
-W8Monster* g_crusher_excluded;
+static W8Monster* g_crusher_excluded;
 // GLOBAL: WIZ8 0x0068353C
-W8Prop* g_squisher3_prop;
+static W8Prop* g_squisher3_prop;
 // GLOBAL: WIZ8 0x00683540
-W8Prop* g_squisher4_prop;
+static W8Prop* g_squisher4_prop;
 // GLOBAL: WIZ8 0x00683544
-W8Prop* g_dummy_prop;
+static W8Prop* g_dummy_prop;
 // GLOBAL: WIZ8 0x00683548
-W8Prop* g_dummy_rope_prop;
+static W8Prop* g_dummy_rope_prop;
 // GLOBAL: WIZ8 0x0068354C
-stSound3D* g_crusher_sound;
+static stSound3D* g_crusher_sound;
 // GLOBAL: WIZ8 0x00683550
-int g_crusher_state;
+static int g_crusher_state;
 // GLOBAL: WIZ8 0x00683554
-W8IntervalGate* g_idol_gas_gate;
+static W8IntervalGate* g_idol_gas_gate;
 
 /* Level init: creates the RavenQuest location variable, fires the Dummy
    trigger when the quest has not started, re-arms the perfume box and dummy

@@ -135,7 +135,7 @@
 #include "wiz8/local_screens/OptionsScreen.h"
 
 // GLOBAL: WIZ8 0x0068ee90
-W8NpcInteractionState g_npc_interaction_storage;
+static W8NpcInteractionState g_npc_interaction_storage;
 /* The global object's implicit constructor and destructor; 0x0056B930 is the
    retail static initializer that runs the former and registers the latter. */
 // SYNTHETIC: WIZ8 0x0056b960
@@ -167,17 +167,17 @@ wchar_t g_wchar_0068ee58[4];
 W8PendingNotice g_pending_notice;
 /* 0x0068EE78: GetTickCount sample for the trade-item highlight timeout. */
 // GLOBAL: WIZ8 0x0068EE78
-unsigned int g_trade_highlight_tick;
+static unsigned int g_trade_highlight_tick;
 
 // GLOBAL: WIZ8 0x00649f20
-int g_dialogue_place_keyword_count = 15;
+static int g_dialogue_place_keyword_count = 15;
 // GLOBAL: WIZ8 0x00649f24
-int g_dialogue_place_keyword_ids[15] = {0x751, 0x752, 0x753, 0x754, 0x755, 0x756, 0x757, 0x758,
+static int g_dialogue_place_keyword_ids[15] = {0x751, 0x752, 0x753, 0x754, 0x755, 0x756, 0x757, 0x758,
                                         0x759, 0x75a, 0x75b, 0x75c, 0x75d, 0x75e, 0x75f};
 // GLOBAL: WIZ8 0x00649F64
-int g_dialogue_fallback_ids_00649f64[5] = {0x760, 0x761, 0x762, 0x763, 0x764};
+static int g_dialogue_fallback_ids_00649f64[5] = {0x760, 0x761, 0x762, 0x763, 0x764};
 // GLOBAL: WIZ8 0x00649F78
-int g_dialogue_fallback_ids_00649f78[5] = {0x765, 0x766, 0x767, 0x768, 0x769};
+static int g_dialogue_fallback_ids_00649f78[5] = {0x765, 0x766, 0x767, 0x768, 0x769};
 // GLOBAL: WIZ8 0x00649f8c
 const wchar_t* g_dialogue_person_keywords[] = {L"BALBRAK", L"BILDUBLU", L"EWAXX",  L"KUNAR",
                                                L"PANRACK", L"RODAN",    L"RUBBLE", L"SAXX",

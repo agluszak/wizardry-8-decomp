@@ -39,7 +39,7 @@
 #include "vobject.h"
 #include "vsurface.h"
 
-void DrawDamageSplatOverlay(unsigned int party_slot); /* 0x0059ADD0 */
+static void DrawDamageSplatOverlay(unsigned int party_slot); /* 0x0059ADD0 */
 void DrawPortraitEffectIcon(unsigned int party_slot); /* 0x0059B0F0 */
 
 /* 0x006488D0: dead-character portrait catalog ids, two per race - the small
@@ -60,24 +60,24 @@ int g_empty_hand_catalog_ids[32] = {
 };
 
 // GLOBAL: WIZ8 0x0069B940
-Controls* g_panel_69b940; /* gpLevelButtonsPanel */
+static Controls* g_panel_69b940; /* gpLevelButtonsPanel */
 // GLOBAL: WIZ8 0x0061AA9C
 char s_spell_sound_format_0061aa9c[] = "Data\\Spells\\Sounds\\%s.wav";
 // GLOBAL: WIZ8 0x0064C664
 char s_general_magic_sound_0064c664[] = "Data\\Spells\\Sounds\\GeneralMagic.wav";
 
 // GLOBAL: WIZ8 0x0069B920
-W8TextControl* g_portrait_controls[8]; /* gpLevelButtons[uiSlot] */
+static W8TextControl* g_portrait_controls[8]; /* gpLevelButtons[uiSlot] */
 
 // GLOBAL: WIZ8 0x0069B900
-W8ConditionButton* g_condition_buttons[8];
+static W8ConditionButton* g_condition_buttons[8];
 // GLOBAL: WIZ8 0x0069B944
-Controls* g_condition_buttons_panel;
+static Controls* g_condition_buttons_panel;
 /* Party slot the level-up portrait button opens; -1 while idle. */
 // GLOBAL: WIZ8 0x0069B948
-int giLevelUpChar;
+static int giLevelUpChar;
 
-void OnLevelButtonActivate(void);
+static void OnLevelButtonActivate(void);
 
 /* The combat-strip portrait catalog index for one slot's chosen action and
    status. Most actions map to a fixed base; attacks pick per weapon skill and
@@ -330,7 +330,7 @@ void RecordCharacterDamage(int party_slot, unsigned int amount)
    splat is deferred behind a portrait refresh or a still-playing effect
    icon. */
 // FUNCTION: WIZ8 0x0059ADD0
-void DrawDamageSplatOverlay(unsigned int party_slot)
+static void DrawDamageSplatOverlay(unsigned int party_slot)
 {
     W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
     int frame = entry->damage_splat_frame;
@@ -1366,7 +1366,7 @@ void UpdatePortraitAdvanceButtons(void)
 }
 
 // FUNCTION: WIZ8 0x0059BCA0
-void OnLevelButtonActivate(void)
+static void OnLevelButtonActivate(void)
 {
     int slot = giLevelUpChar;
 

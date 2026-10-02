@@ -32,7 +32,7 @@ enum { ATTR_COUNT = 7 };
 enum { SKILL_COUNT = 0x29 };
 
 // GLOBAL: WIZ8 0x0061e4fc
-unsigned short g_attr_table_61E4FC[8] = {
+static unsigned short g_attr_table_61E4FC[8] = {
     0x6a0, 0x6a1, 0x6a2, 0x6a3, 0x6a4, 0x6a5, 0x6a6, 0,
 };
 // GLOBAL: WIZ8 0x0061e50c

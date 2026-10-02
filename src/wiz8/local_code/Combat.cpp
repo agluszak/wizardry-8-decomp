@@ -108,15 +108,15 @@ W8CombatState* g_combat_state;
 /* The per-character combat rows live at +0x18 of the combat state and run
    0xd4 bytes apart; the state's leading 0x18 bytes are its own header. */
 // GLOBAL: WIZ8 0x0068d810
-bool g_combat_log_enabled;
+static bool g_combat_log_enabled;
 // GLOBAL: WIZ8 0x00617664
 wchar_t g_combat_log_format[] = L"%hs";
 // GLOBAL: WIZ8 0x006175B0
-wchar_t g_format_s_dash_dash[] = L"%s -- ";
+static wchar_t g_format_s_dash_dash[] = L"%s -- ";
 // GLOBAL: WIZ8 0x006175C0
 wchar_t g_format_s_bang[] = L"%s!";
 // GLOBAL: WIZ8 0x0061EC8C
-int g_breath_notice_id = 0x65b;
+static int g_breath_notice_id = 0x65b;
 /* 0x0053AC30 */
 
 /* 0x004E7590 */

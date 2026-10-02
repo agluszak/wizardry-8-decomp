@@ -364,7 +364,7 @@ bool CombatAllowsLiveGroups(void)
 }
 
 // GLOBAL: WIZ8 0x0061ec0c
-unsigned short g_group_hostility_notice_ids[3] = {511, 512, 513};
+static unsigned short g_group_hostility_notice_ids[3] = {511, 512, 513};
 
 // GLOBAL: WIZ8 0x0061ec14
 int g_monster_special_attack_name_ids[12] = {0,    1598, 1599, 1600, 1601, 1602,
@@ -559,16 +559,16 @@ unsigned char CanPartySlotPray(int party_slot)
 }
 
 // GLOBAL: WIZ8 0x0061DD38
-int g_pray_roll_weights[14] = {5, 5, 10, 10, 10, 20, 10, 10, 10, 5, 5, 5, 5, 5};
+static int g_pray_roll_weights[14] = {5, 5, 10, 10, 10, 20, 10, 10, 10, 5, 5, 5, 5, 5};
 
 // GLOBAL: WIZ8 0x0068D814
-int g_pray_roll_sums[14];
+static int g_pray_roll_sums[14];
 
 // GLOBAL: WIZ8 0x0068D84C
-int g_pray_roll_total;
+static int g_pray_roll_total;
 
 // GLOBAL: WIZ8 0x00619788
-wchar_t g_pray_dash[] = L" -- ";
+static wchar_t g_pray_dash[] = L" -- ";
 
 /* Pray: the trait-eleven once-per-combat divine intervention. The flat
    weight table is folded into cumulative sums on first use - the slot one

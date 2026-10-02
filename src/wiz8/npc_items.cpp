@@ -628,7 +628,7 @@ unsigned int GetNpcItemCount(W8NpcState* npc)
 }
 
 // GLOBAL: WIZ8 0x0062A80C
-char g_sound_cash_transaction[] = "Data\\Sound\\misc\\Cash Transaction.wav";
+static char g_sound_cash_transaction[] = "Data\\Sound\\misc\\Cash Transaction.wav";
 
 // FUNCTION: WIZ8 0x0055B730
 unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,

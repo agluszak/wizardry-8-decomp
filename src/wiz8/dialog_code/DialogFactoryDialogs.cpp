@@ -612,22 +612,22 @@ struct W8SplitAmountButtonOffset {
 };
 
 // GLOBAL: WIZ8 0x0064fc08
-W8SplitAmountButtonOffset g_split_amount_button_offsets[6] = {
+static W8SplitAmountButtonOffset g_split_amount_button_offsets[6] = {
     {0xdb, 0x20}, {0xc0, 0x20}, {0xbe, 0xf}, {0xbe, 0x35}, {0xed, 0x47}, {0x111, 0x47},
 };
 
 // GLOBAL: WIZ8 0x0064fc38
-W8ControlsRect g_split_amount_text_bounds[3] = {
+static W8ControlsRect g_split_amount_text_bounds[3] = {
     {0x4a, 0xf, 0xb8, 0x1b},
     {0x4a, 0x35, 0xb8, 0x41},
     {0xbe, 0xf, 0xf4, 0x1b},
 };
 
 // GLOBAL: WIZ8 0x0064fc68
-W8ScreenRect g_split_amount_field_bounds = {0xbe, 0x35, 0xf4, 0x41};
+static W8ScreenRect g_split_amount_field_bounds = {0xbe, 0x35, 0xf4, 0x41};
 
 // GLOBAL: WIZ8 0x0064fc78
-int g_split_amount_string_ids[3] = {265, 266, 267};
+static int g_split_amount_string_ids[3] = {265, 266, 267};
 
 // FUNCTION: WIZ8 0x005d97d0
 W8SplitAmountDialog::W8SplitAmountDialog()

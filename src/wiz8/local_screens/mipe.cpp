@@ -57,7 +57,7 @@
    selection panel used while the debug flag is active. */
 
 // GLOBAL: WIZ8 0x0068f0fe
-bool g_mipe_mongen_visible;
+static bool g_mipe_mongen_visible;
 
 // GLOBAL: WIZ8 0x0068f108
 int g_mipe_mode;
@@ -67,7 +67,7 @@ int g_mipe_mode;
 int g_mipe_count;
 
 // GLOBAL: WIZ8 0x0068f110
-short g_mipe_item_index;
+static short g_mipe_item_index;
 
 // GLOBAL: WIZ8 0x0068f0fc
 unsigned char g_debug_monster_cycle;
@@ -76,22 +76,22 @@ unsigned char g_debug_monster_cycle;
 W8MipeState* g_mipe_state;
 
 // GLOBAL: WIZ8 0x0068f112
-short g_mipe_monster_index;
+static short g_mipe_monster_index;
 
 // GLOBAL: WIZ8 0x0068f114
-unsigned char g_mipe_category;
+static unsigned char g_mipe_category;
 
 // GLOBAL: WIZ8 0x0068f118
-int g_mipe_table_row;
+static int g_mipe_table_row;
 
 // GLOBAL: WIZ8 0x0068f120
 int g_mipe_table_base;
 
 // GLOBAL: WIZ8 0x0068f124
-W8PList* g_mipe_monster_entries;
+static W8PList* g_mipe_monster_entries;
 
 // GLOBAL: WIZ8 0x0068f12c
-W8WorldCursorNode* g_mipe_cube;
+static W8WorldCursorNode* g_mipe_cube;
 
 /* 0x0064A1CC: 'C' toggles between single-monster ("Choosing: One") and
    whole-group ("Choosing: Group") selection in UpdateMipeSelection. */
@@ -123,7 +123,7 @@ void ToggleMipePanel(void)
         for (unsigned int monster_list_index = 0;
              monster_list_index < PLLength(gXStatus.plsMonsterList); ++monster_list_index) {
             W8MonsterInfo* monster =
-                static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, monster_list_index));
+                GetMonsterListEntry(monster_list_index);
             if (monster != 0 && monster->fInCombat != 0) {
                 SetMonsterHighlight(0, monster->location_id, 0);
             }
@@ -249,17 +249,17 @@ void ToggleMipePanel(void)
 }
 
 // GLOBAL: WIZ8 0x0068f11c
-W8PList* g_mipe_category_list;
+static W8PList* g_mipe_category_list;
 
 /* 'H' in the item-create mode: spawned items get the hidden flag. */
 // GLOBAL: WIZ8 0x0068f128
-bool g_mipe_item_hidden;
+static bool g_mipe_item_hidden;
 
 // GLOBAL: WIZ8 0x0068f130
-int g_mipe_cube_param;
+static int g_mipe_cube_param;
 
 // GLOBAL: WIZ8 0x0068f134
-int g_mipe_scale_plane;
+static int g_mipe_scale_plane;
 
 /* Lock/trap kind names for the selected trigger's lock_type, printed by the
    prop-edit menu and the locks & traps editor. */
@@ -1749,7 +1749,7 @@ int HandleCubeScaleKey(unsigned short key)
 
 /* The monster generator top-menu keys. */
 // FUNCTION: WIZ8 0x0057aa00
-int HandleMonsterGeneratorKey(unsigned short key)
+static int HandleMonsterGeneratorKey(unsigned short key)
 {
     MonGen* generator;
     MonGen* other;
@@ -3342,7 +3342,7 @@ void UpdateMipeSelection(void)
         }
         IListClear(&g_mipe_state->monster_ids);
         for (index = 0; index < static_cast<int>(PLLength(gXStatus.plsMonsterList)); ++index) {
-            info = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
+            info = GetMonsterListEntry(index);
             if (info->fActive != 0 && info->monster_group_id == group_id) {
                 SetMonsterHighlight(0, info->location_id, 1);
                 IListAdd(&g_mipe_state->monster_ids, info->location_id);

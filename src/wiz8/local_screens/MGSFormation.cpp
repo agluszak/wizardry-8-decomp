@@ -42,7 +42,7 @@
 /* 0x0064DAF4: on-board (left, top) of each of the fifteen cell markers,
    relative to the board anchor. */
 // GLOBAL: WIZ8 0x0064daf4
-int g_formation_marker_offsets[15][2] = {
+static int g_formation_marker_offsets[15][2] = {
     {0x26, 0x9},  {0x19, 0xd},  {0x33, 0xd},  {0x43, 0x26}, {0x3f, 0x19},
     {0x3f, 0x33}, {0x26, 0x43}, {0x33, 0x3f}, {0x19, 0x3f}, {0x9, 0x26},
     {0xd, 0x33},  {0xd, 0x19},  {0x26, 0x1e}, {0x1e, 0x2a}, {0x2e, 0x2a},
@@ -50,23 +50,23 @@ int g_formation_marker_offsets[15][2] = {
 
 /* 0x0064DB6C: screen (left, top) of the fifteen cell controls. */
 // GLOBAL: WIZ8 0x0064db6c
-int g_formation_cell_positions[15][2] = {
+static int g_formation_cell_positions[15][2] = {
     {0x5a, 0x1c}, {0x3d, 0x25}, {0x77, 0x25}, {0x98, 0x5a}, {0x8f, 0x3d},
     {0x8f, 0x77}, {0x5a, 0x98}, {0x77, 0x8f}, {0x3d, 0x8f}, {0x1c, 0x5a},
     {0x25, 0x77}, {0x25, 0x3d}, {0x5a, 0x48}, {0x48, 0x61}, {0x6c, 0x61},
 };
 
 // GLOBAL: WIZ8 0x0069c2f0
-int g_formation_active_cell;
+static int g_formation_active_cell;
 // GLOBAL: WIZ8 0x0069c2f4
-int g_formation_drag_slot;
+static int g_formation_drag_slot;
 /* 0x0069C304: the party slot occupying each cell control, or -1. */
 // GLOBAL: WIZ8 0x0069c304
-int g_formation_cell_slots[15];
+static int g_formation_cell_slots[15];
 // GLOBAL: WIZ8 0x0069c340
-unsigned int g_formation_drag_clock;
+static unsigned int g_formation_drag_clock;
 // GLOBAL: WIZ8 0x0069c380
-int g_formation_drag_cell;
+static int g_formation_drag_cell;
 
 static void UpdateFormationCells(void);
 void ResetFormationCellControls(int cell);

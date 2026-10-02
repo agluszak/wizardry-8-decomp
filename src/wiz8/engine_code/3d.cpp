@@ -728,7 +728,7 @@ void WorldUpdateProps(W8World* world)
     }
     count = static_cast<int>(PLLength(world->plsProps));
     for (index = 0; index < count; index++) {
-        prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
+        prop = GetWorldProp(world, index);
         if (prop) {
             prop->DetachAnimationInstances(world);
             prop->UpdatePropAnimation();
@@ -782,7 +782,7 @@ int WorldGetPropCount(W8World* unused)
 // FUNCTION: WIZ8 0x0046e620
 W8Prop* WorldGetPropAt(W8World* unused, int index)
 {
-    return (W8Prop*)PLGet(g_world->plsProps, index); // c-style-cast-ok: PList stores void* rows
+    return GetWorldProp(g_world, index);
 }
 
 // FUNCTION: WIZ8 0x0046e860

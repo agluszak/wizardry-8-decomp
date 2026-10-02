@@ -198,7 +198,7 @@ bool MonsterGroupAllMembersDying(W8MonsterGroup* monster_group)
    Each of the three multi-way tests is a switch rather than a comparison chain:
    the original emits the dec/je ladder VC6 produces for small dense cases. */
 // FUNCTION: WIZ8 0x00511250
-unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_group)
+static unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_group)
 {
     W8MonsterRecord* record;
     W8NpcState* npc_record;
@@ -353,8 +353,7 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index)
             PLLength(gXStatus.plsMonsterGroupEncounterList)) {
             return 0;
         }
-        result = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupEncounterList,
-                                        group_list_index - W8_ENCOUNTER_GROUP_INDEX_BIAS));
+        result = GetMonsterGroupEncounter(group_list_index - W8_ENCOUNTER_GROUP_INDEX_BIAS);
         if (result != 0) {
             return result;
         }
@@ -385,7 +384,7 @@ unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, 
     }
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterGroupEncounterList); ++index) {
-        group = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupEncounterList, index));
+        group = GetMonsterGroupEncounter(index);
         if (group->group_id == group_id) {
             return index + W8_ENCOUNTER_GROUP_INDEX_BIAS;
         }
@@ -1198,7 +1197,7 @@ W8MonsterGroup* FindFirstMonsterByID(int monster_id)
         }
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterGroupEncounterList); ++index) {
-        group = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupEncounterList, index));
+        group = GetMonsterGroupEncounter(index);
         if (group->monster_id == monster_id) {
             return group;
         }
@@ -1244,7 +1243,7 @@ search_encounters:
 resume_encounters:
     for (; static_cast<unsigned int>(index) < PLLength(gXStatus.plsMonsterGroupEncounterList);
          ++index) {
-        group = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupEncounterList, index));
+        group = GetMonsterGroupEncounter(index);
         if (group->monster_id == monster_id) {
             return group;
         }

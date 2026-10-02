@@ -36,7 +36,7 @@
 #define ASCENSION_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\Ascension.cpp"
 
 // GLOBAL: WIZ8 0x0068356C
-W8IntervalGate* g_avalanche_gate;
+static W8IntervalGate* g_avalanche_gate;
 
 /* Count how many of the three Ascension Peak relic items (0x242, 0x243,
    0x244) are on the party; the world-cursor "seen bodies" handler requires

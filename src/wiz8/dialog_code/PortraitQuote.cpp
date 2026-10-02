@@ -62,7 +62,7 @@ static const char* g_quote_bubble_backgrounds[] = {
 // GLOBAL: WIZ8 0x0069c5c8
 static unsigned int g_quote_bubble_flags;
 
-int MeasureWrappedText(int arg_1, int arg_2, unsigned int wrap_width, int arg_4, int font,
+static int MeasureWrappedText(int arg_1, int arg_2, unsigned int wrap_width, int arg_4, int font,
                        int colour, const wchar_t* text, int arg_8, int arg_9, int arg_10,
                        unsigned int* out_edge);
 int DrawWrappedText(int x, int y, unsigned int wrap_width, int arg_4, int font,
@@ -288,7 +288,7 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
 }
 
 // FUNCTION: WIZ8 0x005d0050
-int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int font,
+static int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int font,
                        int alternate_font, const wchar_t* text, int arg_8, int arg_9, int arg_10,
                        unsigned int* out_edge)
 {

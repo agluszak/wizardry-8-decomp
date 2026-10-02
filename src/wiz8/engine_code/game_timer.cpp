@@ -16,13 +16,13 @@
 // GLOBAL: WIZ8 0x006598B8
 srTimer* g_shared_timer_base;
 // GLOBAL: WIZ8 0x006598C0
-srTimer* g_shared_timer;
+static srTimer* g_shared_timer;
 // GLOBAL: WIZ8 0x006598C4
 int g_shared_timer_pause_base;
 // GLOBAL: WIZ8 0x006598C8
 int g_shared_timer_pause_time;
 // GLOBAL: WIZ8 0x006598CC
-int g_shared_timer_refs;
+static int g_shared_timer_refs;
 // GLOBAL: WIZ8 0x006598D0
 bool g_shared_timer_paused;
 // GLOBAL: WIZ8 0x006598D1

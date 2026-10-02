@@ -74,14 +74,14 @@
  */
 
 // GLOBAL: WIZ8 0x006599B8
-W8GrowableVector<W8TriggerEvent*> g_timed_events;
+static W8GrowableVector<W8TriggerEvent*> g_timed_events;
 
 // GLOBAL: WIZ8 0x006599C8
 bool g_trigger_action_active;
 // GLOBAL: WIZ8 0x006599AC
 srVector3T<float> g_trigger_action_scene_offset;
 // GLOBAL: WIZ8 0x00659908
-char g_trigger_parse_buffer[0x88];
+static char g_trigger_parse_buffer[0x88];
 // GLOBAL: WIZ8 0x006598E0
 W8GrowableVector<int> g_location_variable_levels;
 // GLOBAL: WIZ8 0x006598F8
@@ -866,7 +866,7 @@ inline W8TriggerShakeEvent::W8TriggerShakeEvent() : effect_038(0), intensity_03c
 // GLOBAL: WIZ8 0x006599a0
 srVector3T<float> g_trigger_camera;
 
-void OnItemDialogClosed(W8DialogBase* base);
+static void OnItemDialogClosed(W8DialogBase* base);
 
 /* Advance every world trigger: raise the item picker when a prop-bearing
    activation asks for one, then run proximity activations for kind-two
@@ -926,7 +926,7 @@ void UpdateWorldTriggers(W8World* world)
 /* The item picker's destroy callback: hand its items back to the owning
    trigger and clear the trigger's pending-picker bit. */
 // FUNCTION: WIZ8 0x004456c0
-void OnItemDialogClosed(W8DialogBase* base)
+static void OnItemDialogClosed(W8DialogBase* base)
 {
     W8TriggerItemPickerDialog* dialog = static_cast<W8TriggerItemPickerDialog*>(base);
 
@@ -4149,14 +4149,14 @@ bool AnyPropTriggerInView(W8World* world)
     GetCameraPosition(&position);
     prop_count = PLLength(world->plsProps);
     if (0 <= s_last_prop_index && s_last_prop_index < static_cast<int>(prop_count)) {
-        W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, s_last_prop_index));
+        W8Prop* prop = GetWorldProp(world, s_last_prop_index);
 
         if (prop->IsTriggerInView(&position)) {
             return 1;
         }
     }
     for (index = 0; index < static_cast<int>(prop_count); ++index) {
-        W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
+        W8Prop* prop = GetWorldProp(world, index);
 
         if (prop->IsTriggerInView(&position)) {
             s_last_prop_index = index;

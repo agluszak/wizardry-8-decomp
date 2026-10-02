@@ -92,29 +92,29 @@ void W8Octree::UpdatePathVisualization()
 }
 
 // GLOBAL: WIZ8 0x00659760
-int g_octree_query_slot;
+static int g_octree_query_slot;
 // GLOBAL: WIZ8 0x00659764
-unsigned short g_octree_query_kind;
+static unsigned short g_octree_query_kind;
 // GLOBAL: WIZ8 0x00659766
-unsigned short g_octree_query_id;
+static unsigned short g_octree_query_id;
 
 // GLOBAL: WIZ8 0x00659770
 unsigned int* g_octree_storage_;
 
 // GLOBAL: WIZ8 0x00659774
-unsigned int g_octree_query_cell;
+static unsigned int g_octree_query_cell;
 
 // GLOBAL: WIZ8 0x00659778
-GETFILESTRUCT g_octree_file_search;
+static GETFILESTRUCT g_octree_file_search;
 
 // GLOBAL: WIZ8 0x006598b2
-unsigned char g_octree_file_search_active;
+static unsigned char g_octree_file_search_active;
 
 // GLOBAL: WIZ8 0x00606810
-char g_octree_point_extension[] = ".pts";
+static char g_octree_point_extension[] = ".pts";
 
 // GLOBAL: WIZ8 0x006068a0
-char g_octree_file_search_wildcard[] = "*";
+static char g_octree_file_search_wildcard[] = "*";
 
 // GLOBAL: WIZ8 0x00659890
 unsigned long* g_octree_state;
@@ -133,12 +133,12 @@ bool g_octree_trace_enabled;
 W8Octree* g_octree;
 
 // GLOBAL: WIZ8 0x006068a4
-char g_region_link_extension[] = ".rlk";
+static char g_region_link_extension[] = ".rlk";
 
 // GLOBAL: WIZ8 0x006598a8
 bool g_octree_disabled;
 // GLOBAL: WIZ8 0x006598b0
-unsigned short g_octree_region_debug_last;
+static unsigned short g_octree_region_debug_last;
 
 /* Renderer switches toggled across a region-link build: while sampling,
    meshes render without baked vertex lighting or textures and with front
@@ -925,7 +925,7 @@ void W8Octree::CollectVisibleCells()
 }
 
 // FUNCTION: WIZ8 0x004329a0
-unsigned char FindNextLevelFile(char* name)
+static unsigned char FindNextLevelFile(char* name)
 {
     if (name == 0) {
         g_octree_file_search_active = 0;
@@ -1501,7 +1501,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     if (!aborted && world->plsCameras != 0 && camera_count != 0) {
         for (int camera_index = 0; camera_index < static_cast<int>(camera_count); ++camera_index) {
             W8CameraPath* entry =
-                static_cast<W8CameraPath*>(PLGet(world->plsCameras, camera_index));
+                GetWorldCameraPath(world, camera_index);
             if (entry != 0 && entry->path_18 != 0) {
                 for (int node_index = 0; node_index < entry->path_18->nodes_0c->GetCount();
                      ++node_index) {

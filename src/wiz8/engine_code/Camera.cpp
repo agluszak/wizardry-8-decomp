@@ -32,7 +32,7 @@
    a reconstructed owner in GDCamera.cpp. */
 
 // GLOBAL: WIZ8 0x0060AA64
-int g_saved_environment_flag = 1;
+static int g_saved_environment_flag = 1;
 
 /* Find the named camera path in the world's list and toggle it. Retail
    callers push the flag as a plain int and the body forwards it raw to
@@ -48,7 +48,7 @@ void UpdateCameraPathStateByName(W8World* world, const char* name, int active)
     unsigned int count = PLLength(world->plsCameras);
     if (world->plsCameras != 0 && count != 0) {
         for (int index = 0; index < static_cast<int>(count); ++index) {
-            W8CameraPath* path = static_cast<W8CameraPath*>(PLGet(world->plsCameras, index));
+            W8CameraPath* path = GetWorldCameraPath(world, index);
             if (_stricmp(path->name_00, name) == 0) {
                 UpdateCameraPathState(world, path, active);
                 return;

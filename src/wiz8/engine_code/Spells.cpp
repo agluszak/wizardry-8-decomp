@@ -69,7 +69,7 @@ const char* g_spell_cycle_names[28] = {
 
 /* The persistent TargetCone visual the targeting code toggles on and off. */
 // GLOBAL: WIZ8 0x0065BE20
-W8SpellVisual* g_target_cone_visual;
+static W8SpellVisual* g_target_cone_visual;
 
 // FUNCTION: WIZ8 0x004ac9d0
 W8SpellTargetType GetSpellTargetType(int spell_id, unsigned char normalize_single_target)

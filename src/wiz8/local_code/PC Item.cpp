@@ -259,7 +259,7 @@ unsigned short g_generic_item_name_notice[W8_GENERIC_ITEM_NAME_COUNT] = {
 };
 /* Shared scratch returned by the item-name formatter. */
 // GLOBAL: WIZ8 0x0068C0B4
-wchar_t g_item_display_name_buffer[42];
+static wchar_t g_item_display_name_buffer[42];
 
 static_assert(sizeof(W8ItemVideoObjectEntry) == 8, "W8ItemVideoObjectEntry_must_be_8");
 static_assert(sizeof(W8ItemVideoObjectCache) == 0x0c, "W8ItemVideoObjectCache_must_be_0x0c");
@@ -679,7 +679,7 @@ bool CanEquipItemInSlot(W8Character* character, int item_id, unsigned char equip
 /* The name-index pairs that may be held together; a zero first entry ends
    the run. */
 // GLOBAL: WIZ8 0x00616e6c
-short g_compatible_partner_pairs[6][2] = {
+static short g_compatible_partner_pairs[6][2] = {
     {114, 113}, {110, 132}, {104, 132}, {144, 143}, {145, 146}, {0, 0},
 };
 
@@ -808,7 +808,7 @@ bool CompatiblePartnerItems(int ranged_item_id, int other_item_id)
    passed. Two things that are not both weapons always agree, and two weapons
    have to belong to the same wield group. */
 // FUNCTION: WIZ8 0x0051cc40
-bool CanHoldItemsTogether(int first_item_id, int second_item_id)
+static bool CanHoldItemsTogether(int first_item_id, int second_item_id)
 {
     if (first_item_id == -1 || second_item_id == -1) {
         return true;

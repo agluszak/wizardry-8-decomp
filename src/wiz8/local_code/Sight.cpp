@@ -449,11 +449,11 @@ void ResetAndRefreshAllSight(void)
 }
 
 // GLOBAL: WIZ8 0x00689b6c
-int g_sight_marker_tick;
+static int g_sight_marker_tick;
 // GLOBAL: WIZ8 0x00689b70
-int g_sight_fade_in_tick;
+static int g_sight_fade_in_tick;
 // GLOBAL: WIZ8 0x00689b74
-int g_sight_fade_out_tick;
+static int g_sight_fade_out_tick;
 
 // GLOBAL: WIZ8 0x005ed7f8
 const float g_sight_threat_scale = 0.6667f;

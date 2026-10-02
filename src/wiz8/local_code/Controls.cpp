@@ -113,7 +113,7 @@ inline Controls::~Controls() {}
 // GLOBAL: WIZ8 0x0060CC74
 wchar_t g_W8TextSeparator[] = L" ";
 // GLOBAL: WIZ8 0x00617C88
-wchar_t g_W8TextBreakCharacters[] = L" ";
+static wchar_t g_W8TextBreakCharacters[] = L" ";
 
 // GLOBAL: WIZ8 0x005ebb38
 const float g_float_005ebb38 = 1.0f;

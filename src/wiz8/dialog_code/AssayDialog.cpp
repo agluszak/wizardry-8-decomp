@@ -39,23 +39,23 @@
 #include "wiz8/video_object_catalog.h"
 
 // GLOBAL: WIZ8 0x0064f908
-W8DialogScrollBar::Resources g_assay_scroll_resources = {
+static W8DialogScrollBar::Resources g_assay_scroll_resources = {
     "Data\\Main Interface\\main_scroll.sti",
     "Data\\Dialogs\\popup_iteminfo.sti",
     4,
     W8AssayDialog::ScrollCallback,
 };
 // GLOBAL: WIZ8 0x0064f918
-int g_assay_scroll_x_offset = 0x160;
+static int g_assay_scroll_x_offset = 0x160;
 // GLOBAL: WIZ8 0x0064f91c
-int g_assay_scroll_y_offset = 0x48;
+static int g_assay_scroll_y_offset = 0x48;
 struct W8AssayButtonOffset {
     int x;
     int y;
 };
 
 // GLOBAL: WIZ8 0x0064f920
-W8AssayButtonOffset g_assay_button_offsets[W8_ASSAY_BUTTON_COUNT] = {
+static W8AssayButtonOffset g_assay_button_offsets[W8_ASSAY_BUTTON_COUNT] = {
     {0xb, 0xb},   {0xb, 0xb},   {0xd, 0xd},   {0x27, 0xd},  {0x46, 0x48}, {0x14f, 0xf5},
     {0xd, 0x2a},  {0xd, 0x47},  {0xd, 0x64},  {0xd, 0x81},  {0xd, 0x9e},  {0xd, 0xbb},
     {0xd, 0xd8},  {0x26, 0x2a}, {0x26, 0x47}, {0x26, 0x64}, {0x26, 0x81}, {0x26, 0x9e},
@@ -65,14 +65,14 @@ W8AssayButtonOffset g_assay_button_offsets[W8_ASSAY_BUTTON_COUNT] = {
     {0x26, 0xf5},
 };
 // GLOBAL: WIZ8 0x0064fa48
-W8ControlsRect g_assay_text_buffer_offsets[W8_ASSAY_TEXT_BUFFER_COUNT] = {
+static W8ControlsRect g_assay_text_buffer_offsets[W8_ASSAY_TEXT_BUFFER_COUNT] = {
     {117, 15, 343, 31}, {117, 35, 170, 47}, {174, 35, 343, 47},
     {117, 53, 170, 65}, {174, 53, 343, 65},
 };
 // GLOBAL: WIZ8 0x0064fa98
-W8ControlsRect g_assay_text_area_offsets = {0x48, 0x4a, 0x156, 0xef};
+static W8ControlsRect g_assay_text_area_offsets = {0x48, 0x4a, 0x156, 0xef};
 // GLOBAL: WIZ8 0x0064faa8
-int g_assay_text_buffer_string_ids[W8_ASSAY_TEXT_BUFFER_COUNT] = {270, 271, 270, 272, 270};
+static int g_assay_text_buffer_string_ids[W8_ASSAY_TEXT_BUFFER_COUNT] = {270, 271, 270, 272, 270};
 // GLOBAL: WIZ8 0x0061e7dc
 unsigned short g_equip_class_name_ids[32] = {
     1087, 1088, 1089, 1090, 1091, 1092, 1093, 1094, 1095, 1096, 1097, 1098, 1099, 1100, 1101, 1102,
@@ -80,15 +80,15 @@ unsigned short g_equip_class_name_ids[32] = {
 // GLOBAL: WIZ8 0x0064fbb4
 wchar_t g_assay_format_1f[] = L"%.1f";
 // GLOBAL: WIZ8 0x0064fbc0
-wchar_t g_assay_format_1f_1f_s[] = L"%.1f (%.1f %s)";
+static wchar_t g_assay_format_1f_1f_s[] = L"%.1f (%.1f %s)";
 /* String-list label ids indexed by W8ItemDatabaseRecord::flags_041 bit. */
 // GLOBAL: WIZ8 0x0061e938
-unsigned short g_item_flag_name_ids[8] = {
+static unsigned short g_item_flag_name_ids[8] = {
     1255, 1256, 1257, 1258, 1259, 1260, 1261, 1262,
 };
 /* String-list label ids indexed by W8ItemDatabaseRecord::quantity_kind. */
 // GLOBAL: WIZ8 0x0061e948
-unsigned short g_quantity_kind_name_ids[7] = {
+static unsigned short g_quantity_kind_name_ids[7] = {
     1264, 1265, 1266, 1267, 1268, 0, 1269,
 };
 // GLOBAL: WIZ8 0x0069c818

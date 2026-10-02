@@ -62,10 +62,10 @@ enum { W8_SKILL_FIRST_REALM = 0x1c };
 
 /* Realm-name string ids for the spell-casting realm-button tooltips. */
 // GLOBAL: WIZ8 0x0064C840
-int g_spell_realm_help_string_ids[6] = {0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c};
+static int g_spell_realm_help_string_ids[6] = {0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c};
 
 // GLOBAL: WIZ8 0x0064C934
-wchar_t g_format_s_parens_s_colon_d[] = L"%s (%s: %d)";
+static wchar_t g_format_s_parens_s_colon_d[] = L"%s (%s: %d)";
 
 // GLOBAL: WIZ8 0x0069BF3C
 W8SpellCastingView* gpSCSV;
@@ -80,23 +80,23 @@ int GetSpellCastingPowerIndex(void)
 
 static void CreateSpellCastingViewControls(void);
 void ReleaseSpellCastingViewControls(void);
-void SelectFireSpellRealm(void);
-void SelectWaterSpellRealm(void);
-void SelectAirSpellRealm(void);
-void SelectEarthSpellRealm(void);
-void SelectMentalSpellRealm(void);
-void SelectDivineSpellRealm(void);
-void SelectSpellPowerPip0(void);
-void SelectSpellPowerPip1(void);
-void SelectSpellPowerPip2(void);
-void SelectSpellPowerPip3(void);
-void SelectSpellPowerPip4(void);
-void SelectSpellPowerPip5(void);
-void SelectSpellPowerPip6(void);
-void SelectSpellPowerPip7(void);
-void SelectSpellPowerPip8(void);
-void SpellCastingDialogResult(W8DialogBase* dialog);
-void PreviewSpellPowerPipHover(int power_level);
+static void SelectFireSpellRealm(void);
+static void SelectWaterSpellRealm(void);
+static void SelectAirSpellRealm(void);
+static void SelectEarthSpellRealm(void);
+static void SelectMentalSpellRealm(void);
+static void SelectDivineSpellRealm(void);
+static void SelectSpellPowerPip0(void);
+static void SelectSpellPowerPip1(void);
+static void SelectSpellPowerPip2(void);
+static void SelectSpellPowerPip3(void);
+static void SelectSpellPowerPip4(void);
+static void SelectSpellPowerPip5(void);
+static void SelectSpellPowerPip6(void);
+static void SelectSpellPowerPip7(void);
+static void SelectSpellPowerPip8(void);
+static void SpellCastingDialogResult(W8DialogBase* dialog);
+static void PreviewSpellPowerPipHover(int power_level);
 void UpdateSpellRealmPointDisplays(void);
 static void UpdateSpellPowerPips(void);
 static void RefreshSpellPowerPip(int pip);
@@ -826,37 +826,37 @@ void InvalidateSpellCastingDescription(void)
 }
 
 // FUNCTION: WIZ8 0x005A0320
-void SelectFireSpellRealm(void)
+static void SelectFireSpellRealm(void)
 {
     SelectSpellCastingRealm(W8_SPELL_REALM_FIRE);
 }
 
 // FUNCTION: WIZ8 0x005A0330
-void SelectWaterSpellRealm(void)
+static void SelectWaterSpellRealm(void)
 {
     SelectSpellCastingRealm(W8_SPELL_REALM_WATER);
 }
 
 // FUNCTION: WIZ8 0x005A0340
-void SelectAirSpellRealm(void)
+static void SelectAirSpellRealm(void)
 {
     SelectSpellCastingRealm(W8_SPELL_REALM_AIR);
 }
 
 // FUNCTION: WIZ8 0x005A0350
-void SelectEarthSpellRealm(void)
+static void SelectEarthSpellRealm(void)
 {
     SelectSpellCastingRealm(W8_SPELL_REALM_EARTH);
 }
 
 // FUNCTION: WIZ8 0x005A0360
-void SelectMentalSpellRealm(void)
+static void SelectMentalSpellRealm(void)
 {
     SelectSpellCastingRealm(W8_SPELL_REALM_MENTAL);
 }
 
 // FUNCTION: WIZ8 0x005A0370
-void SelectDivineSpellRealm(void)
+static void SelectDivineSpellRealm(void)
 {
     SelectSpellCastingRealm(W8_SPELL_REALM_DIVINE);
 }
@@ -901,43 +901,43 @@ static void SelectSpellCastingRealm(int realm)
 }
 
 // FUNCTION: WIZ8 0x005A0500
-void SelectSpellPowerPip0(void)
+static void SelectSpellPowerPip0(void)
 {
     SelectSpellPowerLevel(0);
 }
 
 // FUNCTION: WIZ8 0x005A0510
-void SelectSpellPowerPip1(void)
+static void SelectSpellPowerPip1(void)
 {
     SelectSpellPowerLevel(1);
 }
 
 // FUNCTION: WIZ8 0x005A0520
-void SelectSpellPowerPip2(void)
+static void SelectSpellPowerPip2(void)
 {
     SelectSpellPowerLevel(2);
 }
 
 // FUNCTION: WIZ8 0x005A0530
-void SelectSpellPowerPip3(void)
+static void SelectSpellPowerPip3(void)
 {
     SelectSpellPowerLevel(3);
 }
 
 // FUNCTION: WIZ8 0x005A0540
-void SelectSpellPowerPip4(void)
+static void SelectSpellPowerPip4(void)
 {
     SelectSpellPowerLevel(4);
 }
 
 // FUNCTION: WIZ8 0x005A0550
-void SelectSpellPowerPip5(void)
+static void SelectSpellPowerPip5(void)
 {
     SelectSpellPowerLevel(5);
 }
 
 // FUNCTION: WIZ8 0x005A0560
-void SelectSpellPowerPip6(void)
+static void SelectSpellPowerPip6(void)
 {
     SelectSpellPowerLevel(6);
 }
@@ -946,7 +946,7 @@ void SelectSpellPowerPip6(void)
    pips and prices the name label with the max cast, otherwise it empties the
    label. */
 // FUNCTION: WIZ8 0x005A0570
-void SelectSpellPowerPip7(void)
+static void SelectSpellPowerPip7(void)
 {
     int pip;
 
@@ -975,7 +975,7 @@ void SelectSpellPowerPip7(void)
 /* The max-power pip: while its secondary state is lit it prices the name
    label with the max cast, otherwise it relights and repaints the label. */
 // FUNCTION: WIZ8 0x005A0660
-void SelectSpellPowerPip8(void)
+static void SelectSpellPowerPip8(void)
 {
     if (static_cast<unsigned char>(gpSCSV->power_controls[8]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
@@ -1053,7 +1053,7 @@ void SelectSpellPowerLevel(int power_level)
    cast cost for the hovered level (or restores the selected cost / empty
    label when the pointer leaves). Only power classes 0 and 1 participate. */
 // FUNCTION: WIZ8 0x005A0910
-void PreviewSpellPowerPipHover(int power_level)
+static void PreviewSpellPowerPipHover(int power_level)
 {
     W8TextControl* spell_name;
     Controls* panel;
@@ -1096,7 +1096,7 @@ void PreviewSpellPowerPipHover(int power_level)
 /* The confirmation dialog's destroy callback: a cancelled dialog unwinds the
    whole spell selection. */
 // FUNCTION: WIZ8 0x005A0AE0
-void SpellCastingDialogResult(W8DialogBase* dialog)
+static void SpellCastingDialogResult(W8DialogBase* dialog)
 {
     int index;
 

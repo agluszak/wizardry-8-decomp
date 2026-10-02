@@ -117,14 +117,14 @@ int g_submenu_entry_help_ids[25] = {
     -1, -1, 89, -1, -1, -1, -1, 95, 94, -1, -1, -1,
 };
 
-void SubMenuButtonPendingScreen(W8DialogButton* button);
-void SubMenuButtonSurprise(W8DialogButton* button);
-void SubMenuButtonToggleFlag(W8DialogButton* button);
-void SubMenuButtonUseItem(W8DialogButton* button);
-void SubMenuButtonSpellView(W8DialogButton* button);
-void SubMenuButtonOpenMenu0(W8DialogButton* button);
-void SubMenuButtonOpenMenu1(W8DialogButton* button);
-void SubMenuButtonToggleCombat(W8DialogButton* button);
+static void SubMenuButtonPendingScreen(W8DialogButton* button);
+static void SubMenuButtonSurprise(W8DialogButton* button);
+static void SubMenuButtonToggleFlag(W8DialogButton* button);
+static void SubMenuButtonUseItem(W8DialogButton* button);
+static void SubMenuButtonSpellView(W8DialogButton* button);
+static void SubMenuButtonOpenMenu0(W8DialogButton* button);
+static void SubMenuButtonOpenMenu1(W8DialogButton* button);
+static void SubMenuButtonToggleCombat(W8DialogButton* button);
 
 // FUNCTION: WIZ8 0x00594AF0
 unsigned char CreateSubMenuButtons(void)
@@ -308,7 +308,7 @@ void UpdateSubMenuButton(int index)
 }
 
 // FUNCTION: WIZ8 0x00595090
-void SubMenuButtonPendingScreen(W8DialogButton* button)
+static void SubMenuButtonPendingScreen(W8DialogButton* button)
 {
     button->SetPressed(0);
     button->m_dirty = true;
@@ -319,7 +319,7 @@ void SubMenuButtonPendingScreen(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005950C0
-void SubMenuButtonSurprise(W8DialogButton* button)
+static void SubMenuButtonSurprise(W8DialogButton* button)
 {
     RequestCamp();
     RequestRedraw(0x200);
@@ -327,7 +327,7 @@ void SubMenuButtonSurprise(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005950E0
-void SubMenuButtonToggleFlag(W8DialogButton* button)
+static void SubMenuButtonToggleFlag(W8DialogButton* button)
 {
     ToggleSearchMode();
     button->SetPressed(g_status.search_mode ? 1 : 0);
@@ -336,7 +336,7 @@ void SubMenuButtonToggleFlag(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x00595110
-void SubMenuButtonUseItem(W8DialogButton* button)
+static void SubMenuButtonUseItem(W8DialogButton* button)
 {
     int index;
 
@@ -393,7 +393,7 @@ void SubMenuButtonUseItem(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x00595280
-void SubMenuButtonSpellView(W8DialogButton* button)
+static void SubMenuButtonSpellView(W8DialogButton* button)
 {
     if (CharacterHasCastableSpell(&g_status.buffers.Char[g_status.selected_character]) != 0) {
         if (gXStatus.fSpellCastMode != 0) {
@@ -405,7 +405,7 @@ void SubMenuButtonSpellView(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005952D0
-void SubMenuButtonOpenMenu0(W8DialogButton* button)
+static void SubMenuButtonOpenMenu0(W8DialogButton* button)
 {
     int index;
 
@@ -453,7 +453,7 @@ void SubMenuButtonOpenMenu0(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x00595410
-void SubMenuButtonOpenMenu1(W8DialogButton* button)
+static void SubMenuButtonOpenMenu1(W8DialogButton* button)
 {
     int index;
 
@@ -501,7 +501,7 @@ void SubMenuButtonOpenMenu1(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x00595550
-void SubMenuButtonToggleCombat(W8DialogButton* button)
+static void SubMenuButtonToggleCombat(W8DialogButton* button)
 {
     ToggleCombatMode();
     RequestRedraw(0x200);

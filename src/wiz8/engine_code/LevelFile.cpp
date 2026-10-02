@@ -14,14 +14,14 @@
 #define LEVELFILE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\LevelFile.cpp"
 
 // GLOBAL: WIZ8 0x006833fc
-W8LevelFile* g_level_file;
+static W8LevelFile* g_level_file;
 
 /* Scratch message buffer for the mesh/anim-object load failures; original name
    unknown. The next defined symbol is g_level_file at 0x006833FC, so the
    buffer is at most 0x404 bytes; 0x400 matches this file's other 0x400 sprintf
    buffers. */
 // GLOBAL: WIZ8 0x00682ff8
-char g_level_file_error[0x400];
+static char g_level_file_error[0x400];
 
 // FUNCTION: WIZ8 0x004CFDC0
 W8LevelFile* ReadLevelFile(int hFile)

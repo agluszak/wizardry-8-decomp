@@ -50,7 +50,7 @@
 #include <wchar.h>
 
 // GLOBAL: WIZ8 0x0069C130
-unsigned int* g_options_panel_region_sets;
+static unsigned int* g_options_panel_region_sets;
 
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                                  char right_button, char left_button);
@@ -67,7 +67,7 @@ wchar_t g_empty_wide_string;
 extern const unsigned int g_W8TextControlLayoutMask = 0x40;
 
 // GLOBAL: WIZ8 0x0069c1c8
-unsigned char g_options_first_frame;
+static unsigned char g_options_first_frame;
 // GLOBAL: WIZ8 0x0069c138
 W8OptionsValues g_options_values;
 // GLOBAL: WIZ8 0x0069c254
@@ -76,15 +76,15 @@ W8OptionsScreen* g_options_screen;
 wchar_t g_options_last_save_name[64];
 
 // GLOBAL: WIZ8 0x0064d72c
-int g_last_options_panel = 5;
+static int g_last_options_panel = 5;
 
 // GLOBAL: WIZ8 0x0069c24c
-unsigned int g_options_menu_region_set;
+static unsigned int g_options_menu_region_set;
 // GLOBAL: WIZ8 0x0069c250
-unsigned int g_options_page_region_set;
+static unsigned int g_options_page_region_set;
 
 // GLOBAL: WIZ8 0x0064d0b8
-W8OptionsMenuRow g_options_menu_rows[8] = {
+static W8OptionsMenuRow g_options_menu_rows[8] = {
     {1, {{20, 51, 69, 137}, {-1, -1, -1, -1}}, {16, 194, 0, 0}, {0, 2, 1, -1, -1}},
     {4, {{90, 72, 117, 117}, {217, 72, 244, 117}}, {16, 220, 0, 0}, {3, 5, 4, -1, -1}},
     {3, {{132, 29, 201, 102}, {-1, -1, -1, -1}}, {16, 246, 0, 0}, {6, 8, 7, -1, -1}},
@@ -95,16 +95,16 @@ W8OptionsMenuRow g_options_menu_rows[8] = {
     {0, {{-1, -1, -1, -1}, {-1, -1, -1, -1}}, {7, 436, 0, 0}, {21, 23, 22, -1, -1}}};
 
 // GLOBAL: WIZ8 0x0064d078
-W8OptionsPanelRange g_options_panel_ranges[8] = {{0, 2},   {3, 3},   {4, 5}, {6, 10},
+static W8OptionsPanelRange g_options_panel_ranges[8] = {{0, 2},   {3, 3},   {4, 5}, {6, 10},
                                                  {11, 11}, {12, 12}, {0, 0}, {0, 0}};
 // GLOBAL: WIZ8 0x0064d730
-int g_options_difficulty_labels[3] = {0x7f8, 0x7f9, 0x7fa};
+static int g_options_difficulty_labels[3] = {0x7f8, 0x7f9, 0x7fa};
 // GLOBAL: WIZ8 0x0064d73c
-int g_options_camera_rotation_labels[3] = {0x7fe, 0x7ff, 0x800};
+static int g_options_camera_rotation_labels[3] = {0x7fe, 0x7ff, 0x800};
 // GLOBAL: WIZ8 0x0064d748
-int g_options_combat_mode_labels[2] = {0x7f6, 0x7f5};
+static int g_options_combat_mode_labels[2] = {0x7f6, 0x7f5};
 // GLOBAL: WIZ8 0x0064d750
-int g_options_audio_labels[4] = {0x81e, 0x81f, 0x821, 0x820};
+static int g_options_audio_labels[4] = {0x81e, 0x81f, 0x821, 0x820};
 
 struct W8OptionsKeyName {
     unsigned short key;
@@ -125,7 +125,7 @@ struct W8OptionsKeyboardPage {
 };
 
 // GLOBAL: WIZ8 0x0064d2f8
-W8OptionsKeyName g_options_key_names[] = {
+static W8OptionsKeyName g_options_key_names[] = {
     {112, 0, 2158}, {113, 0, 2159}, {114, 0, 2160}, {115, 0, 2161}, {116, 0, 2162}, {117, 0, 2163},
     {118, 0, 2164}, {119, 0, 2165}, {120, 0, 2166}, {121, 0, 2167}, {122, 0, 2168}, {123, 0, 2169},
     {9, 0, 2170},   {144, 0, 2171}, {8, 0, 2172},   {45, 0, 2173},  {46, 0, 2174},  {35, 0, 2175},
@@ -137,7 +137,7 @@ W8OptionsKeyName g_options_key_names[] = {
     {0, 0, 2157}};
 
 // GLOBAL: WIZ8 0x0064d480
-W8OptionsKeyRow g_options_key_rows[] = {
+static W8OptionsKeyRow g_options_key_rows[] = {
     {200, 201, 2106}, {202, 203, 2107}, {204, 205, 2108}, {206, 207, 2109}, {208, 209, 2110},
     {210, 211, 2111}, {212, -1, 2112},  {213, -1, 2113},  {214, -1, 2114},  {300, -1, 2115},
     {301, 302, 2116}, {303, -1, 2117},  {304, -1, 2118},  {307, 308, 2121}, {309, 310, 2122},
@@ -151,7 +151,7 @@ W8OptionsKeyRow g_options_key_rows[] = {
     {614, -1, 2156},  {-1, -1, -1}};
 
 // GLOBAL: WIZ8 0x0064d6f0
-W8OptionsKeyboardPage g_options_keyboard_pages[5] = {
+static W8OptionsKeyboardPage g_options_keyboard_pages[5] = {
     {0x835, 200, 214}, {0x836, 300, 305}, {0x837, 402, 401}, {0x838, 500, 504}, {0x839, 600, 614}};
 
 inline W8OptionsPanelSet::W8OptionsPanelSet()

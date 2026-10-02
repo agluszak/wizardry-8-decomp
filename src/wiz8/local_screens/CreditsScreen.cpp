@@ -19,17 +19,17 @@
 #include <wchar.h>
 
 // GLOBAL: WIZ8 0x0069C4A8
-W8GrowableVector<W8CreditLine>* g_credit_lines;
+static W8GrowableVector<W8CreditLine>* g_credit_lines;
 // GLOBAL: WIZ8 0x0069C494
-int g_credit_elapsed_steps;
+static int g_credit_elapsed_steps;
 // GLOBAL: WIZ8 0x0069C498
-bool g_credit_redraw;
+static bool g_credit_redraw;
 // GLOBAL: WIZ8 0x0069C49C
-unsigned long g_credit_started_at;
+static unsigned long g_credit_started_at;
 // GLOBAL: WIZ8 0x0069C4A0
-int g_credit_y;
+static int g_credit_y;
 // GLOBAL: WIZ8 0x0069C4A4
-int g_credit_line;
+static int g_credit_line;
 
 /* Read one wide line, stopping at a newline, capacity, or the end of the
    stream. Answers whether the line ended at a newline; trailing carriage

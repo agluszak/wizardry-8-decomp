@@ -492,7 +492,7 @@ bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info)
    attack score - the unarmed and natural strikes. The score roll scans it for
    the attack's verb byte. */
 // GLOBAL: WIZ8 0x0061D284
-unsigned char g_low_fatigue_attack_verbs[0x12] = {
+static unsigned char g_low_fatigue_attack_verbs[0x12] = {
     0x07, 0x0d, 0x0e, 0x0f, 0x15, 0x19, 0x21, 0x2b, 0x31,
     0x32, 0x34, 0x35, 0x36, 0x38, 0x3b, 0x55, 0x56, 0x57,
 };
@@ -721,7 +721,7 @@ bool CanCharacterAttackItsTarget(int party_slot)
    attacker is a monster or a character - the same nine modes score differently
    for each. Its error text carries the function's own name. */
 // FUNCTION: WIZ8 0x00542e10
-int AttackModeMod(int is_character, int attack_mode)
+static int AttackModeMod(int is_character, int attack_mode)
 {
     if (is_character == 0) {
         switch (attack_mode) {
@@ -2154,7 +2154,7 @@ char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
 /* Attack weapon-type name string ids; the monster attack announcement indexes
    it two words per type. */
 // GLOBAL: WIZ8 0x0061EB02
-unsigned short g_monster_attack_name_ids[0x25] = {
+static unsigned short g_monster_attack_name_ids[0x25] = {
     0x619, 0x61a, 0x61b, 0x61c, 0x61d, 0x61e, 0x61f, 0x620, 0x621, 0x622, 0x623, 0x624, 0x625,
     0x626, 0x627, 0x628, 0x629, 0x62a, 0x62b, 0x62c, 0x62d, 0x62e, 0x62f, 0x630, 0x631, 0x632,
     0x633, 0x634, 0x635, 0x636, 0x637, 0x638, 0x639, 0x63a, 0x63b, 0x63c, 0x63d,
@@ -2163,7 +2163,7 @@ unsigned short g_monster_attack_name_ids[0x25] = {
 /* Attack verb-class string ids; the monster attack announcement appends the
    entry the attack's verb byte selects. */
 // GLOBAL: WIZ8 0x0061EB4C
-unsigned short g_monster_attack_verb_ids[0x60] = {
+static unsigned short g_monster_attack_verb_ids[0x60] = {
     0x5b8, 0x5b9, 0x5ba, 0x5bb, 0x5bc, 0x5bd, 0x5be, 0x5bf, 0x5c0, 0x5c1, 0x5c2, 0x5c3,
     0x5c4, 0x5c5, 0x5c6, 0x5c7, 0x5c8, 0x5c9, 0x5ca, 0x5cb, 0x5cc, 0x5cd, 0x5ce, 0x5cf,
     0x5d0, 0x5d1, 0x5d2, 0x5d3, 0x5d4, 0x5d5, 0x5d6, 0x5d7, 0x5d8, 0x5d9, 0x5da, 0x5db,
@@ -2365,7 +2365,7 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
    INT/DEX/SPEED/SENSES differential count too; a blinded attacker caps at ten
    unless a trait lets it fight blind. Finally the difficulty scaler runs. */
 // FUNCTION: WIZ8 0x00541c00
-int GetTargetAttackAttributes(int party_slot, int hand, int attack_mode, char arg_4)
+static int GetTargetAttackAttributes(int party_slot, int hand, int attack_mode, char arg_4)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     W8HandAttack* attack = &character->Hand[hand];

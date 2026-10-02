@@ -27,7 +27,7 @@ extern float g_light_scale_0060bfe0;
 /* Scratch vertex store shared by every highlight shell submission; grown
    on demand and kept between frames. */
 // GLOBAL: WIZ8 0x0065A148
-srHeapBuffer<srVector3T<float> >* g_vertex_scratch;
+static srHeapBuffer<srVector3T<float> >* g_vertex_scratch;
 
 // VTABLE: WIZ8 0x005ec89c srClassSupport<srModelInstance, class srNode, 0, 4352>
 // VTABLE: WIZ8 0x005ec88c srModel::Client
@@ -884,10 +884,10 @@ const float g_float_005ec8e0 = 1.0f / 1500.0f;
    500-unit ground span, lit by a dedicated material so the extruded shadow
    pass submits through the ordinary TriMesh pipeline. */
 // GLOBAL: WIZ8 0x0065A14C
-srMeshModel::TriMesh* g_shadow_mesh;
+static srMeshModel::TriMesh* g_shadow_mesh;
 
 // FUNCTION: WIZ8 0x004813F0
-void BuildShadowMesh()
+static void BuildShadowMesh()
 {
     stMaterial* material = SR_NEW(stMaterial)();
     srShader shader;

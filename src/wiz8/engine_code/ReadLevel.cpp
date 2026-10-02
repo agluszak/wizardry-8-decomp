@@ -245,7 +245,7 @@ void AssociateWorldLights(W8World* world)
             int prop_index;
 
             for (prop_index = 0; prop_index < prop_count; ++prop_index) {
-                W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, prop_index));
+                W8Prop* prop = GetWorldProp(world, prop_index);
 
                 if (prop->m_name != 0 && _stricmp(prop->m_name, light->getName()) == 0) {
                     srModelInstance* instance = prop->ToggleRepAnimationDefault();
@@ -258,7 +258,7 @@ void AssociateWorldLights(W8World* world)
 }
 
 // FUNCTION: WIZ8 0x004BBAD0
-unsigned char ReadWorldLights(W8World* world, int hFile)
+static unsigned char ReadWorldLights(W8World* world, int hFile)
 {
     short light_count;
     int index;
@@ -463,7 +463,7 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
 }
 
 // FUNCTION: WIZ8 0x004BCE20
-unsigned char ReadWorldClipPlanes(W8ReadLevelInfo* pInfo, W8World* pWorld)
+static unsigned char ReadWorldClipPlanes(W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
     W8GrowableVector<srClipPlane*> clip_planes(5);
     srVector4T<float> plane;
@@ -521,7 +521,7 @@ unsigned char ReadWorldClipPlanes(W8ReadLevelInfo* pInfo, W8World* pWorld)
 }
 
 // FUNCTION: WIZ8 0x004BC5E0
-unsigned char ReadWorldProps(W8ReadLevelInfo* pInfo, W8World* pWorld,
+static unsigned char ReadWorldProps(W8ReadLevelInfo* pInfo, W8World* pWorld,
                              unsigned char mark_model_instances)
 {
     /* CollectModelInstances appends. The canonical body deliberately keeps
@@ -987,7 +987,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
 }
 
 // FUNCTION: WIZ8 0x004BDC90
-unsigned char ReadNamedPositions(W8ReadLevelInfo* pInfo,
+static unsigned char ReadNamedPositions(W8ReadLevelInfo* pInfo,
                                  W8GrowableVector<W8NamedPosition*>* named_positions)
 {
     int hFile;
@@ -1185,7 +1185,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
     g_environment_offset = environment_offset;
     prop_count = PLLength(world->plsProps);
     for (index = 0; index < static_cast<int>(prop_count); ++index) {
-        W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
+        W8Prop* prop = GetWorldProp(world, index);
         W8AnimObj* animation = prop->Rep()->animation;
 
         if ((prop->flags_1c & 0x40) != 0) {

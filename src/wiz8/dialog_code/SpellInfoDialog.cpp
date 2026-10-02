@@ -27,22 +27,22 @@ wchar_t g_format_d_s[] = L"%d %s";
 // GLOBAL: WIZ8 0x00619794
 wchar_t g_comma_space[] = L", ";
 // GLOBAL: WIZ8 0x0060cff0
-unsigned short g_spellbook_name_ids[4] = {791, 792, 793, 794};
+static unsigned short g_spellbook_name_ids[4] = {791, 792, 793, 794};
 // GLOBAL: WIZ8 0x0060d4a8
-unsigned short g_spell_usage_name_ids[5] = {795, 797, 796, 796, 796};
+static unsigned short g_spell_usage_name_ids[5] = {795, 797, 796, 796, 796};
 // GLOBAL: WIZ8 0x0060d4b4
-unsigned short g_spell_target_type_name_ids[11] = {798, 799, 800, 801, 802, 803,
+static unsigned short g_spell_target_type_name_ids[11] = {798, 799, 800, 801, 802, 803,
                                                    804, 805, 806, 807, 807};
 // GLOBAL: WIZ8 0x0060d4cc
-wchar_t g_spell_target_mark_fff4[] = {0xfff4, 0};
+static wchar_t g_spell_target_mark_fff4[] = {0xfff4, 0};
 // GLOBAL: WIZ8 0x0060d4d0
-wchar_t g_spell_target_mark_fff0[] = {0xfff0, 0};
+static wchar_t g_spell_target_mark_fff0[] = {0xfff0, 0};
 // GLOBAL: WIZ8 0x0060d4d4
-wchar_t g_spell_target_mark_fff1[] = {0xfff1, 0};
+static wchar_t g_spell_target_mark_fff1[] = {0xfff1, 0};
 // GLOBAL: WIZ8 0x0060d4d8
-wchar_t g_spell_target_mark_fff2[] = {0xfff2, 0};
+static wchar_t g_spell_target_mark_fff2[] = {0xfff2, 0};
 // GLOBAL: WIZ8 0x0060d4dc
-wchar_t g_spell_target_mark_fff3[] = {0xfff3, 0};
+static wchar_t g_spell_target_mark_fff3[] = {0xfff3, 0};
 // GLOBAL: WIZ8 0x0060d4e0
 const wchar_t* g_spell_target_parentheticals[11] = {
     g_spell_target_mark_fff4, g_spell_target_mark_fff2, g_spell_target_mark_fff4,
@@ -53,11 +53,11 @@ const wchar_t* g_spell_target_parentheticals[11] = {
 // GLOBAL: WIZ8 0x0061e9a0
 unsigned short g_spell_range_name_ids[4] = {1307, 1308, 1309, 1310};
 // GLOBAL: WIZ8 0x0064fdcc
-wchar_t g_format_d_space[] = L"%d ";
+static wchar_t g_format_d_space[] = L"%d ";
 // GLOBAL: WIZ8 0x0064fdc4
-wchar_t g_plus_space[] = L"+ ";
+static wchar_t g_plus_space[] = L"+ ";
 // GLOBAL: WIZ8 0x0064fdd4
-wchar_t g_format_d_d_s[] = L"%d-%d %s";
+static wchar_t g_format_d_d_s[] = L"%d-%d %s";
 
 // STRING: WIZ8 0x0064FD54
 #define SPELL_INFO_DIALOG_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\SpellInfoDialog.cpp"

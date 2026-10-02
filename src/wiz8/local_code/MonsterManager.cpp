@@ -476,7 +476,7 @@ unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_fil
     }
 
     for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
-        monster = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, index));
+        monster = GetUnbornMonsterEntry(index);
         if (monster->location_id == location_id) {
             return index + 10000;
         }
@@ -502,7 +502,7 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
             srAssertFail("uiMonsterListIndex < (UINT32) PLLength(gXStatus.plsMonsterList)",
                          MONSTER_MANAGER_CPP, 0x5da, 0);
         }
-        result = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, monster_list_index));
+        result = GetMonsterListEntry(monster_list_index);
         if (result != 0) {
             return result;
         }
@@ -515,8 +515,7 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
                 "(uiMonsterListIndex-10000) < (UINT32) PLLength(gXStatus.plsUnbornMonsterList)",
                 MONSTER_MANAGER_CPP, 0x5d1, 0);
         }
-        result = static_cast<W8MonsterInfo*>(
-            PLGet(gXStatus.plsUnbornMonsterList, monster_list_index - 10000));
+        result = GetUnbornMonsterEntry(monster_list_index - 10000);
         if (result != 0) {
             return result;
         }
@@ -664,7 +663,7 @@ W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator)
     }
     if (g_monster_info_iterator_index < static_cast<int>(PLLength(gXStatus.plsMonsterList))) {
         index = g_monster_info_iterator_index++;
-        result = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
+        result = GetMonsterListEntry(index);
     }
     return result;
 }
@@ -926,7 +925,7 @@ W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double 
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info =
-            static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
+            GetMonsterListEntry(index);
         double distance = DistanceBetweenPositions(position, monster_info->p3D->GetPosition());
 
         if (distance < nearest_distance &&
@@ -938,7 +937,7 @@ W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double 
 
     for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
         W8MonsterInfo* monster_info =
-            static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, index));
+            GetUnbornMonsterEntry(index);
         double distance = DistanceBetweenPositions(position, monster_info->p3D->GetPosition());
 
         if (distance < nearest_distance &&
@@ -973,12 +972,12 @@ void InitializeMonsterRuntimeStats(void)
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         InitializeMonsterRuntimeStatsFor(
-            static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index)));
+            GetMonsterListEntry(index));
     }
 
     for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
         InitializeMonsterRuntimeStatsFor(
-            static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, index)));
+            GetUnbornMonsterEntry(index));
     }
 }
 

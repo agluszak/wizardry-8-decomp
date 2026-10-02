@@ -136,14 +136,14 @@ static_assert(sizeof(W8StatusHeader) == 0x314, "W8StatusHeader_must_be_0x314");
 void ReadSaveChunks(W8Chunk* source, W8Chunk* destination);
 void SaveGlobalStatus(W8Chunk* chunks, W8GlobalStatus* status);
 
-unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index);
+static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index);
 
 /* 0x0061A134/0x0061A138: the two XOR masks SaveGame applies to the file's
    creation-time pair before it lands in the status block. */
 // GLOBAL: WIZ8 0x0061A134
-unsigned int g_save_filetime_xor_low = 0x6b24e9f0;
+static unsigned int g_save_filetime_xor_low = 0x6b24e9f0;
 // GLOBAL: WIZ8 0x0061A138
-unsigned int g_save_filetime_xor_high = 0xe77c28c1;
+static unsigned int g_save_filetime_xor_high = 0xe77c28c1;
 
 /* FileWrite, FileExists, FileClearAttributes and FILE_IS_READONLY come from the
    vendored SGP FileMan.h already on this target's include path, so they are not
@@ -804,7 +804,7 @@ fail:
    state and the order/patrol fields the loader reads back in record-version
    order. */
 // FUNCTION: WIZ8 0x005147a0
-unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
+static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
 {
     unsigned short script_name[0x20] = {g_empty_ambient_name};
     int script_wait = -1;

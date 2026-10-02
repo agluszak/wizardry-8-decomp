@@ -382,7 +382,7 @@ W8AmbientSound* W8AmbientSound::FindNextMatching(const char* match_name, W8Ambie
     }
     do {
         W8AmbientSound* candidate =
-            static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
+            GetWorldAmbientSound(g_world, index);
         if (candidate != 0 && candidate != this && candidate->shared != 0 &&
             _stricmp(candidate->config_004.wave_name, match_name) == 0) {
             return candidate;
@@ -430,7 +430,7 @@ void UpdateAmbientSounds(W8World* world)
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
-                static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
+                GetWorldAmbientSound(world, index);
             if (sound != 0) {
                 sound->Service(0);
                 sound->UpdateFade();
@@ -544,7 +544,7 @@ void RepositionAmbientSounds(W8World* world)
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
-                static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
+                GetWorldAmbientSound(world, index);
             if (sound != 0) {
                 srVector3T<float> position;
                 GetCameraPosition(&position);
@@ -555,7 +555,7 @@ void RepositionAmbientSounds(W8World* world)
 }
 
 // FUNCTION: WIZ8 0x0047a670
-W8AmbientSound* CreateAmbientSound()
+static W8AmbientSound* CreateAmbientSound()
 {
     W8AmbientSound* sound = new W8AmbientSound;
 
@@ -642,7 +642,7 @@ void PositionAmbientSoundByName(W8World* /* unused */, const char* name)
 
     for (index = 0; index < count; ++index) {
         W8AmbientSound* sound =
-            static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
+            GetWorldAmbientSound(g_world, index);
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             if (sound != 0) {
                 srVector3T<float> position;
@@ -663,7 +663,7 @@ void StopAmbientSoundByName(W8World* /* unused */, const char* name)
 
     for (index = 0; index < count; ++index) {
         W8AmbientSound* sound =
-            static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
+            GetWorldAmbientSound(g_world, index);
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             if (sound != 0) {
                 SoundStop(sound->sound_handle);
@@ -684,7 +684,7 @@ void ToggleAmbientSoundByName(W8World* /* unused */, const char* name)
 
     for (index = 0; index < count; ++index) {
         W8AmbientSound* sound =
-            static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
+            GetWorldAmbientSound(g_world, index);
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             if (sound != 0) {
                 if (sound->stopped != 0) {
@@ -771,7 +771,7 @@ void SetSoundEffectsVolume(unsigned char volume)
         count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
-                static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
+                GetWorldAmbientSound(g_world, index);
             if (sound != 0) {
                 if (sound->sound_handle != -1) {
                     unsigned int adjusted =
@@ -791,7 +791,7 @@ void SetSoundEffectsVolume(unsigned char volume)
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
-                static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
+                GetWorldAmbientSound(world, index);
             if (sound != 0) {
                 srVector3T<float> position;
                 GetCameraPosition(&position);
@@ -849,7 +849,7 @@ void SaveAmbientSoundList(HWFILE handle)
     ok = ok && FileWrite(handle, &count, 4, 0);
     for (index = 0; index < static_cast<int>(count); ++index) {
         W8AmbientSound* sound =
-            static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
+            GetWorldAmbientSound(g_world, index);
         if (sound != 0) {
             if (sound->pacSoundName == 0) {
                 if (ok) {
@@ -898,7 +898,7 @@ void LoadAmbientSoundList(HWFILE handle)
         length = static_cast<int>(PLLength(g_world->plsAmbientSounds));
         for (scan = 0; scan < length; ++scan) {
             W8AmbientSound* sound =
-                static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, scan));
+                GetWorldAmbientSound(g_world, scan);
             if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
                 if (sound != 0) {
                     if (stopped_flag == 0) {

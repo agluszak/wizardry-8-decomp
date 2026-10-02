@@ -162,7 +162,7 @@ void UpdateWorldProps(W8World* world)
     }
     count = PLLength(world->plsProps);
     for (index = 0; index < static_cast<int>(count); ++index) {
-        W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
+        W8Prop* prop = GetWorldProp(world, index);
         Trigger* trigger;
 
         if (prop != 0 && (trigger = FindTriggerForProp(world, prop)) != 0 && prop->m_gd_prop != 0) {
@@ -196,7 +196,7 @@ W8Prop* FindPropByName(W8World* world, const char* name)
         unsigned int count = PLLength(world->plsProps);
 
         for (index = 0; index < static_cast<int>(count); ++index) {
-            W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
+            W8Prop* prop = GetWorldProp(world, index);
             if (prop->m_name != 0 && _stricmp(prop->m_name, name) == 0) {
                 return prop;
             }
@@ -294,9 +294,9 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
 }
 
 // GLOBAL: WIZ8 0x00659A60
-Trigger* g_selected_prop_trigger;
+static Trigger* g_selected_prop_trigger;
 // GLOBAL: WIZ8 0x00607B98
-int g_selected_prop_index = -1;
+static int g_selected_prop_index = -1;
 
 /* Whether the renderer's currently selected model instance is one of the
    instances this prop's animation dispatches.  With a running animation every
@@ -367,7 +367,7 @@ char ResolvePickedProp(W8World* world)
         if (g_selected_prop_trigger != 0) {
             return valid;
         }
-        prop = static_cast<W8Prop*>(PLGet(world->plsProps, prop_index));
+        prop = GetWorldProp(world, prop_index);
         representation = prop->Rep();
         if (representation->active == 0) {
             continue;
@@ -1886,7 +1886,7 @@ void SaveWorldProps(W8World* world, int handle)
     count = static_cast<int>(PLLength(world->plsProps));
     FileWrite(handle, &count, 4, 0);
     for (index = 0; index < count; ++index) {
-        prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
+        prop = GetWorldProp(world, index);
         strcpy(name, prop->m_name);
         FileWrite(handle, name, 0x40, 0);
         if (FileWrite(handle, &prop->Rep()->subcycle_064, 1, 0) != 0 &&
@@ -1924,7 +1924,7 @@ void LoadWorldProps(W8World* world, int handle)
             prop = 0;
             entries = static_cast<int>(PLLength(world->plsProps));
             for (int entry_index = 0; entry_index < entries; ++entry_index) {
-                entry = static_cast<W8Prop*>(PLGet(world->plsProps, entry_index));
+                entry = GetWorldProp(world, entry_index);
                 if (entry->id_008 == key) {
                     prop = entry;
                     break;

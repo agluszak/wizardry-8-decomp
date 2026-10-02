@@ -19,7 +19,7 @@
 #include "wiz8/engine_code/3dapi.h"
 
 // GLOBAL: WIZ8 0x0069c260
-unsigned int g_effect_icon_help_duration;
+static unsigned int g_effect_icon_help_duration;
 
 /* Local Screens\MGSSpellIcons.cpp. The vector destructor emission at
    0x005B1B70 is the last one before the compiler's MGSSpellIcons.cpp to
@@ -31,10 +31,10 @@ unsigned int g_effect_icon_help_duration;
 unsigned int g_spell_icon_count;
 /* Child spell-icon text controls under g_spell_icon_strip. */
 // GLOBAL: WIZ8 0x0069C264
-W8TextControl* g_spell_icon_rows[12];
+static W8TextControl* g_spell_icon_rows[12];
 /* Right-side combat-effect icon rows under g_combat_effect_right_panel. */
 // GLOBAL: WIZ8 0x0069C294
-W8TextControl* g_combat_effect_right_rows[6];
+static W8TextControl* g_combat_effect_right_rows[6];
 // GLOBAL: WIZ8 0x0069C2AC
 unsigned int g_combat_effect_right_count;
 // GLOBAL: WIZ8 0x0069C2B0
@@ -47,11 +47,11 @@ Controls* g_combat_effect_right_panel;
 Controls* g_combat_effect_left_panel;
 /* Left-side combat-effect icon rows under g_combat_effect_left_panel. */
 // GLOBAL: WIZ8 0x0069C2C0
-W8TextControl* g_combat_effect_left_rows[9];
+static W8TextControl* g_combat_effect_left_rows[9];
 
 #define MGSSPELLICONS_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSSpellIcons.cpp"
 
-void RebuildCombatEffectHudRows(void);
+static void RebuildCombatEffectHudRows(void);
 
 // TEMPLATE: WIZ8 0x005b1b70
 // W8GrowableVector<W8CharacterPageEntry*>::~W8GrowableVector<W8CharacterPageEntry*>
@@ -204,7 +204,7 @@ void RefreshCombatEffectHud(void)
 /* Rebuild both combat-effect panels: nine left slots walk right from x=0,
    six right slots walk left from x=0x69, one text control per active effect. */
 // FUNCTION: WIZ8 0x005AEFC0
-void RebuildCombatEffectHudRows(void)
+static void RebuildCombatEffectHudRows(void)
 {
     int left;
     int right;

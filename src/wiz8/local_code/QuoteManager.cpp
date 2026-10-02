@@ -154,14 +154,14 @@ int PickRandomPartySpeaker(unsigned int event_type, unsigned char excluded_slot)
    five-vector dispatch queue. */
 
 // GLOBAL: WIZ8 0x0068C578
-int g_special_event_0068c578 = g_first_remapped_event;
+static int g_special_event_0068c578 = g_first_remapped_event;
 // GLOBAL: WIZ8 0x0068c57c
 unsigned int g_event_range_min = g_first_remapped_event + 21;
 /* 0x0068C580: the shared wide buffer formatted character text lands in. The
    message reader admits at most 0x7D0 code units, so the buffer holds exactly
    the two thousand characters that reach the next global at 0x0068D520. */
 // GLOBAL: WIZ8 0x0068C580
-wchar_t g_character_text[2000];
+static wchar_t g_character_text[2000];
 /* 0x005ED91C: the quote file-name stem per personality, a twenty-byte fixed
    buffer each. The nine personas end exactly at the next global; the quote
    lookup composes Data\Quotes\PCs\<m|f>_<stem><1|2>0.MSG from them. */
@@ -181,7 +181,7 @@ struct W8PortraitTables {
     int pose_transition[30];
 };
 // GLOBAL: WIZ8 0x0061cb3c
-W8PortraitTables g_portrait_tables = {
+static W8PortraitTables g_portrait_tables = {
     {0x0080, 0x0138, 0x0080, 0x0138, 0x0080, 0x0138, 0x0080, 0x0138},
     {0x0013, 0x0013, 0x0067, 0x0067, 0x00bc, 0x00bc, 0x0111, 0x0111},
     {1, 3, 3, 4, 5, 3, 2, 3, 3, 3, 1,          2,          3,          4,          1,
@@ -302,33 +302,33 @@ const W8CharacterEventDescriptor g_character_event_descriptors[0xb1] = {
 };
 
 // GLOBAL: WIZ8 0x0068C504
-int g_special_event_0068c504 = g_first_remapped_event + 9;
+static int g_special_event_0068c504 = g_first_remapped_event + 9;
 // GLOBAL: WIZ8 0x0068C508
-int g_special_event_0068c508 = g_first_remapped_event + 10;
+static int g_special_event_0068c508 = g_first_remapped_event + 10;
 // GLOBAL: WIZ8 0x0068C50C
 int g_special_event_0068c50c = g_first_remapped_event + 5;
 // GLOBAL: WIZ8 0x0068C514
-int g_special_event_0068c514 = g_first_remapped_event + 1;
+static int g_special_event_0068c514 = g_first_remapped_event + 1;
 // GLOBAL: WIZ8 0x0068C51C
-int g_special_event_0068c51c = g_first_remapped_event + 18;
+static int g_special_event_0068c51c = g_first_remapped_event + 18;
 // GLOBAL: WIZ8 0x0068C524
 int g_special_event_0068c524 = g_first_remapped_event + 27;
 // GLOBAL: WIZ8 0x0068C528
 int g_special_event_0068c528 = g_first_remapped_event + 28;
 // GLOBAL: WIZ8 0x0068C52C
-int g_special_event_0068c52c = g_first_remapped_event + 2;
+static int g_special_event_0068c52c = g_first_remapped_event + 2;
 // GLOBAL: WIZ8 0x0068C530
 int g_special_event_0068c530 = g_first_remapped_event + 29;
 // GLOBAL: WIZ8 0x0068C534
 int g_special_event_0068c534 = g_first_remapped_event + 4;
 // GLOBAL: WIZ8 0x0068C538
-int g_special_event_0068c538 = g_first_remapped_event + 8;
+static int g_special_event_0068c538 = g_first_remapped_event + 8;
 // GLOBAL: WIZ8 0x0068C544
-int g_special_event_0068c544 = g_first_remapped_event + 7;
+static int g_special_event_0068c544 = g_first_remapped_event + 7;
 // GLOBAL: WIZ8 0x0068C540
-int g_special_event_0068c540 = g_first_remapped_event + 19;
+static int g_special_event_0068c540 = g_first_remapped_event + 19;
 // GLOBAL: WIZ8 0x0068C550
-int g_special_event_0068c550 = g_first_remapped_event + 17;
+static int g_special_event_0068c550 = g_first_remapped_event + 17;
 // GLOBAL: WIZ8 0x0068C558
 int g_special_event_0068c558 = g_first_remapped_event + 15;
 // GLOBAL: WIZ8 0x0068C55C
@@ -336,7 +336,7 @@ int g_special_event_0068c55c = g_first_remapped_event + 3;
 // GLOBAL: WIZ8 0x0068C560
 int g_special_event_0068c560 = g_first_remapped_event + 25;
 // GLOBAL: WIZ8 0x0068C564
-int g_special_event_0068c564 = g_first_remapped_event + 20;
+static int g_special_event_0068c564 = g_first_remapped_event + 20;
 // GLOBAL: WIZ8 0x0068C568
 int g_special_event_0068c568 = g_first_remapped_event + 6;
 // GLOBAL: WIZ8 0x0068C56C

@@ -25,7 +25,7 @@
 #define SWAMP_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\Swamp.cpp"
 
 // GLOBAL: WIZ8 0x006834e4
-W8Monster* g_swamp_spawned_monster;
+static W8Monster* g_swamp_spawned_monster;
 
 /* Level Specific Code\Swamp.cpp (level 0x18).
 
@@ -49,8 +49,8 @@ bool SwampOilPool(Trigger* pTrigger)
     return 0;
 }
 
-bool SwampGasFireSpawn(Trigger* pTrigger); /* 0x004DAA70 */
-void SwampGasFireItemDrop(int command);    /* 0x004DACD0 */
+static bool SwampGasFireSpawn(Trigger* pTrigger); /* 0x004DAA70 */
+static void SwampGasFireItemDrop(int command);    /* 0x004DACD0 */
 
 /* "gas_trig_plane01-07": while fact 0x16d is unset the trigger defers to the
    one-shot spawner; once set, it casts spell 0x2a at power 4 on the camera
@@ -95,7 +95,7 @@ bool SwampFirePlane(Trigger* pTrigger)
 // SYNTHETIC: WIZ8 0x004DAA8A
 // SwampGasFireSpawn post-guard continuation
 // FUNCTION: WIZ8 0x004DAA70
-bool SwampGasFireSpawn(Trigger* pTrigger)
+static bool SwampGasFireSpawn(Trigger* pTrigger)
 {
     srVector3T<float> center;
     srVector3T<float> position;
@@ -150,7 +150,7 @@ bool SwampGasFireSpawn(Trigger* pTrigger)
    queued NPC script notice completes - then drops an unidentified item 0x264
    at the spawned monster and fades it out for removal. */
 // FUNCTION: WIZ8 0x004DACD0
-void SwampGasFireItemDrop(int command)
+static void SwampGasFireItemDrop(int command)
 {
     srVector3T<float> position;
     srVector3T<float> drop_position;

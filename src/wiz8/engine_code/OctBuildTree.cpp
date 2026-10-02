@@ -17,11 +17,11 @@ W8GDSurface** g_oct_build_scratch;
 /* The running count of surfaces appended into the scratch buffer by the
    leaf collector. Saved and restored around nested collects. */
 // GLOBAL: WIZ8 0x00659a38
-unsigned long g_oct_build_count;
+static unsigned long g_oct_build_count;
 /* The caller's result slot during a segment collect; retail writes it but
    no recovered reader exists. */
 // GLOBAL: WIZ8 0x00659a44
-void* g_oct_build_out;
+static void* g_oct_build_out;
 
 char CollectSurfacePredicate(W8GDSurface* surface, short kind);
 

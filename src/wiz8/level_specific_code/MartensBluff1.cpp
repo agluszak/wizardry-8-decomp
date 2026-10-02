@@ -40,15 +40,15 @@
    (MR109, ButtonGigas, ButtonTrang, ButtonRift, ButtonMaten). */
 
 // GLOBAL: WIZ8 0x00683558
-bool g_teleport_running;
+static bool g_teleport_running;
 // GLOBAL: WIZ8 0x0068355C
-Trigger* g_door_controller;
+static Trigger* g_door_controller;
 // GLOBAL: WIZ8 0x00683560
-stSound3D* g_gas_sound_00;
+static stSound3D* g_gas_sound_00;
 // GLOBAL: WIZ8 0x00683564
-stSound3D* g_gas_sound_01;
+static stSound3D* g_gas_sound_01;
 // GLOBAL: WIZ8 0x00683568
-W8IntervalGate* g_transport_gate;
+static W8IntervalGate* g_transport_gate;
 
 /* The level-5 entry point called from InitializeLevelMasterFunctions:
    caches the J-Doorcontroller trigger, seeds DialState, kicks the Trang

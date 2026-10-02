@@ -38,31 +38,31 @@
 #include "wiz8/layouts/game_status.h"
 
 // GLOBAL: WIZ8 0x0068c0a4
-int g_message_box_state;
+static int g_message_box_state;
 // GLOBAL: WIZ8 0x0061a548
-short g_message_box_background_image = -1;
+static short g_message_box_background_image = -1;
 // GLOBAL: WIZ8 0x0061a54c
-int g_message_box_background_button = -1;
+static int g_message_box_background_button = -1;
 // GLOBAL: WIZ8 0x0061a550
-int g_message_box_accept_button = -1;
+static int g_message_box_accept_button = -1;
 // GLOBAL: WIZ8 0x0061a554
-int g_message_box_cancel_button = -1;
+static int g_message_box_cancel_button = -1;
 // GLOBAL: WIZ8 0x0061a558
-int g_message_box_accept_image = -1;
+static int g_message_box_accept_image = -1;
 // GLOBAL: WIZ8 0x0061a55c
-int g_message_box_cancel_image = -1;
+static int g_message_box_cancel_image = -1;
 // GLOBAL: WIZ8 0x0068c0a0
 void (*g_message_box_callback)(void);
 // GLOBAL: WIZ8 0x0068c0a8
-int g_message_box_font;
+static int g_message_box_font;
 // GLOBAL: WIZ8 0x0068c0ac
-unsigned int g_message_box_shade;
+static unsigned int g_message_box_shade;
 // GLOBAL: WIZ8 0x0068c0b0
-bool g_message_box_accepted;
+static bool g_message_box_accepted;
 // GLOBAL: WIZ8 0x0068BFD0
-char g_format_string_buffer[200];
+static char g_format_string_buffer[200];
 // GLOBAL: WIZ8 0x00689FD0
-wchar_t g_wide_string_buffer[4096];
+static wchar_t g_wide_string_buffer[4096];
 
 // FUNCTION: WIZ8 0x00517950
 void SetDice(W8Dice* dice, unsigned char count, unsigned char sides, short base)

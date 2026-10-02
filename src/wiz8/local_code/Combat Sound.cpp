@@ -22,9 +22,9 @@
 #define COMBAT_SOUND_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Combat Sound.cpp"
 
 // GLOBAL: WIZ8 0x0068DD90
-char* g_weapon_attack_sounds[38];
+static char* g_weapon_attack_sounds[38];
 // GLOBAL: WIZ8 0x0068D850
-char* g_material_impact_sounds[28][12];
+static char* g_material_impact_sounds[28][12];
 
 /* Play one combat sound under Data\Sound\Combat\.  When the name carries more
    than one recorded variant a random 1..n digit is appended onto the caller's

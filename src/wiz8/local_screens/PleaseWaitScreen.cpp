@@ -65,13 +65,13 @@ struct W8LevelLoadDescriptor {
 // GLOBAL: WIZ8 0x0069B7C0
 int g_level_load_font;
 // GLOBAL: WIZ8 0x0069B7C4
-int g_value_69b7c4;
+static int g_value_69b7c4;
 // GLOBAL: WIZ8 0x0069B7C8
 W8LevelLoadDescriptor* g_load_descriptor;
 // GLOBAL: WIZ8 0x0069B7CC
-W8MessageDialogBase* g_swap_disc_dialog;
+static W8MessageDialogBase* g_swap_disc_dialog;
 // GLOBAL: WIZ8 0x0069B7D0
-bool g_cd_marker_present;
+static bool g_cd_marker_present;
 
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
 
@@ -80,7 +80,7 @@ bool g_cd_marker_present;
    the string list. Both are bounded by 0x2F, with 0xE4 as the backdrop the
    frame handler falls back to. */
 // GLOBAL: WIZ8 0x0064bf8c
-int g_level_backdrops[W8_LEVEL_COUNT] = {
+static int g_level_backdrops[W8_LEVEL_COUNT] = {
     0x1bc, 0x1bd, 0x1be, 0x1bf, 0x1c0, 0x1c2, 0x1c1, 0x1c3, 0x1c4, 0x1c5, 0x1c6, 0xe4,
     0x1c7, 0x1c8, 0x1c9, 0x1ca, 0x1cb, 0x1cc, 0x1cd, 0x1ce, 0x1cf, 0x1d0, 0x1d1, 0xe4,
     0x1d2, 0x1d3, 0x1d4, 0x1d5, 0xe4,  0x1d6, 0xe4,  0x1d7, 0x1d8, 0x1d9, 0xe4,  0xe4,
@@ -168,7 +168,7 @@ unsigned char PleaseWaitScreenEnter(void)
    object, which is what separates these call sites from the derived
    constructors that reach the same three addresses directly. */
 // FUNCTION: WIZ8 0x00591620
-unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
+static unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
 {
     if (!FileExistsNoDB("Levels\\Levels.slf") && g_cd_marker_present) {
         if (IsLevelCdMissing(level)) {

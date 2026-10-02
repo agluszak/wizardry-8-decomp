@@ -78,7 +78,7 @@ unsigned char IntroScreenEnter(void)
     return 1;
 }
 
-void AdvanceIntroScreen(void);
+static void AdvanceIntroScreen(void);
 
 // FUNCTION: WIZ8 0x005ae6f0
 void IntroScreenFrame(void)
@@ -107,7 +107,7 @@ void IntroScreenFrame(void)
 }
 
 // FUNCTION: WIZ8 0x005ae780
-void AdvanceIntroScreen(void)
+static void AdvanceIntroScreen(void)
 {
     char path[500];
     W8BinkVideo* video;

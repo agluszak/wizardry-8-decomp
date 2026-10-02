@@ -43,7 +43,7 @@ srHeapBuffer<unsigned long> g_software_cull_active_polygons;
 /* Byte budget for the decompressed per-frame caches; AllocateFrameBuffers
    reclaims least-recently-used frames past it. */
 // GLOBAL: WIZ8 0x00609d34
-int g_decompressed_mesh_byte_limit = 0x800000;
+static int g_decompressed_mesh_byte_limit = 0x800000;
 
 /* Signed-byte normal components back to floats, indexed by the raw byte. */
 // GLOBAL: WIZ8 0x00659ce8

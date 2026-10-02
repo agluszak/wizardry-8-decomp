@@ -80,7 +80,7 @@ static unsigned int g_monster_group_tick = 0;
 /* Member info by group list position, defined near the end of the file and
    always inlined into its callers. */
 static inline W8MonsterInfo* GetGroupMemberInfo(W8MonsterGroup* group, unsigned int index);
-void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action_detail,
+static void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action_detail,
                         int attack_index, W8TargetKind target_kind, int target_value);
 
 /* 125000, the cap on how far a monster will walk to investigate a heard
@@ -1238,7 +1238,7 @@ targets_chosen:
    goes in depends on what kind of target it is. Each entry gets a random tie
    break so two equal decisions do not always resolve the same way. */
 // FUNCTION: WIZ8 0x00532360
-void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action_detail,
+static void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action_detail,
                         int attack_index, W8TargetKind target_kind, int target_value)
 {
     W8MonsterAction* entry = static_cast<W8MonsterAction*>(malloc(0x30));

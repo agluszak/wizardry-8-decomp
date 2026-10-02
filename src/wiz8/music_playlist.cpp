@@ -21,9 +21,9 @@
 // GLOBAL: WIZ8 0x0060aae0
 int g_music_sample_handle = -1;
 // GLOBAL: WIZ8 0x0065BA74
-stScript* g_music_playlist;
+static stScript* g_music_playlist;
 // GLOBAL: WIZ8 0x0065BA78
-unsigned int g_music_playlist_tick;
+static unsigned int g_music_playlist_tick;
 // GLOBAL: WIZ8 0x0065BA7E
 bool g_music_playlist_active;
 // GLOBAL: WIZ8 0x0065BA80
@@ -31,9 +31,9 @@ int g_music_playlist_weight_total;
 // GLOBAL: WIZ8 0x0065BA84
 int g_music_playlist_track_count;
 // GLOBAL: WIZ8 0x0060AAE4
-unsigned char g_music_fade = 1;
+static unsigned char g_music_fade = 1;
 // GLOBAL: WIZ8 0x0060AAE5
-unsigned char g_music_force_next = 1;
+static unsigned char g_music_force_next = 1;
 // GLOBAL: WIZ8 0x0060AAE8
 int g_music_state_60aae8 = 20;
 // GLOBAL: WIZ8 0x0060AAEC

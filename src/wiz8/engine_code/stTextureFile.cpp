@@ -17,9 +17,9 @@
    freeing) and the zero-size branch calls the emitted release() at
    0x004741B0. The second pair backs one decoded row / RLE packet. */
 // GLOBAL: WIZ8 0x0065A138
-srHeapBuffer<unsigned char> g_tga_file_data;
+static srHeapBuffer<unsigned char> g_tga_file_data;
 // GLOBAL: WIZ8 0x0065A130
-srHeapBuffer<unsigned char> g_tga_row_data;
+static srHeapBuffer<unsigned char> g_tga_row_data;
 
 /* Decodes TGA pixel data into the surface. Destination writes are strided:
    the pixel step is the surface's bytes-per-pixel (negated when the

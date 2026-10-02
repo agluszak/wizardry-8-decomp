@@ -166,16 +166,16 @@ W8DialogBase* g_modal_owner;
 W8DialogBase* g_pending_main_game_dialog;
 
 // GLOBAL: WIZ8 0x0068edb0
-unsigned int g_mouselook_last_tick;
+static unsigned int g_mouselook_last_tick;
 // GLOBAL: WIZ8 0x0068edb4
-unsigned char g_mouselook_tick_init;
+static unsigned char g_mouselook_tick_init;
 // GLOBAL: WIZ8 0x0068edbc
 unsigned char g_radar_panel_shown;
 
 // GLOBAL: WIZ8 0x0068ede0
-float g_mouselook_pending_yaw;
+static float g_mouselook_pending_yaw;
 // GLOBAL: WIZ8 0x0068ede4
-float g_mouselook_pending_pitch;
+static float g_mouselook_pending_pitch;
 
 // GLOBAL: WIZ8 0x005ee9a0
 const float g_mouselook_smooth_max = 0.39269906f;
@@ -193,7 +193,7 @@ bool g_mouselook_active;
 
 /* Saved mouse position while mouselook is latched (WarpSystemCursor restore). */
 // GLOBAL: WIZ8 0x0068edc0
-POINT g_mouselook_cursor_pos;
+static POINT g_mouselook_cursor_pos;
 
 // GLOBAL: WIZ8 0x0068eddc
 int g_main_game_mode;
@@ -222,14 +222,14 @@ bool g_mouselook_left_held;
 bool g_node_cull_pending;
 
 // GLOBAL: WIZ8 0x006480f4
-wchar_t g_format_mouselook_angles[] = L"%.3f, %.3f";
+static wchar_t g_format_mouselook_angles[] = L"%.3f, %.3f";
 
 // GLOBAL: WIZ8 0x0068f2c8
-unsigned int g_main_game_text_panel_region_set;
+static unsigned int g_main_game_text_panel_region_set;
 // GLOBAL: WIZ8 0x0068f2cc
-unsigned int g_main_game_text_key_region_set;
+static unsigned int g_main_game_text_key_region_set;
 // GLOBAL: WIZ8 0x0068f2d0
-unsigned int g_main_game_action_panel_region_set;
+static unsigned int g_main_game_action_panel_region_set;
 
 // GLOBAL: WIZ8 0x0061e9ec
 unsigned short g_value_0061e9ec[] = {
@@ -246,15 +246,15 @@ const char* g_trap_sounds[8] = {
     "Data\\Sound\\Misc\\Trap 06.wav", "Data\\Sound\\Misc\\Trap 04.wav",
 };
 // GLOBAL: WIZ8 0x0064BB88
-char s_lock_open_fail_64bb88[] = "Data\\Sound\\Misc\\Lock_Open_Fail.wav";
+static char s_lock_open_fail_64bb88[] = "Data\\Sound\\Misc\\Lock_Open_Fail.wav";
 // GLOBAL: WIZ8 0x0064BCF0
-char s_trap_detect_64bcf0[] = "Data\\Sound\\Misc\\Trap Detect.wav";
+static char s_trap_detect_64bcf0[] = "Data\\Sound\\Misc\\Trap Detect.wav";
 
 // GLOBAL: WIZ8 0x0064bcac
-char g_trap_inspection_sound[] = "Data\\Sound\\Misc\\Trap Inspection.wav";
+static char g_trap_inspection_sound[] = "Data\\Sound\\Misc\\Trap Inspection.wav";
 
 // GLOBAL: WIZ8 0x0064bcd0
-char g_trap_sprung_sound[] = "Data\\Sound\\Misc\\Trap Sprung.wav";
+static char g_trap_sprung_sound[] = "Data\\Sound\\Misc\\Trap Sprung.wav";
 
 // GLOBAL: WIZ8 0x0064bab0
 wchar_t g_format_d_percent[] = L"%d%%";
@@ -263,27 +263,27 @@ wchar_t g_format_d_percent[] = L"%d%%";
 wchar_t g_format_s[] = L"%s";
 
 // GLOBAL: WIZ8 0x00648170
-wchar_t g_format_d_s_paren_d_slash_d_slash_d[] = L"%d %s (%d/%d/%d)";
+static wchar_t g_format_d_s_paren_d_slash_d_slash_d[] = L"%d %s (%d/%d/%d)";
 
 #pragma bss_seg(".data")
 // GLOBAL: WIZ8 0x00647f84
-int g_monster_list_right = 0;
+static int g_monster_list_right = 0;
 #pragma bss_seg()
 
 #pragma bss_seg(".data")
 // GLOBAL: WIZ8 0x00647f88
-int g_monster_list_bottom = 0;
+static int g_monster_list_bottom = 0;
 #pragma bss_seg()
 
 // GLOBAL: WIZ8 0x006481b4
 wchar_t g_format_s_colon_s_paren_d[] = L"%s: %s (%d)";
 
 // GLOBAL: WIZ8 0x0064808c
-wchar_t g_format_enter_test_level[] = L"Enter test level %c ?";
+static wchar_t g_format_enter_test_level[] = L"Enter test level %c ?";
 // GLOBAL: WIZ8 0x006480b8
-wchar_t g_text_enter_default_level[] = L"Enter default level ?";
+static wchar_t g_text_enter_default_level[] = L"Enter default level ?";
 // GLOBAL: WIZ8 0x006480e4
-wchar_t g_format_s_s_question[] = L"%s %s?";
+static wchar_t g_format_s_s_question[] = L"%s %s?";
 
 // GLOBAL: WIZ8 0x0061A700
 wchar_t g_format_s_paren_d[] = L"%s (%d)";
@@ -307,7 +307,7 @@ const float g_float_005eebbc = 120.0f;
 // GLOBAL: WIZ8 0x00659c11
 bool g_navigator_position_changed;
 
-void ApplyPendingMouselook(void);
+static void ApplyPendingMouselook(void);
 void ApplyPendingTooltip(void);
 void UpdateCombatPortraitStatus(void);
 void UpdateKeyboardMenu(void);          /* 0x0059B390 */
@@ -316,13 +316,13 @@ void RedrawPanel69B940(void);           /* 0x0059BC00 */
 
 void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled); /* 0x0059A540 */
 
-void DrawMainGamePrompt(void);              /* 0x0056AC80 */
+static void DrawMainGamePrompt(void);              /* 0x0056AC80 */
 void InvalidateLockInteractionPanels(void); /* 0x00587C50 */
 unsigned char GetOpenDialogueFlag(void);    /* 0x0058D7C0 */
 void RedrawTextBoxComplete(void);           /* 0x0058A8C0 */
 unsigned char HandleMouselookInput(const InputAtom* input);
 
-bool IsPartyPortraitUnderCursor(unsigned int party_slot);
+static bool IsPartyPortraitUnderCursor(unsigned int party_slot);
 void UpdateFormationPortraitRefresh(void);
 extern unsigned char g_mouselook_manual;
 /* Insanity (spell 0x3c) world-cursor extent rows: six doubles per row.
@@ -341,28 +341,28 @@ signed char g_spell_power_extent_index[8] = {0, 0, 0, 1, 1, 2, 2, 0};
 
 void ServiceNpcDialogue(void);
 // GLOBAL: WIZ8 0x0064BA80
-int g_lock_pin_target_height[4] = {10, 16, 22, 28};
+static int g_lock_pin_target_height[4] = {10, 16, 22, 28};
 
 // GLOBAL: WIZ8 0x0064ba90
-int g_knock_knock_chance[8] = {0, 344, 459, 516, 550, 573, 589, 602};
+static int g_knock_knock_chance[8] = {0, 344, 459, 516, 550, 573, 589, 602};
 // GLOBAL: WIZ8 0x0064BAE8
-char s_lock_pin_falling_64bae8[] = "Data\\Sound\\Misc\\Lock_Pin_Falling.wav";
+static char s_lock_pin_falling_64bae8[] = "Data\\Sound\\Misc\\Lock_Pin_Falling.wav";
 // GLOBAL: WIZ8 0x0064BABC
-char s_lock_picking_success_64babc[] = "Data\\Sound\\Misc\\Lock_Picking_Success.wav";
+static char s_lock_picking_success_64babc[] = "Data\\Sound\\Misc\\Lock_Picking_Success.wav";
 // GLOBAL: WIZ8 0x0064BB10
-char s_lock_pin_rising_64bb10[] = "Data\\Sound\\Misc\\Lock_Pin_Rising.wav";
+static char s_lock_pin_rising_64bb10[] = "Data\\Sound\\Misc\\Lock_Pin_Rising.wav";
 // GLOBAL: WIZ8 0x0064BB34
-char s_lock_forcing_fail_64bb34[] = "Data\\Sound\\Misc\\Lock_Forcing_Fail.wav";
+static char s_lock_forcing_fail_64bb34[] = "Data\\Sound\\Misc\\Lock_Forcing_Fail.wav";
 // GLOBAL: WIZ8 0x0064BB5C
-char s_lock_forcing_success_64bb5c[] = "Data\\Sound\\Misc\\Lock_Forcing_Successful.wav";
+static char s_lock_forcing_success_64bb5c[] = "Data\\Sound\\Misc\\Lock_Forcing_Successful.wav";
 // GLOBAL: WIZ8 0x0068F2B4
-int g_lock_phase;
+static int g_lock_phase;
 // GLOBAL: WIZ8 0x0068F2B8
-unsigned int g_lock_tumbler_region_set;
+static unsigned int g_lock_tumbler_region_set;
 // GLOBAL: WIZ8 0x0068F2BC
-unsigned int g_lock_action_region_set;
+static unsigned int g_lock_action_region_set;
 // GLOBAL: WIZ8 0x0068F2C0
-W8LockInteraction* g_lock_interaction;
+static W8LockInteraction* g_lock_interaction;
 /* 0x00586A70: the selected slot's effective power with spell 0x27. */
 int GetKnockKnockSpellPower(int slot);
 /* Open the lock interaction over a trigger, or re-raise its panels while one
@@ -3198,7 +3198,7 @@ unsigned char MainGameScreenEnter(void)
    restores the camera the trigger cached, a confirmed one runs the pending
    transition teardown. */
 // FUNCTION: WIZ8 0x00561000
-void OnEnterLevelDialogClosed(W8DialogBase* dialog)
+static void OnEnterLevelDialogClosed(W8DialogBase* dialog)
 {
     if (GetDialogResult(dialog)) {
         BeginLevelTransition();
@@ -3800,7 +3800,7 @@ void RequestRedraw(unsigned int mask)
 }
 
 // GLOBAL: WIZ8 0x0064810c
-char g_warning_drawing_text_box_while_text_buffer[] =
+static char g_warning_drawing_text_box_while_text_buffer[] =
     "WARNING: Drawing text box while Text Buffer = %d (AlexP)";
 
 /* Consume the live redraw_flags word: clear the primary surface, refresh the
@@ -5172,7 +5172,7 @@ struct W8ActiveViewport647F40 {
 static_assert(sizeof(W8ActiveViewport647F40) == 0x14, "W8ActiveViewport647F40_size");
 
 // GLOBAL: WIZ8 0x00647f40
-W8ActiveViewport647F40 g_active_viewport = {-1, {0, 0, 0, 0}};
+static W8ActiveViewport647F40 g_active_viewport = {-1, {0, 0, 0, 0}};
 
 /* Switch the 3D view to another viewport mode: resize the view region to the
    inclusive rectangle and hand the renderer the exclusive one. */
@@ -5196,7 +5196,7 @@ void SetViewportMode(int mode)
    `party_slot`, accounting for the hover panel's x origin and the slot's
    mirrored even/odd layout. */
 // FUNCTION: WIZ8 0x00561980
-bool IsPartyPortraitUnderCursor(unsigned int party_slot)
+static bool IsPartyPortraitUnderCursor(unsigned int party_slot)
 {
     W8MainGameInvalidateRect& row = g_main_game_invalidate_rects[party_slot];
     int image = g_level_block->portrait_refresh_image[party_slot];
@@ -6832,7 +6832,7 @@ void UpdateWorldViewCursor(const InputAtom* event, int target_needed)
             int cursor_x = GetAtomCursorX(event);
             int prop_index = ForwardSelectedPropIndex(g_world, cursor_x, cursor_y);
             if (prop_index > -1) {
-                W8Prop* prop = static_cast<W8Prop*>(PLGet(g_world->plsProps, prop_index));
+                W8Prop* prop = GetWorldProp(g_world, prop_index);
                 if (gXStatus.world_update_blocked == 0) {
                     if (prop != 0) {
                         if (prop->TriggerRequiresItem() && g_status.item_in_cursor != 0) {
@@ -6976,7 +6976,7 @@ void DisableCombatRegions(void)
 /* Drain the pending mouselook yaw/pitch into the camera, optionally scaling
    mid-range deltas by frame time when mouselook smoothing is enabled. */
 // FUNCTION: WIZ8 0x00568C40
-void ApplyPendingMouselook(void)
+static void ApplyPendingMouselook(void)
 {
     unsigned int now;
     unsigned int elapsed;
@@ -7311,7 +7311,7 @@ void SetCombatAction(int value)
    backdrop plus the "choose action" line - the combat variant while combat
    mode is on. */
 // FUNCTION: WIZ8 0x0056AC80
-void DrawMainGamePrompt(void)
+static void DrawMainGamePrompt(void)
 {
     W8ControlsRect bounds;
     W8TextBuffer* buffer;
@@ -7982,7 +7982,7 @@ void ToggleMainGamePause(void)
 /* Assay dialog destroy callback: closing the dialog leaves the main game
    screen fully dirty so every region repaints. */
 // FUNCTION: WIZ8 0x005670a0
-void InvalidateMainGameScreen(W8DialogBase* dialog)
+static void InvalidateMainGameScreen(W8DialogBase* dialog)
 {
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->redraw_flags = 0xffffffff;
@@ -8865,17 +8865,17 @@ resume_world:
    a fight is on; the party half always. */
 
 // GLOBAL: WIZ8 0x0068edb8
-unsigned long g_surprise_fade_tick_base;
+static unsigned long g_surprise_fade_tick_base;
 // GLOBAL: WIZ8 0x005ee9a8
 const float g_fade_resume_scale = -500.0f;
 // GLOBAL: WIZ8 0x0068edca
-unsigned char g_surprise_fade_in;
+static unsigned char g_surprise_fade_in;
 // GLOBAL: WIZ8 0x0068edf0
-srColorSurfaceIFace* g_surprise_snapshot_surface;
+static srColorSurfaceIFace* g_surprise_snapshot_surface;
 // GLOBAL: WIZ8 0x0068edf4
-stSurface2D* g_surprise_snapshot_overlay;
+static stSurface2D* g_surprise_snapshot_overlay;
 // GLOBAL: WIZ8 0x0068edf8
-stModelInstance2D* g_surprise_fade_node;
+static stModelInstance2D* g_surprise_fade_node;
 
 // FUNCTION: WIZ8 0x00560C60
 void ResetMainGameMode(void)

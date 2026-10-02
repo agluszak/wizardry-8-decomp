@@ -316,7 +316,7 @@ void ClearHeldItemDisplay(void)
    GetTable647CCCEntry, and the held-item cursor bookkeeping. */
 
 // GLOBAL: WIZ8 0x00647ccc
-unsigned char g_table_647ccc[8] = {7, 4, 6, 2, 5, 8, 9, 3};
+static unsigned char g_table_647ccc[8] = {7, 4, 6, 2, 5, 8, 9, 3};
 
 // FUNCTION: WIZ8 0x0055F2B0
 unsigned char GetTable647CCCEntry(signed char index)

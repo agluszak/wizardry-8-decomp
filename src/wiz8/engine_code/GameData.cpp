@@ -134,7 +134,7 @@ enum {
 };
 
 // GLOBAL: WIZ8 0x00652dba
-unsigned char g_level_override;
+static unsigned char g_level_override;
 // GLOBAL: WIZ8 0x00652dce
 bool g_shared_timers_paused;
 

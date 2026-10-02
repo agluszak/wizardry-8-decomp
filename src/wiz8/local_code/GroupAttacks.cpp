@@ -30,7 +30,7 @@
 /* The per-special-attack condition each attack slot tries to inflict, indexing the same
    rows as g_condition_notices. */
 // GLOBAL: WIZ8 0x0061EFFC
-int g_special_attack_condition_table[32][2] = {
+static int g_special_attack_condition_table[32][2] = {
     {0, 0},   {12, 0}, {12, 0}, {0, 0}, {0, 0}, {6, 11}, {6, 13}, {6, 0},  {0, 0}, {0, 0}, {11, 0},
     {11, 13}, {11, 0}, {3, 0},  {3, 0}, {4, 0}, {4, 0},  {16, 0}, {16, 0}, {7, 3}, {7, 0}, {15, 0},
     {5, 16},  {5, 0},  {0, 0},  {0, 0}, {0, 0}, {0, 0},  {0, 0},  {0, 0},  {0, 0}, {0, 0},
@@ -39,7 +39,7 @@ int g_special_attack_condition_table[32][2] = {
 /* The per-special-attack realm/effect id handed to ApplyEffectAndAnnounce and the
    realm drain. */
 // GLOBAL: WIZ8 0x0061F0FC
-int g_special_attack_realm_table[32] = {
+static int g_special_attack_realm_table[32] = {
     0, 1, 1, 5, 1, 4, 5, 4, 0, 0, 4, 5, 4, 3, 2, 3, 2, 4, 3, 1, 1, 2, 1, 3, 0, 0, 0, 0, 0, 0, 1, 0,
 };
 

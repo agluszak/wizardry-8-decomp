@@ -55,9 +55,9 @@
 /* 0x0069C514/0x0069C518: the stats page's text origin, initialized by the
    page renderer before every full redraw. */
 // GLOBAL: WIZ8 0x0069c514
-int g_camp_stats_origin_y;
+static int g_camp_stats_origin_y;
 // GLOBAL: WIZ8 0x0069c518
-int g_camp_stats_origin_x;
+static int g_camp_stats_origin_x;
 // GLOBAL: WIZ8 0x0069c51c
 unsigned int g_camp_stats_range_region_set;
 // GLOBAL: WIZ8 0x0069c520
@@ -65,7 +65,7 @@ unsigned int g_camp_stats_controls_region_set;
 /* 0x0069C524: the skills page row the cursor last hovered, kept so the help
    text only resets on a real change. */
 // GLOBAL: WIZ8 0x0069c524
-int g_camp_skill_hover_row;
+static int g_camp_skill_hover_row;
 // GLOBAL: WIZ8 0x0069c528
 unsigned int g_camp_skill_regions;
 
@@ -79,24 +79,24 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out);
    header draws. Category 4 sits below the right-hand column; the others fill
    the left and right columns. */
 // GLOBAL: WIZ8 0x0064ef40
-int g_camp_skill_category_positions[5][2] = {
+static int g_camp_skill_category_positions[5][2] = {
     {0x160, 0x8}, {0x160, 0xcc}, {0x22, 0x9}, {0x22, 0x86}, {0x2a, 0x21},
 };
 // GLOBAL: WIZ8 0x0064ef68
-int g_camp_skill_category_rows[5] = {0xb, 5, 8, 0xa, 7};
+static int g_camp_skill_category_rows[5] = {0xb, 5, 8, 0xa, 7};
 // GLOBAL: WIZ8 0x0064ef7c
-int g_camp_skill_category_images[5] = {2, 3, 0, 1, 4};
+static int g_camp_skill_category_images[5] = {2, 3, 0, 1, 4};
 
 // GLOBAL: WIZ8 0x0069c530
-unsigned int g_character_page2_region_set;
+static unsigned int g_character_page2_region_set;
 // GLOBAL: WIZ8 0x0069c52c
 unsigned int g_character_page4_region_set;
 // GLOBAL: WIZ8 0x0064ef90
-int g_character_page2_category_geometry[5][2] = {
+static int g_character_page2_category_geometry[5][2] = {
     {0xf9, 0x0a}, {0xf9, 0xcd}, {0x22, 0x0a}, {0x22, 0x87}, {0xf9, 0x120},
 };
 // GLOBAL: WIZ8 0x0064efb8
-int g_character_page2_category_frames[5] = {2, 3, 0, 1, 4};
+static int g_character_page2_category_frames[5] = {2, 3, 0, 1, 4};
 
 struct W8PortraitGroup {
     int count;
@@ -104,7 +104,7 @@ struct W8PortraitGroup {
 };
 static_assert(sizeof(W8PortraitGroup) == 0x3c, "W8PortraitGroup_size");
 // GLOBAL: WIZ8 0x00648950
-W8PortraitGroup g_portrait_groups[12] = {
+static W8PortraitGroup g_portrait_groups[12] = {
     {14, {0, 1, 2, 3, 76, 4, 5, 6, 7, 8, 9, 77, 10, 11}},
     {8, {12, 13, 14, 78, 15, 16, 17, 79}},
     {6, {18, 19, 20, 21, 22, 23}},

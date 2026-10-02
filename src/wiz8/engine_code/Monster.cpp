@@ -114,7 +114,7 @@ struct W8AttachmentOffset {
 };
 
 // GLOBAL: WIZ8 0x0060e618
-W8AttachmentOffset g_monster_attachment_offsets[8][8] = {{{0.0f, 0.0f, 0.0f},
+static W8AttachmentOffset g_monster_attachment_offsets[8][8] = {{{0.0f, 0.0f, 0.0f},
                                                           {0.0f, 0.0f, 0.0f},
                                                           {0.0f, 0.0f, 0.0f},
                                                           {0.0f, 0.0f, 0.0f},
@@ -179,7 +179,7 @@ W8AttachmentOffset g_monster_attachment_offsets[8][8] = {{{0.0f, 0.0f, 0.0f},
                                                           {37.5f, 75.0f, 0.0f},
                                                           {112.5f, 75.0f, 0.0f}}};
 // GLOBAL: WIZ8 0x0060e918
-float g_monster_attachment_scales[8] = {0.3f, 0.2f, 0.15f, 0.15f, 0.15f, 0.15f, 0.15f, 0.15f};
+static float g_monster_attachment_scales[8] = {0.3f, 0.2f, 0.15f, 0.15f, 0.15f, 0.15f, 0.15f, 0.15f};
 
 // GLOBAL: WIZ8 0x005ec04c
 const float g_monster_rotation_offset = 3.141592502593994f;
@@ -204,7 +204,7 @@ const double g_monster_facing_tolerance = 0.78539815;
 // GLOBAL: WIZ8 0x005ed2c0
 const double g_monster_group_nearest_range = 12500.0;
 // GLOBAL: WIZ8 0x0060f684
-char g_warning_missing_spell_vertex[] = "WARNING: %ls does not have a SPELL vertex marked! --> Lee";
+static char g_warning_missing_spell_vertex[] = "WARNING: %ls does not have a SPELL vertex marked! --> Lee";
 // GLOBAL: WIZ8 0x0060EA08
 W8CycleNameRow g_cycle_names[W8_MONSTER_CYCLE_COUNT] = {
     {"BIRTH", 5},
@@ -237,7 +237,7 @@ W8CycleNameRow g_cycle_names[W8_MONSTER_CYCLE_COUNT] = {
 };
 
 // GLOBAL: WIZ8 0x0060e614
-unsigned char g_monster_gib_option = 1;
+static unsigned char g_monster_gib_option = 1;
 // GLOBAL: WIZ8 0x005ed280
 extern const double g_monster_light_color_scale = 0.00392156862745098;
 
@@ -302,7 +302,7 @@ const char* g_party_target_marker_bitmaps[8] = {"TriRed.tga",  "TriGreen.tga",  
                                                 "TriPink.tga", "TriBrown.tga"};
 
 // GLOBAL: WIZ8 0x0060f510
-char g_monster_bitmap_path_format[] = "Data\\Monsters\\Bitmaps\\%s";
+static char g_monster_bitmap_path_format[] = "Data\\Monsters\\Bitmaps\\%s";
 
 // GLOBAL: WIZ8 0x0060e958
 const char* g_monster_script_commands[MONSCR_COUNT] = {"GOTO",
@@ -3922,9 +3922,9 @@ void W8Monster::AdvanceAnimationFrame(int value, int)
 }
 
 // GLOBAL: WIZ8 0x0064c158
-int g_spell_effect_frame = 1;
+static int g_spell_effect_frame = 1;
 // GLOBAL: WIZ8 0x0069b7dc
-int g_spell_index;
+static int g_spell_index;
 
 // VTABLE: WIZ8 0x005ed288
 // class W8MonsterShakeCallback

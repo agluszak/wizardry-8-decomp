@@ -68,7 +68,7 @@ const float g_float_005ecf98 = 0.02500000037252903f;
 // GLOBAL: WIZ8 0x005ecf9c
 const float g_float_005ecf9c = 250.0f;
 // GLOBAL: WIZ8 0x0060da88
-bool g_flag_0060da88 = true;
+static bool g_flag_0060da88 = true;
 // GLOBAL: WIZ8 0x0065be2c
 W8Vector<W8CameraShakeEffect*>* g_shake_effects;
 // GLOBAL: WIZ8 0x0065be30
@@ -1299,7 +1299,7 @@ void W8GrCycle::SubmitTargetValue()
 
 /* Parallel registries: each name has one growable vector of cycle objects. */
 // GLOBAL: WIZ8 0x0065bdf0
-W8GrowableVector<char*> g_grcycle_names;
+static W8GrowableVector<char*> g_grcycle_names;
 // VTABLE: WIZ8 0x005ecedc
 // class W8GrowableVector<W8GrCycle*>
 
@@ -1316,7 +1316,7 @@ W8GrowableVector<char*> g_grcycle_names;
 // W8GrowableVector<stLight*>::W8GrowableVector<stLight*>
 
 // GLOBAL: WIZ8 0x0065be00
-W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
+static W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
 
 // VTABLE: WIZ8 0x005eced8
 // class W8GrowableVector<W8CameraShakeEffect*>

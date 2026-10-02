@@ -111,10 +111,10 @@ unsigned short g_profession_level_name_message_ids[15][9] = {
     {0x3b6, 0x3b7, 0x415, 0x416, 0x417, 0x418, 0x419, 0x41a, 0x41b},
 };
 // GLOBAL: WIZ8 0x0064da9c
-int g_character_page_title_ids[4] = {0xcf, 0xd1, 0xd0, 0xd2};
+static int g_character_page_title_ids[4] = {0xcf, 0xd1, 0xd0, 0xd2};
 
 // GLOBAL: WIZ8 0x0069c2e4
-unsigned int g_character_screen_region_set;
+static unsigned int g_character_screen_region_set;
 // GLOBAL: WIZ8 0x0069c2e8
 W8CharacterScreen* g_character_screen;
 

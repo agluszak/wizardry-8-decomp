@@ -19,11 +19,11 @@
 /* The SR.DLL registry string is the original runtime class identity. */
 
 // GLOBAL: WIZ8 0x006834cc
-srTexture* g_ground_shadow_texture;
+static srTexture* g_ground_shadow_texture;
 // GLOBAL: WIZ8 0x006834d0
-srMaterial* g_ground_shadow_material;
+static srMaterial* g_ground_shadow_material;
 // GLOBAL: WIZ8 0x006834c8
-unsigned long g_ground_shadow_shader;
+static unsigned long g_ground_shadow_shader;
 
 /* The material mapper installed for ground shadows: process projects each
    indexed vertex's world x/z through a rotated scale matrix into the first
@@ -56,7 +56,7 @@ public:
 static_assert(sizeof(W8GroundShadowMapper) == 0x98, "W8GroundShadowMapper004D6180_must_be_0x98");
 
 // GLOBAL: WIZ8 0x00683430
-W8GroundShadowMapper g_ground_shadow_material_parameters;
+static W8GroundShadowMapper g_ground_shadow_material_parameters;
 
 // FUNCTION: WIZ8 0x004D6180
 W8GroundShadowMapper::W8GroundShadowMapper() {}

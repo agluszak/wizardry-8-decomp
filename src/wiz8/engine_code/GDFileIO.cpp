@@ -49,10 +49,10 @@ const float g_float_005ec1b0 = 60000.0f;
 // GLOBAL: WIZ8 0x005ec1b4
 const float g_float_005ec1b4 = 900000.0f;
 // GLOBAL: WIZ8 0x005ff56c
-char g_string_005ff56c[] = "\n";
+static char g_string_005ff56c[] = "\n";
 
 // GLOBAL: WIZ8 0x00659a58
-int g_integrated_trigger_count;
+static int g_integrated_trigger_count;
 
 // GLOBAL: WIZ8 0x00603ab8
 float g_default_momentum_scale = 0.30000001192092896f;

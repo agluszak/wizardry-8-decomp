@@ -70,7 +70,7 @@ public:
 static_assert(sizeof(W8NormalTexcoordMapper) == 4, "W8NormalTexcoordMapper004B89A0_must_be_4");
 
 // GLOBAL: WIZ8 0x0065BEA8
-W8NormalTexcoordMapper g_normal_texcoord_mapper;
+static W8NormalTexcoordMapper g_normal_texcoord_mapper;
 
 // GLOBAL: WIZ8 0x0065BA9E
 bool g_material_diffuse_scale_enabled;
@@ -185,74 +185,74 @@ stMaterial::~stMaterial()
    build state is TU-private .bss. */
 
 // GLOBAL: WIZ8 0x0060AC70
-unsigned char g_option_pathing = 1;
+static unsigned char g_option_pathing = 1;
 // GLOBAL: WIZ8 0x0060AC71
-unsigned char g_option_shadow_test = 1;
+static unsigned char g_option_shadow_test = 1;
 // GLOBAL: WIZ8 0x0060AC72
-unsigned char g_option_logging = 1;
+static unsigned char g_option_logging = 1;
 // GLOBAL: WIZ8 0x0060AC73
-unsigned char g_option_mesh_linking = 1;
+static unsigned char g_option_mesh_linking = 1;
 // GLOBAL: WIZ8 0x0060AC74
-float g_option_path_node_spacing = 500.0f;
+static float g_option_path_node_spacing = 500.0f;
 // GLOBAL: WIZ8 0x0060AC78
-float g_option_path_head_room = 1000.0f;
+static float g_option_path_head_room = 1000.0f;
 // GLOBAL: WIZ8 0x0060AC7C
-int g_option_delete_percentage = 10;
+static int g_option_delete_percentage = 10;
 // GLOBAL: WIZ8 0x0060AC80
-float g_option_min_leaf_size = 1000.0f;
+static float g_option_min_leaf_size = 1000.0f;
 // GLOBAL: WIZ8 0x0060AC84
-int g_option_max_path_nodes = 64;
+static int g_option_max_path_nodes = 64;
 // GLOBAL: WIZ8 0x0060AC88
-int g_option_max_leaf_count = 20000;
+static int g_option_max_leaf_count = 20000;
 // GLOBAL: WIZ8 0x0060AC8C
-unsigned char g_status_scroll = 1;
+static unsigned char g_status_scroll = 1;
 // GLOBAL: WIZ8 0x0060AC8D
-unsigned char g_status_buffers_freed = 1;
+static unsigned char g_status_buffers_freed = 1;
 
 // GLOBAL: WIZ8 0x0065BAB0
-srVector3T<float> g_weld_min;
+static srVector3T<float> g_weld_min;
 // GLOBAL: WIZ8 0x0065BACC
-srVector3T<float> g_weld_max;
+static srVector3T<float> g_weld_max;
 // GLOBAL: WIZ8 0x0065BADC
-char g_log_path[0x200];
+static char g_log_path[0x200];
 // GLOBAL: WIZ8 0x0065BCDC
-unsigned int g_weld_stride_x;
+static unsigned int g_weld_stride_x;
 // GLOBAL: WIZ8 0x0065BCE0
-unsigned int g_weld_stride_y;
+static unsigned int g_weld_stride_y;
 // GLOBAL: WIZ8 0x0065BCE4
-unsigned int g_weld_stride_z;
+static unsigned int g_weld_stride_z;
 // GLOBAL: WIZ8 0x0065BCE8
-unsigned short* g_status_lines[6];
+static unsigned short* g_status_lines[6];
 // GLOBAL: WIZ8 0x0065BD0C
-int g_oct_node_count;
+static int g_oct_node_count;
 // GLOBAL: WIZ8 0x0065BD10
-int g_oct_max_objects;
+static int g_oct_max_objects;
 // GLOBAL: WIZ8 0x0065BD14
-int g_lights_unblocked;
+static int g_lights_unblocked;
 // GLOBAL: WIZ8 0x0065BD18
-int g_light_candidates;
+static int g_light_candidates;
 // GLOBAL: WIZ8 0x0065BD1C
-int g_lights_facing;
+static int g_lights_facing;
 // GLOBAL: WIZ8 0x0065BD2D
-unsigned char g_option_rename_alphas;
+static unsigned char g_option_rename_alphas;
 // GLOBAL: WIZ8 0x0065BD30
-float g_option_auto_region_size;
+static float g_option_auto_region_size;
 // GLOBAL: WIZ8 0x0065BD34
 W8OctPreTreeVertex* g_gd_vertices;
 // GLOBAL: WIZ8 0x0065BD38
 W8OctRegionPolygon* g_gd_polygons;
 // GLOBAL: WIZ8 0x0065BD3C
-BitArray* g_prop_sun_bits;
+static BitArray* g_prop_sun_bits;
 // GLOBAL: WIZ8 0x0065BD44
-short g_status_cursor;
+static short g_status_cursor;
 // GLOBAL: WIZ8 0x0065BD48
-int g_progress_total;
+static int g_progress_total;
 // GLOBAL: WIZ8 0x0065BD4C
-unsigned int g_progress_done;
+static unsigned int g_progress_done;
 // GLOBAL: WIZ8 0x0065BD50
-unsigned int g_progress_mark;
+static unsigned int g_progress_mark;
 // GLOBAL: WIZ8 0x0065BD54
-FILE* g_log_file;
+static FILE* g_log_file;
 
 // GLOBAL: WIZ8 0x005ECBB0
 const float g_float_005ecbb0 = 268435456.0f;
@@ -261,17 +261,17 @@ const float g_float_005ecbb8 = 2.5f;
 // GLOBAL: WIZ8 0x005ECBBC
 const float g_float_005ecbbc = -0.995f;
 
-unsigned char PreprocessLevel(int handle, char* stem);
-int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex* vertices,
+static unsigned char PreprocessLevel(int handle, char* stem);
+static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex* vertices,
                unsigned int index, unsigned int link);
-int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short light_count,
+static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short light_count,
                           W8LevelFileLight* lights, int* sun_map);
-int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight* light);
-int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry,
+static int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight* light);
+static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry,
                         unsigned char* classify);
-int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry);
-unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* stem);
-int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
+static int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry);
+static unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* stem);
+static int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
                  unsigned char* classify);
 
 // FUNCTION: WIZ8 0x00492E60
@@ -351,7 +351,7 @@ char W8Octree::BuildPreprocessedFiles(const char* level_path)
    computes vertex lighting and sun visibility, sorts materials, splits
    vertices, writes NewLevel.lvl/.oct and releases everything it made. */
 // FUNCTION: WIZ8 0x00493120
-unsigned char PreprocessLevel(int handle, char* stem)
+static unsigned char PreprocessLevel(int handle, char* stem)
 {
     char message[1024];
     char name[20];
@@ -1070,7 +1070,7 @@ void ReportStartupMessage(const char* message)
    key with value index + 1.  A `link` of -1 maintains the vertex self-link or
    redirect fields. */
 // FUNCTION: WIZ8 0x00494800
-int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex* vertices,
+static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex* vertices,
                unsigned int index, unsigned int link)
 {
     unsigned int vertex = link;
@@ -1172,7 +1172,7 @@ int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex* vertic
    two-sided or opposing-normal polygons weld their corners and emit a mirrored
    backface. Returns the alpha polygon count. */
 // FUNCTION: WIZ8 0x00494B90
-int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsigned char* classify)
+static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsigned char* classify)
 {
     W8LevelFileMesh* mesh = level->pMeshes;
     W8MaterialRecord* materials = level->pTextures;
@@ -1414,7 +1414,7 @@ invalid:
    polygon corner can point at a vertex carrying that polygon's material and
    uv, then repacks the vertex array and repoints the corners. */
 // FUNCTION: WIZ8 0x00495860
-int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
+static int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
 {
     char message[1024];
     unsigned int source;
@@ -1530,7 +1530,7 @@ int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
 }
 
 // FUNCTION: WIZ8 0x00495CF0
-int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short light_count,
+static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short light_count,
                           W8LevelFileLight* lights, int* sun_map)
 {
     float delta_x;
@@ -1595,7 +1595,7 @@ int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short li
    the light to the record position must be clear, else each corner of each
    recorded bounds pair is tried. */
 // FUNCTION: WIZ8 0x00495E90
-int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight* light)
+static int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight* light)
 {
     int corner_x;
     int corner_y;
@@ -1638,7 +1638,7 @@ int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight*
    when the record claims full opacity, and records missing textures in the
    prop/sun bit array. Returns the per-material kind byte array. */
 // FUNCTION: WIZ8 0x00496000
-unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* stem)
+static unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* stem)
 {
     char folder[1024];
     char texture[1024];
@@ -1757,7 +1757,7 @@ unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* ste
    string, remaps each polygon's material index at its group's representative
    and moves the old index into the texture slot. */
 // FUNCTION: WIZ8 0x00496500
-int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
+static int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
                  unsigned char* classify)
 {
     char name[516];

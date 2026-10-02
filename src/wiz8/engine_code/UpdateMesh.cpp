@@ -23,11 +23,11 @@ const float g_float_005ed168 = 0.01745329424738884f;
    into W8Quad, filled by CollectViewQuadCells and consumed by
    UpdateWorldMeshFromQuads. */
 // GLOBAL: WIZ8 0x0065BEB8
-long g_visible_quad_rows[20000];
+static long g_visible_quad_rows[20000];
 // GLOBAL: WIZ8 0x0066F738
-long g_visible_quad_columns[20000];
+static long g_visible_quad_columns[20000];
 // GLOBAL: WIZ8 0x00682FB8
-long g_visible_quad_count;
+static long g_visible_quad_count;
 
 static int ScanQuadTriangleBase(W8World* world, long x1, long y1, long x2, long y2, long x3,
                                 long y3, long* x_list, long* y_list, long* count);

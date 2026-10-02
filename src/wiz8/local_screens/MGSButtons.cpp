@@ -103,17 +103,17 @@ Controls* gpSubMenuPanel;
 // GLOBAL: WIZ8 0x0069B8EC
 W8TextControl* g_submenu_rows_69b8ec[5];
 
-void SubMenuPanelCloseButton(W8DialogButton* button);
-void SubMenuPanelFormationButton(W8DialogButton* button);
-void MainGameOptionsDiskButton(W8DialogButton* button);
-void MainGameCombatConfirmButton(W8DialogButton* button);
-void MainGameCombatStanceSecondary(W8DialogButton* button);
-void MainGameRoofButton0(W8DialogButton* button);
-void MainGameRoofButton1(W8DialogButton* button);
-void MainGameRoofButton2(W8DialogButton* button);
-void MainGameLayoutRadarButton(W8DialogButton* button);
-void MainGameLayoutActionPanelButton(W8DialogButton* button);
-void MainGameLayoutFormationButton(W8DialogButton* button);
+static void SubMenuPanelCloseButton(W8DialogButton* button);
+static void SubMenuPanelFormationButton(W8DialogButton* button);
+static void MainGameOptionsDiskButton(W8DialogButton* button);
+static void MainGameCombatConfirmButton(W8DialogButton* button);
+static void MainGameCombatStanceSecondary(W8DialogButton* button);
+static void MainGameRoofButton0(W8DialogButton* button);
+static void MainGameRoofButton1(W8DialogButton* button);
+static void MainGameRoofButton2(W8DialogButton* button);
+static void MainGameLayoutRadarButton(W8DialogButton* button);
+static void MainGameLayoutActionPanelButton(W8DialogButton* button);
+static void MainGameLayoutFormationButton(W8DialogButton* button);
 
 // FUNCTION: WIZ8 0x005963E0
 void RefreshSubMenuPanel(char invalidate)
@@ -465,7 +465,7 @@ unsigned char CreateSubMenuScrollButtons(void)
 }
 
 // FUNCTION: WIZ8 0x005978D0
-void SubMenuPanelCloseButton(W8DialogButton* button)
+static void SubMenuPanelCloseButton(W8DialogButton* button)
 {
     int index;
 
@@ -513,7 +513,7 @@ void SubMenuPanelCloseButton(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x00597A10
-void SubMenuPanelFormationButton(W8DialogButton* button)
+static void SubMenuPanelFormationButton(W8DialogButton* button)
 {
     if (gXStatus.fReviewCharacterMode == 0) {
         OpenFormationPanel();
@@ -553,7 +553,7 @@ unsigned char CreateSubMenuPanelButtons(void)
 }
 
 // FUNCTION: WIZ8 0x00597B70
-void MainGameOptionsDiskButton(W8DialogButton* button)
+static void MainGameOptionsDiskButton(W8DialogButton* button)
 {
     if (IsLevelDataFlag4EffectivelySet() != 0) {
         g_pending_screen_state.mode = 3;
@@ -649,7 +649,7 @@ void RedrawCombatStanceButtons(void)
 }
 
 // FUNCTION: WIZ8 0x00597E70
-void MainGameCombatConfirmButton(W8DialogButton* button)
+static void MainGameCombatConfirmButton(W8DialogButton* button)
 {
     if (gXStatus.fCombatMode == 0) {
         return;
@@ -669,7 +669,7 @@ void MainGameCombatConfirmButton(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x00597ED0
-void MainGameCombatStanceSecondary(W8DialogButton* button)
+static void MainGameCombatStanceSecondary(W8DialogButton* button)
 {
     if (gXStatus.fCombatMode != 0) {
         TogglePartyCombatStance();
@@ -717,21 +717,21 @@ unsigned char CreateCombatStanceButtons(void)
 }
 
 // FUNCTION: WIZ8 0x00598270
-void MainGameRoofButton0(W8DialogButton* button)
+static void MainGameRoofButton0(W8DialogButton* button)
 {
     ApplyMainGameModeFlag(W8_MAIN_UI_MODE_PORTRAITS, 1);
     RequestRedraw(0x300);
 }
 
 // FUNCTION: WIZ8 0x00598290
-void MainGameRoofButton1(W8DialogButton* button)
+static void MainGameRoofButton1(W8DialogButton* button)
 {
     ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
     RequestRedraw(0x300);
 }
 
 // FUNCTION: WIZ8 0x005982B0
-void MainGameRoofButton2(W8DialogButton* button)
+static void MainGameRoofButton2(W8DialogButton* button)
 {
     ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
     RequestRedraw(0x300);
@@ -859,7 +859,7 @@ void SyncRoofButtonPressedState(void)
 }
 
 // FUNCTION: WIZ8 0x00598670
-void MainGameLayoutRadarButton(W8DialogButton* button)
+static void MainGameLayoutRadarButton(W8DialogButton* button)
 {
     if (g_level_block->radar_map_visible != 0) {
         if (g_level_block->formation_board_visible == 0 &&
@@ -882,7 +882,7 @@ void MainGameLayoutRadarButton(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005986E0
-void MainGameLayoutActionPanelButton(W8DialogButton* button)
+static void MainGameLayoutActionPanelButton(W8DialogButton* button)
 {
     if (g_level_block->action_panel_visible != 0) {
         if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
@@ -917,7 +917,7 @@ void MainGameLayoutActionPanelButton(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005987A0
-void MainGameLayoutFormationButton(W8DialogButton* button)
+static void MainGameLayoutFormationButton(W8DialogButton* button)
 {
     if (g_level_block->formation_board_visible != 0) {
         if (g_level_block->radar_map_visible == 0 && g_level_block->action_panel_visible == 0) {

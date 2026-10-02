@@ -40,7 +40,7 @@
    ButtonSound.cpp and Formation & Facing.cpp hulls. No proven ownership. */
 
 // GLOBAL: WIZ8 0x0061ec94
-wchar_t g_format_s_possessive[] = L"%s's";
+static wchar_t g_format_s_possessive[] = L"%s's";
 
 // FUNCTION: WIZ8 0x00554170
 void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int party_slot,
@@ -306,7 +306,7 @@ int RevealCharacterItemBindingsByProfession(int party_slot, unsigned int target_
    level, maximum level} triples; -1 in the maximum opens the top end and the
    {-1,0,0} row terminates the walk. */
 // GLOBAL: WIZ8 0x00616FE0
-int g_alchemist_brew_recipes[][3] = {
+static int g_alchemist_brew_recipes[][3] = {
     {335, 1, 2},   {346, 2, 4},   {336, 3, 5},   {264, 4, -1},  {345, 5, 9},   {337, 6, 12},
     {317, 6, 12},  {269, 3, 8},   {334, 6, 9},   {347, 6, 12},  {341, 10, 13}, {342, 11, 14},
     {348, 13, 15}, {339, 17, -1}, {429, 18, -1}, {598, 5, 8},   {46, 6, 9},    {47, 7, 10},

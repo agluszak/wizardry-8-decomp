@@ -9,6 +9,9 @@
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/MonsterManager.h"
 
+struct W8MonsterGroup;
+struct W8WorldItem;
+
 struct W8CharacterEventQueue;
 class W8GameTimer;
 
@@ -177,5 +180,26 @@ static_assert(offsetof(W8XStatus, hostile_group_count) == 0x1a06,
 static_assert(sizeof(W8XStatus) == 0x1a0a, "W8XStatus_size");
 
 extern W8XStatus gXStatus;
+
+/* Typed element access for the homogeneous gXStatus lists. */
+inline W8MonsterInfo* GetMonsterListEntry(int index)
+{
+    return static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
+}
+
+inline W8MonsterInfo* GetUnbornMonsterEntry(int index)
+{
+    return static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, index));
+}
+
+inline W8WorldItem* GetWorldItemListEntry(int index)
+{
+    return static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, index));
+}
+
+inline W8MonsterGroup* GetMonsterGroupEncounter(int index)
+{
+    return static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupEncounterList, index));
+}
 
 #endif

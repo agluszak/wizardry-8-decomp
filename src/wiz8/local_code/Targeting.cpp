@@ -215,7 +215,7 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
 /* The faction names, thirty bytes apart, in the same order as the faction ids.
    Twenty-one of them, which is the whole faction domain. */
 // GLOBAL: WIZ8 0x0061CE74
-char g_faction_names[W8_FACTION_COUNT][0x1e] = {
+static char g_faction_names[W8_FACTION_COUNT][0x1e] = {
     "UNALIGNED",
     "FACTION_PARTY",
     "FACTION_DARK_SAVANT",
@@ -879,7 +879,7 @@ int PickNearestMonsterUnderCursor(int cursor_x, int cursor_y)
     if (g_dev_mode != 0) {
         for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
             W8MonsterInfo* monster_info =
-                static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, index));
+                GetUnbornMonsterEntry(index);
             float distance;
 
             if (monster_info->fActive == 0) {
@@ -1005,7 +1005,7 @@ struct W8MonsterTargetCandidate {
    three of the record's seven fields are compared, so the rest are carried for
    the caller rather than for the sort. */
 // FUNCTION: WIZ8 0x0053c920
-int CompareMonsterTargetCandidates(const void* left, const void* right)
+static int CompareMonsterTargetCandidates(const void* left, const void* right)
 {
     const W8MonsterTargetCandidate* a = (const W8MonsterTargetCandidate*)left;
     const W8MonsterTargetCandidate* b = (const W8MonsterTargetCandidate*)right;
@@ -1076,7 +1076,7 @@ bool ResolveTargetPoint(W8CombatSlot* target, char sight_probe)
    would need if it took more than the first. A monster with no hit points at
    all is a data error rather than a candidate to skip. */
 // FUNCTION: WIZ8 0x0053c720
-int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context)
+static int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context)
 {
     unsigned int monster_count = PLLength(gXStatus.plsMonsterList);
     W8MonsterTargetCandidate* candidates;
@@ -2583,7 +2583,7 @@ struct W8GroupMemberByAngle {
    jumping about, and it is why the sort buffer holds a pair per candidate
    rather than just the ids. */
 // FUNCTION: WIZ8 0x005383e0
-int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int current)
+static int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int current)
 {
     unsigned int count = static_cast<unsigned int>(candidates->GetCount());
     W8GroupMemberByAngle* sorted;
@@ -2649,7 +2649,7 @@ int PickNextTargetableMonster(int party_slot)
 }
 
 // FUNCTION: WIZ8 0x00538280
-int PickNextTargetableGroupMember(int party_slot, W8MonsterGroup* group)
+static int PickNextTargetableGroupMember(int party_slot, W8MonsterGroup* group)
 {
     W8GrowableVector<int> targetable;
     unsigned int index;
@@ -3028,7 +3028,7 @@ bool AnyMonsterVisible(void)
     count = PLLength(gXStatus.plsMonsterList);
     if (0 <= g_last_visible_monster && g_last_visible_monster < count) {
         W8MonsterInfo* monster_info =
-            static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, g_last_visible_monster));
+            GetMonsterListEntry(g_last_visible_monster);
         if (monster_info->p3D != 0 &&
             IsMonsterVisibleWithinDistance(monster_info->p3D, &camera, limit) != 0) {
             return 1;
@@ -3036,7 +3036,7 @@ bool AnyMonsterVisible(void)
     }
     for (index = 0; index < count; ++index) {
         W8MonsterInfo* monster_info =
-            static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
+            GetMonsterListEntry(index);
 
         if (monster_info->p3D != 0 &&
             IsMonsterVisibleWithinDistance(monster_info->p3D, &camera, limit) != 0) {

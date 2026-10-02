@@ -29,22 +29,22 @@
    0x00613640 names this TU for 0x004DBEC0 and 0x004DC080. */
 
 // GLOBAL: WIZ8 0x006834fc
-W8IntervalGate* g_lift_gate;
+static W8IntervalGate* g_lift_gate;
 // GLOBAL: WIZ8 0x00683500
-W8Prop* g_lift_prop;
+static W8Prop* g_lift_prop;
 // GLOBAL: WIZ8 0x00683504
-stSound3D* g_alarm_sound_683504;
+static stSound3D* g_alarm_sound_683504;
 // GLOBAL: WIZ8 0x00683508
-W8IntervalGate* g_alarm_gate_683508;
+static W8IntervalGate* g_alarm_gate_683508;
 
 /* Lift prop Y travel: 5228.6 at the top of the ride, -2000.0 at the bottom,
    and -5000.0 parked out of the world once the ride is spent. */
 // GLOBAL: WIZ8 0x00613600
-float LIFT_TOP_Y = 5228.6f;
+static float LIFT_TOP_Y = 5228.6f;
 // GLOBAL: WIZ8 0x00613604
-float LIFT_BOTTOM_Y = -2000.0f;
+static float LIFT_BOTTOM_Y = -2000.0f;
 // GLOBAL: WIZ8 0x00613608
-float LIFT_PARKED_Y = -5000.0f;
+static float LIFT_PARKED_Y = -5000.0f;
 
 /* When the FlagPosition location variable exists, feed its value to the lift
    gate; values at or above 1000 stop there. Otherwise the "flag" trigger
