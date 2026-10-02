@@ -771,7 +771,7 @@ void Forward44FAF0(W8World* world)
    caller preserves this value across a level reload, so a world without a
    camera contributes the zero position. */
 // FUNCTION: WIZ8 0x00451160
-void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location)
+void WorldGetCameraLocationOrZero(W8World* world, srVector3T<float>* location)
 {
     if (!world) {
         srAssertFail("pWorld", THREE_D_API_CPP, 1014, 0);
