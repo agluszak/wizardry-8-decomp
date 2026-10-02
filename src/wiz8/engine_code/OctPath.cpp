@@ -109,9 +109,9 @@ const float g_float_005ec340 = 1.25f;
 const float g_path_span_scale = 1.5259254723787308e-05f;
 
 // GLOBAL: WIZ8 0x00659c5c
-bool g_flag_00659c5c;
+static bool g_flag_00659c5c;
 // GLOBAL: WIZ8 0x00659c64
-unsigned short* g_path_scratch;
+static unsigned short* g_path_scratch;
 // GLOBAL: WIZ8 0x005ec3a8
 const double g_double_005ec3a8 = 1.1;
 // GLOBAL: WIZ8 0x005ec3a0
@@ -132,34 +132,34 @@ const float g_path_cardinal_scale = 1.4149999618530273f;
 // GLOBAL: WIZ8 0x005ec360
 const float g_float_005ec360 = 25000.0f;
 // GLOBAL: WIZ8 0x00659c6c
-unsigned int g_path_visualization_cell;
+static unsigned int g_path_visualization_cell;
 // GLOBAL: WIZ8 0x005ec380
 const float g_path_search_visualization_limit = 15000.0f;
 
 // GLOBAL: WIZ8 0x0060f9e8
-float g_path_acceleration_factor = 3.0f;
+static float g_path_acceleration_factor = 3.0f;
 // GLOBAL: WIZ8 0x0060f9ec
-float g_path_angular_acceleration_factor = 2.0f;
+static float g_path_angular_acceleration_factor = 2.0f;
 // GLOBAL: WIZ8 0x0060f9f0
-float g_path_angular_deceleration_factor = 0.5f;
+static float g_path_angular_deceleration_factor = 0.5f;
 // GLOBAL: WIZ8 0x0060f9f4
-float g_path_prediction_time = 1.0f;
+static float g_path_prediction_time = 1.0f;
 // GLOBAL: WIZ8 0x0060f9f8
-float g_path_approach_slow_time = 1.0f;
+static float g_path_approach_slow_time = 1.0f;
 // GLOBAL: WIZ8 0x0060f9fc
-float g_path_approach_run_time = 8.0f;
+static float g_path_approach_run_time = 8.0f;
 // GLOBAL: WIZ8 0x0060fa00
-float g_path_approach_run_rate = 2.0f;
+static float g_path_approach_run_rate = 2.0f;
 // GLOBAL: WIZ8 0x0060fa04
-float g_path_lookahead_time = 1.0f;
+static float g_path_lookahead_time = 1.0f;
 // GLOBAL: WIZ8 0x0060fa08
-float g_path_group_repulsion_factor = 1.0f;
+static float g_path_group_repulsion_factor = 1.0f;
 // GLOBAL: WIZ8 0x0060fa0c
-float g_path_party_boundary_radius = 2.0f;
+static float g_path_party_boundary_radius = 2.0f;
 // GLOBAL: WIZ8 0x0060fa10
-float g_path_obstacle_steering_factor = 2.0f;
+static float g_path_obstacle_steering_factor = 2.0f;
 // GLOBAL: WIZ8 0x0060fa14
-float g_path_obstacle_braking_factor = 0.3f;
+static float g_path_obstacle_braking_factor = 0.3f;
 
 #define OCTPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPath.cpp"
 

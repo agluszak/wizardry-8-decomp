@@ -48,18 +48,18 @@ bool g_fog_enabled;
 // GLOBAL: WIZ8 0x0065b9ae
 bool g_sky_enabled;
 // GLOBAL: WIZ8 0x0065B9A8
-unsigned long g_tick_65b9a8;
+static unsigned long g_tick_65b9a8;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
    two bodies reach, and it is the same W8World the 3d code walks. */
 
 /* The static and dynamic scene fogs owned by the environment. */
 // GLOBAL: WIZ8 0x0065B9B0
-srFog* g_environment_object_0065b9b0;
+static srFog* g_environment_object_0065b9b0;
 /* Camera-light intensity ceiling for SetCameraLightMode; the linker
    folds it into the shared 50.0f constant Octree.cpp emits at 0x005EC02C. */
 static const float CAMERA_LIGHT_MAXIMUM_INTENSITY = 50.0f;
 // GLOBAL: WIZ8 0x0065B9B4
-srFog* g_environment_object_0065b9b4;
+static srFog* g_environment_object_0065b9b4;
 // SYNTHETIC: WIZ8 0x00482250
 // `dynamic initializer for 'g_environment_lights''
 // SYNTHETIC: WIZ8 0x00482270

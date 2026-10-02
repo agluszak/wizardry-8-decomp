@@ -33,14 +33,14 @@
 // GLOBAL: WIZ8 0x0069c550
 unsigned int g_character_stats_region_set;
 // GLOBAL: WIZ8 0x0069c554
-unsigned int g_character_stats_profession_region_set;
+static unsigned int g_character_stats_profession_region_set;
 // GLOBAL: WIZ8 0x0069c558
-unsigned int g_character_stats_race_region_set;
+static unsigned int g_character_stats_race_region_set;
 // GLOBAL: WIZ8 0x0069c55c
-unsigned int g_character_stats_gender_region_set;
+static unsigned int g_character_stats_gender_region_set;
 
 // GLOBAL: WIZ8 0x0064f028
-W8CharacterStatsRecord g_character_profession_records[15] = {
+static W8CharacterStatsRecord g_character_profession_records[15] = {
     {0x0000010b, 0x0000000a, 0x0000000b, 0x02a4, 0, 0},
     {0x0000010b, 0x00000018, 0x00000019, 0x02a5, 0, 0},
     {0x0000010b, 0x00000008, 0x00000009, 0x02a6, 0, 0},
@@ -58,7 +58,7 @@ W8CharacterStatsRecord g_character_profession_records[15] = {
     {0x0000010b, 0x0000001a, 0x0000001b, 0x02b2, 0, 0},
 };
 // GLOBAL: WIZ8 0x0064f118
-W8CharacterStatsRecord g_character_race_records[11] = {
+static W8CharacterStatsRecord g_character_race_records[11] = {
     {0x0000010c, 0x00000008, 0x00000009, 0x0284, 1, 0},
     {0x0000010c, 0x00000004, 0x00000005, 0x0285, 1, 0},
     {0x0000010c, 0x0000000c, 0x0000000d, 0x0286, 1, 0},
@@ -72,20 +72,20 @@ W8CharacterStatsRecord g_character_race_records[11] = {
     {0x0000010c, 0x00000006, 0x00000007, 0x028e, 1, 0},
 };
 // GLOBAL: WIZ8 0x0064f218
-W8CharacterStatsRecord g_character_gender_records[2] = {
+static W8CharacterStatsRecord g_character_gender_records[2] = {
     {0x0000010d, 0x00000000, 0x00000001, 0x02d1, 0, 0},
     {0x0000010d, 0x00000002, 0x00000003, 0x02d2, 0, 0},
 };
 // GLOBAL: WIZ8 0x0064f248
-W8CharacterStatsRecord g_character_profession_default_record = {
+static W8CharacterStatsRecord g_character_profession_default_record = {
     0x0000010e, 0x00000002, 0x00000003, 0x008f, 1, 0,
 };
 // GLOBAL: WIZ8 0x0064f258
-W8CharacterStatsRecord g_character_race_default_record = {
+static W8CharacterStatsRecord g_character_race_default_record = {
     0x0000010e, 0x00000000, 0x00000001, 0x0090, 1, 0,
 };
 // GLOBAL: WIZ8 0x0064f268
-W8CharacterStatsRecord g_character_gender_default_record = {
+static W8CharacterStatsRecord g_character_gender_default_record = {
     0x0000010e, 0x00000004, 0x00000005, 0x0091, 1, 0,
 };
 
@@ -111,7 +111,7 @@ wchar_t g_dash_0064789c[] = L"-";
 // GLOBAL: WIZ8 0x0064dc24
 wchar_t g_format_plus_d[] = L"%+d";
 // GLOBAL: WIZ8 0x0064f2c0
-wchar_t g_zero_slash_zero[] = L"0/0";
+static wchar_t g_zero_slash_zero[] = L"0/0";
 
 /* Skill name message ids indexed by skill id are declared with the stats
    page's shared tables in CharacterScreen.h. */

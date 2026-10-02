@@ -124,7 +124,7 @@ unsigned char W8GrObject::AddSoundEvent(W8SoundEvent* pse)
 }
 
 // GLOBAL: WIZ8 0x0060dfac
-int g_value_60dfac = 1;
+static int g_value_60dfac = 1;
 
 // FUNCTION: WIZ8 0x004B6D10
 int IncrementValue60DFAC(void)

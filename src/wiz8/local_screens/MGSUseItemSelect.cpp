@@ -38,16 +38,16 @@
 #define MGSUSEITEMSELECT_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSUseItemSelect.cpp"
 
 // GLOBAL: WIZ8 0x0069B984
-int g_use_item_select_flags;
+static int g_use_item_select_flags;
 // GLOBAL: WIZ8 0x0069b988
 W8MainUiMode g_value_69b988;
 // GLOBAL: WIZ8 0x0069B98C
-int g_use_item_select_mode;
+static int g_use_item_select_mode;
 
 // GLOBAL: WIZ8 0x0069B950
 W8TextControl* g_use_item_select_scroll_buttons[3];
 // GLOBAL: WIZ8 0x0069B95C
-int g_selected_use_item_line;
+static int g_selected_use_item_line;
 // GLOBAL: WIZ8 0x0069B960
 W8TextControl* g_use_item_select_controls[9];
 // GLOBAL: WIZ8 0x0069B9A0
@@ -55,47 +55,47 @@ W8ItemInstance* g_value_69b9a0;
 // GLOBAL: WIZ8 0x0069B9A4
 W8ItemInstance* g_value_69b9a4;
 // GLOBAL: WIZ8 0x0069B990
-int g_use_item_list_count;
+static int g_use_item_list_count;
 // GLOBAL: WIZ8 0x0069B994
 Controls* g_use_item_select_panels[3];
 // GLOBAL: WIZ8 0x0069B9A8
-int g_use_item_cursor_x_0069b9a8;
+static int g_use_item_cursor_x_0069b9a8;
 // GLOBAL: WIZ8 0x0069B9AC
-int g_use_item_cursor_y;
+static int g_use_item_cursor_y;
 // GLOBAL: WIZ8 0x0069B9B0
-int g_use_item_owner_index;
+static int g_use_item_owner_index;
 // GLOBAL: WIZ8 0x0069B9B4
-W8ItemInstance* g_use_item_list[0x15e];
+static W8ItemInstance* g_use_item_list[0x15e];
 // GLOBAL: WIZ8 0x0069BF2C
-W8ItemInstance* g_use_item_detail_item;
+static W8ItemInstance* g_use_item_detail_item;
 // GLOBAL: WIZ8 0x0069BF30
 int g_saved_target_cursor;
 // GLOBAL: WIZ8 0x0069BF34
-int g_use_item_hover_row;
+static int g_use_item_hover_row;
 /* 0x0069BF38: held while CommitSelectedSpellTarget runs for a use-item
    commit; CloseUseItemSelectView early-outs on it so the commit's side
    effects cannot tear the view down mid-call. */
 // GLOBAL: WIZ8 0x0069BF38
-bool g_use_item_commit_active;
+static bool g_use_item_commit_active;
 // GLOBAL: WIZ8 0x0064C7DC
-wchar_t g_format_s_paren_question[] = L"%s (?)";
+static wchar_t g_format_s_paren_question[] = L"%s (?)";
 
 void UpdateUseItemScrollButtons(void);                           /* 0x0059D070 */
-void RebuildUseItemSelectList(int mode, W8ItemInstance* select); /* 0x0059D230 */
-bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
+static void RebuildUseItemSelectList(int mode, W8ItemInstance* select); /* 0x0059D230 */
+static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
                             unsigned char pass); /* 0x0059D450 */
 bool IsUseItemFilteredOut(W8ItemInstance* item); /* 0x0059D6B0 */
-void UseItemSelectScrollUp(void);                /* 0x0059D790 */
-void UseItemSelectScrollDown(void);              /* 0x0059D7E0 */
-void UseItemSelectFilterToggle(void);            /* 0x0059D830 */
-void UseItemSelectAssayButton(void);             /* 0x0059D860 */
-void CreateUseItemSelectControls(void);          /* 0x0059C300 */
+static void UseItemSelectScrollUp(void);                /* 0x0059D790 */
+static void UseItemSelectScrollDown(void);              /* 0x0059D7E0 */
+static void UseItemSelectFilterToggle(void);            /* 0x0059D830 */
+static void UseItemSelectAssayButton(void);             /* 0x0059D860 */
+static void CreateUseItemSelectControls(void);          /* 0x0059C300 */
 
 /* Build the use-item view chrome: three Controls panels, the two scroll
    buttons plus the caption label in g_use_item_select_scroll_buttons, and the
    nine g_use_item_select_controls rows. */
 // FUNCTION: WIZ8 0x0059C300
-void CreateUseItemSelectControls(void)
+static void CreateUseItemSelectControls(void)
 {
     Controls* panel;
     Controls** panel_iter;
@@ -438,7 +438,7 @@ void UpdateUseItemScrollButtons(void)
 }
 
 // FUNCTION: WIZ8 0x0059D790
-void UseItemSelectScrollUp(void)
+static void UseItemSelectScrollUp(void)
 {
     if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
@@ -454,7 +454,7 @@ void UseItemSelectScrollUp(void)
 }
 
 // FUNCTION: WIZ8 0x0059D7E0
-void UseItemSelectScrollDown(void)
+static void UseItemSelectScrollDown(void)
 {
     if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
@@ -470,7 +470,7 @@ void UseItemSelectScrollDown(void)
 }
 
 // FUNCTION: WIZ8 0x0059D830
-void UseItemSelectFilterToggle(void)
+static void UseItemSelectFilterToggle(void)
 {
     if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
                                    g_W8TextControlStateSecondary) == 0) {
@@ -481,7 +481,7 @@ void UseItemSelectFilterToggle(void)
 }
 
 // FUNCTION: WIZ8 0x0059D860
-void UseItemSelectAssayButton(void)
+static void UseItemSelectAssayButton(void)
 {
     if (g_use_item_detail_item != 0 && g_use_item_select_controls[0]->m_imageObject != -1) {
         OpenUseItemAssayDialog(g_use_item_detail_item);
@@ -521,7 +521,7 @@ void CommitSelectedItemUse(void)
    then the rest) through AppendUseItemListEntry; select re-highlights
    the line holding that item. */
 // FUNCTION: WIZ8 0x0059D230
-void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
+static void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
 {
     W8Character* character;
     unsigned char pass;
@@ -591,7 +591,7 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
    it when it matches select, and show a display name with stack/charge counts
    or the unidentified "(?)". Returns false when the list is full. */
 // FUNCTION: WIZ8 0x0059D450
-bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select, unsigned char pass)
+static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select, unsigned char pass)
 {
     wchar_t* text;
     unsigned int color;

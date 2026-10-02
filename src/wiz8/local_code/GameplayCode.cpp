@@ -78,7 +78,7 @@ enum {
 unsigned char gubLocalACPercent[5] = {15, 40, 30, 10, 5};
 
 // GLOBAL: WIZ8 0x00616604
-int g_character_table[480] = {
+static int g_character_table[480] = {
     3,  1,  0,  0,  3,  56, 4,  2,  1,  2,  5,  4,  24, 4,  5,  13, 12, 0,  12, 13, 56, 13, 12, 12,
     12, 14, 14, 14, 14, 14, 19, 19, 0,  19, 19, 56, 20, 20, 20, 20, 18, 18, 18, 18, 18, 24, 24, 0,
     24, 24, 56, 24, 24, 25, 25, 25, 25, 25, 25, 25, 28, 28, 0,  28, 28, 56, 28, 28, 29, 29, 29, 29,
@@ -388,7 +388,7 @@ void CalcCharacterTableValue(W8Character* character)
 }
 
 // GLOBAL: WIZ8 0x00617894
-char s_fall_impact_wav[] = "Data\\Sound\\Misc\\Fall Impact.wav";
+static char s_fall_impact_wav[] = "Data\\Sound\\Misc\\Fall Impact.wav";
 
 /* Level-motion override landing: the accumulated fall magnitude becomes
    pow(8.0, fall + 0.7) six-sided dice of damage against the whole party,
@@ -912,7 +912,7 @@ void CalcArmorClasses(W8Character* character)
    two dwords per row. It ends exactly where the sex/race/profession table
    at 0x00616604 begins. */
 // GLOBAL: WIZ8 0x006164F4
-int g_character_value_table[34][2] = {
+static int g_character_value_table[34][2] = {
     {0, 2}, {0, 1}, {6, 1}, {0, 1}, {0, 1}, {2, 2}, {0, 1}, {8, 1}, {7, 2}, {7, 2}, {7, 2}, {7, 2},
     {7, 2}, {7, 2}, {4, 1}, {4, 1}, {1, 1}, {5, 2}, {7, 1}, {6, 2}, {6, 2}, {6, 1}, {3, 2}, {3, 2},
     {5, 1}, {1, 1}, {1, 2}, {5, 2}, {1, 1}, {1, 2}, {2, 1}, {2, 1}, {2, 2}, {2, 2}};

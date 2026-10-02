@@ -666,7 +666,7 @@ unsigned char AutomapScreenEnter(void)
     }
     unsigned int monster_count = PLLength(gXStatus.plsMonsterList);
     for (unsigned int index = 0; index < monster_count; ++index) {
-        W8MonsterInfo* monster = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
+        W8MonsterInfo* monster = GetMonsterListEntry(index);
         if (monster->p3D)
             monster->p3D->DetachRepresentation(g_world);
     }
@@ -2085,7 +2085,7 @@ void RenderAutomapMarkers(void)
     }
     unsigned int count = PLLength(gXStatus.plsMonsterList);
     for (unsigned int index = 0; index < count; ++index) {
-        W8MonsterInfo* info = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
+        W8MonsterInfo* info = GetMonsterListEntry(index);
         W8Monster* monster = info->p3D;
         srVector3T<float> location;
         location = 0.0f;

@@ -76,7 +76,7 @@
 bool g_renderer_ready = true;
 
 // GLOBAL: WIZ8 0x00607d80
-int g_game_data_runtime_pending = 1;
+static int g_game_data_runtime_pending = 1;
 
 // GLOBAL: WIZ8 0x005ec240
 const double g_double_005ec240 = 250000.0;
@@ -86,7 +86,7 @@ class W8AmbientSound;
 // GLOBAL: WIZ8 0x00659757
 bool g_world_cleanup_flag;
 // GLOBAL: WIZ8 0x00659a80
-W8GrowableVector<W8World*> g_worlds;
+static W8GrowableVector<W8World*> g_worlds;
 
 // GLOBAL: WIZ8 0x006081f8
 bool g_navigator_vertical_enabled = true;
@@ -406,13 +406,13 @@ const double g_double_005ec1f8 = 3.141592653589793;
 // GLOBAL: WIZ8 0x005ebce8
 const double g_double_005ebce8 = 180.0;
 // GLOBAL: WIZ8 0x00607d84
-float g_camera_base_horizontal_fov = 85.0f;
+static float g_camera_base_horizontal_fov = 85.0f;
 // GLOBAL: WIZ8 0x00607d88
-float g_camera_base_vertical_fov = 71.0f;
+static float g_camera_base_vertical_fov = 71.0f;
 // GLOBAL: WIZ8 0x00659abc
-float g_camera_sway_horizontal_phase;
+static float g_camera_sway_horizontal_phase;
 // GLOBAL: WIZ8 0x00659ac0
-float g_camera_sway_vertical_phase;
+static float g_camera_sway_vertical_phase;
 
 /* Drives the swaying camera view. A positive mode captures the camera's
    field of view in degrees and enters the mode, a negative mode restores the
@@ -495,7 +495,7 @@ void DestroyWorldCollections(W8World* world)
         RenderFrame();
     if (world->plsProps != 0) {
         while (PLLength(world->plsProps) != 0) {
-            W8Prop* object = static_cast<W8Prop*>(PLGet(world->plsProps, 0));
+            W8Prop* object = GetWorldProp(world, 0);
             PLRemoveAt(world->plsProps, 0);
             delete object;
         }
@@ -516,7 +516,7 @@ void DestroyWorldCollections(W8World* world)
     if (world->plsCameras != 0) {
         while (PLLength(world->plsCameras) != 0) {
             W8CameraPath* entry =
-                static_cast<W8CameraPath*>(PLGet(world->plsCameras, 0));
+                GetWorldCameraPath(world, 0);
             PLRemoveAt(world->plsCameras, 0);
             DestroyPathAI(entry->path_18);
             free(entry);
@@ -529,7 +529,7 @@ void DestroyWorldCollections(W8World* world)
     if (world->plsAmbientSounds != 0) {
         while (PLLength(world->plsAmbientSounds) != 0) {
             W8AmbientSound* ambient_sound =
-                static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, 0));
+                GetWorldAmbientSound(world, 0);
             PLRemoveAt(world->plsAmbientSounds, 0);
             DestroyAmbientSound(ambient_sound);
         }
@@ -701,7 +701,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
     camera_count = static_cast<int>(PLLength(world->plsCameras));
     if (world->plsCameras != 0 && camera_count != 0) {
         for (index = 0; index < camera_count; ++index) {
-            camera_path = static_cast<W8CameraPath*>(PLGet(world->plsCameras, index));
+            camera_path = GetWorldCameraPath(world, index);
             if (camera_path != 0 && camera_path->active_14 != 0) {
                 path = camera_path->path_18;
                 PathAITick(path, 1);

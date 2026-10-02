@@ -63,7 +63,7 @@
 /* The world-cursor node the party is standing in, tracked across the
    command-0 sweep so enter/leave commands fire once per crossing. */
 // GLOBAL: WIZ8 0x006834d4
-W8WorldCursorNode* g_active_cursor_node;
+static W8WorldCursorNode* g_active_cursor_node;
 
 // GLOBAL: WIZ8 0x006834d8
 W8Vector<W8MasterFunction>* g_master_functions;
@@ -161,17 +161,17 @@ stSound3D* CreateAndPlaySoundNode(char* sound_name, srVector3T<float> position, 
 typedef unsigned char (*W8WorldCursorNodeHandler)(int command, W8WorldCursorNode* node,
                                                   int context);
 
-unsigned char WorldCursorNodeShowMessageOnce(int command, W8WorldCursorNode* node, int context);
-unsigned char WorldCursorNodeShowContextMessage(int command, W8WorldCursorNode* node, int context);
-unsigned char WorldCursorNodeShowMessage(int command, W8WorldCursorNode* node, int context);
-unsigned char WorldCursorNodeApplyItemEffect004D9560(int command, W8WorldCursorNode* node,
+static unsigned char WorldCursorNodeShowMessageOnce(int command, W8WorldCursorNode* node, int context);
+static unsigned char WorldCursorNodeShowContextMessage(int command, W8WorldCursorNode* node, int context);
+static unsigned char WorldCursorNodeShowMessage(int command, W8WorldCursorNode* node, int context);
+static unsigned char WorldCursorNodeApplyItemEffect004D9560(int command, W8WorldCursorNode* node,
                                                      int context);
-unsigned char WorldCursorNodeMaleCharacterEvent(int command, W8WorldCursorNode* node, int context);
-unsigned char IsMasterFunctionTypeEight(int command, W8WorldCursorNode* node, int context);
-unsigned char WorldCursorNodeSeenBodies(int command, W8WorldCursorNode* node, int context);
-unsigned char WorldCursorNodeApplyItemEffect004D96C0(int command, W8WorldCursorNode* node,
+static unsigned char WorldCursorNodeMaleCharacterEvent(int command, W8WorldCursorNode* node, int context);
+static unsigned char IsMasterFunctionTypeEight(int command, W8WorldCursorNode* node, int context);
+static unsigned char WorldCursorNodeSeenBodies(int command, W8WorldCursorNode* node, int context);
+static unsigned char WorldCursorNodeApplyItemEffect004D96C0(int command, W8WorldCursorNode* node,
                                                      int context);
-unsigned char WorldCursorNodePartyVoice(int command, W8WorldCursorNode* node, int context);
+static unsigned char WorldCursorNodePartyVoice(int command, W8WorldCursorNode* node, int context);
 
 /* The character-event kind constants the cursor-node handlers queue. */
 // GLOBAL: WIZ8 0x005EE5F4
@@ -287,7 +287,7 @@ unsigned char DispatchWorldCursorNodeCommand(W8MonsterInfo* info, int command, .
    Parameter 1 additionally gates the message on a living party member with
    trait 0x0c while the party is neither searching nor under effect 0x11. */
 // FUNCTION: WIZ8 0x004D9260
-unsigned char WorldCursorNodeShowMessageOnce(int command, W8WorldCursorNode* node, int context)
+static unsigned char WorldCursorNodeShowMessageOnce(int command, W8WorldCursorNode* node, int context)
 {
     int message_id;
     const char* folder;
@@ -343,7 +343,7 @@ command_check:
 /* Type-2 nodes: command 4 with a nonzero context flag shows the node's
    message while the main game screen is up. */
 // FUNCTION: WIZ8 0x004D93E0
-unsigned char WorldCursorNodeShowContextMessage(int command, W8WorldCursorNode* node, int context)
+static unsigned char WorldCursorNodeShowContextMessage(int command, W8WorldCursorNode* node, int context)
 {
     const char* folder;
     int message_id;
@@ -371,7 +371,7 @@ unsigned char WorldCursorNodeShowContextMessage(int command, W8WorldCursorNode* 
 
 /* Type-3 nodes: command 3 shows the node's message unconditionally. */
 // FUNCTION: WIZ8 0x004D94B0
-unsigned char WorldCursorNodeShowMessage(int command, W8WorldCursorNode* node, int context)
+static unsigned char WorldCursorNodeShowMessage(int command, W8WorldCursorNode* node, int context)
 {
     const char* folder;
     int message_id;
@@ -398,7 +398,7 @@ unsigned char WorldCursorNodeShowMessage(int command, W8WorldCursorNode* node, i
 /* Type-4 nodes: entering applies the node's item effect to a random party
    member. */
 // FUNCTION: WIZ8 0x004D9560
-unsigned char WorldCursorNodeApplyItemEffect004D9560(int command, W8WorldCursorNode* node,
+static unsigned char WorldCursorNodeApplyItemEffect004D9560(int command, W8WorldCursorNode* node,
                                                      int context)
 {
     if (command == 1) {
@@ -411,7 +411,7 @@ unsigned char WorldCursorNodeApplyItemEffect004D9560(int command, W8WorldCursorN
 /* Type-9 nodes: entering while the fact-0x14c gate holds queues the male
    event for the indexed party member when that member is male. */
 // FUNCTION: WIZ8 0x004D9590
-unsigned char WorldCursorNodeMaleCharacterEvent(int command, W8WorldCursorNode* node, int context)
+static unsigned char WorldCursorNodeMaleCharacterEvent(int command, W8WorldCursorNode* node, int context)
 {
     W8Character* character;
 
@@ -427,7 +427,7 @@ unsigned char WorldCursorNodeMaleCharacterEvent(int command, W8WorldCursorNode* 
 
 /* Predicate installed in the master-function callback table. */
 // FUNCTION: WIZ8 0x004D95F0
-unsigned char IsMasterFunctionTypeEight(int command, W8WorldCursorNode* node, int context)
+static unsigned char IsMasterFunctionTypeEight(int command, W8WorldCursorNode* node, int context)
 {
     return command == 8;
 }
@@ -437,7 +437,7 @@ unsigned char IsMasterFunctionTypeEight(int command, W8WorldCursorNode* node, in
    and latch the AP_SeenBodies location variable. Retail runs the fact-0x133
    clear twice. */
 // FUNCTION: WIZ8 0x004D9600
-unsigned char WorldCursorNodeSeenBodies(int command, W8WorldCursorNode* node, int context)
+static unsigned char WorldCursorNodeSeenBodies(int command, W8WorldCursorNode* node, int context)
 {
     if (command == 1) {
         if (GetLocationVarIDByName("AP_SeenBodies") == -1) {
@@ -462,7 +462,7 @@ unsigned char WorldCursorNodeSeenBodies(int command, W8WorldCursorNode* node, in
 /* Type-6 nodes: entering applies the node's item effect to a random party
    member. */
 // FUNCTION: WIZ8 0x004D96C0
-unsigned char WorldCursorNodeApplyItemEffect004D96C0(int command, W8WorldCursorNode* node,
+static unsigned char WorldCursorNodeApplyItemEffect004D96C0(int command, W8WorldCursorNode* node,
                                                      int context)
 {
     if (command == 1) {
@@ -499,7 +499,7 @@ bool g_flag_006834dd;
 // GLOBAL: WIZ8 0x006109F0
 bool g_flag_6109f0 = true;
 // GLOBAL: WIZ8 0x006834E0
-int g_value_6834e0;
+static int g_value_6834e0;
 // GLOBAL: WIZ8 0x00652DA5
 bool g_flag_652da5;
 
@@ -551,7 +551,7 @@ void LoadAwayCampChest(void)
    node's event type, once - the first byte of the node's userdata is the
    shown flag. */
 // FUNCTION: WIZ8 0x004D98C0
-unsigned char WorldCursorNodePartyVoice(int command, W8WorldCursorNode* node, int context)
+static unsigned char WorldCursorNodePartyVoice(int command, W8WorldCursorNode* node, int context)
 {
     int event_type;
     char* shown;

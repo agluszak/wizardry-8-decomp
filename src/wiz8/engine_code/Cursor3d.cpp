@@ -45,24 +45,24 @@
 W8WorldCursorState* gp3DCursor;
 
 // GLOBAL: WIZ8 0x0065ba94
-srNode* g_cursor_value;
+static srNode* g_cursor_value;
 
 /* The cursor scene node relocated to position_28 on each move. */
 // GLOBAL: WIZ8 0x0065ba90
-srNode* g_cursor_node_0065ba90;
+static srNode* g_cursor_node_0065ba90;
 
 /* Set when the cursor is opened while a shift key is held; while set the
    update keeps the latched dragged monster instead of re-picking. */
 // GLOBAL: WIZ8 0x0065ba98
-bool g_cursor_pick_latch;
+static bool g_cursor_pick_latch;
 
 /* 0x60ab44: the saved world-cursor monster group id; -1 until a cursor is
    torn down. Seeds and restores monster_group_id_4c. */
 // GLOBAL: WIZ8 0x0060ab44
-int g_cursor_saved_group_id = -1;
+static int g_cursor_saved_group_id = -1;
 
 // GLOBAL: WIZ8 0x0060ab48
-float g_float_60ab48 = 4000.0f;
+static float g_float_60ab48 = 4000.0f;
 
 // GLOBAL: WIZ8 0x005ebc88
 const float g_float_005ebc88 = 10.0f;

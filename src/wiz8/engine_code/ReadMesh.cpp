@@ -324,7 +324,7 @@ void W8MeshStripBuilder::BuildEdgeTable()
 }
 
 // FUNCTION: WIZ8 0x00486970
-W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
+static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
 {
     unsigned int index;
     unsigned int polygon;
@@ -780,7 +780,7 @@ stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int ver
 }
 
 // FUNCTION: WIZ8 0x00487E10
-int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials,
+static int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials,
                       srTextureIFace*** textures, unsigned long** render_flags, int load_materials)
 {
     if (info == 0) {

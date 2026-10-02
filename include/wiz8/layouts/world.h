@@ -3,6 +3,7 @@
 
 #include "surrender/srMath.h"
 #include "wiz8/environment_colour.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/layouts/plist.h"
 #include "wiz8/named_position.h"
 #include "wiz8/vector.h"
@@ -19,6 +20,8 @@ class W8SpellVisual;
 struct MonGen;
 class stLight;
 class W8Prop;
+class W8AmbientSound;
+struct W8CameraPath;
 class Trigger;
 class stParticle;
 struct W8PathAI;
@@ -96,5 +99,22 @@ extern W8World* g_world;
 extern W8World* g_world_659ab8;
 extern unsigned char g_flag_6081e4;
 extern int g_value_659c14;
+
+/* Typed element access for the homogeneous world lists. */
+inline W8Prop* GetWorldProp(W8World* world, int index)
+{
+    return static_cast<W8Prop*>(PLGet(world->plsProps, index));
+}
+
+inline W8CameraPath* GetWorldCameraPath(W8World* world, int index)
+{
+    return static_cast<W8CameraPath*>(PLGet(world->plsCameras, index));
+}
+
+inline W8AmbientSound* GetWorldAmbientSound(W8World* world, int index)
+{
+    return static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
+}
+
 
 #endif

@@ -112,10 +112,10 @@ W8LevelFolderRecord g_level_folders[W8_LEVEL_COUNT] = {
 /* The sky index of the world currently held in g_world_659ab8, or -1 when no
    sky is loaded. Every retail access is a byte access. */
 // GLOBAL: WIZ8 0x00604470
-signed char g_loaded_sky_index = -1;
+static signed char g_loaded_sky_index = -1;
 /* The CD volume number of the drive the game-data path finder last matched. */
 // GLOBAL: WIZ8 0x00604474
-int g_cd_index = -1;
+static int g_cd_index = -1;
 // GLOBAL: WIZ8 0x00659738
 W8MaterialMapper g_material_mapper;
 
@@ -434,7 +434,7 @@ bool g_camera_path_active;
 unsigned char g_mipe_trigger_display;
 
 // GLOBAL: WIZ8 0x006059E0
-char g_ambient_sound_filename[] = "SCF";
+static char g_ambient_sound_filename[] = "SCF";
 // GLOBAL: WIZ8 0x00605880
 const char* g_sky_names[] = {
     "DefaultSky", "RapaxSky", "MountainPassSky", "RiftSky1",  "TrynnieSky1", "TrynnieSky2",

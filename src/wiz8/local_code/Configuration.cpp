@@ -19,9 +19,9 @@
 // GLOBAL: WIZ8 0x006850c8
 W8GameSettings g_settings;
 // GLOBAL: WIZ8 0x0061e184
-char g_config_file_name[8] = "Wiz8";
+static char g_config_file_name[8] = "Wiz8";
 // GLOBAL: WIZ8 0x0061e18c
-char g_config_file_extension[] = "CFG";
+static char g_config_file_extension[] = "CFG";
 // FUNCTION: WIZ8 0x0054b810
 void LoadGameConfiguration(void)
 {

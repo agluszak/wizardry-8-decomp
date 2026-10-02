@@ -80,7 +80,7 @@ const float g_camera_half_pi = 1.570796012878418f;
    the half-period divided by the duration factor, so the plain constant
    initializer would under-produce the .data bytes. */
 // GLOBAL: WIZ8 0x0065a0f4
-float g_camera_transition_speed = g_camera_half_period / g_camera_transition_duration_factor;
+static float g_camera_transition_speed = g_camera_half_period / g_camera_transition_duration_factor;
 // GLOBAL: WIZ8 0x00609ea4
 float g_camera_max_yaw_velocity = 0.3490658700466156f;
 // GLOBAL: WIZ8 0x00603aac

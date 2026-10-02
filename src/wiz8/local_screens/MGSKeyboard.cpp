@@ -682,18 +682,18 @@ short g_keyboard_menu_pages[12];
 // GLOBAL: WIZ8 0x0069b820
 W8TextControl* g_keyboard_menu_rows[13];
 
-void KeyboardMenuSelectAttack(void);
-void KeyboardMenuSelectBerserk(void);
-void KeyboardMenuSelectBreathe(void);
-void KeyboardMenuSelectPray(void);
-void KeyboardMenuSelectTurnUndead(void);
-void KeyboardMenuSelectDefend(void);
-void KeyboardMenuSelectProtect(void);
-void KeyboardMenuOpenUseItemView(void);
-void KeyboardMenuSelectEquip(void);
-void KeyboardMenuOpenSpellView(void);
-void KeyboardMenuCastRecordedSpell(void);
-void KeyboardMenuUseRecordedItem(void);
+static void KeyboardMenuSelectAttack(void);
+static void KeyboardMenuSelectBerserk(void);
+static void KeyboardMenuSelectBreathe(void);
+static void KeyboardMenuSelectPray(void);
+static void KeyboardMenuSelectTurnUndead(void);
+static void KeyboardMenuSelectDefend(void);
+static void KeyboardMenuSelectProtect(void);
+static void KeyboardMenuOpenUseItemView(void);
+static void KeyboardMenuSelectEquip(void);
+static void KeyboardMenuOpenSpellView(void);
+static void KeyboardMenuCastRecordedSpell(void);
+static void KeyboardMenuUseRecordedItem(void);
 
 // FUNCTION: WIZ8 0x00592C70
 void OpenKeyboardMenuForSlot(int slot)
@@ -1004,7 +1004,7 @@ void RedrawKeyboardMenuPanel(unsigned char invalidate)
 }
 
 // FUNCTION: WIZ8 0x00593710
-void KeyboardMenuSelectAttack(void)
+static void KeyboardMenuSelectAttack(void)
 {
 
     ChooseAction(g_selected_party_slot, W8_ACTION_ATTACK, -1, 0, 0, 1);
@@ -1013,7 +1013,7 @@ void KeyboardMenuSelectAttack(void)
 }
 
 // FUNCTION: WIZ8 0x00593860
-void KeyboardMenuSelectBerserk(void)
+static void KeyboardMenuSelectBerserk(void)
 {
 
     ChooseAction(g_selected_party_slot, W8_ACTION_BERSERK, -1, 0, 0, 1);
@@ -1022,7 +1022,7 @@ void KeyboardMenuSelectBerserk(void)
 }
 
 // FUNCTION: WIZ8 0x005939B0
-void KeyboardMenuSelectBreathe(void)
+static void KeyboardMenuSelectBreathe(void)
 {
 
     ChooseAction(g_selected_party_slot, W8_ACTION_BREATHE, -1, 0, 0, 1);
@@ -1031,7 +1031,7 @@ void KeyboardMenuSelectBreathe(void)
 }
 
 // FUNCTION: WIZ8 0x00593B00
-void KeyboardMenuSelectTurnUndead(void)
+static void KeyboardMenuSelectTurnUndead(void)
 {
 
     ChooseAction(g_selected_party_slot, W8_ACTION_TURN_UNDEAD, -1, 0, 0, 1);
@@ -1040,7 +1040,7 @@ void KeyboardMenuSelectTurnUndead(void)
 }
 
 // FUNCTION: WIZ8 0x00593C50
-void KeyboardMenuSelectPray(void)
+static void KeyboardMenuSelectPray(void)
 {
 
     ChooseAction(g_selected_party_slot, W8_ACTION_PRAY, -1, 0, 0, 1);
@@ -1049,7 +1049,7 @@ void KeyboardMenuSelectPray(void)
 }
 
 // FUNCTION: WIZ8 0x00593DA0
-void KeyboardMenuSelectDefend(void)
+static void KeyboardMenuSelectDefend(void)
 {
 
     ChooseAction(g_selected_party_slot, W8_ACTION_DEFEND, -1, 0, 0, 1);
@@ -1058,7 +1058,7 @@ void KeyboardMenuSelectDefend(void)
 }
 
 // FUNCTION: WIZ8 0x00593EF0
-void KeyboardMenuSelectProtect(void)
+static void KeyboardMenuSelectProtect(void)
 {
 
     ChooseAction(g_selected_party_slot, W8_ACTION_PROTECT, -1, 0, 0, 1);
@@ -1067,7 +1067,7 @@ void KeyboardMenuSelectProtect(void)
 }
 
 // FUNCTION: WIZ8 0x00594040
-void KeyboardMenuOpenSpellView(void)
+static void KeyboardMenuOpenSpellView(void)
 {
 
     CloseKeyboardMenu();
@@ -1077,7 +1077,7 @@ void KeyboardMenuOpenSpellView(void)
 }
 
 // FUNCTION: WIZ8 0x00594180
-void KeyboardMenuCastRecordedSpell(void)
+static void KeyboardMenuCastRecordedSpell(void)
 {
 
     CloseKeyboardMenu();
@@ -1088,7 +1088,7 @@ void KeyboardMenuCastRecordedSpell(void)
 }
 
 // FUNCTION: WIZ8 0x00594390
-void KeyboardMenuSelectEquip(void)
+static void KeyboardMenuSelectEquip(void)
 {
 
     ChooseAction(g_selected_party_slot, W8_ACTION_EQUIP, -1, 0, 0, 1);
@@ -1097,7 +1097,7 @@ void KeyboardMenuSelectEquip(void)
 }
 
 // FUNCTION: WIZ8 0x005944E0
-void KeyboardMenuOpenUseItemView(void)
+static void KeyboardMenuOpenUseItemView(void)
 {
 
     CloseKeyboardMenu();
@@ -1107,7 +1107,7 @@ void KeyboardMenuOpenUseItemView(void)
 }
 
 // FUNCTION: WIZ8 0x00594620
-void KeyboardMenuUseRecordedItem(void)
+static void KeyboardMenuUseRecordedItem(void)
 {
 
     CloseKeyboardMenu();

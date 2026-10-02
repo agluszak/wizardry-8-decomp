@@ -20,9 +20,9 @@
 #include <wchar.h>
 
 // GLOBAL: WIZ8 0x0069c534
-unsigned int g_character_spells_region_set;
+static unsigned int g_character_spells_region_set;
 // GLOBAL: WIZ8 0x0069c538
-unsigned int g_character_spell_list_region_sets[6];
+static unsigned int g_character_spell_list_region_sets[6];
 
 // GLOBAL: WIZ8 0x00648c90
 W8SpellRealmAnimation g_spell_realm_animations[6] = {{486, 22, 3}, {487, 18, 8},  {488, 14, 8},

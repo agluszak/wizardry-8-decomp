@@ -72,7 +72,7 @@ W8GrowableVector<W8WorldCursorNode*> g_world_cursor_nodes(5);
 const double g_double_005ecac8 = 75000.0;
 
 // GLOBAL: WIZ8 0x0060a9b0
-int g_cursor_node_index = -1;
+static int g_cursor_node_index = -1;
 
 // GLOBAL: WIZ8 0x005ebf50
 const double g_world_cursor_scale = 0.002;

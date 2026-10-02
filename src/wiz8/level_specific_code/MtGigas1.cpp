@@ -23,11 +23,11 @@
    at 0x004DBE70. */
 
 // GLOBAL: WIZ8 0x006834f4
-GDProp* g_plate_prop;
+static GDProp* g_plate_prop;
 // GLOBAL: WIZ8 0x006834f8
-unsigned char g_plate_contact;
+static unsigned char g_plate_contact;
 // GLOBAL: WIZ8 0x006834f9
-unsigned char g_plate_down;
+static unsigned char g_plate_down;
 
 /* Level-load restore: binds the "plate" trigger's prop to the plate GDProp
    global and mirrors the saved PPlateDown variable into the latch flag,

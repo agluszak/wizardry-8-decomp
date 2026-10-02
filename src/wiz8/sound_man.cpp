@@ -6,7 +6,7 @@
    same interval that holds the unproven GDCamera cluster. */
 
 // GLOBAL: WIZ8 0x0065A104
-int g_dword_65a104;
+static int g_dword_65a104;
 
 // FUNCTION: WIZ8 0x00479010
 void ConfigureSoundCache(void)

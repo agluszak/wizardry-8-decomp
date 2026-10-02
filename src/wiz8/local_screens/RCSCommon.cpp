@@ -89,7 +89,7 @@ Controls* g_item_actions_panel;
 /* 0x0064DAD0: the level-line format the header draws - name, level and the
    profession's level-band title. */
 // GLOBAL: WIZ8 0x0064DAD0
-wchar_t g_format_s_d_paren_s[] = L"%s %d (%s)";
+static wchar_t g_format_s_d_paren_s[] = L"%s %d (%s)";
 
 /* The page and item-action button callbacks CreateCampButtonPanel
    wires into m_primaryActivationCallback. */
@@ -107,8 +107,8 @@ static void OnCampItemActionButton5(void);
 static void OnCampItemActionButton6(void);
 static void OnCampItemActionButton7(void);
 
-void ShowDismissCharacterDialog(void);
-void OnDismissCharacterDialogClosed(W8DialogBase* dialog);
+static void ShowDismissCharacterDialog(void);
+static void OnDismissCharacterDialogClosed(W8DialogBase* dialog);
 
 /* Swap the reviewed party member: rebuild the item list or learned-spell
    scratch for the new character and repaint whichever page is showing. */
@@ -253,7 +253,7 @@ void DrawRcsTextJustified(const wchar_t* text, int left, int top, int width, int
 }
 
 // FUNCTION: WIZ8 0x005b6630
-void OpenLevelUpCharacterScreen(void)
+static void OpenLevelUpCharacterScreen(void)
 {
     if (!g_status.buffers.XChar[giReviewCharSlot].fOccupied) {
         srAssertFail("fCHAR_OCCUPIED(giReviewCharSlot)",
@@ -644,7 +644,7 @@ void CreateRcsDismissPanel(void)
 }
 
 // FUNCTION: WIZ8 0x005b6950
-void ShowDismissCharacterDialog(void)
+static void ShowDismissCharacterDialog(void)
 {
     if (!g_status.buffers.XChar[giReviewCharSlot].fOccupied) {
         srAssertFail("fCHAR_OCCUPIED(giReviewCharSlot)",
@@ -671,7 +671,7 @@ void ShowDismissCharacterDialog(void)
 }
 
 // FUNCTION: WIZ8 0x005b6a60
-void OnDismissCharacterDialogClosed(W8DialogBase* base)
+static void OnDismissCharacterDialogClosed(W8DialogBase* base)
 {
     if (GetDialogResult(base) && g_status.buffers.XChar[giReviewCharSlot].npc_index != -1) {
         gXStatus.review_character_slot = static_cast<unsigned short>(giReviewCharSlot);

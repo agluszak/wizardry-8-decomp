@@ -118,7 +118,7 @@ static_assert(sizeof(STACKTEXTINPUTNODE) == 0x0c,
               "text input session must match the retail allocation");
 
 // GLOBAL: WIZ8 0x0069C808
-bool gfEditingText;
+static bool gfEditingText;
 
 // GLOBAL: WIZ8 0x0069C7EC
 static TextInputColors* pColors;

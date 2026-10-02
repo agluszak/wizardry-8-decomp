@@ -54,33 +54,33 @@ struct W8Elevator {
 };
 
 // GLOBAL: WIZ8 0x00683570
-W8Elevator gEl01;
+static W8Elevator gEl01;
 // GLOBAL: WIZ8 0x006835A0
-W8Elevator gEl02;
+static W8Elevator gEl02;
 
 // GLOBAL: WIZ8 0x00613DCC
-bool g_red_button_armed = true;
+static bool g_red_button_armed = true;
 // GLOBAL: WIZ8 0x006835EC
-W8Prop* g_el01_button_prop;
+static W8Prop* g_el01_button_prop;
 // GLOBAL: WIZ8 0x006835F0
-W8Prop* g_el02_button_prop;
+static W8Prop* g_el02_button_prop;
 
 // GLOBAL: WIZ8 0x006835CC
-W8Prop* g_lazer_prop;
+static W8Prop* g_lazer_prop;
 // GLOBAL: WIZ8 0x006835D0
-W8Prop* g_exit_door_prop;
+static W8Prop* g_exit_door_prop;
 // GLOBAL: WIZ8 0x006835D4
-Trigger* g_exit_door_trigger;
+static Trigger* g_exit_door_trigger;
 // GLOBAL: WIZ8 0x006835D8
-int g_laser_scanning;
+static int g_laser_scanning;
 // GLOBAL: WIZ8 0x006835DC
-stSound3D* g_warning_loop;
+static stSound3D* g_warning_loop;
 // GLOBAL: WIZ8 0x006835E0
-stSound3D* g_warning_oneshot;
+static stSound3D* g_warning_oneshot;
 // GLOBAL: WIZ8 0x006835E4
-W8IntervalGate* g_warning_gate;
+static W8IntervalGate* g_warning_gate;
 // GLOBAL: WIZ8 0x006835E8
-W8Monster* g_mookholo_monster;
+static W8Monster* g_mookholo_monster;
 
 /* Level init: clears the laser-scanner and exit-door caches, runs both
    elevator setups, then restores the laser scan, the warning sound, the

@@ -36,39 +36,39 @@
 #define TRAPS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Traps.cpp"
 
 // GLOBAL: WIZ8 0x0069ca68
-char g_record_mode_line[0x1000];
+static char g_record_mode_line[0x1000];
 // GLOBAL: WIZ8 0x0069da6c
-bool g_flag_69da6c;
+static bool g_flag_69da6c;
 // GLOBAL: WIZ8 0x0069da68
-int g_value_69da68;
+static int g_value_69da68;
 // GLOBAL: WIZ8 0x0069da70
-int g_record_mode_length;
+static int g_record_mode_length;
 
 // GLOBAL: WIZ8 0x00650384
-char s_record_mode_prompt[] = "Type in your text, then ENTER or ESC.";
+static char s_record_mode_prompt[] = "Type in your text, then ENTER or ESC.";
 // GLOBAL: WIZ8 0x006503ac
-char s_record_mode_default_location_006503ac[] = "tst";
+static char s_record_mode_default_location_006503ac[] = "tst";
 // GLOBAL: WIZ8 0x006503b0
-char s_record_mode_orientation_format_006503b0[] = "%f %f %f %f %f %d\n";
+static char s_record_mode_orientation_format_006503b0[] = "%f %f %f %f %f %d\n";
 // GLOBAL: WIZ8 0x006503c4
-char s_record_mode_position_format_006503c4[] = "%f %f %f\n";
+static char s_record_mode_position_format_006503c4[] = "%f %f %f\n";
 // GLOBAL: WIZ8 0x006503d0
-char s_data_notes_txt_006503d0[] = "data\\notes.txt";
+static char s_data_notes_txt_006503d0[] = "data\\notes.txt";
 // GLOBAL: WIZ8 0x006503e0
-char s_exiting_record_mode_006503e0[] = "Exiting record mode.";
+static char s_exiting_record_mode_006503e0[] = "Exiting record mode.";
 // GLOBAL: WIZ8 0x006503f8
-char s_error_deleting_log_file_006503f8[] = "Error deleting log file.";
+static char s_error_deleting_log_file_006503f8[] = "Error deleting log file.";
 // GLOBAL: WIZ8 0x00650414
-char s_log_file_deleted[] = "Log file deleted.";
+static char s_log_file_deleted[] = "Log file deleted.";
 // GLOBAL: WIZ8 0x00650428
-char s_delete_log[] = "DELETE LOG";
+static char s_delete_log[] = "DELETE LOG";
 /* 0x006504E8: per-device spell/notice table; TriggerTrapDevice reads
    the effect spell id at index device + 0xb. */
 // GLOBAL: WIZ8 0x006504E8
 int g_table_6504e8[] = {10,  25, 35, 40, 50, 60, 70, 80,  90,  100, 110, 121, 122,
                         123, 24, 47, 36, 37, 60, 70, 124, 125, 126, 86,  127, 91};
 // GLOBAL: WIZ8 0x00650434
-unsigned char g_table_650434[15][8] = {
+static unsigned char g_table_650434[15][8] = {
     {0, 1, 0, 0, 0, 1, 0, 0}, {0, 1, 0, 1, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 1, 0, 0},
     {0, 0, 0, 0, 1, 1, 0, 0}, {0, 0, 1, 1, 0, 0, 0, 1}, {1, 1, 0, 0, 1, 0, 0, 0},
     {0, 0, 1, 0, 1, 0, 1, 0}, {1, 0, 0, 1, 0, 1, 0, 0}, {0, 0, 1, 1, 1, 0, 0, 0},
@@ -229,7 +229,7 @@ unsigned char GetTable650434Entry(int row, int column)
    subtracted from the trigger's device count before extra targets and power
    are rolled. */
 // GLOBAL: WIZ8 0x006504AC
-int g_trap_difficulty[W8_TRAP_TYPE_COUNT] = {1, 1, 2, 2, 3, 3, 3, 4, 5, 5, 5, 6, 6, 7, 7};
+static int g_trap_difficulty[W8_TRAP_TYPE_COUNT] = {1, 1, 2, 2, 3, 3, 3, 4, 5, 5, 5, 6, 6, 7, 7};
 
 /* Roll the trigger's trap type (device_id) on first interaction: rejection-
    sample the fifteen-row trap table until a type whose per-type difficulty
@@ -273,7 +273,7 @@ void CompleteTrapDisarm(Trigger* trigger)
 }
 
 // FUNCTION: WIZ8 0x005E3800
-void DischargeTrapSpell(srVector3T<float> point, int spell_id, unsigned int power_level,
+static void DischargeTrapSpell(srVector3T<float> point, int spell_id, unsigned int power_level,
                         int num_targets)
 {
     int index;

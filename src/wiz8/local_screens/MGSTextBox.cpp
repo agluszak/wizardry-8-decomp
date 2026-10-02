@@ -100,11 +100,11 @@ static_assert(sizeof(W8PList*) == sizeof(unsigned long),
               "W8MessageStorageDiskRecord_requires_32_bit_live_pointers");
 
 // GLOBAL: WIZ8 0x0069b7b8
-unsigned char g_text_box_mode;
+static unsigned char g_text_box_mode;
 // GLOBAL: WIZ8 0x0069b7bc
 int g_notice_line_count;
 // GLOBAL: WIZ8 0x0064bd54
-int g_text_box_value = 12;
+static int g_text_box_value = 12;
 /* 0x0068F2D4: the screen the text box belongs to; its two panels sit at 0x0c
    and 0x14. */
 
@@ -115,11 +115,11 @@ int g_text_box_value = 12;
 // GLOBAL: WIZ8 0x0068f2d8
 W8MessageStorageRecord g_message_storage[4][0x15e];
 
-void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short text_box,
+static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short text_box,
                       int wrapped_line);
 
 // FUNCTION: WIZ8 0x0058fdd0
-int GetNextNoticeWord(int cursor, const wchar_t* text, W8NoticeWord* word)
+static int GetNextNoticeWord(int cursor, const wchar_t* text, W8NoticeWord* word)
 {
     wchar_t buffer[150];
     int length = 0;
@@ -210,7 +210,7 @@ void ResetEditorStatusLine(short line)
 }
 
 // FUNCTION: WIZ8 0x0058af60
-void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short text_box,
+static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short text_box,
                       int wrapped_line)
 {
     if (text_box == -1) {
@@ -306,7 +306,7 @@ void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short tex
 }
 
 // FUNCTION: WIZ8 0x0058fa80
-void NoticeDialogDestroyed(W8DialogBase*)
+static void NoticeDialogDestroyed(W8DialogBase*)
 {
     if (g_current_screen_state.id == W8_SCREEN_OPTIONS) {
         NoOp();
@@ -1945,14 +1945,14 @@ void SetTextBoxMode(unsigned char mode, int value)
 }
 
 /* 0x0058FFC0: draw clickable notice-word overlays for one painted line. */
-void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y);
+static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y);
 
 /* Paint one message-storage line at (x, y). slot_1d8_match / slot_1e8_match
    select alternate palettes for the editor slot highlights; skip_invalidate
    is forwarded from RedrawTextBoxBody and skips the word-overlay pass when
    set. Retail reuses the leading bytes of the level block as a wchar scratch. */
 // FUNCTION: WIZ8 0x0058D2C0
-void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char slot_1d8_match,
+static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char slot_1d8_match,
                      unsigned char slot_1e8_match, unsigned char skip_invalidate)
 {
     unsigned short* palette;
@@ -2449,7 +2449,7 @@ void SelectTextSlot1E8(int line, int index)
 }
 
 // FUNCTION: WIZ8 0x0058FFC0
-void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
+static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
 {
     wchar_t word_text[100];
 

@@ -347,7 +347,7 @@ W8WorldItem* GetNextWorldItem(char restart)
     index = g_world_item_cursor;
     if (static_cast<unsigned int>(index) < PLLength(gXStatus.plsItemList)) {
         ++g_world_item_cursor;
-        return static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, index));
+        return GetWorldItemListEntry(index);
     }
     return 0;
 }
@@ -446,7 +446,7 @@ W8WorldItem* ItemInfo(unsigned int item_list_index)
         srAssertFail("uiItemListIndex < (UINT32) PLLength(gXStatus.plsItemList)", ITEM_MANAGER_CPP,
                      961, 0);
     }
-    item = static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, item_list_index));
+    item = GetWorldItemListEntry(item_list_index);
     if (item == 0) {
         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 965,
                      FormatString("ItemInfo: ERROR - PLGet failed, index %d, pList %d",
@@ -923,7 +923,7 @@ void DropHeldItem(int arg_1)
    Either way the group's own world entry is found by runtime id, pulled out
    of its sector, deactivated, freed and removed from the list. */
 // FUNCTION: WIZ8 0x004f7c50
-void OnItemPickerDialogDestroyed(W8DialogBase* dialog)
+static void OnItemPickerDialogDestroyed(W8DialogBase* dialog)
 {
     W8WorldItem* group;
     W8WorldItem* item;
@@ -1024,7 +1024,7 @@ unsigned char ReleaseItemLists(void)
             srAssertFail("uiItemListIndex < (UINT32) PLLength(gXStatus.plsItemList)",
                          ITEM_MANAGER_CPP, 0x3c1, 0);
         }
-        item = static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, 0));
+        item = GetWorldItemListEntry(0);
         if (item == 0) {
             srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x3c5,
                          FormatString("ItemInfo: ERROR - PLGet failed, index %d, pList %d", 0,
@@ -1104,7 +1104,7 @@ bool AnyWorldItemVisible(void)
     count = PLLength(gXStatus.plsItemList);
     if (0 <= g_last_visible_world_item && g_last_visible_world_item < count) {
         W8WorldItem* item =
-            static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, g_last_visible_world_item));
+            GetWorldItemListEntry(g_last_visible_world_item);
         if (item->p3D != 0) {
             item->p3D->m_pRep->GetLocation(&position);
             GetCameraPosition(&eye);
@@ -1121,7 +1121,7 @@ bool AnyWorldItemVisible(void)
         }
     }
     for (index = 0; index < count; ++index) {
-        W8WorldItem* item = static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, index));
+        W8WorldItem* item = GetWorldItemListEntry(index);
 
         if (item->p3D != 0) {
             item->p3D->m_pRep->GetLocation(&position);

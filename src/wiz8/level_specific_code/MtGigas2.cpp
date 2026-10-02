@@ -32,12 +32,12 @@
    ControlCampAlarm (0x004DC3D0) in MtGigasOuter.cpp. */
 
 // GLOBAL: WIZ8 0x006834e8
-stSound3D* g_alarm_sound_6834e8;
+static stSound3D* g_alarm_sound_6834e8;
 // GLOBAL: WIZ8 0x006834ec
-W8IntervalGate* g_alarm_gate_6834ec;
+static W8IntervalGate* g_alarm_gate_6834ec;
 
 static void MtGigas2WireShock(void);
-void MtGigas2UmpaniAlarm(int command);
+static void MtGigas2UmpaniAlarm(int command);
 
 /* Level-load restore. Recreates the wire-panel location variable (armed but
    untouched reads back -1), re-runs the three wire triggers when the panel
@@ -379,7 +379,7 @@ bool MtGigas2LaserAlarm(Trigger* pTrigger)
    seconds). Unlike ControlCampAlarm the gate and sound are only created when
    both are absent, and finishing stops the sound but keeps its node. */
 // FUNCTION: WIZ8 0x004DB860
-void MtGigas2UmpaniAlarm(int command)
+static void MtGigas2UmpaniAlarm(int command)
 {
     srVector3T<float> position;
 

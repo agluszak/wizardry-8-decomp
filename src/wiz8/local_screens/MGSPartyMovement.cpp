@@ -34,7 +34,7 @@ enum { W8_ACTION_STATUS_FINISHED = 3 };
 /* Retail callback IDs 0 and 1 index this base, and ReleasePartyMovement walks
    the two-pointer span. */
 // GLOBAL: WIZ8 0x0069BF40
-W8TextControl* g_party_movement_buttons[2];
+static W8TextControl* g_party_movement_buttons[2];
 // GLOBAL: WIZ8 0x0069BF48
 unsigned int g_party_movement_animation_clock;
 // GLOBAL: WIZ8 0x0069BF4C

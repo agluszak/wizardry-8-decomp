@@ -79,13 +79,13 @@ int ComputeRealmSkillDebt(W8Character* original, W8Character* edited)
    reset or level-up hands to the editing state; the byte at 0x34 records that
    a profession change forced the sex to one. */
 // GLOBAL: WIZ8 0x0068de28
-int g_attribute_point_bonus;
+static int g_attribute_point_bonus;
 // GLOBAL: WIZ8 0x0068de2c
-int g_skill_point_bonus;
+static int g_skill_point_bonus;
 // GLOBAL: WIZ8 0x0068de30
-int g_spell_point_bonus;
+static int g_spell_point_bonus;
 // GLOBAL: WIZ8 0x0068de34
-bool g_gender_locked;
+static bool g_gender_locked;
 
 /* Empty every item record the character carries. 0x00520070 expands the
    per-slot helper at both loops, which is why the body lives in PC Item.cpp

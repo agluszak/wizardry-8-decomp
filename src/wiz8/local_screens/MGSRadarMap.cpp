@@ -39,7 +39,7 @@
    AcquireRadarBlip's highlight path reuses rows group*3 and group*3+2 as the
    facing/up orientation vectors. */
 // GLOBAL: WIZ8 0x0064ca90
-float g_radar_blip_colors[18][3] = {
+static float g_radar_blip_colors[18][3] = {
     {0.5f, 0.5f, 0.0f}, {0.7f, 0.7f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.5f, 0.0f, 0.0f},
     {0.7f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.5f, 0.0f}, {0.0f, 0.7f, 0.0f},
     {0.0f, 1.0f, 0.0f}, {0.2f, 0.2f, 0.2f}, {0.5f, 0.5f, 0.5f}, {0.7f, 0.7f, 0.7f},
@@ -49,12 +49,12 @@ float g_radar_blip_colors[18][3] = {
 
 /* 0x0064CB68: ubDisposition to blip class for live monsters. */
 // GLOBAL: WIZ8 0x0064cb68
-unsigned char g_radar_disposition_class[4] = {0, 1, 2, 0};
+static unsigned char g_radar_disposition_class[4] = {0, 1, 2, 0};
 
 /* 0x0064CB6C: screen offsets at which the zoomed map image gets each
    occupied formation cell's party-order chip painted. */
 // GLOBAL: WIZ8 0x0064cb6c
-int g_radar_cell_offsets[15][2] = {
+static int g_radar_cell_offsets[15][2] = {
     {45, 37}, {42, 38}, {48, 38}, {53, 45}, {52, 42}, {52, 48}, {45, 53}, {48, 52},
     {42, 52}, {37, 45}, {38, 48}, {38, 42}, {45, 42}, {43, 46}, {47, 46},
 };
@@ -63,27 +63,27 @@ int g_radar_cell_offsets[15][2] = {
    preset flag, the three sprites, the eighteen sector blip pools with their
    per-sector reuse cursors, and the active range/scale band. */
 // GLOBAL: WIZ8 0x0069bf58
-stModelInstance2D* g_radar_backdrop = 0;
+static stModelInstance2D* g_radar_backdrop = 0;
 // GLOBAL: WIZ8 0x0069bf5c
-bool g_radar_zoomed = false;
+static bool g_radar_zoomed = false;
 // GLOBAL: WIZ8 0x0069bf60
-stModelInstance2D* g_radar_compass = 0;
+static stModelInstance2D* g_radar_compass = 0;
 // GLOBAL: WIZ8 0x0069c088
-stModelInstance2D* g_radar_frame = 0;
+static stModelInstance2D* g_radar_frame = 0;
 // GLOBAL: WIZ8 0x0069bf68
-W8GrowableVector<stModelInstance2D*> g_radar_icon_pools[18];
+static W8GrowableVector<stModelInstance2D*> g_radar_icon_pools[18];
 // GLOBAL: WIZ8 0x0069c08c
-int g_radar_icon_cursors[18];
+static int g_radar_icon_cursors[18];
 // GLOBAL: WIZ8 0x0069c0d4
-float g_radar_outer_radius;
+static float g_radar_outer_radius;
 // GLOBAL: WIZ8 0x0069c0d8
-float g_radar_inner_radius;
+static float g_radar_inner_radius;
 // GLOBAL: WIZ8 0x0069c0dc
-stModelInstance2D* g_radar_map = 0;
+static stModelInstance2D* g_radar_map = 0;
 // GLOBAL: WIZ8 0x0069c0e0
-float g_radar_map_scale;
+static float g_radar_map_scale;
 // GLOBAL: WIZ8 0x0069c0e4
-unsigned char g_radar_map_enabled = 0;
+static unsigned char g_radar_map_enabled = 0;
 
 // GLOBAL: WIZ8 0x005eecd8
 const double g_double_005eecd8 = 3.141592653589793;

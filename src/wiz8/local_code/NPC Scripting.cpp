@@ -79,7 +79,7 @@ struct W8NpcScriptRegionName {
 };
 
 // GLOBAL: WIZ8 0x0061b788
-W8NpcScriptRegionName g_npc_script_region_names[] = {{L"Monastery", 1},
+static W8NpcScriptRegionName g_npc_script_region_names[] = {{L"Monastery", 1},
                                                      {L"Arnika", 2},
                                                      {L"Trynton", 3},
                                                      {L"Swamp", 4},
@@ -117,7 +117,7 @@ struct W8NpcNamedQuote {
 };
 
 // GLOBAL: WIZ8 0x0061aea8
-W8NpcNamedQuote g_npc_named_quotes[] = {
+static W8NpcNamedQuote g_npc_named_quotes[] = {
     {L"Phoozang", 0x4000, 116},    {L"Cosmic Lords", 0x8000, 116}, {L"Yamir", 0x10000, 111},
     {L"Z'Ant", 0x20000, 109},      {L"Vi Domina", 0x40000, 106},   {L"Al-Sedexus", 0x80000, 113},
     {L"Astral Dominae", 1, 106},   {L"Destinae Dominus", 2, 112},  {L"Chaos Moliri", 4, 106},
@@ -133,7 +133,7 @@ W8NpcNamedQuote g_npc_named_quotes[] = {
 /* Region-by-level-band quote table: one 0x12-int row per
    g_npc_script_region_names region id; band 0 is unused. */
 // GLOBAL: WIZ8 0x0061bda0
-int g_npc_region_quotes[15][0x12] = {
+static int g_npc_region_quotes[15][0x12] = {
     {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
     {-1, 117, 210, 210, 210, 210, 210, 213, 210, 211, 211, 211, 211, 213, 210, -1, 210, 213},
     {-1, 211, 117, 210, 210, 210, 210, 213, 210, 213, 213, 211, 211, 213, 210, -1, 210, 213},
@@ -336,17 +336,17 @@ void StripNpcKeywordPunctuation(wchar_t* text)
 }
 
 // GLOBAL: WIZ8 0x0068c3c4
-int g_staged_value_68c3c4;
+static int g_staged_value_68c3c4;
 // GLOBAL: WIZ8 0x0068c3c8
-int g_staged_value_68c3c8;
+static int g_staged_value_68c3c8;
 // GLOBAL: WIZ8 0x0068c3ce
-short g_staged_short;
+static short g_staged_short;
 // GLOBAL: WIZ8 0x0068c3d0
-unsigned char g_staged_flag; // bool-byte-ok: stages the raw quote_active byte
+static unsigned char g_staged_flag; // bool-byte-ok: stages the raw quote_active byte
 // GLOBAL: WIZ8 0x0068c3d8
-W8NpcScriptFile* g_staged_value_68c3d8;
+static W8NpcScriptFile* g_staged_value_68c3d8;
 // GLOBAL: WIZ8 0x0068c3dc
-W8NpcState* g_staged_npc;
+static W8NpcState* g_staged_npc;
 
 /* Alternates between the two string-list ids SpeakNpcSubquote substitutes for
    an "EMPTY"/"BLANK" quote on the closing quotes it allows. */
@@ -354,17 +354,17 @@ W8NpcState* g_staged_npc;
 static int g_empty_quote_text_index;
 
 // GLOBAL: WIZ8 0x0068c500
-unsigned char g_npc_script_event_active;
+static unsigned char g_npc_script_event_active;
 // GLOBAL: WIZ8 0x0068C501
 unsigned char g_message_queue_idle;
 
 // GLOBAL: WIZ8 0x0068C358
-int g_pending_npc_travel_level;
+static int g_pending_npc_travel_level;
 
 // GLOBAL: WIZ8 0x0061aea0
-int g_sedexus_sound_handle = -1;
+static int g_sedexus_sound_handle = -1;
 // GLOBAL: WIZ8 0x0061c324
-char g_sedexus_moaning_sound[] = "Data\\Sound\\Ambients\\Al_Sedexus Moaning.wav";
+static char g_sedexus_moaning_sound[] = "Data\\Sound\\Ambients\\Al_Sedexus Moaning.wav";
 // GLOBAL: WIZ8 0x00614b44
 wchar_t g_format_al_s[] = L"Al-%s";
 
@@ -634,7 +634,7 @@ int SelectNpcQuoteResponse(W8NpcQuoteEntry* entry)
    party slot's monster-manager entry or on g_npc_scripting for ungrouped
    NPCs. notice_only routes the text through ShowNotice instead. */
 // FUNCTION: WIZ8 0x00525350
-void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
+static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
                       unsigned char notice_only, unsigned char force_npc_voice)
 {
     W8MessageBoxLine* line;
@@ -1407,7 +1407,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
    queued endgame stage is pending - and stage three still finds PHOONZANG -
    ENDGAME2's script notice runs the book sequence. */
 // FUNCTION: WIZ8 0x00526DF0
-void NpcScriptQueueEndgame(void)
+static void NpcScriptQueueEndgame(void)
 {
     if (g_status.endgame2_queued != 0 ||
         (g_status.endgame3_queued != 0 && FindNpcOfKind(W8_NPC_PHOONZANG))) {

@@ -46,14 +46,14 @@
 /* The three bonus attributes each profession grants on top of the imported
    values. */
 // GLOBAL: WIZ8 0x00614FC8
-int g_profession_primary_attributes[15][3] = {
+static int g_profession_primary_attributes[15][3] = {
     {0, 4, 3}, {0, 4, 2}, {3, 0, 2}, {4, 1, 6}, {4, 5, 1}, {4, 5, 1}, {5, 4, 6}, {4, 5, 6},
     {4, 6, 1}, {4, 1, 6}, {2, 1, 3}, {1, 4, 2}, {1, 4, 2}, {1, 6, 2}, {1, 4, 2},
 };
 
 /* The starting spells LearnSpell grants each profession on import. */
 // GLOBAL: WIZ8 0x0062A5F8
-int g_profession_starting_spells[15][6] = {
+static int g_profession_starting_spells[15][6] = {
     {0, 0, 0, 0, 0, 0},   {6, 2, 0, 0, 0, 0},     {6, 13, 0, 0, 0, 0},  {6, 1, 0, 0, 0, 0},
     {5, 12, 0, 0, 0, 0},  {1, 7, 0, 0, 0, 0},     {6, 10, 0, 0, 0, 0},  {0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0},   {0, 0, 0, 0, 0, 0},     {6, 2, 13, 11, 0, 0}, {6, 1, 7, 12, 0, 0},
