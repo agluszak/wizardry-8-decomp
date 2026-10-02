@@ -517,8 +517,6 @@ char TraceLineOfSightToBounds(const srVector3T<float>* origin, srVector3T<float>
     return g_octree->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0;
 }
 
-/* Report whether the eye sees a bounds box: true when the midpoint or any one
-   of the eight min/max corner combinations has line of sight. */
 // FUNCTION: WIZ8 0x0046FD70
 bool HasLineOfSightToBounds(const srVector3T<float>* origin, srVector3T<float>* minimum,
                             srVector3T<float>* maximum)
@@ -739,7 +737,6 @@ void WorldUpdateProps(W8World* world)
     }
 }
 
-/* Advance each light queued by this world. */
 // FUNCTION: WIZ8 0x0046df50
 void WorldUpdateLights(W8World* world)
 {
@@ -755,9 +752,6 @@ void WorldUpdateLights(W8World* world)
    through. Every one of them ignores the caller's own first argument and uses
    this global instead. */
 
-/* Add a monster to the world's monster list, or add/remove an item on the
-   item list. Each wrapper still takes the caller's W8World* even though the
-   body uses g_world. */
 // FUNCTION: WIZ8 0x0046e580
 void AddMonsterToWorld(W8World* unused, W8Monster* monster)
 {
@@ -791,7 +785,6 @@ W8Prop* WorldGetPropAt(W8World* unused, int index)
     return (W8Prop*)PLGet(g_world->plsProps, index); // c-style-cast-ok: PList stores void* rows
 }
 
-/* Two wrappers that reach the world's static scene along before forwarding. */
 // FUNCTION: WIZ8 0x0046e860
 void ForwardThroughMember3C_46E750(W8World* owner, int argument)
 {
@@ -885,14 +878,12 @@ void SetSceneMeshShaderLowBits(srNode* node, int argument)
     }
 }
 
-/* Release one block back to the renderer's heap rather than the CRT's. */
 // FUNCTION: WIZ8 0x0046f3f0
 void FreeThroughRenderHeap(void* block)
 {
     srHeap.free(block);
 }
 
-/* Propagate the model-instance exclusion mask through the first-child chain. */
 // FUNCTION: WIZ8 0x0046f4f0
 void SetModelInstanceChainExclusionMask(srModelInstance* node, int value)
 {
@@ -987,8 +978,6 @@ void __stdcall SetOctreeGameData(W8GameData* value)
     g_octree_game_data = value;
 }
 
-/* Test one point against all six frustum planes: outside if any signed
-   distance is negative. */
 // FUNCTION: WIZ8 0x0046d880
 bool PointInsideFrustum(const srVector3T<float>* point, const W8Plane* planes)
 {
@@ -1038,8 +1027,6 @@ bool PointInsideTriangle(const srVector3T<float>* vertices, short axis,
     return inside;
 }
 
-/* Build the six face planes of the frustum described by `points` in the
-   canonical corner order SortFrustumCorners produces. */
 // FUNCTION: WIZ8 0x0046d7e0
 void BuildFrustumPlanes(const srVector3T<float>* points, W8Plane* planes)
 {
