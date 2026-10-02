@@ -169,12 +169,6 @@ char CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, char ha
     return 0;
 }
 
-/* Whether the slot's chosen action reaches the target it was aimed at:
-   `hand` selects the attack side (2 asks for the better hand). A monster
-   must be aimable, another party member takes the action's range (with the
-   front-rank screen on melee), a point on the ground must sit inside the
-   spell's distance and its line of sight, and a group target defers to the
-   shared group range test. */
 // FUNCTION: WIZ8 0x00519180
 bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext context)
 {
@@ -258,12 +252,6 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
     return true;
 }
 
-/* Whether `party_slot` may aim at `monster_info`. The monster must be a live
-   threat; with no targeting/combat/spell/item mode outstanding the pick is a
-   plain sighting and the ranged aim flag applies, otherwise the slot's chosen
-   action supplies the range category (a combat melee band loses the formation
-   rows between slot and monster) and selects the aim flag. An allowed aim
-   then has to pass the band distance to the monster. */
 // FUNCTION: WIZ8 0x005194e0
 bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster_info, int context,
                                 char notify_failure)
@@ -354,9 +342,6 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
     return 1;
 }
 
-/* The slot-vs-slot reach check the target-list builders share: the slot's
-   chosen action has to have a range, and melee range additionally has to get
-   past the front rank. */
 // FUNCTION: WIZ8 0x005197c0
 char CharacterActionReachesSlot(int party_slot, int hand, int target_slot, int context)
 {
@@ -403,9 +388,6 @@ char CharacterActionReachesSlot(int party_slot, int hand, int target_slot, int c
     return 1;
 }
 
-/* Whether `party_slot`'s action can reach any member of `group_id` at all.
-   The character becomes the source for the shared range test; a miss can
-   queue the character's complaint event when `notify` asks for it. */
 // FUNCTION: WIZ8 0x00519920
 bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context, char notify)
 {
@@ -432,9 +414,6 @@ bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext conte
     return true;
 }
 
-/* The range category the slot's chosen action works at. Attacks take the
-   weapon's reach for the asked hand, a move acts at long range, spells and
-   item uses ask their spell record, and anything unknown has no range. */
 // FUNCTION: WIZ8 0x005199f0
 int GetCharActionRange(int party_slot, int hand, W8TargetingContext context)
 {
@@ -463,10 +442,6 @@ int GetCharActionRange(int party_slot, int hand, W8TargetingContext context)
     return W8_RANGE_NONE;
 }
 
-/* The range category the weapon in one of the character's hands attacks at.
-   `hand` of HAND_ANY asks both hands and keeps the better answer; only a
-   hand actually in play carrying a melee or thrown wield kind has a range to
-   report at all. */
 // FUNCTION: WIZ8 0x00519ac0
 int GetCharAttackRange(const W8Character* character, unsigned int hand)
 {
@@ -501,7 +476,6 @@ int GetCharAttackRange(const W8Character* character, unsigned int hand)
     return g_item_records[character->EquippedItem[6 + (hand != 0)].iItemNo].wield_group;
 }
 
-/* The furthest range category any of this character's hands can reach at. */
 // FUNCTION: WIZ8 0x00519ba0
 W8RangeCategory GetBestHandRangeCategory(const W8Character* character)
 {
@@ -520,7 +494,6 @@ W8RangeCategory GetBestHandRangeCategory(const W8Character* character)
     return best;
 }
 
-/* Whether the first lighting condition applies at distant or extreme range. */
 // FUNCTION: WIZ8 0x00519be0
 bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster, W8RangeCategory range_category)
 {
@@ -530,10 +503,6 @@ bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster, W8RangeCatego
     return 0;
 }
 
-/* Whether the monster's attack `attack` reaches anyone at all; `hostile_only`
-   counts only those it is hostile to. In combat with berserk_015 set the
-   hostile filter is forced on. Party members and other monsters defer to the corresponding
-   MonsterAttackReachesCharacter/Monster helpers. */
 // FUNCTION: WIZ8 0x00519c00
 unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack,
                                          char hostile_only)
@@ -587,9 +556,6 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
     return 0;
 }
 
-/* Whether the monster's attack `attack` reaches the character in `party_slot`,
-   given what it can see and how far away they stand. Combat mode shortens
-   touch/short reach by CountRowsBetween. */
 // FUNCTION: WIZ8 0x0051a2f0
 bool MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                    unsigned int attack, int party_slot)
@@ -669,9 +635,6 @@ bool MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8MonsterRecord*
     return 0;
 }
 
-/* Whether the monster's attack `attack` reaches another monster. Untargetable
-   attackers never reach; the same monster always does. Sight comes from the
-   mon-to-mon visibility row rather than the party record. */
 // FUNCTION: WIZ8 0x0051a510
 bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                  unsigned int attack, W8MonsterInfo* target)
@@ -749,8 +712,6 @@ bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* r
     return 0;
 }
 
-/* The furthest range category among a monster's three attacks. Asking for the
-   close-quarters band only considers the two categories inside it. */
 // FUNCTION: WIZ8 0x0051a800
 W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, char close_quarters_only)
 {
@@ -769,8 +730,6 @@ W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, char cl
     return best;
 }
 
-/* Furthest attack band, optionally raised to long for certain special-attack
-   kinds, then the furthest castable spell band when the gates allow. */
 // FUNCTION: WIZ8 0x0051a840
 W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
                                             char skip_capability_checks, int* out_sight)
@@ -829,9 +788,6 @@ W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
     return best;
 }
 
-/* The range category one monster action works at. A spell takes the range off
-   the spell record; two of the actions have a fixed answer and the rest have
-   none. A plain attack takes it from the attack itself, which has to exist. */
 // FUNCTION: WIZ8 0x0051a730
 W8RangeCategory GetMonsterActionRangeCategory(const W8MonsterInfo* monster_info,
                                               const W8MonsterRecord* record, unsigned int attack)
@@ -858,8 +814,6 @@ W8RangeCategory GetMonsterActionRangeCategory(const W8MonsterInfo* monster_info,
     return static_cast<W8RangeCategory>(record->attacks[attack].range_category);
 }
 
-/* How far a range category actually is. The four categories step 2, 4, 25, 50
-   before the world scale multiplies them; no range at all is zero distance. */
 // FUNCTION: WIZ8 0x0051a9a0
 float CalcRangeDistance(W8RangeCategory range_category)
 {
@@ -888,9 +842,6 @@ float CalcRangeDistance(W8RangeCategory range_category)
     return steps * g_world_scale;
 }
 
-/* Source-relative action range: same band steps as CalcRangeDistance, then add
-   the source's navigator radius - the party navigator for a character source,
-   the individual monster's for a monster source. */
 // FUNCTION: WIZ8 0x0051AA30
 float CalcRangeDistance(int range_category, W8TargetSource* source)
 {
@@ -910,17 +861,12 @@ float CalcRangeDistance(int range_category, W8TargetSource* source)
     return distance;
 }
 
-/* Party-relative action range for the world cursor: same band steps as
-   CalcRangeDistance, then add the startup navigator's movement collision_radius_0b0. */
 // FUNCTION: WIZ8 0x0051AB50
 float CalcRangeDistanceFromParty(W8RangeCategory range_category)
 {
     return CalcRangeDistance(range_category) + g_startup_world->movement_0c0.collision_radius_0b0;
 }
 
-/* Shrink a short-range category by the formation rows CountRowsBetween says
-   stand between the monster and `party_slot`. Exhausting the category marks it
-   unreachable (-1). */
 // FUNCTION: WIZ8 0x0051abe0
 void CloseFormationGap(W8MonsterInfo* monster_info, int party_slot, int* rows_apart)
 {
@@ -946,7 +892,6 @@ void CloseFormationGap(W8MonsterInfo* monster_info, int party_slot, int* rows_ap
     *rows_apart = -1;
 }
 
-/* Whether anybody standing ahead of this position is still in formation. */
 // FUNCTION: WIZ8 0x0051ae60
 bool AnyoneStandsAhead(unsigned char position)
 {
@@ -963,10 +908,6 @@ bool AnyoneStandsAhead(unsigned char position)
     return found > 0;
 }
 
-/* How many formation rows between `party_slot` and the monster block a short
-   reach. Same row answers zero; otherwise one when the monster's row is
-   occupied, plus one more when the gap is exactly two rows and either that
-   row or the front rank screens. */
 // FUNCTION: WIZ8 0x0051aec0
 char CountRowsBetween(int party_slot, W8MonsterInfo* monster_info)
 {
@@ -1023,8 +964,6 @@ char CountRowsBetween(int party_slot, W8MonsterInfo* monster_info)
     return rows;
 }
 
-/* Whether the front rank stands between two positions. Only positions exactly
-   two rows apart can be screened, and the fifth row is never in the way. */
 // FUNCTION: WIZ8 0x0051b000
 bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
 {
@@ -1059,10 +998,6 @@ bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
     return found != 0;
 }
 
-/* Every other seated, living party member whose side matches `relationship`
-   and that the slot's chosen action could actually strike is collected; one of
-   them is picked at random, or -1 when nobody qualifies. The berserk and
-   turncoat paths use it to pick a victim. */
 // FUNCTION: WIZ8 0x0051b0a0
 int PickReachableSlotByDisposition(int party_slot, char relationship)
 {
@@ -1095,7 +1030,6 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
     return candidates[Random(count)];
 }
 
-/* Two seven-byte constant readers the range rules share. */
 // FUNCTION: WIZ8 0x0051b300
 float GetRangeConstant5EC360(void)
 {
@@ -1108,9 +1042,6 @@ float GetRangeConstant5EC35C(void)
     return g_float_005ec35c;
 }
 
-/* Cache which origin points this monster can actually provide. Projectile
-   attacks need a usable launch point only when their best range is long or
-   extreme; spell casting also requires the spell cycle. */
 // FUNCTION: WIZ8 0x0051B420
 void InitializeMonsterRangeCapabilities(W8MonsterInfo* monster_info, const W8MonsterRecord* record)
 {
@@ -1149,9 +1080,6 @@ unsigned char TraceModeRejectsNoHit(int mode)
     }
 }
 
-/* Choose what one monster aims at: the player when it can see them, otherwise
-   the nearest hostile visible monster. Answers the chosen distance and fills
-   the target kind and monster id when applicable. */
 // FUNCTION: WIZ8 0x0051ac30
 float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int kind)
 {
@@ -1186,10 +1114,6 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int ki
     }
     return best;
 }
-/* Whether the monster's current action still reaches the slot `target`
-   carries: its own line of sight has to hold for a character or the party, the
-   target monster has to be reachable, and a group target is checked against
-   every member. */
 // FUNCTION: WIZ8 0x00519f80
 unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                          unsigned int attack, W8CombatSlot* target)
@@ -1310,9 +1234,6 @@ int FindNearestVisibleGroupMonster(W8MonsterInfo* monster_info, int group_id, in
     return best_id;
 }
 
-/* The attack-origin offset for `kind` 1 (projectile) or 3 (spell): the
-   monster's height offset, shifted by the delta between its navigator
-   position and the muzzle/hand point when that point resolves. */
 // FUNCTION: WIZ8 0x0051b320
 void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float>* out)
 {
