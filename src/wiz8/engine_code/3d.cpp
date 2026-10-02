@@ -786,13 +786,13 @@ W8Prop* WorldGetPropAt(W8World* unused, int index)
 }
 
 // FUNCTION: WIZ8 0x0046e860
-void ForwardThroughMember3C_46E750(W8World* owner, int argument)
+void SetWorldSceneMeshShaderLowBits(W8World* owner, int argument)
 {
     SetSceneMeshShaderLowBits(owner->static_scene, argument);
 }
 
 // FUNCTION: WIZ8 0x0046e880
-void ForwardThroughMember3C_46E640(W8World* owner, int argument)
+void SetWorldSceneMeshShaderBit3(W8World* owner, int argument)
 {
     SetSceneMeshShaderBit3(owner->static_scene, argument);
 }
