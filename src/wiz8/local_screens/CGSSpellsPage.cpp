@@ -496,7 +496,7 @@ void W8CharacterSpellsPage::SelectSpell(unsigned int uiSelected)
 // FUNCTION: WIZ8 0x005c88a0
 void W8CharacterSpellsPage::ShowSpellInfo(unsigned int entry)
 {
-    m_screen_05c->ShowDialog005B0610(m_SpellData[entry].spell);
+    m_screen_05c->ShowSpellInfo(m_SpellData[entry].spell);
 }
 
 // FUNCTION: WIZ8 0x005C8DE0
