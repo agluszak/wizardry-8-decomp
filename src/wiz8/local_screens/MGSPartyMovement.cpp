@@ -334,10 +334,6 @@ void EnableFreeTurnButton(void)
     g_party_movement_buttons[0]->SetEnabled(1);
 }
 
-/* Per-frame movement/fatigue processing: each occupied party slot with stamina
-   and a bearable load accumulates distance scaled by load, doubled in combat
-   and raised again while the second condition runs, until the accumulator
-   crosses 2500 and converts into real fatigue. */
 // FUNCTION: WIZ8 0x005A1EB0
 unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
 {
