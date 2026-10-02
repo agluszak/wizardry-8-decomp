@@ -49,7 +49,7 @@ W8GrowableVector<W8Navigator*> g_registered_navigators(5);
 // FUNCTION: WIZ8 0x00456ae0
 void W8NavigatorAttachment::RecordPosition(const srVector3T<float>* position)
 {
-    flags_00 |= 0x2000000;
+    flags_00 |= W8_NAV_ATTACHMENT_POSITION_RECORDED;
     position_40 = *position;
 }
 
@@ -87,10 +87,10 @@ unsigned char W8NavigatorAttachment::TruncatePathAtRadius(const srVector3T<float
                 position_4c[index - 1].z);
         position_4c[index] = position_1c;
         path_position_index_08 = static_cast<unsigned short>(index);
-        flags_00 &= ~0x400000;
+        flags_00 &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
         return 1;
     }
-    flags_00 &= ~0x400000;
+    flags_00 &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
     return 0;
 }
 
@@ -102,7 +102,7 @@ unsigned char W8NavigatorAttachment::TruncatePathAtRadius(const srVector3T<float
 float W8NavigatorAttachment::MeasurePathLength()
 {
     unsigned int index = 1;
-    if ((flags_00 & 0x400000) == 0) {
+    if ((flags_00 & W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED) == 0) {
         path_length_058 = 0;
         if (path_cursor_04 > 0) {
             index = path_cursor_04;
@@ -114,7 +114,7 @@ float W8NavigatorAttachment::MeasurePathLength()
             }
             previous = position_4c[index];
         }
-        flags_00 |= 0x400000;
+        flags_00 |= W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
     }
     return path_length_058;
 }
@@ -322,7 +322,7 @@ W8NavigatorAttachment::W8NavigatorAttachment()
 W8NavigatorAttachment::W8NavigatorAttachment(const srVector3T<float>* from,
                                              const srVector3T<float>* to)
 {
-    flags_00 = 0x2000000;
+    flags_00 = W8_NAV_ATTACHMENT_POSITION_RECORDED;
     path_position_index_08 = 1;
     path_cursor_04 = 1;
     follow_offset_0c = 0;
@@ -837,7 +837,7 @@ unsigned short W8Navigator::SetMovementTargetToNavigator(W8Navigator* target, do
     }
     PathAIClearOwned(path_ai_068);
     if (g_combat_inactive == 0) {
-        movement_0c0.attachment_0ac->flags_00 |= 0x10000;
+        movement_0c0.attachment_0ac->flags_00 |= W8_NAV_ATTACHMENT_FOLLOW_PATH;
     }
     if (SetMovementTarget(&target->movement_0c0.position_040, 0) == 0) {
         if (g_combat_inactive == 0) {
@@ -1162,7 +1162,7 @@ double W8Navigator::MeasurePathDistance(const srVector3T<float>* target, float m
     }
     ready = g_octree->PrepareNavigatorTarget(&movement, max_range, radius_084);
     movement.attachment_0ac = 0;
-    if (ready != 0 && ((attachment.flags_00 & 0x10000) == 0 || (attachment.flags_00 & 7) != 3)) {
+    if (ready != 0 && ((attachment.flags_00 & W8_NAV_ATTACHMENT_FOLLOW_PATH) == 0 || (attachment.flags_00 & 7) != 3)) {
         return attachment.MeasurePathLength();
     }
     return -1.0;
@@ -1206,7 +1206,7 @@ unsigned char W8Navigator::CheckNavigatorCollision(const srVector3T<float>* from
 void W8NavigatorAttachment::InitializeSegment(const srVector3T<float>* source,
                                               const srVector3T<float>* destination)
 {
-    flags_00 = (flags_00 & 0xc810000) | 0x2000000;
+    flags_00 = (flags_00 & 0xc810000) | W8_NAV_ATTACHMENT_POSITION_RECORDED;
     path_position_index_08 = 1;
     path_cursor_04 = 1;
     path_length_058 = 0;
@@ -1282,10 +1282,10 @@ unsigned char W8NavigatorAttachment::AdvanceAlongPathPositions(float distance,
     on_path = 1;
     /* Retail evaluates both halves of this predicate and writes one either
        way; the check is dead in the recovered body exactly as shipped. */
-    if ((flags_00 & 0x10000) == 0 && distance > NAVIGATOR_MAXIMUM_DROP) {
+    if ((flags_00 & W8_NAV_ATTACHMENT_FOLLOW_PATH) == 0 && distance > NAVIGATOR_MAXIMUM_DROP) {
         on_path = 1;
     }
-    flags_00 &= 0xffbfffff;
+    flags_00 &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
     delta = position_4c[path_cursor_04] - local;
     segment = srVector2T<float>(delta.x, delta.z).Length();
     if (segment < g_double_005ebc30 && path_cursor_04 == path_position_index_08) {
@@ -1576,7 +1576,7 @@ unsigned char W8Navigator::LinkToNavigator(W8Navigator* target, double separatio
     movement_0c0.attachment_0ac->InitializeSegment(&movement_0c0.position_040,
                                                    &target->movement_0c0.position_040);
     if (g_combat_inactive == 0) {
-        movement_0c0.attachment_0ac->flags_00 |= 0x10000;
+        movement_0c0.attachment_0ac->flags_00 |= W8_NAV_ATTACHMENT_FOLLOW_PATH;
         if (g_pathing->PlanMovementToPosition(&movement_0c0, &target->movement_0c0.position_040,
                                               radius_084, static_cast<float>(separation)) == 0) {
             unknown_0bc = 1;
@@ -1622,7 +1622,7 @@ unsigned short W8Navigator::ConfigureMovementToNavigator(W8Navigator* target, fl
     if (g_combat_inactive != 0) {
         return SetMovementTargetToNavigator(target, separation);
     }
-    movement_0c0.attachment_0ac->flags_00 |= 0x10000;
+    movement_0c0.attachment_0ac->flags_00 |= W8_NAV_ATTACHMENT_FOLLOW_PATH;
     movement_target_018.SetZero();
     collision_margin_010 = separation;
     flags_00c = 0x21;
@@ -1734,7 +1734,7 @@ void W8Navigator::ResetMovementAndGroupState()
         }
     }
     if (g_combat_inactive != 0) {
-        movement_0c0.attachment_0ac->flags_00 &= 0xfffeffff;
+        movement_0c0.attachment_0ac->flags_00 &= ~W8_NAV_ATTACHMENT_FOLLOW_PATH;
     }
 }
 
@@ -1823,7 +1823,7 @@ unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, ch
         }
     }
     if (propagate == 0 && result != 0 && movement_0c0.attachment_0ac != 0 &&
-        (movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0 && g_combat_inactive != 0) {
+        (movement_0c0.attachment_0ac->flags_00 & W8_NAV_ATTACHMENT_FOLLOW_PATH) == 0 && g_combat_inactive != 0) {
         linked_update_time_0b8 = 0;
         g_navigator_group.Clear();
         CollectGroupNavigators(&g_navigator_group);
@@ -1968,7 +1968,7 @@ void W8Navigator::ClearMovement()
 
     PathAIClearOwned(path_ai_068);
     movement_0c0.velocity_034.SetZero();
-    if ((movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0) {
+    if ((movement_0c0.attachment_0ac->flags_00 & W8_NAV_ATTACHMENT_FOLLOW_PATH) == 0) {
         flags_00c &= 0xff000000;
     } else {
         flags_00c = 0;
@@ -2369,7 +2369,7 @@ int W8Navigator::ResolveMovement()
         return result;
     }
 
-    if ((movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0) {
+    if ((movement_0c0.attachment_0ac->flags_00 & W8_NAV_ATTACHMENT_FOLLOW_PATH) == 0) {
         float target_motion =
             (target->movement_0c0.position_040 - target_last_position_050).Length();
 
@@ -2409,7 +2409,7 @@ int W8Navigator::ResolveMovement()
             SetMovementStopped();
             PathAIClearOwned(path_ai_068);
             movement_0c0.velocity_034.SetZero();
-            if ((movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0) {
+            if ((movement_0c0.attachment_0ac->flags_00 & W8_NAV_ATTACHMENT_FOLLOW_PATH) == 0) {
                 flags_00c &= 0xff000000;
             } else {
                 flags_00c = 0;
@@ -2421,7 +2421,7 @@ int W8Navigator::ResolveMovement()
             return 1;
         }
     } else {
-        movement_0c0.attachment_0ac->flags_00 &= ~0x10000;
+        movement_0c0.attachment_0ac->flags_00 &= ~W8_NAV_ATTACHMENT_FOLLOW_PATH;
         flags_00c &= 0xff000000;
         ClearMovement();
     }

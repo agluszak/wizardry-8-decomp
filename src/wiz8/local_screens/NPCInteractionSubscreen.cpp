@@ -262,7 +262,7 @@ void W8NpcDialogueOptionsPanel::SetEnabled(bool enable)
     }
 }
 
-/* Base redraw except the foreground catalog image is m_value_4c rather than
+/* Base redraw except the foreground catalog image is m_main_text_box_image rather than
    m_renderArg_20 while the expanded dialogue layout is up. */
 // FUNCTION: WIZ8 0x0056BD30
 void W8NpcDialogueOptionsPanel::Redraw()
@@ -278,7 +278,7 @@ void W8NpcDialogueOptionsPanel::Redraw()
             DrawCatalogImage(-14, m_renderTarget, m_renderArg_1c,
                              g_screen_state_00649f1c->dialogue_layout ==
                                      W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX
-                                 ? m_value_4c
+                                 ? m_main_text_box_image
                                  : m_renderArg_20,
                              m_bounds.left, m_bounds.top, 2, 0);
         }

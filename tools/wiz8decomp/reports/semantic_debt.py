@@ -570,7 +570,8 @@ def _adjacent_comment(lines: list[str], line: int) -> str:
             stripped = previous.strip()
             if _MARKER_COMMENT.match(stripped):
                 continue
-            if stripped.startswith(("//", "/*", "*")) or stripped.endswith("*/"):
+            closes_comment = stripped.endswith("*/") and ";" not in stripped.split("/*")[0]
+            if stripped.startswith(("//", "/*", "*")) or closes_comment:
                 text = stripped
             break
     words = re.sub(r"0x[0-9A-Fa-f]+|[^A-Za-z ]", " ", text).lower().split()
