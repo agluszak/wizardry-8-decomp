@@ -293,51 +293,6 @@ def test_function_replaced_by_stub_fails(tmp_path: Path) -> None:
     assert report["lost"][0]["identity"] == "FUNCTION WIZ8 0x00401000"
 
 
-def test_legacy_folded_annotation_is_not_a_merge_identity(tmp_path: Path) -> None:
-    """Historical FOLDED annotations are comparison metadata, not source identities."""
-
-    _repo(tmp_path)
-    head = _commit(
-        tmp_path,
-        {
-            "src/wiz8/owner.cpp": "// FUNCTION: WIZ8 0x00401000\nint Owner() { return 1; }\n",
-            "src/wiz8/legacy.cpp": (
-                "// FUNCTION: WIZ8 0x00401000 FOLDED\nint LegacyAlias() { return 1; }\n"
-            ),
-        },
-        "legacy folded annotation",
-    )
-
-    report = merge_preservation_report(tmp_path, head, head)
-
-    assert report["status"] == "passed"
-    assert report["duplicates"] == []
-
-
-def test_removing_legacy_folded_annotation_is_not_identity_loss(tmp_path: Path) -> None:
-    _repo(tmp_path)
-    base = _commit(
-        tmp_path,
-        {
-            "src/wiz8/owner.cpp": "// FUNCTION: WIZ8 0x00401000\nint Owner() { return 1; }\n",
-            "src/wiz8/legacy.cpp": (
-                "// FUNCTION: WIZ8 0x00401000 FOLDED\nint LegacyAlias() { return 1; }\n"
-            ),
-        },
-        "base",
-    )
-    head = _commit(
-        tmp_path,
-        {"src/wiz8/legacy.cpp": "int LegacyAlias() { return 1; }\n"},
-        "drop folded annotation",
-    )
-
-    report = merge_preservation_report(tmp_path, base, head)
-
-    assert report["status"] == "passed"
-    assert report["removed"] == []
-
-
 def test_two_owning_claims_on_one_address_still_fail(tmp_path: Path) -> None:
     _repo(tmp_path)
     head = _commit(

@@ -34,6 +34,7 @@ if [[ -z "$merge_base" ]]; then
 fi
 
 git checkout --detach "$merge_base"
+uv run --no-sync wiz8 prepare --comparison-target "$target"
 uv run --no-sync wiz8 build "$build_target"
 uv run --no-sync wiz8 analyze source-index
 

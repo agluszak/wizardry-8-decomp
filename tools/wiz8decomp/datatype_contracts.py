@@ -1,8 +1,4 @@
-"""Shared DataType contract / field-shape comparison helpers.
-
-Used by type-graph projection and legacy ``/wiz8/classes`` cleanup so both
-agree on what “same shape” means without copy-pasted unwrap rules.
-"""
+"""Shared DataType contract and field-shape comparison helpers."""
 
 from __future__ import annotations
 
@@ -21,15 +17,6 @@ def type_identity(data_type: Any) -> str:
         if text:
             return text
     return str(data_type.getName()) if hasattr(data_type, "getName") else str(data_type)
-
-
-def is_legacy_path(path: str | None) -> bool:
-    if not path:
-        return False
-    text = str(path)
-    while text.endswith("*"):
-        text = text[:-1].rstrip()
-    return text == "/wiz8/classes" or text.startswith("/wiz8/classes/")
 
 
 def unwrap_plain_typedefs(data_type: Any) -> Any:
@@ -114,22 +101,14 @@ def _kind_name(data_type: Any) -> str:
 
 
 def normalize_class_path(path: str, identity_map: Mapping[str, Mapping[str, Any]] | None) -> str:
-    """Rewrite legacy/evidence class paths through the identity map."""
+    """Rewrite evidence class paths through the identity map."""
 
     if not path or not identity_map:
         return path
-    if is_legacy_path(path):
-        rest = path[len("/wiz8/classes/") :].rstrip("*").strip()
-        rest = rest.removesuffix(" *")
-        qualified = rest.replace("/", "::")
-        row = identity_map.get(qualified)
-        bound = row.get("bound_path") if row else None
-        if bound and not is_legacy_path(str(bound)):
-            return str(bound)
     for row in identity_map.values():
         evidence = row.get("evidence_path")
         bound = row.get("bound_path")
-        if evidence and path == evidence and bound and not is_legacy_path(str(bound)):
+        if evidence and path == evidence and bound:
             return str(bound)
         if bound and path == bound:
             return str(bound)
@@ -335,24 +314,3 @@ def walk_datatype_refs(data_type: Any, *, seen: set[str] | None = None) -> list[
             for arg in current.getArguments():
                 found.extend(walk_datatype_refs(arg.getDataType(), seen=seen))
     return found
-
-
-def settings_typedef_blocks_remap(data_type: Any) -> bool:
-    """True when a settings-bearing typedef still hides a legacy/reference type."""
-
-    for nested in walk_datatype_refs(data_type):
-        if "TypeDef" not in type(nested).__name__:
-            continue
-        if not _typedef_has_settings(nested):
-            continue
-        base = nested.getBaseDataType() if hasattr(nested, "getBaseDataType") else None
-        if has_legacy_nested_ref(base) or is_legacy_path(type_identity(base)):
-            return True
-    return False
-
-
-def has_legacy_nested_ref(data_type: Any) -> bool:
-    for nested in walk_datatype_refs(data_type):
-        if is_legacy_path(type_identity(nested)):
-            return True
-    return False

@@ -72,3 +72,11 @@ preserved rather than linking unused upstream code.
   spurious `_purecall` dependency.
 - Exception settings are translation-unit evidence. Enabling them globally changes unrelated
   prologues; disabling them globally deletes required cleanup state.
+
+## Rejected library ownership at `Wiz8.exe` `0x004146E0`
+
+The body at `0x004146E0` is byte-identical to IJG's `jzero_far`, but its callers
+are Sir-Tech/SGP code. The main executable has no neighboring IJG corpus; JPEG
+importing belongs to the separate plug-in boundary. The reviewed source oracle
+therefore excludes this address from FID-based library ownership. Identical
+helper bytes do not establish ownership across components.

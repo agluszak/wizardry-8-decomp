@@ -7,7 +7,6 @@ from wiz8decomp.provenance import (
     ProvenanceError,
     derive_authority,
     is_original,
-    origin_for_fid_source_kind,
     parse_name_origin,
     validate_provenance,
 )
@@ -52,13 +51,6 @@ def test_only_original_evidence_counts_as_original() -> None:
     assert not is_original("descriptive")
 
 
-def test_fid_seed_build_provenance_maps_onto_name_provenance() -> None:
-    assert origin_for_fid_source_kind("precompiled-archive") == "original-export"
-    assert derive_authority(("original-export",)) == "abi-backed"
-    assert origin_for_fid_source_kind("cmake-object-library") == "original-source"
-    assert derive_authority(("original-source",)) == "source-backed"
-
-
 def test_every_origin_token_has_a_ceiling() -> None:
     assert set(NAME_ORIGIN_CEILING) == {
         "original-source",
@@ -85,8 +77,3 @@ def test_reviewed_function_maps_carry_valid_provenance(path: Path) -> None:
             validate_provenance(row["name_origin"], row["authority"])
         except ProvenanceError as error:
             raise AssertionError(f"{path.name}:{number}: {error}") from error
-
-
-def test_analysis_artifacts_are_not_stored_as_configuration() -> None:
-    legacy = REPOSITORY / "config/analysis"
-    assert not [path for path in legacy.rglob("*") if path.is_file()]

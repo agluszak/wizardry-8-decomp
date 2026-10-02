@@ -127,7 +127,6 @@ def audit_source_layouts(program: Any, source_index: dict[str, Any]) -> dict[str
                     expected=expected_depth,
                     actual=actual_depth,
                 )
-        # Compare PDB rebuilt layout to the bound class Structure (not /wiz8/classes).
         original = bound_structure(name)
         if original is None:
             fail("missing-bound-class", name)

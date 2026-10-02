@@ -105,7 +105,6 @@ def test_decide_agrees_when_bound_is_useful() -> None:
     assert (
         _decide_structure_action(
             bound=bound,
-            legacy=None,
             source=richer_source,
             asserted_size=840,
             source_size_ok=True,
@@ -120,7 +119,6 @@ def test_decide_conflict_when_bound_size_mismatches_asserted() -> None:
     assert (
         _decide_structure_action(
             bound=bound,
-            legacy=None,
             source=None,
             asserted_size=840,
             source_size_ok=True,
@@ -130,29 +128,12 @@ def test_decide_conflict_when_bound_size_mismatches_asserted() -> None:
     )
 
 
-def test_decide_legacy_duplicate_when_paths_differ() -> None:
-    bound = _FakeStructure(840, 2, "/W8Monster")
-    legacy = _FakeStructure(840, 2, "/wiz8/classes/W8Monster")
-    assert (
-        _decide_structure_action(
-            bound=bound,
-            legacy=legacy,
-            source=None,
-            asserted_size=840,
-            source_size_ok=True,
-            size_mismatched_source=None,
-        )
-        == "legacy-duplicate"
-    )
-
-
 def test_decide_bind_existing_without_richness_contest() -> None:
     # Bound absent / not useful; any useful sized source binds — richness unused.
     thin_source = _FakeStructure(840, 1, "/W8Monster")
     assert (
         _decide_structure_action(
             bound=None,
-            legacy=None,
             source=thin_source,
             asserted_size=840,
             source_size_ok=True,
@@ -166,7 +147,6 @@ def test_decide_create_opaque_when_no_useful_bound() -> None:
     assert (
         _decide_structure_action(
             bound=None,
-            legacy=None,
             source=None,
             asserted_size=840,
             source_size_ok=True,
@@ -181,7 +161,6 @@ def test_decide_one_byte_asserted_structure() -> None:
     assert (
         _decide_structure_action(
             bound=None,
-            legacy=None,
             source=None,
             asserted_size=1,
             source_size_ok=True,
@@ -192,7 +171,6 @@ def test_decide_one_byte_asserted_structure() -> None:
     assert (
         _decide_structure_action(
             bound=empty,
-            legacy=None,
             source=None,
             asserted_size=1,
             source_size_ok=True,
@@ -230,7 +208,6 @@ def test_collect_plan_does_not_call_ensure(monkeypatch) -> None:
         lambda _d: SimpleNamespace(classes={}),
     )
     monkeypatch.setattr(csp, "_find_named_structure", lambda *_a, **_k: None)
-    monkeypatch.setattr(csp, "_wiz8_structure", lambda *_a, **_k: None)
 
     plan = csp.collect_structure_projection_plan(
         object(),  # type: ignore[arg-type]
@@ -254,7 +231,6 @@ def test_collect_plan_includes_sized_record_without_methods(monkeypatch) -> None
     monkeypatch.setattr(csp, "_referenced_template_classes", lambda *_a, **_k: {})
     monkeypatch.setattr(csp, "find_ghidra_class", lambda *_a, **_k: None)
     monkeypatch.setattr(csp, "_find_named_structure", lambda *_a, **_k: None)
-    monkeypatch.setattr(csp, "_wiz8_structure", lambda *_a, **_k: None)
     monkeypatch.setattr(
         csp,
         "load_source_index",

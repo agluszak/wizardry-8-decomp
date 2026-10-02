@@ -110,26 +110,20 @@ def _resolve_type(program: Any, spelling: str) -> Any | None:
 
 
 def _resolve_field_owner(program: Any, owner: str) -> Any | None:
-    """Bound Structure for a class identity, or absolute non-legacy path lookup."""
+    """Bound Structure for a class identity, or absolute path lookup."""
 
     from .class_binding import (
         find_class_structure,
         find_ghidra_class,
-        is_legacy_enriched_path,
     )
-    from .datatype_contracts import is_legacy_path
 
     if owner.startswith("/"):
-        if is_legacy_path(owner):
-            return None
         return program.getDataTypeManager().getDataType(owner)
     ghidra_class = find_ghidra_class(program, owner)
     if ghidra_class is None:
         return None
     structure = find_class_structure(program, ghidra_class)
     if structure is None:
-        return None
-    if is_legacy_enriched_path(str(structure.getPathName())):
         return None
     return structure
 

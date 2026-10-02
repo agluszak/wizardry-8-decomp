@@ -21,8 +21,7 @@ def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, A
     from .ghidra.env import open_project
     from .ghidra.layout_audit import audit_source_layouts
     from .ghidra.reccmp_import import import_reccmp_source
-    from .ghidra.recovery import _program_name
-    from .ghidra.workspace import restore_seed, seed_record
+    from .ghidra.workspace import resolve_seed_program, restore_seed, seed_record
     from .paths import sha256_file
 
     path = pdb or (settings.repo_dir / "build/decomp/Wiz8.pdb")
@@ -58,7 +57,7 @@ def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, A
     with open_project(derived, create=True) as project:
         restore_seed(derived, project, "wiz8")
     import_reccmp_source(derived, "wiz8")
-    program_name = _program_name(derived, "wiz8")
+    program_name = resolve_seed_program(derived, "wiz8")
     with open_project(derived) as project:
         import pyghidra
 
@@ -72,36 +71,3 @@ def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, A
     atomic_json(destination, report)
     report["report"] = str(destination)
     return report
-
-
-def _stable_value(value: Any) -> str:
-    if value is None:
-        return ""
-    if isinstance(value, (dict, list)):
-        return json.dumps(value, sort_keys=True, separators=(",", ":"))
-    return str(value)
-
-
-def normalize_layout_failure(failure: dict[str, Any]) -> dict[str, str]:
-    """Project every audit failure onto a stable semantic comparison key."""
-
-    expected = failure.get("expected", failure.get("expected_pointer_depth"))
-    actual = failure.get("actual", failure.get("actual_types"))
-    return {
-        "kind": str(failure["kind"]),
-        "class": str(failure.get("class") or ""),
-        "field": str(failure.get("field") or ""),
-        "expected": _stable_value(expected),
-        "actual": _stable_value(actual),
-    }
-
-
-def layout_failure_key(failure: dict[str, Any]) -> tuple[str, str, str, str, str]:
-    normalized = normalize_layout_failure(failure)
-    return (
-        normalized["kind"],
-        normalized["class"],
-        normalized["field"],
-        normalized["expected"],
-        normalized["actual"],
-    )

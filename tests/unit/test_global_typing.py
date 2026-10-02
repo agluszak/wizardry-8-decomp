@@ -150,62 +150,6 @@ def test_strip_and_template_mapping() -> None:
     ]
 
 
-def test_named_data_type_prefers_root_class_structure() -> None:
-    hits: list[str] = []
-
-    class Manager:
-        def getDataType(self, path: str):
-            hits.append(path)
-            if path == "/W8Monster":
-                return SimpleNamespace(name="W8Monster", path=path, getPathName=lambda: path)
-            if path == "/wiz8/classes/W8Monster":
-                return SimpleNamespace(name="W8Monster", path=path, getPathName=lambda: path)
-            return None
-
-    class Symbols:
-        def getNamespace(self, _name: str, _parent: object):
-            return None
-
-    program = SimpleNamespace(
-        getDataTypeManager=lambda: Manager(),
-        getSymbolTable=lambda: Symbols(),
-        getGlobalNamespace=lambda: object(),
-    )
-    resolved = _named_data_type(program, "W8Monster")
-    assert resolved is not None
-    assert resolved.path == "/W8Monster"
-    assert "/W8Monster" in hits
-
-
-def test_named_data_type_search_order(monkeypatch) -> None:
-    hits: list[str] = []
-
-    class Manager:
-        def getDataType(self, path: str):
-            hits.append(path)
-
-    class Symbols:
-        def getNamespace(self, _name: str, _parent: object):
-            return None
-
-    monkeypatch.setattr(
-        "wiz8decomp.global_typing._builtin_data_type",
-        lambda _program, _name: None,
-    )
-    program = SimpleNamespace(
-        getDataTypeManager=lambda: Manager(),
-        getSymbolTable=lambda: Symbols(),
-        getGlobalNamespace=lambda: object(),
-    )
-    assert _named_data_type(program, "ns::W8Foo") is None
-    assert "/ns::W8Foo" in hits
-    assert "/ns/W8Foo" in hits
-    assert "/W8Foo" in hits
-    assert hits.index("/ns/W8Foo") < hits.index("/ns::W8Foo")
-    assert hits.index("/ns::W8Foo") < hits.index("/W8Foo")
-    assert "/wiz8/classes/W8Foo" not in hits
-
-
 def test_named_data_type_resolves_nested_namespace_category() -> None:
     class Manager:
         def getDataType(self, path: str):
@@ -287,35 +231,6 @@ def test_needs_type_update() -> None:
     # C++ bool is not interchangeable with SGP BOOLEAN / uchar.
     assert _needs_type_update("bool", "BOOLEAN")
     assert _needs_type_update("uchar", "bool")
-
-
-def test_needs_type_update_prefers_canonical_class_path() -> None:
-    # Bound/root listing must not be overwritten by a leftover /wiz8/classes copy.
-    assert not _needs_type_update(
-        "W8Monster",
-        "W8Monster",
-        current_path="/W8Monster",
-        resolved_path="/wiz8/classes/W8Monster",
-        current_depth=0,
-        resolved_depth=0,
-    )
-    # Legacy listing must update to the bound/root Structure.
-    assert _needs_type_update(
-        "W8Monster",
-        "W8Monster",
-        current_path="/wiz8/classes/W8Monster",
-        resolved_path="/W8Monster",
-        current_depth=0,
-        resolved_depth=0,
-    )
-    assert not _needs_type_update(
-        "W8Monster *",
-        "W8Monster *",
-        current_path="/wiz8/classes/W8Monster *",
-        resolved_path="/wiz8/classes/W8Monster *",
-        current_depth=1,
-        resolved_depth=1,
-    )
 
 
 def test_bool_is_not_equivalent_to_uchar() -> None:

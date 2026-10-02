@@ -132,7 +132,7 @@ foreach(target IN ITEMS wiz8_jpeg_codec_objects wiz8_jpeg_plugin_objects)
     target_include_directories(${target} PRIVATE
         "${PROJECT_SOURCE_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${PROJECT_SOURCE_DIR}/config/fid-overlays/ijg-jpeg-6"
+        "${PROJECT_SOURCE_DIR}/config/build-overlays/ijg-jpeg-6"
         "${IJG_JPEG_SOURCE}"
     )
     target_link_libraries(${target} PRIVATE wiz8_compile_settings)
@@ -184,7 +184,7 @@ if(WIZ8_BUILD_PRODUCTS)
     target_include_directories(SREXT_JPEGIMPORTER PRIVATE
         "${PROJECT_SOURCE_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${PROJECT_SOURCE_DIR}/config/fid-overlays/ijg-jpeg-6"
+        "${PROJECT_SOURCE_DIR}/config/build-overlays/ijg-jpeg-6"
         "${IJG_JPEG_SOURCE}"
     )
     target_link_libraries(

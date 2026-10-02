@@ -5,35 +5,14 @@ from the function's ``GhidraClass`` parent namespace. The preferred Structure us
 a namespace-based category path (reccmp places ordinary classes at ``/ClassName``
 under the global namespace).
 
-A category path is organization, not provenance. Do not invent a second mutable
-runtime graph under ``/wiz8/classes`` merely to hold "enriched" copies — that
-breaks ``VtableResolver.classNamespace()`` (``/wiz8/classes/W8Monster`` →
-``wiz8::classes::W8Monster``) and forces custom-storage workarounds for auto
-``this``.
-
-Acceptance: ordinary dynamically stored methods, global class pointers, and the
-Java exporter all resolve the same Structure without enabling custom storage.
+Ordinary dynamically stored methods and global class pointers resolve the same
+Structure without enabling custom storage.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Any
-
-# Legacy projection category from the competing-universe experiment. Still
-# readable for migration reports; never the write target for new bindings.
-_LEGACY_ENRICHED_CATEGORY = "/wiz8/classes/"
-
-
-def is_legacy_enriched_path(path: str | None) -> bool:
-    """True when ``path`` is under the former ``/wiz8/classes`` category."""
-
-    if not path:
-        return False
-    text = str(path)
-    while text.endswith("*"):
-        text = text[:-1].rstrip()
-    return text == "/wiz8/classes" or text.startswith(_LEGACY_ENRICHED_CATEGORY)
 
 
 def _simple_name(qualified: str) -> str:
@@ -157,24 +136,6 @@ def find_or_create_class_structure(program: Any, ghidra_class: Any) -> Any | Non
     return VariableUtilities.findOrCreateClassStruct(ghidra_class, program.getDataTypeManager())
 
 
-def legacy_enriched_structure(program: Any, owning_class: str) -> Any | None:
-    """Structure previously projected under ``/wiz8/classes``, if any."""
-
-    manager = program.getDataTypeManager()
-    candidates = [owning_class.replace("::", "/")]
-    if "::" not in owning_class:
-        candidates.append(_simple_name(owning_class))
-    seen: set[str] = set()
-    for name in candidates:
-        if not name or name in seen:
-            continue
-        seen.add(name)
-        data_type = manager.getDataType(f"{_LEGACY_ENRICHED_CATEGORY}{name}")
-        if data_type is not None:
-            return data_type
-    return None
-
-
 def resolve_class_binding(program: Any, owning_class: str) -> dict[str, Any]:
     """Report the live class ↔ Structure binding for one source class identity.
 
@@ -182,7 +143,6 @@ def resolve_class_binding(program: Any, owning_class: str) -> dict[str, Any]:
     missing ``GhidraClass`` must call :func:`ensure_ghidra_class` in a transaction.
     """
 
-    legacy = legacy_enriched_structure(program, owning_class)
     ghidra_class = find_ghidra_class(program, owning_class)
     if ghidra_class is None:
         return {
@@ -190,7 +150,6 @@ def resolve_class_binding(program: Any, owning_class: str) -> dict[str, Any]:
             "ghidra_class": None,
             "structure_path": None,
             "structure_length": None,
-            "legacy_enriched_path": (str(legacy.getPathName()) if legacy is not None else None),
             "status": "missing-class",
         }
     structure = find_class_structure(program, ghidra_class)
@@ -198,16 +157,11 @@ def resolve_class_binding(program: Any, owning_class: str) -> dict[str, Any]:
     status = "bound"
     if structure is None:
         status = "missing-structure"
-    elif path is not None and path.startswith(_LEGACY_ENRICHED_CATEGORY):
-        # Should not happen via findExistingClassStruct for a real GhidraClass, but
-        # report if category mapping somehow prefers the legacy copy.
-        status = "legacy-enriched-path"
     return {
         "owning_class": owning_class,
         "ghidra_class": str(ghidra_class.getName(True)),
         "structure_path": path,
         "structure_length": int(structure.getLength()) if structure is not None else None,
-        "legacy_enriched_path": (str(legacy.getPathName()) if legacy is not None else None),
         "status": status,
     }
 

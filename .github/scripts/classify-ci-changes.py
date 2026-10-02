@@ -19,6 +19,7 @@ _ALL_HEAVY_PREFIXES = (
     ".github/scripts/",
     ".github/workflows/",
     "cmake/",
+    "config/build-overlays/",
     "docker/msvc600/",
     "tools/wiz8decomp/extract/",
     "tools/wiz8decomp/inputs/",
@@ -27,13 +28,13 @@ _ALL_HEAVY_FILES = {
     "CMakeLists.txt",
     "pyproject.toml",
     "uv.lock",
-    "config/static-libraries.yml",
+    "config/build-inputs.yml",
     "tools/wiz8decomp/build.py",
     "tools/wiz8decomp/config.py",
     "tools/wiz8decomp/paths.py",
     "tools/wiz8decomp/subprocesses.py",
     "tools/wiz8decomp/commands/core.py",
-    "tools/wiz8decomp/ghidra/fid_seeds.py",
+    "tools/wiz8decomp/build_inputs.py",
 }
 
 _WIZ8_SOURCE_PREFIXES = (
@@ -67,9 +68,7 @@ _SURRENDER_PREFIXES = (
 )
 _ANALYSIS_PREFIXES = (
     "tests/ghidra/",
-    "tests/recovery/",
     "tools/ghidra-scripts/",
-    "tools/recovery-fixture/",
     "tools/wiz8decomp/ghidra/",
     "evidence/seeds/",
     "evidence/snapshots/",

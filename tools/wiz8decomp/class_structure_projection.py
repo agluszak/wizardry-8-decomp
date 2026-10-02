@@ -2,14 +2,11 @@
 
 reccmp places ordinary class Structures at a namespace-based category path
 (typically ``/ClassName`` under the global namespace) and creates a matching
-``GhidraClass``. Ghidra's automatic ``this`` and ``VtableResolver`` both depend
+``GhidraClass``. Ghidra's automatic ``this`` depends
 on that association.
 
-This module no longer copies Structures into a competing ``/wiz8/classes``
-universe. It reports whether each source-owned class already has a bound
-Structure, optionally creates an opaque sized shell in the *correct* category
-when ``asserted_size`` is known, and notes leftover legacy ``/wiz8/classes``
-copies for migration.
+The projection reports bound source classes and creates opaque sized shells
+in the class category when an asserted size is known.
 """
 
 from __future__ import annotations
@@ -25,7 +22,6 @@ from .class_binding import (
     ensure_ghidra_class,
     find_class_structure,
     find_ghidra_class,
-    legacy_enriched_structure,
 )
 from .global_model import parse_global_definitions
 from .global_typing import _ghidra_type_name, _simple_name
@@ -153,7 +149,7 @@ def _find_named_structure(
     *,
     asserted_size: int | None = None,
 ) -> Any | None:
-    """Best existing Structure for ``name`` outside the wiz8/classes category.
+    """Best existing Structure for ``name``.
 
     Prefer the namespace-aware category path for the source identity
     (``/ns/Foo`` for ``ns::Foo``) before leaf-only or Demangler lookups.
@@ -187,8 +183,6 @@ def _find_named_structure(
         if structure is None or structure.getName() != simple:
             continue
         path = str(structure.getPathName())
-        if path.startswith("/wiz8/classes/") or path == "/wiz8/classes":
-            continue
         if "::" in name and _structure_path_tier(path, simple, name) > 1:
             continue
         if asserted_size is not None and int(structure.getLength()) != asserted_size:
@@ -213,12 +207,6 @@ def _find_named_structure(
     return best
 
 
-def _wiz8_structure(program: Any, name: str) -> Any | None:
-    """Legacy ``/wiz8/classes`` copy, if present (migration reporting only)."""
-
-    return _as_structure(legacy_enriched_structure(program, name))
-
-
 def _richness(structure: Any | None) -> tuple[int, int]:
     if structure is None:
         return (0, 0)
@@ -233,7 +221,6 @@ def _is_useful(structure: Any | None) -> bool:
 def _decide_structure_action(
     *,
     bound: Any | None,
-    legacy: Any | None,
     source: Any | None,
     asserted_size: int | None,
     source_size_ok: bool,
@@ -246,8 +233,6 @@ def _decide_structure_action(
     ):
         if asserted_size is not None and int(bound.getLength()) != asserted_size:
             return "conflict"
-        if legacy is not None and str(legacy.getPathName()) != str(bound.getPathName()):
-            return "legacy-duplicate"
         return "agree"
     if (
         source is not None
@@ -326,7 +311,6 @@ def collect_structure_projection_plan(
             if ghidra_class is not None
             else None
         )
-        legacy = _wiz8_structure(program, owning_class)
         source = _find_named_structure(program, owning_class, asserted_size=asserted)
         bound_score = _richness(bound)
         source_size_ok = source is None or asserted is None or int(source.getLength()) == asserted
@@ -350,7 +334,6 @@ def collect_structure_projection_plan(
         else:
             action = _decide_structure_action(
                 bound=bound,
-                legacy=legacy,
                 source=source,
                 asserted_size=asserted,
                 source_size_ok=source_size_ok,
@@ -366,7 +349,7 @@ def collect_structure_projection_plan(
                 action = "conflict"
 
         counts[action] += 1
-        if action in {"agree", "legacy-duplicate"}:
+        if action == "agree":
             continue
         report_source = source if source is not None else size_mismatched_source
         report_score = _richness(report_source)
@@ -386,7 +369,6 @@ def collect_structure_projection_plan(
                     "length": report_score[1],
                     "components": report_score[0],
                 },
-                "legacy_enriched_path": (str(legacy.getPathName()) if legacy is not None else None),
             }
         )
 

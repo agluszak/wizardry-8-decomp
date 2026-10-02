@@ -48,14 +48,9 @@ SOURCE_SUFFIXES = (".c", ".cpp", ".h", ".hpp")
 
 _MARKER = re.compile(
     r"^\s*//\s*(?P<kind>FUNCTION|GLOBAL|STRING|VTABLE|TEMPLATE|SYNTHETIC|LIBRARY|STUB):\s*"
-    r"(?P<target>[A-Za-z0-9_]+)\s+(?P<address>0x[0-9A-Fa-f]+)\s*(?P<qualifier>\S*)",
+    r"(?P<target>[A-Za-z0-9_]+)\s+(?P<address>0x[0-9A-Fa-f]+)",
 )
 _DECLARATOR = re.compile(r"([A-Za-z_]\w*(?:::[A-Za-z_]\w*)*)\s*(?:\(|=|;|\[)")
-
-# Historical revisions may contain reccmp FOLDED annotations. They describe
-# linked-image equivalence, not source identities, so merge preservation ignores
-# them. Current source rejects new FOLDED markers in reccmp_lint.
-_FOLDED_QUALIFIER = "FOLDED"
 
 Identity = tuple[str, str, int]
 
@@ -268,8 +263,6 @@ def collect_identities(
             if marker is None:
                 continue
             kind = marker.group("kind")
-            if marker.group("qualifier").upper() == _FOLDED_QUALIFIER:
-                continue
             key = (kind, marker.group("target"), int(marker.group("address"), 16))
             entity, form = _owned_entity(lines, index + 1, kind)
             identities[key].append(

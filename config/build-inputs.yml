@@ -1,0 +1,62 @@
+schema: wiz8.build-inputs
+
+toolchains:
+  - id: vc6-sp5
+    family: Microsoft Visual C++ 6.0 SP5
+    repository: https://github.com/archaic-msvc/msvc600_sp5.git
+    commit: b0b07e29108e2695eb0274c2a377a7b7d7326150
+    image: wizardry8-msvc600:sp5
+
+libraries:
+  - id: zlib-1.0.4
+    family: zlib
+    version: 1.0.4
+    status: confirmed
+    scope:
+      - gog-base/Wiz8.exe
+    evidence:
+      - "deflate 1.0.4 Copyright 1995-1996 Jean-loup Gailly"
+      - "inflate 1.0.4 Copyright 1995-1996 Mark Adler"
+    source:
+      url: https://zlib.net/fossils/zlib-1.0.4.tar.gz
+      mirrors:
+        # Reviewed immutable mirror; serves the identical pinned archive.
+        - https://web.archive.org/web/2id_/https://zlib.net/fossils/zlib-1.0.4.tar.gz
+      sha256: e5c260cd3db1370fb3e0c193e9cbd9f127a9bd055d622b3fb55b82747f6e5b24
+      archive_root: zlib-1.0.4
+
+  - id: ijg-jpeg-6
+    family: Independent JPEG Group JPEG library
+    version: "6"
+    status: confirmed
+    scope:
+      - gog-base/Dll/srEXT_JPEGImporter.dll
+    evidence:
+      - "Copyright (C) 1995, Thomas G. Lane"
+      - Later 6a and 6b sources identify themselves with 1996 and 1998 copyright strings respectively.
+    source:
+      url: https://www.nic.funet.fi/pub/sci/graphics/packages/jpeg/jpegsrc.v6.tar.gz
+      sha256: 6311cbbb24b57bc7fb68bd788a9876bb63673302fded219070b39147fb124de7
+      archive_root: jpeg-6
+
+  - id: infozip-unzip-5.4
+    family: Info-ZIP UnZip
+    version: "5.4"
+    status: confirmed
+    scope:
+      - gog-base/Dll/srEXT_Unzip.dll
+    evidence:
+      - PE FileVersion and ProductVersion are 5.4.
+      - Version resource identifies Info-ZIP's UnZip DLL for Win32.
+      - The DLL Rich header contains 23 product 10/build 8447 records and one product 11/build 8447 record.
+      - The release Visual C project supplies the exact Win32 DLL source list and release flags.
+      - Six previously unnamed functions are the public-domain zcrypt 2.8 encryption overlay distributed for UnZip 5.4.
+    source:
+      url: https://ftpmirror.infania.net/sites/os2bbs.com/archive/unzip540.zip
+      sha256: b8c5a17798cd44050042fc1538df4102509d932dcab49eff3061f3065d00b45b
+      archive_root: .
+    source_overlay_archives:
+      - url: https://ftp.zx.net.nz/pub/mirror/ftp.leo.org/pub/comp/os/os2/leo/archiver/zcrypt28.zip
+        sha256: fb02bc8d818da7c27ca02bf0d51e9c51e49ddce5262356b87d15f32295c4a6b3
+        archive_root: .
+        members: [crypt.c, crypt.h]

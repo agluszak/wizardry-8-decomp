@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from .binary.coff_archive import named_iat_archive
+from .build_inputs import build_toolchain_images, fetch_sources
 from .config import Settings, load_settings
 from .paths import atomic_write, compile_database_relative
 from .subprocesses import resolve_executable, run
@@ -73,7 +74,7 @@ class ContainerBuild:
 
     @classmethod
     def from_settings(cls, settings: Settings) -> ContainerBuild:
-        sources = settings.work_dir / "fid" / "sources" / "unpacked"
+        sources = settings.work_dir / "sources" / "unpacked"
         return cls(
             image=VC6_PRODUCT_IMAGE,
             mounts=(
@@ -183,7 +184,6 @@ def prepare(settings: Settings) -> dict[str, Any]:
     """
 
     from .extract.variants import extract_role, materialize_variants
-    from .ghidra.fid_seeds import fetch_seed_sources
     from .inputs.scan import load_manifest
     from .runtime_toolchain import prepare_runtime_toolchain
     from .source_index import write_source_index
@@ -191,7 +191,7 @@ def prepare(settings: Settings) -> dict[str, Any]:
     manifest = load_manifest(settings)
     extraction = extract_role(settings, "gog-media")
     variants = materialize_variants(settings, only=["gog-base"])
-    sources = fetch_seed_sources(settings)
+    sources = fetch_sources(settings)
     runtime_toolchain = prepare_runtime_toolchain(settings)
     write_source_index(settings)
     run(
@@ -233,7 +233,6 @@ def prepare_comparison(settings: Settings, target_ids: list[str]) -> dict[str, A
     import shutil
 
     from .extract.archives import extract_inno
-    from .ghidra.fid_seeds import fetch_seed_sources
     from .inputs.scan import load_manifest
     from .paths import (
         build_directory_atomically,
@@ -318,7 +317,7 @@ def prepare_comparison(settings: Settings, target_ids: list[str]) -> dict[str, A
     extraction_ms = int((time.perf_counter() - extract_started) * 1000)
 
     sources_started = time.perf_counter()
-    sources = fetch_seed_sources(settings)
+    sources = fetch_sources(settings)
     sources_ms = int((time.perf_counter() - sources_started) * 1000)
 
     detect_started = time.perf_counter()
@@ -617,15 +616,15 @@ def clang_container_prefix(settings: Settings, output: Path) -> list[str]:
         Mount(settings.repo_dir, "/repo"),
         Mount(output, "/out", read_only=False),
         Mount(
-            settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",
+            settings.work_dir / "sources/unpacked/zlib-1.0.4/zlib-1.0.4",
             "/zlib",
         ),
         Mount(
-            settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6",
+            settings.work_dir / "sources/unpacked/ijg-jpeg-6/jpeg-6",
             "/jpeg",
         ),
         Mount(
-            settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4",
+            settings.work_dir / "sources/unpacked/infozip-unzip-5.4",
             "/infozip",
         ),
     )
@@ -1028,8 +1027,6 @@ def tidy_audit(settings: Settings) -> dict[str, Any]:
 
 
 def build_toolchain(settings: Settings, toolchain_ids: list[str] | None = None) -> dict[str, Any]:
-    from .ghidra.fid_seeds import build_toolchain_images
-
     return build_toolchain_images(settings, toolchain_ids)
 
 

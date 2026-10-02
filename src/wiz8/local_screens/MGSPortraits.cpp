@@ -69,9 +69,6 @@ char s_general_magic_sound_0064c664[] = "Data\\Spells\\Sounds\\GeneralMagic.wav"
 // GLOBAL: WIZ8 0x0069B920
 W8TextControl* g_portrait_controls[8]; /* gpLevelButtons[uiSlot] */
 
-// The condition-buttons panel and its eight buttons, created together by
-// CreateConditionButtons. The asserts there name them gpConditionButtonsPanel
-// and gpConditionButtons[uiSlot].
 // GLOBAL: WIZ8 0x0069B900
 W8ConditionButton* g_condition_buttons[8];
 // GLOBAL: WIZ8 0x0069B944

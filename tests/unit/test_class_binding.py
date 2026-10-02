@@ -13,11 +13,9 @@ from types import SimpleNamespace
 
 import pytest
 from wiz8decomp.class_binding import (
-    _LEGACY_ENRICHED_CATEGORY,
     _sanitize_class_parts,
     binding_agrees,
     ensure_function_class_namespace,
-    legacy_enriched_structure,
     resolve_class_binding,
 )
 
@@ -43,20 +41,14 @@ def test_sanitize_class_parts_rejects_empty() -> None:
 
 def test_binding_agrees_requires_matching_structure_path(monkeypatch) -> None:
     binding = {"status": "bound", "structure_path": "/W8Monster"}
-
-    class _Pointee:
-        def getPathName(self) -> str:
-            return "/W8Monster"
-
     monkeypatch.setattr(
         "wiz8decomp.class_binding.auto_this_structure",
-        lambda _fn: _Pointee(),
+        lambda _fn: SimpleNamespace(getPathName=lambda: "/W8Monster"),
     )
     assert binding_agrees(binding, object())
-
     monkeypatch.setattr(
         "wiz8decomp.class_binding.auto_this_structure",
-        lambda _fn: type("P", (), {"getPathName": lambda self: "/wiz8/classes/W8Monster"})(),
+        lambda _fn: SimpleNamespace(getPathName=lambda: "/OtherClass"),
     )
     assert not binding_agrees(binding, object())
 
@@ -65,49 +57,6 @@ def test_binding_agrees_rejects_unbound_or_missing_auto_this(monkeypatch) -> Non
     monkeypatch.setattr("wiz8decomp.class_binding.auto_this_structure", lambda _fn: None)
     assert not binding_agrees({"status": "missing-structure", "structure_path": None}, object())
     assert not binding_agrees({"status": "bound", "structure_path": "/W8Monster"}, object())
-
-
-def test_legacy_enriched_structure_keeps_qualified_identities() -> None:
-    class _Manager:
-        def getDataType(self, path: str):
-            if path == "/wiz8/classes/alpha/Foo":
-                return SimpleNamespace(getPathName=lambda: path)
-            if path == "/wiz8/classes/Foo":
-                return SimpleNamespace(getPathName=lambda: path)
-            return None
-
-    program = SimpleNamespace(getDataTypeManager=lambda: _Manager())
-    alpha = legacy_enriched_structure(program, "alpha::Foo")
-    assert alpha is not None
-    assert str(alpha.getPathName()) == "/wiz8/classes/alpha/Foo"
-    leaf = legacy_enriched_structure(program, "Foo")
-    assert leaf is not None
-    assert str(leaf.getPathName()) == "/wiz8/classes/Foo"
-
-
-def test_legacy_path_constant_and_detection() -> None:
-    assert _LEGACY_ENRICHED_CATEGORY == "/wiz8/classes/"
-
-    class _Manager:
-        def getDataType(self, path: str):
-            if path == "/wiz8/classes/W8Monster":
-                return SimpleNamespace(getPathName=lambda: path)
-            return None
-
-    program = SimpleNamespace(getDataTypeManager=lambda: _Manager())
-    legacy = legacy_enriched_structure(program, "W8Monster")
-    assert legacy is not None
-    assert str(legacy.getPathName()).startswith(_LEGACY_ENRICHED_CATEGORY)
-    assert legacy_enriched_structure(program, "Missing") is None
-
-
-def test_is_legacy_enriched_path() -> None:
-    from wiz8decomp.class_binding import is_legacy_enriched_path
-
-    assert is_legacy_enriched_path("/wiz8/classes/W8Monster")
-    assert is_legacy_enriched_path("/wiz8/classes/W8Monster *")
-    assert not is_legacy_enriched_path("/W8Monster")
-    assert not is_legacy_enriched_path(None)
 
 
 def test_ensure_function_class_namespace_moves_when_parent_differs() -> None:
@@ -140,36 +89,9 @@ def test_ensure_function_class_namespace_moves_when_parent_differs() -> None:
     assert ensure_function_class_namespace(fn, target) is False
 
 
-def test_resolve_class_binding_reports_legacy_status(monkeypatch) -> None:
-    ghidra_class = SimpleNamespace(getName=lambda _q=True: "W8Monster")
-    structure = SimpleNamespace(
-        getPathName=lambda: "/wiz8/classes/W8Monster",
-        getLength=lambda: 16,
-    )
-    monkeypatch.setattr(
-        "wiz8decomp.class_binding.find_ghidra_class",
-        lambda _program, _name: ghidra_class,
-    )
-    monkeypatch.setattr(
-        "wiz8decomp.class_binding.find_class_structure",
-        lambda _program, _gc: structure,
-    )
-    monkeypatch.setattr(
-        "wiz8decomp.class_binding.legacy_enriched_structure",
-        lambda _program, _name: structure,
-    )
-    binding = resolve_class_binding(object(), "W8Monster")
-    assert binding["status"] == "legacy-enriched-path"
-    assert binding["structure_path"] == "/wiz8/classes/W8Monster"
-
-
 def test_resolve_class_binding_missing_class_is_read_only(monkeypatch) -> None:
     monkeypatch.setattr(
         "wiz8decomp.class_binding.find_ghidra_class",
-        lambda _program, _name: None,
-    )
-    monkeypatch.setattr(
-        "wiz8decomp.class_binding.legacy_enriched_structure",
         lambda _program, _name: None,
     )
     binding = resolve_class_binding(object(), "Absent")
@@ -218,18 +140,3 @@ def test_ensure_ghidra_class_converts_plain_namespace(monkeypatch) -> None:
 
     result = ensure_ghidra_class(program, "Colliding")
     assert result is converted
-
-
-# Ordinary / Derived / Secondary-base methods should bind without custom storage.
-# Full acceptance is the imported lifecycle fixture (Base/Derived/Secondary) under
-# ``tests/ghidra/test_class_binding_integration.py``, which CI runs after
-# ``wiz8 recover self-test``. Unit CI without that fixture cannot prove auto-this
-# binding end-to-end.
-
-
-def test_acceptance_shapes_require_lifecycle_fixture_documentation() -> None:
-    """Document required shapes; do not pretend a placemarker equality is coverage."""
-
-    required = ("Ordinary", "Derived", "Secondary")
-    assert required == ("Ordinary", "Derived", "Secondary")
-    # apply_this_typing callers keep allow_custom_storage=False for these shapes.

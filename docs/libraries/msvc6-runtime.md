@@ -74,3 +74,22 @@ authored loop — check the fingerprint before writing source. The reproducible 
 | `memcpy(d,s,n)` | `shr ecx,2; rep movsd; mov ecx,n; and ecx,3; rep movsb` |
 | `memset(d,c,n)` | byte splat (`bl`,`bh`, `shl 16`, `mov ax,bx`), `shr ecx,2; rep stosd; and ecx,3; rep stosb` |
 | `_strset(s,c)` | `repnz scasb` length pass, `not ecx; dec ecx`, byte splat, `rep stosd`/`rep stosb` |
+
+## Toolchain identification evidence
+
+The VC6 family is confirmed; the exact compiler build remains unresolved.
+
+- The canonical executable reports LINK 6.0 and imports MSVCP60.dll and MSVCRT.dll.
+- SurRender PDB paths contain an explicit msvc6 directory component.
+- The canonical Rich header contains product/build records 10/8447, 11/8447, 11/8168, and 48/9044.
+- The SP5 repository contains LINK.EXE 6.0.8447.0, while its compiler probe emits C/C++ records different from the canonical binary's dominant 8447 records.
+- Product 48/build 9044 is consistent with the separately tested Processor Pack optimizer candidate.
+
+Limitations:
+
+- No single complete archaic-msvc repository reproduces every Rich record in the canonical executable.
+- The msvc600_sp3 and msvc600_sp4 repositories contain libraries and headers but no compiler executable, so they must be tested as overlays rather than standalone toolchains.
+- Rich records describe all linked objects and do not by themselves prove which compiler built each statically linked library.
+
+The MSVC static archives were support-code oracles; they do not establish that
+the product linked the static CRT.

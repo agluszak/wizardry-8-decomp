@@ -3,8 +3,7 @@
 Automatic ``this`` obtains its datatype from
 ``VariableUtilities.findOrCreateClassStruct(function)``. Enrichment should
 establish that binding (correct ``GhidraClass`` parent + associated Structure)
-and keep dynamic storage — not copy Structures into ``/wiz8/classes`` or enable
-custom storage for ordinary methods.
+and keep dynamic storage for ordinary methods.
 
 Custom storage remains available only for exceptional ABI cases; it is not the
 normal path for selecting a class type.

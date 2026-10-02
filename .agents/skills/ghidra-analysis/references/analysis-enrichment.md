@@ -11,8 +11,7 @@ RTTI, or heuristic guesses must not land in reviewed GZF state. Soft inferences
 belong on disposable copies until they become independently established.
 
 A category path is organization, not provenance. Keep one authoritative live
-Structure per class, bound to the `GhidraClass` namespace Ghidra and reccmp use;
-do not maintain a parallel mutable `/wiz8/classes` type graph.
+Structure per class, bound to the `GhidraClass` namespace Ghidra and reccmp use.
 
 `doctor` reports reviewed-seed origin and source-projection freshness separately.
 A current seed does not imply current source projection.
@@ -29,8 +28,7 @@ Enrichment must:
 1. map the source class identity to that `GhidraClass`;
 2. make `findExistingClassStruct` resolve the reviewed Structure;
 3. keep dynamic storage so automatic `this` uses that Structure;
-4. let `VtableResolver.classNamespace()` resolve the same class, using the
-   leaf-name fallback only when the category mapping is ambiguous.
+4. resolve vtable signatures through the same class identity.
 
 Collect/plan is read-only. `collect_*` helpers use `find_ghidra_class` and emit
 `missing-class` / `create-class` actions; `ensure_ghidra_class` runs only
@@ -40,9 +38,6 @@ Custom variable storage is an ABI fact, not a normal class-typing mechanism.
 Ordinary class-this typing skips functions that already use custom storage and
 does not disable custom storage to force a convenient `this` type. Explicit
 calling-convention disagreements are reported rather than overwritten.
-
-The ordinary, derived, and secondary-base cases are integration-tested through
-the lifecycle fixture and `tests/ghidra/test_class_binding_integration.py`.
 
 ## Projection rules
 
@@ -55,7 +50,6 @@ the lifecycle fixture and `tests/ghidra/test_class_binding_integration.py`.
   callback-family inventories.
 - Type-graph projection reconciles fields onto the one bound Structure.
   Equal-authority disagreements remain conflicts; do not use "richer wins".
-  Legacy `/wiz8/classes` copies are cleanup targets, not a second owner.
 - Vtable census extents are preserved. Unresolved slots stay explicit rather
   than being truncated. Slot ABI comes from the source declaration when
   available, then source-backed live analysis, then the callee.
@@ -71,9 +65,6 @@ the lifecycle fixture and `tests/ghidra/test_class_binding_integration.py`.
   `ANALYSIS`. Ordinary `CALL [IAT]` callers are not the import.
 - `uv run wiz8 analyze parameter-id` is collect-only. Never apply it over
   `IMPORTED` or `USER_DEFINED` signatures or silently promote it into sync.
-- The Java recovery engine uses its recovery decompiler profile; ordinary
-  `ghidra decompile` uses the analysis profile. Diagnostic profile differences
-  are not evidence for source changes.
 - `decompiler-quality` and `high-function-debt` measure the current ProgramDB.
   They do not apply facts or create reviewed evidence.
 
@@ -83,7 +74,7 @@ patterns, or add more manual callback families.
 ## Enrichment discipline
 
 1. Repair calling conventions and known signatures from compiler-backed facts.
-2. Bind classes so automatic `this` and the exporter share one Structure.
+2. Bind classes so automatic `this` and source projection share one Structure.
 3. Project globals, callbacks, class fields, vftables and vbtables through the
    same identity map.
 4. Use Param-ID only as a disposable investigation when established facts are

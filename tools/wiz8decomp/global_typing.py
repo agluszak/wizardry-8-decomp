@@ -414,13 +414,6 @@ def _named_data_type(program: Any, name: str) -> Any | None:
                 raise
             continue
         if data_type is not None:
-            from .class_binding import is_legacy_enriched_path
-
-            resolved_path = (
-                str(data_type.getPathName()) if hasattr(data_type, "getPathName") else path
-            )
-            if is_legacy_enriched_path(resolved_path):
-                continue
             return data_type
 
     # Class Structures resolve through GhidraClass after the exact datatype path.
@@ -428,13 +421,12 @@ def _named_data_type(program: Any, name: str) -> Any | None:
         from .class_binding import (
             find_class_structure,
             find_ghidra_class,
-            is_legacy_enriched_path,
             resolve_class_binding,
         )
 
         binding = resolve_class_binding(program, text)
         path = binding.get("structure_path")
-        if binding.get("status") == "bound" and path and not is_legacy_enriched_path(str(path)):
+        if binding.get("status") == "bound" and path:
             data_type = manager.getDataType(str(path))
             if data_type is not None:
                 return data_type
@@ -442,9 +434,7 @@ def _named_data_type(program: Any, name: str) -> Any | None:
         if ghidra_class is not None:
             structure = find_class_structure(program, ghidra_class)
             if structure is not None:
-                structure_path = str(structure.getPathName())
-                if not is_legacy_enriched_path(structure_path):
-                    return structure
+                return structure
 
     builtin = _builtin_data_type(program, simple)
     if builtin is not None:
@@ -516,31 +506,6 @@ def _path_leaf(path: str | None) -> str | None:
     while text.endswith("*"):
         text = text[:-1].rstrip()
     return text.rsplit("/", 1)[-1].strip() or None
-
-
-def _is_legacy_enriched_path(path: str | None) -> bool:
-    """True for the former competing-universe ``/wiz8/classes/…`` category."""
-
-    if not path:
-        return False
-    leaf_path = path
-    while leaf_path.endswith("*"):
-        leaf_path = leaf_path[:-1].rstrip()
-    return leaf_path.startswith("/wiz8/classes/")
-
-
-def _is_canonical_class_path(path: str | None) -> bool:
-    """True for preferred bound/root class Structures (not legacy ``/wiz8/classes``).
-
-    ``/wiz8/classes/X`` must never be treated as more canonical than ``/X``.
-    """
-
-    if not path:
-        return False
-    leaf_path = path
-    while leaf_path.endswith("*"):
-        leaf_path = leaf_path[:-1].rstrip()
-    return leaf_path.startswith("/") and not _is_legacy_enriched_path(leaf_path)
 
 
 def resolve_data_type(program: Any, type_name: str) -> Any | None:
@@ -704,9 +669,7 @@ def _needs_type_update(
     """True when listing type should be replaced by the resolved DataType.
 
     When paths are available, prefer identity of ``getPathName()`` (and pointer
-    depth) over bare ``getName()``. A legacy ``/wiz8/classes/X`` listing must
-    still update when the resolved type is the bound/root ``/X`` Structure;
-    the reverse must not.
+    depth) over bare ``getName()``.
     """
 
     if current_type is None:
@@ -722,12 +685,6 @@ def _needs_type_update(
             return True
         if current_path == resolved_path:
             return False
-        if (
-            _is_canonical_class_path(resolved_path)
-            and _is_legacy_enriched_path(current_path)
-            and _path_leaf(current_path) == _path_leaf(resolved_path)
-        ):
-            return True
         # Same path identity already handled; different non-canonical paths fall
         # through to name equivalence for builtins / aliases.
 

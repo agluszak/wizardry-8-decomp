@@ -169,7 +169,7 @@ def test_product_cache_without_makefile_is_not_ready(tmp_path: Path) -> None:
 
 def test_empty_library_mount_is_not_ready(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
-    jpeg = settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6"
+    jpeg = settings.work_dir / "sources/unpacked/ijg-jpeg-6/jpeg-6"
     jpeg.mkdir(parents=True)
     mount = build.Mount(jpeg, "/jpeg")
     assert build.prepared_mount_ready(mount) is False
@@ -259,7 +259,7 @@ def test_prepare_comparison_reuses_cached_original_without_installer(
 
     events = []
     monkeypatch.setattr(
-        "wiz8decomp.ghidra.fid_seeds.fetch_seed_sources",
+        "wiz8decomp.build.fetch_sources",
         lambda _settings: {"sources": []},
     )
     monkeypatch.setattr(
