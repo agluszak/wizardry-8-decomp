@@ -2094,7 +2094,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         }
     } else if (g_camp_screen->entry_mode == 5) {
         if (CanCharacterUseItemEntry(g_review_character, item) != 0) {
-            UseItem005BA4F0(item);
+            UseCampItem(item);
         }
         return;
     } else if (g_camp_screen->entry_mode == 1) {
@@ -2214,7 +2214,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                     CopyItemInstance(&g_status.item_in_hand_235b, item, 0, 1);
                     changed = 1;
                     if (g_camp_screen->entry_mode == 6) {
-                        DropHeldItem005BA3D0();
+                        DropHeldCampItem();
                         RebuildCampItemList();
                     } else if (g_camp_screen->entry_mode == 1) {
                         SetHandCursors(0);
@@ -2335,7 +2335,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                 }
             }
             if (g_camp_screen->entry_mode == 6 && g_status.item_in_cursor != 0) {
-                DropHeldItem005BA3D0();
+                DropHeldCampItem();
             } else if (g_camp_screen->entry_mode == 1 && g_status.item_in_cursor != 0) {
                 SetHandCursors(0);
             }
