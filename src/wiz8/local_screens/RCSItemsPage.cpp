@@ -248,7 +248,7 @@ void IdentifyAndOpenItemInfo(W8ItemInstance* item)
 }
 
 // FUNCTION: WIZ8 0x005BA3D0
-void DropHeldItem005BA3D0(void)
+void DropHeldCampItem(void)
 {
     if (ResolvePendingCampCharacter(1) != 0) {
         if (DropItemInHand(0) != 0) {
@@ -277,7 +277,7 @@ void OpenSplitStackDialog(W8ItemInstance* item)
 }
 
 // FUNCTION: WIZ8 0x005BA4F0
-void UseItem005BA4F0(W8ItemInstance* item)
+void UseCampItem(W8ItemInstance* item)
 {
     unsigned short slot;
 
