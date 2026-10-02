@@ -760,7 +760,7 @@ void W8CharacterStatsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 // FUNCTION: WIZ8 0x005ca7e0
 void W8CharacterStatsPage::ShowEntryInfo(W8CharacterPageEntry* entry)
 {
-    m_screen_05c->ShowAttributeInfo005B07C0(entry->m_id_02c);
+    m_screen_05c->ShowPrimaryAttributeInfo(entry->m_id_02c);
 }
 
 /* A value row moved: rerun the whole creation rebuild for the new
@@ -852,7 +852,7 @@ void W8CharacterStatsPage::OnSecondary(W8TextControl* control)
 {
     for (unsigned int index = 0; index < 5; ++index) {
         if (control == m_attribute_controls_08c[index]) {
-            m_screen_05c->ShowAttributeInfo005B0850(index);
+            m_screen_05c->ShowSecondaryAttributeInfo(index);
         }
     }
 }
