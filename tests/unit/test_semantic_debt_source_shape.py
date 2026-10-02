@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from wiz8decomp.reports.semantic_debt import (
+    _adjacent_comment,
     _byte_strides,
     _duplicate_layouts,
     _enum_literal_arguments,
@@ -215,3 +216,15 @@ def test_duplicate_layouts_group_identical_unrelated_records() -> None:
             "records": {"W8RectA": "include/wiz8/a.h:1", "W8RectB": "include/wiz8/b.h:1"},
         }
     ]
+
+
+def test_adjacent_comment_ignores_previous_declaration_trailing_comment() -> None:
+    lines = [
+        "    unsigned char auto_release; /* release node when playback ends */",
+        "    unsigned char unknown_14d[3];",
+        "    /* Multi-line note",
+        "       about the next field. */",
+        "    int unknown_150;",
+    ]
+    assert _adjacent_comment(lines, 2) == ""
+    assert _adjacent_comment(lines, 5) == "about next field"

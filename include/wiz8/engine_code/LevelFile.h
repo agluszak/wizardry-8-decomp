@@ -232,11 +232,11 @@ struct W8LevelFileSwitch { /* 0x271 */
     char version_00;
     int cycle_bounce_01;           /* -> Trigger::cycle_bounce */
     int state_count_05;            /* -> Trigger::state_count */
-    float flag_09;                 /* != 0 -> Trigger::flags_0a0 bit0 */
+    float animate_states_09;       /* != 0 -> W8_TRIGGER_ANIMATE_STATES */
     int range_0d;                  /* -> Trigger::range_maximum_0a8 (*500) */
     int action_11;                 /* -> Trigger::initial_action_22a */
     int value_15;                  /* serialized; no reader consumer */
-    int flag_19;                   /* != 0 -> Trigger::flags_0a0 bit1 */
+    int animate_action_19;         /* != 0 -> W8_TRIGGER_ANIMATE_ACTION */
     unsigned char packed_flags_1d; /* bit0 FIRE_LINKED, bit1 LINK_ON_DEACTIVATE */
     unsigned char enabled_1e;      /* != 0 -> W8_TRIGGER_ENABLED */
     char name_1f[0x80];

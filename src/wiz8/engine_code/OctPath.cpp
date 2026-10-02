@@ -1326,7 +1326,7 @@ unsigned char W8PathingService::BuildAttachmentPath(W8NavigatorAttachment* attac
                     attachment->path_values_50[attachment->path_position_index_08] = surface_index;
                     ++attachment->path_position_index_08;
                     --remaining;
-                    attachment->flags_00 &= 0xffbfffff;
+                    attachment->flags_00 &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
                 } while (remaining != 0);
             }
             srVector3T<float>* destination = &attachment->position_1c;
@@ -1429,7 +1429,7 @@ unsigned char W8PathingService::LinkAttachmentTarget(W8NavigatorAttachment* atta
             *slot = *position;
             attachment->path_values_50[attachment->path_position_index_08] = surface_index;
             ++attachment->path_position_index_08;
-            attachment->flags_00 &= 0xffbfffff;
+            attachment->flags_00 &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
             --count;
         } while (count != 0);
     }
@@ -1621,7 +1621,7 @@ unsigned char W8PathingService::BuildPatrolPath(W8NavigatorAttachment* attachmen
             *slot = *position;
             attachment->path_values_50[attachment->path_position_index_08] = surface_index;
             ++attachment->path_position_index_08;
-            attachment->flags_00 &= 0xffbfffff;
+            attachment->flags_00 &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
             --remaining;
         } while (remaining != 0);
     }
@@ -1976,7 +1976,7 @@ void W8PathingService::AdjustFinalPathEndpoint(W8NavigatorMovementState* movemen
         attachment->position_1c = *endpoint;
 
         if ((attachment->flags_00 & 0x08000000) == 0) {
-            attachment->flags_00 |= 0x02000000;
+            attachment->flags_00 |= W8_NAV_ATTACHMENT_POSITION_RECORDED;
             attachment->position_40 = adjusted;
             g_octree->QueueOctreeKind13(movement->location_id_004, &adjusted);
         }
@@ -2184,10 +2184,10 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     path_heap_06c->heap_00->size_0c = 0;
 
     W8NavigatorAttachment* attachment = movement->attachment_0ac;
-    attachment->flags_00 &= 0xfffffff0;
+    attachment->flags_00 &= ~W8_NAV_ATTACHMENT_RESULT_MASK;
     W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pVisitedCells_074);
     visited->Clear();
-    attachment->flags_00 &= 0xfdffffff;
+    attachment->flags_00 &= ~W8_NAV_ATTACHMENT_POSITION_RECORDED;
 
     unsigned char allow_dynamic = static_cast<unsigned char>(movement->flags_000 >> 28 & 1);
     srVector3T<float> start = movement->position_040;
@@ -2416,7 +2416,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         if (stop_search == 0) {
             result = 3;
         }
-        attachment->flags_00 &= 0xfffffff0;
+        attachment->flags_00 &= ~W8_NAV_ATTACHMENT_RESULT_MASK;
         attachment->flags_00 |= result;
         return result;
     }
@@ -2478,13 +2478,13 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     }
 
     if ((probe_cell_key_078 == 0 && result == 0) || direct_path != 0) {
-        attachment->flags_00 |= 0x02000000;
+        attachment->flags_00 |= W8_NAV_ATTACHMENT_POSITION_RECORDED;
         attachment->position_40 = movement->position_040;
         attachment->position_4c[attachment->path_position_index_08] = movement->position_040;
         attachment->position_1c = attachment->position_4c[attachment->path_position_index_08];
         g_octree->QueueOctreeKind13(movement->location_id_004, &movement->position_040);
         g_startup_world->radius_084 = g_startup_world->movement_0c0.alternate_radius_0b4;
-        attachment->flags_00 &= 0xfffffff0;
+        attachment->flags_00 &= ~W8_NAV_ATTACHMENT_RESULT_MASK;
         if (search_visualization_1cb != 0 && m_pPathModelInstance != 0) {
             BuildSearchVisualization();
         }
@@ -2540,7 +2540,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
                 m_owned_0c8[route_node].position_20;
             attachment->path_values_50[attachment->path_position_index_08] = 0;
             ++attachment->path_position_index_08;
-            attachment->flags_00 &= 0xffbfffff;
+            attachment->flags_00 &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
             anchor_node = route_node;
         }
 
@@ -2578,7 +2578,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         m_owned_0c8[anchor_node].position_20;
     attachment->path_values_50[attachment->path_position_index_08] = 0;
     ++attachment->path_position_index_08;
-    attachment->flags_00 &= 0xffbfffff;
+    attachment->flags_00 &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
     attachment->path_values_50[prop_count] = 0;
 
     if (attachment->path_position_index_08 > 1) {
@@ -2586,7 +2586,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         attachment->position_1c = attachment->position_4c[attachment->path_position_index_08];
     }
     if ((attachment->flags_00 & 0x08000000) == 0) {
-        attachment->flags_00 |= 0x02000000;
+        attachment->flags_00 |= W8_NAV_ATTACHMENT_POSITION_RECORDED;
         attachment->position_40 = m_owned_0c8[probe_cell_key_078].position_20;
         g_octree->QueueOctreeKind13(movement->location_id_004,
                                     &m_owned_0c8[probe_cell_key_078].position_20);
@@ -2594,7 +2594,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     if (movement->target_location_id_010 >= 0 && explicit_target_09c == 0) {
         AdjustFinalPathEndpoint(movement, radius, separation);
     }
-    attachment->flags_00 &= 0xfffffff0;
+    attachment->flags_00 &= ~W8_NAV_ATTACHMENT_RESULT_MASK;
     attachment->flags_00 |= result;
     g_startup_world->radius_084 = g_startup_world->movement_0c0.alternate_radius_0b4;
     return result;
@@ -2846,7 +2846,7 @@ unsigned short W8PathingService::ConfigureMovementSearch(
 
     unsigned short result = 0;
     W8NavigatorAttachment* attachment = movement->attachment_0ac;
-    if ((attachment->flags_00 & 0x00010000) != 0) {
+    if ((attachment->flags_00 & W8_NAV_ATTACHMENT_FOLLOW_PATH) != 0) {
         srVector3T<float> delta = movement->target_position_04c - movement->position_040;
         float horizontal_clearance = srVector2T<float>(delta.x, delta.z).Length() - radius;
         float target_radius;
@@ -3047,7 +3047,7 @@ unsigned int W8PathingService::StepAlongPath(W8NavigatorMovementState* movement,
     W8NavigatorAttachment* attachment = movement->attachment_0ac;
     unsigned int flags = attachment->flags_00;
     bool arrived;
-    if ((flags & 0x10000) != 0) {
+    if ((flags & W8_NAV_ATTACHMENT_FOLLOW_PATH) != 0) {
         arrived = true;
         if ((flags & 0x8000000) == 0) {
             srVector3T<float>* position = &movement->position_040;
@@ -3058,7 +3058,7 @@ unsigned int W8PathingService::StepAlongPath(W8NavigatorMovementState* movement,
                 &advanced);
             arrived = on_path == 0;
             if (arrived) {
-                attachment->flags_00 &= 0xfffffff0;
+                attachment->flags_00 &= ~W8_NAV_ATTACHMENT_RESULT_MASK;
             }
             srVector3T<float> delta = advanced - *position;
             if (((delta.x != g_float_005ebb34) || (delta.y != g_float_005ebb34)) ||
@@ -3286,7 +3286,7 @@ unsigned char W8PathingService::PrepareLinkedNavigator(W8NavigatorMovementState*
                 *slot = *source;
                 attachment->path_values_50[attachment->path_position_index_08] = surface;
                 ++attachment->path_position_index_08;
-                attachment->flags_00 &= 0xffbfffff;
+                attachment->flags_00 &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
                 linked_attachment = linked_attachment_218;
                 ++index;
             } while (index <= linked_attachment->path_position_index_08);

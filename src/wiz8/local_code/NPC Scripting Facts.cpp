@@ -244,7 +244,7 @@ void HandleFactChange(int fact_id, unsigned char value)
     case 0x91:
         if (value != 0) {
             trigger = FindTriggerByName("Door08");
-            if (trigger != 0 && (trigger->flags_0a0 >> 0x13 & 1) == 0) {
+            if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0) {
                 trigger->Run(-1);
             }
         }
@@ -272,7 +272,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             return;
         }
         trigger = FindTriggerByName("Door07");
-        if (trigger != 0 && (trigger->flags_0a0 >> 0x13 & 1) == 0) {
+        if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0) {
             trigger->Run(-1);
         }
         return;
@@ -281,7 +281,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             return;
         }
         trigger = FindTriggerByName("Door06");
-        if (trigger != 0 && (trigger->flags_0a0 >> 0x13 & 1) == 0) {
+        if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0) {
             trigger->Run(-1);
         }
         return;

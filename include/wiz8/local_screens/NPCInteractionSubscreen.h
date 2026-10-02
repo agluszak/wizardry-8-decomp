@@ -27,9 +27,9 @@ struct W8SkillNoticePayload;
 /* The 0x50-byte panel stored at W8NpcInteractionState+0x1a8 (bounds
    0x17,0x166-0xa4,0x1c2); it hosts the six option buttons at +0x170..+0x184.
    Its SetEnabled keeps those six inactive unless the expanded NPC dialogue
-   layout (dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) is up, and its Redraw substitutes m_value_4c for
+   layout (dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) is up, and its Redraw substitutes m_main_text_box_image for
    m_renderArg_20 in that mode. The constructor is inlined into 0x0056D1D0 as
-   the Controls base call plus m_value_4c = 0x11; no standalone derived body
+   the Controls base call plus m_main_text_box_image = 0x11; no standalone derived body
    exists. */
 // VTABLE: WIZ8 0x005ee9f0
 class W8NpcDialogueOptionsPanel : public Controls {
@@ -38,12 +38,12 @@ public:
                               int render_arg_1c, int render_arg_20)
         : Controls(left, top, new_right, new_bottom, render_target, render_arg_1c, render_arg_20)
     {
-        m_value_4c = 0x11;
+        m_main_text_box_image = 0x11;
     }
     virtual void SetEnabled(bool enable) override; /* 0x0056BC50 */
     virtual void Redraw() override;                /* 0x0056BD30 */
 
-    int m_value_4c; /* 0x4c: catalog image used while dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX */
+    int m_main_text_box_image; /* 0x4c: catalog image used while dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX */
 };
 static_assert(sizeof(W8NpcDialogueOptionsPanel) == 0x50, "W8NpcDialogueOptionsPanel_size");
 

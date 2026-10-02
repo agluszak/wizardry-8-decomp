@@ -845,11 +845,11 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileRead(hFile, &pSwitch->version_00, 1, 0);
         fSuccess &= FileRead(hFile, &pSwitch->cycle_bounce_01, 4, 0);
         fSuccess &= FileRead(hFile, &pSwitch->state_count_05, 4, 0);
-        fSuccess &= FileRead(hFile, &pSwitch->flag_09, 4, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->animate_states_09, 4, 0);
         fSuccess &= FileRead(hFile, &pSwitch->range_0d, 4, 0);
         fSuccess &= FileRead(hFile, &pSwitch->action_11, 4, 0);
         fSuccess &= FileRead(hFile, &pSwitch->value_15, 4, 0);
-        fSuccess &= FileRead(hFile, &pSwitch->flag_19, 4, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->animate_action_19, 4, 0);
         fSuccess &= FileRead(hFile, &pSwitch->packed_flags_1d, 1, 0);
         fSuccess &= FileRead(hFile, &pSwitch->enabled_1e, 1, 0);
         fSuccess &= FileRead(hFile, pSwitch->name_1f, 0x80, 0);
@@ -1030,11 +1030,11 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileWrite(hFile, &pSwitch->version_00, 1, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->cycle_bounce_01, 4, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->state_count_05, 4, 0);
-        fSuccess &= FileWrite(hFile, &pSwitch->flag_09, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->animate_states_09, 4, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->range_0d, 4, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->action_11, 4, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->value_15, 4, 0);
-        fSuccess &= FileWrite(hFile, &pSwitch->flag_19, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->animate_action_19, 4, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->packed_flags_1d, 1, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->enabled_1e, 1, 0);
         fSuccess &= FileWrite(hFile, pSwitch->name_1f, 0x80, 0);

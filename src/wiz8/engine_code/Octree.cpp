@@ -1860,7 +1860,7 @@ unsigned char W8Octree::PrepareNavigatorTarget(W8NavigatorMovementState* movemen
     if (srVector2T<float>(delta.x, delta.z).Length() < NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE) {
         return 0;
     }
-    if ((movement->attachment_0ac->flags_00 & 0x10000) == 0) {
+    if ((movement->attachment_0ac->flags_00 & W8_NAV_ATTACHMENT_FOLLOW_PATH) == 0) {
         srVector3T<float> target = movement->target_position_04c;
         if (pathing_180->FindPathCell(&target, 0, 1) != 0) {
             if (pathing_180->TestWaypointSpan(&movement->position_040, &target, 0, 0) == 0) {

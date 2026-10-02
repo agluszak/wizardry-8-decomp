@@ -14,6 +14,21 @@ struct W8MonsterInfo;
 class srNode;
 struct W8PathAI;
 
+/* W8NavigatorAttachment::flags_00 bits with established meaning.
+   - RESULT_MASK holds the last path-search result; the planners clear it before
+     a search and store the result code there.
+   - FOLLOW_PATH makes the mover advance along the recorded waypoint positions
+     (AdvanceAlongPathPositions) instead of steering directly at the target.
+   - PATH_LENGTH_CACHED latches MeasurePathLength's cached path_length_058; any
+     waypoint edit clears it.
+   - POSITION_RECORDED is raised whenever position_40 is recorded. */
+enum W8NavigatorAttachmentFlag {
+    W8_NAV_ATTACHMENT_RESULT_MASK = 0x0000000f,
+    W8_NAV_ATTACHMENT_FOLLOW_PATH = 0x00010000,
+    W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED = 0x00400000,
+    W8_NAV_ATTACHMENT_POSITION_RECORDED = 0x02000000
+};
+
 struct W8NavigatorAttachment {
     unsigned int flags_00;
     /* Live waypoint cursor. AdvanceAlongPathPositions compacts consumed

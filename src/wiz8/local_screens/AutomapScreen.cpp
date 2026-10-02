@@ -90,16 +90,19 @@ bool g_mipe_active;
 /* Lifecycle record 8's own state, all of it released by the finalizer below and
    nothing here naming what any of it holds. The note list is created by this record's initializer at 0x0057E5D0. */
 
-/* Two owned index arrays, released through BitArray's destructor. */
+/* One bit per automap cell: raised when the party camera enters the cell. */
 // GLOBAL: WIZ8 0x0068F288
-BitArray* g_bits_68f288;
+BitArray* g_automap_visited_cells;
+/* One bit per visited cell already turned into vertex lights. */
 // GLOBAL: WIZ8 0x0068F28C
-BitArray* g_bits_68f28c;
+BitArray* g_automap_lit_cells;
+/* Packed cell keys read from the level file, indexed by cell number. */
 // GLOBAL: WIZ8 0x0068F280
-void* g_block_68f280;
+unsigned int* g_automap_cell_keys;
 
+/* Packed cell key -> cell number + 1. */
 // GLOBAL: WIZ8 0x0068F284
-W8HashTable<unsigned int, int>* g_record_68f284;
+W8HashTable<unsigned int, int>* g_automap_cell_index;
 // GLOBAL: WIZ8 0x0068F29C
 stModelInstance2D* g_class_68f29c;
 // GLOBAL: WIZ8 0x0068F2A0
@@ -345,16 +348,16 @@ void ResetAutomapView(void)
                                camera.y - g_automap_grid_origin.y,
                                camera.z - g_automap_grid_origin.z);
     unsigned int key = AutomapNodeKey(&relative);
-    int cell = g_record_68f284->Lookup(&key);
+    int cell = g_automap_cell_index->Lookup(&key);
     if (cell > 1) {
-        g_bits_68f288->Set(cell - 1);
+        g_automap_visited_cells->Set(cell - 1);
         return;
     }
     relative.y = camera.y + g_float_64b914 - g_automap_grid_origin.y;
     key = AutomapNodeKey(&relative);
-    cell = g_record_68f284->Lookup(&key);
+    cell = g_automap_cell_index->Lookup(&key);
     if (cell > 1) {
-        g_bits_68f288->Set(cell - 1);
+        g_automap_visited_cells->Set(cell - 1);
     }
 }
 
@@ -368,18 +371,18 @@ bool AutomapHasCellAt(const srVector3T<float>* position)
                                position->y - g_automap_grid_origin.y,
                                position->z - g_automap_grid_origin.z);
     unsigned int key = AutomapNodeKey(&relative);
-    int cell = g_record_68f284->Lookup(&key);
+    int cell = g_automap_cell_index->Lookup(&key);
     if (cell > 1) {
-        if (!g_bits_68f288->Set(cell - 1)) {
+        if (!g_automap_visited_cells->Set(cell - 1)) {
             return 1;
         }
         return 0;
     }
     relative.y = position->y + g_float_64b914 - g_automap_grid_origin.y;
     key = AutomapNodeKey(&relative);
-    cell = g_record_68f284->Lookup(&key);
+    cell = g_automap_cell_index->Lookup(&key);
     if (cell > 1) {
-        if (!g_bits_68f288->Set(cell - 1)) {
+        if (!g_automap_visited_cells->Set(cell - 1)) {
             return 1;
         }
     }
@@ -1077,24 +1080,24 @@ unsigned char AutomapScreenFinalize(void)
         delete g_automap_notes;
         g_automap_notes = 0;
     }
-    BitArray* bits = g_bits_68f288;
+    BitArray* bits = g_automap_visited_cells;
     if (bits) {
         delete bits;
-        g_bits_68f288 = 0;
+        g_automap_visited_cells = 0;
     }
-    bits = g_bits_68f28c;
+    bits = g_automap_lit_cells;
     if (bits) {
         delete bits;
-        g_bits_68f28c = 0;
+        g_automap_lit_cells = 0;
     }
-    if (g_block_68f280) {
-        free(g_block_68f280);
-        g_block_68f280 = 0;
+    if (g_automap_cell_keys) {
+        free(g_automap_cell_keys);
+        g_automap_cell_keys = 0;
     }
-    W8HashTable<unsigned int, int>* record = g_record_68f284;
+    W8HashTable<unsigned int, int>* record = g_automap_cell_index;
     if (record) {
         delete record;
-        g_record_68f284 = 0;
+        g_automap_cell_index = 0;
     }
     if (g_class_68f29c) {
         g_class_68f29c->release();
@@ -1388,7 +1391,7 @@ void ResetAutomapLighting(void)
             model->flags_3a0 |= 2;
         }
     }
-    g_bits_68f28c->ClearAll();
+    g_automap_lit_cells->ClearAll();
 }
 
 /* Light up to `max_count` visited cells that have not yet been processed into
@@ -1406,15 +1409,15 @@ unsigned int LightPendingAutomapCells(unsigned int max_count)
             }
             if (0x20 < g_automap_cell_count) {
                 while (bit < static_cast<unsigned int>(g_automap_cell_count - 0x20) &&
-                       g_bits_68f288->puiIndex[bit >> 5] == 0) {
+                       g_automap_visited_cells->puiIndex[bit >> 5] == 0) {
                     bit += 0x20;
                 }
             }
-            if (g_bits_68f288->Test(bit) != 0) {
+            if (g_automap_visited_cells->Test(bit) != 0) {
                 srVector3T<float> cell;
                 cell.SetZero();
-                if (g_block_68f280 != 0 || bit < static_cast<unsigned int>(g_automap_cell_count)) {
-                    unsigned int key = static_cast<unsigned int*>(g_block_68f280)[bit];
+                if (g_automap_cell_keys != 0 || bit < static_cast<unsigned int>(g_automap_cell_count)) {
+                    unsigned int key = g_automap_cell_keys[bit];
                     float half = g_float_64b914 * g_float_005ebc7c;
                     cell.Set((key >> 0x15) * g_float_64b914 + half,
                              (key & 0x3ff) * g_float_64b914 + half,
@@ -1422,8 +1425,8 @@ unsigned int LightPendingAutomapCells(unsigned int max_count)
                 }
                 srVector3T<float> position;
                 position = cell + g_automap_grid_origin;
-                if (g_bits_68f28c->Test(bit) == 0) {
-                    g_bits_68f28c->Set(bit);
+                if (g_automap_lit_cells->Test(bit) == 0) {
+                    g_automap_lit_cells->Set(bit);
                     LightAutomapCell(&position);
                     ++lit;
                 }
@@ -1473,16 +1476,16 @@ void UpdateAutomapBounds(void)
             do {
                 if (0x20 < g_automap_cell_count) {
                     while (bit < static_cast<unsigned int>(g_automap_cell_count - 0x20) &&
-                           g_bits_68f288->puiIndex[bit >> 5] == 0) {
+                           g_automap_visited_cells->puiIndex[bit >> 5] == 0) {
                         bit += 0x20;
                     }
                 }
-                if (g_bits_68f288->Test(bit) != 0) {
+                if (g_automap_visited_cells->Test(bit) != 0) {
                     srVector3T<float> cell;
                     cell.SetZero();
-                    if (g_block_68f280 != 0 ||
+                    if (g_automap_cell_keys != 0 ||
                         bit < static_cast<unsigned int>(g_automap_cell_count)) {
-                        unsigned int key = static_cast<unsigned int*>(g_block_68f280)[bit];
+                        unsigned int key = g_automap_cell_keys[bit];
                         float half = g_float_64b914 * g_float_005ebc7c;
                         cell.Set((key >> 0x15) * g_float_64b914 + half,
                                  (key & 0x3ff) * g_float_64b914 + half,
@@ -1502,8 +1505,8 @@ void UpdateAutomapBounds(void)
                     if (g_automap_bounds_max.z <= position.z) {
                         g_automap_bounds_max.z = position.z;
                     }
-                    if (g_bits_68f28c->Test(bit) == 0) {
-                        g_bits_68f28c->Set(bit);
+                    if (g_automap_lit_cells->Test(bit) == 0) {
+                        g_automap_lit_cells->Set(bit);
                         LightAutomapCell(&position);
                     }
                 }
@@ -1780,8 +1783,8 @@ bool SaveAutomapNotes(int handle)
 {
     int signature = 0xf00df00d;
     unsigned char saved;
-    if (g_bits_68f288 != 0) {
-        saved = g_bits_68f288->Save(handle);
+    if (g_automap_visited_cells != 0) {
+        saved = g_automap_visited_cells->Save(handle);
     } else {
         saved = static_cast<unsigned char>(handle);
     }
@@ -1829,12 +1832,12 @@ bool LoadAutomapNotes(int handle)
         g_automap_notes->RemoveAt(0);
     }
     g_automap_redraw = true;
-    if (g_bits_68f288 != 0 && 1 < g_bits_68f288->bit_count) {
-        g_bits_68f288->Load(handle);
-        if (g_bits_68f288->bit_count == static_cast<unsigned int>(g_automap_cell_count)) {
+    if (g_automap_visited_cells != 0 && 1 < g_automap_visited_cells->bit_count) {
+        g_automap_visited_cells->Load(handle);
+        if (g_automap_visited_cells->bit_count == static_cast<unsigned int>(g_automap_cell_count)) {
             g_automap_state->flags_0f9[0] = 1;
         } else {
-            g_bits_68f288->SetSize(g_automap_cell_count);
+            g_automap_visited_cells->SetSize(g_automap_cell_count);
         }
         g_automap_bounds_dirty = true;
         unsigned int count;
@@ -2567,7 +2570,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
     case 0x41:
         /* Developer: reveal the whole map. */
         if (g_dev_mode != 0) {
-            g_bits_68f288->SetAll();
+            g_automap_visited_cells->SetAll();
             g_automap_bounds_dirty = true;
             g_automap_redraw = true;
             g_automap_overlay_redraw = true;
@@ -2590,7 +2593,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
     case 0x43:
         /* Developer: forget the whole map. */
         if (g_dev_mode != 0) {
-            g_bits_68f288->ClearAll();
+            g_automap_visited_cells->ClearAll();
             g_automap_bounds_dirty = true;
             UpdateAutomapBounds();
             return 1;
@@ -2635,68 +2638,70 @@ unsigned char HandleAutomapKey(const InputAtom* input)
 // FUNCTION: WIZ8 0x00584DD0
 unsigned char ReadAutomapNodes(int hFile)
 {
-    if (g_bits_68f288 != 0) {
-        delete g_bits_68f288;
-        g_bits_68f288 = 0;
+    if (g_automap_visited_cells != 0) {
+        delete g_automap_visited_cells;
+        g_automap_visited_cells = 0;
     }
-    if (g_bits_68f28c != 0) {
-        delete g_bits_68f28c;
-        g_bits_68f28c = 0;
+    if (g_automap_lit_cells != 0) {
+        delete g_automap_lit_cells;
+        g_automap_lit_cells = 0;
     }
-    if (g_block_68f280 != 0) {
-        free(g_block_68f280);
-        g_block_68f280 = 0;
+    if (g_automap_cell_keys != 0) {
+        free(g_automap_cell_keys);
+        g_automap_cell_keys = 0;
     }
-    if (g_record_68f284 != 0) {
-        delete g_record_68f284;
-        g_record_68f284 = 0;
+    if (g_automap_cell_index != 0) {
+        delete g_automap_cell_index;
+        g_automap_cell_index = 0;
     }
 
     FileRead(hFile, &g_float_64b914, 4, 0);
     unsigned char ok = FileRead(hFile, &g_automap_cell_count, 4, 0);
     if (g_automap_cell_count == 0) {
-        g_bits_68f288 = new BitArray(1);
-        g_bits_68f28c = new BitArray(1);
-        g_block_68f280 = malloc(4);
-        *static_cast<unsigned int*>(g_block_68f280) = 0;
+        g_automap_visited_cells = new BitArray(1);
+        g_automap_lit_cells = new BitArray(1);
+        g_automap_cell_keys = static_cast<unsigned int*>(malloc(sizeof(*g_automap_cell_keys)));
+        *g_automap_cell_keys = 0;
         g_automap_cell_count = 1;
-        g_record_68f284 = new W8HashTable<unsigned int, int>();
+        g_automap_cell_index = new W8HashTable<unsigned int, int>();
         return ok;
     }
 
-    g_bits_68f288 = new BitArray(g_automap_cell_count);
-    if (g_bits_68f288 == 0) {
+    g_automap_visited_cells = new BitArray(g_automap_cell_count);
+    if (g_automap_visited_cells == 0) {
         return 0;
     }
-    g_bits_68f28c = new BitArray(g_automap_cell_count);
-    if (g_bits_68f28c == 0) {
-        if (g_bits_68f288 != 0) {
-            delete g_bits_68f288;
+    g_automap_lit_cells = new BitArray(g_automap_cell_count);
+    if (g_automap_lit_cells == 0) {
+        if (g_automap_visited_cells != 0) {
+            delete g_automap_visited_cells;
         }
-        g_bits_68f288 = 0;
+        g_automap_visited_cells = 0;
         return 0;
     }
-    g_block_68f280 = malloc(g_automap_cell_count * 4);
-    if (g_block_68f280 == 0) {
-        if (g_bits_68f288 != 0) {
-            delete g_bits_68f288;
+    g_automap_cell_keys = static_cast<unsigned int*>(
+        malloc(g_automap_cell_count * sizeof(*g_automap_cell_keys)));
+    if (g_automap_cell_keys == 0) {
+        if (g_automap_visited_cells != 0) {
+            delete g_automap_visited_cells;
         }
-        if (g_bits_68f28c != 0) {
-            delete g_bits_68f28c;
+        if (g_automap_lit_cells != 0) {
+            delete g_automap_lit_cells;
         }
-        g_bits_68f288 = 0;
-        g_bits_68f28c = 0;
+        g_automap_visited_cells = 0;
+        g_automap_lit_cells = 0;
         return 0;
     }
 
     unsigned char success = 0;
     if (ok != 0) {
-        success = FileRead(hFile, g_block_68f280, g_automap_cell_count * 4, 0);
+        success = FileRead(hFile, g_automap_cell_keys,
+                           g_automap_cell_count * sizeof(*g_automap_cell_keys), 0);
     }
-    g_record_68f284 = new W8HashTable<unsigned int, int>();
+    g_automap_cell_index = new W8HashTable<unsigned int, int>();
     for (int index = 0; index < g_automap_cell_count; ++index) {
         int value = index + 1;
-        g_record_68f284->Insert(static_cast<unsigned int*>(g_block_68f280) + index, &value);
+        g_automap_cell_index->Insert(g_automap_cell_keys + index, &value);
     }
     return success;
 }
