@@ -762,7 +762,7 @@ stParticle* FindParticleByName(W8World* world, const char* name)
 
 /* Two forwarders that pass their arguments through unchanged. */
 // FUNCTION: WIZ8 0x00451140
-void Forward44FAF0(W8World* world)
+void ForwardDestroyWorld(W8World* world)
 {
     DestroyWorld(world);
 }
@@ -880,7 +880,7 @@ void WorldSetCameraLocation(W8World* world, const srVector3T<float>* location)
 
 /* Apply a CamPos record to the world's camera and camera light. A non-null
    source world repeats the orientation write; automap restore passes null and
-   recall / LoadLevel pass GetWorld659AB8(). */
+   recall / LoadLevel pass GetSecondaryWorld(). */
 // FUNCTION: WIZ8 0x004504B0
 void SetWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraState* state)
 {
@@ -972,7 +972,7 @@ void WorldGetCameraLocation(W8World* world, srVector3T<float>* location)
    settled by the viewport, which reads a camera member through the same
    object. */
 // FUNCTION: WIZ8 0x004512a0
-W8World* GetWorld659AB8(void)
+W8World* GetSecondaryWorld(void)
 {
     return g_world_659ab8;
 }
