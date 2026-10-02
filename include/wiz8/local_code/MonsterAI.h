@@ -25,7 +25,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decision); /* 0x00530F10 */
 /* 0x00617AE8: 125000, the cap on how far a monster will walk to investigate a
    heard noise. */
-extern int g_int_00617ae8;
+extern int g_noise_investigate_radius_cap;
 /* Whether a hostile group still has a member able to engage the party: a
    visible target to advance on, a usable attack or spell, a way to flee, or
    a short-range attack with a path to the party. */

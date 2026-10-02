@@ -263,16 +263,16 @@ const float g_float_005ecbbc = -0.995f;
 
 static unsigned char PreprocessLevel(int handle, char* stem);
 static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex* vertices,
-               unsigned int index, unsigned int link);
+                      unsigned int index, unsigned int link);
 static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short light_count,
-                          W8LevelFileLight* lights, int* sun_map);
+                                 W8LevelFileLight* lights, int* sun_map);
 static int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight* light);
 static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry,
-                        unsigned char* classify);
+                               unsigned char* classify);
 static int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry);
 static unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* stem);
 static int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
-                 unsigned char* classify);
+                        unsigned char* classify);
 
 // FUNCTION: WIZ8 0x00492E60
 char W8Octree::BuildPreprocessedFiles(const char* level_path)
@@ -1071,7 +1071,7 @@ void ReportStartupMessage(const char* message)
    redirect fields. */
 // FUNCTION: WIZ8 0x00494800
 static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex* vertices,
-               unsigned int index, unsigned int link)
+                      unsigned int index, unsigned int link)
 {
     unsigned int vertex = link;
     unsigned int cell_x;
@@ -1172,7 +1172,8 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
    two-sided or opposing-normal polygons weld their corners and emit a mirrored
    backface. Returns the alpha polygon count. */
 // FUNCTION: WIZ8 0x00494B90
-static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry, unsigned char* classify)
+static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry,
+                               unsigned char* classify)
 {
     W8LevelFileMesh* mesh = level->pMeshes;
     W8MaterialRecord* materials = level->pTextures;
@@ -1344,7 +1345,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                         if (found == mesh->num_vertices_04 + 1) {
                             current = vertices + vertex_index[corner];
                             created = vertices + mesh->num_vertices_04;
-                            memcpy(created, current, 0x60);
+                            memcpy(created, current, sizeof(*created));
                             created->vertex_index_04 = mesh->num_vertices_04;
                             current->flags_00 |= 2;
                             vertex_index[corner] = mesh->num_vertices_04;
@@ -1432,12 +1433,13 @@ static int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
     W8OctRegionPolygon* polygon;
 
     ReportBuildStatus(6, "Splitting vertices by Material...\n");
-    split = static_cast<W8OctPreTreeVertex*>(malloc(geometry->vertex_count_00 * 0x180));
+    split = static_cast<W8OctPreTreeVertex*>(
+        malloc(geometry->vertex_count_00 * 4 * sizeof(W8OctPreTreeVertex)));
     if (split == 0) {
         ReportBuildStatus(7, "SplitVertices: Could not allocate pSplitVerts.\n");
         return 0;
     }
-    memset(split, 0, geometry->vertex_count_00 * 0x180);
+    memset(split, 0, geometry->vertex_count_00 * 4 * sizeof(W8OctPreTreeVertex));
     for (source = 1; source < geometry->vertex_count_00; ++source) {
         geometry->vertices_04[source].visited_0a = 0;
     }
@@ -1445,7 +1447,7 @@ static int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
     for (source = 1; source < geometry->vertex_count_00; ++source, ++next) {
         unsigned int first = next;
         record = split + next;
-        memcpy(record, geometry->vertices_04 + source, 0x60);
+        memcpy(record, geometry->vertices_04 + source, sizeof(*record));
         record->vertex_index_04 = next;
         record->visited_0a = 1;
         faces = geometry->vertices_04[source].face_indices_44;
@@ -1485,7 +1487,7 @@ static int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
             if (fresh != 0) {
                 ++next;
                 record = split + next;
-                memcpy(record, geometry->vertices_04 + source, 0x60);
+                memcpy(record, geometry->vertices_04 + source, sizeof(*record));
                 record->vertex_index_04 = next;
                 record->visited_0a = 1;
                 record->material_1c = polygon->material_24;
@@ -1531,7 +1533,7 @@ static int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
 
 // FUNCTION: WIZ8 0x00495CF0
 static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short light_count,
-                          W8LevelFileLight* lights, int* sun_map)
+                                 W8LevelFileLight* lights, int* sun_map)
 {
     float delta_x;
     float delta_y;
@@ -1614,7 +1616,7 @@ static int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFil
     if (prop->anim_obj_53.num_bound_box_47 != 0) {
         const W8LevelFileBounds* boxes = prop->anim_obj_53.pBoundBox;
         do {
-            memcpy(bounds, boxes + bound, 0x18);
+            memcpy(bounds, boxes + bound, sizeof(bounds));
             for (corner_x = 0; corner_x < 2; ++corner_x) {
                 float x = bounds[corner_x * 3] * g_world_scale;
                 for (corner_y = 0; corner_y < 2; ++corner_y) {
@@ -1758,7 +1760,7 @@ static unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, ch
    and moves the old index into the texture slot. */
 // FUNCTION: WIZ8 0x00496500
 static int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
-                 unsigned char* classify)
+                        unsigned char* classify)
 {
     char name[516];
     char* material_names;

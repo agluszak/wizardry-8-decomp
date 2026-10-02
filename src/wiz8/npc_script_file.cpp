@@ -73,8 +73,8 @@ unsigned char ReadNpcScriptQuote(int handle, W8NpcScriptQuote* record)
     int sub_index;
     wchar_t wide[2000];
 
-    FileRead(handle, record, 0xc, &transferred);
-    if (transferred != 0xc) {
+    FileRead(handle, record, sizeof(*record), &transferred);
+    if (transferred != sizeof(*record)) {
         return 0;
     }
 
@@ -102,7 +102,7 @@ unsigned char ReadNpcScriptQuote(int handle, W8NpcScriptQuote* record)
     if (disk_entry_count != 0) {
         record->entries = 0;
         record->entry_count = 0;
-        block_size = disk_entry_count * 0x12;
+        block_size = disk_entry_count * sizeof(*record->entries);
         record->entries = static_cast<W8NpcQuoteEntry*>(malloc(block_size));
         if (record->entries != 0) {
             memset(record->entries, 0, block_size);
@@ -112,8 +112,8 @@ unsigned char ReadNpcScriptQuote(int handle, W8NpcScriptQuote* record)
 
     for (index = 0; index < record->entry_count; ++index) {
         entry = &record->entries[index];
-        FileRead(handle, entry, 0x12, &transferred);
-        if (transferred != 0x12) {
+        FileRead(handle, entry, sizeof(*entry), &transferred);
+        if (transferred != sizeof(*entry)) {
             return 0;
         }
         disk_sub_count = entry->sub_entry_count;
@@ -172,12 +172,12 @@ W8NpcScriptFile* LoadNpcScriptFile(char* path)
     if (handle == 0) {
         return 0;
     }
-    file = static_cast<W8NpcScriptFile*>(malloc(0xe));
+    file = static_cast<W8NpcScriptFile*>(malloc(sizeof(W8NpcScriptFile)));
     if (file == 0) {
         return 0;
     }
-    FileRead(handle, file, 0xe, &transferred);
-    if (transferred != 0xe) {
+    FileRead(handle, file, sizeof(*file), &transferred);
+    if (transferred != sizeof(*file)) {
         return 0;
     }
     if (file->name != 0) {
@@ -198,7 +198,7 @@ W8NpcScriptFile* LoadNpcScriptFile(char* path)
             file->name[length] = 0;
         }
     }
-    quotes = static_cast<W8NpcScriptQuote*>(malloc(file->quote_count * 0xc));
+    quotes = static_cast<W8NpcScriptQuote*>(malloc(file->quote_count * sizeof(W8NpcScriptQuote)));
     file->quotes = quotes;
     if (quotes == 0) {
         return 0;

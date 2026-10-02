@@ -254,7 +254,8 @@ int GenerateItemsFromTable(W8GrowableVector<W8WorldItem*>* output_items, unsigne
         }
     }
 
-    if (candidates.GetCount() < static_cast<int>(maximum_items) && g_item_tables[table_id]->level_scaled != 0) {
+    if (candidates.GetCount() < static_cast<int>(maximum_items) &&
+        g_item_tables[table_id]->level_scaled != 0) {
         candidates.Clear();
         for (entry_index = 0; entry_index < 40; ++entry_index) {
             if (g_item_tables[table_id]->entries[entry_index].selector_00 != 0) {
@@ -416,7 +417,7 @@ bool ItemInfoIsWorldPersistent(const W8WorldItem* item)
 // FUNCTION: WIZ8 0x004f9210
 W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item)
 {
-    W8ItemInstance* copy = static_cast<W8ItemInstance*>(malloc(0xc));
+    W8ItemInstance* copy = static_cast<W8ItemInstance*>(malloc(sizeof(W8ItemInstance)));
 
     if (copy == 0) {
         return 0;
@@ -1103,8 +1104,7 @@ bool AnyWorldItemVisible(void)
     GetCameraPosition(&camera);
     count = PLLength(gXStatus.plsItemList);
     if (0 <= g_last_visible_world_item && g_last_visible_world_item < count) {
-        W8WorldItem* item =
-            GetWorldItemListEntry(g_last_visible_world_item);
+        W8WorldItem* item = GetWorldItemListEntry(g_last_visible_world_item);
         if (item->p3D != 0) {
             item->p3D->m_pRep->GetLocation(&position);
             GetCameraPosition(&eye);

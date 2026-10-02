@@ -150,6 +150,7 @@ def test_byte_strides_report_literals_equal_to_asserted_record_sizes() -> None:
             "    // r = malloc(0x1c);\n"
             "    memset(p, 0, 0x1c);\n"
             "    s = malloc(count * 4);\n"
+            "    left = (index % 4) * 0x1c + 3;\n"
             "}\n"
         ),
     }
@@ -168,6 +169,8 @@ def test_enum_literal_arguments_report_literals_at_enum_parameters() -> None:
     index = {
         "declarations": [
             {"qualified_name": "W8Thing::SetMode", "parameter_types": ["int", "enum W8Mode"]},
+            {"qualified_name": "W8Other::SetKind", "parameter_types": ["enum W8Kind"]},
+            {"qualified_name": "W8Model::SetKind", "parameter_types": ["int"]},
         ]
     }
     sources = {
@@ -175,6 +178,7 @@ def test_enum_literal_arguments_report_literals_at_enum_parameters() -> None:
             "void f(W8Thing* t) {\n"
             "    t->SetMode(3, 2);\n"
             "    t->SetMode(3, W8_MODE_IDLE);\n"
+            "    t->SetKind(1);\n"
             "    // t->SetMode(1, 1);\n"
             "}\n"
         )

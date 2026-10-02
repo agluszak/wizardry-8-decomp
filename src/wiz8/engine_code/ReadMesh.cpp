@@ -2,6 +2,7 @@
 #include "wiz8/engine_code/ReadMesh.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/LevelFile.h"
 #include "wiz8/engine_code/OctMeshModel.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/materials.h"
@@ -23,18 +24,6 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
-
-#pragma pack(push, 1)
-struct W8CompressedReadMeshFace {
-    unsigned short vertices[3];
-    srVector2T<float> texture_coordinates[3];
-    unsigned short material_index;
-    unsigned char flags;
-};
-#pragma pack(pop)
-
-static_assert(sizeof(W8CompressedReadMeshFace) == 0x21,
-              "W8CompressedReadMeshFace_size_must_be_0x21");
 
 // FUNCTION: WIZ8 0x004896C0
 void ReadMeshTransform(int file, srVector3T<float>* location, srMatrix3T<float>* rotation,
@@ -781,7 +770,8 @@ stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int ver
 
 // FUNCTION: WIZ8 0x00487E10
 static int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials,
-                      srTextureIFace*** textures, unsigned long** render_flags, int load_materials)
+                             srTextureIFace*** textures, unsigned long** render_flags,
+                             int load_materials)
 {
     if (info == 0) {
         srAssertFail("pInfo", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x256, 0);
@@ -1017,8 +1007,8 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
                          0);
         }
     } else {
-        W8CompressedReadMeshFace* compressed_faces =
-            static_cast<W8CompressedReadMeshFace*>(malloc(face_count * sizeof(*compressed_faces)));
+        W8LevelFileCompressedFace* compressed_faces =
+            static_cast<W8LevelFileCompressedFace*>(malloc(face_count * sizeof(*compressed_faces)));
         if (compressed_faces == 0) {
             srAssertFail("pCompPoly", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x14e,
                          0);
@@ -1031,12 +1021,12 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
         }
         for (int index = 0; index < face_count; ++index) {
             for (int vertex = 0; vertex < 3; ++vertex) {
-                faces[index].vertices[vertex] = compressed_faces[index].vertices[vertex];
+                faces[index].vertices[vertex] = compressed_faces[index].vertex_indices_00[vertex];
                 faces[index].texture_coordinates[vertex] =
-                    compressed_faces[index].texture_coordinates[vertex];
+                    compressed_faces[index].texture_coordinates_06[vertex];
             }
-            faces[index].material_index = compressed_faces[index].material_index;
-            faces[index].flags = compressed_faces[index].flags;
+            faces[index].material_index = compressed_faces[index].material_index_1e;
+            faces[index].flags = compressed_faces[index].flags_20;
         }
         free(compressed_faces);
     }

@@ -81,12 +81,12 @@ static unsigned int g_monster_group_tick = 0;
    always inlined into its callers. */
 static inline W8MonsterInfo* GetGroupMemberInfo(W8MonsterGroup* group, unsigned int index);
 static void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action_detail,
-                        int attack_index, W8TargetKind target_kind, int target_value);
+                               int attack_index, W8TargetKind target_kind, int target_value);
 
 /* 125000, the cap on how far a monster will walk to investigate a heard
    noise. */
 // GLOBAL: WIZ8 0x00617AE8
-int g_int_00617ae8 = 125000;
+int g_noise_investigate_radius_cap = 125000;
 
 struct W8SpellEffectEntry;
 /* 0x0061EEFC: two dwords per special-attack kind; only the leading dword is
@@ -327,9 +327,9 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
                 best_range = record->attacks[attack].range_category;
             }
         }
-        if (MonsterApproachStartupNavigator(monster_info->p3D,
-                                            CalcRangeDistance(static_cast<W8RangeCategory>(best_range)) *
-                                                g_float_005ec390) == 0) {
+        if (MonsterApproachStartupNavigator(
+                monster_info->p3D, CalcRangeDistance(static_cast<W8RangeCategory>(best_range)) *
+                                       g_float_005ec390) == 0) {
             return;
         }
         monster_group = GetMonsterGroupByListIndex(
@@ -506,8 +506,8 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 
                 noise_position = monster_info->heard_noise_position_37;
                 radius = monster_info->heard_noise_radius_43 * 3 / 2;
-                if (radius >= g_int_00617ae8) {
-                    radius = g_int_00617ae8;
+                if (radius >= g_noise_investigate_radius_cap) {
+                    radius = g_noise_investigate_radius_cap;
                 }
                 range = static_cast<float>(radius);
                 position = monster->GetPosition();
@@ -637,7 +637,8 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
             }
         }
         if (MonsterApproachStartupNavigator(
-                monster, CalcRangeDistance(static_cast<W8RangeCategory>(best_range)) * g_float_005ec390) == 1) {
+                monster, CalcRangeDistance(static_cast<W8RangeCategory>(best_range)) *
+                             g_float_005ec390) == 1) {
             if (IsSightRangeOverridden()) {
                 monster_group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                     0x315, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
@@ -1187,7 +1188,8 @@ targets_chosen:
         }
         if (scan_chars != 0 &&
             monster_info->player_visibility.los_flags_05[RangeCategoryUsesSightCondition(
-                monster_info, static_cast<W8RangeCategory>(record->attacks[attack].range_category))] != 0) {
+                monster_info,
+                static_cast<W8RangeCategory>(record->attacks[attack].range_category))] != 0) {
             for (index = char_lo; index < char_hi; ++index) {
                 if (g_status.buffers.XChar[index].fOccupied != 0 &&
                     g_status.buffers.Char[index].hp_current != 0 &&
@@ -1239,7 +1241,7 @@ targets_chosen:
    break so two equal decisions do not always resolve the same way. */
 // FUNCTION: WIZ8 0x00532360
 static void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action_detail,
-                        int attack_index, W8TargetKind target_kind, int target_value)
+                               int attack_index, W8TargetKind target_kind, int target_value)
 {
     W8MonsterAction* entry = static_cast<W8MonsterAction*>(malloc(0x30));
 

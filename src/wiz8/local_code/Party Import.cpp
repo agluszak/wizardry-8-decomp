@@ -145,7 +145,8 @@ unsigned char LoadWizardry7ImportFile(char* path)
                 FileRead(file, skip_42, 0x42, &bytes_read) != 0 &&
                 FileSeek(file, 100, FILE_SEEK_FROM_CURRENT) != 0) {
                 for (index = 0; index < party_block[0x25]; ++index) {
-                    if (FileRead(file, &g_imported_characters[index], 0x248, &bytes_read) == 0) {
+                    if (FileRead(file, &g_imported_characters[index],
+                                 sizeof(g_imported_characters[index]), &bytes_read) == 0) {
                         goto fail;
                     }
                     if (index != 0 && g_imported_characters[index].party_tag_232 !=
@@ -810,7 +811,9 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
             break;
         case 0x14:
             base_value =
-                (static_cast<unsigned int>(imported->skills[0x1b] + imported->skills[0x18] * 4) * 0x14) / 100;
+                (static_cast<unsigned int>(imported->skills[0x1b] + imported->skills[0x18] * 4) *
+                 0x14) /
+                100;
             break;
         case 0x17:
         case 0x23:
@@ -856,7 +859,9 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
         if (0x17 < skill_id && skill_id < 0x1c) {
             if (character->iProfession == 0xc && (skill_id == 0x1a || skill_id == 0x1b) &&
                 base_value == 0) {
-                base_value = (static_cast<unsigned int>(imported->skills[0x20] + imported->skills[0x1e])) / 2;
+                base_value =
+                    (static_cast<unsigned int>(imported->skills[0x20] + imported->skills[0x1e])) /
+                    2;
             }
             unlocks = 0;
             for (i = 0x1c; i < 0x22; ++i) {

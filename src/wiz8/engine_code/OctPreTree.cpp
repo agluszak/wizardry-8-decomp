@@ -331,16 +331,16 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
     }
     /* Every write-failure path below returns without FileClose: retail leaks
        the handle on each of them (verified at 0x4686b4 et seq.). */
-    if (FileWrite(file, &header, 0xf5, 0) == 0) {
+    if (FileWrite(file, &header, sizeof(header), 0) == 0) {
         ReportBuildStatus(7, "WriteOctFile: Couldn't write tree info.\n");
         return 0;
     }
     FileWrite(file, &sentinel, 4, 0);
-    if (FileWrite(file, m_owned_09c, header.branch_count_6a * 0x24, 0) == 0) {
+    if (FileWrite(file, m_owned_09c, header.branch_count_6a * sizeof(W8OctPreTreeBranch), 0) == 0) {
         ReportBuildStatus(7, "WriteOctFile: Couldn't write Node info.\n");
         return 0;
     }
-    if (FileWrite(file, m_owned_0a0, header.leaf_count_6e * 0x28, 0) == 0) {
+    if (FileWrite(file, m_owned_0a0, header.leaf_count_6e * sizeof(W8OctPreTreeLeaf), 0) == 0) {
         ReportBuildStatus(7, "WriteOctFile: Couldn't write Leaves info.\n");
         return 0;
     }
@@ -376,13 +376,15 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
         return 0;
     }
     if (header.region_count_96 > 1 &&
-        FileWrite(file, spatial_000.owned_5c, header.region_count_96 * 0xe8, 0) == 0) {
+        FileWrite(file, spatial_000.owned_5c, header.region_count_96 * sizeof(W8OctRegionVolume),
+                  0) == 0) {
         ReportBuildStatus(7, "WriteOctFile: Couldn't write Region array.\n");
         return 0;
     }
     FileWrite(file, &sentinel, 4, 0);
     if (header.submesh_count_66 != 0) {
-        if (FileWrite(file, m_pSubmeshes, (header.submesh_count_66 + 1) * 0x10, 0) == 0) {
+        if (FileWrite(file, m_pSubmeshes, (header.submesh_count_66 + 1) * sizeof(W8OctSubmesh),
+                      0) == 0) {
             ReportBuildStatus(7, "WriteOctFile: Couldn't write submesh array.\n");
             return 0;
         }
@@ -484,15 +486,16 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
     }
     m_vertex_count_0c8 = geometry->vertex_count_00;
     VerifyPolygonRegions();
-    /* 0x9c = three 0x34-byte build records per original unit.  SplitMeshes
+    /* Three build records per original unit.  SplitMeshes
        appends at most one record per source on each of its three kind
        passes while an emptied source keeps its slot, so the true slot
        bound is count + 3*(count-1) - covered only while count <= 6. */
-    records = static_cast<W8OctSubmeshBuild*>(malloc((spatial_000.submesh_count_74 + 1) * 0x9c));
+    records = static_cast<W8OctSubmeshBuild*>(
+        malloc((spatial_000.submesh_count_74 + 1) * 3 * sizeof(W8OctSubmeshBuild)));
     if (records == 0) {
         ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate submeshes.\n");
     } else {
-        memset(records, 0, (spatial_000.submesh_count_74 + 1) * 0x9c);
+        memset(records, 0, (spatial_000.submesh_count_74 + 1) * 3 * sizeof(W8OctSubmeshBuild));
         AllocateSubMesh(records);
         SplitMeshes(geometry, records);
         m_aulPolyLookup = static_cast<unsigned long*>(malloc(geometry->polygon_count_08 * 4 + 4));
@@ -500,11 +503,11 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
             ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate m_aulPolyLookup.\n");
             FreeSubmeshBuildArrays(records, spatial_000.submesh_count_74);
         } else {
-            m_pSubmeshes =
-                static_cast<W8OctSubmesh*>(malloc((spatial_000.submesh_count_74 + 1) * 0x10));
+            m_pSubmeshes = static_cast<W8OctSubmesh*>(
+                malloc((spatial_000.submesh_count_74 + 1) * sizeof(W8OctSubmesh)));
             models = new OctMeshModel[spatial_000.submesh_count_74 + 1];
             if (m_pSubmeshes != 0 && models != 0) {
-                memset(m_pSubmeshes, 0, (spatial_000.submesh_count_74 + 1) * 0x10);
+                memset(m_pSubmeshes, 0, (spatial_000.submesh_count_74 + 1) * sizeof(W8OctSubmesh));
                 root_count = 0;
                 kind_counts[3] = 0;
                 kind_counts[2] = 0;
@@ -1549,8 +1552,8 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
 {
     int count = level->nProps;
     unsigned short prop_number = 0;
-    W8PreProp* records = static_cast<W8PreProp*>(malloc(count * 0x48));
-    memset(records, 0, count * 0x48);
+    W8PreProp* records = static_cast<W8PreProp*>(malloc(count * sizeof(W8PreProp)));
+    memset(records, 0, count * sizeof(W8PreProp));
     if (count < 1) {
         *preprops = records;
     } else {
@@ -1871,7 +1874,8 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
             float face = side == 0 ? minimum[face_axis] : maximum[face_axis];
 
             for (short edge = 0; edge < 3; ++edge) {
-                if (static_cast<float>(g_double_005ebc70) < static_cast<float>(fabs(edge_delta[edge][face_axis]))) {
+                if (static_cast<float>(g_double_005ebc70) <
+                    static_cast<float>(fabs(edge_delta[edge][face_axis]))) {
                     float amount =
                         (face - edge_start[edge][face_axis]) / edge_delta[edge][face_axis];
                     if (g_float_005ebb34 <= amount && amount <= g_float_005ebb38) {

@@ -104,12 +104,14 @@ unsigned char InitializeItemDatabase(void)
         FileClose(handle);
         return 0;
     }
-    g_item_records = static_cast<W8ItemDatabaseRecord*>(malloc(gXStatus.uiItemsInDatabase * 0x10d));
+    g_item_records = static_cast<W8ItemDatabaseRecord*>(
+        malloc(gXStatus.uiItemsInDatabase * sizeof(*g_item_records)));
     if (!g_item_records) {
         return 0;
     }
     for (index = 0; index < gXStatus.uiItemsInDatabase; ++index) {
-        if (!FileRead(handle, &g_item_records[index], 0x10d, &transferred)) {
+        if (!FileRead(handle, &g_item_records[index], sizeof(g_item_records[index]),
+                      &transferred)) {
             FileClose(handle);
             return 0;
         }
@@ -141,7 +143,8 @@ unsigned char InitializeItemTables(void)
         return 0;
     }
     if (gXStatus.uiItemTableCategories) {
-        g_item_table_category_names = static_cast<char**>(malloc(gXStatus.uiItemTableCategories * 4));
+        g_item_table_category_names =
+            static_cast<char**>(malloc(gXStatus.uiItemTableCategories * 4));
         if (!g_item_table_category_names) {
             return 0;
         }
@@ -156,18 +159,21 @@ unsigned char InitializeItemTables(void)
         return 0;
     }
     if (gXStatus.uiItemTablesInDatabase) {
-        g_item_tables = static_cast<W8ItemTableRecord**>(malloc(gXStatus.uiItemTablesInDatabase * 4));
+        g_item_tables = static_cast<W8ItemTableRecord**>(
+            malloc(gXStatus.uiItemTablesInDatabase * sizeof(*g_item_tables)));
         if (!g_item_tables) {
             return 0;
         }
-        memset(g_item_tables, 0, gXStatus.uiItemTablesInDatabase * 4);
+        memset(g_item_tables, 0, gXStatus.uiItemTablesInDatabase * sizeof(*g_item_tables));
         for (index = 0; index < gXStatus.uiItemTablesInDatabase; ++index) {
-            g_item_tables[index] = static_cast<W8ItemTableRecord*>(malloc(0x1f1));
-            memset(g_item_tables[index], 0, 0x1f1);
+            g_item_tables[index] =
+                static_cast<W8ItemTableRecord*>(malloc(sizeof(W8ItemTableRecord)));
+            memset(g_item_tables[index], 0, sizeof(*g_item_tables[index]));
             if (!g_item_tables[index]) {
                 return 0;
             }
-            if (!FileRead(handle, g_item_tables[index]->name, 0x1f1, &transferred)) {
+            if (!FileRead(handle, g_item_tables[index]->name, sizeof(*g_item_tables[index]),
+                          &transferred)) {
                 FileClose(handle);
                 return 0;
             }
@@ -196,10 +202,10 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     if (!handle) {
         return 0;
     }
-    if (!FileSeek(handle, uiMonsterIndex * 0x297 + 4, 1)) {
+    if (!FileSeek(handle, uiMonsterIndex * sizeof(*record) + 4, 1)) {
         return 0;
     }
-    if (!FileRead(handle, record, 0x297, &bytes_read)) {
+    if (!FileRead(handle, record, sizeof(*record), &bytes_read)) {
         FileClose(handle);
         return 0;
     }
@@ -322,10 +328,12 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
     if (!handle) {
         return 0;
     }
-    if (!FileSeek(handle, uiStartIndex * 0x297 + 4, 1)) {
+    if (!FileSeek(handle, uiStartIndex * sizeof(*records) + 4, 1)) {
         return 0; /* retail: failed seek leaves the handle open */
     }
-    if (!FileRead(handle, records, (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297, &bytes_read)) {
+    if (!FileRead(handle, records,
+                  (uiEndIndex + 1) * sizeof(*records) - uiStartIndex * sizeof(*records),
+                  &bytes_read)) {
         FileClose(handle);
         return 0;
     }

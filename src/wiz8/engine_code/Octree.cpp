@@ -995,7 +995,8 @@ bool W8Octree::LoadPointFiles(const char* level_name)
             FileClose(file);
             return 0;
         }
-        read_ok = FileRead(file, m_sample_points_174, m_point_count_170 * 0xc, 0);
+        read_ok =
+            FileRead(file, m_sample_points_174, m_point_count_170 * sizeof(srVector3T<float>), 0);
         FileClose(file);
     }
     if (read_ok != 0) {
@@ -1033,8 +1034,8 @@ BOOLEAN W8Octree::SavePoints(char* path)
     if (file != 0) {
         if (m_point_count_170 != 0 && m_sample_points_174 != 0) {
             unsigned char wrote_count = FileWrite(file, &m_point_count_170, 4, 0);
-            unsigned char wrote_points =
-                FileWrite(file, m_sample_points_174, m_point_count_170 * 0xc, 0);
+            unsigned char wrote_points = FileWrite(
+                file, m_sample_points_174, m_point_count_170 * sizeof(srVector3T<float>), 0);
             result = wrote_count | wrote_points;
             FileClose(file);
         }
@@ -1500,8 +1501,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     unsigned int camera_count = PLLength(world->plsCameras);
     if (!aborted && world->plsCameras != 0 && camera_count != 0) {
         for (int camera_index = 0; camera_index < static_cast<int>(camera_count); ++camera_index) {
-            W8CameraPath* entry =
-                GetWorldCameraPath(world, camera_index);
+            W8CameraPath* entry = GetWorldCameraPath(world, camera_index);
             if (entry != 0 && entry->path_18 != 0) {
                 for (int node_index = 0; node_index < entry->path_18->nodes_0c->GetCount();
                      ++node_index) {

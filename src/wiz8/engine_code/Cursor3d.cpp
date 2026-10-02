@@ -105,9 +105,9 @@ void InitializeWorldCursor(void)
     DisableCursorScene();
     SetMouseCursorHotspot(0, 0);
     if (gp3DCursor == 0) {
-        gp3DCursor = static_cast<W8WorldCursorState*>(malloc(0xe0));
+        gp3DCursor = static_cast<W8WorldCursorState*>(malloc(sizeof(*gp3DCursor)));
         if (gp3DCursor != 0) {
-            memset(gp3DCursor, 0, 0xe0);
+            memset(gp3DCursor, 0, sizeof(*gp3DCursor));
             gp3DCursor->monster_00 = 0;
             gp3DCursor->unknown_08 = 1;
             gp3DCursor->group_bind_pending_09 = 0;

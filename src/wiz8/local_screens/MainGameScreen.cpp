@@ -316,7 +316,7 @@ void RedrawPanel69B940(void);           /* 0x0059BC00 */
 
 void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled); /* 0x0059A540 */
 
-static void DrawMainGamePrompt(void);              /* 0x0056AC80 */
+static void DrawMainGamePrompt(void);       /* 0x0056AC80 */
 void InvalidateLockInteractionPanels(void); /* 0x00587C50 */
 unsigned char GetOpenDialogueFlag(void);    /* 0x0058D7C0 */
 void RedrawTextBoxComplete(void);           /* 0x0058A8C0 */
@@ -3450,7 +3450,7 @@ update_screen:
     }
     ProcessMainGameAutoSave();
     UpdateSharedGameDataObject();
-    g_byte_00659a64 = 0;
+    g_animated_prop_present = false;
     WorldUpdateProps(GetWorld());
     if (GetWorld659AB8()) {
         WorldUpdateProps(GetWorld659AB8());
