@@ -99,11 +99,6 @@ bool NpcRecordHasValue002(W8NpcState* npc)
     return npc->record->trade_pool_002 != 0;
 }
 
-/* The NPC's effective disposition: the state's byte plus its bound monster's
-   modifier, forced fully hostile while that monster is turned. A factioned
-   NPC instead reports its faction score unless the record keeps the answer
-   static or the faction holds nothing toward the party; a factioned NPC whose
-   allied faction a living front-rank party RPC shares answers fifty. */
 // FUNCTION: WIZ8 0x0050A280
 char GetNpcDisposition(W8NpcState* npc)
 {
@@ -154,10 +149,6 @@ char GetNpcDisposition(W8NpcState* npc)
 
 /* Which of the three disposition bands the NPC falls in. The bands are cut at
    0x21 and 0x42, and the hostile band answers two rather than zero. */
-/* The NPC's effective disposition: the stored byte adjusted by its monster's
-   effect, pinned to 'd' while the monster carries condition 0x0d, then replaced
-   by the faction score when the record names a faction - and finally pinned
-   friendly while a bound lead NPC belongs to the record's ally faction. */
 
 // FUNCTION: WIZ8 0x0050a500
 unsigned char GetNpcDispositionBand(W8NpcState* npc)
@@ -170,7 +161,6 @@ unsigned char GetNpcDispositionBand(W8NpcState* npc)
     return disposition < W8_NPC_DISPOSITION_FRIENDLY;
 }
 
-/* Test a placement near the party without retaining the position. */
 // FUNCTION: WIZ8 0x0050b2d0
 bool CanPlaceNpcNearParty(int party_slot)
 {
@@ -179,8 +169,6 @@ bool CanPlaceNpcNearParty(int party_slot)
     return ProbeNpcPlacementNearParty(party_slot, 0, &position);
 }
 
-/* Whether the NPC will talk about one topic. Topics are stored one more than
-   they name, so zero can mean an empty slot. */
 // FUNCTION: WIZ8 0x0050c190
 bool NpcHasTopic(W8NpcState* npc, int topic)
 {
@@ -194,8 +182,6 @@ bool NpcHasTopic(W8NpcState* npc, int topic)
     return false;
 }
 
-/* Tell the NPC one fact, in the first empty slot. A full list silently drops
-   it. */
 // FUNCTION: WIZ8 0x0050dd50
 void TellNpcFact(W8NpcState* npc, short fact)
 {
@@ -209,8 +195,6 @@ void TellNpcFact(W8NpcState* npc, short fact)
     }
 }
 
-/* Whether the NPC has already been told a fact. The scan stops at the first
-   empty slot, so the list is packed from the front. */
 // FUNCTION: WIZ8 0x0050dd10
 bool NpcKnowsFact(W8NpcState* npc, unsigned int fact)
 {
@@ -318,7 +302,6 @@ bool NpcLeadHasNameStyle(unsigned int kind)
     return 0;
 }
 
-/* The monster standing in the world for this NPC, if one is. */
 // FUNCTION: WIZ8 0x0050a3c0
 W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc)
 {
@@ -329,8 +312,6 @@ W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc)
         MonsterGetIndexByLocationID(673, NPC_MANAGER_CPP, npc->location_id, 1));
 }
 
-/* The monster manager entry this NPC's group occupies, if its database entry
-   says it has a group and it is in one. */
 // FUNCTION: WIZ8 0x0050b870
 W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc)
 {
@@ -343,7 +324,6 @@ W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc)
     return &gXStatus.monster_manager_entries[npc->group_index];
 }
 
-/* The party character occupying this NPC's group slot. */
 // FUNCTION: WIZ8 0x0050b8b0
 W8Character* GetNpcGroupCharacter(W8NpcState* npc)
 {
@@ -871,8 +851,6 @@ bool NpcOffersService(W8NpcState* npc, unsigned int service_id)
     return false;
 }
 
-/* Add a topic to the front of the NPC's five, pushing the oldest off the end
-   when they are full. An empty slot is filled in place instead. */
 // FUNCTION: WIZ8 0x0050c140
 void AddNpcTopic(W8NpcState* npc, int topic)
 {
@@ -890,9 +868,6 @@ void AddNpcTopic(W8NpcState* npc, int topic)
     npc->topics[0] = topic + 1;
 }
 
-/* What to call the NPC. One naming style takes a substituted name once the
-   party has learned it, copied into a shared buffer so the caller always gets
-   a writable string; everything else is named by its record. */
 // FUNCTION: WIZ8 0x0050c770
 const char* GetNpcDisplayName(W8NpcState* npc)
 {
@@ -903,8 +878,6 @@ const char* GetNpcDisplayName(W8NpcState* npc)
     return npc->record->display_name;
 }
 
-/* The live NPC state whose display (or fact-substituted) name matches
-   case-insensitively; released bindings and non-matches are skipped. */
 // FUNCTION: WIZ8 0x0050ADA0
 W8NpcState* FindNpcStateByName(const char* name)
 {
@@ -929,10 +902,6 @@ W8NpcState* FindNpcStateByName(const char* name)
     return 0;
 }
 
-/* Age every bound NPC's timeout state once per game-time pass. The caller
-   feeds elapsed minutes times ten: a dismissed NPC's flag clears once its
-   accumulator passes 0x3c of those units, and each dialogue cooldown flag
-   drops once its world-clock stamp is more than 0xa8c0 old. */
 // FUNCTION: WIZ8 0x0050C7D0
 void AdvanceNpcTimers(unsigned int elapsed)
 {
@@ -1095,9 +1064,6 @@ void ProcessNpcPendingEvents(void)
     }
 }
 
-/* Choose the new-game start level and entrance, then bind the intro NPCs that
-   belong to that campaign path. Import 0x4c is Gigas, 0x4b is the bluff, and
-   0x4e or neither is the monastery. */
 // FUNCTION: WIZ8 0x005092f0
 void ChooseNewGameStartLocation(int* level, int* entrance)
 {
@@ -1140,11 +1106,6 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
     RestoreNamedNpcAtLevel(0x18, 8, "NP_ViMon");
 }
 
-/* Runs when the pending greeting_pending_2497 transition times out: new-game parties get
-   the opening scripted effect, imported parties instead pull focus to the NPC
-   their ending selected — ending 0x4c the kind-0x0c greeter, ending 0x4b the
-   kind-0x8c greeter with the camera swung onto its head — and anything else
-   falls back to the kind-0x18 greeter. */
 // FUNCTION: WIZ8 0x00509560
 void SelectStartNpcGreeting(void)
 {
@@ -1189,8 +1150,6 @@ void SelectStartNpcGreeting(void)
     }
 }
 
-/* New-game start level from the campaign facts InitializeFactState planted.
-   Import path 0x4c is level 14, 0x4b is level 6, and 0x4e or neither is 8. */
 // FUNCTION: WIZ8 0x00509750
 int SelectNewGameStartLevel(void)
 {
@@ -1213,7 +1172,6 @@ int SelectNewGameStartLevel(void)
     return 8;
 }
 
-/* Create the shared NPC-state vector the first time anything needs it. */
 // FUNCTION: WIZ8 0x00509890
 void InitializeNpcStates(void)
 {
@@ -1222,10 +1180,6 @@ void InitializeNpcStates(void)
     }
 }
 
-/* Empty the shared vector: release every state's monster binding and character,
-   hand its stock to the item-list teardown, and delete the state itself. Then
-   rebuild a runtime node for every database record that is not flagged at
-   0x054, which is the state a fresh game starts from. */
 // FUNCTION: WIZ8 0x00509920
 void ResetNpcStates(void)
 {
@@ -1253,8 +1207,6 @@ void ResetNpcStates(void)
     }
 }
 
-/* ShutdownGameData teardown: release every NPC state the same way
-   ResetNpcStates does, then destroy the state vector itself. */
 // FUNCTION: WIZ8 0x005099D0
 void ReleaseNpcStates(void)
 {
@@ -1403,9 +1355,6 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
     return npc;
 }
 
-/* Bind an NPC runtime state to a monster location, creating the state when the
-   database entry allows it. The dialogue path instead finds the existing state
-   by its database kind and only refreshes its presence fields. */
 // FUNCTION: WIZ8 0x00509cd0
 void BindNpcToMonster(unsigned char npc_id, unsigned char has_monster, int location_id)
 {
@@ -1474,9 +1423,6 @@ void BindNpcToMonster(unsigned char npc_id, unsigned char has_monster, int locat
     ReloadNpcScriptResources(npc);
 }
 
-/* Expand the record's character block into a fresh group-member character:
-   the name, profession and starting level, attributes, skills, known spells
-   and worn/carried items, then the derived passes a level advance settles. */
 // FUNCTION: WIZ8 0x0050aed0
 unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
 {
@@ -1549,10 +1495,6 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
     return 1;
 }
 
-/* Copy the record's one-based item table into the state's runtime arrays: the
-   forty entry item ids and weights, and the table's item-count dice. A record
-   whose table id is zero or past the table database keeps the -1 ids and
-   leaves the dice untouched. */
 // FUNCTION: WIZ8 0x0050b9e0
 void InitializeNpcItemTable(W8NpcState* npc)
 {
@@ -1750,9 +1692,6 @@ unsigned char LoadNpcItemLists(unsigned int file)
     return 1;
 }
 
-/* Hand back the NPC binding selected by a monster-list index, or null when
-   the monster's record is missing, is not NPC-routed, binds no NPC, or the
-   binding has been released. */
 // FUNCTION: WIZ8 0x0050A440
 W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index)
 {
@@ -1788,13 +1727,6 @@ W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info, unsigned char
     return 0;
 }
 
-/* One dialogue interaction against an NPC. The action kind selects the path:
-   talking and the level-scaled charm shift disposition through the record's
-   signed scale bytes, paying gold and selling an item draw the record's trade
-   pool down by the party's Communication-adjusted price, and the scripted
-   kind adds its operand straight to disposition. Kinds 0 and 1 reuse an
-   argument's stack slot as the best-skill out-parameter; kind 2 and 3 fall
-   into the shared disposition refresh at the tail. */
 // FUNCTION: WIZ8 0x0050A570
 void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* item,
                          unsigned int gold)
@@ -1967,12 +1899,6 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
     GetNpcDisposition(npc);
 }
 
-/* The 0..127 theft score the pickpocket resolutions compare against a d100
-   roll: the character's stealth skill (rogues add a dexterity share), a
-   quarter of the NPC's disposition swing, a random penalty scaled by the
-   NPC's suspicion byte, the level gap to the NPC's monster, and - when an
-   item is offered - its weight and price penalties, all scaled by the
-   character's difficulty. */
 // FUNCTION: WIZ8 0x0050BAF0
 char ScoreNpcTheft(W8Character* character, W8NpcState* npc, int item_id, int count)
 {
@@ -2131,8 +2057,6 @@ char AttemptNpcItemTheft(W8Character* character, W8NpcState* npc, int item_id, i
 // GLOBAL: WIZ8 0x005EC29C
 const float g_float_005ec29c = 0.7853981256484985f;
 
-/* Probe the navigator from the party eye at three height bands, reporting
-   whether any band reaches. */
 // FUNCTION: WIZ8 0x0050B2F0
 bool ProbeNpcPlacementNearParty(int /*party_slot*/, int /*mode*/, srVector3T<float>* position_out)
 {
@@ -2182,13 +2106,6 @@ void TriggerBelaVoice(W8Monster* monster)
     srAssertFail("pNPC", NPC_MANAGER_CPP, 0xbec, "Cannot find VOC_BELA_CC");
 }
 
-/* The NPC side of the global frame. Two timed world events first: one retires
-   NPC monster 0x1b3 through its dying state, the next starts the 0x1b6 cycle
-   with a callback. Then a one-shot pass over the NPC states releases the
-   monster binding of the partner each candidate names. Afterwards the group
-   event counter can consume a fact and run the NPC 0x8d teardown, the party's
-   portrait rows can trigger their NPC's spoken event, and two long reward
-   timers set their facts. */
 // FUNCTION: WIZ8 0x0050D530
 void UpdateNpcEvents(void)
 {
@@ -2369,9 +2286,6 @@ void ResetNpcBindingsForParty(void)
     }
 }
 
-/* Subtract 0x14 from every attribute adjustment and the 0x13 byte run of the
-   character's modifier block while the slot's bound-NPC flag is set. The
-   condition/enchantment rebuild at 0x0050E650 runs it as the last source. */
 // FUNCTION: WIZ8 0x0050dbf0
 void ApplyBoundNpcPenalty(W8Character* character, W8GameplayModifierBlock* target)
 {
@@ -2388,9 +2302,6 @@ void ApplyBoundNpcPenalty(W8Character* character, W8GameplayModifierBlock* targe
     }
 }
 
-/* Restore the named entity's NPC on its level, or stamp the pending restore
-   for the level-entry pass. The runtime node is created when no state for the
-   record kind exists. */
 // FUNCTION: WIZ8 0x0050C1C0
 void RestoreNamedNpcAtLevel(int kind, char level, const char* entity_name)
 {
@@ -2421,9 +2332,6 @@ void RestoreNamedNpcAtLevel(int kind, char level, const char* entity_name)
     npc->pending_restore_level = level;
 }
 
-/* Drop the pending-restore flag from every NPC bound to the loaded level whose
-   restore check passes. The state vector is re-read after the check because it
-   can remove an entry. */
 // FUNCTION: WIZ8 0x0050c270
 void ClearPendingNpcLevelFlags(void)
 {
@@ -2450,10 +2358,6 @@ void ClearPendingNpcLevelFlags(void)
     }
 }
 
-/* Release the monster binding of every NPC whose stamped release flag matches
-   the loaded level. The companion NPC is found by the record kind matching the
-   NPC's naming style; its live monster is destroyed and its own binding is
-   handed back. */
 // FUNCTION: WIZ8 0x0050c2e0
 void ReleaseNpcMonsterBindings(void)
 {
@@ -2527,9 +2431,6 @@ void ReleaseNpcMonsterBindings(void)
     } while (npc_index < count);
 }
 
-/* Release the monster binding held under this NPC's naming style, now or when
-   the stamped level is loaded: the same companion lookup the level-entry
-   release pass runs - the NPC whose record kind is this state's name_style. */
 // FUNCTION: WIZ8 0x0050C440
 void ReleaseNpcMonsterBinding(W8NpcState* npc, char level)
 {
@@ -2579,9 +2480,6 @@ void ReleaseNpcMonsterBinding(W8NpcState* npc, char level)
     }
 }
 
-/* Release the monster binding of the first NPC whose record kind matches:
-   its live monster is destroyed and the partner node its index names gets its
-   binding handed back. */
 // FUNCTION: WIZ8 0x0050C680
 void ReleaseNpcMonsterByKind(int kind)
 {
@@ -2618,10 +2516,6 @@ void ReleaseNpcMonsterByKind(int kind)
     }
 }
 
-/* Place or move this NPC's monster at the named world entity. Without a live
-   monster it loads MONSTERS.DBS, finds the NPC-linked species whose name-style
-   byte matches, and asks CreateGroup to create it; with a live monster it
-   repositions the Navigator subobject. */
 // FUNCTION: WIZ8 0x0050c560
 unsigned char RestoreNpcMonster(W8NpcState* npc, const char* entity_name)
 {
@@ -2671,11 +2565,6 @@ unsigned char RestoreNpcMonster(W8NpcState* npc, const char* entity_name)
     }
 }
 
-/* Run one marked NPC's scripted event step. The special naming styles run
-   first - Vi Domina's fact, Sgt Rubble's two-stage teleport on level 13 and
-   Glumph's mission item - then mode 0 arms the one-shot event pass while any
-   other mode releases the companion monster binding, and the NPC's own
-   restore is scheduled last. */
 // FUNCTION: WIZ8 0x0050CF70
 void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
 {
@@ -2801,10 +2690,6 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
     npc->marked_114 = 0;
 }
 
-/* Hand back the monster binding of every marked NPC, then find the companion
-   whose record kind matches the NPC's naming style and release its live
-   monster and its own binding. The state vector is re-read after every
-   callback. */
 // FUNCTION: WIZ8 0x0050da00
 void ReleaseMarkedNpcBindings(void)
 {
@@ -2903,9 +2788,6 @@ bool NotifyNpcTriggerActivation(Trigger* trigger)
     return false;
 }
 
-/* Rebuild the level's NPC bindings: first drop the followers whose record or
-   presence rules changed, then re-install each NPC trigger's activation
-   callback and re-stamp the NPC from the loaded level. */
 // FUNCTION: WIZ8 0x0050ac60
 void RebindNpcLevelTriggers(void)
 {
@@ -2962,9 +2844,6 @@ void RebindNpcLevelTriggers(void)
     }
 }
 
-/* Clear the first item_ids_30 slot matching `item_id`, optionally building the
-   item into `out` first - the scheduled-stock handoff the pickpocket and trade
-   resolutions run. */
 // FUNCTION: WIZ8 0x0050BA80
 unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id, W8ItemInstance* out)
 {
@@ -2983,11 +2862,6 @@ unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id, W8ItemInstance
     return 0;
 }
 
-/* Scan the two bound lead NPCs for ones that refuse the destination level: an
-   NPC that serves the destination region but not the current one queues its
-   departure event, and on level 13 a Rodan or Drazic travelling without its
-   healthy partner does the same. Any queued event raises the travel-confirm
-   message and resets the level data vectors. */
 // FUNCTION: WIZ8 0x0050DEC0
 char QueueNpcDepartureEvents(int destination_level)
 {
@@ -3105,9 +2979,6 @@ char QueueNpcDepartureEvents(int destination_level)
     return queued;
 }
 
-/* Refuse the destination level on behalf of each bound lead NPC: an NPC that
-   serves the destination region speaks the group-action line, and a Rodan or
-   Drazic whose healthy partner is not also in the party does the same. */
 // FUNCTION: WIZ8 0x0050E230
 void QueueNpcTravelRefusals(int destination_level)
 {
