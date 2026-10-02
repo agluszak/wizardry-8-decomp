@@ -49,8 +49,6 @@ const float g_float_005eecd0 = 0.0004f;
 
 void DrawPartyMovementGauge(short right, short image, char panel_live, int caption);
 
-/* Builds the party-movement panel, its text buffer and the two buttons, then
-   enables region set 0x1c and fills both movement budgets. */
 // FUNCTION: WIZ8 0x005A1640
 unsigned char CreatePartyMovementPanel(void)
 {
@@ -287,7 +285,6 @@ void InvalidatePartyMovementPanel(void)
     g_party_movement_panel->Invalidate(0);
 }
 
-/* Free-turn (id 0) and cancel-party-movement (id 1) button regions. */
 // FUNCTION: WIZ8 0x005A1DE0
 unsigned char FreeTurnButtonRegionEvent(const InputAtom* event, W8Region* region)
 {

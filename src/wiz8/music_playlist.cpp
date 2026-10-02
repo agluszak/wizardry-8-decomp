@@ -76,7 +76,6 @@ bool IsCurrentMusicPlaylist(const char* playlist)
     return _stricmp(playlist, g_music_playlist->getName()) == 0;
 }
 
-/* Builds the named playlist object before the screen loop begins. */
 // FUNCTION: WIZ8 0x0048f940
 unsigned char InitializeMusicPlaylist(void)
 {

@@ -53,7 +53,6 @@ bool W8NpcDialogueTextController::HandleScrollDownCommand(unsigned int command)
     return false;
 }
 
-/* The parallel path using the second command predicate. */
 // FUNCTION: WIZ8 0x0055EBE0
 bool W8NpcDialogueTextController::HandleScrollUpCommand(unsigned int command)
 {
@@ -94,8 +93,6 @@ void RequestScreenTransition(void)
     g_screen_return_requested = 1;
 }
 
-/* Whether a transition is pending either explicitly or through the frame's
-   transition flag. */
 // FUNCTION: WIZ8 0x0055EC70
 unsigned char IsScreenTransitionPending(void)
 {

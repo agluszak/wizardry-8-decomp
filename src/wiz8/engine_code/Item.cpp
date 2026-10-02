@@ -125,8 +125,6 @@ srNode* W8Item::GetMesh()
     return static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
 }
 
-/* Raise or clear the selected representation flags and return the resulting
-   flag word. */
 // FUNCTION: WIZ8 0x0049F310
 unsigned int W8ItemRep::SetFlags(unsigned int mask, bool enabled)
 {
@@ -138,14 +136,12 @@ unsigned int W8ItemRep::SetFlags(unsigned int mask, bool enabled)
     return flags;
 }
 
-/* Forward a new item location to the representation owned at +0x14. */
 // FUNCTION: WIZ8 0x0049F720
 void W8Item::SetLocation(const srVector3T<float>* location)
 {
     m_pRep->SetLocation(location);
 }
 
-/* Whether the item's radar-blip timer is still ticking. */
 // FUNCTION: WIZ8 0x004A0050
 bool W8Item::IsRadarBlipLit()
 {

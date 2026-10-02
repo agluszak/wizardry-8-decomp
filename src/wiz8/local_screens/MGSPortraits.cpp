@@ -1283,7 +1283,6 @@ void DisablePortraitControls(void)
     } while (control < g_portrait_controls + 8);
 }
 
-/* Hide the condition-button region set and clear any open condition highlight. */
 // FUNCTION: WIZ8 0x0059C030
 void DisableConditionButtons(void)
 {
@@ -1297,7 +1296,6 @@ void DisableConditionButtons(void)
     }
 }
 
-/* Show the condition-button region set for a non-normal layout. */
 // FUNCTION: WIZ8 0x0059BFC0
 void EnableConditionButtons(void)
 {
@@ -1349,9 +1347,6 @@ void RedrawPanel69B940(void)
     g_panel_69b940->Invalidate(0);
 }
 
-/* Keep each slot's level-advance control active exactly while its character
-   may advance, no NPC dialogue is up and the slot row still allows it;
-   activating one invalidates the panel, and the panel redraws afterward. */
 // FUNCTION: WIZ8 0x0059BC10
 void UpdatePortraitAdvanceButtons(void)
 {
@@ -1373,7 +1368,6 @@ void UpdatePortraitAdvanceButtons(void)
     g_panel_69b940->Redraw();
 }
 
-/* Open the character screen for giLevelUpChar when that portrait button fires. */
 // FUNCTION: WIZ8 0x0059BCA0
 void OnLevelButtonActivate(void)
 {
@@ -1391,9 +1385,6 @@ void OnLevelButtonActivate(void)
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
 
-/* The eight level-up portrait buttons sit in two columns on gpLevelButtonsPanel,
-   one row per party pair. CreateConditionButtons mirrors this layout with a
-   different region base and icon set. */
 // FUNCTION: WIZ8 0x0059B940
 void CreateLevelButtons(void)
 {
@@ -1449,10 +1440,6 @@ void CreateLevelButtons(void)
 // FUNCTION: WIZ8 0x005991C0
 W8ConditionButton::~W8ConditionButton() {}
 
-/* The base text control draws the frame; the derived pass overlays the slot's
-   condition icon when the widget is active and either the redraw is full or
-   the widget was already dirty. The icon is m_image_object_bc plus the
-   per-condition offset the selector byte chooses. */
 // FUNCTION: WIZ8 0x00599210
 void W8ConditionButton::Redraw(unsigned char full_redraw)
 {
@@ -1480,8 +1467,6 @@ void W8ConditionButton::Redraw(unsigned char full_redraw)
     }
 }
 
-/* Leaving the button drops the hovered-slot tracking; if a hover was showing,
-   its highlight overlay comes down with it. */
 // FUNCTION: WIZ8 0x005992E0
 void W8ConditionButton::OnMouseLeave(int event)
 {
@@ -1512,9 +1497,6 @@ void W8ConditionButton::OnLeftButtonUp(int event)
     RequestRedraw(0xff);
 }
 
-/* The eight buttons sit in two columns inside their own panel, one row per
-   party pair. Each tracks one party slot through the region set and the
-   recorded ui_slot. */
 // FUNCTION: WIZ8 0x0059BDB0
 void CreateConditionButtons(void)
 {
@@ -1557,8 +1539,6 @@ void CreateConditionButtons(void)
     DisableConditionButtons();
 }
 
-/* Forward left-button and hover events to the portrait level-up control for
-   the region's callback_id slot; release records giLevelUpChar. */
 // FUNCTION: WIZ8 0x0059BD20
 unsigned char PortraitControlRegionEvent(const InputAtom* event, W8Region* region)
 {
@@ -1593,10 +1573,6 @@ unsigned char PortraitControlRegionEvent(const InputAtom* event, W8Region* regio
     return 0;
 }
 
-/* Per-frame condition-button refresh: while a slot is empty, mid-refresh or
-   suppressed its button stays hidden (and a tracked highlight is dropped);
-   otherwise the icon tracks the slot's highest condition or top enchantment
-   and the button stays live, then the panel redraws. */
 // FUNCTION: WIZ8 0x0059C080
 void UpdateConditionButtons(void)
 {
@@ -1659,8 +1635,6 @@ void UpdateConditionButtons(void)
     g_condition_buttons_panel->Redraw();
 }
 
-/* Forward left-button and hover events to the condition button for the
-   region's callback_id slot. */
 // FUNCTION: WIZ8 0x0059C260
 unsigned char ConditionButtonRegionEvent(const InputAtom* event, W8Region* region)
 {
