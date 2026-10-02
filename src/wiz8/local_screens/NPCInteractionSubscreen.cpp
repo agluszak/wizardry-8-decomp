@@ -219,8 +219,8 @@ void W8NpcTypedDialoguePanel::Redraw()
                          g_screen_state_00649f1c->where_is_query ? 0x19b : 0x18b, 2, 0);
         if (m_fWholeAreaDirty) {
             if (m_renderTarget != -1) {
-                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20, m_bounds.left,
-                                           m_bounds.top, 2);
+                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20,
+                                           m_bounds.left, m_bounds.top, 2);
             }
         } else {
             InvalidateRegion(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right,
@@ -284,8 +284,8 @@ void W8NpcDialogueOptionsPanel::Redraw()
         }
         if (m_fWholeAreaDirty) {
             if (m_renderTarget != -1) {
-                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20, m_bounds.left,
-                                           m_bounds.top, 2);
+                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20,
+                                           m_bounds.left, m_bounds.top, 2);
             }
         } else {
             InvalidateRegion(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right,
@@ -4776,14 +4776,6 @@ void SetNpcDialogueHidden(char value)
     }
     RequestRedraw(0x200);
     g_screen_state_00649f1c->dialogue_hidden = value;
-}
-
-// FUNCTION: WIZ8 0x00576b80
-void CloseNpcDialogueIfActive(void)
-{
-    if (gXStatus.fNpcDialogueMode != 0) {
-        EndNpcDialogueSession(0);
-    }
 }
 
 /* Destroy callback OpenNpcDialog installs on the modal: pops or re-schemes the
