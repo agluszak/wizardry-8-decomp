@@ -67,7 +67,15 @@ similar emitted bodies do not merge their symbol/call identities.
   code. The forbidden inlining controls above have no source-model exception. Existing suspicious
   sites are recovery debt, not precedent.
 - Never promote compiler output into an authored source construct. A concrete template emission proves
-  only that the primary template was instantiated for those arguments; it never proves an explicit
+  that a primary-template body was emitted, but it proves exact template arguments only to the extent
+  that the generated body distinguishes them. Body-equivalent constructors, destructors, clears,
+  lookups and trivial storage operations are not source-type evidence merely because the current recomp
+  PDB/source index gives them a specialization name. Recover exact arguments from independent
+  type-sensitive evidence: typed producer/consumer operations, element lifetimes, `sizeof(T)`-dependent
+  behavior, overload selection, dereference semantics, or accepted original symbols/oracles.
+  Never add casts or weaken a natural typed model solely to agree with an ABI-equivalent template-emission
+  label. A `TEMPLATE` marker records the retained emission family/address; its prose should remain
+  noncommittal when the arguments are not independently established. It never proves an explicit
   specialization or explicit instantiation. Likewise an inlined copy does not prove manual inlining,
   a deleting destructor does not prove a handwritten wrapper, and folded functions do not prove aliases.
   Retail ICF is linked-image evidence, not source identity: recovered source must not use reccmp
