@@ -1392,7 +1392,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
             gXStatus.fCombatMode == 0) {
             return;
         }
-        if (GetFlag68F105() != 0) {
+        if (IsMipeActive() != 0) {
             return;
         }
         if (monster_group->fInCombat != 0) {
