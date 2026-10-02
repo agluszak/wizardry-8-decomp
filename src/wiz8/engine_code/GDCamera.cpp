@@ -95,12 +95,6 @@ srCamera* g_game_camera;
 // GLOBAL: WIZ8 0x0065a0f8
 GDCamera* g_gd_camera;
 
-// FUNCTION: WIZ8 0x00420e10
-bool IsCameraTransitionActive(void)
-{
-    return g_gd_camera->m_transition_active;
-}
-
 /* Two thin GDCamera wrappers over GetForwardPoint, placed here because their
    GameData.cpp ownership was never evidence-backed; they keep their address
    names until body-level evidence names the operations. */

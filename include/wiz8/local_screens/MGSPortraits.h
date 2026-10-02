@@ -56,8 +56,9 @@ void ReleaseConditionButtons(void);
 void CreateLevelButtons(void); /* 0x0059B940 */
 /* Refresh cached HP/stamina/spell portrait bar widths; dirty + redraw when
    any slot's displayed fraction (or numeric HP) changes. */
-void SyncPartyPortraitVitalsBars(void);                          /* 0x0059A3A0 */
-void RecordCharacterDamage(int party_slot, unsigned int amount); /* 0x0059AC40 */
+short GetCombatPortraitImage(int action, int detail, char status, short slot); /* 0x0059A180 */
+void SyncPartyPortraitVitalsBars(void);                                        /* 0x0059A3A0 */
+void RecordCharacterDamage(int party_slot, unsigned int amount);               /* 0x0059AC40 */
 /* Advance per-slot portrait FX counters on a 100ms clock and dirty redraw. */
 void TickPartyPortraitFx(void); /* 0x0059B1A0 */
 /* Clear each occupied slot's damage-splat/effect-icon portrait overlays and

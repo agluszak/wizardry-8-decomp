@@ -78,20 +78,6 @@ int g_monster_info_iterator_index;
 #define MAX_MONSTERS_IN_DATABASE 1000
 
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
-// FUNCTION: WIZ8 0x0052A780
-int CalculateMonsterFatigueBand(int current, int maximum)
-{
-    int percentage_lost = 100 - current * 100 / static_cast<unsigned int>(maximum);
-    if (percentage_lost < 50)
-        return 0;
-    if (percentage_lost < 70)
-        return 1;
-    if (percentage_lost < 85)
-        return 2;
-    if (percentage_lost < 95)
-        return 3;
-    return 4;
-}
 
 /* The two cycles that always start regardless of the pending one: 0x14 is the
    cycle a motionless monster is still allowed to enter, and 0x15 is death. */
@@ -529,7 +515,8 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
                 "(uiMonsterListIndex-10000) < (UINT32) PLLength(gXStatus.plsUnbornMonsterList)",
                 MONSTER_MANAGER_CPP, 0x5d1, 0);
         }
-        result = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, monster_list_index - 10000));
+        result = static_cast<W8MonsterInfo*>(
+            PLGet(gXStatus.plsUnbornMonsterList, monster_list_index - 10000));
         if (result != 0) {
             return result;
         }
@@ -938,7 +925,8 @@ W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double 
     unsigned int index;
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
-        W8MonsterInfo* monster_info = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
+        W8MonsterInfo* monster_info =
+            static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
         double distance = DistanceBetweenPositions(position, monster_info->p3D->GetPosition());
 
         if (distance < nearest_distance &&
@@ -949,7 +937,8 @@ W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double 
     }
 
     for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
-        W8MonsterInfo* monster_info = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, index));
+        W8MonsterInfo* monster_info =
+            static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, index));
         double distance = DistanceBetweenPositions(position, monster_info->p3D->GetPosition());
 
         if (distance < nearest_distance &&

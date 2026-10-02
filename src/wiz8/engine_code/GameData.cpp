@@ -3042,6 +3042,12 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
     vertical_motion_f0 = 0;
 }
 
+// FUNCTION: WIZ8 0x00420e10
+bool IsCameraTransitionActive(void)
+{
+    return g_gd_camera->m_transition_active;
+}
+
 // FUNCTION: WIZ8 0x00420E20
 void UpdateLevelMovementAudio(void)
 {

@@ -1458,8 +1458,8 @@ W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, in
                                                    const unsigned short* line_string_ids,
                                                    unsigned int* region_set)
     : W8Widget(panel, 0xffffffff, left, top, right - 0x13, bottom),
-      m_range_038(panel->m_bounds.left - 0x12 + right, panel->m_bounds.top + top, right + panel->m_bounds.left,
-                  panel->m_bounds.top + bottom, region_set)
+      m_range_038(panel->m_bounds.left - 0x12 + right, panel->m_bounds.top + top,
+                  right + panel->m_bounds.left, panel->m_bounds.top + bottom, region_set)
 {
     m_line_count_0a4 = line_count;
     m_visible_lines_0a8 = (bottom - top) / 0xe;
@@ -1819,7 +1819,8 @@ void W8MainGameTextPanel::Redraw()
         if (frame >= 7) {
             frame = 12 - frame;
         }
-        DrawCatalogImageAndInvalidate(-14, 0x1b4, 0, frame, m_bounds.left + 1, m_bounds.top + 2, 2, 0);
+        DrawCatalogImageAndInvalidate(-14, 0x1b4, 0, frame, m_bounds.left + 1, m_bounds.top + 2, 2,
+                                      0);
         m_target_marker_pending_141 = 0;
     }
 }
@@ -5216,122 +5217,6 @@ bool IsPartyPortraitUnderCursor(unsigned int party_slot)
         left = 0;
     }
     return IsCursorInRectangle(left, row.top, right, row.bottom) != 0;
-}
-
-/* The combat-strip portrait catalog index for one slot's chosen action and
-   status. Most actions map to a fixed base; attacks pick per weapon skill and
-   spells per realm, and the status selects the frame variant beside it. */
-// FUNCTION: WIZ8 0x0059A180
-short GetCombatPortraitImage(int action, int detail, char status, short slot)
-{
-    int image;
-
-    switch (action) {
-    case W8_ACTION_ATTACK:
-        switch (g_status.buffers.Char[slot].Hand[0].weapon_skill) {
-        case W8_SKILL_MACE_FLAIL:
-            image = 0x2a;
-            break;
-        case W8_SKILL_AXE:
-            image = 0x38;
-            break;
-        case W8_SKILL_POLEARM:
-            image = 0x62;
-            break;
-        case W8_SKILL_STAFF_WAND:
-            image = 0x54;
-            break;
-        case W8_SKILL_BOW:
-            image = 0xe;
-            break;
-        case W8_SKILL_THROWING_SLING:
-            image = 0x1c;
-            break;
-        case W8_SKILL_MODERN_WEAPONS:
-            image = 0x70;
-            break;
-        case W8_SKILL_PICKPOCKET:
-            image = 0x46;
-            break;
-        default:
-            image = 0;
-            break;
-        }
-        break;
-    case W8_ACTION_BERSERK:
-        image = 0x7e;
-        break;
-    case W8_ACTION_BREATHE:
-        image = 0x8c;
-        break;
-    case W8_ACTION_TURN_UNDEAD:
-        image = 0x9a;
-        break;
-    case W8_ACTION_PRAY:
-        image = 0xa8;
-        break;
-    case W8_ACTION_DEFEND:
-        image = 0xb6;
-        break;
-    case W8_ACTION_PROTECT:
-        image = 0xc4;
-        break;
-    case W8_ACTION_USE_ITEM:
-        image = 0x142;
-        break;
-    case W8_ACTION_EQUIP:
-        image = 0x134;
-        break;
-    case W8_ACTION_CAST_SPELL:
-        switch (g_spell_records[detail].realm) {
-        case W8_SPELL_REALM_FIRE:
-            image = 0x126;
-            break;
-        case W8_SPELL_REALM_WATER:
-            image = 0xe0;
-            break;
-        case W8_SPELL_REALM_AIR:
-            image = 0x118;
-            break;
-        case W8_SPELL_REALM_EARTH:
-            image = 0xee;
-            break;
-        case W8_SPELL_REALM_MENTAL:
-            image = 0xfc;
-            break;
-        case W8_SPELL_REALM_DIVINE:
-            image = 0x10a;
-            break;
-        default:
-            image = 0xd2;
-        }
-        break;
-    case W8_ACTION_WALK:
-        image = 0x15e;
-        break;
-    case W8_ACTION_RUN:
-        image = 0x16c;
-        break;
-    default:
-        if (status == 2) {
-            return 0x17d;
-        }
-        return CanAnyHandReachTarget(slot) ? 0x17a : 0x17c;
-    }
-    switch (status) {
-    case 0:
-        break;
-    case 1:
-        return image + 2;
-    case 2:
-        return image + 3;
-    case 3:
-        return image + 4;
-    default:
-        image = 0x17a;
-        break;
-    }
-    return image;
 }
 
 /* The per-frame combat-strip update: while combat mode is on, recompute each
@@ -8837,18 +8722,6 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
         return false;
     }
     return false;
-}
-
-// FUNCTION: WIZ8 0x005B2980
-void RefreshFormationPanel(unsigned char show_portraits)
-{
-    if (g_formation_panel->m_fEnabled != 0) {
-        if (show_portraits != 0) {
-            g_formation_panel->Invalidate(0);
-            InvalidateRegion(0xd6, 0x3c, 0x1ab, 0x12f, 0);
-        }
-        g_formation_panel->Redraw();
-    }
 }
 
 /* Condition orb on a party portrait (help 25): press while highest_condition
