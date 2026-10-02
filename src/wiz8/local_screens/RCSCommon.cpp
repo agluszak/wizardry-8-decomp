@@ -1591,7 +1591,7 @@ static void OnCampItemActionButton3(void)
     if (static_cast<unsigned char>(g_item_action_controls[3]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
         if (g_status.item_in_cursor != 0) {
-            UseItem005BA4F0(&g_status.item_in_hand_235b);
+            UseCampItem(&g_status.item_in_hand_235b);
             return;
         }
         SetCampItemActionMode(5);
@@ -1607,7 +1607,7 @@ static void OnCampItemActionButton4(void)
                                    g_W8TextControlStateSecondary) != 0) {
         if (g_status.item_in_cursor != 0) {
             if (ResolvePendingCampCharacter(1) != 0) {
-                DropHeldItem005BA3D0();
+                DropHeldCampItem();
             }
             return;
         }
