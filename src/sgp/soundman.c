@@ -384,7 +384,7 @@ UINT32	SoundPlayStreamedFile( STR pFilename, SOUNDPARMS *pParms )
 			}
 
 			//Get the real file handle of the file
-			hRealFileHandle = OpenLibraryStream00412F10( hFile );
+			hRealFileHandle = OpenLibraryStream( hFile );
 			FileClose( hFile );
 			if( hRealFileHandle == INVALID_HANDLE_VALUE )
 			{
