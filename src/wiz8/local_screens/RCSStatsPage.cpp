@@ -1452,7 +1452,7 @@ void W8CharacterSkillsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 // FUNCTION: WIZ8 0x005c77d0
 void W8CharacterSkillsPage::ShowEntryInfo(W8CharacterPageEntry* entry)
 {
-    m_screen_05c->ShowDialog005B08E0(entry->m_id_02c);
+    m_screen_05c->ShowSkillInfo(entry->m_id_02c);
 }
 
 // FUNCTION: WIZ8 0x005c77f0
