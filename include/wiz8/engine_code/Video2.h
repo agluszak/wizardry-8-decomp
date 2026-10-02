@@ -272,10 +272,10 @@ void SetViewport(int left, int top, int right, int bottom);
 /* Scale a 640x480 design-space rect onto the GERD surface and remember it;
    no-ops when the stored bounds already match. */
 
-void SetScaledViewport00425DA0(int left, int top, int right, int bottom);
+void SetWorldScaledViewport(int left, int top, int right, int bottom);
 /* 0x00425C90: same scaled-viewport update; the automap installs its viewport
    through it. */
-void SetScaledViewport00425C90(int left, int top, int right, int bottom);
+void SetAutomapScaledViewport(int left, int top, int right, int bottom);
 /* Read the stored pixel viewport back out in normalized 0..1 scale. */
 void GetScaledViewportBounds(float* left_top, float* right_bottom);
 /* Lock the primary GERD buffer and emit one debug wireframe line. */
