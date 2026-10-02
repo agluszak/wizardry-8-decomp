@@ -31,8 +31,9 @@ void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int arg_3);
 unsigned int CharacterActionFatigueCost(int party_slot, W8ActionKind action_kind);
 void DamageCharacter(int party_slot, unsigned int damage, char announce); /* 0x0052B7E0 */
 void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amount,
-                                    char announce); /* 0x0052B6D0 */
-void DrainPartySpellPoints(int arg_1, int arg_2);   /* 0x0052B550 */
+                                    char announce);        /* 0x0052B6D0 */
+void DrainPartySpellPoints(int arg_1, int arg_2);          /* 0x0052B550 */
+int CalculateMonsterFatigueBand(int current, int maximum); /* 0x0052A780 */
 unsigned int FatigueArmorPenalty(int fatigue_band);
 int SpellCastFatigueCost(int spell_id, int result);
 void SpendCharacterSpellPoints(int party_slot, int realm, int amount); /* 0x0052B480 */

@@ -538,6 +538,21 @@ int SumCharacterSpellPointsLeft(const W8Character* character)
     return total;
 }
 
+// FUNCTION: WIZ8 0x0052A780
+int CalculateMonsterFatigueBand(int current, int maximum)
+{
+    int percentage_lost = 100 - current * 100 / static_cast<unsigned int>(maximum);
+    if (percentage_lost < 50)
+        return 0;
+    if (percentage_lost < 70)
+        return 1;
+    if (percentage_lost < 85)
+        return 2;
+    if (percentage_lost < 95)
+        return 3;
+    return 4;
+}
+
 // FUNCTION: WIZ8 0x0052a7d0
 unsigned int FatigueArmorPenalty(int fatigue_band)
 {
@@ -1238,12 +1253,12 @@ void RecalculateCharacterHitPoints(W8Character* character)
 void RecalculateCharacterStamina(W8Character* character)
 {
     unsigned int previous = character->uiStaminaMax;
-    unsigned int value =
-        static_cast<unsigned int>(((character->attributes[0].effective + character->attributes[2].effective +
-                         character->attributes[3].effective) *
-                        (1.0f / 3.0f)) *
-                           (character->uiExpLevel * g_float_005ed8b8 + g_environment_near_scale) +
-                       g_double_005ebe80);
+    unsigned int value = static_cast<unsigned int>(
+        ((character->attributes[0].effective + character->attributes[2].effective +
+          character->attributes[3].effective) *
+         (1.0f / 3.0f)) *
+            (character->uiExpLevel * g_float_005ed8b8 + g_environment_near_scale) +
+        g_double_005ebe80);
     character->uiStaminaMax = value;
     if (character->fatigue_penalty_0b21 < value) {
         character->uiStaminaMax = value - character->fatigue_penalty_0b21;
@@ -1254,7 +1269,8 @@ void RecalculateCharacterStamina(W8Character* character)
     if (value != previous) {
         character->stamina += value - previous;
     }
-    int fatigue = 100 - static_cast<int>(static_cast<unsigned int>(character->stamina) * 100 / value);
+    int fatigue =
+        100 - static_cast<int>(static_cast<unsigned int>(character->stamina) * 100 / value);
     if (fatigue < 0x32) {
         character->fatigue_band = 0;
         return;
@@ -1314,8 +1330,8 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
     }
     qsort(realm_skills, 4, 4, CompareUnsignedDescending);
 
-    float weighted = static_cast<float>(realm_skills[0] + (realm_skills[1] >> 1) + (realm_skills[2] >> 2) +
-                             (realm_skills[3] >> 3));
+    float weighted = static_cast<float>(realm_skills[0] + (realm_skills[1] >> 1) +
+                                        (realm_skills[2] >> 2) + (realm_skills[3] >> 3));
     if (weighted > 125.0f) {
         weighted = 125.0f;
     }
@@ -1324,10 +1340,10 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
         int old = character->sp_max[index];
         unsigned int learned = character->skill_unlocks[0x1c + index];
         int computed = static_cast<int>(((weighted + character->skills[0x1c + index].level * 3 +
-                               character->attributes[2].effective) *
-                              g_float_005ecbb4) *
-                                 (learned + character->uiExpLevel + 1) +
-                             g_double_005ebe80);
+                                          character->attributes[2].effective) *
+                                         g_float_005ecbb4) *
+                                            (learned + character->uiExpLevel + 1) +
+                                        g_double_005ebe80);
         if (best < computed) {
             best = computed;
         }
