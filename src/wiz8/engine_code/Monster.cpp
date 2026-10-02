@@ -1515,7 +1515,7 @@ void W8Monster::Update()
         }
     }
 
-    if (GetFlag68F105() == 0) {
+    if (IsMipeActive() == 0) {
         if ((cycle == 1 || cycle == 2) && m_pRep->pending_cycle == -1 &&
             movement_stopped_024 == 0 && halted_025 == 0) {
             flags_00c |= 0x100000;
@@ -3139,7 +3139,7 @@ unsigned char W8Monster::IsCycleInterruptable(signed char cycle)
     const char* current_name;
     const char* requested_name;
 
-    if (GetFlag68F105() != 0) {
+    if (IsMipeActive() != 0) {
         return 1;
     }
     if (m_pRep->animation_playing_06d == 0) {
