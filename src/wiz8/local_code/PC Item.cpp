@@ -109,9 +109,6 @@ int GetItemInHand(void)
     return g_status.item_in_hand_235b.iItemNo;
 }
 
-/* What a whole stack weighs. An empty slot weighs nothing, and a slot holding
-   an item that does not stack still weighs one of it - the count is zero for
-   every quantity kind but the stacking one. */
 // FUNCTION: WIZ8 0x0051bfd0
 unsigned int GetItemStackWeight(const W8ItemInstance* item)
 {
@@ -180,8 +177,6 @@ int GetItemDefaultEquipSlot(int item_id)
     }
 }
 
-/* The hand opposite the one given. Anything that is not a hand has no
-   opposite. */
 // FUNCTION: WIZ8 0x0051c8b0
 int GetPairedEquipSlot(int equip_slot)
 {
@@ -523,7 +518,6 @@ unsigned char GetItemEquipClass(const W8ItemInstance* item)
     return 0;
 }
 
-/* Which generic name this item wears while unidentified. */
 // FUNCTION: WIZ8 0x0051b910
 unsigned short GetItemUnidentifiedNameIndex(const W8ItemInstance* item)
 {
@@ -533,7 +527,6 @@ unsigned short GetItemUnidentifiedNameIndex(const W8ItemInstance* item)
     return 0;
 }
 
-/* Whether two items are of the same equipment class. */
 // FUNCTION: WIZ8 0x0051b940
 bool ItemsShareEquipClass(const W8ItemInstance* first, const W8ItemInstance* second)
 {
@@ -544,7 +537,6 @@ bool ItemsShareEquipClass(const W8ItemInstance* first, const W8ItemInstance* sec
     return false;
 }
 
-/* Whether two items look alike while unidentified. */
 // FUNCTION: WIZ8 0x0051b990
 bool ItemsShareUnidentifiedName(const W8ItemInstance* first, const W8ItemInstance* second)
 {
@@ -555,8 +547,6 @@ bool ItemsShareUnidentifiedName(const W8ItemInstance* first, const W8ItemInstanc
     return false;
 }
 
-/* Whether an item is bound to whoever is wearing it, which is what stops it
-   being taken off or swapped away. */
 // FUNCTION: WIZ8 0x0051d180
 bool IsItemBoundToWearer(const W8ItemInstance* item)
 {
@@ -567,14 +557,6 @@ bool IsItemBoundToWearer(const W8ItemInstance* item)
     return false;
 }
 
-/* Every slot this item could be placed in, as a bit per slot.
-
-   Weapons are the interesting case. A two-handed weapon needs the hand
-   opposite it free, so each of the two weapon sets contributes its main hand
-   only when its off hand is empty. A one-handed weapon can always take either
-   main hand, and additionally takes an off hand when the item allows it and
-   the main hand of that set is not already holding something two-handed.
-   Everything else has exactly one home. */
 // FUNCTION: WIZ8 0x0051cf80
 unsigned short GetItemEquipSlotMask(int item_id, char primary_off_hand_free,
                                     char alternate_off_hand_free, char primary_main_hand_free,
@@ -641,10 +623,6 @@ unsigned short GetItemEquipSlotMask(int item_id, char primary_off_hand_free,
     return slots;
 }
 
-/* Whether one character could put this item in one particular slot. The four
-   hand slots are read first: a hand counts as available when it is empty, and
-   a main hand also counts when whatever it holds is not two-handed. Asking to
-   ignore what is worn answers for an empty character instead. */
 // FUNCTION: WIZ8 0x0051cea0
 bool CanEquipItemInSlot(W8Character* character, int item_id, unsigned char equip_slot,
                         char ignore_worn_items)
@@ -802,11 +780,6 @@ bool CompatiblePartnerItems(int ranged_item_id, int other_item_id)
     return 0;
 }
 
-/* Whether two items may be held at the same time. Nothing pairs with a
-   two-handed item. A weapon beside an off-hand item is decided by the weapon
-   rule, which takes them in weapon-first order whichever way round they were
-   passed. Two things that are not both weapons always agree, and two weapons
-   have to belong to the same wield group. */
 // FUNCTION: WIZ8 0x0051cc40
 bool CanHoldItemsTogether(int first_item_id, int second_item_id)
 {
@@ -965,8 +938,6 @@ bool CanCharacterUseItem(const W8Character* character, int item_id)
     return true;
 }
 
-/* Whether anybody in the party could use this item. Only occupied slots with a
-   character who is conscious enough to act are asked. */
 // FUNCTION: WIZ8 0x0051d7a0
 bool AnyPartyMemberCanUseItem(int item_id)
 {
@@ -1036,7 +1007,6 @@ bool CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item
     return 1;
 }
 
-/* Whether both weapon sets are entirely empty. */
 // FUNCTION: WIZ8 0x0051f8d0
 bool AreAllHandSlotsEmpty(const W8Character* character)
 {
@@ -1097,9 +1067,6 @@ wchar_t* GetItemDisplayName(const W8ItemInstance* item)
     return g_generic_item_names[name_index];
 }
 
-/* Whether an item's generic name is one of five the callers single out. The
-   set is a jump table based at eleven, so it is a property of the shared
-   unidentified name rather than of the item itself. */
 // FUNCTION: WIZ8 0x0051cce0
 bool ItemHasSingledOutGenericName(int item_id)
 {
@@ -1481,9 +1448,6 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
     return merged;
 }
 
-/* Put an item somewhere it will fit. The flag decides which of the character
-   and the party pool is tried first; the other is tried after, and then the
-   first again, so a full destination never loses the item. */
 // FUNCTION: WIZ8 0x0051c280
 bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item, char party_first,
                                    int arg_4, int arg_5)
@@ -1504,10 +1468,6 @@ bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item,
     return false;
 }
 
-/* Place an item with one character. Equipment is tried first when requested;
-   otherwise compatible stacks are coalesced before the first empty backpack
-   slot is used. The source item is consumed only after a destination accepts
-   it, so the caller can still fall back to the party pool on failure. */
 // FUNCTION: WIZ8 0x0051c300
 bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip_if_possible,
                         char announce, char skip_stacking)
@@ -1582,8 +1542,6 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
     return true;
 }
 
-/* Take gold from the party. Asking for more than it has empties the purse
-   rather than wrapping it around. */
 // FUNCTION: WIZ8 0x0051bf40
 void SpendPartyGold(unsigned int amount)
 {
@@ -1594,8 +1552,6 @@ void SpendPartyGold(unsigned int amount)
     }
 }
 
-/* Resolve a recorded (origin, slot) pair back to the item instance it names:
-   the carrier's backpack, their worn equipment or the shared party pool. */
 // FUNCTION: WIZ8 0x00522180
 W8ItemInstance* FindCharacterItemAt(int party_slot, unsigned char origin, unsigned short slot)
 {
@@ -1745,16 +1701,12 @@ void StashDepartingCharacterItems(W8Character* character)
     }
 }
 
-/* Initialize the fixed item-video-object vector to one entry per item record. */
 // FUNCTION: WIZ8 0x0051b560
 void InitializeItemVideoObjects(void)
 {
     g_item_video_objects.Initialize(gXStatus.uiItemsInDatabase);
 }
 
-/* Throw away the item-video-object vector and every lazily built generic name.
-   The name walk is bounded by the address just past the table rather than by a
-   count. */
 // FUNCTION: WIZ8 0x0051b580
 void ReleaseGenericItemNames(void)
 {
@@ -1770,13 +1722,6 @@ void ReleaseGenericItemNames(void)
     }
 }
 
-/* Hand the item in hand to a party member. It is first offered to everybody who
-   could identify it, and then stored with the character or the party pool in
-   the order the flag asks for. The item-in-hand state is cleared before the
-   outcome is tested, and a store that fails is announced: the notice names the
-   slot when neither destination was open, and the item otherwise. The flag
-   doubles as the result the way the compiled body reads it, so a failed
-   party-first attempt still reports success. */
 // FUNCTION: WIZ8 0x0051ba00
 unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_first)
 {
@@ -1881,8 +1826,6 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
     return stored;
 }
 
-/* Drop whatever is in hand, unless it is one of the items that may not be
-   discarded - in which case say so instead. */
 // FUNCTION: WIZ8 0x0051be50
 bool DropItemInHand(int arg_1)
 {
@@ -1895,8 +1838,6 @@ bool DropItemInHand(int arg_1)
     return true;
 }
 
-/* Conjure one item and put it either straight into the party pool or into the
-   hand, depending on where the last one was taken from. */
 // FUNCTION: WIZ8 0x0051bf60
 void CreateItemIntoHandOrPool(int item_id, unsigned char quality)
 {
@@ -1914,9 +1855,6 @@ void CreateItemIntoHandOrPool(int item_id, unsigned char quality)
     CopyItemInstance(&g_status.item_in_hand_235b, &created, 0, 1);
 }
 
-/* How many of a character's twenty item slots hold something they could use
-   right now - the twelve worn and the eight carried, walked as two runs
-   rather than one. */
 // FUNCTION: WIZ8 0x0051f870
 int CountUsableCharacterItems(W8Character* character)
 {
@@ -1969,7 +1907,6 @@ bool IsItemWornByCharacter(W8Character* character, const W8ItemInstance* item)
     return false;
 }
 
-/* Whether one item sits in a character's own carried slots. */
 // FUNCTION: WIZ8 0x00520f60
 bool IsItemCarriedByCharacter(W8Character* character, const W8ItemInstance* item)
 {
