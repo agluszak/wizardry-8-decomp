@@ -3488,7 +3488,7 @@ update_screen:
         g_level_block->hover_combat_slot = -1;
     }
     TickAmbientFollowUpIdle(ProcessMainGameInput());
-    if (!GetFlag69DA6C()) {
+    if (!IsRecordModeActive()) {
         if (!GetFlag68F105() || GetFlag68F104()) {
             HandleManualCameraHotkeys();
         } else if (CanUseCurrentAutomapTool()) {
