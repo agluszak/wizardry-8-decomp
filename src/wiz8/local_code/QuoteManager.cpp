@@ -1003,7 +1003,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
             return;
         }
         if (g_current_screen_state.id == W8_SCREEN_CAMP) {
-            g_camp_screen->redraw_flags |= 0x0fffffff;
+            g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
         }
         record->portrait_event_active = active;
         return;
@@ -1078,7 +1078,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
                     quote->x = static_cast<unsigned short>(((party_slot & 1) * 0x30) + 0x36);
                     quote->y = static_cast<unsigned short>((party_slot >> 1) * 0x27 + 5);
                 }
-                g_camp_screen->redraw_flags |= 0x0fffffff;
+                g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
             } else {
                 unsigned short base_x = g_portrait_tables.quote_x[party_slot];
                 quote->x = base_x;

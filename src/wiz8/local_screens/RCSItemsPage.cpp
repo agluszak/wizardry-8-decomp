@@ -132,7 +132,7 @@ void SetCampInfoPageMode(char mode)
         break;
     }
     g_camp_screen->item_mode = mode;
-    g_camp_screen->redraw_flags |= 0x2000;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_CHARACTER_INFO;
 }
 
 // FUNCTION: WIZ8 0x005BA110
@@ -240,7 +240,7 @@ void IdentifyAndOpenItemInfo(W8ItemInstance* item)
     if (CanItemLeaveItsSlot(item) != 0) {
         if (PartyAttemptsToIdentifyItem(item, 0) != 0 && g_camp_screen->realm_flags[1] != 0) {
             RebuildCampItemList();
-            g_camp_screen->redraw_flags |= 0xfffffff;
+            g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
         }
     }
     OpenItemInfoDialog(item, 0);
@@ -302,7 +302,7 @@ void UseItem005BA4F0(W8ItemInstance* item)
         DismissSelectedPartyCharacter();
     }
     RebuildCampItemList();
-    g_camp_screen->redraw_flags |= 0xfffffff;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     SetCampItemActionMode(0);
 }
 
@@ -312,7 +312,7 @@ void MergeItemStacksWithHeld(W8ItemInstance* item)
     if (item->iItemNo != -1) {
         if (MergeItems(g_review_character, item) != 0) {
             RebuildCampItemList();
-            g_camp_screen->redraw_flags |= 0xfffffff;
+            g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
             SetCampItemActionMode(0);
         }
     }
@@ -341,7 +341,7 @@ void ReportCastResult(int party_slot)
         text = FormatWideString(gppStringList[0x1bc], character->name, 0, 1, 0);
         ShowCampNoticeLine(text, 0, 1, 0);
     }
-    g_camp_screen->redraw_flags |= 0xfffffff;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     SetCampItemActionMode(0);
 }
 
@@ -375,7 +375,7 @@ void UseHeldItemOnItem(W8ItemInstance* item)
                 }
             }
             RebuildCampItemList();
-            g_camp_screen->redraw_flags |= 0xfffffff;
+            g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
             SetCampItemActionMode(0);
             giCasterCharSlot = -1;
             return;
@@ -416,7 +416,7 @@ void TargetCharacterWithHeldItem(unsigned int uiTargetChar)
     target.iChar = uiTargetChar;
     CommitPartySlotSpell(giCasterCharSlot, 0x3a, 8, &target);
     RebuildCampItemList();
-    g_camp_screen->redraw_flags |= 0xfffffff;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     SetCampItemActionMode(0);
     giCasterCharSlot = -1;
 }
@@ -525,7 +525,7 @@ void SplitStackDialogResult(W8DialogBase* dialog)
     RecalculateCarriedWeight(g_review_character);
     RedistributePartyEncumbrance();
     SetCampItemActionMode(0);
-    g_camp_screen->redraw_flags |= 0xfffffff;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
 }
 
 /* Mode/tail bits the update pass keys on: the camp entry_mode byte at +0xd3f
@@ -657,9 +657,9 @@ void UnequipBothHands(void)
     BindEquippedItem(character, 7);
     if (CanUnequipSlotItem(character, 6) != 0 && CanUnequipSlotItem(character, 7) != 0) {
         SwapWeaponSetSlots(giReviewCharSlot, 0, 1);
-        g_camp_screen->item_redraw_flags |= 0x3ffe00;
-        g_camp_screen->redraw_flags |= 0x100;
-        g_camp_screen->redraw_flags |= 0x2000;
+        g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT;
+        g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
+        g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_CHARACTER_INFO;
         return;
     }
     ShowCampNoticeLine(gppStringList[0x916], 0, 1, 0);
@@ -721,7 +721,7 @@ void SortCampItemPool(void)
     SortPartyItemPool();
     g_camp_screen->item_scroll = 0;
     RebuildCampItemList();
-    g_camp_screen->item_redraw_flags |= 0x7fc00000;
+    g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL;
 }
 
 /* Tab index to realm_flags index: the UI tab order is not the realm order. */
@@ -772,10 +772,10 @@ void SelectCampRealmTab(int tab)
     g_camp_screen->item_scroll = 0;
     RebuildCampItemList();
     if (!gfKeyState[0x11]) {
-        g_camp_screen->item_redraw_flags |= 0x7fc00000;
+        g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL;
         return;
     }
-    g_camp_screen->redraw_flags |= 0xfffffff;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
 }
 
 /* Region reason values are bit codes set by the region manager: 0x8 left
@@ -823,7 +823,7 @@ unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
             if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
                 g_camp_screen->realm_flags[1] != 0) {
                 RebuildCampItemList();
-                g_camp_screen->redraw_flags |= 0xfffffff;
+                g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
             }
             OpenItemInfoDialog(item, 0);
             SetCampItemActionMode(0);
@@ -833,7 +833,7 @@ unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
     if (event->usEvent == 0x400) {
         if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
             if (item->iItemNo != -1 || g_status.item_in_cursor != 0) {
-                g_camp_screen->item_redraw_flags |= 2 << (slot & 0x1f);
+                g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST << (slot & 0x1f);
             }
             UpdateItemCursorForState((region->flags & W8_REGION_MOUSE_ENTER) != 0, item, 0);
             if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
@@ -910,7 +910,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
             }
             if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
                 if (item->iItemNo != -1 || g_status.item_in_cursor != 0) {
-                    g_camp_screen->item_redraw_flags |= 0x400 << (slot & 0x1f);
+                    g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST << (slot & 0x1f);
                 }
                 UpdateItemCursorForState(1, item, 0);
                 EnableRegionHelpFlag(region);
@@ -932,7 +932,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
             }
             if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
                 if (item->iItemNo != -1 || g_status.item_in_cursor != 0) {
-                    g_camp_screen->item_redraw_flags |= 0x400 << (slot & 0x1f);
+                    g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST << (slot & 0x1f);
                 }
                 UpdateItemCursorForState(0, item, 0);
                 DisableRegionHelpFlag(region);
@@ -945,7 +945,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
             if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
                 g_camp_screen->realm_flags[1] != 0) {
                 RebuildCampItemList();
-                g_camp_screen->redraw_flags |= 0xfffffff;
+                g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
             }
             OpenItemInfoDialog(item, 0);
             SetCampItemActionMode(0);
@@ -983,7 +983,7 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
                 if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
                     g_camp_screen->realm_flags[1] != 0) {
                     RebuildCampItemList();
-                    g_camp_screen->redraw_flags |= 0xfffffff;
+                    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
                 }
                 OpenItemInfoDialog(item, 0);
                 SetCampItemActionMode(0);
@@ -1014,7 +1014,7 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
         if (event->usEvent == 0x400) {
             if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
                 if (item->iItemNo != -1 || g_status.item_in_cursor != 0) {
-                    g_camp_screen->item_redraw_flags |= 0x800000 << (slot & 0x1f);
+                    g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL_CELL_FIRST << (slot & 0x1f);
                 }
                 UpdateItemCursorForState((region->flags & W8_REGION_MOUSE_ENTER) != 0, item, 0);
                 if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {

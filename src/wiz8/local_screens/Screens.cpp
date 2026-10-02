@@ -108,7 +108,7 @@ unsigned char IsScreenTransitionPending(void)
 void RequestPartySlotRedraw(int bit)
 {
     if (g_current_screen_state.id == W8_SCREEN_CAMP) {
-        g_camp_screen->redraw_flags |= 0x100;
+        g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
     } else if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         RequestRedraw(1 << (bit & 31));
     }
@@ -136,10 +136,10 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
     case W8_SCREEN_CAMP:
         if (giReviewCharSlot == static_cast<int>(party_slot) && g_camp_screen->input_mode == 0) {
             if (g_camp_screen->portrait_hovered_d40[0] != 0) {
-                g_camp_screen->redraw_flags |= 0x100;
+                g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
                 return;
             }
-            g_camp_screen->redraw_flags |= 0x100;
+            g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
             RedrawRcsLevelUpPanel();
             RedrawRcsDismissPanel();
             return;

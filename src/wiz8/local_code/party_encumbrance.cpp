@@ -243,7 +243,7 @@ void RedistributePartyEncumbrance(void)
             return;
         }
     } else if (g_current_screen_state.id == W8_SCREEN_CAMP && g_camp_screen != 0) {
-        g_camp_screen->redraw_flags |= 0x2100;
+        g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_CHARACTER_INFO | W8_CAMP_REDRAW_PORTRAIT;
     }
     gXStatus.fEncumbranceDirty = false;
 }

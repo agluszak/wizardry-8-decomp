@@ -1169,7 +1169,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
 /* One message-table index per realm, for the realm's name. */
 // GLOBAL: WIZ8 0x0061E518
 // offset alias of the tail of g_attr_table_61E50C; shared retail storage.
-extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT] = {
+unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT] = {
     0x30b, 0x30c, 0x30d, 0x30e, 0x30f, 0x310,
 };
 
@@ -2038,7 +2038,7 @@ enum {
    table. */
 // GLOBAL: WIZ8 0x0061E436
 // offset alias of g_gender_name_message_rows; shared retail storage.
-extern const unsigned short g_name_prefix_messages[15] = {
+unsigned short g_name_prefix_messages[15] = {
     0x2da, 0x2d2, 0x2d5, 0x2d8, 0x2db, 0x2d3, 0x2d6, 0x2d9,
     0x2dc, 0x2dd, 0x2de, 0x2df, 0x2e0, 0x2e1, 0,
 };

@@ -279,14 +279,14 @@ void DrawCampSpellPages(void)
     unsigned short* palette;
 
     SetFont(g_wiz_text_font_secondary);
-    if ((g_camp_screen->redraw_flags & 0x100000) != 0 && gXStatus.fSpellCastMode == 0) {
+    if ((g_camp_screen->redraw_flags & W8_CAMP_REDRAW_RESISTANCES) != 0 && gXStatus.fSpellCastMode == 0) {
         DrawCampResistances();
     }
-    if (g_camp_screen->redraw_flags == 0xfffffff) {
+    if (g_camp_screen->redraw_flags == W8_CAMP_REDRAW_ALL) {
         DrawCatalogImageAndInvalidate(-14, 0x140, 0, 2, 0, 0xa5, 2, 0);
     }
     for (realm = 0; realm < 6; ++realm) {
-        if ((g_camp_screen->redraw_flags & (0x200000 << realm)) == 0) {
+        if ((g_camp_screen->redraw_flags & (W8_CAMP_REDRAW_REALM_SPELLS_FIRST << realm)) == 0) {
             continue;
         }
         left = (realm % 3) * 0xd5 + 3;
@@ -347,7 +347,7 @@ void DrawCampSpellPages(void)
         if (g_camp_screen->dialog != 0 && realm != 0 && realm != 3) {
             continue;
         }
-        if ((g_camp_screen->redraw_flags & ((0x200000 << realm) | 0x10000)) == 0) {
+        if ((g_camp_screen->redraw_flags & ((W8_CAMP_REDRAW_REALM_SPELLS_FIRST << realm) | 0x10000)) == 0) {
             continue;
         }
         animation = &g_spell_realm_animations[realm];
@@ -456,12 +456,12 @@ unsigned char SpellListRegionHandler(const InputAtom* event, W8Region* region)
     }
     if (row != g_camp_screen->selected_spell_row) {
         g_camp_screen->selected_spell_row = row;
-        g_camp_screen->redraw_flags |= 0x200000 << realm;
+        g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_REALM_SPELLS_FIRST << realm;
     }
     if (event->usEvent > 0x100) {
         if (event->usEvent == 0x400) {
             if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
-                g_camp_screen->redraw_flags |= 0x200000 << realm;
+                g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_REALM_SPELLS_FIRST << realm;
             }
             return 0;
         }
@@ -527,28 +527,28 @@ void RedrawCampItemsPage(void)
 {
     SetFont(g_wiz_text_font_secondary);
     SetObjectShade(g_wiz_text_font_secondary_object, 4);
-    if ((g_camp_screen->redraw_flags & 0x2000) != 0) {
+    if ((g_camp_screen->redraw_flags & W8_CAMP_REDRAW_CHARACTER_INFO) != 0) {
         DrawCampCharacterInfo();
     }
-    if ((g_camp_screen->item_redraw_flags & 0x1ff) != 0) {
+    if ((g_camp_screen->item_redraw_flags & W8_CAMP_ITEM_REDRAW_BACKPACK) != 0) {
         DrawCampBackpackItems();
     }
-    if ((g_camp_screen->item_redraw_flags & 0x3ffe00) != 0) {
+    if ((g_camp_screen->item_redraw_flags & W8_CAMP_ITEM_REDRAW_EQUIPMENT) != 0) {
         DrawCampEquipmentItems();
     }
-    if ((g_camp_screen->item_redraw_flags & 0x7fc00000) != 0) {
+    if ((g_camp_screen->item_redraw_flags & W8_CAMP_ITEM_REDRAW_POOL) != 0) {
         DrawCampItemPool();
         g_camp_screen->item_range->UpdateRange(1);
     } else {
         g_camp_screen->item_range->UpdateRange(0);
     }
-    if ((g_camp_screen->redraw_flags & 0x8000000) != 0) {
+    if ((g_camp_screen->redraw_flags & W8_CAMP_REDRAW_ACTION_PANEL) != 0) {
         g_camp_action_panel->Invalidate(0);
         g_camp_action_panel->Redraw();
     } else {
         g_camp_action_panel->Redraw();
     }
-    if ((g_camp_screen->redraw_flags & 0x10000000) != 0) {
+    if ((g_camp_screen->redraw_flags & W8_CAMP_REDRAW_REALM_TABS) != 0) {
         g_camp_realm_tab_panel->Invalidate(0);
         g_camp_realm_tab_panel->Redraw();
     } else {
@@ -687,7 +687,7 @@ void DrawCampBackpackItems(void)
     int bottom;
     int item_id;
 
-    if ((state->item_redraw_flags & 1) != 0) {
+    if ((state->item_redraw_flags & W8_CAMP_ITEM_REDRAW_BACKPACK_HEADER) != 0) {
         DrawCatalogImageAndInvalidate(-14, 0x114, 0, 1, 0, 0xa5, 2, 0);
         DrawRcsBoldText(gppStringList[0x92b], 0xc, 0xae, 0x5d,
                         g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
@@ -697,7 +697,7 @@ void DrawCampBackpackItems(void)
         top = (slot >> 1) * 0x39 + 0xc0;
         right = left + 0x2e;
         bottom = top + 0x36;
-        if ((state->item_redraw_flags & (2 << slot)) == 0) {
+        if ((state->item_redraw_flags & (W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST << slot)) == 0) {
             continue;
         }
         InvalidateRegion(left, top, right, bottom, 0);
@@ -738,15 +738,15 @@ void DrawCampEquipmentItems(void)
     int item_id;
     int frame;
 
-    if ((state->item_redraw_flags & 0x200) != 0) {
+    if ((state->item_redraw_flags & W8_CAMP_ITEM_REDRAW_PAPER_DOLL) != 0) {
         DrawCatalogImageAndInvalidate(-14, 0x114, 0, 2, 0x71, 0xa5, 2, 0);
         DrawCatalogImageAndInvalidate(
             -14, g_race_portrait_images[character->iRace * 3 + character->gender], 0, 0, 0xc2, 0xa5,
             2, 0);
-        state->redraw_flags |= 0x8000000;
+        state->redraw_flags |= W8_CAMP_REDRAW_ACTION_PANEL;
     }
     for (slot = 0; slot < 12; ++slot) {
-        if ((state->item_redraw_flags & (0x400 << slot)) == 0) {
+        if ((state->item_redraw_flags & (W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST << slot)) == 0) {
             continue;
         }
         region = &g_camp_screen_regions[slot];
@@ -850,15 +850,15 @@ void DrawCampItemPool(void)
     int bottom;
     W8ItemInstance* item;
 
-    if ((state->item_redraw_flags & 0x400000) != 0) {
+    if ((state->item_redraw_flags & W8_CAMP_ITEM_REDRAW_POOL_HEADER) != 0) {
         DrawCatalogImageAndInvalidate(-14, 0x114, 0, 3, 0x1de, 0xa5, 2, 0);
         DrawCatalogImageAndInvalidate(-14, 0x118, 0, 0, 0x202, 0x1a6, 2, 0);
-        state->redraw_flags |= 0x10000000;
+        state->redraw_flags |= W8_CAMP_REDRAW_REALM_TABS;
     }
     if (g_status.game_started == 0) {
         return;
     }
-    if ((state->item_redraw_flags & 0x400000) != 0) {
+    if ((state->item_redraw_flags & W8_CAMP_ITEM_REDRAW_POOL_HEADER) != 0) {
         DrawRcsBoldText(gppStringList[0x92c], 0x1e6, 0xae, 0x8d,
                         g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
         FormatUnsignedIntegerWithCommas(state->caption, g_status.party_gold);
@@ -878,7 +878,7 @@ void DrawCampItemPool(void)
         right = left + 0x2e;
         bottom = top + 0x36;
         item = &g_status.party_item_pool_0021[state->item_list_4ec[state->item_scroll + i]];
-        if ((state->item_redraw_flags & (0x800000 << i)) == 0) {
+        if ((state->item_redraw_flags & (W8_CAMP_ITEM_REDRAW_POOL_CELL_FIRST << i)) == 0) {
             continue;
         }
         InvalidateRegion(left, top, right, bottom, 0);
@@ -908,7 +908,7 @@ void DrawCampItemPool(void)
             top = (i >> 1) * 0x39 + 0xc0;
             right = left + 0x2e;
             bottom = top + 0x36;
-            if ((state->item_redraw_flags & (0x800000 << i)) != 0) {
+            if ((state->item_redraw_flags & (W8_CAMP_ITEM_REDRAW_POOL_CELL_FIRST << i)) != 0) {
                 InvalidateRegion(left, top, right, bottom, 0);
                 BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
                 if (state->hover_region == region_id && g_status.item_in_cursor != 0 &&
@@ -1198,10 +1198,10 @@ void W8CampItemRange::OnRangeChanged(W8RangeControl*)
 {
     g_camp_screen->item_scroll = m_range->m_value << 1;
     if (gfKeyState[0x11]) {
-        g_camp_screen->redraw_flags |= 0x0fffffff;
+        g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
         return;
     }
-    g_camp_screen->item_redraw_flags |= 0x7fc00000;
+    g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL;
 }
 
 // FUNCTION: WIZ8 0x005b7090
@@ -1226,7 +1226,7 @@ W8CampSpellRange::~W8CampSpellRange()
 void W8CampSpellRange::OnRangeChanged(W8RangeControl*)
 {
     g_camp_screen->learned_spells.scroll[m_realm] = m_range->m_value;
-    g_camp_screen->redraw_flags |= 0x200000 << m_realm;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_REALM_SPELLS_FIRST << m_realm;
 }
 
 /* Lifecycle record 6's initializer - the camp record, which is what
@@ -1393,7 +1393,7 @@ unsigned char CampScreenEnter(void)
         SetDialogDestroyCallback(dialog, 0);
         DisplayCampDialog(dialog);
     }
-    g_camp_screen->redraw_flags |= 0x0fffffff;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     ResetTransientRenderScenes();
     SetPrimarySurfaceTextureHint2Enabled(0);
     if (!g_status.game_started) {
@@ -1416,7 +1416,7 @@ void CampScreenFrame(void)
         ClearActiveRegionIfMatches(0x138);
         delete g_camp_screen->dialog;
         g_camp_screen->dialog = 0;
-        g_camp_screen->redraw_flags |= 0x0fffffff;
+        g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     }
     if (gXStatus.level_up_notice_027 && g_suspended_screen_id != W8_SCREEN_CHARACTER &&
         !gXStatus.fCombatMode && !IsScreenTransitionPending()) {
@@ -1485,7 +1485,7 @@ void CampScreenFrame(void)
     if (g_camp_screen->page == 0 && g_camp_screen->item_timer_active &&
         !g_camp_screen->item_timer_expired && !ClockIsTicking(g_camp_screen->item_timer)) {
         g_camp_screen->item_timer_expired = true;
-        g_camp_screen->item_redraw_flags |= 0x3ffe00;
+        g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT;
     }
     if (!g_camp_screen->input_mode) {
         gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
@@ -1570,12 +1570,12 @@ void DrawCampScreen(void)
 
     NoOp();
     if (!gfKeyState[0x11] && state->item_icons_drawn_d50) {
-        state->redraw_flags |= 0xfffffff;
+        state->redraw_flags |= W8_CAMP_REDRAW_ALL;
         state->item_icons_drawn_d50 = false;
     }
     if (state->redraw_flags != 0 || state->item_redraw_flags != 0 || IsMessageBoxActive() ||
         g_status.item_in_cursor) {
-        if (state->redraw_flags == 0xfffffff) {
+        if (state->redraw_flags == W8_CAMP_REDRAW_ALL) {
             state->item_redraw_flags = 0xffffffff;
             if (state->dialog != 0) {
                 state->dialog->m_dirty_flags |= 1;
@@ -1599,7 +1599,7 @@ void DrawCampScreen(void)
             DrawCampRegenStats();
             break;
         }
-        RefreshCampItemActions((state->redraw_flags & 0x1000) != 0);
+        RefreshCampItemActions((state->redraw_flags & W8_CAMP_REDRAW_ITEM_ACTIONS) != 0);
         SetFont(g_calligraphy_font);
         SetObjectShade(g_calligraphy_font_object, 4);
         state->item_redraw_flags = 0;
@@ -1607,7 +1607,7 @@ void DrawCampScreen(void)
         if (IsMessageBoxActive()) {
             RenderMessageBox();
             if (!IsMessageBoxActive()) {
-                state->redraw_flags |= 0xfffffff;
+                state->redraw_flags |= W8_CAMP_REDRAW_ALL;
             }
         }
     }
@@ -1670,7 +1670,7 @@ void SwitchCampPage(int page)
     DeactivateCampPage();
     g_camp_screen->page = page;
     ActivateCampPage();
-    g_camp_screen->redraw_flags |= 0xfffffff;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
 }
 
 /* Enter the active camp page: resets the item action mode when leaving the
@@ -2065,8 +2065,8 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
             RebuildCampItemList();
             RecalculateCarriedWeight(g_review_character);
             RedistributePartyEncumbrance();
-            g_camp_screen->redraw_flags |= 0x2000;
-            g_camp_screen->item_redraw_flags |= 0x7fc00000;
+            g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_CHARACTER_INFO;
+            g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL;
         }
         if (result == 1 && item->iItemNo != -1) {
             OpenItemInfoDialog(item, 0);
@@ -2356,36 +2356,36 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     }
     if (changed == 0 && partially_merged == 0 && merged == 0) {
         if (same_kind != 0) {
-            g_camp_screen->redraw_flags |= 0x1000;
+            g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ITEM_ACTIONS;
         }
         return;
     }
-    g_camp_screen->redraw_flags |= 0x1000;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ITEM_ACTIONS;
     if (gfKeyState[0x11]) {
-        g_camp_screen->redraw_flags |= 0x0fffffff;
+        g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     } else {
         if (origin == 0) {
             if (partially_merged != 0 || merged != 0) {
-                g_camp_screen->item_redraw_flags |= 0x1ff;
+                g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK;
             } else {
-                g_camp_screen->item_redraw_flags |= 2 << slot_index;
+                g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST << slot_index;
             }
         } else if (origin == 1) {
             if (partially_merged != 0 || merged != 0) {
-                g_camp_screen->item_redraw_flags |= 0x400 << slot_index;
+                g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST << slot_index;
             } else {
-                g_camp_screen->redraw_flags |= 0x2000;
-                g_camp_screen->redraw_flags |= 0x100;
+                g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_CHARACTER_INFO;
+                g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
             }
         } else if (origin == 2) {
-            g_camp_screen->item_redraw_flags |= 0x7fc00000;
+            g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL;
         }
-        g_camp_screen->item_redraw_flags |= 0x3ffc00;
+        g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELLS;
     }
     RecalculateCarriedWeight(g_review_character);
     RedistributePartyEncumbrance();
-    g_camp_screen->redraw_flags |= 0x2000;
-    g_camp_screen->redraw_flags |= 0x100;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_CHARACTER_INFO;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
 }
 
 // FUNCTION: WIZ8 0x005a5da0
@@ -2433,7 +2433,7 @@ void TakeItemUnitToHand(W8ItemInstance* item, unsigned short slot, unsigned int 
     RecalculateCharacterDerivedStats(&g_status.buffers.Char[giReviewCharSlot]);
     RecalculateCarriedWeight(g_review_character);
     RedistributePartyEncumbrance();
-    g_camp_screen->redraw_flags |= 0x0fffffff;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
 }
 
 /* Commits the pending companion swap left by MarkCampCharacterPending:

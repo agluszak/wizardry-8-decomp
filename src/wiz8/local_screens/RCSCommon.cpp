@@ -140,7 +140,7 @@ void SelectCampCharacter(int slot)
         RefreshCampSpellRanges();
         break;
     }
-    g_camp_screen->redraw_flags |= 0xfffffff;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
 }
 
 /* Give the held item to a camp portrait on right-click: refuse dead/insane/
@@ -289,7 +289,7 @@ unsigned char CampDismissPortraitRegionEvent(const InputAtom* event, W8Region* r
         } else {
             g_camp_screen->portrait_hovered_d40[0] = 0;
         }
-        g_camp_screen->redraw_flags |= 0x100;
+        g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
         return 0;
     }
     if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
@@ -860,7 +860,7 @@ void DrawCampHeader(void)
         ColorFillVideoSurfaceArea(0xfffffff2, 0, 0, 0x136, 0xa5, 0x8000);
         DrawCatalogImage(-14, 0x10f, 0, 0, 0, 0, 2, 0);
     }
-    if ((state->redraw_flags & 0x100) != 0) {
+    if ((state->redraw_flags & W8_CAMP_REDRAW_PORTRAIT) != 0) {
         if (character->hp_current == 0) {
             DrawCatalogImage(-14, g_dead_portrait_catalog_ids[character->iRace][1], 0, 0, 0xa4, 0xc,
                              2, 0);
@@ -1452,7 +1452,7 @@ void SetCampItemActionMode(char mode)
                                    g_W8TextControlStateSecondary) == 0) {
         g_item_action_controls[selected]->EnableSecondaryState(0);
     }
-    g_camp_screen->redraw_flags |= 0x1000;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ITEM_ACTIONS;
 }
 
 /* The five page-button callbacks share one shape: while this button's
@@ -1563,7 +1563,7 @@ static void OnCampItemActionButton1(void)
         SetCampItemActionMode(1);
         if (g_status.item_in_cursor != 0) {
             SetHandCursors(0);
-            g_camp_screen->item_redraw_flags |= 0x3ffe00;
+            g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT;
         }
         return;
     }
