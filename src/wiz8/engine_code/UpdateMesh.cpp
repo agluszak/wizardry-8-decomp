@@ -85,10 +85,6 @@ void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* coun
                           count);
 }
 
-/* Scans the upper half of a cell-space triangle: a flat top edge between
-   (x1,y1) and (x2,y2) converging to the apex (x3,y3). Each emitted row is
-   padded one cell outward on both sides. skip_boundary suppresses the first
-   row when the lower half already emitted it. */
 // FUNCTION: WIZ8 0x004BA800
 static void ScanQuadTriangleTop(W8World* world, long x1, long y1, long x2, long y2, long x3,
                                 long y3, long* x_list, long* y_list, long* count, int skip_boundary)
@@ -173,9 +169,6 @@ static void ScanQuadTriangleTop(W8World* world, long x1, long y1, long x2, long 
     }
 }
 
-/* Scans the lower half of a cell-space triangle: the apex (x1,y1) fanning out
-   to the flat base between (x2,y2) and (x3,y3). Each emitted row is padded one
-   cell outward on both sides. Returns whether any row survived clipping. */
 // FUNCTION: WIZ8 0x004BAA00
 static int ScanQuadTriangleBase(W8World* world, long x1, long y1, long x2, long y2, long x3,
                                 long y3, long* x_list, long* y_list, long* count)
@@ -259,9 +252,6 @@ static int ScanQuadTriangleBase(W8World* world, long x1, long y1, long x2, long 
     return emitted;
 }
 
-/* Rasterizes a cell-space triangle into (x,y) coordinate pairs: sorts the
-   vertices by y, then scans a flat-top half, a flat-bottom half, or both halves
-   split at the middle vertex's row. */
 // FUNCTION: WIZ8 0x004BABE0
 static void RasterizeQuadTriangle(W8World* world, long x1, long y1, long x2, long y2, long x3,
                                   long y3, long* x_list, long* y_list, long* count)
@@ -373,7 +363,6 @@ void UpdateWorldOctree(W8World* world)
     world->octree->UpdateCameraVisibility();
 }
 
-/* Rebuild the active-polygon table for the world's mesh and mark it changed. */
 // FUNCTION: WIZ8 0x004baf60
 void UpdateWorldMesh(W8World* world)
 {
