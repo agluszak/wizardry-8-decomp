@@ -91,7 +91,7 @@ bool RunMonGenSemanticTest(void)
     generator.generation_enabled = 1;
 
     bool gates_clear = !g_generator_save_flag && !gXStatus.world_update_blocked &&
-                       !gXStatus.fCombatMode && !gXStatus.fNpcDialogueMode && !GetFlag68F105() &&
+                       !gXStatus.fCombatMode && !gXStatus.fNpcDialogueMode && !IsMipeActive() &&
                        !g_status.world_suspended_2390;
     GetCameraPosition(&generator.spawn_position_0c);
     bool range = gates_clear && generator.CanGenerateEncounter(0) == 0;
