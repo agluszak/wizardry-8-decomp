@@ -35,11 +35,11 @@ static unsigned char g_music_fade = 1;
 // GLOBAL: WIZ8 0x0060AAE5
 static unsigned char g_music_force_next = 1;
 // GLOBAL: WIZ8 0x0060AAE8
-int g_music_state_60aae8 = 20;
+int g_music_pause_min_seconds = 20;
 // GLOBAL: WIZ8 0x0060AAEC
-int g_music_state_60aaec = 60;
+int g_music_pause_max_seconds = 60;
 // GLOBAL: WIZ8 0x0060AAF0
-int g_music_state_60aaf0 = 30;
+int g_music_pause_chance_percent = 30;
 
 // FUNCTION: WIZ8 0x0048fe50
 void SetMusicVolume(unsigned char volume)
@@ -84,9 +84,9 @@ unsigned char InitializeMusicPlaylist(void)
         g_music_playlist->setName("Music Playlist");
     }
     g_music_playlist_tick = GetTickCount();
-    g_music_state_60aae8 = 0;
-    g_music_state_60aaec = 0;
-    g_music_state_60aaf0 = 0;
+    g_music_pause_min_seconds = 0;
+    g_music_pause_max_seconds = 0;
+    g_music_pause_chance_percent = 0;
     return g_music_playlist != 0;
 }
 
@@ -104,11 +104,11 @@ int AnalyzeMusicPlaylist(stScript* playlist, int* total_weight)
 
         if (line[0] == '#') {
             if (_strnicmp(line + 1, "PAUSEMIN=", 9) == 0) {
-                g_music_state_60aae8 = atoi(line + 10);
+                g_music_pause_min_seconds = atoi(line + 10);
             } else if (_strnicmp(line + 1, "PAUSEMAX=", 9) == 0) {
-                g_music_state_60aaec = atoi(line + 10);
+                g_music_pause_max_seconds = atoi(line + 10);
             } else if (_strnicmp(line + 1, "PAUSECHANCE=", 12) == 0) {
-                g_music_state_60aaf0 = atoi(line + 13);
+                g_music_pause_chance_percent = atoi(line + 13);
             }
             continue;
         }
@@ -143,9 +143,9 @@ void ServiceMusicPlaylist(void)
     }
 
     if (g_music_force_next == 0 && gXStatus.fCombatMode == 0 &&
-        Random(100) <= static_cast<unsigned int>(g_music_state_60aaf0)) {
-        g_music_playlist_tick = GetTickCount() + g_music_state_60aae8 * 1000 +
-                                Random(g_music_state_60aaec * 1000 - g_music_state_60aae8 * 1000);
+        Random(100) <= static_cast<unsigned int>(g_music_pause_chance_percent)) {
+        g_music_playlist_tick = GetTickCount() + g_music_pause_min_seconds * 1000 +
+                                Random(g_music_pause_max_seconds * 1000 - g_music_pause_min_seconds * 1000);
         return;
     }
 
@@ -240,9 +240,9 @@ unsigned char StartMusicResource(const char* resource, int fade, unsigned char r
     }
 
     g_music_playlist_tick = GetTickCount() - 1;
-    g_music_state_60aae8 = 0;
-    g_music_state_60aaec = 0;
-    g_music_state_60aaf0 = 0;
+    g_music_pause_min_seconds = 0;
+    g_music_pause_max_seconds = 0;
+    g_music_pause_chance_percent = 0;
     g_music_playlist->Clear();
     g_music_playlist->Load(path);
 

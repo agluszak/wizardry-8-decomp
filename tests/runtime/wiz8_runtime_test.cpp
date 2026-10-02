@@ -403,9 +403,9 @@ static void ReadMenuChecksOnGameThread(void* opaque)
     checks->playlist_active = g_music_playlist_active;
     checks->playlist_tracks = g_music_playlist_track_count;
     checks->playlist_weight = g_music_playlist_weight_total;
-    checks->playlist_pause_min = g_music_state_60aae8;
-    checks->playlist_pause_max = g_music_state_60aaec;
-    checks->playlist_pause_chance = g_music_state_60aaf0;
+    checks->playlist_pause_min = g_music_pause_min_seconds;
+    checks->playlist_pause_max = g_music_pause_max_seconds;
+    checks->playlist_pause_chance = g_music_pause_chance_percent;
     checks->patch_catalog_count = gFileDataBase.usNumberOfLibraries - NUMBER_OF_LIBRARIES;
     checks->item_database_count = gXStatus.uiItemsInDatabase;
     checks->monster_database_count = gXStatus.uiMonstersInDatabase;
