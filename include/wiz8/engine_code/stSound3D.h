@@ -27,7 +27,6 @@ public:
     virtual ~stSound3D() override;
     virtual srClass* vInstance() override;
     bool IsPlaying(); /* 0x004AEC70 */
-    /* Stops the live SGP voice and clears sound_handle to -1. */
     void Stop(); /* 0x004AEC90 */
     /* loop forces the SGP voice to loop forever (AIL count 0); auto_release
        makes the update pass release the node once playback ends. */

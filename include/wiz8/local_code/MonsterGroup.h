@@ -103,7 +103,6 @@ struct W8MonsterGroup {
 unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, int group_id,
                                       unsigned char assert_on_failure);
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
-/* The group's flag at 0xc8, looked up by group id. */
 unsigned char GetMonsterGroupEngagementState(int group_id); /* 0x00511CB0 */
 unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group,
                                         const srVector3T<float>* position,
@@ -162,7 +161,6 @@ unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D
    activates; NULL on failure. */
 W8MonsterGroup* ReplaceMonsterGroupSpecies(W8MonsterGroup* group,
                                            unsigned int monster_id); /* 0x00511A40 */
-/* 0x00511CE0: mark every member's navigator position dirty (or clean). */
 void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag);
 bool MonsterGroupAllMembersDying(W8MonsterGroup* monster_group); /* 0x00511850 */
 void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);     /* 0x0050F630 */

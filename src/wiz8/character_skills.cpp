@@ -42,7 +42,6 @@
 // GLOBAL: WIZ8 0x0061ec94
 wchar_t g_format_s_possessive[] = L"%s's";
 
-/* Append one skill-increase clause onto a notice line. */
 // FUNCTION: WIZ8 0x00554170
 void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int party_slot,
                                    unsigned char continue_line, int skill_id)
@@ -84,7 +83,6 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
     *length = static_cast<unsigned int>(wcslen(text));
 }
 
-/* Drain deferred skill-increase flags into message-box skill-notice lines. */
 // FUNCTION: WIZ8 0x005542E0
 void FlushDeferredSkillNotices(void)
 {
@@ -256,8 +254,6 @@ float ScaleValueByProfessionLevel(W8Character* character, int, float base)
     return ScaleValueByLevel(character->profession_levels[character->iProfession], base);
 }
 
-/* The monster-record counterpart: the flat value scaled by the record's
-   effective level with the same full-value-above-twenty curve. */
 // FUNCTION: WIZ8 0x00547a00
 float ScaleValueByMonsterLevel(W8MonsterRecord* record, int, float base)
 {

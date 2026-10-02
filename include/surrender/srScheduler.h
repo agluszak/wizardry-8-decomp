@@ -47,10 +47,7 @@ private:
     /* starts a worker thread on the first idle slot when queued
        jobs outnumber busy workers. */
     void wakeWorker();
-    /* removes the entry from the lookup and job queue, deletes
-       it and decrements the job count. */
     void removeQueueEntry(QueueEntry* entry);
-    /* spins until the job's queue entry clears. */
     void waitForJob(Job* job);
     /* pops the head job, executes it and retires its entry;
        returns 0 when the queue is empty. */

@@ -1729,7 +1729,6 @@ void SetMonsterGroupEngagementState(int group_id, unsigned char state)
     }
 }
 
-/* The group's engagement byte at +0xc8, looked up by group id. */
 // FUNCTION: WIZ8 0x00511CB0
 unsigned char GetMonsterGroupEngagementState(int group_id)
 {
@@ -1738,7 +1737,6 @@ unsigned char GetMonsterGroupEngagementState(int group_id)
         ->engagement;
 }
 
-/* Marks every member's navigator position dirty (or clean). */
 // FUNCTION: WIZ8 0x00511CE0
 void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag)
 {

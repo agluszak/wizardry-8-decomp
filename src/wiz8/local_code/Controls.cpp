@@ -2111,7 +2111,6 @@ void Controls::SetEnabled(bool enable)
     }
 }
 
-/* Detaches the first matching control through the panel's ordinary vector. */
 // FUNCTION: WIZ8 0x004f2da0
 void Controls::RemoveControl(W8Widget* control)
 {
@@ -2122,7 +2121,6 @@ void Controls::RemoveControl(W8Widget* control)
     }
 }
 
-/* Tears the panel down back to front, unlinking each control before deleting it. */
 // FUNCTION: WIZ8 0x004f2df0
 void Controls::DestroyAllControls()
 {
@@ -2178,7 +2176,6 @@ void Controls::Invalidate(const W8ControlsRect* rect)
     RequestRedraw(0x80000000);
 }
 
-/* Marks the panel's layout stale without touching the redraw rectangle. */
 // FUNCTION: WIZ8 0x004f2f00
 void Controls::InvalidateLayout()
 {
@@ -2255,7 +2252,6 @@ void Controls::AcquireRegionSet(unsigned int* shared_region_set)
     ResetRegionSet(m_uiRegionSetId);
 }
 
-/* Enables timed help for this widget's region when it owns one. */
 // FUNCTION: WIZ8 0x004f4120
 void W8Widget::EnableRegionHelp(int help_text_id)
 {
@@ -2264,7 +2260,6 @@ void W8Widget::EnableRegionHelp(int help_text_id)
     }
 }
 
-/* Disables timed help and clears the text id for this widget's region. */
 // FUNCTION: WIZ8 0x004f4140
 void W8Widget::DisableRegionHelp()
 {
