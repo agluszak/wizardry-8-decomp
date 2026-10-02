@@ -299,7 +299,6 @@ enum { W8_ITEM_FLAG_PERSISTENT = 0x20 };
 /* Bit 1 of the world item's own flag word. */
 enum { W8_WORLD_ITEM_FLAG_02 = 2 };
 
-/* Free a whole group of world items, following the link that chains them. */
 // FUNCTION: WIZ8 0x004f6cc0
 void FreeWorldItemGroup(W8WorldItem* item)
 {
@@ -395,7 +394,6 @@ W8WorldItem* ItemInfoRemoveFromGroup(W8WorldItem* head, W8WorldItem* item)
     return head;
 }
 
-/* The next item in a group. */
 // FUNCTION: WIZ8 0x004f8410
 W8WorldItem* ItemInfoGroupGetNext(W8WorldItem* item)
 {
@@ -406,7 +404,6 @@ W8WorldItem* ItemInfoGroupGetNext(W8WorldItem* item)
     return item->next;
 }
 
-/* Whether the item's record marks it as one the world keeps. */
 // FUNCTION: WIZ8 0x004f91e0
 bool ItemInfoIsWorldPersistent(const W8WorldItem* item)
 {
@@ -416,7 +413,6 @@ bool ItemInfoIsWorldPersistent(const W8WorldItem* item)
     return (g_item_records[item->item.iItemNo].flags_041 & W8_ITEM_FLAG_PERSISTENT) != 0;
 }
 
-/* Copy a world item's carried item out onto the heap. */
 // FUNCTION: WIZ8 0x004f9210
 W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item)
 {
@@ -429,7 +425,6 @@ W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item)
     return copy;
 }
 
-/* Raise or lower bit one of the world item's own flag word. */
 // FUNCTION: WIZ8 0x004f94a0
 void SetWorldItemFlag02(W8WorldItem* item, char enabled)
 {
@@ -460,8 +455,6 @@ W8WorldItem* ItemInfo(unsigned int item_list_index)
     return item;
 }
 
-/* Where in the world item list one runtime id sits. Not finding it is a data
-   error rather than a -1. */
 // FUNCTION: WIZ8 0x004f8060
 unsigned int ItemIndex(int runtime_id)
 {
@@ -480,9 +473,6 @@ unsigned int ItemIndex(int runtime_id)
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
 
-/* Flatten one item's whole group into a vector, the item itself first and then
-   everything chained onto it. A failed append drops that entry and the walk
-   continues. */
 // FUNCTION: WIZ8 0x004f8440
 int ItemInfoMakeGroupList(W8WorldItem* item, W8GrowableVector<W8WorldItem*>* out)
 {

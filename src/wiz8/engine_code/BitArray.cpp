@@ -262,8 +262,6 @@ bool BitArray::SetAndGrow(unsigned int bit)
     return Set(bit);
 }
 
-/* Raise every bit, including the ones past the end in the last word - the
-   count is set to the array's own length regardless. */
 // FUNCTION: WIZ8 0x0043b420
 bool BitArray::SetAll()
 {
@@ -313,8 +311,6 @@ bool BitArray::Test(unsigned int bit)
     return (puiIndex[bit >> 5] & (1 << (bit & 0x1f))) != 0;
 }
 
-/* Keep only the bits both arrays have. The shorter of the two bounds the walk,
-   so this array's bits past the other's end are left alone. */
 // FUNCTION: WIZ8 0x0043b4c0
 bool BitArray::IntersectWith(BitArray& other)
 {
@@ -377,9 +373,6 @@ void BitArray::SetToComplementOf(BitArray& other)
     }
 }
 
-/* Count the bits that are up by walking them from the start, which is a
-   different answer from the running count if anything has gone wrong with
-   it. */
 // FUNCTION: WIZ8 0x0043b5f0
 int BitArray::CountSetBits()
 {
@@ -392,9 +385,6 @@ int BitArray::CountSetBits()
     return set_count;
 }
 
-/* The next bit that is up, numbered from one so that zero can mean the end.
-   Restarting rewinds the cursor first, and answers -1 outright when there is
-   no index to walk. Reaching the end rewinds so the next walk starts over. */
 // FUNCTION: WIZ8 0x0043b660
 int BitArray::NextSetBit(char restart)
 {
@@ -428,10 +418,6 @@ int BitArray::NextSetBit(char restart)
     return 0;
 }
 
-/* Grow to hold more bits, keeping whatever is already set. The old index is
-   copied into the front of the new one and released; an array that had no
-   index yet comes out with a word count of zero, which the first store then
-   corrects. */
 // FUNCTION: WIZ8 0x0043b700
 void BitArray::Grow(unsigned int wanted_bits, unsigned int new_bit_count)
 {
