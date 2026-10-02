@@ -184,66 +184,6 @@ int g_attribute_label_ids[7] = {0x924, 0x925, 0x926, 0x927, 0x928, 0x92a, 0x929}
 // GLOBAL: WIZ8 0x0064DD4C
 wchar_t g_format_s_colon_d_s_colon_d[] = L"%s: %d, %s: %d";
 
-// FUNCTION: WIZ8 0x005B9220
-void ReleaseCampActionPanel(void)
-{
-    Controls* panel = g_camp_action_panel;
-    if (panel != 0) {
-        delete panel;
-        g_camp_action_panel = 0;
-    }
-    W8TextControl** control = g_camp_action_buttons;
-    do {
-        if (*control != 0) {
-            delete *control;
-            *control = 0;
-        }
-        ++control;
-    } while (control < g_camp_action_buttons + 2);
-}
-
-// FUNCTION: WIZ8 0x005B9760
-void ReleaseItemsTabPanel(void)
-{
-    Controls* panel = g_camp_realm_tab_panel;
-    if (panel != 0) {
-        delete panel;
-        g_camp_realm_tab_panel = 0;
-    }
-    W8TextControl** control = g_camp_realm_tabs;
-    do {
-        if (*control != 0) {
-            delete *control;
-            *control = 0;
-        }
-        ++control;
-    } while (control < g_camp_realm_tabs + 7);
-}
-
-// FUNCTION: WIZ8 0x005B9EA0
-void ReleaseCampSecondaryPanel(void)
-{
-    Controls* panel = g_camp_secondary_panel;
-    if (panel != 0) {
-        delete panel;
-        g_camp_secondary_panel = 0;
-    }
-    W8TextControl** control = g_camp_page_tabs;
-    do {
-        if (*control != 0) {
-            delete *control;
-            *control = 0;
-        }
-        ++control;
-    } while (control < g_camp_page_tabs + 2);
-}
-
-// FUNCTION: WIZ8 0x005b9ef0
-void InvalidateCampPanel(void)
-{
-    g_camp_secondary_panel->Invalidate(0);
-}
-
 // GLOBAL: WIZ8 0x0064CBF0
 W8CampScreenRegion g_camp_screen_regions[12] = {
     {0x0bc, 0x0b0, 0x2d, 0x39, 0x00, 0x01, 0x0ee, 0x0c1, 0},
@@ -1021,33 +961,6 @@ void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
 }
 
-// FUNCTION: WIZ8 0x005b9330
-void RefreshCampActionPanel(char invalidate)
-{
-    if (invalidate != 0) {
-        g_camp_action_panel->Invalidate(0);
-    }
-    g_camp_action_panel->Redraw();
-}
-
-// FUNCTION: WIZ8 0x005b98e0
-void RefreshItemsTabPanel(char invalidate)
-{
-    if (invalidate != 0) {
-        g_camp_realm_tab_panel->Invalidate(0);
-    }
-    g_camp_realm_tab_panel->Redraw();
-}
-
-// FUNCTION: WIZ8 0x005b9f90
-void RefreshCampSecondaryPanel(char invalidate)
-{
-    if (invalidate != 0) {
-        InvalidateCampPanel();
-    }
-    g_camp_secondary_panel->Redraw();
-}
-
 // FUNCTION: WIZ8 0x005b3150
 W8CampCharacterInfo::W8CampCharacterInfo() : Controls(0x136, 0, 0x280, 0xa5, 0x122, 0, 0)
 {
@@ -1272,7 +1185,7 @@ void W8CampCharacterInfo::Redraw()
     }
 }
 
-W8CampItemRange::W8CampItemRange()
+inline W8CampItemRange::W8CampItemRange()
 {
     m_range = new W8RangeControl(0x263, 0xc1, 0x275, 0x1a1, &g_camp_item_region_set);
     m_range->SetEnabled(1);

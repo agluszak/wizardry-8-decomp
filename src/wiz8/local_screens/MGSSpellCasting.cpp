@@ -79,7 +79,7 @@ int GetSpellCastingPowerIndex(void)
 }
 
 static void CreateSpellCastingViewControls(void);
-static void ReleaseSpellCastingViewControls(void);
+void ReleaseSpellCastingViewControls(void);
 void SelectFireSpellRealm(void);
 void SelectWaterSpellRealm(void);
 void SelectAirSpellRealm(void);
@@ -97,7 +97,7 @@ void SelectSpellPowerPip7(void);
 void SelectSpellPowerPip8(void);
 void SpellCastingDialogResult(W8DialogBase* dialog);
 void PreviewSpellPowerPipHover(int power_level);
-static void UpdateSpellRealmPointDisplays(void);
+void UpdateSpellRealmPointDisplays(void);
 static void UpdateSpellPowerPips(void);
 static void RefreshSpellPowerPip(int pip);
 static void RebuildSpellCastingList(int spell_id);
@@ -105,8 +105,8 @@ static void SetSpellListLineColor(int index, char color);
 static void SelectSpellCastingRow(int index);
 static void SelectSpellCastingRealm(int realm);
 static void SelectSpellCastingListRow(int index);
-static void TryCommitSpellCast(void);
-static void ShowSpellCastingError(int spell_id);
+void TryCommitSpellCast(void);
+void ShowSpellCastingError(int spell_id);
 
 /* Builds the three spell-casting panels and all of their controls: the six
    realm buttons with their animated icons, the nine power-level pips, the
@@ -238,7 +238,7 @@ static void CreateSpellCastingViewControls(void)
 
 /* Releases the three panels and every text control the view owns. */
 // FUNCTION: WIZ8 0x0059F060
-static void ReleaseSpellCastingViewControls(void)
+void ReleaseSpellCastingViewControls(void)
 {
     int index;
 
@@ -446,7 +446,7 @@ void SelectSpellCastingCharacter(int party_slot)
 /* Writes each realm's "current/max" spell-point caption and enables the realm
    button and icon for the pools the caster actually has. */
 // FUNCTION: WIZ8 0x0059F660
-static void UpdateSpellRealmPointDisplays(void)
+void UpdateSpellRealmPointDisplays(void)
 {
     int realm;
 
@@ -1066,9 +1066,9 @@ void PreviewSpellPowerPipHover(int power_level)
             spell_name = gpSCSV->power_controls[W8_SPELL_NAME_CONTROL];
             panel = gpSCSV->panels[2];
             ColorFillVideoSurfaceArea(
-                -0xe, spell_name->m_left + panel->m_bounds.left, spell_name->m_top + panel->m_bounds.top,
-                spell_name->m_right + panel->m_bounds.left, spell_name->m_bottom + panel->m_bounds.top,
-                Get16BPPColor(0x10101));
+                -0xe, spell_name->m_left + panel->m_bounds.left,
+                spell_name->m_top + panel->m_bounds.top, spell_name->m_right + panel->m_bounds.left,
+                spell_name->m_bottom + panel->m_bounds.top, Get16BPPColor(0x10101));
             spell_name->Invalidate(0);
             if (power_level != -1) {
                 spell_name->m_textBuffer.SetRenderMode(6);
@@ -1398,7 +1398,7 @@ int GetSpellCastingSelection(void)
 /* Lets a fully priced spell commit once its target is valid; spells 0x49 and
    0x4b first raise a confirmation notice unless one was already answered. */
 // FUNCTION: WIZ8 0x005A1370
-static void TryCommitSpellCast(void)
+void TryCommitSpellCast(void)
 {
     bool ready;
 
@@ -1435,7 +1435,7 @@ static void TryCommitSpellCast(void)
 /* Shows the notice line naming why a spell cannot be cast, then clears the
    detail spell. */
 // FUNCTION: WIZ8 0x005A14D0
-static void ShowSpellCastingError(int spell_id)
+void ShowSpellCastingError(int spell_id)
 {
     gpSCSV->override_spell_104 = spell_id;
     if (SpellUsableNow(spell_id, 0) == 0) {

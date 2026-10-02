@@ -338,16 +338,28 @@ public:
     unsigned char CheckNavigatorCollision(const srVector3T<float>* from,
                                           const srVector3T<float>* to);
 
-    void configureStartupRange(float range);
-    void configureStartupDepth(float near_depth, float far_depth);
+    /* No retail emission: the startup world and the copy constructor expand
+       both setters in place. */
+    void configureStartupRange(float range)
+    {
+        radius_084 = range;
+        trace_mask_090 = 1;
+        movement_0c0.collision_radius_0b0 = range;
+        movement_0c0.alternate_radius_0b4 = range;
+    }
+    void configureStartupDepth(float near_depth, float far_depth)
+    {
+        movement_0c0.height_offset_0b8 = near_depth;
+        movement_0c0.secondary_height_offset_0bc = far_depth;
+    }
 
     srVector3T<float> GetPosition();
-    unsigned char UpdateTrackedPosition();                    /* 0x00454950 */
+    unsigned char UpdateTrackedPosition();                      /* 0x00454950 */
     void UpdateNavigation(unsigned char value, char condition); /* 0x004553A0 */
-    void SetAngles(float angle);                              /* 0x004538F0 */
-    void SetPitch(float pitch);                               /* 0x00453940 */
-    float GetYaw();                                           /* 0x00453970 */
-    float GetPitch();                                         /* 0x00453980 */
+    void SetAngles(float angle);                                /* 0x004538F0 */
+    void SetPitch(float pitch);                                 /* 0x00453940 */
+    float GetYaw();                                             /* 0x00453970 */
+    float GetPitch();                                           /* 0x00453980 */
     /* The world-path reachability probe the group engagement check runs:
        fills `out_distance` with the route length and returns nonzero when a
        route inside `max_range` exists. */

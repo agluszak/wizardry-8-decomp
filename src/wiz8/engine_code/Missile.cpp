@@ -821,7 +821,7 @@ unsigned int W8MissileRep::ApplyEmitterSetting(signed char emitter)
 /* The two emitter slots start empty and at the source default playback value.
    Construction of the two light-list vectors is ordinary array-member
    construction and precedes these assignments in the retail body. */
-W8MissileRep::W8MissileRep()
+inline W8MissileRep::W8MissileRep()
 {
     emitters[0] = 0;
     emitters[1] = 0;

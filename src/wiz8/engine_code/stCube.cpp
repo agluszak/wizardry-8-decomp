@@ -441,7 +441,7 @@ void SetWorldCursorNodeParameter(W8WorldCursorNode* entry, int index, int value)
    model instance. The screen-point parameters are carried but unused - the
    pick is purely camera-distance based. */
 // FUNCTION: WIZ8 0x0048e310
-static W8WorldCursorNode* FindNearestWorldCursorNode(int x, int y)
+W8WorldCursorNode* FindNearestWorldCursorNode(int x, int y)
 {
     float nearest = 999999.0f;
     W8WorldCursorNode* result = 0;

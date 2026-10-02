@@ -154,13 +154,13 @@ W8OptionsKeyRow g_options_key_rows[] = {
 W8OptionsKeyboardPage g_options_keyboard_pages[5] = {
     {0x835, 200, 214}, {0x836, 300, 305}, {0x837, 402, 401}, {0x838, 500, 504}, {0x839, 600, 614}};
 
-W8OptionsPanelSet::W8OptionsPanelSet()
+inline W8OptionsPanelSet::W8OptionsPanelSet()
     : m_page_count_000(0), m_compact_layout(0), m_hide_navigation(0), m_active(false),
       m_current_00c(0)
 {
 }
 
-W8OptionsPanelSet::~W8OptionsPanelSet()
+inline W8OptionsPanelSet::~W8OptionsPanelSet()
 {
     for (int index = m_panels_010.count - 1; index >= 0; --index) {
         m_panels_010.RemoveAtAndDelete(index);
@@ -180,7 +180,7 @@ W8OptionsPanelSet::~W8OptionsPanelSet()
 // SYNTHETIC: WIZ8 0x005A76D0
 // W8TextControl subclass 0x005EEDDC::~subclass (emitted)
 
-W8OptionsGamePanel::W8OptionsGamePanel() : W8OptionsPanel(0) {}
+inline W8OptionsGamePanel::W8OptionsGamePanel() : W8OptionsPanel(0) {}
 
 // SYNTHETIC: WIZ8 0x005ac680
 // W8OptionsGamePanel::`scalar deleting destructor'
@@ -188,7 +188,7 @@ W8OptionsGamePanel::W8OptionsGamePanel() : W8OptionsPanel(0) {}
 // SYNTHETIC: WIZ8 0x005ac6a0
 // W8OptionsGamePanel::~W8OptionsGamePanel
 
-W8OptionsMousePanel::W8OptionsMousePanel() : W8OptionsPanel(1) {}
+inline W8OptionsMousePanel::W8OptionsMousePanel() : W8OptionsPanel(1) {}
 
 // SYNTHETIC: WIZ8 0x005ac7c0
 // W8OptionsMousePanel::`scalar deleting destructor'
@@ -196,7 +196,7 @@ W8OptionsMousePanel::W8OptionsMousePanel() : W8OptionsPanel(1) {}
 // SYNTHETIC: WIZ8 0x005ac7e0
 // W8OptionsMousePanel::~W8OptionsMousePanel
 
-W8OptionsInterfacePanel::W8OptionsInterfacePanel() : W8OptionsPanel(2) {}
+inline W8OptionsInterfacePanel::W8OptionsInterfacePanel() : W8OptionsPanel(2) {}
 
 // SYNTHETIC: WIZ8 0x005AC900
 // W8OptionsInterfacePanel::`scalar deleting destructor'
@@ -204,7 +204,7 @@ W8OptionsInterfacePanel::W8OptionsInterfacePanel() : W8OptionsPanel(2) {}
 // SYNTHETIC: WIZ8 0x005AC920
 // W8OptionsInterfacePanel::~W8OptionsInterfacePanel
 
-W8OptionsAudioPanel::W8OptionsAudioPanel() : W8OptionsPanel(3) {}
+inline W8OptionsAudioPanel::W8OptionsAudioPanel() : W8OptionsPanel(3) {}
 
 // SYNTHETIC: WIZ8 0x005ACCC0
 // W8OptionsAudioPanel::`scalar deleting destructor'
@@ -212,7 +212,7 @@ W8OptionsAudioPanel::W8OptionsAudioPanel() : W8OptionsPanel(3) {}
 // SYNTHETIC: WIZ8 0x005ACCE0
 // W8OptionsAudioPanel::~W8OptionsAudioPanel
 
-W8OptionsGraphicsPanel::W8OptionsGraphicsPanel() : W8OptionsPanel(4) {}
+inline W8OptionsGraphicsPanel::W8OptionsGraphicsPanel() : W8OptionsPanel(4) {}
 
 // SYNTHETIC: WIZ8 0x005ACA40
 // W8OptionsGraphicsPanel::`scalar deleting destructor'
@@ -220,7 +220,7 @@ W8OptionsGraphicsPanel::W8OptionsGraphicsPanel() : W8OptionsPanel(4) {}
 // SYNTHETIC: WIZ8 0x005ACA60
 // W8OptionsGraphicsPanel::~W8OptionsGraphicsPanel
 
-W8OptionsAdvancedGraphicsPanel::W8OptionsAdvancedGraphicsPanel() : W8OptionsPanel(5) {}
+inline W8OptionsAdvancedGraphicsPanel::W8OptionsAdvancedGraphicsPanel() : W8OptionsPanel(5) {}
 
 // SYNTHETIC: WIZ8 0x005acb80
 // W8OptionsAdvancedGraphicsPanel::`scalar deleting destructor'
@@ -228,11 +228,12 @@ W8OptionsAdvancedGraphicsPanel::W8OptionsAdvancedGraphicsPanel() : W8OptionsPane
 // SYNTHETIC: WIZ8 0x005acba0
 // W8OptionsAdvancedGraphicsPanel::~W8OptionsAdvancedGraphicsPanel
 
-W8OptionsKeyboardPanel::W8OptionsKeyboardPanel(int panel)
+inline W8OptionsKeyboardPanel::W8OptionsKeyboardPanel(int panel)
     : W8OptionsPanel(panel), m_panel(panel), m_captured_button(0)
 {
 }
-W8OptionsSaveLoadPanel::W8OptionsSaveLoadPanel(int panel) : W8OptionsPanel(panel), m_panel(panel)
+inline W8OptionsSaveLoadPanel::W8OptionsSaveLoadPanel(int panel)
+    : W8OptionsPanel(panel), m_panel(panel)
 {
     m_renderTarget = 0xf7;
     m_renderArg_20 = 0;
@@ -242,7 +243,7 @@ W8OptionsSaveLoadPanel::W8OptionsSaveLoadPanel(int panel) : W8OptionsPanel(panel
 
 // FUNCTION: WIZ8 0x005ace20
 W8OptionsSaveLoadPanel::~W8OptionsSaveLoadPanel() {}
-W8OptionsUnavailablePanel::W8OptionsUnavailablePanel(int message)
+inline W8OptionsUnavailablePanel::W8OptionsUnavailablePanel(int message)
     : W8OptionsPanel(13), m_message(message)
 {
 }
@@ -828,8 +829,8 @@ void W8OptionsKeyboardPanel::Populate()
     m_selection.m_selectionListener = this;
 
     W8OptionsKeyboardPage& page = g_options_keyboard_pages[m_panel - 6];
-    W8ControlsRect title_bounds = {m_bounds.left + 30, m_bounds.top + m_content_top_050, m_bounds.right - 30,
-                                   m_bounds.top + m_content_top_050 + 22};
+    W8ControlsRect title_bounds = {m_bounds.left + 30, m_bounds.top + m_content_top_050,
+                                   m_bounds.right - 30, m_bounds.top + m_content_top_050 + 22};
     W8TextBuffer* title =
         new W8TextBuffer(&title_bounds, gppStringList[page.title], g_options_detail_font,
                          g_W8TextBufferAlignTop | g_W8TextBufferAlignCenter, 4);
@@ -843,8 +844,8 @@ void W8OptionsKeyboardPanel::Populate()
 
     W8OptionsKeyRow* row = g_options_key_rows + first;
     for (;;) {
-        W8ControlsRect label_bounds = {m_bounds.left + 20, m_bounds.top + m_content_top_050, m_bounds.right,
-                                       m_bounds.top + m_content_top_050 + 22};
+        W8ControlsRect label_bounds = {m_bounds.left + 20, m_bounds.top + m_content_top_050,
+                                       m_bounds.right, m_bounds.top + m_content_top_050 + 22};
         W8TextBuffer* label =
             new W8TextBuffer(&label_bounds, gppStringList[row->label], g_options_detail_font,
                              g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4);
@@ -1314,7 +1315,8 @@ void W8OptionsAdvancedGraphicsPanel::Populate()
 void W8OptionsUnavailablePanel::Populate()
 {
     m_content_top_050 += 44;
-    W8ControlsRect bounds = {m_bounds.left + 30, m_bounds.top + m_content_top_050, m_bounds.right - 30, m_bounds.bottom};
+    W8ControlsRect bounds = {m_bounds.left + 30, m_bounds.top + m_content_top_050,
+                             m_bounds.right - 30, m_bounds.bottom};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[m_message], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignCenter, 4);
     m_text_buffers_058.Add(text);
@@ -1661,7 +1663,7 @@ void W8OptionsMenuButton::OnPrimary(W8TextControl*)
     }
 }
 
-W8OptionsCheckbox::W8OptionsCheckbox(Controls* owner, int top, int* value)
+inline W8OptionsCheckbox::W8OptionsCheckbox(Controls* owner, int top, int* value)
     : W8TextControl(owner, 0xffffffff, 0x14d, top - 2, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1),
       m_value(value)
 {
@@ -1684,7 +1686,8 @@ void W8OptionsCheckbox::OnLeftButtonUp(int event)
     *m_value = static_cast<unsigned char>(m_stateFlags) & g_W8TextControlStateSecondary & 0xff;
 }
 
-W8OptionsSlider::W8OptionsSlider(Controls* owner, int top, float* value, unsigned char alternate)
+inline W8OptionsSlider::W8OptionsSlider(Controls* owner, int top, float* value,
+                                        unsigned char alternate)
     : W8HorizontalRangeThumb(owner, 0xffffffff, 0xc9, top - 2, 0xf5, 0, alternate != 0 ? 4 : 0, 1,
                              2, 3),
       m_value(value)
@@ -1736,7 +1739,7 @@ void W8OptionsSlider::Redraw(unsigned char full_redraw)
 // SYNTHETIC: WIZ8 0x005A93A0
 // W8ControlSelection::~W8ControlSelection
 
-W8OptionsSelection::W8OptionsSelection(int* value) : m_value(value) {}
+inline W8OptionsSelection::W8OptionsSelection(int* value) : m_value(value) {}
 
 // SYNTHETIC: WIZ8 0x005A8B30
 // W8OptionsSelection::`scalar deleting destructor'
@@ -1902,8 +1905,7 @@ W8OptionsMenuSet::W8OptionsMenuSet(unsigned int* shared_region_set)
     m_next_054 = new W8TextControl(this, 0xffffffff, 0x11f, 3, 0, 0, 0xf4, 0, 4, 6, 5, -1, 7);
     m_next_054->m_listener = this;
 
-    m_page_text_05c = new W8TextBuffer(&m_bounds,
-                                       &g_empty_wide_string, g_options_detail_font,
+    m_page_text_05c = new W8TextBuffer(&m_bounds, &g_empty_wide_string, g_options_detail_font,
                                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle, 4);
 }
 

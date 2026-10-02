@@ -333,7 +333,7 @@ static void ShowMipeItemStatus(void)
 /* Six visible rows of `list` starting at the table base; the selected row is
    palette 3, the rest 0xf, and short lists blank the remainder. */
 // FUNCTION: WIZ8 0x00577d80
-static void ShowMipeTableRows(W8PList* list)
+void ShowMipeTableRows(W8PList* list)
 {
     void* entry;
     int row;
@@ -357,7 +357,7 @@ static void ShowMipeTableRows(W8PList* list)
 /* Mode-9 menu: pick a monster or item to edit, showing the one/group choice
    the 'C' key toggles. */
 // FUNCTION: WIZ8 0x00577de0
-static void ShowMipeChooseMenu(void)
+void ShowMipeChooseMenu(void)
 {
     ResetEditorStatusLine(-1);
     ShowNoticef(6, L"Choose monster or item to edit.");
@@ -375,7 +375,7 @@ static void ShowMipeChooseMenu(void)
 
 /* Mode-5 menu: which kind of object to edit. */
 // FUNCTION: WIZ8 0x00577e60
-static void ShowMipeEditMenu(void)
+void ShowMipeEditMenu(void)
 {
     ResetEditorStatusLine(-1);
     ShowNoticef(6, L"What do you want to edit?.");
@@ -387,7 +387,7 @@ static void ShowMipeEditMenu(void)
 
 /* Mode-0xd menu: prop field-editing choices (locks & traps, treasure table). */
 // FUNCTION: WIZ8 0x00577eb0
-static void ShowMipePropMenu(void)
+void ShowMipePropMenu(void)
 {
     ResetEditorStatusLine(-1);
     ShowNoticef(6, L"Choose how you want to edit prop.");
@@ -584,7 +584,7 @@ void ShowMonsterGeneratorEditor(void)
 
 /* Mode-0x17 menu: current encounter-table category plus its six rows. */
 // FUNCTION: WIZ8 0x005783c0
-static void ShowMipeEncounterCategory(void)
+void ShowMipeEncounterCategory(void)
 {
     W8EncounterTableRuntime* entry;
     int row;
@@ -610,7 +610,7 @@ static void ShowMipeEncounterCategory(void)
 
 /* Mode-0x1d menu: current item-table category plus its six rows. */
 // FUNCTION: WIZ8 0x00578470
-static void ShowMipeItemTableCategory(void)
+void ShowMipeItemTableCategory(void)
 {
     W8ItemTableRecord* entry;
     int row;
@@ -638,7 +638,7 @@ static void ShowMipeItemTableCategory(void)
    selected monster group at the world cursor, 'C' jumps to the monster
    category picker and 'O' cycles the creation method. */
 // FUNCTION: WIZ8 0x00578500
-static unsigned char HandleMipeMonsterCreateKey(unsigned short key)
+unsigned char HandleMipeMonsterCreateKey(unsigned short key)
 {
     W8PList* list;
     W8MipeMonsterEntry* entry;
@@ -748,7 +748,7 @@ static unsigned char HandleMipeMonsterCreateKey(unsigned short key)
    record back to a database index and drops into item-create mode; the arrows
    page and walk the six-row view and cycle categories. */
 // FUNCTION: WIZ8 0x00578850
-static void HandleMipeItemCategoryKey(unsigned short key)
+void HandleMipeItemCategoryKey(unsigned short key)
 {
     W8PList* list;
     W8ItemDatabaseRecord* entry;
@@ -875,7 +875,7 @@ static void HandleMipeItemCategoryKey(unsigned short key)
    and activates/deactivates the flagged items, 'C' opens the item category
    picker and 'H' toggles the spawned item's hidden flag. */
 // FUNCTION: WIZ8 0x00578d00
-static unsigned char HandleMipeItemCreateKey(unsigned short key)
+unsigned char HandleMipeItemCreateKey(unsigned short key)
 {
     W8PList* list;
     W8WorldItem* spawned;
@@ -996,7 +996,7 @@ static unsigned char HandleMipeItemCreateKey(unsigned short key)
    creation method and drops back to mode 1; the arrows page/walk rows and
    cycle through non-empty categories. */
 // FUNCTION: WIZ8 0x00579300
-static void HandleMipeMonsterCategoryKey(unsigned short key)
+void HandleMipeMonsterCategoryKey(unsigned short key)
 {
     W8PList* list;
     W8MipeMonsterEntry* entry;
@@ -1383,7 +1383,7 @@ void HandleWaypointKey(unsigned short key)
    trigger, stores it as the edit target and opens the locks & traps ('1') or
    treasure-table ('2') editors. */
 // FUNCTION: WIZ8 0x00579ff0
-static void HandleMipePropEditKey(unsigned short key)
+void HandleMipePropEditKey(unsigned short key)
 {
     W8PList* list;
     W8World* world;
@@ -2016,7 +2016,7 @@ int HandleMonsterGeneratorEditKey(unsigned short key)
    the highlighted table to the selected generator; the arrows page/walk the
    rows and cycle through the categories. */
 // FUNCTION: WIZ8 0x0057b1a0
-static void HandleMipeGeneratorTableKey(unsigned short key)
+void HandleMipeGeneratorTableKey(unsigned short key)
 {
     W8PList* list;
     W8EncounterTableRuntime* entry;
@@ -2265,7 +2265,7 @@ void EditMonsterGeneratorName(unsigned short key)
    '1' cycles the lock type and re-rolls the pin state, '2' enters key-id
    input, '3'/'4' bump the difficulty, and every path repaints the menu. */
 // FUNCTION: WIZ8 0x0057b880
-static void HandleMipeLockTrapKey(unsigned short key)
+void HandleMipeLockTrapKey(unsigned short key)
 {
     Trigger* trigger;
     Trigger* action_trigger;
@@ -2405,7 +2405,7 @@ void EditTriggerKeyID(unsigned int key)
    and returns to the prop menu; the arrows page/walk rows and cycle the item
    table categories. */
 // FUNCTION: WIZ8 0x0057bbd0
-static void HandleMipeItemTableKey(unsigned short key)
+void HandleMipeItemTableKey(unsigned short key)
 {
     W8PList* list;
     Trigger* trigger;

@@ -162,7 +162,7 @@ float g_path_obstacle_braking_factor = 0.3f;
 
 #define OCTPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPath.cpp"
 
-static unsigned char LoadPathParameters();
+unsigned char LoadPathParameters();
 
 /* The path-search heap specialization is emitted after OctPath.cpp's ordinary
    bodies. The generic definitions live once in stHeap.hpp. */
@@ -1931,10 +1931,12 @@ unsigned char W8PathingService::CanReachSearchNode(const srVector3T<float>* posi
 /* Pull the last planned point onto the requested contact shell when it only
    overshoots that shell by less than half a path cell. The adjusted point is
    also made the attachment's current point and republished to the octree. */
-// FUNCTION: WIZ8 0x00465D70
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized" // uninit-ok: retail uses an unset target radius/position when monster info or its model is absent; this can alter the published endpoint.
-#pragma clang diagnostic ignored "-Wuninitialized" // uninit-ok: retail uses an unset target radius/position when monster info or its model is absent; this can alter the published endpoint.
+#pragma clang diagnostic ignored                                                                   \
+    "-Wsometimes-uninitialized" // uninit-ok: retail uses an unset target radius/position when monster info or its model is absent; this can alter the published endpoint.
+#pragma clang diagnostic ignored                                                                   \
+    "-Wuninitialized" // uninit-ok: retail uses an unset target radius/position when monster info or its model is absent; this can alter the published endpoint.
+// FUNCTION: WIZ8 0x00465D70
 void W8PathingService::AdjustFinalPathEndpoint(W8NavigatorMovementState* movement, float radius,
                                                float separation)
 {
@@ -2659,8 +2661,8 @@ float W8PathingService::UpdateSearchNodeScore(unsigned short node_index,
    directionally conflicting overlaps return the retail collision state. */
 // FUNCTION: WIZ8 0x00465130
 unsigned short W8PathingService::ResolveSearchNodeCollisions(W8NavigatorMovementState* movement,
-                                                             unsigned short node_index, float radius,
-                                                             float separation)
+                                                             unsigned short node_index,
+                                                             float radius, float separation)
 {
     unsigned short result = 0;
     if (explicit_target_09c != 0) {
@@ -4905,10 +4907,9 @@ stModelInstance* W8PathingService::BuildPathVisualization()
         unsigned short source_index = static_cast<unsigned short>(next - 1);
         W8PathSurface* source = &m_pSurfaces_048[source_index];
         srVector3T<float> marker_color;
-        srVector3T<float> marker_scale(
-            (source->flags_00 >> 12) * g_double_005ec378,
-            (source->flags_00 >> 12) * 0.5,
-            (source->flags_00 >> 12) * g_double_005ec378);
+        srVector3T<float> marker_scale((source->flags_00 >> 12) * g_double_005ec378,
+                                       (source->flags_00 >> 12) * 0.5,
+                                       (source->flags_00 >> 12) * g_double_005ec378);
         int marker_vertex = marker_count * 5;
 
         rendered_waypoints_05c->SetAndGrow(source_index);

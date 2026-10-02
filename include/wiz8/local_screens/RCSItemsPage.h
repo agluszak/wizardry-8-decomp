@@ -72,15 +72,23 @@ bool IsSpecialItemId(W8ItemInstance* item);
    callback_id; gap-owned table, also read by the AssayDialog TU. */
 extern unsigned short g_equip_slot_label_ids[12];
 
-/* Camp panel create/enable/disable helpers; retail places them in the
-   ReviewCharacterScreen.cpp span, but each has a direct or bounded
-   RCSItemsPage.cpp anchor in the demo build. */
-int CreateCampActionPanel(void);      /* 0x005B9070 */
-void EnableCampActionButtons(void);   /* 0x005B9270 */
-void DisableCampActionButtons(void);  /* 0x005B9310 */
-int CreateItemsTabPanel(void);        /* 0x005B9350 */
-void UpdateItemsRealmTabs(void);      /* 0x005B97B0 */
-void DisableItemsRealmTabs(void);     /* 0x005B98C0 */
-int CreateCampSecondaryPanel(void);   /* 0x005B9900 */
-void EnableCampSecondaryPanel(void);  /* 0x005B9F00 */
-void DisableCampSecondaryPanel(void); /* 0x005B9F60 */
+/* Camp panel lifecycle helpers. Their retail addresses interleave with the
+   RCSItemsPage.cpp functions (0x005B9070-0x005B9FD0), and ReviewCharacterScreen.cpp
+   callers reach the refresh helpers by call rather than expansion, so one unit
+   owns them all. */
+int CreateCampActionPanel(void);                 /* 0x005B9070 */
+void ReleaseCampActionPanel(void);               /* 0x005B9220 */
+void EnableCampActionButtons(void);              /* 0x005B9270 */
+void DisableCampActionButtons(void);             /* 0x005B9310 */
+void RefreshCampActionPanel(char invalidate);    /* 0x005B9330 */
+int CreateItemsTabPanel(void);                   /* 0x005B9350 */
+void ReleaseItemsTabPanel(void);                 /* 0x005B9760 */
+void UpdateItemsRealmTabs(void);                 /* 0x005B97B0 */
+void DisableItemsRealmTabs(void);                /* 0x005B98C0 */
+void RefreshItemsTabPanel(char invalidate);      /* 0x005B98E0 */
+int CreateCampSecondaryPanel(void);              /* 0x005B9900 */
+void ReleaseCampSecondaryPanel(void);            /* 0x005B9EA0 */
+void InvalidateCampPanel(void);                  /* 0x005B9EF0 */
+void EnableCampSecondaryPanel(void);             /* 0x005B9F00 */
+void DisableCampSecondaryPanel(void);            /* 0x005B9F60 */
+void RefreshCampSecondaryPanel(char invalidate); /* 0x005B9F90 */

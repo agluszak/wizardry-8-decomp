@@ -25,7 +25,7 @@ void* g_oct_build_out;
 
 char CollectSurfacePredicate(W8GDSurface* surface, short kind);
 
-W8OctBuildLinkLists::W8OctBuildLinkLists() : m_usCurrent(0), unknown_02(0)
+inline W8OctBuildLinkLists::W8OctBuildLinkLists() : m_usCurrent(0), unknown_02(0)
 {
     for (int index = 0; index != 100; ++index) {
         m_apLinkLists[index] = 0;

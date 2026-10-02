@@ -1088,8 +1088,8 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
     if (monster_count == 0) {
         return BAD_INDEX;
     }
-    candidates =
-        static_cast<W8MonsterTargetCandidate*>(malloc(monster_count * sizeof(W8MonsterTargetCandidate)));
+    candidates = static_cast<W8MonsterTargetCandidate*>(
+        malloc(monster_count * sizeof(W8MonsterTargetCandidate)));
     if (candidates == 0) {
         return BAD_INDEX;
     }
@@ -1116,7 +1116,8 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
             unsigned int quadrant = GetMonsterQuadrant(monster_info) & 0xff;
 
             if (static_cast<unsigned char>(quadrant) == 2 ||
-                (!AnyoneStandsAhead(static_cast<unsigned char>(quadrant)) && AnyoneStandsAhead(4))) {
+                (!AnyoneStandsAhead(static_cast<unsigned char>(quadrant)) &&
+                 AnyoneStandsAhead(4))) {
                 next->in_reach = 1;
             }
         }
@@ -1326,7 +1327,8 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
     unsigned int index;
 
     if (slot->highlighted_monsters.GetCount() > 0) {
-        for (index = 0; index < static_cast<unsigned int>(slot->highlighted_monsters.GetCount()); ++index) {
+        for (index = 0; index < static_cast<unsigned int>(slot->highlighted_monsters.GetCount());
+             ++index) {
             SetMonsterHighlight(party_slot, *slot->highlighted_monsters.GetAt(index), 0);
         }
         slot->highlighted_monsters.Clear();
@@ -3033,7 +3035,8 @@ bool AnyMonsterVisible(void)
         }
     }
     for (index = 0; index < count; ++index) {
-        W8MonsterInfo* monster_info = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
+        W8MonsterInfo* monster_info =
+            static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
 
         if (monster_info->p3D != 0 &&
             IsMonsterVisibleWithinDistance(monster_info->p3D, &camera, limit) != 0) {
@@ -3212,8 +3215,8 @@ void ModifyGroupColor(int group_id, int color)
    sight flag for a character, the mon-to-mon visibility record for a monster
    source, and a point line-of-sight probe for an indirect source. */
 // FUNCTION: WIZ8 0x00539a30
-static unsigned char SourceCanSeeMonster(const W8TargetSource* source, W8MonsterInfo* monster_info,
-                                         unsigned char flag_index, int sight_flag)
+unsigned char SourceCanSeeMonster(const W8TargetSource* source, W8MonsterInfo* monster_info,
+                                  unsigned char flag_index, int sight_flag)
 {
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
         if (source->iChar == -1) {

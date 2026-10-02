@@ -1724,7 +1724,7 @@ void srTriMeshPipeline::Reset(srGERD* renderer)
     PrepareSlot();
 }
 
-srTriMeshPipeline::srTriMeshPipeline()
+inline srTriMeshPipeline::srTriMeshPipeline()
 {
     flags_28 = 0;
     shader_74.value = 0;

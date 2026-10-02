@@ -69,9 +69,9 @@ int g_camp_skill_hover_row;
 unsigned int g_camp_skill_regions;
 
 static unsigned char CampStatsMouseWheel(const InputAtom* event, W8Region*);
-static void DrawCampEffectList(void);
+void DrawCampEffectList(void);
 struct W8CampEffectEntry;
-static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out);
+void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out);
 
 /* The five skill-category blocks shared by the camp skills page: (x, y)
    origins, the row count that bounds each region, and the catalog frame each
@@ -576,7 +576,7 @@ void FilterCampEffectList(void)
 /* Draws the visible slice of the effect list into the page's clipping
    window, skipping entries that sit entirely above the scrolled view. */
 // FUNCTION: WIZ8 0x005c53c0
-static void DrawCampEffectList(void)
+void DrawCampEffectList(void)
 {
     W8CampScreenState* screen = g_camp_screen;
     SetFontDestBuffer(0xfffffff2, 0, 0xbe, 0x280, 0x1ac, 0);
@@ -606,7 +606,7 @@ static void DrawCampEffectList(void)
    y 0xbf) and advances the counter past its height plus one row of spacing.
    Kind 0 is a condition, kind 1 an enchantment, kind 2 an equipped item. */
 // FUNCTION: WIZ8 0x005c54a0
-static void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
+void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
 {
     int index;
     int line = *line_out;
@@ -1069,8 +1069,8 @@ void W8CharacterPersonalityPage::Activate()
     InitTextInputModeWithScheme(1);
     AddTextInputField(m_bounds.left + 0x97, m_bounds.top + 0xab, 0x106, 0x10, 0x7f,
                       m_character_060->name_part_2, 0x27, 0xf, 1);
-    AddTextInputField(m_bounds.left + 0x97, m_bounds.top + 0xc7, 0x106, 0x10, 0x7f, m_character_060->name, 9,
-                      0xf, 1);
+    AddTextInputField(m_bounds.left + 0x97, m_bounds.top + 0xc7, 0x106, 0x10, 0x7f,
+                      m_character_060->name, 9, 0xf, 1);
     if (GetTextInputFieldLength(0) == 0)
         SetActiveField(0);
     else if (GetTextInputFieldLength(1) == 0)

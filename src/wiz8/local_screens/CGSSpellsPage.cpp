@@ -64,8 +64,9 @@ static_assert(sizeof(W8CharacterSpellList) == 0x60, "W8CharacterSpellList_size")
 /* Retail secondary vftable 0x005ef610 places W8RangeListener at +0x34. */
 W8_ASSERT_BASE_END(W8CharacterSpellList, W8RangeListener, m_range, 0x34);
 
-W8CharacterSpellList::W8CharacterSpellList(Controls* owner, int x, int y,
-                                           W8CharacterSpellEntry* entries, unsigned int* region_set)
+inline W8CharacterSpellList::W8CharacterSpellList(Controls* owner, int x, int y,
+                                                  W8CharacterSpellEntry* entries,
+                                                  unsigned int* region_set)
     : W8Widget(owner, 0xffffffff, x + 0x1a, y + 0x19, x + 0xb4, y + 0x79), m_range(0),
       m_entries(entries), m_hovered_entry(-1), m_scroll_offset(0), m_listener(0),
       m_region_set(region_set), m_x(x), m_y(y)
@@ -85,9 +86,10 @@ W8CharacterSpellList::~W8CharacterSpellList()
 void W8CharacterSpellList::SetEntryCount(int count)
 {
     if (!m_range) {
-        m_range = new W8RangeControl(
-            m_pPanel->m_bounds.left + m_x + 0xb8, m_pPanel->m_bounds.top + m_y + 0x1a,
-            m_pPanel->m_bounds.left + m_x + 0xca, m_pPanel->m_bounds.top + m_y + 0x78, m_region_set);
+        m_range = new W8RangeControl(m_pPanel->m_bounds.left + m_x + 0xb8,
+                                     m_pPanel->m_bounds.top + m_y + 0x1a,
+                                     m_pPanel->m_bounds.left + m_x + 0xca,
+                                     m_pPanel->m_bounds.top + m_y + 0x78, m_region_set);
         m_range->m_listener = this;
     }
     m_range->Invalidate(0);

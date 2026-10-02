@@ -1207,7 +1207,7 @@ static void DrawDialogueTextCursor(int x, int y)
    first_line, temporarily terminating each row at the next line's start
    offset; tracks the widest row and invalidates the printed rectangle. */
 // FUNCTION: WIZ8 0x0058CA30
-static void DrawDialogueTextInputLines(int x, int y, unsigned int first_line)
+void DrawDialogueTextInputLines(int x, int y, unsigned int first_line)
 {
     W8DialogueTextState* input = g_level_block->dialogue_text_input;
     wchar_t* string = input->text + input->line_offsets[first_line];
@@ -1298,7 +1298,7 @@ void RedrawDialogueTextInput(void)
 }
 
 // FUNCTION: WIZ8 0x0058D7E0
-static bool GrowDialogueTextBuffer(void)
+bool GrowDialogueTextBuffer(void)
 {
     if (g_level_block->dialogue_text_input_open == 0) {
         return false;
@@ -1325,7 +1325,7 @@ static bool GrowDialogueTextBuffer(void)
 }
 
 // FUNCTION: WIZ8 0x0058D890
-static bool GrowDialogueLineOffsets(void)
+bool GrowDialogueLineOffsets(void)
 {
     if (g_level_block->dialogue_text_input_open == 0) {
         return false;
@@ -1350,7 +1350,7 @@ static bool GrowDialogueLineOffsets(void)
 }
 
 // FUNCTION: WIZ8 0x0058D940
-static void ReleaseDialogueTextInput(void)
+void ReleaseDialogueTextInput(void)
 {
     if (g_level_block->dialogue_text_input != 0) {
         delete[] g_level_block->dialogue_text_input->text;
@@ -1362,7 +1362,7 @@ static void ReleaseDialogueTextInput(void)
 }
 
 // FUNCTION: WIZ8 0x0058DF60
-static void InvalidateDialogueTextCursor(void)
+void InvalidateDialogueTextCursor(void)
 {
     g_level_block->dialogue_text_input->dirty = 1;
     RequestRedraw(0x80000000);
@@ -1500,7 +1500,7 @@ static void InsertDialogueTextCharacter(wchar_t character)
 }
 
 // FUNCTION: WIZ8 0x0058E010
-static void DeleteDialogueTextCharacter(unsigned int key)
+void DeleteDialogueTextCharacter(unsigned int key)
 {
     size_t length = wcslen(g_level_block->dialogue_text_input->text);
 

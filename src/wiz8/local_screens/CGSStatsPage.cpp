@@ -320,8 +320,9 @@ void W8CharacterStatsRow::Initialize(Controls* owner, unsigned int* region_set, 
 void W8CharacterStatsRow::BuildSubpanel()
 {
     if (m_subpanel_028 == 0) {
-        m_subpanel_028 = new Controls(m_x_00c + 0x9e, m_y_010 + 1, m_x_00c + 0x11c,
-                                      m_y_010 + 5 + static_cast<unsigned int>(m_count_008) * 0x16, -1, 0, -1);
+        m_subpanel_028 =
+            new Controls(m_x_00c + 0x9e, m_y_010 + 1, m_x_00c + 0x11c,
+                         m_y_010 + 5 + static_cast<unsigned int>(m_count_008) * 0x16, -1, 0, -1);
         m_subpanel_028->AcquireRegionSet(m_region_set_014);
         m_subpanel_entries_02c = new W8TextControl*[m_count_008];
 
@@ -504,7 +505,7 @@ void W8CharacterStatsRow::OnSecondary(W8TextControl* control)
 }
 
 /* The row's default state: no selection, no table, no child controls. */
-W8CharacterStatsRow::W8CharacterStatsRow()
+inline W8CharacterStatsRow::W8CharacterStatsRow()
     : m_index_004(-1), m_count_008(0), m_table_018(0), m_decrement_01c(0), m_increment_020(0),
       m_value_control_024(0), m_subpanel_028(0), m_subpanel_entries_02c(0), m_listener_030(0)
 {

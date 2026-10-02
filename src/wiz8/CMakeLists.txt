@@ -120,14 +120,30 @@ list(REMOVE_ITEM WIZ8_SOURCE_FILES ${WIZ8_INSTRUMENTABLE_SOURCE_FILES})
 
 # Share the common recovered objects across products. Only the selected units
 # are compiled again for the instrumented runtime test image.
+#
+# Recovered game units build with /Ob2, like the SGP library. Retail expands
+# ordinary same-unit callees without any inline specifier (RequestRedraw is
+# expanded in 26 MainGameScreen.cpp functions and called from every other
+# unit) but almost never a callee from another unit, which is auto-inlining's
+# reach. Static helpers retail never emits are expanded and dropped; functions
+# retail emits standalone have external linkage.
+# Retail calls stMaterial's emitted constructor from CreateDefaultMaterial;
+# /Ob2 expands it there and leaves the imported srMaterial constructor
+# unresolved in the runtime link, so this unit keeps /Ob1.
+set_source_files_properties(
+    "${PROJECT_SOURCE_DIR}/src/wiz8/engine_code/materials.cpp"
+    PROPERTIES COMPILE_OPTIONS /Ob1)
 add_library(wiz8_recovered_objects OBJECT ${WIZ8_SOURCE_FILES})
 target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
+target_compile_options(wiz8_recovered_objects PRIVATE /Ob2)
 wiz8_lint_target(wiz8_recovered_objects)
 add_library(wiz8_recovered_instrumentable_objects OBJECT ${WIZ8_INSTRUMENTABLE_SOURCE_FILES})
 target_link_libraries(wiz8_recovered_instrumentable_objects PRIVATE wiz8_compile_settings)
+target_compile_options(wiz8_recovered_instrumentable_objects PRIVATE /Ob2)
 wiz8_lint_target(wiz8_recovered_instrumentable_objects)
 add_library(wiz8_test_instrumented_objects OBJECT ${WIZ8_INSTRUMENTABLE_SOURCE_FILES})
 target_link_libraries(wiz8_test_instrumented_objects PRIVATE wiz8_compile_settings)
+target_compile_options(wiz8_test_instrumented_objects PRIVATE /Ob2)
 target_compile_definitions(wiz8_test_instrumented_objects PRIVATE WIZ8_RUNTIME_TESTS=1)
 target_include_directories(wiz8_test_instrumented_objects PRIVATE
     "${PROJECT_SOURCE_DIR}/tests/runtime/instrumentation")

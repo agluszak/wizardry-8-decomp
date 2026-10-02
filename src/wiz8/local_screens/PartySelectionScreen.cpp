@@ -661,7 +661,7 @@ bool PartySelectionInReviewMode(void)
     return g_party_selection_controller->m_mode == 1;
 }
 
-W8PartySelectionCharacterRow::W8PartySelectionCharacterRow(Controls* panel, int top, int row)
+inline W8PartySelectionCharacterRow::W8PartySelectionCharacterRow(Controls* panel, int top, int row)
     : W8TextControl(panel, 0xffffffff, 0, top, 0, 0, 0xfb, 0, 0, 1, 2, 1, -1), m_row(row),
       m_character_index(0), m_selection_listener(0)
 {
@@ -1155,7 +1155,8 @@ W8PartySelectionOptionPanel::W8PartySelectionOptionPanel()
     m_toggle_74->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
 
     GetCatalogImageSize(0x102, 0, 1, &m_image_width_94, &m_image_height_96);
-    m_render_left_8c = m_bounds.left + 0x18 + (0x160 - static_cast<unsigned short>(m_image_width_94)) / 2;
+    m_render_left_8c =
+        m_bounds.left + 0x18 + (0x160 - static_cast<unsigned short>(m_image_width_94)) / 2;
     m_render_top_90 = m_bounds.top + 0x80;
 }
 
@@ -1231,7 +1232,8 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
         ControlAt(index)->SetActive(mode == 0);
     }
 
-    W8ControlsRect bounds = {m_bounds.left + 0x22, m_bounds.top + 0x12, m_bounds.left + 0x16e, m_bounds.top + 0x171};
+    W8ControlsRect bounds = {m_bounds.left + 0x22, m_bounds.top + 0x12, m_bounds.left + 0x16e,
+                             m_bounds.top + 0x171};
 
     if (mode == 0) {
         m_entries_7c.Add(new W8TextBuffer(&bounds, gppStringList[0x7f7], g_options_detail_font,
@@ -1717,9 +1719,8 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
             return;
         case 2:
             g_settings.difficulty = m_control_30->m_options_50.m_selectedIndex;
-            g_settings.simplified_npc_interaction =
-                static_cast<unsigned char>(m_control_30->m_toggle_78->m_stateFlags &
-                                g_W8TextControlStateSecondary);
+            g_settings.simplified_npc_interaction = static_cast<unsigned char>(
+                m_control_30->m_toggle_78->m_stateFlags & g_W8TextControlStateSecondary);
             if ((m_control_30->m_toggle_74->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
                 SetMode(3);
             } else {

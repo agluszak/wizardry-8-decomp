@@ -2255,12 +2255,12 @@ void SetViewport(int left, int top, int right, int bottom)
 
         plane.left = fractional_left * (view.right - view.left) + view.left;
         plane.right = fractional_right * (view.right - view.left) + view.left;
-        plane.bottom =
-            static_cast<double>((g_double_005ebc30 - fractional_bottom) * static_cast<float>(view.top - view.bottom) +
-                     static_cast<float>(view.bottom));
-        plane.top =
-            static_cast<double>((g_double_005ebc30 - fractional_top) * static_cast<float>(view.top - view.bottom) +
-                     static_cast<float>(view.bottom));
+        plane.bottom = static_cast<double>((g_double_005ebc30 - fractional_bottom) *
+                                               static_cast<float>(view.top - view.bottom) +
+                                           static_cast<float>(view.bottom));
+        plane.top = static_cast<double>((g_double_005ebc30 - fractional_top) *
+                                            static_cast<float>(view.top - view.bottom) +
+                                        static_cast<float>(view.bottom));
 
         g_world->camera->setViewPlane(plane, 1.0);
         if (g_world_659ab8 != 0) {
@@ -2632,7 +2632,6 @@ void PurgeInactiveSceneInstances(srScene* scene)
     while (node) {
         srNode* next = node->next_sibling_;
         unsigned long class_id = node->getClassID();
-        srModelInstance* instance = static_cast<srModelInstance*>(node);
         unsigned char display_state = 0;
         if (class_id == 0x10004) {
             display_state = static_cast<stModelInstance*>(node)->displayState();
@@ -2640,22 +2639,7 @@ void PurgeInactiveSceneInstances(srScene* scene)
             display_state = static_cast<stModelInstance2D*>(node)->displayState();
         }
         if ((class_id == 0x10004 || class_id == 0x10005) && display_state != 3) {
-            int index;
-            for (index = 0; index != 0x12c0; ++index) {
-                if (g_surface_nodes[index] == node) {
-                    g_surface_nodes[index] = 0;
-                    g_tile_dirty_flags[index] = 0;
-                }
-            }
-            if (instance->getModel()) {
-                srMeshModel* model = static_cast<srMeshModel*>(instance->getModel());
-                if (model) {
-                    srTextureIFace* texture = model->getTexture(0, 0);
-                    if (texture)
-                        texture->invalidate();
-                }
-            }
-            node->release();
+            ReleaseSurfaceNode(node);
         }
         node = next;
     }
@@ -2802,8 +2786,8 @@ bool HasEnoughFreeDiskSpace(void)
     }
     GetDiskFreeSpaceA(NULL, &sectors_per_cluster, &bytes_per_sector, &free_clusters,
                       &total_clusters);
-    megabytes = static_cast<unsigned int>((__int64)sectors_per_cluster * bytes_per_sector * free_clusters /
-                               0x400 / 0x400);
+    megabytes = static_cast<unsigned int>((__int64)sectors_per_cluster * bytes_per_sector *
+                                          free_clusters / 0x400 / 0x400);
     enough = megabytes >= 0x100;
     return enough;
 }
@@ -3308,8 +3292,9 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
         }
     }
 
-    srColorSurface* surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555,
-                                                     static_cast<unsigned long>(extent), static_cast<unsigned long>(extent));
+    srColorSurface* surface =
+        SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555, static_cast<unsigned long>(extent),
+                               static_cast<unsigned long>(extent));
     if (surface == 0) {
         return 0;
     }

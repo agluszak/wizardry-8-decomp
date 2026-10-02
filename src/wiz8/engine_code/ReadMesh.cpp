@@ -239,7 +239,7 @@ static void SortGroupsByKey(unsigned long* order, unsigned long* keys, unsigned 
     }
 }
 
-W8MeshStripBuilder::W8MeshStripBuilder(srVector3i* vertices, unsigned int polygon_count)
+inline W8MeshStripBuilder::W8MeshStripBuilder(srVector3i* vertices, unsigned int polygon_count)
 {
     polygon_vertices = vertices;
     count = polygon_count;
@@ -278,7 +278,7 @@ unsigned int W8MeshStripBuilder::EdgeKey(const W8MeshStripPolygon* polygon, int 
     return (second << 8) ^ first;
 }
 
-W8MeshStripPolygon* W8MeshStripBuilder::EdgePolygon(int slot)
+inline W8MeshStripPolygon* W8MeshStripBuilder::EdgePolygon(int slot)
 {
     int value = edges.entries[slot].value;
     return reinterpret_cast<W8MeshStripPolygon*>(value); // reinterpret-ok: polygon address
@@ -1185,7 +1185,7 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
         }
         stMeshModel* model =
             reader.Read(info->hFile, g_multi_mesh_materials, g_multi_mesh_textures,
-                                g_multi_mesh_render_flags, meshes, g_read_mesh_material_count);
+                        g_multi_mesh_render_flags, meshes, g_read_mesh_material_count);
         meshes[g_read_mesh_index] = model;
         model->setDirty(static_cast<srMeshModel::e_flags>(0));
         model->getBoundingBox(minimum, maximum);
