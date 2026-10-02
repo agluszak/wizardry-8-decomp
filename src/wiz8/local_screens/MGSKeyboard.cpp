@@ -242,7 +242,7 @@ unsigned char HandleMainGameInputEvent(const InputAtom* input)
     if (GetFlag68F105() != 0 && HandleMipeKey(input) != 0) {
         return 1;
     }
-    if (GetFlag69DA6C() != 0) {
+    if (IsRecordModeActive() != 0) {
         if (gfKeyState[0x11] == 0 && HandleRecordModeKey(input, PromptRecordModeEntry) == 1) {
             ApplyRecordModeLine();
             return 1;
@@ -284,7 +284,7 @@ void DispatchMGSCommand(int command)
                     return;
                 }
             }
-            ClearValue69DA68();
+            ClearRecordModeValue();
             ShowMainGameNoticeLine(gppStringList[0x779], OnLeaveGameConfirmClosed, 1, 1);
         }
         InvalidateRegion(0xa8, 0x16e, 0x1c4, 0x1ba, 0);
