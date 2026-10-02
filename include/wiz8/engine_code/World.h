@@ -31,7 +31,7 @@ void SetWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraSta
 void RestoreWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraState* state);
 void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation);
 void WorldGetCameraLocation(W8World* world, srVector3T<float>* location);
-void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location);
+void WorldGetCameraLocationOrZero(W8World* world, srVector3T<float>* location);
 void SetWorldScenePosition(W8World* world, const srVector3T<float>* position);
 stParticle* FindParticleByName(W8World* world, const char* name);
 bool FindEntityByName(const char* name, srVector3T<float>* position, float* angle,
