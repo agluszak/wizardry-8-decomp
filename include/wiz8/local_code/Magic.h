@@ -99,9 +99,7 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
 extern unsigned char g_profession_spellbooks[W8_PROFESSION_COUNT];
 /* 0x00501A60: the spell a missile type carries, or W8_SPELL_NONE. */
 int MissileSpellId(int missile_type);
-/* Whether the party as a whole is under one particular condition. */
 bool PartyHasCondition(int condition_id); /* 0x005012B0 */
-/* Whether the combat party-effect slots already carry one condition. */
 bool CombatHasCondition(int condition_id);                                   /* 0x00501250 */
 int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus); /* 0x004FF790 */
 
@@ -114,17 +112,13 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
 /* 0x00501400: the power level the party slot's chosen spell can actually be
    cast at; zero means the cast cannot happen at all. */
 int GetAffordableSpellPowerLevel(int party_slot);
-/* Whether the party slot's recorded spell is still castable. */
 bool CanPartySlotCastRecordedSpell(int party_slot); /* 0x005012E0 */
-/* Whether the party slot's recorded item is still usable. */
 bool CanPartySlotUseRecordedItem(int party_slot); /* 0x00501660 */
 /* Queue the slot's recorded spell cast; zero keeps the recorded power. */
 void StartCharacterSpellCast(int party_slot, int power_level); /* 0x00501590 */
-/* Queue the slot's recorded item use. */
 void StartCharacterItemUse(int party_slot); /* 0x00501790 */
 /* 0x00501860: one-line forwarder narrowing CanCharReBreathe to a flag. */
 bool CanPartySlotReBreathe(int party_slot);
-/* 0x00501880: start one character's breath attack. */
 void StartCharacterBreathAttack(int party_slot);
 /* 0x004FF4B0: the spell screen's one-to-five safety rating for one cast at a
    power level; zero for the as-affordable request. */
@@ -148,7 +142,6 @@ bool IsTeleportCastMissingAnchor(W8Character* character, int spell_id); /* 0x005
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
 void DetachMissileReferences(W8Missile* missile);
-/* Whether every queued effect still has time left on it. */
 bool AllSpellEffectsStillRunning(void); /* 0x00500E50 */
 
 #endif
