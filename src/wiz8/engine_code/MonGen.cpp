@@ -480,7 +480,7 @@ unsigned char MonGen::CanGenerateEncounter(unsigned char force)
     float distance;
 
     if (g_generator_save_flag != 0 || gXStatus.world_update_blocked != 0 ||
-        gXStatus.fCombatMode != 0 || gXStatus.fNpcDialogueMode != 0 || GetFlag68F105() != 0 ||
+        gXStatus.fCombatMode != 0 || gXStatus.fNpcDialogueMode != 0 || IsMipeActive() != 0 ||
         generation_enabled == 0) {
         return 0;
     }
