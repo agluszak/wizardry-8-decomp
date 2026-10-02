@@ -19,7 +19,7 @@
 #include <stdlib.h>
 
 extern srVector3T<float> g_environment_offset;
-extern float g_light_scale_0060bfe0;
+extern float g_monster_light_scale;
 
 /*
  * Engine Code\stMeshModel.cpp.
@@ -280,7 +280,7 @@ void stMeshModel::GetFrameBounds(int frame, srVector3T<float>* minimum, srVector
 // FUNCTION: WIZ8 0x00472270
 const srMeshModel::TriMesh& stMeshModel::getTriMesh()
 {
-    float light_scale = g_light_scale_0060bfe0;
+    float light_scale = g_monster_light_scale;
     srVector3T<float>* dig;
     srVector3T<float>* lights;
     float* sunlight;

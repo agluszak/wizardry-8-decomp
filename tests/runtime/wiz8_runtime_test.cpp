@@ -140,7 +140,7 @@ static bool RunSearchModeSemanticTest(void)
     gXStatus.fCombatMode = 1;
     unsigned int clock = g_search_pulse_clock;
     ToggleSearchMode();
-    int combat_box = GetFlag68F105() ? 0 : 1;
+    int combat_box = IsMipeActive() ? 0 : 1;
     unsigned int combat_index = used[combat_box] + (combat_box == 0 ? 2 : 0);
     bool blocked = g_status.search_mode == 0 && g_search_pulse_clock == clock &&
                    g_status.text_box_lines_used_4997[combat_box] == combat_index + 1 &&

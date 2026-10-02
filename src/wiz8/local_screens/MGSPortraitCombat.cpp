@@ -132,39 +132,39 @@ unsigned char CreateSubMenuButtons(void)
     int index;
 
     for (index = 0; index < 9; ++index) {
-        g_submenu_buttons_69b8b0[index] = new W8DialogButton;
-        if (g_submenu_buttons_69b8b0[index] == 0) {
+        g_submenu_buttons[index] = new W8DialogButton;
+        if (g_submenu_buttons[index] == 0) {
             for (index = 0; index < 9; ++index) {
-                if (g_submenu_buttons_69b8b0[index] != 0) {
-                    delete g_submenu_buttons_69b8b0[index];
-                    g_submenu_buttons_69b8b0[index] = 0;
+                if (g_submenu_buttons[index] != 0) {
+                    delete g_submenu_buttons[index];
+                    g_submenu_buttons[index] = 0;
                 }
             }
             return 0;
         }
     }
-    g_submenu_buttons_69b8b0[0]->Configure(g_submenu_icons_path, 0x2b, 0x28, 0x29, 0x2a, 0x2c,
+    g_submenu_buttons[0]->Configure(g_submenu_icons_path, 0x2b, 0x28, 0x29, 0x2a, 0x2c,
                                            SubMenuButtonPendingScreen, 0, 0, 0x7f, 0x42, 0, 0);
-    g_submenu_buttons_69b8b0[1]->Configure(g_submenu_icons_path, 0x3, 0x0, 0x1, 0x2, 0x4,
+    g_submenu_buttons[1]->Configure(g_submenu_icons_path, 0x3, 0x0, 0x1, 0x2, 0x4,
                                            SubMenuButtonSurprise, 0, 0, 0x7f, 0x43, 0, 0);
-    g_submenu_buttons_69b8b0[2]->Configure(g_submenu_icons_path, 0x8, 0x5, 0x6, 0x7, 0x9,
+    g_submenu_buttons[2]->Configure(g_submenu_icons_path, 0x8, 0x5, 0x6, 0x7, 0x9,
                                            SubMenuButtonToggleFlag, 0, 1, 0x7f, 0x44, 0, 0);
-    g_submenu_buttons_69b8b0[3]->Configure(g_submenu_icons_path, 0x17, 0x14, 0x15, 0x16, 0x18,
+    g_submenu_buttons[3]->Configure(g_submenu_icons_path, 0x17, 0x14, 0x15, 0x16, 0x18,
                                            SubMenuButtonUseItem, 0, 1, 0x7f, 0x45, 0, 0);
-    g_submenu_buttons_69b8b0[4]->Configure(g_submenu_icons_path, 0x1c, 0x19, 0x1a, 0x1b, 0x1d,
+    g_submenu_buttons[4]->Configure(g_submenu_icons_path, 0x1c, 0x19, 0x1a, 0x1b, 0x1d,
                                            SubMenuButtonSpellView, 0, 1, 0x7f, 0x46, 0, 0);
-    g_submenu_buttons_69b8b0[5]->Configure(g_submenu_icons_path, 0x12, 0xf, 0x10, 0x11, 0x13,
+    g_submenu_buttons[5]->Configure(g_submenu_icons_path, 0x12, 0xf, 0x10, 0x11, 0x13,
                                            SubMenuButtonOpenMenu1, 0, 0, 0x7f, 0x4a, 0, 0);
-    g_submenu_buttons_69b8b0[6]->Configure(g_submenu_icons_path, 0xd, 0xa, 0xb, 0xc, 0xe,
+    g_submenu_buttons[6]->Configure(g_submenu_icons_path, 0xd, 0xa, 0xb, 0xc, 0xe,
                                            SubMenuButtonOpenMenu0, 0, 0, 0x7f, 0x49, 0, 0);
-    g_submenu_buttons_69b8b0[7]->Configure(g_submenu_combat_icons_path, 0x3, 0x0, 0x1, 0x2, 0x2,
+    g_submenu_buttons[7]->Configure(g_submenu_combat_icons_path, 0x3, 0x0, 0x1, 0x2, 0x2,
                                            SubMenuButtonToggleCombat, 0, 0, 0x7f, 0x47, 0, 0);
-    g_submenu_buttons_69b8b0[8]->Configure(g_submenu_combat_icons_path, 0x7, 0x4, 0x5, 0x6, 0x6,
+    g_submenu_buttons[8]->Configure(g_submenu_combat_icons_path, 0x7, 0x4, 0x5, 0x6, 0x6,
                                            SubMenuButtonToggleCombat, 0, 0, 0x7f, 0x48, 0, 0);
     for (index = 0; index < 9; ++index) {
-        g_submenu_buttons_69b8b0[index]->SetPosition(g_submenu_button_positions[index][0],
+        g_submenu_buttons[index]->SetPosition(g_submenu_button_positions[index][0],
                                                      g_submenu_button_positions[index][1]);
-        g_submenu_buttons_69b8b0[index]->m_owner_040 = 0;
+        g_submenu_buttons[index]->m_owner_040 = 0;
     }
     return 1;
 }
@@ -176,62 +176,62 @@ void UpdateSubMenuButton(int index)
     case 5:
     case 6:
     case 8:
-        g_submenu_buttons_69b8b0[index]->SetVisible(gXStatus.fCombatMode != 0);
+        g_submenu_buttons[index]->SetVisible(gXStatus.fCombatMode != 0);
         break;
     case 7:
-        g_submenu_buttons_69b8b0[index]->SetVisible(gXStatus.fCombatMode == 0);
+        g_submenu_buttons[index]->SetVisible(gXStatus.fCombatMode == 0);
         break;
     }
     if (gXStatus.fNpcDialogueMode != 0 &&
         (index != 0 || IsNpcDialogueCursorActive() != 0 || CanOpenNpcDialogue() != 0)) {
-        g_submenu_buttons_69b8b0[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
     if (gXStatus.fLockInteractMode != 0 || gXStatus.fTrapInteractMode != 0 ||
         gXStatus.fReviewCharacterMode != 0) {
-        g_submenu_buttons_69b8b0[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
     if (gXStatus.fItemSelectMode != 0 && index != 3) {
-        g_submenu_buttons_69b8b0[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
     if (gXStatus.fSpellCastMode != 0 && index != 4) {
-        g_submenu_buttons_69b8b0[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
     if (gXStatus.fSurprisePossible != 0 || gXStatus.fCampMode != 0) {
-        g_submenu_buttons_69b8b0[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
     if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0) {
-        g_submenu_buttons_69b8b0[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
     if (g_level_block->combat_end_notification != -1) {
-        g_submenu_buttons_69b8b0[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
     switch (index) {
     case 0:
         if (gXStatus.fCombatMode != 0) {
-            g_submenu_buttons_69b8b0[0]->SetEnabled(0);
+            g_submenu_buttons[0]->SetEnabled(0);
         } else {
-            g_submenu_buttons_69b8b0[0]->SetEnabled(1);
+            g_submenu_buttons[0]->SetEnabled(1);
         }
         break;
     case 1:
         if (gXStatus.fCombatMode != 0) {
-            g_submenu_buttons_69b8b0[1]->SetEnabled(0);
+            g_submenu_buttons[1]->SetEnabled(0);
         } else {
-            g_submenu_buttons_69b8b0[1]->SetEnabled(1);
+            g_submenu_buttons[1]->SetEnabled(1);
         }
         break;
     case 2:
         if (gXStatus.fCombatMode != 0) {
-            g_submenu_buttons_69b8b0[2]->SetEnabled(0);
+            g_submenu_buttons[2]->SetEnabled(0);
         } else {
-            g_submenu_buttons_69b8b0[2]->SetEnabled(1);
+            g_submenu_buttons[2]->SetEnabled(1);
         }
         /* Two armed, not one `IsPressed() != (mode != 0)`. The retail tests the
            mode first and then branches on IsPressed in each arm, giving two
@@ -239,69 +239,69 @@ void UpdateSubMenuButton(int index)
            (0x00594E92/0x00594EA7 under search_mode, 0x00594EAE/0x00594EC3
            under its negation). */
         if (g_status.search_mode != 0) {
-            if (g_submenu_buttons_69b8b0[2]->IsPressed() == 0) {
-                g_submenu_buttons_69b8b0[2]->SetPressed(1);
+            if (g_submenu_buttons[2]->IsPressed() == 0) {
+                g_submenu_buttons[2]->SetPressed(1);
             }
         } else {
-            if (g_submenu_buttons_69b8b0[2]->IsPressed() != 0) {
-                g_submenu_buttons_69b8b0[2]->SetPressed(0);
+            if (g_submenu_buttons[2]->IsPressed() != 0) {
+                g_submenu_buttons[2]->SetPressed(0);
             }
         }
         break;
     case 3:
         if (IsPartySlotEligible(g_status.selected_character) == 0) {
-            g_submenu_buttons_69b8b0[3]->SetEnabled(0);
+            g_submenu_buttons[3]->SetEnabled(0);
             break;
         }
-        g_submenu_buttons_69b8b0[3]->SetEnabled(1);
+        g_submenu_buttons[3]->SetEnabled(1);
         /* As case 2, with fItemSelectMode: 0x00594F07/0x00594F1C then
            0x00594F23/0x00594F38. */
         if (gXStatus.fItemSelectMode != 0) {
-            if (g_submenu_buttons_69b8b0[3]->IsPressed() == 0) {
-                g_submenu_buttons_69b8b0[3]->SetPressed(1);
+            if (g_submenu_buttons[3]->IsPressed() == 0) {
+                g_submenu_buttons[3]->SetPressed(1);
             }
         } else {
-            if (g_submenu_buttons_69b8b0[3]->IsPressed() != 0) {
-                g_submenu_buttons_69b8b0[3]->SetPressed(0);
+            if (g_submenu_buttons[3]->IsPressed() != 0) {
+                g_submenu_buttons[3]->SetPressed(0);
             }
         }
         break;
     case 4:
-        g_submenu_buttons_69b8b0[4]->SetEnabled(
+        g_submenu_buttons[4]->SetEnabled(
             IsPartySlotEligible(g_status.selected_character) != 0 &&
             CharacterHasCastableSpell(&g_status.buffers.Char[g_status.selected_character]) != 0);
         /* As case 2, with fSpellCastMode: 0x00594FA0/0x00594FB5 then
            0x00594FBC/0x00594FCD. This case's SetEnabled stays a single call -
            the retail's `? :` collapses into one at 0x00594F8C. */
         if (gXStatus.fSpellCastMode != 0) {
-            if (g_submenu_buttons_69b8b0[4]->IsPressed() == 0) {
-                g_submenu_buttons_69b8b0[4]->SetPressed(1);
+            if (g_submenu_buttons[4]->IsPressed() == 0) {
+                g_submenu_buttons[4]->SetPressed(1);
             }
         } else {
-            if (g_submenu_buttons_69b8b0[4]->IsPressed() != 0) {
-                g_submenu_buttons_69b8b0[4]->SetPressed(0);
+            if (g_submenu_buttons[4]->IsPressed() != 0) {
+                g_submenu_buttons[4]->SetPressed(0);
             }
         }
         break;
     case 5:
     case 6:
-        g_submenu_buttons_69b8b0[index]->SetEnabled(gXStatus.fCombatMode != 0);
+        g_submenu_buttons[index]->SetEnabled(gXStatus.fCombatMode != 0);
         if (IsPartySlotEligible(g_status.selected_character) == 0) {
-            g_submenu_buttons_69b8b0[index]->SetEnabled(0);
+            g_submenu_buttons[index]->SetEnabled(0);
         }
         break;
     case 7:
         if (gXStatus.fCombatMode != 0) {
-            g_submenu_buttons_69b8b0[7]->SetEnabled(0);
+            g_submenu_buttons[7]->SetEnabled(0);
         } else {
-            g_submenu_buttons_69b8b0[7]->SetEnabled(1);
+            g_submenu_buttons[7]->SetEnabled(1);
         }
         break;
     case 8:
         if (gXStatus.fCombatMode != 0) {
-            g_submenu_buttons_69b8b0[8]->SetEnabled(1);
+            g_submenu_buttons[8]->SetEnabled(1);
         } else {
-            g_submenu_buttons_69b8b0[8]->SetEnabled(0);
+            g_submenu_buttons[8]->SetEnabled(0);
         }
         break;
     }
@@ -348,7 +348,7 @@ static void SubMenuButtonUseItem(W8DialogButton* button)
         if (g_level_block->combat_end_notification != -1) {
             SetSubMenuButtonTooltips(1);
             g_level_block->combat_end_notification = -1;
-            g_submenu_entry_count_69b87e = 0;
+            g_submenu_entry_count = 0;
             RegionSetDisable(0x27);
             DisableRegionSetInput(0x27);
             if (gpSubMenuPanel != 0) {
@@ -356,9 +356,9 @@ static void SubMenuButtonUseItem(W8DialogButton* button)
                 gpSubMenuPanel = 0;
             }
             for (index = 0; index < 5; ++index) {
-                if (g_submenu_rows_69b8ec[index] != 0) {
-                    delete g_submenu_rows_69b8ec[index];
-                    g_submenu_rows_69b8ec[index] = 0;
+                if (g_submenu_rows[index] != 0) {
+                    delete g_submenu_rows[index];
+                    g_submenu_rows[index] = 0;
                 }
             }
             RequestRedraw(0x200);
@@ -367,7 +367,7 @@ static void SubMenuButtonUseItem(W8DialogButton* button)
         if (BuildSubMenuPanel(3) == 0) {
             SetSubMenuButtonTooltips(1);
             g_level_block->combat_end_notification = -1;
-            g_submenu_entry_count_69b87e = 0;
+            g_submenu_entry_count = 0;
             RegionSetDisable(0x27);
             DisableRegionSetInput(0x27);
             if (gpSubMenuPanel != 0) {
@@ -375,15 +375,15 @@ static void SubMenuButtonUseItem(W8DialogButton* button)
                 gpSubMenuPanel = 0;
             }
             for (index = 0; index < 5; ++index) {
-                if (g_submenu_rows_69b8ec[index] != 0) {
-                    delete g_submenu_rows_69b8ec[index];
-                    g_submenu_rows_69b8ec[index] = 0;
+                if (g_submenu_rows[index] != 0) {
+                    delete g_submenu_rows[index];
+                    g_submenu_rows[index] = 0;
                 }
             }
             RequestRedraw(0x200);
         }
         SetSubMenuButtonTooltips(0);
-        g_submenu_clock_69b880 = SetCountdownClock(0);
+        g_submenu_clock = SetCountdownClock(0);
         g_submenu_flag_69b8d4 = false;
         RequestRedraw(0x200);
         ResetClickedMode();
@@ -412,7 +412,7 @@ static void SubMenuButtonOpenMenu0(W8DialogButton* button)
     if (g_level_block->combat_end_notification != -1) {
         SetSubMenuButtonTooltips(1);
         g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count_69b87e = 0;
+        g_submenu_entry_count = 0;
         RegionSetDisable(0x27);
         DisableRegionSetInput(0x27);
         if (gpSubMenuPanel != 0) {
@@ -420,9 +420,9 @@ static void SubMenuButtonOpenMenu0(W8DialogButton* button)
             gpSubMenuPanel = 0;
         }
         for (index = 0; index < 5; ++index) {
-            if (g_submenu_rows_69b8ec[index] != 0) {
-                delete g_submenu_rows_69b8ec[index];
-                g_submenu_rows_69b8ec[index] = 0;
+            if (g_submenu_rows[index] != 0) {
+                delete g_submenu_rows[index];
+                g_submenu_rows[index] = 0;
             }
         }
         RequestRedraw(0x200);
@@ -431,7 +431,7 @@ static void SubMenuButtonOpenMenu0(W8DialogButton* button)
     if (BuildSubMenuPanel(6) == 0) {
         SetSubMenuButtonTooltips(1);
         g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count_69b87e = 0;
+        g_submenu_entry_count = 0;
         RegionSetDisable(0x27);
         DisableRegionSetInput(0x27);
         if (gpSubMenuPanel != 0) {
@@ -439,15 +439,15 @@ static void SubMenuButtonOpenMenu0(W8DialogButton* button)
             gpSubMenuPanel = 0;
         }
         for (index = 0; index < 5; ++index) {
-            if (g_submenu_rows_69b8ec[index] != 0) {
-                delete g_submenu_rows_69b8ec[index];
-                g_submenu_rows_69b8ec[index] = 0;
+            if (g_submenu_rows[index] != 0) {
+                delete g_submenu_rows[index];
+                g_submenu_rows[index] = 0;
             }
         }
         RequestRedraw(0x200);
     }
     SetSubMenuButtonTooltips(0);
-    g_submenu_clock_69b880 = SetCountdownClock(0);
+    g_submenu_clock = SetCountdownClock(0);
     g_submenu_flag_69b8d4 = false;
     RequestRedraw(0x200);
 }
@@ -460,7 +460,7 @@ static void SubMenuButtonOpenMenu1(W8DialogButton* button)
     if (g_level_block->combat_end_notification != -1) {
         SetSubMenuButtonTooltips(1);
         g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count_69b87e = 0;
+        g_submenu_entry_count = 0;
         RegionSetDisable(0x27);
         DisableRegionSetInput(0x27);
         if (gpSubMenuPanel != 0) {
@@ -468,9 +468,9 @@ static void SubMenuButtonOpenMenu1(W8DialogButton* button)
             gpSubMenuPanel = 0;
         }
         for (index = 0; index < 5; ++index) {
-            if (g_submenu_rows_69b8ec[index] != 0) {
-                delete g_submenu_rows_69b8ec[index];
-                g_submenu_rows_69b8ec[index] = 0;
+            if (g_submenu_rows[index] != 0) {
+                delete g_submenu_rows[index];
+                g_submenu_rows[index] = 0;
             }
         }
         RequestRedraw(0x200);
@@ -479,7 +479,7 @@ static void SubMenuButtonOpenMenu1(W8DialogButton* button)
     if (BuildSubMenuPanel(5) == 0) {
         SetSubMenuButtonTooltips(1);
         g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count_69b87e = 0;
+        g_submenu_entry_count = 0;
         RegionSetDisable(0x27);
         DisableRegionSetInput(0x27);
         if (gpSubMenuPanel != 0) {
@@ -487,15 +487,15 @@ static void SubMenuButtonOpenMenu1(W8DialogButton* button)
             gpSubMenuPanel = 0;
         }
         for (index = 0; index < 5; ++index) {
-            if (g_submenu_rows_69b8ec[index] != 0) {
-                delete g_submenu_rows_69b8ec[index];
-                g_submenu_rows_69b8ec[index] = 0;
+            if (g_submenu_rows[index] != 0) {
+                delete g_submenu_rows[index];
+                g_submenu_rows[index] = 0;
             }
         }
         RequestRedraw(0x200);
     }
     SetSubMenuButtonTooltips(0);
-    g_submenu_clock_69b880 = SetCountdownClock(0);
+    g_submenu_clock = SetCountdownClock(0);
     g_submenu_flag_69b8d4 = false;
     RequestRedraw(0x200);
 }
@@ -518,7 +518,7 @@ void DestroySubMenuControls(void)
 
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count_69b87e = 0;
+    g_submenu_entry_count = 0;
     RegionSetDisable(0x27);
     DisableRegionSetInput(0x27);
     if (gpSubMenuPanel != 0) {
@@ -526,9 +526,9 @@ void DestroySubMenuControls(void)
         gpSubMenuPanel = 0;
     }
     for (i = 0; i < 5; ++i) {
-        if (g_submenu_rows_69b8ec[i] != 0) {
-            delete g_submenu_rows_69b8ec[i];
-            g_submenu_rows_69b8ec[i] = 0;
+        if (g_submenu_rows[i] != 0) {
+            delete g_submenu_rows[i];
+            g_submenu_rows[i] = 0;
         }
     }
     RequestRedraw(0x200);
@@ -545,7 +545,7 @@ void ReopenSubMenuPanel(void)
     }
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count_69b87e = 0;
+    g_submenu_entry_count = 0;
     RegionSetDisable(0x27);
     DisableRegionSetInput(0x27);
     if (gpSubMenuPanel != 0) {
@@ -553,9 +553,9 @@ void ReopenSubMenuPanel(void)
         gpSubMenuPanel = 0;
     }
     for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows_69b8ec[index] != 0) {
-            delete g_submenu_rows_69b8ec[index];
-            g_submenu_rows_69b8ec[index] = 0;
+        if (g_submenu_rows[index] != 0) {
+            delete g_submenu_rows[index];
+            g_submenu_rows[index] = 0;
         }
     }
     RequestRedraw(0x200);
@@ -563,7 +563,7 @@ void ReopenSubMenuPanel(void)
     if (BuildSubMenuPanel(notification) == 0) {
         SetSubMenuButtonTooltips(1);
         g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count_69b87e = 0;
+        g_submenu_entry_count = 0;
         RegionSetDisable(0x27);
         DisableRegionSetInput(0x27);
         if (gpSubMenuPanel != 0) {
@@ -571,15 +571,15 @@ void ReopenSubMenuPanel(void)
             gpSubMenuPanel = 0;
         }
         for (index = 0; index < 5; ++index) {
-            if (g_submenu_rows_69b8ec[index] != 0) {
-                delete g_submenu_rows_69b8ec[index];
-                g_submenu_rows_69b8ec[index] = 0;
+            if (g_submenu_rows[index] != 0) {
+                delete g_submenu_rows[index];
+                g_submenu_rows[index] = 0;
             }
         }
         RequestRedraw(0x200);
     }
     SetSubMenuButtonTooltips(0);
-    g_submenu_clock_69b880 = SetCountdownClock(0);
+    g_submenu_clock = SetCountdownClock(0);
     g_submenu_flag_69b8d4 = false;
     RequestRedraw(0x200);
 }

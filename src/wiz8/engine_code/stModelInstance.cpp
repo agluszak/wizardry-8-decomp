@@ -22,7 +22,7 @@
 #define ST_MODEL_INSTANCE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\stModelInstance.cpp"
 
 extern srVector3T<float> g_environment_offset;
-extern float g_light_scale_0060bfe0;
+extern float g_monster_light_scale;
 
 /* Scratch vertex store shared by every highlight shell submission; grown
    on demand and kept between frames. */
@@ -644,11 +644,11 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     if (model->vertex_lighting_ready_3cd == 0) {
         light.w = 1.0f;
         light.x =
-            (ambient_color.x * light_scale_194.x + g_environment_offset.x) * g_light_scale_0060bfe0;
+            (ambient_color.x * light_scale_194.x + g_environment_offset.x) * g_monster_light_scale;
         light.y =
-            (ambient_color.y * light_scale_194.y + g_environment_offset.y) * g_light_scale_0060bfe0;
+            (ambient_color.y * light_scale_194.y + g_environment_offset.y) * g_monster_light_scale;
         light.z =
-            (ambient_color.z * light_scale_194.z + g_environment_offset.z) * g_light_scale_0060bfe0;
+            (ambient_color.z * light_scale_194.z + g_environment_offset.z) * g_monster_light_scale;
     } else {
         light.Set(0.0f, 0.0f, 0.0f, 0.0f);
     }

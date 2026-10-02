@@ -2021,7 +2021,7 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree()
 }
 
 // FUNCTION: WIZ8 0x004afe90
-int GetValue65BE60(void)
+int GetBuildNodeInstanceCount(void)
 {
     return g_build_node_instances;
 }

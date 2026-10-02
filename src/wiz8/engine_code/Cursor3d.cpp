@@ -502,7 +502,7 @@ void BindCursorMonsterToGroup(void)
    (ReleaseWorldCursor) writes the flattened camera distance to the
    same slot before the cursor is freed. */
 // FUNCTION: WIZ8 0x00492530
-void SetFloat60AB48(void)
+void ResetWorldCursorRange(void)
 {
     g_float_60ab48 = 4000.0f;
 }

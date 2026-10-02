@@ -18,7 +18,7 @@ struct W8VideoFrame {
 };
 
 extern W8VideoObjectSlot g_video_slots[494];
-extern W8VideoFrame g_video_frames_62c430[1658];
+extern W8VideoFrame g_video_frames[1658];
 
 unsigned int GetCatalogVideoObjectHandle(int object, int frame);
 short GetCatalogVideoObjectYOffset(int object);

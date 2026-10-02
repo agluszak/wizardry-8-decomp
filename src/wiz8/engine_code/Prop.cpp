@@ -95,7 +95,7 @@ W8Prop::W8Prop()
     m_name = 0;
     anim_frame_fraction_024 = 0;
     kind_004 = 4;
-    id_008 = IncrementValue60DFAC();
+    id_008 = AllocateGrObjectId();
     m_pRep = new W8PropRepresentation();
     m_pTimer = new W8GameTimer();
     position_02c.SetZero();

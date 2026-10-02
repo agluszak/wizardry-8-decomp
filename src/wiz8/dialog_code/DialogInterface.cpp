@@ -16,7 +16,7 @@
  */
 
 // GLOBAL: WIZ8 0x0064fde8
-int g_dialog_font_64fde8 = -1;
+int g_dialog_interface_font = -1;
 // GLOBAL: WIZ8 0x0069ca32
 BOOLEAN g_dialog_font_enabled;
 // GLOBAL: WIZ8 0x0064fdec
@@ -73,7 +73,7 @@ W8DialogBase* CreateDialogByKind(int kind)
 void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
                          unsigned char background)
 {
-    g_dialog_font_64fde8 = font;
+    g_dialog_interface_font = font;
     g_dialog_font_enabled = enabled;
     g_dialog_font_foreground = foreground;
     g_dialog_font_background = background;

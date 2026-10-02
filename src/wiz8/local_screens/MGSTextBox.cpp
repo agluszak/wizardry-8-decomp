@@ -197,7 +197,7 @@ void ResetEditorStatusLine(short line)
     }
     g_status.text_box_lines_used_4997[line] = 0;
     g_status.text_box_lines_shown_49a7[line] = 0;
-    if (!IsNpcDialogueTextBoxActive577830()) {
+    if (!IsNpcDialogueTextInputActive()) {
         g_level_block->text_lines[line] = 0;
     }
     g_level_block->text_lines[4 + line] = -1;
@@ -216,7 +216,7 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
     if (text_box == -1) {
         if ((gXStatus.fNpcDialogueMode && !CanOpenNpcDialogue()) || gXStatus.fCampMode) {
             text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (GetFlag68F105()) {
+        } else if (IsMipeActive()) {
             text_box = 0;
         } else {
             text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
@@ -339,7 +339,7 @@ void SetTextBoxRegionBounds(int left, int top, int right, int bottom)
 void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
                 unsigned int wrap_width, bool force_dialog)
 {
-    GetFlag68F105();
+    IsMipeActive();
     if (g_level_block != 0 && (g_current_screen_state.id == W8_SCREEN_MAIN_GAME ||
                                (g_current_screen_state.id == W8_SCREEN_CAMP && !force_dialog) ||
                                g_current_screen_state.id == W8_SCREEN_PLEASE_WAIT ||
@@ -354,7 +354,7 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
             if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) ||
                 gXStatus.fCampMode != 0) {
                 text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-            } else if (GetFlag68F105()) {
+            } else if (IsMipeActive()) {
                 text_box = 0;
             } else {
                 text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
@@ -378,7 +378,7 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
                 if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) ||
                     gXStatus.fCampMode != 0) {
                     text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-                } else if (GetFlag68F105()) {
+                } else if (IsMipeActive()) {
                     text_box = 0;
                 } else {
                     text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
@@ -616,7 +616,7 @@ void FormatNotice(int channel, short text_box, const wchar_t* format, ...)
     if (text_box == -1) {
         if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
             text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (GetFlag68F105()) {
+        } else if (IsMipeActive()) {
             text_box = 0;
         } else {
             text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
@@ -638,7 +638,7 @@ void ShowNoticef(unsigned int font_palette, const wchar_t* format, ...)
 
     if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
         text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-    } else if (GetFlag68F105()) {
+    } else if (IsMipeActive()) {
         text_box = 0;
     } else {
         text_box = gXStatus.fCombatMode != 0;
@@ -686,7 +686,7 @@ void AppendTextBoxLine(const wchar_t* text, ...)
     if (text_box == -1) {
         if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
             text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (GetFlag68F105()) {
+        } else if (IsMipeActive()) {
             text_box = 0;
         } else {
             text_box = gXStatus.fCombatMode != 0;
@@ -719,14 +719,14 @@ void ScrollDialogueTextBoxToLine(void)
     W8DialogueTextState* input;
     int offset;
 
-    if (IsNpcDialogueTextBoxActive577830()) {
+    if (IsNpcDialogueTextInputActive()) {
         return;
     }
     if (g_level_block->dialogue_text_input_open &&
         (input = g_level_block->dialogue_text_input) != 0 &&
         g_status.text_line_cursor_1795 == input->text_box) {
         if (gXStatus.fNpcDialogueMode != 0) {
-            offset = g_screen_state_00649f1c->text_box_collapsed != 0 ? 1 : 7;
+            offset = g_npc_interaction_state->text_box_collapsed != 0 ? 1 : 7;
         } else {
             offset = gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
                              gXStatus.fCampMode == 0
@@ -738,7 +738,7 @@ void ScrollDialogueTextBoxToLine(void)
         return;
     }
     if (gXStatus.fNpcDialogueMode != 0) {
-        offset = g_screen_state_00649f1c->text_box_collapsed != 0 ? 1 : 7;
+        offset = g_npc_interaction_state->text_box_collapsed != 0 ? 1 : 7;
     } else {
         offset =
             gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 && gXStatus.fCampMode == 0
@@ -769,7 +769,7 @@ void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned ch
     if (text_box == -1) {
         if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
             text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (GetFlag68F105()) {
+        } else if (IsMipeActive()) {
             text_box = 0;
         } else {
             text_box = gXStatus.fCombatMode != 0;
@@ -831,7 +831,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
     if (text_box == -1) {
         if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
             text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (GetFlag68F105()) {
+        } else if (IsMipeActive()) {
             text_box = 0;
         } else {
             text_box = gXStatus.fCombatMode != 0;
@@ -925,7 +925,7 @@ int GetTextBoxVisibleLineCount(void)
 {
     unsigned char dialogue = gXStatus.fNpcDialogueMode;
     if (dialogue != 0) {
-        if (g_screen_state_00649f1c->text_box_collapsed != 0) {
+        if (g_npc_interaction_state->text_box_collapsed != 0) {
             return 1;
         }
     }
@@ -1031,9 +1031,9 @@ void AdvanceNoticeLine(short text_box)
     record->clock_08 = SetCountdownClock(delay);
     unsigned int shown = ++g_status.text_box_lines_shown_49a7[text_box];
     if (g_level_block->text_scroll_drag_idle) {
-        if (gXStatus.fNpcDialogueMode && g_screen_state_00649f1c->text_box_collapsed) {
+        if (gXStatus.fNpcDialogueMode && g_npc_interaction_state->text_box_collapsed) {
             ScrollTextBoxTo(shown);
-            g_screen_state_00649f1c->text_box_collapsed = false;
+            g_npc_interaction_state->text_box_collapsed = false;
         } else if (!gXStatus.fSpellCastMode && !gXStatus.fNpcDialogueMode &&
                    !gXStatus.fItemSelectMode && !gXStatus.fCampMode) {
             if (gXStatus.fCombatMode && g_combat_state->notice_scroll_pending_a57) {
@@ -1049,7 +1049,7 @@ void AdvanceNoticeLine(short text_box)
             } else if (shown >= 8 && shown - 7 > g_level_block->text_lines[text_box]) {
                 ScrollTextBoxTo(shown - 7);
             }
-        } else if (!IsNpcDialogueTextBoxActive577830()) {
+        } else if (!IsNpcDialogueTextInputActive()) {
             ScrollTextBoxTo(GetTextBoxLineCount(g_status.text_line_cursor_1795) -
                             GetTextBoxVisibleLineCount());
         }
@@ -1422,7 +1422,7 @@ static void RewrapDialogueTextFromLine(unsigned int line)
 
         if (g_level_block->dialogue_text_input->cursor >
                 g_level_block->dialogue_text_input->line_offsets[line] &&
-            !IsNpcDialogueTextBoxActive577830()) {
+            !IsNpcDialogueTextInputActive()) {
             ScrollTextBoxTo(GetTextBoxLineCount(g_status.text_line_cursor_1795) -
                             GetTextBoxVisibleLineCount());
         }
@@ -2661,7 +2661,7 @@ void RefreshTextBoxMode(unsigned short mode)
     }
     if (mode == 0xffff) {
         if ((gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue()) && gXStatus.fCampMode == 0) {
-            if (GetFlag68F105() == 0) {
+            if (IsMipeActive() == 0) {
                 mode = gXStatus.fCombatMode != 0;
             } else {
                 mode = 0;

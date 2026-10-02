@@ -96,10 +96,10 @@ srCamera* g_game_camera;
 GDCamera* g_gd_camera;
 
 /* Two thin GDCamera wrappers over GetForwardPoint, placed here because their
-   GameData.cpp ownership was never evidence-backed; they keep their address
-   names until body-level evidence names the operations. */
+   GameData.cpp ownership was never evidence-backed.  The copy-through variant
+   remains a distinct recovered identity even though both expose the same operation. */
 // FUNCTION: WIZ8 0x00421100
-void GetCameraForwardPoint00421100(float distance, srVector3T<float>* output)
+void GetCameraForwardPointCopy(float distance, srVector3T<float>* output)
 {
     srVector3T<float> result = *output;
     g_gd_camera->GetForwardPoint(distance, &result);

@@ -93,6 +93,40 @@ def _marker(
     }
 
 
+@pytest.mark.parametrize(
+    "name",
+    ["GetWorld659AB8", "World::GetCameraLocation00451160", "Forward_100012AB"],
+)
+def test_address_suffixes_are_rejected(tmp_path: Path, name: str) -> None:
+    repository = _index(tmp_path, declarations=[_definition(name), _definition(name)])
+    violations = source_model_violations(repository)
+    assert violations == [
+        {
+            "kind": "address-suffixed-callable",
+            "file": "src/wiz8/example.cpp",
+            "line": 2,
+            "detail": name,
+        }
+    ]
+
+
+@pytest.mark.parametrize(
+    ("name", "owner"),
+    [
+        ("ReadFace", None),
+        ("Function00451160", None),
+        ("World::Function00451160", "World"),
+        ("Unknown00451160::Unknown00451160", "Unknown00451160"),
+        ("Unknown00451160::~Unknown00451160", "Unknown00451160"),
+    ],
+)
+def test_semantic_names_placeholders_and_special_members_are_allowed(
+    tmp_path: Path, name: str, owner: str | None
+) -> None:
+    repository = _index(tmp_path, declarations=[_definition(name, owning_class=owner)])
+    assert validate_source_model(repository)["ok"] is True
+
+
 @pytest.mark.parametrize("root", ["src/wiz8", "include/wiz8", "src/surrender", "include/surrender"])
 @pytest.mark.parametrize(
     ("source", "kind"),

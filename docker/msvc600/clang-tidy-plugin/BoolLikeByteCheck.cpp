@@ -644,8 +644,20 @@ public:
 
         const unsigned count = std::min(call->getNumArgs(), function->getNumParams());
         for (unsigned index = 0; index < count; ++index) {
-            if (is_nonconst_reference(function->getParamDecl(index)->getType())) {
-                escape_expression(call->getArg(index), call->getArg(index)->getExprLoc());
+            const QualType parameter_type = function->getParamDecl(index)->getType();
+            const Expr* argument = call->getArg(index);
+            if (is_nonconst_reference(parameter_type)) {
+                escape_expression(argument, argument->getExprLoc());
+            }
+            // Mutable aggregate arguments can expose byte fields to writes
+            // outside the scalar producers observed here (e.g. FileRead).
+            // Keep the exact zero/one memset producer recognized above.
+            const bool known_memset = index == 0 && function->getName() == "memset" &&
+                call->getNumArgs() >= 3 && is_zero_or_one(call->getArg(1)) &&
+                exact_memset_record(argument, call->getArg(2)) != nullptr;
+            if (!known_memset && is_mutable_indirection(parameter_type)) {
+                escape_record(argument->IgnoreParenImpCasts()->getType(),
+                              argument->getExprLoc());
             }
         }
         return true;
@@ -670,6 +682,37 @@ private:
     static bool is_nonconst_reference(QualType type)
     {
         return type->isReferenceType() && !type.getNonReferenceType().isConstQualified();
+    }
+
+    static bool is_mutable_indirection(QualType type)
+    {
+        type = canonical(type);
+        return (type->isPointerType() || type->isReferenceType()) &&
+            !type->getPointeeType().isConstQualified();
+    }
+
+    void escape_record(QualType type, SourceLocation location)
+    {
+        type = canonical(type);
+        if (type->isPointerType() || type->isReferenceType()) {
+            type = canonical(type->getPointeeType());
+        }
+        const auto* record_type = type->getAs<RecordType>();
+        if (record_type == nullptr) {
+            return;
+        }
+        const RecordDecl* record = record_type->getDecl()->getDefinition();
+        if (record == nullptr) {
+            return;
+        }
+        for (const FieldDecl* field : record->fields()) {
+            if (const NamedDecl* candidate = canonical_candidate(field)) {
+                writer_.declaration(candidate);
+                writer_.escape(candidate, location);
+            } else if (canonical(field->getType())->isRecordType()) {
+                escape_record(field->getType(), location);
+            }
+        }
     }
 
     static bool is_zero_or_one(const Expr* expression)

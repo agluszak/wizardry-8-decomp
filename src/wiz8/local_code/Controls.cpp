@@ -57,7 +57,7 @@ extern const unsigned int g_W8TextControlLayoutImageLeft = 0x04;
 // GLOBAL: WIZ8 0x005ED584
 extern const unsigned int g_W8TextControlLayoutStayLatched = 0x08;
 // GLOBAL: WIZ8 0x005ED588
-extern const unsigned int g_W8TextControlMask005ED588 = 0x10;
+extern const unsigned int g_W8TextControlMask = 0x10;
 // GLOBAL: WIZ8 0x005ed594
 extern const unsigned int g_W8TextControlLayoutImageAtOrigin = 0x80;
 

@@ -209,7 +209,7 @@ W8Item::W8Item()
     trigger_018 = 0;
     kind_004 = 2;
     m_pRep = new W8ItemRep;
-    id_008 = IncrementValue60DFAC();
+    id_008 = AllocateGrObjectId();
     countdown_01c = SetCountdownClock(0);
 }
 

@@ -438,7 +438,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
    Its original source spelling is unresolved; retail callers establish this
    LibraryDataBase contribution and its HWFILE input. */
 // FUNCTION: WIZ8 0x00412f10
-HANDLE OpenLibraryStream00412F10(HWFILE file)
+HANDLE OpenLibraryStream(HWFILE file)
 {
     INT16 library_id = (INT16)DB_EXTRACT_LIBRARY(file);
     UINT32 file_id = DB_EXTRACT_FILE_ID(file);

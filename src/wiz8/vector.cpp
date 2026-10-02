@@ -927,9 +927,14 @@ struct W8AutomapNote;
 // VTABLE: WIZ8 0x005ec1d4
 // class W8GrowableVector<W8PropAnimationSegment*>
 
-/* Environment.cpp span. */
+/* stTextureAnim's constructor installs this base table at 0x00484D0C,
+   then the derived table at 0x00484D2B. AddTexture stores srTextureIFace
+   objects whose virtual texture operations the frame accessors invoke. */
 // VTABLE: WIZ8 0x005ec9bc
-// class W8GrowableVector_005EC9BC (element type unresolved)
+// class W8GrowableVector<srTextureIFace*>
+
+// VTABLE: WIZ8 0x005ec9b8
+// class W8Vector<srTextureIFace*>
 
 /* ReadMesh.cpp span. 0x005ECA58 is the derived W8Vector table riding over
    the 0x005ECA5C construction-phase W8GrowableVector<srMaterialIFace*> base
@@ -971,30 +976,38 @@ struct W8AutomapNote;
 // TEMPLATE: WIZ8 0x004CACE0
 // W8GrowableVector<W8Position>::~W8GrowableVector<W8Position> (Monster.cpp emission)
 
-/* stScript.cpp span. */
+/* stScript's constructor installs the base and derived tables at +0x18
+   for lines and +0x28 for labels. Load's record allocations and member
+   accesses distinguish the element types independently of these tables. */
 // VTABLE: WIZ8 0x005ed354
-// class W8GrowableVector_005ED354 (element type unresolved)
+// class W8GrowableVector<stScriptLine*>
+
+// VTABLE: WIZ8 0x005ed350
+// class W8Vector<stScriptLine*>
 
 // VTABLE: WIZ8 0x005ed34c
-// class W8GrowableVector_005ED34C (element type unresolved)
+// class W8GrowableVector<stScriptLabel*>
+
+// VTABLE: WIZ8 0x005ed348
+// class W8Vector<stScriptLabel*>
 
 // TEMPLATE: WIZ8 0x004CFA00
-// W8GrowableVector::~W8GrowableVector for the 0x005ED354 table (stScript.cpp emission)
+// W8GrowableVector<stScriptLine*>::~W8GrowableVector (stScript.cpp emission)
 
 // TEMPLATE: WIZ8 0x004CFA20
-// W8GrowableVector::~W8GrowableVector for the 0x005ED34C table (stScript.cpp emission)
+// W8GrowableVector<stScriptLabel*>::~W8GrowableVector (stScript.cpp emission)
 
 // SYNTHETIC: WIZ8 0x004CFA40
-// `scalar deleting destructor' for the 0x005ED354 vector table
+// W8GrowableVector<stScriptLine*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004CFA70
-// `scalar deleting destructor' for the 0x005ED354 vector table (second emission)
+// W8Vector<stScriptLine*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004CFA90
-// `scalar deleting destructor' for the 0x005ED34C vector table
+// W8GrowableVector<stScriptLabel*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004CFAC0
-// `scalar deleting destructor' for the 0x005ED34C vector table (second emission)
+// W8Vector<stScriptLabel*>::`scalar deleting destructor'
 
 /* Controls.cpp -> ItemManager.cpp gap. */
 // VTABLE: WIZ8 0x005ed5b4

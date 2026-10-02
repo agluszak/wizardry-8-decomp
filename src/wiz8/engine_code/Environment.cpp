@@ -567,7 +567,7 @@ void BeginWorldLightingFade(float duration)
         g_world_render_enabled = 1;
         g_monster_shadow_updates_enabled = 1;
         g_world_blacked_out = 0;
-        g_light_scale_0060bfe0 = 1.0f;
+        g_monster_light_scale = 1.0f;
 
         world = g_world;
         intensity = world->environment_base_intensity_028;
@@ -589,7 +589,7 @@ void BeginWorldLightingFade(float duration)
             ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
         }
 
-        world = g_world_659ab8;
+        world = g_secondary_world;
         if (world != 0) {
             intensity = world->environment_base_intensity_028;
             if (g_double_005ebc30 <= intensity || g_zero_005ebb40 < intensity) {
@@ -619,9 +619,9 @@ void BeginWorldLightingFade(float duration)
     g_environment_lighting_mode = 1;
     if (duration < g_float_005ebb34) {
         g_world->environment_base_intensity_028 = g_world->environment_intensity_024;
-        if (g_world_659ab8 != 0) {
-            g_world_659ab8->environment_base_intensity_028 =
-                g_world_659ab8->environment_intensity_024;
+        if (g_secondary_world != 0) {
+            g_secondary_world->environment_base_intensity_028 =
+                g_secondary_world->environment_intensity_024;
         }
     }
 }
@@ -646,13 +646,13 @@ void UpdateEnvironmentLighting(void)
         return;
     }
 
-    scale = elapsed * g_environment_transition_rate + g_light_scale_0060bfe0;
+    scale = elapsed * g_environment_transition_rate + g_monster_light_scale;
     if (g_float_005ebb38 < scale) {
         scale = 1.0f;
     } else if (scale < g_float_005ebb34) {
         scale = 0.0f;
     }
-    g_light_scale_0060bfe0 = scale;
+    g_monster_light_scale = scale;
 
     world = g_world;
     intensity = scale * world->environment_base_intensity_028;
@@ -674,7 +674,7 @@ void UpdateEnvironmentLighting(void)
         ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
     }
 
-    world = g_world_659ab8;
+    world = g_secondary_world;
     if (world != 0) {
         float secondary = scale * world->environment_base_intensity_028;
         if (g_double_005ebc30 <= secondary || g_zero_005ebb40 < secondary) {
@@ -1019,9 +1019,9 @@ const char* g_sky_gradient_names[3] = {"SkyGrad0000.ifl", "Skytop0000.ifl", "Hor
 // FUNCTION: WIZ8 0x00482410
 void InitializeLevelEnvironment(void)
 {
-    if (g_world_659ab8 != 0) {
-        g_sun_prop = FindPropByName(g_world_659ab8, "Sun");
-        g_moon_prop = FindPropByName(g_world_659ab8, "Moon");
+    if (g_secondary_world != 0) {
+        g_sun_prop = FindPropByName(g_secondary_world, "Sun");
+        g_moon_prop = FindPropByName(g_secondary_world, "Moon");
     }
     if (g_celestial_orbit_radius < g_float_005ebb34) {
         if (g_sun_prop == 0 || g_moon_prop == 0) {

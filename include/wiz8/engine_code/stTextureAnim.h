@@ -35,7 +35,7 @@ protected:
 public:
     void UpdateFrame();
 
-    W8GrowableVector<srTextureIFace*>* textures_54;
+    W8Vector<srTextureIFace*>* textures_54;
     int frame_58;
     int direction_5c;
     unsigned char animation_mode_60;

@@ -30,8 +30,8 @@ void UpdateWorldMonsters(W8World* world);
 void WorldUpdateProps(W8World* world);
 int WorldGetPropCount(W8World* unused);             /* 0x0046E600 */
 W8Prop* WorldGetPropAt(W8World* unused, int index); /* 0x0046E620 */
-void ForwardThroughMember3C_46E750(W8World* owner, int argument);
-void ForwardThroughMember3C_46E640(W8World* owner, int argument);
+void SetWorldSceneMeshShaderLowBits(W8World* owner, int argument);
+void SetWorldSceneMeshShaderBit3(W8World* owner, int argument);
 void FinalizeStaticScene(srScene* scene);
 stModelInstance* CreateModelInstance(stMeshModel* model);
 

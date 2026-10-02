@@ -180,7 +180,7 @@ unsigned char StartCombat(int surprise)
     AutoSaveIfAllowed(1);
     ResetLevelDataVectors();
     SetEnvironmentTimeEnabled(0);
-    MonsterForward453160();
+    MonsterStopAllNavigators();
     SetCombatInactiveFlag(0);
     if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fSpellCastMode == 0 &&
         gXStatus.fItemSelectMode == 0) {
@@ -1139,7 +1139,7 @@ void EndCombat(unsigned char mode)
     free(g_combat_state);
     g_combat_state = 0;
     SetCombatInactiveFlag(1);
-    MonsterForward4531A0();
+    MonsterResumeAllNavigators();
     if (mode == 0) {
         SetEnvironmentTimeEnabled(1);
     }
@@ -1154,7 +1154,7 @@ void EndCombat(unsigned char mode)
     }
     ClearLevelDataFlags5To7();
     RequestRedrawParty();
-    SetFloat60AB48();
+    ResetWorldCursorRange();
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         ApplyCombatEndEffects();
         ReportSaveFailed(1);
@@ -2264,7 +2264,7 @@ void ExecuteCharacterAction(int party_slot)
         break;
     default:
         FormatDebugMessage(1, "ERROR: Char %d executed %ls as a character action for char %d",
-                           party_slot, gppStringList[g_action_kind_message_ids_61e988[action]]);
+                           party_slot, gppStringList[g_action_kind_message_ids[action]]);
         break;
     }
     /* A failed action falls back to defending, unless a condition interrupted
@@ -3327,7 +3327,7 @@ void ScheduleCombatActor(void)
                 }
             }
             if (slot < 8) {
-                StartPartyMovementAction004EFC00();
+                BeginPartyMovementPhase();
             } else {
                 ShowNotice(0xc, gppStringList[0x22a], -1, -1, 0);
                 BeginFreeTurnPhase();

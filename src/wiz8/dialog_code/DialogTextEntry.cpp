@@ -71,7 +71,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
         } else if (m_selected) {
             palette = g_font_state_palettes[8];
         } else {
-            palette = g_colour_68ee08;
+            palette = g_wiz_text_font_secondary_palette;
             if (m_prefix_length == 0) {
                 if (m_text_palette < 15) {
                     palette = g_font_state_palettes[m_text_palette];
@@ -100,7 +100,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
                 if (!m_selected) {
                     SetFontObjectPalette16BPP(m_font, m_text_palette < 15
                                                           ? g_font_state_palettes[m_text_palette]
-                                                          : g_colour_68ee08);
+                                                          : g_wiz_text_font_secondary_palette);
                 }
                 line += prefix_remaining;
                 span -= prefix_remaining;
@@ -127,7 +127,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
             if (!m_selected) {
                 SetFontObjectPalette16BPP(m_font, m_text_palette < 15
                                                       ? g_font_state_palettes[m_text_palette]
-                                                      : g_colour_68ee08);
+                                                      : g_wiz_text_font_secondary_palette);
             }
             line += prefix_remaining;
         }

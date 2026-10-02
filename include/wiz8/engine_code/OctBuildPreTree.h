@@ -156,6 +156,6 @@ struct OctBuildPreTree : W8OctBuildTree {
 
 static_assert(sizeof(OctBuildPreTree) == 0x140, "OctBuildPreTree_must_be_0x140");
 
-int GetValue65BE60(void);
+int GetBuildNodeInstanceCount(void);
 
 #endif

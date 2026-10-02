@@ -1,6 +1,6 @@
 #pragma once
 
-extern float g_float_64b914;
+extern float g_automap_grid_cell_size;
 
 #include "input.h"
 #include "wiz8/geometry.h"
@@ -20,8 +20,8 @@ static_assert(sizeof(W8AutomapNote) == 0x10, "W8AutomapNote_size");
 extern W8Vector<W8AutomapNote*>* g_automap_notes;
 extern int g_ui_mode_current;
 extern int g_ui_mode_saved;
-void SetValue68F2B0(int value); /* 0x00587C10 */
-void SetValue68F2C4(int value); /* 0x0058A870 */
+void SetCurrentAutomapUiMode(int value); /* 0x00587C10 */
+void SetSavedAutomapUiMode(int value); /* 0x0058A870 */
 
 class W8DialogButton;
 extern W8DialogButton** g_automap_buttons;
@@ -63,8 +63,8 @@ unsigned char AutomapScreenFinalize(void);
 /* Full-screen dismiss: left-up after a held press leaves the automap. */
 unsigned char AutomapBackgroundRegionEvent(const InputAtom* event,
                                            struct W8Region* region); /* 0x00581790 */
-float GetFloat64B914(void);
-void SetFloat64B914(float value); /* 0x00585300 */
+float GetAutomapGridCellSize(void);
+void SetAutomapGridCellSize(float value); /* 0x00585300 */
 /* Packs a world position into an automap cell key. */
 unsigned int AutomapNodeKey(const srVector3T<float>* position);
 bool AutomapLevelIsLarge(void);

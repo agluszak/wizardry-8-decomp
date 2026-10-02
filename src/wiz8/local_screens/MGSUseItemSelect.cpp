@@ -40,7 +40,7 @@
 // GLOBAL: WIZ8 0x0069B984
 static int g_use_item_select_flags;
 // GLOBAL: WIZ8 0x0069b988
-W8MainUiMode g_value_69b988;
+W8MainUiMode g_use_item_select_return_mode;
 // GLOBAL: WIZ8 0x0069B98C
 static int g_use_item_select_mode;
 
@@ -53,13 +53,13 @@ W8TextControl* g_use_item_select_controls[9];
 // GLOBAL: WIZ8 0x0069B9A0
 W8ItemInstance* g_value_69b9a0;
 // GLOBAL: WIZ8 0x0069B9A4
-W8ItemInstance* g_value_69b9a4;
+W8ItemInstance* g_use_item_select_override_item;
 // GLOBAL: WIZ8 0x0069B990
 static int g_use_item_list_count;
 // GLOBAL: WIZ8 0x0069B994
 Controls* g_use_item_select_panels[3];
 // GLOBAL: WIZ8 0x0069B9A8
-static int g_use_item_cursor_x_0069b9a8;
+static int g_use_item_cursor_x;
 // GLOBAL: WIZ8 0x0069B9AC
 static int g_use_item_cursor_y;
 // GLOBAL: WIZ8 0x0069B9B0
@@ -180,7 +180,7 @@ unsigned char OpenUseItemSelectView(int slot)
     } else {
         SetViewportMode(GetMainGameViewportMode());
     }
-    g_value_69b988 = mode;
+    g_use_item_select_return_mode = mode;
     RestoreSpellCastingRegions();
     RegionSetEnable(0x1a);
     SelectTextBox(2);
@@ -189,11 +189,11 @@ unsigned char OpenUseItemSelectView(int slot)
     CreateUseItemSelectControls();
     g_use_item_select_mode = -1;
     g_use_item_select_flags = 0;
-    g_use_item_cursor_x_0069b9a8 = -1;
+    g_use_item_cursor_x = -1;
     g_use_item_cursor_y = -1;
     g_use_item_hover_row = -1;
     g_value_69b9a0 = 0;
-    g_value_69b9a4 = 0;
+    g_use_item_select_override_item = 0;
     g_use_item_detail_item = 0;
     for (control = g_use_item_select_controls + 1; control <= g_use_item_select_controls + 6;
          control++) {
@@ -247,7 +247,7 @@ void CloseUseItemSelectView(void)
             }
         }
         gXStatus.fItemSelectMode = false;
-        ApplyMainGameModeFlag(g_value_69b988, 1);
+        ApplyMainGameModeFlag(g_use_item_select_return_mode, 1);
         RequestRedraw(0x200);
         RequestRedrawCombatBar();
         RequestRedraw(0x1000);
@@ -353,12 +353,12 @@ void RefreshUseItemSelectionForSlot(int party_slot)
 }
 
 // FUNCTION: WIZ8 0x0059CF30
-void SetValue69B988(W8MainUiMode value)
+void SetUseItemSelectReturnMode(W8MainUiMode value)
 {
-    g_value_69b988 = value;
+    g_use_item_select_return_mode = value;
 }
 // FUNCTION: WIZ8 0x0059CF40
-void RedrawPanel69B998(void)
+void InvalidateUseItemSelectPanel(void)
 {
     g_use_item_select_panels[1]->Invalidate(0);
 }
@@ -564,7 +564,7 @@ static void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
             ScrollTextBoxTo(0);
             pass++;
         } while (pass < 2);
-        RedrawPanel69B998();
+        InvalidateUseItemSelectPanel();
         return;
     }
     character = &g_status.buffers.Char[slot];
@@ -582,7 +582,7 @@ static void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
         pass++;
     } while (pass < 2);
     ScrollTextBoxTo(0);
-    RedrawPanel69B998();
+    InvalidateUseItemSelectPanel();
 }
 
 /* Append one item to the use-item list under the active filter. Pass 0 takes
@@ -876,15 +876,15 @@ unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event, W8Region* 
             return 1;
         }
         if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_use_item_cursor_x_0069b9a8 = static_cast<unsigned short>(event->uiParam);
+            g_use_item_cursor_x = static_cast<unsigned short>(event->uiParam);
             g_use_item_cursor_y = static_cast<unsigned short>(event->uiParam >> 16);
             return 1;
         }
-        if (static_cast<unsigned short>(event->uiParam) == g_use_item_cursor_x_0069b9a8 &&
+        if (static_cast<unsigned short>(event->uiParam) == g_use_item_cursor_x &&
             static_cast<int>(event->uiParam >> 16) == g_use_item_cursor_y) {
             return 1;
         }
-        g_use_item_cursor_x_0069b9a8 = static_cast<unsigned short>(event->uiParam);
+        g_use_item_cursor_x = static_cast<unsigned short>(event->uiParam);
         g_use_item_cursor_y = static_cast<unsigned short>(event->uiParam >> 16);
         y = static_cast<unsigned short>(event->uiParam >> 16);
         if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
@@ -1041,7 +1041,7 @@ void UpdateUseItemDetailPanel(W8ItemInstance* item)
 // FUNCTION: WIZ8 0x0059E0D0
 W8ItemInstance* GetSelectedOrFallbackValue(void)
 {
-    W8ItemInstance* value = g_value_69b9a4;
+    W8ItemInstance* value = g_use_item_select_override_item;
     if (value == 0) {
         value = g_value_69b9a0;
     }
@@ -1087,7 +1087,7 @@ void TakeUseItemIntoHand(void)
 }
 
 // FUNCTION: WIZ8 0x0059E1E0
-void SetValue69B9A4(W8ItemInstance* value)
+void SetUseItemSelectOverrideItem(W8ItemInstance* value)
 {
-    g_value_69b9a4 = value;
+    g_use_item_select_override_item = value;
 }

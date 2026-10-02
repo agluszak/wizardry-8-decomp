@@ -601,7 +601,7 @@ inline W8OptionsKeyButton::W8OptionsKeyButton(Controls* owner, int top, int prim
     : W8OptionsButton(owner, 100, top, 0x15e, top + 22, &g_empty_wide_string),
       m_primary_binding(primary_binding), m_secondary_binding(secondary_binding)
 {
-    AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
+    AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
     m_textBuffer.SetLayoutMode(g_W8TextBufferNoWrap | g_W8TextBufferAlignRight |
                                g_W8TextBufferAlignTop);
 }
@@ -611,7 +611,7 @@ inline W8OptionsSaveRow::W8OptionsSaveRow(Controls* owner, int top, unsigned cha
                     -1, -1, 4),
       m_save_mode(save_mode), m_editing(0), m_save(0), m_save_listener(0)
 {
-    AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
+    AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
 }
 
 // SYNTHETIC: WIZ8 0x005a7730
@@ -1667,7 +1667,7 @@ inline W8OptionsCheckbox::W8OptionsCheckbox(Controls* owner, int top, int* value
     : W8TextControl(owner, 0xffffffff, 0x14d, top - 2, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1),
       m_value(value)
 {
-    AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
+    AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
     if (*m_value != 0) {
         EnableSecondaryState(0);
     }
@@ -1795,7 +1795,7 @@ W8TextControl* W8OptionsPanel::AddChoiceButton(int label)
     m_text_buffers_058.Add(text);
     W8TextControl* button = new W8TextControl(this, 0xffffffff, 0x151, m_content_top_050 + 1, 0, 0,
                                               0xf1, 0, 4, 6, 5, 7, -1);
-    button->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
+    button->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
     m_content_top_050 += 22;
     return button;
 }
@@ -2105,7 +2105,7 @@ unsigned char OptionsScreenEnter()
     MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();
-    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
     g_options_values.applying = 0;
     g_options_values.TransferSettings();
     g_options_screen = new W8OptionsScreen();

@@ -297,7 +297,7 @@ void DrawCampSpellPages(void)
             gprintf(left + 0x1b, top + 8, Wiz8ToSgpWideText(g_format_s_0064dd28),
                     gppStringList[0x8c7]);
             gprintf(left + 0x72, top + 8, gppStringList[0x8c9]);
-            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
             width = StringPixLengthArg(g_wiz_text_font_secondary, wcslen(gppStringList[0x8c7]) + 2,
                                        Wiz8ToSgpWideText(g_format_s_colon), gppStringList[0x8c7]);
             gprintf(left + 0x1b + width, top + 8, Wiz8ToSgpWideText(g_format_d_0064dd20),
@@ -323,7 +323,7 @@ void DrawCampSpellPages(void)
                 } else if (g_spell_records[spell_id].spell_point_cost <=
                                character->iSPLeft[realm] &&
                            SpellUsableNow(spell_id, 0)) {
-                    palette = g_colour_68ee08;
+                    palette = g_wiz_text_font_secondary_palette;
                 } else {
                     palette = g_font_state_palettes[0];
                 }
@@ -337,7 +337,7 @@ void DrawCampSpellPages(void)
                         g_spell_records[spell_id].spell_point_cost);
                 row_top += 0xd;
             }
-            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
         }
         state = g_camp_screen;
         state->spell_ranges[realm]->m_range->Invalidate(0);
@@ -632,7 +632,7 @@ void DrawCampCharacterInfo(void)
              character->inventory_weight / 10, gppStringList[0x8c1],
              character->party_weight_share / 10);
     g_camp_help_text->SetRegionHelp(state->caption);
-    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
     DrawRcsText(gppStringList[0x921], 0x144, 0x72, 0x75,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     top = 0x3a;
@@ -959,7 +959,7 @@ void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
                              g_W8TextBufferAlignMiddle | g_W8TextBufferAlignRight);
         break;
     }
-    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
 }
 
 // FUNCTION: WIZ8 0x005b3150
@@ -2094,7 +2094,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         }
     } else if (g_camp_screen->entry_mode == 5) {
         if (CanCharacterUseItemEntry(g_review_character, item) != 0) {
-            UseItem005BA4F0(item);
+            UseCampItem(item);
         }
         return;
     } else if (g_camp_screen->entry_mode == 1) {
@@ -2214,7 +2214,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                     CopyItemInstance(&g_status.item_in_hand_235b, item, 0, 1);
                     changed = 1;
                     if (g_camp_screen->entry_mode == 6) {
-                        DropHeldItem005BA3D0();
+                        DropHeldCampItem();
                         RebuildCampItemList();
                     } else if (g_camp_screen->entry_mode == 1) {
                         SetHandCursors(0);
@@ -2335,7 +2335,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                 }
             }
             if (g_camp_screen->entry_mode == 6 && g_status.item_in_cursor != 0) {
-                DropHeldItem005BA3D0();
+                DropHeldCampItem();
             } else if (g_camp_screen->entry_mode == 1 && g_status.item_in_cursor != 0) {
                 SetHandCursors(0);
             }

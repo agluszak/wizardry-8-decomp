@@ -299,7 +299,7 @@ bool AscensionChaosATrigger(Trigger* pTrigger)
     } else {
         SetTriggerVariableByName("AlethidiesChaosActive", 1);
         QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x720);
-        QueueNpcMessageLine(W8_NPC_MSG_CALL_4DFAE0, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_SPAWN_ALFIE_CHAOS, 0);
     }
     QueueNpcMessageLine(W8_NPC_MSG_FINISH_ACTION, 0);
     pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
@@ -344,7 +344,7 @@ bool AscensionLifeATrigger(Trigger* pTrigger)
     } else {
         SetTriggerVariableByName("AlethidiesLifeActive", 1);
         QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x720);
-        QueueNpcMessageLine(W8_NPC_MSG_CALL_4DFB40, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_SPAWN_ALFIE_LIFE, 0);
     }
     QueueNpcMessageLine(W8_NPC_MSG_FINISH_ACTION, 0);
     pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
@@ -389,7 +389,7 @@ bool AscensionKnowATrigger(Trigger* pTrigger)
     } else {
         SetTriggerVariableByName("AlethidiesKnowActive", 1);
         QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x720);
-        QueueNpcMessageLine(W8_NPC_MSG_CALL_4DFB80, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_SPAWN_ALFIE_KNOW, 0);
     }
     QueueNpcMessageLine(W8_NPC_MSG_FINISH_ACTION, 0);
     pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;

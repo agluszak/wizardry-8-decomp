@@ -156,10 +156,10 @@ void stLight::process(const srNode::ProcessInfo& info, srNode::e_processType typ
        unknown, so keep the integer tests rather than inventing them. */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wtautological-compare"
-    if ((type == 1 || type == 3) && g_light_scale_0060bfe0 != g_float_005ebb38) {
+    if ((type == 1 || type == 3) && g_monster_light_scale != g_float_005ebb38) {
 #pragma clang diagnostic pop
         float saved_scale = intensity_1d0;
-        intensity_1d0 = saved_scale * g_light_scale_0060bfe0;
+        intensity_1d0 = saved_scale * g_monster_light_scale;
         srLight::process(info, type);
         intensity_1d0 = saved_scale;
         return;

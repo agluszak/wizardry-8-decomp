@@ -161,12 +161,12 @@ void PromptRecordModeEntry(void)
    their placement here is provisional, not proven ownership. */
 
 // FUNCTION: WIZ8 0x005E35F0
-void ClearValue69DA68(void)
+void ClearRecordModeValue(void)
 {
     g_value_69da68 = 0;
 }
 // FUNCTION: WIZ8 0x005E3600
-unsigned char GetFlag69DA6C(void)
+unsigned char IsRecordModeActive(void)
 {
     return g_flag_69da6c;
 }

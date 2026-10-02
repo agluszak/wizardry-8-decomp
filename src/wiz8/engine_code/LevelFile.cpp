@@ -469,7 +469,7 @@ BOOLEAN WriteLevelFile(int hFile, int hFileIn, W8LevelFile* pLevel)
         }
     }
     FileWrite(hFile, &iCount, 4, 0);
-    float level_scale = GetFloat64B914();
+    float level_scale = GetAutomapGridCellSize();
     fSuccess = FileWrite(hFile, &level_scale, 4, 0) & fSuccess;
     fSuccess = FileWrite(hFile, &pLevel->num_automap_nodes_6b1, 4, 0) & fSuccess;
     if (pLevel->num_automap_nodes_6b1 != 0) {

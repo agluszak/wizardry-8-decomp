@@ -328,7 +328,7 @@ void PleaseWaitScreenFrame(void)
         g_swap_disc_dialog = 0;
         RequestScreenTransition();
         if (g_load_descriptor->mode == 1 && g_status.intro_shown_49bc) {
-            SetValue64D8AC(4);
+            SetIntroVideoIndex(4);
             SetPendingScreenState(W8_SCREEN_INTRO);
             return;
         }

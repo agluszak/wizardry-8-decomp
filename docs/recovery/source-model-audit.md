@@ -697,7 +697,7 @@ no consumers.
 | `src/wiz8/local_code/GameplayCode.cpp` | `` | `attack->unknown_37[1] = 0;` |
 | `src/wiz8/local_code/LoadSaveGame.cpp` | `W8StatusHeader` | `unsigned char unknown_114[0x200];` |
 | `src/wiz8/local_screens/AutomapScreen.cpp` | `W8AutomapState` | `unsigned char unknown_000[0xf4];` |
-| `src/wiz8/local_screens/NPCInteractionSubscreen.cpp` | `` | `g_screen_state_00649f1c->dialogue_npc->record->unknown_2ef[1] != 0) &&` |
+| `src/wiz8/local_screens/NPCInteractionSubscreen.cpp` | `` | `g_npc_interaction_state->dialogue_npc->record->unknown_2ef[1] != 0) &&` |
 | `src/wiz8/local_screens/Screens.cpp` | `` | `g_level_block->unknown_2e4[0] = 0;` |
 
 ## Identical small bodies and callbacks

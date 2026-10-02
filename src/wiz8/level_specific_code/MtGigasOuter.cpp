@@ -33,9 +33,9 @@ static W8IntervalGate* g_lift_gate;
 // GLOBAL: WIZ8 0x00683500
 static W8Prop* g_lift_prop;
 // GLOBAL: WIZ8 0x00683504
-static stSound3D* g_alarm_sound_683504;
+static stSound3D* g_mt_gigas_outer_alarm_sound;
 // GLOBAL: WIZ8 0x00683508
-static W8IntervalGate* g_alarm_gate_683508;
+static W8IntervalGate* g_mt_gigas_outer_alarm_gate;
 
 /* Lift prop Y travel: 5228.6 at the top of the ride, -2000.0 at the bottom,
    and -5000.0 parked out of the world once the ride is spent. */
@@ -238,11 +238,11 @@ void ControlCampAlarm(int command)
             CreateLocationVar("UmpaniCampAlarm", 0x1e);
         }
         if (command == -1) {
-            if (g_alarm_gate_683508 == 0) {
+            if (g_mt_gigas_outer_alarm_gate == 0) {
                 SetTriggerVariableByName("UmpaniCampAlarm", 0);
             } else {
                 SetTriggerVariableByName(
-                    "UmpaniCampAlarm", static_cast<int>(g_alarm_gate_683508->GetElapsedSeconds()));
+                    "UmpaniCampAlarm", static_cast<int>(g_mt_gigas_outer_alarm_gate->GetElapsedSeconds()));
             }
             return;
         }
@@ -250,37 +250,37 @@ void ControlCampAlarm(int command)
         if (static_cast<unsigned int>(command) > 0x1e) {
             command = 0x1e;
         }
-        if (g_alarm_sound_683504 != 0) {
-            g_alarm_sound_683504->release();
-            g_alarm_sound_683504 = 0;
+        if (g_mt_gigas_outer_alarm_sound != 0) {
+            g_mt_gigas_outer_alarm_sound->release();
+            g_mt_gigas_outer_alarm_sound = 0;
         }
-        g_alarm_sound_683504 =
+        g_mt_gigas_outer_alarm_sound =
             CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Alarm1.wav", position, 1.0f, 75.0f, 1);
-        if (g_alarm_gate_683508 != 0) {
-            delete g_alarm_gate_683508;
-            g_alarm_gate_683508 = 0;
+        if (g_mt_gigas_outer_alarm_gate != 0) {
+            delete g_mt_gigas_outer_alarm_gate;
+            g_mt_gigas_outer_alarm_gate = 0;
         }
-        g_alarm_gate_683508 =
+        g_mt_gigas_outer_alarm_gate =
             new W8IntervalGate(static_cast<float>(static_cast<unsigned int>(command)), 0, 1);
-        if (g_alarm_gate_683508 != 0) {
+        if (g_mt_gigas_outer_alarm_gate != 0) {
             g_master_functions->Add(ControlCampAlarm);
         }
     }
-    if (!g_alarm_gate_683508->IsFinished()) {
-        g_alarm_gate_683508->PollElapsedIntervals();
+    if (!g_mt_gigas_outer_alarm_gate->IsFinished()) {
+        g_mt_gigas_outer_alarm_gate->PollElapsedIntervals();
     }
-    if (!g_alarm_gate_683508->IsFinished()) {
+    if (!g_mt_gigas_outer_alarm_gate->IsFinished()) {
         return;
     }
     g_flag_006834dc = true;
-    if (g_alarm_sound_683504 != 0) {
-        g_alarm_sound_683504->release();
-        g_alarm_sound_683504 = 0;
+    if (g_mt_gigas_outer_alarm_sound != 0) {
+        g_mt_gigas_outer_alarm_sound->release();
+        g_mt_gigas_outer_alarm_sound = 0;
     }
-    if (g_alarm_gate_683508 != 0) {
-        delete g_alarm_gate_683508;
+    if (g_mt_gigas_outer_alarm_gate != 0) {
+        delete g_mt_gigas_outer_alarm_gate;
     }
-    g_alarm_gate_683508 = 0;
+    g_mt_gigas_outer_alarm_gate = 0;
     SetTriggerVariableByName("UmpaniCampAlarm", 0);
 }
 

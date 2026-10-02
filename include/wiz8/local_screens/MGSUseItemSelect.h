@@ -22,16 +22,16 @@ extern W8TextControl* g_use_item_select_controls[9];
 
 struct W8ItemInstance;
 
-extern W8MainUiMode g_value_69b988;
+extern W8MainUiMode g_use_item_select_return_mode;
 extern W8ItemInstance* g_value_69b9a0;
-extern W8ItemInstance* g_value_69b9a4;
+extern W8ItemInstance* g_use_item_select_override_item;
 
 /* 0x0069BF30: gXStatus.iCurrentCursor saved while an item/spell info dialog
    is open; RestoreTargetCursor puts it back on dialog destroy. */
 extern int g_saved_target_cursor;
 
-void SetValue69B988(W8MainUiMode value);
-void RedrawPanel69B998(void);
+void SetUseItemSelectReturnMode(W8MainUiMode value);
+void InvalidateUseItemSelectPanel(void);
 void CloseUseItemSelection(void);
 /* Scroll-button region callback for use-item select (ids 0 and 1). */
 unsigned char UseItemSelectScrollRegionEvent(const InputAtom* event,
@@ -46,7 +46,7 @@ unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event,
 void UseItemSelectTextBoxWheelAt(short x, unsigned short y, unsigned char flag); /* 0x0059DD30 */
 W8ItemInstance* GetSelectedOrFallbackValue(void);                                /* 0x0059E0D0 */
 void SelectCurrentUseItemLine(void);
-void SetValue69B9A4(W8ItemInstance* value);
+void SetUseItemSelectOverrideItem(W8ItemInstance* value);
 
 void CommitSelectedItemUse(void); /* 0x0059D180: fItemSelectMode per-frame commit */
 void SelectUseItemLine(int line); /* 0x0059DDC0 */

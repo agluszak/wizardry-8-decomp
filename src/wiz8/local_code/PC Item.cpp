@@ -219,7 +219,7 @@ enum { W8_EQUIP_CLASS_FIRST_NON_WEAPON = 4 };
 /* 0x0061E956: the gppStringList message each item use kind shows for whatever
    the item was used on. Retail reads a word at a four-byte stride from this
    run of consecutive ids - every other entry - so the access doubles the use
-   kind. The run's extent ends where g_action_kind_message_ids_61e988 starts;
+   kind. The run's extent ends where g_action_kind_message_ids starts;
    its last six ids, from W8_ITEM_PROPERTY_MESSAGE_FIRST, are the item property
    labels the assay dialog reads (0x0061E97C). */
 // GLOBAL: WIZ8 0x0061e956
@@ -457,13 +457,13 @@ int W8ItemVideoObjectCache::GetOrCreateVideoObject(int item_id)
     if (name[0] == '\0') {
         name = g_item_video_object_fallback_names[record->unidentified_name_index];
     }
-    sprintf(g_video_frames_62c430[object].path, "%s\\%s", "Data\\Items", name);
-    if (strstr(g_video_frames_62c430[object].path, ".sti") == 0) {
-        strcat(g_video_frames_62c430[object].path, ".sti");
+    sprintf(g_video_frames[object].path, "%s\\%s", "Data\\Items", name);
+    if (strstr(g_video_frames[object].path, ".sti") == 0) {
+        strcat(g_video_frames[object].path, ".sti");
     }
-    g_video_frames_62c430[object].mode = 0;
-    g_video_frames_62c430[object].loaded = 0;
-    g_video_frames_62c430[object].handle = 0;
+    g_video_frames[object].mode = 0;
+    g_video_frames[object].loaded = 0;
+    g_video_frames[object].handle = 0;
     g_video_slots[frame].first_frame = object;
     g_video_slots[frame].y_offset = 0;
     EnsureCatalogFrameLoaded(frame, 0);
@@ -3259,10 +3259,10 @@ bool CanUseItemForAction(int party_slot, const W8ItemInstance* item)
         return 0;
     }
 
-    SetValue69B9A4(const_cast<W8ItemInstance*>(item));
+    SetUseItemSelectOverrideItem(const_cast<W8ItemInstance*>(item));
     usable =
         SpellHasAnyValidTarget(party_slot, record->spell_id, ItemClassNormalizesTarget(record));
-    SetValue69B9A4(0);
+    SetUseItemSelectOverrideItem(0);
     if (usable == 0) {
         return 0;
     }
@@ -3294,10 +3294,10 @@ char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
         return 1;
     }
     if (gXStatus.fItemSelectMode != 0) {
-        SetValue69B9A4(item);
+        SetUseItemSelectOverrideItem(item);
         has_target = SpellHasAnyValidTarget(character_index, record->spell_id,
                                             ItemClassNormalizesTarget(record));
-        SetValue69B9A4(0);
+        SetUseItemSelectOverrideItem(0);
         if (has_target == 0) {
             ShowNoticeLine(gppStringList[0x7a8], callback, 1, 0);
             return 1;

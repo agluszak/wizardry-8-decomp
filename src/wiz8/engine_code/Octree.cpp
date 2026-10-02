@@ -1385,7 +1385,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
         m_papParticles[particle]->SetTraversalEnabled(0);
     }
     SetViewportMode(0);
-    SetScaledViewport00425DA0(0, 0, 0x140, 0xf0);
+    SetWorldScaledViewport(0, 0, 0x140, 0xf0);
     srVector3T<float> saved_location;
     srMatrix3T<float> saved_rotation;
     world->camera->getLocation(saved_location);
@@ -1520,7 +1520,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     SetCameraLightMode(3);
     g_render_unlit = 0;
     g_render_cull_front = 0;
-    SetScaledViewport00425DA0(0, 0, 0x280, 0x1e0);
+    SetWorldScaledViewport(0, 0, 0x280, 0x1e0);
     m_region_links_dirty_16c = 1;
     m_region_links_ready_169 = 1;
     m_reset_visibility_168 = 1;

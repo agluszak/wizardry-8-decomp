@@ -16,30 +16,30 @@ class W8DialogButton;
 
 /* Owned globals. */
 extern Controls* gpSubMenuPanel;
-extern W8DialogButton* g_submenu_scroll_buttons_69b858[2];
-extern W8DialogButton* g_submenu_panel_buttons_69b860[2];
-extern W8DialogButton* g_layout_arrow_buttons_69b884[6];
-extern W8DialogButton* g_combat_stance_buttons_69b89c[5];
-extern W8DialogButton* g_roof_buttons_69b8d8[3];
-extern W8DialogButton* g_options_disk_button_69b8e4;
-extern short g_submenu_entry_count_69b87e;
-extern unsigned int g_submenu_clock_69b880;
+extern W8DialogButton* g_submenu_scroll_buttons[2];
+extern W8DialogButton* g_submenu_panel_buttons[2];
+extern W8DialogButton* g_layout_arrow_buttons[6];
+extern W8DialogButton* g_combat_stance_buttons[5];
+extern W8DialogButton* g_roof_buttons[3];
+extern W8DialogButton* g_options_disk_button;
+extern short g_submenu_entry_count;
+extern unsigned int g_submenu_clock;
 extern bool g_submenu_flag_69b8d4;
 /* Exactly five: the next known global begins at 0x0069B900. The cancel row
    lands at [built-1] where built is the available-entry count plus one, so
    the array is only safe because W8_SUBMENU_ATTACK's Berserk (fighter trait
    0x14) and Pray (priest trait 0x0b) entries can never be available together -
    iProfession is one index into g_profession_abilities. */
-extern W8TextControl* g_submenu_rows_69b8ec[5];
-extern W8DialogButton* g_submenu_buttons_69b8b0[9];
+extern W8TextControl* g_submenu_rows[5];
+extern W8DialogButton* g_submenu_buttons[9];
 /* The action-kind message indexes the caption draw maps through. */
-extern unsigned short g_action_kind_message_ids_61e988[12];
+extern unsigned short g_action_kind_message_ids[12];
 /* Which menu the open sub-menu panel serves (W8SubMenuPage value), each row's
    entry index and each row's W8SubMenuEntryState; the retail storage is
    word-sized, so the enum values ride in shorts. */
-extern short g_submenu_menu_69b854;
-extern short g_submenu_entries_69b868[6];
-extern short g_submenu_entry_states_69b874[5];
+extern short g_submenu_menu;
+extern short g_submenu_entries[6];
+extern short g_submenu_entry_states[5];
 
 /* Invalidate (when asked) then redraw the sub-menu panel. */
 void RefreshSubMenuPanel(char invalidate); /* 0x005963E0 */

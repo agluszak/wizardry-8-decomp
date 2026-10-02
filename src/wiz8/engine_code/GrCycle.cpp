@@ -352,7 +352,7 @@ unsigned char ReadGrCycleData(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycl
             srAssertFail("pCycle", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x1d2, 0);
         }
         if (object_type == 0) {
-            (*cycle)->id_008 = IncrementValue60DFAC();
+            (*cycle)->id_008 = AllocateGrObjectId();
         }
         (*cycle)->GetRepresentation()->current_cycle = -1;
     }

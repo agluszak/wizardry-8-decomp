@@ -450,7 +450,7 @@ unsigned char g_default_footstep_material;
 unsigned char g_footstep_alternate;
 
 // GLOBAL: WIZ8 0x0065a10c
-int g_previous_footstep_variant_65a10c;
+int g_previous_ambient_footstep_variant;
 
 // GLOBAL: WIZ8 0x00609edc
 const char* g_footstep_names[] = {
@@ -502,9 +502,9 @@ int PlayFootstep(signed char surface, signed char material, int kind)
         do {
             variant = Random(4) + 1;
             ++attempts;
-        } while (variant == g_previous_footstep_variant_65a10c && attempts < 100);
+        } while (variant == g_previous_ambient_footstep_variant && attempts < 100);
         BuildFootstepPath(path, selected_surface, selected_material, kind, variant);
-        g_previous_footstep_variant_65a10c = variant;
+        g_previous_ambient_footstep_variant = variant;
     }
     memset(&options, -1, sizeof(options));
     options.uiVolume = g_settings.footstep_volume;

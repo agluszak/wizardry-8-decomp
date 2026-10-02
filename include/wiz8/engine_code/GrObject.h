@@ -40,5 +40,5 @@ public:
 }; /* 0x18 */
 
 /* The shared object-id counter both lifecycle callers advance. */
-int IncrementValue60DFAC(void);
-void SetValue60DFAC(void);
+int AllocateGrObjectId(void);
+void ResetGrObjectIdCounter(void);

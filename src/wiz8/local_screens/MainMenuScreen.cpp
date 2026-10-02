@@ -181,7 +181,7 @@ unsigned char MainMenuScreenEnter(void)
     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[8]);
     measured = StringPixLength(wide, g_wiz_text_font_secondary);
     gprintf(0x27b - measured, 5, wide);
-    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
     ResetRegions();
     RegionSetEnable(1);
 
@@ -262,7 +262,7 @@ void MainMenuScreenFrame()
                 if (HandleDeveloperModeKey(&input)) {
                     if (g_dev_mode != 0) {
                         SetFont(g_wiz_text_font_secondary);
-                        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+                        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
                         gprintfDirty(5, 5, L"Developer mode enabled.");
                     }
                 } else {
@@ -273,7 +273,7 @@ void MainMenuScreenFrame()
                             DrawMainMenuItem(g_main_menu_selected_item, 2);
                             RequestScreenTransition();
                             g_settings.intro_seen = false;
-                            SetValue64D8AC(0);
+                            SetIntroVideoIndex(0);
                             SetPendingScreenState(W8_SCREEN_INTRO);
                             break;
                         case 1:
@@ -514,7 +514,7 @@ unsigned char MainMenuIntroduction(const InputAtom* event, W8Region* region)
         if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
             RequestScreenTransition();
             g_settings.intro_seen = false;
-            SetValue64D8AC(0);
+            SetIntroVideoIndex(0);
             SetPendingScreenState(W8_SCREEN_INTRO);
         }
         return 1;

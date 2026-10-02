@@ -526,7 +526,7 @@ void DisableRegionHelpFlag(W8Region* region)
 }
 
 // FUNCTION: WIZ8 0x004f1220
-void ReleasePointer689B40(void)
+void ReleaseDefaultHelpText(void)
 {
     if (g_default_help_text != 0) {
         delete[] g_default_help_text;
@@ -1042,7 +1042,7 @@ void UpdateRegionHelp(void)
 // FUNCTION: WIZ8 0x004f2750
 void SetRegionHelpText(const wchar_t* text)
 {
-    ReleasePointer689B40();
+    ReleaseDefaultHelpText();
     if (text != 0) {
         g_default_help_text = new wchar_t[wcslen(text) + 1];
         wcscpy(g_default_help_text, text);
