@@ -216,7 +216,7 @@ void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short tex
     if (text_box == -1) {
         if ((gXStatus.fNpcDialogueMode && !CanOpenNpcDialogue()) || gXStatus.fCampMode) {
             text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (GetFlag68F105()) {
+        } else if (IsMipeActive()) {
             text_box = 0;
         } else {
             text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
@@ -339,7 +339,7 @@ void SetTextBoxRegionBounds(int left, int top, int right, int bottom)
 void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
                 unsigned int wrap_width, bool force_dialog)
 {
-    GetFlag68F105();
+    IsMipeActive();
     if (g_level_block != 0 && (g_current_screen_state.id == W8_SCREEN_MAIN_GAME ||
                                (g_current_screen_state.id == W8_SCREEN_CAMP && !force_dialog) ||
                                g_current_screen_state.id == W8_SCREEN_PLEASE_WAIT ||
@@ -354,7 +354,7 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
             if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) ||
                 gXStatus.fCampMode != 0) {
                 text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-            } else if (GetFlag68F105()) {
+            } else if (IsMipeActive()) {
                 text_box = 0;
             } else {
                 text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
@@ -378,7 +378,7 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
                 if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) ||
                     gXStatus.fCampMode != 0) {
                     text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-                } else if (GetFlag68F105()) {
+                } else if (IsMipeActive()) {
                     text_box = 0;
                 } else {
                     text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
@@ -616,7 +616,7 @@ void FormatNotice(int channel, short text_box, const wchar_t* format, ...)
     if (text_box == -1) {
         if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
             text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (GetFlag68F105()) {
+        } else if (IsMipeActive()) {
             text_box = 0;
         } else {
             text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
@@ -638,7 +638,7 @@ void ShowNoticef(unsigned int font_palette, const wchar_t* format, ...)
 
     if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
         text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-    } else if (GetFlag68F105()) {
+    } else if (IsMipeActive()) {
         text_box = 0;
     } else {
         text_box = gXStatus.fCombatMode != 0;
@@ -686,7 +686,7 @@ void AppendTextBoxLine(const wchar_t* text, ...)
     if (text_box == -1) {
         if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
             text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (GetFlag68F105()) {
+        } else if (IsMipeActive()) {
             text_box = 0;
         } else {
             text_box = gXStatus.fCombatMode != 0;
@@ -769,7 +769,7 @@ void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned ch
     if (text_box == -1) {
         if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
             text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (GetFlag68F105()) {
+        } else if (IsMipeActive()) {
             text_box = 0;
         } else {
             text_box = gXStatus.fCombatMode != 0;
@@ -831,7 +831,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
     if (text_box == -1) {
         if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
             text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (GetFlag68F105()) {
+        } else if (IsMipeActive()) {
             text_box = 0;
         } else {
             text_box = gXStatus.fCombatMode != 0;
@@ -2661,7 +2661,7 @@ void RefreshTextBoxMode(unsigned short mode)
     }
     if (mode == 0xffff) {
         if ((gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue()) && gXStatus.fCampMode == 0) {
-            if (GetFlag68F105() == 0) {
+            if (IsMipeActive() == 0) {
                 mode = gXStatus.fCombatMode != 0;
             } else {
                 mode = 0;
