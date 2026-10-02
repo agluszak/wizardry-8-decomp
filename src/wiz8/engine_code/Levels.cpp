@@ -398,8 +398,8 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
         }
     }
 
-    ForwardThroughMember3C_46E750(GetSecondaryWorld(), 0);
-    ForwardThroughMember3C_46E640(GetSecondaryWorld(), 1);
+    SetWorldSceneMeshShaderLowBits(GetSecondaryWorld(), 0);
+    SetWorldSceneMeshShaderBit3(GetSecondaryWorld(), 1);
     NoOp(sky_world, 0, 0);
     WorldRemoveLight(sky_world, sky_world->camera_light);
     sky_world->camera_light = 0;
