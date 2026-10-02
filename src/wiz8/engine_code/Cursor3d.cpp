@@ -852,7 +852,6 @@ int ResolveWorldCursorTarget(srVector3T<float>* position)
     return 1;
 }
 
-/* Forward the resolved cursor position to the caller's vector. */
 // FUNCTION: WIZ8 0x00492500
 void GetWorldCursorTargetPosition(srVector3T<float>* position)
 {
