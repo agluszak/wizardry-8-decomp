@@ -215,7 +215,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         registry_after = GetUsedPageFileBytes();
         monster_info->p3D->registry_weight_27c = registry_after - registry_before;
         g_monster_cycle_registry_weight += registry_after - registry_before;
-        if (GetFlag68F105() != 0) {
+        if (IsMipeActive() != 0) {
             ShowNoticef(7, L"(%dK)",
                         static_cast<unsigned int>(registry_after - registry_before) >> 10);
         }
