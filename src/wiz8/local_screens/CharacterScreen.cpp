@@ -249,7 +249,7 @@ void W8CharacterScreen::UpdateNavigation(W8CharacterPage* page)
 }
 
 // FUNCTION: WIZ8 0x005b0610
-void W8CharacterScreen::ShowDialog005B0610(int value)
+void W8CharacterScreen::ShowSpellInfo(int value)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8SpellInfoDialog(value);
@@ -276,7 +276,7 @@ void W8CharacterScreen::ShowRaceInfo(unsigned int race)
 }
 
 // FUNCTION: WIZ8 0x005b07c0
-void W8CharacterScreen::ShowAttributeInfo005B07C0(unsigned int attribute)
+void W8CharacterScreen::ShowPrimaryAttributeInfo(unsigned int attribute)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8AttributeInfoDialog(attribute);
@@ -285,7 +285,7 @@ void W8CharacterScreen::ShowAttributeInfo005B07C0(unsigned int attribute)
 }
 
 // FUNCTION: WIZ8 0x005b0850
-void W8CharacterScreen::ShowAttributeInfo005B0850(unsigned int attribute)
+void W8CharacterScreen::ShowSecondaryAttributeInfo(unsigned int attribute)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8SecondaryAttributeInfoDialog(attribute);
@@ -294,7 +294,7 @@ void W8CharacterScreen::ShowAttributeInfo005B0850(unsigned int attribute)
 }
 
 // FUNCTION: WIZ8 0x005b08e0
-void W8CharacterScreen::ShowDialog005B08E0(int value)
+void W8CharacterScreen::ShowSkillInfo(int value)
 {
     m_dialog_response_1b20 = 0;
     if (value == g_profession_bonus_skills[m_character_018.iProfession]) {
