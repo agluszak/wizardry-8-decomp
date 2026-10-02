@@ -393,7 +393,7 @@ void ToggleSearchMode(void)
         g_status.search_mode = 1;
         ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_MODE_ON], -1, -1, 0);
         g_search_pulse_clock = SetCountdownClock(0x1f4);
-        ClearValue6834D4();
+        ClearActiveWorldCursorNode();
     } else {
         ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_BLOCKED_COMBAT], -1, -1, 0);
     }
