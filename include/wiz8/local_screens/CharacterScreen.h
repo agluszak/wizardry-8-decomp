@@ -393,12 +393,12 @@ void RefundCharacterScreenSkill(int skill_id);
 class W8CharacterPageHost {
 public:
     virtual void UpdateNavigation(W8CharacterPage* page) = 0;
-    virtual void ShowDialog005B0610(int value) = 0;
+    virtual void ShowSpellInfo(int value) = 0;
     virtual void ShowProfessionInfo(unsigned int profession) = 0;
     virtual void ShowRaceInfo(unsigned int race) = 0;
-    virtual void ShowAttributeInfo005B07C0(unsigned int attribute) = 0;
-    virtual void ShowAttributeInfo005B0850(unsigned int attribute) = 0;
-    virtual void ShowDialog005B08E0(int value) = 0;
+    virtual void ShowPrimaryAttributeInfo(unsigned int attribute) = 0;
+    virtual void ShowSecondaryAttributeInfo(unsigned int attribute) = 0;
+    virtual void ShowSkillInfo(int value) = 0;
     virtual void ShowDescription(int first, int second) = 0;
     virtual void ShowCharacterSummary() = 0;
     virtual unsigned char HasDialog() = 0;
@@ -421,12 +421,12 @@ public:
     bool ValidateName();                                             /* 0x005B1670 */
 
     virtual void UpdateNavigation(W8CharacterPage* page) override;
-    virtual void ShowDialog005B0610(int value) override;
+    virtual void ShowSpellInfo(int value) override;
     virtual void ShowProfessionInfo(unsigned int profession) override;
     virtual void ShowRaceInfo(unsigned int race) override;
-    virtual void ShowAttributeInfo005B07C0(unsigned int attribute) override;
-    virtual void ShowAttributeInfo005B0850(unsigned int attribute) override;
-    virtual void ShowDialog005B08E0(int value) override;
+    virtual void ShowPrimaryAttributeInfo(unsigned int attribute) override;
+    virtual void ShowSecondaryAttributeInfo(unsigned int attribute) override;
+    virtual void ShowSkillInfo(int value) override;
     virtual void ShowDescription(int first, int second) override;
     virtual void ShowCharacterSummary() override;
     virtual unsigned char HasDialog() override;
