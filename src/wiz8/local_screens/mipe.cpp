@@ -3228,12 +3228,12 @@ unsigned char HandleMipeKey(const InputAtom* event)
 }
 
 // FUNCTION: WIZ8 0x0057dbb0
-unsigned char GetFlag68F105(void)
+unsigned char IsMipeActive(void)
 {
     return g_mipe_active;
 }
 // FUNCTION: WIZ8 0x0057dbc0
-unsigned char GetFlag68F104(void)
+unsigned char IsMipeMenuActive(void)
 {
     return g_mipe_menu_active;
 }
