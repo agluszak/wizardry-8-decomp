@@ -630,8 +630,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double sine, doubl
 {
     srMatrix3T<T> rotation;
 
-    rotation.SetRows(srVector3T<T>((T)cosine, (T)0, (T)sine),
-                     srVector3T<T>((T)0, (T)1, (T)0),
+    rotation.SetRows(srVector3T<T>((T)cosine, (T)0, (T)sine), srVector3T<T>((T)0, (T)1, (T)0),
                      srVector3T<T>((T)-sine, (T)0, (T)cosine));
     MultiplyBy(rotation);
     return this;
@@ -643,8 +642,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double sine, doubl
 {
     srMatrix3T<T> rotation;
 
-    rotation.SetRows(srVector3T<T>((T)1, (T)0, (T)0),
-                     srVector3T<T>((T)0, (T)cosine, (T)-sine),
+    rotation.SetRows(srVector3T<T>((T)1, (T)0, (T)0), srVector3T<T>((T)0, (T)cosine, (T)-sine),
                      srVector3T<T>((T)0, (T)sine, (T)cosine));
     MultiplyBy(rotation);
     return this;
@@ -655,8 +653,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double sine, doubl
     srMatrix3T<T> rotation;
 
     rotation.SetRows(srVector3T<T>((T)cosine, (T)-sine, (T)0),
-                     srVector3T<T>((T)sine, (T)cosine, (T)0),
-                     srVector3T<T>((T)0, (T)0, (T)1));
+                     srVector3T<T>((T)sine, (T)cosine, (T)0), srVector3T<T>((T)0, (T)0, (T)1));
     MultiplyBy(rotation);
     return this;
 }
@@ -671,8 +668,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double angle)
     if (angle != 0.0) {
         cosine = (T)cos(angle);
         sine = (T)sin(angle);
-        rotation.SetRows(srVector3T<T>(cosine, (T)0, sine),
-                         srVector3T<T>((T)0, (T)1, (T)0),
+        rotation.SetRows(srVector3T<T>(cosine, (T)0, sine), srVector3T<T>((T)0, (T)1, (T)0),
                          srVector3T<T>(-sine, (T)0, cosine));
         MultiplyBy(rotation);
     }
@@ -689,8 +685,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
     if (angle != 0.0) {
         cosine = (T)cos(angle);
         sine = (T)sin(angle);
-        rotation.SetRows(srVector3T<T>((T)1, (T)0, (T)0),
-                         srVector3T<T>((T)0, cosine, -sine),
+        rotation.SetRows(srVector3T<T>((T)1, (T)0, (T)0), srVector3T<T>((T)0, cosine, -sine),
                          srVector3T<T>((T)0, sine, cosine));
         MultiplyBy(rotation);
     }
@@ -708,8 +703,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double angle)
     if (angle != 0.0) {
         cosine = (T)cos(angle);
         sine = (T)sin(angle);
-        rotation.SetRows(srVector3T<T>(cosine, -sine, (T)0),
-                         srVector3T<T>(sine, cosine, (T)0),
+        rotation.SetRows(srVector3T<T>(cosine, -sine, (T)0), srVector3T<T>(sine, cosine, (T)0),
                          srVector3T<T>((T)0, (T)0, (T)1));
         MultiplyBy(rotation);
     }
@@ -1097,8 +1091,17 @@ srMatrix4T<T>* srMatrix4T<T>::Set(const srMatrix3T<T>& rotation, const srVector3
     return this;
 }
 
-float Det3(float param_1, float param_2, float param_3, float param_4, float param_5, float param_6,
-           float param_7, float param_8, float param_9);
+/* Retail emits one standalone 3x3 determinant (0x0049BD00) that
+   srMatrix4T::Invert calls, while stModelInstance.cpp expands it, so the
+   definition is header-visible. */
+// FUNCTION: WIZ8 0x0049BD00
+inline float Det3(float param_1, float param_2, float param_3, float param_4, float param_5,
+                  float param_6, float param_7, float param_8, float param_9)
+{
+    return (param_2 * param_6 - param_3 * param_5) * param_7 +
+           ((param_5 * param_9 - param_6 * param_8) * param_1 -
+            (param_2 * param_9 - param_3 * param_8) * param_4);
+}
 
 /* A 3×4 affine transform: three rows of (basis xyz, translation w). srNode
    composes its authored local rotation/location/scale into this cached world

@@ -115,7 +115,12 @@ _INCLUDE = re.compile(r'^\s*#\s*include\s*[<"]([^>"]+)[>"]', re.MULTILINE)
 
 
 def _includes_directly(source: Path, header: str) -> bool:
-    """Whether `source` names repository header `header` in an #include line."""
+    """Whether `source` names repository header `header` in an #include line.
+
+    The dependents come from the base source index, so a source this change
+    deletes is gone from the head checkout and includes nothing there."""
+    if not source.is_file():
+        return False
     text = source.read_text(encoding="utf-8", errors="replace")
     return any(
         header.endswith("/" + included.replace("\\", "/").lstrip("./"))

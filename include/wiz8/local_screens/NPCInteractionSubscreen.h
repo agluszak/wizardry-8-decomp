@@ -6,6 +6,7 @@
 #include "wiz8/layouts/main_game_screen.h"
 #include "wiz8/message_box.h"
 #include "wiz8/local_code/Controls.h"
+#include "wiz8/xstatus.h"
 
 /* Local Screens\NPCInteractionSubscreen.cpp owns the NPC dialogue state and
    the keyword/transcript tables. */
@@ -404,8 +405,7 @@ void DrawNpcQuoteBubble(void);                                            /* 0x0
 /* 0x00575E60: OpenNpcDialog — the modal request is the script's
    W8NpcQuoteEntry itself; the dialog discriminates kind_00 0x05 (option
    list), 0x12/0x1e (price check) and 0x13 (keyword entry). */
-void LookAtDialogueNpc(void);        /* 0x005767F0 */
-void CloseNpcDialogueIfActive(void); /* 0x00576B80 */
+void LookAtDialogueNpc(void); /* 0x005767F0 */
 void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, unsigned char flags,
                               unsigned char force); /* 0x0056C6D0 */
 void BeginScriptedWorldAction(void);                /* 0x00577520 */
@@ -472,6 +472,16 @@ void UpdateNpcDialogueSubMode(void);    /* 0x00571F60 */
    active dialogue_category_filter's button shows its secondary state. */
 void SyncDialogueCategoryButtons(void);
 void EndNpcDialogueSession(unsigned char);
+
+/* Retail emits one standalone copy but expands it at every caller, in other
+   units too, so the definition is visible here. */
+// FUNCTION: WIZ8 0x00576b80
+inline void CloseNpcDialogueIfActive(void)
+{
+    if (gXStatus.fNpcDialogueMode != 0) {
+        EndNpcDialogueSession(0);
+    }
+}
 /* Whether an open NPC dialogue transcript covers the party slot's portrait:
    dialogue mode up, scripted_dialogue clear, the controller enabled, and its top
    edge above the slot's band. Portrait and character-update paths skip the
