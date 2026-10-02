@@ -829,8 +829,8 @@ void W8OptionsKeyboardPanel::Populate()
     m_selection.m_selectionListener = this;
 
     W8OptionsKeyboardPage& page = g_options_keyboard_pages[m_panel - 6];
-    W8ControlsRect title_bounds = {m_bounds.left + 30, m_bounds.top + m_content_top_050, m_bounds.right - 30,
-                                   m_bounds.top + m_content_top_050 + 22};
+    W8ControlsRect title_bounds = {m_bounds.left + 30, m_bounds.top + m_content_top_050,
+                                   m_bounds.right - 30, m_bounds.top + m_content_top_050 + 22};
     W8TextBuffer* title =
         new W8TextBuffer(&title_bounds, gppStringList[page.title], g_options_detail_font,
                          g_W8TextBufferAlignTop | g_W8TextBufferAlignCenter, 4);
@@ -844,8 +844,8 @@ void W8OptionsKeyboardPanel::Populate()
 
     W8OptionsKeyRow* row = g_options_key_rows + first;
     for (;;) {
-        W8ControlsRect label_bounds = {m_bounds.left + 20, m_bounds.top + m_content_top_050, m_bounds.right,
-                                       m_bounds.top + m_content_top_050 + 22};
+        W8ControlsRect label_bounds = {m_bounds.left + 20, m_bounds.top + m_content_top_050,
+                                       m_bounds.right, m_bounds.top + m_content_top_050 + 22};
         W8TextBuffer* label =
             new W8TextBuffer(&label_bounds, gppStringList[row->label], g_options_detail_font,
                              g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4);
@@ -1315,7 +1315,8 @@ void W8OptionsAdvancedGraphicsPanel::Populate()
 void W8OptionsUnavailablePanel::Populate()
 {
     m_content_top_050 += 44;
-    W8ControlsRect bounds = {m_bounds.left + 30, m_bounds.top + m_content_top_050, m_bounds.right - 30, m_bounds.bottom};
+    W8ControlsRect bounds = {m_bounds.left + 30, m_bounds.top + m_content_top_050,
+                             m_bounds.right - 30, m_bounds.bottom};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[m_message], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignCenter, 4);
     m_text_buffers_058.Add(text);
@@ -1904,8 +1905,7 @@ W8OptionsMenuSet::W8OptionsMenuSet(unsigned int* shared_region_set)
     m_next_054 = new W8TextControl(this, 0xffffffff, 0x11f, 3, 0, 0, 0xf4, 0, 4, 6, 5, -1, 7);
     m_next_054->m_listener = this;
 
-    m_page_text_05c = new W8TextBuffer(&m_bounds,
-                                       &g_empty_wide_string, g_options_detail_font,
+    m_page_text_05c = new W8TextBuffer(&m_bounds, &g_empty_wide_string, g_options_detail_font,
                                        g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle, 4);
 }
 

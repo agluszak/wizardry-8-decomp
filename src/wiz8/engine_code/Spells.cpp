@@ -1577,7 +1577,8 @@ void Update3DSounds()
                     float angle;
                     unsigned int volume;
 
-                    to_listener.Set(listener.x - static_cast<float>(world.x), listener.y - static_cast<float>(world.y),
+                    to_listener.Set(listener.x - static_cast<float>(world.x),
+                                    listener.y - static_cast<float>(world.y),
                                     listener.z - static_cast<float>(world.z));
                     distance = static_cast<float>(sqrt(DotProduct(to_listener, to_listener)));
                     if (sound->falloff <= distance) {

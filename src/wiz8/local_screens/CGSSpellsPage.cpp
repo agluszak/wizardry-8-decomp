@@ -86,9 +86,10 @@ W8CharacterSpellList::~W8CharacterSpellList()
 void W8CharacterSpellList::SetEntryCount(int count)
 {
     if (!m_range) {
-        m_range = new W8RangeControl(
-            m_pPanel->m_bounds.left + m_x + 0xb8, m_pPanel->m_bounds.top + m_y + 0x1a,
-            m_pPanel->m_bounds.left + m_x + 0xca, m_pPanel->m_bounds.top + m_y + 0x78, m_region_set);
+        m_range = new W8RangeControl(m_pPanel->m_bounds.left + m_x + 0xb8,
+                                     m_pPanel->m_bounds.top + m_y + 0x1a,
+                                     m_pPanel->m_bounds.left + m_x + 0xca,
+                                     m_pPanel->m_bounds.top + m_y + 0x78, m_region_set);
         m_range->m_listener = this;
     }
     m_range->Invalidate(0);

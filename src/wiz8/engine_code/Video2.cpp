@@ -2255,12 +2255,12 @@ void SetViewport(int left, int top, int right, int bottom)
 
         plane.left = fractional_left * (view.right - view.left) + view.left;
         plane.right = fractional_right * (view.right - view.left) + view.left;
-        plane.bottom =
-            static_cast<double>((g_double_005ebc30 - fractional_bottom) * static_cast<float>(view.top - view.bottom) +
-                     static_cast<float>(view.bottom));
-        plane.top =
-            static_cast<double>((g_double_005ebc30 - fractional_top) * static_cast<float>(view.top - view.bottom) +
-                     static_cast<float>(view.bottom));
+        plane.bottom = static_cast<double>((g_double_005ebc30 - fractional_bottom) *
+                                               static_cast<float>(view.top - view.bottom) +
+                                           static_cast<float>(view.bottom));
+        plane.top = static_cast<double>((g_double_005ebc30 - fractional_top) *
+                                            static_cast<float>(view.top - view.bottom) +
+                                        static_cast<float>(view.bottom));
 
         g_world->camera->setViewPlane(plane, 1.0);
         if (g_world_659ab8 != 0) {
@@ -2786,8 +2786,8 @@ bool HasEnoughFreeDiskSpace(void)
     }
     GetDiskFreeSpaceA(NULL, &sectors_per_cluster, &bytes_per_sector, &free_clusters,
                       &total_clusters);
-    megabytes = static_cast<unsigned int>((__int64)sectors_per_cluster * bytes_per_sector * free_clusters /
-                               0x400 / 0x400);
+    megabytes = static_cast<unsigned int>((__int64)sectors_per_cluster * bytes_per_sector *
+                                          free_clusters / 0x400 / 0x400);
     enough = megabytes >= 0x100;
     return enough;
 }
@@ -3292,8 +3292,9 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
         }
     }
 
-    srColorSurface* surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555,
-                                                     static_cast<unsigned long>(extent), static_cast<unsigned long>(extent));
+    srColorSurface* surface =
+        SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555, static_cast<unsigned long>(extent),
+                               static_cast<unsigned long>(extent));
     if (surface == 0) {
         return 0;
     }

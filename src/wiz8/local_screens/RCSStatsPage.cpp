@@ -1069,8 +1069,8 @@ void W8CharacterPersonalityPage::Activate()
     InitTextInputModeWithScheme(1);
     AddTextInputField(m_bounds.left + 0x97, m_bounds.top + 0xab, 0x106, 0x10, 0x7f,
                       m_character_060->name_part_2, 0x27, 0xf, 1);
-    AddTextInputField(m_bounds.left + 0x97, m_bounds.top + 0xc7, 0x106, 0x10, 0x7f, m_character_060->name, 9,
-                      0xf, 1);
+    AddTextInputField(m_bounds.left + 0x97, m_bounds.top + 0xc7, 0x106, 0x10, 0x7f,
+                      m_character_060->name, 9, 0xf, 1);
     if (GetTextInputFieldLength(0) == 0)
         SetActiveField(0);
     else if (GetTextInputFieldLength(1) == 0)

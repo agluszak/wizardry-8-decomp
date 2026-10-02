@@ -320,8 +320,9 @@ void W8CharacterStatsRow::Initialize(Controls* owner, unsigned int* region_set, 
 void W8CharacterStatsRow::BuildSubpanel()
 {
     if (m_subpanel_028 == 0) {
-        m_subpanel_028 = new Controls(m_x_00c + 0x9e, m_y_010 + 1, m_x_00c + 0x11c,
-                                      m_y_010 + 5 + static_cast<unsigned int>(m_count_008) * 0x16, -1, 0, -1);
+        m_subpanel_028 =
+            new Controls(m_x_00c + 0x9e, m_y_010 + 1, m_x_00c + 0x11c,
+                         m_y_010 + 5 + static_cast<unsigned int>(m_count_008) * 0x16, -1, 0, -1);
         m_subpanel_028->AcquireRegionSet(m_region_set_014);
         m_subpanel_entries_02c = new W8TextControl*[m_count_008];
 

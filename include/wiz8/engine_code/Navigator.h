@@ -354,12 +354,12 @@ public:
     }
 
     srVector3T<float> GetPosition();
-    unsigned char UpdateTrackedPosition();                    /* 0x00454950 */
+    unsigned char UpdateTrackedPosition();                      /* 0x00454950 */
     void UpdateNavigation(unsigned char value, char condition); /* 0x004553A0 */
-    void SetAngles(float angle);                              /* 0x004538F0 */
-    void SetPitch(float pitch);                               /* 0x00453940 */
-    float GetYaw();                                           /* 0x00453970 */
-    float GetPitch();                                         /* 0x00453980 */
+    void SetAngles(float angle);                                /* 0x004538F0 */
+    void SetPitch(float pitch);                                 /* 0x00453940 */
+    float GetYaw();                                             /* 0x00453970 */
+    float GetPitch();                                           /* 0x00453980 */
     /* The world-path reachability probe the group engagement check runs:
        fills `out_distance` with the route length and returns nonzero when a
        route inside `max_range` exists. */

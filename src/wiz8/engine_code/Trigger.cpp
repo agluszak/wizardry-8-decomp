@@ -2833,7 +2833,8 @@ void Trigger::Run(int source)
                 m_pEvent = new W8TriggerEvent;
                 m_pEvent->trigger_030 = this;
                 m_pEvent->action_004 = 2;
-                m_pEvent->timer_008.SetDuration(m_lData1 < 0 ? 10.0f : static_cast<float>(m_lData1));
+                m_pEvent->timer_008.SetDuration(m_lData1 < 0 ? 10.0f
+                                                             : static_cast<float>(m_lData1));
                 m_pEvent->timer_008.Restart();
                 m_pEvent->repeat_034 = 1;
                 g_timed_events.Add(m_pEvent);
@@ -3351,9 +3352,10 @@ void Trigger::Run(int source)
                 } else {
                     spell_id = 0x2a;
                 }
-                PointCastSpell(
-                    srVector3T<float>(static_cast<float>(position.x), static_cast<float>(position.y), static_cast<float>(position.z)),
-                    spell_id, static_cast<unsigned int>(m_lData3));
+                PointCastSpell(srVector3T<float>(static_cast<float>(position.x),
+                                                 static_cast<float>(position.y),
+                                                 static_cast<float>(position.z)),
+                               spell_id, static_cast<unsigned int>(m_lData3));
                 if (action_230 == 0x2b) {
                     RemoveAllConditionsFromParty();
                 }
