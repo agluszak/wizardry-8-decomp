@@ -206,11 +206,6 @@ void InitializeWorldCursor(void)
     }
 }
 
-/* Tear the world cursor down completely: detach and delete its monster,
-   release the particle, the tracked light and the carried value, then publish
-   the retirement through the UI state. The shared camera-distance slot returns
-   to the cursor's own last value and the cursor's vertical position is
-   flattened before that distance is taken. */
 // FUNCTION: WIZ8 0x004909C0
 void ReleaseWorldCursor(void)
 {
@@ -251,7 +246,6 @@ void ReleaseWorldCursor(void)
     gp3DCursor = 0;
 }
 
-/* The tracked cursor position, or the origin while there is no cursor. */
 // FUNCTION: WIZ8 0x00490BF0
 void GetWorldCursorPosition(srVector3T<float>* position)
 {
@@ -262,9 +256,6 @@ void GetWorldCursorPosition(srVector3T<float>* position)
     }
 }
 
-/* Show the world cursor: reattach its monster to the world lists, mark it
-   visible, reactivate its particle, then park the system cursor and clear the
-   combat selection. */
 // FUNCTION: WIZ8 0x00490B10
 void ShowWorldCursor(void)
 {
@@ -282,8 +273,6 @@ void ShowWorldCursor(void)
     }
 }
 
-/* Hide the world cursor: detach its monster from the world lists, clear the
-   visible flag, deactivate its particle, then refresh the party state. */
 // FUNCTION: WIZ8 0x00490B90
 void HideWorldCursor(void)
 {
@@ -316,14 +305,6 @@ void GetWorldCursorAnchor(srVector3T<float>* position)
     }
 }
 
-/* Consume the accumulated input deltas: scale them into a world-space step,
-   latch the shift-dragged monster, then move the cursor. While the cursor is
-   camera-locked the input feeds offset_18 and position_28 is rebuilt from the
-   dynamic scene node (optionally settled onto the terrain); while detached the
-   yaw-rotated delta moves position_28 directly inside the range and
-   poster-distance clamps, optionally marched to a ground/sight target. A
-   changed position is republished to the cursor monster, the cursor nodes and
-   the dragged monster. */
 // FUNCTION: WIZ8 0x00490C60
 void ApplyWorldCursorInput(void)
 {
@@ -445,11 +426,6 @@ bool IsWorldCursorVisible(void)
     return gp3DCursor != 0 && gp3DCursor->enabled_40 != 0;
 }
 
-/* Bind the cursor monster to its monster group once flagged: reset the
-   particle timing, find the group recorded on the cursor (or the first group
-   in the list as a fallback), walk up to the leader group, arm the located
-   monster with the Test.msf script and move the group leader to the cursor
-   point. */
 // FUNCTION: WIZ8 0x004914E0
 void BindCursorMonsterToGroup(void)
 {
@@ -498,9 +474,6 @@ void BindCursorMonsterToGroup(void)
     }
 }
 
-/* Reset the cursor range to its default 4000 units. The cursor release path
-   (ReleaseWorldCursor) writes the flattened camera distance to the
-   same slot before the cursor is freed. */
 // FUNCTION: WIZ8 0x00492530
 void SetFloat60AB48(void)
 {
@@ -527,7 +500,6 @@ void SetWorldCursorRange(float distance)
     }
 }
 
-/* Store the selected monster group id on the world cursor. */
 // FUNCTION: WIZ8 0x004916a0
 void SetWorldCursorGroupId(int group_id)
 {
@@ -536,8 +508,6 @@ void SetWorldCursorGroupId(int group_id)
     }
 }
 
-/* Toggle the 3D world cursor: release it if one exists, or initialize one
-   if none does. Both branches tail-call into the respective functions. */
 // FUNCTION: WIZ8 0x00490af0
 void ToggleWorldCursor(void)
 {
@@ -557,13 +527,6 @@ void ToggleWorldCursor(void)
    last clear end point back through `target` and returns 1. Reaching the
    requested point writes it back and re-arms ground tracking when the final
    height ends within 83.33 of the lowest settled probe. */
-/* Per-frame world-cursor update from MainGameScreenFrame: recenter the mouse
-   onto the view, fold the movement into the accumulated input deltas, run the
-   cursor move, then handle the left-button click - a release while the place
-   mode is active line-of-sights and box-tests the resolved target, aims the
-   selected character and resets the cursor, or plays the error beep. A moved
-   cursor points the camera at it while detached and refreshes the target
-   marker in place mode. */
 // FUNCTION: WIZ8 0x004916C0
 void UpdateWorldCursor(void)
 {
@@ -734,9 +697,6 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
     return 0;
 }
 
-/* Update the world cursor's placement: derive a point g_float_60ab48 units
-   in front of the yaw-rotated camera, resolve it through the cursor walk and
-   store the result as the cursor position and camera-relative offset. */
 // FUNCTION: WIZ8 0x00491EC0
 void UpdateWorldCursorPlacement(void)
 {
@@ -783,8 +743,6 @@ void UpdateWorldCursorPlacement(void)
     }
 }
 
-/* Arm the world cursor's footprint mode and install the two fixed probe
-   offsets the target resolver probes in place of the probe box. */
 // FUNCTION: WIZ8 0x00492190
 void SetWorldCursorExtents(const srVector3T<float>* minimum, const srVector3T<float>* maximum)
 {
@@ -796,11 +754,6 @@ void SetWorldCursorExtents(const srVector3T<float>* minimum, const srVector3T<fl
     gp3DCursor->offset_d0 = *maximum;
 }
 
-/* Resolve the world cursor's target position: start from the cursor's stored
-   position, ground-probe its candidate corner offsets and lift the target to
-   the best settled height. With the fixed-offset flag the two stored offsets
-   and their crossed corner combinations are probed instead, and a settled
-   height too far from the input height fails the resolution. */
 // FUNCTION: WIZ8 0x004921E0
 int ResolveWorldCursorTarget(srVector3T<float>* position)
 {
