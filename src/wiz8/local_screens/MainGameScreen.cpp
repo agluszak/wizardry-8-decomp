@@ -3452,8 +3452,8 @@ update_screen:
     UpdateSharedGameDataObject();
     g_byte_00659a64 = 0;
     WorldUpdateProps(GetWorld());
-    if (GetWorld659AB8()) {
-        WorldUpdateProps(GetWorld659AB8());
+    if (GetSecondaryWorld()) {
+        WorldUpdateProps(GetSecondaryWorld());
     }
     POINT point;
     POINT current;
