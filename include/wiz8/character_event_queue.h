@@ -64,13 +64,10 @@ struct W8CharacterEvent {
     int dispatch_delay_ms;
     unsigned int dispatch_delay_start;
 
-    /* Applies this entry's queued runtime consequence. */
     void Complete(); /* 0x0052CED0 */
 
-    /* Returns this entry's formatted quote text in the shared wide buffer. */
     wchar_t* GetQuoteText(); /* 0x0052D240 */
 
-    /* Starts portrait/voice dispatch for this queued entry. */
     unsigned char Dispatch(); /* 0x0052CA60 */
 
     unsigned char IsConditionMet(unsigned int event_type); /* 0x0052C910 */
@@ -124,7 +121,6 @@ struct W8CharacterEventQueue {
     /* Removes every queued event belonging to a character; active ones are
        completed, the rest deleted. Runs when a character dies. */
     void RemoveCharacterEvents(W8Character* character); /* 0x0052D970 */
-    /* Drains active_events, completing each entry without deleting it. */
     void CompleteAllActiveEvents();  /* 0x0052DB30 */
     unsigned char HasActiveEvents(); /* 0x0052E460 */
     /* Advances the ambient follow-up exchange: arms it, then on each clock
