@@ -86,12 +86,21 @@ can be correct when members and bases supply all cleanup. Preserve established s
 aliasing and unsafe ownership rather than inferring a deep copy from modern design rules.
 
 An implicit non-template emitted special member normally has a marker-only `SYNTHETIC` identity;
-template emissions have `TEMPLATE` markers at the primary template owner. Class export is emission
-evidence, not proof of an authored declaration or a fixed set of VC6 implicit emissions. Use decorated
-exports, real uses, member structure and emitted code together. Do not hand-declare an exported implicit special member
-or invent a fake use to force its emission. Keep unresolved emission gaps explicit. Distinguish default,
-capacity, copy and other constructor overloads by symbols/calls even when their lowered bodies resemble
-one another; do not normalize their identities together.
+template emissions have `TEMPLATE` markers at the primary template owner. A retained template body is
+not, by itself, proof of the original template arguments: different 32-bit scalar, pointer, enum or
+trivially handled element types can emit the same VC6 body. Treat exact template arguments as established
+only when type-sensitive evidence distinguishes them, such as element construction/destruction,
+`sizeof(T)`-dependent allocation, dereference/use semantics, overload selection, typed producer/consumer
+operations, or an independent original decorated symbol. Recomp PDB/source-index names are projected
+source facts, not independent retail confirmation.
+
+Class export is emission evidence, not proof of an authored declaration or a fixed set of VC6 implicit
+emissions. Use decorated exports, real uses, member structure and emitted code together. Do not
+hand-declare an exported implicit special member or invent a fake use to force its emission. Never insert
+pointer/integer/record casts solely to make a use agree with an exact specialization named by a
+body-equivalent emission. Keep unresolved emission gaps explicit. Distinguish default, capacity, copy and
+other constructor overloads by symbols/calls when those facts are independently established; otherwise
+leave the emission identity no more specific than the evidence allows.
 
 ## External ABI and packing
 

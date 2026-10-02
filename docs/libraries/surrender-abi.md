@@ -413,11 +413,14 @@ with `new[]` and destroy them with `delete[]`. Wiz8's `unsigned int` and
 SurRender's `unsigned long` hash-key overloads are both 32-bit in the target
 ABI; the only implementation differences are method definition order and
 their provisional names. The `TEMPLATE` markers on Wiz8 octree/mesh helpers
-and SurRender Huffman `Grow` helpers describe instantiations of this same
-algorithm. No accepted source oracle establishes that both binaries used the
-same *spelled* header or template name, so the two canonical source headers
-retain separate names and their distinct emitted specializations. There is
-no second hash implementation hidden in the octree or Huffman bodies.
+and SurRender Huffman `Grow` helpers describe emissions of this same algorithm.
+When an emitted constructor/destructor/helper is body-equivalent across value
+types, that address does not establish one exact source specialization: use
+the table's typed insert/lookup consumers, element lifetime and size-sensitive
+operations instead. No accepted source oracle establishes that both binaries
+used the same *spelled* header or template name, so the two canonical source
+headers retain separate names. There is no second hash implementation hidden
+in the octree or Huffman bodies.
 
 ## What may be written into a header
 
