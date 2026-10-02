@@ -54,7 +54,7 @@ _ZLIB_LIBRARY_TOKENS = frozenset(
     {"inflate", "deflate", "adler", "zcfree", "zcalloc", "huft", "_tr_", "zlib"}
 )
 
-# FID false friend: byte-identical to IJG jzero_far but Sir-Tech-owned (docs/fid.md).
+# FID false friend: byte-identical to IJG jzero_far but Sir-Tech-owned (docs/targets/srext-jpegimporter.md).
 REJECTED_FID_ADDRESSES = frozenset({0x004146E0})
 
 # Reviewed body sizes: coverage is [start, start+size).

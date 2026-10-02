@@ -181,9 +181,8 @@ names, and keeps its own `automated_classification`/`review_decision` vocabulary
 
 ### FID matches
 
-FID is the one generator that emits *names*, so it states its provenance up front rather than
-leaving each match to be classified by hand later. A seed's build provenance already records how it
-was produced, and that determines what its symbol names are worth:
+Reviewed FID findings retain their seed provenance. How the seed was produced determines
+what its symbol names establish:
 
 | Seed `source_kind` | `name_origin` | Authority |
 | --- | --- | --- |
@@ -193,10 +192,8 @@ was produced, and that determines what its symbol names are worth:
 
 A precompiled archive carries the original library's COFF symbol table and a source-built object
 carries names the pinned source declares; both are original evidence, and neither is something we
-invented. A match with no recorded seed provenance — the `srs` database — degrades to `descriptive`
-instead of inheriting the authority of the database it happens to live in. This is separate from
-`_is_authoritative_fid_name`, which rejects Ghidra defaults and compiler-local labels; that filter
-decides whether a name exists at all, while this decides what it proves.
+invented. A reviewed SurRender match with no recorded seed provenance remains `descriptive`.
+Ghidra defaults and compiler-local labels do not establish original source names.
 
 Authority counts are derived from the reviewed catalogs rather than copied into this
 document. The central source model scans `src/wiz8` and `include/wiz8` once and derives address,

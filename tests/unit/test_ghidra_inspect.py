@@ -77,15 +77,13 @@ def test_inspect_does_not_write_source_index(monkeypatch) -> None:
     result = inspect.decompile_functions(
         SimpleNamespace(repo_dir=Path("/repo"), build_dir=Path("/repo/build")),
         ["0x00529570"],
-        include_candidate=False,
     )
     assert "write" not in events
     assert result["failures"]
-    assert result["failures"][0]["candidate"] is None
 
 
 def test_candidate_carries_parameter_defects() -> None:
-    from wiz8decomp.ghidra.inspect import _defects, candidate_text_with_defects
+    from wiz8decomp.ghidra.inspect import _defects, decompiled_text_with_defects
 
     class EmptySymbols:
         def hasNext(self):
@@ -110,7 +108,7 @@ def test_candidate_carries_parameter_defects() -> None:
     kinds = {row["kind"] for row in defects}
     assert "parameter-count-mismatch" in kinds
     assert "phantom-stack-variable" in kinds
-    text = candidate_text_with_defects("void fn() {}\n", defects)
+    text = decompiled_text_with_defects("void fn() {}\n", defects)
     assert text is not None
     assert "// defect: parameter-count-mismatch:" in text
     assert "// defect: phantom-stack-variable: in_stack_00000010" in text
@@ -119,7 +117,7 @@ def test_candidate_carries_parameter_defects() -> None:
 def test_source_prototype_mismatch_is_a_defect() -> None:
     from types import SimpleNamespace
 
-    from wiz8decomp.ghidra.inspect import _defects, candidate_text_with_defects
+    from wiz8decomp.ghidra.inspect import _defects, decompiled_text_with_defects
 
     class EmptySymbols:
         def hasNext(self):
@@ -136,7 +134,7 @@ def test_source_prototype_mismatch_is_a_defect() -> None:
     identity = SimpleNamespace(kind="definition", parameter_types=("Node *", "int", "int", "int"))
     defects = _defects(function, "void fn(void) {}", high, (identity,))
     assert any(row["kind"] == "programdb-prototype-empty" for row in defects)
-    text = candidate_text_with_defects("void fn(void) {}", defects)
+    text = decompiled_text_with_defects("void fn(void) {}", defects)
     assert text is not None
     assert "// defect: programdb-prototype-empty:" in text
     assert "Source declaration: 4 explicit arguments" in text
@@ -317,7 +315,7 @@ def test_component_path_preserves_array_and_union() -> None:
 
 
 def test_named_source_abi_defects() -> None:
-    from wiz8decomp.ghidra.inspect import _defects, candidate_text_with_defects
+    from wiz8decomp.ghidra.inspect import _defects, decompiled_text_with_defects
 
     class EmptySymbols:
         def hasNext(self):
@@ -371,7 +369,7 @@ def test_named_source_abi_defects() -> None:
     empty_fn = SimpleNamespace(getParameterCount=lambda: 0)
     unresolved_defects = _defects(empty_fn, "void Mystery(void) {}", empty_high, (unresolved,))
     assert any(row["kind"] == "source-declaration-unresolved" for row in unresolved_defects)
-    text = candidate_text_with_defects("void Mystery(void) {}", unresolved_defects)
+    text = decompiled_text_with_defects("void Mystery(void) {}", unresolved_defects)
     assert text is not None
     assert "// defect: source-declaration-unresolved:" in text
 

@@ -687,7 +687,7 @@ def _guest_host_roots(repository: Path, settings: Settings) -> tuple[tuple[str, 
     """Guest mount prefixes used by the lint compile database, longest first."""
     from .build import LINT_BUILD_DIR
 
-    sources = settings.work_dir / "fid" / "sources" / "unpacked"
+    sources = settings.work_dir / "sources" / "unpacked"
     pairs = (
         ("/repo", str(repository.resolve())),
         ("/out", str((repository / LINT_BUILD_DIR).resolve())),
@@ -916,7 +916,7 @@ def _prepare_analysis_indexer(settings: Settings, cache: Path) -> None:
 
     docker = resolve_executable("docker") or "docker"
     repository = settings.repo_dir.resolve()
-    sources = settings.work_dir / "fid" / "sources" / "unpacked"
+    sources = settings.work_dir / "sources" / "unpacked"
     lint = (repository / LINT_BUILD_DIR).resolve()
     zlib = sources / "zlib-1.0.4" / "zlib-1.0.4"
     jpeg = sources / "ijg-jpeg-6" / "jpeg-6"

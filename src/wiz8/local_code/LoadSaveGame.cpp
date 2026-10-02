@@ -842,7 +842,6 @@ unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
         chunks->Write(&has_script, 1, 0);
         memset(script_name, 0, sizeof(script_name));
         strcpy(reinterpret_cast<char*>(script_name), // reinterpret-ok: the 64-byte
-               // save field stores the narrow script name packed as bytes
                info->p3D->script_238 != 0 ? info->p3D->script_238->getName() : 0);
         script_wait = info->p3D->script_wait_240;
         script_line = info->p3D->script_line_23c;

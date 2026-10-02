@@ -86,11 +86,6 @@ def test_wiz8_header_triggers_both_wiz8_lanes() -> None:
     assert result["surrender"] is False
 
 
-def test_recovery_fixture_triggers_analysis_lane() -> None:
-    result = _MODULE.classify(["tools/recovery-fixture/CMakeLists.txt"])
-    assert result["analysis"] is True
-
-
 def test_bink_header_triggers_both_wiz8_lanes() -> None:
     result = _MODULE.classify(["include/bink.h"])
     assert result["wiz8_compare"] is True

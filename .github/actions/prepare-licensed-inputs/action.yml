@@ -18,11 +18,11 @@ runs:
         inputs-token: ${{ inputs.inputs-token }}
         cache-key: ${{ inputs.cache-key }}
 
-    - name: Restore public FID source cache
+    - name: Restore public library source cache
       uses: actions/cache@v4
       with:
-        path: ${{ env.WIZ8_WORK_DIR }}/fid/sources
-        key: wiz8-fid-sources-v1-${{ hashFiles('config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+        path: ${{ env.WIZ8_WORK_DIR }}/sources
+        key: wiz8-sources-v1-${{ hashFiles('config/build-inputs.yml', 'tools/wiz8decomp/build_inputs.py') }}
 
     - name: Restore pinned runtime toolchain cache
       uses: actions/cache@v4

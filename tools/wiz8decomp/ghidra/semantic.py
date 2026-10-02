@@ -33,7 +33,7 @@ _RANGE_GUARD_LIMIT = 16
 _INCOMPLETENESS_LIMIT = 256
 _PHI_INPUT_LIMIT = 8
 _STYLES = ("decompile", "normalize", "paramid")
-# Named option profiles for enrichment vs recovery export. ``program`` keeps
+# Named option profiles for analysis vs conservative diagnostics. ``program`` keeps
 # the program's saved decompiler options (historical default).
 _PROFILES = ("program", "analysis", "recovery")
 

@@ -1,6 +1,6 @@
 """Two-phase type-graph remapper onto bound ``class_binding`` Structures.
 
-Never writes identity under ``/wiz8/classes``. Phase 1 builds the class
+Phase 1 builds the class
 identity map and opaque shells; phase 2 reconciles fields and remaps nested
 references through that map.
 
@@ -15,9 +15,9 @@ Plan schema (``wiz8.type-graph-projection-v1``)::
           "bound_path": str | null,
           "evidence_path": str | null,
           "status": "agree" | "bind-existing" | "create-opaque" | "conflict"
-                   | "no-layout-evidence" | "legacy-duplicate" | "missing-class",
+                   | "no-layout-evidence" | "missing-class",
           "asserted_size": int | null,
-          "field_action": "agree" | "reconcile-fields" | "remap-nested"
+          "field_action": "agree" | "reconcile-fields"
                         | "conflict" | "skip" | null
         }
       },
@@ -43,7 +43,6 @@ from .class_binding import (
     ensure_ghidra_class,
     find_class_structure,
     find_ghidra_class,
-    legacy_enriched_structure,
 )
 from .class_structure_projection import (
     _as_structure,
@@ -56,12 +55,8 @@ from .class_structure_projection import (
     _thiscall_owning_classes,
 )
 from .datatype_contracts import (
-    datatype_shape_key,
-    has_legacy_nested_ref,
-    is_legacy_path,
     is_opaque_structure,
     is_rich_structure,
-    settings_typedef_blocks_remap,
     structures_field_shape_agree,
     type_identity,
     unwrap_plain_typedefs,
@@ -124,7 +119,7 @@ def _evidence_structure(
     *,
     asserted_size: int | None,
 ) -> Any | None:
-    """Preferred non-legacy Structure used as field evidence."""
+    """Preferred Structure used as field evidence."""
 
     return _find_named_structure(program, owning_class, asserted_size=asserted_size)
 
@@ -133,18 +128,14 @@ def decide_field_action(
     bound: Any | None,
     evidence: Any | None,
     *,
-    nested_legacy: bool | None = None,
     identity_map: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> str | None:
     """Phase-2 action for one identity with bound + evidence Structures."""
 
     if bound is None or evidence is None:
         return None
-    if settings_typedef_blocks_remap(bound) or settings_typedef_blocks_remap(evidence):
-        return "conflict"
     if bound is evidence or type_identity(bound) == type_identity(evidence):
-        legacy = has_legacy_nested_ref(bound) if nested_legacy is None else nested_legacy
-        return "remap-nested" if legacy else "agree"
+        return "agree"
     if is_opaque_structure(bound) and is_rich_structure(evidence):
         if int(bound.getLength()) != int(evidence.getLength()):
             return "conflict"
@@ -153,11 +144,6 @@ def decide_field_action(
         return "conflict"
     if not structures_field_shape_agree(bound, evidence, identity_map=identity_map):
         return "conflict"
-    legacy = has_legacy_nested_ref(bound) if nested_legacy is None else nested_legacy
-    if not legacy and has_legacy_nested_ref(evidence):
-        legacy = True
-    if legacy:
-        return "remap-nested"
     return "agree"
 
 
@@ -168,7 +154,7 @@ def _class_key_from_path(
 ) -> str | None:
     """Map a datatype path to a source class identity.
 
-    ``/wiz8/classes/...`` is our own encoding. Arbitrary Ghidra/PDB/Demangler
+    Ghidra/PDB/Demangler
     category paths are organization, not C++ namespaces — resolve them against
     known source identities instead of synthesizing ``foo::bar::Baz``.
     """
@@ -179,9 +165,6 @@ def _class_key_from_path(
     while text.endswith("*"):
         text = text[:-1].rstrip()
     text = text.removesuffix(" *")
-    if is_legacy_path(text):
-        rest = text[len("/wiz8/classes/") :]
-        return rest.replace("/", "::") if rest else None
     if not source_identities:
         return None
     if text.startswith("/"):
@@ -256,7 +239,6 @@ def build_identity_map(
             else find_ghidra_class(program, owning)
         )
         if ghidra_class is None and not ensure_classes:
-            legacy = legacy_enriched_structure(program, owning)
             evidence = _evidence_structure(program, owning, asserted_size=asserted)
             identity[owning] = {
                 "ghidra_class": None,
@@ -265,12 +247,10 @@ def build_identity_map(
                 "status": "missing-class",
                 "asserted_size": asserted,
                 "field_action": None,
-                "legacy_enriched_path": (str(legacy.getPathName()) if legacy is not None else None),
             }
             continue
 
         bound = _as_structure(find_class_structure(program, ghidra_class))
-        legacy = legacy_enriched_structure(program, owning)
         evidence = _evidence_structure(program, owning, asserted_size=asserted)
         source_size_ok = (
             evidence is None or asserted is None or int(evidence.getLength()) == asserted
@@ -283,16 +263,11 @@ def build_identity_map(
 
         status = _decide_structure_action(
             bound=bound,
-            legacy=legacy,
             source=evidence,
             asserted_size=asserted,
             source_size_ok=source_size_ok,
             size_mismatched_source=size_mismatched_source,
         )
-        # Prefer reporting missing-class only when find failed; ensure path never
-        # writes under /wiz8/classes.
-        if bound is not None and is_legacy_path(str(bound.getPathName())):
-            status = "conflict"
         if (
             status == "bind-existing"
             and bound is not None
@@ -315,7 +290,6 @@ def build_identity_map(
             "status": status,
             "asserted_size": asserted,
             "field_action": None,
-            "legacy_enriched_path": (str(legacy.getPathName()) if legacy is not None else None),
         }
 
         for nested_name in _discover_nested_structure_names(
@@ -352,7 +326,6 @@ def _attach_field_actions(
             evidence = _as_structure(program.getDataTypeManager().getDataType(evidence_path))
         if evidence is None:
             evidence = _evidence_structure(program, owning, asserted_size=row.get("asserted_size"))
-        # Agreeing / legacy-duplicate identities still need nested legacy walks.
         action = decide_field_action(bound, evidence, identity_map=identity)
         row["field_action"] = action
         if action:
@@ -382,7 +355,7 @@ def collect_type_graph_plan(
     for owning, row in sorted(identity.items(), key=lambda item: item[0]):
         status_counts[str(row["status"])] += 1
         actionable_identity = row["status"] in {"bind-existing", "create-opaque"}
-        actionable_fields = row.get("field_action") in {"reconcile-fields", "remap-nested"}
+        actionable_fields = row.get("field_action") in {"reconcile-fields"}
         if not (
             actionable_identity
             or actionable_fields
@@ -396,7 +369,6 @@ def collect_type_graph_plan(
         status_counts["bind-existing"]
         + status_counts["create-opaque"]
         + field_counts["reconcile-fields"]
-        + field_counts["remap-nested"]
     )
     plan = {
         "schema": _SCHEMA,
@@ -432,13 +404,9 @@ def _remap_datatype(program: Any, data_type: Any, identity: Mapping[str, Mapping
     if current is None:
         return None
 
-    # Preserve settings-bearing typedefs. If they still hide a legacy type,
-    # refuse to remap rather than silently leaving the graph dirty.
     if isinstance(current, TypeDef):
         unwrapped = unwrap_plain_typedefs(current)
         if unwrapped is current:
-            if settings_typedef_blocks_remap(current):
-                raise TypeGraphConflict("settings-typedef-legacy")
             return current
         remapped = _remap_datatype(program, unwrapped, identity)
         return remapped
@@ -509,7 +477,7 @@ def _remap_datatype(program: Any, data_type: Any, identity: Mapping[str, Mapping
         path = str(current.getPathName())
         for key, row in identity.items():
             bound_path = row.get("bound_path")
-            if not bound_path or is_legacy_path(str(bound_path)):
+            if not bound_path:
                 continue
             if path == bound_path:
                 return current
@@ -522,17 +490,6 @@ def _remap_datatype(program: Any, data_type: Any, identity: Mapping[str, Mapping
                     return bound
         return current
 
-    # Legacy path by qualified identity, never leaf-only.
-    path = type_identity(current)
-    if is_legacy_path(path):
-        key = _class_key_from_path(path)
-        row = identity.get(key) if key else None
-        if row is not None:
-            bound_path = row.get("bound_path")
-            if bound_path and not is_legacy_path(bound_path):
-                bound = program.getDataTypeManager().getDataType(bound_path)
-                if bound is not None:
-                    return bound
     return current
 
 
@@ -595,34 +552,6 @@ def _rebuild_fields_from_evidence(
         raise TypeGraphConflict("structure-offsets-changed")
 
 
-def _remap_structure_fields(
-    bound: Any,
-    program: Any,
-    identity: Mapping[str, Mapping[str, Any]],
-) -> int:
-    """Replace nested field types that still point at legacy / remappable paths."""
-
-    changed = 0
-    for component in list(bound.getDefinedComponents()):
-        current = component.getDataType()
-        remapped = _remap_datatype(program, current, identity)
-        if remapped is current:
-            continue
-        if datatype_shape_key(remapped, identity_map=identity) == datatype_shape_key(
-            current, identity_map=identity
-        ):
-            continue
-        bound.replaceAtOffset(
-            component.getOffset(),
-            remapped,
-            component.getLength(),
-            component.getFieldName(),
-            component.getComment(),
-        )
-        changed += 1
-    return changed
-
-
 def apply_type_graph_projection(
     program: Any,
     plan: Mapping[str, Any],
@@ -666,8 +595,6 @@ def apply_type_graph_projection(
                 )
             if result is None:
                 return {**dict(row), "error": "missing-bound-structure"}
-            if is_legacy_path(str(result.getPathName())):
-                return {**dict(row), "error": "bound-path-legacy"}
             if evidence_path and str(result.getPathName()) != str(evidence_path):
                 return {
                     **dict(row),
@@ -692,8 +619,6 @@ def apply_type_graph_projection(
         bound = _as_structure(find_class_structure(_program, ghidra_class))
         if bound is None:
             return {**dict(row), "error": "missing-bound-structure"}
-        if is_legacy_path(str(bound.getPathName())):
-            return {**dict(row), "error": "bound-path-legacy"}
 
         evidence = None
         evidence_path = row.get("evidence_path")
@@ -710,24 +635,12 @@ def apply_type_graph_projection(
             try:
                 _rebuild_fields_from_evidence(bound, evidence, _program, identity)
             except TypeGraphConflict as exc:
-                return {**dict(row), "error": str(exc) or "settings-typedef-legacy"}
+                return {**dict(row), "error": str(exc)}
             return {
                 "class": owning,
                 "action": "reconcile-fields",
                 "path": str(bound.getPathName()),
                 "components": len(list(bound.getDefinedComponents())),
-            }
-
-        if field_action == "remap-nested":
-            try:
-                changed = _remap_structure_fields(bound, _program, identity)
-            except TypeGraphConflict as exc:
-                return {**dict(row), "error": str(exc) or "settings-typedef-legacy"}
-            return {
-                "class": owning,
-                "action": "remap-nested",
-                "path": str(bound.getPathName()),
-                "changed_fields": changed,
             }
 
         return {**dict(row), "error": f"unexpected-action:{status}/{field_action}"}
@@ -738,7 +651,6 @@ def apply_type_graph_projection(
         field_action = row.get("field_action")
         if status in {"create-opaque", "bind-existing"} or field_action in {
             "reconcile-fields",
-            "remap-nested",
         }:
             rows.append({"class": owning, **row})
 

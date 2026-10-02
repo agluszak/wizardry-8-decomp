@@ -105,7 +105,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/wiz8-vc6-analysis-image
-          key: vc6-analysis-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+          key: vc6-analysis-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml', 'tools/wiz8decomp/build_inputs.py') }}
           lookup-only: true
 
       - name: Check VC6 product image cache
@@ -113,7 +113,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/wiz8-vc6-product-image
-          key: vc6-product-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+          key: vc6-product-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml', 'tools/wiz8decomp/build_inputs.py') }}
           lookup-only: true
 
       - name: Set up Python for VC6 cache miss
@@ -148,7 +148,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.temp }}/wiz8-vc6-analysis-image
-          key: vc6-analysis-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+          key: vc6-analysis-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml', 'tools/wiz8decomp/build_inputs.py') }}
 
       - name: Archive VC6 product image
         if: steps.product-cache.outputs.cache-hit != 'true'
@@ -161,7 +161,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.temp }}/wiz8-vc6-product-image
-          key: vc6-product-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+          key: vc6-product-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml', 'tools/wiz8decomp/build_inputs.py') }}
 
   repository:
     name: Repository checks
@@ -211,9 +211,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends llvm
           mkdir -p \
-            "$WIZ8_WORK_DIR/fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4" \
-            "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6" \
-            "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4"
+            "$WIZ8_WORK_DIR/sources/unpacked/zlib-1.0.4/zlib-1.0.4" \
+            "$WIZ8_WORK_DIR/sources/unpacked/ijg-jpeg-6/jpeg-6" \
+            "$WIZ8_WORK_DIR/sources/unpacked/infozip-unzip-5.4"
           command -v llvm-undname
       - name: Load VC6 analysis image
         uses: ./.github/actions/load-vc6-image
@@ -224,18 +224,18 @@ jobs:
             build/clang
             build/reccmp-source
             build/source-index.json
-          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/build-inputs.yml') }}-${{ github.sha }}
           restore-keys: |
-            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-
+            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/build-inputs.yml') }}-
       - name: Run repository checks and Python tests
         run: uv run wiz8 check
       - name: Run clang-cl and clang-tidy lints
         run: uv run wiz8 lint
 
   analysis:
-    name: Ghidra and recovery integration
-    needs: [scope, toolchain]
-    if: needs.scope.outputs.analysis == 'true' && needs.toolchain.result == 'success'
+    name: Ghidra integration
+    needs: [scope]
+    if: needs.scope.outputs.analysis == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -252,19 +252,10 @@ jobs:
         with:
           version: "0.12.13"
           enable-cache: true
-      - name: Install host analysis tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends llvm unzip
-          command -v llvm-undname
-      - name: Load VC6 product image
-        uses: ./.github/actions/load-vc6-product
       - name: Install pinned Ghidra
         uses: ./.github/actions/install-ghidra
       - name: Install Python dependencies
         run: uv sync --frozen
-      - name: Run recovery lifecycle self-test
-        run: uv run wiz8 recover self-test
       - name: Restore reviewed Ghidra checkpoint
         run: uv run wiz8 ghidra restore
       - name: Run Ghidra enrichment integration tests
@@ -304,9 +295,9 @@ jobs:
             innoextract llvm wine wine32:i386 wine64
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
           mkdir -p \
-            "$WIZ8_WORK_DIR/fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4" \
-            "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6" \
-            "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4"
+            "$WIZ8_WORK_DIR/sources/unpacked/zlib-1.0.4/zlib-1.0.4" \
+            "$WIZ8_WORK_DIR/sources/unpacked/ijg-jpeg-6/jpeg-6" \
+            "$WIZ8_WORK_DIR/sources/unpacked/infozip-unzip-5.4"
           command -v llvm-undname
           command -v wine
       # reccmp comparison consumes the compiler-backed source index, which
@@ -320,16 +311,16 @@ jobs:
             build/clang
             build/reccmp-source
             build/source-index.json
-          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/build-inputs.yml') }}-${{ github.sha }}
           restore-keys: |
-            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-
+            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/build-inputs.yml') }}-
       - name: Restore incremental WIZ8 comparison build
         uses: actions/cache@v4
         with:
           path: build/decomp
-          key: product-wiz8-comparison-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          key: product-wiz8-comparison-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml') }}-${{ github.sha }}
           restore-keys: |
-            product-wiz8-comparison-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
+            product-wiz8-comparison-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml') }}-
       - name: Install Python dependencies
         run: uv sync --frozen
       - name: Prepare minimal WIZ8 comparison inputs
@@ -552,16 +543,16 @@ jobs:
             build/clang
             build/reccmp-source
             build/source-index.json
-          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/build-inputs.yml') }}-${{ github.sha }}
           restore-keys: |
-            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-
+            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/build-inputs.yml') }}-
       - name: Restore incremental WIZ8 product build
         uses: actions/cache@v4
         with:
           path: build/decomp
-          key: product-wiz8-runtime-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          key: product-wiz8-runtime-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml') }}-${{ github.sha }}
           restore-keys: |
-            product-wiz8-runtime-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
+            product-wiz8-runtime-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml') }}-
       - name: Install Python dependencies
         run: uv sync --frozen
       - name: Check runtime stub linker integration
@@ -656,16 +647,16 @@ jobs:
             build/clang
             build/reccmp-source
             build/source-index.json
-          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/build-inputs.yml') }}-${{ github.sha }}
           restore-keys: |
-            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-
+            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/build-inputs.yml') }}-
       - name: Restore incremental SURRENDER product build
         uses: actions/cache@v4
         with:
           path: build/decomp
-          key: product-surrender-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          key: product-surrender-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml') }}-${{ github.sha }}
           restore-keys: |
-            product-surrender-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
+            product-surrender-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml') }}-
       - name: Install Python dependencies
         run: uv sync --frozen
       - name: Prepare minimal SURRENDER comparison inputs

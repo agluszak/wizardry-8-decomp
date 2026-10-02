@@ -112,31 +112,3 @@ def is_original(authority: str) -> bool:
     """True when the name is evidence about Sir-Tech's own naming, not a third party's."""
 
     return AUTHORITY_RANK[authority] >= AUTHORITY_RANK["string-backed"]
-
-
-# A FID seed's build provenance determines where its symbol names came from. A
-# precompiled archive carries the original library's COFF symbol table; a
-# source-built object carries names the pinned source itself declares. Both are
-# original evidence, and neither is a guess we made.
-FID_SOURCE_KIND_ORIGIN = MappingProxyType(
-    {
-        "precompiled-archive": "original-export",
-        "cmake-object-library": "original-source",
-    }
-)
-
-
-def origin_for_fid_source_kind(source_kind: str | None) -> str:
-    """Map a FID seed's build provenance onto this model's name provenance.
-
-    A match with no recorded seed provenance is not authoritative evidence about
-    anyone's naming, so it degrades to ``descriptive`` rather than inheriting the
-    authority of the database it happened to come from.
-    """
-
-    if source_kind is None:
-        return "descriptive"
-    origin = FID_SOURCE_KIND_ORIGIN.get(source_kind)
-    if origin is None:
-        raise ProvenanceError(f"unknown FID seed source_kind: {source_kind!r}")
-    return origin

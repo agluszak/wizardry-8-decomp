@@ -9,7 +9,7 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ runner.temp }}/wiz8-vc6-product-image
-        key: vc6-product-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+        key: vc6-product-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml', 'tools/wiz8decomp/build_inputs.py') }}
 
     - name: Load VC6 product image
       shell: bash

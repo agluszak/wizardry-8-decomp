@@ -8,7 +8,6 @@ from types import SimpleNamespace
 
 from wiz8decomp.datatype_contracts import (
     datatype_shape_key,
-    has_legacy_nested_ref,
     structures_field_shape_agree,
 )
 from wiz8decomp.type_graph_projection import (
@@ -177,7 +176,7 @@ def test_idempotent_agree_plan_has_no_field_mutations() -> None:
     )
     assert decide_field_action(bound, evidence) == "agree"
     # Second pass with same shapes stays agree (0 mutations for apply filter).
-    assert decide_field_action(bound, evidence, nested_legacy=False) == "agree"
+    assert decide_field_action(bound, evidence) == "agree"
 
 
 def test_equal_richness_field_disagreement_is_conflict() -> None:
@@ -210,92 +209,10 @@ def test_opaque_plus_rich_same_size_reconciles_fields() -> None:
     assert decide_field_action(bound, evidence) == "reconcile-fields"
 
 
-def test_opaque_size_mismatch_is_conflict() -> None:
-    evidence = _FakeStructure(
-        "/wiz8/classes/Trigger",
-        908,
-        [
-            _FakeComponent(
-                0, 4, "x", SimpleNamespace(getPathName=lambda: "/int", getLength=lambda: 4)
-            )
-        ],
-    )
-    bound = _FakeStructure("/Trigger", 1, [])
-    assert decide_field_action(bound, evidence) == "conflict"
-
-
-def test_array_element_legacy_detected() -> None:
-    legacy = _FakeStructure("/wiz8/classes/Bar", 16, [])
-    array = _FakeArray("/Foo/[4]", legacy, 4)
-    owner = _FakeStructure("/Foo", 16, [_FakeComponent(0, 16, "items", array)])
-    assert has_legacy_nested_ref(owner)
-    bound = _FakeStructure("/Foo", 16, [_FakeComponent(0, 16, "items", array)])
-    evidence = bound
-    assert decide_field_action(bound, evidence) == "remap-nested"
-
-
-def test_agreeing_structure_still_walked_for_nested_legacy() -> None:
-    legacy_pointee = _FakeStructure("/wiz8/classes/Inner", 8, [])
-    ptr = _FakePointer("/wiz8/classes/Inner *", legacy_pointee)
-    bound = _FakeStructure(
-        "/Outer",
-        4,
-        [_FakeComponent(0, 4, "inner", ptr)],
-    )
-    # Same path evidence ⇒ still remap when nested legacy remains.
-    assert decide_field_action(bound, bound) == "remap-nested"
-    assert decide_field_action(bound, bound, nested_legacy=False) == "agree"
-
-
 def test_datatype_shape_distinguishes_pointer_pointee() -> None:
     a = _FakePointer("/A *", _FakeStructure("/A", 4, []))
     b = _FakePointer("/B *", _FakeStructure("/B", 4, []))
     assert datatype_shape_key(a) != datatype_shape_key(b)
-
-
-def test_union_with_nested_legacy_remaps() -> None:
-    class _FakeUnion:
-        def __init__(self, path: str, member: object) -> None:
-            self._path = path
-            self._member = member
-
-        def getPathName(self) -> str:
-            return self._path
-
-        def getLength(self) -> int:
-            return 4
-
-        def getDefinedComponents(self):
-            return [_FakeComponent(0, 4, "as_ptr", self._member)]
-
-    legacy = _FakePointer("/wiz8/classes/Foo *", _FakeStructure("/wiz8/classes/Foo", 4, []))
-    union = _FakeUnion("/MaybeFoo", legacy)
-    bound = _FakeStructure("/Owner", 4, [_FakeComponent(0, 4, "u", union)])
-    assert decide_field_action(bound, bound) == "remap-nested"
-
-
-def test_legacy_pointer_agrees_after_identity_normalization() -> None:
-    identity = {"Foo": {"bound_path": "/Foo", "evidence_path": "/wiz8/classes/Foo"}}
-    legacy = _FakePointer("/wiz8/classes/Foo *", _FakeStructure("/wiz8/classes/Foo", 4, []))
-    bound = _FakePointer("/Foo *", _FakeStructure("/Foo", 4, []))
-    left = _FakeStructure("/Owner", 4, [_FakeComponent(0, 4, "p", legacy)])
-    right = _FakeStructure("/Owner", 4, [_FakeComponent(0, 4, "p", bound)])
-    assert not structures_field_shape_agree(left, right)
-    assert structures_field_shape_agree(left, right, identity_map=identity)
-    assert decide_field_action(left, right, identity_map=identity) == "remap-nested"
-
-
-def test_class_key_from_path_does_not_invent_namespaces() -> None:
-    from wiz8decomp.type_graph_projection import _class_key_from_path
-
-    identities = {"Foo", "alpha::Bar", "stLight"}
-    assert _class_key_from_path("/wiz8/classes/ns/Foo") == "ns::Foo"
-    assert _class_key_from_path("/alpha/Bar", source_identities=identities) == "alpha::Bar"
-    assert _class_key_from_path("/Foo", source_identities=identities) == "Foo"
-    assert _class_key_from_path("/Demangler/Foo", source_identities=identities) == "Foo"
-    assert _class_key_from_path("/Demangler/Foo") is None
-    assert _class_key_from_path("/foo/bar/Baz", source_identities=identities) is None
-    assert _class_key_from_path("/stLight", source_identities=identities) == "stLight"
 
 
 def test_rebuild_fields_uses_replace_within_extent(monkeypatch) -> None:
@@ -395,49 +312,3 @@ def test_rebuild_rejects_overlap_and_keeps_padding(monkeypatch) -> None:
     else:
         raise AssertionError("expected overlap")
     assert overlapping.replaced == []
-
-
-def test_remap_replaces_function_definition_when_contract_changes(monkeypatch) -> None:
-    from wiz8decomp.type_graph_projection import _remap_structure_fields
-
-    class Fd:
-        def __init__(self, path: str, ret: str):
-            self._path = path
-            self._ret = ret
-
-        def getPathName(self) -> str:
-            return self._path
-
-        def getLength(self) -> int:
-            return 0
-
-        def getReturnType(self):
-            return SimpleNamespace(getPathName=lambda: self._ret, getLength=lambda: 4)
-
-        def getArguments(self):
-            return []
-
-        def getCallingConvention(self):
-            return "__cdecl"
-
-        def hasVarArgs(self):
-            return False
-
-        def hasNoReturn(self):
-            return False
-
-    current = Fd("/cb", "/void")
-    remapped = Fd("/cb", "/int")
-    replaced: list[object] = []
-
-    class Owner(_FakeStructure):
-        def replaceAtOffset(self, offset, data_type, length, name, comment) -> None:
-            replaced.append(data_type)
-
-    bound = Owner("/Owner", 4, [_FakeComponent(0, 4, "cb", current)])
-    monkeypatch.setattr(
-        "wiz8decomp.type_graph_projection._remap_datatype",
-        lambda _program, data_type, _identity: remapped if data_type is current else data_type,
-    )
-    assert _remap_structure_fields(bound, object(), {}) == 1
-    assert replaced == [remapped]

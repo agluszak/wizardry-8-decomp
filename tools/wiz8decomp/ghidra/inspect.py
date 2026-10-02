@@ -480,8 +480,8 @@ def _defects(
     return unique
 
 
-def candidate_text_with_defects(text: str | None, defects: list[dict[str, str]]) -> str | None:
-    """Keep unresolved analysis defects in the generated candidate itself."""
+def decompiled_text_with_defects(text: str | None, defects: list[dict[str, str]]) -> str | None:
+    """Keep unresolved analysis defects in the decompiled text itself."""
 
     if not isinstance(text, str):
         return text
@@ -699,7 +699,6 @@ def decompile_functions(
     selectors: list[str],
     *,
     program_selector: str = "wiz8",
-    include_candidate: bool = False,
 ) -> dict[str, Any]:
     """Decompile a function batch from native ProgramDB without compiling source."""
 
@@ -717,25 +716,8 @@ def decompile_functions(
     failures: list[dict[str, Any]] = []
     with open_program(settings, program_selector) as program:
         session = DecompileSession(program, profile="analysis")
-        recovered: dict[int, dict[str, Any]] = {}
         try:
             targets = _inspect_targets(program, selectors)
-            valid = [
-                hex_address(target["function"].getEntryPoint())
-                for target in targets
-                if include_candidate and target.get("function") is not None
-            ]
-            recovery_error = None
-            if valid:
-                try:
-                    from .recovery import recover_on_program
-
-                    recovered = recover_on_program(
-                        settings, program, valid, program_selector=program_selector
-                    )
-                except Exception as error:  # noqa: BLE001 - native C is still useful
-                    recovery_error = str(error)
-                    recovered = {}
             for target in targets:
                 selector = target["selector"]
                 function = target.get("function")
@@ -762,7 +744,6 @@ def decompile_functions(
                         "error": target.get("error") or "no function",
                         "listing": lines,
                         "artifacts": artifacts,
-                        "candidate": None,
                     }
                     failures.append(failure)
                     functions.append(failure)
@@ -777,26 +758,9 @@ def decompile_functions(
                 source = _source_attachment(identities, freshness, entry)
                 source_idents = identities.get(entry, ())
                 defects = _defects(function, decompiled, high, source_idents)
-                export = recovered.get(entry) or {}
-                for defect in export.get("defects") or []:
-                    defects.append({"kind": "recovery", "detail": str(defect)})
                 artifact_dir = _artifact_dir(settings, "decompile", program_name)
                 listing = listing_lines(program, function)
-                rewrite_failed = bool(include_candidate and recovery_error)
-                if (
-                    include_candidate
-                    and completed
-                    and not isinstance(export.get("generated_code"), str)
-                ):
-                    rewrite_failed = True
-                if rewrite_failed:
-                    defects.append(
-                        {
-                            "kind": "recovery-unavailable",
-                            "detail": recovery_error or "Java recovery exporter failed",
-                        }
-                    )
-                presented = candidate_text_with_defects(decompiled, defects)
+                presented = decompiled_text_with_defects(decompiled, defects)
                 artifacts = {
                     "c": _write_artifact(
                         artifact_dir / f"{entry:08x}.c",
@@ -808,17 +772,6 @@ def decompile_functions(
                         artifact_dir / f"{entry:08x}.asm", "\n".join(listing)
                     ),
                 }
-                if include_candidate:
-                    candidate_text = candidate_text_with_defects(
-                        export.get("generated_code")
-                        if isinstance(export.get("generated_code"), str)
-                        else None,
-                        defects,
-                    )
-                    if isinstance(candidate_text, str):
-                        artifacts["candidate"] = _write_artifact(
-                            artifact_dir / f"{entry:08x}.cpp", candidate_text
-                        )
                 if completed:
                     status = "ok"
                 else:
@@ -841,19 +794,6 @@ def decompile_functions(
                         else (result.getErrorMessage() if result is not None else "no result"),
                     },
                     "source": source,
-                    "recovery": {
-                        "emission_kind": (export.get("recovery") or {}).get("emission_kind")
-                        if isinstance(export.get("recovery"), dict)
-                        else None,
-                        "source_kind": (export.get("recovery") or {}).get("source_kind")
-                        if isinstance(export.get("recovery"), dict)
-                        else None,
-                        "passes": list((export.get("recovery") or {}).get("passes") or [])
-                        if isinstance(export.get("recovery"), dict)
-                        else [],
-                        "defects": list(export.get("defects") or []),
-                        "error": recovery_error,
-                    },
                     "defects": defects,
                     "listing": listing,
                     "artifacts": relative,
@@ -871,7 +811,7 @@ def decompile_functions(
                         {
                             "selector": selector,
                             "status": status,
-                            "error": row["native"]["error"] or recovery_error or status,
+                            "error": row["native"]["error"] or status,
                             "entry": hex_address(entry),
                             "artifacts": row["artifacts"],
                         }
@@ -946,7 +886,6 @@ def assemble_functions(
                         "selector": selector,
                         "status": "missing-function",
                         "error": target.get("error") or "no function",
-                        "candidate": None,
                     }
                 )
                 continue
@@ -1354,7 +1293,7 @@ def format_decompile_text(payload: dict[str, Any]) -> str:
             lines.append(f"No function: {row['error']}")
         code = native.get("decompiled")
         if isinstance(code, str) and code.strip():
-            presented = candidate_text_with_defects(code, list(row.get("defects") or []))
+            presented = decompiled_text_with_defects(code, list(row.get("defects") or []))
             lines.append("")
             lines.append(presented or code)
         listing = row.get("listing") or []
