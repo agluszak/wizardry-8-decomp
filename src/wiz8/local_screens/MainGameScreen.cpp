@@ -3489,7 +3489,7 @@ update_screen:
     }
     TickAmbientFollowUpIdle(ProcessMainGameInput());
     if (!IsRecordModeActive()) {
-        if (!GetFlag68F105() || GetFlag68F104()) {
+        if (!IsMipeActive() || IsMipeMenuActive()) {
             HandleManualCameraHotkeys();
         } else if (CanUseCurrentAutomapTool()) {
             ApplyWorldRenderHotkeys();
@@ -3508,7 +3508,7 @@ update_screen:
                 goto render_world;
             }
         }
-        if (gfLeftButtonState && !g_modal_owner && GetFlag68F105()) {
+        if (gfLeftButtonState && !g_modal_owner && IsMipeActive()) {
             SGPMouseGetPos(&current);
             MipeWorldViewEvent(MOUSE_POS, &current);
         }
@@ -3680,7 +3680,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if (gXStatus.fPartyMovementUi)
         DisablePartyMovementRegions();
     RestoreCurrentNpcQuoteBubble();
-    if (GetFlag68F105())
+    if (IsMipeActive())
         ToggleMipePanel();
     MoveTimer(1);
     SetEnvironmentTimeEnabled(0);
@@ -6522,7 +6522,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                 g_mouselook_manual = 0;
                 return 1;
             }
-            if (GetFlag68F105() == 0) {
+            if (IsMipeActive() == 0) {
                 return 1;
             }
             SGPMouseGetPos(&cursor_pos);
@@ -6534,7 +6534,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         }
         cursor_y = GetAtomCursorY(event);
         cursor_x = GetAtomCursorX(event);
-        if (GetFlag68F105() != 0) {
+        if (IsMipeActive() != 0) {
             UpdateMipeSelection();
         } else {
             int hover;
@@ -6573,7 +6573,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
     }
     if (us_event == RIGHT_BUTTON_DOWN) {
         region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
-        if (GetFlag68F105() != 0) {
+        if (IsMipeActive() != 0) {
             SGPMouseGetPos(&cursor_pos);
             MipeWorldViewEvent(RIGHT_BUTTON_DOWN, &cursor_pos);
             return 1;
@@ -6625,7 +6625,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
             return 0;
         }
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        if (GetFlag68F105() == 0) {
+        if (IsMipeActive() == 0) {
             return 1;
         }
         SGPMouseGetPos(&cursor_pos);
@@ -6739,7 +6739,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
             AimAtMonsterLocation(g_status.selected_character, g_level_block->highlighted_item, 1);
         }
     }
-    if (GetFlag68F105() == 0) {
+    if (IsMipeActive() == 0) {
         return 1;
     }
     SGPMouseGetPos(&cursor_pos);
