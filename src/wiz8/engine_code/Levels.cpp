@@ -213,10 +213,10 @@ void StartLevelMusic(int fade, int replace_current)
 // FUNCTION: WIZ8 0x0042b3e0
 void UnloadSkyWorld(void)
 {
-    W8World* world = GetWorld659AB8();
+    W8World* world = GetSecondaryWorld();
     if (world != 0) {
-        Forward44FAF0(world);
-        SetWorld659AB8(0);
+        ForwardDestroyWorld(world);
+        SetSecondaryWorld(0);
         g_loaded_sky_index = 0xff;
         ResetEnvironment();
     }
@@ -330,9 +330,9 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
         }
         info = &local_info;
     }
-    if (GetWorld659AB8() != 0) {
-        Forward44FAF0(GetWorld659AB8());
-        SetWorld659AB8(0);
+    if (GetSecondaryWorld() != 0) {
+        ForwardDestroyWorld(GetSecondaryWorld());
+        SetSecondaryWorld(0);
         g_loaded_sky_index = 0xff;
         ResetEnvironment();
     }
@@ -398,8 +398,8 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
         }
     }
 
-    ForwardThroughMember3C_46E750(GetWorld659AB8(), 0);
-    ForwardThroughMember3C_46E640(GetWorld659AB8(), 1);
+    ForwardThroughMember3C_46E750(GetSecondaryWorld(), 0);
+    ForwardThroughMember3C_46E640(GetSecondaryWorld(), 1);
     NoOp(sky_world, 0, 0);
     WorldRemoveLight(sky_world, sky_world->camera_light);
     sky_world->camera_light = 0;
@@ -531,7 +531,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
 
     DisableSky();
     if (GetWorld() != 0) {
-        Forward44FAF0(GetWorld());
+        ForwardDestroyWorld(GetWorld());
         SetCurrentWorld(0);
     }
     ReleaseRetainedMaterials();
@@ -611,7 +611,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             SetWorldScenePosition(GetWorld(), &position);
         }
     } else {
-        RestoreWorldCameraState(GetWorld(), GetWorld659AB8(), &g_status.pending_move_location);
+        RestoreWorldCameraState(GetWorld(), GetSecondaryWorld(), &g_status.pending_move_location);
     }
 
     if (level < W8_LEVEL_COUNT && !g_status.level_progress[level].visited) {
@@ -727,7 +727,7 @@ unsigned char UnloadLevel(const char* save_directory)
     DisableSky();
     W8World* world = GetWorld();
     if (world != 0) {
-        Forward44FAF0(world);
+        ForwardDestroyWorld(world);
         SetCurrentWorld(0);
     }
     ReleaseRetainedMaterials();
