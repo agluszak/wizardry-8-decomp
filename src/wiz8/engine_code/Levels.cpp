@@ -740,7 +740,7 @@ unsigned char UnloadLevel(const char* save_directory)
     g_status.current_level = -1;
     ReleaseEnvironmentObjects();
     g_runtime_world_scale = 500.0f;
-    ClearValue6834D4();
+    ClearActiveWorldCursorNode();
 
     srRegistry* registry = srCore.getRegistry();
     srRegistry::ClassNode* node = srClientSupport<srClipPlane, 0x1500>::sGetClassNode();
