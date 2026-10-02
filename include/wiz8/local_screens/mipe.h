@@ -110,6 +110,6 @@ unsigned char MipeWorldViewEvent(int event, const POINT* point);
    gate world-model picking. */
 bool AnyMonsterGeneratorMarkerWithinReach(void); /* 0x0057E3C0 */
 
-unsigned char GetFlag68F105(void);
-unsigned char GetFlag68F104(void);
+unsigned char IsMipeActive(void);
+unsigned char IsMipeMenuActive(void);
 /* MIPE's key-event handler; consumes the atom while the editor is open. */
