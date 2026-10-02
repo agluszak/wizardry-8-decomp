@@ -74,14 +74,10 @@ bool CharacterHasAttackOn(int party_slot, W8CombatSlot* target); /* 0x00545C20 *
    W8_TRAIT_BERSERK), a hand that can reach, and a primary hand that fights at
    short range or closer. The attack sub-menu entry it gates is "Berserk". */
 bool CanCharacterBerserk(int party_slot); /* 0x005458A0 */
-/* Whether a monster would press an attack on what `target` names: a hostile it
-   can reach that outranks it, and that is either below forty percent health or
-   out of formation. */
-bool MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* target); /* 0x00545CF0 */
-/* Whether the monster is in a state to attack at all: in the world, in combat,
-   alive, below the deactivation threshold, flagged as attacking by its record
-   and carrying a first attack. */
-bool CanMonsterAttack(W8MonsterInfo* monster_info); /* 0x00545BD0 */
+/* Whether a friendly, higher-level combatant qualifies for protection. */
+bool CanMonsterProtectCombatant(W8MonsterInfo* monster_info, W8CombatSlot* target); /* 0x00545CF0 */
+/* Whether an active, living bodyguard can protect another combatant. */
+bool CanMonsterProtect(W8MonsterInfo* monster_info); /* 0x00545BD0 */
 
 /* What RateMonsterAttack reports for one of a monster's three attacks: zero
    when the attack can be made, otherwise why not. */
@@ -156,9 +152,8 @@ void AnnounceAccidentalStrike(W8TargetSource* source, W8CombatSlot* target);
 bool CharacterNoticesAttacker(int party_slot); /* 0x0053D590 */
 /* Begin one of the monster's attacks for the round. */
 char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record); /* 0x0053FEA0 */
-/* 0x00545B20: the monster-side counterpart - the target still in play and in
-   range, the monster able to act, and the attack itself able to come off. */
-bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info);
+/* 0x00545B20: bodyguard readiness for the selected protection target. */
+bool CanMonsterProtectTarget(W8MonsterInfo* monster_info);
 /* 0x00545AA0: the character counterpart of the same six checks. */
 bool CanCharacterAttackItsTarget(int party_slot);
 /* Build the monster attack announcement message and aim it at the target. */

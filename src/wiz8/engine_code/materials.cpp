@@ -260,6 +260,9 @@ const float g_float_005ecbb8 = 2.5f;
 const float g_float_005ecbbc = -0.995f;
 
 static unsigned char PreprocessLevel(int handle, char* stem);
+/* The following helpers retain distinct retail call boundaries. Their source
+   names, internal linkage and placement here are provisional; lack of /Ob2
+   PDB procedures does not establish that they were authored inline. */
 static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex* vertices,
                       unsigned int index, unsigned int link);
 static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short light_count,

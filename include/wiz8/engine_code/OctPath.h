@@ -196,19 +196,27 @@ static_assert(sizeof(GDPropCondPaths) == 0x44, "GDPropCondPaths_must_be_0x44");
    participate and the third slots are zeroed. Retail does not distinguish
    this grouping from adjacent scalar storage in the original declaration. */
 struct W8PathGridWalk {
-    int cell_00[3];    /* 0x00: destination X/Z path cells; third slot zero */
-    int step_0c[3];    /* 0x0c: +1 or -1 for X/Z; third slot zero */
-    int major_axis_18; /* 0x18: 0 for X, 1 for Z */
-    int minor_axis_1c; /* 0x1c: (major + 1) % 2 */
-    int unknown_20;    /* 0x20: zero */
-    int count_24;      /* 0x24: cells to visit */
-    int error_28;      /* 0x28 */
-    int error_2c;      /* 0x2c */
-    int cell_size_30;  /* 0x30 */
-    int unknown_34[3]; /* 0x34: zero */
+    int cell_00[3];     /* 0x00: destination X/Z cells; third component zero */
+    int step_0c[3];     /* 0x0c: +1 or -1 per active axis; third component zero */
+    int major_axis_18;  /* 0x18: 0 for X, 1 for Z */
+    int minor_axis_1c;  /* 0x1c: (major + 1) % 2 */
+    int minor_axis_20;  /* 0x20: unused second secondary axis, zero */
+    int count_24;       /* 0x24: cells to visit */
+    int error_delta_28; /* 0x28 */
+    int error_2c;       /* 0x2c */
+    int error_reset_30; /* 0x30: cell size */
+    int error_delta_34; /* 0x34: unused second error channel, zero */
+    int error_38;
+    int error_reset_3c;
 };
 
 static_assert(sizeof(W8PathGridWalk) == 0x40, "W8PathGridWalk_must_be_0x40");
+static_assert(offsetof(W8PathGridWalk, step_0c) == 0x0c, "W8PathGridWalk_step_offset");
+static_assert(offsetof(W8PathGridWalk, minor_axis_20) == 0x20, "W8PathGridWalk_second_axis_offset");
+static_assert(offsetof(W8PathGridWalk, error_delta_34) == 0x34,
+              "W8PathGridWalk_second_error_offset");
+static_assert(offsetof(W8PathGridWalk, error_reset_3c) == 0x3c,
+              "W8PathGridWalk_second_reset_offset");
 
 /* One of the fixed probe volumes assembled by 0x004656A0. The outer radius
    is the navigator's collision radius; the inner bound is its distance from

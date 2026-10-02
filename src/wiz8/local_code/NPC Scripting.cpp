@@ -769,7 +769,7 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
             monster->StartTalking(1);
         }
         g_npc_scripting.last_tick = GetTickCount();
-        if (g_npc_scripting.voice_handle == -1) {
+        if (g_npc_scripting.voice_handle == SOUND_ERROR) {
             g_npc_scripting.voice_playing = false;
             g_npc_scripting.message_duration_ms = wcslen(display_text) * 60 + 2000;
             g_npc_scripting.message_started_at = GetTickCount();
@@ -778,7 +778,7 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
                 SetPartyPortraitEventState(g_npc_scripting.npc->group_index, 1,
                                            g_npc_scripting.staging_restore.current_quote_index,
                                            display_text, 1);
-                entry->voice_sound_handle = -1;
+                entry->voice_sound_handle = SOUND_ERROR;
                 entry->voice_time_remaining_ms = g_npc_scripting.message_duration_ms;
             }
         } else {
@@ -825,9 +825,9 @@ void FinishNpcVoicePlayback(bool resume_script)
     if (g_npc_scripting.quote_active != 0) {
         if (g_npc_scripting.voice_playing != 0) {
             g_npc_scripting.voice_playing = false;
-            if (g_npc_scripting.voice_handle != -1) {
+            if (g_npc_scripting.voice_handle != SOUND_ERROR) {
                 g_npc_scripting.stopping_voice_playback = 1;
-                SoundStop(static_cast<unsigned int>(g_npc_scripting.voice_handle));
+                SoundStop(g_npc_scripting.voice_handle);
                 g_npc_scripting.stopping_voice_playback = 0;
             }
             FreeMouthGapTrack(&g_npc_scripting.gap_track);
@@ -845,7 +845,7 @@ void FinishNpcVoicePlayback(bool resume_script)
             }
         }
         g_npc_scripting.quote_active = 0;
-        g_npc_scripting.voice_handle = -1;
+        g_npc_scripting.voice_handle = SOUND_ERROR;
         g_npc_scripting.staging_restore.finished_quote_index =
             g_npc_scripting.staging_restore.current_quote_index;
         if (g_npc_interaction_state->script_busy == 0 && resume_script != 0) {

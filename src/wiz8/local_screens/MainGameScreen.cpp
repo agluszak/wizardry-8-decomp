@@ -5509,17 +5509,17 @@ apply_mode_tail:
     }
     if (g_level_block->portrait_mode_158 == 0) {
         g_level_block->portrait_hover_x_origin = 0x69;
-        g_level_block->unknown_164 = 6;
+        g_level_block->portrait_layout_inset = 6;
     } else {
         g_level_block->portrait_hover_x_origin = 0;
-        g_level_block->unknown_164 = 0;
+        g_level_block->portrait_layout_inset = 0;
     }
     if (g_level_block->action_panel_visible == 0) {
         g_level_block->portrait_y_shift_160 = 0x76;
-        g_level_block->unknown_168 = 6;
+        g_level_block->action_panel_layout_inset = 6;
     } else {
         g_level_block->portrait_y_shift_160 = 0;
-        g_level_block->unknown_168 = 0;
+        g_level_block->action_panel_layout_inset = 0;
     }
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->redraw_flags = 0xffffffff;
@@ -6372,7 +6372,7 @@ unsigned char PartyCombatActionRegionEvent(const InputAtom* event, W8Region* reg
                 g_level_block->countdown_30c = SetCountdownClock(0);
                 g_level_block->hover_combat_slot = -1;
             }
-            g_level_block->party_slots_170[4] = -1;
+            g_level_block->combat_action_hover_party_slot = -1;
             gXStatus.monster_manager_entries[slot].combat_portrait_dirty = 1;
             DisableRegionHelpFlag(region);
             return 0;
@@ -6381,7 +6381,7 @@ unsigned char PartyCombatActionRegionEvent(const InputAtom* event, W8Region* reg
             return 0;
         }
         if (g_combat_state->round_active_001 != 0) {
-            g_level_block->party_slots_170[4] = slot;
+            g_level_block->combat_action_hover_party_slot = slot;
             gXStatus.monster_manager_entries[slot].combat_portrait_dirty = 1;
         }
         {
@@ -6697,7 +6697,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                     g_status.selected_character != -1 &&
                     CanPartyMemberAimAtMonster(g_status.selected_character, 2, monster_info, 6,
                                                0) != 0) {
-                    if ((GetMonsterDataForInfo(monster_info)->flags_0d0 & 1) == 0) {
+                    if ((GetMonsterDataForInfo(monster_info)->flags & W8_MONSTER_FLAG_NPC) == 0) {
                         ShowNotice(0xc, gppStringList[0x7de], -1, -1, 0);
                     } else {
                         W8ItemInstance* item = 0;
@@ -7040,25 +7040,25 @@ void ApplyPendingTooltip(void)
         RequestRedraw(1u << (g_level_block->highlight_override & 0x1f));
         g_level_block->highlight_override = -1;
     }
-    if (g_level_block->party_slots_170[0] != -1) {
-        RequestRedraw(1u << (g_level_block->party_slots_170[0] & 0x1f));
-        g_level_block->party_slots_170[0] = -1;
+    if (g_level_block->condition_hover_party_slot != -1) {
+        RequestRedraw(1u << (g_level_block->condition_hover_party_slot & 0x1f));
+        g_level_block->condition_hover_party_slot = -1;
     }
-    if (g_level_block->party_slots_170[1] != -1) {
-        RequestRedraw(1u << (g_level_block->party_slots_170[1] & 0x1f));
-        g_level_block->party_slots_170[1] = -1;
+    if (g_level_block->enchantment_hover_party_slot != -1) {
+        RequestRedraw(1u << (g_level_block->enchantment_hover_party_slot & 0x1f));
+        g_level_block->enchantment_hover_party_slot = -1;
     }
-    if (g_level_block->party_slots_170[2] != -1) {
-        RequestRedraw(1u << (g_level_block->party_slots_170[2] & 0x1f));
-        g_level_block->party_slots_170[2] = -1;
+    if (g_level_block->name_hover_party_slot != -1) {
+        RequestRedraw(1u << (g_level_block->name_hover_party_slot & 0x1f));
+        g_level_block->name_hover_party_slot = -1;
     }
-    if (g_level_block->party_slots_170[3] != -1) {
-        RequestRedraw(1u << (g_level_block->party_slots_170[3] & 0x1f));
-        g_level_block->party_slots_170[3] = -1;
+    if (g_level_block->vitals_hover_party_slot != -1) {
+        RequestRedraw(1u << (g_level_block->vitals_hover_party_slot & 0x1f));
+        g_level_block->vitals_hover_party_slot = -1;
     }
-    if (g_level_block->party_slots_170[5] != -1) {
-        RequestRedraw(1u << (g_level_block->party_slots_170[5] & 0x1f));
-        g_level_block->party_slots_170[5] = -1;
+    if (g_level_block->assay_hover_party_slot != -1) {
+        RequestRedraw(1u << (g_level_block->assay_hover_party_slot & 0x1f));
+        g_level_block->assay_hover_party_slot = -1;
     }
     if (g_level_block->formation_highlight_party_slot != -1) {
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
@@ -7074,19 +7074,19 @@ void ApplyPendingTooltip(void)
             g_level_block->highlight_override = g_level_block->tooltip_subject;
             break;
         case 1:
-            g_level_block->party_slots_170[0] = g_level_block->tooltip_subject;
+            g_level_block->condition_hover_party_slot = g_level_block->tooltip_subject;
             break;
         case 2:
-            g_level_block->party_slots_170[1] = g_level_block->tooltip_subject;
+            g_level_block->enchantment_hover_party_slot = g_level_block->tooltip_subject;
             break;
         case 3:
-            g_level_block->party_slots_170[2] = g_level_block->tooltip_subject;
+            g_level_block->name_hover_party_slot = g_level_block->tooltip_subject;
             break;
         case 4:
-            g_level_block->party_slots_170[3] = g_level_block->tooltip_subject;
+            g_level_block->vitals_hover_party_slot = g_level_block->tooltip_subject;
             break;
         case 5:
-            g_level_block->party_slots_170[5] = g_level_block->tooltip_subject;
+            g_level_block->assay_hover_party_slot = g_level_block->tooltip_subject;
             break;
         case 6:
             g_level_block->formation_highlight_party_slot = g_level_block->tooltip_subject;

@@ -208,7 +208,7 @@ static unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_
         srAssertFail("pMonsterGroup != NULL", MONSTER_GROUP_CPP, 0x3bd, 0);
     }
     record = MonsterDBFromSpecies(monster_group->monster_id);
-    if ((record->flags_0d0 & 1) != 0) {
+    if ((record->flags & W8_MONSTER_FLAG_NPC) != 0) {
         npc_record = FindNpcBindingForMonster(MonsterGetIndexByLocationID(
             0x75a, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, 0), 1));
         if (npc_record == 0) {
@@ -298,9 +298,9 @@ void RefreshMonsterGroupHostility(W8MonsterGroup* monster_group)
         }
         return;
     }
-    if (monster_group->ubDisposition != DISP_HOSTILE && (record->flags_0d0 & 1) == 0 &&
-        record->faction_id_25f == 0 && record->hostility_radius_25b != 0 &&
-        record->hostility_radius_25b != -1 &&
+    if (monster_group->ubDisposition != DISP_HOSTILE &&
+        (record->flags & W8_MONSTER_FLAG_NPC) == 0 && record->faction_id_25f == 0 &&
+        record->hostility_radius_25b != 0 && record->hostility_radius_25b != -1 &&
         GetGroupNearestDistance(monster_group) <= record->hostility_radius_25b * g_world_scale &&
         MonsterGroupHasVisibleTarget(monster_group, 1, 3, 0) != 0) {
         SetMonsterGroupHostility(monster_group, DISP_HOSTILE, 0);
@@ -1050,7 +1050,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     group->members_active = 0;
     group->fInCombat = false;
     group->unknown_2b = 3;
-    if (use_alternate_name != 0 || (record->flags_0d0 & 0x10) != 0) {
+    if (use_alternate_name != 0 || (record->flags & W8_MONSTER_FLAG_ALTERNATE_NAME) != 0) {
         group->alternate_name = 1;
     } else {
         group->alternate_name = 0;

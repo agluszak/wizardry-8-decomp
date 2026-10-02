@@ -400,7 +400,8 @@ void RedrawCombatPortraits(void)
             ClearSurfaceRect(portrait_x, row_y + 0x37, portrait_x + 0x14, row_y + 0x58);
             InvalidateRegion(portrait_x, row_y + 0x37, portrait_x + 0x14, row_y + 0x58, 0);
         }
-        if (g_level_block->party_slots_170[4] == -1 || g_level_block->party_slots_170[4] != slot) {
+        if (g_level_block->combat_action_hover_party_slot == -1 ||
+            g_level_block->combat_action_hover_party_slot != slot) {
             portrait_image = combat_row->portrait_image_084;
         } else {
             portrait_image = combat_row->portrait_image_alternate_088;
@@ -916,7 +917,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                 (SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette),
                  g_current_screen_state.id != W8_SCREEN_MAIN_GAME) ||
                 (text_shade = 1,
-                 g_level_block->party_slots_170[2] != static_cast<int>(party_slot))) {
+                 g_level_block->name_hover_party_slot != static_cast<int>(party_slot))) {
                 text_shade = 4;
             }
             SetObjectShade(g_wiz_text_font_secondary_object, text_shade);
@@ -1000,19 +1001,19 @@ draw_condition_icons:
     DrawCatalogImage(-14, enchantment_frame, 0, 0, right_condition_x, menu_y + 3, 2, 0);
 
     if (party_row->fOccupied != 0 && g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        if (g_level_block->party_slots_170[0] == static_cast<int>(party_slot)) {
+        if (g_level_block->condition_hover_party_slot == static_cast<int>(party_slot)) {
             DrawCatalogImage(-14, 0x60, 0, 0, left_condition_x - 1, menu_y + 2, 2, 0);
         } else if (character->highest_condition != 0) {
             DrawCatalogImage(-14, 0x61, 0, 0, left_condition_x - 1, menu_y + 2, 2, 0);
         }
 
-        if (g_level_block->party_slots_170[1] == static_cast<int>(party_slot)) {
+        if (g_level_block->enchantment_hover_party_slot == static_cast<int>(party_slot)) {
             DrawCatalogImage(-14, 0x60, 0, 0, right_condition_x - 1, menu_y + 2, 2, 0);
         } else if (character->highest_condition != 0) {
             DrawCatalogImage(-14, 0x61, 0, 0, right_condition_x - 1, menu_y + 2, 2, 0);
         }
 
-        if (g_level_block->party_slots_170[2] == static_cast<int>(party_slot) &&
+        if (g_level_block->name_hover_party_slot == static_cast<int>(party_slot) &&
             (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
              g_level_block->portrait_refresh_pending[party_slot] != 0)) {
             DrawCatalogImage(-14, 0x62, 0, 0, menu_x + 0x13, menu_y + 0x48, 2, 0);
@@ -1020,7 +1021,7 @@ draw_condition_icons:
 
         if ((g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
              g_level_block->portrait_refresh_pending[party_slot] != 0) &&
-            g_level_block->party_slots_170[5] == static_cast<int>(party_slot)) {
+            g_level_block->assay_hover_party_slot == static_cast<int>(party_slot)) {
             int assay_y;
             int assay_catalog;
 
@@ -1048,7 +1049,7 @@ portrait_fx:
         DrawPortraitEffectIcon(party_slot);
     }
 
-    if (g_level_block->party_slots_170[3] == static_cast<int>(party_slot)) {
+    if (g_level_block->vitals_hover_party_slot == static_cast<int>(party_slot)) {
         int hp_overlay_y;
         int hp_overlay_x;
         int hp_overlay_catalog;

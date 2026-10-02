@@ -166,7 +166,9 @@ extern unsigned int g_missile_table_count;
    recovered consumers are named. */
 #pragma pack(push, 1)
 struct W8MissileTableRecord {
-    unsigned char unknown_000[0x100];
+    /* The retained database row starts with a UTF-16 name, independently
+       visible in all 36 canonical MissileTables.dbs rows. */
+    wchar_t display_name[128];
     /* 0x100: the GrCycle resource name the launcher loads through the
        "Data\\Missiles" script path. */
     char cycle_name_100[0x40];
@@ -188,6 +190,8 @@ struct W8MissileTableRecord {
 };
 #pragma pack(pop)
 
+static_assert(offsetof(W8MissileTableRecord, cycle_name_100) == 0x100,
+              "W8MissileTableRecord_cycle_name_offset");
 static_assert(sizeof(W8MissileTableRecord) == 0x1e5, "W8MissileTableRecord_must_be_0x1e5");
 
 extern W8MissileTableRecord* g_missile_table;

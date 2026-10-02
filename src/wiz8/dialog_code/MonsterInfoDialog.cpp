@@ -140,7 +140,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     record = GetMonsterDataForInfo(monster_info);
     average_level = GetAveragePartyMemberLevel();
     monster_level = record->display_level_251;
-    if (monster_info->ubDisposition != 1 && (record->flags_0d0 & 1) != 0 &&
+    if (monster_info->ubDisposition != 1 && (record->flags & W8_MONSTER_FLAG_NPC) != 0 &&
         (npc = GetNpcStateByKind(record->npc_kind_0cd)) != 0 && npc->record->has_group != 0) {
         is_npc = true;
     }

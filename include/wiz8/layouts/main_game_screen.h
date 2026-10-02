@@ -85,12 +85,17 @@ struct W8LevelRuntimeBlock {
     int portrait_hover_x_origin;
     /* 0x160/0x164/0x168: layout offsets ApplyMainGameModeFlag writes when the
        action panel or portrait chrome is down (0x76/6 and 0x69/6); cleared to
-       zero while the matching panel is up. Semantic names still open. */
+       zero while the matching panel is up. */
     int portrait_y_shift_160;
-    int unknown_164;
-    int unknown_168;
+    int portrait_layout_inset;
+    int action_panel_layout_inset;
     int highlight_override; /* 0x16c */
-    int party_slots_170[6]; /* 0x170: positional roles unresolved */
+    int condition_hover_party_slot; /* 0x170 */
+    int enchantment_hover_party_slot; /* 0x174 */
+    int name_hover_party_slot; /* 0x178 */
+    int vitals_hover_party_slot; /* 0x17c */
+    int combat_action_hover_party_slot; /* 0x180 */
+    int assay_hover_party_slot; /* 0x184 */
     /* 0x188: PortraitAssaySidebarRegionEvent hover zone — 1 upper weapon
        row, 2 lower, 3 assayable item; Screens resets it to 0. */
     int portrait_assay_hover_mode;

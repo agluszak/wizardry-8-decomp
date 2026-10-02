@@ -27,8 +27,18 @@ static_assert(offsetof(W8LevelRuntimeBlock, portrait_refresh_image) == 0x114,
               "W8LevelRuntimeBlock_portrait_refresh_image");
 static_assert(offsetof(W8LevelRuntimeBlock, portrait_refresh_mode) == 0x134,
               "W8LevelRuntimeBlock_portrait_refresh_mode");
-static_assert(offsetof(W8LevelRuntimeBlock, party_slots_170) == 0x170,
-              "W8LevelRuntimeBlock_party_slots_170");
+static_assert(offsetof(W8LevelRuntimeBlock, condition_hover_party_slot) == 0x170,
+              "W8LevelRuntimeBlock_condition_hover_party_slot");
+static_assert(offsetof(W8LevelRuntimeBlock, enchantment_hover_party_slot) == 0x174,
+              "W8LevelRuntimeBlock_enchantment_hover_party_slot_offset");
+static_assert(offsetof(W8LevelRuntimeBlock, name_hover_party_slot) == 0x178,
+              "W8LevelRuntimeBlock_name_hover_party_slot_offset");
+static_assert(offsetof(W8LevelRuntimeBlock, vitals_hover_party_slot) == 0x17c,
+              "W8LevelRuntimeBlock_vitals_hover_party_slot_offset");
+static_assert(offsetof(W8LevelRuntimeBlock, combat_action_hover_party_slot) == 0x180,
+              "W8LevelRuntimeBlock_combat_action_hover_party_slot_offset");
+static_assert(offsetof(W8LevelRuntimeBlock, assay_hover_party_slot) == 0x184,
+              "W8LevelRuntimeBlock_assay_hover_party_slot_offset");
 static_assert(offsetof(W8LevelRuntimeBlock, portrait_assay_hover_mode) == 0x188,
               "W8LevelRuntimeBlock_portrait_assay_hover_mode");
 static_assert(offsetof(W8LevelRuntimeBlock, formation_highlight_party_slot) == 0x18c,

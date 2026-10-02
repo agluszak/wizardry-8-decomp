@@ -552,7 +552,9 @@ public:
     bool m_reset_visibility_168;
     bool m_region_links_ready_169;
     bool m_projected_regions_valid_16a;
-    unsigned char unknown_16b;
+    /* Set after a location matches a region, cleared before visibility
+       collection. No consumer or Reset initialization is established. */
+    unsigned char m_location_region_matched; // bool-byte-ok: stores alone do not establish bool
     bool m_region_links_dirty_16c;
     bool m_points_dirty_16d;
     unsigned char m_padding_16e[2];

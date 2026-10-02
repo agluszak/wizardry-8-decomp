@@ -4951,7 +4951,7 @@ void HandleNpcDialogueDeparture(unsigned char value)
         info->p3D->SetScript("Guard.msf", 1);
     }
     if ((value == 0 || g_npc_interaction_state->dialogue_npc->dismissed_flag == 0 ||
-         g_npc_interaction_state->dialogue_npc->record->unknown_2f0 != 0) &&
+         g_npc_interaction_state->dialogue_npc->record->allow_dismissed_departure_dialogue != 0) &&
         g_npc_interaction_state->transcript_open_count < 1) {
         if (g_npc_interaction_state->dialogue_npc->greeting_pending == 0) {
             QueueNpcScriptLine(1, 0, 0, 0);

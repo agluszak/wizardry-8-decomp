@@ -522,7 +522,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
         LoadMonsterDatabase(&records);
         unsigned int species;
         for (species = 0; species < gXStatus.uiMonstersInDatabase; ++species) {
-            if ((records[species].flags_0d0 & 1) != 0 &&
+            if ((records[species].flags & W8_MONSTER_FLAG_NPC) != 0 &&
                 records[species].npc_kind_0cd == npc->name_style) {
                 break;
             }
@@ -1421,7 +1421,7 @@ void BindNpcToMonster(unsigned char npc_id, bool has_monster, int location_id)
             MonsterGetIndexByLocationID(0x150, NPC_MANAGER_CPP, location_id, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         W8MonsterRecord* monster_record = GetMonsterDataForInfo(monster_info);
-        if (monster_record == 0 || (monster_record->flags_0d0 & 1) == 0) {
+        if (monster_record == 0 || (monster_record->flags & W8_MONSTER_FLAG_NPC) == 0) {
             monster_info->bound_npc_index = -1;
             return;
         }
@@ -1760,7 +1760,7 @@ W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index)
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     W8NpcState* npc;
 
-    if (record == 0 || (record->flags_0d0 & 1) == 0 || record->npc_kind_0cd == 0xfa) {
+    if (record == 0 || (record->flags & W8_MONSTER_FLAG_NPC) == 0 || record->npc_kind_0cd == 0xfa) {
         return 0;
     }
     npc = *g_npc_states->GetAt(monster_info->bound_npc_index);
@@ -1778,7 +1778,7 @@ W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info, bool allow_un
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     W8NpcState* npc;
 
-    if (record == 0 || (record->flags_0d0 & 1) == 0 || record->npc_kind_0cd == 0xfa) {
+    if (record == 0 || (record->flags & W8_MONSTER_FLAG_NPC) == 0 || record->npc_kind_0cd == 0xfa) {
         return 0;
     }
     npc = *g_npc_states->GetAt(monster_info->bound_npc_index);
@@ -2635,7 +2635,7 @@ unsigned char RestoreNpcMonster(W8NpcState* npc, const char* entity_name)
         LoadMonsterDatabase(&records);
         if (gXStatus.uiMonstersInDatabase != 0) {
             for (; index < gXStatus.uiMonstersInDatabase; ++index) {
-                if ((records[index].flags_0d0 & 1) != 0 &&
+                if ((records[index].flags & W8_MONSTER_FLAG_NPC) != 0 &&
                     records[index].npc_kind_0cd == npc->name_style) {
                     break;
                 }

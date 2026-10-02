@@ -434,7 +434,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, boo
                 W8MonsterGroup* other = GetMonsterGroupByListIndex(index);
                 W8MonsterRecord* other_record = MonsterGroupGetRecord(other);
                 if (other != group &&
-                    ((other_record->flags_0d0 & 1) == 0 || !other->forced_neutral) &&
+                    ((other_record->flags & W8_MONSTER_FLAG_NPC) == 0 || !other->forced_neutral) &&
                     record->faction_id_25f == other_record->faction_id_25f &&
                     MonsterGroupCanSeeGroup(other, group)) {
                     SetMonsterGroupHostility(other, group->ubDisposition, 0);
@@ -918,7 +918,7 @@ void AlertSameFactionGroups(W8MonsterGroup* monster_group)
             W8MonsterGroup* other = GetMonsterGroupByListIndex(index);
             W8MonsterRecord* other_record = MonsterGroupGetRecord(other);
             if (other != monster_group &&
-                ((other_record->flags_0d0 & 1) == 0 || other->forced_neutral == 0) &&
+                ((other_record->flags & W8_MONSTER_FLAG_NPC) == 0 || other->forced_neutral == 0) &&
                 record->faction_id_25f == other_record->faction_id_25f &&
                 MonsterGroupCanSeeGroup(other, monster_group) != 0) {
                 SetMonsterGroupHostility(other, monster_group->ubDisposition, 0);

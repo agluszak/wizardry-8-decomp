@@ -3940,20 +3940,20 @@ void W8PathingService::BuildPathGridWalk(const srVector2T<float>* from, const sr
 
     walk->major_axis_18 = major_axis;
     walk->minor_axis_1c = minor_axis;
-    walk->cell_size_30 = cell_size;
+    walk->error_reset_30 = cell_size;
     walk->count_24 = count;
     walk->cell_00[0] = destination[0] / cell_size;
     walk->step_0c[0] = step[0];
     walk->step_0c[1] = step[1];
-    walk->error_28 = error_delta;
+    walk->error_delta_28 = error_delta;
     walk->error_2c = error;
     walk->cell_00[1] = destination[1] / cell_size;
     walk->cell_00[2] = 0;
     walk->step_0c[2] = 0;
-    walk->unknown_20 = 0;
-    walk->unknown_34[0] = 0;
-    walk->unknown_34[1] = 0;
-    walk->unknown_34[2] = 0;
+    walk->minor_axis_20 = 0;
+    walk->error_delta_34 = 0;
+    walk->error_38 = 0;
+    walk->error_reset_3c = 0;
 }
 
 /* Walk every horizontal path cell crossed by a short waypoint segment.
@@ -4068,12 +4068,12 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
         if (error >= 0 || blocked != 0) {
             direction = directions[0];
             cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
-            error -= walk.error_28;
+            error -= walk.error_delta_28;
         } else {
             direction = directions[1];
             --iteration;
             cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
-            error += walk.cell_size_30;
+            error += walk.error_reset_30;
         }
         if (direction_mask != 0 && (direction_mask & 1 << (direction & 0x1f)) == 0) {
             blocked = 1;
@@ -4286,16 +4286,16 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
         if (diagonal_steps == 0) {
             if (error >= 0 || blocked != 0) {
                 cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
-                error -= walk.error_28;
+                error -= walk.error_delta_28;
             } else {
                 cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
                 direction = directions[1];
                 --iteration;
-                error += walk.cell_size_30;
+                error += walk.error_reset_30;
             }
         } else if (error < 0 && blocked == 0) {
             cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
-            error += walk.cell_size_30;
+            error += walk.error_reset_30;
             if (static_cast<unsigned int>(cell[1] * 0x10000 + cell[0]) == destination_key) {
                 --iteration;
                 direction = directions[1];
@@ -4307,11 +4307,11 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
                     direction = (directions[0] + directions[1]) / 2;
                 }
                 cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
-                error -= walk.error_28;
+                error -= walk.error_delta_28;
             }
         } else {
             cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
-            error -= walk.error_28;
+            error -= walk.error_delta_28;
         }
 
         if (cell_key == destination_key) {

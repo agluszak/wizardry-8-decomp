@@ -270,7 +270,7 @@ void RecordFactionOffense(signed char faction, unsigned int victim_location_inde
         AdjustFactionDisposition(faction, -0x28);
         return;
     }
-    if ((record->flags_0d0 & 1) != 0) {
+    if ((record->flags & W8_MONSTER_FLAG_NPC) != 0) {
         AdjustFactionDisposition(faction, -0x14);
         return;
     }

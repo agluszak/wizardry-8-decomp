@@ -46,12 +46,6 @@ public:
     int FindDamageStage(const char* name);
     unsigned char ReplaceDamageStageTexture(int stage, const char* old_name,
                                             srTextureIFace* replacement);
-    unsigned char displayState() const
-    {
-        // reinterpret-ok: scene purge reads the low byte at +0x170; its relation to highlight alpha remains unresolved
-        return *reinterpret_cast<const unsigned char*>(&highlight_colour_164.w);
-    }
-
     virtual ~stModelInstance() override; /* 0x0047EF70 */
 
 public:

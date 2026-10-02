@@ -175,17 +175,20 @@ unsigned int g_event_range_max = g_first_remapped_event + 23;
 int g_trap_notice_event = g_first_remapped_event + 12;
 // GLOBAL: WIZ8 0x0068C54C
 int g_lock_notice_event = g_first_remapped_event + 11;
-struct W8PortraitTables {
-    unsigned short quote_x[8];
-    unsigned short quote_y[8];
-    int pose_transition[30];
-};
+/* Per-slot quote coordinates, followed by the five-by-five pose transition
+   table. Pose IDs are one-based. The table ends at 0x0061CBC0, where the
+   separately owned byte-per-portrait animation flags begin. */
 // GLOBAL: WIZ8 0x0061cb3c
-static W8PortraitTables g_portrait_tables = {
-    {0x0080, 0x0138, 0x0080, 0x0138, 0x0080, 0x0138, 0x0080, 0x0138},
-    {0x0013, 0x0013, 0x0067, 0x0067, 0x00bc, 0x00bc, 0x0111, 0x0111},
-    {1, 3, 3, 4, 5, 3, 2, 3, 3, 3, 1,          2,          3,          4,          1,
-     1, 3, 3, 4, 1, 1, 1, 1, 1, 5, 0x01010101, 0x01010101, 0x01010101, 0x01010101, 0x01010101},
+static unsigned short g_portrait_quote_x[8] = {
+    0x0080, 0x0138, 0x0080, 0x0138, 0x0080, 0x0138, 0x0080, 0x0138,
+};
+// GLOBAL: WIZ8 0x0061cb4c
+static unsigned short g_portrait_quote_y[8] = {
+    0x0013, 0x0013, 0x0067, 0x0067, 0x00bc, 0x00bc, 0x0111, 0x0111,
+};
+// GLOBAL: WIZ8 0x0061cb5c
+static int g_portrait_pose_transition[5][5] = {
+    {1, 3, 3, 4, 5}, {3, 2, 3, 3, 3}, {1, 2, 3, 4, 1}, {1, 3, 3, 4, 1}, {1, 1, 1, 1, 5},
 };
 // GLOBAL: WIZ8 0x005ee6f0
 const int g_fact_check_event = 129;
@@ -773,7 +776,7 @@ unsigned char W8CharacterEvent::PlayEventSound()
     sound_handle = SoundPlay(sound_path, &sound_parms);
     record = &gXStatus.monster_manager_entries[party_slot];
     record->voice_sound_handle = sound_handle;
-    if (sound_handle == 0xffffffff) {
+    if (sound_handle == SOUND_ERROR) {
         if (event_type > 0x91) {
             wchar_t fallback_text[] = FALLBACK_VOICE_TEXT;
             record->voice_time_remaining_ms = ComputePortraitMessageDuration(fallback_text);
@@ -1060,9 +1063,9 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
                 }
                 g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
             } else {
-                unsigned short base_x = g_portrait_tables.quote_x[party_slot];
+                unsigned short base_x = g_portrait_quote_x[party_slot];
                 quote->x = base_x;
-                quote->y = g_portrait_tables.quote_y[party_slot];
+                quote->y = g_portrait_quote_y[party_slot];
                 if ((party_slot & 1) == 1) {
                     quote->x = static_cast<unsigned short>(base_x - quote->width + 200);
                 }
@@ -1818,7 +1821,7 @@ int UpdateCharacterEventState(void)
             continue;
         }
         if (record->portrait_event_active != 0) {
-            if (record->voice_sound_handle == -1) {
+            if (record->voice_sound_handle == SOUND_ERROR) {
                 if (record->voice_time_remaining_ms == 0) {
                     if (record->active_character_event == 0) {
                         SetPartyPortraitEventState(party_slot, 0, -1, 0, 1);
@@ -1932,8 +1935,7 @@ int UpdateCharacterEventState(void)
                     int pose = record->portrait_pose;
                     record->previous_portrait_pose = pose;
                     record->portrait_pose =
-                        g_portrait_tables
-                            .pose_transition[(pose - 1) * 5 + (record->target_portrait_pose - 1)];
+                        g_portrait_pose_transition[pose - 1][record->target_portrait_pose - 1];
                     record->portrait_pose_animation_active = 1;
                     record->portrait_pose_clock = SetCountdownClock(Random(50) + 50);
                 }
@@ -1941,9 +1943,7 @@ int UpdateCharacterEventState(void)
                 int pose = record->portrait_pose;
                 if (pose != 2) {
                     record->previous_portrait_pose = pose;
-                    // Pose IDs are 1-based; the retail transition rows and columns are 0-based.
-                    record->portrait_pose =
-                        g_portrait_tables.pose_transition[(pose - 1) * 5 + (2 - 1)];
+                    record->portrait_pose = g_portrait_pose_transition[pose - 1][2 - 1];
                     record->portrait_pose_animation_active = 1;
                     record->portrait_pose_clock = SetCountdownClock(Random(50) + 50);
                 }

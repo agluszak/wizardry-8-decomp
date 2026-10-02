@@ -71,9 +71,9 @@ public:
        slot is public rather than reachable only through the setter. */
     unsigned char padding_042[2];
     W8DialogDestroyCallback m_destroy_callback; /* 0x44 */
-    /* Generic owner slot. The item dialog stores its Trigger here and the
-       destroy callback reads it back. */
-    void* m_user_data; /* 0x48 */
+    /* Base constructor clears this slot; the destruction callback consumes
+       it. The item-picker callback's payload is a Trigger*. */
+    void* m_destroy_callback_context; /* 0x48 */
 protected:
     /* 0x4c: cleared by W8DialogNumericInput when its field deactivates; no
        writer of a nonzero value has been recovered. */

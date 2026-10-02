@@ -1,6 +1,8 @@
 #ifndef WIZ8_CHARACTER_EVENT_QUEUE_H
 #define WIZ8_CHARACTER_EVENT_QUEUE_H
 
+#include "timer.h"
+
 #include "wiz8/layouts/item_instance.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
@@ -94,9 +96,9 @@ struct W8CharacterEventQueue {
     /* 0x58: a five-second countdown armed by every successful Dispatch; while
        it ticks, active_event_type/active_party_slot still describe the last
        dispatched event for duplicate coalescing. */
-    int recent_event_clock;
+    TIMER recent_event_clock;
     int follow_up_flags;
-    int follow_up_clock;
+    TIMER follow_up_clock;
     /* 0x64: the party slot that spoke the last follow-up event; the response
        pick excludes it. */
     int follow_up_speaker_slot;

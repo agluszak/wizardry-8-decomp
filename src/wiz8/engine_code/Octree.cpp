@@ -298,7 +298,7 @@ void W8Octree::UpdateVisibility()
         m_props_to_disable_110->ClearAll();
     }
     m_projected_regions_valid_16a = false;
-    unknown_16b = 0;
+    m_location_region_matched = 0;
     CollectVisibleRegions(&view_1c0.camera_location_00, view_1c0.visible_cells_44, 0, 1);
     CollectVisibleCells();
     if (pathing_180 != 0) {
@@ -621,7 +621,7 @@ short W8Octree::ProjectLinkedRegionsForLocation(srVector3T<float>* location,
             }
         }
         if (match_count != 0) {
-            unknown_16b = 1;
+            m_location_region_matched = 1;
             return match_count;
         }
     }
@@ -664,7 +664,7 @@ short W8Octree::ProjectLinkedRegionsForLocation(srVector3T<float>* location,
     if (match_count == 0) {
         return 0;
     }
-    unknown_16b = 1;
+    m_location_region_matched = 1;
     return match_count;
 }
 

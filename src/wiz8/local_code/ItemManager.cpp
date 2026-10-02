@@ -1335,9 +1335,9 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
         unsigned int take;
         unsigned int taken;
         int pick;
-        if ((record->flags_0d0 & 1) == 0) {
+        if ((record->flags & W8_MONSTER_FLAG_NPC) == 0) {
             for (slot = 0; slot < 8; ++slot) {
-                W8MonsterTreasureEntry* entry = &record->treasure_1c3.slots[slot];
+                W8MonsterTreasureEntry* entry = &record->treasure_1f3.slots[slot];
                 if (entry->count != 0 && Random(100) <= entry->chance) {
                     int rolls = RollDice(&entry->dice);
                     for (roll = 0; roll < rolls; ++roll) {
@@ -1352,7 +1352,7 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
                     }
                 }
             }
-            gold = RollDice(&record->treasure_1c3.gold_dice);
+            gold = RollDice(&record->treasure_1f3.gold_dice);
         } else {
             W8NpcState* npc = GetNpcStateForMonsterInfo(monster_info, 1);
             if (npc == 0) {

@@ -48,7 +48,7 @@ struct W8NpcScriptingState {
     unsigned char unknown_72[6];
     W8NpcScriptFile* script_file;
     W8NpcState* npc;
-    int voice_handle;
+    unsigned int voice_handle;
     unsigned int message_duration_ms;
     unsigned int message_started_at;
     W8GrowableVector<W8MessageBoxLine*> message_lines;
