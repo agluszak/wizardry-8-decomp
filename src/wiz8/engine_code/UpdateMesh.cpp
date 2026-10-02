@@ -43,7 +43,7 @@ static void RasterizeQuadTriangle(W8World* world, long x1, long y1, long x2, lon
    The factor global is never written in retail, so both edges keep the camera
    forward direction and the rasterized region is a thin wedge. */
 // FUNCTION: WIZ8 0x004BA530
-static void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* count)
+void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* count)
 {
     W8Quad* quad = world->m_owned_06c;
     float cell_size = quad->cell_size;

@@ -453,7 +453,7 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
 
 /* Releases the two per-record id runs SplitMeshes allocates; retail inlines
    this same loop at every CreateSubMeshes exit. */
-static inline void FreeSubmeshBuildArrays(W8OctSubmeshBuild* records, unsigned long count)
+static void FreeSubmeshBuildArrays(W8OctSubmeshBuild* records, unsigned long count)
 {
     for (unsigned int index = 0; index < count; ++index) {
         if (records[index].vertex_ids_20 != 0) {

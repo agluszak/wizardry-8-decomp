@@ -3198,8 +3198,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
 
 /* Appends one slot-headed target record to a candidate list; both retargeting
    builders share it, so its asserts report these fixed source lines. */
-static inline void AppendCombatTargetEntry(W8PList* out_list, W8TargetKind kind, int iChar,
-                                           int iMonsterID)
+static void AppendCombatTargetEntry(W8PList* out_list, W8TargetKind kind, int iChar, int iMonsterID)
 {
     W8CombatSlot* pTarget = static_cast<W8CombatSlot*>(malloc(0x20));
     if (pTarget == NULL) {

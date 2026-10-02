@@ -2351,7 +2351,7 @@ reactivate_linked_triggers:
 }
 
 // FUNCTION: WIZ8 0x00445480
-static char* NextTriggerRecipient(char** cursor)
+char* NextTriggerRecipient(char** cursor)
 {
     char* comma;
 

@@ -69,12 +69,12 @@ unsigned int g_formation_drag_clock;
 int g_formation_drag_cell;
 
 static void UpdateFormationCells(void);
-static void ResetFormationCellControls(int cell);
+void ResetFormationCellControls(int cell);
 
 /* Draw each occupied slot's facing arrow and marching-order chip into the
    board image; the slot the board highlights gets the +1 frame of each. */
 // FUNCTION: WIZ8 0x005b1f40
-static void DrawFormationSlotMarkers(int target)
+void DrawFormationSlotMarkers(int target)
 {
     int slot;
 
@@ -701,7 +701,7 @@ static void DropFormationSlot(int cell)
 
 /* Blank every sprite on a cell's control pair. */
 // FUNCTION: WIZ8 0x005b3080
-static void ResetFormationCellControls(int cell)
+void ResetFormationCellControls(int cell)
 {
     g_formation_cell_controls[cell]->m_normalSprite = -1;
     g_formation_cell_controls[cell]->m_alternateNormalSprite = -1;

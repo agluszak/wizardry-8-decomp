@@ -2240,7 +2240,7 @@ enum { W8_SKILL_IDENTIFY = 0x14 };
 
 /* The most of one item a character can hold at once: the record's own quantity
    dice taken at their maximum. */
-static inline int MaximumQuantity(int item_id)
+static int MaximumQuantity(int item_id)
 {
     return g_item_records[item_id].initial_quantity.sides *
                g_item_records[item_id].initial_quantity.count +

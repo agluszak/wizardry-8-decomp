@@ -62,7 +62,7 @@ int g_profession_starting_spells[15][6] = {
 
 /* The item database index whose legacy item number matches the imported
    one, or -1 when no record carries it. */
-static inline int FindItemByLegacyNumber(short item_number)
+static int FindItemByLegacyNumber(short item_number)
 {
     unsigned int index = 0;
     while (index < gXStatus.uiItemsInDatabase) {

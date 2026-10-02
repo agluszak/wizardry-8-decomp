@@ -1614,7 +1614,7 @@ BOOLEAN BlitHVObjectToColorSurface(HVOBJECT object, UINT16 region, srColorSurfac
     return TRUE;
 }
 
-static inline void MoveSystemCursor(int x, int y)
+static void MoveSystemCursor(int x, int y)
 {
     RECT client;
     POINT top_left;

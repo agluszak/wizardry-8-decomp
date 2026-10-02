@@ -310,7 +310,7 @@ void InitializePartyMovementPhase(void)
 /* Bring every not-yet-active combatant onto the ten-step schedule used by a
    party movement action. */
 // FUNCTION: WIZ8 0x004f0c80
-static void AlignCombatantsToPartyMovementPhase(void)
+void AlignCombatantsToPartyMovementPhase(void)
 {
     RoundPhaseToStep(&g_combat_state->uiPartyActionPhase, g_combat_state->round_counter);
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {

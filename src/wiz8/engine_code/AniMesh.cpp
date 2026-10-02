@@ -150,7 +150,7 @@ W8AniMesh* CopyAniMesh(const W8AniMesh* other)
     return mesh;
 }
 
-static unsigned char LoadAniMeshFrameCount(int file, W8AniMesh* mesh);
+unsigned char LoadAniMeshFrameCount(int file, W8AniMesh* mesh);
 
 // FUNCTION: WIZ8 0x004b5b30
 unsigned char LoadAniMeshFromInfo(W8ReadLevelInfo* info, W8AniMesh* mesh, unsigned char load_all)
@@ -381,7 +381,7 @@ void DestroyAniMesh(W8AniMesh* mesh)
 }
 
 // FUNCTION: WIZ8 0x004b6290
-static unsigned char LoadAniMeshFrameCount(int file, W8AniMesh* mesh)
+unsigned char LoadAniMeshFrameCount(int file, W8AniMesh* mesh)
 {
     int handle = file;
     unsigned char frame_count, frame_index, loaded_count, success;

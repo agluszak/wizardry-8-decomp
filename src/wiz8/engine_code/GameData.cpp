@@ -1551,9 +1551,8 @@ const float g_float_005ebcb8 = -0.5f;
 // GLOBAL: WIZ8 0x005ebcc0
 const double g_double_005ebcc0 = 0.33333298563957214;
 
-static unsigned char SegmentCrossesEdge(const float* seg_start, const float* seg_end,
-                                        const float* edge_a, const float* edge_b,
-                                        unsigned int axis);
+unsigned char SegmentCrossesEdge(const float* seg_start, const float* seg_end, const float* edge_a,
+                                 const float* edge_b, unsigned int axis);
 
 /* Clip the motion segment against this surface's plane and triangle. On a hit
    `from` advances to the contact point, `hit_distance` returns the travelled
@@ -1727,8 +1726,8 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
    motion segment seg_start→seg_end must overlap edge_a→edge_b on both free
    axes and their line-crossing parameters must both fall inside [0,1]. */
 // FUNCTION: WIZ8 0x0041D7A0
-static unsigned char SegmentCrossesEdge(const float* seg_start, const float* seg_end,
-                                        const float* edge_a, const float* edge_b, unsigned int axis)
+unsigned char SegmentCrossesEdge(const float* seg_start, const float* seg_end, const float* edge_a,
+                                 const float* edge_b, unsigned int axis)
 {
     unsigned int comp_u = (axis + 1) % 3;
     unsigned int comp_v = (axis + 2) % 3;

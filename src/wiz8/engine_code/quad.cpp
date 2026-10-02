@@ -39,9 +39,9 @@ void DestroyWorldQuad(W8Quad* quad)
 }
 
 // FUNCTION: WIZ8 0x004BE100
-static W8QuadCell* GetPolygonQuadCell(W8Quad* quad, srModelInstance* instance, int polygon,
-                                      unsigned int* row, unsigned int* column, float origin_x,
-                                      float origin_z)
+W8QuadCell* GetPolygonQuadCell(W8Quad* quad, srModelInstance* instance, int polygon,
+                               unsigned int* row, unsigned int* column, float origin_x,
+                               float origin_z)
 {
     srMeshModel* model = static_cast<srMeshModel*>(instance->getModel());
     srVector3i* polygon_vertices = model->getPolyVertex();

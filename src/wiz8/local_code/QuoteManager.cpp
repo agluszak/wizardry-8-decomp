@@ -346,8 +346,7 @@ int g_special_event_0068c570 = g_first_remapped_event + 24;
 // GLOBAL: WIZ8 0x0068C574
 int g_special_event_0068c574 = g_first_remapped_event + 26;
 
-static inline bool MapEventTypeToDescriptorIndex(unsigned int event_type,
-                                                 unsigned int* descriptor_index)
+static bool MapEventTypeToDescriptorIndex(unsigned int event_type, unsigned int* descriptor_index)
 {
     if (event_type < g_normal_event_count) {
         *descriptor_index = event_type;

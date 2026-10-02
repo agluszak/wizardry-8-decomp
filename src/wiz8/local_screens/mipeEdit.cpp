@@ -66,7 +66,7 @@ static int g_mipe_prop_field_count = 10;
 static float g_mipe_edit_accum;
 
 static void DrawMipeEditFieldRow(W8MipeEditField* field, unsigned int palette, char row);
-static void CommitMipeEditFields(W8TriggerActionData* data, signed char bVarSet);
+void CommitMipeEditFields(W8TriggerActionData* data, signed char bVarSet);
 
 /* Redraws the up-to-seven visible editor rows starting at
    g_mipe_table_base; the selected row gets palette 6, the rest 15. */
@@ -258,7 +258,7 @@ static void DrawMipeEditFieldRow(W8MipeEditField* field, unsigned int palette, c
 /* Packs the edited fields of variable set bVarSet back into a trigger's action
    data: bits 0-7 of flags_008, bit 0 of flags_009 and the key id item_00a. */
 // FUNCTION: WIZ8 0x005c4340
-static void CommitMipeEditFields(W8TriggerActionData* data, signed char bVarSet)
+void CommitMipeEditFields(W8TriggerActionData* data, signed char bVarSet)
 {
     W8MipeEditField* fields;
 

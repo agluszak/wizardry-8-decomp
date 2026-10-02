@@ -125,7 +125,7 @@ namespace {
 // TEMPLATE: WIZ8 0x0055db80
 // W8HashTable<unsigned int,int>::~W8HashTable
 
-inline bool ReadMeshFaceNeedsSplit(const W8ReadMeshFace& face, srMaterialIFace** materials)
+bool ReadMeshFaceNeedsSplit(const W8ReadMeshFace& face, srMaterialIFace** materials)
 {
     return (face.flags & 4) != 0 ||
            (static_cast<stMaterial*>(materials[face.material_index])->m_shader_flags_78 & 1) != 0;
@@ -216,8 +216,8 @@ struct W8MeshStripBuilder {
 
 /* Sorts each run of equal group ids by its key, then renumbers the groups so
    equal keys within a group stay together. */
-static inline void SortGroupsByKey(unsigned long* order, unsigned long* keys, unsigned long* groups,
-                                   long count)
+static void SortGroupsByKey(unsigned long* order, unsigned long* keys, unsigned long* groups,
+                            long count)
 {
     unsigned int index;
     unsigned int start = 0;

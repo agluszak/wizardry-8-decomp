@@ -3212,8 +3212,8 @@ void ModifyGroupColor(int group_id, int color)
    sight flag for a character, the mon-to-mon visibility record for a monster
    source, and a point line-of-sight probe for an indirect source. */
 // FUNCTION: WIZ8 0x00539a30
-static unsigned char SourceCanSeeMonster(const W8TargetSource* source, W8MonsterInfo* monster_info,
-                                         unsigned char flag_index, int sight_flag)
+unsigned char SourceCanSeeMonster(const W8TargetSource* source, W8MonsterInfo* monster_info,
+                                  unsigned char flag_index, int sight_flag)
 {
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
         if (source->iChar == -1) {
