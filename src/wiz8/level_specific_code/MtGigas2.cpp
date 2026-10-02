@@ -32,9 +32,9 @@
    ControlCampAlarm (0x004DC3D0) in MtGigasOuter.cpp. */
 
 // GLOBAL: WIZ8 0x006834e8
-static stSound3D* g_alarm_sound_6834e8;
+static stSound3D* g_mt_gigas_alarm_sound;
 // GLOBAL: WIZ8 0x006834ec
-static W8IntervalGate* g_alarm_gate_6834ec;
+static W8IntervalGate* g_mt_gigas_alarm_gate;
 
 static void MtGigas2WireShock(void);
 static void MtGigas2UmpaniAlarm(int command);
@@ -390,39 +390,39 @@ static void MtGigas2UmpaniAlarm(int command)
         }
         if (command == -1) {
             SetTriggerVariableByName(
-                "UmpaniAlarm", g_alarm_gate_6834ec != 0
-                                   ? static_cast<int>(g_alarm_gate_6834ec->GetElapsedSeconds())
+                "UmpaniAlarm", g_mt_gigas_alarm_gate != 0
+                                   ? static_cast<int>(g_mt_gigas_alarm_gate->GetElapsedSeconds())
                                    : 0);
             return;
         }
-        if (g_alarm_gate_6834ec != 0 || g_alarm_sound_6834e8 != 0) {
+        if (g_mt_gigas_alarm_gate != 0 || g_mt_gigas_alarm_sound != 0) {
             return;
         }
         position = GetWorld()->camera->getLocation();
         if (static_cast<unsigned int>(command) > 0x1e) {
             command = 0x1e;
         }
-        g_alarm_gate_6834ec =
+        g_mt_gigas_alarm_gate =
             new W8IntervalGate(static_cast<float>(static_cast<unsigned int>(command)), 0, 1);
-        g_alarm_sound_6834e8 =
+        g_mt_gigas_alarm_sound =
             CreateAndPlaySoundNode("Data\\Sound\\VOCs\\VOC_HLLIntruder\\VOC_HLLIntruder_003.wav",
                                    position, 1.0f, 75.0f, 1);
-        if (g_alarm_sound_6834e8 != 0 && g_alarm_gate_6834ec != 0) {
+        if (g_mt_gigas_alarm_sound != 0 && g_mt_gigas_alarm_gate != 0) {
             g_master_functions->Add(MtGigas2UmpaniAlarm);
         }
     }
-    if (!g_alarm_gate_6834ec->IsFinished()) {
-        g_alarm_gate_6834ec->PollElapsedIntervals();
-        if (!g_alarm_gate_6834ec->IsFinished()) {
+    if (!g_mt_gigas_alarm_gate->IsFinished()) {
+        g_mt_gigas_alarm_gate->PollElapsedIntervals();
+        if (!g_mt_gigas_alarm_gate->IsFinished()) {
             return;
         }
     }
     g_flag_006834dc = true;
-    g_alarm_sound_6834e8->Stop();
-    if (g_alarm_gate_6834ec != 0) {
-        delete g_alarm_gate_6834ec;
+    g_mt_gigas_alarm_sound->Stop();
+    if (g_mt_gigas_alarm_gate != 0) {
+        delete g_mt_gigas_alarm_gate;
     }
-    g_alarm_gate_6834ec = 0;
+    g_mt_gigas_alarm_gate = 0;
     SetTriggerVariableByName("UmpaniAlarm", 0);
 }
 

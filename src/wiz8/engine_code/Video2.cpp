@@ -3,6 +3,7 @@
 #include "runtime_instrumentation.h"
 #endif
 #include "wiz8/engine_code/Video2.h"
+#include "wiz8/engine_code/Quality.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_screens/Screens.h"
@@ -170,7 +171,7 @@ RECT g_window_rect;
 // GLOBAL: WIZ8 0x600088
 unsigned int g_color_key = 0x3def;
 // GLOBAL: WIZ8 0x65963c
-srModeler* g_modeler_65963c;
+srModeler* g_modeler;
 // GLOBAL: WIZ8 0x659640
 srScene* g_scene_user;
 // GLOBAL: WIZ8 0x659644
@@ -208,17 +209,17 @@ int g_surface_state_6595dc;
 // GLOBAL: WIZ8 0x654ad8
 int g_surface_state_654ad8;
 // GLOBAL: WIZ8 0x6595e8
-W8ViewportRect g_viewport_6595e8;
+W8ViewportRect g_viewport;
 // GLOBAL: WIZ8 0x00659AB4
 W8World* g_world;
 // GLOBAL: WIZ8 0x00659AB8
-W8World* g_world_659ab8;
+W8World* g_secondary_world;
 // GLOBAL: WIZ8 0x652da4
 bool g_camera_sway_active;
 // GLOBAL: WIZ8 0x5ebb1c
-extern const float g_scale_x_5ebb1c = 1.0f / 640.0f;
+extern const float g_viewport_x_scale = 1.0f / 640.0f;
 // GLOBAL: WIZ8 0x5ebb20
-extern const float g_scale_y_5ebb20 = 1.0f / 480.0f;
+extern const float g_viewport_y_scale = 1.0f / 480.0f;
 
 // GLOBAL: WIZ8 0x652ddc
 unsigned char g_tile_dirty_flags[0x12c0];
@@ -239,7 +240,7 @@ srClass* g_render_object_65966c;
 // GLOBAL: WIZ8 0x659678
 srClass* g_render_object_659678;
 // GLOBAL: WIZ8 0x659720
-HWND g_window_659720;
+HWND g_render_window;
 // GLOBAL: WIZ8 0x65409c
 unsigned int g_last_capture_tick;
 // GLOBAL: WIZ8 0x659704
@@ -248,7 +249,7 @@ float g_frames_per_second;
 float g_seconds_per_frame;
 
 // GLOBAL: WIZ8 0x65a118
-unsigned char* g_render_options_65a118;
+W8RenderQuality* g_render_options;
 
 // GLOBAL: WIZ8 0x659684
 srScene* g_cursor_scene;
@@ -460,9 +461,9 @@ void ShutdownVideoManager(void)
         CloseWindow(ghWindow);
         ghWindow = 0;
     }
-    if (g_window_659720) {
-        CloseWindow(g_window_659720);
-        g_window_659720 = 0;
+    if (g_render_window) {
+        CloseWindow(g_render_window);
+        g_render_window = 0;
     }
     if (g_gerd) {
         g_flush_pending = false;
@@ -485,9 +486,9 @@ void ShutdownVideoManager(void)
 // FUNCTION: WIZ8 0x00423f30
 void ShutdownVideoScenes(void)
 {
-    if (g_modeler_65963c) {
-        delete g_modeler_65963c;
-        g_modeler_65963c = 0;
+    if (g_modeler) {
+        delete g_modeler;
+        g_modeler = 0;
     }
     if (g_scene_permanent) {
         g_scene_permanent->release();
@@ -1122,10 +1123,10 @@ static RuntimeWorldRenderData ObserveWorldRenderState()
             }
         }
     }
-    data.viewport[0] = g_viewport_6595e8.left;
-    data.viewport[1] = g_viewport_6595e8.top;
-    data.viewport[2] = g_viewport_6595e8.right;
-    data.viewport[3] = g_viewport_6595e8.bottom;
+    data.viewport[0] = g_viewport.left;
+    data.viewport[1] = g_viewport.top;
+    data.viewport[2] = g_viewport.right;
+    data.viewport[3] = g_viewport.bottom;
     data.renderer_size[0] = g_gerd->getWidth();
     data.renderer_size[1] = g_gerd->getHeight();
     srVector3T<float> camera;
@@ -1194,14 +1195,14 @@ void RenderFrame(void)
         if (g_world_blacked_out) {
             goto clear_viewport;
         }
-    } else if (g_world_blacked_out || !g_render_flag_603c6c || g_world_659ab8 == 0) {
+    } else if (g_world_blacked_out || !g_render_flag_603c6c || g_secondary_world == 0) {
     clear_viewport: {
         unsigned long height = g_gerd->getHeight();
         unsigned long width = g_gerd->getWidth();
-        g_gerd->setScissor(g_viewport_6595e8.left * width / 640,
-                           g_viewport_6595e8.top * height / 480,
-                           (g_viewport_6595e8.right - g_viewport_6595e8.left) * width / 640,
-                           (g_viewport_6595e8.bottom - g_viewport_6595e8.top) * height / 480);
+        g_gerd->setScissor(g_viewport.left * width / 640,
+                           g_viewport.top * height / 480,
+                           (g_viewport.right - g_viewport.left) * width / 640,
+                           (g_viewport.bottom - g_viewport.top) * height / 480);
         g_gerd->clear(srFlags<srGERD::e_buffer>(3));
         g_gerd->setScissor(0, 0, width, height);
     }
@@ -1213,8 +1214,8 @@ void RenderFrame(void)
     RenderScene(second_page, g_overlay_camera, 0, 0);
     g_gerd->setTextureReduction(g_resident_texture_policy);
 
-    if (g_render_flag_603c6c && g_world_659ab8 != 0 && g_monster_shadow_updates_enabled) {
-        RenderScene(g_world_659ab8->static_scene, g_world_659ab8->camera, &g_viewport_6595e8.left,
+    if (g_render_flag_603c6c && g_secondary_world != 0 && g_monster_shadow_updates_enabled) {
+        RenderScene(g_secondary_world->static_scene, g_secondary_world->camera, &g_viewport.left,
                     0);
     }
     if (g_world != 0 && g_world_render_enabled) {
@@ -1223,27 +1224,27 @@ void RenderFrame(void)
         RuntimeObserveWorld(RUNTIME_WORLD_RENDER_BEGIN, world_observation);
 #endif
         g_gerd->setTextureReduction(g_resident_texture_policy);
-        if (!g_world_pick_enabled || g_cursor_hotspot_x + g_cursor_width < g_viewport_6595e8.left ||
-            g_cursor_hotspot_y + g_cursor_height < g_viewport_6595e8.top ||
-            g_viewport_6595e8.right < g_cursor_hotspot_x + g_cursor_width ||
-            g_viewport_6595e8.bottom < g_cursor_hotspot_y + g_cursor_height) {
-            RenderScene(g_world->static_scene, g_world->camera, &g_viewport_6595e8.left, 1);
+        if (!g_world_pick_enabled || g_cursor_hotspot_x + g_cursor_width < g_viewport.left ||
+            g_cursor_hotspot_y + g_cursor_height < g_viewport.top ||
+            g_viewport.right < g_cursor_hotspot_x + g_cursor_width ||
+            g_viewport.bottom < g_cursor_hotspot_y + g_cursor_height) {
+            RenderScene(g_world->static_scene, g_world->camera, &g_viewport.left, 1);
         } else {
-            int half_width = (g_viewport_6595e8.right - g_viewport_6595e8.left) / 2;
-            int half_height = (g_viewport_6595e8.bottom - g_viewport_6595e8.top) / 2;
+            int half_width = (g_viewport.right - g_viewport.left) / 2;
+            int half_height = (g_viewport.bottom - g_viewport.top) / 2;
             srGERD::Pick pick;
             pick.position_00.x =
-                (g_cursor_hotspot_x - half_width - g_viewport_6595e8.left + g_cursor_width) /
+                (g_cursor_hotspot_x - half_width - g_viewport.left + g_cursor_width) /
                 static_cast<float>(half_width);
             pick.position_00.y = -static_cast<float>(g_cursor_hotspot_y - half_height -
-                                                     g_viewport_6595e8.top + g_cursor_height) /
+                                                     g_viewport.top + g_cursor_height) /
                                  half_height;
             pick.position_00.z = 1.0f;
             pick.selected_model_0c = 0;
             pick.value_10 = 0;
             g_gerd->setPickKey(0);
             g_gerd->pushPick(pick);
-            RenderScene(g_world->static_scene, g_world->camera, &g_viewport_6595e8.left, 1);
+            RenderScene(g_world->static_scene, g_world->camera, &g_viewport.left, 1);
             g_gerd->popPick(pick);
             SetPickedModelInstance(pick.selected_model_0c);
             ResolvePickedProp(g_world);
@@ -1337,10 +1338,10 @@ unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
                           (rect->bottom - rect->top) * gerd->getHeight() / 480);
     } else {
         gerd->setViewPort(
-            g_viewport_6595e8.left * gerd->getWidth() / 640,
-            g_viewport_6595e8.top * gerd->getHeight() / 480,
-            (g_viewport_6595e8.right - g_viewport_6595e8.left) * gerd->getWidth() / 640,
-            (g_viewport_6595e8.bottom - g_viewport_6595e8.top) * gerd->getHeight() / 480);
+            g_viewport.left * gerd->getWidth() / 640,
+            g_viewport.top * gerd->getHeight() / 480,
+            (g_viewport.right - g_viewport.left) * gerd->getWidth() / 640,
+            (g_viewport.bottom - g_viewport.top) * gerd->getHeight() / 480);
     }
     if (IsFogEnabled()) {
         GetLightDirection(&clear_color);
@@ -1352,8 +1353,8 @@ unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
         gerd->setClearDepth(0.0);
     }
     gerd->clear(srFlags<srGERD::e_buffer>(3));
-    if (render_secondary != 0 && g_render_flag_603c6c != 0 && g_world_659ab8 != 0) {
-        g_world_659ab8->static_scene->render(*gerd, g_world_659ab8->camera);
+    if (render_secondary != 0 && g_render_flag_603c6c != 0 && g_secondary_world != 0) {
+        g_secondary_world->static_scene->render(*gerd, g_secondary_world->camera);
     }
     g_world->static_scene->render(*gerd, g_world->camera);
     gerd->endFrame();
@@ -1395,8 +1396,8 @@ void PublishLightDirection(const EnvironmentColour* direction)
     if (g_world != 0) {
         g_world->static_scene->setFogColor(*direction);
     }
-    if (g_world_659ab8 != 0) {
-        g_world_659ab8->static_scene->setFogColor(*direction);
+    if (g_secondary_world != 0) {
+        g_secondary_world->static_scene->setFogColor(*direction);
     }
 }
 
@@ -1491,14 +1492,14 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
     model->autoRelease();
     model->setName("Video2DMakePolygonBrush");
 
-    g_modeler_65963c->createGrid(1, 1);
+    g_modeler->createGrid(1, 1);
     srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y, mapping_width,
                                    mapping_height, mapping_x, mapping_y);
-    g_modeler_65963c->planarMap(0, 0, mapping);
+    g_modeler->planarMap(0, 0, mapping);
     scale.Set(static_cast<float>(width), static_cast<float>(height), 1.0f);
-    g_modeler_65963c->scale(scale);
-    g_modeler_65963c->convert(*model, 1);
-    g_modeler_65963c->discard();
+    g_modeler->scale(scale);
+    g_modeler->convert(*model, 1);
+    g_modeler->discard();
 
     shader.value = overlay ? g_surface_state_654ad8 : g_surface_state_6595dc;
     if (!surface) {
@@ -1547,15 +1548,15 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
     model->setName("Video2DMakePolygonBrush");
 
     float step = g_surface_scale * (g_float_005ebb38 / w);
-    g_modeler_65963c->createGrid(1, 1);
+    g_modeler->createGrid(1, 1);
     srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y,
                                    g_float_005ebb38 - (step + step),
                                    g_float_005ebb38 - (step + step), step, step);
-    g_modeler_65963c->planarMap(0, 0, mapping);
+    g_modeler->planarMap(0, 0, mapping);
     scale.Set(static_cast<float>(width), static_cast<float>(height), 1.0f);
-    g_modeler_65963c->scale(scale);
-    g_modeler_65963c->convert(*model, 1);
-    g_modeler_65963c->discard();
+    g_modeler->scale(scale);
+    g_modeler->convert(*model, 1);
+    g_modeler->discard();
 
     shader.value = keep_aspect ? g_surface_state_654ad8 : g_surface_state_6595dc;
     if (!texture) {
@@ -1757,9 +1758,9 @@ bool ClearMouseSurface(void)
 // FUNCTION: WIZ8 0x00428030
 bool IsCursorImageInsideViewport(void)
 {
-    if (g_cursor_width >= g_viewport_6595e8.left && g_cursor_height >= g_viewport_6595e8.top &&
-        g_cursor_width + g_cursor_image_width <= g_viewport_6595e8.right &&
-        g_cursor_height + g_cursor_image_height <= g_viewport_6595e8.bottom) {
+    if (g_cursor_width >= g_viewport.left && g_cursor_height >= g_viewport.top &&
+        g_cursor_width + g_cursor_image_width <= g_viewport.right &&
+        g_cursor_height + g_cursor_image_height <= g_viewport.bottom) {
         return true;
     }
     return false;
@@ -1770,8 +1771,8 @@ bool IsCursorInsideViewport(void)
 {
     int x = g_cursor_hotspot_x + g_cursor_width;
     int y = g_cursor_hotspot_y + g_cursor_height;
-    return x >= g_viewport_6595e8.left && y >= g_viewport_6595e8.top &&
-           x <= g_viewport_6595e8.right && y <= g_viewport_6595e8.bottom;
+    return x >= g_viewport.left && y >= g_viewport.top &&
+           x <= g_viewport.right && y <= g_viewport.bottom;
 }
 
 // FUNCTION: WIZ8 0x004280c0
@@ -1825,12 +1826,12 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
 {
     int x = g_cursor_hotspot_x + g_cursor_width;
     int y = g_cursor_hotspot_y + g_cursor_height;
-    if (x >= g_viewport_6595e8.left && y >= g_viewport_6595e8.top && x <= g_viewport_6595e8.right &&
-        y <= g_viewport_6595e8.bottom) {
-        position->x = (x - g_viewport_6595e8.left) /
-                      static_cast<float>(g_viewport_6595e8.right - g_viewport_6595e8.left);
-        position->y = (y - g_viewport_6595e8.top) /
-                      static_cast<float>(g_viewport_6595e8.bottom - g_viewport_6595e8.top);
+    if (x >= g_viewport.left && y >= g_viewport.top && x <= g_viewport.right &&
+        y <= g_viewport.bottom) {
+        position->x = (x - g_viewport.left) /
+                      static_cast<float>(g_viewport.right - g_viewport.left);
+        position->y = (y - g_viewport.top) /
+                      static_cast<float>(g_viewport.bottom - g_viewport.top);
         position->z = 0.0f;
         return 1;
     }
@@ -1842,8 +1843,8 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
 // FUNCTION: WIZ8 0x004282F0
 void GetCursorScaledPosition(srVector3T<float>* position)
 {
-    position->Set((g_cursor_hotspot_x + g_cursor_width) * g_scale_x_5ebb1c,
-                  (g_cursor_hotspot_y + g_cursor_height) * g_scale_y_5ebb20, 0.0f);
+    position->Set((g_cursor_hotspot_x + g_cursor_width) * g_viewport_x_scale,
+                  (g_cursor_hotspot_y + g_cursor_height) * g_viewport_y_scale, 0.0f);
 }
 
 /* Keep the rendered cursor synchronized with the OS cursor. In windowed mode
@@ -2069,10 +2070,10 @@ static void InvalidateDirtyTile(int cell, unsigned int flags)
     int right = (cell % 0x50) * 8 + 8;
     int left = (cell % 0x50) * 8;
     if (g_world_render_enabled &&
-        ((g_viewport_6595e8.left <= left && left <= g_viewport_6595e8.right) ||
-         (g_viewport_6595e8.left <= right && right <= g_viewport_6595e8.right)) &&
-        ((g_viewport_6595e8.top <= top && top <= g_viewport_6595e8.bottom) ||
-         (g_viewport_6595e8.top <= bottom && bottom <= g_viewport_6595e8.bottom))) {
+        ((g_viewport.left <= left && left <= g_viewport.right) ||
+         (g_viewport.left <= right && right <= g_viewport.right)) &&
+        ((g_viewport.top <= top && top <= g_viewport.bottom) ||
+         (g_viewport.top <= bottom && bottom <= g_viewport.bottom))) {
         g_tile_dirty_flags[cell] = state | 3;
         g_viewport_tiles_dirty = 1;
     }
@@ -2200,19 +2201,19 @@ void FlushDirtyTiles(void)
 /* Scale a 640x480 design-space rect onto the GERD viewport and remember it;
    no-ops when the stored bounds already match. */
 // FUNCTION: WIZ8 0x00425C90
-void SetScaledViewport00425C90(int left, int top, int right, int bottom)
+void SetAutomapScaledViewport(int left, int top, int right, int bottom)
 {
-    if (left == g_viewport_6595e8.left && top == g_viewport_6595e8.top &&
-        right == g_viewport_6595e8.right && bottom == g_viewport_6595e8.bottom) {
+    if (left == g_viewport.left && top == g_viewport.top &&
+        right == g_viewport.right && bottom == g_viewport.bottom) {
         return;
     }
     g_gerd->setViewPort(g_gerd->getWidth() * left / 640, g_gerd->getHeight() * top / 480,
                         g_gerd->getWidth() * (right - left) / 640,
                         g_gerd->getHeight() * (bottom - top) / 480);
-    g_viewport_6595e8.left = left;
-    g_viewport_6595e8.top = top;
-    g_viewport_6595e8.right = right;
-    g_viewport_6595e8.bottom = bottom;
+    g_viewport.left = left;
+    g_viewport.top = top;
+    g_viewport.right = right;
+    g_viewport.bottom = bottom;
 }
 
 /*
@@ -2239,14 +2240,14 @@ void SetViewport(int left, int top, int right, int bottom)
     if (g_gerd != 0 && g_flush_pending) {
         g_gerd->flush();
     }
-    fractional_left = left * g_scale_x_5ebb1c;
-    g_viewport_6595e8.right = right + 1;
-    g_viewport_6595e8.left = left;
-    g_viewport_6595e8.bottom = bottom + 1;
-    fractional_top = top * g_scale_y_5ebb20;
-    g_viewport_6595e8.top = top;
-    fractional_right = g_viewport_6595e8.right * g_scale_x_5ebb1c;
-    fractional_bottom = g_viewport_6595e8.bottom * g_scale_y_5ebb20;
+    fractional_left = left * g_viewport_x_scale;
+    g_viewport.right = right + 1;
+    g_viewport.left = left;
+    g_viewport.bottom = bottom + 1;
+    fractional_top = top * g_viewport_y_scale;
+    g_viewport.top = top;
+    fractional_right = g_viewport.right * g_viewport_x_scale;
+    fractional_bottom = g_viewport.bottom * g_viewport_y_scale;
 
     if (g_world != 0 && g_world->camera != 0) {
         g_world->camera->setViewPlane(3.14159265358979323846 * g_float_005ebcf8 * 85.0f,
@@ -2263,8 +2264,8 @@ void SetViewport(int left, int top, int right, int bottom)
                                         static_cast<float>(view.bottom));
 
         g_world->camera->setViewPlane(plane, 1.0);
-        if (g_world_659ab8 != 0) {
-            g_world_659ab8->camera->setViewPlane(plane, 1.0);
+        if (g_secondary_world != 0) {
+            g_secondary_world->camera->setViewPlane(plane, 1.0);
         }
         if (g_camera_sway_active) {
             SetCameraSwayMode(g_world->camera, 1);
@@ -2482,7 +2483,7 @@ unsigned char InitializeRendererSceneObjects(void)
     char renderer_name[128];
 
     InitializeMouseSurface();
-    g_modeler_65963c = new srModeler;
+    g_modeler = new srModeler;
     g_scene_permanent = SR_NEW(srScene)(static_cast<srNode*>(0));
     g_scene_permanent->setName("2D Permanent Overlay Scene");
     g_scene_permanent->setAmbientLight(0.0f, 0.0f, 0.0f);
@@ -2559,13 +2560,13 @@ unsigned char InitializeRendererSceneObjects(void)
 
     memset(g_surface_nodes, 0, sizeof(g_surface_nodes));
     memset(g_tile_dirty_flags, 0, sizeof(g_tile_dirty_flags));
-    g_viewport_6595e8.left = 0;
-    g_viewport_6595e8.top = 0;
-    g_viewport_6595e8.right = 0;
+    g_viewport.left = 0;
+    g_viewport.top = 0;
+    g_viewport.right = 0;
     g_surface_state_6595dc = 0x100a017;
     g_surface_state_654ad8 = 0x100c0b7;
     g_dirty_tile_count = 0;
-    g_viewport_6595e8.bottom = 0;
+    g_viewport.bottom = 0;
 
     memset(&surface_description, 0, sizeof(surface_description));
     surface_description.dwSize = sizeof(surface_description);
@@ -3129,12 +3130,12 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
     srMeshModel* model = SR_NEW(srMeshModel)(0L, 0L);
     model->autoRelease();
 
-    g_modeler_65963c->createGrid(1, 1);
+    g_modeler->createGrid(1, 1);
     srVector3T<float> scale;
     scale.Set(static_cast<float>(scale_x), static_cast<float>(scale_y), 1.0f);
-    g_modeler_65963c->scale(scale);
-    g_modeler_65963c->convert(*model, 1);
-    g_modeler_65963c->discard();
+    g_modeler->scale(scale);
+    g_modeler->convert(*model, 1);
+    g_modeler->discard();
 
     srMaterial* material = SR_NEW(srMaterial)();
     material->autoRelease();
@@ -3827,16 +3828,16 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, unsig
     model->autoRelease();
     model->setName("VideoMakePoster");
     texture->getDimensions(dimensions);
-    g_modeler_65963c->createGrid(1, 1);
+    g_modeler->createGrid(1, 1);
     srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y,
                                    g_float_005ebb38 - extent_w, g_float_005ebb38 - extent_h,
                                    extent_w, extent_h);
-    g_modeler_65963c->planarMap(0, 0, mapping);
+    g_modeler->planarMap(0, 0, mapping);
     srVector3T<float> scale;
     scale.Set(width, height, 1.0f);
-    g_modeler_65963c->scale(scale);
-    g_modeler_65963c->convert(*model, 1);
-    g_modeler_65963c->discard();
+    g_modeler->scale(scale);
+    g_modeler->convert(*model, 1);
+    g_modeler->discard();
 
     shader.value = 0x100a013;
     if (additive != 0) {
@@ -3879,15 +3880,15 @@ void DrawColorSurface(srColorSurface* surface, int x, int y)
 }
 
 // FUNCTION: WIZ8 0x00425DA0
-void SetScaledViewport00425DA0(int left, int top, int right, int bottom)
+void SetWorldScaledViewport(int left, int top, int right, int bottom)
 {
-    if (left == g_viewport_6595e8.left && top == g_viewport_6595e8.top &&
-        right == g_viewport_6595e8.right && bottom == g_viewport_6595e8.bottom) {
+    if (left == g_viewport.left && top == g_viewport.top &&
+        right == g_viewport.right && bottom == g_viewport.bottom) {
         return;
     }
-    if (left == g_viewport_6595e8.left) {
-        if (top == g_viewport_6595e8.top && right == g_viewport_6595e8.right &&
-            bottom == g_viewport_6595e8.bottom) {
+    if (left == g_viewport.left) {
+        if (top == g_viewport.top && right == g_viewport.right &&
+            bottom == g_viewport.bottom) {
             goto store;
         }
     }
@@ -3895,10 +3896,10 @@ void SetScaledViewport00425DA0(int left, int top, int right, int bottom)
                         g_gerd->getWidth() * (right - left) / 640,
                         g_gerd->getHeight() * (bottom - top) / 480);
 store:
-    g_viewport_6595e8.left = left;
-    g_viewport_6595e8.top = top;
-    g_viewport_6595e8.right = right;
-    g_viewport_6595e8.bottom = bottom;
+    g_viewport.left = left;
+    g_viewport.top = top;
+    g_viewport.right = right;
+    g_viewport.bottom = bottom;
 }
 
 // FUNCTION: WIZ8 0x00426490
@@ -3916,10 +3917,10 @@ void DrawBufferLine(long x0, long y0, long x1, long y1, unsigned long* pixel)
 // FUNCTION: WIZ8 0x004273F0
 void GetScaledViewportBounds(float* left_top, float* right_bottom)
 {
-    left_top[0] = g_viewport_6595e8.left * g_scale_x_5ebb1c;
-    left_top[1] = g_viewport_6595e8.top * g_scale_y_5ebb20;
-    right_bottom[0] = g_viewport_6595e8.right * g_scale_x_5ebb1c;
-    right_bottom[1] = g_viewport_6595e8.bottom * g_scale_y_5ebb20;
+    left_top[0] = g_viewport.left * g_viewport_x_scale;
+    left_top[1] = g_viewport.top * g_viewport_y_scale;
+    right_bottom[0] = g_viewport.right * g_viewport_x_scale;
+    right_bottom[1] = g_viewport.bottom * g_viewport_y_scale;
 }
 
 // FUNCTION: WIZ8 0x004277F0

@@ -60,7 +60,7 @@ int g_empty_hand_catalog_ids[32] = {
 };
 
 // GLOBAL: WIZ8 0x0069B940
-static Controls* g_panel_69b940; /* gpLevelButtonsPanel */
+static Controls* g_portrait_panel; /* gpLevelButtonsPanel */
 // GLOBAL: WIZ8 0x0061AA9C
 char s_spell_sound_format_0061aa9c[] = "Data\\Spells\\Sounds\\%s.wav";
 // GLOBAL: WIZ8 0x0064C664
@@ -1029,7 +1029,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
 
             SetFont(g_wiz_text_font_secondary);
             if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME ||
-                (SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08),
+                (SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette),
                  g_current_screen_state.id != W8_SCREEN_MAIN_GAME) ||
                 (text_shade = 1,
                  g_level_block->party_slots_170[2] != static_cast<int>(party_slot))) {
@@ -1206,11 +1206,11 @@ portrait_fx:
     }
 
     if (overlay_ready != 0 && gXStatus.fNpcDialogueMode != 0 &&
-        g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT &&
-        g_screen_state_00649f1c->scripted_dialogue == 0 &&
-        g_screen_state_00649f1c->dialogue_panel_hidden == 0 &&
-        g_screen_state_00649f1c->script_busy == 0 &&
-        g_screen_state_00649f1c->dialogue_hidden == 0 && gXStatus.scripted_scene_19b7 == 0) {
+        g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT &&
+        g_npc_interaction_state->scripted_dialogue == 0 &&
+        g_npc_interaction_state->dialogue_panel_hidden == 0 &&
+        g_npc_interaction_state->script_busy == 0 &&
+        g_npc_interaction_state->dialogue_hidden == 0 && gXStatus.scripted_scene_19b7 == 0) {
         SetNpcDialoguePanelVisible(1);
     }
 }
@@ -1236,10 +1236,10 @@ void ShadeStatusBarGap(int length, int left, int top)
 void ReleasePortraitControls(void)
 {
     DisablePortraitControls();
-    Controls* panel = g_panel_69b940;
+    Controls* panel = g_portrait_panel;
     if (panel != 0) {
         delete panel;
-        g_panel_69b940 = 0;
+        g_portrait_panel = 0;
     }
     W8TextControl** control = g_portrait_controls;
     do {
@@ -1339,9 +1339,9 @@ void InvalidatePortraitControl(unsigned int party_slot)
 }
 
 // FUNCTION: WIZ8 0x0059BC00
-void RedrawPanel69B940(void)
+void InvalidatePortraitPanel(void)
 {
-    g_panel_69b940->Invalidate(0);
+    g_portrait_panel->Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x0059BC10
@@ -1356,13 +1356,13 @@ void UpdatePortraitAdvanceButtons(void)
             g_status.buffers.XChar[slot].portrait_advance_103 != 0) {
             if (!(*control)->m_active) {
                 (*control)->SetActive(true);
-                RedrawPanel69B940();
+                InvalidatePortraitPanel();
             }
         } else if ((*control)->m_active) {
             (*control)->SetActive(false);
         }
     }
-    g_panel_69b940->Redraw();
+    g_portrait_panel->Redraw();
 }
 
 // FUNCTION: WIZ8 0x0059BCA0
@@ -1391,15 +1391,15 @@ void CreateLevelButtons(void)
     int count;
     W8TextControl** control;
 
-    g_panel_69b940 = 0;
+    g_portrait_panel = 0;
     control = g_portrait_controls;
     for (count = 8; count != 0; --count) {
         *control = 0;
         ++control;
     }
 
-    g_panel_69b940 = new Controls(0, 0, 0x280, 0x1e0, -1, 0, -1);
-    if (g_panel_69b940 == 0) {
+    g_portrait_panel = new Controls(0, 0, 0x280, 0x1e0, -1, 0, -1);
+    if (g_portrait_panel == 0) {
         srAssertFail("gpLevelButtonsPanel",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x8e0, 0);
     }
@@ -1410,7 +1410,7 @@ void CreateLevelButtons(void)
         column_x = (uiSlot & 1) != 0 ? 0x23b : 0;
         row_y = (uiSlot >> 1) * 0x55;
         W8TextControl* button =
-            new W8TextControl(g_panel_69b940, uiSlot + 0x12, column_x + 0x19, row_y + 0x46,
+            new W8TextControl(g_portrait_panel, uiSlot + 0x12, column_x + 0x19, row_y + 0x46,
                               column_x + 0x2b, row_y + 0x58, 0xa7, 0, 0, 2, 1, 4, 3);
         *control = button;
         button->m_primaryActivationCallback = OnLevelButtonActivate;
@@ -1423,7 +1423,7 @@ void CreateLevelButtons(void)
     } while (control < g_portrait_controls + 8);
 
     giLevelUpChar = -1;
-    g_panel_69b940->SetEnabled(true);
+    g_portrait_panel->SetEnabled(true);
     control = g_portrait_controls;
     do {
         (*control)->SetActive(false);

@@ -8,6 +8,7 @@ source model can express them directly:
 * literal byte offsets into repository-typed objects must use named fields;
 * recovered callables must use real declarations, not inline function-pointer
   reinterpret casts;
+* semantic callable names must not encode retail addresses;
 * an object allocated with `new T[n]` must not be released by scalar `delete`;
   on trivially destructible elements the spellings emit identical code, so a
   scalar delete is always the wrong authored form.
@@ -72,6 +73,8 @@ _COMPILER_SYNTHETIC_NAME = re.compile(
     r"\`(?:scalar|vector) deleting destructor'|\`vtordisp\b|\`adjustor\{",
     re.IGNORECASE,
 )
+_ADDRESS_SUFFIXED_CALLABLE = re.compile(r"[A-Za-z_][A-Za-z0-9_:<>~]*[0-9][0-9A-Fa-f]{5,7}$")
+_ADDRESS_PLACEHOLDER = re.compile(r"^Function[0-9A-Fa-f]{6,9}$")
 _ARRAY_ALLOCATION = re.compile(r"\b(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*new\s+[^;=\n(\[]*\[")
 _SCALAR_DELETE = re.compile(
     r"\bdelete\s+(?!\[)\s*(?:(?:this|[A-Za-z_][A-Za-z0-9_]*)\s*->\s*)?"
@@ -188,6 +191,45 @@ def _callable_cast_violations(repository: Path) -> list[dict[str, Any]]:
                     "detail": _snippet(source, match.start(), match.end()),
                 }
             )
+    return violations
+
+
+def _address_suffixed_callable_violations(repository: Path) -> list[dict[str, Any]]:
+    """Semantic recovered callables use names; markers retain retail addresses."""
+
+    index = load_source_index(repository)
+    violations: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, int]] = set()
+    for item in index.get("declarations") or ():
+        if not item.get("is_definition"):
+            continue
+        if str(item.get("target") or "").upper() not in {"WIZ8", "SURRENDER"}:
+            continue
+
+        name = str(item.get("qualified_name") or "")
+        leaf = name.rsplit("::", 1)[-1]
+        if not _ADDRESS_SUFFIXED_CALLABLE.fullmatch(name) or _ADDRESS_PLACEHOLDER.fullmatch(leaf):
+            continue
+
+        owner = str(item.get("owning_class") or "")
+        owner_leaf = owner.rsplit("::", 1)[-1]
+        if owner_leaf and leaf in {owner_leaf, f"~{owner_leaf}"}:
+            continue
+
+        source_file = str(item.get("source_file") or "")
+        line = int(item.get("line") or 0)
+        key = (name, source_file, line)
+        if key in seen:
+            continue
+        seen.add(key)
+        violations.append(
+            {
+                "kind": "address-suffixed-callable",
+                "file": source_file,
+                "line": line,
+                "detail": name,
+            }
+        )
     return violations
 
 
@@ -311,6 +353,7 @@ def source_model_violations(repository: Path) -> list[dict[str, Any]]:
         *_compiler_emission_violations(repository),
         *_typed_raw_offset_violations(repository),
         *_callable_cast_violations(repository),
+        *_address_suffixed_callable_violations(repository),
         *_scalar_delete_violations(repository),
         *_inline_control_violations(repository),
     ]
@@ -333,6 +376,7 @@ def validate_source_model(repository: Path) -> dict[str, Any]:
             "compiler-emission-ownership",
             "typed-object-raw-offsets",
             "callable-reinterpret-casts",
+            "address-suffixed-callables",
             "scalar-delete-of-array-allocation",
             "compiler-owned-inlining",
         ],

@@ -353,7 +353,7 @@ void ResetAutomapView(void)
         g_automap_visited_cells->Set(cell - 1);
         return;
     }
-    relative.y = camera.y + g_float_64b914 - g_automap_grid_origin.y;
+    relative.y = camera.y + g_automap_grid_cell_size - g_automap_grid_origin.y;
     key = AutomapNodeKey(&relative);
     cell = g_automap_cell_index->Lookup(&key);
     if (cell > 1) {
@@ -378,7 +378,7 @@ bool AutomapHasCellAt(const srVector3T<float>* position)
         }
         return 0;
     }
-    relative.y = position->y + g_float_64b914 - g_automap_grid_origin.y;
+    relative.y = position->y + g_automap_grid_cell_size - g_automap_grid_origin.y;
     key = AutomapNodeKey(&relative);
     cell = g_automap_cell_index->Lookup(&key);
     if (cell > 1) {
@@ -713,7 +713,7 @@ unsigned char AutomapScreenEnter(void)
     RenderFrame();
     RenderFrame();
     EnableCursorScene();
-    SetScaledViewport00425C90(12, 32, 467, 467);
+    SetAutomapScaledViewport(12, 32, 467, 467);
     UpdateAutomapBounds();
     if (script.Load("Data\\Automap\\MapFilters.txt")) {
         W8Vector<char*> excluded_textures(5);
@@ -1168,32 +1168,32 @@ void SetAutomapToolCursor(int tool)
 }
 
 // GLOBAL: WIZ8 0x0064b914
-float g_float_64b914 = 2000.0f;
+float g_automap_grid_cell_size = 2000.0f;
 // GLOBAL: WIZ8 0x0068f2b0
 int g_ui_mode_current;
 // GLOBAL: WIZ8 0x0068f2c4
 int g_ui_mode_saved;
 
 // FUNCTION: WIZ8 0x00585300
-void SetFloat64B914(float value)
+void SetAutomapGridCellSize(float value)
 {
-    g_float_64b914 = value;
+    g_automap_grid_cell_size = value;
 }
 
 // FUNCTION: WIZ8 0x00585310
-float GetFloat64B914(void)
+float GetAutomapGridCellSize(void)
 {
-    return g_float_64b914;
+    return g_automap_grid_cell_size;
 }
 
 // FUNCTION: WIZ8 0x00587C10
-void SetValue68F2B0(int value)
+void SetCurrentAutomapUiMode(int value)
 {
     g_ui_mode_current = value;
 }
 
 // FUNCTION: WIZ8 0x0058A870
-void SetValue68F2C4(int value)
+void SetSavedAutomapUiMode(int value)
 {
     g_ui_mode_saved = value;
 }
@@ -1418,10 +1418,10 @@ unsigned int LightPendingAutomapCells(unsigned int max_count)
                 cell.SetZero();
                 if (g_automap_cell_keys != 0 || bit < static_cast<unsigned int>(g_automap_cell_count)) {
                     unsigned int key = g_automap_cell_keys[bit];
-                    float half = g_float_64b914 * g_float_005ebc7c;
-                    cell.Set((key >> 0x15) * g_float_64b914 + half,
-                             (key & 0x3ff) * g_float_64b914 + half,
-                             ((key >> 10) & 0x7ff) * g_float_64b914 + half);
+                    float half = g_automap_grid_cell_size * g_float_005ebc7c;
+                    cell.Set((key >> 0x15) * g_automap_grid_cell_size + half,
+                             (key & 0x3ff) * g_automap_grid_cell_size + half,
+                             ((key >> 10) & 0x7ff) * g_automap_grid_cell_size + half);
                 }
                 srVector3T<float> position;
                 position = cell + g_automap_grid_origin;
@@ -1486,10 +1486,10 @@ void UpdateAutomapBounds(void)
                     if (g_automap_cell_keys != 0 ||
                         bit < static_cast<unsigned int>(g_automap_cell_count)) {
                         unsigned int key = g_automap_cell_keys[bit];
-                        float half = g_float_64b914 * g_float_005ebc7c;
-                        cell.Set((key >> 0x15) * g_float_64b914 + half,
-                                 (key & 0x3ff) * g_float_64b914 + half,
-                                 ((key >> 10) & 0x7ff) * g_float_64b914 + half);
+                        float half = g_automap_grid_cell_size * g_float_005ebc7c;
+                        cell.Set((key >> 0x15) * g_automap_grid_cell_size + half,
+                                 (key & 0x3ff) * g_automap_grid_cell_size + half,
+                                 ((key >> 10) & 0x7ff) * g_automap_grid_cell_size + half);
                     }
                     srVector3T<float> position;
                     position = cell + g_automap_grid_origin;
@@ -1949,8 +1949,8 @@ void CreateAutomapMarkerSprites(void)
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
             g_class_68f29c =
-                CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
-                                        surface->getHeight() * g_scale_x_5ebb1c, 1, 1);
+                CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
+                                        surface->getHeight() * g_viewport_x_scale, 1, 1);
             g_class_68f29c->setParent(g_scene_square, 1);
             static_cast<srMeshModel*>(g_class_68f29c->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
@@ -1977,8 +1977,8 @@ void CreateAutomapMarkerSprites(void)
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
             g_class_68f2a0 =
-                CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
-                                        surface->getHeight() * g_scale_y_5ebb20, 1, 0);
+                CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
+                                        surface->getHeight() * g_viewport_y_scale, 1, 0);
             static_cast<srMeshModel*>(g_class_68f2a0->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
@@ -1997,8 +1997,8 @@ void CreateAutomapMarkerSprites(void)
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
             g_class_68f2a4 =
-                CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
-                                        surface->getHeight() * g_scale_y_5ebb20, 1, 0);
+                CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
+                                        surface->getHeight() * g_viewport_y_scale, 1, 0);
             static_cast<srMeshModel*>(g_class_68f2a4->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
@@ -2017,8 +2017,8 @@ void CreateAutomapMarkerSprites(void)
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
             g_class_68f2a8 =
-                CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
-                                        surface->getHeight() * g_scale_y_5ebb20, 1, 0);
+                CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
+                                        surface->getHeight() * g_viewport_y_scale, 1, 0);
             static_cast<srMeshModel*>(g_class_68f2a8->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
@@ -2037,8 +2037,8 @@ void CreateAutomapMarkerSprites(void)
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
             g_automap_text_marker =
-                CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
-                                        surface->getHeight() * g_scale_y_5ebb20, 1, 0);
+                CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
+                                        surface->getHeight() * g_viewport_y_scale, 1, 0);
             static_cast<srMeshModel*>(g_automap_text_marker->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
@@ -2251,8 +2251,8 @@ stModelInstance2D* CreateAutomapItemMarker(int item_id)
                                   GetCatalogVideoObjectYOffset(object), surface, x, y);
     float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f;
     stModelInstance2D* marker = static_cast<stModelInstance2D*>(
-        MakePolygonBrush(g_scene_fullscreen, surface, surface->getWidth() * g_scale_x_5ebb1c,
-                         surface->getHeight() * g_scale_y_5ebb20, 0.0f, 0.0f, 1.0f, 1.0f, 1));
+        MakePolygonBrush(g_scene_fullscreen, surface, surface->getWidth() * g_viewport_x_scale,
+                         surface->getHeight() * g_viewport_y_scale, 0.0f, 0.0f, 1.0f, 1.0f, 1));
     if (marker == 0) {
         return 0;
     }
@@ -2655,7 +2655,7 @@ unsigned char ReadAutomapNodes(int hFile)
         g_automap_cell_index = 0;
     }
 
-    FileRead(hFile, &g_float_64b914, 4, 0);
+    FileRead(hFile, &g_automap_grid_cell_size, 4, 0);
     unsigned char ok = FileRead(hFile, &g_automap_cell_count, 4, 0);
     if (g_automap_cell_count == 0) {
         g_automap_visited_cells = new BitArray(1);
@@ -2711,10 +2711,10 @@ unsigned char ReadAutomapNodes(int hFile)
 // FUNCTION: WIZ8 0x005852B0
 unsigned int AutomapNodeKey(const srVector3T<float>* position)
 {
-    return ((static_cast<unsigned int>(position->z / g_float_64b914) & 0x7ff) |
-            static_cast<unsigned int>(position->x / g_float_64b914) << 11)
+    return ((static_cast<unsigned int>(position->z / g_automap_grid_cell_size) & 0x7ff) |
+            static_cast<unsigned int>(position->x / g_automap_grid_cell_size) << 11)
                << 10 |
-           (static_cast<unsigned int>(position->y / g_float_64b914) & 0x3ff);
+           (static_cast<unsigned int>(position->y / g_automap_grid_cell_size) & 0x3ff);
 }
 
 /* The large-map level set: the same levels that get the 30000-unit automap

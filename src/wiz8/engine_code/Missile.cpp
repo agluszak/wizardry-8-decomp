@@ -970,7 +970,7 @@ W8Missile::W8Missile()
     if (g_runtime_world_scale < 1.0f) {
         g_runtime_world_scale = 1.0f;
     }
-    id_008 = IncrementValue60DFAC();
+    id_008 = AllocateGrObjectId();
 
     m_pRep = new W8MissileRep;
     if (m_pRep == 0) {
@@ -999,7 +999,7 @@ W8Missile::W8Missile(const W8Missile& other)
       retargeted_322(false)
 {
     W8GrObject::kind_004 = 1;
-    id_008 = IncrementValue60DFAC();
+    id_008 = AllocateGrObjectId();
     m_pRep = static_cast<W8MissileRep*>(other.m_pRep->Clone());
 
     memset(&definition_1fc, 0, sizeof(definition_1fc));

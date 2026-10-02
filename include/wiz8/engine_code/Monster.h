@@ -62,7 +62,7 @@ extern const float g_monster_rotation_offset;
 extern const double g_monster_facing_tolerance;
 extern const double g_monster_poster_max_distance;
 extern int g_monster_cycle_registry_weight;
-extern float g_light_scale_0060bfe0;
+extern float g_monster_light_scale;
 
 /* Sixteen bytes the cycle runtime record carries at 0x04c, written as one block
    by the setter at 0x004C5AD0. That setter takes the block by value and VC6
@@ -454,7 +454,7 @@ public:
 
 static_assert(sizeof(W8MonsterShakeCallback) == 0x10, "W8MonsterShakeCallback_size_must_be_0x10");
 
-void MonsterForward453160(void);
+void MonsterStopAllNavigators(void);
 unsigned char MonsterGetHighlightMask(W8Monster* monster);
 void MonsterSetHighlightMask(W8Monster* monster, unsigned char flag);
 void MonsterSetHighlightColour(W8Monster* monster, srVector4T<float> block);
@@ -464,14 +464,14 @@ bool MonsterHasPendingCycle(W8Monster* monster); /* 0x004C5710 */
 bool MonsterIsScalingY(W8Monster* monster);      /* 0x004C5EE0 */
 void MonsterSetPendingCycle(W8Monster* monster, int cycle);
 int MonsterQuery(W8Monster* monster, int query);
-void MonsterForward4537E0(W8Monster* monster);
+void MonsterClearMovement(W8Monster* monster);
 void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
-void MonsterForward4A84A0(W8Monster* monster);
+void MonsterSubmitTargetValue(W8Monster* monster);
 void DetachMonsterRepresentation(W8Monster* monster, W8World* world);
 void DeleteMonster(W8Monster* monster);
 void RefreshMonsterStandingHeight(W8Monster* monster);
 void MonsterSetLocationId(W8Monster* monster, int value);
-void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position);
+void MonsterSelectLOD(W8Monster* monster, const srVector3T<float>* position);
 /* The shared forwarder four call sites use to advance a cycle's
    representation; it stays free because its callers pass the object on the
    stack. */
@@ -480,11 +480,11 @@ void MonsterSetNavigatorFlag25(W8Monster* monster, bool value);
 W8AIRecord* MonsterGetObject0C(W8Monster* monster);                /* 0x004C5B30 */
 void MonsterSetNavigatorValue120(W8Monster* monster, float value); /* 0x004C5F50 */
 float MonsterGetNavigatorValue120(W8Monster* monster);             /* 0x004C5F70 */
-unsigned char MonsterForward452630(W8Monster* monster,
+unsigned char MonsterConfigureMovementToPosition(W8Monster* monster,
                                    const srVector3T<float>* position);            /* 0x004C5F90 */
-void MonsterForward453690(W8Monster* monster, const srVector3T<float>* argument); /* 0x004C5FB0 */
+void MonsterAddPathPoint(W8Monster* monster, const srVector3T<float>* argument); /* 0x004C5FB0 */
 void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value);             /* 0x004C5FD0 */
-void MonsterForward4531A0(void);
+void MonsterResumeAllNavigators(void);
 
 void SetMonsterPartySlotMarker(int party_slot, int location_id, char on);
 void MonsterForwardReferencePosition(W8Monster* monster, char alternate); /* 0x004C6240 */

@@ -42,7 +42,7 @@
 // W8GrowableVector<srTextureIFace*>::`scalar deleting destructor' (companion table 0x005EC9BC)
 
 // SYNTHETIC: WIZ8 0x00485AB0
-// W8GrowableVector<srTextureIFace*>::`scalar deleting destructor'
+// W8Vector<srTextureIFace*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00485AD0
 // W8GrowableVector<srTextureIFace*>::~W8GrowableVector
@@ -60,7 +60,7 @@ stTextureAnim::stTextureAnim()
     trigger_mode_70 = 0;
     probability_74 = -1.0f;
     running_78 = 0;
-    textures_54 = new W8GrowableVector<srTextureIFace*>;
+    textures_54 = new W8Vector<srTextureIFace*>;
 }
 
 // FUNCTION: WIZ8 0x00484E60
@@ -84,7 +84,7 @@ stTextureAnim::stTextureAnim(const stTextureAnim& other)
     trigger_mode_70 = other.trigger_mode_70;
     probability_74 = other.probability_74;
     running_78 = other.running_78;
-    textures_54 = new W8GrowableVector<srTextureIFace*>;
+    textures_54 = new W8Vector<srTextureIFace*>;
 
     for (i = 0; i < other.textures_54->GetCount(); ++i) {
         srTextureIFace* texture = *other.textures_54->GetAt(i);

@@ -14,19 +14,15 @@
 // FUNCTION: WIZ8 0x0047b500
 void InitializeRenderQuality(void)
 {
-    unsigned int* quality;
-
-    g_render_options_65a118 = static_cast<unsigned char*>(malloc(0x34));
-    if (!g_render_options_65a118) {
+    g_render_options = static_cast<W8RenderQuality*>(malloc(sizeof(*g_render_options)));
+    if (!g_render_options) {
         srAssertFail("gpQuality", "C:\\Projects\\Wizardry 8\\Engine Code\\Quality.cpp", 159, 0);
-        return;
     }
-    memset(g_render_options_65a118, 0, 0x34);
-    quality = (unsigned int*)g_render_options_65a118;
-    quality[8] = 0xffffffff;
-    quality[9] = 0xffffffff;
-    g_render_options_65a118[20] = 1;
-    quality[11] = 3;
+    memset(g_render_options, 0, sizeof(*g_render_options));
+    g_render_options->unknown_20 = 0xffffffff;
+    g_render_options->unknown_24 = 0xffffffff;
+    g_render_options->unknown_14 = 1;
+    g_render_options->unknown_2c = 3;
 }
 
 // GLOBAL: WIZ8 0x0060A210
@@ -41,10 +37,10 @@ bool g_render_flag_603c6c = true;
 // FUNCTION: WIZ8 0x0047b570
 void DestroyRenderQuality(void)
 {
-    if (g_render_options_65a118 != 0) {
-        free(g_render_options_65a118);
+    if (g_render_options != 0) {
+        free(g_render_options);
     }
-    g_render_options_65a118 = 0;
+    g_render_options = 0;
 }
 
 // FUNCTION: WIZ8 0x0047b590
@@ -111,7 +107,7 @@ void SetRenderOption(int option, int enabled)
         break;
     }
     if (option < W8_RENDER_OPTION_COUNT) {
-        g_render_options_65a118[2 + option] = enabled != 0;
+        g_render_options->option_states[option] = enabled != 0;
     }
 }
 
@@ -155,7 +151,7 @@ unsigned char GetRenderOptionState(int option)
     if (option >= W8_RENDER_OPTION_COUNT) {
         return 0;
     }
-    return g_render_options_65a118[2 + option];
+    return g_render_options->option_states[option];
 }
 
 // FUNCTION: WIZ8 0x0047b890
@@ -189,6 +185,6 @@ bool SaveRenderOptions(int handle)
     if (FileWrite(handle, &version, 4, &transferred) == 0) {
         return false;
     }
-    return FileWrite(handle, g_render_options_65a118 + 2, W8_RENDER_OPTION_COUNT, &transferred) !=
+    return FileWrite(handle, g_render_options->option_states, W8_RENDER_OPTION_COUNT, &transferred) !=
            0;
 }

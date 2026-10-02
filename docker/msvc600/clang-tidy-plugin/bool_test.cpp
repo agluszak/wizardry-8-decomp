@@ -105,3 +105,48 @@ void update(State& state, bool left, bool right)
     unsigned char wire_ready = 0; // bool-byte-ok: serialized protocol byte
     (void)wire_ready;
 }
+
+struct WireRecord {
+    unsigned char monster_bound;
+};
+
+struct ReferencedRecord {
+    unsigned char has_group;
+};
+
+struct NestedWireField {
+    unsigned char nested_active;
+};
+
+struct NestedWireRecord {
+    NestedWireField nested;
+};
+
+struct ObservedRecord {
+    unsigned char display_active;
+};
+
+void read_bytes(void* destination, unsigned int size);
+void mutate_record(ReferencedRecord& record);
+void inspect_record(const ObservedRecord* record);
+
+void aggregate_escapes(WireRecord* wire, ReferencedRecord& referenced,
+                       NestedWireRecord* nested, ObservedRecord* observed)
+{
+    memset(wire, 0, sizeof(*wire));
+    read_bytes(wire, sizeof(*wire));
+    if (wire->monster_bound) {}
+
+    referenced.has_group = 0;
+    mutate_record(referenced);
+    if (referenced.has_group) {}
+
+    memset(nested, 0, sizeof(*nested));
+    nested->nested.nested_active = 1;
+    read_bytes(nested, sizeof(*nested));
+    if (nested->nested.nested_active) {}
+
+    memset(observed, 0, sizeof(*observed));
+    inspect_record(observed);
+    if (observed->display_active) {}
+}

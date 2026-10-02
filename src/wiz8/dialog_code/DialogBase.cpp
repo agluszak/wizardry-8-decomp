@@ -24,7 +24,7 @@ W8DialogBase::W8DialogBase()
     m_dirty_flags = 0;
     m_error = 0;
     m_text = 0;
-    m_font = g_dialog_font_64fde8;
+    m_font = g_dialog_interface_font;
     m_foreground = g_dialog_font_foreground;
     m_background = g_dialog_font_background;
     m_border = -1;

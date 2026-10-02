@@ -311,7 +311,7 @@ void W8SpellInfoDialog::DrawLabels()
     W8SpellRuntimeRecord* record = &g_spell_records[m_spell_054];
 
     SetFont(g_wiz_text_font_secondary);
-    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
     text = record->display_name;
     width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0x25 + (0xe7 - width) / 2, m_y + 0x12, g_format_s, text);

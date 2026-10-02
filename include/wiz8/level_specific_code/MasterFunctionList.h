@@ -20,7 +20,7 @@ extern W8Vector<W8MasterFunction>* g_master_functions;
 extern bool g_flag_006834dc;
 extern bool g_flag_006834dd;
 
-void ClearValue6834D4(void);
+void ClearActiveWorldCursorNode(void);
 int NormalizeMasterFunctionValue(int value);
 /* Run every registered master function once with argument zero, dropping the
    ones that set the removal flag while it runs. */

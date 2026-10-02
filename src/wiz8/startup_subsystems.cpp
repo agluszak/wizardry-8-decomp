@@ -72,7 +72,7 @@ HVOBJECT g_monster_damage_font_object;
 // GLOBAL: WIZ8 0x00683650
 HVOBJECT g_options_title_font_object;
 // GLOBAL: WIZ8 0x00683654
-int g_dialog_font_683654;
+int g_wiz_dialog_font;
 // GLOBAL: WIZ8 0x00683658
 int g_profession_font;
 // GLOBAL: WIZ8 0x0068365C
@@ -113,7 +113,7 @@ unsigned short* g_font_palette_options_detail;
 // GLOBAL: WIZ8 0x0068ee04
 unsigned short* g_font_palette_button;
 // GLOBAL: WIZ8 0x0068ee08
-unsigned short* g_colour_68ee08;
+unsigned short* g_wiz_text_font_secondary_palette;
 // GLOBAL: WIZ8 0x0068ee0c
 unsigned short* g_font_palette_wiz_text_bold;
 // GLOBAL: WIZ8 0x0068ee10
@@ -158,7 +158,7 @@ unsigned char InitializeMenuFonts(void)
     LOAD_FONT(g_options_detail_font, "Data\\Fonts\\Opt_detail_font.sti");
     LOAD_FONT(g_profession_font, "Data\\Fonts\\Profession.sti");
     LOAD_FONT(g_font10arial, "Data\\Fonts\\Font10Arial.sti");
-    LOAD_FONT(g_dialog_font_683654, "Data\\Fonts\\dialog_font.sti");
+    LOAD_FONT(g_wiz_dialog_font, "Data\\Fonts\\dialog_font.sti");
     LOAD_FONT(g_monster_damage_font, "Data\\Fonts\\monsterdamage_font.sti");
     LOAD_FONT(g_font12point1, "Data\\Fonts\\FONT12POINT1.sti");
 
@@ -181,7 +181,7 @@ unsigned char InitializeMenuFonts(void)
     g_options_detail_font_object = GetFontObject(g_options_detail_font);
     g_profession_font_object = GetFontObject(g_profession_font);
     g_font10arial_object = GetFontObject(g_font10arial);
-    g_dialog_font_object = GetFontObject(g_dialog_font_683654);
+    g_dialog_font_object = GetFontObject(g_wiz_dialog_font);
     g_monster_damage_font_object = GetFontObject(g_monster_damage_font);
     g_font12point1_object = GetFontObject(g_font12point1);
 
@@ -217,9 +217,9 @@ unsigned char InitializeMenuFonts(void)
     g_font_palette_calligraphy_shadow = GetFontObjectPalette16BPP(g_calligraphy_shadow_font);
     g_font_palette_wiz_text = GetFontObjectPalette16BPP(g_wiz_text_font);
     g_font_palette_button = GetFontObjectPalette16BPP(g_button_font);
-    g_colour_68ee08 = GetFontObjectPalette16BPP(g_wiz_text_font_secondary);
+    g_wiz_text_font_secondary_palette = GetFontObjectPalette16BPP(g_wiz_text_font_secondary);
     g_font_palette_wiz_text_bold = GetFontObjectPalette16BPP(g_wiz_text_bold_font);
     g_font_palette_options_detail = GetFontObjectPalette16BPP(g_options_detail_font);
-    ConfigureDialogFont(g_dialog_font_683654, 1, 0xff, 0);
+    ConfigureDialogFont(g_wiz_dialog_font, 1, 0xff, 0);
     return 1;
 }

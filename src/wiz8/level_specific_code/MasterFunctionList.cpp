@@ -164,12 +164,12 @@ typedef unsigned char (*W8WorldCursorNodeHandler)(int command, W8WorldCursorNode
 static unsigned char WorldCursorNodeShowMessageOnce(int command, W8WorldCursorNode* node, int context);
 static unsigned char WorldCursorNodeShowContextMessage(int command, W8WorldCursorNode* node, int context);
 static unsigned char WorldCursorNodeShowMessage(int command, W8WorldCursorNode* node, int context);
-static unsigned char WorldCursorNodeApplyItemEffect004D9560(int command, W8WorldCursorNode* node,
+static unsigned char WorldCursorNodeApplyItemEffect(int command, W8WorldCursorNode* node,
                                                      int context);
 static unsigned char WorldCursorNodeMaleCharacterEvent(int command, W8WorldCursorNode* node, int context);
 static unsigned char IsMasterFunctionTypeEight(int command, W8WorldCursorNode* node, int context);
 static unsigned char WorldCursorNodeSeenBodies(int command, W8WorldCursorNode* node, int context);
-static unsigned char WorldCursorNodeApplyItemEffect004D96C0(int command, W8WorldCursorNode* node,
+static unsigned char WorldCursorNodeApplyType6ItemEffect(int command, W8WorldCursorNode* node,
                                                      int context);
 static unsigned char WorldCursorNodePartyVoice(int command, W8WorldCursorNode* node, int context);
 
@@ -187,9 +187,9 @@ static W8WorldCursorNodeHandler g_world_cursor_node_handlers[10] = {
     WorldCursorNodeShowMessageOnce,         /* type 1 */
     WorldCursorNodeShowContextMessage,      /* type 2 */
     WorldCursorNodeShowMessage,             /* type 3 */
-    WorldCursorNodeApplyItemEffect004D9560, /* type 4 */
+    WorldCursorNodeApplyItemEffect, /* type 4 */
     WorldCursorNodeSeenBodies,              /* type 5 */
-    WorldCursorNodeApplyItemEffect004D96C0, /* type 6 */
+    WorldCursorNodeApplyType6ItemEffect, /* type 6 */
     IsMasterFunctionTypeEight,              /* type 7 */
     WorldCursorNodePartyVoice,              /* type 8 */
     WorldCursorNodeMaleCharacterEvent       /* type 9 */
@@ -219,7 +219,7 @@ unsigned char DispatchWorldCursorNodeCommand(W8MonsterInfo* info, int command, .
     va_start(arguments, command);
     // reinterpret-ok: retail passes the optional argument slot as context.
     context = reinterpret_cast<int>(arguments);
-    if (GetFlag68F105() != 0) {
+    if (IsMipeActive() != 0) {
         va_end(arguments);
         return handled;
     }
@@ -398,7 +398,7 @@ static unsigned char WorldCursorNodeShowMessage(int command, W8WorldCursorNode* 
 /* Type-4 nodes: entering applies the node's item effect to a random party
    member. */
 // FUNCTION: WIZ8 0x004D9560
-static unsigned char WorldCursorNodeApplyItemEffect004D9560(int command, W8WorldCursorNode* node,
+static unsigned char WorldCursorNodeApplyItemEffect(int command, W8WorldCursorNode* node,
                                                      int context)
 {
     if (command == 1) {
@@ -462,7 +462,7 @@ static unsigned char WorldCursorNodeSeenBodies(int command, W8WorldCursorNode* n
 /* Type-6 nodes: entering applies the node's item effect to a random party
    member. */
 // FUNCTION: WIZ8 0x004D96C0
-static unsigned char WorldCursorNodeApplyItemEffect004D96C0(int command, W8WorldCursorNode* node,
+static unsigned char WorldCursorNodeApplyType6ItemEffect(int command, W8WorldCursorNode* node,
                                                      int context)
 {
     if (command == 1) {
@@ -473,7 +473,7 @@ static unsigned char WorldCursorNodeApplyItemEffect004D96C0(int command, W8World
 }
 
 // FUNCTION: WIZ8 0x004D96F0
-void ClearValue6834D4(void)
+void ClearActiveWorldCursorNode(void)
 {
     g_active_cursor_node = 0;
 }

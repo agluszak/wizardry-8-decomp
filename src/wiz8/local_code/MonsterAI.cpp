@@ -264,7 +264,7 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
     unsigned char result;
 
     result = 0;
-    if (g_status.world_suspended_2390 != 0 || GetFlag68F105() != 0) {
+    if (g_status.world_suspended_2390 != 0 || IsMipeActive() != 0) {
         return 0;
     }
     monster_info = MonsterInfoFromID(0xf0, MONSTER_AI_CPP, monster_group->leader_location_id, 1);
@@ -661,7 +661,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         break;
     case 4:
         position = monster_info->heard_noise_position_37;
-        MonsterForward452630(monster, &position);
+        MonsterConfigureMovementToPosition(monster, &position);
         break;
     case 6:
         if ((decision & 0x80) != 0) {
@@ -705,7 +705,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
             decision = 0;
             break;
         }
-        if (MonsterForward452630(monster, &patrol_point) != 0) {
+        if (MonsterConfigureMovementToPosition(monster, &patrol_point) != 0) {
             break;
         }
         if (monster->IsWithinWorldRange() == 0 &&
@@ -2114,7 +2114,7 @@ void CheckMonsterGroupsLeaveCombat(void)
                 nearest = GetGroupNearestDistance(group);
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +
                         GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
-                minimum = GetRangeConstant5EC360() + g_float_005ee77c;
+                minimum = GetMonsterEngagementRange() + g_float_005ee77c;
                 if (reach <= minimum) {
                     reach = minimum;
                 }
@@ -2231,8 +2231,8 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int ho
     if (within_reach != 0) {
         reach = CalcRangeDistance(GetMonsterBestRangeCategory(monster_info, 1, &sight)) +
                 GetMonsterCombatMoveRange(monster_info) * g_float_005ebc64;
-        if (reach <= GetRangeConstant5EC360() + g_float_005ee77c) {
-            reach = GetRangeConstant5EC360() + g_float_005ee77c;
+        if (reach <= GetMonsterEngagementRange() + g_float_005ee77c) {
+            reach = GetMonsterEngagementRange() + g_float_005ee77c;
         }
     }
     if (monster_info->player_visibility.sight_state_04 == W8_SIGHT_SEEN &&
@@ -2536,7 +2536,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
             continue;
         }
         member_distance = member->p3D->GetDistanceToPlayer();
-        if (member_distance > GetRangeConstant5EC360()) {
+        if (member_distance > GetMonsterEngagementRange()) {
             continue;
         }
         for (other_index = 0; other_index < PLLength(gXStatus.plsMonsterList); ++other_index) {
@@ -2716,7 +2716,7 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                 member->highest_condition < 0x12 && MonsterHasVisibleTarget(member, 0, 4, 1) != 0) {
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +
                         GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
-                minimum = GetRangeConstant5EC360() + g_float_005ee77c;
+                minimum = GetMonsterEngagementRange() + g_float_005ee77c;
                 if (reach <= minimum) {
                     reach = minimum;
                 }

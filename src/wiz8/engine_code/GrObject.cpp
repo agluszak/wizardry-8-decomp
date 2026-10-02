@@ -124,17 +124,17 @@ unsigned char W8GrObject::AddSoundEvent(W8SoundEvent* pse)
 }
 
 // GLOBAL: WIZ8 0x0060dfac
-static int g_value_60dfac = 1;
+static int g_gr_object_id_counter = 1;
 
 // FUNCTION: WIZ8 0x004B6D10
-int IncrementValue60DFAC(void)
+int AllocateGrObjectId(void)
 {
-    ++g_value_60dfac;
-    return g_value_60dfac;
+    ++g_gr_object_id_counter;
+    return g_gr_object_id_counter;
 }
 
 // FUNCTION: WIZ8 0x004B6D20
-void SetValue60DFAC(void)
+void ResetGrObjectIdCounter(void)
 {
-    g_value_60dfac = 1;
+    g_gr_object_id_counter = 1;
 }

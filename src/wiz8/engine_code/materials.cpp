@@ -546,7 +546,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                     ReportBuildStatus(6, message);
                     sprintf(message, "Width of auto-generated regions: %f metres\n",
                             (build_tree->spatial_00.region_grid_cell_54 * g_float_005ebc60));
-                    g_oct_node_count = GetValue65BE60();
+                    g_oct_node_count = GetBuildNodeInstanceCount();
                     g_oct_max_objects = build_tree->deepest_link_list_b8;
                     ReportBuildStatus(3, message);
                     sprintf(message, "World Minimum Corner: \t%f  \t%f  \t%f\n",

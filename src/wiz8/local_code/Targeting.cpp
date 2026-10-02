@@ -467,7 +467,7 @@ void AimAtGroundTarget(int party_slot)
     target.iChar = BAD_INDEX;
     target.iGroupID = BAD_INDEX;
     target.iType = W8_TARGET_KIND_PLACE;
-    GetCameraForwardPoint(GetRangeConstant5EC35C(), &position);
+    GetCameraForwardPoint(GetGroundTargetRange(), &position);
     target.point = position;
     AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
     StartBreathCycle(party_slot, 0);
@@ -1922,7 +1922,7 @@ void RefreshSpellTargetHighlightsAtRange(void)
     srVector3T<float> position;
     W8MonsterInfo* monster_info;
 
-    GetCameraForwardPoint(GetRangeConstant5EC35C(), &position);
+    GetCameraForwardPoint(GetGroundTargetRange(), &position);
     if ((position == gXStatus.target_position)) {
         return;
     }
@@ -2381,7 +2381,7 @@ bool CanTargetMonster(int party_slot, int location_id, int allow_single_target, 
     if (monster_info->uiCondition[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0) {
         return 0;
     }
-    if (gXStatus.fCampMode != 0 && g_screen_state_00649f1c->target_location_id_f8 != location_id) {
+    if (gXStatus.fCampMode != 0 && g_npc_interaction_state->target_location_id_f8 != location_id) {
         return 0;
     }
 
@@ -3258,7 +3258,7 @@ bool TargetInRangeAndArcs(const srVector3T<float>* target, float bonus,
     float dz = target->z - eye->z;
     float excess =
         static_cast<float>(floor(sqrt(dx * dx + dy * dy + dz * dz) - bonus - eye_radius));
-    if (GetRangeConstant5EC35C() >= excess) {
+    if (GetGroundTargetRange() >= excess) {
         float angle = GetHeadingAngle(eye, target);
         if (NormalizeAngle(heading - angle) < g_float_005ec29c ||
             NormalizeAngle(angle - heading) < g_float_005ec29c) {
@@ -3339,7 +3339,7 @@ void ConfigureSpellTargetFilter(int target_type, unsigned int needed_kind)
         if (gXStatus.fCampMode != 0) {
             ResetCombatSlot(&target);
             target.iType = W8_TARGET_KIND_MONSTER;
-            target.iMonsterID = g_screen_state_00649f1c->target_location_id_f8;
+            target.iMonsterID = g_npc_interaction_state->target_location_id_f8;
             AimAtTarget(selected, &target, W8_TARGETING_CONTEXT_CURRENT);
             needed_kind = 0;
         } else if (g_settings.autotarget_spells != 0 &&

@@ -215,7 +215,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         registry_after = GetUsedPageFileBytes();
         monster_info->p3D->registry_weight_27c = registry_after - registry_before;
         g_monster_cycle_registry_weight += registry_after - registry_before;
-        if (GetFlag68F105() != 0) {
+        if (IsMipeActive() != 0) {
             ShowNoticef(7, L"(%dK)",
                         static_cast<unsigned int>(registry_after - registry_before) >> 10);
         }
@@ -224,7 +224,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     }
 
     WorldGetCameraLocation(GetWorld(), &camera_position);
-    MonsterForward4A7BE0(monster_info->p3D, &camera_position);
+    MonsterSelectLOD(monster_info->p3D, &camera_position);
     UpdateCycleRepresentation(monster_info->p3D, GetWorld());
     g_octree->VisitPointCopy(static_cast<unsigned short>(monster_info->location_id),
                              &monster_info->position_17);
@@ -322,7 +322,7 @@ void ClearMonsterPathAndResume(W8MonsterInfo* monster_info)
     }
     MonsterReplacePath(monster_info->p3D, 0);
     monster_info->p3D->flags_00c &= 0xdfffffff;
-    MonsterForward4537E0(monster_info->p3D);
+    MonsterClearMovement(monster_info->p3D);
     if (monster_info->fMotionless == 0) {
         result = MonsterQuery(monster_info->p3D, 6);
         if (result != 1 && result != 2 && monster_info->p3D->m_pRep->pending_cycle == -1) {
@@ -1281,7 +1281,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     }
     MonsterReplacePath(monster_info->p3D, 0);
     monster_info->p3D->flags_00c &= 0xdfffffff;
-    MonsterForward4537E0(monster_info->p3D);
+    MonsterClearMovement(monster_info->p3D);
     if (monster_info->fMotionless == 0) {
         query_state = MonsterQuery(monster_info->p3D, 6);
         if (query_state != 1 && query_state != 2 &&
@@ -1500,7 +1500,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
             MonsterSetRuntimeBehaviour(monster, static_cast<signed char>(behavior));
             MonsterSetPendingCycle(monster, cycle);
             monster->m_pRep->pending_subcycle_066 = 0;
-            MonsterForward4A84A0(monster);
+            MonsterSubmitTargetValue(monster);
             return;
         }
         detail = 0;

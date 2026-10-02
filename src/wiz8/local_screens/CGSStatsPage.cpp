@@ -107,7 +107,7 @@ wchar_t g_format_d_slash_d[] = L"%d/%d";
 // GLOBAL: WIZ8 0x00617584
 wchar_t g_format_s_space_s[] = L"%s %s";
 // GLOBAL: WIZ8 0x0064789c
-wchar_t g_dash_0064789c[] = L"-";
+wchar_t g_dash[] = L"-";
 // GLOBAL: WIZ8 0x0064dc24
 wchar_t g_format_plus_d[] = L"%+d";
 // GLOBAL: WIZ8 0x0064f2c0
@@ -760,7 +760,7 @@ void W8CharacterStatsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 // FUNCTION: WIZ8 0x005ca7e0
 void W8CharacterStatsPage::ShowEntryInfo(W8CharacterPageEntry* entry)
 {
-    m_screen_05c->ShowAttributeInfo005B07C0(entry->m_id_02c);
+    m_screen_05c->ShowPrimaryAttributeInfo(entry->m_id_02c);
 }
 
 /* A value row moved: rerun the whole creation rebuild for the new
@@ -852,7 +852,7 @@ void W8CharacterStatsPage::OnSecondary(W8TextControl* control)
 {
     for (unsigned int index = 0; index < 5; ++index) {
         if (control == m_attribute_controls_08c[index]) {
-            m_screen_05c->ShowAttributeInfo005B0850(index);
+            m_screen_05c->ShowSecondaryAttributeInfo(index);
         }
     }
 }
@@ -1180,7 +1180,7 @@ void W8CharacterStatsPage::Redraw()
                 text.SetLayoutBounds(&bounds, 1, 1);
                 int value = m_character_060->resistances[realm].total - 0x19;
                 if (value == 0) {
-                    text.SetText(FormatWideString(g_dash_0064789c), g_wiz_text_font_secondary);
+                    text.SetText(FormatWideString(g_dash), g_wiz_text_font_secondary);
                 } else {
                     text.SetText(FormatWideString(g_format_plus_d, value),
                                  g_wiz_text_font_secondary);

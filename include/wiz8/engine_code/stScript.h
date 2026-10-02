@@ -13,9 +13,10 @@ struct stScriptLabel {
     int line;
 };
 
-/* Engine Code\stScript.cpp. The two members at +0x18 and +0x28 are ordinary
-   growable vectors: construction gives each capacity five, and destruction
-   removes and frees every pointed-to line/label before the vector storage. */
+/* Engine Code\stScript.cpp. Construction at 0x004CF020 installs each
+   growable-vector base table, then its W8Vector table, at +0x18 and +0x28.
+   Load allocates eight-byte lines and 0x24-byte labels; Clear frees those
+   pointed-to records before the vector storage. */
 class stScript : public srClassSupport<stScript, srClass, 1, 0x1000d> {
 public:
     static const char* sGetClassName()
@@ -31,8 +32,8 @@ public:
     unsigned char Load(const char* path);
     void Clear();
 
-    W8GrowableVector<stScriptLine*> lines;   /* 0x18 */
-    W8GrowableVector<stScriptLabel*> labels; /* 0x28 */
+    W8Vector<stScriptLine*> lines;   /* 0x18 */
+    W8Vector<stScriptLabel*> labels; /* 0x28 */
 };
 
 static_assert(sizeof(stScript) == 0x38, "stScript_must_be_0x38");

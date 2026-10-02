@@ -711,7 +711,7 @@ W8SpellVisual::W8SpellVisual()
       scale_1e8(1.0f), location_id_1ec(0)
 {
     W8GrObject::kind_004 = 1;
-    id_008 = IncrementValue60DFAC();
+    id_008 = AllocateGrObjectId();
     host = new W8SpellEmitterHost;
     if (host == 0) {
         srAssertFail("m_pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x3c0, 0);
@@ -1291,7 +1291,7 @@ void ReleaseSpellDatabase(void)
 /* The forty icon resource names under Data\Icons\MonsterSpells. Entries 8 and
    9 share the pooled "Hexed" literal in retail. */
 // GLOBAL: WIZ8 0x0060d50c
-const char* g_monster_spell_icon_names_0060d50c[40] = {
+const char* g_monster_spell_icon_names[40] = {
     "Hexed",           "Diseased",     "Irritated",      "Nauseated",      "Slowed",
     "Afraid",          "Poisoned",     "Silenced",       "Hexed",          "Hexed",
     "Insane",          "Blind",        "Turncoat",       "Webbed",         "Asleep",
@@ -1366,7 +1366,7 @@ void SetMonsterSpellIcon(W8Monster* pMonster, int iIcon, char add)
         pSpellMI->icon = 0;
         pSpellMI->psrBMO = 0;
         sprintf(path, "%s\\%s_A.TGA", "Data\\Icons\\MonsterSpells",
-                g_monster_spell_icon_names_0060d50c[iIcon]);
+                g_monster_spell_icon_names[iIcon]);
         pSpellMI->icon = iIcon;
         pSpellMI->psrBMO = CreateMonsterIconItem(g_world, path, 1);
         if (pSpellMI->psrBMO == 0) {

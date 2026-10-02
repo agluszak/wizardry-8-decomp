@@ -59,11 +59,11 @@ extern const float g_float_005ec260;
    normalized heading and elevation deltas against. */
 extern const float g_float_005ec29c;
 extern const float g_float_005ec2f8;
-/* 0x005EC35C: read as GetRangeConstant5EC35C's return and as OctPath's
+/* 0x005EC35C: read as GetGroundTargetRange's return and as OctPath's
    waypoint query vertical extent. */
 extern const float g_float_005ec35c;
 /* 0x005EC360: 25000.0, read as a waypoint query half-extent by FindWaypoint
-   and as a range bound by GetRangeConstant5EC360. */
+   and as a range bound by GetMonsterEngagementRange. */
 extern const float g_float_005ec360;
 extern const double g_double_005ec030;
 /* 0x005EC038: 5000.0, the absolute vertical-snap ceiling that bounds

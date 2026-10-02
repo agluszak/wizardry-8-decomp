@@ -354,7 +354,7 @@ void W8PartySelectionListControl::Redraw(unsigned char full_redraw)
         for (int row = m_first_visible; row < end; ++row) {
             unsigned short* colour = g_font_state_palettes[3];
             if (row != m_selection) {
-                colour = g_colour_68ee08;
+                colour = g_wiz_text_font_secondary_palette;
                 if (row == m_hovered) {
                     colour = g_font_state_palettes[5];
                 }
@@ -364,7 +364,7 @@ void W8PartySelectionListControl::Redraw(unsigned char full_redraw)
                     *g_party_selection_character_collection->names.GetAt(row));
             top += 0x0e;
         }
-        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
         SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
         m_dirty = false;
     }
@@ -1146,13 +1146,13 @@ W8PartySelectionOptionPanel::W8PartySelectionOptionPanel()
 
     top += 0x16;
     m_toggle_78 = new W8TextControl(this, 0xffffffff, 0x15b, top, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1);
-    m_toggle_78->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
+    m_toggle_78->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
     if (g_settings.simplified_npc_interaction) {
         m_toggle_78->EnableSecondaryState(0);
     }
 
     m_toggle_74 = new W8TextControl(this, 0xffffffff, 0x15b, 0xd6, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1);
-    m_toggle_74->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
+    m_toggle_74->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
 
     GetCatalogImageSize(0x102, 0, 1, &m_image_width_94, &m_image_height_96);
     m_render_left_8c =
@@ -1363,7 +1363,7 @@ void W8PartySelectionController::Setup()
 
     m_text_50 = new W8TextControl(m_panel_3c, 0xffffffff, 0xf4, 0, 0, 0, 0x106, 0, 0x18, 0x1a, 0x19,
                                   0x1c, 0x1b);
-    m_text_50->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlLayoutToggle);
+    m_text_50->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
     m_text_50->EnableRegionHelp(0x6cc);
     m_text_50->m_listener = this;
 
@@ -2083,7 +2083,7 @@ unsigned char PartySelectionScreenEnter(void)
     MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();
-    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
     SetFontObjectPalette16BPP(g_wiz_text_bold_font, g_font_palette_wiz_text_bold);
 
     W8PartySelectionCharacterCollection* collection = g_party_selection_character_collection;
@@ -2280,7 +2280,7 @@ void GameStartRouterFrame(void)
             break;
         }
     }
-    SetValue64D8AC(code);
+    SetIntroVideoIndex(code);
     SetPendingScreenState(W8_SCREEN_INTRO);
 }
 

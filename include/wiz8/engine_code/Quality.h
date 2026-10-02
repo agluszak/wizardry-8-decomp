@@ -22,6 +22,25 @@ enum W8RenderOption {
     W8_RENDER_OPTION_COUNT = 17
 };
 
+/* InitializeRenderQuality's 0x34-byte allocation; SetRenderOption and the
+   save path establish the seventeen byte states starting at +0x02.
+   The other fields' roles remain unresolved. */
+struct W8RenderQuality {
+    unsigned char unknown_00[2];
+    unsigned char option_states[W8_RENDER_OPTION_COUNT];
+    unsigned char unknown_13;
+    unsigned char unknown_14;
+    unsigned char unknown_15[11];
+    unsigned int unknown_20;
+    unsigned int unknown_24;
+    unsigned char unknown_28[4];
+    unsigned int unknown_2c;
+    unsigned char unknown_30[4];
+};
+
+static_assert(sizeof(W8RenderQuality) == 0x34, "W8RenderQuality_size");
+extern W8RenderQuality* g_render_options;
+
 void InitializeRenderQuality(void);
 void DestroyRenderQuality(void);
 void SetRenderOption(int option, int enabled);

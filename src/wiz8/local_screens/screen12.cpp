@@ -25,7 +25,7 @@ void RequestExitScreen(void)
 }
 
 // FUNCTION: WIZ8 0x00593320
-int GetValue64C1C8(void)
+int GetSelectedPartySlot(void)
 {
     return g_selected_party_slot;
 }

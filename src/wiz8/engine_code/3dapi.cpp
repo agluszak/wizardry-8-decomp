@@ -194,7 +194,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
         srAssertFail("pWorld", THREE_D_API_CPP, 0x15f, 0);
     }
 
-    SetValue60DFAC();
+    ResetGrObjectIdCounter();
     sprintf(level_path, "%s\\%s", level_folder, level_file_name);
     strcpy(extension, level_file_name + strlen(level_file_name) - 3);
     level_file_name[strlen(level_file_name) - 4] = '\0';
@@ -354,7 +354,7 @@ void UpdateWorld(W8World* world)
         CreateTriggerShakeEvent(0x6a4, 70.0f, 5000.0f, 1);
     }
 
-    if (world != g_world_659ab8) {
+    if (world != g_secondary_world) {
         UpdateWorldMonsters(world);
         UpdateWorldMissiles(world);
         UpdateWorldSpellVisuals(world);
@@ -713,8 +713,8 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
                     PlacePartyAtPoint(&party_point);
                 }
                 world->camera->getRotation(path_rotation);
-                if (g_world_659ab8 != 0 && g_world_659ab8->camera != 0) {
-                    g_world_659ab8->camera->setRotation(path_rotation);
+                if (g_secondary_world != 0 && g_secondary_world->camera != 0) {
+                    g_secondary_world->camera->setRotation(path_rotation);
                 }
                 ApplyCameraRotation(&path_rotation);
                 if (path->discrete_mode_1c != 0) {
@@ -762,7 +762,7 @@ stParticle* FindParticleByName(W8World* world, const char* name)
 
 /* Two forwarders that pass their arguments through unchanged. */
 // FUNCTION: WIZ8 0x00451140
-void Forward44FAF0(W8World* world)
+void ForwardDestroyWorld(W8World* world)
 {
     DestroyWorld(world);
 }
@@ -771,7 +771,7 @@ void Forward44FAF0(W8World* world)
    caller preserves this value across a level reload, so a world without a
    camera contributes the zero position. */
 // FUNCTION: WIZ8 0x00451160
-void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location)
+void WorldGetCameraLocationOrZero(W8World* world, srVector3T<float>* location)
 {
     if (!world) {
         srAssertFail("pWorld", THREE_D_API_CPP, 1014, 0);
@@ -880,7 +880,7 @@ void WorldSetCameraLocation(W8World* world, const srVector3T<float>* location)
 
 /* Apply a CamPos record to the world's camera and camera light. A non-null
    source world repeats the orientation write; automap restore passes null and
-   recall / LoadLevel pass GetWorld659AB8(). */
+   recall / LoadLevel pass GetSecondaryWorld(). */
 // FUNCTION: WIZ8 0x004504B0
 void SetWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraState* state)
 {
@@ -972,9 +972,9 @@ void WorldGetCameraLocation(W8World* world, srVector3T<float>* location)
    settled by the viewport, which reads a camera member through the same
    object. */
 // FUNCTION: WIZ8 0x004512a0
-W8World* GetWorld659AB8(void)
+W8World* GetSecondaryWorld(void)
 {
-    return g_world_659ab8;
+    return g_secondary_world;
 }
 
 /* Runtime/debug adjustment dispatcher for the active world's clipping and

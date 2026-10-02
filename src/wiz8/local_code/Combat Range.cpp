@@ -1097,13 +1097,13 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
 
 /* Two seven-byte constant readers the range rules share. */
 // FUNCTION: WIZ8 0x0051b300
-float GetRangeConstant5EC360(void)
+float GetMonsterEngagementRange(void)
 {
     return g_float_005ec360;
 }
 
 // FUNCTION: WIZ8 0x0051b310
-float GetRangeConstant5EC35C(void)
+float GetGroundTargetRange(void)
 {
     return g_float_005ec35c;
 }

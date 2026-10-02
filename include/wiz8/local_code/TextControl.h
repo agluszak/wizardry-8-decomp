@@ -11,7 +11,7 @@ extern const unsigned int g_W8TextControlLayoutToggle;
 extern const unsigned int g_W8TextControlLayoutTextBesideImage;
 extern const unsigned int g_W8TextControlLayoutImageLeft;
 extern const unsigned int g_W8TextControlLayoutStayLatched;
-extern const unsigned int g_W8TextControlMask005ED588;
+extern const unsigned int g_W8TextControlMask;
 extern const unsigned int g_W8TextControlLayoutImageAtOrigin;
 
 // VTABLE: WIZ8 0x005ed604

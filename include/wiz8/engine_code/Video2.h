@@ -104,8 +104,8 @@ extern int g_screenshot_page;
 void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom);
 #ifdef __cplusplus
 
-extern const float g_scale_x_5ebb1c;
-extern const float g_scale_y_5ebb20;
+extern const float g_viewport_x_scale;
+extern const float g_viewport_y_scale;
 
 class srColorSurface;
 class srColorSurfaceIFace;
@@ -215,7 +215,7 @@ extern bool g_video_inspector_enabled;
 extern bool g_cursor_scene_enabled;
 extern unsigned char g_fullscreen_scene_last;
 extern const int* g_overlay_viewport;
-extern srModeler* g_modeler_65963c;
+extern srModeler* g_modeler;
 extern srScene* g_scene_user;
 extern srScene* g_scene_fullscreen;
 extern srScene* g_scene_permanent;
@@ -257,7 +257,7 @@ struct W8ViewportRect {
     int bottom;
 };
 static_assert(sizeof(W8ViewportRect) == 16, "W8ViewportRect_size");
-extern W8ViewportRect g_viewport_6595e8;
+extern W8ViewportRect g_viewport;
 extern int g_dirty_tile_count;
 extern int g_resident_texture_policy;
 extern unsigned char g_world_render_enabled;
@@ -272,10 +272,10 @@ void SetViewport(int left, int top, int right, int bottom);
 /* Scale a 640x480 design-space rect onto the GERD surface and remember it;
    no-ops when the stored bounds already match. */
 
-void SetScaledViewport00425DA0(int left, int top, int right, int bottom);
+void SetWorldScaledViewport(int left, int top, int right, int bottom);
 /* 0x00425C90: same scaled-viewport update; the automap installs its viewport
    through it. */
-void SetScaledViewport00425C90(int left, int top, int right, int bottom);
+void SetAutomapScaledViewport(int left, int top, int right, int bottom);
 /* Read the stored pixel viewport back out in normalized 0..1 scale. */
 void GetScaledViewportBounds(float* left_top, float* right_bottom);
 /* Lock the primary GERD buffer and emit one debug wireframe line. */
@@ -319,7 +319,6 @@ bool IsCursorImageInsideViewport(void); /* 0x00428030 */
 
 #endif
 
-extern unsigned char* g_render_options_65a118;
 void SetDisplayGamma(float value);
 unsigned int GetTotalPhysicalMemory(void);
 int GetRendererFamily(void);

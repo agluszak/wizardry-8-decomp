@@ -73,7 +73,7 @@ float SettlePositionToGround(const srVector3T<float>* position, bool* hit)
 }
 
 // FUNCTION: WIZ8 0x00420C30
-float SettlePositionToGround00420C30(srVector3T<float>* position, bool* hit)
+float SettlePositionToGroundMutable(srVector3T<float>* position, bool* hit)
 {
     srVector3T<float> candidate = *position;
     if (g_octree_game_data != 0 && g_octree_game_data->octree_04 != 0) {

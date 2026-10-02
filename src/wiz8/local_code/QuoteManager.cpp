@@ -1136,7 +1136,7 @@ void W8CharacterEventQueue::RestartFollowUpClock(W8CharacterEvent* entry)
 // FUNCTION: WIZ8 0x0052E1C0
 void W8CharacterEventQueue::ProcessFollowUpEvents()
 {
-    if (GetFlag68F105() != 0 || GetEnvironmentFlag() == 0) {
+    if (IsMipeActive() != 0 || GetEnvironmentFlag() == 0) {
         return;
     }
     if ((follow_up_flags & 1) == 0) {

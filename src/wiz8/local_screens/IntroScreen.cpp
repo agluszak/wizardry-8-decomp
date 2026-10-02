@@ -201,7 +201,7 @@ unsigned char IntroScreenRegionEvent(const InputAtom* event, W8Region* region)
 }
 
 // FUNCTION: WIZ8 0x005AE9C0
-void SetValue64D8AC(unsigned long value)
+void SetIntroVideoIndex(unsigned long value)
 {
     g_intro_video_index = value;
 }

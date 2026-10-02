@@ -915,7 +915,7 @@ void DrawCampHeader(void)
                gppStringList[g_profession_name_message_ids[character->iProfession]]);
         gprintfDirty((0xba - StringPixLength(state->caption, g_wiz_text_font_secondary)) / 2 + 0x74,
                      0x7c, Wiz8ToSgpWideText(g_format_s), state->caption);
-        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
         SetFont(g_wiz_text_font_secondary);
         SetObjectShade(g_wiz_text_font_secondary_object, 4);
         swprintf(state->caption, g_format_s_d_paren_s, gppStringList[0x91a], character->uiExpLevel,
@@ -1591,7 +1591,7 @@ static void OnCampItemActionButton3(void)
     if (static_cast<unsigned char>(g_item_action_controls[3]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
         if (g_status.item_in_cursor != 0) {
-            UseItem005BA4F0(&g_status.item_in_hand_235b);
+            UseCampItem(&g_status.item_in_hand_235b);
             return;
         }
         SetCampItemActionMode(5);
@@ -1607,7 +1607,7 @@ static void OnCampItemActionButton4(void)
                                    g_W8TextControlStateSecondary) != 0) {
         if (g_status.item_in_cursor != 0) {
             if (ResolvePendingCampCharacter(1) != 0) {
-                DropHeldItem005BA3D0();
+                DropHeldCampItem();
             }
             return;
         }

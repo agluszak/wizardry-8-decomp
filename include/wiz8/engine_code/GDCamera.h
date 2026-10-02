@@ -75,7 +75,7 @@ public:
 extern GDCamera* g_gd_camera;
 extern srCamera* g_game_camera;
 
-void GetCameraForwardPoint00421100(float distance, srVector3T<float>* output);
+void GetCameraForwardPointCopy(float distance, srVector3T<float>* output);
 void GetCameraForwardPoint(float distance, srVector3T<float>* output);
 /* 0x00421170: accumulate `distance` along +Z, rotated by yaw and pitch, into
    `position`. */

@@ -303,7 +303,7 @@ void UpdateSurpriseMode(void)
         if (UpdateSurpriseFade() != 0) {
             EndSurprise();
             if (gXStatus.fCombatMode != 0) {
-                MonsterForward453160();
+                MonsterStopAllNavigators();
             }
         }
         break;

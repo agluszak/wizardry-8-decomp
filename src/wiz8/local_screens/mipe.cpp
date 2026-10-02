@@ -1214,7 +1214,7 @@ void HandleMonsterDebugKey(unsigned short key)
             monster = info->p3D;
             GetWorldCursorPosition(&position);
             MonsterGetLocation(monster, &location);
-            MonsterForward453690(monster, &position);
+            MonsterAddPathPoint(monster, &position);
             MonsterSetAnimating(monster, 1);
             MonsterSetCycle(monster, 4);
             MonsterSetNavigatorObjectFlag38(monster, 1);
@@ -1533,8 +1533,8 @@ int HandleCubeMenuKey(unsigned int key)
         return 0;
     case 0x31:
         g_mipe_cube = CreateWorldCursorCube();
-        GetCameraForwardPoint00421100(2500.0f, &position);
-        position.y = SettlePositionToGround00420C30(&position, 0);
+        GetCameraForwardPointCopy(2500.0f, &position);
+        position.y = SettlePositionToGroundMutable(&position, 0);
         MoveWorldCursorNode(g_mipe_cube, &position);
         AttachWorldCursorNode(g_mipe_cube, 1);
         SetWorldCursorNodeColorComponents(g_mipe_cube, 0.0f, 1.0f, 0.0f);
@@ -3228,12 +3228,12 @@ unsigned char HandleMipeKey(const InputAtom* event)
 }
 
 // FUNCTION: WIZ8 0x0057dbb0
-unsigned char GetFlag68F105(void)
+bool IsMipeActive(void)
 {
     return g_mipe_active;
 }
 // FUNCTION: WIZ8 0x0057dbc0
-unsigned char GetFlag68F104(void)
+bool IsMipeMenuActive(void)
 {
     return g_mipe_menu_active;
 }

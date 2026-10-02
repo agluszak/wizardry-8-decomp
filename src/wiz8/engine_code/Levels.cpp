@@ -109,7 +109,7 @@ W8LevelFolderRecord g_level_folders[W8_LEVEL_COUNT] = {
     {"Spare20", "Spare20", "SPK", 0, -1, 0},
 };
 
-/* The sky index of the world currently held in g_world_659ab8, or -1 when no
+/* The sky index of the world currently held in g_secondary_world, or -1 when no
    sky is loaded. Every retail access is a byte access. */
 // GLOBAL: WIZ8 0x00604470
 static signed char g_loaded_sky_index = -1;
@@ -213,10 +213,10 @@ void StartLevelMusic(int fade, int replace_current)
 // FUNCTION: WIZ8 0x0042b3e0
 void UnloadSkyWorld(void)
 {
-    W8World* world = GetWorld659AB8();
+    W8World* world = GetSecondaryWorld();
     if (world != 0) {
-        Forward44FAF0(world);
-        SetWorld659AB8(0);
+        ForwardDestroyWorld(world);
+        SetSecondaryWorld(0);
         g_loaded_sky_index = 0xff;
         ResetEnvironment();
     }
@@ -305,7 +305,7 @@ void NoOp(W8World* world, int first, int second)
 }
 
 /* Load or replace the sky world for a level. A level whose sky index already
-   matches the world held in g_world_659ab8 reuses it; a level with no sky
+   matches the world held in g_secondary_world reuses it; a level with no sky
    (-1) only tears the previous one down. The replacement sky receives the
    animated-cloud material: its cloud meshes are marked for the renderer's
    control bits and every CloudsN prop's mesh chain is rebound to it. */
@@ -330,9 +330,9 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
         }
         info = &local_info;
     }
-    if (GetWorld659AB8() != 0) {
-        Forward44FAF0(GetWorld659AB8());
-        SetWorld659AB8(0);
+    if (GetSecondaryWorld() != 0) {
+        ForwardDestroyWorld(GetSecondaryWorld());
+        SetSecondaryWorld(0);
         g_loaded_sky_index = 0xff;
         ResetEnvironment();
     }
@@ -340,7 +340,7 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
         return 1;
     }
     sky_world = CreateWorld();
-    g_world_659ab8 = sky_world;
+    g_secondary_world = sky_world;
     if (sky_world == 0) {
         return 0;
     }
@@ -398,8 +398,8 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
         }
     }
 
-    ForwardThroughMember3C_46E750(GetWorld659AB8(), 0);
-    ForwardThroughMember3C_46E640(GetWorld659AB8(), 1);
+    SetWorldSceneMeshShaderLowBits(GetSecondaryWorld(), 0);
+    SetWorldSceneMeshShaderBit3(GetSecondaryWorld(), 1);
     NoOp(sky_world, 0, 0);
     WorldRemoveLight(sky_world, sky_world->camera_light);
     sky_world->camera_light = 0;
@@ -531,7 +531,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
 
     DisableSky();
     if (GetWorld() != 0) {
-        Forward44FAF0(GetWorld());
+        ForwardDestroyWorld(GetWorld());
         SetCurrentWorld(0);
     }
     ReleaseRetainedMaterials();
@@ -611,7 +611,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             SetWorldScenePosition(GetWorld(), &position);
         }
     } else {
-        RestoreWorldCameraState(GetWorld(), GetWorld659AB8(), &g_status.pending_move_location);
+        RestoreWorldCameraState(GetWorld(), GetSecondaryWorld(), &g_status.pending_move_location);
     }
 
     if (level < W8_LEVEL_COUNT && !g_status.level_progress[level].visited) {
@@ -727,7 +727,7 @@ unsigned char UnloadLevel(const char* save_directory)
     DisableSky();
     W8World* world = GetWorld();
     if (world != 0) {
-        Forward44FAF0(world);
+        ForwardDestroyWorld(world);
         SetCurrentWorld(0);
     }
     ReleaseRetainedMaterials();
@@ -740,7 +740,7 @@ unsigned char UnloadLevel(const char* save_directory)
     g_status.current_level = -1;
     ReleaseEnvironmentObjects();
     g_runtime_world_scale = 500.0f;
-    ClearValue6834D4();
+    ClearActiveWorldCursorNode();
 
     srRegistry* registry = srCore.getRegistry();
     srRegistry::ClassNode* node = srClientSupport<srClipPlane, 0x1500>::sGetClassNode();
@@ -769,7 +769,7 @@ unsigned char ReloadLevelPreservingCamera(int level, int entrance)
 
     if (entrance == -1 && level == g_status.current_level) {
         GetCameraOrientation(saved_angle, saved_pitch);
-        WorldGetCameraLocation00451160(GetWorld(), &saved_position);
+        WorldGetCameraLocationOrZero(GetWorld(), &saved_position);
         restore = 1;
     }
     if (g_status.current_level != -1) {

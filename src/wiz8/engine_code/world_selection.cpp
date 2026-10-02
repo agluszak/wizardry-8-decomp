@@ -16,7 +16,7 @@ void SetCurrentWorld(W8World* world)
     g_world = world;
 }
 // FUNCTION: WIZ8 0x004512B0
-void SetWorld659AB8(W8World* world)
+void SetSecondaryWorld(W8World* world)
 {
-    g_world_659ab8 = world;
+    g_secondary_world = world;
 }

@@ -8,7 +8,7 @@ class Trigger;
 class W8Prop;
 
 W8World* GetWorld(void);
-W8World* GetWorld659AB8(void);
+W8World* GetSecondaryWorld(void);
 void MarkRendererReady(void);
 
 W8World* CreateWorld();
@@ -17,7 +17,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
                         const char* asset_folder, unsigned char use_octree);
 unsigned char ForwardLoadWorld(W8World* world, char* level_file_name, const char* level_folder,
                                const char* asset_folder, unsigned char use_octree);
-void Forward44FAF0(W8World* world);
+void ForwardDestroyWorld(W8World* world);
 void SetCurrentWorld(W8World* world);
 void ConstructWorldCollections(W8World* world);
 void DestroyWorldCollections(W8World* world);
@@ -31,7 +31,7 @@ void SetWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraSta
 void RestoreWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraState* state);
 void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation);
 void WorldGetCameraLocation(W8World* world, srVector3T<float>* location);
-void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location);
+void WorldGetCameraLocationOrZero(W8World* world, srVector3T<float>* location);
 void SetWorldScenePosition(W8World* world, const srVector3T<float>* position);
 stParticle* FindParticleByName(W8World* world, const char* name);
 bool FindEntityByName(const char* name, srVector3T<float>* position, float* angle,
@@ -43,7 +43,7 @@ unsigned char FindNearbyFreePosition(float radius, srVector3T<float>* position,
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
 
-void SetWorld659AB8(W8World* world);
+void SetSecondaryWorld(W8World* world);
 
 /* APST chunk: serialize every world prop's animation state. The record is a
    fixed 64-byte name plus the six rep bytes LoadAnimationState reads. */

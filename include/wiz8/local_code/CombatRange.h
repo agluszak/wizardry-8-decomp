@@ -65,8 +65,8 @@ int GetCharActionRange(int party_slot, int hand, W8TargetingContext context);
 bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context,
                           char notify); /* 0x00519920 */
 float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int kind);
-float GetRangeConstant5EC35C(void);
-float GetRangeConstant5EC360(void); /* 0x0051B300 */
+float GetGroundTargetRange(void);
+float GetMonsterEngagementRange(void); /* 0x0051B300 */
 bool AnyoneStandsAhead(unsigned char position);
 void InitializeMonsterRangeCapabilities(W8MonsterInfo* monster_info,
                                         const W8MonsterRecord* record); /* 0x0051B420 */

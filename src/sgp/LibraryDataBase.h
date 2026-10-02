@@ -195,7 +195,7 @@ extern DatabaseManagerHeaderStruct gFileDataBase;
 
 BOOLEAN CheckForLibraryExistence( STR pLibraryName );
 BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibheader, BOOLEAN fCanBeOnCDrom );
-HANDLE OpenLibraryStream00412F10(HWFILE file);
+HANDLE OpenLibraryStream(HWFILE file);
 
 BOOLEAN InitializeFileDatabase(void);
 INT32 LoadPatchSlfArchives(const CHAR8* directory);

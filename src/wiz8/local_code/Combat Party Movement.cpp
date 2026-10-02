@@ -468,7 +468,7 @@ void FinishPartyMovementAction(void)
 }
 
 // FUNCTION: WIZ8 0x004efc00
-void StartPartyMovementAction004EFC00(void)
+void BeginPartyMovementPhase(void)
 {
     if (g_combat_state->uiCurrentPartyAction == 1 || g_combat_state->uiCurrentPartyAction == 2) {
         gXStatus.fPartyMovementMode = true;

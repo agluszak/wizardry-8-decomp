@@ -115,7 +115,7 @@ void W8CharacterSpellList::Redraw(unsigned char force)
         BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
         int y = top + 1;
         SetFont(g_wiz_text_font_secondary);
-        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
         SetObjectShade(g_wiz_text_font_secondary_object, 4);
         for (int index = m_first_entry + m_scroll_offset;
              index < m_first_entry + m_scroll_offset + 7; ++index) {
@@ -135,7 +135,7 @@ void W8CharacterSpellList::Redraw(unsigned char force)
             gprintf(right - StringPixLength(cost, g_wiz_text_font_secondary) - 2, y, g_format_s,
                     cost);
             y += 13;
-            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_colour_68ee08);
+            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
             SetObjectShade(g_wiz_text_font_secondary_object, 4);
         }
         m_range->Invalidate(0);
@@ -496,7 +496,7 @@ void W8CharacterSpellsPage::SelectSpell(unsigned int uiSelected)
 // FUNCTION: WIZ8 0x005c88a0
 void W8CharacterSpellsPage::ShowSpellInfo(unsigned int entry)
 {
-    m_screen_05c->ShowDialog005B0610(m_SpellData[entry].spell);
+    m_screen_05c->ShowSpellInfo(m_SpellData[entry].spell);
 }
 
 // FUNCTION: WIZ8 0x005C8DE0

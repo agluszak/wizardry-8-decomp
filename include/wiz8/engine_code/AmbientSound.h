@@ -153,7 +153,7 @@ void SetSoundEffectsMuted(unsigned char muted);
 extern unsigned char g_default_footstep_surface;
 extern unsigned char g_default_footstep_material;
 extern unsigned char g_footstep_alternate;
-extern int g_previous_footstep_variant_65a10c;
+extern int g_previous_ambient_footstep_variant;
 extern const char* g_footstep_names[];
 extern const char* g_footstep_surfaces[];
 /* Zeroed 128-byte ambient name image; only its first word is ever read — a

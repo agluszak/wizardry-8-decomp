@@ -531,7 +531,7 @@ unsigned char PrePathing::CreateAutomapNodes(W8LevelFile* level)
     if (path_node_list_240 == 0) {
         return 0;
     }
-    SetFloat64B914(AutomapLevelIsLarge() ? 4000.0f : 2000.0f);
+    SetAutomapGridCellSize(AutomapLevelIsLarge() ? 4000.0f : 2000.0f);
     int created = 0;
     unsigned int i = 1;
     if (1 < static_cast<unsigned int>(size_004)) {

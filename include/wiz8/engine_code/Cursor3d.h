@@ -26,4 +26,4 @@ char MarchWorldCursorTarget(srVector3T<float>* target);
    keep the settled height. */
 int ResolveWorldCursorTarget(srVector3T<float>* position);
 void GetWorldCursorTargetPosition(srVector3T<float>* position);
-void SetFloat60AB48(void); /* 0x00492530 */
+void ResetWorldCursorRange(void); /* 0x00492530 */

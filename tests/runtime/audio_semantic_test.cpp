@@ -73,18 +73,18 @@ static unsigned char CheckFootstepPaths()
        global; the ordinary variant path always does. That makes the branch
        observable regardless of which footstep waves SOUND.SLF carries. */
     unsigned char saved_option = GetRenderOptionState(15);
-    int saved_variant = g_previous_footstep_variant_65a10c;
+    int saved_variant = g_previous_ambient_footstep_variant;
     SetRenderOption(15, 1);
-    g_previous_footstep_variant_65a10c = 0;
+    g_previous_ambient_footstep_variant = 0;
     PlayFootstep(W8_FOOTSTEP_SURFACE_MEDIUM_ROOM, W8_FOOTSTEP_MATERIAL_CLIMB_LADDER,
                  W8_FOOTSTEP_KIND_STEP);
-    int bypass = g_previous_footstep_variant_65a10c == 0;
-    g_previous_footstep_variant_65a10c = 0;
+    int bypass = g_previous_ambient_footstep_variant == 0;
+    g_previous_ambient_footstep_variant = 0;
     PlayFootstep(W8_FOOTSTEP_SURFACE_MEDIUM_ROOM, W8_FOOTSTEP_MATERIAL_STONE,
                  W8_FOOTSTEP_KIND_STEP);
     int variant =
-        g_previous_footstep_variant_65a10c >= 1 && g_previous_footstep_variant_65a10c <= 4;
-    g_previous_footstep_variant_65a10c = saved_variant;
+        g_previous_ambient_footstep_variant >= 1 && g_previous_ambient_footstep_variant <= 4;
+    g_previous_ambient_footstep_variant = saved_variant;
     SetRenderOption(15, saved_option);
 
     return step | (jump << 1) | (scuff << 2) | (vocabulary << 3) | ((bypass & variant) << 4);

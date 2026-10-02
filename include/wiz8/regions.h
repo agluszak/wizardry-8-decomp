@@ -76,7 +76,7 @@ extern unsigned char g_region_help_force_enabled;
 extern wchar_t* g_default_help_text;
 
 unsigned int GetForcedRegion(void);
-void ReleasePointer689B40(void);
+void ReleaseDefaultHelpText(void);
 unsigned int UpdateRegionMousePosition(int x, int y);
 unsigned int FindRegionAtPoint(unsigned short x, unsigned short y);
 void RegionSetEnable(unsigned int region_set_index);

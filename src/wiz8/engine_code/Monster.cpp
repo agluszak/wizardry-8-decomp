@@ -101,7 +101,7 @@ int g_value_659c14;
 // GLOBAL: WIZ8 0x005ebcf8
 const float g_float_005ebcf8 = 0.0055555556900799274f;
 // GLOBAL: WIZ8 0x0060bfe0
-float g_light_scale_0060bfe0 = 1.0f;
+float g_monster_light_scale = 1.0f;
 
 // GLOBAL: WIZ8 0x0065970C
 unsigned char g_monster_shadow_updates_enabled;
@@ -1402,7 +1402,7 @@ void W8Monster::Update()
     }
     distance = (monster_position - party_position).Length();
 
-    if (sunlit_state_2d0 == -1 || g_light_scale_0060bfe0 < g_float_005ebb38) {
+    if (sunlit_state_2d0 == -1 || g_monster_light_scale < g_float_005ebb38) {
         current_scale_300 = 0.75f;
         g_monster_model_instances.Clear();
         CollectModelInstances(&g_monster_model_instances);
@@ -1515,7 +1515,7 @@ void W8Monster::Update()
         }
     }
 
-    if (GetFlag68F105() == 0) {
+    if (IsMipeActive() == 0) {
         if ((cycle == 1 || cycle == 2) && m_pRep->pending_cycle == -1 &&
             movement_stopped_024 == 0 && halted_025 == 0) {
             flags_00c |= 0x100000;
@@ -3139,7 +3139,7 @@ unsigned char W8Monster::IsCycleInterruptable(signed char cycle)
     const char* current_name;
     const char* requested_name;
 
-    if (GetFlag68F105() != 0) {
+    if (IsMipeActive() != 0) {
         return 1;
     }
     if (m_pRep->animation_playing_06d == 0) {
@@ -4520,7 +4520,7 @@ void W8Monster::GetMappedPosition(srVector3T<float>* position)
 /* Keep the position copy through the shared double-argument vector setter:
    retail 0x004C5A4F-0x004C5A63 round-trips each component through the FPU. */
 // FUNCTION: WIZ8 0x004c5a40
-void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position)
+void MonsterSelectLOD(W8Monster* monster, const srVector3T<float>* position)
 {
     srVector3T<float> local;
 
@@ -4579,7 +4579,7 @@ float MonsterGetAngleD4(W8Monster* monster)
 /* Two null-checked forwards that share one shape: a monster that is not there
    is simply not acted on. */
 // FUNCTION: WIZ8 0x004c5ea0
-void MonsterForward4A84A0(W8Monster* monster)
+void MonsterSubmitTargetValue(W8Monster* monster)
 {
     if (monster != 0) {
         monster->SubmitTargetValue();
@@ -4587,7 +4587,7 @@ void MonsterForward4A84A0(W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x004c6140
-void MonsterForward4537E0(W8Monster* monster)
+void MonsterClearMovement(W8Monster* monster)
 {
     if (monster != 0) {
         monster->ClearMovement();
@@ -4664,20 +4664,20 @@ unsigned char LoadMonsterCycle(const W8GrCycleLoadContext* context, const char* 
    jump. That is the whole difference from the cdecl pass-throughs above: with
    no stack arguments there is nothing left to clean up. */
 // FUNCTION: WIZ8 0x004c61e0
-void MonsterForward453160(void)
+void MonsterStopAllNavigators(void)
 {
     StopAllNavigators();
 }
 
 // FUNCTION: WIZ8 0x004c61f0
-void MonsterForward4531A0(void)
+void MonsterResumeAllNavigators(void)
 {
     ResumeAllNavigators();
 }
 
 /*
  * Six more null-guarded forwarders onto the Navigator base at +0x18, the same shape
- * MonsterForward4537E0 has: the guard tests the monster, the receiver is
+ * MonsterClearMovement has: the guard tests the monster, the receiver is
  * derived from it with a `lea`, and a monster that is not there is simply not
  * acted on. What each one answers on the null path is the evidence for its
  * return type - a cleared AL for the byte-sized ones, a loaded 0.0f for the
@@ -4702,7 +4702,7 @@ float MonsterGetNavigatorValue120(W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x004c5f90
-unsigned char MonsterForward452630(W8Monster* monster, const srVector3T<float>* position)
+unsigned char MonsterConfigureMovementToPosition(W8Monster* monster, const srVector3T<float>* position)
 {
     if (monster != 0) {
         return monster->ConfigureMovementToPosition(position);
@@ -4711,7 +4711,7 @@ unsigned char MonsterForward452630(W8Monster* monster, const srVector3T<float>* 
 }
 
 // FUNCTION: WIZ8 0x004c5fb0
-void MonsterForward453690(W8Monster* monster, const srVector3T<float>* argument)
+void MonsterAddPathPoint(W8Monster* monster, const srVector3T<float>* argument)
 {
     if (monster != 0) {
         monster->AddPathPoint(argument);

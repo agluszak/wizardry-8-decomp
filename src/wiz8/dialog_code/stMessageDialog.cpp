@@ -51,20 +51,20 @@ void W8MessageDialogBase::Draw()
     W8DialogBase::Draw();
     DrawButton(m_message_button);
     if (!m_show_confirm && !allow_cancel) {
-        y = m_y + m_height / 2 - (GetFontHeight(g_dialog_font_64fde8) * m_line_count >> 1);
+        y = m_y + m_height / 2 - (GetFontHeight(g_dialog_interface_font) * m_line_count >> 1);
     } else {
-        y = m_y + (m_height - 0x21) / 2 - (GetFontHeight(g_dialog_font_64fde8) * m_line_count >> 1);
+        y = m_y + (m_height - 0x21) / 2 - (GetFontHeight(g_dialog_interface_font) * m_line_count >> 1);
     }
     if (m_lines) {
         SaveFontSettings();
-        SetFont(g_dialog_font_64fde8);
+        SetFont(g_dialog_interface_font);
         SetFontForeground(g_dialog_font_foreground);
         SetFontBackground(g_dialog_font_background);
         for (index = 0; index < m_line_count; ++index) {
             wchar_t* line = m_lines[index];
-            short width = StringPixLengthArg(g_dialog_font_64fde8, wcslen(line), line);
+            short width = StringPixLengthArg(g_dialog_interface_font, wcslen(line), line);
             gprintf(m_x + (m_width - width) / 2, y, line);
-            y += GetFontHeight(g_dialog_font_64fde8);
+            y += GetFontHeight(g_dialog_interface_font);
         }
         RestoreFontSettings();
     }
@@ -120,7 +120,7 @@ void W8MessageDialogBase::SetMessage(const wchar_t* message, int line_count,
         int height;
 
         for (index = 0; index < m_line_count; ++index) {
-            short line_width = StringPixLength(m_lines[index], g_dialog_font_64fde8);
+            short line_width = StringPixLength(m_lines[index], g_dialog_interface_font);
             if (width < line_width) {
                 width = line_width;
             }
@@ -129,13 +129,13 @@ void W8MessageDialogBase::SetMessage(const wchar_t* message, int line_count,
         if (width < 0xaa) {
             width = 0xaa;
         }
-        GetFontHeight(g_dialog_font_64fde8);
-        height = GetFontHeight(g_dialog_font_64fde8) * m_line_count + 0x1e;
+        GetFontHeight(g_dialog_interface_font);
+        height = GetFontHeight(g_dialog_interface_font) * m_line_count + 0x1e;
         if (m_show_confirm || allow_cancel) {
-            height = GetFontHeight(g_dialog_font_64fde8) * m_line_count + 0x3f;
+            height = GetFontHeight(g_dialog_interface_font) * m_line_count + 0x3f;
         }
-        if (height < GetFontHeight(g_dialog_font_64fde8) * 7) {
-            height = GetFontHeight(g_dialog_font_64fde8) * 7;
+        if (height < GetFontHeight(g_dialog_interface_font) * 7) {
+            height = GetFontHeight(g_dialog_interface_font) * 7;
         }
         if (maximum_width && maximum_width < width) {
             width = maximum_width;
@@ -159,7 +159,7 @@ unsigned int W8MessageDialogBase::WrapMessage(const wchar_t* message)
        bounds it against m_width with JBE at 0x005D2BF2, so the running total is
        the unsigned operand. */
     unsigned int line_width = 0;
-    int space_width = StringPixLength(const_cast<wchar_t*>(L" "), g_dialog_font_64fde8);
+    int space_width = StringPixLength(const_cast<wchar_t*>(L" "), g_dialog_interface_font);
     unsigned int maximum_width = static_cast<unsigned int>(m_width) + 0xf;
     unsigned int index;
 
@@ -177,7 +177,7 @@ unsigned int W8MessageDialogBase::WrapMessage(const wchar_t* message)
     size_t word_length = wcscspn(remaining, L" ");
     while (remaining[word_length] != L'\0') {
         remaining[word_length] = L'\0';
-        int word_width = StringPixLength(remaining, g_dialog_font_64fde8);
+        int word_width = StringPixLength(remaining, g_dialog_interface_font);
         if (line_width + word_width > maximum_width) {
             if (words_on_line != 0) {
                 ++line_index;
@@ -202,7 +202,7 @@ unsigned int W8MessageDialogBase::WrapMessage(const wchar_t* message)
         word_length = wcscspn(remaining, L" ");
     }
 
-    int word_width = StringPixLength(remaining, g_dialog_font_64fde8);
+    int word_width = StringPixLength(remaining, g_dialog_interface_font);
     if (line_width + word_width > static_cast<unsigned int>(m_width)) {
         ++line_index;
         wcscpy(lines[line_index], remaining);
@@ -249,7 +249,7 @@ int W8MessageDialogBase::CreateControls()
         }
     }
     m_message_button =
-        CreateTextButton(0, g_dialog_font_64fde8, g_dialog_font_foreground,
+        CreateTextButton(0, g_dialog_interface_font, g_dialog_font_foreground,
                          g_dialog_font_background, m_edge_image, static_cast<short>(m_x + 9),
                          static_cast<short>(m_y + 9), static_cast<short>(m_width - 0x12),
                          static_cast<short>(m_height - 0x12), 0x8004, 0x7e, 0, 0);
