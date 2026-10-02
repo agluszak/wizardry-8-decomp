@@ -64,6 +64,35 @@ static_assert(sizeof(W8CampCharacterInfo) == 0x6c, "W8CampCharacterInfo_size");
 /* Retail secondary vftable 0x005ef270 places W8TextControl::Listener at +0x4c. */
 W8_ASSERT_BASE_END(W8CampCharacterInfo, W8TextControl::Listener, m_combat_view, 0x4c);
 
+/* W8CampScreenState::redraw_flags. Party-slot bits are shifted by the slot
+   and realm-spell bits by the realm. */
+enum W8CampRedrawFlag {
+    W8_CAMP_REDRAW_PARTY_SLOT_FIRST = 0x00000001,
+    W8_CAMP_REDRAW_PORTRAIT = 0x00000100,
+    W8_CAMP_REDRAW_ITEM_ACTIONS = 0x00001000,
+    W8_CAMP_REDRAW_CHARACTER_INFO = 0x00002000,
+    W8_CAMP_REDRAW_EFFECT_LIST = 0x00020000,
+    W8_CAMP_REDRAW_RESISTANCES = 0x00100000,
+    W8_CAMP_REDRAW_REALM_SPELLS_FIRST = 0x00200000,
+    W8_CAMP_REDRAW_ACTION_PANEL = 0x08000000,
+    W8_CAMP_REDRAW_ALL = 0x0fffffff,
+    W8_CAMP_REDRAW_REALM_TABS = 0x10000000
+};
+
+/* W8CampScreenState::item_redraw_flags. Cell bits are shifted by the cell. */
+enum W8CampItemRedrawFlag {
+    W8_CAMP_ITEM_REDRAW_BACKPACK_HEADER = 0x00000001,
+    W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST = 0x00000002,
+    W8_CAMP_ITEM_REDRAW_BACKPACK = 0x000001ff,
+    W8_CAMP_ITEM_REDRAW_PAPER_DOLL = 0x00000200,
+    W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST = 0x00000400,
+    W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELLS = 0x003ffc00,
+    W8_CAMP_ITEM_REDRAW_EQUIPMENT = 0x003ffe00,
+    W8_CAMP_ITEM_REDRAW_POOL_HEADER = 0x00400000,
+    W8_CAMP_ITEM_REDRAW_POOL_CELL_FIRST = 0x00800000,
+    W8_CAMP_ITEM_REDRAW_POOL = 0x7fc00000
+};
+
 /* malloc(0xd54) in Camp entry owns the record. Suspension destroys this UI;
    the screen-state stack retains the arguments needed to recreate it. */
 struct W8CampScreenState {

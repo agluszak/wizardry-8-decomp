@@ -243,7 +243,7 @@ int g_equip_slot_icons[12] = {0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0};
 // GLOBAL: WIZ8 0x0061E810
 // offset alias of the tail of g_equip_class_name_ids; shared retail
 // storage.
-extern const unsigned short g_generic_item_name_notice[W8_GENERIC_ITEM_NAME_COUNT] = {
+unsigned short g_generic_item_name_notice[W8_GENERIC_ITEM_NAME_COUNT] = {
     0x45a, 0x45b, 0x45c, 0x45d, 0x45e, 0x45f, 0x460, 0x461, 0x462, 0x463, 0x464, 0x465, 0x466,
     0x467, 0x468, 0x469, 0x46a, 0x46b, 0x46c, 0x46d, 0x46e, 0x46f, 0x470, 0x471, 0x472, 0x473,
     0x474, 0x475, 0x476, 0x477, 0x478, 0x479, 0x47a, 0x47b, 0x47c, 0x47d, 0x47e, 0x47f, 0x480,
@@ -1571,7 +1571,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
         RedistributePartyEncumbrance();
     }
     if (g_current_screen_state.id == W8_SCREEN_CAMP && g_camp_screen != 0) {
-        g_camp_screen->item_redraw_flags |= 2 << stored_index;
+        g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST << stored_index;
     }
     if (announce) {
         PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x1e8],
@@ -3411,7 +3411,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char 
     }
 
     if (g_current_screen_state.id == W8_SCREEN_CAMP && g_camp_screen != 0) {
-        g_camp_screen->item_redraw_flags |= 0x7fc00000;
+        g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL;
     }
     if (announce) {
         ShowNoticef(8, gppStringList[0x1e9], display_name);

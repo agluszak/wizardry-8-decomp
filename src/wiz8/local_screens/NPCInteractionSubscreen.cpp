@@ -4646,7 +4646,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
         RequestRedraw(0xff);
         RequestRedraw(0x8000);
     } else if (g_current_screen_state.id == W8_SCREEN_CAMP) {
-        g_camp_screen->redraw_flags |= 0x0fffffff;
+        g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     }
     g_screen_state_00649f1c->quote_bubble = -1;
 }

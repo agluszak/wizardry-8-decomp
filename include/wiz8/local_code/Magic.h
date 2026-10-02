@@ -139,7 +139,7 @@ unsigned char SpellAffectedTarget(W8Character* character, int spell_id, W8Combat
                                   unsigned int power);
 void TrackItemSpellSource(W8Character* character, int spell_id);
 bool IsTeleportCastMissingAnchor(W8Character* character, int spell_id); /* 0x00501D00 */
-extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
+extern unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
 void DetachMissileReferences(W8Missile* missile);
 bool AllSpellEffectsStillRunning(void); /* 0x00500E50 */

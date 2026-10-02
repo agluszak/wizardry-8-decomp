@@ -152,7 +152,7 @@ W8CampStatsRange::~W8CampStatsRange()
 void W8CampStatsRange::OnRangeChanged(W8RangeControl*)
 {
     g_camp_screen->effect_scroll = m_range->m_value;
-    g_camp_screen->redraw_flags |= 0x20000;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_EFFECT_LIST;
 }
 
 /* The shared camp-range refresh, emitted inside this unit in both retail and
@@ -226,7 +226,7 @@ void W8CampStatsControls::OnPrimary(W8TextControl* control)
                                        g_W8TextControlStateSecondary) != 0;
     }
     FilterCampEffectList();
-    g_camp_screen->redraw_flags |= 0x20000;
+    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_EFFECT_LIST;
 }
 
 /* The stats page's full redraw: attribute rows with their base/effective
@@ -236,7 +236,7 @@ void W8CampStatsControls::OnPrimary(W8TextControl* control)
 void DrawCampStatsPage(void)
 {
     SetFont(g_wiz_text_font_secondary);
-    if (g_camp_screen->redraw_flags == 0xfffffff) {
+    if (g_camp_screen->redraw_flags == W8_CAMP_REDRAW_ALL) {
         DrawCatalogImageAndInvalidate(-0xe, 0x142, 0, 1, 0, 0xa5, 2, 0);
         g_camp_stats_origin_x = 0;
         g_camp_stats_origin_y = 0xa5;
@@ -332,7 +332,7 @@ void DrawCampStatsPage(void)
         g_camp_screen->stats_controls->Invalidate(0);
         g_camp_screen->stats_range->m_range->Invalidate(0);
     }
-    if ((g_camp_screen->redraw_flags & 0x20000) != 0) {
+    if ((g_camp_screen->redraw_flags & W8_CAMP_REDRAW_EFFECT_LIST) != 0) {
         InvalidateRegion(0x15d, 0xbe, 0x260, 0x1b5, 0);
         BlitCatalogSurfaceRectTo16BPP(-0xe, 0x15d, 0xbe, 0x260, 0x1b5, 0x1b6, 0, 0);
         DrawCampEffectList();
@@ -815,7 +815,7 @@ void DisableCampSkillRegions(void)
 void DrawCampSkillsPage(void)
 {
     SetFont(g_wiz_text_font_secondary);
-    if (g_camp_screen->redraw_flags == 0xfffffff) {
+    if (g_camp_screen->redraw_flags == W8_CAMP_REDRAW_ALL) {
         bool has_fifth = false;
         int skill;
         for (skill = 0; skill < 0x29; ++skill) {
