@@ -183,7 +183,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                     nav.y = anchor.y + 2000.0f;
                     nav.y = SettlePositionToGround(&nav, 0);
                     srVector3T<float> cam(nav.x, nav.y + g_default_world_height, nav.z);
-                    WorldSetCameraLocation(GetWorld659AB8(), &cam);
+                    WorldSetCameraLocation(GetSecondaryWorld(), &cam);
                     g_startup_world->SetPositionInternal(&nav);
                     RefreshAllSight();
                     party_position = nav;
@@ -689,7 +689,7 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
                 continue;
             }
             srVector3T<float> cam(nav.x, nav.y + g_default_world_height, nav.z);
-            WorldSetCameraLocation(GetWorld659AB8(), &cam);
+            WorldSetCameraLocation(GetSecondaryWorld(), &cam);
             g_startup_world->SetPositionInternal(&nav);
             *moved = true;
         }
