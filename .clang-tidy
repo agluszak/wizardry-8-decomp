@@ -79,6 +79,7 @@ Checks: >
   -*,
   wiz8-redundant-scalar-cast,
   wiz8-bool-like-byte,
+  wiz8-scalar-facts,
   wiz8-project-record-reinterpret-cast,
   bugprone-misplaced-widening-cast,
   readability-redundant-casting,
