@@ -63,7 +63,7 @@ source that could plausibly have constituted Wizardry's SGP library is kept:
   `Mutex Manager.c`, `WinFont.c`, `video.c`), their orphaned headers, the
   JA2 Visual Studio project, the `JA2 SGP ALL.H` umbrella and the Smacker/RAD,
   `dsound.h`, `trle.h` and `Bitmap.h` headers were removed; the baseline above
-  retains them. `DbMan.h` stays for the `HDBFILE` handle in `FileMan.c`.
+  retains them. `DbMan.h` stays for the `HDBFILE` handle in `FileMan.cpp`.
   Wizardry's renderer is `Video2.cpp`, not released `video.c`.
 - `Mutex Manager.h` stays although no retained code calls the mutex API:
   removing its declarations from `Video2.h`/`sgp.h` changes VC6 code
@@ -73,7 +73,7 @@ source that could plausibly have constituted Wizardry's SGP library is kept:
 - The released JA2, utility (`UTIL`/`UTILS`) and precompiled-header
   configuration branches are collapsed to the Wizardry build. Their removal
   changes no generated code except `__LINE__` immediates, and every retained
-  `DirectDraw Calls.c` `ATTEMPT` line number moves closer to retail's value.
+  `DirectDraw Calls.cpp` `ATTEMPT` line number moves closer to retail's value.
 
 ## Retained-function audit (2026-10-03)
 
@@ -90,7 +90,7 @@ baseline:
 - not retained and not referenced by any retained or product code (335).
 
 The unreferenced, unretained bodies and their prototypes were removed, except
-in `DirectDraw Calls.c`. There, retail `ATTEMPT` `__LINE__` immediates keep the
+in `DirectDraw Calls.cpp`. There, retail `ATTEMPT` `__LINE__` immediates keep the
 released spacing between retained functions (for example `DDGetSurfaceDescription`
 120 → `DDRestoreSurface` 224 in retail). So the eleven unretained bodies between
 them were present in Wizardry's file, and they stay. Elsewhere, absence from the
@@ -99,7 +99,7 @@ contained it.
 
 SGP comparison findings after the delta recovery are classified:
 
-- `DirectDraw Calls.c` `ATTEMPT` line numbers exceed retail by exactly one per
+- `DirectDraw Calls.cpp` `ATTEMPT` line numbers exceed retail by exactly one per
   `// FUNCTION:` marker above the call (plus the modification notice): the
   drift is our annotation, not authored source. The released macro still uses
   `__LINE__`/`__FILE__`; the unit now compiles from its ordinary checkout path.
@@ -111,7 +111,7 @@ SGP comparison findings after the delta recovery are classified:
   this does not establish their original source names or template arguments.
 - `GetRuntimeSettings` is inlined into `InitializeStandardGamingPlatform` by
   the recomp but called by retail; both standalone bodies match. The remaining
-  `LibraryDataBase.c`, `RedirectToString` and `AddSubdirectoryToPath` residuals
+  `LibraryDataBase.cpp`, `RedirectToString` and `AddSubdirectoryToPath` residuals
   are block-layout, CSE and stack-slot lowering.
 
 Retail list callers reach the folded size/delete bodies through `ListSize` and
@@ -129,14 +129,14 @@ font table, startup and input behavior, sound-cache revision, and SLF mapping
 and patch precedence. The retail English input table is **512 words**, not the
 released 1,024: its two character banks occupy `0x005ffc3c..0x0060003b`.
 Library initialization records are `0x103` bytes and library records are `0x28`
-bytes; the latter include the patch flag and mapping fields. `WizLibs.c` owns the
+bytes; the latter include the patch flag and mapping fields. `WizLibs.cpp` owns the
 product library configuration: 50 records, six initially populated. Retail
 allocates 56 open-library records separately; the two capacities are not the
 same. The patch loop is preserved, including this original capacity discrepancy.
 `UnlockMouseBuffer`, `VideoCaptureToggle` and SGP's two-argument
 `PlayButtonSound` share the retail no-op at `0x004023a0`; `DeleteList`/
 `DeleteStack` and `ListSize`/`StackSize` are folded pairs. The
-`DirectDraw Calls.c` `__FILE__` string fixes the `C:\Projects\SGP` build path.
+`DirectDraw Calls.cpp` `__FILE__` string fixes the `C:\Projects\SGP` build path.
 
 JA2 Utils `Text_Input` is not an SGP unit. The Wizardry derivative remains
 product code; its released ancestor is `ja2-stracciatella/ja2-stracciatella`

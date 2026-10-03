@@ -2,36 +2,36 @@
 # ancestor; this list records the object contributions present in Wizardry.
 
 add_library(WIZ8_SGP STATIC
-    sgp.c
-    input.c
-    vsurface.c
-    Container.c
-    DEBUG.C
-    MemMan.c
-    FileMan.c
-    vobject.c
-    timer.c
-    Font.c
-    soundman.c
-    mousesystem.c
-    "Button System.c"
-    "Cursor Control.c"
-    "Button Sound Control.c"
-    RegInst.c
-    "DirectDraw Calls.c"
-    "DirectX Common.c"
-    LibraryDataBase.c
-    WizLibs.c
-    line.c
-    himage.c
-    STCI.c
-    PCX.C
-    impTGA.c
-    vobject_blitters.c
-    shading.c
-    Compression.c
-    Random.c
-    English.c
+    sgp.cpp
+    input.cpp
+    vsurface.cpp
+    Container.cpp
+    DEBUG.cpp
+    MemMan.cpp
+    FileMan.cpp
+    vobject.cpp
+    timer.cpp
+    Font.cpp
+    soundman.cpp
+    mousesystem.cpp
+    "Button System.cpp"
+    "Cursor Control.cpp"
+    "Button Sound Control.cpp"
+    RegInst.cpp
+    "DirectDraw Calls.cpp"
+    "DirectX Common.cpp"
+    LibraryDataBase.cpp
+    WizLibs.cpp
+    line.cpp
+    himage.cpp
+    STCI.cpp
+    PCX.cpp
+    impTGA.cpp
+    vobject_blitters.cpp
+    shading.cpp
+    Compression.cpp
+    Random.cpp
+    English.cpp
 )
 
 # The retained non-JA2 cursor entry folds to the byte-zero body at 0x5a1140;
@@ -40,8 +40,7 @@ add_library(WIZ8_SGP STATIC
 # Released units without a Wizardry contribution are not part of this source
 # tree; README.md records them and the pinned released baseline.
 
-set_source_files_properties(PCX.C DEBUG.C PROPERTIES LANGUAGE C)
-set_source_files_properties(DEBUG.C PROPERTIES COMPILE_DEFINITIONS _NO_DEBUG_TXT)
+set_source_files_properties(DEBUG.cpp PROPERTIES COMPILE_DEFINITIONS _NO_DEBUG_TXT)
 target_compile_options(WIZ8_SGP PRIVATE /nologo /Z7 /O2 /Ob2)
 if(NOT WIZ8_ANALYSIS_BUILD)
     target_compile_options(WIZ8_SGP PRIVATE /G5 /MD)
@@ -53,7 +52,7 @@ target_include_directories(WIZ8_SGP PRIVATE
     "${PROJECT_SOURCE_DIR}/include/wiz8/engine_code"
     "${PROJECT_SOURCE_DIR}/include/wiz8/sgp-compat"
 )
-# DirectX Common.c owns the two DirectDraw IIDs; search the SDK archive after
+# DirectX Common.cpp owns the two DirectDraw IIDs; search the SDK archive after
 # extracting the SGP objects for the remaining GUIDs.
 target_link_libraries(WIZ8_SGP PUBLIC dxguid.lib)
 
