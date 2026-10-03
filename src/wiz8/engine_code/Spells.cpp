@@ -235,7 +235,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
 
     lights = *host->light_lists[cycle].GetAt(0);
     SetLights(lights);
-    if (g_render_flag_60a20c != 0 && lights != 0) {
+    if (g_render_missile_lights != 0 && lights != 0) {
         for (index = 0; index < lights->GetCount(); ++index) {
             stLight* light = *lights->GetAt(index);
 

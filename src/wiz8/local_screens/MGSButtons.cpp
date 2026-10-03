@@ -84,7 +84,7 @@ W8DialogButton* g_combat_stance_buttons[5];
 // GLOBAL: WIZ8 0x0069B8B0
 W8DialogButton* g_submenu_buttons[9];
 // GLOBAL: WIZ8 0x0069B8D4
-bool g_submenu_flag_69b8d4;
+bool g_submenu_close_pending;
 /* Roof viewpoint buttons: modes 0, 1 and 2. */
 // GLOBAL: WIZ8 0x0069B8D8
 W8DialogButton* g_roof_buttons[3];
@@ -429,7 +429,7 @@ void ResetSubMenuPanel(void)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = false;
+    g_submenu_close_pending = false;
     RequestRedraw(0x200);
 }
 
@@ -508,7 +508,7 @@ static void SubMenuPanelCloseButton(W8DialogButton* button)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = false;
+    g_submenu_close_pending = false;
     RequestRedraw(0x200);
 }
 
@@ -1617,9 +1617,9 @@ void UpdateSubMenuAutoClose(void)
     if (IsCursorInRectangle(left, gpSubMenuPanel->m_bounds.top, right,
                             gpSubMenuPanel->m_bounds.top + 0x1c) == 0) {
     check_clock:
-        if (g_submenu_flag_69b8d4 == 0) {
+        if (g_submenu_close_pending == 0) {
             g_submenu_clock = SetCountdownClock(500);
-            g_submenu_flag_69b8d4 = true;
+            g_submenu_close_pending = true;
             return;
         }
         if (ClockIsTicking(g_submenu_clock) == 0) {
@@ -1642,9 +1642,9 @@ void UpdateSubMenuAutoClose(void)
             } while (row < &g_submenu_rows[5]);
             RequestRedraw(0x200);
         }
-    } else if (g_submenu_flag_69b8d4 != 0) {
+    } else if (g_submenu_close_pending != 0) {
         g_submenu_clock = SetCountdownClock(0);
-        g_submenu_flag_69b8d4 = false;
+        g_submenu_close_pending = false;
     }
 }
 

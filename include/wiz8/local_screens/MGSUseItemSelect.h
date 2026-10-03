@@ -23,7 +23,7 @@ extern W8TextControl* g_use_item_select_controls[9];
 struct W8ItemInstance;
 
 extern W8MainUiMode g_use_item_select_return_mode;
-extern W8ItemInstance* g_value_69b9a0;
+extern W8ItemInstance* g_use_item_selected;
 extern W8ItemInstance* g_use_item_select_override_item;
 
 /* 0x0069BF30: gXStatus.iCurrentCursor saved while an item/spell info dialog

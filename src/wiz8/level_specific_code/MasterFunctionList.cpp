@@ -68,7 +68,7 @@ static W8WorldCursorNode* g_active_cursor_node;
 // GLOBAL: WIZ8 0x006834d8
 W8Vector<W8MasterFunction>* g_master_functions;
 // GLOBAL: WIZ8 0x006834dc
-bool g_flag_006834dc;
+bool g_remove_current_master_function;
 
 /* SGP full-volume scale: CreateAndPlaySoundNode multiplies its clamped
    loudness fraction by this to get the node's base volume. */
@@ -84,7 +84,7 @@ void RunMasterFunctions(void)
 
     for (int index = 0; index < count; ++index) {
         (*g_master_functions->GetAt(index))(0);
-        if (g_flag_006834dc != 0) {
+        if (g_remove_current_master_function != 0) {
             g_master_functions->RemoveAt(index);
             --count;
             --index;
@@ -495,9 +495,9 @@ int NormalizeMasterFunctionValue(int value)
 #define MASTER_FUNCTION_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\MasterFunctionList.cpp"
 
 // GLOBAL: WIZ8 0x006834DD
-bool g_flag_006834dd;
+bool g_running_trigger_from_script;
 // GLOBAL: WIZ8 0x006109F0
-bool g_flag_6109f0 = true;
+bool g_npc_dialogue_closed = true;
 // GLOBAL: WIZ8 0x006834E0
 static int g_value_6834e0;
 // GLOBAL: WIZ8 0x00652DA5
@@ -646,8 +646,8 @@ void InitializeLevelMasterFunctions(int level)
             index)); /* reinterpret-ok: function entry stored as data */
         operator delete(entry);
     }
-    g_flag_006834dd = false;
-    g_flag_6109f0 = true;
+    g_running_trigger_from_script = false;
+    g_npc_dialogue_closed = true;
     g_value_6834e0 = level;
     g_flag_652da5 = false;
     switch (level) {

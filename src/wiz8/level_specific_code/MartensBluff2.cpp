@@ -96,9 +96,9 @@ void MartensBluff2Setup(void)
     if (pTrigger != 0) {
         if (GetLocationVarIDByName("RavenQuest") == -1) {
             CreateLocationVar("RavenQuest", 0);
-            g_flag_006834dd = true;
+            g_running_trigger_from_script = true;
             FindTriggerByName("Dummy")->Run(-1);
-            g_flag_006834dd = false;
+            g_running_trigger_from_script = false;
         } else {
             quest_state = GetLocationVarValueByName("RavenQuest");
         }
@@ -262,7 +262,7 @@ void MartensBluff2Spikeball(int command)
             g_master_functions->Add(MartensBluff2Spikeball);
         }
     }
-    g_flag_006834dc = 0;
+    g_remove_current_master_function = 0;
     if (g_spikeball_count < 0x10) {
         if (g_spikeball_count == 0 || g_spikeball_gate->IsFinished() ||
             (g_spikeball_gate->PollElapsedIntervals(), g_spikeball_gate->IsFinished())) {
@@ -333,7 +333,7 @@ void MartensBluff2Spikeball(int command)
     } else {
         SetTriggerVariableByName("SpikedBallLauncher", g_spikeball_count);
     }
-    g_flag_006834dc = true;
+    g_remove_current_master_function = true;
 }
 
 /* "DoorBolt": re-arms the side-gate text trigger when the bolt opens. */
@@ -362,7 +362,7 @@ bool MartensBluff2DummyLever(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DDD80
 bool MartensBluff2Dummy(Trigger* pTrigger)
 {
-    if (g_flag_006834dd == 0) {
+    if (g_running_trigger_from_script == 0) {
         Trigger* pPerfumeBox = FindTriggerByName("PerfumeBox");
         if (pPerfumeBox != 0) {
             pPerfumeBox->flags_0a0 |= W8_TRIGGER_ENABLED;
@@ -533,14 +533,14 @@ void MartensBluff2MonsterCrusher(int command)
             g_master_functions->Add(MartensBluff2MonsterCrusher);
         }
         if (command != 1 && GetLocationVarValueByName("RavenQuest") != 0) {
-            g_flag_006834dd = true;
+            g_running_trigger_from_script = true;
             FindTriggerByName("Dummy")->Run(-1);
             FindTriggerByName("DummyRope")->Run(-1);
-            g_flag_006834dd = false;
+            g_running_trigger_from_script = false;
         }
         return;
     }
-    g_flag_006834dc = false;
+    g_remove_current_master_function = false;
     if (g_squisher3_prop == 0) {
         return;
     }
@@ -554,7 +554,7 @@ void MartensBluff2MonsterCrusher(int command)
         if (g_dummy_rope_prop->Rep()->animation_playing_06d != 0) {
             return;
         }
-        g_flag_006834dc = true;
+        g_remove_current_master_function = true;
         g_crusher_active = false;
         g_crusher_state = 0;
         return;
@@ -566,12 +566,12 @@ void MartensBluff2MonsterCrusher(int command)
         g_crusher_sound = 0;
         pTrigger = FindTriggerByName("Dummy");
         if (GetLocationVarValueByName("RavenQuest") == 0) {
-            g_flag_006834dc = true;
+            g_remove_current_master_function = true;
             g_crusher_active = false;
             g_crusher_state = 0;
             return;
         }
-        g_flag_006834dd = true;
+        g_running_trigger_from_script = true;
         pTrigger->Run(-1);
         if (pTrigger->m_bRepType != 2) {
             srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
@@ -585,7 +585,7 @@ void MartensBluff2MonsterCrusher(int command)
                          0x3ed, 0);
         }
         g_dummy_rope_prop = pTrigger->m_pProp;
-        g_flag_006834dd = false;
+        g_running_trigger_from_script = false;
         g_crusher_state = 2;
         return;
     }
@@ -651,7 +651,7 @@ bool MartensBluff2StoneIdol(Trigger* pTrigger)
     MartensBluff2IdolGas(1);
     g_master_functions->Add(MartensBluff2IdolGas);
     pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
-    g_flag_006834dd = true;
+    g_running_trigger_from_script = true;
     SetFact(0x323, 1, 0);
     return true;
 }
@@ -661,14 +661,14 @@ bool MartensBluff2StoneIdol(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DE620
 bool MartensBluff2BlueFlowers(Trigger* pTrigger)
 {
-    if (g_flag_006834dd == 0) {
+    if (g_running_trigger_from_script == 0) {
         if (g_status.item_in_cursor != 0) {
             return false;
         }
         ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x2eb, 0, 0, 0);
         SetItemCursor(0);
     }
-    g_flag_006834dd = false;
+    g_running_trigger_from_script = false;
     return true;
 }
 
@@ -692,9 +692,9 @@ void MartensBluff2IdolGas(int command)
         g_idol_gas_gate = new W8IntervalGate(4.0f, 0, 1);
         return;
     }
-    g_flag_006834dc = false;
+    g_remove_current_master_function = false;
     if (g_idol_gas_armed == 0) {
-        g_flag_006834dc = true;
+        g_remove_current_master_function = true;
         if (g_idol_gas_gate != 0) {
             delete g_idol_gas_gate;
         }

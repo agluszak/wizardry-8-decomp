@@ -104,19 +104,19 @@ unsigned int* g_automap_cell_keys;
 // GLOBAL: WIZ8 0x0068F284
 W8HashTable<unsigned int, int>* g_automap_cell_index;
 // GLOBAL: WIZ8 0x0068F29C
-stModelInstance2D* g_class_68f29c;
+stModelInstance2D* g_automap_party_marker;
 // GLOBAL: WIZ8 0x0068F2A0
-stModelInstance2D* g_class_68f2a0;
+stModelInstance2D* g_automap_friendly_marker;
 // GLOBAL: WIZ8 0x0068F2A4
-stModelInstance2D* g_class_68f2a4;
+stModelInstance2D* g_automap_neutral_marker;
 // GLOBAL: WIZ8 0x0068F2A8
-stModelInstance2D* g_class_68f2a8;
+stModelInstance2D* g_automap_hostile_marker;
 // GLOBAL: WIZ8 0x0068F2AC
 stModelInstance2D* g_automap_text_marker;
 
 /* Leave releases the pointed-to objects and erases their vector entries. */
 // GLOBAL: WIZ8 0x0068F1F4
-W8Vector<srClass*>* g_releasable_68f1f4;
+W8Vector<srClass*>* g_automap_markers;
 
 // GLOBAL: WIZ8 0x0068f220
 W8GrowableVector<srClipPlane::ClientType*> g_automap_created_layers;
@@ -683,7 +683,7 @@ unsigned char AutomapScreenEnter(void)
     SetAutomapToolCursor(0);
     CreateAutomapMarkerSprites();
     CreateAutomapButtons();
-    g_class_68f29c->setParent(0, 1);
+    g_automap_party_marker->setParent(0, 1);
     g_automap_surface_mode = RendererBufferIsLockable();
     if (g_automap_surface_mode) {
         g_world_render_enabled = 0;
@@ -960,13 +960,13 @@ void AutomapScreenFrame(void)
                     g_automap_zoom_mode != 2) {
                     DisableCursorScene();
                     srVector3T<double> scale(0.44f, 0.44f, 0.44f);
-                    g_class_68f29c->setScale(scale);
+                    g_automap_party_marker->setScale(scale);
                     continue;
                 }
             }
             float factor = (1.0f / (g_automap_zoom * 0.00004f)) * 0.44f;
             srVector3T<double> scale(factor, factor, factor);
-            g_class_68f29c->setScale(scale);
+            g_automap_party_marker->setScale(scale);
             EnableCursorScene();
         }
     }
@@ -1040,14 +1040,14 @@ unsigned char AutomapScreenLeave(int)
         g_automap_surface->release();
         g_automap_surface = 0;
     }
-    while (g_releasable_68f1f4->GetCount()) {
-        srClass* object = *g_releasable_68f1f4->GetAt(0);
+    while (g_automap_markers->GetCount()) {
+        srClass* object = *g_automap_markers->GetAt(0);
         object->release();
-        int index = g_releasable_68f1f4->IndexOf(object);
+        int index = g_automap_markers->IndexOf(object);
         if (index >= 0)
-            g_releasable_68f1f4->RemoveAt(index);
+            g_automap_markers->RemoveAt(index);
     }
-    g_class_68f29c->setParent(0, 1);
+    g_automap_party_marker->setParent(0, 1);
     for (int index = 0; index < 16; ++index) {
         delete g_automap_buttons[index];
     }
@@ -1099,25 +1099,25 @@ unsigned char AutomapScreenFinalize(void)
         delete record;
         g_automap_cell_index = 0;
     }
-    if (g_class_68f29c) {
-        g_class_68f29c->release();
-        g_class_68f29c = 0;
+    if (g_automap_party_marker) {
+        g_automap_party_marker->release();
+        g_automap_party_marker = 0;
     }
-    if (g_class_68f2a0) {
-        g_class_68f2a0->release();
-        g_class_68f2a0 = 0;
+    if (g_automap_friendly_marker) {
+        g_automap_friendly_marker->release();
+        g_automap_friendly_marker = 0;
     }
-    if (g_class_68f2a4) {
-        g_class_68f2a4->release();
-        g_class_68f2a4 = 0;
+    if (g_automap_neutral_marker) {
+        g_automap_neutral_marker->release();
+        g_automap_neutral_marker = 0;
     }
-    if (g_class_68f2a8) {
-        g_class_68f2a8->release();
-        g_class_68f2a8 = 0;
+    if (g_automap_hostile_marker) {
+        g_automap_hostile_marker->release();
+        g_automap_hostile_marker = 0;
     }
-    if (g_releasable_68f1f4) {
-        delete g_releasable_68f1f4;
-        g_releasable_68f1f4 = 0;
+    if (g_automap_markers) {
+        delete g_automap_markers;
+        g_automap_markers = 0;
     }
     return 1;
 }
@@ -1933,10 +1933,10 @@ W8AutomapNote* FindAutomapNoteUnderCursor(void)
 // FUNCTION: WIZ8 0x005822C0
 void CreateAutomapMarkerSprites(void)
 {
-    if (g_releasable_68f1f4 == 0) {
-        g_releasable_68f1f4 = new W8Vector<srClass*>(5);
+    if (g_automap_markers == 0) {
+        g_automap_markers = new W8Vector<srClass*>(5);
     }
-    if (g_class_68f29c == 0) {
+    if (g_automap_party_marker == 0) {
         stTextureFile* texture = new stTextureFile("Data\\Automap\\map_partymarker_a.tga", 0);
         texture->autoRelease();
         texture->enableHint(srTextureIFace::HINT_POSITIONAL_2);
@@ -1948,23 +1948,23 @@ void CreateAutomapMarkerSprites(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f29c =
+            g_automap_party_marker =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
                                         surface->getHeight() * g_viewport_x_scale, 1, 1);
-            g_class_68f29c->setParent(g_scene_square, 1);
-            static_cast<srMeshModel*>(g_class_68f29c->getModel())
+            g_automap_party_marker->setParent(g_scene_square, 1);
+            static_cast<srMeshModel*>(g_automap_party_marker->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
-            g_class_68f29c->SetGlowEnabled(1);
+            g_automap_party_marker->SetGlowEnabled(1);
             srVector4T<float> first;
             srVector4T<float> second;
             first.Set(0.0f, 0.25f, 0.0f, 1.0f);
             second.Set(0.0f, 0.75f, 0.0f, 1.0f);
-            g_class_68f29c->SetGlowColors(&first, &second);
-            g_class_68f29c->render_state_164.render_depth = 2000;
+            g_automap_party_marker->SetGlowColors(&first, &second);
+            g_automap_party_marker->render_state_164.render_depth = 2000;
         }
     }
-    if (g_class_68f2a0 == 0) {
+    if (g_automap_friendly_marker == 0) {
         stTextureFile* texture = new stTextureFile("Data\\Automap\\map_monsterfriendly_a.tga", 0);
         texture->autoRelease();
         texture->enableHint(srTextureIFace::HINT_POSITIONAL_2);
@@ -1976,15 +1976,15 @@ void CreateAutomapMarkerSprites(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f2a0 =
+            g_automap_friendly_marker =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
                                         surface->getHeight() * g_viewport_y_scale, 1, 0);
-            static_cast<srMeshModel*>(g_class_68f2a0->getModel())
+            static_cast<srMeshModel*>(g_automap_friendly_marker->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
         }
     }
-    if (g_class_68f2a4 == 0) {
+    if (g_automap_neutral_marker == 0) {
         stTextureFile* texture = new stTextureFile("Data\\Automap\\map_monsterneutral_a.tga", 0);
         texture->autoRelease();
         texture->enableHint(srTextureIFace::HINT_POSITIONAL_2);
@@ -1996,15 +1996,15 @@ void CreateAutomapMarkerSprites(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f2a4 =
+            g_automap_neutral_marker =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
                                         surface->getHeight() * g_viewport_y_scale, 1, 0);
-            static_cast<srMeshModel*>(g_class_68f2a4->getModel())
+            static_cast<srMeshModel*>(g_automap_neutral_marker->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
         }
     }
-    if (g_class_68f2a8 == 0) {
+    if (g_automap_hostile_marker == 0) {
         stTextureFile* texture = new stTextureFile("Data\\Automap\\map_monsterhostile_a.tga", 0);
         texture->autoRelease();
         texture->enableHint(srTextureIFace::HINT_POSITIONAL_2);
@@ -2016,10 +2016,10 @@ void CreateAutomapMarkerSprites(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f2a8 =
+            g_automap_hostile_marker =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
                                         surface->getHeight() * g_viewport_y_scale, 1, 0);
-            static_cast<srMeshModel*>(g_class_68f2a8->getModel())
+            static_cast<srMeshModel*>(g_automap_hostile_marker->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
         }
@@ -2052,12 +2052,12 @@ void CreateAutomapMarkerSprites(void)
 void RenderAutomapMarkers(void)
 {
     bool detect_all = PartyHasCondition(0x40);
-    while (g_releasable_68f1f4->GetCount()) {
-        srClass* object = *g_releasable_68f1f4->GetAt(0);
+    while (g_automap_markers->GetCount()) {
+        srClass* object = *g_automap_markers->GetAt(0);
         object->release();
-        int index = g_releasable_68f1f4->IndexOf(object);
+        int index = g_automap_markers->IndexOf(object);
         if (index >= 0)
-            g_releasable_68f1f4->RemoveAt(index);
+            g_automap_markers->RemoveAt(index);
     }
     float left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
     srVector3T<float> point(g_automap_saved_camera.position.x, 1.0f,
@@ -2065,26 +2065,26 @@ void RenderAutomapMarkers(void)
     float top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
     if (point.x < left || left + g_automap_zoom < point.x || point.z < top ||
         top + g_automap_zoom < point.z) {
-        g_class_68f29c->setFlag(srNode::FLAG_DISABLE);
+        g_automap_party_marker->setFlag(srNode::FLAG_DISABLE);
     } else {
         int x = 0xc - static_cast<int>((point.x - left) / g_automap_zoom * -455.0f);
         int y = 0x20 - static_cast<int>((1.0f - (point.z - top) / g_automap_zoom) * -435.0f);
         float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f;
         srVector3T<double> scale(factor, factor, factor);
-        g_class_68f29c->setScale(scale);
-        if (g_class_68f29c->GetScaledHeight() < 1) {
-            g_class_68f29c->setScale(srVector3T<double>(1.0, 1.0, 1.0));
-            factor = g_float_005ebb38 / g_class_68f29c->GetScaledHeight();
+        g_automap_party_marker->setScale(scale);
+        if (g_automap_party_marker->GetScaledHeight() < 1) {
+            g_automap_party_marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
+            factor = g_float_005ebb38 / g_automap_party_marker->GetScaledHeight();
             scale.Set(factor, factor, factor);
-            g_class_68f29c->setScale(scale);
+            g_automap_party_marker->setScale(scale);
         }
-        unsigned short width = g_class_68f29c->GetScaledWidth();
-        unsigned short height = g_class_68f29c->GetScaledHeight();
-        PositionToolTipNode(g_class_68f29c, x - (width >> 1), y - (height >> 1), 0);
-        g_class_68f29c->setRotation(0.0, 0.0, -static_cast<double>(GetCameraYawRadians()));
-        g_class_68f29c->clearFlag(srNode::FLAG_DISABLE);
-        g_class_68f29c->setParent(0, 1);
-        g_class_68f29c->setParent(g_scene_square, 1);
+        unsigned short width = g_automap_party_marker->GetScaledWidth();
+        unsigned short height = g_automap_party_marker->GetScaledHeight();
+        PositionToolTipNode(g_automap_party_marker, x - (width >> 1), y - (height >> 1), 0);
+        g_automap_party_marker->setRotation(0.0, 0.0, -static_cast<double>(GetCameraYawRadians()));
+        g_automap_party_marker->clearFlag(srNode::FLAG_DISABLE);
+        g_automap_party_marker->setParent(0, 1);
+        g_automap_party_marker->setParent(g_scene_square, 1);
     }
     unsigned int count = PLLength(gXStatus.plsMonsterList);
     for (unsigned int index = 0; index < count; ++index) {
@@ -2257,7 +2257,7 @@ stModelInstance2D* CreateAutomapItemMarker(int item_id)
         return 0;
     }
     static_cast<srMeshModel*>(marker->getModel())->enable(srMeshModel::CONTROL_STARTUP);
-    g_releasable_68f1f4->Add(marker);
+    g_automap_markers->Add(marker);
     marker->SetGlowEnabled(1);
     srVector4T<float> first;
     srVector4T<float> second;
@@ -2288,7 +2288,7 @@ stModelInstance2D* CreateAutomapMonsterMarker(int type)
     case 0: {
         srVector4T<float> first;
         srVector4T<float> second;
-        *marker = *g_class_68f2a0;
+        *marker = *g_automap_friendly_marker;
         second.Set(0.0f, 0.5f, 0.0f, 1.0f);
         first.Set(0.0f, 0.0f, 0.0f, 1.0f);
         marker->SetGlowColors(&first, &second);
@@ -2297,7 +2297,7 @@ stModelInstance2D* CreateAutomapMonsterMarker(int type)
     case 1: {
         srVector4T<float> first;
         srVector4T<float> second;
-        *marker = *g_class_68f2a4;
+        *marker = *g_automap_neutral_marker;
         second.Set(0.25f, 0.25f, 0.0f, 1.0f);
         first.Set(0.0f, 0.0f, 0.0f, 1.0f);
         marker->SetGlowColors(&first, &second);
@@ -2306,14 +2306,14 @@ stModelInstance2D* CreateAutomapMonsterMarker(int type)
     case 2: {
         srVector4T<float> first;
         srVector4T<float> second;
-        *marker = *g_class_68f2a8;
+        *marker = *g_automap_hostile_marker;
         second.Set(0.5f, 0.0f, 0.0f, 1.0f);
         first.Set(0.0f, 0.0f, 0.0f, 1.0f);
         marker->SetGlowColors(&first, &second);
         break;
     }
     }
-    g_releasable_68f1f4->Add(marker);
+    g_automap_markers->Add(marker);
     marker->SetGlowEnabled(1);
     marker->setRenderDepth(2000);
     /* Retail scales by 0.85 as a step of its own; written as one product, VC6
@@ -2340,7 +2340,7 @@ stModelInstance2D* CreateAutomapTextMarker(void)
         return 0;
     }
     *marker = *g_automap_text_marker;
-    g_releasable_68f1f4->Add(marker);
+    g_automap_markers->Add(marker);
     float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f * g_float_005ebc7c;
     if (marker->GetScaledHeight() * factor < g_float_005ebb38) {
         marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));

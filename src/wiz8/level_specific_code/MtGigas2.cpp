@@ -383,7 +383,7 @@ static void MtGigas2UmpaniAlarm(int command)
 {
     srVector3T<float> position;
 
-    g_flag_006834dc = false;
+    g_remove_current_master_function = false;
     if (command != 0) {
         if (GetLocationVarIDByName("UmpaniAlarm") == -1) {
             CreateLocationVar("UmpaniAlarm", 0x1e);
@@ -417,7 +417,7 @@ static void MtGigas2UmpaniAlarm(int command)
             return;
         }
     }
-    g_flag_006834dc = true;
+    g_remove_current_master_function = true;
     g_mt_gigas_alarm_sound->Stop();
     if (g_mt_gigas_alarm_gate != 0) {
         delete g_mt_gigas_alarm_gate;

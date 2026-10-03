@@ -136,7 +136,7 @@ int g_overlay_page_counters[2];
 // GLOBAL: WIZ8 0x6596e8
 unsigned char g_page_full_redraw[2];
 // GLOBAL: WIZ8 0x654ac4
-HINSTANCE g_instance_654ac4;
+HINSTANCE g_app_instance;
 // GLOBAL: WIZ8 0x659620
 unsigned short g_show_command;
 // GLOBAL: WIZ8 0x6595f8
@@ -258,7 +258,7 @@ srMeshModel* g_cursor_model;
 // GLOBAL: WIZ8 0x659690
 srTexture* g_cursor_texture;
 // GLOBAL: WIZ8 0x659694
-srModelInstance* g_cursor_node_659694;
+srModelInstance* g_cursor_node;
 // GLOBAL: WIZ8 0x659698
 unsigned int g_cursor_move_tick;
 // GLOBAL: WIZ8 0x654ad0
@@ -363,7 +363,7 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
     g_overlay_page_counters[1] = 0;
     g_page_full_redraw[0] = 0;
     g_page_full_redraw[1] = 0;
-    g_instance_654ac4 = instance;
+    g_app_instance = instance;
     g_show_command = show_command;
     g_window_proc = (WNDPROC)window_proc;
     Initialize16BitPixelFormatMasks();
@@ -421,9 +421,9 @@ done:
 // FUNCTION: WIZ8 0x00421dc0
 void ShutdownVideoManager(void)
 {
-    if (g_cursor_node_659694) {
-        g_cursor_node_659694->release();
-        g_cursor_node_659694 = 0;
+    if (g_cursor_node) {
+        g_cursor_node->release();
+        g_cursor_node = 0;
     }
     FreeMouseCursor();
     ShutdownVideoScenes();
@@ -600,8 +600,8 @@ unsigned char CreateWizardryWindow(void)
     memset(&window_class, 0, sizeof(window_class));
     window_class.style = CS_VREDRAW | CS_HREDRAW | CS_NOCLOSE | CS_DBLCLKS;
     window_class.lpfnWndProc = g_window_proc;
-    window_class.hInstance = g_instance_654ac4;
-    window_class.hIcon = LoadIconA(g_instance_654ac4, MAKEINTRESOURCEA(106));
+    window_class.hInstance = g_app_instance;
+    window_class.hIcon = LoadIconA(g_app_instance, MAKEINTRESOURCEA(106));
     window_class.hCursor = LoadCursorA(NULL, IDC_ARROW);
     window_class.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
     window_class.lpszClassName = "Wizardry 8";
@@ -634,12 +634,12 @@ unsigned char CreateWizardryWindow(void)
         ghWindow = CreateWindowExA(0, "Wizardry 8", "Wizardry 8", style, g_window_rect.left,
                                    g_window_rect.top, g_window_rect.right - g_window_rect.left,
                                    g_window_rect.bottom - g_window_rect.top, NULL, NULL,
-                                   g_instance_654ac4, NULL);
+                                   g_app_instance, NULL);
     } else {
         style = WS_POPUP | WS_VISIBLE;
         ghWindow = CreateWindowExA(0, "Wizardry 8", "Wizardry 8", style, 0, 0,
                                    GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN),
-                                   NULL, NULL, g_instance_654ac4, NULL);
+                                   NULL, NULL, g_app_instance, NULL);
     }
     if (!ghWindow) {
         return 0;
@@ -1113,7 +1113,7 @@ static RuntimeWorldRenderData ObserveWorldRenderState()
     data.level = g_status.current_level;
     data.flags = (g_world_render_enabled ? 1UL : 0UL) | (g_world_blacked_out ? 2UL : 0UL) |
                  (g_video_active ? 4UL : 0UL) | (g_monster_shadow_updates_enabled ? 8UL : 0UL) |
-                 (g_render_flag_603c6c ? 16UL : 0UL) | (g_world_pick_enabled ? 32UL : 0UL);
+                 (g_render_mesh_sky ? 16UL : 0UL) | (g_world_pick_enabled ? 32UL : 0UL);
     data.scene_children = g_world->static_scene->getChildCount();
     if (g_world->octree != 0 && g_world->psrMeshes != 0) {
         for (unsigned long index = 0; index < g_world->octree->m_meshCount_1b4; ++index) {
@@ -1195,7 +1195,7 @@ void RenderFrame(void)
         if (g_world_blacked_out) {
             goto clear_viewport;
         }
-    } else if (g_world_blacked_out || !g_render_flag_603c6c || g_secondary_world == 0) {
+    } else if (g_world_blacked_out || !g_render_mesh_sky || g_secondary_world == 0) {
     clear_viewport: {
         unsigned long height = g_gerd->getHeight();
         unsigned long width = g_gerd->getWidth();
@@ -1214,7 +1214,7 @@ void RenderFrame(void)
     RenderScene(second_page, g_overlay_camera, 0, 0);
     g_gerd->setTextureReduction(g_resident_texture_policy);
 
-    if (g_render_flag_603c6c && g_secondary_world != 0 && g_monster_shadow_updates_enabled) {
+    if (g_render_mesh_sky && g_secondary_world != 0 && g_monster_shadow_updates_enabled) {
         RenderScene(g_secondary_world->static_scene, g_secondary_world->camera, &g_viewport.left,
                     0);
     }
@@ -1353,7 +1353,7 @@ unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
         gerd->setClearDepth(0.0);
     }
     gerd->clear(srFlags<srGERD::e_buffer>(3));
-    if (render_secondary != 0 && g_render_flag_603c6c != 0 && g_secondary_world != 0) {
+    if (render_secondary != 0 && g_render_mesh_sky != 0 && g_secondary_world != 0) {
         g_secondary_world->static_scene->render(*gerd, g_secondary_world->camera);
     }
     g_world->static_scene->render(*gerd, g_world->camera);
@@ -1660,15 +1660,15 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height)
     if (!g_mouse_surface->resize(extent, extent)) {
         return FALSE;
     }
-    g_cursor_node_659694->release();
+    g_cursor_node->release();
     g_cursor_texture->release();
     mapping_scale = g_surface_scale / extent;
-    g_cursor_node_659694 =
+    g_cursor_node =
         MakePolygonBrush(g_cursor_scene, g_mouse_surface, extent / 640.0, extent / 480.0,
                          mapping_scale, mapping_scale, 1.0f, 1.0f, 1);
-    g_cursor_node_659694->setName("MouseResize");
+    g_cursor_node->setName("MouseResize");
     PositionMouseCursor(g_cursor_width, g_cursor_height, 0);
-    g_cursor_model = static_cast<srMeshModel*>(g_cursor_node_659694->getModel());
+    g_cursor_model = static_cast<srMeshModel*>(g_cursor_node->getModel());
     g_cursor_model->enable(srMeshModel::CONTROL_STARTUP);
     g_cursor_model->setSortBias(-100000.0f);
     g_cursor_model->setName("Mouse Cursor Mesh");
@@ -1799,11 +1799,11 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
     if (g_mouse_surface) {
         g_cursor_width = width < 641 ? width : 640;
         g_cursor_height = height < 481 ? height : 480;
-        if (g_cursor_node_659694) {
+        if (g_cursor_node) {
             location.x = g_cursor_width / 640.0 + g_mouse_surface->getWidth() / 1280.0;
             location.y = 1.0 - g_cursor_height / 480.0 - g_mouse_surface->getHeight() / 960.0;
             location.z = 0.0;
-            g_cursor_node_659694->setLocation(location);
+            g_cursor_node->setLocation(location);
             if (reset_tick) {
                 g_cursor_move_tick = GetTickCount();
             }
@@ -1964,12 +1964,12 @@ unsigned char InitializeMouseCursorScene(void)
     if (g_cursor_texture) {
         g_cursor_texture->release();
     }
-    g_cursor_node_659694 =
+    g_cursor_node =
         MakePolygonBrush(g_cursor_scene, g_mouse_surface, 0.2, 0.26666666666666666,
                          g_surface_scale / 128.0f, g_surface_scale / 128.0f, 1.0f, 1.0f, 1);
-    if (g_cursor_node_659694) {
-        g_cursor_node_659694->setName("MouseInit");
-        g_cursor_model = static_cast<srMeshModel*>(g_cursor_node_659694->getModel());
+    if (g_cursor_node) {
+        g_cursor_node->setName("MouseInit");
+        g_cursor_model = static_cast<srMeshModel*>(g_cursor_node->getModel());
         g_cursor_model->enable(srMeshModel::CONTROL_STARTUP);
         g_cursor_model->setSortBias(-100000.0f);
         g_cursor_texture = static_cast<srTexture*>(g_cursor_model->getTexture(0, 0));

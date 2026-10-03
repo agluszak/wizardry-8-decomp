@@ -1,6 +1,6 @@
 #pragma once
 
-extern bool g_flag_6109f0;
+extern bool g_npc_dialogue_closed;
 extern bool g_flag_652da5;
 
 #include "wiz8/vector.h"
@@ -17,8 +17,8 @@ typedef void (*W8MasterFunction)(int);
 /* The registered master functions, and the flag a callback sets to ask the
    dispatcher to drop it after this run. */
 extern W8Vector<W8MasterFunction>* g_master_functions;
-extern bool g_flag_006834dc;
-extern bool g_flag_006834dd;
+extern bool g_remove_current_master_function;
+extern bool g_running_trigger_from_script;
 
 void ClearActiveWorldCursorNode(void);
 int NormalizeMasterFunctionValue(int value);

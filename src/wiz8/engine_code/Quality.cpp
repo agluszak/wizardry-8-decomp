@@ -30,9 +30,9 @@ float g_render_brightness = 1.0f;
 // GLOBAL: WIZ8 0x0060E610
 float g_render_fog_distance = 0.5f;
 // GLOBAL: WIZ8 0x0060A20C
-bool g_render_flag_60a20c = true;
+bool g_render_missile_lights = true;
 // GLOBAL: WIZ8 0x00603C6C
-bool g_render_flag_603c6c = true;
+bool g_render_mesh_sky = true;
 
 // FUNCTION: WIZ8 0x0047b570
 void DestroyRenderQuality(void)
@@ -71,7 +71,7 @@ void SetRenderOption(int option, int enabled)
             g_render_fog_distance = 0.1f;
         break;
     case W8_RENDER_OPTION_MISSILE_LIGHTS:
-        g_render_flag_60a20c = enabled != 0;
+        g_render_missile_lights = enabled != 0;
         break;
     case W8_RENDER_OPTION_DITHER:
         if ((g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_0) != 0) != (enabled != 0)) {
@@ -91,7 +91,7 @@ void SetRenderOption(int option, int enabled)
                                                 : srTextureIFace::MIPMAP_NONE);
         break;
     case W8_RENDER_OPTION_MESH_SKY:
-        g_render_flag_603c6c = enabled != 0;
+        g_render_mesh_sky = enabled != 0;
         break;
     case W8_RENDER_OPTION_HIGH_TEXTURE_DETAIL:
         SetResidentTexturePolicy(enabled ? 0 : 1);

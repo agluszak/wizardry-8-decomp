@@ -1657,7 +1657,7 @@ void ProcessMessageBoxQueue(void)
     }
     case W8_NPC_MSG_CLOSE_DIALOGUE:
         CloseNpcDialogueIfActive();
-        g_flag_6109f0 = true;
+        g_npc_dialogue_closed = true;
         break;
     case W8_NPC_MSG_JOURNAL_QUOTE:
         SetNpcQuoteBubbleVisible(1, gppStringList[0x74a], 0, -1, 0x47);
