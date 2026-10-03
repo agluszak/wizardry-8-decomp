@@ -354,7 +354,7 @@ void srLight::process(srVertexPipe& pipe)
     float* distances = work + 0xc0;
     // reinterpret-ok: raw aligned scratch reinterpreted as the direction array.
     srVector3T<float>* directions = reinterpret_cast<srVector3T<float>*>(work + 0x100);
-    srVertexPipe::Scratch* scratch = static_cast<srVertexPipe::Scratch*>(pipe.scratch_00);
+    srVertexPipe::Scratch* scratch = pipe.scratch_00;
     float* attenuation = 0;
 
     if ((derived_flags_21c & 0x4) == 0) {

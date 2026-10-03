@@ -8,22 +8,6 @@
 #include "surrender/srShader.h"
 #include "surrender/srVectorProcessor.h"
 
-/* Scratch layout inside the 0xb04-byte operator_new allocation at +0x00. The
-   batch loop caps batches at 0x40 vertices, so every array holds one full
-   batch. */
-struct Scratch {
-    srVector3T<float> dir_000[0x40];
-    srVector3T<float> normals_300[0x40];
-    float dist_600[0x40];
-    float z_dist_700[0x40];
-    float depth_cue_800[0x40];
-    float alpha_900[0x40];
-    float fog_a00[0x40];
-    unsigned long flags_b00;
-};
-
-static_assert(sizeof(Scratch) == 0xb04, "Scratch_must_be_0xb04");
-
 // FUNCTION: SURRENDER 0x1002AA50
 srFlags<srVertexProcessor::e_channel> srVertexPipe::getShaderDisableMask(const srShader& shader)
 {
@@ -107,9 +91,9 @@ srVertexPipe::srVertexPipe()
     : processor_heap_04(0), processor_heap_capacity_08(0), channel_mask_0c(0),
       lazy_setup_mask_10(0), material_info_14()
 {
-    scratch_00 = ::operator new(0xb04);
+    scratch_00 = static_cast<Scratch*>(::operator new(sizeof(Scratch)));
     if (scratch_00 != 0) {
-        static_cast<Scratch*>(scratch_00)->flags_b00 = 0;
+        scratch_00->flags_b00 = 0;
     }
     channel_mask_0c = 0;
     lazy_setup_mask_10 = 0;
@@ -260,7 +244,7 @@ void srVertexPipe::process(const Input& input)
             batch_count_8c = 0x40;
         }
         avt_70 = input.indices_08 + batch_base_80;
-        static_cast<Scratch*>(scratch_00)->flags_b00 = 0;
+        scratch_00->flags_b00 = 0;
         if (input_6c->position_is_float3_0c == 0) {
             vector_processor_98->_transformIndexed(eye_space_locations_7c + batch_base_80,
                                                    input_6c->positions_10, avt_70,
@@ -381,7 +365,7 @@ void srVertexPipe::finishDiffuseAlpha()
     if ((channel_mask_0c & (1 << srVertexProcessor::CHANNEL_ALPHA)) != 0) {
         srCore.getStatisticsManager()->statistics_00.alpha_operations_2c += vertex_count_88;
         if ((current_record_74->flags_00 & 8) != 0) {
-            alpha = static_cast<Scratch*>(scratch_00)->alpha_900 + sub_batch_offset_84;
+            alpha = scratch_00->alpha_900 + sub_batch_offset_84;
             if ((lazy_setup_mask_10 & 8) == 0) {
                 if (vertex_count_88 != 0) {
                     srVectorProcessor::copyIndexed(
@@ -408,7 +392,7 @@ void srVertexPipe::finishDiffuseAlpha()
             if ((lazy_setup_mask_10 & 8) == 0) {
                 setupAlpha();
             }
-            alpha = static_cast<Scratch*>(scratch_00)->alpha_900 + sub_batch_offset_84;
+            alpha = scratch_00->alpha_900 + sub_batch_offset_84;
             if ((channel_mask_0c & 2) == 0) {
                 vector_processor_98->_clampUnit(alpha, alpha, vertex_count_88);
             }
@@ -458,7 +442,7 @@ void srVertexPipe::finishSpecularFog()
             if ((lazy_setup_mask_10 & 0x10) == 0) {
                 setupFog();
             }
-            float* fog = static_cast<Scratch*>(scratch_00)->fog_a00 + sub_batch_offset_84;
+            float* fog = scratch_00->fog_a00 + sub_batch_offset_84;
             vector_processor_98->_clampUnit(fog, fog, vertex_count_88);
             float scale = material_info_14.value_4c;
             if ((vertex_count_88 != 0) && (scale != 1.0f)) {
@@ -480,7 +464,7 @@ void srVertexPipe::finishSpecularFog()
             if ((lazy_setup_mask_10 & 0x10) == 0) {
                 setupFog();
             }
-            float* fog = static_cast<Scratch*>(scratch_00)->fog_a00 + sub_batch_offset_84;
+            float* fog = scratch_00->fog_a00 + sub_batch_offset_84;
             float scale = material_info_14.value_4c;
             if ((vertex_count_88 != 0) && (scale != 1.0f)) {
                 if (scale == 0.0f) {
@@ -507,8 +491,8 @@ void srVertexPipe::finishSpecularFog()
 // FUNCTION: SURRENDER 0x1002B860
 void srVertexPipe::setupEyeSpaceNormal()
 {
-    const void* normals = input_6c->values_14;
-    Scratch* scratch = static_cast<Scratch*>(scratch_00);
+    const srVector3T<float>* normals = input_6c->values_14;
+    Scratch* scratch = scratch_00;
     if (normals == 0) {
         srVector3T<float> constant;
         constant.x = 0.0f;
@@ -516,12 +500,10 @@ void srVertexPipe::setupEyeSpaceNormal()
         constant.z = -1.0f;
         vector_processor_98->_copy(scratch->normals_300, constant, batch_count_8c);
     } else if (input_6c->position_is_float3_0c == 0) {
-        vector_processor_98->_transformIndexed(scratch->normals_300,
-                                               static_cast<const srVector3*>(normals), avt_70,
+        vector_processor_98->_transformIndexed(scratch->normals_300, normals, avt_70,
                                                *input_6c->normal_matrix_2c, batch_count_8c);
     } else {
-        vector_processor_98->_transform(scratch->normals_300,
-                                        static_cast<const srVector3*>(normals) + batch_base_80,
+        vector_processor_98->_transform(scratch->normals_300, normals + batch_base_80,
                                         *input_6c->normal_matrix_2c, batch_count_8c);
     }
     scratch->flags_b00 |= 8;
@@ -530,7 +512,7 @@ void srVertexPipe::setupEyeSpaceNormal()
 // FUNCTION: SURRENDER 0x1002B910
 void srVertexPipe::setupEyeSpaceDirAndDist()
 {
-    Scratch* scratch = static_cast<Scratch*>(scratch_00);
+    Scratch* scratch = scratch_00;
     vector_processor_98->_dir(scratch->dir_000, scratch->dist_600,
                               eye_space_locations_7c + batch_base_80, batch_count_8c);
     scratch->flags_b00 |= 1;
@@ -540,7 +522,7 @@ void srVertexPipe::setupEyeSpaceDirAndDist()
 // FUNCTION: SURRENDER 0x1002B970
 void srVertexPipe::setupEyeSpaceZDist()
 {
-    Scratch* scratch = static_cast<Scratch*>(scratch_00);
+    Scratch* scratch = scratch_00;
     const srVector4T<float>* locations = eye_space_locations_7c + batch_base_80;
     for (unsigned long index = 0; index < batch_count_8c; ++index) {
         scratch->z_dist_700[index] = locations[index].z;
@@ -553,9 +535,9 @@ void srVertexPipe::setupAlpha()
 {
     if ((lazy_setup_mask_10 & 8) == 0) {
         srVectorProcessor::copy(
-            reinterpret_cast<SRDWORD*>(static_cast<Scratch*>(scratch_00)->alpha_900 +
-                                       sub_batch_offset_84),
-            0x3f800000, vertex_count_88);
+            // reinterpret-ok: the VP dword fill writes IEEE-754 1.0f into the alpha array.
+            reinterpret_cast<SRDWORD*>(scratch_00->alpha_900 + sub_batch_offset_84), 0x3f800000,
+            vertex_count_88);
         lazy_setup_mask_10 |= 8;
     }
 }
@@ -566,9 +548,9 @@ void srVertexPipe::setupFog()
     if ((lazy_setup_mask_10 & 0x10) == 0) {
         if (vertex_count_88 != 0) {
             srVectorProcessor::copy(
-                reinterpret_cast<SRDWORD*>(static_cast<Scratch*>(scratch_00)->fog_a00 +
-                                           sub_batch_offset_84),
-                0, vertex_count_88);
+                // reinterpret-ok: the VP dword fill writes IEEE-754 zero into the fog array.
+                reinterpret_cast<SRDWORD*>(scratch_00->fog_a00 + sub_batch_offset_84), 0,
+                vertex_count_88);
         }
         lazy_setup_mask_10 |= 0x10;
     }
@@ -578,7 +560,7 @@ void srVertexPipe::setupFog()
 void srVertexPipe::applyFog(const float* values)
 {
     srCore.getStatisticsManager()->statistics_00.fog_operations_30 += vertex_count_88;
-    float* fog = static_cast<Scratch*>(scratch_00)->fog_a00 + sub_batch_offset_84;
+    float* fog = scratch_00->fog_a00 + sub_batch_offset_84;
     if ((lazy_setup_mask_10 & 0x10) != 0) {
         float one_minus[0x40];
         vector_processor_98->_sub(one_minus, 1.0f, const_cast<float*>(values), vertex_count_88);
@@ -741,12 +723,12 @@ void srVertexPipe::setupDiffuse()
 // FUNCTION: SURRENDER 0x1002C0D0
 void srVertexPipe::setupDepthCue()
 {
-    float* depth_cue = static_cast<Scratch*>(scratch_00)->depth_cue_800;
+    float* depth_cue = scratch_00->depth_cue_800;
     float minimum = input_6c->environment_minimum_54;
     float maximum = input_6c->environment_maximum_58;
     float near_value = 1.0f - input_6c->environment_scale_5c;
     float far_value = 1.0f - input_6c->environment_inverse_scale_60;
-    Scratch* scratch = static_cast<Scratch*>(scratch_00);
+    Scratch* scratch = scratch_00;
     if ((scratch->flags_b00 & 2) == 0) {
         setupEyeSpaceDirAndDist();
     }
@@ -907,7 +889,7 @@ const srVector4T<float>* srVertexPipe::getEyeSpaceLocation()
 // FUNCTION: SURRENDER 0x1002C590
 const float* srVertexPipe::getDepthCue()
 {
-    Scratch* scratch = static_cast<Scratch*>(scratch_00);
+    Scratch* scratch = scratch_00;
     if ((scratch->flags_b00 & 0x10) == 0) {
         setupDepthCue();
     }
@@ -917,7 +899,7 @@ const float* srVertexPipe::getDepthCue()
 // FUNCTION: SURRENDER 0x1002C5C0
 const srVector3T<float>* srVertexPipe::getEyeSpaceNormal()
 {
-    Scratch* scratch = static_cast<Scratch*>(scratch_00);
+    Scratch* scratch = scratch_00;
     if ((scratch->flags_b00 & 8) == 0) {
         setupEyeSpaceNormal();
     }
@@ -927,7 +909,7 @@ const srVector3T<float>* srVertexPipe::getEyeSpaceNormal()
 // FUNCTION: SURRENDER 0x1002C5F0
 const srVector3T<float>* srVertexPipe::getEyeSpaceDir()
 {
-    Scratch* scratch = static_cast<Scratch*>(scratch_00);
+    Scratch* scratch = scratch_00;
     if ((scratch->flags_b00 & 1) == 0) {
         setupEyeSpaceDirAndDist();
     }
@@ -937,7 +919,7 @@ const srVector3T<float>* srVertexPipe::getEyeSpaceDir()
 // FUNCTION: SURRENDER 0x1002C620
 const float* srVertexPipe::getEyeSpaceDist()
 {
-    Scratch* scratch = static_cast<Scratch*>(scratch_00);
+    Scratch* scratch = scratch_00;
     if ((scratch->flags_b00 & 2) == 0) {
         setupEyeSpaceDirAndDist();
     }
@@ -947,7 +929,7 @@ const float* srVertexPipe::getEyeSpaceDist()
 // FUNCTION: SURRENDER 0x1002C650
 const float* srVertexPipe::getEyeSpaceZDist()
 {
-    Scratch* scratch = static_cast<Scratch*>(scratch_00);
+    Scratch* scratch = scratch_00;
     if ((scratch->flags_b00 & 4) == 0) {
         setupEyeSpaceZDist();
     }
@@ -958,7 +940,7 @@ const float* srVertexPipe::getEyeSpaceZDist()
 float* srVertexPipe::getFog()
 {
     srCore.getStatisticsManager()->statistics_00.fog_operations_30 += vertex_count_88;
-    Scratch* scratch = static_cast<Scratch*>(scratch_00);
+    Scratch* scratch = scratch_00;
     if ((lazy_setup_mask_10 & 0x10) == 0) {
         setupFog();
     }
@@ -969,7 +951,7 @@ float* srVertexPipe::getFog()
 float* srVertexPipe::getAlpha()
 {
     srCore.getStatisticsManager()->statistics_00.alpha_operations_2c += vertex_count_88;
-    Scratch* scratch = static_cast<Scratch*>(scratch_00);
+    Scratch* scratch = scratch_00;
     if ((lazy_setup_mask_10 & 8) == 0) {
         setupAlpha();
     }
