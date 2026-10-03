@@ -1007,7 +1007,7 @@ void MonGen::Reset()
 
 /* Loads the generator's marker from Data\\Items3D\\Bitmaps and hands it over.
    Written once because the arm path and the reload below both compile it. */
-static inline void LoadMonsterGeneratorMarker(MonGen* generator)
+static void LoadMonsterGeneratorMarker(MonGen* generator)
 {
     W8ReadLevelInfo context;
     W8Item* marker = 0;

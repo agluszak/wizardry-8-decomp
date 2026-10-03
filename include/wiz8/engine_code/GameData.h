@@ -63,8 +63,7 @@ struct W8LevelDataRecord {
     unsigned char pad_ee[2];
     float vertical_motion_f0; /* 0xf0 */
 
-    W8LevelDataRecord();  /* 0x0041FD10 */
-    ~W8LevelDataRecord(); /* 0x00421890 */
+    W8LevelDataRecord(); /* 0x0041FD10 */
     /* 0x0041FE20: when the camera sits outside the game-data AABB, push
        vector_a0 toward the box, clear environ vector_24, and optionally start
        party movement; returns non-zero when a clamp fired. */

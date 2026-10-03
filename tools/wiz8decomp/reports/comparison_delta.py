@@ -26,8 +26,8 @@ def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _similarities(summary: dict[str, Any], ghidriff: dict[str, Any]) -> list[float] | None:
-    """Read Ghidriff facts by exact pairs; missing facts leave aggregates unknown."""
+def _similarities(summary: dict[str, Any], ghidriff: dict[str, Any]) -> tuple[list[float], int]:
+    """Read Ghidriff facts by exact pairs and count pairs without a recorded ratio."""
     ratios: dict[tuple[int, int], float] = {}
     for function in ghidriff["functions"]["modified"]:
         pair = (int(function["old"]["address"], 16), int(function["new"]["address"], 16))
@@ -36,6 +36,7 @@ def _similarities(summary: dict[str, Any], ghidriff: dict[str, Any]) -> list[flo
         ratios[pair] = float(function["ratio"])
 
     similarities = []
+    unscored = 0
     for row in summary.get("functions", ()):
         if row.get("outcome") not in _ANALYZED:
             continue
@@ -44,9 +45,10 @@ def _similarities(summary: dict[str, Any], ghidriff: dict[str, Any]) -> list[flo
             continue
         pair = (int(row["orig"], 16), int(row["recomp"], 16))
         if pair not in ratios:
-            return None
+            unscored += 1
+            continue
         similarities.append(ratios[pair])
-    return similarities
+    return similarities, unscored
 
 
 def _allocator_operations(called: list[str]) -> dict[str, list[str]]:
@@ -211,7 +213,7 @@ def comparison_metrics(summary: dict[str, Any], ghidriff: dict[str, Any]) -> dic
     functions = list(summary.get("functions", ()))
     outcomes = Counter(str(row.get("outcome") or "") for row in functions)
     analyzed = outcomes["differences"] + outcomes["no-differences"]
-    similarities = _similarities(summary, ghidriff)
+    similarities, similarity_unscored = _similarities(summary, ghidriff)
     clean = outcomes["no-differences"]
     retried = [row for row in functions if row.get("inline_callees")]
     return {
@@ -219,6 +221,9 @@ def comparison_metrics(summary: dict[str, Any], ghidriff: dict[str, Any]) -> dic
         "analyzed": analyzed,
         "average_similarity": statistics.fmean(similarities) if similarities else None,
         "median_similarity": statistics.median(similarities) if similarities else None,
+        "similarity_scored": len(similarities),
+        "similarity_unscored": similarity_unscored,
+        "similarity_coverage": len(similarities) / analyzed if analyzed else None,
         "clean": clean,
         "clean_rate": clean / analyzed if analyzed else None,
         "differences": outcomes["differences"],
@@ -270,8 +275,7 @@ def _project_metrics(status: dict[str, Any], target: str) -> dict[str, Any]:
         "paired": int(pairing.get("paired") or 0),
         "unpaired": int(pairing.get("unpaired") or 0),
         "unpaired_line_refs": int(pairing.get("unpaired_line_refs") or 0),
-        "unpaired_source_bodies": int(pairing.get("unpaired_line_refs") or 0),
-        "name_ref_non_emissions": int(pairing.get("unpaired") or 0)
+        "unpaired_name_refs": int(pairing.get("unpaired") or 0)
         - int(pairing.get("unpaired_line_refs") or 0),
     }
 

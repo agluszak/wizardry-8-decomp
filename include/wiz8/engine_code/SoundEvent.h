@@ -28,9 +28,6 @@ enum W8SoundEventKind {
    (0x004C0300): `pitch`, `volume`, `probability` and `footstep_vol`. */
 class W8SoundEvent {
 public:
-    /* In the class body because 0x004D57A0 expands it: VC6 at /Ob1 inlines
-       only what is marked inline or defined here, and the retail factory has
-       no call to a constructor. */
     W8SoundEvent()
     {
         kind = 0;

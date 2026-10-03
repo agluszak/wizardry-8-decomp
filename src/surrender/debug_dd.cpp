@@ -375,10 +375,9 @@ void srDebugDD::drawElements(srRendererDefs::e_primitive primitive, unsigned lon
     device_04->drawElements(primitive, count, type, indices);
 }
 
-/* Retail carries a C++ exception frame (FuncInfo 0x100786F8, dwTryCount=0) on
-   this one forwarder while the other 41 have none: the unwindable object is
-   the ScopeTimer itself, so the function's original TU context had unwind
-   semantics enabled (/GX) while the rest of this file did not. */
+/* Retail FuncInfo 0x100786F8 has no try blocks and unwinds the ScopeTimer.
+   This lifetime requires unwind support; neighboring frame differences do not
+   establish per-function compiler options or a different original TU. */
 // FUNCTION: SURRENDER 0x10017690
 void srDebugDD::drawArrays(srRendererDefs::e_primitive primitive, long first, unsigned long count)
 {

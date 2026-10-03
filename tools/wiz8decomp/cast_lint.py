@@ -40,12 +40,12 @@ Two accesses with different types at one offset are a reason to audit the
 record or class boundary, not positive union evidence.
 
 Uninitialized-read suppressions (``-Wsometimes-uninitialized`` and the other
-``-W*uninitialized*`` diagnostics) are gated the same way. A retail read of an
-unwritten stack slot is an accident of VC6 frame layout, not source evidence:
-model the path deterministically. A new suppression needs a same-line
-``uninit-ok: <reason>`` comment stating why the read value itself is
-runtime-observable and semantically required; like format suppressions,
-moving one is deliberately re-reviewed.
+``-W*uninitialized*`` diagnostics), including build options, require retail
+evidence for the read and missing assignment. Preserve established retail UB
+without inventing source aliases for compiler storage reuse or adding defaults
+for determinism. A new suppression needs a same-line ``uninit-ok: <reason>``
+comment identifying the retail path; like format suppressions, moving one is
+deliberately re-reviewed.
 
 New explicit member destructor calls (``member.~Type()``/``ptr->~Type()``) in
 recovered C++ require a ``member-dtor-ok: <reason>`` comment citing positive
@@ -78,6 +78,7 @@ UNINIT_MARKER = "uninit-ok"
 MEMBER_DTOR_MARKER = "member-dtor-ok"
 SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/", "src/surrender/", "include/surrender/")
 MEMBER_DTOR_PREFIXES = SCOPE_PREFIXES
+UNINIT_PREFIXES = SCOPE_PREFIXES + ("cmake/",)
 _CPP_SUFFIXES = (".cpp", ".cc", ".cxx", ".h", ".hpp")
 _SGP_SOURCE_SUFFIXES = (".c", ".cc", ".cpp", ".cxx", ".h", ".hpp")
 _GIT_BASES: tuple[str, ...] = ("@{upstream}", "origin/main", "origin/master", "main", "master")
@@ -91,7 +92,7 @@ _FORMAT_OFF_MARKER = re.compile(r"format-off-ok:\s*\S", re.IGNORECASE)
 _RAW_OFFSET_MARKER = re.compile(r"raw-offset-ok:\s*\S", re.IGNORECASE)
 _UNION = re.compile(r"^\s*(?:typedef\s+)?union\b")
 _UNION_MARKER = re.compile(r"union-ok:\s*\S", re.IGNORECASE)
-_UNINIT_SUPPRESS = re.compile(r'"-W[a-z0-9_-]*uninitialized', re.IGNORECASE)
+_UNINIT_SUPPRESS = re.compile(r'"-W[a-z0-9_=-]*uninitialized', re.IGNORECASE)
 _UNINIT_MARKER = re.compile(r"uninit-ok:\s*\S", re.IGNORECASE)
 _MEMBER_DTOR = re.compile(r"(?:\.|->)\s*~[A-Za-z_]")
 _MEMBER_DTOR_MARKER = re.compile(r"member-dtor-ok:\s*\S", re.IGNORECASE)
@@ -290,9 +291,9 @@ def _added_uninit_suppressions(diff: str) -> list[dict[str, Any]]:
     return [
         item
         for item in added_lines_without_marker(
-            diff, _UNINIT_SUPPRESS, _UNINIT_MARKER, ignore_moved=False
+            diff, _UNINIT_SUPPRESS, _UNINIT_MARKER, ignore_moved=False, prefixes=UNINIT_PREFIXES
         )
-        if str(item["file"]).lower().endswith(_CPP_SUFFIXES)
+        if str(item["file"]).lower().endswith(_CPP_SUFFIXES + (".cmake", "cmakelists.txt"))
     ]
 
 
@@ -517,8 +518,9 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
     if uninit_violations:
         errors.append(
             "new uninitialized-read suppressions need an 'uninit-ok: reason' comment "
-            "stating the runtime-observable consequence; model VC6 stack-slot "
-            "accidents deterministically instead:\n  " + _render(uninit_violations)
+            "identifying the retail read and missing assignment; preserve established "
+            "UB without inventing storage aliases or deterministic defaults:\n  "
+            + _render(uninit_violations)
         )
     if sgp_violations:
         errors.append(

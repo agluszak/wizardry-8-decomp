@@ -357,7 +357,12 @@ struct W8NpcDatabaseRecord {
     /* 0x2eb: the purse the NPC carries; 0x004F8CB0 hands it to AddPartyGold
        when the NPC's monster dies. */
     int gold;
-    unsigned char unknown_2ef[0x1a];
+    /* Independently tested bytes: +0x2ef gates the scripted combat notice;
+       +0x2f0 participates in the departure/greeting predicate. Original
+       names and the remaining tail's internal structure are unknown. */
+    unsigned char unknown_2ef;
+    unsigned char unknown_2f0;
+    unsigned char unknown_2f1[0x18];
 }; /* 0x309 */
 
 static_assert(sizeof(W8NpcDatabaseRecord) == 0x309, "W8NpcDatabaseRecord_size_must_be_0x309");

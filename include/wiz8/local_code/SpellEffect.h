@@ -113,7 +113,6 @@ struct W8SpellEffectEntry {
            reports vector's freshly assigned vftable at 0x17e. */
         memset(&result_126, 0, sizeof(result_126));
     }
-    ~W8SpellEffectEntry(); /* 0x0042BAC0 */
 
     int kind;            /* 0x000 */
     int turns_remaining; /* 0x004 */

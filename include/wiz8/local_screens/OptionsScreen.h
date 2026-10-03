@@ -47,7 +47,6 @@ public:
 class W8OptionsSaveRow : public W8TextControl {
 public:
     W8OptionsSaveRow(Controls* owner, int top, unsigned char save_mode);
-    virtual ~W8OptionsSaveRow() override;
     virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnLeftButtonUp(int event) override;
     virtual void OnLeftButtonDoubleClick(int event) override;
@@ -130,7 +129,6 @@ static_assert(sizeof(W8OptionsPanelSet) == 0x20, "W8OptionsPanelSet_must_be_0x20
 class W8OptionsCheckbox : public W8TextControl {
 public:
     W8OptionsCheckbox(Controls* owner, int top, int* value);
-    virtual ~W8OptionsCheckbox() override;
     virtual void OnLeftButtonUp(int event) override;
     int* m_value;
 };
@@ -139,7 +137,6 @@ public:
 class W8OptionsSlider : public W8HorizontalRangeThumb {
 public:
     W8OptionsSlider(Controls* owner, int top, float* value, bool alternate);
-    virtual ~W8OptionsSlider() override;
     virtual void OnMouseMove(int event) override;
     virtual void Redraw(unsigned char full_redraw) override;
     float* m_value;
@@ -257,7 +254,6 @@ public:
 class W8OptionsButton : public W8TextControl {
 public:
     W8OptionsButton(Controls* owner, int left, int top, int right, int bottom, const wchar_t* text);
-    virtual ~W8OptionsButton() override;
     virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnMouseEnter(int event) override;
     virtual void OnMouseLeave(int event) override;
@@ -267,7 +263,6 @@ public:
 class W8OptionsKeyButton : public W8OptionsButton {
 public:
     W8OptionsKeyButton(Controls* owner, int top, int primary_binding, int secondary_binding);
-    virtual ~W8OptionsKeyButton() override;
 
     void SetKey(unsigned short key);
     void SetKeyText(unsigned short key);
@@ -291,7 +286,6 @@ class W8OptionsKeyboardPanel : public W8OptionsPanel,
                                public W8DialogCloseListener {
 public:
     explicit W8OptionsKeyboardPanel(int panel);
-    virtual ~W8OptionsKeyboardPanel() override;
     virtual void Populate() override;
     virtual void Invalidate(const W8ControlsRect* bounds) override;
     virtual void SetActive(unsigned char active) override;
@@ -327,7 +321,6 @@ class W8OptionsSaveLoadPanel : public W8OptionsPanel,
                                public W8ControlSelectionListener {
 public:
     explicit W8OptionsSaveLoadPanel(int panel);
-    virtual ~W8OptionsSaveLoadPanel() override;
     virtual void Populate() override;
     virtual void SetActive(unsigned char active) override;
     virtual void SetCurrent(int current) override;
@@ -396,7 +389,6 @@ struct W8OptionsPanelRange {
 class W8OptionsMenuButton : public W8TextControl, public W8TextControl::Listener {
 public:
     W8OptionsMenuButton(Controls* owner, const W8OptionsMenuRow* row);
-    virtual ~W8OptionsMenuButton() override;
     virtual void Redraw(unsigned char full_redraw) override;
     virtual void EnableSecondaryState(unsigned char immediate) override;
     virtual void OnPrimary(W8TextControl* control) override;

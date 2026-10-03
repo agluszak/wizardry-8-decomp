@@ -53,8 +53,8 @@ stLevel::stLevel(srNode* parent)
     m_active = 0;
 }
 
-// FUNCTION: WIZ8 0x004B9D10
-stLevel::~stLevel() {}
+// SYNTHETIC: WIZ8 0x004B9D10
+// stLevel::~stLevel
 
 // FUNCTION: WIZ8 0x004BA3D0
 srClass* stLevel::vInstance()
@@ -104,7 +104,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
             srVector3T<float> center;
             float radius;
             model->getBoundingSphere(center, radius);
-            if (renderer.testBoundingSphere(center, radius) == srGERD::VISIBILITY_POSITIONAL_0) {
+            if (renderer.testBoundingSphere(center, radius) == srGERD::VISIBILITY_OUTSIDE) {
                 continue;
             }
         }
@@ -112,7 +112,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
             srVector3T<float> minimum;
             srVector3T<float> maximum;
             model->getBoundingBox(minimum, maximum);
-            if (renderer.testBoundingBox(minimum, maximum) == srGERD::VISIBILITY_POSITIONAL_0) {
+            if (renderer.testBoundingBox(minimum, maximum) == srGERD::VISIBILITY_OUTSIDE) {
                 continue;
             }
         }
@@ -263,13 +263,6 @@ static unsigned char ReadWorldLights(W8World* world, int hFile)
     short light_count;
     int index;
     unsigned char success;
-    /* Canonical 0x004BBAD0 leaves this byte uninitialized: when no light loads
-       an AI path it returns the stack residue of the last setLocation double
-       push, which is nonzero in practice. That is the ordinary load path, so
-       the recompilation cannot depend on its own, different residue:
-       initialize to the nonzero value retail observably returns. */
-    bool path_success = true;
-
     success = FileRead(hFile, &light_count, sizeof(light_count), 0);
     if (!success) {
         srAssertFail("fSuccess", READ_LEVEL_CPP, 486, "Couldn't read number of lights");
@@ -308,8 +301,8 @@ static unsigned char ReadWorldLights(W8World* world, int hFile)
                 FileRead(hFile, &definition->subcycle_max_40, 4, 0);
 
                 if ((definition->flags_08 & 0x10) != 0) {
-                    path_success = LoadPathAI(&path, hFile);
-                    if (!path_success) {
+                    success = LoadPathAI(&path, hFile);
+                    if (!success) {
                         srAssertFail("fSuccess", READ_LEVEL_CPP, 532, 0);
                     }
                     path->discrete_mode_1c = 1;
@@ -373,10 +366,7 @@ static unsigned char ReadWorldLights(W8World* world, int hFile)
         }
     }
 
-    if (light_count < 1) {
-        return success;
-    }
-    return path_success;
+    return success;
 }
 
 // FUNCTION: WIZ8 0x004BC9D0
@@ -834,14 +824,14 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
         } else if (version == 2) {
             FileRead(pInfo->hFile, &record, 0x218, 0);
             record.emission_limit_218 = 0;
-            record.requires_positional_21c = 0;
+            record.requires_sorted_renderer_21c = 0;
             record.start_frame_21d = -1;
             record.end_frame_221 = -1;
         } else if (version == 1) {
             FileRead(pInfo->hFile, &record, 0x216, 0);
             record.attachment_key_216 = -1;
             record.emission_limit_218 = 0;
-            record.requires_positional_21c = 0;
+            record.requires_sorted_renderer_21c = 0;
             record.start_frame_21d = -1;
             record.end_frame_221 = -1;
         } else {
@@ -963,13 +953,15 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
         if (record.attachment_key_216 >= 0) {
             particle->attachment_key_260 = record.attachment_key_216;
         }
-        particle->requires_positional_138 = record.requires_positional_21c;
+        particle->requires_sorted_renderer_138 = record.requires_sorted_renderer_21c;
         particle->emission_limit_184 = record.emission_limit_218;
         particle->release_when_done_190 = false;
 
         LoadMaterial(pInfo->bitmap_folder, &record.material, &material, &texture, &render_flags, 1);
         particle->SetRetainedObject(material);
-        particle->SetRenderFlags(render_flags);
+        srShader shader;
+        shader.value = render_flags.value;
+        particle->SetRenderFlags(shader);
         particle->SetTexture(texture);
 
         if (strncmp(record.name, "CLOUD", 5) == 0) {

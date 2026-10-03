@@ -32,9 +32,6 @@ class W8GameTimer;
    object, establishing the POD state through +0x1A09 as its tail. */
 #pragma pack(push, 1)
 struct W8XStatus {
-    W8XStatus();
-    ~W8XStatus();
-
     W8MonsterManagerEntry monster_manager_entries[8]; /* 0x000: 0x006836B8 */
     unsigned int uiItemsInDatabase;                   /* 0x8c0: 0x00683F78 */
     unsigned int uiItemTablesInDatabase;              /* 0x8c4 */

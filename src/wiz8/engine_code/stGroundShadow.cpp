@@ -36,8 +36,6 @@ static unsigned long g_ground_shadow_shader;
 // class W8GroundShadowMapper
 class W8GroundShadowMapper : public srVertexProcessor {
 public:
-    W8GroundShadowMapper();
-    virtual ~W8GroundShadowMapper() override {}
     /* Retail ICF folds this onto W8NormalTexcoordMapper::isActive at
        0x004D6190. */
     virtual int isActive(srVertexPipe&) override
@@ -58,8 +56,8 @@ static_assert(sizeof(W8GroundShadowMapper) == 0x98, "W8GroundShadowMapper004D618
 // GLOBAL: WIZ8 0x00683430
 static W8GroundShadowMapper g_ground_shadow_material_parameters;
 
-// FUNCTION: WIZ8 0x004D6180
-W8GroundShadowMapper::W8GroundShadowMapper() {}
+// SYNTHETIC: WIZ8 0x004D6180
+// W8GroundShadowMapper::W8GroundShadowMapper (implicit)
 
 /* Retail ICF folds this class's scalar deleting destructor onto
    W8NormalTexcoordMapper's at 0x004B8A50. */
@@ -251,8 +249,8 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
 // TEMPLATE: WIZ8 0x004d69c0
 // srClassSupport<stGroundShadow,srNode,0,65552>::getClassNode
 
-// FUNCTION: WIZ8 0x004D6370
-stGroundShadow::~stGroundShadow() {}
+// SYNTHETIC: WIZ8 0x004D6370
+// stGroundShadow::~stGroundShadow
 
 // TEMPLATE: WIZ8 0x004d6a30
 // srClassSupport<stGroundShadow,srNode,0,65552>::vClone

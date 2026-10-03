@@ -25,7 +25,6 @@ static_assert(sizeof(MGSKeyBinding) == 0x0a, "MGSKeyBinding_size");
 // VTABLE: WIZ8 0x005ee8f0
 class MGSKeyboard {
 public:
-    MGSKeyboard();
     virtual ~MGSKeyboard();
 
     int FindBinding(int command) const;

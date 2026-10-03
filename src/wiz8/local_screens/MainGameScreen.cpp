@@ -1478,8 +1478,8 @@ W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, in
 // SYNTHETIC: WIZ8 0x00587e30
 // W8MainGameTextKeyHandler::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x00587e50
-W8MainGameTextKeyHandler::~W8MainGameTextKeyHandler() {}
+// SYNTHETIC: WIZ8 0x00587e50
+// W8MainGameTextKeyHandler::~W8MainGameTextKeyHandler
 
 // FUNCTION: WIZ8 0x00587ea0
 void W8MainGameTextKeyHandler::Redraw(unsigned char full_redraw)
@@ -1670,8 +1670,8 @@ W8MainGameTextEntry::W8MainGameTextEntry(Controls* panel, int index)
 // SYNTHETIC: WIZ8 0x00588350
 // W8MainGameTextEntry::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x00588370
-W8MainGameTextEntry::~W8MainGameTextEntry() {}
+// SYNTHETIC: WIZ8 0x00588370
+// W8MainGameTextEntry::~W8MainGameTextEntry
 
 // FUNCTION: WIZ8 0x005883c0
 void W8MainGameTextEntry::Redraw(unsigned char full_redraw)

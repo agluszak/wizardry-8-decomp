@@ -45,9 +45,7 @@ bool TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_
 char InflictConditionOnTarget(W8CombatSlot* target, int condition_id, int realm,
                               unsigned int power_level, int argument, unsigned int magnitude,
                               int source_character, int duration, char announce);
-/* 0x0055CC00/0x0055CCB0 sit in the unattributed gap between chunk.cpp and
-   PC Item.cpp; the saving throw is their only recovered caller. Each scales the
-   value by seven fifths or three fifths on the easy and hard settings and leaves
+/* Each scales the value by seven fifths or three fifths on the easy and hard settings and leaves
    it alone on normal; which way round depends on the character's condition
    thirteen or the monster's allegiance flag. */
 void ScaleValueForCharacterDifficulty(int party_slot, int* value);

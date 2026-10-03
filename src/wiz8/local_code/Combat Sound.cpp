@@ -190,7 +190,7 @@ char* GetMaterialImpactSound(int weapon_class, int target_material)
 /* The equipment slot covering one armour-class hit location, then the item
    worn there (-1 when that location is bare).  The inlined copies share the
    line-168 assertion. */
-static inline int PCItemInACSlot(const W8Character* character, int hit_location)
+static int PCItemInACSlot(const W8Character* character, int hit_location)
 {
     int slot = 0;
 

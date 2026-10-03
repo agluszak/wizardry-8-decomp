@@ -411,7 +411,7 @@ void UpdateWorldSpellVisuals(W8World* world)
    the inlined expansion inside W8SpellVisual::W8SpellVisual at 0x004ABBB0,
    whose member-init order (value_0ac, value_0b0, the 28 light_lists, then
    flag_378 before the vptr store) and emitter/scale loop match this body. */
-inline W8SpellEmitterHost::W8SpellEmitterHost() : value_0ac(0), value_0b0(0), billboard_378(0)
+W8SpellEmitterHost::W8SpellEmitterHost() : value_0ac(0), value_0b0(0), billboard_378(0)
 {
     int emitter;
 

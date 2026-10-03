@@ -13,7 +13,7 @@ class srModeler;
 // class srScene
 class SR_DLL_IMPORT SR_DLL_EXPORT srScene : public srClassSupport<srScene, srNode, 0, 0x1010> {
 public:
-    enum e_enable { ENABLE_POSITIONAL_0 = 0 };
+    enum e_enable { ENABLE_NODE_PICK_KEYS = 0 };
 
     struct Statistics {
         double elapsed_00;              /* seconds since the last reset */

@@ -191,7 +191,7 @@ int FindItemTableByName(const char* name)
     return -1;
 }
 
-static inline W8WorldItem* CreateTableItem(int item_id, const srVector3T<float>* position)
+static W8WorldItem* CreateTableItem(int item_id, const srVector3T<float>* position)
 {
     W8ItemInstance item;
     W8ItemInstance* item_pointer;
@@ -1254,7 +1254,8 @@ void RebuildAllWorldItemInstances(void)
 }
 
 // TEMPLATE: WIZ8 0x004F9580
-// W8GrowableVector<W8WorldItem*>::W8GrowableVector
+// NAME: W8GrowableVector<T>::W8GrowableVector
+// RECOMP: W8GrowableVector<W8WorldItem*>::W8GrowableVector
 
 // FUNCTION: WIZ8 0x004f6b90
 W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* position,

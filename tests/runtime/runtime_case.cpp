@@ -347,7 +347,7 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     s->combat = gXStatus.fCombatMode != 0;
     s->movement_ui = gXStatus.fPartyMovementUi != 0;
     s->movement_budget = g_level_block != 0 ? g_level_block->move_budget_2dc : 0;
-    s->round_active = g_combat_state != 0 ? g_combat_state->combat_over_000 : 0;
+    s->round_active = g_combat_state != 0 ? g_combat_state->execution_active_000 : 0;
     s->round_count = g_combat_state != 0 ? g_combat_state->round_count_004 : 0;
     s->party_action_status = g_combat_state != 0 ? g_combat_state->uiCurrentPartyActionStatus : 0;
     s->action_status = g_combat_state != 0 ? g_combat_state->eCombatActionStatus : 0;
@@ -408,7 +408,8 @@ static void ReadBindingOnGameThread(void* opaque)
 }
 
 HeldCommand::HeldCommand(RuntimeCase& test, int command)
-    : test_(test), command_(command), held_(false), consumed_(false), last_repeat_(0)
+    : test_(test), command_(command), held_(false), consumed_(false), rearming_(false),
+      last_repeat_(0)
 {
     binding_.command = command;
     binding_.key = 0;
@@ -441,7 +442,15 @@ void HeldCommand::repeat()
     unsigned long now = GetTickCount();
     if (now - last_repeat_ >= 30) {
         last_repeat_ = now;
-        SendScenarioKeyHeld(binding_.key, 0);
+        if (consumed_) {
+            SendScenarioKeyHeld(binding_.key, 0);
+        } else if (rearming_) {
+            SendBindingKeys(binding_, 0);
+            rearming_ = false;
+        } else {
+            SendBindingKeys(binding_, 1);
+            rearming_ = true;
+        }
     }
 }
 
@@ -469,7 +478,7 @@ unsigned short HeldCommand::key() const
 
 void HeldCommand::note_snapshot(const GameplaySnapshot& now)
 {
-    if (now.held_key == binding_.key && now.held_key_down != 0) {
+    if (!rearming_ && now.held_key == binding_.key && now.held_key_down != 0) {
         consumed_ = true;
     }
 }
@@ -566,8 +575,7 @@ bool RuntimeCase::fail(const char* step, const char* reason)
                 s.world_motion, s.modal_owner_present, s.world_update_blocked, s.world_render_flags,
                 s.held_key, s.held_key_down, s.application_active, s.window_has_focus,
                 s.round_active, s.round_count, s.string_input_active ? 1u : 0u,
-                s.os_key_down ? 1u : 0u, s.keypad_left_down ? 1u : 0u,
-                GetTickCount() - s.taken_ms);
+                s.os_key_down ? 1u : 0u, s.keypad_left_down ? 1u : 0u, GetTickCount() - s.taken_ms);
     } else {
         fprintf(stderr, "runtime-case %s: observed none\n", name_);
     }

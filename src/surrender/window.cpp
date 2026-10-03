@@ -2,6 +2,9 @@
 
 #include <windows.h>
 
+// SYNTHETIC: SURRENDER 0x100458A0
+// srWindow::operator= (implicit)
+
 // FUNCTION: SURRENDER 0x100459D0
 long srWindow::getWidth(unsigned long handle)
 {

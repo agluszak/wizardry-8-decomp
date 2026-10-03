@@ -125,7 +125,8 @@ srModel::Client* srModel::getFirstClient() const
 // srClassSupport<srModel, srClass, true, 0x2000>::vClone
 
 // SYNTHETIC: SURRENDER 0x1003C6B0
-// srPtr element destructor emission
+// NAME: srPtr<T>::retained emission
+// RECOMP: srPtr element destructor emission
 
 // SYNTHETIC: SURRENDER 0x1003C850
 // Client scalar deleting destructor

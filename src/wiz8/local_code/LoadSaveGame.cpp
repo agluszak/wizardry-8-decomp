@@ -462,10 +462,10 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
         bounds.bottom = 0x1e0;
         surface = new W8ColorSurface(srPixelConvert::SURFACE_ARGB1555, screenshot->pixels, 0x50,
                                      0x3c, 0xa0);
-        SetRendererOption4Enabled(0);
+        SetRendererAutoFlipEnabled(0);
         screenshot->capture_result = RenderWorldToSurface(surface, &bounds, 1);
         RenderFrame();
-        SetRendererOption4Enabled(1);
+        SetRendererAutoFlipEnabled(1);
         surface->release();
     }
     chunks.OpenChunk(0x544f4853, 0); /* SHOT */
@@ -1705,10 +1705,10 @@ void CaptureSaveScreenshot(W8SaveScreenshot* screenshot)
     rect.bottom = 480;
     surface =
         new srColorSurface(srPixelConvert::SURFACE_ARGB1555, screenshot->pixels, 0x50, 0x3c, 0xa0);
-    SetRendererOption4Enabled(0);
+    SetRendererAutoFlipEnabled(0);
     screenshot->capture_result = RenderWorldToSurface(surface, &rect, 1);
     RenderFrame();
-    SetRendererOption4Enabled(1);
+    SetRendererAutoFlipEnabled(1);
     surface->release();
 }
 
@@ -1757,16 +1757,8 @@ void DeleteCurrentSaveFiles(void)
 /* Byte-sized, not int: the refusal below returns through `mov al,1` and the
    save arm returns this result unchanged, so both share one byte register. */
 
-/* Autosave, if every gate allows it. Declining is reported as success, which is
-   why the whole chain is one condition with a single trailing `return 1` rather
-   than a run of early returns: the canonical has one epilogue for the refusal
-   and one for the save. The chain breaks around each call because a call cannot
-   be hoisted into a short-circuit, which is what the decompiler's nesting is.
-
-   g_status.iron_man does double duty: it both admits a save that the
-   0x0068510d gate would otherwise refuse for a forced call, and selects the
-   name, so a save made under it overwrites the current slot instead of the
-   fixed AutoSave one. */
+/* Declining an autosave is reported as success. Iron Man saves overwrite the
+   current slot rather than the fixed AutoSave slot. */
 // FUNCTION: WIZ8 0x005159e0
 unsigned char AutoSaveIfAllowed(bool forced)
 {
@@ -1778,11 +1770,8 @@ unsigned char AutoSaveIfAllowed(bool forced)
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
         IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
         gXStatus.fCampMode == 0) {
-        if (g_status.iron_man != 0) {
-            strcpy(name, ConvertWideStringToString(GetLastSaveName()));
-        } else {
-            strcpy(name, "AutoSave");
-        }
+        strcpy(name,
+               g_status.iron_man != 0 ? ConvertWideStringToString(GetLastSaveName()) : "AutoSave");
         return SaveGame(name, 0);
     }
     return 1;
@@ -2144,8 +2133,8 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
             W8ItemInstance* item = 0;
             signed char origin = static_cast<signed char>(party_row->item_origin);
             short item_slot = static_cast<short>(party_row->item_slot);
-            if (party_row->fOccupied != 0 && party_row->pending_action == W8_ACTION_USE_ITEM && origin != -1 &&
-                item_slot != -1) {
+            if (party_row->fOccupied != 0 && party_row->pending_action == W8_ACTION_USE_ITEM &&
+                origin != -1 && item_slot != -1) {
                 item = FindCharacterItemAt(slot, static_cast<unsigned char>(origin),
                                            static_cast<unsigned short>(item_slot));
             }
@@ -2153,7 +2142,7 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
             party_row->action_detail_045.item_use.item = 0;
             party_row->spell_target.pPCItem = 0;
             party_row->item_target.pPCItem = 0;
-            party_row->target_context_5.pPCItem = 0;
+            party_row->breath_target.pPCItem = 0;
         }
     }
     RebuildPartyStatus(&status->formation);
@@ -2412,7 +2401,8 @@ void LoadMonsterControlSpellEffect(W8Chunk* chunks)
 /* The byte-vector Grow LoadMonster's script-condition copy emits; the linker
    kept this unit's instance for AddItem as well. */
 // TEMPLATE: WIZ8 0x005169a0
-// W8GrowableVector<unsigned char>::Grow
+// NAME: W8GrowableVector<T>::Grow
+// RECOMP: W8GrowableVector<unsigned char>::Grow
 
 /* The remove-and-delete emission LoadGame calls while ResetLiveSessionForLoad
    inlines it (0x00516A00) is instantiated explicitly in vector.cpp. */

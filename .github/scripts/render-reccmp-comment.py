@@ -53,8 +53,7 @@ print()
 print("#### Function recovery")
 print()
 print(
-    "| Target | Recovered | Retail | Recovery | Paired | Unpaired source bodies "
-    "| Name-ref non-emissions |"
+    "| Target | Recovered | Retail | Recovery | Paired | Unpaired line refs | Unpaired name refs |"
 )
 print("| --- | ---: | ---: | ---: | ---: | ---: | ---: |")
 for target, row in rows:
@@ -66,8 +65,8 @@ for target, row in rows:
         f"| {count_with_delta(head.get('original_functions'), delta.get('original_functions'))} "
         f"| {ratio_with_delta(head.get('source_coverage'), delta.get('source_coverage'))} "
         f"| {count_with_delta(head['paired'], delta.get('paired'))} "
-        f"| {count_with_delta(head.get('unpaired_source_bodies'), delta.get('unpaired_source_bodies'))} "
-        f"| {count_with_delta(head.get('name_ref_non_emissions'), delta.get('name_ref_non_emissions'))} |"
+        f"| {count_with_delta(head.get('unpaired_line_refs'), delta.get('unpaired_line_refs'))} "
+        f"| {count_with_delta(head.get('unpaired_name_refs'), delta.get('unpaired_name_refs'))} |"
     )
 
 comparison_rows = [(target, row["comparison"]) for target, row in rows if row.get("comparison")]
@@ -78,10 +77,12 @@ if comparison_rows:
     print("Function quality covers the compared selection; catalog counts cover the full targets.")
     print()
     print(
-        "| Target | Compared | Avg similarity | Median | Exact/clean | Clean rate | "
+        "| Target | Compared | Similarity scores | Avg similarity | Median | Exact/clean | Clean rate | "
         "Different | Code diffs | Referenced-data diffs | Fixed | Regressed | Analysis failed |"
     )
-    print("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+    print(
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
+    )
     for target, comparison in comparison_rows:
         head = comparison["head"]
         delta = comparison["delta"]
@@ -89,6 +90,7 @@ if comparison_rows:
         print(
             f"| `{target}` "
             f"| {count_with_delta(head['analyzed'], delta.get('analyzed'))} "
+            f"| {head['similarity_scored']:,}/{head['analyzed']:,} "
             f"| {ratio_with_delta(head.get('average_similarity'), delta.get('average_similarity'))} "
             f"| {ratio_with_delta(head.get('median_similarity'), delta.get('median_similarity'))} "
             f"| {count_with_delta(head['clean'], delta.get('clean'))} "
@@ -103,6 +105,7 @@ if comparison_rows:
     print()
     print(
         "_Similarity is Ghidriff's normalized, signature-ignored code ratio. "
+        "Average and median use scored functions only; missing ratios are excluded. "
         "Exact code and data-only differences contribute 100% code similarity._"
     )
 

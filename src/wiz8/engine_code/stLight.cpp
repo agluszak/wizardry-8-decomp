@@ -151,13 +151,8 @@ void stLight::traverse(srNode::TraverseInfo& info)
 // FUNCTION: WIZ8 0x0049C8D0
 void stLight::process(const srNode::ProcessInfo& info, srNode::e_processType type)
 {
-    /* The recovered e_processType currently names only 0; retail still
-       compares this override against 1 and 3. Enumerator names remain
-       unknown, so keep the integer tests rather than inventing them. */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtautological-compare"
-    if ((type == 1 || type == 3) && g_monster_light_scale != g_float_005ebb38) {
-#pragma clang diagnostic pop
+    if ((type == PROCESS_PUSH || type == PROCESS_PUSH_GLOBAL) &&
+        g_monster_light_scale != g_float_005ebb38) {
         float saved_scale = intensity_1d0;
         intensity_1d0 = saved_scale * g_monster_light_scale;
         srLight::process(info, type);
@@ -432,7 +427,8 @@ void stLight::Reset()
 // FUNCTION: WIZ8 0x0049D120
 void SaveLightStates(int handle)
 {
-    unsigned short name[0x40] = {g_empty_ambient_name};
+    char name[0x80] = {0};
+    memcpy(name, &g_empty_ambient_name, sizeof(g_empty_ambient_name));
     unsigned char version = 1;
     int count = 0;
 
@@ -453,10 +449,7 @@ void SaveLightStates(int handle)
         stLight::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
     while (light != 0) {
         if (light->m_save_marked_23a != 0) {
-            strcpy(reinterpret_cast<char*>(name), // reinterpret-ok: the
-                   // 0x80-byte save field stores the narrow name packed as
-                   // bytes
-                   light->getName());
+            strcpy(name, light->getName());
             FileWrite(handle, name, sizeof(name), 0);
             unsigned char enabled = light->testFlag(srNode::FLAG_DISABLE) == 0;
             FileWrite(handle, &enabled, sizeof(enabled), 0);
@@ -471,7 +464,8 @@ void SaveLightStates(int handle)
 // FUNCTION: WIZ8 0x0049D390
 void LoadLightStates(int handle)
 {
-    unsigned short name[0x40] = {g_empty_ambient_name};
+    char name[0x80] = {0};
+    memcpy(name, &g_empty_ambient_name, sizeof(g_empty_ambient_name));
     unsigned char version;
     int count = 0;
 
@@ -483,11 +477,8 @@ void LoadLightStates(int handle)
         FileRead(handle, name, sizeof(name), 0);
         FileRead(handle, &enabled, sizeof(enabled), 0);
 
-        stLight* light = static_cast<stLight*>(srCore.getRegistry()->find(
-            stLight::sGetClassNode(),
-            reinterpret_cast<char*>(name), /* reinterpret-ok: the 0x80-byte save
-                field stores the narrow name packed as bytes */
-            0));
+        stLight* light =
+            static_cast<stLight*>(srCore.getRegistry()->find(stLight::sGetClassNode(), name, 0));
         if (light != 0) {
             if (enabled != 0) {
                 light->clearFlag(srNode::FLAG_DISABLE);
@@ -556,4 +547,5 @@ unsigned char W8OctRegionVolume::ContainsPoint(const srVector3T<float>* point) c
 // stParametricLightDefinition::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0049E290
-// srArray<srNode*>::setCapacity
+// NAME: srArray<T>::setCapacity
+// RECOMP: srArray<srNode*>::setCapacity

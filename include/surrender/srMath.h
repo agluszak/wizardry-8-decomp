@@ -13,8 +13,10 @@ inline int srFinite(double value)
 }
 
 /*
- * SurRender math types named by the original SR.DLL export table. The layouts
- * are fixed by the exported srBinIStream operators: vectors store adjacent
+ * Original SR.DLL exports establish the math types they explicitly name.
+ * Non-export TEMPLATE names remain recomp selectors: equivalent four-byte
+ * bodies alone do not distinguish float, integer or other argument types.
+ * Layouts are fixed by the exported srBinIStream operators: vectors store adjacent
  * scalars, and matrices store three or four adjacent vector elements.
  *
  * The callable float bodies in Wiz8.exe are ordinary emissions of these
@@ -220,8 +222,9 @@ template <class T> srVector3T<T>& srVector3T<T>::operator-=(const srVector3T<T>&
     return *this;
 }
 
-// TEMPLATE: SURRENDER 0x10055480 SYMBOL
-// ??X?$srVector3T@N@@QAEAAV0@ABV0@@Z
+// TEMPLATE: SURRENDER 0x10055480
+// NAME: srVector3T<double>::operator*= (double-lane arithmetic)
+// RECOMP: ??X?$srVector3T@N@@QAEAAV0@ABV0@@Z
 template <class T> srVector3T<T>& srVector3T<T>::operator*=(const srVector3T<T>& other)
 {
     x = other.x * x;
@@ -814,9 +817,9 @@ public:
     /* classifyMatrix on the model-view stack writes these from the 3x3
        column lengths. Original enumerator spellings are not in the binary. */
     enum e_scaleType {
-        SCALE_TYPE_POSITIONAL_0 = 0, /* equal column lengths, all ~1 */
-        SCALE_TYPE_POSITIONAL_1 = 1, /* equal column lengths, not 1 */
-        SCALE_TYPE_POSITIONAL_2 = 2  /* unequal column lengths */
+        SCALE_TYPE_UNIT = 0,       /* equal column lengths, all ~1 */
+        SCALE_TYPE_UNIFORM = 1,    /* equal column lengths, not 1 */
+        SCALE_TYPE_NON_UNIFORM = 2 /* unequal column lengths */
     };
     enum e_type {};
 

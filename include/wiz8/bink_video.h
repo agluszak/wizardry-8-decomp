@@ -19,7 +19,7 @@ public:
 
 private:
     HBINK m_handle;                /* 0x00 */
-    int m_value_04;                /* 0x04: constructor clears; use unresolved */
+    unsigned char unknown_04[4];   /* 0x04: cleared storage; type/role unresolved */
     IDirectDrawSurface2* m_target; /* 0x08 */
 };
 

@@ -21,7 +21,6 @@ class W8EmitterHost : public W8AnimRep {
 public:
     W8EmitterHost();
     W8EmitterHost(const W8EmitterHost& other);
-    virtual ~W8EmitterHost() override;
     /* All three are chars: neither override widens them, and both
        0x004A8360 and 0x004A7470 push the containing dword unextended. */
     virtual srModelInstance* SetCycleFrameLod(signed char cycle, signed char frame,

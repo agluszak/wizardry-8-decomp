@@ -454,16 +454,19 @@ srClass* stModelInstance::vInstance()
 }
 
 // TEMPLATE: WIZ8 0x00481C80
-// srArray<srNode::TraverseInfo::Entry>::setCapacity
+// NAME: srArray<T>::setCapacity
+// RECOMP: srArray<srNode::TraverseInfo::Entry>::setCapacity
 
 // TEMPLATE: WIZ8 0x00481D00
 // srClassSupport<srModelInstance,srNode,0,4352>::sGetClassNode
 
 // TEMPLATE: WIZ8 0x00481D70
-// srArray<srTriMeshPipeline::Record>::operator[]
+// NAME: srArray<T>::operator[]
+// RECOMP: srArray<srTriMeshPipeline::Record>::operator[]
 
 // TEMPLATE: WIZ8 0x00481DA0
-// srArray<srTriMeshPipeline::Pass>::operator[]
+// NAME: srArray<T>::operator[]
+// RECOMP: srArray<srTriMeshPipeline::Pass>::operator[]
 
 // SYNTHETIC: WIZ8 0x0047EDC0
 // stModelInstance::`scalar deleting destructor'
@@ -620,14 +623,14 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     float radius;
     model->getBoundingSphere(center, radius);
     if (((model->control_state_394.value & 0x20) == 0) &&
-        (renderer.testBoundingSphere(center, radius) == srGERD::VISIBILITY_POSITIONAL_0)) {
+        (renderer.testBoundingSphere(center, radius) == srGERD::VISIBILITY_OUTSIDE)) {
         return;
     }
     if (((model->control_state_394.value & 0x10) == 0) && (model->vertex_location_count_22c >= 8)) {
         srVector3T<float> minimum;
         srVector3T<float> maximum;
         model->getBoundingBox(minimum, maximum);
-        if (renderer.testBoundingBox(minimum, maximum) == srGERD::VISIBILITY_POSITIONAL_0) {
+        if (renderer.testBoundingBox(minimum, maximum) == srGERD::VISIBILITY_OUTSIDE) {
             return;
         }
     }
@@ -669,11 +672,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     }
 
     bool first_pass = 1;
-    /* Retail never stores this local: its slot overlaps dead float locals, so
-       the FLAG_TERMINATE walk below ran on leftover stack data and effectively
-       never fired. Seed it deterministically instead of reproducing the
-       uninitialised read, which faults under this build's layout. */
-    srNode* child = 0;
+    srNode* child = this;
     while (model != 0) {
         model->SetAmbientColor(ambient_color);
         model->getTriMesh(mesh);
@@ -968,8 +967,8 @@ void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
     float height = mesh.bounds_maximum_12c.y - mesh.bounds_minimum_120.y;
     renderer.pushEnable();
     renderer.setCullMode(srGERD::CULL_FRONT);
-    if (!renderer.isEnabled(srGERD::ENABLE_POSITIONAL_1)) {
-        renderer.toggle(srGERD::ENABLE_POSITIONAL_1);
+    if (!renderer.isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
+        renderer.toggle(srGERD::ENABLE_SORTED_RENDERING);
     }
     renderer.matrixMode(srGERD::MATRIX_MODELVIEW);
     renderer.pushMatrix();
@@ -1000,7 +999,7 @@ void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
     pipeline->current_record_14->disable_mask_04 = 0;
     pipeline->current_record_14->material_08 = pipeline->material_80;
     pipeline->current_pass_18->texture_00 = pipeline->texture_78;
-    pipeline->current_pass_18->pass_value_04 = pipeline->pass_value_7c;
+    pipeline->current_pass_18->texture_04 = pipeline->texture_7c;
     pipeline->current_pass_18->flags_08.value = pipeline->shader_74.value;
     pipeline->current_pass_18->texture_array_0c = 0;
     pipeline->current_pass_18->texture_array_10 = 0;

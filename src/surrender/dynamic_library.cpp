@@ -57,7 +57,7 @@ srInlineString libraryName(const char* name, const char* extension)
     return filename + needle + suffix;
 }
 
-inline char* versionString(const char* name, const char* key, unsigned char*& version_info)
+char* versionString(const char* name, const char* key, unsigned char*& version_info)
 {
     char* mutable_name = const_cast<char*>(name);
     DWORD ignored;

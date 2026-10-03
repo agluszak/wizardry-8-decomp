@@ -38,24 +38,17 @@
    and the item build, and the retail body carries no exception frame, so the
    entry is an ordinary cleared allocation rather than a constructed object.
 
-   The original guards the loop and falls through to one shared exit that
-   returns the index register, so when no unit is added at all it returns
-   whatever that register still held rather than a list index. That is the
-   original's own defect, reproduced here by leaving the index unset on the
-   path that never enters the loop. */
+   A zero-unit equipment request returns the item id after creating the list. */
 // FUNCTION: WIZ8 0x0055a7b0
 int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
 {
-    /* `index` stays -1 when no unit is added at all; retail returned whatever
-       the index register still held, which is stack-layout accident rather
-       than a semantic value. */
     W8ItemDatabaseRecord* record;
     W8NpcItemEntry* entry;
     unsigned int existing_count;
     unsigned int repeats;
     unsigned int added;
     unsigned int search;
-    int index = -1;
+    int index;
 
     if (npc == 0) {
         return -1;
@@ -68,6 +61,9 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
         repeats = quantity;
     } else {
         repeats = 1;
+    }
+    if (repeats == 0) {
+        return item_id;
     }
     added = 0;
     for (; added < repeats; ++added) {

@@ -2,13 +2,15 @@
 
 #include "srHeap.h"
 
-class srMemoryAllocator {
+class SR_DLL_EXPORT srMemoryAllocator {
 public:
     enum e_alignSize { ALIGN_SIZE_32 = 0x20 };
 
     SR_DLL_IMPORT srMemoryAllocator();
     SR_DLL_IMPORT ~srMemoryAllocator();
+#if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srMemoryAllocator& operator=(const srMemoryAllocator& other);
+#endif
 
     SR_DLL_IMPORT void* allocate(unsigned long size, const char* name);
     SR_DLL_IMPORT void* allocate(unsigned long count, unsigned long size, const char* name);
@@ -34,11 +36,6 @@ private:
         unsigned long reserved_18[2];
     };
 
-    /* Retail exports the standalone copy; without provider dllexport the
-       compiler folds the single call site inside allocate and nothing emits. */
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     SR_DLL_IMPORT Block* align(void* allocation);
 
     Block* first_block_00;

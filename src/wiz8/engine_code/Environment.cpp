@@ -265,7 +265,7 @@ void UpdateEnvironment(void)
 
 /* Repeated component clamps share one helper. Preserve the comparison order:
    a NaN component follows the nonpositive branch and becomes zero. */
-static inline void ClampEnvironmentComponent(float& component)
+static void ClampEnvironmentComponent(float& component)
 {
     if (0.0f < component) {
         if (1.0f <= component) {

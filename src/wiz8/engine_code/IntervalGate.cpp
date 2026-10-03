@@ -28,8 +28,8 @@ W8IntervalGate::W8IntervalGate(float duration, bool raw_time, bool one_shot)
     }
 }
 
-// FUNCTION: WIZ8 0x004218d0
-W8IntervalGate::~W8IntervalGate() {}
+// SYNTHETIC: WIZ8 0x004218d0
+// W8IntervalGate::~W8IntervalGate
 
 // SYNTHETIC: WIZ8 0x004218b0
 // W8IntervalGate::`scalar deleting destructor'
@@ -48,8 +48,8 @@ unsigned int W8IntervalGate::PollElapsedIntervals()
     if (m_finished != 0) {
         return 1;
     }
-    unsigned int intervals =
-        static_cast<unsigned int>(ReadClock() - m_start) / static_cast<unsigned int>(m_end - m_start);
+    unsigned int intervals = static_cast<unsigned int>(ReadClock() - m_start) /
+                             static_cast<unsigned int>(m_end - m_start);
     if (static_cast<int>(intervals) > 0) {
         if ((m_flags & 2) != 0) {
             m_finished = 1;

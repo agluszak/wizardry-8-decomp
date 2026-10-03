@@ -117,8 +117,6 @@ static_assert((sizeof(srZipAdapter) == 0x20), "srZipAdapter_must_be_0x20");
 
 class srZipOpener : public srIStreamOpener::Opener {
 public:
-    virtual ~srZipOpener();
-
     virtual srBinIStream* open(const char* path);
     virtual const char* getDescription() const;
 
@@ -239,7 +237,7 @@ srBinIStream* srZipOpener::openArchivePath(srInlineString path)
     return adapter_.openMember(archive.data(), member.data());
 }
 
-inline srInlineString::srInlineString(const srInlineString& source)
+srInlineString::srInlineString(const srInlineString& source)
 {
     inline_[0] = '\0';
     data_ = inline_;
@@ -251,13 +249,13 @@ inline srInlineString::srInlineString(const srInlineString& source)
     }
 }
 
-inline srInlineString& srInlineString::operator=(const srInlineString& source)
+srInlineString& srInlineString::operator=(const srInlineString& source)
 {
     return operator=(source.data_);
 }
 
 // FUNCTION: SREXT_UNZIP 0x10010F60
-inline srInlineString::~srInlineString()
+srInlineString::~srInlineString()
 {
     if (data_ != inline_) {
         srHeap.free(data_);
@@ -381,8 +379,8 @@ const char* srUnzipPlugin::getDescription() const
     return "SurRender unzip plug-in";
 }
 
-// FUNCTION: SREXT_UNZIP 0x10011240
-srZipOpener::~srZipOpener() {}
+// SYNTHETIC: SREXT_UNZIP 0x10011240
+// srZipOpener::~srZipOpener
 
 // FUNCTION: SREXT_UNZIP 0x100112A0
 srUnzipPlugin::~srUnzipPlugin()

@@ -15,8 +15,7 @@ struct W8AmbientSoundConfig {
    the complete 0x12c-byte object and four members used by its lifetime. */
 class W8AmbientSound {
 public:
-    W8AmbientSound();  /* 0x00479040 */
-    ~W8AmbientSound(); /* 0x0047A780 */
+    W8AmbientSound(); /* 0x00479040 */
 
     /* 0x004790D0: true when listener is inside the rotated/scaled min-max region */
     unsigned char IsInsideRegion(const srVector3T<float>* listener);

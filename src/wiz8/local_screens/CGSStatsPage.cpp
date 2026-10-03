@@ -505,7 +505,7 @@ void W8CharacterStatsRow::OnSecondary(W8TextControl* control)
 }
 
 /* The row's default state: no selection, no table, no child controls. */
-inline W8CharacterStatsRow::W8CharacterStatsRow()
+W8CharacterStatsRow::W8CharacterStatsRow()
     : m_index_004(-1), m_count_008(0), m_table_018(0), m_decrement_01c(0), m_increment_020(0),
       m_value_control_024(0), m_subpanel_028(0), m_subpanel_entries_02c(0), m_listener_030(0)
 {

@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from reccmp.source.records import SourceMarker
 from wiz8decomp.binary.linker_map import LinkerMap, MapSymbol
 from wiz8decomp.debug.session import allocate_port
 from wiz8decomp.dynamic import (
@@ -159,6 +160,46 @@ def test_an_ambiguous_canonical_name_stays_dropped() -> None:
 
     assert rebased == []
     assert dropped == ["W8GrowableVector<unsigned char>::Grow"]
+
+
+@pytest.mark.parametrize("candidate_count", [1, 2])
+def test_rebase_uses_a_decorated_selector_without_changing_display_metadata(
+    monkeypatch: pytest.MonkeyPatch, candidate_count: int
+) -> None:
+    marker = SourceMarker(
+        address=0x1000,
+        marker_kind="TEMPLATE",
+        source_file="src/wiz8/local_code/LoadSaveGame.cpp",
+        line=1,
+        declaration=None,
+        marker_name="Vec<T>::Grow",
+        recomp_selector="?Grow@?$Vec@H@@QAEHH@Z",
+        selector_is_symbol=True,
+    )
+    monkeypatch.setattr("wiz8decomp.source_index.source_functions", lambda *_: {0x1000: marker})
+    points = load_points(REPOSITORY)
+    assert points[0].name == "Vec<int>::Grow"
+    symbols = [
+        MapSymbol(
+            segment=1,
+            offset=0xD420 + index,
+            address=0x4AD420 + index,
+            decorated_name="?Grow@?$Vec@H@@QAEHH@Z",
+            object_name="Vector.obj",
+            is_function=True,
+        )
+        for index in range(candidate_count)
+    ]
+    rebased, dropped = rebase_plan(
+        REPOSITORY, points, LinkerMap(symbols=symbols, sections=[], source_lines=[])
+    )
+    assert marker.marker_name == "Vec<T>::Grow"
+    if candidate_count == 1:
+        assert rebased[0].address == "004ad420"
+        assert dropped == []
+    else:
+        assert rebased == []
+        assert dropped == ["Vec<int>::Grow"]
 
 
 def test_an_unknown_scenario_is_refused() -> None:

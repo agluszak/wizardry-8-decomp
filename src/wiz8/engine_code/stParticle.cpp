@@ -186,7 +186,7 @@ stParticle::stParticle(srNode* parent, int count)
     triangles_168 = 0;
     colors_16c = 0;
     texture_154 = 0;
-    requires_positional_138 = 0;
+    requires_sorted_renderer_138 = 0;
     particle_size_140 = 1.0;
 
     if (count == 0) {
@@ -316,7 +316,7 @@ stParticle::stParticle(const stParticle& other)
     triangles_168 = 0;
     colors_16c = 0;
     texture_154 = 0;
-    requires_positional_138 = other.requires_positional_138;
+    requires_sorted_renderer_138 = other.requires_sorted_renderer_138;
     particle_size_140 = other.particle_size_140;
     texture_frames_178 = 0;
     retained_14c = other.retained_14c;
@@ -825,8 +825,8 @@ void stParticle::PrepareRenderer(srMatrix4T<float>& view)
         srVector4T<float> transformed = view.Transform(corners[index]);
 
         float scale = static_cast<float>(particle_size_140) * size_scale_278;
-        offsets[index] =
-            srVector3T<float>(transformed.x, transformed.y, transformed.z) * static_cast<double>(scale);
+        offsets[index] = srVector3T<float>(transformed.x, transformed.y, transformed.z) *
+                         static_cast<double>(scale);
     }
 
     if (flutter_mode_1c0 == 0) {
@@ -937,7 +937,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
             srVector3T<float> center = rotation.Transform(extent) + position;
             visibility = renderer->testBoundingSphere(center, size_scale_278 * bounds_radius_240);
         }
-        if (visibility == srGERD::VISIBILITY_POSITIONAL_0) {
+        if (visibility == srGERD::VISIBILITY_OUTSIDE) {
             return;
         }
     }
@@ -948,7 +948,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
         srVector3T<float> maximum = rotation.Transform(maximum_228) + position;
 
         srGERD::e_visibility visibility = renderer->testBoundingBox(minimum, maximum);
-        if (visibility == srGERD::VISIBILITY_POSITIONAL_0) {
+        if (visibility == srGERD::VISIBILITY_OUTSIDE) {
             return;
         }
     }
@@ -974,8 +974,9 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     view.Invert();
     PrepareRenderer(view);
 
-    if (requires_positional_138 != 0 && !renderer->isEnabled(srGERD::ENABLE_POSITIONAL_1)) {
-        renderer->toggle(srGERD::ENABLE_POSITIONAL_1);
+    if (requires_sorted_renderer_138 != 0 &&
+        !renderer->isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
+        renderer->toggle(srGERD::ENABLE_SORTED_RENDERING);
     }
     renderer->setCullMode(srGERD::CULL_FRONT);
     renderer->setPickKey(0);

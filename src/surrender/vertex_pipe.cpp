@@ -595,30 +595,8 @@ void srVertexPipe::applyFog(const float* values)
 /* Retail copies the two owned allocations at +0x00/+0x04 verbatim. Assigning
    two live pipes aliases their storage and leaves the old destination storage
    behind; the function has no retail ownership repair. */
-// FUNCTION: SURRENDER 0x1002BB80
-srVertexPipe& srVertexPipe::operator=(const srVertexPipe& other)
-{
-    scratch_00 = other.scratch_00;
-    processor_heap_04 = other.processor_heap_04;
-    processor_heap_capacity_08 = other.processor_heap_capacity_08;
-    channel_mask_0c = other.channel_mask_0c;
-    lazy_setup_mask_10 = other.lazy_setup_mask_10;
-    material_info_14 = other.material_info_14;
-    material_68 = other.material_68;
-    input_6c = other.input_6c;
-    avt_70 = other.avt_70;
-    current_record_74 = other.current_record_74;
-    vertex_array_78 = other.vertex_array_78;
-    eye_space_locations_7c = other.eye_space_locations_7c;
-    batch_base_80 = other.batch_base_80;
-    sub_batch_offset_84 = other.sub_batch_offset_84;
-    vertex_count_88 = other.vertex_count_88;
-    batch_count_8c = other.batch_count_8c;
-    active_processor_count_90 = other.active_processor_count_90;
-    active_processors_94 = other.active_processors_94;
-    vector_processor_98 = other.vector_processor_98;
-    return *this;
-}
+// SYNTHETIC: SURRENDER 0x1002BB80
+// srVertexPipe::operator= (implicit shallow copy)
 
 // FUNCTION: SURRENDER 0x1002BCC0
 void srVertexPipe::applyDiffuseLight(const float* values, const srVector4T<float>& light)
@@ -702,8 +680,8 @@ void srVertexPipe::applyDiffuseLight(const srVector4T<float>& light)
    colors/kind pair: kind 0 selects ARGB, 1 vector3 and 2 vector4 copyIndexed. */
 // FUNCTION: SURRENDER 0x1002BF20
 void srVertexPipe::Record::ColorSource::copyDiffuseColors(srVector4T<float>* destination,
-                                                        const unsigned long* indices,
-                                                        unsigned long count) const
+                                                          const unsigned long* indices,
+                                                          unsigned long count) const
 {
     if (colors_00 == 0) {
         if (count * 4 != 0) {
@@ -712,8 +690,8 @@ void srVertexPipe::Record::ColorSource::copyDiffuseColors(srVector4T<float>* des
         return;
     }
     if (kind_04 == 0) {
-        srVectorProcessor::copyIndexed(destination, static_cast<const srARGB*>(colors_00),
-                                       indices, count);
+        srVectorProcessor::copyIndexed(destination, static_cast<const srARGB*>(colors_00), indices,
+                                       count);
         return;
     }
     if (kind_04 == 1) {

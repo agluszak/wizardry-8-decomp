@@ -10,7 +10,6 @@ public:
     W8IntervalGate(); /* 0x0043A4E0 */
     W8IntervalGate(float duration, bool raw_time, bool one_shot);
     /* 0x0043A500 */
-    virtual ~W8IntervalGate() override;  /* 0x004218D0 */
     void Arm();                          /* 0x0043A530 */
     unsigned int PollElapsedIntervals(); /* 0x0043A5D0 */
     bool IsFinished() const

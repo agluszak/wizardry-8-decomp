@@ -191,14 +191,13 @@ struct GDPropCondPaths {
 
 static_assert(sizeof(GDPropCondPaths) == 0x44, "GDPropCondPaths_must_be_0x44");
 
-/* The two-dimensional cell walk used by path-surface probing. It retains the
-   three-component shape of the octree walker, but only X and Z participate in
-   its Bresenham step; the remaining slots are zeroed by the builder. */
+/* The two-dimensional cell walk used by path-surface probing. The cell and
+   step runs are modeled as triples like the sibling octree walker; only X/Z
+   participate and the third slots are zeroed. Retail does not distinguish
+   this grouping from adjacent scalar storage in the original declaration. */
 struct W8PathGridWalk {
-    int cell_00[2];    /* 0x00: destination X/Z path cells */
-    int unknown_08;    /* 0x08: zero */
-    int step_0c[2];    /* 0x0c: +1 or -1 per axis */
-    int unknown_14;    /* 0x14: zero */
+    int cell_00[3];    /* 0x00: destination X/Z path cells; third slot zero */
+    int step_0c[3];    /* 0x0c: +1 or -1 for X/Z; third slot zero */
     int major_axis_18; /* 0x18: 0 for X, 1 for Z */
     int minor_axis_1c; /* 0x1c: (major + 1) % 2 */
     int unknown_20;    /* 0x20: zero */

@@ -28,7 +28,6 @@ public:
           m_condition_b8(0xff), m_ui_slot_c0(ui_slot)
     {
     }
-    virtual ~W8ConditionButton() override;
     virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnLeftButtonDown(int event) override;

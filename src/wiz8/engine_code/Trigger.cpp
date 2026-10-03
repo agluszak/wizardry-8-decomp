@@ -794,7 +794,7 @@ void SaveTriggerActionData(W8World* world, int handle)
 
 /* Read the trigger action-data chunk written by SaveTriggerActionData:
    a version/count header, then per record the trigger name and its 0x100-byte
-   inline payload. Records for missing triggers are skipped with a seek. */
+   payload. Records for missing triggers are skipped with a seek. */
 // FUNCTION: WIZ8 0x0043d1f0
 bool LoadTriggerActionData(int handle)
 {
@@ -829,7 +829,7 @@ bool LoadTriggerActionData(int handle)
 // VTABLE: WIZ8 0x005ec12c
 // class W8TriggerEvent
 
-inline W8TriggerEvent::W8TriggerEvent()
+W8TriggerEvent::W8TriggerEvent()
     : action_004(-1), timer_008(), m_pCountdown(0), trigger_030(0), repeat_034(0), completed_035(0)
 {
 }
@@ -859,9 +859,7 @@ static_assert(sizeof(W8TriggerShakeEvent) == 0x44, "W8TriggerShakeEvent_must_be_
 /* Retail ICF folds this class's deleting destructor onto W8TriggerEvent's
    retained body at 0x00440980; there is no distinct retail emission to mark. */
 
-inline W8TriggerShakeEvent::W8TriggerShakeEvent() : effect_038(0), intensity_03c(1), reverse_040(0)
-{
-}
+W8TriggerShakeEvent::W8TriggerShakeEvent() : effect_038(0), intensity_03c(1), reverse_040(0) {}
 
 // GLOBAL: WIZ8 0x006599a0
 srVector3T<float> g_trigger_camera;
@@ -1343,7 +1341,7 @@ void SetTriggerVariableByName(const char* name, int value)
 // VTABLE: WIZ8 0x005ec138
 // class W8TriggerActionData
 
-inline W8TriggerActionData::W8TriggerActionData() : type_004(-1) {}
+W8TriggerActionData::W8TriggerActionData() : type_004(-1) {}
 
 // SYNTHETIC: WIZ8 0x0043c7f0
 // W8TriggerActionData::`scalar deleting destructor'
@@ -2471,14 +2469,11 @@ void Trigger::RunDestination(const char* destination)
     srVector3T<float> destination_direction;
     srVector3T<float> source_position;
     srMatrix3T<float> rotation;
-    /* Retail left location_id/entrance uninitialised on the named-entity path
-       and read the stack slot holding `this`. Named entities only resolve in
-       the loaded world, so the deterministic model of the intended same-level
-       move is the current level. */
-    int location_id = g_status.current_level;
-    int entrance = 0;
+    /* Retail's named-entity path reads saved storage for these integers;
+       authored initialization remains unresolved. */
+    int location_id;
+    int entrance;
     int current_location;
-    float entity_value;
     float angle;
     bool named_entity;
 
@@ -2489,11 +2484,7 @@ void Trigger::RunDestination(const char* destination)
     ResetInactiveLevelDataVectors();
     current_location = g_status.current_level;
     named_entity =
-        FindEntityByName(destination, &destination_position, &entity_value, &destination_direction);
-    /* Retail leaves location_id and entrance uninitialised on the named-entity
-       path. Both GOG builds then read the stack slot holding this for those
-       values. Preserve that source bug rather than assigning entity_value and
-       silently making the path behave differently. */
+        FindEntityByName(destination, &destination_position, &angle, &destination_direction);
     if (!named_entity) {
         char location_code[4];
         char entrance_code[3];
@@ -2522,8 +2513,6 @@ void Trigger::RunDestination(const char* destination)
         destination_position = target->position_118;
         angle = target->angle_0fc;
         destination_direction = target->direction_100;
-    } else {
-        angle = 0.0f;
     }
 
     source_position.Set(position_118.x, position_118.y, position_118.z);

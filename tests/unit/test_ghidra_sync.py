@@ -1,17 +1,23 @@
 import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
+from dataclasses import asdict
 from types import SimpleNamespace
 from typing import Any
 
+import pytest
+import wiz8decomp.ghidra.sync as sync_module
+from reccmp.source.records import SourceDeclaration
 from wiz8decomp.ghidra.mutations import RowApplyError, apply_rows, transaction_is_open
 from wiz8decomp.ghidra.sync import (
+    _apply_name_and_prototype,
     _explicit_parameter_types,
     _has_function_overlap,
     _projection_complete,
     _record_step,
     _stored_signature_matches,
 )
+from wiz8decomp.source_index import AddressBoundIdentity, _identity_from_declaration
 
 
 def test_function_overlap_is_a_hard_sync_conflict() -> None:
@@ -308,3 +314,101 @@ def test_bad_signature_row_rolls_back_and_blocks_provenance(monkeypatch) -> None
     _record_step(steps, conflicts, "prototypes", result)
     assert conflicts == [bad]
     assert not _projection_complete(conflicts, [], steps)
+
+
+def test_pairing_only_recomp_selector_does_not_project_retail_source_facts():
+    identity = AddressBoundIdentity(
+        target="WIZ8",
+        address=0x1000,
+        name="Grow",
+        qualified_name="Vec<T>::Grow",
+        source_file="include/vec.h",
+        line=1,
+        kind="template",
+        marker_kind="TEMPLATE",
+        semantic_id="vec-grow",
+        calling_convention=None,
+        return_type=None,
+        parameter_types=(),
+        has_this=True,
+        is_variadic=False,
+        owning_class="Vec<T>",
+        is_definition=False,
+        recomp_selector="?Grow@?$Vec@H@@QAEXH@Z",
+    )
+    # No ProgramDB read or mutation is needed for a pairing-only identity.
+    assert _apply_name_and_prototype(None, identity) == {
+        "address": "0x00001000",
+        "action": "skip-non-function",
+    }
+
+
+def test_function_declaration_projects_independently_of_recomp_selector(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    declaration = SourceDeclaration(
+        semantic_id="?SetValue@Shader@@QAEXI@Z",
+        qualified_name="Shader::SetValue",
+        semantic_kind="instance_method",
+        calling_convention="__thiscall",
+        return_type="void",
+        parameter_types=("unsigned int",),
+        owning_class="Shader",
+        source_file="include/shader.h",
+        line=10,
+        end_line=12,
+        is_definition=True,
+    )
+    identity = _identity_from_declaration(
+        asdict(declaration),
+        target="WIZ8",
+        address=0x1000,
+        marker_kind="FUNCTION",
+        kind="definition",
+        recomp_selector="?DifferentPairingSelector@@YAXXZ",
+        selector_is_symbol=True,
+    )
+    seen: dict[str, object] = {}
+
+    class FakeFunction:
+        name = "FUN_00001000"
+
+        def getName(self, _qualified: bool = False) -> str:
+            return self.name
+
+        def setName(self, name: str, source: object) -> None:
+            self.name = name
+            seen["name-source"] = source
+
+        def getCallingConventionName(self) -> str:
+            return "__thiscall"
+
+        def isThunk(self) -> bool:
+            return False
+
+    function = FakeFunction()
+    program = SimpleNamespace(
+        getAddressFactory=lambda: SimpleNamespace(
+            getDefaultAddressSpace=lambda: SimpleNamespace(getAddress=lambda address: address)
+        ),
+        getFunctionManager=lambda: SimpleNamespace(getFunctionAt=lambda _address: function),
+    )
+
+    def apply_signature(_program, _function, projected):
+        seen["identity"] = projected
+        return {"applied": True}
+
+    monkeypatch.setitem(
+        sys.modules,
+        "ghidra.program.model.symbol",
+        SimpleNamespace(SourceType=SimpleNamespace(IMPORTED="imported", ANALYSIS="analysis")),
+    )
+    monkeypatch.setattr(sync_module, "_apply_signature", apply_signature)
+
+    result = _apply_name_and_prototype(program, identity)
+
+    assert result["action"] == "updated"
+    assert result["changed"] == ["name", "signature"]
+    assert function.name == "SetValue"
+    assert function.name != identity.recomp_selector
+    assert seen["identity"] is identity

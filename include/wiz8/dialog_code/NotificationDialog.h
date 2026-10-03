@@ -12,7 +12,6 @@ struct W8DialogCloseListener {
 class W8NotificationDialog : public W8MessageDialogBase {
 public:
     W8NotificationDialog(int message_index, int caption_id, int notify_value);
-    virtual ~W8NotificationDialog() override;      /* 0x005A8190 */
     virtual unsigned char ProcessInput() override; /* 0x005A81A0 */
 
 public:

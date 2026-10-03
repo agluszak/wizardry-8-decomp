@@ -656,30 +656,8 @@ srPalette::Sampler::~Sampler()
 
 /* Same retail aliasing as the copy constructor: colors and links are copied
    as raw pointers, so assignment shares ownership of both tables. */
-// FUNCTION: SURRENDER 0x10004C40
-srPalette::Sampler& srPalette::Sampler::operator=(const Sampler& other)
-{
-    long index;
-    sample_limit = other.sample_limit;
-    sample_factor = other.sample_factor;
-    sample_bits = other.sample_bits;
-    color_count = other.color_count;
-    sample_count = other.sample_count;
-    capacity = other.capacity;
-    output_palette_size = other.output_palette_size;
-    for (index = 0; index < 0x100; ++index) {
-        mask_flags[index] = other.mask_flags[index];
-    }
-    for (index = 0; index < 0x100; ++index) {
-        mask_colors[index] = other.mask_colors[index];
-    }
-    colors = other.colors;
-    links = other.links;
-    for (index = 0; index < 0x8000; ++index) {
-        buckets[index] = other.buckets[index];
-    }
-    return *this;
-}
+// SYNTHETIC: SURRENDER 0x10004C40
+// srPalette::Sampler::operator= (implicit shallow copy)
 
 // FUNCTION: SURRENDER 0x10004AF0
 long srPalette::Sampler::getColorCount()

@@ -111,7 +111,7 @@ void srNode::process(const ProcessInfo& info, e_processType type) {}
 // FUNCTION: SURRENDER 0x10050500
 void srNode::updateBounds()
 {
-    clearNotify(NOTIFY_POSITIONAL_0);
+    clearNotify(NOTIFY_BOUNDS_DIRTY);
 }
 
 // FUNCTION: SURRENDER 0x10050510
@@ -477,9 +477,7 @@ void srNode::setScale(double scale)
 }
 
 // FUNCTION: SURRENDER 0x10051A90
-/* Inline at every retail call site: the dirty check folds into each getter and
-   the out-of-line body survives only for the export. */
-inline void srNode::checkTransformation() const
+void srNode::checkTransformation() const
 {
     if ((notifications_120.value & 2) != 0) {
         updateTransformation();
@@ -530,10 +528,10 @@ void srNode::setWSDirty()
 {
     /* The dirty fan-out to parents and children can rewrite the notification
        word, so retail saves the positional bit first and restores it after. */
-    int was_positional = notifications_120.value & (1 << NOTIFY_POSITIONAL_0);
+    int bounds_dirty = notifications_120.value & (1 << NOTIFY_BOUNDS_DIRTY);
     notifyParents(srFlags<e_notify>(1));
     notifyChildren(srFlags<e_notify>(2));
-    notifications_120.set(NOTIFY_POSITIONAL_0, was_positional);
+    notifications_120.set(NOTIFY_BOUNDS_DIRTY, bounds_dirty);
 }
 
 // FUNCTION: SURRENDER 0x10051DB0
@@ -1349,12 +1347,10 @@ void srNode::setWorldSpaceRotation(const srMatrix3T<double>& rotation)
         local = inverse;
         local.MultiplyBy(world);
         srMatrix3T<double> result;
-        result.SetRows(srVector3T<double>(local.vectors[0].x, local.vectors[0].y,
-                                          local.vectors[0].z),
-                       srVector3T<double>(local.vectors[1].x, local.vectors[1].y,
-                                          local.vectors[1].z),
-                       srVector3T<double>(local.vectors[2].x, local.vectors[2].y,
-                                          local.vectors[2].z));
+        result.SetRows(
+            srVector3T<double>(local.vectors[0].x, local.vectors[0].y, local.vectors[0].z),
+            srVector3T<double>(local.vectors[1].x, local.vectors[1].y, local.vectors[1].z),
+            srVector3T<double>(local.vectors[2].x, local.vectors[2].y, local.vectors[2].z));
         rotation_18 = result;
         srVector3T<double> column_x;
         srVector3T<double> column_y;
@@ -1389,12 +1385,9 @@ void srNode::setWorldSpaceMatrix(const srMatrix4T<double>& matrix)
         local.MultiplyBy(matrix);
     }
     srMatrix3T<double> result;
-    result.SetRows(srVector3T<double>(local.vectors[0].x, local.vectors[0].y,
-                                      local.vectors[0].z),
-                   srVector3T<double>(local.vectors[1].x, local.vectors[1].y,
-                                      local.vectors[1].z),
-                   srVector3T<double>(local.vectors[2].x, local.vectors[2].y,
-                                      local.vectors[2].z));
+    result.SetRows(srVector3T<double>(local.vectors[0].x, local.vectors[0].y, local.vectors[0].z),
+                   srVector3T<double>(local.vectors[1].x, local.vectors[1].y, local.vectors[1].z),
+                   srVector3T<double>(local.vectors[2].x, local.vectors[2].y, local.vectors[2].z));
     rotation_18 = result;
     location_60 = srVector3T<double>(local.vectors[0].w, local.vectors[1].w, local.vectors[2].w);
     srVector3T<double> column_x;

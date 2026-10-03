@@ -150,7 +150,7 @@ unsigned char StartCombat(int surprise)
             if (monster_info->fInCombat != 0 && monster_info->ubDisposition == DISP_HOSTILE &&
                 monster_info->hp_current > 0 && monster_info->highest_condition < 0x10) {
                 npc = GetNpcStateForMonsterInfo(monster_info, 0);
-                if (npc != 0 && npc->record->unknown_2ef[0] != 0) {
+                if (npc != 0 && npc->record->unknown_2ef != 0) {
                     QueueNpcScriptNotice(npc, 0, -1, 0, 0);
                     gXStatus.npc_combat_notice_pending = 1;
                     BeginScriptedWorldAction();
@@ -197,7 +197,7 @@ unsigned char StartCombat(int surprise)
     g_combat_state->experience_pool_010 = 0;
     g_combat_state->experience_bonus_014 = 0;
     g_combat_state->enemies_engaged_a54 = gXStatus.hostile_monster_count > 0;
-    g_combat_state->combat_over_000 = 0;
+    g_combat_state->execution_active_000 = 0;
     g_combat_state->round_active_001 = 1;
     g_combat_state->action_clock_7ac = GetClock();
     g_combat_state->eCombatActionStatus = 0;
@@ -318,7 +318,6 @@ void ResetPartyCombatRows(void)
     }
 }
 
-/* Whether anybody in the party is engaged with something. */
 // FUNCTION: WIZ8 0x004e7ca0
 bool AnyCharacterEngaged(void)
 {
@@ -526,7 +525,7 @@ void BeginCombatExecution(void)
     if (g_settings.continuous_combat == 0 && gXStatus.iTargetingMode != 0) {
         SetTargetingMode(0);
     }
-    g_combat_state->combat_over_000 = 1;
+    g_combat_state->execution_active_000 = 1;
     g_combat_state->pending_death_count = 0;
     g_combat_state->passive_round_a55 = 1;
     g_level_block->pick_changed_154 = false;
@@ -581,9 +580,10 @@ void BeginCombatExecution(void)
             row->extra_swings_82[0] = 0;
             if (party->pending_action == W8_ACTION_ATTACK) {
                 W8Character* character = &g_status.buffers.Char[slot];
-                if (CharacterHasTrait(character, W8_TRAIT_LIGHTNING_STRIKE) && character->Hand[0].weapon_skill == 0 &&
-                    Random(100) < static_cast<unsigned char>(
-                                      ScaleValueByProfessionLevel(character, W8_TRAIT_LIGHTNING_STRIKE, 12.0f))) {
+                if (CharacterHasTrait(character, W8_TRAIT_LIGHTNING_STRIKE) &&
+                    character->Hand[0].weapon_skill == 0 &&
+                    Random(100) < static_cast<unsigned char>(ScaleValueByProfessionLevel(
+                                      character, W8_TRAIT_LIGHTNING_STRIKE, 12.0f))) {
                     row->extra_swings_82[0] = 1;
                 }
             }
@@ -698,7 +698,6 @@ int IsPartyEngaged(void)
     return 0;
 }
 
-/* Note that one character died this round. */
 // FUNCTION: WIZ8 0x004ecdd0
 void RecordCharacterDeath(int party_slot)
 {
@@ -708,8 +707,6 @@ void RecordCharacterDeath(int party_slot)
     }
 }
 
-/* Record what one slot has chosen to do, and cache whether it is the first
-   kind beside it. */
 // FUNCTION: WIZ8 0x004e8290
 void SetSlotAction(int party_slot, W8ActionKind action_kind, int action_detail)
 {
@@ -1220,8 +1217,8 @@ void ChooseAction(int party_slot, W8ActionKind action, int detail, const W8Actio
 /* Apply a chosen in-combat action for party-move kinds 10/11, otherwise record
    the action on the slot row and refresh targeting UI state. */
 // FUNCTION: WIZ8 0x004e7ee0
-void ApplyPartyCombatAction(int party_slot, W8ActionKind action, int detail, const W8ActionDetailBlock* data,
-                            int notify)
+void ApplyPartyCombatAction(int party_slot, W8ActionKind action, int detail,
+                            const W8ActionDetailBlock* data, int notify)
 {
     unsigned int party_slot_index;
     W8Character* character;
@@ -1231,7 +1228,8 @@ void ApplyPartyCombatAction(int party_slot, W8ActionKind action, int detail, con
         SetCharacterCombatAction(party_slot, action, detail, data, notify);
         return;
     }
-    if (g_combat_state->combat_over_000 == 0 || g_combat_state->uiCurrentPartyActionStatus != 0) {
+    if (g_combat_state->execution_active_000 == 0 ||
+        g_combat_state->uiCurrentPartyActionStatus != 0) {
         SetPendingMoveKind(action);
     } else {
         bool deferred = false;
@@ -1296,7 +1294,8 @@ void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int acti
     }
     row->action_changed_a7 = 1;
     W8Character* character = &g_status.buffers.Char[party_slot];
-    if (character->hp_current != 0 && character->highest_condition < 0xd && action_kind != W8_ACTION_NONE) {
+    if (character->hp_current != 0 && character->highest_condition < 0xd &&
+        action_kind != W8_ACTION_NONE) {
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, notify) == 0) {
             AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
         } else {
@@ -1313,7 +1312,7 @@ void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int acti
     if (gXStatus.fCombatMode == 0) {
         return;
     }
-    if (action_kind != previous_action && g_combat_state->combat_over_000 != 0 &&
+    if (action_kind != previous_action && g_combat_state->execution_active_000 != 0 &&
         row->dead_34 == 0) {
         CatchUpCombatActor(row);
     }
@@ -1321,8 +1320,9 @@ void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int acti
     g_level_block->pick_changed_154 = 0;
     if (action_kind == W8_ACTION_EQUIP) {
         PostCharacterNotice(party_slot, gppStringList[0x225]);
-    } else if (previous_action == W8_ACTION_EQUIP && !(g_combat_state->iActionChar == party_slot &&
-                                         g_status.buffers.XChar[party_slot].pending_action == W8_ACTION_EQUIP)) {
+    } else if (previous_action == W8_ACTION_EQUIP &&
+               !(g_combat_state->iActionChar == party_slot &&
+                 g_status.buffers.XChar[party_slot].pending_action == W8_ACTION_EQUIP)) {
         PostCharacterNotice(party_slot, gppStringList[0x226]);
     }
     CalcArmorClasses(character);
@@ -1388,13 +1388,13 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
         break;
     case 5:
         value_a = -1;
-        target = &row->target_context_5;
+        target = &row->breath_target;
         kind = 2;
         detail = 0;
         break;
     case 7:
-        kind = g_level_block->move_budget_2dc;
-        value_a = g_level_block->move_budget_2e0;
+        kind = g_level_block->selection_kind;
+        value_a = g_level_block->value_2f4;
         target = 0;
         detail = 0;
         break;
@@ -1406,12 +1406,12 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
         break;
     default:
         srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x310, 0);
-        value_a = context;
+        value_a = party_slot;
         target = reinterpret_cast<W8CombatSlot*>(
-            context); // reinterpret-ok: retail stores the context word into the generic output slots after the FALSE assert
+            party_slot); // reinterpret-ok: retail stores the party-slot word into the pointer output after the FALSE assert
         detail = reinterpret_cast<W8ActionDetailBlock*>(
-            context); // reinterpret-ok: retail stores the context word into the generic output slots after the FALSE assert
-        kind = context;
+            party_slot); // reinterpret-ok: retail stores the party-slot word into the pointer output after the FALSE assert
+        kind = party_slot;
         break;
     }
     if (CanPartySlotParticipate(party_slot) == 0 && kind != W8_ACTION_WALK &&
@@ -1564,7 +1564,7 @@ void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, bool alternate)
 
     switch (monster_info->Target.iType) {
     case W8_TARGET_KIND_NONE:
-    case W8_TARGET_KIND_FIVE:
+    case W8_TARGET_KIND_ALL_ENEMIES:
         break;
     default:
         if (IsMonsterFacingParty(monster_info) == 0) {
@@ -1851,7 +1851,7 @@ void AdvanceCombatRound(void)
         UpdateCampFatigue(10);
     }
     RequestRedrawCombatBar();
-    g_combat_state->combat_over_000 = 0;
+    g_combat_state->execution_active_000 = 0;
     g_combat_state->round_active_001 = 1;
     if (g_combat_state->pending_death_count != 0) {
         int active_characters = CountActiveCharacters();
@@ -1875,8 +1875,9 @@ void AdvanceCombatRound(void)
                 SetDice(&dice, 2, sides, 0);
                 int amount = RollDice(&dice);
                 if (CharacterHasTrait(character, W8_TRAIT_STAMINA_REGENERATION) != 0) {
-                    amount =
-                        static_cast<int>(ScaleValueByProfessionLevel(character, W8_TRAIT_STAMINA_REGENERATION, 3.3f) * amount);
+                    amount = static_cast<int>(ScaleValueByProfessionLevel(
+                                                  character, W8_TRAIT_STAMINA_REGENERATION, 3.3f) *
+                                              amount);
                 }
                 RestoreCharacterStamina(party_slot, amount,
                                         character->stamina < character->uiStaminaMax);
@@ -2109,11 +2110,13 @@ void ExecuteCharacterAction(int party_slot)
             slot->pending_action_detail_015 = slot->action_detail_045;
             slot->target_out_of_combat = slot->target_in_combat;
             g_combat_state->characters[party_slot].action_changed_a7 = 0;
-            if ((slot->pending_action == W8_ACTION_ATTACK || slot->pending_action == W8_ACTION_BERSERK) &&
+            if ((slot->pending_action == W8_ACTION_ATTACK ||
+                 slot->pending_action == W8_ACTION_BERSERK) &&
                 CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0, 0) != 0) {
                 PrepareCharacterAttacks(party_slot);
             }
-        } else if ((slot->pending_action == W8_ACTION_ATTACK || slot->pending_action == W8_ACTION_BERSERK) &&
+        } else if ((slot->pending_action == W8_ACTION_ATTACK ||
+                    slot->pending_action == W8_ACTION_BERSERK) &&
                    g_combat_state->characters[party_slot].alternate_hand_81 != 0) {
             W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
             row->hand_attack_values_40[0] = 0;
@@ -2652,7 +2655,7 @@ void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info)
         no_target = location_id == -1;
         break;
     case W8_TARGET_KIND_NONE:
-    case W8_TARGET_KIND_FIVE:
+    case W8_TARGET_KIND_ALL_ENEMIES:
         return;
     default:
         GetCameraPosition(&position);
@@ -2947,7 +2950,8 @@ int GetConditionInterrupt(W8TargetSource* source)
         return (Random(100) < attribute / 3) ? 7 : 0;
     }
     if (condition_turns[W8_CONDITION_BLIND] != 0 && Random(100) < 0x14) {
-        if (source->iType == W8_TARGET_SOURCE_CHARACTER && CharacterHasTrait(character, W8_TRAIT_EFFECTIVE_WHILE_BLIND) == 0) {
+        if (source->iType == W8_TARGET_SOURCE_CHARACTER &&
+            CharacterHasTrait(character, W8_TRAIT_EFFECTIVE_WHILE_BLIND) == 0) {
             return 2;
         }
         if (source->iType == W8_TARGET_SOURCE_MONSTER &&
@@ -3123,11 +3127,11 @@ void UpdateCombat(void)
             monster_info->pCombat->sight_refresh_pending_151 = 0;
         }
     }
-    if (g_combat_state->combat_over_000 == 0) {
+    if (g_combat_state->execution_active_000 == 0) {
         if (QueueNpcCombatScript()) {
             return;
         }
-        if (CheckCombatEnd(g_combat_state->combat_over_000 == 0 &&
+        if (CheckCombatEnd(g_combat_state->execution_active_000 == 0 &&
                            g_combat_state->enemies_engaged_a54 != 0) != 0) {
             return;
         }

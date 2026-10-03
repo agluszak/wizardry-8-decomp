@@ -10,7 +10,7 @@
    members. Provider exports are not a reason to apply SR_DLL_IMPORT here. */
 class SR_DLL_EXPORT srBounder : public srClassSupport<srBounder, srNode, false, 0x1600> {
 public:
-    enum e_boundMode { BOUND_MODE_POSITIONAL_0 = 0 };
+    enum e_boundMode { BOUND_MODE_DYNAMIC = 0 };
 
     srBounder(srNode* parent = 0);
 

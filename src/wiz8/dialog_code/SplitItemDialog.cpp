@@ -518,7 +518,7 @@ void W8SplitItemDialog::UpdateAcceptButton()
 
 /* The same totals refresh appears in the numeric-field callback and all
    split-count button callbacks. */
-inline void W8SplitItemDialog::UpdateTotals()
+void W8SplitItemDialog::UpdateTotals()
 {
     wchar_t text[34];
 

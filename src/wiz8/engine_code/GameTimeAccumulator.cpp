@@ -83,5 +83,5 @@ float W8GameTimeAccumulator::Update()
     return m_frame_delta_28;
 }
 
-// FUNCTION: WIZ8 0x0043ac60
-W8GameTimeAccumulator::~W8GameTimeAccumulator() {}
+// SYNTHETIC: WIZ8 0x0043ac60
+// W8GameTimeAccumulator::~W8GameTimeAccumulator

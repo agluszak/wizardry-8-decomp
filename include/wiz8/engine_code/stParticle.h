@@ -18,7 +18,7 @@ public:
     /* 0x00497C57 compares count signed, while particle_count_180 is stored and
        compared unsigned, so the parameter is not the member's type. */
     stParticle(srNode* parent, int count); /* 0x00497AF0 */
-    stParticle(const stParticle& other);            /* 0x00498180 */
+    stParticle(const stParticle& other);   /* 0x00498180 */
     void SetActive(unsigned char active);
     void SetTraversalEnabled(bool enabled);
     void DeactivateParticle(unsigned int index);
@@ -32,7 +32,7 @@ public:
     void SubmitToRenderer(srGERD* renderer);
     /* The per-particle age/cull/move step and billboard-corner expansion used
        by the submitted batch. Their retail names remain unavailable. */
-    void Update();                         /* 0x00499FA0 */
+    void Update();                                 /* 0x00499FA0 */
     void PrepareRenderer(srMatrix4T<float>& view); /* 0x00498DD0 */
     srShader GetRenderFlags() const;
     unsigned char ReplaceTexture(const char* old_name, srTextureIFace* replacement);
@@ -45,7 +45,7 @@ protected:
     virtual ~stParticle() override; /* 0x00498A20 */
 
 public:
-    unsigned int requires_positional_138;
+    unsigned int requires_sorted_renderer_138;
     unsigned char padding_13c[4];
     double particle_size_140; /* 0x140: billboard quad scale from particle_size */
     /* Per-particle world positions; the retail allocation assert spells the

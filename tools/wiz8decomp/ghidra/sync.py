@@ -7,7 +7,12 @@ from typing import Any
 
 from ..config import Settings
 from ..paths import sha256_file
-from ..source_index import address_bound_identities, target_for_program, write_source_index
+from ..source_index import (
+    AddressBoundIdentity,
+    address_bound_identities,
+    target_for_program,
+    write_source_index,
+)
 from .mutations import auto_parameters
 from .resolve import hex_address, resolve_program_selector
 
@@ -106,15 +111,16 @@ def _thunked_local_target(function: Any) -> Any | None:
     return thunked
 
 
-def _apply_name_and_prototype(program: Any, identity: Any) -> dict[str, Any]:
+def _apply_name_and_prototype(program: Any, identity: AddressBoundIdentity) -> dict[str, Any]:
+    if identity.kind in {"library", "synthetic", "template", "global", "vtable"}:
+        return {"address": hex_address(identity.address), "action": "skip-non-function"}
+
     from ghidra.program.model.symbol import SourceType
 
     space = program.getAddressFactory().getDefaultAddressSpace()
     function = program.getFunctionManager().getFunctionAt(space.getAddress(identity.address))
     if function is None:
         return {"address": hex_address(identity.address), "action": "missing-function"}
-    if identity.kind in {"library", "synthetic", "template", "global", "vtable"}:
-        return {"address": hex_address(identity.address), "action": "skip-non-function"}
     changed = []
     desired = identity.name or identity.qualified_name.rsplit("::", 1)[-1]
     if desired and function.getName() != desired:

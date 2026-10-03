@@ -162,6 +162,9 @@ template <class T> void SortByKey(T* items, unsigned long* keys, int count)
     }
 }
 
+/* Four-byte key/value storage emissions do not distinguish signed integer
+   values from pointers. Retained concrete marker names are recomp selectors;
+   recover arguments from typed producers/consumers rather than equal widths. */
 template <class Key, class Value> struct W8HashEntry {
     int next_index;
     Key key;
@@ -315,7 +318,8 @@ void W8HashTable<Key, Value>::Remove(const Key* key, const Value* value)
 /* Remove the entry at a known slot, as 0x0042E650/0x0042E880 do after
    FindNextEntry. */
 // TEMPLATE: WIZ8 0x00438dd0
-// W8HashTable<unsigned int,int>::RemoveAt
+// NAME: W8HashTable<Key,Value>::RemoveAt
+// RECOMP: W8HashTable<unsigned int,int>::RemoveAt
 template <class Key, class Value> void W8HashTable<Key, Value>::RemoveAt(int slot)
 {
     Key wanted = entries[slot].key;

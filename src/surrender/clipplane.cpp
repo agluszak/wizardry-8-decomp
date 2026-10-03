@@ -23,12 +23,12 @@ srClipPlane::srClipPlane(srNode* parent)
 void srClipPlane::process(const ProcessInfo& info, e_processType type)
 {
     srGERD* renderer = info.renderer;
-    if (type == static_cast<e_processType>(1) || type == static_cast<e_processType>(3)) {
+    if (type == PROCESS_PUSH || type == PROCESS_PUSH_GLOBAL) {
         applyWorldSpaceMatrix(*renderer);
         renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
         renderer->pushClipPlane(clip_plane_, static_cast<srGERD::e_clipMode>(clip_type_));
         renderer->popMatrix();
-    } else if (type == static_cast<e_processType>(2) || type == static_cast<e_processType>(4)) {
+    } else if (type == PROCESS_POP || type == PROCESS_POP_GLOBAL) {
         renderer->popClipPlane();
     }
 }

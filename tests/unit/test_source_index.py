@@ -100,6 +100,39 @@ def test_synthetic_marker_cannot_own_a_declaration(tmp_path: Path) -> None:
     assert source_index.validate_synthetic_marker_blocks(tmp_path) == 1
 
 
+@pytest.mark.parametrize("attached_body", [False, True])
+def test_synthetic_display_and_selector_metadata(tmp_path: Path, attached_body: bool) -> None:
+    source = tmp_path / "src/item.cpp"
+    source.parent.mkdir()
+    source.write_text(
+        "// SYNTHETIC: WIZ8 0x1000\n"
+        "// NAME: Vec<T>::~Vec\n"
+        "// RECOMP: ??1?$Vec@H@@QAE@XZ\n"
+        + (
+            "void body() {}\n"
+            if attached_body
+            else "// SYNTHETIC: WIZ8 0x2000\n"
+            "// NAME: Vec<T>::~Vec\n"
+            "// RECOMP: ??1?$Vec@M@@QAE@XZ\n\n"
+            "void body() {}\n"
+        ),
+        encoding="utf-8",
+    )
+    if attached_body:
+        with pytest.raises(SourceIndexError, match="SYNTHETIC owns no declaration or body"):
+            source_index.validate_synthetic_marker_blocks(tmp_path)
+    else:
+        assert source_index.validate_synthetic_marker_blocks(tmp_path) == 2
+
+
+def test_synthetic_display_requires_a_selector(tmp_path: Path) -> None:
+    source = tmp_path / "src/item.cpp"
+    source.parent.mkdir()
+    source.write_text("// SYNTHETIC: WIZ8 0x1000\n// NAME: Vec<T>::~Vec\n\n", encoding="utf-8")
+    with pytest.raises(SourceIndexError, match="SYNTHETIC NAME lacks its RECOMP selector"):
+        source_index.validate_synthetic_marker_blocks(tmp_path)
+
+
 @pytest.mark.parametrize("existing_database", [False, True])
 def test_source_index_configures_missing_or_stale_compile_database(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, existing_database: bool
@@ -498,3 +531,40 @@ def test_host_compile_database_accepts_runtime_lint_sources(tmp_path: Path) -> N
     assert rewritten[0]["file"] == str(
         (repository / "tests/runtime/wiz8_runtime_test.cpp").resolve()
     )
+
+
+@pytest.mark.parametrize("embedded", [False, True])
+def test_address_identity_preserves_pairing_only_selector(tmp_path, monkeypatch, embedded):
+    marker = {
+        "target": "WIZ8",
+        "address": 0x1000,
+        "marker_kind": "TEMPLATE",
+        "marker_name": "Vec<T>::Grow",
+        "recomp_selector": "?Grow@?$Vec@H@@QAEXH@Z",
+        "selector_is_symbol": True,
+    }
+    monkeypatch.setattr(
+        source_index,
+        "load_source_index",
+        lambda _: {
+            "declarations": [],
+            "markers": [marker],
+        },
+    )
+    monkeypatch.setattr(source_index, "project_targets", lambda _: {})
+    monkeypatch.setattr(
+        source_index,
+        "declaration_for_marker",
+        lambda *_: (
+            {
+                "qualified_name": "Vec<T>::Grow",
+                "is_definition": True,
+            }
+            if embedded
+            else {}
+        ),
+    )
+    identity = source_index.address_bound_identities(tmp_path)[0x1000][0]
+    assert identity.recomp_selector == marker["recomp_selector"]
+    assert identity.selector_is_symbol
+    assert identity.kind == "template"

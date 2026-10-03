@@ -31,12 +31,7 @@ srIlluminator& srIlluminator::operator=(const srIlluminator& other)
 void srIlluminator::process(const ProcessInfo& info, e_processType type)
 {
     srGERD* renderer = info.renderer;
-    /* The recovered e_processType currently names only 0; retail still
-       compares this override against 1, 2, 3, and 4. Enumerator names remain
-       unknown, so keep the integer tests rather than inventing them. */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtautological-compare"
-    if (type == 1 || type == 3) {
+    if (type == PROCESS_PUSH || type == PROCESS_PUSH_GLOBAL) {
         applyWorldSpaceMatrix(*renderer);
         srVector3T<float> origin;
         origin.x = 0.0f;
@@ -50,10 +45,9 @@ void srIlluminator::process(const ProcessInfo& info, e_processType type)
         renderer->pushVertexProcessor(*this);
         return;
     }
-    if (type == 2 || type == 4) {
+    if (type == PROCESS_POP || type == PROCESS_POP_GLOBAL) {
         renderer->popVertexProcessor();
     }
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: SURRENDER 0x1004C9E0

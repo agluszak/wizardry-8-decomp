@@ -36,9 +36,6 @@ extern W8ProfRaceInfoRow g_race_info_rows[16];
 class W8ProfRaceInfoDialogBase : public W8DialogBase {
 public:
     W8ProfRaceInfoDialogBase();
-    /* Header-visible: the derived destructors emit this body inline rather
-       than tail-calling the standalone copy the base deleting destructor
-       keeps at 0x005DEBB0. */
     // FUNCTION: WIZ8 0x005DEBB0
     virtual ~W8ProfRaceInfoDialogBase() override
     {
@@ -77,7 +74,6 @@ protected:
 class W8ProfessionInfoDialog : public W8ProfRaceInfoDialogBase {
 public:
     W8ProfessionInfoDialog(unsigned int uiIndex);
-    virtual ~W8ProfessionInfoDialog() override;
 
 private:
     virtual unsigned char PopulateText() override;
@@ -89,7 +85,6 @@ private:
 class W8RaceInfoDialog : public W8ProfRaceInfoDialogBase {
 public:
     W8RaceInfoDialog(unsigned int uiIndex);
-    virtual ~W8RaceInfoDialog() override;
 
 private:
     virtual unsigned char PopulateText() override;

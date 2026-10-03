@@ -527,7 +527,7 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
     char pacFileName[52];
     char pacToken[52];
     char wave_path[256];
-    unsigned short pacLoop[0x40];
+    char pacLoop[128];
 
     found = FindFirstGrCycleByName(name);
     if (found != 0) {
@@ -640,11 +640,10 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
                         }
                         sound_kind = 2;
                     }
-                    pacLoop[0] = g_empty_ambient_name;
-                    memset(pacLoop + 1, 0, 0x7e);
+                    memcpy(pacLoop, &g_empty_ambient_name, 2);
+                    memset(pacLoop + 2, 0, sizeof(pacLoop) - 2);
                     sscanf(line, "%s %s %d %s %s", pacToken, pacName, &frame, pacFileName,
-                           // reinterpret-ok: word buffer is the "%s" sscanf target
-                           reinterpret_cast<char*>(pacLoop));
+                           pacLoop);
                     /* Retail asserts the array address; always true. */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wtautological-compare"
@@ -661,10 +660,8 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
                         }
                     }
                     sprintf(wave_path, "Data\\Missiles\\Sounds\\%s.WAV", pacFileName);
-                    sound =
-                        CreateSoundEvent(sound_kind, cycle, frame, 0, wave_path,
-                                         // reinterpret-ok: ambient word buffer read as text
-                                         _stricmp(reinterpret_cast<char*>(pacLoop), "LOOP") == 0);
+                    sound = CreateSoundEvent(sound_kind, cycle, frame, 0, wave_path,
+                                             _stricmp(pacLoop, "LOOP") == 0);
                     if (sound != 0) {
                         (*ppMissile)->AddSoundEvent(sound);
                     }
@@ -821,7 +818,7 @@ unsigned int W8MissileRep::ApplyEmitterSetting(signed char emitter)
 /* The two emitter slots start empty and at the source default playback value.
    Construction of the two light-list vectors is ordinary array-member
    construction and precedes these assignments in the retail body. */
-inline W8MissileRep::W8MissileRep()
+W8MissileRep::W8MissileRep()
 {
     emitters[0] = 0;
     emitters[1] = 0;

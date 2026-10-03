@@ -477,8 +477,8 @@ void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
 // FUNCTION: WIZ8 0x00547bf0
 bool CanPartySlotTurnUndead(int party_slot)
 {
-    if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], W8_TRAIT_TURN_UNDEAD) || g_combat_state == 0 ||
-        g_combat_state->characters[party_slot].turn_undead_used) {
+    if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], W8_TRAIT_TURN_UNDEAD) ||
+        g_combat_state == 0 || g_combat_state->characters[party_slot].turn_undead_used) {
         return 0;
     }
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
@@ -544,8 +544,8 @@ int TurnUndead(int party_slot, int* out_cost, bool check)
 // FUNCTION: WIZ8 0x00547f40
 bool CanPartySlotPray(int party_slot)
 {
-    if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], W8_TRAIT_PRAY) || g_combat_state == 0 ||
-        g_combat_state->characters[party_slot].pray_used) {
+    if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], W8_TRAIT_PRAY) ||
+        g_combat_state == 0 || g_combat_state->characters[party_slot].pray_used) {
         return 0;
     }
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
@@ -874,7 +874,7 @@ int CharacterPrayAction(int party_slot)
                             gppStringList[0x17c],
                             gppStringList[g_gender_name_message_rows[character->gender][2]], -1),
                         -1);
-                    target.iType = W8_TARGET_KIND_FIVE;
+                    target.iType = W8_TARGET_KIND_ALL_ENEMIES;
                     CastSpellFromSource(0x75, &source, &target, power_level, 0, 0, 0, &outcome, 0,
                                         0, 0);
                     prayed = true;

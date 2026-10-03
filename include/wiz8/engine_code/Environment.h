@@ -25,7 +25,6 @@ public:
     /* Retail ICF folds this onto W8NormalTexcoordMapper's deleting
        destructor at 0x004B8A50. */
 
-    virtual ~W8MaterialMapper() override {}
     virtual int isActive(srVertexPipe& pipe) override;
     virtual void process(srVertexPipe& pipe) override;
 

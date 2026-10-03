@@ -116,7 +116,7 @@ static int g_text_box_value = 12;
 W8MessageStorageRecord g_message_storage[4][0x15e];
 
 static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short text_box,
-                      int wrapped_line);
+                             int wrapped_line);
 
 // FUNCTION: WIZ8 0x0058fdd0
 static int GetNextNoticeWord(int cursor, const wchar_t* text, W8NoticeWord* word)
@@ -211,7 +211,7 @@ void ResetEditorStatusLine(short line)
 
 // FUNCTION: WIZ8 0x0058af60
 static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short text_box,
-                      int wrapped_line)
+                             int wrapped_line)
 {
     if (text_box == -1) {
         if ((gXStatus.fNpcDialogueMode && !CanOpenNpcDialogue()) || gXStatus.fCampMode) {
@@ -908,7 +908,7 @@ unsigned char GetOpenDialogueFlag(void)
 }
 
 /* Retail expands this scan in the editor handlers without a separate emission. */
-static inline unsigned int FindDialogueTextLine(const W8DialogueTextState* input)
+static unsigned int FindDialogueTextLine(const W8DialogueTextState* input)
 {
     unsigned int line = 1;
     while (line < input->line_count && input->cursor >= input->line_offsets[line]) {
@@ -989,7 +989,7 @@ void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* fo
 }
 
 /* Retail expands this calculation at its callers and has no separate emission. */
-static inline unsigned int GetTextBoxLineCount(short text_box)
+static unsigned int GetTextBoxLineCount(short text_box)
 {
     unsigned int count = g_status.text_box_lines_shown_49a7[text_box];
     if (g_level_block->dialogue_text_input_open != 0 && g_level_block->dialogue_text_input != 0 &&
@@ -1953,7 +1953,7 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y);
    set. Retail reuses the leading bytes of the level block as a wchar scratch. */
 // FUNCTION: WIZ8 0x0058D2C0
 static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slot_1d8_match,
-                     bool slot_1e8_match, bool skip_invalidate)
+                            bool slot_1e8_match, bool skip_invalidate)
 {
     unsigned short* palette;
     int draw_x;

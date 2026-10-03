@@ -40,7 +40,7 @@
 #include "vsurface.h"
 
 static void DrawDamageSplatOverlay(unsigned int party_slot); /* 0x0059ADD0 */
-void DrawPortraitEffectIcon(unsigned int party_slot); /* 0x0059B0F0 */
+void DrawPortraitEffectIcon(unsigned int party_slot);        /* 0x0059B0F0 */
 
 /* 0x006488D0: dead-character portrait catalog ids, two per race - the small
    party-strip image at [race][0] and the large header portrait at [race][1]. */
@@ -1318,8 +1318,8 @@ void CreateLevelButtons(void)
 // SYNTHETIC: WIZ8 0x005991A0
 // W8ConditionButton::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x005991C0
-W8ConditionButton::~W8ConditionButton() {}
+// SYNTHETIC: WIZ8 0x005991C0
+// W8ConditionButton::~W8ConditionButton
 
 // FUNCTION: WIZ8 0x00599210
 void W8ConditionButton::Redraw(unsigned char full_redraw)

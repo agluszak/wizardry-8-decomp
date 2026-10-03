@@ -51,7 +51,13 @@ public:
         int state_28;
     };
 
-    enum e_processType { PROCESS_TYPE_POSITIONAL_0 = 0 };
+    enum e_processType {
+        PROCESS_RENDER = 0,
+        PROCESS_PUSH = 1,
+        PROCESS_POP = 2,
+        PROCESS_PUSH_GLOBAL = 3,
+        PROCESS_POP_GLOBAL = 4
+    };
 
     /* srNode ctor dump table at 0x1009c374: DISABLE,TERMINATE,GLOBAL,
        IGNORE_TRANSFORM (bits 0–3 of flags_124). traverse omits this node
@@ -67,7 +73,7 @@ public:
 
     /* Dump walks +0x120 with the dump-format pointer at 0x100a4a04; that pointer is unset on disk, so
        dump prints numeric bit indices. Wizardry does not call setNotify. */
-    enum e_notify { NOTIFY_POSITIONAL_0 = 0 };
+    enum e_notify { NOTIFY_BOUNDS_DIRTY = 0 };
 
     SR_DLL_IMPORT srNode(srNode* parent = 0);
 

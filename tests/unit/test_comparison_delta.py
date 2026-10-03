@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import runpy
 from pathlib import Path
 
 import pytest
@@ -45,11 +46,14 @@ def _ghidriff(*pairs: tuple[int, float]) -> dict:
     }
 
 
-def test_missing_ratio_does_not_invent_clean_similarity() -> None:
+def test_missing_ratio_does_not_discard_scored_similarity() -> None:
     summary = _summary(_row(1, "no-differences"), _row(2, "differences", code=True))
     metrics = comparison_metrics(summary, _ghidriff((3, 0.9)))
-    assert metrics["average_similarity"] is None
-    assert metrics["median_similarity"] is None
+    assert metrics["average_similarity"] == 1.0
+    assert metrics["median_similarity"] == 1.0
+    assert metrics["similarity_scored"] == 1
+    assert metrics["similarity_unscored"] == 1
+    assert metrics["similarity_coverage"] == 0.5
     assert metrics["clean"] == 1
     assert metrics["code_differences"] == 1
 
@@ -59,6 +63,37 @@ def test_duplicate_ratio_pairs_are_rejected() -> None:
         comparison_metrics(
             _summary(_row(1, "differences", code=True)), _ghidriff((1, 0.8), (1, 0.9))
         )
+
+
+@pytest.mark.parametrize("summary", [_summary(), _summary(_row(1, "differences", code=True))])
+def test_similarity_without_scored_functions_is_unknown(summary: dict) -> None:
+    metrics = comparison_metrics(summary, _ghidriff())
+    assert metrics["average_similarity"] is None
+    assert metrics["median_similarity"] is None
+    assert metrics["similarity_scored"] == 0
+    assert metrics["similarity_unscored"] == metrics["analyzed"]
+    assert metrics["similarity_coverage"] == (0.0 if metrics["analyzed"] else None)
+
+
+def test_comment_discloses_partial_similarity_coverage(monkeypatch, capsys) -> None:
+    summary = _summary(_row(1, "no-differences"), _row(2, "differences", code=True))
+    report = {
+        "project": {"head": {"source_functions": 2, "paired": 2}, "delta": {}},
+        "comparison": {
+            "head": comparison_metrics(summary, _ghidriff()),
+            "delta": {},
+            "transitions": {"resolved": 0, "newly_different": 0},
+        },
+    }
+    monkeypatch.setenv("WIZ8_STATUS", json.dumps(report))
+    monkeypatch.delenv("SURRENDER_STATUS", raising=False)
+    runpy.run_path(
+        str(Path(__file__).resolve().parents[2] / ".github/scripts/render-reccmp-comment.py")
+    )
+    rendered = capsys.readouterr().out
+    assert "Similarity scores" in rendered
+    assert "| 1/2 | 100.00% |" in rendered
+    assert "missing ratios are excluded" in rendered
 
 
 def test_comparison_metrics_use_ghidriff_ratio_and_exact_matches() -> None:
@@ -73,6 +108,9 @@ def test_comparison_metrics_use_ghidriff_ratio_and_exact_matches() -> None:
     assert metrics["analyzed"] == 3
     assert metrics["average_similarity"] == pytest.approx((1.0 + 0.8 + 1.0) / 3)
     assert metrics["median_similarity"] == 1.0
+    assert metrics["similarity_scored"] == 3
+    assert metrics["similarity_unscored"] == 0
+    assert metrics["similarity_coverage"] == 1.0
     assert metrics["clean_rate"] == pytest.approx(1 / 3)
     assert metrics["code_differences"] == 1
     assert metrics["data_differences"] == 1

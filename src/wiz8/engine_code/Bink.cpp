@@ -19,7 +19,10 @@ void NoOp(int result, int line, const char* source)
 }
 
 // FUNCTION: WIZ8 0x005e2f90
-W8BinkVideo::W8BinkVideo() : m_handle(0), m_value_04(0) {}
+W8BinkVideo::W8BinkVideo() : m_handle(0)
+{
+    memset(unknown_04, 0, sizeof(unknown_04));
+}
 
 // FUNCTION: WIZ8 0x005e2fa0
 W8BinkVideo::~W8BinkVideo()

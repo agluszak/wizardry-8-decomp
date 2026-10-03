@@ -279,7 +279,8 @@ void DrawCampSpellPages(void)
     unsigned short* palette;
 
     SetFont(g_wiz_text_font_secondary);
-    if ((g_camp_screen->redraw_flags & W8_CAMP_REDRAW_RESISTANCES) != 0 && gXStatus.fSpellCastMode == 0) {
+    if ((g_camp_screen->redraw_flags & W8_CAMP_REDRAW_RESISTANCES) != 0 &&
+        gXStatus.fSpellCastMode == 0) {
         DrawCampResistances();
     }
     if (g_camp_screen->redraw_flags == W8_CAMP_REDRAW_ALL) {
@@ -347,7 +348,8 @@ void DrawCampSpellPages(void)
         if (g_camp_screen->dialog != 0 && realm != 0 && realm != 3) {
             continue;
         }
-        if ((g_camp_screen->redraw_flags & ((W8_CAMP_REDRAW_REALM_SPELLS_FIRST << realm) | 0x10000)) == 0) {
+        if ((g_camp_screen->redraw_flags &
+             ((W8_CAMP_REDRAW_REALM_SPELLS_FIRST << realm) | 0x10000)) == 0) {
             continue;
         }
         animation = &g_spell_realm_animations[realm];
@@ -1186,7 +1188,7 @@ void W8CampCharacterInfo::Redraw()
     }
 }
 
-inline W8CampItemRange::W8CampItemRange()
+W8CampItemRange::W8CampItemRange()
 {
     m_range = new W8RangeControl(0x263, 0xc1, 0x275, 0x1a1, &g_camp_item_region_set);
     m_range->SetEnabled(1);
@@ -2368,11 +2370,13 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
             if (partially_merged != 0 || merged != 0) {
                 g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK;
             } else {
-                g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST << slot_index;
+                g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST
+                                                    << slot_index;
             }
         } else if (origin == 1) {
             if (partially_merged != 0 || merged != 0) {
-                g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST << slot_index;
+                g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST
+                                                    << slot_index;
             } else {
                 g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_CHARACTER_INFO;
                 g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;

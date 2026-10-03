@@ -190,7 +190,7 @@ static bool PleaseWaitScreenEnsureLevelArchive(int level)
 
 /* Draw the loading screen's backdrop, progress frame and caption. Retail
    expands this helper at both frame-handler call sites. */
-static inline void DrawPleaseWaitScreen()
+static void DrawPleaseWaitScreen()
 {
     int backdrop = static_cast<unsigned int>(g_load_descriptor->parameter) < W8_LEVEL_COUNT
                        ? g_level_backdrops[g_load_descriptor->parameter]

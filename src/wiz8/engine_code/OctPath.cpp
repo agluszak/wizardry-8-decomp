@@ -658,8 +658,8 @@ unsigned char W8PathingService::ReadPathNodes(int handle)
 
 /* The path-linking callers share this conversion. Retail computes Z before
    testing the optional destination, then writes X and Z together. */
-static inline void PositionToPathPoint(const W8PathingService* pathing,
-                                       const srVector3T<float>* position, srVector2i* point)
+static void PositionToPathPoint(const W8PathingService* pathing, const srVector3T<float>* position,
+                                srVector2i* point)
 {
     int converted =
         static_cast<int>((position->z - pathing->level_bounds[2]) / pathing->grid_scale_01c);
@@ -672,8 +672,8 @@ static inline void PositionToPathPoint(const W8PathingService* pathing,
 
 /* Retail also packs the converted coordinates into a path-cell key before
    conditionally returning the individual coordinates to its caller. */
-static inline unsigned int PositionToPathKey(const W8PathingService* pathing,
-                                             const srVector3T<float>* position, int* cell)
+static unsigned int PositionToPathKey(const W8PathingService* pathing,
+                                      const srVector3T<float>* position, int* cell)
 {
     int x = static_cast<int>((position->x - pathing->level_bounds[0]) / pathing->grid_scale_01c);
     int z = static_cast<int>((position->z - pathing->level_bounds[2]) / pathing->grid_scale_01c);
@@ -3948,8 +3948,8 @@ void W8PathingService::BuildPathGridWalk(const srVector2T<float>* from, const sr
     walk->error_28 = error_delta;
     walk->error_2c = error;
     walk->cell_00[1] = destination[1] / cell_size;
-    walk->unknown_08 = 0;
-    walk->unknown_14 = 0;
+    walk->cell_00[2] = 0;
+    walk->step_0c[2] = 0;
     walk->unknown_20 = 0;
     walk->unknown_34[0] = 0;
     walk->unknown_34[1] = 0;

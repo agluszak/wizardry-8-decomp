@@ -346,7 +346,7 @@ void UpdateWorldMeshFromQuads(W8World* world)
                     char* item = static_cast<char*>(PLGet(cell->objects, j));
                     if (item[0] == 1) {
                         long entry =
-                            *reinterpret_cast< // reinterpret-ok: quad-cell object elements are never populated in retail; element layout is unresolved
+                            *reinterpret_cast< // reinterpret-ok: quad-cell object producer/lifetime is unresolved; retail reads entry at +0x14
                                 long*>(item + 0x14);
                         void** nodes =
                             *reinterpret_cast< // reinterpret-ok: embedded pair-table at +0x1c resolved by retail offset
@@ -373,7 +373,6 @@ void UpdateWorldOctree(W8World* world)
     world->octree->UpdateCameraVisibility();
 }
 
-/* Rebuild the active-polygon table for the world's mesh and mark it changed. */
 // FUNCTION: WIZ8 0x004baf60
 void UpdateWorldMesh(W8World* world)
 {

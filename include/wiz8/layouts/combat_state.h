@@ -52,7 +52,8 @@ struct W8PartySlotRow {
     /* 0x0d0: the non-melee W8_ACTION_* code ChooseAction stored for the slot,
        0xff when none; the action-key paths dispatch on it as "iActionState". */
     unsigned char queued_action;
-    W8CombatSlot target_context_5;
+    /* 0x0d1: context-five breath target (0x00501880); recovered role name. */
+    W8CombatSlot breath_target;
     /* 0x0f1: the slot's place in the marching order, the index of its entry
        in g_status.party_order_slots. */
     int party_order_index;
@@ -202,7 +203,7 @@ static_assert(offsetof(W8CombatCharacterRow, saved_attack_value) == 0x38,
 struct W8CombatState {
     /* 0x000: raised by BeginCombatExecution and cleared at the round
        boundary. Gates actor scheduling; not the end-of-combat flag. */
-    unsigned char combat_over_000;
+    unsigned char execution_active_000;
     /* 0x001: set when combat begins and when continuous combat resumes;
        cleared at the round boundary while continuous_combat is off. Gates
        party movement and the combat-sensitive UI panels. */

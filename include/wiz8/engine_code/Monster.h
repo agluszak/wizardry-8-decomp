@@ -151,10 +151,9 @@ struct W8MonsterRep : public W8EmitterHost {
        bounded at nine by the body's own `ja` against the jump table. */
 };
 
-/* The constructor at 0x004BEA20 initialises through 0x624 and its sole caller
-   allocates this much, so the extent is proven even though most of it is not.
-   Asserting it here is what stops a field edit from silently shortening the
-   object. */
+/* The constructor at 0x004BEA20 initializes through 0x624; the observed
+   allocation is 0x628 bytes. These bound the modeled extent, not the roles
+   of every byte or the complete set of callers. */
 static_assert(sizeof(W8MonsterRep) == 0x628, "W8MonsterRep_size_must_be_0x628");
 static_assert(offsetof(W8MonsterRep, random_idle_fps_min) == 0x608,
               "W8MonsterRep_idle_fps_min_offset");
@@ -346,8 +345,8 @@ public:
     /* 0x2bc: the direction the real-time AI moves the monster along, added to
        its position to pick the aim point (mode 0xa). */
     srVector3T<float> move_direction_2bc;
-    float look_frequency_2c8;
-    float look_duration_2cc;
+    int look_frequency_2c8;
+    int look_duration_2cc;
     /* 0x2d0: sun-visibility state for the model light-scale lerp: -1
        uninitialized, 1 lit (scale toward 0.75), 0 shadowed (toward 0). */
     int sunlit_state_2d0;
@@ -423,7 +422,7 @@ void ApplyMonsterRepresentationScale(W8Monster* monster);
 
 static_assert(sizeof(W8Monster) == 0x348, "W8Monster_size_must_be_0x348");
 /* Secondary vftable 0x005ed218 keeps the W8Navigator subobject at +0x18. */
-W8_ASSERT_BASE_OFFSET(W8Monster, W8Navigator, padding_004, 0x18);
+W8_ASSERT_BASE_OFFSET(W8Monster, W8Navigator, navigation_mode_008, 0x18);
 
 /* A particle temporarily takes over a monster animation while its shake event
    runs. The derived callback restores the saved representation state when the
@@ -441,7 +440,6 @@ public:
 class W8MonsterShakeCallback : public W8MonsterShakeCallbackBase {
 public:
     W8MonsterShakeCallback() : m_pMonster(0), m_pParticles(0) {}
-    virtual ~W8MonsterShakeCallback();
 
     virtual void RestoreAnimation();
 
@@ -480,10 +478,11 @@ void MonsterSetNavigatorFlag25(W8Monster* monster, bool value);
 W8AIRecord* MonsterGetObject0C(W8Monster* monster);                /* 0x004C5B30 */
 void MonsterSetNavigatorValue120(W8Monster* monster, float value); /* 0x004C5F50 */
 float MonsterGetNavigatorValue120(W8Monster* monster);             /* 0x004C5F70 */
-unsigned char MonsterConfigureMovementToPosition(W8Monster* monster,
-                                   const srVector3T<float>* position);            /* 0x004C5F90 */
+unsigned char
+MonsterConfigureMovementToPosition(W8Monster* monster,
+                                   const srVector3T<float>* position);           /* 0x004C5F90 */
 void MonsterAddPathPoint(W8Monster* monster, const srVector3T<float>* argument); /* 0x004C5FB0 */
-void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value);             /* 0x004C5FD0 */
+void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value);            /* 0x004C5FD0 */
 void MonsterResumeAllNavigators(void);
 
 void SetMonsterPartySlotMarker(int party_slot, int location_id, char on);

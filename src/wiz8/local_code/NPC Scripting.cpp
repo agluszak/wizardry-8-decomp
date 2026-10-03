@@ -80,20 +80,20 @@ struct W8NpcScriptRegionName {
 
 // GLOBAL: WIZ8 0x0061b788
 static W8NpcScriptRegionName g_npc_script_region_names[] = {{L"Monastery", 1},
-                                                     {L"Arnika", 2},
-                                                     {L"Trynton", 3},
-                                                     {L"Swamp", 4},
-                                                     {L"Marten's Bluff", 5},
-                                                     {L"Mine Tunnels", 6},
-                                                     {L"Sea Caves", 7},
-                                                     {L"Bayjin", 8},
-                                                     {L"Rapax Castle", 9},
-                                                     {L"Rapax Rift", 10},
-                                                     {L"Mt. Gigas", 11},
-                                                     {L"Ascension Peak", 12},
-                                                     {L"Rapax Away Camp", 13},
-                                                     {L"Cosmic Circle", 14},
-                                                     {L"", 0}};
+                                                            {L"Arnika", 2},
+                                                            {L"Trynton", 3},
+                                                            {L"Swamp", 4},
+                                                            {L"Marten's Bluff", 5},
+                                                            {L"Mine Tunnels", 6},
+                                                            {L"Sea Caves", 7},
+                                                            {L"Bayjin", 8},
+                                                            {L"Rapax Castle", 9},
+                                                            {L"Rapax Rift", 10},
+                                                            {L"Mt. Gigas", 11},
+                                                            {L"Ascension Peak", 12},
+                                                            {L"Rapax Away Camp", 13},
+                                                            {L"Cosmic Circle", 14},
+                                                            {L"", 0}};
 
 // FUNCTION: WIZ8 0x00528f10
 bool GetNpcScriptRegionName(int region, wchar_t* name)
@@ -602,8 +602,8 @@ int SelectNpcQuoteResponse(W8NpcQuoteEntry* entry)
         index = 1;
     }
     while (index < entry->sub_entry_count) {
-        expected = static_cast<unsigned char>(entry->sub_entries[index + 1]
-                       .operand_00) /* c-style-cast-ok: packed byte operand */;
+        expected = static_cast<unsigned char>(
+            entry->sub_entries[index + 1].operand_00) /* c-style-cast-ok: packed byte operand */;
         if (GetFact(entry->sub_entries[index].operand_00) != expected) {
             return -1;
         }
@@ -635,7 +635,7 @@ int SelectNpcQuoteResponse(W8NpcQuoteEntry* entry)
    NPCs. notice_only routes the text through ShowNotice instead. */
 // FUNCTION: WIZ8 0x00525350
 static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
-                      bool notice_only, bool force_npc_voice)
+                             bool notice_only, bool force_npc_voice)
 {
     W8MessageBoxLine* line;
     W8MonsterManagerEntry* entry;
@@ -1850,8 +1850,9 @@ void ProcessMessageBoxQueue(void)
                 W8Character* character = &g_status.buffers.Char[party_slot];
                 if (g_status.buffers.XChar[party_slot].fOccupied != 0 && character->iRace == 10 &&
                     character->highest_condition < 0xf) {
-                    QueueCharacterEvent(character, g_effect_005ee654, g_character_event_no_npc_defer,
-                                        g_character_event_no_flags, g_character_event_full_volume);
+                    QueueCharacterEvent(character, g_effect_005ee654,
+                                        g_character_event_no_npc_defer, g_character_event_no_flags,
+                                        g_character_event_full_volume);
                     break;
                 }
             }
@@ -2251,8 +2252,7 @@ void OnNpcTravelConfirmationClosed(W8DialogBase* dialog)
 }
 
 // FUNCTION: WIZ8 0x00528830
-void QueueNpcScriptLine(int quote, bool mark_pending, bool prepend,
-                        bool suppress_entries)
+void QueueNpcScriptLine(int quote, bool mark_pending, bool prepend, bool suppress_entries)
 {
     W8MessageBoxLine* msg_line = new W8MessageBoxLine;
 

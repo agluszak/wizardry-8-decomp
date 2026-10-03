@@ -221,14 +221,10 @@ int W8ListBoxDialog::CreateControls()
     if (W8DialogBase::CreateControls() != 0) {
         return m_error;
     }
-    m_inlay_image_0f8 = LoadGenericButtonImages(
-        0,
-        Wiz8ToSgpText("Data\\Dialogs\\DialogEdge.STI"),
-        0,
-        Wiz8ToSgpText("Data\\Dialogs\\DialogEdge.STI"),
-        0,
-        Wiz8ToSgpText(m_background_path),
-        static_cast<short>(m_background_flags), 0, 0);
+    m_inlay_image_0f8 = LoadGenericButtonImages(0, Wiz8ToSgpText("Data\\Dialogs\\DialogEdge.STI"),
+                                                0, Wiz8ToSgpText("Data\\Dialogs\\DialogEdge.STI"),
+                                                0, Wiz8ToSgpText(m_background_path),
+                                                static_cast<short>(m_background_flags), 0, 0);
     m_text_button_08c = CreateTextButton(
         m_text, g_dialog_interface_font, g_dialog_font_foreground, g_dialog_font_background,
         m_inlay_image_0f8, static_cast<short>(m_x) + 9, static_cast<short>(m_y) + 9,
@@ -246,14 +242,10 @@ int W8ListBoxDialog::CreateControls()
         return 7;
     }
     SpecifyButtonMultiColorFont(m_text_button_08c, g_dialog_font_enabled);
-    m_inlay_image_094 = LoadGenericButtonImages(
-        0,
-        Wiz8ToSgpText("Data\\Dialogs\\DialogInlay.STI"),
-        0,
-        Wiz8ToSgpText("Data\\Dialogs\\DialogInlay.STI"),
-        0,
-        Wiz8ToSgpText("Data\\Dialogs\\DialogBackground_dark.STI"),
-        0, 3, 3);
+    m_inlay_image_094 =
+        LoadGenericButtonImages(0, Wiz8ToSgpText("Data\\Dialogs\\DialogInlay.STI"), 0,
+                                Wiz8ToSgpText("Data\\Dialogs\\DialogInlay.STI"), 0,
+                                Wiz8ToSgpText("Data\\Dialogs\\DialogBackground_dark.STI"), 0, 3, 3);
     if (m_inlay_image_094 == -1) {
         m_error = 4;
         return 4;
@@ -270,36 +262,31 @@ int W8ListBoxDialog::CreateControls()
         return 7;
     }
     SetButtonUserDataPointer(m_area_button_098, this);
-    m_up_image_0a0 = LoadButtonImage(
-        Wiz8ToSgpText("Data\\Dialogs\\DialogUpArrow.STI"),
-        3, 0, 1, 2, 2);
+    m_up_image_0a0 =
+        LoadButtonImage(Wiz8ToSgpText("Data\\Dialogs\\DialogUpArrow.STI"), 3, 0, 1, 2, 2);
     if (m_up_image_0a0 != -1) {
         m_up_button_09c =
             QuickCreateButton(m_up_image_0a0, 0, 0, 4, 0x7e, UpButtonCallback, UpButtonCallback);
     }
-    m_down_image_0a8 = LoadButtonImage(
-        Wiz8ToSgpText("Data\\Dialogs\\DialogDownArrow.STI"),
-        3, 0, 1, 2, 2);
+    m_down_image_0a8 =
+        LoadButtonImage(Wiz8ToSgpText("Data\\Dialogs\\DialogDownArrow.STI"), 3, 0, 1, 2, 2);
     if (m_down_image_0a8 != -1) {
         m_down_button_0a4 = QuickCreateButton(m_down_image_0a8, 0, 0, 4, 0x7e, DownButtonCallback,
                                               DownButtonCallback);
     }
-    m_slider_image_0b0 = LoadButtonImage(
-        Wiz8ToSgpText("Data\\Dialogs\\DialogSlideBar.STI"),
-        -1, 0, -1, -1, -1);
+    m_slider_image_0b0 =
+        LoadButtonImage(Wiz8ToSgpText("Data\\Dialogs\\DialogSlideBar.STI"), -1, 0, -1, -1, -1);
     if (m_slider_image_0b0 != -1) {
         m_slider_button_0ac = QuickCreateButton(m_slider_image_0b0, 0, 0, 4, 0x7d, 0, 0);
     }
-    m_ok_image_0c0 = LoadButtonImage(
-        Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"),
-        3, 0, 1, 2, 2);
+    m_ok_image_0c0 =
+        LoadButtonImage(Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"), 3, 0, 1, 2, 2);
     if (m_ok_image_0c0 != -1) {
         m_ok_button_0bc =
             QuickCreateButton(m_ok_image_0c0, 0, 0, 4, 0x7f, OkButtonCallback, OkButtonCallback);
     }
-    m_cancel_image_0d8 = LoadButtonImage(
-        Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"),
-        7, 4, 5, 6, 6);
+    m_cancel_image_0d8 =
+        LoadButtonImage(Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"), 7, 4, 5, 6, 6);
     if (m_cancel_image_0d8 != -1) {
         m_cancel_button_0d4 = QuickCreateButton(m_cancel_image_0d8, 0, 0, 4, 0x7f,
                                                 CancelButtonCallback, CancelButtonCallback);
@@ -314,13 +301,9 @@ int W8ListBoxDialog::CreateControls()
         SetButtonUserDataPointer(m_ok_button_0bc, this);
         SetButtonUserDataPointer(m_cancel_button_0d4, this);
         m_inlay_image_0b4 = LoadGenericButtonImages(
-            0,
-            Wiz8ToSgpText("Data\\Dialogs\\DialogInlay.STI"),
-            0,
-            Wiz8ToSgpText("Data\\Dialogs\\DialogInlay.STI"),
-            0,
-            Wiz8ToSgpText("Data\\Dialogs\\DialogBackground_dark.STI"),
-            0, 3, 3);
+            0, Wiz8ToSgpText("Data\\Dialogs\\DialogInlay.STI"), 0,
+            Wiz8ToSgpText("Data\\Dialogs\\DialogInlay.STI"), 0,
+            Wiz8ToSgpText("Data\\Dialogs\\DialogBackground_dark.STI"), 0, 3, 3);
         if (m_inlay_image_0b4 != -1) {
             m_third_text_button_0b8 =
                 CreateTextButton(0, g_dialog_interface_font, g_dialog_font_foreground,
@@ -474,11 +457,13 @@ void W8ListBoxDialog::Draw()
     int height = -6 - GetButtonY(m_text_button_08c) - GetButtonHeight(m_text_button_08c) +
                  GetButtonY(m_second_text_button_090);
     unsigned int visible_lines;
-    if (m_lines_054.GetCount() < height / static_cast<int>(static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font)))) {
+    if (m_lines_054.GetCount() <
+        height / static_cast<int>(static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font)))) {
         m_scrollable = false;
         visible_lines = m_lines_054.GetCount();
     } else {
-        int rows = height / static_cast<int>(static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font)));
+        int rows = height /
+                   static_cast<int>(static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font)));
         if (m_lines_054.GetCount() > rows) {
             width = width + (-7 - GetButtonWidth(m_up_button_09c));
             m_scrollable = true;
@@ -534,14 +519,17 @@ void W8ListBoxDialog::Draw()
         if (line == m_selected_line_0f4) {
             ColorFillVideoSurfaceArea(
                 -0xe, m_x + 3 + dx,
-                m_y + static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font)) * index + 2 + dy,
+                m_y + static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font)) * index + 2 +
+                    dy,
                 width + m_x - 3 + dx,
                 static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font)) + m_y +
                     static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font)) * index + dy,
                 Get16BPPColor(m_fill_colour_088));
         }
         gprintf(m_x + 3 + dx,
-                static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font)) * index + m_y + 2 + dy, text);
+                static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font)) * index + m_y + 2 +
+                    dy,
+                text);
     }
     RestoreFontSettings();
 }
@@ -1271,9 +1259,7 @@ void W8TriggerItemPickerDialog::RefreshScrollButtons()
     }
 }
 
-/* Inlined into every caller in this unit; no out-of-line emission survives, so
-   this definition stays in the owning unit rather than the header. */
-inline void W8TriggerItemPickerDialog::SetFirstVisible(int index)
+void W8TriggerItemPickerDialog::SetFirstVisible(int index)
 {
     if (items_54.GetCount() <= 4) {
         m_first_item_0a8 = 0;
@@ -1611,10 +1597,10 @@ void W8TriggerItemPickerDialog::ScrollItemsToMouse(W8DialogButton* button)
         bottom += dialog->m_buttons_74[9] != 0 ? dialog->m_buttons_74[9]->GetHeight() : -1;
         top -= (dialog->m_buttons_74[10] != 0 ? dialog->m_buttons_74[10]->GetHeight() : -1) +
                (dialog->m_buttons_74[11] != 0 ? dialog->m_buttons_74[11]->GetHeight() : -1);
-        if (point.y > bottom) {
+        if (point.y < bottom) {
             point.y = bottom;
         }
-        if (point.y < top) {
+        if (point.y > top) {
             point.y = top;
         }
         index = (point.y - bottom) * dialog->items_54.GetCount() / (top - bottom);
@@ -1992,7 +1978,9 @@ void W8TriggerItemPickerDialog::CloseOwningDialog(W8DialogButton* button)
 }
 
 // TEMPLATE: WIZ8 0x005CF200
-// W8GrowableVector<unsigned char>::SetAt
+// NAME: W8GrowableVector<T>::SetAt
+// RECOMP: W8GrowableVector<unsigned char>::SetAt
 
 // TEMPLATE: WIZ8 0x005CF220
-// W8GrowableVector<unsigned char>::GetAt
+// NAME: W8GrowableVector<T>::GetAt
+// RECOMP: W8GrowableVector<unsigned char>::GetAt

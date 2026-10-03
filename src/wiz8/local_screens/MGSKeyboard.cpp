@@ -66,8 +66,8 @@
 // GLOBAL: WIZ8 0x0069b7e4
 MGSKeyboard* g_mgs_keyboard;
 
-// FUNCTION: WIZ8 0x0055CFD0
-MGSKeyboard::MGSKeyboard() {}
+// SYNTHETIC: WIZ8 0x0055CFD0
+// MGSKeyboard::MGSKeyboard (implicit member construction)
 
 // SYNTHETIC: WIZ8 0x0055D160
 // MGSKeyboard::`scalar deleting destructor'
@@ -576,7 +576,7 @@ void DispatchMGSCommand(int command)
             gXStatus.fItemSelectMode != 0) {
             break;
         }
-        if (g_combat_state->combat_over_000 == 0) {
+        if (g_combat_state->execution_active_000 == 0) {
             BeginCombatExecution();
         } else if (gXStatus.fPartyMovementUi != 0 && CanPartyMove() == 0 &&
                    GetLevelDataFlag6() == 0) {
@@ -718,7 +718,7 @@ void OpenKeyboardMenuForSlot(int slot)
 }
 
 // FUNCTION: WIZ8 0x00592E60
-inline void CloseKeyboardMenu(void)
+void CloseKeyboardMenu(void)
 {
     int index;
 
@@ -840,9 +840,9 @@ void EnableKeyboardMenuInput(void)
 // FUNCTION: WIZ8 0x00593300
 bool KeyboardMenuContainsCursor(void)
 {
-    return IsCursorInRectangle(g_keyboard_menu_panel->m_bounds.left, g_keyboard_menu_panel->m_bounds.top,
-                               g_keyboard_menu_panel->m_bounds.left + 0x52,
-                               g_keyboard_menu_panel->m_bounds.top + 0x4a);
+    return IsCursorInRectangle(
+        g_keyboard_menu_panel->m_bounds.left, g_keyboard_menu_panel->m_bounds.top,
+        g_keyboard_menu_panel->m_bounds.left + 0x52, g_keyboard_menu_panel->m_bounds.top + 0x4a);
 }
 
 // FUNCTION: WIZ8 0x00593360

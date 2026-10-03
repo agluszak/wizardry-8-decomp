@@ -93,8 +93,8 @@ srGERD::srGERD(srDD* device, void* module, const char* device_name)
     pick_176c_.pick_key_284_ = 0;
     exclusion_mask_21bc_ = 0;
     enable_flags_20_.value = 0;
-    enable_flags_20_.set(ENABLE_POSITIONAL_4, 1);
-    enable_flags_20_.set(ENABLE_POSITIONAL_6, 1);
+    enable_flags_20_.set(ENABLE_AUTO_FLIP, 1);
+    enable_flags_20_.set(ENABLE_CLEAR_ON_OPEN, 1);
     state_flags_28_ = 0;
     dirty_24_ = 0xffffffff;
     setError(ERROR_NONE);
@@ -163,8 +163,8 @@ srGERD::srGERD(srDD* device, void* module, const char* device_name)
 srGERD::~srGERD()
 {
     deleteRenderers();
-    if (isEnabled(ENABLE_POSITIONAL_5)) {
-        toggle(ENABLE_POSITIONAL_5);
+    if (isEnabled(ENABLE_DEBUG_DD)) {
+        toggle(ENABLE_DEBUG_DD);
     }
     deleteContext();
     delete device_40_.dd_00_;
@@ -1554,8 +1554,7 @@ void srGERD::rotate(double angle, const srVector3T<double>& axis)
         srVector3T<double> unit_axis;
         if (length_sq != 1.0) {
             double inverse = 1.0 / sqrt(length_sq);
-            unit_axis =
-                srVector3T<double>(axis.x * inverse, axis.y * inverse, axis.z * inverse);
+            unit_axis = srVector3T<double>(axis.x * inverse, axis.y * inverse, axis.z * inverse);
         } else {
             unit_axis = axis;
         }
@@ -2306,7 +2305,7 @@ void srGERD::classifyMatrix(e_matrixMode mode)
                          modelview->vectors[0].z * modelview->vectors[0].z;
         if (fabs(length0 - length1) <= 1e-05 && fabs(length0 - length2) <= 1e-05) {
             if (fabs(length0 - 1.0) > 1e-05) {
-                state_390_.modelview_scale_type_13b4_ = srMatrix4T<float>::SCALE_TYPE_POSITIONAL_1;
+                state_390_.modelview_scale_type_13b4_ = srMatrix4T<float>::SCALE_TYPE_UNIFORM;
                 state_390_.max_modelview_scale_13b8_ = (float)sqrt(length0);
                 length0 = 1.0 / length0;
                 inverse->vectors[0].x = length0 * modelview->vectors[0].x;
@@ -2329,7 +2328,7 @@ void srGERD::classifyMatrix(e_matrixMode mode)
                 state_390_.normal_matrix_1374_.vectors[2].y = scale * inverse->vectors[1].z;
                 state_390_.normal_matrix_1374_.vectors[2].z = scale * inverse->vectors[2].z;
             } else {
-                state_390_.modelview_scale_type_13b4_ = srMatrix4T<float>::SCALE_TYPE_POSITIONAL_0;
+                state_390_.modelview_scale_type_13b4_ = srMatrix4T<float>::SCALE_TYPE_UNIT;
                 state_390_.max_modelview_scale_13b8_ = 1.0f;
                 inverse->vectors[0].x = modelview->vectors[0].x;
                 state_390_.normal_matrix_1374_.vectors[0].x = modelview->vectors[0].x;
@@ -2374,7 +2373,7 @@ void srGERD::classifyMatrix(e_matrixMode mode)
         if (length0 < length2) {
             length0 = length2;
         }
-        state_390_.modelview_scale_type_13b4_ = srMatrix4T<float>::SCALE_TYPE_POSITIONAL_2;
+        state_390_.modelview_scale_type_13b4_ = srMatrix4T<float>::SCALE_TYPE_NON_UNIFORM;
         state_390_.max_modelview_scale_13b8_ = (float)sqrt(length0);
         inverse->Inverse(*modelview);
         srMatrix4T<float> normalized = *modelview;
@@ -3061,31 +3060,31 @@ srGERD::e_visibility srGERD::testBoundingSphere(const srVector3T<float>& center,
     float negative_radius = -(radius * state_390_.max_modelview_scale_13b8_);
     if (eye_z * state_390_.clip_planes_1088_[4].z + state_390_.clip_planes_1088_[4].w <=
         negative_radius) {
-        return VISIBILITY_POSITIONAL_0;
+        return VISIBILITY_OUTSIDE;
     }
     if (eye_z * state_390_.clip_planes_1088_[5].z + state_390_.clip_planes_1088_[5].w <=
         negative_radius) {
-        return VISIBILITY_POSITIONAL_0;
+        return VISIBILITY_OUTSIDE;
     }
     float eye_x = modelview.vectors[0].x * center.x + modelview.vectors[0].z * center.z +
                   modelview.vectors[0].y * center.y + modelview.vectors[0].w;
     if (eye_x * state_390_.clip_planes_1088_[0].x + eye_z * state_390_.clip_planes_1088_[0].z <=
         negative_radius) {
-        return VISIBILITY_POSITIONAL_0;
+        return VISIBILITY_OUTSIDE;
     }
     if (eye_z * state_390_.clip_planes_1088_[1].z + eye_x * state_390_.clip_planes_1088_[1].x <=
         negative_radius) {
-        return VISIBILITY_POSITIONAL_0;
+        return VISIBILITY_OUTSIDE;
     }
     float eye_y = modelview.vectors[1].z * center.z + modelview.vectors[1].y * center.y +
                   modelview.vectors[1].x * center.x + modelview.vectors[1].w;
     if (eye_z * state_390_.clip_planes_1088_[2].z + eye_y * state_390_.clip_planes_1088_[2].y <=
         negative_radius) {
-        return VISIBILITY_POSITIONAL_0;
+        return VISIBILITY_OUTSIDE;
     }
     if (eye_z * state_390_.clip_planes_1088_[3].z + eye_y * state_390_.clip_planes_1088_[3].y <=
         negative_radius) {
-        return VISIBILITY_POSITIONAL_0;
+        return VISIBILITY_OUTSIDE;
     }
     unsigned long remaining = state_390_.clip_mask_12e4_ & 0xffffffc0;
     if (remaining != 0) {
@@ -3098,7 +3097,7 @@ srGERD::e_visibility srGERD::testBoundingSphere(const srVector3T<float>& center,
                 const srVector4T<float>& plane = state_390_.clip_planes_1088_[index];
                 if (eye_z * plane.z + eye_x * plane.x + eye_y * plane.y + plane.w <=
                     negative_radius) {
-                    return VISIBILITY_POSITIONAL_0;
+                    return VISIBILITY_OUTSIDE;
                 }
                 remaining &= ~bit;
             }
@@ -3122,7 +3121,7 @@ srGERD::e_visibility srGERD::testBoundingBox(const srVector3T<float>& minimum,
         statistics_1a78_.box_visible_78++;
         return static_cast<e_visibility>(1);
     }
-    return VISIBILITY_POSITIONAL_0;
+    return VISIBILITY_OUTSIDE;
 }
 
 // FUNCTION: SURRENDER 0x100235F0
@@ -5754,10 +5753,12 @@ void srGERD::accumulate(e_accum operation, float scale)
 // member pointer-pair destructor emission (EH unwind)
 
 // TEMPLATE: SURRENDER 0x1001EF30
-// srArray<T>::release emission
+// NAME: srArray<T>::release emission
+// RECOMP: srArray<T>::release emission
 
 // TEMPLATE: SURRENDER 0x1001EF60
-// srArray<T>::release emission
+// NAME: srArray<T>::release emission
+// RECOMP: srArray<T>::release emission
 
 // SYNTHETIC: SURRENDER 0x1001F030
 // std::ios_base::Init global static-init block
@@ -5772,7 +5773,8 @@ void srGERD::accumulate(e_accum operation, float scale)
 // std::_Winit global atexit registrar
 
 // TEMPLATE: SURRENDER 0x1001F1D0
-// srArray<T>::release emission
+// NAME: srArray<T>::release emission
+// RECOMP: srArray<T>::release emission
 
 // SYNTHETIC: SURRENDER 0x1001F490
 // member pointer-pair destructor emission (EH unwind)
@@ -5802,13 +5804,16 @@ void srGERD::accumulate(e_accum operation, float scale)
 // std::_Winit global atexit registrar
 
 // SYNTHETIC: SURRENDER 0x10029380
-// srPtr element destructor emission
+// NAME: srPtr<T>::retained emission
+// RECOMP: srPtr element destructor emission
 
 // SYNTHETIC: SURRENDER 0x100296B0
-// srPtr element destructor emission
+// NAME: srPtr<T>::retained emission
+// RECOMP: srPtr element destructor emission
 
 // TEMPLATE: SURRENDER 0x1001EEC0
-// srArray<T> copy-assignment emission
+// NAME: srArray<T> copy-assignment emission
+// RECOMP: srArray<T> copy-assignment emission
 
 // TEMPLATE: SURRENDER 0x1001EF80
 // srHeapBuffer<T>::release emission
@@ -5817,19 +5822,22 @@ void srGERD::accumulate(e_accum operation, float scale)
 // srHeapBuffer<T>::ensure emission
 
 // TEMPLATE: SURRENDER 0x1001F160
-// srArray<T> copy-assignment emission
+// NAME: srArray<T> copy-assignment emission
+// RECOMP: srArray<T> copy-assignment emission
 
 // TEMPLATE: SURRENDER 0x1001F1F0
 // srHeapBuffer<T> block-allocation emission
 
 // TEMPLATE: SURRENDER 0x1001F210
-// srArray<srGERD::Texture*>::reserve emission
+// NAME: srArray<T>::reserve emission
+// RECOMP: srArray<srGERD::Texture*>::reserve emission
 
 // TEMPLATE: SURRENDER 0x1001F280
 // srMatrix4T<float>::MultiplyBy emission
 
 // TEMPLATE: SURRENDER 0x1001F4C0
-// srHashTableBase<unsigned long, srGERD::Texture*>::Grow emission
+// NAME: srHashTableBase<Key,Value>::Grow emission
+// RECOMP: srHashTableBase<unsigned long, srGERD::Texture*>::Grow emission
 
 // SYNTHETIC: SURRENDER 0x1001B750
 // member destructor emission (EH unwind)
@@ -5868,4 +5876,5 @@ void srGERD::accumulate(e_accum operation, float scale)
 // srMatrix4T<float>::AdjugateFrom
 
 // TEMPLATE: SURRENDER 0x100296C0
-// srArray<srGERD::Texture*>::reserve emission
+// NAME: srArray<T>::reserve emission
+// RECOMP: srArray<srGERD::Texture*>::reserve emission

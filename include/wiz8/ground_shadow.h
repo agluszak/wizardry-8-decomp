@@ -15,10 +15,6 @@ public:
     stGroundShadow(srNode* parent);              /* 0x004D61B0 */
     stGroundShadow(const stGroundShadow& other); /* 0x004D6430 */
 
-protected:
-    virtual ~stGroundShadow() override; /* 0x004D6370 */
-
-public:
     virtual srClass* vInstance() override;                                      /* 0x004D6BF0 */
     virtual void traverse(TraverseInfo& info) override;                         /* 0x004D6540 */
     virtual void process(const ProcessInfo& info, e_processType type) override; /* 0x004D6640 */

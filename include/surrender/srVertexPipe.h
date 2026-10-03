@@ -8,7 +8,7 @@ class srMaterialIFace;
 class srVP;
 
 #pragma pack(push, 4)
-class srVertexPipe {
+class SR_DLL_EXPORT srVertexPipe {
     /* Wizardry's ground-shadow vertex processor walks the batch cursor,
        vertex-index and ST0 output fields directly (0x004D6090). */
     friend class W8GroundShadowMapper;
@@ -39,23 +39,22 @@ public:
 
     SR_DLL_IMPORT srVertexPipe();
     SR_DLL_IMPORT ~srVertexPipe();
+#if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srVertexPipe& operator=(const srVertexPipe& other);
+#endif
 
     SR_DLL_IMPORT void applyDiffuseLight(const srVector4T<float>& light);
     SR_DLL_IMPORT void applyDiffuseLight(const float* values, const srVector4T<float>& light);
     SR_DLL_IMPORT void applyFog(const float* values);
     SR_DLL_IMPORT void copyDiffuseToSpecular();
     SR_DLL_IMPORT void copySpecularToDiffuse();
-    /* Retail inlines the mask updates into srMaterial::preProcess/postProcess
-       while still emitting the exported standalone copies, so the bodies live
-       in the header with provider-side dllexport. */
     // FUNCTION: SURRENDER 0x1002C310
-    SR_DLL_EXPORT inline void disableChannel(srVertexProcessor::e_channel channel)
+    inline void disableChannel(srVertexProcessor::e_channel channel)
     {
         channel_mask_0c &= ~(1u << channel);
     }
     // FUNCTION: SURRENDER 0x1002C330
-    SR_DLL_EXPORT inline void enableChannel(srVertexProcessor::e_channel channel)
+    inline void enableChannel(srVertexProcessor::e_channel channel)
     {
         channel_mask_0c |= 1u << channel;
     }
@@ -104,8 +103,8 @@ public:
             const void* colors_00;
             unsigned long kind_04;
 
-            void copyDiffuseColors(srVector4T<float>* destination,
-                                   const unsigned long* indices, unsigned long count) const;
+            void copyDiffuseColors(srVector4T<float>* destination, const unsigned long* indices,
+                                   unsigned long count) const;
         };
         ColorSource color_source_0c;
         const srVector4T<float>* specular_source_14;

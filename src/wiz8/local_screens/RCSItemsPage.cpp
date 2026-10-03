@@ -833,7 +833,8 @@ unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
     if (event->usEvent == 0x400) {
         if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
             if (item->iItemNo != -1 || g_status.item_in_cursor != 0) {
-                g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST << (slot & 0x1f);
+                g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST
+                                                    << (slot & 0x1f);
             }
             UpdateItemCursorForState((region->flags & W8_REGION_MOUSE_ENTER) != 0, item, 0);
             if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
@@ -910,7 +911,8 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
             }
             if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
                 if (item->iItemNo != -1 || g_status.item_in_cursor != 0) {
-                    g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST << (slot & 0x1f);
+                    g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST
+                                                        << (slot & 0x1f);
                 }
                 UpdateItemCursorForState(1, item, 0);
                 EnableRegionHelpFlag(region);
@@ -932,7 +934,8 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
             }
             if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
                 if (item->iItemNo != -1 || g_status.item_in_cursor != 0) {
-                    g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST << (slot & 0x1f);
+                    g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST
+                                                        << (slot & 0x1f);
                 }
                 UpdateItemCursorForState(0, item, 0);
                 DisableRegionHelpFlag(region);
@@ -1014,7 +1017,8 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
         if (event->usEvent == 0x400) {
             if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
                 if (item->iItemNo != -1 || g_status.item_in_cursor != 0) {
-                    g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL_CELL_FIRST << (slot & 0x1f);
+                    g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL_CELL_FIRST
+                                                        << (slot & 0x1f);
                 }
                 UpdateItemCursorForState((region->flags & W8_REGION_MOUSE_ENTER) != 0, item, 0);
                 if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
@@ -1275,8 +1279,9 @@ public:
     }
     // SYNTHETIC: WIZ8 0x005b7c20
     // W8CampInfoLabel::`scalar deleting destructor'
-    // FUNCTION: WIZ8 0x005b7c40
-    virtual ~W8CampInfoLabel() override {}
+    // SYNTHETIC: WIZ8 0x005b7c40
+    // W8CampInfoLabel::~W8CampInfoLabel
+
     virtual void OnMouseEnter(int event) override;
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override;

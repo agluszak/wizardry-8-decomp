@@ -66,7 +66,8 @@ W8GrowableVector<W8SoundEvent*> g_sound_event_candidates(5);
    0x005ED098 is its construction-phase table; the final table and both
    deleting destructors carry their markers in GrObject.cpp. */
 // TEMPLATE: WIZ8 0x004D6030
-// W8GrowableVector<W8SoundEvent*>::W8GrowableVector
+// NAME: W8GrowableVector<T>::W8GrowableVector
+// RECOMP: W8GrowableVector<W8SoundEvent*>::W8GrowableVector
 
 // GLOBAL: WIZ8 0x00683418
 static int g_selected_sound_event;

@@ -230,7 +230,8 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
 
     if (animation->path_lists_05 == 0) {
         int mesh_index;
-        for (mesh_index = 0; mesh_index < static_cast<signed char>(animation->group_count); ++mesh_index) {
+        for (mesh_index = 0; mesh_index < static_cast<signed char>(animation->group_count);
+             ++mesh_index) {
             W8AniMesh* mesh = CreateAniMesh();
             signed char channel = 0;
 
@@ -817,14 +818,17 @@ bool stKeyframedLightDefinition::IsEnabledForSubcycle(unsigned char subcycle)
 // SYNTHETIC: WIZ8 0x004a25c0
 // stKeyframedLightDefinition::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x004a25e0
-stKeyframedLightDefinition::~stKeyframedLightDefinition() {}
+// SYNTHETIC: WIZ8 0x004a25e0
+// stKeyframedLightDefinition::~stKeyframedLightDefinition
 
 // TEMPLATE: WIZ8 0x004A2500
-// W8GrowableVector<int>::W8GrowableVector
+// NAME: W8GrowableVector<T>::W8GrowableVector
+// RECOMP: W8GrowableVector<int>::W8GrowableVector
 
-// TEMPLATE: WIZ8 0x004A2540 SYMBOL
-// ??0?$W8GrowableVector@M@@QAE@XZ
+// TEMPLATE: WIZ8 0x004A2540
+// NAME: W8GrowableVector<T>::W8GrowableVector (four-byte default)
+// RECOMP: ??0?$W8GrowableVector@M@@QAE@XZ
 
 // TEMPLATE: WIZ8 0x004a2670
-// W8GrowableVector<srVector3T<float>>::Grow
+// NAME: W8GrowableVector<T>::Grow
+// RECOMP: W8GrowableVector<srVector3T<float>>::Grow

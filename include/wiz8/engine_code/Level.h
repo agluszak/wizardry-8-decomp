@@ -15,7 +15,6 @@ public:
     }
 
     explicit stLevel(srNode* parent);
-    virtual ~stLevel() override;
     virtual srClass* vInstance() override;                                      /* 0x004BA3D0 */
     virtual void traverse(TraverseInfo& info) override;                         /* 0x004BA0E0 */
     virtual void process(const ProcessInfo& info, e_processType type) override; /* 0x004B9DD0 */

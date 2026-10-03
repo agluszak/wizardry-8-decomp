@@ -26,7 +26,6 @@ struct W8Chunk {
     W8GrowableVector<int> m_group_progress; /* 0x38 */
 
     W8Chunk();
-    ~W8Chunk();
 
     unsigned char OpenRead(char* path);
     unsigned char OpenWrite(char* path);

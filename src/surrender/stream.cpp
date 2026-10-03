@@ -780,14 +780,8 @@ srBinIStream* srIStreamOpener::open(const char* path)
     return stream;
 }
 
-// FUNCTION: SURRENDER 0x10032740
-srIStreamOpener& srIStreamOpener::operator=(const srIStreamOpener& other)
-{
-    count_00 = other.count_00;
-    first_04 = other.first_04;
-    end_08 = other.end_08;
-    return *this;
-}
+// SYNTHETIC: SURRENDER 0x10032740
+// srIStreamOpener::operator= (implicit shallow copy)
 
 // FUNCTION: SURRENDER 0x10032780
 srBinIStream* srIStreamOpener::open(const char* prefix, const char* path)
@@ -908,4 +902,5 @@ srBinIStream* srFStreamOpener::open(const char* path)
 }
 
 // TEMPLATE: SURRENDER 0x10031100
-// srArray<T>::release emission
+// NAME: srArray<T>::release emission
+// RECOMP: srArray<T>::release emission

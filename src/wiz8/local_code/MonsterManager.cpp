@@ -906,8 +906,8 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     monster_info->p3D->inactive_215 = 0;
 }
 
-static inline double DistanceBetweenPositions(const srVector3T<float>* first,
-                                              const srVector3T<float>& second)
+static double DistanceBetweenPositions(const srVector3T<float>* first,
+                                       const srVector3T<float>& second)
 {
     return (*first - second).Length();
 }
@@ -920,8 +920,7 @@ W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double 
     unsigned int index;
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
-        W8MonsterInfo* monster_info =
-            GetMonsterListEntry(index);
+        W8MonsterInfo* monster_info = GetMonsterListEntry(index);
         double distance = DistanceBetweenPositions(position, monster_info->p3D->GetPosition());
 
         if (distance < nearest_distance &&
@@ -932,8 +931,7 @@ W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double 
     }
 
     for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
-        W8MonsterInfo* monster_info =
-            GetUnbornMonsterEntry(index);
+        W8MonsterInfo* monster_info = GetUnbornMonsterEntry(index);
         double distance = DistanceBetweenPositions(position, monster_info->p3D->GetPosition());
 
         if (distance < nearest_distance &&
@@ -945,7 +943,7 @@ W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double 
     return nearest;
 }
 
-static inline void InitializeMonsterRuntimeStatsFor(W8MonsterInfo* monster_info)
+static void InitializeMonsterRuntimeStatsFor(W8MonsterInfo* monster_info)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     int value = RollDice(&record->hit_points_d6);
@@ -967,13 +965,11 @@ void InitializeMonsterRuntimeStats(void)
     unsigned int index;
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
-        InitializeMonsterRuntimeStatsFor(
-            GetMonsterListEntry(index));
+        InitializeMonsterRuntimeStatsFor(GetMonsterListEntry(index));
     }
 
     for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
-        InitializeMonsterRuntimeStatsFor(
-            GetUnbornMonsterEntry(index));
+        InitializeMonsterRuntimeStatsFor(GetUnbornMonsterEntry(index));
     }
 }
 
@@ -1258,7 +1254,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
 /* Combat entry for one monster entry: it stops and re-poses the live Monster,
    allocates the 0x153-byte pCombat block the MonsterManager.cpp:672 assertion
    names, and clears it as 0x54 dwords plus a trailing word and byte - the
-   inline `memset` shape VC6 emits for a zero-initialised structure of that
+   `memset` shape VC6 emits for a zero-initialised structure of that
    size, which is also what fixes the block's extent. */
 // FUNCTION: WIZ8 0x004e4390
 void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
@@ -1366,7 +1362,7 @@ void TogglePartyCombatStance(void)
     if (g_settings.continuous_combat != 0) {
         g_settings.continuous_combat = 0;
         if (gXStatus.fCombatMode != 0) {
-            g_combat_state->round_active_001 = (g_combat_state->combat_over_000 == 0);
+            g_combat_state->round_active_001 = (g_combat_state->execution_active_000 == 0);
             g_combat_state->combat_ready_a62 = 1;
         }
         if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
@@ -1430,7 +1426,7 @@ void ToggleCombatMode(void)
             return;
         }
     }
-    if (g_combat_state->combat_over_000 != 0) {
+    if (g_combat_state->execution_active_000 != 0) {
         ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_PENDING], -1, -1, 1);
         return;
     }
@@ -1730,17 +1726,17 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
     wcscat(health_text, L"?");
 }
 
-// FUNCTION: WIZ8 0x004e6970
-W8XStatus::W8XStatus() {}
+// SYNTHETIC: WIZ8 0x004e6970
+// W8XStatus::W8XStatus (implicit member construction)
 
-// FUNCTION: WIZ8 0x004e6940
-W8XStatus::~W8XStatus() {}
+// SYNTHETIC: WIZ8 0x004e6940
+// W8XStatus::~W8XStatus (implicit member teardown)
 
-// FUNCTION: WIZ8 0x004e6a10
-W8MonsterManagerEntry::~W8MonsterManagerEntry() {}
+// SYNTHETIC: WIZ8 0x004e6a10
+// W8MonsterManagerEntry::~W8MonsterManagerEntry (implicit member teardown)
 
-// FUNCTION: WIZ8 0x004e6a30
-W8MonsterManagerEntry::W8MonsterManagerEntry() {}
+// SYNTHETIC: WIZ8 0x004e6a30
+// W8MonsterManagerEntry::W8MonsterManagerEntry (implicit member construction)
 
 // FUNCTION: WIZ8 0x004e4ab0
 void DetectMonsterGroups(void)

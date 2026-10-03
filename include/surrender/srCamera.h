@@ -11,9 +11,9 @@ class srGERD;
 // class srCamera
 class SR_DLL_IMPORT SR_DLL_EXPORT srCamera : public srClassSupport<srCamera, srNode, 0, 0x1400> {
 public:
-    enum e_project { PROJECT_POSITIONAL_0 = 0 };
+    enum e_project { PROJECT_PERSPECTIVE = 0, PROJECT_ORTHOGRAPHIC = 1 };
 
-    enum e_projectionResult { PROJECTION_RESULT_POSITIONAL_0 = 0 };
+    enum e_projectionResult { PROJECTION_RESULT_ACCEPTED = 0 };
 
     struct Rect {
         double left;

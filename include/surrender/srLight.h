@@ -18,14 +18,14 @@
 // VTABLE: SURRENDER 0x100770C4 srLight
 class SR_DLL_EXPORT srLight : public srClassSupport<srLight, srIlluminator, false, 0x1220> {
 public:
-    enum e_preset { PRESET_POSITIONAL_0 = 0, PRESET_POSITIONAL_1 = 1, PRESET_POSITIONAL_2 = 2 };
+    enum e_preset { PRESET_DIRECTIONAL = 0, PRESET_POINT = 1, PRESET_SPOT = 2 };
     /* enable/disable/isEnabled take these as bit indices into +0x194.
        Dump's Control-flags name table is unset on disk. process uses bit 3
        as the 3DStudio near-range gate and bit 4 as the far-range gate.
        Ctor always ORs bit 4; Wizardry also ORs ENABLE_BOUNDING_SPHERE. */
     enum e_enable {
-        ENABLE_POSITIONAL_0 = 0,
-        ENABLE_POSITIONAL_1 = 1,
+        ENABLE_SPOT = 0,
+        ENABLE_DIRECTIONAL = 1,
         /* Node process: with RANGE_FAR, run testBoundingSphere on
            safe_range+far_end and clear activity bit 0 when culled. */
         ENABLE_BOUNDING_SPHERE = 2,
@@ -43,7 +43,7 @@ public:
        constructor - the out-of-line 0x004CA8B0 emission and the copies
        inlined into 0x0049C2C0 - reaches this one as srLight(0, 1), so both
        parameters carry those defaults here. */
-    SR_DLL_IMPORT srLight(srNode* parent = 0, e_preset preset = PRESET_POSITIONAL_1);
+    SR_DLL_IMPORT srLight(srNode* parent = 0, e_preset preset = PRESET_POINT);
 
     SR_DLL_IMPORT srLight& operator=(const srLight& other);
 

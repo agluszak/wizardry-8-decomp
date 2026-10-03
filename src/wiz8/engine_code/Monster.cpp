@@ -115,71 +115,72 @@ struct W8AttachmentOffset {
 
 // GLOBAL: WIZ8 0x0060e618
 static W8AttachmentOffset g_monster_attachment_offsets[8][8] = {{{0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f}},
-                                                         {{-75.0f, 0.0f, 0.0f},
-                                                          {75.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f}},
-                                                         {{-75.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {75.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f}},
-                                                         {{-112.5f, 0.0f, 0.0f},
-                                                          {-37.5f, 0.0f, 0.0f},
-                                                          {37.5f, 0.0f, 0.0f},
-                                                          {112.5f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f}},
-                                                         {{-112.5f, 0.0f, 0.0f},
-                                                          {-37.5f, 0.0f, 0.0f},
-                                                          {37.5f, 0.0f, 0.0f},
-                                                          {112.5f, 0.0f, 0.0f},
-                                                          {0.0f, 75.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f}},
-                                                         {{-112.5f, 0.0f, 0.0f},
-                                                          {-37.5f, 0.0f, 0.0f},
-                                                          {37.5f, 0.0f, 0.0f},
-                                                          {112.5f, 0.0f, 0.0f},
-                                                          {-37.5f, 75.0f, 0.0f},
-                                                          {37.5f, 75.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f}},
-                                                         {{-112.5f, 0.0f, 0.0f},
-                                                          {-37.5f, 0.0f, 0.0f},
-                                                          {37.5f, 0.0f, 0.0f},
-                                                          {112.5f, 0.0f, 0.0f},
-                                                          {-75.0f, 75.0f, 0.0f},
-                                                          {0.0f, 75.0f, 0.0f},
-                                                          {75.0f, 75.0f, 0.0f},
-                                                          {0.0f, 0.0f, 0.0f}},
-                                                         {{-112.5f, 0.0f, 0.0f},
-                                                          {-37.5f, 0.0f, 0.0f},
-                                                          {37.5f, 0.0f, 0.0f},
-                                                          {112.5f, 0.0f, 0.0f},
-                                                          {-112.5f, 75.0f, 0.0f},
-                                                          {-37.5f, 75.0f, 0.0f},
-                                                          {37.5f, 75.0f, 0.0f},
-                                                          {112.5f, 75.0f, 0.0f}}};
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f}},
+                                                                {{-75.0f, 0.0f, 0.0f},
+                                                                 {75.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f}},
+                                                                {{-75.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {75.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f}},
+                                                                {{-112.5f, 0.0f, 0.0f},
+                                                                 {-37.5f, 0.0f, 0.0f},
+                                                                 {37.5f, 0.0f, 0.0f},
+                                                                 {112.5f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f}},
+                                                                {{-112.5f, 0.0f, 0.0f},
+                                                                 {-37.5f, 0.0f, 0.0f},
+                                                                 {37.5f, 0.0f, 0.0f},
+                                                                 {112.5f, 0.0f, 0.0f},
+                                                                 {0.0f, 75.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f}},
+                                                                {{-112.5f, 0.0f, 0.0f},
+                                                                 {-37.5f, 0.0f, 0.0f},
+                                                                 {37.5f, 0.0f, 0.0f},
+                                                                 {112.5f, 0.0f, 0.0f},
+                                                                 {-37.5f, 75.0f, 0.0f},
+                                                                 {37.5f, 75.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f}},
+                                                                {{-112.5f, 0.0f, 0.0f},
+                                                                 {-37.5f, 0.0f, 0.0f},
+                                                                 {37.5f, 0.0f, 0.0f},
+                                                                 {112.5f, 0.0f, 0.0f},
+                                                                 {-75.0f, 75.0f, 0.0f},
+                                                                 {0.0f, 75.0f, 0.0f},
+                                                                 {75.0f, 75.0f, 0.0f},
+                                                                 {0.0f, 0.0f, 0.0f}},
+                                                                {{-112.5f, 0.0f, 0.0f},
+                                                                 {-37.5f, 0.0f, 0.0f},
+                                                                 {37.5f, 0.0f, 0.0f},
+                                                                 {112.5f, 0.0f, 0.0f},
+                                                                 {-112.5f, 75.0f, 0.0f},
+                                                                 {-37.5f, 75.0f, 0.0f},
+                                                                 {37.5f, 75.0f, 0.0f},
+                                                                 {112.5f, 75.0f, 0.0f}}};
 // GLOBAL: WIZ8 0x0060e918
-static float g_monster_attachment_scales[8] = {0.3f, 0.2f, 0.15f, 0.15f, 0.15f, 0.15f, 0.15f, 0.15f};
+static float g_monster_attachment_scales[8] = {0.3f,  0.2f,  0.15f, 0.15f,
+                                               0.15f, 0.15f, 0.15f, 0.15f};
 
 // GLOBAL: WIZ8 0x005ec04c
 const float g_monster_rotation_offset = 3.141592502593994f;
@@ -204,7 +205,8 @@ const double g_monster_facing_tolerance = 0.78539815;
 // GLOBAL: WIZ8 0x005ed2c0
 const double g_monster_group_nearest_range = 12500.0;
 // GLOBAL: WIZ8 0x0060f684
-static char g_warning_missing_spell_vertex[] = "WARNING: %ls does not have a SPELL vertex marked! --> Lee";
+static char g_warning_missing_spell_vertex[] =
+    "WARNING: %ls does not have a SPELL vertex marked! --> Lee";
 // GLOBAL: WIZ8 0x0060EA08
 W8CycleNameRow g_cycle_names[W8_MONSTER_CYCLE_COUNT] = {
     {"BIRTH", 5},
@@ -356,11 +358,13 @@ const char* g_monster_script_commands[MONSCR_COUNT] = {"GOTO",
 // VTABLE: WIZ8 0x005ecdc8
 // class W8GrowableVector<srVector3T<float> >
 
-// TEMPLATE: WIZ8 0x004a2080 SYMBOL
-// ??0?$W8GrowableVector@V?$srVector3T@M@@@@QAE@XZ
+// TEMPLATE: WIZ8 0x004a2080
+// NAME: W8GrowableVector<T>::W8GrowableVector (twelve-byte default)
+// RECOMP: ??0?$W8GrowableVector@V?$srVector3T@M@@@@QAE@XZ
 
 // SYNTHETIC: WIZ8 0x004a2110
-// W8GrowableVector<srVector3T<float> >::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<srVector3T<float> >::`scalar deleting destructor'
 
 // VTABLE: WIZ8 0x005ed200
 // class W8MonsterRep
@@ -1114,16 +1118,9 @@ W8MonsterRep::W8MonsterRep(const W8MonsterRep& other)
 {
     signed char cycle;
 
-    /* 0x004BEBD8 writes the eight slots individually and the count last, like
-       the default constructor. */
-    objects_5c8[0] = 0;
-    objects_5c8[1] = 0;
-    objects_5c8[2] = 0;
-    objects_5c8[3] = 0;
-    objects_5c8[4] = 0;
-    objects_5c8[5] = 0;
-    objects_5c8[6] = 0;
-    objects_5c8[7] = 0;
+    for (int index = 0; index < 8; ++index) {
+        objects_5c8[index] = 0;
+    }
     icon_count_5c4 = 0;
     for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
         CopyCycle(cycle, &other, cycle);
@@ -2005,6 +2002,9 @@ void W8Monster::ProcessScript()
                 } else if (_stricmp(token, "off_camera") == 0) {
                     position.x = position.y = position.z = -10000000.0f;
                 } else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                    ShutdownWithErrorBox(FormatString(
+                        "MonScript %s Line %d: Unknown location %s", script_238->getName(),
+                        script_238->GetSourceLine(script_line_23c - 1), token));
                     break;
                 }
                 if (_stricmp(token, "PARTY") == 0) {
@@ -2031,6 +2031,9 @@ void W8Monster::ProcessScript()
                 } else if (_stricmp(token, "off_camera") == 0) {
                     position.x = position.y = position.z = -10000000.0f;
                 } else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                    ShutdownWithErrorBox(FormatString(
+                        "MonScript %s Line %d: Unknown location %s", script_238->getName(),
+                        script_238->GetSourceLine(script_line_23c - 1), token));
                     break;
                 }
                 AimAtPosition(&position);
@@ -2091,6 +2094,10 @@ void W8Monster::ProcessScript()
                         } else {
                             stop = 1;
                         }
+                    } else {
+                        ShutdownWithErrorBox(FormatString(
+                            "MonScript %s Line %d: Unknown cycle %s", script_238->getName(),
+                            script_238->GetSourceLine(script_line_23c - 1), token));
                     }
                 }
                 break;
@@ -2138,6 +2145,9 @@ void W8Monster::ProcessScript()
                     } else if (_stricmp(token, "off_camera") == 0) {
                         position.x = position.y = position.z = -10000000.0f;
                     } else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                        ShutdownWithErrorBox(FormatString(
+                            "MonScript %s Line %d: Unknown location %s", script_238->getName(),
+                            script_238->GetSourceLine(script_line_23c - 1), token));
                         break;
                     }
                     SetPositionInternal(&position);
@@ -2170,11 +2180,19 @@ void W8Monster::ProcessScript()
             case MONSCR_ELSE:
                 if (script_conditions_244.GetCount() != 0) {
                     *script_conditions_244.GetAt(0) = *script_conditions_244.GetAt(0) == 0;
+                } else {
+                    ShutdownWithErrorBox(FormatString(
+                        "MonScript %s Line %d: ELSE without matching IF", script_238->getName(),
+                        script_238->GetSourceLine(script_line_23c - 1)));
                 }
                 break;
             case MONSCR_ENDIF:
                 if (script_conditions_244.GetCount() != 0) {
                     script_conditions_244.RemoveAt(0);
+                } else {
+                    ShutdownWithErrorBox(FormatString(
+                        "MonScript %s Line %d: ENDIF without matching IF", script_238->getName(),
+                        script_238->GetSourceLine(script_line_23c - 1)));
                 }
                 break;
             case MONSCR_DISPOSITION: {
@@ -2386,9 +2404,13 @@ void W8Monster::ProcessScript()
                     if (direction != -1) {
                         double angle = (direction - MONSCR_EAST) * g_monster_script_direction_step;
                         order_mode_28e = 4;
-                        direction_x_2b0 = static_cast<float>(cos(angle)) * g_double_005ec150;
+                        direction_x_2b0 = static_cast<float>(cos(angle) * g_double_005ec150);
                         direction_y_2b4 = 0.0f;
-                        direction_z_2b8 = static_cast<float>(sin(angle)) * g_double_005ec150;
+                        direction_z_2b8 = static_cast<float>(sin(angle) * g_double_005ec150);
+                    } else {
+                        ShutdownWithErrorBox(FormatString(
+                            "MonScript %s Line %d: Unknown direction %s", script_238->getName(),
+                            script_238->GetSourceLine(script_line_23c - 1), token));
                     }
                 }
                 break;
@@ -2421,6 +2443,9 @@ void W8Monster::ProcessScript()
                     } else if (_stricmp(token, "off_camera") == 0) {
                         position.x = position.y = position.z = -10000000.0f;
                     } else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                        ShutdownWithErrorBox(FormatString(
+                            "MonScript %s Line %d: Unknown location %s", script_238->getName(),
+                            script_238->GetSourceLine(script_line_23c - 1), token));
                         continue;
                     }
                     if ((command == MONSCR_POINTPATROL || command == MONSCR_RANDOMPOINTPATROL) &&
@@ -2449,14 +2474,20 @@ void W8Monster::ProcessScript()
             case MONSCR_LOOKABOUT:
                 token = strtok(0, " \t");
                 if (token != 0) {
-                    look_frequency_2c8 = static_cast<float>(atoi(token));
-                    if (monster_info != 0) {
-                        monster_info->look_timer_302 = static_cast<unsigned char>(atoi(token));
-                    }
+                    look_frequency_2c8 = atoi(token);
+                    monster_info->look_timer_302 = static_cast<unsigned char>(look_frequency_2c8);
                     token = strtok(0, " \t");
                     if (token != 0) {
-                        look_duration_2cc = static_cast<float>(atoi(token));
+                        look_duration_2cc = atoi(token);
+                    } else {
+                        ShutdownWithErrorBox(FormatString(
+                            "MonScript %s Line %d: Missing lookabout duration",
+                            script_238->getName(), script_238->GetSourceLine(script_line_23c - 1)));
                     }
+                } else {
+                    ShutdownWithErrorBox(FormatString(
+                        "MonScript %s Line %d: Missing lookabout frequency", script_238->getName(),
+                        script_238->GetSourceLine(script_line_23c - 1)));
                 }
                 break;
             case MONSCR_STAYHOME:
@@ -3933,8 +3964,8 @@ static int g_spell_index;
 // SYNTHETIC: WIZ8 0x004c3710
 // W8MonsterShakeCallback::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x004c3730
-W8MonsterShakeCallback::~W8MonsterShakeCallback() {}
+// SYNTHETIC: WIZ8 0x004c3730
+// W8MonsterShakeCallback::~W8MonsterShakeCallback
 
 // SYNTHETIC: WIZ8 0x004cab40
 // W8MonsterShakeCallbackBase::`scalar deleting destructor'
@@ -4685,7 +4716,8 @@ float MonsterGetNavigatorValue120(W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x004c5f90
-unsigned char MonsterConfigureMovementToPosition(W8Monster* monster, const srVector3T<float>* position)
+unsigned char MonsterConfigureMovementToPosition(W8Monster* monster,
+                                                 const srVector3T<float>* position)
 {
     if (monster != 0) {
         return monster->ConfigureMovementToPosition(position);

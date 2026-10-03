@@ -298,7 +298,7 @@ void W8Octree::UpdateVisibility()
         m_props_to_disable_110->ClearAll();
     }
     m_projected_regions_valid_16a = false;
-    m_positional_16b = 0;
+    unknown_16b = 0;
     CollectVisibleRegions(&view_1c0.camera_location_00, view_1c0.visible_cells_44, 0, 1);
     CollectVisibleCells();
     if (pathing_180 != 0) {
@@ -621,7 +621,7 @@ short W8Octree::ProjectLinkedRegionsForLocation(srVector3T<float>* location,
             }
         }
         if (match_count != 0) {
-            m_positional_16b = 1;
+            unknown_16b = 1;
             return match_count;
         }
     }
@@ -664,7 +664,7 @@ short W8Octree::ProjectLinkedRegionsForLocation(srVector3T<float>* location,
     if (match_count == 0) {
         return 0;
     }
-    m_positional_16b = 1;
+    unknown_16b = 1;
     return match_count;
 }
 
@@ -2631,27 +2631,34 @@ no_probes:;
 }
 
 // TEMPLATE: WIZ8 0x00439290
-// W8HashTable<unsigned int,int>::Grow
+// NAME: W8HashTable<Key,Value>::Grow
+// RECOMP: W8HashTable<unsigned int,int>::Grow
 
 // TEMPLATE: WIZ8 0x00439140
-// W8HashTable<unsigned int,short>::Grow
+// NAME: W8HashTable<Key,Value>::Grow
+// RECOMP: W8HashTable<unsigned int,short>::Grow
 
 // TEMPLATE: WIZ8 0x004393e0
-// W8HashTable<unsigned int,int>::AllocateEntry
+// NAME: W8HashTable<Key,Value>::AllocateEntry
+// RECOMP: W8HashTable<unsigned int,int>::AllocateEntry
 
 // TEMPLATE: WIZ8 0x00438c90
-// W8HashTable<unsigned int,int>::Remove
+// NAME: W8HashTable<Key,Value>::Remove
+// RECOMP: W8HashTable<unsigned int,int>::Remove
 
 // TEMPLATE: WIZ8 0x00438d50
-// W8HashTable<unsigned int,int>::FindNextEntry
+// NAME: W8HashTable<Key,Value>::FindNextEntry
+// RECOMP: W8HashTable<unsigned int,int>::FindNextEntry
 
 // TEMPLATE: WIZ8 0x0055dbb0
-// W8HashTable<unsigned int,int>::Insert
+// NAME: W8HashTable<Key,Value>::Insert
+// RECOMP: W8HashTable<unsigned int,int>::Insert
 
 /* Second Remove emission (0x00438C90 above is the other), serving the
    keyboard/automap tables' callers. */
 // TEMPLATE: WIZ8 0x0055DD60
-// W8HashTable<unsigned int,int>::Remove (second emission)
+// NAME: W8HashTable<Key,Value>::Remove (second emission)
+// RECOMP: W8HashTable<unsigned int,int>::Remove (second emission)
 
 // FUNCTION: WIZ8 0x00436840
 W8OctreeObjectRegistry::W8OctreeObjectRegistry()
@@ -4350,17 +4357,14 @@ int W8Octree::CollectObjectsAlongSegment(unsigned long** results, const srVector
    uses it to list the location ids near a mover. */
 
 // FUNCTION: WIZ8 0x0042ef00
-unsigned int W8Octree::QueryLocationsInBox(unsigned long** results, const srVector3T<float>* lower,
-                                           const srVector3T<float>* upper, unsigned short exclusion)
+int W8Octree::QueryLocationsInBox(unsigned long** results, const srVector3T<float>* lower,
+                                  const srVector3T<float>* upper, unsigned short exclusion)
 {
-    unsigned int excluded = 0xffffffff;
+    int excluded = -1;
     if (exclusion != 0) {
         excluded = exclusion;
     }
-    return static_cast<unsigned int>(
-        QueryObjects(results, lower, upper, W8_OCTREE_KIND_LOCATION,
-                     static_cast<int>(excluded))); /* c-style-cast-ok: the
-        exclusion id travels as a signed value so -1 can mean none */
+    return QueryObjects(results, lower, upper, W8_OCTREE_KIND_LOCATION, excluded);
 }
 
 /* AABB occupancy test: GD triangles, kind-12 location objects (each
@@ -4854,7 +4858,7 @@ bool ReadVector4Array(int file, srVector4T<float>* values, int count)
 }
 
 // FUNCTION: WIZ8 0x004374E0
-bool ReadVector3Array(int file, srVector3T<float>* values, int count)
+bool ReadVector3Array(int file, void* values, int count)
 {
     return FileRead(file, values, count * sizeof(srVector3T<float>), 0) & 1;
 }

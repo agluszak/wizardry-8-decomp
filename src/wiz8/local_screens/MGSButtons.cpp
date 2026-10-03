@@ -615,7 +615,7 @@ void UpdateCombatStanceButtons(void)
     }
 
     if (g_settings.continuous_combat == 0) {
-        stance = g_combat_state->combat_over_000 != 0 ? 3U : 0U;
+        stance = g_combat_state->execution_active_000 != 0 ? 3U : 0U;
     } else if ((ClockIsTicking(g_combat_state->combat_ui_timer_7a8) == 0 &&
                 CombatMayAdvanceContinuously() != 0) ||
                g_combat_state->party_surprised_a52 != 0) {
@@ -654,7 +654,7 @@ static void MainGameCombatConfirmButton(W8DialogButton* button)
     if (gXStatus.fCombatMode == 0) {
         return;
     }
-    if (g_combat_state->combat_over_000 != 0) {
+    if (g_combat_state->execution_active_000 != 0) {
         TogglePartyCombatStance();
         return;
     }
@@ -1117,7 +1117,7 @@ void DestroyMainGameInterfaceButtons(void)
     }
 }
 
-static inline void SetMenuButtonBanksEnabled(bool enabled)
+static void SetMenuButtonBanksEnabled(bool enabled)
 {
     int i;
     for (i = 0; i < 2; ++i) {

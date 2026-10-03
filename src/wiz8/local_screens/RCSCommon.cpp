@@ -1339,8 +1339,9 @@ void RefreshCampItemActions(bool invalidate)
                 control->SetEnabled(1);
                 continue;
             case 5:
-                control->SetEnabled(IsPartySlotEligible(giReviewCharSlot) != 0 &&
-                                    CharacterHasTrait(g_review_character, W8_TRAIT_REMOVE_CURSED_ITEMS) != 0);
+                control->SetEnabled(
+                    IsPartySlotEligible(giReviewCharSlot) != 0 &&
+                    CharacterHasTrait(g_review_character, W8_TRAIT_REMOVE_CURSED_ITEMS) != 0);
                 continue;
             case 6:
                 if (g_review_character->spell_learned[0x17] != 1) {
@@ -1671,4 +1672,5 @@ static void OnCampItemActionButton7(void)
 }
 
 // SYNTHETIC: WIZ8 0x005b1b90
-// W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor'

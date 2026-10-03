@@ -7,7 +7,6 @@ struct W8ItemInstance;
 struct W8MonsterInfo;
 struct W8MonsterGroup;
 
-#pragma pack(push, 1)
 /* Local Code\Targeting.cpp. Assertions name iType, iChar, iMonsterID,
    fBackfire and fReflection and establish the field offsets; SpellBackfires'
    stack frame independently agrees with the same source-record layout. */
@@ -60,9 +59,8 @@ struct W8TargetSource {
 
 /* The target-kind domain a combat slot's leading field takes. The kinds that
    name something put it in their own field, which is what pairs each kind with
-   the field the aiming wrappers fill in. Five and eight are switched on by
-   consumers but have no agreed meaning yet, so they keep positional names the
-   way W8_TARGETING_CONTEXT_FIVE does. This is a different domain from
+   the field the aiming wrappers fill in. Kind five selects all enemies;
+   kind eight's complete consumer role remains unresolved. This is a different domain from
    W8TargetSourceKind even though both name a leading field. */
 enum W8TargetKind {
     W8_TARGET_KIND_NONE = 0,
@@ -70,7 +68,7 @@ enum W8TargetKind {
     W8_TARGET_KIND_PARTY = 2,
     W8_TARGET_KIND_MONSTER = 3,
     W8_TARGET_KIND_GROUP = 4,
-    W8_TARGET_KIND_FIVE = 5,
+    W8_TARGET_KIND_ALL_ENEMIES = 5,
     W8_TARGET_KIND_PLACE = 6,
     W8_TARGET_KIND_ITEM = 7,
     W8_TARGET_KIND_EIGHT = 8,
@@ -134,20 +132,17 @@ enum W8ActionKind {
     W8_ACTION_RUN = 11
 };
 
-/* The targeting contexts. Six of them name a block the slot carries; the
-   seventh, "current", is not a context at all but the request to work out
-   which of the others applies right now. Value five is unobserved and keeps
-   its number rather than being given a meaning. */
+/* CURRENT requests resolution of the active context rather than a target
+   block. Context five selects the breath-action target at party slot +0xd1
+   (retail 0x00501880); BREATH describes its observed role, not original spelling. */
 enum W8TargetingContext {
     W8_TARGETING_CONTEXT_OUT_OF_COMBAT = 0,
     W8_TARGETING_CONTEXT_IN_COMBAT = 1,
     W8_TARGETING_CONTEXT_SHARED = 2,
     W8_TARGETING_CONTEXT_SPELL = 3,
     W8_TARGETING_CONTEXT_ITEM = 4,
-    W8_TARGETING_CONTEXT_FIVE = 5,
+    W8_TARGETING_CONTEXT_BREATH = 5,
     W8_TARGETING_CONTEXT_CURRENT = 6,
     W8_TARGETING_CONTEXT_DIALOGUE = 7
 };
-#pragma pack(pop)
-
 #endif

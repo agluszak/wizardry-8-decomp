@@ -735,7 +735,8 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
 }
 
 // TEMPLATE: WIZ8 0x004CECA0
-// W8HashTable<unsigned int,unsigned char>::Grow
+// NAME: W8HashTable<Key,Value>::Grow
+// RECOMP: W8HashTable<unsigned int,unsigned char>::Grow
 
 // TEMPLATE: WIZ8 0x004CEDF0
 // InsertionSort

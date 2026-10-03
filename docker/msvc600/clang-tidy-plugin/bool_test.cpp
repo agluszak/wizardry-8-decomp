@@ -1,8 +1,13 @@
+#ifdef WIZ8_BOOL_TEST_INVALID
+int invalid = ; // The wrapper must propagate actual clang failures.
+#endif
+
 typedef unsigned char BOOLEAN;
 
 extern "C" void* memset(void* destination, int value, unsigned int size);
 
 void mutate(unsigned char& value);
+void mutate_pointer(unsigned char* value);
 
 BOOLEAN IsVendorEnabled()
 {
@@ -104,6 +109,66 @@ void update(State& state, bool left, bool right)
 
     unsigned char wire_ready = 0; // bool-byte-ok: serialized protocol byte
     (void)wire_ready;
+
+    unsigned char and_ready = 1;
+    and_ready &= 1;
+    unsigned char or_ready = 0;
+    or_ready |= 1;
+    unsigned char xor_ready = 1;
+    xor_ready ^= 1;
+
+    unsigned char address_ready = 0;
+    mutate_pointer(&address_ready);
+    unsigned char alias_ready = 1;
+    unsigned char& alias = alias_ready;
+    mutate(alias);
+}
+
+struct CombatState {
+    unsigned char execution_active_000;
+};
+
+bool run_combat(CombatState& state)
+{
+    state.execution_active_000 = 0;
+    bool inactive = state.execution_active_000 == 0;
+    state.execution_active_000 = 1;
+    if (state.execution_active_000 && state.execution_active_000 != 0) {
+        return inactive;
+    }
+    return false;
+}
+
+struct OneFillState {
+    unsigned char initialized;
+};
+
+void fill_one(OneFillState* state)
+{
+    memset(state, 1, sizeof *state);
+}
+
+struct NonDomainFillState {
+    unsigned char non_domain_ready;
+};
+struct PartialFillState {
+    unsigned char partial_ready;
+    unsigned char tail;
+};
+struct AggregateState {
+    unsigned char aggregate_ready;
+};
+void mutate_record(AggregateState* state);
+
+void unknown_producers(NonDomainFillState* non_domain, PartialFillState* partial,
+                       AggregateState& destination, const AggregateState& source)
+{
+    memset(non_domain, 2, sizeof *non_domain);
+    memset(partial, 0, sizeof *partial - 1);
+    destination = source;
+    mutate_record(&destination);
+    // Neither a partial/non-domain fill nor an unknown aggregate/alias producer
+    // supplies a direct boolean-domain anchor. This is not full alias analysis.
 }
 
 struct WireRecord {

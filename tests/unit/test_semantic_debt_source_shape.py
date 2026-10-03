@@ -8,7 +8,9 @@ from wiz8decomp.reports.semantic_debt import (
     _duplicate_layouts,
     _enum_literal_arguments,
     _source_shaping_directives,
+    _storage_debt,
     _unresolved_functions,
+    _Usage,
 )
 
 
@@ -140,7 +142,35 @@ def test_storage_debt_ranks_address_named_storage_and_accessed_padding(tmp_path:
     (padding,) = storage["accessed_padding_members"]
     assert padding["name"] == "m_padding_238"
     assert padding["writes"] == 2
+    assert padding["usage_scope"] == "identifier_spelling"
+    assert padding["receiver_verified"] is False
+    assert padding["possible_nonmember_matches"] is True
     assert [row["field"] for row in _void_storage(index)] == ["list"]
+
+
+def test_storage_counts_do_not_certify_receivers_for_shared_or_unique_names() -> None:
+    index = {
+        "classes": [
+            {
+                "qualified_name": owner,
+                "fields": [{"name": name, "source_file": "include/wiz8/a.h", "line": 1}],
+            }
+            for owner, name in [("A", "unknown_04"), ("B", "unknown_04"), ("C", "unknown_08")]
+        ]
+    }
+    sources = {
+        "include/wiz8/a.h": "struct A { int unknown_04; }; struct B { int unknown_04; };"
+        "struct C { int unknown_08; };",
+        "src/wiz8/a.cpp": "void f(Vendor* v) { int unknown_04 = 0; v->unknown_08 = 1; }",
+    }
+    rows = _storage_debt(index, _Usage(sources))["address_named_members"]
+    assert {row["name"] for row in rows} == {"unknown_04", "unknown_08"}
+    for row in rows:
+        assert row["receiver_verified"] is False
+        assert row["usage_scope"] == "identifier_spelling"
+        assert row["possible_nonmember_matches"] is True
+    shared = next(row for row in rows if row["name"] == "unknown_04")
+    assert {field["record"] for field in shared["fields"]} == {"A", "B"}
 
 
 def test_byte_strides_report_literals_equal_to_asserted_record_sizes() -> None:

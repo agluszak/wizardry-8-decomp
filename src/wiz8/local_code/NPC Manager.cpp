@@ -515,8 +515,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
     memset(character, 0, sizeof(*character));
     memset(row, 0, sizeof(*row));
     /* Retail clears all 0x118 bytes, including the embedded vector's vfptr. */
-    memset(&gXStatus.monster_manager_entries[party_slot], 0,
-           sizeof(W8MonsterManagerEntry));
+    memset(&gXStatus.monster_manager_entries[party_slot], 0, sizeof(W8MonsterManagerEntry));
     row->npc_index = -1;
     if (npc->character->highest_condition != 18 && !skip_spawn) {
         W8MonsterRecord* records;
@@ -1281,7 +1280,8 @@ void ReleaseNpcStates(void)
 
 /* The g_npc_states teardown's own vector emission. */
 // TEMPLATE: WIZ8 0x00509A80
-// W8GrowableVector<W8NpcState*>::~W8GrowableVector<W8NpcState*>
+// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
+// RECOMP: W8GrowableVector<W8NpcState*>::~W8GrowableVector<W8NpcState*>
 
 /* The NPCT section writer: a version byte, the state count, then each 0x13d
    state block followed by its 0x1862 character block when the NPC carries one.
