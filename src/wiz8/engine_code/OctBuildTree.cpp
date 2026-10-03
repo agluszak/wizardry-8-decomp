@@ -260,7 +260,7 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
                                                      unsigned long mode)
 {
     W8OctSpatialState child(working);
-    unsigned char inserted = 0;
+    bool inserted = 0;
 
     if (spatial_00.depth_44 < working->depth_44) {
         spatial_00.depth_44 = working->depth_44;
@@ -397,7 +397,7 @@ int W8OctBuildTree::CollectRecursive(W8OctSpatialState* state, const float* boun
 {
     W8OctSpatialState child(state);
     int collected = 0;
-    char leaf;
+    bool leaf;
     float box[6];
 
     leaf = 0;
@@ -559,7 +559,7 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
    corner is inside, a bounds corner inside the box), 0 when disjoint. `leaf`
    stops the scan on the first inside corner at the bottom octree level. */
 // FUNCTION: WIZ8 0x00447310
-int W8OctBuildTree::ClassifyBoxBounds(const float* box, const float* bounds, char leaf)
+int W8OctBuildTree::ClassifyBoxBounds(const float* box, const float* bounds, bool leaf)
 {
     short x;
     short y;
@@ -616,7 +616,7 @@ int W8OctBuildTree::ClassifyBoxBounds(const float* box, const float* bounds, cha
 // FUNCTION: WIZ8 0x004474c0
 char CollectSurfacePredicate(W8GDSurface* surface, short kind)
 {
-    char result = 0;
+    bool result = 0;
     if (kind != 3) {
         if (g_oct_build_count != 0) {
             for (unsigned long index = 0; index < g_oct_build_count; ++index) {

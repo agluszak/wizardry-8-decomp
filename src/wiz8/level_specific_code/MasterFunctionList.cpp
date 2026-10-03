@@ -110,7 +110,7 @@ void SaveMasterFunctions(void)
    cache and re-run outward sight for the new arrivals. */
 // FUNCTION: WIZ8 0x004D8F00
 W8MonsterGroup* SpawnMonsters(int monster_id, int count, srVector3T<float>* position, int hostility,
-                              unsigned char settle, unsigned char a, unsigned char b)
+                              bool settle, bool a, bool b)
 {
     W8MonsterGroup* group;
     srVector3T<float> position_copy;
@@ -133,7 +133,7 @@ W8MonsterGroup* SpawnMonsters(int monster_id, int count, srVector3T<float>* posi
    requested spot, scale its base volume and falloff and start playback. */
 // FUNCTION: WIZ8 0x004D8F80
 stSound3D* CreateAndPlaySoundNode(char* sound_name, srVector3T<float> position, float volume,
-                                  float scale, unsigned char play_flag)
+                                  float scale, bool play_flag)
 {
     if (volume > g_float_005ebb38) {
         volume = 1.0f;
@@ -293,7 +293,7 @@ static unsigned char WorldCursorNodeShowMessageOnce(int command, W8WorldCursorNo
     const char* folder;
     int type;
     unsigned char enabled;
-    unsigned char result;
+    bool result;
     char* shown;
     int slot;
     char path[512];

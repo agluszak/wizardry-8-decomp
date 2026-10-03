@@ -135,7 +135,7 @@ public:
     W8MainGameScreen* m_screen_07c;
     int* m_values_080;
     /* 0x84: the timed progress text block is displayed. */
-    unsigned char m_progress_display_084;
+    bool m_progress_display_084;
     unsigned char m_pad_085[3];
     float m_progress_duration_088;
     float m_progress_elapsed_08c;
@@ -350,7 +350,7 @@ public:
 
     int m_tumbler_count_50;          /* 0x50: pins in use, clamped to [2,8] */
     W8LockTumbler* m_tumblers_54[8]; /* 0x54 */
-    unsigned char m_animating_74;    /* 0x74: a pin is in flight; input is locked out */
+    bool m_animating_74;    /* 0x74: a pin is in flight; input is locked out */
     unsigned char unknown_75[3];
     int m_phase_78;                            /* 0x78: sway accumulator feeding g_lock_phase */
     W8GameTimer m_phase_timer_7c;              /* 0x7c: 0.04s */
@@ -540,9 +540,9 @@ void SetTooltipSubject(int kind, int subject); /* 0x00569C60 */
 int IsScreenInputBlocked(void);
 void DisableCombatRegions(void);
 
-extern unsigned char g_radar_panel_shown;
-extern unsigned char g_action_panel_shown;
-extern unsigned char g_formation_panel_shown;
+extern bool g_radar_panel_shown;
+extern bool g_action_panel_shown;
+extern bool g_formation_panel_shown;
 extern bool g_mouselook_active;
 extern bool g_mouselook_left_held;
 extern bool g_node_cull_pending;
@@ -558,7 +558,7 @@ void SetViewportMode(int mode);  /* 0x005618F0 */
 /* Apply a main-game UI mode (0=portraits, 1=formation, 2=radar): drop raised
    panels, optionally re-raise them from settings prefs, refresh tooltip and
    region state, and sync both settings and the level-block mode field. */
-void ApplyMainGameModeFlag(W8MainUiMode mode, char enable); /* 0x00562580 */
+void ApplyMainGameModeFlag(W8MainUiMode mode, bool enable); /* 0x00562580 */
 unsigned char ProcessMainGameInput(void);                   /* 0x005684E0 */
 void TickAmbientFollowUpIdle(unsigned char input_handled);  /* 0x00561330 */
 /* 0x00561EC0: re-sync the eight party slots' region sets and portrait hit
@@ -617,7 +617,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event,
 unsigned char MonsterListRegionEvent(const InputAtom* event,
                                      struct W8Region* region); /* 0x00568100 */
 void SetMainGameMode(int mode);                                /* 0x00568390 */
-void SetFormationBoardVisible(unsigned char visible);          /* 0x00569390 */
+void SetFormationBoardVisible(bool visible);          /* 0x00569390 */
 void ToggleMainGamePause(void);                                /* 0x0056ABE0 */
 /* The numbered action-key space IsMGSActionKeyEnabled, RunMGSActionKey and
    TryMGSActionKey share: the interface commands map to views and recorded
@@ -651,9 +651,9 @@ void RunMGSActionKey(short command);                                     /* 0x00
 void LoadMainGameCursorResources(void);                                  /* 0x00568E10 */
 short GetMainGameViewportMode(void);                                     /* 0x005698C0 */
 void CloseMainGameOverlays(void);                                        /* 0x00569570 */
-void SetRadarMapVisible(unsigned char visible);                          /* 0x00568EB0 */
-void SetActionPanelVisible(unsigned char visible);                       /* 0x00569120 */
-void OpenCharacterScreenForPartySlot(unsigned int party_slot, unsigned char flag); /* 0x00560E10 */
+void SetRadarMapVisible(bool visible);                          /* 0x00568EB0 */
+void SetActionPanelVisible(bool visible);                       /* 0x00569120 */
+void OpenCharacterScreenForPartySlot(unsigned int party_slot, bool flag); /* 0x00560E10 */
 void RebuildNpcTradeItemList(bool scroll_to_top);
 /* 0x005ADAA0: the trade-stock index behind a visible NPC item row. */
 int ResolveNpcTradeStockIndex(int index);
@@ -672,7 +672,7 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
 /* 0x005AE1A0: destroy callback on the NPC trade split dialog; commits the
    chosen count to the editor slot and refreshes the trade selection. */
 void NpcTradeSplitDialogResult(W8DialogBase* dialog);
-void RefreshFormationPanel(unsigned char show_portraits); /* 0x005B2980 */
+void RefreshFormationPanel(bool show_portraits); /* 0x005B2980 */
 void EndLockInteractMode(char suspend);                   /* 0x005879A0 */
 void UpdateMainGameScreen(void);                          /* 0x0058A750 */
 void EndTrapInteractMode(char suspend);                   /* 0x0058A790 */

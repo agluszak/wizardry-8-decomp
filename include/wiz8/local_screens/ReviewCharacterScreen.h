@@ -245,7 +245,7 @@ unsigned char CampScreenLeave(int leaving);
 /* Camp spell-page pieces in ReviewCharacterScreen.cpp: the character switch,
    the six realm scrollbars, the page renderer, the resistance bars and the
    spell-list region callback that opens per-spell info dialogs. */
-void SetCampSpellRangesEnabled(unsigned char enable);
+void SetCampSpellRangesEnabled(bool enable);
 void RefreshCampSpellRanges(void);
 void DrawCampSpellPages(void);
 void DrawCampResistances(void);
@@ -256,7 +256,7 @@ bool IsEquippableItemClass(W8ItemInstance* item); /* 0x005A6310 */
 
 /* 0x005A6620: begin the timed screen fade and run `callback` when it
    finishes; `fade_to_black` selects the alpha ramp. */
-void BeginScreenFade(int fade_to_black, int arg_2, int fade_code, void (*callback)(void), char flag,
+void BeginScreenFade(int fade_to_black, int arg_2, int fade_code, void (*callback)(void), bool flag,
                      char arg_6);
 extern wchar_t g_format_s_0064dd28[];
 unsigned char UpdateScreenFade(void);

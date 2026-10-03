@@ -55,7 +55,7 @@ public:
     /* The ortho tile render pass; process() forwards the renderer to it. */
     void DrawTiles(srGERD* renderer); /* 0x0047E100 */
     void enableRendererFlag(unsigned int flag);
-    void setTextureHint2Enabled(unsigned char enabled);
+    void setTextureHint2Enabled(bool enabled);
     void invalidateTiles();
     void updateRectangle(srGERD* renderer, void* pixels, long pitch, int left, int top, int right,
                          int bottom);

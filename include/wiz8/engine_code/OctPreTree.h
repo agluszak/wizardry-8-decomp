@@ -101,7 +101,7 @@ struct W8OctSpatialState {
 unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
                                   const srVector3T<float>* vertices,
                                   const srVector3T<float>* plane_normal);
-unsigned char BoundsOverlapStrict(const srVector3T<float>* first, const srVector3T<float>* second);
+bool BoundsOverlapStrict(const srVector3T<float>* first, const srVector3T<float>* second);
 bool PointInsideBoxBounds(const srVector3T<float>* bounds, const srVector3T<float>* point);
 
 struct W8OctRegionPolygon;

@@ -43,7 +43,7 @@ void W8DialogNumericInput::SetValue(int value)
 }
 
 // FUNCTION: WIZ8 0x005e14d0
-void W8DialogNumericInput::SetActive(unsigned char active)
+void W8DialogNumericInput::SetActive(bool active)
 {
     m_active = active;
     if (active == 0) {
@@ -55,7 +55,7 @@ void W8DialogNumericInput::SetActive(unsigned char active)
 }
 
 // FUNCTION: WIZ8 0x005e1500
-void W8DialogNumericInput::SetActive(unsigned char active, const POINT* point)
+void W8DialogNumericInput::SetActive(bool active, const POINT* point)
 {
     m_active = active;
     if (active == 0) {
@@ -85,7 +85,7 @@ void W8DialogNumericInput::SetActive(unsigned char active, const POINT* point)
 }
 
 // FUNCTION: WIZ8 0x005e15c0
-void W8DialogNumericInput::Draw(unsigned char force)
+void W8DialogNumericInput::Draw(bool force)
 {
     if (force == 0 && m_dirty == 0) {
         return;

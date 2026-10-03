@@ -150,3 +150,35 @@ void aggregate_escapes(WireRecord* wire, ReferencedRecord& referenced,
     inspect_record(observed);
     if (observed->display_active) {}
 }
+
+void SetPanelVisible(unsigned char visible)
+{
+    if (visible) {
+    }
+}
+
+void SetPanelLayered(unsigned char layered)
+{
+    if (layered) {
+    }
+}
+
+void SetCallbackEnabled(unsigned char enabled)
+{
+    if (enabled) {
+    }
+}
+
+void (*g_enable_callback)(unsigned char) = SetCallbackEnabled;
+
+unsigned char g_menu_active = 0;
+
+int parameter_and_numeric_uses()
+{
+    SetPanelVisible(1);
+    SetPanelVisible(0);
+    SetPanelLayered(2);
+    SetCallbackEnabled(1);
+    g_menu_active = 1;
+    return 3 + g_menu_active;
+}

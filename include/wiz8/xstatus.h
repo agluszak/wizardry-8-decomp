@@ -56,7 +56,7 @@ struct W8XStatus {
     /* 0x026: dialogue NPC state needs re-syncing once the frame settles. */
     bool dialogue_sync_pending_026;
     /* 0x027: re-check level-up notices when the UI is idle again. */
-    unsigned char level_up_notice_027;
+    bool level_up_notice_027;
     bool fEncumbranceDirty;   /* 0x8e8: pending party-weight recalc */
     int active_monster_count; /* 0x8e9 */
     /* 0x8ed: active in-combat monsters with DISP_HOSTILE, recomputed by
@@ -73,7 +73,7 @@ struct W8XStatus {
     bool fSurprisePossible; /* 0x90d: 0x00683FC5 */
     /* 0x90e: set when surprise starts with no character engaged; phase 1 waits
        only while this is clear. */
-    unsigned char surprise_unengaged;
+    bool surprise_unengaged;
     /* 0x90f: uiTurnsElapsed deadline the phase-1 hold compares against. */
     unsigned int surprise_deadline_turns;
     /* 0x913: 0 = fade in, 1 = hold, 2 = fade out / resolve. */
@@ -116,7 +116,7 @@ struct W8XStatus {
     W8GameTimer* gameplay_timer;                 /* 0x19af: 0x00685067 */
     bool save_notice_shown;                      /* 0x19b3: 0x0068506B */
     bool npc_combat_notice_pending;              /* 0x19b4: 0x0068506C */
-    unsigned char deferred_skill_notices;        /* 0x19b5: 0x0068506D */
+    bool deferred_skill_notices;        /* 0x19b5: 0x0068506D */
     /* 0x19b6: a container offered more than one item, so the item-choice
        dialog is pending; blocks the magic-effects tick until it opens. */
     bool item_pick_pending_19b6;
@@ -125,7 +125,7 @@ struct W8XStatus {
     bool scripted_scene_19b7;
     /* 0x19b8: which Assay dialog tab is shown - set selects the profession
        icons/button, clear selects the race side. */
-    unsigned char assay_professions_tab_19b8;
+    bool assay_professions_tab_19b8;
     bool item_drag_active;                  /* 0x19b9: 0x00685071 */
     W8ItemInstance* dragged_item;           /* 0x19ba: 0x00685072 */
     unsigned char dragged_item_origin;      /* 0x19be: 0x00685076 */

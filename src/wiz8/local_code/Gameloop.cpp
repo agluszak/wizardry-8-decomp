@@ -66,7 +66,7 @@ W8ScreenStateRuntime g_current_screen_state;
 // GLOBAL: WIZ8 0x0068ed10
 W8ScreenStateRuntime g_pending_screen_state;
 // GLOBAL: WIZ8 0x0068edac
-unsigned char g_screen_return_requested;
+bool g_screen_return_requested;
 // GLOBAL: WIZ8 0x0068eda8
 HSTACK g_screen_return_stack;
 

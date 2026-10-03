@@ -480,7 +480,7 @@ void BeginPartyMovementPhase(void)
 }
 
 // FUNCTION: WIZ8 0x004f00c0
-char PartyMovementReachedPhaseLimit(void)
+bool PartyMovementReachedPhaseLimit(void)
 {
     if (g_combat_state->uiCurrentPartyActionStatus != 1) {
         srAssertFail("gpCombat->uiCurrentPartyActionStatus == ACTION_STATUS_IN_PROGRESS",

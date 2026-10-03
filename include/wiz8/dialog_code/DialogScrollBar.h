@@ -21,7 +21,7 @@ public:
     void SetLayout(int x, int y, int entry_count, int first_visible_entry, int entry_height,
                    int view_height); /* 0x005E0EB0 */
     void UpdateThumb();              /* 0x005E1000 */
-    void Draw(unsigned char force);  /* 0x005E10B0 */
+    void Draw(bool force);  /* 0x005E10B0 */
     void ScrollUp();                 /* 0x005E1170 */
     void ScrollDown();               /* 0x005E11A0 */
     void ScrollToMouse();            /* 0x005E11E0 */

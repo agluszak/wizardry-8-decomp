@@ -228,7 +228,7 @@ void DestroyLevelDatabase(void)
    inside it - and allocates them again. Either allocation failing leaves the
    block cleared and the other buffer live, as the original does. */
 // FUNCTION: WIZ8 0x0054af30
-void ResetGameStatus(unsigned char release)
+void ResetGameStatus(bool release)
 {
     if (release) {
         if (g_status.buffers.Char) {
@@ -342,7 +342,7 @@ void ResetForNewGame(void)
    runs a fixed opening sequence. The two calls into 0x00482720 and 0x00482740
    share one stack cleanup, as consecutive cdecl calls do. */
 // FUNCTION: WIZ8 0x0054b250
-void RunNewGameOpeningSequence(unsigned char notify, const wchar_t* target)
+void RunNewGameOpeningSequence(bool notify, const wchar_t* target)
 {
     g_status.game_started = 1;
     if (target) {

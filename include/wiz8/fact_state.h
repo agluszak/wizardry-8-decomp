@@ -5,7 +5,7 @@
    g_npc_name_buffer. GetFact/SetFact check fact_id > 1000, so index 1000
    aliases g_npc_name_buffer[0] - a retail off-by-one, kept faithful. */
 extern unsigned char g_fact_values[1000];
-extern unsigned char g_fact_notifications_suppressed;
+extern bool g_fact_notifications_suppressed;
 
 /* Fact ids recovered code tests. The names are the FACT.DBS record strings;
    the database carries them itself. */
@@ -30,11 +30,11 @@ void HandleFactChange(int fact_id, unsigned char value);
 /* Scripted consequences of an NPC-bound monster's death; lives in NPC
    Scripting Facts.cpp, driven by MonsterManager's death switch. */
 void HandleScriptedNpcDeath(unsigned int monster_list_index); /* 0x00508D70 */
-void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects);
+void SetFact(int fact_id, unsigned char value, bool suppress_side_effects);
 void SaveFactState(int save_handle);
 void InitializeFactState(void);
 void LoadFactState(int save_handle);
-void SetFactNotificationsSuppressed(unsigned char suppressed);
+void SetFactNotificationsSuppressed(bool suppressed);
 
 void PostNewGameLoad(void);
 

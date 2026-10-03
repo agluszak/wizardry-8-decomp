@@ -116,7 +116,7 @@ static void MainGameLayoutActionPanelButton(W8DialogButton* button);
 static void MainGameLayoutFormationButton(W8DialogButton* button);
 
 // FUNCTION: WIZ8 0x005963E0
-void RefreshSubMenuPanel(char invalidate)
+void RefreshSubMenuPanel(bool invalidate)
 {
     if (gpSubMenuPanel == 0) {
         srAssertFail("gpSubMenuPanel", MGSBUTTONS_CPP, 0x64f, 0);

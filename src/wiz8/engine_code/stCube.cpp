@@ -740,7 +740,7 @@ W8WorldCursorNode* GetWorldCursorNode(int index)
 
 /* Attach or detach the node's scene node under the world's dynamic scene. */
 // FUNCTION: WIZ8 0x0048ED30
-void AttachWorldCursorNode(W8WorldCursorNode* entry, unsigned char attached)
+void AttachWorldCursorNode(W8WorldCursorNode* entry, bool attached)
 {
     if (entry != 0) {
         if (attached != 0) {
@@ -764,7 +764,7 @@ void SetWorldCursorNodeName(W8WorldCursorNode* entry, const char* name)
    detach them when hidden. Levels.cpp drives this from the world-cursor
    flag. */
 // FUNCTION: WIZ8 0x0048ED70
-void SetWorldCursorNodesVisible(unsigned char visible)
+void SetWorldCursorNodesVisible(bool visible)
 {
     unsigned int count = g_world_cursor_nodes.count;
 

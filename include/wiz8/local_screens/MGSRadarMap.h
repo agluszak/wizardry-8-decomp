@@ -19,7 +19,7 @@ enum W8RadarBlipClass {
    blip pools; UpdateRadarBlips re-places world items, monsters and missiles
    through PlaceRadarBlip. The zoom trio picks between the detail and wide
    range presets. */
-void EnableRadarMap(char enable); /* 0x005A20E0 */
+void EnableRadarMap(bool enable); /* 0x005A20E0 */
 void EnsureRadarMapOverlay(void); /* 0x005A2140 */
 void ReleaseRadarMap(void);       /* 0x005A23E0 */
 void RefreshRadarMap(void);       /* 0x005A24A0 */

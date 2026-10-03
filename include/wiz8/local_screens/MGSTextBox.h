@@ -79,8 +79,8 @@ void SelectTextSlot1E8(int line, int box); /* 0x0058F9B0 */
    flag_08 mark and raising flag_09; the first touches only selected (2)
    words, the second everything else. Nonzero redraw repaints the body
    through RedrawTextBoxBody(1). */
-void ClearNoticeWordHover(int box, unsigned char redraw);
-void ResetUsedNoticeWords(int text_box, unsigned char redraw); /* 0x00590150 */
+void ClearNoticeWordHover(int box, bool redraw);
+void ResetUsedNoticeWords(int text_box, bool redraw); /* 0x00590150 */
 /* 0x00590250: refresh the hover mark on the notice word under (x, y). */
 void HighlightNoticeWordAt(int box, unsigned short x, unsigned short y);
 /* 0x00590410: the notice word under (x, y) in box, or 0; the word's line
@@ -132,7 +132,7 @@ void SelectTextBox(short value); /* 0x0058F6B0 */
 void RedrawTextBox(void);
 /* 0x0058C3A0: repaint visible text-box lines; skip_invalidate nonzero skips
    InvalidateRegion of the text rectangle. */
-void RedrawTextBoxBody(unsigned char skip_invalidate);
+void RedrawTextBoxBody(bool skip_invalidate);
 /* 0x0058CC10: redraw text-box scroll up/down buttons and thumb, then body. */
 void RedrawTextBoxScrollChrome(void);
 /* 0x0058B300: append text to a box's current line. Retail callers disagree on

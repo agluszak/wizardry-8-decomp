@@ -252,7 +252,7 @@ void stSurface2D::invalidateTiles()
 }
 
 // FUNCTION: WIZ8 0x0047E370
-void stSurface2D::setTextureHint2Enabled(unsigned char enabled)
+void stSurface2D::setTextureHint2Enabled(bool enabled)
 {
     if (!enabled) {
         flags &= ~srShader::MASK_ALPHATEST;

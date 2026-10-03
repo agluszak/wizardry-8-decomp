@@ -58,13 +58,13 @@ struct W8NpcScriptingState {
     /* 0xc4: latched by CancelNpcDialogue; the response loop checks it at
        entries_done and abandons the pending response. */
     bool dialogue_cancelled_c4;
-    unsigned char restore_staged_session;
+    bool restore_staged_session;
     bool portrait_message_active;
     bool scripted_scene_active;
     bool sedexus_release_pending;
     bool sedexus_capture_pending;
     bool sedexus_capture_active;
-    unsigned char stopping_voice_playback;
+    bool stopping_voice_playback;
 };
 
 static_assert(offsetof(W8NpcScriptingState, staging_restore) == 0x64,
@@ -113,21 +113,21 @@ static_assert(offsetof(W8NpcScriptingState, stopping_voice_playback) == 0xcb,
 static_assert(sizeof(W8NpcScriptingState) == 0xcc, "W8NpcScriptingState_size");
 
 extern W8NpcScriptingState g_npc_scripting;
-extern unsigned char g_message_queue_idle; /* 0x0068C501 */
+extern bool g_message_queue_idle; /* 0x0068C501 */
 /* 0x0068506F: scripted portrait-pick / cutscene gate PortraitSelectRegionEvent
    and EndScriptedPortraitPick clear. */
 
-void TryFinishNpcVoicePlayback(unsigned char force); /* 0x00525D90 */
+void TryFinishNpcVoicePlayback(bool force); /* 0x00525D90 */
 int FindNpcScriptQuoteByKeyword(wchar_t* keyword, short* entry_index,
                                 short* sub_entry_index);               /* 0x00525E80 */
-void RunNpcScriptLine(int script_line, unsigned char force_npc_voice); /* 0x00525FA0 */
+void RunNpcScriptLine(int script_line, bool force_npc_voice); /* 0x00525FA0 */
 void ProcessMessageBoxQueue(void);                                     /* 0x00526E90 */
 /* 0x00526810: execute a queued quote entry's deferred effect; the
    continuation quote is handed to the modal-dialog kinds (5/0x13 force -1). */
 void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote);
 /* 0x00528B50: build a W8_NPC_MSG_QUOTE_ENTRY line for `entry` carrying
    `continuation_quote`; prepend != 0 inserts it at the queue front. */
-void QueueNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote, unsigned char prepend);
+void QueueNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote, bool prepend);
 /* 0x00528FF0: the first argument is a pointer into a character or party item
    slot - the slot whose address matches is the one removed. */
 void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id);
@@ -151,8 +151,8 @@ int FindNpcNameOrPlaceQuote(W8NpcState* npc, wchar_t* text);
 int FindNpcReplyQuote(wchar_t* text);            /* 0x00529300 */
 void RestoreCurrentNpcQuoteBubble(void);         /* 0x00529510 */
 void RunNpcQuoteDeclineActions(int quote_index); /* 0x00529610 */
-void QueueNpcScriptLine(int quote, unsigned char mark_pending, unsigned char prepend,
-                        unsigned char suppress_entries); /* 0x00528830 */
+void QueueNpcScriptLine(int quote, bool mark_pending, bool prepend,
+                        bool suppress_entries); /* 0x00528830 */
 void BeginNpcScriptedScene(void);                        /* 0x00529BE0 */
 void SetScriptedSceneActive(void);                       /* 0x00529BC0 */
 void ClearScriptedSceneActive(void);                     /* 0x00529BD0 */
@@ -165,7 +165,7 @@ void BeginSedexusCapture(void); /* 0x00529EF0 */
 void CancelNpcDialogue(void); /* 0x00529560 */
 /* 0x00529570: show the NPC quote bubble for the formatted line; a nonzero
    second argument also plays the startup jingle. */
-void DisplayNpcQuote(const wchar_t* text, char play_sound);
+void DisplayNpcQuote(const wchar_t* text, bool play_sound);
 /* 0x00576DA0: advance the dialogue NPC's refusal state - each stage queues a
    different quote until the third, which stays queued. */
 void QueueDialogueNpcRefusal(void);

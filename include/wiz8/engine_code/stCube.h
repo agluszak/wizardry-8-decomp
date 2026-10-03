@@ -60,7 +60,7 @@ void SetWorldCursorNodeColorComponents(W8WorldCursorNode* entry, float red, floa
 void RefreshWorldCursorNodeLabel(W8WorldCursorNode* entry);
 /* Return the indexed cursor node, or the first node when the index is past the end. */
 W8WorldCursorNode* GetWorldCursorNode(int index);
-void AttachWorldCursorNode(W8WorldCursorNode* entry, unsigned char attached);
+void AttachWorldCursorNode(W8WorldCursorNode* entry, bool attached);
 /* 0x0048F110: copy `name` into the node's 0x20-byte name_24 with a forced
    terminator. */
 void SetWorldCursorNodeName(W8WorldCursorNode* entry, const char* name);

@@ -18,7 +18,7 @@ int GetPhaseStep(void);            /* 0x004F0500 */
 float GetPartyMovementSpeed(void); /* 0x004EFFA0 */
 void BeginPartyMovementPhase(void);
 void FinishPartyMovementAction(void);
-char PartyMovementReachedPhaseLimit(void);
+bool PartyMovementReachedPhaseLimit(void);
 /* 0x004EFE70: Combat.cpp calls it when a party movement action is pending
    while phases are assigned, so it is not file-local. */
 void InitializePartyMovementPhase(void);

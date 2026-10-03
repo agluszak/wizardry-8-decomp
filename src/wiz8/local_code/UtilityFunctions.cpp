@@ -374,14 +374,14 @@ void AdjustIntegerByPercent(unsigned int* value, unsigned int percent)
 // FUNCTION: WIZ8 0x00517FB0
 unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
                                  unsigned int excluded_slot, unsigned int* selected,
-                                 unsigned int count, char skip_first_two)
+                                 unsigned int count, bool skip_first_two)
 {
     int claimed[8];
     unsigned int eligible[8];
     unsigned int found = 0;
     unsigned int returned = 0;
     unsigned int slot;
-    char relaxed;
+    bool relaxed;
     int index;
 
     for (index = 0; index < 8; ++index) {

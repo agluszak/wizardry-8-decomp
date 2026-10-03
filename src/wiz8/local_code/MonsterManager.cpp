@@ -463,7 +463,7 @@ done:
 
 // FUNCTION: WIZ8 0x004e5550
 unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_file, int location_id,
-                                         unsigned char assert_on_failure)
+                                         bool assert_on_failure)
 {
     unsigned int index;
     W8MonsterInfo* monster;
@@ -565,7 +565,7 @@ W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info)
 
 // FUNCTION: WIZ8 0x004e5840
 W8MonsterInfo* MonsterInfoFromID(int caller_line, const char* caller_file, int location_id,
-                                 unsigned char assert_on_failure)
+                                 bool assert_on_failure)
 {
     W8MonsterInfo* monster = 0;
     unsigned int index;
@@ -653,7 +653,7 @@ void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info)
 }
 
 // FUNCTION: WIZ8 0x004e5aa0
-W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator)
+W8MonsterInfo* GetNextMonsterInfo(bool reset_iterator)
 {
     W8MonsterInfo* result = 0;
     int index;
@@ -860,7 +860,7 @@ void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
 }
 
 // FUNCTION: WIZ8 0x004e60b0
-void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionless)
+void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, bool motionless)
 {
     unsigned char previous = monster_info->fMotionless;
     W8Monster* monster = monster_info->p3D;
@@ -1167,7 +1167,7 @@ unsigned char ShutdownMonsterManager(void)
 }
 
 // FUNCTION: WIZ8 0x004e3af0
-bool RemoveMonster(unsigned int monster_list_index, unsigned char destroy_monster)
+bool RemoveMonster(unsigned int monster_list_index, bool destroy_monster)
 {
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
 
@@ -1684,7 +1684,7 @@ unsigned int GetBestPartySkillLevel(int skill_index, int* party_slot)
 // FUNCTION: WIZ8 0x004e52c0
 void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
 {
-    unsigned char suppress_exact_health = 0;
+    bool suppress_exact_health = 0;
     unsigned int health_knowledge;
 
     if (monster_info->ubDisposition != 1) {

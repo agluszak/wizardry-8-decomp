@@ -192,7 +192,7 @@ static_assert(sizeof(W8MissileTableRecord) == 0x1e5, "W8MissileTableRecord_must_
 
 extern W8MissileTableRecord* g_missile_table;
 
-W8Missile* NextMissile(char restart);
+W8Missile* NextMissile(bool restart);
 
 W8Missile* AllocateMissile(int missile_table_index);
 unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,

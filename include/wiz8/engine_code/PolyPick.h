@@ -24,7 +24,7 @@ float ItemDistanceToCamera(W8World* world, W8Item* item);
 bool PointInsideBounds(const srVector3T<float>* point, const srVector3T<float>* minimum,
                        const srVector3T<float>* maximum);
 /* Per-axis overlap test for two axis-aligned bounds. */
-unsigned char BoundsOverlap(const srVector3T<float>* first_minimum,
+bool BoundsOverlap(const srVector3T<float>* first_minimum,
                             const srVector3T<float>* first_maximum,
                             const srVector3T<float>* second_minimum,
                             const srVector3T<float>* second_maximum);

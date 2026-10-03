@@ -48,7 +48,7 @@ struct W8ConditionImmunity {
 extern W8ConditionImmunity g_condition_immunities[3];
 extern unsigned short g_condition_notices[128];
 
-void RemoveCharacterCondition(int party_slot, int condition, unsigned char announce);
+void RemoveCharacterCondition(int party_slot, int condition, bool announce);
 void SetMonsterCondition(int location_id, int condition, int duration, int argument,
                          W8TargetSource* target, char announce);
 void ClearMonsterCondition(int location_id, int condition);

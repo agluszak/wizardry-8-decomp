@@ -522,7 +522,7 @@ static unsigned char ReadWorldClipPlanes(W8ReadLevelInfo* pInfo, W8World* pWorld
 
 // FUNCTION: WIZ8 0x004BC5E0
 static unsigned char ReadWorldProps(W8ReadLevelInfo* pInfo, W8World* pWorld,
-                                    unsigned char mark_model_instances)
+                                    bool mark_model_instances)
 {
     /* CollectModelInstances appends. The canonical body deliberately keeps
        this one vector across the complete prop loop. */
@@ -665,7 +665,7 @@ unsigned char ReadMonsterPaths(W8ReadLevelInfo* pInfo, W8World* pWorld)
     int index;
     unsigned char success;
     bool has_options;
-    unsigned char update_representation;
+    bool update_representation;
     bool active;
     char monster_name[20];
     char options[12];
@@ -1031,7 +1031,7 @@ static unsigned char ReadNamedPositions(W8ReadLevelInfo* pInfo,
     }
 
 // FUNCTION: WIZ8 0x004BAFF0
-unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
+unsigned char ReadLevel(W8World* world, int handle, bool use_octree,
                         const char* bitmap_folder)
 {
     W8ReadLevelInfo info;

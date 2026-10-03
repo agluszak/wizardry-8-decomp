@@ -83,7 +83,7 @@ static stModelInstance2D* g_radar_map = 0;
 // GLOBAL: WIZ8 0x0069c0e0
 static float g_radar_map_scale;
 // GLOBAL: WIZ8 0x0069c0e4
-static unsigned char g_radar_map_enabled = 0;
+static bool g_radar_map_enabled = 0;
 
 // GLOBAL: WIZ8 0x005eecd8
 const double g_double_005eecd8 = 3.141592653589793;
@@ -94,11 +94,11 @@ const float g_float_005eecec = 75.0f;
 // GLOBAL: WIZ8 0x005eecf0
 const float g_float_005eecf0 = 38.0f;
 
-static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit);
-static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, unsigned char lit);
+static stModelInstance2D* AcquireRadarBlip(int sector, bool lit);
+static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, bool lit);
 
 // FUNCTION: WIZ8 0x005a20e0
-void EnableRadarMap(char enable)
+void EnableRadarMap(bool enable)
 {
     g_radar_map_enabled = enable;
     if (enable == 0) {
@@ -131,7 +131,7 @@ void EnsureRadarMapOverlay(void)
 }
 
 // FUNCTION: WIZ8 0x005a21b0
-static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit)
+static stModelInstance2D* AcquireRadarBlip(int sector, bool lit)
 {
     W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
     stModelInstance2D* icon;
@@ -462,7 +462,7 @@ void UpdateRadarBlips(void)
 }
 
 // FUNCTION: WIZ8 0x005a3060
-static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, unsigned char lit)
+static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, bool lit)
 {
     int ring = 0;
     srMatrix3T<float> rotation;

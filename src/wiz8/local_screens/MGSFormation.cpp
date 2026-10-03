@@ -497,7 +497,7 @@ static void BeginFormationDrag(const InputAtom* event);
 static void DropFormationSlot(int cell);
 
 // FUNCTION: WIZ8 0x005B2980
-void RefreshFormationPanel(unsigned char show_portraits)
+void RefreshFormationPanel(bool show_portraits)
 {
     if (g_formation_panel->m_fEnabled != 0) {
         if (show_portraits != 0) {

@@ -588,7 +588,7 @@ public:
     virtual void OnToggle(int value) override;
 
     void SetMode(int mode);
-    void SetSelection(int selection, unsigned char highlighted, unsigned char refresh);
+    void SetSelection(int selection, bool highlighted, bool refresh);
     void OpenNotification(const wchar_t* message, int kind, int value);
     void Setup();
     void InvalidatePartySelectionComposition();
@@ -1574,8 +1574,8 @@ void W8PartySelectionController::SetMode(int mode)
 }
 
 // FUNCTION: WIZ8 0x005c1680
-void W8PartySelectionController::SetSelection(int selection, unsigned char party_slot,
-                                              unsigned char refresh_other)
+void W8PartySelectionController::SetSelection(int selection, bool party_slot,
+                                              bool refresh_other)
 {
     if (!party_slot) {
         if (m_mode == 0) {
@@ -1629,7 +1629,7 @@ void W8PartySelectionController::SetSelection(int selection, unsigned char party
     wchar_t* text =
         gppStringList[((!m_character_18 || !m_character_18->fInParty) ? 0x1b18 : 0x1b1c) / 4];
     m_text_44->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
-    unsigned char have_character = m_character_18 != 0;
+    bool have_character = m_character_18 != 0;
     m_text_44->SetEnabled(have_character);
     m_text_44->Invalidate(0);
     m_text_48->SetEnabled(have_character);

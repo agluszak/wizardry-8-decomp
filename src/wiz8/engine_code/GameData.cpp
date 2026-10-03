@@ -56,7 +56,7 @@ unsigned int* g_level_flags;
 // GLOBAL: WIZ8 0x00652dac
 W8LevelDataRecord* g_level_data;
 // GLOBAL: WIZ8 0x00652da7
-unsigned char g_mouselook_manual;
+bool g_mouselook_manual;
 
 // FUNCTION: WIZ8 0x00420bd0
 float SettlePositionToGround(const srVector3T<float>* position, bool* hit)
@@ -134,7 +134,7 @@ enum {
 };
 
 // GLOBAL: WIZ8 0x00652dba
-static unsigned char g_level_override;
+static bool g_level_override;
 // GLOBAL: WIZ8 0x00652dce
 bool g_shared_timers_paused;
 
@@ -341,7 +341,7 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
     W8LevelDataRecord* level;
     float forward_scale;
     float component;
-    char fast_move;
+    bool fast_move;
     char moved;
     srVector3T<float> new_position;
     srVector3T<float> from_origin;
@@ -568,8 +568,8 @@ void W8EnvironRecord::AddScaledMotion(srVector3T<float>* position)
 unsigned char W8LevelDataRecord::ClampCameraToBounds(const srVector3T<float>* minimum,
                                                      const srVector3T<float>* maximum)
 {
-    unsigned char clamped = 0;
-    unsigned char below_min_y = 0;
+    bool clamped = 0;
+    bool below_min_y = 0;
 
     if (camera_position_34.y < minimum->y) {
         if (g_status.world_suspended_2390 != 0) {
@@ -631,7 +631,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
     unsigned int index;
     int surface_index;
     int hit_prop_id;
-    unsigned char direction_zero;
+    bool direction_zero;
     float hit_distance;
     float slope;
     float along_length;
@@ -782,7 +782,7 @@ unsigned char W8GameData::ProbeMonstersAlongMotion(srVector3T<float>* direction,
     float length_squared;
     float scale;
     double time_scale;
-    unsigned char hit;
+    bool hit;
 
     objects = 0;
     hit = 0;
@@ -872,10 +872,10 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
     float motion_length;
     float scale;
     srVector3T<float> scratch;
-    unsigned char first_pass;
-    unsigned char exhausted;
-    unsigned char forced_exit;
-    unsigned char prop_hit;
+    bool first_pass;
+    bool exhausted;
+    bool forced_exit;
+    bool prop_hit;
     srVector3T<float> geometry_from;
     srVector3T<float> geometry_to;
 
@@ -1551,7 +1551,7 @@ const float g_float_005ebcb8 = -0.5f;
 // GLOBAL: WIZ8 0x005ebcc0
 const double g_double_005ebcc0 = 0.33333298563957214;
 
-unsigned char SegmentCrossesEdge(const float* seg_start, const float* seg_end, const float* edge_a,
+bool SegmentCrossesEdge(const float* seg_start, const float* seg_end, const float* edge_a,
                                  const float* edge_b, unsigned int axis);
 
 /* Clip the motion segment against this surface's plane and triangle. On a hit
@@ -1565,8 +1565,8 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
                                        float* hit_distance, srVector3T<float>* vertices)
 {
     unsigned int flags = flags_00;
-    unsigned char special = 0;
-    unsigned char crossed = 0;
+    bool special = 0;
+    bool crossed = 0;
     bool inside = false;
     if ((flags & 0x18) != 0) {
         return 0;
@@ -1726,7 +1726,7 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
    motion segment seg_start→seg_end must overlap edge_a→edge_b on both free
    axes and their line-crossing parameters must both fall inside [0,1]. */
 // FUNCTION: WIZ8 0x0041D7A0
-unsigned char SegmentCrossesEdge(const float* seg_start, const float* seg_end, const float* edge_a,
+bool SegmentCrossesEdge(const float* seg_start, const float* seg_end, const float* edge_a,
                                  const float* edge_b, unsigned int axis)
 {
     unsigned int comp_u = (axis + 1) % 3;
@@ -1882,8 +1882,8 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
     static short s_bounce_count_00652d7c;
 #pragma clang diagnostic pop
 
-    unsigned char recomputed = 0;
-    unsigned char crossed = 0;
+    bool recomputed = 0;
+    bool crossed = 0;
     srVector3T<float> crease_a;
     crease_a = 0.0f;
     if ((flags_00 & 4) != 0) {
@@ -2192,7 +2192,7 @@ unsigned char W8GDSurface::ApplyEnvironContact(srVector3T<float>* direction)
 // vector constructor iterator
 
 // FUNCTION: WIZ8 0x0041EEE0
-void ResetLevelMovement(float movement_limit, char reset, char fast_move)
+void ResetLevelMovement(float movement_limit, bool reset, bool fast_move)
 {
     W8LevelDataRecord* level = g_level_data;
     if (level != 0) {
@@ -2309,7 +2309,7 @@ void ClearLevelDataFlag6(void)
 unsigned char ConsumeLevelElapsedTime(float* real_elapsed, float* frame_elapsed)
 {
     W8LevelDataRecord* record = g_level_data;
-    unsigned char elapsed = 0;
+    bool elapsed = 0;
     if (record != 0) {
         *real_elapsed = record->real_elapsed_24;
         *frame_elapsed = record->frame_elapsed_28;
@@ -2810,7 +2810,7 @@ unsigned char W8LevelDataRecord::IntegrateCameraForward()
 
 // FUNCTION: WIZ8 0x00420810
 unsigned char W8LevelDataRecord::ApplySavedMotionMatrix(unsigned char prior_fast,
-                                                        unsigned char fast_move,
+                                                        bool fast_move,
                                                         const srMatrix3T<float>* saved)
 {
     float horizontal;
@@ -2882,7 +2882,7 @@ unsigned char W8LevelDataRecord::UpdateFootstepFromMotion()
     float dy;
     float dz;
     float distance;
-    char large_radius;
+    bool large_radius;
 
     if ((flags & W8_LEVEL_FLAG_0) == 0) {
         dx = scaled_camera_forward_7c.x;

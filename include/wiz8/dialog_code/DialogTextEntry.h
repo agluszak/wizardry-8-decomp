@@ -14,12 +14,12 @@ public:
                       unsigned int text_palette, const W8ControlsRect* bounds, int font,
                       unsigned char category, unsigned int layout_mode, unsigned char shorten);
     virtual ~W8DialogTextEntry() override;
-    void Draw(unsigned char force);
+    void Draw(bool force);
     /* Retail inlines this body at the 0x005D1E80/0x005D1ED0/0x005D20A0 call
        sites inside W8DialogTextArea and keeps the out-of-line copy at
        0x005D14B0; see the same unresolved VC6 inlining pattern documented in
        PC_Item.h. */
-    void SetSelected(unsigned char selected);
+    void SetSelected(bool selected);
 
 private:
     friend class W8DialogTextArea;

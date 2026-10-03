@@ -474,7 +474,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
    or over the active-encounter budget. A forced roll bypasses the spatial and
    chance tests but not the global-mode and budget gates. */
 // FUNCTION: WIZ8 0x0048B200
-unsigned char MonGen::CanGenerateEncounter(unsigned char force)
+unsigned char MonGen::CanGenerateEncounter(bool force)
 {
     srVector3T<float> camera;
     float distance;
@@ -537,7 +537,7 @@ unsigned char MonGen::CanGenerateEncounter(unsigned char force)
    group that existed through the gap ages by exactly as much as the level did.
    Past ten hours that is not worth doing and the encounters are rerolled. */
 // FUNCTION: WIZ8 0x0048c810
-void UpdateRandomEncounterBudget(unsigned char reset_budget)
+void UpdateRandomEncounterBudget(bool reset_budget)
 {
     W8LevelDatabaseRecord* level;
     int elapsed;
@@ -1157,7 +1157,7 @@ void MonGen::SetState(const srVector3T<float>* state)
    what installs the first. SetActive then applies the requested state, including its own conditional
    second load. */
 // FUNCTION: WIZ8 0x0048b850
-void MonGen::Reload(int unused, unsigned char active)
+void MonGen::Reload(int unused, bool active)
 {
     (void)unused;
     LoadMonsterGeneratorMarker(this);

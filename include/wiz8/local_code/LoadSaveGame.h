@@ -49,10 +49,10 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots);
 bool SaveGame(const char* name, W8SaveScreenshot* screenshot);
 
 struct W8Character;
-unsigned char SaveCharacter(W8Character* character, int slot, char report_failure,
+unsigned char SaveCharacter(W8Character* character, int slot, bool report_failure,
                             void (*continuation)(void)); /* 0x00515090 */
 
-unsigned char AutoSaveIfAllowed(char forced);
+unsigned char AutoSaveIfAllowed(bool forced);
 
 unsigned char TakePendingSaveFlag(void);
 
@@ -60,7 +60,7 @@ struct W8Chunk;
 struct W8GlobalStatus;
 unsigned char SaveSlotFileExists(const char* slot_name);
 unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
-                            char report_failure);
+                            bool report_failure);
 void BuildCharacterFilePath(char* destination, const char* filename, int slot);
 void BuildCharacterPath(char* destination, const wchar_t* name, int slot);
 bool SaveGameExists(void);
@@ -108,4 +108,4 @@ extern char g_save_extension[]; /* 0x0061A144: initialized "SAV" */
 
 void DeleteCurrentSaveFiles(void); /* 0x00515920 */
 
-void ReportSaveFailed(char quiet); /* 0x00515AC0 */
+void ReportSaveFailed(bool quiet); /* 0x00515AC0 */

@@ -51,7 +51,7 @@ W8DialogTextEntry::W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text,
 }
 
 // FUNCTION: WIZ8 0x005d1170
-void W8DialogTextEntry::Draw(unsigned char force)
+void W8DialogTextEntry::Draw(bool force)
 {
     int width = m_layoutBounds.right - m_layoutBounds.left;
     int prefix_remaining = m_prefix_length;
@@ -142,7 +142,7 @@ done:
 }
 
 // FUNCTION: WIZ8 0x005d14b0
-void W8DialogTextEntry::SetSelected(unsigned char selected)
+void W8DialogTextEntry::SetSelected(bool selected)
 {
     if (m_selected != selected) {
         m_selected = selected;

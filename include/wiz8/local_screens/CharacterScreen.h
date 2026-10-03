@@ -411,7 +411,7 @@ public:
     W8CharacterScreen(int mode, W8Character* character);             /* 0x005B0040 */
     void BuildControls();                                            /* 0x005B0140 */
     void UpdateDialog();                                             /* 0x005B04B0 */
-    void AdvancePage(unsigned char forward);                         /* 0x005B0B50 */
+    void AdvancePage(bool forward);                         /* 0x005B0B50 */
     void SelectPage(int index);                                      /* 0x005B0D50 */
     void SyncCharacterForPage(int index);                            /* 0x005B0F30 */
     bool CommitCharacter();                                          /* 0x005B0FD0 */
@@ -442,9 +442,9 @@ public:
     W8Character m_character_018;
     unsigned char pad_187a[2];
     W8CharacterCreationState m_creation_state_187c;
-    unsigned char m_block_advance_1aec;
-    unsigned char m_confirm_profession_1aed;
-    unsigned char m_force_transition_1aee;
+    bool m_block_advance_1aec;
+    bool m_confirm_profession_1aed;
+    bool m_force_transition_1aee;
     unsigned char pad_1aef;
     Controls* m_controls_1af0;
     W8TextControl* m_previous_1af4;
@@ -456,7 +456,7 @@ public:
     W8CharacterPage* m_pages_1b0c[4];
     W8DialogBase* m_dialog_1b1c;
     unsigned int m_dialog_response_1b20;
-    unsigned char m_capture_dialog_result_1b24;
+    bool m_capture_dialog_result_1b24;
     unsigned char pad_1b25[3];
 };
 static_assert(sizeof(W8CharacterScreen) == 0x1b28, "W8CharacterScreen_size");

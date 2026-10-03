@@ -128,8 +128,8 @@ public:
     srModelInstance* ToggleRepAnimationDefault();
     unsigned char PlayRepAnimation(srVector3T<float>* minimum, srVector3T<float>* maximum);
     void SetSetting6E(unsigned char value);
-    void SetRepresentationActive(unsigned char active, unsigned char update_animation);
-    bool CanBeUsedFrom(int arg_2, int arg_3, char notify);
+    void SetRepresentationActive(unsigned char active, bool update_animation);
+    bool CanBeUsedFrom(int arg_2, int arg_3, bool notify);
     void SetSetting6C(unsigned char value);
     void SetSetting66(char value);
     void SetAnimationSpeed(float speed);
@@ -169,7 +169,7 @@ static_assert(sizeof(W8Prop) == 0x90, "W8Prop_must_be_0x90");
 W8Prop* FindPropByName(W8World* world, const char* name);
 bool CreateAndLoadProp(W8ReadLevelInfo* info, W8Prop** prop);
 
-char ResolvePickedProp(W8World* world);
+bool ResolvePickedProp(W8World* world);
 int GetSelectedPropIndex(void);
 /* Run the latched selected-prop trigger, or clear the latch when the
    renderer has no pick. */

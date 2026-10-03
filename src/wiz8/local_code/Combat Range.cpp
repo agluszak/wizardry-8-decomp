@@ -81,7 +81,7 @@ const float g_float_005ec35c = 12500.0f;
    party for an opposing-side member the chosen action could actually
    strike. */
 // FUNCTION: WIZ8 0x00518e30
-char CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, char hand)
+bool CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, bool hand)
 {
     char side;
     int first = party_slot;
@@ -358,7 +358,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
    chosen action has to have a range, and melee range additionally has to get
    past the front rank. */
 // FUNCTION: WIZ8 0x005197c0
-char CharacterActionReachesSlot(int party_slot, int hand, int target_slot, int context)
+bool CharacterActionReachesSlot(int party_slot, int hand, int target_slot, int context)
 {
     if (static_cast<char>(party_slot) == target_slot) {
         return 1;
@@ -535,7 +535,7 @@ bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster, W8RangeCatego
    hostile filter is forced on. Party members and other monsters defer to the corresponding
    MonsterAttackReachesCharacter/Monster helpers. */
 // FUNCTION: WIZ8 0x00519c00
-unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack,
+bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack,
                                          char hostile_only)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
@@ -752,7 +752,7 @@ bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* r
 /* The furthest range category among a monster's three attacks. Asking for the
    close-quarters band only considers the two categories inside it. */
 // FUNCTION: WIZ8 0x0051a800
-W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, char close_quarters_only)
+W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, bool close_quarters_only)
 {
     W8RangeCategory best = W8_RANGE_NONE;
     int attack;
@@ -773,7 +773,7 @@ W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, char cl
    kinds, then the furthest castable spell band when the gates allow. */
 // FUNCTION: WIZ8 0x0051a840
 W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
-                                            char skip_capability_checks, int* out_sight)
+                                            bool skip_capability_checks, int* out_sight)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     W8RangeCategory best = W8_RANGE_NONE;
@@ -1191,7 +1191,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int ki
    target monster has to be reachable, and a group target is checked against
    every member. */
 // FUNCTION: WIZ8 0x00519f80
-unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+bool MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                          unsigned int attack, W8CombatSlot* target)
 {
     int sight_index;
@@ -1337,7 +1337,7 @@ void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float
 }
 
 // FUNCTION: WIZ8 0x0051b4e0
-char SourceActionReachesTarget(W8TargetSource* source, W8CombatSlot* target)
+bool SourceActionReachesTarget(W8TargetSource* source, W8CombatSlot* target)
 {
     if (TargetSourceIsCharacter(source, 0)) {
         return CharacterActionReachesTarget(source->iChar, 0, W8_TARGETING_CONTEXT_CURRENT);

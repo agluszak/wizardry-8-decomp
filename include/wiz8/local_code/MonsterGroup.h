@@ -101,12 +101,12 @@ struct W8MonsterGroup {
 #pragma pack(pop)
 
 unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, int group_id,
-                                      unsigned char assert_on_failure);
+                                      bool assert_on_failure);
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
 unsigned char GetMonsterGroupEngagementState(int group_id); /* 0x00511CB0 */
 unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group,
                                         const srVector3T<float>* position,
-                                        char follow_leader); /* 0x0050FBA0 */
+                                        bool follow_leader); /* 0x0050FBA0 */
 /* Whether the group is loaded, in combat, and still has members; hostile
    groups are live on that alone, others also need CombatAllowsLiveGroups. */
 bool IsMonsterGroupLive(W8MonsterGroup* monster_group); /* 0x00510B30 */
@@ -117,7 +117,7 @@ void ShowMonsterGroupInfoNotice(int group_id); /* 0x00511670 */
 /* Whether the group has a member placed and rendered in the world; a nonzero
    second argument also demands the member's party-threat flag. */
 bool MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group,
-                                     char require_threat); /* 0x00511B40 */
+                                     bool require_threat); /* 0x00511B40 */
 /* Write `state` into the group's engagement byte and propagate it to its four
    allied groups; while the byte is set, each call ticks the counter beside
    it. The record kinds the special encounter ids carry ignore a set. */
@@ -131,7 +131,7 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
    widened to the largest allied-group radius. Answers the movement call's
    result so callers can branch on success. */
 bool PositionMonsterGroupNearCamera(W8MonsterGroup* group, float distance, float yaw,
-                                    unsigned char flag); /* 0x00511050 */
+                                    bool flag); /* 0x00511050 */
 void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
 /* 0x0050FFD0: refresh the group's cached centre; a null centre out-pointer
    keeps only the cache update, which is how SpawnMonsters uses it. */
@@ -140,8 +140,8 @@ W8MonsterGroup* FindFirstMonsterByID(int monster_id);
 W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous);
 unsigned char GiveBirthToMonster(W8MonsterGroup* monster_group); /* 0x00511990 */
 W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
-                            const srVector3T<float>* position, unsigned char use_alternate_name,
-                            unsigned char announce_spawn, unsigned char place_on_ground);
+                            const srVector3T<float>* position, bool use_alternate_name,
+                            bool announce_spawn, bool place_on_ground);
 
 void ResetMonsterGroupTurnState(void);
 void RebindMonsterGroupScripts(void);
@@ -161,7 +161,7 @@ unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D
    activates; NULL on failure. */
 W8MonsterGroup* ReplaceMonsterGroupSpecies(W8MonsterGroup* group,
                                            unsigned int monster_id); /* 0x00511A40 */
-void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag);
+void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, bool flag);
 bool MonsterGroupAllMembersDying(W8MonsterGroup* monster_group); /* 0x00511850 */
 void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);     /* 0x0050F630 */
 /* Out-of-combat refresh: proximity hostility for unaligned neutrals, then

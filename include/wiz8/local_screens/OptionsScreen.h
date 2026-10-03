@@ -138,7 +138,7 @@ public:
 // VTABLE: WIZ8 0x005eef20
 class W8OptionsSlider : public W8HorizontalRangeThumb {
 public:
-    W8OptionsSlider(Controls* owner, int top, float* value, unsigned char alternate);
+    W8OptionsSlider(Controls* owner, int top, float* value, bool alternate);
     virtual ~W8OptionsSlider() override;
     virtual void OnMouseMove(int event) override;
     virtual void Redraw(unsigned char full_redraw) override;
@@ -176,7 +176,7 @@ public:
     virtual void SetCurrent(int current);
     W8OptionsCheckbox* AddCheckbox(int label, int* value);
     W8TextControl* AddChoiceButton(int label);
-    W8OptionsSlider* AddSlider(int label, float* value, unsigned char alternate);
+    W8OptionsSlider* AddSlider(int label, float* value, bool alternate);
     void AddChoices(int label, int count, const int* choices, int* value);
 
     int m_current_04c;
@@ -449,7 +449,7 @@ class W8OptionsScreen : public W8ControlSelectionListener,
 public:
     W8OptionsScreen();
     ~W8OptionsScreen();
-    void SelectPanel(int selected, unsigned char notify);
+    void SelectPanel(int selected, bool notify);
     void CreateControls();
     unsigned char ProcessInput(const InputAtom* input);
     void Redraw();

@@ -22,7 +22,7 @@ const double g_double_005ec318 = 6.2831852;
    initial renderer colour.  The light begins at the origin and records the
    shared engine time used later by both colour cycling and fade-out. */
 // FUNCTION: WIZ8 0x0049D500
-MonsterLight::MonsterLight(srNode* parent, unsigned char cycle_color, float range,
+MonsterLight::MonsterLight(srNode* parent, bool cycle_color, float range,
                            const srVector3T<float>* first_color,
                            const srVector3T<float>* second_color)
     : srLight(parent, srLight::PRESET_POSITIONAL_1), m_vertical_offset_228(0.0f),
@@ -107,7 +107,7 @@ void MonsterLight::SetRange(float range)
 }
 
 // FUNCTION: WIZ8 0x0049D970
-void MonsterLight::SetVisible(char visible)
+void MonsterLight::SetVisible(bool visible)
 {
     if (visible != 0) {
         clearFlag(srNode::FLAG_DISABLE);

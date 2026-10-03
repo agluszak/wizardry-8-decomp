@@ -34,7 +34,7 @@ public:
     MGSKeyBinding* GetBinding(int index) const;
     unsigned char IsCommandPressed(unsigned int command) const;
     void Clear();
-    unsigned char Load(int handle, unsigned char clear);
+    unsigned char Load(int handle, bool clear);
     unsigned char Save(int handle) const;
     unsigned char LoadDefaults(const char* path);
 
@@ -178,7 +178,7 @@ void RefreshKeyboardMenuRows(void); /* 0x00593360 */
    retail parameters are word-sized. */
 void AssignKeyboardMenuCallback(short menu, short item, W8TextControl* row); /* 0x005935E0 */
 /* Invalidate (when asked) then redraw the menu panel. */
-void RedrawKeyboardMenuPanel(unsigned char invalidate); /* 0x005936F0 */
+void RedrawKeyboardMenuPanel(bool invalidate); /* 0x005936F0 */
 /* Region callback the thirteen keyboard-menu rows share. */
 unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* region); /* 0x00594760 */
 /* Region callback for the keyboard-menu background: right-up closes the menu. */

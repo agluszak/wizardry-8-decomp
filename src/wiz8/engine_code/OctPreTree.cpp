@@ -1334,7 +1334,7 @@ char OctPreTree::PathNodeObstructed(const srVector3T<float>* node)
     srVector3T<float> bounds_min, bounds_max;
     srVector3T<float> corner;
     char result;
-    char probe;
+    bool probe;
 
     /* The serialized +0x17c header word is a float the pathing code reads
        bit-wise: the probe-box height above the node. */
@@ -1648,7 +1648,7 @@ char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first
             }
         }
     }
-    char differ = 0;
+    bool differ = 0;
     if (count > 0) {
         W8LevelFileTransform* t = anim->pTransforms_5b;
         for (int i = count; i != 0; --i, ++t) {
@@ -1771,7 +1771,7 @@ W8OctSpatialState::~W8OctSpatialState()
 
 /* Strict axis-aligned overlap: touching faces are not an intersection. */
 // FUNCTION: WIZ8 0x0046d470
-unsigned char BoundsOverlapStrict(const srVector3T<float>* first, const srVector3T<float>* second)
+bool BoundsOverlapStrict(const srVector3T<float>* first, const srVector3T<float>* second)
 {
     return first[1].x > second[0].x && first[0].x < second[1].x && first[1].y > second[0].y &&
            first[0].y < second[1].y && first[1].z > second[0].z && first[0].z < second[1].z;
@@ -1811,7 +1811,7 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
     }
     const float* normal = &plane_normal->x;
 
-    unsigned char near_axis = 0;
+    bool near_axis = 0;
     float plane_point[3];
     for (short axis = 0; axis < 3; ++axis) {
         if (vertex_values[0][axis] < minimum[axis] && vertex_values[1][axis] < minimum[axis] &&
@@ -1832,8 +1832,8 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
     }
 
     if (near_axis == 0) {
-        unsigned char negative = 0;
-        unsigned char positive = 0;
+        bool negative = 0;
+        bool positive = 0;
         for (int x = 0; x != 2; ++x) {
             for (int y = 0; y != 2; ++y) {
                 for (int z = 0; z != 2; ++z) {

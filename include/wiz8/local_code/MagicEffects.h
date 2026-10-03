@@ -38,7 +38,7 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target, i
                            char announce_resistance, char announce_condition, int duration);
 /* 0x005520D0: the saving throw against a condition. A dead target is beyond
    reach and counts as resisting. */
-char TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_level,
+bool TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_level,
                             int condition_id);
 /* 0x00551EB0: land a condition whose saving throw failed. `source_character`
    is part of the call but nothing in the body reads it. */
@@ -56,7 +56,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect); /* 0x0054BA00 */
 void FinishSpellEffectTargets(W8SpellEffectEntry* effect);  /* 0x0054C930 */
 /* The queued-effect helpers ProcessSpellEffectTargets dispatches to. */
 char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition,
-                               char force);                              /* 0x0054DF00 */
+                               bool force);                              /* 0x0054DF00 */
 void ApplyConditionToTargets(W8SpellEffectEntry* effect, int condition); /* 0x0054E3F0 */
 void ApplyRandomAfflictionToTarget(W8SpellEffectEntry* effect);          /* 0x0054E610 */
 void ReportSpellEffectResult(W8SpellEffectEntry* effect);                /* 0x0054E710 */

@@ -37,11 +37,11 @@ struct W8WorldItem {
 #pragma pack(pop)
 
 W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* position,
-                             int entity_flags, unsigned char add_to_world);
-W8WorldItem* GetNextWorldItem(char restart);
+                             int entity_flags, bool add_to_world);
+W8WorldItem* GetNextWorldItem(bool restart);
 unsigned char SettleWorldItem(W8WorldItem* item);
 W8WorldItem* SpawnItem(int item_id, const srVector3T<float>* position, int entity_flags,
-                       unsigned char add_to_world);
+                       bool add_to_world);
 
 bool ItemHasFlags(W8WorldItem* item, unsigned int mask);
 void SetItemFlags(W8WorldItem* item, unsigned int mask, bool enabled);

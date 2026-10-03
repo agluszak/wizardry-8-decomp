@@ -34,13 +34,13 @@ public:
     void SetLineHeight(unsigned int height);
     void FillBounds(int colour);
     void RenderText(unsigned char* buffer, unsigned int pitch, int x_offset, int y_offset,
-                    unsigned char force);
+                    bool force);
     void RenderToTarget(int offset, unsigned char force, int target);
     void UpdateLayout(); /* 0x004F35B0 */
     void SetLayoutMode(unsigned int layout_mode);
     void SetText(const wchar_t* text, int font);
-    void SetLayoutBounds(const W8ControlsRect* bounds, unsigned char copy_pending,
-                         unsigned char update_layout);
+    void SetLayoutBounds(const W8ControlsRect* bounds, bool copy_pending,
+                         bool update_layout);
 
     void SetLayoutBounds(int left, int top, int right, int bottom)
     {

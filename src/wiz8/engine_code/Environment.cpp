@@ -79,7 +79,7 @@ unsigned long g_environment_transition_tick;
 // GLOBAL: WIZ8 0x0060a3ac
 int g_last_light_phase = -1;
 // GLOBAL: WIZ8 0x0060a395
-unsigned char g_environment_colour_refresh = 1;
+bool g_environment_colour_refresh = 1;
 
 /* The mapper starts its scroll rate at 0.002 texture units per second on x
    only and reseeds the shared frame clock, so the first scrolled frame uses

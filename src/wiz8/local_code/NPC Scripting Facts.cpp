@@ -1101,7 +1101,7 @@ unsigned char GetFact(int fact_id)
 }
 
 // FUNCTION: WIZ8 0x005061a0
-void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects)
+void SetFact(int fact_id, unsigned char value, bool suppress_side_effects)
 {
     unsigned char previous_value;
     wchar_t display_value[10];

@@ -180,7 +180,7 @@ void ConstructWorldCollections(W8World* world)
    their order, inputs, and rollback-visible world  */
 // FUNCTION: WIZ8 0x0044F5F0
 unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level_folder,
-                        const char* asset_folder, unsigned char use_octree)
+                        const char* asset_folder, bool use_octree)
 {
     char extension[4];
     char level_path[1024];
@@ -828,7 +828,7 @@ void UpdateWorldMeshAfterLoad(void)
 
 // FUNCTION: WIZ8 0x00451110
 unsigned char ForwardLoadWorld(W8World* world, char* level_file_name, const char* level_folder,
-                               const char* asset_folder, unsigned char use_octree)
+                               const char* asset_folder, bool use_octree)
 {
     return LoadWorld(world, level_file_name, level_folder, asset_folder, use_octree);
 }
@@ -1077,7 +1077,7 @@ bool FindEntityByName(const char* name, srVector3T<float>* position, float* angl
    overlaps another world item or monster. */
 // FUNCTION: WIZ8 0x00451390
 unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* position,
-                                           unsigned char check_items, unsigned char check_monsters)
+                                           bool check_items, bool check_monsters)
 {
     float threshold = radius * g_path_endpoint_scale;
     float angle = 0.0f;
@@ -1155,7 +1155,7 @@ unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* posi
    around it; only an unobstructed probe is handed to the overlap resolver. */
 // FUNCTION: WIZ8 0x00451800
 unsigned char FindNearbyFreePosition(float radius, srVector3T<float>* position,
-                                     unsigned char check_items, unsigned char check_monsters)
+                                     bool check_items, bool check_monsters)
 {
     srVector3T<float> candidate = *position;
     if (AdjustWorldCollisionPosition(radius, &candidate, check_items, check_monsters)) {

@@ -71,7 +71,7 @@ W8DialogBase* CreateDialogByKind(int kind)
 
 // FUNCTION: WIZ8 0x005cf250
 void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
-                         unsigned char background)
+                         bool background)
 {
     g_dialog_interface_font = font;
     g_dialog_font_enabled = enabled;

@@ -101,7 +101,7 @@ public:
     void process(const ProcessInfo& info, e_processType type) override; /* 0x00480920 */
     unsigned short GetScaledWidth();                                    /* 0x00480EF0 */
     unsigned short GetScaledHeight();                                   /* 0x00480F70 */
-    void SetGlowEnabled(unsigned char enable);                          /* 0x00480EB0 */
+    void SetGlowEnabled(bool enable);                          /* 0x00480EB0 */
     void SetGlowColors(srVector4T<float>* first, srVector4T<float>* second);
 
     unsigned char displayState() const

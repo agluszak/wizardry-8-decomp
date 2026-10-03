@@ -18,7 +18,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                                W8GrowableVector<int> monster_targets); /* 0x005560A0 */
 /* Whether the special-attack kind is one of the seven the casting-blocked
    condition keeps from fleeing. */
-unsigned char MonsterSpecialAttackHonorsCastingBlock(int special_attack_kind); /* 0x00556050 */
+bool MonsterSpecialAttackHonorsCastingBlock(int special_attack_kind); /* 0x00556050 */
 
 /* Translate a summoning special-attack kind to its monster species, roll that
    record's group size and bring the new group in as close to the attacker's

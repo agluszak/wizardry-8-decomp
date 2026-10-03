@@ -72,7 +72,7 @@ const char* g_spell_cycle_names[28] = {
 static W8SpellVisual* g_target_cone_visual;
 
 // FUNCTION: WIZ8 0x004ac9d0
-W8SpellTargetType GetSpellTargetType(int spell_id, unsigned char normalize_single_target)
+W8SpellTargetType GetSpellTargetType(int spell_id, bool normalize_single_target)
 {
     W8SpellTargetType target_type = g_spell_records[spell_id].target_type;
 
@@ -1168,7 +1168,7 @@ placed:
    is enabled, deleted when it is disabled, and kept in representation mode 3
    while it lives. */
 // FUNCTION: WIZ8 0x004add30
-void SetTargetConeEnabled(char enabled)
+void SetTargetConeEnabled(bool enabled)
 {
     if (enabled != 0) {
         if (g_target_cone_visual == 0) {
@@ -1307,7 +1307,7 @@ const char* g_monster_spell_icon_names[40] = {
    adopts the link record; the remove path finds the record by icon id, pulls
    the item out of the world list, deletes it and frees the record. */
 // FUNCTION: WIZ8 0x004acd80
-void SetMonsterSpellIcon(W8Monster* pMonster, int iIcon, char add)
+void SetMonsterSpellIcon(W8Monster* pMonster, int iIcon, bool add)
 {
     W8MonsterRep* pMonRep;
     W8MonsterSpellIcon* pSpellMI;
@@ -1462,7 +1462,7 @@ srClass* stSound3D::vInstance()
 }
 
 // FUNCTION: WIZ8 0x004AEBF0
-unsigned char stSound3D::Play(unsigned char loop, unsigned char release_when_done)
+unsigned char stSound3D::Play(bool loop, bool release_when_done)
 {
     SOUND3DPARMS options;
     srVector3T<float> listener;
@@ -1701,7 +1701,7 @@ unsigned char InitializeSpellDatabase(void)
        header FileRead pair short-circuited; the recovery keeps that read. */
     int handle;
     unsigned int index;
-    unsigned char ok;
+    bool ok;
     int allocation_count;
     unsigned int database_version;
 

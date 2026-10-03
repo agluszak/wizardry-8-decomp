@@ -31,7 +31,7 @@ W8SpellVisual* CreateAttachedSpellEffect(const char* mls_name, int power_level, 
 W8SpellVisual* CreateAimedSpellEffect(const char* mls_name, int power_level,
                                       srVector3T<float>* position, srMatrix3T<float>* rotation,
                                       int value, int flags); /* 0x004ADB20 */
-void SetTargetConeEnabled(char enabled);
+void SetTargetConeEnabled(bool enabled);
 W8SpellVisual* SpawnCameraSpellEffect(const char* name, int power_level, int value,
                                       int flags); /* 0x004AD080 */
 /* Load one named visual from the spell bitmap directory; the out pointer is
@@ -45,11 +45,11 @@ W8SpellVisual* SpawnSpellEffect(const srVector3T<float>* position, const char* r
 
 void ReleaseSpellDatabase(void);
 unsigned char InitializeSpellDatabase(void);
-W8SpellTargetType GetSpellTargetType(int spell_id, unsigned char normalize_single_target);
+W8SpellTargetType GetSpellTargetType(int spell_id, bool normalize_single_target);
 bool IsCombatEffectSlotSpell(int spell_id);
 int MinimumCasterLevelForSpellLevel(int spell_level);
 int GetMinimumCasterLevelForSpell(int spell_id);
 bool CanSpellBackfire(int spell_id);
 void ClearMonsterSpellIcons(W8Monster* monster);                  /* 0x004ACF90 */
-void SetMonsterSpellIcon(W8Monster* monster, int icon, char add); /* 0x004ACD80 */
+void SetMonsterSpellIcon(W8Monster* monster, int icon, bool add); /* 0x004ACD80 */
 void UpdateWorldSpellVisuals(W8World* world);

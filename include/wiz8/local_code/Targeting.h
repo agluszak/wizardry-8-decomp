@@ -36,7 +36,7 @@ unsigned char GetFactionFlag(signed char faction);
 int GetFactionValue(signed char faction); /* 0x005360f0 */
 void AimByKind(int actor, W8TargetKind kind, W8TargetingContext context);
 void SetMonsterCombatTarget(W8MonsterInfo* monster_info, int location_id);
-char MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id);
+bool MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id);
 W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext context);
 void ClearTargetMarker(void);
 void RefreshTargetMarker(void);
@@ -51,13 +51,13 @@ void AimAtMonsterLocation(int party_slot, int location_id,
 void AimAtPlace(int actor);                         /* 0x00538710 */
 void AimAtGroundTarget(int party_slot);             /* 0x00538770 */
 /* 0x0053C130: raise or clear per-monster highlight bits for a party slot. */
-void UpdateSlotMonsterHighlights(int party_slot, char enable);
+void UpdateSlotMonsterHighlights(int party_slot, bool enable);
 void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target);
 void HighlightSpellTargetsAtCachedPosition(void);
 /* Pick an attack fallback, allowing the character's alternate weapon set when
    the ordinary group selection has no usable monster. */
 int ChooseFallbackMonsterTarget(int party_slot, int group_id, W8TargetingContext context);
-void SetFactionFlag(signed char faction, unsigned char flag);
+void SetFactionFlag(signed char faction, bool flag);
 unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info);
 bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext context);
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
@@ -65,8 +65,8 @@ void ClearPartySlotMonsterHighlights(unsigned int party_slot);
 void SetTargetToCharacter(int character_slot, bool in_combat);
 
 void SetTargetingMode(int state);
-void SetMonsterHighlight(int party_slot, int location_id, char on);
-void SetGroupHighlight(int party_slot, int group_id, char on);
+void SetMonsterHighlight(int party_slot, int location_id, bool on);
+void SetGroupHighlight(int party_slot, int group_id, bool on);
 /* Location id of the nearest hovered live monster, or -1. */
 int PickNearestMonsterUnderCursor(int cursor_x, int cursor_y); /* 0x005396D0 */
 char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight);
@@ -79,15 +79,15 @@ unsigned int GetActionSpellLikeId(int party_slot, W8TargetingContext context);
 void ResetTargetSource(W8TargetSource* source);
 void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source);
 W8TargetingContext ResolveTargetingContext(int party_slot, W8TargetingContext context);
-char TargetMatchesNeeded(W8CombatSlot* target, int needed);
-bool SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normalize);
+bool TargetMatchesNeeded(W8CombatSlot* target, int needed);
+bool SpellHasAnyValidTarget(int party_slot, int spell_id, bool normalize);
 void SetTargetToMonster(int monster_id, bool in_combat);
 void SetTargetToGroup(int group_id, bool in_combat);
 
 bool ClearMonsterCombatSlot(W8MonsterInfo* monster_info);
 
 /* 0x0053C630: fill the slot's point from where its target is. */
-bool ResolveTargetPoint(W8CombatSlot* target, char sight_probe);
+bool ResolveTargetPoint(W8CombatSlot* target, bool sight_probe);
 void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
 void ApplyTarget(W8CombatSlot* target, bool in_combat); /* 0x00538E00 */
 /* 0x0053C490: whether an actor aiming at `target` should drop that aim now
@@ -106,7 +106,7 @@ bool CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group); /* 0x00536D60
 void ClearSlotTargeting(int party_slot);                           /* 0x0053B050 */
 /* 0x00537270: whether the slot's current target satisfies the spell's
    needed-target kind. */
-char IsSpellTargetOfNeededKind(int party_slot, int spell_id);
+bool IsSpellTargetOfNeededKind(int party_slot, int spell_id);
 /* 0x005372B0: whether the slot's current target satisfies the item's
    needed-target kind. */
 bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item); /* 0x005372B0 */

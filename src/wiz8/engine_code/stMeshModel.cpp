@@ -1335,7 +1335,7 @@ unsigned char stMeshModel::AllocateFrameBuffers(unsigned int uiFrame, unsigned c
    `interpolation` is positive and another frame follows, both frames are
    decompressed and lerped into lerp_buffer_448 (m_pLerpBuffer). */
 // FUNCTION: WIZ8 0x00471AD0
-srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, char load,
+srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, bool load,
                                                    float interpolation)
 {
     if (m_pVertexLoc == 0) {
@@ -1385,7 +1385,7 @@ srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, char load
 /* Return frame `frame`'s vertex normals, decompressing on demand when `load`
    is set. */
 // FUNCTION: WIZ8 0x00471CA0
-srVector3T<float>* stMeshModel::GetVertexNormals(unsigned int frame, char load)
+srVector3T<float>* stMeshModel::GetVertexNormals(unsigned int frame, bool load)
 {
     if (m_pVertexNormal == 0) {
         return 0;
@@ -1400,7 +1400,7 @@ srVector3T<float>* stMeshModel::GetVertexNormals(unsigned int frame, char load)
 }
 
 // FUNCTION: WIZ8 0x00471D00
-srVector3T<float>* stMeshModel::GetPolygonNormals(unsigned int frame, char load)
+srVector3T<float>* stMeshModel::GetPolygonNormals(unsigned int frame, bool load)
 {
     if (m_pPolyNormal == 0) {
         return 0;
@@ -1442,7 +1442,7 @@ void stMeshModel::ComputeFrameNormals(int frame)
     }
 
     srVector3T<float>* l = 0;
-    unsigned char decompressed = 0;
+    bool decompressed = 0;
     if (m_pVertexLoc != 0) {
         l = m_pVertexLoc[frame];
     }
@@ -1516,7 +1516,7 @@ void stMeshModel::ComputeFrameNormals(int frame)
 
 /* Thirteen-byte forwarder onto the per-frame normal builder. */
 // FUNCTION: WIZ8 0x00472100
-srVector3T<float>* stMeshModel::GetVertexLights(char initialize, int table)
+srVector3T<float>* stMeshModel::GetVertexLights(bool initialize, int table)
 {
     if (table == -1) {
         table = vertex_light_table_3b0;
@@ -1536,7 +1536,7 @@ srVector3T<float>* stMeshModel::GetVertexLights(char initialize, int table)
 }
 
 // FUNCTION: WIZ8 0x004721E0
-float* stMeshModel::GetVertexSunlight(char initialize)
+float* stMeshModel::GetVertexSunlight(bool initialize)
 {
     if (vertex_sunlight_3c4.data == 0 && initialize) {
         vertex_sunlight_3c4.setCapacity(vertex_location_count_22c, 0);

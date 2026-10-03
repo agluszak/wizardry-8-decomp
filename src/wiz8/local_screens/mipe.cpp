@@ -70,7 +70,7 @@ int g_mipe_count;
 static short g_mipe_item_index;
 
 // GLOBAL: WIZ8 0x0068f0fc
-unsigned char g_debug_monster_cycle;
+bool g_debug_monster_cycle;
 
 // GLOBAL: WIZ8 0x0068f100
 W8MipeState* g_mipe_state;
@@ -96,7 +96,7 @@ static W8WorldCursorNode* g_mipe_cube;
 /* 0x0064A1CC: 'C' toggles between single-monster ("Choosing: One") and
    whole-group ("Choosing: Group") selection in UpdateMipeSelection. */
 // GLOBAL: WIZ8 0x0064a1cc
-static unsigned char g_mipe_choose_group = 1;
+static bool g_mipe_choose_group = 1;
 
 int FindCategoryItemTable(unsigned int category, int ordinal);
 
@@ -3420,9 +3420,9 @@ void DragSelectionWithCursor(void)
    mouse motion drags or tracks the cube. Returns whether it consumed the
    event. */
 // FUNCTION: WIZ8 0x0057e0e0
-unsigned char MipeWorldViewEvent(int event, const POINT* point)
+bool MipeWorldViewEvent(int event, const POINT* point)
 {
-    unsigned char result;
+    bool result;
 
     result = 0;
     if (g_mipe_state == 0) {

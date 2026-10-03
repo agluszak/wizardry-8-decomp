@@ -81,7 +81,7 @@ static int FindItemByLegacyNumber(short item_number)
 int g_import_character_count;
 
 // GLOBAL: WIZ8 0x0068DE4C
-unsigned char g_import_ending_record;
+bool g_import_ending_record;
 
 // GLOBAL: WIZ8 0x0068DE50
 int g_wiz7_ending;
@@ -664,7 +664,7 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
     unsigned int unlocks;
     unsigned int roll;
     unsigned int base_value;
-    char routed = 0;
+    bool routed = 0;
     int i;
 
     if (g_skill_attributes[skill_id].field_04 == 2) {

@@ -1407,7 +1407,7 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
    database entry allows it. The dialogue path instead finds the existing state
    by its database kind and only refreshes its presence fields. */
 // FUNCTION: WIZ8 0x00509cd0
-void BindNpcToMonster(unsigned char npc_id, unsigned char has_monster, int location_id)
+void BindNpcToMonster(unsigned char npc_id, bool has_monster, int location_id)
 {
     W8NpcState* npc = 0;
     W8MonsterInfo* monster_info = 0;
@@ -1773,7 +1773,7 @@ W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index)
 /* The NPC bound to a monster's script part while its binding is still
    available; `allow_unavailable` also hands back a released binding. */
 // FUNCTION: WIZ8 0x0050A4A0
-W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info, unsigned char allow_unavailable)
+W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info, bool allow_unavailable)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     W8NpcState* npc;
@@ -2498,7 +2498,7 @@ void ReleaseNpcMonsterBindings(void)
                         MonsterGetScriptPartByLocationIndex(monster_index);
 
                     if (monster_info != 0) {
-                        unsigned char destroy = 1;
+                        bool destroy = 1;
 
                         monster_index = MonsterGetIndexByLocationID(0x9bb, NPC_MANAGER_CPP,
                                                                     monster_info->location_id, 1);
@@ -2852,7 +2852,7 @@ void ReleaseMarkedNpcBindings(void)
                             MonsterGetScriptPartByLocationIndex(monster_index);
 
                         if (monster_info != 0) {
-                            unsigned char destroy = 1;
+                            bool destroy = 1;
 
                             monster_index = MonsterGetIndexByLocationID(
                                 0x9bb, NPC_MANAGER_CPP, monster_info->location_id, 1);

@@ -90,7 +90,7 @@ extern W8WorldCursorState* gp3DCursor;
 void InitializeWorldCursor(void);
 bool IsWorldCursorVisible(void);
 void GetWorldCursorPosition(srVector3T<float>* position);
-void SetWorldCursorNodesVisible(unsigned char visible);
+void SetWorldCursorNodesVisible(bool visible);
 bool SelectWorldCursorNode(void);
 int GetWorldCursorNodeCount(void);
 void HideWorldCursor(void);

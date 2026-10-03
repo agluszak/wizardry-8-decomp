@@ -10,6 +10,7 @@
 #include "clang/AST/Stmt.h"
 #include "clang/AST/Type.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 
@@ -262,14 +263,36 @@ static bool bool_like_declaration_name(const NamedDecl* declaration)
     return bool_like_name(declaration->getName());
 }
 
+
+// A parameter's boolean domain is the union of every recovered argument. Its
+// identity is the matching parameter of the function's canonical declaration so
+// that header declarations, definitions and call sites in other TUs share it.
+static const ParmVarDecl* canonical_parameter(const ParmVarDecl* parameter)
+{
+    if (parameter == nullptr || parameter->isImplicit() || !is_byte_type(parameter->getType())) {
+        return nullptr;
+    }
+    const auto* function = dyn_cast_or_null<FunctionDecl>(parameter->getDeclContext());
+    if (function == nullptr || function->isVariadic() ||
+        function->getTemplatedKind() != FunctionDecl::TK_NonTemplate) {
+        return nullptr;
+    }
+    const FunctionDecl* canonical_function = function->getCanonicalDecl();
+    const unsigned index = parameter->getFunctionScopeIndex();
+    if (index >= canonical_function->getNumParams()) {
+        return nullptr;
+    }
+    return canonical_function->getParamDecl(index);
+}
+
 static bool is_candidate_variable(const ValueDecl* declaration)
 {
     if (declaration == nullptr || declaration->isImplicit() ||
         !is_byte_type(declaration->getType())) {
         return false;
     }
-    if (isa<ParmVarDecl>(declaration)) {
-        return false;
+    if (const auto* parameter = dyn_cast<ParmVarDecl>(declaration)) {
+        return canonical_parameter(parameter) != nullptr;
     }
     if (const auto* variable = dyn_cast<VarDecl>(declaration)) {
         return !variable->getType()->isArrayType() && !variable->getType()->isReferenceType();
@@ -293,6 +316,9 @@ static bool is_candidate_function(const FunctionDecl* function)
 
 static const NamedDecl* canonical_candidate(const NamedDecl* declaration)
 {
+    if (const auto* parameter = dyn_cast_or_null<ParmVarDecl>(declaration)) {
+        return canonical_parameter(parameter);
+    }
     if (const auto* variable = dyn_cast_or_null<VarDecl>(declaration)) {
         if (!is_candidate_variable(variable)) {
             return nullptr;
@@ -322,7 +348,57 @@ static std::string candidate_kind(const NamedDecl* declaration)
     if (isa<FieldDecl>(declaration)) {
         return "field";
     }
+    if (isa<ParmVarDecl>(declaration)) {
+        return "parameter";
+    }
     return "variable";
+}
+
+static std::string candidate_name(const NamedDecl* declaration)
+{
+    const auto* parameter = dyn_cast<ParmVarDecl>(declaration);
+    if (parameter == nullptr) {
+        return declaration->getNameAsString();
+    }
+    // Canonical declarations may omit parameter names; prefer any redeclaration
+    // that spells one so the inventory stays readable.
+    const auto* function = cast<FunctionDecl>(parameter->getDeclContext());
+    const unsigned index = parameter->getFunctionScopeIndex();
+    std::string name = parameter->getNameAsString();
+    for (const FunctionDecl* redeclaration : function->redecls()) {
+        if (!name.empty()) {
+            break;
+        }
+        if (index < redeclaration->getNumParams()) {
+            name = redeclaration->getParamDecl(index)->getNameAsString();
+        }
+    }
+    if (name.empty()) {
+        name = "#" + std::to_string(index);
+    }
+    return function->getQualifiedNameAsString() + "::" + name;
+}
+
+// Redeclarations visible to a TU may spell different parameter names, so the
+// cross-TU identity of a parameter uses only its function and position.
+static std::string candidate_key_name(const NamedDecl* declaration)
+{
+    const auto* parameter = dyn_cast<ParmVarDecl>(declaration);
+    if (parameter == nullptr) {
+        return declaration->getNameAsString();
+    }
+    const auto* function = cast<FunctionDecl>(parameter->getDeclContext());
+    return function->getQualifiedNameAsString() + "::#" +
+           std::to_string(parameter->getFunctionScopeIndex());
+}
+
+static bool bool_like_candidate_name(const NamedDecl* declaration)
+{
+    if (isa<ParmVarDecl>(declaration)) {
+        const std::string name = candidate_name(declaration);
+        return bool_like_name(llvm::StringRef(name).rsplit("::").second);
+    }
+    return bool_like_declaration_name(declaration);
 }
 
 class FactWriter {
@@ -355,7 +431,7 @@ public:
             return {};
         }
         return point.file + ":" + std::to_string(point.line) + ":" + std::to_string(point.column) +
-               ":" + candidate_kind(canonical_decl) + ":" + canonical_decl->getNameAsString();
+               ":" + candidate_kind(canonical_decl) + ":" + candidate_key_name(canonical_decl);
     }
 
     void declaration(const NamedDecl* declaration)
@@ -371,8 +447,8 @@ public:
         }
         emit({"D", declaration_key, point.file, std::to_string(point.line),
               std::to_string(point.column), candidate_kind(canonical_decl),
-              canonical_decl->getNameAsString(),
-              bool_like_declaration_name(canonical_decl) ? "1" : "0"});
+              candidate_name(canonical_decl),
+              bool_like_candidate_name(canonical_decl) ? "1" : "0"});
     }
 
     void write_direct(const NamedDecl* declaration, SourceLocation location)
@@ -536,6 +612,29 @@ public:
         if (const NamedDecl* candidate = canonical_candidate(function)) {
             writer_.declaration(candidate);
         }
+        for (const ParmVarDecl* parameter : function->parameters()) {
+            if (const NamedDecl* candidate = canonical_candidate(parameter)) {
+                writer_.declaration(candidate);
+            }
+        }
+        // Overrides share one slot ABI and are reached through calls that name
+        // only the base declaration; their byte domains are not proven per body.
+        if (const auto* method = dyn_cast<CXXMethodDecl>(function)) {
+            if (method->isVirtual()) {
+                escape_signature(method, method->getLocation());
+            }
+        }
+        return true;
+    }
+
+    bool VisitDeclRefExpr(DeclRefExpr* reference)
+    {
+        // A function named outside a direct call is stored in a callback slot,
+        // table or pointer; its return and parameters follow that slot's ABI.
+        const auto* function = dyn_cast<FunctionDecl>(reference->getDecl());
+        if (function != nullptr && direct_callees_.count(reference) == 0) {
+            escape_signature(function, reference->getLocation());
+        }
         return true;
     }
 
@@ -601,7 +700,35 @@ public:
             const Expr* other =
                 is_zero_or_one(binary->getLHS()) ? binary->getRHS() : binary->getLHS();
             mark_support(other, binary->getOperatorLoc());
+        } else if (opcode == BO_EQ || opcode == BO_NE) {
+            // Comparing against a value outside 0/1 reads the byte as a number.
+            if (!domain(binary->getRHS()).possible) {
+                numeric_use(binary->getLHS(), binary->getOperatorLoc());
+            }
+            if (!domain(binary->getLHS()).possible) {
+                numeric_use(binary->getRHS(), binary->getOperatorLoc());
+            }
+        } else if (binary->isAdditiveOp() || binary->isMultiplicativeOp() ||
+                   binary->isShiftOp() || binary->isRelationalOp()) {
+            numeric_use(binary->getLHS(), binary->getOperatorLoc());
+            numeric_use(binary->getRHS(), binary->getOperatorLoc());
         }
+        if (binary->isCompoundAssignmentOp() && opcode != BO_AndAssign &&
+            opcode != BO_OrAssign && opcode != BO_XorAssign) {
+            numeric_use(binary->getRHS(), binary->getOperatorLoc());
+        }
+        return true;
+    }
+
+    bool VisitArraySubscriptExpr(ArraySubscriptExpr* subscript)
+    {
+        numeric_use(subscript->getIdx(), subscript->getExprLoc());
+        return true;
+    }
+
+    bool VisitSwitchStmt(SwitchStmt* statement)
+    {
+        numeric_use(statement->getCond(), statement->getSwitchLoc());
         return true;
     }
 
@@ -611,6 +738,8 @@ public:
             if (const NamedDecl* target = resolve_candidate(unary->getSubExpr())) {
                 writer_.invalid_write(target, unary->getOperatorLoc());
             }
+        } else if (unary->getOpcode() == UO_Minus || unary->getOpcode() == UO_Not) {
+            numeric_use(unary->getSubExpr(), unary->getOperatorLoc());
         } else if (unary->getOpcode() == UO_AddrOf) {
             escape_expression(unary->getSubExpr(), unary->getOperatorLoc());
         }
@@ -627,6 +756,10 @@ public:
 
     bool VisitCallExpr(CallExpr* call)
     {
+        if (const auto* callee =
+                dyn_cast_or_null<DeclRefExpr>(call->getCallee()->IgnoreParenImpCasts())) {
+            direct_callees_.insert(callee);
+        }
         const FunctionDecl* function = call->getDirectCallee();
         if (function == nullptr) {
             return true;
@@ -646,6 +779,10 @@ public:
         for (unsigned index = 0; index < count; ++index) {
             const QualType parameter_type = function->getParamDecl(index)->getType();
             const Expr* argument = call->getArg(index);
+            if (const NamedDecl* parameter = canonical_candidate(function->getParamDecl(index))) {
+                writer_.declaration(parameter);
+                record_write(parameter, argument, argument->getExprLoc());
+            }
             if (is_nonconst_reference(parameter_type)) {
                 escape_expression(argument, argument->getExprLoc());
             }
@@ -671,6 +808,12 @@ public:
         }
         const unsigned count = std::min(construct->getNumArgs(), constructor->getNumParams());
         for (unsigned index = 0; index < count; ++index) {
+            if (const NamedDecl* parameter =
+                    canonical_candidate(constructor->getParamDecl(index))) {
+                writer_.declaration(parameter);
+                record_write(parameter, construct->getArg(index),
+                             construct->getArg(index)->getExprLoc());
+            }
             if (is_nonconst_reference(constructor->getParamDecl(index)->getType())) {
                 escape_expression(construct->getArg(index), construct->getArg(index)->getExprLoc());
             }
@@ -873,6 +1016,9 @@ private:
             }
         }
 
+        if (const auto* argument = dyn_cast<CXXDefaultArgExpr>(expression)) {
+            return domain(argument->getExpr());
+        }
         if (const auto* cleanup = dyn_cast<ExprWithCleanups>(expression)) {
             return domain(cleanup->getSubExpr());
         }
@@ -914,8 +1060,48 @@ private:
         }
     }
 
+    // Arithmetic, ordering, indexing and multi-way dispatch consume a byte as a
+    // number; such a declaration is not proven boolean even if its writes are.
+    void numeric_use(const Expr* expression, SourceLocation location)
+    {
+        if (expression == nullptr) {
+            return;
+        }
+        expression = expression->IgnoreParenImpCasts();
+        if (const auto* cast = dyn_cast<ExplicitCastExpr>(expression)) {
+            numeric_use(cast->getSubExpr(), location);
+            return;
+        }
+        if (const NamedDecl* declaration = resolve_candidate(expression)) {
+            writer_.declaration(declaration);
+            writer_.invalid_write(declaration, location);
+            return;
+        }
+        if (const auto* call = dyn_cast<CallExpr>(expression)) {
+            if (const NamedDecl* function = canonical_candidate(call->getDirectCallee())) {
+                writer_.declaration(function);
+                writer_.invalid_write(function, location);
+            }
+        }
+    }
+
+    void escape_signature(const FunctionDecl* function, SourceLocation location)
+    {
+        if (const NamedDecl* candidate = canonical_candidate(function)) {
+            writer_.declaration(candidate);
+            writer_.escape(candidate, location);
+        }
+        for (const ParmVarDecl* parameter : function->parameters()) {
+            if (const NamedDecl* candidate = canonical_candidate(parameter)) {
+                writer_.declaration(candidate);
+                writer_.escape(candidate, location);
+            }
+        }
+    }
+
     FactWriter& writer_;
     FunctionDecl* current_function_ = nullptr;
+    llvm::SmallPtrSet<const DeclRefExpr*, 32> direct_callees_;
 };
 
 class BoolLikeByteCheck final : public ClangTidyCheck {

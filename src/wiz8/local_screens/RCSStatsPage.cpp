@@ -159,7 +159,7 @@ void W8CampStatsRange::OnRangeChanged(W8RangeControl*)
    the demo. Retail calls it directly on the stats and spell listeners as
    well, which is what proves the common W8CampRangeListener base. */
 // FUNCTION: WIZ8 0x005c4510
-void W8CampRangeListener::UpdateRange(unsigned char range_changed)
+void W8CampRangeListener::UpdateRange(bool range_changed)
 {
     if (range_changed != 0) {
         m_range->Invalidate(0);
@@ -980,7 +980,7 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
         return 0;
     }
     if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && skill != -1) {
-        unsigned char best = 0;
+        bool best = 0;
         if (g_status.game_started && g_review_character->skills[skill].level != 0) {
             best = 1;
             for (int slot = 0; slot < 8; ++slot) {

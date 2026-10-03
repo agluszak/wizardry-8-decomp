@@ -81,8 +81,8 @@ void W8MessageDialogBase::Draw()
 // FUNCTION: WIZ8 0x005d2800
 void W8MessageDialogBase::SetMessage(const wchar_t* message, int line_count,
                                      unsigned short characters_per_line, unsigned char confirmation,
-                                     unsigned char cancel, unsigned char size_to_message,
-                                     unsigned char wrap_message, int maximum_width,
+                                     unsigned char cancel, bool size_to_message,
+                                     bool wrap_message, int maximum_width,
                                      int maximum_height)
 {
     /* 0x005D2950 compares the line counter unsigned; the signed compare in

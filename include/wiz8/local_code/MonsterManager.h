@@ -489,14 +489,14 @@ void ClearMonsterPathAndResume(W8MonsterInfo* monster_info);
 void MonsterStartsDying(W8MonsterInfo* monster_info, char display_message);
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
 unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_file, int location_id,
-                                         unsigned char assert_on_failure);
+                                         bool assert_on_failure);
 W8MonsterInfo* MonsterInfoFromID(int caller_line, const char* caller_file, int location_id,
-                                 unsigned char assert_on_failure);
+                                 bool assert_on_failure);
 W8MonsterRecord* GetMonsterDataByLocationID(int location_id);
 W8Monster* GetMonsterByLocationID(int location_id);
 float GetMonsterCombatMoveRange(W8MonsterInfo* monster_info);
 void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info);
-W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
+W8MonsterInfo* GetNextMonsterInfo(bool reset_iterator);
 int GetMonsterQuadrant(W8MonsterInfo* monster_info);
 int GetMonsterCycleFallbackValue(unsigned int monster_species);
 void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup);
@@ -505,7 +505,7 @@ W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
 void ResetLivingMonstersAfterCombat(void);
 void DestroyUngroupedMonsters(void);
 void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state);
-void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionless);
+void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, bool motionless);
 void MoveMonsterToLiveList(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double maximum_distance);
 void InitializeMonsterRuntimeStats(void);
@@ -526,7 +526,7 @@ unsigned char ShutdownMonsterManager(void);
 
 wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                         unsigned char name_form);
-bool RemoveMonster(unsigned int monster_list_index, unsigned char destroy_monster);
+bool RemoveMonster(unsigned int monster_list_index, bool destroy_monster);
 void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
 void DeactivateMonster(W8MonsterInfo* monster_info);
 void ToggleCombatMode(void); /* 0x004E6A80 */

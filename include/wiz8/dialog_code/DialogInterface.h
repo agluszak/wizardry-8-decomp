@@ -13,7 +13,7 @@ extern BOOLEAN g_dialog_font_enabled;
 extern unsigned char g_dialog_font_foreground;
 extern unsigned char g_dialog_font_background;
 void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
-                         unsigned char background);
+                         bool background);
 W8DialogBase* CreateCharacterSummaryDialog(W8Character* character);
 W8DialogBase* CreateDialogByKind(int kind);
 unsigned char GetDialogResult(W8DialogBase* dialog);

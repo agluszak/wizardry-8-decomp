@@ -248,7 +248,7 @@ void RestoreCombatFormation(void)
 /* When set during combat, camera yaw updates party_heading only and leaves
    party_facing alone. Cleared, the free-look path also writes party_facing. */
 // GLOBAL: WIZ8 0x0069B7D4
-static unsigned char g_combat_preserve_party_facing;
+static bool g_combat_preserve_party_facing;
 
 /* Sync party facing/heading from the camera yaw and refresh the formation
    compass. Level-data flag 6 and combat-with-preserve skip writing facing. */
@@ -543,7 +543,7 @@ void CompactFormationRow(W8PartyFormationState* formation, unsigned char row)
 
 // FUNCTION: WIZ8 0x00554bd0
 void SetFormationPosition(W8PartyFormationState* formation, int slot, signed char new_row,
-                          signed char new_column, char announce, char detach, char update_facing)
+                          signed char new_column, bool announce, bool detach, bool update_facing)
 {
     W8PartyFormationPosition* position = &formation->positions[slot];
     signed char old_row = position->bQuadrant;

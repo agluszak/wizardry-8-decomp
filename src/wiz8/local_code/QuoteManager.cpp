@@ -120,7 +120,7 @@ void RedrawPortraitQuoteBubbles(void)
 }
 
 // FUNCTION: WIZ8 0x0052fe80
-void StartBreathCycle(int party_slot, char force)
+void StartBreathCycle(int party_slot, bool force)
 {
     if ((gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) || force != 0) {
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_special_event_0068c50c, 0,
@@ -935,7 +935,7 @@ finish_without_dispatch:
 /* 0x0052F890: turn a party-slot portrait/voice event on or off, optionally
    laying out the quote bubble and posting subtitle notices when one ends. */
 // FUNCTION: WIZ8 0x0052F890
-void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
+void SetPartyPortraitEventState(unsigned int party_slot, bool active,
                                 unsigned int event_type, const wchar_t* quote_text, int show_quote)
 {
     W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[party_slot];
@@ -1040,8 +1040,8 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
     if (quote_text == 0 || show_quote == 0) {
         quote->quote_handle = -1;
     } else {
-        unsigned char layout_quote = 0;
-        unsigned char use_modal_gate = 0;
+        bool layout_quote = 0;
+        bool use_modal_gate = 0;
         if (static_cast<int>(g_normal_event_count) < static_cast<int>(event_type)) {
             use_modal_gate = 1;
         } else {
@@ -1539,7 +1539,7 @@ void QueuePartyDeathReaction(unsigned int party_slot)
     unsigned int selected[1];
     unsigned int remaining;
     unsigned int index;
-    unsigned char skip_first_two = 0;
+    bool skip_first_two = 0;
     int effect;
 
     if (party_slot < 2) {
@@ -2023,7 +2023,7 @@ void RenderPartyPortrait(int portrait, int left, int top, int flags, unsigned ch
    is moving to, and a dead character stops after the B track. */
 // FUNCTION: WIZ8 0x0052ebe0
 bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
-                                char animate)
+                                bool animate)
 {
     W8MonsterManagerEntry* state = &gXStatus.monster_manager_entries[party_slot];
     W8ScreenRect rect;

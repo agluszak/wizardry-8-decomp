@@ -493,10 +493,10 @@ unsigned int g_captured_region_index;
 // GLOBAL: WIZ8 0x00689B4C
 unsigned int g_hover_region_index;
 // GLOBAL: WIZ8 0x00689B50
-unsigned char g_region_help_force_enabled;
+bool g_region_help_force_enabled;
 
 // GLOBAL: WIZ8 0x00689B32
-unsigned char g_dev_mode;
+bool g_dev_mode;
 
 // FUNCTION: WIZ8 0x004f27a0
 void SetRegionHelpDelay(int delay_ms)
@@ -508,7 +508,7 @@ void SetRegionHelpDelay(int delay_ms)
 }
 
 // FUNCTION: WIZ8 0x004F27C0
-void SetRegionHelpForceEnabled(unsigned char enabled)
+void SetRegionHelpForceEnabled(bool enabled)
 {
     g_region_help_force_enabled = enabled;
 }
@@ -1052,7 +1052,7 @@ void SetRegionHelpText(const wchar_t* text)
 }
 
 // FUNCTION: WIZ8 0x004f27f0
-void ResetRegionHelp(unsigned char delayed)
+void ResetRegionHelp(bool delayed)
 {
     unsigned int region_index = g_current_region_index;
 
@@ -1136,7 +1136,7 @@ void SetRegionOwner(unsigned int region_index, Controls* owner)
 }
 
 // FUNCTION: WIZ8 0x004f2a30
-void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id)
+void SetRegionHelp(unsigned int region_index, bool enabled, int help_text_id)
 {
     if (region_index > g_region_count) {
         srAssertFail("uiRegionIndex <= guiRegionCount",

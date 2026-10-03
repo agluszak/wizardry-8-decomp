@@ -8,7 +8,7 @@
 extern W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT];
 extern W8ScreenStateRuntime g_current_screen_state;
 extern W8ScreenStateRuntime g_pending_screen_state;
-extern unsigned char g_screen_return_requested;
+extern bool g_screen_return_requested;
 extern HSTACK g_screen_return_stack;
 extern int g_previous_screen_id;
 extern int g_suspended_screen_id;

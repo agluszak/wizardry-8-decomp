@@ -468,8 +468,8 @@ void W8TextBuffer::SetText(const wchar_t* text, int font)
 }
 
 // FUNCTION: WIZ8 0x004f3540
-void W8TextBuffer::SetLayoutBounds(const W8ControlsRect* bounds, unsigned char copy_pending,
-                                   unsigned char update_layout)
+void W8TextBuffer::SetLayoutBounds(const W8ControlsRect* bounds, bool copy_pending,
+                                   bool update_layout)
 {
     m_layoutBounds = *bounds;
     if (copy_pending) {
@@ -613,7 +613,7 @@ void W8TextBuffer::FillBounds(int colour)
    temporary terminators are restored before advancing to the next line. */
 // FUNCTION: WIZ8 0x004f3710
 void W8TextBuffer::RenderText(unsigned char* buffer, unsigned int pitch, int x_offset, int y_offset,
-                              unsigned char force)
+                              bool force)
 {
     wchar_t* line = m_buffer;
     if (line == 0 || (force == 0 && m_geometryDirty == 0)) {

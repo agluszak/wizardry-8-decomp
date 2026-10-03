@@ -78,7 +78,7 @@ public:
 static_assert(sizeof(W8SoundEvent) == 0x38, "W8SoundEvent_must_be_0x38");
 
 W8SoundEvent* CreateSoundEvent(int kind, int cycle, int frame, int subcycle, const char* wave_name,
-                               unsigned char looping); /* 0x004D57A0 */
+                               bool looping); /* 0x004D57A0 */
 
 unsigned char UpdateSoundEvents(W8GrowableVector<W8SoundEvent*>* events,
                                 const srVector3T<float>* position, unsigned int event_mask,

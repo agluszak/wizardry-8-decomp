@@ -1076,7 +1076,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
    and marching-order entry, and fix the member counts and selection. Saving
    is only meaningful for NPC-bound slots; a failed save keeps the member. */
 // FUNCTION: WIZ8 0x004EF610
-unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
+unsigned char RemoveCharacterFromParty(int party_slot, bool save_character_data)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
@@ -1129,7 +1129,7 @@ unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
    bought out of the party gold the way a new recruit would bring it. */
 // FUNCTION: WIZ8 0x004ef7e0
 unsigned char RecruitCharacterIntoParty(W8Character* character, W8Character* record,
-                                        char buy_equipment)
+                                        bool buy_equipment)
 {
     unsigned int slot = CharacterPointerToPartySlot(character);
     int index;

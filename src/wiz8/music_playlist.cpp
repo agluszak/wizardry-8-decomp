@@ -33,7 +33,7 @@ int g_music_playlist_track_count;
 // GLOBAL: WIZ8 0x0060AAE4
 static unsigned char g_music_fade = 1;
 // GLOBAL: WIZ8 0x0060AAE5
-static unsigned char g_music_force_next = 1;
+static bool g_music_force_next = 1;
 // GLOBAL: WIZ8 0x0060AAE8
 int g_music_pause_min_seconds = 20;
 // GLOBAL: WIZ8 0x0060AAEC
@@ -271,7 +271,7 @@ unsigned char StartMusicResource(const char* resource, int fade, unsigned char r
 }
 
 // FUNCTION: WIZ8 0x0048FF00
-void StopMusicPlaylist(unsigned char fade)
+void StopMusicPlaylist(bool fade)
 {
     if (fade != 0) {
         if (g_music_sample_handle != -1) {

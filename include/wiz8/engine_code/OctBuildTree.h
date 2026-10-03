@@ -84,7 +84,7 @@ struct W8OctBuildTree {
     /* Box-vs-bounds classification: 2 when the box sits fully inside bounds,
        1 on a partial overlap, 0 when disjoint. `leaf` early-outs the corner
        scan at the bottom octree level. */
-    int ClassifyBoxBounds(const float* box, const float* bounds, char leaf);
+    int ClassifyBoxBounds(const float* box, const float* bounds, bool leaf);
 
     W8OctSpatialState spatial_00;
     W8OctBuildLinkLists* link_lists_9c;
@@ -94,7 +94,7 @@ struct W8OctBuildTree {
     unsigned short max_leaf_regions_ac;
     unsigned short unknown_ae;
     unsigned long region_assignments_b0;
-    unsigned char use_owned_nodes_b4;
+    bool use_owned_nodes_b4;
     unsigned char unknown_b5[3];
     unsigned long deepest_link_list_b8;
 };

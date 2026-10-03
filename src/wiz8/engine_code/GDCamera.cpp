@@ -381,7 +381,7 @@ void GDCamera::SetOrientationImmediate(float pitch, float angle)
 }
 
 // FUNCTION: WIZ8 0x00476F90
-unsigned char GDCamera::LookAt(const srVector3T<float>* target, unsigned char preserve_pitch)
+unsigned char GDCamera::LookAt(const srVector3T<float>* target, bool preserve_pitch)
 {
     if (gXStatus.fNpcDialogueMode == 0) {
         if ((m_state_000 & 1) != 0) {
@@ -492,7 +492,7 @@ unsigned char GDCamera::ComputeTrackingOrientation(const srVector3T<float>* targ
 
 // FUNCTION: WIZ8 0x00477440
 unsigned char GDCamera::BeginOrientationTransition(float target_pitch, float target_angle,
-                                                   unsigned char force)
+                                                   bool force)
 {
     if (force == 0 && gXStatus.fNpcDialogueMode == 0) {
         if ((m_state_000 & 1) != 0) {
@@ -659,8 +659,8 @@ void GDCamera::ApplyYawInput(float input)
     }
 
     if (m_transition_active == 0 || (m_state_000 & 0x20) != 0) {
-        unsigned char decelerating_negative = 0;
-        unsigned char decelerating_positive = 0;
+        bool decelerating_negative = 0;
+        bool decelerating_positive = 0;
         if (input == g_float_005ebb34) {
             if (m_angle_velocity_0a8 < g_float_005ebb34) {
                 input = CAMERA_TURN_RATE;
@@ -724,8 +724,8 @@ void GDCamera::ApplyPitchInput(float input)
         return;
     }
 
-    unsigned char decelerating_negative = 0;
-    unsigned char decelerating_positive = 0;
+    bool decelerating_negative = 0;
+    bool decelerating_positive = 0;
     if (input == g_float_005ebb34) {
         if (m_pitch_velocity_0ac < g_camera_negative_velocity_epsilon) {
             input = CAMERA_TURN_RATE;
@@ -906,7 +906,7 @@ void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
 }
 
 // FUNCTION: WIZ8 0x00478E00
-void GDCamera::SetManualControlActive(unsigned char enabled)
+void GDCamera::SetManualControlActive(bool enabled)
 {
     if (enabled != 0 && gXStatus.fNpcDialogueMode == 0 && g_status.world_cursor_gate_2435 == 0) {
         m_state_000 |= 1;

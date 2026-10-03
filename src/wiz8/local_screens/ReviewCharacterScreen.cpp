@@ -121,9 +121,9 @@ int g_fade_out;
 // GLOBAL: WIZ8 0x0069c124
 unsigned int g_ending_sound;
 // GLOBAL: WIZ8 0x0069c128
-unsigned char g_ending_screen;
+bool g_ending_screen;
 // GLOBAL: WIZ8 0x0069c129
-unsigned char g_ending_autosave;
+bool g_ending_autosave;
 // GLOBAL: WIZ8 0x0069c40c
 unsigned int g_camp_spell_region_sets[6];
 // GLOBAL: WIZ8 0x0069c408
@@ -215,7 +215,7 @@ wchar_t g_format_s_colon[] = L"%s: ";
 /* Enable or disable the six spell-realm scrollbars together. While enabling, a
    realm whose learned spells fit the eight visible rows keeps its bar off. */
 // FUNCTION: WIZ8 0x005B71C0
-void SetCampSpellRangesEnabled(unsigned char enable)
+void SetCampSpellRangesEnabled(bool enable)
 {
     W8CampSpellRange* spell_range;
     int realm;
@@ -1909,15 +1909,15 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     bool changed = false;
     bool merged = false;
     unsigned char partially_merged = 0;
-    unsigned char merge_tried = 0;
-    unsigned char same_kind = 0;
-    unsigned char choose_character;
+    bool merge_tried = 0;
+    bool same_kind = 0;
+    bool choose_character;
     unsigned int index;
     unsigned int old_pool_count;
     int result;
     int party_slot;
     int paired_slot;
-    unsigned char reidentify;
+    bool reidentify;
     W8ItemInstance* paired;
     W8Character* character;
     W8NpcState* npc;
@@ -2011,7 +2011,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
        it only touches a weapon-class slot or folds into the same-kind merge.
        A weapon or shield being moved onto a slot it cannot pair with stays
        gated as well. */
-    unsigned char gated = 1;
+    bool gated = 1;
     if (gXStatus.fCombatMode != 0 && origin != 2) {
         if (g_status.item_in_cursor == 0 ||
             ((g_item_records[g_status.item_in_hand_235b.iItemNo].equip_class == 2 ||
@@ -2631,7 +2631,7 @@ void BeginEndgameSequence(void)
 {
     int fade_to_black = 0;
     int fade_code = 0x5dc;
-    char endgame_variant = 0;
+    bool endgame_variant = 0;
 
     g_status.endgame_started_49c0 = 1;
     UpdateHeldItemCursor();
@@ -2647,7 +2647,7 @@ void BeginEndgameSequence(void)
     VideoRemoveToolTip();
     g_level_block->transition_pending = 1;
     g_level_block->review_transition_active = 1;
-    BeginScreenFade(fade_to_black, 0, fade_code, ShowEndingScreen, 1, endgame_variant);
+    BeginScreenFade(fade_to_black, 0, fade_code, ShowEndingScreen, true, endgame_variant);
 }
 
 /* Begin a timed full-screen fade: spawn a 640x480 colored quad over the UI,
@@ -2657,7 +2657,7 @@ void BeginEndgameSequence(void)
    darkening to black); `fade_out` selects the direction the opacity runs. */
 // FUNCTION: WIZ8 0x005A6620
 void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callback)(void),
-                     char flag, char arg_6)
+                     bool flag, char arg_6)
 {
     srShader shader;
     srVector4T<float> color;

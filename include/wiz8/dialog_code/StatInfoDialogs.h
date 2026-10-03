@@ -56,8 +56,8 @@ private:
 // VTABLE: WIZ8 0x005efd08
 class W8SkillInfoDialog : public W8StatInfoDialogBase {
 public:
-    W8SkillInfoDialog(unsigned int skill, unsigned char first, unsigned char second,
-                      unsigned char bonus);
+    W8SkillInfoDialog(unsigned int skill, bool first, bool second,
+                      bool bonus);
     virtual ~W8SkillInfoDialog() override;
 
 protected:

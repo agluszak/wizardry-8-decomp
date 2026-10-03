@@ -371,7 +371,7 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index)
    the caller's own file and line are threaded through for the message. */
 // FUNCTION: WIZ8 0x005100b0
 unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, int group_id,
-                                      unsigned char assert_on_failure)
+                                      bool assert_on_failure)
 {
     unsigned int index;
     W8MonsterGroup* group;
@@ -584,7 +584,7 @@ W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index)
    which is why every path returns one. */
 // FUNCTION: WIZ8 0x0050fba0
 unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group,
-                                        const srVector3T<float>* position, char follow_leader)
+                                        const srVector3T<float>* position, bool follow_leader)
 {
     if (monster_group != 0) {
         while (follow_leader != 0 && monster_group->leader_group_id != 0) {
@@ -820,7 +820,7 @@ void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_stat
 }
 
 // FUNCTION: WIZ8 0x00511B40
-bool MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group, char require_threat)
+bool MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group, bool require_threat)
 {
     if (monster_group->members_active == 0) {
         return false;
@@ -1008,8 +1008,8 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* m
    register it on the species or encounter list. */
 // FUNCTION: WIZ8 0x0050F1A0
 W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
-                            const srVector3T<float>* position, unsigned char use_alternate_name,
-                            unsigned char announce_spawn, unsigned char place_on_ground)
+                            const srVector3T<float>* position, bool use_alternate_name,
+                            bool announce_spawn, bool place_on_ground)
 {
     W8MonsterGroup* group;
     W8MonsterRecord* record;
@@ -1522,7 +1522,7 @@ const float g_float_005ebb30 = 0.8f;
    radius. `yaw` is read by the prototype but the body never uses it. */
 // FUNCTION: WIZ8 0x00511050
 bool PositionMonsterGroupNearCamera(W8MonsterGroup* group, float distance, float yaw,
-                                    unsigned char flag)
+                                    bool flag)
 {
     srVector3T<float> camera;
     srVector3T<float> target;
@@ -1737,7 +1737,7 @@ unsigned char GetMonsterGroupEngagementState(int group_id)
 }
 
 // FUNCTION: WIZ8 0x00511CE0
-void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag)
+void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, bool flag)
 {
     W8MonsterInfo* member_info;
     unsigned int index;

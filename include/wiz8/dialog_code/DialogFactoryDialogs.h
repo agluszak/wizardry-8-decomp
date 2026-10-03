@@ -27,9 +27,9 @@ public:
     W8DialogNumericInput(int control_id, const W8ControlsRect* bounds, int value, int font,
                          W8DialogBase* dialog, W8DialogButton* button);
     void SetValue(int value);                                 /* 0x005E14C0 */
-    void SetActive(unsigned char active);                     /* 0x005E14D0 */
-    void SetActive(unsigned char active, const POINT* point); /* 0x005E1500 */
-    void Draw(unsigned char force);                           /* 0x005E15C0 */
+    void SetActive(bool active);                     /* 0x005E14D0 */
+    void SetActive(bool active, const POINT* point); /* 0x005E1500 */
+    void Draw(bool force);                           /* 0x005E15C0 */
     unsigned char HandleInput(const InputAtom* input);        /* 0x005E19A0 */
 
 private:
@@ -49,7 +49,7 @@ public:
     int m_font;             /* 0x14 */
     int m_value;            /* 0x18 */
     bool m_dirty;           /* 0x1c */
-    unsigned char m_active; /* 0x1d */
+    bool m_active; /* 0x1d */
     unsigned char padding_01e[2];
     /* 0x20: -1, then the stack total for the split dialogs. The acceptance
        test in TypeDigit compares unsigned, so -1 is "no maximum". */

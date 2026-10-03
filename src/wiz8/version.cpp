@@ -8,7 +8,7 @@
    (lower 0x004E3820). */
 
 // FUNCTION: WIZ8 0x004E3620
-void FormatVersionBanner(char* out, char with_title, char with_build, char with_date)
+void FormatVersionBanner(char* out, bool with_title, bool with_build, bool with_date)
 {
     out[0] = '\0';
     if (with_title) {

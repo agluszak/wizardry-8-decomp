@@ -371,7 +371,7 @@ int g_monster_special_attack_name_ids[12] = {0,    1598, 1599, 1600, 1601, 1602,
                                              1603, 1604, 1605, 1606, 1607, 1608};
 
 // FUNCTION: WIZ8 0x00547540
-void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, char recurse)
+void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, bool recurse)
 {
     unsigned int group_list_index =
         GetMonsterGroupIndexByID(0x207, COMBAT_HOSTILITY_CPP, group_id, 1);
@@ -380,7 +380,7 @@ void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, char rec
 }
 
 // FUNCTION: WIZ8 0x00547570
-void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, char recurse)
+void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, bool recurse)
 {
     if (MonsterGroupAllMembersDying(group)) {
         return;
@@ -475,7 +475,7 @@ void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
 }
 
 // FUNCTION: WIZ8 0x00547bf0
-unsigned char CanPartySlotTurnUndead(int party_slot)
+bool CanPartySlotTurnUndead(int party_slot)
 {
     if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], W8_TRAIT_TURN_UNDEAD) || g_combat_state == 0 ||
         g_combat_state->characters[party_slot].turn_undead_used) {
@@ -492,7 +492,7 @@ unsigned char CanPartySlotTurnUndead(int party_slot)
 }
 
 // FUNCTION: WIZ8 0x00547cb0
-int TurnUndead(int party_slot, int* out_cost, char check)
+int TurnUndead(int party_slot, int* out_cost, bool check)
 {
     W8GrowableVector<int> monsters;
     W8GrowableVector<int> party;
@@ -542,7 +542,7 @@ int TurnUndead(int party_slot, int* out_cost, char check)
 }
 
 // FUNCTION: WIZ8 0x00547f40
-unsigned char CanPartySlotPray(int party_slot)
+bool CanPartySlotPray(int party_slot)
 {
     if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], W8_TRAIT_PRAY) || g_combat_state == 0 ||
         g_combat_state->characters[party_slot].pray_used) {

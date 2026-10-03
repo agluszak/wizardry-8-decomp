@@ -169,7 +169,7 @@ void MGSKeyboard::Clear()
 }
 
 // FUNCTION: WIZ8 0x0055d590
-unsigned char MGSKeyboard::Load(int handle, unsigned char clear)
+unsigned char MGSKeyboard::Load(int handle, bool clear)
 {
     int count;
 
@@ -995,7 +995,7 @@ void AssignKeyboardMenuCallback(short menu, short item, W8TextControl* row)
 }
 
 // FUNCTION: WIZ8 0x005936F0
-void RedrawKeyboardMenuPanel(unsigned char invalidate)
+void RedrawKeyboardMenuPanel(bool invalidate)
 {
     if (invalidate != 0) {
         g_keyboard_menu_panel->Invalidate(0);

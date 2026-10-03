@@ -47,7 +47,7 @@ W8Monster* GetNpcMonster(W8NpcState* npc);
 void ChooseNewGameStartLocation(int* level, int* entrance);                         /* 0x005092F0 */
 void SelectStartNpcGreeting(void);                                                  /* 0x00509560 */
 int SelectNewGameStartLevel(void);                                                  /* 0x00509750 */
-void BindNpcToMonster(unsigned char value, unsigned char enabled, int location_id); /* 0x00509CD0 */
+void BindNpcToMonster(unsigned char value, bool enabled, int location_id); /* 0x00509CD0 */
 bool RecruitNpcIntoParty(W8NpcState* npc);                                          /* 0x0050B160 */
 int DismissNpcFromParty(int party_slot, int unused, bool skip_spawn, bool neutral); /* 0x0050B590 */
 void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character);              /* 0x0050DDC0 */
@@ -62,7 +62,7 @@ bool ProbeNpcPlacementNearParty(int party_slot, int mode,
 bool CanPlaceNpcNearParty(int party_slot);                        /* 0x0050B2D0 */
 W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc);                /* 0x0050A3C0 */
 W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info,
-                                      unsigned char allow_unavailable); /* 0x0050A4A0 */
+                                      bool allow_unavailable); /* 0x0050A4A0 */
 void ResumeNpc(W8NpcState* npc, int enabled);                           /* 0x0050AE40 */
 void QueueNpcTravelRefusals(int destination_level);                     /* 0x0050E230 */
 void MarkNpcOfKind(int kind);                                           /* 0x0050CA30 */

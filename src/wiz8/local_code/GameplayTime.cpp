@@ -1161,7 +1161,7 @@ after_early: {
             amount += amount >> 1;
         }
         ResetTargetSource(&source);
-        ApplyDamageToMonster(monster_info, amount, &source, 1, gXStatus.fCombatMode, 0, 0, 0);
+        ApplyDamageToMonster(monster_info, amount, &source, true, gXStatus.fCombatMode, 0, 0, 0);
     }
 }
     if (monster_info->uiCondition[2] != 0) {
@@ -1333,7 +1333,7 @@ void UpdateCampFatigue(int ticks)
                         amount -= stamina;
                         FatigueCharacter(slot, stamina, 0, static_cast<W8SpellEffectResult*>(0));
                     }
-                    char announce =
+                    bool announce =
                         gXStatus.fCombatMode == 0 || g_settings.verbose_combat_messages == 0 ? 0
                                                                                              : 1;
                     ApplyDamageToCharacter(slot, amount, 0, announce, 0,

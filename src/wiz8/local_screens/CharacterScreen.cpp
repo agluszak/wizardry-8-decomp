@@ -358,7 +358,7 @@ void W8CharacterScreen::ShowCharacterSummary()
 }
 
 // FUNCTION: WIZ8 0x005b0b50
-void W8CharacterScreen::AdvancePage(unsigned char forward)
+void W8CharacterScreen::AdvancePage(bool forward)
 {
     if (!forward || (m_page_index_00c != 3 && m_next_1af8->m_enabled)) {
         int index = m_page_index_00c;

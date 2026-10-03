@@ -15,7 +15,7 @@ unsigned char InitializeMusicPlaylist(void);
 unsigned char StartMusicResource(const char* resource, int fade, unsigned char replace_current);
 
 void ServiceMusicPlaylist(void);
-void StopMusicPlaylist(unsigned char fade);
+void StopMusicPlaylist(bool fade);
 
 bool IsCurrentMusicPlaylist(const char* playlist);
 

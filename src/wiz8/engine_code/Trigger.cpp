@@ -90,7 +90,7 @@ W8GrowableVector<char*> g_location_variable_names;
 W8GrowableVector<int> g_location_variable_values;
 
 // GLOBAL: WIZ8 0x00606994
-unsigned char g_trigger_feedback = 1;
+bool g_trigger_feedback = 1;
 
 // GLOBAL: WIZ8 0x0068c520
 int g_container_event_alt = g_first_remapped_event + 13;
@@ -2576,7 +2576,7 @@ void Trigger::GenerateItemGroup()
    create and none exists yet a bare container item is spawned into the world
    and remembered. */
 // FUNCTION: WIZ8 0x00445670
-W8WorldItem* Trigger::GetOrCreateItemGroup(char create)
+W8WorldItem* Trigger::GetOrCreateItemGroup(bool create)
 {
     srVector3T<float> position;
 
@@ -2811,7 +2811,7 @@ void Trigger::Run(int source)
                 action_data->flags_008 &= ~4;
             }
 
-            m_pProp->SetRepresentationActive(1, 1);
+            m_pProp->SetRepresentationActive(1, true);
             state_index = 1;
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
                 m_pWorld->m_owned_04c->SetInterfaceState(surface_id, 1);
@@ -2853,7 +2853,7 @@ void Trigger::Run(int source)
                 break;
             }
             state_index = state_index == 1 ? 0 : 1;
-            m_pProp->SetRepresentationActive(state_index, 1);
+            m_pProp->SetRepresentationActive(state_index, true);
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
                 m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
             }
@@ -2887,7 +2887,7 @@ void Trigger::Run(int source)
                 break;
             }
             was_active = m_pProp->Rep()->animation_playing_06d;
-            m_pProp->SetRepresentationActive(!was_active, 1);
+            m_pProp->SetRepresentationActive(!was_active, true);
             state_index = state_index == 0;
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
                 m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
@@ -2954,7 +2954,7 @@ void Trigger::Run(int source)
 
             if (m_bRepType == 2 && m_pProp != 0 && tag != -1) {
                 m_pProp->Rep()->SelectAnimationSlot(static_cast<unsigned char>(tag));
-                m_pProp->SetRepresentationActive(1, 1);
+                m_pProp->SetRepresentationActive(1, true);
                 state_index = static_cast<unsigned char>(tag);
                 goto commit_action;
             }
@@ -3115,7 +3115,7 @@ void Trigger::Run(int source)
         }
 
     toggle_item_prop:
-        m_pProp->SetRepresentationActive(!was_active, 1);
+        m_pProp->SetRepresentationActive(!was_active, true);
         state_index = state_index == 0;
         if (m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
             m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
@@ -3137,7 +3137,7 @@ void Trigger::Run(int source)
             (action_230 == 0x33 && m_pProp->Rep()->animation_playing_06d == 0)) {
             return;
         }
-        m_pProp->SetRepresentationActive(action_230 == 0x32, 1);
+        m_pProp->SetRepresentationActive(action_230 == 0x32, true);
         state_index = state_index == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
             m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
@@ -3303,7 +3303,7 @@ void Trigger::Run(int source)
         if (m_pProp == 0 || source != m_lData1 || m_pProp->Rep()->animation_playing_06d == 0) {
             return;
         }
-        m_pProp->SetRepresentationActive(m_pProp->Rep()->animation_playing_06d == 0, 1);
+        m_pProp->SetRepresentationActive(m_pProp->Rep()->animation_playing_06d == 0, true);
         state_index = state_index == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
             m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
@@ -3314,7 +3314,7 @@ void Trigger::Run(int source)
         if (m_pProp == 0 || source != m_lData1) {
             return;
         }
-        m_pProp->SetRepresentationActive(m_pProp->Rep()->animation_playing_06d == 0, 1);
+        m_pProp->SetRepresentationActive(m_pProp->Rep()->animation_playing_06d == 0, true);
         state_index = state_index == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
             m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
@@ -3488,7 +3488,7 @@ void Trigger::Run(int source)
             g_location_variable_values.SetAt(state_id, 0);
         }
         state_index = m_pProp->Rep()->AdvanceAnimationSegment();
-        m_pProp->SetRepresentationActive(1, 0);
+        m_pProp->SetRepresentationActive(1, false);
         if (m_pacStateToMod != 0) {
             char state_name[132];
             int state_id;

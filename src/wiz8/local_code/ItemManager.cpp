@@ -78,7 +78,7 @@ extern const double g_drop_item_vertical_scale = -2500.0;
 /* 0x0064A1CD: when set, skip activating world items that already carry flag
    bit 0. */
 // GLOBAL: WIZ8 0x0064a1cd
-unsigned char g_hide_invisible_items = 1;
+bool g_hide_invisible_items = 1;
 
 // FUNCTION: WIZ8 0x004f69f0
 bool InitializeItemManagerState()
@@ -338,7 +338,7 @@ int FindItemRecordByName(const char* name)
 /* Walk the world item list, resuming where the last call left off. Restarting
    rewinds; running off the end answers nothing without rewinding. */
 // FUNCTION: WIZ8 0x004f82b0
-W8WorldItem* GetNextWorldItem(char restart)
+W8WorldItem* GetNextWorldItem(bool restart)
 {
     int index;
 
@@ -427,7 +427,7 @@ W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item)
 }
 
 // FUNCTION: WIZ8 0x004f94a0
-void SetWorldItemFlag02(W8WorldItem* item, char enabled)
+void SetWorldItemFlag02(W8WorldItem* item, bool enabled)
 {
     if (enabled) {
         item->flags |= W8_WORLD_ITEM_FLAG_02;
@@ -762,7 +762,7 @@ void DeactivateWorldItem(W8WorldItem* item)
 /* Highlight or un-highlight a world item by runtime id: the rep's highlight
    bit tracks the SetHighlight call so the marker and the flag stay in step. */
 // FUNCTION: WIZ8 0x004F71E0
-void SetWorldItemHighlight(int runtime_id, char on)
+void SetWorldItemHighlight(int runtime_id, bool on)
 {
     W8WorldItem* item = ItemInfo(ItemIndex(runtime_id));
     W8Item* world_item = item->p3D;
@@ -1258,7 +1258,7 @@ void RebuildAllWorldItemInstances(void)
 
 // FUNCTION: WIZ8 0x004f6b90
 W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* position,
-                             int entity_flags, unsigned char add_to_world)
+                             int entity_flags, bool add_to_world)
 {
     W8WorldItem* result = static_cast<W8WorldItem*>(malloc(sizeof(W8WorldItem)));
 
@@ -1287,7 +1287,7 @@ W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* posi
 
 // FUNCTION: WIZ8 0x004f6c50
 W8WorldItem* SpawnItem(int item_id, const srVector3T<float>* position, int entity_flags,
-                       unsigned char add_to_world)
+                       bool add_to_world)
 {
     W8ItemInstance local_item;
     W8ItemInstance* item;

@@ -136,10 +136,10 @@ void FinalizeStaticScene(srScene* scene)
    light. "Sun"-prefixed lights bake into the sunlight array instead and are
    skipped here. `walk_chain` limits the light walk to the first sibling. */
 // FUNCTION: WIZ8 0x0046E8A0
-unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* lights, char walk_chain)
+unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* lights, bool walk_chain)
 {
     srVector3T<float>* directions = 0;
-    unsigned char locations_allocated = 0;
+    bool locations_allocated = 0;
     stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel());
     srVector3T<float> location;
     location = instance->getWorldSpaceLocation();

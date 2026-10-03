@@ -494,7 +494,7 @@ void ResetMainScreenStateBlock(void)
 /* Forward a monster-script notice to the targeting layer unless the screen is
    busy or this NPC kind suppresses it. */
 // FUNCTION: WIZ8 0x0056C590
-void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, unsigned char suppress)
+void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, bool suppress)
 {
     if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fCombatMode == 0 &&
         (npc->record->kind != 7 || GetFact(W8_FACT_ARNIKA_MYLES_MEET_ONCE) != 1)) {
@@ -509,11 +509,11 @@ void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, uns
    0x10/0x11 NPCs with fact 0xbf substitute their own notice line and raise
    the flag byte. */
 // FUNCTION: WIZ8 0x0056C5E0
-void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, unsigned char suppress,
+void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, bool suppress,
                           unsigned char arg)
 {
     W8MonsterInfo* info;
-    unsigned char flag;
+    bool flag;
 
     if (FindNpcOfKind(npc->name_style) != 0 && npc->record->monster_bound_054 == 0) {
         return;
@@ -676,13 +676,13 @@ void DispatchPendingNpcScriptNotice(void)
    dispatch: a record-0x056 NPC takes the plain quote, otherwise the
    disposition band picks the hostile or friendly entry. */
 // FUNCTION: WIZ8 0x0056CAD0
-unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsigned char force)
+unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool force)
 {
     W8NpcInteractionState* state;
     W8MonsterInfo* info;
     W8MonsterInfo* dialogue_info;
     unsigned char band;
-    unsigned char greet;
+    bool greet;
     wchar_t space[2];
     srVector3T<float> position;
 
@@ -1160,7 +1160,7 @@ void ServiceNpcDialogue(void)
    text controls, restore the held item or target cursor, queue the parting
    character event and hand control back to the world. */
 // FUNCTION: WIZ8 0x0056E800
-void EndNpcDialogueSession(unsigned char param_1)
+void EndNpcDialogueSession(bool param_1)
 {
     if (gXStatus.fNpcDialogueMode == 0) {
         return;
@@ -1304,7 +1304,7 @@ void InvalidateMainGameActionPanelRect(const W8ControlsRect* rect)
    The panel_1ac dirty check snapshots its state before Redraw consumes it and
    repaints the shared text-box scroll chrome alongside. */
 // FUNCTION: WIZ8 0x0056ECF0
-void ActivateNpcDialoguePanels(unsigned char active)
+void ActivateNpcDialoguePanels(bool active)
 {
     bool redraw_scroll = false;
     if (g_npc_interaction_state->scripted_dialogue == 0) {
@@ -1429,7 +1429,7 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
 {
     unsigned int callback_id = region->callback_id;
     W8Widget* control;
-    unsigned char arg;
+    bool arg;
 
     if (callback_id == 0x27) {
         return 0;
@@ -1598,7 +1598,7 @@ unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* re
 /* Mouse-wheel line tracking on the main NPC text box: flag forces the redraw
    even when the hovered line has not changed. */
 // FUNCTION: WIZ8 0x0056F490
-void NpcDialogueTextBoxWheelAt(short x, unsigned short y, char flag)
+void NpcDialogueTextBoxWheelAt(short x, unsigned short y, bool flag)
 {
     int line;
 
@@ -2888,7 +2888,7 @@ void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog)
    go through the NPC's own inventory. pick/commit drive quantity stepping,
    the click chime and the highlight tick. */
 // FUNCTION: WIZ8 0x005729C0
-W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char commit)
+W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char commit)
 {
     wchar_t count_text[32];
     wchar_t* text;
@@ -3616,7 +3616,7 @@ W8ItemInstance* GetNpcTradeSlotItem(int index)
 }
 
 // FUNCTION: WIZ8 0x00574250
-void HandleNpcDialogueReply(wchar_t* text, char echo)
+void HandleNpcDialogueReply(wchar_t* text, bool echo)
 {
     wchar_t notice[200];
     int line;
@@ -3989,7 +3989,7 @@ void HandleNpcDialogueKeyEvent(const InputAtom* event)
             return;
         }
         case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX: {
-            unsigned char cursor = g_npc_interaction_state->reopen_topics;
+            bool cursor = g_npc_interaction_state->reopen_topics;
             CloseNpcDialogueOptionLayout();
             if (cursor != 0) {
                 ShowNpcDialogueTopicMenu();
@@ -4034,7 +4034,7 @@ void HandleNpcDialogueKeyEvent(const InputAtom* event)
 }
 
 // FUNCTION: WIZ8 0x00574F90
-void SetDialogueFieldKeyword(wchar_t* keyword, unsigned char append)
+void SetDialogueFieldKeyword(wchar_t* keyword, bool append)
 {
     wchar_t field_text[200];
     wchar_t combined[200];
@@ -4242,7 +4242,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
 {
     W8MessageDialogBase* dialog;
     wchar_t* message;
-    unsigned char result;
+    bool result;
     unsigned char flag;
     int fact_result;
 
@@ -4386,7 +4386,7 @@ void DrainNpcDialogueDeferralInput(void)
     POINT mouse;
     InputAtom input;
     int prior_layout;
-    char reopen_topics;
+    bool reopen_topics;
 
     if (ShouldDeferCharacterEventForNpcScript(1) == 0 || gXStatus.fNpcDialogueMode == 0) {
         return;

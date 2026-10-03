@@ -84,18 +84,18 @@ bool ReadVector2Array(int file, srVector2T<float>* values, int count);
    closest segment point is written back over `point`; `out_t` returns the
    clamped [0,1] projection fraction. */
 float PointToSegmentDistance(srVector3T<float>* point, const srVector3T<float>* from,
-                             const srVector3T<float>* to, char clamp_point, float* out_t);
+                             const srVector3T<float>* to, bool clamp_point, float* out_t);
 /* XY-plane sibling over two-component vectors; the pathfinding code measures
    edge distances in plan view. */
 float PointToSegmentDistance2D(srVector2T<float>* point, const srVector2T<float>* from,
-                               const srVector2T<float>* to, char clamp_point,
+                               const srVector2T<float>* to, bool clamp_point,
                                float* out_t); /* 0x00437760 */
 /* Grow `minimum`/`maximum` to include `point`, returning whether any bound
    moved. */
 char GrowBoundsByPoint(const srVector3T<float>* point, srVector3T<float>* minimum,
                        srVector3T<float>* maximum); /* 0x004378F0 */
 /* Whether `point` lies within `radius` of the bounds box. */
-char SphereNearBounds(const srVector3T<float>* point, float radius,
+bool SphereNearBounds(const srVector3T<float>* point, float radius,
                       const W8BoundingBox* bounds); /* 0x004386A0 */
 
 /* The polygon index triples reuse the canonical float-vector entry point
@@ -362,13 +362,13 @@ public:
        coordinate words. */
     int DescendByMask(const unsigned int* masked_cell); /* 0x004336D0 */
     unsigned int GetSectorForPosition(const srVector3T<float>* position);
-    bool HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* to, char allow_fallback);
+    bool HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* to, bool allow_fallback);
     /* Paths `from` toward `to`; on success `range` returns the path cost and
        `hops` the reached-waypoint count. */
     unsigned char TestNoiseLineOfSight(const srVector3T<float>* from, srVector3T<float>* to,
                                        float* range, int* hops); /* 0x00434220 */
-    short TraceLineOfSight(const srVector3T<float>* from, srVector3T<float>* to, char trace_world,
-                           int from_location_id, int to_location_id, char visit_octree,
+    short TraceLineOfSight(const srVector3T<float>* from, srVector3T<float>* to, bool trace_world,
+                           int from_location_id, int to_location_id, bool visit_octree,
                            int trace_mode);
     void AdjustPortalDestination(srVector3T<float>* destination, const srVector3T<float>* source);
     void BuildCellWalk(const srVector3T<float>* from, const srVector3T<float>* to,
@@ -405,11 +405,11 @@ public:
        flatten every accepted position back to the source height. */
     unsigned int FindScatterPositions(const srVector3T<float>* position, float yaw, float spacing,
                                       unsigned int count, srVector3T<float>* positions,
-                                      char proximity_check, char flatten_y);
+                                      bool proximity_check, bool flatten_y);
     unsigned int FindNavigatorPosition(srVector3T<float>* source, float yaw, float radius,
                                        unsigned int count, srVector3T<float>* positions,
-                                       char first_only, char settle_any_height, char avoid_triggers,
-                                       int mode, char require_waypoint_span); /* 0x00437F30 */
+                                       bool first_only, bool settle_any_height, bool avoid_triggers,
+                                       int mode, bool require_waypoint_span); /* 0x00437F30 */
     unsigned int AdvanceNavigator(W8NavigatorMovementState* movement, float radius,
                                   float separation);
     unsigned char PrepareNavigatorTarget(W8NavigatorMovementState* movement, float radius,
@@ -455,12 +455,12 @@ public:
     /* Sweep the camera around `point`, mark cells whose meshes still draw
        into m_projected_regions_15c and return `point`'s region key (zero when
        nothing linked). */
-    unsigned int SampleRegionLinks(const srVector3T<float>* point, char descend, char clear_sets,
+    unsigned int SampleRegionLinks(const srVector3T<float>* point, bool descend, bool clear_sets,
                                    unsigned int region_key); /* 0x00431E10 */
     /* Rebuild the region-link table by camera-sampling the region grid;
        `rebuild_all` sweeps every cell and discards the saved point list, a
        zero value samples a sparse checkerboard plus the stored points. */
-    void BuildRegionLinks(char rebuild_all); /* 0x004314C0 */
+    void BuildRegionLinks(bool rebuild_all); /* 0x004314C0 */
     BOOLEAN SaveRegionLinks(char* path);
     unsigned char ValidateRegionMeshLinks();
     /* Collect the live (mesh<<16)|polygon keys whose triangles overlap the
@@ -475,7 +475,7 @@ public:
        `point`, through the region cells and volumes the sphere touches. */
     int CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
                                const srVector3T<float>* point, float radius, unsigned int flags,
-                               char only_accumulated); /* 0x0042F9A0 */
+                               bool only_accumulated); /* 0x0042F9A0 */
     unsigned char CollectVisibleRegions(srVector3T<float>* location, int* cells, float* depth,
                                         unsigned char mode);
     void CollectVisibleCells();
@@ -570,10 +570,10 @@ public:
     BitArray* m_projected_regions_15c;
     BitArray* m_current_regions_160;
     BitArray* m_previous_regions_164;
-    unsigned char m_reset_visibility_168;
+    bool m_reset_visibility_168;
     bool m_region_links_ready_169;
     bool m_projected_regions_valid_16a;
-    unsigned char m_positional_16b;
+    bool m_positional_16b;
     bool m_region_links_dirty_16c;
     bool m_points_dirty_16d;
     unsigned char m_padding_16e[2];
@@ -716,12 +716,12 @@ extern bool g_octree_update_suspended;
 extern bool g_octree_trace_enabled;
 /* Renderer switches the region-link build toggles: suppress baked vertex
    lighting, force front-face culling and strip textures while sampling. */
-extern unsigned char g_render_unlit;
-extern unsigned char g_render_cull_front;
+extern bool g_render_unlit;
+extern bool g_render_cull_front;
 /* Inverted-depth / alternate pass-compare mode; renderTriMesh forces GEQUAL
    and the frame clear path uses a zero clear-depth while this is set. */
-extern unsigned char g_inverted_depth_render;
-extern unsigned char g_render_untextured;
+extern bool g_inverted_depth_render;
+extern bool g_render_untextured;
 
 int CheckLevelAssetSet(const char* level_path);
 

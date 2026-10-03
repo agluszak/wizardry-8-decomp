@@ -923,7 +923,7 @@ static inline unsigned int FindDialogueTextLine(const W8DialogueTextState* input
 // FUNCTION: WIZ8 0x00590900
 int GetTextBoxVisibleLineCount(void)
 {
-    unsigned char dialogue = gXStatus.fNpcDialogueMode;
+    bool dialogue = gXStatus.fNpcDialogueMode;
     if (dialogue != 0) {
         if (g_npc_interaction_state->text_box_collapsed != 0) {
             return 1;
@@ -1455,7 +1455,7 @@ static void InsertDialogueTextCharacter(wchar_t character)
         ScrollTextBoxTo(shown - 8 + line);
     }
 
-    unsigned char joins_previous_line = 0;
+    bool joins_previous_line = 0;
     if (character == L' ') {
         unsigned int word_line = FindDialogueTextLine(g_level_block->dialogue_text_input);
         if (word_line > 1) {
@@ -1508,7 +1508,7 @@ void DeleteDialogueTextCharacter(unsigned int key)
         if (g_level_block->dialogue_text_input->cursor != 0) {
             unsigned int line = FindDialogueTextLine(g_level_block->dialogue_text_input);
             unsigned int word_line = FindDialogueTextLine(g_level_block->dialogue_text_input);
-            unsigned char joins_previous_line = 0;
+            bool joins_previous_line = 0;
             if (word_line > 1) {
                 unsigned int previous_start =
                     g_level_block->dialogue_text_input->line_offsets[word_line - 1];
@@ -1532,7 +1532,7 @@ void DeleteDialogueTextCharacter(unsigned int key)
         if (g_level_block->dialogue_text_input->cursor < length) {
             unsigned int line = FindDialogueTextLine(g_level_block->dialogue_text_input);
             unsigned int word_line = FindDialogueTextLine(g_level_block->dialogue_text_input);
-            unsigned char joins_previous_line = 0;
+            bool joins_previous_line = 0;
             if (word_line > 1) {
                 unsigned int previous_start =
                     g_level_block->dialogue_text_input->line_offsets[word_line - 1];
@@ -1952,8 +1952,8 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y);
    is forwarded from RedrawTextBoxBody and skips the word-overlay pass when
    set. Retail reuses the leading bytes of the level block as a wchar scratch. */
 // FUNCTION: WIZ8 0x0058D2C0
-static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char slot_1d8_match,
-                     unsigned char slot_1e8_match, unsigned char skip_invalidate)
+static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slot_1d8_match,
+                     bool slot_1e8_match, bool skip_invalidate)
 {
     unsigned short* palette;
     int draw_x;
@@ -2089,7 +2089,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned
 /* Repaint the visible text-box window. When skip_invalidate is clear, also
    invalidate the text rectangle first. */
 // FUNCTION: WIZ8 0x0058C3A0
-void RedrawTextBoxBody(unsigned char skip_invalidate)
+void RedrawTextBoxBody(bool skip_invalidate)
 {
     short text_box;
     unsigned int shown;
@@ -2487,7 +2487,7 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
 }
 
 // FUNCTION: WIZ8 0x00590150
-void ResetUsedNoticeWords(int text_box, unsigned char redraw)
+void ResetUsedNoticeWords(int text_box, bool redraw)
 {
     for (int i = 0; i < 0x15e; ++i) {
         W8PList* list = g_message_storage[text_box][i].entries_18;
@@ -2508,7 +2508,7 @@ void ResetUsedNoticeWords(int text_box, unsigned char redraw)
 }
 
 // FUNCTION: WIZ8 0x005901D0
-void ClearNoticeWordHover(int text_box, unsigned char redraw)
+void ClearNoticeWordHover(int text_box, bool redraw)
 {
     for (int i = 0; i < 0x15e; ++i) {
         W8PList* list = g_message_storage[text_box][i].entries_18;

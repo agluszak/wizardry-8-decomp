@@ -185,13 +185,13 @@ stMaterial::~stMaterial()
    build state is TU-private .bss. */
 
 // GLOBAL: WIZ8 0x0060AC70
-static unsigned char g_option_pathing = 1;
+static bool g_option_pathing = 1;
 // GLOBAL: WIZ8 0x0060AC71
-static unsigned char g_option_shadow_test = 1;
+static bool g_option_shadow_test = 1;
 // GLOBAL: WIZ8 0x0060AC72
-static unsigned char g_option_logging = 1;
+static bool g_option_logging = 1;
 // GLOBAL: WIZ8 0x0060AC73
-static unsigned char g_option_mesh_linking = 1;
+static bool g_option_mesh_linking = 1;
 // GLOBAL: WIZ8 0x0060AC74
 static float g_option_path_node_spacing = 500.0f;
 // GLOBAL: WIZ8 0x0060AC78
@@ -205,9 +205,9 @@ static int g_option_max_path_nodes = 64;
 // GLOBAL: WIZ8 0x0060AC88
 static int g_option_max_leaf_count = 20000;
 // GLOBAL: WIZ8 0x0060AC8C
-static unsigned char g_status_scroll = 1;
+static bool g_status_scroll = 1;
 // GLOBAL: WIZ8 0x0060AC8D
-static unsigned char g_status_buffers_freed = 1;
+static bool g_status_buffers_freed = 1;
 
 // GLOBAL: WIZ8 0x0065BAB0
 static srVector3T<float> g_weld_min;
@@ -234,7 +234,7 @@ static int g_light_candidates;
 // GLOBAL: WIZ8 0x0065BD1C
 static int g_lights_facing;
 // GLOBAL: WIZ8 0x0065BD2D
-static unsigned char g_option_rename_alphas;
+static bool g_option_rename_alphas;
 // GLOBAL: WIZ8 0x0065BD30
 static float g_option_auto_region_size;
 // GLOBAL: WIZ8 0x0065BD34
@@ -372,7 +372,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
     OctMeshModel* submeshes;
     BitArray* sun_bits;
     unsigned char result;
-    unsigned char report;
+    bool report;
     int redundant;
     int lit_vertices;
     int last_sun;
@@ -982,8 +982,8 @@ void ReportStartupMessage(const char* message)
     static EnvironmentColour s_saved_colour_0065bac0;
     unsigned short* line;
     short length;
-    unsigned char scroll;
-    unsigned char scrolled;
+    bool scroll;
+    bool scrolled;
     int index;
     int top;
 
@@ -1189,7 +1189,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
     float largest;
     float length;
     float offset;
-    unsigned char opposing;
+    bool opposing;
     srVector3T<float> normal;
     W8OctRegionPolygon* polygons;
     W8OctRegionPolygon* polygon;
@@ -1423,7 +1423,7 @@ static int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
     unsigned int next;
     int corner;
     int remaining;
-    unsigned char fresh;
+    bool fresh;
     int* faces;
     W8OctPreTreeVertex* split;
     W8OctPreTreeVertex* vertices;
@@ -1671,7 +1671,7 @@ static unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, ch
         g_prop_sun_bits = new BitArray(count);
         for (index = 0; index < count; ++index) {
             W8MaterialRecord* record = textures + index;
-            unsigned char opaque = 1.0f <= record->opacity_0fd;
+            bool opaque = 1.0f <= record->opacity_0fd;
             texture[0] = '\0';
             if (record->texture_name_001[0] != 0) {
                 strcpy(texture, reinterpret_cast<const char*>(/* reinterpret-ok: texture-name text
@@ -2348,7 +2348,7 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
    animated loader for .IFL names and the plain one for everything else. */
 // FUNCTION: WIZ8 0x004B9460
 srTextureIFace* LoadTextureFromPath(const char* path, const W8MaterialRecord* source,
-                                    unsigned char required)
+                                    bool required)
 {
     char drive[_MAX_PATH];
     char directory[_MAX_PATH];
@@ -2370,7 +2370,7 @@ srTextureIFace* LoadTextureFromPath(const char* path, const W8MaterialRecord* so
 }
 
 // FUNCTION: WIZ8 0x004B95D0
-srTexture* LoadTextureFromFolder(const char* folder, const char* name, unsigned char required)
+srTexture* LoadTextureFromFolder(const char* folder, const char* name, bool required)
 {
     char path[_MAX_PATH];
     char* extension;
@@ -2440,7 +2440,7 @@ srTexture* LoadTextureFromFolder(const char* folder, const char* name, unsigned 
 
 // FUNCTION: WIZ8 0x004B98F0
 stTextureAnim* LoadAnimatedTexture(const char* folder, const char* name,
-                                   const W8MaterialRecord* source, unsigned char required)
+                                   const W8MaterialRecord* source, bool required)
 {
     char buffer[_MAX_PATH];
     unsigned char more = 1;

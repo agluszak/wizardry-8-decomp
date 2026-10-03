@@ -7,7 +7,7 @@
 
 struct Controls;
 
-extern unsigned char g_dev_mode;
+extern bool g_dev_mode;
 
 struct W8RegionSet {
     unsigned int enabled;
@@ -72,7 +72,7 @@ extern int g_region_help_clock;
 extern unsigned int g_current_region_index;
 extern unsigned int g_captured_region_index;
 extern unsigned int g_hover_region_index;
-extern unsigned char g_region_help_force_enabled;
+extern bool g_region_help_force_enabled;
 extern wchar_t* g_default_help_text;
 
 unsigned int GetForcedRegion(void);
@@ -95,12 +95,12 @@ unsigned int AddRegionToSet(unsigned int region_set_index);
 void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
                        unsigned short callback_id);
 void SetRegionOwner(unsigned int region_index, Controls* owner);
-void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id);
+void SetRegionHelp(unsigned int region_index, bool enabled, int help_text_id);
 void ClearHotRegion(void);
 void UpdateRegionHelp(void);
 void ShowRegionHelp(unsigned int region_index);
 void SetRegionHelpText(const wchar_t* text);
-void ResetRegionHelp(unsigned char delayed);
+void ResetRegionHelp(bool delayed);
 void SetRegionHelpDelay(int delay_ms);
 void EnableRegionHelp(unsigned int region_index);
 void DisableRegionHelp(unsigned int region_index);
@@ -109,7 +109,7 @@ void ActivateDialogRegion(unsigned int region_index); /* 0x004F2040 */
 /* 0x004F1910 returns the byte produced by the selected region callback. */
 unsigned char DispatchRegionInput(const InputAtom* event);
 
-void SetRegionHelpForceEnabled(unsigned char enabled);
+void SetRegionHelpForceEnabled(bool enabled);
 void EnableRegionHelpFlag(W8Region* region);
 void DisableRegionHelpFlag(W8Region* region);
 

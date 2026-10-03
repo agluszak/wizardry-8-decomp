@@ -1286,7 +1286,7 @@ void RenderAllTextFields(void)
 }
 
 // FUNCTION: WIZ8 0x005D5A00
-unsigned char EditingText(void)
+bool EditingText(void)
 {
     return gfEditingText;
 }
@@ -1418,7 +1418,7 @@ void SelectAllText(void)
 /* 0x005D5DA0: sets whether the named field's mouse region callback is
    suppressed; the NPC dialogue toggles it on field 0 while the modal is up. */
 // FUNCTION: WIZ8 0x005D5DA0
-void SetInputFieldBlocksMouseCallback(unsigned char field_id, unsigned char blocks)
+void SetInputFieldBlocksMouseCallback(unsigned char field_id, bool blocks)
 {
     TEXTINPUTNODE* field = gpTextInputHead;
     if (field != 0) {

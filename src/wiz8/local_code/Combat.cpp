@@ -1011,7 +1011,7 @@ void EndMonsterAttack(W8MonsterInfo* monster_info)
    already on; anyone else may switch, except into the fourth action while
    something else forbids it. */
 // FUNCTION: WIZ8 0x004ed2d0
-unsigned char TryCharacterAction(int party_slot, W8ActionKind action, char commit)
+unsigned char TryCharacterAction(int party_slot, W8ActionKind action, bool commit)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
@@ -1555,7 +1555,7 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned c
    or a point on the ground. `alternate` picks the immediate versus the
    animated turn. */
 // FUNCTION: WIZ8 0x004EC900
-void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, char alternate)
+void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, bool alternate)
 {
     W8MonsterInfo* target;
     unsigned int index;
@@ -2366,7 +2366,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     char tried[11] = {0};
     unsigned char result = 0;
     unsigned char move_flag = 0;
-    char berserked = 0;
+    bool berserked = 0;
     int interrupt;
     int sight;
     W8RangeCategory range;

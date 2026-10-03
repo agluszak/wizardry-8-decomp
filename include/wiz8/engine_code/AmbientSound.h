@@ -23,7 +23,7 @@ public:
     /* 0x00479350: listener-relative range test, group handoff, 3D re-aim, fade retarget */
     void UpdatePosition(const srVector3T<float>* listener);
     /* 0x00479970: per-frame service while in range; 'entered' forces an immediate roll */
-    void Service(unsigned char entered);
+    void Service(bool entered);
     /* 0x0047A310: step the 1.5-second shared-group volume fade */
     void UpdateFade();
 
@@ -137,7 +137,7 @@ unsigned char AddAmbientSound(W8World* world, const char* name, const W8AmbientS
                               const srVector3T<float>* region_min,
                               const srVector3T<float>* region_max, int volume_min, int volume_max,
                               int time_min, int time_max, int speed_min, int speed_max,
-                              float radius, unsigned char looping, unsigned char bounded,
+                              float radius, bool looping, unsigned char bounded,
                               const srVector3T<float>* region_center, float region_angle,
                               const srVector3T<float>* region_axis,
                               const srVector3T<float>* region_scale, unsigned char shared);
@@ -152,7 +152,7 @@ void SetSoundEffectsMuted(unsigned char muted);
 
 extern unsigned char g_default_footstep_surface;
 extern unsigned char g_default_footstep_material;
-extern unsigned char g_footstep_alternate;
+extern bool g_footstep_alternate;
 extern int g_previous_ambient_footstep_variant;
 extern const char* g_footstep_names[];
 extern const char* g_footstep_surfaces[];

@@ -360,7 +360,7 @@ void ReduceMagnitudeByResistance(unsigned int* magnitude, W8CombatSlot* target, 
    scaled for difficulty and held between 5 and 95. A character who knows the
    resistance skill practises it on a success. */
 // FUNCTION: WIZ8 0x005520d0
-char TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_level,
+bool TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_level,
                             int condition_id)
 {
     W8MonsterInfo* monster_info;
@@ -1466,7 +1466,7 @@ void ApplyDamageToTargets(W8SpellEffectEntry* effect)
             } else {
                 result = 0;
             }
-            ApplyDamageToMonster(monster_info, magnitude, &effect->Source, 0, verbose != 0, 0,
+            ApplyDamageToMonster(monster_info, magnitude, &effect->Source, false, verbose != 0, 0,
                                  result, 0);
         }
     }
@@ -1540,7 +1540,7 @@ void DrainTargetsLife(W8SpellEffectEntry* effect)
             } else {
                 result = 0;
             }
-            ApplyDamageToMonster(monster_info, magnitude, &effect->Source, 0, announce != 0, 0,
+            ApplyDamageToMonster(monster_info, magnitude, &effect->Source, false, announce != 0, 0,
                                  result, 0);
             drained += magnitude;
         }
@@ -1587,7 +1587,7 @@ void DrainTargetsLife(W8SpellEffectEntry* effect)
    condition the roll fails simply ticks down by the squared power and counts
    toward the resisted report. */
 // FUNCTION: WIZ8 0x0054df00
-char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition, char force)
+char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition, bool force)
 {
     W8NpcState* npc_state;
     W8MonsterInfo* monster_info;
@@ -2153,7 +2153,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
     int index;
     int weight_index;
     int party_slot;
-    char landed;
+    bool landed;
 
     realm = g_spell_records[effect->kind].realm;
     power_level = effect->definition.power_level;
@@ -2185,7 +2185,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
                 }
             }
         } else {
-            char resisted;
+            bool resisted;
             magnitude = RollEffectMagnitude(&effect->definition);
             ReduceMagnitudeByResistance(&magnitude, &target, realm, power_level);
             resisted = 0;
@@ -2229,7 +2229,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
                 }
             }
         } else {
-            char resisted;
+            bool resisted;
             magnitude = RollEffectMagnitude(&effect->definition);
             ReduceMagnitudeByResistance(&magnitude, &target, realm, power_level);
             resisted = 0;
@@ -2242,7 +2242,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
             }
             if (resisted == 0) {
                 result = verbose == 0 ? &effect->result_126 : 0;
-                ApplyDamageToMonster(monster_info, magnitude, &effect->Source, 0, verbose != 0, 0,
+                ApplyDamageToMonster(monster_info, magnitude, &effect->Source, false, verbose != 0, 0,
                                      result, 0);
             }
         }
@@ -2303,7 +2303,7 @@ void DamageTargetsAndReport(W8SpellEffectEntry* effect)
         ApplyEffectAndAnnounce(&magnitude, &target, g_spell_records[effect->kind].realm,
                                effect->definition.power_level);
         if (magnitude != 0) {
-            ApplyDamageToMonster(monster_info, magnitude, &effect->Source, 0, verbose != 0, 0,
+            ApplyDamageToMonster(monster_info, magnitude, &effect->Source, false, verbose != 0, 0,
                                  verbose != 0 ? 0 : result, 0);
             total += magnitude;
             ++hits;
@@ -2910,7 +2910,7 @@ void TickRadiusBlastEffectSlots(W8EffectSlot* effect_slots)
                 ApplyEffectAndAnnounce(&amount, &target, g_spell_records[62].realm,
                                        effect_slots->amount * 3);
                 if (amount != 0) {
-                    ApplyDamageToMonster(monster_info, amount, &source, 0, verbose != 0, 0,
+                    ApplyDamageToMonster(monster_info, amount, &source, false, verbose != 0, 0,
                                          verbose == 0 ? &local_result : 0, 0);
                 }
             }
@@ -2984,7 +2984,7 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
     int party_slot;
     int realm;
     int index;
-    char rolls_damage;
+    bool rolls_damage;
     bool sleep_type;
     unsigned char verbose;
 

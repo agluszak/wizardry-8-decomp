@@ -20,7 +20,7 @@ public:
     stParticle(srNode* parent, int count); /* 0x00497AF0 */
     stParticle(const stParticle& other);            /* 0x00498180 */
     void SetActive(unsigned char active);
-    void SetTraversalEnabled(unsigned char enabled);
+    void SetTraversalEnabled(bool enabled);
     void DeactivateParticle(unsigned int index);
     unsigned char ActivateParticle(unsigned int* out_index, unsigned char replace_when_full);
     void InitializeParticlePosition(srVector3T<float>* output);

@@ -8,7 +8,7 @@
 
 extern bool g_shared_timers_paused;
 
-void ResetLevelMovement(float movement_limit, char reset, char fast_move); /* 0x0041EEE0 */
+void ResetLevelMovement(float movement_limit, bool reset, bool fast_move); /* 0x0041EEE0 */
 
 #include "wiz8/geometry.h"
 #include "wiz8/layouts/world.h"
@@ -76,7 +76,7 @@ struct W8LevelDataRecord {
     unsigned char IntegrateCameraForward();
     /* 0x00420810: rotate vector_40 by the saved yaw matrix and refresh
        vector_a0; returns the updated fast-move latch. */
-    unsigned char ApplySavedMotionMatrix(unsigned char prior_fast, unsigned char fast_move,
+    unsigned char ApplySavedMotionMatrix(unsigned char prior_fast, bool fast_move,
                                          const srMatrix3T<float>* saved);
     /* 0x0041FF90: advance movement progress / footstep state for one tick. */
     void UpdateMotionProgress(unsigned char fast_move, unsigned char moved);

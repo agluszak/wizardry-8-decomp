@@ -166,7 +166,7 @@ void ClearRecordModeValue(void)
     g_value_69da68 = 0;
 }
 // FUNCTION: WIZ8 0x005E3600
-unsigned char IsRecordModeActive(void)
+bool IsRecordModeActive(void)
 {
     return g_flag_69da6c;
 }

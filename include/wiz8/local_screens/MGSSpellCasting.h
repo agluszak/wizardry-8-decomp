@@ -59,7 +59,7 @@ void CloseSpellCastingView(void);                                    /* 0x0059F2
 void RestoreSpellCastingRegions(void);                               /* 0x0059F440 */
 void SelectSpellCastingCharacter(int party_slot);                    /* 0x0059F490 */
 void BeginSpellCast(int spell_id, int location_id, int interact_id); /* 0x005A0110 */
-void SetSpellCastingPanelsActive(unsigned char active);              /* 0x005A0270 */
+void SetSpellCastingPanelsActive(bool active);              /* 0x005A0270 */
 void InvalidateSpellCastingDescription(void);                        /* 0x005A0300 */
 void SelectSpellPowerLevel(int power_level);                         /* 0x005A06F0 */
 void ResetSpellCastingSelection(void);                               /* 0x005A0B90 */

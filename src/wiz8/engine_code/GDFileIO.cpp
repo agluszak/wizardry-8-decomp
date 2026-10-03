@@ -1320,7 +1320,7 @@ W8GameData::~W8GameData()
     SetOctreeGameData(0);
 }
 
-char ShareSurfaceEdge(W8GDSurface* first, W8GDSurface* second, srVector3T<float>* vertices);
+bool ShareSurfaceEdge(W8GDSurface* first, W8GDSurface* second, srVector3T<float>* vertices);
 static void LinkSurfaceEdge(int polygon, int edge, W8HashTable<unsigned int, int>* table,
                             W8GDSurface* surfaces, unsigned int multiplier,
                             srVector3T<float>* vertices);
@@ -1580,7 +1580,7 @@ void W8GameData::CompileGameData()
 /* Tests two polygons for a shared vertex pair; when they share an edge the
    matching corner slot on each surface is linked to the other's index_04. */
 // FUNCTION: WIZ8 0x0044A970
-char ShareSurfaceEdge(W8GDSurface* first, W8GDSurface* second, srVector3T<float>* vertices)
+bool ShareSurfaceEdge(W8GDSurface* first, W8GDSurface* second, srVector3T<float>* vertices)
 {
     int first_slot = -1;
     int second_slot = -1;

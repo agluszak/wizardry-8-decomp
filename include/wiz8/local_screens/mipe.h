@@ -75,7 +75,7 @@ static_assert(offsetof(W8MipeState, drag_anchor) == 0x24, "W8MipeState_drag_anch
 static_assert(offsetof(W8MipeState, waypoints) == 0x3c, "W8MipeState_waypoints");
 static_assert(offsetof(W8MipeState, generator) == 0x54, "W8MipeState_generator");
 
-extern unsigned char g_debug_monster_cycle;
+extern bool g_debug_monster_cycle;
 extern W8MipeState* g_mipe_state;
 extern int g_mipe_mode;
 extern int g_mipe_count;
@@ -103,7 +103,7 @@ void ToggleMipePanel(void);
 void UpdateMipeSelection(void);
 void DragSelectionWithCursor(void);
 /* MIPE's world-view input dispatch: cube drag, cube pick, action menu. */
-unsigned char MipeWorldViewEvent(int event, const POINT* point);
+bool MipeWorldViewEvent(int event, const POINT* point);
 
 /* Any armed monster-generator marker within reach of the camera; sticky
    index resumes the scan at the last hit. Used with AnyWorldItemVisible to

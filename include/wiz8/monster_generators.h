@@ -53,7 +53,7 @@ void SetMonsterGeneratorDurationScale(float scale); /* 0x0048CB80 */
 void UnregisterActiveEncounterGroup(W8MonsterGroup* group); /* 0x0048C670 */
 void RegisterActiveEncounterGroup(W8MonsterGroup* group);   /* 0x0048C750 */
 
-void UpdateRandomEncounterBudget(unsigned char reset_budget);
+void UpdateRandomEncounterBudget(bool reset_budget);
 
 extern int g_random_encounter_budget;
 extern int g_random_encounter_limit;

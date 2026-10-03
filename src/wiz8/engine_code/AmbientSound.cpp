@@ -91,7 +91,7 @@ unsigned char W8AmbientSound::IsInsideRegion(const srVector3T<float>* listener)
 // FUNCTION: WIZ8 0x00479350
 void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
 {
-    unsigned char handed_off = 0;
+    bool handed_off = 0;
 
     if (stopped != 0) {
         return;
@@ -208,7 +208,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
    once: positional emitters go through Sound3DPlay, shared group sounds go
    through SoundPlay at zero volume so UpdateFade can ramp them up. */
 // FUNCTION: WIZ8 0x00479970
-void W8AmbientSound::Service(unsigned char entered)
+void W8AmbientSound::Service(bool entered)
 {
     if (stopped != 0 || in_range == 0) {
         return;
@@ -447,7 +447,7 @@ unsigned char g_default_footstep_surface;
 unsigned char g_default_footstep_material;
 
 // GLOBAL: WIZ8 0x0065a10a
-unsigned char g_footstep_alternate;
+bool g_footstep_alternate;
 
 // GLOBAL: WIZ8 0x0065a10c
 int g_previous_ambient_footstep_variant;
@@ -596,7 +596,7 @@ unsigned char AddAmbientSound(W8World* world, const char* name, const W8AmbientS
                               const srVector3T<float>* region_min,
                               const srVector3T<float>* region_max, int volume_min, int volume_max,
                               int time_min, int time_max, int speed_min, int speed_max,
-                              float radius, unsigned char looping, unsigned char bounded,
+                              float radius, bool looping, unsigned char bounded,
                               const srVector3T<float>* region_center, float region_angle,
                               const srVector3T<float>* region_axis,
                               const srVector3T<float>* region_scale, unsigned char shared)

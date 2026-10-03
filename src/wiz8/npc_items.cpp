@@ -126,7 +126,7 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
    removed, and both clocks are restamped. Removing an entry steps the cursor back
    so the shifted-down successor is not skipped. */
 // FUNCTION: WIZ8 0x0055afa0
-unsigned char MaintainNpcStock(W8NpcState* npc, char force)
+unsigned char MaintainNpcStock(W8NpcState* npc, bool force)
 {
     W8NpcItemEntry* entry;
     W8NpcItemStockRule* rule;
@@ -632,7 +632,7 @@ static char g_sound_cash_transaction[] = "Data\\Sound\\misc\\Cash Transaction.wa
 
 // FUNCTION: WIZ8 0x0055B730
 unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
-                            char suppress_payment)
+                            bool suppress_payment)
 {
     W8ItemInstance stack;
     int amount;
@@ -807,7 +807,7 @@ bool NpcAcceptsTradeItem(W8NpcState* npc, W8ItemInstance* item)
 
 // FUNCTION: WIZ8 0x0055b5a0
 int CalculateNpcTradeStackPrice(W8NpcState* npc, int item_id, int mode, unsigned char stack_count,
-                                unsigned char identified)
+                                bool identified)
 {
     W8ItemInstance item;
     ReplaceOrCreateItem(&item, item_id, 0, identified, 0);
@@ -860,7 +860,7 @@ int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode)
    accumulated stack then leaves the party purse and the stock entry shrinks.
    The trailing pass drops entries whose remaining count hit zero. */
 // FUNCTION: WIZ8 0x0055B7E0
-bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity, char no_payment,
+bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity, bool no_payment,
                              int* remaining_out)
 {
     unsigned char available;

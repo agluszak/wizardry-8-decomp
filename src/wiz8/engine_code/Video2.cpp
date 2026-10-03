@@ -144,7 +144,7 @@ WNDPROC g_window_proc;
 // GLOBAL: WIZ8 0x659710
 bool g_video_active;
 // GLOBAL: WIZ8 0x65970e
-unsigned char g_world_blacked_out;
+bool g_world_blacked_out;
 // GLOBAL: WIZ8 0x659711
 bool g_screenshot_pending;
 // GLOBAL: WIZ8 0x65970f
@@ -1061,7 +1061,7 @@ static RuntimeWorldRenderData ObserveWorldRenderState();
 #endif
 
 // FUNCTION: WIZ8 0x00427850
-void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char preserve_fog)
+void RenderScene(srScene* scene, srCamera* camera, const int* viewport, bool preserve_fog)
 {
     unsigned long width = g_gerd->getWidth();
     unsigned long height = g_gerd->getHeight();
@@ -1322,7 +1322,7 @@ void RenderFrame(void)
    SHOT screenshot; the automap uses it for its backdrop. */
 // FUNCTION: WIZ8 0x00426f80
 unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
-                                   char render_secondary)
+                                   bool render_secondary)
 {
     srGERD* gerd = g_secondary_gerd;
     EnvironmentColour clear_color;
@@ -1402,7 +1402,7 @@ void PublishLightDirection(const EnvironmentColour* direction)
 }
 
 // FUNCTION: WIZ8 0x00427230
-void SetRendererOption4Enabled(char enabled)
+void SetRendererOption4Enabled(bool enabled)
 {
     if (g_gerd != 0) {
         if ((!enabled && g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4)) ||
@@ -1533,7 +1533,7 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
 
 // FUNCTION: WIZ8 0x00425190
 stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width, double height,
-                                           char keep_aspect, char a5)
+                                           bool keep_aspect, bool a5)
 {
     srShader shader;
     srVector3T<float> scale;
@@ -1792,7 +1792,7 @@ void WarpSystemCursor(int x, int y)
 }
 
 // FUNCTION: WIZ8 0x00428140
-void PositionMouseCursor(int width, int height, unsigned char reset_tick)
+void PositionMouseCursor(int width, int height, bool reset_tick)
 {
     srVector3T<double> location;
 
@@ -2405,7 +2405,7 @@ srShader::srShader()
 
 // FUNCTION: WIZ8 0x00424A90
 srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
-                        unsigned char additive)
+                        bool additive)
 {
     srTextureIFace::e_hint hint;
     srTextureMap* texture = SR_NEW(srTextureMap)(static_cast<srColorSurfaceIFace*>(0));
@@ -2437,7 +2437,7 @@ void PresentMenuOverlayFrame(void)
 }
 
 // FUNCTION: WIZ8 0x00425570
-void SetPrimarySurfaceTextureHint2Enabled(unsigned char enabled)
+void SetPrimarySurfaceTextureHint2Enabled(bool enabled)
 {
     if (g_surface_node) {
         g_surface_node->setTextureHint2Enabled(enabled);
@@ -2878,7 +2878,7 @@ IDirectDraw2* GetDirectDraw2Object(void)
 }
 
 // GLOBAL: WIZ8 0x006596f4
-unsigned char g_auto_capture;
+bool g_auto_capture;
 // GLOBAL: WIZ8 0x00659724
 int g_screenshot_index;
 // GLOBAL: WIZ8 0x00659728
@@ -2949,7 +2949,7 @@ void __fastcall PackColourBytes(unsigned char* colour, double red, double green,
    With positional set, the position is snapped to the renderer's pixel grid;
    the node keeps the screen x/y in its right/bottom extent fields. */
 // FUNCTION: WIZ8 0x004255F0
-void PositionToolTipNode(srNode* node, int x, int y, char positional)
+void PositionToolTipNode(srNode* node, int x, int y, bool positional)
 {
     stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
     double position_x = x * g_double_005ebe90;
@@ -3123,7 +3123,7 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
    the material emissive. Radar blip templates are the observed callers. */
 // FUNCTION: WIZ8 0x00424790
 stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVector4T<float>* color,
-                                              char a4)
+                                              bool a4)
 {
     double scale_x = width * g_double_005ebe90;
     double scale_y = height * g_double_005ebe88;
@@ -3428,10 +3428,10 @@ void SetResidentTexturePolicy(int policy)
 }
 
 // GLOBAL: WIZ8 0x659718
-unsigned char g_swap_interval_enabled;
+bool g_swap_interval_enabled;
 
 // FUNCTION: WIZ8 0x00426710
-void SetSwapInterval(unsigned char enabled)
+void SetSwapInterval(bool enabled)
 {
     g_swap_interval_enabled = enabled;
     g_gerd->setSwapInterval(enabled ? 1 : 0);
@@ -3462,7 +3462,7 @@ unsigned int GetTotalPhysicalMemory(void)
    each frame surface. The setName string is the retail identity. */
 // FUNCTION: WIZ8 0x00428E90
 stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_frame,
-                                         unsigned short frame_count, char use_argb1555)
+                                         unsigned short frame_count, bool use_argb1555)
 {
     ETRLEObject properties;
     unsigned short frame;
@@ -3806,7 +3806,7 @@ void EndRenderProbe(void)
 // srColorSurface::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00424BA0
-srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, unsigned char additive)
+srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool additive)
 {
     srShader shader;
     srPtr<srPalette> palette;

@@ -92,7 +92,7 @@ struct W8CharacterSkill {
     unsigned int practice_count_0e;
     /* 0x12: set when practice raises value_02; the flag the skill-increase
        notices key off. */
-    unsigned char improved_12;
+    bool improved_12;
     bool available_13;
     unsigned char unknown_14[0x12];
 }; /* 0x26 */
@@ -131,7 +131,7 @@ enum {
 };
 struct W8HandAttack {
     int uiHolds;                 /* 0x00 */
-    unsigned char in_play;       /* 0x04 */
+    bool in_play;       /* 0x04 */
     int weapon_skill;            /* 0x05, unaligned */
     int combat_skill;            /* 0x09 */
     unsigned int combined_skill; /* 0x0d */

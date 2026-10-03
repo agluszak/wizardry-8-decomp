@@ -124,7 +124,7 @@ void GDProp::PrepareGeometry(srModelInstance* instance)
    into world space before each accumulated triangle receives its plane,
    dominant axis, slope classification and caller-provided material bytes. */
 // FUNCTION: WIZ8 0x004b7060
-void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigned short prop_number,
+void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short prop_number,
                         unsigned char footstep_surface, unsigned char footstep_material)
 {
     if (attach == 0) {
