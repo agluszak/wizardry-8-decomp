@@ -42,16 +42,6 @@ _WIZ8_SOURCE_PREFIXES = (
     "src/wiz8/",
     "src/sgp/",
 )
-_WIZ8_RUNTIME_PREFIXES = (
-    "config/runtime/",
-    "tests/runtime/",
-    "tools/wiz8decomp/debug/",
-)
-_WIZ8_RUNTIME_FILES = {
-    "tests/unit/test_runtime_stubs.py",
-    "tools/wiz8decomp/runtime.py",
-    "tools/wiz8decomp/runtime_stubs.py",
-}
 _WIZ8_COMPARISON_PREFIXES = (
     "config/reccmp/",
     "tests/licensed/",
@@ -95,7 +85,6 @@ def classify(paths: Iterable[str]) -> dict[str, bool]:
     public = False
     analysis = False
     wiz8_compare = False
-    wiz8_runtime = False
     surrender = False
 
     for path in normalized:
@@ -106,27 +95,20 @@ def classify(paths: Iterable[str]) -> dict[str, bool]:
         if path in _ALL_HEAVY_FILES or _matches(path, _ALL_HEAVY_PREFIXES):
             analysis = True
             wiz8_compare = True
-            wiz8_runtime = True
             surrender = True
             continue
 
         if path in _SOURCE_INDEX_FILES:
             analysis = True
-            wiz8_runtime = True
 
         if path.startswith("include/surrender/"):
             # Provider headers are compile-time inputs to both the provider and Wiz8.
             surrender = True
             wiz8_compare = True
-            wiz8_runtime = True
             continue
 
         if _matches(path, _WIZ8_SOURCE_PREFIXES) or path == "include/bink.h":
             wiz8_compare = True
-            wiz8_runtime = True
-
-        if path in _WIZ8_RUNTIME_FILES or _matches(path, _WIZ8_RUNTIME_PREFIXES):
-            wiz8_runtime = True
 
         if path in _WIZ8_COMPARISON_FILES or _matches(path, _WIZ8_COMPARISON_PREFIXES):
             wiz8_compare = True
@@ -153,7 +135,6 @@ def classify(paths: Iterable[str]) -> dict[str, bool]:
         "public": public,
         "analysis": analysis,
         "wiz8_compare": wiz8_compare,
-        "wiz8_runtime": wiz8_runtime,
         "surrender": surrender,
     }
 
