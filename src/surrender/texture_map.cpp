@@ -14,8 +14,6 @@ srTextureMap::srTextureMap(srColorSurfaceIFace* surface)
 /* Retail delegates to operator= then memberwise-copies its own members;
    the surface_54_ tail uses srPtr copy-constructor semantics (addref, no
    release), which a source-level member assignment cannot reproduce. */
-// SYNTHETIC: SURRENDER 0x100607E0
-// srTextureMap::srTextureMap (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x10060210
 srTextureMap& srTextureMap::operator=(const srTextureMap& other)
@@ -102,46 +100,3 @@ srClass* srTextureMap::vInstance()
 {
     return new srTextureMap(0);
 }
-
-// SYNTHETIC: SURRENDER 0x100608C0
-// srTextureMap default constructor closure
-
-// TEMPLATE: SURRENDER 0x100605A0
-// srClassSupport<srTextureMap,srTexture,0,8465>::getClassID
-
-// TEMPLATE: SURRENDER 0x100605B0
-// srClassSupport<srTextureMap,srTexture,0,8465>::getClassName
-
-// TEMPLATE: SURRENDER 0x100605C0
-// srClassSupport<srTextureMap,srTexture,0,8465>::getClassNode
-
-// TEMPLATE: SURRENDER 0x10060650
-// srClassSupport<srTextureMap, srTexture, 0, 0x2111>::vClone
-
-// TEMPLATE: SURRENDER 0x10060670
-// srClientSupport<srTextureMap, 0x2111>::~srClientSupport
-
-// SYNTHETIC: SURRENDER 0x10060760
-// NAME: srPtr<T>::retained emission
-// RECOMP: srPtr element destructor emission
-
-// SYNTHETIC: SURRENDER 0x100608D0
-// srTextureMap scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x100608F0
-// srTextureMap::`vector deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10060950
-// srClassSupport<srTextureMap,srTexture,0,8465>::`scalar deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10060980
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x10060990
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x100609C0
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x100609D0
-// std::_Winit global atexit registrar

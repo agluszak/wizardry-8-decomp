@@ -1726,18 +1726,6 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
     wcscat(health_text, L"?");
 }
 
-// SYNTHETIC: WIZ8 0x004e6970
-// W8XStatus::W8XStatus (implicit member construction)
-
-// SYNTHETIC: WIZ8 0x004e6940
-// W8XStatus::~W8XStatus (implicit member teardown)
-
-// SYNTHETIC: WIZ8 0x004e6a10
-// W8MonsterManagerEntry::~W8MonsterManagerEntry (implicit member teardown)
-
-// SYNTHETIC: WIZ8 0x004e6a30
-// W8MonsterManagerEntry::W8MonsterManagerEntry (implicit member construction)
-
 // FUNCTION: WIZ8 0x004e4ab0
 void DetectMonsterGroups(void)
 {

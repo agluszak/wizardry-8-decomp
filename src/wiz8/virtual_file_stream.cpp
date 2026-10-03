@@ -277,8 +277,6 @@ unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
 
 /* The global opener's implicit default constructor, emitted for
    g_virtual_file_stream_opener; it only installs the vtable. */
-// SYNTHETIC: WIZ8 0x0047CB20
-// W8VirtualFileStreamOpener::W8VirtualFileStreamOpener
 
 // FUNCTION: WIZ8 0x0047CB30
 srBinIStream* W8VirtualFileStreamOpener::open(const char* path)
@@ -295,25 +293,8 @@ const char* W8VirtualFileStreamOpener::getDescription() const
 // GLOBAL: WIZ8 0x0065A124
 W8VirtualFileStreamOpener g_virtual_file_stream_opener;
 
-// SYNTHETIC: WIZ8 0x0047CBB0
-// W8VirtualFileStreamOpener::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x0047DA10
-// W8VirtualFileBinIStream::`scalar deleting destructor'`vtordisp{-4, 0}'
-
-// SYNTHETIC: WIZ8 0x0047DA20
-// W8VirtualFileBinIStream::`scalar deleting destructor'
-
 /* MSVC PDB spelling uses overload ordinals, not parameter types. Retail
    secondary-vtable order is seek(2)=ulong, seek(1)=ulong+dir, tell. */
-// SYNTHETIC: WIZ8 0x0047DA50
-// W8VirtualFileBinIStream::seek(2)`vtordisp{-4, 0}'
-
-// SYNTHETIC: WIZ8 0x0047DA60
-// W8VirtualFileBinIStream::seek(1)`vtordisp{-4, 0}'
-
-// SYNTHETIC: WIZ8 0x0047DA70
-// W8VirtualFileBinIStream::tell`vtordisp{-4, 0}'
 
 /* Loads the image importers and routes their JPG/TGA reads through Wizardry's
    SLF-aware virtual file stream, which is the bridge the real menu assets use. */

@@ -582,9 +582,6 @@ void DestroyAmbientSound(W8AmbientSound* ambient)
     delete ambient;
 }
 
-// SYNTHETIC: WIZ8 0x0047a780
-// W8AmbientSound::~W8AmbientSound (implicit timer-member teardown)
-
 /* Build a complete ambient-sound row and attach it to the world's list. The
    twenty parameters and their widths come directly from the stack reads. */
 // FUNCTION: WIZ8 0x0047a790

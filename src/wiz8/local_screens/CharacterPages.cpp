@@ -52,9 +52,6 @@ W8PortraitDescriptor g_portrait_descriptors[80] = {
 // VTABLE: WIZ8 0x005ef1d8 W8CharacterPageEntry
 // class W8CharacterPageEntry
 
-// SYNTHETIC: WIZ8 0x005af990
-// W8CharacterPageEntry::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005af690
 W8CharacterPageEntry::W8CharacterPageEntry(Controls* owner, int x, int y, bool compact)
     : m_listener_004(0), m_first_020(0), m_second_024(0), m_third_028(0), m_id_02c(-1),
@@ -235,9 +232,6 @@ W8CharacterPage::W8CharacterPage(int render_target)
     : Controls(0xc3, 0x2b, 0x280, 0x1c1, render_target, 0, 0), m_screen_05c(0)
 {
 }
-
-// SYNTHETIC: WIZ8 0x005afe20
-// W8CharacterPage::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005afe40
 W8CharacterPage::~W8CharacterPage()

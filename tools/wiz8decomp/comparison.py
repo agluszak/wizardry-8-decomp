@@ -57,16 +57,23 @@ def addresses_from_files(
     selected = {
         str((path if path.is_absolute() else repository / path).resolve()) for path in paths
     }
-    return [
+    addresses = {
         int(marker["address"])
         for marker in load_source_index(repository)["markers"]
-        if (
-            marker["marker_kind"] == "FUNCTION"
-            or (include_templates and marker["marker_kind"] == "TEMPLATE")
-        )
+        if marker["marker_kind"] == "FUNCTION"
         and marker["target"].upper() == target.upper()
         and str((repository / marker["source_file"]).resolve()) in selected
-    ]
+    }
+    if include_templates:
+        from .emissions import emission_inventory
+
+        addresses.update(
+            row.address
+            for row in emission_inventory(repository, target)
+            if row.type == "template"
+            and any(str((repository / path).resolve()) in selected for path in row.source_files)
+        )
+    return sorted(addresses)
 
 
 def all_source_addresses(repository: Path, target: str) -> list[int]:
@@ -163,9 +170,16 @@ def header_dependent_files(settings: Settings, target: str, changed: Iterable[Pa
     marker_files = {
         marker["source_file"]
         for marker in index["markers"]
-        if marker["target"].upper() == target.upper()
-        and marker["marker_kind"] in {"FUNCTION", "TEMPLATE"}
+        if marker["target"].upper() == target.upper() and marker["marker_kind"] == "FUNCTION"
     }
+    from .emissions import emission_inventory
+
+    marker_files.update(
+        path
+        for row in emission_inventory(repository, target)
+        if row.type == "template"
+        for path in row.source_files
+    )
     affected: set[str] = set()
     for unit in dependencies:
         source = str(unit.get("source_file") or "")
@@ -486,12 +500,10 @@ def compare_selected(
             if is_header_definition(address)
         }
     if classify_template_emissions and unlinked_addresses:
-        from .source_index import load_source_index
+        from .emissions import emission_inventory
 
         template_addresses = {
-            int(marker["address"])
-            for marker in load_source_index(repository)["markers"]
-            if marker["target"].upper() == target.upper() and marker["marker_kind"] == "TEMPLATE"
+            row.address for row in emission_inventory(repository, target) if row.type == "template"
         }
         template_emissions = {
             address

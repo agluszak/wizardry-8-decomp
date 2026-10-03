@@ -49,9 +49,6 @@ W8StatInfoDialogBase::W8StatInfoDialogBase()
     SetBackground(g_info_dialog_background, 0);
 }
 
-// SYNTHETIC: WIZ8 0x005df920
-// W8StatInfoDialogBase::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005DF940
 W8StatInfoDialogBase::~W8StatInfoDialogBase()
 {
@@ -186,9 +183,6 @@ W8AttributeInfoDialog::W8AttributeInfoDialog(unsigned int uiIndex)
     m_detail_id_144 = g_attr_table_61E4FC[uiIndex];
 }
 
-// SYNTHETIC: WIZ8 0x005dfd00
-// W8AttributeInfoDialog::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005dfd20
 W8AttributeInfoDialog::~W8AttributeInfoDialog()
 {
@@ -209,9 +203,6 @@ W8SkillInfoDialog::W8SkillInfoDialog(unsigned int skill, bool first, bool second
     m_second_14d = second;
     m_bonus_14e = bonus;
 }
-
-// SYNTHETIC: WIZ8 0x005dfef0
-// W8SkillInfoDialog::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005dff10
 W8SkillInfoDialog::~W8SkillInfoDialog()
@@ -256,9 +247,6 @@ W8SecondaryAttributeInfoDialog::W8SecondaryAttributeInfoDialog(unsigned int uiIn
     m_title_id_140 = g_character_description_first_ids[16 + uiIndex];
     m_detail_id_144 = g_attr_table_61E50C[uiIndex];
 }
-
-// SYNTHETIC: WIZ8 0x005e0210
-// W8SecondaryAttributeInfoDialog::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005e0230
 W8SecondaryAttributeInfoDialog::~W8SecondaryAttributeInfoDialog()

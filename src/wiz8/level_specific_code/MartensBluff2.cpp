@@ -625,11 +625,6 @@ void MartensBluff2MonsterCrusher(int command)
     }
 }
 
-// SYNTHETIC: WIZ8 0x004DE500
-// `dynamic atexit destructor for 'crusher_lower''
-// SYNTHETIC: WIZ8 0x004DE510
-// `dynamic atexit destructor for 'crusher_upper''
-
 /* "StoneIdol": while the cursor is free, puts item 0x291 in hand, posts the
    text, activates the IdolGas particle and arms the IdolGas master function. */
 // FUNCTION: WIZ8 0x004DE520
@@ -799,5 +794,3 @@ void MartensBluff2IdolGasVictim(void)
 
 /* srMatrix3T<float>::RotateAroundAxis(double, ...) emitted out-of-line for the
    arrow trap's rotation math; the primary is in srMath.h. */
-// TEMPLATE: WIZ8 0x004DE940
-// srMatrix3T<float>::RotateAroundAxis(double, const srVector3T<float>&) (MartensBluff2.cpp emission)

@@ -67,9 +67,6 @@ public:
         }
     }
 
-    // TEMPLATE: SURRENDER 0x10027890
-    // NAME: srHashTableBase<Key,Value>::Clear
-    // RECOMP: srHashTableBase<srGERD::Renderer::TextureSetKey, unsigned long>::Clear
     void Clear()
     {
         if (bucket_count != 0) {
@@ -91,13 +88,7 @@ public:
 
 template <class Key, class Value> class srHashTable : public srHashTableBase<Key, Value> {
 public:
-    // TEMPLATE: SURRENDER 0x10027840
-    // NAME: srHashTable<Key,Value>::srHashTable
-    // RECOMP: srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::srHashTable
     srHashTable() {}
-    // TEMPLATE: SURRENDER 0x10027860
-    // NAME: srHashTable<Key,Value>::~srHashTable
-    // RECOMP: srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::~srHashTable
     ~srHashTable()
     {
         this->Release();
@@ -212,12 +203,6 @@ template <class Key, class Value> void srHashTableBase<Key, Value>::RemoveAt(int
     }
 }
 
-// TEMPLATE: SURRENDER 0x100279E0
-// NAME: srHashTableBase<Key,Value>::Grow
-// RECOMP: srHashTableBase<srGERD::Renderer::TextureSetKey, unsigned long>::Grow
-// TEMPLATE: SURRENDER 0x10014750
-// NAME: srHashTableBase<Key,Value>::Grow
-// RECOMP: srHashTableBase<srScheduler::Job*, srScheduler::QueueEntry*>::Grow
 template <class Key, class Value> void srHashTableBase<Key, Value>::Grow()
 {
     unsigned int capacity = bucket_count << 1;

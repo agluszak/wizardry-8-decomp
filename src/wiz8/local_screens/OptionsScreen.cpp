@@ -168,65 +168,22 @@ W8OptionsPanelSet::~W8OptionsPanelSet()
 }
 
 /* Standalone JMP thunk onto Controls::~Controls emitted for this TU. */
-// SYNTHETIC: WIZ8 0x005A4080
-// Controls::~Controls thunk -> Controls::~Controls
 
 /* Vtable 0x005EEDDC is an unnamed W8TextControl subclass emitted for this TU:
    identical to W8TextControl's table except slot 0, which holds the generated
    deleting destructor 0x005A76B0 wrapping the emitted destructor 0x005A76D0. */
-// SYNTHETIC: WIZ8 0x005A76B0
-// W8TextControl subclass 0x005EEDDC::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005A76D0
-// W8TextControl subclass 0x005EEDDC::~subclass (emitted)
 
 W8OptionsGamePanel::W8OptionsGamePanel() : W8OptionsPanel(0) {}
 
-// SYNTHETIC: WIZ8 0x005ac680
-// W8OptionsGamePanel::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005ac6a0
-// W8OptionsGamePanel::~W8OptionsGamePanel
-
 W8OptionsMousePanel::W8OptionsMousePanel() : W8OptionsPanel(1) {}
-
-// SYNTHETIC: WIZ8 0x005ac7c0
-// W8OptionsMousePanel::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005ac7e0
-// W8OptionsMousePanel::~W8OptionsMousePanel
 
 W8OptionsInterfacePanel::W8OptionsInterfacePanel() : W8OptionsPanel(2) {}
 
-// SYNTHETIC: WIZ8 0x005AC900
-// W8OptionsInterfacePanel::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005AC920
-// W8OptionsInterfacePanel::~W8OptionsInterfacePanel
-
 W8OptionsAudioPanel::W8OptionsAudioPanel() : W8OptionsPanel(3) {}
-
-// SYNTHETIC: WIZ8 0x005ACCC0
-// W8OptionsAudioPanel::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005ACCE0
-// W8OptionsAudioPanel::~W8OptionsAudioPanel
 
 W8OptionsGraphicsPanel::W8OptionsGraphicsPanel() : W8OptionsPanel(4) {}
 
-// SYNTHETIC: WIZ8 0x005ACA40
-// W8OptionsGraphicsPanel::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005ACA60
-// W8OptionsGraphicsPanel::~W8OptionsGraphicsPanel
-
 W8OptionsAdvancedGraphicsPanel::W8OptionsAdvancedGraphicsPanel() : W8OptionsPanel(5) {}
-
-// SYNTHETIC: WIZ8 0x005acb80
-// W8OptionsAdvancedGraphicsPanel::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005acba0
-// W8OptionsAdvancedGraphicsPanel::~W8OptionsAdvancedGraphicsPanel
 
 W8OptionsKeyboardPanel::W8OptionsKeyboardPanel(int panel)
     : W8OptionsPanel(panel), m_panel(panel), m_captured_button(0)
@@ -237,22 +194,11 @@ W8OptionsSaveLoadPanel::W8OptionsSaveLoadPanel(int panel) : W8OptionsPanel(panel
     m_renderTarget = 0xf7;
     m_renderArg_20 = 0;
 }
-// SYNTHETIC: WIZ8 0x005ace00
-// W8OptionsSaveLoadPanel::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005ace20
-// W8OptionsSaveLoadPanel::~W8OptionsSaveLoadPanel
 
 W8OptionsUnavailablePanel::W8OptionsUnavailablePanel(int message)
     : W8OptionsPanel(13), m_message(message)
 {
 }
-
-// SYNTHETIC: WIZ8 0x005ac540
-// W8OptionsUnavailablePanel::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005ac560
-// W8OptionsUnavailablePanel::~W8OptionsUnavailablePanel
 
 // FUNCTION: WIZ8 0x005aa7d0
 void W8OptionsSaveLoadPanel::Populate()
@@ -614,12 +560,6 @@ W8OptionsSaveRow::W8OptionsSaveRow(Controls* owner, int top, unsigned char save_
     AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
 }
 
-// SYNTHETIC: WIZ8 0x005a7730
-// W8OptionsSaveRow::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005a7750
-// W8OptionsSaveRow::~W8OptionsSaveRow
-
 // FUNCTION: WIZ8 0x005a77b0
 void W8OptionsSaveRow::Redraw(unsigned char full_redraw)
 {
@@ -695,9 +635,6 @@ void W8OptionsSaveRow::OnLeftButtonDoubleClick(int event)
     W8TextControl::OnLeftButtonDoubleClick(event);
 }
 
-// SYNTHETIC: WIZ8 0x005a8050
-// W8OptionsTextEditor::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005a9820
 void W8OptionsScreen::BeginSaveNameEdit(W8OptionsTextEditor::Listener* listener, int row,
                                         const wchar_t* text)
@@ -709,12 +646,6 @@ void W8OptionsScreen::BeginSaveNameEdit(W8OptionsTextEditor::Listener* listener,
     m_text_editor = editor;
     editor->m_listener = listener;
 }
-
-// SYNTHETIC: WIZ8 0x005a7c20
-// W8OptionsButton::~W8OptionsButton
-
-// SYNTHETIC: WIZ8 0x005a7c00
-// W8OptionsButton::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005a7c70
 void W8OptionsButton::Redraw(unsigned char full_redraw)
@@ -749,12 +680,6 @@ void W8OptionsButton::OnMouseLeave(int event)
     SetAlternateTextEnabled(0);
     Invalidate(static_cast<unsigned char>(event));
 }
-
-// SYNTHETIC: WIZ8 0x005a7d60
-// W8OptionsKeyButton::~W8OptionsKeyButton
-
-// SYNTHETIC: WIZ8 0x005a7d40
-// W8OptionsKeyButton::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005a7db0
 void W8OptionsKeyButton::SetKey(unsigned short key)
@@ -816,12 +741,6 @@ void W8OptionsKeyButton::SetKeyText(unsigned short key)
     }
     m_textBuffer.SetText(text, g_options_detail_font);
 }
-
-// SYNTHETIC: WIZ8 0x005ab810
-// W8OptionsKeyboardPanel::~W8OptionsKeyboardPanel
-
-// SYNTHETIC: WIZ8 0x005ab7f0
-// W8OptionsKeyboardPanel::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005ab930
 void W8OptionsKeyboardPanel::Populate()
@@ -1649,12 +1568,6 @@ W8OptionsMenuButton::W8OptionsMenuButton(Controls* owner, const W8OptionsMenuRow
     }
 }
 
-// SYNTHETIC: WIZ8 0x005a7510
-// W8OptionsMenuButton::~W8OptionsMenuButton
-
-// SYNTHETIC: WIZ8 0x005a74f0
-// W8OptionsMenuButton::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005a7570
 void W8OptionsMenuButton::OnPrimary(W8TextControl*)
 {
@@ -1673,12 +1586,6 @@ W8OptionsCheckbox::W8OptionsCheckbox(Controls* owner, int top, int* value)
     }
 }
 
-// SYNTHETIC: WIZ8 0x005a7620
-// W8OptionsCheckbox::~W8OptionsCheckbox
-
-// SYNTHETIC: WIZ8 0x005a7600
-// W8OptionsCheckbox::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005a7680
 void W8OptionsCheckbox::OnLeftButtonUp(int event)
 {
@@ -1695,12 +1602,6 @@ W8OptionsSlider::W8OptionsSlider(Controls* owner, int top, float* value, bool al
         m_position = *m_value;
     }
 }
-
-// SYNTHETIC: WIZ8 0x005a7f50
-// W8OptionsSlider::~W8OptionsSlider
-
-// SYNTHETIC: WIZ8 0x005a7f30
-// W8OptionsSlider::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005a7f60
 void W8OptionsSlider::OnMouseMove(int event)
@@ -1732,16 +1633,8 @@ void W8OptionsSlider::Redraw(unsigned char full_redraw)
 
 /* The base cleanup at 0x005A93A0 destroys m_lsButtons; absence of constructor
    unwind registration does not establish its authored declaration. */
-// SYNTHETIC: WIZ8 0x005A9380
-// W8ControlSelection::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005A93A0
-// W8ControlSelection::~W8ControlSelection
 
 W8OptionsSelection::W8OptionsSelection(int* value) : m_value(value) {}
-
-// SYNTHETIC: WIZ8 0x005A8B30
-// W8OptionsSelection::`scalar deleting destructor'
 
 /* The empty body still emits the m_lsButtons vector teardown over the
    W8ControlSelection base. */
@@ -1767,9 +1660,6 @@ W8OptionsPanel::~W8OptionsPanel()
         m_option_selections.RemoveAtAndDelete(index);
     }
 }
-
-// SYNTHETIC: WIZ8 0x005a8300
-// W8OptionsPanel::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005a84e0
 W8OptionsCheckbox* W8OptionsPanel::AddCheckbox(int label, int* value)
@@ -1910,8 +1800,6 @@ W8OptionsMenuSet::W8OptionsMenuSet(unsigned int* shared_region_set)
 
 /* The menu-set table has its own deleting destructor; the normal destructor
    clears the inherited Controls children before releasing its page text. */
-// SYNTHETIC: WIZ8 0x005a8e40
-// W8OptionsMenuSet::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x005a8e60
 W8OptionsMenuSet::~W8OptionsMenuSet()
 {

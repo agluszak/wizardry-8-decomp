@@ -16,7 +16,8 @@ def test_check_uses_completed_index_and_propagates_command_failures(
     monkeypatch.setattr(build, "load_settings", lambda: settings)
 
     def write_index(_settings):
-        index.parent.mkdir()
+        index.parent.mkdir(exist_ok=True)
+        assert (tmp_path / "build/generated/reccmp/wiz8-emissions.csv").is_file()
         index.write_text("completed projection")
         return {"path": str(index), "cached": False}
 

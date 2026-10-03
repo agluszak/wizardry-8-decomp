@@ -82,9 +82,6 @@ void srBounder::forceUpdateBounds()
     bound_mode_138_ = mode;
 }
 
-// SYNTHETIC: SURRENDER 0x1004B1E0
-// srBounder::srBounder (implicit copy constructor)
-
 // FUNCTION: SURRENDER 0x1004A690
 srBounder& srBounder::operator=(const srBounder& other)
 {
@@ -253,42 +250,3 @@ void srBounder::dump(std::ostream& stream)
     }
     stream.flags(flags & 0x7fff);
 }
-
-// SYNTHETIC: SURRENDER 0x1004B3A0
-// srBounder default constructor closure
-
-// TEMPLATE: SURRENDER 0x1004AF10
-// srClassSupport<srBounder,srNode,0,5632>::getClassID
-
-// TEMPLATE: SURRENDER 0x1004AF20
-// srClassSupport<srBounder,srNode,0,5632>::getClassName
-
-// TEMPLATE: SURRENDER 0x1004AF30
-// srClassSupport<srBounder,srNode,0,5632>::getClassNode
-
-// TEMPLATE: SURRENDER 0x1004AF90
-// srClassSupport<srBounder, srNode, false, 0x1600>::vClone
-
-// TEMPLATE: SURRENDER 0x1004AFB0
-// srClassSupport<srBounder, srNode, false, 0x1600>::~srClassSupport
-
-// SYNTHETIC: SURRENDER 0x1004B3B0
-// srBounder scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x1004B3D0
-// srBounder::`vector deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x1004B440
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x1004B450
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1004B480
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x1004B490
-// std::_Winit global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1004B4B0
-// srClassSupport<srBounder,srNode,0,5632>::`scalar deleting destructor'

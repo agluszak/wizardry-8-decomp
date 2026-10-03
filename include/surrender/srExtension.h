@@ -15,8 +15,6 @@ srExtension {
 public:
     srExtension(const char* name);
     ~srExtension();
-    // SYNTHETIC: SURRENDER 0x10013D50
-    // srExtension::operator=(srExtension const &)
 
     static void dumpAll(std::ostream& stream);
     static srExtension* find(const char* name);

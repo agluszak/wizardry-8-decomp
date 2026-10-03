@@ -17,8 +17,6 @@ public:
     /* Provider copy assignment is consistent with srIlluminator assignment
        followed by the three fog fields. Wiz8 imports the standalone symbol,
        so the consumer keeps only the dllimport declaration. */
-    // SYNTHETIC: SURRENDER 0x1004BCA0
-    // srFog::operator=
 
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srFog& operator=(const srFog& other);

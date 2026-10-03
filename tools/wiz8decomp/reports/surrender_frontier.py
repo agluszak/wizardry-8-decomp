@@ -46,7 +46,6 @@ from ..surrender_iat_typing import _imported_data_value_type, load_surrender_imp
 _EXPORTS = Path("evidence/snapshots/surrender-abi/exports.csv")
 _SCHEMA = "wiz8.surrender-frontier-v2"
 _CALL_MNEMONICS = frozenset({"CALL", "JMP"})
-_EMISSION_KINDS = frozenset({"SYNTHETIC", "TEMPLATE"})
 _CALLABLE_KINDS = frozenset(
     {"method", "constructor", "destructor", "operator", "vbase-destructor", "free-function"}
 )
@@ -323,6 +322,7 @@ def _provider_status(
     decorated_name: str | None = None,
     vtables: set[int] | None = None,
     defined_globals: set[str] | None = None,
+    emissions: set[int] | None = None,
 ) -> str:
     if address is None:
         return "no-export"
@@ -331,9 +331,9 @@ def _provider_status(
         kind = str(marker.marker_kind or "FUNCTION")
         if kind == "FUNCTION":
             return "recovered"
-        if kind in _EMISSION_KINDS:
-            return "emission"
         return kind.lower()
+    if emissions is not None and address in emissions:
+        return "emission"
     if decorated_name and decorated_name.startswith("??_7"):
         if vtables is not None and address in vtables:
             return "vtable"
@@ -488,7 +488,11 @@ def _slot_names(repository: Path, type_spelling: str | None) -> dict[int, str]:
 
 
 def _provider_callees(
-    program: Any, function: Any, markers: Any, declared: dict[str, set[str]]
+    program: Any,
+    function: Any,
+    markers: Any,
+    declared: dict[str, set[str]],
+    emissions: set[int] | None = None,
 ) -> list[dict[str, Any]]:
     """Direct dependencies of one provider body (calls + true tailcalls)."""
 
@@ -524,7 +528,7 @@ def _provider_callees(
             entry["name"] = callee.getName(True)
             entry["external"] = bool(callee.isExternal())
             entry["status"] = _provider_status(
-                callee.getEntryPoint().getOffset(), markers, declared, None
+                callee.getEntryPoint().getOffset(), markers, declared, None, emissions=emissions
             )
         seen[offset] = entry
     return [seen[key] for key in sorted(seen)]
@@ -545,6 +549,9 @@ def surrender_frontier_report(
     exports = _load_exports(repository)
     document = load_source_index(repository)
     markers = source_functions(repository, "SURRENDER")
+    from ..emissions import emission_inventory
+
+    emissions = {row.address for row in emission_inventory(repository, "SURRENDER")}
     declared = _declared_names(document)
     vtables = _vtable_addresses(document)
     defined_globals = _defined_globals(document)
@@ -581,6 +588,7 @@ def surrender_frontier_report(
                     row["decorated_name"],
                     vtables,
                     defined_globals,
+                    emissions,
                 )
                 if entry["status"] == "declared":
                     targets = declared.get(entry["qualified_name"]) or set()
@@ -589,7 +597,9 @@ def surrender_frontier_report(
                 if sites and str(export.get("kind") or "") in _CALLABLE_KINDS:
                     function = manager.getFunctionAt(space.getAddress(address))
                     if function is not None and not function.isExternal():
-                        entry["direct_callees"] = _provider_callees(sr, function, markers, declared)
+                        entry["direct_callees"] = _provider_callees(
+                            sr, function, markers, declared, emissions
+                        )
             provider.append(entry)
 
     records: list[dict[str, Any]] = []

@@ -23,14 +23,6 @@ class
 public:
     /* No own state is modeled. Lifecycle is consistent with ordinary virtual-base
        operations; consumers import the standalone symbols. */
-    // SYNTHETIC: SURRENDER 0x10032020
-    // srBinOStream::srBinOStream()
-    // SYNTHETIC: SURRENDER 0x10032060
-    // srBinOStream::srBinOStream(const srBinOStream&)
-    // SYNTHETIC: SURRENDER 0x100320C0
-    // srBinOStream::operator=
-    // SYNTHETIC: SURRENDER 0x100302B0
-    // srBinOStream::~srBinOStream
 
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srBinOStream();
@@ -46,9 +38,6 @@ public:
     SR_DLL_IMPORT srBinOStream& putQWord(srQuadWord value);
     SR_DLL_IMPORT srBinOStream& putWord(unsigned short value);
     SR_DLL_IMPORT srBinOStream& write(const void* source, unsigned long size);
-
-    // SYNTHETIC: SURRENDER 0x10032110
-    // srBinOStream::`vbase destructor'
 
 protected:
     // Exported by SR.DLL as ?vput@srBinOStream@@MAEGD@Z. Besides completing
@@ -79,14 +68,8 @@ public:
     SR_DLL_IMPORT srBinOMStream();
     /* Copy construction and destruction are consistent with ordinary member
        lifecycle. The default constructor initializes stream state. */
-    // SYNTHETIC: SURRENDER 0x10031120
-    // srBinOMStream::srBinOMStream(const srBinOMStream&)
-    // SYNTHETIC: SURRENDER 0x10031330
-    // srBinOMStream::~srBinOMStream
 
     /* Assignment performs memberwise copying; srArray owns buffer reallocation. */
-    // SYNTHETIC: SURRENDER 0x10031250
-    // srBinOMStream::operator=
 
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srBinOMStream(const srBinOMStream& stream);
@@ -103,9 +86,6 @@ public:
 
 private:
     virtual SR_DLL_IMPORT unsigned long vwrite(const void* source, unsigned long size) override;
-
-    // SYNTHETIC: SURRENDER 0x10031380
-    // srBinOMStream::`vbase destructor'
 
     srArray<unsigned char> buffer_08;
     unsigned long position_10;

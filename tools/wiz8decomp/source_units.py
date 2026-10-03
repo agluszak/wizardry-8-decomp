@@ -32,9 +32,7 @@ UNIT_DIRECTORIES = {
 ORIGINAL_DIRECTORIES = {value: key for key, value in UNIT_DIRECTORIES.items()}
 
 _SOURCE_UNIT_LINE = re.compile(r'^\s*(?:"([^"]+)"|(\S+))\s*$')
-_CODE_MARKERS = re.compile(
-    r"^\s*//\s*(?:FUNCTION|TEMPLATE|VTABLE|GLOBAL|LIBRARY):\s+", re.IGNORECASE
-)
+_CODE_MARKERS = re.compile(r"^\s*//\s*(?:FUNCTION|VTABLE|GLOBAL|LIBRARY):\s+", re.IGNORECASE)
 
 
 class SourceUnitError(RuntimeError):
@@ -203,7 +201,7 @@ def source_unit_violations(repo_dir: Path) -> list[dict[str, Any]]:
                     "kind": "empty-translation-unit",
                     "file": path,
                     "detail": (
-                        f"{path} contains no FUNCTION/TEMPLATE/VTABLE/GLOBAL/LIBRARY "
+                        f"{path} contains no FUNCTION/VTABLE/GLOBAL/LIBRARY "
                         "marker that emits code or data"
                     ),
                 }

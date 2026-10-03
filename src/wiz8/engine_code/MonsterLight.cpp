@@ -14,8 +14,6 @@ const double g_double_005ec318 = 6.2831852;
 
 /* The light-deletion path emitted this vftable slot emission ahead of the
    class's authored bodies. */
-// SYNTHETIC: WIZ8 0x0049E0A0
-// MonsterLight::`scalar deleting destructor'
 
 /* Monster's fixed light is a regular srLight specialization.  Its two colours
    are retained for the optional cycle, while the first colour is also the
@@ -93,9 +91,6 @@ MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
     m_start_time_244 = g_game_time_accumulator->GetElapsed();
 }
 
-// SYNTHETIC: WIZ8 0x0049E0D0
-// MonsterLight::~MonsterLight
-
 // FUNCTION: WIZ8 0x0049D940
 void MonsterLight::SetRange(float range)
 {
@@ -149,18 +144,3 @@ void MonsterLight::StartFadeOut()
     m_fade_out_249 = 1;
     m_start_time_244 = g_game_time_accumulator->GetElapsed();
 }
-
-// TEMPLATE: WIZ8 0x0049DC20
-// srClassSupport<srLight,srIlluminator,0,4640>::getClassID
-
-// TEMPLATE: WIZ8 0x0049DC30
-// srClassSupport<srLight,srIlluminator,0,4640>::getClassName
-
-// TEMPLATE: WIZ8 0x0049DC40
-// srClassSupport<srLight,srIlluminator,0,4640>::vClone
-
-// TEMPLATE: WIZ8 0x0049E300
-// srClassSupport<srLight,srIlluminator,0,4640>::getClassNode
-
-// SYNTHETIC: WIZ8 0x0049E440
-// MonsterLight::`vector deleting destructor'`adjustor{312}'

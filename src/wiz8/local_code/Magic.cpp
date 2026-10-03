@@ -579,9 +579,6 @@ void AbsorbMissileDamage(W8Missile* missile)
     }
 }
 
-// SYNTHETIC: WIZ8 0x0042bac0
-// W8SpellEffectEntry::~W8SpellEffectEntry
-
 // FUNCTION: WIZ8 0x005008a0
 void AddSpellEffect(W8SpellEffectEntry* effect)
 {

@@ -733,10 +733,3 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
     }
     memcpy(m_pulCondNodeValues, aulValues, m_ulNumCondNodes << 2);
 }
-
-// TEMPLATE: WIZ8 0x004CECA0
-// NAME: W8HashTable<Key,Value>::Grow
-// RECOMP: W8HashTable<unsigned int,unsigned char>::Grow
-
-// TEMPLATE: WIZ8 0x004CEDF0
-// InsertionSort

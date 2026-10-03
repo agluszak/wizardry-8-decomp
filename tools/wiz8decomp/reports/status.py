@@ -27,8 +27,6 @@ _SOURCE_KINDS = (
     (MarkerType.FUNCTION, "functions"),
     (MarkerType.STUB, "stubs"),
     (MarkerType.LIBRARY, "library"),
-    (MarkerType.SYNTHETIC, "synthetic"),
-    (MarkerType.TEMPLATE, "template"),
 )
 _DIAGNOSTIC_LIMIT = 50
 
@@ -70,6 +68,19 @@ def _source_statistics(engine: Compare) -> tuple[dict[str, int], set[int], set[i
         count = len({marker.offset for marker in markers if marker.type == marker_type})
         if count:
             source[key] = count
+    # Emissions are binary metadata, accounted separately from authored progress.
+    import csv
+    import io
+
+    emission_addresses: dict[str, set[int]] = {}
+    for data_source in getattr(engine, "data_sources", ()):
+        if data_source.path.suffix.lower() != ".csv":
+            continue
+        for row in csv.DictReader(io.StringIO(data_source.text), delimiter="|"):
+            kind = row.get("type")
+            if kind in {"synthetic", "template"}:
+                emission_addresses.setdefault(kind, set()).add(int(row["address"], 16))
+    source.update({kind: len(addresses) for kind, addresses in emission_addresses.items()})
     source_addresses = {marker.offset for marker in markers if marker.type == MarkerType.FUNCTION}
     name_ref_addresses = {
         marker.offset

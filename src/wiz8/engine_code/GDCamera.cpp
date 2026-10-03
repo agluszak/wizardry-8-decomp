@@ -95,7 +95,6 @@ srCamera* g_game_camera;
 // GLOBAL: WIZ8 0x0065a0f8
 GDCamera* g_gd_camera;
 
-
 /* Two thin GDCamera wrappers over GetForwardPoint, placed here because their
    GameData.cpp ownership was never evidence-backed.  The copy-through variant
    remains a distinct recovered identity even though both expose the same operation. */
@@ -917,6 +916,3 @@ void GDCamera::SetManualControlActive(bool enabled)
     }
     m_state_000 &= ~1UL;
 }
-
-// TEMPLATE: WIZ8 0x00478EB0
-// srMatrix3T<float>::RotateAboutX

@@ -19,9 +19,6 @@ srVariableTimer::srVariableTimer(int a0, int a1, int a2, float multiplier, unsig
     m_step_ticks = static_cast<unsigned __int64>((double)m_step_ticks * m_step_scale);
 }
 
-// SYNTHETIC: SURRENDER 0x100633F0
-// srVariableTimer::`vector deleting destructor'
-
 // FUNCTION: SURRENDER 0x10063450
 srVariableTimer::srVariableTimer(const srVariableTimer& other) : srTimer(other)
 {
@@ -381,21 +378,3 @@ std::ostream& operator<<(std::ostream& stream, const srVariableTimer& timer)
     stream.width(mode);
     return stream;
 }
-
-// SYNTHETIC: SURRENDER 0x10063F50
-// srVariableTimer default constructor closure
-
-// SYNTHETIC: SURRENDER 0x100633D0
-// srVariableTimer scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x10064300
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x10064310
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10064340
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x10064350
-// std::_Winit global atexit registrar

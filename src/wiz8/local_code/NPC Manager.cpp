@@ -1279,9 +1279,6 @@ void ReleaseNpcStates(void)
 }
 
 /* The g_npc_states teardown's own vector emission. */
-// TEMPLATE: WIZ8 0x00509A80
-// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
-// RECOMP: W8GrowableVector<W8NpcState*>::~W8GrowableVector<W8NpcState*>
 
 /* The NPCT section writer: a version byte, the state count, then each 0x13d
    state block followed by its 0x1862 character block when the NPC carries one.

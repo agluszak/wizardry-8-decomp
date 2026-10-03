@@ -14,12 +14,6 @@
 // GLOBAL: WIZ8 0x0069c5d0
 unsigned int g_dialog_text_layout_mask = g_W8TextBufferNoWrap;
 
-// SYNTHETIC: WIZ8 0x005d1020
-// W8DialogTextEntry::~W8DialogTextEntry
-
-// SYNTHETIC: WIZ8 0x005d1030
-// W8DialogTextEntry::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005d1050
 W8DialogTextEntry::W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text,
                                      unsigned int prefix_palette, unsigned int text_palette,

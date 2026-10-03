@@ -751,9 +751,6 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
     return nearest_surface;
 }
 
-// SYNTHETIC: WIZ8 0x0041BD50
-// `dynamic atexit destructor for 's_prop_hit_plane_00652d90''
-
 // FUNCTION: WIZ8 0x0041BD60
 unsigned char W8GameData::ProbeMonstersAlongMotion(srVector3T<float>* direction,
                                                    srVector3T<float>* position, int)
@@ -2074,15 +2071,6 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
     return 0;
 }
 
-// SYNTHETIC: WIZ8 0x0041E8B0
-// `dynamic atexit destructor for 's_first_normal_00652d80''
-
-// SYNTHETIC: WIZ8 0x0041E8C0
-// `dynamic atexit destructor for 's_second_normal_00652d68''
-
-// SYNTHETIC: WIZ8 0x0041E8D0
-// `dynamic atexit destructor for 's_entry_direction_00652d50''
-
 /* Whether `surface_index`'s triangle centroid sits farther from this surface's
    centroid than the from→to normal offset: used to tell genuinely different
    contact planes apart when wedging a slide. */
@@ -3057,6 +3045,3 @@ void UpdateLevelMovementAudio(void)
                                               g_level_data->sound_environment_alt_0d, 2);
     }
 }
-
-// SYNTHETIC: WIZ8 0x00421890
-// W8LevelDataRecord::~W8LevelDataRecord

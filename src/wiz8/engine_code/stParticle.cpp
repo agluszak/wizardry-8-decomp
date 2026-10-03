@@ -43,27 +43,6 @@ const float g_float_005ecc40 = 0.00019174758926965296f;
 // VTABLE: WIZ8 0x005ECC04
 // class srClassSupport<stParticle,srNode,0,65545>
 
-// TEMPLATE: WIZ8 0x0049B540
-// srClassSupport<stParticle,srNode,0,65545>::getClassID
-
-// TEMPLATE: WIZ8 0x0049B550
-// srClassSupport<stParticle,srNode,0,65545>::getClassName
-
-// TEMPLATE: WIZ8 0x0049B560
-// srClassSupport<stParticle,srNode,0,65545>::getClassNode
-
-// TEMPLATE: WIZ8 0x0049B5D0
-// srClassSupport<stParticle,srNode,0,65545>::vClone
-
-// TEMPLATE: WIZ8 0x0049B990
-// srClassSupport<stParticle,srNode,0,65545>::~srClassSupport<stParticle,srNode,0,65545>
-
-// SYNTHETIC: WIZ8 0x0049BA50
-// srClassSupport<stParticle,srNode,0,65545>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00498150
-// stParticle::`scalar deleting destructor'
-
 /* Return the renderer flags as a value. VC6 lowers the four-byte class return
    through its hidden result pointer. */
 // FUNCTION: WIZ8 0x00498A10

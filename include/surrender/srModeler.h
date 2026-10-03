@@ -44,8 +44,6 @@ public:
         }
 
         /* The assignment body copies the six fields. */
-        // SYNTHETIC: SURRENDER 0x10037DA0
-        // ??4MappingInfo@srModeler@@QAEAAU01@ABU01@@Z
 
         e_axis axis_u_00;
         e_axis axis_v_04;
@@ -80,8 +78,6 @@ public:
         int operator!=(const Vertex& other) const;
 
         /* Class-level dllexport emits the memberwise assignment. */
-        // SYNTHETIC: SURRENDER 0x10038730
-        // srModeler::Vertex::operator=
 
         /* stCube.cpp writes the modelled position and the first of the eight
            UV slots the Polygon constructor layout-initializes at +0xC0. */
@@ -110,10 +106,6 @@ public:
            Vertex::operator=; construction block-copies the Vertex region and
            copies the four shader words individually. Original special-member
            declarations are unresolved. */
-        // SYNTHETIC: SURRENDER 0x10037C10
-        // ??0Triangle@srModeler@@QAE@ABV01@@Z
-        // SYNTHETIC: SURRENDER 0x10037C70
-        // ??4Triangle@srModeler@@QAEAAV01@ABV01@@Z
 
         srTextureIFace* textures_00[4][2];
         srShader shaders_20[4];
@@ -135,10 +127,6 @@ public:
         void reAllocate(int vertices);
 
         /* Copy bodies are consistent with memberwise copying, as for Triangle above. */
-        // SYNTHETIC: SURRENDER 0x10037CF0
-        // ??0Polygon@srModeler@@QAE@ABV01@@Z
-        // SYNTHETIC: SURRENDER 0x10037D40
-        // ??4Polygon@srModeler@@QAEAAV01@ABV01@@Z
 
         srTextureIFace* textures_00[4][2];
         srShader shaders_20[4];
@@ -156,10 +144,6 @@ public:
 
     /* Copy bodies are consistent with memberwise copying; srArray<Triangle>
        owns the triangle storage clone. */
-    // SYNTHETIC: SURRENDER 0x10037DE0
-    // ??0srModeler@@QAE@ABV0@@Z
-    // SYNTHETIC: SURRENDER 0x10037F90
-    // srModeler::operator=
 
     void discard();
 

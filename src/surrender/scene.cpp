@@ -41,9 +41,6 @@ srScene::srScene(srNode* parent)
     resetStatistics();
 }
 
-// SYNTHETIC: SURRENDER 0x10056D60
-// srScene::srScene (implicit copy constructor)
-
 // FUNCTION: SURRENDER 0x100566F0
 srScene& srScene::operator=(const srScene& other)
 {
@@ -271,48 +268,3 @@ void srScene::setFogColor(const srVector3T<float>& color)
 {
     fog_color_180 = color;
 }
-
-// SYNTHETIC: SURRENDER 0x10057080
-// srScene default constructor closure
-
-// SYNTHETIC: SURRENDER 0x10056980
-// member pointer-pair destructor emission (EH unwind)
-
-// TEMPLATE: SURRENDER 0x100569F0
-// srClassSupport<srScene,srNode,0,4112>::getClassID
-
-// TEMPLATE: SURRENDER 0x10056A00
-// srClassSupport<srScene,srNode,0,4112>::getClassName
-
-// TEMPLATE: SURRENDER 0x10056A10
-// srClassSupport<srScene,srNode,0,4112>::getClassNode
-
-// TEMPLATE: SURRENDER 0x10056A70
-// srClassSupport<srScene, srNode, 0, 0x1010>::vClone
-
-// TEMPLATE: SURRENDER 0x10056A90
-// srClientSupport<srScene, 0x1010>::~srClientSupport
-
-// SYNTHETIC: SURRENDER 0x10057090
-// srScene scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x100570B0
-// srScene::`vector deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10057110
-// member destructor emission (EH unwind)
-
-// SYNTHETIC: SURRENDER 0x10057150
-// srClassSupport<srScene,srNode,0,4112>::`scalar deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10057180
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x10057190
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x100571C0
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x100571D0
-// std::_Winit global atexit registrar

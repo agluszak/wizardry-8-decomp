@@ -60,10 +60,6 @@ static srFog* g_environment_object_0065b9b0;
 static const float CAMERA_LIGHT_MAXIMUM_INTENSITY = 50.0f;
 // GLOBAL: WIZ8 0x0065B9B4
 static srFog* g_environment_object_0065b9b4;
-// SYNTHETIC: WIZ8 0x00482250
-// `dynamic initializer for 'g_environment_lights''
-// SYNTHETIC: WIZ8 0x00482270
-// `dynamic atexit destructor for 'g_environment_lights''
 // GLOBAL: WIZ8 0x0065B998
 W8Vector<stLight*> g_environment_lights(5);
 
@@ -391,21 +387,6 @@ void UpdateEnvironmentLight(void)
 
 // VTABLE: WIZ8 0x005EC94C
 // class srClientSupport<srFog,4624>
-
-// TEMPLATE: WIZ8 0x00484700
-// srClientSupport<srFog,4624>::getClassID
-
-// TEMPLATE: WIZ8 0x00484710
-// srClientSupport<srFog,4624>::getClassName
-
-// TEMPLATE: WIZ8 0x00484720
-// srClientSupport<srFog,4624>::getClassNode
-
-// TEMPLATE: WIZ8 0x004847C0
-// srClientSupport<srFog,4624>::vClone
-
-// SYNTHETIC: WIZ8 0x00484840
-// srClientSupport<srFog,4624>::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00483750
 void SetSkyEnabled(bool enabled)
@@ -999,9 +980,6 @@ void SetGameTimeMilliseconds(int value)
     g_status.game_time_ms = value;
     g_tick_65b9a8 = GetTickCount();
 }
-
-// TEMPLATE: WIZ8 0x004848d0
-// srMatrix3T<float>::RotateAboutY(double,double)
 
 // FUNCTION: WIZ8 0x00482740
 void SetGameTimeDays(int value)

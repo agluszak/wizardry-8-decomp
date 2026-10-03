@@ -257,8 +257,6 @@ public:
                               int bottom); /* 0x0055E570 */
     /* The ordinary destructor at 0x0055E5D0 is a pure JMP thunk to
        W8Widget::~W8Widget; there is no authored body to match. */
-    // SYNTHETIC: WIZ8 0x0055E5B0
-    // W8NpcDialogueScrollWidget::`scalar deleting destructor'
 
     virtual void OnMouseEnter(int event) override;     /* 0x0055E5E0 */
     virtual void OnMouseLeave(int event) override;     /* 0x0055E610 */
@@ -338,8 +336,6 @@ public:
 class W8LockTumblerPanel : public Controls, public W8LockTumblerListener {
 public:
     W8LockTumblerPanel(int tumbler_count, const unsigned char* pin_data); /* 0x005856E0 */
-    // SYNTHETIC: WIZ8 0x005858a0
-    // W8LockTumblerPanel::`scalar deleting destructor'
 
     virtual ~W8LockTumblerPanel();                                   /* 0x005858C0 */
     virtual void OnTumblerReleased(W8LockTumbler* tumbler) override; /* 0x00585950 */
@@ -369,8 +365,6 @@ static_assert(offsetof(W8LockTumblerPanel, m_listener_e8) == 0xe8, "W8LockTumble
 class W8LockInfoPanel : public Controls {
 public:
     W8LockInfoPanel(int tumbler_count); /* 0x00585B00 */
-    // SYNTHETIC: WIZ8 0x00585e00
-    // W8LockInfoPanel::`scalar deleting destructor'
 
     virtual ~W8LockInfoPanel();     /* 0x00585E20 */
     virtual void Redraw() override; /* 0x00586120 */
@@ -397,8 +391,6 @@ static_assert(sizeof(W8LockInfoPanel) == 0x6c, "W8LockInfoPanel_size");
 class W8LockInteraction : public W8LockTumblerPanelListener, public W8TextControl::Listener {
 public:
     W8LockInteraction(Trigger* trigger); /* 0x005861A0 */
-    // SYNTHETIC: WIZ8 0x00586680
-    // W8LockInteraction::`scalar deleting destructor'
 
     virtual ~W8LockInteraction();                            /* 0x005866A0 */
     virtual void OnTumblerPicked(int index) override;        /* 0x00586B10 */

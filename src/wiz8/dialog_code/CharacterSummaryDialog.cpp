@@ -39,9 +39,6 @@ W8CharacterSummaryDialog::W8CharacterSummaryDialog(W8Character* character)
     SetBackground("Data\\Dialogs\\popup_quote.sti", 0);
 }
 
-// SYNTHETIC: WIZ8 0x005e03f0
-// W8CharacterSummaryDialog::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005e0410
 W8CharacterSummaryDialog::~W8CharacterSummaryDialog()
 {

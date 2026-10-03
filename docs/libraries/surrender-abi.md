@@ -394,7 +394,7 @@ destructor behavior, and Wiz8's `0x0049e290` array growth allocates scalar
 storage, copies the overlapping elements, then deletes the old storage. Other
 Wiz8 callers of `0x004701b0` pass different two-word objects, so the address
 is a folded emission rather than evidence for a separate `W8OwnedPtr` class or
-one particular element type. The template marker records the retail identity
+one particular element type. The emission inventory records the retail identity
 without inventing a separate authored class for that folded helper.
 
 `srArray` is also the heap-backed vector-stream array: its storage goes
@@ -420,7 +420,7 @@ insertion, removal, and bucket rebuild. Both allocate entry and bucket arrays
 with `new[]` and destroy them with `delete[]`. Wiz8's `unsigned int` and
 SurRender's `unsigned long` hash-key overloads are both 32-bit in the target
 ABI; the only implementation differences are method definition order and
-their provisional names. The `TEMPLATE` markers on Wiz8 octree/mesh helpers
+their provisional names. The emission inventory entries for Wiz8 octree/mesh helpers
 and SurRender Huffman `Grow` helpers describe emissions of this same algorithm.
 When an emitted constructor/destructor/helper is body-equivalent across value
 types, that address does not establish one exact source specialization: use
@@ -455,7 +455,7 @@ members have been constructed. This is the support template's derived-reference
 constructor followed by the compiler's implicit copy construction; it is not an
 assignment in an authored derived constructor body. The early access to derived
 state, subsequent retained pointer copies, and raw pointer aliasing remain retail
-behavior. Copies have marker-only `SYNTHETIC` identities.
+behavior. Copies have binary emission identities outside authored source.
 
 The support destructor owns unregistration. `srModel` (`0x1003C470`),
 `srBounder` (`0x1004B2E0`), `srModelInstance` (`0x1004FA40`), `srIlluminator`

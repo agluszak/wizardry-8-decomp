@@ -1,4 +1,4 @@
-"""Compare retail-address marker identities between two revisions.
+"""Compare authored source and binary emission identities between two revisions.
 
 Ordinary merging can silently turn a recovered FUNCTION back into a bare
 declaration, duplicate an address under two names, or rename an identity
@@ -11,8 +11,8 @@ FUNCTION addresses whose name is still referenced by the head tree
 
 The comparison is revision-based so it runs without switching the checkout.
 Known source-model refinements are recognized directly: recovered functions may
-be reclassified as compiler/library emissions at the same retail address, and a
-former GLOBAL may be absorbed by the known extent of a larger GLOBAL object.
+be reclassified into binary emission metadata or library emissions at the same retail
+address, and a former GLOBAL may be absorbed by the known extent of a larger GLOBAL object.
 Everything else remains a preservation failure; there is no waiver list.
 """
 
@@ -33,21 +33,24 @@ MARKER_KINDS = (
     "GLOBAL",
     "STRING",
     "VTABLE",
-    "TEMPLATE",
-    "SYNTHETIC",
+    "EMISSION",
     "LIBRARY",
     "STUB",
 )
-IDENTITY_KINDS = frozenset({"FUNCTION", "GLOBAL", "VTABLE"})
+IDENTITY_KINDS = frozenset({"FUNCTION", "GLOBAL", "VTABLE", "EMISSION"})
 PRESERVING_RECLASSIFICATIONS = {
-    "FUNCTION": frozenset({"TEMPLATE", "SYNTHETIC", "LIBRARY"}),
+    "FUNCTION": frozenset({"EMISSION", "LIBRARY"}),
     "GLOBAL": frozenset({"STRING"}),
 }
 SOURCE_ROOTS = ("src", "include")
+EMISSION_FILES = (
+    "evidence/observations/compiler-emissions.csv",
+    "config/reccmp/emission_overrides.csv",
+)
 SOURCE_SUFFIXES = (".c", ".cpp", ".h", ".hpp")
 
 _MARKER = re.compile(
-    r"^\s*//\s*(?P<kind>FUNCTION|GLOBAL|STRING|VTABLE|TEMPLATE|SYNTHETIC|LIBRARY|STUB):\s*"
+    r"^\s*//\s*(?P<kind>FUNCTION|GLOBAL|STRING|VTABLE|LIBRARY|STUB):\s*"
     r"(?P<target>[A-Za-z0-9_]+)\s+(?P<address>0x[0-9A-Fa-f]+)",
 )
 _DECLARATOR = re.compile(r"([A-Za-z_]\w*(?:::[A-Za-z_]\w*)*)\s*(?:\(|=|;|\[)")
@@ -162,20 +165,22 @@ def _tree_sources(repo_dir: Path, revision: str | None) -> dict[str, str]:
             "--exclude-standard",
             "--",
             *SOURCE_ROOTS,
+            *EMISSION_FILES,
         )
         return {
             name: (repo_dir / name).read_text(encoding="utf-8", errors="replace")
             for name in sorted(set(listing.split("\0")))
-            if name.endswith(SOURCE_SUFFIXES) and (repo_dir / name).is_file()
+            if (name.endswith(SOURCE_SUFFIXES) or name in EMISSION_FILES)
+            and (repo_dir / name).is_file()
         }
-    listing = _git(repo_dir, "ls-tree", "-r", "-z", revision, "--", *SOURCE_ROOTS)
+    listing = _git(repo_dir, "ls-tree", "-r", "-z", revision, "--", *SOURCE_ROOTS, *EMISSION_FILES)
     files: dict[str, str] = {}
     for entry in listing.split("\0"):
         if not entry:
             continue
         metadata, name = entry.split("\t", 1)
         _mode, kind, oid = metadata.split()
-        if kind == "blob" and name.endswith(SOURCE_SUFFIXES):
+        if kind == "blob" and (name.endswith(SOURCE_SUFFIXES) or name in EMISSION_FILES):
             files[name] = oid
     if not files:
         return {}
@@ -231,7 +236,7 @@ def _owned_entity(lines: list[str], start: int, kind: str) -> tuple[str, str]:
                 return stripped, ""
             continue
         if stripped.startswith("//"):
-            if kind in ("TEMPLATE", "SYNTHETIC") and not collected:
+            if kind in {"VTABLE", "LIBRARY"} and not collected:
                 return stripped, ""
             continue
         collected.append(stripped)
@@ -254,9 +259,10 @@ def collect_identities(
     """Markers at ``revision`` keyed by (kind, target, address)."""
 
     identities: dict[Identity, list[dict[str, str]]] = defaultdict(list)
-    for name, content in (
-        sources if sources is not None else _tree_sources(repo_dir, revision)
-    ).items():
+    sources = sources if sources is not None else _tree_sources(repo_dir, revision)
+    for name, content in sources.items():
+        if name in EMISSION_FILES:
+            continue
         lines = content.splitlines()
         for index, line in enumerate(lines):
             marker = _MARKER.match(line)
@@ -273,6 +279,17 @@ def collect_identities(
                     "name": _entity_name(entity),
                 }
             )
+    from .emissions import read_emissions
+
+    emissions = {}
+    for filename in EMISSION_FILES:
+        if filename in sources:
+            for row in read_emissions(sources[filename]):
+                emissions[row.target, row.address] = (filename, row)
+    for (target, address), (filename, row) in emissions.items():
+        identities["EMISSION", target, address].append(
+            {"file": filename, "entity": row.symbol or row.name, "form": "", "name": ""}
+        )
     return identities
 
 
@@ -281,7 +298,9 @@ def _references(sources: dict[str, str], names: set[str]) -> dict[str, int]:
         return {}
     counts = dict.fromkeys(names, 0)
     pattern = re.compile(r"\b(" + "|".join(re.escape(name) for name in sorted(names)) + r")\b")
-    for content in sources.values():
+    for filename, content in sources.items():
+        if filename in EMISSION_FILES:
+            continue
         for match in pattern.finditer(content):
             counts[match.group(1)] += 1
     return counts

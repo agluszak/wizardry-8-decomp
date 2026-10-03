@@ -83,8 +83,13 @@ def test_changed_header_selects_transitive_consumers_and_inline_bodies(
         strict=True,
     ):
         marker["source_file"] = source
-    index["markers"][1]["marker_kind"] = "TEMPLATE"
-    index_path.write_text(json.dumps(index))
+    index["markers"].pop(1)
+    inventory = tmp_path / "evidence/observations/compiler-emissions.csv"
+    inventory.parent.mkdir(parents=True)
+    inventory.write_text(
+        "target|address|symbol|name|type|source_files\n"
+        "WIZ8|00401020||Grow<int>|template|include/wiz8/inline.h\n"
+    )
     index["translation_unit_dependencies"] = [
         {
             "source_file": "src/wiz8/unit.cpp",

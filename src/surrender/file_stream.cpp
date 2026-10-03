@@ -16,8 +16,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// SYNTHETIC: SURRENDER 0x10016410
-// srFileManager::`vector deleting destructor'
 
 // FUNCTION: SURRENDER 0x1002E010
 srFileManager::Path::Path(const char* name)
@@ -54,8 +52,6 @@ srFileManager::Path* srFileManager::Path::getNext() const
 
 /* Retail 0x100163A0 copies name_00, next_04 and previous_08 memberwise,
    preserving the pointer aliasing even though Path owns name_00. */
-// SYNTHETIC: SURRENDER 0x100163A0
-// srFileManager::Path::operator= (implicit shallow copy)
 
 // FUNCTION: SURRENDER 0x1002E0B0
 void srFileManager::addPath(const char* path)
@@ -552,9 +548,6 @@ unsigned long srBinFStream::ptell()
     return position;
 }
 
-// SYNTHETIC: SURRENDER 0x1002F640
-// srBinFStream::`vector deleting destructor'
-
 // FUNCTION: SURRENDER 0x1002F6B0
 srBinIFStream::srBinIFStream() {}
 
@@ -712,26 +705,3 @@ unsigned long srBinOFStream::tell()
 
 /* srFileManager's implicit deleting destructor is emitted in this unit with
    the Path members. */
-// SYNTHETIC: SURRENDER 0x100163F0
-// srFileManager scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x1002E770
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x1002E780
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1002E7B0
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x1002E7C0
-// std::_Winit global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1002EC50
-// ReadJob scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x1002ED90
-// base subobject destructor emission (vtable restore)
-
-// SYNTHETIC: SURRENDER 0x1002E5DF
-// catch funclet emission

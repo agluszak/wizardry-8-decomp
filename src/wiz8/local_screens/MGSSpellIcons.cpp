@@ -53,10 +53,6 @@ static W8TextControl* g_combat_effect_left_rows[9];
 
 static void RebuildCombatEffectHudRows(void);
 
-// TEMPLATE: WIZ8 0x005b1b70
-// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
-// RECOMP: W8GrowableVector<W8CharacterPageEntry*>::~W8GrowableVector<W8CharacterPageEntry*>
-
 // FUNCTION: WIZ8 0x005AE9D0
 unsigned char CreateSpellIconHudControls(void)
 {

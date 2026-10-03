@@ -62,9 +62,6 @@ static wchar_t g_format_d_d_s[] = L"%d-%d %s";
 // STRING: WIZ8 0x0064FD54
 #define SPELL_INFO_DIALOG_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\SpellInfoDialog.cpp"
 
-// SYNTHETIC: WIZ8 0x005dbc30
-// W8SpellInfoDialog::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005dbb60
 W8SpellInfoDialog::W8SpellInfoDialog(unsigned int spell)
     : m_spell_054(spell), m_timer_144(0.05f, 1), m_animation_frame(0)

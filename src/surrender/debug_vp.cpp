@@ -1607,15 +1607,3 @@ void srDebugVP::_srGetClipFlags(SRBYTE* destination, const srVector4* source, SR
     ScopeTimer scope_timer(this, count, 165, source, 0, 0, 0);
     processor_444->_srGetClipFlags(destination, source, count);
 }
-
-// SYNTHETIC: SURRENDER 0x1006FCC0
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x1006FCD0
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1006FD00
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x1006FD10
-// std::_Winit global atexit registrar

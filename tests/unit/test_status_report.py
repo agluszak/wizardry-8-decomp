@@ -66,8 +66,18 @@ def test_function_markers_are_the_only_recovered_source() -> None:
         _marker(0x401040, MarkerType.TEMPLATE),
     ]
 
+    from pathlib import Path
+
     source, addresses, name_refs = status._source_statistics(
-        SimpleNamespace(codebase=FakeCodebase(markers))
+        SimpleNamespace(
+            codebase=FakeCodebase(markers),
+            data_sources=[
+                SimpleNamespace(
+                    path=Path("emissions.csv"),
+                    text="address|symbol|name|type\n00401030||Destructor|synthetic\n00401040||Grow<int>|template\n",
+                )
+            ],
+        )
     )
 
     assert source == {

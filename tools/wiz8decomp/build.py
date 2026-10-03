@@ -467,6 +467,9 @@ def build_target(
         phases[name] = int((time.perf_counter() - origin) * 1000)
         return time.perf_counter()
 
+    from .emissions import generate_emissions
+
+    generate_emissions(settings.repo_dir)
     with build_lock(settings):
         build = ContainerBuild.from_settings(settings)
         resolved_target = TARGET_ALIASES.get(target, target)
@@ -504,6 +507,20 @@ def build_target(
 
             exports = validate_built_surrender_exports(settings.repo_dir, provider)
             mark("exports_ms", tick)
+        if (settings.repo_dir / "build/source-index.json").is_file():
+            from .emissions import TARGET_FILES
+            from .source_index import project_targets
+
+            configs = project_targets(settings.repo_dir)
+            available = tuple(
+                name
+                for name in TARGET_FILES
+                if (build.build_dir / configs[name]["filename"]).is_file()
+                and (
+                    build.build_dir / Path(configs[name]["filename"]).with_suffix(".pdb")
+                ).is_file()
+            )
+            generate_emissions(settings.repo_dir, derive=True, targets=available)
         return {
             "status": "ok",
             "target": resolved_target,
@@ -1021,6 +1038,9 @@ def check(repository: Path) -> dict[str, Any]:
 
     settings = load_settings()
     assert settings is not None
+    from .emissions import generate_emissions
+
+    generate_emissions(repository)
     check_started = time.perf_counter()
     timings_ms: dict[str, int] = {}
     cheap_commands = (
@@ -1048,7 +1068,7 @@ def check(repository: Path) -> dict[str, Any]:
     with ThreadPoolExecutor(max_workers=2) as executor:
         types = executor.submit(command_gate, "types", ["pyright"])
         # The repository suite and later comparisons read this projection; its
-        # writer also validates synthetic markers and cross-TU declarations.
+        # writer also rejects compiler emission markers and cross-TU declarations.
         started = time.perf_counter()
         source_index = write_source_index(settings)
         timings_ms["source-index"] = int((time.perf_counter() - started) * 1000)

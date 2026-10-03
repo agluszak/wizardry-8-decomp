@@ -435,14 +435,11 @@ def test_changed_comparison_reports_template_non_emission_without_hiding_functio
     function = _row(0x402000, "unpaired")
     function["recomp"] = None
     _fake_reccmp(monkeypatch, [template, function])
+    from wiz8decomp.emissions import Emission
+
     monkeypatch.setattr(
-        "wiz8decomp.source_index.load_source_index",
-        lambda *_args: {
-            "markers": [
-                {"target": "WIZ8", "marker_kind": "TEMPLATE", "address": 0x401000},
-                {"target": "WIZ8", "marker_kind": "FUNCTION", "address": 0x402000},
-            ]
-        },
+        "wiz8decomp.emissions.emission_inventory",
+        lambda *_args: [Emission("WIZ8", 0x401000, "", "Grow<int>", "template")],
     )
 
     result = compare_selected(

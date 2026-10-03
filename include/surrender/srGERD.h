@@ -1286,8 +1286,6 @@ private:
 
 /* The copy body is consistent with memberwise copying; no in-DLL call site is
    identified in the reviewed evidence. */
-// SYNTHETIC: SURRENDER 0x1001B020
-// ??0srGERD@@QAE@ABV0@@Z
 
 /* Retail 0x10027BF0: the three-word texture-set key hash; the interning
    cache inlines it for the lookup probe and calls this emission when

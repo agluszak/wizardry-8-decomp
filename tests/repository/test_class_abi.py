@@ -120,8 +120,7 @@ def test_support_derived_classes_do_not_redeclare_template_methods() -> None:
 
 def test_template_specializations_are_never_function_markers() -> None:
     """An address inside srClassSupport<...> is emitted from the template, so
-    it is a TEMPLATE emission (or SYNTHETIC for the compiler's deleting
-    destructor). FUNCTION would claim someone authored that body."""
+    it belongs in binary emission metadata. FUNCTION would claim someone authored that body."""
     offenders = [
         f"{marker['source_file']}:{marker['line']} {marker['marker_name']}"
         for marker in _index()["markers"]
@@ -129,26 +128,18 @@ def test_template_specializations_are_never_function_markers() -> None:
     ]
     assert not offenders, (
         "srClassSupport specializations are template output and must use "
-        "TEMPLATE, never FUNCTION:\n  " + "\n  ".join(sorted(offenders))
+        "binary emission metadata, never FUNCTION:\n  " + "\n  ".join(sorted(offenders))
     )
 
 
-def test_deleting_destructors_are_synthetic_and_unbound() -> None:
-    """MSVC generates scalar and vector deleting destructors. Neither may bind to an
-    authored declaration, because authoring one means someone hand-wrote the
-    flag test and operator delete that the compiler owns."""
-    offenders = []
-    for marker in _index()["markers"]:
-        if not any(
-            spelling in (marker.get("marker_name") or "") for spelling in DELETING_DESTRUCTORS
-        ):
-            continue
-        location = f"{marker['source_file']}:{marker['line']} {marker['marker_name']}"
-        if marker["marker_kind"] != "SYNTHETIC":
-            offenders.append(f"{location} is {marker['marker_kind']}, expected SYNTHETIC")
-        elif marker.get("declaration") is not None or marker.get("declaration_key") is not None:
-            offenders.append(f"{location} binds an authored declaration")
-    assert not offenders, "\n  ".join(["deleting-destructor defects:", *sorted(offenders)])
+def test_deleting_destructors_have_no_source_marker() -> None:
+    """Deleting destructors are compiler output, identified outside the source tree."""
+    offenders = [
+        f"{marker['source_file']}:{marker['line']} {marker['marker_name']}"
+        for marker in _index()["markers"]
+        if any(spelling in (marker.get("marker_name") or "") for spelling in DELETING_DESTRUCTORS)
+    ]
+    assert not offenders, "\n".join(["deleting-destructor source identities:", *sorted(offenders)])
 
 
 def test_authored_lifecycle_markers_use_lifecycle_semantics() -> None:

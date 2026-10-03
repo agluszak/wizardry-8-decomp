@@ -2805,23 +2805,3 @@ static void unpack32(unsigned long* dest, const unsigned long* source,
 /* This unit's static-init emission chain: the CRT initterm table calls
    the thunks at 0x100075F0/0x100076B0/0x10007770, which tail-jump into the
    bodies that write the YUV matrices and clear the format_table flags. */
-// SYNTHETIC: SURRENDER 0x100075F0
-// rgbToYUV static-init thunk
-
-// SYNTHETIC: SURRENDER 0x10007600
-// rgbToYUV static-init body
-
-// SYNTHETIC: SURRENDER 0x100076B0
-// yuvToRGB static-init thunk
-
-// SYNTHETIC: SURRENDER 0x100076C0
-// yuvToRGB static-init body
-
-// SYNTHETIC: SURRENDER 0x10007770
-// format_table PixelFormat::flags array-init thunk
-
-// SYNTHETIC: SURRENDER 0x10007780
-// format_table PixelFormat::flags array-init body
-
-// TEMPLATE: SURRENDER 0x1000E030
-// DotProduct<float>

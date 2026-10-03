@@ -19,15 +19,6 @@
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/message_box.h"
 
-// SYNTHETIC: WIZ8 0x00524A70
-// `dynamic initializer for 'g_npc_scripting''
-// SYNTHETIC: WIZ8 0x00524A90
-// `dynamic atexit destructor for 'g_npc_scripting''
-// SYNTHETIC: WIZ8 0x00524AE0
-// W8NpcScriptingState::W8NpcScriptingState
-// SYNTHETIC: WIZ8 0x00524AA0
-// W8NpcScriptingState::~W8NpcScriptingState
-
 // GLOBAL: WIZ8 0x0068C430
 W8NpcScriptingState g_npc_scripting;
 

@@ -137,9 +137,6 @@ void* srGlobalRecycler::allocate(unsigned long size)
     return AllocateRecyclerStorage(size);
 }
 
-// SYNTHETIC: SURRENDER 0x100358D0
-// ~srGlobalRecycler EH-unwind emission: drains critical_section_8c
-
 // FUNCTION: SURRENDER 0x100358F0
 void srGlobalRecycler::free(void* allocation)
 {

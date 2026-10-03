@@ -1231,8 +1231,6 @@ W8AnimRepBase* W8SpellEmitterHost::Clone()
 /* Release each owned emitter and every per-emitter vector of cloned lights.
    The member-array and base destructors then run in reverse construction
    order, matching the two vector/base cleanup phases in the image. */
-// SYNTHETIC: WIZ8 0x004aad00
-// W8SpellEmitterHost::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x004ab1c0
 W8SpellEmitterHost::~W8SpellEmitterHost()
 {
@@ -1380,12 +1378,6 @@ void SetMonsterSpellIcon(W8Monster* pMonster, int iIcon, bool add)
     }
 }
 
-// SYNTHETIC: WIZ8 0x004abce0
-// W8SpellVisual::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x004ade60
-// W8SpellVisual::`scalar deleting destructor'`adjustor{24}'
-
 // VTABLE: WIZ8 0x005ecf40 W8GrObject
 // VTABLE: WIZ8 0x005ecf2c W8Navigator
 // class W8SpellVisual
@@ -1398,27 +1390,6 @@ void SetMonsterSpellIcon(W8Monster* pMonster, int iIcon, bool add)
 
 // VTABLE: WIZ8 0x005ecfe4
 // class srClassSupport<stSound3D,srNode,0,65547>
-
-// SYNTHETIC: WIZ8 0x004AEA70
-// stSound3D::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x004AF3D0
-// srClassSupport<stSound3D,srNode,0,65547>::getClassID
-
-// TEMPLATE: WIZ8 0x004AF3E0
-// srClassSupport<stSound3D,srNode,0,65547>::getClassName
-
-// TEMPLATE: WIZ8 0x004AF3F0
-// srClassSupport<stSound3D,srNode,0,65547>::getClassNode
-
-// TEMPLATE: WIZ8 0x004AF460
-// srClassSupport<stSound3D,srNode,0,65547>::vClone
-
-// TEMPLATE: WIZ8 0x004AF5A0
-// srClassSupport<stSound3D,srNode,0,65547>::~srClassSupport<stSound3D,srNode,0,65547>
-
-// SYNTHETIC: WIZ8 0x004AF660
-// srClassSupport<stSound3D,srNode,0,65547>::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x004AE6D0
 stSound3D::stSound3D(const char* name, srNode* parent)

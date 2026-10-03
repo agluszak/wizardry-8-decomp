@@ -84,9 +84,6 @@ W8ListBoxDialog::W8ListBoxDialog()
     m_first_visible_line_0f0 = 0;
 }
 
-// SYNTHETIC: WIZ8 0x005cbcc0
-// W8ListBoxDialog::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005cbce0
 W8ListBoxDialog::~W8ListBoxDialog()
 {
@@ -684,9 +681,6 @@ void W8SplitAmountDialog::DestroyControls()
     }
 }
 
-// SYNTHETIC: WIZ8 0x005d9870
-// W8SplitAmountDialog::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005d9930
 W8SplitAmountDialog::~W8SplitAmountDialog()
 {
@@ -1134,9 +1128,6 @@ W8TriggerItemPickerDialog::W8TriggerItemPickerDialog()
     m_dirty_flags |= 1;
     m_first_item_0a8 = 0;
 }
-
-// SYNTHETIC: WIZ8 0x005cd800
-// W8TriggerItemPickerDialog::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005cd820
 W8TriggerItemPickerDialog::~W8TriggerItemPickerDialog()
@@ -1976,11 +1967,3 @@ void W8TriggerItemPickerDialog::CloseOwningDialog(W8DialogButton* button)
         button->m_owner_040->m_keep_open = false;
     }
 }
-
-// TEMPLATE: WIZ8 0x005CF200
-// NAME: W8GrowableVector<T>::SetAt
-// RECOMP: W8GrowableVector<unsigned char>::SetAt
-
-// TEMPLATE: WIZ8 0x005CF220
-// NAME: W8GrowableVector<T>::GetAt
-// RECOMP: W8GrowableVector<unsigned char>::GetAt

@@ -49,10 +49,6 @@ private:
 
 /* The emitted destructor stores the imported basic_streambuf vftable directly;
    the reconstruction leaves it implicit. */
-// SYNTHETIC: SURRENDER 0x10033080
-// srDummyStreamBuf::~srDummyStreamBuf
-// SYNTHETIC: SURRENDER 0x100330F0
-// srDummyStreamBuf::`vector deleting destructor'
 
 /* basic_ostream<char>-shaped provider stream (0x38 bytes: vbptr +
    basic_ios<char>). No own virtuals; the retail vtable carries only the
@@ -65,10 +61,6 @@ public:
 
 /* The emitted destructor stores only the imported basic_ostream vftable into
    the virtual base; the reconstruction leaves it implicit. */
-// SYNTHETIC: SURRENDER 0x100335C0
-// srOStream_withassign::~srOStream_withassign
-// SYNTHETIC: SURRENDER 0x10033590
-// srOStream_withassign::`scalar deleting destructor'
 
 extern SR_DLL_IMPORT class srOStream_withassign srDummyStream;
 extern SR_DLL_IMPORT class srOStream_withassign srErr;

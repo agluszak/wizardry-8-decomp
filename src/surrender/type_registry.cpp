@@ -455,10 +455,6 @@ void srRegistry::ClassNode::IDIndex::clearLinks()
     clearBlocks();
 }
 
-// TEMPLATE: SURRENDER 0x10010BD0
-// NAME: srHashTableBase<Key,Value>::Grow
-// RECOMP: srHashTableBase<unsigned long, srRegistry::ClassNode::IDIndex::InstanceLink*>::Grow
-
 /* member-dtor-ok: the body is clearBlocks and the implicit ~srArray member
    teardown releases blocks_08 again; by_id_20 is a dtorless srHashTableBase so no
    hash teardown follows; ~ClassNode (0x1000F772) and the delete-expression
@@ -616,9 +612,6 @@ unsigned long srRuntimeClass::getID() const
 {
     return id_08;
 }
-
-// SYNTHETIC: SURRENDER 0x10011BF0
-// srRuntimeClass::`vector deleting destructor'
 
 // FUNCTION: SURRENDER 0x10011C50
 srRegistry::ClassNode* srRuntimeClass::sGetClassNode()
@@ -956,9 +949,6 @@ srRegistry::~srRegistry()
         delete critical_section_0c;
     }
 }
-
-// SYNTHETIC: SURRENDER 0x1000EBA0
-// srRegistry::operator=
 
 // FUNCTION: SURRENDER 0x1000EBD0
 srRegistry::ClassNode* srRegistry::getClassNode(unsigned long class_id)
@@ -1546,17 +1536,6 @@ long srClass::getReferenceCount() const
 {
     return reference_count_0c;
 }
-// SYNTHETIC: SURRENDER 0x100105F0
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x10010600
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10010630
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x10010640
-// std::_Winit global atexit registrar
 
 /* Retail 0x10010780 drains the {count_00, first_04, last_08} sentinel list
    embedded at ClassNode+0x00, freeing each ChildLink through operator delete;
@@ -1569,86 +1548,15 @@ long srClass::getReferenceCount() const
 
 /* Funclet-invoked on this+8 during the IDIndex constructor unwind: the
    blocks_08 member destructor. */
-// TEMPLATE: SURRENDER 0x10010B40
-// NAME: srArray<T>::~srArray
-// RECOMP: srArray<srRegistry::ClassNode::IDIndex::InstanceLink*>::~srArray
-
-// TEMPLATE: SURRENDER 0x10010B60
-// NAME: srArray<T>::setCapacity
-// RECOMP: srArray<srRegistry::ClassNode::IDIndex::InstanceLink*>::setCapacity
-
-// TEMPLATE: SURRENDER 0x10010D20
-// NAME: srHashTableBase<Key,Value>::Grow
-// RECOMP: srHashTableBase<unsigned long, srRegistry::ClassNode*>::Grow
-
-// TEMPLATE: SURRENDER 0x10011270
-// NAME: srHashTable<Key,Value>::~srHashTable
-// RECOMP: srHashTable<Key, Value>::~srHashTable
-
-// TEMPLATE: SURRENDER 0x100112A0
-// NAME: srHashTableBase<Key,Value>::Lookup
-// RECOMP: srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Lookup
 
 /* Retail calls this Remove emission for by_instance_00 from the unregister
    and refresh paths; the by_id_20 Remove is inlined at its call sites. */
-// TEMPLATE: SURRENDER 0x100112F0
-// NAME: srHashTableBase<Key,Value>::Remove
-// RECOMP: srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Remove
-
-// TEMPLATE: SURRENDER 0x10011380
-// NAME: srHashTableBase<Key,Value>::Clear
-// RECOMP: srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Clear
 
 /* Called on the fresh NameIndex's by_instance_00 from the instance-index
    setup path (0x1000F82D) and from the inlined AllocateEntry inside the
    register path (0x1000FC5E). */
-// TEMPLATE: SURRENDER 0x100114D0
-// NAME: srHashTableBase<Key,Value>::Grow
-// RECOMP: srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Grow
 
 /* AllocateEntry emits standalone for by_instance_00: its body is the
    free_head == -1 guard, the inlined Grow, then the free-slot pop. Called
    from the inherited-instance population loop (0x1000F9F6) and resize's
    reinsert path (0x100111B4). */
-// TEMPLATE: SURRENDER 0x10011620
-// NAME: srHashTableBase<Key,Value>::AllocateEntry
-// RECOMP: srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::AllocateEntry
-
-// SYNTHETIC: SURRENDER 0x1000E2D0
-// srClass scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x1000E470
-// srRuntimeClass scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x1000E8A0
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x1000E8B0
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1000E8E0
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x1000E8F0
-// std::_Winit global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10011D00
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x10011D10
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10011D40
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x10011D50
-// std::_Winit global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10011D80
-// srConfig global static-init block
-
-// SYNTHETIC: SURRENDER 0x10011D90
-// srConfig global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1000F4F0
-// unreferenced ClassNode name/ID consistency-check emission

@@ -15,8 +15,6 @@ public:
     srMemoryPool(void* memory, long size, long alignment);
     ~srMemoryPool();
     /* The exported assignment is a whole-object memberwise copy. */
-    // SYNTHETIC: SURRENDER 0x10036A80
-    // srMemoryPool::operator=
 
     void* allocate(long size);
     void dump();

@@ -25,10 +25,6 @@ public:
     SR_DLL_IMPORT srDebugVP(srVP* processor);
     /* Destruction is consistent with base-only cleanup; the reconstruction
        leaves the derived destructor implicit. */
-    // SYNTHETIC: SURRENDER 0x1006FCA0
-    // srDebugVP::~srDebugVP
-    // SYNTHETIC: SURRENDER 0x1006FC80
-    // srDebugVP::`scalar deleting destructor'
 
     /* Every override below wraps the same-numbered call on processor_444 in
        a ScopeTimer; declaration order mirrors the retail vtable slots. The

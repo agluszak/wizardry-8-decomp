@@ -88,17 +88,6 @@ void srStatisticsManager::dump(std::ostream& stream, const Statistics& statistic
 /* Per-TU CRT stream-init sentinels: retail emits an ios_base::Init ctor call
    and atexit registrar (0x10014E20/0x10014E30) plus the _Winit pair
    (0x10014E60/0x10014E70) for this unit's <iostream> include. */
-// SYNTHETIC: SURRENDER 0x10014E20
-// ios_base::Init static-init call
-
-// SYNTHETIC: SURRENDER 0x10014E30
-// ios_base::Init atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10014E60
-// _Winit static-init call
-
-// SYNTHETIC: SURRENDER 0x10014E70
-// _Winit atexit registrar
 
 // FUNCTION: SURRENDER 0x10014FE0
 void __cdecl _srLibraryInit(void)

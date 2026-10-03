@@ -452,9 +452,6 @@ srMeshModel::srMeshModel(long polygons, long vertices)
     }
 }
 
-// SYNTHETIC: SURRENDER 0x10041BF0
-// srMeshModel::srMeshModel (implicit copy constructor)
-
 // FUNCTION: SURRENDER 0x1003D2C0
 void srMeshModel::reset(long polygons, long vertices)
 {
@@ -994,29 +991,6 @@ void srMeshModel::render(srGERD& renderer)
     }
     renderTriMesh(renderer, getTriMesh());
 }
-
-// TEMPLATE: SURRENDER 0x10045130
-// permuteTable<srVector4T<float> >
-
-// TEMPLATE: SURRENDER 0x100451E0
-// permuteTable<srVector3i>
-
-// TEMPLATE: SURRENDER 0x10045280
-// permuteObjects<srShader>
-
-// TEMPLATE: SURRENDER 0x10045300
-// NAME: permuteObjects<srPtr<T> >
-// RECOMP: permuteObjects<srPtr<srTextureIFace> >
-
-// TEMPLATE: SURRENDER 0x10045450
-// permuteTable<srVector3T<float> >
-
-// TEMPLATE: SURRENDER 0x100454F0
-// NAME: permuteObjects<srPtr<T> >
-// RECOMP: permuteObjects<srPtr<srMaterialIFace> >
-
-// TEMPLATE: SURRENDER 0x10045640
-// permuteTable<srVector2T<float> >
 
 // FUNCTION: SURRENDER 0x100418C0
 void srMeshModel::reindexPolygons(const unsigned long* indices)
@@ -1667,9 +1641,6 @@ srTriMeshPipeline::~srTriMeshPipeline()
     delete vertex_pipe_90;
 }
 
-// SYNTHETIC: SURRENDER 0x10044080
-// srTriMeshPipeline::`scalar deleting destructor'
-
 // FUNCTION: SURRENDER 0x10044070
 void srTriMeshPipeline::SetFlags(srShader shader)
 {
@@ -2181,85 +2152,14 @@ long srMeshModel::getVertexCount() const
     return vertex_location_count_22c;
 }
 
-// SYNTHETIC: SURRENDER 0x1003FFB0
-// srVector3i implicit copy-assignment emission
-
-// TEMPLATE: SURRENDER 0x10042A30
-// srClassSupport<srMeshModel, srModel, 0, 0x2010>::~srClassSupport
-
-// SYNTHETIC: SURRENDER 0x10043970
-// std::ios_base::Init global static-init block
-
 // LIBRARY: SURRENDER 0x10043980
 // std::ios_base::Init::Init
-
-// SYNTHETIC: SURRENDER 0x10043990
-// std::ios_base::Init global atexit registrar
 
 // LIBRARY: SURRENDER 0x100439A0
 // std::ios_base::Init::~Init
 
-// SYNTHETIC: SURRENDER 0x100439B0
-// std::_Winit global static-init block
-
 // LIBRARY: SURRENDER 0x100439C0
 // std::_Winit::_Winit
 
-// SYNTHETIC: SURRENDER 0x100439D0
-// std::_Winit global atexit registrar
-
 // LIBRARY: SURRENDER 0x100439E0
 // std::_Winit::~_Winit
-
-// SYNTHETIC: SURRENDER 0x100439F0
-// srClassSupport<srMeshModel,srModel,0,8208>::`scalar deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10043A10
-// NAME: srPtr<T> element destructor emission
-// RECOMP: srPtr<srTextureIFace> element destructor emission
-
-// SYNTHETIC: SURRENDER 0x10043A40
-// NAME: srPtr<T> element destructor emission
-// RECOMP: srPtr<srMaterialIFace> element destructor emission
-
-// TEMPLATE: SURRENDER 0x10043A70
-// srClassSupport<srModel, srClass, true, 0x2000>::sGetClassNode
-
-// SYNTHETIC: SURRENDER 0x100425A0
-// srMeshModel default constructor closure
-
-// SYNTHETIC: SURRENDER 0x100425B0
-// srMeshModel scalar deleting destructor
-
-// TEMPLATE: SURRENDER 0x10042990
-// srClassSupport<srMeshModel,srModel,0,8208>::getClassID
-
-// TEMPLATE: SURRENDER 0x100429A0
-// srClassSupport<srMeshModel,srModel,0,8208>::getClassName
-
-// TEMPLATE: SURRENDER 0x100429B0
-// srClassSupport<srMeshModel,srModel,0,8208>::getClassNode
-
-// TEMPLATE: SURRENDER 0x10042A10
-// srClassSupport<srMeshModel, srModel, 0, 0x2010>::vClone
-
-// TEMPLATE: SURRENDER 0x10044010
-// NAME: srArray<T>::release emission
-// RECOMP: srArray<T>::release emission
-
-// TEMPLATE: SURRENDER 0x10044030
-// NAME: srArray<T>::release emission
-// RECOMP: srArray<T>::release emission
-
-// TEMPLATE: SURRENDER 0x10044050
-// NAME: srArray<T>::release emission
-// RECOMP: srArray<T>::release emission
-
-// SYNTHETIC: SURRENDER 0x100425D0
-// srMeshModel::`vector deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10042630
-// member copy-assignment emission
-
-// TEMPLATE: SURRENDER 0x10043F90
-// srHeapBuffer<T>::ensure emission

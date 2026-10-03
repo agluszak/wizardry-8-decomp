@@ -518,9 +518,6 @@ W8Navigator::~W8Navigator()
     }
 }
 
-// SYNTHETIC: WIZ8 0x00452100
-// W8Navigator::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x00452E10
 bool W8Navigator::IsLinkedToNavigator(W8Navigator* other)
 {
@@ -1558,8 +1555,6 @@ void W8Navigator::SetPitchRollEnabled(bool pitch, bool roll)
 /* 0x004527AD is a split address inside this body: it resumes at the
    g_pathing nonnull branch with the call registers still live, not a
    separate authored function. */
-// SYNTHETIC: WIZ8 0x004527AD
-// W8Navigator::LinkToNavigator mid-body continuation
 // FUNCTION: WIZ8 0x004527a0
 unsigned char W8Navigator::LinkToNavigator(W8Navigator* target, double separation)
 {

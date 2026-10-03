@@ -39,8 +39,8 @@ The canonical executable's global C++ allocation boundary is asymmetric:
 Calling both outer entries "import thunks" hides a real distinction. The `operator new` identity is
 read directly from the imported decorated export and is therefore ABI-backed. The delete wrapper
 is not imported under that name: its descriptive identity comes from its exact forwarding body and
-the compiler-generated destructor sites that call it. Both callable identities are source-marked;
-the IAT jumps carry `SYNTHETIC` markers because the linker emits them, while the
+the compiler-generated destructor sites that call it. The IAT jumps belong in generated emission
+metadata because the linker emits them, while the
 local delete wrapper retains its `LIBRARY` marker. The IAT identities and their ownership meaning
 are reviewed separately in `evidence/reviewed/wiz8/allocator-layers.csv` because an IAT slot is data,
 not a function.

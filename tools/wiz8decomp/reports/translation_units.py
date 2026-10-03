@@ -67,7 +67,7 @@ def function_inventory(
         by_address[address] = {
             "address": f"{address:08x}",
             "symbol": function.name,
-            "owner": "surrender-template" if function.marker_kind == "TEMPLATE" else "source",
+            "owner": "source",
             "source_path": function.source_file,
         }
     return list(by_address.values())

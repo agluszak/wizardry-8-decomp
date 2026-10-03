@@ -834,9 +834,6 @@ W8TriggerEvent::W8TriggerEvent()
 {
 }
 
-// SYNTHETIC: WIZ8 0x00440980
-// W8TriggerEvent::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x004409a0
 W8TriggerEvent::~W8TriggerEvent() {}
 
@@ -1343,9 +1340,6 @@ void SetTriggerVariableByName(const char* name, int value)
 
 W8TriggerActionData::W8TriggerActionData() : type_004(-1) {}
 
-// SYNTHETIC: WIZ8 0x0043c7f0
-// W8TriggerActionData::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x00445ee0
 W8TriggerActionData::~W8TriggerActionData() {}
 
@@ -1354,17 +1348,12 @@ W8TriggerActionData::~W8TriggerActionData() {}
    common destructor, then scalar operator delete when requested. */
 // VTABLE: WIZ8 0x005ec148
 // class W8EnvironmentTriggerActionData
-// SYNTHETIC: WIZ8 0x00445ec0
-// W8DoorTriggerActionData::`scalar deleting destructor'
 
 // VTABLE: WIZ8 0x005ec134
 // class W8DoorTriggerActionData
 
 // VTABLE: WIZ8 0x005ec158
 // class W8StringTriggerActionData
-
-// SYNTHETIC: WIZ8 0x00443730
-// W8StringTriggerActionData::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00443750
 W8StringTriggerActionData::~W8StringTriggerActionData()
@@ -3868,9 +3857,6 @@ srClass* Trigger::vInstance()
     return new Trigger;
 }
 
-// SYNTHETIC: WIZ8 0x0043bc70
-// Trigger::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x0043bca0
 Trigger::~Trigger()
 {
@@ -3908,21 +3894,6 @@ Trigger::~Trigger()
     }
 }
 
-// TEMPLATE: WIZ8 0x00445ad0
-// srClassSupport<Trigger,srClass,1,65544>::getClassID
-
-// TEMPLATE: WIZ8 0x00445ae0
-// srClassSupport<Trigger,srClass,1,65544>::getClassName
-
-// TEMPLATE: WIZ8 0x00445af0
-// srClassSupport<Trigger,srClass,1,65544>::vClone
-
-// TEMPLATE: WIZ8 0x00445e00
-// srClassSupport<Trigger,srClass,1,65544>::~srClassSupport<Trigger,srClass,1,65544>
-
-// SYNTHETIC: WIZ8 0x00445e90
-// srClassSupport<Trigger,srClass,1,65544>::`scalar deleting destructor'
-
 /* Resolves a light instance by name under the stLight class node. Retail
    inlines stLight::sGetClassNode, so this emission carries the lazy
    stLight->srLight->srNode registration walk before the registry find. */
@@ -3932,12 +3903,6 @@ stLight* FindLightByName(const char* name, const srRuntimeClass* relative_to)
     return static_cast<stLight*>(
         srCore.getRegistry()->find(stLight::sGetClassNode(), name, relative_to));
 }
-
-// TEMPLATE: WIZ8 0x00445EF0
-// srClientSupport<srNode,4096>::getClassNode
-
-// TEMPLATE: WIZ8 0x00445f30
-// srClassSupport<Trigger,srClass,1,65544>::getClassNode
 
 // FUNCTION: WIZ8 0x00443a50
 int ResetNextTriggerId(void)

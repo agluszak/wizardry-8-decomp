@@ -708,7 +708,7 @@ def _empty_special_members(index: dict[str, Any], sources: dict[str, str]) -> li
     """Hand-written empty constructors/destructors in WIZ8 source.
 
     An empty authored body is faithful when a declaration requires it; one that
-    only claims an implicit emission should be a marker-only SYNTHETIC."""
+    only claims an implicit emission belongs in binary emission metadata."""
 
     rows: list[dict[str, Any]] = []
     for item in index.get("declarations", []):

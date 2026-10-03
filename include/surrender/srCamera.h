@@ -26,12 +26,6 @@ public:
 
     /* Copy construction, assignment and destruction are the ordinary
        srNode-base/member special members emitted by the class export. */
-    // SYNTHETIC: SURRENDER 0x10048090
-    // srCamera::srCamera(const srCamera&)
-    // SYNTHETIC: SURRENDER 0x100481F0
-    // srCamera::~srCamera
-    // SYNTHETIC: SURRENDER 0x10048370
-    // srCamera::operator=
 
     virtual void dump(std::ostream& stream) override;
     virtual srClass* vInstance() override;

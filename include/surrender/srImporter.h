@@ -38,8 +38,6 @@ public:
 
     /* The default-constructor body contains base construction and a derived
        vftable store, consistent with implicit construction. */
-    // SYNTHETIC: SURRENDER 0x100050F0
-    // srSurfaceIOManager::srSurfaceIOManager()
 
     /* Provider-side entry (0x1002DCD0); no consumer import evidence, so it
        stays unannotated. */
@@ -60,12 +58,6 @@ public:
                         const ImportInfo& options);
 
     /* The emitted lifecycle is consistent with ordinary base-subobject operations. */
-    // SYNTHETIC: SURRENDER 0x10005190
-    // ??0srSurfaceIOManager@@QAE@ABV0@@Z
-    // SYNTHETIC: SURRENDER 0x100051D0
-    // ??4srSurfaceIOManager@@QAEAAV0@ABV0@@Z
-    // SYNTHETIC: SURRENDER 0x10005210
-    // ??1srSurfaceIOManager@@UAE@XZ
 
 };
 
@@ -81,14 +73,6 @@ class
     __declspec(novtable) srSurfaceIOManager::SurfaceImporter : public srIOManager::Importer {
 public:
     /* Exported lifecycle bodies contain ordinary base-only operations. */
-    // SYNTHETIC: SURRENDER 0x10005110
-    // ??0SurfaceImporter@srSurfaceIOManager@@QAE@XZ
-    // SYNTHETIC: SURRENDER 0x10005120
-    // ??0SurfaceImporter@srSurfaceIOManager@@QAE@ABV01@@Z
-    // SYNTHETIC: SURRENDER 0x10005130
-    // ??4SurfaceImporter@srSurfaceIOManager@@QAEAAV01@ABV01@@Z
-    // SYNTHETIC: SURRENDER 0x10005140
-    // ??1SurfaceImporter@srSurfaceIOManager@@UAE@XZ
 
     virtual int getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description, srBinIStream& stream,
                                const srSurfaceIOManager::ImportInfo& options);
@@ -113,8 +97,6 @@ public:
 #endif
         ImportInfo {
     public:
-        // SYNTHETIC: SURRENDER 0x10016490
-        // ??4ImportInfo@srHierarchyIOManager@@QAEAAV01@ABV01@@Z
 
         unsigned char unknown_00;
     };
@@ -124,8 +106,6 @@ public:
 #endif
         ExportInfo {
     public:
-        // SYNTHETIC: SURRENDER 0x100164A0
-        // ??4ExportInfo@srHierarchyIOManager@@QAEAAV01@ABV01@@Z
 
         unsigned char unknown_00;
     };
@@ -135,14 +115,6 @@ public:
 
     /* No state beyond srIOManager is modeled; exported lifecycle bodies contain
        ordinary base-only operations. */
-    // SYNTHETIC: SURRENDER 0x10016470
-    // srHierarchyIOManager::srHierarchyIOManager()
-    // SYNTHETIC: SURRENDER 0x10016530
-    // srHierarchyIOManager::srHierarchyIOManager(const srHierarchyIOManager&)
-    // SYNTHETIC: SURRENDER 0x10016570
-    // srHierarchyIOManager::operator=
-    // SYNTHETIC: SURRENDER 0x100165B0
-    // srHierarchyIOManager::~srHierarchyIOManager
 
     void importHierarchy(const char* path, const ImportInfo& options);
     void exportHierarchy(const char* path, const ExportInfo& options);
@@ -160,16 +132,8 @@ class
 #endif
     __declspec(novtable) srHierarchyIOManager::HierarchyImporter : public srIOManager::Importer {
 public:
-    // SYNTHETIC: SURRENDER 0x100164B0
-    // HierarchyImporter::HierarchyImporter()
 
     /* Exported lifecycle bodies contain ordinary base-only operations. */
-    // SYNTHETIC: SURRENDER 0x100164C0
-    // ??0HierarchyImporter@srHierarchyIOManager@@QAE@ABV01@@Z
-    // SYNTHETIC: SURRENDER 0x100164D0
-    // ??4HierarchyImporter@srHierarchyIOManager@@QAEAAV01@ABV01@@Z
-    // SYNTHETIC: SURRENDER 0x100164E0
-    // ??1HierarchyImporter@srHierarchyIOManager@@UAE@XZ
 
     /* importHierarchy's call site dispatches through vtable slot 2. */
     virtual void importHierarchy(srBinIStream& stream, const ImportInfo& options) = 0;
@@ -192,8 +156,6 @@ public:
 #endif
         ImportInfo {
     public:
-        // SYNTHETIC: SURRENDER 0x100169A0
-        // ??4ImportInfo@srModelIOManager@@QAEAAV01@ABV01@@Z
 
         unsigned char unknown_00;
     };
@@ -203,8 +165,6 @@ public:
 #endif
         ExportInfo {
     public:
-        // SYNTHETIC: SURRENDER 0x100169B0
-        // ??4ExportInfo@srModelIOManager@@QAEAAV01@ABV01@@Z
 
         unsigned char unknown_00;
     };
@@ -214,14 +174,6 @@ public:
 
     /* No state beyond srIOManager is modeled; exported lifecycle bodies contain
        ordinary base-only operations. */
-    // SYNTHETIC: SURRENDER 0x10016980
-    // srModelIOManager::srModelIOManager()
-    // SYNTHETIC: SURRENDER 0x10016A40
-    // srModelIOManager::srModelIOManager(const srModelIOManager&)
-    // SYNTHETIC: SURRENDER 0x10016A80
-    // srModelIOManager::operator=
-    // SYNTHETIC: SURRENDER 0x10016AC0
-    // srModelIOManager::~srModelIOManager
 
     srModel* importModel(const char* path, const ImportInfo& options);
     void exportModel(const char* path, srModel& model, const ExportInfo& options);
@@ -237,16 +189,8 @@ class
 #endif
     __declspec(novtable) srModelIOManager::ModelImporter : public srIOManager::Importer {
 public:
-    // SYNTHETIC: SURRENDER 0x100169C0
-    // ModelImporter::ModelImporter()
 
     /* Exported lifecycle bodies contain ordinary base-only operations. */
-    // SYNTHETIC: SURRENDER 0x100169D0
-    // ??0ModelImporter@srModelIOManager@@QAE@ABV01@@Z
-    // SYNTHETIC: SURRENDER 0x100169E0
-    // ??4ModelImporter@srModelIOManager@@QAEAAV01@ABV01@@Z
-    // SYNTHETIC: SURRENDER 0x100169F0
-    // ??1ModelImporter@srModelIOManager@@UAE@XZ
 
     /* importModel's call site dispatches through vtable slot 2. */
     virtual srModel* importModel(srBinIStream& stream, const ImportInfo& options) = 0;

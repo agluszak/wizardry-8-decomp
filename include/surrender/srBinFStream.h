@@ -26,12 +26,6 @@ public:
     int isOpen();
 
     /* The copy bodies are consistent with memberwise copying of the path. */
-    // SYNTHETIC: SURRENDER 0x1002F430
-    // ??0srBinFStream@@QAE@ABV0@@Z
-    // SYNTHETIC: SURRENDER 0x1002F530
-    // srBinFStream::operator=
-    // SYNTHETIC: SURRENDER 0x1002F5F0
-    // srBinFStream::`vbase destructor'
 
 protected:
     enum e_mode { SR_MODE_READ = 0, SR_MODE_WRITE = 1, SR_MODE_READ_WRITE = 2 };
@@ -78,14 +72,6 @@ public:
 private:
     /* Copy bodies are consistent with memberwise copying; the vbase destructor
        is a compiler ABI helper. */
-    // SYNTHETIC: SURRENDER 0x1002F8D0
-    // ??0srBinIFStream@@QAE@ABV0@@Z
-    // SYNTHETIC: SURRENDER 0x1002FA20
-    // srBinIFStream::operator=
-    // SYNTHETIC: SURRENDER 0x1002E480
-    // srBinIFStream::~srBinIFStream (vtordisp adjustor thunk)
-    // SYNTHETIC: SURRENDER 0x1002E460
-    // srBinIFStream::`vbase destructor'
 
     virtual unsigned short vget() override;
     virtual unsigned long vread(void* destination, unsigned long size) override;
@@ -117,14 +103,6 @@ public:
 private:
     /* Copy bodies are consistent with memberwise copying; the vbase destructor
        is a compiler ABI helper. */
-    // SYNTHETIC: SURRENDER 0x1002FF00
-    // ??0srBinIOFStream@@QAE@ABV0@@Z
-    // SYNTHETIC: SURRENDER 0x10030070
-    // srBinIOFStream::operator=
-    // SYNTHETIC: SURRENDER 0x100301E0
-    // srBinIOFStream::~srBinIOFStream (vtordisp adjustor thunk)
-    // SYNTHETIC: SURRENDER 0x100301F0
-    // srBinIOFStream::`vbase destructor'
 
     virtual unsigned short vget() override;
     virtual unsigned short vput(char value) override;
@@ -149,8 +127,6 @@ class
 public:
     srBinOFStream();
     srBinOFStream(const char* path);
-    // SYNTHETIC: SURRENDER 0x100308C0
-    // srBinOFStream::~srBinOFStream
 
     void open(const char* path);
     virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
@@ -160,12 +136,6 @@ public:
 private:
     /* Copy bodies are consistent with memberwise copying; the vbase destructor
        is a compiler ABI helper. */
-    // SYNTHETIC: SURRENDER 0x100305D0
-    // srBinOFStream::srBinOFStream
-    // SYNTHETIC: SURRENDER 0x10030760
-    // srBinOFStream::operator=
-    // SYNTHETIC: SURRENDER 0x1002D640
-    // srBinOFStream::`vbase destructor'
 
     virtual unsigned short vput(char value) override;
     virtual unsigned long vwrite(const void* source, unsigned long size) override;

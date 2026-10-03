@@ -32,12 +32,6 @@ public:
 
     /* The class export emits the ordinary copy construction, assignment and
        destruction of the srNode base plus clip fields. */
-    // SYNTHETIC: SURRENDER 0x1004A1C0
-    // srClipPlane::srClipPlane(const srClipPlane&)
-    // SYNTHETIC: SURRENDER 0x10049C90
-    // srClipPlane::operator=
-    // SYNTHETIC: SURRENDER 0x1004A2C0
-    // srClipPlane::~srClipPlane
 
     /* Header-visible like srFog's and srCamera's: the consumer import table
        has no entry, so the client emission returns the literal directly, and

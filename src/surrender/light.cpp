@@ -53,9 +53,6 @@ srLight::srLight(srNode* parent, e_preset preset)
     }
 }
 
-// SYNTHETIC: SURRENDER 0x1004EAB0
-// srLight::srLight (implicit copy constructor)
-
 // FUNCTION: SURRENDER 0x1004DFB0
 srLight& srLight::operator=(const srLight& other)
 {
@@ -783,51 +780,3 @@ float srLight::getSafeRange() const
 {
     return safe_range_1d4;
 }
-
-// SYNTHETIC: SURRENDER 0x1004EEF0
-// srLight default constructor closure
-
-// SYNTHETIC: SURRENDER 0x1004EF00
-// srLight scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x1004EF20
-// srLight::`vector deleting destructor'
-
-// TEMPLATE: SURRENDER 0x1004EF80
-// srClassSupport<srLight,srIlluminator,0,4640>::getClassID
-
-// TEMPLATE: SURRENDER 0x1004EF90
-// srClassSupport<srLight,srIlluminator,0,4640>::getClassName
-
-// TEMPLATE: SURRENDER 0x1004EFA0
-// srClassSupport<srLight,srIlluminator,0,4640>::getClassNode
-
-// TEMPLATE: SURRENDER 0x1004F030
-// srClassSupport<srLight, srIlluminator, false, 0x1220>::vClone
-
-// TEMPLATE: SURRENDER 0x1004F050
-// srClientSupport<srLight, 0x1220>::~srClientSupport
-
-// SYNTHETIC: SURRENDER 0x1004F1E0
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x1004F1F0
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1004F220
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x1004F230
-// std::_Winit global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1004F250
-// srClassSupport<srLight,srIlluminator,0,4640>::`scalar deleting destructor'
-
-// TEMPLATE: SURRENDER 0x1004F270
-// srClientSupport<srLight, 0x1220>::sGetClassNode
-
-// SYNTHETIC: SURRENDER 0x1004F300
-// srClassSupport<srLight,srIlluminator,0,4640>::`vector deleting destructor'`adjustor{312}'
-
-// SYNTHETIC: SURRENDER 0x1004F310
-// srLight::`vector deleting destructor'`adjustor{312}'

@@ -14,42 +14,6 @@
 // VTABLE: WIZ8 0x005ECA04
 // class srClassSupport<stTextureAnim,srTexture,0,65536>
 
-// TEMPLATE: WIZ8 0x004857F0
-// srClassSupport<stTextureAnim,srTexture,0,65536>::getClassID
-
-// TEMPLATE: WIZ8 0x00485800
-// srClassSupport<stTextureAnim,srTexture,0,65536>::getClassName
-
-// TEMPLATE: WIZ8 0x00485810
-// srClassSupport<stTextureAnim,srTexture,0,65536>::getClassNode
-
-// TEMPLATE: WIZ8 0x004858B0
-// srClassSupport<stTextureAnim,srTexture,0,65536>::vClone
-
-// TEMPLATE: WIZ8 0x00485910
-// srClassSupport<stTextureAnim,srTexture,0,65536>::~srClassSupport<stTextureAnim,srTexture,0,65536>
-
-// SYNTHETIC: WIZ8 0x00485A10
-// srClassSupport<stTextureAnim,srTexture,0,65536>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00485040
-// stTextureAnim::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00485A40
-// srClassSupport<srTextureIFace,srClass,1,8448>::sGetClassNode
-
-// SYNTHETIC: WIZ8 0x00485A80
-// NAME: W8GrowableVector<T>::`scalar deleting destructor' (companion table 0x005EC9BC)
-// RECOMP: W8GrowableVector<srTextureIFace*>::`scalar deleting destructor' (companion table 0x005EC9BC)
-
-// SYNTHETIC: WIZ8 0x00485AB0
-// NAME: W8Vector<T>::`scalar deleting destructor'
-// RECOMP: W8Vector<srTextureIFace*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00485AD0
-// NAME: W8GrowableVector<T>::~W8GrowableVector
-// RECOMP: W8GrowableVector<srTextureIFace*>::~W8GrowableVector
-
 // FUNCTION: WIZ8 0x00484BE0
 stTextureAnim::stTextureAnim()
 {

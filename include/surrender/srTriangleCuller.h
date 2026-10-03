@@ -50,8 +50,6 @@ public:
                                           const srVector4T<float>& plane, unsigned long shift,
                                           unsigned long count, int first);
     /* The exported assignment is consistent with whole-object memberwise copying. */
-    // SYNTHETIC: SURRENDER 0x10029F30
-    // srTriangleCuller::operator=
 
     /* Sphere-vs-plane-mask test over the six axis frustum planes plus every
        set bit of mask. depth becomes the 0..1 penetration fraction when the
