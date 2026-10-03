@@ -29,7 +29,7 @@ DDCreateSurface (	LPDIRECTDRAW2 pExistingDirectDraw,
 						pNewSurfaceDesc, ppNewSurface1, NULL ) );
 
 	//get the direct draw surface 2 interface
-	ATTEMPT ( IDirectDrawSurface_QueryInterface ( *ppNewSurface1,	&IID_IDirectDrawSurface2, (LPVOID*) ppNewSurface2 ) );
+	ATTEMPT ( IDirectDrawSurface_QueryInterface ( *ppNewSurface1,	IID_IDirectDrawSurface2, (LPVOID*) ppNewSurface2 ) );
 }
 
 
@@ -360,7 +360,7 @@ void DDGetDDInterface( LPDIRECTDRAWSURFACE2 pSurface, LPDIRECTDRAW *ppDirectDraw
 	Assert( pSurface != NULL );
 	Assert( ppDirectDraw != NULL );
 
-	ATTEMPT( IDirectDrawSurface2_GetDDInterface( pSurface, ppDirectDraw ) );
+	ATTEMPT( IDirectDrawSurface2_GetDDInterface( pSurface, (LPVOID *)ppDirectDraw ) );
 }
 
 // Clipper FUnctions

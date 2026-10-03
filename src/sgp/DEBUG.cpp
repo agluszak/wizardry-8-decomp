@@ -472,7 +472,7 @@ void _FailMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
 	// Build the output string
 	sprintf( (char *)ubOutputString, "{ %ld } Assertion Failure: %s [Line %d in %s]\n", GetTickCount(), pString, uiLineNum, pSourceFile );
 	if( pString )
-		sprintf( (char *)gubAssertString, pString );
+		sprintf( (char *)gubAssertString, (char *)pString );
 	// Output to debugger
 	if (gfRecordToDebugger)
 	{

@@ -241,7 +241,7 @@ BOOLEAN ReadUncompRGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 ui
 
 		if ( uiImagePixelSize == 24 )
 		{
-			hImage->p8BPPData = MemAlloc( uiWidth * uiHeight * (uiImagePixelSize / 8) );
+			hImage->p8BPPData = (UINT8 *)MemAlloc( uiWidth * uiHeight * (uiImagePixelSize / 8) );
 
 			if ( hImage->p8BPPData == NULL )
 				goto end;
