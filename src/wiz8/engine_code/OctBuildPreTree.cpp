@@ -1666,7 +1666,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
             if (particle.bounds_mode == 1) {
                 extent = particle.bounds_extent * g_startup_near_limit;
                 has_bounds = true;
-            } else if (particle.bounds_mode == 2 && particle.bounds_radius > g_float_005ebb34) {
+            } else if (particle.bounds_mode == 2 && particle.bounds_radius > g_float_zero) {
                 extent = particle.bounds_origin * g_world_scale;
                 has_bounds = true;
             }

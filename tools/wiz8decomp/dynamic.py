@@ -945,4 +945,95 @@ def write_report(result: dict[str, Any], destination: Path) -> dict[str, Any]:
     summary = {key: value for key, value in result.items() if key != "events"}
     summary["events"] = len(result["events"])
     summary["report"] = str(path)
+    summary["capture_sha256"] = sha256_file(path)
     return summary
+
+
+def freeze_reference(differential: Path, captures: Path, destination: Path) -> dict[str, Any]:
+    """Retain a successful existing differential with its full event captures.
+
+    This reads existing observations only. It neither launches the game nor
+    upgrades a bounded event observation into a broader behavioral claim.
+    """
+    from .paths import atomic_json
+
+    report = json.loads(differential.read_text(encoding="utf-8"))
+    scenario = report.get("scenario")
+    if scenario not in SCENARIO_ARGUMENTS:
+        raise ValueError("reference must use an existing dynamic-oracle scenario")
+    required = {
+        "all_started",
+        "no_capture_failures",
+        "all_reached_terminal",
+        "retail_repeatable",
+        "no_unwatched_points",
+        "streams_agree",
+        "state_repeatable",
+        "state_agrees",
+    }
+    if report.get("affirmative") is not True or any(
+        report.get("requirements", {}).get(key) is not True for key in required
+    ):
+        raise ValueError("cannot freeze a failed, incomplete or unrepeatable differential")
+    runs = {}
+    for label in ("retail-a", "retail-b", "recomp"):
+        path = captures / f"{scenario}-{label}.json"
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        summary = report.get("runs", {}).get(label, {})
+        if summary.get("capture_sha256") != sha256_file(path):
+            raise ValueError(f"{label}: capture hash differs from differential")
+        if raw.get("scenario") != f"{scenario}-{label}" or not raw.get("events"):
+            raise ValueError(f"{label}: missing scenario event capture")
+        if any(raw.get(key) != summary.get(key) for key in ("provenance", "started", "state")):
+            raise ValueError(f"{label}: capture does not belong to this differential")
+        if len(raw["events"]) != summary.get("events"):
+            raise ValueError(f"{label}: event count differs from differential")
+        provenance = raw.get("provenance", {})
+        for key in (
+            "executable_sha256",
+            "provider_sha256",
+            "trace_plan_sha256",
+            "reviewed_evidence_sha256",
+        ):
+            if not re.fullmatch(r"[0-9a-f]{64}", str(provenance.get(key, ""))):
+                raise ValueError(f"{label}: missing {key} provenance")
+        if label == "recomp" and not re.fullmatch(
+            r"[0-9a-f]{64}", str(provenance.get("link_map_sha256", ""))
+        ):
+            raise ValueError("recomp: missing linker-map provenance")
+        if not provenance.get("repository_revision") or any(
+            not provenance.get(tool, {}).get("version") for tool in ("wine", "gdb")
+        ):
+            raise ValueError(f"{label}: missing revision or tool provenance")
+        if scenario == LOAD and not re.fullmatch(
+            r"[0-9a-f]{64}", str(provenance.get("fixture", {}).get("sha256", ""))
+        ):
+            raise ValueError(f"{label}: load reference requires fixture provenance")
+        runs[label] = raw
+    if (
+        runs["retail-a"]["provenance"]["executable_sha256"]
+        != runs["retail-b"]["provenance"]["executable_sha256"]
+    ):
+        raise ValueError("retail repeatability requires the same executable")
+    fixtures = [run["provenance"].get("fixture") for run in runs.values()]
+    if any(fixture != fixtures[0] for fixture in fixtures):
+        raise ValueError("reference runs require the same fixture")
+    # Retain the complete captures, so later port comparisons do not depend on
+    # mutable build/reports/trace files or counts alone.
+    reference = {
+        "schema": "wiz8.behavioral-reference-v1",
+        "scenario": scenario,
+        "differential_sha256": sha256_file(differential),
+        "differential": report,
+        "captures": runs,
+        "scope": "existing scenario's bounded events and state; not general equivalence",
+    }
+    if destination.exists():
+        raise ValueError("reference already exists; choose a new immutable capture filename")
+    atomic_json(destination, reference)
+    return {
+        "status": "frozen",
+        "scenario": scenario,
+        "reference": str(destination),
+        "sha256": sha256_file(destination),
+    }

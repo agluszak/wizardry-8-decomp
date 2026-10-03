@@ -107,7 +107,7 @@ bool RunSightSemanticTests(SightSemanticResult* result)
         observer.Set(0.0f, 0.0f, 0.0f);
         target.Set(100.0f, 0.0f, 100.0f);
         blind = ComputeSightThreshold(observer, target, 0.0f, 50, 0, 1, 0, 0, 0, 0, 0, 500.0f);
-        result->blind_is_zero = blind == g_float_005ebb34;
+        result->blind_is_zero = blind == g_float_zero;
 
         facing = ThresholdFacingTarget(1000.0f);
         away = ThresholdFacingAway(1000.0f);
@@ -136,7 +136,7 @@ bool RunSightSemanticTests(SightSemanticResult* result)
         player_to_monster =
             ComputeSightThreshold(observer, target, 0.0f, 50, 15, 0, 0, 20, 1, 1, 4, 500.0f);
         result->same_primitive_party_and_monster =
-            monster_to_player > g_float_005ebb34 && player_to_monster > g_float_005ebb34;
+            monster_to_player > g_float_zero && player_to_monster > g_float_zero;
     }
 
     {

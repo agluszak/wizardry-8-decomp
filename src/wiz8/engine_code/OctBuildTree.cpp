@@ -357,7 +357,7 @@ int W8OctBuildTree::CollectObjectsAlongSegment(W8GDSurface*** results,
         extent = length;
     }
     for (int axis = 0; axis < 3; ++axis) {
-        if ((&delta->x)[axis] > g_float_005ebb34) {
+        if ((&delta->x)[axis] > g_float_zero) {
             bounds[axis] = (&origin->x)[axis] - extent;
             bounds[axis + 3] = extent + (&origin->x)[axis] + (&delta->x)[axis];
         } else {

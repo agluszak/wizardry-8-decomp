@@ -15,10 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Unresolved fragment: the globals here sit in the unbracketed .data tail
-   and the lone function 0x004E27A0 lies in the anchored gap between Arnika.cpp
-   (ends 0x004E24E0) and Gameloop.cpp (starts 0x004E34B0), the same interval
-   as game_init.cpp's two functions. No original-TU ownership is proven. */
+/* Original translation-unit ownership is unknown; surrounding anchors do not resolve it. */
 
 // GLOBAL: WIZ8 0x0065beaf
 bool g_texture_cache_enabled;

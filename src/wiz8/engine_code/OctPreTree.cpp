@@ -207,7 +207,7 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
 // FUNCTION: WIZ8 0x004681e0
 bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
 {
-    float limit = trace->length_28 - g_float_005ebb38;
+    float limit = trace->length_28 - g_float_one;
     bool blocked = false;
 
     for (unsigned long index = 0; index < m_gd_result_count_1b8; ++index) {
@@ -218,12 +218,12 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
         const float* plane = &polygon->plane_08.normal.x;
         if (plane[0] * trace->step_18.x + trace->step_18.y * plane[1] +
                 trace->step_18.z * plane[2] <=
-            g_float_005ebb34) {
+            g_float_zero) {
             float front = trace->start_00.x * plane[0] + trace->start_00.y * plane[1] +
                           trace->start_00.z * plane[2] + plane[3];
-            if (front <= limit && g_float_005ebb34 < front) {
+            if (front <= limit && g_float_zero < front) {
                 srVector3T<float> contact;
-                if (g_float_005ebb38 <= front) {
+                if (g_float_one <= front) {
                     float back = trace->end_0c.x * plane[0] + trace->end_0c.y * plane[1] +
                                  trace->end_0c.z * plane[2] + plane[3];
                     if (g_float_005ebc28 <= back) {
@@ -1821,10 +1821,10 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
                         ((x == 0 ? minimum[0] : maximum[0]) - plane_point[0]) * plane_normal->x +
                         ((y == 0 ? minimum[1] : maximum[1]) - plane_point[1]) * plane_normal->y +
                         ((z == 0 ? minimum[2] : maximum[2]) - plane_point[2]) * plane_normal->z;
-                    if (distance <= g_float_005ebb34) {
+                    if (distance <= g_float_zero) {
                         negative = 1;
                     }
-                    if (g_float_005ebb34 <= distance) {
+                    if (g_float_zero <= distance) {
                         positive = 1;
                     }
                 }
@@ -1858,7 +1858,7 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
                     static_cast<float>(fabs(edge_delta[edge][face_axis]))) {
                     float amount =
                         (face - edge_start[edge][face_axis]) / edge_delta[edge][face_axis];
-                    if (g_float_005ebb34 <= amount && amount <= g_float_005ebb38) {
+                    if (g_float_zero <= amount && amount <= g_float_one) {
                         float first =
                             edge_start[edge][first_axis] + amount * edge_delta[edge][first_axis];
                         float second =
@@ -1888,7 +1888,7 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
                                                             : maximum[rectangle_axes[coordinate]];
                             float amount =
                                 (boundary - intersection[0][coordinate]) / delta[coordinate];
-                            if (g_float_005ebb34 <= amount && amount <= g_float_005ebb38) {
+                            if (g_float_zero <= amount && amount <= g_float_one) {
                                 float crossing = intersection[0][other] + amount * delta[other];
                                 if (minimum[rectangle_axes[other]] <= crossing &&
                                     crossing <= maximum[rectangle_axes[other]]) {

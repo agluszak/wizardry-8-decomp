@@ -1,9 +1,7 @@
 #include "wiz8/sound_man.h"
 #include "soundman.h"
 
-/* Unresolved fragment: 0x00479010 lies in the anchored gap between
-   stMeshModel.cpp (ends 0x00473BF0) and AmbientSound.cpp (0x0047A670), the
-   same interval that holds the unproven GDCamera cluster. */
+/* Original translation unit is not established by the surrounding source anchors. */
 
 // GLOBAL: WIZ8 0x0065A104
 static int g_dword_65a104;

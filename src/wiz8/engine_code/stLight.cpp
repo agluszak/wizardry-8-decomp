@@ -152,7 +152,7 @@ void stLight::traverse(srNode::TraverseInfo& info)
 void stLight::process(const srNode::ProcessInfo& info, srNode::e_processType type)
 {
     if ((type == PROCESS_PUSH || type == PROCESS_PUSH_GLOBAL) &&
-        g_monster_light_scale != g_float_005ebb38) {
+        g_monster_light_scale != g_float_one) {
         float saved_scale = intensity_1d0;
         intensity_1d0 = saved_scale * g_monster_light_scale;
         srLight::process(info, type);
@@ -215,13 +215,13 @@ void stLight::Update()
             int* from = definition->values_18.GetAt(index);
             int* to = definition->values_18.GetAt(index + 1);
             float span = *to - *from;
-            float blend = g_float_005ebb38;
-            if (span != g_float_005ebb34) {
+            float blend = g_float_one;
+            if (span != g_float_zero) {
                 blend = (time - *from) / span;
             }
             float* key_from = definition->values_28.GetAt(index);
             float* key_to = definition->values_28.GetAt(index + 1);
-            float inverse = g_float_005ebb38 - blend;
+            float inverse = g_float_one - blend;
             intensity_1d0 = inverse * *key_from + blend * *key_to;
             index = definition->keyframe_index_48;
             srVector3T<float>* color_to = definition->values_38.GetAt(index + 1);
@@ -229,19 +229,19 @@ void stLight::Update()
             float red = color_from->x * inverse + color_to->x * blend;
             float green = color_from->y * inverse + color_to->y * blend;
             float blue = color_from->z * inverse + color_to->z * blend;
-            if (g_float_005ebb38 < red) {
+            if (g_float_one < red) {
                 red = 1.0f;
             }
-            if (g_float_005ebb38 < green) {
+            if (g_float_one < green) {
                 green = 1.0f;
             }
-            if (g_float_005ebb38 < blue) {
+            if (g_float_one < blue) {
                 blue = 1.0f;
             }
             diffuse_1a4.Set(red, green, blue);
             return;
         }
-        intensity_1d0 = g_float_005ebb34;
+        intensity_1d0 = g_float_zero;
         return;
     }
 
@@ -256,27 +256,27 @@ void stLight::Update()
     unsigned int mode = definition->flags_08 & 3;
     if (mode == 0) {
         float step = (seconds - m_level_time_23c) * definition->rate_34;
-        if (g_float_005ebb34 < step) {
+        if (g_float_zero < step) {
             float level = m_level_240;
-            step = (g_float_005ebb38 / definition->period_30) * step;
+            step = (g_float_one / definition->period_30) * step;
             if (m_direction_239 == 0) {
                 level -= step;
-                if (level < g_float_005ebb34) {
+                if (level < g_float_zero) {
                     m_direction_239 = 1;
                     level = step + step + level;
                 }
             } else {
                 level = step + level;
-                if (g_float_005ebb38 < level) {
+                if (g_float_one < level) {
                     m_direction_239 = 0;
                     level -= step + step;
                 }
             }
-            float blend = g_float_005ebb34;
-            if (g_float_005ebb34 < level) {
+            float blend = g_float_zero;
+            if (g_float_zero < level) {
                 blend = level;
-                if (g_float_005ebb38 <= level) {
-                    blend = g_float_005ebb38;
+                if (g_float_one <= level) {
+                    blend = g_float_one;
                 }
             }
             intensity_1d0 = (definition->intensity_to_2c - definition->intensity_28) * blend +
@@ -285,17 +285,17 @@ void stLight::Update()
             if ((definition->flags_08 & 8) == 0) {
                 m_level_time_23c = seconds;
             } else {
-                float inverse = g_float_005ebb38 - blend;
+                float inverse = g_float_one - blend;
                 float red = blend * definition->color_to_1c.x + inverse * definition->color_10.x;
                 float green = blend * definition->color_to_1c.y + inverse * definition->color_10.y;
                 float blue = blend * definition->color_to_1c.z + inverse * definition->color_10.z;
-                if (g_float_005ebb38 < red) {
+                if (g_float_one < red) {
                     red = 1.0f;
                 }
-                if (g_float_005ebb38 < green) {
+                if (g_float_one < green) {
                     green = 1.0f;
                 }
-                if (g_float_005ebb38 < blue) {
+                if (g_float_one < blue) {
                     blue = 1.0f;
                 }
                 diffuse_1a4.Set(red, green, blue);
@@ -304,28 +304,28 @@ void stLight::Update()
         }
     } else if (mode == 3) {
         float step = (seconds - m_level_time_23c) * definition->rate_34;
-        if (g_float_005ebb34 < step) {
-            float blend = (g_float_005ebb38 / definition->period_30) * step + m_level_240;
-            if (blend <= g_float_005ebb38) {
+        if (g_float_zero < step) {
+            float blend = (g_float_one / definition->period_30) * step + m_level_240;
+            if (blend <= g_float_one) {
                 float level = blend;
                 intensity_1d0 = (definition->intensity_to_2c - definition->intensity_28) * level +
                                 definition->intensity_28;
                 m_level_240 = level;
                 if ((definition->flags_08 & 8) != 0) {
-                    float inverse = g_float_005ebb38 - blend;
+                    float inverse = g_float_one - blend;
                     float red =
                         blend * definition->color_to_1c.x + inverse * definition->color_10.x;
                     float green =
                         blend * definition->color_to_1c.y + inverse * definition->color_10.y;
                     float blue =
                         blend * definition->color_to_1c.z + inverse * definition->color_10.z;
-                    if (g_float_005ebb38 < red) {
+                    if (g_float_one < red) {
                         red = 1.0f;
                     }
-                    if (g_float_005ebb38 < green) {
+                    if (g_float_one < green) {
                         green = 1.0f;
                     }
-                    if (g_float_005ebb38 < blue) {
+                    if (g_float_one < blue) {
                         blue = 1.0f;
                     }
                     diffuse_1a4.Set(red, green, blue);
@@ -370,7 +370,7 @@ void stLight::Update()
         }
     }
     if ((path == 0) || (PathAIEntryCount(path) == 0) ||
-        ((seconds - m_path_time_24c) * definition->path_speed_38 < g_float_005ebb38)) {
+        ((seconds - m_path_time_24c) * definition->path_speed_38 < g_float_one)) {
         return;
     }
     int index = static_cast<int>((seconds - m_path_time_24c) * definition->path_speed_38);

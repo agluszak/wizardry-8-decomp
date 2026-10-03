@@ -2768,7 +2768,7 @@ char CreateCharacterBreathEffect(int party_slot)
     aim.SetLength(1.0);
     rotation.SetIdentity();
     yaw = atan2(aim.x, aim.z);
-    if (yaw != g_zero_005ebb40) {
+    if (yaw != g_double_zero) {
         rotation.RotateAboutY(sin(yaw), cos(yaw));
     }
     aim = rotation.Transform(direction);
@@ -2829,16 +2829,16 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
         RefreshAllSight();
         monster = monster_info->p3D;
         combat = monster_info->pCombat;
-        if (static_cast<int>((monster->movement_0c0.callback_threshold_058 <= g_float_005ebb34
+        if (static_cast<int>((monster->movement_0c0.callback_threshold_058 <= g_float_zero
                                   ? monster->movement_0c0.callback_progress_05c /
                                         monster->movement_0c0.callback_threshold_058
-                                  : g_float_005ebb34) *
+                                  : g_float_zero) *
                              g_octree_cell_scale) < 100) {
             progress_pct =
-                static_cast<int>((monster->movement_0c0.callback_threshold_058 <= g_float_005ebb34
+                static_cast<int>((monster->movement_0c0.callback_threshold_058 <= g_float_zero
                                       ? monster->movement_0c0.callback_progress_05c /
                                             monster->movement_0c0.callback_threshold_058
-                                      : g_float_005ebb34) *
+                                      : g_float_zero) *
                                  g_octree_cell_scale);
         } else {
             progress_pct = 100;

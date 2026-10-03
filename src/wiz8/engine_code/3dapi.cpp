@@ -79,7 +79,7 @@ bool g_renderer_ready = true;
 static int g_game_data_runtime_pending = 1;
 
 // GLOBAL: WIZ8 0x005ec240
-const double g_double_005ec240 = 250000.0;
+const double g_automap_refresh_distance_squared = 250000.0;
 
 class W8AmbientSound;
 
@@ -667,7 +667,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
                 dx = camera_position.x - s_last_automap_refresh_position.x;
                 dy = camera_position.y - s_last_automap_refresh_position.y;
                 dz = camera_position.z - s_last_automap_refresh_position.z;
-                if (dx * dx + dy * dy + dz * dz > g_double_005ec240) {
+                if (dx * dx + dy * dy + dz * dz > g_automap_refresh_distance_squared) {
                     s_last_automap_refresh_position = camera_position;
                     camera_position.y -= g_default_world_height;
                     if (AutomapHasCellAt(&camera_position) != 0) {
@@ -709,7 +709,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
                 }
                 ApplyCameraRotation(&path_rotation);
                 if (path->discrete_mode_1c != 0) {
-                    if (path->position >= path->nodes_0c->GetCount() - g_float_005ebb38) {
+                    if (path->position >= path->nodes_0c->GetCount() - g_float_one) {
                         UpdateCameraPathState(world, camera_path, 0);
                     }
                 } else if (path->position >= g_double_005ebc30) {

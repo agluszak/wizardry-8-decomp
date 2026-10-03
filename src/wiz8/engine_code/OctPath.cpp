@@ -104,7 +104,7 @@ W8PathingService* g_pathing;
 // GLOBAL: WIZ8 0x0060827a
 unsigned short g_path_reserve = 2000;
 // GLOBAL: WIZ8 0x005ec340
-const float g_float_005ec340 = 1.25f;
+const float g_fast_magic_recovery_scale = 1.25f;
 // GLOBAL: WIZ8 0x005ec344
 const float g_path_span_scale = 1.5259254723787308e-05f;
 
@@ -999,7 +999,7 @@ unsigned char W8PathingService::MeasureAttachmentPath(const srVector3T<float>* f
                                                       int* hops)
 {
     W8NavigatorAttachment attachment(from, to);
-    if (*range > g_float_005ebb34) {
+    if (*range > g_float_zero) {
         path_cost_limit_070 = *range;
     }
     if (BuildAttachmentPath(&attachment, 0) == 0) {
@@ -1745,7 +1745,7 @@ void W8PathingService::ReduceWaypointCosts(unsigned int waypoint, float amount)
 {
     W8PathSurface* surface = &m_pSurfaces_048[waypoint];
     surface->cost_1c -= amount;
-    if (surface->cost_1c >= g_float_005ebb34) {
+    if (surface->cost_1c >= g_float_zero) {
         surface->remaining_cost_20 -= amount;
 
         unsigned short edge_index = surface->first_edge_24;
@@ -2426,7 +2426,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
                 srMatrix3T<float> rotation;
                 rotation.SetIdentity();
                 float angle = bearing - target_yaw;
-                if (angle != g_zero_005ebb40) {
+                if (angle != g_double_zero) {
                     rotation.RotateAboutY(sin(angle), cos(angle));
                 }
                 srVector3T<float> transformed = rotation.Transform(trace_offset_0ac);
@@ -2452,7 +2452,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
             srMatrix3T<float> rotation;
             rotation.SetIdentity();
             float angle = bearing - target_yaw;
-            if (angle != g_zero_005ebb40) {
+            if (angle != g_double_zero) {
                 rotation.RotateAboutY(sin(angle), cos(angle));
             }
             srVector3T<float> transformed = rotation.Transform(trace_offset_0ac);
@@ -2630,10 +2630,10 @@ float W8PathingService::UpdateSearchNodeScore(unsigned short node_index,
         if (distance <= gap) {
             adjusted_gap = (gap - distance) * g_float_005ec390;
         }
-        if (adjusted_gap > g_float_005ebb34) {
+        if (adjusted_gap > g_float_zero) {
             node->score_1c += gap * g_float_005ec3bc;
         }
-    } else if (gap > g_float_005ebb34) {
+    } else if (gap > g_float_zero) {
         node->score_1c += g_float_005ec3c0;
     }
 
@@ -2786,7 +2786,7 @@ unsigned char W8PathingService::TestSearchPositionVisibility(const srVector3T<fl
     srMatrix3T<float> rotation;
     rotation.SetIdentity();
     float angle = bearing - target_yaw;
-    if (angle != g_zero_005ebb40) {
+    if (angle != g_double_zero) {
         rotation.RotateAboutY(sin(angle), cos(angle));
     }
 
@@ -2941,15 +2941,15 @@ unsigned char W8PathingService::ComputeFreeDirection(unsigned int mask,
         return 0;
     }
     wanted = 0;
-    if (g_zero_005ebb40 <= delta->x) {
-        if (g_zero_005ebb40 < delta->x) {
+    if (g_double_zero <= delta->x) {
+        if (g_double_zero < delta->x) {
             wanted = 0xe;
         }
     } else {
         wanted = 0xe0;
     }
-    if (g_zero_005ebb40 <= delta->z) {
-        if (g_zero_005ebb40 < delta->z) {
+    if (g_double_zero <= delta->z) {
+        if (g_double_zero < delta->z) {
             wanted |= 0x83;
         }
     } else {
@@ -2958,8 +2958,8 @@ unsigned char W8PathingService::ComputeFreeDirection(unsigned int mask,
     if ((~mask & wanted) == 0) {
         return 0;
     }
-    direction->x = g_float_005ebb34;
-    direction->z = g_float_005ebb34;
+    direction->x = g_float_zero;
+    direction->z = g_float_zero;
     for (bit = 0; bit < 8; ++bit) {
         if ((~mask & wanted & 1 << (bit & 0x1f)) != 0) {
             direction->x += s_path_direction_x[bit];
@@ -2968,7 +2968,7 @@ unsigned char W8PathingService::ComputeFreeDirection(unsigned int mask,
     }
     direction->y = 0.0f;
     length_squared = direction->x * direction->x + direction->z * direction->z;
-    if (length_squared != g_zero_005ebb40) {
+    if (length_squared != g_double_zero) {
         direction->y = 0.0f;
         direction->x = direction->x * (g_double_005ebc30 / sqrt(length_squared));
         direction->z = direction->z * (g_double_005ebc30 / sqrt(length_squared));
@@ -3051,8 +3051,8 @@ unsigned int W8PathingService::StepAlongPath(W8NavigatorMovementState* movement,
                 attachment->flags_00 &= ~W8_NAV_ATTACHMENT_RESULT_MASK;
             }
             srVector3T<float> delta = advanced - *position;
-            if (((delta.x != g_float_005ebb34) || (delta.y != g_float_005ebb34)) ||
-                (delta.z != g_float_005ebb34)) {
+            if (((delta.x != g_float_zero) || (delta.y != g_float_zero)) ||
+                (delta.z != g_float_zero)) {
                 srVector3T<float> target = delta + advanced;
                 *position = advanced;
                 attachment->position_4c[0] = advanced;
@@ -3306,7 +3306,7 @@ unsigned int W8PathingService::StepMonsterAlongPath(W8NavigatorMovementState* mo
     monster_info->p3D->group_linked_0bd = 1;
     float remaining = g_rate * g_game_time_accumulator->GetFrameDelta();
     do {
-        if (remaining <= g_float_005ebb34) {
+        if (remaining <= g_float_zero) {
             break;
         }
         float step;
@@ -3711,7 +3711,7 @@ unsigned char W8PathingService::TestPathCellClearance(srVector3T<float>* positio
                       (cell[1] + g_float_005ebc7c) * grid_scale_01c + level_bounds[2]);
     }
 
-    float direction = g_float_005ebb34;
+    float direction = g_float_zero;
     if ((packed & 0x01000000) == 0) {
         direction = static_cast<float>((packed >> 16) & 0xff);
     }
@@ -3831,7 +3831,7 @@ void W8PathingService::ProbeWaypointArc(const srVector3T<float>* from, const srV
         } else if (passed_forward == 0) {
             continue;
         }
-        if (dot < g_float_005ebb34) {
+        if (dot < g_float_zero) {
             return;
         }
     }
@@ -3905,7 +3905,7 @@ void W8PathingService::BuildPathGridWalk(const srVector2T<float>* from, const sr
             delta = -delta;
         } else {
             step[axis] = 1;
-            boundary_offset[axis] = g_float_005ebb38 - boundary_offset[axis];
+            boundary_offset[axis] = g_float_one - boundary_offset[axis];
         }
         if (largest_delta < delta) {
             largest_delta = delta;
@@ -4366,7 +4366,7 @@ float W8PathingService::CompareDirectionalClearance(const srVector3T<float>* pos
 
     int first_direction;
     int second_direction;
-    if (normalized_x <= g_float_005ebb34) {
+    if (normalized_x <= g_float_zero) {
         if (g_path_direction_threshold_3 < normalized_z) {
             first_direction = 7;
             second_direction = 1;
@@ -4691,9 +4691,9 @@ void W8PathingService::ActivateMovementTrigger(W8NavigatorMovementState* movemen
     srVector3T<float> upper;
 
     if (use_path_edge == 0) {
-        if (movement->velocity_034.x == g_float_005ebb34 &&
-            movement->velocity_034.y == g_float_005ebb34 &&
-            movement->velocity_034.z == g_float_005ebb34) {
+        if (movement->velocity_034.x == g_float_zero &&
+            movement->velocity_034.y == g_float_zero &&
+            movement->velocity_034.z == g_float_zero) {
             return;
         }
         lower = movement->position_040;
@@ -4913,9 +4913,9 @@ stModelInstance* W8PathingService::BuildPathVisualization()
             colors[marker_vertex + index] = marker_color;
         }
         if ((source->flags_00 & 2) != 0) {
-            colors[marker_vertex].x = colors[marker_vertex].x <= g_float_005ebb34 ? 1.0f : 0.0f;
-            colors[marker_vertex].y = colors[marker_vertex].y <= g_float_005ebb34 ? 1.0f : 0.0f;
-            colors[marker_vertex].z = colors[marker_vertex].z <= g_float_005ebb34 ? 1.0f : 0.0f;
+            colors[marker_vertex].x = colors[marker_vertex].x <= g_float_zero ? 1.0f : 0.0f;
+            colors[marker_vertex].y = colors[marker_vertex].y <= g_float_zero ? 1.0f : 0.0f;
+            colors[marker_vertex].z = colors[marker_vertex].z <= g_float_zero ? 1.0f : 0.0f;
         } else if ((source->flags_00 & 0x40) != 0) {
             colors[marker_vertex].SetZero();
         }
@@ -4955,11 +4955,11 @@ stModelInstance* W8PathingService::BuildPathVisualization()
                 }
                 if ((source->flags_00 & 2) != 0) {
                     colors[destination_vertex].x =
-                        colors[destination_vertex].x <= g_float_005ebb34 ? 1.0f : 0.0f;
+                        colors[destination_vertex].x <= g_float_zero ? 1.0f : 0.0f;
                     colors[destination_vertex].y =
-                        colors[destination_vertex].y <= g_float_005ebb34 ? 1.0f : 0.0f;
+                        colors[destination_vertex].y <= g_float_zero ? 1.0f : 0.0f;
                     colors[destination_vertex].z =
-                        colors[destination_vertex].z <= g_float_005ebb34 ? 1.0f : 0.0f;
+                        colors[destination_vertex].z <= g_float_zero ? 1.0f : 0.0f;
                 } else if ((source->flags_00 & 0x40) != 0) {
                     colors[destination_vertex].SetZero();
                 }
@@ -5776,12 +5776,12 @@ void W8PathingService::AddWaypointLink(unsigned short source, unsigned short des
 
     source_surface = &m_pSurfaces_048[source];
     destination_surface = &m_pSurfaces_048[destination];
-    if ((source_surface->position_04.x == g_float_005ebb34 &&
-         source_surface->position_04.y == g_float_005ebb34 &&
-         source_surface->position_04.z == g_float_005ebb34) ||
-        (destination_surface->position_04.x == g_float_005ebb34 &&
-         destination_surface->position_04.y == g_float_005ebb34 &&
-         destination_surface->position_04.z == g_float_005ebb34)) {
+    if ((source_surface->position_04.x == g_float_zero &&
+         source_surface->position_04.y == g_float_zero &&
+         source_surface->position_04.z == g_float_zero) ||
+        (destination_surface->position_04.x == g_float_zero &&
+         destination_surface->position_04.y == g_float_zero &&
+         destination_surface->position_04.z == g_float_zero)) {
         ShowNoticef(0xf, L"Cannot Link: WayPt %d is at (0, 0, 0). ", source);
         return;
     }
@@ -6418,9 +6418,9 @@ void W8PathParameters::InitializeSteeringContext(W8NavigatorMovementState* movem
         speed_limit_08 = linked->movement_0c0.movement_scale_060 * g_world_scale;
     }
     acceleration_0c = g_path_acceleration_factor * speed_limit_08;
-    if (movement->velocity_034.x == g_float_005ebb34 &&
-        movement->velocity_034.y == g_float_005ebb34 &&
-        movement->velocity_034.z == g_float_005ebb34) {
+    if (movement->velocity_034.x == g_float_zero &&
+        movement->velocity_034.y == g_float_zero &&
+        movement->velocity_034.z == g_float_zero) {
         direction_20.Set(0.0, 0.0, 1.0);
         direction_20.RotateAboutY(sin(movement->yaw), cos(movement->yaw));
     } else {
@@ -6471,14 +6471,14 @@ void W8PathParameters::IntegrateSteering()
     step = g_rate * g_game_time_accumulator->GetFrameDelta();
     if (blocked_49 == 0) {
         force_38.y = 0.0f;
-        if (speed_limit_08 <= g_float_005ebb34) {
+        if (speed_limit_08 <= g_float_zero) {
             velocity.SetZero();
             velocity_length_10 = 0.0f;
             movement_00->target_yaw =
                 NormalizeAngle(static_cast<float>(atan2(force_38.x, force_38.z)));
         } else {
             if (acceleration_0c < force_38.Length() &&
-                (length_squared = force_38.LengthSquared(), length_squared != g_zero_005ebb40)) {
+                (length_squared = force_38.LengthSquared(), length_squared != g_double_zero)) {
                 scale = acceleration_0c / sqrt(length_squared);
                 force_38 *= scale;
             }
@@ -6486,7 +6486,7 @@ void W8PathParameters::IntegrateSteering()
             velocity_length_10 = velocity.Length();
             if (speed_limit_08 < velocity_length_10) {
                 length_squared = velocity.LengthSquared();
-                if (length_squared != g_zero_005ebb40) {
+                if (length_squared != g_double_zero) {
                     scale = speed_limit_08 / sqrt(length_squared);
                     velocity *= scale;
                 }
@@ -6551,7 +6551,7 @@ void W8PathParameters::UpdateYawSteering(float time_step, bool use_turn_rate)
     direction = g_negative_one;
     if (rate < remaining) {
         remaining = rate;
-        direction = g_float_005ebb38;
+        direction = g_float_one;
     }
     if (use_turn_rate == 0) {
         rate = movement_00->turn_rate_068;
@@ -6594,7 +6594,7 @@ unsigned char W8PathParameters::PredictNavigatorCollision()
     if (monster_54->active_088 == 0) {
         return 0;
     }
-    if (velocity_length_10 == g_zero_005ebb40) {
+    if (velocity_length_10 == g_double_zero) {
         return 0;
     }
     lookahead = g_path_prediction_time * velocity_length_10 + radius_44;
@@ -6613,13 +6613,13 @@ unsigned char W8PathParameters::PredictNavigatorCollision()
             navigator = monster;
             position = navigator->GetPosition();
             delta = position - movement_00->position_040;
-            if (g_float_005ebb34 < DotProduct(delta, direction_20)) {
+            if (g_float_zero < DotProduct(delta, direction_20)) {
                 navigator->GetVelocity(&other_velocity);
                 relative = movement_00->velocity_034 - other_velocity;
                 relative.Normalize();
                 approach = DotProduct(delta, relative);
                 approach = approach - (monster->radius_084 * approach) / delta.Length();
-                if (g_float_005ebb34 < approach && approach < nearest) {
+                if (g_float_zero < approach && approach < nearest) {
                     lateral = relative.z * delta.x + -relative.x * delta.z;
                     combined = monster->radius_084 + radius_44;
                     if (static_cast<float>(fabs(lateral)) < combined) {
@@ -6638,12 +6638,12 @@ unsigned char W8PathParameters::PredictNavigatorCollision()
         approach = radius_44 * g_float_005ebc28 + combined;
         if (approach * approach > delta.LengthSquared()) {
             approach = DotProduct(delta, direction_20);
-            if (approach > g_float_005ebb34) {
+            if (approach > g_float_zero) {
                 relative = movement_00->velocity_034 - g_level_data->camera_forward_4c;
                 relative.Normalize();
                 approach = DotProduct(delta, relative);
                 approach = approach - (combined * approach) / delta.Length();
-                if (approach > g_float_005ebb34 && approach < nearest) {
+                if (approach > g_float_zero && approach < nearest) {
                     lateral = delta.x * relative.z + delta.z * -relative.x;
                     combined += radius_44;
                     if (static_cast<float>(fabs(lateral)) < combined) {
@@ -6658,12 +6658,12 @@ unsigned char W8PathParameters::PredictNavigatorCollision()
     if (found == 0) {
         return 0;
     }
-    if (scale >= g_float_005ebb34) {
-        steer = scale - g_float_005ebb38;
+    if (scale >= g_float_zero) {
+        steer = scale - g_float_one;
     } else {
-        steer = scale + g_float_005ebb38;
+        steer = scale + g_float_one;
     }
-    steer = (g_float_005ebb38 - nearest / lookahead) * acceleration_0c * steer;
+    steer = (g_float_one - nearest / lookahead) * acceleration_0c * steer;
     brake = g_path_obstacle_braking_factor * steer;
     steer *= g_path_obstacle_steering_factor;
     force_38 += perpendicular_2c * steer;
@@ -6684,7 +6684,7 @@ unsigned char W8PathParameters::HandleObstacleAhead()
     float brake;
     float side;
 
-    if (velocity_length_10 == g_float_005ebb34) {
+    if (velocity_length_10 == g_float_zero) {
         if (g_octree->pathing_180->GetNeighborSlideDirection(&movement_00->position_040,
                                                              &direction_20, &escape) != 0) {
             movement_00->attachment_0ac->GetNextPosition(&waypoint);
@@ -6692,7 +6692,7 @@ unsigned char W8PathParameters::HandleObstacleAhead()
             waypoint.y = 0.0f;
             if ((escape.z * waypoint.x + waypoint.z * -escape.x) *
                     (escape.z * direction_20.x + -escape.x * direction_20.z) <
-                g_zero_005ebb40) {
+                g_double_zero) {
                 speed_limit_08 = 0.0f;
                 waypoint.SetLength(acceleration_0c);
                 force_38 += waypoint;
@@ -6711,19 +6711,19 @@ unsigned char W8PathParameters::HandleObstacleAhead()
                 waypoint -= movement_00->position_040;
                 waypoint.y = 0.0f;
                 waypoint.SetLength(1.0);
-                if (g_zero_005ebb40 <= DotProduct(waypoint, direction_20)) {
-                    steer = (g_float_005ebb38 - distance / reach) * acceleration_0c;
+                if (g_double_zero <= DotProduct(waypoint, direction_20)) {
+                    steer = (g_float_one - distance / reach) * acceleration_0c;
                     brake = g_path_obstacle_braking_factor * steer;
                     steer = g_path_obstacle_steering_factor * steer;
                     if (g_octree->pathing_180->GetObstacleDirection(&direction_20, &escape) != 0) {
                         side = DotProduct(escape, perpendicular_2c);
                         if (g_double_005ed2e0 <= fabs(side)) {
-                            if (side < g_float_005ebb34) {
+                            if (side < g_float_zero) {
                                 steer = -steer;
                             }
                         } else {
                             escape.Normalize();
-                            if (DotProduct(escape, perpendicular_2c) < g_float_005ebb34) {
+                            if (DotProduct(escape, perpendicular_2c) < g_float_zero) {
                                 steer = -steer;
                             }
                         }
@@ -6742,7 +6742,7 @@ unsigned char W8PathParameters::HandleObstacleAhead()
         } else if (g_world_scale < radius_44) {
             clearance = g_octree->pathing_180->CompareDirectionalClearance(
                 &movement_00->position_040, &direction_20, radius_44);
-            if (g_float_005ebb38 < static_cast<float>(fabs(clearance))) {
+            if (g_float_one < static_cast<float>(fabs(clearance))) {
                 force_38 += perpendicular_2c * clearance;
                 return 1;
             }
@@ -6757,11 +6757,11 @@ void W8PathParameters::AccumulateSeekForce()
     srVector3T<float> desired;
     srVector3T<float> seek;
 
-    if (velocity_length_10 == g_float_005ebb34) {
+    if (velocity_length_10 == g_float_zero) {
         desired = target_14 - movement_00->position_040;
         desired.y = 0.0f;
         desired.Normalize();
-        if (DotProduct(desired, direction_20) < g_zero_005ebb40) {
+        if (DotProduct(desired, direction_20) < g_double_zero) {
             speed_limit_08 = 0.0f;
             force_38 += desired * acceleration_0c;
             return;
@@ -6786,12 +6786,12 @@ void W8PathParameters::SeekWithApproachSpeed()
 
     distance = (target_14 - movement_00->position_040).Length();
     scale = distance / (g_path_approach_slow_time * speed_limit_08);
-    if (g_float_005ebb38 < scale) {
+    if (g_float_one < scale) {
         distance /= g_path_approach_run_time * speed_limit_08;
-        if (g_float_005ebb38 < distance) {
-            distance = g_float_005ebb38;
+        if (g_float_one < distance) {
+            distance = g_float_one;
         }
-        scale = (g_path_approach_run_rate - g_float_005ebb38) * distance + g_float_005ebb38;
+        scale = (g_path_approach_run_rate - g_float_one) * distance + g_float_one;
     }
     speed_limit_08 = scale * speed_limit_08;
     AccumulateSeekForce();
@@ -6826,13 +6826,13 @@ void W8PathParameters::AccumulateGroupRepulsion()
             distance = delta.Length();
             combined = (radius_44 + radius_44 + monster->radius_084) * g_float_005ed2e8;
             if (distance < combined * g_float_005ec52c) {
-                falloff = g_float_005ebb38;
+                falloff = g_float_one;
                 if (combined < distance) {
                     falloff = combined / distance;
                 }
                 delta = delta * static_cast<float>(g_double_005ec2e8);
                 scale = delta.LengthSquared();
-                if (scale != g_zero_005ebb40) {
+                if (scale != g_double_zero) {
                     scale = (g_path_group_repulsion_factor * acceleration_0c * falloff * falloff) /
                             sqrt(scale);
                     delta = delta * scale;
@@ -6858,28 +6858,28 @@ unsigned char W8PathParameters::SteerAroundLeader(bool allow_path_fallback)
 
     leader = monster_54->linked_navigator_05c;
     leader_radius = leader->radius_084;
-    if (leader->movement_0c0.velocity_034.x == g_float_005ebb34 &&
-        leader->movement_0c0.velocity_034.y == g_float_005ebb34 &&
-        leader->movement_0c0.velocity_034.z == g_float_005ebb34) {
+    if (leader->movement_0c0.velocity_034.x == g_float_zero &&
+        leader->movement_0c0.velocity_034.y == g_float_zero &&
+        leader->movement_0c0.velocity_034.z == g_float_zero) {
         heading.Set(0.0, 0.0, 1.0);
         heading.RotateAboutY(sin(leader->movement_0c0.yaw), cos(leader->movement_0c0.yaw));
     } else {
         heading = leader->movement_0c0.velocity_034;
         heading.Normalize();
     }
-    if (leader->movement_0c0.velocity_034.x != g_float_005ebb34 ||
-        leader->movement_0c0.velocity_034.y != g_float_005ebb34 ||
-        leader->movement_0c0.velocity_034.z != g_float_005ebb34) {
+    if (leader->movement_0c0.velocity_034.x != g_float_zero ||
+        leader->movement_0c0.velocity_034.y != g_float_zero ||
+        leader->movement_0c0.velocity_034.z != g_float_zero) {
         delta.x = movement_00->position_040.x - leader->movement_0c0.position_040.x;
         delta.z = movement_00->position_040.z - leader->movement_0c0.position_040.z;
         ahead = delta.x * heading.x + delta.z * heading.z +
                 (movement_00->position_040.y - leader->movement_0c0.position_040.y) * heading.y;
-        if (g_float_005ebb34 < ahead &&
+        if (g_float_zero < ahead &&
             ahead < leader->movement_0c0.velocity_034.Length() * g_path_prediction_time) {
             lateral = heading.z * delta.x - heading.x * delta.z;
             if (fabs(lateral) < static_cast<double>(leader_radius) + radius_44) {
                 side = g_double_005ebc30;
-                if (lateral < g_zero_005ebb40) {
+                if (lateral < g_double_zero) {
                     side = g_double_005ec2e8;
                 }
                 offset.Set(heading.z * side * g_double_005ec150, 0.0,
@@ -6899,11 +6899,11 @@ unsigned char W8PathParameters::SteerAroundLeader(bool allow_path_fallback)
         distance = delta.Length() - leader_radius;
         if (g_path_approach_slow_time * speed_limit_08 < distance) {
             distance /= g_path_approach_run_time * speed_limit_08;
-            if (g_float_005ebb38 < distance) {
-                distance = g_float_005ebb38;
+            if (g_float_one < distance) {
+                distance = g_float_one;
             }
             speed_limit_08 =
-                ((g_path_approach_run_rate - g_float_005ebb38) * distance + g_float_005ebb38) *
+                ((g_path_approach_run_rate - g_float_one) * distance + g_float_one) *
                 speed_limit_08;
         }
         return 0;
@@ -6948,7 +6948,7 @@ unsigned char W8PathParameters::SteerAlongPath(W8NavigatorMovementState* movemen
     InitializeSteeringContext(movement);
     movement->attachment_0ac->flags_00 &= 0xffefffff;
     if (HandleObstacleAhead() == 0) {
-        if (g_float_005ebb34 < velocity_length_10) {
+        if (g_float_zero < velocity_length_10) {
             reach = g_path_prediction_time * velocity_length_10;
             ahead = movement_00->position_040 + direction_20 * reach;
             if (movement->attachment_0ac->CheckPredictedHopHeight(&ahead) == 0) {

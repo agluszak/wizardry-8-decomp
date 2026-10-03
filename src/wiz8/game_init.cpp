@@ -33,10 +33,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* Unresolved fragment: both functions (0x004E2F40, 0x004E3290) lie in one
-   contiguous anchored gap between Arnika.cpp (ends 0x004E24E0) and
-   Gameloop.cpp (0x004E34B0), the same interval as startup_subsystems.cpp's
-   0x004E27A0. No proven ownership. */
+/* Original translation unit is not established by the Arnika/Gameloop source anchors. */
 
 /*
  * The data bring-up gate InitializeStandardGamingPlatform calls last. It stamps the version

@@ -4,6 +4,9 @@
 
 #include <wchar.h>
 
+static_assert(sizeof(wchar_t) == 2, "Wizardry wide text requires 16-bit code units");
+static_assert(sizeof(UINT16) == sizeof(wchar_t), "SGP wide text must preserve Wizardry code units");
+
 /* The released SGP interfaces spell byte strings as UINT8* and wide strings
    as UINT16*. Wizardry uses char* and Win32/VC6 wchar_t* for the same storage.
    Keep those ABI-only reinterpretations at one boundary instead of repeating

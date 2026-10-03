@@ -3926,7 +3926,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         if (TargetSourceIsCharacter(source, 0)) {
             marked = true;
             side = 2;
-            if (g_float_005ebb34 < radius) {
+            if (g_float_zero < radius) {
                 radius += g_startup_world->radius_084;
             }
         } else if (TargetSourceIsMonster(source, 0)) {

@@ -59,22 +59,22 @@ unsigned char W8AmbientSound::IsInsideRegion(const srVector3T<float>* listener)
     float scale_z;
 
     relative = *listener - region_center;
-    scale_x = g_float_005ebb38 / region_scale.x;
-    scale_y = g_float_005ebb38 / region_scale.y;
-    scale_z = g_float_005ebb38 / region_scale.z;
-    if (scale_x != g_float_005ebb38 || scale_y != g_float_005ebb38 || scale_z != g_float_005ebb38) {
+    scale_x = g_float_one / region_scale.x;
+    scale_y = g_float_one / region_scale.y;
+    scale_z = g_float_one / region_scale.z;
+    if (scale_x != g_float_one || scale_y != g_float_one || scale_z != g_float_one) {
         relative.x = scale_x * relative.x;
         relative.y *= scale_y;
         relative.z *= scale_z;
     }
-    if (region_angle != g_float_005ebb34 &&
-        (region_axis.x != g_float_005ebb34 || region_axis.y != g_float_005ebb34 ||
-         region_axis.z != g_float_005ebb34)) {
+    if (region_angle != g_float_zero &&
+        (region_axis.x != g_float_zero || region_axis.y != g_float_zero ||
+         region_axis.z != g_float_zero)) {
         srMatrix3T<float> rotation;
         double angle = -region_angle;
 
         rotation.SetIdentity();
-        if (angle != g_zero_005ebb40) {
+        if (angle != g_double_zero) {
             rotation.RotateAroundAxis(sin(angle), cos(angle), region_axis);
         }
         relative.Transform(rotation);
@@ -168,19 +168,19 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                 unsigned int volume;
 
                 rotation.SetIdentity();
-                if (angle != g_zero_005ebb40) {
+                if (angle != g_double_zero) {
                     rotation.RotateAboutY(sin(angle), cos(angle));
                 }
                 srVector3T<float> offset = position - *listener;
                 transformed = rotation.Transform(offset);
                 Sound3DSetPosition(sound_handle, transformed.x, transformed.y, transformed.z);
                 Sound3DSetDirection(sound_handle, -transformed.x, -transformed.y, -transformed.z,
-                                    0.0f, g_float_005ebb38, 0.0f);
+                                    0.0f, g_float_one, 0.0f);
                 if (radius * g_navigator_mode3_scale <= distance) {
                     volume = current_volume;
                 } else {
                     volume = static_cast<unsigned int>(
-                        (g_float_005ebb38 - (distance - radius * g_navigator_mode3_scale) /
+                        (g_float_one - (distance - radius * g_navigator_mode3_scale) /
                                                 (radius * g_float_005ec5a8)) *
                         current_volume);
                 }
@@ -255,7 +255,7 @@ void W8AmbientSound::Service(bool entered)
 
                 GetCameraPosition(&camera);
                 rotation.SetIdentity();
-                if (angle != g_zero_005ebb40) {
+                if (angle != g_double_zero) {
                     rotation.RotateAboutY(sin(angle), cos(angle));
                 }
                 offset = position - camera;
@@ -271,7 +271,7 @@ void W8AmbientSound::Service(bool entered)
                 pos.flFaceY = -transformed.y;
                 pos.flFaceZ = -transformed.z;
                 pos.flUpX = 0.0f;
-                pos.flUpY = g_float_005ebb38;
+                pos.flUpY = g_float_one;
                 pos.flUpZ = 0.0f;
                 pos.flFalloffMin = radius;
                 pos.flFalloffMax = radius;
@@ -285,7 +285,7 @@ void W8AmbientSound::Service(bool entered)
                     pos.uiVolume = current_volume;
                 } else {
                     pos.uiVolume = static_cast<unsigned int>(
-                        (g_float_005ebb38 - (distance - radius * g_navigator_mode3_scale) /
+                        (g_float_one - (distance - radius * g_navigator_mode3_scale) /
                                                 (radius * g_float_005ec5a8)) *
                         current_volume);
                 }
@@ -308,7 +308,7 @@ void W8AmbientSound::Service(bool entered)
         GetCameraPosition(&camera);
         current_volume = (volume_max * g_settings.sound_effects_volume) / 0x7f;
         rotation.SetIdentity();
-        if (angle != g_zero_005ebb40) {
+        if (angle != g_double_zero) {
             rotation.RotateAboutY(sin(angle), cos(angle));
         }
         offset = position - camera;
@@ -327,7 +327,7 @@ void W8AmbientSound::Service(bool entered)
         parms.Pos.flVelY = 0.0f;
         parms.Pos.flVelZ = 0.0f;
         parms.Pos.flUpX = 0.0f;
-        parms.Pos.flUpY = g_float_005ebb38;
+        parms.Pos.flUpY = g_float_one;
         parms.Pos.flUpZ = 0.0f;
         parms.Pos.flFalloffMax = parms.Pos.flFalloffMin;
         parms.Pos.uiVolume = parms.uiVolume;

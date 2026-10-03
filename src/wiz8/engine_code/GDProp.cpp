@@ -552,7 +552,7 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
     float factor;
 
     rotation.SetIdentity();
-    if (node->path.angle_0c != g_zero_005ebb40) {
+    if (node->path.angle_0c != g_double_zero) {
         rotation.RotateAroundAxis(sin(node->path.angle_0c), cos(node->path.angle_0c), axis);
     }
     translation.Set(node->path.position_00.x * g_double_005ec150,
@@ -648,7 +648,7 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
                            &m_pVertices[surface->vertex_indices_18[2]]);
 
         int dominant_axis;
-        float largest = g_float_005ebb34;
+        float largest = g_float_zero;
         for (int axis = 0; axis < 3; ++axis) {
             float magnitude = static_cast<float>(fabs((&surface->plane_24.normal.x)[axis]));
             if (largest < magnitude) {

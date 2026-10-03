@@ -21,10 +21,7 @@ extern const float g_world_scale = 500.0f;
 // GLOBAL: WIZ8 0x005EC000
 extern const float g_startup_near_limit = 250.0f;
 
-/* Builds the startup navigation state after the renderer graph is open.
-   0x0044F060 sits in the attribution gap between Prop.cpp (ends 0x0044E1F0)
-   and Engine Code\3dapi.cpp (0x0044F1C0); the two globals sit in the
-   unbracketed .data tail. Unresolved fragment - no proven ownership. */
+/* Original translation-unit ownership of startup navigation and its globals is unknown. */
 // FUNCTION: WIZ8 0x0044f060
 unsigned char InitializeStartupNavigation(void)
 {

@@ -470,7 +470,7 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, bool li
     int top;
 
     if (fabs(delta->y) >= g_double_005ee768) {
-        if (delta->y > g_zero_005ebb40) {
+        if (delta->y > g_double_zero) {
             ring = 2;
         }
     } else {
@@ -479,7 +479,7 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, bool li
 
     rotation.SetIdentity();
     double angle = g_double_005eecd8 * g_float_005ebcf8 * (0x168 - g_status.party_facing);
-    if (angle != g_zero_005ebb40) {
+    if (angle != g_double_zero) {
         float cosine = static_cast<float>(cos(angle));
         float sine = static_cast<float>(sin(angle));
         rotation.RotateAboutY(sine, cosine);

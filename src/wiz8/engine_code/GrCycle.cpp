@@ -177,7 +177,7 @@ void StopShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects)
 void UpdateShakeEffects()
 {
     if (g_camera_shake_enabled == 0 || g_shake_effects == 0 ||
-        g_shake_timer->GetProgress() < g_float_005ebb38) {
+        g_shake_timer->GetProgress() < g_float_one) {
         return;
     }
     if (g_shake_effects->GetCount() != 0) {
@@ -201,8 +201,8 @@ void UpdateShakeEffects()
                 intensity += amount;
             }
         }
-        if (intensity > g_float_005ebb34) {
-            float amplitude = intensity < g_float_005ebb38 ? intensity : g_float_005ebb38;
+        if (intensity > g_float_zero) {
+            float amplitude = intensity < g_float_one ? intensity : g_float_one;
             amplitude *= g_float_005ecf9c;
             int span = static_cast<int>(amplitude) << 1;
             g_trigger_action_scene_offset.x = Random(span) - amplitude;
@@ -221,7 +221,7 @@ void UpdateShakeEffects()
 unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position, float* out_amount)
 {
     float progress = timer_18.GetProgress();
-    if (g_float_005ebb38 <= progress) {
+    if (g_float_one <= progress) {
         return 0;
     }
     if ((flags_00 >> 2 & 1) != 0) {
@@ -232,7 +232,7 @@ unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position, f
         if (distance_cap_08 < distance) {
             *out_amount = 0.0f;
         } else if ((flags_00 >> 3 & 1) != 0) {
-            float weight = distance / distance_cap_08 - g_float_005ebb38;
+            float weight = distance / distance_cap_08 - g_float_one;
             *out_amount = weight * weight;
         } else {
             *out_amount = 1.0f;
@@ -241,7 +241,7 @@ unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position, f
         *out_amount = 1.0f;
     }
     if ((flags_00 >> 4 & 1) != 0) {
-        *out_amount = (g_float_005ebb38 - progress) * *out_amount;
+        *out_amount = (g_float_one - progress) * *out_amount;
         return 1;
     }
     if ((flags_00 >> 5 & 1) != 0) {
@@ -890,7 +890,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             }
             psrMesh->highlight_colour_164 = pRep->highlight_colour_04c;
             if (pRep->apply_instance_scale_061 != 0) {
-                if (pRep->instance_scale_05c == g_float_005ebb38) {
+                if (pRep->instance_scale_05c == g_float_one) {
                     psrMesh->diffuse_scale_enabled_1a0 = 0;
                 } else {
                     psrMesh->diffuse_scale_enabled_1a0 = 1;
@@ -924,7 +924,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         AniMeshSetFlag10(pRep->GetEmitterAniMesh(pRep->current_cycle), 1);
         psrMesh->highlight_colour_164 = pRep->highlight_colour_04c;
         if (pRep->apply_instance_scale_061 != 0) {
-            if (pRep->instance_scale_05c == g_float_005ebb38) {
+            if (pRep->instance_scale_05c == g_float_one) {
                 psrMesh->diffuse_scale_enabled_1a0 = 0;
             } else {
                 psrMesh->diffuse_scale_enabled_1a0 = 1;

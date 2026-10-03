@@ -826,7 +826,7 @@ void ResolveSpellMissileHit(W8Missile* missile)
         SoundPlay((STR)FormatString("Data\\Missiles\\Sounds\\%s.wav", spell->sound_name), 0);
     }
 
-    if (definition->radius > g_float_005ebb34) {
+    if (definition->radius > g_float_zero) {
         if (target->iType == W8_TARGET_KIND_MONSTER) {
             monster_list_index =
                 MonsterGetIndexByLocationID(0x1460, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
@@ -2643,7 +2643,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
     }
     if (dice.count == 0) {
         *out_hit = 0;
-    } else if (rolled < (g_float_005ebb38 - dice.count * g_facing_tolerance_005ebcf4) *
+    } else if (rolled < (g_float_one - dice.count * g_facing_tolerance_005ebcf4) *
                             (dice.sides * dice.count + dice.base) * dice_count) {
         *out_hit = 0;
     } else {

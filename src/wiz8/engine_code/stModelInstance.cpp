@@ -297,7 +297,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         float determinant = Det3(view.vectors[0].x, view.vectors[0].y, view.vectors[0].z,
                                  view.vectors[1].x, view.vectors[1].y, view.vectors[1].z,
                                  view.vectors[2].x, view.vectors[2].y, view.vectors[2].z);
-        if (determinant > g_zero_005ebb40) {
+        if (determinant > g_double_zero) {
             basis_x = -basis_x;
             basis_y = -basis_y;
             basis_z = -basis_z;
@@ -306,7 +306,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         renderer->loadIdentity();
         translation.Set(transformed_location.x, transformed_location.y, transformed_location.z);
         renderer->translate(translation);
-        if (align_angle_158 != g_float_005ebb34) {
+        if (align_angle_158 != g_float_zero) {
             renderer->rotate(static_cast<double>(align_angle_158), align_axis_14c);
         }
         renderer->scale(world_scale.x * basis_x, world_scale.y * basis_y,
@@ -333,13 +333,13 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         float glow_weight = static_cast<float>(
             fabs(sin(((GetTickCount() % render_state_164.render_depth) /
                       static_cast<double>(static_cast<int>(render_state_164.render_depth))) *
-                     g_camera_angle_period_005ec014)));
-        float base_weight = g_float_005ebb38 - glow_weight;
+                     g_camera_angle_period)));
+        float base_weight = g_float_one - glow_weight;
         srVector4T<float> emissive;
         emissive.x = vector_174->x * base_weight + vector_178->x * glow_weight;
         emissive.y = vector_174->y * base_weight + vector_178->y * glow_weight;
         emissive.z = vector_174->z * base_weight + vector_178->z * glow_weight;
-        emissive.w = g_float_005ebb38;
+        emissive.w = g_float_one;
         m_pGlowMaterial->setEmissive(emissive);
         mesh.materials_70[0][0] = m_pGlowMaterial;
         mesh.shaders_b0[0].value = (mesh.shaders_b0[0].value & ~srShader::MASK_GRADIENT_MODULATE) |
@@ -520,7 +520,7 @@ void stModelInstance::process(const ProcessInfo& info, e_processType)
         float determinant = Det3(view.vectors[0].x, view.vectors[0].y, view.vectors[0].z,
                                  view.vectors[1].x, view.vectors[1].y, view.vectors[1].z,
                                  view.vectors[2].x, view.vectors[2].y, view.vectors[2].z);
-        if (determinant > g_zero_005ebb40) {
+        if (determinant > g_double_zero) {
             basis_x = -basis_x;
             basis_y = -basis_y;
             basis_z = -basis_z;
@@ -529,7 +529,7 @@ void stModelInstance::process(const ProcessInfo& info, e_processType)
         renderer->loadIdentity();
         translation.Set(transformed_location.x, transformed_location.y, transformed_location.z);
         renderer->translate(translation);
-        if (align_angle_158 != g_float_005ebb34) {
+        if (align_angle_158 != g_float_zero) {
             renderer->rotate(align_angle_158, align_axis_14c);
         }
         renderer->scale(world_scale.x * basis_x, world_scale.y * basis_y,
@@ -602,8 +602,8 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     }
     renderer.setAmbientLight(light);
 
-    if (highlight_colour_164.x != g_float_005ebb34 || highlight_colour_164.y != g_float_005ebb34 ||
-        highlight_colour_164.z != g_float_005ebb34 || highlight_colour_164.w != g_float_005ebb34) {
+    if (highlight_colour_164.x != g_float_zero || highlight_colour_164.y != g_float_zero ||
+        highlight_colour_164.z != g_float_zero || highlight_colour_164.w != g_float_zero) {
         if (retained_174 == 0) {
             retained_174 = new srMaterial;
             srVector4T<float> zero;
@@ -663,10 +663,10 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
             }
         }
 
-        if (((highlight_colour_164.x == g_float_005ebb34) &&
-             (highlight_colour_164.y == g_float_005ebb34) &&
-             (highlight_colour_164.z == g_float_005ebb34) &&
-             (highlight_colour_164.w == g_float_005ebb34)) ||
+        if (((highlight_colour_164.x == g_float_zero) &&
+             (highlight_colour_164.y == g_float_zero) &&
+             (highlight_colour_164.z == g_float_zero) &&
+             (highlight_colour_164.w == g_float_zero)) ||
             (highlight_pass_mode_190 != 1)) {
             if (diffuse_scale_enabled_1a0 != 0) {
                 g_material_diffuse_scale = diffuse_scale_1a4;
@@ -710,8 +710,8 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         }
     }
 
-    if (highlight_colour_164.x != g_float_005ebb34 || highlight_colour_164.y != g_float_005ebb34 ||
-        highlight_colour_164.z != g_float_005ebb34 || highlight_colour_164.w != g_float_005ebb34) {
+    if (highlight_colour_164.x != g_float_zero || highlight_colour_164.y != g_float_zero ||
+        highlight_colour_164.z != g_float_zero || highlight_colour_164.w != g_float_zero) {
         model = static_cast<stMeshModel*>(getModel());
         if (highlight_pass_mode_190 == 0) {
             renderer.setWinding(srGERD::WINDING_POSITIONAL_1);
@@ -769,8 +769,8 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     offsets = expand;
 
                     if (mesh.vertex_count_00 != 0) {
-                        if (offsets.x == g_float_005ebb34 && offsets.y == g_float_005ebb34 &&
-                            offsets.z == g_float_005ebb34) {
+                        if (offsets.x == g_float_zero && offsets.y == g_float_zero &&
+                            offsets.z == g_float_zero) {
                             if (mesh.vertex_count_00 * 3 != 0) {
                                 srVectorProcessor::copy(
                                     // reinterpret-ok: dword view of the vec3 scratch buffer.
@@ -822,7 +822,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
 }
 
 // GLOBAL: WIZ8 0x005EC8E0
-const float g_float_005ec8e0 = 1.0f / 1500.0f;
+const float g_shadow_extrusion_pitch_scale = 1.0f / 1500.0f;
 
 /* Shared shadow-quad mesh built on first use: two upright triangles on a
    500-unit ground span, lit by a dedicated material so the extruded shadow
@@ -918,7 +918,7 @@ void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
     renderer.matrixMode(srGERD::MATRIX_MODELVIEW);
     renderer.pushMatrix();
     renderer.translate(0.0, height * g_float_005ebc7c, 0.0);
-    height *= g_float_005ec8e0;
+    height *= g_shadow_extrusion_pitch_scale;
     if (height < g_float_005ebc7c) {
         height = g_float_005ebc7c;
     }

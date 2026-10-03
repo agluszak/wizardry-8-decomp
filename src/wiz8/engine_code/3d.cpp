@@ -175,16 +175,16 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
         unsigned long count = mesh->vertex_location_count_22c;
 
         srVector3T<float>* world_vertices = vertices;
-        if (rotation.vectors[0].x != g_float_005ebb38 ||
-            rotation.vectors[1].y != g_float_005ebb38 ||
-            rotation.vectors[2].z != g_float_005ebb38 ||
-            rotation.vectors[0].y != g_float_005ebb34 ||
-            rotation.vectors[0].z != g_float_005ebb34 ||
-            rotation.vectors[1].x != g_float_005ebb34 ||
-            rotation.vectors[1].z != g_float_005ebb34 ||
-            rotation.vectors[2].x != g_float_005ebb34 ||
-            rotation.vectors[2].y != g_float_005ebb34 || location.x != g_float_005ebb34 ||
-            location.y != g_float_005ebb34 || location.z != g_float_005ebb34) {
+        if (rotation.vectors[0].x != g_float_one ||
+            rotation.vectors[1].y != g_float_one ||
+            rotation.vectors[2].z != g_float_one ||
+            rotation.vectors[0].y != g_float_zero ||
+            rotation.vectors[0].z != g_float_zero ||
+            rotation.vectors[1].x != g_float_zero ||
+            rotation.vectors[1].z != g_float_zero ||
+            rotation.vectors[2].x != g_float_zero ||
+            rotation.vectors[2].y != g_float_zero || location.x != g_float_zero ||
+            location.y != g_float_zero || location.z != g_float_zero) {
             locations_allocated = 1;
             world_vertices =
                 static_cast<srVector3T<float>*>(malloc(count * sizeof(srVector3T<float>)));
@@ -195,18 +195,18 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
                 srVectorProcessor::memcopy(world_vertices, vertices,
                                            count * sizeof(srVector3T<float>));
             }
-            if (rotation.vectors[0].x == g_float_005ebb38 &&
-                rotation.vectors[1].y == g_float_005ebb38 &&
-                rotation.vectors[2].z == g_float_005ebb38 &&
-                rotation.vectors[0].y == g_float_005ebb34 &&
-                rotation.vectors[0].z == g_float_005ebb34 &&
-                rotation.vectors[1].x == g_float_005ebb34 &&
-                rotation.vectors[1].z == g_float_005ebb34 &&
-                rotation.vectors[2].x == g_float_005ebb34 &&
-                rotation.vectors[2].y == g_float_005ebb34) {
+            if (rotation.vectors[0].x == g_float_one &&
+                rotation.vectors[1].y == g_float_one &&
+                rotation.vectors[2].z == g_float_one &&
+                rotation.vectors[0].y == g_float_zero &&
+                rotation.vectors[0].z == g_float_zero &&
+                rotation.vectors[1].x == g_float_zero &&
+                rotation.vectors[1].z == g_float_zero &&
+                rotation.vectors[2].x == g_float_zero &&
+                rotation.vectors[2].y == g_float_zero) {
                 if (count != 0 &&
-                    (location.x != g_float_005ebb34 || location.y != g_float_005ebb34 ||
-                     location.z != g_float_005ebb34)) {
+                    (location.x != g_float_zero || location.y != g_float_zero ||
+                     location.z != g_float_zero)) {
                     srVectorProcessor::add(world_vertices, location, world_vertices,
                                            static_cast<SRDWORD>(count));
                 }
@@ -219,15 +219,15 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
         }
 
         srVector3T<float>* world_normals;
-        if (rotation.vectors[0].x == g_float_005ebb38 &&
-            rotation.vectors[1].y == g_float_005ebb38 &&
-            rotation.vectors[2].z == g_float_005ebb38 &&
-            rotation.vectors[0].y == g_float_005ebb34 &&
-            rotation.vectors[0].z == g_float_005ebb34 &&
-            rotation.vectors[1].x == g_float_005ebb34 &&
-            rotation.vectors[1].z == g_float_005ebb34 &&
-            rotation.vectors[2].x == g_float_005ebb34 &&
-            rotation.vectors[2].y == g_float_005ebb34) {
+        if (rotation.vectors[0].x == g_float_one &&
+            rotation.vectors[1].y == g_float_one &&
+            rotation.vectors[2].z == g_float_one &&
+            rotation.vectors[0].y == g_float_zero &&
+            rotation.vectors[0].z == g_float_zero &&
+            rotation.vectors[1].x == g_float_zero &&
+            rotation.vectors[1].z == g_float_zero &&
+            rotation.vectors[2].x == g_float_zero &&
+            rotation.vectors[2].y == g_float_zero) {
             world_normals = normals;
         } else {
             world_normals =
@@ -266,9 +266,9 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
                             return 0;
                         }
                     }
-                    if (light_position.x == g_float_005ebb34 &&
-                        light_position.y == g_float_005ebb34 &&
-                        light_position.z == g_float_005ebb34) {
+                    if (light_position.x == g_float_zero &&
+                        light_position.y == g_float_zero &&
+                        light_position.z == g_float_zero) {
                         CopyDwordBuffer(directions, world_vertices, count * 3);
                     } else {
                         srVector3T<float> offset(-light_position.x, -light_position.y,
@@ -283,7 +283,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
                         if (distance <= range) {
                             direction.Normalize();
                             float facing = DotProduct(direction, world_normals[index]);
-                            if (facing < g_zero_005ebb40) {
+                            if (facing < g_double_zero) {
                                 double contribution =
                                     -facing * intensity * (g_double_005ebc30 - distance / range);
                                 if (vertex_materials != 0) {
@@ -325,15 +325,15 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
         if (locations_allocated != 0) {
             free(world_vertices);
         }
-        if (rotation.vectors[0].x != g_float_005ebb38 ||
-            rotation.vectors[1].y != g_float_005ebb38 ||
-            rotation.vectors[2].z != g_float_005ebb38 ||
-            rotation.vectors[0].y != g_float_005ebb34 ||
-            rotation.vectors[0].z != g_float_005ebb34 ||
-            rotation.vectors[1].x != g_float_005ebb34 ||
-            rotation.vectors[1].z != g_float_005ebb34 ||
-            rotation.vectors[2].x != g_float_005ebb34 ||
-            rotation.vectors[2].y != g_float_005ebb34) {
+        if (rotation.vectors[0].x != g_float_one ||
+            rotation.vectors[1].y != g_float_one ||
+            rotation.vectors[2].z != g_float_one ||
+            rotation.vectors[0].y != g_float_zero ||
+            rotation.vectors[0].z != g_float_zero ||
+            rotation.vectors[1].x != g_float_zero ||
+            rotation.vectors[1].z != g_float_zero ||
+            rotation.vectors[2].x != g_float_zero ||
+            rotation.vectors[2].y != g_float_zero) {
             free(world_normals);
         }
         if (directions != 0) {
@@ -982,7 +982,7 @@ bool PointInsideFrustum(const srVector3T<float>* point, const W8Plane* planes)
     for (short index = 0; index < 6; ++index) {
         float distance = SignedPlaneDistance(planes[index], *point);
 
-        if (distance < g_float_005ebb34) {
+        if (distance < g_float_zero) {
             return false;
         }
     }
@@ -1123,7 +1123,7 @@ bool BoundsInsideFrustum(const W8OctRegionVolume* volume, const W8BoundingBox* b
                             (&bounds->minimum)[y].y * volume->planes_88[plane].normal.y +
                             (&bounds->minimum)[z].z * volume->planes_88[plane].normal.z +
                             volume->planes_88[plane].w <
-                        g_float_005ebb34) {
+                        g_float_zero) {
                         break;
                     }
                     if (++plane > 5) {

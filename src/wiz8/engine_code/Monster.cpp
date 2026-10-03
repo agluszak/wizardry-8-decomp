@@ -893,8 +893,8 @@ void W8Monster::RandomizeAppearanceAndMotion()
 
     mirror_x_1be = Random(100) < static_cast<UINT32>(m_pRep->left_handed_610);
 
-    if (m_pRep->minimum_scale_5f4 != g_float_005ebb34 &&
-        m_pRep->maximum_scale_5f8 != g_float_005ebb34) {
+    if (m_pRep->minimum_scale_5f4 != g_float_zero &&
+        m_pRep->maximum_scale_5f8 != g_float_zero) {
         float minimum = m_pRep->minimum_scale_5f4;
         float maximum = m_pRep->maximum_scale_5f8;
 
@@ -930,8 +930,8 @@ void W8Monster::RandomizeAppearanceAndMotion()
             } else {
                 animation = *m_pRep->animations[1].GetAt(0);
             }
-            if (scale < g_float_005ebb38) {
-                scale = g_float_005ebb38;
+            if (scale < g_float_one) {
+                scale = g_float_one;
             }
             animation->playback_scale_08 = scale;
             if (subcycle < m_pRep->animation_scales[1].GetCount()) {
@@ -956,7 +956,7 @@ void W8Monster::RandomizeAppearanceAndMotion()
     movement_0c0.height_offset_0b8 += movement_0c0.vertical_base_07c;
     movement_0c0.secondary_height_offset_0bc += movement_0c0.vertical_base_07c;
 
-    if (scale_1cc < g_float_005ebb38) {
+    if (scale_1cc < g_float_one) {
         m_pRep->instance_scale_05c = scale_1cc;
         m_pRep->apply_instance_scale_061 = 1;
     }
@@ -1375,7 +1375,7 @@ void W8Monster::Update()
     }
     distance = (monster_position - party_position).Length();
 
-    if (sunlit_state_2d0 == -1 || g_monster_light_scale < g_float_005ebb38) {
+    if (sunlit_state_2d0 == -1 || g_monster_light_scale < g_float_one) {
         current_scale_300 = 0.75f;
         g_monster_model_instances.Clear();
         CollectModelInstances(&g_monster_model_instances);
@@ -1420,7 +1420,7 @@ void W8Monster::Update()
         }
     }
 
-    if (current_scale_300 != target_scale_2fc && timer_2d8.GetProgress() >= g_float_005ebb38) {
+    if (current_scale_300 != target_scale_2fc && timer_2d8.GetProgress() >= g_float_one) {
         if (target_scale_2fc <= current_scale_300) {
             current_scale_300 -= g_facing_tolerance_005ebcf4;
             if (current_scale_300 < target_scale_2fc) {
@@ -1443,31 +1443,31 @@ void W8Monster::Update()
 
     if (fade_state_330 != 0) {
         float progress = timer_30c.GetProgress();
-        if (progress > g_float_005ebb38) {
-            progress = g_float_005ebb38;
+        if (progress > g_float_one) {
+            progress = g_float_one;
         }
         if (fade_state_330 == -2) {
-            if (progress == g_float_005ebb38) {
+            if (progress == g_float_one) {
                 fade_state_330 = 0;
                 timer_30c.SetDuration(3.0f);
                 timer_30c.Restart();
                 if (fade_state_330 < 1) {
-                    m_pRep->instance_scale_05c = g_float_005ebb38;
+                    m_pRep->instance_scale_05c = g_float_one;
                     m_pRep->apply_instance_scale_061 = 1;
                     fade_state_330 = -1;
                 } else {
-                    timer_30c.SetProgress(g_float_005ebb38 - m_pRep->instance_scale_05c);
+                    timer_30c.SetProgress(g_float_one - m_pRep->instance_scale_05c);
                     fade_state_330 = -1;
                 }
             }
         } else {
             if (fade_state_330 < 1) {
-                m_pRep->instance_scale_05c = g_float_005ebb38 - progress;
+                m_pRep->instance_scale_05c = g_float_one - progress;
             } else {
                 m_pRep->instance_scale_05c = progress;
             }
             m_pRep->apply_instance_scale_061 = 1;
-            if (progress == g_float_005ebb38) {
+            if (progress == g_float_one) {
                 if (fade_state_330 < 0) {
                     flags_1dc |= W8_MONSTER_FADED_OUT;
                 }
@@ -2540,7 +2540,7 @@ bool W8Monster::CanContinueScript()
         trigger_278 = 0;
         return 1;
     case 0x17:
-        if (timer_254.GetProgress() < g_float_005ebb38) {
+        if (timer_254.GetProgress() < g_float_one) {
             return 0;
         }
         break;
@@ -3067,8 +3067,8 @@ float W8Monster::GetPointDistanceToPlayer(srVector3T<float> point)
     player_position.y -= g_default_world_height;
     distance = (point - player_position).Length() - movement_0c0.alternate_radius_0b4 -
                g_startup_world->movement_0c0.alternate_radius_0b4;
-    if (distance < g_float_005ebb34) {
-        distance = g_float_005ebb34;
+    if (distance < g_float_zero) {
+        distance = g_float_zero;
     }
     return distance;
 }
@@ -3081,8 +3081,8 @@ float W8Monster::GetDistanceToMonster(W8Monster* monster)
     float distance = (position - other_position).Length() - movement_0c0.alternate_radius_0b4 -
                      monster->movement_0c0.alternate_radius_0b4;
 
-    if (distance < g_float_005ebb34) {
-        distance = g_float_005ebb34;
+    if (distance < g_float_zero) {
+        distance = g_float_zero;
     }
     return distance;
 }
@@ -3098,8 +3098,8 @@ float W8Monster::GetPointDistanceToMonster(W8Monster* monster, srVector3T<float>
         static_cast<float>(sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z)) -
         movement_0c0.alternate_radius_0b4 - monster->movement_0c0.alternate_radius_0b4;
 
-    if (distance < g_float_005ebb34) {
-        distance = g_float_005ebb34;
+    if (distance < g_float_zero) {
+        distance = g_float_zero;
     }
     return distance;
 }
@@ -3290,11 +3290,11 @@ void W8Monster::UpdateRepresentation(W8World* world)
     }
     {
         float angle = GetPitch();
-        if (angle != g_float_005ebb34) {
+        if (angle != g_float_zero) {
             rotation.RotateAboutX(static_cast<double>(angle));
         }
     }
-    if (movement_0c0.roll_028 != g_float_005ebb34) {
+    if (movement_0c0.roll_028 != g_float_zero) {
         rotation.RotateAboutZ(static_cast<double>(movement_0c0.roll_028));
     }
     m_pRep->SetRotation(&rotation);
@@ -3729,8 +3729,8 @@ void W8Monster::UpdateAttachedObjects()
     GetCameraPosition(&party_position);
     party_position -= base_position;
     distance_scale = party_position.Length() * g_monster_attachment_distance_scale;
-    if (target_highlighted_331 == 0 && distance_scale > g_float_005ebb38) {
-        distance_scale = g_float_005ebb38;
+    if (target_highlighted_331 == 0 && distance_scale > g_float_one) {
+        distance_scale = g_float_one;
     }
 
     if (attachment_layout != 0) {
@@ -4296,17 +4296,17 @@ void MonsterSetFacing(W8Monster* monster, float angle)
     rotation.SetIdentity();
 
     angle = NormalizeAngle(monster->GetYaw() + g_monster_rotation_offset);
-    if (angle != g_zero_005ebb40) {
+    if (angle != g_double_zero) {
         rotation.RotateAboutY(sin(angle), cos(angle));
     }
 
     angle = monster->GetPitch();
-    if (angle != g_float_005ebb34 && angle != g_zero_005ebb40) {
+    if (angle != g_float_zero && angle != g_double_zero) {
         rotation.RotateAboutX(sin(angle), cos(angle));
     }
 
     angle = monster->movement_0c0.roll_028;
-    if (angle != g_float_005ebb34 && angle != g_zero_005ebb40) {
+    if (angle != g_float_zero && angle != g_double_zero) {
         rotation.RotateAboutZ(sin(angle), cos(angle));
     }
 
@@ -5076,7 +5076,7 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
         if (distance > g_float_005ec260) {
             distance = g_float_005ec260;
         }
-        scale = (distance * 0.0002f + g_float_005ebb38) * 375.0f;
+        scale = (distance * 0.0002f + g_float_one) * 375.0f;
         poster = static_cast<stModelInstance*>(VideoMakePoster(surface, scale, scale, 1));
         if (poster != 0) {
             poster->alignment_flags_148.set(0, 1);

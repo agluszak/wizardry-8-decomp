@@ -219,16 +219,16 @@ float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<floa
     world = GetWorld();
     far_clip = WorldGetFarClip(world);
     viewing_distance = static_cast<float>(far_clip);
-    if (viewing_distance <= g_float_005ebb34) {
+    if (viewing_distance <= g_float_zero) {
         srAssertFail("flViewingDistance > 0", SIGHT_CPP, 0x30c, 0);
     }
     heading = GetHeadingAngle(&observer_position, &target_position);
     angle_delta = ShortestAngleDistance(observer_yaw, heading);
     if (blinded != 0 && extended_sight_active == 0) {
-        return g_float_005ebb34;
+        return g_float_zero;
     }
     if (angle_delta < static_cast<float>(g_monster_facing_tolerance) || sight_override != 0 ||
-        skip_field_of_view != 0 || distance == g_float_005ebb34) {
+        skip_field_of_view != 0 || distance == g_float_zero) {
         sight_percent = 100;
     } else {
         float sight_factor =
@@ -479,7 +479,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
         return;
     }
     viewing_distance = static_cast<float>(WorldGetFarClip(GetWorld()));
-    if (viewing_distance <= g_float_005ebb34) {
+    if (viewing_distance <= g_float_zero) {
         srAssertFail("flViewingDistance > 0", SIGHT_CPP, 0x5e, 0);
     }
     record = GetMonsterDataForInfo(monster_info);

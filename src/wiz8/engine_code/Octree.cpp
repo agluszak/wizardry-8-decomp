@@ -81,8 +81,8 @@ void W8Octree::UpdatePathVisualization()
         GetWorldCursorPosition(&cursor);
         /* Retail reads the y component twice (proven in disassembly: both
            fcomp loads use the y slot) and never tests x. */
-        if (cursor.y != g_float_005ebb34 || cursor.y != g_float_005ebb34 ||
-            cursor.z != g_float_005ebb34) {
+        if (cursor.y != g_float_zero || cursor.y != g_float_zero ||
+            cursor.z != g_float_zero) {
             srVector3T<float> point = cursor;
             pathing_180->UpdatePathVisualization(&point, &view_1c0.camera_dof_0c);
             return;
@@ -306,7 +306,7 @@ void W8Octree::UpdateVisibility()
         GetWorldCursorPosition(&dof);
         /* Same proven retail quirk as UpdatePathVisualization: y is tested
            twice and x is never examined. */
-        if (dof.y != g_float_005ebb34 || dof.y != g_float_005ebb34 || dof.z != g_float_005ebb34) {
+        if (dof.y != g_float_zero || dof.y != g_float_zero || dof.z != g_float_zero) {
             srVector3T<float> probe = dof;
             pathing_180->UpdatePathVisualization(&probe, &view_1c0.camera_dof_0c);
         } else {
@@ -1212,7 +1212,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, bool de
     }
     m_projected_regions_valid_16a = false;
     short samples = static_cast<short>(static_cast<int>(
-        g_camera_angle_period_005ec014 / view_1c0.horizontal_fov_30 + g_camera_snap_epsilon));
+        g_camera_angle_period / view_1c0.horizontal_fov_30 + g_camera_snap_epsilon));
     if (samples * view_1c0.horizontal_fov_30 < g_region_link_circle_coverage) {
         ++samples;
     }
@@ -1223,7 +1223,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, bool de
             float angle = direction * view_1c0.horizontal_fov_30;
             srMatrix3T<float> frame;
             frame.SetIdentity();
-            if (angle != g_zero_005ebb40) {
+            if (angle != g_double_zero) {
                 frame.RotateAboutY(sin(angle), cos(angle));
             }
             frame.RotateAboutX(sin_tilt, cos_tilt);
@@ -1898,7 +1898,7 @@ unsigned char W8Octree::PrepareNavigatorTarget(W8NavigatorMovementState* movemen
     delta = movement->target_position_04c - movement->position_040;
     float length = delta.Length();
     float gap = length - separation;
-    if (gap < g_float_005ebb34) {
+    if (gap < g_float_zero) {
         movement->attachment_0ac->InitializeSegment(&movement->position_040,
                                                     &movement->position_040);
         return 1;
@@ -2548,8 +2548,8 @@ no_probes:;
                                                 segment_length * g_float_005ebc78 +
                                             g_float_005ebc3c) *
                                                g_world_scale;
-                            if (distance < g_float_005ebb34) {
-                                distance = g_float_005ebb34;
+                            if (distance < g_float_zero) {
+                                distance = g_float_zero;
                             }
                         }
                         float monster_radius = monster->radius_084;
@@ -2557,7 +2557,7 @@ no_probes:;
                             direction = *to - *from;
                             double length2 = static_cast<double>((direction.LengthSquared()));
                             offset = direction;
-                            if (length2 != g_zero_005ebb40) {
+                            if (length2 != g_double_zero) {
                                 offset *= (sqrt(length2) - sqrt(monster_radius * monster_radius -
                                                                 distance * distance)) /
                                           sqrt(length2);
@@ -2602,8 +2602,8 @@ no_probes:;
                                 segment_length * g_float_005ebc78 +
                             g_float_005ebc3c) *
                                g_world_scale;
-            if (distance < g_float_005ebb34) {
-                distance = g_float_005ebb34;
+            if (distance < g_float_zero) {
+                distance = g_float_zero;
             }
         }
         float camera_radius = g_startup_world->radius_084 * g_camera_sphere_radius_scale;
@@ -2611,7 +2611,7 @@ no_probes:;
             offset = *to - *from;
             double length2 = static_cast<double>(
                 (offset.y * offset.y + offset.z * offset.z + offset.x * offset.x));
-            if (length2 != g_zero_005ebb40) {
+            if (length2 != g_double_zero) {
                 offset *=
                     (sqrt(length2) - sqrt(camera_radius * camera_radius - distance * distance)) /
                     sqrt(length2);
@@ -3058,19 +3058,19 @@ unsigned char W8Octree::TestProbeResult(W8OctreeTrace* trace)
             srVector3T<float> point;
             if (plane->x * trace->step_18.x + trace->step_18.y * plane->y +
                         trace->step_18.z * plane->z <=
-                    g_float_005ebb34 &&
+                    g_float_zero &&
                 (distance = plane->y * trace->start_00.y + plane->x * trace->start_00.x +
                             plane->z * trace->start_00.z + plane->w,
                  distance <= trace->hit_limit_24) &&
-                g_float_005ebb34 < distance) {
-                if (g_float_005ebb38 <= distance) {
+                g_float_zero < distance) {
+                if (g_float_one <= distance) {
                     float back = plane->x * trace->end_0c.x + trace->end_0c.y * plane->y +
                                  trace->end_0c.z * plane->z + plane->w;
-                    if (g_float_005ebb38 <= back) {
+                    if (g_float_one <= back) {
                         continue;
                     }
                     back = -back;
-                    if (g_float_005ebb38 <= back || trace->hit_limit_24 < trace->length_28) {
+                    if (g_float_one <= back || trace->hit_limit_24 < trace->length_28) {
                         t = (distance / (back + distance)) * trace->length_28;
                         point.x = trace->step_18.x * t;
                         point.y = trace->step_18.y * t;
@@ -4287,7 +4287,7 @@ int W8Octree::CollectObjectsAlongSegment(unsigned long** results, const srVector
     }
     for (int axis = 0; axis < 3; ++axis) {
         float bound = (&origin->x)[axis] - extent;
-        if ((&delta->x)[axis] <= g_float_005ebb34) {
+        if ((&delta->x)[axis] <= g_float_zero) {
             (&low.x)[axis] = bound + (&delta->x)[axis];
             bound = extent + (&origin->x)[axis];
         } else {
@@ -4687,7 +4687,7 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     } else {
         reached = 0;
     }
-    if (((vecDir.x * vecDir.x + vecDir.z * vecDir.z)) != g_zero_005ebb40) {
+    if (((vecDir.x * vecDir.x + vecDir.z * vecDir.z)) != g_double_zero) {
         vecDir.SetLength(step);
     }
     vecPos = vecDir + movement->position_040;
@@ -4850,7 +4850,7 @@ float PointToSegmentDistance(srVector3T<float>* point, const srVector3T<float>* 
     srVector3T<float> offset = *point - *from;
     srVector3T<float> remaining = offset;
     float t = DotProduct(offset, direction) / direction.LengthSquared();
-    if (g_zero_005ebb40 < t) {
+    if (g_double_zero < t) {
         if (t <= g_double_005ebc30) {
             remaining -= direction * t;
         } else {
@@ -4858,7 +4858,7 @@ float PointToSegmentDistance(srVector3T<float>* point, const srVector3T<float>* 
         }
     }
     if (clamp_point != 0) {
-        if (g_zero_005ebb40 <= t) {
+        if (g_double_zero <= t) {
             if (g_double_005ebc30 < t) {
                 *point = *to;
             } else {
@@ -4869,7 +4869,7 @@ float PointToSegmentDistance(srVector3T<float>* point, const srVector3T<float>* 
         }
     }
     if (out_t != 0) {
-        if (g_zero_005ebb40 <= t) {
+        if (g_double_zero <= t) {
             if (t <= g_double_005ebc30) {
                 *out_t = t;
             } else {
@@ -4891,7 +4891,7 @@ float PointToSegmentDistance2D(srVector2T<float>* point, const srVector2T<float>
     float offset_x = point->x - from->x;
     float offset_y = point->y - from->y;
     float t = (offset_x * dx + offset_y * dy) / (dx * dx + dy * dy);
-    if (static_cast<float>(g_zero_005ebb40) < t) {
+    if (static_cast<float>(g_double_zero) < t) {
         if (t <= static_cast<float>(g_double_005ebc30)) {
             offset_x = offset_x - dx * t;
             offset_y = offset_y - dy * t;
@@ -4901,7 +4901,7 @@ float PointToSegmentDistance2D(srVector2T<float>* point, const srVector2T<float>
         }
     }
     if (clamp_point != 0) {
-        if (static_cast<float>(g_zero_005ebb40) <= t) {
+        if (static_cast<float>(g_double_zero) <= t) {
             if (static_cast<float>(g_double_005ebc30) < t) {
                 *point = *to;
             } else {
@@ -4912,7 +4912,7 @@ float PointToSegmentDistance2D(srVector2T<float>* point, const srVector2T<float>
         }
     }
     if (out_t != 0) {
-        if (static_cast<float>(g_zero_005ebb40) <= t) {
+        if (static_cast<float>(g_double_zero) <= t) {
             if (t <= static_cast<float>(g_double_005ebc30)) {
                 *out_t = t;
             } else {
@@ -5060,7 +5060,7 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
                 float jitter_column;
                 if (found == 0) {
                     jitter_ring = 0.0f;
-                    jitter_column = g_float_005ebb34;
+                    jitter_column = g_float_zero;
                 } else {
                     jitter_ring = Random(1000) * g_float_005ec044 - g_generator_jitter_fraction;
                     jitter_column = Random(1000) * g_float_005ec044 - g_generator_jitter_fraction;
@@ -5208,7 +5208,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
                             float jitter_j;
                             if (found == 0) {
                                 jitter_i = 0.0f;
-                                jitter_j = g_float_005ebb34;
+                                jitter_j = g_float_zero;
                             } else {
                                 jitter_i = Random(1000) * g_float_005ec050 - g_float_005ebc3c;
                                 jitter_j = Random(1000) * g_float_005ec050 - g_float_005ebc3c;

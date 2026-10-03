@@ -98,8 +98,8 @@ void W8NormalTexcoordMapper::process(srVertexPipe& pipe)
     count = pipe.getVertexCount();
     srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations_34 += count;
     for (index = 0; index < count; ++index) {
-        coordinates[index].Set((normals[index].x + g_float_005ebb38) * g_float_005ebc7c,
-                               (normals[index].y + g_float_005ebb38) * g_float_005ebc7c);
+        coordinates[index].Set((normals[index].x + g_float_one) * g_float_005ebc7c,
+                               (normals[index].y + g_float_one) * g_float_005ebc7c);
     }
 }
 
@@ -1534,7 +1534,7 @@ static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, s
                 dot = (delta_x / distance) * vertex->normal_24.x +
                       (delta_y / distance) * vertex->normal_24.y +
                       (delta_z / distance) * vertex->normal_24.z;
-                if (g_float_005ebb34 < dot) {
+                if (g_float_zero < dot) {
                     ++g_lights_facing;
                     if (g_option_shadow_test != 0) {
                         if (!tree->SegmentClear(&light->position_08, &vertex->position_0c)) {
@@ -1545,7 +1545,7 @@ static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, s
                     ++lit;
                     if ((sun_map == 0) || (*sun == 0)) {
                         scale = dot * light->intensity_20 *
-                                (g_float_005ebb38 - distance / light->range_24);
+                                (g_float_one - distance / light->range_24);
                         vertex->light_30.x = scale * light->colour_14.x + vertex->light_30.x;
                         vertex->light_30.y = scale * light->colour_14.y + vertex->light_30.y;
                         vertex->light_30.z = scale * light->colour_14.z + vertex->light_30.z;

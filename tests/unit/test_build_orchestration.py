@@ -156,6 +156,30 @@ def test_forced_clang_configuration_is_incremental_not_fresh(tmp_path: Path, mon
     assert "--fresh" not in commands[0]
 
 
+def test_x64_configuration_is_isolated_from_lint_projection(tmp_path: Path, monkeypatch):
+    settings = _settings(tmp_path)
+    _prepare_sources(settings)
+    commands = []
+    monkeypatch.setattr(build, "run", lambda command, **_: commands.append(command))
+    output, _ = build.configure_clang(settings, full_diagnostics=True, x64=True)
+    assert output == tmp_path / build.X64_DIAGNOSTICS_BUILD_DIR
+    assert "-DCMAKE_TOOLCHAIN_FILE=/repo/cmake/clang-cl-x86_64.cmake" in commands[0]
+    assert "-DWIZ8_FULL_DIAGNOSTICS=ON" in commands[0]
+    with pytest.raises(ValueError, match="not a source-index"):
+        build.configure_clang(settings, x64=True)
+
+
+def test_x64_diagnostics_separate_header_blockers_from_source_contracts():
+    result = build.x64_diagnostic_summary(
+        "/opt/msvc6-vc98-include/winnt.h(630,2): error: Must define a target architecture.\n"
+        "/repo/include/surrender/srPtr.h(91,1): error: static assertion failed: size\n",
+        "",
+    )
+    assert result["toolchain_blocked"]
+    assert result["source_errors"] == 1
+    assert result["toolchain_errors"] == 1
+
+
 def test_missing_runtime_product_names_the_explicit_build(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError, match=r"uv run wiz8 build runtime-test"):
         build.require_product(_settings(tmp_path), "runtime-test")

@@ -225,13 +225,13 @@ float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int
         float dz;
 
         record->fall_speed_08 =
-            record->fall_speed_08 - steps * static_cast<float>(g_double_005ece50);
+            record->fall_speed_08 - steps * static_cast<float>(g_missile_gravity_acceleration);
         position = record->missile_0c->GetPosition();
         if (out->y != position.y) {
             dx = representation->location_004.x - out->x;
             dy = representation->location_004.y - out->y;
             dz = representation->location_004.z - out->z;
-            if (sqrtf(dx * dx + dy * dy + dz * dz) != g_float_005ebb34) {
+            if (sqrtf(dx * dx + dy * dy + dz * dz) != g_float_zero) {
                 pitch = GetElevationAngle(&representation->location_004, out);
                 yaw = GetHeadingAngle(&representation->location_004, out);
                 missile = record->missile_0c;
@@ -252,11 +252,11 @@ float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int
 }
 
 // GLOBAL: WIZ8 0x005ece50
-const double g_double_005ece50 = 0.009800000000000001;
+const double g_missile_gravity_acceleration = 0.009800000000000001;
 // GLOBAL: WIZ8 0x005ece58
-const float g_float_005ece58 = 81.25f;
+const float g_character_projectile_height = 81.25f;
 // GLOBAL: WIZ8 0x005ece5c
-const float g_float_005ece5c = 32.5f;
+const float g_character_projectile_height_step = 32.5f;
 
 // GLOBAL: WIZ8 0x0065bde0
 W8MissileTableRecord* g_missile_table;
@@ -351,7 +351,7 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
         position->x = -75.0f;
     }
     rotation.SetIdentity();
-    position->y = g_float_005ece58 - character_index * g_float_005ebc7c * g_float_005ece5c;
+    position->y = g_character_projectile_height - character_index * g_float_005ebc7c * g_character_projectile_height_step;
     angle = GetCameraYawRadians() - g_monster_rotation_offset;
     if (angle != 0.0) {
         cosine = cos(angle);
@@ -726,10 +726,10 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
         rotation.vectors[0].Set(1.0, 0.0, 0.0);
         rotation.vectors[1].Set(0.0, 1.0, 0.0);
         rotation.vectors[2].Set(0.0, 0.0, 1.0);
-        if (heading != g_zero_005ebb40) {
+        if (heading != g_double_zero) {
             rotation.RotateAboutY(sin(heading), cos(heading));
         }
-        if (pitch != g_zero_005ebb40) {
+        if (pitch != g_double_zero) {
             rotation.RotateAboutX(sin(pitch), cos(pitch));
         }
         direction.Transform(rotation);
@@ -748,12 +748,12 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
             if (octree->TraceLineOfSight(source, &end, 0, -3, -3, 1, 0) != 0) {
                 end -= *source;
                 limit = end.Length();
-                if (limit < g_float_005ebb38) {
+                if (limit < g_float_one) {
                     limit = 1.0f;
                 }
             }
         }
-        if (flight_speed == g_float_005ebb34) {
+        if (flight_speed == g_float_zero) {
             flight_speed = missile->lifetime_1f0;
         }
         if (missile->m_pAI != 0) {

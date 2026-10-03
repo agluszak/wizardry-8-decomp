@@ -106,7 +106,7 @@ bool LoadPathAI(W8PathAI** output, int handle)
             FileRead(handle, &axis.y, 4, 0);
             FileRead(handle, &axis.z, 4, 0);
             rotation.SetIdentity();
-            if (angle != g_zero_005ebb40) {
+            if (angle != g_double_zero) {
                 rotation.RotateAroundAxis(sin(angle), cos(angle), axis);
             }
             path->rotations_14[index] = rotation;
@@ -348,14 +348,14 @@ unsigned char PathAIAddPoint(W8PathAI* path, const srVector3T<float>* point)
         return 1;
     }
 
-    total_length = g_float_005ebb34;
+    total_length = g_float_zero;
     for (index = 0; index < path->nodes_0c->count - 1; ++index) {
         const srVector3T<float>* first = *path->nodes_0c->GetAt(index);
         const srVector3T<float>* second = *path->nodes_0c->GetAt(index + 1);
         total_length += (*first - *second).Length();
     }
     path->total_length = total_length;
-    if (path->position > g_float_005ebb34 && total_length > g_float_005ebb34) {
+    if (path->position > g_float_zero && total_length > g_float_zero) {
         PathAISetValue(path, path->distance_travelled / total_length);
     }
     return 1;
@@ -384,7 +384,7 @@ void PathAIResetTick(W8PathAI* path)
 float PathAIGetValue(W8PathAI* path)
 {
     if (path == 0) {
-        return g_float_005ebb34;
+        return g_float_zero;
     }
     return path->position;
 }
@@ -460,21 +460,21 @@ void PathAIAdvanceByDistance(W8PathAI* path, float distance)
     float remaining;
     float segment;
 
-    if (path->total_length <= g_float_005ebb34) {
+    if (path->total_length <= g_float_zero) {
         return;
     }
     path->distance_travelled += distance;
     path->position = path->distance_travelled / path->total_length;
-    if (path->position >= g_float_005ebb38) {
+    if (path->position >= g_float_one) {
         if (path->looping != 0) {
-            path->position = g_float_005ebb34;
-            path->interpolation_fraction = g_float_005ebb34;
-            path->distance_travelled = g_float_005ebb34;
+            path->position = g_float_zero;
+            path->interpolation_fraction = g_float_zero;
+            path->distance_travelled = g_float_zero;
             path->point_index = 0;
             return;
         }
-        path->position = g_float_005ebb38;
-        path->interpolation_fraction = g_float_005ebb38;
+        path->position = g_float_one;
+        path->interpolation_fraction = g_float_one;
         path->distance_travelled = path->total_length;
         path->point_index = path->nodes_0c->count - 1;
         return;
@@ -490,11 +490,11 @@ void PathAIAdvanceByDistance(W8PathAI* path, float distance)
         }
         path->point_index = index;
         remaining -= segment;
-        path->interpolation_fraction = g_float_005ebb34;
+        path->interpolation_fraction = g_float_zero;
         if (path->nodes_0c->count - 1U <= index) {
             path->point_index = path->nodes_0c->count - 1;
-            path->position = g_float_005ebb38;
-            path->interpolation_fraction = g_float_005ebb38;
+            path->position = g_float_one;
+            path->interpolation_fraction = g_float_one;
             return;
         }
     }
@@ -513,7 +513,7 @@ void PathAIAdvanceNormalized(W8PathAI* path, float amount)
 
     position = amount * path->speed / path->nodes_0c->count + path->position;
     path->position = position;
-    if (position < g_float_005ebb38) {
+    if (position < g_float_one) {
         position *= path->nodes_0c->count;
         index = static_cast<unsigned int>(position);
         path->point_index = index;
@@ -521,15 +521,15 @@ void PathAIAdvanceNormalized(W8PathAI* path, float amount)
         return;
     }
     if (path->looping == 0) {
-        path->position = g_float_005ebb38;
-        path->interpolation_fraction = g_float_005ebb38;
+        path->position = g_float_one;
+        path->interpolation_fraction = g_float_one;
         path->distance_travelled = path->total_length;
         path->point_index = path->nodes_0c->count - 1;
         return;
     }
-    path->position = g_float_005ebb34;
-    path->interpolation_fraction = g_float_005ebb34;
-    path->distance_travelled = g_float_005ebb34;
+    path->position = g_float_zero;
+    path->interpolation_fraction = g_float_zero;
+    path->distance_travelled = g_float_zero;
     path->point_index = 0;
 }
 
@@ -564,11 +564,11 @@ unsigned char PathAITick(W8PathAI* path, signed char direction)
         } else {
             amount = g_negative_one;
             if (direction > 0) {
-                amount = g_float_005ebb38;
+                amount = g_float_one;
             }
         }
         path->position += amount;
-        if (path->position >= g_float_005ebb34) {
+        if (path->position >= g_float_zero) {
             point_count = static_cast<float>(path->nodes_0c->count);
             if (path->position < point_count) {
                 path->last_update_tick = now;
@@ -576,15 +576,15 @@ unsigned char PathAITick(W8PathAI* path, signed char direction)
             }
             if (path->looping == 0) {
                 path->last_update_tick = now;
-                path->position = point_count - g_float_005ebb38;
+                path->position = point_count - g_float_one;
                 return 1;
             }
         } else if (path->looping != 0) {
             path->last_update_tick = now;
-            path->position = path->nodes_0c->count - g_float_005ebb38;
+            path->position = path->nodes_0c->count - g_float_one;
             return 1;
         }
-        path->position = g_float_005ebb34;
+        path->position = g_float_zero;
     }
     path->last_update_tick = now;
     return 1;
@@ -601,7 +601,7 @@ void PathAIPosition(W8PathAI* path, srVector3T<float>* value)
     if (path == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x5e7, 0);
     }
-    if (path->position < g_float_005ebb34) {
+    if (path->position < g_float_zero) {
         srAssertFail("pPathAI->flPosition>=0.0f", PATH_AI_CPP, 0x5e8, 0);
     }
     if (path->animated_3a == 0) {
@@ -627,7 +627,7 @@ void PathAIPosition(W8PathAI* path, srVector3T<float>* value)
     if (static_cast<unsigned int>(index) < static_cast<unsigned int>(path->nodes_0c->count - 1)) {
         second = *path->nodes_0c->GetAt(index + 1);
         first = *path->nodes_0c->GetAt(index);
-        first_weight = g_float_005ebb38 - path->interpolation_fraction;
+        first_weight = g_float_one - path->interpolation_fraction;
         *value = *first * first_weight + *second * path->interpolation_fraction;
         return;
     }
@@ -688,7 +688,7 @@ void PathAIApply(W8PathAI* path, srNode* target)
         }
 
         rotation = path->rotations_14[index];
-        if (g_float_005ebb34 < blend) {
+        if (g_float_zero < blend) {
             next = path->rotations_14[index + 1];
             if (!(rotation == next)) {
                 W8Quaternion::InterpolateRotation(rotation, next, blend, &rotation);

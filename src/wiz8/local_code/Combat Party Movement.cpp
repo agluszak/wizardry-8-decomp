@@ -85,7 +85,7 @@ void UpdateActivePartyMovement(void)
         goto check_completion;
     }
 
-    if (gXStatus.flPartyMoveDistLimit <= g_float_005ebb34) {
+    if (gXStatus.flPartyMoveDistLimit <= g_float_zero) {
         srAssertFail("gXStatus.flPartyMoveDistLimit > 0.0f", COMBAT_MOVEMENT_CPP, 359, 0);
     }
     g_level_block->move_budget_2dc = static_cast<int>(

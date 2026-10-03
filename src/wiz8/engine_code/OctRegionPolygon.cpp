@@ -13,7 +13,7 @@ unsigned char W8OctRegionPolygon::InsideFrustumPlanes(const W8Plane* planes) con
 {
     for (short plane = 0; plane < 6; ++plane) {
         float distance = DotProduct(planes[plane].normal, position_18) + planes[plane].w;
-        if (distance < g_float_005ebb34) {
+        if (distance < g_float_zero) {
             return 0;
         }
     }

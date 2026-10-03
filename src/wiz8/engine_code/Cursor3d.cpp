@@ -362,7 +362,7 @@ void ApplyWorldCursorInput(void)
     }
     if (gp3DCursor->detached_50 == 0) {
         lifted.Set(delta.x, delta.y + g_float_005ebc64, delta.z);
-        if (gp3DCursor->range_44 > g_float_005ebb34 && gp3DCursor->range_44 < lifted.Length()) {
+        if (gp3DCursor->range_44 > g_float_zero && gp3DCursor->range_44 < lifted.Length()) {
             delta.SetLength(gp3DCursor->range_44);
         }
         g_world->dynamic_scene->getRotation(rotation);
@@ -388,7 +388,7 @@ void ApplyWorldCursorInput(void)
         }
         delta = rotation.Transform(delta);
         delta += gp3DCursor->position_28;
-        if (gp3DCursor->range_44 > g_float_005ebb34 &&
+        if (gp3DCursor->range_44 > g_float_zero &&
             gp3DCursor->range_44 < (camera - delta).Length()) {
             clamped = delta - camera;
             clamped.SetLength(gp3DCursor->range_44);
@@ -668,12 +668,12 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
     trace_from = *target + gp3DCursor->probe_center_54;
     origin = gp3DCursor->position_28;
     dist = (*target - origin).Length();
-    if (dist == g_zero_005ebb40) {
+    if (dist == g_double_zero) {
         return 0;
     }
     last_valid = gp3DCursor->position_28;
     step = 0.0;
-    if (g_zero_005ebb40 < dist) {
+    if (g_double_zero < dist) {
         do {
             lower_count = 0;
             step += g_double_005ec8d8;
@@ -753,7 +753,7 @@ void UpdateWorldCursorPlacement(void)
     float sine;
 
     rotation.SetIdentity();
-    if (g_gd_camera->m_yaw != g_zero_005ebb40) {
+    if (g_gd_camera->m_yaw != g_double_zero) {
         cosine = static_cast<float>(cos(g_gd_camera->m_yaw));
         sine = static_cast<float>(sin(g_gd_camera->m_yaw));
         first.Set(cosine, 0.0, sine);

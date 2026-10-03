@@ -860,7 +860,7 @@ void W8GameData::CreateGDEnviron(const W8GDSurface* surface, float scale)
     m_ppEnvirons[m_iNumEnvirons]->gravity_x_10 =
         g_navigator_gravity * surface->plane_24.normal.x * scale;
     m_ppEnvirons[m_iNumEnvirons]->gravity_y_14 =
-        (scale * surface->plane_24.normal.y - g_float_005ebb38) * g_navigator_gravity;
+        (scale * surface->plane_24.normal.y - g_float_one) * g_navigator_gravity;
     m_ppEnvirons[m_iNumEnvirons]->gravity_z_18 =
         g_navigator_gravity * surface->plane_24.normal.z * scale;
 }
@@ -1191,7 +1191,7 @@ void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surfac
 
     unsigned int flags = surface->flags_00;
     if ((flags & 0x80) != 0) {
-        float largest = g_float_005ebb34;
+        float largest = g_float_zero;
         unsigned int dominant_axis = 0;
         for (int axis = 0; axis < 3; ++axis) {
             float magnitude = static_cast<float>(fabs((&surface->plane_24.normal.x)[axis]));
@@ -1208,15 +1208,15 @@ void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surfac
         surface->flags_00 |= 0x40;
     }
 
-    float upper_value = g_float_005ebb38;
+    float upper_value = g_float_one;
     if (g_float_005ebc7c < surface->plane_24.normal.y) {
         if ((surface->flags_00 & 4) == 0 && g_float_005ec1a0 < surface->plane_24.normal.y) {
             surface->flags_00 |= 4;
-            surface->slope_48 = g_float_005ebb38;
+            surface->slope_48 = g_float_one;
         }
-        if (surface->slope_48 < g_float_005ebb34) {
+        if (surface->slope_48 < g_float_zero) {
             surface->flags_00 |= 0x20;
-            surface->slope_48 = g_float_005ebb34;
+            surface->slope_48 = g_float_zero;
         }
     } else if (surface->contact_margin_40 < g_float_005ec028 &&
                g_path_endpoint_scale < surface->contact_margin_40 && (surface->flags_00 & 4) != 0) {
@@ -1226,7 +1226,7 @@ void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surfac
     flags = surface->flags_00;
     surface->contact_margin_40 *= g_world_scale;
     if ((flags & 4) == 0) {
-        surface->slope_48 = g_float_005ebb34;
+        surface->slope_48 = g_float_zero;
     } else if (surface->slope_48 < g_float_005ebc58 && (flags & 0x20) == 0) {
         if (surface->plane_24.normal.y <= g_float_005ebccc) {
             upper_value = surface->plane_24.normal.y;

@@ -1,0 +1,331 @@
+{
+  "schema": "wiz8.pre-portability-v1",
+  "layouts": [
+    {
+      "record": "W8MonsterAttack",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8SpellRuntimeRecord",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8FactDatabaseRecord",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8NpcItemStockRule",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8NpcCharacterTemplate",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8LevelDatabaseRecord",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8MonsterTreasureEntry",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8MonsterTreasureBlock",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8EncounterCompanionRecord",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8MonsterRecord",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8NpcDatabaseRecord",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/local_code/GameplayDatabase.cpp",
+      "reason": "NPC database storage contains the live item_stock_rules pointer; InitializeNpcDatabase constructs it and DestroyNpcDatabase destroys it."
+    },
+    {
+      "record": "W8ItemTableEntry",
+      "source_file": "include/wiz8/layouts/item_tables.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Packed item database representation read at the canonical record stride."
+    },
+    {
+      "record": "W8ItemTableRecord",
+      "source_file": "include/wiz8/layouts/item_tables.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Packed item database representation read at the canonical record stride."
+    },
+    {
+      "record": "W8ItemDatabaseRecord",
+      "source_file": "include/wiz8/layouts/item_tables.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Packed item database representation read at the canonical record stride."
+    },
+    {
+      "record": "W8EncounterTableDiskHeader",
+      "source_file": "include/wiz8/layouts/encounter_tables.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Fixed encounter header preceding parallel variable arrays."
+    },
+    {
+      "record": "W8SaveScreenshot",
+      "source_file": "include/wiz8/local_code/LoadSaveGame.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/local_code/LoadSaveGame.cpp",
+      "reason": "SHOT payload is written as the complete screenshot record."
+    },
+    {
+      "record": "W8SaveSlot",
+      "source_file": "include/wiz8/local_code/LoadSaveGame.h",
+      "classification": "mixed",
+      "reference": "include/wiz8/local_code/LoadSaveGame.h",
+      "reason": "Runtime save-list entry embeds the disk SHOT payload alongside Windows file timestamps; the whole slot is not a disk record."
+    },
+    {
+      "record": "W8StatusHeader",
+      "source_file": "src/wiz8/local_code/LoadSaveGame.cpp",
+      "classification": "disk-format",
+      "reference": "src/wiz8/local_code/LoadSaveGame.cpp",
+      "reason": "LoadStatusHeader and SaveStatusHeader transfer the complete fixed header."
+    },
+    {
+      "record": "W8Chunk",
+      "source_file": "include/wiz8/chunk.h",
+      "classification": "runtime-only",
+      "reference": "include/wiz8/chunk.h",
+      "reason": "Live file-navigation state; chunk parsing does not make this object a raw disk record."
+    },
+    {
+      "record": "W8ChunkHead",
+      "source_file": "include/wiz8/chunk.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/local_code/chunk.cpp",
+      "reason": "Runtime header is 12 bytes, but OpenChunk serializes its four fields separately as 4+1+1+4 bytes; runtime padding is excluded from the disk representation."
+    },
+    {
+      "record": "BINK",
+      "source_file": "include/bink.h",
+      "classification": "external ABI",
+      "reference": "include/bink.h",
+      "reason": "Published Bink SDK prefix consumed across the middleware boundary."
+    },
+    {
+      "record": "BINKRECT",
+      "source_file": "include/bink.h",
+      "classification": "external ABI",
+      "reference": "include/bink.h",
+      "reason": "Published Bink SDK prefix consumed across the middleware boundary."
+    },
+    {
+      "record": "srCriticalSection",
+      "source_file": "include/surrender/srCriticalSection.h",
+      "classification": "external ABI",
+      "reference": "docs/libraries/surrender-abi.md",
+      "reason": "Provider/consumer class ABI, including native Windows or virtual-object representation."
+    },
+    {
+      "record": "srBinStream",
+      "source_file": "include/surrender/srBinStream.h",
+      "classification": "external ABI",
+      "reference": "docs/libraries/surrender-abi.md",
+      "reason": "Provider/consumer class ABI, including native Windows or virtual-object representation."
+    }
+  ],
+  "lifetimes": [
+    {
+      "owner": "W8GrowableVector<T>",
+      "source_file": "include/wiz8/vector.h",
+      "contract": "Owns its new[] backing array; pointer elements are not deleted by the vector destructor. RemoveAtAndDelete explicitly deletes the removed pointee."
+    },
+    {
+      "owner": "W8Chunk",
+      "source_file": "include/wiz8/chunk.h",
+      "contract": "Owns and deletes chunk heads; member vectors release their backing arrays separately."
+    },
+    {
+      "owner": "srPtr<T>",
+      "source_file": "include/surrender/srPtr.h",
+      "contract": "Intrusive ownership: copies addReference, destruction releases, assignment acquires incoming reference before releasing current reference."
+    },
+    {
+      "owner": "W8NpcDatabaseRecord::item_stock_rules",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "contract": "Constructed by InitializeNpcDatabase and destroyed by DestroyNpcDatabase; the field is live storage inside a database-sized record."
+    }
+  ],
+  "components": [
+    {
+      "component": "Bink",
+      "decision": "undecided",
+      "owner": "src/wiz8/engine_code/Bink.cpp",
+      "boundary": "include/bink.h",
+      "requires": "Choose a decoder implementation preserving frame timing, buffer formats and audio behavior; proprietary DLL is a user-supplied input."
+    },
+    {
+      "component": "Miles",
+      "decision": "undecided",
+      "owner": "src/wiz8/imports/mss.cpp",
+      "boundary": "src/wiz8/imports/mss32.def",
+      "requires": "Choose audio implementation or API emulation after reviewing SGP sound ownership."
+    },
+    {
+      "component": "DirectX",
+      "decision": "replace implementation",
+      "owner": "src/sgp; src/wiz8/engine_code/Video2.cpp; src/surrender",
+      "boundary": "src/sgp/vsurface.h",
+      "requires": "Preserve surface formats, lock semantics and renderer behavior behind existing interfaces."
+    },
+    {
+      "component": "zlib/unzip",
+      "decision": "keep source",
+      "owner": "src/wiz8; src/srext_unzip",
+      "boundary": "docs/libraries/zlib-1.0.4.md",
+      "requires": "Retain format semantics; changing the pinned implementation is separate work."
+    },
+    {
+      "component": "JPEG",
+      "decision": "keep source",
+      "owner": "src/srext_jpegimporter",
+      "boundary": "docs/targets/srext-jpegimporter.md",
+      "requires": "Preserve decoder settings, pixel conversion and ownership."
+    },
+    {
+      "component": "SGP",
+      "decision": "keep source",
+      "owner": "src/sgp",
+      "boundary": "src/sgp/README.md",
+      "requires": "Keep the verbatim SFI license and prominent dated modification notices; derived source keeps its existing non-commercial distribution terms."
+    },
+    {
+      "component": "SurRender",
+      "decision": "keep source",
+      "owner": "src/surrender; include/surrender",
+      "boundary": "docs/libraries/surrender-import-visibility.md",
+      "requires": "Substitute Windows/renderer implementations behind recovered provider interfaces."
+    },
+    {
+      "component": "CRT/STL",
+      "decision": "replace implementation",
+      "owner": "include/wiz8/compat/compiler.h",
+      "boundary": "docs/libraries/msvc6-runtime.md",
+      "requires": "Review allocator, container, exception and text semantics before using modern library implementations."
+    }
+  ],
+  "behavioral_references": [
+    {
+      "observation": "boot-main-menu",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "new-game",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "load-game",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "enter-world",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "combat-round",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "inventory-equipment",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "save-load-round-trip",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "2d-ui",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "rendered-scene",
+      "status": "capture_required",
+      "reference": null
+    }
+  ],
+  "distribution": {
+    "status": "preserve-existing-terms",
+    "reference": "src/sgp/SFI Source Code license agreement.txt",
+    "portable_repo": "No broader licensing claim for SGP-derived source; game assets and proprietary middleware remain user-supplied."
+  },
+  "fork": {
+    "status": "blocked",
+    "requires": [
+      "Reviewed semantic and width queues",
+      "Reviewed source and lifetime ownership",
+      "Classified remaining mismatch causes",
+      "Subsystem owners and component decisions",
+      "Repeatable provenance-complete behavioral references"
+    ],
+    "first_milestone": "Modern Windows x86/x64 with existing gameplay and architecture; platform substitution before modernization"
+  },
+  "platform_boundaries": {
+    "window_events": "SGP window/event loop; SurRender window and diagnostic-stream interfaces",
+    "directdraw": "SGP video surfaces and Wizardry Video2 presentation",
+    "renderer": "SurRender renderer/vertex-processor interfaces",
+    "input": "SGP input interfaces",
+    "clock": "SGP timer and SurRender timer interfaces",
+    "synchronization": "SurRender critical-section/thread interfaces; review SGP exceptions",
+    "filesystem": "SGP file manager and SurRender stream adapters",
+    "registry": "Existing SGP/Wizardry configuration owners",
+    "dialogs_debugger": "SGP debug/dialog and SurRender diagnostic output",
+    "bink": "Wizardry W8BinkVideo",
+    "miles": "SGP sound manager and Wizardry Miles import boundary",
+    "jpeg": "SurRender JPEG importer extension",
+    "zlib_unzip": "Existing zlib consumers and SurRender unzip extension"
+  }
+}

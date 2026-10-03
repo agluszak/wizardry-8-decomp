@@ -57,6 +57,17 @@ struct ScalarOwner {
 };
 int ScalarOwner::*known_member;
 
+int ReadCallbackValue() { return 7; }
+int (*callback_pointer)() = ReadCallbackValue;
+int callback_result = ReadCallbackValue();
+void StoreCallbackPointer()
+{
+    callback_pointer = ReadCallbackValue;
+    callback_pointer = &ReadCallbackValue;
+    callback_pointer = static_cast<int (*)()>(ReadCallbackValue);
+    callback_result = ReadCallbackValue();
+}
+
 struct ScalarMethodOwner {
     int method_duration;
     int GetMethodDuration() const

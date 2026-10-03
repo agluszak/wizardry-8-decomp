@@ -524,7 +524,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 double angle;
 
                 mode = 0xa;
-                angle = (Random(0x168) << 1) * g_camera_pi * g_double_005ed7b0;
+                angle = (Random(0x168) << 1) * g_camera_pi * g_inverse_full_turn_degrees;
                 monster->move_direction_2bc.x = static_cast<float>(cos(angle) * g_double_005ec150);
                 monster->move_direction_2bc.y = 0.0f;
                 monster->move_direction_2bc.z = static_cast<float>(sin(angle) * g_double_005ec150);

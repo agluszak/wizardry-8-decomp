@@ -110,7 +110,7 @@ wchar_t g_W8TextSeparator[] = L" ";
 static wchar_t g_W8TextBreakCharacters[] = L" ";
 
 // GLOBAL: WIZ8 0x005ebb38
-const float g_float_005ebb38 = 1.0f;
+const float g_float_one = 1.0f;
 
 // GLOBAL: WIZ8 0x005ebc7c
 const float g_float_005ebc7c = 0.5f;
@@ -1540,9 +1540,9 @@ void W8RangeControl::SetValue(int value)
 
     float position;
     if (m_value == m_minimum) {
-        position = g_float_005ebb34;
+        position = g_float_zero;
     } else if (m_value == m_maximum) {
-        position = g_float_005ebb38;
+        position = g_float_one;
     } else {
         position = ((m_value - m_minimum) + g_float_005ebc7c) / ((m_maximum - m_minimum) + 1);
     }
