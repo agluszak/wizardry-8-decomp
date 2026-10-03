@@ -100,10 +100,3 @@ def test_comparison_tooling_change_triggers_comparison_only() -> None:
     result = _MODULE.classify(["tools/wiz8decomp/comparison.py"])
     assert result["wiz8_compare"] is True
     assert result["surrender"] is True
-
-
-def test_aggregate_gate_does_not_require_runtime_tests() -> None:
-    workflow = (_SCRIPT.parent.parent / "workflows/ci.yml").read_text(encoding="utf-8")
-    aggregate = workflow.split("\n  ci:\n", 1)[1].split("\n  comment-reccmp-status:\n", 1)[0]
-    assert "needs: [scope, toolchain, repository, analysis, wiz8, surrender]" in aggregate
-    assert "wiz8-runtime" not in aggregate

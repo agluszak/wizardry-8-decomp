@@ -6,8 +6,7 @@ Ghidra to decompile. Pretty-printer and option tweaks are secondary.
 
 ## Evidence boundary
 
-Known source/retail facts may enter the reviewed program. Speculative Param-ID,
-RTTI, or heuristic guesses must not land in reviewed GZF state. Soft inferences
+Known source/retail facts may enter the reviewed program. Speculative RTTI or heuristic guesses must not land in reviewed GZF state. Soft inferences
 belong on disposable copies until they become independently established.
 
 A category path is organization, not provenance. Keep one authoritative live
@@ -44,8 +43,7 @@ calling-convention disagreements are reported rather than overwritten.
 - Compiler-backed PDB procedure/member-function definitions, unions, bools and
   varargs come from the pinned reccmp importer. Do not duplicate that parsing
   in project-specific declaration code.
-- `callback_typing` and `function_attributes` are narrow audit/fallback
-  layers for already-named sites. Compiler-backed
+- `callback_typing` is a narrow audit/fallback layer for already-named field sites. Compiler-backed
   `Pointer(FunctionDefinition)` fields are left alone. Do not grow manual
   callback-family inventories.
 - Type-graph projection reconciles fields onto the one bound Structure.
@@ -63,8 +61,6 @@ calling-convention disagreements are reported rather than overwritten.
   onto thunk/external imports and types the IAT cell itself. A fully resolved
   callable contract is `IMPORTED`; convention-only evidence remains
   `ANALYSIS`. Ordinary `CALL [IAT]` callers are not the import.
-- `uv run wiz8 analyze parameter-id` is collect-only. Never apply it over
-  `IMPORTED` or `USER_DEFINED` signatures or silently promote it into sync.
 - `decompiler-quality` measures C-text debt and informational HighFunction typing metrics
   from the same decompilation of the current ProgramDB. Only C-text debt participates in the
   checkpoint regression gate.
@@ -79,9 +75,7 @@ patterns, or add more manual callback families.
 2. Bind classes so automatic `this` and source projection share one Structure.
 3. Project globals, callbacks, class fields, vftables and vbtables through the
    same identity map.
-4. Use Param-ID only as a disposable investigation when established facts are
-   insufficient.
-5. Apply reviewed facts through `wiz8 ghidra sync`; do not treat a second live
+4. Apply reviewed facts through `wiz8 ghidra sync`; do not treat a second live
    apply path for a subset as equivalent.
-6. Measure the resulting ProgramDB with
+5. Measure the resulting ProgramDB with
    `uv run wiz8 analyze decompiler-quality` when quality changes are the task.

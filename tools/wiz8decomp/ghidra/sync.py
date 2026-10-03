@@ -460,10 +460,6 @@ def synchronize(
         )
         from ..class_this_typing import apply_this_typing, collect_this_typing_plan
         from ..cosmic_forge_globals import apply_cosmic_forge_globals, collect_cosmic_forge_plan
-        from ..function_attributes import (
-            apply_function_attributes,
-            collect_function_attribute_plan,
-        )
         from ..global_typing import apply_global_typing, collect_global_typing_plan
         from ..prototype_repair import apply_source_conventions, collect_source_convention_plan
         from ..surrender_iat_typing import apply_surrender_iat_typing, collect_surrender_iat_plan
@@ -552,14 +548,6 @@ def synchronize(
             _record_step(
                 steps, conflicts, "cosmic-forge", apply_cosmic_forge_globals(program, cosmic_plan)
             )
-
-        attribute_plan = collect_function_attribute_plan(settings.repo_dir, program, target=target)
-        _record_step(
-            steps,
-            conflicts,
-            "attributes",
-            apply_function_attributes(program, attribute_plan, apply_thunks=False),
-        )
 
         project_prototypes()
 

@@ -135,16 +135,6 @@ def pr_comparison_command(
     )
 
 
-@app.command("header-architecture")
-def header_architecture_command() -> None:
-    """Write the header-role ownership report from recovered TUs and declarations."""
-
-    from .. import command_support as cli
-    from ..header_architecture import write_header_architecture_report
-
-    cli.emit(write_header_architecture_report(cli.settings().repo_dir))
-
-
 @app.command("semantic-debt")
 def semantic_debt_command(
     program: str = typer.Option("wiz8", "--program"),
@@ -159,36 +149,6 @@ def semantic_debt_command(
     target = target_for_program(settings.repo_dir, program)
     warn_if_source_index_may_be_stale(settings.repo_dir, target)
     cli.emit(semantic_debt_report(settings.repo_dir, target))
-
-
-@app.command("retail-folded")
-def retail_folded_command() -> None:
-    """Report reviewed retail folds that released-source bodies must not override."""
-
-    from .. import command_support as cli
-    from ..evidence.claims import load_claims
-
-    claims = load_claims(cli.settings().repo_dir)
-    cli.emit(
-        {
-            "informational": True,
-            "policy": (
-                "Retail call sites and bodies govern fidelity; fold claims are evidence only, "
-                "do not imply a no-op, and do not create source aliases or FOLDED markers."
-            ),
-            "functions": [
-                {
-                    "address": f"0x{claim['entity_key']}",
-                    "name": claim["value"],
-                    "classification": claim["predicate"],
-                    "reference": claim["reference"],
-                    "details": claim["details"],
-                }
-                for claim in claims
-                if claim["predicate"] in {"retail-folded", "retail-folded-noop"}
-            ],
-        }
-    )
 
 
 @app.command("source-oracle")
