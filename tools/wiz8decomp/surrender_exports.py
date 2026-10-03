@@ -97,8 +97,42 @@ def _evidence_exports(repository: Path) -> dict[str, dict[str, str]]:
     return rows
 
 
-def validate_surrender_provider_objects(repository: Path, objects: list[Path]) -> None:
-    """Report emission gaps against sr.def and excess exports against retail without rewriting."""
+def _implicit_special_members(repository: Path, symbols: set[str]) -> set[str]:
+    """Identify current compiler-owned special members, never original declarations.
+
+    The Clang owner indexes authored declarations and deliberately omits implicit
+    ones. Only reserved special-member symbols of an indexed, unchanged class
+    without an authored declaration qualify. Ordinary/new APIs still fail.
+    """
+    from .paths import sha256_file
+
+    candidates = {
+        symbol: match[1]
+        for symbol in symbols
+        if (match := re.fullmatch(r"\?\?(?:0|1|4|_G|_E)([A-Za-z_][A-Za-z_0-9@]*?)@@.+", symbol))
+    }
+    if not candidates:
+        return set()
+    document = load_source_index(repository)
+    authored = {row["semantic_id"] for row in document["declarations"]}
+    classes = {
+        row["qualified_name"]: row for row in document["classes"] if row["target"] == "SURRENDER"
+    }
+    result = set()
+    for symbol in candidates.keys() - authored:
+        owner = "::".join(reversed(candidates[symbol].split("@")))
+        row = classes.get(owner)
+        if row is None:
+            continue
+        source = row["source_file"]
+        digest = document.get("source_digests", {}).get(source)
+        if digest and sha256_file(repository / source) == digest:
+            result.add(symbol)
+    return result
+
+
+def validate_surrender_provider_objects(repository: Path, objects: list[Path]) -> dict[str, Any]:
+    """Require linkable retail bindings; retain implicit compiler export differences."""
     if not objects:
         raise SurrenderExportsError("no compiled SurRender provider objects")
     defined: set[str] = set()
@@ -111,13 +145,16 @@ def validate_surrender_provider_objects(repository: Path, objects: list[Path]) -
     problems = [
         f"missing required export definition: {name}" for name in sorted(required - defined)
     ]
+    excess = emitted - evidence.keys()
+    implicit = _implicit_special_members(repository, excess) if excess else set()
     problems.extend(
-        f"compiler export absent from retail: {name}" for name in sorted(emitted - evidence.keys())
+        f"compiler export absent from retail: {name}" for name in sorted(excess - implicit)
     )
     if problems:
         raise SurrenderExportsError(
             "unresolved SurRender provider emissions:\n" + "\n".join(problems)
         )
+    return {"ok": True, "compiler_exports_absent_from_retail": sorted(implicit)}
 
 
 def _evidence_is_data(row: dict[str, str]) -> bool:
@@ -234,7 +271,7 @@ def built_export_disagreements(
 
 
 def validate_built_surrender_exports(repository: Path, dll: Path) -> dict[str, Any]:
-    """Fail when a built sr.dll's export table differs from the reviewed retail one."""
+    """Protect all retail names/ordinals and report extra implicit compiler emissions."""
 
     import pefile
 
@@ -247,7 +284,10 @@ def validate_built_surrender_exports(repository: Path, dll: Path) -> dict[str, A
         if symbol.name
     }
     evidence = _evidence_exports(repository)
-    problems = built_export_disagreements(built, evidence)
+    implicit = _implicit_special_members(repository, built.keys() - evidence.keys())
+    problems = built_export_disagreements(
+        {name: ordinal for name, ordinal in built.items() if name not in implicit}, evidence
+    )
     if problems:
         shown = problems[:40]
         more = len(problems) - len(shown)
@@ -256,4 +296,10 @@ def validate_built_surrender_exports(repository: Path, dll: Path) -> dict[str, A
             + "\n  ".join(shown)
             + (f"\n  ... and {more} more" if more else "")
         )
-    return {"ok": True, "gate": "built-surrender-exports", "exports": len(built)}
+    return {
+        "ok": True,
+        "gate": "built-surrender-exports",
+        "exports": len(built),
+        "exact": not implicit,
+        "compiler_exports_absent_from_retail": sorted(implicit),
+    }

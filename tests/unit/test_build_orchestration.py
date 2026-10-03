@@ -354,3 +354,36 @@ def test_old_nmake_cache_requires_fresh_jom_configuration(tmp_path: Path) -> Non
     command = build.ContainerBuild.from_settings(_settings(tmp_path)).configure_command()
     assert "--fresh" in command
     assert "-DCMAKE_MAKE_PROGRAM=C:/jom/jom.exe" in command
+
+
+def test_surrender_build_indexes_before_provider_validation_on_a_fresh_runner(
+    tmp_path, monkeypatch
+):
+    settings = _settings(tmp_path)
+    _prepare_sources(settings)
+    output = settings.product_build_dir
+    output.mkdir(parents=True)
+    (output / "surrender-objects.txt").write_text("Z:/out/provider.obj\n")
+    provider = output / "sr.dll"
+    provider.write_bytes(b"cached DLL")
+    os.utime(provider, (1, 1))
+    events = []
+    monkeypatch.setattr(build, "_product_cache_ready", lambda _: True)
+    monkeypatch.setattr(build, "run", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.write_source_index", lambda _: events.append("index")
+    )
+
+    def validate(*_args):
+        assert events == ["index"]
+        events.append("provider")
+        return {"ok": True, "compiler_exports_absent_from_retail": ["implicit"]}
+
+    monkeypatch.setattr(build, "validate_surrender_provider_objects", validate)
+    monkeypatch.setattr(
+        "wiz8decomp.surrender_exports.validate_built_surrender_exports",
+        lambda *_: events.append("exports") or {"ok": True},
+    )
+    result = build.build_target(settings, "SURRENDER")
+    assert events == ["index", "provider", "exports"]
+    assert result["provider_objects"]["compiler_exports_absent_from_retail"] == ["implicit"]

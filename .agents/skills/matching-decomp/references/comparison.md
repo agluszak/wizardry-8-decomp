@@ -42,12 +42,17 @@ Each selected function gets one outcome:
 | `unpaired` | reccmp has no retail counterpart for the function. |
 | `analysis-failed` | The comparison did not complete; `failures` says why (no Ghidra function at the entry, an entry inside another function, a decompiler error). |
 | `header-emission` | An inline header body with no paired rebuild emission, including an unpaired retail marker. |
+| `internal-non-emission` | A current indexed TU-local definition has no standalone procedure in the complete rebuild PDB catalog. Its body may be inlined or eliminated; retain the gap for review, with no independent body comparison or equivalence claim. |
 | `template-non-emission` | A marker-only retail template emission has no paired rebuild emission in a changed-file comparison; retain it in the report without failing the authored-function gate. |
 | `missing` | The address is not a function reccmp knows. |
 
 `ok` is false only for `analysis-failed`, `unpaired` and `missing`. Differences are
 review material because source edits can change decompiled output. Template non-emissions
 remain visible in the report for codegen review without failing the authored-function gate.
+Source-based selections also classify internal non-emissions only when the defining file matches
+the compiler index digest. An emitted symbol with failed pairing, an external definition, or stale
+source remains a failure. Review the containing caller comparisons when a helper is inlined; do not
+change compiler flags, linkage or authored source merely to obtain a standalone procedure.
 
 A row carries `data` findings (a paired object whose contents differ, or referenced literals that
 differ in contents), `failures`, `basis` (how reccmp paired the function), `source`, and, for a code

@@ -566,8 +566,6 @@ jobs:
           cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
       - name: Build SURRENDER comparison product
         run: uv run wiz8 build SURRENDER
-      - name: Index SURRENDER source
-        run: uv run wiz8 analyze source-index
       - name: Install pinned Ghidra
         if: github.event_name == 'pull_request'
         uses: ./.github/actions/install-ghidra

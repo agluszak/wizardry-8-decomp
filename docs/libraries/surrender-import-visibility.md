@@ -89,3 +89,13 @@ they do not recover the exact historical declaration spelling.
 `tests/repository/test_surrender_import_visibility.py` freezes the audited class-wide import set, rejects consumer-import annotations in audited provider-only headers, locks the exact import count/spelling in mixed audited headers, keeps `srFStreamOpener` provider-only, and protects the proven inline `srCore` accessors. A PR that changes these visibility decisions must update the audit intentionally and explain the consumer/codegen evidence.
 
 This gate protects source-level ABI decisions; it does not claim that `SR_DLL_IMPORT` was the literal macro name used by the original SDK.
+
+
+The provider build protects every reviewed retail export name and ordinal. `sr.def` pins the
+reviewed ordinals explicitly so additional compiler exports cannot renumber retail bindings.
+The object and DLL validators report extra reserved special-member symbols only when the current
+compiler index identifies an unchanged owning class and no authored declaration for that symbol.
+Missing retail definitions, ordinal drift, and extra authored or unrecognized exports still fail.
+No COFF directives are removed. Such a successful build protects the retail bindings; its `exact`
+field remains false when implicit exports extend the retail table. This is compiler-emission
+provenance for the current source, not evidence of the original SDK's declaration spelling.

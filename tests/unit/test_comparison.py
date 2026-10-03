@@ -498,7 +498,7 @@ def test_compare_selected_classifies_unlinked_header_body_as_emission(tmp_path, 
     )
 
     result = compare_selected(
-        tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"), classify_header_emissions=True
+        tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"), classify_source_non_emissions=True
     )
 
     assert result["ok"] is True
@@ -535,7 +535,7 @@ def test_compare_selected_classifies_unpaired_inline_header_as_emission(tmp_path
     )
 
     result = compare_selected(
-        tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"), classify_header_emissions=True
+        tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"), classify_source_non_emissions=True
     )
 
     assert result["ok"] is True
@@ -620,3 +620,45 @@ def test_all_source_addresses_selects_only_target_functions(tmp_path, monkeypatc
     )
 
     assert comparison.all_source_addresses(tmp_path, "WIZ8") == [0x401000, 0x401020]
+
+
+@pytest.mark.parametrize(
+    "linkage,emitted,stale,expected",
+    [
+        ("internal", False, False, "internal-non-emission"),
+        ("internal", True, False, "unpaired"),
+        ("external", False, False, "unpaired"),
+        ("internal", False, True, "unpaired"),
+    ],
+)
+def test_internal_non_emission_requires_current_definition_and_absent_pdb_symbol(
+    tmp_path, monkeypatch, linkage, emitted, stale, expected
+):
+    from wiz8decomp.paths import sha256_file
+
+    _products(tmp_path, monkeypatch)
+    row = _row(0x401000, "unpaired")
+    row["recomp"] = None
+    _fake_reccmp(monkeypatch, [row])
+    source = tmp_path / "helper.cpp"
+    source.write_text("static void helper() {}\n")
+    marker = SimpleNamespace(
+        name="helper",
+        source_file="helper.cpp",
+        declaration=SimpleNamespace(
+            is_definition=True, linkage=linkage, semantic_id="?helper@@YAXXZ"
+        ),
+    )
+    monkeypatch.setattr("wiz8decomp.source_index.source_functions", lambda *_: {0x401000: marker})
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.load_source_index",
+        lambda *_: {"source_digests": {"helper.cpp": "stale" if stale else sha256_file(source)}},
+    )
+    entity = SimpleNamespace(fact=lambda *_: "?helper@@YAXXZ")
+    engine = SimpleNamespace(db=SimpleNamespace(get_all=lambda: [entity] if emitted else []))
+    monkeypatch.setattr(comparison.Compare, "from_target", lambda _: engine)
+    result = compare_selected(
+        tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"), classify_source_non_emissions=True
+    )
+    assert result["functions"][0]["outcome"] == expected
+    assert result["ok"] == (expected == "internal-non-emission")

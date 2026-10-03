@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+from wiz8decomp import surrender_exports
 from wiz8decomp.surrender_exports import built_export_disagreements
 
 
@@ -28,3 +33,39 @@ def test_a_missing_retail_export_is_reported() -> None:
     assert built_export_disagreements({"a": 1}, _evidence(a=1, b=2)) == [
         "retail export not built: @2 b"
     ]
+
+
+@pytest.mark.parametrize(
+    "built,should_fail",
+    [
+        ({"retail": 7, "implicit": 8}, False),
+        ({"retail": 8, "implicit": 9}, True),
+        ({"implicit": 8}, True),
+        ({"retail": 7, "implicit": 8, "authored": 9}, True),
+    ],
+)
+def test_implicit_extras_do_not_hide_missing_names_ordinal_drift_or_authored_exports(
+    monkeypatch, built, should_fail
+):
+    import pefile
+
+    pe = SimpleNamespace(
+        parse_data_directories=lambda **_: None,
+        DIRECTORY_ENTRY_EXPORT=SimpleNamespace(
+            symbols=[
+                SimpleNamespace(name=name.encode(), ordinal=ordinal)
+                for name, ordinal in built.items()
+            ]
+        ),
+    )
+    monkeypatch.setattr(pefile, "PE", lambda *_args, **_kwargs: pe)
+    monkeypatch.setattr(surrender_exports, "_evidence_exports", lambda _: _evidence(retail=7))
+    monkeypatch.setattr(surrender_exports, "_implicit_special_members", lambda *_: {"implicit"})
+    if should_fail:
+        with pytest.raises(surrender_exports.SurrenderExportsError):
+            surrender_exports.validate_built_surrender_exports(Path("repo"), Path("sr.dll"))
+    else:
+        result = surrender_exports.validate_built_surrender_exports(Path("repo"), Path("sr.dll"))
+        assert result["ok"] is True
+        assert result["exact"] is False
+        assert result["compiler_exports_absent_from_retail"] == ["implicit"]
