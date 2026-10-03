@@ -8,7 +8,7 @@ description: Recover Wizardry 8 C++ types, prototypes, fields, globals, layouts,
 Use this skill when a mismatch points to the canonical C++/ABI model rather than one function's source
 spelling.
 
-Detailed source-fidelity rules live in
+This skill owns type, layout and lifecycle inference. General recovery fidelity lives in
 [matching-decomp/source fidelity](../matching-decomp/references/source-fidelity.md). Use
 [ghidra-analysis](../ghidra-analysis/SKILL.md) for live ProgramDB facts and
 [matching-decomp](../matching-decomp/SKILL.md) for the recovery campaign.
@@ -40,6 +40,11 @@ Use multiple observations:
 A byte operation establishes width, not automatically C++ `bool`. `unsigned char`, SGP
 `BOOLEAN`, C++ `bool` and Win32 `BOOL` are distinct source types.
 
+Stack cleanup alone does not distinguish a free/static function from a member. Trace caller argument
+placement and callee consumption of incoming ECX. A convention alone does not establish a callback
+role; require address-taking, registration/invocation or an external contract. Multiple output
+parameters do not establish a returned record; trace any hidden result pointer from callers and writes.
+
 Do not treat source-projected retail ProgramDB signatures as independent confirmation of current source.
 
 ## Fields and overlapping storage
@@ -52,6 +57,10 @@ A union requires positive source-level overlap evidence such as a discriminant o
 lifetime/state. Coincident offsets, equal widths and decompiler disagreement are insufficient.
 
 Allocation size bounds a most-derived object but does not name its fields. Preserve unknown spans.
+
+A base-to-derived conversion needs evidence for that consumer's complete-object relationship; it does
+not establish that every base instance has the derived type. Preserve the observed adjustment and call
+boundary.
 
 ## Classes and lifecycle
 
@@ -107,6 +116,12 @@ leave the emission identity no more specific than the evidence allows.
 Preserve proven calling conventions, packing and vendor interface shapes. Consumer/provider declarations
 may differ only when independently established ABI evidence requires it; do not use that as an excuse
 for ordinary source disagreement.
+
+SurRender import/export boundary rules belong to
+[import visibility](../../../docs/libraries/surrender-import-visibility.md).
+Pointer replacement can decode a packed allocation in place; a separate file/runtime representation
+requires allocation/read/copy evidence. Check independent member offsets, array strides, allocation
+extents and natural alignment before changing packing.
 
 Clang is a consistency detector, not retail evidence. Use diagnostics to find model contradictions,
 then decide from retail/source evidence.

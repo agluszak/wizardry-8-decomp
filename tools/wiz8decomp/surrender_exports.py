@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .binary.coff import export_directives, external_symbols
 from .source_index import load_source_index
 
 _DEF_PATH = Path("src/surrender/sr.def")
@@ -94,6 +95,29 @@ def _evidence_exports(repository: Path) -> dict[str, dict[str, str]]:
             if name:
                 rows[name] = row
     return rows
+
+
+def validate_surrender_provider_objects(repository: Path, objects: list[Path]) -> None:
+    """Report emission gaps against sr.def and excess exports against retail without rewriting."""
+    if not objects:
+        raise SurrenderExportsError("no compiled SurRender provider objects")
+    defined: set[str] = set()
+    emitted: set[str] = set()
+    for path in objects:
+        defined.update(external_symbols(path)[0])
+        emitted.update(export_directives(path.read_bytes()))
+    required = {entry.name for entry in _def_entries(repository / _DEF_PATH)}
+    evidence = _evidence_exports(repository)
+    problems = [
+        f"missing required export definition: {name}" for name in sorted(required - defined)
+    ]
+    problems.extend(
+        f"compiler export absent from retail: {name}" for name in sorted(emitted - evidence.keys())
+    )
+    if problems:
+        raise SurrenderExportsError(
+            "unresolved SurRender provider emissions:\n" + "\n".join(problems)
+        )
 
 
 def _evidence_is_data(row: dict[str, str]) -> bool:

@@ -28,7 +28,7 @@ public:
     };
 
     SR_DLL_IMPORT srFileManager();
-    /* Provider copy/assignment are the implicit first_path_04 pointer copy.
+    /* Provider copy/assignment perform a shallow first_path_04 pointer copy.
        Consumers retain the imported standalone declarations. */
     // SYNTHETIC: SURRENDER 0x100163C0
     // srFileManager::srFileManager(const srFileManager&)

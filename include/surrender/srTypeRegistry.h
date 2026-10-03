@@ -162,19 +162,14 @@ private:
 static_assert(sizeof(srRegistry::ClassNode) == 0x2c, "srRegistry_ClassNode_must_be_0x2c");
 static_assert(sizeof(srRegistry) == 0x10, "srRegistry_must_be_0x10");
 
-/* srRuntimeClass's implicit copy constructor and assignment operator
-   (0x10011A10/0x10011A80) each emit a null-guarded one-byte copy at +0x04
-   overlapping the first member: MSVC6's signature for copying an empty
-   non-polymorphic base. The same byte copy is inlined into the implicit
-   copies of srClass and srGERD. RTTI is off and an empty base emits no
-   vtable or export, so the original name is unrecoverable.
+/* Copy construction and assignment at 0x10011A10/0x10011A80 contain a
+   null-guarded byte copy at +0x04, overlapping the first member. Related
+   copies occur in srClass and srGERD; the reconstruction models a zero-storage
+   base. The reviewed evidence does not establish its original name.
 
-   The base is not empty of declarations, only of storage: it carries the
-   heap-routing allocation operators. Retail exports no srClass or
-   srRuntimeClass operator new/delete even though both classes are
-   dllexport-ed, while every deleting destructor in the hierarchy calls
-   srHeap::free directly; the operators resolve through a non-exported
-   common ancestor, which is this base. */
+   The reconstruction places heap-routing operators on this common base.
+   Missing operator exports and calls to srHeap::free do not uniquely establish
+   their original declaration owner. */
 class srRuntimeClassEmptyBase {
 public:
     /* Every class in this hierarchy is allocated from and freed through the
@@ -198,10 +193,9 @@ public:
     }
 };
 
-/* Retail exports the whole member surface, including the vtable, the
-   protected constructor/destructor and the implicit copy operations, so the
-   class is dllexport-ed when building the provider (the same convention as
-   srDebugDD and srDummyStreamBuf). */
+/* Retail exports include the vtable, protected construction/destruction and
+   copy operations. The reconstruction uses class-level export; original
+   special-member and annotation spelling is unresolved. */
 // VTABLE: SURRENDER 0x100754E4 srRuntimeClass
 // class srRuntimeClass
 class
@@ -222,8 +216,7 @@ public:
     static SR_DLL_IMPORT long getTotalInstances(int exact);
     static SR_DLL_IMPORT void dumpNames(std::ostream& stream, int indent);
 
-    /* Implicit copy constructor/assignment: retail emits them via the
-       class-level dllexport, with the vptr stored after the memberwise copy. */
+    /* Copy bodies contain memberwise copying followed by a vptr store. */
     // SYNTHETIC: SURRENDER 0x10011A10
     // srRuntimeClass::srRuntimeClass
     // SYNTHETIC: SURRENDER 0x10011A80
@@ -253,11 +246,10 @@ static_assert(sizeof(srRuntimeClass) == 0x0c, "srRuntimeClass_must_be_0x0c");
    vtable; they leave the srRuntimeClass construction vtable in place until a
    concrete derived class installs its own. That is MSVC's novtable ABI, not a
    missing handwritten vtable write. */
-/* Retail exports the whole member surface, including the protected
-   constructor/destructor, the private statics and the implicit copy
-   operations, so the class is dllexport-ed when building the provider.
-   clone stays declared-only: the provider body is a bare tail dispatch
-   through vtable slot 7 that no recovered source spelling can express. */
+/* Retail exports include protected construction/destruction, private statics
+   and copy operations. The reconstruction uses class-level export; original
+   special-member and annotation spelling is unresolved. clone remains
+   declaration-only pending recovery; its body tail-dispatches through slot 7. */
 class __declspec(novtable)
 #if defined(SURRENDER_BUILD)
 __declspec(dllexport)
@@ -344,9 +336,9 @@ static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");
    ClientType. It is not a provider support layer: retail's client scalar
    deleting destructor calls the imported base destructor directly with no
    support-layer vtable store (W8ColorSurface at 0x00423F00, srNode at
-   0x0044F3D0, the srEXT JPEG importer at 0x100151D0), a shape VC6 only
-   emits for an implicit destructor, while every provider layer's declared
-   ~srClassSupport restores the support vtable and unregisters the instance.
+   0x0044F3D0, the srEXT JPEG importer at 0x100151D0). The reconstruction
+   leaves the client destructor implicit; its original declaration is unresolved.
+   The provider ~srClassSupport restores the support vtable and unregisters the instance.
    The client layer supplies the same registry identity and clone surface
    without the registration lifecycle; the imported base constructor already
    registers the object under the canonical class node. */

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import re
 import struct
 from dataclasses import dataclass
 from pathlib import Path
 
 _EXTERNAL = 2
 _SYMBOL_SIZE = 18
+_EXPORT_DIRECTIVE = re.compile(rb"[-/]export:(?:\"[^\"]+\"[^\s\x00]*|[^\s\x00]+)", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -67,3 +69,26 @@ def external_symbols(path: Path) -> tuple[set[str], set[str]]:
         elif symbol.section > 0 or symbol.is_common:
             defined.add(symbol.name)
     return defined, referenced
+
+
+def export_directives(data: bytes) -> set[str]:
+    """Read the public export names requested by a COFF object's .drectve section."""
+    if len(data) < 20:
+        raise ValueError("too short for a COFF header")
+    sections = struct.unpack_from("<H", data, 2)[0]
+    optional_size = struct.unpack_from("<H", data, 16)[0]
+    table = 20 + optional_size
+    if table + sections * 40 > len(data):
+        raise ValueError("section table runs past the end of the file")
+    names: set[str] = set()
+    for section in range(sections):
+        header = table + section * 40
+        if data[header : header + 8] != b".drectve":
+            continue
+        size, offset = struct.unpack_from("<LL", data, header + 16)
+        if offset + size > len(data):
+            raise ValueError("directive section runs past the end of the file")
+        for match in _EXPORT_DIRECTIVE.finditer(data[offset : offset + size]):
+            spelling = match.group().split(b":", 1)[1].split(b",", 1)[0]
+            names.add(spelling.split(b"=", 1)[0].strip(b'"').decode("ascii"))
+    return names

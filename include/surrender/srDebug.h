@@ -25,11 +25,8 @@ SR_DLL_IMPORT void __cdecl srDefaultAssertFailFunc(const char* expression, const
                                                    long line, const char* message);
 
 /* Sink that discards every insertion: overflow/underflow are the only
-   provider-owned virtuals on the retail vtable. The class-level export is
-   retail-proven: the export table carries the implicit destructor
-   (??_1srDummyStreamBuf@@UAE@XZ) and the vftable slot 0 is a real vector
-   deleting destructor (??_E), which VC6 only emits for a class declared
-   __declspec(dllexport). No known consumer imports it. */
+   provider-owned virtuals on the retail vtable. Provider ABI includes the
+   destructor and vftable; no known consumer imports it. */
 // VTABLE: SURRENDER 0x10076C00 srDummyStreamBuf
 // class srDummyStreamBuf
 class
@@ -50,8 +47,8 @@ private:
     srDummyStreamBuf& operator=(const srDummyStreamBuf& other);
 };
 
-/* No declared destructor: the retail emission stores the imported
-   basic_streambuf vftable directly, the implicit-destroyer shape. */
+/* The emitted destructor stores the imported basic_streambuf vftable directly;
+   the reconstruction leaves it implicit. */
 // SYNTHETIC: SURRENDER 0x10033080
 // srDummyStreamBuf::~srDummyStreamBuf
 // SYNTHETIC: SURRENDER 0x100330F0
@@ -66,8 +63,8 @@ public:
     srOStream_withassign(std::streambuf* buffer);
 };
 
-/* Implicit destructor: the retail emission stores only the imported
-   basic_ostream vftable into the virtual base. */
+/* The emitted destructor stores only the imported basic_ostream vftable into
+   the virtual base; the reconstruction leaves it implicit. */
 // SYNTHETIC: SURRENDER 0x100335C0
 // srOStream_withassign::~srOStream_withassign
 // SYNTHETIC: SURRENDER 0x10033590

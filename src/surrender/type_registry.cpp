@@ -567,9 +567,8 @@ void srRuntimeClass::setName(const char* name)
     srCore.getRegistry()->refreshInstance(getClassNode(), this);
 }
 
-/* Retail stores the vptr before the member writes, so the body assigns the
-   members rather than running a member-initializer list, and the registry
-   pointer is fetched once into a named local. */
+/* Retail writes the vptr before the member values and reuses the registry
+   pointer. Constructor spelling and the presence of a named local are unresolved. */
 // FUNCTION: SURRENDER 0x100119D0
 srRuntimeClass::srRuntimeClass()
 {
@@ -1000,8 +999,8 @@ srRegistry::ClassNode* srRegistry::registerClass(const char* class_name, ClassNo
 void srRegistry::dumpClassHierarchy(std::ostream& stream)
 {
     srCriticalSectionAccess access(critical_section_0c);
-    for (ClassNode::ChildLink* link = root_00->children_00.first_04; link != root_00->children_00.last_08;
-         link = link->next_04) {
+    for (ClassNode::ChildLink* link = root_00->children_00.first_04;
+         link != root_00->children_00.last_08; link = link->next_04) {
         link->node_00->dump(stream, 0);
     }
 }
@@ -1020,8 +1019,7 @@ srRegistry::ClassNode* srRegistry::addToTree(ClassNode* parent, const char* clas
 void srRegistry::dumpInstanceNames(ClassNode* node, std::ostream& stream, int indent)
 {
     srCriticalSectionAccess access(critical_section_0c);
-    // c-style-cast-ok: find(node, 0) is ambiguous between the id and
-    // relative_to overloads; the original spelled the null pointer cast
+    // c-style-cast-ok: the recovered overload set requires an explicit null-pointer type
     for (srRuntimeClass* instance = find(node, (srRuntimeClass*)0); instance != 0;
          instance = find(node, instance)) {
         if (indent != 0 || instance->isNamed()) {
@@ -1256,7 +1254,8 @@ void srRegistry::ClassNode::dump(std::ostream& stream, int indent)
         stream << ' ';
     }
     stream << "Nearest parent hash: " << inherited_named_instances_1c << '\n';
-    for (ChildLink* link = children_00.first_04; link != children_00.last_08; link = link->next_04) {
+    for (ChildLink* link = children_00.first_04; link != children_00.last_08;
+         link = link->next_04) {
         link->node_00->dump(stream, indent + 2);
     }
 }
@@ -1455,7 +1454,8 @@ srRuntimeClass* srRegistry::ClassNode::findByID(ClassNode* requested_class, unsi
     IDIndex* index = getIDIndex();
     if (index == 0) {
         if (exact == 0) {
-            for (ChildLink* child = children_00.first_04; child != children_00.last_08; child = child->next_04) {
+            for (ChildLink* child = children_00.first_04; child != children_00.last_08;
+                 child = child->next_04) {
                 srRuntimeClass* found = child->node_00->findByID(requested_class, id, 0);
                 if (found != 0) {
                     return found;
@@ -1510,7 +1510,8 @@ long srRegistry::ClassNode::getNumberOfInstances(int exact) const
     }
 
     long children = 0;
-    for (ChildLink* child = children_00.first_04; child != children_00.last_08; child = child->next_04) {
+    for (ChildLink* child = children_00.first_04; child != children_00.last_08;
+         child = child->next_04) {
         children += child->node_00->getNumberOfInstances(0);
     }
     return instance_count_28 - children;

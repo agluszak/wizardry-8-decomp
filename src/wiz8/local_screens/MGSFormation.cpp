@@ -496,18 +496,6 @@ static void ResetFormationPanel(void)
 static void BeginFormationDrag(const InputAtom* event);
 static void DropFormationSlot(int cell);
 
-// FUNCTION: WIZ8 0x005B2980
-void RefreshFormationPanel(bool show_portraits)
-{
-    if (g_formation_panel->m_fEnabled != 0) {
-        if (show_portraits != 0) {
-            g_formation_panel->Invalidate(0);
-            InvalidateRegion(0xd6, 0x3c, 0x1ab, 0x12f, 0);
-        }
-        g_formation_panel->Redraw();
-    }
-}
-
 /* Region callback the fifteen formation cells share: left press arms the
    drag clock, a repeat while held begins the drag, left release either
    activates the cell or completes the drop, and mouse transitions drive the

@@ -523,10 +523,6 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
                               monster_list_index, gXStatus.plsMonsterList);
         line = 0x5d5;
     }
-    /* One tail, reached from both branches with only the line number differing.
-       The original carries it as a variable and calls srAssertFail through a
-       register it loads before the branch; writing the call out in each branch
-       instead duplicates it. */
     srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, line, detail);
     return 0;
 }
@@ -1122,8 +1118,7 @@ bool InitializeMonsterManagerState(void)
 
 /* The manager teardown: it drains the monster list by repeatedly destroying
    entry zero rather than walking it, then releases the four gXStatus lists and
-   the species-indexed record cache. The cache walk is a pointer sweep against
-   the address one past the last slot, which is how the original spells it. */
+   the species-indexed record cache. */
 // FUNCTION: WIZ8 0x004e3820
 unsigned char ShutdownMonsterManager(void)
 {
@@ -1334,11 +1329,6 @@ void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
         g_combat_state->eCombatActionStatus = 0;
         g_combat_state->pActionMonsterInfo = 0;
     }
-    /* The record cursor is spelled (base + offset) + constant, not
-       (base + constant) + offset: the first form leaves the block pointer as
-       the LEA's base register, which is the encoding the original uses, while
-       the second folds the constant into the displacement and promotes the
-       running offset to base instead. */
     for (index = 0; index < 9; ++index) {
         entry = &monster_info->pCombat->effect_slots_3e[index];
         if (entry->active != 0) {

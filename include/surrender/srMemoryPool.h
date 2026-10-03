@@ -14,8 +14,7 @@ public:
 
     srMemoryPool(void* memory, long size, long alignment);
     ~srMemoryPool();
-    /* Implicit assignment: retail emits it via the class-level dllexport
-       as a whole-object memberwise copy (rep movsd). */
+    /* The exported assignment is a whole-object memberwise copy. */
     // SYNTHETIC: SURRENDER 0x10036A80
     // srMemoryPool::operator=
 

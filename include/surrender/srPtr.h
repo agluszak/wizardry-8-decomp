@@ -7,7 +7,7 @@ template <class T> class srPtr {
 public:
     srPtr() : pointer_(0) {}
     /* Retail's copy path addrefs the source pointer then stores it — no
-       release path exists on a fresh object (srGERD's implicit copy
+       release path exists on a fresh object (srGERD's copy
        constructor at 0x1001B020 inlines exactly that sequence). */
     srPtr(const srPtr& other)
     {

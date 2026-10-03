@@ -21,8 +21,8 @@ class
 #endif
     srBinOStream : public virtual srBinStream {
 public:
-    /* No own state: SR.DLL emits the compiler-generated virtual-base
-       lifecycle; consumers import the standalone symbols. */
+    /* No own state is modeled. Lifecycle is consistent with ordinary virtual-base
+       operations; consumers import the standalone symbols. */
     // SYNTHETIC: SURRENDER 0x10032020
     // srBinOStream::srBinOStream()
     // SYNTHETIC: SURRENDER 0x10032060
@@ -77,15 +77,14 @@ class
     srBinOMStream : public srBinOStream {
 public:
     SR_DLL_IMPORT srBinOMStream();
-    /* Copy construction and destruction are ordinary member lifecycle; the
-       default constructor remains authored because it initializes stream state. */
+    /* Copy construction and destruction are consistent with ordinary member
+       lifecycle. The default constructor initializes stream state. */
     // SYNTHETIC: SURRENDER 0x10031120
     // srBinOMStream::srBinOMStream(const srBinOMStream&)
     // SYNTHETIC: SURRENDER 0x10031330
     // srBinOMStream::~srBinOMStream
 
-    /* Implicit assignment: retail emits it via the class-level dllexport as a
-       memberwise copy (the srArray assignment owns the buffer reallocation). */
+    /* Assignment performs memberwise copying; srArray owns buffer reallocation. */
     // SYNTHETIC: SURRENDER 0x10031250
     // srBinOMStream::operator=
 

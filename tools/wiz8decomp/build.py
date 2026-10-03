@@ -22,6 +22,7 @@ from .build_inputs import build_toolchain_images, fetch_sources
 from .config import Settings, load_settings
 from .paths import atomic_write, compile_database_relative
 from .subprocesses import resolve_executable, run
+from .surrender_exports import validate_surrender_provider_objects
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
 VC6_PRODUCT_IMAGE = "wizardry8-msvc600:sp5-product"
@@ -475,6 +476,21 @@ def build_target(
         if not _product_cache_ready(build.build_dir):
             _configure(settings)
         tick = mark("configure_ms", tick)
+        if resolved_target == "SURRENDER":
+            run(
+                build.build_command("wiz8_surrender_objects", jobs or max(1, os.cpu_count() or 1)),
+                cwd=settings.repo_dir,
+                log_path=settings.repo_dir / "build/logs/surrender-objects.json",
+            )
+            tick = mark("provider_compile_ms", tick)
+            objects = (build.build_dir / "surrender-objects.txt").read_text(encoding="utf-8")
+            validate_surrender_provider_objects(
+                settings.repo_dir,
+                [
+                    build.build_dir / Path(path.replace("\\", "/")).relative_to("Z:/out")
+                    for path in objects.splitlines()
+                ],
+            )
         run(
             build.build_command(resolved_target, jobs or max(1, os.cpu_count() or 1)),
             cwd=settings.repo_dir,

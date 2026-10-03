@@ -915,7 +915,8 @@ void W8Monster::RandomizeAppearanceAndMotion()
                                    Random(1000) * g_float_005ec128 +
                                m_pRep->random_idle_fps_min;
 
-        for (subcycle = 0; subcycle < static_cast<signed char>(m_pRep->animations[1].GetCount()); ++subcycle) {
+        for (subcycle = 0; subcycle < static_cast<signed char>(m_pRep->animations[1].GetCount());
+             ++subcycle) {
             int animation_index = static_cast<signed char>(subcycle);
             W8AnimObj* animation;
             float scale = playback_scale + m_pRep->idle_playback_scale_604;
@@ -1013,16 +1014,9 @@ W8MonsterRep::W8MonsterRep()
       random_idle_600(0), special_movement_601(0), idle_playback_scale_604(10.0f),
       random_idle_fps_min(0), random_idle_fps_max(0), left_handed_610(0), monster_light_624(0)
 {
-    /* 0x004BEA4A writes the eight slots individually and the count last; a
-       counted loop over them is not what the retail emits. */
-    objects_5c8[0] = 0;
-    objects_5c8[1] = 0;
-    objects_5c8[2] = 0;
-    objects_5c8[3] = 0;
-    objects_5c8[4] = 0;
-    objects_5c8[5] = 0;
-    objects_5c8[6] = 0;
-    objects_5c8[7] = 0;
+    for (int index = 0; index < 8; ++index) {
+        objects_5c8[index] = 0;
+    }
     icon_count_5c4 = 0;
 }
 
@@ -1525,7 +1519,7 @@ void W8Monster::Update()
             UpdateNavigation(0, 0);
         } else {
             UpdateNavigation(monster_info->highest_condition >= 0x0e,
-                                     monster_info->uiCondition[5] != 0);
+                             monster_info->uiCondition[5] != 0);
         }
 
         if (cycle != 0x15 && script_238 != 0 && gXStatus.fCombatMode == 0) {
@@ -2340,7 +2334,8 @@ void W8Monster::ProcessScript()
                 if (sound_334 != 0) {
                     srVector3T<float> position = GetPosition();
                     sound_334->volume = value;
-                    sound_334->setLocation(static_cast<double>(position.x), static_cast<double>(position.y),
+                    sound_334->setLocation(static_cast<double>(position.x),
+                                           static_cast<double>(position.y),
                                            static_cast<double>(position.z));
                     if (distance != 0.0f)
                         sound_334->falloff = distance;
@@ -3086,8 +3081,9 @@ float W8Monster::GetPointDistanceToMonster(W8Monster* monster, srVector3T<float>
     float delta_x = point.x - position.x;
     float delta_y = point.y - position.y;
     float delta_z = point.z - position.z;
-    float distance = static_cast<float>(sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z)) -
-                     movement_0c0.alternate_radius_0b4 - monster->movement_0c0.alternate_radius_0b4;
+    float distance =
+        static_cast<float>(sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z)) -
+        movement_0c0.alternate_radius_0b4 - monster->movement_0c0.alternate_radius_0b4;
 
     if (distance < g_float_005ebb34) {
         distance = g_float_005ebb34;
@@ -3820,8 +3816,9 @@ void W8Monster::UpdateAttachedObjects()
             stModelInstance* poster =
                 *representation->linked_runtime_objects_614.GetAt(poster_index);
             srVector3T<double> location = poster->getLocation();
-            srVector3T<float> poster_position(
-                static_cast<float>(location.x), static_cast<float>(location.y) + vertical_offset, static_cast<float>(location.z));
+            srVector3T<float> poster_position(static_cast<float>(location.x),
+                                              static_cast<float>(location.y) + vertical_offset,
+                                              static_cast<float>(location.z));
 
             if ((poster_position - mapped_position).Length() <=
                 static_cast<float>(g_monster_poster_max_distance)) {
@@ -3874,7 +3871,8 @@ int W8Monster::Query(int query)
         result = m_pRep->subcycle_064;
         break;
     case 5:
-        result = m_pRep->ApplyEmitterSetting(m_pRep->current_cycle) != static_cast<unsigned int>(-1);
+        result =
+            m_pRep->ApplyEmitterSetting(m_pRep->current_cycle) != static_cast<unsigned int>(-1);
         break;
     case 6:
         result = m_pRep->current_cycle;
@@ -4152,7 +4150,8 @@ void W8Monster::UpdateShakeEvents(unsigned char previous_frame)
 
         if (particle->start_frame_264 != -1 && particle->end_frame_268 != -1 &&
             particle->start_frame_264 != particle->end_frame_268) {
-            if (static_cast<unsigned int>(previous_frame) == static_cast<unsigned int>(particle->start_frame_264)) {
+            if (static_cast<unsigned int>(previous_frame) ==
+                static_cast<unsigned int>(particle->start_frame_264)) {
                 if (enabled_1bd != 0) {
                     particle->SetActive(1);
                     particle->emission_count_188 = 0;
@@ -4505,18 +4504,6 @@ void W8Monster::GetMappedPosition(srVector3T<float>* position)
    forward, or a single member read; nothing here says what the members and
    slots are for, so each is named for what it reaches. */
 
-/* Neither takes an argument nor reads ECX: both work entirely over the pair of
-   globals at 0x00659B34 and 0x00659B3C, which is what makes them free
-   functions rather than the Navigator methods their neighbours in the same
-   address range are. */
-/* Cleans its own argument - the caller at 0x004C5A40 pushes and never adjusts
-   afterwards - so it is __stdcall and not the cdecl the decompiler assumes. */
-
-/* Spelled the way MonsterManager.cpp already declares it: the callee takes its
-   receiver in ECX, which __fastcall is how a no-argument member call is
-   reachable from a free declaration. The receiver is the monster's Navigator
-   base at +0x18. */
-
 /* Keep the position copy through the shared double-argument vector setter:
    retail 0x004C5A4F-0x004C5A63 round-trips each component through the FPU. */
 // FUNCTION: WIZ8 0x004c5a40
@@ -4530,11 +4517,7 @@ void MonsterSelectLOD(W8Monster* monster, const srVector3T<float>* position)
     }
 }
 
-/* Records a value on the cycle runtime and, when nothing is pending, seeds the
-   pending cycle from the runtime's own fallback at 0x0a4 rather than leaving it
-   at -1. The runtime pointer is fetched twice rather than held in a local -
-   the second `mov` reloads it from the cycle - which is what says the original
-   spelled the two reaches out separately instead of naming the record once. */
+/* Set the forced subcycle; if no cycle is pending, use the current cycle. */
 // FUNCTION: WIZ8 0x004c6c00
 void W8Monster::SetForcedSubcycleA6(signed char value)
 {
@@ -4871,7 +4854,8 @@ void W8Monster::CollectModelInstances(W8GrowableVector<stModelInstance*>* instan
     for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
         int subcycle;
 
-        for (subcycle = 0; subcycle < m_pRep->GetNumSubsPerCycle(static_cast<signed char>(cycle)); ++subcycle) {
+        for (subcycle = 0; subcycle < m_pRep->GetNumSubsPerCycle(static_cast<signed char>(cycle));
+             ++subcycle) {
             W8GrowableVector<W8AnimObj*>* cycle_animations = &m_pRep->animations[cycle];
             W8AnimObj* animation;
 

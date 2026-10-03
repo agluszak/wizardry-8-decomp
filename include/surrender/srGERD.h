@@ -24,9 +24,8 @@ class srPalette;
 class srVertexProcessor;
 struct srVertexArray;
 
-/* Retail exports the private _lockBuffer/accumAlloc/changeTexture/applyXxx
-   members and the implicit copy constructor, so the class is dllexport under
-   SURRENDER_BUILD; consumer TUs stay member-level imported. */
+/* Retail exports private helpers and copy construction. The reconstruction
+   uses class-level export; original annotation and copy spelling are unresolved. */
 // VTABLE: SURRENDER 0x100766B0 srGERD
 #if defined(SURRENDER_BUILD)
 class __declspec(dllexport) srGERD : public srRuntimeClass {
@@ -1033,9 +1032,8 @@ private:
         unsigned long depth_800;
     };
 
-    /* +0x40 device record: the implicit memberwise copy constructor emits a
-       single 0xD4-dword rep movsd over the whole block, so these fields sit
-       inside one trivially copyable member rather than as flat members.
+    /* +0x40 device record: the copy body contains a 0xD4-dword rep movsd.
+       That alone does not establish the original member declaration boundaries.
        Info's and DriverInfo's declared ctors produce the constructor's
        +0x68/+0x2D0 init stores inside the inlined block construction. */
     struct Device {
@@ -1069,7 +1067,7 @@ private:
         unsigned long back_buffer_type_34c_;
     };
 
-    /* +0x390 render-state record: the implicit copy emits one 0x4F2-dword
+    /* +0x390 render-state record: the copy emits one 0x4F2-dword
        rep movsd over the block and the constructor zeroes it wholesale
        through srZeroMemory(&state_390_, 0x13C8). scissor_flags_12f0_ is the
        only ctor-initialised scalar; its store lands between the clip-plane
@@ -1120,7 +1118,7 @@ private:
         unsigned char unknown_13c4_[4];
     };
 
-    /* +0x1758 presentation record: the implicit copy emits a 5-dword rep
+    /* +0x1758 presentation record: the copy emits a 5-dword rep
        movsd over the block. */
     struct Display {
         srVector3T<float> gamma_00_;
@@ -1128,7 +1126,7 @@ private:
         e_antiAlias antialias_10_;
     };
 
-    /* +0x176C pick record: the implicit copy emits a 0xA2-dword rep movsd
+    /* +0x176C pick record: the copy emits a 0xA2-dword rep movsd
        over the block; pick_depth_280_ is the ctor-initialised scalar whose
        store lands right after the pick-stack __ehvector_ctor. */
     struct PickState {
@@ -1139,14 +1137,14 @@ private:
         unsigned long pick_key_284_;
     };
 
-    /* +0x1B08 clear record: the implicit copy emits a 0xC-dword rep movsd
+    /* +0x1B08 clear record: the copy emits a 0xC-dword rep movsd
        over the block. */
     struct ClearState {
         srDD::ClearValues clear_values_00_;
         unsigned char unknown_2c_[4];
     };
 
-    /* +0x1F5C texture-state record: the implicit copy emits a 0x20-dword
+    /* +0x1F5C texture-state record: the copy emits a 0x20-dword
        rep movsd over the block. setTextureParameters indexes these maps
        from the packed texture state; filter selector 4 is a valid index in
        both filter maps. */
@@ -1174,7 +1172,7 @@ private:
         srTextureIFace::e_compression default_compression_7c_;
     };
 
-    /* +0x2068 environment/enable record: the implicit copy emits a
+    /* +0x2068 environment/enable record: the copy emits a
        0x52-dword rep movsd over the block. pushEnvironment/popEnvironment
        stack {min, max, scale, inv_scale} POD elements — the constructor
        emits no ehctor over that array — while enable_stack_104_ gets the
@@ -1204,7 +1202,7 @@ private:
        next->prev_open_38_. */
     srGERD* prev_open_38_;
     srGERD* next_open_3c_;
-    /* Device record; retail's implicit copy constructor emits a single
+    /* Device record; retail's copy constructor emits a single
        0xD4-dword rep movsd over the whole member. */
     Device device_40_;
     /* Render-state record; retail copies it as one 0x4F2-dword rep movsd
@@ -1229,7 +1227,7 @@ private:
     /* Buffer-lock nesting depth; _lockBuffer only locks the device on the
        first entry and _unlockBuffer unlocks when this returns to zero. */
     long buffer_lock_count_1b04_;
-    /* Clear record; retail's implicit copy constructor emits a 0xC-dword
+    /* Clear record; retail's copy constructor emits a 0xC-dword
        rep movsd over the whole member. */
     ClearState clear_1b08_;
     /* Grayscale ramp built by initGlobalPalette and handed to
@@ -1241,7 +1239,7 @@ private:
     srDD::TexParms texture_parms_1f40_[2];
     /* Device palette record handed to bindPalette/deletePalette. */
     srDD::Palette palette_1f50_;
-    /* Texture-parameter map record; retail's implicit copy constructor
+    /* Texture-parameter map record; retail's copy constructor
        emits a 0x20-dword rep movsd over the whole member. */
     TextureState texture_state_1f5c_;
     /* Palette currently bound to the device; srGERD's destructor runs the
@@ -1274,7 +1272,7 @@ private:
     unsigned char unknown_2045_[3];
     srVector4T<float> ambient_light_2048_;
     Environment environment_2058_;
-    /* Environment/enable record; retail's implicit copy constructor emits a
+    /* Environment/enable record; retail's copy constructor emits a
        0x52-dword rep movsd over the whole member. */
     EnvironmentState environment_state_2068_;
     VertexProcessors vertex_processors_21b0_;
@@ -1286,8 +1284,8 @@ private:
     srHeapBuffer<srVector4T<float> > pick_vertices_2230_;
 };
 
-/* Implicit memberwise copy constructor emitted by the class-level
-   provider dllexport; retail has no in-DLL call sites. */
+/* The copy body is consistent with memberwise copying; no in-DLL call site is
+   identified in the reviewed evidence. */
 // SYNTHETIC: SURRENDER 0x1001B020
 // ??0srGERD@@QAE@ABV0@@Z
 

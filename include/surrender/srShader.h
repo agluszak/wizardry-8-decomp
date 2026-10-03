@@ -15,30 +15,17 @@ SR_DLL_IMPORT std::ostream& operator<<(std::ostream& stream, const srShader& sha
    TEXTURING_DISABLE, DITHER_ENABLE. */
 class srShader {
 public:
-    /* Provider-visible body: retail inlines the default word wherever the
-       body is seen in provider units (srMeshModel::getShader's out-of-range
-       path folds the construction into a single return-store). The standalone
-       emission at 0x100199F0 is the folded copy provider callers that do not
-       inline share. Consumer builds see the declaration only: these ctors
-       were never exported, so Wiz8 units define their own copies. */
-#if defined(SURRENDER_BUILD)
-    // FUNCTION: SURRENDER 0x100199F0 SYMBOL
-    // ??0srShader@@QAE@XZ
+    /* Wizardry's constructed shader-vector elements use this packed default.
+       The ordinary default constructor is header-visible, not imported. */
+    // FUNCTION: SURRENDER 0x100199F0
+    // FUNCTION: WIZ8 0x00424A40
+    // NAME: srShader::srShader
+    // RECOMP: ??0srShader@@QAE@XZ
     srShader() : value(0x0100241b) {}
 
-    /* User-declared and provider-visible: retail inlines the four-byte member
-       copy inside srMeshModel::getShader and the implicit
-       srModeler::Triangle/Polygon copies, while units that do not inline emit
-       a shared folded copy (0x1003B930 for the provider, 0x00424A40 in Wiz8's
-       Video2.cpp). Keeping it user-declared preserves the nontrivial copy
-       that forces those implicit copies to exist. */
     // FUNCTION: SURRENDER 0x1003B930
-    // ??0srShader@@QAE@ABV0@@Z
+    // FUNCTION: WIZ8 0x0041CF80
     srShader(const srShader& other) : value(other.value) {}
-#else
-    srShader();
-    srShader(const srShader& other);
-#endif
 
     enum e_pass {
         PASS_NEVER = 0,

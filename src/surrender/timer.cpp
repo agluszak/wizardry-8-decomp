@@ -7,23 +7,25 @@
 #include <string.h>
 #include <windows.h>
 
+typedef BOOL(__stdcall* QueryFrequency)(LARGE_INTEGER*);
+
 /* reset()'s persistence record: the registry round-trip pairs CPU identity
    with the measured tick frequency and the read hook.  calibrate() fills the
    CPUID side when the stored signature does not describe the running CPU. */
 struct srTimerConfig {
-    long use_stored;                            /* +0x00 */
-    long unused_04;                             /* +0x04 */
-    long save;                                  /* +0x08 */
-    long cpuid_support;                         /* +0x0c */
-    long cpu_count;                             /* +0x10 */
-    char cpu_vendor[0x10];                      /* +0x14 */
-    unsigned long cpu_max_id;                   /* +0x24 */
-    unsigned long cpu_signature;                /* +0x28 */
-    unsigned long cpu_features;                 /* +0x2c */
-    char os_ident[0x400];                       /* +0x30 */
-    char cpu_ident[0x400];                      /* +0x430 */
-    srQuadWord frequency;                       /* +0x830 */
-    int(__stdcall* read_tick)(srQuadWord* out); /* +0x838 */
+    long use_stored;               /* +0x00 */
+    long unused_04;                /* +0x04 */
+    long save;                     /* +0x08 */
+    long cpuid_support;            /* +0x0c */
+    long cpu_count;                /* +0x10 */
+    char cpu_vendor[0x10];         /* +0x14 */
+    unsigned long cpu_max_id;      /* +0x24 */
+    unsigned long cpu_signature;   /* +0x28 */
+    unsigned long cpu_features;    /* +0x2c */
+    char os_ident[0x400];          /* +0x30 */
+    char cpu_ident[0x400];         /* +0x430 */
+    srQuadWord frequency;          /* +0x830 */
+    srTimer::TickReader read_tick; /* +0x838 */
 };
 
 int calibrate(srTimerConfig* config);
@@ -439,16 +441,15 @@ int srTimer::reset(int detect, int argument_1, int save)
     if (m_read_tick == 0) {
         m_kernel32 = GetModuleHandleA("kernel32");
         if (m_kernel32 != 0) {
-            // reinterpret-ok: Win32 GetProcAddress returns untyped FARPROC; retail calls the
-            // result through the QueryPerformanceFrequency prototype
-            BOOL(__stdcall * query_frequency)(LARGE_INTEGER*) =
-                reinterpret_cast<BOOL(__stdcall*)(LARGE_INTEGER*)>(reinterpret_cast<void*>(
-                    GetProcAddress((HMODULE)m_kernel32, "QueryPerformanceFrequency")));
-            if (query_frequency != 0 && query_frequency((LARGE_INTEGER*)&m_frequency) != 0) {
-                // reinterpret-ok: Win32 FARPROC has no parameter typing
-                m_read_tick =
-                    reinterpret_cast<int(__stdcall*)(srQuadWord*)>(reinterpret_cast<void*>(
-                        GetProcAddress((HMODULE)m_kernel32, "QueryPerformanceCounter")));
+            // reinterpret-ok: GetProcAddress exposes a FARPROC for this named Win32 entry
+            QueryFrequency query_frequency = reinterpret_cast<QueryFrequency>(
+                GetProcAddress(static_cast<HMODULE>(m_kernel32), "QueryPerformanceFrequency"));
+            // reinterpret-ok: Win32 writes its eight-byte result into the frequency storage
+            LARGE_INTEGER* frequency = reinterpret_cast<LARGE_INTEGER*>(&m_frequency);
+            if (query_frequency != 0 && query_frequency(frequency) != 0) {
+                // reinterpret-ok: GetProcAddress exposes a FARPROC for this named Win32 entry
+                m_read_tick = reinterpret_cast<TickReader>(
+                    GetProcAddress(static_cast<HMODULE>(m_kernel32), "QueryPerformanceCounter"));
             }
             if (m_read_tick == 0) {
                 m_kernel32 = 0;

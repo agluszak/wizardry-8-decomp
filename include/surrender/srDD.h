@@ -25,7 +25,7 @@ typedef srDD*(__cdecl* srDDInitDeviceFn)(unsigned long index);
 // stack cleanup. No-argument functions alone cannot prove cdecl vs stdcall.
 // Nested records are incomplete: DebugDD's virtuals pass them by reference.
 
-/* srDebugDD's implicit copy constructor and assignment operator
+/* srDebugDD's copy constructor and assignment operator
    (0x100177D0/0x10017830) each emit a null-guarded one-byte copy at +0x04
    overlapping the first member: MSVC6's signature for copying an empty
    non-polymorphic base. RTTI is off and an empty base emits no vtable or

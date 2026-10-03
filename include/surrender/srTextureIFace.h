@@ -96,8 +96,8 @@ public:
         return "srTextureIFace";
     }
 
-    /* No state beyond srClassSupport: the class export emits the complete
-       compiler-generated lifecycle. */
+    /* No state beyond srClassSupport is modeled; lifecycle bodies are consistent
+       with ordinary base-only operations. */
     // SYNTHETIC: SURRENDER 0x1005F5E0
     // srTextureIFace::srTextureIFace()
     // SYNTHETIC: SURRENDER 0x1005F660

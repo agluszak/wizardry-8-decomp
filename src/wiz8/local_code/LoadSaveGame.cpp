@@ -108,9 +108,7 @@
    read-only", which is what a function that verifies save directories asks. */
 
 /* 0x004F8130, ItemManager.cpp line 998: asserts the item is non-null, then
-   reports whether the flag word at +0x29 has any of the caller's bits set. The
-   original spells the result through NEG/SBB/NEG, which is what VC6 emits for a
-   bool conversion, so the return type is bool rather than the mask. */
+   reports whether the flag word at +0x29 has any of the caller's bits set. */
 /* 0x00659756: set to 1 by LoadLevel (0x0042A6F0) around its restore call at
    0x005135D0 and cleared immediately after, and read only from the save and
    load paths. It gates the bit-3 clear below. The meaning is not established
@@ -1426,9 +1424,7 @@ unsigned char VerifyDataSubdirs(void)
 /* Walks the item's sibling chain and writes each record whole. Two reads go
    through the head of the chain instead of the item being written: the
    representation flags copied into the current record are read from the head's
-   rep, and the bit-3 clear lands on the head rather than the cursor. Retail
-   holds the head in a register for the whole loop and never reloads it, so this
-   is the original source naming the parameter where it meant the cursor. */
+   rep, and the bit-3 clear lands on the head rather than the cursor. */
 // FUNCTION: WIZ8 0x00514be0
 unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
 {
@@ -1782,11 +1778,6 @@ unsigned char AutoSaveIfAllowed(bool forced)
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
         IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
         gXStatus.fCampMode == 0) {
-        /* The copy is written out in both arms rather than selecting the source
-           into one call. VC6 tail-merges the two inlined copies but keeps each
-           arm's own destination `lea` and source load, which is the canonical
-           encoding; funnelling both arms through one pointer costs the extra
-           move that a selected argument needs. */
         if (g_status.iron_man != 0) {
             strcpy(name, ConvertWideStringToString(GetLastSaveName()));
         } else {

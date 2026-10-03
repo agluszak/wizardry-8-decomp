@@ -2,10 +2,9 @@
 
 #include "srHeap.h"
 
-/* The provider exports the full member surface including the vftable and the
-   implicit lifecycle sweep (copy ctor and assignment emit as memberwise
-   copies), so the declaration is dllexport under SURRENDER_BUILD. Consumers
-   keep the member-level imports below. */
+/* Provider exports include copy construction, assignment and the vftable. The
+   reconstruction uses class-level export and memberwise copying; original
+   declaration spelling is unresolved. */
 // VTABLE: SURRENDER 0x10076960
 // class srIOManager
 class
@@ -24,8 +23,8 @@ public:
     friend class Importer;
     friend class Exporter;
 
-    /* Provider copy/assignment are the implicit memberwise copies of the two
-       typed registration lists. Consumers retain the imported declarations. */
+    /* Provider copy/assignment contain memberwise copies of the two typed
+       registration lists. Consumers retain the imported declarations. */
     // SYNTHETIC: SURRENDER 0x1002CD90
     // srIOManager::srIOManager(const srIOManager&)
     // SYNTHETIC: SURRENDER 0x1002CDD0
@@ -89,8 +88,7 @@ private:
     ExporterList exporters_10_;
 };
 
-/* Retail exports the implicit Error assignment (0x1002CC70, a single field
-   copy), so the class is dllexport under SURRENDER_BUILD. */
+/* Retail exports Error assignment at 0x1002CC70 as a single-field copy. */
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
@@ -104,7 +102,7 @@ public:
     Error(const char* description) { description_00 = description; }
     SR_DLL_IMPORT const char* getDescription();
 
-    /* Implicit memberwise assignment emitted via the class-level dllexport. */
+    /* The emitted body is consistent with memberwise assignment. */
     // SYNTHETIC: SURRENDER 0x1002CC70
     // ??4Error@srIOManager@@QAEAAV01@ABV01@@Z
 
@@ -112,8 +110,8 @@ private:
     const char* description_00;
 };
 
-/* Retail exports the implicit lifecycle sweep (0x1002CC80-0x1002CCA0, all
-   trivial bodies), so the class is dllexport under SURRENDER_BUILD. */
+/* Retail exports trivial lifecycle bodies at 0x1002CC80-0x1002CCA0, consistent
+   with implicit lifecycle. Original declaration spelling is unresolved. */
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
@@ -129,7 +127,7 @@ public:
     // ??1Importer@srIOManager@@UAE@XZ
     virtual ~Importer() {}
 
-    /* Implicit copy ctor/assignment emitted via the class-level dllexport. */
+    /* The emitted bodies are consistent with ordinary memberwise copying. */
     // SYNTHETIC: SURRENDER 0x1002CC90
     // ??0Importer@srIOManager@@QAE@ABV01@@Z
     // SYNTHETIC: SURRENDER 0x1002CCA0
@@ -142,8 +140,8 @@ protected:
     SR_DLL_IMPORT void removeFromImporters(srIOManager* manager);
 };
 
-/* Retail exports the implicit lifecycle sweep (0x1002CCB0-0x1002CD80, all
-   trivial bodies), so the class is dllexport under SURRENDER_BUILD. */
+/* Retail exports trivial lifecycle bodies at 0x1002CCB0-0x1002CD80, consistent
+   with implicit lifecycle. Original declaration spelling is unresolved. */
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
@@ -159,7 +157,7 @@ public:
     // ??1Exporter@srIOManager@@UAE@XZ
     virtual ~Exporter() {}
 
-    /* Implicit copy ctor/assignment emitted via the class-level dllexport. */
+    /* The emitted bodies are consistent with ordinary memberwise copying. */
     // SYNTHETIC: SURRENDER 0x1002CD70
     // ??0Exporter@srIOManager@@QAE@ABV01@@Z
     // SYNTHETIC: SURRENDER 0x1002CD80

@@ -7,9 +7,8 @@
 #include "srShader.h"
 #include "srTextureIFace.h"
 
-/* Retail exports the private getUniqueVertexList/isClockwise members and the
-   implicit copy constructor/assignment, so the class is dllexport under
-   SURRENDER_BUILD; consumer TUs stay member-level imported. */
+/* Retail exports private helpers and copy operations. The reconstruction uses
+   class-level export; original annotation and special-member spelling are unresolved. */
 // VTABLE: SURRENDER 0x10076C88 srModeler
 #if defined(SURRENDER_BUILD)
 class __declspec(dllexport) srModeler {
@@ -28,9 +27,8 @@ public:
        planarMap and never this constructor, so the consumer TUs inlined the
        six-field store while the dllexport standalone emission stays at
        0x10037BD0. */
-    /* Retail exports the MappingInfo constructor, implicit assignment and the
-       default-constructor closure, so the declaration is dllexport under
-       SURRENDER_BUILD. */
+    /* Retail exports MappingInfo construction and assignment. Original
+       annotation and special-member spelling are unresolved. */
     struct
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -45,8 +43,7 @@ public:
         {
         }
 
-        /* Implicit assignment emitted via the class-level dllexport as a
-           memberwise copy of the six fields. */
+        /* The assignment body copies the six fields. */
         // SYNTHETIC: SURRENDER 0x10037DA0
         // ??4MappingInfo@srModeler@@QAEAAU01@ABU01@@Z
 
@@ -62,9 +59,7 @@ public:
        the three per-pass attribute vectors convert() feeds into the mesh's
        DCG/DIG/SCG streams, the eight UV slots (pass*2 + layer), and the
        per-pass weights convert() writes as the DCG alpha. */
-    /* Retail exports the full Vertex lifecycle sweep including the implicit
-       copy/assignment bodies, so the declaration is dllexport under
-       SURRENDER_BUILD. */
+    /* Retail exports Vertex lifecycle, including copy/assignment bodies. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -100,9 +95,7 @@ public:
         float weights_100[4];
     };
 
-    /* Retail exports the full Triangle lifecycle sweep including the implicit
-       copy/assignment bodies, so the declaration is dllexport under
-       SURRENDER_BUILD. */
+    /* Retail exports Triangle lifecycle, including copy/assignment bodies. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -113,11 +106,10 @@ public:
         void reset();
         void flipFacing();
 
-        /* Implicit copy constructor/assignment emitted via the class-level
-           dllexport as memberwise copies. The assignment reaches the Vertex
-           members through srModeler::Vertex::operator= rather than a block
-           move; the copy constructor block-copies them and copies shaders_20
-           element by element through srShader's copy constructor. */
+        /* Copy bodies are consistent with memberwise copying. Assignment calls
+           Vertex::operator=; construction block-copies the Vertex region and
+           copies the four shader words individually. Original special-member
+           declarations are unresolved. */
         // SYNTHETIC: SURRENDER 0x10037C10
         // ??0Triangle@srModeler@@QAE@ABV01@@Z
         // SYNTHETIC: SURRENDER 0x10037C70
@@ -130,9 +122,7 @@ public:
         unsigned long disabled_364;
     };
 
-    /* Retail exports the full Polygon lifecycle sweep including the implicit
-       copy/assignment bodies, so the declaration is dllexport under
-       SURRENDER_BUILD. */
+    /* Retail exports Polygon lifecycle, including copy/assignment bodies. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -144,8 +134,7 @@ public:
         void reset();
         void reAllocate(int vertices);
 
-        /* Implicit copy constructor/assignment emitted via the class-level
-           dllexport as memberwise copies, as for Triangle above. */
+        /* Copy bodies are consistent with memberwise copying, as for Triangle above. */
         // SYNTHETIC: SURRENDER 0x10037CF0
         // ??0Polygon@srModeler@@QAE@ABV01@@Z
         // SYNTHETIC: SURRENDER 0x10037D40
@@ -165,9 +154,8 @@ public:
     srModeler();
     virtual ~srModeler();
 
-    /* Implicit copy constructor/assignment: emitted via the class-level
-       dllexport as memberwise copies (the srArray<Triangle> member owns the
-       triangle storage clone). */
+    /* Copy bodies are consistent with memberwise copying; srArray<Triangle>
+       owns the triangle storage clone. */
     // SYNTHETIC: SURRENDER 0x10037DE0
     // ??0srModeler@@QAE@ABV0@@Z
     // SYNTHETIC: SURRENDER 0x10037F90

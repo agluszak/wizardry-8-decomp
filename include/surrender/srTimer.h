@@ -28,6 +28,8 @@
 // VTABLE: SURRENDER 0x10077620 srTimer
 class SR_DLL_IMPORT SR_DLL_EXPORT srTimer {
 public:
+    typedef int(__stdcall* TickReader)(srQuadWord* out);
+
     enum e_timerReadControl { TIMER_READ_DEFAULT = 0 };
     /* CPUID signature processor-type field (EAX bits 12:13). */
     enum e_cpuTypeId {
@@ -137,15 +139,15 @@ public:
     srQuadWord m_pause;       /* 0x820: tick at pause(), zero while running */
     int m_units_per_interval; /* 0x828: the game-timer unit writes 10000 */
     unsigned char unknown_82c_[0x4];
-    double m_seconds_per_tick;                    /* 0x830: 1.0 / frequency */
-    double m_units_per_tick;                      /* 0x838: units / frequency */
-    unsigned long m_cpu_count;                    /* 0x840 */
-    int(__stdcall* m_read_tick)(srQuadWord* out); /* 0x844: getTick or RDTSC */
-    void* m_kernel32;                             /* 0x848: kernel32 handle when QPC is used */
-    char m_cpu_vendor[0x10];                      /* 0x84c: CPUID vendor string */
-    unsigned long m_cpu_max_id;                   /* 0x85c: max CPUID input */
-    unsigned long m_cpu_signature;                /* 0x860: CPUID EAX */
-    unsigned long m_cpu_features;                 /* 0x864: CPUID EDX */
+    double m_seconds_per_tick;     /* 0x830: 1.0 / frequency */
+    double m_units_per_tick;       /* 0x838: units / frequency */
+    unsigned long m_cpu_count;     /* 0x840 */
+    TickReader m_read_tick;        /* 0x844: getTick or RDTSC */
+    void* m_kernel32;              /* 0x848: kernel32 handle when QPC is used */
+    char m_cpu_vendor[0x10];       /* 0x84c: CPUID vendor string */
+    unsigned long m_cpu_max_id;    /* 0x85c: max CPUID input */
+    unsigned long m_cpu_signature; /* 0x860: CPUID EAX */
+    unsigned long m_cpu_features;  /* 0x864: CPUID EDX */
 
 protected:
     int retrieve();

@@ -16,8 +16,8 @@ class __declspec(novtable) SR_DLL_IMPORT SR_DLL_EXPORT srMaterialIFace
     : public srClassSupport<srMaterialIFace, srClass, true, 0x2200> {
 public:
     static const char* sGetClassName();
-    /* Provider construction/destruction are the implicit srClassSupport
-       lifecycle. Wiz8 imports the standalone public symbols. */
+    /* Provider construction/destruction are consistent with base-only lifecycle.
+       Wiz8 imports the standalone public symbols. */
     // SYNTHETIC: SURRENDER 0x10034BE0
     // srMaterialIFace::srMaterialIFace()
     // SYNTHETIC: SURRENDER 0x10034C70
@@ -29,7 +29,7 @@ public:
     srMaterialIFace();
     virtual ~srMaterialIFace();
 #endif
-    /* Provider assignment is the implicit srClassSupport/base assignment.
+    /* Provider assignment is consistent with srClassSupport/base assignment.
        Wiz8 imports the standalone symbol, so the consumer keeps only the
        dllimport declaration. */
     // SYNTHETIC: SURRENDER 0x10034D80

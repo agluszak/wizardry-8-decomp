@@ -49,8 +49,7 @@ public:
                                           const srVector3T<float>* vertices,
                                           const srVector4T<float>& plane, unsigned long shift,
                                           unsigned long count, int first);
-    /* Implicit assignment: retail emits it via the class-level dllexport
-       as a whole-object memberwise copy (rep movsd). */
+    /* The exported assignment is consistent with whole-object memberwise copying. */
     // SYNTHETIC: SURRENDER 0x10029F30
     // srTriangleCuller::operator=
 

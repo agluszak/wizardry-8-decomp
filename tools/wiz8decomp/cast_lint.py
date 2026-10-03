@@ -56,7 +56,7 @@ The gate inspects added lines of the current Jujutsu change stack (or of a Git
 checkout against its baseline branch). Existing casts are not re-litigated;
 ones moved between files are recognized by their removed counterpart. Cast and
 format checks cover recovered product headers and sources under ``src/wiz8``,
-``include/wiz8`` and ``include/surrender``. The union check covers headers.
+``include/wiz8``, ``src/surrender`` and ``include/surrender``. The union check covers headers.
 """
 
 from __future__ import annotations
@@ -76,8 +76,8 @@ RAW_OFFSET_MARKER = "raw-offset-ok"
 UNION_MARKER = "union-ok"
 UNINIT_MARKER = "uninit-ok"
 MEMBER_DTOR_MARKER = "member-dtor-ok"
-SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/", "include/surrender/")
-MEMBER_DTOR_PREFIXES = SCOPE_PREFIXES + ("src/surrender/",)
+SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/", "src/surrender/", "include/surrender/")
+MEMBER_DTOR_PREFIXES = SCOPE_PREFIXES
 _CPP_SUFFIXES = (".cpp", ".cc", ".cxx", ".h", ".hpp")
 _SGP_SOURCE_SUFFIXES = (".c", ".cc", ".cpp", ".cxx", ".h", ".hpp")
 _GIT_BASES: tuple[str, ...] = ("@{upstream}", "origin/main", "origin/master", "main", "master")

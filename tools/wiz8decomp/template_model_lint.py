@@ -26,11 +26,6 @@ _NOISE = re.compile(
 )
 _EXPLICIT_SPECIALIZATION = re.compile(r"(?m)^[ \t]*template[ \t\r\n]*<[ \t\r\n]*>[ \t\r\n]*")
 _EXPLICIT_INSTANTIATION = re.compile(r"(?m)^[ \t]*(?:extern[ \t]+)?template[ \t]+(?![ \t]*<)")
-_SR_INSTANCE_LIFECYCLE = re.compile(
-    r"template[ \t\r\n]*<[ \t\r\n]*>[ \t\r\n]*"
-    r"struct[ \t\r\n]+srInstanceLifecycle[ \t\r\n]*"
-    r"<[ \t\r\n]*false[ \t\r\n]*>"
-)
 
 
 class TemplateModelError(RuntimeError):
@@ -57,12 +52,6 @@ def _violation(relative: str, source: str, offset: int, kind: str) -> dict[str, 
     }
 
 
-def _allowed_specialization(relative: str, masked: str, offset: int) -> bool:
-    if relative != "include/surrender/srTypeRegistry.h":
-        return False
-    return _SR_INSTANCE_LIFECYCLE.match(masked, offset) is not None
-
-
 def _template_model_violations(repository: Path) -> list[dict[str, Any]]:
     violations: list[dict[str, Any]] = []
     for root_name in _SOURCE_ROOTS:
@@ -77,8 +66,6 @@ def _template_model_violations(repository: Path) -> list[dict[str, Any]]:
             masked = _mask_cpp_noise(source)
 
             for match in _EXPLICIT_SPECIALIZATION.finditer(masked):
-                if _allowed_specialization(relative, masked, match.start()):
-                    continue
                 violations.append(
                     _violation(relative, source, match.start(), "explicit-specialization")
                 )
@@ -108,5 +95,5 @@ def validate_template_model(repository: Path) -> dict[str, Any]:
         "ok": True,
         "gate": "template-source-model",
         "roots": list(_SOURCE_ROOTS),
-        "exceptions": ["include/surrender/srTypeRegistry.h: srInstanceLifecycle<false>"],
+        "exceptions": [],
     }

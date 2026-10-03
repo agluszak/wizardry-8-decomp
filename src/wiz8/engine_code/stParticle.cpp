@@ -927,8 +927,6 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     if (bounds_mode_1a4 == 2) {
         srGERD::e_visibility visibility;
 
-        /* Bound once: the retail body keeps the extent address in a register
-           across the three comparisons and the three projections. */
         const srVector3T<float>& extent = bounds_origin_234;
 
         if (extent.x == g_float_005ebb34 && extent.y == g_float_005ebb34 &&

@@ -44,6 +44,8 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_screens/RCSStatsPage.cpp
     src/wiz8/local_screens/MGSTextBox.cpp
     src/wiz8/local_screens/MainGameScreen.cpp
+    src/wiz8/local_screens/combat_portrait_image.cpp
+    src/wiz8/local_screens/formation_panel_refresh.cpp
     src/wiz8/local_screens/NPCInteractionSubscreen.cpp
     src/wiz8/local_screens/CharacterScreen.cpp
     src/wiz8/local_screens/CharacterPages.cpp
@@ -55,6 +57,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_screens/MGSUseItemSelect.cpp
     src/wiz8/local_screens/MGSPartyMovement.cpp
     src/wiz8/local_code/MonsterManager.cpp
+    src/wiz8/local_code/monster_fatigue.cpp
     src/wiz8/local_code/MonsterGroup.cpp
     src/wiz8/local_code/UtilityFunctions.cpp
     src/wiz8/local_code/Strings.cpp
@@ -171,6 +174,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/fact_state.cpp
     src/wiz8/engine_code/MonsterLight.cpp
     src/wiz8/engine_code/GDCamera.cpp
+    src/wiz8/engine_code/camera_transition_state.cpp
     src/wiz8/engine_code/world_selection.cpp
     src/wiz8/engine_code/stCube.cpp
     src/wiz8/engine_code/Camera.cpp

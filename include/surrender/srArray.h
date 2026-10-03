@@ -118,7 +118,7 @@ public:
     }
 
     /* Deep copy proved by srHuffman::Sampler's exported copy operations and
-       srModeler's implicit assignment (0x10037F90): self-check, reserve the
+       srModeler's assignment (0x10037F90): self-check, reserve the
        source capacity (release + exact-size allocate), copy that many
        elements. */
     inline srArray& operator=(const srArray& other)

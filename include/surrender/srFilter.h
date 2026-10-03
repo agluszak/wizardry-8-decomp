@@ -6,11 +6,8 @@
 // class srFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srFilter {
 public:
-    /* The class-level export emits the trivial default constructor, copy
-       constructor and assignment operator. They are compiler-generated:
-       srFilter has no data members, and the retail bodies contain no authored
-       work. The destructor remains explicit because it establishes the
-       hierarchy's virtual destructor. */
+    /* The reconstruction leaves trivial construction and copying implicit.
+       The explicit virtual destructor supplies the modeled destruction interface. */
     // SYNTHETIC: SURRENDER 0x10003300
     // ??0srFilter@@QAE@XZ
     // SYNTHETIC: SURRENDER 0x10003310
@@ -31,9 +28,8 @@ public:
 // class srBoxFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srBoxFilter : public srFilter {
 public:
-    /* No derived state: default/copy construction, assignment and destruction
-       are the compiler-generated srFilter operations plus the derived vptr
-       store. Class-level dllexport emits the standalone retail symbols. */
+    /* No derived state is modeled; lifecycle bodies are consistent with
+       ordinary base-only operations and derived table setup. */
     // SYNTHETIC: SURRENDER 0x10003480
     // srBoxFilter::srBoxFilter()
     // SYNTHETIC: SURRENDER 0x100034A0
@@ -52,9 +48,8 @@ public:
 // class srBellFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srBellFilter : public srFilter {
 public:
-    /* No derived state: default/copy construction, assignment and destruction
-       are the compiler-generated srFilter operations plus the derived vptr
-       store. Class-level dllexport emits the standalone retail symbols. */
+    /* No derived state is modeled; lifecycle bodies are consistent with
+       ordinary base-only operations and derived table setup. */
     // SYNTHETIC: SURRENDER 0x100035E0
     // srBellFilter::srBellFilter()
     // SYNTHETIC: SURRENDER 0x100035F0
@@ -73,9 +68,8 @@ public:
 // class srBSplineFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srBSplineFilter : public srFilter {
 public:
-    /* No derived state: default/copy construction, assignment and destruction
-       are the compiler-generated srFilter operations plus the derived vptr
-       store. Class-level dllexport emits the standalone retail symbols. */
+    /* No derived state is modeled; lifecycle bodies are consistent with
+       ordinary base-only operations and derived table setup. */
     // SYNTHETIC: SURRENDER 0x10003780
     // srBSplineFilter::srBSplineFilter()
     // SYNTHETIC: SURRENDER 0x10003790
@@ -94,9 +88,8 @@ public:
 // class srTriangleFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srTriangleFilter : public srFilter {
 public:
-    /* No derived state: default/copy construction, assignment and destruction
-       are the compiler-generated srFilter operations plus the derived vptr
-       store. Class-level dllexport emits the standalone retail symbols. */
+    /* No derived state is modeled; lifecycle bodies are consistent with
+       ordinary base-only operations and derived table setup. */
     // SYNTHETIC: SURRENDER 0x100036B0
     // srTriangleFilter::srTriangleFilter()
     // SYNTHETIC: SURRENDER 0x100036C0

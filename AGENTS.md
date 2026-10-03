@@ -40,8 +40,14 @@ does not prove equivalence or original spelling, and a differing decompilation d
 - Work stays in our Wizardry/reccmp/Ghidriff forks. Do not prepare or suggest upstream submissions
   unless explicitly requested.
 
-Detailed fidelity rules live only in
-[matching-decomp/references/source-fidelity.md](.agents/skills/matching-decomp/references/source-fidelity.md).
+Canonical rule owners:
+
+- General recovery fidelity: [source-fidelity](.agents/skills/matching-decomp/references/source-fidelity.md).
+- Type, layout and lifecycle inference: [type-modeling](.agents/skills/type-modeling/SKILL.md).
+- SurRender provider/consumer ABI boundaries: [import visibility](docs/libraries/surrender-import-visibility.md).
+- Source and translation-unit ownership: [source model](docs/wiz8-source-model.md).
+
+Workflow and evidence documents link to these owners rather than maintaining parallel policies.
 
 ## Tool ownership
 
