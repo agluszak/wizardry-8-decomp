@@ -110,7 +110,7 @@ def test_selected_glide_config_reaches_runtime_test_stage_and_display(
     tmp_path: Path, monkeypatch
 ) -> None:
     settings = _settings(tmp_path)
-    config = settings.repo_dir / "config" / "runtime" / "3DVideo.Glide2x.CFG"
+    config = tmp_path / "selected-video.CFG"
     config.write_text("Glide2x\n800\n600\n16\nAudio\n")
     monkeypatch.setenv("WIZ8_RUNTIME_VIDEO_CONFIG", str(config))
     stage = stage_game(

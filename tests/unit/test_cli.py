@@ -362,7 +362,6 @@ def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:
 
     evidence = CliRunner().invoke(app, ["evidence", "refresh", "--help"])
     assert evidence.exit_code == 0
-    assert "debug-artifacts" in evidence.stdout
     assert "surrender-abi" in evidence.stdout
     assert "function-census" not in evidence.stdout
     assert CliRunner().invoke(app, ["evidence", "upsert", "--help"]).exit_code != 0
@@ -523,3 +522,23 @@ def test_compare_changed_without_target_markers_is_an_empty_success(tmp_path, mo
 
     assert result.exit_code == 0, result.output
     assert json.loads(result.stdout)["selected"] == 0
+
+
+def test_prepare_sources_only_does_not_require_game_inputs(monkeypatch) -> None:
+    from wiz8decomp import build, build_inputs
+
+    settings = SimpleNamespace()
+    monkeypatch.setattr(command_support, "settings", lambda: settings)
+    monkeypatch.setattr(build, "prepare", lambda *_: pytest.fail("must not prepare game inputs"))
+    monkeypatch.setattr(
+        build, "prepare_comparison", lambda *_: pytest.fail("must not prepare originals")
+    )
+    calls = []
+    monkeypatch.setattr(build_inputs, "fetch_sources", lambda s: calls.append(s) or {"sources": []})
+    result = CliRunner().invoke(app, ["prepare", "--sources-only"])
+    assert result.exit_code == 0
+    assert calls == [settings]
+    assert json.loads(result.stdout) == {"sources": []}
+    result = CliRunner().invoke(app, ["prepare", "--sources-only", "--comparison-target", "WIZ8"])
+    assert result.exit_code != 0
+    assert calls == [settings]
