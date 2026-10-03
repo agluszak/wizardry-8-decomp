@@ -9,6 +9,7 @@
 #include <ddraw.h>
 #include "debug.h"
 #include "video_private.h"
+#include "vobject_blitters.h"
 
 // DirectDrawSurface2 Calls
 // FUNCTION: WIZ8 0x0040f0b0
@@ -412,13 +413,13 @@ HRESULT BltFastDDSurfaceUsingSoftware( LPDIRECTDRAWSURFACE2 pDestSurface, INT32 
 	// Lock surfaces
 	DDLockSurface( (LPDIRECTDRAWSURFACE2)pDestSurface, NULL, &SurfaceDescription, 0, NULL);
 	uiDestPitchBYTES = SurfaceDescription.lPitch;
-	pDestBuf				 = SurfaceDescription.lpSurface;
+	pDestBuf = (UINT8 *)SurfaceDescription.lpSurface;
 
 
 	// Lock surfaces
 	DDLockSurface( (LPDIRECTDRAWSURFACE2)pSrcSurface, NULL, &SurfaceDescription, 0, NULL);
 	uiSrcPitchBYTES = SurfaceDescription.lPitch;
-	pSrcBuf				 = SurfaceDescription.lpSurface;
+	pSrcBuf = (UINT8 *)SurfaceDescription.lpSurface;
 
 	if ( uiTrans == DDBLTFAST_NOCOLORKEY )
 	{
@@ -474,7 +475,7 @@ HRESULT BltDDSurfaceUsingSoftware( LPDIRECTDRAWSURFACE2 pDestSurface, LPRECT pDe
 	// Lock surfaces
 	DDLockSurface( (LPDIRECTDRAWSURFACE2)pDestSurface, NULL, &SurfaceDescription, 0, NULL);
 	uiDestPitchBYTES = SurfaceDescription.lPitch;
-	pDestBuf				 = SurfaceDescription.lpSurface;
+	pDestBuf = (UINT8 *)SurfaceDescription.lpSurface;
 
 
 	if ( pSrcSurface != NULL )
@@ -482,7 +483,7 @@ HRESULT BltDDSurfaceUsingSoftware( LPDIRECTDRAWSURFACE2 pDestSurface, LPRECT pDe
 		// Lock surfaces
 		DDLockSurface( (LPDIRECTDRAWSURFACE2)pSrcSurface, NULL, &SurfaceDescription, 0, NULL);
 		uiSrcPitchBYTES = SurfaceDescription.lPitch;
-		pSrcBuf				 = SurfaceDescription.lpSurface;
+		pSrcBuf = (UINT8 *)SurfaceDescription.lpSurface;
 	}
 
 	if ( pSrcRect != NULL &&
@@ -506,7 +507,7 @@ HRESULT BltDDSurfaceUsingSoftware( LPDIRECTDRAWSURFACE2 pDestSurface, LPRECT pDe
 		// Lock surfaces
 		DDLockSurface( (LPDIRECTDRAWSURFACE2)pSrcSurface, NULL, &SurfaceDescription, 0, NULL);
 		uiSrcPitchBYTES = SurfaceDescription.lPitch;
-		pSrcBuf				 = SurfaceDescription.lpSurface;
+		pSrcBuf = (UINT8 *)SurfaceDescription.lpSurface;
 
 		Blt16BPPTo16BPP( (UINT16 *)pDestBuf, uiDestPitchBYTES,
 					(UINT16 *)pSrcBuf, uiSrcPitchBYTES,

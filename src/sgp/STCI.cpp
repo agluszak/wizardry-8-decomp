@@ -222,7 +222,7 @@ BOOLEAN STCILoadIndexed( HIMAGE hImage, UINT16 fContents, HWFILE hFile, STCIHead
 			Assert( sizeof( ETRLEObject ) == STCI_SUBIMAGE_SIZE );
 			hImage->usNumberOfObjects = pHeader->Indexed.usNumberOfSubImages;
 			uiFileSectionSize = hImage->usNumberOfObjects * STCI_SUBIMAGE_SIZE;
-			hImage->pETRLEObject = MemAlloc( uiFileSectionSize );
+			hImage->pETRLEObject = (ETRLEObject *)MemAlloc( uiFileSectionSize );
 			if (hImage->pETRLEObject == NULL)
 			{
 				DbgMessage( TOPIC_HIMAGE, DBG_LEVEL_3, "Out of memory!" );
@@ -293,7 +293,7 @@ BOOLEAN STCILoadIndexed( HIMAGE hImage, UINT16 fContents, HWFILE hFile, STCIHead
 	if (fContents & IMAGE_APPDATA && pHeader->uiAppDataSize > 0)
 	{
 		// load application-specific data
-		hImage->pAppData = MemAlloc( pHeader->uiAppDataSize );
+		hImage->pAppData = (UINT8 *)MemAlloc( pHeader->uiAppDataSize );
 		if (hImage->pAppData == NULL)
 		{
 			DbgMessage( TOPIC_HIMAGE, DBG_LEVEL_3, "Out of memory!" );
@@ -352,7 +352,7 @@ BOOLEAN STCISetPalette( PTR pSTCIPalette, HIMAGE hImage )
 	pubPalette = (STCIPaletteElement *) pSTCIPalette;
 
 	// Allocate memory for palette
-	hImage->pPalette = MemAlloc( sizeof( SGPPaletteEntry ) * 256 );
+	hImage->pPalette = (SGPPaletteEntry *)MemAlloc( sizeof( SGPPaletteEntry ) * 256 );
 	memset( hImage->pPalette, 0, ( sizeof( SGPPaletteEntry ) * 256 ) );
 
 	if ( hImage->pPalette == NULL )

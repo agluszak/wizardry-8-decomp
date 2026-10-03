@@ -258,7 +258,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	}
 
 	// Read in the library header ( at the begining of the library )
-	if( !ReadFile( hFile, &LibFileHeader, sizeof( LIBHEADER ), &uiNumBytesRead, NULL ) )
+	if( !ReadFile( hFile, &LibFileHeader, sizeof( LIBHEADER ), (LPDWORD)&uiNumBytesRead, NULL ) )
 		return( FALSE );
 
 	if( uiNumBytesRead != sizeof( LIBHEADER ) )
@@ -276,7 +276,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	for( uiLoop=0; uiLoop<(UINT32)LibFileHeader.iEntries; uiLoop++ )
 	{
 		//read in the file header
-		if( !ReadFile( hFile, &DirEntry, sizeof( DIRENTRY ), &uiNumBytesRead, NULL ) )
+		if( !ReadFile( hFile, &DirEntry, sizeof( DIRENTRY ), (LPDWORD)&uiNumBytesRead, NULL ) )
 			return( FALSE );
 
 		if( DirEntry.ubState == FILE_OK )
@@ -285,7 +285,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 
 
 	//Allocate enough memory for the library header
-	pLibHeader->pFileHeader = MemAlloc( sizeof( FileHeaderStruct ) * usNumEntries );
+	pLibHeader->pFileHeader = (FileHeaderStruct *)MemAlloc( sizeof( FileHeaderStruct ) * usNumEntries );
 
 
 
@@ -297,7 +297,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	for( uiLoop=0; uiLoop<(UINT32)LibFileHeader.iEntries; uiLoop++ )
 	{
 		//read in the file header
-		if( !ReadFile( hFile, &DirEntry, sizeof( DIRENTRY ), &uiNumBytesRead, NULL ) )
+		if( !ReadFile( hFile, &DirEntry, sizeof( DIRENTRY ), (LPDWORD)&uiNumBytesRead, NULL ) )
 			return( FALSE );
 
 
@@ -309,7 +309,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 
 
 			//allocate memory for the files name
-			pLibHeader->pFileHeader[ uiCount ].pFileName = MemAlloc( strlen( DirEntry.sFileName ) + 1 );
+			pLibHeader->pFileHeader[ uiCount ].pFileName = (STR)MemAlloc( strlen( DirEntry.sFileName ) + 1 );
 
 			//if we couldnt allocate memory
 			if( !pLibHeader->pFileHeader[ uiCount ].pFileName )
@@ -343,13 +343,13 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	//if the library has a path
 	if( strlen( LibFileHeader.sPathToLibrary ) != 0 )
 	{
-		pLibHeader->sLibraryPath = MemAlloc( strlen( LibFileHeader.sPathToLibrary ) + 1 );
+		pLibHeader->sLibraryPath = (STR)MemAlloc( strlen( LibFileHeader.sPathToLibrary ) + 1 );
 		strcpy( pLibHeader->sLibraryPath, LibFileHeader.sPathToLibrary );
 	}
 	else
 	{
 		//else the library name does not contain a path ( most likely either an error or it is the default path )
-		pLibHeader->sLibraryPath = MemAlloc( 1 );
+		pLibHeader->sLibraryPath = (STR)MemAlloc( 1 );
 		pLibHeader->sLibraryPath[0] = '\0';
 	}
 
@@ -357,7 +357,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 
 
 	//allocate space for the open files array
-	pLibHeader->pOpenFiles = MemAlloc( INITIAL_NUM_HANDLES * sizeof( FileOpenStruct ) );
+	pLibHeader->pOpenFiles = (FileOpenStruct *)MemAlloc( INITIAL_NUM_HANDLES * sizeof( FileOpenStruct ) );
 	if( !pLibHeader->pOpenFiles )
 	{
 			//report an error
@@ -450,7 +450,7 @@ BOOLEAN LoadDataFromLibrary( INT16 sLibraryID, UINT32 uiFileNum, PTR pData, UINT
 	{
 		SetFilePointer(hLibraryFile, 0, NULL, FILE_CURRENT);
 		SetFilePointer(hLibraryFile, uiOffsetInLibrary + uiCurPos, NULL, FILE_BEGIN);
-		if( !ReadFile(hLibraryFile, pData, uiBytesToRead, &uiNumBytesRead, NULL) )
+		if( !ReadFile(hLibraryFile, pData, uiBytesToRead, (LPDWORD)&uiNumBytesRead, NULL) )
 			return FALSE;
 		if( uiBytesToRead != uiNumBytesRead )
 			return FALSE;
@@ -664,7 +664,7 @@ HWFILE OpenFileFromLibrary( STR pName )
 				FileOpenStruct	*pOpenFiles;
 
 				//reallocate more space for the array
-				pOpenFiles = MemRealloc( gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles,
+				pOpenFiles = (FileOpenStruct *)MemRealloc( gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles,
 								 gFileDataBase.pLibraries[ sLibraryID ].iSizeOfOpenFileArray + NUM_FILES_TO_ADD_AT_A_TIME );
 
 				if( !pOpenFiles )
@@ -756,7 +756,7 @@ HWFILE CreateRealFileHandle( HANDLE hFile )
 	{
 		uiSize = ( gFileDataBase.RealFiles.iSizeOfOpenFileArray + NUM_FILES_TO_ADD_AT_A_TIME ) * sizeof( RealFileOpenStruct );
 
-		gFileDataBase.RealFiles.pRealFilesOpen = MemRealloc( gFileDataBase.RealFiles.pRealFilesOpen, uiSize );
+		gFileDataBase.RealFiles.pRealFilesOpen = (RealFileOpenStruct *)MemRealloc( gFileDataBase.RealFiles.pRealFilesOpen, uiSize );
 		CHECKF( gFileDataBase.RealFiles.pRealFilesOpen );
 
 		//Clear out the new part of the array
@@ -1058,13 +1058,13 @@ BOOLEAN GetLibraryFileTime( INT16 sLibraryID, UINT32 uiFileNum, SGP_FILETIME	*pL
 		SetFilePointer( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, 0, NULL, FILE_BEGIN );
 
 		// Read in the library header ( at the begining of the library )
-		if( ReadFile( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, &LibFileHeader, sizeof( LIBHEADER ), &uiNumBytesRead, NULL ) &&
+		if( ReadFile( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, &LibFileHeader, sizeof( LIBHEADER ), (LPDWORD)&uiNumBytesRead, NULL ) &&
 			uiNumBytesRead == sizeof( LIBHEADER ) )
 		{
 			//If the file number is greater then the number in the lirary, return false
 			if( uiFileNum < (UINT32)LibFileHeader.iEntries )
 			{
-				pAllEntries = MemAlloc( sizeof( DIRENTRY ) * LibFileHeader.iEntries );
+				pAllEntries = (DIRENTRY *)MemAlloc( sizeof( DIRENTRY ) * LibFileHeader.iEntries );
 				if( pAllEntries != NULL )
 				{
 					memset( pAllEntries, 0, sizeof( DIRENTRY ) );
@@ -1075,7 +1075,7 @@ BOOLEAN GetLibraryFileTime( INT16 sLibraryID, UINT32 uiFileNum, SGP_FILETIME	*pL
 					SetFilePointer( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, iFilePos, NULL, FILE_END );
 
 					// Read in the library header ( at the begining of the library )
-					if( ReadFile( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, pAllEntries, ( sizeof( DIRENTRY ) * LibFileHeader.iEntries ), &uiNumBytesRead, NULL ) &&
+					if( ReadFile( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, pAllEntries, ( sizeof( DIRENTRY ) * LibFileHeader.iEntries ), (LPDWORD)&uiNumBytesRead, NULL ) &&
 						uiNumBytesRead == ( sizeof( DIRENTRY ) * LibFileHeader.iEntries ) )
 					{
 						/* try to find the filename using a binary search algorithm: */
