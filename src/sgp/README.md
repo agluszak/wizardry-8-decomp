@@ -138,8 +138,10 @@ same. The patch loop is preserved, including this original capacity discrepancy.
 `DeleteStack` and `ListSize`/`StackSize` are folded pairs. The
 `DirectDraw Calls.c` `__FILE__` string fixes the `C:\Projects\SGP` build path.
 
-JA2 Utils `Text_Input` is not an SGP unit. Its source ancestor remains under
-`third_party/sfi-ja2-utils`, and the Wizardry derivative remains product code.
+JA2 Utils `Text_Input` is not an SGP unit. The Wizardry derivative remains
+product code; its released ancestor is `ja2-stracciatella/ja2-stracciatella`
+commit `5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033`,
+`ja2/Build/Utils/Text_Input.{c,h}`.
 Miles startup/exit support belongs to the Miles import boundary, not to SGP.
 
 ## Comparison
