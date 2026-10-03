@@ -291,7 +291,7 @@ UINT32					LoadIndex;
 	}
 
 	vo_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-	strcpy(vo_desc.ImageFile, filename);
+	strcpy(vo_desc.ImageFile, (char *)filename);
 
 	if((FontObjs[LoadIndex]=CreateVideoObject(&vo_desc))==NULL)
 	{

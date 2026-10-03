@@ -9,14 +9,11 @@
 #include "FileMan.h"
 #include "VObject.h"
 #include "VSurface.h"
+#include "video2.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
-#include "video2.h"
-
 
 extern UINT32		GetCursorHandle(UINT32 uiCursorIndex);
 extern void     UnloadCursorData(UINT32 uiCursorIndex);

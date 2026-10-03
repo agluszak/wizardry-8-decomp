@@ -375,7 +375,7 @@ HVOBJECT CreateVideoObject( VOBJECT_DESC *VObjectDesc )
 //	UINT32							count;
 
 	// Allocate memory for video object data and initialize
-	hVObject = MemAlloc( sizeof( SGPVObject ) );
+	hVObject = (HVOBJECT)MemAlloc( sizeof( SGPVObject ) );
 	CHECKF( hVObject != NULL );
 	memset( hVObject, 0, sizeof( SGPVObject ) );
 
@@ -478,7 +478,7 @@ BOOLEAN SetVideoObjectPalette( HVOBJECT hVObject, SGPPaletteEntry *pSrcPalette )
 	if ( hVObject->pPaletteEntry == NULL )
 	{
 		// Create palette
-		hVObject->pPaletteEntry = MemAlloc( sizeof( SGPPaletteEntry ) * 256 );
+		hVObject->pPaletteEntry = (SGPPaletteEntry *)MemAlloc( sizeof( SGPPaletteEntry ) * 256 );
 		CHECKF( hVObject->pPaletteEntry != NULL );
 
 		// Copy src into palette

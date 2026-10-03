@@ -41,7 +41,11 @@ add_library(WIZ8_SGP STATIC
 # tree; README.md records them and the pinned released baseline.
 
 set_source_files_properties(DEBUG.cpp PROPERTIES COMPILE_DEFINITIONS _NO_DEBUG_TXT)
-target_compile_options(WIZ8_SGP PRIVATE /nologo /Z7 /O2 /Ob2)
+target_compile_definitions(WIZ8_SGP PRIVATE CINTERFACE COBJMACROS)
+target_compile_options(WIZ8_SGP PRIVATE
+    /nologo /Z7 /O2 /Ob2
+    "/FI${PROJECT_SOURCE_DIR}/include/wiz8/compat/compiler.h"
+)
 if(NOT WIZ8_ANALYSIS_BUILD)
     target_compile_options(WIZ8_SGP PRIVATE /G5 /MD)
 endif()
