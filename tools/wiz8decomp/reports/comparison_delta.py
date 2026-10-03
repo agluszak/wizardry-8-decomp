@@ -260,26 +260,6 @@ def datacmp_metrics(report: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _project_metrics(status: dict[str, Any], target: str) -> dict[str, Any]:
-    try:
-        row = status["targets"][target]
-    except KeyError as error:
-        raise ValueError(f"status report has no target {target}") from error
-    if row.get("state") != "comparison":
-        raise ValueError(f"target {target} is not in comparison state")
-    pairing = row["pairing"]
-    return {
-        "source_functions": int(row.get("source", {}).get("functions") or 0),
-        "original_functions": row.get("original_functions"),
-        "source_coverage": row.get("source_coverage"),
-        "paired": int(pairing.get("paired") or 0),
-        "unpaired": int(pairing.get("unpaired") or 0),
-        "unpaired_line_refs": int(pairing.get("unpaired_line_refs") or 0),
-        "unpaired_name_refs": int(pairing.get("unpaired") or 0)
-        - int(pairing.get("unpaired_line_refs") or 0),
-    }
-
-
 def _difference(head: Any, base: Any) -> Any:
     if head is None or base is None:
         return None
@@ -331,8 +311,6 @@ def _transitions(head: dict[str, Any], base: dict[str, Any]) -> dict[str, int]:
 
 def pr_comparison_report(
     target: str,
-    head_status_path: Path,
-    base_status_path: Path,
     *,
     head_summary_path: Path | None = None,
     base_summary_path: Path | None = None,
@@ -344,16 +322,9 @@ def pr_comparison_report(
     base_direct_calls_path: Path | None = None,
     header_includers: dict[str, set[str]] | None = None,
 ) -> dict[str, Any]:
-    head_project = _project_metrics(_read_json(head_status_path), target)
-    base_project = _project_metrics(_read_json(base_status_path), target)
     report: dict[str, Any] = {
         "schema": "wiz8.pr-comparison-v1",
         "target": target,
-        "project": {
-            "head": head_project,
-            "base": base_project,
-            "delta": _metric_delta(head_project, base_project),
-        },
         "comparison": None,
         "datacmp": None,
     }

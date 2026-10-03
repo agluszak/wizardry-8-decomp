@@ -19,47 +19,6 @@ def retail_bugs_command() -> None:
     cli.emit(retail_bug_report(settings.repo_dir, settings.build_dir / "reports" / "retail-bugs"))
 
 
-@app.command("field-uses")
-def field_uses_command(
-    owners: Annotated[list[str], typer.Argument(help="Exact modeled type names or paths.")],
-    program: Annotated[str, typer.Option("--program")] = "wiz8",
-    directory: Annotated[Path | None, typer.Option(help="Saved comparison directory.")] = None,
-) -> None:
-    """Census retail field uses by owner; reads Ghidra and saved comparisons."""
-    from .. import command_support as cli
-    from ..comparison import report_directory
-    from ..ghidra.env import open_program
-    from ..ghidra.field_uses import field_uses
-    from ..source_index import target_for_program
-
-    settings = cli.settings()
-    target = target_for_program(settings.repo_dir, program)
-    saved = directory or report_directory(settings.repo_dir, target)
-    with open_program(settings, program) as live:
-        payload = field_uses(live, settings.repo_dir, owners, saved)
-    cli.emit(payload)
-
-
-@app.command("signature-census")
-def signature_census_command(
-    program: Annotated[str, typer.Option("--program")] = "wiz8",
-    directory: Annotated[Path | None, typer.Option(help="Saved comparison directory.")] = None,
-) -> None:
-    """Join callee signatures and provenance; never rebuilds or compares binaries."""
-    from .. import command_support as cli
-    from ..comparison import report_directory
-    from ..ghidra.env import open_program
-    from ..ghidra.signature_census import signature_census
-    from ..source_index import target_for_program
-
-    settings = cli.settings()
-    target = target_for_program(settings.repo_dir, program)
-    saved = directory or report_directory(settings.repo_dir, target)
-    with open_program(settings, program) as live:
-        payload = signature_census(live, settings.repo_dir, saved)
-    cli.emit(payload)
-
-
 @app.command("compare")
 def comparison_command(
     addresses: Annotated[
@@ -103,24 +62,6 @@ def comparison_command(
     )
 
 
-@app.command("status")
-def status_command(
-    build: Annotated[
-        bool, typer.Option("--build", help="Build products before reporting.")
-    ] = False,
-) -> None:
-    """Report source coverage and reccmp pairing; never runs a comparison."""
-    from .. import command_support as cli
-    from ..reports.status import status_report
-
-    settings = cli.settings()
-    if build:
-        from ..build import build_target
-
-        build_target(settings, "reccmp-products")
-    cli.emit(status_report(settings))
-
-
 _INCLUDE = re.compile(r'^\s*#\s*include\s*[<"]([^>"]+)[>"]', re.MULTILINE)
 
 
@@ -141,8 +82,6 @@ def _includes_directly(source: Path, header: str) -> bool:
 @app.command("pr-comparison")
 def pr_comparison_command(
     target: Annotated[str, typer.Option("--target")],
-    head_status: Annotated[Path, typer.Option("--head-status")],
-    base_status: Annotated[Path, typer.Option("--base-status")],
     head_summary: Annotated[Path | None, typer.Option("--head-summary")] = None,
     base_summary: Annotated[Path | None, typer.Option("--base-summary")] = None,
     head_ghidriff: Annotated[Path | None, typer.Option("--head-ghidriff")] = None,
@@ -183,8 +122,6 @@ def pr_comparison_command(
     cli.emit(
         pr_comparison_report(
             target,
-            head_status,
-            base_status,
             head_summary_path=head_summary,
             base_summary_path=base_summary,
             head_ghidriff_path=head_ghidriff,
@@ -194,35 +131,6 @@ def pr_comparison_command(
             head_direct_calls_path=head_direct_calls,
             base_direct_calls_path=base_direct_calls,
             header_includers=header_includers,
-        )
-    )
-
-
-@app.command("surrender-frontier")
-def surrender_frontier_command(
-    class_filter: str | None = typer.Option(
-        None, "--class", help="Restrict the per-import listing to one SurRender class."
-    ),
-    priority: str | None = typer.Option(
-        None, "--priority", help="Restrict the per-import listing to P0/P3."
-    ),
-    compare: bool = typer.Option(
-        False,
-        "--compare/--no-compare",
-        help="Annotate recovered bodies with reccmp's comparison outcome (runs Ghidra).",
-    ),
-) -> None:
-    """Rank SurRender provider work by what Wiz8 actually references."""
-
-    from .. import command_support as cli
-    from ..reports.surrender_frontier import surrender_frontier_report
-
-    cli.emit(
-        surrender_frontier_report(
-            cli.settings(),
-            class_filter=class_filter,
-            priority_filter=priority,
-            compare=compare,
         )
     )
 
@@ -341,31 +249,3 @@ def merge_preservation_command(
     cli.emit(report)
     if report["status"] != "passed":
         raise typer.Exit(code=1)
-
-
-@app.command("translation-units")
-def translation_units_command() -> None:
-    """Generate source ownership and hard-hull projections from the live layout."""
-
-    from .. import command_support as cli
-    from ..ghidra.unit_intervals import translation_unit_layout
-    from ..reports.translation_units import translation_unit_report
-
-    settings = cli.settings()
-    layout = translation_unit_layout(settings)
-    cli.emit(translation_unit_report(settings, layout=layout))
-
-
-@app.command("mismatch-clusters")
-def mismatch_clusters_command(
-    directory: Annotated[
-        Path | None, typer.Option("--directory", help="Existing WIZ8 comparison report directory.")
-    ] = None,
-) -> None:
-    """Cluster existing Ghidriff differences and catalog direct-call observations."""
-    from .. import command_support as cli
-    from ..comparison import report_directory
-    from ..reports.mismatch_clusters import mismatch_clusters
-
-    repository = cli.settings().repo_dir
-    cli.emit(mismatch_clusters(repository, directory or report_directory(repository, "WIZ8")))

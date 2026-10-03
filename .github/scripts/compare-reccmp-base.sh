@@ -12,7 +12,6 @@ head_summary="$RUNNER_TEMP/$prefix-head-summary.json"
 base_summary="$RUNNER_TEMP/$prefix-base-summary.json"
 base_ghidriff="$RUNNER_TEMP/$prefix-base-ghidriff.json"
 base_direct_calls="$RUNNER_TEMP/$prefix-base-direct-calls.json"
-base_status="$RUNNER_TEMP/$prefix-base-status.json"
 base_datacmp="$RUNNER_TEMP/$prefix-base-datacmp.json"
 
 restore_head() {
@@ -59,7 +58,6 @@ if [[ -s "$head_summary" ]]; then
   fi
 fi
 
-uv run --no-sync wiz8 report status > "$base_status"
 datacmp_status=0
 uv run --no-sync wiz8 datacmp --program "$program" > "$base_datacmp" || datacmp_status=$?
 if (( datacmp_status != 0 )); then

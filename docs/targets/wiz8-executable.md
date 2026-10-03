@@ -68,9 +68,7 @@ overrides of the prepared tools.
 defaults to the private display and judges only `WIZ8_RUNTIME_TEST`; set
 `WIZ8_RUNTIME_DISPLAY=host` for visual debugging. Its controlled staging directory owns test config,
 saves, display, and audio policy. The native exception filter records every general-purpose register
-in-process and scans registers as well as stack words for recovered-image candidates; Python
-symbolizes them against `Wiz8RuntimeTest.map` and reports the unresolved externals of each owning
-object. It never launches GDB or reruns a failed scenario. Off-screen Wine is configured to own its
+in-process and scans registers as well as stack words for recovered-image candidates; Python symbolizes them against `Wiz8RuntimeTest.map`. It never launches GDB or reruns a failed scenario. Off-screen Wine is configured to own its
 windows because Xvfb has no window manager.
 Mouse and keyboard events traverse reconstructed SGP input and the recovered region callbacks.
 Exiting the runtime-test harness terminates only its dedicated Wine prefix. The harness stays
@@ -88,7 +86,7 @@ Their build does not depend on the matching executable, source indexing, or gene
 VC6's `/MD` CRT library supplies its own floating-point marker and SEH chain symbol.
 Both runnable products link the shared exception filter; when a genuine runtime fault occurs it
 records the register file and candidate image addresses, which Python symbolizes through the
-runtime MAP and correlates with the unresolved externals of each owning object.
+runtime MAP.
 
 ## Platform and import libraries
 

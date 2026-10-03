@@ -169,3 +169,27 @@ def test_a_vbtable_run_ends_at_padding_rather_than_reading_it_as_a_base() -> Non
     )
 
     assert decode_vbtable(image, set(), 0x1000, boundaries=set()) == [-4, 0x14]
+
+
+def test_local_abi_snapshot_publication_round_trips_and_rejects_stale_reports(tmp_path):
+    import csv
+    import io
+    from types import SimpleNamespace
+
+    import pytest
+    from wiz8decomp.surrender_abi import _REPORT_FILES, _csv_text, _publish_snapshot
+
+    settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")
+    payload = _csv_text(["name"], [{"name": "quoted, café"}])
+    outputs = dict.fromkeys(_REPORT_FILES, payload)
+    report, snapshot, fresh = _publish_snapshot(settings, outputs, True)
+    assert fresh
+    assert (
+        next(csv.DictReader(io.StringIO((snapshot / "exports.csv").read_text())))["name"]
+        == "quoted, café"
+    )
+    assert _publish_snapshot(settings, outputs, False) == (report, snapshot, True)
+    changed = {**outputs, "exports.csv": _csv_text(["name"], [{"name": "new"}])}
+    with pytest.raises(RuntimeError, match="differs from the tracked snapshot"):
+        _publish_snapshot(settings, changed, False)
+    assert (snapshot / "exports.csv").read_text() == payload

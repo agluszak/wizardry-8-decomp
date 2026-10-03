@@ -507,7 +507,6 @@ def register(app: typer.Typer) -> None:
     app.command("run")(run_command)
     app.command("debug")(debug_command)
     app.add_typer(analyze_app, name="analyze")
-    analyze_app.command("unresolved")(unresolved_report_command)
     analyze_app.command("crash")(crash_report_command)
     analyze_app.command("inventory")(inventory_command)
     analyze_app.command("trace")(trace_command)
@@ -613,25 +612,6 @@ def parameter_id_command(
                 addresses=addresses,
                 limit=limit,
             )
-
-    cli.emit(action())
-
-
-def unresolved_report_command(
-    objects: Annotated[Path | None, typer.Option(help="Object root.")] = None,
-    link_map: Annotated[Path | None, typer.Option(help="Linker MAP.")] = None,
-) -> None:
-    from .. import command_support as cli
-    from ..unresolved import linked_objects, unresolved_report
-
-    def action():
-        settings = cli.settings()
-        report = unresolved_report(
-            objects or settings.recovered_objects_dir,
-            link_map or settings.product_build_dir / "Wiz8.map",
-            objects=None if objects else linked_objects(settings.product_build_dir),
-        )
-        return report
 
     cli.emit(action())
 
