@@ -109,8 +109,7 @@ unsigned char PleaseWaitScreenInitialize(void)
    0x18. Mode 0 is the new game - it clears the fact state and deletes the running
    save; modes 1 and 2 carry a name; mode 3 carries two parameters and no name.
 
-   The descriptor is reached through the global at every store rather than through
-   a local, which is the original's own shape. */
+   The handler accesses the shared descriptor through g_load_descriptor. */
 // FUNCTION: WIZ8 0x00590de0
 unsigned char PleaseWaitScreenEnter(void)
 {
@@ -163,10 +162,7 @@ unsigned char PleaseWaitScreenEnter(void)
    reports 0 so the caller does not proceed. A reachable archive, or a disc the
    check clears, reports 1.
 
-   The dialog is built once and kept; the three setters go through the vtable
-   here because the receiver is a base pointer rather than a constructor's own
-   object, which is what separates these call sites from the derived
-   constructors that reach the same three addresses directly. */
+   The swap-disc dialog is constructed once and retained. */
 // FUNCTION: WIZ8 0x00591620
 static bool PleaseWaitScreenEnsureLevelArchive(int level)
 {

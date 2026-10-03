@@ -93,3 +93,33 @@ Limitations:
 
 The MSVC static archives were support-code oracles; they do not establish that
 the product linked the static CRT.
+
+## Exported trivial copies
+
+The pinned SP5 compiler exports an implicit assignment operator, but no standalone implicit
+copy constructor, for a class-level `dllexport` record containing an array of four-byte,
+trivially copied class members. A second record with a user-defined destructor has the same
+behavior. Probes under `/O2 /G6 /MD /GX`, `/Od`, `/O2 /Ob0`, and `/GX-` retain
+this distinction. Exporting the member class also does not produce the containing copy
+constructor. A counterfactual probe with an explicit member copy constructor does produce it;
+that establishes a compiler sensitivity, not an original-source declaration.
+
+The retail `srModeler::Triangle` and `Polygon` copy exports at `0x10037C10` and `0x10037CF0`
+copy the texture-pointer region, four shader words, and the remaining members without extra
+behavior. `Polygon` copies its vertex pointer shallowly; `Triangle` block-copies its vertex
+region. The instructions contain no calls identifying the shader-word copy's source spelling.
+The current member model explains this behavior with implicit copies, but the pinned compiler
+does not emit the two standalone identities required by the retail export definition. They are
+absent from the modeler object before linking, including with `/Od`; linker retention options
+cannot recover bodies absent from the object. Keep this emission disagreement separate from
+the authored lifecycle model, whose inference rules belong to
+[type modeling](../../.agents/skills/type-modeling/SKILL.md#classes-and-lifecycle).
+
+The probe object records compiler product/build `11/8966`; retail `sr.dll` records `11/8447`
+for 113 linked objects. This difference keeps exact compiler selection unresolved. It does not
+establish that changing compiler build would reproduce these exports.
+
+`wiz8 build SURRENDER` inspects the actual VC6 provider objects before linking. It reports
+missing definitions required by `sr.def` and compiler export directives absent from the reviewed
+retail ABI together. The objects are not rewritten, and no substitute bodies are generated.
+These failures leave the declaration/compiler questions explicit.

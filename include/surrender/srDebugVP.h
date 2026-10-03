@@ -23,8 +23,8 @@ public:
        forwarders are reached exclusively through the srVP vtable, so the
        class carries no blanket import specifier. */
     SR_DLL_IMPORT srDebugVP(srVP* processor);
-    /* Empty derived destruction is compiler-generated from srVP's virtual
-       destructor. */
+    /* Destruction is consistent with base-only cleanup; the reconstruction
+       leaves the derived destructor implicit. */
     // SYNTHETIC: SURRENDER 0x1006FCA0
     // srDebugVP::~srDebugVP
     // SYNTHETIC: SURRENDER 0x1006FC80

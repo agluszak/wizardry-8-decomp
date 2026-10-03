@@ -5213,6 +5213,7 @@ static bool IsPartyPortraitUnderCursor(unsigned int party_slot)
     return IsCursorInRectangle(left, row.top, right, row.bottom) != 0;
 }
 
+
 /* The per-frame combat-strip update: while combat mode is on, recompute each
    party slot's status (-1 empty/dead, 0 ready, 1 cannot switch, 2 ineligible,
    3 acting), refresh the portrait catalog images, and pulse the acting
@@ -8717,6 +8718,7 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
     }
     return false;
 }
+
 
 /* Condition orb on a party portrait (help 25): press while highest_condition
    is set arms the overlay slot; release and leave dismiss the hover plate;

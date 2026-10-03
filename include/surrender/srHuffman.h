@@ -14,7 +14,7 @@
    Decompressor 0x51c.
 
    Retail exports every defined member of each nested class, including the
-   private helpers (AAE access codes) and Sampler's implicit copy
+   private helpers (AAE access codes) and Sampler's copy
    operations, so the classes are dllexport-ed when building the provider
    (the same convention as srDebugDD). Members whose bodies sit here are the
    ones Wiz8 never imports: compressSymbol is inlined by BitArray::Save, and
@@ -97,7 +97,7 @@ public:
         };
 
         SR_DLL_IMPORT Sampler();
-        /* Provider teardown is the implicit hash/array destruction. Wiz8
+        /* Provider teardown is consistent with hash/array destruction. Wiz8
            imports the standalone destructor, so only the consumer declares it. */
         // SYNTHETIC: SURRENDER 0x100016F0
         // srHuffman::Sampler::~Sampler
@@ -133,8 +133,7 @@ public:
 
         SR_DLL_IMPORT Compressor(const Sampler& sampler);
         SR_DLL_IMPORT ~Compressor();
-        /* Implicit assignment: retail emits it via the class-level dllexport
-           as a 0x28-byte memberwise copy (rep movsd). */
+        /* The assignment body contains a 0x28-byte memberwise copy. */
         // SYNTHETIC: SURRENDER 0x10001740
         // srHuffman::Compressor::operator=
 

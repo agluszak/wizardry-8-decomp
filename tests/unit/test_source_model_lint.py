@@ -245,12 +245,16 @@ def test_compiler_emission_tu_allows_marker_only_provenance(tmp_path: Path) -> N
     assert validate_source_model(repository)["ok"] is True
 
 
-def test_typed_object_literal_raw_offset_is_hard_error(tmp_path: Path) -> None:
+@pytest.mark.parametrize("root", ["src/wiz8", "include/wiz8", "src/surrender", "include/surrender"])
+@pytest.mark.parametrize("type_name", ["W8Record", "srRecord", "stRecord"])
+def test_typed_object_literal_raw_offset_is_hard_error(
+    tmp_path: Path, root: str, type_name: str
+) -> None:
     repository = _index(tmp_path)
-    source = repository / "src/wiz8/example.cpp"
+    source = repository / root / "example.cpp"
     source.parent.mkdir(parents=True, exist_ok=True)
     source.write_text(
-        "int read(W8Record* record) {\n"
+        f"int read({type_name}* record) {{\n"
         "    return *reinterpret_cast<int*>(reinterpret_cast<char*>(record) + 0x24); "
         "// raw-offset-ok: this must not waive a typed object\n"
         "}\n",
@@ -300,18 +304,33 @@ def test_variable_offset_is_not_a_layout_claim(tmp_path: Path) -> None:
     assert validate_source_model(repository)["ok"] is True
 
 
-def test_inline_function_pointer_reinterpret_cast_is_hard_error(tmp_path: Path) -> None:
+@pytest.mark.parametrize("root", ["src/wiz8", "include/wiz8", "src/surrender", "include/surrender"])
+@pytest.mark.parametrize("calling_convention", ["__thiscall ", "__stdcall", "__stdcall "])
+def test_inline_function_pointer_reinterpret_cast_is_hard_error(
+    tmp_path: Path, root: str, calling_convention: str
+) -> None:
     repository = _index(tmp_path)
-    source = repository / "src/wiz8/example.cpp"
+    source = repository / root / "example.cpp"
     source.parent.mkdir(parents=True, exist_ok=True)
     source.write_text(
         "void call(unsigned long address, W8Thing* thing) {\n"
-        "    reinterpret_cast<void (__thiscall *)(W8Thing*)>(address)(thing);\n"
+        f"    reinterpret_cast<void ({calling_convention}*)(W8Thing*)>(address)(thing);\n"
         "}\n",
         encoding="utf-8",
     )
 
     with pytest.raises(SourceModelGateError, match="callable-reinterpret-cast"):
+        validate_source_model(repository)
+
+
+@pytest.mark.parametrize("root", ["src/wiz8", "include/wiz8", "src/surrender", "include/surrender"])
+def test_scalar_delete_of_array_is_hard_error(tmp_path: Path, root: str) -> None:
+    repository = _index(tmp_path)
+    source = repository / root / "example.cpp"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text("void f() { int* values = new int[4]; delete values; }\n")
+
+    with pytest.raises(SourceModelGateError, match="scalar-delete-of-array-allocation"):
         validate_source_model(repository)
 
 

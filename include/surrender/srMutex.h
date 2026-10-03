@@ -8,8 +8,7 @@
 class SR_DLL_EXPORT srMutex {
 public:
     srMutex();
-    /* Retail's copies-then-vftable emission is the implicit special-member
-       lowering. Class-level dllexport emits both standalone copies. */
+    /* The copy bodies are consistent with ordinary memberwise copying. */
     // SYNTHETIC: SURRENDER 0x100458D0
     // srMutex::srMutex(const srMutex&)
     // SYNTHETIC: SURRENDER 0x100458F0

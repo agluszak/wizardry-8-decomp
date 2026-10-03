@@ -1,10 +1,9 @@
 # Retail bugs
 
 Defects in the shipped Wizardry 8 executable (GOG build) that the recovered
-source reproduces on purpose. The source-fidelity rules in `AGENTS.md` require
-keeping a retail bug once retail instructions establish it: the recovered body
-must behave like retail, not like what the author probably meant. Each entry
-names the function, the defect, and the evidence. The source carries a comment
+source reproduces. Preservation policy belongs to the
+[source-fidelity guidance](../.agents/skills/matching-decomp/references/source-fidelity.md).
+Each entry names the function, defect and evidence; the source carries a comment
 at the site.
 
 Add an entry when a recovery confirms a retail defect from the instructions.

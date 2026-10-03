@@ -65,9 +65,7 @@ W8MessageDialogBase* g_main_menu_dialog;
    0x005BC810 stores from 0x00512FB0 is clear, which is the only item whose
    state the screen overrides.
 
-   The sprite call is written in every case rather than assigning the id and
-   calling once: the original pushes each id as a literal and lets VC6 cross-jump
-   the four identical calls together. An unrecognised state draws no sprite but
+   An unrecognised state draws no sprite but
    still redraws the row. */
 // FUNCTION: WIZ8 0x005bcab0
 unsigned char DrawMainMenuItem(short item, short state)
@@ -165,14 +163,9 @@ unsigned char MainMenuScreenEnter(void)
     g_main_menu_selected_item = 0;
     DrawCatalogImage(-14, 0xe8, 0, 0, 0, 0, 2, 0);
 
-    /* Six items cleared then the selected one set, written out rather than
-       looped: the original repeats the call with a literal index each time. */
-    DrawMainMenuItem(0, 0);
-    DrawMainMenuItem(1, 0);
-    DrawMainMenuItem(2, 0);
-    DrawMainMenuItem(3, 0);
-    DrawMainMenuItem(4, 0);
-    DrawMainMenuItem(5, 0);
+    for (int index = 0; index < 6; ++index) {
+        DrawMainMenuItem(index, 0);
+    }
     DrawMainMenuItem(g_main_menu_selected_item, 1);
 
     FormatVersionBanner(text, 0, 0, 0);

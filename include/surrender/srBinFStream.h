@@ -25,8 +25,7 @@ public:
     const char* getPath() const;
     int isOpen();
 
-    /* Implicit copy constructor/assignment: retail emits them via the
-       class-level dllexport as memberwise copies over the inline-string path. */
+    /* The copy bodies are consistent with memberwise copying of the path. */
     // SYNTHETIC: SURRENDER 0x1002F430
     // ??0srBinFStream@@QAE@ABV0@@Z
     // SYNTHETIC: SURRENDER 0x1002F530
@@ -68,8 +67,8 @@ class
 public:
     srBinIFStream();
     srBinIFStream(const char* path);
-    /* Empty complete destruction is compiler-generated; the existing
-       synthetic vtordisp/vbase emissions below describe its ABI lowering. */
+    /* Complete destruction is consistent with base cleanup; the reconstruction
+       leaves it implicit. The vtordisp/vbase helpers below are ABI emissions. */
 
     void open(const char* path);
     virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
@@ -77,8 +76,8 @@ public:
     virtual unsigned long tell() override;
 
 private:
-    /* Implicit copy constructor/assignment and vbase destructor: emitted via
-       the class-level dllexport as memberwise copies. */
+    /* Copy bodies are consistent with memberwise copying; the vbase destructor
+       is a compiler ABI helper. */
     // SYNTHETIC: SURRENDER 0x1002F8D0
     // ??0srBinIFStream@@QAE@ABV0@@Z
     // SYNTHETIC: SURRENDER 0x1002FA20
@@ -107,8 +106,8 @@ class
 public:
     srBinIOFStream();
     srBinIOFStream(const char* path);
-    /* Empty complete destruction is compiler-generated; the existing
-       synthetic vtordisp/vbase emissions below describe its ABI lowering. */
+    /* Complete destruction is consistent with base cleanup; the reconstruction
+       leaves it implicit. The vtordisp/vbase helpers below are ABI emissions. */
 
     void open(const char* path);
     virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
@@ -116,8 +115,8 @@ public:
     virtual unsigned long tell() override;
 
 private:
-    /* Implicit copy constructor/assignment and vbase destructor: emitted via
-       the class-level dllexport as memberwise copies. */
+    /* Copy bodies are consistent with memberwise copying; the vbase destructor
+       is a compiler ABI helper. */
     // SYNTHETIC: SURRENDER 0x1002FF00
     // ??0srBinIOFStream@@QAE@ABV0@@Z
     // SYNTHETIC: SURRENDER 0x10030070
@@ -159,8 +158,8 @@ public:
     virtual unsigned long tell() override;
 
 private:
-    /* Implicit copy constructor/assignment and vbase destructor: emitted via
-       the class-level dllexport as memberwise copies. */
+    /* Copy bodies are consistent with memberwise copying; the vbase destructor
+       is a compiler ABI helper. */
     // SYNTHETIC: SURRENDER 0x100305D0
     // srBinOFStream::srBinOFStream
     // SYNTHETIC: SURRENDER 0x10030760

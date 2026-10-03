@@ -107,6 +107,8 @@ target_link_libraries(wiz8_surrender_objects PRIVATE wiz8_compile_settings)
 wiz8_lint_target(wiz8_surrender_objects)
 
 if(NOT WIZ8_ANALYSIS_BUILD)
+    file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/surrender-objects.txt"
+        CONTENT "$<JOIN:$<TARGET_OBJECTS:wiz8_surrender_objects>,\n>\n")
     wiz8_compile_resource(SURRENDER_RESOURCE_OBJECT sr.rc)
 
     add_library(SURRENDER SHARED

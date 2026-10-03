@@ -808,10 +808,6 @@ void DrawCatalogImage(int target, int object, int frame, short image, int left, 
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0x2d, 0);
     }
     EnsureCatalogFrameLoaded(object, frame);
-    /* The slot address is held; the frame index is not. The original recomputes
-       first_frame + frame for each of the two frame reads rather than keeping
-       it, and the vertical offset is added to the caller's row in sixteen bits -
-       both are shorts and the original adds them as such. */
     slot = &g_video_slots[object];
     row = slot->y_offset + image;
     surface = g_video_frames[slot->first_frame + frame].handle;

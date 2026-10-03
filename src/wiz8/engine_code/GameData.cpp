@@ -1527,11 +1527,6 @@ stModelInstance* W8GameData::CreateTraceModel()
     return instance;
 }
 
-/* Wiz8's definition of srShader's copy (see srShader.h); every by-value
-   setShader argument in the executable is constructed through it. */
-// FUNCTION: WIZ8 0x0041CF80
-srShader::srShader(const srShader& other) : value(other.value) {}
-
 // GLOBAL: WIZ8 0x005ebc80
 const float g_float_005ebc80 = -0.1f;
 // GLOBAL: WIZ8 0x005ebc8c
@@ -2604,13 +2599,6 @@ void ApplyCameraRotation(srMatrix3T<float>* rotation)
     g_gd_camera->ApplyRotationMatrix(rotation, g_level_data);
 }
 
-/* Two whole-body reads through the pointer at 0x0065A0F8. The first hands back
-   the twelve bytes at 0x8C as one block; the second converts the float at 0x04
-   from radians to degrees and truncates it through the CRT's _ftol, which the
-   original reaches as a tail jump because the conversion is the whole return
-   value. The scale is one ULP above the float nearest 180/pi, so the original
-   spelled it as a decimal literal rather than computing it from a pi constant;
-   the literal here is the shortest decimal that reproduces the stored bytes. */
 // FUNCTION: WIZ8 0x00421070
 void GetCameraPosition(srVector3T<float>* position)
 {
@@ -3040,12 +3028,6 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
         return;
     }
     vertical_motion_f0 = 0;
-}
-
-// FUNCTION: WIZ8 0x00420e10
-bool IsCameraTransitionActive(void)
-{
-    return g_gd_camera->m_transition_active;
 }
 
 // FUNCTION: WIZ8 0x00420E20

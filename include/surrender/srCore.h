@@ -31,8 +31,7 @@ class
     srCore {
 public:
     SR_DLL_IMPORT srCore();
-    /* Implicit assignment: retail emits it via the class-level dllexport
-       as a whole-object memberwise copy (rep movsd). */
+    /* The exported assignment is consistent with whole-object memberwise copying. */
     // SYNTHETIC: SURRENDER 0x10015740
     // srCore::operator=
 
@@ -99,12 +98,9 @@ public:
     SR_DLL_IMPORT int supportMultiThread();
     SR_DLL_IMPORT void supportMultiThread(int enabled);
 
-    /* Defined inline because Wiz8 inlines it. Every srClassSupport
-       sGetClassNode emission loads the registry as a direct [srCore + 0x2c]
-       field read rather than calling an import thunk, so the original header
-       carried this body even though SR.DLL also exports an out-of-line copy.
-       Declaring it SR_DLL_IMPORT instead costs every getClassNode body its
-       exact match. The class dllexport emits the exported standalone copy. */
+    /* Consumer expansions read the registry field directly; the provider also
+       exports a standalone copy. This is consistent with a header-visible
+       definition; exact original annotation spelling is unresolved. */
     // FUNCTION: SURRENDER 0x10015760
     // ?getRegistry@srCore@@QBEPAVsrRegistry@@XZ
     srRegistry* getRegistry() const

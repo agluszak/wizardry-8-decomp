@@ -2,9 +2,8 @@
 
 #include "srHeap.h"
 
-/* The provider exports the full member surface including the implicit copy
-   constructor/assignment and the vftable, so the declaration is dllexport
-   under SURRENDER_BUILD; consumers keep the class-wide import. */
+/* Provider exports include copy construction, assignment and the vftable. The
+   reconstruction uses class-level export; original spelling is unresolved. */
 // VTABLE: SURRENDER 0x10076970 srBinStream
 // class srBinStream
 #if defined(SURRENDER_BUILD)
@@ -42,8 +41,7 @@ public:
     void setByteOrder(e_byteOrder byte_order);
     void setState(e_state state);
 
-    /* Implicit copy constructor/assignment: retail emits them via the
-       class-level dllexport; the bodies are plain memberwise copies. */
+    /* The emitted bodies are consistent with ordinary memberwise copying. */
     // SYNTHETIC: SURRENDER 0x10032240
     // srBinStream::srBinStream
     // SYNTHETIC: SURRENDER 0x10032280

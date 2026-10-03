@@ -3,16 +3,15 @@
 #include "srBinOStream.h"
 #include "srImporter.h"
 
-/* Retail exports the full implicit lifecycle sweep for the importer/exporter
-   classes, so they are dllexport under SURRENDER_BUILD; consumers keep the
-   novtable-only surface. */
+/* Provider lifecycle symbols are exported. The reconstruction uses implicit
+   base-only lifecycle; original declaration spelling is unresolved. */
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
 #endif
     __declspec(novtable) srSurfaceIOManager::SurfaceExporter : public srIOManager::Exporter {
 public:
-    /* Implicit lifecycle sweep emitted via the class-level dllexport. */
+    /* Exported lifecycle bodies contain ordinary base-only operations. */
     // SYNTHETIC: SURRENDER 0x10005150
     // ??0SurfaceExporter@srSurfaceIOManager@@QAE@XZ
     // SYNTHETIC: SURRENDER 0x10005160
@@ -35,8 +34,7 @@ public:
     // SYNTHETIC: SURRENDER 0x100164F0
     // HierarchyExporter::HierarchyExporter()
 
-    /* Implicit copy ctor/assignment/destructor emitted via the class-level
-       dllexport. */
+    /* Exported lifecycle bodies are consistent with ordinary base-only operations. */
     // SYNTHETIC: SURRENDER 0x10016500
     // ??0HierarchyExporter@srHierarchyIOManager@@QAE@ABV01@@Z
     // SYNTHETIC: SURRENDER 0x10016510
@@ -57,8 +55,7 @@ public:
     // SYNTHETIC: SURRENDER 0x10016A00
     // ModelExporter::ModelExporter()
 
-    /* Implicit copy ctor/assignment/destructor emitted via the class-level
-       dllexport. */
+    /* Exported lifecycle bodies are consistent with ordinary base-only operations. */
     // SYNTHETIC: SURRENDER 0x10016A10
     // ??0ModelExporter@srModelIOManager@@QAE@ABV01@@Z
     // SYNTHETIC: SURRENDER 0x10016A20

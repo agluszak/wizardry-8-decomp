@@ -52,8 +52,8 @@ public:
     {
         initTables();
     }
-    /* Pure like ~srDD: no srVP vftable is emitted anywhere in retail and the
-       srDebugVP/generic destructors store only their own vftable. */
+    /* The reconstruction uses a pure destructor. Missing srVP vftable and
+       base-vptr stores do not independently establish original pure/non-pure spelling. */
     virtual ~srVP() = 0;
     virtual const char* getName();
     virtual int _memcmp(const void* source_0, const void* source_1, SRDWORD bytes);
@@ -355,9 +355,9 @@ protected:
     /* srVectorProcessor's facade dispatches protected slots for srGERD's
        renderer the way retail does. */
     friend class srVectorProcessor;
-    /* FUNCTION 0x10064C40 is this member helper emitted out of line: it runs
-       on the whole srVP object, fills the tables at +0x08/+0x248, and stores
-       no vftable, so it is not a complete-object constructor. The external
+    /* The body at 0x10064C40 fills the tables at +0x08/+0x248 and stores no
+       vftable. The model owns it as initTables; original helper/constructor
+       boundaries remain unresolved. The external
        VP modules reproduce the same storage, making the tables part of the
        srVP ABI; nothing in any shipped binary reads them back, so their
        original member names and consuming operation stay unproved. */

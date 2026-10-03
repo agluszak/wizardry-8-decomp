@@ -27,8 +27,8 @@ public:
 
     srScene& operator=(const srScene& other);
 
-    /* The empty derived destructor is compiler-generated; srNode owns the
-       actual teardown. */
+    /* Destruction is consistent with base-only cleanup; the reconstruction
+       leaves the derived destructor implicit. */
     // SYNTHETIC: SURRENDER 0x10056F90
     // srScene::~srScene
 

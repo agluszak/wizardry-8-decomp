@@ -5,16 +5,8 @@ recovered source; compiler and comparison evidence never override its source-mod
 
 ## Special members, construction and inlining
 
-Prefer implicit compiler-generated copy constructors and assignments when retail is fully explained
-by ordinary base/member special-member operations in declaration order. Before recovering a
-handwritten copy constructor, attribute every call/store to the relevant subobject lifetime: a member
-copy constructor may itself default-construct and call assignment. Use initializer lists for actual
-base/member construction; body assignment requires an already-live object. Conflicting lifetime and
-declaration order calls for investigating the class model, not rearranging initializers. Do not
-duplicate lifecycle behavior supplied by bases/templates, including registration and cleanup. Preserve
-established shallow or unsafe copying; modern Rule-of-Three reasoning is not original-source evidence.
-See [type-modeling lifecycle guidance](../../type-modeling/SKILL.md#classes-and-lifecycle) for the
-subobject procedure and emission boundaries.
+Special-member and subobject-lifecycle inference is owned by
+[type-modeling lifecycle guidance](../../type-modeling/SKILL.md#classes-and-lifecycle).
 
 Recover shared helpers/templates before reproducing their lowered bodies at callers. Inlining is a
 source/visibility claim: an expanded body alone does not prove `inline`; repeated expansions suggest
@@ -33,6 +25,9 @@ scalar scratch storage or field-by-field lowering. Distinct overloads remain dis
 similar emitted bodies do not merge their symbol/call identities.
 
 ## Other source-model constraints
+
+Source and translation-unit ownership rules belong to the
+[source model](../../../../docs/wiz8-source-model.md).
 
 - **Reconstruct first; investigate remaining differences afterwards.** Recovery has two distinct
   phases. First recover the most plausible authored circa-2000 C++ and VC6 ABI: behavior, types,

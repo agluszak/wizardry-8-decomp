@@ -9,9 +9,8 @@
 class srBinOStream;
 class srModel;
 
-/* The provider exports the full member surface including the implicit
-   lifecycle sweep (ctor, copy ctor, assignment, destructor) and the vftable, so
-   the declaration is dllexport under SURRENDER_BUILD. */
+/* Provider exports include lifecycle symbols and the vftable. The reconstruction
+   uses implicit base-only lifecycle; original declaration spelling is unresolved. */
 // VTABLE: SURRENDER 0x10075418
 // class srSurfaceIOManager
 class
@@ -37,8 +36,8 @@ public:
     class SurfaceImporter;
     class SurfaceExporter;
 
-    /* The default constructor is the implicit srIOManager construction plus
-       the derived vftable store, emitted by the class-level export. */
+    /* The default-constructor body contains base construction and a derived
+       vftable store, consistent with implicit construction. */
     // SYNTHETIC: SURRENDER 0x100050F0
     // srSurfaceIOManager::srSurfaceIOManager()
 
@@ -60,8 +59,7 @@ public:
     void getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description, const char* path,
                         const ImportInfo& options);
 
-    /* Implicit copy ctor/assignment/destructor emitted via the class-level
-       dllexport as memberwise base-subobject copies. */
+    /* The emitted lifecycle is consistent with ordinary base-subobject operations. */
     // SYNTHETIC: SURRENDER 0x10005190
     // ??0srSurfaceIOManager@@QAE@ABV0@@Z
     // SYNTHETIC: SURRENDER 0x100051D0
@@ -74,16 +72,15 @@ public:
 static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x04), "srSurfaceImportInfo_must_be_0x04");
 static_assert((sizeof(srSurfaceIOManager::ExportInfo) == 0x0c), "srSurfaceExportInfo_must_be_0x0c");
 
-/* Retail exports the full implicit lifecycle sweep for the importer/exporter
-   classes, so they are dllexport under SURRENDER_BUILD; consumers keep the
-   novtable-only surface. */
+/* Provider lifecycle symbols are exported. The reconstruction uses implicit
+   base-only lifecycle; original declaration spelling is unresolved. */
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
 #endif
     __declspec(novtable) srSurfaceIOManager::SurfaceImporter : public srIOManager::Importer {
 public:
-    /* Implicit lifecycle sweep emitted via the class-level dllexport. */
+    /* Exported lifecycle bodies contain ordinary base-only operations. */
     // SYNTHETIC: SURRENDER 0x10005110
     // ??0SurfaceImporter@srSurfaceIOManager@@QAE@XZ
     // SYNTHETIC: SURRENDER 0x10005120
@@ -99,9 +96,8 @@ public:
                                                const srSurfaceIOManager::ImportInfo& options) = 0;
 };
 
-/* The provider exports the full member surface including the implicit
-   lifecycle sweep (ctor, copy ctor, assignment, destructor) and the vftable, so
-   the declaration is dllexport under SURRENDER_BUILD. */
+/* Provider exports include lifecycle symbols and the vftable. The reconstruction
+   uses implicit base-only lifecycle; original declaration spelling is unresolved. */
 // VTABLE: SURRENDER 0x10075530 srHierarchyIOManager
 // class srHierarchyIOManager
 class
@@ -110,7 +106,7 @@ class
 #endif
     srHierarchyIOManager : public srIOManager {
 public:
-    /* The provider exports the implicit Info assignments (0x10016490/0x100164A0). */
+    /* The provider exports Info assignments at 0x10016490 and 0x100164A0. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -137,8 +133,8 @@ public:
     class HierarchyImporter;
     class HierarchyExporter;
 
-    /* No state beyond srIOManager: class-level dllexport emits the complete
-       compiler-generated lifecycle. */
+    /* No state beyond srIOManager is modeled; exported lifecycle bodies contain
+       ordinary base-only operations. */
     // SYNTHETIC: SURRENDER 0x10016470
     // srHierarchyIOManager::srHierarchyIOManager()
     // SYNTHETIC: SURRENDER 0x10016530
@@ -167,8 +163,7 @@ public:
     // SYNTHETIC: SURRENDER 0x100164B0
     // HierarchyImporter::HierarchyImporter()
 
-    /* Implicit copy ctor/assignment/destructor emitted via the class-level
-       dllexport. */
+    /* Exported lifecycle bodies contain ordinary base-only operations. */
     // SYNTHETIC: SURRENDER 0x100164C0
     // ??0HierarchyImporter@srHierarchyIOManager@@QAE@ABV01@@Z
     // SYNTHETIC: SURRENDER 0x100164D0
@@ -180,9 +175,8 @@ public:
     virtual void importHierarchy(srBinIStream& stream, const ImportInfo& options) = 0;
 };
 
-/* The provider exports the full member surface including the implicit
-   lifecycle sweep (ctor, copy ctor, assignment, destructor) and the vftable, so
-   the declaration is dllexport under SURRENDER_BUILD. */
+/* Provider exports include lifecycle symbols and the vftable. The reconstruction
+   uses implicit base-only lifecycle; original declaration spelling is unresolved. */
 // VTABLE: SURRENDER 0x10075534 srModelIOManager
 // class srModelIOManager
 class
@@ -191,7 +185,7 @@ class
 #endif
     srModelIOManager : public srIOManager {
 public:
-    /* The provider exports the implicit Info assignments (0x100169A0/0x100169B0). */
+    /* The provider exports Info assignments at 0x100169A0 and 0x100169B0. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -218,8 +212,8 @@ public:
     class ModelImporter;
     class ModelExporter;
 
-    /* No state beyond srIOManager: class-level dllexport emits the complete
-       compiler-generated lifecycle. */
+    /* No state beyond srIOManager is modeled; exported lifecycle bodies contain
+       ordinary base-only operations. */
     // SYNTHETIC: SURRENDER 0x10016980
     // srModelIOManager::srModelIOManager()
     // SYNTHETIC: SURRENDER 0x10016A40
@@ -246,8 +240,7 @@ public:
     // SYNTHETIC: SURRENDER 0x100169C0
     // ModelImporter::ModelImporter()
 
-    /* Implicit copy ctor/assignment/destructor emitted via the class-level
-       dllexport. */
+    /* Exported lifecycle bodies contain ordinary base-only operations. */
     // SYNTHETIC: SURRENDER 0x100169D0
     // ??0ModelImporter@srModelIOManager@@QAE@ABV01@@Z
     // SYNTHETIC: SURRENDER 0x100169E0

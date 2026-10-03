@@ -26,8 +26,8 @@ class
 #endif
     srBinIStream : public virtual srBinStream {
 public:
-    /* SR.DLL's lifecycle is compiler-generated. Wiz8 keeps the header-visible
-       default/destructor and imports the copy/assignment emissions. */
+    /* The reconstruction leaves provider lifecycle implicit. Wiz8 keeps the
+       header-visible default/destructor and imports copy/assignment emissions. */
     // SYNTHETIC: SURRENDER 0x10031C40
     // srBinIStream::srBinIStream()
     // SYNTHETIC: SURRENDER 0x10031C80
@@ -109,14 +109,13 @@ class
 public:
     SR_DLL_IMPORT srBinIMStream(const void* data, unsigned long size);
 
-    /* Implicit copy constructor/assignment: retail emits them via the
-       class-level dllexport as memberwise copies. */
+    /* The emitted bodies are consistent with ordinary memberwise copying. */
     // SYNTHETIC: SURRENDER 0x10030BB0
     // ??0srBinIMStream@@QAE@ABV0@@Z
     // SYNTHETIC: SURRENDER 0x10030C50
     // srBinIMStream::operator=
 
-    /* Provider destruction is compiler-generated; consumers retain the
+    /* The reconstruction leaves provider destruction implicit; consumers retain the
        evidenced header-visible empty body. */
     // SYNTHETIC: SURRENDER 0x10030CE0
     // srBinIMStream::~srBinIMStream

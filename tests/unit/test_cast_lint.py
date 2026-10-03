@@ -25,16 +25,17 @@ def _diff(path: str, *body: str) -> str:
     return "\n".join([f"diff --git a/{path} b/{path}", f"--- a/{path}", f"+++ b/{path}", *body])
 
 
-def test_unmarked_added_cast_is_reported() -> None:
+@pytest.mark.parametrize("root", ["src/wiz8", "include/wiz8", "src/surrender", "include/surrender"])
+def test_unmarked_added_cast_is_reported(root: str) -> None:
     diff = _diff(
-        "src/wiz8/example.cpp",
+        f"{root}/example.cpp",
         "@@ -1,1 +1,2 @@",
         " int f() {",
         "+    return reinterpret_cast<int>(value);",
     )
 
     assert _added_casts(diff) == [
-        {"file": "src/wiz8/example.cpp", "line": 2, "text": "return reinterpret_cast<int>(value);"}
+        {"file": f"{root}/example.cpp", "line": 2, "text": "return reinterpret_cast<int>(value);"}
     ]
 
 

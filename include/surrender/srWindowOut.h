@@ -18,8 +18,8 @@ public:
     srWindowOut(unsigned long handle, const char* title, long width, unsigned long height);
     virtual ~srWindowOut();
 
-    /* Implicit members the class-level export emits: the copy constructor and
-       assignment reproduce basic_ios<char>'s memberwise copyfmt shape, and the
+    /* Copy construction and assignment are consistent with basic_ios<char>'s
+       memberwise copyfmt operations. The
        vbase/vector-deleting destructors carry the virtual-inheritance ABI. */
     // SYNTHETIC: SURRENDER 0x10047A10
     // ??0srWindowOut@@QAE@ABV0@@Z

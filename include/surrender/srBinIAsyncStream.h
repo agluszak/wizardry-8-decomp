@@ -25,20 +25,13 @@ public:
     virtual unsigned long tell() override;
     virtual unsigned long vread(void* destination, unsigned long size) override;
 
-    /* Class-level dllexport also emits a memberwise copy constructor and
-       vbase destructor. */
+    /* The emitted copy body is consistent with memberwise copying. */
     // SYNTHETIC: SURRENDER 0x1002EDC0
     // ??0srBinIAsyncStream@@QAE@ABV0@@Z
     // SYNTHETIC: SURRENDER 0x1002EE70
     // srBinIAsyncStream::`vbase destructor'
 
 private:
-    /* Declared and never defined. Retail exports this dllexport class's
-       implicit copy constructor and vbase destructor but no assignment, and
-       every member below is reassigned after construction, so no const or
-       reference member suppresses it. */
-    srBinIAsyncStream& operator=(const srBinIAsyncStream& other);
-
     unsigned char* buffer_08;
     srScheduler::Job* job_0c;
     srBinIStream* stream_10;

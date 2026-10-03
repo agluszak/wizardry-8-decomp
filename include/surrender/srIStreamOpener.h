@@ -96,8 +96,6 @@ public:
     // FUNCTION: SURRENDER 0x10032440
     // ??0srFStreamOpener@@QAE@XZ
     srFStreamOpener() {}
-    /* The private copy declaration below suppresses the missing retail copy
-       constructor; assignment and destruction are otherwise compiler-owned. */
     // SYNTHETIC: SURRENDER 0x10032450
     // srFStreamOpener::operator=
     // SYNTHETIC: SURRENDER 0x10016850
@@ -105,12 +103,6 @@ public:
 
     virtual srBinIStream* open(const char* path) override;
     virtual const char* getDescription() const override;
-
-private:
-    /* Declared and never defined: retail exports this class-level export's
-       assignment but no copy constructor, which VC6 would otherwise emit for
-       a polymorphic class. */
-    srFStreamOpener(const srFStreamOpener& other);
 };
 
 static_assert(sizeof(srFStreamOpener) == 0x04, "srFStreamOpener_must_be_0x04");

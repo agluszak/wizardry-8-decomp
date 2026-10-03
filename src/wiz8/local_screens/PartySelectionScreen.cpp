@@ -2252,13 +2252,7 @@ void PartySelectionScreenFrame(void)
    success. Every path asks for a screen
    transition, records one of four codes and queues screen 0, so the record is a
    pure router - it selects which of the four the transition reports and then
-   leaves. Nothing here names the four codes or the two globals that pick them.
-
-   The retail body carries four copies of the call tail, each loading its code
-   through EAX rather than pushing it. That is VC6 duplicating one tail, not the
-   original writing four: the tail is written once here and the four copies come
-   back, where writing the four calls out literally emits direct pushes and four
-   instructions too few. */
+   leaves. Nothing here names the four codes or the two globals that pick them. */
 // FUNCTION: WIZ8 0x005c3800
 void GameStartRouterFrame(void)
 {

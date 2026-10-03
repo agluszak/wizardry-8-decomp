@@ -5,13 +5,9 @@
 class srGERD;
 
 // VTABLE: SURRENDER 0x100765f0 srDebugDD
-/* Provider-side debug wrapper. Retail exports the entire member surface,
-   including the implicit copy constructor/assignment and the vtable, so the
-   class is dllexport-ed when building the provider (the same convention as
-   srDummyStreamBuf). The implicit copy operations emit the srDD empty-base
-   byte copy and store the vtable last, matching retail. No known
-   Wizardry/JPEG/ZIP consumer imports srDebugDD symbols; its exported methods
-   are provider ABI only. */
+/* Provider-side debug wrapper. Exports include copy construction, assignment
+   and the vtable; no known consumer imports them. Copy bodies are consistent
+   with ordinary memberwise copying; original declaration spelling is unresolved. */
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
@@ -19,12 +15,11 @@ class
     srDebugDD : public srDD {
 public:
     srDebugDD(srDD* device);
-    /* The empty derived destructor is implicit; srDD owns the base teardown. */
+    /* Destruction is consistent with base-only cleanup; the reconstruction leaves it implicit. */
     // SYNTHETIC: SURRENDER 0x10016D60
     // srDebugDD::~srDebugDD
 
-    /* Implicit copy constructor/assignment emitted via the class-level
-       dllexport. The copy constructor stores the vtable last; the assignment
+    /* The copy constructor stores the vtable last; the assignment
        does not. */
     // SYNTHETIC: SURRENDER 0x100177D0
     // ??0srDebugDD@@QAE@ABV0@@Z
@@ -116,7 +111,7 @@ private:
     srDD* device_04;
     unsigned long unknown_08;
     /* +0x0c..+0x0f is alignment padding before time_scale_10, not a member:
-       the implicit copy operations skip it. */
+       the copy bodies skip it. */
     double time_scale_10;
     double call_times_18[0x2b];
     unsigned long call_counts_170[0x2b];

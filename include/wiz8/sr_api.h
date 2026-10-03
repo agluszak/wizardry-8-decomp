@@ -13,17 +13,10 @@ __declspec(dllimport) int __cdecl srExit(void);
 __declspec(dllimport) void __cdecl srAssertSetFunc(srAssertHandler handler);
 
 /*
- * Fixed-arity on purpose, and the arity is load-bearing evidence. The DLL
- * export is variadic (?srAssertFail@@YAXPBD0J0ZZ), but VC6 SP5 refuses to
- * defer a pending inner-call stack cleanup across a call it believes is
- * variadic, and the canonical bodies that pass a String(...) result as the
- * message (CharacterPointerToPartySlot, RPCPtrToPCSlot, MonsterInfoFromID)
- * fold that cleanup across the assert call. The original translation units
- * therefore saw a fixed-arity declaration, and their import library mapped
- * its mangling onto the variadic export. The generated sr-assert-import.lib
- * reproduces that IAT-symbol/hint-name distinction without a code wrapper. The
- * line is long because the true ABI spells it long; int folds identically,
- * so only the arity is proven, not the width.
+ * The recovered consumer declaration has four fixed arguments. The provider
+ * export is variadic (?srAssertFail@@YAXPBD0J0ZZ). The product build maps the
+ * fixed-arity COFF reference to that export without a code wrapper. The original
+ * consumer prototype and import-library construction remain unresolved.
  * abi-prototype-ok: the consumer spelling is intentionally fixed-arity while
  * the provider export is variadic (?srAssertFail@@YAXPBD0J0ZZ).
  */

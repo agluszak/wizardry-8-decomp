@@ -76,35 +76,3 @@ const char* text = "template class Fake<int>;";
     )
 
     assert validate_template_model(tmp_path)["ok"] is True
-
-
-def test_reviewed_srrender_lifecycle_helper_is_the_only_builtin_exception(
-    tmp_path: Path,
-) -> None:
-    _write(
-        tmp_path,
-        "include/surrender/srTypeRegistry.h",
-        """
-template <bool Register> struct srInstanceLifecycle {};
-
-template <>
-struct srInstanceLifecycle<false> {
-};
-""",
-    )
-
-    assert validate_template_model(tmp_path)["ok"] is True
-
-    _write(
-        tmp_path,
-        "include/surrender/other.h",
-        """
-template <class T> struct Other {};
-
-template <>
-struct Other<int> {
-};
-""",
-    )
-    with pytest.raises(TemplateModelError, match="include/surrender/other.h"):
-        validate_template_model(tmp_path)

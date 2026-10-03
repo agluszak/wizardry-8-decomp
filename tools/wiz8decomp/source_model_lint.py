@@ -30,8 +30,7 @@ from .source_index import (
 )
 from .source_units import load_source_unit_document
 
-_WIZ8_ROOTS = ("src/wiz8", "include/wiz8")
-_RECOVERED_ROOTS = (*_WIZ8_ROOTS, "src/surrender", "include/surrender")
+_RECOVERED_ROOTS = ("src/wiz8", "include/wiz8", "src/surrender", "include/surrender")
 _CPP_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
 _MARKER_ONLY_KINDS = frozenset({"SYNTHETIC", "LIBRARY"})
 
@@ -65,7 +64,7 @@ _C_STYLE_RAW_OFFSET = re.compile(
 _INLINE_FUNCTION_POINTER_CAST = re.compile(
     r"reinterpret_cast\s*<\s*"
     r"(?P<type>(?:(?!>).){0,600}\(\s*"
-    r"(?:(?:__cdecl|__stdcall|__fastcall|__thiscall)\s+)?\*\s*\)"
+    r"(?:(?:__cdecl|__stdcall|__fastcall|__thiscall)\s*)?\*\s*\)"
     r"(?:(?!>).){0,600})>\s*\(",
     re.DOTALL,
 )
@@ -104,7 +103,7 @@ def _mask_cpp_noise(source: str) -> str:
     return _NOISE.sub(mask, source)
 
 
-def _source_files(repository: Path, roots: tuple[str, ...] = _WIZ8_ROOTS) -> list[Path]:
+def _source_files(repository: Path, roots: tuple[str, ...] = _RECOVERED_ROOTS) -> list[Path]:
     files: list[Path] = []
     for root_name in roots:
         root = repository / root_name

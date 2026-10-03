@@ -11,8 +11,7 @@ class
     srExponentTable {
 public:
     srExponentTable(float exponent = 1.0f);
-    /* Implicit assignment: retail emits it via the class-level dllexport
-       as a whole-object memberwise copy (rep movsd). */
+    /* The exported assignment is consistent with whole-object memberwise copying. */
     // SYNTHETIC: SURRENDER 0x10003140
     // srExponentTable::operator=
 
@@ -43,8 +42,7 @@ public:
 
     void release();
 
-    /* Implicit assignment: retail emits it via the class-level dllexport
-       as a whole-object memberwise copy (rep movsd). */
+    /* The exported assignment is consistent with whole-object memberwise copying. */
     // SYNTHETIC: SURRENDER 0x10003180
     // srCachedExponentTable::operator=
 
