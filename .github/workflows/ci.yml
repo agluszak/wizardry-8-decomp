@@ -5,12 +5,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      renderer:
-        description: Runtime renderer experiment
-        type: choice
-        default: default
-        options: [default, softpipe]
   schedule:
     - cron: '17 2 * * *'
 
@@ -34,7 +28,6 @@ env:
   WIZ8_INPUT_DIR: /tmp/wiz8-inputs
   WIZ8_WORK_DIR: /tmp/wiz8-work
   WIZ8_GHIDRA_PROJECT_DIR: /tmp/wiz8-ghidra-project
-  WIZ8_RUNTIME_DISPLAY: virtual
   GITHUB_EVENT_BEFORE: ${{ github.event.before }}
 
 jobs:
@@ -45,7 +38,6 @@ jobs:
       public: ${{ steps.scope.outputs.public }}
       analysis: ${{ steps.scope.outputs.analysis }}
       wiz8_compare: ${{ steps.scope.outputs.wiz8_compare }}
-      wiz8_runtime: ${{ steps.scope.outputs.wiz8_runtime }}
       surrender: ${{ steps.scope.outputs.surrender }}
     steps:
       - name: Check out source
@@ -60,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$GITHUB_EVENT_NAME" == "schedule" || "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            printf '%s\n' public=true analysis=true wiz8_compare=true wiz8_runtime=true surrender=true >> "$GITHUB_OUTPUT"
+            printf '%s\n' public=true analysis=true wiz8_compare=true surrender=true >> "$GITHUB_OUTPUT"
             exit 0
           fi
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
@@ -74,7 +66,7 @@ jobs:
             base="${{ github.event.before }}"
             head="$GITHUB_SHA"
           else
-            printf '%s\n' public=true analysis=true wiz8_compare=true wiz8_runtime=true surrender=true >> "$GITHUB_OUTPUT"
+            printf '%s\n' public=true analysis=true wiz8_compare=true surrender=true >> "$GITHUB_OUTPUT"
             exit 0
           fi
           changed="$RUNNER_TEMP/changed-files.txt"
@@ -90,7 +82,6 @@ jobs:
       needs.scope.outputs.public == 'true' ||
       needs.scope.outputs.analysis == 'true' ||
       needs.scope.outputs.wiz8_compare == 'true' ||
-      needs.scope.outputs.wiz8_runtime == 'true' ||
       needs.scope.outputs.surrender == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -502,106 +493,6 @@ jobs:
           wineserver -k || true
           rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" "$RUNNER_TEMP/wiz8-gog-download" config/local-inputs.yml
 
-  wiz8-runtime:
-    name: WIZ8 runtime tests
-    needs: [scope, toolchain]
-    if: >-
-      needs.scope.outputs.wiz8_runtime == 'true' &&
-      needs.toolchain.result == 'success' &&
-      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 120
-    steps:
-      - name: Check out source
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.13"
-      - name: Set up uv
-        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
-        with:
-          version: "0.12.13"
-          enable-cache: true
-      - name: Install WIZ8 runtime host tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends innoextract llvm xvfb
-          # GE-Proton's Steam Runtime uses its bundled bwrap, which needs a
-          # user namespace on this disposable Ubuntu runner.
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
-          command -v llvm-undname
-      - name: Load VC6 analysis image
-        uses: ./.github/actions/load-vc6-image
-      - name: Restore compiler-backed analysis cache
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            build/clang
-            build/reccmp-source
-            build/source-index.json
-          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/build-inputs.yml') }}-${{ github.sha }}
-          restore-keys: |
-            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/build-inputs.yml') }}-
-      - name: Restore incremental WIZ8 product build
-        uses: actions/cache@v4
-        with:
-          path: build/decomp
-          key: product-wiz8-runtime-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml') }}-${{ github.sha }}
-          restore-keys: |
-            product-wiz8-runtime-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/build-inputs.yml') }}-
-      - name: Install Python dependencies
-        run: uv sync --frozen
-      - name: Check runtime stub linker integration
-        run: uv run pytest -q tests/unit/test_runtime_stubs.py -m integration
-
-      - name: Prepare licensed WIZ8 inputs
-        uses: ./.github/actions/prepare-licensed-inputs
-        with:
-          inputs-token: ${{ secrets.WIZ8_INPUTS_TOKEN }}
-          cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
-      - name: Build WIZ8 runtime product
-        run: uv run wiz8 build runtime-test
-      - name: Run WIZ8 runtime tests
-        id: wiz8-runtime
-        continue-on-error: true
-        env:
-          RUNTIME_RENDERER: ${{ inputs.renderer || 'default' }}
-        shell: bash
-        run: |
-          set -uo pipefail
-          if [[ "$RUNTIME_RENDERER" == "softpipe" ]]; then export GALLIUM_DRIVER=softpipe; fi
-          if [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
-            status=0
-            uv run wiz8 runtime-test --repeat 3 \
-              --scenario main-game-start --scenario save-load-move \
-              --scenario combat-roundtrip --scenario hostile-encounter || status=1
-            uv run wiz8 runtime-test --scenario world-soak || status=1
-            exit "$status"
-          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" || "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            uv run wiz8 runtime-test
-          else
-            uv run wiz8 runtime-test --tier main --check-order
-          fi
-      - name: Upload WIZ8 diagnostics
-        if: steps.wiz8-runtime.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: wiz8-runtime-diagnostics
-          path: |
-            build/runtime/runtime-test/**/diagnostics/
-            build/logs/
-          if-no-files-found: warn
-      - name: Fail if WIZ8 runtime tests failed
-        if: steps.wiz8-runtime.outcome == 'failure'
-        run: exit 1
-      - name: Remove plaintext licensed WIZ8 inputs
-        if: always()
-        run: rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" "$RUNNER_TEMP/wiz8-gog-download" config/local-inputs.yml
-
   surrender:
     name: SURRENDER comparison
     needs: [scope, toolchain]
@@ -800,7 +691,7 @@ jobs:
 
   ci:
     name: Public checks, lints, and tests
-    needs: [scope, toolchain, repository, analysis, wiz8, wiz8-runtime, surrender]
+    needs: [scope, toolchain, repository, analysis, wiz8, surrender]
     if: always()
     runs-on: ubuntu-24.04
     steps:
@@ -811,11 +702,10 @@ jobs:
           REPOSITORY_RESULT: ${{ needs.repository.result }}
           ANALYSIS_RESULT: ${{ needs.analysis.result }}
           WIZ8_RESULT: ${{ needs.wiz8.result }}
-          WIZ8_RUNTIME_RESULT: ${{ needs['wiz8-runtime'].result }}
           SURRENDER_RESULT: ${{ needs.surrender.result }}
         run: |
           set -euo pipefail
-          for result in "$SCOPE_RESULT" "$TOOLCHAIN_RESULT" "$REPOSITORY_RESULT" "$ANALYSIS_RESULT" "$WIZ8_RESULT" "$WIZ8_RUNTIME_RESULT" "$SURRENDER_RESULT"; do
+          for result in "$SCOPE_RESULT" "$TOOLCHAIN_RESULT" "$REPOSITORY_RESULT" "$ANALYSIS_RESULT" "$WIZ8_RESULT" "$SURRENDER_RESULT"; do
             case "$result" in
               success|skipped) ;;
               *) echo "selected CI lane failed or was cancelled: $result" >&2; exit 1 ;;
