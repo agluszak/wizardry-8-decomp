@@ -476,7 +476,14 @@ def build_target(
         if not _product_cache_ready(build.build_dir):
             _configure(settings)
         tick = mark("configure_ms", tick)
+        provider_objects: dict[str, Any] | None = None
         if resolved_target == "SURRENDER":
+            from .source_index import write_source_index
+
+            # Provider export validation consumes current compiler-owned declarations.
+            # A standalone build and a fresh CI runner must establish them first.
+            write_source_index(settings)
+            tick = mark("source_index_ms", tick)
             run(
                 build.build_command("wiz8_surrender_objects", jobs or max(1, os.cpu_count() or 1)),
                 cwd=settings.repo_dir,
@@ -484,7 +491,7 @@ def build_target(
             )
             tick = mark("provider_compile_ms", tick)
             objects = (build.build_dir / "surrender-objects.txt").read_text(encoding="utf-8")
-            validate_surrender_provider_objects(
+            provider_objects = validate_surrender_provider_objects(
                 settings.repo_dir,
                 [
                     build.build_dir / Path(path.replace("\\", "/")).relative_to("Z:/out")
@@ -499,7 +506,9 @@ def build_target(
         tick = mark("compile_link_ms", tick)
         exports: dict[str, Any] | None = None
         provider = build.build_dir / "sr.dll"
-        if provider.is_file() and provider.stat().st_mtime >= build_started_wall:
+        if provider.is_file() and (
+            resolved_target == "SURRENDER" or provider.stat().st_mtime >= build_started_wall
+        ):
             from .surrender_exports import validate_built_surrender_exports
 
             exports = validate_built_surrender_exports(settings.repo_dir, provider)
@@ -508,6 +517,7 @@ def build_target(
             "status": "ok",
             "target": resolved_target,
             "exports": exports,
+            "provider_objects": provider_objects,
             "log": str(Path("build/logs/product-build.json")),
             "phases_ms": phases,
             "total_ms": int((time.perf_counter() - started) * 1000),

@@ -81,3 +81,38 @@ def test_rejects_directive_section_past_end() -> None:
 
     with pytest.raises(ValueError, match="directive section runs past"):
         export_directives(bytes(data))
+
+
+@pytest.mark.parametrize(
+    "authored,stale,owner,accepted",
+    [
+        (False, False, "Widget", True),
+        (True, False, "Widget", False),
+        (False, True, "Widget", False),
+        (False, False, "Other", False),
+    ],
+)
+def test_extra_special_member_requires_current_implicit_class_evidence(
+    repository, monkeypatch, authored, stale, owner, accepted
+):
+    from wiz8decomp.paths import sha256_file
+
+    header = repository / "widget.h"
+    header.write_text("class Widget {};\n")
+    symbol = "??0Widget@@QAE@ABV0@@Z"
+    document = {
+        "declarations": [{"semantic_id": symbol}] if authored else [],
+        "classes": [{"qualified_name": owner, "target": "SURRENDER", "source_file": "widget.h"}],
+        "source_digests": {"widget.h": "stale" if stale else sha256_file(header)},
+    }
+    monkeypatch.setattr("wiz8decomp.surrender_exports.load_source_index", lambda _: document)
+    obj = repository / "provider.obj"
+    data = _object(f"-export:retail -export:{symbol}".encode())
+    obj.write_bytes(data)
+    if accepted:
+        result = validate_surrender_provider_objects(repository, [obj])
+        assert result["compiler_exports_absent_from_retail"] == [symbol]
+    else:
+        with pytest.raises(SurrenderExportsError, match="compiler export absent from retail"):
+            validate_surrender_provider_objects(repository, [obj])
+    assert obj.read_bytes() == data

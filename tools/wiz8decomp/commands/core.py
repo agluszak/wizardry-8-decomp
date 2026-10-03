@@ -262,7 +262,7 @@ def compare_command(
                     selected,
                     settings.ghidra_install_dir,
                     side_by_side=side_by_side,
-                    classify_header_emissions=needs_index,
+                    classify_source_non_emissions=needs_index,
                     classify_template_emissions=changed,
                 )
             if changed:

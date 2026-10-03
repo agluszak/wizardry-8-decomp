@@ -434,14 +434,15 @@ def compare_selected(
     ghidra_install_dir: Path,
     *,
     side_by_side: bool = False,
-    classify_header_emissions: bool = False,
+    classify_source_non_emissions: bool = False,
     classify_template_emissions: bool = False,
 ) -> dict[str, Any]:
     """Compare the selected functions with reccmp and summarize its results.
 
     Differences are review material, not failures. The selection fails when a
-    comparison did not complete, or a selected authored function has no counterpart.
-    Marker-only template non-emissions remain visible without failing the selection."""
+    comparison did not complete, or an expected emitted function has no counterpart.
+    Defined internal bodies absent from the PDB remain visible as non-emissions;
+    this classification makes no independent claim about their retail equivalence."""
     recmp_target = comparison_target(repository, target)
     warn_if_build_may_be_stale(repository, target, recmp_target)
     _manifest, summary = _run_reccmp(
@@ -450,13 +451,14 @@ def compare_selected(
     rows = {int(row["orig"], 16): row for row in (summary or {}).get("functions", [])}
 
     header_emissions: dict[int, Any] = {}
+    internal_emissions: dict[int, Any] = {}
     template_emissions: set[int] = set()
     unlinked_addresses = {
         address
         for address in addresses
         if address not in rows or rows[address]["outcome"] == "unpaired"
     }
-    if classify_header_emissions and unlinked_addresses:
+    if classify_source_non_emissions and unlinked_addresses:
         from .source_index import load_source_index, source_functions
 
         model = source_functions(repository, target)
@@ -485,6 +487,40 @@ def compare_selected(
             for address in unlinked_addresses & model.keys()
             if is_header_definition(address)
         }
+        internal_candidates = {
+            address: model[address]
+            for address in unlinked_addresses & model.keys()
+            if (declaration := model[address].declaration) is not None
+            and declaration.is_definition
+            and getattr(declaration, "linkage", "") == "internal"
+            and (row := rows.get(address)) is not None
+            and row["outcome"] == "unpaired"
+            and row.get("recomp") is None
+        }
+        if internal_candidates:
+            from .paths import sha256_file
+
+            digests = load_source_index(repository).get("source_digests", {})
+            internal_candidates = {
+                address: marker
+                for address, marker in internal_candidates.items()
+                if digests.get(marker.source_file)
+                and sha256_file(repository / marker.source_file) == digests[marker.source_file]
+            }
+        if internal_candidates:
+            # Reuse reccmp's complete PDB catalog, including unmatched procedures.
+            # An emitted function with broken line pairing remains a hard failure.
+            engine = Compare.from_target(recmp_target)
+            symbols = {
+                symbol
+                for entity in engine.db.get_all()
+                if (symbol := entity.fact(ImageId.RECOMP, "symbol")) is not None
+            }
+            internal_emissions = {
+                address: marker
+                for address, marker in internal_candidates.items()
+                if marker.declaration is not None and marker.declaration.semantic_id not in symbols
+            }
     if classify_template_emissions and unlinked_addresses:
         from .source_index import load_source_index
 
@@ -514,6 +550,17 @@ def compare_selected(
                     "source_file": marker.source_file,
                 }
             )
+        elif address in internal_emissions:
+            marker = internal_emissions[address]
+            assert row is not None
+            emission = _function_row(repository, target, row)
+            emission.update(
+                name=marker.name,
+                outcome="internal-non-emission",
+                reason="defined TU-local source has no standalone PDB procedure; no independent body comparison",
+                source_file=marker.source_file,
+            )
+            functions.append(emission)
         elif address in template_emissions:
             assert row is not None
             emission = _function_row(repository, target, row)
@@ -533,7 +580,13 @@ def compare_selected(
         "selected": len(functions),
         "counts": {
             outcome: counts[outcome]
-            for outcome in (*_OUTCOMES, "header-emission", "template-non-emission", "missing")
+            for outcome in (
+                *_OUTCOMES,
+                "header-emission",
+                "internal-non-emission",
+                "template-non-emission",
+                "missing",
+            )
         },
         "inlining": {
             "retried": len(retries),
