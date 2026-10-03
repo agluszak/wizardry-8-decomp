@@ -30,7 +30,6 @@ public:
     Trigger* trigger_030;
     bool repeat_034;
     bool completed_035;
-    unsigned char unknown_036[2];
 };
 
 static_assert(sizeof(W8TriggerEvent) == 0x38, "W8TriggerEvent_must_be_0x38");
@@ -44,7 +43,6 @@ public:
     virtual ~W8TriggerActionData();
 
     signed char type_004;
-    unsigned char unknown_005[3];
 };
 
 static_assert(sizeof(W8TriggerActionData) == 0x08, "W8TriggerActionData_must_be_0x08");

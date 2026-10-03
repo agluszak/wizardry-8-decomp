@@ -1,5 +1,6 @@
 #pragma once
 
+#include "timer.h"
 #include "input.h"
 
 struct Controls;
@@ -9,7 +10,7 @@ class W8TextControl;
 
 extern W8TextControl* g_free_turn_button;
 extern W8TextControl* g_cancel_party_movement_button;
-extern unsigned int g_party_movement_animation_clock;
+extern TIMER g_party_movement_animation_clock;
 extern Controls* g_party_movement_panel;
 extern W8TextBuffer* g_party_movement_caption;
 extern unsigned int g_party_movement_animation_frame;

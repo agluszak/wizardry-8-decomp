@@ -764,13 +764,27 @@ float g_profession_hit_point_factors[15] = {
 };
 // GLOBAL: WIZ8 0x006155b0
 W8SkillAttributes g_skill_attributes[0x29] = {
-    {0, 1, 0, 4}, {0, 1, 0, 4}, {0, 1, 0, 4}, {0, 1, 0, 4}, {0, 1, 4, 5}, {0, 0, 0, 4},
-    {0, 1, 0, 4}, {0, 1, 4, 5}, {0, 1, 4, 0}, {0, 0, 4, 0}, {1, 1, 4, 1}, {1, 1, 4, 1},
-    {1, 2, 4, 1}, {1, 1, 4, 5}, {0, 1, 4, 5}, {1, 2, 6, 1}, {2, 0, 6, 1}, {2, 0, 6, 1},
-    {2, 1, 4, 6}, {2, 1, 6, 5}, {2, 0, 1, 6}, {2, 0, 6, 1}, {2, 0, 1, 6}, {2, 2, 1, 4},
-    {3, 1, 1, 1}, {3, 1, 2, 2}, {3, 1, 4, 1}, {3, 1, 6, 1}, {3, 1, 1, 2}, {3, 1, 1, 2},
-    {3, 1, 1, 2}, {3, 1, 1, 2}, {3, 1, 1, 2}, {3, 1, 1, 2}, {4, 3, 0, 0}, {4, 3, 1, 1},
-    {4, 3, 2, 2}, {4, 3, 3, 3}, {4, 3, 4, 4}, {4, 3, 5, 5}, {4, 3, 6, 6},
+    {0, W8_SKILL_IMPORT_POLICY_1, 0, 4},   {0, W8_SKILL_IMPORT_POLICY_1, 0, 4},
+    {0, W8_SKILL_IMPORT_POLICY_1, 0, 4},   {0, W8_SKILL_IMPORT_POLICY_1, 0, 4},
+    {0, W8_SKILL_IMPORT_POLICY_1, 4, 5},   {0, W8_SKILL_IMPORT_POLICY_0, 0, 4},
+    {0, W8_SKILL_IMPORT_POLICY_1, 0, 4},   {0, W8_SKILL_IMPORT_POLICY_1, 4, 5},
+    {0, W8_SKILL_IMPORT_POLICY_1, 4, 0},   {0, W8_SKILL_IMPORT_POLICY_0, 4, 0},
+    {1, W8_SKILL_IMPORT_POLICY_1, 4, 1},   {1, W8_SKILL_IMPORT_POLICY_1, 4, 1},
+    {1, W8_SKILL_IMPORT_PROFESSION, 4, 1}, {1, W8_SKILL_IMPORT_POLICY_1, 4, 5},
+    {0, W8_SKILL_IMPORT_POLICY_1, 4, 5},   {1, W8_SKILL_IMPORT_PROFESSION, 6, 1},
+    {2, W8_SKILL_IMPORT_POLICY_0, 6, 1},   {2, W8_SKILL_IMPORT_POLICY_0, 6, 1},
+    {2, W8_SKILL_IMPORT_POLICY_1, 4, 6},   {2, W8_SKILL_IMPORT_POLICY_1, 6, 5},
+    {2, W8_SKILL_IMPORT_POLICY_0, 1, 6},   {2, W8_SKILL_IMPORT_POLICY_0, 6, 1},
+    {2, W8_SKILL_IMPORT_POLICY_0, 1, 6},   {2, W8_SKILL_IMPORT_PROFESSION, 1, 4},
+    {3, W8_SKILL_IMPORT_POLICY_1, 1, 1},   {3, W8_SKILL_IMPORT_POLICY_1, 2, 2},
+    {3, W8_SKILL_IMPORT_POLICY_1, 4, 1},   {3, W8_SKILL_IMPORT_POLICY_1, 6, 1},
+    {3, W8_SKILL_IMPORT_POLICY_1, 1, 2},   {3, W8_SKILL_IMPORT_POLICY_1, 1, 2},
+    {3, W8_SKILL_IMPORT_POLICY_1, 1, 2},   {3, W8_SKILL_IMPORT_POLICY_1, 1, 2},
+    {3, W8_SKILL_IMPORT_POLICY_1, 1, 2},   {3, W8_SKILL_IMPORT_POLICY_1, 1, 2},
+    {4, W8_SKILL_IMPORT_DISABLED, 0, 0},   {4, W8_SKILL_IMPORT_DISABLED, 1, 1},
+    {4, W8_SKILL_IMPORT_DISABLED, 2, 2},   {4, W8_SKILL_IMPORT_DISABLED, 3, 3},
+    {4, W8_SKILL_IMPORT_DISABLED, 4, 4},   {4, W8_SKILL_IMPORT_DISABLED, 5, 5},
+    {4, W8_SKILL_IMPORT_DISABLED, 6, 6},
 };
 // GLOBAL: WIZ8 0x00615840
 int g_profession_skill_availability[0x29][15] = {

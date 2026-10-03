@@ -21,7 +21,13 @@ from pathlib import Path
 from typing import Literal
 from unittest.mock import patch
 
-from scalar_facts import DeclarationFact, read_scalar_facts, write_integer_report
+from scalar_facts import (
+    DeclarationFact,
+    read_evidence,
+    read_scalar_facts,
+    write_integer_report,
+    write_recovery_patch,
+)
 
 REAL_CLANG_TIDY = "/usr/bin/clang-tidy-21"
 PLUGIN = "/usr/local/lib/wiz8-clang-tidy.so"
@@ -513,8 +519,22 @@ def main() -> None:
         parser.add_argument("facts", type=Path)
         parser.add_argument("--evidence", type=Path)
         parser.add_argument("--output", type=Path, required=True)
+        parser.add_argument(
+            "--patch",
+            type=Path,
+            help="write a reviewable source patch from accepted whole-chain proposals",
+        )
+        parser.add_argument("--repository", type=Path, default=Path.cwd())
         options = parser.parse_args(sys.argv[2:])
-        write_integer_report(options.facts, options.evidence, options.output)
+        report = write_integer_report(options.facts, options.evidence, options.output)
+        if options.patch:
+            import json
+
+            facts = read_scalar_facts(options.facts)
+            report["recovery_patch"] = write_recovery_patch(
+                facts, read_evidence(options.evidence, facts), options.repository, options.patch
+            )
+            options.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         return
     if sys.argv[1:] == ["--wiz8-wrapper-self-test"]:
         _self_test()

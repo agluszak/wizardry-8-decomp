@@ -41,10 +41,9 @@ private:
     W8TextBuffer* m_text_buffers[2]; /* 0x54 */
     W8DialogButton* m_buttons[3];    /* 0x5c */
     signed char m_selected_option;   /* 0x68: read MOVSX by the destroy callback */
-    unsigned char unknown_069[3];
     W8NpcQuoteEntry* m_message;      /* 0x6c */
     int m_aux_data;                  /* 0x70 */
-    bool m_compact_options; /* 0x74: option list may size under 200 wide */
+    bool m_compact_options;          /* 0x74: option list may size under 200 wide */
     unsigned char unknown_075;
     unsigned short m_text_width; /* 0x76: widest option text + 6 */
     unsigned char m_input_field; /* 0x78: AddTextInputField id for opcode 0x13 */

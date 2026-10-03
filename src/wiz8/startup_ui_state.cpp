@@ -11,7 +11,7 @@
 // GLOBAL: WIZ8 0x00689b48
 int g_region_help_delay;
 // GLOBAL: WIZ8 0x00689b38
-int g_region_help_clock;
+TIMER g_region_help_clock;
 
 // FUNCTION: WIZ8 0x004f11d0
 unsigned char InitializeRegionHelpState(void)

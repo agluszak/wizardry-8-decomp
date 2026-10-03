@@ -131,7 +131,7 @@ enum {
 };
 struct W8HandAttack {
     int uiHolds;                 /* 0x00 */
-    bool in_play;       /* 0x04 */
+    bool in_play;                /* 0x04 */
     int weapon_skill;            /* 0x05, unaligned */
     int combat_skill;            /* 0x09 */
     unsigned int combined_skill; /* 0x0d */
@@ -142,17 +142,9 @@ struct W8HandAttack {
     int hit_bonus;               /* 0x21 */
     int attack_bonus_25;         /* 0x25: attack-score term, paired with modifier attack_bonus_02 */
     int damage_percent_29; /* 0x29: percent damage multiplier, paired with modifier damage_percent_03 */
-    W8Dice damage_dice;          /* 0x2d */
-    unsigned short attack_flags; /* 0x31 */
-    /* 0x33..0x42: the 16-byte block unarmed attacks memcpy into the effect's
-       condition_chances; strength_bonus_39 doubles as the unarmed strength
-       bonus. */
-    int condition_chance_33;
-    unsigned char unknown_37[2];
-    signed char strength_bonus_39;
-    unsigned char unknown_3a;
-    int condition_chance_3b;
-    int condition_chance_3f;
+    W8Dice damage_dice;                  /* 0x2d */
+    unsigned short attack_flags;         /* 0x31 */
+    unsigned char condition_chances[16]; /* 0x33: unarmed condition probabilities */
     unsigned char unknown_43[0x18];
 }; /* 0x5b */
 
@@ -383,10 +375,16 @@ struct W8Character {
 
 static_assert(sizeof(W8Character) == 0x1862, "W8Character_must_be_0x1862");
 
+enum W8SkillImportPolicy {
+    W8_SKILL_IMPORT_POLICY_0 = 0,
+    W8_SKILL_IMPORT_POLICY_1 = 1,
+    W8_SKILL_IMPORT_PROFESSION = 2,
+    W8_SKILL_IMPORT_DISABLED = 3,
+};
+
 struct W8SkillAttributes {
     int category;
-    /* 0x04: used by Wiz7 skill import eligibility; its source name is unknown. */
-    int field_04;
+    W8SkillImportPolicy import_policy; /* 0x04: Wiz7 skill import eligibility */
     /* 0x08/0x0c: governing attributes averaged into base_level_0a and
        listed in the stat-info dialog. */
     int attribute_1_08;

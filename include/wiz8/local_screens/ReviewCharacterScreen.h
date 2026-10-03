@@ -1,5 +1,6 @@
 #pragma once
 
+#include "timer.h"
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/layouts/learned_spells.h"
@@ -114,11 +115,11 @@ struct W8CampScreenState {
     W8CampSpellRange* spell_ranges[6];
     W8CampStatsRange* stats_range; /* 0xcd8 */
     W8CampStatsControls* stats_controls;
-    unsigned int item_timer; /* 0xce0 */
+    TIMER item_timer; /* 0xce0 */
     bool item_timer_active;
     bool item_timer_expired;
     unsigned char padding_ce6[2];
-    unsigned int animation_timer;
+    TIMER animation_timer;
     unsigned int animation_frames[6];
     int input_mode; /* 0xd04 */
     /* 0xd08..0xd30: the stats page's condition/equipment effect list, rebuilt

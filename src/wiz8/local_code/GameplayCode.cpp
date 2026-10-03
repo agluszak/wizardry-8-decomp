@@ -704,15 +704,9 @@ void CalcAttacks(W8Character* character)
             if (hand == 0) {
                 attack->damage_dice.base += 2;
             }
-            attack->condition_chance_33 = 0;
-            attack->unknown_37[0] = 0;
-            attack->unknown_37[1] = 0;
-            attack->strength_bonus_39 = 0;
-            attack->unknown_3a = 0;
-            attack->condition_chance_3b = 0;
-            attack->condition_chance_3f = 0;
+            memset(attack->condition_chances, 0, sizeof(attack->condition_chances));
             if (character->attributes[0].effective > 49) {
-                attack->strength_bonus_39 = (character->attributes[0].effective - 50) / 5;
+                attack->condition_chances[6] = (character->attributes[0].effective - 50) / 5;
             }
         }
 
@@ -792,7 +786,8 @@ void CalcArmorClasses(W8Character* character)
     int location_slot = 0;
     if (gXStatus.fCombatMode) {
         unsigned int slot = CharacterPointerToPartySlot(character);
-        defensive_action = TryCharacterAction(slot, W8_ACTION_DEFEND, 0) || TryCharacterAction(slot, W8_ACTION_PROTECT, 0);
+        defensive_action = TryCharacterAction(slot, W8_ACTION_DEFEND, 0) ||
+                           TryCharacterAction(slot, W8_ACTION_PROTECT, 0);
     }
 
     unsigned int index;

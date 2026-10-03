@@ -468,3 +468,360 @@ def test_failed_compiler_is_not_hidden_by_partial_facts(tmp_path):
 def test_member_pointer_domain_cannot_be_promoted_as_integer(scalar, tmp_path):
     facts = read(scalar, tmp_path, declaration("A", domain="pointer", spelling="int Owner::*"))
     assert property_report(scalar, facts, [claim("A")])["status"] == "blocked"
+
+
+@pytest.mark.parametrize("sentinel,tag", [(-1, "K"), (-1, "O"), (4294967295, "O")])
+def test_unsigned_seed_cannot_erase_sentinel_anywhere_in_chain(scalar, tmp_path, sentinel, tag):
+    row = f"K\tB\t{sentinel}\tx.cpp\t2\t1" if tag == "K" else f"O\tB\t==\t{sentinel}\tx.cpp\t2\t1"
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("A"),
+        declaration("B"),
+        "F\tB\tA\tassignment\tx.cpp\t1\t1",
+        row,
+    )
+    result = property_report(scalar, facts, [claim("A")])
+    assert result["status"] == "blocked"
+    assert any("sentinel" in blocker["reason"] for blocker in result["blockers"])
+
+
+def test_flags_and_status_share_graph_without_inventing_types(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("flags"),
+        declaration("status"),
+        "O\tflags\t|=\t4\tx.cpp\t2\t1",
+        "O\tflags\t&\t8\tx.cpp\t3\t1",
+        "K\tstatus\t-1\tx.cpp\t4\t1",
+        "K\tstatus\t0\tx.cpp\t5\t1",
+        "K\tstatus\t1\tx.cpp\t6\t1",
+    )
+    inventory = {item["members"][0]: item for item in scalar.domain_inventory(facts)}
+    assert inventory["flags"]["behavior"] == "flags-like"
+    assert inventory["status"]["value_domain"] == "tri-state-values"
+    assert not inventory["flags"]["source_type_recovered"]
+
+
+def test_status_values_propagate_directionally_and_unknown_producer_blocks(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("producer"),
+        declaration("local"),
+        "K\tproducer\t0\tx.cpp\t1\t1",
+        "K\tproducer\t1\tx.cpp\t2\t1",
+        "F\tlocal\tproducer\tinitializer\tx.cpp\t3\t1",
+        "A\tlocal\tunmodeled expression producer\tx.cpp\t4\t1",
+    )
+    item = scalar.domain_inventory(facts)[0]
+    assert item["observed_values"] == [0, 1]
+    assert not item["complete_value_domain"]
+
+
+def independent_claim(key, property_, value, **extra):
+    return {
+        "key": key,
+        "property": property_,
+        "value": value,
+        "basis": {
+            "kind": "source-oracle",
+            "reference": "original-header",
+            "reason": "independently established owner",
+        },
+        **extra,
+    }
+
+
+def test_void_pointer_chain_uses_known_owner_and_cast_metadata(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("owner", domain="pointer", spelling="Record *"),
+        declaration("storage", domain="pointer", spelling="void *"),
+        declaration("result", domain="pointer", spelling="Record *"),
+        "T\towner\tRecord *\t\tRecord",
+        "T\tstorage\tvoid *\t\tvoid",
+        "T\tresult\tRecord *\t\tRecord",
+        "F\tstorage\towner\tassignment\tx.cpp\t1\t1",
+        "F\tresult\tstorage\texplicit-conversion\tx.cpp\t2\t1",
+        "V\tresult\tstorage\tvoid *\tRecord *",
+        "A\tresult\texplicit conversion\tx.cpp\t2\t1",
+        "A\tstorage\texplicit conversion\tx.cpp\t2\t1",
+    )
+    seeds = evidence(scalar, tmp_path, facts, independent_claim("owner", "pointee", "Record"))
+    result = scalar.anchored_report(facts, seeds, "pointee")[0]
+    assert result["status"] == "candidate"
+    assert result["changes"] == ["storage"]
+    assert scalar.anchored_report(facts, [], "pointee")[0]["status"] == "unknown"
+
+
+@pytest.mark.parametrize(
+    "pointee,escape", [("Other", ""), ("const Record", ""), ("Record", "address taken")]
+)
+def test_pointer_conflicts_qualifiers_and_mutation_block(scalar, tmp_path, pointee, escape):
+    rows = [
+        declaration("owner", domain="pointer"),
+        declaration("storage", domain="pointer"),
+        "T\towner\tRecord *\t\tRecord",
+        f"T\tstorage\t{pointee} *\t\t{pointee}",
+        "F\tstorage\towner\tassignment\tx.cpp\t1\t1",
+    ]
+    if escape:
+        rows.append(f"A\tstorage\t{escape}\tx.cpp\t2\t1")
+    facts = read(scalar, tmp_path, *rows)
+    result = scalar.anchored_report(
+        facts, [independent_claim("owner", "pointee", "Record")], "pointee"
+    )[0]
+    assert result["status"] == "blocked"
+
+
+def test_nominal_id_owner_does_not_normalize_identical_other_typedef(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("owner"),
+        declaration("copy"),
+        "T\towner\tunsigned int\tMonsterId\t",
+        "T\tcopy\tunsigned int\tSkillId\t",
+        "F\tcopy\towner\tassignment\tx.cpp\t1\t1",
+    )
+    seeds = evidence(
+        scalar, tmp_path, facts, independent_claim("owner", "nominal", "MonsterId", role="ID")
+    )
+    assert scalar.anchored_report(facts, seeds, "nominal")[0]["status"] == "blocked"
+
+
+def test_nominal_identity_and_role_require_independent_evidence(scalar, tmp_path):
+    facts = read(scalar, tmp_path, declaration("owner"), "T\towner\tunsigned int\tMonsterId\t")
+    with pytest.raises(ValueError, match="semantic role"):
+        evidence(scalar, tmp_path, facts, independent_claim("owner", "nominal", "MonsterId"))
+    with pytest.raises(ValueError, match="existing typedef"):
+        evidence(scalar, tmp_path, facts, independent_claim("owner", "nominal", "NewId", role="ID"))
+    with pytest.raises(ValueError, match="concrete pointee"):
+        evidence(scalar, tmp_path, facts, claim("owner", "pointee", "Record"))
+
+
+def test_callback_slot_is_not_an_independent_scalar_lint(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("slot", domain="pointer"),
+        declaration("slot::callback-arg#0", kind="callback-parameter"),
+        "J\tslot\t1\t0\t0",
+        "C\tslot\timplementation\t1\t0\t0",
+    )
+    report = scalar.callback_report(facts)[0]
+    assert report["status"] == "modeled"
+    assert report["nodes"] == ["slot::callback-arg#0"]
+    assert "before edits" in report["requires"]
+
+
+@pytest.mark.parametrize(
+    "binding",
+    [
+        "C\tslot\timplementation\t2\t0\t0",
+        "C\tslot\timplementation\t1\t1\t0",
+        "C\tslot\timplementation\t1\t0\t1",
+    ],
+)
+def test_callback_abi_mismatch_blocks_component(scalar, tmp_path, binding):
+    facts = read(
+        scalar, tmp_path, declaration("slot", domain="pointer"), "J\tslot\t1\t0\t0", binding
+    )
+    assert scalar.callback_report(facts)[0]["status"] == "blocked"
+
+
+def span(key, file, offset, text, original):
+    import hashlib
+
+    return f"L\t{key}\t{file}\t{offset}\t{len(text.encode())}\t{text}\t{hashlib.sha256(original.encode()).hexdigest()}"
+
+
+def test_reviewable_patch_changes_entire_chain_and_all_redeclarations(scalar, tmp_path):
+    header = "long Read();\n"
+    source = "long Read() { return 0; }\nlong copy;\n"
+    (tmp_path / "test.h").write_text(header)
+    (tmp_path / "test.cpp").write_text(source)
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("return", kind="function", spelling="long"),
+        declaration("copy", spelling="long"),
+        "H\treturn\tbody\ttest.cpp\t1\t1",
+        "F\tcopy\treturn\tinitializer\ttest.cpp\t2\t1",
+        span("return", "test.h", 0, "long", header),
+        span("return", "test.cpp", 0, "long", source),
+        span("copy", "test.cpp", source.index("long copy"), "long", source),
+    )
+    patch = tmp_path / "recovery.patch"
+    result = scalar.write_recovery_patch(facts, [claim("return")], tmp_path, patch)
+    assert result["changed_declarations"] == ["copy", "return"]
+    assert patch.read_text().count("+unsigned long") == 3
+    assert (tmp_path / "test.cpp").read_text() == source
+    assert (tmp_path / "test.h").read_text() == header
+
+
+def test_recovery_patch_rejects_partial_component_and_shared_atoms(scalar, tmp_path):
+    source = "int a, b;\n"
+    (tmp_path / "test.cpp").write_text(source)
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("a"),
+        declaration("b"),
+        span("a", "test.cpp", 0, "int", source),
+        span("b", "test.cpp", 0, "int", source),
+    )
+    patch = tmp_path / "recovery.patch"
+    result = scalar.write_recovery_patch(facts, [claim("a")], tmp_path, patch)
+    assert not result["changed_declarations"]
+    assert "shared" in result["rejected"][0]["reason"]
+    assert patch.read_text() == ""
+    facts.flows.add(scalar.Flow("b", "a", "assignment", "test.cpp", 1, 1))
+    facts.spans = {item for item in facts.spans if item[0] == "a"}
+    result = scalar.write_recovery_patch(facts, [claim("a")], tmp_path, patch)
+    assert not result["changed_declarations"]
+    assert "every changed declaration" in result["rejected"][0]["reason"]
+
+
+def test_recovery_patch_rejects_stale_source_before_writing(scalar, tmp_path):
+    source = "int a;\n"
+    (tmp_path / "test.cpp").write_text(source + "// edited since collection\n")
+    facts = read(scalar, tmp_path, declaration("a"), span("a", "test.cpp", 0, "int", source))
+    patch = tmp_path / "recovery.patch"
+    with pytest.raises(ValueError, match="stale source"):
+        scalar.write_recovery_patch(facts, [claim("a")], tmp_path, patch)
+    assert not patch.exists()
+
+
+def test_width_proposal_does_not_generate_a_partial_signedness_edit(scalar, tmp_path):
+    source = "int a;\n"
+    (tmp_path / "test.cpp").write_text(source)
+    facts = read(scalar, tmp_path, declaration("a"), span("a", "test.cpp", 0, "int", source))
+    result = scalar.write_recovery_patch(
+        facts, [claim("a"), claim("a", "width", 8)], tmp_path, tmp_path / "recovery.patch"
+    )
+    assert not result["changed_declarations"]
+
+
+def test_increment_prevents_complete_finite_domain(scalar, tmp_path):
+    facts = read(
+        scalar, tmp_path, declaration("a"), "K\ta\t0\tx.cpp\t1\t1", "U\ta\t++\tx.cpp\t2\t1"
+    )
+    assert not scalar.domain_inventory(facts)[0]["complete_value_domain"]
+
+
+def test_nominal_owner_uses_representation_not_int_long_spelling(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("owner", signedness="unsigned", spelling="FLAGS32"),
+        declaration("copy", signedness="unsigned", spelling="unsigned int"),
+        "T\towner\tunsigned long\tFLAGS32\t",
+        "T\tcopy\tunsigned int\t\t",
+        "F\tcopy\towner\tassignment\tx.cpp\t1\t1",
+    )
+    seeds = evidence(
+        scalar, tmp_path, facts, independent_claim("owner", "nominal", "FLAGS32", role="flags")
+    )
+    result = scalar.anchored_report(facts, seeds, "nominal")[0]
+    assert result["status"] == "candidate"
+    assert result["changes"] == ["copy"]
+
+
+def test_whole_program_reader_deduplicates_identical_rows_preserving_conflicts(scalar, tmp_path):
+    row = declaration("duration")
+    (tmp_path / "facts-1.tsv").write_text((row + "\n") * 1000)
+    (tmp_path / "facts-2.tsv").write_text(
+        row + "\n" + declaration("duration", signedness="unsigned") + "\n"
+    )
+    facts = scalar.read_scalar_facts(tmp_path)
+    assert set(facts.declarations) == {"duration"}
+    assert facts.inconsistent == {"duration"}
+    assert len(facts.locations) == 2
+
+
+def test_predicate32_inventory_does_not_depend_on_bool_client_names(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("CheckReady", kind="function"),
+        "H\tCheckReady\tbody\tsrc/wiz8/test.cpp\t2\t1",
+        "K\tCheckReady\t0\tsrc/wiz8/test.cpp\t3\t1",
+        "K\tCheckReady\t1\tsrc/wiz8/test.cpp\t4\t1",
+    )
+    report = scalar.integer_report(facts, [])
+    assert [row["key"] for row in report["predicate32_inventory"]] == ["CheckReady"]
+    assert report["components"][0]["properties"]["signedness"]["status"] == "unknown"
+
+
+def test_callback_topology_requires_all_parameter_nodes(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("callback", domain="pointer"),
+        "J\tcallback\t1\t0\t0",
+        "C\tcallback\timpl\t1\t0\t0",
+    )
+    report = scalar.callback_report(facts)[0]
+    assert report["status"] == "blocked"
+    assert "unmodeled callback parameter" in report["blockers"]
+
+
+def test_translation_unit_coverage_is_explicit_and_deduplicated(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        "M\tsrc/wiz8/one.cpp",
+        "M\tsrc/wiz8/one.cpp",
+        "M\tsrc/sgp/timer.c",
+        declaration("duration"),
+    )
+    assert scalar.integer_report(facts, [])["translation_units"] == [
+        "src/sgp/timer.c",
+        "src/wiz8/one.cpp",
+    ]
+
+
+def test_array_and_record_observations_do_not_seed_recovery(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        "ARR\ta\tsrc/wiz8/test.cpp\t3\t1\tbuffer\tchar\t5\t8\ta::element",
+        "AU\ta\tstring-initializer\tsrc/wiz8/test.cpp\t3\t8",
+        "REC\tr\tsrc/wiz8/test.cpp\t4\tPacked\t40\t8\t64",
+        "RF\tr\tprefix\t0\t8\tchar",
+        "RF\tr\tpayload\t8\t32\tint",
+    )
+    report = scalar.structural_report(facts)
+    assert report["arrays"][0]["extent"] == 5
+    assert report["arrays"][0]["text_initializer"]
+    assert report["records"][0]["packing_changes_size"]
+    assert not scalar.integer_report(facts, [])["components"]
+
+
+def test_evidence_selector_survives_line_changes_and_rejects_ambiguity(scalar, tmp_path):
+    facts = read(scalar, tmp_path, declaration("owner"))
+    evidence = tmp_path / "evidence.json"
+    payload = {
+        "schema": "wiz8.scalar-evidence-v1",
+        "claims": [
+            {
+                "selector": {"file": "src/wiz8/test.cpp", "kind": "variable", "name": "owner"},
+                "property": "signedness",
+                "value": "unsigned",
+                "basis": {
+                    "kind": "external-api",
+                    "reference": "fixture contract",
+                    "reason": "test",
+                },
+            }
+        ],
+    }
+    evidence.write_text(json.dumps(payload))
+    assert scalar.read_evidence(evidence, facts)[0]["key"] == "owner"
+    facts.declarations["other"] = scalar.replace(facts.declarations["owner"], key="other", line=30)
+    with pytest.raises(ValueError, match="one declaration"):
+        scalar.read_evidence(evidence, facts)

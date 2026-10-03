@@ -937,7 +937,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
             fSuccess &= FileRead(hFile, &pInvis->has_legacy_geometry_236, 1, 0);
             if (pInvis->has_legacy_geometry_236 != 0) {
                 fSuccess &= FileRead(hFile, &pInvis->geometry_kind_238, 1, 0);
-                if (pInvis->field_237 == 2) {
+                if (pInvis->linked_record_kind_gate_237 == 2) {
                     W8LevelFileLinkedRecord* pRecord = static_cast<W8LevelFileLinkedRecord*>(
                         malloc(sizeof(W8LevelFileLinkedRecord)));
                     unsigned char okRecord = 0;
@@ -1096,7 +1096,7 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
             fSuccess &= FileWrite(hFile, &pInvis->has_legacy_geometry_236, 1, 0);
             if (pInvis->has_legacy_geometry_236 != 0) {
                 fSuccess &= FileWrite(hFile, &pInvis->geometry_kind_238, 1, 0);
-                if (pInvis->field_237 == 2) {
+                if (pInvis->linked_record_kind_gate_237 == 2) {
                     W8LevelFileLinkedRecord* pRecord = pInvis->pRecord_23d;
                     unsigned char okRecord = 0;
                     if (pRecord != 0) {

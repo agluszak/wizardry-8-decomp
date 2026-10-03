@@ -6,14 +6,12 @@
 struct W8VideoObjectSlot {
     int first_frame;
     short y_offset;
-    unsigned char unknown_06[2];
 };
 
 struct W8VideoFrame {
     char path[0x30];
     int mode;
     bool loaded;
-    unsigned char unknown_35[3];
     unsigned int handle;
 };
 

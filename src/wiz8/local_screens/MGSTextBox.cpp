@@ -67,8 +67,8 @@ struct W8MessageStorageDiskRecord {
     unsigned char highlight_color_05;
     unsigned char highlight_start_06;
     unsigned char highlight_stop_07;
-    int clock_08;
-    int clock_ticking_0c;
+    TIMER clock_08;
+    UINT32 saved_remaining_ms;
     int link_10;
     int length_14;
     unsigned long serialized_entries_18_bits;
@@ -85,8 +85,8 @@ static_assert(offsetof(W8MessageStorageDiskRecord, highlight_stop_07) == 0x07,
               "W8MessageStorageDiskRecord_last_byte_field_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, clock_08) == 0x08,
               "W8MessageStorageDiskRecord_scalar_fields_offset");
-static_assert(offsetof(W8MessageStorageDiskRecord, clock_ticking_0c) == 0x0c,
-              "W8MessageStorageDiskRecord_clock_ticking_offset");
+static_assert(offsetof(W8MessageStorageDiskRecord, saved_remaining_ms) == 0x0c,
+              "W8MessageStorageDiskRecord_saved_remaining_ms_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, link_10) == 0x10,
               "W8MessageStorageDiskRecord_link_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, length_14) == 0x14,
@@ -508,7 +508,7 @@ unsigned char SaveMessageStorage(int file)
             disk_record.highlight_start_06 = live_record->highlight_start;
             disk_record.highlight_stop_07 = live_record->highlight_stop;
             disk_record.clock_08 = live_record->clock_08;
-            disk_record.clock_ticking_0c = live_record->clock_ticking_0c;
+            disk_record.saved_remaining_ms = live_record->saved_remaining_ms;
             disk_record.link_10 = live_record->link_10;
             disk_record.length_14 = live_record->length_14;
             memcpy(&disk_record.serialized_entries_18_bits, &live_record->entries_18,
@@ -555,7 +555,7 @@ unsigned char LoadMessageStorage(int file)
             live_record->highlight_start = disk_record.highlight_start_06;
             live_record->highlight_stop = disk_record.highlight_stop_07;
             live_record->clock_08 = disk_record.clock_08;
-            live_record->clock_ticking_0c = disk_record.clock_ticking_0c;
+            live_record->saved_remaining_ms = disk_record.saved_remaining_ms;
             live_record->link_10 = disk_record.link_10;
             live_record->length_14 = disk_record.length_14;
             live_record->entries_18 = 0;

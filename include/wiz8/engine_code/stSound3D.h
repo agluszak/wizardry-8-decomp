@@ -27,20 +27,19 @@ public:
     virtual ~stSound3D() override;
     virtual srClass* vInstance() override;
     bool IsPlaying(); /* 0x004AEC70 */
-    void Stop(); /* 0x004AEC90 */
+    void Stop();      /* 0x004AEC90 */
     /* loop forces the SGP voice to loop forever (AIL count 0); auto_release
        makes the update pass release the node once playback ends. */
     unsigned char Play(bool loop, bool auto_release); /* 0x004AEBF0 */
     void BuildSoundOptions(const srVector3T<float>* listener,
                            SOUND3DPARMS* options); /* 0x004AECC0 */
 
-    int unknown_138;            /* 0x138: ctor zeroes it; no retail reader found */
-    int sound_handle;           /* 0x13c: live SGP voice id, -1 when silent */
-    int volume;                 /* 0x140: base volume before distance/effects scale */
-    float falloff;              /* 0x144: audible range in world units */
-    char* wave_name;            /* 0x148: owned copy of the wave filename */
+    int unknown_138;   /* 0x138: ctor zeroes it; no retail reader found */
+    int sound_handle;  /* 0x13c: live SGP voice id, -1 when silent */
+    int volume;        /* 0x140: base volume before distance/effects scale */
+    float falloff;     /* 0x144: audible range in world units */
+    char* wave_name;   /* 0x148: owned copy of the wave filename */
     bool auto_release; /* 0x14c: release the node when playback ends */
-    unsigned char unknown_14d[3];
 
     /* srClassSupport::clone expands this class-specific assignment in the
        header-owned template body at 0x004AF460. The source name is duplicated

@@ -667,11 +667,11 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
     bool routed = 0;
     int i;
 
-    if (g_skill_attributes[skill_id].field_04 == 2) {
+    if (g_skill_attributes[skill_id].import_policy == W8_SKILL_IMPORT_PROFESSION) {
         if (g_profession_skill_availability[skill_id][character->iProfession] != 1) {
             return 0;
         }
-    } else if (g_skill_attributes[skill_id].field_04 == 3) {
+    } else if (g_skill_attributes[skill_id].import_policy == W8_SKILL_IMPORT_DISABLED) {
         return 0;
     }
     switch (skill_id) {

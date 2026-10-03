@@ -64,7 +64,7 @@ srGERD::srGERD(srDD* device, void* module, const char* device_name)
     device_40_.dd_00_ = device;
     device_40_.module_0c_ = module;
     device_40_.window_334_ = 0;
-    device_40_.back_buffer_type_34c_ = 0;
+    device_40_.back_buffer_type_34c_ = static_cast<e_backBuffer>(0);
     device_40_.debug_dd_04_ = 0;
     device_40_.real_dd_08_ = 0;
     dirty_21c0_ = 0xffffffff;
@@ -4184,7 +4184,7 @@ void srGERD::closeWindow(e_closeHint hint)
         accumRelease();
         memset(&device_40_.open_info_338_, 0, sizeof(device_40_.open_info_338_));
         state_flags_28_ &= ~2UL;
-        device_40_.back_buffer_type_34c_ = 0;
+        device_40_.back_buffer_type_34c_ = static_cast<e_backBuffer>(0);
         if (prev_open_38_ != 0) {
             prev_open_38_->next_open_3c_ = next_open_3c_;
         }
@@ -4207,7 +4207,7 @@ void srGERD::closeWindow(e_closeHint hint)
 // FUNCTION: SURRENDER 0x1001CD10
 srGERD::e_backBuffer srGERD::getBackBufferType() const
 {
-    return static_cast<e_backBuffer>(device_40_.back_buffer_type_34c_);
+    return device_40_.back_buffer_type_34c_;
 }
 
 // FUNCTION: SURRENDER 0x1001A120
@@ -4294,11 +4294,11 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
         if (getDD()->openWindow(dd_info, result) == 0) {
             device_40_.open_info_338_ = info;
             if (result.back_buffer_type == 1) {
-                device_40_.back_buffer_type_34c_ = 1;
+                device_40_.back_buffer_type_34c_ = BACKBUFFER_NONE;
             } else if (result.back_buffer_type == 2) {
-                device_40_.back_buffer_type_34c_ = 2;
+                device_40_.back_buffer_type_34c_ = BACKBUFFER_ONE;
             } else if (result.back_buffer_type == 3) {
-                device_40_.back_buffer_type_34c_ = 3;
+                device_40_.back_buffer_type_34c_ = BACKBUFFER_TWO;
             }
             prev_open_38_ = 0;
             next_open_3c_ = firstOpen;

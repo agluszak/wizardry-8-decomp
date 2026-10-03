@@ -1,5 +1,6 @@
 #pragma once
 
+#include "timer.h"
 #include "wiz8/geometry.h"
 
 class stTextureAnim;
@@ -130,7 +131,7 @@ struct W8LevelRuntimeBlock {
     int condition_highlight_party_slot; /* 0x20c: -1 while untracked */
     bool flag_210;                      /* 0x210 */
     unsigned char padding_211[3];
-    unsigned int clock_214;           /* 0x214 */
+    TIMER clock_214;                  /* 0x214 */
     unsigned char portrait_flash_218; /* 0x218: 500ms highlight pulse on clock_214 */
     unsigned char padding_219[3];
     /* 0x21c: content row count captured by the mode-6 hover overlay draw. */
@@ -157,16 +158,16 @@ struct W8LevelRuntimeBlock {
     /* 0x24d: video inspector overlay enabled when no modal mode owns input. */
     bool inspector_enabled_24d;
     unsigned char padding_24e[2];
-    unsigned int character_update_timer; /* 0x250 */
-    unsigned int world_update_timer;     /* 0x254 */
-    unsigned int countdown_258;          /* 0x258 */
-    unsigned int countdown_25c;          /* 0x25c */
-    bool transition_active;              /* 0x260 */
-    bool transition_pending;             /* 0x261 */
+    TIMER character_update_timer; /* 0x250 */
+    TIMER world_update_timer;     /* 0x254 */
+    TIMER countdown_258;          /* 0x258 */
+    TIMER countdown_25c;          /* 0x25c */
+    bool transition_active;       /* 0x260 */
+    bool transition_pending;      /* 0x261 */
     unsigned char padding_262[2];
     int highlighted_item;
     int selected_item;
-    unsigned int countdown_26c; /* 0x26c */
+    TIMER countdown_26c; /* 0x26c */
     bool flag_270;
     /* 0x271: text box visible; toggled by the keyboard shortcut and raised
        by spell/item/dialogue screens that need it. */
@@ -197,7 +198,7 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_2b8[8];
     unsigned char refresh_combat_panel;
     unsigned char padding_2c1[3];
-    unsigned int combat_panel_timer;
+    TIMER combat_panel_timer;
     unsigned char refresh_party_panel;
     unsigned char padding_2c9;
     short combat_end_notification;
@@ -219,8 +220,8 @@ struct W8LevelRuntimeBlock {
     unsigned char padding_301[3];
     int tooltip_subject;
     int tooltip_kind;
-    unsigned int countdown_30c; /* 0x30c */
-    int combat_slot;            /* 0x310 */
+    TIMER countdown_30c; /* 0x30c */
+    int combat_slot;     /* 0x310 */
     /* 0x314: the keyboard-action menu is open; set before BuildKeyboardMenu,
        cleared by CloseKeyboardMenu. */
     bool keyboard_menu_open;
@@ -230,7 +231,7 @@ struct W8LevelRuntimeBlock {
        CloseKeyboardMenu. */
     unsigned char cursor_grace_31c;
     unsigned char padding_31d[3];
-    unsigned int countdown_320; /* 0x320: portrait right-hold arm clock */
+    TIMER countdown_320; /* 0x320: portrait right-hold arm clock */
     /* 0x324: PortraitSelectRegionEvent right-button hold armed for camp. */
     bool portrait_right_hold_armed;
     unsigned char formation_board_alternate; /* 0x325: highlighted board art while hovered */
@@ -239,7 +240,7 @@ struct W8LevelRuntimeBlock {
     /* 0x328: the review-screen transition finished; gates its early-out. */
     bool review_transition_done_328;
     unsigned char padding_329[3];
-    unsigned int countdown_32c;
+    TIMER countdown_32c;
 };
 #pragma pack(pop)
 

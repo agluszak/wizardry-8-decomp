@@ -1064,7 +1064,7 @@ private:
         OpenInfo open_info_338_;
         /* e_backBuffer result of srDD::openWindow; getBackBufferType reads
            it. */
-        unsigned long back_buffer_type_34c_;
+        e_backBuffer back_buffer_type_34c_;
     };
 
     /* +0x390 render-state record: the copy emits one 0x4F2-dword

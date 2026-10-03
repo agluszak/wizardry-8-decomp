@@ -845,7 +845,6 @@ public:
     W8CameraShakeEffect* effect_038;
     int intensity_03c;
     bool reverse_040;
-    unsigned char unknown_041[3];
 };
 
 static_assert(sizeof(W8TriggerShakeEvent) == 0x44, "W8TriggerShakeEvent_must_be_0x44");

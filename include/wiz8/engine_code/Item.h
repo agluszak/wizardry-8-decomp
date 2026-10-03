@@ -1,5 +1,6 @@
 #pragma once
 
+#include "timer.h"
 #include <stddef.h>
 
 #include "surrender/srMath.h"
@@ -38,7 +39,7 @@ struct W8Item : public W8GrObject {
 
     Trigger* trigger_018;
     /* 0x1c: countdown clock; IsTicking reports whether it is running. */
-    int countdown_01c;
+    TIMER countdown_01c;
 
     void DetachMesh(W8World* world);
     void ApplyRepTransform();

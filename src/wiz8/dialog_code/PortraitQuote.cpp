@@ -27,15 +27,13 @@ struct W8PortraitQuoteBubble {
     unsigned short height;             /* 0x06 */
     unsigned char background_index_08; /* 0x08 */
     unsigned char object_index_09;     /* 0x09 */
-    unsigned char unknown_0a[2];
-    UINT32 background_surface; /* 0x0c */
-    UINT32 object;             /* 0x10 */
-    bool has_resources_14;     /* 0x14 */
-    bool created_15;           /* 0x15 */
-    unsigned char unknown_16[2];
-    UINT32 flags;   /* 0x18: bit 0 selects the flat fill */
-    wchar_t* text;  /* 0x1c */
-    UINT32 palette; /* 0x20 */
+    UINT32 background_surface;         /* 0x0c */
+    UINT32 object;                     /* 0x10 */
+    bool has_resources_14;             /* 0x14 */
+    bool created_15;                   /* 0x15 */
+    UINT32 flags;                      /* 0x18: bit 0 selects the flat fill */
+    wchar_t* text;                     /* 0x1c */
+    UINT32 palette;                    /* 0x20 */
 };
 
 static_assert(sizeof(W8PortraitQuoteBubble) == 0x24, "W8PortraitQuoteBubble_size");
@@ -63,8 +61,8 @@ static const char* g_quote_bubble_backgrounds[] = {
 static unsigned int g_quote_bubble_flags;
 
 static int MeasureWrappedText(int arg_1, int arg_2, unsigned int wrap_width, int arg_4, int font,
-                       int colour, const wchar_t* text, int arg_8, int arg_9, int arg_10,
-                       unsigned int* out_edge);
+                              int colour, const wchar_t* text, int arg_8, int arg_9, int arg_10,
+                              unsigned int* out_edge);
 int DrawWrappedText(int x, int y, unsigned int wrap_width, int arg_4, int font,
                     unsigned char colour, const wchar_t* text, int arg_8, int arg_9, int arg_10);
 
@@ -289,8 +287,8 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
 
 // FUNCTION: WIZ8 0x005d0050
 static int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int font,
-                       int alternate_font, const wchar_t* text, int arg_8, int arg_9, int arg_10,
-                       unsigned int* out_edge)
+                              int alternate_font, const wchar_t* text, int arg_8, int arg_9,
+                              int arg_10, unsigned int* out_edge)
 {
     wchar_t line[0x140];
     wchar_t word[0x140];
