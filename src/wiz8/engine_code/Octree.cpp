@@ -171,15 +171,15 @@ const float g_float_005ebc78 = 0.15000000596046448f;
 /* Vertical snap ceiling for navigator placement: the source may rise or fall
    at most this many units before a candidate is rejected outright. */
 // GLOBAL: WIZ8 0x005ec038
-const double g_double_005ec038 = 5000.0;
+const double g_navigator_vertical_snap_limit = 5000.0;
 /* Fixed camera tilt (15 degrees below horizontal) the region-link projector
    applies to every sampled direction. */
 // GLOBAL: WIZ8 0x005ec008
-const double g_double_005ec008 = -0.26179999113082886;
+const double g_region_link_camera_tilt = -0.26179999113082886;
 /* Circle-coverage bound just under 2*pi: when samples*fov still falls short,
    one more direction is added. */
 // GLOBAL: WIZ8 0x005ec010
-const float g_float_005ec010 = 6.282185077667236f;
+const float g_region_link_circle_coverage = 6.282185077667236f;
 /* Jitter scale applied to the Random(1000) roll for scatter-ring candidates
    past the first; 0.0004 * 1000 spans 0.4 units. */
 // GLOBAL: WIZ8 0x005ec044
@@ -1213,12 +1213,12 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
     m_projected_regions_valid_16a = false;
     short samples = static_cast<short>(static_cast<int>(
         g_camera_angle_period_005ec014 / view_1c0.horizontal_fov_30 + g_camera_snap_epsilon));
-    if (samples * view_1c0.horizontal_fov_30 < g_float_005ec010) {
+    if (samples * view_1c0.horizontal_fov_30 < g_region_link_circle_coverage) {
         ++samples;
     }
     if (samples > 0) {
-        double cos_tilt = cos(g_double_005ec008);
-        double sin_tilt = sin(g_double_005ec008);
+        double cos_tilt = cos(g_region_link_camera_tilt);
+        double sin_tilt = sin(g_region_link_camera_tilt);
         for (int direction = 0; direction < samples; ++direction) {
             float angle = direction * view_1c0.horizontal_fov_30;
             srMatrix3T<float> frame;
@@ -1922,7 +1922,7 @@ bool __stdcall IsNavigatorAtTarget(W8NavigatorMovementState* movement)
     if (movement->attachment_0ac != 0) {
         W8NavigatorAttachment* attachment = movement->attachment_0ac;
         if (attachment->path_cursor_04 < attachment->path_position_index_08 ||
-            (attachment->flags_00 & 0x80000) != 0) {
+            (attachment->flags_00 & W8_NAV_ATTACHMENT_START_WAYPOINT) != 0) {
             return 0;
         }
         attachment->GetNextPosition(&target);
@@ -2606,7 +2606,7 @@ no_probes:;
                 distance = g_float_005ebb34;
             }
         }
-        float camera_radius = g_startup_world->radius_084 * g_float_006081f4;
+        float camera_radius = g_startup_world->radius_084 * g_camera_sphere_radius_scale;
         if (distance < camera_radius) {
             offset = *to - *from;
             double length2 = static_cast<double>(
@@ -5096,7 +5096,7 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
                               (jitter_column + *column_offset) * sin_step;
                 float ground = SettlePositionToGround(&candidate, 0);
                 float height = candidate.y - ground;
-                if (g_double_005ebc30 <= fabsf(height) && fabsf(height) <= g_double_005ec038 &&
+                if (g_double_005ebc30 <= fabsf(height) && fabsf(height) <= g_navigator_vertical_snap_limit &&
                     (flatten_y != 0 || fabsf(height) <= g_double_005ec030)) {
                     candidate.y = ground;
                     if (proximity_check == 0) {
@@ -5187,7 +5187,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     source->y += g_world_scale;
     float ground = SettlePositionToGround(source, 0);
     float height = source->y - ground;
-    if (g_double_005ebc30 <= fabsf(height) && fabsf(height) <= g_double_005ec038 &&
+    if (g_double_005ebc30 <= fabsf(height) && fabsf(height) <= g_navigator_vertical_snap_limit &&
         (settle_any_height != 0 || fabsf(height) <= g_double_005ec030)) {
         source->y = ground;
     }
@@ -5245,7 +5245,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
                             ground = SettlePositionToGround(&candidate, 0);
                             height = candidate.y - ground;
                             if (g_double_005ebc30 <= fabsf(height) &&
-                                fabsf(height) <= g_double_005ec038 &&
+                                fabsf(height) <= g_navigator_vertical_snap_limit &&
                                 (settle_any_height != 0 || fabsf(height) <= g_double_005ec030)) {
                                 candidate.y = ground;
                                 unsigned char clear;

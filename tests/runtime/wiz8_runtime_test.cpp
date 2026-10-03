@@ -1391,7 +1391,7 @@ int main(int argc, char** argv)
     /* TerminateProcess below deliberately bypasses the CRT atexit chain, so
        invoke the registered product exit hook explicitly. */
     SGPExit();
-    const bool teardown_ok = g_cursor_node_659694 == NULL && gFileDataBase.pLibraries == NULL &&
+    const bool teardown_ok = g_cursor_node == NULL && gFileDataBase.pLibraries == NULL &&
                              gFileDataBase.RealFiles.pRealFilesOpen == NULL;
 
     if (g_scenario_count == 1)

@@ -23,13 +23,13 @@ extern const float g_float_005ebb30;
 extern const float g_float_005ed828;
 /* 0x005EE774: scales the record float into the group-engagement probe
    distance. */
-extern const float g_float_005ee774;
+extern const float g_group_engagement_probe_scale;
 /* 0x005EE77C: 7500.0, the floor added to the engagement range bound the
    group combat checks compare nearest-member distances against. */
-extern const float g_float_005ee77c;
+extern const float g_monster_engagement_range_floor;
 /* 0x005EE780: 1.15, the slack the reinforcement check gives a hostile
    monster's distance to the player before it counts as near the group. */
-extern const float g_float_005ee780;
+extern const float g_reinforcement_distance_slack;
 /* 0x005EBC64: the vertical offset the sight probes add before tracing. */
 extern const float g_float_005ecb08;
 extern const float g_float_005ecb20;
@@ -51,7 +51,7 @@ extern const float g_world_scale;
 extern const float g_monster_motion_push;
 /* 0x005EC510: 127.0, the SGP full-volume scale the positional-sound factory
    multiplies its loudness fraction by. */
-extern const float g_float_005ec510;
+extern const float g_sound_node_full_volume;
 extern const float g_float_005ec020;
 extern const float g_float_005ec1a8;
 extern const float g_float_005ec260;
@@ -68,13 +68,13 @@ extern const float g_float_005ec360;
 extern const double g_double_005ec030;
 /* 0x005EC038: 5000.0, the absolute vertical-snap ceiling that bounds
    FindNavigatorPosition's candidate rejection. */
-extern const double g_double_005ec038;
+extern const double g_navigator_vertical_snap_limit;
 /* 0x005EC008: -pi/12, the fixed downward tilt applied to the sample camera by
    the region-link projector. */
-extern const double g_double_005ec008;
+extern const double g_region_link_camera_tilt;
 /* 0x005EC010: 6.282185, just under 2*pi — the circle-coverage bound the
    projector compares samples*fov against before adding one more direction. */
-extern const float g_float_005ec010;
+extern const float g_region_link_circle_coverage;
 /* 0x005EC044: 0.0004, the Random(1000) jitter scale used by the scatter-ring
    position search. */
 extern const float g_float_005ec044;
@@ -119,7 +119,7 @@ extern const float g_float_005ee838;
 /* Automap pan step as a fraction of the current zoom span. */
 extern const float g_float_005ebcd8;
 /* Search: the unit range the search score and collector scale against. */
-extern float g_float_0061a364;
+extern float g_search_radius;
 /* Search: the full facing cone the collector tests before line of sight. */
 extern float g_float_0061a368;
 extern const float g_float_005ebccc;
@@ -130,14 +130,14 @@ extern const float g_float_005ec1a0;
 /* 0x005ED7A8: pi, the amplitude cursor-driven throw angles are scaled from. */
 extern const double g_double_005ed7a8;
 /* 0x005EBF4C: 71.0, the screen-z coefficient in the drop-item pitch. */
-extern const float g_float_005ebf4c;
+extern const float g_drop_item_pitch_scale;
 /* 0x005EBC28: 5.0, a generic proximity/scale factor shared by navigation,
    monster-level math and the drop-item pitch. */
 extern const float g_float_005ebc28;
 /* 0x005EBF48: 85.0, the screen-y coefficient in the drop-item yaw. */
-extern const float g_float_005ebf48;
+extern const float g_drop_item_yaw_scale;
 /* 0x005ED7C0: -2500.0, the vertical scale of the drop-item direction. */
-extern const double g_double_005ed7c0;
+extern const double g_drop_item_vertical_scale;
 extern const float g_float_005ec38c;
 extern const float g_float_005ec384;
 extern const float g_float_005ec370;

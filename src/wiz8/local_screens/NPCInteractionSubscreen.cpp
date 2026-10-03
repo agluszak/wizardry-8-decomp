@@ -160,7 +160,7 @@ bool g_keyword_lists_loaded;
 bool g_pending_notice_queued;
 /* 0x0068EE58: empty wide string used to clear dialogue editor text. */
 // GLOBAL: WIZ8 0x0068EE58
-wchar_t g_wchar_0068ee58[4];
+wchar_t g_dialogue_empty_text[4];
 /* 0x0068EE60: the queued NPC script notice; see the type comment in the
    header. */
 // GLOBAL: WIZ8 0x0068EE60
@@ -1897,7 +1897,7 @@ void ResetNpcDialogueItemEditor(void)
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageFrame = -1;
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = -1;
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = -1;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetText(g_wchar_0068ee58, 0);
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetText(g_dialogue_empty_text, 0);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->Invalidate(1);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.SetText(&g_empty_wide_string,
                                                                      g_wiz_text_font_secondary);
@@ -2914,7 +2914,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
                 static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = 0;
                 static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = 0;
                 static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetText(
-                    g_wchar_0068ee58, g_wiz_text_font_secondary);
+                    g_dialogue_empty_text, g_wiz_text_font_secondary);
                 return 0;
             }
             --index;
@@ -2972,7 +2972,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
                             static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = 0;
                             static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = 0;
                             if (g_status.party_item_pool_0021[i].stack_count < 2) {
-                                text = g_wchar_0068ee58;
+                                text = g_dialogue_empty_text;
                             } else {
                                 swprintf(count_text, L"%d",
                                          g_npc_interaction_state->trade_quantity);
@@ -3039,7 +3039,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
                         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = 0;
                         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = 0;
                         if (character->backpack[i].stack_count < 2) {
-                            text = g_wchar_0068ee58;
+                            text = g_dialogue_empty_text;
                         } else {
                             swprintf(count_text, L"%d", g_npc_interaction_state->trade_quantity);
                             text = count_text;
@@ -3114,7 +3114,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = 0;
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = 0;
         if (entry->item.stack_count < 2) {
-            text = g_wchar_0068ee58;
+            text = g_dialogue_empty_text;
         } else {
             swprintf(count_text, L"%d", g_npc_interaction_state->trade_quantity);
             text = count_text;
@@ -3573,7 +3573,7 @@ W8ItemInstance* GetNpcTradeSlotItem(int index)
                 static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = 0;
                 static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = 0;
                 if (character->EquippedItem[slot].stack_count < 2) {
-                    text = g_wchar_0068ee58;
+                    text = g_dialogue_empty_text;
                 } else {
                     swprintf(count_text, L"%d", character->EquippedItem[slot].stack_count);
                     text = count_text;
@@ -3599,7 +3599,7 @@ W8ItemInstance* GetNpcTradeSlotItem(int index)
                 static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = 0;
                 static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = 0;
                 if (character->backpack[slot].stack_count < 2) {
-                    text = g_wchar_0068ee58;
+                    text = g_dialogue_empty_text;
                 } else {
                     swprintf(count_text, L"%d", character->backpack[slot].stack_count);
                     text = count_text;

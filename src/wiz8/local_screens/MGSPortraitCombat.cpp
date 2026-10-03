@@ -384,7 +384,7 @@ static void SubMenuButtonUseItem(W8DialogButton* button)
         }
         SetSubMenuButtonTooltips(0);
         g_submenu_clock = SetCountdownClock(0);
-        g_submenu_flag_69b8d4 = false;
+        g_submenu_close_pending = false;
         RequestRedraw(0x200);
         ResetClickedMode();
         return;
@@ -448,7 +448,7 @@ static void SubMenuButtonOpenMenu0(W8DialogButton* button)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = false;
+    g_submenu_close_pending = false;
     RequestRedraw(0x200);
 }
 
@@ -496,7 +496,7 @@ static void SubMenuButtonOpenMenu1(W8DialogButton* button)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = false;
+    g_submenu_close_pending = false;
     RequestRedraw(0x200);
 }
 
@@ -580,6 +580,6 @@ void ReopenSubMenuPanel(void)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = false;
+    g_submenu_close_pending = false;
     RequestRedraw(0x200);
 }

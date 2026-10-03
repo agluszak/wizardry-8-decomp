@@ -83,7 +83,7 @@ struct W8PendingNotice {
     unsigned char unused_16[2];
 };
 extern W8PendingNotice g_pending_notice;
-extern wchar_t g_wchar_0068ee58[4];
+extern wchar_t g_dialogue_empty_text[4];
 
 /* W8NpcInteractionState::dialogue_layout - which NPC dialogue layout is up. The
    layout-1 caption is "MAGIC" (Charm/Mindread/Use Item services) and the

@@ -21,10 +21,13 @@ struct W8PathAI;
      (AdvanceAlongPathPositions) instead of steering directly at the target.
    - PATH_LENGTH_CACHED latches MeasurePathLength's cached path_length_058; any
      waypoint edit clears it.
+   - START_WAYPOINT marks start_waypoint_28 as the next position to steer to;
+     the planner sets both together and the mover clears the bit on arrival.
    - POSITION_RECORDED is raised whenever position_40 is recorded. */
 enum W8NavigatorAttachmentFlag {
     W8_NAV_ATTACHMENT_RESULT_MASK = 0x0000000f,
     W8_NAV_ATTACHMENT_FOLLOW_PATH = 0x00010000,
+    W8_NAV_ATTACHMENT_START_WAYPOINT = 0x00080000,
     W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED = 0x00400000,
     W8_NAV_ATTACHMENT_POSITION_RECORDED = 0x02000000
 };
@@ -43,7 +46,7 @@ struct W8NavigatorAttachment {
     unsigned short padding_0e;
     srVector3T<float> position_10;
     srVector3T<float> position_1c;
-    srVector3T<float> position_28;
+    srVector3T<float> start_waypoint_28; /* valid while W8_NAV_ATTACHMENT_START_WAYPOINT */
     srVector3T<float> position_34;
     srVector3T<float> position_40;
     /* The owned vector array uses the vector type's new[]/delete[] overloads,
@@ -442,7 +445,7 @@ extern const float g_navigator_linked_radius_scale;
 extern W8GrowableVector<W8Navigator*> g_navigator_group;
 /* Runtime scale applied to the startup navigator's radius_084 when the trace
    resolver tests the camera sphere; written during startup, not a constant. */
-extern float g_float_006081f4;
+extern float g_camera_sphere_radius_scale;
 extern float g_navigator_minimum_speed;
 extern float g_navigator_minimum_speed_mode23;
 

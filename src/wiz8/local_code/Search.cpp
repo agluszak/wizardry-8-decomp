@@ -51,7 +51,7 @@ TIMER g_search_pulse_clock;
 /* 10000.0: the unit search radius PickBestSearcher scales by score, and the
    collector's outer range gate. */
 // GLOBAL: WIZ8 0x0061a364
-float g_float_0061a364 = 10000.0f;
+float g_search_radius = 10000.0f;
 // GLOBAL: WIZ8 0x0061a368
 float g_float_0061a368 = 3.1415925f;
 
@@ -99,7 +99,7 @@ W8SearchableView* CollectSearchablesInView(void)
         srVector3T<float> position;
         searchable->GetPosition(&position);
         srVector3T<float> delta = camera - position;
-        if (delta.Length() < g_float_0061a364) {
+        if (delta.Length() < g_search_radius) {
             if (searchable->world_item == 0 && searchable->trigger != 0) {
                 g_search_view.items.Add(searchable);
             } else {
@@ -363,7 +363,7 @@ int W8Searchable::PickBestSearcher()
             best_slot = slot;
         }
     }
-    float range = best_score * g_float_0061a364 * g_movement_speed_step;
+    float range = best_score * g_search_radius * g_movement_speed_step;
     srVector3T<float> camera;
     GetCameraPosition(&camera);
     srVector3T<float> position;

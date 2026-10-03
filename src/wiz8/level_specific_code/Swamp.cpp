@@ -136,7 +136,7 @@ static bool SwampGasFireSpawn(Trigger* pTrigger)
             look_target = monster_info->p3D->movement_0c0.position_040;
             look_target.y += monster_info->p3D->movement_0c0.height_offset_0b8;
             g_gd_camera->LookAt(&look_target, 0);
-            g_flag_6109f0 = false;
+            g_npc_dialogue_closed = false;
             g_master_functions->Add(SwampGasFireItemDrop);
         }
     }
@@ -146,7 +146,7 @@ static bool SwampGasFireSpawn(Trigger* pTrigger)
 }
 
 /* The master function the spawn arms. 0xEFFFFFFF re-registers it and clears
-   the notice flag; each zero tick waits for g_flag_6109f0 - raised when the
+   the notice flag; each zero tick waits for g_npc_dialogue_closed - raised when the
    queued NPC script notice completes - then drops an unidentified item 0x264
    at the spawned monster and fades it out for removal. */
 // FUNCTION: WIZ8 0x004DACD0
@@ -158,14 +158,14 @@ static void SwampGasFireItemDrop(int command)
 
     if (command != 0) {
         if (command == static_cast<int>(0xEFFFFFFF)) {
-            g_flag_6109f0 = false;
+            g_npc_dialogue_closed = false;
             g_master_functions->Add(SwampGasFireItemDrop);
         }
         return;
     }
-    g_flag_006834dc = false;
-    if (g_flag_6109f0 != 0) {
-        g_flag_006834dc = true;
+    g_remove_current_master_function = false;
+    if (g_npc_dialogue_closed != 0) {
+        g_remove_current_master_function = true;
         if (g_swamp_spawned_monster != 0) {
             position = g_swamp_spawned_monster->GetPosition();
             drop_position = position;

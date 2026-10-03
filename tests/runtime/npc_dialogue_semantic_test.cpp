@@ -12,7 +12,7 @@
    - prepend inserts ahead of everything already queued;
    - mark_pending records the quote index in pending_script_values;
    - the spacer kind is consumed with no case and no effect;
-   - CLOSE_DIALOGUE sets g_flag_6109f0 while the dialogue stays closed;
+   - CLOSE_DIALOGUE sets g_npc_dialogue_closed while the dialogue stays closed;
    - DISPATCH_PENDING_NOTICE hands the staged record to
      BeginNpcDialogueInternal, which clears g_pending_notice_queued, opens dialogue mode
      and appends the notice's quote line;
@@ -55,7 +55,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     W8PendingNotice saved_notice;
     W8MessageBoxLine* tail;
     unsigned char saved_flag_68f0f9;
-    unsigned char saved_flag_6109f0;
+    unsigned char saved_npc_dialogue_closed;
     unsigned char saved_flag_006840bc;
     unsigned char saved_queue_idle;
     unsigned char saved_camp_mode;
@@ -108,7 +108,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     saved_screen = g_npc_interaction_state;
     saved_notice = g_pending_notice;
     saved_flag_68f0f9 = g_pending_notice_queued;
-    saved_flag_6109f0 = g_flag_6109f0;
+    saved_npc_dialogue_closed = g_npc_dialogue_closed;
     saved_flag_006840bc = gXStatus.world_update_blocked;
     saved_queue_idle = g_message_queue_idle;
     saved_camp_mode = gXStatus.fCampMode;
@@ -124,7 +124,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     gXStatus.fCombatMode = 1;
     gXStatus.fNpcDialogueMode = 0;
     gXStatus.fPartyMovementUi = 0;
-    g_flag_6109f0 = 0;
+    g_npc_dialogue_closed = 0;
     g_pending_notice_queued = 1;
     g_message_queue_idle = 1;
 
@@ -153,7 +153,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     result->spacer_consumed_inertly = g_npc_scripting.message_lines.GetCount() == 3;
 
     ProcessMessageBoxQueue(); /* CLOSE_DIALOGUE */
-    result->close_flag_set = g_flag_6109f0 != 0 && gXStatus.fNpcDialogueMode == 0;
+    result->close_flag_set = g_npc_dialogue_closed != 0 && gXStatus.fNpcDialogueMode == 0;
 
     ProcessMessageBoxQueue(); /* DISPATCH_PENDING_NOTICE */
     result->notice_dispatched =
@@ -199,7 +199,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     g_npc_interaction_state = saved_screen;
     g_pending_notice = saved_notice;
     g_pending_notice_queued = saved_flag_68f0f9;
-    g_flag_6109f0 = saved_flag_6109f0;
+    g_npc_dialogue_closed = saved_npc_dialogue_closed;
     gXStatus.world_update_blocked = saved_flag_006840bc;
     g_message_queue_idle = saved_queue_idle;
     gXStatus.fCampMode = saved_camp_mode;

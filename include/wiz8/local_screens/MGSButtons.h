@@ -24,7 +24,7 @@ extern W8DialogButton* g_roof_buttons[3];
 extern W8DialogButton* g_options_disk_button;
 extern short g_submenu_entry_count;
 extern unsigned int g_submenu_clock;
-extern bool g_submenu_flag_69b8d4;
+extern bool g_submenu_close_pending;
 /* Exactly five: the next known global begins at 0x0069B900. The cancel row
    lands at [built-1] where built is the available-entry count plus one, so
    the array is only safe because W8_SUBMENU_ATTACK's Berserk (fighter trait
