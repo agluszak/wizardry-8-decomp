@@ -191,7 +191,7 @@ inline void W8Quaternion::InterpolateRotation(const srMatrix3T<float>& from,
         adjusted.v = -adjusted.v;
         adjusted.w = -adjusted.w;
     }
-    if (g_double_005ebc30 - dot <= g_double_005ec1f0) {
+    if (g_double_005ebc30 - dot <= g_slerp_epsilon) {
         dot = g_double_005ebc30 - amount;
         b = amount;
     } else {

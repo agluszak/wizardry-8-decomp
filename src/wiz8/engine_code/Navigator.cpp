@@ -890,7 +890,7 @@ W8GrowableVector<W8Navigator*> g_navigator_group;
 
 /* 0x005EC2A8: a quarter turn, shared with the world elevation helper. */
 // GLOBAL: WIZ8 0x005ec2a8
-const float g_float_005ec2a8 = 1.57079625f;
+const float g_quarter_turn = 1.57079625f;
 // GLOBAL: WIZ8 0x005ec314
 static const float NAVIGATOR_THREE_QUARTER_TURN = 4.712389f;
 // GLOBAL: WIZ8 0x005ec310
@@ -1079,10 +1079,10 @@ void W8Navigator::UpdateFacing(char immediate)
     g_octree->GetPathSurfaceNormal(&movement_0c0.position_040, &normal);
     if (movement_0c0.pitch_enabled_074 != 0) {
         float angle = static_cast<float>(acos(DotProduct(normal, forward)));
-        if (angle < g_float_005ec2a8) {
+        if (angle < g_quarter_turn) {
             angle += NAVIGATOR_THREE_QUARTER_TURN;
         } else {
-            angle -= g_float_005ec2a8;
+            angle -= g_quarter_turn;
         }
         if (immediate != 0) {
             movement_0c0.pitch_020 = NormalizeAngle(angle);
@@ -1092,10 +1092,10 @@ void W8Navigator::UpdateFacing(char immediate)
     if (movement_0c0.roll_enabled_075 != 0) {
         srVector3T<float> side(-forward.z, 0.0f, forward.x);
         float angle = static_cast<float>(acos(DotProduct(side, normal)));
-        if (angle < g_float_005ec2a8) {
+        if (angle < g_quarter_turn) {
             angle += NAVIGATOR_THREE_QUARTER_TURN;
         } else {
-            angle -= g_float_005ec2a8;
+            angle -= g_quarter_turn;
         }
         if (immediate != 0) {
             movement_0c0.roll_028 = NormalizeAngle(angle);

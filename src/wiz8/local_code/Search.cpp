@@ -53,7 +53,7 @@ TIMER g_search_pulse_clock;
 // GLOBAL: WIZ8 0x0061a364
 float g_search_radius = 10000.0f;
 // GLOBAL: WIZ8 0x0061a368
-float g_float_0061a368 = 3.1415925f;
+float g_search_cone_angle = 3.1415925f;
 
 /* The view's own constructor: seeds the cursor ahead of the first element and
    builds the item vector with capacity five. */
@@ -103,7 +103,7 @@ W8SearchableView* CollectSearchablesInView(void)
             if (searchable->world_item == 0 && searchable->trigger != 0) {
                 g_search_view.items.Add(searchable);
             } else {
-                float half_cone = g_float_0061a368 * g_float_005ebc7c;
+                float half_cone = g_search_cone_angle * g_float_005ebc7c;
                 srVector3T<float> from = camera;
                 srVector3T<float> to = position;
                 float yaw = GetCameraYawRadians();
@@ -262,9 +262,9 @@ void RunSearchPulse(void)
                             }
                         } else {
                             PartyAttemptsToIdentifyItem(&searchable->world_item->item, 0);
-                            unsigned int event_type = g_effect_005ee5e4;
+                            unsigned int event_type = g_search_found_item_event;
                             if (Random(2) != 0) {
-                                event_type = g_effect_005ee5e8;
+                                event_type = g_search_found_item_event_alt;
                             }
                             W8CharacterEvent* event = new W8CharacterEvent(
                                 character, event_type, 0, g_effect_argument_005ed8cc,

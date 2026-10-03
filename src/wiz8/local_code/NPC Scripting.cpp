@@ -1589,7 +1589,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_PARTY_MEMBER_EVENT: {
         int party_slot = line->payload_10.argument;
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_effect_005ee58c,
-                            g_event_flag_005ed8e0, g_character_event_no_flags,
+                            g_character_event_no_npc_defer, g_character_event_no_flags,
                             g_character_event_full_volume);
         break;
     }
@@ -1599,7 +1599,7 @@ void ProcessMessageBoxQueue(void)
         if (party_slot != -1) {
             g_status.selected_party_member_2434 = static_cast<unsigned char>(party_slot);
             QueueCharacterEvent(&g_status.buffers.Char[party_slot], event_type,
-                                g_event_flag_005ed8e0, g_character_event_no_flags,
+                                g_character_event_no_npc_defer, g_character_event_no_flags,
                                 g_character_event_full_volume);
             SetNpcDialoguePanelVisible(0);
             if (g_npc_interaction_state->modal_dialog_open != 0) {
@@ -1850,7 +1850,7 @@ void ProcessMessageBoxQueue(void)
                 W8Character* character = &g_status.buffers.Char[party_slot];
                 if (g_status.buffers.XChar[party_slot].fOccupied != 0 && character->iRace == 10 &&
                     character->highest_condition < 0xf) {
-                    QueueCharacterEvent(character, g_effect_005ee654, g_event_flag_005ed8e0,
+                    QueueCharacterEvent(character, g_effect_005ee654, g_character_event_no_npc_defer,
                                         g_character_event_no_flags, g_character_event_full_volume);
                     break;
                 }
@@ -1861,7 +1861,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_PARTY_SLOT_EVENT_18: {
         int party_slot = line->payload_10.argument;
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], 0x18,
-                            g_event_flag_005ed8ec | g_event_flag_005ed8e0,
+                            g_character_event_npc_script | g_character_event_no_npc_defer,
                             g_character_event_no_flags, g_character_event_full_volume);
         break;
     }
@@ -2665,7 +2665,7 @@ void EndScriptedPortraitPick(int party_slot)
     character = &g_status.buffers.Char[party_slot];
     if (character->gender == W8_GENDER_FEMALE && other_gender_present != 0) {
         SetFact(0x1c0, 1, 0);
-        QueueCharacterEvent(character, g_effect_005ee634, g_event_flag_005ed8e0,
+        QueueCharacterEvent(character, g_effect_005ee634, g_character_event_no_npc_defer,
                             g_character_event_no_flags, g_character_event_full_volume);
         return;
     }

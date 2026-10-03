@@ -1256,7 +1256,7 @@ void EndNpcDialogueSession(unsigned char param_1)
             int slot = GetRandomCharacter(1, 1, -1, -1);
             if (slot != -1) {
                 W8CharacterEvent* event = QueueCharacterEvent(
-                    &g_status.buffers.Char[slot], g_special_event_0068c534, g_event_flag_005ed8e8,
+                    &g_status.buffers.Char[slot], g_special_event_0068c534, g_character_event_no_preempt,
                     g_character_event_no_flags, g_character_event_full_volume);
                 if (event != 0) {
                     event->dispatch_delay_ms = 1000;

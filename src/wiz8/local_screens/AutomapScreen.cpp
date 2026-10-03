@@ -227,7 +227,7 @@ bool g_automap_redraw;
 // GLOBAL: WIZ8 0x0068f260
 unsigned int g_automap_page;
 // GLOBAL: WIZ8 0x0068f264
-bool g_flag_0068f264;
+bool g_automap_show_all_monsters;
 // GLOBAL: WIZ8 0x0068f25d
 bool g_automap_overlay_redraw;
 // GLOBAL: WIZ8 0x0068f26c
@@ -2100,7 +2100,7 @@ void RenderAutomapMarkers(void)
                 break;
             }
         }
-        if (g_flag_0068f264 != 0 || detect_all != 0 ||
+        if (g_automap_show_all_monsters != 0 || detect_all != 0 ||
             (monster->disabled_217 == 0 && info->party_threat.sight_state_04 == W8_SIGHT_SEEN)) {
             left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
             top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
@@ -2609,7 +2609,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
     case 0x53:
         if (g_dev_mode != 0) {
             g_automap_redraw = true;
-            g_flag_0068f264 = g_flag_0068f264 == 0;
+            g_automap_show_all_monsters = g_automap_show_all_monsters == 0;
             return 1;
         }
         break;

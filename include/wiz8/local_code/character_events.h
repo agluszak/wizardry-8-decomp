@@ -92,8 +92,8 @@ extern int g_special_event_0068c574;   /* 0x0068C574 */
 extern unsigned int g_event_range_min; /* 0x0068C57C */
 extern int g_special_event_0068c524;   /* 0x0068C524 */
 extern int g_special_event_0068c528;   /* 0x0068C528 */
-extern int g_special_event_0068c530;   /* 0x0068C530: emitted when a slot's action
+extern int g_event_target_out_of_range;   /* 0x0068C530: emitted when a slot's action
                                         cannot reach a monster group */
-extern int g_special_event_0068c518;   /* 0x0068C518: emitted when the selected
+extern int g_event_sight_blocked;   /* 0x0068C518: emitted when the selected
                                         sight line is blocked */
 extern int g_special_event_0068c534;   /* 0x0068C534 */

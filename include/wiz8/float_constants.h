@@ -80,13 +80,13 @@ extern const float g_region_link_circle_coverage;
 extern const float g_float_005ec044;
 /* 0x005EC048: 15.0, the radius multiplier that sizes the monster-proximity
    query box in navigator placement. */
-extern const float g_float_005ec048;
+extern const float g_monster_proximity_radius_scale;
 /* 0x005EC050: 0.0002, the Random(1000) jitter scale for ring candidates. */
 extern const float g_float_005ec050;
 /* 0x005EC1E8 / 0x005EC1F0: the quaternion->matrix normalization factor (2.0)
    and FLT_EPSILON closeness bound shared by the keyframe slerps. */
 extern const double g_double_005ec1e8;
-extern const double g_double_005ec1f0;
+extern const double g_slerp_epsilon;
 extern const double g_double_005ec318;
 extern const double g_double_005ec368;
 extern const double g_double_005ec378;
@@ -121,14 +121,14 @@ extern const float g_float_005ebcd8;
 /* Search: the unit range the search score and collector scale against. */
 extern float g_search_radius;
 /* Search: the full facing cone the collector tests before line of sight. */
-extern float g_float_0061a368;
+extern float g_search_cone_angle;
 extern const float g_float_005ebccc;
 /* 0x005EC340: 1.25, the fast magic-recovery trait's spell-point regen scale. */
 extern const float g_float_005ec340;
 extern const float g_float_005ec028;
 extern const float g_float_005ec1a0;
 /* 0x005ED7A8: pi, the amplitude cursor-driven throw angles are scaled from. */
-extern const double g_double_005ed7a8;
+extern const double g_throw_angle_amplitude;
 /* 0x005EBF4C: 71.0, the screen-z coefficient in the drop-item pitch. */
 extern const float g_drop_item_pitch_scale;
 /* 0x005EBC28: 5.0, a generic proximity/scale factor shared by navigation,
@@ -182,8 +182,8 @@ extern const double g_double_005ece50;
 extern const float g_float_005ece58;
 extern const float g_float_005ece5c;
 extern const float g_camera_half_pi;
-extern const float g_float_005ec2a8;
-extern const float g_float_005ed1e8;
+extern const float g_quarter_turn;
+extern const float g_negative_quarter_turn;
 
 extern float g_navigator_gravity;
 /* 0x005EBCA4: Navigator's mode-3 step scale; the regeneration passes also read

@@ -98,7 +98,7 @@ static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
 extern W8World* g_world;
 extern W8World* g_secondary_world;
 extern unsigned char g_flag_6081e4;
-extern int g_value_659c14;
+extern int g_combat_round_counter;
 
 /* Typed element access for the homogeneous world lists. */
 inline W8Prop* GetWorldProp(W8World* world, int index)

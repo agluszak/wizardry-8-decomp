@@ -187,7 +187,7 @@ const float g_float_005ec044 = 0.00040000001899898052f;
 /* Multiplier on the placement radius that gives the monster-proximity query
    box its extent. */
 // GLOBAL: WIZ8 0x005ec048
-const float g_float_005ec048 = 15.0f;
+const float g_monster_proximity_radius_scale = 15.0f;
 /* Jitter scale applied to the Random(1000) roll for ring candidates past the
    first; 0.0002 * 1000 spans 0.2 units. */
 // GLOBAL: WIZ8 0x005ec050
@@ -5057,7 +5057,7 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
     float neg_cos_step = -cos_step;
     unsigned int monsters = 0;
     if (proximity_check != 0) {
-        float expand = spacing * g_float_005ec048;
+        float expand = spacing * g_monster_proximity_radius_scale;
         srVector3T<float> low;
         low.Set(position->x - expand, position->y - expand, position->z - expand);
         srVector3T<float> high;
@@ -5193,7 +5193,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     }
     unsigned int monsters = 0;
     if (first_only != 0) {
-        float expand = radius * g_float_005ec048;
+        float expand = radius * g_monster_proximity_radius_scale;
         srVector3T<float> low;
         low.Set(source->x - expand, source->y - expand, source->z - expand);
         srVector3T<float> high;

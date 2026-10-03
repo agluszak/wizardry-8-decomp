@@ -327,7 +327,7 @@ const double g_motion_delta_epsilon = 0.10000000149011612;
 // GLOBAL: WIZ8 0x005ebcd4
 const float g_footstep_fall_threshold = -250.0f;
 // GLOBAL: WIZ8 0x00652940
-srVector3T<float> g_origin_652940;
+srVector3T<float> g_world_origin;
 
 /* Advance the camera under world-render motion flags. ECX is the owning
    W8GameData; the body mostly reads globals. Zero elapsed (`camera_scale_14`)
@@ -513,7 +513,7 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
     }
 
     new_position.Set(position->x + delta->x, position->y + delta->y, position->z + delta->z);
-    from_origin = new_position - g_origin_652940;
+    from_origin = new_position - g_world_origin;
     if (sqrtf(DotProduct(from_origin, from_origin)) != static_cast<float>(g_zero_005ebb40)) {
         MarkRendererReady();
         g_gd_camera->m_position_08c = new_position;
@@ -2702,7 +2702,7 @@ bool HasCameraLineOfSight(const srVector3T<float>* position)
 // FUNCTION: WIZ8 0x00421090
 void PlacePartyAtPoint(const srVector3T<float>* point)
 {
-    srVector3T<float> delta = *point - g_origin_652940;
+    srVector3T<float> delta = *point - g_world_origin;
     if (sqrtf(DotProduct(delta, delta)) != g_zero_005ebb40) {
         MarkRendererReady();
         g_gd_camera->m_position_08c = *point;

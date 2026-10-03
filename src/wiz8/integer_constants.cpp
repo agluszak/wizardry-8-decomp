@@ -19,16 +19,16 @@ const int g_effect_argument_005ed8d4 = 1;
 const int g_effect_argument_005ed8d8 = 2;
 
 // GLOBAL: WIZ8 0x005ED8E0
-const unsigned int g_event_flag_005ed8e0 = 8;
+const unsigned int g_character_event_no_npc_defer = 8;
 
 // GLOBAL: WIZ8 0x005ED8E4
 const unsigned char g_character_event_flags_mask = 16;
 
 // GLOBAL: WIZ8 0x005ED8E8
-const unsigned int g_event_flag_005ed8e8 = 0x20;
+const unsigned int g_character_event_no_preempt = 0x20;
 
 // GLOBAL: WIZ8 0x005ED8EC
-const unsigned int g_event_flag_005ed8ec = 0x40;
+const unsigned int g_character_event_npc_script = 0x40;
 
 // GLOBAL: WIZ8 0x005ED8F8
 const unsigned int g_flee_hp_fraction = 50;
@@ -113,13 +113,13 @@ const int g_effect_005ee5dc = 0x15;
 // GLOBAL: WIZ8 0x005EE5E0
 const int g_effect_005ee5e0 = 0x16;
 
-/* Search-pulse event ids: the two found-item variants and the found-trigger
-   event queued to the searcher. */
+/* Search-pulse event ids: the two found-item variants queued to the
+   searcher. */
 // GLOBAL: WIZ8 0x005EE5E4
-const int g_effect_005ee5e4 = 0x17;
+const int g_search_found_item_event = 0x17;
 
 // GLOBAL: WIZ8 0x005EE5E8
-const int g_effect_005ee5e8 = 0x18;
+const int g_search_found_item_event_alt = 0x18;
 
 // GLOBAL: WIZ8 0x005EE5EC
 const int g_effect_005ee5ec = 0x19;
