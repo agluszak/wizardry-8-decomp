@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import shlex
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -11,6 +12,20 @@ from .binary.coff import external_symbols
 
 IMPORT_PREFIXES = ("__imp_", "__IMPORT_DESCRIPTOR", "__NULL_IMPORT_DESCRIPTOR")
 MAP_PUBLIC = re.compile(r"^\s+[0-9a-fA-F]{4}:[0-9a-fA-F]{8}\s+(?P<symbol>\S+)\s")
+
+
+def linked_objects(build_dir: Path) -> list[Path]:
+    """Select only objects consumed by the matching image's completed link."""
+
+    link_dir = build_dir / "src/wiz8"
+    response = link_dir / "CMakeFiles/WIZ8.dir/objects1.rsp"
+    if not response.is_file():
+        raise RuntimeError(f"the comparison link response is missing: {response}; build WIZ8 first")
+    tokens = [token.strip('"') for token in shlex.split(response.read_text(), posix=False)]
+    objects = [(link_dir / token).resolve() for token in tokens if token.endswith(".obj")]
+    if not objects:
+        raise RuntimeError(f"no object files listed in {response}")
+    return objects
 
 
 def object_symbols(path: Path) -> tuple[set[str], set[str]]:

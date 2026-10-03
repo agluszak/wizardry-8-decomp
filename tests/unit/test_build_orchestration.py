@@ -62,29 +62,50 @@ def _settings(repository: Path) -> Settings:
     )
 
 
-def test_product_build_invokes_parallel_jom(tmp_path: Path) -> None:
-    command = build.ContainerBuild.from_settings(_settings(tmp_path)).build_command("WIZ8", 7)
+def _prepare_sources(settings: Settings) -> None:
+    for mount in build.ContainerBuild.from_settings(settings).mounts:
+        sentinel = build._SOURCE_MOUNT_SENTINELS.get(mount.container)
+        if mount.container != "/out":
+            mount.host.mkdir(parents=True, exist_ok=True)
+        if sentinel:
+            (mount.host / sentinel).write_text("/* prepared source */\n")
 
-    assert command[-2:] == [
-        "/c",
-        "set TEMP=Z:\\out\\tmp&& set TMP=Z:\\out\\tmp&& cd /d Z:\\out&& C:\\jom\\jom.exe -j 7 WIZ8",
+
+def test_product_build_uses_cmake_parallel_jom(tmp_path: Path) -> None:
+    command = build.ContainerBuild.from_settings(_settings(tmp_path)).build_command("WIZ8", 7)
+    assert command[-7:] == [
+        build.CMAKE_PROGRAM,
+        "--build",
+        "Z:/out",
+        "--target",
+        "WIZ8",
+        "--parallel",
+        "7",
     ]
 
 
-def test_jom_parallelism_removes_only_generated_guards(tmp_path: Path) -> None:
-    makefile = tmp_path / "Makefile"
-    nested = tmp_path / "CMakeFiles/Makefile2"
-    nested.parent.mkdir()
-    makefile.write_text(".NOTPARALLEL:\nall:\n\t@echo ok\n")
-    nested.write_text(".NOTPARALLEL:\nrule:\n")
-    makefile.chmod(0o444)
-    nested.chmod(0o444)
-
-    updated = build._enable_jom_parallelism(tmp_path)
-
-    assert updated == [str(makefile), str(nested)]
-    assert ".NOTPARALLEL:" not in makefile.read_text()
-    assert "all:\n\t@echo ok" in makefile.read_text()
+@pytest.mark.parametrize("target", ["runtime", "runtime-test"])
+def test_runtime_build_needs_only_its_cmake_target(
+    tmp_path: Path, monkeypatch, target: str
+) -> None:
+    settings = _settings(tmp_path)
+    _prepare_sources(settings)
+    output = settings.product_build_dir
+    output.mkdir(parents=True)
+    (output / "Makefile").write_text("all:\n")
+    (output / "CMakeCache.txt").write_text(
+        f"CMAKE_GENERATOR:INTERNAL={build.PRODUCT_GENERATOR}\nCMAKE_BUILD_TYPE:STRING=\n"
+    )
+    commands = []
+    monkeypatch.setattr(build, "run", lambda command, **_: commands.append(command))
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.write_source_index",
+        lambda *_: pytest.fail("runtime link must not index sources"),
+    )
+    result = build.build_target(settings, target, jobs=2)
+    assert result["target"] == build.TARGET_ALIASES[target]
+    assert len(commands) == 1
+    assert commands[0][-4:] == ["--target", build.TARGET_ALIASES[target], "--parallel", "2"]
 
 
 def test_clang_configuration_reuses_existing_ninja_tree(tmp_path: Path, monkeypatch) -> None:
@@ -97,6 +118,7 @@ def test_clang_configuration_reuses_existing_ninja_tree(tmp_path: Path, monkeypa
         build, "run", lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError)
     )
 
+    _prepare_sources(_settings(tmp_path))
     actual, prefix = build.configure_clang(_settings(tmp_path))
 
     assert actual == output
@@ -116,6 +138,7 @@ def test_clang_configuration_reruns_when_inputs_are_newer(tmp_path: Path, monkey
     commands = []
     monkeypatch.setattr(build, "run", lambda command, **_kwargs: commands.append(command))
 
+    _prepare_sources(_settings(tmp_path))
     build.configure_clang(_settings(tmp_path))
 
     assert len(commands) == 1
@@ -125,6 +148,7 @@ def test_forced_clang_configuration_is_incremental_not_fresh(tmp_path: Path, mon
     commands = []
     monkeypatch.setattr(build, "run", lambda command, **_kwargs: commands.append(command))
 
+    _prepare_sources(_settings(tmp_path))
     build.configure_clang(_settings(tmp_path), force=True)
 
     assert len(commands) == 1
@@ -161,10 +185,20 @@ def test_runtime_product_freshness_uses_input_mtimes(
 
 
 def test_product_cache_without_makefile_is_not_ready(tmp_path: Path) -> None:
-    (tmp_path / "CMakeCache.txt").write_text("CMAKE_GENERATOR:INTERNAL=NMake Makefiles\n")
+    (tmp_path / "CMakeCache.txt").write_text(
+        f"CMAKE_GENERATOR:INTERNAL={build.PRODUCT_GENERATOR}\nCMAKE_BUILD_TYPE:STRING=\n"
+    )
     assert build._product_cache_ready(tmp_path) is False
     (tmp_path / "Makefile").write_text("all:\n")
     assert build._product_cache_ready(tmp_path) is True
+
+
+def test_product_cache_with_old_build_type_requires_reconfigure(tmp_path: Path) -> None:
+    (tmp_path / "CMakeCache.txt").write_text(
+        f"CMAKE_GENERATOR:INTERNAL={build.PRODUCT_GENERATOR}\nCMAKE_BUILD_TYPE:STRING=RelWithDebInfo\n"
+    )
+    (tmp_path / "Makefile").write_text("all:\n")
+    assert build._product_cache_ready(tmp_path) is False
 
 
 def test_empty_library_mount_is_not_ready(tmp_path: Path) -> None:
@@ -273,3 +307,50 @@ def test_prepare_comparison_reuses_cached_original_without_installer(
     assert result["extraction"] == "cached"
     assert result["targets"] == ["WIZ8"]
     assert events[0][:3] == ["reccmp-project", "detect", "--search-path"]
+
+
+@pytest.mark.parametrize("mode", ["product", "lint", "diagnostics", "cached-lint"])
+@pytest.mark.parametrize("dependency", ["/jpeg", "/zlib", "/infozip"])
+def test_configuration_rejects_missing_sources_before_running_docker(
+    tmp_path: Path, monkeypatch, mode: str, dependency: str
+) -> None:
+    settings = _settings(tmp_path)
+    _prepare_sources(settings)
+    mount = next(
+        mount
+        for mount in build.ContainerBuild.from_settings(settings).mounts
+        if mount.container == dependency
+    )
+    (mount.host / build._SOURCE_MOUNT_SENTINELS[dependency]).unlink()
+    monkeypatch.setattr(
+        build, "run", lambda *_args, **_kwargs: pytest.fail("must validate before Docker")
+    )
+    if mode == "cached-lint":
+        output = settings.repo_dir / build.LINT_BUILD_DIR
+        output.mkdir(parents=True)
+        for name in ("CMakeCache.txt", "build.ninja", "compile_commands.json"):
+            (output / name).write_text("cached")
+    with pytest.raises(RuntimeError, match="prepared build inputs are missing") as error:
+        if mode == "product":
+            build._configure(settings)
+        else:
+            build.configure_clang(settings, full_diagnostics=mode == "diagnostics")
+    assert str(mount.host) in str(error.value)
+    assert "uv run wiz8 prepare" in str(error.value)
+
+
+def test_product_configuration_clears_cached_build_type(tmp_path: Path) -> None:
+    command = build.ContainerBuild.from_settings(_settings(tmp_path)).configure_command()
+    assert "-DCMAKE_BUILD_TYPE=" in command
+    assert all("RelWithDebInfo" not in argument for argument in command)
+
+
+def test_old_nmake_cache_requires_fresh_jom_configuration(tmp_path: Path) -> None:
+    (tmp_path / "Makefile").write_text("all:\n")
+    (tmp_path / "CMakeCache.txt").write_text(
+        "CMAKE_GENERATOR:INTERNAL=NMake Makefiles\nCMAKE_BUILD_TYPE:STRING=\n"
+    )
+    assert not build._product_cache_ready(tmp_path)
+    command = build.ContainerBuild.from_settings(_settings(tmp_path)).configure_command()
+    assert "--fresh" in command
+    assert "-DCMAKE_MAKE_PROGRAM=C:/jom/jom.exe" in command

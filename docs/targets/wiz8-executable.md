@@ -44,8 +44,7 @@ uv run wiz8 debug
 It stages the recomp under `build/runtime/debug`, clears stale wineserver state,
 starts Wine's GDB proxy on a free port, and connects system GDB with a deterministic stop policy
 (`SIGTRAP` stop/print, `SIGSEGV` pass, full backtrace, registers, shared libraries, code and stack).
-Main-image register and raw-stack candidates are symbolized through `Wiz8Runtime.map` and matched against the runtime-stub
-manifest. The report and raw session are written under `build/debug/`.
+Main-image register and raw-stack candidates are symbolized through `Wiz8Runtime.map`. The report and raw session are written under `build/debug/`.
 
 For behavioral recovery and visual acceptance, use the
 [runtime-bringup skill](../../.agents/skills/runtime-bringup/SKILL.md). A semantic scenario result
@@ -78,15 +77,15 @@ Exiting the runtime-test harness terminates only its dedicated Wine prefix. The 
 attached to the game and returns its status instead of guessing its lifetime from Wine's desktop
 helper.
 
-`uv run wiz8 build <target> --jobs <count>` drives the pinned VC6 container through the Python build
-driver. It configures stable NMake files when the product cache is absent, lets CMake refresh the
-generated graph, and then runs that graph through parallel JOM. `uv run wiz8 prepare` separately owns idempotent
-primary source/input preparation; optional corpus variants stay explicit.
+`uv run wiz8 build <target> --jobs <count>` drives the pinned VC6 container through
+CMake's JOM generator. CMake regenerates its graph and schedules the selected target's
+objects directly; the Python driver does not patch generated makefiles. `uv run wiz8 prepare`
+separately owns primary source/input preparation; optional corpus variants stay explicit.
 
-The comparison image remains intentionally link-incomplete and uses `/FORCE:UNRESOLVED`. The two
-runnable products do not: before their link, the build driver derives the unresolved first-party
-symbols from the completed comparison link and emits one trap thunk per symbol plus a COFF alias
-object, so every unrecovered call enters a debugger-friendly trap with the caller's stack intact.
+The comparison image permits `/FORCE:UNRESOLVED` for inspection during recovery. Both
+runnable products require complete native links: unresolved functions fail at the linker.
+Their build does not depend on the matching executable, source indexing, or generated traps.
+VC6's `/MD` CRT library supplies its own floating-point marker and SEH chain symbol.
 Both runnable products link the shared exception filter; when a genuine runtime fault occurs it
 records the register file and candidate image addresses, which Python symbolizes through the
 runtime MAP and correlates with the unresolved externals of each owning object.

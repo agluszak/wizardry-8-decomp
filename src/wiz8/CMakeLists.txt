@@ -1,96 +1,42 @@
 set(ZLIB_SOURCE "" CACHE PATH "Pinned zlib 1.0.4 source tree used by recovered game code")
 
-function(wiz8_collect_zlib_units RESULT SOURCE_ROOT)
-    file(GLOB units CONFIGURE_DEPENDS RELATIVE "${SOURCE_ROOT}" "${SOURCE_ROOT}/*.c")
-    list(REMOVE_ITEM units example.c minigzip.c)
-    list(SORT units)
-    set(${RESULT} ${units} PARENT_SCOPE)
-endfunction()
-
-function(wiz8_add_executable)
-    cmake_parse_arguments(ARG "OPT_REF;CONSOLE;ALLOW_UNRESOLVED;FIXED_BASE;INSTRUMENTED" "TARGET;OUTPUT;MAP" "LIBRARIES;SOURCES" ${ARGN})
-    if(ARG_INSTRUMENTED)
-        set(instrumentable_objects $<TARGET_OBJECTS:wiz8_test_instrumented_objects>)
-    else()
-        set(instrumentable_objects $<TARGET_OBJECTS:wiz8_recovered_instrumentable_objects>)
-    endif()
-    if(ARG_CONSOLE)
-        add_executable(${ARG_TARGET}
-            $<TARGET_OBJECTS:wiz8_recovered_objects>
-            ${instrumentable_objects}
-            ${ARG_SOURCES}
-        )
-        set(subsystem /SUBSYSTEM:CONSOLE,4.0)
-    else()
-        add_executable(${ARG_TARGET} WIN32
-            $<TARGET_OBJECTS:wiz8_recovered_objects>
-            ${instrumentable_objects}
-            ${ARG_SOURCES}
-        )
-        set(subsystem /SUBSYSTEM:WINDOWS,4.0)
-    endif()
-    add_dependencies(${ARG_TARGET}
+# Only the common libraries and output naming are shared. Each product below
+# spells out its source objects and linker policy.
+function(wiz8_configure_executable TARGET OUTPUT)
+    add_dependencies(${TARGET}
         ${WIZ8_SR_IMPORT_TARGET}
         ${WIZ8_MSS32_IMPORT_TARGET}
         ${WIZ8_BINKW32_IMPORT_TARGET}
     )
-    target_link_libraries(${ARG_TARGET} PRIVATE
+    target_link_libraries(${TARGET} PRIVATE
         wiz8_compile_settings
-        ${ARG_LIBRARIES}
+        WIZ8_SGP ddraw.lib gdi32.lib user32.lib
         "${WIZ8_SR_IMPORT_LIBRARY}"
         "${WIZ8_MSS32_IMPORT_LIBRARY}"
         "${WIZ8_BINKW32_IMPORT_LIBRARY}"
+        WIZ8_ZLIB_1_0_4
     )
-    if(TARGET WIZ8_ZLIB_1_0_4)
-        target_link_libraries(${ARG_TARGET} PRIVATE WIZ8_ZLIB_1_0_4)
-    endif()
-    if(ARG_OPT_REF)
-        set(opt_ref /OPT:REF)
-    else()
-        set(opt_ref /OPT:NOREF)
-    endif()
-    if(ARG_ALLOW_UNRESOLVED)
-        set(force_unresolved /FORCE:UNRESOLVED)
-    else()
-        set(force_unresolved)
-    endif()
-    if(ARG_FIXED_BASE)
-        set(fixed_base /FIXED)
-    else()
-        set(fixed_base /FIXED:NO)
-    endif()
-    target_link_options(${ARG_TARGET} PRIVATE
-        /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO ${opt_ref} /OPT:NOICF ${fixed_base}
-        ${force_unresolved} /BASE:0x400000 /FILEALIGN:0x1000
-        /OSVERSION:4.0 ${subsystem}
-        /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000
-        "/MAP:${CMAKE_BINARY_DIR}/${ARG_MAP}" /MAPINFO:LINES
-    )
-    set_target_properties(${ARG_TARGET} PROPERTIES
-        OUTPUT_NAME "${ARG_OUTPUT}"
-        PREFIX ""
-        PDB_NAME "${ARG_OUTPUT}"
-    )
+    set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME "${OUTPUT}")
 endfunction()
 
-if(ZLIB_SOURCE AND EXISTS "${ZLIB_SOURCE}/zlib.h")
-    # The canonical executable statically links pristine zlib 1.0.4; 46 of its
-    # bodies are already reviewed by their source markers and provenance claims.
-    # Build the pinned source as a real library so bring-up resolves inflate*
-    # by linking it, rather than by stubbing library code.
-    wiz8_collect_zlib_units(WIZ8_ZLIB_UNITS "${ZLIB_SOURCE}")
-    list(TRANSFORM WIZ8_ZLIB_UNITS PREPEND "${ZLIB_SOURCE}/")
-    add_library(WIZ8_ZLIB_1_0_4 STATIC EXCLUDE_FROM_ALL ${WIZ8_ZLIB_UNITS})
-    target_compile_options(WIZ8_ZLIB_1_0_4 PRIVATE /nologo /O2 /MD)
-    target_compile_definitions(WIZ8_ZLIB_1_0_4 PRIVATE NDEBUG WIN32)
-    target_include_directories(WIZ8_ZLIB_1_0_4 PRIVATE "${ZLIB_SOURCE}")
-endif()
+# The canonical executable statically links pristine zlib 1.0.4; 46 of its
+# bodies are already reviewed by their source markers and provenance claims.
+# Build the pinned source as a real library so bring-up resolves inflate*
+# by linking it, rather than by stubbing library code.
+# GLOB is lexically sorted; preserve the existing archive order.
+file(GLOB WIZ8_ZLIB_UNITS CONFIGURE_DEPENDS "${ZLIB_SOURCE}/*.c")
+list(REMOVE_ITEM WIZ8_ZLIB_UNITS
+    "${ZLIB_SOURCE}/example.c" "${ZLIB_SOURCE}/minigzip.c")
+add_library(WIZ8_ZLIB_1_0_4 STATIC EXCLUDE_FROM_ALL ${WIZ8_ZLIB_UNITS})
+target_compile_options(WIZ8_ZLIB_1_0_4 PRIVATE /nologo /O2 /MD)
+target_compile_definitions(WIZ8_ZLIB_1_0_4 PRIVATE NDEBUG WIN32)
+target_include_directories(WIZ8_ZLIB_1_0_4 PRIVATE "${ZLIB_SOURCE}")
 
 include(sources.cmake)
 set(WIZ8_SOURCE_FILES ${WIZ8_SOURCE_UNITS})
 list(TRANSFORM WIZ8_SOURCE_FILES PREPEND "${PROJECT_SOURCE_DIR}/")
 
-if(WIZ8_LINT_COMPILE_ONLY)
+if(WIZ8_ANALYSIS_BUILD)
     # These units keep retail's reads of locals that are unset on a defect path
     # (a short-circuited FileRead, a missing button or entity, an unhandled
     # mode). Each read is confirmed against retail: initializing the local adds
@@ -176,74 +122,53 @@ target_include_directories(wiz8_runtime_test_objects PRIVATE
     "${PROJECT_SOURCE_DIR}/tests/runtime/instrumentation")
 wiz8_lint_target(wiz8_runtime_test_objects)
 
-if(WIZ8_BUILD_PRODUCTS)
+if(NOT WIZ8_ANALYSIS_BUILD)
     wiz8_add_import_library(WIZ8_SR imports/sr.def
         IMPORT_OBJECTS "${CMAKE_BINARY_DIR}/sr-assert-import.lib")
     wiz8_add_import_library(WIZ8_MSS32 imports/mss32.def PRESERVE_C_DECORATION)
     wiz8_add_import_library(WIZ8_BINKW32 imports/binkw32.def PRESERVE_C_DECORATION)
 
-    # Runtime-only fallback traps for calls recovery has not reached yet. The
-    # generated source aliases the exact unresolved linker symbols to
-    # non-returning debugger-friendly thunks, so the runnable products link
-    # without /FORCE:UNRESOLVED. The matching image never links this object.
-    # Both inputs are build-time generated by the Python driver; configuration
-    # must not fabricate placeholders for them.
-    set(wiz8_runtime_stubs "${CMAKE_BINARY_DIR}/generated/runtime-stubs")
-    set(wiz8_runtime_stub_source "${wiz8_runtime_stubs}/runtime_stubs.cpp")
-    set(wiz8_runtime_stub_object "${wiz8_runtime_stubs}/runtime_stubs.obj")
-    set_source_files_properties(
-        "${wiz8_runtime_stub_source}" "${wiz8_runtime_stub_object}"
-        PROPERTIES GENERATED TRUE)
-    set_source_files_properties(
-        "${wiz8_runtime_stub_object}" PROPERTIES EXTERNAL_OBJECT TRUE)
-    add_library(wiz8_runtime_stub_objects OBJECT
-        "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_unrecovered.cpp"
-        "${wiz8_runtime_stub_source}"
-    )
-    target_include_directories(wiz8_runtime_stub_objects PRIVATE "${PROJECT_SOURCE_DIR}/include")
-    target_compile_definitions(wiz8_runtime_stub_objects
-        PRIVATE NDEBUG NOMINMAX WIN32_LEAN_AND_MEAN)
-    target_compile_options(wiz8_runtime_stub_objects
-        PRIVATE /nologo /Z7 /Od /Ob0 /Oy-)
-
     # Every product uses the same SGP archive. Comparison can also inspect
     # individual object contributions when a function is discarded at link.
-    wiz8_add_executable(
-        TARGET WIZ8
-        OUTPUT Wiz8
-        MAP Wiz8.map
-        ALLOW_UNRESOLVED
-        LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
+    add_executable(WIZ8 WIN32
+        $<TARGET_OBJECTS:wiz8_recovered_objects>
+        $<TARGET_OBJECTS:wiz8_recovered_instrumentable_objects>
     )
-    reccmp_add_target(WIZ8)
+    wiz8_configure_executable(WIZ8 Wiz8)
+    target_link_options(WIZ8 PRIVATE
+        /DEBUG /DEBUGTYPE:CV /PDBTYPE:SEPT /INCREMENTAL:NO /OPT:NOREF /OPT:NOICF /FIXED:NO
+        /FORCE:UNRESOLVED /BASE:0x400000 /FILEALIGN:0x1000
+        /OSVERSION:4.0 /SUBSYSTEM:WINDOWS,4.0
+        /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000
+        "/MAP:${CMAKE_BINARY_DIR}/Wiz8.map" /MAPINFO:LINES
+    )
 
-    wiz8_add_executable(
-        TARGET WIZ8_RUNTIME
-        OUTPUT Wiz8Runtime
-        MAP Wiz8Runtime.map
-        OPT_REF
-        FIXED_BASE
-        SOURCES
-            "$<TARGET_OBJECTS:wiz8_runtime_stub_objects>"
-            "${wiz8_runtime_stub_object}"
-            "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_crash_report.cpp"
-        LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
+
+    add_executable(WIZ8_RUNTIME WIN32
+        $<TARGET_OBJECTS:wiz8_recovered_objects>
+        $<TARGET_OBJECTS:wiz8_recovered_instrumentable_objects>
+        "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_crash_report.cpp"
     )
-    # The semantic test product links the same recovered and retained runtime
-    # objects, but owns a console entry point and test driver that never enter
-    # either matching image.
-    wiz8_add_executable(
-        TARGET WIZ8_RUNTIME_TEST
-        OUTPUT Wiz8RuntimeTest
-        MAP Wiz8RuntimeTest.map
-        OPT_REF
-        CONSOLE
-        INSTRUMENTED
-        FIXED_BASE
-        SOURCES
-            "$<TARGET_OBJECTS:wiz8_runtime_stub_objects>"
-            "$<TARGET_OBJECTS:wiz8_runtime_test_objects>"
-            "${wiz8_runtime_stub_object}"
-        LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
+    wiz8_configure_executable(WIZ8_RUNTIME Wiz8Runtime)
+    target_link_options(WIZ8_RUNTIME PRIVATE
+        /DEBUG /DEBUGTYPE:CV /PDBTYPE:SEPT /INCREMENTAL:NO /OPT:REF /OPT:NOICF /FIXED
+        /BASE:0x400000 /FILEALIGN:0x1000
+        /OSVERSION:4.0 /SUBSYSTEM:WINDOWS,4.0
+        /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000
+        "/MAP:${CMAKE_BINARY_DIR}/Wiz8Runtime.map" /MAPINFO:LINES
+    )
+    # The console harness selects the instrumented game objects and test driver.
+    add_executable(WIZ8_RUNTIME_TEST
+        $<TARGET_OBJECTS:wiz8_recovered_objects>
+        $<TARGET_OBJECTS:wiz8_test_instrumented_objects>
+        $<TARGET_OBJECTS:wiz8_runtime_test_objects>
+    )
+    wiz8_configure_executable(WIZ8_RUNTIME_TEST Wiz8RuntimeTest)
+    target_link_options(WIZ8_RUNTIME_TEST PRIVATE
+        /DEBUG /DEBUGTYPE:CV /PDBTYPE:SEPT /INCREMENTAL:NO /OPT:REF /OPT:NOICF /FIXED
+        /BASE:0x400000 /FILEALIGN:0x1000
+        /OSVERSION:4.0 /SUBSYSTEM:CONSOLE,4.0
+        /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000
+        "/MAP:${CMAKE_BINARY_DIR}/Wiz8RuntimeTest.map" /MAPINFO:LINES
     )
 endif()
