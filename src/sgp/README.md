@@ -136,7 +136,8 @@ same. The patch loop is preserved, including this original capacity discrepancy.
 `UnlockMouseBuffer`, `VideoCaptureToggle` and SGP's two-argument
 `PlayButtonSound` share the retail no-op at `0x004023a0`; `DeleteList`/
 `DeleteStack` and `ListSize`/`StackSize` are folded pairs. The
-`DirectDraw Calls.cpp` `__FILE__` string fixes the `C:\Projects\SGP` build path.
+The retail `DirectDraw Calls.c` `__FILE__` string records the historical
+`C:\Projects\SGP` build path; our compiler uses the ordinary checkout path.
 
 JA2 Utils `Text_Input` is not an SGP unit. The Wizardry derivative remains
 product code; its released ancestor is `ja2-stracciatella/ja2-stracciatella`
@@ -145,6 +146,50 @@ commit `5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033`,
 Miles startup/exit support belongs to the Miles import boundary, not to SGP.
 
 ## Comparison
+
+### Mechanical C++ migration (2026-10-04)
+
+The last-C source checkpoint is commit
+`6410dae65aa6bd910c40bfae39fbb059d7a2c403`, immediately before the first
+C++ migration commit `39d5d8fdc1a170c63bc510561908fe98972f7cfa`.
+Git preserves that implementation; there is one maintained SGP source tree.
+
+All 30 retained translation units now compile as C++. Changes are limited to
+the source extensions/build membership, explicit pointer conversions, character
+buffer types, missing declarations/includes, and removal of duplicate tentative
+definitions. The historical public API keeps its `extern "C"` linkage.
+`CINTERFACE` and `COBJMACROS` preserve the existing DirectDraw call expressions;
+the C++ SDK's `REFIID` parameter takes a GUID reference. No allocator, ownership,
+container, `BOOLEAN`, or class modernization is included.
+
+The initial conversion omitted `impTGA.h` from its own implementation. Its
+`LoadTGAFileToImage` definition acquired C++ linkage while callers retained C
+linkage, leaving an unresolved symbol and preventing archive extraction of both
+marked TGA functions. Including the owning header restores the historical API
+linkage; private importer helpers may use C++ linkage.
+
+Saved pre-migration comparison evidence remains under `build/`: the whole-SGP
+report `run-qmn7a37x` selected 340 functions (282 `no-differences`, 58
+`differences`), before the generic comparison normalization fixes. The later C
+report `run-57v1n5d9` covers 235 SGP functions (208 `no-differences`, 27
+`differences`). These reports have different selections and tool/build inputs;
+their counts alone do not measure the effect of the language switch.
+
+The final whole-SGP C++ comparison (`run-gq0ykkzl`) selects all 340 marked
+functions: 287 `no-differences`, 53 `differences`, zero unpaired and zero analysis
+failures. Both TGA functions are `no-differences`. Its rebuilt PE SHA-256 is
+`1d90b377e9218dbea73c09b88814d22cc0c129728b74e6d17ac90b52f146d311`,
+using reccmp revision `4902aabd3f5d6b9f6b1ac686b686803479207e59`, Ghidra
+12.1.4 and Ghidriff 1.0.0. The VC6 build has no unresolved symbols; `pr-check`
+and merge-preservation pass. Generated reports and build products stay untracked.
+
+The C++ residuals include changed helper inlining (`DequeueEvent`,
+`DeleteVideoObject`), string-copy lowering (`InitializeButtonImageManager`),
+and C++ local-static symbol spelling (`WindowProcedure`, `RenderFastHelp`).
+Keep natural calls and expressions rather than shaping them to reproduce the
+C compiler's output. Build-context and decompiler-label differences are not
+behavioral-equivalence proofs. Removal of the remaining bridge and compatibility
+headers is a subsequent source-ownership cleanup.
 
 Compile and compare whole translation units so `/Ob2` sees the actual helpers,
 globals and headers. reccmp's COFF object view retains functions, static symbols,

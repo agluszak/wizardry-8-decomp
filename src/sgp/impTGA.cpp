@@ -1,6 +1,7 @@
 /* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Add matching markers for retained SGP functions and globals.
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Include the importer declaration to preserve its C linkage in C++ mode, 2026-10-04.
    Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
@@ -25,6 +26,7 @@
 #include "memman.h"
 #include "WCheck.h"
 #include "himage.h"
+#include "impTGA.h"
 #include "string.h"
 #include "debug.h"
 #include "video2.h"
