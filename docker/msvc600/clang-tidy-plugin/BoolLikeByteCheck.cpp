@@ -1,3 +1,5 @@
+#include "ScalarFacts.h"
+
 #include "clang-tidy/ClangTidyCheck.h"
 #include "clang-tidy/ClangTidyModule.h"
 #include "clang-tidy/ClangTidyModuleRegistry.h"
@@ -24,17 +26,7 @@
 
 namespace clang::tidy::wiz8 {
 namespace {
-
-struct SourcePoint {
-    std::string file;
-    unsigned line = 0;
-    unsigned column = 0;
-
-    explicit operator bool() const
-    {
-        return !file.empty() && line != 0;
-    }
-};
+using namespace scalar;
 
 static QualType canonical(QualType type)
 {
@@ -62,30 +54,6 @@ static bool is_byte_type(QualType type)
     default:
         return false;
     }
-}
-
-static std::string repository_relative_path(const SourceManager& sources, SourceLocation location)
-{
-    location = sources.getExpansionLoc(location);
-    std::string path = sources.getFilename(location).str();
-    constexpr char repo_prefix[] = "/repo/";
-    if (path.rfind(repo_prefix, 0) == 0) {
-        path.erase(0, sizeof(repo_prefix) - 1);
-    }
-    return path;
-}
-
-static SourcePoint source_point(const SourceManager& sources, SourceLocation location)
-{
-    location = sources.getExpansionLoc(location);
-    if (location.isInvalid() || location.isMacroID() || sources.isInSystemHeader(location)) {
-        return {};
-    }
-    SourcePoint point;
-    point.file = repository_relative_path(sources, location);
-    point.line = sources.getSpellingLineNumber(location);
-    point.column = sources.getSpellingColumnNumber(location);
-    return point;
 }
 
 static std::string normalized_words(llvm::StringRef name)
@@ -258,9 +226,9 @@ static bool bool_like_function_name(llvm::StringRef name)
 static bool bool_like_declaration_name(const NamedDecl* declaration)
 {
     if (isa<FunctionDecl>(declaration)) {
-        return bool_like_function_name(declaration->getName());
+        return bool_like_function_name(declaration->getNameAsString());
     }
-    return bool_like_name(declaration->getName());
+    return bool_like_name(declaration->getNameAsString());
 }
 
 
@@ -269,20 +237,8 @@ static bool bool_like_declaration_name(const NamedDecl* declaration)
 // that header declarations, definitions and call sites in other TUs share it.
 static const ParmVarDecl* canonical_parameter(const ParmVarDecl* parameter)
 {
-    if (parameter == nullptr || parameter->isImplicit() || !is_byte_type(parameter->getType())) {
-        return nullptr;
-    }
-    const auto* function = dyn_cast_or_null<FunctionDecl>(parameter->getDeclContext());
-    if (function == nullptr || function->isVariadic() ||
-        function->getTemplatedKind() != FunctionDecl::TK_NonTemplate) {
-        return nullptr;
-    }
-    const FunctionDecl* canonical_function = function->getCanonicalDecl();
-    const unsigned index = parameter->getFunctionScopeIndex();
-    if (index >= canonical_function->getNumParams()) {
-        return nullptr;
-    }
-    return canonical_function->getParamDecl(index);
+    if (parameter == nullptr || !is_byte_type(parameter->getType())) return nullptr;
+    return dyn_cast_or_null<ParmVarDecl>(canonical_scalar_declaration(parameter));
 }
 
 static bool is_candidate_variable(const ValueDecl* declaration)
@@ -316,80 +272,14 @@ static bool is_candidate_function(const FunctionDecl* function)
 
 static const NamedDecl* canonical_candidate(const NamedDecl* declaration)
 {
-    if (const auto* parameter = dyn_cast_or_null<ParmVarDecl>(declaration)) {
-        return canonical_parameter(parameter);
-    }
-    if (const auto* variable = dyn_cast_or_null<VarDecl>(declaration)) {
-        if (!is_candidate_variable(variable)) {
-            return nullptr;
-        }
-        return variable->getCanonicalDecl();
-    }
-    if (const auto* field = dyn_cast_or_null<FieldDecl>(declaration)) {
-        if (!is_candidate_variable(field)) {
-            return nullptr;
-        }
-        return field->getCanonicalDecl();
-    }
     if (const auto* function = dyn_cast_or_null<FunctionDecl>(declaration)) {
-        if (!is_candidate_function(function)) {
-            return nullptr;
-        }
-        return function->getCanonicalDecl();
+        if (!is_candidate_function(function)) return nullptr;
+    } else if (const auto* value = dyn_cast_or_null<ValueDecl>(declaration)) {
+        if (!is_candidate_variable(value)) return nullptr;
+    } else {
+        return nullptr;
     }
-    return nullptr;
-}
-
-static std::string candidate_kind(const NamedDecl* declaration)
-{
-    if (isa<FunctionDecl>(declaration)) {
-        return "function";
-    }
-    if (isa<FieldDecl>(declaration)) {
-        return "field";
-    }
-    if (isa<ParmVarDecl>(declaration)) {
-        return "parameter";
-    }
-    return "variable";
-}
-
-static std::string candidate_name(const NamedDecl* declaration)
-{
-    const auto* parameter = dyn_cast<ParmVarDecl>(declaration);
-    if (parameter == nullptr) {
-        return declaration->getNameAsString();
-    }
-    // Canonical declarations may omit parameter names; prefer any redeclaration
-    // that spells one so the inventory stays readable.
-    const auto* function = cast<FunctionDecl>(parameter->getDeclContext());
-    const unsigned index = parameter->getFunctionScopeIndex();
-    std::string name = parameter->getNameAsString();
-    for (const FunctionDecl* redeclaration : function->redecls()) {
-        if (!name.empty()) {
-            break;
-        }
-        if (index < redeclaration->getNumParams()) {
-            name = redeclaration->getParamDecl(index)->getNameAsString();
-        }
-    }
-    if (name.empty()) {
-        name = "#" + std::to_string(index);
-    }
-    return function->getQualifiedNameAsString() + "::" + name;
-}
-
-// Redeclarations visible to a TU may spell different parameter names, so the
-// cross-TU identity of a parameter uses only its function and position.
-static std::string candidate_key_name(const NamedDecl* declaration)
-{
-    const auto* parameter = dyn_cast<ParmVarDecl>(declaration);
-    if (parameter == nullptr) {
-        return declaration->getNameAsString();
-    }
-    const auto* function = cast<FunctionDecl>(parameter->getDeclContext());
-    return function->getQualifiedNameAsString() + "::#" +
-           std::to_string(parameter->getFunctionScopeIndex());
+    return canonical_scalar_declaration(declaration);
 }
 
 static bool bool_like_candidate_name(const NamedDecl* declaration)
@@ -401,54 +291,16 @@ static bool bool_like_candidate_name(const NamedDecl* declaration)
     return bool_like_declaration_name(declaration);
 }
 
-class FactWriter {
+// Boolean-domain annotations are emitted by this client, not the scalar collector.
+class BoolDomainWriter {
 public:
-    FactWriter(ASTContext& context, const TranslationUnitDecl* translation_unit)
-        : sources_(context.getSourceManager())
-    {
-        const char* directory = std::getenv("WIZ8_BOOL_FACTS_DIR");
-        if (directory == nullptr || directory[0] == '\0' || translation_unit == nullptr) {
-            return;
-        }
-        const std::string filename = std::string(directory) + "/facts-" +
-                                     std::to_string(static_cast<long long>(getpid())) + ".tsv";
-        stream_.open(filename, std::ios::out | std::ios::app);
-    }
+    BoolDomainWriter(FactWriter& facts, ASTContext& context)
+        : facts_(facts), sources_(context.getSourceManager()) {}
 
-    bool enabled() const
+    std::string key(const NamedDecl* declaration) const { return facts_.key(declaration); }
+    void declaration(const NamedDecl* declaration, bool bool_name = false)
     {
-        return stream_.is_open();
-    }
-
-    std::string key(const NamedDecl* declaration) const
-    {
-        const NamedDecl* canonical_decl = canonical_candidate(declaration);
-        if (canonical_decl == nullptr) {
-            return {};
-        }
-        const SourcePoint point = source_point(sources_, canonical_decl->getLocation());
-        if (!point) {
-            return {};
-        }
-        return point.file + ":" + std::to_string(point.line) + ":" + std::to_string(point.column) +
-               ":" + candidate_kind(canonical_decl) + ":" + candidate_key_name(canonical_decl);
-    }
-
-    void declaration(const NamedDecl* declaration)
-    {
-        const NamedDecl* canonical_decl = canonical_candidate(declaration);
-        if (canonical_decl == nullptr) {
-            return;
-        }
-        const SourcePoint point = source_point(sources_, canonical_decl->getLocation());
-        const std::string declaration_key = key(canonical_decl);
-        if (!point || declaration_key.empty()) {
-            return;
-        }
-        emit({"D", declaration_key, point.file, std::to_string(point.line),
-              std::to_string(point.column), candidate_kind(canonical_decl),
-              candidate_name(canonical_decl),
-              bool_like_candidate_name(canonical_decl) ? "1" : "0"});
+        facts_.declaration(declaration, bool_name);
     }
 
     void write_direct(const NamedDecl* declaration, SourceLocation location)
@@ -528,22 +380,9 @@ private:
               std::to_string(point.column)});
     }
 
-    void emit(const std::vector<std::string>& fields)
-    {
-        if (!stream_) {
-            return;
-        }
-        for (size_t index = 0; index < fields.size(); ++index) {
-            if (index != 0) {
-                stream_ << '\t';
-            }
-            stream_ << fields[index];
-        }
-        stream_ << '\n';
-    }
-
+    void emit(const std::vector<std::string>& fields) { facts_.fact(fields); }
+    FactWriter& facts_;
     SourceManager& sources_;
-    std::ofstream stream_;
 };
 
 struct DomainExpr {
@@ -568,15 +407,15 @@ static void append_dependencies(std::vector<std::string>& target,
     }
 }
 
-class BoolFactVisitor final : public RecursiveASTVisitor<BoolFactVisitor> {
+class BoolDomainVisitor final : public RecursiveASTVisitor<BoolDomainVisitor> {
 public:
-    explicit BoolFactVisitor(FactWriter& writer) : writer_(writer) {}
+    explicit BoolDomainVisitor(BoolDomainWriter& writer) : writer_(writer) {}
 
     bool TraverseFunctionDecl(FunctionDecl* function)
     {
         FunctionDecl* previous = current_function_;
         current_function_ = function;
-        const bool result = RecursiveASTVisitor<BoolFactVisitor>::TraverseFunctionDecl(function);
+        const bool result = RecursiveASTVisitor<BoolDomainVisitor>::TraverseFunctionDecl(function);
         current_function_ = previous;
         return result;
     }
@@ -586,19 +425,19 @@ public:
         if (initializer != nullptr && initializer->isMemberInitializer()) {
             if (FieldDecl* field = initializer->getMember()) {
                 if (const NamedDecl* candidate = canonical_candidate(field)) {
-                    writer_.declaration(candidate);
+                    declare_candidate(candidate);
                     record_write(candidate, initializer->getInit(),
                                  initializer->getSourceLocation());
                 }
             }
         }
-        return RecursiveASTVisitor<BoolFactVisitor>::TraverseConstructorInitializer(initializer);
+        return RecursiveASTVisitor<BoolDomainVisitor>::TraverseConstructorInitializer(initializer);
     }
 
     bool VisitVarDecl(VarDecl* variable)
     {
         if (const NamedDecl* candidate = canonical_candidate(variable)) {
-            writer_.declaration(candidate);
+            declare_candidate(candidate);
             if (variable->hasInit()) {
                 record_write(candidate, variable->getInit(), variable->getLocation());
             } else if (variable->hasGlobalStorage() &&
@@ -617,7 +456,7 @@ public:
     bool VisitFieldDecl(FieldDecl* field)
     {
         if (const NamedDecl* candidate = canonical_candidate(field)) {
-            writer_.declaration(candidate);
+            declare_candidate(candidate);
             if (field->hasInClassInitializer()) {
                 record_write(candidate, field->getInClassInitializer(), field->getLocation());
             }
@@ -630,12 +469,17 @@ public:
         if (function->doesThisDeclarationHaveABody()) {
             writer_.body(function_identity(function));
         }
+        // Naming is presentation metadata for the report-only 32-bit inventory;
+        // the byte proof below keeps its original candidate rules.
+        if (const auto* scalar = canonical_scalar_declaration(function)) {
+            writer_.declaration(scalar, bool_like_function_name(function->getNameAsString()));
+        }
         if (const NamedDecl* candidate = canonical_candidate(function)) {
-            writer_.declaration(candidate);
+            declare_candidate(candidate);
         }
         for (const ParmVarDecl* parameter : function->parameters()) {
             if (const NamedDecl* candidate = canonical_candidate(parameter)) {
-                writer_.declaration(candidate);
+                declare_candidate(candidate);
             }
         }
         // Overrides share one slot ABI and are reached through calls that name
@@ -791,7 +635,7 @@ public:
         // block), where no scalar `field = 0` exists for the initial state.
         // Require an exact sizeof(record) so partial/raw buffer clears do not
         // become evidence for unrelated fields.
-        if (function->getName() == "memset" && call->getNumArgs() >= 3 &&
+        if (function->getNameAsString() == "memset" && call->getNumArgs() >= 3 &&
             is_zero_or_one(call->getArg(1))) {
             record_aggregate_byte_write(call->getArg(0), call->getArg(2), call->getExprLoc());
         }
@@ -801,7 +645,7 @@ public:
             const QualType parameter_type = function->getParamDecl(index)->getType();
             const Expr* argument = call->getArg(index);
             if (const NamedDecl* parameter = canonical_candidate(function->getParamDecl(index))) {
-                writer_.declaration(parameter);
+                declare_candidate(parameter);
                 record_write(parameter, argument, argument->getExprLoc());
             }
             if (is_nonconst_reference(parameter_type)) {
@@ -813,7 +657,7 @@ public:
             // A typed record pointer reaches a recovered callee whose own field
             // writes are facts in its TU; only raw-memory parameters (FileRead,
             // memcpy from a byte buffer, ...) can store unobserved byte values.
-            const bool known_memset = index == 0 && function->getName() == "memset" &&
+            const bool known_memset = index == 0 && function->getNameAsString() == "memset" &&
                 call->getNumArgs() >= 3 && is_zero_or_one(call->getArg(1)) &&
                 exact_memset_record(argument, call->getArg(2)) != nullptr;
             const bool typed_record_copy = index == 0 && is_record_copy(function, call);
@@ -839,7 +683,7 @@ public:
         for (unsigned index = 0; index < count; ++index) {
             if (const NamedDecl* parameter =
                     canonical_candidate(constructor->getParamDecl(index))) {
-                writer_.declaration(parameter);
+                declare_candidate(parameter);
                 record_write(parameter, construct->getArg(index),
                              construct->getArg(index)->getExprLoc());
             }
@@ -851,6 +695,11 @@ public:
     }
 
 private:
+    void declare_candidate(const NamedDecl* declaration)
+    {
+        writer_.declaration(declaration, bool_like_candidate_name(declaration));
+    }
+
     static bool is_nonconst_reference(QualType type)
     {
         return type->isReferenceType() && !type.getNonReferenceType().isConstQualified();
@@ -884,7 +733,7 @@ private:
 
     static bool is_record_copy(const FunctionDecl* function, const CallExpr* call)
     {
-        const StringRef name = function->getName();
+        const std::string name = function->getNameAsString();
         if ((name != "memcpy" && name != "memmove") || call->getNumArgs() < 2) {
             return false;
         }
@@ -915,7 +764,7 @@ private:
         }
         for (const FieldDecl* field : record->fields()) {
             if (const NamedDecl* candidate = canonical_candidate(field)) {
-                writer_.declaration(candidate);
+                declare_candidate(candidate);
                 if (callee.empty()) {
                     writer_.escape(candidate, location);
                 } else {
@@ -992,7 +841,7 @@ private:
         }
         for (const FieldDecl* field : record->fields()) {
             if (const NamedDecl* candidate = canonical_candidate(field)) {
-                writer_.declaration(candidate);
+                declare_candidate(candidate);
                 writer_.write_direct(candidate, location);
             }
         }
@@ -1142,13 +991,13 @@ private:
             return;
         }
         if (const NamedDecl* declaration = resolve_candidate(expression)) {
-            writer_.declaration(declaration);
+            declare_candidate(declaration);
             writer_.invalid_write(declaration, location);
             return;
         }
         if (const auto* call = dyn_cast<CallExpr>(expression)) {
             if (const NamedDecl* function = canonical_candidate(call->getDirectCallee())) {
-                writer_.declaration(function);
+                declare_candidate(function);
                 writer_.invalid_write(function, location);
             }
         }
@@ -1157,18 +1006,18 @@ private:
     void escape_signature(const FunctionDecl* function, SourceLocation location)
     {
         if (const NamedDecl* candidate = canonical_candidate(function)) {
-            writer_.declaration(candidate);
+            declare_candidate(candidate);
             writer_.escape(candidate, location);
         }
         for (const ParmVarDecl* parameter : function->parameters()) {
             if (const NamedDecl* candidate = canonical_candidate(parameter)) {
-                writer_.declaration(candidate);
+                declare_candidate(candidate);
                 writer_.escape(candidate, location);
             }
         }
     }
 
-    FactWriter& writer_;
+    BoolDomainWriter& writer_;
     FunctionDecl* current_function_ = nullptr;
     llvm::SmallPtrSet<const DeclRefExpr*, 32> direct_callees_;
 };
@@ -1198,7 +1047,8 @@ public:
         }
         FactWriter writer(*context_, translation_unit_);
         if (writer.enabled()) {
-            BoolFactVisitor visitor(writer);
+            BoolDomainWriter bool_writer(writer, *context_);
+            BoolDomainVisitor visitor(bool_writer);
             visitor.TraverseDecl(const_cast<TranslationUnitDecl*>(translation_unit_));
         }
         context_ = nullptr;

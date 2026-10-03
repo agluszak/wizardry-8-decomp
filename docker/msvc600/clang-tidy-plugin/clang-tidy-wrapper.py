@@ -9,14 +9,17 @@ import subprocess
 import sys
 import tempfile
 from collections import Counter, defaultdict
+from contextlib import nullcontext
 from dataclasses import dataclass
 from pathlib import Path
+
+from scalar_facts import DeclarationFact, read_scalar_facts, write_integer_report
 
 REAL_CLANG_TIDY = "/usr/bin/clang-tidy-21"
 PLUGIN = "/usr/local/lib/wiz8-clang-tidy.so"
 # Historical name: project-specific AST debt checks use the same changed-line scope.
 FILTER_ENV = "WIZ8_REDUNDANT_CAST_LINES"
-BOOL_FACTS_ENV = "WIZ8_BOOL_FACTS_DIR"
+SCALAR_FACTS_ENV = "WIZ8_SCALAR_FACTS_DIR"
 BOOL_MARKER = re.compile(r"bool-byte-ok:\s*\S", re.IGNORECASE)
 SCOPES = (
     "src/wiz8/",
@@ -28,17 +31,6 @@ SCOPES = (
 )
 CPP_SUFFIXES = (".cpp", ".cc", ".cxx", ".h", ".hpp")
 HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
-
-
-@dataclass(frozen=True)
-class DeclarationFact:
-    key: str
-    file: str
-    line: int
-    column: int
-    kind: str
-    name: str
-    name_bool: bool
 
 
 @dataclass(frozen=True)
@@ -231,87 +223,20 @@ def _bool_suppressed(declaration: DeclarationFact) -> bool:
     return index > 0 and BOOL_MARKER.search(lines[index - 1]) is not None
 
 
-def _read_bool_facts(
-    facts_dir: Path,
-) -> tuple[
-    dict[str, DeclarationFact],
-    dict[str, list[tuple[str, tuple[str, ...]]]],
-    set[str],
-    set[str],
-    set[str],
-    list[tuple[str, str, int]],
-]:
-    declarations: dict[str, DeclarationFact] = {}
-    writes: dict[str, list[tuple[str, tuple[str, ...]]]] = defaultdict(list)
-    invalid: set[str] = set()
-    escaped: set[str] = set()
-    supported: set[str] = set()
-    locations: list[tuple[str, str, int]] = []
-    pending: list[tuple[str, str]] = []
-    bodies: set[str] = set()
-
-    for path in sorted(facts_dir.glob("facts-*.tsv")):
-        for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
-            fields = raw.split("\t")
-            if not fields:
-                continue
-            tag = fields[0]
-            try:
-                if tag == "D" and len(fields) >= 8:
-                    fact = DeclarationFact(
-                        key=fields[1],
-                        file=fields[2],
-                        line=int(fields[3]),
-                        column=int(fields[4]),
-                        kind=fields[5],
-                        name=fields[6],
-                        name_bool=fields[7] == "1",
-                    )
-                    declarations.setdefault(fact.key, fact)
-                    locations.append((fact.key, fact.file, fact.line))
-                elif tag == "W" and len(fields) >= 7:
-                    dependencies = tuple(filter(None, fields[3].split(",")))
-                    write = (fields[2], dependencies)
-                    if write not in writes[fields[1]]:
-                        writes[fields[1]].append(write)
-                    use_line = int(fields[5])
-                    locations.append((fields[1], fields[4], use_line))
-                    # A changed copy/return is also a changed use of every source
-                    # candidate. This matters for declaration-only predicates:
-                    # touching `return HasFoo()` should surface HasFoo itself.
-                    for dependency in dependencies:
-                        locations.append((dependency, fields[4], use_line))
-                elif tag in {"X", "E", "S"} and len(fields) >= 5:
-                    key = fields[1]
-                    if tag == "X":
-                        invalid.add(key)
-                    elif tag == "E":
-                        escaped.add(key)
-                    else:
-                        supported.add(key)
-                    locations.append((key, fields[2], int(fields[3])))
-                elif tag == "P" and len(fields) >= 6:
-                    pending.append((fields[1], fields[5]))
-                    locations.append((fields[1], fields[2], int(fields[3])))
-                elif tag == "B" and len(fields) >= 2:
-                    bodies.add(fields[1])
-            except ValueError:
-                continue
-
-    # A typed record handed to a callee with no recovered body may be mutated
-    # by code outside the observed facts.
-    escaped.update(key for key, callee in pending if callee not in bodies)
-
-    return declarations, writes, invalid, escaped, supported, locations
-
-
 def _bool_diagnostics(
     facts_dir: Path,
     raw_filter: str,
     *,
     honor_suppressions: bool = True,
 ) -> list[Diagnostic]:
-    declarations, writes, invalid, escaped, supported, locations = _read_bool_facts(facts_dir)
+    facts = read_scalar_facts(facts_dir)
+    declarations = {
+        key: declaration
+        for key, declaration in facts.declarations.items()
+        if declaration.byte_candidate
+    }
+    writes, invalid, escaped = facts.bool_writes, facts.bool_invalid, facts.bool_escaped
+    supported, locations = facts.bool_supported, facts.locations
     parsed_filter = _parse_line_filter(raw_filter)
 
     survivors = {
@@ -487,6 +412,10 @@ diff --git a/include/surrender/example.h b/include/surrender/example.h
             f"W\tJ\tD\t\t{source}\t22\t1",
             f"W\tJ\tR\tI\t{source}\t23\t1",
         ]
+        rows = [
+            row + "\t1\t8\tunsigned\tinteger\tunsigned char" if row.startswith("D\t") else row
+            for row in rows
+        ]
         facts.write_text("\n".join(rows) + "\n", encoding="utf-8")
         selected = f"{source}@1-26"
         found = [(item.declaration.key, item.proven) for item in _bool_diagnostics(root, selected)]
@@ -498,6 +427,18 @@ diff --git a/include/surrender/example.h b/include/surrender/example.h
 
 
 def main() -> None:
+    if sys.argv[1:2] == ["--wiz8-scalar-report"]:
+        import argparse
+
+        parser = argparse.ArgumentParser(
+            description="Report integer recovery from shared scalar facts"
+        )
+        parser.add_argument("facts", type=Path)
+        parser.add_argument("--evidence", type=Path)
+        parser.add_argument("--output", type=Path, required=True)
+        options = parser.parse_args(sys.argv[2:])
+        write_integer_report(options.facts, options.evidence, options.output)
+        return
     if sys.argv[1:] == ["--wiz8-wrapper-self-test"]:
         _self_test()
         return
@@ -522,19 +463,34 @@ def main() -> None:
             file=sys.stderr,
         )
 
-    with tempfile.TemporaryDirectory(prefix="wiz8-bool-facts-") as facts:
+    supplied_facts = os.environ.get(SCALAR_FACTS_ENV)
+    if supplied_facts:
+        Path(supplied_facts).mkdir(parents=True, exist_ok=True)
+    context = (
+        nullcontext(supplied_facts)
+        if supplied_facts
+        else tempfile.TemporaryDirectory(prefix="wiz8-scalar-facts-")
+    )
+    with context as facts:
         environment = os.environ.copy()
-        environment[BOOL_FACTS_ENV] = facts
+        environment[SCALAR_FACTS_ENV] = facts
         result = subprocess.run(
             [REAL_CLANG_TIDY, f"--load={PLUGIN}", *arguments],
             env=environment,
             check=False,
         )
+        # A crashed/failed compiler can leave a partially buffered fact record.
+        # Preserve its failure instead of parsing incomplete recovery input.
+        if result.returncode != 0:
+            raise SystemExit(result.returncode)
+        if report_path := environment.get("WIZ8_SCALAR_REPORT"):
+            evidence_path = environment.get("WIZ8_SCALAR_EVIDENCE")
+            write_integer_report(
+                Path(facts), Path(evidence_path) if evidence_path else None, Path(report_path)
+            )
         diagnostics = _bool_diagnostics(Path(facts), environment.get(FILTER_ENV, ""))
         for diagnostic in diagnostics:
             print(_render_bool_diagnostic(diagnostic), file=sys.stderr)
-        if result.returncode != 0:
-            raise SystemExit(result.returncode)
         if any(diagnostic.proven for diagnostic in diagnostics):
             raise SystemExit(1)
 

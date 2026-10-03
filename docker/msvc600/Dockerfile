@@ -161,12 +161,15 @@ RUN echo "deb http://deb.debian.org/debian trixie-backports main" \
  && cmake --build /tmp/wiz8-clang-tidy-plugin/build \
  && cmake --install /tmp/wiz8-clang-tidy-plugin/build \
  && install -m 0755 /tmp/wiz8-clang-tidy-plugin/clang-tidy-wrapper.py /usr/local/bin/clang-tidy \
+ && install -m 0644 /tmp/wiz8-clang-tidy-plugin/scalar_facts.py /usr/local/bin/scalar_facts.py \
  && test "$(command -v clang-tidy)" = /usr/local/bin/clang-tidy \
  && clang-tidy --wiz8-wrapper-self-test \
  && clang-tidy --checks=-*,wiz8-redundant-scalar-cast --list-checks \
       | grep -q 'wiz8-redundant-scalar-cast' \
  && clang-tidy --checks=-*,wiz8-bool-like-byte --list-checks \
       | grep -q 'wiz8-bool-like-byte' \
+ && clang-tidy --checks=-*,wiz8-scalar-facts --list-checks \
+      | grep -q 'wiz8-scalar-facts' \
  && WIZ8_REDUNDANT_CAST_LINES='*' clang-tidy \
       --checks=-*,wiz8-redundant-scalar-cast \
       /tmp/wiz8-clang-tidy-plugin/test.cpp \
@@ -230,6 +233,13 @@ RUN echo "deb http://deb.debian.org/debian trixie-backports main" \
       /tmp/wiz8-clang-tidy-plugin/bool_test.log \
  && ! grep -Eq "SetPanelLayered|SetCallbackEnabled|g_menu_active|has_group|monster_bound|nested_active" \
       /tmp/wiz8-clang-tidy-plugin/bool_test.log \
+ && WIZ8_SCALAR_FACTS_DIR=/tmp/wiz8-clang-tidy-plugin/scalar-facts clang-tidy \
+      --checks=-*,wiz8-bool-like-byte,wiz8-scalar-facts \
+      /tmp/wiz8-clang-tidy-plugin/scalar_test.cpp \
+      /tmp/wiz8-clang-tidy-plugin/scalar_test_second.cpp \
+      -- --target=i686-pc-windows-msvc -std=c++17 \
+ && python3 /tmp/wiz8-clang-tidy-plugin/scalar_test.py \
+      /tmp/wiz8-clang-tidy-plugin/scalar-facts \
  && rm -rf /tmp/wiz8-clang-tidy-plugin \
  && find /usr/lib/llvm-21/lib -maxdepth 1 -type f -name '*.a' -delete
 
