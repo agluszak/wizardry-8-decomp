@@ -804,7 +804,7 @@ fail:
 // FUNCTION: WIZ8 0x005147a0
 static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
 {
-    char script_name[0x40] = {};
+    char script_name[0x40] = {0};
     memcpy(script_name, &g_empty_ambient_name, sizeof(g_empty_ambient_name));
     int script_wait = -1;
     int script_line = -1;
