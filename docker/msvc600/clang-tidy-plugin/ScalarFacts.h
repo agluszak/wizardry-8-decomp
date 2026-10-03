@@ -58,6 +58,19 @@ inline QualType declaration_type(const NamedDecl* declaration)
     return cast<ValueDecl>(declaration)->getType();
 }
 
+// Fixed unsigned-byte fields have one indexed byte-domain owner. Other arrays
+// remain outside scalar inference (strings, pointers, records and typedef APIs).
+inline const ConstantArrayType* fixed_byte_array(const NamedDecl* declaration)
+{
+    const auto* field = dyn_cast_or_null<FieldDecl>(declaration);
+    if (field == nullptr || field->isBitField() ||
+        cast<RecordDecl>(field->getDeclContext())->isUnion()) return nullptr;
+    const auto* array = dyn_cast<ConstantArrayType>(field->getType().getTypePtr());
+    if (array == nullptr || array->getSize().isZero()) return nullptr;
+    const auto* element = dyn_cast<BuiltinType>(array->getElementType().getTypePtr());
+    return element != nullptr && element->getKind() == BuiltinType::UChar ? array : nullptr;
+}
+
 inline const NamedDecl* canonical_scalar_declaration(const NamedDecl* declaration)
 {
     if (declaration == nullptr || declaration->isImplicit())
@@ -68,7 +81,7 @@ inline const NamedDecl* canonical_scalar_declaration(const NamedDecl* declaratio
     // Uninstantiated member-pointer types have no concrete MSVC layout.
     // Asking ASTContext for their width can dereference a missing class.
     if (declaration->isInvalidDecl() || type->isDependentType() || type->isIncompleteType() ||
-        !type->isScalarType())
+        (!type->isScalarType() && fixed_byte_array(declaration) == nullptr))
         return nullptr;
     if (const auto* parameter = dyn_cast<ParmVarDecl>(declaration)) {
         const auto* function = dyn_cast<FunctionDecl>(parameter->getDeclContext());
@@ -99,6 +112,7 @@ inline const NamedDecl* canonical_scalar_declaration(const NamedDecl* declaratio
 
 inline bool is_plain_byte(const NamedDecl* declaration)
 {
+    if (fixed_byte_array(declaration) != nullptr) return true;
     const auto* builtin = dyn_cast<BuiltinType>(
         declaration_type(declaration).getCanonicalType().getUnqualifiedType().getTypePtr());
     if (builtin == nullptr)

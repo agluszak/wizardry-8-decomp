@@ -38,7 +38,7 @@
 // GLOBAL: WIZ8 0x0069ca68
 static char g_record_mode_line[0x1000];
 // GLOBAL: WIZ8 0x0069da6c
-static bool g_flag_69da6c;
+static bool g_record_mode_active;
 // GLOBAL: WIZ8 0x0069da68
 static int g_value_69da68;
 // GLOBAL: WIZ8 0x0069da70
@@ -139,7 +139,7 @@ void ApplyRecordModeLine(void)
     ShowNoticef(6, ConvertStringToWide(message));
     g_record_mode_line[g_record_mode_length] = 0;
     g_record_mode_length = 0;
-    g_flag_69da6c = false;
+    g_record_mode_active = false;
     strcpy(message, s_exiting_record_mode_006503e0);
     ShowNoticef(6, ConvertStringToWide(message));
 }
@@ -168,7 +168,7 @@ void ClearRecordModeValue(void)
 // FUNCTION: WIZ8 0x005E3600
 bool IsRecordModeActive(void)
 {
-    return g_flag_69da6c;
+    return g_record_mode_active;
 }
 /* Record-mode key handler: collects a printable line into
    g_record_mode_line. Returns 1 on ENTER (the caller then runs the
@@ -195,12 +195,12 @@ char HandleRecordModeKey(const InputAtom* input, void (*prompt)(void))
     } else if (character == 0xd) {
         g_record_mode_line[g_record_mode_length] = 0;
         g_record_mode_length = 0;
-        g_flag_69da6c = false;
+        g_record_mode_active = false;
         return 1;
     } else if (character == 0x1b) {
         g_record_mode_line[g_record_mode_length] = 0;
         g_record_mode_length = 0;
-        g_flag_69da6c = false;
+        g_record_mode_active = false;
         ResetEditorStatusLine(-1);
         return -1;
     } else {

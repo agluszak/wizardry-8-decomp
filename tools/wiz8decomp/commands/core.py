@@ -902,9 +902,14 @@ def differential_command(
             label: terminal is None or any(e.name == terminal for e in stream)
             for label, stream in streams.items()
         }
+        capture_completed = {
+            label: run["timed_out"] or (terminal is not None and run["capture_returncode"] == 0)
+            for label, run in runs.items()
+        }
         unwatched = {label: run["provenance"].get("unwatched", []) for label, run in runs.items()}
         requirements = {
             "all_started": all(run["started"] for run in runs.values()),
+            "no_capture_failures": all(capture_completed.values()),
             "all_reached_terminal": all(reached_terminal.values()),
             "retail_repeatable": bounded_repeatability["agrees"],
             "no_unwatched_points": not any(unwatched.values()),
@@ -917,6 +922,14 @@ def differential_command(
             "affirmative": all(requirements.values()),
             "requirements": requirements,
             "reached_terminal": reached_terminal,
+            "capture": {
+                label: {
+                    "returncode": run["capture_returncode"],
+                    "timed_out": run["timed_out"],
+                    "ok": capture_completed[label],
+                }
+                for label, run in runs.items()
+            },
             "state": {
                 "retail_repeatability": state_repeatability,
                 "differential": state_differential,

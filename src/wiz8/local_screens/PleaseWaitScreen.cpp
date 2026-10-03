@@ -65,7 +65,7 @@ struct W8LevelLoadDescriptor {
 // GLOBAL: WIZ8 0x0069B7C0
 int g_level_load_font;
 // GLOBAL: WIZ8 0x0069B7C4
-static int g_value_69b7c4;
+static int g_swap_disc_dialog_poll_count;
 // GLOBAL: WIZ8 0x0069B7C8
 W8LevelLoadDescriptor* g_load_descriptor;
 // GLOBAL: WIZ8 0x0069B7CC
@@ -152,7 +152,7 @@ unsigned char PleaseWaitScreenEnter(void)
     DisableCursorScene();
     g_load_descriptor->caption_y = 0;
     g_load_descriptor->entered_tick = GetTickCount();
-    g_value_69b7c4 = 0;
+    g_swap_disc_dialog_poll_count = 0;
     return 1;
 }
 
@@ -233,9 +233,9 @@ void PleaseWaitScreenFrame(void)
                 g_load_descriptor->waiting = false;
                 ReopenCDLibraries();
                 g_swap_disc_dialog->is_open = 0;
-            } else if (!g_swap_disc_dialog->is_open && ++g_value_69b7c4 > 4) {
+            } else if (!g_swap_disc_dialog->is_open && ++g_swap_disc_dialog_poll_count > 4) {
                 g_swap_disc_dialog->is_open = 1;
-                g_value_69b7c4 = 0;
+                g_swap_disc_dialog_poll_count = 0;
             }
             g_load_descriptor->entered_tick = GetTickCount();
         }

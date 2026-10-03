@@ -8,7 +8,14 @@ parameters and differently named definitions. Function-return nodes, fields and
 locals participate in the same graph. Dependent/incomplete template types are
 excluded until a concrete layout exists; member pointers retain pointer domain.
 
-`BoolDomainVisitor` adds the existing byte-domain annotations. The bool solver
+`BoolDomainVisitor` adds the existing byte-domain annotations. Pending typed-callee
+escapes and body coverage use the canonical declaration's file, line, column and
+qualified name, so same-name/same-arity overloads cannot supply each other's body.
+Fixed directly spelled `unsigned char[N]` fields have one indexed byte-domain
+owner. Indexed assignments and truth tests contribute to that owner; exact
+zero/one whole-array fills are understood. Partial fills, raw-pointer escapes,
+numeric element operations and non-boolean writes block a candidate. This is
+observed source-domain evidence, not proof of initialization or original spelling. The bool solver
 reports byte-domain observations with the same naming, suppression, escape and
 missing-body rules. Generic escapes and source type metadata do not establish
 historical types. These observations remain review guidance; actual compiler

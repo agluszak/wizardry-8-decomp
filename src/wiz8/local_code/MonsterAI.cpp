@@ -70,7 +70,7 @@ enum { W8_MONSTER_ACTION_ATTACK = 0, W8_MONSTER_ACTION_SPELL = 2, W8_MONSTER_ACT
 /* Gates the out-of-combat check that gives a group whose leader is still up a
    nudge. Only UpdateMonsterGroups reads it. */
 // GLOBAL: WIZ8 0x0061CC10
-static bool g_flag_0061cc10 = true;
+static bool g_out_of_combat_rtai_enabled = true;
 
 /* The frame counter the staggered group update rotates through the group
    list, one fifth per frame with a full-distance pass every twentieth. */
@@ -233,7 +233,7 @@ void UpdateMonsterGroups(bool staggered)
                 DetachMonsterGroup(monster_group);
             }
         }
-        if (g_flag_0061cc10 != 0 && gXStatus.fCombatMode == 0) {
+        if (g_out_of_combat_rtai_enabled != 0 && gXStatus.fCombatMode == 0) {
             if (monster_group == 0) {
                 srAssertFail("pMonsterGroup", MONSTER_AI_CPP, 207, 0);
             }

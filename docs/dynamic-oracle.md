@@ -194,3 +194,13 @@ process exited on its own.
   addresses are process addresses; no rebasing is needed anywhere.
 - Every trace runs in a new Unix process group. Cleanup signals only that group and shuts down the
   dedicated `WINEPREFIX` with `wineserver -k`; it never uses a global `pkill`.
+
+
+Ordinary trace reports retain `capture_returncode` and `timed_out`. A missing return
+code means the configured observation window expired. For `bring-up` and `screens`,
+which have no terminal checkpoint, only that bounded timeout completes the planned
+observation; an early debugger exit is a capture failure. For a terminal scenario,
+a zero debugger return code can also complete capture, but reaching the terminal
+remains a separate requirement. Nonzero debugger exits fail the differential even
+when the observed event prefixes agree. These are capture requirements, not product
+exit claims; smoke still requires the observed clean product exit.

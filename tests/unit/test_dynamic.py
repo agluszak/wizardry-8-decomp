@@ -507,3 +507,19 @@ def test_capture_cleans_script_and_scopes_shutdown(
     assert shutdown == [(["wineserver", "-k"], str(sandbox.prefix))]
     proxy.close.assert_called_once()
     assert not script.exists()
+
+
+@pytest.mark.parametrize("returncode", [None, 0, 1])
+def test_trace_retains_capture_completion_state(tmp_path, monkeypatch, returncode):
+    from wiz8decomp import dynamic
+
+    (tmp_path / "Wiz8.exe").touch()
+    monkeypatch.setattr(dynamic.shutil, "which", lambda _: "/bin/tool")
+    monkeypatch.setattr(dynamic, "trace_plan", lambda *_: [])
+    monkeypatch.setattr(dynamic, "_capture", lambda *_: ("TRACE_READY\n", returncode))
+    monkeypatch.setattr(dynamic, "_provenance", lambda *_: {})
+    sandbox = dynamic.Sandbox(tmp_path, tmp_path / "prefix", ":99")
+    result = dynamic.run_trace(tmp_path, sandbox, "screens", port=4242)
+    assert result["started"] is True
+    assert result["capture_returncode"] == returncode
+    assert result["timed_out"] is (returncode is None)

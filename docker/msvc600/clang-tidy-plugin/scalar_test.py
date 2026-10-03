@@ -85,4 +85,20 @@ assert next(
     for declaration in facts.declarations.values()
     if declaration.name == "ReadByteAlias"
 )
+
+# A body for the same-name, same-arity int* overload must not resolve the
+# escaped record whose distinct overload has no recovered body.
+overload = next(key for key, row in facts.declarations.items() if row.name == "overload_ready")
+assert overload in facts.bool_escaped
+
+arrays = {row.name: key for key, row in facts.declarations.items() if row.name.endswith("_pending")}
+ready = arrays["notices_pending"]
+assert ready in facts.bool_writes and ready in facts.bool_supported
+assert ready not in facts.bool_escaped and ready not in facts.bool_invalid
+assert arrays["invalid_pending"] in facts.bool_invalid
+assert arrays["partial_pending"] in facts.bool_escaped
+assert arrays["escaped_pending"] in facts.bool_escaped
+
+assert arrays["shifted_pending"] in facts.bool_escaped
+assert arrays["numeric_pending"] in facts.bool_invalid
 print("scalar facts: cross-TU recovery and bool compatibility fixtures pass")
