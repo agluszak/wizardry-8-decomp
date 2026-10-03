@@ -261,7 +261,7 @@ unsigned char W8PathingService::WritePathNodes(unsigned int handle)
    clearing runtime-only disabled and edge bits before writing the .WPT file.
    The cd-rom sentinel disables this editor-side write path. */
 // FUNCTION: WIZ8 0x00459400
-unsigned char W8PathingService::SaveWaypointSnapshot(unsigned char force)
+unsigned char W8PathingService::SaveWaypointSnapshot(bool force)
 {
     if (waypoints_dirty_1cc == 0 && force == 0) {
         return 0;
@@ -759,7 +759,7 @@ void W8PathingService::SetConditionalPathFrame(unsigned int path_handle, unsigne
 {
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
     unsigned int lookup_index = path_handle;
-    unsigned char frame_missing = 1;
+    bool frame_missing = 1;
 
     while (m_pulCondLookup[lookup_index] != 0 && frame_missing != 0) {
         if (m_pusCondNodeFrames[lookup_index] == frame) {
@@ -2061,7 +2061,7 @@ void W8PathingService::UpdateConditionalPathFlags(unsigned int path_handle, unsi
    single-result form stops after the first notification and returns that
    prop's collection index; the ordinary form visits the complete query. */
 // FUNCTION: WIZ8 0x004663D0
-int W8PathingService::ProcessSearchNodeProps(unsigned short node_index, unsigned char first_only)
+int W8PathingService::ProcessSearchNodeProps(unsigned short node_index, bool first_only)
 {
     W8PathSearchNode* node = &m_owned_0c8[node_index];
     float half_cell = grid_scale_01c * g_float_005ebc7c;
@@ -2169,7 +2169,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
 {
     float diagonal_step = grid_scale_01c * g_path_cardinal_scale;
     unsigned short result = 0;
-    unsigned char stop_search = 0;
+    bool stop_search = 0;
 
     if (trace_configured_0a4 == 0) {
         trace_offset_0ac.Set(0.0f, 500.0f, 0.0f);
@@ -2422,7 +2422,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         return result;
     }
 
-    unsigned char direct_path = 0;
+    bool direct_path = 0;
     unsigned short direct_visibility_node = 0;
     if (probe_cell_key_078 != 0) {
         unsigned short walk = static_cast<unsigned short>(probe_cell_key_078);
@@ -2737,7 +2737,7 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions(W8NavigatorMovement
                 continue;
             }
 
-            unsigned char adjust = 0;
+            bool adjust = 0;
             if ((node->flags_00 & 0x0200) == 0 && threshold <= distance + g_float_005ec020) {
                 if (result == 3) {
                     srVector3T<float> direction = delta;
@@ -2812,8 +2812,8 @@ unsigned char W8PathingService::TestSearchPositionVisibility(const srVector3T<fl
         range_mode = 1;
     }
     short trace =
-        g_octree->TraceLineOfSight(&trace_source, &trace_target, 1, movement->location_id_004,
-                                   trace_target_location_0c0, 1, range_mode);
+        g_octree->TraceLineOfSight(&trace_source, &trace_target, true, movement->location_id_004,
+                                   trace_target_location_0c0, true, range_mode);
     if (trace != 1 && (trace != -1 || TraceModeRejectsNoHit(trace_mode_0b8) != 0)) {
         return 1;
     }
@@ -3002,7 +3002,7 @@ unsigned char W8PathingService::GetNeighborSlideDirection(const srVector3T<float
     unsigned int key;
     unsigned int value;
     int slot;
-    char in_range;
+    bool in_range;
 
     range = cell_count_024 * 2;
     in_range = 0;
@@ -3545,7 +3545,7 @@ unsigned int W8PathingService::ClassifyWaypoint(const srVector3T<float>* positio
 
 // FUNCTION: WIZ8 0x00459d60
 unsigned int W8PathingService::FindPathCell(srVector3T<float>* position, unsigned int* cell,
-                                            unsigned char adjust)
+                                            bool adjust)
 {
     int path_height = static_cast<int>((position->y - level_bounds[1]) / span_020) + 1;
     int source_cell[2];
@@ -3648,7 +3648,7 @@ unsigned int W8PathingService::FindPathCell(srVector3T<float>* position, unsigne
    one-based height carried by the matching packed index value. */
 // FUNCTION: WIZ8 0x00462e60
 unsigned char W8PathingService::SnapWaypointPosition(srVector3T<float>* position,
-                                                     unsigned char snap_to_cell)
+                                                     bool snap_to_cell)
 {
     int vertical_window = cell_count_024 * 2;
     unsigned int height =
@@ -3687,7 +3687,7 @@ unsigned char W8PathingService::SnapWaypointPosition(srVector3T<float>* position
    clearance. */
 // FUNCTION: WIZ8 0x00463040
 unsigned char W8PathingService::TestPathCellClearance(srVector3T<float>* position, float clearance,
-                                                      unsigned char snap_to_cell)
+                                                      bool snap_to_cell)
 {
     int vertical_window = cell_count_024 * 2;
     unsigned int height =
@@ -3734,7 +3734,7 @@ unsigned char W8PathingService::TestPathCellClearance(srVector3T<float>* positio
    them; X and Z always move to the chosen cell's center. */
 // FUNCTION: WIZ8 0x00463290
 unsigned char W8PathingService::SnapToLowerPathCell(srVector3T<float>* position,
-                                                    unsigned char allow_directional)
+                                                    bool allow_directional)
 {
     bool found = false;
     int nearest = 10000000;
@@ -3815,7 +3815,7 @@ void W8PathingService::ProbeWaypointArc(const srVector3T<float>* from, const srV
     srVector3T<float> direction;
     srVector3T<float> arc;
     float radius;
-    unsigned char passed_forward = 0;
+    bool passed_forward = 0;
     unsigned int iteration;
 
     direction = *to - *from;
@@ -3988,7 +3988,7 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
     GetPathGridStepDirections(&walk, directions);
 
     int error = walk.error_2c;
-    unsigned char bounded_probe = probe_bounded_08c != 0 && probe_limit_088 != 0;
+    bool bounded_probe = probe_bounded_08c != 0 && probe_limit_088 != 0;
     unsigned int height =
         static_cast<unsigned int>(static_cast<int>(((from->y - level_bounds[1]) / span_020))) + 1;
     bool blocked = false;
@@ -4152,8 +4152,8 @@ unsigned int W8PathingService::ComputeWaypointNeighborMask(const int* cell, unsi
 // FUNCTION: WIZ8 0x0045a1b0
 unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source,
                                                  srVector3T<float>* destination,
-                                                 unsigned char adjust_destination,
-                                                 unsigned char diagonal_steps)
+                                                 bool adjust_destination,
+                                                 bool diagonal_steps)
 {
     bool blocked = false;
 
@@ -4526,7 +4526,7 @@ float W8PathingService::MeasureDirectionalPath(const int* cell, int direction, u
    temporary visitation index for every attempt. */
 // FUNCTION: WIZ8 0x0045b120
 unsigned short W8PathingService::FindWaypoint(const srVector3T<float>* position,
-                                              unsigned char exhaustive)
+                                              bool exhaustive)
 {
     srVector3T<float> query = *position;
     unsigned short result = 0;
@@ -4692,7 +4692,7 @@ void W8PathingService::GetPathSurfaceNormal(const srVector3T<float>* position,
    when several remain, the owner nearest the segment midpoint wins. */
 // FUNCTION: WIZ8 0x0045b880
 void W8PathingService::ActivateMovementTrigger(W8NavigatorMovementState* movement,
-                                               unsigned char use_path_edge)
+                                               bool use_path_edge)
 {
     if ((movement->flags_000 & 0x10000000) == 0) {
         return;
@@ -6550,7 +6550,7 @@ void W8PathParameters::IntegrateSteering()
 }
 
 // FUNCTION: WIZ8 0x004cb520
-void W8PathParameters::UpdateYawSteering(float time_step, char use_turn_rate)
+void W8PathParameters::UpdateYawSteering(float time_step, bool use_turn_rate)
 {
     float remaining;
     float rate;
@@ -6855,7 +6855,7 @@ void W8PathParameters::AccumulateGroupRepulsion()
 }
 
 // FUNCTION: WIZ8 0x004cc680
-unsigned char W8PathParameters::SteerAroundLeader(char allow_path_fallback)
+unsigned char W8PathParameters::SteerAroundLeader(bool allow_path_fallback)
 {
     W8Navigator* leader;
     srVector3T<float> heading;

@@ -156,7 +156,7 @@ unsigned char stScript::Load(const char* path)
         if (token[length - 1] == ':') {
             token[length - 1] = 0;
             int index;
-            unsigned char add_label = 1;
+            bool add_label = 1;
             for (index = 0; index < labels.GetCount(); ++index) {
                 stScriptLabel* existing = *labels.GetAt(index);
                 if (_strnicmp(existing->name, token, 0x1f) == 0) {

@@ -32,7 +32,7 @@ struct MonGen {
     void Reset();
     /* Tests global encounter gates, range/LOS/occupancy constraints and this
        generator's chance. Retail reads the force argument as one byte. */
-    unsigned char CanGenerateEncounter(unsigned char force); /* 0x0048B200 */
+    unsigned char CanGenerateEncounter(bool force); /* 0x0048B200 */
     /* Selects and spawns the encounter table entry at `position`. */
     unsigned char GenerateEncounter(const srVector3T<float>* position); /* 0x0048AD20 */
     /* Build the candidate-entry list for the current rarity/time/party level. */
@@ -51,7 +51,7 @@ struct MonGen {
     /* Moves the generator, notifying the scene when the generator has a marker. */
     void SetState(const srVector3T<float>* state);
     /* Loads the marker unconditionally, then applies the armed state. */
-    void Reload(int unused, unsigned char active);
+    void Reload(int unused, bool active);
     /* 0x0048CC30: strncpy into the fixed 32-byte name member. */
     void SetName(const char* name);
     /* Select one loaded encounter table and apply its HARASSMENT flag. */

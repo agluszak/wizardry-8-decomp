@@ -94,7 +94,7 @@ void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags);
 /* Renderer state and helpers with only product C++ consumers. The C block
    above is the SGP video-manager surface the SGP C translation units
    reference; these stay ordinary C++ linkage because no C unit names them. */
-extern unsigned char g_auto_capture;
+extern bool g_auto_capture;
 extern int g_cursor_image_height;
 /* 0x00652DA4: set while the swaying camera view is active; see
    SetCameraSwayMode in 3dapi.cpp. */
@@ -115,14 +115,14 @@ class srTextureIFace;
 class stModelInstance2D;
 template <class T> class srVector3T;
 template <class T> class srVector4T;
-srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, unsigned char additive);
+srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool additive);
 /* 0x00425190: build a 2D marker model instance over a texture. */
 stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width, double height,
-                                           char keep_aspect, char a5);
+                                           bool keep_aspect, bool a5);
 /* 0x00426F80: render the world into a caller-owned color surface through a
    scissored viewport, then blit the locked frame buffer onto the target. */
 unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
-                                   char render_secondary);
+                                   bool render_secondary);
 void SetPickKey(void* key);
 
 struct W8ControlsRect;
@@ -131,7 +131,7 @@ struct W8ControlsRect;
    templates are its observed callers. */
 void SetFullscreenSceneLast(unsigned char value); /* 0x004298E0 */
 stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVector4T<float>* color,
-                                              char a4);
+                                              bool a4);
 /* 0x004253F0: the render-target sprite factory CreateSpriteFromSurface wraps; the
    radar overlay is created through it directly. */
 stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect* bounds, int a3,
@@ -156,7 +156,7 @@ void ReleaseSurfaceNode(srNode* node);
 bool ClearMouseSurface(void);
 /* 0x004255F0: place a 2D node at a screen position in normalized
    coordinates; positional snaps to the renderer's pixel grid. */
-void PositionToolTipNode(srNode* node, int x, int y, char positional);
+void PositionToolTipNode(srNode* node, int x, int y, bool positional);
 /* 0x00427460: the debug stats readout - frame rate always, the full counter
    block in inspector mode 2, or the scaled camera position in mode 3. */
 void DrawVideoInspector(int left, unsigned int top);
@@ -177,7 +177,7 @@ BOOLEAN BlitHVObjectToColorSurface(HVOBJECT object, UINT16 region, srColorSurfac
 class stTextureAnim;
 /* 0x00428E90: build an stTextureAnim whose frames are VObject subimages. */
 stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_frame,
-                                         unsigned short frame_count, char use_argb1555);
+                                         unsigned short frame_count, bool use_argb1555);
 /* 0x00428A90: mark the primary renderer mode word dirty. */
 void SetOverlayRenderMode(void);
 /* 0x00428AA0: mark both renderer mode words dirty. */
@@ -227,7 +227,7 @@ extern srScene* g_scene_square;
 extern srColorSurface* g_primary_color_surface;
 void DrawColorSurface(srColorSurface* surface, int x, int y);
 srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
-                        unsigned char additive); /* 0x00424A90 */
+                        bool additive); /* 0x00424A90 */
 extern srCamera* g_overlay_camera;
 extern srCamera* g_square_camera;
 extern bool g_texture_cache_enabled;
@@ -261,12 +261,12 @@ extern W8ViewportRect g_viewport;
 extern int g_dirty_tile_count;
 extern int g_resident_texture_policy;
 extern unsigned char g_world_render_enabled;
-extern unsigned char g_world_blacked_out;
+extern bool g_world_blacked_out;
 
 void SetResidentTexturePolicy(int policy);
 void SetSurfaceScale(float scale);
 void SetTextureCacheSize(unsigned long bytes);
-void SetSwapInterval(unsigned char enabled);
+void SetSwapInterval(bool enabled);
 unsigned char GetRendererModeByte(void);
 void SetViewport(int left, int top, int right, int bottom);
 /* Scale a 640x480 design-space rect onto the GERD surface and remember it;
@@ -283,11 +283,11 @@ void DrawBufferLine(long x0, long y0, long x1, long y1, unsigned long* pixel);
 unsigned char InitializeRendererSceneObjects(void);
 void PurgeInactiveSceneInstances(srScene* scene);
 void ResetVideoFrameState(void);
-void SetPrimarySurfaceTextureHint2Enabled(unsigned char enabled);
+void SetPrimarySurfaceTextureHint2Enabled(bool enabled);
 unsigned char ClearPrimarySurface(void);
 void ResetTransientRenderScenes(void);
 void ClearVideoDirtyBlocks(void); /* 0x00423150 */
-void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char preserve_fog);
+void RenderScene(srScene* scene, srCamera* camera, const int* viewport, bool preserve_fog);
 void RenderFrame(void);
 IDirectDrawSurface2* BeginVideoPresentation(void);
 unsigned char FinishVideoPresentation(void);
@@ -307,7 +307,7 @@ unsigned char EnableCursorScene(void);
 void SetOverlayViewport(const int* value);
 void SetWorldModelPickingEnabled(char enabled);
 bool RendererBufferIsLockable(void);
-void SetRendererOption4Enabled(char enabled);
+void SetRendererOption4Enabled(bool enabled);
 bool HasEnoughFreeDiskSpace(void);
 int GetUsedPageFileBytes(void);
 srModelInstance* GetPickedModelInstance(void);

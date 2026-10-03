@@ -59,7 +59,7 @@ int GetRandomCharacter(int require_primary, int require_secondary, int excluded_
    once each before giving up. Returns how many were written. */
 unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
                                  unsigned int excluded_slot, unsigned int* selected,
-                                 unsigned int count, char skip_first_two);
+                                 unsigned int count, bool skip_first_two);
 
 /* Shared "%d/%d" format literal; the definition is the GLOBAL in
    CGSStatsPage.cpp. */

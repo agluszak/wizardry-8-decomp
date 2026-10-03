@@ -30,7 +30,7 @@ public:
     void Stop(); /* 0x004AEC90 */
     /* loop forces the SGP voice to loop forever (AIL count 0); auto_release
        makes the update pass release the node once playback ends. */
-    unsigned char Play(unsigned char loop, unsigned char auto_release); /* 0x004AEBF0 */
+    unsigned char Play(bool loop, bool auto_release); /* 0x004AEBF0 */
     void BuildSoundOptions(const srVector3T<float>* listener,
                            SOUND3DPARMS* options); /* 0x004AECC0 */
 
@@ -39,7 +39,7 @@ public:
     int volume;                 /* 0x140: base volume before distance/effects scale */
     float falloff;              /* 0x144: audible range in world units */
     char* wave_name;            /* 0x148: owned copy of the wave filename */
-    unsigned char auto_release; /* 0x14c: release the node when playback ends */
+    bool auto_release; /* 0x14c: release the node when playback ends */
     unsigned char unknown_14d[3];
 
     /* srClassSupport::clone expands this class-specific assignment in the

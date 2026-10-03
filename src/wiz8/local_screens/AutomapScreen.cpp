@@ -234,7 +234,7 @@ bool g_automap_overlay_redraw;
 // GLOBAL: WIZ8 0x0068f26c
 float g_automap_zoom;
 // GLOBAL: WIZ8 0x0068f270
-unsigned char g_automap_surface_mode;
+bool g_automap_surface_mode;
 /* The camera's near clip: how far above the selected layer it floats. */
 // GLOBAL: WIZ8 0x0064b920
 float g_automap_near_clip = 1.0f;
@@ -1799,7 +1799,7 @@ bool SaveAutomapNotes(int handle)
     for (unsigned int index = 0; index < count; ++index) {
         W8AutomapNote* note = *g_automap_notes->GetAt(index);
         if (note != 0) {
-            unsigned char ok = FileWrite(handle, &note->position.x, 4, 0) != 0 &&
+            bool ok = FileWrite(handle, &note->position.x, 4, 0) != 0 &&
                                FileWrite(handle, &note->position.y, 4, 0) != 0 &&
                                FileWrite(handle, &note->layer, 4, 0) != 0;
             int length = wcslen(note->text) + 1;
@@ -1847,7 +1847,7 @@ bool LoadAutomapNotes(int handle)
                 int length;
                 /* Retail fed `length` to malloc even when the FileRead chain
                    short-circuited before filling it; the recovery keeps that read. */
-                unsigned char ok = FileRead(handle, &position.x, 4, 0) != 0 &&
+                bool ok = FileRead(handle, &position.x, 4, 0) != 0 &&
                                    FileRead(handle, &position.y, 4, 0) != 0 &&
                                    FileRead(handle, &layer, 4, 0) != 0 &&
                                    FileRead(handle, &length, 4, 0) != 0;

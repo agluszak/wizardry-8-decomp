@@ -351,8 +351,8 @@ void DamageMonstersInRadius(const srVector3T<float>& center, float radius, const
    and starts the death sequence. Returns the amount actually applied. */
 // FUNCTION: WIZ8 0x0052BB60
 unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amount,
-                                  W8TargetSource* source, char quiet, unsigned char in_combat,
-                                  char a, W8SpellEffectResult* result_stats, char c)
+                                  W8TargetSource* source, bool quiet, unsigned char in_combat,
+                                  char a, W8SpellEffectResult* result_stats, bool c)
 {
     unsigned int absorbed;
     unsigned int applied;
@@ -870,7 +870,7 @@ int SpellCastFatigueCost(int spell_id, int result)
 /* Give one monster stamina back, the mirror of the character form down to the
    band ladder and the exhaustion it shakes off. */
 // FUNCTION: WIZ8 0x0052c140
-void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announce)
+void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, bool announce)
 {
     unsigned int stamina_max;
 
@@ -910,7 +910,7 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
    control is handed back to itself; and if the attacker is not already an
    enemy, the disposition check decides whether being hit makes them one. */
 // FUNCTION: WIZ8 0x0052beb0
-void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* attacker, char quiet)
+void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* attacker, bool quiet)
 {
     StartMonsterCycle(monster_info, 0x14, 1);
 
@@ -948,7 +948,7 @@ enum { W8_FATIGUE_BAND_DEEP = 2, W8_FATIGUE_BAND_RECOVERED = 2 };
    exhausted condition; merely dropping into the deep band applies the
    deep-fatigue effect once. */
 // FUNCTION: WIZ8 0x0052af50
-void FatigueCharacter(int party_slot, int amount, char scale_by_load,
+void FatigueCharacter(int party_slot, int amount, bool scale_by_load,
                       W8SpellEffectResult* report_to)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
@@ -1100,7 +1100,7 @@ unsigned int CharacterActionFatigueCost(int party_slot, W8ActionKind action_kind
 /* Drain spell points from one named realm, taking no more than it holds.
    Announced with the realm's own name. */
 // FUNCTION: WIZ8 0x0052b6d0
-void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amount, char announce)
+void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amount, bool announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     unsigned int available;

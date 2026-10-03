@@ -201,11 +201,17 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends llvm
-          mkdir -p \
-            "$WIZ8_WORK_DIR/sources/unpacked/zlib-1.0.4/zlib-1.0.4" \
-            "$WIZ8_WORK_DIR/sources/unpacked/ijg-jpeg-6/jpeg-6" \
-            "$WIZ8_WORK_DIR/sources/unpacked/infozip-unzip-5.4"
           command -v llvm-undname
+      - name: Restore public library source cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.WIZ8_WORK_DIR }}/sources
+          key: wiz8-sources-v1-${{ hashFiles('config/build-inputs.yml', 'tools/wiz8decomp/build_inputs.py') }}
+      - name: Fetch public library sources
+        run: >-
+          uv run python -c "from wiz8decomp.build_inputs import fetch_sources;
+          from wiz8decomp.config import load_settings;
+          fetch_sources(load_settings())"
       - name: Load VC6 analysis image
         uses: ./.github/actions/load-vc6-image
       - name: Restore compiler-backed analysis cache

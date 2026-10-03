@@ -44,7 +44,7 @@ static wchar_t g_format_s_possessive[] = L"%s's";
 
 // FUNCTION: WIZ8 0x00554170
 void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int party_slot,
-                                   unsigned char continue_line, int skill_id)
+                                   bool continue_line, int skill_id)
 {
     unsigned int skill_level;
     W8Character* character = &g_status.buffers.Char[party_slot];
@@ -87,7 +87,7 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
 void FlushDeferredSkillNotices(void)
 {
     int count;
-    unsigned char have_line;
+    bool have_line;
     wchar_t* text;
     W8SkillNoticePayload* extra;
     int slot;
@@ -365,7 +365,7 @@ void BrewAlchemistPotion(W8Character* character)
    reached its cap. */
 // FUNCTION: WIZ8 0x00553d90
 bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
-                               const unsigned char* expert_realm_flags)
+                               const bool* expert_realm_flags)
 {
     int profession;
     unsigned int index;
@@ -602,7 +602,7 @@ void InitializeSkillBaseLevels(W8Character* character)
 // FUNCTION: WIZ8 0x00553cd0
 void RefreshCharacterSkillAvailability(W8Character* character)
 {
-    unsigned char expert_realm_flags[8];
+    bool expert_realm_flags[8];
     int index;
 
     for (index = 0; index < 8; ++index) {
@@ -652,7 +652,7 @@ unsigned int GetSkillQuarterValue(W8Character* character, int skill_id)
    notice into the portrait slot's per-skill flag array. */
 // FUNCTION: WIZ8 0x00553F10
 void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_points,
-                            unsigned char suppress_notification)
+                            bool suppress_notification)
 {
     bool improved;
     unsigned int slot;

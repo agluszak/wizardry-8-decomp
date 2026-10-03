@@ -74,7 +74,7 @@ unsigned int g_journal_region_set;
 W8GrowableVector<W8JournalEntry>* g_fact_journal_entries;
 
 // GLOBAL: WIZ8 0x0068de44
-unsigned char g_fact_notifications_suppressed;
+bool g_fact_notifications_suppressed;
 
 /* Create the fact journal on first use. An existing journal is only emptied,
    which is what a new game does to the entries left by the previous one. */
@@ -89,7 +89,7 @@ void InitializeFactJournal(void)
 }
 
 // FUNCTION: WIZ8 0x005588e0
-void SetFactNotificationsSuppressed(unsigned char suppressed)
+void SetFactNotificationsSuppressed(bool suppressed)
 {
     g_fact_notifications_suppressed = suppressed;
 }
@@ -184,7 +184,7 @@ void LoadJournalEntries(unsigned int file)
 }
 
 // FUNCTION: WIZ8 0x005bdd00
-void DrawJournalLine(const wchar_t* text, int column, int y, int palette, char centered)
+void DrawJournalLine(const wchar_t* text, int column, int y, int palette, bool centered)
 {
     int left;
     int right;

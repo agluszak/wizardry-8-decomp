@@ -32,7 +32,7 @@ public:
     W8GrowableVector<W8GrowableVector<stLight*>*> light_lists[28]; /* 0x1b8 */
     /* Set for spawned visuals: UpdateRepresentation then adds the
        camera-facing yaw rotation on top of the mode's orientation. */
-    unsigned char billboard_378;
+    bool billboard_378;
     unsigned char padding_379[3];
 }; /* 0x37c */
 

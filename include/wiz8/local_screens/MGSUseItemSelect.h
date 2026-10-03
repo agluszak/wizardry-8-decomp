@@ -43,7 +43,7 @@ unsigned char UseItemSelectControlRegionEvent(const InputAtom* event,
 unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event,
                                               W8Region* region); /* 0x0059DB40 */
 /* Text-box wheel helper while use-item select is active. */
-void UseItemSelectTextBoxWheelAt(short x, unsigned short y, unsigned char flag); /* 0x0059DD30 */
+void UseItemSelectTextBoxWheelAt(short x, unsigned short y, bool flag); /* 0x0059DD30 */
 W8ItemInstance* GetSelectedOrFallbackValue(void);                                /* 0x0059E0D0 */
 void SelectCurrentUseItemLine(void);
 void SetUseItemSelectOverrideItem(W8ItemInstance* value);
@@ -61,7 +61,7 @@ void CloseUseItemSelectView(void); /* 0x0059CAC0 */
 void RefreshUseItemSelectionForSlot(int party_slot);
 /* 0x0059CF50: fItemSelectMode per-frame update: panel redraws plus the
    pending-use commit check. */
-void UpdateUseItemSelect(unsigned char active);
+void UpdateUseItemSelect(bool active);
 /* 0x0059D690: after dropping a cursor item during use-item select, refresh
    the selected line. */
 void RefreshUseItemSelection(void); /* 0x0059D690 */

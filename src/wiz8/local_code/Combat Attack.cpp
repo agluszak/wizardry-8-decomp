@@ -229,7 +229,7 @@ unsigned char RateMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* re
                                 unsigned int attack, int unused, int hostile_only)
 {
     int action_kind;
-    unsigned char reaches;
+    bool reaches;
 
     if (attack >= W8_MAX_MONSTER_ATTACKS) {
         srAssertFail("uiAttack < MAX_MONSTER_ATTACKS", COMBAT_ATTACK_CPP, 235, 0);
@@ -1332,7 +1332,7 @@ int TargetArmorClassAtLocation(W8CombatSlot* target, int attack_mode, int hit_lo
    monster needs its record's blocking flag and a margin of ten or less. The
    block posts the notice and plays the material impact sound. */
 // FUNCTION: WIZ8 0x00543110
-unsigned char BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_value,
+bool BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_value,
                                       int armor_value, unsigned int palette)
 {
     W8MonsterInfo* monster_info;
@@ -1615,11 +1615,11 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     wchar_t location_name[20];
     char verbose = g_settings.verbose_combat_messages;
     bool swing_missed = false;
-    char deflected = 0;
-    char guaranteed_hit = 0;
-    char guaranteed_penetration = 0;
-    char fumbled = 0;
-    char repicked = 0;
+    bool deflected = 0;
+    bool guaranteed_hit = 0;
+    bool guaranteed_penetration = 0;
+    bool fumbled = 0;
+    bool repicked = 0;
     unsigned int queued_fatigue = 1;
     unsigned int hit_location = 0;
     unsigned int damage = 0;
@@ -1894,7 +1894,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                                                          verbose != 0 ? NULL : report, 0);
                     } else {
                         applied =
-                            ApplyDamageToMonster(target_info, damage, &source, 0, verbose != 0,
+                            ApplyDamageToMonster(target_info, damage, &source, false, verbose != 0,
                                                  verbose != 0, verbose != 0 ? NULL : report, 0);
                     }
                     if (applied != 0) {
@@ -2178,7 +2178,7 @@ static unsigned short g_monster_attack_verb_ids[0x60] = {
    Only a living, alert defender or protector gets the roll; the first try
    always succeeds and each retry is 25 points harder on the senses check. */
 // FUNCTION: WIZ8 0x0053d590
-char CharacterNoticesAttacker(int party_slot)
+bool CharacterNoticesAttacker(int party_slot)
 {
     W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
     bool noticed = false;
@@ -2515,7 +2515,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
     W8MonsterRecord* record = NULL;
     W8Character* target = NULL;
     unsigned char out_of_formation;
-    unsigned char target_exposed;
+    bool target_exposed;
     bool bVar10;
 
     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
@@ -2776,7 +2776,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
     W8MonsterRecord* record;
     W8Character* target;
     unsigned char out_of_formation;
-    unsigned char target_exposed;
+    bool target_exposed;
     bool bVar10;
 
     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
@@ -2890,7 +2890,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
     unsigned int highest_condition;
     unsigned int magnitude;
     int count_base;
-    char resisted;
+    bool resisted;
     int i;
     bool drained = false;
 
@@ -3385,11 +3385,11 @@ void QueueFumbleReaction(int party_slot)
 // FUNCTION: WIZ8 0x00544630
 W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W8CombatSlot* target,
                                      W8SpellEffectDefinition* attack,
-                                     unsigned char use_default_accuracy,
+                                     bool use_default_accuracy,
                                      unsigned int range_category, int accuracy)
 {
     unsigned int target_flag;
-    unsigned char blind = 0;
+    bool blind = 0;
     bool primary;
     bool secondary;
     unsigned char position_ok;
@@ -3585,7 +3585,7 @@ void FireCharacterItemMissile(int party_slot, W8Character* pc, W8CombatCharacter
    flat 8% profile for the coarse distance-scaled one. */
 // FUNCTION: WIZ8 0x005454c0
 void ScatterMissileAimPoint(const srVector3T<float>* from, srVector3T<float>* to, int accuracy,
-                            char blind)
+                            bool blind)
 {
     float dx = to->x - from->x;
     float dy = to->y - from->y;
@@ -3946,12 +3946,12 @@ int ResolveCharacterAttack(int party_slot)
     W8SpellEffectDefinition effect;
     wchar_t location_name[20];
     char verbose = g_settings.verbose_combat_messages;
-    char special_item = 0;
-    char staged_miss = 0;
+    bool special_item = 0;
+    bool staged_miss = 0;
     bool swing_missed = false;
-    char guaranteed_hit = 0;
-    char guaranteed_penetration = 0;
-    char fumbled = 0;
+    bool guaranteed_hit = 0;
+    bool guaranteed_penetration = 0;
+    bool fumbled = 0;
     unsigned int outcome = 1;
     unsigned int queued_fatigue = 1;
     unsigned int hit_location = 0;
@@ -4242,7 +4242,7 @@ int ResolveCharacterAttack(int party_slot)
                         IsTargetStillPresent(&g_combat_state->TargetHit);
                         if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
                             applied =
-                                ApplyDamageToMonster(monster_info, damage, &source, 0, verbose != 0,
+                                ApplyDamageToMonster(monster_info, damage, &source, false, verbose != 0,
                                                      verbose != 0, verbose != 0 ? NULL : report, 0);
                             if (monster_info->hp_current == 0 && hit_flag != 0 && Random(2) == 0 &&
                                 gXStatus.hostile_monster_count > 1) {

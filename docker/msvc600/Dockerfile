@@ -218,11 +218,17 @@ RUN echo "deb http://deb.debian.org/debian trixie-backports main" \
     fi \
  && bool_diagnostics="$(grep -c '\[wiz8-bool-like-byte\]' \
       /tmp/wiz8-clang-tidy-plugin/bool_test.log)" \
- && if [ "$bool_diagnostics" -ne 13 ]; then \
-      echo "expected 13 bool-like diagnostics, got $bool_diagnostics"; \
+ && if [ "$bool_diagnostics" -ne 15 ]; then \
+      echo "expected 15 bool-like diagnostics, got $bool_diagnostics"; \
       cat /tmp/wiz8-clang-tidy-plugin/bool_test.log; exit 1; \
     fi \
  && grep -q "warning: byte-returning predicate 'HasLineOfSightToBounds0046FD70'" \
+      /tmp/wiz8-clang-tidy-plugin/bool_test.log \
+ && grep -q "byte declaration 'SetPanelVisible::visible'" \
+      /tmp/wiz8-clang-tidy-plugin/bool_test.log \
+ && grep -q "byte declaration 'handed_ready'" \
+      /tmp/wiz8-clang-tidy-plugin/bool_test.log \
+ && ! grep -Eq "SetPanelLayered|SetCallbackEnabled|g_menu_active|has_group|monster_bound|nested_active" \
       /tmp/wiz8-clang-tidy-plugin/bool_test.log \
  && rm -rf /tmp/wiz8-clang-tidy-plugin \
  && find /usr/lib/llvm-21/lib -maxdepth 1 -type f -name '*.a' -delete

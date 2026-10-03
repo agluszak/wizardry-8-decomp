@@ -36,7 +36,7 @@ public:
     unsigned char Configure(const char* image_path, int gray_frame, int off_normal_frame,
                             int off_hover_frame, int on_normal_frame, int on_hover_frame,
                             W8DialogButtonCallback left_callback,
-                            W8DialogButtonCallback move_callback, unsigned char left_toggles,
+                            W8DialogButtonCallback move_callback, bool left_toggles,
                             short priority, int tooltip_index,
                             W8DialogButtonCallback right_callback,
                             W8DialogButtonCallback double_click_callback);
@@ -51,7 +51,7 @@ public:
        frames derive from base_frame (gray +3, off +0/+1, on states +2/+2). */
     unsigned char ConfigureVObjButton(HVOBJECT object, int base_frame,
                                       W8DialogButtonCallback left_callback,
-                                      unsigned char left_toggles);
+                                      bool left_toggles);
     /* 0x005DBAC0: store the tooltip string-table index and, when tooltips are
        enabled, push its text onto the SGP button. */
     void SetTooltipIndex(int tooltip_index);

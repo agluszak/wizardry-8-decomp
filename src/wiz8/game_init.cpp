@@ -52,7 +52,7 @@ unsigned char InitializeGame(void)
     char version[64];
     void* buffer;
     UINT32 count;
-    unsigned char ok;
+    bool ok;
 
     version[0] = '\0';
     strcat(version, "Wizardry 8 ");

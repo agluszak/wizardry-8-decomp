@@ -42,7 +42,7 @@ extern short g_submenu_entries[6];
 extern short g_submenu_entry_states[5];
 
 /* Invalidate (when asked) then redraw the sub-menu panel. */
-void RefreshSubMenuPanel(char invalidate); /* 0x005963E0 */
+void RefreshSubMenuPanel(bool invalidate); /* 0x005963E0 */
 /* Close and rebuild the sub menu around the saved combat-end notification. */
 void ResetSubMenuPanel(void); /* 0x00596CF0 */
 /* Create and lay out the two scroll-arrow buttons. */

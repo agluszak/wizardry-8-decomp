@@ -123,7 +123,7 @@ extern int g_last_environment_colour_phase;
 /* Gates the per-frame world-colour refresh. Retail writes it nowhere and
    initialises it to 1, so that refresh always runs; the only reference is the
    read inside UpdateEnvironment. */
-extern unsigned char g_environment_colour_refresh;
+extern bool g_environment_colour_refresh;
 /* The game clock's multiplier, not a distance: every environment clock advance
    scales the elapsed milliseconds by it (12.0 normally, 2880.0 while the party
    rests) and the environment update is skipped while it holds another value.

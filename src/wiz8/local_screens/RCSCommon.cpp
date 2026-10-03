@@ -1277,7 +1277,7 @@ void DestroyCampButtonPanel(void)
    eligibility and the relevant item/spell tests. When invalidate is set the
    whole panel is additionally marked dirty before it is redrawn. */
 // FUNCTION: WIZ8 0x005b5670
-void RefreshCampItemActions(unsigned char invalidate)
+void RefreshCampItemActions(bool invalidate)
 {
     int index;
     W8SpellRuntimeRecord* spell;
@@ -1620,7 +1620,7 @@ static void OnCampItemActionButton4(void)
 // FUNCTION: WIZ8 0x005b5d90
 static void OnCampItemActionButton5(void)
 {
-    unsigned char eligible;
+    bool eligible;
     unsigned char active;
 
     eligible = IsCampActionAllowed(giReviewCharSlot);

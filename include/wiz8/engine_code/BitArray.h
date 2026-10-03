@@ -43,7 +43,7 @@ public:
     void SetToComplementOf(BitArray& other); /* 0x0043B560 */
 
     int CountSetBits(); /* 0x0043B5F0 */
-    int NextSetBit(char restart); /* 0x0043B660 */
+    int NextSetBit(bool restart); /* 0x0043B660 */
     void Grow(unsigned int bit_count, unsigned int new_bit_count); /* 0x0043B700 */
 
     int set_count;            /* 0x00: how many bits are up */

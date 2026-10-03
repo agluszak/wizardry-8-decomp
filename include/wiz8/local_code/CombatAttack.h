@@ -41,10 +41,10 @@ extern unsigned short g_special_category_name_ids[42];
 void ClearAttackBlock(W8SpellEffectDefinition* block); /* 0x00543260 */
 W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W8CombatSlot* target,
                                      W8SpellEffectDefinition* attack,
-                                     unsigned char use_default_accuracy,
+                                     bool use_default_accuracy,
                                      unsigned int range_category, int accuracy); /* 0x00544630 */
 void ScatterMissileAimPoint(const srVector3T<float>* from, srVector3T<float>* to, int accuracy,
-                            char blind);
+                            bool blind);
 
 /* 0x00545090: a physical missile reached its combat target - announce the
    hit, roll penetration against the target's armour and apply the damage.
@@ -128,7 +128,7 @@ int GetTargetArmorClassModifier(W8CombatSlot* target, unsigned int attack_mode);
 unsigned int CharChooseHandAttackMode(W8Character* character, int hand);         /* 0x00542CA0 */
 wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target);        /* 0x00546B40 */
 int GetTargetArmorClass(W8CombatSlot* target, int attack_mode);                  /* 0x00542EE0 */
-unsigned char BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_value,
+bool BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_value,
                                       int armor_value, unsigned int palette);  /* 0x00543110 */
 unsigned int CapAttackDamageByTargetHealth(unsigned int damage);               /* 0x00545A00 */
 void StartMonsterAttackCycle(W8MonsterInfo* monster_info, int action_detail);  /* 0x0053FFE0 */
@@ -153,7 +153,7 @@ void BuildMonsterTargetList(W8MonsterInfo* monster_info, W8MonsterRecord* record
    other side's notice palette when the two sides differ. */
 void AnnounceAccidentalStrike(W8TargetSource* source, W8CombatSlot* target);
 /* Whether a character catches the incoming attack in time to turn toward it. */
-char CharacterNoticesAttacker(int party_slot); /* 0x0053D590 */
+bool CharacterNoticesAttacker(int party_slot); /* 0x0053D590 */
 /* Begin one of the monster's attacks for the round. */
 char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record); /* 0x0053FEA0 */
 /* 0x00545B20: the monster-side counterpart - the target still in play and in

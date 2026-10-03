@@ -161,7 +161,7 @@ unsigned char stModelInstance::ReplaceDamageStageTexture(int stage, const char* 
                                                          srTextureIFace* replacement)
 {
     stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
-    unsigned char replaced = 0;
+    bool replaced = 0;
 
     if (replacement != 0) {
         if (replacement->getClassID() == stTextureAnim::CLASS_ID) {
@@ -391,7 +391,7 @@ render_mesh:
 /* Disabling the glow releases the retained glow material; the render-state
    byte at 0x0d is the glow pass's enable flag. */
 // FUNCTION: WIZ8 0x00480EB0
-void stModelInstance2D::SetGlowEnabled(unsigned char enable)
+void stModelInstance2D::SetGlowEnabled(bool enable)
 {
     if (enable == 0 && m_pGlowMaterial != 0) {
         m_pGlowMaterial->release();
@@ -668,7 +668,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         retained_174->setEmissive(highlight_colour_164);
     }
 
-    unsigned char first_pass = 1;
+    bool first_pass = 1;
     /* Retail never stores this local: its slot overlaps dead float locals, so
        the FLAG_TERMINATE walk below ran on leftover stack data and effectively
        never fired. Seed it deterministically instead of reproducing the

@@ -11,9 +11,9 @@ int FindLevelIdByLocationCode(const char* location_code);
 
 extern unsigned short g_level_name_indices[W8_LEVEL_COUNT];
 
-unsigned char LevelBuildInfoByID(int level_id, W8LevelInfo* info);
+bool LevelBuildInfoByID(int level_id, W8LevelInfo* info);
 unsigned char LoadSkyWorld(int level, W8LevelInfo* info);
-unsigned char LoadLevel(int requested_level, int entrance, unsigned char restoring_game);
+unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game);
 unsigned char UnloadLevel(const char* save_directory);
 
 bool IsLevelCdMissing(int level);
@@ -23,11 +23,11 @@ void UnloadSkyWorld(void);
 char GetLevelBand(int saved_level);
 
 extern bool g_camera_path_active;
-extern unsigned char g_level_status_loading;
+extern bool g_level_status_loading;
 extern float g_default_world_height;
 extern const float g_position_height_epsilon;
 extern unsigned char g_environment_load_flag;
-extern unsigned char g_mipe_trigger_display;
+extern bool g_mipe_trigger_display;
 
 unsigned char ReloadLevelPreservingCamera(int level, int entrance);
 

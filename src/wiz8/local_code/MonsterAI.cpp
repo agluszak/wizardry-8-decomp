@@ -178,7 +178,7 @@ void UpdateMonsterSight(void)
    twentieth frame; groups further than twice the far clip are detached and
    groups close enough get their members loaded. */
 // FUNCTION: WIZ8 0x00530150
-void UpdateMonsterGroups(char staggered)
+void UpdateMonsterGroups(bool staggered)
 {
     W8MonsterGroup* monster_group;
     W8MonsterInfo* monster_info;
@@ -298,7 +298,7 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
    hit-point retreat check for one. The chosen mode is committed through
    ApplyMonsterRTAIDecision when it differs from what ai_mode_255 already holds. */
 // FUNCTION: WIZ8 0x00530560
-void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
+void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
 {
     char update;
     unsigned char decision;
@@ -826,7 +826,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
     unsigned int spell;
     W8CombatSlot chosen;
     float hp_ratio;
-    unsigned char backs_off;
+    bool backs_off;
     srVector3T<float> position;
 
     if (monster_info->highest_condition >= 0xf) {
@@ -1086,8 +1086,8 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
     unsigned int monster_hi;
     unsigned int attack_lo;
     unsigned int attack_hi;
-    unsigned char scan_chars = 0;
-    unsigned char scan_monsters = 0;
+    bool scan_chars = 0;
+    bool scan_monsters = 0;
     unsigned char avoided[8] = {0};
     unsigned char resisted[8] = {0};
     bool hostile_only;
@@ -1271,7 +1271,7 @@ static void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int
    counts; a wait action keeps only its detail word. */
 // FUNCTION: WIZ8 0x005323F0
 unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, int arg_3,
-                                        char set_attack_rate)
+                                        bool set_attack_rate)
 {
     W8MonsterAction* entry;
     W8MonsterRecord* record;
@@ -1311,7 +1311,7 @@ unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, 
    and fire spells under camera sway pass, and `needs_target` also demands a
    target to aim at. */
 // FUNCTION: WIZ8 0x00532550
-bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, char needs_target)
+bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, bool needs_target)
 {
     if (spell_id == 0) {
         return 0;
@@ -1786,7 +1786,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
    a true return vetoes the cast, since the AI does not turn neutrals hostile
    by accident. */
 // FUNCTION: WIZ8 0x005330E0
-unsigned char SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell_id,
+bool SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell_id,
                                           W8CombatSlot* combat_slot)
 {
     W8GrowableVector<int> monster_markers;
@@ -2283,7 +2283,7 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int ho
    non-summoning attacks - somewhere to run. Summoning rows flee at the party
    instead and may not be offered as a special action. */
 // FUNCTION: WIZ8 0x00534A40
-bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, char exclude_special)
+bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, bool exclude_special)
 {
     W8GrowableVector<W8CombatSlot> targets;
 

@@ -17,7 +17,7 @@ enum { W8_TRAP_TYPE_COUNT = 15, W8_TRAP_DEVICE_COUNT = 8 };
    chance values used by the lock interaction. */
 extern int g_table_6504e8[];
 void ClearRecordModeValue(void);
-unsigned char IsRecordModeActive(void);
+bool IsRecordModeActive(void);
 /* Record-mode console line input and its per-key prompt/apply callbacks. */
 void WriteRecordModeEntry(void);                                        /* 0x005E3280 */
 char HandleRecordModeKey(const InputAtom* input, void (*prompt)(void)); /* 0x005E3610 */

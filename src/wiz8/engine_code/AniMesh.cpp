@@ -203,7 +203,7 @@ float GetAniMeshFrameRadius(W8AniMesh* mesh, unsigned char frame)
 }
 
 // FUNCTION: WIZ8 0x004b5d00
-unsigned char LoadAniMesh(int file, W8AniMesh* mesh, unsigned char load_all)
+unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all)
 {
     int handle = file;
     char* instance_name = 0;
@@ -421,7 +421,7 @@ unsigned char LoadAniMeshFrameCount(int file, W8AniMesh* mesh)
 }
 
 // FUNCTION: WIZ8 0x004b63f0
-unsigned char UnloadAniMesh(W8AniMesh* mesh, unsigned char force)
+unsigned char UnloadAniMesh(W8AniMesh* mesh, bool force)
 {
     unsigned char frame_count;
     unsigned int frame;
@@ -505,7 +505,7 @@ unsigned char AniMeshValue(W8AniMesh* mesh)
 }
 
 // FUNCTION: WIZ8 0x004b66e0
-unsigned char AniMeshRadius(W8AniMesh* mesh, float* radius)
+bool AniMeshRadius(W8AniMesh* mesh, float* radius)
 {
     if (mesh == 0 || radius == 0) {
         srAssertFail("pAniMesh&&pflRadius", ANI_MESH_CPP, 0x348, 0);
@@ -526,7 +526,7 @@ unsigned char AniMeshRadius(W8AniMesh* mesh, float* radius)
 }
 
 // FUNCTION: WIZ8 0x004b6860
-void AniMeshSetFlag10(W8AniMesh* mesh, signed char enabled)
+void AniMeshSetFlag10(W8AniMesh* mesh, bool enabled)
 {
     if (mesh == 0) {
         srAssertFail("pAniMesh", ANI_MESH_CPP, 0x3b7, 0);

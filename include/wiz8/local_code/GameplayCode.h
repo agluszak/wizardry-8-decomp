@@ -55,7 +55,7 @@ void RefreshLevelUpReadyNotices(void); /* 0x004EF1F0 */
 int AddCharacterToParty(W8Character* character, int slot);
 /* 0x004EF610: remove a slot's character from the party; fSaveCharData
    persists it back to its NPC record first. */
-unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data);
+unsigned char RemoveCharacterFromParty(int party_slot, bool save_character_data);
 
 void AwardPartyExperience(int value, int mode); /* 0x004EEF10 */
 bool IsCharacterReadyToAdvance(int party_slot);
@@ -71,7 +71,7 @@ void EnsureUniquePartyVoice(W8Character* character); /* 0x004EFAD0 */
 void CastSpellAtLockInteraction(unsigned int level, int flag, int backfire);
 unsigned int GetAveragePartyLevel(void); /* 0x004EF420 */
 unsigned char RecruitCharacterIntoParty(W8Character* character, W8Character* record,
-                                        char buy_equipment);
+                                        bool buy_equipment);
 bool AnyMonsterEngaged(void); /* 0x004EEE20 */
 /* 0x004EF9A0: on a level-motion override, roll `pow(8.0, fall + 0.7)` d6 of
    fall damage against the party with a notice and the fall-impact sound. */

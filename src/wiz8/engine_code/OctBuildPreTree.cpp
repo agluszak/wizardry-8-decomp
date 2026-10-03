@@ -415,7 +415,7 @@ unsigned char OctBuildPreTree::InsertSurfaceRecursive(W8OctSpatialState* working
                                                       unsigned long mode)
 {
     W8OctSpatialState child(working);
-    unsigned char inserted = 0;
+    bool inserted = 0;
 
     if (working->depth_44 < 0x10) {
         if (working->depth_44 < spatial_00.depth_44) {
@@ -525,7 +525,7 @@ unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* spatial,
                     child.maximum_18.z = child.minimum_0c.z + child.extent_04;
 
                     /* Retail leaves this unset for modes outside 5/6. */
-                    unsigned char intersects;
+                    bool intersects;
                     if (mode == 6) {
                         intersects = PointInsideBoxBounds(&child.minimum_0c, geometry);
                     } else if (mode == 5) {
@@ -1762,7 +1762,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
 // FUNCTION: WIZ8 0x004b3f90
 unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* records,
                                                     int record_count, int base_index,
-                                                    unsigned char finalize)
+                                                    bool finalize)
 {
     if (finalize == 0) {
         overlap_region_map_130 = new W8HashTable<unsigned short, short>;

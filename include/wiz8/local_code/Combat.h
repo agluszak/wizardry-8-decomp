@@ -84,7 +84,7 @@ void DropCharacterFromRound(int party_slot);
    context, in the two forms the target-refresh pass asks. */
 bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned char arg_3,
                           unsigned char arg_4);
-unsigned char TryCharacterAction(int party_slot, W8ActionKind action, char commit);
+unsigned char TryCharacterAction(int party_slot, W8ActionKind action, bool commit);
 void NotifyNearbyMonsters(int what);
 void CombatLog(const char* format, ...);
 void BeginCombatRound(void);
@@ -92,7 +92,7 @@ void EndMonsterTurn(W8MonsterInfo* monster_info);
 void EndMonsterAttack(W8MonsterInfo* monster_info); /* 0x004EB7F0 */
 /* 0x004EC900: face the monster toward whatever its combat slot targets before
    the attack starts; `alternate` picks the immediate versus animated turn. */
-void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, char alternate);
+void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, bool alternate);
 void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info);
 void SetSlotAction(int party_slot, W8ActionKind action_kind, int action_detail);
 bool CanCharReBreathe(int party_slot);

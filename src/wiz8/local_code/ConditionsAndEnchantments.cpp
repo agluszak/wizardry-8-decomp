@@ -118,7 +118,7 @@ enum { W8_CONDITION_SURVIVES_DEATH = 10 };
 /* Lifting a character's condition clears its duration and any state that
    condition alone maintained, then notifies dependents. */
 // FUNCTION: WIZ8 0x00523330
-void RemoveCharacterCondition(int party_slot, int condition, unsigned char announce)
+void RemoveCharacterCondition(int party_slot, int condition, bool announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];

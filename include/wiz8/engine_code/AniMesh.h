@@ -53,16 +53,16 @@ W8AniMesh* CopyAniMesh(const W8AniMesh* other);
 float GetAniMeshFrameRadius(W8AniMesh* mesh, unsigned char frame);
 unsigned char GetAniMeshBounds(W8AniMesh* mesh, srVector3T<float>* minimum,
                                srVector3T<float>* maximum);
-unsigned char LoadAniMesh(int file, W8AniMesh* mesh, unsigned char load_all);
+unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all);
 unsigned char LoadAniMeshFromInfo(W8ReadLevelInfo* info, W8AniMesh* mesh, unsigned char load_all);
-unsigned char UnloadAniMesh(W8AniMesh* mesh, unsigned char force);
+unsigned char UnloadAniMesh(W8AniMesh* mesh, bool force);
 stModelInstance* GetAniMeshFrame(W8AniMesh* mesh, unsigned char frame);
 void DestroyAniMesh(W8AniMesh* mesh);
 unsigned char AniMeshValue(W8AniMesh* mesh);
-unsigned char AniMeshRadius(W8AniMesh* mesh, float* radius);
+bool AniMeshRadius(W8AniMesh* mesh, float* radius);
 /* Two parameters, not three: the retail body reads its flag from the second
    stack slot, and GrCycle's 0x004A7470 pushes exactly the pair. */
-void AniMeshSetFlag10(W8AniMesh* mesh, signed char enabled);
+void AniMeshSetFlag10(W8AniMesh* mesh, bool enabled);
 void EnforceAniMeshMemoryLimit(W8AniMesh* current);
 
 #endif

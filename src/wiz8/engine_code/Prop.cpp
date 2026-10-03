@@ -335,7 +335,7 @@ bool W8Prop::IsPickedProp(W8World* world)
    permits selection, and the prop centre lies inside the trigger's distance
    interval. */
 // FUNCTION: WIZ8 0x0044d760
-char ResolvePickedProp(W8World* world)
+bool ResolvePickedProp(W8World* world)
 {
     srModelInstance* selected;
     srVector3T<float> camera_position;
@@ -569,7 +569,7 @@ void W8Prop::SetSetting6E(unsigned char value)
 /* Set the live representation state. When requested, choose the direction
    and endpoint of the transition from the current and target animation tags. */
 // FUNCTION: WIZ8 0x0044da80
-void W8Prop::SetRepresentationActive(unsigned char active, unsigned char update_animation)
+void W8Prop::SetRepresentationActive(unsigned char active, bool update_animation)
 {
     Rep()->animation_playing_06d = active;
     if (active == 0) {
@@ -908,7 +908,7 @@ char W8Prop::GetDelta(srVector3T<float>* out, const srVector3T<float>* point)
    action pointer for non-door actions, then dereferences it when the lock
    state does not short-circuit the test. */
 // FUNCTION: WIZ8 0x0044e0c0
-bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
+bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, bool notify)
 {
     Trigger* owner;
     W8TriggerActionData* action;

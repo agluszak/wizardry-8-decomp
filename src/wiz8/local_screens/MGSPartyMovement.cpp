@@ -47,7 +47,7 @@ unsigned int g_party_movement_animation_frame;
 // GLOBAL: WIZ8 0x005EECD0
 const float g_float_005eecd0 = 0.0004f;
 
-void DrawPartyMovementGauge(short right, short image, char panel_live, int caption);
+void DrawPartyMovementGauge(short right, short image, bool panel_live, int caption);
 
 // FUNCTION: WIZ8 0x005A1640
 unsigned char CreatePartyMovementPanel(void)
@@ -136,7 +136,7 @@ void DrawPartyMovementPanel(void)
 {
     SGPRect previous;
     SGPRect clip;
-    char panel_live;
+    bool panel_live;
     int caption;
     short right;
     int image;
@@ -214,7 +214,7 @@ void DrawPartyMovementPanel(void)
 /* The movement gauge: a static end frame for the empty/full states and the
    twelve-frame animated bar otherwise, rearming its own countdown each tick. */
 // FUNCTION: WIZ8 0x005A1C40
-void DrawPartyMovementGauge(short right, short image, char panel_live, int caption)
+void DrawPartyMovementGauge(short right, short image, bool panel_live, int caption)
 {
     bool rearm;
     bool advanced;

@@ -356,7 +356,7 @@ static int g_empty_quote_text_index;
 // GLOBAL: WIZ8 0x0068c500
 static unsigned char g_npc_script_event_active;
 // GLOBAL: WIZ8 0x0068C501
-unsigned char g_message_queue_idle;
+bool g_message_queue_idle;
 
 // GLOBAL: WIZ8 0x0068C358
 static int g_pending_npc_travel_level;
@@ -635,7 +635,7 @@ int SelectNpcQuoteResponse(W8NpcQuoteEntry* entry)
    NPCs. notice_only routes the text through ShowNotice instead. */
 // FUNCTION: WIZ8 0x00525350
 static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
-                      unsigned char notice_only, unsigned char force_npc_voice)
+                      bool notice_only, bool force_npc_voice)
 {
     W8MessageBoxLine* line;
     W8MonsterManagerEntry* entry;
@@ -813,7 +813,7 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
 }
 
 // FUNCTION: WIZ8 0x00525C50
-void FinishNpcVoicePlayback(unsigned char resume_script)
+void FinishNpcVoicePlayback(bool resume_script)
 {
     if (g_npc_scripting.portrait_message_active != 0) {
         g_npc_scripting.portrait_message_active = false;
@@ -867,7 +867,7 @@ void FinishNpcVoicePlayback(unsigned char resume_script)
    flag is set; a non-forced call inside 500 ms of the last script tick is a
    no-op, so the tick path can poll without re-finishing. */
 // FUNCTION: WIZ8 0x00525D90
-void TryFinishNpcVoicePlayback(unsigned char force)
+void TryFinishNpcVoicePlayback(bool force)
 {
     if (g_status.world_cursor_gate_2435 == 0 || g_status.current_level != 4) {
         if (force == 0 && GetTickCount() - g_npc_scripting.last_tick <= 500) {
@@ -887,7 +887,7 @@ bool IsNpcScriptSessionActive(void)
    the voice playback (non-forced) and report the click as handled. */
 
 // FUNCTION: WIZ8 0x00525DF0
-bool ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry)
+bool ShouldDeferCharacterEventForNpcScript(bool require_group_entry)
 {
     if (g_npc_scripting.scripted_scene_active != 0) {
         return false;
@@ -963,7 +963,7 @@ int FindNpcScriptQuoteByKeyword(wchar_t* keyword, short* entry_index, short* sub
    the current subquote and queue the continuation line. Quote indices
    'F'..'R' fall outside the scripted world-action dispatch. */
 // FUNCTION: WIZ8 0x00525FA0
-void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
+void RunNpcScriptLine(int script_line, bool force_npc_voice)
 {
     W8MessageBoxLine* line;
     W8NpcScriptQuote* quote;
@@ -2251,8 +2251,8 @@ void OnNpcTravelConfirmationClosed(W8DialogBase* dialog)
 }
 
 // FUNCTION: WIZ8 0x00528830
-void QueueNpcScriptLine(int quote, unsigned char mark_pending, unsigned char prepend,
-                        unsigned char suppress_entries)
+void QueueNpcScriptLine(int quote, bool mark_pending, bool prepend,
+                        bool suppress_entries)
 {
     W8MessageBoxLine* msg_line = new W8MessageBoxLine;
 
@@ -2401,7 +2401,7 @@ void RestoreCurrentNpcQuoteBubble(void)
 /* Queue a quote-entry line carrying `continuation_quote`; `prepend` inserts it
    at the front of the queue (continuation subquotes overtake pending lines). */
 // FUNCTION: WIZ8 0x00528B50
-void QueueNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote, unsigned char prepend)
+void QueueNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote, bool prepend)
 {
     W8MessageBoxLine* line = new W8MessageBoxLine;
 
@@ -2428,7 +2428,7 @@ void CancelNpcDialogue(void)
 /* Raise the quote bubble over `text` and, when `play_sound` is set, kick off
    the generic start-game click that accompanies a silent text notice. */
 // FUNCTION: WIZ8 0x00529570
-void DisplayNpcQuote(const wchar_t* text, char play_sound)
+void DisplayNpcQuote(const wchar_t* text, bool play_sound)
 {
     char sound_path[128];
     SOUNDPARMS sound_parms;

@@ -9,11 +9,11 @@
 // VTABLE: WIZ8 0x005ECD0C srVertexProcessor
 class MonsterLight : public srLight {
 public:
-    MonsterLight(srNode* parent, unsigned char cycle_color, float range,
+    MonsterLight(srNode* parent, bool cycle_color, float range,
                  const srVector3T<float>* first_color,
                  const srVector3T<float>* second_color); /* 0x0049D500 */
     MonsterLight(const MonsterLight& other);             /* 0x0049D660 */
-    void SetVisible(char visible);
+    void SetVisible(bool visible);
     void SetRange(float range);
     void Update(const srVector3T<float>* position);
     void StartFadeOut();
@@ -38,8 +38,8 @@ public:
     srVector3T<float> m_color_first_22c;  /* 0x22c */
     srVector3T<float> m_color_second_238; /* 0x238 */
     float m_start_time_244;               /* 0x244 */
-    unsigned char m_cycle_color_248;      /* 0x248 */
-    unsigned char m_fade_out_249;         /* 0x249 */
+    bool m_cycle_color_248;      /* 0x248 */
+    bool m_fade_out_249;         /* 0x249 */
     unsigned char m_padding_24a[6];
 };
 

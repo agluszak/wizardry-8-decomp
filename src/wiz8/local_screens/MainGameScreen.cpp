@@ -168,9 +168,9 @@ W8DialogBase* g_pending_main_game_dialog;
 // GLOBAL: WIZ8 0x0068edb0
 static unsigned int g_mouselook_last_tick;
 // GLOBAL: WIZ8 0x0068edb4
-static unsigned char g_mouselook_tick_init;
+static bool g_mouselook_tick_init;
 // GLOBAL: WIZ8 0x0068edbc
-unsigned char g_radar_panel_shown;
+bool g_radar_panel_shown;
 
 // GLOBAL: WIZ8 0x0068ede0
 static float g_mouselook_pending_yaw;
@@ -183,10 +183,10 @@ const float g_mouselook_smooth_max = 0.39269906f;
 const float g_mouselook_smooth_min = 0.006135923f;
 
 // GLOBAL: WIZ8 0x0068edc8
-unsigned char g_action_panel_shown;
+bool g_action_panel_shown;
 
 // GLOBAL: WIZ8 0x0068edc9
-unsigned char g_formation_panel_shown;
+bool g_formation_panel_shown;
 
 // GLOBAL: WIZ8 0x0068edd8
 bool g_mouselook_active;
@@ -314,7 +314,7 @@ void UpdateKeyboardMenu(void);          /* 0x0059B390 */
 void ApplySavedRedrawInvalidates(void); /* 0x00563D00 */
 void InvalidatePortraitPanel(void);           /* 0x0059BC00 */
 
-void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled); /* 0x0059A540 */
+void RedrawPartyPortraitBars(unsigned int party_slot, bool slot_enabled); /* 0x0059A540 */
 
 static void DrawMainGamePrompt(void);       /* 0x0056AC80 */
 void InvalidateLockInteractionPanels(void); /* 0x00587C50 */
@@ -324,7 +324,7 @@ unsigned char HandleMouselookInput(const InputAtom* input);
 
 static bool IsPartyPortraitUnderCursor(unsigned int party_slot);
 void UpdateFormationPortraitRefresh(void);
-extern unsigned char g_mouselook_manual;
+extern bool g_mouselook_manual;
 /* Insanity (spell 0x3c) world-cursor extent rows: six doubles per row.
    Three rows fill through 0x00616f40, immediately before the power index. */
 // GLOBAL: WIZ8 0x00616eb0
@@ -2771,7 +2771,7 @@ unsigned char W8NpcDialogueTextController::AddTranscriptEntry(const wchar_t* tex
     added = text_area.AddEntry(0, text, 0, 7, category);
     InvalidateLayout();
     if (mark != 0) {
-        text_area.SetEntryState60(added, 1);
+        text_area.SetEntryState60(added, true);
     }
     if (1u < (unsigned)text_area.m_all_lines_01c.count) {
         for (index = 0; index < text_area.m_all_lines_01c.count; ++index) {
@@ -3809,11 +3809,11 @@ static char g_warning_drawing_text_box_while_text_buffer[] =
 void ApplyMainGameRedrawFlags(void)
 {
     unsigned int redraw_flags;
-    unsigned char keyboard_menu_invalidate;
+    bool keyboard_menu_invalidate;
     int party_slot;
     int text_box_variant;
     unsigned char text_box_mode;
-    unsigned char show_portraits;
+    bool show_portraits;
     SGPRect saved_clip;
     SGPRect combat_clip;
     short health_percent;
@@ -5382,7 +5382,7 @@ void ClearPortraitRefreshSlot(int slot)
    optionally re-raise them from settings prefs, clear portrait refresh when
    entering portrait mode, refresh tooltip kind, and sync region/layout state. */
 // FUNCTION: WIZ8 0x00562580
-void ApplyMainGameModeFlag(W8MainUiMode mode, char enable)
+void ApplyMainGameModeFlag(W8MainUiMode mode, bool enable)
 {
     unsigned int slot;
 
@@ -5708,9 +5708,9 @@ void ClearScreenWait(void)
 unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region)
 {
     unsigned int slot = region->callback_id;
-    unsigned char targeting = 0;
-    unsigned char aim_ok = 0;
-    unsigned char front_rank = 0;
+    bool targeting = 0;
+    bool aim_ok = 0;
+    bool front_rank = 0;
     int needed;
     int action_kind;
     unsigned int us_event;
@@ -6688,7 +6688,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         unsigned int monster_index = MonsterGetIndexByLocationID(
             0x16c2, MAIN_GAME_SCREEN_CPP, g_level_block->highlighted_item, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-        unsigned char assign = 1;
+        bool assign = 1;
         if (gXStatus.fCombatMode == 0) {
             if (needed != 2 && needed != 1 && needed != 5) {
                 assign = 0;
@@ -7331,7 +7331,7 @@ static void DrawMainGamePrompt(void)
 /* Raise or drop the radar map panel and restore the viewport mode when the
    raise latch changes. */
 // FUNCTION: WIZ8 0x00568EB0
-void SetRadarMapVisible(unsigned char visible)
+void SetRadarMapVisible(bool visible)
 {
     if (visible == 1) {
         g_level_block->radar_map_visible = visible;
@@ -7398,7 +7398,7 @@ void SetRadarMapVisible(unsigned char visible)
 /* Raise or drop the combat action panel and restore the viewport mode when the
    raise latch changes. */
 // FUNCTION: WIZ8 0x00569120
-void SetActionPanelVisible(unsigned char visible)
+void SetActionPanelVisible(bool visible)
 {
     if (visible == 1) {
         g_level_block->action_panel_visible = visible;
@@ -7464,7 +7464,7 @@ void SetActionPanelVisible(unsigned char visible)
 /* Raise or drop the formation board and restore the viewport mode when the
    raise latch changes. */
 // FUNCTION: WIZ8 0x00569390
-void SetFormationBoardVisible(unsigned char visible)
+void SetFormationBoardVisible(bool visible)
 {
     if (visible == 1) {
         g_level_block->formation_board_visible = 1;
@@ -8032,7 +8032,7 @@ void OpenAssayDialog(W8ItemInstance* item, int character_slot)
    before handing off. The flag decides whether the pending payload carries
    the slot's character pointer. */
 // FUNCTION: WIZ8 0x00560E10
-void OpenCharacterScreenForPartySlot(unsigned int party_slot, unsigned char flag)
+void OpenCharacterScreenForPartySlot(unsigned int party_slot, bool flag)
 {
     if (gXStatus.fNpcDialogueMode != 0) {
         CloseNpcDialogueForCamp();
@@ -8743,7 +8743,7 @@ void W8NpcDialogueTextController::SelectTranscriptKeywordAtPoint(int x, int y)
         text_area.SetEntryState5D(static_cast<int>(hit));
         SetDialogueFieldKeyword(keyword, 0);
         HandleNpcDialogueInput();
-        text_area.SetEntryState60(text_area.GetOwningEntryIndex(static_cast<int>(hit)), 0);
+        text_area.SetEntryState60(text_area.GetOwningEntryIndex(static_cast<int>(hit)), false);
         InvalidateLayout();
         return;
     }
@@ -8863,7 +8863,7 @@ static unsigned long g_surprise_fade_tick_base;
 // GLOBAL: WIZ8 0x005ee9a8
 const float g_fade_resume_scale = -500.0f;
 // GLOBAL: WIZ8 0x0068edca
-static unsigned char g_surprise_fade_in;
+static bool g_surprise_fade_in;
 // GLOBAL: WIZ8 0x0068edf0
 static srColorSurfaceIFace* g_surprise_snapshot_surface;
 // GLOBAL: WIZ8 0x0068edf4

@@ -168,7 +168,7 @@ unsigned char PleaseWaitScreenEnter(void)
    object, which is what separates these call sites from the derived
    constructors that reach the same three addresses directly. */
 // FUNCTION: WIZ8 0x00591620
-static unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
+static bool PleaseWaitScreenEnsureLevelArchive(int level)
 {
     if (!FileExistsNoDB("Levels\\Levels.slf") && g_cd_marker_present) {
         if (IsLevelCdMissing(level)) {

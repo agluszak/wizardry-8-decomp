@@ -196,7 +196,7 @@ bool PointInsideBounds(const srVector3T<float>* point, const srVector3T<float>* 
 
 /* Per-axis overlap test for two axis-aligned bounds. */
 // FUNCTION: WIZ8 0x004BE8D0
-unsigned char BoundsOverlap(const srVector3T<float>* first_minimum,
+bool BoundsOverlap(const srVector3T<float>* first_minimum,
                             const srVector3T<float>* first_maximum,
                             const srVector3T<float>* second_minimum,
                             const srVector3T<float>* second_maximum)

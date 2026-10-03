@@ -72,7 +72,7 @@ struct OctBuildPreTree : W8OctBuildTree {
     unsigned char BuildParticleRegions(const W8LevelFileParticleSystem* particles,
                                        int particle_count);
     unsigned char BuildGeometryRegions(const W8LevelFileProp* records, int record_count,
-                                       int base_index, unsigned char finalize);
+                                       int base_index, bool finalize);
 
     void AssignInitialRegions(const W8OctSpatialState* spatial);
     unsigned char UpdateRegionForGeometry(const srVector3T<float>* geometry, short value,

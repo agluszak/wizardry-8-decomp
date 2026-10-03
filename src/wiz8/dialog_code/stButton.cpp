@@ -207,7 +207,7 @@ W8DialogButton::~W8DialogButton()
 // FUNCTION: WIZ8 0x005db2a0
 unsigned char W8DialogButton::ConfigureVObjButton(HVOBJECT object, int base_frame,
                                                   W8DialogButtonCallback left_callback,
-                                                  unsigned char left_toggles)
+                                                  bool left_toggles)
 {
     int on_frame = base_frame + 2;
 
@@ -264,7 +264,7 @@ unsigned char W8DialogButton::Configure(const char* image_path, int gray_frame,
                                         int on_normal_frame, int on_hover_frame,
                                         W8DialogButtonCallback left_callback,
                                         W8DialogButtonCallback move_callback,
-                                        unsigned char left_toggles, short priority,
+                                        bool left_toggles, short priority,
                                         int tooltip_index, W8DialogButtonCallback right_callback,
                                         W8DialogButtonCallback double_click_callback)
 {

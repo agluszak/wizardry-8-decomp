@@ -788,7 +788,7 @@ void BeginSpellCast(int spell_id, int location_id, int interact_id)
 /* Redraws every live spell-casting panel; the middle panel's pending text
    update is flushed through the message storage. */
 // FUNCTION: WIZ8 0x005A0270
-void SetSpellCastingPanelsActive(unsigned char active)
+void SetSpellCastingPanelsActive(bool active)
 {
     int index;
     bool text_pending;

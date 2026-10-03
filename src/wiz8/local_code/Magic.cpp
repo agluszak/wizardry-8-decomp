@@ -230,7 +230,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id, int power_l
    it. Every retail call site pushes only the two parameters, so the second
    doubles as the out-of-combat override and the default-case return. */
 // FUNCTION: WIZ8 0x005001e0
-bool SpellUsableNow(int spell_id, unsigned char allow_out_of_combat)
+bool SpellUsableNow(int spell_id, bool allow_out_of_combat)
 {
     W8SpellUsage usable_when;
     bool lock_or_trap;
@@ -292,7 +292,7 @@ bool SpellUsableNow(int spell_id, unsigned char allow_out_of_combat)
    the selection owner only needs a pick when there is nothing selected already
    and the caller is not in one of the two contexts that supply it. */
 // FUNCTION: WIZ8 0x005010f0
-int GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
+int GetTargetNeededForSpellFriendly(int spell_id, bool normalize,
                                     W8TargetingContext context)
 {
     if (spell_id != 0) {
@@ -987,7 +987,7 @@ void StartCharacterItemUse(int party_slot)
    of nothing at all short-circuits unless the caller asks for the sum
    anyway. */
 // FUNCTION: WIZ8 0x004ffbd0
-int GetTotalCasterLevel(const W8Character* character, int spellbook, char include_all)
+int GetTotalCasterLevel(const W8Character* character, int spellbook, bool include_all)
 {
     int profession = character->iProfession;
     int total;
@@ -1180,7 +1180,7 @@ unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT] = {
    The line is assembled twice over: once only to measure the three pieces so
    the buffer can be allocated, and once into it. */
 // FUNCTION: WIZ8 0x004ffe70
-void LearnSpell(W8Character* character, int spell_id, char announce)
+void LearnSpell(W8Character* character, int spell_id, bool announce)
 {
     W8SpellRealm realm;
     wchar_t realm_name[0x62];
@@ -1376,7 +1376,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
     W8ItemInstance* item;
     int spell_id;
-    unsigned char normalize;
+    bool normalize;
 
     if (static_cast<signed char>(row->item_origin) < 0 || static_cast<short>(row->item_slot) < 0) {
         return false;
@@ -1510,7 +1510,7 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
 {
     W8TargetSource source;
     W8CombatSlot target;
-    char sight_probe;
+    bool sight_probe;
 
     if (power_level == 0) {
         return 0;
@@ -1571,8 +1571,8 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
    The alchemy shortcut ahead of all of it: a character the alchemy-exempting
    field marks is answered with the fixed skill outright. */
 // FUNCTION: WIZ8 0x004ff7f0
-unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, char pricing,
-                                           char prefer_unlocked, unsigned int power_level)
+unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool pricing,
+                                           bool prefer_unlocked, unsigned int power_level)
 {
     unsigned char book = SpellbookMaskForSpell(spell_id);
     unsigned char probe;
@@ -2362,7 +2362,7 @@ int g_cooldown_gated_spells[14] = {30, 38, 75, 73, 32, 33, 17, 20, 8, 40, 26, 45
 /* Whether the spell's current target would actually be affected by it - the
    per-spell rules the cast path checks before it spends the points. */
 // FUNCTION: WIZ8 0x004F9AE0
-unsigned char SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim,
+bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim,
                                   unsigned int power)
 {
     unsigned int duration;
@@ -2684,7 +2684,7 @@ unsigned char SpellAffectedTarget(W8Character* character, int spell_id, W8Combat
    fatigue cost. */
 // FUNCTION: WIZ8 0x004FA4D0
 int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_level,
-                              int* out_points, char continue_cast)
+                              int* out_points, bool continue_cast)
 {
     W8Character* character;
     const W8SpellRuntimeRecord* record;
@@ -2707,12 +2707,12 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     int index;
     unsigned int threshold;
     unsigned int morale;
-    unsigned char affected;
+    bool affected;
     int result;
     int cast_result;
     bool recast;
     const int* profession_level;
-    char clamp_power;
+    bool clamp_power;
 
     character = &g_status.buffers.Char[party_slot];
     record = &g_spell_records[spell_id];
@@ -4189,8 +4189,8 @@ void PruneSpellTargetMarkers(int spell_id, W8GrowableVector<int>* monster_marker
 // FUNCTION: WIZ8 0x00501D20
 void TrackItemSpellSource(W8Character* character, int spell_id)
 {
-    unsigned char has_spell_storage[0x96] = {0};
-    unsigned char* has_spell = has_spell_storage + 1;
+    bool has_spell_storage[0x96] = {false};
+    bool* has_spell = has_spell_storage + 1;
     W8ItemInstance* item;
     int count;
 
@@ -4226,7 +4226,7 @@ void TrackItemSpellSource(W8Character* character, int spell_id)
     W8ItemSpellUsageRecord* record = g_status.item_spell_usage_24a0;
     int index = 0;
     while (record < g_status.item_spell_usage_24a0 + 150) {
-        if (has_spell[index - 1] != '\0') {
+        if (has_spell[index - 1]) {
             ++record->usable_cast_count;
         }
         ++index;

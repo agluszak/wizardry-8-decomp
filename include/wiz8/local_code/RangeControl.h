@@ -42,7 +42,7 @@ class W8CampRangeListener : public W8RangeListener {
 public:
     /* 0x005C4510: re-invalidates the range control when the visible pool
        changed and always repaints it. */
-    void UpdateRange(unsigned char range_changed);
+    void UpdateRange(bool range_changed);
     W8RangeControl* m_range;
 };
 

@@ -23,7 +23,7 @@ class W8Missile;
 struct W8AIMissile : W8AIRecord {
     /* Gravity latch copied from the missile's gravity_1e3: when set, the
        vertical fall rate decays each step. */
-    unsigned char gravity_01;
+    bool gravity_01;
     unsigned char padding_02[2];
     /* Per-step advance scale (speed units per step tick). */
     float speed_per_step_04;
@@ -36,7 +36,7 @@ struct W8AIMissile : W8AIRecord {
     int last_half_tick_10;
     float elapsed_14;
     float limit_18;
-    unsigned char unknown_1c;
+    bool unknown_1c;
     unsigned char padding_1d[3];
 };
 
@@ -124,14 +124,14 @@ public:
        once block_released_1e2 is also set. */
     bool flight_done_1e0;
     /* Set by EnterImpactCycle while the impact animation plays. */
-    unsigned char impacting_1e1;
+    bool impacting_1e1;
     /* Set once the missile no longer blocks combat end (BlocksEndingCombat
        returned 0 or combat already resolved). */
     unsigned char block_released_1e2;
-    unsigned char gravity_1e3;
-    unsigned char align_camera_1e4;
-    unsigned char explode_ground_1e5;
-    unsigned char align_explosion_1e6;
+    bool gravity_1e3;
+    bool align_camera_1e4;
+    bool explode_ground_1e5;
+    bool align_explosion_1e6;
     bool flag_1e7;
     void* value_1e8;
     void* value_1ec;
@@ -192,7 +192,7 @@ static_assert(sizeof(W8MissileTableRecord) == 0x1e5, "W8MissileTableRecord_must_
 
 extern W8MissileTableRecord* g_missile_table;
 
-W8Missile* NextMissile(char restart);
+W8Missile* NextMissile(bool restart);
 
 W8Missile* AllocateMissile(int missile_table_index);
 unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,

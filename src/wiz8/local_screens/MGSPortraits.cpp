@@ -644,7 +644,7 @@ void GetPartySlotMenuAnchor(int party_slot, int* menu_x, int* menu_y, int* band_
 /* Repaint one party slot's HP, stamina and optional spell-point bars beside
    the portrait, including numeric HP text when that option is enabled. */
 // FUNCTION: WIZ8 0x0059A540
-void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
+void RedrawPartyPortraitBars(unsigned int party_slot, bool slot_enabled)
 {
     W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
     W8Character* character = &g_status.buffers.Char[party_slot];
@@ -783,7 +783,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
 }
 
 // FUNCTION: WIZ8 0x0059AF40
-void StageMonsterCastIcon(unsigned int party_slot, int realm, char alternate, int spell_id)
+void StageMonsterCastIcon(unsigned int party_slot, int realm, bool alternate, int spell_id)
 {
     if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
         return;
@@ -872,8 +872,8 @@ bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, uns
    hands, HP/stamina chrome, labels, condition/enchantment icons, and any
    active overlay callees for that slot. */
 // FUNCTION: WIZ8 0x005994C0
-void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char overlay_ready,
-                                char slot_enabled)
+void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool overlay_ready,
+                                bool slot_enabled)
 {
     int menu_x;
     int menu_y;
@@ -895,7 +895,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
     unsigned int text_shade;
     int main_hand_item_id;
     int off_hand_item_id;
-    unsigned char show_off_hand_row;
+    bool show_off_hand_row;
     unsigned short hp_bar_frame;
 
     if (gXStatus.fNpcDialogueMode != 0 && (party_slot & 1) != 0) {

@@ -80,7 +80,7 @@ public:
                                      const srVector2i* second);
 
 private:
-    void Initialize(srModelInstance* instance, unsigned char attach, unsigned short prop_number,
+    void Initialize(srModelInstance* instance, bool attach, unsigned short prop_number,
                     unsigned char footstep_surface,
                     unsigned char footstep_material); /* 0x004B7060 */
     void PrepareGeometry(srModelInstance* instance);

@@ -78,7 +78,7 @@ protected:
     /* 0x4c: cleared by W8DialogNumericInput when its field deactivates; no
        writer of a nonzero value has been recovered. */
     int m_field_4c;
-    unsigned char m_right_button_down; /* 0x50 */
+    bool m_right_button_down; /* 0x50 */
     unsigned char padding_051[3];
 }; /* 0x54 */
 

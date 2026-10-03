@@ -237,7 +237,7 @@ W8CycleNameRow g_cycle_names[W8_MONSTER_CYCLE_COUNT] = {
 };
 
 // GLOBAL: WIZ8 0x0060e614
-static unsigned char g_monster_gib_option = 1;
+static bool g_monster_gib_option = 1;
 // GLOBAL: WIZ8 0x005ed280
 extern const double g_monster_light_color_scale = 0.00392156862745098;
 
@@ -389,16 +389,16 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
 
     unsigned char more = 1;
     bool success = true;
-    unsigned char flies = 0;
-    unsigned char swims = 0;
-    unsigned char crawls = 0;
-    unsigned char quadruped = 0;
-    unsigned char full_transition = 0;
-    unsigned char spice_monster = 0;
+    bool flies = 0;
+    bool swims = 0;
+    bool crawls = 0;
+    bool quadruped = 0;
+    bool full_transition = 0;
+    bool spice_monster = 0;
     int left_handed = 45;
     bool has_light = false;
-    unsigned char light_pulsing = 0;
-    unsigned char random_idle_range = 0;
+    bool light_pulsing = 0;
+    bool random_idle_range = 0;
     bool has_lod_range = false;
     float movement_rate = 3.0f;
     float rotation_rate = 0.7f;
@@ -1746,7 +1746,7 @@ unsigned char W8Monster::EvaluateScriptCondition(const char* expression)
    is balanced the same way on both paths: a newly loaded script is marked for
    automatic release, then the Monster takes its own reference. */
 // FUNCTION: WIZ8 0x004C7F10
-unsigned char W8Monster::SetScript(const char* script_name, unsigned char reset_orders)
+unsigned char W8Monster::SetScript(const char* script_name, bool reset_orders)
 {
     srRegistry* registry;
     char path[256] = "Data\\Monsters\\Scripts\\";
@@ -1919,7 +1919,7 @@ void W8Monster::ProcessScript()
     W8MonsterInfo* monster_info;
     unsigned int monster_index;
     int command_count;
-    unsigned char stop;
+    bool stop;
 
     if (script_238 == 0) {
         return;
@@ -2051,7 +2051,7 @@ void W8Monster::ProcessScript()
             case MONSCR_SAY:
             case MONSCR_NPCINTERACTION: {
                 int line_number = -1;
-                unsigned char suppress = 0;
+                bool suppress = 0;
                 token = strtok(0, " \t");
                 if (token != 0) {
                     line_number = atoi(token);
@@ -2162,7 +2162,7 @@ void W8Monster::ProcessScript()
                 script_line_23c = script_238->lines.GetCount();
                 break;
             case MONSCR_IF: {
-                unsigned char invert = 0;
+                bool invert = 0;
                 unsigned char value;
                 token = strtok(0, " \t");
                 if (token != 0 && _strnicmp(token, "NOT", 3) == 0) {
@@ -2628,7 +2628,7 @@ void W8Monster::GetPlayerSightFlags(bool* primary, bool* secondary)
    detailed path tests the translated animation bounds at their centre and
    corners. */
 // FUNCTION: WIZ8 0x004c4920
-unsigned char W8Monster::IsVisibleToPlayer(unsigned char use_bounds)
+unsigned char W8Monster::IsVisibleToPlayer(bool use_bounds)
 {
     srVector3T<float> player_position;
 
@@ -2882,7 +2882,7 @@ void W8Monster::BeginFadeOut(float duration)
 }
 
 // FUNCTION: WIZ8 0x004c73f0
-void W8Monster::StartTalking(unsigned char animate_mouth)
+void W8Monster::StartTalking(bool animate_mouth)
 {
     if (m_pRep != 0) {
         talking = true;
@@ -2960,7 +2960,7 @@ unsigned char W8Monster::GetPatrolPoint(srVector3T<float>* point)
 }
 
 // FUNCTION: WIZ8 0x004ca4f0
-unsigned char MonsterGetWorldAnimationBounds(W8Monster* monster, srVector3T<float>* minimum,
+bool MonsterGetWorldAnimationBounds(W8Monster* monster, srVector3T<float>* minimum,
                                              srVector3T<float>* maximum)
 {
     if (monster != 0) {
@@ -4381,7 +4381,7 @@ void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum)
 /* Returns the previous animation state and timestamps every update through the
    recovered shared SurRender timer. */
 // FUNCTION: WIZ8 0x004c5a00
-unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating)
+unsigned char MonsterSetAnimating(W8Monster* monster, bool animating)
 {
     if (monster != 0) {
         W8MonsterRep* runtime = monster->m_pRep;
@@ -4837,7 +4837,7 @@ void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
    The alternate path uses Navigator's second position sink, matching the
    corresponding player-position helper above. */
 // FUNCTION: WIZ8 0x004c62c0
-void MonsterAimAtMonster(W8Monster* monster, W8Monster* target, char alternate)
+void MonsterAimAtMonster(W8Monster* monster, W8Monster* target, bool alternate)
 {
     W8MonsterInfo* monster_info;
     srVector3T<float> target_position;
@@ -4939,7 +4939,7 @@ void W8Monster::CollectModelInstances(W8GrowableVector<stModelInstance*>* instan
 unsigned char W8Monster::ReplaceSkinTexture(int stage, const char* old_name, const char* new_name)
 {
     char path[200];
-    unsigned char replaced = 0;
+    bool replaced = 0;
 
     sprintf(path, "Data\\Monsters\\Bitmaps\\%s", new_name);
     srTextureIFace* texture = LoadTextureFromPath(path, 0, 1);
@@ -5142,7 +5142,7 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
    runtime overrides. The alternate argument selects the secondary live-info
    flag used by the world-update path. */
 // FUNCTION: WIZ8 0x004c7c00
-unsigned char W8Monster::IsRenderable(char alternate)
+unsigned char W8Monster::IsRenderable(bool alternate)
 {
     bool disabled = disabled_217;
     int location_id = location_id_1e4;

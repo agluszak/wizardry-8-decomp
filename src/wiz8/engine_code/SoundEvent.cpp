@@ -36,7 +36,7 @@ W8SoundEvent::~W8SoundEvent()
    releases. */
 // FUNCTION: WIZ8 0x004d57a0
 W8SoundEvent* CreateSoundEvent(int kind, int cycle, int frame, int subcycle, const char* wave_name,
-                               unsigned char looping)
+                               bool looping)
 {
     W8SoundEvent* pSndEvent = new W8SoundEvent();
 

@@ -174,7 +174,7 @@ struct W8CombatCharacterRow {
     unsigned int interception_count;
     /* 0xa4: the queued action just switched to DEFEND; case 4 of the
        action dispatch routes to the defend notice while set. */
-    unsigned char defend_switched_a4;
+    bool defend_switched_a4;
     /* 0xa5: the attack's sound/roll state; set once MakePCAttackSound has
        played so a resumed swing does not replay it, cleared when the row's
        attack finishes. */

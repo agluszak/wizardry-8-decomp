@@ -20,9 +20,9 @@ extern int g_learn_sound;
 
 /* 0x005001E0: whether the spell may be cast in the current situation. Every
    retail caller pushes only these two arguments. */
-bool SpellUsableNow(int spell_id, unsigned char allow_out_of_combat);
+bool SpellUsableNow(int spell_id, bool allow_out_of_combat);
 
-int GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
+int GetTargetNeededForSpellFriendly(int spell_id, bool normalize,
                                     W8TargetingContext context);
 int GetTargetNeededForSpellHostile(int spell_id);
 /* 0x004FB1D0: whether the monster's spellcasting-blocked condition stops it
@@ -41,7 +41,7 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8Monster
 /* 0x004FA4D0: one physical callable for queued and repeated casts; returns
    0/1/2 and writes the per-step point cost. */
 int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_level,
-                              int* out_points, char continue_cast);
+                              int* out_points, bool continue_cast);
 /* 0x004FE740: a backfiring spell swaps roles - the intended target becomes
    the source and the original source the target. */
 void RedirectBackfiredSpellTarget(W8TargetSource* source, W8CombatSlot* target);
@@ -60,7 +60,7 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
 bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item);
 
 char CanCharacterLearnSpell(W8Character* character, int spell_id);
-void LearnSpell(W8Character* character, int spell_id, char announce);
+void LearnSpell(W8Character* character, int spell_id, bool announce);
 /* 0x00500060: learns the spell a spell-source item holds and empties the
    item. Retail callers push two arguments; the earlier three-parameter decl
    added a phantom slot. */
@@ -70,8 +70,8 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item);
    spell_learned array. */
 void RecountLearnedSpellsByRealm(W8Character* character);
 bool CanCharacterCastSpell(W8Character* character, int spell_id);
-unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, char pricing,
-                                           char prefer_unlocked, unsigned int power_level);
+unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool pricing,
+                                           bool prefer_unlocked, unsigned int power_level);
 
 int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* target,
                         unsigned int power_level, int power_cast_bonus, unsigned int failure_chance,
@@ -135,7 +135,7 @@ void ScaleByCombatPace(int party_slot, unsigned int* value);
 /* Validate the available target set and cursor state for a spell or item cast. */
 bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool item_cast,
                          bool skip_world_cursor);
-unsigned char SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim,
+bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim,
                                   unsigned int power);
 void TrackItemSpellSource(W8Character* character, int spell_id);
 bool IsTeleportCastMissingAnchor(W8Character* character, int spell_id); /* 0x00501D00 */

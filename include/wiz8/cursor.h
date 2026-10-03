@@ -45,7 +45,7 @@ extern int g_cursor_hotspot_y;
 int GetAtomCursorX(const InputAtom* atom);
 int GetAtomCursorY(const InputAtom* atom);
 
-void PositionMouseCursor(int x, int y, unsigned char reset_tick);
+void PositionMouseCursor(int x, int y, bool reset_tick);
 /* 0x00428220: milliseconds since PositionMouseCursor last stamped the move
    tick. */
 unsigned int GetMillisecondsSinceCursorMove(void);

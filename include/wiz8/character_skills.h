@@ -72,12 +72,12 @@ enum W8Skill {
 /* 0x00553F10: add usage points to one skill, roll its increase, and report
    the result; suppress_notification keeps silent practice calls silent. */
 void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_points,
-                            unsigned char suppress_notification);
+                            bool suppress_notification);
 
 /* 0x00554170: append one "race-icon Name's skill +level" clause to a notice
    buffer; when continue_line is set, insert a line break first. */
 void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int party_slot,
-                                   unsigned char continue_line, int skill_id);
+                                   bool continue_line, int skill_id);
 
 /* 0x005542E0: drain the deferred per-slot skill-increase flags into one or
    more W8_NPC_MSG_SKILL_NOTICES message-box lines. */
@@ -128,10 +128,10 @@ void BrewAlchemistPotion(W8Character* character);
 /* 0x00547BF0: whether the slot has the priest/bishop turn-undead trait, its
    combat-state use flag is clear, and a live hostile undead monster (record
    kind 0x14) is in play. */
-unsigned char CanPartySlotTurnUndead(int party_slot);
+bool CanPartySlotTurnUndead(int party_slot);
 /* 0x00547F40: whether the slot has the priest's pray trait, its combat-state
    use flag is clear, and a live hostile monster is in play. */
-unsigned char CanPartySlotPray(int party_slot);
+bool CanPartySlotPray(int party_slot);
 float ScaleValueByProfessionLevel(W8Character* character, int trait, float base);
 float ScaleValueByMonsterLevel(W8MonsterRecord* record, int trait, float base);
 /* 0x005539E0: rebuild the effective attributes from the modifier block's
@@ -142,7 +142,7 @@ void ResetCharacterAttributes(W8Character* character);
    and the race and profession skill adjustments. */
 void ResetCharacterSkills(W8Character* character);
 bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
-                               const unsigned char* expert_realm_flags);
+                               const bool* expert_realm_flags);
 void InvalidateAndRecalculateCharacterClassData(W8Character* character);
 bool CharacterHasTrait(const W8Character* character, int trait);
 int RevealCharacterItemBindingsByProfession(int party_slot, unsigned int target_slot);

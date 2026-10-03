@@ -24,7 +24,7 @@ bool CombatAllowsLiveGroups(void);
 void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility); /* 0x005477D0 */
 void RecountCombatMonsters(void);                                          /* 0x00546E70 */
 void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility,
-                              char recurse); /* 0x00547570 */
+                              bool recurse); /* 0x00547570 */
 
 /* 0x00547010: the disposition two party slots hold toward each other from
    their turncoat state - same side is friendly, split is hostile. */
@@ -45,10 +45,10 @@ void AlertSameFactionGroups(W8MonsterGroup* monster_group); /* 0x005478A0 */
    side and enters combat when it was not already. */
 void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target);
 /* 0x00547540: SetMonsterGroupHostility looked up by group id. */
-void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, char recurse);
+void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, bool recurse);
 /* 0x00547CB0: write the fatigue the slot's pending pray costs, or -1 when it
    cannot be paid; the flag picks the check flavor. */
-int TurnUndead(int party_slot, int* out_cost, char check);
+int TurnUndead(int party_slot, int* out_cost, bool check);
 /* 0x00547FE0: the fatigue the slot's pending turn-undead costs, zero when it
    cannot be carried out. */
 int CharacterPrayAction(int party_slot);

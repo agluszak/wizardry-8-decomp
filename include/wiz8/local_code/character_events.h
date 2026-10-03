@@ -65,15 +65,15 @@ unsigned char PartyPortraitEventRegionEvent(const InputAtom* event, struct W8Reg
 void RedrawPortraitQuoteBubbles(void);
 /* 0x0052FE80: queue the character's breath/idle event unless a spell or item
    is being aimed; `force` queues it regardless. */
-void StartBreathCycle(int party_slot, char force);
+void StartBreathCycle(int party_slot, bool force);
 void RenderPartyPortrait(int portrait, int left, int top, int flags, unsigned char value,
                          int party_slot);
 /* 0x0052EBE0: blit one animated portrait frame and its transition, returning
    whether a frame was drawn. */
 bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
-                                char animate);
+                                bool animate);
 
-void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
+void SetPartyPortraitEventState(unsigned int party_slot, bool active,
                                 unsigned int event_type, const wchar_t* quote_text, int show_quote);
 /* 0x00590A40: the notice the weapon-set swap paths post, between the two variadic
    formatters. Its middle argument is the context the notices are posted under -

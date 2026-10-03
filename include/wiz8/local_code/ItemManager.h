@@ -9,16 +9,16 @@ struct W8MonsterInfo;
 
 /* 0x0064A1CD: when set, world items flagged invisible are not activated;
    MIPE's item-create 'A' key toggles it ("hidden" versus "blue"). */
-extern unsigned char g_hide_invisible_items;
+extern bool g_hide_invisible_items;
 
 W8WorldItem* ItemInfo(unsigned int item_list_index);
 void DeactivateWorldItem(W8WorldItem* item); /* 0x004F70D0 */
 unsigned int ItemIndex(int runtime_id);
-void SetWorldItemHighlight(int runtime_id, char on); /* 0x004F71E0 */
+void SetWorldItemHighlight(int runtime_id, bool on); /* 0x004F71E0 */
 int PickNearestItemUnderCursor(int cursor_x, int cursor_y, float max_distance); /* 0x004F7370 */
 unsigned char InteractWithWorldItem(int runtime_id); /* 0x004F7910 */
 W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item); /* 0x004F9210 */
-void SetWorldItemFlag02(W8WorldItem* item, char enabled);
+void SetWorldItemFlag02(W8WorldItem* item, bool enabled);
 void RebuildAllWorldItemInstances(void);
 
 bool InitializeItemManagerState();

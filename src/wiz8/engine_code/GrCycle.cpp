@@ -93,7 +93,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
    that go together, and a null position leaves the effect where the caller's
    own default put it rather than at the origin. */
 // FUNCTION: WIZ8 0x004aded0
-W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset, float intensity,
+W8CameraShakeEffect::W8CameraShakeEffect(float duration, bool preset, float intensity,
                                          float distance_cap, const srVector3T<float>* position)
     : flags_00(0), intensity_04(intensity), distance_cap_08(distance_cap), timer_18(duration, 0),
       cycle_3c(0), frame_40(0), subcycle_44(0), completion_callback_48(0)
@@ -115,7 +115,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset, float inte
    which is the pair of bits set here. Trigger.cpp clears the ownership bit
    afterwards because it keeps its effect across frames and deletes it itself. */
 // FUNCTION: WIZ8 0x004ae080
-W8CameraShakeEffect* CreateCameraShakeEffect(float duration, char preset, float intensity,
+W8CameraShakeEffect* CreateCameraShakeEffect(float duration, bool preset, float intensity,
                                              float distance_cap, const srVector3T<float>* position)
 {
     W8CameraShakeEffect* effect =
@@ -1547,7 +1547,7 @@ void W8GrCycle::CreateGroundShadow(float width, float depth)
 }
 
 // FUNCTION: WIZ8 0x004a8de0
-void W8GrCycle::SetGroundShadowVisible(char visible)
+void W8GrCycle::SetGroundShadowVisible(bool visible)
 {
     if (m_ground_shadow != 0) {
         if (visible) {

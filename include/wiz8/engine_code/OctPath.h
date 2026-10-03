@@ -65,7 +65,7 @@ public:
     /* Advances movement_00->target_yaw toward movement_00->yaw by the shorter
        arc, accelerating or decelerating the angular velocity in
        movement_00->yaw_velocity_01c. */
-    void UpdateYawSteering(float time_step, char use_turn_rate); /* 0x004CB520 */
+    void UpdateYawSteering(float time_step, bool use_turn_rate); /* 0x004CB520 */
     /* Predicts a collision with another navigator or the party inside the
        prediction window; returns nonzero when one is found ahead. */
     unsigned char PredictNavigatorCollision(); /* 0x004CB620 */
@@ -86,7 +86,7 @@ public:
     void AccumulateGroupRepulsion(); /* 0x004CC4C0 */
     /* Steers around the linked leader: lateral pass targets, following
        distance, or a blocked-path fallback that reseeds target_14. */
-    unsigned char SteerAroundLeader(char allow_path_fallback); /* 0x004CC680 */
+    unsigned char SteerAroundLeader(bool allow_path_fallback); /* 0x004CC680 */
     /* The full per-step driver for a navigator at the start of its route:
        obstacle, collision, leader and waypoint steering, group repulsion,
        then integration. */
@@ -108,7 +108,7 @@ private:
     srVector3T<float> perpendicular_2c;
     srVector3T<float> force_38;
     float radius_44;
-    unsigned char nearby_queried_48;
+    bool nearby_queried_48;
     bool blocked_49;
     unsigned char padding_4a[2];
     unsigned int nearby_count_4c;
@@ -312,7 +312,7 @@ public:
                                  float separation);
     void UpdateConditionalPathFlags(unsigned int path_handle, unsigned short frame,
                                     unsigned int flags);
-    int ProcessSearchNodeProps(unsigned short node_index, unsigned char first_only);
+    int ProcessSearchNodeProps(unsigned short node_index, bool first_only);
     unsigned int CollectPathProbes(W8NavigatorMovementState* movement, float radius);
     unsigned short PlanMovement(W8NavigatorMovementState* movement, float radius, float separation);
     unsigned short PlanMovementToPosition(W8NavigatorMovementState* movement,
@@ -332,10 +332,10 @@ public:
     unsigned char ResolvePathCell(unsigned int key, unsigned char allow_dynamic,
                                   unsigned int* height, float* direction, float* vertical,
                                   unsigned char* dynamic);
-    unsigned short FindWaypoint(const srVector3T<float>* position, unsigned char exhaustive);
+    unsigned short FindWaypoint(const srVector3T<float>* position, bool exhaustive);
     void SnapPathHeight(srVector3T<float>* position);
     void GetPathSurfaceNormal(const srVector3T<float>* position, srVector3T<float>* normal);
-    void ActivateMovementTrigger(W8NavigatorMovementState* movement, unsigned char use_path_edge);
+    void ActivateMovementTrigger(W8NavigatorMovementState* movement, bool use_path_edge);
     void UpdatePathVisualization(const srVector3T<float>* source,
                                  const srVector3T<float>* destination);
     void DrawPathPosition(srVector3T<float> position, unsigned char mode);
@@ -348,13 +348,13 @@ public:
                                            const srVector3T<float>* direction);
     void AddWaypoint(const srVector3T<float>* position);
     unsigned int ClassifyWaypoint(const srVector3T<float>* position);
-    unsigned char SnapWaypointPosition(srVector3T<float>* position, unsigned char snap_to_cell);
+    unsigned char SnapWaypointPosition(srVector3T<float>* position, bool snap_to_cell);
     unsigned char TestPathCellClearance(srVector3T<float>* position, float clearance,
-                                        unsigned char snap_to_cell);
-    unsigned char SnapToLowerPathCell(srVector3T<float>* position, unsigned char allow_directional);
+                                        bool snap_to_cell);
+    unsigned char SnapToLowerPathCell(srVector3T<float>* position, bool allow_directional);
     unsigned char ProbeAttachmentPath(W8NavigatorAttachment* attachment);
     unsigned int FindPathCell(srVector3T<float>* position, unsigned int* cell,
-                              unsigned char adjust);
+                              bool adjust);
     unsigned char BuildAttachmentPath(W8NavigatorAttachment* attachment, unsigned int flags);
     unsigned char PrepareLinkedNavigator(W8NavigatorMovementState* movement);
     unsigned char LinkAttachmentTarget(W8NavigatorAttachment* attachment, unsigned int flags,
@@ -409,7 +409,7 @@ public:
                                      unsigned int flags);
     unsigned char HasDirectionalWaypointLink(unsigned short source, unsigned short destination);
     unsigned char TestWaypointSpan(const srVector3T<float>* source, srVector3T<float>* destination,
-                                   unsigned char adjust_destination, unsigned char diagonal_steps);
+                                   bool adjust_destination, bool diagonal_steps);
     /* `range` carries the walk budget in and the path cost back out; `hops`
        returns the reached-waypoint count. */
     unsigned char MeasureAttachmentPath(const srVector3T<float>* from, srVector3T<float>* to,
@@ -428,7 +428,7 @@ public:
                            const srVector3T<float>* bounds, const char* name); /* 0x00458A50 */
     unsigned char ReadPathNodes(int handle);                                  /* 0x00458CE0 */
     unsigned char WritePathNodes(unsigned int handle);
-    unsigned char SaveWaypointSnapshot(unsigned char force);
+    unsigned char SaveWaypointSnapshot(bool force);
     unsigned char WriteWaypointFile();
     unsigned char ReadWaypointFile();
     void BuildWaypointFileData();

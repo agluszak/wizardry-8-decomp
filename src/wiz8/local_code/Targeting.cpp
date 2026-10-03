@@ -263,7 +263,7 @@ int GetFactionValue(signed char faction)
 
 /* Raise or lower one faction's flag. */
 // FUNCTION: WIZ8 0x00536110
-void SetFactionFlag(signed char faction, unsigned char flag)
+void SetFactionFlag(signed char faction, bool flag)
 {
     g_factions[faction].encountered_0a = flag;
 }
@@ -322,7 +322,7 @@ bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext 
 /* The same check without the range half, and with one target kind that a
    global override always accepts. */
 // FUNCTION: WIZ8 0x00537270
-char IsSpellTargetOfNeededKind(int party_slot, int spell_id)
+bool IsSpellTargetOfNeededKind(int party_slot, int spell_id)
 {
     W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
     int needed = GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
@@ -605,7 +605,7 @@ unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
    admits one or two target kinds, and every admitted target additionally has
    to be reachable - so the answer is never just the kind test. */
 // FUNCTION: WIZ8 0x00537160
-char TargetMatchesNeeded(W8CombatSlot* target, int needed)
+bool TargetMatchesNeeded(W8CombatSlot* target, int needed)
 {
     bool matched = false;
 
@@ -808,7 +808,7 @@ void TintHighlightedMonster(W8Monster* monster, int tint)
    whatever draws it. Retail inlines this where ClearTargetHighlights clears a
    single target or a group and calls the out-of-line copy elsewhere. */
 // FUNCTION: WIZ8 0x00539630
-void SetMonsterHighlight(int party_slot, int location_id, char on)
+void SetMonsterHighlight(int party_slot, int location_id, bool on)
 {
     int index = MonsterGetIndexByLocationID(1879, TARGETING_CPP, location_id, 0);
     W8MonsterInfo* monster_info;
@@ -913,7 +913,7 @@ int PickNearestMonsterUnderCursor(int cursor_x, int cursor_y)
 /* The same over a whole group, one member at a time. The count is re-read each
    step because highlighting can remove a member. */
 // FUNCTION: WIZ8 0x00538c00
-void SetGroupHighlight(int party_slot, int group_id, char on)
+void SetGroupHighlight(int party_slot, int group_id, bool on)
 {
     unsigned int group_index = GetMonsterGroupIndexByID(1498, TARGETING_CPP, group_id, 0);
     W8MonsterGroup* group;
@@ -1037,7 +1037,7 @@ static int CompareMonsterTargetCandidates(const void* left, const void* right)
    position lifted by the sight offset instead. Answers zero for any kind
    without a place. */
 // FUNCTION: WIZ8 0x0053c630
-bool ResolveTargetPoint(W8CombatSlot* target, char sight_probe)
+bool ResolveTargetPoint(W8CombatSlot* target, bool sight_probe)
 {
     srVector3T<float> point;
     W8Monster* monster;
@@ -1548,7 +1548,7 @@ void SetMonsterCombatTarget(W8MonsterInfo* monster_info, int location_id)
    chosen hostile spell accepts. The caller only needs the validator's side
    effects, so this wrapper discards its answer. */
 // FUNCTION: WIZ8 0x0053A300
-char MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id)
+bool MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id)
 {
     return TargetMatchesNeeded(&monster_info->Target, GetTargetNeededForSpellHostile(spell_id));
 }
@@ -2186,8 +2186,8 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
     W8MonsterInfo* monster_info;
     W8TargetingContext action_context;
     W8TargetingContext resolved;
-    char is_attack_kind = 0;
-    unsigned char result = 0;
+    bool is_attack_kind = 0;
+    bool result = 0;
     int needed;
     int kind;
     int kind_2;
@@ -2523,7 +2523,7 @@ enum {
    Out of combat the one-monster kind answers yes without looking, since
    anything in the level can be walked up to. */
 // FUNCTION: WIZ8 0x0053d010
-bool SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normalize)
+bool SpellHasAnyValidTarget(int party_slot, int spell_id, bool normalize)
 {
     unsigned int index;
 
@@ -3406,7 +3406,7 @@ bool ItemUseNeedsTarget(int party_slot)
 {
     W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
     W8ItemInstance* item = FindCharacterItemAt(party_slot, row->item_origin, row->item_slot);
-    unsigned char normalize = ItemClassNormalizesTarget(&g_item_records[item->iItemNo]);
+    bool normalize = ItemClassNormalizesTarget(&g_item_records[item->iItemNo]);
     switch (GetSpellTargetType(GetItemSpell(item), normalize)) {
     case 3:
         if (gXStatus.fCampMode != 0) {
@@ -3458,7 +3458,7 @@ W8TargetingContext GetCombatActionContext(int party_slot)
 /* Raise or clear the party slot's highlight bit on every active monster.
    Clearing while spell targeting is up repaints the spell's own marks. */
 // FUNCTION: WIZ8 0x0053c130
-void UpdateSlotMonsterHighlights(int party_slot, char enable)
+void UpdateSlotMonsterHighlights(int party_slot, bool enable)
 {
     if ((party_slot != g_status.selected_character) || (gXStatus.iTargetingMode == 0)) {
         W8PList* monster_list = gXStatus.plsMonsterList;

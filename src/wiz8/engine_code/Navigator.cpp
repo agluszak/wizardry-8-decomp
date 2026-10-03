@@ -1068,7 +1068,7 @@ srVector3T<float>* W8Navigator::AdjustPosition(srVector3T<float>* result,
 }
 
 // FUNCTION: WIZ8 0x00454780
-void W8Navigator::UpdateFacing(char immediate)
+void W8Navigator::UpdateFacing(bool immediate)
 {
     if (movement_0c0.pitch_enabled_074 == 0 && movement_0c0.roll_enabled_075 == 0) {
         return;
@@ -1107,7 +1107,7 @@ void W8Navigator::UpdateFacing(char immediate)
 // FUNCTION: WIZ8 0x00453230
 W8Navigator* W8Navigator::ResolveBlockingNavigator(const srVector3T<float>* from,
                                                    srVector3T<float>* to,
-                                                   unsigned char include_target)
+                                                   bool include_target)
 {
     int hit_location;
     int location;
@@ -1276,7 +1276,7 @@ unsigned char W8NavigatorAttachment::AdvanceAlongPathPositions(float distance,
     srVector3T<float> delta;
     float segment;
     float t;
-    unsigned char on_path;
+    bool on_path;
 
     local = *position;
     on_path = 1;
@@ -1549,7 +1549,7 @@ void W8Navigator::SetFlag25(bool value)
 }
 
 // FUNCTION: WIZ8 0x00453ca0
-void W8Navigator::SetPitchRollEnabled(char pitch, char roll)
+void W8Navigator::SetPitchRollEnabled(bool pitch, bool roll)
 {
     movement_0c0.pitch_enabled_074 = pitch;
     movement_0c0.roll_enabled_075 = roll;
@@ -1786,7 +1786,7 @@ unsigned char W8Navigator::ConfigureMovement(float minimum, float maximum)
 }
 
 // FUNCTION: WIZ8 0x00454170
-unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, char propagate)
+unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, bool propagate)
 {
     movement_0c0.target_position_04c = *target;
     movement_target_018 = *target;
@@ -2112,7 +2112,7 @@ void W8Navigator::CollectGroupNavigators(W8GrowableVector<W8Navigator*>* navigat
 }
 
 // FUNCTION: WIZ8 0x004553a0
-void W8Navigator::UpdateNavigation(unsigned char skip_movement, char slowed)
+void W8Navigator::UpdateNavigation(unsigned char skip_movement, bool slowed)
 {
     srVector3T<float> previous = movement_0c0.position_040;
     srVector3T<float> adjusted;

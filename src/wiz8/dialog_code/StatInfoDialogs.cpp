@@ -196,8 +196,8 @@ W8AttributeInfoDialog::~W8AttributeInfoDialog()
 }
 
 // FUNCTION: WIZ8 0x005dfe40
-W8SkillInfoDialog::W8SkillInfoDialog(unsigned int skill, unsigned char first, unsigned char second,
-                                     unsigned char bonus)
+W8SkillInfoDialog::W8SkillInfoDialog(unsigned int skill, bool first, bool second,
+                                     bool bonus)
 {
     if (skill >= SKILL_COUNT) {
         srAssertFail("uiIndex < SKILL_COUNT", STAT_INFO_DIALOGS_CPP, 227, 0);

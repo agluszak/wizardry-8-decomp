@@ -167,7 +167,7 @@ unsigned char SpawnAlfieKnow(int unused)
    proximity facts by measuring the camera against the ASC40 and ASC30
    positions, then arm the periodic land-shaker master. */
 // FUNCTION: WIZ8 0x004DFBC0
-void AscensionAvalanche(unsigned char command)
+void AscensionAvalanche(bool command)
 {
     Trigger* avalanche = FindTriggerByName("Avalanche");
 

@@ -146,13 +146,13 @@ static unsigned short g_octree_region_debug_last;
    path (RenderWorldToSurface and the tri-mesh renderer) but no Wiz8 code
    ever writes it. */
 // GLOBAL: WIZ8 0x0065a0ec
-unsigned char g_render_unlit;
+bool g_render_unlit;
 // GLOBAL: WIZ8 0x0065a0ed
-unsigned char g_render_cull_front;
+bool g_render_cull_front;
 // GLOBAL: WIZ8 0x0065a0ee
-unsigned char g_inverted_depth_render;
+bool g_inverted_depth_render;
 // GLOBAL: WIZ8 0x0065a146
-unsigned char g_render_untextured;
+bool g_render_untextured;
 
 // FUNCTION: WIZ8 0x0042bc00
 void NoOct(void)
@@ -412,7 +412,7 @@ void W8Octree::UpdateVisibility()
 // FUNCTION: WIZ8 0x0042f9a0
 int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
                                      const srVector3T<float>* point, float radius,
-                                     unsigned int flags, char only_accumulated)
+                                     unsigned int flags, bool only_accumulated)
 {
     unsigned int level_mask = m_region_mask_140;
     unsigned int limit = spatial_000.region_cells_per_axis_50 - 1;
@@ -974,7 +974,7 @@ bool W8Octree::LoadPointFiles(const char* level_name)
     strcat(name, g_octree_point_extension);
 
     FindNextLevelFile(0);
-    unsigned char first = 1;
+    bool first = 1;
     unsigned char read_ok = 0;
     while (FindNextLevelFile(name) != 0) {
         if (first != 0) {
@@ -1050,7 +1050,7 @@ bool W8Octree::ReadRegionLinkFile(const char* level_name)
     unsigned int* keys = 0;
     unsigned short* values = 0;
     int file = 0;
-    unsigned char result = 0;
+    bool result = 0;
     char name[256];
 
     strcpy(name, level_name);
@@ -1185,8 +1185,8 @@ void W8Octree::RecordRegionMeshLinks(unsigned int region_key)
    empties the projected and previous sets first. Returns the region key when
    at least one cell linked, zero otherwise. */
 // FUNCTION: WIZ8 0x00431e10
-unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char descend,
-                                         char clear_sets, unsigned int region_key)
+unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, bool descend,
+                                         bool clear_sets, unsigned int region_key)
 {
     bool linked = false;
     W8World* world = GetWorld();
@@ -1366,7 +1366,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
    during the build so a failure or Esc abort can restore it; the scratch
    becomes the live table once the links save. */
 // FUNCTION: WIZ8 0x004314c0
-void W8Octree::BuildRegionLinks(char rebuild_all)
+void W8Octree::BuildRegionLinks(bool rebuild_all)
 {
     W8World* world = GetWorld();
     bool aborted = false;
@@ -2183,7 +2183,7 @@ bool W8Octree::SnapToGround(srVector3T<float>* position, char mode)
    distinguishes a world hit from a prop hit by the sign of its answer. */
 // FUNCTION: WIZ8 0x00434b60
 bool W8Octree::HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* to,
-                              char allow_fallback)
+                              bool allow_fallback)
 {
     W8OctreeWalk walk;
     int cell[3];
@@ -2287,8 +2287,8 @@ bool W8Octree::HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* 
 
 // FUNCTION: WIZ8 0x00434f20
 short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float>* to,
-                                 char trace_world, int from_location_id, int to_location_id,
-                                 char visit_octree, int trace_mode)
+                                 bool trace_world, int from_location_id, int to_location_id,
+                                 bool visit_octree, int trace_mode)
 {
     W8OctreeWalk walk;
     int cell[3];
@@ -2296,7 +2296,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
     int step[3];
 
     bool blocked = false;
-    char previous = 0;
+    bool previous = 0;
     int span;
     int error_0;
     int error_1;
@@ -4867,7 +4867,7 @@ bool ReadVector2Array(int file, srVector2T<float>* values, int count)
 
 // FUNCTION: WIZ8 0x00437540
 float PointToSegmentDistance(srVector3T<float>* point, const srVector3T<float>* from,
-                             const srVector3T<float>* to, char clamp_point, float* out_t)
+                             const srVector3T<float>* to, bool clamp_point, float* out_t)
 {
     srVector3T<float> direction = *to - *from;
     srVector3T<float> offset = *point - *from;
@@ -4907,7 +4907,7 @@ float PointToSegmentDistance(srVector3T<float>* point, const srVector3T<float>* 
 
 // FUNCTION: WIZ8 0x00437760
 float PointToSegmentDistance2D(srVector2T<float>* point, const srVector2T<float>* from,
-                               const srVector2T<float>* to, char clamp_point, float* out_t)
+                               const srVector2T<float>* to, bool clamp_point, float* out_t)
 {
     float dx = to->x - from->x;
     float dy = to->y - from->y;
@@ -4988,7 +4988,7 @@ char GrowBoundsByPoint(const srVector3T<float>* point, srVector3T<float>* minimu
    where bounds->maximum.z is meant when the point sits above the box
    (0x0043871B FLDs [ECX+8]) - the proven quirk stays. */
 // FUNCTION: WIZ8 0x004386a0
-char SphereNearBounds(const srVector3T<float>* point, float radius, const W8BoundingBox* bounds)
+bool SphereNearBounds(const srVector3T<float>* point, float radius, const W8BoundingBox* bounds)
 {
     float closest_x;
     float closest_y;
@@ -5037,8 +5037,8 @@ static float g_scatter_column_offsets[5] = {0.0f, 1.0f, -1.0f, 2.0f, -2.0f};
 // FUNCTION: WIZ8 0x00437980
 unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, float yaw,
                                             float spacing, unsigned int count,
-                                            srVector3T<float>* positions, char proximity_check,
-                                            char flatten_y)
+                                            srVector3T<float>* positions, bool proximity_check,
+                                            bool flatten_y)
 {
     float source_y = position->y;
     unsigned int found = 0;
@@ -5165,9 +5165,9 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
 // FUNCTION: WIZ8 0x00437f30
 unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float yaw, float radius,
                                              unsigned int count, srVector3T<float>* positions,
-                                             char first_only, char settle_any_height,
-                                             char avoid_triggers, int mode,
-                                             char require_waypoint_span)
+                                             bool first_only, bool settle_any_height,
+                                             bool avoid_triggers, int mode,
+                                             bool require_waypoint_span)
 {
     unsigned int found = 0;
     int found_i = 9999;

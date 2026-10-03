@@ -170,8 +170,8 @@ struct W8NavigatorMovementState {
     float turn_rate_068;
     unsigned short flags_06c;
     unsigned char padding_06e[6];
-    char pitch_enabled_074;
-    char roll_enabled_075;
+    bool pitch_enabled_074;
+    bool roll_enabled_075;
     bool boundary_enabled_076;
     unsigned char padding_077;
     float vertical_velocity_078;
@@ -255,7 +255,7 @@ public:
        navigator, or null. `include_target` lets the trace report the tracked
        movement target instead of skipping its location id. */
     W8Navigator* ResolveBlockingNavigator(const srVector3T<float>* from, srVector3T<float>* to,
-                                          unsigned char include_target); /* 0x00453230 */
+                                          bool include_target); /* 0x00453230 */
     /* Copies this navigator's movement state into a scratch probe, asks the
        octree to route toward `target`, and returns the measured path length or
        -1 when no route inside `max_range` exists. */
@@ -283,7 +283,7 @@ public:
 
     srVector3T<float> GetPosition();
     unsigned char UpdateTrackedPosition();                      /* 0x00454950 */
-    void UpdateNavigation(unsigned char value, char condition); /* 0x004553A0 */
+    void UpdateNavigation(unsigned char value, bool condition); /* 0x004553A0 */
     void SetAngles(float angle);                                /* 0x004538F0 */
     void SetPitch(float pitch);                                 /* 0x00453940 */
     float GetYaw();                                             /* 0x00453970 */
@@ -307,7 +307,7 @@ public:
     /* Stop this navigator, clear its movement/target state, and either mark
        the linked movement stopped or re-sync the collected group. */
     void ResetMovementAndGroupState();               /* 0x00452C90 */
-    void SetPitchRollEnabled(char pitch, char roll); /* 0x00453CA0 */
+    void SetPitchRollEnabled(bool pitch, bool roll); /* 0x00453CA0 */
     unsigned short ConfigureMovementToNavigator(W8Navigator* target, float separation,
                                                 float maximum_distance, srVector3T<float> position,
                                                 int trace_mode, float facing,
@@ -333,10 +333,10 @@ public:
     void UpdateAngles();                                           /* 0x00453990 */
     unsigned char ConfigureMovement(float minimum, float maximum); /* 0x00453D20 */
     unsigned char SetMovementTarget(const srVector3T<float>* target,
-                                    char propagate); /* 0x00454170 */
+                                    bool propagate); /* 0x00454170 */
     srVector3T<float>* AdjustPosition(srVector3T<float>* result, const srVector3T<float>* current,
                                       const srVector3T<float>* previous); /* 0x00454440 */
-    void UpdateFacing(char immediate);                                    /* 0x00454780 */
+    void UpdateFacing(bool immediate);                                    /* 0x00454780 */
     void UpdateLinkedNavigator();                                         /* 0x00454D70 */
     unsigned char UpdateLinkedPosition();
     void CollectGroupNavigators(W8GrowableVector<W8Navigator*>* navigators); /* 0x00455140 */
@@ -377,7 +377,7 @@ public:
        reports motion actually halting. */
     bool halted_025;
     bool movement_complete_026;
-    unsigned char unknown_027;
+    bool unknown_027;
     srVector3T<float> position_028;
     float minimum_height_034;
     float maximum_height_038;
@@ -406,10 +406,10 @@ public:
     unsigned int unknown_098;
     /* 0x09c: byte flag - SetMonsterGroupNavigatorDirty stores its uchar
        parameter raw, with no bool normalization. */
-    unsigned char position_dirty_09c;
+    bool position_dirty_09c;
     /* 0x09d: raised by the trigger sweep after it reactivates the monster
        (members_active, animation restart, rep/path reset). */
-    unsigned char reactivated_09d;
+    bool reactivated_09d;
     unsigned char padding_09e[2];
     W8NavigatorOwned0A0* owned_object_0a0;
     srVector3T<float> tracked_position_0a4;
@@ -417,7 +417,7 @@ public:
     bool tracked_dirty_0b4;
     unsigned char padding_0b5[3];
     int linked_update_time_0b8;
-    unsigned char unknown_0bc;
+    bool unknown_0bc;
     /* Raised on combat entry for the group leader's navigator (or the monster
        itself when unlinked); SetNavigatorLinkMode uses it to re-base the group
        onto the navigator's path when free-roam resumes. */

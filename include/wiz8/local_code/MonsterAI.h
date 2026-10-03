@@ -11,13 +11,13 @@ template <class T> class W8GrowableVector;
 void UpdateMonsterSight(void); /* 0x00530110 */
 /* The per-frame monster group pass; `staggered` spreads the maintenance a
    fifth of the list at a time with a full-distance pass every 20 frames. */
-void UpdateMonsterGroups(char staggered); /* 0x00530150 */
+void UpdateMonsterGroups(bool staggered); /* 0x00530150 */
 /* The group's party-sight aggregate DoMonsterRTAI reads as its alert level. */
 unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group); /* 0x00530470 */
 /* The real-time AI decision pass; `engage` calls may trigger the ambush and
    group-alert paths a routine tick cannot. The original name is proven by the
    "DoMonsterRTAI: ERROR - Invalid disposition" assertion. */
-void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage); /* 0x00530560 */
+void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage); /* 0x00530560 */
 /* The orders-driven half of DoMonsterRTAI: investigate a fresh heard noise or
    let the monster's scripted order_mode_28e pick the next mode. `decision`
    receives the mode; nonzero return means applying it is worthwhile. */
@@ -47,7 +47,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
                           W8CombatSlot* combat_slot); /* 0x005327E0 */
 /* Whether the spell's area effect would catch a disposition-neutral monster,
    which vetoes it - the AI does not turn neutrals hostile by accident. */
-unsigned char SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell_id,
+bool SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell_id,
                                           W8CombatSlot* combat_slot); /* 0x005330E0 */
 /* Whether the spell's markers catch at least one party member when cast at
    `slot`. */
@@ -76,7 +76,7 @@ unsigned int MonsterAdvanceChance(W8MonsterInfo* monster_info,
 /* Whether the monster can flee at all: it has a flee chance, a flee
    animation, enough of its stat left, and somewhere to run. */
 bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                    char exclude_special); /* 0x00534A40 */
+                    bool exclude_special); /* 0x00534A40 */
 /* Pick the direction a fleeing monster runs; returns whether a heading was
    found. */
 unsigned char AimFleeingMonster(W8MonsterInfo* monster_info,
@@ -84,7 +84,7 @@ unsigned char AimFleeingMonster(W8MonsterInfo* monster_info,
 /* Whether the monster may cast `spell_id` now; `needs_target` also demands
    something to aim it at. */
 bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id,
-                            char needs_target); /* 0x00532550 */
+                            bool needs_target); /* 0x00532550 */
 /* 0x00534290: whether a monster can aim the spell it wants to cast - area
    target types aim at the world, the rest pass the slot check. */
 bool CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id);
@@ -127,5 +127,5 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked,
 /* Build the monster's list of possible actions and take one of them at
    random into its action fields and target. */
 unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, int arg_3,
-                                        char set_attack_rate); /* 0x005323F0 */
+                                        bool set_attack_rate); /* 0x005323F0 */
 void UpdateAllMonsterAI(void);                                 /* 0x005314F0 */

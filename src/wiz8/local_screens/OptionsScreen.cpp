@@ -67,7 +67,7 @@ wchar_t g_empty_wide_string;
 extern const unsigned int g_W8TextControlLayoutMask = 0x40;
 
 // GLOBAL: WIZ8 0x0069c1c8
-static unsigned char g_options_first_frame;
+static bool g_options_first_frame;
 // GLOBAL: WIZ8 0x0069c138
 W8OptionsValues g_options_values;
 // GLOBAL: WIZ8 0x0069c254
@@ -1387,7 +1387,7 @@ W8OptionsScreen::~W8OptionsScreen()
 }
 
 // FUNCTION: WIZ8 0x005a93c0
-void W8OptionsScreen::SelectPanel(int selected, unsigned char notify)
+void W8OptionsScreen::SelectPanel(int selected, bool notify)
 {
     if (selected == m_selected_panel_020) {
         return;
@@ -1687,7 +1687,7 @@ void W8OptionsCheckbox::OnLeftButtonUp(int event)
 }
 
 inline W8OptionsSlider::W8OptionsSlider(Controls* owner, int top, float* value,
-                                        unsigned char alternate)
+                                        bool alternate)
     : W8HorizontalRangeThumb(owner, 0xffffffff, 0xc9, top - 2, 0xf5, 0, alternate != 0 ? 4 : 0, 1,
                              2, 3),
       m_value(value)
@@ -1801,7 +1801,7 @@ W8TextControl* W8OptionsPanel::AddChoiceButton(int label)
 }
 
 // FUNCTION: WIZ8 0x005a8800
-W8OptionsSlider* W8OptionsPanel::AddSlider(int label, float* value, unsigned char alternate)
+W8OptionsSlider* W8OptionsPanel::AddSlider(int label, float* value, bool alternate)
 {
     W8ControlsRect bounds = {m_bounds.left + 20, m_bounds.top + m_content_top_050, m_bounds.right,
                              m_bounds.top + m_content_top_050 + 22};

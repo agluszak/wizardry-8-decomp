@@ -12,7 +12,7 @@ void DrawCampVitals(void);
 void DrawCampHands(void);
 int CreateCampButtonPanel(void);
 void DestroyCampButtonPanel(void);
-void RefreshCampItemActions(unsigned char invalidate);
+void RefreshCampItemActions(bool invalidate);
 void SetCampItemActionMode(char mode);
 void SelectCampCharacter(int slot);
 /* Right-click on a camp portrait while holding an item: refuse with a notice

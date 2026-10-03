@@ -391,7 +391,7 @@ static int g_missile_iterator;
 /* Iterate the world's missile vector. A nonzero argument restarts the shared
    cursor; a missing world or vector answers null. */
 // FUNCTION: WIZ8 0x004A2760
-W8Missile* NextMissile(char restart)
+W8Missile* NextMissile(bool restart)
 {
     W8Missile* missile = 0;
 
@@ -506,10 +506,10 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
     W8AIMissile* ai;
     bool loaded;
     unsigned char more;
-    unsigned char gravity;
-    unsigned char align_camera;
-    unsigned char explode_ground;
-    unsigned char align_explosion;
+    bool gravity;
+    bool align_camera;
+    bool explode_ground;
+    bool align_explosion;
     float velocity;
     int handle;
     int sound_kind;

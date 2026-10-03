@@ -344,7 +344,7 @@ unsigned char W8RaceInfoDialog::PopulateText()
     m_text_area_118.AddEntry(gppStringList[0x153], gppStringList[m_uiDetailId], 10, 0xf, 0);
     m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
     m_text_area_118.AddEntry(gppStringList[0x14d], &g_empty_wide_string, 10, 0xf, 0);
-    unsigned char listed = 0;
+    bool listed = 0;
     for (unsigned int index = 0; index < 5; ++index) {
         int ability = g_race_abilities[m_uiIndex].ability_ids[index];
         if (ability == -1) {

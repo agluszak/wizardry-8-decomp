@@ -367,7 +367,7 @@ void InvalidateUseItemSelectPanel(void)
    dirty panels' redraw pass, then re-check the pending commit through the
    shared helper. */
 // FUNCTION: WIZ8 0x0059CF50
-void UpdateUseItemSelect(unsigned char active)
+void UpdateUseItemSelect(bool active)
 {
     bool panel_dirty;
     int i;
@@ -921,7 +921,7 @@ unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event, W8Region* 
 /* Wheel rotation over the use-item text box re-selects the row under the
    cursor, even when it is already the hovered row. */
 // FUNCTION: WIZ8 0x0059DD30
-void UseItemSelectTextBoxWheelAt(short x, unsigned short y, unsigned char flag)
+void UseItemSelectTextBoxWheelAt(short x, unsigned short y, bool flag)
 {
     int row;
 

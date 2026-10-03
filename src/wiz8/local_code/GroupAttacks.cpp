@@ -46,7 +46,7 @@ static int g_special_attack_realm_table[32] = {
 /* Whether a special attack kind still fires while the attacker's spellcasting
    is blocked: kinds 5-7 and 0x19-0x1d minus 0x1b ignore the block. */
 // FUNCTION: WIZ8 0x00556050
-unsigned char MonsterSpecialAttackHonorsCastingBlock(int special_attack_kind)
+bool MonsterSpecialAttackHonorsCastingBlock(int special_attack_kind)
 {
     switch (special_attack_kind) {
     case 5:

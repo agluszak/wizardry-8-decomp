@@ -305,7 +305,7 @@ int W8DialogTextArea::GetOwningEntryIndex(int visible_index)
 }
 
 // FUNCTION: WIZ8 0x005d24a0
-void W8DialogTextArea::SetEntryState60(int index, unsigned char state)
+void W8DialogTextArea::SetEntryState60(int index, bool state)
 {
     W8DialogTextEntry* entry = *m_all_lines_01c.GetAt(index);
     if (entry->m_state_60 != state) {

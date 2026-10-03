@@ -485,7 +485,7 @@ unsigned char g_byte_652da6;
    generic unidentified names are allocated once, while this returned buffer
    is shared by the quantity and plain-name forms. */
 // FUNCTION: WIZ8 0x0051b5c0
-wchar_t* FormatItemDisplayName(const W8ItemInstance* item, unsigned char include_quantity)
+wchar_t* FormatItemDisplayName(const W8ItemInstance* item, bool include_quantity)
 {
     wchar_t* name;
     unsigned int name_index;
@@ -576,9 +576,9 @@ bool IsItemBoundToWearer(const W8ItemInstance* item)
    the main hand of that set is not already holding something two-handed.
    Everything else has exactly one home. */
 // FUNCTION: WIZ8 0x0051cf80
-unsigned short GetItemEquipSlotMask(int item_id, char primary_off_hand_free,
-                                    char alternate_off_hand_free, char primary_main_hand_free,
-                                    char alternate_main_hand_free)
+unsigned short GetItemEquipSlotMask(int item_id, bool primary_off_hand_free,
+                                    bool alternate_off_hand_free, bool primary_main_hand_free,
+                                    bool alternate_main_hand_free)
 {
     unsigned short slots = 0;
 
@@ -647,12 +647,12 @@ unsigned short GetItemEquipSlotMask(int item_id, char primary_off_hand_free,
    ignore what is worn answers for an empty character instead. */
 // FUNCTION: WIZ8 0x0051cea0
 bool CanEquipItemInSlot(W8Character* character, int item_id, unsigned char equip_slot,
-                        char ignore_worn_items)
+                        bool ignore_worn_items)
 {
-    char primary_off_hand_free;
-    char alternate_off_hand_free;
-    char primary_main_hand_free;
-    char alternate_main_hand_free;
+    bool primary_off_hand_free;
+    bool alternate_off_hand_free;
+    bool primary_main_hand_free;
+    bool alternate_main_hand_free;
 
     primary_off_hand_free =
         character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_LEFT].iItemNo == -1 || ignore_worn_items;
@@ -836,7 +836,7 @@ static bool CanHoldItemsTogether(int first_item_id, int second_item_id)
 }
 
 // FUNCTION: WIZ8 0x0051CDE0
-char HeldItemFitsPairedSlot(int party_slot, unsigned int equip_slot)
+bool HeldItemFitsPairedSlot(int party_slot, unsigned int equip_slot)
 {
     if (party_slot == -1)
         srAssertFail("iChar != -1", PC_ITEM_CPP, 0x4e0, 0);
@@ -1510,7 +1510,7 @@ bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item,
    it, so the caller can still fall back to the party pool on failure. */
 // FUNCTION: WIZ8 0x0051c300
 bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip_if_possible,
-                        char announce, char skip_stacking)
+                        char announce, bool skip_stacking)
 {
     W8ItemInstance* stored_item = 0;
     unsigned int stored_index = 0;
@@ -1519,7 +1519,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
         int equip_slot = ChooseCharacterEquipSlot(character, item->iItemNo);
         if (equip_slot != W8_EQUIP_SLOT_NONE) {
             W8ItemInstance* destination = &character->EquippedItem[equip_slot];
-            unsigned char stored;
+            bool stored;
             if (destination->iItemNo == -1) {
                 CopyItemInstance(destination, item, character, 1);
                 stored = 1;
@@ -1850,9 +1850,9 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
    pool entry that was already empty is shifted out of the packed array. */
 // FUNCTION: WIZ8 0x0051bc00
 unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
-                                         unsigned char party_first)
+                                         bool party_first)
 {
-    unsigned char stored;
+    bool stored;
 
     if (g_status.game_started == 0) {
         srAssertFail("gStatus.fGameStarted", PC_ITEM_CPP, 0x194, 0);
@@ -1898,7 +1898,7 @@ bool DropItemInHand(int arg_1)
 /* Conjure one item and put it either straight into the party pool or into the
    hand, depending on where the last one was taken from. */
 // FUNCTION: WIZ8 0x0051bf60
-void CreateItemIntoHandOrPool(int item_id, unsigned char quality)
+void CreateItemIntoHandOrPool(int item_id, bool quality)
 {
     W8ItemInstance created;
 
@@ -1990,7 +1990,7 @@ bool IsItemCarriedByCharacter(W8Character* character, const W8ItemInstance* item
    tally is open, and announcing it plays the coin sound - copied to the stack
    first because the sound call takes a writable path. */
 // FUNCTION: WIZ8 0x0051bea0
-void AddPartyGold(int amount, char announce)
+void AddPartyGold(int amount, bool announce)
 {
     char sound_path[32];
 
@@ -2014,8 +2014,8 @@ void AddPartyGold(int amount, char announce)
    pool slot first removes that slot from the pool; the new instance then gets
    its rolled (or maximum) quantity and the record's identification policy. */
 // FUNCTION: WIZ8 0x0051c020
-void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximum_quantity,
-                         unsigned char force_identified, unsigned char mark_special)
+void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, bool maximum_quantity,
+                         bool force_identified, bool mark_special)
 {
     if (static_cast<unsigned int>(item_id) >= gXStatus.uiItemsInDatabase) {
         srAssertFail(
@@ -2100,7 +2100,7 @@ int GetItemSpell(const W8ItemInstance* item)
 // FUNCTION: WIZ8 0x005209f0
 char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2)
 {
-    char result = 0;
+    bool result = 0;
     int party_slot;
 
     if (item->identified != 0) {
@@ -2824,7 +2824,7 @@ bool MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
    the cursor can return it later. */
 // FUNCTION: WIZ8 0x0051fe30
 void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Character* character,
-                      unsigned char refresh)
+                      bool refresh)
 {
     unsigned int held_character = static_cast<unsigned int>(-1);
     unsigned char held_origin = 0xff;
@@ -2865,7 +2865,7 @@ void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Cha
    reacting to the intermediate empty states. */
 // FUNCTION: WIZ8 0x0051FD20
 void SwapItemInstances(W8ItemInstance* item, W8ItemInstance* destination, W8Character* character,
-                       unsigned char refresh)
+                       bool refresh)
 {
     W8ItemInstance temporary;
     unsigned int party_slot;
@@ -2984,17 +2984,17 @@ unsigned int GetEquipmentBindingDifficulty(int character_index)
    that is the path used while the new-game reset clears the carried pool. */
 // FUNCTION: WIZ8 0x00520d10
 void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
-                                  unsigned char refresh)
+                                  bool refresh)
 {
     if (!character) {
         return;
     }
 
-    unsigned char primary_right = item == &character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_RIGHT];
+    bool primary_right = item == &character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_RIGHT];
     if (primary_right) {
         SetHandType(character, W8_EQUIP_SLOT_PRIMARY_RIGHT);
     }
-    unsigned char primary_left = item == &character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_LEFT];
+    bool primary_left = item == &character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_LEFT];
     if (primary_left) {
         SetHandType(character, W8_EQUIP_SLOT_PRIMARY_LEFT);
     }
@@ -3067,7 +3067,7 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
    carried-pool item is removed from the packed 500-entry array and the tail is
    shifted down exactly once. */
 // FUNCTION: WIZ8 0x00520070
-void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char refresh)
+void EmptyItemRecord(W8ItemInstance* item, W8Character* character, bool refresh)
 {
 
     if (item == &g_status.item_in_hand_235b) {
@@ -3159,7 +3159,7 @@ void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item)
 /* Deliver the one-time character reaction associated with exceptional items.
    Character creation (screen 5) deliberately suppresses every reaction. */
 // FUNCTION: WIZ8 0x005227d0
-void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_character,
+void DeliverExceptionalItemReaction(W8ItemInstance* item, bool choose_character,
                                     W8Character* character)
 {
     int message;
@@ -3247,7 +3247,7 @@ bool CanUseItemForAction(int party_slot, const W8ItemInstance* item)
 {
     const W8ItemDatabaseRecord* record = &g_item_records[item->iItemNo];
     W8Character* character = &g_status.buffers.Char[party_slot];
-    unsigned char usable;
+    bool usable;
 
     if (record->equip_class == 0x17 || record->equip_class == 0x19 ||
         CanCastFromItem(character, item)) {
@@ -3381,7 +3381,7 @@ char InsertItemIntoPartyPool(W8ItemInstance* item, int index)
 }
 
 // FUNCTION: WIZ8 0x00521ef0
-bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char skip_stacking)
+bool AddItemToParty(W8ItemInstance* item, unsigned char announce, bool skip_stacking)
 {
     wchar_t* display_name = FormatItemDisplayName(item, 1);
     unsigned char partially_merged = 0;
@@ -3724,9 +3724,9 @@ void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item)
    discarded, which are announced instead - and the hand's item comes back
    afterwards. */
 // FUNCTION: WIZ8 0x00522090
-unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, unsigned char announce)
+unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, bool announce)
 {
-    unsigned char stored = AddItemToParty(item, announce, 0);
+    bool stored = AddItemToParty(item, announce, false);
     if (stored != 0) {
         return stored;
     }
@@ -3768,7 +3768,7 @@ int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int pow
     unsigned int party_slot = CharacterPointerToPartySlot(character);
     unsigned int spell_id = record->spell_id;
     W8TargetSource target;
-    unsigned char rejected_spell;
+    bool rejected_spell;
     unsigned int difficulty = 0;
     int skill;
     int effect;
@@ -4116,7 +4116,7 @@ void UpgradeProfessionClassItem(W8Character* character)
    on the same character is not cleared in that pass; the pool walk that follows
    does compact every matching pool entry. */
 // FUNCTION: WIZ8 0x005215d0
-unsigned char RemovePartyItemByID(int item_id, char remove_all)
+unsigned char RemovePartyItemByID(int item_id, bool remove_all)
 {
     bool removed = false;
 
@@ -4168,7 +4168,7 @@ unsigned char RemovePartyItemByID(int item_id, char remove_all)
    has been announced; and an item that cannot be held together with what is
    already there is left where it is, with the pair swapping around it. */
 // FUNCTION: WIZ8 0x0051d3b0
-unsigned char SwapWeaponSetSlots(int party_slot, char announce, unsigned char refresh)
+unsigned char SwapWeaponSetSlots(int party_slot, char announce, bool refresh)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     int notice_context = gXStatus.fNpcDialogueMode != 0 ? 0 : -1;

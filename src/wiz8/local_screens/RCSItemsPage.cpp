@@ -1394,7 +1394,7 @@ void DisableCampActionButtons(void)
 }
 
 // FUNCTION: WIZ8 0x005b9330
-void RefreshCampActionPanel(char invalidate)
+void RefreshCampActionPanel(bool invalidate)
 {
     if (invalidate != 0) {
         g_camp_action_panel->Invalidate(0);
@@ -1531,7 +1531,7 @@ void DisableItemsRealmTabs(void)
 }
 
 // FUNCTION: WIZ8 0x005b98e0
-void RefreshItemsTabPanel(char invalidate)
+void RefreshItemsTabPanel(bool invalidate)
 {
     if (invalidate != 0) {
         g_camp_realm_tab_panel->Invalidate(0);
@@ -1685,7 +1685,7 @@ void DisableCampSecondaryPanel(void)
 }
 
 // FUNCTION: WIZ8 0x005b9f90
-void RefreshCampSecondaryPanel(char invalidate)
+void RefreshCampSecondaryPanel(bool invalidate)
 {
     if (invalidate != 0) {
         InvalidateCampPanel();

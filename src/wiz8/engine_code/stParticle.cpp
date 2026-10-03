@@ -251,7 +251,7 @@ stParticle::stParticle(srNode* parent, int count)
     velocities_198 =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
     birth_ticks_19c = new unsigned int[count];
-    particle_active_194 = new unsigned char[count];
+    particle_active_194 = new bool[count];
     memset(particle_active_194, 0, count);
 
     has_acceleration_1a8 = 0;
@@ -381,7 +381,7 @@ stParticle::stParticle(const stParticle& other)
     active_particle_count_18c = 0;
     release_when_done_190 = other.release_when_done_190;
     replace_when_full_191 = other.replace_when_full_191;
-    particle_active_194 = new unsigned char[count];
+    particle_active_194 = new bool[count];
     memset(particle_active_194, 0, count);
     velocities_198 =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
@@ -439,7 +439,7 @@ stParticle::stParticle(const stParticle& other)
 }
 
 // FUNCTION: WIZ8 0x00499A50
-unsigned char stParticle::ActivateParticle(unsigned int* out_index, unsigned char replace_when_full)
+unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace_when_full)
 {
     if (emission_limit_184 != 0 && emission_count_188 >= emission_limit_184) {
         return 0;
@@ -552,7 +552,7 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, unsigned cha
 // FUNCTION: WIZ8 0x00499F70
 void stParticle::DeactivateParticle(unsigned int index)
 {
-    unsigned char* active = particle_active_194 + index;
+    bool* active = particle_active_194 + index;
     if (*active != 0) {
         *active = 0;
         update_flags_250 |= 2;
@@ -786,7 +786,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
 /* Traversal is gated separately from particle activity.  Starting a new
    enabled interval resets the update timestamp; repeated enables do not. */
 // FUNCTION: WIZ8 0x00498D90
-void stParticle::SetTraversalEnabled(unsigned char enabled)
+void stParticle::SetTraversalEnabled(bool enabled)
 {
     if (enabled != 0 && traversal_enabled_1a1 == 0) {
         updated_at_25c = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);

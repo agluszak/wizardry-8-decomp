@@ -28,7 +28,7 @@ public:
     W8GameTimer timer_008;
     W8GameTimer* m_pCountdown;
     Trigger* trigger_030;
-    unsigned char repeat_034;
+    bool repeat_034;
     bool completed_035;
     unsigned char unknown_036[2];
 };
@@ -212,7 +212,7 @@ public:
     bool RequiresItem();
     bool SelectAction();
     void GenerateItemGroup();
-    W8WorldItem* GetOrCreateItemGroup(char create);
+    W8WorldItem* GetOrCreateItemGroup(bool create);
     /* After a selected-prop Run: while g_trigger_feedback is clear, post either
        the special-item notice (required_item_id != -1) or the nothing-happened notice. */
     void PrintNothingHappenedOrSpecialItemRequired(); /* 0x004456E0 */
@@ -297,7 +297,7 @@ bool LoadTriggerRuntimeStates(int handle);
 void SaveTriggerActionData(W8World* world, int handle);
 bool LoadTriggerActionData(int handle);
 
-extern unsigned char g_trigger_feedback;
+extern bool g_trigger_feedback;
 extern unsigned char g_flag_0068506e;
 /* Camera position cached by the per-frame trigger walk. */
 extern srVector3T<float> g_trigger_camera;

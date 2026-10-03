@@ -14,7 +14,7 @@ struct W8ModelInstance2DRenderState {
     short position_y;
     unsigned char display_state;
     /* 0x0d: enables the pulsing glow pass over mesh.materials_70[0]. */
-    unsigned char glow_enabled_0d;
+    bool glow_enabled_0d;
     unsigned char padding_0e[2];
 };
 
@@ -53,7 +53,7 @@ public:
        scale flag instead of storing a redundant scale. */
     float instance_scale_05c;
     bool flag_060;
-    unsigned char apply_instance_scale_061;
+    bool apply_instance_scale_061;
     unsigned char padding_062[2];
 };
 

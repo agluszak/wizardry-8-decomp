@@ -77,7 +77,7 @@ void UpdatePortraitAdvanceButtons(void);
 void UpdateConditionButtons(void);
 /* 0x0059AF40: stage the casting icon on a monster-manager entry; the spell's
    realm picks the icon catalog base and the flag picks the dim variant. */
-void StageMonsterCastIcon(unsigned int monster_index, int spell_realm, char flag, int spell_id);
+void StageMonsterCastIcon(unsigned int monster_index, int spell_realm, bool flag, int spell_id);
 /* 0x0059C030 / 0x0059BFC0: hide or show the condition-button region set for
    the current layout. SyncMainGameModeRegions picks between them. */
 void DisableConditionButtons(void);
@@ -91,8 +91,8 @@ unsigned char ConditionButtonRegionEvent(const InputAtom* event, W8Region* regio
 /* Main-game portrait overlay helpers used when a party slot refreshes. */
 bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int flags,
                                  unsigned int top); /* 0x005993A0 */
-void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char overlay_ready,
-                                char slot_enabled); /* 0x005994C0 */
+void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool overlay_ready,
+                                bool slot_enabled); /* 0x005994C0 */
 
 /* 0x0059AA60: the slot's menu/portrait anchor table - the keyboard-menu
    panel's origin, the portrait band's two x edges, the grid row and the

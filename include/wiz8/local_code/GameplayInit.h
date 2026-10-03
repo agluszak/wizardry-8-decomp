@@ -3,7 +3,7 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
-void ResetGameStatus(unsigned char release);
+void ResetGameStatus(bool release);
 void InitializeGameplayRuntimeObjects(void);
 unsigned char InitializeFactDatabase(void);
 unsigned char InitializeLevelDatabase(void);
@@ -21,4 +21,4 @@ void ResetForNewGame(void);
 void ResetGameplaySlot(unsigned int slot);
 void ResetGameplaySettings(void);
 
-void RunNewGameOpeningSequence(unsigned char notify, const wchar_t* target);
+void RunNewGameOpeningSequence(bool notify, const wchar_t* target);

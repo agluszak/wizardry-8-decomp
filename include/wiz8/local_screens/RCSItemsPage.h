@@ -80,15 +80,15 @@ int CreateCampActionPanel(void);                 /* 0x005B9070 */
 void ReleaseCampActionPanel(void);               /* 0x005B9220 */
 void EnableCampActionButtons(void);              /* 0x005B9270 */
 void DisableCampActionButtons(void);             /* 0x005B9310 */
-void RefreshCampActionPanel(char invalidate);    /* 0x005B9330 */
+void RefreshCampActionPanel(bool invalidate);    /* 0x005B9330 */
 int CreateItemsTabPanel(void);                   /* 0x005B9350 */
 void ReleaseItemsTabPanel(void);                 /* 0x005B9760 */
 void UpdateItemsRealmTabs(void);                 /* 0x005B97B0 */
 void DisableItemsRealmTabs(void);                /* 0x005B98C0 */
-void RefreshItemsTabPanel(char invalidate);      /* 0x005B98E0 */
+void RefreshItemsTabPanel(bool invalidate);      /* 0x005B98E0 */
 int CreateCampSecondaryPanel(void);              /* 0x005B9900 */
 void ReleaseCampSecondaryPanel(void);            /* 0x005B9EA0 */
 void InvalidateCampPanel(void);                  /* 0x005B9EF0 */
 void EnableCampSecondaryPanel(void);             /* 0x005B9F00 */
 void DisableCampSecondaryPanel(void);            /* 0x005B9F60 */
-void RefreshCampSecondaryPanel(char invalidate); /* 0x005B9F90 */
+void RefreshCampSecondaryPanel(bool invalidate); /* 0x005B9F90 */

@@ -155,7 +155,7 @@ void W8DialogScrollBar::UpdateThumb()
 }
 
 // FUNCTION: WIZ8 0x005e10b0
-void W8DialogScrollBar::Draw(unsigned char force)
+void W8DialogScrollBar::Draw(bool force)
 {
     if (m_initialized && m_visible && (force || m_dirty)) {
         DrawButton(m_track_button);

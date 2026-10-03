@@ -416,7 +416,7 @@ unsigned short g_level_name_indices[W8_LEVEL_COUNT] = {
 };
 
 // GLOBAL: WIZ8 0x00659756
-unsigned char g_level_status_loading;
+bool g_level_status_loading;
 
 // GLOBAL: WIZ8 0x00603ac8
 float g_default_world_height = 1000.0f;
@@ -431,7 +431,7 @@ unsigned char g_environment_load_flag = 1;
 bool g_camera_path_active;
 
 // GLOBAL: WIZ8 0x0068f0fd
-unsigned char g_mipe_trigger_display;
+bool g_mipe_trigger_display;
 
 // GLOBAL: WIZ8 0x006059E0
 static char g_ambient_sound_filename[] = "SCF";
@@ -446,7 +446,7 @@ const char* g_sky_names[] = {
    slots synthesize level1..level9 and DefaultLevel. A missing LVL file is
    valid only when both its OCT and PVL replacements exist. */
 // FUNCTION: WIZ8 0x0042A370
-unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
+bool LevelBuildInfoByID(int level, W8LevelInfo* info)
 {
     char oct_path[1020];
     char pvl_path[1020];
@@ -512,12 +512,12 @@ unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
    rollback boundary, entry positioning, first-visit work and final renderer
    publication. */
 // FUNCTION: WIZ8 0x0042A6F0
-unsigned char LoadLevel(int requested_level, int entrance, unsigned char restoring_game)
+unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
 {
     int level = NormalizeMasterFunctionValue(requested_level);
     W8LevelInfo level_info;
     int previous_level;
-    unsigned char first_visit = 0;
+    bool first_visit = 0;
     char path[260];
     char music_path[260];
 
@@ -765,7 +765,7 @@ unsigned char ReloadLevelPreservingCamera(int level, int entrance)
     W8CameraAngleRecord saved_angle;
     W8CameraAngleRecord saved_pitch;
     srVector3T<float> saved_position;
-    unsigned char restore = 0;
+    bool restore = 0;
 
     if (entrance == -1 && level == g_status.current_level) {
         GetCameraOrientation(saved_angle, saved_pitch);

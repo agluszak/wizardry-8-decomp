@@ -28,11 +28,11 @@ public:
     void SnapToTarget(const srVector3T<float>* target);     /* 0x00476950 */
     void SetOrientationImmediate(float pitch, float angle); /* 0x00476C30 */
     unsigned char LookAt(const srVector3T<float>* target,
-                         unsigned char preserve_pitch); /* 0x00476F90 */
+                         bool preserve_pitch); /* 0x00476F90 */
     unsigned char ComputeTrackingOrientation(const srVector3T<float>* target, float* angle,
                                              float* pitch); /* 0x00477180 */
     unsigned char BeginOrientationTransition(float target_pitch, float target_angle,
-                                             unsigned char force);   /* 0x00477440 */
+                                             bool force);   /* 0x00477440 */
     void Update(float elapsed);                                      /* 0x004776A0 */
     void ApplyYawInput(float input);                                 /* 0x00477B90 */
     void ApplyPitchInput(float input);                               /* 0x00477EB0 */
@@ -43,7 +43,7 @@ public:
     void GetRotationMatrix(srMatrix3T<float>* output);               /* 0x00478BD0 */
     void BeginLeveling();                                            /* 0x00478CC0 */
     void GetForwardPoint(float distance, srVector3T<float>* output); /* 0x00478CE0 */
-    void SetManualControlActive(unsigned char enabled);              /* 0x00478E00 */
+    void SetManualControlActive(bool enabled);              /* 0x00478E00 */
 
     /* 0x000: camera state bits: bit0 manual-input control latch, bit5
        orientation-transition keep, bit6 level-movement audio, bit7
@@ -57,7 +57,7 @@ public:
     srVector3T<float> m_direction_078;  /* 0x078 */
     float m_frame_elapsed;              /* 0x084 */
     bool m_transition_active;           /* 0x088 */
-    unsigned char m_forced_transition;  /* 0x089 */
+    bool m_forced_transition;  /* 0x089 */
     unsigned char m_padding_08a[2];
     srVector3T<float> m_position_08c;     /* 0x08c */
     float m_target_angle_098;             /* 0x098 */

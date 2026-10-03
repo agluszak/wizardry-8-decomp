@@ -97,7 +97,7 @@ void AlertWorldNoise(void)
 }
 
 // FUNCTION: WIZ8 0x004F1150
-void AlertCombatNoise(char large_radius)
+void AlertCombatNoise(bool large_radius)
 {
     if (g_status.world_suspended_2390 != 0) {
         return;

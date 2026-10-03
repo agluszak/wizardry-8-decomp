@@ -162,13 +162,13 @@ const float g_float_005ebcdc = 2000.0f;
    head height, or the lower offset when the two nearly coincide or the
    monster is far away. */
 // FUNCTION: WIZ8 0x0048F650
-void PointCameraAtMonster(W8MonsterInfo* monster_info, unsigned char force, unsigned char animate)
+void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
 {
     srVector3T<float> position;
     float pitch;
     float angle;
     W8Monster* monster;
-    unsigned char track;
+    bool track;
 
     if (g_settings.camera_rotation_mode == 0 &&
         monster_info->Target.iType == W8_TARGET_KIND_CHARACTER &&
@@ -222,7 +222,7 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, unsigned char force, unsi
    configured rotation style; with it the orientation is always updated -
    snapped unless animate asks for the transition. */
 // FUNCTION: WIZ8 0x0048F800
-void PointCameraAtTarget(srVector3T<float>* position, unsigned char force, unsigned char animate)
+void PointCameraAtTarget(srVector3T<float>* position, bool force, bool animate)
 {
     float angle;
     float pitch;

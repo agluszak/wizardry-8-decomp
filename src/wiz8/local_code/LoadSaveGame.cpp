@@ -203,7 +203,7 @@ void BuildCharacterPath(char* destination, const wchar_t* name, int slot)
    length and then that many bytes. A short or failed second read leaves the
    record cleared and reports failure, and the file is closed either way. */
 // FUNCTION: WIZ8 0x005152b0
-unsigned char LoadCharacter(const char* name, W8Character* character, int slot, char report_failure)
+unsigned char LoadCharacter(const char* name, W8Character* character, int slot, bool report_failure)
 {
     char path[60];
     char directory[260];
@@ -398,7 +398,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     SGP_FILETIME write_time;
     srColorSurface* surface;
     char path[260];
-    unsigned char generated;
+    bool generated;
     short cursor;
     int saved;
     int version_major;
@@ -918,7 +918,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
 {
     unsigned int file_level;
     W8Chunk* stream = chunk;
-    unsigned char result = 0;
+    bool result = 0;
     int outer_count = stream->ChunkCount();
     unsigned int index;
 
@@ -1459,7 +1459,7 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
    follows, and the real link is rebuilt here. Every failure after the first
    allocation abandons the partial chain, which the original does too. */
 // FUNCTION: WIZ8 0x00514c80
-W8WorldItem* LoadItem(int handle, char add_to_list)
+W8WorldItem* LoadItem(int handle, bool add_to_list)
 {
     W8WorldItem* previous = 0;
     W8WorldItem* first = 0;
@@ -1535,7 +1535,7 @@ bool SaveGameExists(void)
    save-failed notice and the continuation is dropped; without it the
    continuation runs instead. Either way the answer is failure. */
 // FUNCTION: WIZ8 0x00515090
-unsigned char SaveCharacter(W8Character* character, int slot, char report_failure,
+unsigned char SaveCharacter(W8Character* character, int slot, bool report_failure,
                             void (*continuation)(void))
 {
     char file_name[16];
@@ -1772,7 +1772,7 @@ void DeleteCurrentSaveFiles(void)
    name, so a save made under it overwrites the current slot instead of the
    fixed AutoSave one. */
 // FUNCTION: WIZ8 0x005159e0
-unsigned char AutoSaveIfAllowed(char forced)
+unsigned char AutoSaveIfAllowed(bool forced)
 {
     char name[64];
 
@@ -1822,7 +1822,7 @@ unsigned char SaveSlotFileExists(const char* slot_name)
 /* Note that the save could not be written. The notice is only shown on the
    screen that owns saving, but the flag is raised either way. */
 // FUNCTION: WIZ8 0x00515ac0
-void ReportSaveFailed(char quiet)
+void ReportSaveFailed(bool quiet)
 {
     if (quiet == 0 || g_status.iron_man != 0) {
         gXStatus.save_notice_shown = true;

@@ -52,7 +52,7 @@ void DestroyLightVector(W8GrowableVector<stLight*>* vector); /* 0x004A8C50 */
    Trigger sets bit 4 on its own to reverse the shake. */
 class W8CameraShakeEffect {
 public:
-    W8CameraShakeEffect(float duration, char preset, float intensity, float distance_cap,
+    W8CameraShakeEffect(float duration, bool preset, float intensity, float distance_cap,
                         const srVector3T<float>* position); /* 0x004ADED0 */
     W8CameraShakeEffect(const W8CameraShakeEffect& other);  /* 0x004AE000 */
     /* Per-frame evaluation: answers whether the effect is still active and
@@ -79,7 +79,7 @@ extern W8Vector<W8CameraShakeEffect*>* g_shake_effects;
 extern W8GameTimer* g_shake_timer;
 extern const float g_float_005ecf9c;
 
-W8CameraShakeEffect* CreateCameraShakeEffect(float duration, char preset, float intensity,
+W8CameraShakeEffect* CreateCameraShakeEffect(float duration, bool preset, float intensity,
                                              float distance_cap, const srVector3T<float>* position);
 /* Fire every effect in one cycle's vector whose key matches, moving it onto the
    live list and restarting its timer. */
@@ -149,7 +149,7 @@ public:
     void SetLights(W8GrowableVector<stLight*>* lights);
     void AddShakeEffect(W8CameraShakeEffect* effect);
     void CreateGroundShadow(float width, float depth);
-    void SetGroundShadowVisible(char visible);
+    void SetGroundShadowVisible(bool visible);
     void ResetRepresentation();
     void DetachRepresentation(W8World* world);
     /* Runs at the end of every representation update; its own body is the
@@ -173,12 +173,12 @@ public:
     W8Vector<W8GrCycleParticleAttachment*>* m_plsParticles; /* 0x1b8 */
     /* 0x1bc: set when the frame walk wrapped to first_frame; suppresses the
        per-subcycle light reset. */
-    unsigned char wrapped_1bc;
+    bool wrapped_1bc;
     bool enabled_1bd;
     /* 0x1be: mirror the model on X (the left-handed strike pick). */
     unsigned char mirror_x_1be;
     /* 0x1bf: m_axis_1c0 holds an aim point; mode-3 particles orient along it. */
-    unsigned char aim_set_1bf;
+    bool aim_set_1bf;
     /* The axis 0x004A7E50 aims a mode-three particle along. */
     srVector3T<float> m_axis_1c0;
     float scale_1cc;

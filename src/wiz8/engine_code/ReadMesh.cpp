@@ -851,7 +851,7 @@ static int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials
 // FUNCTION: WIZ8 0x00485B20
 unsigned char ReadSingleLevelMesh(W8ReadLevelInfo* info, srModelInstance** instance,
                                   int positional_0, int positional_1, const char* name,
-                                  unsigned char load_materials)
+                                  bool load_materials)
 {
     if (name != 0) {
         srRegistry* registry = srCore.getRegistry();
@@ -877,7 +877,7 @@ unsigned char ReadSingleLevelMesh(W8ReadLevelInfo* info, srModelInstance** insta
 // FUNCTION: WIZ8 0x00485C10
 unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** instance,
                                       int positional_0, int positional_1, const char* name,
-                                      unsigned char load_materials)
+                                      bool load_materials)
 {
     /* Retail read mapping_count/value/key/compression_type uninitialised when
        a FileRead short-circuited; the recovery keeps that read. */

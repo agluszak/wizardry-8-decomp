@@ -64,7 +64,7 @@ void PlayButtonSound(int sound_id)
 }
 
 // FUNCTION: WIZ8 0x005587c0
-void PushButtonSoundScheme(int scheme, char replace_current)
+void PushButtonSoundScheme(int scheme, bool replace_current)
 {
     if (replace_current != 0) {
         g_button_sound_override = scheme;

@@ -40,7 +40,7 @@ unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene);
 unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance,
                                                  srNode* dynamic_scene); /* 0x0046F4A0 */
 unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* lights,
-                                         char walk_chain);
+                                         bool walk_chain);
 void SetSceneMeshShaderBit3(srNode* node, int argument);
 void SetSceneMeshShaderLowBits(srNode* node, int argument);
 /* 0x0046F760: assign every live world's mesh vertex-light table index and

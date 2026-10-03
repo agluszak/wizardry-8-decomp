@@ -462,7 +462,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     /* Retail left these unset on the nonzero-background/no-palette path and
        still consumed them; the recovery keeps that read. */
     unsigned char colour;
-    unsigned char foreground;
+    bool foreground;
     unsigned short count;
     unsigned short x;
     unsigned short y;
