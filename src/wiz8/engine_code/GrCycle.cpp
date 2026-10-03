@@ -1086,10 +1086,9 @@ void W8GrCycle::UpdateParticleAttachments()
         }
     }
     pRep = GetRepresentation();
-    /* When there is no instance the mesh model is never read, and the original
-       leaves it holding whatever the count's slot did. */
-    pMeshModel = psrMesh != 0 ? static_cast<stMeshModel*>(psrMesh->getModel())
-                              : (stMeshModel*)count; // c-style-cast-ok: unresolved slot reuse
+    if (psrMesh != 0) {
+        pMeshModel = static_cast<stMeshModel*>(psrMesh->getModel());
+    }
 
     current_model_instance_1a8->getRotation(rotation);
     scale = current_model_instance_1a8->getScale();
@@ -1293,9 +1292,6 @@ void W8GrCycle::SubmitTargetValue()
 
     GetAnimationRadius(&target->animation_radius_0a8);
 }
-
-/* The pointer at W8GrCycle +0x1b0 owns this specialization. No source or debug
-   witness names the element type, so it remains address-qualified. */
 
 /* Parallel registries: each name has one growable vector of cycle objects. */
 // GLOBAL: WIZ8 0x0065bdf0

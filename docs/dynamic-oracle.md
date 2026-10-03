@@ -9,6 +9,18 @@ Every claim it makes is bounded by the scenario that produced it. A stream says
 what happened in *this* run to *this* point; it never says a function is
 unreachable, only that this scenario did not reach it.
 
+## Scope relative to the runtime harness
+
+Use `wiz8 runtime-test` for supported semantic scenarios, and `wiz8 run` / `wiz8 debug`
+for ordinary product validation. The dynamic oracle remains an optional debugger experiment:
+it compares retail repeatability with recomp event/state observations and observes the product's
+real process exit. The runtime-test executable alone cannot establish either claim.
+
+These commands are not CI gates. A scenario's event stream is not a general equivalence proof.
+Debugger transport uses the existing `debug/` proxy owner for launch, passive port readiness
+and process-group cleanup. Product staging remains a consolidation candidate for the `runtime.py`
+owner; preserve the bounded differential requirements below when moving it.
+
 ## Setting up a sandbox
 
 The variant trees under `$WIZ8_WORK_DIR/variants` are hardlinked from the
@@ -174,7 +186,7 @@ process exited on its own.
 - **Do not probe the proxy port by connecting to it.** `winedbg --gdb` accepts
   exactly one connection; a probe that connects consumes the one gdb needs, and
   the symptom is gdb timing out against a port that is demonstrably listening.
-  `ss -ltn` observes without connecting.
+  The shared debugger proxy observes `/proc/net/tcp{,6}` without connecting.
 - `winedbg` wants a Windows path for the executable. A bare `Wiz8.exe` fails
   with `Couldn't start process`.
 - The game is a 32-bit PE with a fixed image base and no ASLR, so reviewed

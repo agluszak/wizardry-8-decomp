@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import re
+import signal
 import socket
 import subprocess
 import time
@@ -165,6 +167,9 @@ class WineGdbProxy:
         log_path: Path | None = None,
         arguments: tuple[str, ...] = (),
         launch_command: tuple[str, ...] = ("winedbg",),
+        *,
+        inferior_path: str | None = None,
+        start_timeout: float = PROXY_START_TIMEOUT_SECONDS,
     ) -> None:
         self.executable = executable
         self.cwd = cwd
@@ -173,6 +178,8 @@ class WineGdbProxy:
         self.log_path = log_path
         self.arguments = arguments
         self.launch_command = launch_command
+        self.inferior_path = inferior_path or str(executable)
+        self.start_timeout = start_timeout
         self.process: subprocess.Popen[bytes] | None = None
         self._log = None
 
@@ -183,24 +190,30 @@ class WineGdbProxy:
         if self.log_path is not None:
             self._log = self.log_path.open("wb")
             output = self._log
-        self.process = subprocess.Popen(
-            [
-                *self.launch_command,
-                "--gdb",
-                "--no-start",
-                "--port",
-                str(self.port),
-                str(self.executable),
-                *self.arguments,
-            ],
-            cwd=self.cwd,
-            env=self.environment,
-            stdout=output,
-            stderr=subprocess.STDOUT,
-        )
-        deadline = time.monotonic() + PROXY_START_TIMEOUT_SECONDS
+        try:
+            self.process = subprocess.Popen(
+                [
+                    *self.launch_command,
+                    "--gdb",
+                    "--no-start",
+                    "--port",
+                    str(self.port),
+                    self.inferior_path,
+                    *self.arguments,
+                ],
+                cwd=self.cwd,
+                env=self.environment,
+                stdout=output,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
+        except OSError:
+            self.close()
+            raise
+        deadline = time.monotonic() + self.start_timeout
         while time.monotonic() < deadline:
             if self.process.poll() is not None:
+                self.close()
                 raise DebuggerTransportError(
                     f"winedbg --gdb exited early with {self.process.returncode}"
                 )
@@ -211,15 +224,21 @@ class WineGdbProxy:
         raise DebuggerTransportError("winedbg --gdb did not open its port")
 
     def close(self) -> None:
-        if self.process is not None and self.process.poll() is None:
-            self.process.kill()
-            try:
-                self.process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                pass
-        if self._log is not None:
-            self._log.close()
-            self._log = None
+        try:
+            if self.process is not None and self.process.poll() is None:
+                try:
+                    os.killpg(self.process.pid, signal.SIGTERM)
+                    self.process.wait(timeout=10)
+                except (ProcessLookupError, subprocess.TimeoutExpired):
+                    try:
+                        os.killpg(self.process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                    self.process.wait(timeout=10)
+        finally:
+            if self._log is not None:
+                self._log.close()
+                self._log = None
 
 
 class GdbSession:

@@ -28,8 +28,6 @@
 // VTABLE: WIZ8 0x005ECD78 W8Item
 // class W8Item
 
-/* VC6 emits the scalar-deleting wrapper at 0x0049F420 from this ordinary
-   virtual destructor. */
 // SYNTHETIC: WIZ8 0x0049F420
 // W8Item::`scalar deleting destructor'
 

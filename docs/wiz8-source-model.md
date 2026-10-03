@@ -40,8 +40,8 @@ contradiction, surfaced rather than papered over. A gap may contain a unit's una
 invisible TU, or the next unit's head, and is never assigned heuristically. Other official builds
 (demo, 1.2.6, 1.2.8) contribute `cross-build` anchors through unique relocation-insensitive body
 matches, which can establish a retail hull for a unit whose retail path string is gone; ambiguous or
-non-unique matches stay unknown. The same layout drives `wiz8 ghidra decompile`/`sym`,
-`wiz8 recover`, and `wiz8 report translation-units`; the placement validator in
+non-unique matches stay unknown. The same layout drives `wiz8 ghidra decompile`/`sym`
+and `wiz8 report translation-units`; the placement validator in
 `uv run wiz8 check` compares it against the current source-index placement and enforces every
 anchored function.
 
@@ -280,6 +280,27 @@ In particular, the filename `Controls.cpp` does not prove that the panel's origi
 class name was `Controls`. Likewise, matching four-integer layouts do not establish
 that `W8ControlsRect` and `W8ScreenRect` were one source type; that identity remains
 unresolved. Similar UI responsibilities alone do not justify merging classes.
+
+## Receiver and storage evidence
+
+A stack-cleaning return does not distinguish a free helper from a member. Establish where the
+callee obtains its arguments and whether it consumes an incoming receiver; callback/export
+contracts can independently establish the calling convention. Identical bodies likewise do not
+establish common source ownership.
+
+`W8Navigator::UpdateLinkedNavigator` (`0x00454d70`) operates on the navigator secondary
+subobject at complete-object offset `+0x18`. Retail makes null-preserving `-0x18` conversions
+before the monster queries. Its monster-link path has that concrete precondition; it does not
+establish that arbitrary navigators are monsters or justify moving the method to Monster.
+
+Packed file storage can also be runtime storage. NPC scripts decode presence slots into pointers
+in the same allocation. Mesh loading expands compressed faces into `0x29`-byte faces and reads
+uncompressed faces directly into that layout. A separate runtime record or removal of packing
+requires independent allocation, stride and copy evidence.
+
+Unknown blocks require consumer evidence for their complete extent before they become named
+subrecords. Layout padding is valid storage; accesses that give it semantics require recovery at
+the owning type. Neither a shared offset nor compiler reuse of a local slot establishes a union.
 
 ## Compiler-backed type gate
 
