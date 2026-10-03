@@ -42,7 +42,10 @@ component = next(item for item in report["components"] if field in item["members
 property_ = component["properties"]["signedness"]
 assert property_["status"] == "candidate", property_
 assert set(property_["changes"]) == chain, property_
-assert len(report["predicate32_inventory"]) == 1
+assert {facts.declarations[row["key"]].name for row in report["predicate32_inventory"]} == {
+    "IsIntegerPredicate",
+    "operator int",
+}
 enum_key = next(
     key for key, declaration in facts.declarations.items() if declaration.name == "ModeReady"
 )
@@ -102,3 +105,119 @@ assert arrays["escaped_pending"] in facts.bool_escaped
 assert arrays["shifted_pending"] in facts.bool_escaped
 assert arrays["numeric_pending"] in facts.bool_invalid
 print("scalar facts: cross-TU recovery and bool compatibility fixtures pass")
+
+# New clients consume the same collector facts rather than separate inventories.
+by_name = {declaration.name: key for key, declaration in facts.declarations.items()}
+domains = integer_report(facts, [])["domain_inventory"]
+flags = next(item for item in domains if by_name["fixture_flags"] in item["members"])
+status = next(item for item in domains if by_name["fixture_status"] in item["members"])
+assert flags["behavior"] == "flags-like"
+assert {item["value"] for item in flags["mask_operands"]} == {4, 8}
+assert status["value_domain"] == "tri-state-values"
+assert status["observed_values"] == [-1, 0, 1]
+assert status["complete_value_domain"]
+
+from scalar_facts import anchored_report, write_recovery_patch
+
+pointer_key = by_name["fixture_owner"]
+pointer_seed = {
+    "key": pointer_key,
+    "property": "pointee",
+    "value": facts.types[pointer_key][2],
+    "basis": {
+        "kind": "source-oracle",
+        "reference": "synthetic fixture",
+        "reason": "test independently established pointer owner",
+    },
+}
+pointer = next(
+    item
+    for item in anchored_report(facts, [pointer_seed], "pointee")
+    if pointer_key in item["members"]
+)
+assert pointer["status"] == "candidate", pointer
+assert pointer["changes"] == [by_name["fixture_storage"]]
+mixed_key = by_name["fixture_mixed_owner"]
+mixed_seed = {**pointer_seed, "key": mixed_key}
+mixed = next(
+    item for item in anchored_report(facts, [mixed_seed], "pointee") if mixed_key in item["members"]
+)
+assert mixed["status"] == "blocked"
+
+nominal_key = by_name["fixture_monster_id"]
+nominal_seed = {
+    "key": nominal_key,
+    "property": "nominal",
+    "value": "FixtureMonsterId",
+    "role": "ID",
+    "basis": pointer_seed["basis"],
+}
+nominal = next(
+    item
+    for item in anchored_report(facts, [nominal_seed], "nominal")
+    if nominal_key in item["members"]
+)
+assert nominal["status"] == "candidate", nominal
+assert nominal["changes"] == [by_name["fixture_id_copy"]]
+
+callback = integer_report(facts, [])["callbacks"][0]
+assert callback["status"] == "modeled", callback
+assert len(callback["nodes"]) == 2
+assert any(
+    flow.role == "callback-argument" and facts.declarations[flow.source].name == "callback_argument"
+    for flow in facts.flows
+)
+assert any(
+    flow.target == by_name["callback_result"] and flow.source.endswith("::callback-return")
+    for flow in facts.flows
+)
+assert not any(
+    flow.target == by_name["fixture_callback"] and flow.source == by_name["FixtureImplementation"]
+    for flow in facts.flows
+)
+
+# Native spans include the canonical header and the out-of-line definition.
+root = Path(__file__).resolve().parent
+patch = Path(sys.argv[1]) / "recovery.patch"
+result = write_recovery_patch(facts, [seed], root, patch)
+assert set(result["changed_declarations"]) == chain, result
+assert "unsigned int ReadDuration()" in patch.read_text()
+print("shared constraints: flags, sentinels, pointers, IDs, callbacks and source patches pass")
+
+for claims, expected in (
+    ([pointer_seed], {by_name["fixture_storage"]}),
+    ([nominal_seed], {by_name["fixture_id_copy"]}),
+):
+    result = write_recovery_patch(facts, claims, root, patch)
+    assert set(result["changed_declarations"]) == expected, result
+print("pointer and nominal proposals produce concrete source patches")
+
+# An implicit object argument may expose inherited storage to unavailable code.
+receiver_storage = by_name["receiver_storage"]
+assert any(
+    use.key == receiver_storage and use.detail == "aggregate storage argument"
+    for use in facts.escapes
+)
+assert {Path(filename).name for filename in facts.translation_units} == {
+    "scalar_test.cpp",
+    "scalar_test_second.cpp",
+}
+
+from scalar_facts import structural_report
+
+inventory = structural_report(facts)
+arrays = {a["name"]: a for a in inventory["arrays"]}
+assert arrays["fixture_array_values"]["extent"] == 3
+assert arrays["fixture_text"]["text_initializer"]
+element = arrays["fixture_callback_table"]["element_node"]
+assert any(slot == element for slot, *_ in facts.callback_bindings)
+assert any("callback" in slot and slot != element for slot, *_ in facts.callback_bindings)
+assert any(
+    r["name"] == "FixturePackedRecord" and r["packing_changes_size"] for r in inventory["records"]
+)
+print("array elements, callback tables, text initializers and packed record observations pass")
+
+assert not any(
+    flow.source.startswith("::callback-") or flow.target.startswith("::callback-")
+    for flow in facts.flows
+)

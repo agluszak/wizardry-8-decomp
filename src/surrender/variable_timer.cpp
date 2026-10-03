@@ -65,7 +65,7 @@ srVariableTimer& srVariableTimer::operator=(const srTimer& other)
     m_units_per_tick = other.m_units_per_tick;
     m_cpu_count = other.m_cpu_count;
     m_read_tick = other.m_read_tick;
-    m_kernel32 = other.m_kernel32 == 0 ? 0 : (void*)LoadLibraryA("kernel32");
+    m_kernel32 = other.m_kernel32 == 0 ? 0 : LoadLibraryA("kernel32");
     for (index = 0; index < 0xd; ++index) {
         m_cpu_vendor[index] = other.m_cpu_vendor[index];
     }

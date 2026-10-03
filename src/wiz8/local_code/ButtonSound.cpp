@@ -28,7 +28,7 @@ char g_button_whoosh[] = "Data\\Sound\\Misc\\Interface Whoosh 01 Soft.wav";
 // GLOBAL: WIZ8 0x0068DE38
 static int g_button_sound_scheme_stack_top;
 // GLOBAL: WIZ8 0x0068DE3C
-static unsigned int g_button_sound_cooldown;
+static TIMER g_button_sound_cooldown;
 
 // FUNCTION: WIZ8 0x00558720
 void PlayButtonSound(int sound_id)

@@ -36,7 +36,7 @@ enum { W8_ACTION_STATUS_FINISHED = 3 };
 // GLOBAL: WIZ8 0x0069BF40
 static W8TextControl* g_party_movement_buttons[2];
 // GLOBAL: WIZ8 0x0069BF48
-unsigned int g_party_movement_animation_clock;
+TIMER g_party_movement_animation_clock;
 // GLOBAL: WIZ8 0x0069BF4C
 Controls* g_party_movement_panel;
 // GLOBAL: WIZ8 0x0069BF50

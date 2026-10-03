@@ -1,6 +1,7 @@
 #ifndef WIZ8_XSTATUS_H
 #define WIZ8_XSTATUS_H
 
+#include "timer.h"
 #include <stddef.h>
 
 #include "wiz8/3d_code/PList.h"
@@ -84,10 +85,10 @@ struct W8XStatus {
     /* 0x91f: 0x00683FD7. InitializeGameplayRuntimeObjects stores the queue
        here; a standalone BSS pointer at this address is the same member. */
     W8CharacterEventQueue* character_event_queue;
-    int iCurrentCursor;       /* 0x923 */
-    int current_cursor_frame; /* 0x927 */
-    int current_cursor_time;  /* 0x92b */
-    int iTargetingMode;       /* 0x92f: 0x00683FE7 */
+    int iCurrentCursor;        /* 0x923 */
+    int current_cursor_frame;  /* 0x927 */
+    TIMER current_cursor_time; /* 0x92b */
+    int iTargetingMode;        /* 0x92f: 0x00683FE7 */
     /* 0x933: the formation screen's edit buffer - MGSFormation snapshots the
        live formation here on open, edits the copy, and either reconciles it
        back or diffs it against live on accept. */
@@ -113,7 +114,7 @@ struct W8XStatus {
     W8GameTimer* gameplay_timer;                 /* 0x19af: 0x00685067 */
     bool save_notice_shown;                      /* 0x19b3: 0x0068506B */
     bool npc_combat_notice_pending;              /* 0x19b4: 0x0068506C */
-    bool deferred_skill_notices;        /* 0x19b5: 0x0068506D */
+    bool deferred_skill_notices;                 /* 0x19b5: 0x0068506D */
     /* 0x19b6: a container offered more than one item, so the item-choice
        dialog is pending; blocks the magic-effects tick until it opens. */
     bool item_pick_pending_19b6;
@@ -123,17 +124,17 @@ struct W8XStatus {
     /* 0x19b8: which Assay dialog tab is shown - set selects the profession
        icons/button, clear selects the race side. */
     bool assay_professions_tab_19b8;
-    bool item_drag_active;                  /* 0x19b9: 0x00685071 */
-    W8ItemInstance* dragged_item;           /* 0x19ba: 0x00685072 */
-    unsigned char dragged_item_origin;      /* 0x19be: 0x00685076 */
-    signed char dragged_character_slot;     /* 0x19bf: 0x00685077 */
-    unsigned int spell_cooldown_clocks[14]; /* 0x19c0: 0x00685078 */
-    unsigned int combat_countdown;          /* 0x19f8: 0x006850B0 */
-    unsigned char combat_difficulty;        /* 0x19fc: 0x006850B4 */
-    bool party_moving;                      /* 0x19fd: 0x006850B5 */
-    int saved_encounter_budget;             /* 0x19fe: 0x006850B6 */
-    int mipe_cube_serial;                   /* 0x1a02: 0x006850BA */
-    int hostile_group_count;                /* 0x1a06: 0x006850BE */
+    bool item_drag_active;              /* 0x19b9: 0x00685071 */
+    W8ItemInstance* dragged_item;       /* 0x19ba: 0x00685072 */
+    unsigned char dragged_item_origin;  /* 0x19be: 0x00685076 */
+    signed char dragged_character_slot; /* 0x19bf: 0x00685077 */
+    TIMER spell_cooldown_clocks[14];    /* 0x19c0: 0x00685078 */
+    TIMER combat_countdown;             /* 0x19f8: 0x006850B0 */
+    unsigned char combat_difficulty;    /* 0x19fc: 0x006850B4 */
+    bool party_moving;                  /* 0x19fd: 0x006850B5 */
+    int saved_encounter_budget;         /* 0x19fe: 0x006850B6 */
+    int mipe_cube_serial;               /* 0x1a02: 0x006850BA */
+    int hostile_group_count;            /* 0x1a06: 0x006850BE */
 };
 #pragma pack(pop)
 

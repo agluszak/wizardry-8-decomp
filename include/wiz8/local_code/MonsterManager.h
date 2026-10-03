@@ -201,7 +201,6 @@ struct W8MonsterAction {
     int attack_index;        /* 0x08 */
     W8CombatSlot target;     /* 0x0c */
     unsigned char tie_break; /* 0x2c */
-    unsigned char unknown_2d[3];
 }; /* 0x30 */
 
 enum { W8_MONSTER_ATTR_COUNT = 5 };
@@ -288,7 +287,7 @@ enum W8SightState {
    use-bounds flag IsVisibleToPlayer consumes, and its two sight flags. The
    per-turn reset zeroes all 0x30 bytes together, which fixes the extent. */
 struct W8PartyThreatRecord {
-    unsigned char unknown_00[4];
+    int about_location_id; /* 0x286: zero in the party-side visibility record */
     /* 0x28a: W8SightState - live-threat gate for the group sight query;
        combat, radar, automap and AI read it. */
     unsigned char sight_state_04;

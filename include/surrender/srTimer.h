@@ -143,7 +143,7 @@ public:
     double m_units_per_tick;       /* 0x838: units / frequency */
     unsigned long m_cpu_count;     /* 0x840 */
     TickReader m_read_tick;        /* 0x844: getTick or RDTSC */
-    void* m_kernel32;              /* 0x848: kernel32 handle when QPC is used */
+    HMODULE m_kernel32;            /* 0x848: kernel32 handle when QPC is used */
     char m_cpu_vendor[0x10];       /* 0x84c: CPUID vendor string */
     unsigned long m_cpu_max_id;    /* 0x85c: max CPUID input */
     unsigned long m_cpu_signature; /* 0x860: CPUID EAX */

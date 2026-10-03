@@ -36,9 +36,8 @@ public:
     unsigned char Configure(const char* image_path, int gray_frame, int off_normal_frame,
                             int off_hover_frame, int on_normal_frame, int on_hover_frame,
                             W8DialogButtonCallback left_callback,
-                            W8DialogButtonCallback move_callback, bool left_toggles,
-                            short priority, int tooltip_index,
-                            W8DialogButtonCallback right_callback,
+                            W8DialogButtonCallback move_callback, bool left_toggles, short priority,
+                            int tooltip_index, W8DialogButtonCallback right_callback,
                             W8DialogButtonCallback double_click_callback);
     /* 0x005DB350: create an SGP text button (BUTTON_NO_TOGGLE, priority 0x7f),
        store this in its user-data slot 0 and the payload in slot 1 (read back
@@ -50,8 +49,7 @@ public:
     /* 0x005DB2A0: configure from an already-loaded vobject; the five state
        frames derive from base_frame (gray +3, off +0/+1, on states +2/+2). */
     unsigned char ConfigureVObjButton(HVOBJECT object, int base_frame,
-                                      W8DialogButtonCallback left_callback,
-                                      bool left_toggles);
+                                      W8DialogButtonCallback left_callback, bool left_toggles);
     /* 0x005DBAC0: store the tooltip string-table index and, when tooltips are
        enabled, push its text onto the SGP button. */
     void SetTooltipIndex(int tooltip_index);
@@ -92,7 +90,6 @@ public:
 
 private:
     bool press_armed_03c; /* clicked-on and fires_on_press: release completes */
-    unsigned char unknown_03d[3];
 
 public:
     /* 0x40: set by the dialog factories to the owning dialog; the per-button

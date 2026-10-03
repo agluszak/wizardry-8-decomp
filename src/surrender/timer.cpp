@@ -124,7 +124,7 @@ srTimer::srTimer(const srTimer& other)
     m_pause = other.m_pause;
     m_units_per_interval = other.m_units_per_interval;
     m_read_tick = other.m_read_tick;
-    m_kernel32 = other.m_kernel32 == 0 ? 0 : (void*)LoadLibraryA("kernel32");
+    m_kernel32 = other.m_kernel32 == 0 ? 0 : LoadLibraryA("kernel32");
     for (index = 0; index < 0xd; ++index) {
         m_cpu_vendor[index] = other.m_cpu_vendor[index];
     }
@@ -153,7 +153,7 @@ srTimer& srTimer::operator=(const srTimer& other)
     m_pause = other.m_pause;
     m_units_per_interval = other.m_units_per_interval;
     m_read_tick = other.m_read_tick;
-    m_kernel32 = other.m_kernel32 == 0 ? 0 : (void*)LoadLibraryA("kernel32");
+    m_kernel32 = other.m_kernel32 == 0 ? 0 : LoadLibraryA("kernel32");
     for (index = 0; index < 0xd; ++index) {
         m_cpu_vendor[index] = other.m_cpu_vendor[index];
     }
@@ -440,13 +440,13 @@ int srTimer::reset(int detect, int argument_1, int save)
         if (m_kernel32 != 0) {
             // reinterpret-ok: GetProcAddress exposes a FARPROC for this named Win32 entry
             QueryFrequency query_frequency = reinterpret_cast<QueryFrequency>(
-                GetProcAddress(static_cast<HMODULE>(m_kernel32), "QueryPerformanceFrequency"));
+                GetProcAddress(m_kernel32, "QueryPerformanceFrequency"));
             // reinterpret-ok: Win32 writes its eight-byte result into the frequency storage
             LARGE_INTEGER* frequency = reinterpret_cast<LARGE_INTEGER*>(&m_frequency);
             if (query_frequency != 0 && query_frequency(frequency) != 0) {
                 // reinterpret-ok: GetProcAddress exposes a FARPROC for this named Win32 entry
                 m_read_tick = reinterpret_cast<TickReader>(
-                    GetProcAddress(static_cast<HMODULE>(m_kernel32), "QueryPerformanceCounter"));
+                    GetProcAddress(m_kernel32, "QueryPerformanceCounter"));
             }
             if (m_read_tick == 0) {
                 m_kernel32 = 0;

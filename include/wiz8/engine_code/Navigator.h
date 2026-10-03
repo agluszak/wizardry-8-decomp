@@ -407,7 +407,7 @@ public:
     bool tracked_dirty_0b4;
     unsigned char padding_0b5[3];
     int linked_update_time_0b8;
-    bool unknown_0bc;
+    bool movement_plan_failed_0bc;
     /* Raised on combat entry for the group leader's navigator (or the monster
        itself when unlinked); SetNavigatorLinkMode uses it to re-base the group
        onto the navigator's path when free-roam resumes. */

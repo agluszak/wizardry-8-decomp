@@ -1330,7 +1330,7 @@ int TargetArmorClassAtLocation(W8CombatSlot* target, int attack_mode, int hit_lo
    block posts the notice and plays the material impact sound. */
 // FUNCTION: WIZ8 0x00543110
 bool BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_value,
-                                      int armor_value, unsigned int palette)
+                             int armor_value, unsigned int palette)
 {
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
@@ -3384,8 +3384,7 @@ void QueueFumbleReaction(int party_slot)
    into the shot and fires through FireMissile. */
 // FUNCTION: WIZ8 0x00544630
 W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W8CombatSlot* target,
-                                     W8SpellEffectDefinition* attack,
-                                     bool use_default_accuracy,
+                                     W8SpellEffectDefinition* attack, bool use_default_accuracy,
                                      unsigned int range_category, int accuracy)
 {
     unsigned int target_flag;
@@ -4241,9 +4240,9 @@ int ResolveCharacterAttack(int party_slot)
                                             hit_location, -1);
                         IsTargetStillPresent(&g_combat_state->TargetHit);
                         if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-                            applied =
-                                ApplyDamageToMonster(monster_info, damage, &source, false, verbose != 0,
-                                                     verbose != 0, verbose != 0 ? NULL : report, 0);
+                            applied = ApplyDamageToMonster(monster_info, damage, &source, false,
+                                                           verbose != 0, verbose != 0,
+                                                           verbose != 0 ? NULL : report, 0);
                             if (monster_info->hp_current == 0 && hit_flag != 0 && Random(2) == 0 &&
                                 gXStatus.hostile_monster_count > 1) {
                                 W8CharacterEvent* event = QueueCharacterEvent(
@@ -4268,7 +4267,7 @@ int ResolveCharacterAttack(int party_slot)
                             (character->uiExpLevel > 0xe ? 0xf : character->uiExpLevel);
                         if (applied != 0) {
                             if (hand_attack->uiHolds == HOLDS_NOTHING) {
-                                memcpy(effect.condition_chances, &hand_attack->condition_chance_33,
+                                memcpy(effect.condition_chances, hand_attack->condition_chances,
                                        0x10);
                                 effect.magnitude_base_1c = 0;
                             } else {

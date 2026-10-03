@@ -279,7 +279,8 @@ struct W8LevelFileInvisible { /* 0x241 */
     unsigned char has_legacy_geometry_236; /* version_00 > 4: serialized gate */
     /* Retail zeroes the record, serializes geometry_kind_238, but tests this
        distinct byte for kind 2 in both the reader and writer. */
-    unsigned char field_237;
+    /* Retail tests this distinct byte; the serialized kind is at +0x238. */
+    unsigned char linked_record_kind_gate_237;
     unsigned char geometry_kind_238;      /* has_legacy_geometry_236 != 0 */
     unsigned char padding_239[4];         /* never serialized */
     W8LevelFileLinkedRecord* pRecord_23d; /* kind == 2 */

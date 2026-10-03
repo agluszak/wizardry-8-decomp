@@ -1,6 +1,7 @@
 #ifndef WIZ8_REGIONS_H
 #define WIZ8_REGIONS_H
 
+#include "timer.h"
 #include <stddef.h>
 
 #include "input.h"
@@ -68,7 +69,7 @@ extern W8RegionSet g_region_sets[];
 extern unsigned int g_region_count; /* guiRegionCount */
 extern W8Region g_regions[];
 extern int g_region_help_delay;
-extern int g_region_help_clock;
+extern TIMER g_region_help_clock;
 extern unsigned int g_current_region_index;
 extern unsigned int g_captured_region_index;
 extern unsigned int g_hover_region_index;

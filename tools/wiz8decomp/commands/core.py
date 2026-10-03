@@ -514,8 +514,24 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("smoke")(smoke_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
+    analyze_app.command("scalar-facts")(scalar_facts_command)
     analyze_app.command("emissions")(emissions_command)
     analyze_app.command("decompiler-quality")(decompiler_quality_command)
+
+
+def scalar_facts_command(
+    evidence: Annotated[
+        Path | None, typer.Option(help="Reviewed scalar-evidence-v1 claims.")
+    ] = None,
+    patch: Annotated[
+        bool, typer.Option(help="Emit a reviewable patch; never edit source.")
+    ] = False,
+) -> None:
+    """Collect the complete configured corpus and solve shared type constraints."""
+    from .. import command_support as cli
+    from ..build import scalar_campaign
+
+    cli.emit(scalar_campaign(cli.settings(), evidence=evidence, patch=patch))
 
 
 def emissions_command(

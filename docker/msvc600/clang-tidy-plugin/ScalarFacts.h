@@ -64,9 +64,11 @@ inline const ConstantArrayType* fixed_byte_array(const NamedDecl* declaration)
 {
     const auto* field = dyn_cast_or_null<FieldDecl>(declaration);
     if (field == nullptr || field->isBitField() ||
-        cast<RecordDecl>(field->getDeclContext())->isUnion()) return nullptr;
+        cast<RecordDecl>(field->getDeclContext())->isUnion())
+        return nullptr;
     const auto* array = dyn_cast<ConstantArrayType>(field->getType().getTypePtr());
-    if (array == nullptr || array->getSize().isZero()) return nullptr;
+    if (array == nullptr || array->getSize().isZero())
+        return nullptr;
     const auto* element = dyn_cast<BuiltinType>(array->getElementType().getTypePtr());
     return element != nullptr && element->getKind() == BuiltinType::UChar ? array : nullptr;
 }
@@ -112,7 +114,8 @@ inline const NamedDecl* canonical_scalar_declaration(const NamedDecl* declaratio
 
 inline bool is_plain_byte(const NamedDecl* declaration)
 {
-    if (fixed_byte_array(declaration) != nullptr) return true;
+    if (fixed_byte_array(declaration) != nullptr)
+        return true;
     const auto* builtin = dyn_cast<BuiltinType>(
         declaration_type(declaration).getCanonicalType().getUnqualifiedType().getTypePtr());
     if (builtin == nullptr)
@@ -179,6 +182,24 @@ inline std::string candidate_key_name(const NamedDecl* declaration)
            std::to_string(parameter->getFunctionScopeIndex());
 }
 
+inline std::string observed_domain(QualType type)
+{
+    return type->isBooleanType()                                  ? "bool"
+           : type->isEnumeralType()                               ? "enum"
+           : type->isCharType()                                   ? "character"
+           : type->isPointerType() || type->isMemberPointerType() ? "pointer"
+           : type->isFloatingType()                               ? "floating"
+           : type->isIntegerType()                                ? "integer"
+                                                                  : "opaque";
+}
+
+inline std::string observed_signedness(QualType type)
+{
+    return !type->isIntegerType() || type->isBooleanType() ? "irrelevant"
+           : type->isUnsignedIntegerType()                 ? "unsigned"
+                                                           : "signed";
+}
+
 class FactWriter {
 public:
     FactWriter(ASTContext& context, const TranslationUnitDecl* translation_unit)
@@ -191,6 +212,10 @@ public:
         const std::string filename = std::string(directory) + "/facts-" +
                                      std::to_string(static_cast<long long>(getpid())) + ".tsv";
         stream_.open(filename, std::ios::out | std::ios::app);
+        const SourcePoint main =
+            source_point(sources_, sources_.getLocForStartOfFile(sources_.getMainFileID()));
+        if (main)
+            emit({"M", main.file});
     }
 
     bool enabled() const
@@ -233,20 +258,8 @@ public:
               candidate_name(canonical_decl), bool_name ? "1" : "0",
               is_plain_byte(canonical_decl) ? "1" : "0",
               std::to_string(context_.getTypeSize(declaration_type(canonical_decl))),
-              !declaration_type(canonical_decl)->isIntegerType() ||
-                      declaration_type(canonical_decl)->isBooleanType()
-                  ? "irrelevant"
-              : declaration_type(canonical_decl)->isUnsignedIntegerType() ? "unsigned"
-                                                                          : "signed",
-              declaration_type(canonical_decl)->isBooleanType()    ? "bool"
-              : declaration_type(canonical_decl)->isEnumeralType() ? "enum"
-              : declaration_type(canonical_decl)->isCharType()     ? "character"
-              : declaration_type(canonical_decl)->isPointerType() ||
-                      declaration_type(canonical_decl)->isMemberPointerType()
-                  ? "pointer"
-              : declaration_type(canonical_decl)->isFloatingType() ? "floating"
-              : declaration_type(canonical_decl)->isIntegerType()  ? "integer"
-                                                                   : "opaque",
+              observed_signedness(declaration_type(canonical_decl)),
+              observed_domain(declaration_type(canonical_decl)),
               declaration_type(canonical_decl).getAsString()});
     }
 

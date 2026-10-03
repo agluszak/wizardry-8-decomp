@@ -7,6 +7,7 @@ import re
 import shlex
 import subprocess
 import sys
+import tempfile
 import time
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -1005,6 +1006,131 @@ def tidy_audit(settings: Settings) -> dict[str, Any]:
         "total_findings": sum(findings.values()),
         "log": str(report.relative_to(repository)),
     }
+
+
+def scalar_campaign(
+    settings: Settings, *, evidence: Path | None = None, patch: bool = False
+) -> dict[str, Any]:
+    """Collect the complete configured corpus and run the shared recovery clients.
+
+    Each invocation owns a fresh fact directory. Failed/partial compilations never
+    become a completed report, and source corrections remain reviewable patches.
+    Retained SGP bodies participate as observations, with provenance established separately from reconstructed source.
+    """
+    from .emissions import generate_emissions
+    from .paths import atomic_json, sha256_file
+
+    repository = settings.repo_dir
+    if evidence is not None:
+        evidence = evidence.resolve(strict=True)
+    generate_emissions(repository)
+    output, prefix = configure_clang(settings)
+    recovered, oracle = _lint_compile_files(output, repository, None)
+    if not recovered:
+        raise RuntimeError("scalar recovery requires configured recovered translation units")
+    parent = output / "scalar-campaigns"
+    parent.mkdir(exist_ok=True)
+    directory = Path(tempfile.mkdtemp(prefix="run-", dir=parent))
+    container = "/out/" + directory.relative_to(output).as_posix()
+    manifest: dict[str, Any] = {
+        "schema": "wiz8.scalar-campaign-v1",
+        "status": "collecting",
+        "image": _docker_image_id(),
+        "compile_commands_sha256": sha256_file(output / "compile_commands.json"),
+        "recovered_translation_units": recovered,
+        "sgp_translation_units": oracle,
+        "evidence_sha256": sha256_file(evidence) if evidence else None,
+        "coverage": "configured source corpus; source observations and separately reviewed evidence",
+    }
+    atomic_json(directory / "manifest.json", manifest)
+    try:
+        run(
+            [
+                *prefix,
+                "-e",
+                "WIZ8_REDUNDANT_CAST_LINES=*",
+                "-e",
+                f"WIZ8_SCALAR_FACTS_DIR={container}/facts",
+                "--entrypoint",
+                "clang-tidy",
+                VC6_IMAGE,
+                "--quiet",
+                "-p",
+                "/out",
+                "--checks=-*,wiz8-scalar-facts",
+                "--warnings-as-errors=",
+                *recovered,
+                *oracle,
+            ],
+            cwd=repository,
+            log_path=directory / "collect.json",
+        )
+        replay = [*prefix]
+        if evidence is not None:
+            replay.extend(("--volume", f"{evidence}:/scalar-evidence.json:ro"))
+        replay.extend(
+            (
+                "--entrypoint",
+                "clang-tidy",
+                VC6_IMAGE,
+                "--wiz8-scalar-report",
+                f"{container}/facts",
+                "--output",
+                f"{container}/report.json",
+            )
+        )
+        if evidence is not None:
+            replay.extend(("--evidence", "/scalar-evidence.json"))
+        if patch:
+            replay.extend(("--repository", "/repo", "--patch", f"{container}/recovery.patch"))
+        run(replay, cwd=repository, log_path=directory / "solve.json")
+        report = json.loads((directory / "report.json").read_text(encoding="utf-8"))
+        expected_paths = [
+            compile_database_relative(path, repository) for path in recovered + oracle
+        ]
+        if None in expected_paths:
+            raise RuntimeError("configured scalar translation unit is outside the repository")
+        expected = {path for path in expected_paths if path is not None}
+        observed = set(report["translation_units"])
+        if expected != observed or not report["declarations"]:
+            raise RuntimeError(
+                "incomplete scalar fact coverage: "
+                f"missing={sorted(expected - observed)}, unexpected={sorted(observed - expected)}"
+            )
+    except Exception:
+        manifest["status"] = "failed"
+        atomic_json(directory / "manifest.json", manifest)
+        raise
+    manifest["status"] = "completed"
+    atomic_json(directory / "manifest.json", manifest)
+    summary = {
+        "status": "completed",
+        "recovered_translation_units": len(recovered),
+        "sgp_translation_units": len(oracle),
+        "declarations": len(report["declarations"]),
+        "flows": len(report["flows"]),
+        "components": len(report["components"]),
+        "domain_behaviors": dict(Counter(item["behavior"] for item in report["domain_inventory"])),
+        "value_domains": dict(Counter(item["value_domain"] for item in report["domain_inventory"])),
+        "callbacks": dict(Counter(item["status"] for item in report["callbacks"])),
+        "predicate32_inventory": len(report["predicate32_inventory"]),
+        "structural_inventory": {
+            key: len(report.get("structural_inventory", {}).get(key, []))
+            for key in ("arrays", "records", "duplicate_layouts")
+        },
+        "integer_proposals": {
+            property_: dict(
+                Counter(item["properties"][property_]["status"] for item in report["components"])
+            )
+            for property_ in ("width", "signedness", "domain")
+        },
+        "pointer_proposals": dict(Counter(item["status"] for item in report["pointer_components"])),
+        "nominal_proposals": dict(Counter(item["status"] for item in report["nominal_components"])),
+        "artifacts": str(directory.relative_to(repository)),
+        "recovery_patch": report.get("recovery_patch"),
+    }
+    atomic_json(directory / "summary.json", summary)
+    return summary
 
 
 def build_toolchain(settings: Settings, toolchain_ids: list[str] | None = None) -> dict[str, Any]:

@@ -4,6 +4,7 @@ class Trigger;
 
 #include <wchar.h>
 #include "input.h"
+#include "timer.h"
 #include "wiz8/dialog_code/DialogBase.h"
 
 #include "wiz8/3d_code/PList.h"
@@ -31,10 +32,10 @@ struct W8MessageStorageRecord {
     unsigned char highlight_color;
     unsigned char highlight_start;
     unsigned char highlight_stop;
-    int clock_08;
-    /* 0x0c: SaveGame snapshots ClockIsTicking(clock_08) here so the TEXT
-       chunk records whether the line's countdown was still running. */
-    int clock_ticking_0c;
+    TIMER clock_08;
+    /* 0x0c: SaveGame snapshots the unsigned milliseconds remaining from
+       ClockIsTicking; load rearms the countdown with this duration. */
+    UINT32 saved_remaining_ms;
     /* 0x10: continuation link count of a wrapped entry; -1 when unlinked. */
     int link_10;
     int length_14; /* 0x14: wString length, -1 when unset */

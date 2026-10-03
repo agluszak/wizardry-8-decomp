@@ -416,3 +416,74 @@ def test_product_build_never_opens_a_reccmp_catalog(tmp_path, monkeypatch, index
     assert build.build_target(settings, "WIZ8", 2)["status"] == "ok"
     assert len(commands) == 1
     assert (tmp_path / OUTPUT / "wiz8-emissions.csv").is_file()
+
+
+@pytest.mark.parametrize("failure", [None, "compiler", "coverage"])
+def test_scalar_campaign_owns_fresh_complete_corpus_and_rejects_partial_runs(
+    tmp_path: Path, monkeypatch, failure: str | None
+) -> None:
+    import json
+
+    settings = _settings(tmp_path)
+    output = tmp_path / "build/clang"
+    output.mkdir(parents=True)
+    (output / "compile_commands.json").write_text("[]")
+    monkeypatch.setattr("wiz8decomp.emissions.generate_emissions", lambda *_: None)
+    monkeypatch.setattr(build, "configure_clang", lambda *_: (output, ["docker", "run"]))
+    monkeypatch.setattr(build, "_docker_image_id", lambda: "sha256:fixture")
+    recovered = ["/repo/src/wiz8/one.cpp", "/repo/src/wiz8/two.cpp"]
+    oracle = ["/repo/src/sgp/timer.c"]
+    monkeypatch.setattr(build, "_lint_compile_files", lambda *_: (recovered, oracle))
+    evidence = tmp_path / "reviewed evidence.json"
+    evidence.write_text('{"schema":"wiz8.scalar-evidence-v1","claims":[]}')
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append(command)
+        manifest = json.loads((kwargs["log_path"].parent / "manifest.json").read_text())
+        assert manifest["status"] == "collecting"
+        if "--wiz8-scalar-report" not in command:
+            assert command[-3:] == recovered + oracle
+            assert "--checks=-*,wiz8-scalar-facts" in command
+            assert not any(arg.startswith("WIZ8_SCALAR_REPORT=") for arg in command)
+            if failure == "compiler":
+                raise RuntimeError("incomplete compiler invocation")
+        else:
+            assert f"{evidence}:/scalar-evidence.json:ro" in command
+            assert "--patch" in command
+            report = {
+                "declarations": [{}],
+                "translation_units": ["src/wiz8/one.cpp", "src/wiz8/two.cpp", "src/sgp/timer.c"],
+                "flows": [],
+                "components": [],
+                "domain_inventory": [],
+                "callbacks": [],
+                "predicate32_inventory": [],
+                "pointer_components": [],
+                "nominal_components": [],
+                "recovery_patch": {"groups": []},
+            }
+            if failure == "coverage":
+                report["translation_units"] = ["src/wiz8/one.cpp"]
+            (kwargs["log_path"].parent / "report.json").write_text(json.dumps(report))
+
+    monkeypatch.setattr(build, "run", run)
+    if failure:
+        with pytest.raises(RuntimeError, match="incomplete"):
+            build.scalar_campaign(settings, evidence=evidence, patch=True)
+        assert len(calls) == (1 if failure == "compiler" else 2)
+        manifests = list(output.glob("scalar-campaigns/*/manifest.json"))
+        assert json.loads(manifests[0].read_text())["status"] == "failed"
+        if failure == "compiler":
+            assert not list(output.glob("scalar-campaigns/*/report.json"))
+    else:
+        first = build.scalar_campaign(settings, evidence=evidence, patch=True)
+        second = build.scalar_campaign(settings, evidence=evidence, patch=True)
+        assert first["artifacts"] != second["artifacts"]
+        assert first["recovered_translation_units"] == 2
+        assert first["sgp_translation_units"] == 1
+        assert len(calls) == 4
+        manifest = json.loads((tmp_path / first["artifacts"] / "manifest.json").read_text())
+        assert manifest["status"] == "completed"
+        assert manifest["evidence_sha256"]
+        assert manifest["image"] == "sha256:fixture"

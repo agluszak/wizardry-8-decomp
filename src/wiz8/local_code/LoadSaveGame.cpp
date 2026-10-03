@@ -420,7 +420,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     GetWorldCameraState(GetWorld(), &g_status.pending_move_location);
     for (region = 0; region != 4; ++region) {
         for (index = 0; index < g_status.text_box_lines_shown_49a7[region]; ++index) {
-            g_message_storage[region][index].clock_ticking_0c =
+            g_message_storage[region][index].saved_remaining_ms =
                 ClockIsTicking(g_message_storage[region][index].clock_08);
         }
     }
@@ -804,7 +804,8 @@ fail:
 // FUNCTION: WIZ8 0x005147a0
 static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
 {
-    unsigned short script_name[0x20] = {g_empty_ambient_name};
+    char script_name[0x40] = {};
+    memcpy(script_name, &g_empty_ambient_name, sizeof(g_empty_ambient_name));
     int script_wait = -1;
     int script_line = -1;
     unsigned char has_script = 0;
@@ -839,8 +840,7 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
         has_script = 1;
         chunks->Write(&has_script, 1, 0);
         memset(script_name, 0, sizeof(script_name));
-        strcpy(reinterpret_cast<char*>(script_name), // reinterpret-ok: script-name bytes
-               info->p3D->script_238 != 0 ? info->p3D->script_238->getName() : 0);
+        strcpy(script_name, info->p3D->script_238 != 0 ? info->p3D->script_238->getName() : 0);
         script_wait = info->p3D->script_wait_240;
         script_line = info->p3D->script_line_23c;
         chunks->Write(script_name, 0x40, 0);
@@ -2354,7 +2354,7 @@ unsigned char LoadGame(const char* slot_name)
            unsigned counter rather than the function's signed `index`. */
         for (unsigned int line = 0; line < g_status.text_box_lines_shown_49a7[box]; ++line) {
             g_message_storage[box][line].clock_08 =
-                SetCountdownClock(g_message_storage[box][line].clock_ticking_0c);
+                SetCountdownClock(g_message_storage[box][line].saved_remaining_ms);
         }
     }
     gXStatus.gameplay_timer->Restart();

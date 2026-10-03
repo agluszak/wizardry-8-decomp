@@ -1,5 +1,6 @@
 #pragma once
 
+#include "timer.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/dialog_code/DialogBase.h"
@@ -50,7 +51,7 @@ private:
     unsigned char m_field_1af8;
     bool m_portrait_clock_started_1af9;
     unsigned char pad_1afa[2];
-    unsigned int m_portrait_clock_1afc;
+    TIMER m_portrait_clock_1afc;
 };
 
 static_assert(sizeof(W8CharacterSummaryDialog) == 0x1b00,

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "timer.h"
 #include "input.h"
 
 /* Local Screens\MGSButtons.cpp. The combat sub-menu's panel, its five text
@@ -23,7 +24,7 @@ extern W8DialogButton* g_combat_stance_buttons[5];
 extern W8DialogButton* g_roof_buttons[3];
 extern W8DialogButton* g_options_disk_button;
 extern short g_submenu_entry_count;
-extern unsigned int g_submenu_clock;
+extern TIMER g_submenu_clock;
 extern bool g_submenu_close_pending;
 /* Exactly five: the next known global begins at 0x0069B900. The cancel row
    lands at [built-1] where built is the available-entry count plus one, so

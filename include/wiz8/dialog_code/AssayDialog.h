@@ -44,9 +44,8 @@ private:
     W8DialogScrollBar m_scroll_bar;                           /* 0xfc */
     W8ItemInstance* m_item;                                   /* 0x148 */
     bool m_item_portrait_dirty;                               /* 0x14c */
-    unsigned char unknown_14d[3];
-    W8DialogTextArea m_text_area; /* 0x150 */
-    W8Character* m_character;     /* 0x1a8 */
+    W8DialogTextArea m_text_area;                             /* 0x150 */
+    W8Character* m_character;                                 /* 0x1a8 */
 };
 static_assert(sizeof(W8AssayDialog) == 0x1ac, "W8AssayDialog_size");
 extern unsigned short g_equip_class_name_ids[32];
