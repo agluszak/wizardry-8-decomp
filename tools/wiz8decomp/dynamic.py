@@ -1,32 +1,7 @@
-"""A scenario-bounded dynamic oracle: watch the original run, from evidence.
+"""Scenario-bounded retail/recomp event and state comparison.
 
-Everything else in this repository reasons about the image at rest. That is
-where most of the evidence is, but some questions only the running program
-answers: which gates actually run and in what order, which screen handler the
-dispatcher reaches, whether a recompiled body is reached at all. This runs the
-original under Wine with a debugger attached and turns the addresses the
-reviewed model already knows into an event stream.
-
-Three properties keep it honest.
-
-**The breakpoints come from canonical owners.** A trace plan is generated from
-compiler-bound source markers and the original frame-dispatch observation, so
-it can be regenerated after either model changes rather than drifting away.
-
-**A claim is bounded by the scenario that produced it.** An event stream says
-what happened in *this* run to *this* point - it never says a function is
-unreachable, only that this scenario did not reach it. Every recorded stream
-carries the scenario that produced it.
-
-**Comparison is by name, across builds.** Two builds put the same function at
-different addresses, so streams are compared on the reviewed name each
-breakpoint carries. The first divergence is the answer; the counts after it are
-noise, because one extra event shifts everything that follows.
-
-The runtime side is deliberately thin: `winedbg --gdb` proxies the Windows
-process to an ordinary gdb, which prints one line per hit and continues. There
-is no in-process agent, nothing is injected into the image, and the game runs
-from a copy so the immutable input trees are never written to.
+Plans use canonical source/evidence owners; debugger transport uses debug.session.
+Scenario contracts and interpretation live in docs/dynamic-oracle.md.
 """
 
 from __future__ import annotations
@@ -678,6 +653,86 @@ def _text(value: str | bytes | None) -> str:
     return value.decode("utf-8", "replace") if isinstance(value, bytes) else value
 
 
+def _capture(
+    sandbox: Sandbox,
+    executable: str,
+    script: Path,
+    port: int,
+    seconds: int,
+    arguments: tuple[str, ...] = (),
+) -> tuple[str, int | None]:
+    """Capture one debugger batch; a missing return code denotes timeout."""
+    proxy = WineGdbProxy(
+        sandbox.game_dir / executable,
+        sandbox.game_dir,
+        sandbox.environment(),
+        port=port,
+        arguments=arguments,
+        inferior_path=sandbox.windows_path(executable),
+        start_timeout=60,
+    )
+    try:
+        proxy.start()
+        completed = subprocess.run(
+            ["gdb", "-q", "-batch", "-x", str(script)],
+            cwd=sandbox.game_dir,
+            env=sandbox.environment(),
+            capture_output=True,
+            text=True,
+            timeout=seconds,
+            check=False,
+        )
+        return completed.stdout + completed.stderr, completed.returncode
+    except subprocess.TimeoutExpired as expired:
+        return _text(expired.stdout) + _text(expired.stderr), None
+    finally:
+        try:
+            proxy.close()
+        finally:
+            try:
+                subprocess.run(
+                    ["wineserver", "-k"],
+                    cwd=sandbox.game_dir,
+                    env=sandbox.environment(),
+                    check=False,
+                )
+            finally:
+                script.unlink(missing_ok=True)
+
+
+def _provenance(
+    repo: Path,
+    sandbox: Sandbox,
+    executable: str,
+    link_map: Path | None,
+    plan_hash: str,
+    seconds: int,
+    selected_port: int,
+    unwatched: list[str],
+) -> dict[str, Any]:
+    image = sandbox.game_dir / executable
+    provenance: dict[str, Any] = {
+        "executable": executable,
+        "executable_sha256": sha256_file(image),
+        "unwatched": unwatched,
+        "link_map_sha256": sha256_file(link_map) if link_map is not None else None,
+        "variant_identity": os.environ.get("WIZ8_DYNAMIC_VARIANT", f"sha256:{sha256_file(image)}"),
+        "trace_plan_sha256": plan_hash,
+        "reviewed_evidence_sha256": _reviewed_evidence_hash(repo),
+        "repository_revision": _repository_revision(repo),
+        "wine": tool_version("wine", ("--version",)),
+        "gdb": tool_version("gdb", ("--version",)),
+        "timeout_seconds": seconds,
+        "proxy_port": selected_port,
+    }
+    # Which SurRender provider the run actually loaded is part of the claim:
+    # a rebuilt exe under a stock provider says nothing about the provider.
+    provider = sandbox.game_dir / "sr.dll"
+    if provider.is_file():
+        provenance["provider_sha256"] = sha256_file(provider)
+    return provenance
+
+
 def run_trace(
     repo: Path,
     sandbox: Sandbox,
@@ -737,61 +792,15 @@ def run_trace(
     script = sandbox.game_dir.parent / f"trace-{scenario}-{selected_port}.gdb"
     script.write_text(gdb_script(points, selected_port, actions=actions), encoding="utf-8")
 
-    proxy = WineGdbProxy(
-        sandbox.game_dir / executable,
-        sandbox.game_dir,
-        sandbox.environment(),
-        port=selected_port,
-        arguments=tuple(launch_arguments),
-        inferior_path=sandbox.windows_path(executable),
-        start_timeout=60,
+    output, _ = _capture(
+        sandbox, executable, script, selected_port, seconds, tuple(launch_arguments)
     )
-    try:
-        proxy.start()
-        completed = subprocess.run(
-            ["gdb", "-q", "-batch", "-x", str(script)],
-            cwd=sandbox.game_dir,
-            env=sandbox.environment(),
-            capture_output=True,
-            text=True,
-            timeout=seconds,
-            check=False,
-        )
-        output = completed.stdout + completed.stderr
-    except subprocess.TimeoutExpired as expired:
-        output = _text(expired.stdout) + _text(expired.stderr)
-    finally:
-        proxy.close()
-        subprocess.run(
-            ["wineserver", "-k"],
-            cwd=sandbox.game_dir,
-            env=sandbox.environment(),
-            check=False,
-        )
-        script.unlink(missing_ok=True)
 
     events = parse_events(output)
-    image = sandbox.game_dir / executable
-    provenance: dict[str, Any] = {
-        "executable": executable,
-        "executable_sha256": sha256_file(image),
-        "arguments": launch_arguments,
-        "unwatched": unwatched,
-        "link_map_sha256": sha256_file(link_map) if link_map is not None else None,
-        "variant_identity": os.environ.get("WIZ8_DYNAMIC_VARIANT", f"sha256:{sha256_file(image)}"),
-        "trace_plan_sha256": plan_hash,
-        "reviewed_evidence_sha256": _reviewed_evidence_hash(repo),
-        "repository_revision": _repository_revision(repo),
-        "wine": tool_version("wine", ("--version",)),
-        "gdb": tool_version("gdb", ("--version",)),
-        "timeout_seconds": seconds,
-        "proxy_port": selected_port,
-    }
-    # Which SurRender provider the run actually loaded is part of the claim:
-    # a rebuilt exe under a stock provider says nothing about the provider.
-    provider = sandbox.game_dir / "sr.dll"
-    if provider.is_file():
-        provenance["provider_sha256"] = sha256_file(provider)
+    provenance = _provenance(
+        repo, sandbox, executable, link_map, plan_hash, seconds, selected_port, unwatched
+    )
+    provenance["arguments"] = launch_arguments
     if fixture is not None:
         provenance["fixture"] = fixture
     return {
@@ -861,62 +870,14 @@ def run_smoke(
         gdb_script(points, selected_port, actions=actions, observe_exit=True), encoding="utf-8"
     )
 
-    proxy = WineGdbProxy(
-        sandbox.game_dir / executable,
-        sandbox.game_dir,
-        sandbox.environment(),
-        port=selected_port,
-        inferior_path=sandbox.windows_path(executable),
-        start_timeout=60,
-    )
-    timed_out = False
-    try:
-        proxy.start()
-        try:
-            completed = subprocess.run(
-                ["gdb", "-q", "-batch", "-x", str(script)],
-                cwd=sandbox.game_dir,
-                env=sandbox.environment(),
-                capture_output=True,
-                text=True,
-                timeout=seconds,
-                check=False,
-            )
-            output = completed.stdout + completed.stderr
-            finished = completed.returncode == 0 and NORMAL_EXIT in output.splitlines()
-        except subprocess.TimeoutExpired as expired:
-            timed_out = True
-            output = _text(expired.stdout) + _text(expired.stderr)
-            finished = False
-    finally:
-        proxy.close()
-        subprocess.run(
-            ["wineserver", "-k"],
-            cwd=sandbox.game_dir,
-            env=sandbox.environment(),
-            check=False,
-        )
-        script.unlink(missing_ok=True)
+    output, returncode = _capture(sandbox, executable, script, selected_port, seconds)
+    timed_out = returncode is None
+    finished = returncode == 0 and NORMAL_EXIT in output.splitlines()
 
     events = parse_events(output)
-    image = sandbox.game_dir / executable
-    provenance: dict[str, Any] = {
-        "executable": executable,
-        "executable_sha256": sha256_file(image),
-        "unwatched": unwatched,
-        "link_map_sha256": sha256_file(link_map) if link_map is not None else None,
-        "variant_identity": os.environ.get("WIZ8_DYNAMIC_VARIANT", f"sha256:{sha256_file(image)}"),
-        "trace_plan_sha256": plan_hash,
-        "reviewed_evidence_sha256": _reviewed_evidence_hash(repo),
-        "repository_revision": _repository_revision(repo),
-        "wine": tool_version("wine", ("--version",)),
-        "gdb": tool_version("gdb", ("--version",)),
-        "timeout_seconds": seconds,
-        "proxy_port": selected_port,
-    }
-    provider = sandbox.game_dir / "sr.dll"
-    if provider.is_file():
-        provenance["provider_sha256"] = sha256_file(provider)
+    provenance = _provenance(
+        repo, sandbox, executable, link_map, plan_hash, seconds, selected_port, unwatched
+    )
     reached = {event.name for event in events}
     requirements = {
         "started": READY in output,
