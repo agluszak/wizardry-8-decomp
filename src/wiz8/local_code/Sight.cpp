@@ -780,7 +780,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                     if (GetViewDistance() == g_sight_default) {
                         if (record == 0 ||
                             (SetFactionFlag(static_cast<signed char>(record->faction_id_25f), 1),
-                             (record->flags_0d0 & 1) == 0)) {
+                             (record->flags & W8_MONSTER_FLAG_NPC) == 0)) {
                             unsigned int now =
                                 static_cast<unsigned int>(g_game_time_accumulator->GetElapsed());
 
@@ -888,7 +888,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                         ? W8_SIGHT_UNSEEN
                         : W8_SIGHT_RECENT);
             }
-            if (record != 0 && (record->flags_0d0 & 1) != 0) {
+            if (record != 0 && (record->flags & W8_MONSTER_FLAG_NPC) != 0) {
                 W8NpcState* npc = GetNpcStateByKind(record->npc_kind_0cd);
 
                 if (npc == 0) {

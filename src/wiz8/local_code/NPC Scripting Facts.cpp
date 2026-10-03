@@ -935,7 +935,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     if (record == 0) {
         return;
     }
-    if ((record->flags_0d0 & 1) != 0) {
+    if ((record->flags & W8_MONSTER_FLAG_NPC) != 0) {
         W8NpcState* npc = GetNpcStateByKind(record->npc_kind_0cd);
         if (npc != 0) {
             npc->spawned_04 = 1;

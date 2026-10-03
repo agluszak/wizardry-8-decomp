@@ -116,7 +116,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     value = RollDice(&record->hit_points_d6);
     monster_info->uiHPMax = value;
     monster_info->hp_current = value;
-    value = RollDice(&record->runtime_stat_da);
+    value = RollDice(&record->stamina_dice_da);
     monster_info->stamina_max = value;
     monster_info->stamina = value;
     monster_info->fatigue_band = CalculateMonsterFatigueBand(value, value);
@@ -949,7 +949,7 @@ static void InitializeMonsterRuntimeStatsFor(W8MonsterInfo* monster_info)
     int value = RollDice(&record->hit_points_d6);
     monster_info->uiHPMax = value;
     monster_info->hp_current = value;
-    value = RollDice(&record->runtime_stat_da);
+    value = RollDice(&record->stamina_dice_da);
     monster_info->stamina_max = value;
     monster_info->stamina = value;
     monster_info->fatigue_band = CalculateMonsterFatigueBand(value, value);
@@ -1678,7 +1678,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         W8NpcState* npc;
 
         record = GetMonsterDataForInfo(monster_info);
-        if ((record->flags_0d0 & 1) != 0) {
+        if ((record->flags & W8_MONSTER_FLAG_NPC) != 0) {
             npc = GetNpcStateByKind(record->npc_kind_0cd);
             if (npc != 0 && npc->record->has_group != 0) {
                 suppress_exact_health = 1;

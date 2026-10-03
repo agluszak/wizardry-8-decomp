@@ -107,13 +107,10 @@ that establishes a compiler sensitivity, not an original-source declaration.
 The retail `srModeler::Triangle` and `Polygon` copy exports at `0x10037C10` and `0x10037CF0`
 copy the texture-pointer region, four shader words, and the remaining members without extra
 behavior. `Polygon` copies its vertex pointer shallowly; `Triangle` block-copies its vertex
-region. The instructions contain no calls identifying the shader-word copy's source spelling.
-The current member model explains this behavior with implicit copies, but the pinned compiler
-does not emit the two standalone identities required by the retail export definition. They are
-absent from the modeler object before linking, including with `/Od`; linker retention options
-cannot recover bodies absent from the object. Keep this emission disagreement separate from
-the authored lifecycle model, whose inference rules belong to
-[type modeling](../../.agents/skills/type-modeling/SKILL.md#classes-and-lifecycle).
+region. The integrated shader model retains a header-visible nontrivial value copy. The
+compiler emits both containing implicit copy constructors with this model, resolving the
+missing definitions. This supports the member-copy model without establishing its exact
+historical spelling. See [provider export evidence](surrender-import-visibility.md#compiler-owned-provider-exports).
 
 The probe object records compiler product/build `11/8966`; retail `sr.dll` records `11/8447`
 for 113 linked objects. This difference keeps exact compiler selection unresolved. It does not

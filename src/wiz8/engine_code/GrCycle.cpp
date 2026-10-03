@@ -1085,6 +1085,8 @@ void W8GrCycle::UpdateParticleAttachments()
         }
     }
     pRep = GetRepresentation();
+    /* A null selected mesh implies a null cached instance; the transform
+       reads below dereference that instance before the model is consumed. */
     if (psrMesh != 0) {
         pMeshModel = static_cast<stMeshModel*>(psrMesh->getModel());
     }

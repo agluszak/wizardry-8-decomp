@@ -38,7 +38,7 @@ W8DialogBase::W8DialogBase()
     m_initialized = false;
     m_keep_open = true;
     m_destroy_callback = 0;
-    m_user_data = 0;
+    m_destroy_callback_context = 0;
     ++g_live_dialog_count;
     m_right_button_down = 0;
 }

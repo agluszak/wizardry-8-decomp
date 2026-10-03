@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "timer.h"
+
 #include "surrender/srMath.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/layouts/character.h"
@@ -47,20 +49,23 @@ struct W8PortraitQuoteState {
 #pragma pack(push, 1)
 struct W8MonsterManagerEntry {
     bool portrait_event_active;
-    int voice_sound_handle;
+    unsigned int voice_sound_handle;
     W8MouthGapTrack mouth_gap;  /* 0x005 */
     W8PortraitQuoteState quote; /* 0x019 */
+    /* Whole-entry reset and character-summary save/restore cover this span;
+       no individual consumer has been established. Its extent is fixed by
+       the event pointer at +0x71. */
     unsigned char unknown_025[0x4c];
     W8CharacterEvent* active_character_event;
     int previous_portrait_frame;
     int portrait_frame;
-    int portrait_frame_clock;
-    int voice_time_remaining_ms;
+    TIMER portrait_frame_clock;
+    unsigned int voice_time_remaining_ms;
     int previous_portrait_pose;
     int portrait_pose;
     int target_portrait_pose;
-    int portrait_pose_clock;
-    int portrait_idle_clock;
+    TIMER portrait_pose_clock;
+    TIMER portrait_idle_clock;
     bool portrait_pose_animation_active;
     bool portrait_pose_dirty;
     bool portrait_frame_dirty;
@@ -100,7 +105,7 @@ struct W8MonsterManagerEntry {
     int effect_icon_end_frame;
     /* 0x0ca: the shared 100 ms frame clock both portrait animations tick on;
        the ticker rearms it whenever it expires. */
-    int portrait_fx_clock;
+    TIMER portrait_fx_clock;
     /* 0x0ce: set when the keyboard SELECT_PC command pins the pending portrait
        refresh, so the formation sync at 0x0059B2D0 does not auto-release it. */
     bool portrait_refresh_pinned;
@@ -116,7 +121,7 @@ struct W8MonsterManagerEntry {
     bool combat_portrait_dirty;
     /* 0x0d2/0x0d6: the acting combatant's portrait pulse - a countdown clock
        rearms the 1..0xc brightness phase in 0x0059B4C0. */
-    int acting_portrait_pulse_clock;
+    TIMER acting_portrait_pulse_clock;
     unsigned short acting_portrait_pulse;
     W8GrowableVector<int> highlighted_monsters; /* 0x0d8 */
     /* 0x0e8: the character has reached its experience goal; set once to post
@@ -154,6 +159,8 @@ static_assert(offsetof(W8MonsterManagerEntry, quote.height) == 0x23,
               "W8MonsterManagerEntry_quote_height_offset");
 static_assert(offsetof(W8MonsterManagerEntry, active_character_event) == 0x71,
               "W8MonsterManagerEntry_active_character_event_offset");
+static_assert(offsetof(W8MonsterManagerEntry, voice_time_remaining_ms) == 0x81,
+              "W8MonsterManagerEntry_voice_time_remaining_ms_offset");
 static_assert(offsetof(W8MonsterManagerEntry, damage_splat_active) == 0x9c,
               "W8MonsterManagerEntry_damage_splat_active_offset");
 static_assert(offsetof(W8MonsterManagerEntry, damage_splat_amount) == 0x9f,

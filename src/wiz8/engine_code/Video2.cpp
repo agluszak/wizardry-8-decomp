@@ -2619,7 +2619,10 @@ void PurgeInactiveSceneInstances(srScene* scene)
         unsigned long class_id = node->getClassID();
         unsigned char display_state = 0;
         if (class_id == 0x10004) {
-            display_state = static_cast<stModelInstance*>(node)->displayState();
+            /* Retail also applies the 2D byte test to 3D highlight alpha.
+               This representation read does not establish a 3D state member. */
+            memcpy(&display_state, &static_cast<stModelInstance*>(node)->highlight_colour_164.w,
+                   sizeof(display_state));
         } else if (class_id == 0x10005) {
             display_state = static_cast<stModelInstance2D*>(node)->displayState();
         }

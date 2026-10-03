@@ -112,9 +112,6 @@ int GetCharacterHandDamageBonus(const W8Character* character, int hand)
 /* Nine attack modes, one bit each, held in the low half of a word. */
 enum { W8_ATTACK_MODE_COUNT = 9 };
 
-/* Bit two of the monster record's flag word: the monster attacks at all. */
-enum { W8_MONSTER_FLAG_ATTACKS = 4 };
-
 /* Clear a forty-eight byte attack block. */
 // FUNCTION: WIZ8 0x00543260
 void ClearAttackBlock(W8SpellEffectDefinition* block)
@@ -185,17 +182,16 @@ bool CanCharacterAttack(int party_slot)
     return character->Hand[0].in_play != 0;
 }
 
-/* Whether one monster can. It has to be in the world, in combat, alive, below
-   the deactivation threshold, marked as attacking at all by its record, and
-   actually have a first attack. */
+/* Whether a bodyguard can protect another combatant: active, alive, able
+   to act and equipped with a natural attack. The AI uses this for action 8. */
 // FUNCTION: WIZ8 0x00545bd0
-bool CanMonsterAttack(W8MonsterInfo* monster_info)
+bool CanMonsterProtect(W8MonsterInfo* monster_info)
 {
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
     if (monster_info->fActive == 0 || monster_info->fInCombat == 0 ||
         monster_info->hp_current == 0 || monster_info->highest_condition >= 0xc ||
-        (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) == 0) {
+        (record->flags & W8_MONSTER_FLAG_BODYGUARD) == 0) {
         return false;
     }
     return record->attacks[0].fHasAttack != 0;
@@ -415,12 +411,12 @@ bool CharacterHasAttackOn(int party_slot, W8CombatSlot* target)
     return 1;
 }
 
-/* Whether a monster would press an attack on what a combat slot names. The
-   target has to be a hostile the monster's first attack reaches; beyond that
-   the monster only takes on something that outranks it when it is below forty
-   percent health or out of formation. */
+/* Whether a friendly combatant qualifies for protection: within the
+   bodyguard's first-attack range, higher level, and injured or out of
+   formation. Preserve retail's use of the bodyguard's formation modifier
+   for a monster target. */
 // FUNCTION: WIZ8 0x00545cf0
-bool MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* target)
+bool CanMonsterProtectCombatant(W8MonsterInfo* monster_info, W8CombatSlot* target)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     W8Character* character;
@@ -435,7 +431,7 @@ bool MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* target)
         if (!CanPartySlotParticipate(target_slot)) {
             return 0;
         }
-        if (MonsterVsCharDisposition(target_slot, monster_info) != 2) {
+        if (MonsterVsCharDisposition(target_slot, monster_info) != DISP_FRIENDLY) {
             return 0;
         }
         if (MonsterAttackReachesCharacter(monster_info, record, 0, target_slot) == 0) {
@@ -455,7 +451,7 @@ bool MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* target)
         if (GetMonsterDataForInfo(target_info)->untargetable_24a != 0) {
             return 0;
         }
-        if (MonsterHostility(monster_info, target_info) != 2) {
+        if (MonsterHostility(monster_info, target_info) != DISP_FRIENDLY) {
             return 0;
         }
         if (MonsterAttackReachesMonster(monster_info, record, 0, target_info) == 0) {
@@ -473,17 +469,17 @@ bool MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* target)
     return 0;
 }
 
-/* Whether one monster has an attack it could make on what it is aimed at. The
-   same six checks CanMonsterAttack makes, and then the attack itself. */
+/* Protection readiness for the selected target. The action-8 executor
+   requires an eligible bodyguard with an attack in range of that target. */
 // FUNCTION: WIZ8 0x00545b20
-bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info)
+bool CanMonsterProtectTarget(W8MonsterInfo* monster_info)
 {
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
     if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
         monster_info->hp_current != 0 && monster_info->highest_condition < 0xc &&
-        (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) != 0 && record->attacks[0].fHasAttack != 0) {
-        return MonsterHasAttackOn(monster_info, &monster_info->Target) != 0;
+        (record->flags & W8_MONSTER_FLAG_BODYGUARD) != 0 && record->attacks[0].fHasAttack != 0) {
+        return CanMonsterProtectCombatant(monster_info, &monster_info->Target) != 0;
     }
     return false;
 }
@@ -538,11 +534,11 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
         W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
         if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
             monster_info->hp_current != 0 && monster_info->highest_condition < 0xc &&
-            (record->flags_0d0 & 4) != 0 && record->attacks[0].fHasAttack != 0 &&
-            monster_info->action_kind == 8 &&
+            (record->flags & W8_MONSTER_FLAG_BODYGUARD) != 0 &&
+            record->attacks[0].fHasAttack != 0 && monster_info->action_kind == 8 &&
             monster_info->pCombat->interception_count < record->attacks_per_round_0e5 &&
             memcmp(target, &monster_info->Target, sizeof(W8CombatSlot)) == 0 &&
-            MonsterHasAttackOn(monster_info, target) != 0) {
+            CanMonsterProtectCombatant(monster_info, target) != 0) {
             SetTargetSourceToMonster(monster_info, &guardian);
             candidates.Add(guardian);
         }
@@ -1127,7 +1123,7 @@ int GetTargetArmorClassModifier(W8CombatSlot* target, unsigned int attack_mode)
                    static_cast<int>(FatigueArmorPenalty(monster_info->fatigue_band) / 10);
         if (gXStatus.fCombatMode != 0) {
             if ((g_combat_state->unaware_9a4 != 0 || g_combat_state->natural_attack_9a5 != 0) &&
-                (record->flags_0d0 & 2) != 0) {
+                (record->flags & W8_MONSTER_FLAG_VULNERABLE_FROM_BEHIND) != 0) {
                 modifier -= 2;
             }
             if (monster_info->action_kind == 1) {
@@ -1361,7 +1357,7 @@ bool BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_
             MonsterGetIndexByLocationID(0xf9b, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         record = GetMonsterDataForInfo(monster_info);
-        if ((record->flags_0d0 & 2) == 0) {
+        if ((record->flags & W8_MONSTER_FLAG_VULNERABLE_FROM_BEHIND) == 0) {
             return 0;
         }
         if (difference > 10) {

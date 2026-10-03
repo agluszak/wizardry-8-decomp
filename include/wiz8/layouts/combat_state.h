@@ -144,7 +144,7 @@ struct W8CombatCharacterRow {
     unsigned char extra_swings_82[2];
     /* 0x84/0x88: the slot's combat-portrait catalog image and the alternate the
        combat portrait strip draws while the slot is the hovered combat slot
-       (party_slots_170[4]); -1 draws nothing. */
+       (combat_action_hover_party_slot); -1 draws nothing. */
     int portrait_image_084;
     int portrait_image_alternate_088;
     /* 0x8c: the slot's combat-strip status recomputed each combat-mode frame:

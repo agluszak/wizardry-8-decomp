@@ -1,4 +1,5 @@
 #include "wiz8/layouts/screen_state.h"
+#include "soundman.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/local_screens/MGSTextBox.h"
@@ -390,7 +391,7 @@ void ResetGameplaySlot(unsigned int slot)
 
     memset(record, 0, sizeof(W8MonsterManagerEntry));
     record->portrait_event_active = 0;
-    record->voice_sound_handle = -1;
+    record->voice_sound_handle = SOUND_ERROR;
     record->previous_portrait_frame = -1;
     record->portrait_frame = 6;
     record->portrait_pose_animation_active = 0;

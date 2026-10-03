@@ -113,7 +113,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
            path instead of reproducing that empty-drop bug. */
         W8MonsterRecord* provoked_record = GetMonsterDataForInfo(provoked_info);
         if (provoked_record != 0) {
-            W8MonsterTreasureEntry* treasure = &provoked_record->treasure_1c3.slots[0];
+            W8MonsterTreasureEntry* treasure = &provoked_record->treasure_1f3.slots[0];
             treasure->type = 0;
             treasure->count = 1;
             treasure->item_id = 0x23c; /* the container item SpawnItem drops */

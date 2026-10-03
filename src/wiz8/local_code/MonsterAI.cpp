@@ -1040,7 +1040,7 @@ unsigned int MonsterAdvanceChance(W8MonsterInfo* monster_info, W8MonsterRecord* 
     if (monster_info->fInCombat == 0) {
         srAssertFail("pMonsterInfo->fInCombat", MONSTER_AI_CPP, 1272, 0);
     }
-    if ((record->flags_0d0 & 1) != 0 && monster_info->ubDisposition != DISP_HOSTILE &&
+    if ((record->flags & W8_MONSTER_FLAG_NPC) != 0 && monster_info->ubDisposition != DISP_HOSTILE &&
         hp_percent <= 33) {
         return 100;
     }
@@ -1101,7 +1101,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
         srAssertFail("pMonsterInfo->pCombat->plsCombatActionList != NULL", MONSTER_AI_CPP, 1385, 0);
     }
     if (target_locked == 0 && attack_locked == 0) {
-        if (CanMonsterAttack(monster_info) != 0 && Random(100) < monster_info->attributes[1]) {
+        if (CanMonsterProtect(monster_info) != 0 && Random(100) < monster_info->attributes[1]) {
             monster_info->action_kind = 8;
             for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 other = MonsterGetScriptPartByLocationIndex(index);
@@ -1109,7 +1109,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
                     ResetCombatSlot(&monster_info->Target);
                     monster_info->Target.iType = W8_TARGET_KIND_MONSTER;
                     monster_info->Target.iMonsterID = other->location_id;
-                    if (MonsterHasAttackOn(monster_info, &monster_info->Target) != 0) {
+                    if (CanMonsterProtectCombatant(monster_info, &monster_info->Target) != 0) {
                         QueueMonsterAction(monster_info, 8, 0, 0, W8_TARGET_KIND_MONSTER,
                                            other->location_id);
                     }
@@ -1119,7 +1119,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
                 ResetCombatSlot(&monster_info->Target);
                 monster_info->Target.iType = W8_TARGET_KIND_CHARACTER;
                 monster_info->Target.iChar = index;
-                if (MonsterHasAttackOn(monster_info, &monster_info->Target) != 0) {
+                if (CanMonsterProtectCombatant(monster_info, &monster_info->Target) != 0) {
                     QueueMonsterAction(monster_info, 8, 0, 0, W8_TARGET_KIND_CHARACTER, index);
                 }
             }
@@ -2663,7 +2663,7 @@ void CheckMonsterGroupsEnterCombat(void)
                 MonsterGroupEnterCombat(group);
                 if (group->ubDisposition == DISP_NEUTRAL) {
                     record = MonsterGroupGetRecord(group);
-                    if ((record->flags_0d0 & 1) == 0 && record->faction_id_25f == 0 &&
+                    if ((record->flags & W8_MONSTER_FLAG_NPC) == 0 && record->faction_id_25f == 0 &&
                         record->hostility_radius_25b != 0 && record->hostility_radius_25b != -1) {
                         SetMonsterGroupHostility(group, 1, 0);
                     }

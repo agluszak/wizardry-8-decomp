@@ -150,7 +150,7 @@ unsigned char StartCombat(int surprise)
             if (monster_info->fInCombat != 0 && monster_info->ubDisposition == DISP_HOSTILE &&
                 monster_info->hp_current > 0 && monster_info->highest_condition < 0x10) {
                 npc = GetNpcStateForMonsterInfo(monster_info, 0);
-                if (npc != 0 && npc->record->unknown_2ef != 0) {
+                if (npc != 0 && npc->record->combat_script_notice_enabled != 0) {
                     QueueNpcScriptNotice(npc, 0, -1, 0, 0);
                     gXStatus.npc_combat_notice_pending = 1;
                     BeginScriptedWorldAction();
@@ -2563,7 +2563,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             result = MonsterFleeAction(monster_info, record);
             break;
         case 8:
-            result = CanMonsterAttackItsTarget(monster_info);
+            result = CanMonsterProtectTarget(monster_info);
             break;
         case 1:
             result = 1;

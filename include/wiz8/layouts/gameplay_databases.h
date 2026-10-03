@@ -357,20 +357,21 @@ struct W8NpcDatabaseRecord {
     /* 0x2eb: the purse the NPC carries; 0x004F8CB0 hands it to AddPartyGold
        when the NPC's monster dies. */
     int gold;
-    /* Independently tested bytes: +0x2ef gates the scripted combat notice;
-       +0x2f0 participates in the departure/greeting predicate. Original
-       names and the remaining tail's internal structure are unknown. */
-    unsigned char unknown_2ef;
-    unsigned char unknown_2f0;
+    unsigned char combat_script_notice_enabled; /* 0x2ef: hostile-NPC combat notice */
+    unsigned char allow_dismissed_departure_dialogue; /* 0x2f0: permits dismissed-NPC dialogue */
     unsigned char unknown_2f1[0x18];
 }; /* 0x309 */
 
 static_assert(sizeof(W8NpcDatabaseRecord) == 0x309, "W8NpcDatabaseRecord_size_must_be_0x309");
+static_assert(offsetof(W8NpcDatabaseRecord, combat_script_notice_enabled) == 0x2ef,
+              "W8NpcDatabaseRecord_combat_script_notice_offset");
+static_assert(offsetof(W8NpcDatabaseRecord, allow_dismissed_departure_dialogue) == 0x2f0,
+              "W8NpcDatabaseRecord_dialogue_departure_script_offset");
 
-/* One Data\Databases\LEVELS.DBS record. Only the disk and runtime stride is
-   established; the leading field is a display name. */
+/* One Data\Databases\LEVELS.DBS record. The loader retains the disk row;
+   all 60 canonical rows begin with a terminated UTF-16 display name. */
 struct W8LevelDatabaseRecord {
-    unsigned char unknown_000[0x3c];
+    wchar_t display_name[30];
     /* 0x3c..0x50: the per-level random-encounter budget parameters, all five
        read by UpdateRandomEncounterBudget and the sixth by the culling pass.
        The reviewed Ghidra type carries the wider operational inventory. */
@@ -386,6 +387,8 @@ struct W8LevelDatabaseRecord {
     unsigned char unknown_058[0x80];
 }; /* 0xd8 */
 
+static_assert(offsetof(W8LevelDatabaseRecord, maximum_random_encounters) == 0x3c,
+              "W8LevelDatabaseRecord_encounter_budget_offset");
 static_assert(sizeof(W8LevelDatabaseRecord) == 0xd8, "W8LevelDatabaseRecord_size_must_be_0xd8");
 static_assert(offsetof(W8LevelDatabaseRecord, gameplay_time_scale_054) == 0x54,
               "W8LevelDatabaseRecord_gameplay_time_scale_054_offset");
@@ -398,7 +401,7 @@ static_assert(offsetof(W8LevelDatabaseRecord, gameplay_time_scale_054) == 0x54,
    rather than in either of them. */
 enum { W8_MONSTER_RECORD_ALTERNATE_NAME = 397 };
 
-/* One slot of W8MonsterRecord::treasure_1c3. type selects direct item (0) or
+/* One slot of W8MonsterRecord::treasure_1f3. type selects direct item (0) or
    item-table (1) drops; the entry only fires when count is nonzero and a
    Random(100) roll stays under chance. */
 struct W8MonsterTreasureEntry {
@@ -411,11 +414,10 @@ struct W8MonsterTreasureEntry {
 static_assert(sizeof(W8MonsterTreasureEntry) == 10, "W8MonsterTreasureEntry_must_be_10");
 
 struct W8MonsterTreasureBlock {
-    unsigned char unknown_00[0x30];
-    W8MonsterTreasureEntry slots[8]; /* 0x30 */
-    W8Dice gold_dice;                /* 0x80: rolled once into AddPartyGold */
+    W8MonsterTreasureEntry slots[8]; /* 0x00 */
+    W8Dice gold_dice;                /* 0x50: rolled once into AddPartyGold */
 };
-static_assert(sizeof(W8MonsterTreasureBlock) == 0x84, "W8MonsterTreasureBlock_must_be_0x84");
+static_assert(sizeof(W8MonsterTreasureBlock) == 0x54, "W8MonsterTreasureBlock_must_be_0x54");
 
 #pragma pack(push, 1)
 struct W8EncounterCompanionRecord {
@@ -424,6 +426,16 @@ struct W8EncounterCompanionRecord {
 };
 #pragma pack(pop)
 static_assert(sizeof(W8EncounterCompanionRecord) == 3, "W8EncounterCompanionRecord_size");
+
+/* Packed database flag byte. The bodyguard and rear-vulnerability bits are
+   independently paired with Cosmic Forge controls 0x761 and 0x762; retail
+   protection and armour consumers corroborate their roles. */
+enum W8MonsterRecordFlag {
+    W8_MONSTER_FLAG_NPC = 0x01,
+    W8_MONSTER_FLAG_VULNERABLE_FROM_BEHIND = 0x02,
+    W8_MONSTER_FLAG_BODYGUARD = 0x04,
+    W8_MONSTER_FLAG_ALTERNATE_NAME = 0x10
+};
 
 struct W8MonsterRecord {
     wchar_t name_00[24]; /* 0x000: suffix after '#' removed at load */
@@ -449,16 +461,15 @@ struct W8MonsterRecord {
     signed char stamina_regeneration_0ce;
     /* 0x0cf: the monster's own percentage reduction on incoming damage. */
     unsigned char damage_reduction;
-    /* 0x0d0: bit 0 routes disposition through the NPC record instead of the
-       faction table, which is the only bit any recovered body reads. */
-    unsigned char flags_0d0;
+    /* 0x0d0: W8MonsterRecordFlag mask; retain the serialized byte width. */
+    unsigned char flags;
     /* 0x0d1: indexed 0..4 by ConvertMonsterAttribute at 0x004e5d00, which
        bounds-checks the index against five. The group update at 0x005113a0
        squares index one and scales it by fifteen for a cache duration, which is
        a use of an attribute rather than a separate field at 0x0d2. */
     unsigned char attribute_values_d1[5]; /* 0x0d1 */
     W8Dice hit_points_d6;                 /* 0x0d6: rolled into uiHPMax/hp_current */
-    W8Dice runtime_stat_da;               /* 0x0da: rolled into W8MonsterInfo +0x2f/+0x33 */
+    W8Dice stamina_dice_da;               /* 0x0da: initializes maximum and current stamina */
     unsigned char unknown_0de[2];
     /* 0x0e0/0x0e1: the percentage chances the AI casts a spell or flees each
        round; a monster with a usable attack ignores them and always tries. */
@@ -517,12 +528,16 @@ struct W8MonsterRecord {
     /* 0x1c1: the MIPE monster list only admits records carrying -1 here, and
        stores the value itself as the selected monster index. */
     short editor_index_1c1;
-    /* 0x1c3: the monster's treasure table. DropMonsterLoot fires each slot
+    /* Cosmic Forge's Remains column consumes this as a narrow item-model
+       name. The canonical rows contain creaturegoo, plantgoo or an empty
+       string. It precedes the treasure entries rather than belonging to them. */
+    char remains_model_name_1c3[0x30];
+    /* 0x1f3: the monster's treasure table. DropMonsterLoot fires each slot
        whose count is nonzero once Random(100) stays under its chance, rolling
        the slot dice for the drop count; type 0 creates the item id directly,
        type 1 feeds the id to GenerateItemsFromTable. The gold dice lands in
        AddPartyGold. */
-    W8MonsterTreasureBlock treasure_1c3;
+    W8MonsterTreasureBlock treasure_1f3;
     unsigned char attack_multiple_targets_247;
     /* 0x248: Monster Editor camouflage rating; retail sight code consumes it. */
     unsigned char camouflage_248;
@@ -555,10 +570,21 @@ struct W8MonsterRecord {
        runtime bonus. Zero is a data error the power-level chooser reports by
        name. */
     int sp_budget;
+    /* Canonical database: 573 rows are zero, 22 contain repeated 0xcd here
+       (also at +24b..+24e and +269). Fill residue does not establish a type
+       or prove padding; no independent typed consumer is recovered. */
     unsigned char unknown_273[0x24];
 }; /* 0x297 */
 
 static_assert(sizeof(W8MonsterRecord) == 0x297, "W8MonsterRecord_size_must_be_0x297");
+static_assert(offsetof(W8MonsterRecord, flags) == 0xd0, "W8MonsterRecord_flags_offset");
+static_assert(offsetof(W8MonsterRecord, stamina_dice_da) == 0xda,
+              "W8MonsterRecord_stamina_dice_offset");
+static_assert(offsetof(W8MonsterRecord, remains_model_name_1c3) == 0x1c3,
+              "W8MonsterRecord_remains_model_name_offset");
+static_assert(offsetof(W8MonsterRecord, treasure_1f3) == 0x1f3, "W8MonsterRecord_treasure_offset");
+static_assert(offsetof(W8MonsterRecord, treasure_1f3.gold_dice) == 0x243,
+              "W8MonsterRecord_gold_dice_offset");
 static_assert(offsetof(W8MonsterRecord, attack_body_part_chances_157) == 0x157,
               "W8MonsterRecord_attack_body_part_chances_157");
 static_assert(offsetof(W8MonsterRecord, effective_level_24f) == 0x24f,
