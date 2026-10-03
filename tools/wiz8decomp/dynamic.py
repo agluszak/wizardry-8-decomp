@@ -48,6 +48,7 @@ from .subprocesses import tool_version
 
 EVENT = re.compile(r"^EVENT\s+(?P<kind>\S+)\s+(?P<name>\S+)\s+(?P<address>[0-9a-f]{8})\s*$")
 READY = "TRACE_READY"
+NORMAL_EXIT = "PROCESS_EXIT 0"
 STATE = re.compile(r"^STATE\s+(?P<name>\S+)\s+(?P<value>\S+)\s*$")
 
 # Scenario names are part of every claim this module makes, so they are fixed
@@ -464,6 +465,8 @@ def gdb_script(
     points: list[TracePoint],
     port: int,
     actions: dict[str, BreakpointAction] | None = None,
+    *,
+    observe_exit: bool = False,
 ) -> str:
     """A batch script that prints one line per hit and never stops the run.
 
@@ -501,6 +504,8 @@ def gdb_script(
                 ]
         lines += ["continue", "end"]
     lines += [f'printf "{READY}\\n"', "continue"]
+    if observe_exit:
+        lines += ["if $_exitcode == 0", f'printf "{NORMAL_EXIT}\\n"', "end"]
     return "\n".join(lines) + "\n"
 
 
@@ -852,7 +857,9 @@ def run_smoke(
         [{"address": point.address, "name": point.name, "kind": point.kind} for point in points]
     )
     script = sandbox.game_dir.parent / f"smoke-{selected_port}.gdb"
-    script.write_text(gdb_script(points, selected_port, actions=actions), encoding="utf-8")
+    script.write_text(
+        gdb_script(points, selected_port, actions=actions, observe_exit=True), encoding="utf-8"
+    )
 
     proxy = WineGdbProxy(
         sandbox.game_dir / executable,
@@ -876,7 +883,7 @@ def run_smoke(
                 check=False,
             )
             output = completed.stdout + completed.stderr
-            finished = completed.returncode is not None
+            finished = completed.returncode == 0 and NORMAL_EXIT in output.splitlines()
         except subprocess.TimeoutExpired as expired:
             timed_out = True
             output = _text(expired.stdout) + _text(expired.stderr)
@@ -918,7 +925,7 @@ def run_smoke(
         "exit_screen_entered": "screen_12_enter" in reached,
         "sgp_exit_reached": "SGPExit" in reached,
         # SGPExit is the last product-side step; the inferior exiting under
-        # the debugger - gdb finishing inside the timeout - is the product's
+        # the debugger with zero status, observed by the script, is the product's
         # real process exit, not the test harness's TerminateProcess.
         "process_exited": finished and not timed_out,
         "no_unwatched_points": not unwatched,
