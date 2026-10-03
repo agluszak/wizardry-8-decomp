@@ -1,0 +1,15 @@
+address|symbol|name|type
+00401000||__WinMainCRTStartup|library
+0040116a||_cfltcvt_init|library
+00401180||_onexit|library
+004011ac||atexit|library
+004028c0||_wcsnicmp|library
+005e1c10||??3@YAXPAX@Z|library
+005e1c30||__aulldiv|library
+005e1ca0||__allmul|library
+005e1cf0||__alldiv|library
+005e1da0||__alloca_probe|library
+005e1dd0||__aullshr|library
+005e1def||??_L@YGXPAXIHP6EX0@Z1@Z|library
+005e1e71||??_M@YGXPAXIHP6EX0@Z@Z|library
+005e1ef1||?__ArrayUnwind@@YGXPAXIHP6EX0@Z@Z|library

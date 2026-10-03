@@ -402,3 +402,31 @@ def test_iat_thunk_function_is_rejected(tmp_path: Path) -> None:
 
     _write_index(tmp_path, [_marker(0x405000, "src/wiz8/Emissions.cpp", kind="SYNTHETIC")])
     assert source_oracle_violations(tmp_path) == []
+
+
+@pytest.mark.parametrize("row_type", ["library", "function"])
+def test_fid_claim_requires_library_ownership_in_csv(tmp_path: Path, row_type: str) -> None:
+    _write_claims(
+        tmp_path,
+        [
+            {
+                "claim_id": "crt",
+                "entity_key": "005e1c30",
+                "predicate": "fid-variants",
+                "value": "rtm|sp6",
+                "origin": "fid",
+            }
+        ],
+    )
+    _write_index(tmp_path, [])
+    path = tmp_path / "config/reccmp/wiz8-msvc-runtime.csv"
+    path.parent.mkdir(parents=True)
+    path.write_text(f"address|symbol|name|type\n005e1c30||__aulldiv|{row_type}\n")
+    violations = source_oracle_violations(tmp_path)
+    assert [item["kind"] for item in violations] == (
+        [] if row_type == "library" else ["missing-oracle-owner"]
+    )
+    if row_type == "library":
+        symbols = proven_oracle_symbols(tmp_path)
+        assert [(item.name, item.family) for item in symbols] == [("__aulldiv", "msvc-runtime")]
+        assert contribution_hulls(symbols) == []

@@ -12,15 +12,15 @@ Proven evidence is point-wise first:
   variants);
 * documented hard address ranges (zlib corpus, CRT startup/helper cluster);
 * sized reviewed bodies (CRT helpers and named zlib entries);
-* ``config/reccmp/*.csv`` ``library`` rows for extension DLLs (IJG / Info-ZIP).
+* ``config/reccmp/*.csv`` ``library`` rows for CRT, zlib and extension DLLs.
 
 Contiguous contribution hulls are built only for oracle translation units with
-real source roots (today: ``src/sgp``). Dump files such as ``vc6_runtime.cpp``
-must not form a single hull across the image.
+real source roots (today: ``src/sgp``). Library identity catalogs must not form
+a single hull across the image.
 
 Retail-folded predicates document non-retained released bodies and are not
 required to keep an ``src/sgp`` FUNCTION marker. CRT identities are owned by
-``LIBRARY`` markers, not recovered FUNCTION bodies. SurRender remains outside
+library metadata, not recovered FUNCTION bodies. SurRender remains outside
 this gate: it is recoverable, not available-source.
 """
 
@@ -130,6 +130,7 @@ ORACLE_FAMILIES: tuple[OracleFamily, ...] = (
     OracleFamily(
         name="zlib",
         target="WIZ8",
+        reccmp_csv="config/reccmp/wiz8-zlib.csv",
         address_ranges=((0x00415910, 0x0041A7ED),),
         library_marker_ownership=True,
         library_name_tokens=_ZLIB_LIBRARY_TOKENS,
@@ -137,6 +138,7 @@ ORACLE_FAMILIES: tuple[OracleFamily, ...] = (
     OracleFamily(
         name="msvc-runtime",
         target="WIZ8",
+        reccmp_csv="config/reccmp/wiz8-msvc-runtime.csv",
         claim_origins=frozenset({"fid"}),
         claim_predicates=frozenset({"fid-variants"}),
         retained_predicates=frozenset({"fid-variants"}),
@@ -387,6 +389,13 @@ def proven_oracle_symbols(
             marker_kind=kind,
         )
 
+    # Retained library labels are the owner; claim values may describe matching
+    # variants rather than spell the function's name.
+    for symbol in _load_reccmp_library_symbols(repo_dir, families):
+        key = (symbol.target, symbol.address)
+        if key not in by_address:
+            by_address[key] = symbol
+
     claims_path = repo_dir / "evidence/reviewed/wiz8/claims.csv"
     for claim in claim_rows:
         family = _family_for_origin(claim["origin"], claim["predicate"], families)
@@ -406,11 +415,6 @@ def proven_oracle_symbols(
             evidence=f"claim:{claim['predicate'].strip()}",
             name=claim.get("value", "").strip(),
         )
-
-    for symbol in _load_reccmp_library_symbols(repo_dir, families):
-        key = (symbol.target, symbol.address)
-        if key not in by_address:
-            by_address[key] = symbol
 
     return sorted(by_address.values(), key=lambda item: (item.target, item.address, item.family))
 
@@ -608,6 +612,10 @@ def source_oracle_violations(
     bodies = _sized_body_owners(families)
     symbols_by_key = {(item.target, item.address): item for item in symbols}
     oracle_markers = _oracle_owned_markers(source_index, families)
+    library_owners = {
+        (item.target, item.address): item
+        for item in _load_reccmp_library_symbols(repo_dir, families)
+    }
     violations: list[dict[str, Any]] = []
     violations.extend(_iat_thunk_violations(repo_dir, source_index))
 
@@ -717,6 +725,9 @@ def source_oracle_violations(
         owned = oracle_markers.get((family.target, address))
         if owned is not None and family.accepts_owner_marker(owned[0], owned[1]):
             continue
+        library_owner = library_owners.get((family.target, address))
+        if library_owner is not None and library_owner.family == family.name:
+            continue
         if family.name_origins:
             origin_token = min(family.name_origins)
         elif family.claim_origins:
@@ -726,7 +737,7 @@ def source_oracle_violations(
         owner_hint = (
             f"under {', '.join(family.source_roots)}"
             if family.source_roots
-            else "via a LIBRARY marker"
+            else "via a LIBRARY marker or library CSV row"
         )
         violations.append(
             {
@@ -741,7 +752,7 @@ def source_oracle_violations(
                     + (
                         f"found {owned[1]} marker in {owned[0]}"
                         if owned
-                        else "no oracle FUNCTION/LIBRARY marker"
+                        else "no oracle FUNCTION/LIBRARY marker or library CSV row"
                     )
                 ),
             }

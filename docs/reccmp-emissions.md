@@ -24,9 +24,9 @@ uv run wiz8 analyze emissions
 The original-address seed is `evidence/observations/compiler-emissions.csv`. It
 migrated the former source annotations without changing their identities. `legacy-
 marker` provenance explicitly means these labels are inherited recovery claims, not
-independently recovered original symbols. `source_files` preserves historical
-ownership for changed-file/template selection; it does not attach an emission to a
-C++ declaration or prove its original translation unit.
+independently recovered original symbols. `source_files` records canonical template headers and retained historical source
+associations for changed-file/template selection. It does not attach an emission
+to a C++ declaration or prove its original translation unit.
 
 With rebuilt images, PDBs and the compiler-backed source index available, enrich the
 metadata through reccmp's existing catalog:

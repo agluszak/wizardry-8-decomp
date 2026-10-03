@@ -1,10 +1,5 @@
 {
   "schema": "wiz8.source-units-v1",
-  "compiler-emission": [
-    "src/wiz8/vector.cpp",
-    "src/wiz8/vc6_runtime.cpp",
-    "src/wiz8/surrender_math.cpp"
-  ],
   "original-path-map": {
     "Local Code\\Formation & Facing.cpp": "src/wiz8/local_code/FormationAndFacing.cpp",
     "Local Code\\Conditions & Enchantments.cpp": "src/wiz8/local_code/ConditionsAndEnchantments.cpp",
