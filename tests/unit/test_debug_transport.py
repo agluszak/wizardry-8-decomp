@@ -407,3 +407,85 @@ def test_console_reassembles_mi_chunks_before_parsing(tmp_path: Path, monkeypatc
     monkeypatch.setattr(session, "_command", command)
     frames = _parse_frame_addresses(asyncio.run(session._console("thread apply all bt 16")))
     assert frames == (0x79A9C8B4, 0x79B6834F, 0x004D9A09, 0x458B08EC)
+
+
+def test_proxy_launch_preserves_windows_path_and_scoped_cleanup(
+    tmp_path: Path, monkeypatch
+) -> None:
+    import signal
+
+    from wiz8decomp.debug import session
+
+    image = tmp_path / "game.exe"
+    image.touch()
+    process = Mock(pid=1234)
+    process.poll.return_value = None
+    launch = Mock(return_value=process)
+    kill_group = Mock()
+    monkeypatch.setattr(session.subprocess, "Popen", launch)
+    monkeypatch.setattr(session.os, "killpg", kill_group)
+    monkeypatch.setattr(session, "_port_is_listening", lambda port: True)
+    proxy = session.WineGdbProxy(
+        image, tmp_path, {}, port=4242, arguments=("/LOAD",), inferior_path=r"W:\Game\game.exe"
+    )
+    proxy.start()
+    assert launch.call_args.args[0][-2:] == [r"W:\Game\game.exe", "/LOAD"]
+    assert launch.call_args.kwargs["start_new_session"] is True
+    proxy.close()
+    kill_group.assert_called_once_with(1234, signal.SIGTERM)
+    process.wait.assert_called_once_with(timeout=10)
+
+
+def test_proxy_start_timeout_escalates_and_closes_log(tmp_path: Path, monkeypatch) -> None:
+    import signal
+    import subprocess
+
+    from wiz8decomp.debug import session
+
+    image = tmp_path / "game.exe"
+    image.touch()
+    process = Mock(pid=1234)
+    process.poll.return_value = None
+    process.wait.side_effect = [subprocess.TimeoutExpired("winedbg", 10), None]
+    kill_group = Mock()
+    monkeypatch.setattr(session.subprocess, "Popen", Mock(return_value=process))
+    monkeypatch.setattr(session.os, "killpg", kill_group)
+    proxy = session.WineGdbProxy(
+        image, tmp_path, {}, port=4242, log_path=tmp_path / "proxy.log", start_timeout=0
+    )
+    with pytest.raises(DebuggerTransportError, match="did not open its port"):
+        proxy.start()
+    assert [call.args for call in kill_group.call_args_list] == [
+        (1234, signal.SIGTERM),
+        (1234, signal.SIGKILL),
+    ]
+    assert proxy._log is None
+
+
+def test_proxy_early_exit_closes_log_without_signalling(tmp_path: Path, monkeypatch) -> None:
+    from wiz8decomp.debug import session
+
+    image = tmp_path / "game.exe"
+    image.touch()
+    process = Mock(returncode=7)
+    process.poll.return_value = 7
+    kill_group = Mock()
+    monkeypatch.setattr(session.subprocess, "Popen", Mock(return_value=process))
+    monkeypatch.setattr(session.os, "killpg", kill_group)
+    proxy = session.WineGdbProxy(image, tmp_path, {}, port=4242, log_path=tmp_path / "proxy.log")
+    with pytest.raises(DebuggerTransportError, match="exited early with 7"):
+        proxy.start()
+    kill_group.assert_not_called()
+    assert proxy._log is None
+
+
+def test_proxy_launch_failure_closes_log(tmp_path: Path, monkeypatch) -> None:
+    from wiz8decomp.debug import session
+
+    image = tmp_path / "game.exe"
+    image.touch()
+    monkeypatch.setattr(session.subprocess, "Popen", Mock(side_effect=OSError("launch failed")))
+    proxy = session.WineGdbProxy(image, tmp_path, {}, port=4242, log_path=tmp_path / "proxy.log")
+    with pytest.raises(OSError, match="launch failed"):
+        proxy.start()
+    assert proxy._log is None

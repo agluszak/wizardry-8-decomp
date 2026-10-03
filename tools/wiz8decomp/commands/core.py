@@ -504,7 +504,6 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
     analyze_app.command("decompiler-quality")(decompiler_quality_command)
-    analyze_app.command("high-function-debt")(high_function_debt_command)
     analyze_app.command("parameter-id")(parameter_id_command)
 
 
@@ -568,47 +567,6 @@ def decompiler_quality_command(
             seed=seed,
             addresses=addresses,
             require_match=require_match,
-            corpus_kind=corpus_kind,
-            profile=profile,
-        )
-
-    cli.emit(action())
-
-
-def high_function_debt_command(
-    limit: Annotated[
-        int,
-        typer.Option(min=1, help="Maximum functions to decompile."),
-    ] = 200,
-    seed: Annotated[int, typer.Option(help="Stable corpus sample seed.")] = 1,
-    corpus_kind: Annotated[
-        str,
-        typer.Option(help="oracle or pain (default pain)."),
-    ] = "pain",
-    address: Annotated[
-        list[str] | None,
-        typer.Option(help="Explicit address; repeatable."),
-    ] = None,
-    profile: Annotated[
-        str,
-        typer.Option(help="Decompiler option profile: analysis, recovery, or program."),
-    ] = "analysis",
-    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
-    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
-) -> None:
-    """Census HighFunction residuals; rank by debt times caller fanout."""
-    from .. import command_support as cli
-    from ..high_function_debt import run_high_function_debt
-
-    def action():
-        addresses = [int(value, 0) for value in address] if address else None
-        return run_high_function_debt(
-            cli.settings(),
-            target=target,
-            program_name=program,
-            limit=limit,
-            seed=seed,
-            addresses=addresses,
             corpus_kind=corpus_kind,
             profile=profile,
         )

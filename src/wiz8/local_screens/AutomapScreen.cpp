@@ -126,7 +126,8 @@ struct W8AutomapState {
     unsigned char unknown_000[0xf4];
     unsigned int blink_time;
     bool blink_enabled;
-    unsigned char flags_0f9[3];
+    unsigned char pending_cell_lighting;
+    unsigned char unknown_0fa[2];
 };
 static_assert(sizeof(W8AutomapState) == 0xfc, "W8AutomapState_size");
 // GLOBAL: WIZ8 0x0068f268
@@ -1437,17 +1438,14 @@ unsigned int LightPendingAutomapCells(unsigned int max_count)
     return lit;
 }
 
-/* When the automap dirty flag is set, switch meshes onto table-1 lights, light
-   a short batch of pending visited cells, clear the flag once nothing remains,
-   then restore table 0. */
 // FUNCTION: WIZ8 0x00580760
 void RefreshDirtyAutomap(void)
 {
-    if (g_automap_state != 0 && g_automap_state->flags_0f9[0] != 0) {
+    if (g_automap_state != 0 && g_automap_state->pending_cell_lighting != 0) {
         SetWorldMeshVertexLightTable(g_world, 1);
         unsigned int lit = LightPendingAutomapCells(10);
         if (lit == 0) {
-            g_automap_state->flags_0f9[0] = 0;
+            g_automap_state->pending_cell_lighting = 0;
         }
         SetWorldMeshVertexLightTable(g_world, 0);
     }
@@ -1835,7 +1833,7 @@ bool LoadAutomapNotes(int handle)
     if (g_automap_visited_cells != 0 && 1 < g_automap_visited_cells->bit_count) {
         g_automap_visited_cells->Load(handle);
         if (g_automap_visited_cells->bit_count == static_cast<unsigned int>(g_automap_cell_count)) {
-            g_automap_state->flags_0f9[0] = 1;
+            g_automap_state->pending_cell_lighting = 1;
         } else {
             g_automap_visited_cells->SetSize(g_automap_cell_count);
         }

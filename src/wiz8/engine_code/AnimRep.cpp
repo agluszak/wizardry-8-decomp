@@ -135,9 +135,6 @@ W8AnimRep::W8AnimRep(const W8AnimRep& other)
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 }
 
-/* The FUNCTION marker owns the complete destructor body.  The separate
-   SYNTHETIC marker records the deleting wrapper VC6 generates for vtable slot
-   zero. */
 // SYNTHETIC: WIZ8 0x004b5760
 // W8AnimRep::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x0044ef20
@@ -161,8 +158,6 @@ W8EmitterHost::W8EmitterHost()
 {
 }
 
-/* As above, 0x004B56F0 is the complete destructor and 0x004B5660 is its
-   compiler-generated scalar-deleting wrapper. */
 // SYNTHETIC: WIZ8 0x004b5660
 // W8EmitterHost::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x004b56f0

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from wiz8decomp.binary.linker_map import LinkerMap, MapSymbol
+from wiz8decomp.debug.session import allocate_port
 from wiz8decomp.dynamic import (
     BRING_UP,
     LOAD,
@@ -16,7 +17,6 @@ from wiz8decomp.dynamic import (
     Event,
     StateProbe,
     TracePoint,
-    _allocate_port,
     _state_lines,
     compare_states,
     compare_streams,
@@ -180,9 +180,10 @@ def test_the_script_never_leaves_the_program_stopped() -> None:
 
 
 def test_each_trace_allocates_a_port_and_uses_scoped_cleanup() -> None:
-    assert 0 < _allocate_port() < 65536
+    assert 0 < allocate_port() < 65536
     source = getsource(run_trace)
-    assert "start_new_session=True" in source
+    assert "WineGdbProxy(" in source
+    assert "proxy.close()" in source
     assert '["wineserver", "-k"]' in source
     assert "pkill" not in source
 

@@ -545,3 +545,11 @@ import/export declarations and unresolved copy model. The constructor also
 zeros the clamp word at `+0x28` before clearing the complete field block;
 whether that reflects a flag-wrapper constructor or scalar initialization
 remains unresolved.
+
+## Illuminator secondary base
+
+The `srIlluminator` constructor (`0x1004c7d0`) writes the primary vptr `0x10077074` at
+complete-object offset zero and the `srVertexProcessor` vptr `0x10077068` at `+0x138`.
+The process method forms that secondary-base address before `pushVertexProcessor`
+(`0x1004c9ad`); the group mask follows at `+0x13c`. These writes and the exported vtable
+identities establish the secondary base. Consumers use ordinary base conversion.

@@ -37,14 +37,12 @@ import json
 import os
 import re
 import shutil
-import signal
-import socket
 import subprocess
-import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .debug.session import WineGdbProxy, allocate_port
 from .paths import json_hash, sha256_file
 from .subprocesses import tool_version
 
@@ -644,46 +642,6 @@ class Sandbox:
         return destination
 
 
-def _listening(port: int, deadline: float) -> bool:
-    """Wait for the proxy's port without connecting to it.
-
-    `winedbg --gdb` accepts exactly one connection, so a probe that connects
-    consumes the one gdb needs - which presents as gdb timing out against a
-    port that is demonstrably open.
-    """
-
-    while time.monotonic() < deadline:
-        result = subprocess.run(
-            ["ss", "-ltnH", f"sport = :{port}"], capture_output=True, text=True, check=False
-        )
-        if "LISTEN" in result.stdout:
-            return True
-        time.sleep(0.5)
-    return False
-
-
-def _allocate_port() -> int:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
-        listener.bind(("127.0.0.1", 0))
-        return int(listener.getsockname()[1])
-
-
-def _terminate_process_group(process: subprocess.Popen[Any]) -> None:
-    """Terminate only the group created for this trace."""
-
-    if process.poll() is not None:
-        return
-    try:
-        os.killpg(process.pid, signal.SIGTERM)
-        process.wait(timeout=10)
-    except (ProcessLookupError, subprocess.TimeoutExpired):
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        process.wait(timeout=10)
-
-
 def _repository_revision(repo: Path) -> str:
     completed = subprocess.run(
         ["jj", "log", "-r", "@", "--no-graph", "-T", "commit_id"],
@@ -729,7 +687,7 @@ def run_trace(
 ) -> dict[str, Any]:
     """Run one scenario under the debugger and return its event stream."""
 
-    for tool in ("winedbg", "wineserver", "gdb", "ss"):
+    for tool in ("winedbg", "wineserver", "gdb"):
         if shutil.which(tool) is None:
             raise ValueError(f"{tool} is not on PATH; the dynamic oracle needs it")
     if not (sandbox.game_dir / executable).is_file():
@@ -755,7 +713,7 @@ def run_trace(
             "name": save.name,
             "sha256": sha256_file(staged_save),
         }
-    selected_port = port if port is not None else _allocate_port()
+    selected_port = port if port is not None else allocate_port()
     plan_hash = json_hash(
         [{"address": point.address, "name": point.name, "kind": point.kind} for point in points]
     )
@@ -774,25 +732,17 @@ def run_trace(
     script = sandbox.game_dir.parent / f"trace-{scenario}-{selected_port}.gdb"
     script.write_text(gdb_script(points, selected_port, actions=actions), encoding="utf-8")
 
-    proxy = subprocess.Popen(
-        [
-            "winedbg",
-            "--gdb",
-            "--no-start",
-            "--port",
-            str(selected_port),
-            sandbox.windows_path(executable),
-            *launch_arguments,
-        ],
-        cwd=sandbox.game_dir,
-        env=sandbox.environment(),
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.STDOUT,
-        start_new_session=True,
+    proxy = WineGdbProxy(
+        sandbox.game_dir / executable,
+        sandbox.game_dir,
+        sandbox.environment(),
+        port=selected_port,
+        arguments=tuple(launch_arguments),
+        inferior_path=sandbox.windows_path(executable),
+        start_timeout=60,
     )
     try:
-        if not _listening(selected_port, time.monotonic() + 60):
-            raise ValueError("winedbg --gdb never opened its port")
+        proxy.start()
         completed = subprocess.run(
             ["gdb", "-q", "-batch", "-x", str(script)],
             cwd=sandbox.game_dir,
@@ -806,7 +756,7 @@ def run_trace(
     except subprocess.TimeoutExpired as expired:
         output = _text(expired.stdout) + _text(expired.stderr)
     finally:
-        _terminate_process_group(proxy)
+        proxy.close()
         subprocess.run(
             ["wineserver", "-k"],
             cwd=sandbox.game_dir,
@@ -870,7 +820,7 @@ def run_smoke(
     it queues the confirming Return. A gesture that never lands leaves the
     run at the timeout - `exited` stays false rather than guessing."""
 
-    for tool in ("winedbg", "wineserver", "gdb", "ss", "xdotool"):
+    for tool in ("winedbg", "wineserver", "gdb", "xdotool"):
         if shutil.which(tool) is None:
             raise ValueError(f"{tool} is not on PATH; the smoke test needs it")
     if not (sandbox.game_dir / executable).is_file():
@@ -897,32 +847,24 @@ def run_smoke(
         )
         if name in watched_names
     }
-    selected_port = port if port is not None else _allocate_port()
+    selected_port = port if port is not None else allocate_port()
     plan_hash = json_hash(
         [{"address": point.address, "name": point.name, "kind": point.kind} for point in points]
     )
     script = sandbox.game_dir.parent / f"smoke-{selected_port}.gdb"
     script.write_text(gdb_script(points, selected_port, actions=actions), encoding="utf-8")
 
-    proxy = subprocess.Popen(
-        [
-            "winedbg",
-            "--gdb",
-            "--no-start",
-            "--port",
-            str(selected_port),
-            sandbox.windows_path(executable),
-        ],
-        cwd=sandbox.game_dir,
-        env=sandbox.environment(),
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.STDOUT,
-        start_new_session=True,
+    proxy = WineGdbProxy(
+        sandbox.game_dir / executable,
+        sandbox.game_dir,
+        sandbox.environment(),
+        port=selected_port,
+        inferior_path=sandbox.windows_path(executable),
+        start_timeout=60,
     )
     timed_out = False
     try:
-        if not _listening(selected_port, time.monotonic() + 60):
-            raise ValueError("winedbg --gdb never opened its port")
+        proxy.start()
         try:
             completed = subprocess.run(
                 ["gdb", "-q", "-batch", "-x", str(script)],
@@ -940,7 +882,7 @@ def run_smoke(
             output = _text(expired.stdout) + _text(expired.stderr)
             finished = False
     finally:
-        _terminate_process_group(proxy)
+        proxy.close()
         subprocess.run(
             ["wineserver", "-k"],
             cwd=sandbox.game_dir,

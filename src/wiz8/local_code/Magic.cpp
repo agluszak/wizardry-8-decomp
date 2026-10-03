@@ -586,8 +586,6 @@ void AbsorbMissileDamage(W8Missile* missile)
     }
 }
 
-/* The queued effect's compiler-generated teardown: the five embedded lists
-   release their storage in reverse declaration order. */
 // FUNCTION: WIZ8 0x0042bac0
 W8SpellEffectEntry::~W8SpellEffectEntry() {}
 
