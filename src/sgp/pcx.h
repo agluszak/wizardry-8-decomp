@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Use the character filename type required by the C++ SGP build.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __PCX_
 #define __PCX_
 
