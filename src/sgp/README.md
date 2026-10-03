@@ -97,13 +97,18 @@ them were present in Wizardry's file, and they stay. Elsewhere, absence from the
 link proves only that a body was not retained; the original fork may still have
 contained it.
 
-Remaining SGP comparison differences after the delta recovery are classified:
+SGP comparison findings after the delta recovery are classified:
 
 - `DirectDraw Calls.c` `ATTEMPT` line numbers exceed retail by exactly one per
   `// FUNCTION:` marker above the call (plus the modification notice): the
-  drift is our annotation, not authored source.
+  drift is our annotation, not authored source. The released macro still uses
+  `__LINE__`/`__FILE__`; the unit now compiles from its ordinary checkout path.
+  reccmp normalizes diagnostic source coordinates as build context, without
+  hard-coded historical coordinates or a simulated retail source tree.
 - Past-the-end loop bounds (`pSoundList`, `pSampleList`, `gFileDataBase`) and
   calls into the `0x004023a0`/`0x005a1140` folds are relocation/fold noise.
+  reccmp names identical reference-free stubs symmetrically across both images;
+  this does not establish their original source names or template arguments.
 - `GetRuntimeSettings` is inlined into `InitializeStandardGamingPlatform` by
   the recomp but called by retail; both standalone bodies match. The remaining
   `LibraryDataBase.c`, `RedirectToString` and `AddSubdirectoryToPath` residuals

@@ -4,6 +4,7 @@
    Drop the unused exception-handling include.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Keep gfGameInitialized set across shutdown, as retail does.
+   Annotate the retail addresses of the startup and shutdown statics.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "types.h"
 #include <windows.h>
@@ -98,6 +99,7 @@ UINT8		gbPixelDepth = PIXEL_DEPTH;
 // FUNCTION: WIZ8 0x004011e0
 INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LPARAM lParam)
 {
+	// GLOBAL: WIZ8 0x00650db0
 	static int fRestore = FALSE;
 
   if(gfIgnoreMessages)
@@ -461,6 +463,7 @@ BOOLEAN InitializeStandardGamingPlatform(HINSTANCE hInstance, int sCommandShow)
 
 void ShutdownStandardGamingPlatform(void)
 {
+	// GLOBAL: WIZ8 0x00650db4
 	static BOOLEAN Reenter = FALSE;
 
 	//
@@ -583,6 +586,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 // FUNCTION: WIZ8 0x004017f0
 void SGPExit(void)
 {
+	// GLOBAL: WIZ8 0x00650db5
 	static BOOLEAN fAlreadyExiting = FALSE;
 	BOOLEAN fUnloadScreens = TRUE;
 

@@ -1,11 +1,5 @@
 # Reconstructed Wizardry SGP project. The released SFI project is the source
 # ancestor; this list records the object contributions present in Wizardry.
-# VC6 spells __FILE__ from the compile source argument. The product container
-# mounts this same source tree at the retail path; lint keeps the checkout path.
-set(SGP_DIRECTDRAW_SOURCE "DirectDraw Calls.c")
-if(NOT WIZ8_ANALYSIS_BUILD)
-    set(SGP_DIRECTDRAW_SOURCE "C:/Projects/SGP/DirectDraw Calls.c")
-endif()
 
 add_library(WIZ8_SGP STATIC
     sgp.c
@@ -24,7 +18,7 @@ add_library(WIZ8_SGP STATIC
     "Cursor Control.c"
     "Button Sound Control.c"
     RegInst.c
-    "${SGP_DIRECTDRAW_SOURCE}"
+    "DirectDraw Calls.c"
     "DirectX Common.c"
     LibraryDataBase.c
     WizLibs.c

@@ -79,10 +79,6 @@ class ContainerBuild:
             image=VC6_PRODUCT_IMAGE,
             mounts=(
                 Mount(settings.repo_dir, "/repo"),
-                # VC6 embeds its source argument in __FILE__. Retail SGP used
-                # this path for DirectDraw Calls.c; the mount points at the
-                # same checked-in source, without copying or editing it.
-                Mount(settings.repo_dir / "src" / "sgp", "/root/.wine/drive_c/Projects/SGP"),
                 Mount(sources / "ijg-jpeg-6" / "jpeg-6", "/jpeg"),
                 Mount(sources / "zlib-1.0.4" / "zlib-1.0.4", "/zlib"),
                 Mount(sources / "infozip-unzip-5.4", "/infozip"),
