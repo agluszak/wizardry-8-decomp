@@ -244,7 +244,7 @@ static const ParmVarDecl* canonical_parameter(const ParmVarDecl* parameter)
 static bool is_candidate_variable(const ValueDecl* declaration)
 {
     if (declaration == nullptr || declaration->isImplicit() ||
-        !is_byte_type(declaration->getType())) {
+        (!is_byte_type(declaration->getType()) && fixed_byte_array(declaration) == nullptr)) {
         return false;
     }
     if (const auto* parameter = dyn_cast<ParmVarDecl>(declaration)) {
@@ -254,7 +254,7 @@ static bool is_candidate_variable(const ValueDecl* declaration)
         return !variable->getType()->isArrayType() && !variable->getType()->isReferenceType();
     }
     if (const auto* field = dyn_cast<FieldDecl>(declaration)) {
-        if (field->isBitField() || field->getType()->isArrayType()) {
+        if (field->isBitField() || (field->getType()->isArrayType() && fixed_byte_array(field) == nullptr)) {
             return false;
         }
         const auto* record = dyn_cast<RecordDecl>(field->getDeclContext());
@@ -355,7 +355,7 @@ public:
 
     void body(const std::string& function)
     {
-        emit({"B", function});
+        if (!function.empty()) emit({"B", function});
     }
 
     void support(const std::string& declaration_key, SourceLocation location)
@@ -572,6 +572,9 @@ public:
 
     bool VisitArraySubscriptExpr(ArraySubscriptExpr* subscript)
     {
+        if (array_owner(subscript->getBase()) != nullptr) {
+            understood_array_uses_.insert(subscript->getBase()->IgnoreParenImpCasts());
+        }
         numeric_use(subscript->getIdx(), subscript->getExprLoc());
         return true;
     }
@@ -591,13 +594,21 @@ public:
         } else if (unary->getOpcode() == UO_Minus || unary->getOpcode() == UO_Not) {
             numeric_use(unary->getSubExpr(), unary->getOperatorLoc());
         } else if (unary->getOpcode() == UO_AddrOf) {
-            escape_expression(unary->getSubExpr(), unary->getOperatorLoc());
+            if (understood_array_uses_.count(unary) == 0) {
+                escape_expression(unary->getSubExpr(), unary->getOperatorLoc());
+            }
         }
         return true;
     }
 
     bool VisitImplicitCastExpr(ImplicitCastExpr* cast)
     {
+        if (cast->getCastKind() == CK_ArrayToPointerDecay &&
+            understood_array_uses_.count(cast->getSubExpr()->IgnoreParenImpCasts()) == 0) {
+            if (const NamedDecl* owner = array_owner(cast->getSubExpr())) {
+                writer_.escape(owner, cast->getExprLoc());
+            }
+        }
         if (cast->getCastKind() == CK_IntegralToBoolean) {
             mark_support(cast->getSubExpr(), cast->getExprLoc());
         }
@@ -623,6 +634,24 @@ public:
             record_aggregate_byte_write(call->getArg(0), call->getArg(2), call->getExprLoc());
         }
 
+        const NamedDecl* cleared_array = nullptr;
+        if (function->getNameAsString() == "memset" && call->getNumArgs() == 3 &&
+            is_zero_or_one(call->getArg(1))) {
+            cleared_array = exact_array_fill(call->getArg(0), call->getArg(2));
+            if (cleared_array != nullptr) {
+                declare_candidate(cleared_array);
+                writer_.write_direct(cleared_array, call->getExprLoc());
+                const Expr* destination = call->getArg(0)->IgnoreParenImpCasts();
+                understood_array_uses_.insert(destination);
+                if (const auto* address = dyn_cast<UnaryOperator>(destination)) {
+                    destination = address->getSubExpr()->IgnoreParenImpCasts();
+                }
+                if (const auto* element = dyn_cast<ArraySubscriptExpr>(destination)) {
+                    destination = element->getBase()->IgnoreParenImpCasts();
+                }
+                understood_array_uses_.insert(destination);
+            }
+        }
         const unsigned count = std::min(call->getNumArgs(), function->getNumParams());
         for (unsigned index = 0; index < count; ++index) {
             const QualType parameter_type = function->getParamDecl(index)->getType();
@@ -644,7 +673,7 @@ public:
                 call->getNumArgs() >= 3 && is_zero_or_one(call->getArg(1)) &&
                 exact_memset_record(argument, call->getArg(2)) != nullptr;
             const bool typed_record_copy = index == 0 && is_record_copy(function, call);
-            if (known_memset || typed_record_copy) {
+            if (known_memset || typed_record_copy || (index == 0 && cleared_array != nullptr)) {
             } else if (is_mutable_raw_indirection(parameter_type)) {
                 escape_record(argument->IgnoreParenCasts()->getType(),
                               argument->getExprLoc());
@@ -724,11 +753,14 @@ private:
         return !destination.isNull() && destination == pointee_record(call->getArg(1));
     }
 
-    static std::string function_identity(const FunctionDecl* function)
+    std::string function_identity(const FunctionDecl* function) const
     {
         function = function->getCanonicalDecl();
-        return function->getQualifiedNameAsString() + "/" +
-            std::to_string(function->getNumParams());
+        const SourcePoint point = source_point(
+            function->getASTContext().getSourceManager(), function->getLocation());
+        if (!point) return {};
+        return point.file + ":" + std::to_string(point.line) + ":" +
+            std::to_string(point.column) + ":" + function->getQualifiedNameAsString();
     }
 
     void escape_record(QualType type, SourceLocation location, const std::string& callee = "")
@@ -830,6 +862,38 @@ private:
         }
     }
 
+    const NamedDecl* array_owner(const Expr* expression) const
+    {
+        if (expression == nullptr) return nullptr;
+        expression = expression->IgnoreParenImpCasts();
+        if (const auto* member = dyn_cast<MemberExpr>(expression)) {
+            const auto* field = dyn_cast<FieldDecl>(member->getMemberDecl());
+            if (fixed_byte_array(field) != nullptr) return canonical_candidate(field);
+        }
+        return nullptr;
+    }
+
+    const NamedDecl* exact_array_fill(const Expr* destination, const Expr* size) const
+    {
+        destination = destination->IgnoreParenImpCasts();
+        if (const auto* address = dyn_cast<UnaryOperator>(destination)) {
+            if (address->getOpcode() != UO_AddrOf) return nullptr;
+            destination = address->getSubExpr()->IgnoreParenImpCasts();
+            if (const auto* element = dyn_cast<ArraySubscriptExpr>(destination)) {
+                const auto* index = dyn_cast<IntegerLiteral>(element->getIdx()->IgnoreParenImpCasts());
+                if (index == nullptr || !index->getValue().isZero()) return nullptr;
+                destination = element->getBase();
+            }
+        }
+        const NamedDecl* owner = array_owner(destination);
+        if (owner == nullptr) return nullptr;
+        Expr::EvalResult extent;
+        if (!size->EvaluateAsInt(extent, owner->getASTContext())) return nullptr;
+        return !extent.Val.getInt().isNegative() &&
+            extent.Val.getInt().getLimitedValue() == fixed_byte_array(owner)->getSize().getLimitedValue()
+            ? owner : nullptr;
+    }
+
     const NamedDecl* resolve_candidate(const Expr* expression) const
     {
         if (expression == nullptr) {
@@ -840,7 +904,11 @@ private:
             return canonical_candidate(dyn_cast<NamedDecl>(reference->getDecl()));
         }
         if (const auto* member = dyn_cast<MemberExpr>(expression)) {
+            if (fixed_byte_array(dyn_cast<NamedDecl>(member->getMemberDecl())) != nullptr) return nullptr;
             return canonical_candidate(dyn_cast<NamedDecl>(member->getMemberDecl()));
+        }
+        if (const auto* element = dyn_cast<ArraySubscriptExpr>(expression)) {
+            return array_owner(element->getBase());
         }
         return nullptr;
     }
@@ -956,7 +1024,9 @@ private:
 
     void escape_expression(const Expr* expression, SourceLocation location)
     {
-        if (const NamedDecl* declaration = resolve_candidate(expression)) {
+        const NamedDecl* declaration = resolve_candidate(expression);
+        if (declaration == nullptr) declaration = array_owner(expression);
+        if (declaration != nullptr) {
             writer_.escape(declaration, location);
         }
     }
@@ -1003,6 +1073,7 @@ private:
     BoolDomainWriter& writer_;
     FunctionDecl* current_function_ = nullptr;
     llvm::SmallPtrSet<const DeclRefExpr*, 32> direct_callees_;
+    llvm::SmallPtrSet<const Expr*, 32> understood_array_uses_;
 };
 
 class BoolLikeByteCheck final : public ClangTidyCheck {

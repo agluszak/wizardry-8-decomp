@@ -812,7 +812,7 @@ def run_trace(
     script = sandbox.game_dir.parent / f"trace-{scenario}-{selected_port}.gdb"
     script.write_text(gdb_script(points, selected_port, actions=actions), encoding="utf-8")
 
-    output, _ = _capture(
+    output, returncode = _capture(
         sandbox, executable, script, selected_port, seconds, tuple(launch_arguments)
     )
 
@@ -833,6 +833,8 @@ def run_trace(
         ],
         "state": parse_state(output),
         "started": READY in output,
+        "capture_returncode": returncode,
+        "timed_out": returncode is None,
         "provenance": provenance,
     }
 

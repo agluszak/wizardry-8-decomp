@@ -134,7 +134,7 @@ struct W8MonsterManagerEntry {
     bool condition_19_latch;
     /* 0x0ea: per-skill "increased" notice flags posted by PracticeCharacterSkill
        and drained into W8_NPC_MSG_SKILL_NOTICES message lines. */
-    unsigned char skill_notice_pending[W8_SKILL_COUNT];
+    bool skill_notice_pending[W8_SKILL_COUNT];
     /* 0x113: set around SwapItemInstances so the autoswap-weapons check does
        not fire on the intermediate item states. */
     bool item_swap_in_progress;

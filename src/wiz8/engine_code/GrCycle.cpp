@@ -68,7 +68,7 @@ const float g_float_005ecf98 = 0.02500000037252903f;
 // GLOBAL: WIZ8 0x005ecf9c
 const float g_float_005ecf9c = 250.0f;
 // GLOBAL: WIZ8 0x0060da88
-static bool g_flag_0060da88 = true;
+static bool g_camera_shake_enabled = true;
 // GLOBAL: WIZ8 0x0065be2c
 W8Vector<W8CameraShakeEffect*>* g_shake_effects;
 // GLOBAL: WIZ8 0x0065be30
@@ -185,7 +185,7 @@ void StopShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects)
 // FUNCTION: WIZ8 0x004ae310
 void UpdateShakeEffects()
 {
-    if (g_flag_0060da88 == 0 || g_shake_effects == 0 ||
+    if (g_camera_shake_enabled == 0 || g_shake_effects == 0 ||
         g_shake_timer->GetProgress() < g_float_005ebb38) {
         return;
     }
