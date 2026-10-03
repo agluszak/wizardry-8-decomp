@@ -435,14 +435,11 @@ def test_changed_comparison_reports_template_non_emission_without_hiding_functio
     function = _row(0x402000, "unpaired")
     function["recomp"] = None
     _fake_reccmp(monkeypatch, [template, function])
+    from wiz8decomp.emissions import Emission
+
     monkeypatch.setattr(
-        "wiz8decomp.source_index.load_source_index",
-        lambda *_args: {
-            "markers": [
-                {"target": "WIZ8", "marker_kind": "TEMPLATE", "address": 0x401000},
-                {"target": "WIZ8", "marker_kind": "FUNCTION", "address": 0x402000},
-            ]
-        },
+        "wiz8decomp.emissions.emission_inventory",
+        lambda *_args: [Emission("WIZ8", 0x401000, "", "Grow<int>", "template")],
     )
 
     result = compare_selected(
@@ -662,3 +659,29 @@ def test_internal_non_emission_requires_current_definition_and_absent_pdb_symbol
     )
     assert result["functions"][0]["outcome"] == expected
     assert result["ok"] == (expected == "internal-non-emission")
+
+
+def test_comparison_bootstraps_cleaned_generated_metadata(tmp_path, monkeypatch):
+    from wiz8decomp.emissions import INVENTORY, OUTPUT
+
+    inventory = tmp_path / INVENTORY
+    inventory.parent.mkdir(parents=True)
+    inventory.write_text(
+        "target|address|symbol|name|type|source_files\n"
+        "WIZ8|00401000||Vector<int>::Grow|template|include/wiz8/vector.h\n"
+    )
+    (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
+    product = tmp_path / "build/decomp/Wiz8.exe"
+    product.parent.mkdir(parents=True)
+    product.write_bytes(b"exe")
+    pdb = product.with_suffix(".pdb")
+    pdb.write_bytes(b"pdb")
+    target = SimpleNamespace(recompiled_path=product, recompiled_pdb=pdb)
+
+    def load_project(_repository):
+        output = tmp_path / OUTPUT / "wiz8-emissions.csv"
+        assert "Vector<int>::Grow" in output.read_text()
+        return SimpleNamespace(get=lambda _target: target)
+
+    monkeypatch.setattr(comparison, "_project", load_project)
+    assert comparison.comparison_target(tmp_path, "WIZ8") is target

@@ -33,8 +33,6 @@ W8MessageDialogBase::W8MessageDialogBase()
 
 /* A virtual called from a destructor has a fixed dynamic type, so the
    compiler dispatches it directly; that direct call is slot 2. */
-// SYNTHETIC: WIZ8 0x005d25f0
-// W8MessageDialogBase::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005d2610
 W8MessageDialogBase::~W8MessageDialogBase()

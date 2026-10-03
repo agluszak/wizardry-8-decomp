@@ -425,9 +425,3 @@ void srDebugDD::increaseCallTime(e_command command, double time)
 {
     call_times_18[command] += time;
 }
-
-// SYNTHETIC: SURRENDER 0x100178A0
-// srDebugDD scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x100178C0
-// srDebugDD::`vector deleting destructor'

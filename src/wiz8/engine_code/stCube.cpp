@@ -77,13 +77,8 @@ static int g_cursor_node_index = -1;
 // GLOBAL: WIZ8 0x005ebf50
 const double g_world_cursor_scale = 0.002;
 
-// SYNTHETIC: WIZ8 0x0048F260
-// W8WorldCursorNode::`scalar deleting destructor'
-
 /* 0x0048D070 is a bare JMP to CreateWorldCursorCube: a tail-jump thunk
    with no distinct source entity. */
-// SYNTHETIC: WIZ8 0x0048D070
-// CreateWorldCursorCube (tail-jump thunk)
 
 /* Build the numbered cube the world cursor table holds: a 500-unit modeller
    cube, a translucent white material, and a 32x32 texture the label painter

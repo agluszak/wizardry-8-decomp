@@ -1253,10 +1253,6 @@ void RebuildAllWorldItemInstances(void)
     }
 }
 
-// TEMPLATE: WIZ8 0x004F9580
-// NAME: W8GrowableVector<T>::W8GrowableVector
-// RECOMP: W8GrowableVector<W8WorldItem*>::W8GrowableVector
-
 // FUNCTION: WIZ8 0x004f6b90
 W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* position,
                              int entity_flags, bool add_to_world)

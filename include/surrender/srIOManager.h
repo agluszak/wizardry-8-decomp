@@ -25,10 +25,6 @@ public:
 
     /* Provider copy/assignment contain memberwise copies of the two typed
        registration lists. Consumers retain the imported declarations. */
-    // SYNTHETIC: SURRENDER 0x1002CD90
-    // srIOManager::srIOManager(const srIOManager&)
-    // SYNTHETIC: SURRENDER 0x1002CDD0
-    // srIOManager::operator=
 
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srIOManager(const srIOManager& manager);
@@ -103,8 +99,6 @@ public:
     SR_DLL_IMPORT const char* getDescription();
 
     /* The emitted body is consistent with memberwise assignment. */
-    // SYNTHETIC: SURRENDER 0x1002CC70
-    // ??4Error@srIOManager@@QAEAAV01@ABV01@@Z
 
 private:
     const char* description_00;
@@ -118,8 +112,6 @@ class
 #endif
     __declspec(novtable) srIOManager::Importer {
 public:
-    // SYNTHETIC: SURRENDER 0x1002CC80
-    // srIOManager::Importer::Importer()
 
     virtual const char* getTypeName() const = 0;
 
@@ -128,10 +120,6 @@ public:
     virtual ~Importer() {}
 
     /* The emitted bodies are consistent with ordinary memberwise copying. */
-    // SYNTHETIC: SURRENDER 0x1002CC90
-    // ??0Importer@srIOManager@@QAE@ABV01@@Z
-    // SYNTHETIC: SURRENDER 0x1002CCA0
-    // ??4Importer@srIOManager@@QAEAAV01@ABV01@@Z
 
 protected:
     SR_DLL_IMPORT void addToImporters(srIOManager* manager, const char* extension);
@@ -148,8 +136,6 @@ class
 #endif
     __declspec(novtable) srIOManager::Exporter {
 public:
-    // SYNTHETIC: SURRENDER 0x1002CCB0
-    // srIOManager::Exporter::Exporter()
 
     virtual const char* getTypeName() const = 0;
 
@@ -158,10 +144,6 @@ public:
     virtual ~Exporter() {}
 
     /* The emitted bodies are consistent with ordinary memberwise copying. */
-    // SYNTHETIC: SURRENDER 0x1002CD70
-    // ??0Exporter@srIOManager@@QAE@ABV01@@Z
-    // SYNTHETIC: SURRENDER 0x1002CD80
-    // ??4Exporter@srIOManager@@QAEAAV01@ABV01@@Z
 
 protected:
     SR_DLL_IMPORT void addToExporters(srIOManager* manager, const char* extension);

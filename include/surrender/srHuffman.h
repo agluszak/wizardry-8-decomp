@@ -96,8 +96,6 @@ public:
         SR_DLL_IMPORT Sampler();
         /* Provider teardown is consistent with hash/array destruction. Wiz8
            imports the standalone destructor, so only the consumer declares it. */
-        // SYNTHETIC: SURRENDER 0x100016F0
-        // srHuffman::Sampler::~Sampler
 
 #if !defined(SURRENDER_BUILD)
         SR_DLL_IMPORT ~Sampler();
@@ -131,8 +129,6 @@ public:
         SR_DLL_IMPORT Compressor(const Sampler& sampler);
         SR_DLL_IMPORT ~Compressor();
         /* The assignment body contains a 0x28-byte memberwise copy. */
-        // SYNTHETIC: SURRENDER 0x10001740
-        // srHuffman::Compressor::operator=
 
         SR_DLL_IMPORT void storeSymbolTable(BitOStream& stream);
         SR_DLL_IMPORT void buildSymbolTree();

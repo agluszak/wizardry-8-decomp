@@ -514,8 +514,28 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("smoke")(smoke_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
+    analyze_app.command("emissions")(emissions_command)
     analyze_app.command("decompiler-quality")(decompiler_quality_command)
     analyze_app.command("parameter-id")(parameter_id_command)
+
+
+def emissions_command(
+    derive: Annotated[
+        bool, typer.Option(help="Resolve linker symbols through the built PDB/reccmp catalog.")
+    ] = False,
+    target: Annotated[str | None, typer.Option(help="Generate one configured target.")] = None,
+) -> None:
+    """Generate compiler/template emission CSVs outside authored source."""
+    from .. import command_support as cli
+    from ..emissions import generate_emissions
+
+    cli.emit(
+        generate_emissions(
+            cli.settings().repo_dir,
+            derive=derive,
+            targets=(target.upper(),) if target else None,
+        )
+    )
 
 
 def source_index_command(

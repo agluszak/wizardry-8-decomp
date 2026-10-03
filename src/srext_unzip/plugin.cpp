@@ -379,9 +379,6 @@ const char* srUnzipPlugin::getDescription() const
     return "SurRender unzip plug-in";
 }
 
-// SYNTHETIC: SREXT_UNZIP 0x10011240
-// srZipOpener::~srZipOpener
-
 // FUNCTION: SREXT_UNZIP 0x100112A0
 srUnzipPlugin::~srUnzipPlugin()
 {

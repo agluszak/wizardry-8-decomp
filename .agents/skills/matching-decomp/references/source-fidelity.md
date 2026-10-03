@@ -71,7 +71,7 @@ Source and translation-unit ownership rules belong to the
   type-sensitive evidence: typed producer/consumer operations, element lifetimes, `sizeof(T)`-dependent
   behavior, overload selection, dereference semantics, or accepted original symbols/oracles.
   Never add casts or weaken a natural typed model solely to agree with an ABI-equivalent template-emission
-  label. A `TEMPLATE` marker records the retained emission family/address; its prose should remain
+  label. A binary emission inventory entry records the retained family/address; its name should remain
   noncommittal when the arguments are not independently established. It never proves an explicit
   specialization or explicit instantiation. Likewise an inlined copy does not prove manual inlining,
   a deleting destructor does not prove a handwritten wrapper, and folded functions do not prove aliases.
@@ -115,13 +115,13 @@ Source and translation-unit ownership rules belong to the
   static import in that consumer, not that an export is unreachable.
 - A vtable, lifecycle body, deleting destructor, address or template emission alone does not prove an
   authored class. Compare canonical bases/templates first. Compiler-generated deleting destructors,
-  vtordisp/adjustor thunks and other compiler helpers are marker-only `SYNTHETIC`; template
-  instantiations are `TEMPLATE`, never `FUNCTION`. `SYNTHETIC` and `LIBRARY` markers are
-  marker-only; generic template implementations remain at their canonical template owner. A
+  vtordisp/adjustor thunks and template instantiations belong in generated reccmp metadata,
+  never `SYNTHETIC`/`TEMPLATE` source markers or invented `FUNCTION` bodies. `LIBRARY`
+  markers remain marker-only; generic template implementations stay at their canonical owner. A
   compiler-emission TU contains provenance only, not handwritten function/global definitions.
 - Matching markers bind to the following source entity. Keep `// FUNCTION:` immediately adjacent to
   its declaration/definition; move pragmas/unrelated comments above the marker. Follow the matching
-  skill for `TEMPLATE`, `SYNTHETIC`, `LIBRARY`, `VTABLE` and `GLOBAL` ownership.
+  skill for binary emission metadata and `LIBRARY`, `VTABLE` and `GLOBAL` ownership.
 - Preserve TU ownership/order in `src/wiz8/sources.cmake`. Recover placement before optimizer control:
   ordinary functions stay unannotated; header visibility/inlining requires cross-TU/call-site evidence.
   The comparison build intentionally uses `/OPT:NOICF`; an ICF-derived call-target or vtable difference

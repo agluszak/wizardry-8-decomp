@@ -175,15 +175,3 @@ srExtension* srExtension::load(const char* name, const char* path)
     srDebugPrintf(5, "srExtension::load() -- SurRender extension '%s' initialized.\n", extension->getName());
     return extension;
 }
-
-// SYNTHETIC: SURRENDER 0x10013CE0
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x10013CF0
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10013D20
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x10013D30
-// std::_Winit global atexit registrar

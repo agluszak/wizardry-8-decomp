@@ -26,10 +26,6 @@ public:
     virtual unsigned long vread(void* destination, unsigned long size) override;
 
     /* The emitted copy body is consistent with memberwise copying. */
-    // SYNTHETIC: SURRENDER 0x1002EDC0
-    // ??0srBinIAsyncStream@@QAE@ABV0@@Z
-    // SYNTHETIC: SURRENDER 0x1002EE70
-    // srBinIAsyncStream::`vbase destructor'
 
 private:
     unsigned char* buffer_08;

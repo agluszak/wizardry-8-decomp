@@ -582,7 +582,7 @@ def _iat_thunk_violations(repo_dir: Path, index: Mapping[str, Any]) -> list[dict
                 "line": int(marker.get("line") or 0),
                 "detail": (
                     f"{source_file}:{marker.get('line')}: {kind} {_format_address(address)} "
-                    "is a six-byte import thunk (jmp [iat]); mark SYNTHETIC or leave unmarked"
+                    "is a six-byte import thunk (jmp [iat]); record in emission metadata or leave unmarked"
                 ),
             }
         )

@@ -57,16 +57,23 @@ def addresses_from_files(
     selected = {
         str((path if path.is_absolute() else repository / path).resolve()) for path in paths
     }
-    return [
+    addresses = {
         int(marker["address"])
         for marker in load_source_index(repository)["markers"]
-        if (
-            marker["marker_kind"] == "FUNCTION"
-            or (include_templates and marker["marker_kind"] == "TEMPLATE")
-        )
+        if marker["marker_kind"] == "FUNCTION"
         and marker["target"].upper() == target.upper()
         and str((repository / marker["source_file"]).resolve()) in selected
-    ]
+    }
+    if include_templates:
+        from .emissions import emission_inventory
+
+        addresses.update(
+            row.address
+            for row in emission_inventory(repository, target)
+            if row.type == "template"
+            and any(str((repository / path).resolve()) in selected for path in row.source_files)
+        )
+    return sorted(addresses)
 
 
 def all_source_addresses(repository: Path, target: str) -> list[int]:
@@ -163,9 +170,16 @@ def header_dependent_files(settings: Settings, target: str, changed: Iterable[Pa
     marker_files = {
         marker["source_file"]
         for marker in index["markers"]
-        if marker["target"].upper() == target.upper()
-        and marker["marker_kind"] in {"FUNCTION", "TEMPLATE"}
+        if marker["target"].upper() == target.upper() and marker["marker_kind"] == "FUNCTION"
     }
+    from .emissions import emission_inventory
+
+    marker_files.update(
+        path
+        for row in emission_inventory(repository, target)
+        if row.type == "template"
+        for path in row.source_files
+    )
     affected: set[str] = set()
     for unit in dependencies:
         source = str(unit.get("source_file") or "")
@@ -261,9 +275,18 @@ def _project(repository: Path) -> RecCmpProject:
     return RecCmpProject.from_directory(repository / "build" / "decomp")
 
 
-def comparison_target(repository: Path, target: str) -> RecCmpTarget:
-    """Load a configured target and require both comparison products."""
+def comparison_target(
+    repository: Path, target: str, *, bootstrap_emissions: bool = True
+) -> RecCmpTarget:
+    """Bootstrap binary metadata, then require both comparison products.
 
+    The emission writer stages its own baseline and disables bootstrapping so
+    failed explicit derivation cannot overwrite previously generated metadata.
+    """
+    if bootstrap_emissions:
+        from .emissions import generate_emissions
+
+        generate_emissions(repository)
     from .source_index import project_targets
 
     filename = Path(project_targets(repository)[target.upper()]["filename"])
@@ -522,12 +545,10 @@ def compare_selected(
                 if marker.declaration is not None and marker.declaration.semantic_id not in symbols
             }
     if classify_template_emissions and unlinked_addresses:
-        from .source_index import load_source_index
+        from .emissions import emission_inventory
 
         template_addresses = {
-            int(marker["address"])
-            for marker in load_source_index(repository)["markers"]
-            if marker["target"].upper() == target.upper() and marker["marker_kind"] == "TEMPLATE"
+            row.address for row in emission_inventory(repository, target) if row.type == "template"
         }
         template_emissions = {
             address

@@ -1277,10 +1277,6 @@ public:
                         text_54, text_50, text_58)
     {
     }
-    // SYNTHETIC: WIZ8 0x005b7c20
-    // W8CampInfoLabel::`scalar deleting destructor'
-    // SYNTHETIC: WIZ8 0x005b7c40
-    // W8CampInfoLabel::~W8CampInfoLabel
 
     virtual void OnMouseEnter(int event) override;
     virtual void OnLeftButtonDown(int event) override;

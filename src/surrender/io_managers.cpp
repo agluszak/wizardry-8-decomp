@@ -189,9 +189,6 @@ void srIOManager::removeImporter(Importer* importer)
     } while (true);
 }
 
-// SYNTHETIC: SURRENDER 0x1002D030
-// srIOManager::`vector deleting destructor'
-
 // FUNCTION: SURRENDER 0x1002D090
 void srIOManager::removeExporter(Exporter* exporter)
 {
@@ -547,59 +544,3 @@ void srSurfaceIOManager::exportSurface(const char* path, srBinOStream& stream,
 
 /* The IO-manager units emit the deleting-destructor wrappers and the
    material class-support registrations they reference. */
-// SYNTHETIC: SURRENDER 0x100165C0
-// srHierarchyIOManager scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x100165E0
-// srHierarchyIOManager::`vector deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10016640
-// srHierarchyIOManager::HierarchyImporter scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x100166C0
-// srHierarchyIOManager::HierarchyExporter scalar deleting destructor
-
-// TEMPLATE: SURRENDER 0x10016740
-// srClassSupport<srMaterialIFace, srClass, true, 0x2200>::srClassSupport
-
-// TEMPLATE: SURRENDER 0x100167D0
-// srClassSupport<srMaterial, srMaterialIFace, false, 0x2210>::sGetClassNode
-
-// SYNTHETIC: SURRENDER 0x10016830
-// srFStreamOpener scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x10016860
-// srMaterial::`scalar deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10016AD0
-// srModelIOManager scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x10016AF0
-// srModelIOManager::`vector deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10016B50
-// ModelImporter scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x10016BD0
-// ModelExporter scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x1002D010
-// srIOManager scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x1002D2A0
-// member destructor emission (EH unwind)
-
-// SYNTHETIC: SURRENDER 0x1002D3D0
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x1002D3E0
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1002D410
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x1002D420
-// std::_Winit global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1002D660
-// vtordisp deleting-destructor funclet emission

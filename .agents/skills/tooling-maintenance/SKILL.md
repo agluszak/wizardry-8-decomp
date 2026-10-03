@@ -23,7 +23,10 @@ inventory, runtime harness, generic query language or parallel report framework.
 
 Observation commands (`compare`, `report compare`, `addr`, `vtable`, `datacmp`,
 Ghidra reads) should consume existing state and must not silently rebuild/mutate it unless an explicit
-`--build`/apply operation requests that.
+`--build`/apply operation requests that. Cheap compiler-emission CSV bootstrapping
+is automatic before catalog reads: it restores missing/outdated generated metadata
+from the committed inventory without compiling, collecting an index or deriving
+PDB identities. PDB enrichment remains an explicit analysis operation.
 
 ## Current-stage mismatch tooling
 

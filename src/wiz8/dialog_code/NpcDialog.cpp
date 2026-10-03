@@ -84,9 +84,6 @@ W8NpcDialog::W8NpcDialog(W8NpcQuoteEntry* message, int aux_data)
     SetExtent(width, height);
 }
 
-// SYNTHETIC: WIZ8 0x005da840
-// W8NpcDialog::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005DA860
 W8NpcDialog::~W8NpcDialog()
 {

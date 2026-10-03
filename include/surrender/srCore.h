@@ -32,8 +32,6 @@ class
 public:
     SR_DLL_IMPORT srCore();
     /* The exported assignment is consistent with whole-object memberwise copying. */
-    // SYNTHETIC: SURRENDER 0x10015740
-    // srCore::operator=
 
     SR_DLL_IMPORT void dump(std::ostream& stream);
     SR_DLL_IMPORT const char* getBuildTime() const;

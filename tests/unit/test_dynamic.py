@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from reccmp.source.records import SourceMarker
 from wiz8decomp.binary.linker_map import LinkerMap, MapSymbol
 from wiz8decomp.debug.session import allocate_port
 from wiz8decomp.dynamic import (
@@ -106,7 +105,8 @@ def test_rebase_reports_points_the_rebuilt_image_lacks() -> None:
     assert dropped == ["LoadGame"]
 
 
-def test_rebase_resolves_a_point_by_its_canonical_name() -> None:
+def test_rebase_resolves_a_point_by_its_canonical_name(monkeypatch) -> None:
+    monkeypatch.setattr("wiz8decomp.source_index.source_functions", lambda *_: {})
     # Marker-emitted functions have no declaration to decorate, and the
     # linker may keep another unit's instantiation: the comparison is by
     # name, so a unique map symbol with the same canonical name resolves the
@@ -135,7 +135,8 @@ def test_rebase_resolves_a_point_by_its_canonical_name() -> None:
     assert rebased[0].address == "004ad420"
 
 
-def test_an_ambiguous_canonical_name_stays_dropped() -> None:
+def test_an_ambiguous_canonical_name_stays_dropped(monkeypatch) -> None:
+    monkeypatch.setattr("wiz8decomp.source_index.source_functions", lambda *_: {})
     # Two emissions with the same name could bind the wrong one; inconclusive
     # is honest where an arbitrary pick would silently watch the wrong code.
     grow = next(
@@ -166,17 +167,20 @@ def test_an_ambiguous_canonical_name_stays_dropped() -> None:
 def test_rebase_uses_a_decorated_selector_without_changing_display_metadata(
     monkeypatch: pytest.MonkeyPatch, candidate_count: int
 ) -> None:
-    marker = SourceMarker(
-        address=0x1000,
-        marker_kind="TEMPLATE",
-        source_file="src/wiz8/local_code/LoadSaveGame.cpp",
-        line=1,
-        declaration=None,
-        marker_name="Vec<T>::Grow",
-        recomp_selector="?Grow@?$Vec@H@@QAEHH@Z",
-        selector_is_symbol=True,
+    from wiz8decomp.emissions import Emission
+
+    emission = Emission(
+        "WIZ8",
+        0x1000,
+        "",
+        "Vec<T>::Grow",
+        "template",
+        ("src/wiz8/local_code/LoadSaveGame.cpp",),
+        "?Grow@?$Vec@H@@QAEHH@Z",
+        True,
     )
-    monkeypatch.setattr("wiz8decomp.source_index.source_functions", lambda *_: {0x1000: marker})
+    monkeypatch.setattr("wiz8decomp.source_index.source_functions", lambda *_: {})
+    monkeypatch.setattr("wiz8decomp.dynamic.emission_inventory", lambda *_: [emission])
     points = load_points(REPOSITORY)
     assert points[0].name == "Vec<int>::Grow"
     symbols = [
@@ -193,7 +197,7 @@ def test_rebase_uses_a_decorated_selector_without_changing_display_metadata(
     rebased, dropped = rebase_plan(
         REPOSITORY, points, LinkerMap(symbols=symbols, sections=[], source_lines=[])
     )
-    assert marker.marker_name == "Vec<T>::Grow"
+    assert emission.name == "Vec<T>::Grow"
     if candidate_count == 1:
         assert rebased[0].address == "004ad420"
         assert dropped == []

@@ -167,17 +167,6 @@ unsigned char LoadPathParameters();
 
 /* The path-search heap specialization is emitted after OctPath.cpp's ordinary
    bodies. The generic definitions live once in stHeap.hpp. */
-// TEMPLATE: WIZ8 0x004673b0
-// srMatrix3T<float>::Transform (return-by-value emission)
-
-// TEMPLATE: WIZ8 0x004675B0
-// stHeap<W8PathHeapEntry>::Insert
-
-// TEMPLATE: WIZ8 0x00467910
-// stHeap<W8PathHeapEntry>::SiftDown
-
-// TEMPLATE: WIZ8 0x00467990
-// stHeap<W8PathHeapEntry>::SiftUp
 
 /* Advance the search queue and mark the node that was just expanded. The
    generic heap delete is visible here as the assertion and sift-down sequence
@@ -7022,5 +7011,3 @@ unsigned char LoadPathParameters()
 
 /* Second emission of the float RotateAboutY; the primary template lives in
    srMath.h and surrender_math.cpp holds the 0x438F90 copy. */
-// TEMPLATE: WIZ8 0x00467430
-// srMatrix3T<float>::RotateAboutY

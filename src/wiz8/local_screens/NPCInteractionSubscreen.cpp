@@ -138,11 +138,6 @@
 static W8NpcInteractionState g_npc_interaction_storage;
 /* The global object's implicit constructor and destructor; 0x0056B930 is the
    retail static initializer that runs the former and registers the latter. */
-// SYNTHETIC: WIZ8 0x0056b960
-// W8NpcInteractionState::~W8NpcInteractionState
-
-// SYNTHETIC: WIZ8 0x0056b9a0
-// W8NpcInteractionState::W8NpcInteractionState
 
 // GLOBAL: WIZ8 0x00649f1c
 W8NpcInteractionState* g_npc_interaction_state = &g_npc_interaction_storage;
@@ -5212,39 +5207,3 @@ bool ProcessPendingEvent(void)
 
 // VTABLE: WIZ8 0x005eea00
 // class W8GrowableVector<W8GrowableVector<unsigned short*>*>
-
-// TEMPLATE: WIZ8 0x00577a80
-// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
-// RECOMP: W8GrowableVector<W8DialogueTranscriptRecord*>::~W8GrowableVector<W8DialogueTranscriptRecord*>
-
-// SYNTHETIC: WIZ8 0x00577aa0
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<unsigned short*>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00577ad0
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<W8DialogueTranscriptRecord*>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00577b00
-// NAME: W8Vector<T>::`scalar deleting destructor'
-// RECOMP: W8Vector<W8DialogueTranscriptRecord*>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00577b20
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<W8PendingNoticeLine*>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00577b50
-// NAME: W8Vector<T>::`scalar deleting destructor'
-// RECOMP: W8Vector<W8PendingNoticeLine*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00577b70
-// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
-// RECOMP: W8GrowableVector<W8PendingNoticeLine*>::~W8GrowableVector<W8PendingNoticeLine*>
-
-// SYNTHETIC: WIZ8 0x00577b90
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<W8GrowableVector<W8GrowableVector<unsigned short*>*>*>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00577bc0
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<W8GrowableVector<unsigned short*>*>::`scalar deleting destructor'

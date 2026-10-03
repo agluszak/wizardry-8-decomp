@@ -98,14 +98,6 @@ public:
 
     /* No state beyond srClassSupport is modeled; lifecycle bodies are consistent
        with ordinary base-only operations. */
-    // SYNTHETIC: SURRENDER 0x1005F5E0
-    // srTextureIFace::srTextureIFace()
-    // SYNTHETIC: SURRENDER 0x1005F660
-    // srTextureIFace::srTextureIFace(const srTextureIFace&)
-    // SYNTHETIC: SURRENDER 0x1005F5C0
-    // srTextureIFace::operator=
-    // SYNTHETIC: SURRENDER 0x1005F3E0
-    // srTextureIFace::~srTextureIFace
 
     /* Slot 8. Slot 6 is srClass::vInstance; slot 7 is clone. srTextureFile's
        17-slot vftable (0 through 16) is this interface exactly. */

@@ -11,8 +11,6 @@
 // VTABLE: SURRENDER 0x100776B0 srVP_generic
 class srVP_generic : public srVP {
 public:
-    // SYNTHETIC: SURRENDER 0x100658B0
-    // srVP_generic::`scalar deleting destructor'
 
     virtual const char* getName() override;
 

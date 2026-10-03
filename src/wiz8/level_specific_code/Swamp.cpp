@@ -92,8 +92,6 @@ bool SwampFirePlane(Trigger* pTrigger)
 /* 0x004DAA8A is a split entry Ghidra carved out of this body: it resumes at
    the SetFact call after the fact-0x16d early return, not a separate
    authored function. */
-// SYNTHETIC: WIZ8 0x004DAA8A
-// SwampGasFireSpawn post-guard continuation
 // FUNCTION: WIZ8 0x004DAA70
 static bool SwampGasFireSpawn(Trigger* pTrigger)
 {

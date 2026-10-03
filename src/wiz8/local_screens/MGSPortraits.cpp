@@ -1316,12 +1316,6 @@ void CreateLevelButtons(void)
     } while (control < g_portrait_controls + 8);
 }
 
-// SYNTHETIC: WIZ8 0x005991A0
-// W8ConditionButton::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005991C0
-// W8ConditionButton::~W8ConditionButton
-
 // FUNCTION: WIZ8 0x00599210
 void W8ConditionButton::Redraw(unsigned char full_redraw)
 {

@@ -85,8 +85,6 @@ void DetachWorldItemMeshes(W8World* world)
 }
 
 /* Five-byte tail-jump thunk to GameData.cpp's GetCameraYawRadians. */
-// SYNTHETIC: WIZ8 0x0046e490
-// GetCameraYawRadians
 
 /* Remove every light held in one world's list, drop it from the render update
    set, and release it. */
@@ -1148,11 +1146,6 @@ bool BoundsInsideFrustum(const W8OctRegionVolume* volume, const W8BoundingBox* b
 
 /* Scalar-delete array teardown shared by the Sampler symbol array and other
    folded array instantiations. The primary template lives in srArray.h. */
-// TEMPLATE: WIZ8 0x004701b0
-// NAME: srArray<T>::release
-// RECOMP: srArray<T>::release
 
 /* srMatrix4T<float>::Set emitted for this TU (BakeInstanceVertexLighting's
    transform builds); the primary template lives in srMath.h. */
-// TEMPLATE: WIZ8 0x00470200
-// srMatrix4T<float>::Set

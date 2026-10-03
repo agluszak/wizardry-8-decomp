@@ -25,18 +25,6 @@ extern const unsigned int g_W8DialogTextAreaAlignCenter = 0x02;
 // GLOBAL: WIZ8 0x005EF890
 extern const unsigned int g_W8DialogTextAreaAlignRight = 0x04;
 
-// SYNTHETIC: WIZ8 0x005d2560
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<W8DialogTextEntry*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x005d2540
-// NAME: W8Vector<T>::~W8Vector<T>
-// RECOMP: W8Vector<W8DialogTextEntry*>::~W8Vector<W8DialogTextEntry*>
-
-// SYNTHETIC: WIZ8 0x005d2590
-// NAME: W8Vector<T>::`scalar deleting destructor'
-// RECOMP: W8Vector<W8DialogTextEntry*>::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005d1ab0
 void W8DialogTextArea::SetFirstVisibleEntry(unsigned int index)
 {

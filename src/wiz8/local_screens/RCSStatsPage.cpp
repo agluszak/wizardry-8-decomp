@@ -192,9 +192,6 @@ W8CampStatsControls::W8CampStatsControls()
     Controls::SetEnabled(1);
 }
 
-// SYNTHETIC: WIZ8 0x005c4780
-// W8CampStatsControls::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005c47a0
 W8CampStatsControls::~W8CampStatsControls()
 {
@@ -1371,12 +1368,6 @@ W8CharacterPersonalityPage* CreateCharacterPersonalityPage()
     return new W8CharacterPersonalityPage;
 }
 
-// SYNTHETIC: WIZ8 0x005c74c0
-// W8CharacterPersonalityPage::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005c74e0
-// W8CharacterPersonalityPage::~W8CharacterPersonalityPage
-
 // VTABLE: WIZ8 0x005ef5c8 W8CharacterPage
 // VTABLE: WIZ8 0x005ef5c0 W8CharacterPageEntryListener
 // class W8CharacterSkillsPage
@@ -1570,9 +1561,3 @@ void W8CharacterSkillsPage::Refresh()
 {
     m_force_redraw_074 = true;
 }
-
-// SYNTHETIC: WIZ8 0x005c7d40
-// W8CharacterSkillsPage::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005c7d60
-// W8CharacterSkillsPage::~W8CharacterSkillsPage

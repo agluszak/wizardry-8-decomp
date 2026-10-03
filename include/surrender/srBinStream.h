@@ -42,12 +42,6 @@ public:
     void setState(e_state state);
 
     /* The emitted bodies are consistent with ordinary memberwise copying. */
-    // SYNTHETIC: SURRENDER 0x10032240
-    // srBinStream::srBinStream
-    // SYNTHETIC: SURRENDER 0x10032280
-    // srBinStream::operator=
-    // SYNTHETIC: SURRENDER 0x100322E0
-    // srBinStream::`vector deleting destructor'
 
 protected:
     srBinStream();

@@ -1475,12 +1475,6 @@ W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, in
     m_range_038.SetRangeEnabled(1);
 }
 
-// SYNTHETIC: WIZ8 0x00587e30
-// W8MainGameTextKeyHandler::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00587e50
-// W8MainGameTextKeyHandler::~W8MainGameTextKeyHandler
-
 // FUNCTION: WIZ8 0x00587ea0
 void W8MainGameTextKeyHandler::Redraw(unsigned char full_redraw)
 {
@@ -1667,12 +1661,6 @@ W8MainGameTextEntry::W8MainGameTextEntry(Controls* panel, int index)
     AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
 }
 
-// SYNTHETIC: WIZ8 0x00588350
-// W8MainGameTextEntry::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00588370
-// W8MainGameTextEntry::~W8MainGameTextEntry
-
 // FUNCTION: WIZ8 0x005883c0
 void W8MainGameTextEntry::Redraw(unsigned char full_redraw)
 {
@@ -1773,9 +1761,6 @@ W8MainGameTextPanel::W8MainGameTextPanel()
         m_entries_054[index]->Invalidate(0);
     }
 }
-
-// SYNTHETIC: WIZ8 0x00588770
-// W8MainGameTextPanel::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00588790
 W8MainGameTextPanel::~W8MainGameTextPanel()
@@ -1909,9 +1894,6 @@ W8MainGameStatusPanel::W8MainGameStatusPanel() : Controls(0x17, 0x166, 0, 0, 0x1
     SetEnabled(1);
     Invalidate(0);
 }
-
-// SYNTHETIC: WIZ8 0x00588d90
-// W8MainGameStatusPanel::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00588db0
 W8MainGameStatusPanel::~W8MainGameStatusPanel()
@@ -2049,9 +2031,6 @@ W8MainGameScreen::W8MainGameScreen(Trigger* owner)
     }
     RefreshActionPanel();
 }
-
-// SYNTHETIC: WIZ8 0x0058a840
-// W8MainGameScreen::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005894b0
 W8MainGameScreen::~W8MainGameScreen()
@@ -2925,8 +2904,6 @@ bool W8NpcDialogueTextController::IsExpanded()
 
 /* Standalone JMP thunk onto W8Widget::~W8Widget; the vtable slot of
    W8NpcDialogueScrollWidget reaches it. */
-// SYNTHETIC: WIZ8 0x0055E5D0
-// W8NpcDialogueScrollWidget::~W8NpcDialogueScrollWidget thunk -> W8Widget::~W8Widget
 
 // FUNCTION: WIZ8 0x0055E570
 W8NpcDialogueScrollWidget::W8NpcDialogueScrollWidget(Controls* panel, unsigned int region, int left,
@@ -5212,7 +5189,6 @@ static bool IsPartyPortraitUnderCursor(unsigned int party_slot)
     }
     return IsCursorInRectangle(left, row.top, right, row.bottom) != 0;
 }
-
 
 /* The per-frame combat-strip update: while combat mode is on, recompute each
    party slot's status (-1 empty/dead, 0 ready, 1 cannot switch, 2 ineligible,
@@ -8718,7 +8694,6 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
     }
     return false;
 }
-
 
 /* Condition orb on a party portrait (help 25): press while highest_condition
    is set arms the overlay slot; release and leave dismiss the hover plate;

@@ -1,6 +1,8 @@
 targets:
   WIZ8:
     filename: Wiz8.exe
+    data-sources:
+      - build/generated/reccmp/wiz8-emissions.csv
     source-root:
       - src/wiz8
       - src/sgp
@@ -13,6 +15,7 @@ targets:
     data-sources:
       - config/reccmp/srext-jpegimporter.csv
       - config/reccmp/srext-jpegimporter-symbols.csv
+      - build/generated/reccmp/srext-jpegimporter-emissions.csv
     hash:
       sha256: 0bf545937bd86ce2195c08b6dbf6b70e1a1071a9fce449ccb9f06dfa384de490
   SREXT_UNZIP:
@@ -21,10 +24,13 @@ targets:
     data-sources:
       - config/reccmp/srext-unzip.csv
       - config/reccmp/srext-unzip-symbols.csv
+      - build/generated/reccmp/srext-unzip-emissions.csv
     hash:
       sha256: dba6cdc5741ae57574e019ab8f37935362bc288bee738bc711460f34d7647f62
   SURRENDER:
     filename: sr.dll
+    data-sources:
+      - build/generated/reccmp/surrender-emissions.csv
     source-root:
       - src/surrender
       - include/surrender

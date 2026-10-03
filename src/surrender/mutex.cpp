@@ -1,8 +1,5 @@
 #include "surrender/srMutex.h"
 
-// SYNTHETIC: SURRENDER 0x10045930
-// srMutex::`vector deleting destructor'
-
 // FUNCTION: SURRENDER 0x10045A40
 srMutex::srMutex()
 {
@@ -40,6 +37,3 @@ void srMutex::releaseAccess()
     ReleaseMutex(handle_04);
     access_count_08--;
 }
-
-// SYNTHETIC: SURRENDER 0x10045910
-// srMutex scalar deleting destructor

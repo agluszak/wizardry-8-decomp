@@ -412,3 +412,33 @@ def test_function_declaration_projects_independently_of_recomp_selector(
     assert function.name == "SetValue"
     assert function.name != identity.recomp_selector
     assert seen["identity"] is identity
+
+
+def test_reccmp_import_bootstraps_emission_metadata(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from wiz8decomp.emissions import INVENTORY, OUTPUT
+    from wiz8decomp.ghidra import reccmp_import
+    from wiz8decomp.subprocesses import CommandResult
+
+    inventory = tmp_path / INVENTORY
+    inventory.parent.mkdir(parents=True)
+    inventory.write_text(
+        "target|address|symbol|name|type|source_files\n"
+        "WIZ8|00401000||Vector<int>::Grow|template|include/wiz8/vector.h\n"
+    )
+    monkeypatch.setattr(reccmp_import, "resolve_seed_program", lambda *_: "Wiz8.exe")
+    monkeypatch.setattr(reccmp_import, "target_for_program", lambda *_: "WIZ8")
+    monkeypatch.setattr(reccmp_import, "compiler_import_identity", lambda *_: {})
+
+    def run(argv, **_kwargs):
+        assert "Vector<int>::Grow" in (tmp_path / OUTPUT / "wiz8-emissions.csv").read_text()
+        return CommandResult(
+            [str(arg) for arg in argv], "reccmp-ghidra-import", str(tmp_path), 0, "", "", ""
+        )
+
+    monkeypatch.setattr(reccmp_import, "run", run)
+    settings = SimpleNamespace(
+        repo_dir=tmp_path, project_dir=tmp_path / "project", project_name="test"
+    )
+    assert reccmp_import.import_reccmp_source(settings)["program"] == "Wiz8.exe"

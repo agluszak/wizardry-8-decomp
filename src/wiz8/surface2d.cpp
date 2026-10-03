@@ -16,15 +16,6 @@ stTexture2D::stTexture2D()
     texture_dimensions_.height = 128;
 }
 
-// TEMPLATE: WIZ8 0x0047E7D0
-// srClassSupport<stTexture2D,srTexture,0,65551>::getClassID
-
-// TEMPLATE: WIZ8 0x0047E7E0
-// srClassSupport<stTexture2D,srTexture,0,65551>::getClassName
-
-// TEMPLATE: WIZ8 0x0047EBE0
-// srClassSupport<stTexture2D,srTexture,0,65551>::getClassNode
-
 // FUNCTION: WIZ8 0x0047E600
 stTexture2D::~stTexture2D()
 {
@@ -36,12 +27,6 @@ srClass* stTexture2D::vInstance()
 {
     return new stTexture2D;
 }
-
-// TEMPLATE: WIZ8 0x0047E7F0
-// srClassSupport<stTexture2D,srTexture,0,65551>::vClone
-
-// TEMPLATE: WIZ8 0x0047E830
-// srClassSupport<stTexture2D,srTexture,0,65551>::~srClassSupport<stTexture2D,srTexture,0,65551>
 
 // FUNCTION: WIZ8 0x0047DE50
 unsigned long stTexture2D::getTextureFrameHandle()
@@ -121,15 +106,6 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width, int sour
     coordinates[7] = 1.0f;
 }
 
-// TEMPLATE: WIZ8 0x0047E930
-// srClassSupport<stSurface2D,srNode,0,65550>::getClassID
-
-// TEMPLATE: WIZ8 0x0047E940
-// srClassSupport<stSurface2D,srNode,0,65550>::getClassName
-
-// TEMPLATE: WIZ8 0x0047E950
-// srClassSupport<stSurface2D,srNode,0,65550>::getClassNode
-
 // FUNCTION: WIZ8 0x0047DFF0
 stSurface2D::~stSurface2D()
 {
@@ -138,12 +114,6 @@ stSurface2D::~stSurface2D()
         tiles[index]->release();
     delete[] tiles;
 }
-
-// TEMPLATE: WIZ8 0x0047E9C0
-// srClassSupport<stSurface2D,srNode,0,65550>::vClone
-
-// TEMPLATE: WIZ8 0x0047EAC0
-// srClassSupport<stSurface2D,srNode,0,65550>::~srClassSupport<stSurface2D,srNode,0,65550>
 
 // FUNCTION: WIZ8 0x004D6540
 void stSurface2D::traverse(TraverseInfo& info)
@@ -328,15 +298,3 @@ void stSurface2D::enableRendererFlag(unsigned int flag)
 {
     texture_update_flags |= flag;
 }
-
-// SYNTHETIC: WIZ8 0x0047DFC0
-// stSurface2D::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x0047E5D0
-// stTexture2D::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x0047EB80
-// srClassSupport<stTexture2D,srTexture,0,65551>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x0047EBB0
-// srClassSupport<stSurface2D,srNode,0,65550>::`scalar deleting destructor'

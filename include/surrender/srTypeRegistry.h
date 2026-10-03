@@ -215,10 +215,6 @@ public:
     static SR_DLL_IMPORT void dumpNames(std::ostream& stream, int indent);
 
     /* Copy bodies contain memberwise copying followed by a vptr store. */
-    // SYNTHETIC: SURRENDER 0x10011A10
-    // srRuntimeClass::srRuntimeClass
-    // SYNTHETIC: SURRENDER 0x10011A80
-    // srRuntimeClass::operator=
 
     SR_DLL_IMPORT void setName(const char* name);
     SR_DLL_IMPORT const char* getName() const;
@@ -272,8 +268,6 @@ public:
        emitted via the class-level dllexport. novtable leaves the
        srRuntimeClass construction vtable in place. */
     SR_DLL_IMPORT srClass& operator=(const srClass& other);
-    // SYNTHETIC: SURRENDER 0x1000E290
-    // srClass::srClass
 
     virtual SR_DLL_IMPORT srRegistry::ClassNode* getClassNode() const override;
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;

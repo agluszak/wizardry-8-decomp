@@ -63,8 +63,6 @@ int CountAscensionPeakItems(void)
    sequence and the Rapax ambush once; all three additionally spawn the Savants
    and fire the "Bodies" trigger once. */
 /* Standalone JMP thunk onto AscensionPeakInit. */
-// SYNTHETIC: WIZ8 0x004DF800
-// AscensionPeakInit thunk -> AscensionPeakInit
 
 // FUNCTION: WIZ8 0x004DF870
 unsigned char AscensionPeakInit(void)

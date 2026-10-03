@@ -33,31 +33,6 @@ static srHeapBuffer<srVector3T<float> >* g_vertex_scratch;
 // VTABLE: WIZ8 0x005ec88c srModel::Client
 // class srClassSupport<stModelInstance2D, class srModelInstance, 0, 65541>
 
-// SYNTHETIC: WIZ8 0x0047F260
-// stModelInstance2D::`scalar deleting destructor'
-// SYNTHETIC: WIZ8 0x00481C20
-// srClassSupport<stModelInstance,srModelInstance,0,65540>::`scalar deleting destructor'
-// SYNTHETIC: WIZ8 0x00481C50
-// srClassSupport<stModelInstance2D,srModelInstance,0,65541>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00481920
-// srClassSupport<stModelInstance,srModelInstance,0,65540>::clone
-
-// TEMPLATE: WIZ8 0x00481A40
-// srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassID
-
-// TEMPLATE: WIZ8 0x00481A50
-// srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassName
-
-// TEMPLATE: WIZ8 0x00481A60
-// srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassNode
-
-// TEMPLATE: WIZ8 0x00481B00
-// srClassSupport<stModelInstance2D,srModelInstance,0,65541>::clone
-
-// TEMPLATE: WIZ8 0x00481B20
-// srClassSupport<stModelInstance2D,srModelInstance,0,65541>::~srClassSupport<stModelInstance2D,srModelInstance,0,65541>
-
 /*
  * Engine Code\stModelInstance.cpp.
  *
@@ -200,18 +175,6 @@ unsigned char stModelInstance::ReplaceDamageStageTexture(int stage, const char* 
     }
     return replaced;
 }
-
-// TEMPLATE: WIZ8 0x00481860
-// srClassSupport<stModelInstance,srModelInstance,0,65540>::getClassID
-
-// TEMPLATE: WIZ8 0x00481870
-// srClassSupport<stModelInstance,srModelInstance,0,65540>::getClassName
-
-// TEMPLATE: WIZ8 0x00481880
-// srClassSupport<stModelInstance,srModelInstance,0,65540>::getClassNode
-
-// TEMPLATE: WIZ8 0x00481940
-// srClassSupport<stModelInstance,srModelInstance,0,65540>::~srClassSupport<stModelInstance,srModelInstance,0,65540>
 
 /* Retail's Video2, dialogue and radar callers all call this one emitted body,
    which precedes the rest of the stModelInstance2D lifecycle family. It is an
@@ -452,24 +415,6 @@ srClass* stModelInstance::vInstance()
 {
     return new stModelInstance(0);
 }
-
-// TEMPLATE: WIZ8 0x00481C80
-// NAME: srArray<T>::setCapacity
-// RECOMP: srArray<srNode::TraverseInfo::Entry>::setCapacity
-
-// TEMPLATE: WIZ8 0x00481D00
-// srClassSupport<srModelInstance,srNode,0,4352>::sGetClassNode
-
-// TEMPLATE: WIZ8 0x00481D70
-// NAME: srArray<T>::operator[]
-// RECOMP: srArray<srTriMeshPipeline::Record>::operator[]
-
-// TEMPLATE: WIZ8 0x00481DA0
-// NAME: srArray<T>::operator[]
-// RECOMP: srArray<srTriMeshPipeline::Pass>::operator[]
-
-// SYNTHETIC: WIZ8 0x0047EDC0
-// stModelInstance::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x0047EC80
 stModelInstance::stModelInstance(srNode* parent)

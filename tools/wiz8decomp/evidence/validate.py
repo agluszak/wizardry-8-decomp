@@ -30,12 +30,19 @@ def _validate_csv_shapes(repo_dir: Path) -> int:
     for root_name in ("evidence", "config"):
         for path in sorted((repo_dir / root_name).rglob("*.csv")):
             with path.open(newline="", encoding="utf-8") as stream:
-                reader = csv.DictReader(stream)
+                first_line = stream.readline()
+                try:
+                    delimiter = csv.Sniffer().sniff(first_line, delimiters="|,\t").delimiter
+                except csv.Error:
+                    # Single-column tables have no delimiter to detect.
+                    delimiter = ","
+                stream.seek(0)
+                reader = csv.DictReader(stream, delimiter=delimiter)
                 header = reader.fieldnames
                 if not header:
                     raise ValueError(f"{path}: missing CSV header")
                 for line, row in enumerate(reader, start=2):
-                    if None in row or len(row) != len(header):
+                    if None in row or None in row.values() or len(row) != len(header):
                         raise ValueError(
                             f"{path}:{line}: row does not match its declared header; "
                             "write CSV through DictWriter"

@@ -72,22 +72,6 @@ bool g_animated_prop_present;
 // VTABLE: WIZ8 0x005ec1d0
 // class W8Vector<W8PropAnimationSegment*>
 
-// SYNTHETIC: WIZ8 0x0044ef60
-// NAME: W8Vector<T>::`scalar deleting destructor'
-// RECOMP: W8Vector<W8PropAnimationSegment*>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x0044ef30
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<W8PropAnimationSegment*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x0044ef00
-// NAME: W8Vector<T>::~W8Vector<T>
-// RECOMP: W8Vector<W8PropAnimationSegment*>::~W8Vector<W8PropAnimationSegment*>
-
-// TEMPLATE: WIZ8 0x0044efe0
-// NAME: W8GrowableVector<T>::W8GrowableVector (four-byte capacity)
-// RECOMP: ??0?$W8GrowableVector@PAUW8PropAnimationSegment@@@@QAE@H@Z
-
 /* Prop::Prop() - GrObject base, then m_pRep / m_pTimer and two identity
    rotation bases.  Retail expands PropRep after the AnimRep constructor:
    scalar field stores, the capacity-5 slot vector, then the PropRep vtable. */
@@ -129,8 +113,6 @@ W8PropRepresentation::W8PropRepresentation(const W8PropRepresentation& other)
     animation = CloneAnimObj(other.animation);
 }
 
-// SYNTHETIC: WIZ8 0x0044acf0
-// W8PropRepresentation::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x0044ae30
 W8PropRepresentation::~W8PropRepresentation()
 {
@@ -176,8 +158,6 @@ void UpdateWorldProps(W8World* world)
     }
 }
 
-// SYNTHETIC: WIZ8 0x0044BEA0
-// W8Prop::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x0044bec0
 W8Prop::~W8Prop()
 {

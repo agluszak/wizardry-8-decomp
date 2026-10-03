@@ -345,8 +345,6 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
    operation at the NPC-item sites.  The exact source boundary remains
    unresolved; it is neither an authored specialization nor a W8PList member
    destructor under the VC6 ABI. */
-// TEMPLATE: WIZ8 0x0055ADA0
-// unresolved owning PL teardown emission
 
 // FUNCTION: WIZ8 0x0054ac90
 void DestroyNpcDatabase(void)

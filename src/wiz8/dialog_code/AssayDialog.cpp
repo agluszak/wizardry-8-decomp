@@ -99,9 +99,6 @@ static wchar_t g_assay_entry_text[0x101];
 
 enum { NUM_RPC_RACES = 5 };
 
-// SYNTHETIC: WIZ8 0x005d7070
-// W8AssayDialog::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005d6fb0
 W8AssayDialog::W8AssayDialog(W8ItemInstance* item, W8Character* character)
 {
@@ -613,14 +610,6 @@ unsigned char W8AssayDialog::PopulateText()
    statics here: __winit (ios_base::_Winit) at 0x0069C814 and __ioinit
    (ios_base::Init) at 0x0069C815. The lint iostream stub shadows the real
    header, so the toolchain does not emit the objects or these thunks. */
-// SYNTHETIC: WIZ8 0x005D87F0
-// `dynamic initializer for '__ioinit''
-// SYNTHETIC: WIZ8 0x005D8810
-// `dynamic atexit destructor for '__ioinit''
-// SYNTHETIC: WIZ8 0x005D8820
-// `dynamic initializer for '__winit''
-// SYNTHETIC: WIZ8 0x005D8840
-// `dynamic atexit destructor for '__winit''
 
 // FUNCTION: WIZ8 0x005d9200
 void W8AssayDialog::Draw()

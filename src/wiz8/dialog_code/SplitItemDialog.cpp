@@ -98,9 +98,6 @@ W8SplitItemDialog::W8SplitItemDialog(int kind, W8ItemInstance* item, int count)
     m_first_draw_0d4 = 0;
 }
 
-// SYNTHETIC: WIZ8 0x005DD010
-// W8SplitItemDialog::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005DD030
 W8SplitItemDialog::~W8SplitItemDialog()
 {

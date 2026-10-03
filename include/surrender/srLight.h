@@ -63,8 +63,6 @@ public:
 public:
     /* Wiz8 expands this empty derived level inline; SR.DLL's standalone
        0x1004ED70 emission is the compiler-generated destructor. */
-    // SYNTHETIC: SURRENDER 0x1004ED70
-    // srLight::~srLight
 
 #if !defined(SURRENDER_BUILD)
     virtual ~srLight() override {}

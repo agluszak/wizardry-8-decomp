@@ -288,15 +288,3 @@ void srVectorProcessor::release()
         module = 0;
     }
 }
-
-// SYNTHETIC: SURRENDER 0x10065810
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x10065820
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10065850
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x10065860
-// std::_Winit global atexit registrar

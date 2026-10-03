@@ -325,12 +325,6 @@ static_assert(sizeof(W8PartySelectionListControl) == 0x4c, "W8PartySelectionList
 /* The secondary W8RangeListener subobject sits at +0x34. */
 W8_ASSERT_BASE_END(W8PartySelectionListControl, W8RangeListener, m_visible_rows, 0x34);
 
-// SYNTHETIC: WIZ8 0x005bff20
-// W8PartySelectionListControl::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005bff40
-// W8PartySelectionListControl::~W8PartySelectionListControl
-
 // FUNCTION: WIZ8 0x005bff60
 void W8PartySelectionListControl::Redraw(unsigned char full_redraw)
 {
@@ -667,12 +661,6 @@ W8PartySelectionCharacterRow::W8PartySelectionCharacterRow(Controls* panel, int 
     Invalidate(0);
 }
 
-// SYNTHETIC: WIZ8 0x005be950
-// W8PartySelectionCharacterRow::~W8PartySelectionCharacterRow
-
-// SYNTHETIC: WIZ8 0x005BE930
-// W8PartySelectionCharacterRow::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005be9b0
 void W8PartySelectionCharacterRow::Redraw(unsigned char full_redraw)
 {
@@ -762,9 +750,6 @@ W8PartySelectionCharacterPanel::W8PartySelectionCharacterPanel()
         row->Invalidate(0);
     }
 }
-
-// SYNTHETIC: WIZ8 0x005BEDD0
-// W8PartySelectionCharacterPanel::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005bedf0
 W8PartySelectionCharacterPanel::~W8PartySelectionCharacterPanel()
@@ -883,12 +868,6 @@ W8PartySelectionPartySlotRow::W8PartySelectionPartySlotRow(Controls* panel, int 
     UpdateTextBounds(m_left - 8, m_top + 0x51, m_left + 0x61, m_top + 0x60);
 }
 
-// SYNTHETIC: WIZ8 0x005BF200
-// W8PartySelectionPartySlotRow::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005bf220
-// W8PartySelectionPartySlotRow::~W8PartySelectionPartySlotRow
-
 // FUNCTION: WIZ8 0x005bf280
 void W8PartySelectionPartySlotRow::Redraw(unsigned char full_redraw)
 {
@@ -1004,17 +983,11 @@ void W8PartySelectionCharacterGridPanel::OnPrimary(W8TextControl* control)
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
 
-// SYNTHETIC: WIZ8 0x005BF7C0
-// W8PartySelectionCharacterGridPanel::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005bf7e0
 W8PartySelectionCharacterGridPanel::~W8PartySelectionCharacterGridPanel()
 {
     DestroyAllControls();
 }
-
-// SYNTHETIC: WIZ8 0x005BF620
-// W8PartySelectionPartySlotPanel::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005bf640
 W8PartySelectionPartySlotPanel::~W8PartySelectionPartySlotPanel()
@@ -1172,9 +1145,6 @@ void W8PartySelectionOptionPanel::Redraw()
         DrawCatalogImage(-14, 0x102, 0, 1, m_render_left_8c, m_render_top_90, 2, 0);
     }
 }
-
-// SYNTHETIC: WIZ8 0x005c0e20
-// W8PartySelectionInputHandler::`scalar deleting destructor'
 
 /* Give the active string editor first refusal on keyboard events, reject the
    filename characters retail excludes, and report both edit-state and final
@@ -1370,15 +1340,6 @@ void W8PartySelectionController::Setup()
     SetMode(0);
     SetSelection(0, 0, 1);
 }
-
-// SYNTHETIC: WIZ8 0x005C1560
-// W8PartySelectionCharacterSummaryPanel::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005c1580
-// W8PartySelectionCharacterSummaryPanel::~W8PartySelectionCharacterSummaryPanel
-
-// SYNTHETIC: WIZ8 0x005C0460
-// W8PartySelectionOptionPanel::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005c0480
 W8PartySelectionOptionPanel::~W8PartySelectionOptionPanel()

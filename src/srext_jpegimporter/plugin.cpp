@@ -56,18 +56,6 @@ bool srJPEGImporter::readHeader(void* input_cookie)
     return codec_.failed == 0;
 }
 
-// TEMPLATE: SREXT_JPEGIMPORTER 0x10015450
-// srClientSupport<srColorSurface,12560>::getClassID
-
-// TEMPLATE: SREXT_JPEGIMPORTER 0x10015460
-// srClientSupport<srColorSurface,12560>::getClassName
-
-// TEMPLATE: SREXT_JPEGIMPORTER 0x10015470
-// srClientSupport<srColorSurface,12560>::getClassNode
-
-// TEMPLATE: SREXT_JPEGIMPORTER 0x100154E0
-// srClientSupport<srColorSurface,12560>::vClone
-
 // FUNCTION: SREXT_JPEGIMPORTER 0x10014BA0
 const char* srJPEGPlugin::getDescription() const
 {

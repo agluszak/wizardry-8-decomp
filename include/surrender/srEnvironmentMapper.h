@@ -9,14 +9,6 @@ class SR_DLL_EXPORT srEnvironmentMapper : public srVertexProcessor {
 public:
     /* No state beyond the empty srVertexProcessor base. The class-level
        export emits the complete implicit lifecycle. */
-    // SYNTHETIC: SURRENDER 0x10035430
-    // srEnvironmentMapper::srEnvironmentMapper()
-    // SYNTHETIC: SURRENDER 0x10035440
-    // srEnvironmentMapper::srEnvironmentMapper(const srEnvironmentMapper&)
-    // SYNTHETIC: SURRENDER 0x10035450
-    // srEnvironmentMapper::operator=
-    // SYNTHETIC: SURRENDER 0x10035460
-    // srEnvironmentMapper::~srEnvironmentMapper
 
     virtual int isActive(srVertexPipe& pipe) override;
     virtual void process(srVertexPipe& pipe) override;

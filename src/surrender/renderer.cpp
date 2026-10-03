@@ -1150,36 +1150,3 @@ void srGERD::Renderer::bindTextureSet(unsigned long index)
 
 /* Compiler-generated memberwise teardown; the Renderer releases its members
    individually, the nested records theirs. */
-// SYNTHETIC: SURRENDER 0x10024AE0
-// srGERD::Renderer::IndexBatch::~IndexBatch
-
-// SYNTHETIC: SURRENDER 0x10024B30
-// srGERD::Renderer::VertexArrays::~VertexArrays
-
-// SYNTHETIC: SURRENDER 0x10024BF0
-// srGERD::Renderer::~Renderer
-
-// TEMPLATE: SURRENDER 0x10026DC0
-// NAME: srArray<T>::release emission
-// RECOMP: srArray<T>::release emission
-
-// TEMPLATE: SURRENDER 0x10026E30
-// NAME: srArray<T>::release emission
-// RECOMP: srArray<T>::release emission
-
-// TEMPLATE: SURRENDER 0x10027040
-// NAME: srArray<T>::release emission
-// RECOMP: srArray<T>::release emission
-
-// TEMPLATE: SURRENDER 0x100270E0
-// NAME: srArray<T>::release emission
-// RECOMP: srArray<T>::release emission
-
-// TEMPLATE: SURRENDER 0x100271A0
-// srHeapBuffer<T>::release emission
-
-// TEMPLATE: SURRENDER 0x10027250
-// srHeapBuffer<T>::release emission
-
-// SYNTHETIC: SURRENDER 0x10027C10
-// member destructor emission (EH unwind)

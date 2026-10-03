@@ -2032,30 +2032,3 @@ int GetBuildNodeInstanceCount(void)
    0x004B25C0; Grow owner 0x004B19F0). Region maps at +0x12C/+0x130 have word
    keys/values (callers 0x004B3F90 and 0x004B07E0). These flows establish storage
    families, not unsigned-long spelling or word-value signedness. */
-// TEMPLATE: WIZ8 0x004b4bd0
-// NAME: W8HashTable<Key,Value>::Lookup (region-path owner)
-// RECOMP: W8HashTable::Lookup (region-path owner)
-
-// TEMPLATE: WIZ8 0x004b4c30
-// NAME: W8HashTable<Key,Value>::Insert (region-map owner)
-// RECOMP: W8HashTable::Insert (region-map owner)
-
-// TEMPLATE: WIZ8 0x004b4dd0
-// NAME: W8HashTable<Key,Value>::Remove (region-map owner)
-// RECOMP: W8HashTable::Remove (region-map owner)
-
-// TEMPLATE: WIZ8 0x004b4e70
-// NAME: W8HashTable<Key,Value>::Grow (region-path owner)
-// RECOMP: W8HashTable::Grow (region-path owner)
-
-// TEMPLATE: WIZ8 0x004b4fc0
-// NAME: W8HashTable<Key,Value>::AllocateEntry (region-path owner)
-// RECOMP: W8HashTable::AllocateEntry (region-path owner)
-
-// TEMPLATE: WIZ8 0x004b5130
-// NAME: W8HashTable<Key,Value>::Grow (region-map owner)
-// RECOMP: W8HashTable::Grow (region-map owner)
-
-// TEMPLATE: WIZ8 0x004b5270
-// NAME: W8HashTable<Key,Value>::AllocateEntry (region-map owner)
-// RECOMP: W8HashTable::AllocateEntry (region-map owner)

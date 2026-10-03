@@ -18,9 +18,6 @@ W8GameTimeAccumulator* g_game_time_accumulator;
 // VTABLE: WIZ8 0x005ec0ac
 // class W8GameTimeAccumulator
 
-// SYNTHETIC: WIZ8 0x0043ac40
-// W8GameTimeAccumulator::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x0043a910
 W8GameTimeAccumulator::W8GameTimeAccumulator()
 {
@@ -82,6 +79,3 @@ float W8GameTimeAccumulator::Update()
     }
     return m_frame_delta_28;
 }
-
-// SYNTHETIC: WIZ8 0x0043ac60
-// W8GameTimeAccumulator::~W8GameTimeAccumulator

@@ -72,7 +72,7 @@ compiler-emitted lifecycle families read [template emission](references/template
 Audit hierarchy changes as a family: constructors, ordinary/desleting destructors, copy/assignment,
 vtable slots, adjustor thunks and affected receivers.
 
-Compiler-generated deleting destructors are marker-only `SYNTHETIC`; do not hand-write them.
+Compiler-generated deleting destructors belong in binary emission metadata; do not hand-write them.
 
 Recover copy construction by subobject lifetime before interpreting its calls:
 
@@ -94,8 +94,8 @@ derived registration, unregistration, destruction, clone or copy logic. An empty
 can be correct when members and bases supply all cleanup. Preserve established shallow pointer copying,
 aliasing and unsafe ownership rather than inferring a deep copy from modern design rules.
 
-An implicit non-template emitted special member normally has a marker-only `SYNTHETIC` identity;
-template emissions have `TEMPLATE` markers at the primary template owner. A retained template body is
+Implicit special members and template emissions belong in generated reccmp metadata, never in
+`SYNTHETIC` or `TEMPLATE` source markers. Keep primary template bodies at their canonical owner. A retained template body is
 not, by itself, proof of the original template arguments: different 32-bit scalar, pointer, enum or
 trivially handled element types can emit the same VC6 body. Treat exact template arguments as established
 only when type-sensitive evidence distinguishes them, such as element construction/destruction,

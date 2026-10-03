@@ -814,21 +814,3 @@ bool stKeyframedLightDefinition::IsEnabledForSubcycle(unsigned char subcycle)
     }
     return false;
 }
-
-// SYNTHETIC: WIZ8 0x004a25c0
-// stKeyframedLightDefinition::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x004a25e0
-// stKeyframedLightDefinition::~stKeyframedLightDefinition
-
-// TEMPLATE: WIZ8 0x004A2500
-// NAME: W8GrowableVector<T>::W8GrowableVector
-// RECOMP: W8GrowableVector<int>::W8GrowableVector
-
-// TEMPLATE: WIZ8 0x004A2540
-// NAME: W8GrowableVector<T>::W8GrowableVector (four-byte default)
-// RECOMP: ??0?$W8GrowableVector@M@@QAE@XZ
-
-// TEMPLATE: WIZ8 0x004a2670
-// NAME: W8GrowableVector<T>::Grow
-// RECOMP: W8GrowableVector<srVector3T<float>>::Grow

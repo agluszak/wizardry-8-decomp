@@ -94,12 +94,6 @@ void ResumeSharedGameTimers(void)
 // VTABLE: WIZ8 0x005ec0a4
 // class W8GameTimer
 
-// SYNTHETIC: WIZ8 0x00439750
-// W8GameTimer::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x004397d0
-// srTimer::`scalar deleting destructor' (slot 0 of the local 0x005ec078 vtable)
-
 // FUNCTION: WIZ8 0x00439a00
 W8GameTimer::~W8GameTimer()
 {

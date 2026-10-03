@@ -76,9 +76,6 @@ const char* srColorSurfaceIFace::sGetClassName()
     return "srColorSurfaceIFace";
 }
 
-// SYNTHETIC: SURRENDER 0x10021260
-// srColorSurfaceIFace::~srColorSurfaceIFace
-
 // FUNCTION: SURRENDER 0x10021310
 srPalette* srColorSurfaceIFace::getPalette()
 {
@@ -1164,9 +1161,6 @@ srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, void* data, u
     data_58 = data;
     srPixelConvert::selectFuncs(format, pixel_write_44, pixel_read_48);
 }
-
-// SYNTHETIC: SURRENDER 0x1005DE30
-// srColorSurface::srColorSurface (implicit copy constructor)
 
 // FUNCTION: SURRENDER 0x1005D520
 srColorSurface& srColorSurface::operator=(const srColorSurface& other)
@@ -3368,54 +3362,3 @@ void srColorSurface::dump(std::ostream& stream)
     stream << '\n';
     stream.flags(static_cast<std::ios::fmtflags>(flags & 0x7fff));
 }
-
-// TEMPLATE: SURRENDER 0x1005E170
-// srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100>::sGetClassNode
-
-// SYNTHETIC: SURRENDER 0x1005B4E0
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x1005B4F0
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1005B520
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x1005B530
-// std::_Winit global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1005DF50
-// srColorSurface::`vector deleting destructor'
-
-// TEMPLATE: SURRENDER 0x1005DFB0
-// srClassSupport<srColorSurface,srColorSurfaceIFace,0,12560>::getClassID
-
-// TEMPLATE: SURRENDER 0x1005DFD0
-// srClassSupport<srColorSurface,srColorSurfaceIFace,0,12560>::getClassNode
-
-// SYNTHETIC: SURRENDER 0x1005E030
-// srClassSupport<srColorSurface, srColorSurfaceIFace, 0, 0x3110>::vClone
-
-// SYNTHETIC: SURRENDER 0x1005E1C0
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x1005E1D0
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1005E200
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x1005E210
-// std::_Winit global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1005A1D0
-// srColorSurfaceIFace scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x1005DF30
-// srColorSurface scalar deleting destructor
-
-// TEMPLATE: SURRENDER 0x1005E050
-// srClassSupport<srColorSurface, srColorSurfaceIFace, 0, 0x3110>::~srClassSupport
-
-// SYNTHETIC: SURRENDER 0x1005E150
-// srClassSupport<srColorSurface,srColorSurfaceIFace,0,12560>::`scalar deleting destructor'

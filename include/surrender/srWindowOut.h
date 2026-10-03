@@ -21,13 +21,5 @@ public:
     /* Copy construction and assignment are consistent with basic_ios<char>'s
        memberwise copyfmt operations. The
        vbase/vector-deleting destructors carry the virtual-inheritance ABI. */
-    // SYNTHETIC: SURRENDER 0x10047A10
-    // ??0srWindowOut@@QAE@ABV0@@Z
-    // SYNTHETIC: SURRENDER 0x10047B00
-    // srWindowOut::operator=
-    // SYNTHETIC: SURRENDER 0x10047BA0
-    // srWindowOut::`vbase destructor'
-    // SYNTHETIC: SURRENDER 0x10047BF0
-    // srWindowOut::`vector deleting destructor'
 
 };

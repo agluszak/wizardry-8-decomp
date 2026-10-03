@@ -349,9 +349,6 @@ srPalette::Quantizer::Quantizer(const Quantizer& other)
     }
 }
 
-// SYNTHETIC: SURRENDER 0x10004DD0
-// srPalette::Quantizer::operator= (implicit)
-
 // FUNCTION: SURRENDER 0x10004160
 int srPalette::matchPalette(const srARGB* const colors, long color_count) const
 {
@@ -604,8 +601,6 @@ srClass* srPalette::vInstance()
    field copy to operator=, then retail overwrites the freshly allocated
    members with the source's pointers — sharing the source's color table and
    quantizer and leaking the copies operator= just made. */
-// SYNTHETIC: SURRENDER 0x10004EE0
-// srPalette::srPalette (implicit copy constructor)
 
 /* Sampler field offsets and behavior are fixed by the retail constructor
    (0x100067d0), discard (0x100068d0) and addColor (0x10006530). */
@@ -656,8 +651,6 @@ srPalette::Sampler::~Sampler()
 
 /* Same retail aliasing as the copy constructor: colors and links are copied
    as raw pointers, so assignment shares ownership of both tables. */
-// SYNTHETIC: SURRENDER 0x10004C40
-// srPalette::Sampler::operator= (implicit shallow copy)
 
 // FUNCTION: SURRENDER 0x10004AF0
 long srPalette::Sampler::getColorCount()
@@ -989,9 +982,6 @@ srPalette* srPalette::Sampler::createOptimalPalette()
     return palette;
 }
 
-// SYNTHETIC: SURRENDER 0x10004B90
-// srPalette::Optimizer::operator= (implicit)
-
 // FUNCTION: SURRENDER 0x10005630
 void srPalette::Optimizer::setupLUT(LUT& lut, const srARGB& color)
 {
@@ -1316,69 +1306,3 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
    and the renderer call it with the three-argument cdecl convention. */
 // LIBRARY: SURRENDER 0x10007470
 // memset
-
-// SYNTHETIC: SURRENDER 0x10004CF0
-// srPalette::Sampler default constructor closure
-
-// SYNTHETIC: SURRENDER 0x10004F90
-// srPalette default constructor closure
-
-// TEMPLATE: SURRENDER 0x100049D0
-// srClassSupport<srPalette,srClass,1,10496>::getClassID
-
-// TEMPLATE: SURRENDER 0x100049F0
-// srClassSupport<srPalette,srClass,1,10496>::getClassNode
-
-// TEMPLATE: SURRENDER 0x10004A30
-// srClassSupport<srPalette, srClass, true, 0x2900>::vClone
-
-// TEMPLATE: SURRENDER 0x10004A50
-// srClientSupport<srPalette, 0x2900>::~srClientSupport
-
-// SYNTHETIC: SURRENDER 0x10004AE0
-// member buffer destructor emission (EH unwind)
-
-// SYNTHETIC: SURRENDER 0x10004FD0
-// srPalette scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x10004FF0
-// srPalette::`vector deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10005050
-// srClassSupport<srPalette,srClass,1,10496>::`scalar deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10005080
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x10005090
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x100050C0
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x100050D0
-// std::_Winit global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10005220
-// srSurfaceIOManager scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x10005240
-// srSurfaceIOManager::`vector deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x100052A0
-// SurfaceImporter scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x10005320
-// SurfaceExporter scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x100053B0
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x100053C0
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x100053F0
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x10005400
-// std::_Winit global atexit registrar

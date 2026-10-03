@@ -72,9 +72,6 @@ W8CharacterSpellList::W8CharacterSpellList(Controls* owner, int x, int y,
 {
 }
 
-// SYNTHETIC: WIZ8 0x005c7d80
-// W8CharacterSpellList::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005c7da0
 W8CharacterSpellList::~W8CharacterSpellList()
 {
@@ -238,12 +235,6 @@ void W8CharacterSpellList::OnRangeChanged(W8RangeControl* range)
     m_scroll_offset = range->m_value;
     Invalidate(0);
 }
-
-// SYNTHETIC: WIZ8 0x005C8350
-// W8CharacterSpellsPage::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005C8370
-// W8CharacterSpellsPage::~W8CharacterSpellsPage
 
 // FUNCTION: WIZ8 0x005c83d0
 void W8CharacterSpellsPage::SetCharacter(W8Character* character,

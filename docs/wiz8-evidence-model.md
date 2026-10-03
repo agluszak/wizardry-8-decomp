@@ -200,8 +200,9 @@ Ghidra defaults and compiler-local labels do not establish original source names
 
 Authority counts are derived from the reviewed catalogs rather than copied into this
 document. The central source model scans `src/wiz8` and `include/wiz8` once and derives address,
-current name, prototype, and source path from each `FUNCTION`, `TEMPLATE`, or `LIBRARY` marker.
-Unrecovered identities remain Ghidra entities. No editable table repeats either representation.
+current name, prototype, and source path from authored `FUNCTION` and retained `LIBRARY` markers.
+Compiler/template emissions use the [binary emission inventory](reccmp-emissions.md), outside the source
+model. Unrecovered identities remain Ghidra entities.
 
 Atomic supporting facts live in `evidence/reviewed/wiz8/claims.csv`. A claim names an entity by kind
 and stable key, then records one predicate, origin, optional authority/confidence, reference and

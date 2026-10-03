@@ -46,12 +46,3 @@ void srEnvironmentMapper::process(srVertexPipe& pipe)
 
 // GLOBAL: SURRENDER 0x100A48CC
 srEnvironmentMapper srEnvironmentMapper;
-
-// SYNTHETIC: SURRENDER 0x10035490
-// srVertexProcessor::`scalar deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x100354B0
-// srEnvironmentMapper scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x100354D0
-// srEnvironmentMapper::`vector deleting destructor'

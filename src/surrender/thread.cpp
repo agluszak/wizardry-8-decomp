@@ -7,8 +7,6 @@ long srThread::yieldCount;
 
 /* The retail assignment copies the empty-class byte; keep that lowering
    compiler-owned rather than inventing an instance member. */
-// SYNTHETIC: SURRENDER 0x100458C0
-// srThread::operator= (implicit)
 
 // FUNCTION: SURRENDER 0x10045B10
 unsigned long srThread::begin(void(__cdecl* entry)(void*), void* argument)

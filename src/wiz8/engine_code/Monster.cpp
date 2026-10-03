@@ -358,14 +358,6 @@ const char* g_monster_script_commands[MONSCR_COUNT] = {"GOTO",
 // VTABLE: WIZ8 0x005ecdc8
 // class W8GrowableVector<srVector3T<float> >
 
-// TEMPLATE: WIZ8 0x004a2080
-// NAME: W8GrowableVector<T>::W8GrowableVector (twelve-byte default)
-// RECOMP: ??0?$W8GrowableVector@V?$srVector3T@M@@@@QAE@XZ
-
-// SYNTHETIC: WIZ8 0x004a2110
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<srVector3T<float> >::`scalar deleting destructor'
-
 // VTABLE: WIZ8 0x005ed200
 // class W8MonsterRep
 
@@ -1008,9 +1000,6 @@ int ParseMonsterCycleName(const char* name, signed char* subcycle)
     return cycle;
 }
 
-// SYNTHETIC: WIZ8 0x004beba0
-// W8MonsterRep::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x004bea20
 W8MonsterRep::W8MonsterRep()
     : highlight_mask_5bc(0), name_5c0(0), spell_icons_5e8(0), standing_height_5ec(0),
@@ -1223,8 +1212,6 @@ void W8MonsterRep::CopyCycle(signed char cycle, const W8MonsterRep* other, signe
 /* `new stLight` above is what forces this emission: VC6 inlines stLight's own
    empty default constructor at the allocation site but leaves the registry
    base's constructor out of line here. */
-// TEMPLATE: WIZ8 0x004CA8B0
-// srClassSupport<stLight,srLight,0,65542>::srClassSupport
 
 /* The representation clone slot is an ordinary virtual copy operation.  The
    allocation size and call to the copy constructor are both visible in the
@@ -1239,13 +1226,8 @@ W8AnimRepBase* W8MonsterRep::Clone()
 // VTABLE: WIZ8 0x005ed218 W8Navigator
 // class W8Monster
 
-// SYNTHETIC: WIZ8 0x004bfde0
-// W8Monster::`scalar deleting destructor'
-
 /* cvdump preserves a terminal space in this generated thunk's demangled name;
    the explicit name reference must preserve it too. */
-// SYNTHETIC: WIZ8 0x004cae30
-// W8Monster::`vector deleting destructor'`adjustor{24}'
 
 // GLOBAL: WIZ8 0x0065ba4c
 int g_monster_cycle_registry_weight;
@@ -3961,15 +3943,6 @@ static int g_spell_index;
 // VTABLE: WIZ8 0x005ed290
 // class W8MonsterShakeCallbackBase
 
-// SYNTHETIC: WIZ8 0x004c3710
-// W8MonsterShakeCallback::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x004c3730
-// W8MonsterShakeCallback::~W8MonsterShakeCallback
-
-// SYNTHETIC: WIZ8 0x004cab40
-// W8MonsterShakeCallbackBase::`scalar deleting destructor'
-
 /* Cycle 25 launches either the queued spell visual or the monster's pending
    spell action when its animation crosses the configured frame. The cast's
    return is the stamina charge passed directly to FatigueMonster, establishing
@@ -4490,9 +4463,6 @@ bool W8Monster::IsDying()
 
     return dying;
 }
-
-// TEMPLATE: WIZ8 0x004CA880
-// srFlags<int>::set
 
 /* Resolve mapped vertex zero on the current model and transform it into world
    space. Models without that mapping use the Navigator position plus the
