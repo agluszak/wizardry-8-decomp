@@ -73,7 +73,7 @@ bool g_flag_006834dc;
 /* SGP full-volume scale: CreateAndPlaySoundNode multiplies its clamped
    loudness fraction by this to get the node's base volume. */
 // GLOBAL: WIZ8 0x005EC510
-const float g_float_005ec510 = 127.0f;
+const float g_sound_node_full_volume = 127.0f;
 
 /* Run every registered master function once with argument zero, dropping the
    ones that set the removal flag while it runs. */
@@ -146,7 +146,7 @@ stSound3D* CreateAndPlaySoundNode(char* sound_name, srVector3T<float> position, 
         srVector3T<double> sound_position;
         sound_position.Set(position.x, position.y, position.z);
         sound->setLocation(sound_position);
-        sound->volume = static_cast<int>(volume * g_float_005ec510);
+        sound->volume = static_cast<int>(volume * g_sound_node_full_volume);
         sound->falloff = scale * g_world_scale;
         sound->Play(play_flag, 1);
     }

@@ -65,15 +65,15 @@ extern const double g_double_005ed7a8 = 3.141592653589793;
 
 /* 0x005EBF48: the screen-y coefficient in the drop-item yaw. */
 // GLOBAL: WIZ8 0x005ebf48
-extern const float g_float_005ebf48 = 85.0f;
+extern const float g_drop_item_yaw_scale = 85.0f;
 
 /* 0x005EBF4C: the screen-z coefficient in the drop-item pitch. */
 // GLOBAL: WIZ8 0x005ebf4c
-extern const float g_float_005ebf4c = 71.0f;
+extern const float g_drop_item_pitch_scale = 71.0f;
 
 /* 0x005ED7C0: the vertical scale of the drop-item direction. */
 // GLOBAL: WIZ8 0x005ed7c0
-extern const double g_double_005ed7c0 = -2500.0;
+extern const double g_drop_item_vertical_scale = -2500.0;
 
 /* 0x0064A1CD: when set, skip activating world items that already carry flag
    bit 0. */
@@ -874,12 +874,12 @@ void DropHeldItem(int arg_1)
     cursor.z = (cursor.z - g_float_005ebc7c) * g_float_005ec390;
 
     double amplitude = g_double_005ed7a8 * g_float_005ebcf8;
-    double pitch = amplitude * g_float_005ebc28 + amplitude * cursor.z * g_float_005ebf4c;
+    double pitch = amplitude * g_float_005ebc28 + amplitude * cursor.z * g_drop_item_pitch_scale;
     float base = static_cast<float>(cos(pitch) * g_double_005ec030);
-    double yaw = amplitude * cursor.y * g_float_005ebf48;
+    double yaw = amplitude * cursor.y * g_drop_item_yaw_scale;
 
     srVector3T<float> direction;
-    direction.y = static_cast<float>(sin(pitch) * g_double_005ed7c0);
+    direction.y = static_cast<float>(sin(pitch) * g_drop_item_vertical_scale);
     direction.x = static_cast<float>(base * sin(yaw));
     direction.z = static_cast<float>(base * cos(yaw));
 

@@ -1,7 +1,9 @@
 from pathlib import Path
 
 from wiz8decomp.reports.semantic_debt import (
+    _DISCLAIMED_SEMANTICS,
     _adjacent_comment,
+    _adjacent_comment_text,
     _byte_strides,
     _duplicate_layouts,
     _enum_literal_arguments,
@@ -228,3 +230,13 @@ def test_adjacent_comment_ignores_previous_declaration_trailing_comment() -> Non
     ]
     assert _adjacent_comment(lines, 2) == ""
     assert _adjacent_comment(lines, 5) == "about next field"
+
+
+def test_comment_disclaiming_semantics_is_not_known_semantics() -> None:
+    lines = [
+        "    int value_15; /* serialized; no reader consumer */",
+        "    unsigned int unknown_08; /* 0x08: serialized; no recovered consumer */",
+        "    unsigned char value_48; /* 0x48: max-combined, effect id 0x21 */",
+    ]
+    assert _DISCLAIMED_SEMANTICS.search(_adjacent_comment_text(lines, 2))
+    assert not _DISCLAIMED_SEMANTICS.search(_adjacent_comment_text(lines, 3))

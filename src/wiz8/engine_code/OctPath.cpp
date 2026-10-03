@@ -1019,7 +1019,7 @@ unsigned char W8PathingService::MeasureAttachmentPath(const srVector3T<float>* f
     }
 
     unsigned short cursor = attachment.path_cursor_04;
-    if ((attachment.flags_00 & 0x00080000) != 0) {
+    if ((attachment.flags_00 & W8_NAV_ATTACHMENT_START_WAYPOINT) != 0) {
         --cursor;
     }
     attachment.position_cursor_06 = cursor;
@@ -1333,7 +1333,7 @@ unsigned char W8PathingService::BuildAttachmentPath(W8NavigatorAttachment* attac
             srVector3T<float>* slot = attachment->position_4c + attachment->path_position_index_08;
             *slot = *destination;
             if (((attachment->path_cursor_04 < attachment->path_position_index_08) ||
-                 ((attachment->flags_00 & 0x80000) != 0)) &&
+                 ((attachment->flags_00 & W8_NAV_ATTACHMENT_START_WAYPOINT) != 0)) &&
                 (TestWaypointSpan(attachment->position_4c +
                                       (attachment->path_position_index_08 - 2),
                                   destination, 0, 0) != 0)) {
@@ -1439,8 +1439,8 @@ unsigned char W8PathingService::LinkAttachmentTarget(W8NavigatorAttachment* atta
         attachment->position_1c = attachment->position_4c[attachment->path_position_index_08];
     }
     if (start_waypoint_1d4 != 0) {
-        attachment->position_28 = probe_position_07c;
-        attachment->flags_00 |= 0x80000;
+        attachment->start_waypoint_28 = probe_position_07c;
+        attachment->flags_00 |= W8_NAV_ATTACHMENT_START_WAYPOINT;
     }
     attachment->flags_00 |= 0x20000;
     return 1;
@@ -1630,8 +1630,8 @@ unsigned char W8PathingService::BuildPatrolPath(W8NavigatorAttachment* attachmen
         attachment->position_1c = attachment->position_4c[attachment->path_position_index_08];
     }
     if (start_waypoint_1d4 != 0) {
-        attachment->position_28 = probe_position_07c;
-        attachment->flags_00 |= 0x80000;
+        attachment->start_waypoint_28 = probe_position_07c;
+        attachment->flags_00 |= W8_NAV_ATTACHMENT_START_WAYPOINT;
     }
     attachment->flags_00 |= 0x20000;
     return 1;
@@ -1818,13 +1818,14 @@ void __stdcall StepPathCell(int* x, int* z, int direction)
 
 /* Advance the attachment's probe cursor and accept its next stored waypoint
    only when the live path grid permits the span from the supplied position.
-   Flag 0x80000 makes the first probe repeat the current path index. */
+   W8_NAV_ATTACHMENT_START_WAYPOINT makes the first probe repeat the current path
+   index. */
 // FUNCTION: WIZ8 0x00462de0
 unsigned char W8PathingService::AdvanceAttachmentWaypoint(const srVector3T<float>* source,
                                                           W8NavigatorAttachment* attachment)
 {
     unsigned short cursor = attachment->path_cursor_04;
-    if ((attachment->flags_00 & 0x00080000) != 0) {
+    if ((attachment->flags_00 & W8_NAV_ATTACHMENT_START_WAYPOINT) != 0) {
         --cursor;
     }
     attachment->position_cursor_06 = cursor;
@@ -2194,8 +2195,8 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     srVector3T<float> target;
     if (explicit_target_09c != 0) {
         target = movement->target_position_04c;
-    } else if ((attachment->flags_00 & 0x00080000) != 0) {
-        target = attachment->position_28;
+    } else if ((attachment->flags_00 & W8_NAV_ATTACHMENT_START_WAYPOINT) != 0) {
+        target = attachment->start_waypoint_28;
     } else if (attachment->path_cursor_04 < attachment->path_position_index_08) {
         target = attachment->position_4c[attachment->path_cursor_04];
     } else {
@@ -3091,7 +3092,7 @@ unsigned int W8PathingService::StepAlongPath(W8NavigatorMovementState* movement,
         (attachment->path_values_50[attachment->path_cursor_04] == 0)) {
         unsigned int steer_flags = ((attachment->flags_00 >> 0x17) & 0xffffff01);
         path_parameters_214->SteerFromPathStart(movement, steer_flags);
-        unsigned int destination_flag = attachment->flags_00 & 0x80000;
+        unsigned int destination_flag = attachment->flags_00 & W8_NAV_ATTACHMENT_START_WAYPOINT;
         srVector3T<float>* waypoint;
         if (destination_flag == 0) {
             if (attachment->path_cursor_04 < attachment->path_position_index_08) {
@@ -3100,7 +3101,7 @@ unsigned int W8PathingService::StepAlongPath(W8NavigatorMovementState* movement,
                 waypoint = &attachment->position_1c;
             }
         } else {
-            waypoint = &attachment->position_28;
+            waypoint = &attachment->start_waypoint_28;
         }
         srVector3T<float> target = *waypoint;
         float dx = target.x - movement->position_040.x;
@@ -3109,7 +3110,7 @@ unsigned int W8PathingService::StepAlongPath(W8NavigatorMovementState* movement,
         float distance = sqrt(dx * dx + dy * dy + dz * dz);
         if ((destination_flag != 0) &&
             (distance < static_cast<float>(g_monster_poster_max_distance))) {
-            attachment->flags_00 &= 0xfff7ffff;
+            attachment->flags_00 &= ~W8_NAV_ATTACHMENT_START_WAYPOINT;
         }
         unsigned short cursor = attachment->path_cursor_04;
         if (((cursor == 1) && (1 < attachment->path_position_index_08)) &&
@@ -3118,7 +3119,7 @@ unsigned int W8PathingService::StepAlongPath(W8NavigatorMovementState* movement,
                 ActivateMovementTrigger(movement, 1);
                 ++attachment->path_cursor_04;
             }
-        } else if ((attachment->flags_00 & 0x80000) == 0) {
+        } else if ((attachment->flags_00 & W8_NAV_ATTACHMENT_START_WAYPOINT) == 0) {
             if (cursor == attachment->path_position_index_08) {
                 bool in_range;
                 if (movement->target_location_id_010 < 0) {
@@ -3162,7 +3163,7 @@ unsigned int W8PathingService::StepAlongPath(W8NavigatorMovementState* movement,
     float distance = 0.0f;
     if (stepped == 0) {
         srVector3T<float> target;
-        if ((attachment->flags_00 & 0x80000) == 0) {
+        if ((attachment->flags_00 & W8_NAV_ATTACHMENT_START_WAYPOINT) == 0) {
             if (attachment->path_cursor_04 < attachment->path_position_index_08) {
                 srVector3T<float>* waypoint = attachment->position_4c + attachment->path_cursor_04;
                 target = *waypoint;
@@ -3170,7 +3171,7 @@ unsigned int W8PathingService::StepAlongPath(W8NavigatorMovementState* movement,
                 target = attachment->position_1c;
             }
         } else {
-            target = attachment->position_28;
+            target = attachment->start_waypoint_28;
         }
         float dx = target.x - movement->position_040.x;
         float dy = target.y - movement->position_040.y;
@@ -3796,8 +3797,8 @@ unsigned char W8PathingService::ProbeAttachmentPath(W8NavigatorAttachment* attac
     if (probe_cell_key_078 == 0) {
         return 0;
     }
-    attachment->position_28 = probe_position_07c;
-    attachment->flags_00 |= 0x00080000;
+    attachment->start_waypoint_28 = probe_position_07c;
+    attachment->flags_00 |= W8_NAV_ATTACHMENT_START_WAYPOINT;
     return 1;
 }
 

@@ -884,7 +884,7 @@ float g_navigator_minimum_speed_mode23 = 0.8999999761581421f;
 /* Runtime scale for the camera-sphere radius in the octree trace resolver;
    the retail image carries link-time 1.0 here. */
 // GLOBAL: WIZ8 0x006081f4
-float g_float_006081f4 = 1.0f;
+float g_camera_sphere_radius_scale = 1.0f;
 // GLOBAL: WIZ8 0x00659bf8
 W8GrowableVector<W8Navigator*> g_navigator_group;
 
@@ -1234,8 +1234,8 @@ void W8NavigatorAttachment::CopyPathFrom(const W8NavigatorAttachment* other)
     position_10 = other->position_10;
     position_34 = other->position_10;
     position_1c = other->position_1c;
-    if ((flags_00 & 0x80000) != 0) {
-        position_28 = other->position_28;
+    if ((flags_00 & W8_NAV_ATTACHMENT_START_WAYPOINT) != 0) {
+        start_waypoint_28 = other->start_waypoint_28;
     }
     if (path_position_index_08 + 1 >= capacity_0a) {
         int capacity = (path_position_index_08 / 10 + 1) * 10;
@@ -1257,8 +1257,8 @@ void W8NavigatorAttachment::CopyPathFrom(const W8NavigatorAttachment* other)
 // FUNCTION: WIZ8 0x00456660
 void W8NavigatorAttachment::GetNextPosition(srVector3T<float>* position)
 {
-    if ((flags_00 & 0x80000) != 0) {
-        *position = position_28;
+    if ((flags_00 & W8_NAV_ATTACHMENT_START_WAYPOINT) != 0) {
+        *position = start_waypoint_28;
         return;
     }
     if (path_cursor_04 < path_position_index_08) {
@@ -2175,7 +2175,7 @@ void W8Navigator::UpdateNavigation(unsigned char skip_movement, char slowed)
     if (movement_0c0.attachment_0ac != 0 &&
         movement_0c0.attachment_0ac->path_cursor_04 >=
             movement_0c0.attachment_0ac->path_position_index_08 &&
-        (movement_0c0.attachment_0ac->flags_00 & 0x80000) == 0 &&
+        (movement_0c0.attachment_0ac->flags_00 & W8_NAV_ATTACHMENT_START_WAYPOINT) == 0 &&
         PathAIIsComplete(path_ai_068) != 0) {
         radius_084 = movement_0c0.alternate_radius_0b4;
     }

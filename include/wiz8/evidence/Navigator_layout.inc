@@ -13,7 +13,7 @@ static_assert(offsetof(W8NavigatorAttachment, position_10) == 0x10,
               "W8NavigatorAttachment_position_10");
 static_assert(offsetof(W8NavigatorAttachment, position_1c) == 0x1c,
               "W8NavigatorAttachment_position_1c");
-static_assert(offsetof(W8NavigatorAttachment, position_28) == 0x28,
+static_assert(offsetof(W8NavigatorAttachment, start_waypoint_28) == 0x28,
               "W8NavigatorAttachment_position_28");
 static_assert(offsetof(W8NavigatorAttachment, position_34) == 0x34,
               "W8NavigatorAttachment_position_34");

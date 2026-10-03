@@ -558,8 +558,15 @@ def _placeholder_identifier(name: str) -> bool:
     )
 
 
-def _adjacent_comment(lines: list[str], line: int) -> str:
-    """Words of the trailing or immediately preceding authored comment."""
+_DISCLAIMED_SEMANTICS = re.compile(
+    r"\b(?:unknown|unresolved|unread|never (?:read|consumed)|"
+    r"no (?:recovered |retail )?(?:consumer|reader|writer)s?)\b",
+    re.IGNORECASE,
+)
+
+
+def _adjacent_comment_text(lines: list[str], line: int) -> str:
+    """Raw text of the trailing or immediately preceding authored comment."""
 
     if not 0 < line <= len(lines):
         return ""
@@ -574,6 +581,13 @@ def _adjacent_comment(lines: list[str], line: int) -> str:
             if stripped.startswith(("//", "/*", "*")) or closes_comment:
                 text = stripped
             break
+    return text
+
+
+def _adjacent_comment(lines: list[str], line: int) -> str:
+    """Words of the trailing or immediately preceding authored comment."""
+
+    text = _adjacent_comment_text(lines, line)
     words = re.sub(r"0x[0-9A-Fa-f]+|[^A-Za-z ]", " ", text).lower().split()
     return " ".join(word for word in words if len(word) > 3 and word not in _COMMENT_STOP_WORDS)
 
@@ -593,7 +607,10 @@ def _known_semantics_bad_spelling(
             or not _placeholder_identifier(name)
         ):
             return
-        comment = _adjacent_comment(lines.get(path, []), line)
+        source_lines = lines.get(path, [])
+        if _DISCLAIMED_SEMANTICS.search(_adjacent_comment_text(source_lines, line)):
+            return
+        comment = _adjacent_comment(source_lines, line)
         if comment:
             candidates.setdefault(
                 (owner, name),

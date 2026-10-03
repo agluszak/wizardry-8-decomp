@@ -137,17 +137,17 @@ extern const double g_double_005ee768 = 1500.0;
 /* 0x005EE774: scales the record float into the group-engagement probe
    distance. */
 // GLOBAL: WIZ8 0x005EE774
-extern const float g_float_005ee774 = 333.33333f;
+extern const float g_group_engagement_probe_scale = 333.33333f;
 
 /* 0x005EE77C: 7500.0, the floor added to the engagement range bound the
    group combat checks compare nearest-member distances against. */
 // GLOBAL: WIZ8 0x005EE77C
-extern const float g_float_005ee77c = 7500.0f;
+extern const float g_monster_engagement_range_floor = 7500.0f;
 
 /* 0x005EE780: 1.15, the slack the reinforcement check gives a hostile
    monster's distance to the player before it counts as near the group. */
 // GLOBAL: WIZ8 0x005EE780
-extern const float g_float_005ee780 = 1.15f;
+extern const float g_reinforcement_distance_slack = 1.15f;
 
 /* Reported once, so a monster missing its special-attack cycle does not flood
    the log. */
@@ -1004,7 +1004,7 @@ members:
         }
         if (GetBestMonsterAttackRange(record, 0) <= W8_RANGE_SHORT) {
             distance = member->p3D->GetDistanceToPlayer();
-            if (GetMonsterCombatMoveRange(member) * g_float_005ee774 > distance) {
+            if (GetMonsterCombatMoveRange(member) * g_group_engagement_probe_scale > distance) {
                 if (waypoint_checked == 0) {
                     leader = MonsterInfoFromID(0x4cb, MONSTER_AI_CPP,
                                                monster_group->leader_location_id, 1);
@@ -2114,7 +2114,7 @@ void CheckMonsterGroupsLeaveCombat(void)
                 nearest = GetGroupNearestDistance(group);
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +
                         GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
-                minimum = GetMonsterEngagementRange() + g_float_005ee77c;
+                minimum = GetMonsterEngagementRange() + g_monster_engagement_range_floor;
                 if (reach <= minimum) {
                     reach = minimum;
                 }
@@ -2231,8 +2231,8 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int ho
     if (within_reach != 0) {
         reach = CalcRangeDistance(GetMonsterBestRangeCategory(monster_info, 1, &sight)) +
                 GetMonsterCombatMoveRange(monster_info) * g_float_005ebc64;
-        if (reach <= GetMonsterEngagementRange() + g_float_005ee77c) {
-            reach = GetMonsterEngagementRange() + g_float_005ee77c;
+        if (reach <= GetMonsterEngagementRange() + g_monster_engagement_range_floor) {
+            reach = GetMonsterEngagementRange() + g_monster_engagement_range_floor;
         }
     }
     if (monster_info->player_visibility.sight_state_04 == W8_SIGHT_SEEN &&
@@ -2546,7 +2546,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
                 other->ubDisposition == DISP_HOSTILE) {
                 other_distance = other->p3D->GetDistanceToPlayer();
                 monster_distance = member->p3D->GetDistanceToMonster(other->p3D);
-                if (monster_distance + member_distance < other_distance * g_float_005ee780 &&
+                if (monster_distance + member_distance < other_distance * g_reinforcement_distance_slack &&
                     (member_distance < other_distance || monster_distance < other_distance)) {
                     return 1;
                 }
@@ -2716,7 +2716,7 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                 member->highest_condition < 0x12 && MonsterHasVisibleTarget(member, 0, 4, 1) != 0) {
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +
                         GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
-                minimum = GetMonsterEngagementRange() + g_float_005ee77c;
+                minimum = GetMonsterEngagementRange() + g_monster_engagement_range_floor;
                 if (reach <= minimum) {
                     reach = minimum;
                 }
